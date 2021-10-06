@@ -389,6 +389,7 @@ status_code_e esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi) {
         "ESM-FSM   - Stop retransmission timer %ld " MME_UE_S1AP_ID_FMT "\n",
         ebr_ctx->timer.id, ue_mm_context->mme_ue_s1ap_id);
     esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
+    esm_ebr_timer_data                       = ebr_ctx->args;
     nas_timer_stop(&(ebr_ctx->timer));
     /*
      * Release the retransmisison timer parameters
