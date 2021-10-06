@@ -124,3 +124,11 @@ package. In this context, "clean" means the interface package is defined
 entirely with Golang built-ins and other clean magma interface packages. i.e.
 there are no 3rd party library dependencies, except for test helpers (e.g.
 gomock).
+
+### Troubleshooting
+
+If you have issues running bazel after switching between branches you may need
+to clean your bazel workspace
+```sh
+bazel clean --expunge
+```
