@@ -215,7 +215,7 @@ jobs:
       - name: Tag and push to Jfrog Registry
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "${{ secrets.JFROG_DOCKER_ORC8R_REGISTRY }}"
+          DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
