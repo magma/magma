@@ -37,6 +37,7 @@ static_services: [
   'proxy',
   'ryu_rest_service',
   'startup_flows',
+  'ipv6_solicitation',
 #  'li_mirror',
 #  'packet_tracer',
 ]
