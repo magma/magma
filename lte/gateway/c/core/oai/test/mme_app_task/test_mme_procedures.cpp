@@ -423,9 +423,9 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyUlaFailure) {
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
 
-  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(4);
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(3);
   EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(0);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(2);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
   EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
   EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(1);
   EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(0);
