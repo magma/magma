@@ -164,7 +164,7 @@ Run `yarn test --coverage`
 ## Updating NMS for API Changes
 
 ### How to re-generate MagmaAPIBindings.js
-Run `./build.py -g` in `magma/orc8r/cloud`
+Run `./build.py --generate` in `${MAGMA_ROOT}/orc8r/cloud/docker`
 
 This re-generates various files, including `MagmaAPIBindings.js` for NMS.
 

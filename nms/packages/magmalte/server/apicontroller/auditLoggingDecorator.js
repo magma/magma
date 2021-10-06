@@ -91,10 +91,6 @@ const PATHS: Array<{
     resolver: (_, params) => [params[2], 'Network cellular configs'],
   },
   {
-    path: '/magma/networks/:networkId/configs/wifi',
-    resolver: (_, params) => [params[2], 'Network wifi configs'],
-  },
-  {
     path: '/magma/v1/networks/:networkId',
     resolver: (_, params) => [params[1], 'Network'],
   },
