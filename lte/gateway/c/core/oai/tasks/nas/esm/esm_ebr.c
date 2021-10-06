@@ -288,6 +288,7 @@ status_code_e esm_ebr_start_timer(
     // Re-start the retransmission timer
     nas_timer_stop(&(ebr_ctx->timer));
     nas_timer_start(&(ebr_ctx->timer), cb, &timer_args);
+    esm_ebr_timer_data = ebr_ctx->args;
   } else {
     /*
      * If timer-id is set to NAS_TIMER_INACTIVE_ID and has non-null
