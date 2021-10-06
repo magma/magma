@@ -461,11 +461,19 @@ status_code_e emm_proc_tracking_area_update_request(
                 ue_id);
             OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
           } else {
+            /* Dedicated bearer deletion is not supported yet,
+             * so if delete_session request is sent i.e if default
+             * bearer deletion is triggered in
+             * handle_and_fill_eps_bearer_cntxt_status,
+             * wait for delete session rsp from spgw and then send TAU accept.
+             * Else send TAU accept with the same eps_bearer_context_status
+             * that is received in TAU request.This logic will be changed
+             * after handling dedicated bearer deletion.
+             */
             if (ue_mm_context->nb_delete_sessions) {
-              /* If delete_session request is sent wait for delete session rsp
-               * from spgw and the send TAU accept
-               */
               OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+            } else {
+              ue_mm_context->tau_accept_eps_ber_cntx_status = tau_proc->ies->eps_bearer_context_status;
             }
           }
         } else {
