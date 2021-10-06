@@ -1821,7 +1821,9 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         "Failed to read MME configuration file at path: %s:\n",
         bdata(config_pP->config_file));
   }
-  return mme_config_parse_string(bdata(buff), config_pP);
+  int rc = mme_config_parse_string(bdata(buff), config_pP);
+  bdestroy_wrapper(&buff);
+  return rc;
 }
 
 //------------------------------------------------------------------------------
