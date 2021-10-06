@@ -40,7 +40,7 @@ info:
 basePath: /magma/v1
 
 paths:
-  /lte/{network_id}/subscribers_v2:
+  /lte/{network_id}/subscribers:
     get:
       summary: List subscribers in the network with pagination support
       tags:
