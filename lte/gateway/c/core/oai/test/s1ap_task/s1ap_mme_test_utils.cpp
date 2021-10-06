@@ -50,17 +50,17 @@ status_code_e generate_s1_setup_request_pdu(S1ap_S1AP_PDU_t* pdu_s1) {
   return pdu_rc;
 }
 
-
 void handle_mme_ue_id_notification(s1ap_state_t* s, sctp_assoc_id_t assoc_id) {
-    MessageDef* message_p  = itti_alloc_new_message(
-            TASK_MME_APP, MME_APP_S1AP_MME_UE_ID_NOTIFICATION);
-    itti_mme_app_s1ap_mme_ue_id_notification_t* notification_p = &message_p->ittiMsg.mme_app_s1ap_mme_ue_id_notification;
-    memset(notification_p, 0, sizeof(itti_mme_app_s1ap_mme_ue_id_notification_t));
-    notification_p->enb_ue_s1ap_id = 1;
-    notification_p->mme_ue_s1ap_id = 7;
-    notification_p->sctp_assoc_id  = assoc_id;
-    s1ap_handle_mme_ue_id_notification(s, notification_p);
-    free(message_p);
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_MME_APP, MME_APP_S1AP_MME_UE_ID_NOTIFICATION);
+  itti_mme_app_s1ap_mme_ue_id_notification_t* notification_p =
+      &message_p->ittiMsg.mme_app_s1ap_mme_ue_id_notification;
+  memset(notification_p, 0, sizeof(itti_mme_app_s1ap_mme_ue_id_notification_t));
+  notification_p->enb_ue_s1ap_id = 1;
+  notification_p->mme_ue_s1ap_id = 7;
+  notification_p->sctp_assoc_id  = assoc_id;
+  s1ap_handle_mme_ue_id_notification(s, notification_p);
+  free(message_p);
 }
 
 }  // namespace lte

@@ -13,7 +13,7 @@
 #include "mock_tasks.h"
 
 task_zmq_ctx_t task_zmq_ctx_sctp;
-static std::shared_ptr<MockSctpdHandler> sctpd_handler_;
+static std::shared_ptr<MockSctpHandler> sctp_handler_;
 
 void stop_mock_sctp_task();
 
@@ -28,7 +28,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case SCTP_DATA_REQ: {
-        sctpd_handler_->sctpd_send_dl();
+      sctp_handler_->sctpd_send_dl();
     } break;
 
     case MESSAGE_TEST: {
@@ -53,8 +53,8 @@ void stop_mock_sctp_task() {
   pthread_exit(NULL);
 }
 
-void start_mock_sctp_task(std::shared_ptr<MockSctpdHandler> sctpd_handler) {
-  sctpd_handler_ = sctpd_handler;
+void start_mock_sctp_task(std::shared_ptr<MockSctpHandler> sctp_handler) {
+  sctp_handler_ = sctp_handler;
   init_task_context(TASK_SCTP, nullptr, 0, handle_message, &task_zmq_ctx_sctp);
   zloop_start(task_zmq_ctx_sctp.event_loop);
 }

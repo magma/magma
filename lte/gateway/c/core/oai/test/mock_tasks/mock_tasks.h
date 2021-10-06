@@ -51,9 +51,9 @@ class MockMmeAppHandler {
   MOCK_METHOD0(mme_app_handle_s1ap_ue_context_release_req, void());
 };
 
-class MockSctpdHandler {
-public:
-    MOCK_METHOD0(sctpd_send_dl, void());
+class MockSctpHandler {
+ public:
+  MOCK_METHOD0(sctpd_send_dl, void());
 };
 
 class MockS6aHandler {
@@ -76,7 +76,7 @@ class MockService303Handler {
 
 void start_mock_ha_task();
 void start_mock_s1ap_task(std::shared_ptr<MockS1apHandler>);
-void start_mock_sctp_task(std::shared_ptr<MockSctpdHandler>);
+void start_mock_sctp_task(std::shared_ptr<MockSctpHandler>);
 void start_mock_mme_app_task(std::shared_ptr<MockMmeAppHandler>);
 void start_mock_s6a_task(std::shared_ptr<MockS6aHandler>);
 void start_mock_s11_task();

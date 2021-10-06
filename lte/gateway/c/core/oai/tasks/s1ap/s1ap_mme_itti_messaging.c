@@ -50,7 +50,7 @@ status_code_e s1ap_mme_itti_send_sctp_request(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   SCTP_DATA_REQ(message_p).payload       = *payload;
-  *payload = NULL;
+  *payload                               = NULL;
   SCTP_DATA_REQ(message_p).assoc_id      = assoc_id;
   SCTP_DATA_REQ(message_p).stream        = stream;
   SCTP_DATA_REQ(message_p).agw_ue_xap_id = ue_id;
