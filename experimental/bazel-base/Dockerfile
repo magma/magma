@@ -87,4 +87,6 @@ RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
 #### Update shared library configuration
 RUN ldconfig -v
 
+RUN ln -s /magma/experimental/bazel-base/bazelrcs/docker.bazelrc /etc/bazelrc
+
 WORKDIR /magma

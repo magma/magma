@@ -20,10 +20,8 @@
 			"**/.bazel-cache-repo/**": true,
 		},		
 		"bsv.bazel.buildFlags": [
-			"--config=vm",
 		],
 		"bsv.bazel.testFlags": [
-			"--compilation_mode=dbg",
 		],
 		"bsv.bes.enabled": false,
 		"bsv.bzl.codesearch.enabled": false,
@@ -42,7 +40,7 @@
 		],
 		"clangd.onConfigChanged": "restart",
 		"bsv.cc.compdb.targets": [
-			"//lte/gateway/c/session_manager:sessiond"
+			"//lte/gateway/c/session_manager:sessiond",
 		]
 	},
 }
