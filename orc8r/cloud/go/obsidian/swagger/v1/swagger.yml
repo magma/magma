@@ -8639,6 +8639,16 @@ definitions:
         maxLength: 49
         minLength: 5
         type: string
+      sgi_management_iface_ipv6_addr:
+        description: IPv6 address for management interface on the AGW in CIDR format
+        example: 2001:4860:4860:0:0:0:0:8888/64
+        format: ipv6
+        type: string
+      sgi_management_iface_ipv6_gw:
+        description: IPv6 address of gateway for management interface on the AGW
+        example: 2001:4860:4860:0:0:0:0:1
+        format: ipv6
+        type: string
       sgi_management_iface_static_ip:
         description: IP address for management interface on the AGW, If not specified
           AGW uses DHCP to configure it.
