@@ -1488,7 +1488,6 @@ void sgw_s8_handle_s11_create_bearer_response(
       s11_actv_bearer_rsp, sgw_context_p->pdn_connection.p_gw_teid_S5_S8_cp,
       dedicated_bearer_ctx_p->sgw_sequence_number, pgw_cp_ip_port,
       sgw_context_p->imsi);
-  free_wrapper((void**) &pgw_cp_ip_port);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
