@@ -75,7 +75,7 @@ func TestBuilder_Build(t *testing.T) {
 		cwfGW := configurator.NetworkEntity{
 			Type: cwf.CwfGatewayType, Key: "gw1",
 			Config:             defaultgwConfig,
-			ParentAssociations: storage.TKs{gw.GetTypeAndKey()},
+			ParentAssociations: storage.TKs{gw.GetTK()},
 		}
 		haPair := configurator.NetworkEntity{
 			Config: &models.CwfHaPairConfigs{TransportVirtualIP: "10.10.10.11"},
@@ -89,8 +89,8 @@ func TestBuilder_Build(t *testing.T) {
 		graph := configurator.EntityGraph{
 			Entities: []configurator.NetworkEntity{cwfGW, gw, haPair},
 			Edges: []configurator.GraphEdge{
-				{From: gw.GetTypeAndKey(), To: cwfGW.GetTypeAndKey()},
-				{From: haPair.GetTypeAndKey(), To: cwfGW.GetTypeAndKey()},
+				{From: gw.GetTK(), To: cwfGW.GetTK()},
+				{From: haPair.GetTK(), To: cwfGW.GetTK()},
 			},
 		}
 

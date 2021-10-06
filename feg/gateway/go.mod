@@ -40,10 +40,11 @@ require (
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/thoas/go-funk v0.7.0
-	github.com/wmnsk/go-gtp v0.7.26
+	github.com/wmnsk/go-gtp v0.8.0
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.26.0
+	gotest.tools/gotestsum v1.7.0 // indirect
 	layeh.com/radius v0.0.0-20201203135236-838e26d0c9be
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0

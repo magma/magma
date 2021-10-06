@@ -348,7 +348,7 @@ func (store *sqlBlobStorage) updateExistingBlobs(networkID string, blobsToChange
 	defer sqorc.ClearStatementCacheLogOnError(sc, "updateExistingBlobs")
 
 	// Sort keys for deterministic behavior in tests
-	for _, blobID := range getSortedTypeAndKeys(blobsToChange) {
+	for _, blobID := range getSortedTKs(blobsToChange) {
 		change := blobsToChange[blobID]
 		updatedVersion := change.old.Version + 1
 		if change.new.Version != 0 {
@@ -437,7 +437,7 @@ func partitionBlobsToCreateAndChange(blobsToUpdate Blobs, existingBlobs Blobs) b
 	return ret
 }
 
-func getSortedTypeAndKeys(blobsToChange map[storage.TK]blobChange) storage.TKs {
+func getSortedTKs(blobsToChange map[storage.TK]blobChange) storage.TKs {
 	ret := make(storage.TKs, 0, len(blobsToChange))
 	for k := range blobsToChange {
 		ret = append(ret, k)

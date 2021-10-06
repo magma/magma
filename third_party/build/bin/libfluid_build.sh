@@ -22,7 +22,7 @@ source "${SCRIPT_DIR}"/../lib/util.sh
 
 GIT_VERSION=0.1.0
 ITERATION=1
-PKGVERSION=${GIT_VERSION}.6
+PKGVERSION=${GIT_VERSION}.7
 VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=magma-libfluid
 
@@ -71,9 +71,10 @@ git clone https://github.com/OpenNetworkingFoundation/libfluid_msg.git
 git -C libfluid_msg checkout $LIBFLUID_MSG_COMMIT
 
 pushd libfluid_msg
-git apply "${PATCH_DIR}"/libfluid_msg_patches/TunnelDstPatch.patch
-git apply "${PATCH_DIR}"/libfluid_msg_patches/Add-support-for-setting-OVS-reg8.patch
-git apply "${PATCH_DIR}"/libfluid_msg_patches/Add-Reg-field-match-support.patch
+git apply "${PATCH_DIR}"/libfluid_msg_patches/0001-Add-TunnelIPv4Dst-support.patch
+git apply "${PATCH_DIR}"/libfluid_msg_patches/0002-Add-support-for-setting-OVS-reg8.patch
+git apply "${PATCH_DIR}"/libfluid_msg_patches/0003-Add-Reg-field-match-support.patch
+git apply "${PATCH_DIR}"/libfluid_msg_patches/0004-Add-TunnelIPv6Dst-support.patch
 popd
 
 for repo in libfluid_base libfluid_msg

@@ -193,9 +193,16 @@ func parseDeleteBearerRequest(msg message.Message, senderAddr net.Addr) (*protos
 	}
 
 	// dedicated bearer id
-	if epsBearerId := dbReqGtp.EBI; epsBearerId != nil {
-		dbReq.EpsBearerId = uint32(epsBearerId.MustEPSBearerID())
-	} else {
+	if epsBearerIds := dbReqGtp.EBIs; epsBearerIds != nil {
+		bearersToDelete := []uint32{}
+		for _, epsBearerId := range epsBearerIds {
+			bearersToDelete = append(bearersToDelete, uint32(epsBearerId.MustEPSBearerID()))
+		}
+		dbReq.EpsBearerId = bearersToDelete
+	}
+
+	// check if any bearer was received at all
+	if len(dbReq.EpsBearerId) == 0 && dbReq.LinkedBearerId == 0 {
 		return nil, errorIeMissing(ie.EPSBearerID), nil
 	}
 
@@ -345,8 +352,18 @@ func handleQOStoProto(qosIE *ie.IE) (*protos.QosInformation, error) {
 	return qos, nil
 }
 
-func handleBearerCtx(brCtxIE *ie.IE) (*protos.BearerContext, *protos.GtpError, error) {
+func handleBearerCtx(brCtxsIE []*ie.IE) (*protos.BearerContext, *protos.GtpError, error) {
 	bearerCtx := &protos.BearerContext{}
+	if len(brCtxsIE) == 0 {
+		glog.Errorf("Bearer Context IE present but empty")
+		return bearerCtx, nil, nil
+	}
+	if len(brCtxsIE) > 1 {
+		glog.Warningf("Received more than one bearer not supported. Only using first bearer")
+	}
+	// TODO: support multiple bearers
+	brCtxIE := brCtxsIE[0]
+
 	for _, childIE := range brCtxIE.ChildIEs {
 		switch childIE.Type {
 		case ie.Cause:
