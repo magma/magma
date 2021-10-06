@@ -20,7 +20,7 @@ from artifactory import ArtifactoryPath
 
 # The number of versions kept in the helm repo
 NUMBER_OF_CHARTS = 20
-CHART_NAMES = ('cwf-orc8r', 'feg-orc8r', 'fbinternal-orc8r', 'lte-orc8r', 'orc8r', 'wifi-orc8r')
+CHART_NAMES = ('cwf-orc8r', 'feg-orc8r', 'fbinternal-orc8r', 'lte-orc8r', 'orc8r')
 
 
 def exit_environment_not_set(variable_name):

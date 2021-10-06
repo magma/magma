@@ -21,7 +21,7 @@ jobs:
         uses: fkirc/skip-duplicate-actions@master
         with:
           # Only run the main job for changes including the following paths
-          paths: '["cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/cloud/**", "orc8r/lib/**", "wifi/cloud/**"]'
+          paths: '["cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/cloud/**", "orc8r/lib/**"]'
 
   # Fail if checked-in generated code doesn't match output from
   # generation command.
