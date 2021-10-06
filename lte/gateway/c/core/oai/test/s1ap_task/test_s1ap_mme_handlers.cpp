@@ -155,7 +155,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1SetupRequestFailureReseting) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 }
 
-TEST_F(S1apMmeHandlersTest, HandleICSResponse) {
+TEST_F(S1apMmeHandlersTest, HandleICSResponseICSRelease) {
     ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
 
     // Setup new association for testing
@@ -166,6 +166,7 @@ TEST_F(S1apMmeHandlersTest, HandleICSResponse) {
     setup_new_association(s, assoc_id);
 
     EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
+    EXPECT_CALL(*mme_app_handler, mme_app_handle_s1ap_ue_context_release_req()).Times(1);
 
     S1ap_S1AP_PDU_t pdu_s1;
     memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -245,6 +246,24 @@ TEST_F(S1apMmeHandlersTest, HandleICSResponse) {
     ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_nas);
     ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_ics);
 
+    uint8_t ics_release_bytes[] = {
+            0x00, 0x12, 0x40, 0x15, 0x00, 0x00, 0x03, 0x00,
+            0x00, 0x00, 0x02, 0x00, 0x07, 0x00, 0x08, 0x00,
+            0x02, 0x00, 0x01, 0x00, 0x02, 0x40, 0x02, 0x02,
+            0x80
+    };
+
+    bstring payload_ics_r;
+    payload_ics_r = blk2bstr(&ics_release_bytes, sizeof(ics_release_bytes));
+    S1ap_S1AP_PDU_t pdu_ics_r;
+    memset(&pdu_ics_r, 0, sizeof(pdu_ics_r));
+
+    ASSERT_EQ(s1ap_mme_decode_pdu(&pdu_ics_r, payload_ics_r), RETURNok);
+    ASSERT_EQ( s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu_ics_r), RETURNok);
+
+    bdestroy_wrapper(&payload_ics_r);
+    ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_ics_r);
+
     // Sleep to ensure that messages are received and contexts are released
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 }
@@ -318,6 +337,53 @@ TEST_F(S1apMmeHandlersTest, HandleUECapIndication) {
 
     // Sleep to ensure that messages are received and contexts are released
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+}
+
+TEST_F(S1apMmeHandlersTest, GenerateUEContextReleaseCommand) {
+    // Setup new association for testing
+    s1ap_state_t* s          = S1apStateManager::getInstance().get_state(false);
+    sctp_assoc_id_t assoc_id = 1;
+    sctp_stream_id_t stream_id = 0;
+    setup_new_association(s, assoc_id);
+    ue_description_t ue_ref_p = {.enb_ue_s1ap_id = 1, .mme_ue_s1ap_id = 1, .sctp_assoc_id = assoc_id, .comp_s1ap_id = S1AP_GENERATE_COMP_S1AP_ID(assoc_id, 1)};
+
+    EXPECT_CALL(*sctpd_handler, sctpd_send_dl()).Times(2);
+    EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
+
+    S1ap_S1AP_PDU_t pdu_s1;
+    memset(&pdu_s1, 0, sizeof(pdu_s1));
+    ASSERT_EQ(RETURNok, generate_s1_setup_request_pdu(&pdu_s1));
+    ASSERT_EQ(RETURNok, s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu_s1));
+
+    uint8_t initial_ue_bytes[] = {
+            0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00,
+            0x08, 0x00, 0x02, 0x00, 0x01, 0x00, 0x1a, 0x00,
+            0x20, 0x1f, 0x07, 0x41, 0x71, 0x08, 0x09, 0x10,
+            0x10, 0x00, 0x00, 0x00, 0x00, 0x10, 0x02, 0xe0,
+            0xe0, 0x00, 0x04, 0x02, 0x01, 0xd0, 0x11, 0x40,
+            0x08, 0x04, 0x02, 0x60, 0x04, 0x00, 0x02, 0x1c,
+            0x00, 0x00, 0x43, 0x00, 0x06, 0x00, 0x00, 0xf1,
+            0x10, 0x00, 0x01, 0x00, 0x64, 0x40, 0x08, 0x00,
+            0x00, 0xf1, 0x10, 0x00, 0x00, 0x00, 0xa0, 0x00,
+            0x86, 0x40, 0x01, 0x30};
+
+    bstring payload;
+    payload = blk2bstr(&initial_ue_bytes, sizeof(initial_ue_bytes));
+    S1ap_S1AP_PDU_t pdu;
+    memset(&pdu, 0, sizeof(pdu));
+
+    ASSERT_EQ(RETURNok, s1ap_mme_decode_pdu(&pdu, payload));
+    ASSERT_EQ(RETURNok, s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu));
+
+    // Invalid S1 Cause returns error
+    ASSERT_EQ(RETURNerror, s1ap_mme_generate_ue_context_release_command(s, &ue_ref_p, S1AP_IMPLICIT_CONTEXT_RELEASE, INVALID_IMSI64, assoc_id, stream_id, 1, 1));
+    // Valid S1 Causes passess successfully
+    ASSERT_EQ(RETURNok, s1ap_mme_generate_ue_context_release_command(s, &ue_ref_p, S1AP_INITIAL_CONTEXT_SETUP_FAILED, INVALID_IMSI64, assoc_id, stream_id, 1, 1));
+
+    // Freeing pdu and payload data
+    bdestroy_wrapper(&payload);
+    ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu);
+    ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
 }
 
 }  // namespace lte

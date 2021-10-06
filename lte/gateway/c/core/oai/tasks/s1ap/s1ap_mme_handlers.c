@@ -1338,6 +1338,9 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
       cause_value = S1ap_CauseRadioNetwork_load_balancing_tau_required;
       break;
     default:
+      // Freeing ie and pdu data since it will not be encoded
+      free_wrapper((void**) &ie);
+      ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu);
       OAILOG_ERROR_UE(LOG_S1AP, imsi64, "Unknown cause for context release");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }

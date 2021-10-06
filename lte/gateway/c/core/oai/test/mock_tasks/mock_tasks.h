@@ -48,6 +48,7 @@ class MockS1apHandler {
 class MockMmeAppHandler {
  public:
   MOCK_METHOD0(mme_app_handle_initial_ue_message, void());
+  MOCK_METHOD0(mme_app_handle_s1ap_ue_context_release_req, void());
 };
 
 class MockSctpdHandler {

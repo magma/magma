@@ -81,6 +81,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_UE_CONTEXT_RELEASE_REQ: {
+        mme_app_handler_->mme_app_handle_s1ap_ue_context_release_req();
     } break;
 
     case S1AP_UE_CONTEXT_MODIFICATION_RESPONSE: {
