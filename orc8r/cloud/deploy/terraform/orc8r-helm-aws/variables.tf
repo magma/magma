@@ -85,6 +85,18 @@ variable "deploy_nms" {
   default     = true
 }
 
+variable "nms_replicas" {
+  description = "Replica count for magmalte pods."
+  type        = number
+  default     = 1
+}
+
+variable "nginx_replicas" {
+  description = "Replica count for nginx pods for magmalte."
+  type        = number
+  default     = 1
+}
+
 variable "orc8r_controller_replicas" {
   description = "Replica count for Orchestrator controller pods."
   type        = number

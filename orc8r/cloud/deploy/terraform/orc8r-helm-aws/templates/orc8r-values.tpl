@@ -185,6 +185,8 @@ nms:
     image:
       repository: ${docker_registry}/magmalte
       tag: "${docker_tag}"
+    
+    replicas: ${magmalte_replicas}
 
     env:
       api_host: ${api_hostname}
@@ -210,6 +212,8 @@ nms:
       spec:
         ssl_cert_name: controller.crt
         ssl_cert_key_name: controller.key
+    
+    replicas: ${ui_nginx_replicas}
 
 logging:
   enabled: false

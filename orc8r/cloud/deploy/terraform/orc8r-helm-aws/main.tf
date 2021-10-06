@@ -182,7 +182,10 @@ data "template_file" "orc8r_values" {
     orc8r_db_user    = var.orc8r_db_user
     orc8r_db_pass    = var.orc8r_db_pass
 
-    deploy_nms  = var.deploy_nms
+    deploy_nms          = var.deploy_nms
+    magmalte_replicas   = var.nms_replicas
+    ui_nginx_replicas   = var.nginx_replicas
+    
 
     metrics_pvc_promcfg  = kubernetes_persistent_volume_claim.storage["promcfg"].metadata.0.name
     metrics_pvc_promdata = kubernetes_persistent_volume_claim.storage["promdata"].metadata.0.name
