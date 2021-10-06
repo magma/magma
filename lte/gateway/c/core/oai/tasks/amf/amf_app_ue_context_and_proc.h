@@ -771,7 +771,10 @@ int amf_proc_security_mode_control(
 int amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id);
 void amf_proc_create_procedure_registration_request(
     ue_m5gmm_context_s* ue_ctx, amf_registration_request_ies_t* ies);
+
 amf_procedures_t* nas_new_amf_procedures(amf_context_t* amf_context);
+void amf_nas_proc_clean_up(ue_m5gmm_context_s* ue_context_p);
+
 int amf_proc_amf_information(ue_m5gmm_context_s* ue_amf_ctx);
 int amf_send_registration_accept(amf_context_t* amf_context);
 
@@ -832,7 +835,8 @@ void amf_delete_registration_proc(amf_context_t* amf_txt);
 void amf_delete_registration_ies(amf_registration_request_ies_t** ies);
 void amf_delete_child_procedures(
     amf_context_t* amf_txt, struct nas5g_base_proc_t* const parent_proc);
-void amf_delete_common_procedure(nas_amf_common_proc_t** proc);
+void amf_delete_common_procedure(
+    amf_context_t* amf_ctx, nas_amf_common_proc_t** proc);
 void format_plmn(amf_plmn_t* plmn);
 void amf_ue_context_on_new_guti(
     ue_m5gmm_context_t* ue_context_p, const guti_m5_t* const guti_p);
@@ -849,9 +853,11 @@ void ue_context_update_ue_id(
 ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
     gnb_ue_ngap_id_t gnb_ue_ngap_id);
 
+/* Fetch tmsi from ue id */
+tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id);
+
 int amf_idle_mode_procedure(amf_context_t* amf_ctx);
 void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p);
-
 /************************************************************************
  ** Name:    delete_wrapper()                                         **
  **                                                                   **
@@ -876,4 +882,5 @@ void delete_wrapper(T** pObj) {
   }
 }
 
+void nas_amf_procedure_gc(amf_context_t* amf_ctx);
 }  // namespace magma5g

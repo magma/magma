@@ -1371,8 +1371,8 @@ uint16_t amf_as_establish_cnf(
     m5gmm_state_t state =
         PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->mm_state;
 
-    if ((state != REGISTERED_CONNECTED) &&
-        !(registration_proc->registration_accept_sent)) {
+    if (registration_proc && !(registration_proc->registration_accept_sent) &&
+        (state != REGISTERED_CONNECTED)) {
       /*GNB key, generated in AMF from KAMF and shared with gNB as part of
        * InitialContextSetupRequest*/
       derive_5gkey_gnb(

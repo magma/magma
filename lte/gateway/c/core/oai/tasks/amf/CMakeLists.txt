@@ -54,6 +54,7 @@ add_library(TASK_AMF_APP
     nas5g_message.cpp
     amf_app_timer_management.cpp
     amf_session_manager_pco.cpp
+    amf_client_servicer.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
 )
