@@ -175,6 +175,11 @@ message PipelineD {
     bool enable5g_features = 18;
     string upf_node_identifier = 19;
 
+    // SGi management IPv6 address with network mask
+    string sgi_management_iface_ipv6_addr = 20;
+    // IPv6 address of SGi management network GW
+    string sgi_management_iface_ipv6_gw = 21;
+
     // DEPRECATED
     reserved 4, 11;
 }
