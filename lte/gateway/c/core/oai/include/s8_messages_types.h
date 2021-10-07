@@ -65,7 +65,8 @@ typedef struct s8_delete_bearer_request_s {
   teid_t context_teid;
   ebi_t linked_eps_bearer_id;
   protocol_configuration_options_t pco;
-  ebi_t eps_bearer_id;  // List of eps bearer IDs to
-                        // deactivate
+  uint8_t num_eps_bearer_id;
+  ebi_t eps_bearer_id[BEARERS_PER_UE];  // List of eps bearer IDs to
+                                        // deactivate
 } s8_delete_bearer_request_t;
 

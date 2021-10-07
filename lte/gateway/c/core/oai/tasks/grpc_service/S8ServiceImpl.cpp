@@ -109,7 +109,10 @@ static void convert_proto_msg_to_itti_delete_bearer_req(
   itti_msg_db_req->sequence_number      = request->sequence_number();
   itti_msg_db_req->context_teid         = request->c_agw_teid();
   itti_msg_db_req->linked_eps_bearer_id = request->linked_bearer_id();
-  itti_msg_db_req->eps_bearer_id        = request->eps_bearer_id();
+  for (int i = 0; i < request->eps_bearer_id_size(); i++) {
+    itti_msg_db_req->eps_bearer_id[i] = request->eps_bearer_id(i);
+    itti_msg_db_req->num_eps_bearer_id++;
+  }
   get_pco_from_proto_msg(
       request->protocol_configuration_options(), &itti_msg_db_req->pco);
 }

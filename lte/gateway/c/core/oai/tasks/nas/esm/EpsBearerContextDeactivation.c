@@ -284,7 +284,6 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
   ue_mm_context_t* ue_context_p = NULL;
   bool delete_default_bearer    = false;
   int bid                       = BEARERS_PER_UE;
-  teid_t s_gw_teid_s11_s4       = 0;
 
   ue_context_p =
       PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
@@ -323,8 +322,6 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
 
-  s_gw_teid_s11_s4 = ue_context_p->pdn_contexts[pid]->s_gw_teid_s11_s4;
-
   // If bearer id == 0, default bearer is deleted
   if (ue_context_p->pdn_contexts[pid]->default_ebi == ebi) {
     delete_default_bearer = true;
@@ -358,8 +355,8 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
   if (!emm_context_p->esm_ctx.is_pdn_disconnect) {
     // Send delete dedicated bearer response to SPGW
     send_delete_dedicated_bearer_rsp(
-        ue_context_p, delete_default_bearer, &ebi, 1, s_gw_teid_s11_s4,
-        REQUEST_ACCEPTED);
+        ue_context_p, delete_default_bearer, &ebi, 1,
+        ue_context_p->pdn_contexts[pid], REQUEST_ACCEPTED);
   }
 
   // Reset is_pdn_disconnect flag
@@ -501,8 +498,8 @@ status_code_e eps_bearer_deactivate_t3495_handler(
       if (!ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) {
         // Send delete_dedicated_bearer_rsp to SPGW
         send_delete_dedicated_bearer_rsp(
-            ue_mm_context, delete_default_bearer, &ebi, 1, s_gw_teid_s11_s4,
-            UE_NOT_RESPONDING);
+            ue_mm_context, delete_default_bearer, &ebi, 1,
+            ue_mm_context->pdn_contexts[pdn_id], UE_NOT_RESPONDING);
       }
       // Reset is_pdn_disconnect flag
       if (ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) {

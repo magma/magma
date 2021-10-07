@@ -619,19 +619,29 @@ static void fill_s8_delete_bearer_response(
     uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   proto_db_rsp->Clear();
-  proto_db_rsp->set_pgwaddrs(pgw_cp_address, strlen(pgw_cp_address));
+  if (pgw_cp_address) {
+    proto_db_rsp->set_pgwaddrs(pgw_cp_address, strlen(pgw_cp_address));
+    free(pgw_cp_address);
+  }
   proto_db_rsp->set_imsi(reinterpret_cast<char*>(imsi.digit), imsi.length);
   proto_db_rsp->set_sequence_number(sequence_number);
   proto_db_rsp->set_c_pgw_teid(pgw_s8_teid);
-  proto_db_rsp->set_linked_bearer_id(*(itti_msg->lbi));
+  if (itti_msg->lbi) {
+    proto_db_rsp->set_linked_bearer_id(*(itti_msg->lbi));
+  }
   convert_pco_to_proto_msg(
       itti_msg->pco, proto_db_rsp->mutable_protocol_configuration_options());
   proto_db_rsp->set_cause(itti_msg->cause.cause_value);
 
-  proto_db_rsp->mutable_bearer_context()->set_cause(
-      itti_msg->bearer_contexts.bearer_contexts[0].cause.cause_value);
-  proto_db_rsp->mutable_bearer_context()->set_id(
-      itti_msg->bearer_contexts.bearer_contexts[0].eps_bearer_id);
+  for (uint8_t idx = 0; idx < itti_msg->bearer_contexts.num_bearer_context;
+       idx++) {
+    magma::feg::BearerContext* bearer_context =
+        proto_db_rsp->add_bearer_context();
+    bearer_context->set_cause(
+        itti_msg->bearer_contexts.bearer_contexts[idx].cause.cause_value);
+    bearer_context->set_id(
+        itti_msg->bearer_contexts.bearer_contexts[idx].eps_bearer_id);
+  }
 
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
