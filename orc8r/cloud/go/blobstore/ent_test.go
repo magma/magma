@@ -24,30 +24,45 @@ import (
 	magmaerrors "magma/orc8r/lib/go/errors"
 )
 
+/**
+	Things to considering adding to Test:
+		- Rollback
+		- Search
+ */
+
 func TestSQLToEntMigration(t *testing.T) {
+	// Spin up a SQL Blob Storage Factory
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	require.NoError(t, err)
 	fact := blobstore.NewSQLBlobStorageFactory("states", db, sqorc.GetSqlBuilder())
 	err = fact.InitializeFactory()
 	require.NoError(t, err)
+
+	// Set up a transaction
 	storev1, err := fact.StartTransaction(nil)
 	require.NoError(t, err)
 	blobs := blobstore.Blobs{
-		{Type: "type1", Key: "key1", Value: []byte("value")},
-		{Type: "type2", Key: "key2", Value: []byte("value")},
-		{Type: "type1", Key: "key2", Value: []byte("value")},
+		{Type: "type1", Key: "key1", Value: []byte("value1")},
+		{Type: "type1", Key: "key2", Value: []byte("value2")},
+		{Type: "type2", Key: "key3", Value: []byte("value3")},
+		{Type: "type3", Key: "key3", Value: []byte("value4")},
+		{Type: "type4", Key: "key4", Value: []byte("value5")},
 	}
 	err = storev1.CreateOrUpdate("id1", blobs)
 	require.NoError(t, err)
 
+	// Check that transaction went through
 	many, err := storev1.GetMany("id1", storage.TKs{
 		{Type: "type1", Key: "key1"},
-		{Type: "type2", Key: "key2"},
+		{Type: "type1", Key: "key2"},
+		{Type: "type3", Key: "key3"},
 	})
+	expectedMany := append(blobs[:2], blobs[3])
 	require.NoError(t, err)
-	require.Len(t, many, 2)
-	require.Equal(t, blobs[:2], many)
+	require.Len(t, many, 3)
+	require.Equal(t, expectedMany, many)
 
+	//
 	keys, err := storev1.GetExistingKeys([]string{"key1"}, blobstore.SearchFilter{})
 	require.NoError(t, err)
 	require.Equal(t, []string{"key1"}, keys)
