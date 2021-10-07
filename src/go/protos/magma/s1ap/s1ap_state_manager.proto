@@ -1,0 +1,43 @@
+/*
+Copyright 2021 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.lte;
+
+option go_package = "src/go/protos/magma/s1ap";
+
+// S1apStateManagerService keeps track of the association ids of enodebs that are currently connected
+service S1apStateManagerService {
+  // Connect handles an S1AP Connection Request
+  rpc Connect (ConnectRequest) returns (ConnectResponse) {}
+  // Disconnect handles an S1AP Disconnection Request
+  rpc Disconnect (DisconnectRequest) returns (DisconnectResponse) {}
+}
+
+message ConnectRequest {
+  // s1ap association id
+  uint32 assoc_id = 1;
+}
+
+message ConnectResponse{
+  // s1ap association id
+  uint32 assoc_id = 1;
+}
+
+message DisconnectRequest {
+  // s1ap association id
+  uint32 assoc_id = 1;
+}
+
+message DisconnectResponse {}

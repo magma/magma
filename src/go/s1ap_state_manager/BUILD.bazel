@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "s1ap_state_manager",
+    srcs = [
+        "s1ap_handlers.go",
+        "s1ap_state_manager.go",
+    ],
+    importpath = "github.com/magma/magma/src/go/s1ap_state_manager",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "s1ap_state_manager_test",
+    srcs = [
+        "s1ap_handlers_test.go",
+        "s1ap_state_manager_test.go",
+    ],
+    embed = [":s1ap_state_manager"],
+)
