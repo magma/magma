@@ -243,7 +243,7 @@ export async function setSubscriberState(props: SubscriberStateProps) {
     } else {
       await MagmaV1API.postLteByNetworkIdSubscribers({
         networkId,
-        subscriber: value,
+        subscribers: [value],
       });
     }
     setSubscriberMap({...subscriberMap, [key]: value});
