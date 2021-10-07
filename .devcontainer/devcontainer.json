@@ -18,7 +18,7 @@
 		"stackbuild.bazel-stack-vscode-cc",
 		"augustocdias.tasks-shell-input",
 	],
-	"image": "ghcr.io/magma/devcontainer:sha-6c9b920",
+	"image": "ghcr.io/magma/devcontainer:sha-007ddb9",
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash",
 		"files.watcherExclude": {
