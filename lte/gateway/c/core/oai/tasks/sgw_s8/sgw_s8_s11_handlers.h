@@ -102,3 +102,8 @@ void sgw_s8_proc_s11_create_bearer_rsp(
     sgw_state_t* sgw_state);
 
 void print_bearer_ids_helper(const ebi_t* ebi, uint32_t no_of_bearers);
+
+void sgw_s8_send_failed_delete_bearer_response(
+    sgw_state_t* sgw_state, uint32_t sequence_number, char* pgw_cp_address,
+    gtpv2c_cause_value_t cause_value, Imsi_t imsi, teid_t pgw_s8_teid,
+    ebit_t ebi);

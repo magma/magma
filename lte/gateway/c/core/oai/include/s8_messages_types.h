@@ -69,4 +69,3 @@ typedef struct s8_delete_bearer_request_s {
   ebi_t eps_bearer_id[BEARERS_PER_UE];  // List of eps bearer IDs to
                                         // deactivate
 } s8_delete_bearer_request_t;
-

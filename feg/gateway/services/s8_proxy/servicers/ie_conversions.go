@@ -152,20 +152,26 @@ func buildDeleteBearerResMsg(res *protos.DeleteBearerResponsePgw) (message.Messa
 	}
 
 	// create message and add bearers
-	newMessage := []*ie.IE{
+	response := []*ie.IE{
 		ie.NewCause(uint8(res.Cause), 0, 0, 0, nil),
-		ie.NewEPSBearerID(uint8(res.LinkedBearerId)).WithInstance(0),
 		getProtocolConfigurationOptions(res.ProtocolConfigurationOptions),
 	}
+
+	// add LBI only if included
+	if res.LinkedBearerId != 0 {
+		response = append(response, ie.NewEPSBearerID(uint8(res.LinkedBearerId)).WithInstance(0))
+	}
+
+	// add EBIs only if included
 	for _, bearerCtx := range res.BearerContext {
 		bearerCause := ie.NewCause(uint8(bearerCtx.Cause), 0, 0, 0, nil)
 		bearerId := ie.NewEPSBearerID(uint8(bearerCtx.Id))
 		bearer := ie.NewBearerContext(bearerId, bearerCause)
-		newMessage = append(newMessage, bearer)
+		response = append(response, bearer)
 	}
 
 	return message.NewDeleteBearerResponse(
-		res.CPgwTeid, res.SequenceNumber, newMessage...), nil
+		res.CPgwTeid, res.SequenceNumber, response...), nil
 }
 
 func buildCreateBearerResWithErrorCauseMsg(cause uint32, cPgwTeid uint32, seq uint32) message.Message {

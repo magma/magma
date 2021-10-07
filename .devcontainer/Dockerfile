@@ -313,4 +313,6 @@ RUN go get -v golang.org/x/tools/gopls
 #### Update shared library configuration
 RUN ldconfig -v
 
+RUN ln -s /magma/experimental/bazel-base/bazelrcs/devcontainer.bazelrc /etc/bazelrc
+
 WORKDIR /workspaces/magma

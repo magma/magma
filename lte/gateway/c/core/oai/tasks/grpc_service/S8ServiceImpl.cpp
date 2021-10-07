@@ -150,5 +150,4 @@ grpc::Status S8ServiceImpl::DeleteBearerRequest(
   }
   return grpc::Status::OK;
 }
-
 }  // namespace magma

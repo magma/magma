@@ -1569,6 +1569,7 @@ imsi64_t sgw_s8_handle_delete_bearer_request(
         "Sending dedicated bearer deactivation reject to NW\n");
     print_bearer_ids_helper(invalid_bearer_id, no_of_bearers_rej);
     /*TODO Rashmi send failed response */
+    sgw_s8_send_failed_delete_bearer_response(sgw_state, );
     /* rc = send_dedicated_bearer_deactv_rsp(invalid_bearer_id,
          REQUEST_REJECTED);*/
   }
@@ -1635,7 +1636,7 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
           *(s11_delete_bearer_response_p->lbi));
       OAILOG_FUNC_RETURN(LOG_SGW_S8, rc);
     }
-    sequence_number = eps_bearer_ctxt_p->sgw_sequence_number;
+    sequence_number         = eps_bearer_ctxt_p->sgw_sequence_number;
     uint8_t pgw_ip_port_len = strlen(eps_bearer_ctxt_p->pgw_cp_ip_port) + 1;
     pgw_cp_ip_port          = calloc(1, pgw_ip_port_len);
     memcpy(pgw_cp_ip_port, eps_bearer_ctxt_p->pgw_cp_ip_port, pgw_ip_port_len);
@@ -1652,61 +1653,58 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
     uint32_t no_of_bearers =
         s11_delete_bearer_response_p->bearer_contexts.num_bearer_context;
     for (uint8_t i = 0; i < no_of_bearers; i++) {
-        ebi = s11_delete_bearer_response_p->bearer_contexts.bearer_contexts[i]
-                  .eps_bearer_id;
-        eps_bearer_ctxt_p =
-            sgw_cm_get_eps_bearer_entry(&sgw_context_p->pdn_connection, ebi);
-        if (eps_bearer_ctxt_p) {
-          OAILOG_INFO_UE(
-              LOG_SPGW_APP, imsi64, "Removed bearer context for (ebi = %u)\n",
-              ebi);
-          struct in6_addr* ue_ipv6 = NULL;
-          if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
-              (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
-            ue_ipv6 = &eps_bearer_ctxt_p->paa.ipv6_address;
-          }
-          struct in_addr ue_ipv4 = eps_bearer_ctxt_p->paa.ipv4_address;
-          struct in_addr enb     = {.s_addr = 0};
-          struct in_addr pgw     = {.s_addr = 0};
-          enb.s_addr =
-              eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
-          pgw.s_addr = eps_bearer_ctxt_p->p_gw_address_in_use_up.address
-                           .ipv4_address.s_addr;
-          OAILOG_INFO_UE(
-              LOG_SGW_S8, imsi64,
-              "Successfully created new EPS bearer entry with enb_ip:%x "
-              "pgw_ip :%x"
-              "sgw_enb_s1u_teid :" TEID_FMT "sgw_s5s8u_teid " TEID_FMT "\n",
-              enb.s_addr, pgw.s_addr,
-              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-              eps_bearer_ctxt_p->s_gw_teid_S5_S8_up);
-
-          rc = gtpv1u_del_s8_tunnel(
-              enb, pgw, ue_ipv4, ue_ipv6,
-              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-              eps_bearer_ctxt_p->s_gw_teid_S5_S8_up);
-          if (rc != RETURNok) {
-            OAILOG_ERROR_UE(
-                LOG_SPGW_APP, imsi64,
-                "ERROR in deleting TUNNEL " TEID_FMT
-                " (eNB) <-> (SGW) " TEID_FMT "\n",
-                eps_bearer_ctxt_p->s_gw_teid_S5_S8_up,
-                eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
-          }
-
-          uint8_t pgw_ip_port_len =
-              strlen(eps_bearer_ctxt_p->pgw_cp_ip_port) + 1;
-          pgw_cp_ip_port = calloc(1, pgw_ip_port_len);
-          memcpy(
-              pgw_cp_ip_port, eps_bearer_ctxt_p->pgw_cp_ip_port,
-              pgw_ip_port_len);
-          sequence_number = eps_bearer_ctxt_p->sgw_sequence_number;
-          sgw_free_eps_bearer_context(&eps_bearer_ctxt_p);
-          sgw_context_p->pdn_connection
-              .sgw_eps_bearers_array[EBI_TO_INDEX(ebi)] = NULL;
-
-          break;
+      ebi = s11_delete_bearer_response_p->bearer_contexts.bearer_contexts[i]
+                .eps_bearer_id;
+      eps_bearer_ctxt_p =
+          sgw_cm_get_eps_bearer_entry(&sgw_context_p->pdn_connection, ebi);
+      if (eps_bearer_ctxt_p) {
+        OAILOG_INFO_UE(
+            LOG_SPGW_APP, imsi64, "Removed bearer context for (ebi = %u)\n",
+            ebi);
+        struct in6_addr* ue_ipv6 = NULL;
+        if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
+            (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
+          ue_ipv6 = &eps_bearer_ctxt_p->paa.ipv6_address;
         }
+        struct in_addr ue_ipv4 = eps_bearer_ctxt_p->paa.ipv4_address;
+        struct in_addr enb     = {.s_addr = 0};
+        struct in_addr pgw     = {.s_addr = 0};
+        enb.s_addr =
+            eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
+        pgw.s_addr = eps_bearer_ctxt_p->p_gw_address_in_use_up.address
+                         .ipv4_address.s_addr;
+        OAILOG_INFO_UE(
+            LOG_SGW_S8, imsi64,
+            "Successfully created new EPS bearer entry with enb_ip:%x "
+            "pgw_ip :%x"
+            "sgw_enb_s1u_teid :" TEID_FMT "sgw_s5s8u_teid " TEID_FMT "\n",
+            enb.s_addr, pgw.s_addr, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+            eps_bearer_ctxt_p->s_gw_teid_S5_S8_up);
+
+        rc = gtpv1u_del_s8_tunnel(
+            enb, pgw, ue_ipv4, ue_ipv6,
+            eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+            eps_bearer_ctxt_p->s_gw_teid_S5_S8_up);
+        if (rc != RETURNok) {
+          OAILOG_ERROR_UE(
+              LOG_SPGW_APP, imsi64,
+              "ERROR in deleting TUNNEL " TEID_FMT " (eNB) <-> (SGW) " TEID_FMT
+              "\n",
+              eps_bearer_ctxt_p->s_gw_teid_S5_S8_up,
+              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+        }
+
+        uint8_t pgw_ip_port_len = strlen(eps_bearer_ctxt_p->pgw_cp_ip_port) + 1;
+        pgw_cp_ip_port          = calloc(1, pgw_ip_port_len);
+        memcpy(
+            pgw_cp_ip_port, eps_bearer_ctxt_p->pgw_cp_ip_port, pgw_ip_port_len);
+        sequence_number = eps_bearer_ctxt_p->sgw_sequence_number;
+        sgw_free_eps_bearer_context(&eps_bearer_ctxt_p);
+        sgw_context_p->pdn_connection.sgw_eps_bearers_array[EBI_TO_INDEX(ebi)] =
+            NULL;
+
+        break;
+      }
     }
   }
   send_s8_delete_bearer_response(
@@ -1715,4 +1713,3 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
       pgw_cp_ip_port, sgw_context_p->imsi);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
-

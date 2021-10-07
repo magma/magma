@@ -514,6 +514,8 @@ export type gateway_epc_configs = {
     ipv6_prefix_allocation_mode ? : "RANDOM" | "HASH",
     nat_enabled: boolean,
     sgi_management_iface_gw ? : string,
+    sgi_management_iface_ipv6_addr ? : string,
+    sgi_management_iface_ipv6_gw ? : string,
     sgi_management_iface_static_ip ? : string,
     sgi_management_iface_vlan ? : string,
     subscriberdb_sync_interval ? : subscriberdb_sync_interval,

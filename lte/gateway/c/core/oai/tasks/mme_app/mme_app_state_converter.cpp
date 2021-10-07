@@ -184,7 +184,7 @@ void MmeNasStateConverter::proto_to_guti_table(
 
     mme_app_convert_string_to_guti(guti.get(), kv.first);
     hashtable_rc_t ht_rc = obj_hashtable_uint64_ts_insert(
-        guti_htbl, guti.get(), sizeof(*(guti.get())), mme_ue_id);
+        guti_htbl, guti.get(), sizeof(guti_t), mme_ue_id);
     if (ht_rc != HASH_TABLE_OK) {
       OAILOG_ERROR(
           LOG_MME_APP,

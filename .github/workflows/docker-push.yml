@@ -3,7 +3,7 @@ name: "Dockerfile Push"
 on:  # yamllint disable-line rule:truthy
   push:
     branches:
-      -master
+      - master
     paths:
       - .devcontainer/Dockerfile
       - .github/workflows/docker-push.yml
