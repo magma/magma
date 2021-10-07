@@ -36,17 +36,10 @@ class NGAPClientServicerBase {
 };
 
 class NGAPClientServicer : public NGAPClientServicerBase {
- private:
-  bool mock_feature;
-
  public:
   NGAPClientServicer();
 
   static NGAPClientServicer& getInstance();
-
-  void set_mock_feature(bool val);
-
-  bool is_mock_feature_enabled();
 
   NGAPClientServicer(NGAPClientServicer const&) = delete;
   void operator=(NGAPClientServicer const&) = delete;

@@ -25,10 +25,7 @@ using ::testing::Test;
 
 namespace magma5g {
 TEST(test_ngap_handle_new_association, empty_initial_state) {
-  amf_config_init(&amf_config);
-  ngap_state_init(2, 2, false);
-  ngap_state_t* state = NULL;
-  state               = get_ngap_state(false);
+  ngap_state_t* state = create_ngap_state(2, 2);
 
   bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
   sctp_new_peer_t p     = {
@@ -57,5 +54,8 @@ TEST(test_ngap_handle_new_association, empty_initial_state) {
   EXPECT_EQ(state->num_gnbs, 1);
 
   bdestroy(ran_cp_ipaddr);
+
+  free_ngap_state(state);
 }
+
 }  // namespace magma5g

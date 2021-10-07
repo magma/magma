@@ -19,9 +19,7 @@ extern "C" {
 
 namespace magma5g {
 
-NGAPClientServicer::NGAPClientServicer() {
-  mock_feature = false;
-}
+NGAPClientServicer::NGAPClientServicer() {}
 
 NGAPClientServicer& NGAPClientServicer::getInstance() {
   static NGAPClientServicer instance;
@@ -29,27 +27,19 @@ NGAPClientServicer& NGAPClientServicer::getInstance() {
   return instance;
 }
 
-void NGAPClientServicer::set_mock_feature(bool val) {
-  mock_feature = val;
-}
-
-bool NGAPClientServicer::is_mock_feature_enabled() {
-  return mock_feature;
-}
-
 status_code_e NGAPClientServicer::send_message_to_amf(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
     MessageDef* message) {
-  OAILOG_DEBUG(
-      LOG_NGAP, " Is Mock Enabled %d\n",
-      NGAPClientServicer::getInstance().is_mock_feature_enabled());
-
-  if (NGAPClientServicer::getInstance().is_mock_feature_enabled()) {
-    free(message);
-    return (RETURNok);
-  }
-
+#if !MME_UNIT_TEST
   return (send_msg_to_task(task_zmq_ctx_p, destination_task_id, message));
+#else  /* !MME_UNIT_TEST */
+  OAILOG_DEBUG(LOG_NGAP, " Mock is Enabled \n");
+  if (message->ittiMsgHeader.messageId == NGAP_INITIAL_UE_MESSAGE) {
+    bdestroy(NGAP_INITIAL_UE_MESSAGE(message).nas);
+  }
+  free(message);
+  return (RETURNok);
+#endif /* !MME_UNIT_TEST */
 }
 
 }  // namespace magma5g

@@ -13,7 +13,8 @@ add_executable(ngap_test
         util_ngap_initiate_ue.cpp
         util_ngap_amf_nas_procedures.cpp
         test_ngap_encode_decode.cpp
-        test_ngap_handle_new_association.cpp) 
+        test_ngap_handle_new_association.cpp
+        test_ngap_flows.cpp)
 
 target_link_libraries(ngap_test
         TASK_NGAP TASK_AMF_APP LIB_BSTR

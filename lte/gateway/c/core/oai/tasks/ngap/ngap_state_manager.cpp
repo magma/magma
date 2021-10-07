@@ -61,25 +61,34 @@ void NgapStateManager::init(
   is_initialized = true;
 }
 
-void NgapStateManager::create_state() {
+ngap_state_t* create_ngap_state(uint32_t max_gnbs, uint32_t max_ues) {
   bstring ht_name;
 
-  state_cache_p = (ngap_state_t*) calloc(1, sizeof(ngap_state_t));
+  ngap_state_t* state_cache_p =
+      static_cast<ngap_state_t*>(calloc(1, sizeof(ngap_state_t)));
 
   ht_name = bfromcstr(NGAP_GNB_COLL);
   hashtable_ts_init(
-      &state_cache_p->gnbs, max_gnbs_, nullptr, free_wrapper, ht_name);
-
-  state_ue_ht = hashtable_ts_create(max_ues_, nullptr, free_wrapper, ht_name);
+      &state_cache_p->gnbs, max_gnbs, nullptr, free_wrapper, ht_name);
   bdestroy(ht_name);
 
   ht_name = bfromcstr(NGAP_AMF_ID2ASSOC_ID_COLL);
   hashtable_ts_init(
-      &state_cache_p->amfid2associd, max_ues_, nullptr, hash_free_int_func,
+      &state_cache_p->amfid2associd, max_ues, nullptr, hash_free_int_func,
       ht_name);
   bdestroy(ht_name);
 
   state_cache_p->num_gnbs = 0;
+  return state_cache_p;
+}
+
+void NgapStateManager::create_state() {
+  state_cache_p = create_ngap_state(max_gnbs_, max_ues_);
+
+  bstring ht_name;
+  ht_name     = bfromcstr(NGAP_GNB_COLL);
+  state_ue_ht = hashtable_ts_create(max_ues_, nullptr, free_wrapper, ht_name);
+  bdestroy(ht_name);
 
   create_ngap_imsi_map();
 }

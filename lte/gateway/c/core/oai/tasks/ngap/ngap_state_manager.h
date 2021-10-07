@@ -46,6 +46,17 @@ constexpr char NGAP_TASK_NAME[]   = "NGAP";
 namespace magma5g {
 
 /**
+ * create_ngap_state allocates a new ngap_state_t struct and initializes
+ * its properties.
+ */
+ngap_state_t* create_ngap_state(uint32_t max_enbs, uint32_t max_ues);
+
+/**
+ * free_ngap_state deallocates a s1ap_state_t struct and its properties.
+ */
+void free_ngap_state(ngap_state_t* state_cache_p);
+
+/**
  * NGapStateManager is a thread safe singleton class that contains functions
  * to maintain NGAP task state, allocating and freeing related state structs.
  */
@@ -114,5 +125,4 @@ class NgapStateManager
   std::size_t ngap_imsi_map_hash_;
 };
 
-void free_ngap_state(ngap_state_t* state_cache_p);
 }  // namespace magma5g

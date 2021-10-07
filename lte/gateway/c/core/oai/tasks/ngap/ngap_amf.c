@@ -108,6 +108,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
             SCTP_DATA_IND(received_message_p).stream, &pdu);
       }
 
+      ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &pdu);
+
       // Free received PDU array
       bdestroy_wrapper(&SCTP_DATA_IND(received_message_p).payload);
 
