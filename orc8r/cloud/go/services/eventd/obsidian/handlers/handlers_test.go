@@ -18,10 +18,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	eventdC "magma/orc8r/cloud/go/services/eventd/eventd_client"
-
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
+
+	eventdC "magma/orc8r/cloud/go/services/eventd/eventd_client"
 )
 
 type queryParamTestCase struct {

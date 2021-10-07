@@ -82,7 +82,7 @@
 #define MME_CONFIG_STRING_STATS_TIMER "STATS_TIMER_SEC"
 
 #define MME_CONFIG_STRING_USE_STATELESS "USE_STATELESS"
-#define MME_CONFIG_STRING_ENABLE_CONVERGED_CORE "ENABLE_CONVERGED_CORE"
+#define MME_CONFIG_STRING_ENABLE5G_FEATURES "ENABLE5G_FEATURES"
 #define MME_CONFIG_STRING_FULL_NETWORK_NAME "FULL_NETWORK_NAME"
 #define MME_CONFIG_STRING_SHORT_NETWORK_NAME "SHORT_NETWORK_NAME"
 #define MME_CONFIG_STRING_DAYLIGHT_SAVING_TIME "DAYLIGHT_SAVING_TIME"
@@ -103,6 +103,9 @@
 #define EPS_NETWORK_FEATURE_SUPPORT_EXTENDED_SERVICE_REQUEST                   \
   "EPS_NETWORK_FEATURE_SUPPORT_EXTENDED_SERVICE_REQUEST"
 
+#define MME_CONFIG_STRING_ACCEPT_COMBINED_ATTACH_TAU_WO_CSFB                   \
+  "ACCEPT_COMBINED_ATTACH_TAU_WO_CSFB"
+
 #define MME_CONFIG_STRING_INTERTASK_INTERFACE_CONFIG "INTERTASK_INTERFACE"
 #define MME_CONFIG_STRING_INTERTASK_INTERFACE_QUEUE_SIZE "ITTI_QUEUE_SIZE"
 
@@ -112,8 +115,12 @@
 #define MME_CONFIG_STRING_S6A_HSS_REALM "HSS_REALM"
 
 #define MME_CONFIG_STRING_SCTP_CONFIG "SCTP"
-#define MME_CONFIG_STRING_SCTP_INSTREAMS "SCTP_INSTREAMS"
-#define MME_CONFIG_STRING_SCTP_OUTSTREAMS "SCTP_OUTSTREAMS"
+#define MME_CONFIG_STRING_SCTP_UPSTREAM_SOCK "SCTP_UPSTREAM_SOCK"
+#define MME_CONFIG_STRING_SCTP_UPSTREAM_SOCK_DEFAULT                           \
+  "unix:///tmp/sctpd_upstream.sock"
+#define MME_CONFIG_STRING_SCTP_DOWNSTREAM_SOCK "SCTP_DOWNSTREAM_SOCK"
+#define MME_CONFIG_STRING_SCTP_DOWNSTREAM_SOCK_DEFAULT                         \
+  "unix:///tmp/sctpd_downstream.sock"
 
 #define MME_CONFIG_STRING_S1AP_CONFIG "S1AP"
 #define MME_CONFIG_STRING_S1AP_OUTCOME_TIMER "S1AP_OUTCOME_TIMER"
@@ -263,8 +270,8 @@ typedef struct partial_list_s {
 } partial_list_t;
 
 typedef struct sctp_config_s {
-  uint16_t in_streams;
-  uint16_t out_streams;
+  bstring upstream_sctp_sock;
+  bstring downstream_sctp_sock;
 } sctp_config_t;
 
 typedef struct s1ap_config_s {
@@ -434,7 +441,8 @@ typedef struct mme_config_s {
   bool use_stateless;
   bool use_ha;
   bool enable_gtpu_private_ip_correction;
-  bool enable_converged_core;
+  bool enable5g_features;
+  bool accept_combined_attach_tau_wo_csfb;
 
   bool enable_congestion_control;
   long s1ap_zmq_th;
@@ -453,9 +461,11 @@ int mme_config_find_mnc_length(
 void mme_config_init(mme_config_t*);
 int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* mme_config);
 int mme_config_parse_file(mme_config_t*);
+int mme_config_parse_string(const char* config_string, mme_config_t* config_pP);
 void mme_config_display(mme_config_t*);
 void create_partial_lists(mme_config_t* config_pP);
 void mme_config_exit(void);
+void free_mme_config(mme_config_t* mme_config);
 
 #define mme_config_read_lock(mMEcONFIG)                                        \
   pthread_rwlock_rdlock(&(mMEcONFIG)->rw_lock)

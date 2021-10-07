@@ -15,7 +15,6 @@
 #include "M5GABBA.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 ABBAMsg::ABBAMsg(){};
 ABBAMsg::~ABBAMsg(){};
@@ -40,7 +39,7 @@ int ABBAMsg::EncodeABBAMsg(
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char) iei, abba->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeABBAMsg: iei" << hex << int(*buffer);
+    MLOG(MDEBUG) << "In EncodeABBAMsg: iei" << std::hex << int(*buffer);
     encoded++;
   }
 

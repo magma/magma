@@ -14,13 +14,13 @@ limitations under the License.
 package main
 
 import (
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/streamer"
 	"magma/orc8r/cloud/go/services/streamer/servicers"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
 )
 
 func main() {

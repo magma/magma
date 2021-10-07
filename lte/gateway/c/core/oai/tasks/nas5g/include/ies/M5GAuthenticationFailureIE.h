@@ -14,7 +14,6 @@ limitations under the License.
 #include <cstdint>
 #include "bstrlib.h"
 
-using namespace std;
 namespace magma5g {
 // M5GMMCause IE Class
 class M5GAuthenticationFailureIE {

@@ -47,11 +47,11 @@ func (h *healthBlobstore) GetHealth(networkID string, gatewayID string) (*fegpro
 	if err != nil {
 		return nil, err
 	}
-	healthTypeAndKey := storage.TypeAndKey{
+	healthTK := storage.TK{
 		Type: health.HealthStatusType,
 		Key:  gatewayID,
 	}
-	healthBlob, err := store.Get(networkID, healthTypeAndKey)
+	healthBlob, err := store.Get(networkID, healthTK)
 	if err != nil {
 		store.Rollback()
 		return nil, err
@@ -128,11 +128,11 @@ func (h *healthBlobstore) GetClusterState(networkID string, logicalID string) (*
 		}
 	}
 	clusterID := networkID
-	clusterTypeAndKey := storage.TypeAndKey{
+	clusterTK := storage.TK{
 		Type: health.ClusterStatusType,
 		Key:  clusterID,
 	}
-	clusterBlob, err := store.Get(networkID, clusterTypeAndKey)
+	clusterBlob, err := store.Get(networkID, clusterTK)
 	if err != nil {
 		store.Rollback()
 		return nil, err

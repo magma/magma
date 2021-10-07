@@ -18,19 +18,18 @@ import (
 	"net/http"
 	"time"
 
+	strfmt "github.com/go-openapi/strfmt"
+	"github.com/labstack/echo"
+	"github.com/pkg/errors"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/lte/obsidian/handlers"
 	"magma/lte/cloud/go/services/nprobe/obsidian/models"
 	"magma/lte/cloud/go/services/nprobe/storage"
-
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
 	merrors "magma/orc8r/lib/go/errors"
-
-	strfmt "github.com/go-openapi/strfmt"
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -67,6 +66,7 @@ func listNetworkProbeTasks(c echo.Context) error {
 	}
 
 	ents, _, err := configurator.LoadAllEntitiesOfType(
+		c.Request().Context(),
 		networkID, lte.NetworkProbeTaskEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -143,7 +143,9 @@ func getNetworkProbeTask(c echo.Context) error {
 	}
 
 	networkID, taskID := values[0], values[1]
-	ent, err := configurator.LoadEntity(networkID,
+	ent, err := configurator.LoadEntity(
+		c.Request().Context(),
+		networkID,
 		lte.NetworkProbeTaskEntityType,
 		taskID,
 		configurator.EntityLoadCriteria{LoadConfig: true},
@@ -206,6 +208,7 @@ func listNetworkProbeDestinations(c echo.Context) error {
 	}
 
 	ents, _, err := configurator.LoadAllEntitiesOfType(
+		c.Request().Context(),
 		networkID, lte.NetworkProbeDestinationEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -260,7 +263,9 @@ func getNetworkProbeDestination(c echo.Context) error {
 	}
 
 	networkID, destinationID := values[0], values[1]
-	ent, err := configurator.LoadEntity(networkID,
+	ent, err := configurator.LoadEntity(
+		c.Request().Context(),
+		networkID,
 		lte.NetworkProbeDestinationEntityType,
 		destinationID,
 		configurator.EntityLoadCriteria{LoadConfig: true},

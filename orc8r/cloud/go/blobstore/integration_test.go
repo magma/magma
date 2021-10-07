@@ -17,12 +17,12 @@ import (
 	"sort"
 	"testing"
 
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
 	magmaerrors "magma/orc8r/lib/go/errors"
-
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/stretchr/testify/assert"
 )
 
 func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
@@ -35,13 +35,13 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, err)
 	assert.Empty(t, listActual)
 
-	getActual, err := store.Get("network", storage.TypeAndKey{Type: "t", Key: "k"})
+	getActual, err := store.Get("network", storage.TK{Type: "t", Key: "k"})
 	assert.True(t, err == magmaerrors.ErrNotFound)
 	assert.Equal(t, blobstore.Blob{}, getActual)
 
 	getManyActual, err := store.GetMany(
 		"network",
-		[]storage.TypeAndKey{
+		storage.TKs{
 			{Type: "t1", Key: "k1"},
 			{Type: "t2", Key: "k2"},
 		},
@@ -89,7 +89,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	for _, v := range byNetworkActual {
 		sort.Slice(v, getTKsComparator(v))
 	}
-	byNetworkExpected := map[string][]storage.TypeAndKey{
+	byNetworkExpected := map[string]storage.TKs{
 		"network1": {
 			{Type: "t1", Key: "k1"},
 			{Type: "t1", Key: "k2"},
@@ -107,7 +107,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"k1", "k2"}, listActual)
 
-	getManyActual, err = store.GetMany("network1", []storage.TypeAndKey{
+	getManyActual, err = store.GetMany("network1", storage.TKs{
 		{Type: "t1", Key: "k1"},
 		{Type: "t1", Key: "k2"},
 		{Type: "t2", Key: "k1"},
@@ -135,7 +135,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	}
 	assert.Equal(t, getAllExpected, getAllActual)
 
-	getManyActual, err = store.GetMany("network2", []storage.TypeAndKey{
+	getManyActual, err = store.GetMany("network2", storage.TKs{
 		{Type: "t3", Key: "k3"},
 		{Type: "t3", Key: "k4"},
 	})
@@ -150,7 +150,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 		getManyActual,
 	)
 
-	getActual, err = store.Get("network1", storage.TypeAndKey{Type: "t1", Key: "k2"})
+	getActual, err = store.Get("network1", storage.TK{Type: "t1", Key: "k2"})
 	assert.NoError(t, err)
 	assert.Equal(t, blobstore.Blob{Type: "t1", Key: "k2", Value: []byte("v2"), Version: 0}, getActual)
 
@@ -173,7 +173,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"k3", "k4"}, listActual)
 
-	getManyActual, err = store.GetMany("network1", []storage.TypeAndKey{
+	getManyActual, err = store.GetMany("network1", storage.TKs{
 		{Type: "t1", Key: "k1"},
 		{Type: "t9", Key: "k9"},
 	})
@@ -204,20 +204,20 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, store.Commit())
 
 	// Operation after commit
-	_, err = store.Get("network1", storage.TypeAndKey{Type: "t1", Key: "k1"})
+	_, err = store.Get("network1", storage.TK{Type: "t1", Key: "k1"})
 	assert.Error(t, err)
 
 	// Delete multiple
 	store, err = fact.StartTransaction(nil)
 	assert.NoError(t, err)
 
-	err = store.Delete("network1", []storage.TypeAndKey{
+	err = store.Delete("network1", storage.TKs{
 		{Type: "t1", Key: "k1"},
 		{Type: "t2", Key: "k2"},
 	})
 	assert.NoError(t, err)
 
-	getManyActual, err = store.GetMany("network1", []storage.TypeAndKey{
+	getManyActual, err = store.GetMany("network1", storage.TKs{
 		{Type: "t1", Key: "k1"},
 		{Type: "t2", Key: "k2"},
 		{Type: "t9", Key: "k9"},
@@ -231,13 +231,13 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	store, err = fact.StartTransaction(nil)
 	assert.NoError(t, err)
 
-	err = store.Delete("network2", []storage.TypeAndKey{
+	err = store.Delete("network2", storage.TKs{
 		{Type: "t3", Key: "k3"},
 	})
 	assert.NoError(t, err)
 
 	// Read back within the tx, should be gone
-	getManyActual, err = store.GetMany("network2", []storage.TypeAndKey{
+	getManyActual, err = store.GetMany("network2", storage.TKs{
 		{Type: "t3", Key: "k3"},
 	})
 	assert.NoError(t, err)
@@ -247,7 +247,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	store, err = fact.StartTransaction(nil)
 	assert.NoError(t, err)
 
-	getManyActual, err = store.GetMany("network2", []storage.TypeAndKey{
+	getManyActual, err = store.GetMany("network2", storage.TKs{
 		{Type: "t3", Key: "k3"},
 	})
 	assert.NoError(t, err)
@@ -259,22 +259,22 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, err)
 
 	// Non-existent type/key
-	err = store.IncrementVersion("network2", storage.TypeAndKey{Type: "t7", Key: "k1"})
+	err = store.IncrementVersion("network2", storage.TK{Type: "t7", Key: "k1"})
 	assert.NoError(t, err)
 
-	getManyActual, err = store.GetMany("network2", []storage.TypeAndKey{
+	getManyActual, err = store.GetMany("network2", storage.TKs{
 		{Type: "t7", Key: "k1"},
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, blobstore.Blobs{{Type: "t7", Key: "k1", Version: 1}}, getManyActual)
 
 	// Increment existing type/key twice
-	err = store.IncrementVersion("network2", storage.TypeAndKey{Type: "t3", Key: "k3"})
+	err = store.IncrementVersion("network2", storage.TK{Type: "t3", Key: "k3"})
 	assert.NoError(t, err)
-	err = store.IncrementVersion("network2", storage.TypeAndKey{Type: "t3", Key: "k3"})
+	err = store.IncrementVersion("network2", storage.TK{Type: "t3", Key: "k3"})
 	assert.NoError(t, err)
 
-	getManyActual, err = store.GetMany("network2", []storage.TypeAndKey{
+	getManyActual, err = store.GetMany("network2", storage.TKs{
 		{Type: "t3", Key: "k3"},
 	})
 	assert.NoError(t, err)
@@ -505,7 +505,7 @@ func runSearchTestCase(t *testing.T, store blobstore.TransactionalBlobStorage, t
 	assert.Equal(t, tc.expected, searchActual)
 }
 
-func getTKsComparator(tks []storage.TypeAndKey) func(i, j int) bool {
+func getTKsComparator(tks storage.TKs) func(i, j int) bool {
 	return func(i, j int) bool {
 		return tks[i].Type+tks[i].Key < tks[j].Type+tks[j].Key
 	}

@@ -16,6 +16,9 @@ package index_test
 import (
 	"testing"
 
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
@@ -27,9 +30,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer/mocks"
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	state_types "magma/orc8r/cloud/go/services/state/types"
-
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func init() {

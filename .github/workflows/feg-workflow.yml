@@ -132,7 +132,7 @@ jobs:
       - path_filter
       - feg-precommit
     if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
-    name: cwag pre-commit job
+    name: feg-build
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
@@ -175,7 +175,7 @@ jobs:
       - name: Tag and push to Jfrog Registry
         if: github.ref == 'refs/heads/master'
         env:
-          DOCKER_REGISTRY: "${{ secrets.JFROG_DOCKER_ORC8R_REGISTRY }}"
+          DOCKER_REGISTRY: "feg-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |

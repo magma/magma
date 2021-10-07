@@ -56,6 +56,7 @@ RUN echo "Install general purpose packages" && \
         g++-9 \
         gcc-9 \
         lcov \
+        gdb \
         git \
         gnupg \
         golang \
@@ -85,6 +86,14 @@ RUN echo "Install general purpose packages" && \
         update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/lib/llvm-11/bin/clang-tidy 10 && \
         update-alternatives --install /usr/bin/clang-apply-replacements clang-apply-replacements /usr/lib/llvm-11/bin/clang-apply-replacements 10
 
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y clangd-12
+
+# Install bazel
+WORKDIR /usr/sbin
+RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
+    chmod +x bazelisk-linux-amd64 && \
+    ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
+
 RUN echo "Install 3rd party dependencies" && \
     apt-get update && \
     echo "Install CMake" && \
@@ -109,6 +118,8 @@ RUN echo "Install 3rd party dependencies" && \
     libyaml-cpp-dev nlohmann-json3-dev && \
     echo "Install ZeroMQ" && \
     apt-get install -y libczmq-dev && \
+    echo "Install dependencies for Sentry Native" && \
+    apt-get install -y libcurl4-openssl-dev && \
     ln -s /usr/bin/python2.7 /usr/local/bin/python
 
 RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
@@ -250,6 +261,7 @@ RUN cd /usr/src/googletest && \
     ldconfig -v
 
 #### libtins is required to build the connection_tracker
+# TODO(@themarwhal): this might not be hard to bazelify if we can generate the config
 RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
     cd libtins && \
     mkdir build && \
@@ -258,7 +270,9 @@ RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
     make -j"$(nproc)" && \
     make install && \
     cd / && \
-    rm -rf libtins
+    rm -rf libtins && \
+    # symlink to /usr/lib to match Magma VM
+    ln -s /usr/local/lib/libtins.so /usr/lib/libtins.so
 
 ###### Install Include What You Use for c/cpp header include fixup tooling
 # Tag 0.15 tracks Clang 11.0 per https://github.com/include-what-you-use/include-what-you-use/tags
@@ -292,3 +306,13 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     make install && \
     cd / && \
     rm -rf freediameter
+
+##### Go language server support for vscode
+RUN go get -v golang.org/x/tools/gopls
+
+#### Update shared library configuration
+RUN ldconfig -v
+
+RUN ln -s /magma/experimental/bazel-base/bazelrcs/devcontainer.bazelrc /etc/bazelrc
+
+WORKDIR /workspaces/magma

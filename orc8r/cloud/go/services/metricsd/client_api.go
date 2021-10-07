@@ -16,11 +16,11 @@ package metricsd
 import (
 	"context"
 
+	"github.com/golang/glog"
+
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	service_registry "magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
 )
 
 // PushMetrics pushes a set of metrics to the metricsd service.

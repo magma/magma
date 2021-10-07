@@ -149,7 +149,8 @@ int sctp_init(const mme_config_t* mme_config_p) {
     OAILOG_ERROR(LOG_SCTP, "failed to init sctpd downlink client\n");
   }
 
-  if (itti_create_task(TASK_SCTP, &sctp_thread, NULL) < 0) {
+  if (itti_create_task(
+          TASK_SCTP, &sctp_thread, (void*) &mme_config_p->sctp_config) < 0) {
     OAILOG_ERROR(LOG_SCTP, "create task failed\n");
     OAILOG_DEBUG(LOG_SCTP, "Initializing SCTP task interface: FAILED\n");
     return -1;

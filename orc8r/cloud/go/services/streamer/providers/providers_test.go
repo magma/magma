@@ -14,8 +14,14 @@ limitations under the License.
 package providers_test
 
 import (
-	context2 "context"
+	"context"
 	"testing"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
@@ -30,13 +36,6 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/test_utils/mconfig/test_protos"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"golang.org/x/net/context"
 )
 
 func TestMconfigStreamer_Configurator(t *testing.T) {
@@ -54,9 +53,9 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 	mockBuilder.On("Build", mock.Anything, mock.Anything, "gw1").Return(marshaledConfigs, nil)
 	configurator_test_init.StartNewTestBuilder(t, mockBuilder)
 
-	err = configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
+	err = configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity(context2.Background(), "n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "gw1", PhysicalID: "hw1"}, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "gw1", PhysicalID: "hw1"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	conn, err := registry.GetConnection(streamer.ServiceName)

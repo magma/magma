@@ -17,9 +17,9 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
-
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
 )
 
 func TestParseTime(t *testing.T) {

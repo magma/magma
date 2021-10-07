@@ -196,7 +196,7 @@ jobs:
           SWAGGERHUB_API_KEY: "${{ secrets.SWAGGERHUB_API_KEY }}"
         run: |
           swaggerhub api:unpublish MagmaCore/Magma/1.0.0
-          swaggerhub api:update MagmaCore/Magma/1.0.0 --file ${MAGMA_ROOT}/orc8r/cloud/go/obsidian/swagger/v1/swagger.yml --publish --visibility=public --setdefault
+          swaggerhub api:update MagmaCore/Magma/1.0.0 --file ${MAGMA_ROOT}/orc8r/cloud/go/obsidian/swagger/v1/swagger.yml --published=publish --visibility=public --setdefault
       - name: Extract commit title
         id: commit
         if: failure() && github.ref == 'refs/heads/master'
@@ -248,7 +248,7 @@ jobs:
       - name: Tag and push to Jfrog Registry
         if: github.ref == 'refs/heads/master'
         env:
-          DOCKER_REGISTRY: "${{ secrets.JFROG_DOCKER_ORC8R_REGISTRY }}"
+          DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |

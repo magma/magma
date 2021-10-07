@@ -16,16 +16,16 @@ package storage_test
 import (
 	"testing"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/timestamp"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes/timestamp"
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCertifierStorageBlobstore_Integation(t *testing.T) {

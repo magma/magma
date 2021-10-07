@@ -18,13 +18,13 @@ check & manage Identity access permissions.
 package servicers
 
 import (
-	"magma/orc8r/cloud/go/services/accessd/storage"
+	"context"
 
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
+	"magma/orc8r/cloud/go/services/accessd/storage"
 	"magma/orc8r/lib/go/protos"
 )
 

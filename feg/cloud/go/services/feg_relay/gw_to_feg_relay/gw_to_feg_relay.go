@@ -185,7 +185,7 @@ func getActiveFeGForNetwork(ctx context.Context, fegNetworkID string) (string, e
 	if err != nil {
 		return "", fmt.Errorf("Unable to retrieve active FeG for network: %s; %s", fegNetworkID, err)
 	}
-	hardwareID, err := configurator.GetPhysicalIDOfEntity(fegNetworkID, orc8r.MagmadGatewayType, activeGW)
+	hardwareID, err := configurator.GetPhysicalIDOfEntity(ctx, fegNetworkID, orc8r.MagmadGatewayType, activeGW)
 	if err != nil {
 		return "", fmt.Errorf("Unable to retrieve hardware ID for active feg: %s in network: %s; %s", activeGW, fegNetworkID, err)
 	}

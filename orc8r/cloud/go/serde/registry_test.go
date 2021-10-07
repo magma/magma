@@ -16,11 +16,11 @@ package serde_test
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/serde/mocks"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/serde/mocks"
 )
 
 func TestSerialize(t *testing.T) {

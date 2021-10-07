@@ -69,6 +69,40 @@ jobs:
           name: Unit Test Results
           path: "${{ github.workspace }}/src/go/test_src_go.xml"
 
+  test_src_go_qemu:
+    needs: pre_job_src_go_determinator
+    if: ${{ needs.pre_job_src_go_determinator.outputs.should_skip == 'false' }}
+    strategy:
+      matrix:
+        go-version: [1.17.x]
+        arch: [386, arm, arm64]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Install QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Setup gotestsum
+        uses: autero1/action-gotestsum@v1.0.0
+        with:
+          gotestsum_version: 1.7.0
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run tests via qemu/binfmt
+        run: |
+          cd src/go/
+          gotestsum --format=testname --junitfile test_src_go.xml -- ./...
+        env:
+          GOARCH: ${{ matrix.arch }}
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results arm64
+          path: "${{ github.workspace }}/src/go/test_src_go.xml"
+
+
   codecov_src_go:
     needs: pre_job_src_go_determinator
     if: ${{ needs.pre_job_src_go_determinator.outputs.should_skip == 'false' }}

@@ -16,14 +16,14 @@ package test_init
 import (
 	"testing"
 
+	_ "github.com/mattn/go-sqlite3"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/dispatcher"
 	"magma/orc8r/cloud/go/services/dispatcher/broker/mocks"
 	"magma/orc8r/cloud/go/services/dispatcher/servicers"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func StartTestService(t *testing.T) *mocks.GatewayRPCBroker {

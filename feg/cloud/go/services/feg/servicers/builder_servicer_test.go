@@ -54,13 +54,13 @@ func TestBuilder_Build(t *testing.T) {
 	fegw := configurator.NetworkEntity{
 		Type:               feg.FegGatewayType,
 		Key:                "gw1",
-		ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "gw1"}},
+		ParentAssociations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "gw1"}},
 	}
-	gw.Associations = []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: "gw1"}}
+	gw.Associations = storage.TKs{{Type: feg.FegGatewayType, Key: "gw1"}}
 	graph = configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{gw, fegw},
 		Edges: []configurator.GraphEdge{
-			{From: storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "gw1"}, To: storage.TypeAndKey{Type: feg.FegGatewayType, Key: "gw1"}},
+			{From: storage.TK{Type: orc8r.MagmadGatewayType, Key: "gw1"}, To: storage.TK{Type: feg.FegGatewayType, Key: "gw1"}},
 		},
 	}
 

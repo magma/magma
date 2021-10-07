@@ -1,3 +1,16 @@
+"""
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
 import unittest
 import warnings
 from concurrent.futures import Future
@@ -8,9 +21,7 @@ from lte.protos.pipelined_pb2 import VersionedPolicy
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.openflow import flows
 from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
-from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import (
     PipelinedController,
     TestSetup,
@@ -23,7 +34,6 @@ from magma.pipelined.tests.pipelined_test_util import (
     start_ryu_app_thread,
     stop_ryu_app_thread,
 )
-from scapy.all import IP
 
 
 class PullStatsTest(unittest.TestCase):

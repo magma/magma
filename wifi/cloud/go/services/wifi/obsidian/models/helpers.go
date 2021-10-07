@@ -44,7 +44,7 @@ func getMeshAddUpdates(gID string, meshID MeshID) []configurator.EntityUpdateCri
 		{
 			Key:               string(meshID),
 			Type:              wifi.MeshEntityType,
-			AssociationsToAdd: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			AssociationsToAdd: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 	}
 }
@@ -54,7 +54,7 @@ func getMeshRemoveUpdates(gID string, meshID MeshID) []configurator.EntityUpdate
 		{
 			Key:                  string(meshID),
 			Type:                 wifi.MeshEntityType,
-			AssociationsToDelete: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gID}},
+			AssociationsToDelete: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: gID}},
 		},
 	}
 }

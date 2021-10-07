@@ -17,13 +17,13 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func RegisterNetwork(t *testing.T, networkID string, networkName string) {
@@ -65,7 +65,7 @@ func RegisterGatewayWithName(t *testing.T, networkID string, gatewayID string, n
 // RemoveGateway assumes there is a device entity corresponding to the
 // configurator entity
 func RemoveGateway(t *testing.T, networkID, gatewayID string) {
-	physicalID, err := configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
+	physicalID, err := configurator.GetPhysicalIDOfEntity(context.Background(), networkID, orc8r.MagmadGatewayType, gatewayID)
 	assert.NoError(t, err)
 	assert.NoError(t, device.DeleteDevice(context.Background(), networkID, orc8r.AccessGatewayRecordType, physicalID))
 	assert.NoError(t, configurator.DeleteEntity(context.Background(), networkID, orc8r.MagmadGatewayType, gatewayID))

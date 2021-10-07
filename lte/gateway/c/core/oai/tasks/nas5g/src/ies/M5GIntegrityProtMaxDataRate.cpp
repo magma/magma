@@ -14,7 +14,6 @@
 #include "M5GIntegrityProtMaxDataRate.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 IntegrityProtMaxDataRateMsg::IntegrityProtMaxDataRateMsg(){};
 IntegrityProtMaxDataRateMsg::~IntegrityProtMaxDataRateMsg(){};
@@ -30,9 +29,9 @@ int IntegrityProtMaxDataRateMsg::DecodeIntegrityProtMaxDataRateMsg(
   decoded++;
   integrity_prot_max_data_rate->max_downlink = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " max_uplink = " << dec
+  MLOG(MDEBUG) << " max_uplink = " << std::dec
                << int(integrity_prot_max_data_rate->max_uplink);
-  MLOG(MDEBUG) << " max_downlink = " << dec
+  MLOG(MDEBUG) << " max_downlink = " << std::dec
                << int(integrity_prot_max_data_rate->max_downlink);
   return (decoded);
 };
@@ -45,11 +44,11 @@ int IntegrityProtMaxDataRateMsg::EncodeIntegrityProtMaxDataRateMsg(
 
   MLOG(MDEBUG) << " EncodeIntegrityProtMaxDataRateMsg : ";
   *(buffer + encoded) = integrity_prot_max_data_rate->max_uplink;
-  MLOG(MDEBUG) << " max_uplink =0x" << hex
+  MLOG(MDEBUG) << " max_uplink =0x" << std::hex
                << int(integrity_prot_max_data_rate->max_uplink);
   encoded++;
   *(buffer + encoded) = integrity_prot_max_data_rate->max_downlink;
-  MLOG(MDEBUG) << " max_downlink =0x" << hex
+  MLOG(MDEBUG) << " max_downlink =0x" << std::hex
                << int(integrity_prot_max_data_rate->max_downlink);
   encoded++;
   return (encoded);

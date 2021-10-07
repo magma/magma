@@ -94,5 +94,5 @@ To run formatting for each C/C++ services, run
 
 ```bash
 [VM] cd magma/lte/gateway
-[VM] make format_<service_directory_name> # Ex: make format_session_manager
+[VM] make format_all
 ```

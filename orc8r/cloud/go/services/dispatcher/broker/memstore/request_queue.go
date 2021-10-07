@@ -19,9 +19,9 @@ import (
 	"sync"
 	"time"
 
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/glog"
+
+	"magma/orc8r/lib/go/protos"
 )
 
 // InitializedQueue contains an initialized NewQueue, and an OldQueue to cleanup if any

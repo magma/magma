@@ -18,14 +18,14 @@ import (
 	"fmt"
 	"net"
 
-	"magma/lte/cloud/go/lte"
-	"magma/orc8r/cloud/go/services/configurator"
-
 	oerrors "github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 	"github.com/pkg/errors"
+
+	"magma/lte/cloud/go/lte"
+	"magma/orc8r/cloud/go/services/configurator"
 )
 
 func (m *LteNetwork) ValidateModel(context.Context) error {

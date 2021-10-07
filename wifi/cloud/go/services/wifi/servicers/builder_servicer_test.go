@@ -16,6 +16,9 @@ package servicers_test
 import (
 	"testing"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
@@ -26,9 +29,6 @@ import (
 	"magma/wifi/cloud/go/services/wifi/obsidian/models"
 	wifi_test_init "magma/wifi/cloud/go/services/wifi/test_init"
 	"magma/wifi/cloud/go/wifi"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestBuilder_Build_BaseCases(t *testing.T) {
@@ -64,12 +64,12 @@ func TestBuilder_Build_BaseCases(t *testing.T) {
 		Config: &models.GatewayWifiConfigs{
 			AdditionalProps: map[string]string{"foo": "bar"},
 		},
-		ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "gw1"}},
+		ParentAssociations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "gw1"}},
 	}
-	gw.Associations = []storage.TypeAndKey{wifigw.GetTypeAndKey()}
+	gw.Associations = storage.TKs{wifigw.GetTK()}
 	graph.Entities = []configurator.NetworkEntity{gw, wifigw}
 	graph.Edges = []configurator.GraphEdge{
-		{From: gw.GetTypeAndKey(), To: wifigw.GetTypeAndKey()},
+		{From: gw.GetTK(), To: wifigw.GetTK()},
 	}
 
 	actual, err = build(&nw, &graph, "gw1")
@@ -128,19 +128,19 @@ func TestBuilder_Build(t *testing.T) {
 			MeshChannelType: "ED209",
 			AdditionalProps: map[string]string{"mesh1": "meshval1", "mesh2": "meshval2"},
 		},
-		Associations: []storage.TypeAndKey{
-			wifigw.GetTypeAndKey(),
+		Associations: storage.TKs{
+			wifigw.GetTK(),
 			{Type: orc8r.MagmadGatewayType, Key: "gw2nd"},
 		},
 	}
 
-	wifigw.ParentAssociations = []storage.TypeAndKey{mesh.GetTypeAndKey(), gw.GetTypeAndKey()}
+	wifigw.ParentAssociations = storage.TKs{mesh.GetTK(), gw.GetTK()}
 
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{gw, wifigw, mesh},
 		Edges: []configurator.GraphEdge{
-			{From: mesh.GetTypeAndKey(), To: gw.GetTypeAndKey()},
-			{From: gw.GetTypeAndKey(), To: wifigw.GetTypeAndKey()},
+			{From: mesh.GetTK(), To: gw.GetTK()},
+			{From: gw.GetTK(), To: wifigw.GetTK()},
 		},
 	}
 
@@ -267,18 +267,18 @@ func TestBuilder_Build_OverrideSsid(t *testing.T) {
 			MeshChannelType: "ED209",
 			AdditionalProps: nil,
 		},
-		Associations: []storage.TypeAndKey{
-			wifigw.GetTypeAndKey(),
+		Associations: storage.TKs{
+			wifigw.GetTK(),
 		},
 	}
 
-	wifigw.ParentAssociations = []storage.TypeAndKey{mesh.GetTypeAndKey(), gw.GetTypeAndKey()}
+	wifigw.ParentAssociations = storage.TKs{mesh.GetTK(), gw.GetTK()}
 
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{gw, wifigw, mesh},
 		Edges: []configurator.GraphEdge{
-			{From: mesh.GetTypeAndKey(), To: gw.GetTypeAndKey()},
-			{From: gw.GetTypeAndKey(), To: wifigw.GetTypeAndKey()},
+			{From: mesh.GetTK(), To: gw.GetTK()},
+			{From: gw.GetTK(), To: wifigw.GetTK()},
 		},
 	}
 
@@ -413,18 +413,18 @@ func TestBuilder_Build_OverrideXwf(t *testing.T) {
 			MeshChannelType: "ED209",
 			AdditionalProps: map[string]string{},
 		},
-		Associations: []storage.TypeAndKey{
-			wifigw.GetTypeAndKey(),
+		Associations: storage.TKs{
+			wifigw.GetTK(),
 		},
 	}
 
-	wifigw.ParentAssociations = []storage.TypeAndKey{mesh.GetTypeAndKey(), gw.GetTypeAndKey()}
+	wifigw.ParentAssociations = storage.TKs{mesh.GetTK(), gw.GetTK()}
 
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{gw, wifigw, mesh},
 		Edges: []configurator.GraphEdge{
-			{From: mesh.GetTypeAndKey(), To: gw.GetTypeAndKey()},
-			{From: gw.GetTypeAndKey(), To: wifigw.GetTypeAndKey()},
+			{From: mesh.GetTK(), To: gw.GetTK()},
+			{From: gw.GetTK(), To: wifigw.GetTK()},
 		},
 	}
 

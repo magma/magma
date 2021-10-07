@@ -2,52 +2,54 @@
 	"extensions": [
 		"CoenraadS.bracket-pair-colorizer-2",
 		"xaver.clang-format",
+		"golang.go",
 		"notskm.clang-tidy",
-		"ms-vscode.cpptools",
 		"eamodio.gitlens",
 		"yzhang.markdown-all-in-one",
 		"christian-kohler.path-intellisense",
 		"vscodevim.vim",
 		"vscode-icons-team.vscode-icons",
 		"ms-vsliveshare.vsliveshare",
-		"ms-azuretools.vscode-docker"
+		"ms-azuretools.vscode-docker",
+		"llvm-vs-code-extensions.vscode-clangd",
+		"mitaki28.vscode-clang",
+		"stackbuild.bazel-stack-vscode",
+		"coolchyni.beyond-debug",
+		"stackbuild.bazel-stack-vscode-cc",
+		"augustocdias.tasks-shell-input",
 	],
-	"dockerFile": "Dockerfile",
-	"context": "..",
+	"image": "ghcr.io/magma/devcontainer:sha-6c9b920",
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash",
-		"clang-tidy.compilerArgs": [
-			// TODO: see if there is a way to use environment variables for workspace root (I tried)
-			"-I/workspaces/magma/build/c/oai/tasks/s1ap/r15/",  // Requires `make build_oai` to generate
-			"-I/workspaces/magma/lte/gateway/c/oai/common/",
-			"-I//workspaces/magma/lte/gateway/c/oai/include/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/3gpp/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/bstr/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/directoryd/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/event_client/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/gtpv2-c/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/hashtable/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/itti/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/message_utils/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/mobility_client/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/n11/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/openflow/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/pcef/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/s6a_proxy/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/secu/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/sgs_client/",
-			"-I/workspaces/magma/lte/gateway/c/oai/lib/sms_orc8r_client/",
-			"-I/workspaces/magma/lte/gateway/c/oai/tasks/mme_app/",
-			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/",
-			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/api/mme/",
-			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/api/network/",
-			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/emm/",
-			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/emm/msg/",
-			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/emm/sap/",
-			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/esm/",
-			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/esm/msg/",
-			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/ies/",
-			"-I/workspaces/magma/lte/gateway/c/oai/tasks/nas/util/"
+		"files.watcherExclude": {
+			"**/.bazel-cache/**": true,
+			"**/.bazel-cache-repo/**": true,
+		},		
+		"bsv.bazel.buildFlags": [
+			"--config=devcontainer",
+		],
+		"bsv.bazel.testFlags": [
+			"--compilation_mode=dbg",
+		],
+		"bsv.bes.enabled": false,
+		"bsv.bzl.codesearch.enabled": false,
+		"bsv.bzl.invocation.buildEventPublishAllActions": false,
+		"bsv.bzl.invocation.enabled": false,
+		"bsv.bzl.invocation.invokeWithBuildEventStreaming": false,
+		"bsv.bzl.lsp.enableCodelensStarlarkDebug": false,
+		"bsv.bzl.lsp.enableCodelensRun": false,
+		"bsv.bzl.remoteCache.enabled": false,
+		"bsv.bzl.starlarkDebugger.enabled": false,
+		"clangd.path": "/usr/bin/clangd-12",
+		"clangd.arguments": [
+			"-log=verbose",
+			"-pretty",
+			"--background-index",
+		],
+		"clangd.onConfigChanged": "restart",
+		// Update this field with any new targets that need compilation database generation
+		"bsv.cc.compdb.targets": [
+			"//lte/gateway/c/session_manager:sessiond"
 		]
 	},
 	"mounts": [
@@ -57,8 +59,11 @@
 	"runArgs": [
 		"--init"
 	],
+	"containerEnv": {
+		"VSCODE_BAZEL_BUILD_CONFIG": "devcontainer",
+	},
 	"remoteEnv": {
-		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
 	},
 	"remoteUser": "vscode",
 }

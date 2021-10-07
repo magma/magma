@@ -17,17 +17,17 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
 	"magma/orc8r/cloud/go/services/certifier/protos"
 	cstorage "magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestCertifierBlobstore_GetCertInfo(t *testing.T) {
@@ -44,7 +44,7 @@ func TestCertifierBlobstore_GetCertInfo(t *testing.T) {
 	}
 	marshaledInfo, err := proto.Marshal(info)
 	assert.NoError(t, err)
-	tks := []storage.TypeAndKey{{Type: cstorage.CertInfoType, Key: serialNumber}}
+	tks := storage.TKs{{Type: cstorage.CertInfoType, Key: serialNumber}}
 	blobs := blobstore.Blobs{{Type: cstorage.CertInfoType, Key: serialNumber, Value: marshaledInfo}}
 
 	// Fail to start transaction
@@ -125,7 +125,7 @@ func TestCertifierBlobstore_GetManyCertInfo(t *testing.T) {
 	assert.NoError(t, err)
 
 	serialNumbers := []string{"serial_number_0", "serial_number_1"}
-	tks := []storage.TypeAndKey{
+	tks := storage.TKs{
 		{Type: cstorage.CertInfoType, Key: serialNumbers[0]},
 		{Type: cstorage.CertInfoType, Key: serialNumbers[1]},
 	}
@@ -220,7 +220,7 @@ func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
 	assert.NoError(t, err)
 
 	serialNumbers := []string{"serial_number_0", "serial_number_1"}
-	tks := []storage.TypeAndKey{
+	tks := storage.TKs{
 		{Type: cstorage.CertInfoType, Key: serialNumbers[0]},
 		{Type: cstorage.CertInfoType, Key: serialNumbers[1]},
 	}
@@ -388,7 +388,7 @@ func TestCertifierBlobstore_DeleteCertInfo(t *testing.T) {
 	someErr := errors.New("generic error")
 
 	serialNumber := "serial_number"
-	tks := []storage.TypeAndKey{{Type: cstorage.CertInfoType, Key: serialNumber}}
+	tks := storage.TKs{{Type: cstorage.CertInfoType, Key: serialNumber}}
 
 	// Fail to start transaction
 	blobFactMock = &mocks.BlobStorageFactory{}

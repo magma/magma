@@ -21,8 +21,8 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"strings"
 
+	"context"
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 )
 
 const (

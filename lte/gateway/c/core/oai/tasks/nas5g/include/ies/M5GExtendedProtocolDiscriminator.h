@@ -13,7 +13,6 @@ limitations under the License.
 #include <sstream>
 #include <cstdint>
 
-using namespace std;
 namespace magma5g {
 // ExtendedProtocolDiscriminator IE Class
 class ExtendedProtocolDiscriminatorMsg {
@@ -28,5 +27,14 @@ class ExtendedProtocolDiscriminatorMsg {
   int DecodeExtendedProtocolDiscriminatorMsg(
       ExtendedProtocolDiscriminatorMsg* extended_protocol_discriminator,
       uint8_t iei, uint8_t* buffer, uint32_t len);
+  void copy(const ExtendedProtocolDiscriminatorMsg& e) {
+    extended_proto_discriminator = e.extended_proto_discriminator;
+  }
+  bool isEqual(const ExtendedProtocolDiscriminatorMsg& e) {
+    if (extended_proto_discriminator == e.extended_proto_discriminator) {
+      return true;
+    }
+    return false;
+  }
 };
 }  // namespace magma5g

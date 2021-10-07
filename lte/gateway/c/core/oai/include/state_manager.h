@@ -84,6 +84,7 @@ class StateManager {
    * @return response code of operation
    */
   virtual status_code_e read_state_from_db() {
+#if !MME_UNIT_TEST
     if (persist_state_enabled) {
       ProtoType state_proto = ProtoType();
       if (redis_client->read_proto(table_key, state_proto) != RETURNok) {
@@ -96,6 +97,7 @@ class StateManager {
 
       StateConverter::proto_to_state(state_proto, state_cache_p);
     }
+#endif
     return RETURNok;
   }
 

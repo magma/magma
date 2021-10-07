@@ -14,14 +14,15 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
+
+	"github.com/labstack/echo"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/lib/go/errors"
-
-	"github.com/labstack/echo"
 )
 
 // PartialEntityModel describe models that represents a portion of network
@@ -30,10 +31,10 @@ type PartialEntityModel interface {
 	serde.ValidatableModel
 	// FromBackendModels the same PartialEntityModel from the configurator
 	// entities attached to the networkID and key.
-	FromBackendModels(networkID string, key string) error
+	FromBackendModels(ctx context.Context, networkID string, key string) error
 	// ToUpdateCriteria returns a EntityUpdateCriteria needed to apply
 	// the change in the model.
-	ToUpdateCriteria(networkID string, key string) ([]configurator.EntityUpdateCriteria, error)
+	ToUpdateCriteria(ctx context.Context, networkID string, key string) ([]configurator.EntityUpdateCriteria, error)
 }
 
 // GetPartialEntityHandlers returns both GET and PUT handlers for modifying the portion of a
@@ -72,7 +73,7 @@ func GetPartialReadEntityHandler(path string, paramName string, model PartialEnt
 				return nerr
 			}
 
-			err := model.FromBackendModels(networkID, key)
+			err := model.FromBackendModels(c.Request().Context(), networkID, key)
 			if err == errors.ErrNotFound {
 				return obsidian.HttpError(err, http.StatusNotFound)
 			} else if err != nil {
@@ -112,11 +113,12 @@ func GetPartialUpdateEntityHandler(path string, paramName string, model PartialE
 				return nerr
 			}
 
-			updates, err := requestedUpdate.(PartialEntityModel).ToUpdateCriteria(networkID, key)
+			reqCtx := c.Request().Context()
+			updates, err := requestedUpdate.(PartialEntityModel).ToUpdateCriteria(reqCtx, networkID, key)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusBadRequest)
 			}
-			_, err = configurator.UpdateEntities(c.Request().Context(), networkID, updates, serdes)
+			_, err = configurator.UpdateEntities(reqCtx, networkID, updates, serdes)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}

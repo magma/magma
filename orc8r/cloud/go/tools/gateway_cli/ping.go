@@ -14,13 +14,14 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
-	"magma/orc8r/cloud/go/services/magmad"
-
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
+
+	"magma/orc8r/cloud/go/services/magmad"
 )
 
 var packets int32
@@ -38,7 +39,7 @@ func init() {
 }
 
 func pingCmd(cmd *cobra.Command, args []string) {
-	response, err := magmad.GatewayPing(networkId, gatewayId, packets, args)
+	response, err := magmad.GatewayPing(context.Background(), networkId, gatewayId, packets, args)
 	if err != nil {
 		glog.Error(err)
 		os.Exit(1)

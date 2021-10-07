@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/tenants"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/pkg/errors"
 )
 
 const networkWildcard = "*"
@@ -55,11 +55,11 @@ func (b *blobstoreStore) GetTenant(tenantID int64) (*protos.Tenant, error) {
 	}
 	defer store.Rollback()
 
-	tenantTypeAndKey := storage.TypeAndKey{
+	tenantTK := storage.TK{
 		Type: tenants.TenantInfoType,
 		Key:  strconv.FormatInt(tenantID, 10),
 	}
-	tenantBlob, err := store.Get(networkWildcard, tenantTypeAndKey)
+	tenantBlob, err := store.Get(networkWildcard, tenantTK)
 	if err != nil {
 		return nil, err
 	}
@@ -82,9 +82,9 @@ func (b *blobstoreStore) GetAllTenants() (*protos.TenantList, error) {
 		return nil, err
 	}
 
-	keysAndTypes := make([]storage.TypeAndKey, 0)
+	keysAndTypes := make(storage.TKs, 0)
 	for _, key := range keys {
-		keysAndTypes = append(keysAndTypes, storage.TypeAndKey{Key: key, Type: tenants.TenantInfoType})
+		keysAndTypes = append(keysAndTypes, storage.TK{Key: key, Type: tenants.TenantInfoType})
 	}
 
 	tenantBlobs, err := store.GetMany(networkWildcard, keysAndTypes)
@@ -136,11 +136,11 @@ func (b *blobstoreStore) DeleteTenant(tenantID int64) error {
 	}
 	defer store.Rollback()
 
-	tenantTypeAndKey := []storage.TypeAndKey{{
+	tenantTK := storage.TKs{{
 		Type: tenants.TenantInfoType,
 		Key:  strconv.FormatInt(tenantID, 10),
 	}}
-	err = store.Delete(networkWildcard, tenantTypeAndKey)
+	err = store.Delete(networkWildcard, tenantTK)
 	if err != nil {
 		return err
 	}

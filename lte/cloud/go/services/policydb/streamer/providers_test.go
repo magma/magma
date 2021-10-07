@@ -17,6 +17,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
+	"github.com/thoas/go-funk"
+
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
@@ -30,11 +35,6 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
-	"github.com/stretchr/testify/assert"
-	"github.com/thoas/go-funk"
 )
 
 func TestRatingGroupStreamers(t *testing.T) {
@@ -170,7 +170,7 @@ func TestPolicyStreamers(t *testing.T) {
 				},
 				MonitoringKey: "foo",
 			},
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.PolicyQoSProfileEntityType, Key: "p1"},
 			},
 		},
@@ -186,7 +186,7 @@ func TestPolicyStreamers(t *testing.T) {
 				},
 				HeaderEnrichmentTargets: []string{},
 			},
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.PolicyQoSProfileEntityType, Key: "p1"},
 			},
 		},
@@ -205,7 +205,7 @@ func TestPolicyStreamers(t *testing.T) {
 			Type:   lte.BaseNameEntityType,
 			Key:    "b1",
 			Config: &models.BaseNameRecord{Name: "b1"},
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.PolicyRuleEntityType, Key: "r1"},
 				{Type: lte.PolicyRuleEntityType, Key: "r2"},
 			},
@@ -214,7 +214,7 @@ func TestPolicyStreamers(t *testing.T) {
 			Type:   lte.BaseNameEntityType,
 			Key:    "b2",
 			Config: &models.BaseNameRecord{Name: "b2"},
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.PolicyRuleEntityType, Key: "r3"},
 			},
 		},
@@ -361,14 +361,14 @@ func TestApnRuleMappingsProvider(t *testing.T) {
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{
 			Type: lte.APNPolicyProfileEntityType, Key: "s1___apn1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.APNEntityType, Key: "apn1"},
 				{Type: lte.PolicyRuleEntityType, Key: "r4"},
 			},
 		},
 		{
 			Type: lte.APNPolicyProfileEntityType, Key: "s1___apn2",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.APNEntityType, Key: "apn2"},
 			},
 		},
@@ -378,7 +378,7 @@ func TestApnRuleMappingsProvider(t *testing.T) {
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{
 			Type: lte.SubscriberEntityType, Key: "s1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.PolicyRuleEntityType, Key: "r1"},
 				{Type: lte.BaseNameEntityType, Key: "b1"},
 				{Type: lte.APNPolicyProfileEntityType, Key: "s1___apn1"},
@@ -386,7 +386,7 @@ func TestApnRuleMappingsProvider(t *testing.T) {
 		},
 		{
 			Type: lte.SubscriberEntityType, Key: "s2",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.PolicyRuleEntityType, Key: "r2"},
 				{Type: lte.BaseNameEntityType, Key: "b3"},
 			},

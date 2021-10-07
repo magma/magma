@@ -14,6 +14,8 @@ limitations under the License.
 package main
 
 import (
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
@@ -22,8 +24,6 @@ import (
 	"magma/orc8r/cloud/go/services/device/servicers"
 	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"
-
-	"github.com/golang/glog"
 )
 
 func main() {

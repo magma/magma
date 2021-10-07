@@ -61,7 +61,7 @@
       paramSshKey: "{{ awsHostKey }}"
       paramAgwTagName: "{{ idGw }}"
       paramAgwTagSite: "{{ siteName }}"
-      paramAgwInstanceType: "t2.medium"
+      paramAgwInstanceType: "{{ awsInstanceType }}"
   when: agwDevops is undefined
 
 - name: Get EBS encryption default
@@ -87,7 +87,7 @@
       paramSshKey: "{{ awsHostKey }}"
       paramAgwTagName: "{{ idGw }}"
       paramAgwTagSite: "{{ siteName }}"
-      paramAgwInstanceType: "t2.medium"
+      paramAgwInstanceType: "{{ awsInstanceType }}"
   when: agwDevops is defined
 
 - name: Enable EBS encryption to permit export of ami

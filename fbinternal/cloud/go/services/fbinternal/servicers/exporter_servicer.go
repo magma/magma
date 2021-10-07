@@ -27,12 +27,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/glog"
+
 	"magma/fbinternal/cloud/go/metrics/ods"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/lib/go/metrics"
-
-	"github.com/golang/glog"
 )
 
 const (

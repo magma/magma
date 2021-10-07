@@ -17,14 +17,14 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
 	dstorage "magma/orc8r/cloud/go/services/directoryd/storage"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 const (
@@ -37,7 +37,7 @@ func TestDirectorydBlobstoreStorage_GetHostnameForHWID(t *testing.T) {
 	someErr := errors.New("generic error")
 
 	hwid := "some_hwid"
-	tk := storage.TypeAndKey{Type: dstorage.DirectorydTypeHWIDToHostname, Key: hwid}
+	tk := storage.TK{Type: dstorage.DirectorydTypeHWIDToHostname, Key: hwid}
 
 	hostname := "some_hostname"
 	blob := blobstore.Blob{
@@ -112,7 +112,7 @@ func TestDirectorydBlobstoreStorage_MapHWIDToHostname(t *testing.T) {
 		hwids[1]: hostnames[1],
 	}
 
-	tks := []storage.TypeAndKey{
+	tks := storage.TKs{
 		{Type: dstorage.DirectorydTypeHWIDToHostname, Key: hwids[0]},
 		{Type: dstorage.DirectorydTypeHWIDToHostname, Key: hwids[1]},
 	}
@@ -179,7 +179,7 @@ func TestDirectorydBlobstore_GetIMSIForSessionID(t *testing.T) {
 	nid := "some_networkid"
 
 	sid := "some_sessionid"
-	tk := storage.TypeAndKey{Type: dstorage.DirectorydTypeSessionIDToIMSI, Key: sid}
+	tk := storage.TK{Type: dstorage.DirectorydTypeSessionIDToIMSI, Key: sid}
 
 	imsi := "some_imsi"
 	blob := blobstore.Blob{
@@ -256,7 +256,7 @@ func TestDirectorydBlobstore_MapSessionIDToIMSI(t *testing.T) {
 		sids[1]: imsis[1],
 	}
 
-	tks := []storage.TypeAndKey{
+	tks := storage.TKs{
 		{Type: dstorage.DirectorydTypeSessionIDToIMSI, Key: sids[0]},
 		{Type: dstorage.DirectorydTypeSessionIDToIMSI, Key: sids[1]},
 	}
@@ -323,7 +323,7 @@ func TestDirectorydBlobstore_GetHWIDForSgwCTeid(t *testing.T) {
 	nid := "some_networkid"
 
 	teid := "1"
-	tk := storage.TypeAndKey{Type: dstorage.DirectorydTypeSgwCteidToHwid, Key: teid}
+	tk := storage.TK{Type: dstorage.DirectorydTypeSgwCteidToHwid, Key: teid}
 
 	hwId := "hwId_1"
 	blob := blobstore.Blob{
@@ -400,7 +400,7 @@ func TestDirectorydBlobstore_MapSgwCTeidToHWID(t *testing.T) {
 		teids[1]: hwIds[1],
 	}
 
-	tks := []storage.TypeAndKey{
+	tks := storage.TKs{
 		{Type: dstorage.DirectorydTypeSgwCteidToHwid, Key: teids[0]},
 		{Type: dstorage.DirectorydTypeSgwCteidToHwid, Key: teids[1]},
 	}

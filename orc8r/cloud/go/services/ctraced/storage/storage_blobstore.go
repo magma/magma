@@ -16,11 +16,11 @@ package storage
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -72,7 +72,7 @@ func (c *ctracedBlobStore) GetCallTrace(networkID string, callTraceID string) ([
 
 	blob, err := store.Get(
 		networkID,
-		storage.TypeAndKey{Type: CtracedBlobType, Key: callTraceID},
+		storage.TK{Type: CtracedBlobType, Key: callTraceID},
 	)
 	if err == merrors.ErrNotFound {
 		return nil, err
@@ -94,7 +94,7 @@ func (c *ctracedBlobStore) DeleteCallTrace(networkID string, callTraceID string)
 
 	err = store.Delete(
 		networkID,
-		[]storage.TypeAndKey{
+		storage.TKs{
 			{Type: CtracedBlobType, Key: callTraceID},
 		},
 	)

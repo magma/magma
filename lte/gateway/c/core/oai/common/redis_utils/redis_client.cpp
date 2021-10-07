@@ -57,6 +57,7 @@ void RedisClient::init_db_connection() {
 
 status_code_e RedisClient::write(
     const std::string& key, const std::string& value) {
+#if !MME_UNIT_TEST
   if (!is_connected()) {
     return RETURNerror;
   }
@@ -68,7 +69,7 @@ status_code_e RedisClient::write(
   if (db_write_reply.is_error()) {
     return RETURNerror;
   }
-
+#endif
   return RETURNok;
 }
 
@@ -130,6 +131,7 @@ int RedisClient::read_version(const std::string& key) {
 
 status_code_e RedisClient::clear_keys(
     const std::vector<std::string>& keys_to_clear) {
+#if !MME_UNIT_TEST
   auto db_write = db_client_->del(keys_to_clear);
   db_client_->sync_commit();
   auto reply = db_write.get();
@@ -137,7 +139,7 @@ status_code_e RedisClient::clear_keys(
   if (reply.is_error()) {
     return RETURNerror;
   }
-
+#endif
   return RETURNok;
 }
 

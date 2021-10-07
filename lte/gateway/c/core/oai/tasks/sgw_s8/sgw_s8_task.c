@@ -99,6 +99,24 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           &received_message_p->ittiMsg.s11_release_access_bearers_request,
           imsi64);
     } break;
+    case S8_CREATE_BEARER_REQ: {
+      gtpv2c_cause_value_t cause_value = REQUEST_REJECTED;
+      s8_create_bearer_request_t* cb_req =
+          &received_message_p->ittiMsg.s8_create_bearer_req;
+      imsi64_t imsi64 =
+          sgw_s8_handle_create_bearer_request(sgw_state, cb_req, &cause_value);
+      Imsi_t imsi = {0};
+      if (imsi64 == INVALID_IMSI64) {
+        sgw_s8_send_failed_create_bearer_response(
+            sgw_state, cb_req->sequence_number, cb_req->pgw_cp_address,
+            cause_value, imsi, cb_req->bearer_context[0].pgw_s8_up.teid);
+      }
+    } break;
+    case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {
+      sgw_s8_handle_s11_create_bearer_response(
+          sgw_state, &received_message_p->ittiMsg.s11_nw_init_actv_bearer_rsp,
+          imsi64);
+    } break;
 
     default: {
       OAILOG_DEBUG(

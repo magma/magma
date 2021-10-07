@@ -14,7 +14,6 @@
 #include "M5GNASSecurityAlgorithms.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 NASSecurityAlgorithmsMsg::NASSecurityAlgorithmsMsg(){};
 NASSecurityAlgorithmsMsg::~NASSecurityAlgorithmsMsg(){};
@@ -35,9 +34,9 @@ int NASSecurityAlgorithmsMsg::DecodeNASSecurityAlgorithmsMsg(
   nas_sec_algorithms->tca = (*(buffer + decoded) >> 4) & 0x7;
   nas_sec_algorithms->tia = *(buffer + decoded) & 0x7;
   decoded++;
-  MLOG(MDEBUG) << " Type of ciphering algorithm  = " << hex
+  MLOG(MDEBUG) << " Type of ciphering algorithm  = " << std::hex
                << int(nas_sec_algorithms->tca);
-  MLOG(MDEBUG) << " Type of integrity protection algorithm  = " << hex
+  MLOG(MDEBUG) << " Type of integrity protection algorithm  = " << std::hex
                << int(nas_sec_algorithms->tia);
   return (decoded);
 };
@@ -61,9 +60,9 @@ int NASSecurityAlgorithmsMsg::EncodeNASSecurityAlgorithmsMsg(
   *(buffer + encoded) = 0x00 | ((nas_sec_algorithms->tca & 0x7) << 4) |
                         (nas_sec_algorithms->tia & 0x7);
 
-  MLOG(MDEBUG) << " Type of ciphering algorithm  = " << hex
+  MLOG(MDEBUG) << " Type of ciphering algorithm  = " << std::hex
                << int(nas_sec_algorithms->tca);
-  MLOG(MDEBUG) << " Type of integrity protection algorithm  = " << hex
+  MLOG(MDEBUG) << " Type of integrity protection algorithm  = " << std::hex
                << int(nas_sec_algorithms->tia);
   encoded++;
   return (encoded);

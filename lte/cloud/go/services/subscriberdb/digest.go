@@ -14,6 +14,12 @@ limitations under the License.
 package subscriberdb
 
 import (
+	"context"
+
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
+
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
@@ -23,10 +29,6 @@ import (
 	mproto_protos "magma/orc8r/cloud/go/mproto/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	orc8r_protos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 )
 
 const defaultSubProfile = "default"
@@ -139,6 +141,7 @@ func getSubscribersDigest(network string) (string, error) {
 // in a network.
 func getApnResourcesDigest(network string) (string, error) {
 	apnResourceEnts, _, err := configurator.LoadAllEntitiesOfType(
+		context.Background(),
 		network, lte.APNResourceEntityType,
 		configurator.FullEntityLoadCriteria(),
 		serdes.Entity,

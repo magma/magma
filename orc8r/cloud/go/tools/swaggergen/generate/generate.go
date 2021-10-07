@@ -20,10 +20,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"magma/orc8r/cloud/go/swagger"
-
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
+
+	"magma/orc8r/cloud/go/swagger"
 )
 
 // MagmaSwaggerSpec is the Go struct version of our custom Swagger spec file.

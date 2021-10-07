@@ -15,7 +15,6 @@
 #include "M5GCommonDefs.h"
 #include "M5gNasMessage.h"
 
-using namespace std;
 namespace magma5g {
 PDUSessionIdentityMsg::PDUSessionIdentityMsg(){};
 PDUSessionIdentityMsg::~PDUSessionIdentityMsg(){};
@@ -26,10 +25,18 @@ int PDUSessionIdentityMsg::DecodePDUSessionIdentityMsg(
     uint32_t len) {
   uint8_t decoded = 0;
 
+  if (iei > 0) {
+    pdu_session_identity->iei = *(buffer + decoded);
+    CHECK_IEI_DECODER((unsigned char) iei, pdu_session_identity->iei);
+    MLOG(MDEBUG) << "In DecodePDUSessionIdentityMsg iei = " << std::dec
+                 << int(pdu_session_identity->iei) << std::endl;
+    decoded++;
+  }
+
   MLOG(MDEBUG) << "   DecodePDUSessionIdentityMsg : ";
   pdu_session_identity->pdu_session_id = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " PDUSessionIdentity = " << hex
+  MLOG(MDEBUG) << " PDUSessionIdentity = " << std::hex
                << int(pdu_session_identity->pdu_session_id);
 
   return (decoded);
@@ -45,13 +52,16 @@ int PDUSessionIdentityMsg::EncodePDUSessionIdentityMsg(
 
   // Checking IEI and pointer
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char) iei, PDU_SESSION_IDENTITY);
+    CHECK_IEI_ENCODER(
+        (unsigned char) iei,
+        static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2));
     *buffer = iei;
     encoded++;
   }
 
   *(buffer + encoded) = pdu_session_identity->pdu_session_id;
-  MLOG(MDEBUG) << "PDUSessionIdentity = 0x" << hex << int(*(buffer + encoded));
+  MLOG(MDEBUG) << "PDUSessionIdentity = 0x" << std::hex
+               << int(*(buffer + encoded));
   encoded++;
 
   return (encoded);

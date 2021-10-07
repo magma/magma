@@ -89,7 +89,7 @@ def main():
             # Waiting for subscribers to be added to store
             await store.on_ready()
 
-        if service.config.get('m5g_auth_proc'):
+        if service.config.get('enable5g_features', service.mconfig.enable5g_features):
             logging.info('Cater to 5G Authentication')
             m5g_subs_auth_servicer = M5GAuthRpcServicer(
                 processor,

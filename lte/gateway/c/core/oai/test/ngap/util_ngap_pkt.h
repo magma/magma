@@ -76,6 +76,10 @@ bool generator_ngap_pdusession_resource_rel_cmd_stream(bstring& stream);
 
 bool generate_guti_ngap_pdu(Ngap_NGAP_PDU_t* pdu);
 
+bool generate_ngap_request_msg(Ngap_NGAP_PDU_t* pdu);
+
+bool validate_ngap_setup_request(Ngap_NGAP_PDU_t* pdu);
+
 bool validate_handle_initial_ue_message(
     gnb_description_t* gNB_ref, m5g_ue_description_t* ue_ref,
     Ngap_NGAP_PDU_t* pdu);

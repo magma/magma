@@ -171,6 +171,10 @@ message PipelineD {
     }
     HEConfig he_config = 17;
 
+    // Enables 5G Standalone (SA) at a network level
+    bool enable5g_features = 18;
+    string upf_node_identifier = 19;
+
     // DEPRECATED
     reserved 4, 11;
 }
@@ -188,6 +192,9 @@ message SessionD {
     bool gx_gy_relay_enabled = 4;
     // sentry_config stores the Sentry.io configuration for this service
     SentryConfig sentry_config = 5;
+
+    // Enables 5G Standalone (SA) at a network level
+    bool enable5g_features = 6;
 }
 
 message WalletExhaustDetection {
@@ -354,8 +361,27 @@ message MME {
 
     // sentry_config stores the Sentry.io configuration for this service
     SentryConfig sentry_config = 45;
-    
-    bool enable_converged_core = 46;
+
+    // Enables 5G Standalone (SA) at a network level
+    bool enable5g_features = 46;
+
+    // AMF Slice Service Type (SST)
+    string default_slice_service_type = 47;
+
+    // AMF Slice Descriptor (SD)
+    string default_slice_differentiator = 48;
+
+    // AMF Name
+    string amf_name = 50;
+
+    // AMF Region ID
+    string amf_region_id = 51;
+
+    // AMF Set ID
+    string amf_set_id = 52;
+
+    // AMF pointer
+    string amf_pointer = 53;
 }
 
 message FederatedModeMap {
@@ -402,6 +428,9 @@ message SubscriberDB {
 
     // Interval in seconds between gateway and cloud sync
     uint32 sync_interval = 7;
+
+    // Enables 5G Standalone (SA) at a network level
+    bool enable5g_features = 8;
 }
 
 //------------------------------------------------------------------------------
@@ -467,4 +496,23 @@ message GatewayDNSConfigRecordsItems {
   repeated string aaaa_record = 2;
   repeated string cname_record = 3;
   string domain = 4;
+}
+
+//----------------------------------------------------------------------------
+// AgwD configs
+//----------------------------------------------------------------------------
+message AgwD {
+  enum LogLevel {
+    UNSET = 0;
+    DEBUG = 1;
+    INFO = 2;
+    WARN = 3;
+    ERROR = 4;
+  }
+  LogLevel log_level = 1;
+
+  string sctpd_downstream_service_target = 2;
+  string sctpd_upstream_service_target = 3;
+  string mme_sctpd_downstream_service_target = 4;
+  string mme_sctpd_upstream_service_target = 5;
 }
