@@ -27,12 +27,14 @@ The following sections show step-by-step screenshots of configuring policies and
 
 ### Policy Configuration
 
-The same policy configuration dialog is used for 'add' as well as 'edit'. The dialog has 4 main tabs:
+The same policy configuration dialog is used for 'add' as well as 'edit'. The dialog has 5 main tabs:
 
-- Policy - to configure Policy ID, Priority Level and QoS Profile
-- Flows - to add and configure policy flows.
-- Tracking - to configure Monitoring Key, Rating Groups and Tracking Type.
-- Redirect - to configure Server Address, Address Type and enable or disable Support.
+- **Policy** - to configure Policy ID, Priority Level and QoS Profile. Here you can name your policy, determine the level of priority, choose to roll it out network wide, and assign a QoS Profile.
+- **Flows** - to add and configure policy flows. In this tab, you can route traffic based on the direction and protocol. For example, this can be used to block ip traffic in a certain direction.
+- **Tracking** - to configure Monitoring Key, Rating Groups and Tracking Type. You can choose your tracking type between: only OCS, only PCRF, OCS and PCRF, and no tracking.
+- **Redirect** - to configure Server Address, Address Type and enable or disable Support. With redirect enabled, matching traffic can be redirected to a captive portal server.
+- **Header Enrichment** - to enable header enrichment on a list of URL targets. Here you can specify your list of URLs.
+
 
 ![policy_config_tab_1](assets/nms/userguide/policy_configuration_1.png)
 Policy Tab
