@@ -15,6 +15,7 @@
 
 extern "C" {
 #include "include/mme_config.h"
+#include "include/amf_config.h"
 }
 
 namespace magma {
@@ -898,5 +899,49 @@ TEST(MMEConfigTest, TestHealthySctpdConfig) {
   free_mme_config(&mme_config);
 }
 
+TEST(MMEConfigTest, TestCopyAmfConfigFromMMEConfig) {
+  mme_config_t mme_config = {0};
+  amf_config_t amf_config = {0};
+
+  EXPECT_EQ(mme_config_parse_string(kHealthyConfig, &mme_config), 0);
+
+  copy_amf_config_from_mme_config(&amf_config, &mme_config);
+
+  if (mme_config.log_config.output)
+    EXPECT_EQ(
+        0, bstrcmp(mme_config.log_config.output, amf_config.log_config.output));
+  EXPECT_EQ(
+      mme_config.log_config.is_output_thread_safe,
+      amf_config.log_config.is_output_thread_safe);
+  EXPECT_EQ(
+      mme_config.log_config.mme_app_log_level,
+      amf_config.log_config.amf_app_log_level);
+
+  if (mme_config.realm)
+    EXPECT_EQ(0, bstrcmp(mme_config.realm, amf_config.realm));
+
+  if (mme_config.full_network_name)
+    EXPECT_EQ(
+        0, bstrcmp(mme_config.full_network_name, amf_config.full_network_name));
+
+  if (mme_config.short_network_name)
+    EXPECT_EQ(
+        0,
+        bstrcmp(mme_config.short_network_name, amf_config.short_network_name));
+
+  EXPECT_EQ(mme_config.daylight_saving_time, amf_config.daylight_saving_time);
+  if (mme_config.pid_dir)
+    EXPECT_EQ(0, bstrcmp(mme_config.pid_dir, amf_config.pid_dir));
+  EXPECT_EQ(mme_config.max_enbs, amf_config.max_gnbs);
+  EXPECT_EQ(mme_config.relative_capacity, amf_config.relative_capacity);
+
+  EXPECT_EQ(mme_config.use_stateless, amf_config.use_stateless);
+  EXPECT_EQ(
+      mme_config.unauthenticated_imsi_supported,
+      amf_config.unauthenticated_imsi_supported);
+
+  clear_amf_config(&amf_config);
+  free_mme_config(&mme_config);
+}
 }  // namespace lte
 }  // namespace magma

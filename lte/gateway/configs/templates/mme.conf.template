@@ -141,21 +141,6 @@ MME :
         LAC = "{{ lac }}";
     };
 
-    # NGAP definitions
-    NGAP :
-    {
-      # outcome drop timer value (seconds)
-      #  S1AP_OUTCOME_TIMER = 10;
-      AMF_NAME = "{{ amf_name }}"
-    };
-    # AMF served GUAMFIs
-    # AMF code DEFAULT  size = 8 bits
-    # AMF GROUP ID size = 16 bits
-    GUAMFI_LIST = (
-     { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; AMF_REGION_ID="{{ amf_region_id }}" ; AMF_SET_ID="{{ amf_set_id }}"; AMF_POINTER="{{ amf_pointer }}"}
-    );
-
-
     NAS :
     {
         # 3GPP TS 33.401 section 7.2.4.3 Procedures for NAS algorithm selection
@@ -359,5 +344,12 @@ NGAP :
     AMF_NAME = "{{ amf_name }}";
     PLMN_SUPPORT_LIST = (
        { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; DEFAULT_SLICE_SERVICE_TYPE="{{ default_slice_service_type }}" ; DEFAULT_SLICE_DIFFERENTIATOR="{{ default_slice_differentiator }}"; }
+    );
+
+    # AMF served GUAMFIs
+    # AMF code DEFAULT  size = 8 bits
+    # AMF GROUP ID size = 16 bits
+    GUAMFI_LIST = (
+     { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; AMF_REGION_ID="{{ amf_region_id }}" ; AMF_SET_ID="{{ amf_set_id }}"; AMF_POINTER="{{ amf_pointer }}"}
     );
 };
