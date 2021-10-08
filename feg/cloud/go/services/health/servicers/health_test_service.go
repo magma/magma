@@ -14,7 +14,7 @@ limitations under the License.
 package servicers
 
 import (
-	"golang.org/x/net/context"
+	"context"
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health/storage"

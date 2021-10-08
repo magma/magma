@@ -52,7 +52,7 @@ const char* healthy_mconfig =
                   "dnsSecondary": "8.8.4.4",
                   "ipv6PCscfAddress": "2a12:577:9941:f99c:0002:0001:c731:f114",
                   "ipv6DnsAddress": "2001:4860:4860:0:0:0:0:8888",
-                  "enableConvergedCore": false
+                  "enable5gFeatures": false
                 }
               }
             })proto";

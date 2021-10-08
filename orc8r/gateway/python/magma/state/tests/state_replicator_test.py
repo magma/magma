@@ -32,7 +32,7 @@ from magma.common.redis.serializers import (
 )
 from magma.state.garbage_collector import GarbageCollector
 from magma.state.keys import make_mem_key
-from magma.state.state_replicator import StateReplicator
+from magma.state.state_replicator import StateReplicator, _resolve_sync_interval
 from orc8r.protos.common_pb2 import IDList, NetworkID
 from orc8r.protos.service303_pb2 import LogVerbosity
 from orc8r.protos.state_pb2 import (
@@ -54,6 +54,7 @@ CS = "magma.state.state_replicator._collect_states_to_replicate"
 RS = "magma.state.state_replicator._resync"
 SS = "magma.state.state_replicator._send_to_state_service"
 SV = "magma.state.state_replicator._state_versions"
+SI = "magma.state.state_replicator._resolve_sync_interval"
 
 
 def get_mock_snowflake():
@@ -112,6 +113,7 @@ class StateReplicatorTests(TestCase):
         asyncio.set_event_loop(self.loop)
 
         service = MagicMock()
+        service.mconfig.sync_interval = 75
         service.config = {
             # Replicate arbitrary orc8r protos
             'state_protos': [
@@ -476,3 +478,62 @@ class StateReplicatorTests(TestCase):
         # Cancel the replicator's loop so there are no other activities
         self.state_replicator._periodic_task.cancel()
         self.loop.run_until_complete(test())
+
+    def test_resolve_sync_interval(self):
+        testcases = [
+            {
+                "name": "mconfig and service config not set",
+                "service_config_interval": None,
+                "mconfig_interval": None,
+                "expected": 60,
+            },
+            {
+                "name": "mconfig set, service config not set",
+                "service_config_interval": None,
+                "mconfig_interval": 30,
+                "expected": 30,
+            },
+            {
+                "name": "mconfig not set, invalid service config set",
+                "service_config_interval": 40,
+                "mconfig_interval": None,
+                "expected": 60,
+            },
+            {
+                "name": "service config override valid",
+                "service_config_interval": 4,
+                "mconfig_interval": 30,
+                "expected": 4,
+            },
+            {
+                "name": "service config override invalid too low",
+                "service_config_interval": 2,
+                "mconfig_interval": 30,
+                "expected": 30,
+            },
+            {
+                "name": "service config override invalid too high",
+                "service_config_interval": 11,
+                "mconfig_interval": 30,
+                "expected": 30,
+            },
+            {
+                "name": "service config override valid but not less than mconfig",
+                "service_config_interval": 5,
+                "mconfig_interval": 4,
+                "expected": 4,
+            },
+        ]
+
+        for case in testcases:
+            service = MagicMock()
+            service.config = {'sync_interval': case["service_config_interval"]}
+            service.mconfig.sync_interval = case["mconfig_interval"]
+            actual = _resolve_sync_interval(service)
+            self.assertEqual(
+                case["expected"],
+                actual,
+                "failed test {} expected {}, actual {}".format(
+                    case["name"], case["expected"], actual,
+                ),
+            )

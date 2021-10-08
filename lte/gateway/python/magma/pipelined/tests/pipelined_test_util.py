@@ -19,7 +19,7 @@ from collections import namedtuple
 from concurrent.futures import Future
 from datetime import datetime
 from difflib import unified_diff
-from typing import Dict, List, Optional
+from typing import List, Optional
 from unittest import TestCase, mock
 from unittest.mock import MagicMock
 
@@ -414,7 +414,7 @@ def create_service_manager(
         static_services = []
     magma_service.config = {
         'static_services': static_services,
-        '5G_feature_set': {'enable': False},
+        'enable5g_features': False,
     }
     # mock the get_default_client function used to return a fakeredis object
     func_mock = MagicMock(return_value=fakeredis.FakeStrictRedis())

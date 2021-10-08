@@ -37,10 +37,36 @@ from orc8r.protos.state_pb2 import (
     SyncStatesRequest,
 )
 
-# TODO: Make DEFAULT_SYNC_INTERVAL an mconfig parameter
 DEFAULT_SYNC_INTERVAL = 60
 DEFAULT_GRPC_TIMEOUT = 10
 GARBAGE_COLLECTION_ITERATION_INTERVAL = 2
+
+
+def _resolve_sync_interval(service: MagmaService) -> int:
+    # TODO(#8806): update this once we confirm partners no longer set sync_interval service configs.
+    # Sync_interval is in seconds
+    mconfig_sync_interval = service.mconfig.sync_interval
+    if mconfig_sync_interval is None or mconfig_sync_interval <= 0:
+        logging.info(
+            "mconfig_sync_interval is invalid, resetting to default interval %s",
+            DEFAULT_SYNC_INTERVAL,
+        )
+        mconfig_sync_interval = DEFAULT_SYNC_INTERVAL
+    service_config_sync_interval = service.config.get(
+        'sync_interval',
+        DEFAULT_SYNC_INTERVAL,
+    )
+    # We will honor service config sync_intervals under 10 seconds but this is being deprecated
+    # The interval should be set in Orc8r via the rest endpoint.
+    service_config_is_valid = service_config_sync_interval is not None and 3 < service_config_sync_interval < 10
+    if (
+            service_config_is_valid
+            and service_config_sync_interval < mconfig_sync_interval
+    ):
+        logging.info("using service_config_sync_interval")
+        return service_config_sync_interval
+    logging.info("using mconfig_sync_interval")
+    return mconfig_sync_interval
 
 
 class StateReplicator(SDWatchdogTask):
@@ -56,9 +82,9 @@ class StateReplicator(SDWatchdogTask):
         grpc_client_manager: GRPCClientManager,
         print_grpc_payload: bool = False,
     ):
-        sync_interval = service.config.get(
-            'sync_interval', DEFAULT_SYNC_INTERVAL,
-        )
+
+        sync_interval = _resolve_sync_interval(service)
+        logging.info("state service sync interval set to %s", sync_interval)
         super().__init__(sync_interval, service.loop)
         self._service = service
         # Garbage collector to propagate deletions back to Orchestrator
@@ -177,7 +203,8 @@ class StateReplicator(SDWatchdogTask):
                 if in_mem_key in self._state_versions and \
                         self._state_versions[in_mem_key] == redis_version:
                     logging.debug(
-                        "key %s already read on this iteration, skipping", in_mem_key,
+                        "key %s already read on this iteration, skipping",
+                        in_mem_key,
                     )
                     continue
 
@@ -261,7 +288,7 @@ class StateReplicator(SDWatchdogTask):
 
     async def _cleanup_deleted_keys(self):
         deleted_keys = set(self._state_versions) - \
-            self._state_keys_from_current_iteration
+                       self._state_keys_from_current_iteration
         for key in deleted_keys:
             del self._state_versions[key]
         self._state_keys_from_current_iteration = set()

@@ -181,7 +181,13 @@ nms_prereqs_ubuntu: nms_node_ubuntu
 nms_node_ubuntu:
 	# install pre-reqs
 	apt update
-	apt install -y nodejs npm
+	# Handle certificate verification
+	apt-get install -y libgnutls30
+	# Get a newer version of nodejs
+	curl -fSL https://deb.nodesource.com/setup_14.x | bash -
+	apt-get install -y nodejs
+	# And now install npm
+	apt install -y npm
 	# symlink nodejs executable
 	mkdir -p /usr/local/bin
 

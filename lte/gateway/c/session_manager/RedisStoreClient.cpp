@@ -97,7 +97,7 @@ SessionMap RedisStoreClient::read_sessions(
       // value just doesn't exist
       session_map[key] = SessionVector{};
     } else {
-      session_map[key] = std::move(deserialize_session_vec(reply.as_string()));
+      session_map[key] = deserialize_session_vec(reply.as_string());
     }
   }
   return session_map;
@@ -132,8 +132,7 @@ SessionMap RedisStoreClient::read_all_sessions() {
       MLOG(MERROR) << "RedisStoreClient: Unable to get value for key " << key;
       session_map[key] = SessionVector{};
     } else {
-      session_map[key] =
-          std::move(deserialize_session_vec(value_reply.as_string()));
+      session_map[key] = deserialize_session_vec(value_reply.as_string());
     }
   }
   return session_map;

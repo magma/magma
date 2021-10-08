@@ -65,6 +65,7 @@ func readChannelHandler(c echo.Context) error {
 		return nerr
 	}
 	entity, err := configurator.LoadInternalEntity(
+		c.Request().Context(),
 		orc8r.UpgradeReleaseChannelEntityType, channelID,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -174,6 +175,7 @@ func readTierHandler(c echo.Context) error {
 		return nerr
 	}
 	entity, err := configurator.LoadEntity(
+		c.Request().Context(),
 		networkID, orc8r.UpgradeTierEntityType, tierID,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadMetadata: true},
 		serdes.Entity,
@@ -210,7 +212,7 @@ func createTierImage(c echo.Context) error {
 		return nerr
 	}
 
-	updates, err := image.(*models.TierImage).ToUpdateCriteria(networkID, tierID)
+	updates, err := image.(*models.TierImage).ToUpdateCriteria(c.Request().Context(), networkID, tierID)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	}
@@ -233,14 +235,15 @@ func deleteImage(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	update, err := (&models.TierImage{}).ToDeleteImageUpdateCriteria(networkID, tierID, params[0])
+	reqCtx := c.Request().Context()
+	update, err := (&models.TierImage{}).ToDeleteImageUpdateCriteria(reqCtx, networkID, tierID, params[0])
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	}
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	_, err = configurator.UpdateEntity(c.Request().Context(), networkID, update, serdes.Entity)
+	_, err = configurator.UpdateEntity(reqCtx, networkID, update, serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

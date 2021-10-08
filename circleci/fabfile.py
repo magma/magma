@@ -95,6 +95,14 @@ def integ_test(
     try:
         _set_host_for_lease(lease, node_ssh_key)
         _checkout_code(repo, branch, sha1, tag, pr_num, magma_root)
+        # Try to destroy all vm with vagrant destroy and workarround locked virtualbox vm
+        run(
+            "vagrant global-status 2>/dev/null | "
+            "awk '/virtualbox/{print $1}' | "
+            "xargs -I {} vagrant destroy -f {}"
+            "&> >(grep -oP '(?<=\"unregistervm\", \").*(?=\",)') | "
+            "xargs -I {} vboxmanage startvm {} --type emergencystop",
+        )
         # Destroy all running vagrant VMs. If we use the same node to run integ
         # tests on more than one repo, Vagrant will complain about colliding
         # VM names.

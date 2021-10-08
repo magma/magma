@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"strings"
 
+	"context"
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	"magma/orc8r/lib/go/errors"

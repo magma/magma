@@ -94,7 +94,7 @@ func (l *lookupServicer) SetMSISDN(ctx context.Context, req *protos.SetMSISDNReq
 	defer store.Rollback()
 
 	// Ensure mapping doesn't exist
-	blob, err := store.Get(req.NetworkId, storage.TypeAndKey{Type: lte.MSISDNBlobstoreType, Key: req.Msisdn})
+	blob, err := store.Get(req.NetworkId, storage.TK{Type: lte.MSISDNBlobstoreType, Key: req.Msisdn})
 	if err == nil {
 		return nil, status.Errorf(codes.AlreadyExists, "msisdn already mapped to %s", blob.Value)
 	}
@@ -125,7 +125,7 @@ func (l *lookupServicer) DeleteMSISDN(ctx context.Context, req *protos.DeleteMSI
 	}
 	defer store.Rollback()
 
-	err = store.Delete(req.NetworkId, []storage.TypeAndKey{{
+	err = store.Delete(req.NetworkId, storage.TKs{{
 		Type: lte.MSISDNBlobstoreType,
 		Key:  req.Msisdn,
 	}})

@@ -94,6 +94,7 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 	outgoingCtx := context.TODO()
 	for _, networkID := range networks {
 		gatewayEnts, _, err := configurator.LoadEntities(
+			context.Background(),
 			networkID,
 			swag.String(orc8r.MagmadGatewayType),
 			nil,

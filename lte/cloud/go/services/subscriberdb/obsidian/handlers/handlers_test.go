@@ -94,11 +94,7 @@ func TestCreateSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -110,7 +106,7 @@ func TestCreateSubscriber(t *testing.T) {
 			StaticIps: payload.StaticIps,
 		},
 		GraphID:      "2",
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
 
@@ -138,11 +134,7 @@ func TestCreateSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI0987654321",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	_, err = configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI0987654321", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.EqualError(t, err, "Not found")
 
 	// nonexistent sub profile should be 400
@@ -395,7 +387,7 @@ func TestListSubscribers(t *testing.T) {
 				},
 				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+			Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 		},
 		{
 			Type: lte.SubscriberEntityType, Key: "IMSI0987654321",
@@ -408,7 +400,7 @@ func TestListSubscribers(t *testing.T) {
 					SubProfile: "foo",
 				},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn1}},
+			Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn1}},
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)
@@ -624,7 +616,7 @@ func TestListSubscribersV2(t *testing.T) {
 				},
 				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+			Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 		},
 		{
 			Type: lte.SubscriberEntityType, Key: "IMSI0987654321",
@@ -637,7 +629,7 @@ func TestListSubscribersV2(t *testing.T) {
 					SubProfile: "foo",
 				},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn1}},
+			Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn1}},
 		},
 		{
 			Type: lte.SubscriberEntityType, Key: "IMSI0987654322",
@@ -650,7 +642,7 @@ func TestListSubscribersV2(t *testing.T) {
 					SubProfile: "foo",
 				},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}},
+			Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}},
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)
@@ -872,7 +864,7 @@ func TestGetSubscriber(t *testing.T) {
 			},
 			StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
 		},
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 
@@ -1639,7 +1631,7 @@ func TestUpdateSubscriber(t *testing.T) {
 				SubProfile: "default",
 			},
 		},
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 
@@ -1667,11 +1659,7 @@ func TestUpdateSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID:    "n1",
@@ -1681,7 +1669,7 @@ func TestUpdateSubscriber(t *testing.T) {
 		Config:       &subscriberModels.SubscriberConfig{Lte: payload.Lte, StaticIps: payload.StaticIps},
 		GraphID:      "2",
 		Version:      1,
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
 
@@ -1728,7 +1716,7 @@ func TestDeleteSubscriber(t *testing.T) {
 			AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			State:    "ACTIVE",
 		},
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 
@@ -1742,11 +1730,7 @@ func TestDeleteSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, _, err := configurator.LoadAllEntitiesOfType(
-		"n1", lte.SubscriberEntityType,
-		configurator.EntityLoadCriteria{},
-		serdes.Entity,
-	)
+	actual, _, err := configurator.LoadAllEntitiesOfType(context.Background(), "n1", lte.SubscriberEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(actual))
 }
@@ -1781,7 +1765,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 				State:    "ACTIVE",
 			},
 		},
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
 	_, err = configurator.CreateEntity(context.Background(), "n1", expected, serdes.Entity)
 	assert.NoError(t, err)
@@ -1800,11 +1784,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -1813,11 +1793,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	tc.Handler = deactivateSubscriber
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err = configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err = configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected.Config.(*subscriberModels.SubscriberConfig).Lte.State = "INACTIVE"
 	expected.Version = 2
@@ -1825,11 +1801,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 
 	// deactivate deactivated sub
 	tests.RunUnitTest(t, e, tc)
-	actual, err = configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err = configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected.Config.(*subscriberModels.SubscriberConfig).Lte.State = "INACTIVE"
 	expected.Version = 3
@@ -1839,11 +1811,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	tc.URL = testURLRoot + "/activate"
 	tc.Handler = activateSubscriber
 	tests.RunUnitTest(t, e, tc)
-	actual, err = configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err = configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected.Config.(*subscriberModels.SubscriberConfig).Lte.State = "ACTIVE"
 	expected.Version = 4
@@ -1886,7 +1854,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 				SubProfile: "default",
 			},
 		},
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 
@@ -1936,11 +1904,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1", Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
@@ -1954,7 +1918,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 		},
 		GraphID:      "2",
 		Version:      1,
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
 
@@ -1971,11 +1935,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err = configurator.LoadEntity(
-		"n1", lte.SubscriberEntityType, "IMSI1234567890",
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err = configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected = configurator.NetworkEntity{
 		NetworkID: "n1", Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
@@ -1989,7 +1949,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 		},
 		GraphID:      "2",
 		Version:      2,
-		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
 }

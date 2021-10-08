@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	sctpd "github.com/magma/magma/protos/magma/sctpd"
+	sctpd "github.com/magma/magma/src/go/protos/magma/sctpd"
 	grpc "google.golang.org/grpc"
 )
 

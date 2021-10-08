@@ -125,8 +125,8 @@ func (m *Subscriber) IsAssignedIP(ip string) bool {
 	return false
 }
 
-func (m *MutableSubscriber) ToTK() storage.TypeAndKey {
-	return storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(m.ID)}
+func (m *MutableSubscriber) ToTK() storage.TK {
+	return storage.TK{Type: lte.SubscriberEntityType, Key: string(m.ID)}
 }
 
 func (m *MutableSubscriber) FromEnt(ent configurator.NetworkEntity, policyProfileEnts configurator.NetworkEntities) (*MutableSubscriber, error) {
@@ -175,8 +175,8 @@ func (m *MutableSubscriber) FromEnt(ent configurator.NetworkEntity, policyProfil
 	return model, nil
 }
 
-func (m *MutableSubscriber) GetAssocs() []storage.TypeAndKey {
-	var assocs []storage.TypeAndKey
+func (m *MutableSubscriber) GetAssocs() storage.TKs {
+	var assocs storage.TKs
 	assocs = append(assocs, m.ActivePoliciesByApn.ToTKs(string(m.ID))...)
 	assocs = append(assocs, m.ActiveApns.ToTKs()...)
 	assocs = append(assocs, m.ActivePolicies.ToTKs()...)
@@ -188,10 +188,10 @@ func (m *SubProfile) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m ApnList) ToTKs() []storage.TypeAndKey {
-	var tks []storage.TypeAndKey
+func (m ApnList) ToTKs() storage.TKs {
+	var tks storage.TKs
 	for _, apnName := range m {
-		tks = append(tks, storage.TypeAndKey{Type: lte.APNEntityType, Key: apnName})
+		tks = append(tks, storage.TK{Type: lte.APNEntityType, Key: apnName})
 	}
 	return tks
 }

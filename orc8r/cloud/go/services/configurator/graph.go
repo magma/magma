@@ -25,7 +25,7 @@ import (
 // search/scan operations.
 
 func (eg *EntityGraph) GetEntity(entType string, key string) (NetworkEntity, error) {
-	return eg.GetEntityByTK(storage.TypeAndKey{Type: entType, Key: key})
+	return eg.GetEntityByTK(storage.TK{Type: entType, Key: key})
 }
 
 func (eg *EntityGraph) GetEntitiesOfType(entType string) []NetworkEntity {
@@ -38,7 +38,7 @@ func (eg *EntityGraph) GetEntitiesOfType(entType string) []NetworkEntity {
 	return res
 }
 
-func (eg *EntityGraph) GetEntityByTK(id storage.TypeAndKey) (NetworkEntity, error) {
+func (eg *EntityGraph) GetEntityByTK(id storage.TK) (NetworkEntity, error) {
 	eg.cacheGraphHelpers()
 
 	ret, found := eg.entsByTK[id]
@@ -51,12 +51,12 @@ func (eg *EntityGraph) GetEntityByTK(id storage.TypeAndKey) (NetworkEntity, erro
 func (eg *EntityGraph) GetFirstAncestorOfType(start NetworkEntity, targetType string) (NetworkEntity, error) {
 	eg.cacheGraphHelpers()
 
-	start, found := eg.entsByTK[start.GetTypeAndKey()]
+	start, found := eg.entsByTK[start.GetTK()]
 	if !found {
-		return NetworkEntity{}, errors.Errorf("entity %s is not in graph", start.GetTypeAndKey())
+		return NetworkEntity{}, errors.Errorf("entity %s is not in graph", start.GetTK())
 	}
 
-	ancestor := eg.upwardsDFSForType(start.GetTypeAndKey(), targetType, map[storage.TypeAndKey]bool{})
+	ancestor := eg.upwardsDFSForType(start.GetTK(), targetType, map[storage.TK]bool{})
 	if ancestor == nil {
 		return NetworkEntity{}, merrors.ErrNotFound
 	}
@@ -66,9 +66,9 @@ func (eg *EntityGraph) GetFirstAncestorOfType(start NetworkEntity, targetType st
 func (eg *EntityGraph) GetAllChildrenOfType(parent NetworkEntity, targetType string) ([]NetworkEntity, error) {
 	eg.cacheGraphHelpers()
 
-	start, found := eg.entsByTK[parent.GetTypeAndKey()]
+	start, found := eg.entsByTK[parent.GetTK()]
 	if !found {
-		return nil, errors.Errorf("entity %s is not in graph", start.GetTypeAndKey())
+		return nil, errors.Errorf("entity %s is not in graph", start.GetTK())
 	}
 
 	ret := []NetworkEntity{}
@@ -82,7 +82,7 @@ func (eg *EntityGraph) GetAllChildrenOfType(parent NetworkEntity, targetType str
 
 // backwards DFS search for a type. practically bfs would be more efficient but
 // this is easier to implement
-func (eg *EntityGraph) upwardsDFSForType(start storage.TypeAndKey, target string, seen map[storage.TypeAndKey]bool) *NetworkEntity {
+func (eg *EntityGraph) upwardsDFSForType(start storage.TK, target string, seen map[storage.TK]bool) *NetworkEntity {
 	if _, alreadySeen := seen[start]; alreadySeen {
 		return nil
 	}
@@ -109,13 +109,13 @@ func (eg *EntityGraph) cacheGraphHelpers() {
 		return
 	}
 
-	eg.entsByTK = map[storage.TypeAndKey]NetworkEntity{}
+	eg.entsByTK = map[storage.TK]NetworkEntity{}
 	for _, ent := range eg.Entities {
-		eg.entsByTK[ent.GetTypeAndKey()] = ent
+		eg.entsByTK[ent.GetTK()] = ent
 	}
 
-	eg.edgesByTK = map[storage.TypeAndKey][]storage.TypeAndKey{}
-	eg.reverseEdgesByTK = map[storage.TypeAndKey][]storage.TypeAndKey{}
+	eg.edgesByTK = map[storage.TK]storage.TKs{}
+	eg.reverseEdgesByTK = map[storage.TK]storage.TKs{}
 	for _, edge := range eg.Edges {
 		eg.edgesByTK[edge.From] = append(eg.edgesByTK[edge.From], edge.To)
 		eg.reverseEdgesByTK[edge.To] = append(eg.reverseEdgesByTK[edge.To], edge.From)
@@ -123,14 +123,14 @@ func (eg *EntityGraph) cacheGraphHelpers() {
 }
 
 // GetFirstParentOfType iterates through the parent associations of the entity
-// and returns the TypeAndKey of first association that matches the target
+// and returns the TK of first association that matches the target
 // type.
 // Returns ErrNotFound if no such association is found.
-func (ent NetworkEntity) GetFirstParentOfType(target string) (storage.TypeAndKey, error) {
+func (ent NetworkEntity) GetFirstParentOfType(target string) (storage.TK, error) {
 	for _, tk := range ent.ParentAssociations {
 		if tk.Type == target {
 			return tk, nil
 		}
 	}
-	return storage.TypeAndKey{}, merrors.ErrNotFound
+	return storage.TK{}, merrors.ErrNotFound
 }

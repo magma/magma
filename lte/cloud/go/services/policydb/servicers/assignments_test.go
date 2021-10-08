@@ -14,12 +14,11 @@ limitations under the License.
 package servicers_test
 
 import (
-	context2 "context"
+	"context"
 	"testing"
 
 	"github.com/go-openapi/swag"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
@@ -47,11 +46,11 @@ func TestAssignmentsServicer(t *testing.T) {
 	testBaseName := "b1"
 
 	// Initialize network
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: testNetworkId}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: testNetworkId}, serdes.Network)
 	assert.NoError(t, err)
 
 	// Initialize gateway -> subscriber, and create a policy rule
-	_, err = configurator.CreateEntities(context2.Background(), testNetworkId, []configurator.NetworkEntity{
+	_, err = configurator.CreateEntities(context.Background(), testNetworkId, []configurator.NetworkEntity{
 		{Type: lte.SubscriberEntityType, Key: testSubscriberId},
 		{
 			Type: lte.PolicyRuleEntityType,
@@ -78,7 +77,7 @@ func TestAssignmentsServicer(t *testing.T) {
 		{
 			Type: lte.CellularGatewayEntityType, Key: testGwLogicalId,
 			Config: newDefaultGatewayConfig(),
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.SubscriberEntityType, Key: testSubscriberId},
 			},
 		},
@@ -86,7 +85,7 @@ func TestAssignmentsServicer(t *testing.T) {
 			Type: orc8r.MagmadGatewayType, Key: testGwLogicalId,
 			Name: "foobar", Description: "foo bar",
 			PhysicalID:   testGwHwId,
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: testGwLogicalId}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: testGwLogicalId}},
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)
@@ -120,21 +119,13 @@ func TestAssignmentsServicer(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify that the rule is associated to the subscriber
-	ent, err := configurator.LoadEntity(
-		testNetworkId, lte.PolicyRuleEntityType, testPolicyId,
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	ent, err := configurator.LoadEntity(context.Background(), testNetworkId, lte.PolicyRuleEntityType, testPolicyId, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	testPolicy := (&models.PolicyRule{}).FromEntity(ent)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(testPolicy.AssignedSubscribers))
 
 	// Verify that the base name is associated to the subscriber
-	ent, err = configurator.LoadEntity(
-		testNetworkId, lte.BaseNameEntityType, testBaseName,
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	ent, err = configurator.LoadEntity(context.Background(), testNetworkId, lte.BaseNameEntityType, testBaseName, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	baseName := (&models.BaseNameRecord{}).FromEntity(ent)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(baseName.AssignedSubscribers))
@@ -145,21 +136,13 @@ func TestAssignmentsServicer(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify that the rule is disassociated from the subscriber
-	ent, err = configurator.LoadEntity(
-		testNetworkId, lte.PolicyRuleEntityType, testPolicyId,
-		configurator.EntityLoadCriteria{LoadConfig: true},
-		serdes.Entity,
-	)
+	ent, err = configurator.LoadEntity(context.Background(), testNetworkId, lte.PolicyRuleEntityType, testPolicyId, configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
 	testPolicy = (&models.PolicyRule{}).FromEntity(ent)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(testPolicy.AssignedSubscribers))
 
 	// Verify that the base name is disassociated from the subscriber
-	ent, err = configurator.LoadEntity(
-		testNetworkId, lte.BaseNameEntityType, testBaseName,
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	ent, err = configurator.LoadEntity(context.Background(), testNetworkId, lte.BaseNameEntityType, testBaseName, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	baseName = (&models.BaseNameRecord{}).FromEntity(ent)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(baseName.AssignedSubscribers))

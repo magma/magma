@@ -36,7 +36,7 @@ MME :
     USE_STATELESS = "{{ use_stateless }}";
     USE_HA = "{{ use_ha }}";
     ENABLE_GTPU_PRIVATE_IP_CORRECTION = "{{ enable_gtpu_private_ip_correction }}";
-    ENABLE_CONVERGED_CORE = "{{ enable_converged_core }}";
+    ENABLE5G_FEATURES = "{{ enable5g_features }}";
 
     # Congestion control configuration parameters
     CONGESTION_CONTROL_ENABLED = "{{ congestion_control_enabled }}";
@@ -62,9 +62,9 @@ MME :
     # ------- SCTP definitions
     SCTP :
     {
-        # Number of streams to use in input/output
-        SCTP_INSTREAMS  = 8;
-        SCTP_OUTSTREAMS = 8;
+        # Path to sctpd up and downstream unix domain sockets
+        SCTP_UPSTREAM_SOCK = "unix:///tmp/sctpd_upstream.sock";
+        SCTP_DOWNSTREAM_SOCK = "unix:///tmp/sctpd_downstream.sock";
     };
 
     # ------- S1AP definitions

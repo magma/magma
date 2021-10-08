@@ -42,7 +42,7 @@ static struct in_addr current_ue_net;
 static int current_ue_net_mask;
 
 //------------------------------------------------------------------------------
-static void add_route_for_ue_block(struct in_addr ue_net, uint32_t mask) {
+void add_route_for_ue_block(struct in_addr ue_net, uint32_t mask) {
   if (ue_net.s_addr == htonl(INADDR_ANY) || mask == 0) {
     return;
   }
@@ -210,14 +210,12 @@ int gtpv1u_add_tunnel(
 
 int gtpv1u_add_s8_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-    struct in_addr pgw, uint32_t i_tei, uint32_t o_tei, uint32_t pgw_i_tei,
-    uint32_t pgw_o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
-    uint32_t flow_precedence_dl) {
+    struct in_addr pgw, uint32_t i_tei, uint32_t o_tei, uint32_t pgw_in_tei,
+    uint32_t pgw_o_tei, Imsi_t imsi) {
   OAILOG_DEBUG(LOG_GTPV1U, "Add S8 tunnel ue %s", inet_ntoa(ue));
   if (gtp_tunnel_ops->add_s8_tunnel) {
     return gtp_tunnel_ops->add_s8_tunnel(
-        ue, ue_ipv6, vlan, enb, pgw, i_tei, o_tei, pgw_i_tei, pgw_o_tei, imsi,
-        flow_dl, flow_precedence_dl);
+        ue, ue_ipv6, vlan, enb, pgw, i_tei, o_tei, pgw_in_tei, pgw_o_tei, imsi);
   } else {
     return -EINVAL;
   }
@@ -225,12 +223,11 @@ int gtpv1u_add_s8_tunnel(
 
 int gtpv1u_del_s8_tunnel(
     struct in_addr enb, struct in_addr pgw, struct in_addr ue,
-    struct in6_addr* ue_ipv6, uint32_t i_tei, uint32_t o_tei,
-    struct ip_flow_dl* flow_dl) {
+    struct in6_addr* ue_ipv6, uint32_t i_tei, uint32_t pgw_in_tei) {
   OAILOG_DEBUG(LOG_GTPV1U, "Del S8 tunnel ue %s", inet_ntoa(ue));
   if (gtp_tunnel_ops->del_s8_tunnel) {
     return gtp_tunnel_ops->del_s8_tunnel(
-        enb, pgw, ue, ue_ipv6, i_tei, o_tei, flow_dl);
+        enb, pgw, ue, ue_ipv6, i_tei, pgw_in_tei);
   } else {
     return -EINVAL;
   }

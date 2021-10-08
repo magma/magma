@@ -27,22 +27,41 @@ import (
 	"magma/lte/cloud/go/protos"
 )
 
-func (ccr *CreditControlRequest) FromUsageMonitorUpdate(update *protos.UsageMonitoringUpdateRequest) *CreditControlRequest {
-	ccr.SessionID = update.SessionId
-	ccr.TgppCtx = update.GetTgppCtx()
-	ccr.RequestNumber = update.RequestNumber
-	ccr.Type = credit_control.CRTUpdate
-	ccr.IMSI = credit_control.RemoveIMSIPrefix(update.Sid)
-	ccr.IPAddr = update.UeIpv4
-	ccr.HardwareAddr = update.HardwareAddr
-	if update.EventTrigger == protos.EventTrigger_USAGE_REPORT {
-		ccr.UsageReports = []*UsageReport{(&UsageReport{}).FromUsageMonitorUpdate(update.Update)}
+// FromUsageMonitorUpdates returns a slice of CCRs from usage update protos
+// It merges updates from same session into one single request
+func FromUsageMonitorUpdates(updates []*protos.UsageMonitoringUpdateRequest) []*CreditControlRequest {
+	updatesPerSession := make(map[string][]*protos.UsageMonitoringUpdateRequest)
+	// sort updates per session
+	for _, update := range updates {
+		updatesPerSession[update.SessionId] = append(updatesPerSession[update.SessionId], update)
 	}
-	ccr.RATType = GetRATType(update.RatType)
-	ccr.IPCANType = GetIPCANType(update.RatType)
-	ccr.EventTrigger = EventTrigger(update.EventTrigger)
-	ccr.ChargingCharacteristics = update.ChargingCharacteristics
-	return ccr
+
+	// merge updates for the same sessions
+	requests := []*CreditControlRequest{}
+	for _, listUpdates := range updatesPerSession {
+		firstUpdate := listUpdates[0]
+		request := &CreditControlRequest{}
+		request.SessionID = firstUpdate.SessionId
+		request.TgppCtx = firstUpdate.GetTgppCtx()
+		request.RequestNumber = firstUpdate.RequestNumber
+		request.Type = credit_control.CRTUpdate
+		request.IMSI = credit_control.RemoveIMSIPrefix(firstUpdate.Sid)
+		request.IPAddr = firstUpdate.UeIpv4
+		request.HardwareAddr = firstUpdate.HardwareAddr
+		request.RATType = GetRATType(firstUpdate.RatType)
+		request.IPCANType = GetIPCANType(firstUpdate.RatType)
+		request.EventTrigger = EventTrigger(firstUpdate.EventTrigger)
+		request.ChargingCharacteristics = firstUpdate.ChargingCharacteristics
+
+		request.UsageReports = []*UsageReport{}
+		for _, updateN := range listUpdates {
+			if updateN.EventTrigger == protos.EventTrigger_USAGE_REPORT {
+				request.UsageReports = append(request.UsageReports, (&UsageReport{}).FromUsageMonitorUpdate(updateN.Update))
+			}
+		}
+		requests = append(requests, request)
+	}
+	return requests
 }
 
 func (qos *QosRequestInfo) FromProtos(pQos *protos.QosInformationRequest) *QosRequestInfo {

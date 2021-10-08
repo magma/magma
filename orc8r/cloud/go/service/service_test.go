@@ -14,12 +14,12 @@ limitations under the License.
 package service_test
 
 import (
+	"context"
 	"flag"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/state"

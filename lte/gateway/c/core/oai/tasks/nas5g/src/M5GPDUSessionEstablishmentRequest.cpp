@@ -101,7 +101,6 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
           decoded += decoded_result;
         }
         break;
-
       case REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE:
         if ((decoded_result =
                  pdu_session_estab_request->protocolconfigurationoptions
@@ -115,8 +114,19 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
           decoded += decoded_result;
         }
         break;
+      case MAXIMUM_NUMBER_OF_SUPPORTED_PACKET_FILTERS_TYPE:
+        if ((decoded_result =
+                 pdu_session_estab_request->maxNumOfSuppPacketFilters
+                     .DecodeMaxNumOfSupportedPacketFilters(
+                         &pdu_session_estab_request->maxNumOfSuppPacketFilters,
+                         MAXIMUM_NUMBER_OF_SUPPORTED_PACKET_FILTERS_TYPE,
+                         buffer + decoded, len - decoded)) < 0) {
+          return decoded_result;
+        } else {
+          decoded += decoded_result;
+        }
+        break;
       case REQUEST_5GSM_CAPABILITY_TYPE:
-      case REQUEST_MAXIMUM_NUMBER_OF_SUPPORTED_PACKET_FILTERS_TYPE:
       case REQUEST_ALWAYS_ON_PDU_SESSION_REQUESTED_TYPE:
       case REQUEST_SM_PDU_DN_REQUEST_CONTAINER_TYPE:
       case REQUEST_HEADER_COMPRESSION_CONFIGURATION_TYPE:

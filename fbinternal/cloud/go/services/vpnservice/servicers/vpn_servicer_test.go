@@ -1,6 +1,7 @@
 package servicers_test
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -12,7 +13,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 
 	fbprotos "magma/fbinternal/cloud/go/protos"
 	"magma/fbinternal/cloud/go/services/vpnservice/servicers"

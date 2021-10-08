@@ -18,6 +18,7 @@ awsAgwRegion: us-west-2
 awsOrc8rRegion: us-west-2
 awsAgwAz: "{{ awsAgwRegion }}a"
 awsAgwVersion: v1.5
+awsInstanceType: "t2.medium"
 
 awsAgwAmi: ami-06447b6fef489a898
 #awsCloudstrapperAmi: ami-03865ac2b925f8056

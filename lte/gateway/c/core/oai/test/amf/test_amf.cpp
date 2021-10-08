@@ -78,6 +78,11 @@ uint8_t NAS5GPktSnapShot::pdu_session_est_req_type2[47] = {
     0x00, 0x0d, 0x00, 0x12, 0x01, 0x81, 0x22, 0x04, 0x01, 0x00, 0x00, 0x01,
     0x25, 0x09, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
 
+uint8_t NAS5GPktSnapShot::pdu_session_est_req_type3[34] = {
+    0x7e, 0x00, 0x67, 0x01, 0x00, 0x0e, 0x2e, 0x05, 0x01, 0xc1, 0xff, 0xff,
+    0x91, 0xa4, 0x28, 0x01, 0x01, 0x55, 0x02, 0x20, 0x12, 0x05, 0x81, 0x25,
+    0x09, 0x08, 0x49, 0x4e, 0x54, 0x45, 0x52, 0x4e, 0x45, 0x54};
+
 uint8_t NAS5GPktSnapShot::pdu_session_release_complete[12] = {
     0x7e, 0x00, 0x67, 0x01, 0x00, 0x04, 0x2e, 0x05, 0x01, 0xd4, 0x12, 0x05};
 
@@ -93,14 +98,19 @@ uint8_t NAS5GPktSnapShot::service_request[37] = {
 
 uint8_t NAS5GPktSnapShot::registration_reject[4] = {0x00, 0x00, 0x00, 0x00};
 
-TEST(test_amf_nas5g_pkt_process, test_amf_ue_register_req_msg) {
+uint8_t NAS5GPktSnapShot::security_mode_reject[4] = {0x7e, 0x00, 0x5f, 0x24};
+
+class AmfNas5GTest : public ::testing::Test {
+ protected:
   NAS5GPktSnapShot nas5g_pkt_snap;
-  RegistrationRequestMsg reg_request;
-  bool decode_res = false;
+  RegistrationRequestMsg reg_request = {};
+  bool decode_res;
+  virtual void SetUp() { decode_res = false; }
+  virtual void TearDown() {}
+};
 
+TEST_F(AmfNas5GTest, test_amf_ue_register_req_msg) {
   uint32_t len = nas5g_pkt_snap.get_reg_req_buffer_len();
-
-  memset(&reg_request, 0, sizeof(RegistrationRequestMsg));
 
   decode_res = decode_registration_request_msg(
       &reg_request, nas5g_pkt_snap.reg_req_buffer, len);
@@ -139,14 +149,8 @@ TEST(test_amf_nas5g_pkt_process, test_amf_ue_register_req_msg) {
       reg_request.m5gs_mobile_identity.mobile_identity.imsi.mcc_digit2, 0x0);
 }
 
-TEST(test_amf_nas5g_pkt_process, test_amf_ue_guti_register_req_msg) {
-  NAS5GPktSnapShot nas5g_pkt_snap;
-  RegistrationRequestMsg reg_request;
-  bool decode_res = false;
-
+TEST_F(AmfNas5GTest, test_amf_ue_guti_register_req_msg) {
   uint32_t len = nas5g_pkt_snap.get_guti_based_registration_len();
-
-  memset(&reg_request, 0, sizeof(RegistrationRequestMsg));
 
   decode_res = decode_registration_request_msg(
       &reg_request, nas5g_pkt_snap.guti_based_registration, len);
@@ -257,6 +261,8 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type2_msg) {
 
   /* Encoded Message */
   ProtocolConfigurationOptions protocolconfigruartionoption;
+  memset(
+      &protocolconfigruartionoption, 0, sizeof(ProtocolConfigurationOptions));
   protocol_configuration_options_t* pco_resp =
       &(protocolconfigruartionoption.pco);
 
@@ -294,6 +300,43 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type2_msg) {
 
   sm_free_protocol_configuration_options(&pco_req);
   sm_free_protocol_configuration_options(&pco_resp);
+}
+
+TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type3_msg) {
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  ULNASTransportMsg pdu_sess_est_req;
+  PDUSessionEstablishmentRequestMsg* pduSessEstReq = nullptr;
+  bool decode_res                                  = false;
+  uint8_t buffer[1024]                             = {};
+  uint16_t buf_len                                 = 1024;
+
+  uint32_t len = nas5g_pkt_snap.get_pdu_session_est_type3_len();
+
+  /* Check if uplink pdu packet is parsed properly */
+  memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
+  decode_res = decode_ul_nas_transport_msg(
+      &pdu_sess_est_req, nas5g_pkt_snap.pdu_session_est_req_type3, len);
+
+  EXPECT_EQ(decode_res, true);
+  pduSessEstReq =
+      &pdu_sess_est_req.payload_container.smf_msg.msg.pdu_session_estab_request;
+  EXPECT_EQ(
+      pduSessEstReq->extended_protocol_discriminator
+          .extended_proto_discriminator,
+      M5G_SESSION_MANAGEMENT_MESSAGES);
+  EXPECT_EQ(pduSessEstReq->pdu_session_identity.pdu_session_id, 0x05);
+  EXPECT_EQ(pduSessEstReq->pti.pti, 0x01);
+  EXPECT_EQ(
+      pduSessEstReq->message_type.msg_type, PDU_SESSION_ESTABLISHMENT_REQUEST);
+  EXPECT_EQ(pduSessEstReq->integrity_prot_max_data_rate.max_uplink, 0xFF);
+  EXPECT_EQ(pduSessEstReq->integrity_prot_max_data_rate.max_downlink, 0xFF);
+  EXPECT_EQ(pduSessEstReq->pdu_session_type.type_val, 0x01);
+  EXPECT_EQ(pduSessEstReq->ssc_mode.mode_val, 0x04);
+  EXPECT_EQ(
+      pduSessEstReq->maxNumOfSuppPacketFilters.iei,
+      MAXIMUM_NUMBER_OF_SUPPORTED_PACKET_FILTERS_TYPE);
+  EXPECT_EQ(
+      pduSessEstReq->maxNumOfSuppPacketFilters.maxNumOfSuppPktFilters, 0x0220);
 }
 
 TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_release_complete_msg) {
@@ -400,26 +443,27 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_accept) {
           .pdu_re_activation_status.pduSessionReActivationResult,
       PDU_SESSION_ID);
 }
-TEST(test_amf_data_struct, test_ue_context_creation) {
-  ue_m5gmm_context_s* ue_context = nullptr;
 
-  ue_context = amf_create_new_ue_context();
+class AmfUeContextTest : public ::testing::Test {
+ protected:
+  ue_m5gmm_context_s* ue_context;
+
+  virtual void SetUp() { ue_context = amf_create_new_ue_context(); }
+  virtual void TearDown() { delete ue_context; }
+};
+
+TEST_F(AmfUeContextTest, test_ue_context_creation) {
   EXPECT_TRUE(nullptr != ue_context);
   EXPECT_TRUE(0 == ue_context->amf_teid_n11);
   EXPECT_TRUE(0 == ue_context->paging_context.paging_retx_count);
-  delete ue_context;
 }
 
-TEST(test_smf_context_struct, test_smf_context_creation) {
-  ue_m5gmm_context_s* ue_context = nullptr;
-  smf_context_t* smf_context     = nullptr;
-
-  ue_context             = amf_create_new_ue_context();
-  uint8_t pdu_session_id = 10;
-  smf_context            = amf_insert_smf_context(ue_context, pdu_session_id);
+TEST_F(AmfUeContextTest, test_smf_context_creation) {
+  smf_context_t* smf_context = nullptr;
+  uint8_t pdu_session_id     = 10;
+  smf_context = amf_insert_smf_context(ue_context, pdu_session_id);
   EXPECT_TRUE(0 == smf_context->n_active_pdus);
   EXPECT_TRUE(0 == smf_context->pdu_session_version);
-  delete ue_context;
 }
 
 /* Test for registration reject */
@@ -614,6 +658,28 @@ TEST(test_dlnastransport, test_dlnastransport) {
       static_cast<uint8_t>(M5GMmCause::MAX_PDU_SESSIONS_REACHED));
   bdestroy(buffer);
 }
+
+/* Test for security mode reject Data */
+TEST(test_amf_nas5g_pkt_process, test_amf_security_mode_reject_message_data) {
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  SecurityModeRejectMsg sm_reject;
+  bool decode_res = 0;
+
+  uint32_t len = nas5g_pkt_snap.get_security_mode_reject_len();
+
+  memset(&sm_reject, 0, sizeof(SecurityModeRejectMsg));
+
+  decode_res = decode_security_mode_reject_msg(
+      &sm_reject, nas5g_pkt_snap.security_mode_reject, len);
+  EXPECT_EQ(decode_res, true);
+  EXPECT_EQ(
+      sm_reject.extended_protocol_discriminator.extended_proto_discriminator,
+      M5G_MOBILITY_MANAGEMENT_MESSAGES);
+  EXPECT_EQ(sm_reject.sec_header_type.sec_hdr, (uint8_t) 0x00);
+  EXPECT_EQ(sm_reject.message_type.msg_type, SEC_MODE_REJECT);
+  EXPECT_EQ(sm_reject.m5gmm_cause.m5gmm_cause, 0x24);
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

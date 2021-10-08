@@ -105,7 +105,7 @@ func TestListSubscribers(t *testing.T) {
 				},
 				StaticIps: models.SubscriberStaticIps{"apn1": "192.168.100.1"},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
+			Associations: storage.TKs{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
 		},
 		{Type: lte.SubscriberEntityType, Key: "IMSI00002", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
 		{Type: lte.SubscriberEntityType, Key: "IMSI99999", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
@@ -202,15 +202,15 @@ func TestListSubscribers(t *testing.T) {
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{
 			Type: lte.BaseNameEntityType, Key: "bn1",
-			Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI00001"}},
+			Associations: storage.TKs{{Type: lte.SubscriberEntityType, Key: "IMSI00001"}},
 		},
 		{
 			Type: lte.PolicyRuleEntityType, Key: "r1",
-			Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI00001"}},
+			Associations: storage.TKs{{Type: lte.SubscriberEntityType, Key: "IMSI00001"}},
 		},
 		{
 			Type: lte.PolicyRuleEntityType, Key: "r2",
-			Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI00001"}},
+			Associations: storage.TKs{{Type: lte.SubscriberEntityType, Key: "IMSI00001"}},
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)

@@ -428,3 +428,10 @@
     pkg:
       - clangd-12
   retries: 5
+
+- name: Symlink system wide bazelrc into the VM
+  file:
+    src: '/home/vagrant/magma/experimental/bazel-base/bazelrcs/vm.bazelrc'
+    path: '/etc/bazelrc'
+    state: link
+    force: yes

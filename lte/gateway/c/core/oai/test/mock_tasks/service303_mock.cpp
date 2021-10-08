@@ -13,6 +13,7 @@
 #include "mock_tasks.h"
 
 task_zmq_ctx_t task_zmq_ctx_service303;
+static std::shared_ptr<MockService303Handler> service303_handler_;
 
 void stop_mock_service303_task();
 
@@ -21,9 +22,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TERMINATE_MESSAGE: {
+      service303_handler_.reset();
       itti_free_msg_content(received_message_p);
       free(received_message_p);
       stop_mock_service303_task();
+    } break;
+
+    case APPLICATION_HEALTHY_MSG: {
+      service303_handler_->service303_set_application_health();
     } break;
 
     default: { } break; }
@@ -38,7 +44,9 @@ void stop_mock_service303_task() {
   pthread_exit(NULL);
 }
 
-void start_mock_service303_task() {
+void start_mock_service303_task(
+    std::shared_ptr<MockService303Handler> service303_handler) {
+  service303_handler_ = service303_handler;
   init_task_context(
       TASK_SERVICE303, nullptr, 0, handle_message, &task_zmq_ctx_service303);
   zloop_start(task_zmq_ctx_service303.event_loop);
