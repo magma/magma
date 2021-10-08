@@ -50,14 +50,14 @@ type sqlBlobStoreFactory struct {
 }
 
 func (fact *sqlBlobStoreFactory) StartTransaction(opts *storage.TxOptions) (TransactionalBlobStorage, error) {
-	tx, err := fact.db.BeginTx(context.Background(), getSQLOptions(opts))
+	tx, err := fact.db.BeginTx(context.Background(), getSqlOpts(opts))
 	if err != nil {
 		return nil, err
 	}
 	return &sqlBlobStorage{tableName: fact.tableName, tx: tx, builder: fact.builder}, nil
 }
 
-func getSQLOptions(opts *storage.TxOptions) *sql.TxOptions {
+func getSqlOpts(opts *storage.TxOptions) *sql.TxOptions {
 	if opts == nil {
 		return nil
 	}
