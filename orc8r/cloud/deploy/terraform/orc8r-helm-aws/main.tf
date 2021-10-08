@@ -168,8 +168,8 @@ data "template_file" "orc8r_values" {
     # orc8r certs secret
     nms_certs_secret = var.deploy_nms ? kubernetes_secret.nms_certs.0.metadata.0.name : kubernetes_secret.orc8r_certs.metadata.0.name
 
-    controller_replicas = var.orc8r_controller_replicas
-    nginx_replicas      = var.orc8r_proxy_replicas
+    controller_replicas   = var.orc8r_controller_replicas
+    nginx_replicas        = var.orc8r_proxy_replicas
 
     controller_hostname = format("controller.%s", var.orc8r_domain_name)
     api_hostname        = format("api.%s", var.orc8r_domain_name)
@@ -186,6 +186,8 @@ data "template_file" "orc8r_values" {
     magmalte_replicas         = var.nms_replicas
     magmalte_nginx_replicas   = var.nms_nginx_replicas
     
+    controller_affinity   = var.orc8r_controller_affinity
+    magmalte_affinity     = var.nms_affinity
 
     metrics_pvc_promcfg  = kubernetes_persistent_volume_claim.storage["promcfg"].metadata.0.name
     metrics_pvc_promdata = kubernetes_persistent_volume_claim.storage["promdata"].metadata.0.name

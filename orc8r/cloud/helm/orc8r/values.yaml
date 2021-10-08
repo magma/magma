@@ -17,6 +17,12 @@ nms:
     image:
       repository: <registry>/magmalte
       tag: latest
+    # Configure pod disruption budgets for magmalte
+    # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
+    podDisruptionBudget:
+      enabled: false
+      minAvailable: 1
+      maxUnavailable: ""
   nginx:
     create: true
 

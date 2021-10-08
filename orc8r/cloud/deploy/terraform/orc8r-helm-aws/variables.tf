@@ -97,11 +97,25 @@ variable "nms_nginx_replicas" {
   default     = 1
 }
 
+variable "nms_affinity" {
+  description = "NMS deployment affinity spec"
+  type        = object()
+  default     = {}
+}
+
+
 variable "orc8r_controller_replicas" {
   description = "Replica count for Orchestrator controller pods."
   type        = number
   default     = 2
 }
+
+variable "orc8r_controller_affinity" {
+  description = "Controller deployment affinity spec"
+  type        = object()
+  default     = {}
+}
+
 
 variable "orc8r_proxy_replicas" {
   description = "Replica count for Orchestrator proxy pods."

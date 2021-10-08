@@ -66,6 +66,7 @@ controller:
       user: ${orc8r_db_user}
     service_registry:
       mode: "k8s"
+  affinity: ${controller_affinity}
 
 metrics:
   imagePullSecrets:
@@ -187,6 +188,11 @@ nms:
       tag: "${docker_tag}"
     
     replicas: ${magmalte_replicas}
+    
+    podDisruptionBudget:
+      enabled: true
+
+    affinity: ${magmalte_affinity}
 
     env:
       api_host: ${api_hostname}

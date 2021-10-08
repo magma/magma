@@ -79,6 +79,10 @@ magmalte:
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
 
+  # Define pod disruption budget for NMS
+  # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
+  podDisruptionBudget: {}
+
 ## Nginx-Proxy
 #
 nginx:
