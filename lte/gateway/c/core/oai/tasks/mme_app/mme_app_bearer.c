@@ -1950,7 +1950,9 @@ int mme_app_handle_initial_context_setup_rsp_timer_expiry(
         get_nas_specific_procedure_attach(&ue_context_p->emm_context);
     // Stop T3450 timer if its still runinng
     if (attach_proc) {
-      nas_stop_T3450(attach_proc->ue_id, &attach_proc->T3450, NULL);
+      nas_stop_T3450(
+          attach_proc->ue_id, &attach_proc->T3450, NULL,
+          ue_context_p->emm_context._imsi64);
     }
   }
 
@@ -3234,7 +3236,8 @@ void mme_app_handle_nw_init_bearer_deactv_req(
         bearer_context_t* bearer_context = mme_app_get_bearer_context(
             ue_context_p, nw_init_bearer_deactv_req_p->ebi[i]);
         if (bearer_context) {
-          mme_app_free_bearer_context(&bearer_context);
+          mme_app_free_bearer_context(
+              &bearer_context, ue_context_p->emm_context._imsi64);
           num_bearers_deleted++;
           ebi[i] = nw_init_bearer_deactv_req_p->ebi[i];
         } else {

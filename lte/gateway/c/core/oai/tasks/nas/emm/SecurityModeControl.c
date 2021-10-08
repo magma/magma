@@ -527,7 +527,8 @@ int emm_proc_security_mode_complete(
     REQUIREMENT_3GPP_24_301(R10_5_4_3_4__1);
 
     void* timer_callback_arg = NULL;
-    nas_stop_T3460(ue_id, &smc_proc->T3460, timer_callback_arg);
+    nas_stop_T3460(
+        ue_id, &smc_proc->T3460, timer_callback_arg, emm_ctx->_imsi64);
 
     /* If MME requested for imeisv in security mode cmd
      * and UE did not include the same in security mode complete,
@@ -660,7 +661,8 @@ int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id) {
      */
     REQUIREMENT_3GPP_24_301(R10_5_4_3_5__2);
     void* timer_callback_arg = NULL;
-    nas_stop_T3460(ue_id, &smc_proc->T3460, timer_callback_arg);
+    nas_stop_T3460(
+        ue_id, &smc_proc->T3460, timer_callback_arg, emm_ctx->_imsi64);
 
     // restore previous values
     REQUIREMENT_3GPP_24_301(R10_5_4_3_5__3);
@@ -875,13 +877,16 @@ static int security_request(nas_emm_smc_proc_t* const smc_proc) {
     if (rc != RETURNerror) {
       REQUIREMENT_3GPP_24_301(R10_5_4_3_2__1);
       void* timer_callback_args = NULL;
-      nas_stop_T3460(smc_proc->ue_id, &smc_proc->T3460, timer_callback_args);
+      nas_stop_T3460(
+          smc_proc->ue_id, &smc_proc->T3460, timer_callback_args,
+          emm_ctx->_imsi64);
       /*
        * Start T3460 timer
        */
       nas_start_T3460(
           smc_proc->ue_id, &smc_proc->T3460,
-          smc_proc->emm_com_proc.emm_proc.base_proc.time_out, emm_ctx);
+          smc_proc->emm_com_proc.emm_proc.base_proc.time_out, emm_ctx,
+          emm_ctx->_imsi64);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -984,7 +989,7 @@ static int security_abort(
           "EMM-PROC  - Stop timer T3460 (%ld) for ue id " MME_UE_S1AP_ID_FMT
           "\n",
           smc_proc->T3460.id, ue_id);
-      nas_stop_T3460(ue_id, &smc_proc->T3460, NULL);
+      nas_stop_T3460(ue_id, &smc_proc->T3460, NULL, emm_ctx->_imsi64);
     }
     /*
      * Release retransmission timer parameters

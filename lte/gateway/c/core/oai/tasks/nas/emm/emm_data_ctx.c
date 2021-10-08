@@ -966,10 +966,10 @@ void emm_init_context(
 //------------------------------------------------------------------------------
 void nas_start_T3450(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450,
-    time_out_t time_out_cb, void* timer_callback_args) {
+    time_out_t time_out_cb, void* timer_callback_args, imsi64_t imsi64) {
   if ((T3450) && (T3450->id == NAS_TIMER_INACTIVE_ID)) {
-    T3450->id =
-        nas_timer_start(T3450->sec, 0, time_out_cb, timer_callback_args);
+    T3450->id = nas_timer_start(
+        T3450->sec, 0, time_out_cb, timer_callback_args, imsi64);
     if (NAS_TIMER_INACTIVE_ID != T3450->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "T3450 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
@@ -983,10 +983,10 @@ void nas_start_T3450(
 //------------------------------------------------------------------------------
 void nas_start_T3460(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3460,
-    time_out_t time_out_cb, void* timer_callback_args) {
+    time_out_t time_out_cb, void* timer_callback_args, imsi64_t imsi64) {
   if ((T3460) && (T3460->id == NAS_TIMER_INACTIVE_ID)) {
-    T3460->id =
-        nas_timer_start(T3460->sec, 0, time_out_cb, timer_callback_args);
+    T3460->id = nas_timer_start(
+        T3460->sec, 0, time_out_cb, timer_callback_args, imsi64);
     if (NAS_TIMER_INACTIVE_ID != T3460->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "T3460 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
@@ -1000,10 +1000,10 @@ void nas_start_T3460(
 //------------------------------------------------------------------------------
 void nas_start_T3470(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470,
-    time_out_t time_out_cb, void* timer_callback_args) {
+    time_out_t time_out_cb, void* timer_callback_args, imsi64_t imsi64) {
   if ((T3470) && (T3470->id == NAS_TIMER_INACTIVE_ID)) {
-    T3470->id =
-        nas_timer_start(T3470->sec, 0, time_out_cb, timer_callback_args);
+    T3470->id = nas_timer_start(
+        T3470->sec, 0, time_out_cb, timer_callback_args, imsi64);
     if (NAS_TIMER_INACTIVE_ID != T3470->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "T3470 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
@@ -1017,10 +1017,10 @@ void nas_start_T3470(
 //------------------------------------------------------------------------------
 void nas_start_Ts6a_auth_info(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const Ts6a_auth_info,
-    time_out_t time_out_cb, void* timer_callback_args) {
+    time_out_t time_out_cb, void* timer_callback_args, imsi64_t imsi64) {
   if ((Ts6a_auth_info) && (Ts6a_auth_info->id == NAS_TIMER_INACTIVE_ID)) {
     Ts6a_auth_info->id = nas_timer_start(
-        Ts6a_auth_info->sec, 0, time_out_cb, timer_callback_args);
+        Ts6a_auth_info->sec, 0, time_out_cb, timer_callback_args, imsi64);
     if (NAS_TIMER_INACTIVE_ID != Ts6a_auth_info->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "Ts6a_auth_info started UE " MME_UE_S1AP_ID_FMT "\n",
@@ -1035,9 +1035,9 @@ void nas_start_Ts6a_auth_info(
 //------------------------------------------------------------------------------
 void nas_stop_T3450(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450,
-    void* timer_callback_args) {
+    void* timer_callback_args, imsi64_t imsi64) {
   if ((T3450) && (T3450->id != NAS_TIMER_INACTIVE_ID)) {
-    T3450->id = nas_timer_stop(T3450->id, &timer_callback_args);
+    T3450->id = nas_timer_stop(T3450->id, &timer_callback_args, imsi64);
     OAILOG_DEBUG(
         LOG_NAS_EMM, "T3450 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
   }
@@ -1046,9 +1046,9 @@ void nas_stop_T3450(
 //------------------------------------------------------------------------------
 void nas_stop_T3460(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3460,
-    void* timer_callback_args) {
+    void* timer_callback_args, imsi64_t imsi64) {
   if ((T3460) && (T3460->id != NAS_TIMER_INACTIVE_ID)) {
-    T3460->id = nas_timer_stop(T3460->id, &timer_callback_args);
+    T3460->id = nas_timer_stop(T3460->id, &timer_callback_args, imsi64);
     OAILOG_DEBUG(
         LOG_NAS_EMM, "T3460 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
   }
@@ -1057,9 +1057,9 @@ void nas_stop_T3460(
 //------------------------------------------------------------------------------
 void nas_stop_T3470(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470,
-    void* timer_callback_args) {
+    void* timer_callback_args, imsi64_t imsi64) {
   if ((T3470) && (T3470->id != NAS_TIMER_INACTIVE_ID)) {
-    T3470->id = nas_timer_stop(T3470->id, &timer_callback_args);
+    T3470->id = nas_timer_stop(T3470->id, &timer_callback_args, imsi64);
     OAILOG_DEBUG(
         LOG_NAS_EMM, "T3470 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
   }
@@ -1068,10 +1068,10 @@ void nas_stop_T3470(
 //------------------------------------------------------------------------------
 void nas_stop_Ts6a_auth_info(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const Ts6a_auth_info,
-    void* timer_callback_args) {
+    void* timer_callback_args, imsi64_t imsi64) {
   if ((Ts6a_auth_info) && (Ts6a_auth_info->id != NAS_TIMER_INACTIVE_ID)) {
     Ts6a_auth_info->id =
-        nas_timer_stop(Ts6a_auth_info->id, &timer_callback_args);
+        nas_timer_stop(Ts6a_auth_info->id, &timer_callback_args, imsi64);
     OAILOG_DEBUG(
         LOG_NAS_EMM, "Ts6a_auth_info stopped UE " MME_UE_S1AP_ID_FMT "\n",
         ue_id);

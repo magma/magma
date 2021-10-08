@@ -739,10 +739,13 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
            * Re-start T3450 timer
            */
           void* timer_callback_arg = NULL;
-          nas_stop_T3450(tau_proc->ue_id, &tau_proc->T3450, timer_callback_arg);
+          nas_stop_T3450(
+              tau_proc->ue_id, &tau_proc->T3450, timer_callback_arg,
+              emm_context->_imsi64);
           nas_start_T3450(
               tau_proc->ue_id, &tau_proc->T3450,
-              tau_proc->emm_spec_proc.emm_proc.base_proc.time_out, emm_context);
+              tau_proc->emm_spec_proc.emm_proc.base_proc.time_out, emm_context,
+              emm_context->_imsi64);
           increment_counter(
               "tracking_area_update", 1, 1, "action",
               " initial_ictr_tau_accept_sent");
@@ -821,17 +824,20 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
           /*
            * Re-start T3450 timer
            */
-          nas_stop_T3450(tau_proc->ue_id, &tau_proc->T3450, NULL);
+          nas_stop_T3450(
+              tau_proc->ue_id, &tau_proc->T3450, NULL, emm_context->_imsi64);
           nas_start_T3450(
               tau_proc->ue_id, &tau_proc->T3450,
-              tau_proc->emm_spec_proc.emm_proc.base_proc.time_out, emm_context);
+              tau_proc->emm_spec_proc.emm_proc.base_proc.time_out, emm_context,
+              emm_context->_imsi64);
         } else {
           /*
            * Start T3450 timer
            */
           nas_start_T3450(
               tau_proc->ue_id, &tau_proc->T3450,
-              tau_proc->emm_spec_proc.emm_proc.base_proc.time_out, emm_context);
+              tau_proc->emm_spec_proc.emm_proc.base_proc.time_out, emm_context,
+              emm_context->_imsi64);
         }
 
         OAILOG_INFO(
@@ -871,7 +877,9 @@ static int emm_tracking_area_update_abort(
        * Stop timer T3450
        */
       void* timer_callback_args = NULL;
-      nas_stop_T3450(tau_proc->ue_id, &tau_proc->T3450, timer_callback_args);
+      nas_stop_T3450(
+          tau_proc->ue_id, &tau_proc->T3450, timer_callback_args,
+          emm_context->_imsi64);
 
       /*
        * Notify EMM that EPS attach procedure failed

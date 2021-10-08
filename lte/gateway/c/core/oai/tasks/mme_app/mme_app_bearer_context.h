@@ -48,9 +48,10 @@
 typedef uint8_t mme_app_bearer_state_t;
 
 bearer_context_t* mme_app_create_bearer_context(
-    ue_mm_context_t* const ue_mm_context, const pdn_cid_t pdn_cid,
-    const ebi_t ebi, const bool is_default);
-void mme_app_free_bearer_context(bearer_context_t** const bearer_context);
+    ue_mm_context_t* const ue_mm_context, const pdn_cid_t pdn_cid, ebi_t ebi,
+    const bool is_default);
+void mme_app_free_bearer_context(
+    bearer_context_t** const bearer_context, imsi64_t imsi64);
 bearer_context_t* mme_app_get_bearer_context(
     ue_mm_context_t* const ue_context, const ebi_t ebi);
 void mme_app_add_bearer_context(

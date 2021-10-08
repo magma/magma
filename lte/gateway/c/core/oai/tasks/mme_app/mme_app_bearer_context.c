@@ -73,8 +73,9 @@ bearer_context_t* mme_app_create_bearer_context(
 }
 
 //------------------------------------------------------------------------------
-void mme_app_free_bearer_context(bearer_context_t** const bearer_context) {
-  free_esm_bearer_context(&(*bearer_context)->esm_ebr_context);
+void mme_app_free_bearer_context(
+    bearer_context_t** const bearer_context, imsi64_t imsi64) {
+  free_esm_bearer_context(&(*bearer_context)->esm_ebr_context, imsi64);
   free_wrapper((void**) bearer_context);
 }
 

@@ -277,7 +277,7 @@ static int esm_information(
      */
     emm_context_p->esm_ctx.T3489.id = nas_timer_start(
         emm_context_p->esm_ctx.T3489.sec, 0 /*usec*/,
-        esm_information_t3489_handler, data);
+        esm_information_t3489_handler, data, emm_context_p->_imsi64);
 
     OAILOG_INFO(
         LOG_NAS_EMM,

@@ -41,6 +41,7 @@
 #include "mme_app_defs.h"
 #include "mme_app_ha.h"
 #include "mme_app_statistics.h"
+#include "mme_app_imsi_timer_id.h"
 #include "service303_message_utils.h"
 #include "common_defs.h"
 #include "mme_app_edns_emulation.h"
@@ -258,7 +259,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        * Check statistic timer
        */
       if (!timer_exists(
-              received_message_p->ittiMsg.timer_has_expired.timer_id)) {
+              received_message_p->ittiMsg.timer_has_expired.timer_id) &&
+          (mme_app_get_timer_id_from_imsi(imsi64) != NAS_TIMER_INACTIVE_ID)) {
         OAILOG_WARNING(
             LOG_MME_APP,
             "Timer expiry signal received for timer \

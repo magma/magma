@@ -253,7 +253,8 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
 
   for (int i = 0; i < BEARERS_PER_UE; i++) {
     if (ue_context_p->bearer_contexts[i]) {
-      mme_app_free_bearer_context(&ue_context_p->bearer_contexts[i]);
+      mme_app_free_bearer_context(
+          &ue_context_p->bearer_contexts[i], ue_context_p->emm_context._imsi64);
     }
   }
 
