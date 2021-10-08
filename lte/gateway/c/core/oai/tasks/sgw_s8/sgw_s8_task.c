@@ -118,13 +118,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           imsi64);
     } break;
     case S8_DELETE_BEARER_REQ: {
-      gtpv2c_cause_value_t cause_value = REQUEST_REJECTED;
       sgw_s8_handle_delete_bearer_request(
-          sgw_state, &received_message_p->ittiMsg.s8_delete_bearer_req,
-          &cause_value);
+          sgw_state, &received_message_p->ittiMsg.s8_delete_bearer_req);
     } break;
     case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
-      // Handle Dedicated bearer deactivation Rsp from MME
       sgw_s8_handle_s11_delete_bearer_response(
           sgw_state, &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp,
           imsi64);

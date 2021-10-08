@@ -142,6 +142,21 @@ void fill_create_bearer_response(
   bc_context->s1u_sgw_fteid.teid = s1_u_sgw_fteid;
 }
 
+void fill_delete_bearer_response(
+    itti_s11_nw_init_deactv_bearer_rsp_t* db_response,
+    uint32_t s_gw_teid_s11_s4, uint8_t eps_bearer_id,
+    gtpv2c_cause_value_t cause) {
+  db_response->delete_default_bearer              = false;
+  db_response->s_gw_teid_s11_s4                   = s_gw_teid_s11_s4;
+  db_response->bearer_contexts.num_bearer_context = 1;
+  for (uint8_t idx = 0; idx < db_response->bearer_contexts.num_bearer_context;
+       idx++) {
+    db_response->bearer_contexts.bearer_contexts[idx].eps_bearer_id =
+        eps_bearer_id;
+    db_response->bearer_contexts.bearer_contexts[idx].cause.cause_value = cause;
+  }
+}
+
 sgw_state_t* SgwS8Config::create_ue_context(mme_sgw_tunnel_t* sgw_s11_tunnel) {
   sgw_state_init(false, config);
   sgw_state_t* sgw_state     = get_sgw_state(false);

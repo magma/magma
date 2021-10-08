@@ -161,3 +161,52 @@ TEST_F(SgwS8Config, check_failed_to_create_dedicated_bearer) {
   free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
   sgw_state_exit();
 }
+
+// TC validates updation of bearer context on reception of Create Session Rsp
+TEST_F(SgwS8Config, delete_bearer_request) {
+  mme_sgw_tunnel_t sgw_s11_tunnel = {0};
+  sgw_state_t* sgw_state          = create_ue_context(&sgw_s11_tunnel);
+  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
+      sgw_s11_tunnel.local_teid);
+  itti_s11_create_session_request_t session_req = {0};
+  fill_itti_csreq(&session_req, default_eps_bearer_id);
+  memcpy(session_req.apn, "internet", sizeof("internet"));
+  sgw_s11_tunnel.remote_teid = session_req.sender_fteid_for_cp.teid;
+  sgw_update_bearer_context_information_on_csreq(
+      sgw_state, sgw_pdn_session, sgw_s11_tunnel, &session_req, imsi64);
+  s8_create_bearer_request_t cb_req = {0};
+  fill_create_bearer_request(
+      &cb_req, sgw_s11_tunnel.local_teid, default_eps_bearer_id);
+
+  itti_gx_nw_init_actv_bearer_request_t itti_bearer_req = {0};
+  s8_bearer_context_t bc_cbreq = cb_req.bearer_context[0];
+
+  itti_bearer_req.lbi = cb_req.linked_eps_bearer_id;
+
+  memcpy(
+      &itti_bearer_req.ul_tft, &bc_cbreq.tft, sizeof(traffic_flow_template_t));
+  memcpy(
+      &itti_bearer_req.dl_tft, &bc_cbreq.tft, sizeof(traffic_flow_template_t));
+  memcpy(&itti_bearer_req.eps_bearer_qos, &bc_cbreq.qos, sizeof(bearer_qos_t));
+  teid_t s1_u_sgw_fteid = sgw_get_new_s1u_teid(sgw_state);
+  // Validates temporary bearer context is created
+  create_temporary_dedicated_bearer_context(
+      sgw_pdn_session, &itti_bearer_req,
+      sgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr, s1_u_sgw_fteid,
+      cb_req.sequence_number, LOG_SGW_S8);
+  update_pgw_info_to_temp_dedicated_bearer_context(
+      sgw_pdn_session, s1_u_sgw_fteid, &bc_cbreq, sgw_state,
+      cb_req.pgw_cp_address);
+
+  itti_s11_nw_init_deactv_bearer_rsp_t s11_delete_bearer_response = {0};
+  fill_delete_bearer_response(
+      &s11_delete_bearer_response, sgw_s11_tunnel.local_teid + 1, 6,
+      REQUEST_ACCEPTED);
+  EXPECT_EQ(
+      sgw_s8_handle_s11_delete_bearer_response(
+          sgw_state, &s11_delete_bearer_response, imsi64),
+      RETURNerror);
+  free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
+  sgw_state_exit();
+}

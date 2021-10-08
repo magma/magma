@@ -1505,9 +1505,8 @@ void sgw_s8_send_failed_create_bearer_response(
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
-imsi64_t sgw_s8_handle_delete_bearer_request(
-    sgw_state_t* sgw_state, const s8_delete_bearer_request_t* const db_req,
-    gtpv2c_cause_value_t* cause_value) {
+void sgw_s8_handle_delete_bearer_request(
+    sgw_state_t* sgw_state, const s8_delete_bearer_request_t* const db_req) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
 
   ebi_t ebi_to_be_deactivated[BEARERS_PER_UE] = {0};
@@ -1519,7 +1518,7 @@ imsi64_t sgw_s8_handle_delete_bearer_request(
   if (!db_req) {
     OAILOG_ERROR(
         LOG_SGW_S8, "Received null delete bearer request from s8_proxy\n");
-    OAILOG_FUNC_RETURN(LOG_SGW_S8, INVALID_IMSI64);
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
   OAILOG_INFO(
       LOG_SGW_S8,
@@ -1535,8 +1534,10 @@ imsi64_t sgw_s8_handle_delete_bearer_request(
         "Failed to fetch sgw_eps_bearer_context_info from "
         "context_teid " TEID_FMT " \n",
         db_req->context_teid);
-    *cause_value = CONTEXT_NOT_FOUND;
-    OAILOG_FUNC_RETURN(LOG_SGW_S8, INVALID_IMSI64);
+    Imsi_t imsi = {0};
+    sgw_s8_send_failed_delete_bearer_response(
+        db_req, CONTEXT_NOT_FOUND, imsi, 0);
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
   // Check if the received EBI is valid
   for (uint8_t idx = 0; idx < db_req->num_eps_bearer_id; idx++) {
@@ -1568,10 +1569,10 @@ imsi64_t sgw_s8_handle_delete_bearer_request(
         LOG_SGW_S8, sgw_context_p->imsi64,
         "Sending dedicated bearer deactivation reject to NW\n");
     print_bearer_ids_helper(invalid_bearer_id, no_of_bearers_rej);
-    /*TODO Rashmi send failed response */
-    sgw_s8_send_failed_delete_bearer_response(sgw_state, );
-    /* rc = send_dedicated_bearer_deactv_rsp(invalid_bearer_id,
-         REQUEST_REJECTED);*/
+    sgw_s8_send_failed_delete_bearer_response(
+        db_req, REQUEST_REJECTED, sgw_context_p->imsi,
+        sgw_context_p->pdn_connection.p_gw_teid_S5_S8_cp);
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
   if (no_of_bearers_to_be_deact > 0) {
     bool delete_default_bearer =
@@ -1583,7 +1584,7 @@ imsi64_t sgw_s8_handle_delete_bearer_request(
         sgw_context_p->imsi64, no_of_bearers_to_be_deact, ebi_to_be_deactivated,
         delete_default_bearer, sgw_context_p->mme_teid_S11, LOG_SGW_S8);
   }
-  OAILOG_FUNC_RETURN(LOG_SGW_S8, sgw_context_p->imsi64);
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
 // Handle NW-initiated dedicated bearer dectivation response from MME
@@ -1592,7 +1593,7 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
     const itti_s11_nw_init_deactv_bearer_rsp_t* const
         s11_delete_bearer_response_p,
     imsi64_t imsi64) {
-  uint32_t rc                              = RETURNok;
+  uint32_t rc                              = RETURNerror;
   ebi_t ebi                                = {0};
   uint32_t sequence_number                 = 0;
   char* pgw_cp_ip_port                     = NULL;
@@ -1712,4 +1713,24 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
       sgw_context_p->pdn_connection.p_gw_teid_S5_S8_cp, sequence_number,
       pgw_cp_ip_port, sgw_context_p->imsi);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+}
+
+void sgw_s8_send_failed_delete_bearer_response(
+    const s8_delete_bearer_request_t* const db_req,
+    gtpv2c_cause_value_t cause_value, Imsi_t imsi, teid_t pgw_s8_teid) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  itti_s11_nw_init_deactv_bearer_rsp_t s11_delete_bearer_rsp = {0};
+  s11_delete_bearer_rsp.cause.cause_value                    = cause_value;
+  s11_delete_bearer_rsp.bearer_contexts.num_bearer_context =
+      db_req->num_eps_bearer_id;
+  for (uint8_t idx = 0; idx < db_req->num_eps_bearer_id; idx++) {
+    s11_delete_bearer_rsp.bearer_contexts.bearer_contexts[idx]
+        .cause.cause_value = cause_value;
+    s11_delete_bearer_rsp.bearer_contexts.bearer_contexts[idx].eps_bearer_id =
+        db_req->eps_bearer_id[idx];
+  }
+  send_s8_delete_bearer_response(
+      &s11_delete_bearer_rsp, pgw_s8_teid, db_req->sequence_number,
+      db_req->pgw_cp_address, imsi);
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
