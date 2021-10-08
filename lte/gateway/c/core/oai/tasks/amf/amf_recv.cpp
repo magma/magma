@@ -153,7 +153,7 @@ int amf_handle_service_request(
         for (uint16_t session_id = 1; session_id < (sizeof(session_id) * 8);
              session_id++) {
           if (msg->uplink_data_status.uplinkDataStatus & (1 << session_id)) {
-            smf_context_t* smf_context =
+            std::shared_ptr<smf_context_t> smf_context =
                 amf_smf_context_exists_pdu_session_id(ue_context, session_id);
             if (smf_context) {
               pdu_session_status |= (1 << session_id);

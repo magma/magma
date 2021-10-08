@@ -582,7 +582,7 @@ void amf_app_handle_pdu_session_response(
   DLNASTransportMsg encode_msg;
   int amf_rc = RETURNerror;
   ue_m5gmm_context_s* ue_context;
-  smf_context_t* smf_ctx;
+  std::shared_ptr<smf_context_t> smf_ctx;
   amf_smf_t amf_smf_msg;
   // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
   uint64_t ue_id = 0;
@@ -702,7 +702,7 @@ int amf_app_handle_pdu_session_accept(
   SmfMsg* smf_msg       = nullptr;
   bstring buffer;
   // smf_ctx declared and set but not used, commented to cleanup warnings
-  smf_context_t* smf_ctx                           = nullptr;
+  std::shared_ptr<smf_context_t> smf_ctx;
   ue_m5gmm_context_s* ue_context                   = nullptr;
   protocol_configuration_options_t* msg_accept_pco = nullptr;
 
@@ -873,7 +873,7 @@ void amf_app_handle_resource_setup_response(
   amf_ue_ngap_id_t ue_id;
 
   ue_m5gmm_context_s* ue_context = nullptr;
-  smf_context_t* smf_ctx         = nullptr;
+  std::shared_ptr<smf_context_t> smf_ctx;
 
   /* Check if failure message is not NULL and if NULL,
    * it is successful message from gNB.
@@ -1307,7 +1307,7 @@ void amf_app_handle_initial_context_setup_rsp(
     amf_app_desc_t* amf_app_desc_p,
     itti_amf_app_initial_context_setup_rsp_t* initial_context_rsp) {
   ue_m5gmm_context_s* ue_context = NULL;
-  smf_context_t* smf_context     = NULL;
+  std::shared_ptr<smf_context_t> smf_context;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   Ngap_PDUSession_Resource_Setup_Response_List_t* pdu_list =
       &initial_context_rsp->PDU_Session_Resource_Setup_Response_Transfer;
