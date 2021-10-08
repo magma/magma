@@ -1009,7 +1009,7 @@ int ngap_fill_pdu_session_resource_setup_request_transfer(
 
     asn_uint642INTEGER(
         &PDUSessionAggregateMaximumBitRate->pDUSessionAggregateMaximumBitRateUL,
-        session_transfer->pdu_aggregate_max_bit_rate.dl);
+        session_transfer->pdu_aggregate_max_bit_rate.ul);
     asn_uint642INTEGER(
         &PDUSessionAggregateMaximumBitRate->pDUSessionAggregateMaximumBitRateDL,
         session_transfer->pdu_aggregate_max_bit_rate.dl);
