@@ -91,7 +91,7 @@ variable "nms_replicas" {
   default     = 1
 }
 
-variable "nginx_replicas" {
+variable "nms_nginx_replicas" {
   description = "Replica count for nginx pods for magmalte."
   type        = number
   default     = 1

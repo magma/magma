@@ -213,7 +213,7 @@ nms:
         ssl_cert_name: controller.crt
         ssl_cert_key_name: controller.key
     
-    replicas: ${ui_nginx_replicas}
+    replicas: ${magmalte_nginx_replicas}
 
 logging:
   enabled: false
