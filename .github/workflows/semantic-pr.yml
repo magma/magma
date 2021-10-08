@@ -9,7 +9,41 @@ on:  # yamllint disable-line rule:truthy
       - synchronize
 
 jobs:
+  reverted-pr-check:
+    name: Reverted PR Check Job
+    runs-on: ubuntu-latest
+    env:
+      PR_TITLE: "${{ github.event.pull_request.title }}"
+    # Map a step output to a job output
+    outputs:
+      is_reverted_pr: ${{ steps.reverted_pr_check.outputs.is_reverted_pr }}
+    steps:
+      - name: Check if PR is a Reverted PR
+        id: reverted_pr_check
+        uses: actions/github-script@v3
+        with:
+          script: |
+            if( process.env.PR_TITLE.startsWith('Revert') ) {
+              core.setOutput('is_reverted_pr', 'true');
+            }
+            else  {
+              core.setOutput('is_reverted_pr', 'false');
+            }
+      - name: Save Reverted PR output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.reverted_pr_check.outputs.is_reverted_pr }} > ./pr/RPR
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
   semantic-pr:
+    needs: reverted-pr-check
+    if: ${{ needs.reverted-pr-check.outputs.is_reverted_pr == 'false' }}
+    name: Semantic PR Check Job
     runs-on: ubuntu-latest
     steps:
       # Please look up the latest version from
@@ -98,7 +132,7 @@ jobs:
         if: always()
         run: |
           mkdir -p ./pr
-          echo ${{ github.event.number }} > ./pr/NR
+          echo -n ${{ github.event.number }} > ./pr/NR
       - uses: actions/upload-artifact@v2
         if: always()
         with:
