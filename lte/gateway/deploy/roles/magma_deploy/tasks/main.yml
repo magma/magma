@@ -58,6 +58,7 @@
   become: yes
   apt:
     name: "{{ packages }}"
+    only_upgrade: yes
   vars:
     packages:
       - graphviz
@@ -66,6 +67,7 @@
       - openssl
       - dkms
       - uuid-runtime
+      - ca-certificates
 
 - name: Preconfigure wireshark (tshark) SUID property
   become: yes
