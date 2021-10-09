@@ -367,8 +367,7 @@ static int start_authentication_information_procedure(
   auth_info_proc->request_sent = true;
   nas_start_Ts6a_auth_info(
       auth_info_proc->ue_id, &auth_info_proc->timer_s6a,
-      auth_info_proc->cn_proc.base_proc.time_out, emm_context,
-      emm_context->_imsi64);
+      auth_info_proc->cn_proc.base_proc.time_out, emm_context);
 
   nas_itti_auth_info_req(
       ue_id, &emm_context->_imsi, is_initial_req, &visited_plmn,
@@ -632,8 +631,7 @@ int emm_proc_authentication_failure(
     REQUIREMENT_3GPP_24_301(R10_5_4_2_4__3);
     void* callback_args = NULL;
     nas_stop_T3460(
-        ue_mm_context->mme_ue_s1ap_id, &auth_proc->T3460, callback_args,
-        emm_ctx->_imsi64);
+        ue_mm_context->mme_ue_s1ap_id, &auth_proc->T3460, callback_args);
 
     switch (emm_cause) {
       case EMM_CAUSE_SYNCH_FAILURE:
@@ -925,7 +923,7 @@ int emm_proc_authentication_complete(
     // Stop timer T3460
     REQUIREMENT_3GPP_24_301(R10_5_4_2_4__1);
     void* callback_arg = NULL;
-    nas_stop_T3460(ue_id, &auth_proc->T3460, callback_arg, emm_ctx->_imsi64);
+    nas_stop_T3460(ue_id, &auth_proc->T3460, callback_arg);
     REQUIREMENT_3GPP_24_301(R10_5_4_2_4__2);
     emm_ctx_set_security_eksi(emm_ctx, auth_proc->ksi);
 
@@ -1275,8 +1273,7 @@ static int authentication_request(
         if (auth_proc->T3460.id != NAS_TIMER_INACTIVE_ID) {
           void* timer_callback_args = NULL;
           nas_stop_T3460(
-              auth_proc->ue_id, &auth_proc->T3460, timer_callback_args,
-              emm_ctx->_imsi64);
+              auth_proc->ue_id, &auth_proc->T3460, timer_callback_args);
         }
         /*
          * Start T3460 timer
@@ -1284,7 +1281,7 @@ static int authentication_request(
         nas_start_T3460(
             auth_proc->ue_id, &auth_proc->T3460,
             auth_proc->emm_com_proc.emm_proc.base_proc.time_out,
-            (void*) emm_ctx, emm_ctx->_imsi64);
+            (void*) emm_ctx);
       }
     }
   }
@@ -1412,8 +1409,7 @@ static int authentication_non_delivered_ho(
           ")\n",
           auth_proc->T3460.id, ue_mm_context->mme_ue_s1ap_id);
       nas_stop_T3460(
-          ue_mm_context->mme_ue_s1ap_id, &auth_proc->T3460, NULL,
-          emm_ctx->_imsi64);
+          ue_mm_context->mme_ue_s1ap_id, &auth_proc->T3460, NULL);
     }
     /*
      * Abort authentication and attach procedure
@@ -1465,8 +1461,7 @@ static int authentication_abort(
      */
     void* timer_callback_args = NULL;
     nas_stop_T3460(
-        ue_mm_context->mme_ue_s1ap_id, &auth_proc->T3460, timer_callback_args,
-        emm_ctx->_imsi64);
+        ue_mm_context->mme_ue_s1ap_id, &auth_proc->T3460, timer_callback_args);
     rc = RETURNok;
   }
 
@@ -1592,8 +1587,7 @@ static void s6a_auth_info_rsp_timer_expiry_handler(
     *imsi64                   = emm_ctx->_imsi64;
     void* timer_callback_args = NULL;
     nas_stop_Ts6a_auth_info(
-        auth_info_proc->ue_id, &auth_info_proc->timer_s6a, timer_callback_args,
-        emm_ctx->_imsi64);
+        auth_info_proc->ue_id, &auth_info_proc->timer_s6a, timer_callback_args);
 
     auth_info_proc->timer_s6a.id = NAS_TIMER_INACTIVE_ID;
     if (auth_info_proc->resync) {

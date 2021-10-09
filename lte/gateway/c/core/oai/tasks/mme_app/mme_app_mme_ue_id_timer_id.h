@@ -20,13 +20,14 @@ extern "C" {
 #include "log.h"
 #include "common_defs.h"
 #include "common_types.h"
+#include "nas_timer.h"
 
-void initialize_imsi_timer_id_map(void);
+void initialize_mme_ue_id_timer_id_map(void);
 
-void mme_app_insert_imsi_timer_id(imsi64_t imsi64, long timer_id);
-void mme_app_remove_imsi_timer_id(imsi64_t imsi64);
+void mme_app_upsert_mme_ue_id_timer_id(mme_ue_s1ap_id_t mme_ue_id, long timer_id);
+void mme_app_remove_mme_ue_id_timer_id(mme_ue_s1ap_id_t mme_ue_id);
 
-long mme_app_get_timer_id_from_imsi(imsi64_t imsi64);
+long mme_app_get_timer_id_from_mme_ue_id(mme_ue_s1ap_id_t mme_ue_id);
 
 #ifdef __cplusplus
 }

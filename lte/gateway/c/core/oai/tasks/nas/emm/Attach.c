@@ -1950,11 +1950,11 @@ static int emm_send_attach_accept(emm_context_t* emm_context) {
        * Start T3450 timer
        */
       nas_stop_T3450(
-          attach_proc->ue_id, &attach_proc->T3450, NULL, emm_context->_imsi64);
+          attach_proc->ue_id, &attach_proc->T3450, NULL);
       nas_start_T3450(
           attach_proc->ue_id, &attach_proc->T3450,
           attach_proc->emm_spec_proc.emm_proc.base_proc.time_out,
-          (void*) emm_context, emm_context->_imsi64);
+          (void*) emm_context);
       attach_proc->attach_accept_sent++;
     }
   } else {
@@ -2105,11 +2105,11 @@ static int emm_attach_accept_retx(emm_context_t* emm_context) {
       /*
        * Re-start T3450 timer
        */
-      nas_stop_T3450(ue_id, &attach_proc->T3450, NULL, emm_context->_imsi64);
+      nas_stop_T3450(ue_id, &attach_proc->T3450, NULL);
       nas_start_T3450(
           ue_id, &attach_proc->T3450,
           attach_proc->emm_spec_proc.emm_proc.base_proc.time_out,
-          (void*) emm_context, emm_context->_imsi64);
+          (void*) emm_context);
       OAILOG_INFO(
           LOG_NAS_EMM,
           "ue_id=" MME_UE_S1AP_ID_FMT

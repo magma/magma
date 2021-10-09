@@ -256,7 +256,7 @@ int emm_proc_identification_complete(
        */
       void* timer_callback_args = NULL;
       nas_stop_T3470(
-          ue_id, &ident_proc->T3470, timer_callback_args, emm_ctx->_imsi64);
+          ue_id, &ident_proc->T3470, timer_callback_args);
 
       if (imsi) {
         imsi64_t imsi64 = imsi_to_imsi64(imsi);
@@ -514,8 +514,7 @@ static int identification_request(nas_emm_ident_proc_t* const proc) {
      */
     nas_start_T3470(
         proc->ue_id, &proc->T3470,
-        proc->emm_com_proc.emm_proc.base_proc.time_out, (void*) emm_ctx,
-        emm_ctx->_imsi64);
+        proc->emm_com_proc.emm_proc.base_proc.time_out, (void*) emm_ctx);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -567,7 +566,7 @@ static int identification_non_delivered_ho(
             "\n",
             ident_proc->T3470.id, ident_proc->ue_id);
         nas_stop_T3470(
-            ident_proc->ue_id, &ident_proc->T3470, NULL, emm_ctx->_imsi64);
+            ident_proc->ue_id, &ident_proc->T3470, NULL);
       }
       /*
        * Abort identification and attach procedure
@@ -623,8 +622,7 @@ static int identification_abort(
      */
     void* callback_arg = NULL;
     nas_stop_T3470(
-        ident_proc->ue_id, &ident_proc->T3470, callback_arg,
-        emm_context->_imsi64);
+        ident_proc->ue_id, &ident_proc->T3470, callback_arg);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

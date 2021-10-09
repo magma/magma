@@ -220,7 +220,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case MME_APP_CONNECTION_ESTABLISHMENT_CNF: {
       is_task_state_same = false;
-      is_ue_state_same = false;
+      is_ue_state_same   = false;
       s1ap_handle_conn_est_cnf(
           state, &MME_APP_CONNECTION_ESTABLISHMENT_CNF(received_message_p),
           imsi64);

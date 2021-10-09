@@ -40,7 +40,7 @@
 #include "common_defs.h"
 #include "dynamic_memory_check.h"
 #include "intertask_interface_types.h"
-#include "mme_app_imsi_timer_id.h"
+#include "mme_app_mme_ue_id_timer_id.h"
 #include "itti_types.h"
 #include "log.h"
 
@@ -55,7 +55,7 @@ void nas_timer_cleanup(void) {}
 //------------------------------------------------------------------------------
 long int nas_timer_start(
     uint32_t sec, uint32_t usec, nas_timer_callback_t nas_timer_callback,
-    void* nas_timer_callback_args, imsi64_t imsi64) {
+    void* nas_timer_callback_args, mme_ue_s1ap_id_t mme_ue_s1ap_id) {
   long timer_id;
   nas_itti_timer_arg_t cb;
 
@@ -74,18 +74,18 @@ long int nas_timer_start(
     return NAS_TIMER_INACTIVE_ID;
   }
 
-  mme_app_insert_imsi_timer_id(imsi64, timer_id);
+  mme_app_upsert_mme_ue_id_timer_id(mme_ue_s1ap_id, timer_id);
 
   return timer_id;
 }
 
 //------------------------------------------------------------------------------
 long int nas_timer_stop(
-    long int timer_id, void** nas_timer_callback_arg, imsi64_t imsi64) {
+        long int timer_id, void** nas_timer_callback_arg, mme_ue_s1ap_id_t mme_ue_s1ap_id) {
   nas_itti_timer_arg_t* nas_itti_timer_arg = NULL;
   timer_remove(timer_id, (void**) &nas_itti_timer_arg);
 
-  mme_app_remove_imsi_timer_id(imsi64);
+  mme_app_remove_mme_ue_id_timer_id(mme_ue_s1ap_id);
 
   if (nas_itti_timer_arg) {
     *nas_timer_callback_arg = nas_itti_timer_arg->nas_timer_callback_arg;

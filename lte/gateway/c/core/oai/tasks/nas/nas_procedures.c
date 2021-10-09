@@ -389,8 +389,7 @@ static void nas_delete_common_procedures(struct emm_context_s* emm_context) {
         case EMM_COMM_PROC_AUTH: {
           nas_emm_auth_proc_t* auth_info_proc = (nas_emm_auth_proc_t*) p1->proc;
           nas_stop_T3460(
-              auth_info_proc->ue_id, &auth_info_proc->T3460, NULL,
-              emm_context->_imsi64);
+              auth_info_proc->ue_id, &auth_info_proc->T3460, NULL);
           if (auth_info_proc->unchecked_imsi) {
             free_wrapper((void**) &auth_info_proc->unchecked_imsi);
           }
@@ -398,13 +397,12 @@ static void nas_delete_common_procedures(struct emm_context_s* emm_context) {
         case EMM_COMM_PROC_SMC: {
           nas_emm_smc_proc_t* smc_proc = (nas_emm_smc_proc_t*) (p1->proc);
           nas_stop_T3460(
-              smc_proc->ue_id, &smc_proc->T3460, NULL, emm_context->_imsi64);
+              smc_proc->ue_id, &smc_proc->T3460, NULL);
         } break;
         case EMM_COMM_PROC_IDENT: {
           nas_emm_ident_proc_t* ident_proc = (nas_emm_ident_proc_t*) (p1->proc);
           nas_stop_T3470(
-              ident_proc->ue_id, &ident_proc->T3470, NULL,
-              emm_context->_imsi64);
+              ident_proc->ue_id, &ident_proc->T3470, NULL);
         } break;
         case EMM_COMM_PROC_INFO:
           break;
@@ -430,7 +428,7 @@ void nas_delete_attach_procedure(struct emm_context_s* emm_context) {
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
             ->mme_ue_s1ap_id;
     void* unused = NULL;
-    nas_stop_T3450(ue_id, &proc->T3450, unused, emm_context->_imsi64);
+    nas_stop_T3450(ue_id, &proc->T3450, unused);
     if (proc->ies) {
       free_emm_attach_request_ies(&proc->ies);
     }
@@ -453,7 +451,7 @@ void nas_delete_tau_procedure(struct emm_context_s* emm_context) {
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
             ->mme_ue_s1ap_id;
     void* unused = NULL;
-    nas_stop_T3450(ue_id, &proc->T3450, unused, emm_context->_imsi64);
+    nas_stop_T3450(ue_id, &proc->T3450, unused);
     if (proc->ies) {
       free_emm_tau_request_ies(&proc->ies);
     }
@@ -471,6 +469,9 @@ void nas_delete_tau_procedure(struct emm_context_s* emm_context) {
 void nas_delete_detach_procedure(struct emm_context_s* emm_context) {
   nas_emm_detach_proc_t* proc = get_nas_specific_procedure_detach(emm_context);
   if (proc) {
+      mme_ue_s1ap_id_t ue_id =
+              PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
+                      ->mme_ue_s1ap_id;
     // free content
     if (proc->ies) {
       free_emm_detach_request_ies(&proc->ies);
@@ -481,7 +482,7 @@ void nas_delete_detach_procedure(struct emm_context_s* emm_context) {
       void* unused          = NULL;
       void** timer_callback = &unused;
       emm_context->T3422.id = nas_timer_stop(
-          emm_context->T3422.id, timer_callback, emm_context->_imsi64);
+          emm_context->T3422.id, timer_callback, ue_id);
     }
     if (emm_context->t3422_arg) {
       free_wrapper(&emm_context->t3422_arg);
@@ -503,7 +504,7 @@ static void nas_delete_auth_info_procedure(
       void* timer_callback_args = NULL;
       nas_stop_Ts6a_auth_info(
           (*auth_info_proc)->ue_id, &(*auth_info_proc)->timer_s6a,
-          timer_callback_args, emm_context->_imsi64);
+          timer_callback_args);
 
       (*auth_info_proc)->timer_s6a.id = NAS_TIMER_INACTIVE_ID;
     }

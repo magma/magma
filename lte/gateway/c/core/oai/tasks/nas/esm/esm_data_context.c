@@ -34,7 +34,7 @@
 // free allocated structs
 //------------------------------------------------------------------------------
 void free_esm_bearer_context(
-    esm_ebr_context_t* esm_ebr_context, imsi64_t imsi64) {
+    esm_ebr_context_t* esm_ebr_context, mme_ue_s1ap_id_t mme_ue_s1ap_id) {
   if (esm_ebr_context) {
     if (esm_ebr_context->pco) {
       free_protocol_configuration_options(&esm_ebr_context->pco);
@@ -45,7 +45,7 @@ void free_esm_bearer_context(
     if (NAS_TIMER_INACTIVE_ID != esm_ebr_context->timer.id) {
       esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
       esm_ebr_context->timer.id                = nas_timer_stop(
-          esm_ebr_context->timer.id, (void**) &esm_ebr_timer_data, imsi64);
+          esm_ebr_context->timer.id, (void**) &esm_ebr_timer_data, mme_ue_s1ap_id);
       /*
        * Release the retransmisison timer parameters
        */
