@@ -445,6 +445,11 @@ commands:
             cp *_version versions || true
           no_output_timeout: 20m
       - run:
+          name: Do not trust expired cert distributed by default
+          command: |
+            sudo sed -i  's,mozilla/DST_Root_CA_X3.crt,!mozilla/DST_Root_CA_X3.crt,' /etc/ca-certificates.conf
+            sudo update-ca-certificates
+      - run:
           name: Copy debian packages to new JFROG repo
           command: |
             cd ${MAGMA_ROOT}/circleci
