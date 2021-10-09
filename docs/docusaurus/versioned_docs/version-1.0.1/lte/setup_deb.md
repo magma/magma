@@ -22,31 +22,16 @@ satisfies the following requirements:
 ## Deployment
 ### 1. Create boot USB stick and install Debian on your AGW host
 
-- Download .iso image from [Debian mirror](http://cdimage.debian.org/mirror/cdimage/archive/9.9.0/amd64/iso-cd/debian-9.9.0-amd64-netinst.iso)
+- Download .iso image from [Debian mirror](https://cdimage.debian.org/cdimage/archive/9.13.0/amd64/iso-cd/debian-9.13.0-amd64-netinst.iso)
 - Create bootable usb using etcher [tutorial here](https://tutorials.ubuntu.com/tutorial/tutorial-create-a-usb-stick-on-macos#0)
-- Connect AGW host to a working internet connection and select this port during the installation process to get an IP using DHCP
 - Boot your AGW host from USB
   (Press F11 to select boot sequence, :warning: This might be different for
   your machine). If you see 2 options to boot from USB, select the non-UEFI
   option.
-- Select “Install” option
-- Select a language : "English"
-- Select your location 
-- Configure the keyboard : "American English"
-- Primary network interface "enp1s0"
-- Configuration
-  * Hostname: “magma”
-  * Domain name : “”
-  * Root password: “magma”
-  * Username : “magma”
-  * Password: “magma”
-  * Partition disk: "Use entire disk"
-  * Select disk to partition: "sda"
-  * Partitioning scheme: "All files in one partition"
-  * Configure the package manager and HTTP proxy information: “”
-  * Software selection : Only tick ssh server and utilities (untick every other)
-  * Install the GRUB boot loader on a hard disk : "Yes" and select "/dev/sda"
-  * Finish the installation : "Continue" 
+- Install and configure you access gateway according to your network defaults.
+    - Make sure to enable ssh server and utilities (untick every other)
+- Connect your SGi interface to the internet and select this port during the
+installation process to get an IP using DHCP.
 
 ### 2. Deploy magma on the  AGW_HOST
 

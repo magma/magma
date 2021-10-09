@@ -180,6 +180,9 @@
       "lte/configure_agw_ha": {
         "title": "Configure AGW for HA"
       },
+      "lte/HIL_AGW_tests": {
+        "title": "Hardware In Loop Testing"
+      },
       "lte/pipelined_tests": {
         "title": "Pipelined testing framework"
       },

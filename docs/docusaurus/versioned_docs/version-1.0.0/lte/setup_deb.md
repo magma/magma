@@ -37,19 +37,8 @@ satisfies the following requirements:
   (Press F11 to select boot sequence, :warning: This might be different for
   your machine). If you see 2 options to boot from USB, select the non-UEFI
   option.
-- Select “Install” option.
-- Network missing firmeware "No"
-- Primary network interface "enp1s0"
-- Configuration.
-  * Hostname: “magma”
-  * Domain name : “”
-  * Root password: “magma”
-  * Username : “magma”
-  * Password: “magma”
-  * Partition disk: "Use entire disk"
-  * Select disk to partition: "sda"
-  * Partitioning scheme: "All files in one partition"
-  * Only tick ssh server and utilities (untick every other)
+- Install and configure you access gateway according to your network defaults.
+    - Make sure to enable ssh server and utilities (untick every other)
 - Connect your SGi interface to the internet and select this port during the
 installation process to get an IP using DHCP.
 
