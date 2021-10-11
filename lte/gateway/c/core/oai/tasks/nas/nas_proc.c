@@ -360,7 +360,7 @@ status_code_e nas_proc_authentication_info_answer(
 
   if (!(emm_ctxt_p)) {
     OAILOG_ERROR_UE(
-        imsi64, LOG_NAS_EMM,
+         LOG_NAS_EMM,imsi64,
         "That's embarrassing as we don't know this IMSI\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
@@ -581,15 +581,13 @@ status_code_e nas_proc_downlink_unitdata(
   DevAssert(dl_unitdata);
 
   IMSI_STRING_TO_IMSI64(dl_unitdata->imsi, &imsi64);
-
+  ctxt = emm_context_get_by_imsi(&_emm_data, imsi64);
   OAILOG_DEBUG_UE(
       LOG_NAS_EMM, ctxt->_imsi64, "Handling imsi " IMSI_64_FMT "\n", imsi64);
 
-  ctxt = emm_context_get_by_imsi(&_emm_data, imsi64);
-
   if (!(ctxt)) {
-    OAILOG_ERROR_UE(
-        LOG_NAS_EMM, imsi64,
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
         "That's embarrassing as we don't know this IMSI\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
