@@ -25,6 +25,7 @@ add_library(SESSIOND_TEST_LIB
     ProtobufCreators.h
     SessiondMocks.h
     SessionStateTester.h
+    SessionStateTester5g.h
     )
 
 link_directories(/usr/src/googletest/googlemock/lib/)
@@ -34,7 +35,7 @@ foreach (session_test polling_pipelined session_credit local_enforcer cloud_repo
     session_manager_handler sessiond_integ session_state
     session_store store_client stored_state proxy_responder_handler
     metering_reporter local_enforcer_wallet_exhaust charging_grant
-    usage_monitor upf_node_state set_session_manager_handler)
+    usage_monitor upf_node_state set_session_manager_handler session_state_5g)
   add_executable(${session_test}_test test_${session_test}.cpp)
   target_link_libraries(${session_test}_test SESSIOND_TEST_LIB)
   add_test(test_${session_test} ${session_test}_test)

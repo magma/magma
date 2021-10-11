@@ -159,10 +159,12 @@ class MockPipelinedClient : public PipelinedClient {
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr, const Teids teids,
           const std::string& msisdn, const RulesToProcess to_process));
-  MOCK_METHOD2(
+  MOCK_METHOD4(
       set_upf_session,
       void(
           const SessionState::SessionInfo info,
+          const RulesToProcess to_activate_process,
+          const RulesToProcess to_deactivate_process,
           std::function<void(Status status, UPFSessionContextState)> callback));
   MOCK_METHOD0(get_next_teid, uint32_t());
   MOCK_METHOD0(get_current_teid, uint32_t());
