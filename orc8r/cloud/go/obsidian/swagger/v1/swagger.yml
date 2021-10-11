@@ -6544,6 +6544,15 @@ definitions:
     properties:
       ambr:
         $ref: '#/definitions/aggregated_maximum_bitrate'
+      pdn_type:
+        description: Value identifier for PDN type (0=IPv4 1=IPv6 2=IPv4v6 3=IPv4orv6)
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        format: uint32
+        type: integer
       qos_profile:
         $ref: '#/definitions/qos_profile'
     required:
