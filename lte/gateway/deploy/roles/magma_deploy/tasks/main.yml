@@ -10,6 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 - name: Include vars of all.yaml
   include_vars:
     file: all.yaml
@@ -19,7 +20,7 @@
 - name: Configuring private package manager.
   copy:
     content: >
-      deb {{ magma_pkgrepo_proto }}://{{ magma_pkgrepo_host }}{{ magma_pkgrepo_path}}
+      deb {{ magma_pkgrepo_proto }}://{{ magma_pkgrepo_host }}{{ magma_pkgrepo_path }}
       {{ magma_pkgrepo_dist }} {{ magma_pkgrepo_component }}
     dest: /etc/apt/sources.list.d/{{ magma_pkgrepo_name }}.list
   become: yes
@@ -106,6 +107,19 @@
       - openvswitch-datapath-source
       - openvswitch-common
       - openvswitch-switch
+  tags:
+    - never
+    - agwc
+
+# Copy these files in containerized agw only
+- name: copy necessary files for ovs
+  copy:
+    src={{ item.src }}
+    dest={{ item.dest }}
+  with_items:
+    - { src: 'magma_ifaces_gtp', dest: '/etc/network/interfaces.d/gtp' }
+    - { src: 'magma_modules_load', dest: '/etc/modules-load.d/magma.conf' }
+    - { src: 'ovs-kmod-upgrade.sh', dest: '/usr/local/bin/' }
   tags:
     - never
     - agwc

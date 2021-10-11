@@ -54,10 +54,6 @@ git clone "${GIT_URL}" /opt/magma
 cd /opt/magma || exit
 git checkout "$MAGMA_VERSION"
 
-cp -f $DEPLOY_PATH/roles/magma/files/magma_ifaces_gtp /etc/network/interfaces.d/gtp
-cp -f $DEPLOY_PATH/roles/magma/files/ovs-kmod-upgrade.sh /usr/local/bin/
-cp -f $DEPLOY_PATH/roles/magma/files/magma_modules_load /etc/modules-load.d/magma.conf
-
 echo "Generating localhost hostfile for Ansible"
 echo "[agw_docker]
 127.0.0.1 ansible_connection=local" > $DEPLOY_PATH/agw_hosts
