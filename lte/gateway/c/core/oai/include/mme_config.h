@@ -465,6 +465,8 @@ int mme_config_parse_string(const char* config_string, mme_config_t* config_pP);
 void mme_config_display(mme_config_t*);
 void create_partial_lists(mme_config_t* config_pP);
 void mme_config_exit(void);
+
+void free_partial_lists(mme_config_t* config_pP);
 void free_mme_config(mme_config_t* mme_config);
 
 #define mme_config_read_lock(mMEcONFIG)                                        \

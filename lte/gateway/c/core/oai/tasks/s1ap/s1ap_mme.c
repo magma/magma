@@ -28,13 +28,6 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <pthread.h>
-#include <netinet/in.h>
-
 #include "bstrlib.h"
 #include "hashtable.h"
 #include "log.h"
@@ -53,7 +46,6 @@
 #include "common_defs.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "mme_app_messages_types.h"
 #include "mme_default_values.h"
 #include "s1ap_messages_types.h"

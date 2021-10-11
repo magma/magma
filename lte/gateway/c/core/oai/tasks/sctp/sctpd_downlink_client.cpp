@@ -21,6 +21,7 @@ extern "C" {
 #include <arpa/inet.h>
 
 #include "assertions.h"
+#include "dynamic_memory_check.h"
 #include "log.h"
 #include "mme_config.h"
 }

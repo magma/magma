@@ -26,6 +26,8 @@ add_library(MOCK_TASKS
     sgw_s8_mock.cpp
     spgw_mock.cpp
     sms_orc8r_mock.cpp
+    mme_app_mock.cpp
+    sctp_mock.cpp
 )
 
 target_link_libraries(MOCK_TASKS

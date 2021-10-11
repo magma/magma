@@ -150,6 +150,9 @@ static int start_authentication_information_procedure(
             auts->data, RAND_LENGTH_OCTETS + AUTS_LENGTH, ue_id);
   }
 
+  // Calling GRPC call for default QoS
+  amf_send_n11_update_location_req(ue_id);
+
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 

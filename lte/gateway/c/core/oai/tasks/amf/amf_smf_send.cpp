@@ -19,6 +19,7 @@ extern "C" {
 #include "log.h"
 #include "conversions.h"
 #include "3gpp_38.401.h"
+#include "s6a_messages_types.h"
 #include "dynamic_memory_check.h"
 #ifdef __cplusplus
 }
@@ -33,6 +34,7 @@ extern "C" {
 #include "M5GMobilityServiceClient.h"
 #include "amf_app_timer_management.h"
 #include "amf_common.h"
+#include "mme_api.h"
 
 using magma5g::AsyncM5GMobilityServiceClient;
 using magma5g::AsyncSmfServiceClient;
@@ -649,7 +651,7 @@ int amf_smf_handle_ip_address_response(
     rc = amf_smf_create_ipv4_session_grpc_req(
         response_p->imsi, response_p->apn, response_p->pdu_session_id,
         response_p->pdu_session_type, response_p->gnb_gtp_teid, response_p->pti,
-        response_p->gnb_gtp_teid_ip_addr, ip_str);
+        response_p->gnb_gtp_teid_ip_addr, ip_str, response_p->default_ambr);
 
     if (rc < 0) {
       OAILOG_ERROR(LOG_AMF_APP, "Create IPV4 Session \n");
@@ -657,6 +659,56 @@ int amf_smf_handle_ip_address_response(
   }
 
   return rc;
+}
+
+int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+  ue_m5gmm_context_s* ue_context_p     = NULL;
+  MessageDef* message_p                = NULL;
+  s6a_update_location_req_t* s6a_ulr_p = NULL;
+  int rc                               = RETURNok;
+
+  OAILOG_INFO(
+      LOG_AMF_APP,
+      "Sending UPDATE LOCATION REQ to subscriberd, ue_id = " AMF_UE_NGAP_ID_FMT,
+      ue_id);
+
+  ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (ue_context_p) {
+    OAILOG_INFO(
+        LOG_AMF_APP, "IMSI HANDLED =%lu\n", ue_context_p->amf_context.imsi64);
+  } else {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the ue_id= " AMF_UE_NGAP_ID_FMT,
+        ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+  }
+
+  message_p = itti_alloc_new_message(TASK_AMF_APP, S6A_UPDATE_LOCATION_REQ);
+  if (message_p == NULL) {
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
+  }
+
+  s6a_ulr_p = &message_p->ittiMsg.s6a_update_location_req;
+  memset(s6a_ulr_p, 0, sizeof(s6a_update_location_req_t));
+
+  IMSI64_TO_STRING(
+      ue_context_p->amf_context.imsi64, s6a_ulr_p->imsi, IMSI_LENGTH);
+
+  s6a_ulr_p->imsi_length    = strlen(s6a_ulr_p->imsi);
+  s6a_ulr_p->initial_attach = INITIAL_ATTACH;
+  plmn_t visited_plmn       = {0};
+  COPY_PLMN(visited_plmn, ue_context_p->amf_context.originating_tai.plmn);
+  memcpy(&s6a_ulr_p->visited_plmn, &visited_plmn, sizeof(plmn_t));
+  s6a_ulr_p->rat_type = RAT_NG_RAN;
+
+  // Set regional_subscription flag
+  s6a_ulr_p->supportedfeatures.regional_subscription = true;
+
+  rc = AsyncSmfServiceClient::getInstance().n11_update_location_req(s6a_ulr_p);
+
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
 /****************************************************************************
