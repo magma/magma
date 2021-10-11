@@ -33,7 +33,8 @@
 
 // free allocated structs
 //------------------------------------------------------------------------------
-void free_esm_bearer_context(esm_ebr_context_t* esm_ebr_context) {
+void free_esm_bearer_context(
+    esm_ebr_context_t* esm_ebr_context, mme_ue_s1ap_id_t mme_ue_s1ap_id) {
   if (esm_ebr_context) {
     if (esm_ebr_context->pco) {
       free_protocol_configuration_options(&esm_ebr_context->pco);
@@ -44,7 +45,8 @@ void free_esm_bearer_context(esm_ebr_context_t* esm_ebr_context) {
     if (NAS_TIMER_INACTIVE_ID != esm_ebr_context->timer.id) {
       esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
       esm_ebr_context->timer.id                = nas_timer_stop(
-          esm_ebr_context->timer.id, (void**) &esm_ebr_timer_data);
+          esm_ebr_context->timer.id, (void**) &esm_ebr_timer_data,
+          mme_ue_s1ap_id);
       /*
        * Release the retransmisison timer parameters
        */
@@ -90,8 +92,9 @@ void nas_stop_T3489(esm_context_t* const esm_ctx) {
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
     mme_ue_s1ap_id_t ue_id = ue_mm_context->mme_ue_s1ap_id;
     void* nas_timer_callback_args;
-    esm_ctx->T3489.id =
-        nas_timer_stop(esm_ctx->T3489.id, (void**) &nas_timer_callback_args);
+    esm_ctx->T3489.id = nas_timer_stop(
+        esm_ctx->T3489.id, (void**) &nas_timer_callback_args,
+        ue_id);
     if (NAS_TIMER_INACTIVE_ID == esm_ctx->T3489.id) {
       OAILOG_INFO(
           LOG_NAS_EMM, "T3489 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);

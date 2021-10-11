@@ -454,7 +454,8 @@ int emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id) {
         emm_ctx->T3422.id, ue_id);
     void* unused          = NULL;
     void** timer_callback = &unused;
-    emm_ctx->T3422.id     = nas_timer_stop(emm_ctx->T3422.id, timer_callback);
+    emm_ctx->T3422.id =
+        nas_timer_stop(emm_ctx->T3422.id, timer_callback, ue_id);
     if (emm_ctx->t3422_arg) {
       free_wrapper(&emm_ctx->t3422_arg);
       emm_ctx->t3422_arg = NULL;
@@ -546,10 +547,11 @@ int emm_proc_nw_initiated_detach_request(
        */
       void* unused          = NULL;
       void** timer_callback = &unused;
-      emm_ctx->T3422.id     = nas_timer_stop(emm_ctx->T3422.id, timer_callback);
+      emm_ctx->T3422.id =
+          nas_timer_stop(emm_ctx->T3422.id, timer_callback, ue_id);
       nw_detach_data_t* data = (nw_detach_data_t*) emm_ctx->t3422_arg;
       emm_ctx->T3422.id      = nas_timer_start(
-          emm_ctx->T3422.sec, 0, detach_t3422_handler, (void*) data);
+          emm_ctx->T3422.sec, 0, detach_t3422_handler, (void*) data, ue_id);
     } else {
       /*
        * Start T3422 timer
@@ -557,7 +559,7 @@ int emm_proc_nw_initiated_detach_request(
       if (emm_ctx->t3422_arg) {
         emm_ctx->T3422.id = nas_timer_start(
             emm_ctx->T3422.sec, 0, detach_t3422_handler,
-            (void*) emm_ctx->t3422_arg);
+            (void*) emm_ctx->t3422_arg, ue_id);
       } else {
         nw_detach_data_t* data =
             (nw_detach_data_t*) calloc(1, sizeof(nw_detach_data_t));
@@ -573,7 +575,7 @@ int emm_proc_nw_initiated_detach_request(
         data->retransmission_count = 0;
         data->detach_type          = detach_type;
         emm_ctx->T3422.id          = nas_timer_start(
-            emm_ctx->T3422.sec, 0, detach_t3422_handler, (void*) data);
+            emm_ctx->T3422.sec, 0, detach_t3422_handler, (void*) data, ue_id);
         emm_ctx->t3422_arg = (void*) data;
       }
     }

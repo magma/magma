@@ -41,6 +41,7 @@
 #include "mme_app_defs.h"
 #include "mme_app_ha.h"
 #include "mme_app_statistics.h"
+#include "mme_app_mme_ue_id_timer.h"
 #include "service303_message_utils.h"
 #include "common_defs.h"
 #include "mme_app_edns_emulation.h"

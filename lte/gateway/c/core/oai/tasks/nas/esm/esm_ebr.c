@@ -194,8 +194,9 @@ int esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
     esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
     // stop the timer if it's running
     if (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID) {
-      ebr_ctx->timer.id =
-          nas_timer_stop(ebr_ctx->timer.id, (void**) &esm_ebr_timer_data);
+      ebr_ctx->timer.id = nas_timer_stop(
+          ebr_ctx->timer.id, (void**) &esm_ebr_timer_data,
+          ue_mm_context->mme_ue_s1ap_id);
     } else {  // Timer has expired, release the args
       esm_ebr_timer_data = ebr_ctx->args;
     }
@@ -285,17 +286,20 @@ int esm_ebr_start_timer(
     /*
      * Re-start the retransmission timer
      */
-    ebr_ctx->timer.id =
-        nas_timer_stop(ebr_ctx->timer.id, (void**) &esm_ebr_timer_data);
-    ebr_ctx->timer.id =
-        nas_timer_start(sec, 0 /* usec */, cb, esm_ebr_timer_data);
+    ebr_ctx->timer.id = nas_timer_stop(
+        ebr_ctx->timer.id, (void**) &esm_ebr_timer_data,
+        ue_mm_context->mme_ue_s1ap_id);
+    ebr_ctx->timer.id = nas_timer_start(
+        sec, 0 /* usec */, cb, esm_ebr_timer_data,
+        ue_mm_context->mme_ue_s1ap_id);
   } else {
     /*
      * If timer-id is set to NAS_TIMER_INACTIVE_ID and has non-null
      * timer argument, indicates that timer details are read from Redis DB
      */
     if (ebr_ctx->args) {
-      ebr_ctx->timer.id = nas_timer_start(sec, 0 /* usec */, cb, ebr_ctx->args);
+      ebr_ctx->timer.id = nas_timer_start(
+          sec, 0 /* usec */, cb, ebr_ctx->args, ue_mm_context->mme_ue_s1ap_id);
       ebr_ctx->timer.sec = sec;
       esm_ebr_timer_data = ebr_ctx->args;
     } else {
@@ -316,8 +320,9 @@ int esm_ebr_start_timer(
         /* Setup the retransmission timer to expire at the given
          *  time interval
          */
-        ebr_ctx->timer.id =
-            nas_timer_start(sec, 0 /* usec */, cb, esm_ebr_timer_data);
+        ebr_ctx->timer.id = nas_timer_start(
+            sec, 0 /* usec */, cb, esm_ebr_timer_data,
+            ue_mm_context->mme_ue_s1ap_id);
         ebr_ctx->timer.sec = sec;
         ebr_ctx->args      = esm_ebr_timer_data;
       }
@@ -392,8 +397,9 @@ int esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi) {
         "ESM-FSM   - Stop retransmission timer %ld " MME_UE_S1AP_ID_FMT "\n",
         ebr_ctx->timer.id, ue_mm_context->mme_ue_s1ap_id);
     esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
-    ebr_ctx->timer.id =
-        nas_timer_stop(ebr_ctx->timer.id, (void**) &esm_ebr_timer_data);
+    ebr_ctx->timer.id                        = nas_timer_stop(
+        ebr_ctx->timer.id, (void**) &esm_ebr_timer_data,
+        ue_mm_context->mme_ue_s1ap_id);
     /*
      * Release the retransmisison timer parameters
      */

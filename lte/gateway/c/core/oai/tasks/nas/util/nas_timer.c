@@ -40,6 +40,7 @@
 #include "common_defs.h"
 #include "dynamic_memory_check.h"
 #include "intertask_interface_types.h"
+#include "mme_app_mme_ue_id_timer.h"
 #include "itti_types.h"
 #include "log.h"
 
@@ -54,7 +55,7 @@ void nas_timer_cleanup(void) {}
 //------------------------------------------------------------------------------
 long int nas_timer_start(
     uint32_t sec, uint32_t usec, nas_timer_callback_t nas_timer_callback,
-    void* nas_timer_callback_args) {
+    void* nas_timer_callback_args, mme_ue_s1ap_id_t mme_ue_s1ap_id) {
   long timer_id;
   nas_itti_timer_arg_t cb;
 
@@ -64,6 +65,7 @@ long int nas_timer_start(
   }
 
   memset(&cb, 0, sizeof(cb));
+  cb.ue_id                  = mme_ue_s1ap_id;
   cb.nas_timer_callback     = nas_timer_callback;
   cb.nas_timer_callback_arg = nas_timer_callback_args;
 
@@ -73,13 +75,20 @@ long int nas_timer_start(
     return NAS_TIMER_INACTIVE_ID;
   }
 
+  mme_app_upsert_mme_ue_id_timer_id(mme_ue_s1ap_id, timer_id);
+
   return timer_id;
 }
 
 //------------------------------------------------------------------------------
-long int nas_timer_stop(long int timer_id, void** nas_timer_callback_arg) {
+long int nas_timer_stop(
+    long int timer_id, void** nas_timer_callback_arg,
+    mme_ue_s1ap_id_t mme_ue_s1ap_id) {
   nas_itti_timer_arg_t* nas_itti_timer_arg = NULL;
   timer_remove(timer_id, (void**) &nas_itti_timer_arg);
+
+  mme_app_remove_mme_ue_id_timer_id(mme_ue_s1ap_id);
+
   if (nas_itti_timer_arg) {
     *nas_timer_callback_arg = nas_itti_timer_arg->nas_timer_callback_arg;
     free_wrapper((void**) &nas_itti_timer_arg);
@@ -93,7 +102,14 @@ long int nas_timer_stop(long int timer_id, void** nas_timer_callback_arg) {
 void mme_app_nas_timer_handle_signal_expiry(
     long timer_id, nas_itti_timer_arg_t* cb, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS);
-  if ((!timer_exists(timer_id)) || (cb->nas_timer_callback == NULL)) {
+
+  bool is_timer_valid =
+      mme_app_get_timer_id_from_mme_ue_id(cb->ue_id) != NAS_TIMER_INACTIVE_ID ?
+          true :
+          false;
+
+  if ((!timer_exists(timer_id)) || !is_timer_valid ||
+      (cb->nas_timer_callback == NULL)) {
     OAILOG_ERROR(LOG_NAS, "Invalid timer id %ld \n", timer_id);
     OAILOG_FUNC_OUT(LOG_NAS);
   }

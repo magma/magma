@@ -3234,7 +3234,8 @@ void mme_app_handle_nw_init_bearer_deactv_req(
         bearer_context_t* bearer_context = mme_app_get_bearer_context(
             ue_context_p, nw_init_bearer_deactv_req_p->ebi[i]);
         if (bearer_context) {
-          mme_app_free_bearer_context(&bearer_context);
+          mme_app_free_bearer_context(
+              &bearer_context, ue_context_p->mme_ue_s1ap_id);
           num_bearers_deleted++;
           ebi[i] = nw_init_bearer_deactv_req_p->ebi[i];
         } else {

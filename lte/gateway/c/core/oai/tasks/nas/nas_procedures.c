@@ -466,6 +466,9 @@ void nas_delete_tau_procedure(struct emm_context_s* emm_context) {
 void nas_delete_detach_procedure(struct emm_context_s* emm_context) {
   nas_emm_detach_proc_t* proc = get_nas_specific_procedure_detach(emm_context);
   if (proc) {
+    mme_ue_s1ap_id_t ue_id =
+        PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
+            ->mme_ue_s1ap_id;
     // free content
     if (proc->ies) {
       free_emm_detach_request_ies(&proc->ies);
@@ -476,7 +479,7 @@ void nas_delete_detach_procedure(struct emm_context_s* emm_context) {
       void* unused          = NULL;
       void** timer_callback = &unused;
       emm_context->T3422.id =
-          nas_timer_stop(emm_context->T3422.id, timer_callback);
+          nas_timer_stop(emm_context->T3422.id, timer_callback, ue_id);
     }
     if (emm_context->t3422_arg) {
       free_wrapper(&emm_context->t3422_arg);
