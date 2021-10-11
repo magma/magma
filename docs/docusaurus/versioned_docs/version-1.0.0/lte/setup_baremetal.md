@@ -55,20 +55,16 @@ echo "source ~/ansible/hacking/env-setup" >> ~/.bashrc
 
 1. Create boot USB stick
 
-  - Download .iso image from [Debian mirror](http://cdimage.debian.org/mirror/cdimage/archive/9.9.0/amd64/iso-cd/debian-9.9.0-amd64-netinst.iso)
-  - Create bootable usb using etcher [tutorial here](https://tutorials.ubuntu.com/tutorial/tutorial-create-a-usb-stick-on-macos#0)
-  - Boot your AGW host from USB (Press F11 to select boot sequence, :warning: This might be different for your machine)
-  - Select “Install” option.
-  - Configuration.
-    * Hostname: “magma”
-    * Domain name : “”
-    * Root password: “magma”
-    * Username : “magma”
-    * Password: “magma”
-    * Partition disk: Use entire disk and put all files in one partition
-    * Only install ssh server and utilities.
-  - Connect you SGi interface to the internet and select this port during the installation process to get an IP using DHCP.
-
+- Download .iso image from [Debian mirror](https://cdimage.debian.org/cdimage/archive/9.13.0/amd64/iso-cd/debian-9.13.0-amd64-netinst.iso)
+- Create bootable usb using etcher [tutorial here](https://tutorials.ubuntu.com/tutorial/tutorial-create-a-usb-stick-on-macos#0)
+- Boot your AGW host from USB
+  (Press F11 to select boot sequence, :warning: This might be different for
+  your machine). If you see 2 options to boot from USB, select the non-UEFI
+  option.
+- Install and configure you access gateway according to your network defaults.
+    - Make sure to enable ssh server and utilities (untick every other)
+- Connect your SGi interface to the internet and select this port during the
+installation process to get an IP using DHCP.
 
 2. Prepare AGW
   - Change interface names
