@@ -15,7 +15,7 @@ limitations under the License.
 import asyncio
 import unittest
 
-from lte.protos.mobilityd_pb2 import IPAddress, SubscriberIPTable
+from lte.protos.mobilityd_pb2 import IPAddress
 from magma.monitord.cpe_monitoring import CpeMonitoringModule
 from magma.monitord.icmp_job import ICMPJob
 

@@ -3,6 +3,6 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "protos",
     srcs = ["protos.go"],
-    importpath = "github.com/magma/magma/protos",
+    importpath = "github.com/magma/magma/src/go/protos",
     visibility = ["//visibility:public"],
 )

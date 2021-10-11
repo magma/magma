@@ -75,11 +75,8 @@ void GTPApplication::event_callback(
         add_tunnel_event.get_pgw_in_tei(), add_tunnel_event.get_pgw_out_tei());
 
     add_uplink_s8_tunnel_flow(add_tunnel_event, messenger);
-    int pgw_port = add_tunnel_event.get_pgw_gtp_portno();
-    if (pgw_port == 0) {
-      pgw_port = GTPApplication::gtp0_port_num_;
-    }
-    add_downlink_tunnel_flow(add_tunnel_event, messenger, pgw_port, true, true);
+    add_down_link_s8_tunnel_flow(add_tunnel_event, messenger);
+
     add_downlink_tunnel_flow(
         add_tunnel_event, messenger, mtr_port_num_, true, true);
     add_downlink_arp_flow(add_tunnel_event, messenger, mtr_port_num_);
@@ -87,11 +84,7 @@ void GTPApplication::event_callback(
     auto del_tunnel_event = static_cast<const DeleteGTPTunnelEvent&>(ev);
     // Same delete can be used, since uplink flow match is same for S8 tunnel.
     delete_uplink_tunnel_flow(del_tunnel_event, messenger);
-    int pgw_port = del_tunnel_event.get_pgw_gtp_portno();
-    if (pgw_port == 0) {
-      pgw_port = GTPApplication::gtp0_port_num_;
-    }
-    delete_downlink_tunnel_flow(del_tunnel_event, messenger, pgw_port);
+    delete_down_link_s8_tunnel_flow(del_tunnel_event, messenger);
 
     delete_downlink_tunnel_flow(del_tunnel_event, messenger, mtr_port_num_);
     delete_downlink_arp_flow(del_tunnel_event, messenger, mtr_port_num_);
@@ -217,6 +210,34 @@ void GTPApplication::add_uplink_s8_tunnel_flow(
       ev.get_pgw_out_tei(), ev.get_in_tei(), ev.get_imsi(), ev.get_pgw_ip(),
       ev.get_pgw_gtp_portno(), ev.get_connection(), messenger, uplink_fm,
       "S8 Uplink", true);
+}
+
+void GTPApplication::add_down_link_s8_tunnel_flow(
+    const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger) {
+  uint32_t flow_priority =
+      convert_precedence_to_priority(ev.get_dl_flow_precedence());
+  of13::FlowMod downlinklink_fm =
+      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
+  add_tunnel_match(
+      downlinklink_fm, ev.get_pgw_gtp_portno(), ev.get_pgw_in_tei());
+
+  add_tunnel_flow_action(
+      ev.get_out_tei(), ev.get_pgw_in_tei(), ev.get_imsi(), ev.get_enb_ip(),
+      ev.get_enb_gtp_portno(), ev.get_connection(), messenger, downlinklink_fm,
+      "S8 DnLink", true);
+}
+
+void GTPApplication::delete_down_link_s8_tunnel_flow(
+    const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger) {
+  of13::FlowMod uplink_fm =
+      messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
+  // match all ports and groups
+  uplink_fm.out_port(of13::OFPP_ANY);
+  uplink_fm.out_group(of13::OFPG_ANY);
+
+  add_tunnel_match(uplink_fm, ev.get_pgw_gtp_portno(), ev.get_pgw_in_tei());
+
+  messenger.send_of_msg(uplink_fm, ev.get_connection());
 }
 
 void GTPApplication::delete_uplink_tunnel_flow(

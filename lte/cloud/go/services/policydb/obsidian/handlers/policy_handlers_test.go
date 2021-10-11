@@ -14,7 +14,7 @@
 package handlers_test
 
 import (
-	context2 "context"
+	"context"
 	"fmt"
 	"testing"
 
@@ -39,7 +39,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
 	assert.NoError(t, err)
 
 	listPolicies := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/rules", obsidian.GET).HandlerFunc
@@ -651,7 +651,7 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
 	assert.NoError(t, err)
 
 	createPolicy := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/rules", obsidian.POST).HandlerFunc
@@ -664,7 +664,7 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 
 	// preseed 3 subscribers
 	imsi1, imsi2, imsi3 := "IMSI1234567890", "IMSI0987654321", "IMSI1111111111"
-	_, err = configurator.CreateEntities(context2.Background(), "n1", []configurator.NetworkEntity{
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.SubscriberEntityType, Key: imsi1},
 		{Type: lte.SubscriberEntityType, Key: imsi2},
 		{Type: lte.SubscriberEntityType, Key: imsi3},
@@ -704,7 +704,7 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 			Type:               lte.PolicyRuleEntityType,
 			Key:                "p1",
 			GraphID:            "2",
-			ParentAssociations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: imsi2}, {Type: lte.SubscriberEntityType, Key: imsi1}},
+			ParentAssociations: storage.TKs{{Type: lte.SubscriberEntityType, Key: imsi2}, {Type: lte.SubscriberEntityType, Key: imsi1}},
 			Version:            0,
 		},
 	)
@@ -729,7 +729,7 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 			Type:               lte.PolicyRuleEntityType,
 			Key:                "p1",
 			GraphID:            "2",
-			ParentAssociations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: imsi3}},
+			ParentAssociations: storage.TKs{{Type: lte.SubscriberEntityType, Key: imsi3}},
 			Version:            1,
 		},
 	)
@@ -870,7 +870,7 @@ func TestQoSProfile(t *testing.T) {
 	e := echo.New()
 
 	policydbHandlers := handlers.GetHandlers()
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
 	assert.NoError(t, err)
 
 	getAllProfiles := tests.GetHandlerByPathAndMethod(t, policydbHandlers, "/magma/v1/lte/:network_id/policy_qos_profiles", obsidian.GET).HandlerFunc
@@ -1090,7 +1090,7 @@ func TestPolicyWithQoSProfile(t *testing.T) {
 	e := echo.New()
 
 	policydbHandlers := handlers.GetHandlers()
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
 	assert.NoError(t, err)
 
 	postProfile := tests.GetHandlerByPathAndMethod(t, policydbHandlers, "/magma/v1/lte/:network_id/policy_qos_profiles", obsidian.POST).HandlerFunc
@@ -1221,11 +1221,7 @@ func TestPolicyWithQoSProfile(t *testing.T) {
 func validatePolicy(t *testing.T, e *echo.Echo, getRule echo.HandlerFunc, expectedModel *policyModels.PolicyRule, expectedEnt configurator.NetworkEntity) {
 	expectedEnt.Config = getExpectedRuleConfig(expectedModel)
 
-	actual, err := configurator.LoadEntity(
-		"n1", lte.PolicyRuleEntityType, string(expectedModel.ID),
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.PolicyRuleEntityType, string(expectedModel.ID), configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnt, actual)
 	tc := tests.Test{
@@ -1252,11 +1248,7 @@ func getExpectedRuleConfig(m *policyModels.PolicyRule) *policyModels.PolicyRuleC
 }
 
 func validateBaseName(t *testing.T, e *echo.Echo, getName echo.HandlerFunc, expectedModel *policyModels.BaseNameRecord, expectedEnt configurator.NetworkEntity) {
-	actual, err := configurator.LoadEntity(
-		"n1", lte.BaseNameEntityType, string(expectedModel.Name),
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.BaseNameEntityType, string(expectedModel.Name), configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnt, actual)
 	tc := tests.Test{

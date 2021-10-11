@@ -26,7 +26,6 @@ charts_fn_map = {
     'fbinternal-orc8r': 'fbinternal/cloud/helm/fbinternal-orc8r/Chart.yaml',
     'feg-orc8r': 'feg/cloud/helm/feg-orc8r/Chart.yaml',
     'lte-orc8r': 'lte/cloud/helm/lte-orc8r/Chart.yaml',
-    'wifi-orc8r': 'wifi/cloud/helm/wifi-orc8r/Chart.yaml',
     'cwf-orc8r': 'cwf/cloud/helm/cwf-orc8r/Chart.yaml',
 }
 

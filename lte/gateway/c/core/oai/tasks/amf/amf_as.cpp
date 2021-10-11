@@ -201,6 +201,11 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
     case SEC_MODE_COMPLETE:
       rc = amf_handle_security_complete_response(msg->ue_id, decode_status);
       break;
+    case SEC_MODE_REJECT:
+      rc = amf_handle_security_mode_reject(
+          msg->ue_id, &amf_msg->msg.securitymodereject, *amf_cause,
+          decode_status);
+      break;
     case REG_COMPLETE:
       rc = amf_handle_registration_complete_response(
           msg->ue_id, &amf_msg->msg.registrationcompletemsg, *amf_cause,
@@ -1226,9 +1231,9 @@ int initial_context_setup_request(
 
         // pdu ambr
         item->PDU_Session_Resource_Setup_Request_Transfer
-            .pdu_aggregate_max_bit_rate.dl = dl_pdu_ambr;
+            .pdu_aggregate_max_bit_rate.dl = amf_ctx->subscribed_ue_ambr.br_dl;
         item->PDU_Session_Resource_Setup_Request_Transfer
-            .pdu_aggregate_max_bit_rate.ul = ul_pdu_ambr;
+            .pdu_aggregate_max_bit_rate.ul = amf_ctx->subscribed_ue_ambr.br_ul;
 
         // pdu session type
         item->PDU_Session_Resource_Setup_Request_Transfer.pdu_ip_type.pdn_type =

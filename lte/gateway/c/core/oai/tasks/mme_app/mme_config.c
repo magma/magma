@@ -174,8 +174,10 @@ void itti_config_init(itti_config_t* itti_conf) {
 }
 
 void sctp_config_init(sctp_config_t* sctp_conf) {
-  sctp_conf->in_streams  = SCTP_IN_STREAMS;
-  sctp_conf->out_streams = SCTP_OUT_STREAMS;
+  sctp_conf->upstream_sctp_sock =
+      bfromcstr(MME_CONFIG_STRING_SCTP_UPSTREAM_SOCK);
+  sctp_conf->downstream_sctp_sock =
+      bfromcstr(MME_CONFIG_STRING_SCTP_DOWNSTREAM_SOCK_DEFAULT);
 }
 
 void apn_map_config_init(apn_map_config_t* apn_map_config) {
@@ -290,6 +292,9 @@ void free_mme_config(mme_config_t* mme_config) {
   bdestroy_wrapper(&mme_config->realm);
   bdestroy_wrapper(&mme_config->config_file);
 
+  bdestroy_wrapper(&mme_config->sctp_config.upstream_sctp_sock);
+  bdestroy_wrapper(&mme_config->sctp_config.downstream_sctp_sock);
+
   /*
    * IP configuration
    */
@@ -360,6 +365,54 @@ int copy_plmn_from_config(
     return RETURNerror;
   }
   return RETURNok;
+}
+
+void parse_sctp_settings(
+    config_setting_t* setting_mme, mme_config_t* config_pP) {
+  config_setting_t* setting =
+      config_setting_get_member(setting_mme, MME_CONFIG_STRING_SCTP_CONFIG);
+
+  if (setting == NULL) {
+    // There is no SCTP stanza in the libconfig, use defaults.
+    config_pP->sctp_config.upstream_sctp_sock =
+        bfromcstr(MME_CONFIG_STRING_SCTP_UPSTREAM_SOCK_DEFAULT);
+    config_pP->sctp_config.downstream_sctp_sock =
+        bfromcstr(MME_CONFIG_STRING_SCTP_DOWNSTREAM_SOCK_DEFAULT);
+    return;
+  }
+
+  const char* upstream_sock   = MME_CONFIG_STRING_SCTP_UPSTREAM_SOCK_DEFAULT;
+  const char* downstream_sock = MME_CONFIG_STRING_SCTP_DOWNSTREAM_SOCK_DEFAULT;
+
+  const char* astring = NULL;
+  if ((config_setting_lookup_string(
+          setting, MME_CONFIG_STRING_SCTP_UPSTREAM_SOCK,
+          (const char**) &astring)) &&
+      (astring != NULL)) {
+    upstream_sock = astring;
+  }
+
+  astring = NULL;
+  if ((config_setting_lookup_string(
+          setting, MME_CONFIG_STRING_SCTP_DOWNSTREAM_SOCK,
+          (const char**) &astring)) &&
+      (astring != NULL)) {
+    downstream_sock = astring;
+  }
+
+  // TODO(smoeller): This should be pulled out into a function of bstrlib
+  if (config_pP->sctp_config.upstream_sctp_sock) {
+    bassigncstr(config_pP->sctp_config.upstream_sctp_sock, upstream_sock);
+  } else {
+    config_pP->sctp_config.upstream_sctp_sock = bfromcstr(upstream_sock);
+  }
+
+  // TODO(smoeller): This should be pulled out into a function of bstrlib
+  if (config_pP->sctp_config.downstream_sctp_sock) {
+    bassigncstr(config_pP->sctp_config.downstream_sctp_sock, downstream_sock);
+  } else {
+    config_pP->sctp_config.downstream_sctp_sock = bfromcstr(downstream_sock);
+  }
 }
 
 void create_partial_lists(mme_config_t* config_pP) {
@@ -503,8 +556,9 @@ int mme_config_parse_string(
         config_error_text(&cfg));
     config_destroy(&cfg);
     Fatal(
-        "Failed to parse MME configuration file %s!\n",
-        bdata(config_pP->config_file));
+        "Failed to parse MME configuration file: %s:%d - %s\n",
+        bdata(config_pP->config_file), config_error_line(&cfg),
+        config_error_text(&cfg));
   }
 
   setting_mme = config_lookup(&cfg, MME_CONFIG_STRING_MME_CONFIG);
@@ -686,9 +740,9 @@ int mme_config_parse_string(
     }
 
     if ((config_setting_lookup_string(
-            setting_mme, MME_CONFIG_STRING_ENABLE_CONVERGED_CORE,
+            setting_mme, MME_CONFIG_STRING_ENABLE5G_FEATURES,
             (const char**) &astring))) {
-      config_pP->enable_converged_core = parse_bool(astring);
+      config_pP->enable5g_features = parse_bool(astring);
     }
 
     if ((config_setting_lookup_string(
@@ -826,20 +880,8 @@ int mme_config_parse_string(
     }
 #endif /* !S6A_OVER_GRPC */
     // SCTP SETTING
-    setting =
-        config_setting_get_member(setting_mme, MME_CONFIG_STRING_SCTP_CONFIG);
+    parse_sctp_settings(setting_mme, config_pP);
 
-    if (setting != NULL) {
-      if ((config_setting_lookup_int(
-              setting, MME_CONFIG_STRING_SCTP_INSTREAMS, &aint))) {
-        config_pP->sctp_config.in_streams = (uint16_t) aint;
-      }
-
-      if ((config_setting_lookup_int(
-              setting, MME_CONFIG_STRING_SCTP_OUTSTREAMS, &aint))) {
-        config_pP->sctp_config.out_streams = (uint16_t) aint;
-      }
-    }
     // S1AP SETTING
     setting =
         config_setting_get_member(setting_mme, MME_CONFIG_STRING_S1AP_CONFIG);
@@ -991,10 +1033,12 @@ int mme_config_parse_string(
       OAILOG_INFO(LOG_MME_APP, "Number of GUMMEIs configured =%d\n", num);
       AssertFatal(
           num >= MIN_GUMMEI,
-          "Not even one GUMMEI is configured, configure minimum one GUMMEI \n");
+          "Not even one GUMMEI is configured, configure minimum one GUMMEI "
+          "\n");
       AssertFatal(
           num <= MAX_GUMMEI,
-          "Number of GUMMEIs configured:%d exceeds number of GUMMEIs supported "
+          "Number of GUMMEIs configured:%d exceeds number of GUMMEIs "
+          "supported "
           ":%d \n",
           num, MAX_GUMMEI);
 
@@ -1021,7 +1065,8 @@ int mme_config_parse_string(
             AssertFatal(
                 (strlen(mnc) == MIN_MNC_LENGTH) ||
                     (strlen(mnc) == MAX_MNC_LENGTH),
-                "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or 123",
+                "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or "
+                "123",
                 strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
             char c[2]                                   = {mnc[0], 0};
             config_pP->gummei.gummei[i].plmn.mnc_digit1 = (uint8_t) atoi(c);
@@ -1617,7 +1662,8 @@ int mme_config_parse_string(
               num);
           AssertFatal(
               num <= MAX_APN_CORRECTION_MAP_LIST,
-              "Number of apn correction map configured:%d exceeds the maximum "
+              "Number of apn correction map configured:%d exceeds the "
+              "maximum "
               "number supported"
               ":%d \n",
               num, MAX_APN_CORRECTION_MAP_LIST);
@@ -1775,7 +1821,9 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         "Failed to read MME configuration file at path: %s:\n",
         bdata(config_pP->config_file));
   }
-  return mme_config_parse_string(bdata(buff), config_pP);
+  int rc = mme_config_parse_string(bdata(buff), config_pP);
+  bdestroy_wrapper(&buff);
+  return rc;
 }
 
 //------------------------------------------------------------------------------
@@ -1899,8 +1947,8 @@ void mme_config_display(mme_config_t* config_pP) {
       LOG_CONFIG, "- Use Stateless ........................: %s\n\n",
       config_pP->use_stateless ? "true" : "false");
   OAILOG_INFO(
-      LOG_CONFIG, "- enable_converged_core .......: %s\n\n",
-      config_pP->enable_converged_core ? "true" : "false");
+      LOG_CONFIG, "- enable5g_features .......: %s\n\n",
+      config_pP->enable5g_features ? "true" : "false");
   OAILOG_INFO(LOG_CONFIG, "- CSFB:\n");
   OAILOG_INFO(
       LOG_CONFIG,
@@ -1965,11 +2013,11 @@ void mme_config_display(mme_config_t* config_pP) {
       bdata(config_pP->itti_config.log_file));
   OAILOG_INFO(LOG_CONFIG, "- SCTP:\n");
   OAILOG_INFO(
-      LOG_CONFIG, "    in streams .......: %u\n",
-      config_pP->sctp_config.in_streams);
+      LOG_CONFIG, "  upstream_sctp_sock..: %s\n",
+      bdata(config_pP->sctp_config.upstream_sctp_sock));
   OAILOG_INFO(
-      LOG_CONFIG, "    out streams ......: %u\n",
-      config_pP->sctp_config.out_streams);
+      LOG_CONFIG, " downstream_sctp_sock.: %s\n",
+      bdata(config_pP->sctp_config.downstream_sctp_sock));
   OAILOG_INFO(LOG_CONFIG, "- GUMMEIs (PLMN|MMEGI|MMEC):\n");
   for (j = 0; j < config_pP->gummei.nb; j++) {
     OAILOG_INFO(

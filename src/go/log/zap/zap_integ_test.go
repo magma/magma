@@ -24,9 +24,9 @@ import (
 	uber_zap "go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/magma/magma/internal/testutil"
-	"github.com/magma/magma/log"
-	"github.com/magma/magma/log/zap"
+	"github.com/magma/magma/src/go/internal/testutil"
+	"github.com/magma/magma/src/go/log"
+	"github.com/magma/magma/src/go/log/zap"
 )
 
 type frozenZapClock struct {

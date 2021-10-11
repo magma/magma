@@ -77,6 +77,9 @@ services:
   ha_service:
     ip_address: 127.0.0.1
     port: 50073
+  s8_service:
+    ip_address: 127.0.0.1
+    port: 50073
   state:
     ip_address: 127.0.0.1
     port: 50074

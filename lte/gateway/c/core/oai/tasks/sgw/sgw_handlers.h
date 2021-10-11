@@ -32,6 +32,7 @@
 #include "s11_messages_types.h"
 #include "spgw_state.h"
 #include "intertask_interface.h"
+#include "gtpv1u.h"
 
 extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
 
@@ -102,4 +103,27 @@ void sgw_send_release_access_bearer_response(
 void sgw_process_release_access_bearer_request(
     log_proto_t module, imsi64_t imsi64,
     sgw_eps_bearer_context_information_t* sgw_context);
+
+int sgw_build_and_send_s11_create_bearer_request(
+    sgw_eps_bearer_context_information_t* sgw_eps_bearer_context_information,
+    const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
+    uint32_t sgw_ip_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
+    log_proto_t module);
+
+int create_temporary_dedicated_bearer_context(
+    sgw_eps_bearer_context_information_t* sgw_ctxt_p,
+    const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
+    uint32_t sgw_ip_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
+    uint32_t sequence_number, log_proto_t module);
+
+void handle_failed_create_bearer_response(
+    sgw_eps_bearer_context_information_t* sgw_context_p,
+    gtpv2c_cause_value_t cause, imsi64_t imsi64,
+    bearer_context_within_create_bearer_response_t* bearer_context,
+    sgw_eps_bearer_ctxt_t* dedicated_bearer_ctxt_p, log_proto_t module);
+
+void generate_dl_flow(
+    packet_filter_contents_t* packet_filter, in_addr_t ipv4_s_addr,
+    struct in6_addr* ue_ipv6, struct ip_flow_dl* dlflow);
+
 #endif /* FILE_SGW_HANDLERS_SEEN */

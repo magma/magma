@@ -291,27 +291,24 @@ int openflow_del_tunnel(
 /* S8 tunnel related APIs */
 int openflow_add_s8_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-    struct in_addr pgw, uint32_t i_tei, uint32_t o_tei, uint32_t pgw_i_tei,
-    uint32_t pgw_o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
-    uint32_t flow_precedence_dl) {
+    struct in_addr pgw, uint32_t i_tei, uint32_t o_tei, uint32_t pgw_in_tei,
+    uint32_t pgw_o_tei, Imsi_t imsi) {
   uint32_t enb_portno = find_gtp_port_no(enb, false);
   uint32_t pgw_portno = find_gtp_port_no(pgw, true);
 
   return openflow_controller_add_gtp_s8_tunnel(
-      ue, ue_ipv6, vlan, enb, pgw, i_tei, o_tei, pgw_i_tei, pgw_o_tei,
-      (const char*) imsi.digit, flow_dl, flow_precedence_dl, enb_portno,
-      pgw_portno);
+      ue, ue_ipv6, vlan, enb, pgw, i_tei, o_tei, pgw_in_tei, pgw_o_tei,
+      (const char*) imsi.digit, enb_portno, pgw_portno);
 }
 
 int openflow_del_s8_tunnel(
     struct in_addr enb, struct in_addr pgw, struct in_addr ue,
-    struct in6_addr* ue_ipv6, uint32_t i_tei, uint32_t o_tei,
-    struct ip_flow_dl* flow_dl) {
+    struct in6_addr* ue_ipv6, uint32_t i_tei, uint32_t pgw_in_tei) {
   uint32_t enb_portno = find_gtp_port_no(enb, false);
   uint32_t pgw_portno = find_gtp_port_no(pgw, true);
 
   return openflow_controller_del_gtp_s8_tunnel(
-      ue, ue_ipv6, i_tei, flow_dl, enb_portno, pgw_portno);
+      ue, ue_ipv6, i_tei, pgw_in_tei, enb_portno, pgw_portno);
 }
 
 int openflow_discard_data_on_tunnel(

@@ -9,8 +9,28 @@ Goals:
 2. Code can easily be shared with natual package paths that match file paths.
    No replace directives necessary in go.mod.
 3. Make it easy to find shared libs/patterns for use across magma targets.
-4. Other projects can easily import github.com/magma/magma code for use in
+4. Other projects can easily import github.com/magma/magma/src/go code for use in
    derivative works.
+
+Notes:
+
+1. The go.mod is placed at $MAGMA_ROOT/src/go to avoid name collisions with existing Go directories.
+2. We eventually want a canonical golang import path of magmacore.org/magma
+
+
+## Generating Bazel build files
+
+When updating or adding a new dependency, run
+
+```sh
+bazel run //:gazelle -- update-repos -from_file=src/go/go.mod -to_macro=go_repositories.bzl%go_repositories
+```
+
+To generate BUILD.bazel files, run
+
+```sh
+bazel run //:gazelle
+```
 
 ## Dependencies
 

@@ -6,7 +6,7 @@ go_library(
         "zap.go",
         "zap_windows.go",
     ],
-    importpath = "github.com/magma/magma/log/zap",
+    importpath = "github.com/magma/magma/src/go/log/zap",
     visibility = ["//visibility:public"],
     deps = [
         "//src/go/log",
@@ -25,6 +25,7 @@ go_test(
     embed = [":zap"],
     deps = [
         "//src/go/internal/testutil",
+        "//src/go/log",
         "@com_github_stretchr_testify//assert",
         "@org_uber_go_zap//:zap",
         "@org_uber_go_zap//zapcore",

@@ -28,9 +28,9 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
+	"context"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -278,7 +278,7 @@ func getUE(blobStoreFactory blobstore.BlobStorageFactory, imsi string) (ue *cwfp
 		}
 	}()
 
-	blob, err := store.Get(networkIDPlaceholder, storage.TypeAndKey{Type: blobTypePlaceholder, Key: imsi})
+	blob, err := store.Get(networkIDPlaceholder, storage.TK{Type: blobTypePlaceholder, Key: imsi})
 	if err != nil {
 		err = errors.Wrap(err, "Error getting UE with specified IMSI")
 		return

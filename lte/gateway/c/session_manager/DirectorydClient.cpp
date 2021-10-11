@@ -36,8 +36,8 @@ void AsyncDirectorydClient::update_directoryd_record(
     std::function<void(Status status, Void)> callback) {
   auto local_response =
       new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
-  local_response->set_response_reader(std::move(stub_->AsyncUpdateRecord(
-      local_response->get_context(), request, &queue_)));
+  local_response->set_response_reader(stub_->AsyncUpdateRecord(
+      local_response->get_context(), request, &queue_));
 }
 
 void AsyncDirectorydClient::delete_directoryd_record(
@@ -45,8 +45,8 @@ void AsyncDirectorydClient::delete_directoryd_record(
     std::function<void(Status status, Void)> callback) {
   auto local_response =
       new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
-  local_response->set_response_reader(std::move(stub_->AsyncDeleteRecord(
-      local_response->get_context(), request, &queue_)));
+  local_response->set_response_reader(stub_->AsyncDeleteRecord(
+      local_response->get_context(), request, &queue_));
 }
 
 void AsyncDirectorydClient::get_all_directoryd_records(
@@ -54,7 +54,7 @@ void AsyncDirectorydClient::get_all_directoryd_records(
   magma::Void request;
   auto local_resp = new AsyncLocalResponse<AllDirectoryRecords>(
       std::move(callback), RESPONSE_TIMEOUT);
-  local_resp->set_response_reader(std::move(stub_->AsyncGetAllDirectoryRecords(
-      local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(stub_->AsyncGetAllDirectoryRecords(
+      local_resp->get_context(), request, &queue_));
 }
 }  // namespace magma

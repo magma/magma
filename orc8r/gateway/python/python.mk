@@ -121,8 +121,10 @@ CODECOV_DIR := /var/tmp/codecovs
 
 .tests:
 ifdef TESTS
+ifndef SKIP_NON_SUDO_TESTS
 	$(eval NAME ?= $(shell $(BIN)/python setup.py --name))
 	. $(PYTHON_BUILD)/bin/activate; $(BIN)/nosetests --with-xunit --xunit-file=$(RESULTS_DIR)/tests_$(NAME).xml --with-coverage --cover-erase --cover-branches --cover-package=magma --cover-xml --cover-xml-file=$(CODECOV_DIR)/cover_$(NAME).xml -s $(TESTS)
+endif
 endif
 
 .sudo_tests:

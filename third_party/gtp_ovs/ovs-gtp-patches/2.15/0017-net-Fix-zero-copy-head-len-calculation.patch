@@ -1,7 +1,7 @@
-From 2a585138639b04d44ad730557e0a977abac35532 Mon Sep 17 00:00:00 2001
+From ea2453d9b516486fe4f8bf0c7e585b4455ef835b Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sun, 4 Jul 2021 19:31:58 +0000
-Subject: [PATCH 17/17] net: Fix zero-copy head len calculation.
+Subject: [PATCH 17/22] net: Fix zero-copy head len calculation.
 
 In some cases skb head could be locked and all header
 data pull from skb. When skb_zerocopy() called in such cases, following
@@ -102,5 +102,5 @@ index 4cdeedc58..9db943da1 100644
  /**
   *	skb_zerocopy - Zero copy skb to skb
 -- 
-2.17.1
+2.25.1
 

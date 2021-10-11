@@ -208,6 +208,10 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
   // UE context release notification to NGAP
+  if (ue_context->ue_context_rel_cause.ngapCause_u.nas ==
+      ngap_CauseNas_normal_release) {
+    ue_context->ue_context_rel_cause.ngapCause_u.nas = ngap_CauseNas_deregister;
+  }
   amf_app_ue_context_release(ue_context, ue_context->ue_context_rel_cause);
 
   // Clean up all the sessions.

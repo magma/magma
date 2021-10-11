@@ -66,6 +66,7 @@ func listNetworkProbeTasks(c echo.Context) error {
 	}
 
 	ents, _, err := configurator.LoadAllEntitiesOfType(
+		c.Request().Context(),
 		networkID, lte.NetworkProbeTaskEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -142,7 +143,9 @@ func getNetworkProbeTask(c echo.Context) error {
 	}
 
 	networkID, taskID := values[0], values[1]
-	ent, err := configurator.LoadEntity(networkID,
+	ent, err := configurator.LoadEntity(
+		c.Request().Context(),
+		networkID,
 		lte.NetworkProbeTaskEntityType,
 		taskID,
 		configurator.EntityLoadCriteria{LoadConfig: true},
@@ -205,6 +208,7 @@ func listNetworkProbeDestinations(c echo.Context) error {
 	}
 
 	ents, _, err := configurator.LoadAllEntitiesOfType(
+		c.Request().Context(),
 		networkID, lte.NetworkProbeDestinationEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -259,7 +263,9 @@ func getNetworkProbeDestination(c echo.Context) error {
 	}
 
 	networkID, destinationID := values[0], values[1]
-	ent, err := configurator.LoadEntity(networkID,
+	ent, err := configurator.LoadEntity(
+		c.Request().Context(),
+		networkID,
 		lte.NetworkProbeDestinationEntityType,
 		destinationID,
 		configurator.EntityLoadCriteria{LoadConfig: true},

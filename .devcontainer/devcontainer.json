@@ -2,6 +2,7 @@
 	"extensions": [
 		"CoenraadS.bracket-pair-colorizer-2",
 		"xaver.clang-format",
+		"golang.go",
 		"notskm.clang-tidy",
 		"eamodio.gitlens",
 		"yzhang.markdown-all-in-one",
@@ -17,13 +18,13 @@
 		"stackbuild.bazel-stack-vscode-cc",
 		"augustocdias.tasks-shell-input",
 	],
-	"image": "ghcr.io/magma/devcontainer:sha-9fe32d6",
+	"image": "ghcr.io/magma/devcontainer:sha-007ddb9",
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash",
 		"files.watcherExclude": {
 			"**/.bazel-cache/**": true,
 			"**/.bazel-cache-repo/**": true,
-		},		
+		},
 		"bsv.bazel.buildFlags": [
 			"--config=devcontainer",
 		],

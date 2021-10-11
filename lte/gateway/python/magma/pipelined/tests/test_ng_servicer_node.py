@@ -11,24 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
-import subprocess
 import unittest
 import unittest.mock
 import warnings
-from collections import OrderedDict
 from concurrent.futures import Future
-from typing import List
 from unittest import TestCase
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 
-from lte.protos import (
-    pipelined_pb2,
-    pipelined_pb2_grpc,
-    session_manager_pb2_grpc,
-)
 from lte.protos.session_manager_pb2 import UPFAssociationState
-from magma.pipelined.app.ng_services import NGServiceController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.app.start_pipelined import (
     PipelinedController,
@@ -38,7 +28,6 @@ from magma.pipelined.tests.pipelined_test_util import (
     create_service_manager,
     start_ryu_app_thread,
     stop_ryu_app_thread,
-    wait_after_send,
 )
 
 
@@ -85,8 +74,8 @@ class NGServiceControllerTest(unittest.TestCase):
             config={
                 'enodeb_iface': 'eth1',
                 'clean_restart': True,
-                '5G_feature_set': {'enable': True},
-                '5G_feature_set': {'node_identifier': '192.168.220.1'},
+                'enable5g_features': True,
+                'upf_node_identifier': '192.168.220.1',
                 'bridge_name': self.BRIDGE,
             },
             mconfig=None,

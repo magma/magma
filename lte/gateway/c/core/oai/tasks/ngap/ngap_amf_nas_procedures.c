@@ -795,8 +795,6 @@ void ngap_handle_conn_est_cnf(
 
       ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
-      const pdu_session_resource_setup_request_transfer_t*
-          amf_pdu_ses_setup_transfer_req;
       const pdusession_setup_item_t* pdu_session_item =
           &conn_est_cnf_pP->PDU_Session_Resource_Setup_Transfer_List.item[i];
 
@@ -817,8 +815,9 @@ void ngap_handle_conn_est_cnf(
                   1, sizeof(Ngap_PDUSessionResourceSetupRequestTransfer_t));
 
       // filling PDU TX Structure
-      amf_pdu_ses_setup_transfer_req =
-          &(pdu_session_item->PDU_Session_Resource_Setup_Request_Transfer);
+      const pdu_session_resource_setup_request_transfer_t*
+          amf_pdu_ses_setup_transfer_req =
+              &(pdu_session_item->PDU_Session_Resource_Setup_Request_Transfer);
 
       ngap_fill_pdu_session_resource_setup_request_transfer(
           amf_pdu_ses_setup_transfer_req,
@@ -1010,7 +1009,7 @@ int ngap_fill_pdu_session_resource_setup_request_transfer(
 
     asn_uint642INTEGER(
         &PDUSessionAggregateMaximumBitRate->pDUSessionAggregateMaximumBitRateUL,
-        session_transfer->pdu_aggregate_max_bit_rate.dl);
+        session_transfer->pdu_aggregate_max_bit_rate.ul);
     asn_uint642INTEGER(
         &PDUSessionAggregateMaximumBitRate->pDUSessionAggregateMaximumBitRateDL,
         session_transfer->pdu_aggregate_max_bit_rate.dl);

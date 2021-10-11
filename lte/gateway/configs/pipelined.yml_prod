@@ -36,6 +36,7 @@ static_services: [
   'proxy',
   'access_control',
   'startup_flows',
+  'ipv6_solicitation',
 ]
 
 of_server_port: 3333
@@ -185,5 +186,8 @@ sgi_tunnel:
    peer_pub_key: 'VQT+tLY6/xF+k1WqrXeQzlfb8hWMVLcPdtCPvwIUNU0='
    peer_pub_ip: 1.2.3.4
 
-dp_tso:
-  gtp_tso_enable: false
+# Use this config only to turn off TSO of physical devices.
+# This is useful to debug perf issues.
+# dp_tso:
+#   gtp_tso_enable: false
+#

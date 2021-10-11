@@ -14,6 +14,7 @@
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -22,7 +23,6 @@ import (
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
-	"golang.org/x/net/context"
 	corev1types "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"

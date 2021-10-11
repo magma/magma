@@ -490,5 +490,6 @@ cc_binary(
         ":session_manager_server",
         ":stats_poller",
         "//orc8r/gateway/c/common/config:mconfig_loader",
+        "//orc8r/gateway/c/common/sentry:sentry_wrapper",
     ],
 )

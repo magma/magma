@@ -38,33 +38,52 @@ func (credits *UsedCredits) FromCreditUsage(usage *protos.CreditUsage) *UsedCred
 	return credits
 }
 
-func (request *CreditControlRequest) FromCreditUsageUpdate(update *protos.CreditUsageUpdate) *CreditControlRequest {
-	common := update.GetCommonContext()
-	request.SessionID = update.SessionId
-	request.RequestNumber = update.RequestNumber
-	request.IMSI = credit_control.RemoveIMSIPrefix(common.GetSid().GetId())
-	request.Msisdn = common.GetMsisdn()
-	request.UeIPV4 = common.GetUeIpv4()
-	request.SpgwIPV4 = update.SpgwIpv4
-	request.Apn = common.GetApn()
-	request.Imei = update.Imei
-	request.PlmnID = update.PlmnId
-	request.UserLocation = update.UserLocation
-	request.ChargingCharacteristics = update.ChargingCharacteristics
-	request.Type = credit_control.CRTUpdate
+// FromCreditUsageUpdates returns a slice of CCRs from usage update protos
+// It merges updates from same session into one single request
+func FromCreditUsageUpdates(updates []*protos.CreditUsageUpdate) []*CreditControlRequest {
+	updatesPerSession := make(map[string][]*protos.CreditUsageUpdate)
 
-	request.Credits = []*UsedCredits{{
-		RatingGroup:       update.Usage.ChargingKey,
-		ServiceIdentifier: fromServiceIdentifier(update.Usage.ServiceIdentifier),
-		InputOctets:       update.Usage.BytesTx, // transmit == input
-		OutputOctets:      update.Usage.BytesRx, // receive == output
-		TotalOctets:       update.Usage.BytesTx + update.Usage.BytesRx,
-		Type:              UsedCreditsType(update.Usage.Type),
-		RequestedUnits:    update.Usage.GetRequestedUnits(),
-	}}
-	request.RatType = GetRATType(common.GetRatType())
-	request.TgppCtx = update.GetTgppCtx()
-	return request
+	// sort updates per session
+	for _, update := range updates {
+		updatesPerSession[update.SessionId] = append(updatesPerSession[update.SessionId], update)
+	}
+
+	// merge updates for the same sessions
+	requests := []*CreditControlRequest{}
+	for _, listUpdates := range updatesPerSession {
+		firstUpdate := listUpdates[0]
+		request := &CreditControlRequest{}
+		common := firstUpdate.GetCommonContext()
+		request.SessionID = firstUpdate.SessionId
+		request.RequestNumber = firstUpdate.RequestNumber
+		request.IMSI = credit_control.RemoveIMSIPrefix(common.GetSid().GetId())
+		request.Msisdn = common.GetMsisdn()
+		request.UeIPV4 = common.GetUeIpv4()
+		request.SpgwIPV4 = firstUpdate.SpgwIpv4
+		request.Apn = common.GetApn()
+		request.Imei = firstUpdate.Imei
+		request.PlmnID = firstUpdate.PlmnId
+		request.UserLocation = firstUpdate.UserLocation
+		request.ChargingCharacteristics = firstUpdate.ChargingCharacteristics
+		request.Type = credit_control.CRTUpdate
+		request.RatType = GetRATType(common.GetRatType())
+		request.TgppCtx = firstUpdate.GetTgppCtx()
+
+		request.Credits = []*UsedCredits{}
+		for _, updateN := range listUpdates {
+			request.Credits = append(request.Credits, &UsedCredits{
+				RatingGroup:       updateN.Usage.ChargingKey,
+				ServiceIdentifier: fromServiceIdentifier(updateN.Usage.ServiceIdentifier),
+				InputOctets:       updateN.Usage.BytesTx, // transmit == input
+				OutputOctets:      updateN.Usage.BytesRx, // receive == output
+				TotalOctets:       updateN.Usage.BytesTx + updateN.Usage.BytesRx,
+				Type:              UsedCreditsType(updateN.Usage.Type),
+				RequestedUnits:    updateN.Usage.GetRequestedUnits(),
+			})
+		}
+		requests = append(requests, request)
+	}
+	return requests
 }
 
 func fromServiceIdentifier(si *protos.ServiceIdentifier) *uint32 {

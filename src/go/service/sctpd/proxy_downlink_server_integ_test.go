@@ -18,11 +18,11 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/magma/magma/internal/testutil"
-	pb "github.com/magma/magma/protos/magma/sctpd"
-	"github.com/magma/magma/protos/magma/sctpd/mock_sctpd"
-	"github.com/magma/magma/service"
-	"github.com/magma/magma/service/sctpd"
+	"github.com/magma/magma/src/go/internal/testutil"
+	pb "github.com/magma/magma/src/go/protos/magma/sctpd"
+	"github.com/magma/magma/src/go/protos/magma/sctpd/mock_sctpd"
+	"github.com/magma/magma/src/go/service"
+	"github.com/magma/magma/src/go/service/sctpd"
 )
 
 func TestProxyDownlinkServer_Init(t *testing.T) {

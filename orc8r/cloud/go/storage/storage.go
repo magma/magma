@@ -44,20 +44,20 @@ const (
 	LevelLinearizable
 )
 
-type TypeAndKey struct {
+type TK struct {
 	Type string
 	Key  string
 }
 
-func (tk TypeAndKey) String() string {
+func (tk TK) String() string {
 	return fmt.Sprintf("%s-%s", tk.Type, tk.Key)
 }
 
-func (tk TypeAndKey) IsLessThan(tkb TypeAndKey) bool {
+func (tk TK) IsLessThan(tkb TK) bool {
 	return tk.String() < tkb.String()
 }
 
-type TKs []TypeAndKey
+type TKs []TK
 
 // Filter returns the tks which match the passed type.
 func (tks TKs) Filter(typ string) TKs {
@@ -83,13 +83,13 @@ func (tks TKs) MultiFilter(types ...string) TKs {
 
 // GetFirst returns the first TK with the passed type.
 // Returns err only on tk not found.
-func (tks TKs) GetFirst(typ string) (TypeAndKey, error) {
+func (tks TKs) GetFirst(typ string) (TK, error) {
 	for _, tk := range tks {
 		if tk.Type == typ {
 			return tk, nil
 		}
 	}
-	return TypeAndKey{}, fmt.Errorf("no TK of type %s found in %v", typ, tks)
+	return TK{}, fmt.Errorf("no TK of type %s found in %v", typ, tks)
 }
 
 // Keys returns the keys of the TKs.
@@ -104,7 +104,7 @@ func (tks TKs) Keys() []string {
 func MakeTKs(typ string, keys []string) TKs {
 	var tks TKs
 	for _, key := range keys {
-		tks = append(tks, TypeAndKey{Type: typ, Key: key})
+		tks = append(tks, TK{Type: typ, Key: key})
 	}
 	return tks
 }
@@ -113,11 +113,11 @@ func MakeTKs(typ string, keys []string) TKs {
 func (tks TKs) Difference(b TKs) (TKs, TKs) {
 	a := tks
 
-	aa := map[TypeAndKey]struct{}{}
+	aa := map[TK]struct{}{}
 	for _, tk := range a {
 		aa[tk] = struct{}{}
 	}
-	bb := map[TypeAndKey]struct{}{}
+	bb := map[TK]struct{}{}
 	for _, tk := range b {
 		bb[tk] = struct{}{}
 	}

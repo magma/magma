@@ -40,7 +40,7 @@ func TestMigration(t *testing.T) {
 	err = storev1.CreateOrUpdate("id1", blobs)
 	require.NoError(t, err)
 
-	many, err := storev1.GetMany("id1", []storage.TypeAndKey{
+	many, err := storev1.GetMany("id1", storage.TKs{
 		{Type: "type1", Key: "key1"},
 		{Type: "type2", Key: "key2"},
 	})
@@ -58,7 +58,7 @@ func TestMigration(t *testing.T) {
 	entfact := blobstore.NewEntStorage("states", db, nil)
 	storev2, err := entfact.StartTransaction(nil)
 	require.NoError(t, err)
-	blobs, err = storev2.GetMany("id1", []storage.TypeAndKey{
+	blobs, err = storev2.GetMany("id1", storage.TKs{
 		{Type: "type1", Key: "key1"},
 		{Type: "type2", Key: "key2"},
 	})
@@ -66,29 +66,29 @@ func TestMigration(t *testing.T) {
 	require.Len(t, many, 2)
 	require.Equal(t, blobs[:2], many)
 
-	blob, err := storev2.Get("id1", storage.TypeAndKey{Type: "type1", Key: "key1"})
+	blob, err := storev2.Get("id1", storage.TK{Type: "type1", Key: "key1"})
 	require.NoError(t, err)
 	require.Equal(t, blobs[0], blob)
 
-	blob, err = storev2.Get("id1", storage.TypeAndKey{Type: "type2", Key: "key2"})
+	blob, err = storev2.Get("id1", storage.TK{Type: "type2", Key: "key2"})
 	require.NoError(t, err)
 	require.Equal(t, blobs[1], blob)
 
-	err = storev2.IncrementVersion("id1", storage.TypeAndKey{Type: "type3", Key: "key1"})
+	err = storev2.IncrementVersion("id1", storage.TK{Type: "type3", Key: "key1"})
 	require.NoError(t, err)
-	blob, err = storev2.Get("id1", storage.TypeAndKey{Type: "type3", Key: "key1"})
+	blob, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
 	require.NoError(t, err)
 	require.Equal(t, blobstore.Blob{Type: "type3", Key: "key1", Version: 1}, blob)
 
-	err = storev2.IncrementVersion("id1", storage.TypeAndKey{Type: "type3", Key: "key1"})
+	err = storev2.IncrementVersion("id1", storage.TK{Type: "type3", Key: "key1"})
 	require.NoError(t, err)
-	blob, err = storev2.Get("id1", storage.TypeAndKey{Type: "type3", Key: "key1"})
+	blob, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
 	require.NoError(t, err)
 	require.Equal(t, blobstore.Blob{Type: "type3", Key: "key1", Version: 2}, blob)
 
-	err = storev2.Delete("id1", []storage.TypeAndKey{{Type: "type3", Key: "key1"}})
+	err = storev2.Delete("id1", storage.TKs{{Type: "type3", Key: "key1"}})
 	require.NoError(t, err)
-	_, err = storev2.Get("id1", storage.TypeAndKey{Type: "type3", Key: "key1"})
+	_, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
 	require.Equal(t, magmaerrors.ErrNotFound, err)
 
 	err = storev2.CreateOrUpdate("id1", blobstore.Blobs{
@@ -96,11 +96,11 @@ func TestMigration(t *testing.T) {
 		{Type: "type3", Key: "key1", Value: []byte("value")},
 	})
 	require.NoError(t, err)
-	blob, err = storev2.Get("id1", storage.TypeAndKey{Type: "type3", Key: "key1"})
+	blob, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
 	require.NoError(t, err)
 	require.Equal(t, blobstore.Blob{Type: "type3", Key: "key1", Value: []byte("value")}, blob)
 
-	blob, err = storev2.Get("id1", storage.TypeAndKey{Type: "type1", Key: "key1"})
+	blob, err = storev2.Get("id1", storage.TK{Type: "type1", Key: "key1"})
 	require.NoError(t, err)
 	require.Equal(t, blobstore.Blob{Type: "type1", Key: "key1", Value: []byte("world"), Version: 1}, blob)
 

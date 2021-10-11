@@ -36,11 +36,12 @@ import (
 type SubscribersProvider struct{}
 
 func (p *SubscribersProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	magmadGateway, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{LoadAssocsFromThis: true}, serdes.Entity)
+	magmadGateway, err := configurator.LoadEntityForPhysicalID(ctx, gatewayId, configurator.EntityLoadCriteria{LoadAssocsFromThis: true}, serdes.Entity)
 	if err != nil {
 		return nil, errors.Wrapf(err, "load magmad gateway for physical ID %s", gatewayId)
 	}
 	gateway, err := configurator.LoadEntity(
+		ctx,
 		magmadGateway.NetworkID, lte.CellularGatewayEntityType, magmadGateway.Key,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -49,6 +50,7 @@ func (p *SubscribersProvider) GetUpdates(ctx context.Context, gatewayId string, 
 		return nil, errors.Wrapf(err, "load cellular gateway from magmad gateway %s", magmadGateway.Key)
 	}
 	subEnts, _, err := configurator.LoadAllEntitiesOfType(
+		ctx,
 		gateway.NetworkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true,
 			LoadAssocsToThis: true, LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -56,7 +58,7 @@ func (p *SubscribersProvider) GetUpdates(ctx context.Context, gatewayId string, 
 	if err != nil {
 		return nil, errors.Wrapf(err, "load all subscribers in network of gateway %s", gateway.Key)
 	}
-	apnsByName, apnResourcesByAPN, err := loadAPNs(gateway)
+	apnsByName, apnResourcesByAPN, err := loadAPNs(ctx, gateway)
 	if err != nil {
 		return nil, err
 	}
@@ -74,8 +76,9 @@ func (p *SubscribersProvider) GetUpdates(ctx context.Context, gatewayId string, 
 	return subscribersToUpdates(subProtos)
 }
 
-func loadAPNs(gateway configurator.NetworkEntity) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {
+func loadAPNs(ctx context.Context, gateway configurator.NetworkEntity) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {
 	apns, _, err := configurator.LoadAllEntitiesOfType(
+		ctx,
 		gateway.NetworkID, lte.APNEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -88,7 +91,7 @@ func loadAPNs(gateway configurator.NetworkEntity) (map[string]*lte_models.ApnCon
 		apnsByName[ent.Key] = ent.Config.(*lte_models.ApnConfiguration)
 	}
 
-	apnResources, err := lte_models.LoadAPNResources(gateway.NetworkID, gateway.Associations.Filter(lte.APNResourceEntityType).Keys())
+	apnResources, err := lte_models.LoadAPNResources(ctx, gateway.NetworkID, gateway.Associations.Filter(lte.APNResourceEntityType).Keys())
 	if err != nil {
 		return nil, nil, err
 	}

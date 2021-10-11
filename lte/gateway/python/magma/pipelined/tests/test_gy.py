@@ -48,9 +48,7 @@ from magma.pipelined.tests.app.table_isolation import (
 from magma.pipelined.tests.pipelined_test_util import (
     FlowTest,
     FlowVerifier,
-    PktsToSend,
     SnapshotVerifier,
-    SubTest,
     create_service_manager,
     fake_controller_setup,
     start_ryu_app_thread,

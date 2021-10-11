@@ -39,6 +39,7 @@ func ListRatingGroups(c echo.Context) error {
 	}
 
 	ents, _, err := configurator.LoadAllEntitiesOfType(
+		c.Request().Context(),
 		networkID, lte.RatingGroupEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -84,6 +85,7 @@ func GetRatingGroup(c echo.Context) error {
 	}
 
 	ent, err := configurator.LoadEntity(
+		c.Request().Context(),
 		networkID, lte.RatingGroupEntityType, ratingGroupID,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -118,7 +120,7 @@ func UpdateRatingGroup(c echo.Context) error {
 	}
 
 	// 404 if rating group doesn't exist
-	exists, err := configurator.DoesEntityExist(networkID, lte.RatingGroupEntityType, ratingGroupID)
+	exists, err := configurator.DoesEntityExist(reqCtx, networkID, lte.RatingGroupEntityType, ratingGroupID)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "Failed to check if rating group exists"), http.StatusInternalServerError)
 	}

@@ -1,0 +1,41 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+cc_binary(
+    name = "main",
+    srcs = ["main.cpp"],
+    deps = [
+        ":event_tracker",
+        "//lte/protos:mconfigs_cpp_proto",
+        "//orc8r/gateway/c/common/config:mconfig_loader",
+        "//orc8r/gateway/c/common/service303",
+    ],
+)
+
+cc_library(
+    name = "event_tracker",
+    srcs = ["EventTracker.cpp"],
+    hdrs = ["EventTracker.h"],
+    deps = [
+        ":packet_generator",
+        "@system_libraries//:libmnl",
+    ],
+)
+
+cc_library(
+    name = "packet_generator",
+    srcs = ["PacketGenerator.cpp"],
+    hdrs = ["PacketGenerator.h"],
+    deps = [
+        "//orc8r/gateway/c/common/logging",
+        "@system_libraries//:libtins",
+    ],
+)

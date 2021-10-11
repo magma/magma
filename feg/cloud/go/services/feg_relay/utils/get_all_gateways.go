@@ -58,6 +58,7 @@ func GetAllGatewayIDs(ctx context.Context) ([]string, error) {
 	// Find as many gateways as possible, swallowing intermediate errors
 	for _, networkID := range cfg.ServedNetworkIds {
 		gateways, _, err := configurator.LoadEntities(
+			ctx,
 			networkID, swag.String(orc8r.MagmadGatewayType), nil, nil, nil,
 			configurator.EntityLoadCriteria{},
 			serdes.Entity,
@@ -86,6 +87,7 @@ func GetAllGatewayIDs(ctx context.Context) ([]string, error) {
 
 func getFegCfg(ctx context.Context, networkID, gatewayID string) (*models.GatewayFederationConfigs, error) {
 	fegGateway, err := configurator.LoadEntity(
+		ctx,
 		networkID, feg.FegGatewayType, gatewayID,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,

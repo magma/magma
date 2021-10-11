@@ -160,8 +160,8 @@ func (c *certifierBlobstore) DeleteCertInfo(serialNumber string) error {
 	}
 	defer store.Rollback()
 
-	tk := storage.TypeAndKey{Type: CertInfoType, Key: serialNumber}
-	err = store.Delete(placeholderNetworkID, []storage.TypeAndKey{tk})
+	tk := storage.TK{Type: CertInfoType, Key: serialNumber}
+	err = store.Delete(placeholderNetworkID, storage.TKs{tk})
 	if err != nil {
 		return errors.Wrap(err, "failed to delete certificate info")
 	}
