@@ -28,7 +28,6 @@
 #include <string.h>
 
 #include "bstrlib.h"
-#include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "hashtable.h"
 #include "log.h"
@@ -40,7 +39,6 @@
 #include "s1ap_mme_itti_messaging.h"
 #include "service303.h"
 #include "3gpp_23.003.h"
-#include "3gpp_24.007.h"
 #include "3gpp_36.413.h"
 #include "INTEGER.h"
 #include "OCTET_STRING.h"

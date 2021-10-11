@@ -325,6 +325,8 @@ typedef struct amf_context_s {
   bool is_imsi_only_detach;
   uint8_t reg_id_type;
   tai_t originating_tai;
+
+  ambr_t subscribed_ue_ambr;
 } amf_context_t;
 
 typedef struct amf_ue_context_s {

@@ -61,7 +61,6 @@ status_code_e mme_app_handle_s1ap_ue_capabilities_ind(
   ue_context_p->ue_radio_capability = blk2bstr(
       s1ap_ue_cap_ind_pP->radio_capabilities,
       s1ap_ue_cap_ind_pP->radio_capabilities_length);
-  free_wrapper((void**) &s1ap_ue_cap_ind_pP->radio_capabilities);
 
   OAILOG_DEBUG(
       LOG_MME_APP, "UE radio capabilities of length %d found and cached\n",
