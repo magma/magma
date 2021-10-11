@@ -37,6 +37,12 @@ build:
 deploy:
   kubeContext: minikube
   helm:
+    hooks:
+      before:
+        - host:
+            command: ["kubectl", "apply", "-f", "./tools/deployment/vendor/postgresql.yml"]
+        - host:
+            command: ["kubectl", "rollout", "status", "--watch", "--timeout=600s","statefulset/postgres-database"]
     releases:
       - name: domain-proxy
         createNamespace: true
@@ -63,7 +69,6 @@ deploy:
     defaultNamespace: default
     manifests:
       - "./tools/deployment/vendor/fake_sas.yml"
-      - "./tools/deployment/vendor/postgresql.yml"
 profiles:
   - name: integration-tests
     patches:
@@ -84,11 +89,9 @@ profiles:
             extraEnv:
               APP_CONFIG: "TestConfig"
               REQUEST_PROCESSING_INTERVAL: "'1'" # bug in helm: https://github.com/helm/helm/issues/4775
-              #SQLALCHEMY_DATABASE_URI: "{{ .MYVAR }}"
           radio_controller:
             extraEnv:
               APP_CONFIG: "TestConfig"
-              #SQLALCHEMY_DATABASE_URI: "{{ .MYVAR }}"
           db_service:
             enabled: false
       - op: add
@@ -99,14 +102,6 @@ profiles:
       - op: add
         path: /deploy/kubectl/manifests/-
         value: "./tools/deployment/tests/test_runner_*.yml"
-      #- op: add
-      #  path: /deploy/kubectl
-      #  value:
-      #    flags:
-      #      apply:
-      #        - "--force=true"
-      #    manifests:
-      #     - "./tools/deployment/tests/test_runner_*.yml"
     activation:
       - env: CI=true
 
