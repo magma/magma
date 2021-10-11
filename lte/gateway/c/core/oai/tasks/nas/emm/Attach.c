@@ -1949,8 +1949,7 @@ static int emm_send_attach_accept(emm_context_t* emm_context) {
       /*
        * Start T3450 timer
        */
-      nas_stop_T3450(
-          attach_proc->ue_id, &attach_proc->T3450, NULL);
+      nas_stop_T3450(attach_proc->ue_id, &attach_proc->T3450, NULL);
       nas_start_T3450(
           attach_proc->ue_id, &attach_proc->T3450,
           attach_proc->emm_spec_proc.emm_proc.base_proc.time_out,

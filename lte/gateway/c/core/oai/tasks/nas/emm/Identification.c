@@ -255,8 +255,7 @@ int emm_proc_identification_complete(
        * Stop timer T3470
        */
       void* timer_callback_args = NULL;
-      nas_stop_T3470(
-          ue_id, &ident_proc->T3470, timer_callback_args);
+      nas_stop_T3470(ue_id, &ident_proc->T3470, timer_callback_args);
 
       if (imsi) {
         imsi64_t imsi64 = imsi_to_imsi64(imsi);
@@ -565,8 +564,7 @@ static int identification_non_delivered_ho(
             "EMM-PROC  - Stop timer T3460 (%ld) for ue id " MME_UE_S1AP_ID_FMT
             "\n",
             ident_proc->T3470.id, ident_proc->ue_id);
-        nas_stop_T3470(
-            ident_proc->ue_id, &ident_proc->T3470, NULL);
+        nas_stop_T3470(ident_proc->ue_id, &ident_proc->T3470, NULL);
       }
       /*
        * Abort identification and attach procedure
@@ -621,8 +619,7 @@ static int identification_abort(
      * Stop timer T3470
      */
     void* callback_arg = NULL;
-    nas_stop_T3470(
-        ident_proc->ue_id, &ident_proc->T3470, callback_arg);
+    nas_stop_T3470(ident_proc->ue_id, &ident_proc->T3470, callback_arg);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

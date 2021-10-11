@@ -1950,8 +1950,7 @@ int mme_app_handle_initial_context_setup_rsp_timer_expiry(
         get_nas_specific_procedure_attach(&ue_context_p->emm_context);
     // Stop T3450 timer if its still runinng
     if (attach_proc) {
-      nas_stop_T3450(
-          attach_proc->ue_id, &attach_proc->T3450, NULL);
+      nas_stop_T3450(attach_proc->ue_id, &attach_proc->T3450, NULL);
     }
   }
 

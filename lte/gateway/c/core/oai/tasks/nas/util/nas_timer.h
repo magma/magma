@@ -61,6 +61,7 @@ typedef void (*nas_timer_callback_t)(void*, imsi64_t* imsi64);
 typedef struct nas_itti_timer_arg_s {
   nas_timer_callback_t nas_timer_callback;
   void* nas_timer_callback_arg;
+  mme_ue_s1ap_id_t ue_id;
 } nas_itti_timer_arg_t;
 
 /****************************************************************************/
@@ -75,9 +76,10 @@ int nas_timer_init(void);
 void nas_timer_cleanup(void);
 long int nas_timer_start(
     uint32_t sec, uint32_t usec, nas_timer_callback_t nas_timer_callback,
-    void* nas_timer_callback_args, mme_ue_s1ap_id_t mme_ue_s1ap_id);
+    void* nas_timer_callback_args, const mme_ue_s1ap_id_t mme_ue_s1ap_id);
 long int nas_timer_stop(
-        long int timer_id, void** nas_timer_callback_arg, mme_ue_s1ap_id_t mme_ue_s1ap_id);
+    long int timer_id, void** nas_timer_callback_arg,
+    mme_ue_s1ap_id_t mme_ue_s1ap_id);
 void mme_app_nas_timer_handle_signal_expiry(
     long timer_id, nas_itti_timer_arg_t* nas_itti_timer_arg, imsi64_t* imsi64);
 

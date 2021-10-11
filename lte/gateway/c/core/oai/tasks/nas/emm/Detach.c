@@ -551,8 +551,7 @@ int emm_proc_nw_initiated_detach_request(
           nas_timer_stop(emm_ctx->T3422.id, timer_callback, ue_id);
       nw_detach_data_t* data = (nw_detach_data_t*) emm_ctx->t3422_arg;
       emm_ctx->T3422.id      = nas_timer_start(
-          emm_ctx->T3422.sec, 0, detach_t3422_handler, (void*) data,
-          ue_id);
+          emm_ctx->T3422.sec, 0, detach_t3422_handler, (void*) data, ue_id);
     } else {
       /*
        * Start T3422 timer
@@ -576,8 +575,7 @@ int emm_proc_nw_initiated_detach_request(
         data->retransmission_count = 0;
         data->detach_type          = detach_type;
         emm_ctx->T3422.id          = nas_timer_start(
-            emm_ctx->T3422.sec, 0, detach_t3422_handler, (void*) data,
-            ue_id);
+            emm_ctx->T3422.sec, 0, detach_t3422_handler, (void*) data, ue_id);
         emm_ctx->t3422_arg = (void*) data;
       }
     }

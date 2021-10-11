@@ -24,7 +24,8 @@ extern "C" {
 
 void initialize_mme_ue_id_timer_id_map(void);
 
-void mme_app_upsert_mme_ue_id_timer_id(mme_ue_s1ap_id_t mme_ue_id, long timer_id);
+void mme_app_upsert_mme_ue_id_timer_id(
+    mme_ue_s1ap_id_t mme_ue_id, long timer_id);
 void mme_app_remove_mme_ue_id_timer_id(mme_ue_s1ap_id_t mme_ue_id);
 
 long mme_app_get_timer_id_from_mme_ue_id(mme_ue_s1ap_id_t mme_ue_id);

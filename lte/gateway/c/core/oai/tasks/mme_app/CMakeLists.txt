@@ -56,7 +56,7 @@ add_library(TASK_MME_APP
     mme_app_ha.cpp
     mme_app_timer_management.cpp
     mme_app_ip_imsi.cpp
-        mme_app_mme_ue_id_timer.cpp
+    mme_app_mme_ue_id_timer.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     ${S11_RELATED_SRCS}

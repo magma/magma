@@ -45,7 +45,8 @@ void free_esm_bearer_context(
     if (NAS_TIMER_INACTIVE_ID != esm_ebr_context->timer.id) {
       esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
       esm_ebr_context->timer.id                = nas_timer_stop(
-          esm_ebr_context->timer.id, (void**) &esm_ebr_timer_data, mme_ue_s1ap_id);
+          esm_ebr_context->timer.id, (void**) &esm_ebr_timer_data,
+          mme_ue_s1ap_id);
       /*
        * Release the retransmisison timer parameters
        */
@@ -93,7 +94,7 @@ void nas_stop_T3489(esm_context_t* const esm_ctx) {
     void* nas_timer_callback_args;
     esm_ctx->T3489.id = nas_timer_stop(
         esm_ctx->T3489.id, (void**) &nas_timer_callback_args,
-        emm_context->_imsi64);
+        ue_id);
     if (NAS_TIMER_INACTIVE_ID == esm_ctx->T3489.id) {
       OAILOG_INFO(
           LOG_NAS_EMM, "T3489 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);

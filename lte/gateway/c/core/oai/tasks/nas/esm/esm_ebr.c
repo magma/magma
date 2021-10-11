@@ -195,7 +195,8 @@ int esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
     // stop the timer if it's running
     if (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID) {
       ebr_ctx->timer.id = nas_timer_stop(
-          ebr_ctx->timer.id, (void**) &esm_ebr_timer_data, ue_mm_context->mme_ue_s1ap_id);
+          ebr_ctx->timer.id, (void**) &esm_ebr_timer_data,
+          ue_mm_context->mme_ue_s1ap_id);
     } else {  // Timer has expired, release the args
       esm_ebr_timer_data = ebr_ctx->args;
     }
@@ -298,8 +299,7 @@ int esm_ebr_start_timer(
      */
     if (ebr_ctx->args) {
       ebr_ctx->timer.id = nas_timer_start(
-          sec, 0 /* usec */, cb, ebr_ctx->args,
-          ue_mm_context->mme_ue_s1ap_id);
+          sec, 0 /* usec */, cb, ebr_ctx->args, ue_mm_context->mme_ue_s1ap_id);
       ebr_ctx->timer.sec = sec;
       esm_ebr_timer_data = ebr_ctx->args;
     } else {

@@ -1408,8 +1408,7 @@ static int authentication_non_delivered_ho(
           "EMM-PROC  - Stop timer T3460 (%ld) for (ue_id=" MME_UE_S1AP_ID_FMT
           ")\n",
           auth_proc->T3460.id, ue_mm_context->mme_ue_s1ap_id);
-      nas_stop_T3460(
-          ue_mm_context->mme_ue_s1ap_id, &auth_proc->T3460, NULL);
+      nas_stop_T3460(ue_mm_context->mme_ue_s1ap_id, &auth_proc->T3460, NULL);
     }
     /*
      * Abort authentication and attach procedure
