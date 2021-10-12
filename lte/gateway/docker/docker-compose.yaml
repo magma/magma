@@ -58,7 +58,7 @@ services:
     depends_on:
       - redis
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost","50067"]
+      test: ["CMD", "nc", "-zv", "localhost", "50067"]
       timeout: "4s"
       retries: 3
     command: /usr/bin/env python3 -m magma.directoryd.main
@@ -86,7 +86,7 @@ services:
     depends_on:
       - redis
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost","50068"]
+      test: ["CMD", "nc", "-zv", "localhost", "50068"]
       timeout: "4s"
       retries: 3
     command: /usr/bin/env python3 -m magma.policydb.main
@@ -173,7 +173,7 @@ services:
       - NET_ADMIN
       - NET_RAW
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost","50063"]
+      test: ["CMD", "nc", "-zv", "localhost", "50063"]
       timeout: "4s"
       retries: 3
     command: >
@@ -199,7 +199,7 @@ services:
     depends_on:
       - directoryd
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost","50065"]
+      test: ["CMD", "nc", "-zv", "localhost", "50065"]
       timeout: "4s"
       retries: 3
     command: >
