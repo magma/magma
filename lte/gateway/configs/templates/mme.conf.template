@@ -258,11 +258,13 @@ MME :
         # we don't advise wireless interfaces
         MME_INTERFACE_NAME_FOR_S1_MME         = "{{ s1ap_iface_name }}";
         MME_IPV4_ADDRESS_FOR_S1_MME           = "{{ s1ap_ip }}";
+        MME_IPV6_ADDRESS_FOR_S1_MME           = "{{ s1ap_ipv6 }}";
 
         # MME binded interface for S11 communication (GTPV2-C)
         MME_INTERFACE_NAME_FOR_S11_MME        = "{{ s11_iface_name }}";
         MME_IPV4_ADDRESS_FOR_S11_MME          = "{{ mme_s11_ip }}";
         MME_PORT_FOR_S11_MME                  = 2123;
+        MME_S1_IPV6_ENABLED                   = "{{ s1ap_ipv6_enabled }}";
     };
 
     LOGGING :

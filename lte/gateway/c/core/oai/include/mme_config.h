@@ -149,6 +149,9 @@
 #define MME_CONFIG_STRING_INTERFACE_NAME_FOR_S1_MME                            \
   "MME_INTERFACE_NAME_FOR_S1_MME"
 #define MME_CONFIG_STRING_IPV4_ADDRESS_FOR_S1_MME "MME_IPV4_ADDRESS_FOR_S1_MME"
+#define MME_CONFIG_STRING_IPV6_ADDRESS_FOR_S1_MME "MME_IPV6_ADDRESS_FOR_S1_MME"
+
+#define MME_CONFIG_STRING_S1_IPV6_ENABLED "MME_S1_IPV6_ENABLED"
 #define MME_CONFIG_STRING_INTERFACE_NAME_FOR_S11_MME                           \
   "MME_INTERFACE_NAME_FOR_S11_MME"
 #define MME_CONFIG_STRING_IPV4_ADDRESS_FOR_S11_MME                             \
@@ -283,6 +286,7 @@ typedef struct ip_s {
   bstring if_name_s1_mme;
   struct in_addr s1_mme_v4;
   struct in6_addr s1_mme_v6;
+  bool s1_ipv6_enabled;
   int netmask_s1_mme;
 
   bstring if_name_s11;
