@@ -417,7 +417,7 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   hashtable_rc_t h_rc                = HASH_TABLE_OK;
   amf_app_desc_t* amf_app_desc_p     = get_amf_nas_state(false);
   amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
-
+  OAILOG_DEBUG(LOG_NAS_AMF, "amf_free_ue_context \n");
   hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
   if (!ue_context_p || !amf_ue_context_p) {
     return;
