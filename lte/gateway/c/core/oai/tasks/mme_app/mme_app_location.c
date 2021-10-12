@@ -369,11 +369,11 @@ status_code_e mme_app_handle_s6a_update_location_ans(
   ue_mm_context->mobile_reachability_timer.msec =
       ((mme_config.nas_config.t3412_min) +
        MME_APP_DELTA_T3412_REACHABILITY_TIMER) *
-      3600;
+      60000;
   ue_mm_context->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_mm_context->implicit_detach_timer.msec =
       (ue_mm_context->mobile_reachability_timer.msec) +
-      MME_APP_DELTA_REACHABILITY_IMPLICIT_DETACH_TIMER * 3600;
+      MME_APP_DELTA_REACHABILITY_IMPLICIT_DETACH_TIMER * 60000;
 
   /*
    * Set the flag: send_ue_purge_request to indicate that
