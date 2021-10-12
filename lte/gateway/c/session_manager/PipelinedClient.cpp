@@ -32,7 +32,9 @@ using std::experimental::optional;
 
 // Preparation of Set Session request to UPF
 magma::SessionSet create_session_set_req(
-    magma::SessionState::SessionInfo info) {
+    magma::SessionState::SessionInfo info,
+    const magma::RulesToProcess& rules_to_activate,
+    const magma::RulesToProcess& rules_to_deactivate) {
   magma::SessionSet req;
   req.set_subscriber_id(info.subscriber_id);
   req.set_session_version(info.ver_no);
@@ -41,7 +43,47 @@ magma::SessionSet create_session_set_req(
   req.mutable_node_id()->set_node_id_type(magma::NodeID::IPv4);
   req.mutable_state()->set_state(info.state);
 
-  for (const auto& final_req : info.pdr_rules) {
+  for (auto& final_req : info.pdr_rules) {
+    for (const auto& val : rules_to_activate) {
+      magma::VersionedPolicy versioned_rule;
+      versioned_rule.set_version(val.version);
+      versioned_rule.mutable_rule()->set_id(val.rule.id());
+      versioned_rule.mutable_rule()->set_priority(val.rule.priority());
+      for (const auto& flow : val.rule.flow_list()) {
+        if (final_req.pdi().net_instance().find("uplink") !=
+            std::string::npos) {
+          if (flow.match().direction() ==
+              magma::lte::FlowMatch_Direction_UPLINK) {
+            versioned_rule.mutable_rule()->mutable_flow_list()->Add()->CopyFrom(
+                flow);
+          }
+        } else {
+          if (flow.match().direction() ==
+              magma::lte::FlowMatch_Direction_DOWNLINK) {
+            versioned_rule.mutable_rule()->mutable_flow_list()->Add()->CopyFrom(
+                flow);
+          }
+        }
+      }
+      versioned_rule.mutable_rule()->mutable_qos()->CopyFrom(val.rule.qos());
+      versioned_rule.mutable_rule()->set_tracking_type(
+          val.rule.tracking_type());
+      // versioned_rule.mutable_rule()->CopyFrom(val.rule);
+      final_req.mutable_activate_flow_req()
+          ->mutable_policies()
+          ->Add()
+          ->CopyFrom(versioned_rule);
+    }
+    for (const magma::RuleToProcess& val : rules_to_deactivate) {
+      magma::VersionedPolicyID versioned_policy;
+      versioned_policy.set_version(val.version);
+      versioned_policy.set_rule_id(val.rule.id());
+      final_req.mutable_deactivate_flow_req()
+          ->mutable_policies()
+          ->Add()
+          ->CopyFrom(versioned_policy);
+    }
+
     req.mutable_set_gr_pdr()->Add()->CopyFrom(final_req);
   }
   return req;
@@ -321,8 +363,11 @@ void AsyncPipelinedClient::setup_lte(
 // Method to Setup UPF Session
 void AsyncPipelinedClient::set_upf_session(
     const SessionState::SessionInfo info,
+    const magma::RulesToProcess rules_to_activate,
+    const magma::RulesToProcess rules_to_deactivate,
     std::function<void(Status status, UPFSessionContextState)> callback) {
-  SessionSet setup_session_req = create_session_set_req(info);
+  SessionSet setup_session_req =
+      create_session_set_req(info, rules_to_activate, rules_to_deactivate);
   set_upf_session_rpc(setup_session_req, callback);
 }
 
