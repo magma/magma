@@ -493,6 +493,12 @@ int amf_handle_s6a_update_location_ans(
 
   amf_ue_ngap_id_t amf_ue_ngap_id = ue_mm_context->amf_ue_ngap_id;
 
+  // Validating whether the apn_config sent from ue and saved in amf_ctx is
+  // present in s6a_update_location_ans_t received from subscriberdb.
+  memcpy(
+      &amf_ctxt_p->apn_config_profile,
+      &ula_pP->subscription_data.apn_config_profile,
+      sizeof(apn_config_profile_t));
   OAILOG_DEBUG(
       LOG_NAS_AMF,
       "Received update location Answer from Subscriberdb for"
