@@ -327,6 +327,8 @@ typedef struct amf_context_s {
   tai_t originating_tai;
 
   ambr_t subscribed_ue_ambr;
+  /* apn_config_profile: set by S6A UPDATE LOCATION ANSWER */
+  apn_config_profile_t apn_config_profile;
 } amf_context_t;
 
 typedef struct amf_ue_context_s {

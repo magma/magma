@@ -502,6 +502,12 @@ int amf_handle_s6a_update_location_ans(
       &amf_ctxt_p->subscribed_ue_ambr,
       &ula_pP->subscription_data.subscribed_ambr, sizeof(ambr_t));
 
+   memcpy(
+      &amf_ctxt_p->apn_config_profile,
+      &ula_pP->subscription_data.apn_config_profile,
+      sizeof(apn_config_profile_t));
+
+
   OAILOG_DEBUG(
       LOG_NAS_AMF,
       "Received UL rate %" PRIu64 " and DL rate %" PRIu64 "and BR unit: %d \n",
