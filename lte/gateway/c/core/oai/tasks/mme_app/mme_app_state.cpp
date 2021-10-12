@@ -29,7 +29,7 @@ using magma::lte::MmeNasStateManager;
  */
 int mme_nas_state_init(const mme_config_t* mme_config_p) {
   initialize_ipv4_map();
-  initialize_mme_ue_id_timer_id_map();
+  initialize_mme_ue_id_timer_id_set();
   return MmeNasStateManager::getInstance().initialize_state(mme_config_p);
 }
 
@@ -56,6 +56,7 @@ void put_mme_nas_state() {
  * state persisted in data store
  */
 void clear_mme_nas_state() {
+  clear_mme_ue_id_timer_id_set();
   MmeNasStateManager::getInstance().free_state();
 }
 

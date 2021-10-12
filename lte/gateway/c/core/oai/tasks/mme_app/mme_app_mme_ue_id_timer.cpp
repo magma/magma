@@ -15,64 +15,77 @@ limitations under the License.
 
 #include <bits/stdc++.h>
 
-using namespace std;
+typedef std::set<std::pair<mme_ue_s1ap_id_t, long>> MmeUeIdTimerIdSet;
 
-typedef unordered_map<uint32_t, long> MmeUeIdTimerIdMap;
+MmeUeIdTimerIdSet mme_ue_id_timer_id_set;
 
-MmeUeIdTimerIdMap mme_ue_id_timer_id_map;
-
-void initialize_mme_ue_id_timer_id_map() {
+void initialize_mme_ue_id_timer_id_set() {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_ue_id_timer_id_map = MmeUeIdTimerIdMap{};
+  mme_ue_id_timer_id_set = MmeUeIdTimerIdSet{};
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-void mme_app_upsert_mme_ue_id_timer_id(
+void clear_mme_ue_id_timer_id_set() {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  if (!mme_ue_id_timer_id_set.empty()) {
+    mme_ue_id_timer_id_set.clear();
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+void mme_app_insert_mme_ue_id_timer_id(
     mme_ue_s1ap_id_t mme_ue_id, long timer_id) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  auto itr = mme_ue_id_timer_id_map.find(mme_ue_id);
-  if (itr == mme_ue_id_timer_id_map.end()) {
-    mme_ue_id_timer_id_map[mme_ue_id] = timer_id;
+  auto ret_pair =
+      mme_ue_id_timer_id_set.insert(std::make_pair(mme_ue_id, timer_id));
+  if (ret_pair.second) {
     OAILOG_DEBUG(
-        LOG_MME_APP, "Inserting mme_ue_id %u entry for timer id: %lu \n",
+        LOG_MME_APP, "Inserting mme_ue_id %u, timer id: %ld entry \n",
         mme_ue_id, timer_id);
   } else {
     OAILOG_WARNING(
-        LOG_MME_APP, "Replacing current timer id: %lu with new timer id: %lu",
-        mme_ue_id_timer_id_map[mme_ue_id], timer_id);
-    mme_ue_id_timer_id_map[mme_ue_id] = timer_id;
+        LOG_MME_APP, "mme_ue_id %u entry for timer id: %ld already exists\n",
+        mme_ue_id, timer_id);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-long mme_app_get_timer_id_from_mme_ue_id(mme_ue_s1ap_id_t mme_ue_id) {
+bool mme_app_is_mme_ue_id_timer_id_key_valid(
+    mme_ue_s1ap_id_t mme_ue_id, long timer_id) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  auto itr = mme_ue_id_timer_id_map.find(mme_ue_id);
-  if (itr == mme_ue_id_timer_id_map.end()) {
+  std::pair<mme_ue_s1ap_id_t, long> timer_ue_id_key =
+      std::make_pair(mme_ue_id, timer_id);
+  auto itr = mme_ue_id_timer_id_set.find(timer_ue_id_key);
+  if (itr == mme_ue_id_timer_id_set.end()) {
     OAILOG_WARNING(
         LOG_MME_APP,
-        "No timer_id found on mme_ue_id_timer_id_map for mme_ue_id %u\n",
-        mme_ue_id);
+        "No entry found on mme_ue_id_timer_id_set for mme_ue_id %u, timer_id "
+        "%ld key\n",
+        mme_ue_id, timer_id);
   } else {
     OAILOG_DEBUG(
-        LOG_MME_APP, " Found timer_id: %ld for mme_ue_id %u \n", itr->second,
+        LOG_MME_APP, " Found timer_id: %ld for mme_ue_id %u entry \n", timer_id,
         mme_ue_id);
-    return itr->second;
+    return true;
   }
-  return NAS_TIMER_INACTIVE_ID;
+  return false;
 }
 
-void mme_app_remove_mme_ue_id_timer_id(mme_ue_s1ap_id_t mme_ue_id) {
+void mme_app_remove_mme_ue_id_timer_id(
+    mme_ue_s1ap_id_t mme_ue_id, long timer_id) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  auto itr = mme_ue_id_timer_id_map.find(mme_ue_id);
-  if (itr == mme_ue_id_timer_id_map.end()) {
+  int erased_elements =
+      mme_ue_id_timer_id_set.erase(std::make_pair(mme_ue_id, timer_id));
+  if (!erased_elements) {
     OAILOG_WARNING(
         LOG_MME_APP,
-        "No timer_id found on mme_ue_id_timer_id_map for mme_ue_id %u\n",
-        mme_ue_id);
+        "No entry found on mme_ue_id_timer_id_set for mme_ue_id %u, timer_id "
+        "%ld key\n",
+        mme_ue_id, timer_id);
   } else {
-    OAILOG_DEBUG(LOG_MME_APP, "Deleting timer_id entry: %lu \n", itr->second);
-    mme_ue_id_timer_id_map.erase(itr);
+    OAILOG_DEBUG(
+        LOG_MME_APP, "Deleting mme_ue_id %u, timer_id %ld entries: %u \n",
+        mme_ue_id, timer_id, erased_elements);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
