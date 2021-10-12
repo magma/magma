@@ -16,9 +16,11 @@ limitations under the License.
 package test_utils
 
 import (
-	context2 "context"
+	"context"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
@@ -27,8 +29,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_utils"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-
-	"github.com/stretchr/testify/assert"
 )
 
 const TestFegHwId1 = "Test-FeG-Hw-Id1"
@@ -102,7 +102,7 @@ func GetUnhealthyRequest() *protos.HealthRequest {
 }
 
 func RegisterNetwork(t *testing.T, networkID string) {
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{
 		ID:   TestFegNetwork,
 		Type: feg.FegNetworkType,
 	}, serdes.Network)

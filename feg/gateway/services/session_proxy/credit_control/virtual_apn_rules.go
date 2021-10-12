@@ -17,9 +17,9 @@ import (
 	"fmt"
 	"regexp"
 
-	"magma/feg/cloud/go/protos/mconfig"
-
 	"github.com/golang/glog"
+
+	"magma/feg/cloud/go/protos/mconfig"
 )
 
 type VirtualApnRule struct {

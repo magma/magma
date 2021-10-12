@@ -16,19 +16,20 @@ package servicers_test
 import (
 	"testing"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/orchestrator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	"magma/orc8r/cloud/go/services/orchestrator/servicers"
 	orchestrator_test_init "magma/orc8r/cloud/go/services/orchestrator/test_init"
 	"magma/orc8r/lib/go/protos"
 	mconfig_protos "magma/orc8r/lib/go/protos/mconfig"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
@@ -129,7 +130,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		graph := configurator.EntityGraph{
 			Entities: []configurator.NetworkEntity{gw, tier},
 			Edges: []configurator.GraphEdge{
-				{From: tier.GetTypeAndKey(), To: gw.GetTypeAndKey()},
+				{From: tier.GetTK(), To: gw.GetTK()},
 			},
 		}
 
@@ -220,7 +221,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		graph := configurator.EntityGraph{
 			Entities: []configurator.NetworkEntity{gw, tier},
 			Edges: []configurator.GraphEdge{
-				{From: tier.GetTypeAndKey(), To: gw.GetTypeAndKey()},
+				{From: tier.GetTK(), To: gw.GetTK()},
 			},
 		}
 
@@ -304,7 +305,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		graph := configurator.EntityGraph{
 			Entities: []configurator.NetworkEntity{gw, tier},
 			Edges: []configurator.GraphEdge{
-				{From: tier.GetTypeAndKey(), To: gw.GetTypeAndKey()},
+				{From: tier.GetTK(), To: gw.GetTK()},
 			},
 		}
 
@@ -384,7 +385,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		graph := configurator.EntityGraph{
 			Entities: []configurator.NetworkEntity{gw, tier},
 			Edges: []configurator.GraphEdge{
-				{From: tier.GetTypeAndKey(), To: gw.GetTypeAndKey()},
+				{From: tier.GetTK(), To: gw.GetTK()},
 			},
 		}
 
@@ -423,6 +424,68 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw2")
 		assert.NoError(t, err)
+		assert.Equal(t, expected, actual)
+	})
+}
+
+func TestGetStateMconfig(t *testing.T) {
+	syncInterval := uint32(30)
+	expectedJitteredSyncIntervalGW1 := uint32(35)
+	expectedJitteredSyncIntervalGW3 := uint32(32)
+	expectedDefaultJitteredSyncIntervalGW1 := uint32(71)
+
+	t.Run("interval set in net config", func(t *testing.T) {
+		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{
+			"state_config": &models.StateConfig{
+				SyncInterval: syncInterval,
+			},
+		}}
+		gwKey := "gw1"
+		expected := &mconfig_protos.State{
+			LogLevel:     protos.LogLevel_INFO,
+			SyncInterval: expectedJitteredSyncIntervalGW1,
+		}
+
+		actual := servicers.GetStateMconfig(nw, gwKey)
+		assert.Equal(t, expected, actual)
+	})
+	t.Run("test jitter", func(t *testing.T) {
+		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{
+			"state_config": &models.StateConfig{
+				SyncInterval: syncInterval,
+			},
+		}}
+		gwKey := "gw3"
+		expected := &mconfig_protos.State{
+			LogLevel:     protos.LogLevel_INFO,
+			SyncInterval: expectedJitteredSyncIntervalGW3,
+		}
+
+		actual := servicers.GetStateMconfig(nw, gwKey)
+		assert.Equal(t, expected, actual)
+	})
+	t.Run("interval not set in state config", func(t *testing.T) {
+		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{}}
+		gwKey := "gw1"
+		expected := &mconfig_protos.State{
+			LogLevel:     protos.LogLevel_INFO,
+			SyncInterval: expectedDefaultJitteredSyncIntervalGW1,
+		}
+
+		actual := servicers.GetStateMconfig(nw, gwKey)
+		assert.Equal(t, expected, actual)
+	})
+	t.Run("failed to cast state config", func(t *testing.T) {
+		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{
+			"state_config": nil,
+		}}
+		gwKey := "gw1"
+		expected := &mconfig_protos.State{
+			LogLevel:     protos.LogLevel_INFO,
+			SyncInterval: expectedDefaultJitteredSyncIntervalGW1,
+		}
+
+		actual := servicers.GetStateMconfig(nw, gwKey)
 		assert.Equal(t, expected, actual)
 	})
 }

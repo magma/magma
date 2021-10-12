@@ -11,11 +11,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import json
+import os
+import subprocess
 from typing import Any, Dict
 
 import jsonpickle
 import requests
-from fabric.api import hide, run
+from fabric.api import hide, lcd, local, run, settings
+from fabric.context_managers import cd
+from fabric.operations import sudo
 from tools.fab import types, vagrant
 
 
@@ -43,7 +48,7 @@ def register_generic_gateway(
         cloud_post('networks', network_payload, admin_cert=admin_cert)
 
     create_tier_if_not_exists(network_id, 'default')
-    hw_id = get_hardware_id_from_vagrant(vm_name=vm_name)
+    hw_id = get_gateway_hardware_id_from_vagrant(vm_name=vm_name)
     already_registered, registered_as = is_hw_id_registered(network_id, hw_id)
     if already_registered:
         print(f'VM is already registered as {registered_as}')
@@ -87,6 +92,7 @@ def construct_magmad_gateway_payload(
             autoupgrade_poll_interval=60,
             checkin_interval=60,
             checkin_timeout=30,
+            dynamic_services=[],
         ),
     )
 
@@ -176,9 +182,9 @@ def create_tier_if_not_exists(
     )
 
 
-def get_hardware_id_from_vagrant(vm_name: str) -> str:
+def get_gateway_hardware_id_from_vagrant(vm_name: str) -> str:
     """
-    Get the magmad hardware ID from vagrant
+    Get the hardware ID of a gateway running on Vagrant VM
 
     Args:
         vm_name: Name of the vagrant machine to use
@@ -190,6 +196,67 @@ def get_hardware_id_from_vagrant(vm_name: str) -> str:
         vagrant.setup_env_vagrant(vm_name)
         hardware_id = run('cat /etc/snowflake')
     return str(hardware_id)
+
+
+def get_gateway_hardware_id_from_docker(location_docker_compose: str) -> str:
+    """
+    Get the hardware ID of a gateway running on Docker
+
+    Args:
+        location_docker_compose: location of docker compose used to run FEG
+        by default feg/gateway/docker
+    Returns:
+        Hardware snowflake from the VM
+    """
+    with lcd('docker'), hide('output', 'running', 'warnings'), \
+            cd(location_docker_compose):
+        hardware_id = local(
+            'docker-compose exec magmad bash -c "cat /etc/snowflake"',
+        capture=True,
+        )
+    return str(hardware_id)
+
+
+def delete_gateway_certs_from_vagrant(vm_name: str):
+    """
+    Delete certificates and gw_challenge of a gateway running on Vagrant VM
+
+    Args:
+        vm_name: Name of the vagrant machine to use
+    """
+    with settings(warn_only=True), hide('output', 'running', 'warnings'), \
+            cd('/var/opt/magma/certs'):
+        vagrant.setup_env_vagrant(vm_name)
+        sudo('rm gateway.*')
+        sudo('rm gw_challenge.key')
+
+
+def delete_gateway_certs_from_docker(location_docker_compose: str):
+    """
+        Delete certificates and gw_challenge of a gateway running on Docker
+
+    Args:
+        location_docker_compose: location of docker compose used to run FEG
+    """
+    print("delete_feg_certs is running on directory %s" % os.getcwd())
+
+    subprocess.check_call(
+        [
+            'docker-compose exec magmad bash -c '
+            '"rm -f /var/opt/magma/certs/gateway.*"',
+        ],
+        shell=True,
+        cwd=location_docker_compose,
+    )
+
+    subprocess.check_call(
+        [
+            'docker-compose exec magmad bash -c '
+            '"rm -f /var/opt/magma/certs/gw_challenge.key    "',
+        ],
+        shell=True,
+        cwd=location_docker_compose,
+    )
 
 
 def is_hw_id_registered(
@@ -213,10 +280,11 @@ def is_hw_id_registered(
         (True, gw_id) if the HWID is already registered, (False, '') otherwise
     """
     # gateways is a dict mapping gw ID to full resource
-    gateways = cloud_get(
+    paginated_gateways = cloud_get(
         f'networks/{network_id}/gateways',
         admin_cert=admin_cert,
     )
+    gateways = paginated_gateways['gateways']
     for gw in gateways.values():
         if gw['device']['hardware_id'] == hw_id:
             return True, gw['id']
@@ -225,7 +293,7 @@ def is_hw_id_registered(
 
 def connect_gateway_to_cloud(control_proxy_setting_path, cert_path):
     """
-    Setup the gateway VM to connect to the cloud
+    Setup the gateway Vagrant VM to connect to the cloud
     Path to control_proxy.yml and rootCA.pem could be specified to use
     non-default control proxy setting and certificates
     """
@@ -302,7 +370,35 @@ def cloud_post(
         cert=admin_cert,
     )
     if resp.status_code not in [200, 201, 204]:
+        parsed = json.loads(jsonpickle.pickler.encode(data))
         raise Exception(
-            'Received a %d response: %s' %
-            (resp.status_code, resp.text),
+            'Post Request failed: \n%s\n%s \nReceived a %d response: %s\nFAILED!' %
+            (resp.url, json.dumps(parsed, indent=4, sort_keys=False), resp.status_code, resp.text),
+        )
+
+
+def cloud_delete(
+        resource: str,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
+) -> Any:
+    """
+    Send a delete request to an API URI
+
+    Args:
+        resource: URI to request
+        admin_cert: API client certificate
+
+    Returns:
+        JSON-encoded response content
+    """
+    if resource.startswith("/"):
+        resource = resource[1:]
+    resp = requests.delete(PORTAL_URL + resource, verify=False, cert=admin_cert)
+    if resp.status_code not in [200, 201, 204]:
+        raise Exception(
+            'Delete Request failed: \n%s \nReceived a %d response: %s\nFAILED!' %
+            (resp.url, resp.status_code, resp.text),
         )

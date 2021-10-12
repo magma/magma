@@ -42,10 +42,11 @@ void amf_app_handle_pdu_session_response(
 int amf_app_handle_notification_received(
     itti_n11_received_notification_t* notification);
 int amf_app_handle_pdu_session_accept(
-    itti_n11_create_pdu_session_response_t* pdu_session_resp, uint32_t ue_id);
+    itti_n11_create_pdu_session_response_t* pdu_session_resp, uint64_t ue_id);
 int amf_smf_handle_ip_address_response(
     itti_amf_ip_allocation_response_t* response_p);
 void amf_app_handle_initial_context_setup_rsp(
     amf_app_desc_t* amf_app_desc_p,
     itti_amf_app_initial_context_setup_rsp_t* initial_context_rsp);
+int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id);
 }  // namespace magma5g

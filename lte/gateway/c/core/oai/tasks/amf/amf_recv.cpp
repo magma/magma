@@ -29,6 +29,7 @@ extern "C" {
 #include "amf_identity.h"
 #include "amf_sap.h"
 #include "amf_app_timer_management.h"
+#include "includes/MetricsHelpers.h"
 
 #define AMF_CAUSE_SUCCESS (1)
 #define AMF_CAUSE_UE_SEC_CAP_MISSMATCH (23)
@@ -40,14 +41,12 @@ int amf_handle_service_request(
     const amf_nas_message_decode_status_t decode_status) {
   int rc                         = RETURNok;
   ue_m5gmm_context_s* ue_context = nullptr;
-  bool tmsi_based_context_found  = false;
   notify_ue_event notify_ue_event_type;
   amf_sap_t amf_sap;
   tmsi_t tmsi_rcv;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   char ip_str[INET_ADDRSTRLEN];
-  uint16_t pdu_session_status      = 0;
-  uint16_t pdu_reactivation_result = 0;
+  uint16_t pdu_session_status = 0;
   uint32_t tmsi_stored;
   paging_context_t* paging_ctx = nullptr;
   guti_and_amf_id_t guti_and_amf_id;
@@ -79,7 +78,7 @@ int amf_handle_service_request(
   if (ue_context && (tmsi_rcv == tmsi_stored)) {
     OAILOG_DEBUG(
         LOG_NAS_AMF,
-        "TMSI matched for the UE id %d "
+        "TMSI matched for UE ID " AMF_UE_NGAP_ID_FMT
         " receved TMSI %08X stored TMSI %08X \n",
         ue_id, tmsi_rcv, tmsi_stored);
 
@@ -253,7 +252,9 @@ int amf_handle_registration_request(
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_context == NULL) {
-    OAILOG_ERROR(LOG_AMF_APP, "UE context is null for ue id:%d \n", ue_id);
+    OAILOG_ERROR(
+        LOG_AMF_APP, "UE context is null for UE ID: " AMF_UE_NGAP_ID_FMT,
+        ue_id);
     return RETURNerror;
   }
   // Save the UE Security Capability into AMF's UE Context
@@ -277,7 +278,7 @@ int amf_handle_registration_request(
       OAILOG_ERROR(
           LOG_NAS_AMF,
           "UE is not supporting any algorithms, AMF rejecting the initial "
-          "registration with cause : %d for UE ID : %d",
+          "registration with cause : %d for UE ID: " AMF_UE_NGAP_ID_FMT,
           amf_cause, ue_id);
       rc = amf_proc_registration_reject(ue_id, amf_cause);
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
@@ -297,8 +298,8 @@ int amf_handle_registration_request(
         OAILOG_ERROR(
             LOG_NAS_AMF,
             "UE is not supporting the algorithms IA0,IA1,IA2 and EA0,EA1,EA2, "
-            "AMF rejecting the initial registration with cause : %d for UE ID "
-            ": %d",
+            "AMF rejecting the initial registration with cause : %d for UE "
+            "ID: " AMF_UE_NGAP_ID_FMT,
             amf_cause, ue_id);
         rc = amf_proc_registration_reject(ue_id, amf_cause);
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
@@ -737,6 +738,62 @@ ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
     return amf_ue_context_exists_amf_ue_ngap_id(
         found_imsi->second.amf_ue_ngap_id);
   }
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_handle_security_mode_reject()                             **
+ **                                                                        **
+ ** Description: Processes Security Mode Reject message                    **
+ **                                                                        **
+ ** Inputs:  ue_id:      UE lower layer identifier                         **
+ **      msg:       The received AMF message                               **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ** Outputs:     amf_cause: AMF cause code                                 **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ***************************************************************************/
+int amf_handle_security_mode_reject(
+    amf_ue_ngap_id_t ue_id, SecurityModeRejectMsg* msg, int amf_cause,
+    const amf_nas_message_decode_status_t status) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  int rc = RETURNok;
+
+  OAILOG_WARNING(
+      LOG_NAS_AMF,
+      "AMFAS-SAP - Received Security Mode Reject message "
+      "(cause=%d)\n",
+      msg->m5gmm_cause.m5gmm_cause);
+
+  /*
+   * Message checking
+   */
+  if (msg->m5gmm_cause.m5gmm_cause == AMF_CAUSE_SUCCESS) {
+    amf_cause = AMF_CAUSE_INVALID_MANDATORY_INFO;
+  }
+
+  /*
+   * Handle message checking error
+   */
+  if (amf_cause != AMF_CAUSE_SUCCESS) {
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
+
+  if (msg->m5gmm_cause.m5gmm_cause == AMF_CAUSE_UE_SEC_CAP_MISSMATCH) {
+    increment_counter(
+        "security_mode_reject_received", 1, 1, "cause", "ue_sec_cap_mismatch");
+  } else {
+    increment_counter(
+        "security_mode_reject_received", 1, 1, "cause", "unspecified");
+  }
+
+  /*
+   * Execute the NAS security mode command not accepted by the UE
+   */
+  rc = amf_proc_security_mode_reject(ue_id);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 }  // namespace magma5g

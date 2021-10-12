@@ -44,7 +44,7 @@ class ServiceManagerTest(unittest.TestCase):
         )
         magma_service_mock.config = {
             'static_services': ['arpd', 'access_control', 'ipfix', 'proxy'],
-            '5G_feature_set': {'enable': False},
+            'enable5g_features': False,
         }
         # mock the get_default_client function used to return a fakeredis object
         func_mock = MagicMock(return_value=fakeredis.FakeStrictRedis())

@@ -325,6 +325,8 @@ typedef struct amf_context_s {
   bool is_imsi_only_detach;
   uint8_t reg_id_type;
   tai_t originating_tai;
+
+  ambr_t subscribed_ue_ambr;
 } amf_context_t;
 
 typedef struct amf_ue_context_s {
@@ -764,6 +766,7 @@ void amf_app_state_free_ue_context(void** ue_context_node);
 int amf_proc_security_mode_control(
     amf_context_t* amf_ctx, nas_amf_specific_proc_t* amf_specific_proc,
     ksi_t ksi, success_cb_t success, failure_cb_t failure);
+int amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id);
 void amf_proc_create_procedure_registration_request(
     ue_m5gmm_context_s* ue_ctx, amf_registration_request_ies_t* ies);
 amf_procedures_t* nas_new_amf_procedures(amf_context_t* amf_context);
@@ -785,7 +788,7 @@ void amf_app_handle_resource_setup_response(
     itti_ngap_pdusessionresource_setup_rsp_t session_seup_resp);
 int pdu_session_resource_release_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    smf_context_t* smf_ctx);
+    smf_context_t* smf_ctx, bool retransmit);
 void amf_app_handle_resource_release_response(
     itti_ngap_pdusessionresource_rel_rsp_t session_rel_resp);
 void amf_app_handle_cm_idle_on_ue_context_release(
@@ -846,5 +849,5 @@ ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
     gnb_ue_ngap_id_t gnb_ue_ngap_id);
 
 int amf_idle_mode_procedure(amf_context_t* amf_ctx);
-
+void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p);
 }  // namespace magma5g

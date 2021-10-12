@@ -17,12 +17,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	cwf_calculations "magma/cwf/cloud/go/services/cwf/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/lib/go/metrics"
-
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 const (

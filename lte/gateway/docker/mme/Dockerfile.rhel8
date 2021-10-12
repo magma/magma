@@ -253,8 +253,7 @@ RUN tar -xf nettle-2.5.tar.gz && \
 
 ##### liblfds
 # https://www.liblfds.org/mediawiki/index.php?title=r7.1.0:Building_Guide_(liblfds)
-RUN tar -xf liblfds\ release\ 7.1.0\ source.tar.bz2  && \
-    cd liblfds/liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/ && \
+RUN cd /liblfds/liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/ && \
     make -j`nproc` && \
     make ar_install
 

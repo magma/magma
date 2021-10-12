@@ -25,6 +25,7 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/fiorix/go-diameter/v4/diam/sm"
+	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
@@ -163,7 +164,9 @@ func (s *s6aProxy) AuthenticationInformation(
 ) {
 	airStartTime := time.Now()
 	res, err := s.AuthenticationInformationImpl(req)
-	if err == nil {
+	if err != nil {
+		glog.V(2).Infof("Error on AuthenticationInformationImpl: %s", err)
+	} else {
 		metrics.AIRLatency.Observe(float64(time.Since(airStartTime)) / float64(time.Millisecond))
 	}
 	metrics.UpdateS6aRecentRequestMetrics(err)
@@ -177,7 +180,9 @@ func (s *s6aProxy) UpdateLocation(
 ) {
 	ulrStartTime := time.Now()
 	res, err := s.UpdateLocationImpl(req)
-	if err == nil {
+	if err != nil {
+		glog.V(2).Infof("Error on UpdateLocationImpl: %s", err)
+	} else {
 		metrics.ULRLatency.Observe(float64(time.Since(ulrStartTime)) / float64(time.Millisecond))
 	}
 	metrics.UpdateS6aRecentRequestMetrics(err)
@@ -188,6 +193,9 @@ func (s *s6aProxy) UpdateLocation(
 // waits (blocks) for PUA & returns its RPC representation
 func (s *s6aProxy) PurgeUE(ctx context.Context, req *protos.PurgeUERequest) (*protos.PurgeUEAnswer, error) {
 	res, err := s.PurgeUEImpl(req)
+	if err != nil {
+		glog.V(2).Infof("Error on PurgeUEImpl: %s", err)
+	}
 	metrics.UpdateS6aRecentRequestMetrics(err)
 	return res, err
 }

@@ -14,20 +14,19 @@
 package test
 
 import (
+	"context"
 	"crypto/x509"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/lib/go/security/cert"
 	"magma/orc8r/lib/go/security/csr"
-
-	context2 "golang.org/x/net/context"
-
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -50,7 +49,7 @@ func StartMockGwAccessControl(t *testing.T, hwGwIds []string) []string {
 			time.Hour*4, identity.NewGateway(hwId, "", ""))
 		assert.NoError(t, err)
 
-		certMsg, err := certifier.SignCSR(context2.Background(), csrMsg)
+		certMsg, err := certifier.SignCSR(context.Background(), csrMsg)
 		assert.NoError(t, err, "Failed to sign Gateway's CSR")
 		// get cert sn from cert
 		gwCert, err := x509.ParseCertificates(certMsg.CertDer)

@@ -1754,11 +1754,16 @@ definitions:
       cloud_subscriberdb_enabled:
         type: boolean
         example: false
-      enable_converged_core:
+      enable5g_features:
         description: Enables 5G Standalone (SA) at a network level
         type: boolean
         example: true
         default: false
+      node_identifier:
+        type: string
+        description: Node Identifier for 5G Standalone (SA) at a network level
+        format: ipv4
+        example: '192.168.200.1'
       congestion_control_enabled:
         description: Network configuration flag for congestion control on EPC
         type: boolean
@@ -2025,6 +2030,16 @@ definitions:
         description: IP address of gateway for management interface on the AGW
         minLength: 5
         maxLength: 49
+      sgi_management_iface_ipv6_addr:
+        description: IPv6 address for management interface on the AGW in CIDR format
+        type: string
+        format: ipv6
+        example: '2001:4860:4860:0:0:0:0:8888/64'
+      sgi_management_iface_ipv6_gw:
+        description: IPv6 address of gateway for management interface on the AGW
+        type: string
+        format: ipv6
+        example: '2001:4860:4860:0:0:0:0:1'
       congestion_control_enabled:
         description: Flag to enable or disable congestion control on MME
         type: boolean
@@ -2290,6 +2305,7 @@ definitions:
           - 'Baicells Neutrino 224 ID FDD'
           - 'Baicells ID TDD/FDD'
           - 'NuRAN Cavium OC-LTE'
+          - 'FreedomFi One'
         x-nullable: false
 
   unmanaged_enodeb_configuration:

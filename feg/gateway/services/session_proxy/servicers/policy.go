@@ -18,13 +18,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/golang/glog"
+
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/session_proxy/metrics"
 	"magma/lte/cloud/go/protos"
-
-	"github.com/golang/glog"
 )
 
 // sendInitialGxRequestOrGenerateEmptyResponse generates an empty response in case Gx is disabled.
@@ -165,15 +165,6 @@ func getUsageMonitorsFromCCA_I(
 	return monitors
 }
 
-// getGxUpdateRequestsFromUsage returns a slice of CCRs from usage update protos
-func getGxUpdateRequestsFromUsage(updates []*protos.UsageMonitoringUpdateRequest) []*gx.CreditControlRequest {
-	requests := []*gx.CreditControlRequest{}
-	for _, update := range updates {
-		requests = append(requests, (&gx.CreditControlRequest{}).FromUsageMonitorUpdate(update))
-	}
-	return requests
-}
-
 // sendMultipleGxRequestsWithTimeout sends a batch of update requests to the PCRF
 // and returns a response for every request, even during timeouts.
 func (srv *CentralSessionController) sendMultipleGxRequestsWithTimeout(
@@ -233,8 +224,8 @@ loop:
 				metrics.GxResultCodes.WithLabelValues(strconv.FormatUint(uint64(ans.ResultCode), 10)).Inc()
 				metrics.UpdateGxRecentRequestMetrics(nil)
 				key := credit_control.GetRequestKey(credit_control.Gx, ans.SessionID, ans.RequestNumber)
-				newResponse := srv.getSingleUsageMonitorResponseFromCCA(ans, requestMap[key])
-				responses = append(responses, newResponse)
+				newResponses := srv.getGroupedUsageMonitorResponseFromCCA(ans, requestMap[key])
+				responses = append(responses, newResponses...)
 				// satisfied request, remove
 				delete(requestMap, key)
 			default:
@@ -298,8 +289,60 @@ func addMissingGxResponses(
 }
 
 // getSingleUsageMonitorResponseFromCCA creates a UsageMonitoringUpdateResponse proto from a CCA
-func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(
-	answer *gx.CreditControlAnswer, request *gx.CreditControlRequest) *protos.UsageMonitoringUpdateResponse {
+func (srv *CentralSessionController) getGroupedUsageMonitorResponseFromCCA(
+	answer *gx.CreditControlAnswer, request *gx.CreditControlRequest) []*protos.UsageMonitoringUpdateResponse {
+
+	// fix tgppCtx
+	tgppCtx := request.TgppCtx
+	if len(answer.OriginHost) > 0 {
+		if tgppCtx == nil {
+			tgppCtx = new(protos.TgppContext)
+		}
+		tgppCtx.GxDestHost = answer.OriginHost
+	}
+
+	usageInfoByCreditRes := make(map[string]*gx.UsageMonitoringInfo)
+	for _, usageInfo := range answer.UsageMonitors {
+		usageInfoByCreditRes[string(usageInfo.MonitoringKey)] = usageInfo
+	}
+
+	responses := []*protos.UsageMonitoringUpdateResponse{}
+	// check if the responses include all the monitors, otherwise cancel the specific missing monitor
+	for _, usage := range request.UsageReports {
+		// create basic response
+		newResponse := &protos.UsageMonitoringUpdateResponse{
+			Success:    answer.ResultCode == diameter.SuccessCode || answer.ResultCode == 0,
+			SessionId:  request.SessionID,
+			Sid:        credit_control.AddIMSIPrefix(request.IMSI),
+			ResultCode: answer.ResultCode,
+			TgppCtx:    request.TgppCtx,
+		}
+		// add credit Info or cancel the monitor
+		usageInfo, ok := usageInfoByCreditRes[string(usage.MonitoringKey)]
+		if !ok {
+			glog.Infof(
+				"No usage monitor response in CCA for subscriber %s in monitor %s", request.IMSI, string(usage.MonitoringKey))
+			newResponse.Credit = &protos.UsageMonitoringCredit{
+				Action:        protos.UsageMonitoringCredit_DISABLE,
+				MonitoringKey: request.UsageReports[0].MonitoringKey,
+				Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
+		} else {
+			newResponse.Credit = usageInfo.ToUsageMonitoringCredit()
+		}
+		responses = append(responses, newResponse)
+	}
+
+	// add all StaticRulesToInstall, DynamicRulesToInstall, Events on the first request
+	if len(responses) == 0 {
+		newResponse := &protos.UsageMonitoringUpdateResponse{
+			Success:    answer.ResultCode == diameter.SuccessCode || answer.ResultCode == 0,
+			SessionId:  request.SessionID,
+			Sid:        credit_control.AddIMSIPrefix(request.IMSI),
+			ResultCode: answer.ResultCode,
+			TgppCtx:    request.TgppCtx,
+		}
+		responses = append(responses, newResponse)
+	}
 
 	staticRules, dynamicRules := gx.ParseRuleInstallAVPs(
 		srv.dbClient,
@@ -309,37 +352,17 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(
 		srv.dbClient,
 		answer.RuleRemoveAVP,
 	)
-	tgppCtx := request.TgppCtx
-	if len(answer.OriginHost) > 0 {
-		if tgppCtx == nil {
-			tgppCtx = new(protos.TgppContext)
-		}
-		tgppCtx.GxDestHost = answer.OriginHost
-	}
-	res := &protos.UsageMonitoringUpdateResponse{
-		Success:               answer.ResultCode == diameter.SuccessCode || answer.ResultCode == 0,
-		SessionId:             request.SessionID,
-		Sid:                   credit_control.AddIMSIPrefix(request.IMSI),
-		ResultCode:            answer.ResultCode,
-		RulesToRemove:         rulesToRemove,
-		StaticRulesToInstall:  staticRules,
-		DynamicRulesToInstall: dynamicRules,
-		TgppCtx:               tgppCtx,
-	}
-	if len(answer.UsageMonitors) != 0 {
-		res.Credit = answer.UsageMonitors[0].ToUsageMonitoringCredit()
-	} else if len(request.UsageReports) != 0 {
-		glog.Infof("No usage monitor response in CCA for subscriber %s", request.IMSI)
-		res.Credit = &protos.UsageMonitoringCredit{
-			Action:        protos.UsageMonitoringCredit_DISABLE,
-			MonitoringKey: request.UsageReports[0].MonitoringKey,
-			Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
-
-	}
-
-	res.EventTriggers, res.RevalidationTime = gx.GetEventTriggersRelatedInfo(
+	eventTriggers, revalidationTime := gx.GetEventTriggersRelatedInfo(
 		answer.EventTriggers,
 		answer.RevalidationTime,
 	)
-	return res
+	firstResponse := responses[0]
+
+	firstResponse.StaticRulesToInstall = staticRules
+	firstResponse.DynamicRulesToInstall = dynamicRules
+	firstResponse.RulesToRemove = rulesToRemove
+	firstResponse.EventTriggers = eventTriggers
+	firstResponse.RevalidationTime = revalidationTime
+
+	return responses
 }

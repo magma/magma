@@ -60,8 +60,7 @@ static magma::mconfig::SessionD get_default_mconfig() {
 
 static magma::mconfig::SessionD load_mconfig() {
   magma::mconfig::SessionD mconfig;
-  magma::MConfigLoader loader;
-  if (!loader.load_service_mconfig(SESSIOND_SERVICE, &mconfig)) {
+  if (!magma::load_service_mconfig_from_file(SESSIOND_SERVICE, &mconfig)) {
     MLOG(MERROR) << "Unable to load mconfig for SessionD, using default";
     return get_default_mconfig();
   }
@@ -215,12 +214,16 @@ int main(int argc, char* argv[]) {
       MAX_URL_LENGTH);
   initialize_sentry(SENTRY_TAG_SESSIOND, &sentry_config);
 
-  bool converged_access          = false;
+  bool enable_5g_features        = false;
   uint32_t session_max_rtx_count = 0;
   // Check converged sessiond is enabled or not
-  if ((config["converged_access"].IsDefined()) &&
-      (config["converged_access"].as<bool>())) {
-    converged_access = true;
+  if (config["enable5g_features"].IsDefined() &&
+      config["enable5g_features"].as<bool>()) {
+    enable_5g_features = true;
+    MLOG(MINFO) << "Enabling enable5g_feature from sessiond.yml";
+  } else if (mconfig.enable5g_features()) {
+    enable_5g_features = true;
+    MLOG(MINFO) << "Enabling enable5g_feature from gateway.mconfig";
   }
   if (config["session_rtx_count"].IsDefined()) {
     session_max_rtx_count = config["session_rtx_count"].as<long>();
@@ -275,7 +278,7 @@ int main(int argc, char* argv[]) {
   std::shared_ptr<aaa::AsyncAAAClient> aaa_client;
   std::shared_ptr<magma::AsyncAmfServiceClient> amf_srv_client;
 
-  if (converged_access) {
+  if (enable_5g_features) {
     // AMF service client to handle response message
     amf_srv_client = std::make_shared<magma::AsyncAmfServiceClient>();
     spgw_client    = nullptr;
@@ -384,7 +387,7 @@ int main(int argc, char* argv[]) {
   server.SetOperationalStatesCallback([evb, session_store]() {
     std::promise<magma::OpState> result;
     std::future<magma::OpState> future = result.get_future();
-    evb->runInEventBaseThread([session_store, &result, &future]() {
+    evb->runInEventBaseThread([session_store, &result]() {
       set_sentry_transaction("GetOperationalStates");
       result.set_value(magma::get_operational_states(session_store));
     });
@@ -394,7 +397,7 @@ int main(int argc, char* argv[]) {
   magma::AmfPduSessionSmContextAsyncService* conv_set_message_service = nullptr;
   magma::SetInterfaceForUserPlaneAsyncService* conv_upf_message_service =
       nullptr;
-  if (converged_access) {
+  if (enable_5g_features) {
     // Initialize the main thread of session management by folly event to handle
     // logical component of 5G of SessionD
     extern std::shared_ptr<magma::SessionStateEnforcer> conv_session_enforcer;
@@ -406,7 +409,7 @@ int main(int argc, char* argv[]) {
     // 5G related async msg handler service framework creation
     auto conv_set_message_handler =
         std::make_unique<magma::SetMessageManagerHandler>(
-            conv_session_enforcer, *session_store);
+            conv_session_enforcer, *session_store, reporter.get());
     MLOG(MINFO) << "Initialized SetMessageManagerHandler";
     // 5G specific services to handle set messages from AMF and mme
     conv_set_message_service = new magma::AmfPduSessionSmContextAsyncService(
@@ -443,8 +446,8 @@ int main(int argc, char* argv[]) {
 
   // 5G set message handling thread from access.
   std::thread access_common_message_thread([&]() {
-    // conv_set_message_service is initialized only if it is converged_access
-    if (converged_access) {
+    // conv_set_message_service is initialized only if it is enable_5g_features
+    if (enable_5g_features) {
       MLOG(MDEBUG) << "Started access message thread";
       conv_set_message_service
           ->wait_for_requests();         // block here instead of on server
@@ -452,7 +455,7 @@ int main(int argc, char* argv[]) {
     }
   });
   std::thread conv_upf_message_thread([&]() {
-    if (converged_access) {
+    if (enable_5g_features) {
       MLOG(MINFO) << "Started upf message thread";
       conv_upf_message_service
           ->wait_for_requests();         // block here instead of on server
@@ -509,7 +512,7 @@ int main(int argc, char* argv[]) {
     free(abort_session_service);
   }
   access_response_handling_thread.join();
-  if (converged_access) {
+  if (enable_5g_features) {
     // 5G related thread join
     access_common_message_thread.join();
     conv_upf_message_thread.join();

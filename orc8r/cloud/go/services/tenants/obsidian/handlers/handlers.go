@@ -18,13 +18,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/labstack/echo"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/tenants"
 	"magma/orc8r/cloud/go/services/tenants/obsidian/models"
 	"magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/labstack/echo"
 )
 
 const (

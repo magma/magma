@@ -5,23 +5,27 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
-    paths:
-      - 'orc8r/**'
-      - 'lte/**'
-      - 'feg/**'
-      - 'cwf/**'
-      - 'nms/**'
   pull_request:
     branches:
       - master
-    paths:
-      - 'orc8r/**'
-      - 'lte/**'
-      - 'feg/**'
-      - 'cwf/**'
-      - 'nms/**'
+    types: [opened, reopened, synchronize]
+
 jobs:
+  path_filter:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+            # Only run the main job for changes including the following paths
+            paths: '["orc8r/**", "lte/**", "feg/**", "cwf/**"]'
   cwag-precommit:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: cwag pre-commit job
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on  # yamllint disable-line rule:truthy
@@ -64,6 +68,9 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
   cwag-build:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: cwag build job
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
@@ -99,7 +106,10 @@ jobs:
         # TODO bring up the containers and check for crashloops
   cwag-deploy:
     needs:
+      - path_filter
       - cwag-precommit
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: cwag deploy job
       # TODO Should also need cwf-integ-test
       # TODO Requires release hold
     runs-on: ubuntu-latest
@@ -145,7 +155,7 @@ jobs:
       - name: Tag and push to Jfrog Registry
         if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
         env:
-          DOCKER_REGISTRY: "${{ secrets.JFROG_DOCKER_ORC8R_REGISTRY }}"
+          DOCKER_REGISTRY: "cwf-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
@@ -185,7 +195,10 @@ jobs:
           SLACK_FOOTER: ' '
   xwfm-deploy-latest:
     needs:
+      - path_filter
       - cwag-deploy
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: xwfm deploy job
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"

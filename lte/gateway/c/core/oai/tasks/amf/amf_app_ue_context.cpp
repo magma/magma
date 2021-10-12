@@ -112,7 +112,8 @@ int amf_insert_ue_context(
       // Overwrite the existing element.
       found_ue_id->second = ue_context_p;
       OAILOG_DEBUG(
-          LOG_AMF_APP, "Overwriting the Existing entry UE_ID=%u\n", ue_id);
+          LOG_AMF_APP,
+          "Overwriting the Existing entry UE_ID = " AMF_UE_NGAP_ID_FMT, ue_id);
     }
   }
 
@@ -394,12 +395,9 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
       PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context);
   amf_ue_ngap_id_t ue_id = ue_context_p->amf_ue_ngap_id;
 
-  smf_context_t smf_ctx;
-
   for (auto it = ue_context_p->amf_context.smf_ctxt_vector.begin();
        it != ue_context_p->amf_context.smf_ctxt_vector.end(); it++) {
-    smf_ctx                   = *it;
-    smf_ctx.pdu_session_state = INACTIVE;
+    it->pdu_session_state = INACTIVE;
   }
 
   amf_smf_notification_send(ue_id, ue_context_p, UE_IDLE_MODE_NOTIFY);
@@ -407,4 +405,58 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_free_ue_context()                                         **
+ **                                                                        **
+ ** Description: Deletes the ue context                                    **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
+  hashtable_rc_t h_rc                = HASH_TABLE_OK;
+  amf_app_desc_t* amf_app_desc_p     = get_amf_nas_state(false);
+  amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
+
+  hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
+  if (!ue_context_p || !amf_ue_context_p) {
+    return;
+  }
+
+  amf_remove_ue_context(ue_context_p);
+
+  if (ue_context_p->gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) {
+    h_rc = hashtable_uint64_ts_remove(
+        amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
+        (const hash_key_t) ue_context_p->gnb_ngap_id_key);
+    if (h_rc != HASH_TABLE_OK)
+      OAILOG_TRACE(LOG_AMF_APP, "Error Could not remove this ue context \n");
+    ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
+  }
+
+  if (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
+    h_rc = hashtable_ts_remove(
+        amf_state_ue_id_ht, (const hash_key_t) ue_context_p->amf_ue_ngap_id,
+        reinterpret_cast<void**>(&ue_context_p));
+    if (h_rc != HASH_TABLE_OK)
+      OAILOG_TRACE(LOG_AMF_APP, "Error Could not remove this ue context \n");
+    ue_context_p->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
+  }
+
+  hashtable_uint64_ts_remove(
+      amf_ue_context_p->imsi_amf_ue_id_htbl,
+      (const hash_key_t) ue_context_p->amf_context.imsi64);
+
+  hashtable_uint64_ts_remove(
+      amf_ue_context_p->tun11_ue_context_htbl,
+      (const hash_key_t) ue_context_p->amf_teid_n11);
+
+  obj_hashtable_uint64_ts_remove(
+      amf_ue_context_p->guti_ue_context_htbl,
+      &ue_context_p->amf_context.m5_guti,
+      sizeof(ue_context_p->amf_context.m5_guti));
+
+  delete ue_context_p;
+  ue_context_p = NULL;
+}
 }  // namespace magma5g

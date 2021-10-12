@@ -18,10 +18,10 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/spf13/cobra"
+
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/protos"
-
-	"github.com/spf13/cobra"
 )
 
 var listCmd = &cobra.Command{

@@ -25,7 +25,6 @@
 #include "assertions.h"
 #include "conversions.h"
 #include "intertask_interface.h"
-#include "timer.h"
 #include "dynamic_memory_check.h"
 #include "amf_config.h"
 #include "ngap_common.h"
@@ -466,7 +465,41 @@ status_code_e ngap_amf_handle_ng_setup_request(
     for (int plmn_idx = 0; plmn_idx < bplmn_list_count; plmn_idx++) {
       TBCD_TO_PLMN_T(
           &tai->broadcastPLMNList.list.array[plmn_idx]->pLMNIdentity,
-          &supp_ta_list->supported_tai_items[tai_idx].bplmns[plmn_idx]);
+          &supp_ta_list->supported_tai_items[tai_idx]
+               .bplmn_list[plmn_idx]
+               .plmn_id);
+
+      supp_ta_list->supported_tai_items[tai_idx]
+          .bplmn_list[plmn_idx]
+          .num_of_s_nssai = tai->broadcastPLMNList.list.array[plmn_idx]
+                                ->tAISliceSupportList.list.count;
+
+      for (int nssai_index = 0;
+           nssai_index < supp_ta_list->supported_tai_items[tai_idx]
+                             .bplmn_list[plmn_idx]
+                             .num_of_s_nssai;
+           nssai_index++) {
+        supp_ta_list->supported_tai_items[tai_idx]
+            .bplmn_list[plmn_idx]
+            .s_nssai[nssai_index]
+            .sst = tai->broadcastPLMNList.list.array[plmn_idx]
+                       ->tAISliceSupportList.list.array[nssai_index]
+                       ->s_NSSAI.sST.buf[0];
+
+        if (tai->broadcastPLMNList.list.array[plmn_idx]
+                ->tAISliceSupportList.list.array[nssai_index]
+                ->s_NSSAI.sD) {
+          memcpy(
+              &(supp_ta_list->supported_tai_items[tai_idx]
+                    .bplmn_list[plmn_idx]
+                    .s_nssai[nssai_index]
+                    .sd),
+              tai->broadcastPLMNList.list.array[plmn_idx]
+                  ->tAISliceSupportList.list.array[nssai_index]
+                  ->s_NSSAI.sD->buf,
+              sizeof(amf_s_nssai_t));
+        }
+      }
     }
   }
   OAILOG_DEBUG(LOG_NGAP, "Adding gNB to the list of served gNBs\n");
@@ -500,159 +533,147 @@ status_code_e ngap_amf_handle_ng_setup_request(
 }
 
 //------------------------------------------------------------------------------
-status_code_e ngap_generate_ng_setup_response(
-    ngap_state_t* state, gnb_description_t* gnb_association) {
-  Ngap_NGAP_PDU_t pdu;
-  Ngap_NGSetupResponse_t* out;
-  Ngap_NGSetupResponseIEs_t* ie        = NULL;
-  Ngap_ServedGUAMIItem_t* servedGUAMFI = NULL;
-  int enc_rval                         = 0;
-  uint8_t* buffer                      = NULL;
-  uint32_t length                      = 0;
-  int rc                               = RETURNok;
+static void _ngap_amf_generate_ng_setup_response_pdu(Ngap_NGAP_PDU_t* pdu) {
+  int i;
 
-  DevAssert(gnb_association != NULL);
-  memset(&pdu, 0, sizeof(pdu));
+  /* Config Parameters */
+  Ngap_NGSetupResponse_t* ng_setup_response = NULL;
 
-  pdu.present = Ngap_NGAP_PDU_PR_successfulOutcome;
+  // AMF_NAME
+  Ngap_NGSetupResponseIEs_t* ie             = NULL;
+  Ngap_PLMNSupportList_t* plmn_support_list = NULL;
 
-  pdu.choice.successfulOutcome.procedureCode = Ngap_ProcedureCode_id_NGSetup;
-  pdu.choice.successfulOutcome.criticality   = Ngap_Criticality_reject;
-  pdu.choice.successfulOutcome.value.present =
+  amf_config_read_lock(&amf_config);
+
+  pdu->present = Ngap_NGAP_PDU_PR_successfulOutcome;
+  pdu->choice.successfulOutcome.procedureCode = Ngap_ProcedureCode_id_NGSetup;
+  pdu->choice.successfulOutcome.criticality   = Ngap_Criticality_reject;
+  pdu->choice.successfulOutcome.value.present =
       Ngap_SuccessfulOutcome__value_PR_NGSetupResponse;
-  out = &pdu.choice.successfulOutcome.value.choice.NGSetupResponse;
 
-  ie =
-      (Ngap_NGSetupResponseIEs_t*) calloc(1, sizeof(Ngap_NGSetupResponseIEs_t));
+  ng_setup_response =
+      &pdu->choice.successfulOutcome.value.choice.NGSetupResponse;
+
+  // Response IE
+  ie = CALLOC(1, sizeof(Ngap_NGSetupResponseIEs_t));
+  ASN_SEQUENCE_ADD(&ng_setup_response->protocolIEs, ie);
+
+  // AMF Name
   ie->id            = Ngap_ProtocolIE_ID_id_AMFName;
   ie->criticality   = Ngap_Criticality_reject;
   ie->value.present = Ngap_NGSetupResponseIEs__value_PR_AMFName;
+  OCTET_STRING_fromBuf(
+      &ie->value.choice.AMFName, bdata(amf_config.amf_name),
+      blength(amf_config.amf_name));
 
-  char* amf_name = "AMF_1";
+  ie = CALLOC(1, sizeof(Ngap_NGSetupResponseIEs_t));
+  ASN_SEQUENCE_ADD(&ng_setup_response->protocolIEs, ie);
 
-  OCTET_STRING_fromBuf(&ie->value.choice.AMFName, amf_name, strlen(amf_name));
-
-  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-
-  // Generating response
-  ie =
-      (Ngap_NGSetupResponseIEs_t*) calloc(1, sizeof(Ngap_NGSetupResponseIEs_t));
+  // Served Guami List
   ie->id            = Ngap_ProtocolIE_ID_id_ServedGUAMIList;
   ie->criticality   = Ngap_Criticality_reject;
   ie->value.present = Ngap_NGSetupResponseIEs__value_PR_ServedGUAMIList;
 
-  // memset for gcc 4.8.4 instead of {0}, servedGUAMFI.servedPLMNs
-  servedGUAMFI = calloc(1, sizeof *servedGUAMFI);
-
-#if 0  
-amf_config_read_lock(&amf_config);
-  /*
-   * Use the guamfi parameters provided by configuration
-   * that should be sorted
-   */
-  for (i = 0; i < amf_config.served_tai.nb_tai; i++) {
-    bool plmn_added = false;
-    for (j = 0; j < i; j++) {
-      if ((amf_config.served_tai.plmn_mcc[j] ==
-           amf_config.served_tai.plmn_mcc[i]) &&
-          (amf_config.served_tai.plmn_mnc[j] ==
-           amf_config.served_tai.plmn_mnc[i]) &&
-          (amf_config.served_tai.plmn_mnc_len[j] ==
-           amf_config.served_tai.plmn_mnc_len[i])) {
-        plmn_added = true;
-        break;
-      }
-    }
-    if (false == plmn_added) {
-      Ngap_PLMNIdentity_t* plmn = NULL;
-      plmn                      = &servedGUAMFI->gUAMI.pLMNIdentity;
-      MCC_MNC_TO_PLMNID(
-          amf_config.served_tai.plmn_mcc[i], amf_config.served_tai.plmn_mnc[i],
-          amf_config.served_tai.plmn_mnc_len[i], plmn);
-    }
-  }
+  Ngap_ServedGUAMIList_t* served_guami_list;
+  served_guami_list = &ie->value.choice.ServedGUAMIList;
 
   for (i = 0; i < amf_config.guamfi.nb; i++) {
-    Ngap_AMFRegionID_t* amf_gid = NULL;
-    Ngap_AMFSetID_t* amfc       = NULL;
+    Ngap_ServedGUAMIItem_t* served_guami_item = NULL;
+    Ngap_GUAMI_t* gUAMI                       = NULL;
+    Ngap_PLMNIdentity_t* pLMNIdentity         = NULL;
+    Ngap_AMFRegionID_t* aMFRegionID           = NULL;
+    Ngap_AMFSetID_t* aMFSetID                 = NULL;
+    Ngap_AMFPointer_t* aMFPointer             = NULL;
 
-    amf_gid = &servedGUAMFI->gUAMI.aMFRegionID;
-    INT16_TO_OCTET_STRING(amf_config.guamfi.guamfi[i].amf_gid, amf_gid);
+    served_guami_item =
+        (Ngap_ServedGUAMIItem_t*) CALLOC(1, sizeof(Ngap_ServedGUAMIItem_t));
 
-    amfc = &servedGUAMFI->gUAMI.aMFSetID;
-    INT8_TO_OCTET_STRING(amf_config.guamfi.guamfi[i].amf_code, amfc);
+    gUAMI        = &served_guami_item->gUAMI;
+    pLMNIdentity = &gUAMI->pLMNIdentity;
+    aMFRegionID  = &gUAMI->aMFRegionID;
+    aMFSetID     = &gUAMI->aMFSetID;
+    aMFPointer   = &gUAMI->aMFPointer;
+
+    PLMN_T_TO_PLMNID(amf_config.guamfi.guamfi[i].plmn, pLMNIdentity);
+
+    INT8_TO_OCTET_STRING(amf_config.guamfi.guamfi[i].amf_regionid, aMFRegionID);
+    UE_ID_INDEX_TO_BIT_STRING(amf_config.guamfi.guamfi[i].amf_set_id, aMFSetID);
+    AMF_POINTER_TO_BIT_STRING(
+        amf_config.guamfi.guamfi[i].amf_pointer, aMFPointer);
+
+    ASN_SEQUENCE_ADD(&served_guami_list->list, served_guami_item);
   }
-#endif
-  /*************************Temp code******************************/
-  Ngap_PLMNIdentity_t* plmn = NULL;
-  plmn                      = &servedGUAMFI->gUAMI.pLMNIdentity;
 
-  OCTET_STRING_fromBuf(plmn, buf_plmn, sizeof(buf_plmn) /*3bytes*/);
-  Ngap_AMFRegionID_t* amf_gid = NULL;
-  Ngap_AMFSetID_t* amfc       = NULL;
-  Ngap_AMFPointer_t* aMFP     = NULL;
-
-  amf_config_read_lock(&amf_config);
-  amf_gid = &servedGUAMFI->gUAMI.aMFRegionID;
-  INT8_TO_OCTET_STRING(amf_config.guamfi.guamfi[0].amf_regionid, amf_gid);  // 8
-
-  amfc = &servedGUAMFI->gUAMI.aMFSetID;
-  UE_ID_INDEX_TO_BIT_STRING(
-      amf_config.guamfi.guamfi[0].amf_set_id, amfc);  // 10  // 10
-
-  aMFP = &servedGUAMFI->gUAMI.aMFPointer;
-  AMF_POINTER_TO_BIT_STRING(
-      amf_config.guamfi.guamfi[0].amf_pointer, aMFP);  // 6
-  amf_config_unlock(&amf_config);
-
-  /*************************Temp code******************************/
-
-  ASN_SEQUENCE_ADD(&ie->value.choice.ServedGUAMIList.list, servedGUAMFI);
-  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-
-  ie =
-      (Ngap_NGSetupResponseIEs_t*) calloc(1, sizeof(Ngap_NGSetupResponseIEs_t));
+  // Relative AMF Capacity
+  ie                = CALLOC(1, sizeof(Ngap_NGSetupResponseIEs_t));
   ie->id            = Ngap_ProtocolIE_ID_id_RelativeAMFCapacity;
   ie->criticality   = Ngap_Criticality_ignore;
   ie->value.present = Ngap_NGSetupResponseIEs__value_PR_RelativeAMFCapacity;
   ie->value.choice.RelativeAMFCapacity = amf_config.relative_capacity;
-  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+  ASN_SEQUENCE_ADD(&ng_setup_response->protocolIEs, ie);
 
-  //  amf_config_unlock(&amf_config);
-  /*
-   * The AMF is only serving E-UTRAN RAT, so the list contains only one element
-   */
+  ie = CALLOC(1, sizeof(Ngap_NGSetupResponseIEs_t));
+  ASN_SEQUENCE_ADD(&ng_setup_response->protocolIEs, ie);
 
-  /*PLMNList*/
-  ie =
-      (Ngap_NGSetupResponseIEs_t*) calloc(1, sizeof(Ngap_NGSetupResponseIEs_t));
+  // PLMN Support List
   ie->id            = Ngap_ProtocolIE_ID_id_PLMNSupportList;
   ie->criticality   = Ngap_Criticality_reject;
   ie->value.present = Ngap_NGSetupResponseIEs__value_PR_PLMNSupportList;
 
-  Ngap_PLMNSupportItem_t* plmnItem =
-      (Ngap_PLMNSupportItem_t*) calloc(1, sizeof(Ngap_PLMNSupportItem_t));
+  plmn_support_list = &ie->value.choice.PLMNSupportList;
 
-  OCTET_STRING_fromBuf(
-      &plmnItem->pLMNIdentity, buf_plmn, sizeof(buf_plmn) /*3bytes*/);
+  for (i = 0; i < amf_config.plmn_support_list.plmn_support_count; i++) {
+    Ngap_PLMNSupportItem_t* plmn_support_item   = NULL;
+    Ngap_PLMNIdentity_t* pLMNIdentity           = NULL;
+    Ngap_SliceSupportList_t* slice_support_list = NULL;
 
-  /* Ngap_SliceSupportList */
+    plmn_support_item =
+        (Ngap_PLMNSupportItem_t*) CALLOC(1, sizeof(Ngap_PLMNSupportItem_t));
+    pLMNIdentity       = &plmn_support_item->pLMNIdentity;
+    slice_support_list = &plmn_support_item->sliceSupportList;
 
-  Ngap_SliceSupportItem_t* SliceItem =
-      (Ngap_SliceSupportItem_t*) calloc(1, sizeof(Ngap_SliceSupportItem_t));
+    PLMN_T_TO_PLMNID(
+        amf_config.plmn_support_list.plmn_support[i].plmn, pLMNIdentity);
 
-  uint8_t sst = _SST_eMBB;  // enhanced mobile broadband eMBB
-  OCTET_STRING_fromBuf(&SliceItem->s_NSSAI.sST, (char*) &sst, 1);
+    Ngap_SliceSupportItem_t* slice_support_item = NULL;
+    Ngap_S_NSSAI_t* s_NSSAI                     = NULL;
+    Ngap_SST_t* sST                             = NULL;
 
-  ASN_SEQUENCE_ADD(
-      &plmnItem->sliceSupportList.list,
-      SliceItem);  // adding slice item to slice list
+    slice_support_item =
+        (Ngap_SliceSupportItem_t*) CALLOC(1, sizeof(Ngap_SliceSupportItem_t));
+    s_NSSAI = &slice_support_item->s_NSSAI;
+    sST     = &s_NSSAI->sST;
 
-  ASN_SEQUENCE_ADD(
-      &ie->value.choice.PLMNSupportList.list,
-      plmnItem);  // adding plmn item to plmn list
+    // defaultSliceServiceType
+    INT8_TO_OCTET_STRING(
+        amf_config.plmn_support_list.plmn_support[i].s_nssai.sst, sST);
+    if (amf_config.plmn_support_list.plmn_support[i].s_nssai.sd.v !=
+        NGAP_S_NSSAI_SD_INVALID_VALUE) {
+      // defaultSliceDifferentiator
+      s_NSSAI->sD = CALLOC(1, sizeof(Ngap_SD_t));
+      INT24_TO_OCTET_STRING(
+          amf_config.plmn_support_list.plmn_support[i].s_nssai.sd.v,
+          s_NSSAI->sD);
+    }
 
-  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+    ASN_SEQUENCE_ADD(&slice_support_list->list, slice_support_item);
+
+    ASN_SEQUENCE_ADD(&plmn_support_list->list, plmn_support_item);
+  }
+
+  amf_config_unlock(&amf_config);
+}
+
+status_code_e ngap_generate_ng_setup_response(
+    ngap_state_t* state, gnb_description_t* gnb_association) {
+  int enc_rval    = 0;
+  uint8_t* buffer = NULL;
+  uint32_t length = 0;
+  int rc          = RETURNok;
+
+  Ngap_NGAP_PDU_t pdu = {};
+
+  _ngap_amf_generate_ng_setup_response_pdu(&pdu);
 
   enc_rval = ngap_amf_encode_pdu(&pdu, &buffer, &length);
 
@@ -690,14 +711,14 @@ status_code_e ngap_amf_handle_initial_context_setup_response(
     __attribute__((unused)) const sctp_stream_id_t stream,
     Ngap_NGAP_PDU_t* pdu) {
   Ngap_InitialContextSetupResponse_t* container;
-  Ngap_InitialContextSetupResponseIEs_t* ie                          = NULL;
-  Ngap_PDUSessionResourceSetupItemSURes_t* pduSessionSetupListCtxRes = NULL;
-  QosFlowPerTNLInformation_t response_transfer                       = {0};
-  m5g_ue_description_t* ue_ref_p                                     = NULL;
-  MessageDef* message_p                                              = NULL;
-  int rc                                                             = RETURNok;
-  amf_ue_ngap_id_t amf_ue_ngap_id                                    = 0;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id                                    = 0;
+  Ngap_InitialContextSetupResponseIEs_t* ie                           = NULL;
+  Ngap_PDUSessionResourceSetupItemCxtRes_t* pduSessionSetupListCtxRes = NULL;
+  QosFlowPerTNLInformation_t response_transfer                        = {0};
+  m5g_ue_description_t* ue_ref_p                                      = NULL;
+  MessageDef* message_p                                               = NULL;
+  int rc                          = RETURNok;
+  amf_ue_ngap_id_t amf_ue_ngap_id = 0;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
   imsi64_t imsi64;
 
   OAILOG_FUNC_IN(LOG_NGAP);
@@ -708,14 +729,13 @@ status_code_e ngap_amf_handle_initial_context_setup_response(
       Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
 
   if (ie) {
-    amf_ue_ngap_id = (uint32_t) ie->value.choice.AMF_UE_NGAP_ID;
-    if ((ue_ref_p = ngap_state_get_ue_amfid((uint32_t) amf_ue_ngap_id)) ==
-        NULL) {
+    asn_INTEGER2ulong(
+        &ie->value.choice.AMF_UE_NGAP_ID, (uint64_t*) &amf_ue_ngap_id);
+    if ((ue_ref_p = ngap_state_get_ue_amfid(amf_ue_ngap_id)) == NULL) {
       OAILOG_DEBUG(
           LOG_NGAP,
-          "No UE is attached to this amf UE ngap id: " AMF_UE_NGAP_ID_FMT
-          " %u(10)\n",
-          (uint32_t) amf_ue_ngap_id, (uint32_t) amf_ue_ngap_id);
+          "No UE is attached to this amf UE ngap id: " AMF_UE_NGAP_ID_FMT "\n",
+          amf_ue_ngap_id);
       OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
     }
   } else {
@@ -747,7 +767,7 @@ status_code_e ngap_amf_handle_initial_context_setup_response(
 
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_InitialContextSetupResponseIEs_t, ie, container,
-      Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListSURes, false);
+      Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListCxtRes, false);
 
   if (ie) {
     if (ie->value.choice.PDUSessionResourceSetupListCxtRes.list.count < 1) {
@@ -922,7 +942,8 @@ int ngap_amf_handle_ue_context_release_request(
       Ngap_UEContextReleaseRequest_IEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
   if (ie) {
-    amf_ue_ngap_id = ie->value.choice.AMF_UE_NGAP_ID;
+    asn_INTEGER2ulong(
+        &ie->value.choice.AMF_UE_NGAP_ID, (uint64_t*) &amf_ue_ngap_id);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
@@ -931,7 +952,8 @@ int ngap_amf_handle_ue_context_release_request(
       Ngap_UEContextReleaseRequest_IEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID, true);
   if (ie) {
-    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
+    gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(
+        ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
@@ -1023,7 +1045,7 @@ int ngap_amf_handle_ue_context_release_request(
         "UE_CONTEXT_RELEASE_REQUEST ignored cause could not get context with "
         "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT
         " gnb_ue_ngap_id " GNB_UE_NGAP_ID_FMT " ",
-        (uint32_t) amf_ue_ngap_id, (uint32_t) gnb_ue_ngap_id);
+        amf_ue_ngap_id, (uint32_t) gnb_ue_ngap_id);
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   } else {
     if (ue_ref_p->gnb_ue_ngap_id == gnb_ue_ngap_id) {
@@ -1099,8 +1121,9 @@ status_code_e ngap_amf_generate_ue_context_release_command(
   ie->criticality   = Ngap_Criticality_reject;
   ie->value.present = Ngap_UEContextReleaseCommand_IEs__value_PR_UE_NGAP_IDs;
   ie->value.choice.UE_NGAP_IDs.present = Ngap_UE_NGAP_IDs_PR_uE_NGAP_ID_pair;
-  ie->value.choice.UE_NGAP_IDs.choice.uE_NGAP_ID_pair.aMF_UE_NGAP_ID =
-      ue_ref_p->amf_ue_ngap_id;
+  asn_uint642INTEGER(
+      &ie->value.choice.UE_NGAP_IDs.choice.uE_NGAP_ID_pair.aMF_UE_NGAP_ID,
+      ue_ref_p->amf_ue_ngap_id);
   ie->value.choice.UE_NGAP_IDs.choice.uE_NGAP_ID_pair.rAN_UE_NGAP_ID =
       ue_ref_p->gnb_ue_ngap_id;
   ie->value.choice.UE_NGAP_IDs.choice.uE_NGAP_ID_pair.iE_Extensions = NULL;
@@ -1178,7 +1201,7 @@ status_code_e ngap_handle_ue_context_release_command(
         LOG_NGAP, imsi64,
         "Ignoring UE with amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT " %u(10)\n",
         ue_context_release_command_pP->amf_ue_ngap_id,
-        ue_context_release_command_pP->amf_ue_ngap_id);
+        ue_context_release_command_pP->gnb_ue_ngap_id);
     rc = RETURNok;
   } else {
     /*
@@ -1220,7 +1243,8 @@ status_code_e ngap_amf_handle_ue_context_release_complete(
       Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
 
   if (ie) {
-    amf_ue_ngap_id = ie->value.choice.AMF_UE_NGAP_ID;
+    asn_INTEGER2ulong(
+        &ie->value.choice.AMF_UE_NGAP_ID, (uint64_t*) &amf_ue_ngap_id);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
   }
@@ -1235,7 +1259,7 @@ status_code_e ngap_amf_handle_ue_context_release_complete(
         LOG_NGAP,
         " UE Context Release commplete: Ng context cleared. Ignore message for "
         "ueid " AMF_UE_NGAP_ID_FMT "\n",
-        (uint32_t) amf_ue_ngap_id);
+        amf_ue_ngap_id);
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
   } else {
     /* This is an error scenario, the Ng UE context should have been deleted
@@ -1246,7 +1270,7 @@ status_code_e ngap_amf_handle_ue_context_release_complete(
         " UE Context Release commplete: Ng context should have been cleared "
         "for "
         "ueid " AMF_UE_NGAP_ID_FMT "\n",
-        (uint32_t) amf_ue_ngap_id);
+        amf_ue_ngap_id);
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
 }
@@ -1275,7 +1299,8 @@ status_code_e ngap_amf_handle_initial_context_setup_failure(
       Ngap_InitialContextSetupFailureIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
   if (ie) {
-    amf_ue_ngap_id = ie->value.choice.AMF_UE_NGAP_ID;
+    asn_INTEGER2ulong(
+        &ie->value.choice.AMF_UE_NGAP_ID, (uint64_t*) &amf_ue_ngap_id);
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
   }
@@ -1298,7 +1323,7 @@ status_code_e ngap_amf_handle_initial_context_setup_failure(
         "INITIAL_CONTEXT_SETUP_FAILURE ignored. No context with "
         "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT
         " gnb_ue_ngap_id " GNB_UE_NGAP_ID_FMT " ",
-        (uint32_t) amf_ue_ngap_id, (uint32_t) gnb_ue_ngap_id);
+        amf_ue_ngap_id, (uint32_t) gnb_ue_ngap_id);
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
 
@@ -1583,7 +1608,9 @@ void ngap_amf_handle_ue_context_rel_comp_timer_expiry(
       (const hash_key_t) ue_ref_p->amf_ue_ngap_id, &imsi64);
 
   OAILOG_DEBUG_UE(
-      LOG_NGAP, imsi64, "Expired- UE Context Release Timer for UE id  %d \n",
+      LOG_NGAP, imsi64,
+      "Expired- UE Context Release Timer"
+      " for UE id " AMF_UE_NGAP_ID_FMT "\n",
       ue_ref_p->amf_ue_ngap_id);
   /*
    * Remove UE context and inform AMF_APP.
@@ -1603,7 +1630,7 @@ void ngap_amf_handle_ue_context_rel_comp_timer_expiry(
 
   OAILOG_DEBUG_UE(
       LOG_NGAP, imsi64, "Removed NGAP UE " AMF_UE_NGAP_ID_FMT "\n",
-      (uint32_t) ue_ref_p->amf_ue_ngap_id);
+      ue_ref_p->amf_ue_ngap_id);
   ngap_remove_ue(state, ue_ref_p);
 
   hashtable_uint64_ts_remove(
@@ -1620,7 +1647,8 @@ void ngap_amf_release_ue_context(
   OAILOG_FUNC_IN(LOG_NGAP);
   DevAssert(ue_ref_p != NULL);
   OAILOG_DEBUG_UE(
-      LOG_NGAP, imsi64, "Releasing UE Context for UE id  %d \n",
+      LOG_NGAP, imsi64,
+      "Releasing UE Context for UE id" AMF_UE_NGAP_ID_FMT "\n",
       ue_ref_p->amf_ue_ngap_id);
   /*
    * Remove UE context and inform AMF_APP.
@@ -1639,7 +1667,7 @@ void ngap_amf_release_ue_context(
   DevAssert(ue_ref_p->ng_ue_state == NGAP_UE_WAITING_CRR);
   OAILOG_DEBUG_UE(
       LOG_NGAP, imsi64, "Removed NGAP UE " AMF_UE_NGAP_ID_FMT "\n",
-      (uint32_t) ue_ref_p->amf_ue_ngap_id);
+      ue_ref_p->amf_ue_ngap_id);
 
   ngap_remove_ue(state, ue_ref_p);
   OAILOG_FUNC_OUT(LOG_NGAP);
@@ -1692,7 +1720,8 @@ status_code_e ngap_amf_handle_pduSession_release_response(
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_PDUSessionResourceReleaseResponseIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
-  amf_ue_ngap_id = ie->value.choice.AMF_UE_NGAP_ID;
+  asn_INTEGER2ulong(
+      &ie->value.choice.AMF_UE_NGAP_ID, (uint64_t*) &amf_ue_ngap_id);
 
   if ((ie) &&
       (ue_ref_p = ngap_state_get_ue_amfid((uint32_t) amf_ue_ngap_id)) == NULL) {
@@ -1719,9 +1748,10 @@ status_code_e ngap_amf_handle_pduSession_release_response(
   }
 
   ngap_imsi_map_t* imsi_map = get_ngap_imsi_map();
+
   hashtable_uint64_ts_get(
-      imsi_map->amf_ue_id_imsi_htbl,
-      (const hash_key_t) ie->value.choice.AMF_UE_NGAP_ID, &imsi64);
+      imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) amf_ue_ngap_id,
+      &imsi64);
 
   message_p =
       itti_alloc_new_message(TASK_NGAP, NGAP_PDUSESSIONRESOURCE_REL_RSP);
@@ -1784,7 +1814,9 @@ status_code_e ngap_amf_handle_pduSession_setup_response(
       Ngap_PDUSessionResourceSetupResponseIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
   if (ie) {
-    amf_ue_ngap_id = ie->value.choice.AMF_UE_NGAP_ID;
+    asn_INTEGER2ulong(
+        &ie->value.choice.AMF_UE_NGAP_ID, (uint64_t*) &amf_ue_ngap_id);
+
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }

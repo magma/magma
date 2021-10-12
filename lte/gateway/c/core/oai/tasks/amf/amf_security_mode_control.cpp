@@ -150,7 +150,8 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
       amf_ctx = &ue_mm_context->amf_context;
     } else {
       OAILOG_ERROR(
-          LOG_NAS_AMF, "UE 5G-MM context NULL! for ue_id = (%u)\n",
+          LOG_NAS_AMF,
+          "UE 5G-MM context NULL! for for UE ID: " AMF_UE_NGAP_ID_FMT,
           smc_proc->ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
     }
@@ -187,7 +188,8 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
   if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP,
-        "T3560: Invalid Timer Id expiration, Timer Id: %u and ue Id: %d \n",
+        "T3560: Invalid Timer Id expiration, Timer Id: %d and for UE "
+        "ID " AMF_UE_NGAP_ID_FMT,
         timer_id, ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
@@ -197,7 +199,8 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
 
   if (ue_amf_context == NULL) {
     OAILOG_DEBUG(
-        LOG_AMF_APP, "T3560: ue_amf_context is NULL for ue id: %d\n", ue_id);
+        LOG_AMF_APP,
+        "T3560: ue_amf_context is NULL for UE ID: " AMF_UE_NGAP_ID_FMT, ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
@@ -205,7 +208,8 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
 
   if (!(amf_ctx)) {
     OAILOG_ERROR(
-        LOG_AMF_APP, "T3560: Timer expired no amf context for ue id: %d\n",
+        LOG_AMF_APP,
+        "T3560: Timer expired no amf context for UE ID: " AMF_UE_NGAP_ID_FMT,
         ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
@@ -214,7 +218,8 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
 
   if (smc_proc) {
     OAILOG_WARNING(
-        LOG_AMF_APP, "T3560: Timer expired  for timer id %lu ue id %d\n",
+        LOG_AMF_APP,
+        "T3560: Timer expired  for timer id %lu for UE ID " AMF_UE_NGAP_ID_FMT,
         smc_proc->T3560.id, smc_proc->ue_id);
     smc_proc->T3560.id = -1;
     /*
@@ -231,7 +236,8 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
        */
       OAILOG_ERROR(
           LOG_AMF_APP,
-          "T3560: timer T3560 has expired for ud id:%d, so retransmitting "
+          "T3560: timer T3560 has expired for ud id: " AMF_UE_NGAP_ID_FMT
+          ", so retransmitting "
           "Security Command Mode request\n",
           ue_id);
       amf_security_request(smc_proc);
@@ -294,9 +300,7 @@ int amf_proc_security_mode_control(
   // TODO: Hardcoded values Will be taken care in upcoming PR
   int amf_eea       = 0;
   int amf_eia       = 0;  // Integrity Algorithm 2
-  uint8_t snni[32]  = {0};
   uint8_t ak_sqn[6] = {0};
-  amf_plmn_t plmn   = {0};
 
   OAILOG_DEBUG(
       LOG_NAS_AMF,
@@ -397,13 +401,14 @@ int amf_proc_security_mode_control(
     smc_proc->selected_eea = amf_ctx->_security.selected_algorithms.encryption;
     OAILOG_DEBUG(
         LOG_NAS_AMF,
-        "5G CN encryption algorithm selected is (%d) for ue_id (%u) "
-        "smc_proc->ksi=%d\n",
+        "5G CN encryption algorithm selected is (%d) for UE "
+        "ID " AMF_UE_NGAP_ID_FMT "smc_proc->ksi=%d",
         smc_proc->selected_eea, ue_id, smc_proc->ksi);
     smc_proc->selected_eia = amf_ctx->_security.selected_algorithms.integrity;
     OAILOG_DEBUG(
         LOG_NAS_AMF,
-        "5G CN integrity algorithm selected is (%d) for ue_id (%u)\n",
+        "5G CN integrity algorithm selected is (%d) for UE "
+        "ID " AMF_UE_NGAP_ID_FMT,
         smc_proc->selected_eia, ue_id);
     smc_proc->is_new = security_context_is_new;
 
@@ -415,4 +420,85 @@ int amf_proc_security_mode_control(
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_proc_security_mode_reject()                               **
+ **                                                                        **
+ ** Description: Performs the security mode control not accepted by the UE **
+ **                                                                        **
+ **              3GPP TS 24.501, section 5.4.2.5                           **
+ **      Upon receiving the SECURITY MODE REJECT message, the AMF          **
+ **      shall stop timer T3560 and abort the ongoing procedure            **
+ **      that triggered the initiation of the NAS security mode            **
+ **      control procedure.                                                **
+ **      The AMF shall apply the 5G NAS security context in use befo-      **
+ **      re the initiation of the security mode control procedure,         **
+ **      if any, to protect any subsequent messages.                       **
+ **                                                                        **
+ **                                                                        **
+ ** Inputs:  ue_id:      UE lower layer identifier                         **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ** Outputs:     None                                                      **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ***************************************************************************/
+int amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  ue_m5gmm_context_s* ue_mm_context = NULL;
+  amf_context_t* amf_ctx            = NULL;
+  int rc                            = RETURNerror;
+
+  OAILOG_WARNING(
+      LOG_NAS_AMF,
+      "AMF-PROC  - Security mode command not accepted by the UE"
+      "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
+      ue_id);
+  /*
+   *     Get the UE context
+   */
+  ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (ue_mm_context) {
+    amf_ctx = &ue_mm_context->amf_context;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
+
+  nas_amf_smc_proc_t* smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
+
+  if (smc_proc) {
+    /*
+     * Stop timer T3560
+     */
+    amf_app_stop_timer(smc_proc->T3560.id);
+
+    // restore previous values
+    amf_ctx->_security.selected_algorithms.encryption =
+        smc_proc->saved_selected_eea;
+    amf_ctx->_security.selected_algorithms.integrity =
+        smc_proc->saved_selected_eia;
+    smc_ctrl.amf_ctx_set_security_eksi(amf_ctx, smc_proc->saved_eksi);
+    amf_ctx->_security.dl_count.overflow = smc_proc->saved_overflow;
+    amf_ctx->_security.dl_count.seq_num  = smc_proc->saved_seq_num;
+    smc_ctrl.amf_ctx_set_security_type(amf_ctx, smc_proc->saved_sc_type);
+
+    /*
+     * Notify AMF that the security mode procedure failed
+     */
+    amf_sap_t amf_sap;
+
+    amf_sap.primitive               = AMFREG_COMMON_PROC_REJ;
+    amf_sap.u.amf_reg.ue_id         = ue_id;
+    amf_sap.u.amf_reg.ctx           = amf_ctx;
+    amf_sap.u.amf_reg.notify        = true;
+    amf_sap.u.amf_reg.free_proc     = false;
+    amf_sap.u.amf_reg.u.common_proc = &smc_proc->amf_com_proc;
+    rc                              = amf_sap_send(&amf_sap);
+  }
+  amf_app_handle_deregistration_req(ue_id);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
 }  // namespace magma5g

@@ -38,13 +38,12 @@ extern "C" {
 #include "ngap_messages_types.h"
 #include "M5GAuthenticationServiceClient.h"
 #include "M5GMMCause.h"
+#include "3gpp_38.401.h"
+#include "amf_common.h"
 using magma5g::AsyncM5GAuthenticationServiceClient;
 
 using namespace magma;
-typedef uint32_t amf_ue_ngap_id_t;
-#define QUADLET 4
-#define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
-  LENGTH += QUADLET - (LENGTH % QUADLET)
+
 #define AMF_CAUSE_SUCCESS (1)
 namespace magma5g {
 /*forward declaration*/
@@ -127,7 +126,9 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
   if (ue_m5gmm_context == NULL) {
     OAILOG_ERROR(
-        LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
+        LOG_AMF_APP,
+        "ue context not found for the ue_id=" AMF_UE_NGAP_ID_FMT "\n",
+        msg->ue_id);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
@@ -199,6 +200,11 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
       break;
     case SEC_MODE_COMPLETE:
       rc = amf_handle_security_complete_response(msg->ue_id, decode_status);
+      break;
+    case SEC_MODE_REJECT:
+      rc = amf_handle_security_mode_reject(
+          msg->ue_id, &amf_msg->msg.securitymodereject, *amf_cause,
+          decode_status);
       break;
     case REG_COMPLETE:
       rc = amf_handle_registration_complete_response(
@@ -713,7 +719,9 @@ uint16_t amf_as_data_req(
       }
     } else {
       OAILOG_ERROR(
-          LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
+          LOG_AMF_APP,
+          "ue context not found for the ue_id=" AMF_UE_NGAP_ID_FMT "\n",
+          msg->ue_id);
       OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
     }
 
@@ -996,7 +1004,9 @@ static int amf_as_security_req(
               &(ue_context->amf_context.ue_sec_capability),
               sizeof(UESecurityCapabilityMsg));
         } else {
-          OAILOG_ERROR(LOG_AMF_APP, "UE not found :%u", as_msg->ue_id);
+          OAILOG_ERROR(
+              LOG_AMF_APP, "UE not found : " AMF_UE_NGAP_ID_FMT "\n",
+              as_msg->ue_id);
           return -2;
         }
         nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
@@ -1034,7 +1044,9 @@ static int amf_as_security_req(
       }
     } else {
       OAILOG_ERROR(
-          LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
+          LOG_AMF_APP,
+          "ue context not found for the ue_id=" AMF_UE_NGAP_ID_FMT "\n",
+          msg->ue_id);
       OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
     }
 
@@ -1130,7 +1142,9 @@ static int amf_as_security_rej(
       }
     } else {
       OAILOG_ERROR(
-          LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
+          LOG_AMF_APP,
+          "ue context not found for the ue_id=" AMF_UE_NGAP_ID_FMT "\n",
+          msg->ue_id);
       OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
     }
 
@@ -1217,9 +1231,9 @@ int initial_context_setup_request(
 
         // pdu ambr
         item->PDU_Session_Resource_Setup_Request_Transfer
-            .pdu_aggregate_max_bit_rate.dl = dl_pdu_ambr;
+            .pdu_aggregate_max_bit_rate.dl = amf_ctx->subscribed_ue_ambr.br_dl;
         item->PDU_Session_Resource_Setup_Request_Transfer
-            .pdu_aggregate_max_bit_rate.ul = ul_pdu_ambr;
+            .pdu_aggregate_max_bit_rate.ul = amf_ctx->subscribed_ue_ambr.br_ul;
 
         // pdu session type
         item->PDU_Session_Resource_Setup_Request_Transfer.pdu_ip_type.pdn_type =
@@ -1281,8 +1295,8 @@ uint16_t amf_as_establish_cnf(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_DEBUG(
       LOG_NAS_AMF,
-      "Send AS connection establish confirmation for (ue_id = "
-      "%d)\n",
+      "Send AS connection establish confirmation for (ue_id "
+      "= " AMF_UE_NGAP_ID_FMT ")\n",
       msg->ue_id);
   amf_nas_message_t nas_msg = {0};
   // Setting-up the AS message
@@ -1446,8 +1460,7 @@ static int amf_as_establish_rej(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_DEBUG(
       LOG_NAS_AMF,
-      "Send AS connection establish Reject for (ue_id = "
-      "%d)\n",
+      "Send AS connection establish Reject for UE ID: " AMF_UE_NGAP_ID_FMT,
       msg->ue_id);
   amf_nas_message_t nas_msg = {0};
   // Setting-up the AS message
@@ -1554,7 +1567,7 @@ static int amf_service_rejectmsg(
   service_reject->message_type.msg_type   = M5G_SERVICE_REJECT;
   service_reject->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
 
-  service_reject->cause.iei         = M5GMM_CAUSE;
+  service_reject->cause.iei         = static_cast<uint8_t>(M5GIei::M5GMM_CAUSE);
   service_reject->cause.m5gmm_cause = msg->amf_cause;
 
   if (msg->amf_cause == AMF_CAUSE_CONGESTION) {

@@ -17,6 +17,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/labstack/echo"
+	"github.com/pkg/errors"
+
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/serdes"
 	fegModels "magma/feg/cloud/go/services/feg/obsidian/models"
@@ -30,9 +33,6 @@ import (
 	orc8rModels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -122,6 +122,7 @@ func getGateway(c echo.Context) error {
 	}
 
 	ent, err := configurator.LoadEntity(
+		c.Request().Context(),
 		nid, feg.FegGatewayType, gid,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -238,7 +239,7 @@ func getHealthStatusHandler(c echo.Context) error {
 	}
 
 	reqCtx := c.Request().Context()
-	pid, err := configurator.GetPhysicalIDOfEntity(nid, orc8r.MagmadGatewayType, gid)
+	pid, err := configurator.GetPhysicalIDOfEntity(reqCtx, nid, orc8r.MagmadGatewayType, gid)
 	if err == merrors.ErrNotFound || len(pid) == 0 {
 		return c.NoContent(http.StatusNotFound)
 	}

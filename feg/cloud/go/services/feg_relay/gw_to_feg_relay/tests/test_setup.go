@@ -17,8 +17,6 @@ import (
 	"sync"
 	"testing"
 
-	healthTestInit "magma/feg/cloud/go/services/health/test_init"
-
 	"github.com/go-openapi/swag"
 	"github.com/stretchr/testify/assert"
 
@@ -26,6 +24,7 @@ import (
 	"magma/feg/cloud/go/serdes"
 	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
 	health_servicers "magma/feg/cloud/go/services/health/servicers"
+	healthTestInit "magma/feg/cloud/go/services/health/test_init"
 	healthTestUtils "magma/feg/cloud/go/services/health/test_utils"
 	"magma/lte/cloud/go/lte"
 	models3 "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -129,7 +128,7 @@ func setupNeutralHostNetworks(t *testing.T) *health_servicers.TestHealthServer {
 				Epc: &models3.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 				Ran: &models3.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			},
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 				{Type: lte.CellularEnodebEntityType, Key: "enb2"},
 			},
@@ -144,11 +143,11 @@ func setupNeutralHostNetworks(t *testing.T) *health_servicers.TestHealthServer {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: agwId}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: agwId}},
 		},
 		{
 			Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: orc8r.MagmadGatewayType, Key: agwId},
 			},
 		},
@@ -171,11 +170,11 @@ func setupNeutralHostNetworks(t *testing.T) *health_servicers.TestHealthServer {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations: []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: fegId}},
+			Associations: storage.TKs{{Type: feg.FegGatewayType, Key: fegId}},
 		},
 		{
 			Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: orc8r.MagmadGatewayType, Key: fegId},
 			},
 		},

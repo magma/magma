@@ -14,7 +14,6 @@
 #include "M5GDeRegistrationAcceptUEInit.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 DeRegistrationAcceptUEInitMsg::DeRegistrationAcceptUEInitMsg(){};
 DeRegistrationAcceptUEInitMsg::~DeRegistrationAcceptUEInitMsg(){};

@@ -21,7 +21,7 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
 VERSION=1.7.0 # magma version number
-SCTPD_MIN_VERSION=1.7.0 # earliest version of sctpd with which this version is compatible
+SCTPD_MIN_VERSION=1.6.0 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=RelWithDebInfo
@@ -158,11 +158,11 @@ OAI_DEPS=(
 
 # OVS runtime dependencies
 OVS_DEPS=(
-      "magma-libfluid >= 0.1.0.6"
-      "libopenvswitch >= 2.15.2-1"
-      "openvswitch-switch >= 2.15.2-1"
-      "openvswitch-common >= 2.15.2-1"
-      "openvswitch-datapath-dkms >= 2.15.2-1"
+      "magma-libfluid >= 0.1.0.7"
+      "libopenvswitch >= 2.15.2-6"
+      "openvswitch-switch >= 2.15.2-6"
+      "openvswitch-common >= 2.15.2-6"
+      "openvswitch-datapath-dkms >= 2.15.2-6"
       )
 
 # generate string for FPM

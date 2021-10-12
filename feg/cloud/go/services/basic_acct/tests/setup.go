@@ -17,6 +17,9 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/go-openapi/swag"
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/serdes"
 	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
@@ -29,9 +32,6 @@ import (
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
-
-	"github.com/go-openapi/swag"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -118,7 +118,7 @@ func SetupNetworks(t *testing.T) {
 				Epc: &models3.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 				Ran: &models3.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			},
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 				{Type: lte.CellularEnodebEntityType, Key: "enb2"},
 			},
@@ -133,11 +133,11 @@ func SetupNetworks(t *testing.T) {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: AgwId}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: AgwId}},
 		},
 		{
 			Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: orc8r.MagmadGatewayType, Key: AgwId},
 			},
 		},
@@ -160,11 +160,11 @@ func SetupNetworks(t *testing.T) {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations: []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: FegId}},
+			Associations: storage.TKs{{Type: feg.FegGatewayType, Key: FegId}},
 		},
 		{
 			Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: orc8r.MagmadGatewayType, Key: FegId},
 			},
 		},

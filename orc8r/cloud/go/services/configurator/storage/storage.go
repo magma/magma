@@ -18,11 +18,11 @@ import (
 	"fmt"
 	"sort"
 
-	"magma/orc8r/cloud/go/storage"
-
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/storage"
 )
 
 // ConfiguratorStorageFactory creates ConfiguratorStorage implementations bound
@@ -131,11 +131,11 @@ const internalNetworkDescription = "Internal network to hold non-network entitie
 // FullNetworkLoadCriteria is a utility variable to specify a full network load
 var FullNetworkLoadCriteria = NetworkLoadCriteria{LoadMetadata: true, LoadConfigs: true}
 
-func (m *EntityID) ToTypeAndKey() storage.TypeAndKey {
-	return storage.TypeAndKey{Type: m.Type, Key: m.Key}
+func (m *EntityID) ToTK() storage.TK {
+	return storage.TK{Type: m.Type, Key: m.Key}
 }
 
-func (m *EntityID) FromTypeAndKey(tk storage.TypeAndKey) *EntityID {
+func (m *EntityID) FromTK(tk storage.TK) *EntityID {
 	m.Type = tk.Type
 	m.Key = tk.Key
 	return m
@@ -143,13 +143,13 @@ func (m *EntityID) FromTypeAndKey(tk storage.TypeAndKey) *EntityID {
 
 func SortIDs(ids []*EntityID) {
 	sort.Slice(ids, func(i, j int) bool {
-		return ids[i].ToTypeAndKey().IsLessThan(ids[j].ToTypeAndKey())
+		return ids[i].ToTK().IsLessThan(ids[j].ToTK())
 	})
 }
 
 func SortEntities(ents []*NetworkEntity) {
 	sort.Slice(ents, func(i, j int) bool {
-		return ents[i].GetTypeAndKey().String() < ents[j].GetTypeAndKey().String()
+		return ents[i].GetTK().String() < ents[j].GetTK().String()
 	})
 }
 
@@ -157,21 +157,21 @@ func (m *NetworkEntity) GetID() *EntityID {
 	return &EntityID{Type: m.Type, Key: m.Key}
 }
 
-func (m *NetworkEntity) GetTypeAndKey() storage.TypeAndKey {
-	return m.GetID().ToTypeAndKey()
+func (m *NetworkEntity) GetTK() storage.TK {
+	return m.GetID().ToTK()
 }
 
 func (m NetworkEntity) GetGraphEdges() []*GraphEdge {
 	myID := m.GetID()
-	existingAssocs := map[storage.TypeAndKey]bool{}
+	existingAssocs := map[storage.TK]bool{}
 
 	edges := make([]*GraphEdge, 0, len(m.Associations))
 	for _, assoc := range m.Associations {
-		if _, exists := existingAssocs[assoc.ToTypeAndKey()]; exists {
+		if _, exists := existingAssocs[assoc.ToTK()]; exists {
 			continue
 		}
 		edges = append(edges, &GraphEdge{From: myID, To: assoc})
-		existingAssocs[assoc.ToTypeAndKey()] = true
+		existingAssocs[assoc.ToTK()] = true
 	}
 
 	return edges
@@ -179,7 +179,7 @@ func (m NetworkEntity) GetGraphEdges() []*GraphEdge {
 
 type EntitiesByPK map[string]*NetworkEntity
 
-type EntitiesByTK map[storage.TypeAndKey]*NetworkEntity
+type EntitiesByTK map[storage.TK]*NetworkEntity
 
 func (e EntitiesByTK) ByPK() EntitiesByPK {
 	byPK := make(map[string]*NetworkEntity, len(e))
@@ -223,8 +223,8 @@ func (m *EntityUpdateCriteria) GetID() *EntityID {
 	return &EntityID{Type: m.Type, Key: m.Key}
 }
 
-func (m *EntityUpdateCriteria) GetTypeAndKey() storage.TypeAndKey {
-	return storage.TypeAndKey{Type: m.Type, Key: m.Key}
+func (m *EntityUpdateCriteria) GetTK() storage.TK {
+	return storage.TK{Type: m.Type, Key: m.Key}
 }
 
 func (m *EntityUpdateCriteria) getEdgesToCreate() []*EntityID {
@@ -235,5 +235,5 @@ func (m *EntityUpdateCriteria) getEdgesToCreate() []*EntityID {
 }
 
 func (m *GraphEdge) ToString() string {
-	return fmt.Sprintf("%s, %s", m.From.ToTypeAndKey(), m.To.ToTypeAndKey())
+	return fmt.Sprintf("%s, %s", m.From.ToTK(), m.To.ToTK())
 }

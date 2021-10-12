@@ -18,12 +18,7 @@ import (
 	"github.com/golang/glog"
 )
 
-type PlmnIdVals map[string]PlmnIdVal
-
-type PlmnIdVal struct {
-	l5 bool
-	b6 byte
-}
+type PlmnIdVals map[string]struct{}
 
 func GetPlmnVals(plmnids []string, plmnidModuleName ...string) PlmnIdVals {
 	var moduleName string
@@ -37,13 +32,8 @@ func GetPlmnVals(plmnids []string, plmnidModuleName ...string) PlmnIdVals {
 	for _, plmnid := range plmnids {
 		glog.Infof("Adding %sPLMN ID: %s", moduleName, plmnid)
 		switch len(plmnid) {
-		case 5:
-			plmnIds[plmnid] = PlmnIdVal{l5: true}
-		case 6:
-			plmnid5 := plmnid[:5]
-			val := plmnIds[plmnid5]
-			val.b6 = plmnid[5]
-			plmnIds[plmnid5] = val
+		case 5, 6:
+			plmnIds[plmnid] = struct{}{}
 		default:
 			glog.Warningf("Invalid %sPLMN ID: %s", moduleName, plmnid)
 		}
@@ -57,8 +47,11 @@ func (plmnIdFilerTable PlmnIdVals) Check(imsi string) bool {
 	if len(plmnIdFilerTable) == 0 {
 		return true
 	}
-	val, ok := plmnIdFilerTable[imsi[:5]]
-	return ok && (val.l5 || (len(imsi) > 5 && val.b6 == imsi[5]))
+	_, ok := plmnIdFilerTable[imsi[:5]]
+	if !(ok || len(imsi) < 6) {
+		_, ok = plmnIdFilerTable[imsi[:6]]
+	}
+	return ok
 }
 
 // CheckImsiOnPlmnIdListIfAny returns true when either the plmnIdFilerTable is empty (no PLMN ID filtering configured)

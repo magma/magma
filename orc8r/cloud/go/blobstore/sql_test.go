@@ -18,13 +18,13 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"gopkg.in/DATA-DOG/go-sqlmock.v1"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/stretchr/testify/assert"
-	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
 
 func TestSqlBlobStorage_Get(t *testing.T) {
@@ -42,7 +42,7 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return store.Get("network", storage.TypeAndKey{Type: "t1", Key: "k1"})
+			return store.Get("network", storage.TK{Type: "t1", Key: "k1"})
 		},
 
 		expectedError:  nil,
@@ -61,7 +61,7 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return store.Get("network", storage.TypeAndKey{Type: "t2", Key: "k2"})
+			return store.Get("network", storage.TK{Type: "t2", Key: "k2"})
 		},
 
 		expectedError:      merrors.ErrNotFound,
@@ -79,7 +79,7 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return store.Get("network", storage.TypeAndKey{Type: "t3", Key: "k3"})
+			return store.Get("network", storage.TK{Type: "t3", Key: "k3"})
 		},
 
 		expectedError:  errors.New("mock query error"),
@@ -107,7 +107,7 @@ func TestSqlBlobStorage_GetMany(t *testing.T) {
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return store.GetMany("network", []storage.TypeAndKey{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
+			return store.GetMany("network", storage.TKs{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
 		},
 
 		expectedError: nil,
@@ -125,7 +125,7 @@ func TestSqlBlobStorage_GetMany(t *testing.T) {
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return store.GetMany("network", []storage.TypeAndKey{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
+			return store.GetMany("network", storage.TKs{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
 		},
 
 		expectedError:  errors.New("mock query error"),
@@ -494,7 +494,7 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			err := store.Delete("network", []storage.TypeAndKey{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
+			err := store.Delete("network", storage.TKs{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
 			return nil, err
 		},
 
@@ -510,7 +510,7 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			err := store.Delete("network", []storage.TypeAndKey{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
+			err := store.Delete("network", storage.TKs{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
 			return nil, err
 		},
 
@@ -534,7 +534,7 @@ func TestSqlBlobStorage_IncrementVersion(t *testing.T) {
 				WillReturnResult(sqlmock.NewResult(1, 1))
 		},
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			err := store.IncrementVersion("network", storage.TypeAndKey{Type: "t1", Key: "k1"})
+			err := store.IncrementVersion("network", storage.TK{Type: "t1", Key: "k1"})
 			return nil, err
 		},
 		expectedError:  nil,

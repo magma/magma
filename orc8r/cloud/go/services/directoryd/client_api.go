@@ -17,6 +17,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/golang/glog"
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/directoryd/types"
@@ -24,9 +27,6 @@ import (
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
-	"github.com/pkg/errors"
 )
 
 const ServiceName = "DIRECTORYD"

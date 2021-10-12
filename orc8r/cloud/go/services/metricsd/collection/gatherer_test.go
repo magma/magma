@@ -18,10 +18,10 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/services/metricsd/collection"
-
 	prometheus_proto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/services/metricsd/collection"
 )
 
 type TestMetricCollector struct {

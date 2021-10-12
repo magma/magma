@@ -19,6 +19,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/thoas/go-funk"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/multiplex"
@@ -33,11 +38,6 @@ import (
 	"magma/gateway/mconfig"
 	"magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/thoas/go-funk"
 )
 
 const (
@@ -202,7 +202,7 @@ func standardUsageTest(
 	ctx := context.Background()
 	mockPolicyDBClient := policyDb.(*mockPolicyDB.PolicyDBClient)
 
-	// Create a structure to store the pointers to the type assertions. his is needed later to
+	// Create a structure to store the pointers to the type assertions. This is needed later to
 	// be used on Enable/Disable. If it were not saved here the reference of the type to be
 	// asserted will be different than the reference of the type inside the srv
 	mocksGxs := make([]*mockGx.PolicyClient, 0, len(controllerParams))
@@ -378,7 +378,7 @@ func standardUsageTest(
 	// updates
 	mocksGy.On("SendCreditControlRequest", mock.Anything, mock.Anything,
 		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
-	).Return(nil).Run(returnDefaultGyResponse).Times(2)
+	).Return(nil).Run(returnDefaultGyResponse).Times(1)
 
 	updateResponse, _ := srv.UpdateSession(ctx,
 		&protos.UpdateSessionRequest{
@@ -596,7 +596,7 @@ func TestSessionControllerTimeouts(t *testing.T) {
 	).Return(nil).Run(func(args mock.Arguments) {
 		done := args.Get(1).(chan interface{})
 		request := args.Get(2).(*gy.CreditControlRequest)
-		if request.RequestNumber%2 == 0 {
+		if request.RequestNumber%1 == 0 {
 			return
 		} else {
 			done <- &gy.CreditControlAnswer{
@@ -612,11 +612,14 @@ func TestSessionControllerTimeouts(t *testing.T) {
 		}
 	}).Return(nil).Times(1)
 
+	// create a different session id update to force 2 different requests
+	modUsageUpdate := createUsageUpdate(IMSI1, 1, 2, protos.CreditUsage_TERMINATED)
+	modUsageUpdate.SessionId = fmt.Sprintf("%s-9999", IMSI1)
 	updateResponse, _ := srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
 		Updates: []*protos.CreditUsageUpdate{
 			createUsageUpdate(IMSI1, 1, 1, protos.CreditUsage_QUOTA_EXHAUSTED),
-			createUsageUpdate(IMSI2, 2, 2, protos.CreditUsage_TERMINATED),
-			createUsageUpdate(IMSI1, 1, 2, protos.CreditUsage_TERMINATED),
+			createUsageUpdate(IMSI2, 2, 1, protos.CreditUsage_TERMINATED),
+			modUsageUpdate,
 		},
 	})
 	mocksGy_1.AssertExpectations(t)
@@ -764,20 +767,20 @@ func TestGxUsageMonitoring(t *testing.T) {
 	mocksGy_1.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
-	).Return(nil).Run(returnDefaultGyResponse).Times(2)
+	).Return(nil).Run(returnDefaultGyResponse).Times(1)
 	mocksGx_1.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
-	).Return(nil).Run(returnDefaultGxUpdateResponse).Times(2)
+	).Return(nil).Run(returnDefaultGxUpdateResponse).Times(1)
 
 	mocksGy_2.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGyCCRMatcher(IMSI2_NOPREFIX, credit_control.CRTUpdate)),
-	).Return(nil).Run(returnDefaultGyResponse).Times(2)
+	).Return(nil).Run(returnDefaultGyResponse).Times(1)
 	mocksGx_2.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGxCCRMatcher(IMSI2_NOPREFIX, credit_control.CRTUpdate)),
-	).Return(nil).Run(returnDefaultGxUpdateResponse).Times(2)
+	).Return(nil).Run(returnDefaultGxUpdateResponse).Times(1)
 
 	updateSessionRequest := &protos.UpdateSessionRequest{
 		Updates: []*protos.CreditUsageUpdate{
@@ -1045,20 +1048,20 @@ func TestGetHealthStatus(t *testing.T) {
 	mocksGy_1.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
-	).Return(nil).Run(returnDefaultGyResponse).Times(2)
+	).Return(nil).Run(returnDefaultGyResponse).Times(1)
 	mocksGx_1.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
-	).Return(nil).Run(returnDefaultGxUpdateResponse).Times(2)
+	).Return(nil).Run(returnDefaultGxUpdateResponse).Times(1)
 
 	mocksGy_2.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGyCCRMatcher(IMSI2_NOPREFIX, credit_control.CRTUpdate)),
-	).Return(nil).Run(returnDefaultGyResponse).Times(2)
+	).Return(nil).Run(returnDefaultGyResponse).Times(1)
 	mocksGx_2.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGxCCRMatcher(IMSI2_NOPREFIX, credit_control.CRTUpdate)),
-	).Return(nil).Run(returnDefaultGxUpdateResponse).Times(2)
+	).Return(nil).Run(returnDefaultGxUpdateResponse).Times(1)
 
 	updateResponse, err := srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
 		Updates: []*protos.CreditUsageUpdate{
@@ -1090,20 +1093,20 @@ func TestGetHealthStatus(t *testing.T) {
 	mocksGy_1.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
-	).Return(fmt.Errorf("Failed to establish new diameter connection; will retry upon first request.")).Run(returnDefaultGyResponse).Times(2)
+	).Return(fmt.Errorf("Failed to establish new diameter connection; will retry upon first request.")).Run(returnDefaultGyResponse).Times(1)
 	mocksGx_1.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
-	).Return(fmt.Errorf("Failed to establish new diameter connection; will retry upon first request.")).Run(returnDefaultGxUpdateResponse).Times(2)
+	).Return(fmt.Errorf("Failed to establish new diameter connection; will retry upon first request.")).Run(returnDefaultGxUpdateResponse).Times(1)
 
 	mocksGy_2.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGyCCRMatcher(IMSI2_NOPREFIX, credit_control.CRTUpdate)),
-	).Return(fmt.Errorf("Failed to establish new diameter connection; will retry upon first request.")).Run(returnDefaultGyResponse).Times(2)
+	).Return(fmt.Errorf("Failed to establish new diameter connection; will retry upon first request.")).Run(returnDefaultGyResponse).Times(1)
 	mocksGx_2.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGxCCRMatcher(IMSI2_NOPREFIX, credit_control.CRTUpdate)),
-	).Return(fmt.Errorf("Failed to establish new diameter connection; will retry upon first request.")).Run(returnDefaultGxUpdateResponse).Times(2)
+	).Return(fmt.Errorf("Failed to establish new diameter connection; will retry upon first request.")).Run(returnDefaultGxUpdateResponse).Times(1)
 
 	updateResponse, err = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
 		Updates: []*protos.CreditUsageUpdate{

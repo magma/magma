@@ -15,16 +15,16 @@ package analytics
 import (
 	"fmt"
 
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/services/analytics/calculations"
-	"magma/orc8r/cloud/go/services/metricsd"
-	"magma/orc8r/lib/go/service/config"
-
 	"github.com/golang/glog"
 	"github.com/olivere/elastic/v7"
 	promAPI "github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/analytics/calculations"
+	"magma/orc8r/cloud/go/services/metricsd"
+	"magma/orc8r/lib/go/service/config"
 )
 
 func GetElasticClient() *elastic.Client {

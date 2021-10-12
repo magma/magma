@@ -18,33 +18,63 @@
 #include <fstream>                           // for operator<<, char_traits
 #include <nlohmann/json.hpp>                 // for basic_json<>::iterator
 #include "magma_logging.h"                   // for MLOG
-namespace google {
-namespace protobuf {
-class Message;
-}
-}  // namespace google
 
-using json = nlohmann::json;
+namespace {
+static constexpr const char* DYNAMIC_MCONFIG_PATH =
+    "/var/opt/magma/configs/gateway.mconfig";
+static constexpr const char* CONFIG_DIR        = "/etc/magma";
+static constexpr const char* MCONFIG_FILE_NAME = "gateway.mconfig";
 
-namespace magma {
-
-static bool check_file_exists(const std::string filename) {
+bool check_file_exists(const std::string filename) {
   std::ifstream f(filename.c_str());
   return f.is_open();
 }
 
-bool MConfigLoader::load_service_mconfig(
+void open_mconfig_file(std::ifstream* file) {
+  // Load from /var/opt/magma if config exists, else read from /etc/magma
+  if (check_file_exists(DYNAMIC_MCONFIG_PATH)) {
+    file->open(DYNAMIC_MCONFIG_PATH);
+    return;
+  }
+  const char* cfg_dir = std::getenv("MAGMA_CONFIG_LOCATION");
+  if (cfg_dir == nullptr) {
+    cfg_dir = CONFIG_DIR;
+  }
+  auto file_path = std::string(cfg_dir) + "/" + std::string(MCONFIG_FILE_NAME);
+  file->open(file_path.c_str());
+  return;
+}
+
+}  // namespace
+
+namespace magma {
+
+using json = nlohmann::json;
+
+bool load_service_mconfig_from_file(
     const std::string& service_name, google::protobuf::Message* message) {
+  // TODO(smoeller): Should use deffered file.close() here, e.g. absl::Cleanup
   std::ifstream file;
-  get_mconfig_file(&file);
+  open_mconfig_file(&file);
   if (!file.is_open()) {
     MLOG(MERROR) << "Couldn't load mconfig file";
     return false;
   }
-
-  json mconfig_json;
-  file >> mconfig_json;
+  bool success = load_service_mconfig(service_name, &file, message);
   file.close();
+  return success;
+}
+
+bool load_service_mconfig(
+    const std::string& service_name, std::istream* config_stream,
+    google::protobuf::Message* message) {
+  json mconfig_json;
+  try {
+    *config_stream >> mconfig_json;
+  } catch (const std::exception& e) {
+    MLOG(MERROR) << "Parsing failure of config stream " << e.what();
+    return false;
+  }
 
   // config is located at mconfig_json["configs_by_key"][service_name]
   auto configs_it = mconfig_json.find("configs_by_key");
@@ -68,25 +98,10 @@ bool MConfigLoader::load_service_mconfig(
   auto status =
       google::protobuf::util::JsonStringToMessage(service_it->dump(), message);
   if (!status.ok()) {
-    MLOG(MERROR) << "Couldn't parse " << service_name << " config";
+    MLOG(MERROR) << "Couldn't parse " << service_name
+                 << " config, error: " << status.ToString();
   }
   return status.ok();
-}
-
-void MConfigLoader::get_mconfig_file(std::ifstream* file) {
-  // Load from /var/opt/magma if config exists, else read from /etc/magma
-  if (check_file_exists(MConfigLoader::DYNAMIC_MCONFIG_PATH)) {
-    file->open(MConfigLoader::DYNAMIC_MCONFIG_PATH);
-    return;
-  }
-  const char* cfg_dir = std::getenv("MAGMA_CONFIG_LOCATION");
-  if (cfg_dir == nullptr) {
-    cfg_dir = MConfigLoader::CONFIG_DIR;
-  }
-  auto file_path = std::string(cfg_dir) + "/" +
-                   std::string(MConfigLoader::MCONFIG_FILE_NAME);
-  file->open(file_path.c_str());
-  return;
 }
 
 }  // namespace magma

@@ -17,12 +17,12 @@ import (
 	"database/sql"
 	"encoding/json"
 
-	"magma/orc8r/cloud/go/sqorc"
-	"magma/orc8r/cloud/go/tools/migrations"
-
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
+
+	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/tools/migrations"
 )
 
 const (

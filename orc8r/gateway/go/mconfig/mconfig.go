@@ -19,10 +19,10 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
+
+	"magma/orc8r/lib/go/protos"
 )
 
 func GetServiceConfigs(service string, result proto.Message) error {

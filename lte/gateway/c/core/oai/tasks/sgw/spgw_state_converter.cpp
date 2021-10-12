@@ -595,9 +595,8 @@ void SpgwStateConverter::traffic_flow_template_to_proto(
 void SpgwStateConverter::proto_to_traffic_flow_template(
     const oai::TrafficFlowTemplate& tft_proto,
     traffic_flow_template_t* tft_state) {
-  tft_state->tftoperationcode      = tft_proto.tft_operation_code();
-  tft_state->numberofpacketfilters = tft_proto.number_of_packet_filters();
-  tft_state->ebit                  = tft_proto.ebit();
+  tft_state->tftoperationcode = tft_proto.tft_operation_code();
+  tft_state->ebit             = tft_proto.ebit();
 
   tft_state->parameterslist.num_parameters =
       tft_proto.parameters_list().num_parameters();
@@ -614,25 +613,30 @@ void SpgwStateConverter::proto_to_traffic_flow_template(
   auto* pft_state = &tft_state->packetfilterlist;
   switch (tft_proto.tft_operation_code()) {
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET_FILTERS_FROM_EXISTING_TFT:
-      for (uint32_t i = 0; i < tft_proto.number_of_packet_filters(); i++) {
+      tft_state->numberofpacketfilters =
+          pft_proto.delete_packet_filter_identifier_size();
+      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
         pft_state->deletepacketfilter[i].identifier =
             pft_proto.delete_packet_filter_identifier(i);
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT:
-      for (uint32_t i = 0; i < tft_proto.number_of_packet_filters(); i++) {
+      tft_state->numberofpacketfilters = pft_proto.create_new_tft_size();
+      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
         proto_to_packet_filter(
             pft_proto.create_new_tft(i), &pft_state->createnewtft[i]);
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET_FILTER_TO_EXISTING_TFT:
-      for (uint32_t i = 0; i < tft_proto.number_of_packet_filters(); i++) {
+      tft_state->numberofpacketfilters = pft_proto.add_packet_filter_size();
+      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
         proto_to_packet_filter(
             pft_proto.add_packet_filter(i), &pft_state->addpacketfilter[i]);
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_REPLACE_PACKET_FILTERS_IN_EXISTING_TFT:
-      for (uint32_t i = 0; i < tft_proto.number_of_packet_filters(); i++) {
+      tft_state->numberofpacketfilters = pft_proto.replace_packet_filter_size();
+      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
         proto_to_packet_filter(
             pft_proto.replace_packet_filter(i),
             &pft_state->replacepacketfilter[i]);
@@ -747,6 +751,7 @@ void SpgwStateConverter::proto_to_packet_filter(
   packet_filter->direction       = packet_filter_proto.direction();
   packet_filter->identifier      = packet_filter_proto.identifier();
   packet_filter->eval_precedence = packet_filter_proto.eval_precedence();
+  packet_filter->length          = packet_filter_proto.length();
 
   auto* packet_filter_contents = &packet_filter->packetfiltercontents;
   for (uint32_t i = 0; i < packet_filter_proto.packet_filter_contents_size();
@@ -756,7 +761,7 @@ void SpgwStateConverter::proto_to_packet_filter(
     switch (packet_filter_content_proto.flags()) {
       case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR: {
         if (packet_filter_content_proto.ipv4_remote_addresses_size()) {
-          packet_filter_contents->flags =
+          packet_filter_contents->flags |=
               TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
           int local_idx = TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1;
           for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; i++) {
@@ -772,7 +777,7 @@ void SpgwStateConverter::proto_to_packet_filter(
       } break;
       case TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR: {
         if (packet_filter_content_proto.ipv6_remote_addresses_size()) {
-          packet_filter_contents->flags =
+          packet_filter_contents->flags |=
               TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
           int local_idx = TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE - 1;
           for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE; i++) {
@@ -785,31 +790,31 @@ void SpgwStateConverter::proto_to_packet_filter(
         }
       } break;
       case TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER: {
-        packet_filter_contents->flags =
+        packet_filter_contents->flags |=
             TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG;
         packet_filter_contents->protocolidentifier_nextheader =
             packet_filter_content_proto.protocol_identifier_nextheader();
       } break;
       case TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT: {
-        packet_filter_contents->flags =
+        packet_filter_contents->flags |=
             TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG;
         packet_filter_contents->singlelocalport =
             packet_filter_content_proto.single_local_port();
       } break;
       case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT: {
-        packet_filter_contents->flags =
+        packet_filter_contents->flags |=
             TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG;
         packet_filter_contents->singleremoteport =
             packet_filter_content_proto.single_remote_port();
       } break;
       case TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX: {
-        packet_filter_contents->flags =
+        packet_filter_contents->flags |=
             TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG;
         packet_filter_contents->securityparameterindex =
             packet_filter_content_proto.security_parameter_index();
       } break;
       case TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS: {
-        packet_filter_contents->flags =
+        packet_filter_contents->flags |=
             TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG;
         packet_filter_contents->typdeofservice_trafficclass.value =
             packet_filter_content_proto.type_of_service_traffic_class().value();
@@ -817,19 +822,19 @@ void SpgwStateConverter::proto_to_packet_filter(
             packet_filter_content_proto.type_of_service_traffic_class().mask();
       } break;
       case TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL: {
-        packet_filter_contents->flags = TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG;
+        packet_filter_contents->flags |= TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG;
         packet_filter_contents->flowlabel =
             packet_filter_content_proto.flow_label();
       } break;
       case TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE: {
-        packet_filter_contents->flags =
+        packet_filter_contents->flags |=
             TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG;
         proto_to_port_range(
             packet_filter_content_proto.local_port_range(),
             &packet_filter_contents->localportrange);
       } break;
       case TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE: {
-        packet_filter_contents->flags =
+        packet_filter_contents->flags |=
             TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG;
         proto_to_port_range(
             packet_filter_content_proto.remote_port_range(),

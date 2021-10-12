@@ -22,16 +22,15 @@ extern "C" {
 #include "directoryd.h"
 #include "conversions.h"
 #include "bstrlib.h"
+#include "dynamic_memory_check.h"
 #ifdef __cplusplus
 };
 #endif
 #include "common_defs.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "ngap_messages_types.h"
-
-#define QUADLET 4
-#define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
-  LENGTH += QUADLET - (LENGTH % QUADLET)
+#include "amf_common.h"
+#include "amf_app_defs.h"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
@@ -122,8 +121,10 @@ int pdu_session_resource_setup_request(
   /* preparing for PDU_Session_Resource_Setup_Transfer.
    * amf_pdu_ses_setup_transfer_req is the structure to be filled.
    */
-  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.dl = dl_pdu_ambr;
-  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.ul = ul_pdu_ambr;
+  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.dl =
+      ue_context->amf_context.subscribed_ue_ambr.br_dl;
+  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.ul =
+      ue_context->amf_context.subscribed_ue_ambr.br_ul;
 
   // UPF teid 4 octet and respective ip address are from SMF context
   memcpy(
@@ -155,7 +156,7 @@ int pdu_session_resource_setup_request(
 /* Resource release request to gNB through NGAP */
 int pdu_session_resource_release_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    smf_context_t* smf_ctx) {
+    smf_context_t* smf_ctx, bool retransmit) {
   bstring buffer;
   uint32_t bytes                = 0;
   DLNASTransportMsg* encode_msg = NULL;
@@ -163,6 +164,7 @@ int pdu_session_resource_release_request(
   uint32_t len                  = 0;
   uint32_t container_len        = 0;
   amf_nas_message_t msg;
+  nas5g_error_code_t rc = M5G_AS_SUCCESS;
 
   memset(&msg, 0, sizeof(amf_nas_message_t));
 
@@ -240,6 +242,18 @@ int pdu_session_resource_release_request(
   buffer = bfromcstralloc(len, "\0");
   bytes  = nas5g_message_encode(
       buffer->data, &msg, len, &ue_context->amf_context._security);
+
+  if (retransmit) {
+    if (bytes > 0) {
+      buffer->slen = bytes;
+      amf_app_handle_nas_dl_req(amf_ue_ngap_id, buffer, rc);
+
+    } else {
+      OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");
+      bdestroy_wrapper(&buffer);
+    }
+    return rc;
+  }
 
   itti_ngap_pdusessionresource_rel_req_t* ngap_pdu_ses_release_req = nullptr;
   MessageDef* message_p                                            = nullptr;

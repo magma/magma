@@ -17,13 +17,13 @@ import (
 	"errors"
 	"fmt"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/csfb/servicers/decode"
-	"magma/feg/gateway/services/csfb/servicers/decode/ie"
-
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/services/csfb/servicers/decode"
+	"magma/feg/gateway/services/csfb/servicers/decode/ie"
 )
 
 type decoderImpl func([]byte) (*any.Any, error)

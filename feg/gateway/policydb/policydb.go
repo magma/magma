@@ -16,12 +16,12 @@ package policydb
 import (
 	"fmt"
 
+	"github.com/golang/glog"
+
 	"magma/feg/gateway/object_store"
 	"magma/gateway/service_registry"
 	"magma/gateway/streamer"
 	"magma/lte/cloud/go/protos"
-
-	"github.com/golang/glog"
 )
 
 // ChargingKey defines a reporting key for a charging rule

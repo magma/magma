@@ -12,6 +12,18 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
 cc_test(
+    name = "mconfig_loader_test",
+    size = "small",
+    srcs = ["test_mconfig_loader.cpp"],
+    deps = [
+        "//lte/protos:mconfigs_cpp_proto",
+        "//orc8r/gateway/c/common/config:mconfig_loader",
+        "@com_google_googletest//:gtest_main",
+        "@protobuf",
+    ],
+)
+
+cc_test(
     name = "yaml_utils_test",
     size = "small",
     srcs = ["test_yaml_utils.cpp"],

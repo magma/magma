@@ -88,7 +88,7 @@ typedef uint64_t enb_s1ap_id_key_t;
 #define INVALID_GNB_UE_NGAP_ID_KEY 0xFFFFFFFFFFFFFFFF
 #define GNB_UE_NGAP_ID_MASK 0x00FFFFFF
 #define GNB_UE_NGAP_ID_FMT "%u"
-#define AMF_UE_NGAP_ID_FMT "%u"
+#define AMF_UE_NGAP_ID_FMT "%lu"
 
 /* INVALID_AMF_UE_NGAP_ID
  * Any value between 0..2^32-1, is allowed/valid as per 3GPP spec 36.413.
@@ -173,13 +173,14 @@ typedef enum {
   RAT_GAN            = 1002,
   RAT_HSPA_EVOLUTION = 1003,
   RAT_EUTRAN         = 1004,
+  RAT_NG_RAN         = 1006,
   RAT_CDMA2000_1X    = 2000,
   RAT_HRPD           = 2001,
   RAT_UMB            = 2002,
   RAT_EHRPD          = 2003,
 } rat_type_t;
 
-#define NUMBER_OF_RAT_TYPE 11
+#define NUMBER_OF_RAT_TYPE 12
 
 typedef enum {
   SS_SERVICE_GRANTED             = 0,

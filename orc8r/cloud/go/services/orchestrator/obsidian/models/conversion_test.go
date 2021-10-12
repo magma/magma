@@ -16,12 +16,12 @@ package models_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	models1 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func Test_Conversions(t *testing.T) {

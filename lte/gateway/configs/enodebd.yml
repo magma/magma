@@ -21,10 +21,28 @@ tr069:
   #       if this is ever changed in dnsd.yml, this needs to be updated too
   public_ip: 192.88.99.142
 
+# TODO: @amar: This is a temp workaround to allow for testing until we
+# connect enodebd with the domain proxy which is responsible for talking to
+# SAS.
+sas:
+  sas_enabled: True
+  sas_server_url: "https://spectrum-connect.federatedwireless.com/v1.2/"
+  sas_uid: "INVALID_ID"
+  sas_category: "A"
+  sas_channel_type: "GAA"
+  sas_cert_subject: "INVALID_CERT_SUBJECT"
+  sas_icg_group_id: ""
+  sas_location: "indoor"
+  sas_height_type: "AMSL"
+
 # Reboot eNodeB if eNodeB should be connected to MME but isn't
 # This is a workaround for a bug with BaiCells eNodeB where the S1 connection
 # gets into a bad state
 reboot_enodeb_on_mme_disconnected: True
+
+# Enable webui for debugging for a list of eNB serial numbers.
+# Not supported on all enodeb models
+web_ui_enable_list: []
 
 # Network interface to terminate S1
 s1_interface: eth1

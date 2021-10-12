@@ -14,20 +14,20 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"sync"
 	"time"
 
+	"github.com/golang/glog"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/dispatcher/broker"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // heartBeatInterval is the heart beat interval from cloud to gateway

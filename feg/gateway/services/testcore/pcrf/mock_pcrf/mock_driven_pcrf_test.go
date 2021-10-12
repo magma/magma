@@ -19,6 +19,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/stretchr/testify/assert"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/eap/test"
@@ -27,11 +32,6 @@ import (
 	"magma/feg/gateway/services/testcore/pcrf/mock_pcrf"
 	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/stretchr/testify/assert"
 )
 
 // TestGxClient tests CCR init and terminate messages using a fake PCRF

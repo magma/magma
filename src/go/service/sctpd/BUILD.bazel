@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "sctpd",
+    srcs = [
+        "proxy_downlink_server.go",
+        "proxy_uplink_server.go",
+        "sctpd.go",
+    ],
+    importpath = "github.com/magma/magma/src/go/service/sctpd",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/go/log",
+        "//src/go/protos/magma/sctpd",
+        "//src/go/service",
+    ],
+)
+
+go_test(
+    name = "sctpd_test",
+    srcs = [
+        "proxy_downlink_server_integ_test.go",
+        "proxy_uplink_server_integ_test.go",
+    ],
+    deps = [
+        ":sctpd",
+        "//src/go/internal/testutil",
+        "//src/go/protos/magma/sctpd",
+        "//src/go/protos/magma/sctpd/mock_sctpd",
+        "//src/go/service",
+        "@com_github_golang_mock//gomock",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

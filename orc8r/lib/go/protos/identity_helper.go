@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"context"
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

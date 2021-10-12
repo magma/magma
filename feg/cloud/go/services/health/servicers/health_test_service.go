@@ -14,13 +14,13 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health/storage"
 	"magma/feg/cloud/go/services/health/test_utils"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/lib/go/protos"
-
-	"golang.org/x/net/context"
 )
 
 // A little Go "polymorphism" magic for testing

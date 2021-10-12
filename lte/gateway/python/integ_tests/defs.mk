@@ -152,6 +152,11 @@ s1aptests/test_idle_mode_with_mme_restart.py \
 s1aptests/test_3485_timer_for_dedicated_bearer_with_mme_restart.py \
 s1aptests/test_3485_timer_for_default_bearer_with_mme_restart.py \
 s1aptests/test_paging_after_mme_restart.py \
+s1aptests/test_attach_nw_initiated_detach_fail.py \
+s1aptests/test_tau_ta_updating.py \
+s1aptests/test_tau_ta_updating_reject.py \
+s1aptests/test_tau_mixed_partial_lists.py \
+s1aptests/test_guti_attach_with_zero_mtmsi.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
@@ -162,6 +167,7 @@ s1aptests/test_send_error_ind_for_erab_setup_req.py \
 s1aptests/test_attach_detach_with_ipv6_pcscf_and_dns_addr.py \
 s1aptests/test_concurrent_secondary_pdns.py \
 s1aptests/test_concurrent_secondary_pdn_reject.py \
+s1aptests/test_attach_detach_ipv6.py \
 s1aptests/test_ipv4v6_secondary_pdn_rs_retransmit.py \
 s1aptests/test_ipv4v6_secondary_pdn_spgw_initiated_ded_bearer.py \
 s1aptests/test_ipv6_secondary_pdn_rs_retransmit.py \
@@ -182,10 +188,8 @@ s1aptests/test_attach_auth_mac_failure.py \
 s1aptests/test_attach_esm_information_timerexpiration.py \
 s1aptests/test_attach_inactive_tau_with_combined_tala_update_reattach.py \
 s1aptests/test_attach_active_tau_with_combined_tala_update_reattach.py \
-s1aptests/test_attach_detach_two_pdns_with_tcptraffic.py \
 s1aptests/test_activate_deactivate_multiple_dedicated.py \
 s1aptests/test_sctp_shutdown_while_mme_is_stopped.py \
-s1aptests/test_attach_detach_rar_activation_reject.py \
 s1aptests/test_3495_timer_for_default_bearer_with_mme_restart.py \
 s1aptests/test_3495_timer_for_dedicated_bearer_with_mme_restart.py \
 s1aptests/test_attach_detach_with_corrupt_stateless_mme.py \
@@ -201,9 +205,6 @@ s1aptests/test_continuous_random_attach.py \
 s1aptests/test_restore_config_after_non_sanity.py
 
 #---------------
-# Non-Sanity: MME crash generating test case
-# s1aptests/test_outoforder_erab_setup_rsp_default_bearer.py \ GitHubIssue 5992
-
 # Non-Sanity: Individually passing tests, failing in set
 # s1aptests/test_paging_with_mme_restart.py \
 # s1aptests/test_standalone_pdn_conn_req_with_apn_correction.py \
@@ -221,9 +222,15 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_agw_offload_idle_active_ue.py \
 # s1aptests/test_agw_offload_mixed_idle_active_multiue.py \ GitHubIssue 6063
 
-# Non-Sanity: Failing Test Cases
+# Non-Sanity: Failure/Stuck/Crashing Test Cases
+# s1aptests/test_outoforder_erab_setup_rsp_default_bearer.py \ GitHubIssue 5992
 # s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py \ GitHubIssue 5997
 # s1aptests/test_attach_with_multiple_mme_restarts.py \ GitHubIssue 5997
+# s1aptests/test_attach_detach_rar_activation_reject.py \ GitHubIssue 9097
+# s1aptests/test_guti_attach_with_zero_mtmsi.py \ GitHubIssue 9096
+
+# Non-Sanity: Flaky Test Cases
+# s1aptests/test_attach_detach_two_pdns_with_tcptraffic.py \
 #---------------
 
 # Enable these tests once the CI job time-out has increased

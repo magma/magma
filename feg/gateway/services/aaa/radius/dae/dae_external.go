@@ -8,7 +8,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
+//
+//go:build !with_builtin_radius
 // +build !with_builtin_radius
 
 // package dae implements Radius Dynamic Authorization Extensions API (https://tools.ietf.org/html/rfc5176)

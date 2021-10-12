@@ -14,7 +14,13 @@ limitations under the License.
 package subscriberdb
 
 import (
+	"context"
 	"sort"
+
+	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
@@ -24,11 +30,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 )
 
 // LoadSubProtosPage streams one page (of configurable size) of subscriber data and
@@ -46,7 +47,7 @@ func LoadSubProtosPage(
 		LoadAssocsFromThis: true,
 	}
 
-	subEnts, nextToken, err := configurator.LoadAllEntitiesOfType(networkID, lte.SubscriberEntityType, lc, serdes.Entity)
+	subEnts, nextToken, err := configurator.LoadAllEntitiesOfType(context.Background(), networkID, lte.SubscriberEntityType, lc, serdes.Entity)
 	if err != nil {
 		return nil, "", errors.Wrapf(err, "load subscribers in network of gateway %s", networkID)
 	}
@@ -92,6 +93,7 @@ func DeserializeSubscribers(subProtosSerialized [][]byte) ([]*lte_protos.Subscri
 }
 
 func LoadSubProtosByID(
+	ctx context.Context,
 	sids []string, networkID string,
 	apnsByName map[string]*lte_models.ApnConfiguration,
 	apnResourcesByAPN lte_models.ApnResources,
@@ -102,7 +104,9 @@ func LoadSubProtosByID(
 		LoadAssocsFromThis: true,
 	}
 
-	subEnts, _, err := configurator.LoadEntities(networkID,
+	subEnts, _, err := configurator.LoadEntities(
+		ctx,
+		networkID,
 		swag.String(lte.SubscriberEntityType), nil, nil,
 		storage.MakeTKs(lte.SubscriberEntityType, sids),
 		lc, serdes.Entity,
@@ -125,6 +129,7 @@ func LoadSubProtosByID(
 
 func LoadApnsByName(networkID string) (map[string]*lte_models.ApnConfiguration, error) {
 	apns, _, err := configurator.LoadAllEntitiesOfType(
+		context.Background(),
 		networkID, lte.APNEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,

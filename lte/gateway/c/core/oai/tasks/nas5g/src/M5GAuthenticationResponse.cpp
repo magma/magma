@@ -14,7 +14,6 @@
 #include "M5GAuthenticationResponse.h"
 #include "M5GCommonDefs.h"
 
-using namespace std;
 namespace magma5g {
 AuthenticationResponseMsg::AuthenticationResponseMsg(){};
 AuthenticationResponseMsg::~AuthenticationResponseMsg(){};
@@ -29,7 +28,7 @@ int AuthenticationResponseMsg::DecodeAuthenticationResponseMsg(
       buffer, AUTHENTICATION_RESPONSE_MINIMUM_LENGTH, len);
 
   MLOG(MDEBUG) << "\n\n---Decoding Authentication Response Message---\n"
-               << endl;
+               << std::endl;
   if ((decoded_result = auth_response->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
                                 &auth_response->extended_protocol_discriminator,

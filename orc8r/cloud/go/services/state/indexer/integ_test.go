@@ -24,6 +24,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
@@ -41,9 +44,6 @@ import (
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 const (

@@ -19,7 +19,7 @@ import grpc
 import jsonpickle
 from google.protobuf.json_format import MessageToDict
 from magma.common.grpc_client_manager import GRPCClientManager
-from magma.common.rpc_utils import grpc_async_wrapper
+from magma.common.rpc_utils import grpc_async_wrapper, print_grpc
 from magma.common.sdwatchdog import SDWatchdogTask
 from magma.common.service import MagmaService
 from magma.state.garbage_collector import GarbageCollector
@@ -37,8 +37,36 @@ from orc8r.protos.state_pb2 import (
     SyncStatesRequest,
 )
 
+DEFAULT_SYNC_INTERVAL = 60
 DEFAULT_GRPC_TIMEOUT = 10
 GARBAGE_COLLECTION_ITERATION_INTERVAL = 2
+
+
+def _resolve_sync_interval(service: MagmaService) -> int:
+    # TODO(#8806): update this once we confirm partners no longer set sync_interval service configs.
+    # Sync_interval is in seconds
+    mconfig_sync_interval = service.mconfig.sync_interval
+    if mconfig_sync_interval is None or mconfig_sync_interval <= 0:
+        logging.info(
+            "mconfig_sync_interval is invalid, resetting to default interval %s",
+            DEFAULT_SYNC_INTERVAL,
+        )
+        mconfig_sync_interval = DEFAULT_SYNC_INTERVAL
+    service_config_sync_interval = service.config.get(
+        'sync_interval',
+        DEFAULT_SYNC_INTERVAL,
+    )
+    # We will honor service config sync_intervals under 10 seconds but this is being deprecated
+    # The interval should be set in Orc8r via the rest endpoint.
+    service_config_is_valid = service_config_sync_interval is not None and 3 < service_config_sync_interval < 10
+    if (
+            service_config_is_valid
+            and service_config_sync_interval < mconfig_sync_interval
+    ):
+        logging.info("using service_config_sync_interval")
+        return service_config_sync_interval
+    logging.info("using mconfig_sync_interval")
+    return mconfig_sync_interval
 
 
 class StateReplicator(SDWatchdogTask):
@@ -52,19 +80,11 @@ class StateReplicator(SDWatchdogTask):
         service: MagmaService,
         garbage_collector: GarbageCollector,
         grpc_client_manager: GRPCClientManager,
+        print_grpc_payload: bool = False,
     ):
-        # Sync_interval is in seconds
-        sync_interval = service.mconfig.sync_interval
-        service_config_sync_interval = service.config.get('sync_interval')
-        # TODO(#8806): remove this once we confirm partners no longer set sync_interval service configs.
-        # We will honor service config sync_intervals under 10 seconds but this is being deprecated
-        # The interval should be set in Orc8r via the rest endpoint.
-        if (
-                service_config_sync_interval is not None
-                and service_config_sync_interval < 10
-                and service_config_sync_interval < sync_interval
-        ):
-            sync_interval = service_config_sync_interval
+
+        sync_interval = _resolve_sync_interval(service)
+        logging.info("state service sync interval set to %s", sync_interval)
         super().__init__(sync_interval, service.loop)
         self._service = service
         # Garbage collector to propagate deletions back to Orchestrator
@@ -88,6 +108,10 @@ class StateReplicator(SDWatchdogTask):
         # Track replication iteration to track when to trigger garbage
         # collection
         self._replication_iteration = 0
+        self._print_grpc_payload = print_grpc_payload
+
+        if self._print_grpc_payload:
+            logging.info("Printing GRPC messages")
 
     async def _run(self):
         logging.debug("Check state")
@@ -130,12 +154,20 @@ class StateReplicator(SDWatchdogTask):
             return
         state_client = self._grpc_client_manager.get_client()
         request = SyncStatesRequest(states=states_to_sync)
+        print_grpc(
+            request, self._print_grpc_payload,
+            "Sending resync state request",
+        )
         response = await grpc_async_wrapper(
             state_client.SyncStates.future(
                 request,
                 DEFAULT_GRPC_TIMEOUT,
             ),
             self._loop,
+        )
+        print_grpc(
+            response, self._print_grpc_payload,
+            "Received resync state request",
         )
         unsynced_states = set()
         for id_and_version in response.unsyncedStates:
@@ -171,7 +203,8 @@ class StateReplicator(SDWatchdogTask):
                 if in_mem_key in self._state_versions and \
                         self._state_versions[in_mem_key] == redis_version:
                     logging.debug(
-                        "key %s already read on this iteration, skipping", in_mem_key,
+                        "key %s already read on this iteration, skipping",
+                        in_mem_key,
                     )
                     continue
 
@@ -212,6 +245,10 @@ class StateReplicator(SDWatchdogTask):
     async def _send_to_state_service(self, request: ReportStatesRequest):
         state_client = self._grpc_client_manager.get_client()
         try:
+            print_grpc(
+                request, self._print_grpc_payload,
+                "Sending to state service",
+            )
             response = await grpc_async_wrapper(
                 state_client.ReportStates.future(
                     request,
@@ -219,6 +256,7 @@ class StateReplicator(SDWatchdogTask):
                 ),
                 self._loop,
             )
+            print_grpc(response, self._print_grpc_payload)
 
         except grpc.RpcError as err:
             logging.error("GRPC call failed for state replication: %s", err)
@@ -250,7 +288,7 @@ class StateReplicator(SDWatchdogTask):
 
     async def _cleanup_deleted_keys(self):
         deleted_keys = set(self._state_versions) - \
-            self._state_keys_from_current_iteration
+                       self._state_keys_from_current_iteration
         for key in deleted_keys:
             del self._state_versions[key]
         self._state_keys_from_current_iteration = set()

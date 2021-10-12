@@ -5,29 +5,30 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
-    paths:
-      - 'cwf/cloud/**'
-      - 'fbinternal/cloud/**'
-      - 'feg/cloud/**'
-      - 'lte/cloud/**'
-      - 'orc8r/cloud/**'
-      - 'orc8r/lib/**'
-      - 'wifi/cloud/**'
   pull_request:
     branches:
       - master
-    paths:
-      - 'cwf/cloud/**'
-      - 'fbinternal/cloud/**'
-      - 'feg/cloud/**'
-      - 'lte/cloud/**'
-      - 'orc8r/cloud/**'
-      - 'orc8r/lib/**'
-      - 'wifi/cloud/**'
+    types: [opened, reopened, synchronize]
+
 jobs:
+  path_filter:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          # Only run the main job for changes including the following paths
+          paths: '["cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/cloud/**", "orc8r/lib/**"]'
+
   # Fail if checked-in generated code doesn't match output from
   # generation command.
   insync-checkin:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+    name: insync checkin job
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
@@ -65,6 +66,9 @@ jobs:
   # Fail if terraform variables, helm charts and orcl is out of sync
   # Ensure all Helm chart values are in-sync across Orc8r deployment mechanisms
   deploy-sync-checkin:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+    name: deploy sync job
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
@@ -96,6 +100,9 @@ jobs:
   # Fail if code doesn't pass formatting requirements.
   # Upload test coverage statistics.
   cloud-lint:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+    name: cloud lint job
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
@@ -134,6 +141,9 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
   cloud-test:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
+    name: cloud test job
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
@@ -172,8 +182,10 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
   cloud-upload:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' && github.ref == 'refs/heads/master' }}
+    name: cloud upload job
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v2
       - name: Install SwaggerHub CLI
@@ -184,7 +196,7 @@ jobs:
           SWAGGERHUB_API_KEY: "${{ secrets.SWAGGERHUB_API_KEY }}"
         run: |
           swaggerhub api:unpublish MagmaCore/Magma/1.0.0
-          swaggerhub api:update MagmaCore/Magma/1.0.0 --file ${MAGMA_ROOT}/orc8r/cloud/go/obsidian/swagger/v1/swagger.yml --publish --visibility=public --setdefault
+          swaggerhub api:update MagmaCore/Magma/1.0.0 --file ${MAGMA_ROOT}/orc8r/cloud/go/obsidian/swagger/v1/swagger.yml --published=publish --visibility=public --setdefault
       - name: Extract commit title
         id: commit
         if: failure() && github.ref == 'refs/heads/master'
@@ -203,12 +215,15 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
   orc8r-build:
-    runs-on: ubuntu-latest
     needs:
+      - path_filter
       - insync-checkin
       - deploy-sync-checkin
       - cloud-lint
       - cloud-test
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: orc8r build job
+    runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
       DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
@@ -233,7 +248,7 @@ jobs:
       - name: Tag and push to Jfrog Registry
         if: github.ref == 'refs/heads/master'
         env:
-          DOCKER_REGISTRY: "${{ secrets.JFROG_DOCKER_ORC8R_REGISTRY }}"
+          DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |

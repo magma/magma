@@ -14,21 +14,21 @@
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
 	"sync"
 
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
-	"golang.org/x/net/context"
 	corev1types "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/lib/go/protos"
 )
 
 const (

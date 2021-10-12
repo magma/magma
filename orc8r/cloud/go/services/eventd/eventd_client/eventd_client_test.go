@@ -16,10 +16,10 @@ package eventd_client
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/services/eventd/obsidian/models"
-
 	"github.com/olivere/elastic/v7"
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/cloud/go/services/eventd/obsidian/models"
 )
 
 type elasticTestCase struct {

@@ -293,25 +293,46 @@ commands:
               fi
             done
 
-  sentry-upload:
+  sentry-create-artifacts:
     parameters:
       executable_name:
         description: Name of executable that should be pushed to sentry
         type: string
     steps:
       - run:
-          name: Upload debug artifacts for an executable to Sentry.io
+          name: Create debug artifacts to be uploaded to Sentry.io
           command: |
-            # The assumption here is that packages.tar.gz was tarred in
-            # $MAGMA_ROOT/circleci in the magma_integ_test step
+            # The assumption here is that packages.tar.gz was copied out and untarred
+            # in $MAGMA_ROOT/circleci in the magma_integ_test step
             cd circleci/executables
 
-            SENTRY_ORG="lf-9c"
-            NATIVE_PROJECT="lab-agws-native"
             EXEC="<< parameters.executable_name >>"
             objcopy --only-keep-debug "$EXEC" "$EXEC".debug
             objcopy --strip-debug --strip-unneeded "$EXEC"
             objcopy --add-gnu-debuglink="$EXEC".debug "$EXEC"
+
+  sentry-upload:
+    parameters:
+      executable_name:
+        description: Name of executable that should be pushed to sentry
+        type: string
+      project:
+        description: Name of Sentry project that the symbols should be uploaded to
+        type: string
+      org:
+        description: Name of Sentry organization that the symbols should be uploaded to
+        type: string
+    steps:
+      - run:
+          name: Upload debug artifacts for an executable to Sentry.io
+          command: |
+            # The assumption here is that debug artifacts already exist for this executable
+            # This should be true if sentry-create-artifacts was run before this
+            cd circleci/executables
+
+            SENTRY_ORG="<< parameters.org >>"
+            NATIVE_PROJECT="<< parameters.project >>"
+            EXEC="<< parameters.executable_name >>"
 
             # [Optional] Log included debug information
             sentry-cli difutil check "$EXEC"
@@ -322,6 +343,27 @@ commands:
             # Upload the stripped executable with `unwind`
             sentry-cli upload-dif --log-level=info --org="$SENTRY_ORG" --project="$NATIVE_PROJECT" "$EXEC"
 
+  sentry-create-and-upload-artifacts:
+    parameters:
+      executable_name:
+        description: Name of executable that should be pushed to sentry
+        type: string
+    steps:
+      - sentry-create-artifacts:
+          executable_name: << parameters.executable_name >>
+      - sentry-upload:
+          executable_name: << parameters.executable_name >>
+          project: lab-agws-native
+          org: lf-9c
+      - sentry-upload:
+          executable_name: << parameters.executable_name >>
+          project: radtonics_lab_native
+          org: lf-9c
+      - sentry-upload:
+          executable_name: << parameters.executable_name >>
+          project: magma-staging
+          org: lf-9c
+
   sentry-release:
     steps:
       - run: curl -sL https://sentry.io/get-cli/ | bash
@@ -330,15 +372,18 @@ commands:
           command: |
             echo export SENTRY_ENVIRONMENT="staging" >> $BASH_ENV
             echo export SENTRY_ORG="lf-9c" >> $BASH_ENV
-      - sentry-upload:
+      - sentry-create-and-upload-artifacts:
           executable_name: sessiond
-      - sentry-upload:
+      - sentry-create-and-upload-artifacts:
           executable_name: mme
       - run:
           name: Create a release in Sentry.io with the commit hash
           command: |
-            COMMIT_HASH_WITH_VERSION="1.7.0-${CIRCLE_SHA1:0:8}"
-            sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native ${COMMIT_HASH_WITH_VERSION}
+            # The assumption here is that the magma version is copied out
+            # into /home/circleci/project/circleci in the magma_integ_test step
+            COMMIT_HASH_WITH_VERSION=$(cat circleci/magma_version)
+            echo ${COMMIT_HASH_WITH_VERSION}
+            sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native -p radtonics_lab_native -p magma-staging ${COMMIT_HASH_WITH_VERSION}
             sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${COMMIT_HASH_WITH_VERSION}
             sentry-cli --log-level=info releases finalize ${COMMIT_HASH_WITH_VERSION}
 
@@ -403,6 +448,11 @@ commands:
             mkdir -p versions
             cp *_version versions || true
           no_output_timeout: 20m
+      - run:
+          name: Do not trust expired cert distributed by default
+          command: |
+            sudo sed -i  's,mozilla/DST_Root_CA_X3.crt,!mozilla/DST_Root_CA_X3.crt,' /etc/ca-certificates.conf
+            sudo update-ca-certificates
       - run:
           name: Copy debian packages to new JFROG repo
           command: |
@@ -581,99 +631,6 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/circleci/release
             fab find_release_commits
-  ### CLOUD
-  cloud-test:
-    machine:
-      image: ubuntu-1604:201903-01
-      docker_layer_caching: true
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *all_gateways_build_verify
-      - docker/install-dc
-      - python/set_version
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py --tests --up
-          no_output_timeout: 15m
-      - store_test_results:
-          path: /home/circleci/project/orc8r/cloud/test-results
-      - magma_slack_notify
-
-  # Fail if code doesn't pass formatting requirements.
-  # Upload test coverage statistics.
-  cloud_lint:
-    machine:
-      image: ubuntu-1604:201903-01
-      docker_layer_caching: true
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *all_gateways_build_verify
-      - docker/install-dc
-      - python/set_version
-      - run:
-          name: Lint cloud Go code
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py --lint
-      - run:
-          name: Generate test coverage
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py --coverage
-      - codecov/upload:
-          file: /home/circleci/project/orc8r/cloud/coverage/all.gocov
-          flags: cloud_lint
-      - magma_slack_notify
-
-  # Fail if checked-in generated code doesn't match output from
-  # generation command.
-  insync-checkin:
-    machine:
-      image: ubuntu-1604:201903-01
-      #docker_layer_caching: true
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *all_gateways_build_verify
-      - docker/install-dc
-      - python/set_version
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py --generate
-      - run: sudo chown -R circleci $MAGMA_ROOT/*
-      - run: git add .
-      - run: git status
-      - run: git diff-index --quiet HEAD
-      - magma_slack_notify
-
-  # Fail if terraform variables, helm charts and orcl is out of sync
-  deploy-sync-checkin:
-    machine:
-      image: ubuntu-1604:201903-01
-      # docker_layer_caching: true
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *all_gateways_build_verify
-      - docker/install-dc
-      - python/set_version
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
-            ./run_deployer.bash --deploy-dir /tmp/deploy_dir --build --test check_all
-      - magma_slack_notify
 
   orc8r-build:
     machine:
@@ -731,64 +688,6 @@ jobs:
             cd ${MAGMA_ROOT}/orc8r/gateway/go
             go test ./...
             go vet ./...
-      - magma_slack_notify
-
-  feg-lint:
-    machine:
-      image: ubuntu-1604:201903-01
-      docker_layer_caching: true
-    resource_class: large
-    environment:
-      GO111MODULE: 'on'
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *federated_build_verify
-      - install-go
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run: ./circleci/golang_before_install.sh
-      - run-with-retry:
-         command: go mod download
-         workdir: ${MAGMA_ROOT}/cwf/gateway
-      - run:
-          name: Go lint code
-          command: |
-            cd ${MAGMA_ROOT}/feg/gateway
-            make -C ${MAGMA_ROOT}/feg/gateway lint
-      - run:
-          name: Generate test coverage
-          command: |
-            cd ${MAGMA_ROOT}/feg/gateway
-            make -C ${MAGMA_ROOT}/feg/gateway cover
-      - codecov/upload:
-          file: /home/circleci/project/feg/gateway/coverage/feg.gocov
-          flags: feg-lint
-      - magma_slack_notify
-
-  feg-precommit:
-    machine:
-      image: ubuntu-1604:201903-01
-      docker_layer_caching: true
-    resource_class: large
-    environment:
-      GO111MODULE: 'on'
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *federated_build_verify
-      - install-go
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run: ./circleci/golang_before_install.sh
-      - run-with-retry:
-         command: go mod download
-         workdir: ${MAGMA_ROOT}/cwf/gateway
-      - run:
-          name: make feg precommit
-          command: |
-            cd ${MAGMA_ROOT}/feg/gateway
-            make -C ${MAGMA_ROOT}/feg/gateway precommit
-      - store_test_results:
-          path: /tmp/test-results
       - magma_slack_notify
 
   feg-build:
@@ -1166,26 +1065,6 @@ jobs:
 
   ## CWF OPERATOR
 
-  cwf-operator-precommit:
-    docker:
-      - image: circleci/golang:1.13-buster-node-browsers-legacy
-    environment:
-      GO111MODULE: 'on'
-    steps:
-      - checkout
-      - build/determinator:
-          paths: "cwf/k8s"
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run: ./circleci/golang_before_install.sh
-      - run-with-retry:
-          command: go mod download
-          workdir: ${MAGMA_ROOT}/cwf/k8s/cwf_operator
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator
-            make -C ${MAGMA_ROOT}/cwf/k8s/cwf_operator precommit
-      - magma_slack_notify
-
   cwf-operator-build:
     machine:
       image: ubuntu-1604:201903-01
@@ -1485,19 +1364,6 @@ jobs:
 workflows:
   version: 2
 
-  cloud:
-    jobs:
-      - insync-checkin
-      - deploy-sync-checkin
-      - cloud_lint
-      - cloud-test
-      - orc8r-build:
-          requires:
-            - insync-checkin
-            - deploy-sync-checkin
-            - cloud_lint
-            - cloud-test
-
   lib_gateway:
     jobs:
       - orc8r-gateway-test
@@ -1562,14 +1428,6 @@ workflows:
           requires:
             - release-hold
             - ami-hold
-  feg:
-    jobs:
-      - feg-lint
-      - feg-precommit
-      - feg-build:
-          requires:
-            - feg-precommit
-          tag-latest: true
 
   cwag:
     jobs:
@@ -1577,14 +1435,6 @@ workflows:
           <<: *master_and_develop
       - xwfm-test:
           <<: *master_and_develop
-
-
-  cwf_operator:
-    jobs:
-      - cwf-operator-precommit
-      - cwf-operator-build:
-          requires:
-            - cwf-operator-precommit
 
   hourly_xwfm:
     triggers:

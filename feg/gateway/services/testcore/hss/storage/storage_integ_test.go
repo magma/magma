@@ -16,11 +16,11 @@ package storage_test
 import (
 	"testing"
 
-	"magma/feg/gateway/services/testcore/hss/storage"
-	"magma/lte/cloud/go/protos"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
+
+	"magma/feg/gateway/services/testcore/hss/storage"
+	"magma/lte/cloud/go/protos"
 )
 
 func TestTestcoreStorageMemory_Integration(t *testing.T) {

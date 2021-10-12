@@ -23,16 +23,16 @@ import (
 	"sync"
 	"time"
 
-	"magma/orc8r/lib/go/protos"
-	"magma/orc8r/lib/go/registry"
-	"magma/orc8r/lib/go/service/config"
-	"magma/orc8r/lib/go/util"
-
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
 	grpc_proto "google.golang.org/grpc/encoding/proto"
 	"google.golang.org/grpc/keepalive"
+
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
+	"magma/orc8r/lib/go/util"
 )
 
 const (

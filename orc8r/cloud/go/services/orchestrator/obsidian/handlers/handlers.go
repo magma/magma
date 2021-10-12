@@ -16,13 +16,13 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/labstack/echo"
+
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-
-	"github.com/labstack/echo"
 )
 
 const (

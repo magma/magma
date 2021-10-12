@@ -110,8 +110,7 @@ int amf_proc_deregistration_request(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_DEBUG(
       LOG_NAS_AMF,
-      "Processing deregistration UE-id = %d "
-      "type = %d\n",
+      "Processing deregistration UE-id = " AMF_UE_NGAP_ID_FMT " type = %d",
       ue_id, params->de_reg_type);
   int rc = RETURNerror;
 
@@ -125,8 +124,8 @@ int amf_proc_deregistration_request(
   if (!amf_ctx) {
     OAILOG_DEBUG(
         LOG_NAS_AMF,
-        "AMF icontext not present for UE-id = %d "
-        "type = %d\n",
+        "AMF icontext not present for UE-id = " AMF_UE_NGAP_ID_FMT
+        " type = %d\n",
         ue_id, params->de_reg_type);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
@@ -194,7 +193,11 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
   int rc                         = RETURNerror;
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (!ue_context) {
-    OAILOG_ERROR(LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "ue context not found for the "
+        "ue_id = " AMF_UE_NGAP_ID_FMT "\n",
+        ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
   // TODO: will be taken care later as PDU session related info not stored
@@ -205,13 +208,16 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
   // UE context release notification to NGAP
+  if (ue_context->ue_context_rel_cause.ngapCause_u.nas ==
+      ngap_CauseNas_normal_release) {
+    ue_context->ue_context_rel_cause.ngapCause_u.nas = ngap_CauseNas_deregister;
+  }
   amf_app_ue_context_release(ue_context, ue_context->ue_context_rel_cause);
 
   // Clean up all the sessions.
   amf_smf_context_cleanup_pdu_session(ue_context);
 
-  // Remove stored UE context from AMF core.
-  amf_remove_ue_context(ue_context);
+  amf_free_ue_context(ue_context);
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -265,7 +271,9 @@ void amf_remove_ue_context(ue_m5gmm_context_s* ue_context_p) {
 
   if (found_ue_id != ue_context_map.end()) {
     OAILOG_DEBUG(
-        LOG_AMF_APP, "Removed ue id = %u entry from the ue context map\n",
+        LOG_AMF_APP,
+        "Removed ue id = " AMF_UE_NGAP_ID_FMT
+        " entry from the ue context map\n",
         ue_context_p->amf_ue_ngap_id);
     ue_context_map.erase(found_ue_id);
   }

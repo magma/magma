@@ -19,14 +19,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/gateway/policydb/mocks"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/lte/cloud/go/protos"
-
-	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestReAuthRequest_ToProto(t *testing.T) {
@@ -223,7 +223,7 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 	// Check nil, 1-element, multiple elements, and empty arrays
 	monitoringKey := []byte("monitor")
 	var ratingGroup uint32 = 10
-	var ruleOut *protos.PolicyRule = nil
+	var ruleOut *protos.PolicyRule
 
 	ruleOut = (&gx.RuleDefinition{
 		RuleName:      "rgonly",

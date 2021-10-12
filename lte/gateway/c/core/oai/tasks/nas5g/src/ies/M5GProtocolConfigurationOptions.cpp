@@ -17,7 +17,6 @@
 #include "M5GCommonDefs.h"
 #include "M5gNasMessage.h"
 
-using namespace std;
 namespace magma5g {
 ProtocolConfigurationOptions::ProtocolConfigurationOptions() {}
 ProtocolConfigurationOptions::~ProtocolConfigurationOptions() {}

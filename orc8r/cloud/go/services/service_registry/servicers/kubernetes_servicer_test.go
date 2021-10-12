@@ -14,22 +14,22 @@
 package servicers_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/services/service_registry/servicers"
-	"magma/orc8r/lib/go/protos"
-	"magma/orc8r/lib/go/registry"
-
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 	corev1Interface "k8s.io/client-go/kubernetes/typed/core/v1"
+
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/service_registry/servicers"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 )
 
 const (

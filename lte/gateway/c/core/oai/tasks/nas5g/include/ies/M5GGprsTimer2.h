@@ -11,7 +11,6 @@
 #pragma once
 #include <sstream>
 #include <cstdint>
-using namespace std;
 namespace magma5g {
 class GPRSTimer2Msg {
  public:

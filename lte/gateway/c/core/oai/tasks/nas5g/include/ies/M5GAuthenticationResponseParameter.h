@@ -13,7 +13,6 @@
 #include <sstream>
 #include <cstdint>
 #include "bstrlib.h"
-using namespace std;
 
 namespace magma5g {
 // AuthenticationResponseParameter IE Class

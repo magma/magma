@@ -3,12 +3,12 @@ package models
 import (
 	"context"
 
-	"magma/lte/cloud/go/services/policydb/obsidian/models"
-	"magma/lte/cloud/go/services/smsd/storage"
-
 	"github.com/go-openapi/strfmt"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
+
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
+	"magma/lte/cloud/go/services/smsd/storage"
 )
 
 func (m *SmsMessage) FromProto(from *storage.SMS) *SmsMessage {

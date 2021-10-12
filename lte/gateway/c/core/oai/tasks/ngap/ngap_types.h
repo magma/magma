@@ -16,9 +16,10 @@
 #include <stdint.h>
 
 #include "3gpp_38.401.h"
-
 #include "common_types.h"
 #include "hashtable.h"
+
+#include "amf_config.h"
 
 #define NGAP_MAX_BROADCAST_PLMNS 6
 /* Maximum TAI Items configured, can be upto 256 */
@@ -34,7 +35,11 @@ struct gnb_description_s;
 typedef struct m5g_supported_tai_items_s {
   uint16_t tac;             ///< Supported TAC value
   uint8_t bplmnlist_count;  ///< Number of Broadcast PLMNs in the TAI
-  plmn_t bplmns[NGAP_MAX_BROADCAST_PLMNS];  ///< List of Broadcast PLMNS
+  struct {
+    plmn_t plmn_id;
+    uint8_t num_of_s_nssai;
+    amf_s_nssai_t s_nssai[8];
+  } bplmn_list[NGAP_MAX_BROADCAST_PLMNS];  ///< List of Broadcast PLMNS
 } m5g_supported_tai_items_t;
 
 // The current n1 state of the AMF relating to the specific gNB.

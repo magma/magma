@@ -17,14 +17,14 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
 	cstorage "magma/orc8r/cloud/go/services/ctraced/storage"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 const (
@@ -37,7 +37,7 @@ func TestCtracedBlobstoreStorage_GetCallTrace(t *testing.T) {
 	someErr := errors.New("generic error")
 
 	ctid := "some_call_trace"
-	tk := storage.TypeAndKey{Type: cstorage.CtracedBlobType, Key: ctid}
+	tk := storage.TK{Type: cstorage.CtracedBlobType, Key: ctid}
 
 	ctData := "abcdefghijklmnopqrstuvwxyz"
 	blob := blobstore.Blob{
@@ -106,7 +106,7 @@ func TestCtracedBlobstoreStorage_StoreCallTrace(t *testing.T) {
 	someErr := errors.New("generic error")
 
 	ctid := "some_call_trace"
-	tk := storage.TypeAndKey{Type: cstorage.CtracedBlobType, Key: ctid}
+	tk := storage.TK{Type: cstorage.CtracedBlobType, Key: ctid}
 
 	ctData := []byte("abcdefghijklmnopqrstuvwxyz")
 	blob := blobstore.Blob{
@@ -162,8 +162,8 @@ func TestCtracedBlobstoreStorage_DeleteCallTrace(t *testing.T) {
 	someErr := errors.New("generic error")
 
 	ctid := "some_call_trace"
-	tk := storage.TypeAndKey{Type: cstorage.CtracedBlobType, Key: ctid}
-	tkSet := []storage.TypeAndKey{tk}
+	tk := storage.TK{Type: cstorage.CtracedBlobType, Key: ctid}
+	tkSet := storage.TKs{tk}
 
 	// Fail to start transaction
 	blobFactMock = &mocks.BlobStorageFactory{}

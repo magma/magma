@@ -18,20 +18,20 @@ import (
 	"encoding/json"
 	"time"
 
-	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
+
+	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/lib/go/protos"
 )
 
 // MconfigProvider provides streamer mconfigs (magma configs).
 type MconfigProvider struct{}
 
 func (p *MconfigProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	res, err := configurator.GetMconfigFor(gatewayId)
+	res, err := configurator.GetMconfigFor(ctx, gatewayId)
 	if err != nil {
 		return nil, errors.Wrap(err, "get mconfig from configurator")
 	}

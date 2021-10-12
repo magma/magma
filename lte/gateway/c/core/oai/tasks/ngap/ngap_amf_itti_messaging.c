@@ -20,6 +20,7 @@
 #include "assertions.h"
 #include "intertask_interface.h"
 #include "Ngap_CauseRadioNetwork.h"
+#include "ngap_common.h"
 #include "nas/as_message.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
@@ -57,9 +58,10 @@ status_code_e ngap_amf_itti_nas_uplink_ind(
     const ecgi_t* cgi) {
   MessageDef* message_p = NULL;
   imsi64_t imsi64       = INVALID_IMSI64;
-  OAILOG_DEBUG(
+  OAILOG_DEBUG_UE(
       LOG_NGAP, imsi64,
-      "Sending NAS Uplink indication to NAS_AMF_APP, amf_ue_ngap_id = (%u) \n",
+      "Sending NAS Uplink indication to NAS_AMF_APP, amf_ue_ngap_id "
+      "= " AMF_UE_NGAP_ID_FMT,
       ue_id);
   message_p = itti_alloc_new_message(TASK_NGAP, AMF_APP_UPLINK_DATA_IND);
   if (message_p == NULL) {

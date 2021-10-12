@@ -685,6 +685,8 @@ github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad/go.mod h1:Hy8o65+
 github.com/warthog618/sms v0.3.0/go.mod h1:+bYZGeBxu003sxD5xhzsrIPBAjPBzTABsRTwSpd7ld4=
 github.com/wmnsk/go-gtp v0.7.26 h1:vj29T/QJRjQOjUYjvFbX7jEG9S6AE44fpB2TZITcBns=
 github.com/wmnsk/go-gtp v0.7.26/go.mod h1:Y0reWDB701yW31+HeZcHfO6dLVRfn/f017vH+7syqrg=
+github.com/wmnsk/go-gtp v0.8.0 h1:KbvPh2nRGrB67w3k80YhIv6NkjKsZn20i0B5wCjhdDs=
+github.com/wmnsk/go-gtp v0.8.0/go.mod h1:Y0reWDB701yW31+HeZcHfO6dLVRfn/f017vH+7syqrg=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/xlab/treeprint v0.0.0-20180616005107-d6fb6747feb6/go.mod h1:ce1O1j6UtZfjr22oyGxGLbauSBp2YVXpARAosm7dHBg=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
@@ -955,7 +957,6 @@ gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C
 gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 h1:tQIYjPdBoyREyB9XMu+nnTclpTYkz2zFM+lzLJFO4gQ=
 gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gotest.tools v2.2.0+incompatible h1:VsBPFP1AI068pPrMxtb/S8Zkgf9xEmTLJjfM+P5UIEo=
-gotest.tools/gotestsum v1.6.4/go.mod h1:fTR9ZhxC/TLAAx2/WMk/m3TkMB9eEI89gdEzhiRVJT8=
 gotest.tools/gotestsum v1.7.0 h1:RwpqwwFKBAa2h+F6pMEGpE707Edld0etUD3GhqqhDNc=
 gotest.tools/gotestsum v1.7.0/go.mod h1:V1m4Jw3eBerhI/A6qCxUE07RnCg7ACkKj9BYcAm09V8=
 gotest.tools/v3 v3.0.3/go.mod h1:Z7Lb0S5l+klDB31fvDQX8ss/FlKDxtlFlw3Oa8Ymbl8=
@@ -974,8 +975,6 @@ k8s.io/klog v0.4.0/go.mod h1:4Bi6QPql/J/LkTDqv7R/cd3hPo4k2DG6Ptcz060Ez5I=
 k8s.io/kube-openapi v0.0.0-20180629012420-d83b052f768a/go.mod h1:BXM9ceUBTj2QnfH2MK1odQs778ajze1RxcmP6S8RVVc=
 k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf/go.mod h1:1TqjTSzOxsLGIKfj0lK8EeCP7K1iUG65v09OM0/WG5E=
 k8s.io/utils v0.0.0-20190308190857-21c4ce38f2a7/go.mod h1:8k8uAuAQ0rXslZKaEWd0c3oVhZz7sSzSiPnVZayjIX0=
-layeh.com/radius v0.0.0-20200615152116-663b41c3bf86 h1:fusTUj5p5gvde/S45jZxsRO7Kuehu3JlYX6fTOvAedw=
-layeh.com/radius v0.0.0-20200615152116-663b41c3bf86/go.mod h1:lGEjzZ49j7EhtyvqZboqTYD6tnw/NR0S8ix1PXHfRgE=
 layeh.com/radius v0.0.0-20201203135236-838e26d0c9be h1:4YeDNYYOf9Pnn3pWEktFE+ZCZ5qX5ZVMaw3VAtfoXPk=
 layeh.com/radius v0.0.0-20201203135236-838e26d0c9be/go.mod h1:pFWM9De99EY9TPVyHIyA56QmoRViVck/x41WFkUlc9A=
 sigs.k8s.io/structured-merge-diff v0.0.0-20190525122527-15d366b2352e/go.mod h1:wWxsB5ozmmv/SG7nM11ayaAW51xMvak/t1r0CSlcokI=

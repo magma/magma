@@ -17,13 +17,13 @@ import (
 	"fmt"
 	"time"
 
-	"magma/orc8r/cloud/go/services/configurator/storage"
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
+
+	"magma/orc8r/cloud/go/services/configurator/storage"
+	"magma/orc8r/lib/go/protos"
 )
 
 // CreateMconfigJSON assembles the mconfig for the requested gateway ID.

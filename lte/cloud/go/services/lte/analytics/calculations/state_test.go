@@ -1,13 +1,14 @@
 package calculations_test
 
 import (
-	context2 "context"
+	"context"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	lte_calculations "magma/lte/cloud/go/services/lte/analytics/calculations"
-
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -17,16 +18,14 @@ import (
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/lib/go/metrics"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestUserCalculations(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	state_test_init.StartTestService(t)
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n0"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity(context2.Background(), "n0", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g0", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw0"}, serdes.Entity)
+	_, err = configurator.CreateEntity(context.Background(), "n0", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g0", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw0"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	ctx := test_utils.GetContextWithCertificate(t, "hw0")
@@ -88,10 +87,10 @@ func TestUserCalculations(t *testing.T) {
 func TestSiteCalculations(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	state_test_init.StartTestService(t)
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n0"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntity(context2.Background(), "n0", configurator.NetworkEntity{
+	_, err = configurator.CreateEntity(context.Background(), "n0", configurator.NetworkEntity{
 		Type:       lte.CellularGatewayEntityType,
 		Key:        "g0",
 		Config:     &models.MagmadGatewayConfigs{},

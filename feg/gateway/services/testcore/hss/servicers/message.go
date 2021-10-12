@@ -18,16 +18,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	s6a "magma/feg/gateway/services/s6a_proxy/servicers"
 	swx "magma/feg/gateway/services/swx_proxy/servicers"
-
-	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/fiorix/go-diameter/v4/diam/avp"
-	"github.com/fiorix/go-diameter/v4/diam/datatype"
-	"github.com/golang/glog"
 )
 
 // ConstructFailureAnswer creates an answer for the message with an embedded
@@ -107,7 +107,7 @@ func (srv *HomeSubscriberServer) handleMessage(reply replyFunc) diam.HandlerFunc
 			glog.Error("Received nil message")
 			return
 		}
-		glog.V(2).Infof("Message received in hss service: %s", msg.String())
+		glog.V(2).Infof("Message received in hss service: %s}", msg.String())
 
 		answer, err := reply(srv, msg)
 		if err != nil {
@@ -118,6 +118,7 @@ func (srv *HomeSubscriberServer) handleMessage(reply replyFunc) diam.HandlerFunc
 		if err != nil {
 			glog.Errorf("Failed to send response: %s", err.Error())
 		}
+		glog.V(2).Infof("Message sent from hss service: %s}", answer.String())
 	}
 }
 

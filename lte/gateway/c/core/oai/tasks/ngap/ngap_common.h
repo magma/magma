@@ -787,3 +787,12 @@ void ngap_handle_criticality(Ngap_Criticality_t criticality);
 status_code_e ngap_send_msg_to_task(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
     MessageDef* message);
+
+/** \brief Setup a request transfer
+ \param session transfer pointer
+ \param pointer to transfer request
+ @returns 0 on success
+ **/
+int ngap_fill_pdu_session_resource_setup_request_transfer(
+    const pdu_session_resource_setup_request_transfer_t* session_transfer,
+    Ngap_PDUSessionResourceSetupRequestTransfer_t* transfer_request);

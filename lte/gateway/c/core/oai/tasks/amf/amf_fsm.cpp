@@ -118,6 +118,10 @@ void create_state_matrix() {
       DEREGISTERED_INITIATED, SESSION_NULL, "Deregister_Initiated");
 
   Update_ue_state_matrix(
+      REGISTERED_IDLE, STATE_EVENT_DEREGISTER, SESSION_NULL,
+      DEREGISTERED_INITIATED, SESSION_NULL, "Deregister_Initiated");
+
+  Update_ue_state_matrix(
       DEREGISTERED_INITIATED, STATE_EVENT_DEREGISTER, SESSION_NULL,
       DEREGISTERED, SESSION_NULL, "Deregister_Completed");
 

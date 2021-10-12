@@ -18,6 +18,10 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/Masterminds/squirrel"
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"
 	configurator_storage "magma/orc8r/cloud/go/services/configurator/storage"
@@ -25,10 +29,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/Masterminds/squirrel"
-	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -208,7 +208,7 @@ func (l *syncStore) GetLastResync(network string, gateway string) (int64, error)
 	}
 	defer store.Rollback()
 
-	blob, err := store.Get(network, storage.TypeAndKey{Type: lastResyncBlobstoreType, Key: gateway})
+	blob, err := store.Get(network, storage.TK{Type: lastResyncBlobstoreType, Key: gateway})
 	if err == merrors.ErrNotFound {
 		// If this gw has never been resynced, return 0 to enforce first resync
 		return int64(0), nil

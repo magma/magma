@@ -20,13 +20,15 @@ package protos
 
 import (
 	context "context"
+	reflect "reflect"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
 	protos "magma/feg/gateway/services/aaa/protos"
-	reflect "reflect"
 )
 
 const (

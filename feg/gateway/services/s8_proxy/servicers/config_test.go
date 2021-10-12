@@ -4,10 +4,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/gateway/services/s8_proxy/servicers"
 	"magma/gateway/mconfig"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGetS8ProxyConfig(t *testing.T) {

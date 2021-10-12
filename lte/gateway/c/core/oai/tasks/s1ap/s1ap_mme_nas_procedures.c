@@ -28,7 +28,6 @@
 #include <string.h>
 
 #include "bstrlib.h"
-#include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "hashtable.h"
 #include "log.h"
@@ -40,7 +39,6 @@
 #include "s1ap_mme_itti_messaging.h"
 #include "service303.h"
 #include "3gpp_23.003.h"
-#include "3gpp_24.007.h"
 #include "3gpp_36.413.h"
 #include "INTEGER.h"
 #include "OCTET_STRING.h"
@@ -865,7 +863,8 @@ status_code_e s1ap_generate_s1ap_e_rab_setup_req(
 //------------------------------------------------------------------------------
 void s1ap_handle_conn_est_cnf(
     s1ap_state_t* state,
-    const itti_mme_app_connection_establishment_cnf_t* const conn_est_cnf_pP) {
+    const itti_mme_app_connection_establishment_cnf_t* const conn_est_cnf_pP,
+    imsi64_t imsi64) {
   /*
    * We received create session response from S-GW on S11 interface abstraction.
    * At least one bearer has been established. We can now send s1ap initial
@@ -901,11 +900,10 @@ void s1ap_handle_conn_est_cnf(
     OAILOG_FUNC_OUT(LOG_S1AP);
   }
 
-  imsi64_t imsi64;
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(
+  hashtable_uint64_ts_insert(
       imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) conn_est_cnf_pP->ue_id,
-      &imsi64);
+      imsi64);
 
   pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
   pdu.choice.initiatingMessage.procedureCode =

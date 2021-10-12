@@ -284,14 +284,16 @@ static int identification_t3570_handler(
 
   if (ue_amf_context == NULL) {
     OAILOG_DEBUG(
-        LOG_AMF_APP, "T3570: ue_amf_context is NULL for ue id: %d\n", ue_id);
+        LOG_AMF_APP,
+        "T3570: ue_amf_context is NULL for UE ID: " AMF_UE_NGAP_ID_FMT, ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
   amf_ctx = &ue_amf_context->amf_context;
   if (!(amf_ctx)) {
     OAILOG_ERROR(
-        LOG_AMF_APP, "T3570: timer expired No AMF context for ue id: %d\n",
+        LOG_AMF_APP,
+        "T3570: timer expired No AMF context for UE ID: " AMF_UE_NGAP_ID_FMT,
         ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
@@ -301,7 +303,8 @@ static int identification_t3570_handler(
 
   if (ident_proc) {
     OAILOG_WARNING(
-        LOG_AMF_APP, "T3570: Timer expired for timer id %lu ue id %d\n",
+        LOG_AMF_APP,
+        "T3570: Timer expired for timer id %lu for UE ID " AMF_UE_NGAP_ID_FMT,
         ident_proc->T3570.id, ident_proc->ue_id);
     ident_proc->T3570.id = NAS5G_TIMER_INACTIVE_ID;
     /*
@@ -434,7 +437,7 @@ int amf_nas_proc_authentication_info_answer(
   OAILOG_DEBUG(
       LOG_NAS_AMF,
       "Received Authentication Information Answer from Subscriberdb for"
-      " ue_id = %d\n",
+      " UE ID = " AMF_UE_NGAP_ID_FMT,
       amf_ue_ngap_id);
 
   if (aia->auth_info.nb_of_vectors) {
@@ -465,4 +468,48 @@ int amf_nas_proc_authentication_info_answer(
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
+
+int amf_handle_s6a_update_location_ans(
+    const s6a_update_location_ans_t* ula_pP) {
+  imsi64_t imsi64                   = INVALID_IMSI64;
+  int rc                            = RETURNerror;
+  amf_context_t* amf_ctxt_p         = NULL;
+  ue_m5gmm_context_s* ue_mm_context = NULL;
+  int amf_cause                     = -1;
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+
+  IMSI_STRING_TO_IMSI64((char*) ula_pP->imsi, &imsi64);
+
+  ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
+
+  if (ue_mm_context) {
+    amf_ctxt_p = &ue_mm_context->amf_context;
+  }
+
+  if (!(amf_ctxt_p)) {
+    OAILOG_ERROR(LOG_NAS_AMF, "IMSI is invalid\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
+
+  amf_ue_ngap_id_t amf_ue_ngap_id = ue_mm_context->amf_ue_ngap_id;
+
+  OAILOG_DEBUG(
+      LOG_NAS_AMF,
+      "Received update location Answer from Subscriberdb for"
+      " ue_id = " AMF_UE_NGAP_ID_FMT,
+      amf_ue_ngap_id);
+  memcpy(
+      &amf_ctxt_p->subscribed_ue_ambr,
+      &ula_pP->subscription_data.subscribed_ambr, sizeof(ambr_t));
+
+  OAILOG_DEBUG(
+      LOG_NAS_AMF,
+      "Received UL rate %" PRIu64 " and DL rate %" PRIu64 "and BR unit: %d \n",
+      ula_pP->subscription_data.subscribed_ambr.br_ul,
+      ula_pP->subscription_data.subscribed_ambr.br_dl,
+      ula_pP->subscription_data.subscribed_ambr.br_unit);
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+}
+
 }  // namespace magma5g

@@ -19,10 +19,10 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
+
+	"magma/orc8r/lib/go/protos"
 )
 
 type mconfigFactory struct {

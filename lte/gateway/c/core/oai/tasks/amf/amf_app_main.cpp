@@ -56,7 +56,8 @@ void amf_app_exit(void);
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
-  imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
+  // imsi64_t imsi64                =
+  // itti_get_associated_imsi(received_message_p);
 
   OAILOG_INFO(
       LOG_AMF_APP, "Received msg from :[%s] id:[%d] name:[%s]\n",
@@ -97,6 +98,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       amf_smf_handle_ip_address_response(response_p);
       break;
 
+    case S6A_UPDATE_LOCATION_ANS: {
+      OAILOG_INFO(
+          LOG_MME_APP,
+          "Received S6A Update Location Answer from subscriberd\n");
+      amf_handle_s6a_update_location_ans(
+          &received_message_p->ittiMsg.s6a_update_location_ans);
+    } break;
+
     /* Handle PDU session resource setup response */
     case NGAP_PDUSESSIONRESOURCE_SETUP_RSP:
       /* This is non-nas message and can be handled directly to check if failure
@@ -117,7 +126,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       /* This case handles Notification Received for Paging or other events
        * or success messages are coming from NGAP
        */
-      imsi64 = itti_get_associated_imsi(received_message_p);
       amf_app_handle_notification_received(
           &N11_NOTIFICATION_RECEIVED(received_message_p));
       break;

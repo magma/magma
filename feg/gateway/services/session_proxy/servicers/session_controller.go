@@ -19,6 +19,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/glog"
+	"github.com/thoas/go-funk"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/policydb"
@@ -29,9 +32,6 @@ import (
 	"magma/lte/cloud/go/protos"
 	"magma/orc8r/lib/go/errors"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"github.com/thoas/go-funk"
 )
 
 // CentralSessionController acts as the gRPC server for accepting calls from
@@ -222,7 +222,7 @@ func (srv *CentralSessionController) UpdateSession(
 		if srv.cfg.DisableGx {
 			return
 		}
-		requests := getGxUpdateRequestsFromUsage(request.UsageMonitors)
+		requests := gx.FromUsageMonitorUpdates(request.UsageMonitors)
 		gxUpdateResponses = srv.sendMultipleGxRequestsWithTimeout(requests, srv.cfg.RequestTimeout)
 		for _, mur := range gxUpdateResponses {
 			if mur != nil {
@@ -240,7 +240,7 @@ func (srv *CentralSessionController) UpdateSession(
 		if srv.cfg.DisableGy {
 			return
 		}
-		requests := getGyUpdateRequestsFromUsage(request.Updates)
+		requests := gy.FromCreditUsageUpdates(request.Updates)
 		gyUpdateResponses = srv.sendMultipleGyRequestsWithTimeout(requests, srv.cfg.RequestTimeout)
 		for _, cur := range gyUpdateResponses {
 			if cur != nil {

@@ -231,15 +231,19 @@ status_code_e s11_mme_modify_bearer_request(
   }
 
   // Sender F-TEID for Control Plane (MME S11)
-  rc = nwGtpv2cMsgAddIeFteid(
-      (ulp_req.hMsg), NW_GTPV2C_IE_INSTANCE_ZERO, S11_MME_GTP_C,
-      req_p->sender_fteid_for_cp.teid,
-      req_p->sender_fteid_for_cp.ipv4 ?
-          &req_p->sender_fteid_for_cp.ipv4_address :
-          0,
-      req_p->sender_fteid_for_cp.ipv6 ?
-          &req_p->sender_fteid_for_cp.ipv6_address :
-          NULL);
+  // The new MME/SGSN shall include this IE on the S11 interfaces
+  // for a TAU/RAU/ Handover
+  if (req_p->sender_fteid_for_cp.ipv4 | req_p->sender_fteid_for_cp.ipv6) {
+    rc = nwGtpv2cMsgAddIeFteid(
+        (ulp_req.hMsg), NW_GTPV2C_IE_INSTANCE_ZERO, S11_MME_GTP_C,
+        req_p->sender_fteid_for_cp.teid,
+        req_p->sender_fteid_for_cp.ipv4 ?
+            &req_p->sender_fteid_for_cp.ipv4_address :
+            0,
+        req_p->sender_fteid_for_cp.ipv6 ?
+            &req_p->sender_fteid_for_cp.ipv6_address :
+            NULL);
+  }
 
   for (int i = 0; i < req_p->bearer_contexts_to_be_modified.num_bearer_context;
        i++) {

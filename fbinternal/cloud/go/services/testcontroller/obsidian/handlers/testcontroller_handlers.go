@@ -18,17 +18,17 @@ import (
 	"sort"
 	"strconv"
 
-	"magma/fbinternal/cloud/go/serdes"
-	"magma/fbinternal/cloud/go/services/testcontroller"
-	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian"
-
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/labstack/echo"
+
+	"magma/fbinternal/cloud/go/serdes"
+	"magma/fbinternal/cloud/go/services/testcontroller"
+	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
+	"magma/orc8r/cloud/go/obsidian"
 )
 
 const (

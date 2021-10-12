@@ -14,12 +14,18 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/x509"
 	"fmt"
 	"math/big"
 	"strings"
 	"time"
+
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/identity"
@@ -29,12 +35,6 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
 	unarylib "magma/orc8r/lib/go/service/middleware/unary"
-
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var (

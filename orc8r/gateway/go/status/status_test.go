@@ -17,9 +17,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"magma/gateway/status"
-
 	"github.com/stretchr/testify/assert"
+
+	"magma/gateway/status"
 )
 
 func TestGatewayStatus(t *testing.T) {

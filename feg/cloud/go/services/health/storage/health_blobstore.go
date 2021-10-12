@@ -16,13 +16,13 @@ package storage
 import (
 	"fmt"
 
+	"github.com/golang/glog"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
 )
 
 type healthBlobstore struct {
@@ -47,11 +47,11 @@ func (h *healthBlobstore) GetHealth(networkID string, gatewayID string) (*fegpro
 	if err != nil {
 		return nil, err
 	}
-	healthTypeAndKey := storage.TypeAndKey{
+	healthTK := storage.TK{
 		Type: health.HealthStatusType,
 		Key:  gatewayID,
 	}
-	healthBlob, err := store.Get(networkID, healthTypeAndKey)
+	healthBlob, err := store.Get(networkID, healthTK)
 	if err != nil {
 		store.Rollback()
 		return nil, err
@@ -128,11 +128,11 @@ func (h *healthBlobstore) GetClusterState(networkID string, logicalID string) (*
 		}
 	}
 	clusterID := networkID
-	clusterTypeAndKey := storage.TypeAndKey{
+	clusterTK := storage.TK{
 		Type: health.ClusterStatusType,
 		Key:  clusterID,
 	}
-	clusterBlob, err := store.Get(networkID, clusterTypeAndKey)
+	clusterBlob, err := store.Get(networkID, clusterTK)
 	if err != nil {
 		store.Rollback()
 		return nil, err

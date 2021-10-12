@@ -21,14 +21,13 @@ import (
 	"testing"
 	"time"
 
-	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
-
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
 
 	"magma/feg/cloud/go/feg"
 	feg_protos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/serdes"
+	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
 	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers"
 	healthTestUtils "magma/feg/cloud/go/services/health/test_utils"
@@ -197,11 +196,11 @@ func TestNHRouting(t *testing.T) {
 			Name: "nh_feg_gateway", Description: "neutral host federation gateway",
 			PhysicalID:   nhFegHwId,
 			Config:       &models.MagmadGatewayConfigs{},
-			Associations: []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: nhFegId}},
+			Associations: storage.TKs{{Type: feg.FegGatewayType, Key: nhFegId}},
 		},
 		{
 			Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: orc8r.MagmadGatewayType, Key: nhFegId},
 			},
 		},

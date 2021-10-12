@@ -18,10 +18,10 @@ import (
 	"sort"
 	"strconv"
 
+	prometheus_models "github.com/prometheus/client_model/go"
+
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/lib/go/metrics"
-
-	prometheus_models "github.com/prometheus/client_model/go"
 )
 
 // Sample is a flattened version of a metric providing a single name-value

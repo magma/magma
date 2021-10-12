@@ -23,11 +23,8 @@ extern "C" {
 #include "amf_as.h"
 #include "conversions.h"
 #include "secu_defs.h"
-
-typedef uint32_t amf_ue_ngap_id_t;
-#define QUADLET 4
-#define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
-  LENGTH += QUADLET - (LENGTH % QUADLET)
+#include "3gpp_38.401.h"
+#include "amf_common.h"
 
 namespace magma5g {
 nas_amf_smc_proc_t smc_data;

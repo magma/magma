@@ -17,14 +17,14 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
 	"magma/orc8r/cloud/go/services/state/servicers"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -47,7 +47,7 @@ func TestStateServicer_GetStates(t *testing.T) {
 				{Type: "t2", Key: "k2", Value: []byte("v2"), Version: 43},
 			},
 		}, nil)
-	mockStore.On("GetMany", "network1", []storage.TypeAndKey{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}}).
+	mockStore.On("GetMany", "network1", storage.TKs{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}}).
 		Return(blobstore.Blobs{
 			{Type: "t1", Key: "k1", Value: []byte("v1"), Version: 42},
 			{Type: "t2", Key: "k2", Value: []byte("v2"), Version: 43},

@@ -20,6 +20,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/any"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+
 	"magma/feg/gateway/policydb"
 	fegstreamer "magma/gateway/streamer"
 	"magma/lte/cloud/go/protos"
@@ -29,11 +34,6 @@ import (
 	orcprotos "magma/orc8r/lib/go/protos"
 	platform_registry "magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
 )
 
 // Mock Cloud Streamer

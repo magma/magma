@@ -5,16 +5,28 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
-    paths:
-      - 'docs/**'
   pull_request:
     branches:
       - master
-    paths:
-      - 'docs/**'
+    types: [opened, reopened, synchronize]
+
 jobs:
+  path_filter:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          # Only run the main job for changes including the following paths
+          paths: '["docs/**"]'
   # Fail if Markdown doesn't pass linter
   markdown-lint:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: markdown lint job
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"

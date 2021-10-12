@@ -1,0 +1,74 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+log_level: INFO
+# List of services for magmad to control
+magma_services:
+  - control_proxy
+  - redis
+  - session_proxy
+  - s6a_proxy
+  - csfb
+  - feg_hello
+  - health
+  - swx_proxy
+  - eap_aka
+  - aaa_server
+
+# List of services that don't provide service303 interface
+non_service303_services:
+  - control_proxy
+  - redis
+
+# Init system to use to control services
+# Supported systems include: [systemd, runit, docker]
+init_system: systemd
+
+# bootstrap_manager config
+bootstrap_config:
+  # location of the challenge key
+  challenge_key: /var/opt/magma/certs/gw_challenge.key
+
+# Flags indicating the magmad features to be enabled
+enable_config_streamer: True
+enable_upgrade_manager: False
+enable_network_monitor: False
+enable_systemd_tailer: True
+enable_sync_rpc: True
+
+systemd_tailer_poll_interval: 30 # seconds
+
+upgrader_factory:
+  module: magma.magmad.upgrade.feg_upgrader
+  class: FegUpgraderFactory
+  http_base_url: https://api.magma.test/s3/feg
+
+mconfig_modules:
+  - orc8r.protos.mconfig.mconfigs_pb2
+  - lte.protos.mconfig.mconfigs_pb2
+  - feg.protos.mconfig.mconfigs_pb2
+
+metricsd:
+  log_level: INFO
+  collect_interval: 60 # How frequently to collect metrics samples in seconds
+  sync_interval: 60 # How frequently to sync to cloud in seconds
+  grpc_timeout: 10 # Timeout in seconds
+  # List of services for metricsd to poll
+  services:
+    - magmad
+    - session_proxy
+    - s6a_proxy
+    - swx_proxy
+    - eap_aka
+    - aaa_server
+    - csfb
+

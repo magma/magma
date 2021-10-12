@@ -15,14 +15,13 @@ package events
 
 import (
 	"encoding/json"
-	"fmt"
+
+	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos"
 	"magma/gateway/eventd"
 	"magma/gateway/status"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
 )
 
 const (
@@ -60,7 +59,7 @@ func LogGatewayHealthFailedEvent(eventType string, failureReason string, prevAct
 		glog.Errorf("Could not serialize %s event: %s", eventType, err)
 		return
 	}
-	go logEvent(eventType, fmt.Sprintf("%s", serializedHealthEvent))
+	go logEvent(eventType, string(serializedHealthEvent))
 }
 
 func logEvent(eventType string, eventValue string) {

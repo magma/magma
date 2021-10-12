@@ -14,10 +14,14 @@
 package unary_test
 
 import (
-	context2 "context"
+	"context"
 	"net"
 	"testing"
 	"time"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc/metadata"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
@@ -32,11 +36,6 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc/metadata"
 )
 
 const testAgHwID = "Test-AGW-Hw-Id"
@@ -175,7 +174,7 @@ func TestIdentityInjector(t *testing.T) {
 	// Unregister GW
 	assert.NoError(
 		t,
-		configurator.DeleteEntity(context2.Background(), networkID, orc8r.MagmadGatewayType, gwid.LogicalId))
+		configurator.DeleteEntity(context.Background(), networkID, orc8r.MagmadGatewayType, gwid.LogicalId))
 
 	ctx = metadata.NewOutgoingContext(
 		context.Background(),

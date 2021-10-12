@@ -32,7 +32,6 @@
 #define FILE_MESSAGES_TYPES_SEEN
 
 #include "intertask_messages_types.h"
-#include "timer_messages_types.h"
 #include <inttypes.h>
 #include "security_types.h"
 #include "gtpv1_u_messages_types.h"
