@@ -13,6 +13,16 @@
 
 #pragma once
 #include <sstream>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "hashtable.h"
+#include "obj_hashtable.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "amf_smfDefs.h"
 #include "amf_app_defs.h"
 

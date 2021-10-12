@@ -23,23 +23,30 @@
 #include "3gpp_24.008.h"
 #include "log.h"
 #include "service303.h"
+#include "hashtable.h"
+#include "mme_config.h"
 
 #define MIN_GUAMI 1
 #define MAX_GUAMI 5
 #define MAX_APN_CORRECTION_MAP_LIST 10
-#define NGAP_S_NSSAI_ST_DEFAULT_VALUE 1
-#define NGAP_S_NSSAI_SD_INVALID_VALUE 0xffffff
+#define AMF_S_NSSAI_ST_DEFAULT_VALUE 1
+#define AMF_S_NSSAI_SD_INVALID_VALUE 0xffffff
 
-#define NGAP_CONFIG_STRING_NGAP_CONFIG "NGAP"
-#define NGAP_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS "DEFAULT_DNS_IPV4_ADDRESS"
-#define NGAP_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS                        \
+#define AMF_CONFIG_STRING_AMF_CONFIG "AMF"
+#define AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS "DEFAULT_DNS_IPV4_ADDRESS"
+#define AMF_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS                         \
   "DEFAULT_DNS_SEC_IPV4_ADDRESS"
-#define NGAP_CONFIG_PLMN_SUPPORT_MCC "mcc"
-#define NGAP_CONFIG_PLMN_SUPPORT_MNC "mnc"
-#define NGAP_CONFIG_PLMN_SUPPORT_SST "DEFAULT_SLICE_SERVICE_TYPE"
-#define NGAP_CONFIG_PLMN_SUPPORT_SD "DEFAULT_SLICE_DIFFERENTIATOR"
-#define NGAP_CONFIG_AMF_PLMN_SUPPORT_LIST "PLMN_SUPPORT_LIST"
-#define NGAP_CONFIG_AMF_NAME "AMF_NAME"
+#define AMF_CONFIG_PLMN_SUPPORT_MCC "mcc"
+#define AMF_CONFIG_PLMN_SUPPORT_MNC "mnc"
+#define AMF_CONFIG_PLMN_SUPPORT_SST "DEFAULT_SLICE_SERVICE_TYPE"
+#define AMF_CONFIG_PLMN_SUPPORT_SD "DEFAULT_SLICE_DIFFERENTIATOR"
+#define AMF_CONFIG_AMF_PLMN_SUPPORT_LIST "PLMN_SUPPORT_LIST"
+#define AMF_CONFIG_AMF_NAME "AMF_NAME"
+
+#define AMF_CONFIG_STRING_GUAMFI_LIST "GUAMFI_LIST"
+#define AMF_CONFIG_STRING_AMF_REGION_ID "AMF_REGION_ID"
+#define AMF_CONFIG_STRING_AMF_SET_ID "AMF_SET_ID"
+#define AMF_CONFIG_STRING_AMF_POINTER "AMF_POINTER"
 
 typedef struct nas5g_config_s {
   uint8_t preferred_integrity_algorithm[8];
@@ -181,8 +188,10 @@ int amf_config_find_mnc_length(
 
 void amf_config_init(amf_config_t*);
 int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* amf_config);
-int amf_config_parse_file(amf_config_t*);
+int amf_config_parse_file(amf_config_t*, const mme_config_t*);
 void amf_config_display(amf_config_t*);
 void clear_amf_config(amf_config_t*);
+void copy_amf_config_from_mme_config(
+    amf_config_t* dest, const mme_config_t* src);
 
 void amf_config_exit(void);

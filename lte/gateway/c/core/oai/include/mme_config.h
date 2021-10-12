@@ -43,7 +43,6 @@
 #include <stdlib.h>
 #include "mme_default_values.h"
 #include "common_types.h"
-#include "amf_config.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
 #include "log.h"
@@ -458,8 +457,7 @@ void mme_config_exit(void);
 
 void free_mme_config(mme_config_t* mme_config);
 void clear_served_tai_config(served_tai_t* served_tai);
-void copy_amf_config_from_mme_config(
-    amf_config_t* dest, const mme_config_t* src);
+
 void free_partial_lists(partial_list_t** partialList, uint8_t num_par_lists);
 
 #define mme_config_read_lock(mMEcONFIG)                                        \

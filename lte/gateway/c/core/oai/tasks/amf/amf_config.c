@@ -22,7 +22,7 @@
 #include "assertions.h"
 
 static bool parse_bool(const char* str);
-extern void served_tai_config_init(served_tai_t* served_tai);
+void served_tai_config_init(served_tai_t* served_tai);
 void clear_served_tai_config(served_tai_t* served_tai);
 
 struct amf_config_s amf_config = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
@@ -102,10 +102,9 @@ void plmn_support_list_config_init(plmn_support_list_t* plmn_support_list) {
   plmn_support_list->plmn_support[0].plmn.mcc_digit1 = 0;
   plmn_support_list->plmn_support[0].plmn.mcc_digit2 = 0;
   plmn_support_list->plmn_support[0].plmn.mcc_digit3 = 0x0F;
-  plmn_support_list->plmn_support[0].s_nssai.sst =
-      NGAP_S_NSSAI_ST_DEFAULT_VALUE;
+  plmn_support_list->plmn_support[0].s_nssai.sst = AMF_S_NSSAI_ST_DEFAULT_VALUE;
   plmn_support_list->plmn_support[0].s_nssai.sd.v =
-      NGAP_S_NSSAI_SD_INVALID_VALUE;
+      AMF_S_NSSAI_SD_INVALID_VALUE;
 }
 
 /***************************************************************************
@@ -170,7 +169,8 @@ int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* config_pP) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_config_parse_file(amf_config_t* config_pP) {
+int amf_config_parse_file(
+    amf_config_t* config_pP, const mme_config_t* mme_config_p) {
   config_t cfg                  = {0};
   config_setting_t* setting     = NULL;
   config_setting_t* sub2setting = NULL;
@@ -208,13 +208,15 @@ int amf_config_parse_file(amf_config_t* config_pP) {
     AssertFatal(0, "No AMF configuration file provided!\n");
   }
 
-  setting_amf = config_lookup(&cfg, NGAP_CONFIG_STRING_NGAP_CONFIG);
+  copy_amf_config_from_mme_config(config_pP, mme_config_p);
+
+  setting_amf = config_lookup(&cfg, AMF_CONFIG_STRING_AMF_CONFIG);
   if (setting_amf != NULL) {
     if (config_setting_lookup_string(
-            setting_amf, NGAP_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
+            setting_amf, AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
             (const char**) &default_dns) &&
         config_setting_lookup_string(
-            setting_amf, NGAP_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
+            setting_amf, AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
             (const char**) &default_dns_sec)) {
       IPV4_STR_ADDR_TO_INADDR(
           default_dns, config_pP->ipv4.default_dns,
@@ -226,13 +228,13 @@ int amf_config_parse_file(amf_config_t* config_pP) {
 
     // AMF NAME
     if ((config_setting_lookup_string(
-            setting_amf, NGAP_CONFIG_AMF_NAME, (const char**) &astring))) {
+            setting_amf, AMF_CONFIG_AMF_NAME, (const char**) &astring))) {
       config_pP->amf_name = bfromcstr(astring);
     }
 
     // AMF_PLMN_SUPPORT SETTING
     setting = config_setting_get_member(
-        setting_amf, NGAP_CONFIG_AMF_PLMN_SUPPORT_LIST);
+        setting_amf, AMF_CONFIG_AMF_PLMN_SUPPORT_LIST);
     config_pP->plmn_support_list.plmn_support_count = 0;
     if (setting != NULL) {
       num = config_setting_length(setting);
@@ -292,13 +294,13 @@ int amf_config_parse_file(amf_config_t* config_pP) {
           }
 
           if (config_setting_lookup_string(
-                  sub2setting, NGAP_CONFIG_PLMN_SUPPORT_SST, &set_sst)) {
+                  sub2setting, AMF_CONFIG_PLMN_SUPPORT_SST, &set_sst)) {
             config_pP->plmn_support_list.plmn_support[i].s_nssai.sst =
                 (uint8_t) atoi(set_sst);
           }
 
           if (config_setting_lookup_string(
-                  sub2setting, NGAP_CONFIG_PLMN_SUPPORT_SD, &set_sd)) {
+                  sub2setting, AMF_CONFIG_PLMN_SUPPORT_SD, &set_sd)) {
             uint64_t default_sd_val = 0;
             errno                   = 0;
             default_sd_val          = strtoll(set_sd, NULL, 16);
@@ -317,7 +319,7 @@ int amf_config_parse_file(amf_config_t* config_pP) {
 
     // guamfi SETTING
     setting =
-        config_setting_get_member(setting_amf, MME_CONFIG_STRING_GUAMFI_LIST);
+        config_setting_get_member(setting_amf, AMF_CONFIG_STRING_GUAMFI_LIST);
     config_pP->guamfi.nb = 0;
     if (setting != NULL) {
       num = config_setting_length(setting);
@@ -367,16 +369,16 @@ int amf_config_parse_file(amf_config_t* config_pP) {
           }
 
           if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_AMF_REGION_ID, &region_id))) {
+                  sub2setting, AMF_CONFIG_STRING_AMF_REGION_ID, &region_id))) {
             config_pP->guamfi.guamfi[i].amf_regionid =
                 (uint16_t) atoi(region_id);
           }
           if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_AMF_SET_ID, &set_id))) {
+                  sub2setting, AMF_CONFIG_STRING_AMF_SET_ID, &set_id))) {
             config_pP->guamfi.guamfi[i].amf_set_id = (uint8_t) atoi(set_id);
           }
           if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_AMF_POINTER, &pointer))) {
+                  sub2setting, AMF_CONFIG_STRING_AMF_POINTER, &pointer))) {
             config_pP->guamfi.guamfi[i].amf_pointer = (uint8_t) atoi(pointer);
           }
 
@@ -412,6 +414,33 @@ void clear_amf_config(amf_config_t* amf_config) {
   bdestroy_wrapper(&amf_config->amf_name);
   clear_served_tai_config(&amf_config->served_tai);
   free_partial_lists(&amf_config->partial_list, amf_config->num_par_lists);
+}
+
+void copy_amf_config_from_mme_config(
+    amf_config_t* dest, const mme_config_t* src) {
+  OAILOG_DEBUG(LOG_MME_APP, "copy_amf_config_from_mme_config");
+  // LOGGING setting
+  dest->log_config = src->log_config;
+  if (src->log_config.output)
+    dest->log_config.output = bstrcpy(src->log_config.output);
+  dest->log_config.amf_app_log_level = src->log_config.mme_app_log_level;
+
+  // GENERAL AMF SETTINGS
+  dest->realm = bstrcpy(src->realm);
+  if (src->full_network_name)
+    dest->full_network_name = bstrcpy(src->full_network_name);
+  if (src->short_network_name)
+    dest->short_network_name = bstrcpy(src->short_network_name);
+  dest->daylight_saving_time = src->daylight_saving_time;
+  if (src->pid_dir) dest->pid_dir = bstrcpy(src->pid_dir);
+  dest->max_gnbs                       = src->max_enbs;
+  dest->max_ues                        = src->max_ues;
+  dest->relative_capacity              = src->relative_capacity;
+  dest->use_stateless                  = src->use_stateless;
+  dest->unauthenticated_imsi_supported = src->unauthenticated_imsi_supported;
+
+  // TAI list setting
+  copy_served_tai_config_list(dest, src);
 }
 
 void amf_config_display(amf_config_t* config_pP) {

@@ -69,8 +69,6 @@
 #include "sgw_config.h"
 #endif
 static bool parse_bool(const char* str);
-extern void copy_amf_config_from_mme_config(
-    amf_config_t* dest, const mme_config_t* src);
 
 struct mme_config_s mme_config = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
 
@@ -2432,33 +2430,6 @@ static bool parse_bool(const char* str) {
   if (strcasecmp(str, "") == 0) return false;
 
   Fatal("Error in config file: got \"%s\" but expected bool\n", str);
-}
-
-void copy_amf_config_from_mme_config(
-    amf_config_t* dest, const mme_config_t* src) {
-  OAILOG_DEBUG(LOG_MME_APP, "copy_amf_config_from_mme_config");
-  // LOGGING setting
-  dest->log_config = src->log_config;
-  if (src->log_config.output)
-    dest->log_config.output = bstrcpy(src->log_config.output);
-  dest->log_config.amf_app_log_level = src->log_config.mme_app_log_level;
-
-  // GENERAL AMF SETTINGS
-  dest->realm = bstrcpy(src->realm);
-  if (src->full_network_name)
-    dest->full_network_name = bstrcpy(src->full_network_name);
-  if (src->short_network_name)
-    dest->short_network_name = bstrcpy(src->short_network_name);
-  dest->daylight_saving_time = src->daylight_saving_time;
-  if (src->pid_dir) dest->pid_dir = bstrcpy(src->pid_dir);
-  dest->max_gnbs                       = src->max_enbs;
-  dest->max_ues                        = src->max_ues;
-  dest->relative_capacity              = src->relative_capacity;
-  dest->use_stateless                  = src->use_stateless;
-  dest->unauthenticated_imsi_supported = src->unauthenticated_imsi_supported;
-
-  // TAI list setting
-  copy_served_tai_config_list(dest, src);
 }
 
 void clear_served_tai_config(served_tai_t* served_tai) {
