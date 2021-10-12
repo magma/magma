@@ -162,8 +162,9 @@ TEST_F(SgwS8Config, check_failed_to_create_dedicated_bearer) {
   sgw_state_exit();
 }
 
-// TC validates updation of bearer context on reception of Create Session Rsp
-TEST_F(SgwS8Config, delete_bearer_request) {
+// TC validates, failed to find PDN context on wrong sgw_s11_teid received in
+// delete bearer response
+TEST_F(SgwS8Config, delete_bearer_response) {
   mme_sgw_tunnel_t sgw_s11_tunnel = {0};
   sgw_state_t* sgw_state          = create_ue_context(&sgw_s11_tunnel);
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
