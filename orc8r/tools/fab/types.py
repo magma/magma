@@ -43,11 +43,13 @@ class MagmadGatewayConfigs:
         autoupgrade_poll_interval: int,
         checkin_interval: int,
         checkin_timeout: int,
+        dynamic_services: List[str],
     ):
         self.autoupgrade_enabled = autoupgrade_enabled
         self.autoupgrade_poll_interval = autoupgrade_poll_interval
         self.checkin_interval = checkin_interval
         self.checkin_timeout = checkin_timeout
+        self.dynamic_services = dynamic_services
 
 
 class ChallengeKey:
