@@ -160,7 +160,6 @@ s1aptests/test_guti_attach_with_zero_mtmsi.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
-s1aptests/test_guti_attach_with_zero_mtmsi.py \
 s1aptests/test_no_identity_rsp_with_mme_restart.py \
 s1aptests/test_agw_offload_idle_active_ue.py \
 s1aptests/test_agw_offload_mixed_idle_active_multiue.py \
