@@ -75,7 +75,7 @@ long int nas_timer_start(
     return NAS_TIMER_INACTIVE_ID;
   }
 
-  mme_app_upsert_mme_ue_id_timer_id(mme_ue_s1ap_id, timer_id);
+  mme_app_insert_mme_ue_id_timer_id(mme_ue_s1ap_id, timer_id);
 
   return timer_id;
 }
@@ -87,7 +87,7 @@ long int nas_timer_stop(
   nas_itti_timer_arg_t* nas_itti_timer_arg = NULL;
   timer_remove(timer_id, (void**) &nas_itti_timer_arg);
 
-  mme_app_remove_mme_ue_id_timer_id(mme_ue_s1ap_id);
+  mme_app_remove_mme_ue_id_timer_id(mme_ue_s1ap_id, timer_id);
 
   if (nas_itti_timer_arg) {
     *nas_timer_callback_arg = nas_itti_timer_arg->nas_timer_callback_arg;
@@ -104,9 +104,7 @@ void mme_app_nas_timer_handle_signal_expiry(
   OAILOG_FUNC_IN(LOG_NAS);
 
   bool is_timer_valid =
-      mme_app_get_timer_id_from_mme_ue_id(cb->ue_id) != NAS_TIMER_INACTIVE_ID ?
-          true :
-          false;
+      mme_app_is_mme_ue_id_timer_id_key_valid(cb->ue_id, timer_id);
 
   if ((!timer_exists(timer_id)) || !is_timer_valid ||
       (cb->nas_timer_callback == NULL)) {
