@@ -200,18 +200,6 @@ void MmeNasStateConverter::proto_to_guti_table(
  * The caller needs to acquire a lock on UE context       *
  **********************************************************/
 
-void MmeNasStateConverter::mme_app_timer_to_proto(
-    const nas_timer_t& state_mme_timer, oai::Timer* timer_proto) {
-  timer_proto->set_id(state_mme_timer.id);
-  timer_proto->set_msec(state_mme_timer.msec);
-}
-
-void MmeNasStateConverter::proto_to_mme_app_timer(
-    const oai::Timer& timer_proto, nas_timer_t* state_mme_app_timer) {
-  state_mme_app_timer->id   = timer_proto.id();
-  state_mme_app_timer->msec = timer_proto.msec();
-}
-
 void MmeNasStateConverter::sgs_context_to_proto(
     sgs_context_t* state_sgs_context, oai::SgsContext* sgs_context_proto) {
   // TODO
@@ -615,25 +603,7 @@ void MmeNasStateConverter::ue_context_to_proto(
       state_ue_context->cs_fallback_indicator);
   sgs_context_to_proto(
       state_ue_context->sgs_context, ue_context_proto->mutable_sgs_context());
-  mme_app_timer_to_proto(
-      state_ue_context->mobile_reachability_timer,
-      ue_context_proto->mutable_mobile_reachability_timer());
-  mme_app_timer_to_proto(
-      state_ue_context->implicit_detach_timer,
-      ue_context_proto->mutable_implicit_detach_timer());
-  mme_app_timer_to_proto(
-      state_ue_context->initial_context_setup_rsp_timer,
-      ue_context_proto->mutable_initial_context_setup_rsp_timer());
-  mme_app_timer_to_proto(
-      state_ue_context->ue_context_modification_timer,
-      ue_context_proto->mutable_ue_context_modification_timer());
-  mme_app_timer_to_proto(
-      state_ue_context->paging_response_timer,
-      ue_context_proto->mutable_paging_response_timer());
-  ue_context_proto->set_rau_tau_timer(state_ue_context->rau_tau_timer);
-  mme_app_timer_to_proto(
-      state_ue_context->ulr_response_timer,
-      ue_context_proto->mutable_ulr_response_timer());
+
   ue_context_proto->mutable_time_mobile_reachability_timer_started()
       ->set_seconds(state_ue_context->time_mobile_reachability_timer_started);
   ue_context_proto->mutable_time_implicit_detach_timer_started()->set_seconds(
@@ -722,24 +692,6 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   proto_to_sgs_context(
       ue_context_proto.sgs_context(), state_ue_mm_context->sgs_context);
 
-  proto_to_mme_app_timer(
-      ue_context_proto.mobile_reachability_timer(),
-      &state_ue_mm_context->mobile_reachability_timer);
-  proto_to_mme_app_timer(
-      ue_context_proto.implicit_detach_timer(),
-      &state_ue_mm_context->implicit_detach_timer);
-  proto_to_mme_app_timer(
-      ue_context_proto.initial_context_setup_rsp_timer(),
-      &state_ue_mm_context->initial_context_setup_rsp_timer);
-  proto_to_mme_app_timer(
-      ue_context_proto.ue_context_modification_timer(),
-      &state_ue_mm_context->ue_context_modification_timer);
-  proto_to_mme_app_timer(
-      ue_context_proto.ulr_response_timer(),
-      &state_ue_mm_context->ulr_response_timer);
-  proto_to_mme_app_timer(
-      ue_context_proto.paging_response_timer(),
-      &state_ue_mm_context->paging_response_timer);
   state_ue_mm_context->time_mobile_reachability_timer_started =
       ue_context_proto.time_mobile_reachability_timer_started().seconds();
   state_ue_mm_context->time_implicit_detach_timer_started =
