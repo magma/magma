@@ -62,7 +62,7 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 	marshaledACL1, err := proto.Marshal(acls[1])
 	assert.NoError(t, err)
 
-	tks := []storage.TypeAndKey{
+	tks := storage.TKs{
 		{Type: astorage.AccessdDefaultType, Key: idHashes[0]},
 		{Type: astorage.AccessdDefaultType, Key: idHashes[1]},
 	}
@@ -178,7 +178,7 @@ func TestAccessdBlobstore_GetACL(t *testing.T) {
 
 	marshaledACL, err := proto.Marshal(acl)
 	assert.NoError(t, err)
-	tks := []storage.TypeAndKey{{Type: astorage.AccessdDefaultType, Key: idHash}}
+	tks := storage.TKs{{Type: astorage.AccessdDefaultType, Key: idHash}}
 	blobs := blobstore.Blobs{{Type: astorage.AccessdDefaultType, Key: idHash, Value: marshaledACL}}
 
 	// Fail to start transaction
@@ -280,7 +280,7 @@ func TestAccessdBlobstore_GetManyACL(t *testing.T) {
 	marshaledACL1, err := proto.Marshal(acls[1])
 	assert.NoError(t, err)
 
-	tks := []storage.TypeAndKey{
+	tks := storage.TKs{
 		{Type: astorage.AccessdDefaultType, Key: idHashes[0]},
 		{Type: astorage.AccessdDefaultType, Key: idHashes[1]},
 	}
@@ -454,7 +454,7 @@ func TestAccessdBlobstore_UpdateACLWithEntities(t *testing.T) {
 	assert.NoError(t, err)
 	marshaledACLFinal, err := proto.Marshal(aclFinal)
 	assert.NoError(t, err)
-	tk := storage.TypeAndKey{Type: astorage.AccessdDefaultType, Key: idHash}
+	tk := storage.TK{Type: astorage.AccessdDefaultType, Key: idHash}
 	blobsInitial := blobstore.Blobs{{Type: astorage.AccessdDefaultType, Key: idHash, Value: marshaledACLInitial}}
 	blobsFinal := blobstore.Blobs{{Type: astorage.AccessdDefaultType, Key: idHash, Value: marshaledACLFinal}}
 
@@ -553,7 +553,7 @@ func TestAccessdBlobstore_DeleteACL(t *testing.T) {
 	someErr := errors.New("generic error")
 
 	id := identity.NewOperator("testOperator")
-	tks := []storage.TypeAndKey{{Type: astorage.AccessdDefaultType, Key: id.HashString()}}
+	tks := storage.TKs{{Type: astorage.AccessdDefaultType, Key: id.HashString()}}
 
 	// Call with nil id
 	blobFactMock = &mocks.BlobStorageFactory{}

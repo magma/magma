@@ -260,6 +260,8 @@ class IPV6SolicitationController(MagmaController):
                 ),
             ),
         )
+        self.logger.debug("NS pkt response %s", pkt)
+
         pkt.serialize()
 
         # For NS from SGI response doesn't need tunnel information
@@ -295,15 +297,17 @@ class IPV6SolicitationController(MagmaController):
         in_port = ev.msg.match['in_port']
         tun_id = None
         tun_ipv4_src = None
+        tun_id_dst = None
         if DIRECTION_REG not in ev.msg.match:
             self.logger.error("Packet missing direction reg, can't reply")
             return
         direction = ev.msg.match[DIRECTION_REG]
         if 'tunnel_id' in ev.msg.match:
             tun_id = ev.msg.match['tunnel_id']
+            tun_id_dst = self._tunnel_id_mapper.get_tunnel(tun_id)
 
-        if 'tun_ipv4_src' in ev.msg.match:
-            tun_ipv4_src = ev.msg.match['tun_ipv4_src']
+            if 'tun_ipv4_src' in ev.msg.match:
+                tun_ipv4_src = ev.msg.match['tun_ipv4_src']
 
         pkt = packet.Packet(msg.data)
         self.logger.debug("Received PKT ->")
@@ -312,8 +316,6 @@ class IPV6SolicitationController(MagmaController):
 
         ipv6_header = pkt.get_protocols(ipv6.ipv6)[0]
         icmpv6_header = pkt.get_protocols(icmpv6.icmpv6)[0]
-
-        tun_id_dst = self._tunnel_id_mapper.get_tunnel(tun_id)
 
         if icmpv6_header.type_ == icmpv6.ND_ROUTER_SOLICIT:
             self.logger.debug("Received router solicitation MSG")

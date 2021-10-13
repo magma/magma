@@ -19,7 +19,7 @@ from collections import namedtuple
 from concurrent.futures import Future
 from datetime import datetime
 from difflib import unified_diff
-from typing import Dict, List, Optional
+from typing import List, Optional
 from unittest import TestCase, mock
 from unittest.mock import MagicMock
 
@@ -414,7 +414,7 @@ def create_service_manager(
         static_services = []
     magma_service.config = {
         'static_services': static_services,
-        '5G_feature_set': {'enable': False},
+        'enable5g_features': False,
     }
     # mock the get_default_client function used to return a fakeredis object
     func_mock = MagicMock(return_value=fakeredis.FakeStrictRedis())
@@ -713,10 +713,34 @@ def get_iface_ipv4(iface: str) -> List[str]:
     return ip_addr_list
 
 
+def get_iface_ipv6(iface: str) -> List[str]:
+    virt_ifaddresses = netifaces.ifaddresses(iface)
+    ip_addr_list = []
+    for ip_rec in virt_ifaddresses[netifaces.AF_INET6]:
+        ip_rec_tok = ip_rec['addr'].split('%')[0]
+        ip_addr_list.append(ip_rec_tok)
+
+    print("ipv6-list: %s " % ip_addr_list)
+    return ip_addr_list
+
+
 def get_iface_gw_ipv4(iface: str) -> List[str]:
     gateways = netifaces.gateways()
     gateway_ip_addr_list = []
     for gw_ip, gw_iface, _ in gateways[netifaces.AF_INET]:
+        print("pbs: gw_ip %s gw_iface %s " % (gw_ip, gw_iface))
+        if gw_iface != iface:
+            continue
+        gateway_ip_addr_list.append(gw_ip)
+
+    return gateway_ip_addr_list
+
+
+def get_iface_gw_ipv6(iface: str) -> List[str]:
+    gateways = netifaces.gateways()
+    gateway_ip_addr_list = []
+    for gw_ip, gw_iface, _ in gateways[netifaces.AF_INET6]:
+        print("pbs: gw_ipv6 %s gw_iface %s " % (gw_ip, gw_iface))
         if gw_iface != iface:
             continue
         gateway_ip_addr_list.append(gw_ip)

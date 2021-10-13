@@ -22,7 +22,6 @@
 #include "LocalEnforcer.h"
 #include "SessionStore.h"
 
-using grpc::Server;
 using grpc::ServerContext;
 using grpc::Status;
 

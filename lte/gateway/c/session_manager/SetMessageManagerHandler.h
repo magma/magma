@@ -27,8 +27,9 @@
 
 #include "SessionStateEnforcer.h"
 #include "SessionID.h"
+#include "SessionReporter.h"
+#include "SessionStore.h"
 
-using grpc::Server;
 using grpc::ServerContext;
 using grpc::Status;
 namespace magma {
@@ -60,8 +61,8 @@ class SetMessageManager {
 class SetMessageManagerHandler : public SetMessageManager {
  public:
   SetMessageManagerHandler(
-      std::shared_ptr<SessionStateEnforcer> m5G_monitor,
-      SessionStore& session_store);
+      std::shared_ptr<SessionStateEnforcer> m5genforcer,
+      SessionStore& session_store, SessionReporter* reporter);
   ~SetMessageManagerHandler() {}
 
   /* Paging, idle state change notifcation receiving */
@@ -108,6 +109,7 @@ class SetMessageManagerHandler : public SetMessageManager {
  private:
   SessionStore& session_store_;
   std::shared_ptr<SessionStateEnforcer> m5g_enforcer_;
+  SessionReporter* reporter_;
   SessionIDGenerator id_gen_;
 };  // end of class SetMessageManagerHandlerImpl
 

@@ -41,6 +41,12 @@ uint8_t intialUeGuti[157] = {
     0x07, 0x00, 0x00, 0x00, 0x70, 0xe5, 0xc5, 0x00, 0x00, 0x70, 0x40, 0x01,
     0x00};
 
+uint8_t ngapSetupRequestWithSD[] = {
+    0x00, 0x15, 0x00, 0x28, 0x00, 0x00, 0x03, 0x00, 0x1b, 0x00, 0x08,
+    0x00, 0x27, 0xf4, 0x77, 0x00, 0x00, 0x00, 0x08, 0x00, 0x66, 0x00,
+    0x10, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x27, 0xf4, 0x77, 0x00,
+    0x00, 0x10, 0x08, 0xd1, 0x43, 0xa5, 0x00, 0x15, 0x40, 0x01, 0x60};
+
 void fill_nR_CGI_cell_identity(Ngap_NRCellIdentity_t& nRCellIdentity) {
   uint64_t nr_cell_id; /* 36 bit */
 
@@ -345,4 +351,131 @@ bool validate_handle_initial_ue_message(
   }
 
   return (true);
+}
+
+bool generate_ngap_request_msg(Ngap_NGAP_PDU_t* pdu) {
+  asn_dec_rval_t dec_ret;
+  uint32_t pkt_len = sizeof(ngapSetupRequestWithSD) / sizeof(uint8_t);
+
+  dec_ret = aper_decode(
+      NULL, &asn_DEF_Ngap_NGAP_PDU, (void**) &pdu, ngapSetupRequestWithSD,
+      pkt_len, 0, 0);
+
+  if (dec_ret.code != RC_OK) {
+    return false;
+  }
+
+  return true;
+}
+
+bool validate_ngap_setup_request(Ngap_NGAP_PDU_t* pdu) {
+  Ngap_NGSetupRequest_t* container                = NULL;
+  Ngap_NGSetupRequestIEs_t* ie                    = NULL;
+  Ngap_NGSetupRequestIEs_t* ie_gnb_name           = NULL;
+  Ngap_NGSetupRequestIEs_t* ie_supported_tas      = NULL;
+  Ngap_NGSetupRequestIEs_t* ie_default_paging_drx = NULL;
+
+  gnb_description_t* gnb_association = NULL;
+  uint32_t gnb_id                    = 0;
+  char* gnb_name                     = NULL;
+  int ta_ret                         = 0;
+  uint8_t bplmn_list_count           = 0;  // Broadcast PLMN list count
+
+  container = &pdu->choice.initiatingMessage.value.choice.NGSetupRequest;
+
+  NGAP_FIND_PROTOCOLIE_BY_ID(
+      Ngap_NGSetupRequestIEs_t, ie_gnb_name, container,
+      Ngap_ProtocolIE_ID_id_RANNodeName, false);
+  if (ie_gnb_name) {
+    gnb_name = (char*) ie_gnb_name->value.choice.RANNodeName.buf;
+  }
+
+  NGAP_FIND_PROTOCOLIE_BY_ID(
+      Ngap_NGSetupRequestIEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_GlobalRANNodeID, true);
+  if (ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID.gNB_ID.present ==
+      Ngap_GNB_ID_PR_gNB_ID) {
+    // Home gNB ID = 28 bits
+    uint8_t* gnb_id_buf = ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID
+                              .gNB_ID.choice.gNB_ID.buf;
+
+    if (ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID.gNB_ID.choice
+            .gNB_ID.size != 28) {
+      // TODO: handle case were size != 28 -> notify ? reject ?
+    }
+
+    gnb_id = (gnb_id_buf[0] << 20) + (gnb_id_buf[1] << 12) +
+             (gnb_id_buf[2] << 4) + ((gnb_id_buf[3] & 0xf0) >> 4);
+  }
+
+  NGAP_FIND_PROTOCOLIE_BY_ID(
+      Ngap_NGSetupRequestIEs_t, ie_supported_tas, container,
+      Ngap_ProtocolIE_ID_id_SupportedTAList, true);
+
+  Ngap_SupportedTAList_t* ta_list =
+      &ie_supported_tas->value.choice.SupportedTAList;
+  m5g_supported_ta_list_t gnb_association_supported_ta_list;
+  memset(
+      &gnb_association_supported_ta_list, 0, sizeof(m5g_supported_ta_list_t));
+
+  m5g_supported_ta_list_t* supp_ta_list = &gnb_association_supported_ta_list;
+  supp_ta_list->list_count              = ta_list->list.count;
+
+  /* Storing supported TAI lists received in Ng SETUP REQUEST message */
+  for (int tai_idx = 0; tai_idx < supp_ta_list->list_count; tai_idx++) {
+    Ngap_SupportedTAItem_t* tai = NULL;
+    tai                         = ta_list->list.array[tai_idx];
+    tai->tAC.size               = 2;  // ACL_TAG temp to test remove later
+    OCTET_STRING_TO_TAC(
+        &tai->tAC, supp_ta_list->supported_tai_items[tai_idx].tac);
+
+    bplmn_list_count = tai->broadcastPLMNList.list.count;
+    if (bplmn_list_count > NGAP_MAX_BROADCAST_PLMNS) {
+      return false;
+    }
+    supp_ta_list->supported_tai_items[tai_idx].bplmnlist_count =
+        bplmn_list_count;
+
+    for (int plmn_idx = 0; plmn_idx < bplmn_list_count; plmn_idx++) {
+      TBCD_TO_PLMN_T(
+          &tai->broadcastPLMNList.list.array[plmn_idx]->pLMNIdentity,
+          &supp_ta_list->supported_tai_items[tai_idx]
+               .bplmn_list[plmn_idx]
+               .plmn_id);
+
+      supp_ta_list->supported_tai_items[tai_idx]
+          .bplmn_list[plmn_idx]
+          .num_of_s_nssai = tai->broadcastPLMNList.list.array[plmn_idx]
+                                ->tAISliceSupportList.list.count;
+
+      for (int nssai_index = 0;
+           nssai_index < supp_ta_list->supported_tai_items[tai_idx]
+                             .bplmn_list[plmn_idx]
+                             .num_of_s_nssai;
+           nssai_index++) {
+        supp_ta_list->supported_tai_items[tai_idx]
+            .bplmn_list[plmn_idx]
+            .s_nssai[nssai_index]
+            .sst = tai->broadcastPLMNList.list.array[plmn_idx]
+                       ->tAISliceSupportList.list.array[nssai_index]
+                       ->s_NSSAI.sST.buf[0];
+
+        if (tai->broadcastPLMNList.list.array[plmn_idx]
+                ->tAISliceSupportList.list.array[nssai_index]
+                ->s_NSSAI.sD) {
+          memcpy(
+              &(supp_ta_list->supported_tai_items[tai_idx]
+                    .bplmn_list[plmn_idx]
+                    .s_nssai[nssai_index]
+                    .sd),
+              tai->broadcastPLMNList.list.array[plmn_idx]
+                  ->tAISliceSupportList.list.array[nssai_index]
+                  ->s_NSSAI.sD->buf,
+              sizeof(amf_s_nssai_t));
+        }
+      }
+    }
+  }
+
+  return true;
 }

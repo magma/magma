@@ -3,6 +3,7 @@
 #include "common_defs.h"
 #include "magma_logging.h"
 #include "glogwrapper/glog_logging.h"
+#include "M5GNasEnums.h"
 
 // AMF_TEST scheme output  nibbles needs to be reversed
 #define REV_NIBBLE(bUFFER, sIZE)                                               \

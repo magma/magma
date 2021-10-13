@@ -14,7 +14,6 @@
 #include <sstream>
 #include <cstdint>
 
-using namespace std;
 namespace magma5g {
 // New QOSRule Class
 class NewQOSRulePktFilter {

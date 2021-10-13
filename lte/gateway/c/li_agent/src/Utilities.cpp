@@ -29,8 +29,7 @@ magma::mconfig::LIAgentD get_default_mconfig() {
 
 magma::mconfig::LIAgentD load_mconfig() {
   magma::mconfig::LIAgentD mconfig;
-  magma::MConfigLoader loader;
-  if (!loader.load_service_mconfig(LIAGENTD, &mconfig)) {
+  if (!magma::load_service_mconfig_from_file(LIAGENTD, &mconfig)) {
     MLOG(MERROR) << "Unable to load mconfig for liagentd, using default";
     return get_default_mconfig();
   }

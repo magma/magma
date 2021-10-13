@@ -105,6 +105,8 @@ typedef struct sgw_eps_bearer_ctxt_s {
   uint8_t num_sdf;
   uint32_t sdf_id[TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX];
   char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
+  uint32_t sgw_sequence_number;
+  char* pgw_cp_ip_port;
 } sgw_eps_bearer_ctxt_t;
 
 typedef struct sgw_pdn_connection_s {

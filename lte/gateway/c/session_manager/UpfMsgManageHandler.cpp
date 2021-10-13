@@ -113,7 +113,19 @@ void UpfMsgManageHandler::SetUPFSessionsConfig(
                     << teid << " recevied version " << version
                     << " SMF latest version: " << cur_version << " Resending";
         if (conv_enforcer_->is_incremented_rtx_counter_within_max(session)) {
-          conv_enforcer_->m5g_send_session_request_to_upf(session);
+          RulesToProcess pending_activation, pending_deactivation;
+          const CreateSessionResponse& csr =
+              session->get_create_session_response();
+          std::vector<StaticRuleInstall> static_rule_installs =
+              conv_enforcer_->to_vec(csr.static_rules());
+          std::vector<DynamicRuleInstall> dynamic_rule_installs =
+              conv_enforcer_->to_vec(csr.dynamic_rules());
+
+          session->process_get_5g_rule_installs(
+              static_rule_installs, dynamic_rule_installs, &pending_activation,
+              &pending_deactivation);
+          conv_enforcer_->m5g_send_session_request_to_upf(
+              session, pending_activation, pending_deactivation);
         }
       } else {
         count++;
@@ -193,12 +205,21 @@ void UpfMsgManageHandler::get_session_from_imsi(
     MLOG(MINFO) << "IDLE_MODE::: Session found in SendingPaging "
                    "Request of imsi: "
                 << imsi << "  session_id: " << session->get_session_id();
-    // Generate Paging trigget to AMF.
-    conv_enforcer_->handle_state_update_to_amf(
-        *session, magma::lte::M5GSMCause::OPERATION_SUCCESS, UE_PAGING_NOTIFY);
-    MLOG(MINFO) << "UPF Paging notification forwarded to AMF of imsi:" << imsi;
-    response_callback(Status::OK, SmContextVoid());
+    /* Generate Paging notification to AMF, only if session is in INACTIVE
+     * state.
+     */
+    if (session->get_state() == INACTIVE) {
+      conv_enforcer_->handle_state_update_to_amf(
+          *session, magma::lte::M5GSMCause::OPERATION_SUCCESS,
+          UE_PAGING_NOTIFY);
+      MLOG(MDEBUG) << "UPF Paging notification forwarded to AMF of imsi:"
+                   << imsi;
+      response_callback(Status::OK, SmContextVoid());
+    } else {
+      MLOG(MDEBUG) << "Can not Trigger Paging notification to AMF, as session "
+                      "is not an INACTIVE state.";
+      return;
+    }
   });
-  return;
 }
 }  // end namespace magma

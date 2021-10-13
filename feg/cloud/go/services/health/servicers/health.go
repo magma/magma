@@ -14,11 +14,11 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -120,6 +120,7 @@ func (srv *HealthServer) UpdateHealth(ctx context.Context, req *fegprotos.Health
 	// the number of gateways, which gateway is active, and gateway health
 	magmadGatewayTypeVal := orc8r.MagmadGatewayType
 	gateways, _, err := configurator.LoadEntities(
+		ctx,
 		networkID, &magmadGatewayTypeVal, nil, nil, nil,
 		configurator.EntityLoadCriteria{},
 		serdes.Entity,

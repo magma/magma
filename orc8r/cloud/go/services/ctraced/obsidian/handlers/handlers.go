@@ -64,6 +64,7 @@ func listCallTraces(c echo.Context) error {
 	}
 
 	callTraces, _, err := configurator.LoadAllEntitiesOfType(
+		c.Request().Context(),
 		networkID, orc8r.CallTraceEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -98,7 +99,7 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 		}
 		reqCtx := c.Request().Context()
 
-		exists, err := configurator.DoesEntityExist(networkID, orc8r.CallTraceEntityType, cfg.TraceID)
+		exists, err := configurator.DoesEntityExist(reqCtx, networkID, orc8r.CallTraceEntityType, cfg.TraceID)
 		if exists {
 			return obsidian.HttpError(errors.New(fmt.Sprintf("Call trace id: %s already exists", cfg.TraceID)))
 		}
@@ -114,7 +115,7 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 			return obsidian.HttpError(errors.Wrap(err, "failed to build call trace request"), http.StatusInternalServerError)
 		}
 
-		resp, err := client.StartCallTrace(networkID, cfg.GatewayID, req)
+		resp, err := client.StartCallTrace(reqCtx, networkID, cfg.GatewayID, req)
 		if err != nil {
 			return obsidian.HttpError(errors.Wrap(err, "failed to start call trace"), http.StatusInternalServerError)
 		}
@@ -166,7 +167,7 @@ func getUpdateCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 		req := &protos.EndTraceRequest{
 			TraceId: callTraceID,
 		}
-		resp, err := client.EndCallTrace(networkID, callTrace.Config.GatewayID, req)
+		resp, err := client.EndCallTrace(reqCtx, networkID, callTrace.Config.GatewayID, req)
 		if err != nil {
 			return err
 		}
@@ -235,6 +236,7 @@ func getCallTraceModel(c echo.Context) (*models.CallTrace, error) {
 		return nil, nerr
 	}
 	ent, err := configurator.LoadEntity(
+		c.Request().Context(),
 		networkID, orc8r.CallTraceEntityType, callTraceID,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,

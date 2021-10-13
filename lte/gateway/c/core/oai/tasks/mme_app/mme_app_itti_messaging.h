@@ -28,7 +28,6 @@
 #include <string.h>
 
 #include "log.h"
-#include "timer.h"
 #include "mme_config.h"
 #include "3gpp_36.401.h"
 #include "common_types.h"

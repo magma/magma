@@ -38,7 +38,6 @@
 #include "ShardTracker.h"
 
 namespace magma {
-using std::experimental::optional;
 
 using ImsiAndSessionID = std::pair<std::string, std::string>;
 

@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "service",
+    srcs = ["router.go"],
+    importpath = "github.com/magma/magma/src/go/service",
+    visibility = ["//visibility:public"],
+    deps = ["//src/go/protos/magma/sctpd"],
+)

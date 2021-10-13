@@ -36,7 +36,7 @@ MME :
     USE_STATELESS = "{{ use_stateless }}";
     USE_HA = "{{ use_ha }}";
     ENABLE_GTPU_PRIVATE_IP_CORRECTION = "{{ enable_gtpu_private_ip_correction }}";
-    ENABLE_CONVERGED_CORE = "{{ enable_converged_core }}";
+    ENABLE5G_FEATURES = "{{ enable5g_features }}";
 
     # Congestion control configuration parameters
     CONGESTION_CONTROL_ENABLED = "{{ congestion_control_enabled }}";
@@ -62,9 +62,9 @@ MME :
     # ------- SCTP definitions
     SCTP :
     {
-        # Number of streams to use in input/output
-        SCTP_INSTREAMS  = 8;
-        SCTP_OUTSTREAMS = 8;
+        # Path to sctpd up and downstream unix domain sockets
+        SCTP_UPSTREAM_SOCK = "unix:///tmp/sctpd_upstream.sock";
+        SCTP_DOWNSTREAM_SOCK = "unix:///tmp/sctpd_downstream.sock";
     };
 
     # ------- S1AP definitions
@@ -152,8 +152,9 @@ MME :
     # AMF code DEFAULT  size = 8 bits
     # AMF GROUP ID size = 16 bits
     GUAMFI_LIST = (
-     { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; AMF_REGION_ID="{{ amfRegionId }}" ; AMF_SET_ID="{{ amfSetId }}"; AMF_POINTER="{{ amfPointer }}"}
+     { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; AMF_REGION_ID="{{ amf_region_id }}" ; AMF_SET_ID="{{ amf_set_id }}"; AMF_POINTER="{{ amf_pointer }}"}
     );
+
 
     NAS :
     {
@@ -257,11 +258,13 @@ MME :
         # we don't advise wireless interfaces
         MME_INTERFACE_NAME_FOR_S1_MME         = "{{ s1ap_iface_name }}";
         MME_IPV4_ADDRESS_FOR_S1_MME           = "{{ s1ap_ip }}";
+        MME_IPV6_ADDRESS_FOR_S1_MME           = "{{ s1ap_ipv6 }}";
 
         # MME binded interface for S11 communication (GTPV2-C)
         MME_INTERFACE_NAME_FOR_S11_MME        = "{{ s11_iface_name }}";
         MME_IPV4_ADDRESS_FOR_S11_MME          = "{{ mme_s11_ip }}";
         MME_PORT_FOR_S11_MME                  = 2123;
+        MME_S1_IPV6_ENABLED                   = "{{ s1ap_ipv6_enabled }}";
     };
 
     LOGGING :
@@ -337,6 +340,7 @@ MME :
      {% endfor %}
    );
 
+   ACCEPT_COMBINED_ATTACH_TAU_WO_CSFB = "{{ accept_combined_attach_tau_wo_csfb }}";
    SENTRY_CONFIG = {
      {% if sentry_config %}
        # Sentry.io configuration sent from the Orc8r
@@ -352,4 +356,8 @@ NGAP :
     # DNS address communicated to UEs
     DEFAULT_DNS_IPV4_ADDRESS     = "{{ ipv4_dns }}";
     DEFAULT_DNS_SEC_IPV4_ADDRESS = "{{ ipv4_sec_dns }}";
+    AMF_NAME = "{{ amf_name }}";
+    PLMN_SUPPORT_LIST = (
+       { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; DEFAULT_SLICE_SERVICE_TYPE="{{ default_slice_service_type }}" ; DEFAULT_SLICE_DIFFERENTIATOR="{{ default_slice_differentiator }}"; }
+    );
 };

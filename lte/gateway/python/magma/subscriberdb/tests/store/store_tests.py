@@ -83,6 +83,33 @@ class StoreTests(unittest.TestCase):
         self._store.delete_subscriber(sid1)
         self.assertEqual(self._store.list_subscribers(), [])
 
+    def test_subscriber_deletion_digests(self):
+        """
+        Test if subscriber deletion also unconditionally removes digest info.
+
+        Regression test for #9029.
+        """
+        (sid1, _) = self._add_subscriber('IMSI11111')
+        (sid2, _) = self._add_subscriber('IMSI22222')
+        self.assertEqual(self._store.list_subscribers(), [sid1, sid2])
+
+        root_digest = "apple"
+        leaf_digest = LeafDigest(
+            id='IMSI11111',
+            digest=Digest(md5_base64_digest="digest_apple"),
+        )
+        self._store.update_root_digest(root_digest)
+        self._store.update_leaf_digests([leaf_digest])
+        self.assertNotEqual(self._store.get_current_root_digest(), "")
+        self.assertNotEqual(self._store.get_current_leaf_digests(), [])
+
+        self._store.delete_subscriber(sid2)
+        self.assertEqual(self._store.list_subscribers(), [sid1])
+
+        # Deleting a subscriber also deletes all digest info
+        self.assertEqual(self._store.get_current_root_digest(), "")
+        self.assertEqual(self._store.get_current_leaf_digests(), [])
+
     def test_subscriber_retrieval(self):
         """
         Test if subscriber retrieval works as expected

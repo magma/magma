@@ -13,3 +13,5 @@
 
 # log_level is set in mconfig. It can be overridden here
 print_grpc_payload: false
+
+log_level: INFO

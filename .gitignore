@@ -45,6 +45,8 @@ orc8r/cloud/swagger/specs
 
 # Node
 node_modules/
+orc8r/cloud/package.json
+orc8r/cloud/yarn.lock
 
 # Docusaurus
 docs/docusaurus/build/
@@ -82,6 +84,7 @@ orc8r/cloud/test-results/
 
 # IntelliJ
 .idea/
+*.iml
 
 # VS Code
 .vscode/

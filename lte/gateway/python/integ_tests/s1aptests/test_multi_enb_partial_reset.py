@@ -19,17 +19,21 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestMultipleEnbPartialReset(unittest.TestCase):
+class TestMultiEnbPartialReset(unittest.TestCase):
+    """Unittest: TestMultiEnbPartialReset"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
-    def test_multiple_enb_partial_reset(self):
-        """ Multi eNB + attach 1 UE + s1ap partial reset + detach """
+    def test_multi_enb_partial_reset(self):
+        """Multi eNB + attach 1 UE + s1ap partial reset + detach
 
-        """ Note: Before execution of this test case,
+        Note: Before execution of this test case,
         make sure that following steps are correct
         1. Configure same plmn and tac in both MME and s1ap tester
         2. How to configure plmn and tac in MME:
@@ -44,7 +48,7 @@ class TestMultipleEnbPartialReset(unittest.TestCase):
         """
 
         # column is an enb parameter, row is number of enbs
-        """         Cell Id, Tac, EnbType, PLMN Id, PLMN length """
+        #   Cell Id, Tac, EnbType, PLMN Id, PLMN length
         enb_list = [
             [1, 1, 1, "00101", 5],
             [2, 1, 1, "00101", 5],
@@ -55,6 +59,7 @@ class TestMultipleEnbPartialReset(unittest.TestCase):
 
         self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)
 
+        print("Waiting for 2 seconds for Multiple ENBs to get configured")
         time.sleep(2)
         ue_ids = []
         num_ues = 1
@@ -75,6 +80,7 @@ class TestMultipleEnbPartialReset(unittest.TestCase):
             ue_ids.append(req.ue_id)
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
+
         # Trigger eNB Reset
         # Add delay to ensure S1APTester sends attach partial before sending
         # eNB Reset Request
@@ -83,8 +89,9 @@ class TestMultipleEnbPartialReset(unittest.TestCase):
         reset_req = s1ap_types.ResetReq()
         reset_req.rstType = s1ap_types.resetType.PARTIAL_RESET.value
         reset_req.cause = s1ap_types.ResetCause()
-        reset_req.cause.causeType = \
+        reset_req.cause.causeType = (
             s1ap_types.NasNonDelCauseType.TFW_CAUSE_MISC.value
+        )
         # Set the cause to MISC.hardware-failure
         reset_req.cause.causeVal = 3
         reset_req.r = s1ap_types.R()
@@ -96,24 +103,30 @@ class TestMultipleEnbPartialReset(unittest.TestCase):
         for indx in range(reset_req.r.partialRst.numOfConn):
             reset_req.r.partialRst.ueS1apIdPairList[indx].ueId = ue_ids[indx]
             print(
-                "Reset_req.r.partialRst.ueS1apIdPairList[indx].ueId",
-                reset_req.r.partialRst.ueS1apIdPairList[indx].ueId,
+                "Reset_req.r.partialRst.ueS1apIdPairList[",
                 indx,
+                "].ueId",
+                reset_req.r.partialRst.ueS1apIdPairList[indx].ueId,
             )
-        print("ue_ids", ue_ids)
+
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.RESET_REQ, reset_req,
+            s1ap_types.tfwCmd.RESET_REQ,
+            reset_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(response.msg_type, s1ap_types.tfwCmd.RESET_ACK.value)
-        time.sleep(0.5)
+
+        print(
+            "Waiting for 3 seconds to ensure that MME has cleaned up all S1 "
+            "state before detaching the UE",
+        )
+        time.sleep(3)
         # Trigger detach request
         for ue in ue_ids:
             print("************************* Calling detach for UE id ", ue)
-            # self._s1ap_wrapper.s1_util.detach(
-            #    ue, detach_type, wait_for_s1)
             self._s1ap_wrapper.s1_util.detach(
-                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True,
+                ue,
+                s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
             )
 
 

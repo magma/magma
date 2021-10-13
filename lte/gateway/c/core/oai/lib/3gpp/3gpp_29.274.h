@@ -295,9 +295,9 @@ typedef struct bearer_context_within_create_bearer_response_s {
                             ///< those in the Create Bearer Request. See NOTE1.
   fteid_t s2b_u_epdg_fteid;  ///<  C This IE shall be sent on the S2b interface.
   fteid_t s2b_u_pgw_fteid;   ///<  C This IE shall be sent on the S2b interface.
-                             ///<  It shall be used
-  ///< to correlate the bearers with those in the Create Bearer
-  ///<   Request.
+                             ///<  It shall be used to correlate the bearers
+                             ///< with those in the Create Bearer Request.
+  bearer_qos_t bearer_level_qos;
   protocol_configuration_options_t
       pco;  ///< If the UE includes the PCO IE in the corresponding
             ///< message, then the MME/SGSN shall copy the content of

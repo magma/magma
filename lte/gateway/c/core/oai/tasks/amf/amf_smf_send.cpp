@@ -15,20 +15,26 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include <string.h>
 #include "log.h"
 #include "conversions.h"
 #include "3gpp_38.401.h"
+#include "s6a_messages_types.h"
+#include "dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
 #include "include/amf_session_manager_pco.h"
 #include "amf_recv.h"
+#include "amf_sap.h"
 #include "M5gNasMessage.h"
 #include "common_defs.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "SmfServiceClient.h"
 #include "M5GMobilityServiceClient.h"
 #include "amf_app_timer_management.h"
+#include "amf_common.h"
+#include "mme_api.h"
 
 using magma5g::AsyncM5GMobilityServiceClient;
 using magma5g::AsyncSmfServiceClient;
@@ -36,6 +42,9 @@ using magma5g::AsyncSmfServiceClient;
 namespace magma5g {
 #define IMSI_LEN 15
 #define AMF_CAUSE_SUCCESS 1
+const uint32_t MAX_UE_PDU_SESSION_LIMIT = 15;
+
+int amf_max_pdu_session_reject(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg);
 
 static int pdu_session_resource_release_t3592_handler(
     zloop_t* loop, int timer_id, void* arg);
@@ -201,7 +210,7 @@ void clear_amf_smf_context(smf_context_t* smf_ctx) {
 
 int pdu_session_release_request_process(
     ue_m5gmm_context_s* ue_context, smf_context_t* smf_ctx,
-    amf_ue_ngap_id_t amf_ue_ngap_id) {
+    amf_ue_ngap_id_t amf_ue_ngap_id, bool retransmit) {
   int rc                = 1;
   amf_smf_t amf_smf_msg = {};
   // amf_cause = amf_smf_handle_pdu_release_request(
@@ -216,8 +225,8 @@ int pdu_session_release_request_process(
   OAILOG_DEBUG(
       LOG_AMF_APP, "sending PDU session resource release request to gNB \n");
 
-  rc =
-      pdu_session_resource_release_request(ue_context, amf_ue_ngap_id, smf_ctx);
+  rc = pdu_session_resource_release_request(
+      ue_context, amf_ue_ngap_id, smf_ctx, retransmit);
 
   if (rc != RETURNok) {
     OAILOG_DEBUG(
@@ -325,7 +334,15 @@ static int pdu_session_resource_release_t3592_handler(
   if (smf_ctx->retransmission_count < REGISTRATION_COUNTER_MAX) {
     /* Send entity Registration accept message to the UE */
 
-    pdu_session_release_request_process(ue_context, smf_ctx, amf_ue_ngap_id);
+    ue_pdu_id_t id = {amf_ue_ngap_id, pdu_session_id};
+
+    pdu_session_release_request_process(
+        ue_context, smf_ctx, amf_ue_ngap_id, true);
+
+    smf_ctx->T3592.id = amf_pdu_start_timer(
+        PDUE_SESSION_RELEASE_TIMER_MSECS, TIMER_REPEAT_ONCE,
+        pdu_session_resource_release_t3592_handler, id);
+
   } else {
     /* Abort the registration procedure */
     OAILOG_ERROR(
@@ -365,26 +382,54 @@ int amf_smf_send(
   }
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  if (ue_context) {
-    IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
-    if (msg->payload_container.smf_msg.header.message_type ==
-        PDU_SESSION_ESTABLISHMENT_REQUEST) {
-      smf_ctx = amf_insert_smf_context(
-          ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
-    } else {
-      smf_ctx = amf_smf_context_exists_pdu_session_id(
-          ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
-    }
-    if (smf_ctx == NULL) {
-      OAILOG_ERROR(
-          LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
-          msg->payload_container.smf_msg.header.pdu_session_id);
-      OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
-    }
-  } else {
+
+  if (!ue_context) {
     OAILOG_ERROR(
-        LOG_AMF_APP, "ue context not found for the ue_id = " AMF_UE_NGAP_ID_FMT,
+        LOG_AMF_APP, "ue context not found for the ue_id :" AMF_UE_NGAP_ID_FMT,
         ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+  }
+
+  /*
+   * 1) the Payload container type IE is set to "N1 SM information" and
+   * 2) the Request type IE is set to "initial request" or "existing PDU
+   * session" the AMF determines that the PLMN's maximum number of PDU sessions
+   * has already been reached for the UE, the AMF shall send back to the UE the
+   * 5GSM message which was not forwarded and 5GMM cause #65
+   */
+  M5GRequestType requestType =
+      static_cast<M5GRequestType>(msg->request_type.type_val);
+
+  if ((N1_SM_INFO == msg->payload_container_type.type_val) &&
+      ((M5GRequestType::INITIAL_REQUEST == requestType) ||
+       (M5GRequestType::EXISTING_PDU_SESSION == requestType))) {
+    if (ue_context->amf_context.smf_ctxt_vector.size() >=
+        MAX_UE_PDU_SESSION_LIMIT) {
+      OAILOG_ERROR(
+          LOG_AMF_APP,
+          "Max pdu session limit reached, Rejecting new session for the "
+          "ue_id :" AMF_UE_NGAP_ID_FMT,
+          ue_id);
+      rc = amf_max_pdu_session_reject(ue_id, msg);
+
+      return rc;
+    }
+  }
+
+  IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
+  if (msg->payload_container.smf_msg.header.message_type ==
+      PDU_SESSION_ESTABLISHMENT_REQUEST) {
+    smf_ctx = amf_insert_smf_context(
+        ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
+  } else {
+    smf_ctx = amf_smf_context_exists_pdu_session_id(
+        ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
+  }
+
+  if (smf_ctx == NULL) {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
+        msg->payload_container.smf_msg.header.pdu_session_id);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
@@ -448,8 +493,8 @@ int amf_smf_send(
       smf_ctx->smf_proc_data.pti.pti = msg->payload_container.smf_msg.msg
                                            .pdu_session_release_request.pti.pti;
       smf_ctx->retransmission_count = 0;
-      if (RETURNok ==
-          pdu_session_release_request_process(ue_context, smf_ctx, ue_id)) {
+      if (RETURNok == pdu_session_release_request_process(
+                          ue_context, smf_ctx, ue_id, false)) {
         OAILOG_INFO(
             LOG_AMF_APP,
             "T3592: PDU_SESSION_RELEASE_REQUEST timer T3592 with id  %ld "
@@ -606,7 +651,7 @@ int amf_smf_handle_ip_address_response(
     rc = amf_smf_create_ipv4_session_grpc_req(
         response_p->imsi, response_p->apn, response_p->pdu_session_id,
         response_p->pdu_session_type, response_p->gnb_gtp_teid, response_p->pti,
-        response_p->gnb_gtp_teid_ip_addr, ip_str);
+        response_p->gnb_gtp_teid_ip_addr, ip_str, response_p->default_ambr);
 
     if (rc < 0) {
       OAILOG_ERROR(LOG_AMF_APP, "Create IPV4 Session \n");
@@ -616,4 +661,172 @@ int amf_smf_handle_ip_address_response(
   return rc;
 }
 
+int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+  ue_m5gmm_context_s* ue_context_p     = NULL;
+  MessageDef* message_p                = NULL;
+  s6a_update_location_req_t* s6a_ulr_p = NULL;
+  int rc                               = RETURNok;
+
+  OAILOG_INFO(
+      LOG_AMF_APP,
+      "Sending UPDATE LOCATION REQ to subscriberd, ue_id = " AMF_UE_NGAP_ID_FMT,
+      ue_id);
+
+  ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (ue_context_p) {
+    OAILOG_INFO(
+        LOG_AMF_APP, "IMSI HANDLED =%lu\n", ue_context_p->amf_context.imsi64);
+  } else {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the ue_id= " AMF_UE_NGAP_ID_FMT,
+        ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+  }
+
+  message_p = itti_alloc_new_message(TASK_AMF_APP, S6A_UPDATE_LOCATION_REQ);
+  if (message_p == NULL) {
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
+  }
+
+  s6a_ulr_p = &message_p->ittiMsg.s6a_update_location_req;
+  memset(s6a_ulr_p, 0, sizeof(s6a_update_location_req_t));
+
+  IMSI64_TO_STRING(
+      ue_context_p->amf_context.imsi64, s6a_ulr_p->imsi, IMSI_LENGTH);
+
+  s6a_ulr_p->imsi_length    = strlen(s6a_ulr_p->imsi);
+  s6a_ulr_p->initial_attach = INITIAL_ATTACH;
+  plmn_t visited_plmn       = {0};
+  COPY_PLMN(visited_plmn, ue_context_p->amf_context.originating_tai.plmn);
+  memcpy(&s6a_ulr_p->visited_plmn, &visited_plmn, sizeof(plmn_t));
+  s6a_ulr_p->rat_type = RAT_NG_RAN;
+
+  // Set regional_subscription flag
+  s6a_ulr_p->supportedfeatures.regional_subscription = true;
+
+  rc = AsyncSmfServiceClient::getInstance().n11_update_location_req(s6a_ulr_p);
+
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name        :  amf_max_pdu_session_reject()                            **
+ **                                                                        **
+ ** Description :  Send the Downlink Transport with 5GMM Cause to gnb      **
+ **                                                                        **
+ ** Inputs      :  amf_ue_ngap_id_t :   pdusession response message        **
+ **                ULNASTransportMsg:   received uplinktransport msg       **
+ **                                                                        **
+ **  Return     :  RETURNok, RETURNerror                                   **
+ **                                                                        **
+ ***************************************************************************/
+int amf_max_pdu_session_reject(
+    amf_ue_ngap_id_t ue_id, ULNASTransportMsg* ulmsg) {
+  nas5g_error_code_t rc    = M5G_AS_FAILURE;
+  DLNASTransportMsg* dlmsg = nullptr;
+  SmfMsg* smf_msg          = nullptr;
+  uint32_t bytes           = 0;
+  uint32_t len             = 0;
+  uint32_t container_len   = 0;
+  bstring buffer;
+  smf_context_t* smf_ctx         = nullptr;
+  ue_m5gmm_context_s* ue_context = nullptr;
+  amf_nas_message_t msg          = {};
+
+  /*
+        AMF shall perform if Max PDU Session limit exceeds
+        a) include the PDU session ID in the PDU session ID IE;
+        b) set the Payload container type IE to "N1 SM information";
+        c) set the Payload container IE to the 5GSM message which was not
+     forwarded; and d) set the 5GMM cause IE to the 5GMM cause #65 "maximum
+     number of PDU sessions reached".
+  */
+  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (!ue_context) {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "UE Context not found for UE ID: " AMF_UE_NGAP_ID_FMT,
+        ue_id);
+    return rc;
+  }
+
+  // Message construction for PDU Establishment Reject
+  // NAS-5GS (NAS) PDU
+  msg.security_protected.plain.amf.header.extended_protocol_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.security_protected.plain.amf.header.message_type = DLNASTRANSPORT;
+  msg.header.security_header_type =
+      SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
+  msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.header.sequence_number =
+      ue_context->amf_context._security.dl_count.seq_num;
+
+  dlmsg = &msg.security_protected.plain.amf.msg.downlinknas5gtransport;
+
+  // AmfHeader
+  dlmsg->extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  len++;
+  dlmsg->spare_half_octet.spare  = 0x00;
+  dlmsg->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  len++;
+  dlmsg->message_type.msg_type = DLNASTRANSPORT;
+  len++;
+  dlmsg->payload_container.iei = PAYLOAD_CONTAINER;
+
+  // SmfMsg
+  dlmsg->payload_container_type.iei      = 0;
+  dlmsg->payload_container_type.type_val = N1_SM_INFO;
+  len++;
+  dlmsg->pdu_session_identity.iei =
+      static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2);
+  len++;
+  dlmsg->pdu_session_identity.pdu_session_id =
+      ulmsg->payload_container.smf_msg.header.pdu_session_id;
+  len++;
+
+  dlmsg->m5gmm_cause.iei = static_cast<uint8_t>(M5GIei::M5GMM_CAUSE);
+  dlmsg->m5gmm_cause.m5gmm_cause =
+      static_cast<uint8_t>(M5GMmCause::MAX_PDU_SESSIONS_REACHED);
+  len += 2;
+
+  // Payload container IE from ulmsg
+  dlmsg->payload_container.copy(ulmsg->payload_container);
+
+  len += 2;  // 2 bytes for container.len
+  len += dlmsg->payload_container.len;
+
+  /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
+   * so length is modified such that it will be mode of 4
+   */
+  AMF_GET_BYTE_ALIGNED_LENGTH(len);
+  if (msg.header.security_header_type != SECURITY_HEADER_TYPE_NOT_PROTECTED) {
+    amf_msg_header* header = &msg.security_protected.plain.amf.header;
+    /*
+     * Expand size of protected NAS message
+     */
+    len += NAS_MESSAGE_SECURITY_HEADER_SIZE;
+    /*
+     * Set header of plain NAS message
+     */
+    header->extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
+    header->security_header_type = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  }
+
+  buffer = bfromcstralloc(len, "\0");
+  bytes  = nas5g_message_encode(
+      buffer->data, &msg, len, &ue_context->amf_context._security);
+  if (bytes > 0) {
+    buffer->slen = bytes;
+    amf_app_handle_nas_dl_req(ue_id, buffer, rc);
+
+  } else {
+    OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");
+    bdestroy_wrapper(&buffer);
+  }
+  return rc;
+}
 }  // namespace magma5g

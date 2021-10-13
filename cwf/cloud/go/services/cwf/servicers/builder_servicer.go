@@ -18,6 +18,10 @@ import (
 	"log"
 	"strings"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
+
 	"magma/cwf/cloud/go/cwf"
 	cwf_mconfig "magma/cwf/cloud/go/protos/mconfig"
 	"magma/cwf/cloud/go/serdes"
@@ -30,10 +34,6 @@ import (
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	orc8r_mconfig "magma/orc8r/lib/go/protos/mconfig"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 )
 
 const (

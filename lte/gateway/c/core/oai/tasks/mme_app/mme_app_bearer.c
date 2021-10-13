@@ -45,7 +45,6 @@
 #include "mme_app_itti_messaging.h"
 #include "mme_app_procedures.h"
 #include "mme_app_statistics.h"
-#include "timer.h"
 #include "nas_proc.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
@@ -250,7 +249,14 @@ status_code_e send_pcrf_bearer_actv_rsp(
 
   // Fill SGW S11 CP TEID
   s11_nw_init_actv_bearer_rsp->sgw_s11_teid = pdn_context->s_gw_teid_s11_s4;
-  int msg_bearer_index                      = 0;
+
+  // Fill User Location Information
+  mme_app_get_user_location_information(
+      &s11_nw_init_actv_bearer_rsp->uli, ue_context_p);
+  COPY_PLMN_IN_ARRAY_FMT(
+      (s11_nw_init_actv_bearer_rsp->serving_network),
+      (ue_context_p->emm_context.originating_tai.plmn));
+  int msg_bearer_index = 0;
 
   bearer_context_t* bc = mme_app_get_bearer_context(ue_context_p, ebi);
   s11_nw_init_actv_bearer_rsp->cause.cause_value = cause;
@@ -271,12 +277,21 @@ status_code_e send_pcrf_bearer_actv_rsp(
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
-  OAILOG_INFO_UE(
-      LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "Sending create_dedicated_bearer_rsp to SGW with EBI %u s1u teid %u for "
-      "ue id " MME_UE_S1AP_ID_FMT "\n",
-      ebi, bc->s_gw_fteid_s1u.teid, ue_context_p->mme_ue_s1ap_id);
-  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  if (pdn_context->route_s11_messages_to_s8_task) {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Sending create_dedicated_bearer_rsp to SGW_s8 task for EBI %u s1u "
+        "teid " TEID_FMT " for ue id " MME_UE_S1AP_ID_FMT "\n",
+        ebi, bc->s_gw_fteid_s1u.teid, ue_context_p->mme_ue_s1ap_id);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
+  } else {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Sending create_dedicated_bearer_rsp to SPGW task for EBI %u s1u "
+        "teid " TEID_FMT " for ue id " MME_UE_S1AP_ID_FMT "\n",
+        ebi, bc->s_gw_fteid_s1u.teid, ue_context_p->mme_ue_s1ap_id);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  }
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
@@ -1955,7 +1970,7 @@ status_code_e mme_app_handle_initial_context_setup_rsp_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
     nas_emm_attach_proc_t* attach_proc =
@@ -2294,14 +2309,23 @@ void mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
   s11_nw_init_actv_bearer_rsp->bearer_contexts.num_bearer_context++;
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
-
-  OAILOG_INFO_UE(
-      LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "Sending create_dedicated_bearer_rej to SGW with EBI %u s1u teid %u for "
-      "ue id " MME_UE_S1AP_ID_FMT "\n",
-      pending_ded_ber_req->linked_ebi, pending_ded_ber_req->sgw_fteid.teid,
-      ue_context_p->mme_ue_s1ap_id);
-  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  if (pdn_context->route_s11_messages_to_s8_task) {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Sending create_dedicated_bearer_rej to SGW_s8 task for EBI %u s1u "
+        "teid " TEID_FMT " for ue id " MME_UE_S1AP_ID_FMT "\n",
+        pending_ded_ber_req->linked_ebi, pending_ded_ber_req->sgw_fteid.teid,
+        ue_context_p->mme_ue_s1ap_id);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
+  } else {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Sending create_dedicated_bearer_rej to SPGW task for EBI %u s1u "
+        "teid " TEID_FMT "for ue id " MME_UE_S1AP_ID_FMT "\n",
+        pending_ded_ber_req->linked_ebi, pending_ded_ber_req->sgw_fteid.teid,
+        ue_context_p->mme_ue_s1ap_id);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 

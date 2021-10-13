@@ -22,21 +22,18 @@
    \version 0.1
 */
 
-#include <stdbool.h>
-#include <string.h>
+#include "s1ap_mme_decoder.h"
 
 #include "bstrlib.h"
 #include "log.h"
 #include "assertions.h"
 #include "common_defs.h"
-#include "s1ap_mme_decoder.h"
 #include "S1ap_S1AP-PDU.h"
 #include "S1ap_InitiatingMessage.h"
 #include "S1ap_ProcedureCode.h"
 #include "S1ap_SuccessfulOutcome.h"
 #include "S1ap_UnsuccessfulOutcome.h"
 #include "asn_codecs.h"
-#include "constr_TYPE.h"
 #include "per_decoder.h"
 
 //-----------------------------------------------------------------------------

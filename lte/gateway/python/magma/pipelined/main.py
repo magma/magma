@@ -30,6 +30,7 @@ from magma.pipelined.app.he import PROXY_PORT_NAME
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.check_quota_server import run_flask
 from magma.pipelined.datapath_setup import (
+    configure_tso,
     setup_masquerade_rule,
     setup_sgi_tunnel,
     tune_datapath,
@@ -75,6 +76,12 @@ def main():
     enable_nat = service.config.get('enable_nat', service.mconfig.nat_enabled)
     service.config['enable_nat'] = enable_nat
     logging.info("Nat: %s", enable_nat)
+    enable5g_features = service.config.get(
+        'enable5g_features',
+        service.mconfig.enable5g_features,
+    )
+    service.config['enable5g_features'] = enable5g_features
+    logging.info("enable5g_features: %s", enable5g_features)
     vlan_tag = service.config.get(
         'sgi_management_iface_vlan',
         service.mconfig.sgi_management_iface_vlan,
@@ -92,6 +99,19 @@ def main():
         service.mconfig.sgi_management_iface_gw,
     )
     service.config['sgi_management_iface_gw'] = sgi_gateway_ip
+
+    # SGi IPv6 address conf
+    sgi_ipv6 = service.config.get(
+        'sgi_management_iface_ipv6_addr',
+        service.mconfig.sgi_management_iface_ipv6_addr,
+    )
+    service.config['sgi_management_iface_ipv6_addr'] = sgi_ipv6
+
+    sgi_gateway_ipv6 = service.config.get(
+        'sgi_management_iface_ipv6_gw',
+        service.mconfig.sgi_management_iface_ipv6_gw,
+    )
+    service.config['sgi_management_iface_ipv6_gw'] = sgi_gateway_ipv6
 
     # Keep router mode off for smooth upgrade path
     service.config['dp_router_enabled'] = service.config.get(
@@ -124,6 +144,7 @@ def main():
     service.config['he_enabled'] = he_enabled
 
     # tune datapath according to config
+    configure_tso(service.config)
     setup_sgi_tunnel(service.config, service.loop)
     tune_datapath(service.config)
     setup_masquerade_rule(service.config, service.loop)

@@ -21,7 +21,7 @@ from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.qos.common import QosImplType, QosManager, SubscriberState
 from magma.pipelined.qos.qos_meter_impl import MeterManager
-from magma.pipelined.qos.qos_tc_impl import TrafficClass, argSplit, run_cmd
+from magma.pipelined.qos.qos_tc_impl import TrafficClass, run_cmd
 from magma.pipelined.qos.types import (
     QosInfo,
     get_data,

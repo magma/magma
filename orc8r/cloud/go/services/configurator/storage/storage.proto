@@ -139,7 +139,7 @@ message EntityLoadFilter {
     google.protobuf.StringValue key_filter = 2;
 
     // If IDs is provided, the query will return all entities matching the
-    // provided TypeAndKeys. TypeFilter and KeyFilter are ignored if IDs is
+    // provided TKs. TypeFilter and KeyFilter are ignored if IDs is
     // provided.
     repeated EntityID IDs = 3;
 

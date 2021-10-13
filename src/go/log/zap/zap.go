@@ -9,15 +9,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package zap implements github.com/magma/magma/log via github.com/uber-go/zap
+// Package zap implements github.com/magma/magma/src/go/log via github.com/uber-go/zap
 //
 // Basic usage:
 //
 //	import (
 //		uber_zap "go.uber.org/zap"
 //
-//		"github.com/magma/magma/log"
-//		"github.com/magma/magma/log/zap"
+//		"github.com/magma/magma/src/go/log"
+//		"github.com/magma/magma/src/go/log/zap"
 //	)
 //
 //	lm := log.NewManager(zap.NewLogger())
@@ -30,7 +30,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/magma/magma/log"
+	"github.com/magma/magma/src/go/log"
 )
 
 type printer struct {
@@ -68,7 +68,7 @@ func newPrinters(l *zap.Logger) map[log.Level]*printer {
 	}
 }
 
-// Logger adapts *zap.Logger to github.com/magma/magma/log.Logger.
+// Logger adapts *zap.Logger to github.com/magma/magma/src/go/log.Logger.
 type Logger struct {
 	*zap.Logger
 

@@ -39,7 +39,7 @@ func (mPgw *MockPgw) getHandleModifyBearerRequest() gtpv2.HandlerFunc {
 		bearer := session.GetDefaultBearer()
 
 		mbReqFromMME := msg.(*message.ModifyBearerRequest)
-		if brCtxIE := mbReqFromMME.BearerContextsToBeModified; brCtxIE != nil {
+		if brCtxIE := mbReqFromMME.BearerContextsToBeModified[0]; brCtxIE != nil {
 			for _, childIE := range brCtxIE.ChildIEs {
 				switch childIE.Type {
 				case ie.Indication:

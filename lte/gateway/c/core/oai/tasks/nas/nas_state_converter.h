@@ -23,7 +23,6 @@ extern "C" {
 #include "esm_proc.h"
 #include "nas_message.h"
 #include "nas_procedures.h"
-#include "timer.h"
 }
 
 #include <sstream>

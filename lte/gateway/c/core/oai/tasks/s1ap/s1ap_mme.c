@@ -28,13 +28,6 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <pthread.h>
-#include <netinet/in.h>
-
 #include "bstrlib.h"
 #include "hashtable.h"
 #include "log.h"
@@ -47,19 +40,16 @@
 #include "service303_message_utils.h"
 #include "dynamic_memory_check.h"
 #include "mme_config.h"
-#include "timer.h"
 #include "itti_free_defined_msg.h"
 #include "S1ap_TimeToWait.h"
 #include "asn_internal.h"
 #include "common_defs.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "mme_app_messages_types.h"
 #include "mme_default_values.h"
 #include "s1ap_messages_types.h"
 #include "sctp_messages_types.h"
-#include "timer_messages_types.h"
 
 #if S1AP_DEBUG_LIST
 #define eNB_LIST_OUT(x, args...)                                               \
@@ -93,20 +83,27 @@ static int s1ap_send_init_sctp(void) {
   MessageDef* message_p = NULL;
 
   message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_S1AP, SCTP_INIT_MSG);
-  message_p->ittiMsg.sctpInit.port         = S1AP_PORT_NUMBER;
-  message_p->ittiMsg.sctpInit.ppid         = S1AP_SCTP_PPID;
+  message_p->ittiMsg.sctpInit.port = S1AP_PORT_NUMBER;
+  message_p->ittiMsg.sctpInit.ppid = S1AP_SCTP_PPID;
+  message_p->ittiMsg.sctpInit.ipv6 = mme_config.ip.s1_ipv6_enabled;
+
+  /*
+   * SR WARNING: ipv6 multi-homing fails sometimes for localhost.
+   * Only allow multi homing when IPv6 is enabled.
+   */
   message_p->ittiMsg.sctpInit.ipv4         = 1;
-  message_p->ittiMsg.sctpInit.ipv6         = 0;
   message_p->ittiMsg.sctpInit.nb_ipv4_addr = 1;
   message_p->ittiMsg.sctpInit.ipv4_address[0].s_addr =
       mme_config.ip.s1_mme_v4.s_addr;
 
-  /*
-   * SR WARNING: ipv6 multi-homing fails sometimes for localhost.
-   * * * * Disable it for now.
-   */
-  message_p->ittiMsg.sctpInit.nb_ipv6_addr    = 0;
-  message_p->ittiMsg.sctpInit.ipv6_address[0] = in6addr_loopback;
+  if (message_p->ittiMsg.sctpInit.ipv6) {
+    message_p->ittiMsg.sctpInit.nb_ipv6_addr    = 1;
+    message_p->ittiMsg.sctpInit.ipv6_address[0] = mme_config.ip.s1_mme_v6;
+  } else {
+    message_p->ittiMsg.sctpInit.nb_ipv6_addr    = 0;
+    message_p->ittiMsg.sctpInit.ipv6_address[0] = in6addr_loopback;
+  }
+
   return send_msg_to_task(&s1ap_task_zmq_ctx, TASK_SCTP, message_p);
 }
 
@@ -289,55 +286,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case MME_APP_HANDOVER_COMMAND: {
       s1ap_mme_handle_handover_command(
           state, &MME_APP_HANDOVER_COMMAND(received_message_p));
-    } break;
-
-    case TIMER_HAS_EXPIRED: {
-      if (!timer_exists(
-              received_message_p->ittiMsg.timer_has_expired.timer_id)) {
-        break;
-      }
-      ue_description_t* ue_ref_p = NULL;
-      if (received_message_p->ittiMsg.timer_has_expired.arg != NULL) {
-        // check whether timer is related to eNB procedure or UE procedure
-        s1ap_timer_arg_t timer_arg =
-            *((s1ap_timer_arg_t*) (received_message_p->ittiMsg.timer_has_expired
-                                       .arg));
-        if (timer_arg.timer_class == S1AP_UE_TIMER) {
-          mme_ue_s1ap_id_t mme_ue_s1ap_id = timer_arg.instance_id;
-          if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
-            OAILOG_WARNING_UE(
-                LOG_S1AP, imsi64,
-                "Timer expired but no associated UE context for UE "
-                "id " MME_UE_S1AP_ID_FMT,
-                mme_ue_s1ap_id);
-            timer_handle_expired(
-                received_message_p->ittiMsg.timer_has_expired.timer_id);
-            is_ue_state_same = true;
-            break;
-          }
-          if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-              ue_ref_p->s1ap_ue_context_rel_timer.id) {
-            // UE context release complete timer expiry handler
-            OAILOG_WARNING_UE(
-                LOG_S1AP, imsi64,
-                "ue_context_release_command_timer_expired for UE "
-                "id " MME_UE_S1AP_ID_FMT,
-                mme_ue_s1ap_id);
-            increment_counter(
-                "ue_context_release_command_timer_expired", 1, NO_LABELS);
-            s1ap_mme_handle_ue_context_rel_comp_timer_expiry(state, ue_ref_p);
-          }
-        } else {
-          is_ue_state_same = true;
-          OAILOG_WARNING_UE(
-              LOG_S1AP, imsi64,
-              "S1AP Timer expired with invalid timer class %u \n",
-              timer_arg.timer_class);
-        }
-      }
-      timer_handle_expired(
-          received_message_p->ittiMsg.timer_has_expired.timer_id);
-
     } break;
 
     case TERMINATE_MESSAGE: {
@@ -569,17 +517,6 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
   // Updating number of UE
   enb_ref->nb_ue_associated--;
 
-  // Stop UE Context Release Complete timer,if running
-  if (ue_ref->s1ap_ue_context_rel_timer.id != S1AP_TIMER_INACTIVE_ID) {
-    if (timer_remove(ue_ref->s1ap_ue_context_rel_timer.id, NULL)) {
-      OAILOG_ERROR(
-          LOG_MME_APP,
-          "Failed to stop s1ap ue context release complete timer, UE "
-          "id: " MME_UE_S1AP_ID_FMT,
-          ue_ref->mme_ue_s1ap_id);
-    }
-    ue_ref->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
-  }
   OAILOG_TRACE(
       LOG_S1AP,
       "Removing UE enb_ue_s1ap_id: " ENB_UE_S1AP_ID_FMT

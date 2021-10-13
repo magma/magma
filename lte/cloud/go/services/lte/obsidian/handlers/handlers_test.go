@@ -1047,15 +1047,10 @@ func TestCreateGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{
-			{Type: orc8r.MagmadGatewayType, Key: "g1"},
-			{Type: lte.CellularGatewayEntityType, Key: "g1"},
-		},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, storage.TKs{
+		{Type: orc8r.MagmadGatewayType, Key: "g1"},
+		{Type: lte.CellularGatewayEntityType, Key: "g1"},
+	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	actualDevice, err := device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.NoError(t, err)
@@ -1065,8 +1060,8 @@ func TestCreateGateway(t *testing.T) {
 			NetworkID: "n1", Type: lte.CellularGatewayEntityType, Key: "g1",
 			Name: string(payload.Name), Description: string(payload.Description),
 			Config:             payload.Cellular,
-			Associations:       []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: "enb1"}},
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+			Associations:       storage.TKs{{Type: lte.CellularEnodebEntityType, Key: "enb1"}},
+			ParentAssociations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
 			GraphID:            "2",
 		},
 		{
@@ -1074,8 +1069,8 @@ func TestCreateGateway(t *testing.T) {
 			Name: string(payload.Name), Description: string(payload.Description),
 			PhysicalID:         "hw1",
 			Config:             payload.Magmad,
-			Associations:       []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+			Associations:       storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+			ParentAssociations: storage.TKs{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
 			GraphID:            "2",
 			Version:            1,
 		},
@@ -1115,15 +1110,10 @@ func TestCreateGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err = configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{
-			{Type: orc8r.MagmadGatewayType, Key: "g3"},
-			{Type: lte.CellularGatewayEntityType, Key: "g3"},
-		},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, storage.TKs{
+		{Type: orc8r.MagmadGatewayType, Key: "g3"},
+		{Type: lte.CellularGatewayEntityType, Key: "g3"},
+	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	// the device should get created regardless
 	actualDevice, err = device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw2", serdes.Device)
@@ -1217,7 +1207,7 @@ func TestListAndGetGateways(t *testing.T) {
 					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 					Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 				},
-				Associations: []storage.TypeAndKey{
+				Associations: storage.TKs{
 					{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 					{Type: lte.CellularEnodebEntityType, Key: "enb2"},
 				},
@@ -1232,7 +1222,7 @@ func TestListAndGetGateways(t *testing.T) {
 					CheckinInterval:         15,
 					CheckinTimeout:          5,
 				},
-				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+				Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 			},
 			{
 				Type: orc8r.MagmadGatewayType, Key: "g2",
@@ -1244,11 +1234,11 @@ func TestListAndGetGateways(t *testing.T) {
 					CheckinInterval:         15,
 					CheckinTimeout:          5,
 				},
-				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g2"}},
+				Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g2"}},
 			},
 			{
 				Type: orc8r.UpgradeTierEntityType, Key: "t1",
-				Associations: []storage.TypeAndKey{
+				Associations: storage.TKs{
 					{Type: orc8r.MagmadGatewayType, Key: "g1"},
 					{Type: orc8r.MagmadGatewayType, Key: "g2"},
 				},
@@ -1403,7 +1393,7 @@ func TestUpdateGateway(t *testing.T) {
 				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			},
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 				{Type: lte.CellularEnodebEntityType, Key: "enb2"},
 			},
@@ -1418,11 +1408,11 @@ func TestUpdateGateway(t *testing.T) {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 		},
 		{
 			Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: orc8r.MagmadGatewayType, Key: "g1"},
 			},
 		},
@@ -1473,16 +1463,11 @@ func TestUpdateGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{
-			{Type: orc8r.MagmadGatewayType, Key: "g1"},
-			{Type: lte.CellularGatewayEntityType, Key: "g1"},
-			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-		},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, storage.TKs{
+		{Type: orc8r.MagmadGatewayType, Key: "g1"},
+		{Type: lte.CellularGatewayEntityType, Key: "g1"},
+		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	actualDevice, err := device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.NoError(t, err)
@@ -1492,8 +1477,8 @@ func TestUpdateGateway(t *testing.T) {
 			NetworkID: "n1", Type: lte.CellularGatewayEntityType, Key: "g1",
 			Name: string(payload.Name), Description: string(payload.Description),
 			Config:             payload.Cellular,
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
-			Associations: []storage.TypeAndKey{
+			ParentAssociations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+			Associations: storage.TKs{
 				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 				{Type: lte.CellularEnodebEntityType, Key: "enb3"},
 			},
@@ -1505,14 +1490,14 @@ func TestUpdateGateway(t *testing.T) {
 			Name: string(payload.Name), Description: string(payload.Description),
 			PhysicalID:         "hw1",
 			Config:             payload.Magmad,
-			Associations:       []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+			Associations:       storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+			ParentAssociations: storage.TKs{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
 			GraphID:            "10",
 			Version:            1,
 		},
 		{
 			NetworkID: "n1", Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
 			GraphID:      "10",
 		},
 	}
@@ -1543,7 +1528,7 @@ func TestDeleteGateway(t *testing.T) {
 				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			},
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 				{Type: lte.CellularEnodebEntityType, Key: "enb2"},
 			},
@@ -1558,11 +1543,11 @@ func TestDeleteGateway(t *testing.T) {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 		},
 		{
 			Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: orc8r.MagmadGatewayType, Key: "g1"},
 			},
 		},
@@ -1581,16 +1566,11 @@ func TestDeleteGateway(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualEnts, _, err := configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{
-			{Type: orc8r.MagmadGatewayType, Key: "g1"},
-			{Type: lte.CellularGatewayEntityType, Key: "g1"},
-			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-		},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, storage.TKs{
+		{Type: orc8r.MagmadGatewayType, Key: "g1"},
+		{Type: lte.CellularGatewayEntityType, Key: "g1"},
+		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	actualDevice, err := device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.Nil(t, actualDevice)
@@ -1623,7 +1603,7 @@ func TestGetCellularGatewayConfig(t *testing.T) {
 		{
 			Type: lte.CellularGatewayEntityType, Key: "g1",
 			Config: newDefaultGatewayConfig(),
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 				{Type: lte.CellularEnodebEntityType, Key: "enb2"},
 			},
@@ -1632,7 +1612,7 @@ func TestGetCellularGatewayConfig(t *testing.T) {
 			Type: orc8r.MagmadGatewayType, Key: "g1",
 			Name: "foobar", Description: "foo bar",
 			PhysicalID:   "hw1",
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)
@@ -1729,7 +1709,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 		{Type: lte.CellularGatewayEntityType, Key: "g1"},
 		{
 			Type: orc8r.MagmadGatewayType, Key: "g1",
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)
@@ -1746,14 +1726,14 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	expected := configurator.NetworkEntitiesByTK{
-		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+		storage.TK{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 			GraphID:      "6",
 			Version:      0,
 		},
-		storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
+		storage.TK{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      lte.CellularGatewayEntityType, Key: "g1",
 			Config:  newDefaultGatewayConfig(),
@@ -1762,11 +1742,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 		},
 	}
 
-	entities, _, err := configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err := configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -1785,14 +1761,14 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	expected = configurator.NetworkEntitiesByTK{
-		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+		storage.TK{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 			GraphID:      "6",
 			Version:      0,
 		},
-		storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
+		storage.TK{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      lte.CellularGatewayEntityType, Key: "g1",
 			Config:  modifiedCellularConfig,
@@ -1800,11 +1776,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			Version: 2,
 		},
 	}
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -1821,14 +1793,14 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	expected = configurator.NetworkEntitiesByTK{
-		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+		storage.TK{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 			GraphID:      "6",
 			Version:      0,
 		},
-		storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
+		storage.TK{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      lte.CellularGatewayEntityType, Key: "g1",
 			Config:  modifiedCellularConfig,
@@ -1836,11 +1808,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			Version: 3,
 		},
 	}
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -1873,14 +1841,14 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	expected = configurator.NetworkEntitiesByTK{
-		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+		storage.TK{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 			GraphID:      "6",
 			Version:      0,
 		},
-		storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
+		storage.TK{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      lte.CellularGatewayEntityType, Key: "g1",
 			Config:  modifiedCellularConfig,
@@ -1888,11 +1856,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			Version: 4,
 		},
 	}
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -1909,30 +1873,26 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	expected = configurator.NetworkEntitiesByTK{
-		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+		storage.TK{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 			GraphID:      "2",
 			Version:      0,
 		},
-		storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
+		storage.TK{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      lte.CellularGatewayEntityType, Key: "g1",
 			Config:  modifiedCellularConfig,
 			GraphID: "2",
 			Version: 5,
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 				{Type: lte.CellularEnodebEntityType, Key: "enb2"},
 			},
 		},
 	}
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -1952,31 +1912,27 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	expected = configurator.NetworkEntitiesByTK{
-		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+		storage.TK{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 			GraphID:      "10",
 			Version:      0,
 		},
-		storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
+		storage.TK{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      lte.CellularGatewayEntityType, Key: "g1",
 			Config:  modifiedCellularConfig,
 			GraphID: "10",
 			Version: 6,
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 				{Type: lte.CellularEnodebEntityType, Key: "enb2"},
 				{Type: lte.CellularEnodebEntityType, Key: "enb3"},
 			},
 		},
 	}
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -1993,30 +1949,26 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	expected = configurator.NetworkEntitiesByTK{
-		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+		storage.TK{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 			GraphID:      "10",
 			Version:      0,
 		},
-		storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
+		storage.TK{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      lte.CellularGatewayEntityType, Key: "g1",
 			Config:  modifiedCellularConfig,
 			GraphID: "10",
 			Version: 7,
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 				{Type: lte.CellularEnodebEntityType, Key: "enb2"},
 			},
 		},
 	}
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -2033,14 +1985,14 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	expected = configurator.NetworkEntitiesByTK{
-		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+		storage.TK{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
-			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 			GraphID:      "10",
 			Version:      0,
 		},
-		storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
+		storage.TK{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      lte.CellularGatewayEntityType, Key: "g1",
 			Config:  modifiedCellularConfig,
@@ -2048,11 +2000,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			Version: 8,
 		},
 	}
-	entities, _, err = configurator.LoadEntities(
-		"n1", nil, swag.String("g1"), nil, nil,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 }
@@ -2115,7 +2063,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 		},
 		{
 			Type: lte.CellularGatewayEntityType, Key: "gw1",
-			Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: "abcdefg"}},
+			Associations: storage.TKs{{Type: lte.CellularEnodebEntityType, Key: "abcdefg"}},
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)
@@ -2318,7 +2266,7 @@ func TestCreateEnodeb(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "abcdef", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.CellularEnodebEntityType, "abcdef", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -2419,7 +2367,7 @@ func TestCreateEnodeb(t *testing.T) {
 		ExpectedStatus: 201,
 	}
 	tests.RunUnitTest(t, e, tc)
-	_, err = configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "unmanaged", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	_, err = configurator.LoadEntity(context.Background(), "n1", lte.CellularEnodebEntityType, "unmanaged", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 }
 
@@ -2500,7 +2448,7 @@ func TestUpdateEnodeb(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "abcdefg", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.CellularEnodebEntityType, "abcdefg", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -2650,7 +2598,7 @@ func TestDeleteEnodeb(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "abcdefg", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	_, err = configurator.LoadEntity(context.Background(), "n1", lte.CellularEnodebEntityType, "abcdefg", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.EqualError(t, err, "Not found")
 }
 
@@ -2675,7 +2623,7 @@ func TestGetEnodebState(t *testing.T) {
 		{
 			Type: orc8r.MagmadGatewayType, Key: "gw1",
 			PhysicalID:   "hwid1",
-			Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: "serial1"}},
+			Associations: storage.TKs{{Type: lte.CellularEnodebEntityType, Key: "serial1"}},
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)
@@ -2738,7 +2686,7 @@ func TestCreateApn(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.APNEntityType, "foo", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.APNEntityType, "foo", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -2980,7 +2928,7 @@ func TestUpdateApn(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.APNEntityType, "oai.ipv4", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.APNEntityType, "oai.ipv4", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -3047,7 +2995,7 @@ func TestDeleteApn(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, _, err := configurator.LoadAllEntitiesOfType("n1", lte.APNEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, _, err := configurator.LoadAllEntitiesOfType(context.Background(), "n1", lte.APNEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(actual))
 	expected := configurator.NetworkEntity{
@@ -3287,7 +3235,7 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator confirms old APN resource was deleted
-	exists, err := configurator.DoesEntityExist("n0", lte.APNResourceEntityType, "res0")
+	exists, err := configurator.DoesEntityExist(context.Background(), "n0", lte.APNResourceEntityType, "res0")
 	assert.NoError(t, err)
 	assert.False(t, exists)
 
@@ -3327,12 +3275,12 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator confirms APN resource was deleted
-	exists, err = configurator.DoesEntityExist("n0", lte.APNResourceEntityType, "res1")
+	exists, err = configurator.DoesEntityExist(context.Background(), "n0", lte.APNResourceEntityType, "res1")
 	assert.NoError(t, err)
 	assert.False(t, exists)
 
 	// Configurator confirms all APN resources are now deleted
-	ents, _, err := configurator.LoadAllEntitiesOfType("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
+	ents, _, err := configurator.LoadAllEntitiesOfType(context.Background(), "n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Empty(t, ents)
 
@@ -3349,7 +3297,7 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator confirms gw's APN resources exist again
-	ents, _, err = configurator.LoadAllEntitiesOfType("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
+	ents, _, err = configurator.LoadAllEntitiesOfType(context.Background(), "n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Len(t, ents, 2)
 	assert.ElementsMatch(t, []string{"res1", "res2"}, []string{ents[0].Key, ents[1].Key})
@@ -3367,17 +3315,13 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator confirms gateway now has only 1 apn_resource assoc
-	gwEnt, err := configurator.LoadEntity(
-		"n0", lte.CellularGatewayEntityType, "gw0",
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	gwEnt, err := configurator.LoadEntity(context.Background(), "n0", lte.CellularGatewayEntityType, "gw0", configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Len(t, gwEnt.Associations.Filter(lte.APNResourceEntityType), 1)
 	assert.Equal(t, "res2", gwEnt.Associations.Filter(lte.APNResourceEntityType).Keys()[0])
 
 	// Configurator confirms APN resource was deleted due to cascading delete
-	ents, _, err = configurator.LoadAllEntitiesOfType("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
+	ents, _, err = configurator.LoadAllEntitiesOfType(context.Background(), "n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Len(t, ents, 1)
 	assert.Equal(t, "res2", ents[0].Key)

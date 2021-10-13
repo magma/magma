@@ -14,7 +14,6 @@ import ipaddress
 import logging
 import subprocess
 import threading
-import time
 import unittest
 import warnings
 from concurrent.futures import Future

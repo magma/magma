@@ -21,10 +21,10 @@ extern "C" {
 #include "dynamic_memory_check.h"
 #include "ie_to_bytes.h"
 #include "log.h"
-#include "timer.h"
 }
 
 #include "mme_app_state_converter.h"
+#include <memory>
 #include "nas_state_converter.h"
 
 namespace magma {
@@ -178,19 +178,19 @@ void MmeNasStateConverter::proto_to_guti_table(
     const google::protobuf::Map<std::string, unsigned long>& proto_map,
     obj_hash_table_uint64_t* guti_htbl) {
   for (auto const& kv : proto_map) {
-    mme_ue_s1ap_id_t mme_ue_id = kv.second;
-    guti_t* guti_p             = (guti_t*) calloc(1, sizeof(guti_t));
+    mme_ue_s1ap_id_t mme_ue_id   = kv.second;
+    std::unique_ptr<guti_t> guti = std::make_unique<guti_t>();
+    memset(guti.get(), 0, sizeof(guti_t));
 
-    mme_app_convert_string_to_guti(guti_p, kv.first);
+    mme_app_convert_string_to_guti(guti.get(), kv.first);
     hashtable_rc_t ht_rc = obj_hashtable_uint64_ts_insert(
-        guti_htbl, guti_p, sizeof(*guti_p), mme_ue_id);
+        guti_htbl, guti.get(), sizeof(guti_t), mme_ue_id);
     if (ht_rc != HASH_TABLE_OK) {
       OAILOG_ERROR(
           LOG_MME_APP,
           "Failed to insert mme_ue_s1ap_id %u in GUTI table, error: %s\n",
           mme_ue_id, hashtable_rc_code2string(ht_rc));
     }
-    free_wrapper((void**) &guti_p);
   }
 }
 

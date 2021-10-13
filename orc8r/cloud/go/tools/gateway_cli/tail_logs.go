@@ -14,6 +14,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -42,7 +43,7 @@ func tailLogsCmd(cmd *cobra.Command, args []string) {
 	if len(args) == 1 {
 		service = args[0]
 	}
-	stream, err := magmad.TailGatewayLogs(networkId, gatewayId, service)
+	stream, err := magmad.TailGatewayLogs(context.Background(), networkId, gatewayId, service)
 	if err != nil {
 		glog.Error(err)
 		os.Exit(1)

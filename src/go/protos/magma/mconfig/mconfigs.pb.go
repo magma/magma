@@ -19,7 +19,7 @@
 package mconfig
 
 import (
-	orc8r "github.com/magma/magma/protos/magma/orc8r"
+	orc8r "github.com/magma/magma/src/go/protos/magma/orc8r"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"

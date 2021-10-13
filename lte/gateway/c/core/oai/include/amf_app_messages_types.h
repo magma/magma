@@ -133,4 +133,6 @@ typedef struct itti_amf_ip_allocation_response_s {
 
   /* Result Type of IP Allocation */
   int result;
+
+  ambr_t default_ambr;
 } itti_amf_ip_allocation_response_t;

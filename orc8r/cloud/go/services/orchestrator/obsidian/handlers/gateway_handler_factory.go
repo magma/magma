@@ -14,6 +14,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/labstack/echo"
@@ -43,10 +44,10 @@ type PartialGatewayModel interface {
 	serde.ValidatableModel
 	// FromBackendModels the same PartialGatewayModel from the configurator
 	// entities attached to the networkID and gatewayID.
-	FromBackendModels(networkID string, gatewayID string) error
+	FromBackendModels(ctx context.Context, networkID string, key string) error
 	// ToUpdateCriteria returns a list of EntityUpdateCriteria needed to apply
 	// the change in the model.
-	ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error)
+	ToUpdateCriteria(ctx context.Context, networkID string, key string) ([]configurator.EntityUpdateCriteria, error)
 }
 
 // GetPartialGatewayHandlers returns both GET and PUT handlers for modifying the portion of a
@@ -80,7 +81,7 @@ func GetPartialReadGatewayHandler(path string, model PartialGatewayModel, serdes
 				return nerr
 			}
 
-			err := model.FromBackendModels(networkID, gatewayID)
+			err := model.FromBackendModels(context.Background(), networkID, gatewayID)
 			if err == merrors.ErrNotFound {
 				return obsidian.HttpError(err, http.StatusNotFound)
 			} else if err != nil {
@@ -121,11 +122,12 @@ func GetPartialUpdateGatewayHandler(path string, model PartialGatewayModel, serd
 				return nerr
 			}
 
-			updates, err := requestedUpdate.(PartialGatewayModel).ToUpdateCriteria(networkID, gatewayID)
+			reqCtx := c.Request().Context()
+			updates, err := requestedUpdate.(PartialGatewayModel).ToUpdateCriteria(reqCtx, networkID, gatewayID)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusBadRequest)
 			}
-			_, err = configurator.UpdateEntities(c.Request().Context(), networkID, updates, serdes)
+			_, err = configurator.UpdateEntities(reqCtx, networkID, updates, serdes)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
@@ -156,7 +158,7 @@ func GetReadGatewayDeviceHandler(path string, serdes serde.Registry) obsidian.Ha
 			}
 
 			reqCtx := c.Request().Context()
-			physicalID, err := configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
+			physicalID, err := configurator.GetPhysicalIDOfEntity(reqCtx, networkID, orc8r.MagmadGatewayType, gatewayID)
 			if err == merrors.ErrNotFound {
 				return obsidian.HttpError(err, http.StatusNotFound)
 			} else if err != nil {
@@ -190,13 +192,14 @@ func GetUpdateGatewayDeviceHandler(path string, serdes serde.Registry) obsidian.
 				return nerr
 			}
 
-			physicalID, err := configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
+			reqCtx := c.Request().Context()
+			physicalID, err := configurator.GetPhysicalIDOfEntity(reqCtx, networkID, orc8r.MagmadGatewayType, gatewayID)
 			if err == merrors.ErrNotFound {
 				return obsidian.HttpError(err, http.StatusNotFound)
 			} else if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
-			err = device.UpdateDevice(c.Request().Context(), networkID, orc8r.AccessGatewayRecordType, physicalID, update, serdes)
+			err = device.UpdateDevice(reqCtx, networkID, orc8r.AccessGatewayRecordType, physicalID, update, serdes)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
@@ -232,6 +235,7 @@ func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, make
 
 			// Load gateway ents first to access assocs
 			ents, _, err := configurator.LoadEntities(
+				reqCtx,
 				nid, nil, nil, nil, loads,
 				configurator.FullEntityLoadCriteria(),
 				entitySerdes,
@@ -243,15 +247,16 @@ func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, make
 
 			var additionalLoads storage.TKs
 			for _, id := range ids {
-				ent := entsByTK[storage.TypeAndKey{Type: gateway.GetGatewayType(), Key: id}]
+				ent := entsByTK[storage.TK{Type: gateway.GetGatewayType(), Key: id}]
 				magmadGateway := gateway.GetMagmadGateway()
-				magmadEnt := entsByTK[storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: id}]
+				magmadEnt := entsByTK[storage.TK{Type: orc8r.MagmadGatewayType, Key: id}]
 
 				additionalLoads = append(additionalLoads, gateway.GetAdditionalLoadsOnLoad(ent)...)
 				additionalLoads = append(additionalLoads, magmadGateway.GetAdditionalLoadsOnLoad(magmadEnt)...)
 			}
 			if len(additionalLoads) != 0 {
 				additionalEnts, _, err := configurator.LoadEntities(
+					reqCtx,
 					nid, nil, nil, nil, additionalLoads,
 					configurator.FullEntityLoadCriteria(),
 					entitySerdes,

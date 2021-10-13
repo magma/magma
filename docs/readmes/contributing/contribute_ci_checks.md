@@ -47,6 +47,8 @@ Merge blocking CI checks are listed below.
 | cwf-operator-build     | Validate CWF deployer builds                  | approvers-cwf          | TODO                                                                         |
 | cwf-operator-precommit | Run CWF deployer unit tests                   | approvers-cwf          | TODO                                                                         |
 | Python Format Check    | Ensure Python changes are formatted           | themarwhal             | [AGW formatting](../lte/dev_unit_testing#format-agw)|
+| lint-clang-format      | Ensure C++/C changes are formatted            | approvers-agw          | [AGW formatting](../lte/dev_unit_testing#format-agw)|
+| markdown-lint          | Ensure documentation changes are formatted    | approvers-docs         | [Docs precommit](../docs/docs_overview.md#precommit)|
 
 ## Non-blocking Checks
 
@@ -60,6 +62,3 @@ The CI checks listed below do not block merging on failure.
 | GCC Warnings & Errors / build_session_manager | Annotate PRs with any GCC Warnings or Errors for session_manager | electronjoe        | N/A                                                  |
 | Jenkins CWAG Libvirt                          | Run CWF integration tests                                        | themarwhal mattymo | TODO                                                 |
 | ci/circleci: c-cpp-codecov                    | Upload AGW C/C++ code coverage                                   | electronjoe        | N/A                                                  |
-| ci/circleci: cwag-build                       | Validate CWAG builds                                             | approvers-cwf      | TODO                                                 |
-| ci/circleci: feg-lint                         | Check FeG changes satisfies Go linter                            | approvers-feg      | TODO                                                 |
-| markdown-lint | Ensure documentation changes are formatted | approvers-docs         | [Docs precommit](../docs/docs_overview.md#precommit) |

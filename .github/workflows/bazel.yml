@@ -1,11 +1,18 @@
 ---
-name: "Bazel"
+name: "Bazel Build & Test"
 on:  # yamllint disable-line rule:truthy
   pull_request:
     types:
       - opened
       - reopened
       - synchronize
+  schedule:
+    # Run once a day to build bazel cache at 0200 hours
+    - cron: '0 2 * * *'
+env:
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-007ddb9"
+  BAZEL_CACHE: bazel-cache
+  BAZEL_CACHE_REPO: bazel-cache-repo
 
 jobs:
   path_filter:
@@ -18,134 +25,48 @@ jobs:
         uses: fkirc/skip-duplicate-actions@master
         with:
           # Only run the main job for changes including the following paths
-         paths: '[".github/workflows/bazel.yml", "lte/gateway/c/**", "orc8r/gateway/c/**", "orc8r/protos/**", "lte/protos/**"]'
+         paths: '[".github/workflows/bazel.yml", "lte/gateway/c/**", "orc8r/gateway/c/**", "orc8r/protos/**", "lte/protos/**", "src/go/**"]'
 
-  gen_build_container:
-    needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
-    name: gen build container job
-    runs-on: ubuntu-latest
-    env:
-      MAGMA_ROOT: "${{ github.workspace }}"
-    steps:
-      -
-        name: Check Out Repo
-        uses: actions/checkout@v2
-      -
-        name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v1
-      -
-        name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx
-      -
-        name: Docker Build
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./experimental/bazel-base/Dockerfile
-          push: false
-          tags: magma/bazel:latest
-          outputs: type=docker,dest=/tmp/bazel.tar
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
-      -
-        # Temp fix
-        # https://github.com/docker/build-push-action/issues/252
-        # https://github.com/moby/buildkit/issues/1896
-        name: Move cache - Fixup for buildx cache issue
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-      -
-        name: Upload docker image for other jobs
-        uses: actions/upload-artifact@v2
-        with:
-          name: build_container
-          path: /tmp/bazel.tar
-
-  bazel_test:
+  bazel_build_and_test:
     needs:
       - path_filter
-      - gen_build_container
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
-    name: Bazel Test Job
+    # Only run workflow if this is a scheduled run on master branch,
+    # or a pull_request that skip-duplicate-action wants to run again.
+    if: |
+      (github.event_name == `schedule` && github.ref == 'refs/heads/master')
+        || ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    name: Bazel Build and Test Job
     runs-on: ubuntu-latest
     steps:
-        -
+        - name: Check Out Repo
           # This is necessary for overlays into the Docker container below.
-          name: Check Out Repo
           uses: actions/checkout@v2
-        -
-          name: Download docker image from generate_container_for_build
-          uses: actions/download-artifact@v2
+        - name: Bazel Cache
+          uses: actions/cache@v2
           with:
-            name: build_container
-            path: /tmp
-        -
-          name: Load Docker image
-          run: |
-            docker load --input /tmp/bazel.tar
-            docker image ls -a
-        -
-          name: Bazel Test
+            path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
+            key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}
+        - name: Bazel Cache Repo
+          uses: actions/cache@v2
+          with:
+            path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
+            key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}
+        - name: Bazel Build
           uses: addnab/docker-run-action@v2
           with:
-            image: magma/bazel:latest
+            image: ${{ env.DEVCONTAINER_IMAGE }}
             # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-            options: -v ${{ github.workspace }}:/magma -e ABC=123
+            options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
             run: |
-              bazel test ... | tee /magma/test.log
-              BUILD_EXIT_CODE=$?
-              exit $BUILD_EXIT_CODE
-        -
-          name: Store build_logs_oai Artifact
-          uses: actions/upload-artifact@v2
-          with:
-            name: bazel_test_logs
-            path: ${{ github.workspace }}/test.log
-
-  bazel_build:
-    needs:
-      - path_filter
-      - gen_build_container
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
-    name: Bazel Build Job
-    runs-on: ubuntu-latest
-    steps:
-        -
-          # This is necessary for overlays into the Docker container below.
-          name: Check Out Repo
-          uses: actions/checkout@v2
-        -
-          name: Download docker image from generate_container_for_build
-          uses: actions/download-artifact@v2
-          with:
-            name: build_container
-            path: /tmp
-        -
-          name: Load Docker image
-          run: |
-            docker load --input /tmp/bazel.tar
-            docker image ls -a
-        -
-          name: Bazel Build
+              cd /workspaces/magma
+              bazel build ... --config=devcontainer
+        - name: Bazel Test
+          if: github.event_name == 'pull_request'
           uses: addnab/docker-run-action@v2
           with:
-            image: magma/bazel:latest
+            image: ${{ env.DEVCONTAINER_IMAGE }}
             # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-            options: -v ${{ github.workspace }}:/magma -e ABC=123
+            options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
             run: |
-              bazel build ... | tee /magma/build.log
-              BUILD_EXIT_CODE=$?
-              exit $BUILD_EXIT_CODE
-        -
-          name: Store build_logs_oai Artifact
-          uses: actions/upload-artifact@v2
-          with:
-            name: bazel_build_logs
-            path: ${{ github.workspace }}/build.log
+              cd /workspaces/magma
+              bazel test ... --test_output=errors --config=devcontainer

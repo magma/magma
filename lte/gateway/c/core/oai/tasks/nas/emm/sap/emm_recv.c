@@ -228,6 +228,8 @@ status_code_e emm_recv_attach_request(
         ue_id, mme_app_last_msg_latency, pre_mme_task_msg_latency);
     rc         = emm_proc_attach_reject(ue_id, EMM_CAUSE_CONGESTION);
     *emm_cause = EMM_CAUSE_SUCCESS;
+    // Free the ESM container
+    bdestroy(msg->esmmessagecontainer);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
@@ -586,7 +588,7 @@ status_code_e emm_recv_detach_request(
  ***************************************************************************/
 status_code_e emm_recv_tracking_area_update_request(
     const mme_ue_s1ap_id_t ue_id, tracking_area_update_request_msg* const msg,
-    const bool is_initial, const tac_t tac, int* const emm_cause,
+    const bool is_initial, const tai_t tai, int* const emm_cause,
     const nas_message_decode_status_t* decode_status) {
   int rc = RETURNok;
 
@@ -715,7 +717,7 @@ status_code_e emm_recv_tracking_area_update_request(
   }
 
   ies->decode_status = *decode_status;
-  rc = emm_proc_tracking_area_update_request(ue_id, ies, emm_cause, tac);
+  rc = emm_proc_tracking_area_update_request(ue_id, ies, emm_cause, tai);
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

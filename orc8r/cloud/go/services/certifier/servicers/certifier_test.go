@@ -14,6 +14,7 @@ limitations under the License.
 package servicers_test
 
 import (
+	"context"
 	"crypto/x509"
 	"testing"
 	"time"
@@ -22,7 +23,6 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/certifier/servicers"

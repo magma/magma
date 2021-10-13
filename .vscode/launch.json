@@ -1,0 +1,33 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "by-gdb",
+            "request": "launch",
+            "name": "(Bazel) Run SessionD test with GDB",
+            "program": "${workspaceFolder}/bazel-bin/lte/gateway/c/session_manager/test/${input:pickSessionDUnitTest}",
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "(Bazel) Build SessionD Unit Tests",
+            "commandsBeforeExec": ["enable pretty-printer"],
+        },
+        {
+            "type": "by-gdb",
+            "request": "launch",
+            "name": "(Bazel) Run SessionD test with GDB - Skip build",
+            "program": "${workspaceFolder}/bazel-bin/lte/gateway/c/session_manager/test/${input:pickSessionDUnitTest}",
+            "cwd": "${workspaceRoot}",
+            "commandsBeforeExec": ["enable pretty-printer"],
+        }
+    ],
+    "inputs": [
+        {
+            "id": "pickSessionDUnitTest",
+            "type": "command",
+            "command": "shellCommand.execute",
+            "args": {
+                // Use bazel query to find all test targets. This will automatically pick up any new tests added.
+                "command": "bazel query 'tests(//lte/gateway/c/session_manager/test:all)' | cut -d ':' -f2",
+            },
+        }
+    ]
+}

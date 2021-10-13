@@ -395,12 +395,9 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
       PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context);
   amf_ue_ngap_id_t ue_id = ue_context_p->amf_ue_ngap_id;
 
-  smf_context_t smf_ctx;
-
   for (auto it = ue_context_p->amf_context.smf_ctxt_vector.begin();
        it != ue_context_p->amf_context.smf_ctxt_vector.end(); it++) {
-    smf_ctx                   = *it;
-    smf_ctx.pdu_session_state = INACTIVE;
+    it->pdu_session_state = INACTIVE;
   }
 
   amf_smf_notification_send(ue_id, ue_context_p, UE_IDLE_MODE_NOTIFY);
@@ -420,7 +417,7 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   hashtable_rc_t h_rc                = HASH_TABLE_OK;
   amf_app_desc_t* amf_app_desc_p     = get_amf_nas_state(false);
   amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
-
+  OAILOG_DEBUG(LOG_NAS_AMF, "amf_free_ue_context \n");
   hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
   if (!ue_context_p || !amf_ue_context_p) {
     return;

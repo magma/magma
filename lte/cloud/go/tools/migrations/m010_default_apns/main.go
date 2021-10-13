@@ -420,6 +420,7 @@ func verifyMigration(db *sql.DB, builder sqorc.StatementBuilder) error {
 		// All subscribers have an APN
 
 		allSubs, _, err := configurator.LoadAllEntitiesOfType(
+			context.Background(),
 			nid, subscriberEntType,
 			configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 			serdes,
@@ -432,8 +433,8 @@ func verifyMigration(db *sql.DB, builder sqorc.StatementBuilder) error {
 		for _, sub := range allSubs {
 			apns := funk.
 				Chain(sub.Associations).
-				Filter(func(tk storage.TypeAndKey) bool { return tk.Type == apnEntType }).
-				Map(func(tk storage.TypeAndKey) string { return tk.Key }).
+				Filter(func(tk storage.TK) bool { return tk.Type == apnEntType }).
+				Map(func(tk storage.TK) string { return tk.Key }).
 				Value().([]string)
 
 			if len(apns) == 0 {
@@ -449,6 +450,7 @@ func verifyMigration(db *sql.DB, builder sqorc.StatementBuilder) error {
 		// Default APN and its subscribers have same graph ID
 
 		defaultAPN, err := configurator.LoadEntity(
+			context.Background(),
 			nid, apnEntType, types.DefaultAPNName,
 			configurator.EntityLoadCriteria{LoadAssocsToThis: true},
 			serdes,

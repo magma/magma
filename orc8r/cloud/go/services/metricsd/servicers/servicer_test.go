@@ -14,6 +14,7 @@ limitations under the License.
 package servicers_test
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"strconv"
@@ -23,7 +24,6 @@ import (
 	"github.com/golang/glog"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/configurator/test_utils"

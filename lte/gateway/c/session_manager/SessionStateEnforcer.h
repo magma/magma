@@ -101,7 +101,9 @@ class SessionStateEnforcer {
 
   /* Send session requst to upf */
   void m5g_send_session_request_to_upf(
-      const std::unique_ptr<SessionState>& session);
+      const std::unique_ptr<SessionState>& session,
+      const RulesToProcess& pending_activation,
+      const RulesToProcess& pending_deactivation);
 
   std::vector<std::string> static_rules;
 
@@ -184,6 +186,21 @@ class SessionStateEnforcer {
       SessionMap& session_map, const std::string& imsi,
       const std::string& session_id, SessionUpdate& session_update);
 
+  std::unique_ptr<Timezone>& get_access_timezone() { return access_timezone_; }
+
+  void update_session_with_policy(
+      std::unique_ptr<SessionState>& session,
+      const CreateSessionResponse& response,
+      SessionStateUpdateCriteria* session_uc);
+
+  std::vector<StaticRuleInstall> to_vec(
+      const google::protobuf::RepeatedPtrField<magma::lte::StaticRuleInstall>
+          static_rule_installs);
+
+  std::vector<DynamicRuleInstall> to_vec(
+      const google::protobuf::RepeatedPtrField<magma::lte::DynamicRuleInstall>
+          dynamic_rule_installs);
+
  private:
   ConvergedRuleStore GlobalRuleList;
   std::shared_ptr<StaticRuleStore> rule_store_;
@@ -200,6 +217,7 @@ class SessionStateEnforcer {
   std::string upf_node_id_;
   uint32_t teid_counter_;
   std::string upf_node_ip_addr_;
+  std::unique_ptr<Timezone> access_timezone_;
 
   bool default_and_static_rule_init();
 

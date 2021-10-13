@@ -279,6 +279,24 @@ status_code_e esm_send_activate_default_eps_bearer_context_request(
     OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  no bit rates ext defined\n");
   }
 
+  if (qos->bitRatesExt2Present) {
+    OAILOG_DEBUG(
+        LOG_NAS_ESM, "ESM-SAP   - epsqos  maxBitRateForUL  Ext2: %u\n",
+        qos->bitRatesExt2.maxBitRateForUL);
+    OAILOG_DEBUG(
+        LOG_NAS_ESM, "ESM-SAP   - epsqos  maxBitRateForDL  Ext2: %u\n",
+        qos->bitRatesExt2.maxBitRateForDL);
+    OAILOG_DEBUG(
+        LOG_NAS_ESM, "ESM-SAP   - epsqos  guarBitRateForUL Ext2: %u\n",
+        qos->bitRatesExt2.guarBitRateForUL);
+    OAILOG_DEBUG(
+        LOG_NAS_ESM, "ESM-SAP   - epsqos  guarBitRateForDL Ext2: %u\n",
+        qos->bitRatesExt2.guarBitRateForDL);
+  } else {
+    OAILOG_DEBUG(
+        LOG_NAS_ESM, "ESM-SAP   - epsqos  no bit rates ext2 defined\n");
+  }
+
   if (apn == NULL) {
     OAILOG_WARNING(LOG_NAS_ESM, "ESM-SAP   - apn is NULL!\n");
   } else {
@@ -323,7 +341,7 @@ status_code_e esm_send_activate_default_eps_bearer_context_request(
       ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_APNAMBR_PRESENT;
   bit_rate_value_to_eps_qos(
       &msg->apnambr, pdn_context_p->subscribed_apn_ambr.br_dl,
-      pdn_context_p->subscribed_apn_ambr.br_ul);
+      pdn_context_p->subscribed_apn_ambr.br_ul,pdn_context_p->subscribed_apn_ambr.br_unit);
 
   /*
    * Optional - Extended APN-AMBR
@@ -347,6 +365,7 @@ status_code_e esm_send_activate_default_eps_bearer_context_request(
           pdn_context_p->subscribed_apn_ambr.br_ul);
     }
   }
+
   OAILOG_INFO(
       LOG_NAS_ESM,
       "ESM-SAP   - Send Activate Default EPS Bearer Context "

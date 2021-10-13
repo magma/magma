@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import subprocess
 import sys
 from typing import Any, List
 
@@ -27,6 +28,8 @@ NIDS_BY_TYPE = {
     FEG_LTE_NETWORK_TYPE: 'feg_lte_test',
 }
 
+FEG_FAB_PATH = '../../feg/gateway/'
+
 # Disable warnings about SSL verification since its a local VM
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -40,7 +43,14 @@ def register_vm():
                 lte_auth_amf='gAA=',
                 lte_auth_op='EREREREREREREREREREREQ==',
                 mcc='001', mnc='01', tac=1,
-                relay_enabled=False,
+                gx_gy_relay_enabled=False,
+                hss_relay_enabled=False,
+                network_services=[],
+                mobility=MobilityConfig(
+                    ip_allocation_mode='NAT',
+                    nat=NatConfig(['192.168.128.0/24']),
+                    reserved_addresses=[],
+                ),
             ),
             ran=NetworkRANConfig(
                 bandwidth_mhz=20,
@@ -49,6 +59,7 @@ def register_vm():
                     subframe_assignment=2, special_subframe_pattern=7,
                 ),
             ),
+            feg_network_id="",
         ),
         dns=types.NetworkDNSConfig(enable_caching=False, local_ttl=60),
     )
@@ -66,7 +77,14 @@ def register_federated_vm():
                 lte_auth_amf='gAA=',
                 lte_auth_op='EREREREREREREREREREREQ==',
                 mcc='001', mnc='01', tac=1,
-                relay_enabled=False,
+                gx_gy_relay_enabled=False,
+                hss_relay_enabled=True,
+                network_services=['dpi', 'policy_enforcement'],
+                mobility=MobilityConfig(
+                    ip_allocation_mode='NAT',
+                    nat=NatConfig(['192.168.128.0/24']),
+                    reserved_addresses=[],
+                ),
             ),
             ran=NetworkRANConfig(
                 bandwidth_mhz=20,
@@ -75,12 +93,48 @@ def register_federated_vm():
                     subframe_assignment=2, special_subframe_pattern=7,
                 ),
             ),
+            feg_network_id='feg_test',
         ),
         dns=types.NetworkDNSConfig(enable_caching=False, local_ttl=60),
         federation=FederationNetworkConfig(feg_network_id='feg_test'),
     )
     _register_network(FEG_LTE_NETWORK_TYPE, network_payload)
+    # registering gateway with LTE type. FEG_LTE doesn't have gateway endpoint
     _register_agw(FEG_LTE_NETWORK_TYPE)
+
+
+def deregister_agw():
+    """
+    Remove AGW gateway from orc8r and remove certs from FEG gateway
+    """
+    dev_utils.delete_gateway_certs_from_vagrant('magma')
+    _deregister_agw(LTE_NETWORK_TYPE)
+
+
+def deregister_federated_agw():
+    """
+    Remove AGW gateway from orc8r and remove certs from FEG gateway
+    """
+    dev_utils.delete_gateway_certs_from_vagrant('magma')
+    _deregister_agw(FEG_LTE_NETWORK_TYPE)
+
+
+def register_feg_gw():
+    """
+    Registers FEG AGW gateway on orc8r
+    """
+    subprocess.check_call(
+        'fab register_feg_gw', shell=True, cwd=FEG_FAB_PATH,
+    )
+
+
+def deregister_feg_gw():
+    """
+    Remove FEG gateway from orc8r and remove certs from FEG gateway
+    """
+    subprocess.check_call(
+        'fab deregister_feg_gw', shell=True, cwd=FEG_FAB_PATH,
+    )
 
 
 def _register_network(network_type: str, payload: Any):
@@ -93,7 +147,7 @@ def _register_network(network_type: str, payload: Any):
 
 def _register_agw(network_type: str):
     network_id = NIDS_BY_TYPE[network_type]
-    hw_id = dev_utils.get_hardware_id_from_vagrant(vm_name='magma')
+    hw_id = dev_utils.get_gateway_hardware_id_from_vagrant(vm_name='magma')
     already_registered, registered_as = dev_utils.is_hw_id_registered(
         network_id, hw_id,
     )
@@ -119,11 +173,32 @@ def _register_agw(network_type: str):
         ),
         connected_enodeb_serials=[],
     )
-    dev_utils.cloud_post(f'{network_type}/{network_id}/gateways', gw_payload)
+    dev_utils.cloud_post(f'lte/{network_id}/gateways', gw_payload)
     print()
     print(f'=========================================')
     print(f'Gateway {gw_id} successfully provisioned!')
     print(f'=========================================')
+
+
+def _deregister_agw(network_type: str):
+    network_id = NIDS_BY_TYPE[network_type]
+    hw_id = dev_utils.get_gateway_hardware_id_from_vagrant(vm_name='magma')
+    already_registered, registered_as = dev_utils.is_hw_id_registered(
+        network_id, hw_id,
+    )
+    if not already_registered:
+        print()
+        print('===========================================')
+        print(f'VM is not registered (hwid: {hw_id} )')
+        print('===========================================')
+        return
+
+    dev_utils.cloud_delete(f'lte/{network_id}/gateways/{registered_as}')
+    print()
+    print('=========================================')
+    print(f'AGW Gateway {registered_as} successfully removed!')
+    print(f'(restart AGW services on magma vm)')
+    print('=========================================')
 
 
 class NetworkTDDConfig:
@@ -142,25 +217,49 @@ class NetworkRANConfig:
         self.tdd_config = tdd_config
 
 
+class NatConfig:
+    def __init__(self, ip_blocks: List[str]):
+        self.ip_blocks = ip_blocks
+
+
+class MobilityConfig:
+    def __init__(
+        self, ip_allocation_mode: str, nat: NatConfig,
+        reserved_addresses: List[str],
+    ):
+        self.ip_allocation_mode = ip_allocation_mode
+        self.nat = nat
+        self.reserved_addresses = reserved_addresses
+
+
 class NetworkEPCConfig:
     def __init__(
         self, lte_auth_amf: str, lte_auth_op: str,
         mcc: str, mnc: str, tac: int,
-        relay_enabled: bool,
+        gx_gy_relay_enabled: bool, hss_relay_enabled: bool,
+        network_services: List[str],
+        mobility: MobilityConfig,
     ):
         self.lte_auth_amf = lte_auth_amf
         self.lte_auth_op = lte_auth_op
         self.mcc = mcc
         self.mnc = mnc
         self.tac = tac
-        self.gx_gy_relay_enabled = relay_enabled
-        self.hss_relay_enabled = relay_enabled
+        self.gx_gy_relay_enabled = gx_gy_relay_enabled
+        self.hss_relay_enabled = hss_relay_enabled
+        self.default_rule_id = "default_rule_1"
+        self.network_services = network_services
+        self.mobility = mobility
 
 
 class NetworkCellularConfig:
-    def __init__(self, epc: NetworkEPCConfig, ran: NetworkRANConfig):
+    def __init__(
+        self, epc: NetworkEPCConfig, ran: NetworkRANConfig,
+        feg_network_id: str,
+    ):
         self.epc = epc
         self.ran = ran
+        self.feg_network_id = feg_network_id
 
 
 class LTENetwork:
@@ -206,6 +305,8 @@ class GatewayEPCConfig:
     def __init__(self, ip_block: str, nat_enabled: bool):
         self.ip_block = ip_block
         self.nat_enabled = nat_enabled
+        self.dns_primary = "8.8.8.8"
+        self.dns_secondary = "8.8.4.4"
 
 
 class GatewayCellularConfig:
