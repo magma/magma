@@ -58,8 +58,7 @@ TEST(test_ngap_flow_handler, initial_ue_message) {
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   Ngap_NGAP_PDU_t decoded_pdu = {};
-  unsigned short length =
-      sizeof(initial_ue_message_hexbuf) / sizeof(unsigned char);
+  uint16_t length = sizeof(initial_ue_message_hexbuf) / sizeof(unsigned char);
 
   bstring ngap_initial_ue_msg = blk2bstr(initial_ue_message_hexbuf, length);
   memcpy(ngap_initial_ue_msg->data, initial_ue_message_hexbuf, length);
