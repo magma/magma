@@ -121,6 +121,7 @@ void mme_app_nas_timer_handle_signal_expiry(
         "Timer id %ld fired for ue_id " MME_UE_S1AP_ID_FMT
         " which does not have any UE context\n",
         timer_id, cb->ue_id);
+    mme_app_remove_mme_ue_id_timer_id(cb->ue_id, timer_id);
     OAILOG_FUNC_OUT(LOG_NAS);
   }
 
