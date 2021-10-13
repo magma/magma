@@ -1444,7 +1444,7 @@ workflows:
   #     - schedule:
   #         cron: "0 * * * *"
   #         <<: *only_master
-        
+
   #   jobs:
   #     - xwfm-test:
   #         notify_magma_ci: false
@@ -1474,7 +1474,6 @@ workflows:
             - nms-flow-test
             - eslint
             - nms-yarn-test
-            - nms-e2e-test
 
   github:
     jobs:
