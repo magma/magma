@@ -115,6 +115,7 @@ class BootstrapManager(SDWatchdogTask):
         """
         if self._state is BootstrapState.BOOTSTRAPPING:
             return
+        self._state = BootstrapState.SCHEDULED_BOOTSTRAP
         await self.wake_up()
 
     def _maybe_create_challenge_key(self):
@@ -155,11 +156,14 @@ class BootstrapManager(SDWatchdogTask):
             await self._bootstrap_now()
             return
         if now < cert.not_valid_before:
-            logging.error(
-                'Certificate is not valid until %s', cert.not_valid_before,
+            # Swallow this err as we trust controller more than AGW.
+            # AGW can have extreme time skew or NTP problems, so default
+            # to trusting controller's certs.
+            logging.warning(
+                'Current system time indicates certificate received is not '
+                'yet valid (now: %s, notBefore: %s). Consider checking NTP.',
+                now, cert.not_valid_before,
             )
-            await self._bootstrap_now()
-            return
 
         # no need to restart control_proxy
         await self._bootstrap_success_cb(False)
@@ -382,15 +386,17 @@ class BootstrapManager(SDWatchdogTask):
             err: error message, None if no error
         """
         now = datetime.datetime.utcnow()
-        not_before = cert.not_before.ToDatetime()
-        if now < not_before:
-            logging.error(
-                'Current system time indicates certificate received is not yet valid (notBefore: %s). Consider checking NTP.', not_before,
-            )
-            return False
+
+        # Intentionally skipping "not before" check since we trust controller
+        # more than gateway -- due e.g. to clock skew or NTP issues.
 
         not_after = cert.not_after.ToDatetime()
         valid_time = not_after - now
+
+        if valid_time < datetime.timedelta(seconds=0):
+            logging.error('Received expired certificate')
+            return False
+
         # log a warning if the cert is short-lived
         if valid_time < self.PREEXPIRY_BOOTSTRAP_INTERVAL:
             valid_hours = valid_time.total_seconds() / 3600
