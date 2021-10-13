@@ -143,7 +143,7 @@ export default function AddEditSubscriberDialog(props: Props) {
     } else {
       MagmaV1API.postLteByNetworkIdSubscribers({
         networkId: match.params.networkId || '',
-        subscriber: data,
+        subscribers: [data],
       })
         .then(() => props.onSave(data.id))
         .catch(e => props.onSaveError(e.response.data.message));
