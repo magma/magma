@@ -636,7 +636,6 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
   cfg.rat_specific_context.mutable_m5gsm_session_context()
       ->mutable_default_ambr()
       ->set_br_unit(AggregatedMaximumBitrate::KBPS);
-
   cfg.rat_specific_context.mutable_m5gsm_session_context()
       ->mutable_default_ambr()
       ->set_max_bandwidth_ul(1024);
