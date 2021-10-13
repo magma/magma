@@ -633,6 +633,17 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
   cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
       SSC_MODE_3);
 
+  cfg.rat_specific_context.mutable_m5gsm_session_context()
+      ->mutable_default_ambr()
+      ->set_br_unit(AggregatedMaximumBitrate::KBPS);
+
+  cfg.rat_specific_context.mutable_m5gsm_session_context()
+      ->mutable_default_ambr()
+      ->set_max_bandwidth_ul(1024);
+  cfg.rat_specific_context.mutable_m5gsm_session_context()
+      ->mutable_default_ambr()
+      ->set_max_bandwidth_dl(1024);
+
   SessionUpdate session_update =
       SessionStore::get_default_session_update(session_map);
   uint32_t pdu_id = 5;
@@ -643,6 +654,7 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
   SessionStateUpdateCriteria& session_uc = session_update[IMSI2][session_id];
   SetSmNotificationContext notif;
   std::string imsi;
+  session->set_config(cfg, &session_uc);
 
   magma::SetSMSessionContextAccess expected_response;
 
