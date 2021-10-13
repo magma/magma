@@ -20,5 +20,4 @@ NO_OF_SCTP_IN_STREAMS    3
 NO_OF_SCTP_OUT_STREAMS   3
 UE_ETH_INTF              eth2
 VS_IP_ADDR               192.168.129.42
-NUM_OF_ENBS              2
 CFGEND
