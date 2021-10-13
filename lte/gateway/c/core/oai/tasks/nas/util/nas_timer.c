@@ -41,6 +41,7 @@
 #include "dynamic_memory_check.h"
 #include "intertask_interface_types.h"
 #include "mme_app_mme_ue_id_timer.h"
+#include "mme_app_ue_context.h"
 #include "itti_types.h"
 #include "log.h"
 
@@ -111,6 +112,19 @@ void mme_app_nas_timer_handle_signal_expiry(
     OAILOG_ERROR(LOG_NAS, "Invalid timer id %ld \n", timer_id);
     OAILOG_FUNC_OUT(LOG_NAS);
   }
+
+  // check if a UE context still exists for this UE
+  ue_mm_context_t* ue_context = mme_ue_context_exists_mme_ue_s1ap_id(cb->ue_id);
+  if (!ue_context) {
+    OAILOG_ERROR(
+        LOG_NAS,
+        "Timer id %ld fired for ue_id " MME_UE_S1AP_ID_FMT
+        " which does not have any UE context\n",
+        timer_id, cb->ue_id);
+    mme_app_remove_mme_ue_id_timer_id(cb->ue_id, timer_id);
+    OAILOG_FUNC_OUT(LOG_NAS);
+  }
+
   cb->nas_timer_callback(cb->nas_timer_callback_arg, imsi64);
   OAILOG_FUNC_OUT(LOG_NAS);
 }
