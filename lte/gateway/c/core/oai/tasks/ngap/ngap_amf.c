@@ -44,7 +44,6 @@
 #include "amf_app_messages_types.h"
 #include "amf_default_values.h"
 
-#include "include/ngap_client_enforcer.h"
 #include "ngap_messages_types.h"
 #include "ngap_amf.h"
 
@@ -361,23 +360,4 @@ void ngap_remove_gnb(ngap_state_t* state, gnb_description_t* gnb_ref) {
   hashtable_uint64_ts_destroy(&gnb_ref->ue_id_coll);
   hashtable_ts_free(&state->gnbs, gnb_ref->sctp_assoc_id);
   state->num_gnbs--;
-}
-
-/****************************************************************************
- **                                                                        **
- ** Name:    ngap_send_msg_to_task()                                        **
- **                                                                        **
- ** Description:  wrapper api for itti send                                **
- **                                                                        **
- **                                                                        **
- ***************************************************************************/
-status_code_e ngap_send_msg_to_task(
-    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
-    MessageDef* message) {
-  OAILOG_INFO(
-      LOG_NGAP, "Sending msg to :[%s] id: [%d]-[%s]\n",
-      itti_get_task_name(destination_task_id), ITTI_MSG_ID(message),
-      ITTI_MSG_NAME(message));
-
-  return send_message_to_amf(task_zmq_ctx_p, destination_task_id, message);
 }
