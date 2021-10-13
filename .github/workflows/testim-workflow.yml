@@ -18,4 +18,4 @@ jobs:
       - name: Install Testim CLI
         run: npm install -g @testim/testim-cli
       - name: Run Daily NMS Tests
-        run: testim --token ${{ secrets.TESTIM_TOKEN }} --project ${{ secrets.TESTIM_PROJECT }} --test-plan "Daily Test Plan"
+        run: testim --token ${{ secrets.TESTIM_TOKEN }} --project ${{ secrets.TESTIM_PROJECT_ID }} --test-plan "Daily Test Plan"
