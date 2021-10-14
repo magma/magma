@@ -48,6 +48,7 @@
   "SGW_IPV4_ADDRESS_FOR_S5_S8_UP"
 #define SGW_CONFIG_STRING_SGW_INTERFACE_NAME_FOR_S11                           \
   "SGW_INTERFACE_NAME_FOR_S11"
+#define SGW_CONFIG_STRING_S1_IPV6_ENABLED "SGW_S1_IPV6_ENABLED"
 #define SGW_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11 "SGW_IPV4_ADDRESS_FOR_S11"
 #define SGW_CONFIG_STRING_OVS_BRIDGE_NAME "BRIDGE_NAME"
 #define SGW_CONFIG_STRING_OVS_GTP_PORT_NUM "GTP_PORT_NUM"
@@ -104,6 +105,10 @@ typedef struct sgw_config_s {
     struct in_addr S11;
     int netmask_S11;
   } ipv4;
+
+  struct {
+    bool s1_ipv6_enabled;
+  } ipv6;
   uint16_t udp_port_S1u_S12_S4_up;
 
   bool local_to_eNB;
@@ -119,6 +124,8 @@ typedef struct sgw_config_s {
 void sgw_config_init(sgw_config_t* config_pP);
 int sgw_config_process(sgw_config_t* config_pP);
 int sgw_config_parse_file(sgw_config_t* config_pP);
+int sgw_config_parse_string(const char* config_string, sgw_config_t* config_pP);
+void free_sgw_config(sgw_config_t* sgw_config);
 void sgw_config_display(sgw_config_t* config_p);
 
 #define sgw_config_read_lock(sGWcONFIG)                                        \

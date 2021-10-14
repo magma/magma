@@ -212,7 +212,7 @@ status_code_e spgw_config_parse_opt_line(
 void free_spgw_config(spgw_config_t* spgw_config_p) {
   OAI_FPRINTF_INFO("Cleaning up SPGW configs");
   free_pgw_config(&spgw_config_p->pgw_config);
+  free_sgw_config(&spgw_config_p->sgw_config);
   bdestroy_wrapper(&spgw_config_p->config_file);
-  bdestroy_wrapper(&spgw_config_p->sgw_config.config_file);
   bdestroy_wrapper(&spgw_config_p->pgw_config.config_file);
 }

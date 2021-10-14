@@ -65,7 +65,6 @@
 #include "sgw_config.h"
 #include "pgw_handlers.h"
 #include "conversions.h"
-#include "mme_config.h"
 #include "spgw_state.h"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
@@ -353,11 +352,28 @@ status_code_e sgw_handle_sgi_endpoint_created(
           .s1u_sgw_fteid.teid = eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up;
       create_session_response_p->bearer_contexts_created.bearer_contexts[0]
           .s1u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
-      create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-          .s1u_sgw_fteid.ipv4 = 1;
-      create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-          .s1u_sgw_fteid.ipv4_address.s_addr =
-          state->sgw_ip_address_S1u_S12_S4_up.s_addr;
+      if (resp_pP->pdn_type == IPv4 || resp_pP->pdn_type == IPv4_AND_v6) {
+        create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+            .s1u_sgw_fteid.ipv4 = 1;
+        create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+            .s1u_sgw_fteid.ipv4_address.s_addr =
+            state->sgw_ip_address_S1u_S12_S4_up.s_addr;
+      } else {
+        create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+            .s1u_sgw_fteid.ipv6 = 1;
+        create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+            .s1u_sgw_fteid.ipv4_address.s_addr =
+            state->sgw_ip_address_S1u_S12_S4_up.s_addr;
+
+        memcpy(
+            &create_session_response_p->bearer_contexts_created
+                 .bearer_contexts[0]
+                 .s1u_sgw_fteid.ipv6_address,
+            &state->sgw_ipv6_address_S1u_S12_S4_up,
+            sizeof(create_session_response_p->bearer_contexts_created
+                       .bearer_contexts[0]
+                       .s1u_sgw_fteid.ipv6_address));
+      }
 
       /*
        * Set the Cause information from bearer context created.
@@ -494,8 +510,8 @@ static void sgw_add_gtp_tunnel(
   struct in6_addr* enb_ipv6 = NULL;
   enb.s_addr =
       eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
-  if ((eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) ||
-      (eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv4_AND_v6)) {
+  if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+      eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) {
     enb_ipv6 = &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
   }
 
@@ -757,8 +773,8 @@ status_code_e sgw_handle_sgi_endpoint_deleted(
       struct in6_addr* enb_ipv6 = NULL;
       enb.s_addr =
           eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
-      if ((eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) ||
-          (eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv4_AND_v6)) {
+      if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+          eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) {
         enb_ipv6 = &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
       }
 
@@ -956,8 +972,8 @@ status_code_e sgw_handle_modify_bearer_request(
         enb.s_addr =
             eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
         struct in6_addr* enb_ipv6 = NULL;
-        if ((eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) ||
-            (eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv4_AND_v6)) {
+        if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+            eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) {
           enb_ipv6 =
               &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
         }
@@ -1101,9 +1117,8 @@ status_code_e sgw_handle_delete_session_request(
             enb.s_addr         = eps_bearer_ctxt_p->enb_ip_address_S1u.address
                              .ipv4_address.s_addr;
             struct in6_addr* enb_ipv6 = NULL;
-            if ((eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) ||
-                (eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type ==
-                 IPv4_AND_v6)) {
+            if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+                eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) {
               enb_ipv6 =
                   &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
             }
@@ -1704,8 +1719,8 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
           enb.s_addr =
               eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
           struct in6_addr* enb_ipv6 = NULL;
-          if ((eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) ||
-              (eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv4_AND_v6)) {
+          if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+              eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) {
             enb_ipv6 =
                 &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
           }
@@ -1794,8 +1809,8 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
           enb.s_addr =
               eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
           struct in6_addr* enb_ipv6 = NULL;
-          if ((eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) ||
-              (eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv4_AND_v6)) {
+          if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+              eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) {
             enb_ipv6 =
                 &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
           }
@@ -2135,8 +2150,8 @@ static void add_tunnel_helper(
   enb.s_addr =
       eps_bearer_ctxt_entry_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
-  if ((eps_bearer_ctxt_entry_p->enb_ip_address_S1u.pdn_type == IPv6) ||
-      (eps_bearer_ctxt_entry_p->enb_ip_address_S1u.pdn_type == IPv4_AND_v6)) {
+  if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+      eps_bearer_ctxt_entry_p->enb_ip_address_S1u.pdn_type == IPv6) {
     enb_ipv6 =
         &eps_bearer_ctxt_entry_p->enb_ip_address_S1u.address.ipv6_address;
   }
@@ -2272,8 +2287,8 @@ void sgw_process_release_access_bearer_request(
       struct in6_addr* enb_ipv6 = NULL;
       enb.s_addr =
           eps_bearer_ctxt->enb_ip_address_S1u.address.ipv4_address.s_addr;
-      if ((eps_bearer_ctxt->enb_ip_address_S1u.pdn_type == IPv6) ||
-          (eps_bearer_ctxt->enb_ip_address_S1u.pdn_type == IPv4_AND_v6)) {
+      if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+          eps_bearer_ctxt->enb_ip_address_S1u.pdn_type == IPv6) {
         enb_ipv6 = &eps_bearer_ctxt->enb_ip_address_S1u.address.ipv6_address;
       }
 

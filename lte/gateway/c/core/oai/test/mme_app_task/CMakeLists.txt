@@ -52,6 +52,7 @@ set(MME_APP_TEST_SRC
     test_mme_app_emm_decode.cpp
     test_mme_app_config.cpp
     test_mme_procedures.cpp
+    test_sgw_config.cpp
     )
 
 add_executable(test_mme_app_ue_context_imsi ${MME_APP_UE_CONTEXT_IMSI_SRC})

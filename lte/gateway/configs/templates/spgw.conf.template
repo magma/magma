@@ -27,6 +27,8 @@ S-GW :
         # S-GW binded interface for S5 or S8 communication, not implemented, so leave it to none
         SGW_INTERFACE_NAME_FOR_S5_S8_UP         = "{{ sgw_s5s8_up_iface_name }}";         # STRING, interface name
         SGW_IPV4_ADDRESS_FOR_S5_S8_UP           = "{{ sgw_s5s8_up_ip }}";                 # STRING, CIDR
+
+        SGW_S1_IPV6_ENABLED = "{{ s1ap_ipv6_enabled }}";
     };
 
     INTERTASK_INTERFACE :
