@@ -115,6 +115,7 @@ class BootstrapManager(SDWatchdogTask):
         """
         if self._state is BootstrapState.BOOTSTRAPPING:
             return
+        self._state = BootstrapState.SCHEDULED_BOOTSTRAP
         await self.wake_up()
 
     def _maybe_create_challenge_key(self):
@@ -383,15 +384,22 @@ class BootstrapManager(SDWatchdogTask):
         """
         now = datetime.datetime.utcnow()
         not_before = cert.not_before.ToDatetime()
+        not_after = cert.not_after.ToDatetime()
+        valid_time = not_after - now
+
+        # False if pre-valid
         if now < not_before:
             logging.error(
                 'Current system time indicates certificate received is not yet valid (notBefore: %s). Consider checking NTP.', not_before,
             )
             return False
 
-        not_after = cert.not_after.ToDatetime()
-        valid_time = not_after - now
-        # log a warning if the cert is short-lived
+        # False if expired
+        if valid_time < datetime.timedelta(seconds=0):
+            logging.error('Received expired certificate')
+            return False
+
+        # Just a warning if short-lived
         if valid_time < self.PREEXPIRY_BOOTSTRAP_INTERVAL:
             valid_hours = valid_time.total_seconds() / 3600
             logging.warning('Received a %.1f-hour certificate', valid_hours)
