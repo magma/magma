@@ -69,11 +69,6 @@ jobs:
         with:
           script: |
             var fs = require('fs');
-            var isRevertedPR = fs.readFileSync('./RPR');
-            if( isRevertedPR == 'true' ) {
-              console.log("PR is a reverted PR. So exiting gracefully...");
-              process.exit(0);
-            }
             var issue_number = Number(fs.readFileSync('./NR'));
             const msg = fs.readFileSync('./msg',{encoding: 'utf8'})
 
