@@ -258,5 +258,5 @@ COPY --from=builder /magma/lte/gateway/docker/configs/mme-gen.conf .
 COPY --from=builder /magma/lte/gateway/docker/configs/mme_fd.conf .
 COPY --from=builder /magma/lte/gateway/docker/configs/spgw.conf .
 COPY --from=builder /magma/lte/gateway/docker/configs/mme.conf .
-RUN wget https://raw.githubusercontent.com/magma/magma/${MAGMA_VERSION}/lte/gateway/deploy/roles/magma/files/magma-create-gtp-port.sh \
-   -O /usr/local/bin/magma-create-gtp-port.sh && chmod +x /usr/local/bin/checkin_cli.py
+RUN wget -q https://raw.githubusercontent.com/magma/magma/"${MAGMA_VERSION}"/lte/gateway/deploy/roles/magma/files/magma-create-gtp-port.sh \
+   -O /usr/local/bin/magma-create-gtp-port.sh && chmod +x /usr/local/bin/magma-create-gtp-port.sh
