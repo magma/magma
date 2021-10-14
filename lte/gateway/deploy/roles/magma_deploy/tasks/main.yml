@@ -224,6 +224,15 @@
   tags:
     - agwc
 
+- name: Add hostname to /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    search_string: 127.0.0.1
+    line: "127.0.0.1 localhost {{ ansible_hostname }}"
+    create: yes
+  tags:
+    - agwc
+
 - name: Start service magma@magmad.
   become: yes
   service:

@@ -60,7 +60,7 @@ growpart /dev/xvda 1; resize2fs /dev/xvda1
 
 Create/deploy an ubuntu 20.04 (latest version) server/instance with 2 interfaces (S1, Sgi) and the appropriate resources for your use case.
 
-Your interfaces should not be named eth0 or eth1, they will be changed to that. eth0 should be your Sgi interface, and eth1 should be S1 interface.
+Your interfaces should be named eth0 and eth1. eth0 should be your Sgi interface, and eth1 should be S1 interface.
 
 Get the agw install script
 
@@ -93,8 +93,7 @@ Edit .env in /var/opt/magma/docker to have your docker registry values, and S1 a
 Pull images and start containers
 ```
 cd /var/opt/magma/docker
-docker-compose pull
-docker-compose -f docker-compose.yaml up -d
+./agw_upgrade.sh
 ```
 
 You can check your connection status with
