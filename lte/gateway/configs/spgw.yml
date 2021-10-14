@@ -55,3 +55,6 @@ agw_l3_tunnel: false
 # To enable UDP checksum for GTP-U tunnel
 # This might have performance overhead depending of NIC capability.
 ovs_gtpu_checksum: false
+
+# Enable IPv6 support for S1AP SCTP endpoint
+s1_ipv6_enabled: false
