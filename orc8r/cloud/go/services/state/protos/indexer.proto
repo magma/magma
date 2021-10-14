@@ -24,6 +24,9 @@ service Indexer {
   // Index a set of states by forwarding to locally-registered indexers.
   rpc Index(IndexRequest) returns (IndexResponse) {}
 
+  // IndexRemove removes a set of states by forwarding to locally-registered indexers.
+  rpc IndexRemove(IndexRequest) returns (IndexResponse) {}
+
   // PrepareReindex of a particular indexer.
   rpc PrepareReindex(PrepareReindexRequest) returns (PrepareReindexResponse) {}
 

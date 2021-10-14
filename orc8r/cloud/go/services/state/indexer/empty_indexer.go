@@ -50,3 +50,7 @@ func (r *emptyIndexer) CompleteReindex(from, to Version) error {
 func (r *emptyIndexer) Index(networkID string, states types.SerializedStatesByID) (types.StateErrors, error) {
 	return nil, nil
 }
+
+func (r *emptyIndexer) IndexRemove(networkID string, states types.SerializedStatesByID) (types.StateErrors, error) {
+	return nil, nil
+}
