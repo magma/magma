@@ -2,12 +2,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "domain-proxy.radio_controller.fullname" . }}
+  name: orc8r-dp-service
   labels:
     {{- include "domain-proxy.radio_controller.labels" . | nindent 4 }}
 spec:
   ports:
-    - port: 50053
+    - port: 9180
       targetPort: 50053
       protocol: TCP
       name: grpc

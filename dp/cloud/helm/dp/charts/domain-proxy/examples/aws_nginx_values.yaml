@@ -198,10 +198,6 @@ radio_controller:
 
   securityContext: {}
 
-  service:
-    enable: true
-    port: 9180
-
   resources:
     limits:
       cpu: 100m

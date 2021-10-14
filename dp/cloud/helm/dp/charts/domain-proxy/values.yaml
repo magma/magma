@@ -291,10 +291,6 @@ radio_controller:
   # runAsNonRoot: true
   # runAsUser: 1000
 
-  service:
-    enable: true  # Whether to enable kubernetes service for dp component.
-    port: 50053  # Default port of enabled kubernetes service.
-
   resources: {}  # Resource requests and limits of Pod.
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
