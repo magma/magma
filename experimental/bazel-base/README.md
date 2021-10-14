@@ -34,11 +34,11 @@ Once insider the container, bazel can be run like this,
 
 ```bash
 # To build all targets
-bazel build --config=docker ...
+bazel build ...
 # To build a specific target (Ex: session_manager.proto)
-bazel build --config=docker lte/protos:session_manager_cpp_proto
+bazel build lte/protos:session_manager_cpp_proto
 # To run all tests
-bazel test --config=docker ...
+bazel test ...
 ```
 
 ## Format bazel files
@@ -49,7 +49,7 @@ To format all bazel related files, exec into a bazel container and run the follo
 bazel run //:buildifier
 ```
 
-## Generate go_repository via Gazelle
+## Generate Bazel files for Golang via Gazelle
 
 Gazelle is a tool that generates Bazel configurations from an existing Go project
 
@@ -60,3 +60,9 @@ bazel run //:gazelle -- update-repos -from_file=src/go/go.mod -to_macro=go_repos
 ```
 
 This will output all `go_repository` configurations into `$MAGMA_ROOT/go_repositories.bzl`.
+
+To generate BUILD.bazel files after code changes, run
+
+```bash
+bazel run //:gazelle
+```

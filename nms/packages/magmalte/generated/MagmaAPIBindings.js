@@ -6830,10 +6830,10 @@ export default class MagmaAPIBindings {
                 'networkId': string,
                 'msisdn' ? : string,
                 'ip' ? : string,
+                'pageSize' ? : number,
+                'pageToken' ? : string,
             }
-        ): Promise < {
-            [string]: subscriber,
-        } >
+        ): Promise < paginated_subscribers >
         {
             let path = '/lte/{network_id}/subscribers';
             let body;
@@ -6852,12 +6852,20 @@ export default class MagmaAPIBindings {
                 query['ip'] = parameters['ip'];
             }
 
+            if (parameters['pageSize'] !== undefined) {
+                query['page_size'] = parameters['pageSize'];
+            }
+
+            if (parameters['pageToken'] !== undefined) {
+                query['page_token'] = parameters['pageToken'];
+            }
+
             return await this.request(path, 'GET', query, body);
         }
     static async postLteByNetworkIdSubscribers(
         parameters: {
             'networkId': string,
-            'subscriber': mutable_subscriber,
+            'subscribers': mutable_subscribers,
         }
     ): Promise < "Success" > {
         let path = '/lte/{network_id}/subscribers';
@@ -6869,12 +6877,12 @@ export default class MagmaAPIBindings {
 
         path = path.replace('{network_id}', `${parameters['networkId']}`);
 
-        if (parameters['subscriber'] === undefined) {
-            throw new Error('Missing required  parameter: subscriber');
+        if (parameters['subscribers'] === undefined) {
+            throw new Error('Missing required  parameter: subscribers');
         }
 
-        if (parameters['subscriber'] !== undefined) {
-            body = parameters['subscriber'];
+        if (parameters['subscribers'] !== undefined) {
+            body = parameters['subscribers'];
         }
 
         return await this.request(path, 'POST', query, body);
@@ -7035,68 +7043,6 @@ export default class MagmaAPIBindings {
         }
 
         return await this.request(path, 'PUT', query, body);
-    }
-    static async getLteByNetworkIdSubscribersV2(
-            parameters: {
-                'networkId': string,
-                'msisdn' ? : string,
-                'ip' ? : string,
-                'pageSize' ? : number,
-                'pageToken' ? : string,
-            }
-        ): Promise < paginated_subscribers >
-        {
-            let path = '/lte/{network_id}/subscribers_v2';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            if (parameters['msisdn'] !== undefined) {
-                query['msisdn'] = parameters['msisdn'];
-            }
-
-            if (parameters['ip'] !== undefined) {
-                query['ip'] = parameters['ip'];
-            }
-
-            if (parameters['pageSize'] !== undefined) {
-                query['page_size'] = parameters['pageSize'];
-            }
-
-            if (parameters['pageToken'] !== undefined) {
-                query['page_token'] = parameters['pageToken'];
-            }
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async postLteByNetworkIdSubscribersV2(
-        parameters: {
-            'networkId': string,
-            'subscribers': mutable_subscribers,
-        }
-    ): Promise < "Success" > {
-        let path = '/lte/{network_id}/subscribers_v2';
-        let body;
-        let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
-        }
-
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['subscribers'] === undefined) {
-            throw new Error('Missing required  parameter: subscribers');
-        }
-
-        if (parameters['subscribers'] !== undefined) {
-            body = parameters['subscribers'];
-        }
-
-        return await this.request(path, 'POST', query, body);
     }
     static async getNetworks(): Promise < Array < string >
         >

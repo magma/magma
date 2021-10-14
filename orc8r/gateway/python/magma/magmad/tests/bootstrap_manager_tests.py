@@ -534,6 +534,13 @@ class BootstrapManagerTest(TestCase):
                 ['WARNING:root:Received a 1.0-hour certificate'],
             )
 
+        # expired
+        not_before = datetime.datetime.utcnow() - datetime.timedelta(days=2)
+        not_after = datetime.datetime.utcnow() - datetime.timedelta(days=1)
+        cert = create_cert_message(not_before=not_before, not_after=not_after)
+        is_valid = self.manager._is_valid_certificate(cert)
+        self.assertFalse(is_valid)
+
         # correct
         cert = create_cert_message()
         is_valid = self.manager._is_valid_certificate(cert)

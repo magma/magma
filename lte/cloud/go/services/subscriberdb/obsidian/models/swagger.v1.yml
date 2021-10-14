@@ -42,50 +42,6 @@ basePath: /magma/v1
 paths:
   /lte/{network_id}/subscribers:
     get:
-      summary: List subscribers in the network
-      tags:
-        - Subscribers
-      parameters:
-        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-        - in: query
-          name: msisdn
-          type: string
-          description: Filter to subscribers with the passed MSISDN
-          required: false
-        - in: query
-          name: ip
-          type: string
-          description: Filter to subscribers assigned the passed IP address
-          required: false
-      responses:
-        '200':
-          description: List of all the subscribers in the network
-          schema:
-            type: object
-            additionalProperties:
-              $ref: '#/definitions/subscriber'
-        default:
-          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-    post:
-      summary: Add a new subscriber to the network
-      tags:
-        - Subscribers
-      parameters:
-        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-        - in: body
-          name: subscriber
-          description: Subscriber that needs to be added
-          required: true
-          schema:
-            $ref: '#/definitions/mutable_subscriber'
-      responses:
-        '201':
-          description: Success
-        default:
-          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-
-  /lte/{network_id}/subscribers_v2:
-    get:
       summary: List subscribers in the network with pagination support
       tags:
         - Subscribers

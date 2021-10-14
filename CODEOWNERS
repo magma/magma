@@ -51,6 +51,8 @@
 /xwf/ @magma/approvers-xwf
 /feg/radius @magma/approvers-xwf @magma/approvers-cwf
 
+/src/go/ @markjen
+
 # approvers-showtech
 /show-tech/ @magma/approvers-showtech
 

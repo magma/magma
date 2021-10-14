@@ -518,16 +518,18 @@ int mme_config_parse_string(
   int aint                      = 0;
   double adouble                = 0.0;
   int i = 0, n = 0, stop_index = 0, num = 0;
-  const char* astring  = NULL;
-  const char* tac      = NULL;
-  const char* mcc      = NULL;
-  const char* mnc      = NULL;
-  char* if_name_s1_mme = NULL;
-  char* s1_mme         = NULL;
-  char* if_name_s11    = NULL;
-  char* s11            = NULL;
-  char* imsi_low_tmp   = NULL;
-  char* imsi_high_tmp  = NULL;
+  const char* astring    = NULL;
+  const char* tac        = NULL;
+  const char* mcc        = NULL;
+  const char* mnc        = NULL;
+  char* if_name_s1_mme   = NULL;
+  char* s1_mme           = NULL;
+  char* s1_mme_ipv6_addr = NULL;
+  char* s1_ipv6_enabled  = NULL;
+  char* if_name_s11      = NULL;
+  char* s11              = NULL;
+  char* imsi_low_tmp     = NULL;
+  char* imsi_high_tmp    = NULL;
 #if !EMBEDDED_SGW
   char* sgw_ip_address_for_s11 = NULL;
 #endif
@@ -1418,6 +1420,7 @@ int mme_config_parse_string(
                (const char**) &s11) &&
            config_setting_lookup_int(
                setting, MME_CONFIG_STRING_MME_PORT_FOR_S11, &aint))) {
+        // S1AP IPv4 address
         config_pP->ip.port_s11 = (uint16_t) aint;
 
         config_pP->ip.if_name_s1_mme = bfromcstr(if_name_s1_mme);
@@ -1440,8 +1443,9 @@ int mme_config_parse_string(
             inet_ntoa(in_addr_var), config_pP->ip.netmask_s1_mme,
             bdata(config_pP->ip.if_name_s1_mme));
         bdestroy_wrapper(&cidr);
-
         bdestroy(cidr);
+
+        // S11 IPv4 address
         config_pP->ip.if_name_s11 = bfromcstr(if_name_s11);
         cidr                      = bfromcstr(s11);
         list                      = bsplit(cidr, '/');
@@ -1462,6 +1466,28 @@ int mme_config_parse_string(
             inet_ntoa(in_addr_var), config_pP->ip.netmask_s11,
             bdata(config_pP->ip.if_name_s11));
         bdestroy(cidr);
+      }
+      if (config_setting_lookup_string(
+              setting, MME_CONFIG_STRING_IPV6_ADDRESS_FOR_S1_MME,
+              (const char**) &s1_mme_ipv6_addr) &&
+          config_setting_lookup_string(
+              setting, MME_CONFIG_STRING_S1_IPV6_ENABLED,
+              (const char**) &s1_ipv6_enabled)) {
+        // S1AP IPv6 address
+        config_pP->ip.s1_ipv6_enabled = parse_bool(s1_ipv6_enabled);
+        if (config_pP->ip.s1_ipv6_enabled) {
+          char parsed_ipv6[INET6_ADDRSTRLEN];
+
+          IPV6_STR_ADDR_TO_INADDR(
+              s1_mme_ipv6_addr, config_pP->ip.s1_mme_v6,
+              "BAD IPv6 ADDRESS FORMAT FOR S1AP IPv6 address !\n");
+          inet_ntop(
+              AF_INET6, (const void*) &config_pP->ip.s1_mme_v6, parsed_ipv6,
+              INET6_ADDRSTRLEN);
+          OAILOG_INFO(
+              LOG_MME_APP, "Parsing configuration file found S1-MME-IPv6: %s\n",
+              parsed_ipv6);
+        }
       }
     }
 
@@ -1965,6 +1991,13 @@ void mme_config_display(mme_config_t* config_pP) {
   OAILOG_INFO(
       LOG_CONFIG, "    s1-MME ip ........: %s\n",
       inet_ntoa(*((struct in_addr*) &config_pP->ip.s1_mme_v4)));
+  if (config_pP->ip.s1_ipv6_enabled) {
+    char strv6[INET6_ADDRSTRLEN];
+    OAILOG_INFO(
+        LOG_CONFIG, "    s1-MME ipv6 ......: %s\n",
+        inet_ntop(AF_INET6, &config_pP->ip.s1_mme_v6, strv6, INET6_ADDRSTRLEN));
+  }
+
   OAILOG_INFO(
       LOG_CONFIG, "    s11 MME iface ....: %s\n",
       bdata(config_pP->ip.if_name_s11));
