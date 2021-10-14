@@ -67,12 +67,13 @@ This table contains all the APNs configured in the network. Columns include ApnI
 <h2><a class="anchor" aria-hidden="true" id="traffic-configuration"></a><a href="#traffic-configuration" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Traffic configuration</h2>
 <p>The following sections show step-by-step screenshots of configuring policies and APNs.</p>
 <h3><a class="anchor" aria-hidden="true" id="policy-configuration"></a><a href="#policy-configuration" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Policy Configuration</h3>
-<p>The same policy configuration dialog is used for 'add' as well as 'edit'. The dialog has 4 main tabs:</p>
+<p>The same policy configuration dialog is used for 'add' as well as 'edit'. The dialog has 5 main tabs:</p>
 <ul>
-<li>Policy - to configure Policy ID, Priority Level and QoS Profile</li>
-<li>Flows - to add and configure policy flows.</li>
-<li>Tracking - to configure Monitoring Key, Rating Groups and Tracking Type.</li>
-<li>Redirect - to configure Server Address, Address Type and enable or disable Support.</li>
+<li><strong>Policy</strong> - to configure Policy ID, Priority Level and QoS Profile. Here you can name your policy, determine the level of priority, choose to roll it out network wide, and assign a QoS Profile.</li>
+<li><strong>Flows</strong> - to add and configure policy flows. In this tab, you can route traffic based on the direction and protocol. For example, this can be used to block ip traffic in a certain direction.</li>
+<li><strong>Tracking</strong> - to configure Monitoring Key, Rating Groups and Tracking Type. You can choose your tracking type between: only OCS, only PCRF, OCS and PCRF, and no tracking.</li>
+<li><strong>Redirect</strong> - to configure Server Address, Address Type and enable or disable Support. With redirect enabled, matching traffic can be redirected to a captive portal server.</li>
+<li><strong>Header Enrichment</strong> - to enable header enrichment on a list of URL targets. Here you can specify your list of URLs.</li>
 </ul>
 <p><img src="/magma/docs/assets/nms/userguide/policy_configuration_1.png" alt="policy_config_tab_1">
 Policy Tab</p>
