@@ -195,6 +195,36 @@
     - skipfirstinstall
     - agwc
 
+- name: Get current DNS server from systemd-resolvd
+  shell: grep nameserver /run/systemd/resolve/resolv.conf
+  register: dns
+  tags:
+    - agwc
+
+- name: Disable systemd-resolved
+  systemd:
+    name: systemd-resolved
+    enabled: no
+    state: stopped
+  tags:
+    - agwc
+
+- name: Unlink resolv.conf
+  shell: unlink /etc/resolv.conf
+  file:
+    path: /etc/resolv.conf
+    state: abesent
+  tags:
+    - agwc
+
+- name: Add nameserver to /etc/resolv.conf
+  lineinfile:
+    path: /etc/resolv.conf
+    line: "{{ dns.stdout }}"
+    create: yes
+  tags:
+    - agwc
+
 - name: Start service magma@magmad.
   become: yes
   service:
