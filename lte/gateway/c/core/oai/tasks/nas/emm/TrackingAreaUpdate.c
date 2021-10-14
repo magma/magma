@@ -220,30 +220,43 @@ status_code_e handle_and_fill_eps_bearer_cntxt_status(
       /* Delete the bearer context if the bearer context rcvd in TAU req
        * is inactive
        */
+      pid = ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
+      if (pid >= MAX_APN_PER_UE) {
+        OAILOG_ERROR_UE(
+            ue_mm_context->emm_context._imsi64, LOG_NAS_ESM,
+            "No PDN connection found for pid=%d, EBI=%d \n", pid, ebi);
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+      }
+      pdn_context_t* pdn_context = ue_mm_context->pdn_contexts[pid];
+      if (!pdn_context) {
+        OAILOG_ERROR_UE(
+          ue_mm_context->emm_context._imsi64, LOG_NAS_ESM,
+          "PDN context is NULL for pid=%d, EBI=%d \n", pid, ebi);
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+      }
       if (!is_ebi_active) {
         /* Deactivate the bearer as UE has locally deactivated it.
          * If its a default bearer, trigger delete session request
          * else trigger deactivate dedicated bearer request
          */
-        pid = ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
-        if (pid >= MAX_APN_PER_UE) {
-          OAILOG_ERROR_UE(
-              ue_mm_context->emm_context._imsi64, LOG_NAS_ESM,
-              "No PDN connection found for pid=%d, EBI=%d \n", pid, ebi);
-          OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
-        }
-        if (!ue_mm_context->pdn_contexts[pid]) {
-          OAILOG_ERROR_UE(
-              ue_mm_context->emm_context._imsi64, LOG_NAS_ESM,
-              "PDN context is NULL for pid=%d, EBI=%d \n", pid, ebi);
-          OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
-        }
-        if (ebi == ue_mm_context->pdn_contexts[pid]->default_ebi) {
+        if (ebi == pdn_context->default_ebi) {
           ue_mm_context->nb_delete_sessions ++;
+          pdn_context->session_deletion_triggered = true;
           mme_app_send_delete_session_request(
               ue_mm_context, ebi, pid, true /*no_delete_gtpv2c_tunnel*/);
         } else {
-          // TBD-Deactivate dedicated bearer
+          /* If default bearer deletion is already triggered for this dedicated
+           * bearer, no need to trigger bearer deactivation explicitly as it will be
+           * deactivated as part of default bearer deletion
+           */
+          if (!pdn_context->session_deletion_triggered) {
+            ue_mm_context->nb_ded_bearer_deactivation ++;
+            mme_app_send_deactivate_dedicated_bearer_request(ue_mm_context->emm_context._imsi64, pdn_context->s_gw_teid_s11_s4,pdn_context->default_ebi, ebi);
+          }
+        }
+        if (pdn_context->session_deletion_triggered) {
+          OAILOG_INFO(
+             LOG_NAS_ESM, "Delete session is already triggered for lbi=%d. So not deactivating EBI %d \n", pdn_context->default_ebi, ebi);
         }
         OAILOG_INFO(
             LOG_NAS_ESM, "Deactivating EBI %d as it is inactive in UE \n", ebi);
@@ -461,20 +474,19 @@ status_code_e emm_proc_tracking_area_update_request(
                 ue_id);
             OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
           } else {
-            /* Dedicated bearer deletion is not supported yet,
-             * so if delete_session request is sent i.e if default
-             * bearer deletion is triggered in
+            /* If delete_session request is sent i.e if default
+             * bearer deletion is triggered or dedicated bearer deactivation
+             * is triggered in
              * handle_and_fill_eps_bearer_cntxt_status,
-             * wait for delete session rsp from spgw and then send TAU accept.
-             * Else send TAU accept with the same eps_bearer_context_status
-             * that is received in TAU request.This logic will be changed
-             * after handling dedicated bearer deletion.
+             * wait for response from spgw and then send TAU accept.
              */
-            if (ue_mm_context->nb_delete_sessions) {
-              OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
-            } else {
-              ue_mm_context->tau_accept_eps_ber_cntx_status = tau_proc->ies->eps_bearer_context_status;
-            }
+             if (ue_mm_context->nb_delete_sessions || ue_mm_context->nb_ded_bearer_deactivation) {
+               OAILOG_INFO(
+                 LOG_NAS_ESM, "Either delete session or bearer deactivation is triggered so wait for response from spgw and then send TAU accept\n");
+               OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+             }
+             OAILOG_INFO(
+               LOG_NAS_ESM, "Neither delete session nor bearer deactivation is triggered so sending TAU accept\n");
           }
         } else {
           OAILOG_WARNING_UE(

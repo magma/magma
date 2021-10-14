@@ -4557,3 +4557,116 @@ void send_s11_modify_bearer_request(
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
+
+void mme_app_send_deactivate_dedicated_bearer_request(
+    imsi64_t imsi64, teid_t s_gw_teid_s11_s4, ebi_t lbi,ebi_t ebi) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  MessageDef* message_p = itti_alloc_new_message(
+      TASK_MME_APP, S11_MME_INIT_DEACTIVATE_BEARER_REQ);
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Cannot allocte memory to S11_MME_INIT_DEACTIVATE_DEDICATED_BEARER_REQ\n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  itti_s11_mme_initiated_deactivate_bearer_req_t* s11_mme_init_deactv_bearer_req =
+      &message_p->ittiMsg.itti_s11_mme_initiated_deactivate_bearer_req;
+
+  s11_mme_init_deactv_bearer_req->s_gw_teid_s11_s4 = s_gw_teid_s11_s4;
+  s11_mme_init_deactv_bearer_req->ebi = ebi;
+
+  OAILOG_INFO_UE(
+      LOG_MME_APP, imsi64,
+      "Sending S11_MME_INIT_DEACTIVATE_DEDICATED_BEARER_REQ to SPGW task for "
+      TEID_FMT "\n",
+      s_gw_teid_s11_s4);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+// Deletes the bearer context
+void mme_app_handle_mme_init_deact_bearer_rsp(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s11_mme_initiated_deactivate_bearer_rsp_t* const
+        s11_mme_init_deact_bearer_rsp) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  ue_mm_context_t* ue_context_p = NULL;
+
+  if (!s11_mme_init_deact_bearer_rsp) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "s11_mme_init_deact_bearer_rsp is NULL\n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  ue_context_p = mme_ue_context_exists_s11_teid(
+      &mme_app_desc_p->mme_ue_contexts, s11_mme_init_deact_bearer_rsp->mme_teid_s11);
+
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP, "We didn't find this teid in list of UE: " TEID_FMT "\n",
+        s11_mme_init_deact_bearer_rsp->mme_teid_s11);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
+  OAILOG_DEBUG(
+      LOG_MME_APP,
+      "Received s11_mme_init_deact_bearer_rsp from SGW for S11 teid" TEID_FMT
+      "," MME_UE_S1AP_ID_FMT "\n",
+      s11_mme_init_deact_bearer_rsp->mme_teid_s11, ue_context_p->mme_ue_s1ap_id);
+
+
+  // Delete Eps bearer context
+  bearer_context_t* bearer_context = mme_app_get_bearer_context(
+      ue_context_p, s11_mme_init_deact_bearer_rsp->ebi);
+  if (bearer_context) {
+    pdn_cid_t pid = ue_context_p->bearer_contexts[EBI_TO_INDEX(s11_mme_init_deact_bearer_rsp->ebi)]->pdn_cx_id;
+    if (pid >= MAX_APN_PER_UE) {
+      OAILOG_ERROR_UE(
+          ue_context_p->emm_context._imsi64, LOG_NAS_ESM,
+          "No PDN connection found for pid=%d, EBI=%d \n", pid, s11_mme_init_deact_bearer_rsp->ebi);
+      OAILOG_FUNC_OUT(LOG_MME_APP);
+    }
+    int bearer_idx = EBI_TO_INDEX(s11_mme_init_deact_bearer_rsp->ebi);
+    eps_bearer_release(
+        &ue_context_p->emm_context, s11_mme_init_deact_bearer_rsp->ebi, &pid,
+        &bearer_idx);
+    // Remove dedicated bearer context
+    free_wrapper((void**) &ue_context_p->bearer_contexts[bearer_idx]);
+
+    OAILOG_INFO_UE(
+      LOG_MME_APP,ue_context_p->emm_context._imsi64,
+      "Deleted ebi=%u for S11 teid" TEID_FMT
+      "," MME_UE_S1AP_ID_FMT "\n",
+      s11_mme_init_deact_bearer_rsp->ebi,
+      s11_mme_init_deact_bearer_rsp->mme_teid_s11,
+      ue_context_p->mme_ue_s1ap_id);
+    ue_context_p->nb_ded_bearer_deactivation --;
+    if (ue_context_p->nb_ded_bearer_deactivation == 0) {
+      if(send_tau_accept_with_eps_bearer_ctx_status(ue_context_p) != RETURNok) {
+        OAILOG_ERROR_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
+          "Error sending TAU accept with eps_bearer_ctx_status for ebi %d\n",
+          s11_mme_init_deact_bearer_rsp->ebi);
+        OAILOG_FUNC_OUT(LOG_MME_APP);
+      }
+      OAILOG_INFO_UE(
+          ue_context_p->emm_context._imsi64, LOG_NAS_ESM,
+          "Sending TAU accept with eps_bearer_ctx_status EBI=%u \n", s11_mme_init_deact_bearer_rsp->ebi);
+
+      pdn_context_t* pdn_context = ue_context_p->pdn_contexts[pid];
+      if (!pdn_context) {
+        OAILOG_ERROR_UE(
+            ue_context_p->emm_context._imsi64, LOG_NAS_ESM,
+            "PDN context is NULL for pid=%d, EBI=%d \n", pid, s11_mme_init_deact_bearer_rsp->ebi);
+        OAILOG_FUNC_OUT(LOG_MME_APP);
+      }
+      pdn_context->session_deletion_triggered = false;
+    }
+  } else {
+    OAILOG_ERROR_UE(
+      LOG_MME_APP, ue_context_p->emm_context._imsi64,
+      "Bearer context does not exist for ebi %d\n",
+      s11_mme_init_deact_bearer_rsp->ebi);
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}

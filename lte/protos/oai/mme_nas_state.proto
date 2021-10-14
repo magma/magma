@@ -71,6 +71,7 @@ message PdnContext {
   EsmPdn esm_data = 16;
   bool is_active = 17;
   ProtocolConfigurationOptions pco = 18;
+  bool session_deletion_triggered = 19;
 }
 
 message Regional_subscription {
@@ -135,6 +136,7 @@ message UeContext {
 
   uint32 tau_accept_eps_ber_cntx_status = 103;
   uint32 nb_delete_sessions = 104;
+  uint32 nb_ded_bearer_deactivation = 105;
 
   Timer mobile_reachability_timer = 200;
   Timer implicit_detach_timer = 201;

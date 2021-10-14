@@ -2299,3 +2299,101 @@ static teid_t sgw_generate_new_s11_cp_teid(void) {
 
   OAILOG_FUNC_RETURN(LOG_SGW_S8, teid);
 }
+
+// Generates random s11 control plane teid
+void sgw_handle_mme_initiated_deactv_bearer_req(
+    const itti_s11_mme_initiated_deactivate_bearer_req_t* const
+    s11_mme_init_deactv_bearer_req,
+    imsi64_t imsi64) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
+
+  OAILOG_INFO_UE(
+      LOG_SPGW_APP, imsi64, "handle_mme_initiated_deactv_bearer_req for (ebi = %d)" TEID_FMT "\n",
+      s11_mme_init_deactv_bearer_req->ebi, s11_mme_init_deactv_bearer_req->s_gw_teid_s11_s4);
+  s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt =
+      sgw_cm_get_spgw_context(s11_mme_init_deactv_bearer_req->s_gw_teid_s11_s4);
+  if (!spgw_ctxt) {
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64, "hashtable_ts_get failed for teid %u\n",
+        s11_mme_init_deactv_bearer_req->s_gw_teid_s11_s4);
+    OAILOG_FUNC_OUT(TASK_SPGW_APP);
+  }
+
+  char* imsi = (char*) spgw_ctxt->sgw_eps_bearer_context_information.imsi.digit;
+  pcef_end_dedicated_bearer_session(imsi, s11_mme_init_deactv_bearer_req->ebi);
+
+  eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+      &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection,
+      s11_mme_init_deactv_bearer_req->ebi);
+  if (eps_bearer_ctxt_p) {
+    // Get all the DL flow rules for this dedicated bearer
+    for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
+         ++itrn) {
+      // Prepare DL flow rule from stored packet filters
+      struct ip_flow_dl dlflow = {0};
+      struct in6_addr* ue_ipv6 = NULL;
+      if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
+          (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
+        ue_ipv6 = &eps_bearer_ctxt_p->paa.ipv6_address;
+      }
+      generate_dl_flow(
+          &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
+                .packetfiltercontents),
+          eps_bearer_ctxt_p->paa.ipv4_address.s_addr, ue_ipv6, &dlflow);
+      struct in_addr enb = {.s_addr = 0};
+      enb.s_addr =
+          eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
+
+      if (gtp_tunnel_ops->del_tunnel(
+          enb, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
+          eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+          eps_bearer_ctxt_p->enb_teid_S1u, &dlflow) != RETURNok) {
+        OAILOG_ERROR_UE(
+            LOG_SPGW_APP, imsi64,
+            "ERROR in deleting TUNNEL " TEID_FMT
+            " (eNB) <-> (SGW) " TEID_FMT "\n",
+            eps_bearer_ctxt_p->enb_teid_S1u,
+            eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+      }
+    }
+
+    sgw_free_eps_bearer_context(
+        &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection
+             .sgw_eps_bearers_array[EBI_TO_INDEX(s11_mme_init_deactv_bearer_req->ebi)]);
+    OAILOG_INFO_UE(
+        LOG_SPGW_APP, imsi64, "Removed bearer context for (ebi = %d)\n",
+        s11_mme_init_deactv_bearer_req->ebi);
+  } else {
+    OAILOG_WARNING_UE(
+        LOG_SPGW_APP, imsi64, "eps_bearer_ctxt is NULL for teid %u\n",
+        s11_mme_init_deactv_bearer_req->s_gw_teid_s11_s4);
+  }
+  itti_s11_mme_initiated_deactivate_bearer_rsp_t* s11_mme_init_deact_bearer_rsp =
+      NULL;
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_SPGW_APP, S11_MME_INIT_DEACTIVATE_BEARER_RSP);
+  if (message_p == NULL) {
+    OAILOG_ERROR_UE(
+        TASK_SPGW_APP, imsi64,
+        "Failed to allocate memory for MME initiated deactivate bearer response \n");
+    OAILOG_FUNC_OUT(TASK_SPGW_APP);
+  }
+  // Send MME initiated deactivate bearer response to MME
+  message_p->ittiMsgHeader.imsi = imsi64;
+  s11_mme_init_deact_bearer_rsp =
+      &message_p->ittiMsg.itti_s11_mme_initiated_deactivate_bearer_rsp;
+  s11_mme_init_deact_bearer_rsp->ebi = s11_mme_init_deactv_bearer_req->ebi;
+  s11_mme_init_deact_bearer_rsp->mme_teid_s11 = spgw_ctxt->sgw_eps_bearer_context_information.mme_teid_S11;
+
+  if (send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p) != RETURNok) {
+    OAILOG_ERROR_UE(
+        TASK_SPGW_APP, imsi64,
+        "Failed to send MME initiated deactivate bearer Response to MME\n");
+    OAILOG_FUNC_OUT(TASK_SPGW_APP);
+  }
+  OAILOG_DEBUG_UE(
+      TASK_SPGW_APP, imsi64, "MME initiated deactivate bearer response sent to MME\n");
+
+  OAILOG_FUNC_OUT(TASK_SPGW_APP);
+}

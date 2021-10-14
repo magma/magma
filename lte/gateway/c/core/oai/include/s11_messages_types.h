@@ -78,6 +78,10 @@
   (mSGpTR)->ittiMsg.s11_nw_init_deactv_bearer_rsp
 #define S11_DOWNLINK_DATA_NOTIFICATION_ACKNOWLEDGE(mSGpTR)                     \
   (mSGpTR)->ittiMsg.s11_downlink_data_notification_acknowledge
+#define S11_MME_INIT_DEACTIVATE_BEARER_REQ(mSGpTR)                             \
+  (mSGpTR)->ittiMsg.itti_s11_mme_initiated_deactivate_bearer_req
+#define S11_MME_INIT_DEACTIVATE_BEARER_RSP(mSGpTR)                             \
+  (mSGpTR)->ittiMsg.itti_s11_mme_initiated_deactivate_bearer_rsp
 //-----------------------------------------------------------------------------
 /** @struct itti_s11_nw_initiated_ded_bearer_actv_request_t
  *  @brief PCRF initiated Dedicated Bearer Activation Request
@@ -1368,5 +1372,23 @@ typedef struct itti_s11_modify_ue_ambr_request_s {
   teid_t teid;     ///< Tunnel Endpoint Identifier
   ambr_t ue_ambr;  ///< Aggregate Maximum Bit Rate (UE-AMBR)
 } itti_s11_modify_ue_ambr_request_t;
+
+//-----------------------------------------------------------------------------
+/** @struct itti_s11_mme_initiated_deactivate_bearer_req_t
+ *  @brief MME initiated dedicated bearer deactivation request
+ */
+typedef struct itti_s11_mme_initiated_deactivate_bearer_req_s {
+  teid_t s_gw_teid_s11_s4;               ///< sgw cp TEID
+  ebi_t ebi;                             // EPS Bearer ID
+} itti_s11_mme_initiated_deactivate_bearer_req_t;
+
+//-----------------------------------------------------------------------------
+/** @struct itti_s11_mme_initiated_deactivate_bearer_rsp_t
+ *  @brief MME initiated dedicated bearer deactivation response
+ */
+typedef struct itti_s11_mme_initiated_deactivate_bearer_rsp_s {
+  teid_t mme_teid_s11;                   ///< MME TEID
+  ebi_t ebi;                             ///< EPS Bearer ID
+} itti_s11_mme_initiated_deactivate_bearer_rsp_t;
 
 #endif /* FILE_S11_MESSAGES_TYPES_SEEN */

@@ -99,3 +99,9 @@ MESSAGE_DEF(
     S11_DOWNLINK_DATA_NOTIFICATION_ACKNOWLEDGE,
     itti_s11_downlink_data_notification_acknowledge_t,
     s11_downlink_data_notification_acknowledge)
+MESSAGE_DEF(
+    S11_MME_INIT_DEACTIVATE_BEARER_REQ, itti_s11_mme_initiated_deactivate_bearer_req_t,
+    itti_s11_mme_initiated_deactivate_bearer_req)
+MESSAGE_DEF(
+    S11_MME_INIT_DEACTIVATE_BEARER_RSP, itti_s11_mme_initiated_deactivate_bearer_rsp_t,
+    itti_s11_mme_initiated_deactivate_bearer_rsp)

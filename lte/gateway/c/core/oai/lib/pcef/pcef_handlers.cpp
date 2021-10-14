@@ -376,3 +376,12 @@ void get_session_req_data(
   data->pvi = qos->pvi;
   data->qci = qos->qci;
 }
+
+bool pcef_end_dedicated_bearer_session(
+    const char* imsi, ebi_t eps_bearer_id) {
+  auto imsi_str = std::string(imsi);
+
+  // TODO-Send grpc message to session manager to end dedicated bearer session
+  return true;
+}
+

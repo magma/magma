@@ -236,6 +236,7 @@ typedef struct pdn_context_s {
   protocol_configuration_options_t* pco;
   bool ue_rej_act_def_ber_req;
   bool route_s11_messages_to_s8_task;
+  bool session_deletion_triggered;
 } pdn_context_t;
 
 typedef enum {
@@ -462,6 +463,7 @@ typedef struct ue_mm_context_s {
   emm_cn_activate_dedicated_bearer_req_t* pending_ded_ber_req[BEARERS_PER_UE];
   eps_bearer_context_status_t tau_accept_eps_ber_cntx_status;
   uint8_t nb_delete_sessions;
+  uint8_t nb_ded_bearer_deactivation;
   LIST_HEAD(s11_procedures_s, mme_app_s11_proc_s) * s11_procedures;
 } ue_mm_context_t;
 

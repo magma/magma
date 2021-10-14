@@ -494,6 +494,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       mme_app_recover_timers_for_all_ues();
     } break;
 
+    case S11_MME_INIT_DEACTIVATE_BEARER_RSP: {
+      mme_app_handle_mme_init_deact_bearer_rsp(
+          mme_app_desc_p,
+          &received_message_p->ittiMsg.itti_s11_mme_initiated_deactivate_bearer_rsp);
+      is_task_state_same = true;
+    } break;
+
     default: {
       OAILOG_ERROR(
           LOG_MME_APP, "Unknown message (%s) received with message Id: %d\n",

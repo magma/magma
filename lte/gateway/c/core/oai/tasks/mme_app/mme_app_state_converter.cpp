@@ -439,6 +439,7 @@ void MmeNasStateConverter::pdn_context_to_proto(
   esm_pdn_to_proto(
       state_pdn_context.esm_data, pdn_context_proto->mutable_esm_data());
   pdn_context_proto->set_is_active(state_pdn_context.is_active);
+  pdn_context_proto->set_session_deletion_triggered(state_pdn_context.session_deletion_triggered);
   if (state_pdn_context.pco != nullptr) {
     NasStateConverter::protocol_configuration_options_to_proto(
         *state_pdn_context.pco, pdn_context_proto->mutable_pco());
@@ -486,6 +487,7 @@ void MmeNasStateConverter::proto_to_pdn_context(
   state_pdn_context->s_gw_teid_s11_s4 = pdn_context_proto.s_gw_teid_s11_s4();
   proto_to_esm_pdn(pdn_context_proto.esm_data(), &state_pdn_context->esm_data);
   state_pdn_context->is_active = pdn_context_proto.is_active();
+  state_pdn_context->session_deletion_triggered = pdn_context_proto.session_deletion_triggered();
   if (pdn_context_proto.has_pco()) {
     state_pdn_context->pco = (protocol_configuration_options_t*) calloc(
         1, sizeof(protocol_configuration_options_t));
@@ -619,6 +621,8 @@ void MmeNasStateConverter::ue_context_to_proto(
       state_ue_context->tau_accept_eps_ber_cntx_status);
   ue_context_proto->set_nb_delete_sessions(
       state_ue_context->nb_delete_sessions);
+  ue_context_proto->set_nb_ded_bearer_deactivation(
+      state_ue_context->nb_ded_bearer_deactivation);
   mme_app_timer_to_proto(
       state_ue_context->mobile_reachability_timer,
       ue_context_proto->mutable_mobile_reachability_timer());
@@ -727,6 +731,7 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
       ue_context_proto.sgs_context(), state_ue_mm_context->sgs_context);
   state_ue_mm_context->tau_accept_eps_ber_cntx_status = ue_context_proto.tau_accept_eps_ber_cntx_status();
   state_ue_mm_context->nb_delete_sessions = ue_context_proto.nb_delete_sessions();
+  state_ue_mm_context->nb_ded_bearer_deactivation = ue_context_proto.nb_ded_bearer_deactivation();
 
   proto_to_mme_app_timer(
       ue_context_proto.mobile_reachability_timer(),
