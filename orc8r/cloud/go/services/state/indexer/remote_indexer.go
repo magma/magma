@@ -107,7 +107,7 @@ func (r *remoteIndexer) Index(networkID string, states state_types.SerializedSta
 	return state_types.MakeStateErrors(res.StateErrors), nil
 }
 
-func (r *remoteIndexer) IndexRemove(networkID string, states state_types.SerializedStatesByID) (state_types.StateErrors, error) {
+func (r *remoteIndexer) DeIndex(networkID string, states state_types.SerializedStatesByID) (state_types.StateErrors, error) {
 	if len(states) == 0 {
 		return nil, nil
 	}
@@ -121,7 +121,7 @@ func (r *remoteIndexer) IndexRemove(networkID string, states state_types.Seriali
 	if err != nil {
 		return nil, err
 	}
-	res, err := c.IndexRemove(context.Background(), &state_protos.IndexRequest{
+	res, err := c.DeIndex(context.Background(), &state_protos.DeIndexRequest{
 		States:    pStates,
 		NetworkId: networkID,
 	})

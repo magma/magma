@@ -24,8 +24,8 @@ service Indexer {
   // Index a set of states by forwarding to locally-registered indexers.
   rpc Index(IndexRequest) returns (IndexResponse) {}
 
-  // IndexRemove removes a set of states by forwarding to locally-registered indexers.
-  rpc IndexRemove(IndexRequest) returns (IndexResponse) {}
+  // DeIndex removes a set of states by forwarding to locally-registered indexers.
+  rpc DeIndex(DeIndexRequest) returns (DeIndexResponse) {}
 
   // PrepareReindex of a particular indexer.
   rpc PrepareReindex(PrepareReindexRequest) returns (PrepareReindexResponse) {}
@@ -43,6 +43,18 @@ message IndexRequest {
 
 message IndexResponse {
   // state_errors are errors experienced trying to index specific pieces of state.
+  repeated magma.orc8r.IDAndError state_errors = 1;
+}
+
+message DeIndexRequest {
+  // states to reindex
+  repeated magma.orc8r.State states = 1;
+  // network_id of the states
+  string network_id = 2;
+}
+
+message DeIndexResponse {
+  // state_errors are errors experienced trying to deindex specific pieces of state.
   repeated magma.orc8r.IDAndError state_errors = 1;
 }
 

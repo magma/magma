@@ -33,8 +33,8 @@ const (
 	ErrDefault Error = "state index error"
 	// ErrIndexPerState indicates an Index error occurred for specific keys.
 	ErrIndexPerState Error = "state index error: per-state errors"
-	// ErrIndexRemovePerState indicates an IndexRemove error occurred for specific keys.
-	ErrIndexRemovePerState Error = "state index remove error: per-state errors"
+	// ErrDeIndexPerState indicates an IndexRemove error occurred for specific keys.
+	ErrDeIndexPerState Error = "state deindex error: per-state errors"
 
 	// ErrIndex indicates error source is indexer Index call.
 	ErrIndex Error = "state index error: error from Index"
@@ -44,8 +44,8 @@ const (
 	defaultIndexSleep = 10 * time.Second
 
 	// actions indexers can perform
-	indexAddAction    = 0
-	indexRemoveAction = 1
+	indexAddAction    = 0 // index
+	indexRemoveAction = 1 // deIndex
 )
 
 // MustIndex forwards states to all registered indexers, according to their
@@ -71,16 +71,16 @@ func MustIndex(networkID string, states state_types.SerializedStatesByID) {
 //	- returns after all goroutines have completed
 // Prefer MustIndex except where receiving the returned errors is relevant.
 func Index(networkID string, states state_types.SerializedStatesByID) ([]error, error) {
-	return indexersAction(networkID, states, indexAddAction)
+	return runIndexersAction(networkID, states, indexAddAction)
 }
 
-// MustIndexRemove forwards states to all registered indexers, according to their
+// MustDeIndex forwards states to all registered indexers, according to their
 // subscriptions to try to remove indexers associated to that state
 // Per-state indexing errors are logged and reported as metrics.
 // Overarching indexing errors are retried, then eventually logged.
 // Returns after completing attempt at indexing states.
-func MustIndexRemove(networkID string, states state_types.SerializedStatesByID) {
-	errs, err := IndexRemove(networkID, states)
+func MustDeIndex(networkID string, states state_types.SerializedStatesByID) {
+	errs, err := DeIndex(networkID, states)
 	if err != nil {
 		glog.Errorf("Error getting indexers during IndexRemove goroutine: %v", err)
 		return
@@ -91,20 +91,22 @@ func MustIndexRemove(networkID string, states state_types.SerializedStatesByID) 
 	glog.V(2).Infof("Completed state indexRemove for network %s with %d states", networkID, len(states))
 }
 
-// IndexRemove makes indexRemove calls via worker goroutines.
+// DeIndex makes deIndex calls via worker goroutines.
 //	- each indexer gets up to maxRetry attempts
 //	- returns after all goroutines have completed
 // Prefer MustIndexRemove except where receiving the returned errors is relevant.
-func IndexRemove(networkID string, states state_types.SerializedStatesByID) ([]error, error) {
-	return indexersAction(networkID, states, indexRemoveAction)
+func DeIndex(networkID string, states state_types.SerializedStatesByID) ([]error, error) {
+	return runIndexersAction(networkID, states, indexRemoveAction)
 }
 
-func indexersAction(networkID string, states state_types.SerializedStatesByID, actionType int) ([]error, error) {
+// runIndexersAction goes over all the indexers and execute a specific actionType. We can
+// ether add new index, or deIndex
+func runIndexersAction(networkID string, states state_types.SerializedStatesByID, actionType int) ([]error, error) {
 	index := func(indexers chan indexer.Indexer, out chan error) {
 		for x := range indexers {
 			var indexErr error
 			for i := 0; i < maxRetry; i++ {
-				indexErr = indexerSingleAction(networkID, x, states, actionType)
+				indexErr = indexOne(networkID, x, states, actionType)
 				if indexErr == nil {
 					break
 				}
@@ -140,7 +142,9 @@ func indexersAction(networkID string, states state_types.SerializedStatesByID, a
 	return indexErrs, nil
 }
 
-func indexerSingleAction(networkID string, idx indexer.Indexer, states state_types.SerializedStatesByID, actionType int) error {
+// indexOne executes the call to a specific index. Argument actionType defines the type of action
+// (add index, or deIndex)
+func indexOne(networkID string, idx indexer.Indexer, states state_types.SerializedStatesByID, actionType int) error {
 	filteredStates := states.Filter(idx.GetTypes()...)
 	if len(filteredStates) == 0 {
 		return nil
@@ -162,9 +166,9 @@ func indexerSingleAction(networkID string, idx indexer.Indexer, states state_typ
 		metricStr = metrics.SourceValueIndex
 		indexErrs, err = idx.Index(networkID, filteredStates)
 	case indexRemoveAction:
-		errPerState = ErrIndexRemovePerState
+		errPerState = ErrDeIndexPerState
 		metricStr = metrics.SourceValueIndex
-		indexErrs, err = idx.IndexRemove(networkID, filteredStates)
+		indexErrs, err = idx.DeIndex(networkID, filteredStates)
 	default:
 		return wrap(fmt.Errorf("Undefined index action. Can't remove the index"), ErrIndex, id)
 	}

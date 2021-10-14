@@ -5,7 +5,6 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 
 Unless required by applicable law or agreed to in writing, software
-an
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
@@ -55,13 +54,13 @@ func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (
 	return res, err
 }
 
-func (i *indexerServicer) IndexRemove(ctx context.Context, req *protos.IndexRequest) (*protos.IndexResponse, error) {
+func (i *indexerServicer) DeIndex(ctx context.Context, req *protos.DeIndexRequest) (*protos.DeIndexResponse, error) {
 	states, err := types.MakeSerializedStatesByID(req.States)
 	if err != nil {
 		return nil, err
 	}
-	stErrs, err := i.idx.IndexRemove(req.NetworkId, states)
-	res := &protos.IndexResponse{StateErrors: types.MakeProtoStateErrors(stErrs)}
+	stErrs, err := i.idx.DeIndex(req.NetworkId, states)
+	res := &protos.DeIndexResponse{StateErrors: types.MakeProtoStateErrors(stErrs)}
 	return res, err
 }
 

@@ -77,8 +77,8 @@ func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (
 	return res, nil
 }
 
-func (i *indexerServicer) IndexRemove(ctx context.Context, req *protos.IndexRequest) (*protos.IndexResponse, error) {
-	return &protos.IndexResponse{}, nil
+func (i *indexerServicer) DeIndex(ctx context.Context, req *protos.DeIndexRequest) (*protos.DeIndexResponse, error) {
+	return &protos.DeIndexResponse{}, nil
 }
 
 func (i *indexerServicer) PrepareReindex(ctx context.Context, req *protos.PrepareReindexRequest) (*protos.PrepareReindexResponse, error) {

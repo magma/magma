@@ -72,8 +72,8 @@ func TestIndexImpl_HappyPath(t *testing.T) {
 
 	idx0.On("Index", nid0, serialize(t, indexTwo)).Return(state_types.StateErrors{id0: someErr}, nil).Once()
 	idx1.On("Index", nid0, serialize(t, indexOne)).Return(nil, someErr).Times(maxRetry)
-	idx0.On("IndexRemove", nid0, serialize(t, indexTwo)).Return(state_types.StateErrors{id0: someErr}, nil).Once()
-	idx1.On("IndexRemove", nid0, serialize(t, indexOne)).Return(nil, someErr).Times(maxRetry)
+	idx0.On("DeIndex", nid0, serialize(t, indexTwo)).Return(state_types.StateErrors{id0: someErr}, nil).Once()
+	idx1.On("DeIndex", nid0, serialize(t, indexOne)).Return(nil, someErr).Times(maxRetry)
 
 	idx0.On("GetVersion").Return(indexer.Version(42))
 	idx1.On("GetVersion").Return(indexer.Version(43))
@@ -96,7 +96,7 @@ func TestIndexImpl_HappyPath(t *testing.T) {
 	assert.Contains(t, e, someErr.Error())
 
 	// All Remove Index occurs as expected
-	actual, err = index.IndexRemove(nid0, serialize(t, in))
+	actual, err = index.DeIndex(nid0, serialize(t, in))
 	assert.NoError(t, err)
 	assert.Len(t, actual, 1)
 	e = actual[0].Error()
