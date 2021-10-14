@@ -118,7 +118,6 @@ int gtpv1u_init(
   OAILOG_DEBUG(LOG_GTPV1U, "Initializing GTPV1U interface\n");
 
   // Init gtp_tunnel_ops
-#if ENABLE_OPENFLOW
   // If pipeline config is enabled initialize userplane ops
   if (spgw_config->sgw_config.ovs_config.pipelined_managed_tbl0) {
     OAILOG_INFO(LOG_GTPV1U, "Initializing upf classifier for gtp apps");
@@ -127,10 +126,6 @@ int gtpv1u_init(
     OAILOG_DEBUG(LOG_GTPV1U, "Initializing gtp_tunnel_ops_openflow\n");
     gtp_tunnel_ops = gtp_tunnel_ops_init_openflow();
   }
-#else
-  OAILOG_DEBUG(LOG_GTPV1U, "Initializing gtp_tunnel_ops_libgtpnl\n");
-  gtp_tunnel_ops = gtp_tunnel_ops_init_libgtpnl();
-#endif
 
   if (gtp_tunnel_ops == NULL) {
     OAILOG_CRITICAL(LOG_GTPV1U, "ERROR in initializing gtp_tunnel_ops\n");
