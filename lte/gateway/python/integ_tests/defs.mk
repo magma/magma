@@ -162,7 +162,6 @@ s1aptests/test_restore_mme_config_after_sanity.py
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
 s1aptests/test_no_identity_rsp_with_mme_restart.py \
 s1aptests/test_agw_offload_idle_active_ue.py \
-s1aptests/test_agw_offload_mixed_idle_active_multiue.py \
 s1aptests/test_standalone_pdn_conn_req_with_apn_correction.py \
 s1aptests/test_attach_esm_info_with_apn_correction.py \
 s1aptests/test_enb_partial_reset_multi_ue.py \
@@ -216,12 +215,13 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py \ GitHubIssue 5997
 # s1aptests/test_attach_with_multiple_mme_restarts.py \ GitHubIssue 5997
 # s1aptests/test_attach_detach_rar_activation_reject.py \ GitHubIssue 9097
-# s1aptests/test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue.py \ GitHubIssue
+# s1aptests/test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue.py \ Need to configure UE inactivity timer from test case
 # s1aptests/test_no_auth_response_with_mme_restart_reattach.py \ GitHubIssue 9520
 
 # Non-Sanity: Flaky Test Cases
-# s1aptests/test_attach_detach_two_pdns_with_tcptraffic.py \
+# s1aptests/test_attach_detach_two_pdns_with_tcptraffic.py \ GitHubIssue 9670
 # s1aptests/test_paging_with_mme_restart.py \ GitHubIssue 9519
+# s1aptests/test_agw_offload_mixed_idle_active_multiue.py \ GitHubIssue 6063
 # s1aptests/test_attach_ul_udp_data_multi_ue.py \ Fails randomly with connection refused
 # s1aptests/test_attach_dl_udp_data_multi_ue.py \ Fails randomly with connection refused
 # s1aptests/test_attach_ul_tcp_data_multi_ue.py \ Fails randomly with connection refused
