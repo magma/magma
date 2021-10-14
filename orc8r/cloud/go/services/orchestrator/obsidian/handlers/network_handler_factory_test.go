@@ -14,7 +14,7 @@
 package handlers_test
 
 import (
-	context2 "context"
+	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -54,7 +54,7 @@ func Test_GetPartialReadNetworkHandler(t *testing.T) {
 		Name:        "Test Network 1",
 		Description: "Test Network 1",
 	}
-	assert.NoError(t, configurator.CreateNetwork(context2.Background(), network, networkSerdes))
+	assert.NoError(t, configurator.CreateNetwork(context.Background(), network, networkSerdes))
 
 	networkURL := fmt.Sprintf("%s/%s", testURLRoot, networkID)
 
@@ -92,7 +92,7 @@ func Test_GetPartialReadNetworkHandler(t *testing.T) {
 			"test": &TestFeature1{ID: &ID{Name: "hello!"}, Desc: "goodbye!"},
 		},
 	}
-	assert.NoError(t, configurator.UpdateNetworks(context2.Background(), []configurator.NetworkUpdateCriteria{update}, networkSerdes))
+	assert.NoError(t, configurator.UpdateNetworks(context.Background(), []configurator.NetworkUpdateCriteria{update}, networkSerdes))
 
 	// happy full case
 	getFullConfig = handlers.GetPartialReadNetworkHandler(networkURL, &TestFeature1{}, networkSerdes)
@@ -138,7 +138,7 @@ func TestGetUpdateNetworkConfigHandler(t *testing.T) {
 		Description: "Test Network 1",
 		Configs:     map[string]interface{}{"test": &TestFeature1{ID: &ID{Name: "hello!"}, Desc: "goodbye!"}},
 	}
-	assert.NoError(t, configurator.CreateNetwork(context2.Background(), network, networkSerdes))
+	assert.NoError(t, configurator.CreateNetwork(context.Background(), network, networkSerdes))
 
 	networkURL := fmt.Sprintf("%s/%s", testURLRoot, networkID)
 
@@ -185,7 +185,7 @@ func TestGetUpdateNetworkConfigHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, updateFullConfig)
 
-	config, err := configurator.LoadNetworkConfig(context2.Background(), networkID, "test", networkSerdes)
+	config, err := configurator.LoadNetworkConfig(context.Background(), networkID, "test", networkSerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedConfig, config)
 
@@ -202,7 +202,7 @@ func TestGetUpdateNetworkConfigHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, updateFullConfig)
 
-	config, err = configurator.LoadNetworkConfig(context2.Background(), networkID, "test", networkSerdes)
+	config, err = configurator.LoadNetworkConfig(context.Background(), networkID, "test", networkSerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedConfig, config)
 }
@@ -222,7 +222,7 @@ func TestGetDeleteNetworkConfigHandler(t *testing.T) {
 		Description: "Test Network 1",
 		Configs:     map[string]interface{}{"test": &TestFeature1{ID: &ID{Name: "hello!"}, Desc: "goodbye!"}},
 	}
-	assert.NoError(t, configurator.CreateNetwork(context2.Background(), network, networkSerdes))
+	assert.NoError(t, configurator.CreateNetwork(context.Background(), network, networkSerdes))
 
 	networkURL := fmt.Sprintf("%s/%s", testURLRoot, networkID)
 
@@ -237,7 +237,7 @@ func TestGetDeleteNetworkConfigHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, deleteTestConfig)
 
-	_, err := configurator.LoadNetworkConfig(context2.Background(), networkID, "test", networkSerdes)
+	_, err := configurator.LoadNetworkConfig(context.Background(), networkID, "test", networkSerdes)
 	assert.EqualError(t, err, errors.ErrNotFound.Error())
 }
 
@@ -251,7 +251,7 @@ func (m *ID) Validate(_ strfmt.Registry) error {
 	return fmt.Errorf("Name cannot be nil")
 }
 
-func (m *ID) ValidateModel(context2.Context) error {
+func (m *ID) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
@@ -279,7 +279,7 @@ func (m *TestFeature1) Validate(str strfmt.Registry) error {
 	return nil
 }
 
-func (m *TestFeature1) ValidateModel(context2.Context) error {
+func (m *TestFeature1) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 

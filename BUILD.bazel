@@ -10,7 +10,16 @@
 # limitations under the License.
 
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
+load("@bazel_gazelle//:def.bzl", "gazelle")
 
 buildifier(
     name = "buildifier",
 )
+
+# gazelle:prefix github.com/magma/magma
+# gazelle:exclude orc8r/
+# gazelle:exclude lte/
+# gazelle:exclude feg/
+# gazelle:exclude cwf/
+# gazelle:exclude fbinternal/
+gazelle(name = "gazelle")

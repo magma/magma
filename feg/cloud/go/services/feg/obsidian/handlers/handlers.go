@@ -122,6 +122,7 @@ func getGateway(c echo.Context) error {
 	}
 
 	ent, err := configurator.LoadEntity(
+		c.Request().Context(),
 		nid, feg.FegGatewayType, gid,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -238,7 +239,7 @@ func getHealthStatusHandler(c echo.Context) error {
 	}
 
 	reqCtx := c.Request().Context()
-	pid, err := configurator.GetPhysicalIDOfEntity(nid, orc8r.MagmadGatewayType, gid)
+	pid, err := configurator.GetPhysicalIDOfEntity(reqCtx, nid, orc8r.MagmadGatewayType, gid)
 	if err == merrors.ErrNotFound || len(pid) == 0 {
 		return c.NoContent(http.StatusNotFound)
 	}

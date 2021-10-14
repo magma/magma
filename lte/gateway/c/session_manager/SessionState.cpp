@@ -695,7 +695,7 @@ void SessionState::apply_session_static_rule_set(
   std::vector<PolicyRule> static_pending_deactivation;
 
   // Go through the existing rules and uninstall any rule not in the rule set
-  for (const auto static_rule_id : active_static_rules_) {
+  for (const auto& static_rule_id : active_static_rules_) {
     if (static_rules.find(static_rule_id) == static_rules.end()) {
       PolicyRule rule;
       if (static_rules_.get_rule(static_rule_id, &rule)) {
@@ -705,7 +705,7 @@ void SessionState::apply_session_static_rule_set(
   }
   // Do the actual removal separately so we're not modifying the vector while
   // looping
-  for (const PolicyRule static_rule : static_pending_deactivation) {
+  for (const PolicyRule& static_rule : static_pending_deactivation) {
     MLOG(MINFO) << "Removing static rule " << static_rule.id() << " for "
                 << session_id_;
     optional<RuleToProcess> op_rule_info =
@@ -773,6 +773,7 @@ bool SessionState::is_terminating() {
 void SessionState::get_monitor_updates(
     UpdateSessionRequest* update_request_out,
     SessionStateUpdateCriteria* session_uc) {
+  bool increase_seq_number = false;
   for (auto& monitor_pair : monitor_map_) {
     if (!monitor_pair.second->should_send_update()) {
       continue;  // no update
@@ -812,6 +813,12 @@ void SessionState::get_monitor_updates(
     add_common_fields_to_usage_monitor_update(new_req);
     new_req->mutable_update()->CopyFrom(update);
     new_req->set_event_trigger(USAGE_REPORT);
+    increase_seq_number = true;
+  }
+
+  // increment sequence number just +1 no matter how many monitor updates
+  // Feg will merge updates for the same session and just send one CCR-U
+  if (increase_seq_number) {
     request_number_++;
     if (session_uc) {
       session_uc->request_number_increment++;
@@ -1032,10 +1039,10 @@ SessionState::SessionInfo SessionState::get_session_info_for_setup() {
   gy_dynamic_rules_.get_rules(gy_dynamic_rules);
 
   // Set versions
-  for (const PolicyRule rule : gx_dynamic_rules) {
+  for (const PolicyRule& rule : gx_dynamic_rules) {
     info.gx_rules.push_back(make_rule_to_process(rule));
   }
-  for (const PolicyRule rule : gy_dynamic_rules) {
+  for (const PolicyRule& rule : gy_dynamic_rules) {
     info.gy_dynamic_rules.push_back(make_rule_to_process(rule));
   }
 
@@ -1282,14 +1289,16 @@ RuleToProcess SessionState::make_rule_to_process(const PolicyRule& rule) {
   bool is_static    = static_rules_.get_rule(rule.id(), nullptr);
   PolicyType p_type = is_static ? STATIC : DYNAMIC;
 
-  // If there is a dedicated bearer TEID already in map, use it
-  PolicyID policy_id = PolicyID(p_type, rule.id());
-  bool dedicated_bearer_exists =
-      bearer_id_by_policy_.find(policy_id) != bearer_id_by_policy_.end();
-  if (dedicated_bearer_exists) {
-    to_process.teids = bearer_id_by_policy_[policy_id].teids;
-  } else {
-    to_process.teids = config_.common_context.teids();
+  if (!is_5g_session()) {
+    // If there is a dedicated bearer TEID already in map, use it
+    PolicyID policy_id = PolicyID(p_type, rule.id());
+    bool dedicated_bearer_exists =
+        bearer_id_by_policy_.find(policy_id) != bearer_id_by_policy_.end();
+    if (dedicated_bearer_exists) {
+      to_process.teids = bearer_id_by_policy_[policy_id].teids;
+    } else {
+      to_process.teids = config_.common_context.teids();
+    }
   }
 
   return to_process;
@@ -1366,8 +1375,12 @@ void SessionState::process_static_rule_installs(
     if (lifetime.is_within_lifetime(current_time)) {
       RuleToProcess to_process =
           activate_static_rule(rule_id, lifetime, session_uc);
-      classify_policy_activation(
-          to_process, STATIC, pending_activation, pending_bearer_setup);
+      if (is_5g_session()) {
+        pending_activation->push_back(to_process);
+      } else {
+        classify_policy_activation(
+            to_process, STATIC, pending_activation, pending_bearer_setup);
+      }
     }
     // If the rule is for future activation, schedule
     if (lifetime.before_lifetime(current_time)) {
@@ -1409,8 +1422,12 @@ void SessionState::process_dynamic_rule_installs(
     if (lifetime.is_within_lifetime(current_time)) {
       RuleToProcess to_process =
           insert_dynamic_rule(dynamic_rule, lifetime, session_uc);
-      classify_policy_activation(
-          to_process, DYNAMIC, pending_activation, pending_bearer_setup);
+      if (is_5g_session()) {
+        pending_activation->push_back(to_process);
+      } else {
+        classify_policy_activation(
+            to_process, DYNAMIC, pending_activation, pending_bearer_setup);
+      }
     }
     // If the rule is for future activation, schedule
     if (lifetime.before_lifetime(current_time)) {
@@ -1647,7 +1664,7 @@ std::vector<PolicyRule> SessionState::get_all_final_unit_rules() {
     if (grant->service_state != SERVICE_RESTRICTED) {
       continue;
     }
-    for (const std::string rule_id : grant->final_action_info.restrict_rules) {
+    for (const std::string& rule_id : grant->final_action_info.restrict_rules) {
       PolicyRule rule;
       if (static_rules_.get_rule(rule_id, &rule)) {
         rules.push_back(rule);
@@ -1931,6 +1948,7 @@ void SessionState::get_charging_updates(
     UpdateSessionRequest* update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
     SessionStateUpdateCriteria* session_uc) {
+  bool increase_seq_number = false;
   for (auto& credit_pair : credit_map_) {
     auto& key                              = credit_pair.first;
     auto& grant                            = credit_pair.second;
@@ -1947,6 +1965,7 @@ void SessionState::get_charging_updates(
           break;
         }
         update_request_out->mutable_updates()->Add()->CopyFrom(*op_update);
+        increase_seq_number = true;
       } break;
       case REDIRECT: {
         if (grant->service_state == SERVICE_REDIRECTED) {
@@ -1991,6 +2010,15 @@ void SessionState::get_charging_updates(
         break;
     }
   }
+
+  // increment sequence number just +1 no matter how many updates
+  // Feg will merge updates for the same session and just send one CCR-U
+  if (increase_seq_number) {
+    request_number_++;
+    if (session_uc) {
+      session_uc->request_number_increment++;
+    }
+  }
 }
 
 optional<CreditUsageUpdate> SessionState::get_update_for_continue_service(
@@ -2027,10 +2055,6 @@ optional<CreditUsageUpdate> SessionState::get_update_for_continue_service(
   key.set_credit_usage(&usage);
 
   auto request = make_credit_usage_update_req(usage);
-  request_number_++;
-  if (session_uc) {
-    session_uc->request_number_increment++;
-  }
   return request;
 }
 
@@ -2782,6 +2806,32 @@ void SessionState::increment_rule_stats(
 
 bool operator==(const Teids& lhs, const Teids& rhs) {
   return lhs.enb_teid() == rhs.enb_teid() && lhs.agw_teid() == rhs.agw_teid();
+}
+
+void SessionState::process_get_5g_rule_installs(
+    const std::vector<StaticRuleInstall>& static_rule_installs,
+    const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
+    RulesToProcess* pending_activation, RulesToProcess* pending_deactivation) {
+  for (const StaticRuleInstall& rule_install : static_rule_installs) {
+    const std::string& rule_id = rule_install.rule_id();
+    PolicyRule rule;
+    RuleToProcess to_process;
+    static_rules_.get_rule(rule_id, &rule);
+    to_process.version = get_current_rule_version(rule.id());
+    to_process.rule    = rule;
+    to_process.teids   = config_.common_context.teids();
+    pending_activation->push_back(to_process);
+    pending_deactivation->push_back(to_process);
+  }
+  for (const DynamicRuleInstall& rule_install : dynamic_rule_installs) {
+    const PolicyRule& dynamic_rule = rule_install.policy_rule();
+    RuleToProcess to_process;
+    to_process.version = get_current_rule_version(dynamic_rule.id());
+    to_process.rule    = dynamic_rule;
+    to_process.teids   = config_.common_context.teids();
+    pending_activation->push_back(to_process);
+    pending_deactivation->push_back(to_process);
+  }
 }
 
 }  // namespace magma

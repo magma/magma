@@ -50,7 +50,6 @@ from magma.pipelined.tests.pipelined_test_util import (
     fake_controller_setup,
     start_ryu_app_thread,
     stop_ryu_app_thread,
-    wait_after_send,
 )
 
 

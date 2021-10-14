@@ -46,7 +46,7 @@ RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1
 # ------------------------------------------------------------------------------
 FROM base as gocache
 
-ARG MAGMA_MODULES="orc8r lte feg cwf wifi fbinternal"
+ARG MAGMA_MODULES="orc8r lte feg cwf fbinternal"
 RUN echo "export GOCACHE_MODULES=\"$(for m in $MAGMA_MODULES ; do echo -n /gomod/src/magma/$m ; echo -n ' ' ; done)\"" >> /etc/profile.d/env.sh
 
 COPY gomod /gomod
@@ -58,7 +58,7 @@ RUN . /etc/profile.d/env.sh && for m in $GOCACHE_MODULES ; do cd ${m}/cloud/go &
 # ------------------------------------------------------------------------------
 FROM gocache as src
 
-ARG MAGMA_MODULES="orc8r lte feg cwf wifi fbinternal"
+ARG MAGMA_MODULES="orc8r lte feg cwf fbinternal"
 RUN echo "export MAGMA_MODULES=\"$(for m in $MAGMA_MODULES ; do echo -n /src/magma/$m ; echo -n ' ' ; done)\"" >> /etc/profile.d/env.sh
 
 # Source code
@@ -93,7 +93,7 @@ RUN apt-get update && apt-get install -y \
 
 # Swagger UI
 # See: https://github.com/swagger-api/swagger-ui
-ARG SWAGGER_UI_VERSION="3.1.7"
+ARG SWAGGER_UI_VERSION="3.52.2"
 RUN cd /tmp && \
   wget "https://github.com/swagger-api/swagger-ui/archive/v$SWAGGER_UI_VERSION.zip" && \
   unzip "v$SWAGGER_UI_VERSION.zip" -d swagger-ui && \

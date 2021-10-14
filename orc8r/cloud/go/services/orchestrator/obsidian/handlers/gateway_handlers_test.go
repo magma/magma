@@ -170,15 +170,10 @@ func TestCreateGateway(t *testing.T) {
 	// gateway should have been created
 	// device should have been created
 	// tier should have an updated assoc
-	actualEnts, _, err := configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{
-			{Type: orc8r.MagmadGatewayType, Key: "g1"},
-			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-		},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, storage.TKs{
+		{Type: orc8r.MagmadGatewayType, Key: "g1"},
+		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	actualDevice, err := device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "foo-bar-baz-123-42", serdes.Device)
 	assert.NoError(t, err)
@@ -189,12 +184,12 @@ func TestCreateGateway(t *testing.T) {
 			Name: string(payload.Name), Description: string(payload.Description),
 			PhysicalID:         "foo-bar-baz-123-42",
 			Config:             payload.Magmad,
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+			ParentAssociations: storage.TKs{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
 			GraphID:            "2",
 		},
 		{
 			NetworkID: "n1", Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
 			GraphID:      "2",
 			Version:      1,
 		},
@@ -237,15 +232,10 @@ func TestCreateGateway(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// verify results - device key should have changed
-	actualEnts, _, err = configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{
-			{Type: orc8r.MagmadGatewayType, Key: "g2"},
-			{Type: orc8r.UpgradeTierEntityType, Key: "t2"},
-		},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err = configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, storage.TKs{
+		{Type: orc8r.MagmadGatewayType, Key: "g2"},
+		{Type: orc8r.UpgradeTierEntityType, Key: "t2"},
+	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	actualDevice, err = device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hello-world-42", serdes.Device)
 	assert.NoError(t, err)
@@ -256,12 +246,12 @@ func TestCreateGateway(t *testing.T) {
 			Name: string(payload.Name), Description: string(payload.Description),
 			PhysicalID:         "hello-world-42",
 			Config:             payload.Magmad,
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t2"}},
+			ParentAssociations: storage.TKs{{Type: orc8r.UpgradeTierEntityType, Key: "t2"}},
 			GraphID:            "4",
 		},
 		{
 			NetworkID: "n1", Type: orc8r.UpgradeTierEntityType, Key: "t2",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g2"}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "g2"}},
 			GraphID:      "4",
 			Version:      1,
 		},
@@ -364,7 +354,7 @@ func TestGetGateway(t *testing.T) {
 		},
 		{
 			Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: orc8r.MagmadGatewayType, Key: "g1"},
 				{Type: orc8r.MagmadGatewayType, Key: "g2"},
 			},
@@ -469,7 +459,7 @@ func TestUpdateGateway(t *testing.T) {
 		},
 		{
 			Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
 		},
 		{Type: orc8r.UpgradeTierEntityType, Key: "t2"},
 	}, serdes.Entity)
@@ -520,16 +510,11 @@ func TestUpdateGateway(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// load and validate
-	actualEnts, _, err := configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{
-			{Type: orc8r.MagmadGatewayType, Key: "g1"},
-			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-			{Type: orc8r.UpgradeTierEntityType, Key: "t2"},
-		},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, storage.TKs{
+		{Type: orc8r.MagmadGatewayType, Key: "g1"},
+		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+		{Type: orc8r.UpgradeTierEntityType, Key: "t2"},
+	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	actualDevice, err := device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.NoError(t, err)
@@ -540,14 +525,14 @@ func TestUpdateGateway(t *testing.T) {
 			Name: string(payload.Name), Description: string(payload.Description),
 			PhysicalID:         "hw1",
 			Config:             payload.Magmad,
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t2"}},
+			ParentAssociations: storage.TKs{{Type: orc8r.UpgradeTierEntityType, Key: "t2"}},
 			GraphID:            "6",
 			Version:            1,
 		},
 		{NetworkID: "n1", Type: orc8r.UpgradeTierEntityType, Key: "t1", GraphID: "2", Version: 1},
 		{
 			NetworkID: "n1", Type: orc8r.UpgradeTierEntityType, Key: "t2",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
 			GraphID:      "6",
 			Version:      1,
 		},
@@ -603,7 +588,7 @@ func TestDeleteGateway(t *testing.T) {
 		},
 		{
 			Type: orc8r.UpgradeTierEntityType, Key: "t1",
-			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+			Associations: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)
@@ -627,15 +612,10 @@ func TestDeleteGateway(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// load, verify results
-	actualEnts, _, err := configurator.LoadEntities(
-		"n1", nil, nil, nil,
-		[]storage.TypeAndKey{
-			{Type: orc8r.MagmadGatewayType, Key: "g1"},
-			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-		},
-		configurator.FullEntityLoadCriteria(),
-		serdes.Entity,
-	)
+	actualEnts, _, err := configurator.LoadEntities(context.Background(), "n1", nil, nil, nil, storage.TKs{
+		{Type: orc8r.MagmadGatewayType, Key: "g1"},
+		{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+	}, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	_, err = device.GetDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.EqualError(t, err, "Not found")
@@ -829,7 +809,7 @@ func TestGetGatewayTierHandler(t *testing.T) {
 	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{
 		Type: orc8r.UpgradeTierEntityType,
 		Key:  "t1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{
 				Type: orc8r.MagmadGatewayType,
 				Key:  "g1",
@@ -910,22 +890,14 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	entities, _, err := configurator.LoadEntities(
-		"n1",
-		swag.String(orc8r.UpgradeTierEntityType),
-		nil,
-		nil,
-		nil,
-		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err := configurator.LoadEntities(context.Background(), "n1", swag.String(orc8r.UpgradeTierEntityType), nil, nil, nil, configurator.EntityLoadCriteria{LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	expectedTiers := configurator.NetworkEntities{
 		{
 			NetworkID: "n1",
 			Type:      orc8r.UpgradeTierEntityType,
 			Key:       "t1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{
 					Type: orc8r.MagmadGatewayType,
 					Key:  "g1",
@@ -955,15 +927,7 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
-	entities, _, err = configurator.LoadEntities(
-		"n1",
-		swag.String(orc8r.UpgradeTierEntityType),
-		nil,
-		nil,
-		nil,
-		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", swag.String(orc8r.UpgradeTierEntityType), nil, nil, nil, configurator.EntityLoadCriteria{LoadAssocsFromThis: true}, serdes.Entity)
 	assert.NoError(t, err)
 	expectedTiers = configurator.NetworkEntities{
 		{
@@ -977,7 +941,7 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 			NetworkID: "n1",
 			Type:      orc8r.UpgradeTierEntityType,
 			Key:       "t2",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{
 					Type: orc8r.MagmadGatewayType,
 					Key:  "g1",
@@ -1054,11 +1018,7 @@ func TestGetPartialUpdateHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	entity, err := configurator.LoadEntity(
-		"n1", orc8r.MagmadGatewayType, "g1",
-		configurator.EntityLoadCriteria{LoadMetadata: true},
-		serdes.Entity,
-	)
+	entity, err := configurator.LoadEntity(context.Background(), "n1", orc8r.MagmadGatewayType, "g1", configurator.EntityLoadCriteria{LoadMetadata: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, "newname", entity.Name)
 
@@ -1074,11 +1034,7 @@ func TestGetPartialUpdateHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	entity, err = configurator.LoadEntity(
-		"n1", orc8r.MagmadGatewayType, "g1",
-		configurator.EntityLoadCriteria{LoadMetadata: true},
-		serdes.Entity,
-	)
+	entity, err = configurator.LoadEntity(context.Background(), "n1", orc8r.MagmadGatewayType, "g1", configurator.EntityLoadCriteria{LoadMetadata: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, "newdesc", entity.Description)
 
@@ -1111,11 +1067,7 @@ func TestGetPartialUpdateHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	entity, err = configurator.LoadEntity(
-		"n1", orc8r.MagmadGatewayType, "g1",
-		configurator.EntityLoadCriteria{LoadConfig: true},
-		serdes.Entity,
-	)
+	entity, err = configurator.LoadEntity(context.Background(), "n1", orc8r.MagmadGatewayType, "g1", configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, gwConfig, entity.Config)
 

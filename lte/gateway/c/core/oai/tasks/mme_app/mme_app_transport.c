@@ -36,7 +36,6 @@
 #include "nas/as_message.h"
 #include "common_types.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "mme_app_desc.h"
 #include "s1ap_messages_types.h"
 #include "sgs_messages_types.h"

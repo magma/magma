@@ -54,7 +54,7 @@ gen_protos::
 			--proto_path $(MAGMA_ROOT)/orc8r/protos/prometheus \
 			--proto_path $(PROTO_INCLUDES) \
 			--go_out=plugins=grpc,Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:$(MAGMA_ROOT)/.. \
-			$${x} ; \
+			$${x} || exit 1 ; \
 	done ; \
 	for x in $$(find $(MODULE_NAME)/cloud/go -name '*.proto') ; do \
 		protoc \
@@ -63,7 +63,7 @@ gen_protos::
 			--proto_path $(PROTO_INCLUDES) \
 			--go_opt=paths=source_relative \
 			--go_out=plugins=grpc,Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:. \
-			$${x} ; \
+			$${x} || exit 1 ; \
 	done
 
 
@@ -84,7 +84,7 @@ copy_swagger_files:
 
 # reorder imports with goimports
 order_imports:
-	for f in $$(find . -type f -name '*.go' ! -name '*.pb.go' ! -name '*_swaggergen.go') ; do $(MAGMA_ROOT)/orc8r/cloud/order_go_imports.sh $${f} ; done
+	for f in $$(find . -type f -name '*.go' ! -name '*.pb.go' ! -name '*_swaggergen.go') ; do $(MAGMA_ROOT)/orc8r/cloud/order_go_imports.sh $${f} || exit 1 ; done
 
 lint:
 	golangci-lint run

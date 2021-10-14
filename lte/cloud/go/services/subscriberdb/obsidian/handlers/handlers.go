@@ -46,10 +46,8 @@ import (
 
 const (
 	Subscribers               = "subscribers"
-	SubscribersV2             = "subscribers_v2"
 	SubscriberState           = "subscriber_state"
 	ListSubscribersPath       = ltehandlers.ManageNetworkPath + obsidian.UrlSep + Subscribers
-	ListSubscribersV2Path     = ltehandlers.ManageNetworkPath + obsidian.UrlSep + SubscribersV2
 	ManageSubscriberPath      = ListSubscribersPath + obsidian.UrlSep + ":subscriber_id"
 	ListSubscriberStatePath   = ltehandlers.ManageNetworkPath + obsidian.UrlSep + SubscriberState
 	ManageSubscriberStatePath = ListSubscriberStatePath + obsidian.UrlSep + ":subscriber_id"
@@ -69,9 +67,7 @@ const (
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
 		{Path: ListSubscribersPath, Methods: obsidian.GET, HandlerFunc: listSubscribersHandler},
-		{Path: ListSubscribersV2Path, Methods: obsidian.GET, HandlerFunc: listSubscribersV2Handler},
-		{Path: ListSubscribersV2Path, Methods: obsidian.POST, HandlerFunc: createSubscribersV2Handler},
-		{Path: ListSubscribersPath, Methods: obsidian.POST, HandlerFunc: createSubscriberHandler},
+		{Path: ListSubscribersPath, Methods: obsidian.POST, HandlerFunc: createSubscribersHandler},
 		{Path: ManageSubscriberPath, Methods: obsidian.GET, HandlerFunc: getSubscriberHandler},
 		{Path: ManageSubscriberPath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberHandler},
 		{Path: ManageSubscriberPath, Methods: obsidian.DELETE, HandlerFunc: deleteSubscriberHandler},
@@ -131,60 +127,7 @@ type subscriberFilter func(sub *subscribermodels.Subscriber) bool
 
 func acceptAll(*subscribermodels.Subscriber) bool { return true }
 
-// listSubscribersHandler handles the base subscriber endpoint.
-// The returned subscribers can be filtered using the following query
-// parameters
-//	- msisdn
-//	- ip
-//
-// The MSISDN parameter is config-based, and is enforced to be a unique
-// identifier.
-//
-// The IP parameter is state-based, and not guaranteed to be unique. The
-// IP->IMSI mapping is cached as the output of a mobilityd state indexer, then
-// each reported subscriber is checked to ensure it actually is assigned the
-// requested IP.
-func listSubscribersHandler(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-
-	// First check for query params to filter by
-	reqCtx := c.Request().Context()
-	if msisdn := c.QueryParam(ParamMSISDN); msisdn != "" {
-		queryIMSI, err := subscriberdb.GetIMSIForMSISDN(reqCtx, networkID, msisdn)
-		if err != nil {
-			return makeErr(err)
-		}
-		subs, err := loadSubscribers(reqCtx, networkID, acceptAll, queryIMSI)
-		if err != nil {
-			return makeErr(err)
-		}
-		return c.JSON(http.StatusOK, subs)
-	}
-	if ip := c.QueryParam(ParamIP); ip != "" {
-		queryIMSIs, err := subscriberdb.GetIMSIsForIP(reqCtx, networkID, ip)
-		if err != nil {
-			return makeErr(err)
-		}
-		filter := func(sub *subscribermodels.Subscriber) bool { return sub.IsAssignedIP(ip) }
-		subs, err := loadSubscribers(reqCtx, networkID, filter, queryIMSIs...)
-		if err != nil {
-			return makeErr(err)
-		}
-		return c.JSON(http.StatusOK, subs)
-	}
-
-	// No pagination is used for the v1 endpoint, so load the max page size
-	subs, _, err := loadSubscriberPage(reqCtx, networkID, 0, "")
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-	return c.JSON(http.StatusOK, subs)
-}
-
-// listSubscribersV2Handler handles version 2 of the subscriber endpoint.
+// listSubscribersHandler handles the subscriber endpoint.
 // The returned subscribers can be filtered using the following query
 // parameters
 //	- msisdn
@@ -208,7 +151,7 @@ func listSubscribersHandler(c echo.Context) error {
 // The page token parameter is an opaque token used to fetch the next page of
 // subscribers. Each API response will contain a page token that can be used
 // to fetch the next page.
-func listSubscribersV2Handler(c echo.Context) error {
+func listSubscribersHandler(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -259,7 +202,7 @@ func listSubscribersV2Handler(c echo.Context) error {
 	}
 
 	// get total number of subscribers
-	count, err := configurator.CountEntitiesOfType(networkID, lte.SubscriberEntityType)
+	count, err := configurator.CountEntitiesOfType(reqCtx, networkID, lte.SubscriberEntityType)
 	if err != nil {
 		return c.JSON(http.StatusOK, nil)
 	}
@@ -271,34 +214,7 @@ func listSubscribersV2Handler(c echo.Context) error {
 	return c.JSON(http.StatusOK, paginatedSubs)
 }
 
-func createSubscriberHandler(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-
-	payload := &subscribermodels.MutableSubscriber{}
-	if err := c.Bind(payload); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-
-	reqCtx := c.Request().Context()
-	if err := payload.ValidateModel(reqCtx); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	if nerr := validateSubscriberProfiles(reqCtx, networkID, string(payload.Lte.SubProfile)); nerr != nil {
-		return nerr
-	}
-
-	nerr = createSubscribers(reqCtx, networkID, payload)
-	if nerr != nil {
-		return nerr
-	}
-
-	return c.NoContent(http.StatusCreated)
-}
-
-func createSubscribersV2Handler(c echo.Context) error {
+func createSubscribersHandler(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -500,7 +416,7 @@ func updateSubscriberProfile(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	currentCfg, err := configurator.LoadEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, serdes.Entity)
+	currentCfg, err := configurator.LoadEntityConfig(reqCtx, networkID, lte.SubscriberEntityType, subscriberID, serdes.Entity)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -531,7 +447,7 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 		}
 		reqCtx := c.Request().Context()
 
-		cfg, err := configurator.LoadEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, serdes.Entity)
+		cfg, err := configurator.LoadEntityConfig(reqCtx, networkID, lte.SubscriberEntityType, subscriberID, serdes.Entity)
 		if err != nil {
 			return makeErr(err)
 		}
@@ -627,7 +543,7 @@ func validateSubscriberProfiles(ctx context.Context, networkID string, profiles 
 
 func loadSubscriber(ctx context.Context, networkID, key string) (*subscribermodels.Subscriber, error) {
 	loadCriteria := getSubscriberLoadCriteria(0, "")
-	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, key, loadCriteria, serdes.Entity)
+	ent, err := configurator.LoadEntity(ctx, networkID, lte.SubscriberEntityType, key, loadCriteria, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
@@ -638,6 +554,7 @@ func loadSubscriber(ctx context.Context, networkID, key string) (*subscribermode
 	var policyProfileEnts configurator.NetworkEntities
 	if ppAssocs := ent.Associations.Filter(lte.APNPolicyProfileEntityType); len(ppAssocs) != 0 {
 		policyProfileEnts, _, err = configurator.LoadEntities(
+			ctx,
 			ent.NetworkID, nil, nil, nil,
 			ppAssocs,
 			apnPolicyProfileLoadCriteria,
@@ -678,7 +595,7 @@ func loadSubscribers(ctx context.Context, networkID string, includeSub subscribe
 }
 
 func loadSubscriberPage(ctx context.Context, networkID string, pageSize uint32, pageToken string) (map[string]*subscribermodels.Subscriber, string, error) {
-	mutableSubs, nextPageToken, err := loadMutableSubscriberPage(networkID, pageSize, pageToken)
+	mutableSubs, nextPageToken, err := loadMutableSubscriberPage(ctx, networkID, pageSize, pageToken)
 	if err != nil {
 		return nil, "", err
 	}
@@ -701,13 +618,14 @@ func loadSubscriberPage(ctx context.Context, networkID string, pageSize uint32, 
 	return subs, nextPageToken, nil
 }
 
-func loadMutableSubscriberPage(networkID string, pageSize uint32, pageToken string) (map[string]*subscribermodels.MutableSubscriber, string, error) {
+func loadMutableSubscriberPage(ctx context.Context, networkID string, pageSize uint32, pageToken string) (map[string]*subscribermodels.MutableSubscriber, string, error) {
 	loadCriteria := getSubscriberLoadCriteria(pageSize, pageToken)
-	ents, nextPageToken, err := configurator.LoadAllEntitiesOfType(networkID, lte.SubscriberEntityType, loadCriteria, serdes.Entity)
+	ents, nextPageToken, err := configurator.LoadAllEntitiesOfType(ctx, networkID, lte.SubscriberEntityType, loadCriteria, serdes.Entity)
 	if err != nil {
 		return nil, "", err
 	}
 	profileEnts, _, err := configurator.LoadAllEntitiesOfType(
+		ctx,
 		networkID, lte.APNPolicyProfileEntityType,
 		apnPolicyProfileLoadCriteria,
 		serdes.Entity,
@@ -719,7 +637,7 @@ func loadMutableSubscriberPage(networkID string, pageSize uint32, pageToken stri
 
 	subs := map[string]*subscribermodels.MutableSubscriber{}
 	for _, ent := range ents {
-		sub, err := (&subscribermodels.MutableSubscriber{}).FromEnt(ent, profileEntsBySub[ent.GetTypeAndKey()])
+		sub, err := (&subscribermodels.MutableSubscriber{}).FromEnt(ent, profileEntsBySub[ent.GetTK()])
 		if err != nil {
 			return nil, "", err
 		}
@@ -748,7 +666,7 @@ func createSubscribers(ctx context.Context, networkID string, subs ...*subscribe
 
 	// TODO(hcgatewood) iterate over this to remove "too many placeholders" error
 	tks := storage.MakeTKs(lte.SubscriberEntityType, ids)
-	found, _, err := configurator.LoadSerializedEntities(networkID, nil, nil, nil, tks, configurator.EntityLoadCriteria{})
+	found, _, err := configurator.LoadSerializedEntities(ctx, networkID, nil, nil, nil, tks, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -793,6 +711,7 @@ func updateSubscriber(ctx context.Context, networkID string, sub *subscribermode
 	var writes []configurator.EntityWriteOperation
 
 	existingSub, err := configurator.LoadEntity(
+		ctx,
 		networkID, lte.SubscriberEntityType, string(sub.ID),
 		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -833,6 +752,7 @@ func updateSubscriber(ctx context.Context, networkID string, sub *subscribermode
 
 func deleteSubscriber(ctx context.Context, networkID, key string) error {
 	ent, err := configurator.LoadEntity(
+		ctx,
 		networkID, lte.SubscriberEntityType, key,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -846,6 +766,7 @@ func deleteSubscriber(ctx context.Context, networkID, key string) error {
 	var policyProfileEnts configurator.NetworkEntities
 	if ppAssocs := ent.Associations.Filter(lte.APNPolicyProfileEntityType); len(ppAssocs) != 0 {
 		policyProfileEnts, _, err = configurator.LoadEntities(
+			ctx,
 			ent.NetworkID, nil, nil, nil,
 			ppAssocs,
 			apnPolicyProfileLoadCriteria,
@@ -861,7 +782,7 @@ func deleteSubscriber(ctx context.Context, networkID, key string) error {
 		return err
 	}
 
-	var deletes []storage.TypeAndKey
+	var deletes storage.TKs
 	deletes = append(deletes, sub.ToTK())
 	deletes = append(deletes, sub.ActivePoliciesByApn.ToTKs(string(sub.ID))...)
 

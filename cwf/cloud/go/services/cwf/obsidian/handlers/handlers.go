@@ -145,6 +145,7 @@ func getGateway(c echo.Context) error {
 	}
 
 	ent, err := configurator.LoadEntity(
+		reqCtx,
 		nid, cwf.CwfGatewayType, gid,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: false},
 		serdes.Entity,
@@ -309,7 +310,7 @@ func getHealthStatusHandler(c echo.Context) error {
 	}
 
 	reqCtx := c.Request().Context()
-	pid, err := configurator.GetPhysicalIDOfEntity(nid, orc8r.MagmadGatewayType, gid)
+	pid, err := configurator.GetPhysicalIDOfEntity(reqCtx, nid, orc8r.MagmadGatewayType, gid)
 	if err == merrors.ErrNotFound || len(pid) == 0 {
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -330,7 +331,7 @@ func listHAPairsHandler(c echo.Context) error {
 	}
 
 	reqCtx := c.Request().Context()
-	haPairEnts, _, err := configurator.LoadAllEntitiesOfType(nid, cwf.CwfHAPairType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	haPairEnts, _, err := configurator.LoadAllEntitiesOfType(reqCtx, nid, cwf.CwfHAPairType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -374,6 +375,7 @@ func getHAPairHandler(c echo.Context) error {
 
 	reqCtx := c.Request().Context()
 	ent, err := configurator.LoadEntity(
+		reqCtx,
 		networkID, cwf.CwfHAPairType, haPairID,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
 		serdes.Entity,
@@ -412,7 +414,7 @@ func updateHAPairHandler(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	// 404 if pair doesn't exist
-	exists, err := configurator.DoesEntityExist(networkID, cwf.CwfHAPairType, haPairID)
+	exists, err := configurator.DoesEntityExist(reqCtx, networkID, cwf.CwfHAPairType, haPairID)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "Failed to check if ha pair exists"), http.StatusInternalServerError)
 	}

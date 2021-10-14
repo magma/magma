@@ -31,7 +31,7 @@ import (
 type MconfigProvider struct{}
 
 func (p *MconfigProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	res, err := configurator.GetMconfigFor(gatewayId)
+	res, err := configurator.GetMconfigFor(ctx, gatewayId)
 	if err != nil {
 		return nil, errors.Wrap(err, "get mconfig from configurator")
 	}

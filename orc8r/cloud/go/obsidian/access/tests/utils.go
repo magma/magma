@@ -25,7 +25,6 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
-	context2 "golang.org/x/net/context"
 
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/obsidian/access"
@@ -104,7 +103,7 @@ func StartMockAccessControl(t *testing.T, adminId string) string {
 	csrMsg, err := certifier_test_utils.CreateCSR(
 		time.Hour*4, adminId, adminId)
 	assert.NoError(t, err)
-	certMsg, err := certifier.SignCSR(context2.Background(), csrMsg)
+	certMsg, err := certifier.SignCSR(context.Background(), csrMsg)
 	assert.NoError(t, err, "Failed to sign Admin's CSR")
 	// get sn from cert
 	superCert, err := x509.ParseCertificates(certMsg.CertDer)
@@ -160,7 +159,7 @@ func MockAccessControl(t *testing.T) (certSn string, superCertSn string) {
 	csrMsg, err := certifier_test_utils.CreateCSR(
 		time.Hour*12, TEST_OPERATOR_ID, TEST_OPERATOR_ID)
 	assert.NoError(t, err)
-	certMsg, err := certifier.SignCSR(context2.Background(), csrMsg)
+	certMsg, err := certifier.SignCSR(context.Background(), csrMsg)
 	assert.NoError(t, err, "Failed to sign CSR")
 	// get sn from cert
 	cert, err := x509.ParseCertificates(certMsg.CertDer)

@@ -28,7 +28,6 @@
 #include <stdint.h>
 #include <netinet/in.h>
 #include <string.h>
-#include <sys/types.h>
 
 #include "bstrlib.h"
 #include "hashtable.h"
@@ -36,7 +35,6 @@
 #include "assertions.h"
 #include "conversions.h"
 #include "intertask_interface.h"
-#include "timer.h"
 #include "dynamic_memory_check.h"
 #include "mme_config.h"
 #include "s1ap_common.h"
@@ -48,7 +46,6 @@
 #include "s1ap_mme_handlers.h"
 #include "mme_events.h"
 #include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
 #include "3gpp_36.401.h"
 #include "3gpp_36.413.h"
 #include "BIT_STRING.h"
@@ -94,7 +91,6 @@
 #include "asn_SEQUENCE_OF.h"
 #include "common_defs.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "mme_app_messages_types.h"
 #include "includes/MetricsHelpers.h"
 #include "s1ap_state.h"
@@ -350,7 +346,7 @@ status_code_e s1ap_mme_generate_s1_setup_failure(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  bstring b = blk2bstr(buffer_p, length);
+  bstring b = blk2bstr(buffer_p, (int) length);
   free(buffer_p);
   rc = s1ap_mme_itti_send_sctp_request(&b, assoc_id, 0, INVALID_MME_UE_S1AP_ID);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
@@ -1342,6 +1338,9 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
       cause_value = S1ap_CauseRadioNetwork_load_balancing_tau_required;
       break;
     default:
+      // Freeing ie and pdu data since it will not be encoded
+      free_wrapper((void**) &ie);
+      ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu);
       OAILOG_ERROR_UE(LOG_S1AP, imsi64, "Unknown cause for context release");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }

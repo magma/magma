@@ -70,7 +70,7 @@ func (store *sqlConfiguratorStorage) loadEntities(networkID string, filter Entit
 		if err != nil {
 			return nil, err
 		}
-		entsByTK[ent.GetTypeAndKey()] = &ent
+		entsByTK[ent.GetTK()] = &ent
 	}
 	err = rows.Err()
 	if err != nil {
@@ -336,11 +336,11 @@ func updateEntitiesWithAssocs(entsByTK EntitiesByTK, assocs loadedAssocs) ([]*Gr
 		// Assoc may reference not-loaded ents
 		fromEnt, ok := entsByTK[assoc.fromTK]
 		if ok {
-			fromEnt.Associations = append(fromEnt.Associations, (&EntityID{}).FromTypeAndKey(assoc.toTK))
+			fromEnt.Associations = append(fromEnt.Associations, (&EntityID{}).FromTK(assoc.toTK))
 		}
 		toEnt, ok := entsByTK[assoc.toTK]
 		if ok {
-			toEnt.ParentAssociations = append(toEnt.ParentAssociations, (&EntityID{}).FromTypeAndKey(assoc.fromTK))
+			toEnt.ParentAssociations = append(toEnt.ParentAssociations, (&EntityID{}).FromTK(assoc.fromTK))
 		}
 	}
 
@@ -364,14 +364,14 @@ func calculateIDsNotFound(entsByTK EntitiesByTK, requestedIDs []*EntityID) []*En
 	}
 	var requestedTKs storage.TKs
 	for _, id := range requestedIDs {
-		requestedTKs = append(requestedTKs, id.ToTypeAndKey())
+		requestedTKs = append(requestedTKs, id.ToTK())
 	}
 
 	missingTKs, _ := requestedTKs.Difference(foundTKs)
 
 	var missingIDs []*EntityID
 	for _, tk := range missingTKs {
-		missingIDs = append(missingIDs, (&EntityID{}).FromTypeAndKey(tk))
+		missingIDs = append(missingIDs, (&EntityID{}).FromTK(tk))
 	}
 
 	SortIDs(missingIDs) // for deterministic return
@@ -418,22 +418,22 @@ func validatePaginatedLoadParameters(filter EntityLoadFilter, criteria EntityLoa
 }
 
 type loadedAssoc struct {
-	fromTK storage.TypeAndKey
-	toTK   storage.TypeAndKey
+	fromTK storage.TK
+	toTK   storage.TK
 	fromPK string
 	toPK   string
 }
 
 func (l loadedAssoc) getFromID() *EntityID {
-	return (&EntityID{}).FromTypeAndKey(l.fromTK)
+	return (&EntityID{}).FromTK(l.fromTK)
 }
 
 func (l loadedAssoc) getToID() *EntityID {
-	return (&EntityID{}).FromTypeAndKey(l.toTK)
+	return (&EntityID{}).FromTK(l.toTK)
 }
 
 func (l loadedAssoc) asGraphEdge() *GraphEdge {
-	return &GraphEdge{From: (&EntityID{}).FromTypeAndKey(l.fromTK), To: (&EntityID{}).FromTypeAndKey(l.toTK)}
+	return &GraphEdge{From: (&EntityID{}).FromTK(l.fromTK), To: (&EntityID{}).FromTK(l.toTK)}
 }
 
 type loadedAssocs []loadedAssoc

@@ -28,6 +28,7 @@
 #include "SpgwServiceImpl.h"
 #include "AmfServiceImpl.h"
 #include "HaServiceImpl.h"
+#include "S8ServiceImpl.h"
 
 extern "C" {
 #include "log.h"
@@ -43,6 +44,7 @@ using magma::HaServiceImpl;
 using magma::S1apServiceImpl;
 using magma::S6aGatewayImpl;
 using magma::S6aServiceImpl;
+using magma::S8ServiceImpl;
 using magma::SMSOrc8rGatewayServiceImpl;
 using magma::SpgwServiceImpl;
 
@@ -54,6 +56,9 @@ static CSFBGatewayServiceImpl sgs_service;
 static SMSOrc8rGatewayServiceImpl sms_orc8r_service;
 static S1apServiceImpl s1ap_service;
 static HaServiceImpl ha_service;
+#if EMBEDDED_SGW
+static S8ServiceImpl s8_service;
+#endif
 static std::unique_ptr<Server> server;
 
 // TODO Candidate: GRPC service may be evolved into a
@@ -84,6 +89,10 @@ void start_grpc_service(bstring server_address) {
   if (mme_config.use_ha) {
     builder.RegisterService(&ha_service);
   }
+
+#if EMBEDDED_SGW
+  builder.RegisterService(&s8_service);
+#endif
   server = builder.BuildAndStart();
 }
 

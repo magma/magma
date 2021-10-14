@@ -16,7 +16,6 @@
 #include "M5GCommonDefs.h"
 #include <bitset>
 
-using namespace std;
 namespace magma5g {
 M5GSRegistrationTypeMsg::M5GSRegistrationTypeMsg(){};
 M5GSRegistrationTypeMsg::~M5GSRegistrationTypeMsg(){};
@@ -34,8 +33,8 @@ int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(
 
   m5gs_reg_type->FOR      = (*(buffer + decoded) >> 3) & 0x1;
   m5gs_reg_type->type_val = *(buffer + decoded) & 0x7;
-  MLOG(MDEBUG) << " FOR = 0x" << hex << int(m5gs_reg_type->FOR);
-  MLOG(MDEBUG) << " type_val = 0x" << hex << int(m5gs_reg_type->type_val);
+  MLOG(MDEBUG) << " FOR = 0x" << std::hex << int(m5gs_reg_type->FOR);
+  MLOG(MDEBUG) << " type_val = 0x" << std::hex << int(m5gs_reg_type->type_val);
   return decoded;
 };
 

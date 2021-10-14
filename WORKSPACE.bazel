@@ -10,7 +10,7 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("//:third_party_repositories.bzl", "boost", "cpp_redis", "cpp_testing_deps", "gflags", "glog", "grpc", "nlohmann_json", "prometheus_cpp_deps", "protobuf", "yaml_cpp")
+load("//:third_party_repositories.bzl", "grpc", "protobuf")
 
 ### BUILDIFIER DEPENDENCIES
 # See https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md
@@ -18,33 +18,38 @@ load("//:third_party_repositories.bzl", "boost", "cpp_redis", "cpp_testing_deps"
 # See https://github.com/bazelbuild/rules_go for the up to date setup instructions.
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "d1ffd055969c8f8d431e2d439813e42326961d0942bdf734d2c95dc30c369566",
+    sha256 = "8e968b5fcea1d2d64071872b12737bbb5514524ee5f0a4f54f5920266c261acb",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.24.5/rules_go-v0.24.5.tar.gz",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.24.5/rules_go-v0.24.5.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.28.0/rules_go-v0.28.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.28.0/rules_go-v0.28.0.zip",
+    ],
+)
+
+http_archive(
+    name = "bazel_gazelle",
+    sha256 = "62ca106be173579c0a167deb23358fdfe71ffa1e4cfdddf5582af26520f1c66f",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.23.0/bazel-gazelle-v0.23.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.23.0/bazel-gazelle-v0.23.0.tar.gz",
     ],
 )
 
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+load("//:go_repositories.bzl", "go_repositories")
+
+# gazelle:repository_macro go_repositories.bzl%go_repositories
+go_repositories()
 
 go_rules_dependencies()
 
-go_register_toolchains()
+go_register_toolchains(version = "1.17")
 
-http_archive(
-    name = "bazel_gazelle",
-    sha256 = "b85f48fa105c4403326e9525ad2b2cc437babaa6e15a3fc0b1dbab0ab064bc7c",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.22.2/bazel-gazelle-v0.22.2.tar.gz",
-        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.22.2/bazel-gazelle-v0.22.2.tar.gz",
-    ],
-)
-
-load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+gazelle_dependencies()
 
 # If you use WORKSPACE.bazel, use the following line instead of the bare gazelle_dependencies():
 # gazelle_dependencies(go_repository_default_config = "@//:WORKSPACE.bazel")
-gazelle_dependencies()
+gazelle_dependencies(go_repository_default_config = "@//:WORKSPACE.bazel")
 
 # protobuf dependency covered below
 
@@ -110,37 +115,18 @@ load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 grpc_deps()
 ### PROTO / GRPC DEPENDENCIES ###
 
-### Dependencies for orc8r/gateway/c/common
-gflags()
+load("//:cpp_repositories.bzl", "cpp_repositories")
 
-glog()
-
-boost()
+cpp_repositories()
 
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 
 boost_deps()
-
-yaml_cpp()
-
-nlohmann_json()
-
-prometheus_cpp_deps()
-### Dependencies for orc8r/gateway/c/common
-
-### CPP_REDIS DEPENDENCIES ###
-cpp_redis()
-### CPP_REDIS DEPENDENCIES ###
-
-### DEPENDENCY FOR TESTING
-cpp_testing_deps()
-### DEPENDENCY FOR TESTING
 
 # To get Folly to build reliably, we're going to pull it from the underlying system
 # This assumes that the build is done in the Docker container or VBox VM
 new_local_repository(
     name = "system_libraries",
     build_file = "//third_party:system_libraries.BUILD",
-    path = "/usr/local/lib",
+    path = "/",
 )
-### Folly dependencies ###

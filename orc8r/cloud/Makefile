@@ -16,7 +16,6 @@ MAGMA_MODULES := \
 	$(MAGMA_ROOT)/lte \
 	$(MAGMA_ROOT)/feg \
 	$(MAGMA_ROOT)/cwf \
-	$(MAGMA_ROOT)/wifi \
 	$(MAGMA_ROOT)/fbinternal
 $(warning MAGMA_MODULES is undefined, using default: $(MAGMA_MODULES))
 endif
@@ -37,6 +36,9 @@ SWAGGER_V1_SPECS_DIR := $(MAGMA_ROOT)/orc8r/cloud/swagger/specs
 SWAGGER_V1_PARTIAL_SPECS_DIR := $(SWAGGER_V1_SPECS_DIR)/partial
 SWAGGER_V1_COMMON_DIR := $(SWAGGER_V1_SPECS_DIR)/common
 SWAGGER_V1_STANDALONE_DIR := $(SWAGGER_V1_SPECS_DIR)/standalone
+SWAGGER_NMS_OUT := $(MAGMA_ROOT)/nms/packages/magmalte/generated/MagmaAPIBindings.js
+
+OS_NAME := $(shell uname)
 
 export SWAGGER_ROOT
 export SWAGGER_COMMON
@@ -109,7 +111,7 @@ fmt: $(FMT_LIST)
 $(FMT_LIST): %_fmt:
 	make -C $*/cloud/go fmt
 
-fullgen: clean_gen gen swagger tidy
+fullgen: clean_gen gen swagger nms_fullgen tidy
 
 gen: tools order_imports gen_protos $(GEN_LIST)
 $(GEN_LIST): %_gen:
@@ -156,6 +158,51 @@ swagger_directories:
 	rm -rf $(SWAGGER_V1_SPECS_DIR)
 	mkdir -p $(SWAGGER_V1_COMMON_DIR) $(SWAGGER_V1_PARTIAL_SPECS_DIR) $(SWAGGER_V1_STANDALONE_DIR)
 
-
 $(SWAGGER_LIST): %_swagger:
 	make -C $*/cloud/go swagger_tools copy_swagger_files
+
+#############
+## NMS gen ##
+#############
+
+nms_fullgen: nms_prereqs nms_gen
+
+nms_prereqs:
+ifeq ($(OS_NAME),Linux)
+	$(MAKE) nms_prereqs_ubuntu
+else ifeq ($(OS_NAME),Darwin)
+	$(MAKE) nms_prereqs_osx
+endif
+
+nms_prereqs_ubuntu: nms_node_ubuntu
+	NODE="$(shell which nodejs)"; ln -s $$NODE /usr/local/bin/node
+	# update nodejs to latest
+	curl -sL https://deb.nodesource.com/setup_lts.x | bash -
+	apt-get install -y nodejs
+	# get codegen dependency
+	npm install --global yarn
+	yarn add swagger-js-codegen
+
+nms_node_ubuntu:
+	# install pre-reqs
+	apt update
+	# Handle certificate verification
+	apt-get install -y libgnutls30
+	# Get a newer version of nodejs
+	curl -fSL https://deb.nodesource.com/setup_14.x | bash -
+	apt-get install -y nodejs
+	# And now install npm
+	apt install -y aptitude
+	aptitude install -y npm
+	# symlink nodejs executable
+	mkdir -p /usr/local/bin
+
+nms_prereqs_osx:
+	node --version || brew install node
+	npm --version || brew install npm
+	yarn --version || npm install --global yarn
+	yarn add swagger-js-codegen
+
+nms_gen:
+	# generate Swagger API bindings for NMS
+	$(MAGMA_ROOT)/nms/packages/magmalte/scripts/generateAPIFromSwagger.sh $(SWAGGER_V1_YML) $(SWAGGER_NMS_OUT)

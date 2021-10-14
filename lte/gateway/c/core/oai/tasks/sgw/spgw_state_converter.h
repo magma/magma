@@ -69,6 +69,25 @@ class SpgwStateConverter : StateConverter {
   static void proto_to_ue(
       const oai::SpgwUeContext& ue_proto, spgw_ue_context_t* ue_context_p);
 
+  /**
+   * Converts traffic flow template struct to proto, memory is owned by the
+   * caller
+   * @param tft_state
+   * @param tft_proto
+   */
+  static void traffic_flow_template_to_proto(
+      const traffic_flow_template_t* tft_state,
+      oai::TrafficFlowTemplate* tft_proto);
+
+  /**
+   * Converts proto to traffic flow template struct
+   * @param tft_proto
+   * @param tft_state
+   */
+  static void proto_to_traffic_flow_template(
+      const oai::TrafficFlowTemplate& tft_proto,
+      traffic_flow_template_t* tft_state);
+
  private:
   SpgwStateConverter();
   ~SpgwStateConverter();
@@ -173,25 +192,6 @@ class SpgwStateConverter : StateConverter {
       const oai::PgwCbrProcedure& proto,
       sgw_eps_bearer_context_information_t::pending_procedures_s*
           pending_procedures);
-
-  /**
-   * Converts traffic flow template struct to proto, memory is owned by the
-   * caller
-   * @param tft_state
-   * @param tft_proto
-   */
-  static void traffic_flow_template_to_proto(
-      const traffic_flow_template_t* tft_state,
-      oai::TrafficFlowTemplate* tft_proto);
-
-  /**
-   * Converts proto to traffic flow template struct
-   * @param tft_proto
-   * @param tft_state
-   */
-  static void proto_to_traffic_flow_template(
-      const oai::TrafficFlowTemplate& tft_proto,
-      traffic_flow_template_t* tft_state);
 
   /**
    * Converts eps bearer QOS struct to proto, memory is owned by the caller

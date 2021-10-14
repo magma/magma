@@ -44,7 +44,7 @@ func TestBuilder_Build(t *testing.T) {
 		nw := configurator.Network{ID: "n1"}
 		gw := configurator.NetworkEntity{
 			Type: orc8r.MagmadGatewayType, Key: "gw1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: cwf.CwfGatewayType, Key: "gw1"},
 			},
 		}
@@ -68,20 +68,20 @@ func TestBuilder_Build(t *testing.T) {
 		}
 		gw := configurator.NetworkEntity{
 			Type: orc8r.MagmadGatewayType, Key: "gw1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: cwf.CwfGatewayType, Key: "gw1"},
 			},
 		}
 		cwfGW := configurator.NetworkEntity{
 			Type: cwf.CwfGatewayType, Key: "gw1",
 			Config:             defaultgwConfig,
-			ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+			ParentAssociations: storage.TKs{gw.GetTK()},
 		}
 		haPair := configurator.NetworkEntity{
 			Config: &models.CwfHaPairConfigs{TransportVirtualIP: "10.10.10.11"},
 			Type:   cwf.CwfHAPairType,
 			Key:    "pair1",
-			Associations: []storage.TypeAndKey{
+			Associations: storage.TKs{
 				{Type: cwf.CwfGatewayType, Key: "gw1"},
 				{Type: cwf.CwfGatewayType, Key: "gw2"},
 			},
@@ -89,8 +89,8 @@ func TestBuilder_Build(t *testing.T) {
 		graph := configurator.EntityGraph{
 			Entities: []configurator.NetworkEntity{cwfGW, gw, haPair},
 			Edges: []configurator.GraphEdge{
-				{From: gw.GetTypeAndKey(), To: cwfGW.GetTypeAndKey()},
-				{From: haPair.GetTypeAndKey(), To: cwfGW.GetTypeAndKey()},
+				{From: gw.GetTK(), To: cwfGW.GetTK()},
+				{From: haPair.GetTK(), To: cwfGW.GetTK()},
 			},
 		}
 

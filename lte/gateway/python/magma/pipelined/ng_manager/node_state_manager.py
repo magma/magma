@@ -76,13 +76,13 @@ class NodeStateManager:
             return enode_if_ip[netifaces.AF_INET][0]['addr']
 
         def get_node_identifier(ng_params):
-            if ng_params and ng_params.get('node_identifier', None):
-                return ng_params['node_identifier']
+            if ng_params:
+                return ng_params
             return get_enodeb_if_ip(ng_params)
 
         return self.LocalNodeConfig(
-            downlink_ip=get_enodeb_if_ip(config_dict['5G_feature_set']),
-            node_identifier=get_node_identifier(config_dict['5G_feature_set']),
+            downlink_ip=get_enodeb_if_ip(config_dict),
+            node_identifier=get_node_identifier(config_dict['upf_node_identifier']),
         )
 
     def _send_messsage_wrapper(self, node_message):

@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "server",
+    srcs = ["server.go"],
+    importpath = "github.com/magma/magma/src/go/agwd/server",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/go/agwd/config",
+        "//src/go/log",
+        "//src/go/protos/magma/sctpd",
+        "//src/go/service",
+        "//src/go/service/sctpd",
+        "@com_github_pkg_errors//:errors",
+        "@org_golang_google_grpc//:go_default_library",
+    ],
+)

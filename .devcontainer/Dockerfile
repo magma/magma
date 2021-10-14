@@ -1,4 +1,4 @@
-# Note: You can use any Debian/Ubuntu based image you want. 
+# Note: You can use any Debian/Ubuntu based image you want.
 FROM ubuntu:focal as magma-mme-builder
 
 # [Option] Install zsh
@@ -23,8 +23,8 @@ RUN apt-get update \
     # Clean up
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/library-scripts/
 
-# Setting the ENTRYPOINT to docker-init.sh will configure non-root access to 
-# the Docker socket if "overrideCommand": false is set in devcontainer.json. 
+# Setting the ENTRYPOINT to docker-init.sh will configure non-root access to
+# the Docker socket if "overrideCommand": false is set in devcontainer.json.
 # The script will also execute CMD if you need to alter startup behaviors.
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 CMD [ "sleep", "infinity" ]
@@ -56,6 +56,7 @@ RUN echo "Install general purpose packages" && \
         g++-9 \
         gcc-9 \
         lcov \
+        gdb \
         git \
         gnupg \
         golang \
@@ -117,6 +118,8 @@ RUN echo "Install 3rd party dependencies" && \
     libyaml-cpp-dev nlohmann-json3-dev && \
     echo "Install ZeroMQ" && \
     apt-get install -y libczmq-dev && \
+    echo "Install dependencies for Sentry Native" && \
+    apt-get install -y libcurl4-openssl-dev && \
     ln -s /usr/bin/python2.7 /usr/local/bin/python
 
 RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
@@ -245,7 +248,7 @@ RUN git clone https://github.com/facebook/folly && cd folly && \
     make install && \
     cd / && \
     rm -rf folly
-    
+
 ##### Build and install libgtest and gmock
 RUN cd /usr/src/googletest && \
     mkdir build && \
@@ -258,6 +261,7 @@ RUN cd /usr/src/googletest && \
     ldconfig -v
 
 #### libtins is required to build the connection_tracker
+# TODO(@themarwhal): this might not be hard to bazelify if we can generate the config
 RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
     cd libtins && \
     mkdir build && \
@@ -266,7 +270,9 @@ RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
     make -j"$(nproc)" && \
     make install && \
     cd / && \
-    rm -rf libtins
+    rm -rf libtins && \
+    # symlink to /usr/lib to match Magma VM
+    ln -s /usr/local/lib/libtins.so /usr/lib/libtins.so
 
 ###### Install Include What You Use for c/cpp header include fixup tooling
 # Tag 0.15 tracks Clang 11.0 per https://github.com/include-what-you-use/include-what-you-use/tags
@@ -300,3 +306,13 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     make install && \
     cd / && \
     rm -rf freediameter
+
+##### Go language server support for vscode
+RUN go get -v golang.org/x/tools/gopls
+
+#### Update shared library configuration
+RUN ldconfig -v
+
+RUN ln -s "$MAGMA_ROOT"/experimental/bazel-base/bazelrcs/devcontainer.bazelrc /etc/bazelrc
+
+WORKDIR $MAGMA_ROOT

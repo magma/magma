@@ -3,14 +3,15 @@ startup --output_base=/tmp/bazel
 build --announce_rc
 build --color=yes
 build --cxxopt=-std=c++14
-build --cxxopt=-g2
+build --strip=never
+build --compilation_mode=dbg
 
 # For building with Bazel inside the Magma-Builder Docker container
 build:docker --disk_cache=/magma/.bazel-cache
-build:docker --repository_cache=/magma/.bazel-cache-repo
+common:docker --repository_cache=/magma/.bazel-cache-repo
 
 build:devcontainer --disk_cache=/workspaces/magma/.bazel-cache
-build:devcontainer --repository_cache=/workspaces/magma/.bazel-cache-repo
+common:devcontainer --repository_cache=/workspaces/magma/.bazel-cache-repo
 build:devcontainer --define=folly_so=1
 
 build:specify_vm_cc --action_env=CC=/usr/bin/gcc
@@ -18,7 +19,7 @@ build:specify_vm_cc --action_env=CXX=/usr/bin/g++
 
 # For building with Bazel inside the Magma VM
 build:vm --disk_cache=/home/vagrant/magma/.bazel-cache
-build:vm --repository_cache=/home/vagrant/magma/.bazel-cache-repo
+common:vm --repository_cache=/home/vagrant/magma/.bazel-cache-repo
 build:vm --define=folly_so=1
 build:vm --config=specify_vm_cc
 
@@ -28,3 +29,6 @@ build:asan --copt=-O0
 build:asan --copt=-fno-omit-frame-pointer
 build:asan --linkopt=-fsanitize=address
 build:asan --action_env=ASAN_OPTIONS=detect_leaks=1:color=always
+
+# system bazelrc should include config specific to different build envs (--config=vm, --config=devcontainer, etc.)
+try-import /etc/bazelrc

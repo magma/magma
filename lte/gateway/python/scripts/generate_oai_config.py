@@ -23,6 +23,7 @@ from magma.common.misc_utils import (
     IpPreference,
     get_ip_from_if,
     get_ip_from_if_cidr,
+    get_ipv6_from_if,
 )
 from magma.configuration.mconfig_managers import load_service_mconfig
 from magma.configuration.service_configs import get_service_config_value
@@ -52,6 +53,14 @@ def _get_iface_ip(service, iface_config):
     """
     iface_name = get_service_config_value(service, iface_config, "")
     return get_ip_from_if_cidr(iface_name)
+
+
+def _get_iface_ipv6(service, iface_config):
+    """
+    Get the interface IPv6 given its name.
+    """
+    iface_name = get_service_config_value(service, iface_config, "")
+    return get_ipv6_from_if(iface_name)
 
 
 def _get_primary_dns_ip(service_mconfig, iface_config):
@@ -240,92 +249,138 @@ def _get_congestion_control_config(service_mconfig):
 
 
 def _get_converged_core_config(service_mconfig: object) -> bool:
+    """Retrieve enable5g_features config value. If it does not exist it defaults to False. It gives precedence to the service_mconfig file.
+
+    Args:
+        service_mconfig: This is a configuration placeholder for mme.
+
+    Returns: 
+        enable_m5gfeatures.
     """
-    Retrieves enable_converged_core config value,If it does not exist
-    it defaults to False. It gives precedence to the local mme.yml file.
-    """
-    enable_converged_core = get_service_config_value(
-        'mme', 'enable_converged_core', None,
+    enable_m5gfeatures = get_service_config_value(
+        'mme', 'enable5g_features', None,
     )
 
-    if enable_converged_core is not None:
-        return enable_converged_core
+    if enable_m5gfeatures is not None:
+        return enable_m5gfeatures
 
-    if service_mconfig.enable_converged_core is not None:
-        return service_mconfig.enable_converged_core
+    if service_mconfig.enable5g_features is not None:
+        return service_mconfig.enable5g_features
 
     return False
 
 
 def _get_default_slice_service_type_config(service_mconfig: object) -> str:
-    """
-    Retrieves default_slice_service_type config value,If it does not exist
-    it defaults to 1.
-    Args:
-        service_mconfig:
+    """Retrieve default_slice_service_type config value. If it does not exist, it defaults to DEFAULT_NGAP_S_NSSAI_SST.
 
-    Returns: slice service type value
+    Args:
+        service_mconfig: This is a configuration placeholder for mme.
+
+    Returns:
+        slice service type value.
     """
+    enable_default_service_slice_type = get_service_config_value(
+        'mme', 'default_slice_service_type', None,
+    )
+
+    if enable_default_service_slice_type is not None:
+        return enable_default_service_slice_type
+
     return service_mconfig.default_slice_service_type or DEFAULT_NGAP_S_NSSAI_SST
 
 
 def _get_default_slice_differentiator_type_config(service_mconfig: object) -> str:
-    """
-    Retrieves default_slice_differentiator config value,If it does not exist
-    it defaults to 0xffffff.
-    Args:
-        service_mconfig:
+    """Retrieve default_slice_differentiator config value. If it does not exist it defaults to DEFAULT_NGAP_S_NSSAI_SD.
 
-    Returns: slice differentiator config value
+    Args:
+        service_mconfig: This is a configuration placeholder for mme.
+
+    Returns:
+        slice differentiator config value.
     """
+    enable_default_slice_differentiator_type = get_service_config_value(
+        'mme', 'default_slice_differentiator', None,
+    )
+
+    if enable_default_slice_differentiator_type is not None:
+        return enable_default_slice_differentiator_type
+
     return service_mconfig.default_slice_differentiator or DEFAULT_NGAP_S_NSSAI_SD
 
 
 def _get_amf_name_config(service_mconfig: object) -> str:
-    """
-    Retrieves amf_name config value,If it does not exist
-    it defaults to Default Name AMF_1.
-    Args:
-        service_mconfig:
+    """Retrieve amf_name config value. If it does not exist, it defaults to DEFAULT_NGAP_AMF_NAME.
 
-    Returns: amf name string
+    Args:
+        service_mconfig: This is a configuration placeholder for mme.
+
+    Returns:
+        amf name string.
     """
+    enable_amf_name_config = get_service_config_value(
+        'mme', 'amf_name', None,
+    )
+
+    if enable_amf_name_config is not None:
+        return enable_amf_name_config
+
     return service_mconfig.amf_name or DEFAULT_NGAP_AMF_NAME
 
 
 def _get_amf_region_id(service_mconfig: object) -> str:
-    """
-    Retrieves amf_region_id config value,If it does not exist
-    it defaults to Default value of 1
-    Args:
-        service_mconfig:
+    """Retrieve amf_region_id config value. If it does not exist it defaults to DEFAULT_NGAP_AMF_REGION_ID.
 
-    Returns: amf region id
+    Args:
+        service_mconfig: This is a configuration placeholder for mme.
+
+    Returns:
+        amf region id.
     """
+    enable_amf_region_id = get_service_config_value(
+        'mme', 'amf_region_id', None,
+    )
+
+    if enable_amf_region_id is not None:
+        return enable_amf_region_id
+
     return service_mconfig.amf_region_id or DEFAULT_NGAP_AMF_REGION_ID
 
 
 def _get_amf_set_id(service_mconfig: object) -> str:
-    """
-    Retrieves amf_set_id config value,If it does not exist
-    it defaults to Default String 1
-    Args:
-        service_mconfig:
+    """Retrieve amf_set_id config value. If it does not exist it defaults to DEFAULT_NGAP_SET_ID.
 
-    Returns: amf set id
+    Args:
+        service_mconfig: This is a configuration placeholder for mme.
+
+    Returns:
+        amf set id.
     """
+    enable_amf_set_id = get_service_config_value(
+        'mme', 'amf_set_id', None,
+    )
+
+    if enable_amf_set_id is not None:
+        return enable_amf_set_id
+
     return service_mconfig.amf_set_id or DEFAULT_NGAP_SET_ID
 
 
 def _get_amf_pointer(service_mconfig: object) -> str:
-    """
-    Retrieves amf_pointer config value,If it does not exist
-    it defaults to Default String 1
-    Args:
-        service_mconfig:
+    """Retrieve amf_pointer config value. If it does not exist it defaults to DEFAULT_NGAP_AMF_POINTER.
 
-    Returns: amf pointer value
+    Args:
+        service_mconfig: This is a configuration placeholder for mme.
+
+    Returns:
+        amf pointer value.
     """
+    enable_amf_pointer = get_service_config_value(
+        'mme', 'amf_pointer', None,
+    )
+
+    if enable_amf_pointer is not None:
+        return enable_amf_pointer
+
     return service_mconfig.amf_pointer or DEFAULT_NGAP_AMF_POINTER
 
 
@@ -349,6 +404,7 @@ def _get_context():
         'sgw_s5s8_up_iface_name': iface_name,
         "remote_sgw_ip": get_service_config_value("mme", "remote_sgw_ip", ""),
         "s1ap_ip": _get_iface_ip("mme", "s1ap_iface_name"),
+        "s1ap_ipv6": _get_iface_ipv6("mme", "s1ap_iface_name"),
         "oai_log_level": _get_oai_log_level(),
         "ipv4_dns": _get_primary_dns_ip(mme_service_config, "dns_iface_name"),
         "ipv4_sec_dns": _get_secondary_dns_ip(mme_service_config),
@@ -375,7 +431,7 @@ def _get_context():
         "service_area_map": _get_service_area_maps(mme_service_config),
         "accept_combined_attach_tau_wo_csfb": get_service_config_value("mme", "accept_combined_attach_tau_wo_csfb", ""),
         "sentry_config": mme_service_config.sentry_config,
-        "enable_converged_core": _get_converged_core_config(mme_service_config),
+        "enable5g_features": _get_converged_core_config(mme_service_config),
         "default_slice_service_type": _get_default_slice_service_type_config(
             mme_service_config,
         ),

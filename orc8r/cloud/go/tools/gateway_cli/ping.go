@@ -14,6 +14,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -38,7 +39,7 @@ func init() {
 }
 
 func pingCmd(cmd *cobra.Command, args []string) {
-	response, err := magmad.GatewayPing(networkId, gatewayId, packets, args)
+	response, err := magmad.GatewayPing(context.Background(), networkId, gatewayId, packets, args)
 	if err != nil {
 		glog.Error(err)
 		os.Exit(1)

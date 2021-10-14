@@ -22,9 +22,9 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/magma/magma/agwd/config/internal/grpcutil"
-	"github.com/magma/magma/log"
-	"github.com/magma/magma/protos/magma/mconfig"
+	"github.com/magma/magma/src/go/agwd/config/internal/grpcutil"
+	"github.com/magma/magma/src/go/log"
+	"github.com/magma/magma/src/go/protos/magma/mconfig"
 )
 
 // LogLevel translates protobuf defined mconfig.AgwD_LogLevel to log.Level.

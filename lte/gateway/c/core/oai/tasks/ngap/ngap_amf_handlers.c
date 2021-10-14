@@ -25,7 +25,6 @@
 #include "assertions.h"
 #include "conversions.h"
 #include "intertask_interface.h"
-#include "timer.h"
 #include "dynamic_memory_check.h"
 #include "amf_config.h"
 #include "ngap_common.h"
@@ -712,14 +711,14 @@ status_code_e ngap_amf_handle_initial_context_setup_response(
     __attribute__((unused)) const sctp_stream_id_t stream,
     Ngap_NGAP_PDU_t* pdu) {
   Ngap_InitialContextSetupResponse_t* container;
-  Ngap_InitialContextSetupResponseIEs_t* ie                          = NULL;
-  Ngap_PDUSessionResourceSetupItemSURes_t* pduSessionSetupListCtxRes = NULL;
-  QosFlowPerTNLInformation_t response_transfer                       = {0};
-  m5g_ue_description_t* ue_ref_p                                     = NULL;
-  MessageDef* message_p                                              = NULL;
-  int rc                                                             = RETURNok;
-  amf_ue_ngap_id_t amf_ue_ngap_id                                    = 0;
-  gnb_ue_ngap_id_t gnb_ue_ngap_id                                    = 0;
+  Ngap_InitialContextSetupResponseIEs_t* ie                           = NULL;
+  Ngap_PDUSessionResourceSetupItemCxtRes_t* pduSessionSetupListCtxRes = NULL;
+  QosFlowPerTNLInformation_t response_transfer                        = {0};
+  m5g_ue_description_t* ue_ref_p                                      = NULL;
+  MessageDef* message_p                                               = NULL;
+  int rc                          = RETURNok;
+  amf_ue_ngap_id_t amf_ue_ngap_id = 0;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
   imsi64_t imsi64;
 
   OAILOG_FUNC_IN(LOG_NGAP);
@@ -768,7 +767,7 @@ status_code_e ngap_amf_handle_initial_context_setup_response(
 
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_InitialContextSetupResponseIEs_t, ie, container,
-      Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListSURes, false);
+      Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListCxtRes, false);
 
   if (ie) {
     if (ie->value.choice.PDUSessionResourceSetupListCxtRes.list.count < 1) {

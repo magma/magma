@@ -284,9 +284,8 @@ status_code_e emm_proc_identification_complete(
               &old_imsi_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id,
               attach_proc->ies, true);
           emm_ctx->emm_context_state = NEW_EMM_CONTEXT_CREATED;
-          rc                         = nas_proc_implicit_detach_ue_ind(
-              old_imsi_ue_mm_ctx->mme_ue_s1ap_id);
-          OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+          nas_proc_implicit_detach_ue_ind(old_imsi_ue_mm_ctx->mme_ue_s1ap_id);
+          notify = false;
         }
         int emm_cause = check_plmn_restriction(*imsi);
         if (emm_cause != EMM_CAUSE_SUCCESS) {
@@ -334,6 +333,12 @@ status_code_e emm_proc_identification_complete(
             ue_id);
       }
 
+      // Helper ident proc ptr to avoid double free from unknown GUTI attach
+      // processing.
+      nas_emm_ident_proc_t* ident_proc_p =
+          calloc(1, sizeof(nas_emm_ident_proc_t));
+      memcpy(ident_proc_p, ident_proc, sizeof(nas_emm_ident_proc_t));
+
       /*
        * Notify EMM that the identification procedure successfully completed
        */
@@ -342,9 +347,9 @@ status_code_e emm_proc_identification_complete(
       emm_sap.u.emm_reg.ctx                  = emm_ctx;
       emm_sap.u.emm_reg.notify               = notify;
       emm_sap.u.emm_reg.free_proc            = true;
-      emm_sap.u.emm_reg.u.common.common_proc = &ident_proc->emm_com_proc;
+      emm_sap.u.emm_reg.u.common.common_proc = &ident_proc_p->emm_com_proc;
       emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
-          ident_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
+          ident_proc_p->emm_com_proc.emm_proc.previous_emm_fsm_state;
       rc = emm_sap_send(&emm_sap);
 
     }  // else ignore the response if procedure not found

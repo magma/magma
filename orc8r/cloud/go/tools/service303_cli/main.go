@@ -14,6 +14,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -81,7 +82,7 @@ func setHwIdFlag() error {
 		return nil
 	}
 	var err error
-	hardwareID, err = configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
+	hardwareID, err = configurator.GetPhysicalIDOfEntity(context.Background(), networkID, orc8r.MagmadGatewayType, gatewayID)
 	if err != nil {
 		return err
 	}

@@ -1,4 +1,6 @@
+//go:build all || qos
 // +build all qos
+
 /*
  * Copyright 2020 The Magma Authors.
  *

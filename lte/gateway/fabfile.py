@@ -15,7 +15,7 @@ import sys
 from distutils.util import strtobool
 from time import sleep
 
-from fabric.api import cd, env, execute, local, run, settings
+from fabric.api import cd, env, execute, local, run, settings, sudo
 from fabric.contrib.files import exists
 from fabric.operations import get
 
@@ -48,6 +48,7 @@ in `release/magma.lockfile`
 """
 
 AGW_ROOT = "$MAGMA_ROOT/lte/gateway"
+FEG_INTEG_TEST_DOCKER_ROOT = "python/integ_tests/federated_tests/Docker"
 AGW_PYTHON_ROOT = "$MAGMA_ROOT/lte/gateway/python"
 ORC8R_AGW_PYTHON_ROOT = "$MAGMA_ROOT/orc8r/gateway/python"
 AGW_INTEG_ROOT = "$MAGMA_ROOT/lte/gateway/python/integ_tests"
@@ -135,6 +136,8 @@ def package(
 
         with cd('release'):
             mirrored_packages_file = 'mirrored_packages'
+            if os == "ubuntu":
+                mirrored_packages_file += '_focal'
             if vm and vm.startswith('magma_'):
                 mirrored_packages_file += vm[5:]
 
@@ -253,8 +256,7 @@ def integ_test(
 
     execute(_dist_upgrade)
     execute(_build_magma)
-    execute(_run_unit_tests)
-    execute(_python_coverage)
+    execute(_run_sudo_python_unit_tests)
     execute(_start_gateway)
 
     # Run suite of integ tests that are required to be run on the access gateway
@@ -288,7 +290,6 @@ def integ_test(
         setup_env_vagrant()
     else:
         env.hosts = [gateway_host]
-    execute(_oai_coverage)
 
 
 def run_integ_tests(tests=None):
@@ -462,6 +463,58 @@ def load_test(gateway_host=None, destroy_vm=True):
         env.hosts = [gateway_host]
 
 
+def build_and_start_magma(gateway_host=None, destroy_vm='False', provision_vm='False'):
+    """
+    Build Magma AGW and starts magma
+    Args:
+        gateway_host: name of host in case is not Vagrant
+        destroy_vm: if set to True it will destroy Magma Vagrant VM
+        provision_vm: if set to true it will reprovision Magma VM
+
+    Returns:
+
+    """
+    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = bool(strtobool(destroy_vm))
+    if gateway_host:
+        ansible_setup(gateway_host, 'dev', 'magma_dev.yml')
+    else:
+        vagrant_setup('magma', destroy_vm, provision_vm)
+    sudo('service magma@* stop')
+    execute(_build_magma)
+    sudo('service magma@magmad start')
+
+
+def make_integ_tests(test_host=None, destroy_vm='False', provision_vm='False'):
+    destroy_vm = bool(strtobool(destroy_vm))
+    provision_vm = bool(strtobool(provision_vm))
+    if not test_host:
+        vagrant_setup('magma_test', destroy_vm, force_provision=provision_vm)
+    else:
+        ansible_setup(test_host, "test", "magma_test.yml")
+    execute(_make_integ_tests)
+
+
+def build_and_start_magma_trf(test_host=None, destroy_vm='False', provision_vm='False'):
+    destroy_vm = bool(strtobool(destroy_vm))
+    provision_vm = bool(strtobool(provision_vm))
+    if not test_host:
+        vagrant_setup('magma_trfserver', destroy_vm, force_provision=provision_vm)
+    else:
+        ansible_setup(test_host, "test", "magma_test.yml")
+    execute(_start_trfserver)
+
+
+def start_magma(test_host=None, destroy_vm='False', provision_vm='False'):
+    destroy_vm = bool(strtobool(destroy_vm))
+    provision_vm = bool(strtobool(provision_vm))
+    if not test_host:
+        vagrant_setup('magma', destroy_vm, force_provision=provision_vm)
+    else:
+        ansible_setup(test_host, "test", "magma_test.yml")
+    sudo('service magma@magmad start')
+
+
 def _copy_out_c_execs_in_magma_vm():
     with settings(warn_only=True):
         exec_paths = [
@@ -484,8 +537,9 @@ def _dist_upgrade():
 
 
 def _build_magma():
-    """ Builds magma """
-
+    """
+    Build magma on AGW
+    """
     with cd(AGW_ROOT):
         run('make')
 
@@ -497,16 +551,11 @@ def _oai_coverage():
         run('make coverage_oai')
 
 
-def _run_unit_tests():
+def _run_sudo_python_unit_tests():
     """ Run the magma unit tests """
     with cd(AGW_ROOT):
-        # Run the unit tests
-        run('make test')
-
-
-def _python_coverage():
-    with cd(AGW_PYTHON_ROOT):
-        run('make coverage')
+        # Run all unit tests that are not run as pre-commit checks in CI
+        run('make test_sudo_python')
 
 
 def _start_gateway():
@@ -514,12 +563,6 @@ def _start_gateway():
 
     with cd(AGW_ROOT):
         run('make run')
-
-
-def _run_local_integ_tests():
-    """ Execute integ tests that run on magma access gateway """
-    with cd(AGW_INTEG_ROOT):
-        run('make local_integ_test')
 
 
 def _set_service_config_var(service, var_name, value):
@@ -542,11 +585,27 @@ def _start_trfserver():
     local(
         'ssh -f -i %s -o UserKnownHostsFile=/dev/null'
         ' -o StrictHostKeyChecking=no -tt %s -p %s'
-        ' sh -c "sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off; '
-        'nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1";'
-        'stty cbreak'
+        ' sh -c "sudo ethtool --offload eth1 rx off tx off; '
+        '";'
         % (key, host, port),
     )
+    local(
+        'ssh -f -i %s -o UserKnownHostsFile=/dev/null'
+        ' -o StrictHostKeyChecking=no -tt %s -p %s'
+        ' sh -c "sudo ethtool --offload eth2 rx off tx off; '
+        'nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1";'
+        % (key, host, port),
+    )
+    local(
+        'ssh -f -i %s -o UserKnownHostsFile=/dev/null'
+        ' -o StrictHostKeyChecking=no -tt %s -p %s'
+        ' sh -c "'
+        'nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1";'
+        % (key, host, port),
+    )
+    # local(
+    #    'stty cbreak'
+    #    )
 
 
 def _make_integ_tests():

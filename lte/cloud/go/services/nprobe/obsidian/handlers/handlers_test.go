@@ -14,7 +14,7 @@
 package handlers_test
 
 import (
-	context2 "context"
+	"context"
 	"testing"
 	"time"
 
@@ -49,7 +49,7 @@ func getNProbeBlobstore(t *testing.T) storage.NProbeStorage {
 
 func TestCreateNetworkProbeTask(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -79,7 +79,7 @@ func TestCreateNetworkProbeTask(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.NetworkProbeTaskEntityType, "test", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.NetworkProbeTaskEntityType, "test", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -100,7 +100,7 @@ func TestCreateNetworkProbeTask(t *testing.T) {
 
 func TestListNetworkProbeTasks(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -119,7 +119,7 @@ func TestListNetworkProbeTasks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.CreateEntities(context2.Background(), "n1", []configurator.NetworkEntity{
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{
 			Key:  "IMSI1234",
 			Type: lte.NetworkProbeTaskEntityType,
@@ -176,7 +176,7 @@ func TestListNetworkProbeTasks(t *testing.T) {
 
 func TestGetNetworkProbeTask(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -195,7 +195,7 @@ func TestGetNetworkProbeTask(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.CreateEntity(context2.Background(), "n1", configurator.NetworkEntity{
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{
 		Key:  "IMSI1234",
 		Type: lte.NetworkProbeTaskEntityType,
 		Config: &models.NetworkProbeTaskDetails{
@@ -229,7 +229,7 @@ func TestGetNetworkProbeTask(t *testing.T) {
 
 func TestUpdateNetworkProbeTask(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -261,7 +261,7 @@ func TestUpdateNetworkProbeTask(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Add the NetworkProbeTask
-	_, err = configurator.CreateEntity(context2.Background(), "n1", configurator.NetworkEntity{
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{
 		Key:  "IMSI1234",
 		Type: lte.NetworkProbeTaskEntityType,
 		Config: &models.NetworkProbeTaskDetails{
@@ -284,7 +284,7 @@ func TestUpdateNetworkProbeTask(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.NetworkProbeTaskEntityType, "IMSI1234", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.NetworkProbeTaskEntityType, "IMSI1234", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -299,7 +299,7 @@ func TestUpdateNetworkProbeTask(t *testing.T) {
 
 func TestDeleteNetworkProbeTask(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -307,7 +307,7 @@ func TestDeleteNetworkProbeTask(t *testing.T) {
 	handlers := handlers.GetHandlers(getNProbeBlobstore(t))
 	deleteNetworkProbeTask := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
-	_, err = configurator.CreateEntities(context2.Background(), "n1", []configurator.NetworkEntity{
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{
 			Key:  "IMSI1234",
 			Type: lte.NetworkProbeTaskEntityType,
@@ -341,7 +341,7 @@ func TestDeleteNetworkProbeTask(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, _, err := configurator.LoadAllEntitiesOfType("n1", lte.NetworkProbeTaskEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, _, err := configurator.LoadAllEntitiesOfType(context.Background(), "n1", lte.NetworkProbeTaskEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(actual))
 	expected := configurator.NetworkEntity{
@@ -362,7 +362,7 @@ func TestDeleteNetworkProbeTask(t *testing.T) {
 
 func TestCreateNetworkProbeDestination(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -392,7 +392,7 @@ func TestCreateNetworkProbeDestination(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.NetworkProbeDestinationEntityType, "test", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.NetworkProbeDestinationEntityType, "test", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -406,7 +406,7 @@ func TestCreateNetworkProbeDestination(t *testing.T) {
 
 func TestListNetworkProbeDestinations(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -425,7 +425,7 @@ func TestListNetworkProbeDestinations(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.CreateEntities(context2.Background(), "n1", []configurator.NetworkEntity{
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{
 			Key:  "1111-2222-3333",
 			Type: lte.NetworkProbeDestinationEntityType,
@@ -474,7 +474,7 @@ func TestListNetworkProbeDestinations(t *testing.T) {
 
 func TestGetNetworkProbeDestination(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -493,7 +493,7 @@ func TestGetNetworkProbeDestination(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.CreateEntity(context2.Background(), "n1", configurator.NetworkEntity{
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{
 		Key:  "1111-2222-3333",
 		Type: lte.NetworkProbeDestinationEntityType,
 		Config: &models.NetworkProbeDestinationDetails{
@@ -523,7 +523,7 @@ func TestGetNetworkProbeDestination(t *testing.T) {
 
 func TestUpdateNetworkProbeDestination(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -556,7 +556,7 @@ func TestUpdateNetworkProbeDestination(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Add the NetworkProbeDestination
-	_, err = configurator.CreateEntity(context2.Background(), "n1", configurator.NetworkEntity{
+	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{
 		Key:  "1111-2222-3333",
 		Type: lte.NetworkProbeDestinationEntityType,
 		Config: &models.NetworkProbeDestinationDetails{
@@ -577,7 +577,7 @@ func TestUpdateNetworkProbeDestination(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.NetworkProbeDestinationEntityType, "1111-2222-3333", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, err := configurator.LoadEntity(context.Background(), "n1", lte.NetworkProbeDestinationEntityType, "1111-2222-3333", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -592,7 +592,7 @@ func TestUpdateNetworkProbeDestination(t *testing.T) {
 
 func TestDeleteNetworkProbeDestination(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(context2.Background(), configurator.Network{ID: "n1"}, serdes.Network)
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -600,7 +600,7 @@ func TestDeleteNetworkProbeDestination(t *testing.T) {
 	handlers := handlers.GetHandlers(getNProbeBlobstore(t))
 	deleteNetworkProbeDestination := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
-	_, err = configurator.CreateEntities(context2.Background(), "n1", []configurator.NetworkEntity{
+	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{
 			Key:  "1111-2222-3333",
 			Type: lte.NetworkProbeDestinationEntityType,
@@ -636,7 +636,7 @@ func TestDeleteNetworkProbeDestination(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, _, err := configurator.LoadAllEntitiesOfType("n1", lte.NetworkProbeDestinationEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	actual, _, err := configurator.LoadAllEntitiesOfType(context.Background(), "n1", lte.NetworkProbeDestinationEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(actual))
 	expected := configurator.NetworkEntity{

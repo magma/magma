@@ -14,12 +14,12 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -280,20 +280,20 @@ func addWrapperAndMakeBlobs(states []*protos.State, hwID string, timeMs uint64, 
 	return blobs, nil
 }
 
-func idToTK(id *protos.StateID) storage.TypeAndKey {
-	return storage.TypeAndKey{Type: id.GetType(), Key: id.GetDeviceID()}
+func idToTK(id *protos.StateID) storage.TK {
+	return storage.TK{Type: id.GetType(), Key: id.GetDeviceID()}
 }
 
-func idsToTKs(ids []*protos.StateID) []storage.TypeAndKey {
-	var tks []storage.TypeAndKey
+func idsToTKs(ids []*protos.StateID) storage.TKs {
+	var tks storage.TKs
 	for _, id := range ids {
 		tks = append(tks, idToTK(id))
 	}
 	return tks
 }
 
-func idAndVersionsToTKs(IDs []*protos.IDAndVersion) []storage.TypeAndKey {
-	var ids []storage.TypeAndKey
+func idAndVersionsToTKs(IDs []*protos.IDAndVersion) storage.TKs {
+	var ids storage.TKs
 	for _, idAndVersion := range IDs {
 		ids = append(ids, idToTK(idAndVersion.Id))
 	}

@@ -468,12 +468,12 @@ func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter Entit
 }
 
 func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity NetworkEntity) (NetworkEntity, error) {
-	exists, err := store.doesEntExist(networkID, entity.GetTypeAndKey())
+	exists, err := store.doesEntExist(networkID, entity.GetTK())
 	if err != nil {
 		return NetworkEntity{}, err
 	}
 	if exists {
-		return NetworkEntity{}, errors.Errorf("an entity '%s' already exists", entity.GetTypeAndKey())
+		return NetworkEntity{}, errors.Errorf("an entity '%s' already exists", entity.GetTK())
 	}
 
 	// Physical ID must be unique across all networks, since we use a gateway's
@@ -514,9 +514,9 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity Netwo
 	// If we were given duplicate edges, get rid of those
 	if funk.NotEmpty(createdEnt.Associations) {
 		createdEnt.Associations = funk.Chain(createdEnt.Associations).
-			Map(func(id *EntityID) storage.TypeAndKey { return id.ToTypeAndKey() }).
+			Map(func(id *EntityID) storage.TK { return id.ToTK() }).
 			Uniq().
-			Map(func(tk storage.TypeAndKey) *EntityID { return (&EntityID{}).FromTypeAndKey(tk) }).
+			Map(func(tk storage.TK) *EntityID { return (&EntityID{}).FromTK(tk) }).
 			Value().([]*EntityID)
 	}
 

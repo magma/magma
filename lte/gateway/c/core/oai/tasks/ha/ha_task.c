@@ -21,8 +21,6 @@ limitations under the License.
 #include "common_defs.h"
 #include "intertask_interface_types.h"
 #include "itti_free_defined_msg.h"
-#include "timer.h"
-#include "timer_messages_types.h"
 
 static void ha_exit(void);
 

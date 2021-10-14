@@ -16,7 +16,6 @@
 import 'jest-dom/extend-expect';
 import * as hooks from '../../../components/context/RefreshContext';
 
-import AddSubscriberButton from '../SubscriberAddDialog';
 import ApnContext from '../../../components/context/ApnContext';
 import LteNetworkContext from '../../../components/context/LteNetworkContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
@@ -24,6 +23,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import PolicyContext from '../../../components/context/PolicyContext';
 import React from 'react';
 import SubscriberContext from '../../../components/context/SubscriberContext';
+import SubscriberDashboard from '../SubscriberOverview';
 import SubscriberDetailConfig from '../SubscriberDetailConfig';
 import defaultTheme from '../../../theme/default.js';
 
@@ -273,7 +273,7 @@ describe('<AddSubscriberButton />', () => {
                   <SubscriberContext.Provider value={subscriberCtx}>
                     <Route
                       path="/nms/:networkId/subscribers"
-                      render={() => <AddSubscriberButton onClose={() => {}} />}
+                      render={() => <SubscriberDashboard />}
                     />
                   </SubscriberContext.Provider>
                 </ApnContext.Provider>
@@ -426,26 +426,26 @@ describe('<AddSubscriberButton />', () => {
 
     // Save subscriber
     fireEvent.click(getByTestId('saveSubscriber'));
-    expect(
-      MagmaAPIBindings.postLteByNetworkIdSubscribersV2,
-    ).toHaveBeenCalledWith({
-      networkId: 'test',
-      subscribers: [
-        {
-          active_apns: undefined,
-          active_policies: undefined,
-          id: 'IMSI00000000001004',
-          lte: {
-            auth_algo: 'MILENAGE',
-            auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
-            auth_opc: 'jie2rw5pLnUPMmZ6OxRgXQ==',
-            state: 'ACTIVE',
-            sub_profile: 'default',
+    expect(MagmaAPIBindings.postLteByNetworkIdSubscribers).toHaveBeenCalledWith(
+      {
+        networkId: 'test',
+        subscribers: [
+          {
+            active_apns: undefined,
+            active_policies: undefined,
+            id: 'IMSI00000000001004',
+            lte: {
+              auth_algo: 'MILENAGE',
+              auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
+              auth_opc: 'jie2rw5pLnUPMmZ6OxRgXQ==',
+              state: 'ACTIVE',
+              sub_profile: 'default',
+            },
+            name: 'IMSI00000000001004',
           },
-          name: 'IMSI00000000001004',
-        },
-      ],
-    });
+        ],
+      },
+    );
   });
 
   it('Verify Subscriber edit', async () => {

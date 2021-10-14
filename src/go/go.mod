@@ -9,11 +9,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-module github.com/magma/magma
+module github.com/magma/magma/src/go
 
 go 1.17
 
 require (
+	github.com/getsentry/sentry-go v0.11.0
 	github.com/golang/mock v1.6.0
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.7.0

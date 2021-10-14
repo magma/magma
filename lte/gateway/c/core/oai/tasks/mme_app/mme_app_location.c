@@ -39,7 +39,6 @@
 #include "mme_config.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_defs.h"
-#include "timer.h"
 #include "3gpp_23.003.h"
 #include "3gpp_36.401.h"
 #include "TrackingAreaIdentity.h"

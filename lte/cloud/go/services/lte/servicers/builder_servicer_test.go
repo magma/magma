@@ -69,28 +69,28 @@ func TestBuilder_Build(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config: newDefaultGatewayConfig(),
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 		},
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 	enb := configurator.NetworkEntity{
 		Type: lte.CellularEnodebEntityType, Key: "enb1",
 		Config:             newDefaultEnodebConfig(),
-		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{lteGW.GetTK()},
 	}
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
 		Edges: []configurator.GraphEdge{
-			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
-			{From: lteGW.GetTypeAndKey(), To: enb.GetTypeAndKey()},
+			{From: gw.GetTK(), To: lteGW.GetTK()},
+			{From: lteGW.GetTK(), To: enb.GetTK()},
 		},
 	}
 
@@ -151,6 +151,7 @@ func TestBuilder_Build(t *testing.T) {
 				UrlPython:    "https://www.example.com/v1/api",
 				UrlNative:    "https://www.example.com/v1/api",
 			},
+			Enable5GFeatures: false,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -163,14 +164,17 @@ func TestBuilder_Build(t *testing.T) {
 			SgiManagementIfaceVlan: "",
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
+			Enable5GFeatures:       false,
+			UpfNodeIdentifier:      "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:        protos.LogLevel_INFO,
-			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf:      []byte("\x80\x00"),
-			SubProfiles:     nil,
-			HssRelayEnabled: false,
-			SyncInterval:    randomizedInterval300,
+			LogLevel:         protos.LogLevel_INFO,
+			LteAuthOp:        []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:       []byte("\x80\x00"),
+			SubProfiles:      nil,
+			HssRelayEnabled:  false,
+			SyncInterval:     randomizedInterval300,
+			Enable5GFeatures: false,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -187,6 +191,7 @@ func TestBuilder_Build(t *testing.T) {
 				UrlPython:    "https://www.example.com/v1/api",
 				UrlNative:    "https://www.example.com/v1/api",
 			},
+			Enable5GFeatures: false,
 		},
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
@@ -218,8 +223,10 @@ func TestBuilder_Build(t *testing.T) {
 		Services: []lte_mconfig.PipelineD_NetworkServices{
 			lte_mconfig.PipelineD_METERING,
 		},
-		HeConfig: &lte_mconfig.PipelineD_HEConfig{},
-		LiUes:    &lte_mconfig.PipelineD_LiUes{},
+		HeConfig:          &lte_mconfig.PipelineD_HEConfig{},
+		LiUes:             &lte_mconfig.PipelineD_LiUes{},
+		Enable5GFeatures:  false,
+		UpfNodeIdentifier: "",
 	}
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
@@ -308,19 +315,19 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newGatewayConfigNonNat("", "", ""),
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		Config:             newGatewayConfigNonNat("", "", "", "", ""),
+		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
 		Edges: []configurator.GraphEdge{
-			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+			{From: gw.GetTK(), To: lteGW.GetTK()},
 		},
 	}
 
@@ -365,6 +372,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               false,
 			CongestionControlEnabled: true,
+			Enable5GFeatures:         false,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -377,14 +385,17 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			SgiManagementIfaceVlan: "",
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
+			Enable5GFeatures:       false,
+			UpfNodeIdentifier:      "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:        protos.LogLevel_INFO,
-			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf:      []byte("\x80\x00"),
-			SubProfiles:     nil,
-			HssRelayEnabled: false,
-			SyncInterval:    randomizedInterval300,
+			LogLevel:         protos.LogLevel_INFO,
+			LteAuthOp:        []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:       []byte("\x80\x00"),
+			SubProfiles:      nil,
+			HssRelayEnabled:  false,
+			SyncInterval:     randomizedInterval300,
+			Enable5GFeatures: false,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -395,6 +406,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+			Enable5GFeatures: false,
 		},
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
@@ -468,13 +480,13 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	// validate SGi vlan tag mconfig
 	lteGW = configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newGatewayConfigNonNat("30", "", ""),
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		Config:             newGatewayConfigNonNat("30", "", "", "", ""),
+		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 	graph = configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
 		Edges: []configurator.GraphEdge{
-			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+			{From: gw.GetTK(), To: lteGW.GetTK()},
 		},
 	}
 	expected["pipelined"] = &lte_mconfig.PipelineD{
@@ -488,6 +500,8 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		SgiManagementIfaceVlan: "30",
 		HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 		LiUes:                  &lte_mconfig.PipelineD_LiUes{},
+		Enable5GFeatures:       false,
+		UpfNodeIdentifier:      "",
 	}
 
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
@@ -498,13 +512,13 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	// validate SGi vlan tag mconfig
 	lteGW = configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newGatewayConfigNonNat("44", "1.2.3.4", ""),
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		Config:             newGatewayConfigNonNat("44", "1.2.3.4", "", "", ""),
+		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 	graph = configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
 		Edges: []configurator.GraphEdge{
-			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+			{From: gw.GetTK(), To: lteGW.GetTK()},
 		},
 	}
 	expected["pipelined"] = &lte_mconfig.PipelineD{
@@ -519,6 +533,8 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		SgiManagementIfaceIpAddr: "1.2.3.4",
 		HeConfig:                 &lte_mconfig.PipelineD_HEConfig{},
 		LiUes:                    &lte_mconfig.PipelineD_LiUes{},
+		Enable5GFeatures:         false,
+		UpfNodeIdentifier:        "",
 	}
 
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
@@ -529,13 +545,13 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	// validate SGi vlan tag mconfig
 	lteGW = configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newGatewayConfigNonNat("55", "1.2.3.4/24", "1.2.3.1"),
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		Config:             newGatewayConfigNonNat("55", "1.2.3.4/24", "1.2.3.1", "", ""),
+		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 	graph = configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
 		Edges: []configurator.GraphEdge{
-			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+			{From: gw.GetTK(), To: lteGW.GetTK()},
 		},
 	}
 	expected["pipelined"] = &lte_mconfig.PipelineD{
@@ -551,12 +567,83 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		SgiManagementIfaceGw:     "1.2.3.1",
 		HeConfig:                 &lte_mconfig.PipelineD_HEConfig{},
 		LiUes:                    &lte_mconfig.PipelineD_LiUes{},
+		UpfNodeIdentifier:        "",
+		Enable5GFeatures:         false,
 	}
 
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
+	// validate SGi ipv6 address and gateway
+	// validate SGi vlan tag mconfig
+	lteGW = configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config:             newGatewayConfigNonNat("55", "", "", "2001:4860:4860:0:0:0:0:1111/64", "2a12:577:9941:f99c:0002:0001:c731:f114"),
+		ParentAssociations: storage.TKs{gw.GetTK()},
+	}
+	graph = configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTK(), To: lteGW.GetTK()},
+		},
+	}
+	expected["pipelined"] = &lte_mconfig.PipelineD{
+		LogLevel:      protos.LogLevel_INFO,
+		UeIpBlock:     "192.168.128.0/24",
+		NatEnabled:    false,
+		DefaultRuleId: "",
+		Services: []lte_mconfig.PipelineD_NetworkServices{
+			lte_mconfig.PipelineD_ENFORCEMENT,
+		},
+		SgiManagementIfaceVlan:     "55",
+		SgiManagementIfaceIpv6Addr: "2001:4860:4860:0:0:0:0:1111/64",
+		SgiManagementIfaceIpv6Gw:   "2a12:577:9941:f99c:0002:0001:c731:f114",
+		HeConfig:                   &lte_mconfig.PipelineD_HEConfig{},
+		LiUes:                      &lte_mconfig.PipelineD_LiUes{},
+		UpfNodeIdentifier:          "",
+		Enable5GFeatures:           false,
+	}
+
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
+	// validate SGi ipv4 and ipv6 address and gateway
+	// validate SGi vlan tag mconfig
+	lteGW = configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config:             newGatewayConfigNonNat("55", "1.2.3.4/24", "1.2.3.1", "2001:4860:4860:0:0:0:0:9999/96", "2a12:577:9941:f99c:0002:0001:c731:f114"),
+		ParentAssociations: storage.TKs{gw.GetTK()},
+	}
+	graph = configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTK(), To: lteGW.GetTK()},
+		},
+	}
+	expected["pipelined"] = &lte_mconfig.PipelineD{
+		LogLevel:      protos.LogLevel_INFO,
+		UeIpBlock:     "192.168.128.0/24",
+		NatEnabled:    false,
+		DefaultRuleId: "",
+		Services: []lte_mconfig.PipelineD_NetworkServices{
+			lte_mconfig.PipelineD_ENFORCEMENT,
+		},
+		SgiManagementIfaceVlan:     "55",
+		SgiManagementIfaceIpAddr:   "1.2.3.4/24",
+		SgiManagementIfaceGw:       "1.2.3.1",
+		SgiManagementIfaceIpv6Addr: "2001:4860:4860:0:0:0:0:9999/96",
+		SgiManagementIfaceIpv6Gw:   "2a12:577:9941:f99c:0002:0001:c731:f114",
+		HeConfig:                   &lte_mconfig.PipelineD_HEConfig{},
+		LiUes:                      &lte_mconfig.PipelineD_LiUes{},
+		UpfNodeIdentifier:          "",
+		Enable5GFeatures:           false,
+	}
+
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
 }
 
 func TestBuilder_Build_BaseCase(t *testing.T) {
@@ -571,7 +658,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
@@ -589,13 +676,13 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             gatewayConfig,
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
 		Edges: []configurator.GraphEdge{
-			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+			{From: gw.GetTK(), To: lteGW.GetTK()},
 		},
 	}
 
@@ -637,6 +724,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               true,
 			CongestionControlEnabled: true,
+			Enable5GFeatures:         false,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -655,15 +743,18 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 				EncryptionKey:          "melting_the_core",
 				HmacKey:                "magmamagma",
 			},
-			LiUes: &lte_mconfig.PipelineD_LiUes{},
+			LiUes:             &lte_mconfig.PipelineD_LiUes{},
+			Enable5GFeatures:  false,
+			UpfNodeIdentifier: "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:        protos.LogLevel_INFO,
-			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf:      []byte("\x80\x00"),
-			SubProfiles:     nil,
-			HssRelayEnabled: false,
-			SyncInterval:    randomizedInterval300,
+			LogLevel:         protos.LogLevel_INFO,
+			LteAuthOp:        []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:       []byte("\x80\x00"),
+			SubProfiles:      nil,
+			HssRelayEnabled:  false,
+			SyncInterval:     randomizedInterval300,
+			Enable5GFeatures: false,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -674,6 +765,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+			Enable5GFeatures: false,
 		},
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
@@ -704,7 +796,7 @@ func TestBuilder_Build_ConfigOverride(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
@@ -713,13 +805,13 @@ func TestBuilder_Build_ConfigOverride(t *testing.T) {
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             gatewayConfig,
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
 		Edges: []configurator.GraphEdge{
-			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+			{From: gw.GetTK(), To: lteGW.GetTK()},
 		},
 	}
 
@@ -787,7 +879,7 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
@@ -805,13 +897,13 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             gatewayConfig,
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
 		Edges: []configurator.GraphEdge{
-			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+			{From: gw.GetTK(), To: lteGW.GetTK()},
 		},
 	}
 
@@ -864,6 +956,7 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 					},
 				},
 			},
+			Enable5GFeatures: false,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -882,15 +975,18 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 				EncryptionKey:          "melting_the_core",
 				HmacKey:                "magmamagma",
 			},
-			LiUes: &lte_mconfig.PipelineD_LiUes{},
+			LiUes:             &lte_mconfig.PipelineD_LiUes{},
+			Enable5GFeatures:  false,
+			UpfNodeIdentifier: "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:        protos.LogLevel_INFO,
-			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf:      []byte("\x80\x00"),
-			SubProfiles:     nil,
-			HssRelayEnabled: false,
-			SyncInterval:    randomizedInterval300,
+			LogLevel:         protos.LogLevel_INFO,
+			LteAuthOp:        []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:       []byte("\x80\x00"),
+			SubProfiles:      nil,
+			HssRelayEnabled:  false,
+			SyncInterval:     randomizedInterval300,
+			Enable5GFeatures: false,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -901,6 +997,7 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+			Enable5GFeatures: false,
 		},
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
@@ -932,17 +1029,17 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config: newDefaultGatewayConfig(),
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 		},
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 	enb := configurator.NetworkEntity{
 		Type: lte.CellularEnodebEntityType, Key: "enb1",
@@ -954,13 +1051,13 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 				TransmitEnabled: swag.Bool(true),
 			},
 		},
-		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{lteGW.GetTK()},
 	}
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
 		Edges: []configurator.GraphEdge{
-			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
-			{From: lteGW.GetTypeAndKey(), To: enb.GetTypeAndKey()},
+			{From: gw.GetTK(), To: lteGW.GetTK()},
+			{From: lteGW.GetTK(), To: enb.GetTK()},
 		},
 	}
 
@@ -1015,6 +1112,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			AttachedEnodebTacs:       []int32{1},
 			NatEnabled:               true,
 			CongestionControlEnabled: true,
+			Enable5GFeatures:         false,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -1027,14 +1125,17 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			SgiManagementIfaceVlan: "",
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
+			Enable5GFeatures:       false,
+			UpfNodeIdentifier:      "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:        protos.LogLevel_INFO,
-			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf:      []byte("\x80\x00"),
-			SubProfiles:     nil,
-			HssRelayEnabled: false,
-			SyncInterval:    randomizedInterval300,
+			LogLevel:         protos.LogLevel_INFO,
+			LteAuthOp:        []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:       []byte("\x80\x00"),
+			SubProfiles:      nil,
+			HssRelayEnabled:  false,
+			SyncInterval:     randomizedInterval300,
+			Enable5GFeatures: false,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -1045,6 +1146,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+			Enable5GFeatures: false,
 		},
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
@@ -1074,28 +1176,28 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config: newDefaultGatewayConfig(),
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 		},
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 	enb := configurator.NetworkEntity{
 		Type: lte.CellularEnodebEntityType, Key: "enb1",
 		Config:             newDefaultUnmanagedEnodebConfig(),
-		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{lteGW.GetTK()},
 	}
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
 		Edges: []configurator.GraphEdge{
-			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
-			{From: lteGW.GetTypeAndKey(), To: enb.GetTypeAndKey()},
+			{From: gw.GetTK(), To: lteGW.GetTK()},
+			{From: lteGW.GetTK(), To: enb.GetTK()},
 		},
 	}
 
@@ -1144,6 +1246,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			AttachedEnodebTacs:       []int32{1},
 			NatEnabled:               true,
 			CongestionControlEnabled: true,
+			Enable5GFeatures:         false,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -1156,14 +1259,17 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			SgiManagementIfaceVlan: "",
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
+			Enable5GFeatures:       false,
+			UpfNodeIdentifier:      "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:        protos.LogLevel_INFO,
-			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf:      []byte("\x80\x00"),
-			SubProfiles:     nil,
-			HssRelayEnabled: false,
-			SyncInterval:    randomizedInterval300,
+			LogLevel:         protos.LogLevel_INFO,
+			LteAuthOp:        []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:       []byte("\x80\x00"),
+			SubProfiles:      nil,
+			HssRelayEnabled:  false,
+			SyncInterval:     randomizedInterval300,
+			Enable5GFeatures: false,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -1174,6 +1280,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+			Enable5GFeatures: false,
 		},
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
@@ -1203,28 +1310,28 @@ func TestBuilder_BuildCongestionControlConfig(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config: newDefaultGatewayConfig(),
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 		},
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 	enb := configurator.NetworkEntity{
 		Type: lte.CellularEnodebEntityType, Key: "enb1",
 		Config:             newDefaultUnmanagedEnodebConfig(),
-		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
+		ParentAssociations: storage.TKs{lteGW.GetTK()},
 	}
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
 		Edges: []configurator.GraphEdge{
-			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
-			{From: lteGW.GetTypeAndKey(), To: enb.GetTypeAndKey()},
+			{From: gw.GetTK(), To: lteGW.GetTK()},
+			{From: lteGW.GetTK(), To: enb.GetTK()},
 		},
 	}
 
@@ -1279,6 +1386,7 @@ func TestBuilder_BuildCongestionControlConfig(t *testing.T) {
 			CongestionControlEnabled: false,
 			AttachedEnodebTacs:       []int32{1},
 			NatEnabled:               true,
+			Enable5GFeatures:         false,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -1291,14 +1399,17 @@ func TestBuilder_BuildCongestionControlConfig(t *testing.T) {
 			SgiManagementIfaceVlan: "",
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
+			Enable5GFeatures:       false,
+			UpfNodeIdentifier:      "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:        protos.LogLevel_INFO,
-			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf:      []byte("\x80\x00"),
-			SubProfiles:     nil,
-			HssRelayEnabled: false,
-			SyncInterval:    randomizedInterval300,
+			LogLevel:         protos.LogLevel_INFO,
+			LteAuthOp:        []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:       []byte("\x80\x00"),
+			SubProfiles:      nil,
+			HssRelayEnabled:  false,
+			SyncInterval:     randomizedInterval300,
+			Enable5GFeatures: false,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -1309,6 +1420,7 @@ func TestBuilder_BuildCongestionControlConfig(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+			Enable5GFeatures: false,
 		},
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
@@ -1338,7 +1450,7 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
-		Associations: []storage.TypeAndKey{
+		Associations: storage.TKs{
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
@@ -1359,16 +1471,16 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             lteGatewayConfigs,
-		Associations:       []storage.TypeAndKey{},
-		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey(), lteGatewayPool.GetTypeAndKey()},
+		Associations:       storage.TKs{},
+		ParentAssociations: storage.TKs{gw.GetTK(), lteGatewayPool.GetTK()},
 	}
-	lteGatewayPool.Associations = []storage.TypeAndKey{lteGW.GetTypeAndKey()}
+	lteGatewayPool.Associations = storage.TKs{lteGW.GetTK()}
 
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGatewayPool, lteGW, gw},
 		Edges: []configurator.GraphEdge{
-			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
-			{From: lteGatewayPool.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+			{From: gw.GetTK(), To: lteGW.GetTK()},
+			{From: lteGatewayPool.GetTK(), To: lteGW.GetTK()},
 		},
 	}
 
@@ -1410,6 +1522,7 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               true,
 			CongestionControlEnabled: true,
+			Enable5GFeatures:         false,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -1419,16 +1532,19 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 			Services: []lte_mconfig.PipelineD_NetworkServices{
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
-			HeConfig: &lte_mconfig.PipelineD_HEConfig{},
-			LiUes:    &lte_mconfig.PipelineD_LiUes{},
+			HeConfig:          &lte_mconfig.PipelineD_HEConfig{},
+			LiUes:             &lte_mconfig.PipelineD_LiUes{},
+			Enable5GFeatures:  false,
+			UpfNodeIdentifier: "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:        protos.LogLevel_INFO,
-			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf:      []byte("\x80\x00"),
-			SubProfiles:     nil,
-			HssRelayEnabled: false,
-			SyncInterval:    randomizedInterval300,
+			LogLevel:         protos.LogLevel_INFO,
+			LteAuthOp:        []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:       []byte("\x80\x00"),
+			SubProfiles:      nil,
+			HssRelayEnabled:  false,
+			SyncInterval:     randomizedInterval300,
+			Enable5GFeatures: false,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -1439,6 +1555,7 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+			Enable5GFeatures: false,
 		},
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
@@ -1522,7 +1639,8 @@ func newDefaultGatewayConfig() *lte_models.GatewayCellularConfigs {
 	}
 }
 
-func newGatewayConfigNonNat(vlan string, sgi_ip string, sgi_gw string) *lte_models.GatewayCellularConfigs {
+// TODO: simplify function args.
+func newGatewayConfigNonNat(vlan string, sgi_ip string, sgi_gw string, sgi_ipv6 string, sgi_ipv6_gw string) *lte_models.GatewayCellularConfigs {
 	return &lte_models.GatewayCellularConfigs{
 		Ran: &lte_models.GatewayRanConfigs{
 			Pci:             260,
@@ -1534,6 +1652,8 @@ func newGatewayConfigNonNat(vlan string, sgi_ip string, sgi_gw string) *lte_mode
 			SgiManagementIfaceVlan:     vlan,
 			SgiManagementIfaceStaticIP: sgi_ip,
 			SgiManagementIfaceGw:       sgi_gw,
+			SgiManagementIfaceIPV6Addr: strfmt.IPv6(sgi_ipv6),
+			SgiManagementIfaceIPV6Gw:   strfmt.IPv6(sgi_ipv6_gw),
 		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",

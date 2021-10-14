@@ -1,0 +1,21 @@
+---
+name: Testim Check
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+  workflow_dispatch:
+
+jobs:
+  testim_check_job:
+    runs-on: ubuntu-latest
+    name: Testim Check
+    steps:
+      - name: Setup Node v12
+        uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+      - name: Install Testim CLI
+        run: npm install -g @testim/testim-cli
+      - name: Run Daily NMS Tests
+        run: testim --token ${{ secrets.TESTIM_TOKEN }} --project ${{ secrets.TESTIM_PROJECT_ID }} --test-plan "Daily Test Plan"

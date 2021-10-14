@@ -14,8 +14,8 @@ limitations under the License.
 package client
 
 import (
+	"context"
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 
 	"magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
