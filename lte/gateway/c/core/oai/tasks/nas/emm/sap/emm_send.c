@@ -1663,9 +1663,9 @@ status_code_e emm_send_emm_information(
    * optional - Universal time and Local Time Zone
    */
   t   = time(NULL);
-  tmp = localtime_r(&t, &updateTime);
+  tmp = gmtime_r(&t, &updateTime);
   if (tmp == NULL) {
-    OAILOG_ERROR(LOG_NAS_EMM, "localtime() failed to get local timer info");
+    OAILOG_ERROR(LOG_NAS_EMM, "gmtime() failed to get local timer info");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
   size += TIME_ZONE_AND_TIME_MAX_LENGTH;
