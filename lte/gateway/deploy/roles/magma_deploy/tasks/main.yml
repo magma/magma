@@ -22,6 +22,7 @@
   apt:
     name: "{{ packages }}"
     only_upgrade: yes
+    force: yes
   vars:
     packages:
       - ca-certificates

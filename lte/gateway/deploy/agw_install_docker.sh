@@ -12,7 +12,7 @@
 
 WHOAMI=$(whoami)
 MAGMA_USER="ubuntu"
-MAGMA_VERSION="${MAGMA_VERSION:-v1.6}"
+MAGMA_VERSION="${MAGMA_VERSION:-master}"
 GIT_URL="${GIT_URL:-https://github.com/magma/magma.git}"
 DEPLOY_PATH="/opt/magma/lte/gateway/deploy"
 
