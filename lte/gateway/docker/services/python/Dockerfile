@@ -139,8 +139,9 @@ COPY --from=builder /magma/orc8r/gateway/python/scripts/generate_nghttpx_config.
 COPY --from=builder /magma/orc8r/gateway/python/scripts/generate_service_config.py /usr/local/bin/generate_service_config.py
 COPY --from=builder /magma/orc8r/gateway/python/scripts/generate_fluent_bit_config.py /usr/local/bin/generate_fluent_bit_config.py
 COPY --from=builder /magma/lte/gateway/deploy/roles/magma/files/set_irq_affinity /usr/local/bin/set_irq_affinity
+COPY --from=builder /magma/lte/gateway/deploy/roles/magma/files/magma-create-gtp-port.sh /usr/local/bin/magma-create-gtp-port.sh
 
-RUN chmod -R +x /usr/local/bin/generate* /usr/local/bin/set_irq_affinity /usr/local/bin/checkin_cli.py && \
+RUN chmod -R +x /usr/local/bin/generate* /usr/local/bin/set_irq_affinity /usr/local/bin/checkin_cli.py /usr/local/bin/magma-create-gtp-port.sh && \
   dpkg -i /var/tmp/python3-aioeventlet* && \
   pip install jsonpointer>$JSONPOINTER_VERSION && \
   mkdir -p /var/opt/magma/

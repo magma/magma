@@ -94,7 +94,7 @@ Pull images and start containers
 ```
 cd /var/opt/magma/docker
 docker-compose pull
-docker-compose -f docker-compose.yml up -d
+docker-compose -f docker-compose.yaml up -d
 ```
 
 You can check your connection status with
@@ -112,4 +112,3 @@ Success!
 # PLMN changes may be required for testing
 
 We tested with 00101 PLMN. Your testing might require changes to the GUMMEI_LIST, TAI_LIST, and TAC_LIST configuration items in lte/gateway/docker/mme/configs/mme.conf that must be edited before your build of the images.
-

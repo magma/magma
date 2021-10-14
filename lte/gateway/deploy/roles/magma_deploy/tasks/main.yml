@@ -17,6 +17,17 @@
   tags:
     - agwc
 
+- name: Ensure ca-certificates is up to date
+  become: yes
+  apt:
+    name: "{{ packages }}"
+    only_upgrade: yes
+  vars:
+    packages:
+      - ca-certificates
+  tags:
+    - agwc
+
 - name: Configuring private package manager.
   copy:
     content: >
@@ -109,6 +120,13 @@
       - openvswitch-switch
   tags:
     - never
+    - agwc
+
+- name: Create interfaces.d if it does not exist
+  file:
+    path: /etc/network/interfaces.d
+    state: directory
+  tags:
     - agwc
 
 # Copy these files in containerized agw only
