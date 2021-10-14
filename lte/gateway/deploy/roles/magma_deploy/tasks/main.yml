@@ -210,7 +210,6 @@
     - agwc
 
 - name: Unlink resolv.conf
-  shell: unlink /etc/resolv.conf
   file:
     path: /etc/resolv.conf
     state: abesent
