@@ -212,7 +212,7 @@
 - name: Unlink resolv.conf
   file:
     path: /etc/resolv.conf
-    state: abesent
+    state: absent
   tags:
     - agwc
 
