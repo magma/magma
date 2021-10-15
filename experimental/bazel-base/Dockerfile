@@ -32,7 +32,8 @@ RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/dow
 RUN apt-get -y install --no-install-recommends \
     autoconf=2.69-11.1 \
     automake=1:1.16.1-4ubuntu6 \
-    libtool=2.4.6-14
+    libtool=2.4.6-14 \
+    libssl-dev=1.1.1f-1ubuntu2.8
 
 # dependency of @sentry_native//:sentry
 RUN apt-get -y install --no-install-recommends libcurl4-openssl-dev
