@@ -22,6 +22,8 @@
 #include "assertions.h"
 
 static bool parse_bool(const char* str);
+void served_tai_config_init(served_tai_t* served_tai);
+void clear_served_tai_config(served_tai_t* served_tai);
 
 struct amf_config_s amf_config = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
 
@@ -100,30 +102,9 @@ void plmn_support_list_config_init(plmn_support_list_t* plmn_support_list) {
   plmn_support_list->plmn_support[0].plmn.mcc_digit1 = 0;
   plmn_support_list->plmn_support[0].plmn.mcc_digit2 = 0;
   plmn_support_list->plmn_support[0].plmn.mcc_digit3 = 0x0F;
-  plmn_support_list->plmn_support[0].s_nssai.sst =
-      NGAP_S_NSSAI_ST_DEFAULT_VALUE;
+  plmn_support_list->plmn_support[0].s_nssai.sst = AMF_S_NSSAI_ST_DEFAULT_VALUE;
   plmn_support_list->plmn_support[0].s_nssai.sd.v =
-      NGAP_S_NSSAI_SD_INVALID_VALUE;
-}
-
-/***************************************************************************
-**                                                                        **
-** Name:   m5g_served_tai_config_init()                                   **
-**                                                                        **
-** Description: Initializes default values for served_tai                 **
-**                                                                        **
-**                                                                        **
-***************************************************************************/
-void m5g_served_tai_config_init(m5g_served_tai_t* served_tai) {
-  served_tai->nb_tai          = 1;
-  served_tai->plmn_mcc        = calloc(1, sizeof(*served_tai->plmn_mcc));
-  served_tai->plmn_mnc        = calloc(1, sizeof(*served_tai->plmn_mnc));
-  served_tai->plmn_mnc_len    = calloc(1, sizeof(*served_tai->plmn_mnc_len));
-  served_tai->tac             = calloc(1, sizeof(*served_tai->tac));
-  served_tai->plmn_mcc[0]     = PLMN_MCC;
-  served_tai->plmn_mnc[0]     = PLMN_MNC;
-  served_tai->plmn_mnc_len[0] = PLMN_MNC_LEN;
-  served_tai->tac[0]          = PLMN_TAC;
+      AMF_S_NSSAI_SD_INVALID_VALUE;
 }
 
 /***************************************************************************
@@ -162,7 +143,7 @@ void amf_config_init(amf_config_t* config) {
   nas5g_config_init(&config->nas_config);
   guamfi_config_init(&config->guamfi);
   plmn_support_list_config_init(&config->plmn_support_list);
-  m5g_served_tai_config_init(&config->served_tai);
+  served_tai_config_init(&config->served_tai);
 }
 
 /***************************************************************************
@@ -188,19 +169,16 @@ int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* config_pP) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_config_parse_file(amf_config_t* config_pP) {
-  config_t cfg                   = {0};
-  config_setting_t* setting_mme  = NULL;
-  config_setting_t* setting      = NULL;
-  config_setting_t* sub2setting  = NULL;
-  config_setting_t* setting_ngap = NULL;
-  int aint                       = 0;
-  int i = 0, n = 0, stop_index = 0, num = 0;
+int amf_config_parse_file(
+    amf_config_t* config_pP, const mme_config_t* mme_config_p) {
+  config_t cfg                  = {0};
+  config_setting_t* setting     = NULL;
+  config_setting_t* sub2setting = NULL;
+  config_setting_t* setting_amf = NULL;
+  int i = 0, num = 0;
   const char* astring         = NULL;
-  const char* tac             = NULL;
   const char* mcc             = NULL;
   const char* mnc             = NULL;
-  bool swap                   = false;
   const char* region_id       = NULL;
   const char* set_id          = NULL;
   const char* pointer         = NULL;
@@ -230,456 +208,15 @@ int amf_config_parse_file(amf_config_t* config_pP) {
     AssertFatal(0, "No AMF configuration file provided!\n");
   }
 
-  setting_mme = config_lookup(&cfg, MME_CONFIG_STRING_MME_CONFIG);
+  copy_amf_config_from_mme_config(config_pP, mme_config_p);
 
-  if (setting_mme != NULL) {
-    // LOGGING setting
-    setting = config_setting_get_member(setting_mme, LOG_CONFIG_STRING_LOGGING);
-
-    if (setting != NULL) {
-      if (config_setting_lookup_string(
-              setting, LOG_CONFIG_STRING_OUTPUT, (const char**) &astring)) {
-        if (astring != NULL) {
-          if (config_pP->log_config.output) {
-            bassigncstr(config_pP->log_config.output, astring);
-          } else {
-            config_pP->log_config.output = bfromcstr(astring);
-          }
-        }
-      }
-
-      if (config_setting_lookup_string(
-              setting, LOG_CONFIG_STRING_OUTPUT_THREAD_SAFE,
-              (const char**) &astring)) {
-        if (astring != NULL) {
-          config_pP->log_config.is_output_thread_safe = parse_bool(astring);
-        }
-      }
-
-      if (config_setting_lookup_string(
-              setting, LOG_CONFIG_STRING_COLOR, (const char**) &astring)) {
-        if (strcasecmp("yes", astring) == 0)
-          config_pP->log_config.color = true;
-        else
-          config_pP->log_config.color = false;
-      }
-
-      if (config_setting_lookup_string(
-              setting, LOG_CONFIG_STRING_SCTP_LOG_LEVEL,
-              (const char**) &astring))
-        config_pP->log_config.sctp_log_level = OAILOG_LEVEL_STR2INT(astring);
-
-      if (config_setting_lookup_string(
-              setting, LOG_CONFIG_STRING_S1AP_LOG_LEVEL,
-              (const char**) &astring))
-        config_pP->log_config.s1ap_log_level = OAILOG_LEVEL_STR2INT(astring);
-
-      if (config_setting_lookup_string(
-              setting, LOG_CONFIG_STRING_NAS_LOG_LEVEL,
-              (const char**) &astring))
-        config_pP->log_config.nas_log_level = OAILOG_LEVEL_STR2INT(astring);
-
-      if (config_setting_lookup_string(
-              setting, LOG_CONFIG_STRING_MME_APP_LOG_LEVEL,
-              (const char**) &astring))
-        config_pP->log_config.amf_app_log_level = OAILOG_LEVEL_STR2INT(astring);
-
-      if (config_setting_lookup_string(
-              setting, LOG_CONFIG_STRING_SECU_LOG_LEVEL,
-              (const char**) &astring))
-        config_pP->log_config.secu_log_level = OAILOG_LEVEL_STR2INT(astring);
-
-      if (config_setting_lookup_string(
-              setting, LOG_CONFIG_STRING_UDP_LOG_LEVEL,
-              (const char**) &astring))
-        config_pP->log_config.udp_log_level = OAILOG_LEVEL_STR2INT(astring);
-
-      if (config_setting_lookup_string(
-              setting, LOG_CONFIG_STRING_UTIL_LOG_LEVEL,
-              (const char**) &astring))
-        config_pP->log_config.util_log_level = OAILOG_LEVEL_STR2INT(astring);
-
-      if (config_setting_lookup_string(
-              setting, LOG_CONFIG_STRING_ITTI_LOG_LEVEL,
-              (const char**) &astring))
-        config_pP->log_config.itti_log_level = OAILOG_LEVEL_STR2INT(astring);
-      if (config_setting_lookup_string(
-              setting, LOG_CONFIG_STRING_GTPV1U_LOG_LEVEL,
-              (const char**) &astring))
-        config_pP->log_config.gtpv1u_log_level = OAILOG_LEVEL_STR2INT(astring);
-
-      if ((config_setting_lookup_string(
-              setting_mme, MME_CONFIG_STRING_ASN1_VERBOSITY,
-              (const char**) &astring))) {
-        if (strcasecmp(astring, MME_CONFIG_STRING_ASN1_VERBOSITY_NONE) == 0)
-          config_pP->log_config.asn1_verbosity_level = 0;
-        else if (
-            strcasecmp(astring, MME_CONFIG_STRING_ASN1_VERBOSITY_ANNOYING) == 0)
-          config_pP->log_config.asn1_verbosity_level = 2;
-        else if (
-            strcasecmp(astring, MME_CONFIG_STRING_ASN1_VERBOSITY_INFO) == 0)
-          config_pP->log_config.asn1_verbosity_level = 1;
-        else
-          config_pP->log_config.asn1_verbosity_level = 0;
-      }
-    }
-
-    // GENERAL AMF SETTINGS
-    if ((config_setting_lookup_string(
-            setting_mme, MME_CONFIG_STRING_REALM, (const char**) &astring))) {
-      config_pP->realm = bfromcstr(astring);
-    }
-
-    if ((config_setting_lookup_string(
-            setting_mme, MME_CONFIG_STRING_FULL_NETWORK_NAME,
-            (const char**) &astring))) {
-      config_pP->full_network_name = bfromcstr(astring);
-    }
-
-    if ((config_setting_lookup_string(
-            setting_mme, MME_CONFIG_STRING_SHORT_NETWORK_NAME,
-            (const char**) &astring))) {
-      config_pP->short_network_name = bfromcstr(astring);
-    }
-
-    if ((config_setting_lookup_int(
-            setting_mme, MME_CONFIG_STRING_DAYLIGHT_SAVING_TIME, &aint))) {
-      config_pP->daylight_saving_time = (uint32_t) aint;
-    }
-
-    if ((config_setting_lookup_string(
-            setting_mme, MME_CONFIG_STRING_PID_DIRECTORY,
-            (const char**) &astring))) {
-      config_pP->pid_dir = bfromcstr(astring);
-    }
-
-    if ((config_setting_lookup_int(
-            setting_mme, MME_CONFIG_STRING_MAXENB, &aint))) {
-      config_pP->max_gnbs = (uint32_t) aint;
-    }
-
-    if ((config_setting_lookup_int(
-            setting_mme, MME_CONFIG_STRING_MAXUE, &aint))) {
-      config_pP->max_ues = (uint32_t) aint;
-    }
-
-    if ((config_setting_lookup_int(
-            setting_mme, MME_CONFIG_STRING_RELATIVE_CAPACITY, &aint))) {
-      config_pP->relative_capacity = (uint8_t) aint;
-    }
-
-    if ((config_setting_lookup_string(
-            setting_mme, MME_CONFIG_STRING_USE_STATELESS,
-            (const char**) &astring))) {
-      config_pP->use_stateless = parse_bool(astring);
-    }
-
-    if ((config_setting_lookup_string(
-            setting_mme, MME_CONFIG_STRING_UNAUTHENTICATED_IMSI_SUPPORTED,
-            (const char**) &astring))) {
-      config_pP->unauthenticated_imsi_supported = parse_bool(astring);
-    }
-
-    // guamfi SETTING
-    setting =
-        config_setting_get_member(setting_mme, MME_CONFIG_STRING_GUAMFI_LIST);
-    config_pP->guamfi.nb = 0;
-    if (setting != NULL) {
-      num = config_setting_length(setting);
-      AssertFatal(
-          num >= MIN_GUMMEI,
-          "Not even one guamfi is configured, configure minimum one guamfi \n");
-      AssertFatal(
-          num <= MAX_GUMMEI,
-          "Number of guamfis configured:%d exceeds number of guamfis supported "
-          ":%d \n",
-          num, MAX_GUMMEI);
-
-      for (i = 0; i < num; i++) {
-        sub2setting = config_setting_get_elem(setting, i);
-        if (sub2setting != NULL) {
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
-            AssertFatal(
-                strlen(mcc) == MAX_MCC_LENGTH,
-                "Bad MCC length (%ld), it must be %u digit ex: 001",
-                strlen(mcc), MAX_MCC_LENGTH);
-            char c[2]                                   = {mcc[0], 0};
-            config_pP->guamfi.guamfi[i].plmn.mcc_digit1 = (uint8_t) atoi(c);
-            c[0]                                        = mcc[1];
-            config_pP->guamfi.guamfi[i].plmn.mcc_digit2 = (uint8_t) atoi(c);
-            c[0]                                        = mcc[2];
-            config_pP->guamfi.guamfi[i].plmn.mcc_digit3 = (uint8_t) atoi(c);
-          }
-
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
-            AssertFatal(
-                (strlen(mnc) == MIN_MNC_LENGTH) ||
-                    (strlen(mnc) == MAX_MNC_LENGTH),
-                "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or 123",
-                strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
-            char c[2]                                   = {mnc[0], 0};
-            config_pP->guamfi.guamfi[i].plmn.mnc_digit1 = (uint8_t) atoi(c);
-            c[0]                                        = mnc[1];
-            config_pP->guamfi.guamfi[i].plmn.mnc_digit2 = (uint8_t) atoi(c);
-            if (3 == strlen(mnc)) {
-              c[0]                                        = mnc[2];
-              config_pP->guamfi.guamfi[i].plmn.mnc_digit3 = (uint8_t) atoi(c);
-            } else {
-              config_pP->guamfi.guamfi[i].plmn.mnc_digit3 = 0x0F;
-            }
-          }
-
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_AMF_REGION_ID, &region_id))) {
-            config_pP->guamfi.guamfi[i].amf_regionid =
-                (uint16_t) atoi(region_id);
-          }
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_AMF_SET_ID, &set_id))) {
-            config_pP->guamfi.guamfi[i].amf_set_id = (uint8_t) atoi(set_id);
-          }
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_AMF_POINTER, &pointer))) {
-            config_pP->guamfi.guamfi[i].amf_pointer = (uint8_t) atoi(pointer);
-          }
-
-          config_pP->guamfi.nb += 1;
-        }
-      }
-    }
-
-    // TAI list setting
-    setting =
-        config_setting_get_member(setting_mme, MME_CONFIG_STRING_TAI_LIST);
-    if (setting != NULL) {
-      num = config_setting_length(setting);
-      if (num < MIN_TAI_SUPPORTED) {
-        fprintf(
-            stderr,
-            "ERROR: No TAI is configured.  At least one TAI must be "
-            "configured.\n");
-      }
-
-      if (config_pP->served_tai.nb_tai != num) {
-        if (config_pP->served_tai.plmn_mcc != NULL)
-          free_wrapper((void**) &config_pP->served_tai.plmn_mcc);
-
-        if (config_pP->served_tai.plmn_mnc != NULL)
-          free_wrapper((void**) &config_pP->served_tai.plmn_mnc);
-
-        if (config_pP->served_tai.plmn_mnc_len != NULL)
-          free_wrapper((void**) &config_pP->served_tai.plmn_mnc_len);
-
-        if (config_pP->served_tai.tac != NULL)
-          free_wrapper((void**) &config_pP->served_tai.tac);
-
-        config_pP->served_tai.plmn_mcc =
-            calloc(num, sizeof(*config_pP->served_tai.plmn_mcc));
-        config_pP->served_tai.plmn_mnc =
-            calloc(num, sizeof(*config_pP->served_tai.plmn_mnc));
-        config_pP->served_tai.plmn_mnc_len =
-            calloc(num, sizeof(*config_pP->served_tai.plmn_mnc_len));
-        config_pP->served_tai.tac =
-            calloc(num, sizeof(*config_pP->served_tai.tac));
-      }
-
-      config_pP->served_tai.nb_tai = num;
-
-      for (i = 0; i < num; i++) {
-        sub2setting = config_setting_get_elem(setting, i);
-
-        if (sub2setting != NULL) {
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
-            config_pP->served_tai.plmn_mcc[i] = (uint16_t) atoi(mcc);
-          }
-
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
-            config_pP->served_tai.plmn_mnc[i]     = (uint16_t) atoi(mnc);
-            config_pP->served_tai.plmn_mnc_len[i] = strlen(mnc);
-
-            AssertFatal(
-                (config_pP->served_tai.plmn_mnc_len[i] == MIN_MNC_LENGTH) ||
-                    (config_pP->served_tai.plmn_mnc_len[i] == MAX_MNC_LENGTH),
-                "Bad MNC length %u, must be %d or %d",
-                config_pP->served_tai.plmn_mnc_len[i], MIN_MNC_LENGTH,
-                MAX_MNC_LENGTH);
-          }
-
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_TAC, &tac))) {
-            config_pP->served_tai.tac[i] = (uint16_t) atoi(tac);
-
-            if (!TAC_IS_VALID(config_pP->served_tai.tac[i])) {
-              fprintf(
-                  stderr, "ERROR: Invalid TAC value " TAC_FMT,
-                  config_pP->served_tai.tac[i]);
-            }
-          }
-        }
-      }
-
-      // sort TAI list
-      n = config_pP->served_tai.nb_tai;
-      do {
-        stop_index = 0;
-        for (i = 1; i < n; i++) {
-          swap = false;
-          if (config_pP->served_tai.plmn_mcc[i - 1] >
-              config_pP->served_tai.plmn_mcc[i]) {
-            swap = true;
-          } else if (
-              config_pP->served_tai.plmn_mcc[i - 1] ==
-              config_pP->served_tai.plmn_mcc[i]) {
-            if (config_pP->served_tai.plmn_mnc[i - 1] >
-                config_pP->served_tai.plmn_mnc[i]) {
-              swap = true;
-            } else if (
-                config_pP->served_tai.plmn_mnc[i - 1] ==
-                config_pP->served_tai.plmn_mnc[i]) {
-              if (config_pP->served_tai.tac[i - 1] >
-                  config_pP->served_tai.tac[i]) {
-                swap = true;
-              }
-            }
-          }
-          if (true == swap) {
-            uint16_t swap16;
-            swap16 = config_pP->served_tai.plmn_mcc[i - 1];
-            config_pP->served_tai.plmn_mcc[i - 1] =
-                config_pP->served_tai.plmn_mcc[i];
-            config_pP->served_tai.plmn_mcc[i] = swap16;
-
-            swap16 = config_pP->served_tai.plmn_mnc[i - 1];
-            config_pP->served_tai.plmn_mnc[i - 1] =
-                config_pP->served_tai.plmn_mnc[i];
-            config_pP->served_tai.plmn_mnc[i] = swap16;
-
-            swap16 = config_pP->served_tai.plmn_mnc_len[i - 1];
-            config_pP->served_tai.plmn_mnc_len[i - 1] =
-                config_pP->served_tai.plmn_mnc_len[i];
-            config_pP->served_tai.plmn_mnc_len[i] = swap16;
-
-            swap16                           = config_pP->served_tai.tac[i - 1];
-            config_pP->served_tai.tac[i - 1] = config_pP->served_tai.tac[i];
-            config_pP->served_tai.tac[i]     = swap16;
-
-            stop_index = i;
-          }
-        }
-        n = stop_index;
-      } while (0 != n);
-
-      // helper for determination of list type (global view), we could make
-      // sublists with different types, but keep things simple for now
-      config_pP->served_tai.list_type =
-          TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS;
-      for (i = 1; i < config_pP->served_tai.nb_tai; i++) {
-        if ((config_pP->served_tai.plmn_mcc[i] !=
-             config_pP->served_tai.plmn_mcc[0]) ||
-            (config_pP->served_tai.plmn_mnc[i] !=
-             config_pP->served_tai.plmn_mnc[0])) {
-          config_pP->served_tai.list_type =
-              TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS;
-          break;
-        } else if (
-            (config_pP->served_tai.plmn_mcc[i] !=
-             config_pP->served_tai.plmn_mcc[i - 1]) ||
-            (config_pP->served_tai.plmn_mnc[i] !=
-             config_pP->served_tai.plmn_mnc[i - 1])) {
-          config_pP->served_tai.list_type =
-              TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS;
-          break;
-        }
-        if (config_pP->served_tai.tac[i] !=
-            (config_pP->served_tai.tac[i - 1] + 1)) {
-          config_pP->served_tai.list_type =
-              TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS;
-        }
-      }
-    }
-  }
-
-  // GUAMFI SETTING
-  setting =
-      config_setting_get_member(setting_mme, MME_CONFIG_STRING_GUAMFI_LIST);
-  config_pP->guamfi.nb = 0;
-  if (setting != NULL) {
-    num = config_setting_length(setting);
-    OAILOG_DEBUG(LOG_AMF_APP, "Number of GUAMFIs configured =%d\n", num);
-    AssertFatal(
-        num >= MIN_GUAMI,
-        "Not even one GUAMI is configured, configure minimum one GUMMEI \n");
-    AssertFatal(
-        num <= MAX_GUAMI,
-        "Number of GUAMIs configured:%d exceeds number of GUMMEIs supported "
-        ":%d \n",
-        num, MAX_GUMMEI);
-
-    for (i = 0; i < num; i++) {
-      sub2setting = config_setting_get_elem(setting, i);
-
-      if (sub2setting != NULL) {
-        if ((config_setting_lookup_string(
-                sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
-          AssertFatal(
-              strlen(mcc) == MAX_MCC_LENGTH,
-              "Bad MCC length (%ld), it must be %u digit ex: 001", strlen(mcc),
-              MAX_MCC_LENGTH);
-          char c[2]                                   = {mcc[0], 0};
-          config_pP->guamfi.guamfi[i].plmn.mcc_digit1 = (uint8_t) atoi(c);
-          c[0]                                        = mcc[1];
-          config_pP->guamfi.guamfi[i].plmn.mcc_digit2 = (uint8_t) atoi(c);
-          c[0]                                        = mcc[2];
-          config_pP->guamfi.guamfi[i].plmn.mcc_digit3 = (uint8_t) atoi(c);
-        }
-
-        if ((config_setting_lookup_string(
-                sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
-          AssertFatal(
-              (strlen(mnc) == MIN_MNC_LENGTH) ||
-                  (strlen(mnc) == MAX_MNC_LENGTH),
-              "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or 123",
-              strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
-          char c[2]                                   = {mnc[0], 0};
-          config_pP->guamfi.guamfi[i].plmn.mnc_digit1 = (uint8_t) atoi(c);
-          c[0]                                        = mnc[1];
-          config_pP->guamfi.guamfi[i].plmn.mnc_digit2 = (uint8_t) atoi(c);
-          if (3 == strlen(mnc)) {
-            c[0]                                        = mnc[2];
-            config_pP->guamfi.guamfi[i].plmn.mnc_digit3 = (uint8_t) atoi(c);
-          } else {
-            config_pP->guamfi.guamfi[i].plmn.mnc_digit3 = 0x0F;
-          }
-        }
-
-        if ((config_setting_lookup_string(
-                sub2setting, MME_CONFIG_STRING_AMF_REGION_ID, &mnc))) {
-          config_pP->guamfi.guamfi[i].amf_regionid = (uint16_t) atoi(mnc);
-        }
-        if ((config_setting_lookup_string(
-                sub2setting, MME_CONFIG_STRING_AMF_SET_ID, &mnc))) {
-          config_pP->guamfi.guamfi[i].amf_set_id = (uint8_t) atoi(mnc);
-        }
-        if ((config_setting_lookup_string(
-                sub2setting, MME_CONFIG_STRING_AMF_POINTER, &mnc))) {
-          config_pP->guamfi.guamfi[i].amf_pointer = (uint8_t) atoi(mnc);
-        }
-        config_pP->guamfi.nb += 1;
-      }
-    }
-  }
-
-  setting_ngap = config_lookup(&cfg, NGAP_CONFIG_STRING_NGAP_CONFIG);
-  if (setting_ngap != NULL) {
+  setting_amf = config_lookup(&cfg, AMF_CONFIG_STRING_AMF_CONFIG);
+  if (setting_amf != NULL) {
     if (config_setting_lookup_string(
-            setting_ngap, NGAP_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
+            setting_amf, AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
             (const char**) &default_dns) &&
         config_setting_lookup_string(
-            setting_ngap, NGAP_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
+            setting_amf, AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
             (const char**) &default_dns_sec)) {
       IPV4_STR_ADDR_TO_INADDR(
           default_dns, config_pP->ipv4.default_dns,
@@ -691,13 +228,13 @@ int amf_config_parse_file(amf_config_t* config_pP) {
 
     // AMF NAME
     if ((config_setting_lookup_string(
-            setting_ngap, NGAP_CONFIG_AMF_NAME, (const char**) &astring))) {
+            setting_amf, AMF_CONFIG_AMF_NAME, (const char**) &astring))) {
       config_pP->amf_name = bfromcstr(astring);
     }
 
     // AMF_PLMN_SUPPORT SETTING
     setting = config_setting_get_member(
-        setting_ngap, NGAP_CONFIG_AMF_PLMN_SUPPORT_LIST);
+        setting_amf, AMF_CONFIG_AMF_PLMN_SUPPORT_LIST);
     config_pP->plmn_support_list.plmn_support_count = 0;
     if (setting != NULL) {
       num = config_setting_length(setting);
@@ -757,13 +294,13 @@ int amf_config_parse_file(amf_config_t* config_pP) {
           }
 
           if (config_setting_lookup_string(
-                  sub2setting, NGAP_CONFIG_PLMN_SUPPORT_SST, &set_sst)) {
+                  sub2setting, AMF_CONFIG_PLMN_SUPPORT_SST, &set_sst)) {
             config_pP->plmn_support_list.plmn_support[i].s_nssai.sst =
                 (uint8_t) atoi(set_sst);
           }
 
           if (config_setting_lookup_string(
-                  sub2setting, NGAP_CONFIG_PLMN_SUPPORT_SD, &set_sd)) {
+                  sub2setting, AMF_CONFIG_PLMN_SUPPORT_SD, &set_sd)) {
             uint64_t default_sd_val = 0;
             errno                   = 0;
             default_sd_val          = strtoll(set_sd, NULL, 16);
@@ -779,8 +316,77 @@ int amf_config_parse_file(amf_config_t* config_pP) {
         }  // If MCC/MNC/Slice Information is found
       }    // For the number of entries in the list for PLMN SUPPORT
     }      // PLMN_SUPPORT LIST is present
-  }        // NGP Setting is not NULL
 
+    // guamfi SETTING
+    setting =
+        config_setting_get_member(setting_amf, AMF_CONFIG_STRING_GUAMFI_LIST);
+    config_pP->guamfi.nb = 0;
+    if (setting != NULL) {
+      num = config_setting_length(setting);
+      AssertFatal(
+          num >= MIN_GUMMEI,
+          "Not even one guamfi is configured, configure minimum one guamfi \n");
+      AssertFatal(
+          num <= MAX_GUMMEI,
+          "Number of guamfis configured:%d exceeds number of guamfis supported "
+          ":%d \n",
+          num, MAX_GUMMEI);
+
+      for (i = 0; i < num; i++) {
+        sub2setting = config_setting_get_elem(setting, i);
+        if (sub2setting != NULL) {
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
+            AssertFatal(
+                strlen(mcc) == MAX_MCC_LENGTH,
+                "Bad MCC length (%ld), it must be %u digit ex: 001",
+                strlen(mcc), MAX_MCC_LENGTH);
+            char c[2]                                   = {mcc[0], 0};
+            config_pP->guamfi.guamfi[i].plmn.mcc_digit1 = (uint8_t) atoi(c);
+            c[0]                                        = mcc[1];
+            config_pP->guamfi.guamfi[i].plmn.mcc_digit2 = (uint8_t) atoi(c);
+            c[0]                                        = mcc[2];
+            config_pP->guamfi.guamfi[i].plmn.mcc_digit3 = (uint8_t) atoi(c);
+          }
+
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
+            AssertFatal(
+                (strlen(mnc) == MIN_MNC_LENGTH) ||
+                    (strlen(mnc) == MAX_MNC_LENGTH),
+                "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or 123",
+                strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
+            char c[2]                                   = {mnc[0], 0};
+            config_pP->guamfi.guamfi[i].plmn.mnc_digit1 = (uint8_t) atoi(c);
+            c[0]                                        = mnc[1];
+            config_pP->guamfi.guamfi[i].plmn.mnc_digit2 = (uint8_t) atoi(c);
+            if (3 == strlen(mnc)) {
+              c[0]                                        = mnc[2];
+              config_pP->guamfi.guamfi[i].plmn.mnc_digit3 = (uint8_t) atoi(c);
+            } else {
+              config_pP->guamfi.guamfi[i].plmn.mnc_digit3 = 0x0F;
+            }
+          }
+
+          if ((config_setting_lookup_string(
+                  sub2setting, AMF_CONFIG_STRING_AMF_REGION_ID, &region_id))) {
+            config_pP->guamfi.guamfi[i].amf_regionid =
+                (uint16_t) atoi(region_id);
+          }
+          if ((config_setting_lookup_string(
+                  sub2setting, AMF_CONFIG_STRING_AMF_SET_ID, &set_id))) {
+            config_pP->guamfi.guamfi[i].amf_set_id = (uint8_t) atoi(set_id);
+          }
+          if ((config_setting_lookup_string(
+                  sub2setting, AMF_CONFIG_STRING_AMF_POINTER, &pointer))) {
+            config_pP->guamfi.guamfi[i].amf_pointer = (uint8_t) atoi(pointer);
+          }
+
+          config_pP->guamfi.nb += 1;
+        }
+      }
+    }
+  }  // NGP Setting is not NULL
   config_destroy(&cfg);
   return 0;
 }
@@ -793,4 +399,183 @@ static bool parse_bool(const char* str) {
   if (strcasecmp(str, "") == 0) return false;
 
   Fatal("Error in config file: got \"%s\" but expected bool\n", str);
+}
+
+void clear_amf_config(amf_config_t* amf_config) {
+  if (!amf_config) return;
+
+  bdestroy_wrapper(&amf_config->log_config.output);
+  bdestroy_wrapper(&amf_config->config_file);
+  bdestroy_wrapper(&amf_config->pid_dir);
+  bdestroy_wrapper(&amf_config->realm);
+  bdestroy_wrapper(&amf_config->full_network_name);
+  bdestroy_wrapper(&amf_config->short_network_name);
+  bdestroy_wrapper(&amf_config->ip_capability);
+  bdestroy_wrapper(&amf_config->amf_name);
+  clear_served_tai_config(&amf_config->served_tai);
+  free_partial_lists(&amf_config->partial_list, amf_config->num_par_lists);
+}
+
+void copy_amf_config_from_mme_config(
+    amf_config_t* dest, const mme_config_t* src) {
+  OAILOG_DEBUG(LOG_MME_APP, "copy_amf_config_from_mme_config");
+  // LOGGING setting
+  dest->log_config = src->log_config;
+  if (src->log_config.output)
+    dest->log_config.output = bstrcpy(src->log_config.output);
+  dest->log_config.amf_app_log_level = src->log_config.mme_app_log_level;
+
+  // GENERAL AMF SETTINGS
+  dest->realm = bstrcpy(src->realm);
+  if (src->full_network_name)
+    dest->full_network_name = bstrcpy(src->full_network_name);
+  if (src->short_network_name)
+    dest->short_network_name = bstrcpy(src->short_network_name);
+  dest->daylight_saving_time = src->daylight_saving_time;
+  if (src->pid_dir) dest->pid_dir = bstrcpy(src->pid_dir);
+  dest->max_gnbs                       = src->max_enbs;
+  dest->max_ues                        = src->max_ues;
+  dest->relative_capacity              = src->relative_capacity;
+  dest->use_stateless                  = src->use_stateless;
+  dest->unauthenticated_imsi_supported = src->unauthenticated_imsi_supported;
+
+  // TAI list setting
+  copy_served_tai_config_list(dest, src);
+}
+
+void amf_config_display(amf_config_t* config_pP) {
+  if (!config_pP) return;
+
+  OAILOG_INFO(LOG_CONFIG, "==========AMF Configuration Start==========\n");
+
+  OAILOG_INFO(
+      LOG_CONFIG, "- Realm ................................: %s\n",
+      bdata(config_pP->realm));
+  OAILOG_INFO(
+      LOG_CONFIG, "  full network name ....................: %s\n",
+      bdata(config_pP->full_network_name));
+  OAILOG_INFO(
+      LOG_CONFIG, "  short network name ...................: %s\n",
+      bdata(config_pP->short_network_name));
+  OAILOG_INFO(
+      LOG_CONFIG, "  Daylight Saving Time..................: %d\n",
+      config_pP->daylight_saving_time);
+
+  OAILOG_INFO(
+      LOG_CONFIG, "- Max gNBs .............................: %u\n",
+      config_pP->max_gnbs);
+  OAILOG_INFO(
+      LOG_CONFIG, "- Max UEs ..............................: %u\n",
+      config_pP->max_ues);
+
+  OAILOG_INFO(
+      LOG_CONFIG, "- Use Stateless ........................: %s\n\n",
+      config_pP->use_stateless ? "true" : "false");
+
+  OAILOG_DEBUG(LOG_CONFIG, "- PARTIAL TAIs\n");
+  OAILOG_DEBUG(
+      LOG_CONFIG, "- Num of partial lists=%d\n", config_pP->num_par_lists);
+  for (uint8_t itr = 0; itr < config_pP->num_par_lists; itr++) {
+    if (config_pP->partial_list) {
+      switch (config_pP->partial_list[itr].list_type) {
+        case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS:
+          OAILOG_DEBUG(
+              LOG_CONFIG,
+              "- List [%d] - TAI list type one PLMN consecutive TACs\n", itr);
+          break;
+        case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS:
+          OAILOG_DEBUG(
+              LOG_CONFIG,
+              "- List [%d] - TAI list type one PLMN non consecutive TACs\n",
+              itr);
+          break;
+        case TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS:
+          OAILOG_DEBUG(
+              LOG_CONFIG, "- List [%d] - TAI list type multiple PLMNs\n", itr);
+          break;
+        default:
+          OAILOG_ERROR(
+              LOG_CONFIG, "Invalid served TAI list type (%u) configured\n",
+              config_pP->partial_list[itr].list_type);
+          break;
+      }
+    }
+  }
+
+  for (uint8_t itr = 0; itr < config_pP->num_par_lists; itr++) {
+    OAILOG_DEBUG(
+        LOG_CONFIG, "- Num of elements in list[%d]=%d\n", itr,
+        config_pP->partial_list[itr].nb_elem);
+    if (config_pP->partial_list) {
+      for (uint8_t idx = 0; idx < config_pP->partial_list[itr].nb_elem; idx++) {
+        if (config_pP->partial_list[itr].plmn &&
+            config_pP->partial_list[itr].tac) {
+          OAILOG_DEBUG(
+              LOG_CONFIG,
+              "            "
+              "MCC1=%d\tMCC2=%d\tMCC3=%d\tMNC1=%d\tMNC2=%d\tMNC3=%d\t"
+              "TAC=%d\n",
+              config_pP->partial_list[itr].plmn[idx].mcc_digit1,
+              config_pP->partial_list[itr].plmn[idx].mcc_digit2,
+              config_pP->partial_list[itr].plmn[idx].mcc_digit3,
+              config_pP->partial_list[itr].plmn[idx].mnc_digit1,
+              config_pP->partial_list[itr].plmn[idx].mnc_digit2,
+              config_pP->partial_list[itr].plmn[idx].mnc_digit3,
+              config_pP->partial_list[itr].tac[idx]);
+        }
+      }
+    }
+  }
+
+  OAILOG_INFO(LOG_CONFIG, "- Logging:\n");
+  OAILOG_INFO(
+      LOG_CONFIG, "    Output ..............: %s\n",
+      bdata(config_pP->log_config.output));
+  OAILOG_INFO(
+      LOG_CONFIG, "    Output thread safe ..: %s\n",
+      (config_pP->log_config.is_output_thread_safe) ? "true" : "false");
+  OAILOG_INFO(
+      LOG_CONFIG, "    Output with color ...: %s\n",
+      (config_pP->log_config.color) ? "true" : "false");
+  OAILOG_INFO(
+      LOG_CONFIG, "    UDP log level........: %s\n",
+      OAILOG_LEVEL_INT2STR(config_pP->log_config.udp_log_level));
+  OAILOG_INFO(
+      LOG_CONFIG, "    GTPV1-U log level....: %s\n",
+      OAILOG_LEVEL_INT2STR(config_pP->log_config.gtpv1u_log_level));
+  OAILOG_INFO(
+      LOG_CONFIG, "    GTPV2-C log level....: %s\n",
+      OAILOG_LEVEL_INT2STR(config_pP->log_config.gtpv2c_log_level));
+  OAILOG_INFO(
+      LOG_CONFIG, "    SCTP log level.......: %s\n",
+      OAILOG_LEVEL_INT2STR(config_pP->log_config.sctp_log_level));
+  OAILOG_INFO(
+      LOG_CONFIG, "    S1AP log level.......: %s\n",
+      OAILOG_LEVEL_INT2STR(config_pP->log_config.s1ap_log_level));
+  OAILOG_INFO(
+      LOG_CONFIG, "    ASN1 Verbosity level : %d\n",
+      config_pP->log_config.asn1_verbosity_level);
+  OAILOG_INFO(
+      LOG_CONFIG, "    NAS log level........: %s\n",
+      OAILOG_LEVEL_INT2STR(config_pP->log_config.nas_log_level));
+  OAILOG_INFO(
+      LOG_CONFIG, "    AMF_APP log level....: %s\n",
+      OAILOG_LEVEL_INT2STR(config_pP->log_config.amf_app_log_level));
+  OAILOG_INFO(
+      LOG_CONFIG, "    SPGW_APP log level....: %s\n",
+      OAILOG_LEVEL_INT2STR(config_pP->log_config.spgw_app_log_level));
+  OAILOG_INFO(
+      LOG_CONFIG, "    S11 log level........: %s\n",
+      OAILOG_LEVEL_INT2STR(config_pP->log_config.s11_log_level));
+  OAILOG_INFO(
+      LOG_CONFIG, "    S6a log level........: %s\n",
+      OAILOG_LEVEL_INT2STR(config_pP->log_config.s6a_log_level));
+  OAILOG_INFO(
+      LOG_CONFIG, "    UTIL log level.......: %s\n",
+      OAILOG_LEVEL_INT2STR(config_pP->log_config.util_log_level));
+  OAILOG_INFO(
+      LOG_CONFIG, "    ITTI log level.......: %s (InTer-Task Interface)\n",
+      OAILOG_LEVEL_INT2STR(config_pP->log_config.itti_log_level));
+
+  OAILOG_INFO(LOG_CONFIG, "==========AMF Configuration End==========\n");
 }

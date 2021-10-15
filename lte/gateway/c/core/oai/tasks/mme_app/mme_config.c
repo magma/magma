@@ -277,12 +277,14 @@ void mme_config_init(mme_config_t* config) {
   sac_to_tacs_map_config_init(&config->sac_to_tacs_map);
 }
 
-void free_partial_lists(mme_config_t* config_pP) {
-  for (uint8_t itr = 0; itr < config_pP->num_par_lists; itr++) {
-    free_wrapper((void**) &(config_pP->partial_list[itr].plmn));
-    free_wrapper((void**) &(config_pP->partial_list[itr].tac));
+void free_partial_lists(partial_list_t** partial_list, uint8_t num_par_lists) {
+  if ((!partial_list) || (!num_par_lists)) return;
+
+  for (uint8_t itr = 0; itr < num_par_lists; itr++) {
+    free_wrapper((void**) &(partial_list[itr]->plmn));
+    free_wrapper((void**) &(partial_list[itr]->tac));
   }
-  free_wrapper((void**) &config_pP->partial_list);
+  free_wrapper((void**) partial_list);
 }
 
 void free_mme_config(mme_config_t* mme_config) {
@@ -308,7 +310,8 @@ void free_mme_config(mme_config_t* mme_config) {
   free_wrapper((void**) &mme_config->served_tai.plmn_mnc_len);
   free_wrapper((void**) &mme_config->served_tai.tac);
 
-  free_partial_lists(mme_config);
+  clear_served_tai_config(&mme_config->served_tai);
+  free_partial_lists(&mme_config->partial_list, mme_config->num_par_lists);
 
   bdestroy_wrapper(&mme_config->service303_config.name);
   bdestroy_wrapper(&mme_config->service303_config.version);
@@ -489,6 +492,75 @@ void create_partial_lists(mme_config_t* config_pP) {
     }
   }
   return;
+}
+
+/***************************************************************************
+**                                                                        **
+** Name:   copy_served_tai_config_list()                                  **
+**                                                                        **
+** Description: copy tai list from mme_config to amf_config               **
+**                                                                        **
+**                                                                        **
+***************************************************************************/
+void copy_served_tai_config_list(amf_config_t* dest, const mme_config_t* src) {
+  if (!dest || !src) return;
+
+  // served_tai
+  if (dest->served_tai.nb_tai != src->served_tai.nb_tai) {
+    if (NULL != dest->served_tai.plmn_mcc)
+      free_wrapper((void**) &dest->served_tai.plmn_mcc);
+
+    if (NULL != dest->served_tai.plmn_mnc)
+      free_wrapper((void**) &dest->served_tai.plmn_mnc);
+
+    if (NULL != dest->served_tai.plmn_mnc_len)
+      free_wrapper((void**) &dest->served_tai.plmn_mnc_len);
+
+    if (NULL != dest->served_tai.tac)
+      free_wrapper((void**) &dest->served_tai.tac);
+
+    dest->served_tai.nb_tai = src->served_tai.nb_tai;
+    dest->served_tai.plmn_mcc =
+        calloc(dest->served_tai.nb_tai, sizeof(uint16_t));
+    dest->served_tai.plmn_mnc =
+        calloc(dest->served_tai.nb_tai, sizeof(uint16_t));
+    dest->served_tai.plmn_mnc_len =
+        calloc(dest->served_tai.nb_tai, sizeof(uint16_t));
+    dest->served_tai.tac = calloc(dest->served_tai.nb_tai, sizeof(uint16_t));
+  }
+  memcpy(
+      dest->served_tai.plmn_mcc, src->served_tai.plmn_mcc,
+      (dest->served_tai.nb_tai) * sizeof(uint16_t));
+  memcpy(
+      dest->served_tai.plmn_mnc, src->served_tai.plmn_mnc,
+      (dest->served_tai.nb_tai) * sizeof(uint16_t));
+  memcpy(
+      dest->served_tai.plmn_mnc_len, src->served_tai.plmn_mnc_len,
+      (dest->served_tai.nb_tai) * sizeof(uint16_t));
+  memcpy(
+      dest->served_tai.tac, src->served_tai.tac,
+      (dest->served_tai.nb_tai) * sizeof(uint16_t));
+
+  // num_par_lists
+  dest->num_par_lists = src->num_par_lists;
+
+  // partial_list
+  dest->partial_list = calloc(dest->num_par_lists, sizeof(partial_list_t));
+
+  for (uint8_t itr = 0; itr < src->num_par_lists; itr++) {
+    dest->partial_list[itr].list_type = src->partial_list[itr].list_type;
+    dest->partial_list[itr].nb_elem   = src->partial_list[itr].nb_elem;
+
+    dest->partial_list[itr].plmn = calloc(dest->num_par_lists, sizeof(plmn_t));
+    memcpy(
+        dest->partial_list[itr].plmn, src->partial_list[itr].plmn,
+        (dest->num_par_lists) * sizeof(plmn_t));
+
+    dest->partial_list[itr].tac = calloc(dest->num_par_lists, sizeof(tac_t));
+    memcpy(
+        dest->partial_list[itr].tac, src->partial_list[itr].tac,
+        (dest->num_par_lists) * sizeof(tac_t));
+  }
 }
 
 /****************************************************************************
@@ -2358,4 +2430,24 @@ static bool parse_bool(const char* str) {
   if (strcasecmp(str, "") == 0) return false;
 
   Fatal("Error in config file: got \"%s\" but expected bool\n", str);
+}
+
+void clear_served_tai_config(served_tai_t* served_tai) {
+  if (served_tai->plmn_mcc) {
+    free(served_tai->plmn_mcc);
+    served_tai->plmn_mcc = NULL;
+  }
+  if (served_tai->plmn_mnc) {
+    free(served_tai->plmn_mnc);
+    served_tai->plmn_mnc = NULL;
+  }
+  if (served_tai->plmn_mnc_len) {
+    free(served_tai->plmn_mnc_len);
+    served_tai->plmn_mnc_len = NULL;
+  }
+  if (served_tai->tac) {
+    free(served_tai->tac);
+    served_tai->tac = NULL;
+  }
+  served_tai->nb_tai = 0;
 }
