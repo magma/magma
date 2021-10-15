@@ -60,7 +60,11 @@ func TestIntegration(t *testing.T) {
 	integration(t, fact)
 }
 
-func checkBlobStoreMigrations(t *testing.T, fact1 blobstore.BlobStorageFactory, fact2 blobstore.BlobStorageFactory) {
+func checkBlobStoreMigrations(
+	t *testing.T,
+	fact1 blobstore.BlobStorageFactory,
+	fact2 blobstore.BlobStorageFactory,
+) {
 	var blobs = blobstore.Blobs{
 		blobstore.Blob{Type: "type1", Key: "key1", Value: []byte("value1")},
 		blobstore.Blob{Type: "type1", Key: "key2", Value: []byte("value2")},
@@ -188,7 +192,12 @@ func checkRollback(
 	require.NoError(t, err)
 }
 
-func createBlobs(t *testing.T, fact blobstore.BlobStorageFactory, networkID string, blobs blobstore.Blobs) {
+func createBlobs(
+	t *testing.T,
+	fact blobstore.BlobStorageFactory,
+	networkID string,
+	blobs blobstore.Blobs,
+) {
 	store, err := fact.StartTransaction(nil)
 	require.NoError(t, err)
 
@@ -199,7 +208,12 @@ func createBlobs(t *testing.T, fact blobstore.BlobStorageFactory, networkID stri
 	require.NoError(t, err)
 }
 
-func checkBlobInStore(t *testing.T, store blobstore.TransactionalBlobStorage, networkID string, expectedBlob blobstore.Blob) {
+func checkBlobInStore(
+	t *testing.T,
+	store blobstore.TransactionalBlobStorage,
+	networkID string,
+	expectedBlob blobstore.Blob,
+) {
 	blob, err := store.Get(networkID, getTKFromBlob(expectedBlob))
 	require.NoError(t, err)
 	require.Equal(t, expectedBlob, blob)
