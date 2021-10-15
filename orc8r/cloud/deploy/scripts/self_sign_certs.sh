@@ -55,6 +55,9 @@ subjectAltName = @alt_names
 [alt_names]
 DNS.1 = *.$domain
 DNS.2 = *.nms.$domain
+DNS.3 = api.$domain
+DNS.4 = bootstrapper-controller.$domain
+DNS.5 = controller.$domain
 EOF
 openssl x509 -req -in controller.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out controller.crt -days 825 -sha256 -extfile ${domain}.ext
 
