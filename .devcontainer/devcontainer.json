@@ -26,10 +26,8 @@
 			"**/.bazel-cache-repo/**": true,
 		},
 		"bsv.bazel.buildFlags": [
-			"--config=devcontainer",
 		],
 		"bsv.bazel.testFlags": [
-			"--compilation_mode=dbg",
 		],
 		"bsv.bes.enabled": false,
 		"bsv.bzl.codesearch.enabled": false,
@@ -59,9 +57,6 @@
 	"runArgs": [
 		"--init"
 	],
-	"containerEnv": {
-		"VSCODE_BAZEL_BUILD_CONFIG": "devcontainer",
-	},
 	"remoteEnv": {
 		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
 	},
