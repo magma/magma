@@ -101,6 +101,7 @@ export type apn = {
 };
 export type apn_configuration = {
     ambr: aggregated_maximum_bitrate,
+    pdn_type ? : 0 | 1 | 2 | 3,
     qos_profile: qos_profile,
 };
 export type apn_list = Array < string >
