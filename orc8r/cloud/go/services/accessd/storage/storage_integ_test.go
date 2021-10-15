@@ -31,7 +31,7 @@ import (
 func TestAccessdStorageBlobstore_Integation(t *testing.T) {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	fact := blobstore.NewEntStorage(storage.AccessdTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLBlobStorageFactory(storage.AccessdTableBlobstore, db, sqorc.GetSqlBuilder())
 	err = fact.InitializeFactory()
 	assert.NoError(t, err)
 	store := storage.NewAccessdBlobstore(fact)

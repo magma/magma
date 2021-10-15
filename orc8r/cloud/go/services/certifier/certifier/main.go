@@ -60,7 +60,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to connect to database: %s", err)
 	}
-	fact := blobstore.NewEntStorage(storage.CertifierTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLBlobStorageFactory(storage.CertifierTableBlobstore, db, sqorc.GetSqlBuilder())
 	err = fact.InitializeFactory()
 	if err != nil {
 		glog.Fatalf("Error initializing certifier database: %s", err)

@@ -40,7 +40,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to connect to database: %s", err)
 	}
-	factory := blobstore.NewEntStorage(tenants.DBTableName, db, sqorc.GetSqlBuilder())
+	factory := blobstore.NewSQLBlobStorageFactory(tenants.DBTableName, db, sqorc.GetSqlBuilder())
 	err = factory.InitializeFactory()
 	if err != nil {
 		glog.Fatalf("Error initializing tenant database: %s", err)
