@@ -35,6 +35,7 @@ const task_info_t tasks_info[] = {
 };
 
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
+struct mme_config_s mme_config;
 
 using ::testing::Test;
 

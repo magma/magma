@@ -23,30 +23,23 @@
 #include "3gpp_24.008.h"
 #include "log.h"
 #include "service303.h"
-#include "hashtable.h"
-#include "mme_config.h"
 
 #define MIN_GUAMI 1
 #define MAX_GUAMI 5
 #define MAX_APN_CORRECTION_MAP_LIST 10
-#define AMF_S_NSSAI_ST_DEFAULT_VALUE 1
-#define AMF_S_NSSAI_SD_INVALID_VALUE 0xffffff
+#define NGAP_S_NSSAI_ST_DEFAULT_VALUE 1
+#define NGAP_S_NSSAI_SD_INVALID_VALUE 0xffffff
 
-#define AMF_CONFIG_STRING_AMF_CONFIG "AMF"
-#define AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS "DEFAULT_DNS_IPV4_ADDRESS"
-#define AMF_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS                         \
+#define NGAP_CONFIG_STRING_NGAP_CONFIG "NGAP"
+#define NGAP_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS "DEFAULT_DNS_IPV4_ADDRESS"
+#define NGAP_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS                        \
   "DEFAULT_DNS_SEC_IPV4_ADDRESS"
-#define AMF_CONFIG_PLMN_SUPPORT_MCC "mcc"
-#define AMF_CONFIG_PLMN_SUPPORT_MNC "mnc"
-#define AMF_CONFIG_PLMN_SUPPORT_SST "DEFAULT_SLICE_SERVICE_TYPE"
-#define AMF_CONFIG_PLMN_SUPPORT_SD "DEFAULT_SLICE_DIFFERENTIATOR"
-#define AMF_CONFIG_AMF_PLMN_SUPPORT_LIST "PLMN_SUPPORT_LIST"
-#define AMF_CONFIG_AMF_NAME "AMF_NAME"
-
-#define AMF_CONFIG_STRING_GUAMFI_LIST "GUAMFI_LIST"
-#define AMF_CONFIG_STRING_AMF_REGION_ID "AMF_REGION_ID"
-#define AMF_CONFIG_STRING_AMF_SET_ID "AMF_SET_ID"
-#define AMF_CONFIG_STRING_AMF_POINTER "AMF_POINTER"
+#define NGAP_CONFIG_PLMN_SUPPORT_MCC "mcc"
+#define NGAP_CONFIG_PLMN_SUPPORT_MNC "mnc"
+#define NGAP_CONFIG_PLMN_SUPPORT_SST "DEFAULT_SLICE_SERVICE_TYPE"
+#define NGAP_CONFIG_PLMN_SUPPORT_SD "DEFAULT_SLICE_DIFFERENTIATOR"
+#define NGAP_CONFIG_AMF_PLMN_SUPPORT_LIST "PLMN_SUPPORT_LIST"
+#define NGAP_CONFIG_AMF_NAME "AMF_NAME"
 
 typedef struct nas5g_config_s {
   uint8_t preferred_integrity_algorithm[8];
@@ -99,6 +92,15 @@ typedef struct m5g_nas_config_s {
   m5g_apn_map_config_t m5g_apn_map_config;
 } m5g_nas_config_t;
 typedef uint64_t imsi64_t;
+
+typedef struct m5g_served_tai_s {
+  uint8_t list_type;
+  uint8_t nb_tai;
+  uint16_t* plmn_mcc;
+  uint16_t* plmn_mnc;
+  uint16_t* plmn_mnc_len;
+  uint16_t* tac;
+} m5g_served_tai_t;
 
 typedef struct ngap_config_s {
   uint16_t port_number;
@@ -161,9 +163,7 @@ typedef struct amf_config_s {
   uint8_t unauthenticated_imsi_supported;
   guamfi_config_t guamfi;
   plmn_support_list_t plmn_support_list;
-  served_tai_t served_tai;
-  uint8_t num_par_lists;
-  partial_list_t* partial_list;
+  m5g_served_tai_t served_tai;
   service303_data_t service303_config;
   ngap_config_t ngap_config;
   m5g_nas_config_t m5g_nas_config;
@@ -188,10 +188,7 @@ int amf_config_find_mnc_length(
 
 void amf_config_init(amf_config_t*);
 int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* amf_config);
-int amf_config_parse_file(amf_config_t*, const mme_config_t*);
+int amf_config_parse_file(amf_config_t*);
 void amf_config_display(amf_config_t*);
-void clear_amf_config(amf_config_t*);
-void copy_amf_config_from_mme_config(
-    amf_config_t* dest, const mme_config_t* src);
 
 void amf_config_exit(void);

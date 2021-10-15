@@ -138,11 +138,10 @@ status_code_e mme_config_embedded_spgw_parse_opt_line(
     return RETURNerror;
   }
 
-  if (amf_config_parse_file(amf_config_p, mme_config_p) != 0) {
+  if (amf_config_parse_file(amf_config_p) != 0) {
     return RETURNerror;
   }
 
-  amf_config_display(amf_config_p);
   mme_config_display(mme_config_p);
   spgw_config_display(spgw_config_p);
 
