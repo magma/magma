@@ -760,8 +760,8 @@ TEST_F(MmeAppProcedureTest, TestIcsRequestTimeout) {
 
   // Sleep to trigger timeout for ICS Request
   std::this_thread::sleep_for(
-      std::chrono::milliseconds(2*MME_APP_TIMER_TO_MSEC));
- 
+      std::chrono::milliseconds(2 * MME_APP_TIMER_TO_MSEC));
+
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   send_delete_session_resp();
