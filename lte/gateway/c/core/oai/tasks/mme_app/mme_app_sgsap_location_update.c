@@ -1038,21 +1038,22 @@ status_code_e mme_app_create_sgs_context(ue_mm_context_t* ue_context_p) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   // Initialize SGS context to default values
-  ue_context_p->sgs_context->sgs_state       = SGS_NULL;
-  ue_context_p->sgs_context->vlr_reliable    = false;
-  ue_context_p->sgs_context->neaf            = false;
-  ue_context_p->sgs_context->ts6_1_timer.id  = MME_APP_TIMER_INACTIVE_ID;
-  ue_context_p->sgs_context->ts6_1_timer.msec = mme_config.sgs_config.ts6_1_msec;
-  ue_context_p->sgs_context->ts8_timer.id    = MME_APP_TIMER_INACTIVE_ID;
-  ue_context_p->sgs_context->ts8_timer.msec   = mme_config.sgs_config.ts8_msec;
+  ue_context_p->sgs_context->sgs_state      = SGS_NULL;
+  ue_context_p->sgs_context->vlr_reliable   = false;
+  ue_context_p->sgs_context->neaf           = false;
+  ue_context_p->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->sgs_context->ts6_1_timer.msec =
+      mme_config.sgs_config.ts6_1_msec;
+  ue_context_p->sgs_context->ts8_timer.id   = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->sgs_context->ts8_timer.msec = mme_config.sgs_config.ts8_msec;
   ue_context_p->sgs_context->ts8_retransmission_count = 0;
-  ue_context_p->sgs_context->ts9_timer.id  = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->sgs_context->ts9_timer.id   = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->sgs_context->ts9_timer.msec = mme_config.sgs_config.ts9_msec;
   ue_context_p->sgs_context->ts9_retransmission_count = 0;
-  ue_context_p->sgs_context->ts10_timer.id  = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->sgs_context->ts10_timer.id   = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->sgs_context->ts10_timer.msec = mme_config.sgs_config.ts10_msec;
   ue_context_p->sgs_context->ts10_retransmission_count = 0;
-  ue_context_p->sgs_context->ts13_timer.id  = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->sgs_context->ts13_timer.id   = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->sgs_context->ts13_timer.msec = mme_config.sgs_config.ts13_msec;
   ue_context_p->sgs_context->ts13_retransmission_count = 0;
   ue_context_p->sgs_context->call_cancelled            = false;

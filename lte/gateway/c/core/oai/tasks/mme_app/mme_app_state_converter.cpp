@@ -208,7 +208,7 @@ void MmeNasStateConverter::mme_app_timer_to_proto(
 
 void MmeNasStateConverter::proto_to_mme_app_timer(
     const oai::Timer& timer_proto, nas_timer_t* state_mme_app_timer) {
-  state_mme_app_timer->id  = timer_proto.id();
+  state_mme_app_timer->id   = timer_proto.id();
   state_mme_app_timer->msec = timer_proto.msec();
 }
 

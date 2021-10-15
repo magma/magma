@@ -94,8 +94,7 @@ static void mme_app_send_sgs_eps_detach_indication(
   // Start SGS Implicit EPS Detach indication timer
   if (detach_type == SGS_NW_INITIATED_IMSI_DETACH_FROM_EPS) {
     if ((ue_context_p->sgs_context->ts13_timer.id = mme_app_start_timer(
-             ue_context_p->sgs_context->ts13_timer.msec,
-             TIMER_REPEAT_ONCE,
+             ue_context_p->sgs_context->ts13_timer.msec, TIMER_REPEAT_ONCE,
              mme_app_handle_sgs_implicit_eps_detach_timer_expiry,
              ue_context_p->mme_ue_s1ap_id)) == -1) {
       OAILOG_ERROR(
@@ -296,8 +295,7 @@ void mme_app_send_sgs_imsi_detach_indication(
   if (detach_type == SGS_IMPLICIT_NW_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS) {
     // Start SGS Implicit IMSI Detach indication timer
     if ((ue_context_p->sgs_context->ts10_timer.id = mme_app_start_timer(
-             ue_context_p->sgs_context->ts10_timer.msec,
-             TIMER_REPEAT_ONCE,
+             ue_context_p->sgs_context->ts10_timer.msec, TIMER_REPEAT_ONCE,
              mme_app_handle_sgs_implicit_imsi_detach_timer_expiry,
              ue_context_p->mme_ue_s1ap_id)) == -1) {
       OAILOG_ERROR(

@@ -137,8 +137,8 @@ ue_mm_context_t* mme_create_new_ue_context(void) {
   new_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
   new_p->implicit_detach_timer.id     = MME_APP_TIMER_INACTIVE_ID;
 
-  new_p->initial_context_setup_rsp_timer = (nas_timer_t){
-      MME_APP_TIMER_INACTIVE_ID, mme_config.nas_config.ts6a_msec};
+  new_p->initial_context_setup_rsp_timer =
+      (nas_timer_t){MME_APP_TIMER_INACTIVE_ID, mme_config.nas_config.ts6a_msec};
   new_p->paging_response_timer = (nas_timer_t){
       MME_APP_TIMER_INACTIVE_ID, MME_APP_PAGING_RESPONSE_TIMER_VALUE};
   new_p->ulr_response_timer = (nas_timer_t){MME_APP_TIMER_INACTIVE_ID,
@@ -2258,7 +2258,8 @@ static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
         // Invoke callback registered for default bearer's activation
         if (bearer_context_p->esm_ebr_context.status ==
             ESM_EBR_ACTIVE_PENDING) {
-          bearer_context_p->esm_ebr_context.timer.msec = 1000 * T3485_DEFAULT_VALUE;
+          bearer_context_p->esm_ebr_context.timer.msec =
+              1000 * T3485_DEFAULT_VALUE;
           default_eps_bearer_activate_t3485_handler(
               NULL, NAS_TIMER_INACTIVE_ID, (void*) &timer_args);
         } else {  // Invoke callback registered for default bearer's
@@ -2273,7 +2274,8 @@ static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
         // Invoke callback registered for dedicated bearer's activation
         if (bearer_context_p->esm_ebr_context.status ==
             ESM_EBR_ACTIVE_PENDING) {
-          bearer_context_p->esm_ebr_context.timer.msec = 1000 * T3485_DEFAULT_VALUE;
+          bearer_context_p->esm_ebr_context.timer.msec =
+              1000 * T3485_DEFAULT_VALUE;
           dedicated_eps_bearer_activate_t3485_handler(
               NULL, NAS_TIMER_INACTIVE_ID, (void*) &timer_args);
         } else {  // Invoke callback registered for dedicated bearer's

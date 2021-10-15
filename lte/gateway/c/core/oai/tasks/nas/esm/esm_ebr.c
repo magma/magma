@@ -279,7 +279,7 @@ status_code_e esm_ebr_start_timer(
   ebr_ctx = &bearer_context->esm_ebr_context;
 
   esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
-  ebr_ctx->timer.msec                       = msec;
+  ebr_ctx->timer.msec                      = msec;
   timer_arg_t timer_args;
   timer_args.ue_id = ue_mm_context->mme_ue_s1ap_id;
   timer_args.ebi   = ebi;

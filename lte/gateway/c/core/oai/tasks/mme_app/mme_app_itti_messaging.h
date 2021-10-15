@@ -96,8 +96,7 @@ static inline void mme_app_itti_ue_context_mod_for_csfb(
    * such as SERVICE REQUEST and Send Service Reject to eNB
    */
   if ((ue_context_p->ue_context_modification_timer.id = mme_app_start_timer(
-           ue_context_p->ue_context_modification_timer.msec,
-           TIMER_REPEAT_ONCE,
+           ue_context_p->ue_context_modification_timer.msec, TIMER_REPEAT_ONCE,
            mme_app_handle_ue_context_modification_timer_expiry,
            ue_context_p->mme_ue_s1ap_id)) == -1) {
     OAILOG_ERROR(

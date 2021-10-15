@@ -822,8 +822,8 @@ void nas_start_T3450(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450,
     time_out_t time_out_cb) {
   if ((T3450) && (T3450->id == NAS_TIMER_INACTIVE_ID)) {
-    T3450->id = mme_app_start_timer(
-        T3450->msec, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
+    T3450->id =
+        mme_app_start_timer(T3450->msec, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
     if (NAS_TIMER_INACTIVE_ID != T3450->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "T3450 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
@@ -839,8 +839,8 @@ void nas_start_T3460(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3460,
     time_out_t time_out_cb) {
   if ((T3460) && (T3460->id == NAS_TIMER_INACTIVE_ID)) {
-    T3460->id = mme_app_start_timer(
-        T3460->msec, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
+    T3460->id =
+        mme_app_start_timer(T3460->msec, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
     if (NAS_TIMER_INACTIVE_ID != T3460->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "T3460 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
@@ -856,8 +856,8 @@ void nas_start_T3470(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3470,
     time_out_t time_out_cb) {
   if ((T3470) && (T3470->id == NAS_TIMER_INACTIVE_ID)) {
-    T3470->id = mme_app_start_timer(
-        T3470->msec, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
+    T3470->id =
+        mme_app_start_timer(T3470->msec, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
     if (NAS_TIMER_INACTIVE_ID != T3470->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "T3470 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
@@ -873,8 +873,8 @@ void nas_start_T3422(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3422,
     time_out_t time_out_cb) {
   if ((T3422) && (T3422->id == NAS_TIMER_INACTIVE_ID)) {
-    T3422->id = mme_app_start_timer(
-        T3422->msec, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
+    T3422->id =
+        mme_app_start_timer(T3422->msec, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
     if (NAS_TIMER_INACTIVE_ID != T3422->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "T3422 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);

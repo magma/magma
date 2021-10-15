@@ -76,8 +76,8 @@ void mme_app_resume_timer(
   arg.ue_id = ue_mm_context_pP->mme_ue_s1ap_id;
   arg.ebi   = UINT8_MAX;  // fill in an invalid ebi as it is unused
   if ((timer->id = magma::lte::MmeUeContext::Instance().StartTimer(
-           remaining_time_in_msecs, TIMER_REPEAT_ONCE,
-           timer_expiry_handler, arg)) == -1) {
+           remaining_time_in_msecs, TIMER_REPEAT_ONCE, timer_expiry_handler,
+           arg)) == -1) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
         "Failed to start %s timer for UE id "

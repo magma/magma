@@ -442,7 +442,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirTimeout) {
       nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sleep to trigger timeout for S6A AIR
-  std::this_thread::sleep_for(std::chrono::milliseconds(2 * MME_APP_TIMER_TO_MSEC));
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(2 * MME_APP_TIMER_TO_MSEC));
 
   // Check MME state: at this point, MME should be sending attach reject
   // as well as context release request
@@ -558,13 +559,15 @@ TEST_F(MmeAppProcedureTest, TestExpiredNasTimers) {
   send_authentication_info_resp(imsi, true);
 
   // Sleep to trigger timeout for Authentication Request
-  std::this_thread::sleep_for(std::chrono::milliseconds(5 * MME_APP_TIMER_TO_MSEC));
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(5 * MME_APP_TIMER_TO_MSEC));
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
   send_mme_app_uplink_data_ind(
       nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
 
   // Sleep to trigger timeout for SMC Request
-  std::this_thread::sleep_for(std::chrono::milliseconds(5 * MME_APP_TIMER_TO_MSEC));
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(5 * MME_APP_TIMER_TO_MSEC));
   // Constructing and sending SMC Response to mme_app mimicing S1AP
   send_mme_app_uplink_data_ind(
       nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
@@ -583,7 +586,8 @@ TEST_F(MmeAppProcedureTest, TestExpiredNasTimers) {
   send_ue_capabilities_ind();
 
   // Sleep to trigger timeout for Attach Accept
-  std::this_thread::sleep_for(std::chrono::milliseconds(5 * MME_APP_TIMER_TO_MSEC));
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(5 * MME_APP_TIMER_TO_MSEC));
   // Constructing and sending Attach Complete to mme_app
   // mimicing S1AP
   send_mme_app_uplink_data_ind(

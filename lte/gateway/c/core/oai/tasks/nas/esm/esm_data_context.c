@@ -74,8 +74,8 @@ void nas_start_T3489(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3489,
     time_out_t time_out_cb) {
   if ((T3489) && (T3489->id == NAS_TIMER_INACTIVE_ID)) {
-    T3489->id = mme_app_start_timer(
-        T3489->msec, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
+    T3489->id =
+        mme_app_start_timer(T3489->msec, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
     if (NAS_TIMER_INACTIVE_ID != T3489->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "T3489 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
@@ -136,6 +136,6 @@ void esm_init_context(struct esm_context_s* esm_context) {
       LOG_NAS_ESM, "ESM-CTX - Init UE id " MME_UE_S1AP_ID_FMT "\n",
       ue_mm_context->mme_ue_s1ap_id);
   memset(esm_context, 0, sizeof(*esm_context));
-  esm_context->T3489.id  = NAS_TIMER_INACTIVE_ID;
+  esm_context->T3489.id   = NAS_TIMER_INACTIVE_ID;
   esm_context->T3489.msec = mme_config.nas_config.t3489_msec;
 }

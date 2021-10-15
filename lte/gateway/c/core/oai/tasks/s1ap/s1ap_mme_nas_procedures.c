@@ -161,8 +161,9 @@ status_code_e s1ap_mme_handle_initial_ue_message(
     // Will be allocated by NAS
     ue_ref->mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
 
-    ue_ref->s1ap_ue_context_rel_timer.id  = S1AP_TIMER_INACTIVE_ID;
-    ue_ref->s1ap_ue_context_rel_timer.msec = 1000 * S1AP_UE_CONTEXT_REL_COMP_TIMER;
+    ue_ref->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
+    ue_ref->s1ap_ue_context_rel_timer.msec =
+        1000 * S1AP_UE_CONTEXT_REL_COMP_TIMER;
 
     // On which stream we received the message
     ue_ref->sctp_stream_recv = stream;

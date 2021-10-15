@@ -29,18 +29,18 @@ namespace lte {
 extern task_zmq_ctx_t task_zmq_ctx_main;
 
 void nas_config_timer_reinit(nas_config_t* nas_conf, uint32_t timeout_msec) {
-  nas_conf->t3402_min               = 1;
-  nas_conf->t3412_min               = 1;
-  nas_conf->t3422_msec              = timeout_msec;
-  nas_conf->t3450_msec              = timeout_msec;
-  nas_conf->t3460_msec              = timeout_msec;
-  nas_conf->t3470_msec              = timeout_msec;
-  nas_conf->t3485_msec              = timeout_msec;
-  nas_conf->t3486_msec              = timeout_msec;
-  nas_conf->t3489_msec              = timeout_msec;
-  nas_conf->t3495_msec              = timeout_msec;
-  nas_conf->ts6a_msec               = timeout_msec;
-  nas_conf->tics_msec               = timeout_msec;
+  nas_conf->t3402_min  = 1;
+  nas_conf->t3412_min  = 1;
+  nas_conf->t3422_msec = timeout_msec;
+  nas_conf->t3450_msec = timeout_msec;
+  nas_conf->t3460_msec = timeout_msec;
+  nas_conf->t3470_msec = timeout_msec;
+  nas_conf->t3485_msec = timeout_msec;
+  nas_conf->t3486_msec = timeout_msec;
+  nas_conf->t3489_msec = timeout_msec;
+  nas_conf->t3495_msec = timeout_msec;
+  nas_conf->ts6a_msec  = timeout_msec;
+  nas_conf->tics_msec  = timeout_msec;
   return;
 }
 

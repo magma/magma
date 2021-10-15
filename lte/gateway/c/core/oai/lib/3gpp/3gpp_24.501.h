@@ -105,6 +105,6 @@ Deregistration accept (UE terminated) */
 
 /* 5G Timer structure */
 typedef struct nas5g_timer_s {
-  long int id;  /* The timer identifier                 */
+  long int id;   /* The timer identifier                 */
   uint32_t msec; /* The timer interval value in milliseconds  */
 } nas5g_timer_t;

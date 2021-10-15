@@ -655,7 +655,8 @@ status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(
         // Restart the timer
         rc = esm_ebr_start_timer(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, NULL,
-            1000 * ERAB_SETUP_RSP_TMR, erab_setup_rsp_tmr_exp_ded_bearer_handler);
+            1000 * ERAB_SETUP_RSP_TMR,
+            erab_setup_rsp_tmr_exp_ded_bearer_handler);
         if (rc != RETURNerror) {
           OAILOG_INFO(
               LOG_NAS_ESM,
