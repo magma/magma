@@ -132,7 +132,7 @@ func encodeUnixTime(timestamp time.Time) []byte {
 
 // encodeGeneralizedTime encodes timestamp to a byte sequence as specified in TS 33.108
 func encodeGeneralizedTime(timestamp time.Time) []byte {
-	formatStr := "20060102150405.000"
+	formatStr := "20060102150405.000Z"
 	return []byte(timestamp.Format(formatStr))
 }
 
@@ -210,13 +210,15 @@ func makeTimestamp(timestamp time.Time) Timestamp {
 func makePdnAddressAllocation(event *models.Event) []byte {
 	eventData := event.Value.(map[string]interface{})
 	if ipAddr, ok := eventData["ip_addr"]; ok {
-		allocatedIP := []byte{byte(IPV4Type)}
-		return append(allocatedIP, net.ParseIP(ipAddr.(string))[12:16]...)
+		allocatedIP := []byte{byte(IPV4PdnType)}
+		bIP := net.ParseIP(ipAddr.(string))
+		return append(allocatedIP, net.IP.To4(bIP)...)
 	}
 
 	if ipv6Addr, ok := eventData["ipv6_addr"]; ok {
-		allocatedIPv6 := []byte{byte(IPV6Type)}
-		return append(allocatedIPv6, net.ParseIP(ipv6Addr.(string))...)
+		allocatedIPv6 := []byte{byte(IPV6PdnType)}
+		bIP6 := net.ParseIP(ipv6Addr.(string))
+		return append(allocatedIPv6, net.IP.To16(bIP6)...)
 	}
 	return []byte{}
 }
@@ -257,11 +259,12 @@ func makePartyInformation(event *models.Event) []PartyInformation {
 // makeNetworkIdentifier returns a NetworkIdentifier object as defined in the asn1 schema
 func makeNetworkIdentifier(event *models.Event, operatorID uint32) NetworkIdentifier {
 	eventData := event.Value.(map[string]interface{})
-	var ipAddr IPAddress
+	ipAddr := IPAddress{}
 	if originIP, ok := eventData["spgw_ip"]; ok {
+		bIP := net.ParseIP(originIP.(string))
 		ipAddr.IPType = IPV4Type
 		ipAddr.IPValue = IPValue{
-			IPBinaryAddress: []byte(originIP.(string)),
+			IPBinaryAddress: net.IP.To4(bIP),
 		}
 	}
 	return NetworkIdentifier{
