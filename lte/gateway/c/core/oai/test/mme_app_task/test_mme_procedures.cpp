@@ -534,7 +534,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyUlaFailure) {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
-TEST_F(MmeAppProcedureTest, TestExpiredNasTimers) {
+TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
@@ -618,6 +618,162 @@ TEST_F(MmeAppProcedureTest, TestExpiredNasTimers) {
 
   // Check MME state after detach complete
   send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
+TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
+
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(8);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(1);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(1);
+  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(1);
+  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(1);
+  EXPECT_CALL(*service303_handler, service303_set_application_health())
+      .Times(2)
+      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+
+  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(
+      nas_msg_guti_attach_req, sizeof(nas_msg_guti_attach_req), plmn);
+
+  // Sleep to trigger timeout for Identity Request
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(5 * MME_APP_TIMER_TO_MSEC));
+  // Constructing and sending Identity Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_ident_resp, sizeof(nas_msg_ident_resp), plmn);
+
+  // Sending AIA to mme_app mimicing successful S6A response for AIR
+  send_authentication_info_resp(imsi, true);
+
+  // Constructing and sending Authentication Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+
+  // Constructing and sending SMC Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+
+  // Sending ULA to mme_app mimicing successful S6A response for ULR
+  send_s6a_ula(imsi, true);
+
+  // Constructing and sending Create Session Response to mme_app mimicing SPGW
+  send_create_session_resp();
+
+  // Constructing and sending ICS Response to mme_app mimicing S1AP
+  send_ics_response();
+
+  // Constructing UE Capability Indication message to mme_app
+  // mimicing S1AP with dummy radio capabilities
+  send_ue_capabilities_ind();
+
+  // Constructing and sending Attach Complete to mme_app
+  // mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+
+  // Check MME state after attach complete
+  send_activate_message_to_mme_app();
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Constructing and sending Detach Request to mme_app
+  // mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_detach_req, sizeof(nas_msg_detach_req), plmn);
+
+  // Constructing and sending Delete Session Response to mme_app
+  // mimicing SPGW task
+  send_delete_session_resp();
+
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check MME state after detach complete
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
+TEST_F(MmeAppProcedureTest, TestIcsRequestTimeout) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
+
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(2);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(1);
+  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(1);
+  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(1);
+  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(1);
+  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(1);
+  EXPECT_CALL(*service303_handler, service303_set_application_health())
+      .Times(1)
+      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+
+  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(
+      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+
+  // Sending AIA to mme_app mimicing successful S6A response for AIR
+  send_authentication_info_resp(imsi, true);
+
+  // Constructing and sending Authentication Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+
+  // Constructing and sending SMC Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+
+  // Sending ULA to mme_app mimicing successful S6A response for ULR
+  send_s6a_ula(imsi, true);
+
+  // Constructing and sending Create Session Response to mme_app mimicing SPGW
+  send_create_session_resp();
+
+  // Sleep to trigger timeout for ICS Request
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(2*MME_APP_TIMER_TO_MSEC));
+ 
+  // Constructing and sending Delete Session Response to mme_app
+  // mimicing SPGW task
+  send_delete_session_resp();
+
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check MME state after delete session processing
+  send_activate_message_to_mme_app();
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
