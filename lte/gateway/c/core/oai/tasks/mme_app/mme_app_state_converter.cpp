@@ -604,6 +604,7 @@ void MmeNasStateConverter::ue_context_to_proto(
   sgs_context_to_proto(
       state_ue_context->sgs_context, ue_context_proto->mutable_sgs_context());
 
+  ue_context_proto->set_rau_tau_timer(state_ue_context->rau_tau_timer);
   ue_context_proto->mutable_time_mobile_reachability_timer_started()
       ->set_seconds(state_ue_context->time_mobile_reachability_timer_started);
   ue_context_proto->mutable_time_implicit_detach_timer_started()->set_seconds(
@@ -691,6 +692,18 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
 
   proto_to_sgs_context(
       ue_context_proto.sgs_context(), state_ue_mm_context->sgs_context);
+
+  // Initialize timers to INVALID IDs
+  state_ue_mm_context->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  state_ue_mm_context->implicit_detach_timer.id     = MME_APP_TIMER_INACTIVE_ID;
+  state_ue_mm_context->initial_context_setup_rsp_timer = (nas_timer_t){
+      MME_APP_TIMER_INACTIVE_ID, MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE};
+  state_ue_mm_context->paging_response_timer = (nas_timer_t){
+      MME_APP_TIMER_INACTIVE_ID, MME_APP_PAGING_RESPONSE_TIMER_VALUE};
+  state_ue_mm_context->ulr_response_timer = (nas_timer_t){
+      MME_APP_TIMER_INACTIVE_ID, MME_APP_ULR_RESPONSE_TIMER_VALUE};
+  state_ue_mm_context->ue_context_modification_timer = (nas_timer_t){
+      MME_APP_TIMER_INACTIVE_ID, MME_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE};
 
   state_ue_mm_context->time_mobile_reachability_timer_started =
       ue_context_proto.time_mobile_reachability_timer_started().seconds();
