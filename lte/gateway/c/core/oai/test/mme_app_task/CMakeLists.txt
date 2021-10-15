@@ -81,7 +81,7 @@ target_link_libraries(test_nas_eps_quality_of_service
     )
 
 target_link_libraries(mme_app_test
-    TASK_MME_APP TASK_NAS TASK_AMF_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
+    TASK_MME_APP TASK_NAS ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
     LIB_BSTR LIB_ITTI MOCK_TASKS gtest gtest_main ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
     ${NETTLE_LIBRARIES}
     )
