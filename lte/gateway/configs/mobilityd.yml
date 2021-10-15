@@ -15,3 +15,6 @@
 persist_to_redis: true
 redis_port: 6380
 print_grpc_payload: false
+
+# [Experimental] Enable Sentry for this service
+sentry_enabled: true

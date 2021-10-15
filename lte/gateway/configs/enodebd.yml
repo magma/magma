@@ -46,3 +46,6 @@ web_ui_enable_list: []
 
 # Network interface to terminate S1
 s1_interface: eth1
+
+# [Experimental] Enable Sentry for this service
+sentry_enabled: false

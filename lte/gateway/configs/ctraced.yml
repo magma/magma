@@ -23,3 +23,6 @@ trace_interfaces:
 #   - tshark
 # tshark has more capabilities - see command_builder.py
 trace_tool: tshark
+
+# [Experimental] Enable Sentry for this service
+sentry_enabled: false
