@@ -10,7 +10,8 @@ option go_package = "magma/lte/cloud/go/protos/oai";
 // mme_app_timer_t and nas_timer_t
 message Timer {
   uint64 id = 1;  // long
-  uint64 sec = 2; // long
+  uint64 sec = 2 [deprecated = true]; // long
+  uint64 msec = 3; // long
 }
 
 /*****************************************************************/

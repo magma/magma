@@ -10,10 +10,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-extern "C" {}
+#include <string>
+extern "C" {
+#include "mme_config.h"
+}
 
 namespace magma {
 namespace lte {
+
+void nas_config_timer_reinit(nas_config_t* nas_conf, uint32_t timeout_msec);
 
 void send_sctp_mme_server_initialized();
 
