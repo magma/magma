@@ -65,6 +65,7 @@ func checkBlobStoreMigrations(
 	fact1 blobstore.BlobStorageFactory,
 	fact2 blobstore.BlobStorageFactory,
 ) {
+	var networkID = "id1"
 	var blobs = blobstore.Blobs{
 		blobstore.Blob{Type: "type1", Key: "key1", Value: []byte("value1")},
 		blobstore.Blob{Type: "type1", Key: "key2", Value: []byte("value2")},
@@ -73,7 +74,6 @@ func checkBlobStoreMigrations(
 		blobstore.Blob{Type: "type4", Key: "key4", Value: []byte("value5")},
 	}
 	var blobNotInFact = blobstore.Blob{Type: "notSaved", Key: "notSavedKey", Value: []byte("notSavedValue")}
-	var networkID = "id1"
 
 	createBlobs(t, fact1, networkID, blobs)
 	checkReadBlobs(t, fact1, networkID, blobs, blobNotInFact)
