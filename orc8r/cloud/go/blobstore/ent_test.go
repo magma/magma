@@ -16,6 +16,7 @@ package blobstore_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"magma/orc8r/cloud/go/blobstore"
@@ -24,194 +25,32 @@ import (
 	magmaerrors "magma/orc8r/lib/go/errors"
 )
 
-/**
-	Things to considering adding to Test:
-		- Rollback
-		- Search
- */
-
 func TestSQLToEntMigration(t *testing.T) {
-	// Spin up a SQL Blob Storage Factory
+	var tableName = "states"
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	require.NoError(t, err)
-	fact := blobstore.NewSQLBlobStorageFactory("states", db, sqorc.GetSqlBuilder())
-	err = fact.InitializeFactory()
+
+	sqlFact := blobstore.NewSQLBlobStorageFactory(tableName, db, sqorc.GetSqlBuilder())
+	err = sqlFact.InitializeFactory()
 	require.NoError(t, err)
 
-	// Set up a transaction
-	storev1, err := fact.StartTransaction(nil)
-	require.NoError(t, err)
-	blobs := blobstore.Blobs{
-		{Type: "type1", Key: "key1", Value: []byte("value1")},
-		{Type: "type1", Key: "key2", Value: []byte("value2")},
-		{Type: "type2", Key: "key3", Value: []byte("value3")},
-		{Type: "type3", Key: "key3", Value: []byte("value4")},
-		{Type: "type4", Key: "key4", Value: []byte("value5")},
-	}
-	networkID := "id1"
-	err = storev1.CreateOrUpdate(networkID, blobs)
-	require.NoError(t, err)
+	entFact := blobstore.NewEntStorage(tableName, db, nil)
 
-	// Check that transaction went through
-	many, err := storev1.GetMany(networkID, storage.TKs{
-		{Type: "type1", Key: "key1"},
-		{Type: "type1", Key: "key2"},
-		{Type: "type3", Key: "key3"},
-	})
-	expectedMany := append(blobs[:2], blobs[3])
-	require.NoError(t, err)
-	require.Len(t, many, 3)
-	require.Equal(t, expectedMany, many)
-
-	// keys, err := storev1.GetExistingKeys([]string{"key1", "nonexistentKey"}, blobstore.SearchFilter{})
-	// require.NoError(t, err)
-	// require.Equal(t, []string{"key1"}, keys)
-
-	keyPrefix := "ke"
-	blobMap, err := storev1.Search(blobstore.SearchFilter{KeyPrefix: &keyPrefix}, blobstore.LoadCriteria{LoadValue: true})
-	require.Equal(t, blobs, blobMap[networkID])
-
-
-	err = storev1.Commit()
-	require.NoError(t, err)
-	//
-	// entfact := blobstore.NewEntStorage("states", db, nil)
-	// storev2, err := entfact.StartTransaction(nil)
-	// require.NoError(t, err)
-	// blobs, err = storev2.GetMany("id1", storage.TKs{
-	// 	{Type: "type1", Key: "key1"},
-	// 	{Type: "type2", Key: "key2"},
-	// })
-	// require.NoError(t, err)
-	// require.Len(t, many, 2)
-	// require.Equal(t, blobs[:2], many)
-	//
-	// blob, err := storev2.Get("id1", storage.TK{Type: "type1", Key: "key1"})
-	// require.NoError(t, err)
-	// require.Equal(t, blobs[0], blob)
-	//
-	// blob, err = storev2.Get("id1", storage.TK{Type: "type2", Key: "key2"})
-	// require.NoError(t, err)
-	// require.Equal(t, blobs[1], blob)
-	//
-	// err = storev2.IncrementVersion("id1", storage.TK{Type: "type3", Key: "key1"})
-	// require.NoError(t, err)
-	// blob, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
-	// require.NoError(t, err)
-	// require.Equal(t, blobstore.Blob{Type: "type3", Key: "key1", Version: 1}, blob)
-	//
-	// err = storev2.IncrementVersion("id1", storage.TK{Type: "type3", Key: "key1"})
-	// require.NoError(t, err)
-	// blob, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
-	// require.NoError(t, err)
-	// require.Equal(t, blobstore.Blob{Type: "type3", Key: "key1", Version: 2}, blob)
-	//
-	// err = storev2.Delete("id1", storage.TKs{{Type: "type3", Key: "key1"}})
-	// require.NoError(t, err)
-	// _, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
-	// require.Equal(t, magmaerrors.ErrNotFound, err)
-	//
-	// err = storev2.CreateOrUpdate("id1", blobstore.Blobs{
-	// 	{Type: "type1", Key: "key1", Value: []byte("world")},
-	// 	{Type: "type3", Key: "key1", Value: []byte("value")},
-	// })
-	// require.NoError(t, err)
-	// blob, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
-	// require.NoError(t, err)
-	// require.Equal(t, blobstore.Blob{Type: "type3", Key: "key1", Value: []byte("value")}, blob)
-	//
-	// blob, err = storev2.Get("id1", storage.TK{Type: "type1", Key: "key1"})
-	// require.NoError(t, err)
-	// require.Equal(t, blobstore.Blob{Type: "type1", Key: "key1", Value: []byte("world"), Version: 1}, blob)
-	//
-	// keys, err = storev2.GetExistingKeys([]string{"key1"}, blobstore.SearchFilter{})
-	// require.NoError(t, err)
-	// require.Equal(t, []string{"key1"}, keys)
+	checkBlobStoreMigrations(t, sqlFact, entFact)
 }
 
 func TestEntToSQLMigration(t *testing.T) {
+	var tableName = "states"
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	require.NoError(t, err)
-	fact := blobstore.NewEntStorage("states", db, sqorc.GetSqlBuilder())
-	err = fact.InitializeFactory()
-	require.NoError(t, err)
-	storev1, err := fact.StartTransaction(nil)
-	require.NoError(t, err)
-	blobs := blobstore.Blobs{
-		{Type: "type1", Key: "key1", Value: []byte("value")},
-		{Type: "type2", Key: "key2", Value: []byte("value")},
-		{Type: "type1", Key: "key2", Value: []byte("value")},
-	}
-	err = storev1.CreateOrUpdate("id1", blobs)
+
+	entFact := blobstore.NewEntStorage(tableName, db, nil)
+
+	sqlFact := blobstore.NewSQLBlobStorageFactory(tableName, db, sqorc.GetSqlBuilder())
+	err = sqlFact.InitializeFactory()
 	require.NoError(t, err)
 
-	many, err := storev1.GetMany("id1", storage.TKs{
-		{Type: "type1", Key: "key1"},
-		{Type: "type2", Key: "key2"},
-	})
-	require.NoError(t, err)
-	require.Len(t, many, 2)
-	require.Equal(t, blobs[:2], many)
-
-	keys, err := storev1.GetExistingKeys([]string{"key1"}, blobstore.SearchFilter{})
-	require.NoError(t, err)
-	require.Equal(t, []string{"key1"}, keys)
-
-	err = storev1.Commit()
-	require.NoError(t, err)
-
-	entfact := blobstore.NewSQLBlobStorageFactory("states", db, sqorc.GetSqlBuilder())
-	storev2, err := entfact.StartTransaction(nil)
-	require.NoError(t, err)
-	blobs, err = storev2.GetMany("id1", storage.TKs{
-		{Type: "type1", Key: "key1"},
-		{Type: "type2", Key: "key2"},
-	})
-	require.NoError(t, err)
-	require.Len(t, many, 2)
-	require.Equal(t, blobs[:2], many)
-
-	blob, err := storev2.Get("id1", storage.TK{Type: "type1", Key: "key1"})
-	require.NoError(t, err)
-	require.Equal(t, blobs[0], blob)
-
-	blob, err = storev2.Get("id1", storage.TK{Type: "type2", Key: "key2"})
-	require.NoError(t, err)
-	require.Equal(t, blobs[1], blob)
-
-	err = storev2.IncrementVersion("id1", storage.TK{Type: "type3", Key: "key1"})
-	require.NoError(t, err)
-	blob, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
-	require.NoError(t, err)
-	require.Equal(t, blobstore.Blob{Type: "type3", Key: "key1", Version: 1}, blob)
-
-	err = storev2.IncrementVersion("id1", storage.TK{Type: "type3", Key: "key1"})
-	require.NoError(t, err)
-	blob, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
-	require.NoError(t, err)
-	require.Equal(t, blobstore.Blob{Type: "type3", Key: "key1", Version: 2}, blob)
-
-	err = storev2.Delete("id1", storage.TKs{{Type: "type3", Key: "key1"}})
-	require.NoError(t, err)
-	_, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
-	require.Equal(t, magmaerrors.ErrNotFound, err)
-
-	err = storev2.CreateOrUpdate("id1", blobstore.Blobs{
-		{Type: "type1", Key: "key1", Value: []byte("world")},
-		{Type: "type3", Key: "key1", Value: []byte("value")},
-	})
-	require.NoError(t, err)
-	blob, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
-	require.NoError(t, err)
-	require.Equal(t, blobstore.Blob{Type: "type3", Key: "key1", Value: []byte("value")}, blob)
-
-	blob, err = storev2.Get("id1", storage.TK{Type: "type1", Key: "key1"})
-	require.NoError(t, err)
-	require.Equal(t, blobstore.Blob{Type: "type1", Key: "key1", Value: []byte("world"), Version: 1}, blob)
-
-	keys, err = storev2.GetExistingKeys([]string{"key1"}, blobstore.SearchFilter{})
-	require.NoError(t, err)
-	require.Equal(t, []string{"key1"}, keys)
+	checkBlobStoreMigrations(t, entFact, sqlFact)
 }
 
 func TestIntegration(t *testing.T) {
@@ -219,4 +58,161 @@ func TestIntegration(t *testing.T) {
 	require.NoError(t, err)
 	fact := blobstore.NewEntStorage("states", db, sqorc.GetSqlBuilder())
 	integration(t, fact)
+}
+
+func checkBlobStoreMigrations(t *testing.T, fact1 blobstore.BlobStorageFactory, fact2 blobstore.BlobStorageFactory) {
+	var blobs = blobstore.Blobs{
+		blobstore.Blob{Type: "type1", Key: "key1", Value: []byte("value1")},
+		blobstore.Blob{Type: "type1", Key: "key2", Value: []byte("value2")},
+		blobstore.Blob{Type: "type2", Key: "key3", Value: []byte("value3")},
+		blobstore.Blob{Type: "type3", Key: "key3", Value: []byte("value4")},
+		blobstore.Blob{Type: "type4", Key: "key4", Value: []byte("value5")},
+	}
+	var blobNotInFact = blobstore.Blob{Type: "notSaved", Key: "notSavedKey", Value: []byte("notSavedValue")}
+	var networkID = "id1"
+
+	createBlobs(t, fact1, networkID, blobs)
+	checkReadBlobs(t, fact1, networkID, blobs, blobNotInFact)
+	checkRollback(t, fact1, networkID, blobNotInFact)
+	checkReadBlobs(t, fact2, networkID, blobs, blobNotInFact)
+	checkWriteBlobs(t, fact2, networkID, blobs, blobNotInFact)
+}
+
+// Assumes that expectedBlobs length is at least 2.
+func checkReadBlobs(
+	t *testing.T,
+	fact blobstore.BlobStorageFactory,
+	networkID string,
+	expectedBlobs blobstore.Blobs,
+	blobNotInFact blobstore.Blob,
+) {
+	store, err := fact.StartTransaction(nil)
+	require.NoError(t, err)
+
+	// Check Search works and that factory.blobs === blobs
+	keyPrefix := ""
+	blobMap, err := store.Search(blobstore.SearchFilter{KeyPrefix: &keyPrefix}, blobstore.LoadCriteria{LoadValue: true})
+	assert.ElementsMatch(t, expectedBlobs, blobMap[networkID])
+
+	for _, b := range expectedBlobs {
+		checkBlobInStore(t, store, networkID, b)
+	}
+
+	blobSlice := expectedBlobs[0:2]
+	blobs, err := store.GetMany(networkID, getTKsFromBlobs(blobSlice))
+	require.NoError(t, err)
+	assert.ElementsMatch(t, blobs, blobSlice)
+
+	keys, err := store.GetExistingKeys([]string{expectedBlobs[0].Key, blobNotInFact.Key}, blobstore.SearchFilter{})
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{expectedBlobs[0].Key}, keys)
+
+	err = store.Commit()
+	require.NoError(t, err)
+}
+
+// Assumes that expectedBlobs length is at least 2.
+// This function should have no side effects.
+func checkWriteBlobs(
+	t *testing.T,
+	fact blobstore.BlobStorageFactory,
+	networkID string,
+	expectedBlobs blobstore.Blobs,
+	blobNotInFact blobstore.Blob,
+) {
+	checkRollback(t, fact, networkID, blobNotInFact)
+	store, err := fact.StartTransaction(nil)
+	require.NoError(t, err)
+
+	// Test IncrementVersion
+	err = store.IncrementVersion(networkID, getTKFromBlob(expectedBlobs[1]))
+	require.NoError(t, err)
+	blob, err := store.Get(networkID, getTKFromBlob(expectedBlobs[1]))
+	expectedBlobValue := expectedBlobs[1]
+	expectedBlobValue.Version = 1
+	require.NoError(t, err)
+	require.Equal(t, expectedBlobValue, blob)
+
+	// Test IncrementVersion x2
+	err = store.IncrementVersion(networkID, getTKFromBlob(expectedBlobs[1]))
+	require.NoError(t, err)
+	blob, err = store.Get(networkID, getTKFromBlob(expectedBlobs[1]))
+	require.NoError(t, err)
+	expectedBlobValue.Version = 2
+	require.NoError(t, err)
+	require.Equal(t, expectedBlobValue, blob)
+
+	// Test Delete
+	err = store.Delete(networkID, storage.TKs{getTKFromBlob(expectedBlobs[1])})
+	require.NoError(t, err)
+	_, err = store.Get(networkID, getTKFromBlob(expectedBlobs[1]))
+	require.Equal(t, magmaerrors.ErrNotFound, err)
+
+	err = store.CreateOrUpdate(networkID, blobstore.Blobs{
+		expectedBlobs[1],
+		blobNotInFact,
+	})
+	require.NoError(t, err)
+
+	checkBlobInStore(t, store, networkID, expectedBlobs[1])
+	checkBlobInStore(t, store, networkID, blobNotInFact)
+
+	err = store.Delete(networkID, storage.TKs{getTKFromBlob(blobNotInFact)})
+	_, err = store.Get(networkID, getTKFromBlob(blobNotInFact))
+	require.Equal(t, magmaerrors.ErrNotFound, err)
+
+	store.Commit()
+}
+
+func checkRollback(
+	t *testing.T,
+	fact blobstore.BlobStorageFactory,
+	networkID string,
+	blobNotInFact blobstore.Blob,
+) {
+	store, err := fact.StartTransaction(nil)
+	keyPrefix := ""
+	blobMap, err := store.Search(blobstore.SearchFilter{KeyPrefix: &keyPrefix}, blobstore.LoadCriteria{LoadValue: true})
+	curBlobs := blobMap[networkID]
+
+	err = store.CreateOrUpdate(networkID, blobstore.Blobs{blobNotInFact})
+	checkBlobInStore(t, store, networkID, blobNotInFact)
+
+	// Check Rollback works
+	err = store.Rollback()
+	require.NoError(t, err)
+	store, err = fact.StartTransaction(nil)
+	blobMap, err = store.Search(blobstore.SearchFilter{KeyPrefix: &keyPrefix}, blobstore.LoadCriteria{LoadValue: true})
+	require.NoError(t, err)
+	assert.ElementsMatch(t, curBlobs, blobMap[networkID])
+	err = store.Commit()
+}
+
+func createBlobs(t *testing.T, fact blobstore.BlobStorageFactory, networkID string, blobs blobstore.Blobs) {
+	store, err := fact.StartTransaction(nil)
+	require.NoError(t, err)
+
+	err = store.CreateOrUpdate(networkID, blobs)
+	require.NoError(t, err)
+
+	err = store.Commit()
+	require.NoError(t, err)
+}
+
+func checkBlobInStore(t *testing.T, store blobstore.TransactionalBlobStorage, networkID string, expectedBlob blobstore.Blob) {
+	blob, err := store.Get(networkID, getTKFromBlob(expectedBlob))
+	require.NoError(t, err)
+	require.Equal(t, expectedBlob, blob)
+}
+
+func getTKsFromBlobs(blobs blobstore.Blobs) storage.TKs {
+	var tks storage.TKs
+	for _, b := range blobs {
+		tks = append(tks, getTKFromBlob(b))
+	}
+	return tks
+}
+
+func getTKFromBlob(blob blobstore.Blob) storage.TK {
+	return storage.TK{Type: blob.Type, Key: blob.Key}
 }
