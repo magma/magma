@@ -25,32 +25,24 @@ import (
 	magmaerrors "magma/orc8r/lib/go/errors"
 )
 
-func TestSQLToEntMigration(t *testing.T) {
-	var tableName = "states"
-	db, err := sqorc.Open("sqlite3", ":memory:")
-	require.NoError(t, err)
+func TestBlobstoreImplMigrations(t *testing.T) {
+	makeBlobstores := func() (blobstore.BlobStorageFactory, blobstore.BlobStorageFactory) {
+		var tableName = "states"
+		db, err := sqorc.Open("sqlite3", ":memory:")
+		require.NoError(t, err)
 
-	sqlFact := blobstore.NewSQLBlobStorageFactory(tableName, db, sqorc.GetSqlBuilder())
-	err = sqlFact.InitializeFactory()
-	require.NoError(t, err)
+		sqlFact := blobstore.NewSQLBlobStorageFactory(tableName, db, sqorc.GetSqlBuilder())
+		err = sqlFact.InitializeFactory()
+		require.NoError(t, err)
 
-	entFact := blobstore.NewEntStorage(tableName, db, nil)
+		entFact := blobstore.NewEntStorage(tableName, db, sqorc.GetSqlBuilder())
+		return sqlFact, entFact
+	}
 
-	checkBlobStoreMigrations(t, sqlFact, entFact)
-}
-
-func TestEntToSQLMigration(t *testing.T) {
-	var tableName = "states"
-	db, err := sqorc.Open("sqlite3", ":memory:")
-	require.NoError(t, err)
-
-	entFact := blobstore.NewEntStorage(tableName, db, nil)
-
-	sqlFact := blobstore.NewSQLBlobStorageFactory(tableName, db, sqorc.GetSqlBuilder())
-	err = sqlFact.InitializeFactory()
-	require.NoError(t, err)
-
-	checkBlobStoreMigrations(t, entFact, sqlFact)
+	sqlFact, entFact := makeBlobstores()
+	checkBlobstoreMigration(t, sqlFact, entFact)
+	sqlFact, entFact = makeBlobstores()
+	checkBlobstoreMigration(t, entFact, sqlFact)
 }
 
 func TestIntegration(t *testing.T) {
@@ -60,13 +52,13 @@ func TestIntegration(t *testing.T) {
 	integration(t, fact)
 }
 
-func checkBlobStoreMigrations(
+func checkBlobstoreMigration(
 	t *testing.T,
 	fact1 blobstore.BlobStorageFactory,
 	fact2 blobstore.BlobStorageFactory,
 ) {
 	var networkID = "id1"
-	var blobs = blobstore.Blobs{
+	var expectedBlobs = blobstore.Blobs{
 		blobstore.Blob{Type: "type1", Key: "key1", Value: []byte("value1")},
 		blobstore.Blob{Type: "type1", Key: "key2", Value: []byte("value2")},
 		blobstore.Blob{Type: "type2", Key: "key3", Value: []byte("value3")},
@@ -75,12 +67,13 @@ func checkBlobStoreMigrations(
 	}
 	var blobNotInFact = blobstore.Blob{Type: "notSaved", Key: "notSavedKey", Value: []byte("notSavedValue")}
 
-	createBlobs(t, fact1, networkID, blobs)
-	checkReadBlobs(t, fact1, networkID, blobs, blobNotInFact)
-	checkReadBlobs(t, fact2, networkID, blobs, blobNotInFact)
-	checkWriteBlobs(t, fact2, networkID, blobs, blobNotInFact)
+	createBlobs(t, fact1, networkID, expectedBlobs)
+	checkReadBlobs(t, fact1, networkID, expectedBlobs, blobNotInFact)
+	checkReadBlobs(t, fact2, networkID, expectedBlobs, blobNotInFact)
+	checkWriteBlobs(t, fact2, networkID, expectedBlobs, blobNotInFact)
 }
 
+// checkReadBlobs checks that fact includes all blobs in expectedBlobs.
 // Assumes that expectedBlobs length is at least 2.
 func checkReadBlobs(
 	t *testing.T,
@@ -93,26 +86,27 @@ func checkReadBlobs(
 	require.NoError(t, err)
 
 	keyPrefix := ""
-	blobMap, err := store.Search(blobstore.SearchFilter{KeyPrefix: &keyPrefix}, blobstore.LoadCriteria{LoadValue: true})
-	assert.ElementsMatch(t, expectedBlobs, blobMap[networkID])
+	actualBlobMap, err := store.Search(blobstore.SearchFilter{KeyPrefix: &keyPrefix}, blobstore.LoadCriteria{LoadValue: true})
+	assert.ElementsMatch(t, expectedBlobs, actualBlobMap[networkID])
 
 	for _, b := range expectedBlobs {
 		checkBlobInStore(t, store, networkID, b)
 	}
 
-	blobSlice := expectedBlobs[0:2]
-	blobs, err := store.GetMany(networkID, getTKsFromBlobs(blobSlice))
+	expectedBlobSlice := expectedBlobs[0:2]
+	blobs, err := store.GetMany(networkID, expectedBlobSlice.TKs())
 	require.NoError(t, err)
-	assert.ElementsMatch(t, blobs, blobSlice)
+	assert.ElementsMatch(t, expectedBlobSlice, blobs)
 
 	keys, err := store.GetExistingKeys([]string{expectedBlobs[0].Key, blobNotInFact.Key}, blobstore.SearchFilter{})
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	assert.ElementsMatch(t, []string{expectedBlobs[0].Key}, keys)
 
 	err = store.Commit()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 }
 
+// checkWriteBlobs checks that writing to fact works as expected.
 // Assumes that expectedBlobs length is at least 2.
 // This function should have no side effects.
 func checkWriteBlobs(
@@ -124,46 +118,46 @@ func checkWriteBlobs(
 ) {
 	checkRollback(t, fact, networkID, blobNotInFact)
 	store, err := fact.StartTransaction(nil)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	// Test IncrementVersion
-	err = store.IncrementVersion(networkID, getTKFromBlob(expectedBlobs[1]))
-	require.NoError(t, err)
-	blob, err := store.Get(networkID, getTKFromBlob(expectedBlobs[1]))
+	err = store.IncrementVersion(networkID, expectedBlobs[1].TK())
+	assert.NoError(t, err)
+	blob, err := store.Get(networkID, expectedBlobs[1].TK())
 	expectedBlobValue := expectedBlobs[1]
 	expectedBlobValue.Version = 1
-	require.NoError(t, err)
-	require.Equal(t, expectedBlobValue, blob)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedBlobValue, blob)
 
-	err = store.IncrementVersion(networkID, getTKFromBlob(expectedBlobs[1]))
-	require.NoError(t, err)
-	blob, err = store.Get(networkID, getTKFromBlob(expectedBlobs[1]))
-	require.NoError(t, err)
+	err = store.IncrementVersion(networkID, expectedBlobs[1].TK())
+	assert.NoError(t, err)
+	blob, err = store.Get(networkID, expectedBlobs[1].TK())
+	assert.NoError(t, err)
 	expectedBlobValue.Version = 2
-	require.NoError(t, err)
-	require.Equal(t, expectedBlobValue, blob)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedBlobValue, blob)
 
 	// Test Delete
-	err = store.Delete(networkID, storage.TKs{getTKFromBlob(expectedBlobs[1])})
-	require.NoError(t, err)
-	_, err = store.Get(networkID, getTKFromBlob(expectedBlobs[1]))
-	require.Equal(t, magmaerrors.ErrNotFound, err)
+	err = store.Delete(networkID, storage.TKs{expectedBlobs[1].TK()})
+	assert.NoError(t, err)
+	_, err = store.Get(networkID, expectedBlobs[1].TK())
+	assert.Equal(t, magmaerrors.ErrNotFound, err)
 
 	err = store.CreateOrUpdate(networkID, blobstore.Blobs{
 		expectedBlobs[1],
 		blobNotInFact,
 	})
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	checkBlobInStore(t, store, networkID, expectedBlobs[1])
 	checkBlobInStore(t, store, networkID, blobNotInFact)
 
-	err = store.Delete(networkID, storage.TKs{getTKFromBlob(blobNotInFact)})
-	_, err = store.Get(networkID, getTKFromBlob(blobNotInFact))
-	require.Equal(t, magmaerrors.ErrNotFound, err)
+	err = store.Delete(networkID, storage.TKs{blobNotInFact.TK()})
+	_, err = store.Get(networkID, blobNotInFact.TK())
+	assert.Equal(t, magmaerrors.ErrNotFound, err)
 
 	err = store.Commit()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 }
 
 func checkRollback(
@@ -175,21 +169,21 @@ func checkRollback(
 	store, err := fact.StartTransaction(nil)
 	keyPrefix := ""
 	blobMap, err := store.Search(blobstore.SearchFilter{KeyPrefix: &keyPrefix}, blobstore.LoadCriteria{LoadValue: true})
-	curBlobs := blobMap[networkID]
+	inputBlobs := blobMap[networkID]
 
 	err = store.CreateOrUpdate(networkID, blobstore.Blobs{blobNotInFact})
 	checkBlobInStore(t, store, networkID, blobNotInFact)
 
 	err = store.Rollback()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	store, err = fact.StartTransaction(nil)
 	blobMap, err = store.Search(blobstore.SearchFilter{KeyPrefix: &keyPrefix}, blobstore.LoadCriteria{LoadValue: true})
-	require.NoError(t, err)
-	assert.ElementsMatch(t, curBlobs, blobMap[networkID])
+	assert.NoError(t, err)
+	assert.ElementsMatch(t, inputBlobs, blobMap[networkID])
 
 	err = store.Commit()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 }
 
 func createBlobs(
@@ -199,13 +193,13 @@ func createBlobs(
 	blobs blobstore.Blobs,
 ) {
 	store, err := fact.StartTransaction(nil)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	err = store.CreateOrUpdate(networkID, blobs)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	err = store.Commit()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 }
 
 func checkBlobInStore(
@@ -214,19 +208,7 @@ func checkBlobInStore(
 	networkID string,
 	expectedBlob blobstore.Blob,
 ) {
-	blob, err := store.Get(networkID, getTKFromBlob(expectedBlob))
-	require.NoError(t, err)
-	require.Equal(t, expectedBlob, blob)
-}
-
-func getTKsFromBlobs(blobs blobstore.Blobs) storage.TKs {
-	var tks storage.TKs
-	for _, b := range blobs {
-		tks = append(tks, getTKFromBlob(b))
-	}
-	return tks
-}
-
-func getTKFromBlob(blob blobstore.Blob) storage.TK {
-	return storage.TK{Type: blob.Type, Key: blob.Key}
+	blob, err := store.Get(networkID, expectedBlob.TK())
+	assert.NoError(t, err)
+	assert.Equal(t, expectedBlob, blob)
 }
