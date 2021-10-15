@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	     NETWORK_HEALTH_STATUS_REPORT_INTERVAL = time.Second * 60
+	NETWORK_HEALTH_STATUS_REPORT_INTERVAL = time.Second * 60
 )
 
 func main() {
