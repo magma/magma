@@ -795,7 +795,7 @@ nas_auth_info_proc_t* nas_new_cn_auth_info_procedure(
       __sync_fetch_and_add(&nas_puid, 1);
   auth_info_proc->cn_proc.base_proc.type = NAS_PROC_TYPE_CN;
   auth_info_proc->cn_proc.type           = CN_PROC_AUTH_INFO;
-  auth_info_proc->timer_s6a.msec          = S6A_AIR_RESPONSE_TIMER;
+  auth_info_proc->timer_s6a.msec          = mme_config.nas_config.ts6a_msec;
   auth_info_proc->timer_s6a.id           = NAS_TIMER_INACTIVE_ID;
 
   nas_cn_procedure_t* wrapper = calloc(1, sizeof(*wrapper));

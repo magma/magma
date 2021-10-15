@@ -62,6 +62,7 @@
 #include "3gpp_24.301.h"
 #include "TrackingAreaIdentity.h"
 #include "bstrlib.h"
+#include "mme_app_ue_context.h"
 #include "mme_default_values.h"
 #include "service303.h"
 #include "conversions.h"
@@ -197,6 +198,8 @@ void nas_config_init(nas_config_t* nas_conf) {
   nas_conf->t3486_msec              = 1000 * T3486_DEFAULT_VALUE;
   nas_conf->t3489_msec              = 1000 * T3489_DEFAULT_VALUE;
   nas_conf->t3495_msec              = 1000 * T3495_DEFAULT_VALUE;
+  nas_conf->ts6a_msec               = 1000 * TS6A_DEFAULT_VALUE;
+  nas_conf->tics_msec               = 1000 * MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE;
   nas_conf->force_reject_tau        = true;
   nas_conf->force_reject_sr         = true;
   nas_conf->disable_esm_information = false;

@@ -315,6 +315,8 @@ typedef struct nas_config_s {
   uint32_t t3486_msec;
   uint32_t t3489_msec;
   uint32_t t3495_msec;
+  uint32_t ts6a_msec;
+  uint32_t tics_msec;
   // non standard features
   bool force_reject_tau;
   bool force_reject_sr;
