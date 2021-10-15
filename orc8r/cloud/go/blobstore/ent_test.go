@@ -73,7 +73,6 @@ func checkBlobStoreMigrations(t *testing.T, fact1 blobstore.BlobStorageFactory, 
 
 	createBlobs(t, fact1, networkID, blobs)
 	checkReadBlobs(t, fact1, networkID, blobs, blobNotInFact)
-	checkRollback(t, fact1, networkID, blobNotInFact)
 	checkReadBlobs(t, fact2, networkID, blobs, blobNotInFact)
 	checkWriteBlobs(t, fact2, networkID, blobs, blobNotInFact)
 }
@@ -89,7 +88,6 @@ func checkReadBlobs(
 	store, err := fact.StartTransaction(nil)
 	require.NoError(t, err)
 
-	// Check Search works and that factory.blobs === blobs
 	keyPrefix := ""
 	blobMap, err := store.Search(blobstore.SearchFilter{KeyPrefix: &keyPrefix}, blobstore.LoadCriteria{LoadValue: true})
 	assert.ElementsMatch(t, expectedBlobs, blobMap[networkID])
@@ -133,7 +131,6 @@ func checkWriteBlobs(
 	require.NoError(t, err)
 	require.Equal(t, expectedBlobValue, blob)
 
-	// Test IncrementVersion x2
 	err = store.IncrementVersion(networkID, getTKFromBlob(expectedBlobs[1]))
 	require.NoError(t, err)
 	blob, err = store.Get(networkID, getTKFromBlob(expectedBlobs[1]))
@@ -161,7 +158,8 @@ func checkWriteBlobs(
 	_, err = store.Get(networkID, getTKFromBlob(blobNotInFact))
 	require.Equal(t, magmaerrors.ErrNotFound, err)
 
-	store.Commit()
+	err = store.Commit()
+	require.NoError(t, err)
 }
 
 func checkRollback(
@@ -178,14 +176,16 @@ func checkRollback(
 	err = store.CreateOrUpdate(networkID, blobstore.Blobs{blobNotInFact})
 	checkBlobInStore(t, store, networkID, blobNotInFact)
 
-	// Check Rollback works
 	err = store.Rollback()
 	require.NoError(t, err)
+
 	store, err = fact.StartTransaction(nil)
 	blobMap, err = store.Search(blobstore.SearchFilter{KeyPrefix: &keyPrefix}, blobstore.LoadCriteria{LoadValue: true})
 	require.NoError(t, err)
 	assert.ElementsMatch(t, curBlobs, blobMap[networkID])
+
 	err = store.Commit()
+	require.NoError(t, err)
 }
 
 func createBlobs(t *testing.T, fact blobstore.BlobStorageFactory, networkID string, blobs blobstore.Blobs) {
