@@ -16,24 +16,23 @@ package blobstore_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	magmaerrors "magma/orc8r/lib/go/errors"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestBlobstoreImplMigrations(t *testing.T) {
 	makeBlobstores := func() (blobstore.BlobStorageFactory, blobstore.BlobStorageFactory) {
 		var tableName = "states"
 		db, err := sqorc.Open("sqlite3", ":memory:")
-		require.NoError(t, err)
+		assert.NoError(t, err)
 
 		sqlFact := blobstore.NewSQLBlobStorageFactory(tableName, db, sqorc.GetSqlBuilder())
 		err = sqlFact.InitializeFactory()
-		require.NoError(t, err)
+		assert.NoError(t, err)
 
 		entFact := blobstore.NewEntStorage(tableName, db, sqorc.GetSqlBuilder())
 		return sqlFact, entFact
@@ -47,7 +46,7 @@ func TestBlobstoreImplMigrations(t *testing.T) {
 
 func TestIntegration(t *testing.T) {
 	db, err := sqorc.Open("sqlite3", ":memory:")
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	fact := blobstore.NewEntStorage("states", db, sqorc.GetSqlBuilder())
 	integration(t, fact)
 }
@@ -83,10 +82,11 @@ func checkReadBlobs(
 	blobNotInFact blobstore.Blob,
 ) {
 	store, err := fact.StartTransaction(nil)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	keyPrefix := ""
 	actualBlobMap, err := store.Search(blobstore.SearchFilter{KeyPrefix: &keyPrefix}, blobstore.LoadCriteria{LoadValue: true})
+	assert.NoError(t, err)
 	assert.ElementsMatch(t, expectedBlobs, actualBlobMap[networkID])
 
 	for _, b := range expectedBlobs {
@@ -95,7 +95,7 @@ func checkReadBlobs(
 
 	expectedBlobSlice := expectedBlobs[0:2]
 	blobs, err := store.GetMany(networkID, expectedBlobSlice.TKs())
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	assert.ElementsMatch(t, expectedBlobSlice, blobs)
 
 	keys, err := store.GetExistingKeys([]string{expectedBlobs[0].Key, blobNotInFact.Key}, blobstore.SearchFilter{})
@@ -153,6 +153,7 @@ func checkWriteBlobs(
 	checkBlobInStore(t, store, networkID, blobNotInFact)
 
 	err = store.Delete(networkID, storage.TKs{blobNotInFact.TK()})
+	assert.NoError(t, err)
 	_, err = store.Get(networkID, blobNotInFact.TK())
 	assert.Equal(t, magmaerrors.ErrNotFound, err)
 
@@ -167,17 +168,21 @@ func checkRollback(
 	blobNotInFact blobstore.Blob,
 ) {
 	store, err := fact.StartTransaction(nil)
+	assert.NoError(t, err)
 	keyPrefix := ""
 	blobMap, err := store.Search(blobstore.SearchFilter{KeyPrefix: &keyPrefix}, blobstore.LoadCriteria{LoadValue: true})
+	assert.NoError(t, err)
 	inputBlobs := blobMap[networkID]
 
 	err = store.CreateOrUpdate(networkID, blobstore.Blobs{blobNotInFact})
+	assert.NoError(t, err)
 	checkBlobInStore(t, store, networkID, blobNotInFact)
 
 	err = store.Rollback()
 	assert.NoError(t, err)
 
 	store, err = fact.StartTransaction(nil)
+	assert.NoError(t, err)
 	blobMap, err = store.Search(blobstore.SearchFilter{KeyPrefix: &keyPrefix}, blobstore.LoadCriteria{LoadValue: true})
 	assert.NoError(t, err)
 	assert.ElementsMatch(t, inputBlobs, blobMap[networkID])
