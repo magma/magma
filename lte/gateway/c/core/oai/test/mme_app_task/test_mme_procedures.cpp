@@ -50,6 +50,27 @@ task_zmq_ctx_t task_zmq_ctx_main;
 #define END_OF_TEST_SLEEP_MS 500
 #define STATE_MAX_WAIT_MS 1000
 
+#define MME_APP_EXPECT_CALLS(                                                  \
+    dlNas, connEstConf, ctxRel, air, ulr, purgeReq, csr, dsr, setAppHealth)    \
+  do {                                                                         \
+    EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport())         \
+        .Times(dlNas);                                                         \
+    EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(connEstConf); \
+    EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command())       \
+        .Times(ctxRel);                                                        \
+    EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req())            \
+        .Times(air);                                                           \
+    EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(ulr);    \
+    EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(purgeReq);          \
+    EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request())        \
+        .Times(csr);                                                           \
+    EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request())            \
+        .Times(dsr);                                                           \
+    EXPECT_CALL(*service303_handler, service303_set_application_health())      \
+        .Times(setAppHealth)                                                   \
+        .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \
+  } while (0)
+
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
@@ -161,17 +182,8 @@ TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
 
-  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(1);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(0);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(0);
-  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(0);
-  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(0);
-  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(0);
-  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(0);
-  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(0);
-  EXPECT_CALL(*service303_handler, service303_set_application_health())
-      .Times(1)
-      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+  MME_APP_EXPECT_CALLS(1, 0, 0, 0, 0, 0, 0, 0, 1);
+
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   // The following buffer just includes an attach request
   uint8_t nas_msg_faulty[29] = {0x72, 0x08, 0x09, 0x10, 0x10, 0x00, 0x00, 0x00,
@@ -200,17 +212,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
 
-  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(3);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(1);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(1);
-  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(1);
-  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(1);
-  EXPECT_CALL(*service303_handler, service303_set_application_health())
-      .Times(2)
-      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+  MME_APP_EXPECT_CALLS(3, 1, 1, 1, 1, 1, 1, 1, 2);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(
@@ -285,17 +287,7 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
 
-  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(4);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(1);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(1);
-  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(1);
-  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(1);
-  EXPECT_CALL(*service303_handler, service303_set_application_health())
-      .Times(2)
-      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+  MME_APP_EXPECT_CALLS(4, 1, 1, 1, 1, 1, 1, 1, 2);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(
@@ -374,17 +366,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirFailure) {
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
 
-  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(1);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(0);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(0);
-  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(0);
-  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(0);
-  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(0);
-  EXPECT_CALL(*service303_handler, service303_set_application_health())
-      .Times(2)
-      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+  MME_APP_EXPECT_CALLS(1, 0, 1, 1, 0, 0, 0, 0, 2);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(
@@ -425,17 +407,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirTimeout) {
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
 
-  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(1);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(0);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(0);
-  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(0);
-  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(0);
-  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(0);
-  EXPECT_CALL(*service303_handler, service303_set_application_health())
-      .Times(2)
-      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+  MME_APP_EXPECT_CALLS(1, 0, 1, 1, 0, 0, 0, 0, 2);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(
@@ -477,17 +449,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyUlaFailure) {
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
 
-  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(3);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(0);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(0);
-  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(0);
-  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(0);
-  EXPECT_CALL(*service303_handler, service303_set_application_health())
-      .Times(2)
-      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+  MME_APP_EXPECT_CALLS(3, 0, 1, 1, 1, 0, 0, 0, 2);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(
@@ -539,17 +501,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
 
-  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(15);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(1);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(1);
-  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(1);
-  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(1);
-  EXPECT_CALL(*service303_handler, service303_set_application_health())
-      .Times(2)
-      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+  MME_APP_EXPECT_CALLS(15, 1, 1, 1, 1, 1, 1, 1, 2);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(
@@ -633,17 +585,7 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
 
-  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(8);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(1);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(1);
-  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(1);
-  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(1);
-  EXPECT_CALL(*service303_handler, service303_set_application_health())
-      .Times(2)
-      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+  MME_APP_EXPECT_CALLS(8, 1, 1, 1, 1, 1, 1, 1, 2);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(
@@ -725,17 +667,7 @@ TEST_F(MmeAppProcedureTest, TestIcsRequestTimeout) {
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
 
-  EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport()).Times(2);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(1);
-  EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(1);
-  EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(1);
-  EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request()).Times(1);
-  EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request()).Times(1);
-  EXPECT_CALL(*service303_handler, service303_set_application_health())
-      .Times(1)
-      .WillRepeatedly(ReturnFromAsyncTask(&cv));
+  MME_APP_EXPECT_CALLS(2, 1, 1, 1, 1, 1, 1, 1, 1);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(
