@@ -14,6 +14,7 @@ add_executable(ngap_test
         util_ngap_amf_nas_procedures.cpp
         test_ngap_encode_decode.cpp
         test_ngap_handle_new_association.cpp
+        test_ngap_handle_close_association.cpp
         test_ngap_flows.cpp)
 
 target_link_libraries(ngap_test
