@@ -33,3 +33,6 @@ mme_app_zmq_auth_th_us: 200000  # delay threshold used for dropping Authenticati
 mme_app_zmq_ident_th_us: 400000  # delay threshold used for dropping Identification Complete
 mme_app_zmq_smc_th_us: 1000000  # delay threshold used for dropping SMC Complete
 accept_combined_attach_tau_wo_csfb: true
+
+# Enable IPv6 support for S1AP SCTP endpoint
+s1ap_ipv6_enabled: false

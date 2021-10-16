@@ -72,7 +72,7 @@ export async function FetchSubscribers(props: FetchProps) {
     }
   } else {
     try {
-      return await MagmaV1API.getLteByNetworkIdSubscribersV2({
+      return await MagmaV1API.getLteByNetworkIdSubscribers({
         networkId,
         pageSize: pageSize ?? DEFAULT_PAGE_SIZE,
         pageToken: token ?? '',
@@ -214,7 +214,7 @@ export async function setSubscriberState(props: SubscriberStateProps) {
     return;
   }
   if (Array.isArray(value)) {
-    await MagmaV1API.postLteByNetworkIdSubscribersV2({
+    await MagmaV1API.postLteByNetworkIdSubscribers({
       networkId,
       subscribers: value,
     });
@@ -243,7 +243,7 @@ export async function setSubscriberState(props: SubscriberStateProps) {
     } else {
       await MagmaV1API.postLteByNetworkIdSubscribers({
         networkId,
-        subscriber: value,
+        subscribers: [value],
       });
     }
     setSubscriberMap({...subscriberMap, [key]: value});

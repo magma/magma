@@ -78,8 +78,8 @@ typedef struct ngap_state_s {
 
 /* Timer structure */
 struct ngap_timer_t {
-  long id;  /* The timer identifier                 */
-  long sec; /* The timer interval value in seconds  */
+  long id;   /* The timer identifier                 */
+  long msec; /* The timer interval value in seconds  */
 };
 
 /** Main structure representing UE association over ngap

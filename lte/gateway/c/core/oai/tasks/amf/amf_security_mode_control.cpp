@@ -95,7 +95,7 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
   smc_proc->amf_com_proc.amf_proc.type           = NAS_AMF_PROC_TYPE_COMMON;
   smc_proc->amf_com_proc.type                    = AMF_COMM_PROC_SMC;
 
-  // smc_proc->T3460.sec = mme_config.nas_config.t3460_sec;
+  // smc_proc->T3460.msec = mme_config.nas_config.t3460_msec;
   // smc_proc->T3460.id  = NAS5G_TIMER_INACTIVE_ID;
 
   // nas_amf_common_procedure_t* wrapper = calloc(1, sizeof(*wrapper));

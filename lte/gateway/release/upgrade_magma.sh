@@ -29,7 +29,7 @@ if grep -q 'Debian' /etc/issue; then
 fi
 
 apt update
-apt install -y apt-transport-https gnupg2
+apt install -y apt-transport-https gnupg2 wget ca-certificates
 
 # We have changed the name too many time we have to wipe all versions
 rm -rf /etc/apt/sources.list.d/*

@@ -1149,6 +1149,7 @@ int amf_proc_registration_abort(
     message_p->ittiMsgHeader.imsi = ue_amf_context->amf_context.imsi64;
     send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
     amf_delete_registration_proc(amf_ctx);
+    amf_free_ue_context(ue_amf_context);
     rc = RETURNok;
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);

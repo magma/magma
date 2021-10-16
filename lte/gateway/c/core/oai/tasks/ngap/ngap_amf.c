@@ -10,7 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -107,6 +106,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
             state, SCTP_DATA_IND(received_message_p).assoc_id,
             SCTP_DATA_IND(received_message_p).stream, &pdu);
       }
+
+      ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &pdu);
 
       // Free received PDU array
       bdestroy_wrapper(&SCTP_DATA_IND(received_message_p).payload);
@@ -359,23 +360,4 @@ void ngap_remove_gnb(ngap_state_t* state, gnb_description_t* gnb_ref) {
   hashtable_uint64_ts_destroy(&gnb_ref->ue_id_coll);
   hashtable_ts_free(&state->gnbs, gnb_ref->sctp_assoc_id);
   state->num_gnbs--;
-}
-
-/****************************************************************************
- **                                                                        **
- ** Name:    ngap_send_msg_to_task()                                        **
- **                                                                        **
- ** Description:  wrapper api for itti send                                **
- **                                                                        **
- **                                                                        **
- ***************************************************************************/
-status_code_e ngap_send_msg_to_task(
-    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
-    MessageDef* message) {
-  OAILOG_INFO(
-      LOG_NGAP, "Sending msg to :[%s] id: [%d]-[%s]\n",
-      itti_get_task_name(destination_task_id), ITTI_MSG_ID(message),
-      ITTI_MSG_NAME(message));
-
-  return send_msg_to_task(task_zmq_ctx_p, destination_task_id, message);
 }
