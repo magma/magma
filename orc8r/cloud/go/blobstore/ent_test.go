@@ -16,12 +16,12 @@ package blobstore_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	magmaerrors "magma/orc8r/lib/go/errors"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestBlobstoreImplMigrations(t *testing.T) {
