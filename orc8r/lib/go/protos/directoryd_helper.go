@@ -82,3 +82,37 @@ func (m *MapSgwCTeidToHWIDRequest) Validate() error {
 	}
 	return nil
 }
+
+func (m *DeMapHWIDToHostnameRequest) Validate() error {
+	if m == nil {
+		return errors.New("request cannot be nil")
+	}
+	if m.Hwid == "" {
+		return errors.New("Hwid cannot be empty")
+	}
+	return nil
+}
+
+func (m *DeMapSessionIDToIMSIRequest) Validate() error {
+	if m == nil {
+		return errors.New("request cannot be nil")
+	}
+	if m.NetworkID == "" {
+		return errors.New("network ID cannot be empty")
+	}
+	if m.SessionID == "" {
+
+		return errors.New("SessionID cannot be empty")
+	}
+	return nil
+}
+
+func (m *DeMapSgwCTeidToHWIDRequest) Validate() error {
+	if m == nil {
+		return errors.New("request cannot be nil")
+	}
+	if m.NetworkID == "" {
+		return errors.New("network ID cannot be empty")
+	}
+	return nil
+}

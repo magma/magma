@@ -171,6 +171,57 @@ func TestDirectorydBlobstoreStorage_MapHWIDToHostname(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 }
 
+func TestDirectorydBlobstoreStorage_DeMapHWIDToHostname(t *testing.T) {
+	var blobFactMock *mocks.BlobStorageFactory
+	var blobStoreMock *mocks.TransactionalBlobStorage
+	someErr := errors.New("generic error")
+
+	hwid0 := "some_hwid_0"
+
+	tks := storage.TKs{
+		{Type: dstorage.DirectorydTypeHWIDToHostname, Key: hwid0},
+	}
+
+	// Fail to start transaction
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	err := store.DeMapHWIDsToHostnames(hwid0)
+	assert.Error(t, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+
+	// store.Get fails with error
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
+	blobStoreMock.On("Rollback").Return(nil).Once()
+	blobStoreMock.On("Delete", placeholderNetworkID, tks).Return(someErr).Once()
+	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	err = store.DeMapHWIDsToHostnames(hwid0)
+	assert.Error(t, err)
+	assert.NotEqual(t, merrors.ErrNotFound, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+
+	// Success
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
+	blobStoreMock.On("Rollback").Return(nil).Once()
+	blobStoreMock.On("Delete", placeholderNetworkID, tks).Return(nil).Once()
+	blobStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	err = store.DeMapHWIDsToHostnames(hwid0)
+	assert.NoError(t, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+}
+
 func TestDirectorydBlobstore_GetIMSIForSessionID(t *testing.T) {
 	var blobFactMock *mocks.BlobStorageFactory
 	var blobStoreMock *mocks.TransactionalBlobStorage
@@ -212,7 +263,7 @@ func TestDirectorydBlobstore_GetIMSIForSessionID(t *testing.T) {
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
 
-	// store.Get fails with error other than ErrNotFound
+	// store.Get fails with error
 	blobFactMock = &mocks.BlobStorageFactory{}
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
@@ -310,6 +361,56 @@ func TestDirectorydBlobstore_MapSessionIDToIMSI(t *testing.T) {
 	store = dstorage.NewDirectorydBlobstore(blobFactMock)
 
 	err = store.MapSessionIDsToIMSIs(nid, sidToIMSI)
+	assert.NoError(t, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+}
+
+func TestDirectorydBlobstore_DeMapSessionIDToIMSI(t *testing.T) {
+	var blobFactMock *mocks.BlobStorageFactory
+	var blobStoreMock *mocks.TransactionalBlobStorage
+	someErr := errors.New("generic error")
+
+	nid := "some_networkid"
+
+	sid := "some_sessionid"
+	tks := storage.TKs{{Type: dstorage.DirectorydTypeSessionIDToIMSI, Key: sid}}
+
+	// Fail to start transaction
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	err := store.DeMapSessionIDsToIMSIs(nid, sid)
+	assert.Error(t, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+
+	// store.Get fails with error
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
+	blobStoreMock.On("Rollback").Return(nil).Once()
+	blobStoreMock.On("Delete", nid, tks).Return(someErr).Once()
+	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	err = store.DeMapSessionIDsToIMSIs(nid, sid)
+	assert.Error(t, err)
+	assert.NotEqual(t, merrors.ErrNotFound, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+
+	// Success
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
+	blobStoreMock.On("Rollback").Return(nil).Once()
+	blobStoreMock.On("Delete", nid, tks).Return(nil).Once()
+	blobStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	err = store.DeMapSessionIDsToIMSIs(nid, sid)
 	assert.NoError(t, err)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
@@ -454,6 +555,56 @@ func TestDirectorydBlobstore_MapSgwCTeidToHWID(t *testing.T) {
 	store = dstorage.NewDirectorydBlobstore(blobFactMock)
 
 	err = store.MapSgwCTeidToHWID(nid, teidsToHwIds)
+	assert.NoError(t, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+}
+
+func TestDirectorydBlobstore_DeMapSgwCTeidToHWID(t *testing.T) {
+	var blobFactMock *mocks.BlobStorageFactory
+	var blobStoreMock *mocks.TransactionalBlobStorage
+	someErr := errors.New("generic error")
+
+	nid := "some_networkid"
+
+	sid := "some_sessionid"
+	tks := storage.TKs{{Type: dstorage.DirectorydTypeSgwCteidToHwid, Key: sid}}
+
+	// Fail to start transaction
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	err := store.DeMapSgwCTeidToHWID(nid, sid)
+	assert.Error(t, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+
+	// store.Get fails with error
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
+	blobStoreMock.On("Rollback").Return(nil).Once()
+	blobStoreMock.On("Delete", nid, tks).Return(someErr).Once()
+	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	err = store.DeMapSgwCTeidToHWID(nid, sid)
+	assert.Error(t, err)
+	assert.NotEqual(t, merrors.ErrNotFound, err)
+	blobFactMock.AssertExpectations(t)
+	blobStoreMock.AssertExpectations(t)
+
+	// Success
+	blobFactMock = &mocks.BlobStorageFactory{}
+	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
+	blobStoreMock.On("Rollback").Return(nil).Once()
+	blobStoreMock.On("Delete", nid, tks).Return(nil).Once()
+	blobStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+
+	err = store.DeMapSgwCTeidToHWID(nid, sid)
 	assert.NoError(t, err)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)

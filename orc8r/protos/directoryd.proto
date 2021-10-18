@@ -34,6 +34,10 @@ message MapHWIDToHostnameRequest {
   map<string, string> hwidToHostname = 1;
 }
 
+message DeMapHWIDToHostnameRequest {
+  string hwid = 1;
+}
+
 message GetIMSIForSessionIDRequest {
   string networkID = 1;
   string sessionID = 2;
@@ -46,6 +50,11 @@ message GetIMSIForSessionIDResponse {
 message MapSessionIDToIMSIRequest {
   string networkID = 1;
   map<string, string> sessionIDToIMSI = 2;
+}
+
+message DeMapSessionIDToIMSIRequest {
+  string networkID = 1;
+  string sessionID = 2;
 }
 
 message GetHWIDForSgwCTeidRequest {
@@ -62,6 +71,11 @@ message MapSgwCTeidToHWIDRequest {
   map<string, string>  teidToHwid = 2;
 }
 
+message DeMapSgwCTeidToHWIDRequest {
+  string networkID = 1;
+  string teid = 2;
+}
+
 // DirectoryLookup service associates various identities and locations.
 // This service runs in the controller, generating and consuming mostly derived state.
 service DirectoryLookup {
@@ -71,17 +85,26 @@ service DirectoryLookup {
   // MapHWIDsToHostnames maps {hwid -> hostname}.
   rpc MapHWIDsToHostnames(MapHWIDToHostnameRequest) returns (Void) {};
 
+  // DeMapSgwCTeidToHWID removes {teid -> HwId} for an specific Teid.
+  rpc DeMapHWIDsToHostnames(DeMapHWIDToHostnameRequest) returns (Void) {};
+
   // GetIMSIForSessionID returns the IMSI mapped to by session ID.
   rpc GetIMSIForSessionID(GetIMSIForSessionIDRequest) returns (GetIMSIForSessionIDResponse) {};
 
   // MapSessionIDsToIMSIs maps {session ID -> IMSI}.
   rpc MapSessionIDsToIMSIs(MapSessionIDToIMSIRequest) returns (Void) {};
 
+  // DeMapSessionIDsToIMSIs removes {session ID -> IMSI} for an specific session ID.
+  rpc DeMapSessionIDsToIMSIs(DeMapSessionIDToIMSIRequest) returns (Void) {};
+
   // GetHWIDForSgwCTeid returns the HwId mapped to by sgw control plane Sgw Teid
   rpc GetHWIDForSgwCTeid(GetHWIDForSgwCTeidRequest) returns (GetHWIDForSgwCTeidResponse) {};
 
   // MapSgwCTeidToHWID maps {teid -> HwId}.
   rpc MapSgwCTeidToHWID(MapSgwCTeidToHWIDRequest) returns (Void) {};
+
+  // DeMapSgwCTeidToHWID removes {teid -> HwId} for an specific Teid.
+  rpc DeMapSgwCTeidToHWID(DeMapSgwCTeidToHWIDRequest) returns (Void) {};
 }
 
 // --------------------------------------------------------------------------

@@ -36,7 +36,7 @@ func (d *directoryLookupServicer) GetHostnameForHWID(
 ) (*protos.GetHostnameForHWIDResponse, error) {
 	err := req.Validate()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate request")
+		return nil, errors.Wrap(err, "failed to validate GetHostnameForHWIDRequest")
 	}
 
 	hostname, err := d.store.GetHostnameForHWID(req.Hwid)
@@ -48,10 +48,21 @@ func (d *directoryLookupServicer) GetHostnameForHWID(
 func (d *directoryLookupServicer) MapHWIDsToHostnames(ctx context.Context, req *protos.MapHWIDToHostnameRequest) (*protos.Void, error) {
 	err := req.Validate()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate request")
+		return nil, errors.Wrap(err, "failed to validate MapHWIDToHostnameRequest")
 	}
 
 	err = d.store.MapHWIDsToHostnames(req.HwidToHostname)
+
+	return &protos.Void{}, err
+}
+
+func (d *directoryLookupServicer) DeMapHWIDsToHostnames(ctx context.Context, req *protos.DeMapHWIDToHostnameRequest) (*protos.Void, error) {
+	err := req.Validate()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate DeMapHWIDToHostnameRequest")
+	}
+
+	err = d.store.DeMapHWIDsToHostnames(req.Hwid)
 
 	return &protos.Void{}, err
 }
@@ -60,8 +71,9 @@ func (d *directoryLookupServicer) GetIMSIForSessionID(
 	ctx context.Context, req *protos.GetIMSIForSessionIDRequest,
 ) (*protos.GetIMSIForSessionIDResponse, error) {
 	err := req.Validate()
+
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate request")
+		return nil, errors.Wrap(err, "failed to validate GetIMSIForSessionIDRequest")
 	}
 
 	imsi, err := d.store.GetIMSIForSessionID(req.NetworkID, req.SessionID)
@@ -73,7 +85,7 @@ func (d *directoryLookupServicer) GetIMSIForSessionID(
 func (d *directoryLookupServicer) MapSessionIDsToIMSIs(ctx context.Context, req *protos.MapSessionIDToIMSIRequest) (*protos.Void, error) {
 	err := req.Validate()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate request")
+		return nil, errors.Wrap(err, "failed to validate MapSessionIDToIMSIRequest")
 	}
 
 	err = d.store.MapSessionIDsToIMSIs(req.NetworkID, req.SessionIDToIMSI)
@@ -81,13 +93,35 @@ func (d *directoryLookupServicer) MapSessionIDsToIMSIs(ctx context.Context, req 
 	return &protos.Void{}, err
 }
 
+func (d *directoryLookupServicer) DeMapSessionIDsToIMSIs(ctx context.Context, req *protos.DeMapSessionIDToIMSIRequest) (*protos.Void, error) {
+	err := req.Validate()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate DeMapSessionIDToIMSIRequest")
+	}
+
+	err = d.store.DeMapSessionIDsToIMSIs(req.NetworkID, req.SessionID)
+
+	return &protos.Void{}, err
+}
+
 func (d *directoryLookupServicer) MapSgwCTeidToHWID(ctx context.Context, req *protos.MapSgwCTeidToHWIDRequest) (*protos.Void, error) {
 	err := req.Validate()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate request")
+		return nil, errors.Wrap(err, "failed to validate MapSgwCTeidToHWIDRequest")
 	}
 
 	err = d.store.MapSgwCTeidToHWID(req.NetworkID, req.TeidToHwid)
+
+	return &protos.Void{}, err
+}
+
+func (d *directoryLookupServicer) DeMapSgwCTeidToHWID(ctx context.Context, req *protos.DeMapSgwCTeidToHWIDRequest) (*protos.Void, error) {
+	err := req.Validate()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate DeMapSgwCTeidToHWIDRequest")
+	}
+
+	err = d.store.DeMapSgwCTeidToHWID(req.NetworkID, req.Teid)
 
 	return &protos.Void{}, err
 }
@@ -97,7 +131,7 @@ func (d *directoryLookupServicer) GetHWIDForSgwCTeid(
 ) (*protos.GetHWIDForSgwCTeidResponse, error) {
 	err := req.Validate()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate request")
+		return nil, errors.Wrap(err, "failed to validate GetHWIDForSgwCTeidRequest")
 	}
 
 	hwid, err := d.store.GetHWIDForSgwCTeid(req.NetworkID, req.Teid)

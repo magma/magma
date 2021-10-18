@@ -22,15 +22,24 @@ type DirectorydStorage interface {
 	// MapHWIDsToHostnames maps {hwid -> hostname}.
 	MapHWIDsToHostnames(hwidToHostname map[string]string) error
 
+	// DeMapSgwCTeidToHWID removes {hwid -> hostname} for a specific hwid
+	DeMapHWIDsToHostnames(hwid string) error
+
 	// GetIMSIForSessionID returns the IMSI mapped to by session ID.
 	GetIMSIForSessionID(networkID, sessionID string) (string, error)
 
 	// MapSessionIDsToIMSIs maps {session ID -> IMSI}.
 	MapSessionIDsToIMSIs(networkID string, sessionIDToIMSI map[string]string) error
 
+	// DeMapSessionIDsToIMSIs removes {session ID -> IMSI} for a specific sessionID
+	DeMapSessionIDsToIMSIs(networkID string, sessionID string) error
+
 	// GetHWIDForSgwCTeid returns the HwId mapped by teid
 	GetHWIDForSgwCTeid(networkID, teid string) (string, error)
 
 	// MapSgwCTeidToHWID maps {teid -> hwid}
 	MapSgwCTeidToHWID(networkID string, s8TeidToHwid map[string]string) error
+
+	// DeMapSgwCTeidToHWID removes {teid -> hwid} for a specific teid
+	DeMapSgwCTeidToHWID(networkID string, teid string) error
 }
