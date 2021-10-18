@@ -929,6 +929,7 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
       emm_sap.u.emm_as.u.data.eps_network_feature_support =
           (eps_network_feature_support_t*) &_emm_data.conf
               .eps_network_feature_support;
+
       /*If CSFB is enabled,store LAI,Mobile Identity and
        * Additional Update type to be sent in TAU accept to S1AP
        */
