@@ -203,13 +203,13 @@ void MmeNasStateConverter::proto_to_guti_table(
 void MmeNasStateConverter::mme_app_timer_to_proto(
     const nas_timer_t& state_mme_timer, oai::Timer* timer_proto) {
   timer_proto->set_id(state_mme_timer.id);
-  timer_proto->set_sec(state_mme_timer.sec);
+  timer_proto->set_msec(state_mme_timer.msec);
 }
 
 void MmeNasStateConverter::proto_to_mme_app_timer(
     const oai::Timer& timer_proto, nas_timer_t* state_mme_app_timer) {
-  state_mme_app_timer->id  = timer_proto.id();
-  state_mme_app_timer->sec = timer_proto.sec();
+  state_mme_app_timer->id   = timer_proto.id();
+  state_mme_app_timer->msec = timer_proto.msec();
 }
 
 void MmeNasStateConverter::sgs_context_to_proto(

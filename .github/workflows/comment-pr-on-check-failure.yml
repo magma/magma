@@ -46,7 +46,7 @@ jobs:
           ### Howto
           - [Magma guidelines on signing commits](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines)
           - [About the \`signoff\` feature](https://stackoverflow.com/questions/1962094/what-is-the-sign-off-feature-in-git-for)
-          - [Howto: sign-off most-recent commit](https://stackoverflow.com/questions/13043357/git-sign-off-previous-commits)
+          - [Howto: sign-off most-recent commit](https://stackoverflow.com/questions/13043357#answer-15667644)
           - [Howto: sign-off multiple past commits](https://gist.github.com/kwk/d70f20d17b18c4f3296d)
           - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
       - name: Python format comment message
@@ -69,11 +69,6 @@ jobs:
         with:
           script: |
             var fs = require('fs');
-            var isRevertedPR = fs.readFileSync('./RPR');
-            if( isRevertedPR == 'true' ) {
-              console.log("PR is a reverted PR. So exiting gracefully...");
-              process.exit(0);
-            }
             var issue_number = Number(fs.readFileSync('./NR'));
             const msg = fs.readFileSync('./msg',{encoding: 'utf8'})
 
