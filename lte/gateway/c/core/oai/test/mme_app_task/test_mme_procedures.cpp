@@ -55,7 +55,8 @@ task_zmq_ctx_t task_zmq_ctx_main;
     dlNas, connEstConf, ctxRel, air, ulr, purgeReq, csr, dsr, setAppHealth)    \
   do {                                                                         \
     EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport())         \
-        .Times(dlNas).WillRepeatedly(ReturnFromAsyncTask(&cv));                                                         \
+        .Times(dlNas)                                                          \
+        .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \
     EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(connEstConf); \
     EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command())       \
         .Times(ctxRel);                                                        \
@@ -66,7 +67,8 @@ task_zmq_ctx_t task_zmq_ctx_main;
     EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request())        \
         .Times(csr);                                                           \
     EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request())            \
-        .Times(dsr).WillRepeatedly(ReturnFromAsyncTask(&cv));                  \
+        .Times(dsr)                                                            \
+        .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \
     EXPECT_CALL(*service303_handler, service303_set_application_health())      \
         .Times(setAppHealth)                                                   \
         .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \
