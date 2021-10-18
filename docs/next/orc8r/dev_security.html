@@ -218,6 +218,9 @@ openssl s_client \
 <span class="hljs-comment"># Places generated session secrets at /tmp/magma_protos/gateway.{key,crt}</span>
 <span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/tools/scripts/bootstrap.bash YOUR_PROVISIONED_GATEWAY_HWID
 
+<span class="hljs-comment"># You may need to Generate compiled proto definitions (see Miscellaneous</span>
+commands)
+
 <span class="hljs-comment"># Emulate gateway request to bootstrapper service's GetChallenge endpoint (unprotected)</span>
 grpcurl \
     -insecure \
@@ -291,6 +294,19 @@ protoc \
     --descriptor_set_out out.protoset \
     --include_imports \
     orc8r/cloud/go/services/state/protos/indexer.proto  <span class="hljs-comment"># or target proto</span>
+
+<span class="hljs-comment"># Report a real States to State service (this will trigger some indexers)</span>
+grpcurl -vv \
+    -insecure \
+    -key /tmp/magma_protos/gateway.key \
+    -cert /tmp/magma_protos/gateway.crt \
+    -authority state-controller.magma.test \
+    -protoset /tmp/magma_protos/out.protoset \
+    -d <span class="hljs-string">'{"states": [{"type": "directory_record",
+"deviceID": "IMSI001020000000064",
+"value":"eyJpZGVudGlmaWVycyI6IHsic2d3X2NfdGVpZCI6ICIxMTY2NDEzNDkwIn0sICJsb2NhdGlvbl9oaXN0b3J5IjogWyJlODhlZThjYy1hYThiLTQxODktOGYxNC00MWQ4M2RlOWNlNGUiXSwgInB5L29iamVjdCI6ICJtYWdtYS5kaXJlY3RvcnlkLnJwY19zZXJ2aWNlci5EaXJlY3RvcnlSZWNvcmQifQ==", "version":"0"}]}'</span> \
+    localhost:7443 \
+    magma.orc8r.StateService/ReportStates
 </code></pre>
 </span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/orc8r/dev_minikube"><span class="arrow-prev">← </span><span>Deploy on Minikube</span></a><a class="docs-next button" href="/magma/docs/next/orc8r/dev_indexers"><span>State Indexers</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#architecture">Architecture</a><ul class="toc-headings"><li><a href="#certificates">Certificates</a></li><li><a href="#endpoints">Endpoints</a></li></ul></li><li><a href="#gateway-bootstrap">Gateway bootstrap</a><ul class="toc-headings"><li><a href="#get-challenge">Get challenge</a></li><li><a href="#get-signed-session-certificates">Get signed session certificates</a></li><li><a href="#implementation-details">Implementation details</a></li></ul></li><li><a href="#debug-tools">Debug tools</a><ul class="toc-headings"><li><a href="#notes">Notes</a></li><li><a href="#gateway-information">Gateway information</a></li><li><a href="#cli-commands">CLI commands</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
