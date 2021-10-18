@@ -32,7 +32,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <inttypes.h>
-#include "log.h"
 
 #include "backtrace.h"
 
@@ -68,8 +67,6 @@
 #define _Assert_(cOND, aCTION, fORMAT, aRGS...)                                \
   do {                                                                         \
     if (!(cOND)) {                                                             \
-      OAILOG_CRITICAL(                                                         \
-          LOG_ASSERT, "Assertion (" #cOND ") failed! " fORMAT "\n", ##aRGS);   \
       fprintf(                                                                 \
           stderr,                                                              \
           "\nAssertion (" #cOND                                                \
@@ -88,7 +85,6 @@
 
 #define Fatal(format, args...)                                                 \
   do {                                                                         \
-    OAILOG_CRITICAL(LOG_ASSERT, "Fatal! " format, ##args);                     \
     fprintf(                                                                   \
         stderr, "\nFatal!\n %s() %s:%d\n" format, __FUNCTION__, __FILE__,      \
         __LINE__, ##args);                                                     \
@@ -120,8 +116,6 @@
   do {                                                                         \
     int fct_ret;                                                               \
     if ((fct_ret = (fCT)) != 0) {                                              \
-      OAILOG_CRITICAL(                                                         \
-          LOG_ASSERT, "Function " #fCT " has failed returning %d\n", fct_ret); \
       fprintf(                                                                 \
           stderr,                                                              \
           "Function " #fCT                                                     \
