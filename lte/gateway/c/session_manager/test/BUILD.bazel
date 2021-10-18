@@ -36,6 +36,11 @@ cc_library(
 )
 
 cc_library(
+    name = "session_state_tester_5g",
+    hdrs = ["SessionStateTester5g.h"],
+)
+
+cc_library(
     name = "protobuf_creators",
     srcs = ["ProtobufCreators.cpp"],
     hdrs = ["ProtobufCreators.h"],
@@ -207,6 +212,20 @@ cc_test(
 )
 
 cc_test(
+    name = "session_state_5g",
+    size = "small",
+    srcs = ["test_session_state_5g.cpp"],
+    deps = [
+        ":consts",
+        ":matchers",
+        ":protobuf_creators",
+        ":session_state_tester_5g",
+        ":sessiond_mocks",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "store_client_test",
     size = "small",
     srcs = ["test_store_client.cpp"],
@@ -256,9 +275,9 @@ cc_test(
 )
 
 cc_test(
-    name = "upf_node_state_test",
+    name = "upf_msg_manage_handler",
     size = "small",
-    srcs = ["test_upf_node_state.cpp"],
+    srcs = ["test_upf_msg_manage_handler.cpp"],
     deps = [
         ":protobuf_creators",
         ":sessiond_mocks",

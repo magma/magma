@@ -329,14 +329,18 @@ class MockSetInterfaceForUserPlane final
  public:
   MockSetInterfaceForUserPlane() : SetInterfaceForUserPlane::Service() {}
   MOCK_METHOD3(
-      SetUPFNodeState, Status(
+      SetUPFNodeState, void(
                            grpc::ServerContext*, const UPFNodeState*,
                            std::function<void(Status, SmContextVoid)>));
   MOCK_METHOD3(
       SetUPFSessionConfig,
-      Status(
+      void(
           grpc::ServerContext*, const UPFSessionConfigState*,
           std::function<void(Status, SmContextVoid)>));
+  MOCK_METHOD3(
+      SendPagingRequest, void(
+                             grpc::ServerContext*, const UPFPagingInfo*,
+                             std::function<void(Status, SmContextVoid)>));
 };
 
 class MockAmfServiceClient : public AmfServiceClient {

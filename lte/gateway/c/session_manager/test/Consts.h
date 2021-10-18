@@ -28,6 +28,7 @@
 #define IP3 "127.0.0.3"
 #define IP4 "127.0.0.4"
 #define APN1 "03-21-00-02-00-20:Magma"
+#define APN2 "example.com"
 #define IPv6_1 "2001:0db8:0a0b:12f0:0000:0000:0000:0001"
 #define IPv6_2 "2001:0db8:0a0b:12f0:0000:0000:0000:0002"
 #define IPv6_3 "2001:0db8:0a0b:12f0:0000:0000:0000:0003"
@@ -43,3 +44,8 @@
 #define BEARER_ID_1 0
 #define BEARER_ID_2 2
 #define BEARER_ID_3 3
+#define UE_IPV4 "192.168.128.11"
+#define AGW_IPV4 "192.168.60.142"
+#define REDIRECT_SERVER_IPV4_ADDRESS "10.20.30.40"
+#define PDU_ID 0x5
+#define SM_SESSION_VERSION 1
