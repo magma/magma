@@ -383,7 +383,7 @@ commands:
             # into /home/circleci/project/circleci in the magma_integ_test step
             COMMIT_HASH_WITH_VERSION=$(cat circleci/magma_version)
             echo ${COMMIT_HASH_WITH_VERSION}
-            sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native -p radtonics_lab_native -p magma-staging ${COMMIT_HASH_WITH_VERSION}
+            sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native -p radtonics_lab_native -p magma-staging-native ${COMMIT_HASH_WITH_VERSION}
             sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${COMMIT_HASH_WITH_VERSION}
             sentry-cli --log-level=info releases finalize ${COMMIT_HASH_WITH_VERSION}
 
