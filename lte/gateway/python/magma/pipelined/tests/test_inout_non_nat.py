@@ -470,5 +470,121 @@ class InOutTestNonNATBasicFlows(unittest.TestCase):
             pass
 
 
+ipv6_mac_table = {}
+
+
+def mocked_setmacbyip6(ipv6_addr: str, mac: str):
+    global ipv6_mac_table
+    with gw_info_lock:
+        ipv6_mac_table[ipv6_addr] = mac
+
+
+def mocked_getmacbyip6(ipv6_addr: str) -> str:
+    global ipv6_mac_table
+    with gw_info_lock:
+        return ipv6_mac_table.get(ipv6_addr, None)
+
+
+class InOutTestNonNATBasicFlowsIPv6(unittest.TestCase):
+    BRIDGE = 'testing_br'
+    IFACE = 'testing_br'
+    MAC_DEST = "5e:cc:cc:b1:49:4b"
+    BRIDGE_IP = '192.168.128.1'
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        Starts the thread which launches ryu apps
+
+        Create a testing bridge, add a port, setup the port interfaces. Then
+        launch the ryu apps for testing pipelined. Gets the references
+        to apps launched by using futures.
+        """
+        inout.getmacbyip6 = mocked_getmacbyip6
+        inout.get_mobilityd_gw_info = mocked_get_mobilityd_gw_info
+        inout.set_mobilityd_gw_info = mocked_set_mobilityd_gw_info
+
+        super(InOutTestNonNATBasicFlowsIPv6, cls).setUpClass()
+        warnings.simplefilter('ignore')
+        cls.service_manager = create_service_manager([])
+
+        inout_controller_reference = Future()
+        testing_controller_reference = Future()
+        test_setup = TestSetup(
+            apps=[
+                PipelinedController.InOut,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
+            references={
+                PipelinedController.InOut:
+                    inout_controller_reference,
+                PipelinedController.Testing:
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
+            },
+            config={
+                'setup_type': 'LTE',
+                'bridge_name': cls.BRIDGE,
+                'bridge_ip_address': cls.BRIDGE_IP,
+                'ovs_gtp_port_number': 32768,
+                'clean_restart': True,
+                'enable_nat': False,
+                'uplink_gw_mac': '11:22:33:44:55:11',
+                'uplink_port': OFPP_LOCAL,
+                'non_nat_gw_probe_frequency': 0.5,
+            },
+            mconfig=None,
+            loop=None,
+            service_manager=cls.service_manager,
+            integ_test=False,
+        )
+
+        BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+
+        cls.thread = start_ryu_app_thread(test_setup)
+        cls.inout_controller = inout_controller_reference.result()
+        cls.testing_controller = testing_controller_reference.result()
+
+    @classmethod
+    def tearDownClass(cls):
+        stop_ryu_app_thread(cls.thread)
+        BridgeTools.destroy_bridge(cls.BRIDGE)
+
+    def testFlowSnapshotMatch(self):
+        global gw_info_map
+
+        ipv6_addr1 = "2002::22"
+        mac_addr1 = "11:22:33:44:55:88"
+        mocked_setmacbyip6(ipv6_addr1, mac_addr1)
+
+        ip_addr = ipaddress.ip_address(ipv6_addr1)
+        vlan = "NO_VLAN"
+        mocked_set_mobilityd_gw_info(
+            IPAddress(
+                address=ip_addr.packed,
+                version=IPBlock.IPV6,
+            ),
+            "", vlan,
+        )
+        fake_inout_setup(self.inout_controller)
+
+        while gw_info_map[vlan].mac is None or gw_info_map[vlan].mac == '':
+            threading.Event().wait(.5)
+
+        snapshot_verifier = SnapshotVerifier(
+            self,
+            self.BRIDGE,
+            self.service_manager,
+            max_sleep_time=20,
+            datapath=InOutTestNonNATBasicFlowsIPv6.inout_controller._datapath,
+        )
+
+        with snapshot_verifier:
+            pass
+        self.assertEqual(gw_info_map[vlan].mac, mac_addr1)
+
+
 if __name__ == "__main__":
     unittest.main()
