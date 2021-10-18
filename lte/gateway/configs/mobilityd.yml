@@ -18,3 +18,4 @@ print_grpc_payload: false
 
 # [Experimental] Enable Sentry for this service
 sentry_enabled: true
+ipv6_prefixlen: 58
