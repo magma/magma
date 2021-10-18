@@ -400,7 +400,7 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void);
 /*Multi PDU Session*/
 std::shared_ptr<smf_context_t> amf_insert_smf_context(
     ue_m5gmm_context_s* ue_context, uint8_t pdu_session_id);
-std::shared_ptr<smf_context_t> amf_smf_context_exists_pdu_session_id(
+std::shared_ptr<smf_context_t> amf_get_smf_context_by_pdu_session_id(
     ue_m5gmm_context_s* ue_context, uint8_t id);
 
 // Retrieve required UE context from the respective hash table

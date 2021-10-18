@@ -593,7 +593,7 @@ void amf_app_handle_pdu_session_response(
   // Handle smf_context
   ue_context = lookup_ue_ctxt_by_imsi(imsi64);
   if (ue_context) {
-    smf_ctx = amf_smf_context_exists_pdu_session_id(
+    smf_ctx = amf_get_smf_context_by_pdu_session_id(
         ue_context, pdu_session_resp->pdu_session_id);
     if (smf_ctx == NULL) {
       OAILOG_ERROR(
@@ -715,7 +715,7 @@ int amf_app_handle_pdu_session_accept(
     return M5G_AS_FAILURE;
   }
 
-  smf_ctx = amf_smf_context_exists_pdu_session_id(
+  smf_ctx = amf_get_smf_context_by_pdu_session_id(
       ue_context, pdu_session_resp->pdu_session_id);
   if (!smf_ctx) {
     OAILOG_ERROR(
@@ -897,7 +897,7 @@ void amf_app_handle_resource_setup_response(
       return;
     }
 
-    smf_ctx = amf_smf_context_exists_pdu_session_id(
+    smf_ctx = amf_get_smf_context_by_pdu_session_id(
         ue_context,
         session_seup_resp.pduSessionResource_setup_list.item[0].Pdu_Session_ID);
     if (smf_ctx == NULL) {
@@ -1325,7 +1325,7 @@ void amf_app_handle_initial_context_setup_rsp(
   /* activating pdu sessions when UE is in IDLE state  */
   if (pdu_list->no_of_items) {
     for (uint32_t index = 0; index < pdu_list->no_of_items; index++) {
-      smf_context = amf_smf_context_exists_pdu_session_id(
+      smf_context = amf_get_smf_context_by_pdu_session_id(
           ue_context, pdu_list->item[index].Pdu_Session_ID);
       if (smf_context == NULL) {
         OAILOG_ERROR(

@@ -221,7 +221,7 @@ std::shared_ptr<smf_context_t> amf_insert_smf_context(
     ue_m5gmm_context_s* ue_context, uint8_t pdu_session_id) {
   std::shared_ptr<smf_context_t> smf_context;
   smf_context =
-      amf_smf_context_exists_pdu_session_id(ue_context, pdu_session_id);
+      amf_get_smf_context_by_pdu_session_id(ue_context, pdu_session_id);
   if (smf_context) {
     return smf_context;
   } else {
@@ -233,13 +233,13 @@ std::shared_ptr<smf_context_t> amf_insert_smf_context(
 
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_smf_context_exists_pdu_session_id()                       **
+ ** Name:   amf_get_smf_context_by_pdu_session_id()                        **
  **                                                                        **
  ** Description: Get the smf context from the map                          **
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-std::shared_ptr<smf_context_t> amf_smf_context_exists_pdu_session_id(
+std::shared_ptr<smf_context_t> amf_get_smf_context_by_pdu_session_id(
     ue_m5gmm_context_s* ue_context, uint8_t id) {
   std::shared_ptr<smf_context_t> smf_context;
   for (const auto& it : ue_context->amf_context.smf_ctxt_map) {

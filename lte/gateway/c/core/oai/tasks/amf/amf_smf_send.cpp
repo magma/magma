@@ -306,7 +306,7 @@ static int pdu_session_resource_release_t3592_handler(
 
   if (ue_context) {
     IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
-    smf_ctx = amf_smf_context_exists_pdu_session_id(ue_context, pdu_session_id);
+    smf_ctx = amf_get_smf_context_by_pdu_session_id(ue_context, pdu_session_id);
 
     if (smf_ctx == NULL) {
       OAILOG_ERROR(
@@ -423,7 +423,7 @@ int amf_smf_send(
     smf_ctx = amf_insert_smf_context(
         ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
   } else {
-    smf_ctx = amf_smf_context_exists_pdu_session_id(
+    smf_ctx = amf_get_smf_context_by_pdu_session_id(
         ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
   }
 
@@ -607,7 +607,7 @@ int amf_update_smf_context_pdu_ip(
     return rc;
   }
 
-  smf_ctx = amf_smf_context_exists_pdu_session_id(ue_context, pdu_session_id);
+  smf_ctx = amf_get_smf_context_by_pdu_session_id(ue_context, pdu_session_id);
   if (NULL == smf_ctx) {
     return rc;
   }

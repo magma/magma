@@ -154,7 +154,7 @@ int amf_handle_service_request(
              session_id++) {
           if (msg->uplink_data_status.uplinkDataStatus & (1 << session_id)) {
             std::shared_ptr<smf_context_t> smf_context =
-                amf_smf_context_exists_pdu_session_id(ue_context, session_id);
+                amf_get_smf_context_by_pdu_session_id(ue_context, session_id);
             if (smf_context) {
               pdu_session_status |= (1 << session_id);
               IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
