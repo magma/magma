@@ -2400,7 +2400,7 @@ void sgw_handle_mme_initiated_deactv_bearer_req(
         "Failed to send MME initiated deactivate bearer Response to MME\n");
     OAILOG_FUNC_OUT(TASK_SPGW_APP);
   }
-  OAILOG_DEBUG_UE(
+  OAILOG_INFO_UE(
       TASK_SPGW_APP, imsi64, "MME initiated deactivate bearer response sent to MME\n");
 
   OAILOG_FUNC_OUT(TASK_SPGW_APP);

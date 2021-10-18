@@ -484,8 +484,6 @@ status_code_e emm_proc_tracking_area_update_request(
                * wait for response from spgw and then send TAU accept.
                */
                if (ue_mm_context->nb_delete_sessions || ue_mm_context->nb_ded_bearer_deactivation) {
-                 OAILOG_DEBUG(
-                   LOG_NAS_ESM, "Bearer deactivation is triggered, wait for response from spgw and then send TAU accept for UE id=" MME_UE_S1AP_ID_FMT "\n", ue_id);
                  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
                }
             }
@@ -928,6 +926,9 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
         emm_as->eps_bearer_context_status = &ue_mm_context->tau_accept_eps_ber_cntx_status;
       }
 
+      emm_sap.u.emm_as.u.data.eps_network_feature_support =
+          (eps_network_feature_support_t*) &_emm_data.conf
+              .eps_network_feature_support;
       /*If CSFB is enabled,store LAI,Mobile Identity and
        * Additional Update type to be sent in TAU accept to S1AP
        */
@@ -1231,25 +1232,20 @@ static int send_tau_accept_and_check_for_neaf_flag(
 status_code_e send_tau_accept_with_eps_bearer_ctx_status(ue_mm_context_t* ue_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
-  OAILOG_INFO_UE(
-      LOG_NAS_EMM,ue_context->emm_context._imsi64,
-      "Sending TAU with tau_accept_eps_ber_cntx_status for UE id " MME_UE_S1AP_ID_FMT " \n",
-      ue_context->mme_ue_s1ap_id);
-
   nas_emm_tau_proc_t* tau_proc = get_nas_specific_procedure_tau(&ue_context->emm_context);
   if (!tau_proc) {
     OAILOG_ERROR_UE(
         LOG_NAS_EMM,ue_context->emm_context._imsi64,
         "tau_proc is NULL,failed to send TAU accept for UE id " MME_UE_S1AP_ID_FMT " \n",
         ue_context->mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
   if (!ue_context->tau_accept_eps_ber_cntx_status) {
     OAILOG_ERROR_UE(
         LOG_NAS_EMM,ue_context->emm_context._imsi64,
         "tau_accept_eps_ber_cntx_status stored in ue_context is NULL,failed to send TAU accept for UE id " MME_UE_S1AP_ID_FMT " \n",
         ue_context->mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
   if (emm_tracking_area_update_accept(tau_proc) != RETURNok) {
@@ -1261,6 +1257,12 @@ status_code_e send_tau_accept_with_eps_bearer_ctx_status(ue_mm_context_t* ue_con
     free_emm_tau_request_ies(&tau_proc->ies);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
+
+  OAILOG_INFO_UE(
+      LOG_NAS_EMM,ue_context->emm_context._imsi64,
+      "Sent TAU with tau_accept_eps_ber_cntx_status for UE id " MME_UE_S1AP_ID_FMT " \n",
+      ue_context->mme_ue_s1ap_id);
+
   // Reset tau_accept_eps_ber_cntx_status stored in ue_context
   ue_context->tau_accept_eps_ber_cntx_status = 0;
   increment_counter(
