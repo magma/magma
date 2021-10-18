@@ -143,7 +143,7 @@ status_code_e esm_proc_default_eps_bearer_context(
 
   OAILOG_ERROR_UE(
       LOG_NAS_ESM, emm_context->_imsi64,
-      "ESM-PROC  - Failed to assign new EPS bearer context for "
+      "ESM-PROC  - Failed to assign new EPS bearer context with cause ESM_CAUSE_INSUFFICIENT_RESOURCES for "
       "ue_id " MME_UE_S1AP_ID_FMT "\n",
       ue_id);
   *esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;

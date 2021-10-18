@@ -367,7 +367,7 @@ status_code_e nas_proc_authentication_info_answer(
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = ue_mm_context_p->mme_ue_s1ap_id;
   OAILOG_INFO_UE(
-      LOG_NAS_EMM, emm_ctxt_p->_imsi64,
+      LOG_NAS_EMM, imsi64,
       "Received Authentication Information Answer from S6A for"
       " ue_id = " MME_UE_S1AP_ID_FMT "\n",
       mme_ue_s1ap_id);
@@ -582,8 +582,6 @@ status_code_e nas_proc_downlink_unitdata(
 
   IMSI_STRING_TO_IMSI64(dl_unitdata->imsi, &imsi64);
   ctxt = emm_context_get_by_imsi(&_emm_data, imsi64);
-  OAILOG_DEBUG_UE(
-      LOG_NAS_EMM, ctxt->_imsi64, "Handling imsi " IMSI_64_FMT "\n", imsi64);
 
   if (!(ctxt)) {
     OAILOG_ERROR(
@@ -591,7 +589,8 @@ status_code_e nas_proc_downlink_unitdata(
         "That's embarrassing as we don't know this IMSI\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
-
+  OAILOG_DEBUG_UE(
+      LOG_NAS_EMM, ctxt->_imsi64, "Handling imsi " IMSI_64_FMT "\n", imsi64);
   emm_as->nas_info = EMM_AS_NAS_DL_NAS_TRANSPORT;
   emm_as->nas_msg  = bstrcpy(dl_unitdata->nas_msg_container);
   /*

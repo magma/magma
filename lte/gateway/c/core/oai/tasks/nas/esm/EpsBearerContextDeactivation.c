@@ -431,8 +431,8 @@ status_code_e eps_bearer_deactivate_t3495_handler(
 
   bearer_context_t* bearer_context = ue_mm_context->bearer_contexts[bid];
   if (bearer_context == NULL) {
-    OAILOG_ERROR(
-        LOG_NAS_ESM,
+    OAILOG_ERROR_UE(
+        LOG_NAS_ESM,  ue_mm_context->emm_context._imsi64,
         "Failed to find bearer context for bearer_id:%u and "
         "ue_id " MME_UE_S1AP_ID_FMT "\n",
         ebi, ue_id);
