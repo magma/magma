@@ -15,6 +15,8 @@ There are two main ways to deploy the platform: [self-hosting](https://develop.s
 ## Enabling error reporting on an AGW
 Reporting for Python services, MME, and SessionD will *only* be enabled if the corresponding URL fields are non-empty.
 
+We recommend using two separate projects to separate Python and C/C++ services. For example, create a project with names like `lab-agws-native` for collecting errors from C/C++ services. 
+
 Fill out the following fields in `control_proxy.yml` to enable Sentry reporting.
 
 ```
