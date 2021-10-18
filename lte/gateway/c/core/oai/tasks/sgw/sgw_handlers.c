@@ -2307,7 +2307,7 @@ static teid_t sgw_generate_new_s11_cp_teid(void) {
   OAILOG_FUNC_RETURN(LOG_SGW_S8, teid);
 }
 
-// Generates random s11 control plane teid
+// Handles mme_initiated_deactv_bearer_req received from MME
 void sgw_handle_mme_initiated_deactv_bearer_req(
     const itti_s11_mme_initiated_deactivate_bearer_req_t* const
     s11_mme_init_deactv_bearer_req,
@@ -2316,13 +2316,13 @@ void sgw_handle_mme_initiated_deactv_bearer_req(
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
 
   OAILOG_INFO_UE(
-      LOG_SPGW_APP, imsi64, "handle_mme_initiated_deactv_bearer_req for (ebi = %d)" TEID_FMT "\n",
+      LOG_SPGW_APP, imsi64, "Received mme_initiated_deactv_bearer_req for (ebi = %d)" TEID_FMT "\n",
       s11_mme_init_deactv_bearer_req->ebi, s11_mme_init_deactv_bearer_req->s_gw_teid_s11_s4);
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt =
       sgw_cm_get_spgw_context(s11_mme_init_deactv_bearer_req->s_gw_teid_s11_s4);
   if (!spgw_ctxt) {
     OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64, "hashtable_ts_get failed for teid %u\n",
+        LOG_SPGW_APP, imsi64, "hashtable_ts_get failed for teid " TEID_FMT " while processing mme_initiated_deactv_bearer_req\n",
         s11_mme_init_deactv_bearer_req->s_gw_teid_s11_s4);
     OAILOG_FUNC_OUT(TASK_SPGW_APP);
   }
@@ -2372,9 +2372,10 @@ void sgw_handle_mme_initiated_deactv_bearer_req(
         LOG_SPGW_APP, imsi64, "Removed bearer context for (ebi = %d)\n",
         s11_mme_init_deactv_bearer_req->ebi);
   } else {
-    OAILOG_WARNING_UE(
+    OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64, "eps_bearer_ctxt is NULL for teid %u\n",
         s11_mme_init_deactv_bearer_req->s_gw_teid_s11_s4);
+    OAILOG_FUNC_OUT(TASK_SPGW_APP);
   }
   itti_s11_mme_initiated_deactivate_bearer_rsp_t* s11_mme_init_deact_bearer_rsp =
       NULL;

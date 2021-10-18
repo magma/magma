@@ -190,6 +190,11 @@ status_code_e csfb_handle_tracking_area_req(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
 }
 
+/*
+* This function validates the eps_bearer_cntxt_status IE
+* received in TAU request and initiates
+* bearer deactivation if the bearers are deleted in UE
+*/
 status_code_e handle_and_fill_eps_bearer_cntxt_status(
     const eps_bearer_context_status_t* const
         rcvd_tau_req_eps_eps_ber_cntx_status,
@@ -217,8 +222,8 @@ status_code_e handle_and_fill_eps_bearer_cntxt_status(
         pos           = ebi - shift_bits;  // Octet 4
         is_ebi_active = (*rcvd_tau_req_eps_eps_ber_cntx_status) & (1 << pos);
       }
-      /* Delete the bearer context if the bearer context rcvd in TAU req
-       * is inactive
+      /* Delete the bearer context if the bearer id rcvd in TAU req
+       * is set to 0
        */
       pid = ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
       if (pid >= MAX_APN_PER_UE) {
@@ -240,10 +245,12 @@ status_code_e handle_and_fill_eps_bearer_cntxt_status(
          * else trigger deactivate dedicated bearer request
          */
         if (ebi == pdn_context->default_ebi) {
-          ue_mm_context->nb_delete_sessions ++;
-          pdn_context->session_deletion_triggered = true;
           mme_app_send_delete_session_request(
               ue_mm_context, ebi, pid, true /*no_delete_gtpv2c_tunnel*/);
+          ue_mm_context->nb_delete_sessions ++;
+          pdn_context->session_deletion_triggered = true;
+          OAILOG_INFO_UE(ue_mm_context->emm_context._imsi64,
+            LOG_NAS_ESM, "Deactivating default bearer with EBI %d for UE= " MME_UE_S1AP_ID_FMT " as it is inactive in UE\n", ebi, ue_mm_context->mme_ue_s1ap_id);
         } else {
           /* If default bearer deletion is already triggered for this dedicated
            * bearer, no need to trigger bearer deactivation explicitly as it will be
@@ -251,15 +258,11 @@ status_code_e handle_and_fill_eps_bearer_cntxt_status(
            */
           if (!pdn_context->session_deletion_triggered) {
             ue_mm_context->nb_ded_bearer_deactivation ++;
+            OAILOG_INFO_UE(ue_mm_context->emm_context._imsi64,
+              LOG_NAS_ESM, "Deactivating EBI %d for UE= " MME_UE_S1AP_ID_FMT " as it is inactive in UE\n", ebi, ue_mm_context->mme_ue_s1ap_id);
             mme_app_send_deactivate_dedicated_bearer_request(ue_mm_context->emm_context._imsi64, pdn_context->s_gw_teid_s11_s4,pdn_context->default_ebi, ebi);
           }
         }
-        if (pdn_context->session_deletion_triggered) {
-          OAILOG_INFO(
-             LOG_NAS_ESM, "Delete session is already triggered for lbi=%d. So not deactivating EBI %d \n", pdn_context->default_ebi, ebi);
-        }
-        OAILOG_INFO(
-            LOG_NAS_ESM, "Deactivating EBI %d as it is inactive in UE \n", ebi);
       } else {
         // Set the status of active bearers to be sent in TAU Accept
         (ue_mm_context->tau_accept_eps_ber_cntx_status) |= 1 << pos;
@@ -465,36 +468,34 @@ status_code_e emm_proc_tracking_area_update_request(
         /*Send eps_bearer_context_status in TAU Accept if received in TAU Req*/
         if (tau_proc->ies->eps_bearer_context_status) {
           if (*tau_proc->ies->eps_bearer_context_status > 0) {
-          if (handle_and_fill_eps_bearer_cntxt_status(
-            tau_proc->ies->eps_bearer_context_status, ue_mm_context) != RETURNok) {
-             OAILOG_ERROR_UE(
-                LOG_NAS_EMM, ue_mm_context->emm_context._imsi64,
-                "EMM-PROC- Handling of eps_bearer_cntxt_status failed for "
-                "ue_id=" MME_UE_S1AP_ID_FMT ")\n",
-                ue_id);
-            OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+            if (handle_and_fill_eps_bearer_cntxt_status(
+              tau_proc->ies->eps_bearer_context_status, ue_mm_context) != RETURNok) {
+                OAILOG_ERROR_UE(
+                  LOG_NAS_EMM, ue_mm_context->emm_context._imsi64,
+                  "EMM-PROC- Handling of eps_bearer_cntxt_status failed for "
+                  "ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+                  ue_id);
+              OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+            } else {
+              /* If delete_session request is sent i.e if default
+               * bearer deletion is triggered or dedicated bearer deactivation
+               * is triggered in
+               * handle_and_fill_eps_bearer_cntxt_status,
+               * wait for response from spgw and then send TAU accept.
+               */
+               if (ue_mm_context->nb_delete_sessions || ue_mm_context->nb_ded_bearer_deactivation) {
+                 OAILOG_DEBUG(
+                   LOG_NAS_ESM, "Bearer deactivation is triggered, wait for response from spgw and then send TAU accept for UE id=" MME_UE_S1AP_ID_FMT "\n", ue_id);
+                 OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+               }
+            }
           } else {
-            /* If delete_session request is sent i.e if default
-             * bearer deletion is triggered or dedicated bearer deactivation
-             * is triggered in
-             * handle_and_fill_eps_bearer_cntxt_status,
-             * wait for response from spgw and then send TAU accept.
-             */
-             if (ue_mm_context->nb_delete_sessions || ue_mm_context->nb_ded_bearer_deactivation) {
-               OAILOG_INFO(
-                 LOG_NAS_ESM, "Either delete session or bearer deactivation is triggered so wait for response from spgw and then send TAU accept\n");
-               OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
-             }
-             OAILOG_INFO(
-               LOG_NAS_ESM, "Neither delete session nor bearer deactivation is triggered so sending TAU accept\n");
+            OAILOG_WARNING_UE(
+              LOG_NAS_EMM, ue_mm_context->emm_context._imsi64,
+              "EMM-PROC- Received eps_bearer_cntxt_status IE in TAU req with value 0, ignoring the IE for "
+              "ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+              ue_id);
           }
-        } else {
-          OAILOG_WARNING_UE(
-            LOG_NAS_EMM, ue_mm_context->emm_context._imsi64,
-            "EMM-PROC- Received eps_bearer_cntxt_status IE in TAU req with value 0, ignoring the IE for "
-            "ue_id=" MME_UE_S1AP_ID_FMT ")\n",
-            ue_id);
-        }
         }
         OAILOG_DEBUG(
             LOG_NAS_EMM,
@@ -815,7 +816,7 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
           sizeof(tai_list_t));
       emm_sap.u.emm_as.u.establish.nas_info = EMM_AS_NAS_INFO_TAU;
 
-      /*Send eps_bearer_context_status in TAU Accept if received in TAU Req*/
+      // Send eps_bearer_context_status in TAU Accept if received in TAU Req
       if (tau_proc->ies->eps_bearer_context_status && ue_mm_context->tau_accept_eps_ber_cntx_status) {
         emm_sap.u.emm_as.u.establish.eps_bearer_context_status =
          &ue_mm_context->tau_accept_eps_ber_cntx_status;
@@ -922,7 +923,7 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
       memcpy(
           &emm_sap.u.emm_as.u.data.tai_list, &emm_context->_tai_list,
           sizeof(tai_list_t));
-      /*Send eps_bearer_context_status in TAU Accept if received in TAU Req*/
+      // Send eps_bearer_context_status in TAU Accept if received in TAU Req
       if (tau_proc->ies->eps_bearer_context_status && ue_mm_context->tau_accept_eps_ber_cntx_status) {
         emm_as->eps_bearer_context_status = &ue_mm_context->tau_accept_eps_ber_cntx_status;
       }
@@ -1222,7 +1223,7 @@ static int send_tau_accept_and_check_for_neaf_flag(
  **                                                                        **
  ** Description: Sends TAU accept message stored in ue context             **
  **                                                                        **
- ** Inputs:  ue_context:  UE context                                           **
+ ** Inputs:  ue_context:  UE context                                       **
  **                                                                        **
  ** Outputs: Return:    RETURNok, RETURNerror                              **
  **                                                                        **
@@ -1246,7 +1247,7 @@ status_code_e send_tau_accept_with_eps_bearer_ctx_status(ue_mm_context_t* ue_con
   if (!ue_context->tau_accept_eps_ber_cntx_status) {
     OAILOG_ERROR_UE(
         LOG_NAS_EMM,ue_context->emm_context._imsi64,
-        "tau_accept_eps_ber_cntx_status is NULL,failed to send TAU accept for UE id " MME_UE_S1AP_ID_FMT " \n",
+        "tau_accept_eps_ber_cntx_status stored in ue_context is NULL,failed to send TAU accept for UE id " MME_UE_S1AP_ID_FMT " \n",
         ue_context->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
@@ -1260,6 +1261,7 @@ status_code_e send_tau_accept_with_eps_bearer_ctx_status(ue_mm_context_t* ue_con
     free_emm_tau_request_ies(&tau_proc->ies);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
+  // Reset tau_accept_eps_ber_cntx_status stored in ue_context
   ue_context->tau_accept_eps_ber_cntx_status = 0;
   increment_counter(
       "tracking_area_update_req", 1, 1, "result", "success");

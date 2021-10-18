@@ -180,10 +180,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S11_MME_INIT_DEACTIVATE_BEARER_REQ: {
-      // Handle dedicated bearer dectivation Req from MME
+      // Handle dedicated bearer dectivation req from MME
       sgw_handle_mme_initiated_deactv_bearer_req(
           &received_message_p->ittiMsg.itti_s11_mme_initiated_deactivate_bearer_req, imsi64);
-      //is_state_same = true;  // task state is not changed
+      is_state_same = true;  // task state is not changed
     } break;
 
     case IP_ALLOCATION_RESPONSE: {
