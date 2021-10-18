@@ -34,91 +34,15 @@ func TestBlobstoreImplMigrations(t *testing.T) {
 		err = sqlFact.InitializeFactory()
 		assert.NoError(t, err)
 
-		entFact := blobstore.NewEntStorage(tableName, db, sqorc.GetSqlBuilder())
-		return sqlFact, entFact
+		sqlFact2 := blobstore.NewSQLBlobStorageFactory(tableName, db, sqorc.GetSqlBuilder())
+		return sqlFact, sqlFact2
 	}
 
-<<<<<<< HEAD
-	sqlFact, entFact := makeBlobstores()
-	checkBlobstoreMigration(t, sqlFact, entFact)
-	sqlFact, entFact = makeBlobstores()
-	checkBlobstoreMigration(t, entFact, sqlFact)
-=======
-	many, err := storev1.GetMany("id1", storage.TKs{
-		{Type: "type1", Key: "key1"},
-		{Type: "type2", Key: "key2"},
-	})
-	require.NoError(t, err)
-	require.Len(t, many, 2)
-	require.Equal(t, blobs[:2], many)
-
-	keys, err := storev1.GetExistingKeys([]string{"key1"}, blobstore.SearchFilter{})
-	require.NoError(t, err)
-	require.Equal(t, []string{"key1"}, keys)
-
-	err = storev1.Commit()
-	require.NoError(t, err)
-
-	entfact := blobstore.NewSQLBlobStorageFactory("states", db, sqorc.GetSqlBuilder())
-	storev2, err := entfact.StartTransaction(nil)
-	require.NoError(t, err)
-	blobs, err = storev2.GetMany("id1", storage.TKs{
-		{Type: "type1", Key: "key1"},
-		{Type: "type2", Key: "key2"},
-	})
-	require.NoError(t, err)
-	require.Len(t, many, 2)
-	require.Equal(t, blobs[:2], many)
-
-	blob, err := storev2.Get("id1", storage.TK{Type: "type1", Key: "key1"})
-	require.NoError(t, err)
-	require.Equal(t, blobs[0], blob)
-
-	blob, err = storev2.Get("id1", storage.TK{Type: "type2", Key: "key2"})
-	require.NoError(t, err)
-	require.Equal(t, blobs[1], blob)
-
-	err = storev2.IncrementVersion("id1", storage.TK{Type: "type3", Key: "key1"})
-	require.NoError(t, err)
-	blob, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
-	require.NoError(t, err)
-	require.Equal(t, blobstore.Blob{Type: "type3", Key: "key1", Version: 1}, blob)
-
-	err = storev2.IncrementVersion("id1", storage.TK{Type: "type3", Key: "key1"})
-	require.NoError(t, err)
-	blob, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
-	require.NoError(t, err)
-	require.Equal(t, blobstore.Blob{Type: "type3", Key: "key1", Version: 2}, blob)
-
-	err = storev2.Delete("id1", storage.TKs{{Type: "type3", Key: "key1"}})
-	require.NoError(t, err)
-	_, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
-	require.Equal(t, magmaerrors.ErrNotFound, err)
-
-	err = storev2.CreateOrUpdate("id1", blobstore.Blobs{
-		{Type: "type1", Key: "key1", Value: []byte("world")},
-		{Type: "type3", Key: "key1", Value: []byte("value")},
-	})
-	require.NoError(t, err)
-	blob, err = storev2.Get("id1", storage.TK{Type: "type3", Key: "key1"})
-	require.NoError(t, err)
-	require.Equal(t, blobstore.Blob{Type: "type3", Key: "key1", Value: []byte("value")}, blob)
-
-	blob, err = storev2.Get("id1", storage.TK{Type: "type1", Key: "key1"})
-	require.NoError(t, err)
-	require.Equal(t, blobstore.Blob{Type: "type1", Key: "key1", Value: []byte("world"), Version: 1}, blob)
-
-	keys, err = storev2.GetExistingKeys([]string{"key1"}, blobstore.SearchFilter{})
-	require.NoError(t, err)
-	require.Equal(t, []string{"key1"}, keys)
->>>>>>> 6e8d8a538 (lint files)
-}
-
-func TestIntegration(t *testing.T) {
-	db, err := sqorc.Open("sqlite3", ":memory:")
-	assert.NoError(t, err)
-	fact := blobstore.NewEntStorage("states", db, sqorc.GetSqlBuilder())
-	integration(t, fact)
+	// Test migration from first blobstore to second
+	sqlFact, sqlFact2 := makeBlobstores()
+	checkBlobstoreMigration(t, sqlFact, sqlFact2)
+	sqlFact, sqlFact2 = makeBlobstores()
+	checkBlobstoreMigration(t, sqlFact2, sqlFact)
 }
 
 func checkBlobstoreMigration(
