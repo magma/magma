@@ -41,6 +41,7 @@ extern "C" {
 #include "M5GRegistrationRequest.h"
 #include "ngap_messages_types.h"
 #include "amf_common.h"
+#include "assertions.h"
 
 // NAS messages
 #include "M5GDLNASTransport.h"
@@ -830,9 +831,7 @@ void amf_delete_registration_proc(amf_context_t* amf_txt);
 void amf_delete_registration_ies(amf_registration_request_ies_t** ies);
 void amf_delete_child_procedures(
     amf_context_t* amf_txt, struct nas5g_base_proc_t* const parent_proc);
-void amf_delete_common_procedure(
-    amf_context_t* amf_ctx, nas_amf_common_proc_t** proc);
-void delete_wrapper(void** ptr);
+void amf_delete_common_procedure(nas_amf_common_proc_t** proc);
 void format_plmn(amf_plmn_t* plmn);
 void amf_ue_context_on_new_guti(
     ue_m5gmm_context_t* ue_context_p, const guti_m5_t* const guti_p);
@@ -850,4 +849,29 @@ ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
 
 int amf_idle_mode_procedure(amf_context_t* amf_ctx);
 void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p);
+
+/************************************************************************
+ ** Name:    delete_wrapper()                                         **
+ **                                                                   **
+ ** Description: deletes the memory                                   **
+ **                                                                   **
+ ** Inputs: ptr:   pointer to be freed                                **
+ **                                                                   **
+ **                                                                   **
+ ** Outputs:     None                                                 **
+ **      Return:    void                                              **
+ **      Others:    None                                              **
+ ***********************************************************************/
+template<typename T>
+void delete_wrapper(T** pObj) {
+  AssertFatal(
+      !(std::is_same<T, void>::value),
+      "delete_wrapper does not accept pointer of type void");
+  if (pObj && *pObj) {
+    T* obj = *pObj;
+    delete obj;
+    *pObj = nullptr;
+  }
+}
+
 }  // namespace magma5g
