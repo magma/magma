@@ -361,7 +361,7 @@ commands:
           org: lf-9c
       - sentry-upload:
           executable_name: << parameters.executable_name >>
-          project: magma-staging
+          project: magma-staging-native
           org: lf-9c
 
   sentry-release:
