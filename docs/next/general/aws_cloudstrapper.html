@@ -1,0 +1,302 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>AWS Cloudstrapper Install · Magma Documentation</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Deploying Magma via Cloudstrapper"/><meta name="docsearch:version" content="next"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="AWS Cloudstrapper Install · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Deploying Magma via Cloudstrapper"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>next</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>General</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Getting Started<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/next/basics/introduction">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/basics/prerequisites">Prerequisites</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/basics/quick_start_guide">Quick Start Guide</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Usage<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">How-To</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/howtos/ue_metering">UE Usage Metering</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/howtos/config_agw_bridged">AGW Non-NAT Mode</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/howtos/call_tracing">Call Tracing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/howtos/events_monitoring">Events Monitoring</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/howtos/he_api">Header Enrichment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/howtos/inbound_roaming">Inbound Roaming</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/dashboard">Dashboard</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/equipment">Equipment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/network">Network</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/subscriber">Subscriber</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/traffic">Traffic</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/metrics">Metrics</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/alerts">Alerts</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/federation">Federation</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/admin">Admin</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/tips_and_tricks">Tips and Tricks</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Architecture<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/architecture_overview">Overview</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/architecture_overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/architecture_modularity">Modularity</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/architecture_security">Security</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/nms_arch_overview">Overview</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">FeG</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/feg/architecture_overview">Overview</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Deploy<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">General</h4><ul><li class="navListItem navListItemActive"><a class="navItem" href="/magma/docs/next/general/aws_cloudstrapper">AWS Cloudstrapper Install</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/deploy_install">Install AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/deploy_config_agw">Configure AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/deploy_config_enodebd">Configure eNodeB</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/deploy_config_apn">Configure an APN</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/build_install_magma_pkg_in_agw">Build and install a magma package in AGW</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/deploy_install">Install Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/deploy_orcl">Install Orchestrator (Managed)</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/deploy_terraform_options">Terraform Options</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/deploy_faq">FAQs</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federation Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/feg/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/feg/deploy_build">Build FeG</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/feg/deploy_install">Install FeG</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Configure<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/configure_agw_ha">Configure AGW for HA</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/configure_sentry">Sentry Integration</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/configure_thanos">Thanos</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federation Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/feg/configure_federation">Configure FeG</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Upgrade<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">General</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/general/upgrade_intro">Introduction</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/upgrade_debian_to_ubuntu">Migrate AGWs to Ubuntu</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/upgrade_1_6">Upgrade to v1.6</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/upgrade_1_1">Upgrade to v1.1</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/upgrade_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/upgrade_1_6">Upgrade to v1.6</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/upgrade_1_5">Upgrade to v1.5</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/upgrade_1_1">Upgrade to v1.1</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Debug<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">General</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/howtos/troubleshooting/agw_healthcheck">Perform Access Gateway health check</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/howtos/troubleshooting/agw_unable_to_checkin">Access Gateway Unable to Check-in to Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/howtos/troubleshooting/user_unable_to_attach">User is unable to attach to Magma</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/howtos/troubleshooting/update_certificates">Update rootCA and controller SSL certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/howtos/troubleshooting/generate_admin_operator_certificates">Generate and update admin_operator certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/howtos/troubleshooting/analyze_service_crashes_in_agw">Analyze Service crashes in AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/howtos/troubleshooting/datapath_connectivity">Debugging AGW datapath issues</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/debug_show_tech">Show Tech</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/debug_dp_probe">Datapath Probe CLI</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federated Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/feg/debug_cli">FeG CLI</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/debug_logs">View Logs</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/alerts_troubleshooting">Alerts</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Contribute<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Contribute</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/contributing/contribute_onboarding">Developer Onboarding</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/contributing/contribute_workflow">Development Workflow</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/contributing/contribute_conventions">Contributing Conventions</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/contributing/contribute_id_mappings">Codeowners GitHub to Slack IDs</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/contributing/contribute_ci_checks">Continuous Integration Checks</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Maintain</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/contributing/contribute_proposals">Proposals Process</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/contributing/contribute_codeowners">Codeowners Workflow</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Technical Reference<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">General</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/resources/ref_pcap">PCAP Collection</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/resources/ref_useful_links">Useful Links</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/resources/ref_magma_metrics">Life of a Magma Metric</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/docs/docs_overview">Documentation Overview</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/dev_notes">Developer Notes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/dev_unit_testing">Test AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/tr069">Add eNB TR-069 Support</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/s1ap_tests">S1AP Integration Tests</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/eventd">Event Reporting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/lte/access_service_restrictions">Restricting Network Access</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/dev_rest_api">REST API</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/dev_build">Build Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/dev_testing">Test Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/dev_minikube">Deploy on Minikube</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/dev_security">Security</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/dev_indexers">State Indexers</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/dev_sub_digests">Subscriber Digests</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/dev_dependencies">Module Dependencies</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/orc8r/dev_aws_stack">AWS Stack</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/dev_spacing">Spacing Guidelines</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/dev_testing">Test NMS</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/dev_themes">Themes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/nms/dev_components">Components</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federation Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/feg/dev_testing">Test Federation Gateway</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Carrier WiFi</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/cwf/dev_testing">Test CWAG</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Proposals<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">General</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p001_vpn_config_from_api">Configurable VPN from Orchestrator API</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p005_call_tracing">Call Tracing for Troubleshooting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p014_proposal_process">Magma Proposals</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p015_tech_debt_week">Tech Debt Week Processes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p017_apn_refactoring">APN Refactoring Proposal</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p003_qos_enforcement">QoS Policy Configuration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p007_header_enrichment">Header enrichment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p008_apn_correction">MME APN Correction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p013_Ubuntu_upgrade">AGW Ubuntu upgrade</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p018_control_network_metrics">Export Control Path Network Metrics</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p019_enodeb_cbrs_support">Enodebd CBRS Support</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p020_sgi_tunnel_transport">L3 transport for AGW</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p002_scaled_prometheus_pipeline">Scaled Prometheus Pipeline</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p010_subscriber_scaling">Subscriber Scaling</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p011_victoriametrics">VictoriaMetrics as Magma&#x27;s TSDB</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/next/proposals/p009_nms_mariadb_migration">NMS MariaDB Migration</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">FAQ<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/next/faq/faq_magma">Frequently Asked Questions</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="deploying-magma-via-cloudstrapper"></a><a href="#deploying-magma-via-cloudstrapper" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Deploying Magma via Cloudstrapper</h1>
+<p>There are two basic options for setting up Magma Cloudstrapper within Amazon Web Services: Marketplace or via private image.</p>
+<h2><a class="anchor" aria-hidden="true" id="1-launching-cloudstrapper-from-marketplace"></a><a href="#1-launching-cloudstrapper-from-marketplace" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>1) Launching Cloudstrapper from Marketplace</h2>
+<ul>
+<li>Access the <a href="https://aws.amazon.com/marketplace">AWS Marketplace</a> and search for “Magma Cloudstrapper”
+<ul>
+<li>Alternatively, check the <a href="https://aws.amazon.com/marketplace/pp/prodview-wkchyk2okdnhc?qid=1627070115980&amp;sr=0-2&amp;ref_=srh_res_product_title">direct link</a></li>
+</ul></li>
+<li>Click on “Continue to Subscribe” and “Continue to Configuration”</li>
+<li>Choose “Delivery Method”, “Software Version” and “Region.” The only default we recommend you change is the “Region&quot;</li>
+<li>Click on “Continue to Launch”
+<ul>
+<li>In “Choose Action”, select “Launch from Website” (default)</li>
+<li>The EC2 Instance Type dropdown will select “t2.medium” by default</li>
+<li>Choose preferred values for other drop-boxes. Cloudstrapper will work fine deployed on the public subnet.</li>
+<li>Under “Security Group Settings” select a security group that at allows SSH traffic and any other rules that are relevant to your network.</li>
+<li>Under “Key Pair Settings” select your preferred key pair.</li>
+</ul></li>
+<li>Click on Launch</li>
+<li>In order to ssh into your Cloudstrapper use the key pair .pem file and ubuntu in this format: ssh -i &lt;KeyPair&gt; ubuntu@&lt;InstanceIP&gt;
+<ul>
+<li>Example:</li>
+</ul></li>
+<li>ssh -i &quot;cloudstrapper-test.pem&quot; ubuntu@1.1.1.1
+<ul>
+<li><strong>NOTE:</strong> If you receive an “WARNING: UNPROTECTED PRIVATE KEY FILE!” error while trying to SSH you will need to change the permissions on your key file by running <code>chmod 400</code> to make it read-only.</li>
+</ul></li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="2-launching-cloudstrapper-from-private-images"></a><a href="#2-launching-cloudstrapper-from-private-images" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>2) Launching Cloudstrapper from Private Images</h2>
+<ul>
+<li>Navigate to the “AMIs” page to verify Cloudstrapper images show up under “Images Owned By Me”</li>
+<li>Select the Cloudstrapper AMI followed by the “Launch” button.</li>
+<li>On the “Choose Instance Type” page, select the t2.micro instance type (free) and click next.</li>
+<li>No changes are required to default settings on the “Configure Instance Details” page. Click next and navigate to the “Add Storage” page.</li>
+<li>Update the Size parameter to 32GB of space and proceed to the “Add Tags” page.</li>
+<li>Select the “Add Tag” button or click the link to add a name tag. In the “Value” column enter in a name for your Cloudstrapper and in the “Key” field create a key. Proceed to the “Configure Security Group” page.</li>
+<li>On this page, select a security group that at allows SSH traffic (default) and any other rules that are relevant to your network.</li>
+<li>Proceed to the “Review” page to ensure all your network details are correct followed by clicking the Launch button.</li>
+<li>Finally, select a pre-existing key pair that will allow access to your network and launch your instances.</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="configure-orchestrator-deployment-parameters"></a><a href="#configure-orchestrator-deployment-parameters" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configure Orchestrator Deployment Parameters</h2>
+<ul>
+<li>Once your instance is created, click on the “Instance ID” url and select the “Connect” button</li>
+<li>In the SSH tab copy the command to connect to your instance and run it within your CLI
+<ul>
+<li><strong>NOTE:</strong> If you receive an “WARNING: UNPROTECTED PRIVATE KEY FILE!” error while trying to SSH you will need to change the permissions on your key file by running <code>chmod 400</code> to make it read-only.</li>
+</ul></li>
+<li>Create a magma-dev directory and clone magma master onto it by running the following commands:</li>
+</ul>
+<pre><code class="hljs css language-bash">mkdir ~/magma-dev
+<span class="hljs-built_in">cd</span> ~/magma-dev
+git <span class="hljs-built_in">clone</span> https://github.com/magma/magma.git
+</code></pre>
+<ul>
+<li><p>Locate and navigate to the playbooks directory inside the source repo:</p>
+<ul>
+<li><code>cd ~/magma-dev/magma/experimental/cloudstrapper/playbooks</code></li>
+</ul></li>
+<li><p>Copy the secrets.yaml file and update the credentials for AWS:</p>
+<ul>
+<li><code>cp roles/vars/secrets.yaml ~/magma-dev/</code></li>
+</ul></li>
+<li><p>Update your secrets.yaml file with your AWS credentials. The two fields that are required to update are the <code>AWS Access Key</code> and the <code>AWS Secret Key</code>. <strong>Note:</strong> make sure you have a space between the colon and before your keys.</p></li>
+<li><p>Build types: Magma can be deployed via binaries hosted in the community artifactory. These options are enabled in the code by default and Cloudstrapper, when using the ‘community’ option, it will default to these options.</p>
+<ul>
+<li>Community Builds: Builds are created and labeled by Magma CI teams and available for deployment. The secrets.yaml file does not need any inputs in the docker and github variables.</li>
+<li>Private Builds: Edit the secrets.yaml file in the <code>/magma-dev</code> directory to include the github and docker credentials under the Github Prerequisites and Dockerhub Prerequisites fields.</li>
+</ul></li>
+</ul>
+<p><strong>Please ensure that:</strong></p>
+<ul>
+<li>You are deploying orchestrator in a region that supports at least <strong>three Availability Zones</strong></li>
+<li>The region is clean and has no leftover artifacts from a prior Orc8r deployment. Please use the cleanup script below if needed.</li>
+<li>the value of varFirstInstall is set based on if the account already has an “AWSServiceRoleForAmazonElasticsearchService” role created (to be automated). If it exists, varFirstInstall in the config file would be “false”. If not, varFirstInstall in the config file would be “true”. If the role does not exist already, Orc8r will create the role.</li>
+<li>there is disk space of at least 1+ GB to pull code and create local artifacts</li>
+<li>dirLocalInventory/orc8rClusterName folder does not exist from a previous install (to be automated)</li>
+</ul>
+<pre><code class="hljs css language-bash">aws iam list-roles --profile &lt;Your AWS Config profile&gt; | grep -i AWSServiceRoleForAmazonElasticsearchService
+
+<span class="hljs-string">"RoleName"</span>: <span class="hljs-string">"AWSServiceRoleForAmazonElasticsearchService"</span>,
+<span class="hljs-string">"Arn"</span>: <span class="hljs-string">"arn:aws:iam::&lt;Account Number&gt;:role/aws-service-role/es.amazonaws.com/AWSServiceRoleForAmazonElasticsearchService"</span>     
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="deploy-orchestrator"></a><a href="#deploy-orchestrator" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Deploy Orchestrator</h2>
+<ul>
+<li>Prior to completing the following steps you must obtain a domain name for your Orc8r</li>
+<li>Create a parameter file (must end in a .yaml extension) in the ~/magma-dev directory
+<ul>
+<li>View the example below to examine what a sample parameter file would look like. You must reserve a domain name before completing this step.</li>
+</ul></li>
+</ul>
+<pre><code class="hljs css language-bash">---
+dirLocalInventory: ~/magma-dev
+orc8rClusterName: Sydney
+orc8rDomainName: ens-16-sydney.failedwizard.dev
+orc8rLabel: 1.6.0
+orc8rVersion: v1.6
+awsOrc8rRegion: ap-southeast-2
+varBuildType: community
+varFirstInstall: <span class="hljs-string">"false"</span>
+</code></pre>
+<ul>
+<li><p>A legend of the variables used:</p>
+<ul>
+<li>dirLocalInventory: Folder which has secrets.yaml file that includes AWS access and secret keys</li>
+<li>orc8rClusterName: A local folder created in dirLocalInventory used to store state information</li>
+<li>orc8rDomainName: Domain name of the Orc8r</li>
+<li>orc8rLabel: The label to look for in the containers repository</li>
+<li>orc8rVersion: The version of orc8r tools used to generate artifacts</li>
+<li>awsOrc8rRegion: The region where this orc8r will be deployed</li>
+<li>varBuildType: Using either ‘community’ or ‘custom’ binaries</li>
+<li>varFirstInstall: Indicating if this is the first install of any kind of Magma or not, to skip some of the default, shared roles created</li>
+</ul></li>
+<li><p>First change your directory to ~/magma-dev/magma/experimental/cloudstrapper/playbooks. Next, run the playbook to setup Orchestrator the deployment:</p></li>
+</ul>
+<pre><code class="hljs css language-bash">ansible-playbook orc8r.yaml -e <span class="hljs-string">'@&lt;path to parameters file&gt;'</span>
+</code></pre>
+<ul>
+<li>After a successful run of the playbook (30-40 minutes), run terraform to obtain nameserver information to be added to DNS.</li>
+</ul>
+<p>Example:</p>
+<pre><code class="hljs css language-bash">cloudstrapper:~/magma-dev/Mumbai/terraform <span class="hljs-comment">#terraform output</span>
+nameservers = tolist([
+<span class="hljs-string">"ns-1006.awsdns-61.net"</span>,
+<span class="hljs-string">"ns-1140.awsdns-14.org"</span>,
+<span class="hljs-string">"ns-2020.awsdns-60.co.uk"</span>,
+<span class="hljs-string">"ns-427.awsdns-53.com"</span>,
+])
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="deploy-the-agw"></a><a href="#deploy-the-agw" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Deploy the AGW</h2>
+<ul>
+<li>If you would like to do a customized installation (Ex. generating your own classless interdomain routing) you will first need to create your own .yaml file
+<ul>
+<li>This is done by navigating to <code>magma-dev/magma/experimental/cloudstrapper/playbooks/roles/agw-infra/vars/</code></li>
+<li>Next, create your own .yaml file where you can configure your unique parameters. Here is an example:</li>
+</ul></li>
+</ul>
+<pre><code class="hljs css language-bash">**cidrVpc**: 10.7.0.0/16
+**cidrSgi**: 10.7.4.0/24
+**cidrEnodeb**: 10.7.2.0/24
+**cidrBridge**: 10.7.6.0/24
+**azHome**: <span class="hljs-string">"{{ awsAgwAz }}"</span>
+**secGroup**: <span class="hljs-string">"{{ secgroupDefault }}"</span>
+**sshKey**: <span class="hljs-string">"{{ keyHost }}"</span>
+**siteName**: MenloPark
+</code></pre>
+<ul>
+<li><p>If you would like to do a non-customized setup you can use the <code>MenloPark</code> idSite for your installation for the steps below.</p></li>
+<li><p>Create a parameter file in the <code>~/magma-dev</code> directory. A sample parameter file would look like as follows</p>
+<ul>
+<li><strong>Note:</strong> Use a base ubuntu image of the region for the awsCloudstrapperAmi variable.</li>
+<li>Please ensure you have a key with name described in keyHost available in the region. This is the key that would be embedded into the AGW for ssh access</li>
+<li>Future: awsCloudstrapperAmi will be renamed to awsBastionAmi (task filed)</li>
+</ul></li>
+</ul>
+<pre><code class="hljs css language-bash">    ---
+    dirLocalInventory: ~/magma-dev
+    awsAgwAmi: ami-00ca08f84d1e324b0
+    awsCloudstrapperAmi: ami-02f1c0266c02f885b
+    awsAgwRegion: ap-northeast-1
+    keyHost: keyMagmaHostBeta
+    idSite: MenloPark
+    idGw: mpk01
+
+
+</code></pre>
+<ul>
+<li><p>A legend of the variables used:</p>
+<ul>
+<li>dirLocalInventory: Location of folder with secrets.yaml file that include AWS access and secret keys</li>
+<li>awsAgwAmi: Id of the AGW AMI available in the region of deployment</li>
+<li>awsCloudstrapperAmi: Id of the Cloudstrapper AMI available in the region of deployment</li>
+<li>awsAgwRegion: Region where AGWs will be deployed</li>
+<li>keyHost: Public key of keypair from region, will be embedded into the launched AGW for SSH access</li>
+<li>idSite: ID of site and partial name of variable file that has site specific information (such as CIDRs) (<a href="https://github.com/magma/magma/blob/master/experimental/cloudstrapper/playbooks/roles/agw-infra/vars/varSiteMenloPark.yaml">Example</a>)</li>
+<li>idGw: Id of Gateway to be installed; Used as value of a tag with key as Name; Can be changed for subsequent AGW deployments</li>
+</ul></li>
+<li><p>Locate and navigate to the playbooks directory inside the source repo:</p></li>
+</ul>
+<pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> ~/magma-dev/magma/experimental/cloudstrapper/playbooks
+</code></pre>
+<ul>
+<li>Run the following command for the first AGW:</li>
+</ul>
+<pre><code class="hljs css language-bash">ansible-playbook agw-provision.yaml --tags createNet,createBridge,createGw,inventory -e <span class="hljs-string">'@&lt;path to parameters file&gt;'</span>
+
+</code></pre>
+<ul>
+<li>Run the following for subsequent AGWs :</li>
+</ul>
+<pre><code class="hljs css language-bash">ansible-playbook agw-provision.yaml --tags createGw -e <span class="hljs-string">'@&lt;path to parameters file&gt;'</span>
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="configure-agw-and-orchestrator"></a><a href="#configure-agw-and-orchestrator" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configure AGW and Orchestrator</h2>
+<ul>
+<li>Configure AGW <a href="https://magma.github.io/magma/docs/lte/config_agw">manually</a> or through the playbooks running agw-configure from the Bridge node.</li>
+<li>Start by configuring the Bridge node as a bastion host. Using the Bridge node as Bastion host, configure the newly deployed AGW to communicate with the Orc8r.</li>
+<li>Follow the following steps <a href="https://magma.github.io/magma/docs/orc8r/deploy_install">here</a> to create an admin user for NMS.</li>
+<li>Generate a challenge key and hardware id and add it to Orc8r from the <a href="https://magma.github.io/magma/docs/lte/deploy_config_agw">Magmacore website documentation</a>.</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="custom-agws-for-snowcone"></a><a href="#custom-agws-for-snowcone" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Custom AGWs for Snowcone</h2>
+<p>Snowcone devices require that an image be already embedded in the device before shipping. Hence, the devices require a key to be embedded in the authorized_keys file for the default user (‘ubuntu’) or a customer’s preferred user before the device is ordered. To achieve that run the following commands.</p>
+<ul>
+<li><p>To generate a custom image from the base Access Gateway AMI</p>
+<ol>
+<li>Start an instance of the Access Gateway AMI similar to the “Launching Cloudstrapper” session above.</li>
+<li>Once the instance is booted up, add your public key to the ~/.ssh/authorized_keys file</li>
+<li>Snapshot the image to create a new AMI. Use this AMI to order your snowcone.</li>
+</ol></li>
+<li><p>Alternatively, to build your own AGW AMI from scratch and customize it for your use-case</p>
+<ol>
+<li>Follow section 5.1 from the <a href="https://github.com/magma/magma/tree/master/experimental/cloudstrapper">README</a> file of the Cloudstrapper deployment</li>
+</ol></li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="cleaning-up-an-orc8r-environment"></a><a href="#cleaning-up-an-orc8r-environment" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Cleaning up an Orc8r environment</h2>
+<p>Orc8r cleanup allows the user to target a given region and automatically cleanup all the resources there and ensure it is ready for a new deployment.</p>
+<p>Run <code>terraform destroy</code> to release all terraform created resources from within the ‘terraform’ directory inside the ‘dirLocalInventory/orc8rClusterName’ folder.</p>
+<p>In certain cases, terraform might leave artifacts that weren’t cleaned up that might impact previously deployment installations. Use Cloudstrapper’s cleanup capabilities to cleanup the region of all known artifacts.</p>
+<p><strong>Variables to consider for cleanup:</strong></p>
+<ul>
+<li><p>awsOrc8rRegion: Region where Orchestrator runs</p>
+<ul>
+<li>command: <code>ansible-playbook cleanup.yaml [--tags various] -e '@&lt;path to parameters file&gt;'</code></li>
+</ul></li>
+<li><p>For a complete environment cleanup or orc8r run:</p>
+<ul>
+<li>command: <code>ansible-playbook cleanup.yaml —skip-tags agw -e ‘@&lt;path to parameters file&gt;’</code></li>
+</ul></li>
+</ul>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/feg/architecture_overview"><span class="arrow-prev">← </span><span>Overview</span></a><a class="docs-next button" href="/magma/docs/next/lte/deploy_install"><span>Install AGW</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#1-launching-cloudstrapper-from-marketplace">1) Launching Cloudstrapper from Marketplace</a></li><li><a href="#2-launching-cloudstrapper-from-private-images">2) Launching Cloudstrapper from Private Images</a></li><li><a href="#configure-orchestrator-deployment-parameters">Configure Orchestrator Deployment Parameters</a></li><li><a href="#deploy-orchestrator">Deploy Orchestrator</a></li><li><a href="#deploy-the-agw">Deploy the AGW</a></li><li><a href="#configure-agw-and-orchestrator">Configure AGW and Orchestrator</a></li><li><a href="#custom-agws-for-snowcone">Custom AGWs for Snowcone</a></li><li><a href="#cleaning-up-an-orc8r-environment">Cleaning up an Orc8r environment</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>
