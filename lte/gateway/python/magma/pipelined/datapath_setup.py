@@ -10,12 +10,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from magma.common.misc_utils import call_process
+
 import subprocess
 import os
 import logging
 
 irq_utility = '/usr/local/bin/set_irq_affinity'
 ethtool_utility = '/usr/sbin/ethtool'
+
+wg_dev = 'magma_wg0'
+wg_setup_utility = '/usr/local/bin/magma-setup-wg.sh'
+wg_key_dir = '/var/opt/magma/sgi-tunnel'
 
 '''
 Following function sets various tuning parameters related
@@ -86,6 +92,50 @@ def tune_datapath(config_dict):
     except subprocess.CalledProcessError as ex:
         logging.debug('%s failed with: %s', set_sgi_queue_sz, ex)
 
+def setup_sgi_tunnel(config, loop):
+    def callback(returncode):
+        if returncode != 0:
+            logging.error(
+                "Failed to setup wg-dev: %d", returncode,
+            )
+    sgi_tunnel = config.get('sgi_tunnel', None)
+    if sgi_tunnel is None or sgi_tunnel.get('enabled', False) is False:
+        wg_del = 'wg-quick down %s || true' % wg_dev
+        logging.debug("sgi tunnel: del: %s", wg_del)
+        call_process(wg_del, callback, loop)
+        return
+
+    tun_type = sgi_tunnel.get('type', 'wg')
+    if tun_type != 'wg':
+        logging.error("sgi tunnel : %s not supported", tun_type)
+        return
+
+    enable_default_route = sgi_tunnel.get('enable_default_route', False)
+    tunnels = sgi_tunnel.get('tunnels', None)
+    if tunnels is None:
+        return
+
+    # TODO: handle multiple tunnels.
+    wg_local_ip = tunnels[0].get('wg_local_ip', None)
+    peer_pub_key = tunnels[0].get('peer_pub_key', None)
+    peer_pub_ip = tunnels[0].get('peer_pub_ip', None)
+
+    if wg_local_ip is None or peer_pub_ip is None or peer_pub_key is None:
+        logging.error("sgi tunnel: Missing config")
+        return
+
+    if enable_default_route:
+        allowed_ips = '0.0.0.0/0'
+    else:
+        allowed_ips = wg_local_ip
+
+    wg_add = "%s %s %s %s %s %s|| true" % \
+             (
+                 wg_setup_utility, wg_key_dir, allowed_ips,
+                 wg_local_ip, peer_pub_key, peer_pub_ip,
+             )
+    logging.info("sgi tunnel: add: %s", wg_add)
+    call_process(wg_add, callback, loop)
 
 def _check_util_failed(path: str):
     if not os.path.isfile(path) or not os.access(path, os.X_OK):

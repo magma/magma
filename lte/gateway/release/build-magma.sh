@@ -423,6 +423,7 @@ ${MAGMA_ROOT}/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf=/etc
 ${ANSIBLE_FILES}/set_irq_affinity=/usr/local/bin/ \
 ${ANSIBLE_FILES}/ovs-kmod-upgrade.sh=/usr/local/bin/ \
 ${ANSIBLE_FILES}/magma-bridge-reset.sh=/usr/local/bin/ \
+${ANSIBLE_FILES}/magma-setup-wg.sh=/usr/local/bin/ \
 ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \

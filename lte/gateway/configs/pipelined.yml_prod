@@ -174,3 +174,12 @@ dp_irq:
  S1_queue_size: 2048
  SGi_cpu: '2-3'
  SGi_queue_size: 1024
+
+sgi_tunnel:
+ enabled: false
+ type: wg
+ enable_default_route: false
+ tunnels:
+ - wg_local_ip: 172.168.100.1/24
+   peer_pub_key: 'VQT+tLY6/xF+k1WqrXeQzlfb8hWMVLcPdtCPvwIUNU0='
+   peer_pub_ip: 1.2.3.4

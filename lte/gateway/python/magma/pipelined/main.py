@@ -29,6 +29,10 @@ from magma.pipelined.app import of_rest_server
 from magma.pipelined.app.he import PROXY_PORT_NAME
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.check_quota_server import run_flask
+from magma.pipelined.datapath_setup import (
+    setup_sgi_tunnel,
+    tune_datapath,
+)
 from magma.pipelined.gtp_stats_collector import (
     MIN_OVSDB_DUMP_POLLING_INTERVAL,
     GTPStatsCollector,
@@ -40,7 +44,6 @@ from ryu import cfg
 from ryu.base.app_manager import AppManager
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 from scapy.arch import get_if_hwaddr
-from magma.pipelined.datapath_setup import tune_datapath
 
 
 def main():
@@ -120,6 +123,7 @@ def main():
     service.config['he_enabled'] = he_enabled
 
     # tune datapath according to config
+    setup_sgi_tunnel(service.config, service.loop)
     tune_datapath(service.config)
 
     # monitoring related configuration
