@@ -41,7 +41,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to connect to database: %s", err)
 	}
-	fact := blobstore.NewEntStorage(storage.AccessdTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLBlobStorageFactory(storage.AccessdTableBlobstore, db, sqorc.GetSqlBuilder())
 	err = fact.InitializeFactory()
 	if err != nil {
 		glog.Fatalf("Error initializing accessd database: %s", err)

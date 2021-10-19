@@ -87,6 +87,9 @@
       "feg/session_proxy": {
         "title": "feg/session_proxy"
       },
+      "general/aws_cloudstrapper": {
+        "title": "AWS Cloudstrapper Install"
+      },
       "general/upgrade_intro": {
         "title": "Introduction"
       },
@@ -179,6 +182,9 @@
       },
       "lte/configure_agw_ha": {
         "title": "Configure AGW for HA"
+      },
+      "lte/HIL_AGW_tests": {
+        "title": "Hardware In Loop Testing"
       },
       "lte/pipelined_tests": {
         "title": "Pipelined testing framework"

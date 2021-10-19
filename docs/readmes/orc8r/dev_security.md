@@ -171,6 +171,9 @@ Debug southbound interface (gRPC)
 # Places generated session secrets at /tmp/magma_protos/gateway.{key,crt}
 ${MAGMA_ROOT}/orc8r/tools/scripts/bootstrap.bash YOUR_PROVISIONED_GATEWAY_HWID
 
+# You may need to Generate compiled proto definitions (see Miscellaneous
+commands)
+
 # Emulate gateway request to bootstrapper service's GetChallenge endpoint (unprotected)
 grpcurl \
     -insecure \
@@ -250,4 +253,17 @@ protoc \
     --descriptor_set_out out.protoset \
     --include_imports \
     orc8r/cloud/go/services/state/protos/indexer.proto  # or target proto
+
+# Report a real States to State service (this will trigger some indexers)
+grpcurl -vv \
+    -insecure \
+    -key /tmp/magma_protos/gateway.key \
+    -cert /tmp/magma_protos/gateway.crt \
+    -authority state-controller.magma.test \
+    -protoset /tmp/magma_protos/out.protoset \
+    -d '{"states": [{"type": "directory_record",
+"deviceID": "IMSI001020000000064",
+"value":"eyJpZGVudGlmaWVycyI6IHsic2d3X2NfdGVpZCI6ICIxMTY2NDEzNDkwIn0sICJsb2NhdGlvbl9oaXN0b3J5IjogWyJlODhlZThjYy1hYThiLTQxODktOGYxNC00MWQ4M2RlOWNlNGUiXSwgInB5L29iamVjdCI6ICJtYWdtYS5kaXJlY3RvcnlkLnJwY19zZXJ2aWNlci5EaXJlY3RvcnlSZWNvcmQifQ==", "version":"0"}]}' \
+    localhost:7443 \
+    magma.orc8r.StateService/ReportStates
 ```

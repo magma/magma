@@ -103,12 +103,6 @@ class MmeNasStateConverter : public StateConverter {
    *  The caller needs to acquire a lock on UE context       *
    **********************************************************/
 
-  static void mme_app_timer_to_proto(
-      const nas_timer_t& state_mme_timer, oai::Timer* timer_proto);
-
-  static void proto_to_mme_app_timer(
-      const oai::Timer& timer_proto, nas_timer_t* state_mme_app_timer);
-
   static void sgs_context_to_proto(
       sgs_context_t* state_sgs_context, oai::SgsContext* sgs_context_proto);
 

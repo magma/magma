@@ -133,18 +133,17 @@ message UeContext {
   uint32 granted_service = 100; // granted_service_t
   uint32 cs_fallback_indicator = 101;
   SgsContext sgs_context = 102;
-
   uint32 tau_accept_eps_ber_cntx_status = 103;
   uint32 nb_delete_sessions = 104;
   uint32 nb_ded_bearer_deactivation = 105;
 
-  Timer mobile_reachability_timer = 200;
-  Timer implicit_detach_timer = 201;
-  Timer initial_context_setup_rsp_timer =202;
-  Timer ue_context_modification_timer = 203;
-  Timer paging_response_timer = 204;
+  Timer mobile_reachability_timer = 200 [deprecated=true];
+  Timer implicit_detach_timer = 201 [deprecated=true];
+  Timer initial_context_setup_rsp_timer =202 [deprecated=true];
+  Timer ue_context_modification_timer = 203 [deprecated=true];
+  Timer paging_response_timer = 204 [deprecated=true];
   uint32 rau_tau_timer = 205;
-  Timer ulr_response_timer = 206;
+  Timer ulr_response_timer = 206 [deprecated=true];
   google.protobuf.Timestamp time_mobile_reachability_timer_started = 207;
   google.protobuf.Timestamp time_implicit_detach_timer_started = 208;
   google.protobuf.Timestamp time_paging_response_timer_started = 209;

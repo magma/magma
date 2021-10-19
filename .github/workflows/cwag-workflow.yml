@@ -15,16 +15,20 @@ jobs:
     runs-on: ubuntu-latest
     # Map a step output to a job output
     outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@master
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
         with:
-            # Only run the main job for changes including the following paths
-            paths: '["orc8r/**", "lte/**", "feg/**", "cwf/**"]'
+          filters: |
+            filesChanged:
+              - [".github/workflows/cwag-workflow.yml", "orc8r/**", "lte/**", "feg/**", "cwf/**"]
   cwag-precommit:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: cwag pre-commit job
     runs-on: ubuntu-latest
     env:
@@ -69,7 +73,7 @@ jobs:
           SLACK_FOOTER: ' '
   cwag-build:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: cwag build job
     runs-on: ubuntu-latest
     env:
@@ -108,7 +112,7 @@ jobs:
     needs:
       - path_filter
       - cwag-precommit
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: cwag deploy job
       # TODO Should also need cwf-integ-test
       # TODO Requires release hold
@@ -197,7 +201,7 @@ jobs:
     needs:
       - path_filter
       - cwag-deploy
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: xwfm deploy job
     runs-on: ubuntu-latest
     env:
