@@ -34,21 +34,15 @@ func TestBlobstoreImplMigrations(t *testing.T) {
 		err = sqlFact.InitializeFactory()
 		assert.NoError(t, err)
 
-		entFact := blobstore.NewEntStorage(tableName, db, sqorc.GetSqlBuilder())
-		return sqlFact, entFact
+		sqlFact2 := blobstore.NewSQLBlobStorageFactory(tableName, db, sqorc.GetSqlBuilder())
+		return sqlFact, sqlFact2
 	}
 
-	sqlFact, entFact := makeBlobstores()
-	checkBlobstoreMigration(t, sqlFact, entFact)
-	sqlFact, entFact = makeBlobstores()
-	checkBlobstoreMigration(t, entFact, sqlFact)
-}
-
-func TestIntegration(t *testing.T) {
-	db, err := sqorc.Open("sqlite3", ":memory:")
-	assert.NoError(t, err)
-	fact := blobstore.NewEntStorage("states", db, sqorc.GetSqlBuilder())
-	integration(t, fact)
+	// Test migration from first blobstore to second
+	sqlFact, sqlFact2 := makeBlobstores()
+	checkBlobstoreMigration(t, sqlFact, sqlFact2)
+	sqlFact, sqlFact2 = makeBlobstores()
+	checkBlobstoreMigration(t, sqlFact2, sqlFact)
 }
 
 func checkBlobstoreMigration(
