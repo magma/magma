@@ -134,7 +134,8 @@ void PagingApplication::handle_paging_ipv6_message(
   
   OAILOG_DEBUG(
       LOG_GTPV1U, "Initiating paging procedure for IPv6 %s\n", ip6_str);
-  
+
+  dest_ip.s_addr = 0;  
   sgw_send_paging_request(&dest_ip,&dest_ipv6);
 
   /*

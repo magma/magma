@@ -73,6 +73,9 @@ int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list) {
   char ipv4[INET_ADDRSTRLEN] = {0};
   inet_ntop(AF_INET, (void*) &ipv4_addr, ipv4, INET_ADDRSTRLEN);
   auto itr_map = ueip_imsi_map.find(ipv4);
+  OAILOG_DEBUG(
+      LOG_MME_APP, "pagingipv4:%x \n",
+      ipv4);
   if (itr_map == ueip_imsi_map.end()) {
     OAILOG_ERROR(LOG_MME_APP, " No imsi found for ip:%x \n", ipv4_addr);
   } else {
@@ -93,20 +96,23 @@ int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list) {
  * ue ipv6 address; Imsi list is dynamically created and filled with imsis
  * The caller of function needs to free the memory allocated for imsi list
  */
-int mme_app_get_imsi_from_ipv6(struct in6_addr ipv6_addr, imsi64_t** imsi_list) {
+int mme_app_get_imsi_from_ipv6(sockaddr_in6 ipv6_addr, imsi64_t** imsi_list) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   UeIpImsiMap& ueip_imsi_map =
       MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
-  int num_imsis              = 0;
+  int num_imsis_ipv6              = 0;
   char ipv6[INET6_ADDRSTRLEN] = {0};
-  inet_ntop(AF_INET6, (void*) &ipv6_addr, ipv6, INET6_ADDRSTRLEN);
+  inet_ntop(AF_INET6, (void*) &ipv6_addr.sin6_addr, ipv6, INET6_ADDRSTRLEN);
   auto itr_map = ueip_imsi_map.find(ipv6);
+  OAILOG_DEBUG(
+      LOG_MME_APP, "pagingipv6:%x \n",
+      ipv6_addr);
   if (itr_map == ueip_imsi_map.end()) {
     OAILOG_ERROR(LOG_MME_APP, " No imsi found for ip:%x \n", ipv6_addr);
   } else {
     uint8_t idx  = 0;
-    num_imsis    = itr_map->second.size();
-    (*imsi_list) = (imsi64_t*) calloc(num_imsis, sizeof(imsi64_t));
+    num_imsis_ipv6    = itr_map->second.size();
+    (*imsi_list) = (imsi64_t*) calloc(num_imsis_ipv6, sizeof(imsi64_t));
 
     for (const auto& vect_itr : itr_map->second) {
       (*imsi_list)[idx++] = vect_itr;
@@ -114,7 +120,7 @@ int mme_app_get_imsi_from_ipv6(struct in6_addr ipv6_addr, imsi64_t** imsi_list) 
           LOG_MME_APP, vect_itr, " Found imsi for ip:%x \n", ipv6_addr);
     }
   }
-  OAILOG_FUNC_RETURN(LOG_MME_APP, num_imsis);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, num_imsis_ipv6);
 }
 
 
