@@ -37,41 +37,25 @@ ALLOCATED_SESSION_PREFIX_TYPE = "mobilityd_allocated_session_prefix"
 
 class MobilityStore(object):
     def __init__(
-        self, client: redis.Redis, persist_to_redis: bool,
-        redis_port: int,
+        self, client: redis.Redis,
     ):
-        self.init_store(client, persist_to_redis, redis_port)
+        self.init_store(client)
 
     def init_store(
-        self, client: redis.Redis, persist_to_redis: bool,
-        redis_port: int,
+        self, client: redis.Redis,
     ):
-        if not persist_to_redis:
-            self.ip_state_map = IpDescriptorMap(defaultdict(dict))
-            self.ipv6_state_map = IpDescriptorMap(defaultdict(dict))
-            self.assigned_ip_blocks = set()  # {ip_block}
-            self.sid_ips_map = defaultdict(IPDesc)  # {SID=>IPDesc}
-            self.dhcp_gw_info = UplinkGatewayInfo(defaultdict(GWInfo))
-            self.dhcp_store = {}  # mac => DHCP_State
-            self.allocated_iid = {}  # {ipv6 interface identifiers}
-            self.sid_session_prefix_allocated = {}  # SID => session prefix
-        else:
-            if not redis_port:
-                raise ValueError(
-                    'Must specify a redis_port in mobilityd config.',
-                )
-            self.ip_state_map = IpDescriptorMap(
-                defaultdict_key(lambda key: ip_states(client, key)),
-            )
-            self.ipv6_state_map = IpDescriptorMap(
-                defaultdict_key(lambda key: ip_states(client, key)),
-            )
-            self.assigned_ip_blocks = AssignedIpBlocksSet(client)
-            self.sid_ips_map = IPDescDict(client)
-            self.dhcp_gw_info = UplinkGatewayInfo(GatewayInfoMap())
-            self.dhcp_store = MacToIP()  # mac => DHCP_State
-            self.allocated_iid = AllocatedIID()
-            self.sid_session_prefix_allocated = AllocatedSessionPrefix()
+        self.ip_state_map = IpDescriptorMap(
+            defaultdict_key(lambda key: ip_states(client, key)),
+        )
+        self.ipv6_state_map = IpDescriptorMap(
+            defaultdict_key(lambda key: ip_states(client, key)),
+        )
+        self.assigned_ip_blocks = AssignedIpBlocksSet(client)
+        self.sid_ips_map = IPDescDict(client)
+        self.dhcp_gw_info = UplinkGatewayInfo(GatewayInfoMap(client))
+        self.dhcp_store = MacToIP(client)  # mac => DHCP_State
+        self.allocated_iid = AllocatedIID(client)
+        self.sid_session_prefix_allocated = AllocatedSessionPrefix(client)
 
 
 class AssignedIpBlocksSet(RedisSet):
@@ -123,8 +107,7 @@ class MacToIP(RedisFlatDict):
     Used for managing DHCP state of a Mac address.
     """
 
-    def __init__(self):
-        client = get_default_client()
+    def __init__(self, client):
         serde = RedisSerde(
             MAC_TO_IP_REDIS_TYPE,
             get_json_serializer(), get_json_deserializer(),
@@ -141,8 +124,7 @@ class GatewayInfoMap(RedisFlatDict):
     Used for mainatining uplink GW info
     """
 
-    def __init__(self):
-        client = get_default_client()
+    def __init__(self, client):
         serde = RedisSerde(
             DHCP_GW_INFO_REDIS_TYPE,
             get_json_serializer(), get_json_deserializer(),
@@ -160,8 +142,7 @@ class AllocatedIID(RedisFlatDict):
     allocation
     """
 
-    def __init__(self):
-        client = get_default_client()
+    def __init__(self, client):
         serde = RedisSerde(
             ALLOCATED_IID_REDIS_TYPE,
             get_json_serializer(), get_json_deserializer(),
@@ -178,8 +159,7 @@ class AllocatedSessionPrefix(RedisFlatDict):
     Used for tracking already allocated session prefix for IPv6 allocation
     """
 
-    def __init__(self):
-        client = get_default_client()
+    def __init__(self, client):
         serde = RedisSerde(
             ALLOCATED_SESSION_PREFIX_TYPE,
             get_json_serializer(), get_json_deserializer(),

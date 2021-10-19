@@ -42,7 +42,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         Creates and sets up an IPAllocator with the given recycling interval.
         """
 
-        store = MobilityStore(fakeredis.FakeStrictRedis(), False, 3980)
+        store = MobilityStore(fakeredis.FakeStrictRedis())
         ip_allocator = IpAllocatorPool(store)
         ipv4_allocator = IPAllocatorStaticWrapper(
             store,
