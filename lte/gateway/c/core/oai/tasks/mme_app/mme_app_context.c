@@ -590,7 +590,7 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
       mme_ue_contexts_p->guti_ue_context_htbl, tmp);
   OAILOG_DEBUG(LOG_MME_APP, "guti_ue_context_htbl %s", bdata(tmp));
 
-  bdestroy(tmp);
+  bdestroy_wrapper(&tmp);
 }
 
 //------------------------------------------------------------------------------
