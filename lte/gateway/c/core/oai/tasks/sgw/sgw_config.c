@@ -306,7 +306,6 @@ status_code_e sgw_config_parse_string(
         config_pP->udp_port_S1u_S12_S4_up = sgw_udp_port_S1u_S12_S4_up;
       }
     }
-#if ENABLE_OPENFLOW
     config_setting_t* ovs_settings =
         config_setting_get_member(setting_sgw, SGW_CONFIG_STRING_OVS_CONFIG);
     if (ovs_settings == NULL) {
@@ -406,7 +405,6 @@ status_code_e sgw_config_parse_string(
     } else {
       Fatal("Couldn't find all ovs settings in spgw config\n");
     }
-#endif
   }
   config_destroy(&cfg);
   return RETURNok;

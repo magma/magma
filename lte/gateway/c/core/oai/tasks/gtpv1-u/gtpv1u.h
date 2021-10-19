@@ -165,11 +165,7 @@ struct gtp_tunnel_ops {
   const char* (*get_dev_name)(void);
 };
 
-#if ENABLE_OPENFLOW
 const struct gtp_tunnel_ops* gtp_tunnel_ops_init_openflow(void);
-#else
-const struct gtp_tunnel_ops* gtp_tunnel_ops_init_libgtpnl(void);
-#endif
 
 int gtpv1u_add_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
