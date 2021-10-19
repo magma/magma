@@ -22,8 +22,8 @@ type DirectorydStorage interface {
 	// MapHWIDsToHostnames maps {hwid -> hostname}.
 	MapHWIDsToHostnames(hwidToHostname map[string]string) error
 
-	// DeMapSgwCTeidToHWID removes {hwid -> hostname} for a specific hwid
-	DeMapHWIDsToHostnames(hwid string) error
+	// UnmapSgwCTeidToHWID removes {hwid -> hostname} for a specific hwid
+	UnmapHWIDsToHostnames(hwids []string) error
 
 	// GetIMSIForSessionID returns the IMSI mapped to by session ID.
 	GetIMSIForSessionID(networkID, sessionID string) (string, error)
@@ -31,8 +31,8 @@ type DirectorydStorage interface {
 	// MapSessionIDsToIMSIs maps {session ID -> IMSI}.
 	MapSessionIDsToIMSIs(networkID string, sessionIDToIMSI map[string]string) error
 
-	// DeMapSessionIDsToIMSIs removes {session ID -> IMSI} for a specific sessionID
-	DeMapSessionIDsToIMSIs(networkID string, sessionID string) error
+	// UnmapSessionIDsToIMSIs removes {session ID -> IMSI} for a specific sessionID
+	UnmapSessionIDsToIMSIs(networkID string, sessionIDs []string) error
 
 	// GetHWIDForSgwCTeid returns the HwId mapped by teid
 	GetHWIDForSgwCTeid(networkID, teid string) (string, error)
@@ -40,6 +40,6 @@ type DirectorydStorage interface {
 	// MapSgwCTeidToHWID maps {teid -> hwid}
 	MapSgwCTeidToHWID(networkID string, s8TeidToHwid map[string]string) error
 
-	// DeMapSgwCTeidToHWID removes {teid -> hwid} for a specific teid
-	DeMapSgwCTeidToHWID(networkID string, teid string) error
+	// UnmapSgwCTeidToHWID removes {teid -> hwid} for a specific teid
+	UnmapSgwCTeidToHWID(networkID string, teids []string) error
 }

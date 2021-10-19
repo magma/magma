@@ -51,33 +51,29 @@ type directorydBlobstore struct {
 	factory blobstore.BlobStorageFactory
 }
 
-////////////////
-// Get functions
 func (d *directorydBlobstore) GetHostnameForHWID(hwid string) (string, error) {
 
 	res, err := d.getFromStore(placeholderNetworkID, DirectorydTypeHWIDToHostname, hwid)
-	printIfError(err, "Error GetHostnameForHWID: %s", err)
+	printIfError(err, "Error GetHostnameForHWID: %+v", err)
 	return res, err
 }
 
 func (d *directorydBlobstore) GetIMSIForSessionID(networkID, sessionID string) (string, error) {
 
 	res, err := d.getFromStore(networkID, DirectorydTypeSessionIDToIMSI, sessionID)
-	printIfError(err, "Error GetIMSIForSessionID: %s", err)
+	printIfError(err, "Error GetIMSIForSessionID: %+v", err)
 	return res, err
 }
 
 func (d *directorydBlobstore) GetHWIDForSgwCTeid(networkID, teid string) (string, error) {
 	res, err := d.getFromStore(networkID, DirectorydTypeSgwCteidToHwid, teid)
-	printIfError(err, "Error GetHWIDForSgwCTeid: %s", err)
+	printIfError(err, "Error GetHWIDForSgwCTeid: %+v", err)
 	return res, err
 }
 
-////////////////
-// Map Functions
 func (d *directorydBlobstore) MapHWIDsToHostnames(hwidToHostname map[string]string) error {
 	err := d.mapToStore(placeholderNetworkID, DirectorydTypeHWIDToHostname, hwidToHostname)
-	printIfError(err, "Error MapHWIDsToHostnames: %s", err)
+	printIfError(err, "Error MapHWIDsToHostnames: %+v", err)
 	return err
 }
 
@@ -89,32 +85,28 @@ func (d *directorydBlobstore) MapSessionIDsToIMSIs(networkID string, sessionIDTo
 
 func (d *directorydBlobstore) MapSgwCTeidToHWID(networkID string, sgwCTeidToHwid map[string]string) error {
 	err := d.mapToStore(networkID, DirectorydTypeSgwCteidToHwid, sgwCTeidToHwid)
-	printIfError(err, "Error MapSgwCTeidToHWID: %s", err)
+	printIfError(err, "Error MapSgwCTeidToHWID: %+v", err)
 	return err
 }
 
-/////////////////
-// DeMap Functions
-func (d *directorydBlobstore) DeMapHWIDsToHostnames(hwid string) error {
-	err := d.deMapFromStore(placeholderNetworkID, DirectorydTypeHWIDToHostname, hwid)
-	printIfError(err, "Error DeMapHWIDsToHostnames: %s", err)
+func (d *directorydBlobstore) UnmapHWIDsToHostnames(hwids []string) error {
+	err := d.unmapFromStore(placeholderNetworkID, DirectorydTypeHWIDToHostname, hwids)
+	printIfError(err, "Error UnmapHWIDsToHostnames: %+v", err)
 	return err
 }
 
-func (d *directorydBlobstore) DeMapSessionIDsToIMSIs(networkID string, sessionID string) error {
-	err := d.deMapFromStore(networkID, DirectorydTypeSessionIDToIMSI, sessionID)
-	printIfError(err, "Error DeMapSessionIDsToIMSIs: %s", err)
+func (d *directorydBlobstore) UnmapSessionIDsToIMSIs(networkID string, sessionIDs []string) error {
+	err := d.unmapFromStore(networkID, DirectorydTypeSessionIDToIMSI, sessionIDs)
+	printIfError(err, "Error UnmapSessionIDsToIMSIs: %+v", err)
 	return err
 }
 
-func (d *directorydBlobstore) DeMapSgwCTeidToHWID(networkID string, teid string) error {
-	err := d.deMapFromStore(networkID, DirectorydTypeSgwCteidToHwid, teid)
-	printIfError(err, "Error DeMapSessionIDsToIMSIs: %s", err)
+func (d *directorydBlobstore) UnmapSgwCTeidToHWID(networkID string, teids []string) error {
+	err := d.unmapFromStore(networkID, DirectorydTypeSgwCteidToHwid, teids)
+	printIfError(err, "Error UnmapSessionIDsToIMSIs: %+v", err)
 	return err
 }
 
-//////////////////////////
-// Function implementation
 func (d *directorydBlobstore) getFromStore(networkID, tkType, key string) (string, error) {
 	store, err := d.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
@@ -147,16 +139,22 @@ func (d *directorydBlobstore) mapToStore(networkID, tkType string, keyToValueMap
 	return store.Commit()
 }
 
-func (d *directorydBlobstore) deMapFromStore(networkID string, tkType, key string) error {
+func (d *directorydBlobstore) unmapFromStore(networkID, tkType string, keys []string) error {
 	store, err := d.factory.StartTransaction(nil)
 	if err != nil {
-		return errors.Wrapf(err, "failed to start transaction deMapFromStore with key %s for tkKey %s", key, tkType)
+		return errors.Wrapf(err, "failed to start transaction unmapFromStore with key %s for tkKey %s", keys, tkType)
 	}
 	defer store.Rollback()
 
-	err = store.Delete(networkID, storage.TKs{{Type: tkType, Key: key}})
+	tks := storage.TKs{}
+	for _, key := range keys {
+		tks = append(tks, storage.TK{Type: tkType, Key: key})
+
+	}
+
+	err = store.Delete(networkID, tks)
 	if err != nil {
-		return errors.Wrapf(err, "failed to deMapFromStore with key %s for tkKey %s", key, tkType)
+		return errors.Wrapf(err, "failed to unmapFromStore with keys %s for tkKey %s", keys, tkType)
 	}
 	return store.Commit()
 }

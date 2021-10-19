@@ -56,13 +56,13 @@ func (d *directoryLookupServicer) MapHWIDsToHostnames(ctx context.Context, req *
 	return &protos.Void{}, err
 }
 
-func (d *directoryLookupServicer) DeMapHWIDsToHostnames(ctx context.Context, req *protos.DeMapHWIDToHostnameRequest) (*protos.Void, error) {
+func (d *directoryLookupServicer) UnmapHWIDsToHostnames(ctx context.Context, req *protos.UnmapHWIDToHostnameRequest) (*protos.Void, error) {
 	err := req.Validate()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate DeMapHWIDToHostnameRequest")
+		return nil, errors.Wrap(err, "failed to validate UnmapHWIDToHostnameRequest")
 	}
 
-	err = d.store.DeMapHWIDsToHostnames(req.Hwid)
+	err = d.store.UnmapHWIDsToHostnames(req.Hwids)
 
 	return &protos.Void{}, err
 }
@@ -93,13 +93,13 @@ func (d *directoryLookupServicer) MapSessionIDsToIMSIs(ctx context.Context, req 
 	return &protos.Void{}, err
 }
 
-func (d *directoryLookupServicer) DeMapSessionIDsToIMSIs(ctx context.Context, req *protos.DeMapSessionIDToIMSIRequest) (*protos.Void, error) {
+func (d *directoryLookupServicer) UnmapSessionIDsToIMSIs(ctx context.Context, req *protos.UnmapSessionIDToIMSIRequest) (*protos.Void, error) {
 	err := req.Validate()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate DeMapSessionIDToIMSIRequest")
+		return nil, errors.Wrap(err, "failed to validate UnmapSessionIDToIMSIRequest")
 	}
 
-	err = d.store.DeMapSessionIDsToIMSIs(req.NetworkID, req.SessionID)
+	err = d.store.UnmapSessionIDsToIMSIs(req.NetworkID, req.SessionIDs)
 
 	return &protos.Void{}, err
 }
@@ -115,13 +115,13 @@ func (d *directoryLookupServicer) MapSgwCTeidToHWID(ctx context.Context, req *pr
 	return &protos.Void{}, err
 }
 
-func (d *directoryLookupServicer) DeMapSgwCTeidToHWID(ctx context.Context, req *protos.DeMapSgwCTeidToHWIDRequest) (*protos.Void, error) {
+func (d *directoryLookupServicer) UnmapSgwCTeidToHWID(ctx context.Context, req *protos.UnmapSgwCTeidToHWIDRequest) (*protos.Void, error) {
 	err := req.Validate()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate DeMapSgwCTeidToHWIDRequest")
+		return nil, errors.Wrap(err, "failed to validate UnmapSgwCTeidToHWIDRequest")
 	}
 
-	err = d.store.DeMapSgwCTeidToHWID(req.NetworkID, req.Teid)
+	err = d.store.UnmapSgwCTeidToHWID(req.NetworkID, req.Teids)
 
 	return &protos.Void{}, err
 }

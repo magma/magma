@@ -141,43 +141,43 @@ func (m *MapHWIDToHostnameRequest) GetHwidToHostname() map[string]string {
 	return nil
 }
 
-type DeMapHWIDToHostnameRequest struct {
-	Hwid                 string   `protobuf:"bytes,1,opt,name=hwid,proto3" json:"hwid,omitempty"`
+type UnmapHWIDToHostnameRequest struct {
+	Hwids                []string `protobuf:"bytes,1,rep,name=hwids,proto3" json:"hwids,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeMapHWIDToHostnameRequest) Reset()         { *m = DeMapHWIDToHostnameRequest{} }
-func (m *DeMapHWIDToHostnameRequest) String() string { return proto.CompactTextString(m) }
-func (*DeMapHWIDToHostnameRequest) ProtoMessage()    {}
-func (*DeMapHWIDToHostnameRequest) Descriptor() ([]byte, []int) {
+func (m *UnmapHWIDToHostnameRequest) Reset()         { *m = UnmapHWIDToHostnameRequest{} }
+func (m *UnmapHWIDToHostnameRequest) String() string { return proto.CompactTextString(m) }
+func (*UnmapHWIDToHostnameRequest) ProtoMessage()    {}
+func (*UnmapHWIDToHostnameRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f02336ef077163fd, []int{3}
 }
 
-func (m *DeMapHWIDToHostnameRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DeMapHWIDToHostnameRequest.Unmarshal(m, b)
+func (m *UnmapHWIDToHostnameRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UnmapHWIDToHostnameRequest.Unmarshal(m, b)
 }
-func (m *DeMapHWIDToHostnameRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DeMapHWIDToHostnameRequest.Marshal(b, m, deterministic)
+func (m *UnmapHWIDToHostnameRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UnmapHWIDToHostnameRequest.Marshal(b, m, deterministic)
 }
-func (m *DeMapHWIDToHostnameRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeMapHWIDToHostnameRequest.Merge(m, src)
+func (m *UnmapHWIDToHostnameRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UnmapHWIDToHostnameRequest.Merge(m, src)
 }
-func (m *DeMapHWIDToHostnameRequest) XXX_Size() int {
-	return xxx_messageInfo_DeMapHWIDToHostnameRequest.Size(m)
+func (m *UnmapHWIDToHostnameRequest) XXX_Size() int {
+	return xxx_messageInfo_UnmapHWIDToHostnameRequest.Size(m)
 }
-func (m *DeMapHWIDToHostnameRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeMapHWIDToHostnameRequest.DiscardUnknown(m)
+func (m *UnmapHWIDToHostnameRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UnmapHWIDToHostnameRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DeMapHWIDToHostnameRequest proto.InternalMessageInfo
+var xxx_messageInfo_UnmapHWIDToHostnameRequest proto.InternalMessageInfo
 
-func (m *DeMapHWIDToHostnameRequest) GetHwid() string {
+func (m *UnmapHWIDToHostnameRequest) GetHwids() []string {
 	if m != nil {
-		return m.Hwid
+		return m.Hwids
 	}
-	return ""
+	return nil
 }
 
 type GetIMSIForSessionIDRequest struct {
@@ -313,51 +313,51 @@ func (m *MapSessionIDToIMSIRequest) GetSessionIDToIMSI() map[string]string {
 	return nil
 }
 
-type DeMapSessionIDToIMSIRequest struct {
+type UnmapSessionIDToIMSIRequest struct {
 	NetworkID            string   `protobuf:"bytes,1,opt,name=networkID,proto3" json:"networkID,omitempty"`
-	SessionID            string   `protobuf:"bytes,2,opt,name=sessionID,proto3" json:"sessionID,omitempty"`
+	SessionIDs           []string `protobuf:"bytes,2,rep,name=sessionIDs,proto3" json:"sessionIDs,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeMapSessionIDToIMSIRequest) Reset()         { *m = DeMapSessionIDToIMSIRequest{} }
-func (m *DeMapSessionIDToIMSIRequest) String() string { return proto.CompactTextString(m) }
-func (*DeMapSessionIDToIMSIRequest) ProtoMessage()    {}
-func (*DeMapSessionIDToIMSIRequest) Descriptor() ([]byte, []int) {
+func (m *UnmapSessionIDToIMSIRequest) Reset()         { *m = UnmapSessionIDToIMSIRequest{} }
+func (m *UnmapSessionIDToIMSIRequest) String() string { return proto.CompactTextString(m) }
+func (*UnmapSessionIDToIMSIRequest) ProtoMessage()    {}
+func (*UnmapSessionIDToIMSIRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f02336ef077163fd, []int{7}
 }
 
-func (m *DeMapSessionIDToIMSIRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DeMapSessionIDToIMSIRequest.Unmarshal(m, b)
+func (m *UnmapSessionIDToIMSIRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UnmapSessionIDToIMSIRequest.Unmarshal(m, b)
 }
-func (m *DeMapSessionIDToIMSIRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DeMapSessionIDToIMSIRequest.Marshal(b, m, deterministic)
+func (m *UnmapSessionIDToIMSIRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UnmapSessionIDToIMSIRequest.Marshal(b, m, deterministic)
 }
-func (m *DeMapSessionIDToIMSIRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeMapSessionIDToIMSIRequest.Merge(m, src)
+func (m *UnmapSessionIDToIMSIRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UnmapSessionIDToIMSIRequest.Merge(m, src)
 }
-func (m *DeMapSessionIDToIMSIRequest) XXX_Size() int {
-	return xxx_messageInfo_DeMapSessionIDToIMSIRequest.Size(m)
+func (m *UnmapSessionIDToIMSIRequest) XXX_Size() int {
+	return xxx_messageInfo_UnmapSessionIDToIMSIRequest.Size(m)
 }
-func (m *DeMapSessionIDToIMSIRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeMapSessionIDToIMSIRequest.DiscardUnknown(m)
+func (m *UnmapSessionIDToIMSIRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UnmapSessionIDToIMSIRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DeMapSessionIDToIMSIRequest proto.InternalMessageInfo
+var xxx_messageInfo_UnmapSessionIDToIMSIRequest proto.InternalMessageInfo
 
-func (m *DeMapSessionIDToIMSIRequest) GetNetworkID() string {
+func (m *UnmapSessionIDToIMSIRequest) GetNetworkID() string {
 	if m != nil {
 		return m.NetworkID
 	}
 	return ""
 }
 
-func (m *DeMapSessionIDToIMSIRequest) GetSessionID() string {
+func (m *UnmapSessionIDToIMSIRequest) GetSessionIDs() []string {
 	if m != nil {
-		return m.SessionID
+		return m.SessionIDs
 	}
-	return ""
+	return nil
 }
 
 type GetHWIDForSgwCTeidRequest struct {
@@ -493,51 +493,51 @@ func (m *MapSgwCTeidToHWIDRequest) GetTeidToHwid() map[string]string {
 	return nil
 }
 
-type DeMapSgwCTeidToHWIDRequest struct {
+type UnmapSgwCTeidToHWIDRequest struct {
 	NetworkID            string   `protobuf:"bytes,1,opt,name=networkID,proto3" json:"networkID,omitempty"`
-	Teid                 string   `protobuf:"bytes,2,opt,name=teid,proto3" json:"teid,omitempty"`
+	Teids                []string `protobuf:"bytes,2,rep,name=teids,proto3" json:"teids,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeMapSgwCTeidToHWIDRequest) Reset()         { *m = DeMapSgwCTeidToHWIDRequest{} }
-func (m *DeMapSgwCTeidToHWIDRequest) String() string { return proto.CompactTextString(m) }
-func (*DeMapSgwCTeidToHWIDRequest) ProtoMessage()    {}
-func (*DeMapSgwCTeidToHWIDRequest) Descriptor() ([]byte, []int) {
+func (m *UnmapSgwCTeidToHWIDRequest) Reset()         { *m = UnmapSgwCTeidToHWIDRequest{} }
+func (m *UnmapSgwCTeidToHWIDRequest) String() string { return proto.CompactTextString(m) }
+func (*UnmapSgwCTeidToHWIDRequest) ProtoMessage()    {}
+func (*UnmapSgwCTeidToHWIDRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f02336ef077163fd, []int{11}
 }
 
-func (m *DeMapSgwCTeidToHWIDRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DeMapSgwCTeidToHWIDRequest.Unmarshal(m, b)
+func (m *UnmapSgwCTeidToHWIDRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UnmapSgwCTeidToHWIDRequest.Unmarshal(m, b)
 }
-func (m *DeMapSgwCTeidToHWIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DeMapSgwCTeidToHWIDRequest.Marshal(b, m, deterministic)
+func (m *UnmapSgwCTeidToHWIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UnmapSgwCTeidToHWIDRequest.Marshal(b, m, deterministic)
 }
-func (m *DeMapSgwCTeidToHWIDRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeMapSgwCTeidToHWIDRequest.Merge(m, src)
+func (m *UnmapSgwCTeidToHWIDRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UnmapSgwCTeidToHWIDRequest.Merge(m, src)
 }
-func (m *DeMapSgwCTeidToHWIDRequest) XXX_Size() int {
-	return xxx_messageInfo_DeMapSgwCTeidToHWIDRequest.Size(m)
+func (m *UnmapSgwCTeidToHWIDRequest) XXX_Size() int {
+	return xxx_messageInfo_UnmapSgwCTeidToHWIDRequest.Size(m)
 }
-func (m *DeMapSgwCTeidToHWIDRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeMapSgwCTeidToHWIDRequest.DiscardUnknown(m)
+func (m *UnmapSgwCTeidToHWIDRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UnmapSgwCTeidToHWIDRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DeMapSgwCTeidToHWIDRequest proto.InternalMessageInfo
+var xxx_messageInfo_UnmapSgwCTeidToHWIDRequest proto.InternalMessageInfo
 
-func (m *DeMapSgwCTeidToHWIDRequest) GetNetworkID() string {
+func (m *UnmapSgwCTeidToHWIDRequest) GetNetworkID() string {
 	if m != nil {
 		return m.NetworkID
 	}
 	return ""
 }
 
-func (m *DeMapSgwCTeidToHWIDRequest) GetTeid() string {
+func (m *UnmapSgwCTeidToHWIDRequest) GetTeids() []string {
 	if m != nil {
-		return m.Teid
+		return m.Teids
 	}
-	return ""
+	return nil
 }
 
 type UpdateRecordRequest struct {
@@ -827,17 +827,17 @@ func init() {
 	proto.RegisterType((*GetHostnameForHWIDResponse)(nil), "magma.orc8r.GetHostnameForHWIDResponse")
 	proto.RegisterType((*MapHWIDToHostnameRequest)(nil), "magma.orc8r.MapHWIDToHostnameRequest")
 	proto.RegisterMapType((map[string]string)(nil), "magma.orc8r.MapHWIDToHostnameRequest.HwidToHostnameEntry")
-	proto.RegisterType((*DeMapHWIDToHostnameRequest)(nil), "magma.orc8r.DeMapHWIDToHostnameRequest")
+	proto.RegisterType((*UnmapHWIDToHostnameRequest)(nil), "magma.orc8r.UnmapHWIDToHostnameRequest")
 	proto.RegisterType((*GetIMSIForSessionIDRequest)(nil), "magma.orc8r.GetIMSIForSessionIDRequest")
 	proto.RegisterType((*GetIMSIForSessionIDResponse)(nil), "magma.orc8r.GetIMSIForSessionIDResponse")
 	proto.RegisterType((*MapSessionIDToIMSIRequest)(nil), "magma.orc8r.MapSessionIDToIMSIRequest")
 	proto.RegisterMapType((map[string]string)(nil), "magma.orc8r.MapSessionIDToIMSIRequest.SessionIDToIMSIEntry")
-	proto.RegisterType((*DeMapSessionIDToIMSIRequest)(nil), "magma.orc8r.DeMapSessionIDToIMSIRequest")
+	proto.RegisterType((*UnmapSessionIDToIMSIRequest)(nil), "magma.orc8r.UnmapSessionIDToIMSIRequest")
 	proto.RegisterType((*GetHWIDForSgwCTeidRequest)(nil), "magma.orc8r.GetHWIDForSgwCTeidRequest")
 	proto.RegisterType((*GetHWIDForSgwCTeidResponse)(nil), "magma.orc8r.GetHWIDForSgwCTeidResponse")
 	proto.RegisterType((*MapSgwCTeidToHWIDRequest)(nil), "magma.orc8r.MapSgwCTeidToHWIDRequest")
 	proto.RegisterMapType((map[string]string)(nil), "magma.orc8r.MapSgwCTeidToHWIDRequest.TeidToHwidEntry")
-	proto.RegisterType((*DeMapSgwCTeidToHWIDRequest)(nil), "magma.orc8r.DeMapSgwCTeidToHWIDRequest")
+	proto.RegisterType((*UnmapSgwCTeidToHWIDRequest)(nil), "magma.orc8r.UnmapSgwCTeidToHWIDRequest")
 	proto.RegisterType((*UpdateRecordRequest)(nil), "magma.orc8r.UpdateRecordRequest")
 	proto.RegisterMapType((map[string]string)(nil), "magma.orc8r.UpdateRecordRequest.FieldsEntry")
 	proto.RegisterType((*DirectoryField)(nil), "magma.orc8r.DirectoryField")
@@ -851,62 +851,64 @@ func init() {
 func init() { proto.RegisterFile("orc8r/protos/directoryd.proto", fileDescriptor_f02336ef077163fd) }
 
 var fileDescriptor_f02336ef077163fd = []byte{
-	// 872 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x57, 0x5f, 0x6f, 0x12, 0x41,
-	0x10, 0xe7, 0x68, 0xad, 0x32, 0x6d, 0x4a, 0xbb, 0xd4, 0x0a, 0x47, 0x4d, 0x9a, 0x4b, 0xaa, 0x98,
-	0x98, 0x43, 0x6b, 0x34, 0x54, 0x63, 0x62, 0x2b, 0x2d, 0x10, 0x45, 0x23, 0x50, 0x6b, 0x7d, 0x69,
-	0xae, 0xdc, 0x4a, 0xcf, 0x02, 0x8b, 0xb7, 0xd7, 0x12, 0xbe, 0x9d, 0xf1, 0xcd, 0x07, 0x7d, 0xf1,
-	0x2b, 0xf8, 0x41, 0xcc, 0xed, 0xed, 0x1d, 0xf7, 0x67, 0xaf, 0x40, 0xe3, 0x13, 0x7b, 0xb3, 0x33,
-	0xbf, 0x9d, 0xfd, 0xcd, 0xec, 0xfc, 0x02, 0xdc, 0x25, 0x66, 0xbb, 0x64, 0x16, 0x07, 0x26, 0xb1,
-	0x08, 0x2d, 0xea, 0x86, 0x89, 0xdb, 0x16, 0x31, 0x47, 0xba, 0xca, 0x2c, 0x68, 0xb1, 0xa7, 0x75,
-	0x7a, 0x9a, 0xca, 0x9c, 0xe4, 0x5c, 0xc0, 0xb7, 0x4d, 0x7a, 0x3d, 0xd2, 0x77, 0xfc, 0x94, 0x22,
-	0xe4, 0x2a, 0xd8, 0xaa, 0x12, 0x6a, 0xf5, 0xb5, 0x1e, 0x3e, 0x20, 0x66, 0xf5, 0xa8, 0x56, 0x6e,
-	0xe0, 0x6f, 0x17, 0x98, 0x5a, 0x08, 0xc1, 0xfc, 0xd9, 0xd0, 0xd0, 0xb3, 0xd2, 0xa6, 0x54, 0x48,
-	0x35, 0xd8, 0x5a, 0x29, 0x81, 0x2c, 0x0a, 0xa0, 0x03, 0xd2, 0xa7, 0x18, 0xc9, 0x70, 0xeb, 0x8c,
-	0x6f, 0xf1, 0x28, 0xef, 0x5b, 0xf9, 0x2e, 0x41, 0xb6, 0xae, 0x0d, 0x6c, 0xff, 0x16, 0x71, 0x01,
-	0xdc, 0xa3, 0x34, 0x58, 0xb6, 0xe1, 0xc7, 0x1b, 0x59, 0x69, 0x73, 0xae, 0xb0, 0xb8, 0xbd, 0xa3,
-	0xfa, 0x2e, 0xa2, 0xc6, 0x85, 0xab, 0xd5, 0x40, 0xec, 0x7e, 0xdf, 0x32, 0x47, 0x8d, 0x10, 0xa0,
-	0xbc, 0x0b, 0x19, 0x81, 0x1b, 0x5a, 0x81, 0xb9, 0x73, 0x3c, 0xe2, 0xd9, 0xda, 0x4b, 0xb4, 0x06,
-	0x37, 0x2e, 0xb5, 0xee, 0x05, 0xce, 0x26, 0x99, 0xcd, 0xf9, 0x78, 0x9e, 0x2c, 0x49, 0xca, 0x23,
-	0x90, 0xcb, 0x38, 0xf6, 0x0e, 0x22, 0xba, 0x3e, 0x31, 0xba, 0x6a, 0xf5, 0x66, 0xed, 0x80, 0x98,
-	0x4d, 0x4c, 0xa9, 0x41, 0xfa, 0x63, 0x82, 0x37, 0x20, 0xd5, 0xc7, 0xd6, 0x90, 0x98, 0xe7, 0xb5,
-	0x32, 0x0f, 0x1b, 0x1b, 0xec, 0x5d, 0xea, 0x46, 0xf0, 0x5c, 0xc6, 0x06, 0xe5, 0x31, 0xe4, 0x85,
-	0xc8, 0xbc, 0x12, 0x08, 0xe6, 0x8d, 0x1e, 0x35, 0xdc, 0x64, 0xec, 0xb5, 0xf2, 0x57, 0x82, 0x5c,
-	0x5d, 0x1b, 0x78, 0xce, 0x2d, 0x62, 0x87, 0x4f, 0x97, 0x0c, 0x86, 0x34, 0x0d, 0xc6, 0x65, 0x93,
-	0xac, 0x42, 0x2f, 0xc2, 0x15, 0x12, 0xc3, 0xab, 0x21, 0xb3, 0x53, 0xa3, 0x30, 0xa6, 0xbc, 0x07,
-	0x6b, 0x22, 0xc7, 0x99, 0xaa, 0x74, 0x0c, 0x79, 0x56, 0xa5, 0x6b, 0xdd, 0xf3, 0x6a, 0xd2, 0xeb,
-	0xce, 0x73, 0x39, 0xaa, 0x95, 0x6d, 0xd2, 0x3b, 0xc3, 0xd7, 0x2d, 0x6c, 0xe8, 0xd3, 0x01, 0x23,
-	0x98, 0xb7, 0xb0, 0xa1, 0x73, 0x4c, 0xb6, 0xb6, 0xfb, 0x49, 0x04, 0x37, 0x2e, 0x61, 0xa4, 0x9f,
-	0x7e, 0x3b, 0x8f, 0xc8, 0xf5, 0x6d, 0x11, 0xff, 0x7b, 0xbd, 0x3a, 0x81, 0x43, 0x00, 0xcb, 0x09,
-	0x19, 0xb2, 0x34, 0xec, 0xe2, 0x3d, 0x8d, 0x14, 0x4f, 0x04, 0xac, 0xb6, 0xbc, 0x38, 0xa7, 0x6c,
-	0x3e, 0x20, 0xf9, 0x25, 0xa4, 0x43, 0xdb, 0x33, 0x15, 0xeb, 0x1d, 0x7f, 0x52, 0xd7, 0xb9, 0x91,
-	0x88, 0xd2, 0x1f, 0x12, 0x64, 0x0e, 0x07, 0xba, 0x66, 0xe1, 0x06, 0x6e, 0x13, 0xd3, 0x2b, 0xce,
-	0x32, 0x24, 0x3d, 0x2a, 0x93, 0x86, 0x6e, 0x4f, 0xaa, 0x2e, 0x69, 0x6b, 0x96, 0x41, 0xfa, 0x3c,
-	0xde, 0xfb, 0x46, 0x65, 0x58, 0xf8, 0x62, 0xe0, 0xae, 0x4e, 0xb3, 0x73, 0x8c, 0xa5, 0x87, 0x01,
-	0x96, 0x04, 0xe8, 0xea, 0x01, 0x73, 0x77, 0xc8, 0xe1, 0xb1, 0xf2, 0x0e, 0x2c, 0xfa, 0xcc, 0x33,
-	0x91, 0x52, 0x82, 0xe5, 0xb2, 0x3b, 0xd1, 0x19, 0xc6, 0xb4, 0xd1, 0xca, 0x16, 0x64, 0xca, 0xb8,
-	0x8b, 0x27, 0xdc, 0x5e, 0xa9, 0x40, 0xb6, 0x82, 0xad, 0xe0, 0x19, 0x71, 0x4c, 0xe5, 0x21, 0xc5,
-	0x6e, 0x74, 0x62, 0x27, 0xc0, 0xa9, 0x62, 0x86, 0x37, 0x78, 0xa4, 0xfc, 0x94, 0x20, 0xed, 0xc1,
-	0x38, 0x67, 0x46, 0x00, 0x1e, 0xc0, 0x8a, 0x4b, 0xed, 0xc9, 0x99, 0x41, 0x6d, 0x4f, 0xd6, 0x7e,
-	0xa9, 0x46, 0xda, 0xb5, 0x57, 0x1d, 0x33, 0x7a, 0x15, 0x62, 0xbe, 0x10, 0x60, 0x3e, 0x74, 0xd0,
-	0xff, 0x66, 0xbd, 0x0e, 0x99, 0xdd, 0x6e, 0x37, 0x74, 0x08, 0x45, 0xcf, 0xe0, 0xa6, 0xe9, 0x2c,
-	0xb9, 0x26, 0x6d, 0x5c, 0x95, 0x54, 0xc3, 0x75, 0xde, 0xfe, 0xb5, 0xe0, 0xa3, 0xe6, 0x2d, 0x21,
-	0xe7, 0x17, 0x03, 0xd4, 0x01, 0x14, 0x55, 0x4f, 0x74, 0x2f, 0x00, 0x18, 0xab, 0xc7, 0xf2, 0xfd,
-	0x89, 0x7e, 0xce, 0xe4, 0x50, 0x12, 0xe8, 0x03, 0x64, 0xb8, 0x4e, 0xd1, 0xb1, 0x50, 0x51, 0xb4,
-	0x35, 0x95, 0x9c, 0xca, 0xab, 0x01, 0xb7, 0x8f, 0xc4, 0xd0, 0x95, 0x04, 0x3a, 0x84, 0xdb, 0x9e,
-	0xf8, 0x05, 0x40, 0x83, 0x69, 0xc5, 0x0b, 0xa4, 0x18, 0xf6, 0x2b, 0x64, 0x04, 0x3a, 0x86, 0x22,
-	0x77, 0x8d, 0xd1, 0x50, 0xb9, 0x30, 0xd9, 0xd1, 0x63, 0xa5, 0x09, 0x6b, 0x7e, 0x5d, 0xa0, 0x8e,
-	0x30, 0xd0, 0x50, 0x01, 0x62, 0xa5, 0x43, 0x7c, 0x81, 0x23, 0x58, 0x0f, 0xca, 0x8d, 0x07, 0x5b,
-	0x88, 0x12, 0x33, 0x0b, 0x30, 0x6f, 0x96, 0xa0, 0x3a, 0x08, 0x9a, 0x45, 0xa8, 0x46, 0x82, 0x66,
-	0x11, 0xcb, 0x8c, 0x92, 0x40, 0xef, 0x61, 0x35, 0x32, 0x81, 0xa3, 0xad, 0x22, 0x9c, 0xd0, 0xe2,
-	0xcc, 0x9b, 0xf6, 0x14, 0x8a, 0x42, 0x0a, 0x1a, 0x65, 0x7a, 0xd0, 0xed, 0x3f, 0x49, 0xb8, 0x53,
-	0xd1, 0x2c, 0x3c, 0xd4, 0x46, 0xde, 0xb3, 0x6a, 0x62, 0xf3, 0xd2, 0x68, 0x63, 0xb4, 0x0f, 0x4b,
-	0xfe, 0xb1, 0x8c, 0x36, 0x27, 0x4d, 0x6c, 0x71, 0xde, 0xfb, 0xb0, 0xe4, 0x9f, 0x9e, 0x21, 0x18,
-	0xc1, 0x60, 0x15, 0xc3, 0x1c, 0xc3, 0x6a, 0x64, 0xba, 0x86, 0xf8, 0x8c, 0x9b, 0xbe, 0x72, 0x5e,
-	0x3c, 0x5c, 0x98, 0x0f, 0x2b, 0xd5, 0x7a, 0x05, 0x5b, 0xa2, 0x31, 0x15, 0xcd, 0x44, 0x0e, 0xa6,
-	0x2f, 0x08, 0x52, 0x12, 0x7b, 0xf9, 0xcf, 0x39, 0xe6, 0x54, 0x74, 0xfe, 0x23, 0x74, 0x8d, 0xd3,
-	0x62, 0x87, 0xf0, 0xbf, 0x0a, 0xa7, 0x0b, 0xec, 0xf7, 0xc9, 0xbf, 0x00, 0x00, 0x00, 0xff, 0xff,
-	0x42, 0x4b, 0xdb, 0x7c, 0x6d, 0x0c, 0x00, 0x00,
+	// 901 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x57, 0x6d, 0x6f, 0x2a, 0x45,
+	0x14, 0x66, 0xe9, 0x8b, 0x72, 0x7a, 0x53, 0x6e, 0x07, 0xbc, 0xc2, 0x72, 0x35, 0xcd, 0x24, 0x57,
+	0x31, 0x31, 0x8b, 0x62, 0x34, 0x5c, 0x8d, 0x89, 0xb7, 0xd2, 0x02, 0x51, 0xa2, 0xf2, 0x62, 0x7d,
+	0xf9, 0xd0, 0x6c, 0xd9, 0x91, 0xae, 0x85, 0x1d, 0xdc, 0xd9, 0x96, 0xf0, 0xef, 0x8c, 0xdf, 0xfc,
+	0xa0, 0x5f, 0xfc, 0x0b, 0xfe, 0x10, 0xb3, 0x33, 0xb3, 0xcb, 0xbe, 0xcc, 0x16, 0x68, 0xfc, 0xc4,
+	0xcc, 0xd9, 0x73, 0x9e, 0x79, 0xce, 0x73, 0x66, 0xce, 0x09, 0xf0, 0x16, 0x75, 0x27, 0x2d, 0xb7,
+	0xb1, 0x70, 0xa9, 0x47, 0x59, 0xc3, 0xb2, 0x5d, 0x32, 0xf1, 0xa8, 0xbb, 0xb2, 0x0c, 0x6e, 0x41,
+	0x47, 0x73, 0x73, 0x3a, 0x37, 0x0d, 0xee, 0xa4, 0x57, 0x63, 0xbe, 0x13, 0x3a, 0x9f, 0x53, 0x47,
+	0xf8, 0xe1, 0x06, 0x54, 0x3b, 0xc4, 0xeb, 0x52, 0xe6, 0x39, 0xe6, 0x9c, 0x5c, 0x50, 0xb7, 0x7b,
+	0xd9, 0x6b, 0x0f, 0xc8, 0x6f, 0x77, 0x84, 0x79, 0x08, 0xc1, 0xfe, 0xcd, 0xd2, 0xb6, 0x2a, 0xda,
+	0xa9, 0x56, 0x2f, 0x0c, 0xf8, 0x1a, 0xb7, 0x40, 0x57, 0x05, 0xb0, 0x05, 0x75, 0x18, 0x41, 0x3a,
+	0xbc, 0x7e, 0x23, 0x3f, 0xc9, 0xa8, 0x70, 0x8f, 0x7f, 0xd7, 0xa0, 0xd2, 0x37, 0x17, 0xbe, 0xff,
+	0x88, 0x06, 0x00, 0xc1, 0x51, 0x26, 0x1c, 0xfb, 0xf0, 0xeb, 0x0f, 0x15, 0xed, 0x74, 0xaf, 0x7e,
+	0xd4, 0x7c, 0x69, 0x44, 0x12, 0x31, 0xb2, 0xc2, 0x8d, 0x6e, 0x2c, 0xf6, 0xdc, 0xf1, 0xdc, 0xd5,
+	0x20, 0x01, 0xa8, 0xbf, 0x82, 0x92, 0xc2, 0x0d, 0x3d, 0x85, 0xbd, 0x5b, 0xb2, 0x92, 0x6c, 0xfd,
+	0x25, 0x2a, 0xc3, 0xc1, 0xbd, 0x39, 0xbb, 0x23, 0x95, 0x3c, 0xb7, 0x89, 0xcd, 0xa7, 0xf9, 0x96,
+	0x86, 0x9b, 0xa0, 0x8f, 0x9d, 0x79, 0x56, 0x0e, 0x65, 0x38, 0xf0, 0x8f, 0x64, 0x9c, 0x7a, 0x61,
+	0x20, 0x36, 0xf8, 0x07, 0x2e, 0x58, 0xaf, 0x3f, 0xec, 0x5d, 0x50, 0x77, 0x48, 0x18, 0xb3, 0xa9,
+	0xb3, 0x96, 0xf8, 0x39, 0x14, 0x1c, 0xe2, 0x2d, 0xa9, 0x7b, 0xdb, 0x6b, 0x4b, 0x0e, 0x6b, 0x83,
+	0xff, 0x95, 0x05, 0x11, 0x92, 0xcd, 0xda, 0x80, 0x3f, 0x84, 0x9a, 0x12, 0x59, 0xd6, 0x02, 0xc1,
+	0xbe, 0x3d, 0x67, 0x76, 0x50, 0x3d, 0x7f, 0x8d, 0xff, 0xd5, 0xa0, 0xda, 0x37, 0x17, 0xa1, 0xf3,
+	0x88, 0xfa, 0xe1, 0xdb, 0x91, 0x21, 0x50, 0x64, 0xf1, 0xb8, 0x4a, 0x9e, 0xd7, 0xe8, 0xb3, 0x64,
+	0x8d, 0xd4, 0xf0, 0x46, 0xc2, 0x2c, 0xaa, 0x94, 0xc4, 0xd4, 0xcf, 0xa0, 0xac, 0x72, 0xdc, 0xa9,
+	0x4e, 0x3f, 0x43, 0x8d, 0xd7, 0xe9, 0x51, 0x79, 0xbe, 0x0d, 0x10, 0x72, 0x62, 0x3c, 0xc5, 0xc2,
+	0x20, 0x62, 0xc1, 0x7d, 0xf1, 0x64, 0x2e, 0x7b, 0x6d, 0x5f, 0xf6, 0xe9, 0xf2, 0xcb, 0x11, 0xb1,
+	0xad, 0xed, 0xa0, 0x11, 0xec, 0x7b, 0xc4, 0xb6, 0x24, 0x61, 0xbe, 0xc6, 0x1f, 0x88, 0x07, 0x95,
+	0x84, 0x5b, 0x17, 0x31, 0xf5, 0x04, 0xff, 0x16, 0x0f, 0x29, 0xf0, 0x1d, 0xd1, 0xe8, 0x9b, 0x7d,
+	0x98, 0xc0, 0x18, 0xc0, 0x13, 0x21, 0x4b, 0x4e, 0xc3, 0x2f, 0xdf, 0xc7, 0xa9, 0xf2, 0xa9, 0x80,
+	0x8d, 0x51, 0x18, 0x27, 0x0a, 0x17, 0x01, 0xd2, 0x3f, 0x87, 0x62, 0xe2, 0xf3, 0x4e, 0xe5, 0xfa,
+	0x56, 0x3e, 0xab, 0xc7, 0x64, 0x54, 0x86, 0x03, 0x9f, 0x48, 0x50, 0x28, 0xb1, 0xc1, 0x7f, 0x68,
+	0x50, 0x1a, 0x2f, 0x2c, 0xd3, 0x23, 0x03, 0x32, 0xa1, 0x6e, 0x58, 0x9e, 0x63, 0xc8, 0x87, 0x62,
+	0xe6, 0x6d, 0xcb, 0xef, 0x57, 0x33, 0x3a, 0x31, 0x3d, 0x9b, 0x3a, 0x92, 0x56, 0xb8, 0x47, 0x6d,
+	0x38, 0xfc, 0xc5, 0x26, 0x33, 0x8b, 0x55, 0xf6, 0xb8, 0x4e, 0xef, 0xc7, 0x74, 0x52, 0xa0, 0x1b,
+	0x17, 0xdc, 0x5d, 0xc8, 0x23, 0x63, 0xf5, 0x97, 0x70, 0x14, 0x31, 0xef, 0x24, 0x4b, 0x0b, 0x8e,
+	0xdb, 0x41, 0x5f, 0xe7, 0x18, 0xdb, 0x46, 0xe3, 0x17, 0x50, 0x6a, 0x93, 0x19, 0xd9, 0x90, 0x3d,
+	0xee, 0x40, 0xa5, 0x43, 0xbc, 0xf8, 0x19, 0x59, 0x4a, 0xd5, 0xa0, 0xc0, 0x33, 0xba, 0xf2, 0x09,
+	0x48, 0xa9, 0xb8, 0xe1, 0x2b, 0xb2, 0xc2, 0x7f, 0x6a, 0x50, 0x0c, 0x61, 0xc4, 0x99, 0x29, 0x80,
+	0xf7, 0xe0, 0x69, 0x20, 0xed, 0xd5, 0x8d, 0xcd, 0x7c, 0x4f, 0x59, 0xb3, 0x62, 0x60, 0xef, 0x0a,
+	0x33, 0xfa, 0x22, 0xa1, 0x7c, 0x3d, 0xa6, 0x7c, 0xe2, 0xa0, 0xff, 0x5b, 0xf5, 0x3e, 0x94, 0x5e,
+	0xcd, 0x66, 0x89, 0x43, 0x18, 0xfa, 0x04, 0x5e, 0x73, 0xc5, 0x52, 0x4e, 0xa6, 0xe7, 0x0f, 0x91,
+	0x1a, 0x04, 0xce, 0xcd, 0xbf, 0x0e, 0x23, 0xd2, 0x7c, 0x4d, 0xe9, 0xed, 0xdd, 0x02, 0x4d, 0x01,
+	0xa5, 0x67, 0x28, 0x7a, 0x27, 0x06, 0x98, 0x39, 0x95, 0xf5, 0x77, 0x37, 0xfa, 0x89, 0xde, 0x81,
+	0x73, 0xe8, 0x3b, 0x28, 0xc9, 0x91, 0xc9, 0xd6, 0xe3, 0x8a, 0xa1, 0x17, 0x5b, 0x0d, 0x55, 0xfd,
+	0x24, 0xe6, 0xf6, 0x3d, 0xb5, 0x2d, 0x9c, 0x43, 0x63, 0x78, 0x23, 0x1c, 0x81, 0x31, 0xd0, 0x38,
+	0xad, 0xec, 0x31, 0xa9, 0x86, 0xfd, 0x15, 0x4a, 0x8a, 0x59, 0x86, 0x52, 0xb9, 0x66, 0xcc, 0x51,
+	0xbd, 0xbe, 0xd9, 0x31, 0x54, 0x65, 0x08, 0xe5, 0xe8, 0x90, 0x62, 0x62, 0x38, 0xb0, 0x44, 0x01,
+	0x32, 0xe7, 0x98, 0x3a, 0x81, 0x4b, 0x78, 0x16, 0x1f, 0x39, 0x21, 0x6c, 0x3d, 0x2d, 0xcc, 0x2e,
+	0xc0, 0xf2, 0xb2, 0xc4, 0xe7, 0x83, 0xe2, 0xb2, 0x28, 0xe7, 0x91, 0xe2, 0xb2, 0xa8, 0x07, 0x0d,
+	0xce, 0xa1, 0x6f, 0xe0, 0x24, 0xd5, 0xfc, 0xd3, 0x57, 0x45, 0xd9, 0xa3, 0xd5, 0xcc, 0x87, 0x50,
+	0x52, 0xb4, 0x75, 0xd5, 0x45, 0xd9, 0x1e, 0xb4, 0xf9, 0x4f, 0x1e, 0xde, 0xec, 0x98, 0x1e, 0x59,
+	0x9a, 0xab, 0xf0, 0x59, 0x0d, 0x89, 0x7b, 0x6f, 0x4f, 0x08, 0x3a, 0x87, 0x27, 0xd1, 0xb6, 0x8c,
+	0x4e, 0x37, 0x75, 0x6c, 0x35, 0xef, 0x73, 0x78, 0x12, 0xed, 0x9e, 0x09, 0x18, 0x45, 0x63, 0x55,
+	0xc3, 0xfc, 0x08, 0x27, 0xa9, 0xee, 0x9a, 0xd0, 0x33, 0xab, 0xfb, 0xea, 0x35, 0x75, 0x73, 0xe1,
+	0x3e, 0xbc, 0x54, 0xcf, 0x3a, 0xc4, 0x53, 0xb5, 0xa9, 0x34, 0x13, 0x3d, 0x4e, 0x5f, 0x11, 0x84,
+	0x73, 0x67, 0xb5, 0x9f, 0xaa, 0xdc, 0xa9, 0x21, 0xfe, 0x29, 0xcc, 0xec, 0xeb, 0xc6, 0x94, 0xca,
+	0x3f, 0x0c, 0xd7, 0x87, 0xfc, 0xf7, 0xa3, 0xff, 0x02, 0x00, 0x00, 0xff, 0xff, 0x6b, 0x0a, 0x33,
+	0x05, 0x73, 0x0c, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -925,20 +927,20 @@ type DirectoryLookupClient interface {
 	GetHostnameForHWID(ctx context.Context, in *GetHostnameForHWIDRequest, opts ...grpc.CallOption) (*GetHostnameForHWIDResponse, error)
 	// MapHWIDsToHostnames maps {hwid -> hostname}.
 	MapHWIDsToHostnames(ctx context.Context, in *MapHWIDToHostnameRequest, opts ...grpc.CallOption) (*Void, error)
-	// DeMapSgwCTeidToHWID removes {teid -> HwId} for an specific Teid.
-	DeMapHWIDsToHostnames(ctx context.Context, in *DeMapHWIDToHostnameRequest, opts ...grpc.CallOption) (*Void, error)
+	// UnmapHWIDsToHostnames removes {hwid -> hostname} for an specific hwid.
+	UnmapHWIDsToHostnames(ctx context.Context, in *UnmapHWIDToHostnameRequest, opts ...grpc.CallOption) (*Void, error)
 	// GetIMSIForSessionID returns the IMSI mapped to by session ID.
 	GetIMSIForSessionID(ctx context.Context, in *GetIMSIForSessionIDRequest, opts ...grpc.CallOption) (*GetIMSIForSessionIDResponse, error)
 	// MapSessionIDsToIMSIs maps {session ID -> IMSI}.
 	MapSessionIDsToIMSIs(ctx context.Context, in *MapSessionIDToIMSIRequest, opts ...grpc.CallOption) (*Void, error)
-	// DeMapSessionIDsToIMSIs removes {session ID -> IMSI} for an specific session ID.
-	DeMapSessionIDsToIMSIs(ctx context.Context, in *DeMapSessionIDToIMSIRequest, opts ...grpc.CallOption) (*Void, error)
+	// UnmapSessionIDsToIMSIs removes {session ID -> IMSI} for an specific session ID.
+	UnmapSessionIDsToIMSIs(ctx context.Context, in *UnmapSessionIDToIMSIRequest, opts ...grpc.CallOption) (*Void, error)
 	// GetHWIDForSgwCTeid returns the HwId mapped to by sgw control plane Sgw Teid
 	GetHWIDForSgwCTeid(ctx context.Context, in *GetHWIDForSgwCTeidRequest, opts ...grpc.CallOption) (*GetHWIDForSgwCTeidResponse, error)
 	// MapSgwCTeidToHWID maps {teid -> HwId}.
 	MapSgwCTeidToHWID(ctx context.Context, in *MapSgwCTeidToHWIDRequest, opts ...grpc.CallOption) (*Void, error)
-	// DeMapSgwCTeidToHWID removes {teid -> HwId} for an specific Teid.
-	DeMapSgwCTeidToHWID(ctx context.Context, in *DeMapSgwCTeidToHWIDRequest, opts ...grpc.CallOption) (*Void, error)
+	// UnmapSgwCTeidToHWID removes {teid -> HwId} for an specific Teid.
+	UnmapSgwCTeidToHWID(ctx context.Context, in *UnmapSgwCTeidToHWIDRequest, opts ...grpc.CallOption) (*Void, error)
 }
 
 type directoryLookupClient struct {
@@ -967,9 +969,9 @@ func (c *directoryLookupClient) MapHWIDsToHostnames(ctx context.Context, in *Map
 	return out, nil
 }
 
-func (c *directoryLookupClient) DeMapHWIDsToHostnames(ctx context.Context, in *DeMapHWIDToHostnameRequest, opts ...grpc.CallOption) (*Void, error) {
+func (c *directoryLookupClient) UnmapHWIDsToHostnames(ctx context.Context, in *UnmapHWIDToHostnameRequest, opts ...grpc.CallOption) (*Void, error) {
 	out := new(Void)
-	err := c.cc.Invoke(ctx, "/magma.orc8r.DirectoryLookup/DeMapHWIDsToHostnames", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.DirectoryLookup/UnmapHWIDsToHostnames", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -994,9 +996,9 @@ func (c *directoryLookupClient) MapSessionIDsToIMSIs(ctx context.Context, in *Ma
 	return out, nil
 }
 
-func (c *directoryLookupClient) DeMapSessionIDsToIMSIs(ctx context.Context, in *DeMapSessionIDToIMSIRequest, opts ...grpc.CallOption) (*Void, error) {
+func (c *directoryLookupClient) UnmapSessionIDsToIMSIs(ctx context.Context, in *UnmapSessionIDToIMSIRequest, opts ...grpc.CallOption) (*Void, error) {
 	out := new(Void)
-	err := c.cc.Invoke(ctx, "/magma.orc8r.DirectoryLookup/DeMapSessionIDsToIMSIs", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.DirectoryLookup/UnmapSessionIDsToIMSIs", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1021,9 +1023,9 @@ func (c *directoryLookupClient) MapSgwCTeidToHWID(ctx context.Context, in *MapSg
 	return out, nil
 }
 
-func (c *directoryLookupClient) DeMapSgwCTeidToHWID(ctx context.Context, in *DeMapSgwCTeidToHWIDRequest, opts ...grpc.CallOption) (*Void, error) {
+func (c *directoryLookupClient) UnmapSgwCTeidToHWID(ctx context.Context, in *UnmapSgwCTeidToHWIDRequest, opts ...grpc.CallOption) (*Void, error) {
 	out := new(Void)
-	err := c.cc.Invoke(ctx, "/magma.orc8r.DirectoryLookup/DeMapSgwCTeidToHWID", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.DirectoryLookup/UnmapSgwCTeidToHWID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1036,20 +1038,20 @@ type DirectoryLookupServer interface {
 	GetHostnameForHWID(context.Context, *GetHostnameForHWIDRequest) (*GetHostnameForHWIDResponse, error)
 	// MapHWIDsToHostnames maps {hwid -> hostname}.
 	MapHWIDsToHostnames(context.Context, *MapHWIDToHostnameRequest) (*Void, error)
-	// DeMapSgwCTeidToHWID removes {teid -> HwId} for an specific Teid.
-	DeMapHWIDsToHostnames(context.Context, *DeMapHWIDToHostnameRequest) (*Void, error)
+	// UnmapHWIDsToHostnames removes {hwid -> hostname} for an specific hwid.
+	UnmapHWIDsToHostnames(context.Context, *UnmapHWIDToHostnameRequest) (*Void, error)
 	// GetIMSIForSessionID returns the IMSI mapped to by session ID.
 	GetIMSIForSessionID(context.Context, *GetIMSIForSessionIDRequest) (*GetIMSIForSessionIDResponse, error)
 	// MapSessionIDsToIMSIs maps {session ID -> IMSI}.
 	MapSessionIDsToIMSIs(context.Context, *MapSessionIDToIMSIRequest) (*Void, error)
-	// DeMapSessionIDsToIMSIs removes {session ID -> IMSI} for an specific session ID.
-	DeMapSessionIDsToIMSIs(context.Context, *DeMapSessionIDToIMSIRequest) (*Void, error)
+	// UnmapSessionIDsToIMSIs removes {session ID -> IMSI} for an specific session ID.
+	UnmapSessionIDsToIMSIs(context.Context, *UnmapSessionIDToIMSIRequest) (*Void, error)
 	// GetHWIDForSgwCTeid returns the HwId mapped to by sgw control plane Sgw Teid
 	GetHWIDForSgwCTeid(context.Context, *GetHWIDForSgwCTeidRequest) (*GetHWIDForSgwCTeidResponse, error)
 	// MapSgwCTeidToHWID maps {teid -> HwId}.
 	MapSgwCTeidToHWID(context.Context, *MapSgwCTeidToHWIDRequest) (*Void, error)
-	// DeMapSgwCTeidToHWID removes {teid -> HwId} for an specific Teid.
-	DeMapSgwCTeidToHWID(context.Context, *DeMapSgwCTeidToHWIDRequest) (*Void, error)
+	// UnmapSgwCTeidToHWID removes {teid -> HwId} for an specific Teid.
+	UnmapSgwCTeidToHWID(context.Context, *UnmapSgwCTeidToHWIDRequest) (*Void, error)
 }
 
 // UnimplementedDirectoryLookupServer can be embedded to have forward compatible implementations.
@@ -1062,8 +1064,8 @@ func (*UnimplementedDirectoryLookupServer) GetHostnameForHWID(ctx context.Contex
 func (*UnimplementedDirectoryLookupServer) MapHWIDsToHostnames(ctx context.Context, req *MapHWIDToHostnameRequest) (*Void, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MapHWIDsToHostnames not implemented")
 }
-func (*UnimplementedDirectoryLookupServer) DeMapHWIDsToHostnames(ctx context.Context, req *DeMapHWIDToHostnameRequest) (*Void, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeMapHWIDsToHostnames not implemented")
+func (*UnimplementedDirectoryLookupServer) UnmapHWIDsToHostnames(ctx context.Context, req *UnmapHWIDToHostnameRequest) (*Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnmapHWIDsToHostnames not implemented")
 }
 func (*UnimplementedDirectoryLookupServer) GetIMSIForSessionID(ctx context.Context, req *GetIMSIForSessionIDRequest) (*GetIMSIForSessionIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetIMSIForSessionID not implemented")
@@ -1071,8 +1073,8 @@ func (*UnimplementedDirectoryLookupServer) GetIMSIForSessionID(ctx context.Conte
 func (*UnimplementedDirectoryLookupServer) MapSessionIDsToIMSIs(ctx context.Context, req *MapSessionIDToIMSIRequest) (*Void, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MapSessionIDsToIMSIs not implemented")
 }
-func (*UnimplementedDirectoryLookupServer) DeMapSessionIDsToIMSIs(ctx context.Context, req *DeMapSessionIDToIMSIRequest) (*Void, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeMapSessionIDsToIMSIs not implemented")
+func (*UnimplementedDirectoryLookupServer) UnmapSessionIDsToIMSIs(ctx context.Context, req *UnmapSessionIDToIMSIRequest) (*Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnmapSessionIDsToIMSIs not implemented")
 }
 func (*UnimplementedDirectoryLookupServer) GetHWIDForSgwCTeid(ctx context.Context, req *GetHWIDForSgwCTeidRequest) (*GetHWIDForSgwCTeidResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetHWIDForSgwCTeid not implemented")
@@ -1080,8 +1082,8 @@ func (*UnimplementedDirectoryLookupServer) GetHWIDForSgwCTeid(ctx context.Contex
 func (*UnimplementedDirectoryLookupServer) MapSgwCTeidToHWID(ctx context.Context, req *MapSgwCTeidToHWIDRequest) (*Void, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MapSgwCTeidToHWID not implemented")
 }
-func (*UnimplementedDirectoryLookupServer) DeMapSgwCTeidToHWID(ctx context.Context, req *DeMapSgwCTeidToHWIDRequest) (*Void, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeMapSgwCTeidToHWID not implemented")
+func (*UnimplementedDirectoryLookupServer) UnmapSgwCTeidToHWID(ctx context.Context, req *UnmapSgwCTeidToHWIDRequest) (*Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnmapSgwCTeidToHWID not implemented")
 }
 
 func RegisterDirectoryLookupServer(s *grpc.Server, srv DirectoryLookupServer) {
@@ -1124,20 +1126,20 @@ func _DirectoryLookup_MapHWIDsToHostnames_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DirectoryLookup_DeMapHWIDsToHostnames_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeMapHWIDToHostnameRequest)
+func _DirectoryLookup_UnmapHWIDsToHostnames_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnmapHWIDToHostnameRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DirectoryLookupServer).DeMapHWIDsToHostnames(ctx, in)
+		return srv.(DirectoryLookupServer).UnmapHWIDsToHostnames(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/magma.orc8r.DirectoryLookup/DeMapHWIDsToHostnames",
+		FullMethod: "/magma.orc8r.DirectoryLookup/UnmapHWIDsToHostnames",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DirectoryLookupServer).DeMapHWIDsToHostnames(ctx, req.(*DeMapHWIDToHostnameRequest))
+		return srv.(DirectoryLookupServer).UnmapHWIDsToHostnames(ctx, req.(*UnmapHWIDToHostnameRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1178,20 +1180,20 @@ func _DirectoryLookup_MapSessionIDsToIMSIs_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DirectoryLookup_DeMapSessionIDsToIMSIs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeMapSessionIDToIMSIRequest)
+func _DirectoryLookup_UnmapSessionIDsToIMSIs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnmapSessionIDToIMSIRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DirectoryLookupServer).DeMapSessionIDsToIMSIs(ctx, in)
+		return srv.(DirectoryLookupServer).UnmapSessionIDsToIMSIs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/magma.orc8r.DirectoryLookup/DeMapSessionIDsToIMSIs",
+		FullMethod: "/magma.orc8r.DirectoryLookup/UnmapSessionIDsToIMSIs",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DirectoryLookupServer).DeMapSessionIDsToIMSIs(ctx, req.(*DeMapSessionIDToIMSIRequest))
+		return srv.(DirectoryLookupServer).UnmapSessionIDsToIMSIs(ctx, req.(*UnmapSessionIDToIMSIRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1232,20 +1234,20 @@ func _DirectoryLookup_MapSgwCTeidToHWID_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DirectoryLookup_DeMapSgwCTeidToHWID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeMapSgwCTeidToHWIDRequest)
+func _DirectoryLookup_UnmapSgwCTeidToHWID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnmapSgwCTeidToHWIDRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DirectoryLookupServer).DeMapSgwCTeidToHWID(ctx, in)
+		return srv.(DirectoryLookupServer).UnmapSgwCTeidToHWID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/magma.orc8r.DirectoryLookup/DeMapSgwCTeidToHWID",
+		FullMethod: "/magma.orc8r.DirectoryLookup/UnmapSgwCTeidToHWID",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DirectoryLookupServer).DeMapSgwCTeidToHWID(ctx, req.(*DeMapSgwCTeidToHWIDRequest))
+		return srv.(DirectoryLookupServer).UnmapSgwCTeidToHWID(ctx, req.(*UnmapSgwCTeidToHWIDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1263,8 +1265,8 @@ var _DirectoryLookup_serviceDesc = grpc.ServiceDesc{
 			Handler:    _DirectoryLookup_MapHWIDsToHostnames_Handler,
 		},
 		{
-			MethodName: "DeMapHWIDsToHostnames",
-			Handler:    _DirectoryLookup_DeMapHWIDsToHostnames_Handler,
+			MethodName: "UnmapHWIDsToHostnames",
+			Handler:    _DirectoryLookup_UnmapHWIDsToHostnames_Handler,
 		},
 		{
 			MethodName: "GetIMSIForSessionID",
@@ -1275,8 +1277,8 @@ var _DirectoryLookup_serviceDesc = grpc.ServiceDesc{
 			Handler:    _DirectoryLookup_MapSessionIDsToIMSIs_Handler,
 		},
 		{
-			MethodName: "DeMapSessionIDsToIMSIs",
-			Handler:    _DirectoryLookup_DeMapSessionIDsToIMSIs_Handler,
+			MethodName: "UnmapSessionIDsToIMSIs",
+			Handler:    _DirectoryLookup_UnmapSessionIDsToIMSIs_Handler,
 		},
 		{
 			MethodName: "GetHWIDForSgwCTeid",
@@ -1287,8 +1289,8 @@ var _DirectoryLookup_serviceDesc = grpc.ServiceDesc{
 			Handler:    _DirectoryLookup_MapSgwCTeidToHWID_Handler,
 		},
 		{
-			MethodName: "DeMapSgwCTeidToHWID",
-			Handler:    _DirectoryLookup_DeMapSgwCTeidToHWID_Handler,
+			MethodName: "UnmapSgwCTeidToHWID",
+			Handler:    _DirectoryLookup_UnmapSgwCTeidToHWID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

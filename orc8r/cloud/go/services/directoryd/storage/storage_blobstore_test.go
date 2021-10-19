@@ -188,7 +188,7 @@ func TestDirectorydBlobstoreStorage_DeMapHWIDToHostname(t *testing.T) {
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store := dstorage.NewDirectorydBlobstore(blobFactMock)
 
-	err := store.DeMapHWIDsToHostnames(hwid0)
+	err := store.UnmapHWIDsToHostnames([]string{hwid0})
 	assert.Error(t, err)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
@@ -201,7 +201,7 @@ func TestDirectorydBlobstoreStorage_DeMapHWIDToHostname(t *testing.T) {
 	blobStoreMock.On("Delete", placeholderNetworkID, tks).Return(someErr).Once()
 	store = dstorage.NewDirectorydBlobstore(blobFactMock)
 
-	err = store.DeMapHWIDsToHostnames(hwid0)
+	err = store.UnmapHWIDsToHostnames([]string{hwid0})
 	assert.Error(t, err)
 	assert.NotEqual(t, merrors.ErrNotFound, err)
 	blobFactMock.AssertExpectations(t)
@@ -216,7 +216,7 @@ func TestDirectorydBlobstoreStorage_DeMapHWIDToHostname(t *testing.T) {
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = dstorage.NewDirectorydBlobstore(blobFactMock)
 
-	err = store.DeMapHWIDsToHostnames(hwid0)
+	err = store.UnmapHWIDsToHostnames([]string{hwid0})
 	assert.NoError(t, err)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
@@ -382,7 +382,7 @@ func TestDirectorydBlobstore_DeMapSessionIDToIMSI(t *testing.T) {
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store := dstorage.NewDirectorydBlobstore(blobFactMock)
 
-	err := store.DeMapSessionIDsToIMSIs(nid, sid)
+	err := store.UnmapSessionIDsToIMSIs(nid, []string{sid})
 	assert.Error(t, err)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
@@ -395,7 +395,7 @@ func TestDirectorydBlobstore_DeMapSessionIDToIMSI(t *testing.T) {
 	blobStoreMock.On("Delete", nid, tks).Return(someErr).Once()
 	store = dstorage.NewDirectorydBlobstore(blobFactMock)
 
-	err = store.DeMapSessionIDsToIMSIs(nid, sid)
+	err = store.UnmapSessionIDsToIMSIs(nid, []string{sid})
 	assert.Error(t, err)
 	assert.NotEqual(t, merrors.ErrNotFound, err)
 	blobFactMock.AssertExpectations(t)
@@ -410,7 +410,7 @@ func TestDirectorydBlobstore_DeMapSessionIDToIMSI(t *testing.T) {
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = dstorage.NewDirectorydBlobstore(blobFactMock)
 
-	err = store.DeMapSessionIDsToIMSIs(nid, sid)
+	err = store.UnmapSessionIDsToIMSIs(nid, []string{sid})
 	assert.NoError(t, err)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
@@ -560,15 +560,15 @@ func TestDirectorydBlobstore_MapSgwCTeidToHWID(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 }
 
-func TestDirectorydBlobstore_DeMapSgwCTeidToHWID(t *testing.T) {
+func TestDirectorydBlobstore_UnmapSgwCTeidToHWID(t *testing.T) {
 	var blobFactMock *mocks.BlobStorageFactory
 	var blobStoreMock *mocks.TransactionalBlobStorage
 	someErr := errors.New("generic error")
 
 	nid := "some_networkid"
 
-	sid := "some_sessionid"
-	tks := storage.TKs{{Type: dstorage.DirectorydTypeSgwCteidToHwid, Key: sid}}
+	teid := "some_sessionid"
+	tks := storage.TKs{{Type: dstorage.DirectorydTypeSgwCteidToHwid, Key: teid}}
 
 	// Fail to start transaction
 	blobFactMock = &mocks.BlobStorageFactory{}
@@ -576,7 +576,7 @@ func TestDirectorydBlobstore_DeMapSgwCTeidToHWID(t *testing.T) {
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store := dstorage.NewDirectorydBlobstore(blobFactMock)
 
-	err := store.DeMapSgwCTeidToHWID(nid, sid)
+	err := store.UnmapSgwCTeidToHWID(nid, []string{teid})
 	assert.Error(t, err)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
@@ -589,7 +589,7 @@ func TestDirectorydBlobstore_DeMapSgwCTeidToHWID(t *testing.T) {
 	blobStoreMock.On("Delete", nid, tks).Return(someErr).Once()
 	store = dstorage.NewDirectorydBlobstore(blobFactMock)
 
-	err = store.DeMapSgwCTeidToHWID(nid, sid)
+	err = store.UnmapSgwCTeidToHWID(nid, []string{teid})
 	assert.Error(t, err)
 	assert.NotEqual(t, merrors.ErrNotFound, err)
 	blobFactMock.AssertExpectations(t)
@@ -604,7 +604,7 @@ func TestDirectorydBlobstore_DeMapSgwCTeidToHWID(t *testing.T) {
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = dstorage.NewDirectorydBlobstore(blobFactMock)
 
-	err = store.DeMapSgwCTeidToHWID(nid, sid)
+	err = store.UnmapSgwCTeidToHWID(nid, []string{teid})
 	assert.NoError(t, err)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)

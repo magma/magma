@@ -96,8 +96,8 @@ func TestDirectoryLookupServicer_HostnameToHWID(t *testing.T) {
 	assert.Equal(t, hn2, res.Hostname)
 
 	// DeMap hwid2
-	put_demap := &protos.DeMapHWIDToHostnameRequest{Hwid: hwid2}
-	_, err = srv.DeMapHWIDsToHostnames(ctx, put_demap)
+	put_demap := &protos.UnmapHWIDToHostnameRequest{Hwids: []string{hwid2}}
+	_, err = srv.UnmapHWIDsToHostnames(ctx, put_demap)
 	assert.NoError(t, err)
 	get = &protos.GetHostnameForHWIDRequest{Hwid: hwid2}
 	_, err = srv.GetHostnameForHWID(ctx, get)
@@ -149,8 +149,8 @@ func TestDirectoryLookupServicer_SessionIDToIMSI(t *testing.T) {
 	assert.Equal(t, imsi0, res.Imsi)
 
 	// DeMap sid0 from network nid1
-	put_demap := &protos.DeMapSessionIDToIMSIRequest{NetworkID: nid1, SessionID: sid0}
-	_, err = srv.DeMapSessionIDsToIMSIs(ctx, put_demap)
+	put_demap := &protos.UnmapSessionIDToIMSIRequest{NetworkID: nid1, SessionIDs: []string{sid0}}
+	_, err = srv.UnmapSessionIDsToIMSIs(ctx, put_demap)
 	assert.NoError(t, err)
 	get = &protos.GetIMSIForSessionIDRequest{NetworkID: nid1, SessionID: sid0}
 	_, err = srv.GetIMSIForSessionID(ctx, get)
@@ -236,8 +236,8 @@ func TestDirectoryLookupServicer_TeidToHWID(t *testing.T) {
 	assert.Equal(t, hwid2, res.Hwid)
 
 	// DeMap teid0 from network nid1
-	put_demap := &protos.DeMapSgwCTeidToHWIDRequest{NetworkID: nid1, Teid: teid0}
-	_, err = srv.DeMapSgwCTeidToHWID(ctx, put_demap)
+	put_demap := &protos.UnmapSgwCTeidToHWIDRequest{NetworkID: nid1, Teids: []string{teid0}}
+	_, err = srv.UnmapSgwCTeidToHWID(ctx, put_demap)
 	assert.NoError(t, err)
 	get = &protos.GetHWIDForSgwCTeidRequest{NetworkID: nid1, Teid: teid0}
 	_, err = srv.GetHWIDForSgwCTeid(ctx, get)
