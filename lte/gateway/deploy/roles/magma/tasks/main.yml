@@ -88,6 +88,10 @@
   copy: src=magma-setup-wg.sh dest=/usr/local/bin/magma-setup-wg.sh mode=751
   when: full_provision
 
+- name: Copy magma-create-gtp-port.sh
+  copy: src=magma-create-gtp-port.sh dest=/usr/local/bin/magma-create-gtp-port.sh mode=751
+  when: full_provision
+
 - name: Add the sysctl config from the step before
   become: yes
   command: 'sysctl -p /etc/sysctl.d/99-magma.conf'

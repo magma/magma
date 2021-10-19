@@ -424,6 +424,7 @@ ${ANSIBLE_FILES}/set_irq_affinity=/usr/local/bin/ \
 ${ANSIBLE_FILES}/ovs-kmod-upgrade.sh=/usr/local/bin/ \
 ${ANSIBLE_FILES}/magma-bridge-reset.sh=/usr/local/bin/ \
 ${ANSIBLE_FILES}/magma-setup-wg.sh=/usr/local/bin/ \
+${ANSIBLE_FILES}/magma-create-gtp-port.sh=/usr/local/bin/ \
 ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
