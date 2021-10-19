@@ -72,22 +72,10 @@ const char* sHealthyConfig =
 TEST(SGWConfigTest, TestParseHealthyConfig) {
   sgw_config_t sgw_config = {0};
   EXPECT_EQ(sgw_config_parse_string(sHealthyConfig, &sgw_config), 0);
-  EXPECT_EQ(
-      std::string(bdata(sgw_config.ovs_config.bridge_name)),
-      "gtp_br0");
-  ASSERT_EQ(
-      sgw_config.ipv6.s1_ipv6_enabled,
-      false);
+  EXPECT_EQ(std::string(bdata(sgw_config.ovs_config.bridge_name)), "gtp_br0");
+  ASSERT_EQ(sgw_config.ipv6.s1_ipv6_enabled, false);
   free_sgw_config(&sgw_config);
 }
-
-// TEST(MMEConfigTest, TestMissingSctpdConfig) {
-//  sgw_config_t sgw_config = {0};
-//  EXPECT_EQ(config_read_string(sEmptyConfig, &sgw_config), 0);
-
-//
-////  bdestroy_wrapper(&sgw_config.config_file);
-//}
 
 }  // namespace lte
 }  // namespace magma

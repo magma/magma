@@ -33,6 +33,7 @@ message SgwS8EpsBearerContextInfo {
     uint32 sgw_teid_s11_s4 = 9;
     bytes sgw_ip_address_s11_s4 = 10;
     SgwPdnConnection pdn_connection = 11;
+    bytes sgw_ipv6_address_s11_s4 = 12;
 }
 
 

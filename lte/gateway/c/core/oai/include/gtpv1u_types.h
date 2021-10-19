@@ -43,6 +43,7 @@ typedef struct {
   // RB_HEAD(gtpv1u_ue_map, gtpv1u_ue_data_s) gtpv1u_ue_map_head;
   /* Local IP address to use */
   struct in_addr sgw_ip_address_for_S1u_S12_S4_up;
+  struct in6_addr* sgw_ipv6_address_for_S1u_S12_S4_up;
   hash_table_t* S1U_mapping;
 
   // GTP-U kernel interface
