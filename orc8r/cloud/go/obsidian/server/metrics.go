@@ -14,6 +14,7 @@
 package server
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/golang/glog"
@@ -35,27 +36,52 @@ var (
 		},
 		[]string{"code", "method"},
 	)
+	errorCount = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "error_count",
+			Help: "Number of http errors obsidian receives",
+		},
+	)
 )
 
 func init() {
-	prometheus.MustRegister(requestCount, respStatuses)
+	prometheus.MustRegister(requestCount, respStatuses, errorCount)
 }
 
-// CollectStats is the middleware function
-func CollectStats(next echo.HandlerFunc) echo.HandlerFunc {
+
+func isServerErrCode(code int) bool {
+	return code >= http.StatusInternalServerError && code <= http.StatusNetworkAuthenticationRequired
+}
+
+// isHttpErrCode returns true for any non-2xx responses
+func isHttpErrCode(code int) bool {
+	return code < http.StatusOK || code > http.StatusIMUsed
+}
+
+// Logger is the middleware function
+func Logger(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		if err := next(c); err != nil {
+		err := next(c)
+		if err != nil {
 			c.Error(err)
 		}
 		requestCount.Inc()
-		status := strconv.Itoa(c.Response().Status)
-		respStatuses.WithLabelValues(status, c.Request().Method).Inc()
-		glog.V(2).Infof(
-			"REST API code: %v, method: %v, url: %v\n",
-			status,
-			c.Request().Method,
-			c.Request().URL,
-		)
-		return nil
+		status := c.Response().Status
+		respStatuses.WithLabelValues(strconv.Itoa(status), c.Request().Method).Inc()
+		if isServerErrCode(status) {
+			glog.Infof("REST HTTP Error: %s, Status: %d", err, status)
+			errorCount.Inc()
+		} else if isHttpErrCode(status) {
+			glog.V(1).Infof("REST HTTP Error: %s, Status: %d", err, status)
+			errorCount.Inc()
+		} else {
+			glog.V(2).Infof(
+				"REST API code: %v, method: %v, url: %v\n",
+				status,
+				c.Request().Method,
+				c.Request().URL,
+			)
+		}
+		return err
 	}
 }
