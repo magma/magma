@@ -21,7 +21,6 @@
             "command": "bazel",
             "args": [
                 "build",
-                "--config=${env:VSCODE_BAZEL_BUILD_CONFIG}",
                 "-c",
                 "dbg",
                 "..."
