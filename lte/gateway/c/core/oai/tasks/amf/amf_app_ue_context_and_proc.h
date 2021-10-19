@@ -32,6 +32,7 @@ extern "C" {
 #ifdef __cplusplus
 };
 #endif
+#include <unordered_map>
 #include <vector>
 #include "amf_fsm.h"
 #include "amf_data.h"
@@ -293,8 +294,8 @@ typedef struct amf_context_s {
   uint32_t member_present_mask;   /* bitmask, see significance of bits below */
   uint32_t member_valid_mask;     /* bitmask, see significance of bits below */
   uint8_t m5gsregistrationtype;
-  std::vector<smf_context_t> smf_ctxt_vector;  // smf contents
-  // smf_context_t smf_ctxt_vector;  // smf contents
+  // Creating smf_ctxt_map based on key:pdu_session_id and value:smf_context
+  std::unordered_map<uint8_t, std::shared_ptr<smf_context_t>> smf_ctxt_map;
   amf_procedures_t* amf_procedures;
   imsi_t imsi;     /* The IMSI provided by the UE or the AMF, set valid when
                        identification returns IMSI */
@@ -398,9 +399,9 @@ void notify_ngap_new_ue_amf_ngap_id_association(
 
 ue_m5gmm_context_s* amf_create_new_ue_context(void);
 /*Multi PDU Session*/
-smf_context_t* amf_insert_smf_context(
+std::shared_ptr<smf_context_t> amf_insert_smf_context(
     ue_m5gmm_context_s* ue_context, uint8_t pdu_session_id);
-smf_context_t* amf_smf_context_exists_pdu_session_id(
+std::shared_ptr<smf_context_t> amf_get_smf_context_by_pdu_session_id(
     ue_m5gmm_context_s* ue_context, uint8_t id);
 
 // Retrieve required UE context from the respective hash table
@@ -784,12 +785,12 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context);
 // PDU session related communication to gNB
 int pdu_session_resource_setup_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    smf_context_t*);
+    std::shared_ptr<smf_context_t>);
 void amf_app_handle_resource_setup_response(
     itti_ngap_pdusessionresource_setup_rsp_t session_seup_resp);
 int pdu_session_resource_release_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    smf_context_t* smf_ctx, bool retransmit);
+    std::shared_ptr<smf_context_t> smf_ctx, bool retransmit);
 void amf_app_handle_resource_release_response(
     itti_ngap_pdusessionresource_rel_rsp_t session_rel_resp);
 void amf_app_handle_cm_idle_on_ue_context_release(
@@ -838,7 +839,8 @@ void amf_ue_context_on_new_guti(
 ue_m5gmm_context_s* amf_ue_context_exists_guti(
     amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p);
 void ambr_calculation_pdu_session(
-    smf_context_t* smf_context, uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr);
+    std::shared_ptr<smf_context_t> smf_context, uint64_t* dl_pdu_ambr,
+    uint64_t* ul_pdu_ambr);
 int amf_proc_registration_abort(
     amf_context_t* amf_ctx, struct ue_m5gmm_context_s* ue_amf_context);
 ue_m5gmm_context_s* ue_context_loopkup_by_guti(tmsi_t tmsi_rcv);

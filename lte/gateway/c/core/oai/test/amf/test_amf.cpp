@@ -462,9 +462,9 @@ TEST_F(AmfUeContextTest, test_ue_context_creation) {
 }
 
 TEST_F(AmfUeContextTest, test_smf_context_creation) {
-  smf_context_t* smf_context = nullptr;
-  uint8_t pdu_session_id     = 10;
-  smf_context = amf_insert_smf_context(ue_context, pdu_session_id);
+  std::shared_ptr<smf_context_t> smf_context;
+  uint8_t pdu_session_id = 10;
+  smf_context            = amf_insert_smf_context(ue_context, pdu_session_id);
   EXPECT_TRUE(0 == smf_context->n_active_pdus);
   EXPECT_TRUE(0 == smf_context->pdu_session_version);
 }
