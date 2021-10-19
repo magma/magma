@@ -138,7 +138,7 @@ ue_mm_context_t* mme_create_new_ue_context(void) {
   new_p->implicit_detach_timer.id     = MME_APP_TIMER_INACTIVE_ID;
 
   new_p->initial_context_setup_rsp_timer =
-      (nas_timer_t){MME_APP_TIMER_INACTIVE_ID, mme_config.nas_config.ts6a_msec};
+      (nas_timer_t){MME_APP_TIMER_INACTIVE_ID, mme_config.nas_config.tics_msec};
   new_p->paging_response_timer = (nas_timer_t){
       MME_APP_TIMER_INACTIVE_ID, MME_APP_PAGING_RESPONSE_TIMER_VALUE};
   new_p->ulr_response_timer = (nas_timer_t){MME_APP_TIMER_INACTIVE_ID,
