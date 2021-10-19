@@ -48,12 +48,17 @@ jobs:
           uses: actions/cache@v2
           with:
             path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-            key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}
+            key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
+            restore-keys: |
+              ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+
         - name: Bazel Cache Repo
           uses: actions/cache@v2
           with:
             path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
-            key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}
+            key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
+            restore-keys: |
+              ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
         - name: Bazel Build
           uses: addnab/docker-run-action@v2
           with:
@@ -62,7 +67,7 @@ jobs:
             options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
             run: |
               cd /workspaces/magma
-              bazel build ... --config=devcontainer
+              bazel build ...
         - name: Bazel Test
           if: github.event_name == 'pull_request'
           uses: addnab/docker-run-action@v2
@@ -72,4 +77,18 @@ jobs:
             options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
             run: |
               cd /workspaces/magma
-              bazel test ... --test_output=errors --config=devcontainer
+              bazel test ... --test_output=errors
+        # As GitHub limits its cache to 5GB per repo, we need to clean up the cache
+        # https://github.com/actions/cache/issues/239#issuecomment-606950711
+        - name: Limit cache
+          run: |
+            cache_paths="${{ github.workspace }}/.${{ env.BAZEL_CACHE }} ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}"
+            echo "Cache sizes:"
+            echo "$(du -sch $cache_paths)"
+            total_cache_size=$(du -smc $cache_paths | grep total | cut -f1)
+            if [ "$total_cache_size" -gt 5000 ]; then 
+              echo "Cache size is over the limit: reseting it"
+              rm -rf $cache_paths
+            else
+              echo "Cache size is under the limit: nothing to be done"
+            fi
