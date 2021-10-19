@@ -339,10 +339,15 @@ static void cbresp_convert_bearer_context_to_proto(
   bc->set_id(msg_bc->eps_bearer_id);
   bc->set_cause(msg_bc->cause.cause_value);
   char sgw_s8_up_ip[INET_ADDRSTRLEN];
+  char sgw_s8_up_ipv6[INET6_ADDRSTRLEN];
   inet_ntop(
       AF_INET, &msg_bc->s5_s8_u_sgw_fteid.ipv4_address.s_addr, sgw_s8_up_ip,
       INET_ADDRSTRLEN);
+  inet_ntop(
+      AF_INET6, &msg_bc->s5_s8_u_sgw_fteid.ipv6_address.s6_addr, sgw_s8_up_ipv6,
+      INET6_ADDRSTRLEN);
   bc->mutable_user_plane_fteid()->set_ipv4_address(sgw_s8_up_ip);
+  bc->mutable_user_plane_fteid()->set_ipv6_address(sgw_s8_up_ipv6);
   bc->mutable_user_plane_fteid()->set_teid(msg_bc->s5_s8_u_sgw_fteid.teid);
   convert_qos_to_proto_msg(&msg_bc->bearer_level_qos, bc->mutable_qos());
   OAILOG_FUNC_OUT(LOG_SGW_S8);
@@ -354,10 +359,15 @@ static void convert_bearer_context_to_proto(
   OAILOG_FUNC_IN(LOG_SGW_S8);
   bc->set_id(msg_bc->eps_bearer_id);
   char sgw_s8_up_ip[INET_ADDRSTRLEN];
+  char sgw_s8_up_ipv6[INET6_ADDRSTRLEN];
   inet_ntop(
       AF_INET, &msg_bc->s5_s8_u_sgw_fteid.ipv4_address.s_addr, sgw_s8_up_ip,
       INET_ADDRSTRLEN);
+  inet_ntop(
+      AF_INET6, &msg_bc->s5_s8_u_sgw_fteid.ipv6_address.s6_addr, sgw_s8_up_ipv6,
+      INET6_ADDRSTRLEN);
   bc->mutable_user_plane_fteid()->set_ipv4_address(sgw_s8_up_ip);
+  bc->mutable_user_plane_fteid()->set_ipv6_address(sgw_s8_up_ipv6);
   bc->mutable_user_plane_fteid()->set_teid(msg_bc->s5_s8_u_sgw_fteid.teid);
   convert_qos_to_proto_msg(&msg_bc->bearer_level_qos, bc->mutable_qos());
   OAILOG_FUNC_OUT(LOG_SGW_S8);

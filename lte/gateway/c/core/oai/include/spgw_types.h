@@ -88,6 +88,7 @@ typedef struct sgw_state_s {
   teid_t s1u_teid;
   teid_t s5s8u_teid;
   struct in_addr sgw_ip_address_S1u_S12_S4_up;
+  struct in6_addr sgw_ipv6_address_S1u_S12_S4_up;
   struct in_addr sgw_ip_address_S5S8_up;
   hash_table_ts_t* imsi_ue_context_htbl;
 } sgw_state_t;
@@ -100,6 +101,7 @@ typedef struct spgw_state_s {
   gtpv1u_data_t gtpv1u_data;
   uint32_t gtpv1u_teid;
   struct in_addr sgw_ip_address_S1u_S12_S4_up;
+  struct in6_addr sgw_ipv6_address_S1u_S12_S4_up;
 } spgw_state_t;
 
 void handle_s5_create_session_response(
