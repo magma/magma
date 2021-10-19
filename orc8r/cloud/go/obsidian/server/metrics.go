@@ -36,16 +36,10 @@ var (
 		},
 		[]string{"code", "method"},
 	)
-	errorCount = prometheus.NewCounter(
-		prometheus.CounterOpts{
-			Name: "error_count",
-			Help: "Number of http errors obsidian receives",
-		},
-	)
 )
 
 func init() {
-	prometheus.MustRegister(requestCount, respStatuses, errorCount)
+	prometheus.MustRegister(requestCount, respStatuses)
 }
 
 
@@ -70,10 +64,8 @@ func Logger(next echo.HandlerFunc) echo.HandlerFunc {
 		respStatuses.WithLabelValues(strconv.Itoa(status), c.Request().Method).Inc()
 		if isServerErrCode(status) {
 			glog.Infof("REST HTTP Error: %s, Status: %d", err, status)
-			errorCount.Inc()
 		} else if isHttpErrCode(status) {
 			glog.V(1).Infof("REST HTTP Error: %s, Status: %d", err, status)
-			errorCount.Inc()
 		} else {
 			glog.V(2).Infof(
 				"REST API code: %v, method: %v, url: %v\n",
