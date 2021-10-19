@@ -15,6 +15,7 @@
 #include "intertask_interface.h"
 #include "../../tasks/amf/amf_app_ue_context_and_proc.h"
 #include "mme_config.h"
+#include "amf_authentication.h"
 
 extern "C" {
 #include "dynamic_memory_check.h"
@@ -680,6 +681,56 @@ TEST(test_amf_nas5g_pkt_process, test_amf_security_mode_reject_message_data) {
   EXPECT_EQ(sm_reject.sec_header_type.sec_hdr, (uint8_t) 0x00);
   EXPECT_EQ(sm_reject.message_type.msg_type, SEC_MODE_REJECT);
   EXPECT_EQ(sm_reject.m5gmm_cause.m5gmm_cause, 0x24);
+}
+
+/* Test for delete_wrapper */
+TEST(test_delete_wrapper, test_delete_wrapper) {
+  amf_registration_request_ies_t* req_ies =
+      new (amf_registration_request_ies_t)();
+  uint32_t* generic_type = new uint32_t;
+
+  delete_wrapper(&req_ies);
+  EXPECT_EQ(req_ies, nullptr);
+
+  delete_wrapper(&generic_type);
+  EXPECT_EQ(generic_type, nullptr);
+}
+/*Test for delete specific procedure : Registration Procedure*/
+TEST(test_delete_registration_proc, test_delete_registration_proc) {
+  ue_m5gmm_context_s* ue_ctxt = amf_create_new_ue_context();
+  EXPECT_TRUE(ue_ctxt != nullptr);
+
+  // Specific procedure: Registration Procedure
+  nas_amf_registration_proc_t* reg_proc =
+      nas_new_registration_procedure(ue_ctxt);
+  EXPECT_TRUE(reg_proc != NULL);
+
+  // Child procedures: Authentication Procedure
+  nas5g_amf_auth_proc_t* auth_proc =
+      nas5g_new_authentication_procedure(&ue_ctxt->amf_context);
+  EXPECT_TRUE(auth_proc != NULL);
+  (reinterpret_cast<nas5g_base_proc_t*>(auth_proc))->parent =
+      reinterpret_cast<nas5g_base_proc_t*>(reg_proc);
+
+  // Child procedures: Identity Procedure
+  nas_amf_ident_proc_t* ident_proc =
+      nas5g_new_identification_procedure(&ue_ctxt->amf_context);
+  EXPECT_TRUE(ident_proc != NULL);
+  (reinterpret_cast<nas5g_base_proc_t*>(ident_proc))->parent =
+      reinterpret_cast<nas5g_base_proc_t*>(reg_proc);
+
+  // Child procedures: SMC Procedure
+  nas_amf_smc_proc_t* smc_proc = nas5g_new_smc_procedure(&ue_ctxt->amf_context);
+  EXPECT_TRUE(smc_proc != NULL);
+  (reinterpret_cast<nas5g_base_proc_t*>(smc_proc))->parent =
+      reinterpret_cast<nas5g_base_proc_t*>(reg_proc);
+
+  amf_delete_registration_proc(&ue_ctxt->amf_context);
+  EXPECT_EQ(
+      get_nas_specific_procedure_registration(&ue_ctxt->amf_context), nullptr);
+
+  delete_wrapper(&ue_ctxt->amf_context.amf_procedures);
+  delete ue_ctxt;
 }
 
 int main(int argc, char** argv) {
