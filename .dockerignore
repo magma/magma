@@ -54,3 +54,12 @@
 !protos/
 
 !xwf/gateway/
+
+# bazel files
+!*.bzl
+!*.bazel
+!.bazelrc
+!.bazelignore
+!.bazelversion
+!.bazel-cache
+!.bazel-cache-repo

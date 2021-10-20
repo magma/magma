@@ -15,94 +15,78 @@
 # Builder image for C binaries and Magma proto files
 # -----------------------------------------------------------------------------
 
-# debian stretch image
-# ARG OS_DIST=debian
-# ARG OS_RELEASE=stretch
-# ARG EXTRA_REPO=https://facebookconnectivity.jfrog.io/artifactory/list/dev/
-# ARG CLANG_VERSION=3.8
-
 # ubuntu bionic image
 ARG OS_DIST=ubuntu
 ARG OS_RELEASE=bionic
-ARG EXTRA_REPO=https://facebookconnectivity.jfrog.io/artifactory/cwf-prod
-ARG CLANG_VERSION=3.9
 
 # Stretch is required for c build
 FROM $OS_DIST:$OS_RELEASE AS builder
 ARG OS_DIST
 ARG OS_RELEASE
-ARG EXTRA_REPO
-ARG CLANG_VERSION
 
-# Add the magma apt repo
-RUN apt-get update && \
-    apt-get install -y apt-utils software-properties-common apt-transport-https gnupg
-COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
+ENV TZ=America/New_York \
+    DEBIAN_FRONTEND=noninteractive
 
-RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb ${EXTRA_REPO} ${OS_RELEASE} main"
+RUN apt-get update && apt-get upgrade -y 
 
+RUN apt-get install -y --no-install-recommends \
+        apt-transport-https \
+        apt-utils \
+        build-essential \
+        ca-certificates \
+        curl \
+        gcc \
+        git \
+        gnupg2 \
+        g++ \
+        wget
 
-# Install dependencies required for building
-RUN apt-get -y update && apt-get -y install \
-  sudo \
-  curl \
-  wget \
-  unzip \
-  cmake \
-  git \
-  build-essential \
-  autoconf \
-  libtool \
-  pkg-config \
-  libgflags-dev \
-  libgtest-dev \
-  clang-${CLANG_VERSION} \
-  libc++-dev \
-  protobuf-compiler \
-  grpc-dev \
-  ninja-build \
-  autogen \
-  ccache \
-  libprotoc-dev \
-  libxml2-dev \
-  libxslt-dev \
-  libyaml-cpp-dev \
-  nlohmann-json-dev \
-  magma-cpp-redis \
-  libgoogle-glog-dev \
-  prometheus-cpp-dev \
-  libfolly-dev \
-  magma-libfluid \
-  libdouble-conversion-dev \
-  libboost-chrono-dev \
-  libboost-context-dev \
-  libboost-program-options-dev \
-  libboost-filesystem-dev \
-  libboost-regex-dev
+# Install bazel
+WORKDIR /usr/sbin
+RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
+    chmod +x bazelisk-linux-amd64 && \
+    ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
+
+# Dependencies for rules_folly @ https://github.com/storypku/rules_folly
+RUN apt-get -y install --no-install-recommends \
+    autoconf \
+    automake \
+    libtool \
+    libssl-dev
+
+# Update shared library configuration
+RUN ldconfig -v
 
 ENV MAGMA_ROOT /magma
-ENV C_BUILD /build/c
-ENV OAI_BUILD $C_BUILD/oai
-
-ENV CCACHE_DIR $MAGMA_ROOT/.cache/gateway/ccache
-ENV MAGMA_DEV_MODE 1
-ENV XDG_CACHE_HOME $MAGMA_ROOT/.cache
 
 # Copy proto files
-COPY feg/protos $MAGMA_ROOT/feg/protos
-COPY feg/gateway/services/aaa/protos $MAGMA_ROOT/feg/gateway/services/aaa/protos
-COPY lte/protos $MAGMA_ROOT/lte/protos
-COPY orc8r/protos $MAGMA_ROOT/orc8r/protos
-COPY protos $MAGMA_ROOT/protos
+COPY feg/protos ${MAGMA_ROOT}/feg/protos
+COPY feg/gateway/services/aaa/protos ${MAGMA_ROOT}/feg/gateway/services/aaa/protos
+COPY lte/protos ${MAGMA_ROOT}/lte/protos
+COPY orc8r/protos ${MAGMA_ROOT}/orc8r/protos
+COPY protos ${MAGMA_ROOT}/protos
 
-# Build session_manager c code
-COPY lte/gateway/Makefile $MAGMA_ROOT/lte/gateway/Makefile
-COPY orc8r/gateway/c/common $MAGMA_ROOT/orc8r/gateway/c/common
-COPY lte/gateway/c $MAGMA_ROOT/lte/gateway/c
-ARG BUILD_TYPE=RelWithDebInfo
-ENV BUILD_TYPE=$BUILD_TYPE
-RUN make -C $MAGMA_ROOT/lte/gateway/ build_session_manager BUILD_TYPE="${BUILD_TYPE}"
+# Copy bazel related files
+COPY WORKSPACE.bazel ${MAGMA_ROOT}/WORKSPACE.bazel
+COPY .bazelignore ${MAGMA_ROOT}/
+COPY .bazelrc ${MAGMA_ROOT}/
+COPY .bazelversion ${MAGMA_ROOT}/
+COPY *.bzl ${MAGMA_ROOT}/
+COPY *.bazel ${MAGMA_ROOT}/
+COPY third_party ${MAGMA_ROOT}/third_party
+
+# Mount bazel cache
+COPY .bazel-cache ${MAGMA_ROOT}/
+COPY .bazel-cache-repo ${MAGMA_ROOT}/
+
+# Copy session_manager source code
+COPY orc8r/gateway/c/common ${MAGMA_ROOT}/orc8r/gateway/c/common
+COPY lte/gateway/c ${MAGMA_ROOT}/lte/gateway/c
+
+# Build session_manager
+WORKDIR ${MAGMA_ROOT}
+# Sentry isn't supported on this base image (breakpad will not compile)
+RUN bazel build //lte/gateway/c/session_manager:sessiond --define=disable_sentry_native=1
 
 # -----------------------------------------------------------------------------
 # Dev/Production image
@@ -110,50 +94,9 @@ RUN make -C $MAGMA_ROOT/lte/gateway/ build_session_manager BUILD_TYPE="${BUILD_T
 FROM $OS_DIST:$OS_RELEASE AS gateway_c
 ARG OS_DIST
 ARG OS_RELEASE
-ARG EXTRA_REPO
-
-# Add the magma apt repo
-RUN apt-get update && \
-    apt-get install -y apt-utils software-properties-common apt-transport-https gnupg
-COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
-
-RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb $EXTRA_REPO $OS_RELEASE main"
-
-
-# Install runtime dependencies
-RUN apt-get -y update && apt-get -y install \
-  curl \
-  sudo \
-  # install prometheus
-  prometheus-cpp-dev \
-  # install openvswitch
-  magma-libfluid \
-  # install lxml
-  python3-lxml \
-  bridge-utils \
-  # install yaml parser
-  libyaml-cpp-dev \
-  libgoogle-glog-dev \
-  # folly deps
-  libfolly-dev \
-  libdouble-conversion-dev \
-  libboost-chrono-dev \
-  libboost-context-dev \
-  libboost-program-options-dev \
-  libboost-filesystem-dev \
-  libboost-regex-dev \
-  nlohmann-json-dev \
-  redis-server \
-  python-redis \
-  magma-cpp-redis \
-  grpc-dev \
-  protobuf-compiler \
-  libprotoc-dev \
-  netcat
 
 # Copy the build artifacts.
-COPY --from=builder /build/c/session_manager/sessiond /usr/local/bin/sessiond
+COPY --from=builder /magma/bazel-bin/lte/gateway/c/session_manager/sessiond /usr/local/bin/sessiond
 
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma
