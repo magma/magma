@@ -21,11 +21,11 @@ func NewIndexVersioner(db *sql.DB, builder sqorc.StatementBuilder) IndexVersione
 	return &indexVersionerImpl{db: db, builder: builder}
 }
 
-func (s *indexVersionerImpl) GetIndexerVersions() ([]*indexer.Versions, error) {
+func (i *indexVersionerImpl) GetIndexerVersions() ([]*indexer.Versions, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		return getIndexerVersionsImpl(s.builder, tx)
+		return getIndexerVersionsImpl(i.builder, tx)
 	}
-	txRet, err := sqorc.ExecInTx(s.db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, txFn)
+	txRet, err := sqorc.ExecInTx(i.db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, txFn)
 	if err != nil {
 		return nil, err
 	}
@@ -33,11 +33,11 @@ func (s *indexVersionerImpl) GetIndexerVersions() ([]*indexer.Versions, error) {
 	return ret, nil
 }
 
-func (s *indexVersionerImpl) SetIndexerActualVersion(indexerID string, version indexer.Version) error {
+func (i *indexVersionerImpl) SetIndexerActualVersion(indexerID string, version indexer.Version) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		return nil, setIndexerActualVersionImpl(s.builder, tx, indexerID, version)
+		return nil, setIndexerActualVersionImpl(i.builder, tx, indexerID, version)
 	}
-	_, err := sqorc.ExecInTx(s.db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, txFn)
+	_, err := sqorc.ExecInTx(i.db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, txFn)
 	return err
 }
 
