@@ -2,6 +2,17 @@
 name: agw-workflow
 
 on:  # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      devcontainer_image:
+        description: 'The tag of the devcontainer image that should be used'
+        required: false
+        type: string
+      force_run:
+        description: 'Whether the run should be forced, even if no changes in agw were found'
+        default: false
+        required: false
+        type: boolean
   push:
     branches:
       - master
@@ -18,7 +29,7 @@ jobs:
   path_filter:
     runs-on: ubuntu-latest
     outputs:
-      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+      should_not_skip: ${{ steps.changes.outputs.filesChanged || inputs.force_run }}
     steps:
       # Need to get git on push event
       - uses: actions/checkout@v2
@@ -126,7 +137,7 @@ jobs:
       - name: Run common tests
         uses: addnab/docker-run-action@v2
         with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
+          image: ${{ inputs.devcontainer_image || env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
           run: |
@@ -136,7 +147,7 @@ jobs:
         timeout-minutes: 10
         uses: addnab/docker-run-action@v2
         with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
+          image: ${{ inputs.devcontainer_image || env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
           run: |
@@ -173,7 +184,7 @@ jobs:
       - name: Run common tests
         uses: addnab/docker-run-action@v2
         with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
+          image: ${{ inputs.devcontainer_image || env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
           run: |
@@ -183,7 +194,7 @@ jobs:
         timeout-minutes: 5
         uses: addnab/docker-run-action@v2
         with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
+          image: ${{ inputs.devcontainer_image || env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
           run: |
@@ -221,7 +232,7 @@ jobs:
         timeout-minutes: 5
         uses: addnab/docker-run-action@v2
         with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
+          image: ${{ inputs.devcontainer_image || env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
           run: |
@@ -231,7 +242,7 @@ jobs:
         timeout-minutes: 5
         uses: addnab/docker-run-action@v2
         with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
+          image: ${{ inputs.devcontainer_image || env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
           run: |
@@ -268,7 +279,7 @@ jobs:
       - name: Run common tests
         uses: addnab/docker-run-action@v2
         with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
+          image: ${{ inputs.devcontainer_image || env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
           run: |
@@ -277,7 +288,7 @@ jobs:
       - name: Run sctpd tests with Debug build type
         uses: addnab/docker-run-action@v2
         with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
+          image: ${{ inputs.devcontainer_image || env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
           run: |
@@ -286,7 +297,7 @@ jobs:
       - name: Run sctpd tests with RelWithDebInfo build type
         uses: addnab/docker-run-action@v2
         with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
+          image: ${{ inputs.devcontainer_image || env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
           run: |
@@ -295,7 +306,7 @@ jobs:
       - name: Run mme tests with Debug build type
         uses: addnab/docker-run-action@v2
         with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
+          image: ${{ inputs.devcontainer_image || env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
           run: |
@@ -304,7 +315,7 @@ jobs:
       - name: Run mme tests with RelWithDebInfo build type
         uses: addnab/docker-run-action@v2
         with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
+          image: ${{ inputs.devcontainer_image || env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
           run: |
