@@ -163,7 +163,7 @@ class ProcessorTests(unittest.TestCase):
             gsm=GSMSubscription(state=GSMSubscription.ACTIVE),
             lte=LTESubscription(state=LTESubscription.ACTIVE),
         )
-        sub3 = SubscriberData(sid=SIDUtils.to_pb("IMSI33333"))  # No subscribtion
+        sub3 = SubscriberData(sid=SIDUtils.to_pb("IMSI33333"))  # No subscription
         sub4 = SubscriberData(sid=SIDUtils.to_pb("IMSI44444"), lte=lte_opc, state=state)
         sub5 = SubscriberData(
             sid=SIDUtils.to_pb("IMSI55555"), lte=lte_opc_short, state=state
