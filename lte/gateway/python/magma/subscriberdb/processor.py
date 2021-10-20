@@ -25,10 +25,6 @@ from .crypto.gsm import UnsafePreComputedA3A8
 from .crypto.milenage import Milenage
 from .crypto.utils import CryptoError
 
-import logging
-
-logging.basicConfig(level=logging.INFO)
-
 
 class GSMProcessor(metaclass=abc.ABCMeta):
     """
