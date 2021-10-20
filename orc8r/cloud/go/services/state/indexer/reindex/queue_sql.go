@@ -116,7 +116,7 @@ type sqlJobQueue struct {
 //
 // Only provides Postgres support due to use of the non-standard "FOR UPDATE SKIP LOCKED" clause.
 func NewSQLJobQueue(maxAttempts uint, db *sql.DB, builder sqorc.StatementBuilder) JobQueue {
-	i :=  NewIndexVersioner(db, builder)
+	i := NewIndexVersioner(db, builder)
 	return &sqlJobQueue{maxAttempts: maxAttempts, db: db, builder: builder, IndexVersioner: i}
 }
 

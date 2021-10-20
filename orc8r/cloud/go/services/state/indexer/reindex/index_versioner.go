@@ -13,8 +13,8 @@ import (
 )
 
 type indexVersionerImpl struct {
-	db          *sql.DB
-	builder     sqorc.StatementBuilder
+	db      *sql.DB
+	builder sqorc.StatementBuilder
 }
 
 func NewIndexVersioner(db *sql.DB, builder sqorc.StatementBuilder) IndexVersioner {
