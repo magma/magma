@@ -21,21 +21,17 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+#include "s1ap_mme_itti_messaging.h"
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdint.h>
 #include <mme_app_ue_context.h>
 
 #include "bstrlib.h"
 #include "log.h"
 #include "assertions.h"
 #include "intertask_interface.h"
-#include "s1ap_mme_itti_messaging.h"
 #include "S1ap_CauseRadioNetwork.h"
 #include "nas/as_message.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "s1ap_messages_types.h"
 #include "sctp_messages_types.h"
 
@@ -265,9 +261,6 @@ void s1ap_mme_itti_nas_non_delivery_ind(
   MME_APP_DL_DATA_REJ(message_p).err_code =
       s1ap_mme_non_delivery_cause_2_nas_data_rej_cause(cause);
   MME_APP_DL_DATA_REJ(message_p).nas_msg = blk2bstr(nas_msg, nas_msg_length);
-
-  // should be sent to MME_APP, but this one would forward it to NAS_MME, so
-  // send it directly to NAS_MME but let's see
 
   message_p->ittiMsgHeader.imsi = imsi64;
   send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);

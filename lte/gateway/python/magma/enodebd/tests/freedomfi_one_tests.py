@@ -420,6 +420,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
                 "sas_location": "indoor",
                 "sas_height_type": "AMSL",
             },
+            "sentry_enabled": False,
         }
 
     def build_freedomfi_one_acs_state_machine(self):

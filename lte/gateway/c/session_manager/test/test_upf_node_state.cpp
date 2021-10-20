@@ -128,9 +128,10 @@ TEST_F(SetUPFNodeState, test_upf_session_config) {
      * with SMF latest version
      */
     EXPECT_LE(version, cur_version);
-
+    RulesToProcess pending_activation, pending_deactivation;
     // Sending the session request to UPF
-    session_enforcer->m5g_send_session_request_to_upf(session);
+    session_enforcer->m5g_send_session_request_to_upf(
+        session, pending_activation, pending_deactivation);
 
     // Validating count increment
     auto inc = count++;

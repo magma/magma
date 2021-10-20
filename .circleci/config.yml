@@ -343,6 +343,27 @@ commands:
             # Upload the stripped executable with `unwind`
             sentry-cli upload-dif --log-level=info --org="$SENTRY_ORG" --project="$NATIVE_PROJECT" "$EXEC"
 
+  sentry-create-and-upload-artifacts:
+    parameters:
+      executable_name:
+        description: Name of executable that should be pushed to sentry
+        type: string
+    steps:
+      - sentry-create-artifacts:
+          executable_name: << parameters.executable_name >>
+      - sentry-upload:
+          executable_name: << parameters.executable_name >>
+          project: lab-agws-native
+          org: lf-9c
+      - sentry-upload:
+          executable_name: << parameters.executable_name >>
+          project: radtonics_lab_native
+          org: lf-9c
+      - sentry-upload:
+          executable_name: << parameters.executable_name >>
+          project: magma-staging-native
+          org: lf-9c
+
   sentry-release:
     steps:
       - run: curl -sL https://sentry.io/get-cli/ | bash
@@ -351,26 +372,10 @@ commands:
           command: |
             echo export SENTRY_ENVIRONMENT="staging" >> $BASH_ENV
             echo export SENTRY_ORG="lf-9c" >> $BASH_ENV
-      - sentry-create-artifacts:
+      - sentry-create-and-upload-artifacts:
           executable_name: sessiond
-      - sentry-create-artifacts:
+      - sentry-create-and-upload-artifacts:
           executable_name: mme
-      - sentry-upload:
-          executable_name: sessiond
-          project: lab-agws-native
-          org: lf-9c
-      - sentry-upload:
-          executable_name: mme
-          project: lab-agws-native
-          org: lf-9c
-      - sentry-upload:
-          executable_name: sessiond
-          project: radtonics_lab_native
-          org: lf-9c
-      - sentry-upload:
-          executable_name: mme
-          project: radtonics_lab_native
-          org: lf-9c
       - run:
           name: Create a release in Sentry.io with the commit hash
           command: |
@@ -378,7 +383,7 @@ commands:
             # into /home/circleci/project/circleci in the magma_integ_test step
             COMMIT_HASH_WITH_VERSION=$(cat circleci/magma_version)
             echo ${COMMIT_HASH_WITH_VERSION}
-            sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native ${COMMIT_HASH_WITH_VERSION}
+            sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native -p radtonics_lab_native -p magma-staging-native ${COMMIT_HASH_WITH_VERSION}
             sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${COMMIT_HASH_WITH_VERSION}
             sentry-cli --log-level=info releases finalize ${COMMIT_HASH_WITH_VERSION}
 
@@ -443,6 +448,11 @@ commands:
             mkdir -p versions
             cp *_version versions || true
           no_output_timeout: 20m
+      - run:
+          name: Do not trust expired cert distributed by default
+          command: |
+            sudo sed -i  's,mozilla/DST_Root_CA_X3.crt,!mozilla/DST_Root_CA_X3.crt,' /etc/ca-certificates.conf
+            sudo update-ca-certificates
       - run:
           name: Copy debian packages to new JFROG repo
           command: |
@@ -1423,18 +1433,22 @@ workflows:
     jobs:
       - cwf-integ-test:
           <<: *master_and_develop
-      - xwfm-test:
-          <<: *master_and_develop
 
-  hourly_xwfm:
-    triggers:
-      - schedule:
-          cron: "0 * * * *"
-          <<: *only_master
+      # GH9026: Disabling test until it is fixed
+      # - xwfm-test:
+      #     <<: *master_and_develop
+
+  # GH9026: Disabling test until it is fixed
+  # hourly_xwfm:
+  #   triggers:
+  #     - schedule:
+  #         cron: "0 * * * *"
+  #         <<: *only_master
         
-    jobs:
-      - xwfm-test:
-          notify_magma_ci: false
+  #   jobs:
+  #     - xwfm-test:
+  #         notify_magma_ci: false
+
   weekly_ami_push:
     triggers:
       - schedule:

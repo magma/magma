@@ -52,6 +52,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
     rule_store    = std::make_shared<StaticRuleStore>();
     session_store = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
+    reporter = std::make_shared<MockSessionReporter>();
     std::unordered_multimap<std::string, uint32_t> pdr_map;
     pipelined_client = std::make_shared<MockPipelinedClient>();
     amf_srv_client   = std::make_shared<magma::MockAmfServiceClient>();
@@ -75,7 +76,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
     session_map_ = SessionMap{};
     // creating landing object and invoking contructor
     set_session_manager = std::make_shared<SetMessageManagerHandler>(
-        session_enforcer, *session_store);
+        session_enforcer, *session_store, reporter.get());
   }
   virtual void TearDown() { delete evb; }
 
@@ -178,6 +179,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
   folly::EventBase* evb;
   SessionMap session_map_;
   std::unordered_multimap<std::string, uint32_t> pdr_map_;
+  std::shared_ptr<MockSessionReporter> reporter;
 };  // End of class
 
 TEST_F(SessionManagerHandlerTest, test_SetAmfSessionContext) {
@@ -549,7 +551,9 @@ TEST_F(SessionManagerHandlerTest, test_PDUStateChangeHandling) {
   session_enforcer->m5g_pdr_rules_change_and_update_upf(
       session, magma::PdrState::IDLE);
 
-  session_enforcer->m5g_send_session_request_to_upf(session);
+  RulesToProcess pending_activation, pending_deactivation;
+  session_enforcer->m5g_send_session_request_to_upf(
+      session, pending_activation, pending_deactivation);
 
   /* service_handle_request_on_paging() call flows */
   session_enforcer->m5g_move_to_active_state(session, notif, &session_uc);
@@ -629,6 +633,16 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
   cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
       SSC_MODE_3);
 
+  cfg.rat_specific_context.mutable_m5gsm_session_context()
+      ->mutable_default_ambr()
+      ->set_br_unit(AggregatedMaximumBitrate::KBPS);
+  cfg.rat_specific_context.mutable_m5gsm_session_context()
+      ->mutable_default_ambr()
+      ->set_max_bandwidth_ul(1024);
+  cfg.rat_specific_context.mutable_m5gsm_session_context()
+      ->mutable_default_ambr()
+      ->set_max_bandwidth_dl(1024);
+
   SessionUpdate session_update =
       SessionStore::get_default_session_update(session_map);
   uint32_t pdu_id = 5;
@@ -639,6 +653,7 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
   SessionStateUpdateCriteria& session_uc = session_update[IMSI2][session_id];
   SetSmNotificationContext notif;
   std::string imsi;
+  session->set_config(cfg, &session_uc);
 
   magma::SetSMSessionContextAccess expected_response;
 

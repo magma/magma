@@ -38,7 +38,6 @@ MODULES = [
     'lte',
     'feg',
     'cwf',
-    'wifi',
     'fbinternal',
 ]
 
@@ -52,8 +51,6 @@ DEPLOYMENT_TO_MODULES = {
     'ffwa-f': ['orc8r', 'lte', 'feg', 'fbinternal'],
     'cwf': ['orc8r', 'lte', 'feg', 'cwf'],
     'cwf-f': ['orc8r', 'lte', 'feg', 'cwf', 'fbinternal'],
-    'wifi': ['orc8r', 'wifi'],
-    'wifi-f': ['orc8r', 'wifi', 'fbinternal'],
 }
 
 DEPLOYMENTS = DEPLOYMENT_TO_MODULES.keys()

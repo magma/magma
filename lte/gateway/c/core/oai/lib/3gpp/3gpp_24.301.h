@@ -366,6 +366,7 @@ typedef struct nr_ue_security_capability_s {
 #define T3450_DEFAULT_VALUE 6
 #define T3460_DEFAULT_VALUE 6
 #define T3470_DEFAULT_VALUE 6
+#define TS6A_DEFAULT_VALUE 3
 
 //------------------------------------------------------------------------------
 // 10.3 Timers of EPS session management

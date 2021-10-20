@@ -42,6 +42,7 @@ from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 from scapy.arch import get_if_addr, get_if_hwaddr
 from scapy.data import ETH_P_ALL, ETHER_BROADCAST
 from scapy.error import Scapy_Exception
+from scapy.layers.inet6 import getmacbyip6
 from scapy.layers.l2 import ARP, Dot1Q, Ether
 from scapy.sendrecv import srp1
 
@@ -255,7 +256,10 @@ class InOutController(RestartMixin, MagmaController):
             )
         return msgs
 
-    def _get_default_egress_flow_msgs(self, dp, mac_addr: str = "", vlan: str = ""):
+    def _get_default_egress_flow_msgs(
+        self, dp, mac_addr: str = "", vlan: str = "",
+        ipv6: bool = False,
+    ):
         """
         Egress table is the last table that a packet touches in the pipeline.
         Output downlink traffic to gtp port, uplink trafic to LOCAL
@@ -287,7 +291,12 @@ class InOutController(RestartMixin, MagmaController):
                 ),
             )
 
-        if vlan.isdigit():
+        if ipv6:
+            uplink_match = MagmaMatch(
+                eth_type=ether_types.ETH_TYPE_IPV6,
+                direction=Direction.OUT,
+            )
+        elif vlan.isdigit():
             vid = 0x1000 | int(vlan)
             uplink_match = MagmaMatch(
                 direction=Direction.OUT,
@@ -295,7 +304,6 @@ class InOutController(RestartMixin, MagmaController):
             )
         else:
             uplink_match = MagmaMatch(direction=Direction.OUT)
-
         actions = []
         # avoid resetting mac address on switch connect event.
         if mac_addr == "":
@@ -312,7 +320,8 @@ class InOutController(RestartMixin, MagmaController):
                     value=mac_addr,
                 ),
             )
-            if self._current_upstream_mac_map.get(vlan, "") != mac_addr:
+            upstream_mac_key = vlan + '_' + str(ipv6)
+            if self._current_upstream_mac_map.get(upstream_mac_key, "") != mac_addr:
                 self.logger.info(
                     "Using GW: mac: %s match %s actions: %s",
                     mac_addr,
@@ -320,7 +329,7 @@ class InOutController(RestartMixin, MagmaController):
                     str(actions),
                 )
 
-                self._current_upstream_mac_map[vlan] = mac_addr
+                self._current_upstream_mac_map[upstream_mac_key] = mac_addr
 
         if vlan.isdigit():
             priority = flows.UE_FLOW_PRIORITY
@@ -329,12 +338,17 @@ class InOutController(RestartMixin, MagmaController):
         else:
             priority = flows.MINIMUM_PRIORITY
 
+        if ipv6:
+            # IPV6 flows would have higher priority than all IPv4
+            priority += flows.UE_FLOW_PRIORITY
+
         msgs.append(
             flows.get_add_output_flow_msg(
                 dp, self._egress_tbl_num, uplink_match, priority=priority,
                 actions=actions, output_port=self.config.uplink_port,
             ),
         )
+
         return msgs
 
     def _get_default_ingress_flow_msgs(self, dp):
@@ -460,7 +474,7 @@ class InOutController(RestartMixin, MagmaController):
 
         return msgs
 
-    def _get_gw_mac_address(self, ip: IPAddress, vlan: str = "") -> str:
+    def _get_gw_mac_address_v4(self, ip: IPAddress, vlan: str = "") -> str:
         try:
             gw_ip = ipaddress.ip_address(ip.address)
             self.logger.debug(
@@ -525,21 +539,52 @@ class InOutController(RestartMixin, MagmaController):
             )
             return ""
 
+    def _get_gw_mac_address_v6(self, ip: IPAddress) -> str:
+        try:
+            gw_ip = ipaddress.ip_address(ip.address)
+            mac = getmacbyip6(str(gw_ip))
+            self.logger.debug("Got mac %s for IP: %s", mac, gw_ip)
+            return mac
+
+        except Scapy_Exception as ex:
+            self.logger.warning("Error in probing Mac address: err %s", ex)
+            return ""
+        except ValueError:
+            self.logger.warning(
+                "Invalid GW Ip address: [%s]",
+                str(ip),
+            )
+            return ""
+
+    def _get_gw_mac_address(self, ip: IPAddress, vlan: str = "") -> str:
+        if ip.version == IPAddress.IPV4:
+            return self._get_gw_mac_address_v4(ip, vlan)
+        if ip.version == IPAddress.IPV6:
+            if vlan == "NO_VLAN":
+                return self._get_gw_mac_address_v6(ip)
+            else:
+                gw_ip = ipaddress.ip_address(ip.address)
+                self.logger.error("Not supported: GW IPv6: %s over vlan %d", str(gw_ip), vlan)
+                return None
+
     def _monitor_and_update(self):
         while True:
             gw_info_list = get_mobilityd_gw_info()
             for gw_info in gw_info_list:
                 if gw_info and gw_info.ip:
                     latest_mac_addr = self._get_gw_mac_address(gw_info.ip, gw_info.vlan)
+                    if latest_mac_addr is None:
+                        continue
                     self.logger.debug("mac [%s] for vlan %s", latest_mac_addr, gw_info.vlan)
                     if latest_mac_addr == "":
                         latest_mac_addr = gw_info.mac
-
                     msgs = self._get_default_egress_flow_msgs(
                         self._datapath,
                         latest_mac_addr,
                         gw_info.vlan,
+                        ipv6=(gw_info.ip.version == IPAddress.IPV6),
                     )
+
                     chan = self._msg_hub.send(msgs, self._datapath)
                     self._wait_for_responses(chan, len(msgs))
 

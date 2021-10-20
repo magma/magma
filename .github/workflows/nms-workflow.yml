@@ -12,18 +12,21 @@ on:  # yamllint disable-line rule:truthy
 jobs:
   path_filter:
     runs-on: ubuntu-latest
-    # Map a step output to a job output
     outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@master
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
         with:
-          # Only run the main job for changes including the following paths
-          paths: '["nms/**"]'
+          filters: |
+            filesChanged:
+              - [".github/workflows/nms-workflow.yml", "nms/**"]
   nms-flow-test:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: nms-flow-test job
     runs-on: ubuntu-latest
     env:
@@ -57,7 +60,7 @@ jobs:
           SLACK_FOOTER: ' '
   nms-eslint:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: nms-eslint job
     runs-on: ubuntu-latest
     env:
@@ -88,10 +91,8 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
   nms-yarn-test:
-    needs:
-      - path_filter
-      - nms-flow-test
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: nms-yarn-test job
     runs-on: ubuntu-latest
     env:
@@ -120,12 +121,8 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
   nms-e2e-test:
-    needs:
-      - path_filter
-      - nms-flow-test
-      - nms-eslint
-      - nms-yarn-test
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: nms-e2e-test job
     runs-on: ubuntu-latest
     env:
@@ -190,7 +187,7 @@ jobs:
       - nms-eslint
       - nms-yarn-test
       - nms-e2e-test
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: nms-build job
     runs-on: ubuntu-latest
     env:

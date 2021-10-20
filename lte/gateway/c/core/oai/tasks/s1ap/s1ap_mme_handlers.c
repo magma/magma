@@ -28,7 +28,6 @@
 #include <stdint.h>
 #include <netinet/in.h>
 #include <string.h>
-#include <sys/types.h>
 
 #include "bstrlib.h"
 #include "hashtable.h"
@@ -47,7 +46,6 @@
 #include "s1ap_mme_handlers.h"
 #include "mme_events.h"
 #include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
 #include "3gpp_36.401.h"
 #include "3gpp_36.413.h"
 #include "BIT_STRING.h"
@@ -93,7 +91,6 @@
 #include "asn_SEQUENCE_OF.h"
 #include "common_defs.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "mme_app_messages_types.h"
 #include "includes/MetricsHelpers.h"
 #include "s1ap_state.h"
@@ -349,7 +346,7 @@ status_code_e s1ap_mme_generate_s1_setup_failure(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  bstring b = blk2bstr(buffer_p, length);
+  bstring b = blk2bstr(buffer_p, (int) length);
   free(buffer_p);
   rc = s1ap_mme_itti_send_sctp_request(&b, assoc_id, 0, INVALID_MME_UE_S1AP_ID);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
@@ -1341,6 +1338,9 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
       cause_value = S1ap_CauseRadioNetwork_load_balancing_tau_required;
       break;
     default:
+      // Freeing ie and pdu data since it will not be encoded
+      free_wrapper((void**) &ie);
+      ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu);
       OAILOG_ERROR_UE(LOG_S1AP, imsi64, "Unknown cause for context release");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
@@ -3124,8 +3124,8 @@ status_code_e s1ap_mme_handle_handover_notify(
 
     new_ue_ref_p->s1ap_ue_context_rel_timer.id =
         src_ue_ref_p->s1ap_ue_context_rel_timer.id;
-    new_ue_ref_p->s1ap_ue_context_rel_timer.sec =
-        src_ue_ref_p->s1ap_ue_context_rel_timer.sec;
+    new_ue_ref_p->s1ap_ue_context_rel_timer.msec =
+        src_ue_ref_p->s1ap_ue_context_rel_timer.msec;
     new_ue_ref_p->sctp_stream_recv =
         src_ue_ref_p->s1ap_handover_state.target_sctp_stream_recv;
     new_ue_ref_p->sctp_stream_send =
@@ -3389,8 +3389,8 @@ status_code_e s1ap_mme_handle_path_switch_request(
 
     new_ue_ref_p->s1ap_ue_context_rel_timer.id =
         ue_ref_p->s1ap_ue_context_rel_timer.id;
-    new_ue_ref_p->s1ap_ue_context_rel_timer.sec =
-        ue_ref_p->s1ap_ue_context_rel_timer.sec;
+    new_ue_ref_p->s1ap_ue_context_rel_timer.msec =
+        ue_ref_p->s1ap_ue_context_rel_timer.msec;
     // On which stream we received the message
     new_ue_ref_p->sctp_stream_recv = stream;
     new_ue_ref_p->sctp_stream_send = enb_association->next_sctp_stream;

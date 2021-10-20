@@ -20,3 +20,6 @@ collect_interval: 10
 ebpf_programs:
   ~
 #  - byte_count
+
+# [Experimental] Enable Sentry for this service
+sentry_enabled: false

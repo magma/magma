@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+//go:generate bash -c "mockery --name=Indexer --note='Run ./build --generate at Orc8r to re-generate'"
 package indexer
 
 import (
@@ -57,9 +58,8 @@ type Indexer interface {
 	// Index updates secondary indices based on the added/updated states.
 	Index(networkID string, states state_types.SerializedStatesByID) (state_types.StateErrors, error)
 
-	// TODO(4/10/20): consider adding support for removing states from an indexer
-	// IndexRemove updates secondary indices based on the removed states.
-	//IndexRemove(states state_types.SerializedStatesByID) (state_types.StateErrors, error)
+	// IndexRemove removes secondary indices based on the deleted states.
+	DeIndex(networkID string, states state_types.SerializedStatesByID) (state_types.StateErrors, error)
 }
 
 // Version of the indexer. Capped to uint32 to fit into Postgres/Maria integer (int32).

@@ -107,6 +107,31 @@ func (r *remoteIndexer) Index(networkID string, states state_types.SerializedSta
 	return state_types.MakeStateErrors(res.StateErrors), nil
 }
 
+func (r *remoteIndexer) DeIndex(networkID string, states state_types.SerializedStatesByID) (state_types.StateErrors, error) {
+	if len(states) == 0 {
+		return nil, nil
+	}
+
+	c, err := r.getIndexerClient()
+	if err != nil {
+		return nil, err
+	}
+
+	pStates, err := state_types.MakeProtoStates(states)
+	if err != nil {
+		return nil, err
+	}
+	res, err := c.DeIndex(context.Background(), &state_protos.DeIndexRequest{
+		States:    pStates,
+		NetworkId: networkID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return state_types.MakeStateErrors(res.StateErrors), nil
+}
+
 func (r *remoteIndexer) getIndexerClient() (state_protos.IndexerClient, error) {
 	conn, err := registry.GetConnection(r.service)
 	if err != nil {

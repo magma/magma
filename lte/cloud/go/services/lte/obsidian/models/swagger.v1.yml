@@ -2030,6 +2030,16 @@ definitions:
         description: IP address of gateway for management interface on the AGW
         minLength: 5
         maxLength: 49
+      sgi_management_iface_ipv6_addr:
+        description: IPv6 address for management interface on the AGW in CIDR format
+        type: string
+        format: ipv6
+        example: '2001:4860:4860:0:0:0:0:8888/64'
+      sgi_management_iface_ipv6_gw:
+        description: IPv6 address of gateway for management interface on the AGW
+        type: string
+        format: ipv6
+        example: '2001:4860:4860:0:0:0:0:1'
       congestion_control_enabled:
         description: Flag to enable or disable congestion control on MME
         type: boolean
@@ -2429,6 +2439,15 @@ definitions:
         $ref: '#/definitions/aggregated_maximum_bitrate'
       qos_profile:
         $ref: '#/definitions/qos_profile'
+      pdn_type:
+        type: integer
+        format: uint32
+        enum:
+          - 0
+          - 1
+          - 2
+          - 3
+        description: Value identifier for PDN type (0=IPv4 1=IPv6 2=IPv4v6 3=IPv4orv6)
 
   apn_name:
     type: string

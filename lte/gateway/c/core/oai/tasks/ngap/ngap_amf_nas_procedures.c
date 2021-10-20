@@ -130,8 +130,9 @@ status_code_e ngap_amf_handle_initial_ue_message(
     // Will be allocated by NAS
     ue_ref->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
 
-    ue_ref->ngap_ue_context_rel_timer.id  = NGAP_TIMER_INACTIVE_ID;
-    ue_ref->ngap_ue_context_rel_timer.sec = NGAP_UE_CONTEXT_REL_COMP_TIMER;
+    ue_ref->ngap_ue_context_rel_timer.id = NGAP_TIMER_INACTIVE_ID;
+    ue_ref->ngap_ue_context_rel_timer.msec =
+        1000 * NGAP_UE_CONTEXT_REL_COMP_TIMER;
 
     // On which stream we received the message
     ue_ref->sctp_stream_recv = stream;
@@ -1009,7 +1010,7 @@ int ngap_fill_pdu_session_resource_setup_request_transfer(
 
     asn_uint642INTEGER(
         &PDUSessionAggregateMaximumBitRate->pDUSessionAggregateMaximumBitRateUL,
-        session_transfer->pdu_aggregate_max_bit_rate.dl);
+        session_transfer->pdu_aggregate_max_bit_rate.ul);
     asn_uint642INTEGER(
         &PDUSessionAggregateMaximumBitRate->pDUSessionAggregateMaximumBitRateDL,
         session_transfer->pdu_aggregate_max_bit_rate.dl);

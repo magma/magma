@@ -173,13 +173,14 @@ typedef enum {
   RAT_GAN            = 1002,
   RAT_HSPA_EVOLUTION = 1003,
   RAT_EUTRAN         = 1004,
+  RAT_NG_RAN         = 1006,
   RAT_CDMA2000_1X    = 2000,
   RAT_HRPD           = 2001,
   RAT_UMB            = 2002,
   RAT_EHRPD          = 2003,
 } rat_type_t;
 
-#define NUMBER_OF_RAT_TYPE 11
+#define NUMBER_OF_RAT_TYPE 12
 
 typedef enum {
   SS_SERVICE_GRANTED             = 0,
