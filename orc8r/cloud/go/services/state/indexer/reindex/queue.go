@@ -74,6 +74,10 @@ type JobQueue interface {
 	// A job info only includes an error when its job has been attempted at least the max number of attempts.
 	GetJobInfos() (map[string]JobInfo, error)
 
+	IndexVersioner
+}
+
+type IndexVersioner interface {
 	// GetIndexerVersions returns version info for all tracked indexers, keyed by indexer ID.
 	// Intended for use when automatic reindexing is disabled.
 	GetIndexerVersions() ([]*indexer.Versions, error)
@@ -141,8 +145,8 @@ func GetStatuses(queue JobQueue) (map[string]Status, error) {
 
 // GetIndexerVersion gets the tracked indexer versions for an indexer ID.
 // Returns nil if not found.
-func GetIndexerVersion(queue JobQueue, indexerID string) (*indexer.Versions, error) {
-	versions, err := queue.GetIndexerVersions()
+func GetIndexerVersion(versioner IndexVersioner, indexerID string) (*indexer.Versions, error) {
+	versions, err := versioner.GetIndexerVersions()
 	if err != nil {
 		return nil, err
 	}
