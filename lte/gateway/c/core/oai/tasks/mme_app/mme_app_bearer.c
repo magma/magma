@@ -1194,6 +1194,17 @@ status_code_e mme_app_handle_create_sess_resp(
               create_sess_resp_pP->paa.ipv4_address.s_addr,
               ue_context_p->emm_context._imsi64);
         }
+
+	else{
+	OAILOG_DEBUG_UE(
+              LOG_MME_APP, ue_context_p->emm_context._imsi64,
+              " ipv6 address received in create session response is :%x \n",
+              create_sess_resp_pP->paa.ipv6_address.__in6_u);
+          mme_app_insert_ue_ipv6_addr(
+              create_sess_resp_pP->paa.ipv6_address,
+              ue_context_p->emm_context._imsi64);
+	
+	}	
       }
       transaction_identifier = current_bearer_p->transaction_identifier;
     }
@@ -2260,7 +2271,7 @@ if(paging_req->address.ipv4_addr.sin_addr.s_addr == 0){
 if(paging_req->address.ipv4_addr.sin_addr.s_addr == 0)
 {
     int num_imsis_ipv6 =
-      mme_app_get_imsi_from_ipv6(paging_req->address.ipv6_addr, &imsi_list);
+      mme_app_get_imsi_from_ipv6(paging_req->address.ipv6_addr.sin6_addr, &imsi_list);
   if (!(num_imsis_ipv6)) {
     OAILOG_ERROR(
         LOG_MME_APP, "Failed to fetch imsi from ue_ipv6:%x \n",

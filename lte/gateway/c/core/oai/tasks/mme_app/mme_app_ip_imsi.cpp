@@ -61,6 +61,33 @@ int mme_app_insert_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
+
+/* Description: ue_ip address is allocated by either roaming PGWs or mobilityd
+ * So there is possibility to allocate same ue ip address for different UEs.
+ * So defining ue_ip_imsi map with key as ue_ip and value as list of imsis
+ * having same ue_ip
+ */
+int mme_app_insert_ue_ipv6_addr(in6_addr ipv6_addr, imsi64_t imsi64) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  UeIpImsiMap& ueip_imsi_map =
+      MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
+  char ipv6[INET6_ADDRSTRLEN] = {0};
+  inet_ntop(AF_INET, (void*) &ipv6_addr, ipv6, INET6_ADDRSTRLEN);
+  auto itr_map = ueip_imsi_map.find(ipv6);
+  if (itr_map == ueip_imsi_map.end()) {
+    std::vector<uint64_t> vec = {imsi64};
+    ueip_imsi_map[ipv6]       = vec;
+    OAILOG_DEBUG_UE(LOG_MME_APP, imsi64, "Inserting ue_ipv6:%x \n", ipv6_addr);
+  } else {
+    OAILOG_DEBUG_UE(
+        LOG_MME_APP, imsi64, "Inserting imsi for existing ue_ipv6:%x \n",
+        ipv6_addr);
+    ueip_imsi_map[ipv6].push_back(imsi64);
+  }
+  MmeNasStateManager::getInstance().write_mme_ueip_imsi_map_to_db();
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+}
+
 /* Description: The function shall provide list of imsis allocated for
  * ue ip address; Imsi list is dynamically created and filled with imsis
  * The caller of function needs to free the memory allocated for imsi list
@@ -96,13 +123,13 @@ int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list) {
  * ue ipv6 address; Imsi list is dynamically created and filled with imsis
  * The caller of function needs to free the memory allocated for imsi list
  */
-int mme_app_get_imsi_from_ipv6(sockaddr_in6 ipv6_addr, imsi64_t** imsi_list) {
+int mme_app_get_imsi_from_ipv6(in6_addr ipv6_addr, imsi64_t** imsi_list) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   UeIpImsiMap& ueip_imsi_map =
       MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
   int num_imsis_ipv6              = 0;
   char ipv6[INET6_ADDRSTRLEN] = {0};
-  inet_ntop(AF_INET6, (void*) &ipv6_addr.sin6_addr, ipv6, INET6_ADDRSTRLEN);
+  inet_ntop(AF_INET6, (void*) &ipv6_addr, ipv6, INET6_ADDRSTRLEN);
   auto itr_map = ueip_imsi_map.find(ipv6);
   OAILOG_DEBUG(
       LOG_MME_APP, "pagingipv6:%x \n",
