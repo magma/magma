@@ -33,7 +33,6 @@ struct bStream;
 
 #define BSTR_ERR (-1)
 #define BSTR_OK (0)
-#define BSTR_BS_BUFF_LENGTH_GET (0)
 
 typedef struct tagbstring* bstring;
 typedef const struct tagbstring* const_bstring;
@@ -49,7 +48,6 @@ extern int bcstrfree(char* s);
 extern bstring bstrcpy(const_bstring b1);
 extern int bassign(bstring a, const_bstring b);
 extern int bassigncstr(bstring a, const char* str);
-extern int bassignblk(bstring a, const void* s, int len);
 
 /* Destroy function */
 extern int bdestroy(bstring b);
@@ -75,19 +73,12 @@ extern int bsetstr(bstring b0, int pos, const_bstring b1, unsigned char fill);
 extern int btrunc(bstring b, int n);
 
 /* Scan/search functions */
-extern int bstricmp(const_bstring b0, const_bstring b1);
-extern int bstrnicmp(const_bstring b0, const_bstring b1, int n);
 extern int biseqcaselessblk(const_bstring b, const void* blk, int len);
-extern int bisstemeqcaselessblk(const_bstring b0, const void* blk, int len);
-extern int biseqblk(const_bstring b, const void* blk, int len);
-extern int bisstemeqblk(const_bstring b0, const void* blk, int len);
 extern int biseqcstrcaseless(const_bstring b, const char* s);
 extern int binstr(const_bstring s1, int pos, const_bstring s2);
 extern int bstrchrp(const_bstring b, int c, int pos);
 #define bstrchr(b, c) bstrchrp((b), (c), 0)
 extern int binchr(const_bstring b0, int pos, const_bstring b1);
-extern int bfindreplace(
-    bstring b, const_bstring find, const_bstring repl, int pos);
 
 /* List of string container functions */
 struct bstrList {
@@ -98,15 +89,11 @@ extern int bstrListDestroy(struct bstrList* sl);
 
 /* String split and join functions */
 extern struct bstrList* bsplit(const_bstring str, unsigned char splitChar);
-extern bstring bjoinblk(const struct bstrList* bl, const void* s, int len);
 extern int bsplitcb(
     const_bstring str, unsigned char splitChar, int pos,
     int (*cb)(void* parm, int ofs, int len), void* parm);
 
 /* Miscellaneous functions */
-extern int bpattern(bstring b, int len);
-extern int btoupper(bstring b);
-extern int btolower(bstring b);
 extern int btrimws(bstring b);
 
 #if !defined(BSTRLIB_NOVSNP)
@@ -125,12 +112,6 @@ extern bstring bread(bNread readPtr, void* parm);
 extern int breada(bstring b, bNread readPtr, void* parm);
 
 /* Stream functions */
-extern struct bStream* bsopen(bNread readPtr, void* parm);
-extern void* bsclose(struct bStream* s);
-extern int bsbufflength(struct bStream* s, int sz);
-extern int bsread(bstring b, struct bStream* s, int n);
-extern int bsreada(bstring b, struct bStream* s, int n);
-extern int bsunread(struct bStream* s, const_bstring b);
 
 struct tagbstring {
   int mlen;
@@ -161,45 +142,6 @@ struct tagbstring {
 #ifndef bsStatic
 #define bsStatic(q) bsStaticMlen(q, -__LINE__)
 #endif
-
-/* Static constant block parameter pair */
-#define bsStaticBlkParms(q) ((void*) ("" q "")), ((int) sizeof(q) - 1)
-
-#define bcatStatic(b, s) ((bcatblk)((b), bsStaticBlkParms(s)))
-#define bfromStatic(s) ((blk2bstr)(bsStaticBlkParms(s)))
-
-/* Reference building macros */
-#define blk2tbstr(t, s, l)                                                     \
-  {                                                                            \
-    (t).data = (unsigned char*) (s);                                           \
-    (t).slen = l;                                                              \
-    (t).mlen = -1;                                                             \
-  }
-#define bmid2tbstr(t, b, p, l)                                                 \
-  {                                                                            \
-    const_bstring bstrtmp_s = (b);                                             \
-    if (bstrtmp_s && bstrtmp_s->data && bstrtmp_s->slen >= 0) {                \
-      int bstrtmp_left = (p);                                                  \
-      int bstrtmp_len  = (l);                                                  \
-      if (bstrtmp_left < 0) {                                                  \
-        bstrtmp_len += bstrtmp_left;                                           \
-        bstrtmp_left = 0;                                                      \
-      }                                                                        \
-      if (bstrtmp_len > bstrtmp_s->slen - bstrtmp_left)                        \
-        bstrtmp_len = bstrtmp_s->slen - bstrtmp_left;                          \
-      if (bstrtmp_len <= 0) {                                                  \
-        (t).data = (unsigned char*) "";                                        \
-        (t).slen = 0;                                                          \
-      } else {                                                                 \
-        (t).data = bstrtmp_s->data + bstrtmp_left;                             \
-        (t).slen = bstrtmp_len;                                                \
-      }                                                                        \
-    } else {                                                                   \
-      (t).data = (unsigned char*) "";                                          \
-      (t).slen = 0;                                                            \
-    }                                                                          \
-    (t).mlen = -__LINE__;                                                      \
-  }
 
 #ifdef __cplusplus
 }
