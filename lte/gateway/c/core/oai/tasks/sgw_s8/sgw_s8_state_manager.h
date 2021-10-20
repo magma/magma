@@ -61,6 +61,7 @@ class SgwStateManager : public StateManager<
   SgwStateManager(SgwStateManager const&) = delete;
   SgwStateManager& operator=(SgwStateManager const&) = delete;
 
+  sgw_state_t* get_state(bool read_from_db) override;
   /**
    * Frees all memory allocated on sgw_state_t.
    */

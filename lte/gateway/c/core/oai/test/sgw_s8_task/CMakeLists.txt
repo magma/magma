@@ -16,6 +16,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include_directories("${PROJECT_SOURCE_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}/tasks/sgw_s8")
 
+include_directories("/usr/src/googletest/googlemock/include/")
+link_directories(/usr/src/googletest/googlemock/lib/)
+
 set(SGW_S8_TEST_CONFIG_SRC
     sgw_s8_test.cpp
     sgw_s8_utility.cpp
@@ -28,7 +31,7 @@ add_executable(sgw_s8_test ${SGW_S8_TEST_CONFIG_SRC})
 target_link_libraries(sgw_s8_test
     LIB_S8_PROXY
     ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
-    TASK_SGW_S8
+    TASK_SGW_S8 LIB_BSTR LIB_ITTI MOCK_TASKS TASK_GRPC_SERVICE
     gtest gtest_main
     )
 

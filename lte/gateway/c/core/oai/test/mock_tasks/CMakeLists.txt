@@ -15,6 +15,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include_directories("/usr/src/googletest/googlemock/include/")
 link_directories(/usr/src/googletest/googlemock/lib/)
+include_directories("${MAGMA_ROOT}/lte/gateway/c/core/oai/")
+include_directories("${PROJECT_BINARY_DIR}/tasks/grpc_service/")
 
 add_library(MOCK_TASKS
     ha_mock.cpp
@@ -28,6 +30,7 @@ add_library(MOCK_TASKS
     sms_orc8r_mock.cpp
     mme_app_mock.cpp
     sctp_mock.cpp
+    grpc_mock.cpp
 )
 
 target_link_libraries(MOCK_TASKS

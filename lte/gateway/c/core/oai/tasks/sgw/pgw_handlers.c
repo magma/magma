@@ -61,6 +61,7 @@
 #include "spgw_types.h"
 #include "conversions.h"
 
+extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern spgw_config_t spgw_config;
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 
@@ -566,7 +567,15 @@ int sgw_build_and_send_s11_create_bearer_request(
       module, sgw_eps_bearer_context_information->imsi64,
       "Sending S11 Create Bearer Request to MME_APP for LBI %d \n",
       bearer_req_p->lbi);
-  rc = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
+  if (module == LOG_SPGW_APP) {
+    rc = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
+  } else if (module == LOG_SGW_S8) {
+    rc = send_msg_to_task(&sgw_s8_task_zmq_ctx, TASK_MME_APP, message_p);
+  } else {
+    OAILOG_ERROR_UE(
+        module, sgw_eps_bearer_context_information->imsi64,
+        "Invalid module \n");
+  }
   OAILOG_FUNC_RETURN(module, rc);
 }
 

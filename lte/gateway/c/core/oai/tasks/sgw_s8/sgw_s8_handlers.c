@@ -1370,7 +1370,7 @@ void sgw_s8_proc_s11_create_bearer_rsp(
               eps_bearer_ctxt_p->eps_bearer_id,
               eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr,
               eps_bearer_ctxt_p->enb_teid_S1u);
-
+#if !MME_UNIT_TEST
           if (sgw_s8_add_gtp_up_tunnel(eps_bearer_ctxt_p, sgw_context_p) ==
               RETURNerror) {
             OAILOG_ERROR_UE(
@@ -1380,6 +1380,7 @@ void sgw_s8_proc_s11_create_bearer_rsp(
                 eps_bearer_ctxt_p->eps_bearer_id);
             bc_cbrsp->cause.cause_value = REQUEST_REJECTED;
           }
+#endif
           bc_cbrsp->cause.cause_value = REQUEST_ACCEPTED;
         }
       }

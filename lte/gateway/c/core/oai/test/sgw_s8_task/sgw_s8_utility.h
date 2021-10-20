@@ -15,6 +15,7 @@
 #include <string>
 #include "sgw_s8_state_manager.h"
 #include "sgw_s8_state.h"
+#include "../mock_tasks/mock_tasks.h"
 
 extern "C" {
 #include "log.h"
@@ -27,6 +28,7 @@ extern "C" {
 #include "dynamic_memory_check.h"
 #include "sgw_context_manager.h"
 #include "gtpv1u.h"
+#include "sgw_s8_defs.h"
 }
 
 void fill_imsi(char* imsi);
@@ -58,25 +60,8 @@ class SgwS8Config : public ::testing::Test {
       reinterpret_cast<sgw_config_t*>(calloc(1, sizeof(sgw_config_t)));
   uint64_t imsi64               = 1010000000001;
   uint8_t default_eps_bearer_id = 5;
-  virtual void SetUp() {
-    config->itti_config.queue_size     = 0;
-    std::string file_string            = "/var/opt/magma/tmp/spgw.conf";
-    config->itti_config.log_file       = bfromcstr(file_string.c_str());
-    std::string s1u_if_name            = "eth1";
-    config->ipv4.if_name_S1u_S12_S4_up = bfromcstr(s1u_if_name.c_str());
-    config->ipv4.S1u_S12_S4_up.s_addr  = 0x8e3ca8c0;
-    config->ipv4.netmask_S1u_S12_S4_up = 24;
-    std::string s5s8u_if_name          = "eth0";
-    config->ipv4.if_name_S5_S8_up      = bfromcstr(s5s8u_if_name.c_str());
-    config->ipv4.S5_S8_up.s_addr       = 0xf02000a;
-    config->ipv4.netmask_S5_S8_up      = 24;
-    std::string s11                    = "lo";
-    config->ipv4.if_name_S11           = bfromcstr(s11.c_str());
-    config->ipv4.S11.s_addr            = 0x100007f;
-    config->ipv4.netmask_S11           = 8;
-    config->udp_port_S1u_S12_S4_up     = 2152;
-    config->config_file                = bfromcstr(file_string.c_str());
-  }
+  virtual void SetUp();
+  void sgw_s8_config_init();
   virtual void TearDown() {
     bdestroy_wrapper(&config->itti_config.log_file);
     bdestroy_wrapper(&config->ipv4.if_name_S1u_S12_S4_up);
@@ -85,4 +70,20 @@ class SgwS8Config : public ::testing::Test {
     bdestroy_wrapper(&config->config_file);
     free(config);
   }
+};
+
+// Initialize config params
+class SgwS8ConfigAndCreateMock : public ::testing::Test {
+ public:
+  sgw_state_t* create_ue_context(mme_sgw_tunnel_t* sgw_s11_tunnel);
+
+ protected:
+  sgw_config_t* config =
+      reinterpret_cast<sgw_config_t*>(calloc(1, sizeof(sgw_config_t)));
+  uint64_t imsi64               = 1010000000001;
+  uint8_t default_eps_bearer_id = 5;
+  virtual void SetUp();
+  void sgw_s8_config_init();
+  virtual void TearDown();
+  std::shared_ptr<MockMmeAppHandler> mme_app_handler;
 };
