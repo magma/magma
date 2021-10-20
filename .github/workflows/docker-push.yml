@@ -85,3 +85,13 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  agw_test_devcontainer:
+    # DO NOT COMMIT:
+    # before merging, this needs to point to magma/magma/.github/workflows/agw-workflow.yml@master
+    # and https://github.com/magma/magma/pull/9787 needs to be merged
+    uses: maxhbr/magma/.github/workflows/agw-workflow.yml@maxhbr/makeAgwWorkflowCallable
+    needs: build_devcontainer_dockerfile
+    with:
+      devcontainer_image: ${{ needs.build_devcontainer_dockerfile.outputs.tags[0] }}
+      force_run: true
