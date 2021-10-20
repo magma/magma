@@ -14,6 +14,7 @@ limitations under the License.
 import abc
 
 from lte.protos.subscriberdb_pb2 import (
+    CoreNetworkType,    
     GSMSubscription,
     LTESubscription,
     SubscriberID,
@@ -24,6 +25,8 @@ from .crypto.gsm import UnsafePreComputedA3A8
 from .crypto.milenage import Milenage
 from .crypto.utils import CryptoError
 
+import logging
+logging.basicConfig(level=logging.INFO)
 
 class GSMProcessor(metaclass=abc.ABCMeta):
     """
@@ -109,7 +112,7 @@ class Processor(GSMProcessor, LTEProcessor):
 
     def __init__(
             self, store, default_sub_profile,
-            sub_profiles, op=None, amf=None,
+            sub_profiles, op=None, amf=None,sub_network=CoreNetworkType(),
     ):
         """
         Init the Processor with all the components.
@@ -123,6 +126,7 @@ class Processor(GSMProcessor, LTEProcessor):
         self._amf = amf
         self._default_sub_profile = default_sub_profile
         self._sub_profiles = sub_profiles
+        self._sub_network = sub_network
         if len(op) != 16:
             raise ValueError("OP is invalid len=%d value=%s" % (len(op), op))
         if len(amf) != 2:
@@ -184,6 +188,9 @@ class Processor(GSMProcessor, LTEProcessor):
 
         if subs.lte.state != LTESubscription.ACTIVE:
             raise CryptoError("LTE service not active for %s" % sid)
+         
+        if CoreNetworkType.NT_EPC in subs.sub_network.forbidden_network_types:
+           raise CryptoError("4G services not allowed for %s" % sid)
 
         if subs.lte.auth_algo != LTESubscription.MILENAGE:
             raise CryptoError(
@@ -199,7 +206,7 @@ class Processor(GSMProcessor, LTEProcessor):
         elif len(subs.lte.auth_opc) != 16:
             raise CryptoError("Subscriber OPc is invalid length for %s" % sid)
         else:
-            opc = subs.lte.auth_opc
+            opc = subs.lte.auth_opc  
 
         sqn = self.seq_to_sqn(self.get_next_lte_auth_seq(imsi))
         milenage = Milenage(self._amf)
@@ -307,6 +314,9 @@ class Processor(GSMProcessor, LTEProcessor):
 
         if subs.lte.state != LTESubscription.ACTIVE:
             raise CryptoError("LTE service not active for %s" % sid)
+
+        if CoreNetworkType.NT_5GC in subs.sub_network.forbidden_network_types:
+            raise CryptoError("5G services not allowed for %s" % sid)
 
         if subs.lte.auth_algo != LTESubscription.MILENAGE:
             raise CryptoError(
