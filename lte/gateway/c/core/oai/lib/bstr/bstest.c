@@ -17,7 +17,6 @@
 #include <limits.h>
 #include <ctype.h>
 #include "bstrlib.h"
-#include "bstraux.h"
 
 static bstring dumpOut[16];
 static int rot = 0;
