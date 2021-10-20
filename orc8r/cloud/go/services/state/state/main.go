@@ -63,7 +63,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error connecting to database: %v", err)
 	}
-	store := blobstore.NewSQLBlobStorageFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
+	store := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	err = store.InitializeFactory()
 	if err != nil {
 		glog.Fatalf("Error initializing state database: %v", err)
@@ -82,7 +82,7 @@ func main() {
 	}
 }
 
-func newStateServicer(store blobstore.BlobStorageFactory) protos.StateServiceServer {
+func newStateServicer(store blobstore.StoreFactory) protos.StateServiceServer {
 	servicer, err := servicers.NewStateServicer(store)
 	if err != nil {
 		glog.Fatalf("Error creating state servicer: %v", err)
@@ -90,7 +90,7 @@ func newStateServicer(store blobstore.BlobStorageFactory) protos.StateServiceSer
 	return servicer
 }
 
-func newIndexerManagerServicer(cfg *config.ConfigMap, db *sql.DB, store blobstore.BlobStorageFactory) indexer_protos.IndexerManagerServer {
+func newIndexerManagerServicer(cfg *config.ConfigMap, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
 	queue := reindex.NewSQLJobQueue(reindex.DefaultMaxAttempts, db, sqorc.GetSqlBuilder())
 	err := queue.Initialize()
 	if err != nil {

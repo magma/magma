@@ -49,7 +49,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error opening db connection: %+v", err)
 	}
-	fact := blobstore.NewSQLBlobStorageFactory(nprobe.NProbeTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLStoreFactory(nprobe.NProbeTableBlobstore, db, sqorc.GetSqlBuilder())
 	err = fact.InitializeFactory()
 	if err != nil {
 		glog.Fatalf("Error initializing nprobe table: %+v", err)

@@ -48,7 +48,7 @@ func DropTableFromSharedTestDB(t *testing.T, table string) {
 
 // NewSQLBlobstore returns a new blobstore storage factory utilizing the
 // singleton in-memory database.
-func NewSQLBlobstore(t *testing.T, tableName string) blobstore.BlobStorageFactory {
+func NewSQLBlobstore(t *testing.T, tableName string) blobstore.StoreFactory {
 	if t == nil {
 		panic("for tests only")
 	}
@@ -60,7 +60,7 @@ func NewSQLBlobstore(t *testing.T, tableName string) blobstore.BlobStorageFactor
 // NewSQLBlobstoreForServices is same as NewSQLBlobstore, but for use in
 // validation-oriented services.
 // Prefer NewSQLBlobstore wherever possible.
-func NewSQLBlobstoreForServices(tableName string) (blobstore.BlobStorageFactory, error) {
+func NewSQLBlobstoreForServices(tableName string) (blobstore.StoreFactory, error) {
 	db, err := GetSharedMemoryDB()
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func NewSQLBlobstoreForServices(tableName string) (blobstore.BlobStorageFactory,
 		return nil, errors.Wrapf(err, "drop test SQL blobstore table: %s", tableName)
 	}
 
-	store := blobstore.NewSQLBlobStorageFactory(tableName, db, sqorc.GetSqlBuilder())
+	store := blobstore.NewSQLStoreFactory(tableName, db, sqorc.GetSqlBuilder())
 	err = store.InitializeFactory()
 	if err != nil {
 		return nil, err
