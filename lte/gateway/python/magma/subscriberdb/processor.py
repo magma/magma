@@ -248,7 +248,7 @@ class Processor(GSMProcessor, LTEProcessor):
             else:
                 # This shouldn't have happened
                 raise CryptoError(
-                    "Re-sync delta in range but UE rejected " "auth: %d" % seq_delta
+                    "Re-sync delta in range but UE rejected " "auth: %d" % seq_delta,
                 )
 
     def get_next_lte_auth_seq(self, imsi):

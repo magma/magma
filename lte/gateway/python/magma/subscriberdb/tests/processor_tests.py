@@ -115,11 +115,11 @@ class ProcessorTests(unittest.TestCase):
         sub_network = CoreNetworkType()
         self._sub_profiles = {
             "superfast": SubscriberDB.SubscriptionProfile(
-                max_ul_bit_rate=100000, max_dl_bit_rate=50000
-            )
+                max_ul_bit_rate=100000, max_dl_bit_rate=50000,
+            ),
         }
         self._default_sub_profile = SubscriberDB.SubscriptionProfile(
-            max_ul_bit_rate=10000, max_dl_bit_rate=5000
+            max_ul_bit_rate=10000, max_dl_bit_rate=5000,
         )
         self._sub_network = sub_network
 
@@ -135,7 +135,7 @@ class ProcessorTests(unittest.TestCase):
         # Add some test users
         (rand, sres, gsm_key) = _dummy_auth_tuple()
         gsm = GSMSubscription(
-            state=GSMSubscription.ACTIVE, auth_tuples=[rand + sres + gsm_key]
+            state=GSMSubscription.ACTIVE, auth_tuples=[rand + sres + gsm_key],
         )
         lte_key = 16 * b"\x00"
         lte = LTESubscription(state=LTESubscription.ACTIVE, auth_key=lte_key)
@@ -145,10 +145,10 @@ class ProcessorTests(unittest.TestCase):
             auth_opc=Milenage.generate_opc(lte_key, op),
         )
         lte_opc_short = LTESubscription(
-            state=LTESubscription.ACTIVE, auth_key=lte_key, auth_opc=b"\x00"
+            state=LTESubscription.ACTIVE, auth_key=lte_key, auth_opc=b"\x00",
         )
         sub_network = CoreNetworkType(
-            forbidden_network_types=[CoreNetworkType.NT_EPC, CoreNetworkType.NT_5GC]
+            forbidden_network_types=[CoreNetworkType.NT_EPC, CoreNetworkType.NT_5GC],
         )
         state = SubscriberState(lte_auth_next_seq=1)
         sub1 = SubscriberData(
@@ -166,10 +166,10 @@ class ProcessorTests(unittest.TestCase):
         sub3 = SubscriberData(sid=SIDUtils.to_pb("IMSI33333"))  # No subscription
         sub4 = SubscriberData(sid=SIDUtils.to_pb("IMSI44444"), lte=lte_opc, state=state)
         sub5 = SubscriberData(
-            sid=SIDUtils.to_pb("IMSI55555"), lte=lte_opc_short, state=state
+            sid=SIDUtils.to_pb("IMSI55555"), lte=lte_opc_short, state=state,
         )
         sub6 = SubscriberData(
-            sid=SIDUtils.to_pb("IMSI66666"), sub_network=CoreNetworkType()
+            sid=SIDUtils.to_pb("IMSI66666"), sub_network=CoreNetworkType(),
         )
         store.add_subscriber(sub1)
         store.add_subscriber(sub2)
@@ -186,7 +186,7 @@ class ProcessorTests(unittest.TestCase):
         Test if we get the correct auth tuple on success
         """
         self.assertEqual(
-            self._processor.get_gsm_auth_vector("11111"), _dummy_auth_tuple()
+            self._processor.get_gsm_auth_vector("11111"), _dummy_auth_tuple(),
         )
 
     def test_gsm_auth_imsi_unknown(self):
@@ -365,10 +365,10 @@ class ProcessorTests(unittest.TestCase):
         with self.assertRaises(SubscriberNotFoundError):
             self._processor.get_sub_profile("12345")
         self.assertEqual(
-            self._processor.get_sub_profile("11111"), self._sub_profiles["superfast"]
+            self._processor.get_sub_profile("11111"), self._sub_profiles["superfast"],
         )
         self.assertEqual(
-            self._processor.get_sub_profile("33333"), self._default_sub_profile
+            self._processor.get_sub_profile("33333"), self._default_sub_profile,
         )
 
     def test_m5g_auth_success(self):
