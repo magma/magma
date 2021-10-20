@@ -60,7 +60,7 @@ func startService(t *testing.T, db *sql.DB) (reindex.Reindexer, reindex.JobQueue
 
 	queue := reindex.NewSQLJobQueue(singleAttempt, db, sqorc.GetSqlBuilder())
 	require.NoError(t, queue.Initialize())
-	reindexer := reindex.NewReindexer(queue, reindex.NewStore(factory))
+	reindexer := reindex.NewReindexerQueue(queue, reindex.NewStore(factory))
 	indexerServicer := servicers.NewIndexerManagerServicer(reindexer, false)
 	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
 
