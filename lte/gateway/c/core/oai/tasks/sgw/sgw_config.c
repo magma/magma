@@ -36,6 +36,7 @@
 #include "assertions.h"
 #include "log.h"
 #include "common_defs.h"
+#include "dynamic_memory_check.h"
 #include "sgw_config.h"
 
 #ifdef LIBCONFIG_LONG
@@ -50,6 +51,8 @@
 #define libconfig_int int
 #endif
 
+static bool parse_bool(const char* str);
+
 //------------------------------------------------------------------------------
 void sgw_config_init(sgw_config_t* config_pP) {
   memset(config_pP, 0, sizeof(*config_pP));
@@ -62,7 +65,8 @@ status_code_e sgw_config_process(sgw_config_t* config_pP) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
+status_code_e sgw_config_parse_string(
+    const char* config_string, sgw_config_t* config_pP)
 
 {
   config_t cfg                             = {0};
@@ -73,6 +77,7 @@ status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
   char* S5_S8_up                           = NULL;
   char* sgw_if_name_S11                    = NULL;
   char* S11                                = NULL;
+  char* s1_ipv6_enabled                    = NULL;
   libconfig_int sgw_udp_port_S1u_S12_S4_up = 2152;
   config_setting_t* subsetting             = NULL;
 #if (!EMBEDDED_SGW)
@@ -86,23 +91,19 @@ status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
 
   config_init(&cfg);
 
-  if (config_pP->config_file) {
-    /*
-     * Read the file. If there is an error, report it and exit.
-     */
-    if (!config_read_file(&cfg, bdata(config_pP->config_file))) {
-      OAILOG_ERROR(
-          LOG_SPGW_APP, "%s:%d - %s\n", bdata(config_pP->config_file),
-          config_error_line(&cfg), config_error_text(&cfg));
-      config_destroy(&cfg);
-      Fatal(
-          "Failed to parse SP-GW configuration file %s!\n",
-          bdata(config_pP->config_file));
-    }
-  } else {
-    OAILOG_ERROR(LOG_SPGW_APP, "No SP-GW configuration file provided!\n");
+  /*
+   * Read the file. If there is an error, report it and exit.
+   */
+  if (!config_read_string(&cfg, config_string)) {
+    Fatal("\n\n\n\\n\n\nFailed %s\n\n\n\n\n\n\n\n", config_error_text(&cfg));
+    OAILOG_CRITICAL(
+        LOG_CONFIG, "Failed to parse SGW configuration file: %s:%d - %s\n",
+        bdata(config_pP->config_file), config_error_line(&cfg),
+        config_error_text(&cfg));
     config_destroy(&cfg);
-    Fatal("No SP-GW configuration file provided!\n");
+    Fatal(
+        "Failed to parse SGW configuration file %s!\n",
+        bdata(config_pP->config_file));
   }
 
   OAILOG_INFO(
@@ -290,6 +291,13 @@ status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
         bdestroy(cidr);
       }
 
+      if (config_setting_lookup_string(
+              setting_sgw, SGW_CONFIG_STRING_S1_IPV6_ENABLED,
+              (const char**) &s1_ipv6_enabled)) {
+        // S1AP IPv6 address
+        config_pP->ipv6.s1_ipv6_enabled = parse_bool(s1_ipv6_enabled);
+      }
+
       if (config_setting_lookup_int(
               subsetting, SGW_CONFIG_STRING_SGW_PORT_FOR_S1U_S12_S4_UP,
               &sgw_udp_port_S1u_S12_S4_up)) {
@@ -404,6 +412,31 @@ status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
   return RETURNok;
 }
 
+int sgw_config_parse_file(sgw_config_t* config_pP) {
+  FILE* fp = NULL;
+  fp       = fopen(bdata(config_pP->config_file), "r");
+  if (fp == NULL) {
+    OAILOG_CRITICAL(
+        LOG_CONFIG, "Failed to open SGW configuration file at path: %s\n",
+        bdata(config_pP->config_file));
+    Fatal(
+        "Failed to open SGW configuration file at path: %s\n",
+        bdata(config_pP->config_file));
+  }
+
+  bstring buff = bread((bNread) fread, fp);
+  if (buff == NULL) {
+    fclose(fp);
+    OAILOG_CRITICAL(
+        LOG_CONFIG, "Failed to read SGW configuration file at path: %s\n",
+        bdata(config_pP->config_file));
+    Fatal(
+        "Failed to read SGW configuration file at path: %s:\n",
+        bdata(config_pP->config_file));
+  }
+  return sgw_config_parse_string(bdata(buff), config_pP);
+}
+
 //------------------------------------------------------------------------------
 void sgw_config_display(sgw_config_t* config_p) {
   OAILOG_INFO(
@@ -476,4 +509,24 @@ void sgw_config_display(sgw_config_t* config_p) {
       LOG_SPGW_APP, "    ITTI log level.......: %s (InTer-Task Interface)\n",
       OAILOG_LEVEL_INT2STR(config_p->log_config.itti_log_level));
 #endif
+}
+
+void free_sgw_config(sgw_config_t* sgw_config) {
+  bdestroy_wrapper(&sgw_config->config_file);
+  bdestroy_wrapper(&sgw_config->ovs_config.bridge_name);
+  bdestroy_wrapper(&sgw_config->ovs_config.uplink_mac);
+  bdestroy_wrapper(&sgw_config->itti_config.log_file);
+  bdestroy_wrapper(&sgw_config->ipv4.if_name_S1u_S12_S4_up);
+  bdestroy_wrapper(&sgw_config->ipv4.if_name_S5_S8_up);
+  bdestroy_wrapper(&sgw_config->ipv4.if_name_S11);
+}
+
+static bool parse_bool(const char* str) {
+  if (strcasecmp(str, "yes") == 0) return true;
+  if (strcasecmp(str, "true") == 0) return true;
+  if (strcasecmp(str, "no") == 0) return false;
+  if (strcasecmp(str, "false") == 0) return false;
+  if (strcasecmp(str, "") == 0) return false;
+
+  Fatal("Error in config file: got \"%s\" but expected bool\n", str);
 }
