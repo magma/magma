@@ -14,8 +14,11 @@ package main
 import (
 	"flag"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/magma/magma/src/go/agwd/config"
 	"github.com/magma/magma/src/go/agwd/server"
+	"github.com/magma/magma/src/go/crash"
+	crash_sentry "github.com/magma/magma/src/go/crash/sentry"
 	"github.com/magma/magma/src/go/log"
 	"github.com/magma/magma/src/go/log/zap"
 )
@@ -37,7 +40,9 @@ func main() {
 		lm.LoggerFor("").Warning().Printf("using default configuration as LoadConfigFile failed with %q", cfgr_err)
 	}
 
-	server.Start(cfgr, lm.LoggerFor("server"))
+	cr := crash_sentry.NewCrash(sentry.ClientOptions{Dsn: cfgr.Config().GetSentryDsn()})
+
+	crash.Wrap(cr, func() { server.Start(cfgr, lm.LoggerFor("server")) })
 
 	stopper := make(chan struct{})
 	<-stopper
