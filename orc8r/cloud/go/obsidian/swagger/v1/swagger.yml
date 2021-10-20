@@ -3693,33 +3693,33 @@ paths:
         name: ip
         required: false
         type: string
+      - $ref: '#/parameters/page_size'
+      - $ref: '#/parameters/page_token'
       responses:
         "200":
-          description: List of all the subscribers in the network
+          description: List of subscribers in the network
           schema:
-            additionalProperties:
-              $ref: '#/definitions/subscriber'
-            type: object
+            $ref: '#/definitions/paginated_subscribers'
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: List subscribers in the network
+      summary: List subscribers in the network with pagination support
       tags:
       - Subscribers
     post:
       parameters:
       - $ref: '#/parameters/network_id'
-      - description: Subscriber that needs to be added
+      - description: Subscribers to add
         in: body
-        name: subscriber
+        name: subscribers
         required: true
         schema:
-          $ref: '#/definitions/mutable_subscriber'
+          $ref: '#/definitions/mutable_subscribers'
       responses:
         "201":
           description: Success
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Add a new subscriber to the network
+      summary: Add new subscribers to the network
       tags:
       - Subscribers
   /lte/{network_id}/subscribers/{subscriber_id}:
@@ -3810,49 +3810,6 @@ paths:
         default:
           $ref: '#/responses/UnexpectedError'
       summary: Change a subscriber's data profile
-      tags:
-      - Subscribers
-  /lte/{network_id}/subscribers_v2:
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - description: Filter to subscribers with the passed MSISDN
-        in: query
-        name: msisdn
-        required: false
-        type: string
-      - description: Filter to subscribers assigned the passed IP address
-        in: query
-        name: ip
-        required: false
-        type: string
-      - $ref: '#/parameters/page_size'
-      - $ref: '#/parameters/page_token'
-      responses:
-        "200":
-          description: List of subscribers in the network
-          schema:
-            $ref: '#/definitions/paginated_subscribers'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: List subscribers in the network with pagination support
-      tags:
-      - Subscribers
-    post:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - description: Subscribers to add
-        in: body
-        name: subscribers
-        required: true
-        schema:
-          $ref: '#/definitions/mutable_subscribers'
-      responses:
-        "201":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Add new subscribers to the network
       tags:
       - Subscribers
   /networks:
@@ -6544,6 +6501,15 @@ definitions:
     properties:
       ambr:
         $ref: '#/definitions/aggregated_maximum_bitrate'
+      pdn_type:
+        description: Value identifier for PDN type (0=IPv4 1=IPv6 2=IPv4v6 3=IPv4orv6)
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        format: uint32
+        type: integer
       qos_profile:
         $ref: '#/definitions/qos_profile'
     required:

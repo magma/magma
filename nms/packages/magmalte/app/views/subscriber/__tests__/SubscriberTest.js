@@ -81,7 +81,7 @@ const subscribers = {
 
 describe('<SubscriberDashboard />', () => {
   beforeEach(() => {
-    MagmaAPIBindings.getLteByNetworkIdSubscribersV2.mockResolvedValue({
+    MagmaAPIBindings.getLteByNetworkIdSubscribers.mockResolvedValue({
       subscribers: subscribers,
       next_page_token: '',
     });

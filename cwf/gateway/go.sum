@@ -926,6 +926,7 @@ github.com/warthog618/sms v0.3.0/go.mod h1:+bYZGeBxu003sxD5xhzsrIPBAjPBzTABsRTwS
 github.com/wmnsk/go-gtp v0.7.25/go.mod h1:3AdHDn+XZguzCMKjGAPuXfEciBD1W96qQ6f9udN73iM=
 github.com/wmnsk/go-gtp v0.7.26 h1:vj29T/QJRjQOjUYjvFbX7jEG9S6AE44fpB2TZITcBns=
 github.com/wmnsk/go-gtp v0.7.26/go.mod h1:Y0reWDB701yW31+HeZcHfO6dLVRfn/f017vH+7syqrg=
+github.com/wmnsk/go-gtp v0.8.0/go.mod h1:Y0reWDB701yW31+HeZcHfO6dLVRfn/f017vH+7syqrg=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 h1:eY9dn8+vbi4tKz5Qo6v2eYzo7kUS51QINcR5jNpbZS8=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/xlab/treeprint v0.0.0-20180616005107-d6fb6747feb6 h1:YdYsPAZ2pC6Tow/nPZOPQ96O3hm/ToAkGsPLzedXERk=

@@ -47,7 +47,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error opening db connection: %+v", err)
 	}
-	fact := blobstore.NewEntStorage(subscriberdb.LookupTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.LookupTableBlobstore, db, sqorc.GetSqlBuilder())
 	if err := fact.InitializeFactory(); err != nil {
 		glog.Fatalf("Error initializing MSISDN lookup storage: %+v", err)
 	}
@@ -56,7 +56,7 @@ func main() {
 		glog.Fatalf("Error initializing IP lookup storage: %+v", err)
 	}
 
-	syncstoreFact := blobstore.NewEntStorage(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
+	syncstoreFact := blobstore.NewSQLBlobStorageFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
 	if err := syncstoreFact.InitializeFactory(); err != nil {
 		glog.Fatalf("Error initializing blobstore storage for subscriber syncstore: %+v", err)
 	}

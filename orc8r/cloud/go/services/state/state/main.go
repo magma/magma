@@ -63,7 +63,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error connecting to database: %v", err)
 	}
-	store := blobstore.NewEntStorage(state.DBTableName, db, sqorc.GetSqlBuilder())
+	store := blobstore.NewSQLBlobStorageFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	err = store.InitializeFactory()
 	if err != nil {
 		glog.Fatalf("Error initializing state database: %v", err)

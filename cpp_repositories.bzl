@@ -13,6 +13,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
 
 def cpp_repositories():
+    """All external repositories used for C++/C dependencies"""
     http_archive(
         name = "com_github_gflags_gflags",
         sha256 = "34af2f15cf7367513b352bdcd2493ab14ce43692d2dcd9dfc499492966c64dcf",
@@ -27,11 +28,26 @@ def cpp_repositories():
         urls = ["https://github.com/google/glog/archive/v0.4.0.tar.gz"],
     )
 
-    git_repository(
+    # rules_folly requires a recent version (latest as of 08.04.2021)
+    # https://github.com/storypku/rules_folly/blob/89afec0807127f693e71ae49e3d0aa89b574279b/bazel/folly_deps.bzl#L116
+    rules_boost_commit = "fb9f3c9a6011f966200027843d894923ebc9cd0b"
+    http_archive(
         name = "com_github_nelhage_rules_boost",
-        commit = "1e3a69bf2d5cd10c34b74f066054cd335d033d71",
-        remote = "https://github.com/nelhage/rules_boost",
-        shallow_since = "1591047380 -0700",
+        sha256 = "046f774b185436d506efeef8be6979f2c22f1971bfebd0979bafa28088bf28d0",
+        strip_prefix = "rules_boost-{}".format(rules_boost_commit),
+        urls = [
+            "https://github.com/nelhage/rules_boost/archive/{}.tar.gz".format(rules_boost_commit),
+        ],
+    )
+
+    rules_folly_version = "0.2.0"
+    http_archive(
+        name = "com_github_storypku_rules_folly",
+        sha256 = "16441df2d454a6d7ef4da38d4e5fada9913d1f9a3b2015b9fe792081082d2a65",
+        strip_prefix = "rules_folly-{}".format(rules_folly_version),
+        urls = [
+            "https://github.com/storypku/rules_folly/archive/v{}.tar.gz".format(rules_folly_version),
+        ],
     )
 
     http_archive(

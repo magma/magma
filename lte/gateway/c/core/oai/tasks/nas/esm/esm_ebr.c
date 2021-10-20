@@ -245,7 +245,7 @@ status_code_e esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
  ***************************************************************************/
 status_code_e esm_ebr_start_timer(
     emm_context_t* emm_context, ebi_t ebi, CLONE_REF const_bstring msg,
-    uint32_t sec, time_out_t cb) {
+    uint32_t msec, time_out_t cb) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   esm_ebr_context_t* ebr_ctx       = NULL;
   bearer_context_t* bearer_context = NULL;
@@ -279,7 +279,7 @@ status_code_e esm_ebr_start_timer(
   ebr_ctx = &bearer_context->esm_ebr_context;
 
   esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
-  ebr_ctx->timer.sec                       = sec;
+  ebr_ctx->timer.msec                      = msec;
   timer_arg_t timer_args;
   timer_args.ue_id = ue_mm_context->mme_ue_s1ap_id;
   timer_args.ebi   = ebi;
@@ -325,7 +325,7 @@ status_code_e esm_ebr_start_timer(
         LOG_NAS_ESM,
         "ESM-FSM   - Retransmission timer %ld expires in "
         "%d seconds for ue id " MME_UE_S1AP_ID_FMT "\n",
-        ebr_ctx->timer.id, ebr_ctx->timer.sec, esm_ebr_timer_data->ue_id);
+        ebr_ctx->timer.id, ebr_ctx->timer.msec, esm_ebr_timer_data->ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   } else {
     OAILOG_ERROR(

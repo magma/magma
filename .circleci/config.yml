@@ -361,7 +361,7 @@ commands:
           org: lf-9c
       - sentry-upload:
           executable_name: << parameters.executable_name >>
-          project: magma-staging
+          project: magma-staging-native
           org: lf-9c
 
   sentry-release:
@@ -383,7 +383,7 @@ commands:
             # into /home/circleci/project/circleci in the magma_integ_test step
             COMMIT_HASH_WITH_VERSION=$(cat circleci/magma_version)
             echo ${COMMIT_HASH_WITH_VERSION}
-            sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native -p radtonics_lab_native -p magma-staging ${COMMIT_HASH_WITH_VERSION}
+            sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native -p radtonics_lab_native -p magma-staging-native ${COMMIT_HASH_WITH_VERSION}
             sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${COMMIT_HASH_WITH_VERSION}
             sentry-cli --log-level=info releases finalize ${COMMIT_HASH_WITH_VERSION}
 
@@ -1433,18 +1433,22 @@ workflows:
     jobs:
       - cwf-integ-test:
           <<: *master_and_develop
-      - xwfm-test:
-          <<: *master_and_develop
 
-  hourly_xwfm:
-    triggers:
-      - schedule:
-          cron: "0 * * * *"
-          <<: *only_master
+      # GH9026: Disabling test until it is fixed
+      # - xwfm-test:
+      #     <<: *master_and_develop
+
+  # GH9026: Disabling test until it is fixed
+  # hourly_xwfm:
+  #   triggers:
+  #     - schedule:
+  #         cron: "0 * * * *"
+  #         <<: *only_master
         
-    jobs:
-      - xwfm-test:
-          notify_magma_ci: false
+  #   jobs:
+  #     - xwfm-test:
+  #         notify_magma_ci: false
+
   weekly_ami_push:
     triggers:
       - schedule:

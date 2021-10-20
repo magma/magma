@@ -79,6 +79,13 @@
       }
     ],
     "Deploy": [
+     {
+        "type": "subcategory",
+        "label": "General",
+        "ids": [
+          "general/aws_cloudstrapper"
+        ]
+      },
       {
         "type": "subcategory",
         "label": "Access Gateway",
