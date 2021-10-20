@@ -183,12 +183,6 @@ func HttpError(err error, code ...int) *echo.HTTPError {
 	if len(code) > 0 && isValidResponseCode(code[0]) {
 		status = code[0]
 	}
-	// TODO(hcgatewood): we should be handling REST error logging and metrics via middleware
-	if isServerErrCode(status) {
-		glog.Infof("REST HTTP Error: %s, Status: %d", err, status)
-	} else {
-		glog.V(1).Infof("REST HTTP Error: %s, Status: %d", err, status)
-	}
 	return echo.NewHTTPError(status, grpc.ErrorDesc(err))
 }
 
