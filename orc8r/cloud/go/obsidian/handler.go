@@ -19,12 +19,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"magma/orc8r/lib/go/util"
+
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
-
-	"magma/orc8r/lib/go/util"
 )
 
 type (
@@ -176,24 +175,6 @@ func AttachHandlers(e *echo.Echo, handlers []Handler, m ...echo.MiddlewareFunc) 
 	}
 }
 
-// HttpError wraps the passed error as an HTTP error.
-// Code is optional, defaulting to http.StatusInternalServerError (500).
-func HttpError(err error, code ...int) *echo.HTTPError {
-	status := http.StatusInternalServerError
-	if len(code) > 0 && isValidResponseCode(code[0]) {
-		status = code[0]
-	}
-	return echo.NewHTTPError(status, grpc.ErrorDesc(err))
-}
-
-func isServerErrCode(code int) bool {
-	return code >= http.StatusInternalServerError && code <= http.StatusNetworkAuthenticationRequired
-}
-
-func isValidResponseCode(code int) bool {
-	return code >= http.StatusContinue && code <= http.StatusNetworkAuthenticationRequired
-}
-
 func CheckWildcardNetworkAccess(c echo.Context) *echo.HTTPError {
 	return CheckNetworkAccess(c, networkWildcard)
 }
@@ -206,7 +187,7 @@ func CheckNetworkAccess(c echo.Context, networkId string) *echo.HTTPError {
 	cert := getCert(c)
 	if cert == nil {
 		err := errors.Errorf("Client certificate with valid SANs is required for network: %s", networkId)
-		return HttpError(err, http.StatusForbidden)
+		return echo.NewHTTPError(http.StatusForbidden, err)
 	}
 
 	if cert.Subject.CommonName == wildcard ||
@@ -255,7 +236,7 @@ func CheckTenantAccess(c echo.Context) *echo.HTTPError {
 	cert := getCert(c)
 	if cert == nil {
 		err := errors.New("Client certificate with valid SANs is required for tenant access")
-		return HttpError(err, http.StatusForbidden)
+		return echo.NewHTTPError(http.StatusForbidden, err)
 	}
 
 	if cert.Subject.CommonName == wildcard || cert.Subject.CommonName == networkWildcard {
@@ -307,19 +288,19 @@ func GetParamValues(c echo.Context, paramNames ...string) ([]string, *echo.HTTPE
 func GetOperatorId(c echo.Context) (string, *echo.HTTPError) {
 	operId := c.Param("operator_id")
 	if operId == "" {
-		return operId, HttpError(
-			fmt.Errorf("Invalid/Missing Operator ID"),
-			http.StatusBadRequest)
+		return operId, echo.NewHTTPError(
+			http.StatusBadRequest,
+			fmt.Errorf("Invalid/Missing Operator ID"))
 	}
 	return operId, nil
 }
 
 func NetworkIdHttpErr() *echo.HTTPError {
-	return HttpError(fmt.Errorf("Missing Network ID"), http.StatusBadRequest)
+	return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Missing Network ID"))
 }
 
 func TenantIdHttpErr() *echo.HTTPError {
-	return HttpError(fmt.Errorf("Missing Tenant ID"), http.StatusBadRequest)
+	return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Missing Tenant ID"))
 }
 
 // GetPaginationParams returns page size and token params.
@@ -332,7 +313,7 @@ func GetPaginationParams(c echo.Context) (uint64, string, error) {
 	pageSize, err := strconv.ParseUint(pageSizeStr, 10, 32)
 	if err != nil {
 		err := errors.Wrap(err, "invalid page size parameter")
-		return 0, pageToken, HttpError(err, http.StatusBadRequest)
+		return 0, pageToken, echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	return pageSize, pageToken, nil
 }

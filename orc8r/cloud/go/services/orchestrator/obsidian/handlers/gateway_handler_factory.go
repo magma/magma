@@ -83,9 +83,9 @@ func GetPartialReadGatewayHandler(path string, model PartialGatewayModel, serdes
 
 			err := model.FromBackendModels(context.Background(), networkID, gatewayID)
 			if err == merrors.ErrNotFound {
-				return obsidian.HttpError(err, http.StatusNotFound)
+				return echo.NewHTTPError(http.StatusNotFound, err)
 			} else if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return echo.NewHTTPError(http.StatusInternalServerError, err)
 			}
 			return c.JSON(http.StatusOK, model)
 		},
@@ -125,11 +125,11 @@ func GetPartialUpdateGatewayHandler(path string, model PartialGatewayModel, serd
 			reqCtx := c.Request().Context()
 			updates, err := requestedUpdate.(PartialGatewayModel).ToUpdateCriteria(reqCtx, networkID, gatewayID)
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusBadRequest)
+				return echo.NewHTTPError(http.StatusBadRequest, err)
 			}
 			_, err = configurator.UpdateEntities(reqCtx, networkID, updates, serdes)
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return echo.NewHTTPError(http.StatusInternalServerError, err)
 			}
 			return c.NoContent(http.StatusNoContent)
 		},
@@ -160,15 +160,15 @@ func GetReadGatewayDeviceHandler(path string, serdes serde.Registry) obsidian.Ha
 			reqCtx := c.Request().Context()
 			physicalID, err := configurator.GetPhysicalIDOfEntity(reqCtx, networkID, orc8r.MagmadGatewayType, gatewayID)
 			if err == merrors.ErrNotFound {
-				return obsidian.HttpError(err, http.StatusNotFound)
+				return echo.NewHTTPError(http.StatusNotFound, err)
 			} else if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return echo.NewHTTPError(http.StatusInternalServerError, err)
 			}
 			device, err := device.GetDevice(reqCtx, networkID, orc8r.AccessGatewayRecordType, physicalID, serdes)
 			if err == merrors.ErrNotFound {
-				return obsidian.HttpError(err, http.StatusNotFound)
+				return echo.NewHTTPError(http.StatusNotFound, err)
 			} else if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return echo.NewHTTPError(http.StatusInternalServerError, err)
 			}
 
 			return c.JSON(http.StatusOK, device)
@@ -195,13 +195,13 @@ func GetUpdateGatewayDeviceHandler(path string, serdes serde.Registry) obsidian.
 			reqCtx := c.Request().Context()
 			physicalID, err := configurator.GetPhysicalIDOfEntity(reqCtx, networkID, orc8r.MagmadGatewayType, gatewayID)
 			if err == merrors.ErrNotFound {
-				return obsidian.HttpError(err, http.StatusNotFound)
+				return echo.NewHTTPError(http.StatusNotFound, err)
 			} else if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return echo.NewHTTPError(http.StatusInternalServerError, err)
 			}
 			err = device.UpdateDevice(reqCtx, networkID, orc8r.AccessGatewayRecordType, physicalID, update, serdes)
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return echo.NewHTTPError(http.StatusInternalServerError, err)
 			}
 			return c.NoContent(http.StatusNoContent)
 		},
@@ -221,7 +221,7 @@ func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, make
 			reqCtx := c.Request().Context()
 			ids, err := configurator.ListEntityKeys(reqCtx, nid, gateway.GetGatewayType())
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return echo.NewHTTPError(http.StatusInternalServerError, err)
 			}
 			if len(ids) == 0 {
 				gateways := makeTypedGateways(nil, nil, nil)
@@ -241,7 +241,7 @@ func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, make
 				entitySerdes,
 			)
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return echo.NewHTTPError(http.StatusInternalServerError, err)
 			}
 			entsByTK := ents.MakeByTK()
 
@@ -262,7 +262,7 @@ func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, make
 					entitySerdes,
 				)
 				if err != nil {
-					return obsidian.HttpError(err, http.StatusInternalServerError)
+					return echo.NewHTTPError(http.StatusInternalServerError, err)
 				}
 				entsByTK = entsByTK.Merge(additionalEnts.MakeByTK())
 			}
@@ -277,11 +277,11 @@ func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, make
 			}
 			devicesByID, err := device.GetDevices(nid, orc8r.AccessGatewayRecordType, deviceIDs, deviceSerdes)
 			if err != nil {
-				return obsidian.HttpError(errors.Wrap(err, "failed to load devices"), http.StatusInternalServerError)
+				return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to load devices"))
 			}
 			statusesByID, err := wrappers.GetGatewayStatuses(reqCtx, nid, deviceIDs)
 			if err != nil {
-				return obsidian.HttpError(errors.Wrap(err, "failed to load statuses"), http.StatusInternalServerError)
+				return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to load statuses"))
 			}
 
 			gateways := makeTypedGateways(entsByTK, devicesByID, statusesByID)

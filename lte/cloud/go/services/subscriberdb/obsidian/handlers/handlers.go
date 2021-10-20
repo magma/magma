@@ -163,7 +163,7 @@ func listSubscribersHandler(c echo.Context) error {
 		pageSize, err = strconv.ParseUint(pageSizeParam, 10, 32)
 		if err != nil {
 			err := fmt.Errorf("invalid page size parameter: %s", err)
-			return obsidian.HttpError(err, http.StatusBadRequest)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
 	}
 	pageToken := c.QueryParam(ParamPageToken)
@@ -198,7 +198,7 @@ func listSubscribersHandler(c echo.Context) error {
 	// size will be returned.
 	subs, nextPageToken, err := loadSubscriberPage(reqCtx, networkID, uint32(pageSize), pageToken)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	// get total number of subscribers
@@ -222,12 +222,12 @@ func createSubscribersHandler(c echo.Context) error {
 
 	payload := subscribermodels.MutableSubscribers{}
 	if err := c.Bind(&payload); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	reqCtx := c.Request().Context()
 	if err := payload.ValidateModel(reqCtx); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	if nerr := validateSubscriberProfiles(reqCtx, networkID, getSubProfiles(payload)...); nerr != nil {
 		return nerr
@@ -261,16 +261,16 @@ func updateSubscriberHandler(c echo.Context) error {
 
 	payload := &subscribermodels.MutableSubscriber{}
 	if err := c.Bind(payload); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	reqCtx := c.Request().Context()
 	if err := payload.ValidateModel(reqCtx); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	if string(payload.ID) != subscriberID {
 		err := fmt.Errorf("subscriber ID from parameters (%s) and payload (%s) must match", subscriberID, payload.ID)
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	if nerr := validateSubscriberProfiles(reqCtx, networkID, string(payload.Lte.SubProfile)); nerr != nil {
@@ -295,7 +295,7 @@ func deleteSubscriberHandler(c echo.Context) error {
 		return c.NoContent(http.StatusNoContent)
 	}
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -308,7 +308,7 @@ func listSubscriberStateHandler(c echo.Context) error {
 
 	statesBySID, err := loadAllStatesForIMSIs(c.Request().Context(), networkID, []string{})
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	modelsBySID := map[string]*subscribermodels.SubscriberState{}
@@ -360,15 +360,15 @@ func createMSISDNsHandler(c echo.Context) error {
 
 	payload := &subscribermodels.MsisdnAssignment{}
 	if err := c.Bind(payload); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	if err := payload.ValidateModel(context.Background()); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	err := subscriberdb.SetIMSIForMSISDN(c.Request().Context(), networkID, string(payload.Msisdn), string(payload.ID))
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	return c.NoContent(http.StatusCreated)
@@ -394,7 +394,7 @@ func deleteMSISDNHandler(c echo.Context) error {
 
 	err := subscriberdb.DeleteMSISDN(c.Request().Context(), networkID, msisdn)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -408,12 +408,12 @@ func updateSubscriberProfile(c echo.Context) error {
 
 	var payload = new(subscribermodels.SubProfile)
 	if err := c.Bind(payload); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	reqCtx := c.Request().Context()
 	if err := payload.ValidateModel(reqCtx); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	currentCfg, err := configurator.LoadEntityConfig(reqCtx, networkID, lte.SubscriberEntityType, subscriberID, serdes.Entity)
@@ -434,7 +434,7 @@ func updateSubscriberProfile(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return obsidian.HttpError(errors.Wrap(err, "failed to update profile"), http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to update profile"))
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -456,7 +456,7 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 		newConfig.Lte.State = desiredState
 		err = configurator.CreateOrUpdateEntityConfig(reqCtx, networkID, lte.SubscriberEntityType, subscriberID, newConfig, serdes.Entity)
 		if err != nil {
-			return obsidian.HttpError(err, http.StatusInternalServerError)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 		return c.NoContent(http.StatusOK)
 	}
@@ -520,10 +520,10 @@ func validateSubscriberProfiles(ctx context.Context, networkID string, profiles 
 
 	networkConfig, err := configurator.LoadNetworkConfig(ctx, networkID, lte.CellularNetworkConfigType, serdes.Network)
 	if err == merrors.ErrNotFound {
-		return obsidian.HttpError(errors.New("no cellular config found for network"), http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, errors.New("no cellular config found for network"))
 	}
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	networkProfiles := networkConfig.(*ltemodels.NetworkCellularConfigs).Epc.SubProfiles
@@ -535,7 +535,7 @@ func validateSubscriberProfiles(ctx context.Context, networkID string, profiles 
 	}
 	err = errs.ErrorOrNil()
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	return nil
@@ -661,22 +661,22 @@ func createSubscribers(ctx context.Context, networkID string, subs ...*subscribe
 
 	if len(uniqueIDs) != len(ids) {
 		duplicates := funk.FilterString(ids, func(s string) bool { return uniqueIDs[s] > 1 })
-		return obsidian.HttpError(errors.Errorf("found multiple subscriber models for IDs: %+v", duplicates), http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, errors.Errorf("found multiple subscriber models for IDs: %+v", duplicates))
 	}
 
 	// TODO(hcgatewood) iterate over this to remove "too many placeholders" error
 	tks := storage.MakeTKs(lte.SubscriberEntityType, ids)
 	found, _, err := configurator.LoadSerializedEntities(ctx, networkID, nil, nil, nil, tks, configurator.EntityLoadCriteria{})
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	if len(found) != 0 {
-		return obsidian.HttpError(errors.Errorf("found %v existing subscribers which would have been overwritten: %+v", len(found), found.TKs()), http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, errors.Errorf("found %v existing subscribers which would have been overwritten: %+v", len(found), found.TKs()))
 	}
 
 	_, err = configurator.CreateEntities(ctx, networkID, ents, serdes.Entity)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	return nil
@@ -788,7 +788,7 @@ func deleteSubscriber(ctx context.Context, networkID, key string) error {
 
 	err = configurator.DeleteEntities(ctx, networkID, deletes)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	return nil
@@ -881,5 +881,5 @@ func makeErr(err error) *echo.HTTPError {
 	if err == merrors.ErrNotFound {
 		return echo.ErrNotFound
 	}
-	return obsidian.HttpError(err, http.StatusInternalServerError)
+	return echo.NewHTTPError(http.StatusInternalServerError, err)
 }

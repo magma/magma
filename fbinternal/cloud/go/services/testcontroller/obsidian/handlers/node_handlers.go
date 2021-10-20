@@ -1,4 +1,5 @@
 /*
+
  * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -66,7 +67,7 @@ func listCINodes(c echo.Context) error {
 
 	nodes, err := testcontroller.GetNodes(c.Request().Context(), nil, tag)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	ret := make([]*models.CiNode, 0, len(nodes))
@@ -85,7 +86,7 @@ func getCINode(c echo.Context) error {
 
 	nodes, err := testcontroller.GetNodes(c.Request().Context(), idParam, nil)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	node, found := nodes[idParam[0]]
 	if !found {
@@ -97,15 +98,15 @@ func getCINode(c echo.Context) error {
 func createCINode(c echo.Context) error {
 	node := &models.MutableCiNode{}
 	if err := c.Bind(node); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	if err := node.Validate(strfmt.Default); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	err := testcontroller.CreateOrUpdateNode(c.Request().Context(), &storage.MutableCINode{Id: *node.ID, Tag: node.Tag, VpnIP: string(*node.VpnIP)})
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -118,18 +119,18 @@ func updateCINode(c echo.Context) error {
 
 	node := &models.MutableCiNode{}
 	if err := c.Bind(node); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	if err := node.Validate(strfmt.Default); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	if *node.ID != idParam[0] {
-		return obsidian.HttpError(errors.New("payload ID does not match path param"), http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, errors.New("payload ID does not match path param"))
 	}
 	err := testcontroller.CreateOrUpdateNode(c.Request().Context(), &storage.MutableCINode{Id: *node.ID, Tag: node.Tag, VpnIP: string(*node.VpnIP)})
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -142,7 +143,7 @@ func deleteCINode(c echo.Context) error {
 
 	err := testcontroller.DeleteNode(c.Request().Context(), idParam[0])
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -150,7 +151,7 @@ func deleteCINode(c echo.Context) error {
 func leaseCINode(c echo.Context) error {
 	lease, err := testcontroller.LeaseNode(c.Request().Context(), c.QueryParam(tagParamName))
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	if lease == nil {
 		return echo.ErrNotFound
@@ -170,10 +171,10 @@ func reserveCINode(c echo.Context) error {
 
 	lease, err := testcontroller.ReserveNode(c.Request().Context(), idParam[0])
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	if lease == nil {
-		return obsidian.HttpError(errors.New("Either the node is not known or it has already been reserved."), http.StatusNotFound)
+		return echo.NewHTTPError(http.StatusNotFound, errors.New("Either the node is not known or it has already been reserved."))
 	}
 	return c.JSON(http.StatusOK, &models.NodeLease{
 		ID:      swag.String(lease.Id),
@@ -191,7 +192,7 @@ func returnManuallyReservedCINode(c echo.Context) error {
 	// TODO: maybe expose this constant from the storage package?
 	err := testcontroller.ReleaseNode(c.Request().Context(), idParam[0], "manual")
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -210,13 +211,13 @@ func releaseCINode(c echo.Context) error {
 	// Figure out if the error was due to bad params
 	rpcErr, isRpcErr := status.FromError(err)
 	if !isRpcErr {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	} else {
 		switch rpcErr.Code() {
 		case codes.InvalidArgument:
-			return obsidian.HttpError(rpcErr.Err(), http.StatusBadRequest)
+			return echo.NewHTTPError(http.StatusBadRequest, rpcErr.Err())
 		default:
-			return obsidian.HttpError(rpcErr.Err(), http.StatusInternalServerError)
+			return echo.NewHTTPError(http.StatusInternalServerError, rpcErr.Err())
 		}
 	}
 }
