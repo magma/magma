@@ -121,7 +121,7 @@ TEST_F(NgapFlowTest, initial_ue_message_sunny_day) {
 }
 
 // Uplink Nas Transport With Auth Response
-TEST_F(NgapFlowTest, uplink_nas_trasnport_sunny_day) {
+TEST_F(NgapFlowTest, uplink_nas_transport_sunny_day) {
   Ngap_UplinkNASTransport_t* container;
   gnb_description_t* gNB_ref   = NULL;
   m5g_ue_description_t* ue_ref = NULL;
