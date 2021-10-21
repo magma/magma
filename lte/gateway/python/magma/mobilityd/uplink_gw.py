@@ -21,7 +21,7 @@ from lte.protos.mobilityd_pb2 import GWInfo, IPAddress
 NO_VLAN = "NO_VLAN"
 
 
-def _get_vlan(vlan) -> str:
+def _get_vlan_key(vlan) -> str:
     # Validate vlan id is valid VLAN
     vlan_id_parsed = 0
     try:
@@ -34,14 +34,8 @@ def _get_vlan(vlan) -> str:
         return NO_VLAN
     if vlan_id_parsed < 0 or vlan_id_parsed > 4095:
         raise InvalidVlanId("invalid vlan: " + str(vlan))
+
     return str(vlan)
-
-
-def _get_vlan_key(vlan, version: int) -> str:
-    # Validate vlan id is valid VLAN
-    vlan = _get_vlan(vlan)
-
-    return vlan + "_" + str(version)
 
 
 # TODO: move helper class to separate directory.
@@ -56,16 +50,15 @@ class UplinkGatewayInfo:
         """
         self._backing_map = gw_info_map
         self._read_default_gw_timer = None
-        self._read_default_gw_v6_timer = None
         self._read_default_gw_interval_seconds = 20
 
-    def get_gw_ip(self, vlan_id: Optional[str] = "", version: int = IPAddress.IPV4) -> Optional[str]:
+    def get_gw_ip(self, vlan_id: Optional[str] = "") -> Optional[str]:
         """
         Retrieve gw IP address
         Args:
             vlan_id: vlan if of the GW.
         """
-        vlan_key = _get_vlan_key(vlan_id, version)
+        vlan_key = _get_vlan_key(vlan_id)
         if vlan_key in self._backing_map:
             gw_info = self._backing_map.get(vlan_key)
             ip = ipaddress.ip_address(gw_info.ip.address)
@@ -95,38 +88,10 @@ class UplinkGatewayInfo:
         self._read_default_gw_timer.start()
         logging.info("GW probe: timer started")
 
-    def read_default_gw_v6(self):
-        self._do_read_default_gw_v6()
-
-    def _do_read_default_gw_v6(self):
-        gws = netifaces.gateways()
-        logging.info("Using GW info: %s", gws)
-        if gws is not None:
-            default_gw = gws.get('default', None)
-            gw_ip_addr6 = None
-            if default_gw is not None:
-                gw_ip_addr6 = default_gw.get(netifaces.AF_INET6, None)
-            if gw_ip_addr6 is not None:
-                self.update_ip(gw_ip_addr6[0], version=IPAddress.IPV6)
-                logging.info("GW-v6 probe: timer stopped")
-                self._read_default_gw_timer6 = None
-                return
-
-        self._read_default_gw_timer6 = threading.Timer(
-            self._read_default_gw_interval_seconds,
-            self._do_read_default_gw_v6,
-        )
-        self._read_default_gw_timer6.start()
-        logging.info("GW-v6 probe: timer started")
-
-    def update_ip(
-        self, ip: Optional[str], vlan_id=None,
-        version: int = IPAddress.IPV4,
-    ):
+    def update_ip(self, ip: Optional[str], vlan_id=None):
         """
         Update IP address of the GW in mobilityD GW table.
         Args:
-            version: IPv4 or IPv6
             ip: gw ip address
             vlan_id: vlan of the GW, None in case of no vlan used.
         """
@@ -137,37 +102,34 @@ class UplinkGatewayInfo:
             return
 
         gw_ip = IPAddress(
-            version=version,
+            version=IPAddress.IPV4,
             address=ip_addr.packed,
         )
         # keep mac address same if its same GW IP
-        vlan_key = _get_vlan_key(vlan_id, version)
+        vlan_key = _get_vlan_key(vlan_id)
         if vlan_key in self._backing_map:
             gw_info = self._backing_map[vlan_key]
             if gw_info and gw_info.ip == gw_ip:
                 logging.debug("GW update: no change %s", ip)
                 return
 
-        updated_info = GWInfo(ip=gw_ip, mac="", vlan=_get_vlan(vlan_id))
+        updated_info = GWInfo(ip=gw_ip, mac="", vlan=vlan_key)
         self._backing_map[vlan_key] = updated_info
         logging.info("GW update: GW IP[%s]: %s" % (vlan_key, ip))
 
-    def get_gw_mac(self, vlan_id: Optional[str] = None, version: int = IPAddress.IPV4) -> Optional[str]:
+    def get_gw_mac(self, vlan_id: Optional[str] = None) -> Optional[str]:
         """
         Retrieve Mac address of default gw.
         Args:
             vlan_id: vlan of the gw, None if GW is not in a vlan.
         """
-        vlan_key = _get_vlan_key(vlan_id, version)
+        vlan_key = _get_vlan_key(vlan_id)
         if vlan_key in self._backing_map:
             return self._backing_map.get(vlan_key).mac
         else:
             return None
 
-    def update_mac(
-        self, ip: Optional[str], mac: Optional[str], vlan_id=None,
-        version: int = IPAddress.IPV4,
-    ):
+    def update_mac(self, ip: Optional[str], mac: Optional[str], vlan_id=None):
         """
         Update mac address of GW in mobilityD GW table
         Args:
@@ -180,7 +142,7 @@ class UplinkGatewayInfo:
         except ValueError:
             logging.debug("could not parse GW IP: %s", ip)
             return
-        vlan_key = _get_vlan_key(vlan_id, version)
+        vlan_key = _get_vlan_key(vlan_id)
 
         # TODO: enhance check for MAC address sanity.
         if mac is None or ':' not in mac:
@@ -190,10 +152,10 @@ class UplinkGatewayInfo:
             )
             return
         gw_ip = IPAddress(
-            version=version,
+            version=IPAddress.IPV4,
             address=ip_addr.packed,
         )
-        updated_info = GWInfo(ip=gw_ip, mac=mac, vlan=_get_vlan(vlan_id))
+        updated_info = GWInfo(ip=gw_ip, mac=mac, vlan=vlan_key)
         self._backing_map[vlan_key] = updated_info
         logging.info("GW update: GW IP[%s]: %s : mac %s" % (vlan_key, ip, mac))
 

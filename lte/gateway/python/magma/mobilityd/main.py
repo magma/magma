@@ -183,8 +183,6 @@ def main():
             allocated_ipv6_block = ip_address_man.get_assigned_ipv6_block()
             if ipv6_block != allocated_ipv6_block:
                 ip_address_man.add_ip_block(ipv6_block)
-            # configure IPv6 default GW
-            store.dhcp_gw_info.read_default_gw_v6()
         except OverlappedIPBlocksError:
             logging.warning("Overlapped IPv6 block: %s", ipv6_block)
 
