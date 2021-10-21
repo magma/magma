@@ -62,8 +62,7 @@
 #endif
 
 bool s1ap_dump_ue_hash_cb(
-    const hash_key_t keyP, void* const ue_void, void* parameter,
-    void** unused_res);
+    hash_key_t keyP, void* ue_void, void* parameter, void** unused_res);
 static void start_stats_timer(void);
 static int handle_stats_timer(zloop_t* loop, int id, void* arg);
 static long epc_stats_timer_id;
@@ -447,7 +446,7 @@ void s1ap_dump_ue(const ue_description_t* const ue_ref) {
 }
 
 //------------------------------------------------------------------------------
-enb_description_t* s1ap_new_enb(s1ap_state_t* state) {
+enb_description_t* s1ap_new_enb(void) {
   enb_description_t* enb_ref = NULL;
 
   enb_ref = calloc(1, sizeof(enb_description_t));
