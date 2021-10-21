@@ -411,8 +411,9 @@ status_code_e sgw_config_parse_string(
 }
 
 int sgw_config_parse_file(sgw_config_t* config_pP) {
-  FILE* fp = NULL;
-  fp       = fopen(bdata(config_pP->config_file), "r");
+  FILE* fp     = NULL;
+  int ret_code = RETURNerror;
+  fp           = fopen(bdata(config_pP->config_file), "r");
   if (fp == NULL) {
     OAILOG_CRITICAL(
         LOG_CONFIG, "Failed to open SGW configuration file at path: %s\n",
@@ -432,7 +433,9 @@ int sgw_config_parse_file(sgw_config_t* config_pP) {
         "Failed to read SGW configuration file at path: %s:\n",
         bdata(config_pP->config_file));
   }
-  return sgw_config_parse_string(bdata(buff), config_pP);
+  ret_code = sgw_config_parse_string(bdata(buff), config_pP);
+  bdestroy_wrapper(&buff);
+  return ret_code;
 }
 
 //------------------------------------------------------------------------------
