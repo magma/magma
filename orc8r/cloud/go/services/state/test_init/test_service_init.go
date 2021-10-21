@@ -67,3 +67,30 @@ func startService(t *testing.T, db *sql.DB) (reindex.Reindexer, reindex.JobQueue
 	go srv.RunTest(lis)
 	return reindexer, queue
 }
+
+// StartTestSingletonServiceInternal instantiates a test DB-backed singleton service, returning
+// the derived reindexer and job queue for internal usage.
+// Supported drivers include: postgres.
+func StartTestSingletonServiceInternal(t *testing.T, dbName, dbDriver string) (reindex.Reindexer) {
+	db := sqorc.OpenCleanForTest(t, dbName, dbDriver)
+	return startSingletonService(t, db)
+}
+
+func startSingletonService(t *testing.T, db *sql.DB) (reindex.Reindexer) {
+	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
+
+	factory := blobstore.NewSQLBlobStorageFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
+	require.NoError(t, factory.InitializeFactory())
+	stateServicer, err := servicers.NewStateServicer(factory)
+	require.NoError(t, err)
+	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
+
+	versioner := reindex.NewIndexVersioner(db, sqorc.GetSqlBuilder())
+	reindexer := reindex.NewReindexerSingleton(reindex.NewStore(factory), versioner)
+	indexerServicer := servicers.NewIndexerManagerServicer(reindexer, false)
+	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
+
+	go srv.RunTest(lis)
+	return reindexer
+}
+
