@@ -99,8 +99,6 @@ func Start() {
 				tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
 				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, // 4 HTTP2 support
 				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-				// tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-				// tls.TLS_RSA_WITH_AES_256_CBC_SHA,
 			},
 		}
 		s.TLSConfig.Certificates[0], err = tls.LoadX509KeyPair(obsidian.ServerCertPemPath, obsidian.ServerKeyPemPath)

@@ -180,12 +180,11 @@ func Logger(next echo.HandlerFunc) echo.HandlerFunc {
 		err := next(c)
 		if err != nil {
 			c.Error(err)
-			he, _ := err.(*echo.HTTPError)
-
-			if isServerErrCode(he.Code) {
-				glog.Infof("REST HTTP Error: %s, Status: %d", he.Message, he.Code)
+			status := c.Response().Status
+			if isServerErrCode(status) {
+				glog.Infof("Error: %s", err)
 			} else {
-				glog.V(1).Infof("REST HTTP Error: %s, Status: %d", he.Message, he.Code)
+				glog.V(1).Infof("Error: %s", err)
 			}
 		}
 		return err
