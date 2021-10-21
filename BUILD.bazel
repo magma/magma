@@ -21,5 +21,6 @@ buildifier(
 # gazelle:exclude lte/
 # gazelle:exclude feg/
 # gazelle:exclude cwf/
+# gazelle:exclude wifi/
 # gazelle:exclude fbinternal/
 gazelle(name = "gazelle")
