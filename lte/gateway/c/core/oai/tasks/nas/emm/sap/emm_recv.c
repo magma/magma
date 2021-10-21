@@ -208,7 +208,7 @@ int emm_recv_attach_request(
     rc         = emm_proc_attach_reject(ue_id, *emm_cause);
     *emm_cause = EMM_CAUSE_SUCCESS;
     // Free the ESM container
-    bdestroy(msg->esmmessagecontainer);
+    bdestroy_wrapper(&(msg->esmmessagecontainer));
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
@@ -228,6 +228,8 @@ int emm_recv_attach_request(
         ue_id, mme_app_last_msg_latency, pre_mme_task_msg_latency);
     rc         = emm_proc_attach_reject(ue_id, EMM_CAUSE_CONGESTION);
     *emm_cause = EMM_CAUSE_SUCCESS;
+    // Free the ESM container
+    bdestroy_wrapper(&(msg->esmmessagecontainer));
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
@@ -317,7 +319,7 @@ int emm_recv_attach_request(
       free_emm_attach_request_ies(
           (emm_attach_request_ies_t * * const) & params);
       // Free the ESM container
-      bdestroy(msg->esmmessagecontainer);
+      bdestroy_wrapper(&(msg->esmmessagecontainer));
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
 
