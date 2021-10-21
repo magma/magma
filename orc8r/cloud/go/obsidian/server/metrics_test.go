@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"magma/orc8r/cloud/go/service"
+
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 
@@ -24,12 +26,13 @@ import (
 func TestLogger(t *testing.T) {
 	e := echo.New()
 	obsidianHandlers := handlers.GetObsidianHandlers()
+
 	// test without configurator service, should throw a 500 status error
 	req := httptest.NewRequest(echo.GET, "/magma/v1/networks", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	listNetworks := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks", obsidian.GET).HandlerFunc
-	handlerFunc := Logger(listNetworks)
+	handlerFunc := service.Logger(listNetworks)
 	handlerFunc(c)
 
 	// set up
@@ -39,13 +42,12 @@ func TestLogger(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
-
 	// test functional handler -- should not have logs from middleware
 	req = httptest.NewRequest(echo.GET, "/magma/v1/networks", nil)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	listNetworks = tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks", obsidian.GET).HandlerFunc
-	handlerFunc = Logger(listNetworks)
+	handlerFunc = service.Logger(listNetworks)
 	handlerFunc(c)
 
 	// test dysfunctional handler -- should have logs
@@ -56,6 +58,6 @@ func TestLogger(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues(networkId)
 	getNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id", obsidian.GET).HandlerFunc
-	handlerFunc = Logger(getNetwork)
+	handlerFunc = service.Logger(getNetwork)
 	handlerFunc(c)
 }

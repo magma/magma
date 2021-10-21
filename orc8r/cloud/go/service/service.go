@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"net/http"
 
 	"github.com/golang/glog"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
@@ -165,7 +166,30 @@ func getEchoServerForOrchestratorService(serviceName string) (*echo.Echo, error)
 	e := echo.New()
 	e.Server.Addr = portStr
 	e.HideBanner = true
+	e.Use(Logger)
 	return e, nil
+}
+
+func isServerErrCode(code int) bool {
+	return code >= http.StatusInternalServerError && code <= http.StatusNetworkAuthenticationRequired
+}
+
+// Logger is the middleware function
+func Logger(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		err := next(c)
+		if err != nil {
+			c.Error(err)
+			he, _ := err.(*echo.HTTPError)
+
+			if isServerErrCode(he.Code) {
+				glog.Infof("REST HTTP Error: %s, Status: %d", he.Message, he.Code)
+			} else {
+				glog.V(1).Infof("REST HTTP Error: %s, Status: %d", he.Message, he.Code)
+			}
+		}
+		return err
+	}
 }
 
 type Config struct {

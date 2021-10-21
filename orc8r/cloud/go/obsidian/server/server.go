@@ -42,9 +42,8 @@ func Start() {
 
 	obsidian.AttachAll(e)
 	// Metrics middleware is used before all other middlewares
-	e.Use(Logger)
+	e.Use(CollectStats)
 	e.Use(middleware.Recover())
-
 	err := handlers.RegisterSwaggerHandlers(e)
 
 	if err != nil {
