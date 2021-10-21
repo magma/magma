@@ -522,6 +522,10 @@ func (j *reindexJob) String() string {
 	return fmt.Sprintf("{id: %s, from: %d, to: %d}", j.id, j.from, j.to)
 }
 
+func (j *reindexJob) isSameVersions(job *reindexJob) bool {
+	return j.from == job.from && j.to == job.to
+}
+
 // getError for the reindex job.
 // Only returns err if the reindex job has unsuccessfully passed the passed max
 // number of reindex attempts.

@@ -197,7 +197,3 @@ func newVersions(indexerID string, actualVersion, desiredVersion int64) (*indexe
 	}
 	return v, nil
 }
-
-func (j *reindexJob) isSameVersions(job *reindexJob) bool {
-	return j.from == job.from && j.to == job.to
-}
