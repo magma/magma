@@ -39,6 +39,10 @@ status_code_e NGAPClientServicer::send_message_to_amf(
   OAILOG_DEBUG(LOG_NGAP, " Mock is Enabled \n");
   if (message->ittiMsgHeader.messageId == NGAP_INITIAL_UE_MESSAGE) {
     bdestroy(NGAP_INITIAL_UE_MESSAGE(message).nas);
+  } else if (message->ittiMsgHeader.messageId == AMF_APP_UPLINK_DATA_IND) {
+    bdestroy(AMF_APP_UL_DATA_IND(message).nas_msg);
+  } else if (message->ittiMsgHeader.messageId == SCTP_DATA_REQ) {
+    bdestroy(SCTP_DATA_REQ(message).payload);
   }
 
   free(message);

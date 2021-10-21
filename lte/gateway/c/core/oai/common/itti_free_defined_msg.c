@@ -234,6 +234,15 @@ void itti_free_msg_content(MessageDef* const message_p) {
     case SCTP_CLOSE_ASSOCIATION:
       // DO nothing
       break;
+
+    case NGAP_NAS_DL_DATA_REQ:
+      bdestroy_wrapper(&message_p->ittiMsg.ngap_nas_dl_data_req.nas_msg);
+      break;
+
+    case NGAP_INITIAL_CONTEXT_SETUP_REQ:
+      bdestroy_wrapper(
+          &message_p->ittiMsg.ngap_initial_context_setup_req.nas_pdu);
+      break;
     default:;
   }
 }

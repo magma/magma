@@ -15,7 +15,6 @@
 #include "util_ngap_pkt.h"
 #include <gtest/gtest.h>
 
-#include "util_ngap_pkt.h"
 extern "C" {
 #include "log.h"
 #include "ngap_amf_handlers.h"
@@ -27,7 +26,41 @@ using ::testing::Test;
 
 namespace magma5g {
 
-TEST(test_ngap_flow_handler, initial_ue_message) {
+class NgapFlowTest : public testing::Test {
+ protected:
+  void SetUp() {
+    itti_init(
+        TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
+        NULL);
+
+    amf_config_init(&amf_config);
+    ngap_state_init(2, 2, false);
+    state = get_ngap_state(false);
+
+    ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
+    p             = {
+        .instreams     = 1,
+        .outstreams    = 2,
+        .assoc_id      = 3,
+        .ran_cp_ipaddr = ran_cp_ipaddr,
+    };
+  }
+
+  void TearDown() {
+    ngap_state_exit();
+    bdestroy(ran_cp_ipaddr);
+    itti_free_desc_threads();
+    amf_config_free(&amf_config);
+  }
+
+  ngap_state_t* state = NULL;
+  bstring ran_cp_ipaddr;
+  sctp_new_peer_t p;
+  const unsigned int AMF_UE_NGAP_ID = 0x05;
+  const unsigned int GNB_UE_NGAP_ID = 0x09;
+};
+
+TEST_F(NgapFlowTest, initial_ue_message_sunny_day) {
   unsigned char initial_ue_message_hexbuf[] = {
       0x00, 0x0f, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x55, 0x00, 0x02,
       0x00, 0x01, 0x00, 0x26, 0x00, 0x1a, 0x19, 0x7e, 0x00, 0x41, 0x79,
@@ -36,23 +69,6 @@ TEST(test_ngap_flow_handler, initial_ue_message) {
       0x79, 0x00, 0x13, 0x48, 0x22, 0x42, 0x65, 0x00, 0x00, 0x00, 0x01,
       0x00, 0x22, 0x42, 0x65, 0x00, 0x00, 0x01, 0xe4, 0xf7, 0x04, 0x44,
       0x00, 0x5a, 0x40, 0x01, 0x18, 0x00, 0x70, 0x40, 0x01, 0x00};
-
-  itti_init(
-      TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
-      NULL);
-
-  amf_config_init(&amf_config);
-  ngap_state_init(2, 2, false);
-  ngap_state_t* state = NULL;
-  state               = get_ngap_state(false);
-
-  bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
-  sctp_new_peer_t p     = {
-      .instreams     = 1,
-      .outstreams    = 2,
-      .assoc_id      = 3,
-      .ran_cp_ipaddr = ran_cp_ipaddr,
-  };
 
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
   EXPECT_EQ(state->gnbs.num_elements, 1);
@@ -102,7 +118,1109 @@ TEST(test_ngap_flow_handler, initial_ue_message) {
 
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
   bdestroy(ngap_initial_ue_msg);
-  bdestroy(ran_cp_ipaddr);
 }
 
+// Uplink Nas Transport With Auth Response
+TEST_F(NgapFlowTest, uplink_nas_trasnport_sunny_day) {
+  Ngap_UplinkNASTransport_t* container;
+  gnb_description_t* gNB_ref   = NULL;
+  m5g_ue_description_t* ue_ref = NULL;
+
+  unsigned char uplink_nas_transport_ue_message_hexbuf[] = {
+      0x00, 0x2e, 0x40, 0x40, 0x00, 0x00, 0x04, 0x00, 0x0a, 0x00, 0x04, 0x40,
+      0x01, 0x00, 0x02, 0x00, 0x55, 0x00, 0x04, 0x80, 0x01, 0x00, 0x01, 0x00,
+      0x26, 0x00, 0x16, 0x15, 0x7e, 0x00, 0x57, 0x2d, 0x10, 0x8f, 0x17, 0xab,
+      0x63, 0xde, 0x8b, 0xde, 0xba, 0x9a, 0x55, 0xe4, 0xc5, 0xdc, 0x12, 0xb1,
+      0x54, 0x00, 0x79, 0x40, 0x0f, 0x40, 0x13, 0xf1, 0x84, 0x00, 0x02, 0x00,
+      0x00, 0x00, 0x13, 0xf1, 0x84, 0x00, 0x00, 0x88};
+
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint16_t length =
+      sizeof(uplink_nas_transport_ue_message_hexbuf) / sizeof(unsigned char);
+
+  bstring uplink_nas_transport_msg =
+      blk2bstr(uplink_nas_transport_ue_message_hexbuf, length);
+  memcpy(
+      uplink_nas_transport_msg->data, uplink_nas_transport_ue_message_hexbuf,
+      length);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(
+      ngap_amf_decode_pdu(&decoded_pdu, uplink_nas_transport_msg), RETURNok);
+
+  container =
+      &(decoded_pdu.choice.initiatingMessage.value.choice.UplinkNASTransport);
+  Ngap_UplinkNASTransport_IEs* ie = NULL;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_UplinkNASTransport_IEs, ie, container,
+      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
+
+  // Check if ran UE ID was found
+  ASSERT_TRUE(ie != NULL);
+
+  // Check if GNB exists
+  gNB_ref = ngap_state_get_gnb(state, p.assoc_id);
+  ASSERT_TRUE(gNB_ref != NULL);
+
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
+  amf_ue_ngap_id_t amf_ue_ngap_id = 0;
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
+  ue_ref         = ngap_new_ue(state, p.assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->ng_ue_state    = NGAP_UE_CONNECTED;
+  ue_ref->gnb_ue_ngap_id = gnb_ue_ngap_id;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_UplinkNASTransport_IEs, ie, container,
+      Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID);
+
+  // Check if AMF UE ID was found
+  ASSERT_TRUE(ie != NULL);
+  asn_INTEGER2ulong(
+      &ie->value.choice.AMF_UE_NGAP_ID,
+      reinterpret_cast<uint64_t*> & amf_ue_ngap_id);
+  ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
+
+  // Walk through the uplinkNasTransport
+  EXPECT_EQ(
+      ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
+      RETURNok);
+
+  // Check if UE is not pointing to invalid ID
+  EXPECT_NE(ue_ref->amf_ue_ngap_id, INVALID_AMF_UE_NGAP_ID);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  bdestroy(uplink_nas_transport_msg);
+}
+
+// Downlink Nas Transport Test with Auth Req
+TEST_F(NgapFlowTest, downlink_nas_transport_auth_req_sunny_day) {
+  unsigned char dl_nas_auth_req_msg[] = {
+      0x7e, 0x00, 0x56, 0x00, 0x02, 0x00, 0x00, 0x21, 0xb4, 0x74, 0x3d,
+      0x51, 0x76, 0xb8, 0xe5, 0x45, 0xe1, 0xdc, 0x03, 0x68, 0x25, 0x9a,
+      0x67, 0x6c, 0x20, 0x10, 0xa4, 0x9b, 0x6b, 0x3d, 0x65, 0x6d, 0x80,
+      0x00, 0x41, 0xc5, 0x72, 0x9e, 0xd9, 0xe1, 0xf0, 0xd6};
+  MessageDef* message_p        = NULL;
+  m5g_ue_description_t* ue_ref = NULL;
+  bstring buffer;
+  unsigned int len = sizeof(dl_nas_auth_req_msg) / sizeof(unsigned char);
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_NAS_DL_DATA_REQ);
+
+  NGAP_NAS_DL_DATA_REQ(message_p).gnb_ue_ngap_id = GNB_UE_NGAP_ID;
+  NGAP_NAS_DL_DATA_REQ(message_p).amf_ue_ngap_id = AMF_UE_NGAP_ID;
+  message_p->ittiMsgHeader.imsi                  = 0x311480000000001;
+  buffer                                         = bfromcstralloc(len, "\0");
+  memcpy(buffer->data, dl_nas_auth_req_msg, len);
+  buffer->slen                            = len;
+  NGAP_NAS_DL_DATA_REQ(message_p).nas_msg = bstrcpy(buffer);
+
+  ue_ref = ngap_new_ue(state, p.assoc_id, GNB_UE_NGAP_ID);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->gnb_ue_ngap_id = GNB_UE_NGAP_ID;
+  ue_ref->amf_ue_ngap_id = AMF_UE_NGAP_ID;
+
+  EXPECT_EQ(
+      RETURNok, ngap_generate_downlink_nas_transport(
+                    state, GNB_UE_NGAP_ID, AMF_UE_NGAP_ID,
+                    &NGAP_NAS_DL_DATA_REQ(message_p).nas_msg,
+                    message_p->ittiMsgHeader.imsi));
+  itti_free_msg_content(message_p);
+  bdestroy(NGAP_NAS_DL_DATA_REQ(message_p).nas_msg);
+  bdestroy(buffer);
+  free(message_p);
+}
+
+// Initial Context Setup Request
+TEST_F(NgapFlowTest, initial_context_setup_request_sunny_day) {
+  unsigned char reg_accept_msg[] = {
+      0x7e, 0x02, 0x63, 0x26, 0x1f, 0x59, 0x01, 0x7e, 0x00, 0x42, 0x01,
+      0x01, 0x77, 0x00, 0x0b, 0xf2, 0x13, 0xf1, 0x84, 0x01, 0x00, 0x40,
+      0x41, 0x26, 0xca, 0x16, 0x54, 0x07, 0x00, 0x13, 0xf1, 0x84, 0x00,
+      0x00, 0x01, 0x15, 0x02, 0x01, 0x01, 0x5e, 0x01, 0x06};
+  bstring buffer;
+  m5g_ue_description_t* ue_ref = NULL;
+  unsigned int len             = sizeof(reg_accept_msg) / sizeof(unsigned char);
+  MessageDef* message_p        = nullptr;
+  Ngap_initial_context_setup_request_t* req = nullptr;
+
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  message_p =
+      itti_alloc_new_message(TASK_AMF_APP, NGAP_INITIAL_CONTEXT_SETUP_REQ);
+  ASSERT_TRUE(message_p != NULL);
+  req = &message_p->ittiMsg.ngap_initial_context_setup_req;
+  memset(req, 0, sizeof(Ngap_initial_context_setup_request_t));
+  req->amf_ue_ngap_id = AMF_UE_NGAP_ID;
+  req->ran_ue_ngap_id = GNB_UE_NGAP_ID;
+  buffer              = bfromcstralloc(len, "\0");
+  memcpy(buffer->data, reg_accept_msg, len);
+  buffer->slen                                                = len;
+  req->nas_pdu                                                = bstrcpy(buffer);
+  req->ue_security_capabilities.m5g_encryption_algo           = 0xC000;
+  req->ue_security_capabilities.m5g_integrity_protection_algo = 0xC000;
+  req->Security_Key = (unsigned char *)
+      "e4298c66a3d368b59db6d6defa1b4ddaf40b9bef7cb398b44f468ea2f531ded3";
+  message_p->ittiMsgHeader.imsi = 0x311480000000001;
+
+  ue_ref = ngap_new_ue(state, p.assoc_id, AMF_UE_NGAP_ID);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->ng_ue_state    = NGAP_UE_CONNECTED;
+  ue_ref->gnb_ue_ngap_id = GNB_UE_NGAP_ID;
+  ue_ref->amf_ue_ngap_id = AMF_UE_NGAP_ID;
+
+  ngap_handle_conn_est_cnf(state, &NGAP_INITIAL_CONTEXT_SETUP_REQ(message_p));
+  itti_free_msg_content(message_p);
+  bdestroy(buffer);
+  free(message_p);
+}
+
+// Initial Context Setup Response
+TEST_F(NgapFlowTest, initial_context_setup_response_sunny_day) {
+  Ngap_InitialContextSetupResponse_t* container = NULL;
+  gnb_description_t* gNB_ref                    = NULL;
+  m5g_ue_description_t* ue_ref                  = NULL;
+
+  unsigned char initial_context_setup_response_message_hexbuf[] = {
+      0x20, 0x0e, 0x00, 0x11, 0x00, 0x00, 0x02, 0x00, 0x0a, 0x40, 0x02,
+      0x00, 0x05, 0x00, 0x55, 0x40, 0x04, 0x80, 0x01, 0x00, 0x01};
+
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint16_t length = sizeof(initial_context_setup_response_message_hexbuf) /
+                    sizeof(unsigned char);
+
+  bstring initial_context_response_succ_msg =
+      blk2bstr(initial_context_setup_response_message_hexbuf, length);
+  memcpy(
+      initial_context_response_succ_msg->data,
+      initial_context_setup_response_message_hexbuf, length);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(
+      ngap_amf_decode_pdu(&decoded_pdu, initial_context_response_succ_msg),
+      RETURNok);
+
+  container = &(decoded_pdu.choice.successfulOutcome.value.choice
+                    .InitialContextSetupResponse);
+  Ngap_InitialContextSetupResponseIEs* ie = NULL;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialContextSetupResponseIEs, ie, container,
+      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
+
+  // Check if ran UE ID was found
+  ASSERT_TRUE(ie != NULL);
+
+  // Check if GNB exists
+  gNB_ref = ngap_state_get_gnb(state, p.assoc_id);
+  ASSERT_TRUE(gNB_ref != NULL);
+
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
+  amf_ue_ngap_id_t amf_ue_ngap_id = 0;
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
+  ue_ref         = ngap_new_ue(state, p.assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->gnb_ue_ngap_id = gnb_ue_ngap_id;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialContextSetupResponseIEs, ie, container,
+      Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID);
+
+  // Check if AMF UE ID was found
+  ASSERT_TRUE(ie != NULL);
+  asn_INTEGER2ulong(
+      &ie->value.choice.AMF_UE_NGAP_ID,
+      reinterpret_cast<uint64_t*> & amf_ue_ngap_id);
+  ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
+
+  // Walk through the initial_context_setup_response
+  EXPECT_EQ(
+      ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
+      RETURNok);
+
+  // Check if UE is not pointing to invalid ID
+  EXPECT_NE(ue_ref->amf_ue_ngap_id, INVALID_AMF_UE_NGAP_ID);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  bdestroy(initial_context_response_succ_msg);
+}
+
+// Ue Context Release Request
+TEST_F(NgapFlowTest, ue_context_release_request_sunny_day) {
+  Ngap_UEContextReleaseRequest_t* container = NULL;
+  gnb_description_t* gNB_ref                = NULL;
+  m5g_ue_description_t* ue_ref              = NULL;
+
+  unsigned char ue_context_release_req_message_hexbuf[] = {
+      0x00, 0x2a, 0x40, 0x17, 0x00, 0x00, 0x03, 0x00, 0x0a,
+      0x00, 0x02, 0x00, 0x05, 0x00, 0x55, 0x00, 0x04, 0x80,
+      0x01, 0x00, 0x01, 0x00, 0x0f, 0x40, 0x02, 0x05, 0x00};
+
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint16_t length =
+      sizeof(ue_context_release_req_message_hexbuf) / sizeof(unsigned char);
+
+  bstring ue_context_release_req_msg =
+      blk2bstr(ue_context_release_req_message_hexbuf, length);
+  memcpy(
+      ue_context_release_req_msg->data, ue_context_release_req_message_hexbuf,
+      length);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(
+      ngap_amf_decode_pdu(&decoded_pdu, ue_context_release_req_msg), RETURNok);
+
+  container = &(decoded_pdu.choice.initiatingMessage.value.choice
+                    .UEContextReleaseRequest);
+  Ngap_UEContextReleaseRequest_IEs* ie = NULL;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_UEContextReleaseRequest_IEs, ie, container,
+      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
+
+  // Check if ran UE ID was found
+  ASSERT_TRUE(ie != NULL);
+
+  // Check if GNB exists
+  gNB_ref = ngap_state_get_gnb(state, p.assoc_id);
+  ASSERT_TRUE(gNB_ref != NULL);
+
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
+  amf_ue_ngap_id_t amf_ue_ngap_id = 0;
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
+  ue_ref         = ngap_new_ue(state, p.assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->gnb_ue_ngap_id = gnb_ue_ngap_id;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_UEContextReleaseRequest_IEs, ie, container,
+      Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID);
+
+  // Check if AMF UE ID was found
+  ASSERT_TRUE(ie != NULL);
+  asn_INTEGER2ulong(
+      &ie->value.choice.AMF_UE_NGAP_ID,
+      reinterpret_cast<uint64_t*> & amf_ue_ngap_id);
+  ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
+
+  // check if Cause IE present
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_UEContextReleaseRequest_IEs, ie, container,
+      Ngap_ProtocolIE_ID_id_Cause);
+  ASSERT_TRUE(ie != NULL);
+
+  // Walk through the uplinkNasTransport
+  EXPECT_EQ(
+      ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
+      RETURNok);
+
+  // Check if UE is not pointing to invalid ID
+  EXPECT_NE(ue_ref->amf_ue_ngap_id, INVALID_AMF_UE_NGAP_ID);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  bdestroy(ue_context_release_req_msg);
+}
+
+// Ue Context Release Complete
+TEST_F(NgapFlowTest, ue_context_release_complete_sunny_day) {
+  Ngap_UEContextReleaseComplete_t* container = NULL;
+  gnb_description_t* gNB_ref                 = NULL;
+  m5g_ue_description_t* ue_ref               = NULL;
+
+  unsigned char ue_context_release_com_message_hexbuf[] = {
+      0x20, 0x29, 0x00, 0x11, 0x00, 0x00, 0x02, 0x00, 0x0a, 0x40, 0x02,
+      0x00, 0x05, 0x00, 0x55, 0x40, 0x04, 0x80, 0x01, 0x00, 0x01};
+
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint16_t length =
+      sizeof(ue_context_release_com_message_hexbuf) / sizeof(unsigned char);
+
+  bstring ue_context_release_com_msg =
+      blk2bstr(ue_context_release_com_message_hexbuf, length);
+  memcpy(
+      ue_context_release_com_msg->data, ue_context_release_com_message_hexbuf,
+      length);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(
+      ngap_amf_decode_pdu(&decoded_pdu, ue_context_release_com_msg), RETURNok);
+
+  container = &(decoded_pdu.choice.successfulOutcome.value.choice
+                    .UEContextReleaseComplete);
+  Ngap_UEContextReleaseComplete_IEs* ie = NULL;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_UEContextReleaseComplete_IEs, ie, container,
+      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
+
+  // Check if ran UE ID was found
+  ASSERT_TRUE(ie != NULL);
+
+  // Check if GNB exists
+  gNB_ref = ngap_state_get_gnb(state, p.assoc_id);
+  ASSERT_TRUE(gNB_ref != NULL);
+
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
+  amf_ue_ngap_id_t amf_ue_ngap_id = 0;
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
+  ue_ref         = ngap_new_ue(state, p.assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->gnb_ue_ngap_id = gnb_ue_ngap_id;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_UEContextReleaseComplete_IEs, ie, container,
+      Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID);
+
+  // Check if AMF UE ID was found
+  ASSERT_TRUE(ie != NULL);
+  asn_INTEGER2ulong(
+      &ie->value.choice.AMF_UE_NGAP_ID,
+      reinterpret_cast<uint64_t*> & amf_ue_ngap_id);
+  ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
+
+  // Walk through the uplinkNasTransport
+  EXPECT_EQ(
+      ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
+      RETURNok);
+
+  // Check if UE is not pointing to invalid ID
+  EXPECT_NE(ue_ref->amf_ue_ngap_id, INVALID_AMF_UE_NGAP_ID);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  bdestroy(ue_context_release_com_msg);
+}
+
+// UE Context Release Command
+TEST_F(NgapFlowTest, ue_context_release_command_sunny_day) {
+  MessageDef* message_p        = NULL;
+  m5g_ue_description_t* ue_ref = NULL;
+
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  message_p =
+      itti_alloc_new_message(TASK_AMF_APP, NGAP_UE_CONTEXT_RELEASE_COMMAND);
+
+  NGAP_NAS_DL_DATA_REQ(message_p).gnb_ue_ngap_id = GNB_UE_NGAP_ID;
+  NGAP_NAS_DL_DATA_REQ(message_p).amf_ue_ngap_id = AMF_UE_NGAP_ID;
+  message_p->ittiMsgHeader.imsi                  = 0x311480000000001;
+
+  ue_ref = ngap_new_ue(state, p.assoc_id, GNB_UE_NGAP_ID);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->ng_ue_state    = NGAP_UE_CONNECTED;
+  ue_ref->gnb_ue_ngap_id = GNB_UE_NGAP_ID;
+  ue_ref->amf_ue_ngap_id = AMF_UE_NGAP_ID;
+
+  NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).amf_ue_ngap_id = AMF_UE_NGAP_ID;
+  NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).gnb_ue_ngap_id = GNB_UE_NGAP_ID;
+  NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).cause = NGAP_USER_INACTIVITY;
+
+  EXPECT_EQ(
+      RETURNok, ngap_handle_ue_context_release_command(
+                    state, &NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p),
+                    message_p->ittiMsgHeader.imsi));
+  itti_free_msg_content(message_p);
+  free(message_p);
+}
+
+// Pdu Session Resource Setup Request
+TEST_F(NgapFlowTest, pdu_sess_resource_setup_req_sunny_day) {
+  MessageDef* message_p        = NULL;
+  uint8_t ip_buff[4]           = {0xc0, 0xa8, 0x3c, 0x8e};
+  m5g_ue_description_t* ue_ref = NULL;
+  itti_ngap_pdusession_resource_setup_req_t* ngap_pdu_ses_setup_req = nullptr;
+  pdu_session_resource_setup_request_transfer_t amf_pdu_ses_setup_transfer_req;
+
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  message_p =
+      itti_alloc_new_message(TASK_AMF_APP, NGAP_PDUSESSION_RESOURCE_SETUP_REQ);
+  message_p->ittiMsgHeader.imsi = 0x311480000000001;
+
+  ngap_pdu_ses_setup_req =
+      &message_p->ittiMsg.ngap_pdusession_resource_setup_req;
+  memset(
+      ngap_pdu_ses_setup_req, 0,
+      sizeof(itti_ngap_pdusession_resource_setup_req_t));
+
+  ngap_pdu_ses_setup_req->gnb_ue_ngap_id = GNB_UE_NGAP_ID;
+  ngap_pdu_ses_setup_req->amf_ue_ngap_id = AMF_UE_NGAP_ID;
+
+  ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.dl = 2048;
+  ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.ul = 2048;
+
+  ngap_pdu_ses_setup_req->pduSessionResource_setup_list.no_of_items = 1;
+  ngap_pdu_ses_setup_req->pduSessionResource_setup_list.item[0].Pdu_Session_ID =
+      0x05;
+
+  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.dl = 1024;
+  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.ul = 1024;
+  amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.gtp_tied[0] =
+      0x80;
+  amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.gtp_tied[1] =
+      0x00;
+  amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.gtp_tied[2] =
+      0x00;
+  amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.gtp_tied[3] =
+      0x01;
+  amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl
+      .endpoint_ip_address                            = blk2bstr(ip_buff, 4);
+  amf_pdu_ses_setup_transfer_req.pdu_ip_type.pdn_type = IPv4;
+  amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item
+      .qos_flow_identifier = 5;
+  amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item
+      .qos_flow_level_qos_param.qos_characteristic.non_dynamic_5QI_desc.fiveQI =
+      9;
+  amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item
+      .qos_flow_level_qos_param.alloc_reten_priority.priority_level = 1;
+  amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item
+      .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_cap =
+      SHALL_NOT_TRIGGER_PRE_EMPTION;
+  amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item
+      .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_vul =
+      NOT_PREEMPTABLE;
+  ngap_pdu_ses_setup_req->pduSessionResource_setup_list.item[0]
+      .PDU_Session_Resource_Setup_Request_Transfer =
+      amf_pdu_ses_setup_transfer_req;
+
+  ue_ref = ngap_new_ue(state, p.assoc_id, GNB_UE_NGAP_ID);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->ng_ue_state    = NGAP_UE_CONNECTED;
+  ue_ref->gnb_ue_ngap_id = GNB_UE_NGAP_ID;
+  ue_ref->amf_ue_ngap_id = AMF_UE_NGAP_ID;
+
+  EXPECT_EQ(
+      RETURNok, ngap_generate_ngap_pdusession_resource_setup_req(
+                    state, &NGAP_PDUSESSION_RESOURCE_SETUP_REQ(message_p)));
+  itti_free_msg_content(message_p);
+  free(message_p);
+}
+
+// Pdu Session Resource Setup Response
+TEST_F(NgapFlowTest, pdu_session_resource_setup_resp_sunny_day) {
+  Ngap_PDUSessionResourceSetupResponse_t* container = NULL;
+  gnb_description_t* gNB_ref                        = NULL;
+  m5g_ue_description_t* ue_ref                      = NULL;
+  Ngap_NGAP_PDU_t decoded_pdu                       = {};
+  uint8_t pdu_ss_resource_setup_resp_hex_buff[]     = {
+      0x20, 0x1d, 0x00, 0x27, 0x00, 0x00, 0x03, 0x00, 0x0a, 0x40, 0x02,
+      0x00, 0x05, 0x00, 0x55, 0x40, 0x04, 0x80, 0x01, 0x00, 0x01, 0x00,
+      0x4b, 0x40, 0x12, 0x00, 0x00, 0x05, 0x0e, 0x00, 0x03, 0xe0, 0x05,
+      0x05, 0x05, 0x02, 0x00, 0x00, 0x00, 0x0b, 0x01, 0x00, 0x00};
+  uint16_t len = sizeof(pdu_ss_resource_setup_resp_hex_buff) / sizeof(uint8_t);
+
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  bstring pdu_ss_resource_response_succ_msg =
+      blk2bstr(pdu_ss_resource_setup_resp_hex_buff, len);
+  memcpy(
+      pdu_ss_resource_response_succ_msg->data,
+      pdu_ss_resource_setup_resp_hex_buff, len);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(
+      ngap_amf_decode_pdu(&decoded_pdu, pdu_ss_resource_response_succ_msg),
+      RETURNok);
+  container = &(decoded_pdu.choice.successfulOutcome.value.choice
+                    .PDUSessionResourceSetupResponse);
+  Ngap_PDUSessionResourceSetupResponseIEs_t* ie = NULL;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_PDUSessionResourceSetupResponseIEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
+
+  // Check if ran UE ID was found
+  ASSERT_TRUE(ie != NULL);
+
+  // Check if GNB exists
+  gNB_ref = ngap_state_get_gnb(state, p.assoc_id);
+  ASSERT_TRUE(gNB_ref != NULL);
+
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
+  amf_ue_ngap_id_t amf_ue_ngap_id = 0;
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
+  ue_ref         = ngap_new_ue(state, p.assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->gnb_ue_ngap_id = gnb_ue_ngap_id;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_PDUSessionResourceSetupResponseIEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID);
+
+  // Check if AMF UE ID was found
+  ASSERT_TRUE(ie != NULL);
+  asn_INTEGER2ulong(
+      &ie->value.choice.AMF_UE_NGAP_ID,
+      reinterpret_cast<uint64_t*> & amf_ue_ngap_id);
+  ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
+
+  NGAP_FIND_PROTOCOLIE_BY_ID(
+      Ngap_PDUSessionResourceSetupResponseIEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListSURes, false);
+  ASSERT_TRUE(ie != NULL);
+
+  EXPECT_EQ(
+      ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
+      RETURNok);
+
+  // Check if UE is not pointing to invalid ID
+  EXPECT_NE(ue_ref->amf_ue_ngap_id, INVALID_AMF_UE_NGAP_ID);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  bdestroy(pdu_ss_resource_response_succ_msg);
+}
+
+// Pdu Session Resource Release command
+TEST_F(NgapFlowTest, pdu_sess_resource_rel_cmd_sunny_day) {
+  unsigned char pdu_sess_resource_rel_cmd[] = {
+      0x7e, 0x00, 0x56, 0x00, 0x02, 0x00, 0x00, 0x21, 0xb4, 0x74, 0x3d,
+      0x51, 0x76, 0xb8, 0xe5, 0x45, 0xe1, 0xdc, 0x03, 0x68, 0x25, 0x9a,
+      0x67, 0x6c, 0x20, 0x10, 0xa4, 0x9b, 0x6b, 0x3d, 0x65, 0x6d, 0x80,
+      0x00, 0x41, 0xc5, 0x72, 0x9e, 0xd9, 0xe1, 0xf0, 0xd6};
+  MessageDef* message_p        = NULL;
+  m5g_ue_description_t* ue_ref = NULL;
+  bstring buffer;
+  unsigned int len = sizeof(pdu_sess_resource_rel_cmd) / sizeof(unsigned char);
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  message_p =
+      itti_alloc_new_message(TASK_AMF_APP, NGAP_PDUSESSIONRESOURCE_REL_REQ);
+
+  NGAP_PDUSESSIONRESOURCE_REL_REQ(message_p).gnb_ue_ngap_id = GNB_UE_NGAP_ID;
+  NGAP_PDUSESSIONRESOURCE_REL_REQ(message_p).amf_ue_ngap_id = AMF_UE_NGAP_ID;
+  message_p->ittiMsgHeader.imsi                             = 0x311480000000001;
+  buffer = bfromcstralloc(len, "\0");
+  memcpy(buffer->data, pdu_sess_resource_rel_cmd, len);
+  buffer->slen                            = len;
+  NGAP_NAS_DL_DATA_REQ(message_p).nas_msg = bstrcpy(buffer);
+
+  ue_ref = ngap_new_ue(state, p.assoc_id, GNB_UE_NGAP_ID);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->ng_ue_state    = NGAP_UE_CONNECTED;
+  ue_ref->gnb_ue_ngap_id = GNB_UE_NGAP_ID;
+  ue_ref->amf_ue_ngap_id = AMF_UE_NGAP_ID;
+
+  EXPECT_EQ(
+      RETURNok, ngap_generate_ngap_pdusession_resource_rel_cmd(
+                    state, &NGAP_PDUSESSIONRESOURCE_REL_REQ(message_p)));
+  itti_free_msg_content(message_p);
+  bdestroy(NGAP_PDUSESSIONRESOURCE_REL_REQ(message_p).nas_msg);
+  bdestroy(buffer);
+  free(message_p);
+}
+
+// Initial Context Setup  failure
+TEST_F(NgapFlowTest, initial_context_setup_failure_rainy_day) {
+  Ngap_InitialContextSetupFailure_t* container = NULL;
+  gnb_description_t* gNB_ref                   = NULL;
+  m5g_ue_description_t* ue_ref                 = NULL;
+
+  unsigned char initial_context_setup_failure_message_hexbuf[] = {
+      0x40, 0x0e, 0x00, 0x21, 0x00, 0x00, 0x04, 0x00, 0x0a, 0x40,
+      0x02, 0x00, 0x02, 0x00, 0x55, 0x40, 0x04, 0x80, 0x01, 0x00,
+      0x02, 0x00, 0x84, 0x40, 0x06, 0x00, 0x00, 0x05, 0x02, 0x00,
+      0xe0, 0x00, 0x0f, 0x40, 0x02, 0x00, 0x40};
+
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint16_t length = sizeof(initial_context_setup_failure_message_hexbuf) /
+                    sizeof(unsigned char);
+
+  bstring initial_context_setup_fail_msg =
+      blk2bstr(initial_context_setup_failure_message_hexbuf, length);
+  memcpy(
+      initial_context_setup_fail_msg->data,
+      initial_context_setup_failure_message_hexbuf, length);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(
+      ngap_amf_decode_pdu(&decoded_pdu, initial_context_setup_fail_msg),
+      RETURNok);
+
+  container = &(decoded_pdu.choice.unsuccessfulOutcome.value.choice
+                    .InitialContextSetupFailure);
+  Ngap_InitialContextSetupFailureIEs* ie = NULL;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialContextSetupFailureIEs, ie, container,
+      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
+
+  // Check if ran UE ID was found
+  ASSERT_TRUE(ie != NULL);
+
+  // Check if GNB exists
+  gNB_ref = ngap_state_get_gnb(state, p.assoc_id);
+  ASSERT_TRUE(gNB_ref != NULL);
+
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
+  amf_ue_ngap_id_t amf_ue_ngap_id = 0;
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
+  ue_ref         = ngap_new_ue(state, p.assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->gnb_ue_ngap_id = gnb_ue_ngap_id;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialContextSetupFailureIEs, ie, container,
+      Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID);
+
+  // Check if AMF UE ID was found
+  ASSERT_TRUE(ie != NULL);
+  asn_INTEGER2ulong(
+      &ie->value.choice.AMF_UE_NGAP_ID,
+      reinterpret_cast<uint64_t*> & amf_ue_ngap_id);
+  ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
+
+  // check if Cause IE present
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialContextSetupFailureIEs, ie, container,
+      Ngap_ProtocolIE_ID_id_Cause);
+  ASSERT_TRUE(ie != NULL);
+
+  // Walk through the initial_context_setup_failure
+  EXPECT_EQ(
+      ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
+      RETURNok);
+
+  // Check if UE is not pointing to invalid ID
+  EXPECT_NE(ue_ref->amf_ue_ngap_id, INVALID_AMF_UE_NGAP_ID);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  bdestroy(initial_context_setup_fail_msg);
+}
+
+// Uplink Nas Transport With Auth Response
+TEST_F(NgapFlowTest, uplink_nas_trasnport_rainy_day) {
+  Ngap_UplinkNASTransport_t* container;
+  gnb_description_t* gNB_ref   = NULL;
+  m5g_ue_description_t* ue_ref = NULL;
+
+  unsigned char uplink_nas_transport_ue_message_hexbuf[] = {
+      0x00, 0x2e, 0x40, 0x40, 0x00, 0x00, 0x04, 0x00, 0x0a, 0x00, 0x04, 0x40,
+      0x01, 0x00, 0x02, 0x00, 0x55, 0x00, 0x04, 0x80, 0x01, 0x00, 0x01, 0x00,
+      0x26, 0x00, 0x16, 0x15, 0x7e, 0x00, 0x57, 0x2d, 0x10, 0x8f, 0x17, 0xab,
+      0x63, 0xde, 0x8b, 0xde, 0xba, 0x9a, 0x55, 0xe4, 0xc5, 0xdc, 0x12, 0xb1,
+      0x54, 0x00, 0x79, 0x40, 0x0f, 0x40, 0x13, 0xf1, 0x84, 0x00, 0x02, 0x00,
+      0x00, 0x00, 0x13, 0xf1, 0x84, 0x00, 0x00, 0x88};
+
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint16_t length =
+      sizeof(uplink_nas_transport_ue_message_hexbuf) / sizeof(unsigned char);
+
+  bstring uplink_nas_transport_msg =
+      blk2bstr(uplink_nas_transport_ue_message_hexbuf, length);
+  memcpy(
+      uplink_nas_transport_msg->data, uplink_nas_transport_ue_message_hexbuf,
+      length);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(
+      ngap_amf_decode_pdu(&decoded_pdu, uplink_nas_transport_msg), RETURNok);
+
+  container =
+      &(decoded_pdu.choice.initiatingMessage.value.choice.UplinkNASTransport);
+  Ngap_UplinkNASTransport_IEs* ie = NULL;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_UplinkNASTransport_IEs, ie, container,
+      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
+
+  // Check if ran UE ID was found
+  ASSERT_TRUE(ie != NULL);
+
+  // Check if GNB exists
+  gNB_ref = ngap_state_get_gnb(state, p.assoc_id);
+  ASSERT_TRUE(gNB_ref != NULL);
+
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
+  amf_ue_ngap_id_t amf_ue_ngap_id = 0;
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
+  ue_ref         = ngap_new_ue(state, p.assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->gnb_ue_ngap_id = 0xffff;
+  // Walk through the uplinkNasTransport
+  EXPECT_EQ(
+      ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
+      RETURNerror);
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_UplinkNASTransport_IEs, ie, container,
+      Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID);
+
+  // Check if AMF UE ID was found
+  ASSERT_TRUE(ie != NULL);
+  asn_INTEGER2ulong(
+      &ie->value.choice.AMF_UE_NGAP_ID,
+      reinterpret_cast<uint64_t*> & amf_ue_ngap_id);
+  ue_ref->amf_ue_ngap_id = 0xffff;
+
+  // Walk through the uplinkNasTransport
+  EXPECT_EQ(
+      ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
+      RETURNerror);
+  ue_ref->gnb_ue_ngap_id = gnb_ue_ngap_id;
+  ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
+  EXPECT_EQ(
+      ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
+      RETURNerror);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  bdestroy(uplink_nas_transport_msg);
+}
+
+// Downlink Nas Transport Test with Auth Req
+TEST_F(NgapFlowTest, downlink_nas_transport_auth_rainy_day) {
+  unsigned char dl_nas_auth_req_msg[] = {
+      0x7e, 0x00, 0x56, 0x00, 0x02, 0x00, 0x00, 0x21, 0xb4, 0x74, 0x3d,
+      0x51, 0x76, 0xb8, 0xe5, 0x45, 0xe1, 0xdc, 0x03, 0x68, 0x25, 0x9a,
+      0x67, 0x6c, 0x20, 0x10, 0xa4, 0x9b, 0x6b, 0x3d, 0x65, 0x6d, 0x80,
+      0x00, 0x41, 0xc5, 0x72, 0x9e, 0xd9, 0xe1, 0xf0, 0xd6};
+  MessageDef* message_p        = NULL;
+  m5g_ue_description_t* ue_ref = NULL;
+  bstring buffer;
+  unsigned int len = sizeof(dl_nas_auth_req_msg) / sizeof(unsigned char);
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_NAS_DL_DATA_REQ);
+
+  NGAP_NAS_DL_DATA_REQ(message_p).gnb_ue_ngap_id = GNB_UE_NGAP_ID;
+  NGAP_NAS_DL_DATA_REQ(message_p).amf_ue_ngap_id = AMF_UE_NGAP_ID;
+  message_p->ittiMsgHeader.imsi                  = 0x311480000000001;
+  buffer                                         = bfromcstralloc(len, "\0");
+  memcpy(buffer->data, dl_nas_auth_req_msg, len);
+  buffer->slen                            = len;
+  NGAP_NAS_DL_DATA_REQ(message_p).nas_msg = bstrcpy(buffer);
+
+  ue_ref = ngap_new_ue(state, p.assoc_id, GNB_UE_NGAP_ID);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->gnb_ue_ngap_id = 0xffff;
+  ue_ref->amf_ue_ngap_id = 0xffff;
+
+  EXPECT_EQ(
+      RETURNerror, ngap_generate_downlink_nas_transport(
+                       state, GNB_UE_NGAP_ID, AMF_UE_NGAP_ID,
+                       &NGAP_NAS_DL_DATA_REQ(message_p).nas_msg,
+                       message_p->ittiMsgHeader.imsi));
+  itti_free_msg_content(message_p);
+  bdestroy(NGAP_NAS_DL_DATA_REQ(message_p).nas_msg);
+  bdestroy(buffer);
+  free(message_p);
+}
+
+// Initial Context Setup Request
+TEST_F(NgapFlowTest, initial_context_setup_request_rainy_day) {
+  m5g_ue_description_t* ue_ref              = NULL;
+  MessageDef* message_p                     = nullptr;
+  Ngap_initial_context_setup_request_t* req = nullptr;
+
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  message_p =
+      itti_alloc_new_message(TASK_AMF_APP, NGAP_INITIAL_CONTEXT_SETUP_REQ);
+  ASSERT_TRUE(message_p != NULL);
+  req = &message_p->ittiMsg.ngap_initial_context_setup_req;
+  memset(req, 0, sizeof(Ngap_initial_context_setup_request_t));
+  req->amf_ue_ngap_id                                         = AMF_UE_NGAP_ID;
+  req->ran_ue_ngap_id                                         = GNB_UE_NGAP_ID;
+  req->ue_security_capabilities.m5g_encryption_algo           = 0xC000;
+  req->ue_security_capabilities.m5g_integrity_protection_algo = 0xC000;
+  req->Security_Key =
+      (unsigned char *)
+      "e4298c66a3d368b59db6d6defa1b4ddaf40b9bef7cb398b44f468ea2f531ded3";
+  message_p->ittiMsgHeader.imsi = 0x311480000000001;
+
+  ue_ref = ngap_new_ue(state, p.assoc_id, AMF_UE_NGAP_ID);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->ng_ue_state    = NGAP_UE_CONNECTED;
+  ue_ref->gnb_ue_ngap_id = 0xffff;
+  ue_ref->amf_ue_ngap_id = 0xffff;
+
+  ngap_handle_conn_est_cnf(state, &NGAP_INITIAL_CONTEXT_SETUP_REQ(message_p));
+  itti_free_msg_content(message_p);
+  free(message_p);
+}
+
+// Initial Context Setup Response
+TEST_F(NgapFlowTest, initial_context_setup_response_rainy_day) {
+  Ngap_InitialContextSetupResponse_t* container = NULL;
+  gnb_description_t* gNB_ref                    = NULL;
+  m5g_ue_description_t* ue_ref                  = NULL;
+
+  unsigned char initial_context_setup_response_message_hexbuf[] = {
+      0x20, 0x0e, 0x00, 0x11, 0x00, 0x00, 0x02, 0x00, 0x0a, 0x40, 0x02,
+      0x00, 0x05, 0x00, 0x55, 0x40, 0x04, 0x80, 0x01, 0x00, 0x01};
+
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint16_t length = sizeof(initial_context_setup_response_message_hexbuf) /
+                    sizeof(unsigned char);
+
+  bstring initial_context_response_succ_msg =
+      blk2bstr(initial_context_setup_response_message_hexbuf, length);
+  memcpy(
+      initial_context_response_succ_msg->data,
+      initial_context_setup_response_message_hexbuf, length);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(
+      ngap_amf_decode_pdu(&decoded_pdu, initial_context_response_succ_msg),
+      RETURNok);
+
+  container = &(decoded_pdu.choice.successfulOutcome.value.choice
+                    .InitialContextSetupResponse);
+  Ngap_InitialContextSetupResponseIEs* ie = NULL;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialContextSetupResponseIEs, ie, container,
+      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
+
+  // Check if ran UE ID was found
+  ASSERT_TRUE(ie != NULL);
+
+  // Check if GNB exists
+  gNB_ref = ngap_state_get_gnb(state, p.assoc_id);
+  ASSERT_TRUE(gNB_ref != NULL);
+
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
+  amf_ue_ngap_id_t amf_ue_ngap_id = 0;
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
+  ue_ref         = ngap_new_ue(state, p.assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->gnb_ue_ngap_id = GNB_UE_NGAP_ID;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialContextSetupResponseIEs, ie, container,
+      Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID);
+
+  // Check if AMF UE ID was found
+  ASSERT_TRUE(ie != NULL);
+  asn_INTEGER2ulong(
+      &ie->value.choice.AMF_UE_NGAP_ID,
+      reinterpret_cast<uint64_t*> & amf_ue_ngap_id);
+  ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
+
+  // Walk through the initial_context_setup_response
+  EXPECT_EQ(
+      ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
+      RETURNerror);
+
+  // Check if UE is not pointing to invalid ID
+  EXPECT_NE(ue_ref->amf_ue_ngap_id, INVALID_AMF_UE_NGAP_ID);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  bdestroy(initial_context_response_succ_msg);
+}
+
+// Ue Context Release Request
+TEST_F(NgapFlowTest, ue_context_release_request_rainy_day) {
+  Ngap_UEContextReleaseRequest_t* container = NULL;
+  gnb_description_t* gNB_ref                = NULL;
+  m5g_ue_description_t* ue_ref              = NULL;
+
+  unsigned char ue_context_release_req_message_hexbuf[] = {
+      0x00, 0x2a, 0x40, 0x17, 0x00, 0x00, 0x03, 0x00, 0x0a,
+      0x00, 0x02, 0x00, 0x05, 0x00, 0x55, 0x00, 0x04, 0x80,
+      0x01, 0x00, 0x01, 0x00, 0x0f, 0x40, 0x02, 0x05, 0x00};
+
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint16_t length =
+      sizeof(ue_context_release_req_message_hexbuf) / sizeof(unsigned char);
+
+  bstring ue_context_release_req_msg =
+      blk2bstr(ue_context_release_req_message_hexbuf, length);
+  memcpy(
+      ue_context_release_req_msg->data, ue_context_release_req_message_hexbuf,
+      length);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(
+      ngap_amf_decode_pdu(&decoded_pdu, ue_context_release_req_msg), RETURNok);
+
+  container = &(decoded_pdu.choice.initiatingMessage.value.choice
+                    .UEContextReleaseRequest);
+  Ngap_UEContextReleaseRequest_IEs* ie = NULL;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_UEContextReleaseRequest_IEs, ie, container,
+      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
+
+  // Check if ran UE ID was found
+  ASSERT_TRUE(ie != NULL);
+
+  // Check if GNB exists
+  gNB_ref = ngap_state_get_gnb(state, p.assoc_id);
+  ASSERT_TRUE(gNB_ref != NULL);
+
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
+  amf_ue_ngap_id_t amf_ue_ngap_id = 0;
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
+  ue_ref         = ngap_new_ue(state, p.assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_UEContextReleaseRequest_IEs, ie, container,
+      Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID);
+
+  // Check if AMF UE ID was found
+  ASSERT_TRUE(ie != NULL);
+  asn_INTEGER2ulong(
+      &ie->value.choice.AMF_UE_NGAP_ID,
+      reinterpret_cast<uint64_t*> & amf_ue_ngap_id);
+  // Walk through the uplinkNasTransport
+  EXPECT_EQ(
+      ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
+      RETURNerror);
+  ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
+  ue_ref->gnb_ue_ngap_id = amf_ue_ngap_id;
+  // Walk through the uplinkNasTransport
+  EXPECT_EQ(
+      ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
+      RETURNerror);
+
+  // check if Cause IE present
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_UEContextReleaseRequest_IEs, ie, container,
+      Ngap_ProtocolIE_ID_id_Cause);
+  ASSERT_TRUE(ie != NULL);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  bdestroy(ue_context_release_req_msg);
+}
+
+// UE Context Release Command
+TEST_F(NgapFlowTest, ue_context_release_command_rainy_day) {
+  MessageDef* message_p        = NULL;
+  m5g_ue_description_t* ue_ref = NULL;
+
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  message_p =
+      itti_alloc_new_message(TASK_AMF_APP, NGAP_UE_CONTEXT_RELEASE_COMMAND);
+
+  NGAP_NAS_DL_DATA_REQ(message_p).gnb_ue_ngap_id = GNB_UE_NGAP_ID;
+  NGAP_NAS_DL_DATA_REQ(message_p).amf_ue_ngap_id = AMF_UE_NGAP_ID;
+  message_p->ittiMsgHeader.imsi                  = 0x311480000000001;
+
+  ue_ref = ngap_new_ue(state, p.assoc_id, GNB_UE_NGAP_ID);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->ng_ue_state    = NGAP_UE_CONNECTED;
+  ue_ref->gnb_ue_ngap_id = GNB_UE_NGAP_ID;
+  ue_ref->amf_ue_ngap_id = 0xffff;
+
+  NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).amf_ue_ngap_id = AMF_UE_NGAP_ID;
+  NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).gnb_ue_ngap_id = GNB_UE_NGAP_ID;
+  NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).cause = NGAP_USER_INACTIVITY;
+
+  EXPECT_EQ(
+      RETURNok, ngap_handle_ue_context_release_command(
+                    state, &NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p),
+                    message_p->ittiMsgHeader.imsi));
+  itti_free_msg_content(message_p);
+  free(message_p);
+}
+// Pdu Session Resource Setup Response
+TEST_F(NgapFlowTest, pdu_session_resource_setup_resp_rainy_day) {
+  Ngap_PDUSessionResourceSetupResponse_t* container = NULL;
+  gnb_description_t* gNB_ref                        = NULL;
+  m5g_ue_description_t* ue_ref                      = NULL;
+  Ngap_NGAP_PDU_t decoded_pdu                       = {};
+  uint8_t pdu_ss_resource_setup_resp_hex_buff[]     = {
+      0x20, 0x1d, 0x00, 0x27, 0x00, 0x00, 0x03, 0x00, 0x0a, 0x40, 0x02,
+      0x00, 0x05, 0x00, 0x55, 0x40, 0x04, 0x80, 0x01, 0x00, 0x01, 0x00,
+      0x4b, 0x40, 0x12, 0x00, 0x00, 0x05, 0x0e, 0x00, 0x03, 0xe0, 0x05,
+      0x05, 0x05, 0x02, 0x00, 0x00, 0x00, 0x0b, 0x01, 0x00, 0x00};
+  uint16_t len = sizeof(pdu_ss_resource_setup_resp_hex_buff) / sizeof(uint8_t);
+
+  EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  bstring pdu_ss_resource_response_succ_msg =
+      blk2bstr(pdu_ss_resource_setup_resp_hex_buff, len);
+  memcpy(
+      pdu_ss_resource_response_succ_msg->data,
+      pdu_ss_resource_setup_resp_hex_buff, len);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(
+      ngap_amf_decode_pdu(&decoded_pdu, pdu_ss_resource_response_succ_msg),
+      RETURNok);
+  container = &(decoded_pdu.choice.successfulOutcome.value.choice
+                    .PDUSessionResourceSetupResponse);
+  Ngap_PDUSessionResourceSetupResponseIEs_t* ie = NULL;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_PDUSessionResourceSetupResponseIEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
+
+  // Check if ran UE ID was found
+  ASSERT_TRUE(ie != NULL);
+
+  // Check if GNB exists
+  gNB_ref = ngap_state_get_gnb(state, p.assoc_id);
+  ASSERT_TRUE(gNB_ref != NULL);
+
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
+  amf_ue_ngap_id_t amf_ue_ngap_id = 0;
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
+  ue_ref         = ngap_new_ue(state, p.assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+  ue_ref->gnb_ue_ngap_id = 0xffff;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_PDUSessionResourceSetupResponseIEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID);
+
+  // Check if AMF UE ID was found
+  ASSERT_TRUE(ie != NULL);
+  asn_INTEGER2ulong(
+      &ie->value.choice.AMF_UE_NGAP_ID,
+      reinterpret_cast<uint64_t*> & amf_ue_ngap_id);
+  ue_ref->amf_ue_ngap_id = 0xffff;
+  EXPECT_EQ(
+      ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
+      RETURNerror);
+  ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
+  EXPECT_EQ(
+      ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
+      RETURNerror);
+
+  NGAP_FIND_PROTOCOLIE_BY_ID(
+      Ngap_PDUSessionResourceSetupResponseIEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListSURes, false);
+  ASSERT_TRUE(ie != NULL);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  bdestroy(pdu_ss_resource_response_succ_msg);
+}
 }  // namespace magma5g
