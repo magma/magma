@@ -454,7 +454,7 @@ class IPAddressManager:
     def set_gateway_info(self, info: GWInfo):
         ip = str(ipaddress.ip_address(info.ip.address))
         with self._lock:
-            self._store.dhcp_gw_info.update_mac(ip, info.mac, info.vlan, info.ip.version)
+            self._store.dhcp_gw_info.update_mac(ip, info.mac, info.vlan)
 
     def _recycle_reaped_ips(self):
         """ Periodically called to recycle the given IPs
