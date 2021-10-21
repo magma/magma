@@ -12,13 +12,54 @@ on:  # yamllint disable-line rule:truthy
       - completed
 
 jobs:
+  skip_check:
+    name: Job to retreive the value in pr/SKIP file
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - name: 'Download artifact'
+        uses: actions/github-script@v3.1.0
+        with:
+          script: |
+              var artifacts = await github.actions.listWorkflowRunArtifacts({
+                 owner: context.repo.owner,
+                 repo: context.repo.repo,
+                 run_id: ${{github.event.workflow_run.id }},
+              });
+              var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+                return artifact.name == "pr"
+              })[0];
+              var download = await github.actions.downloadArtifact({
+                 owner: context.repo.owner,
+                 repo: context.repo.repo,
+                 artifact_id: matchArtifact.id,
+                 archive_format: 'zip',
+              });
+              var fs = require('fs');
+              fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
+      - run: unzip pr.zip
+      - name: Check if the workflow is skipped
+        id: skip_check
+        uses: actions/github-script@v3
+        with:
+          script: |
+            var fs = require('fs');
+            var shouldSkip = fs.readFileSync('./SKIP');
+            core.setOutput('should_skip', shouldSkip);
+            console.log("should_skip=" + shouldSkip);
+
   unit-test-results:
+    name: Cloud Unit Test Results
+    needs: skip_check
     name: Upload unit test for ${{ github.event.workflow.name }}
     runs-on: ubuntu-latest
     if: >
       github.event.workflow_run.conclusion != 'skipped' &&
-        github.event.workflow_run.head_repository.full_name != github.repository
+        github.event.workflow_run.head_repository.full_name != github.repository &&
+        ${{ needs.skip_check.outputs.should_skip == 'false' }}
     steps:
+      # Retrieve PR folder from triggering workflow artifacts
       - name: Download and Extract Artifacts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
