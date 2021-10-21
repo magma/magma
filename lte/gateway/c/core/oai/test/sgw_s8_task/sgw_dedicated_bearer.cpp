@@ -350,6 +350,9 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_create_bearer_response) {
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc_after =
       pgw_get_procedure_create_bearer(sgw_pdn_session);
   EXPECT_TRUE(pgw_ni_cbr_proc_after == nullptr);
+  EXPECT_EQ(
+      sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->eps_bearer_id,
+      s11_actv_bearer_rsp.bearer_contexts.bearer_contexts[0].eps_bearer_id);
   free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
   sgw_state_exit();
 }

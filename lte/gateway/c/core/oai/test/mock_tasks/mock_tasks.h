@@ -75,6 +75,12 @@ class MockService303Handler {
   MOCK_METHOD0(service303_set_application_health, void());
 };
 
+class MockS8Handler {
+ public:
+  MOCK_METHOD0(sgw_s8_handle_create_bearer_request, void());
+  MOCK_METHOD0(sgw_s8_handle_delete_bearer_request, void());
+};
+
 void start_mock_ha_task();
 void start_mock_s1ap_task(std::shared_ptr<MockS1apHandler>);
 void start_mock_sctp_task(std::shared_ptr<MockSctpHandler>);
@@ -83,7 +89,7 @@ void start_mock_s6a_task(std::shared_ptr<MockS6aHandler>);
 void start_mock_s11_task();
 void start_mock_service303_task(std::shared_ptr<MockService303Handler>);
 void start_mock_sgs_task();
-void start_mock_sgw_s8_task();
+void start_mock_sgw_s8_task(std::shared_ptr<MockS8Handler>);
 void start_mock_sms_orc8r_task();
 void start_mock_spgw_task(std::shared_ptr<MockSpgwHandler>);
 void start_mock_grpc_task();

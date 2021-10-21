@@ -77,13 +77,15 @@ void start_grpc_service(bstring server_address) {
   builder.RegisterService(&s6a_service);
   // Start the SGS service only if non_eps_service_control is not set to OFF
   char* non_eps_service_control = bdata(mme_config.non_eps_service_control);
-  if (!strcmp(non_eps_service_control, "CSFB_SMS") ||
-      !strcmp(non_eps_service_control, "SMS")) {
-    builder.RegisterService(&sgs_service);
-  }
-  // Start the SMS service only if non_eps_service_control is set to SMS_ORC8R
-  if (!strcmp(non_eps_service_control, "SMS_ORC8R")) {
-    builder.RegisterService(&sms_orc8r_service);
+  if (non_eps_service_control) {
+    if (!strcmp(non_eps_service_control, "CSFB_SMS") ||
+        !strcmp(non_eps_service_control, "SMS")) {
+      builder.RegisterService(&sgs_service);
+    }
+    // Start the SMS service only if non_eps_service_control is set to SMS_ORC8R
+    if (!strcmp(non_eps_service_control, "SMS_ORC8R")) {
+      builder.RegisterService(&sms_orc8r_service);
+    }
   }
   builder.RegisterService(&s1ap_service);
   if (mme_config.use_ha) {

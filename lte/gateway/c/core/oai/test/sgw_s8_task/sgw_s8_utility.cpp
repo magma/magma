@@ -253,7 +253,6 @@ void SgwS8ConfigAndCreateMock::SetUp() {
 }
 
 void SgwS8ConfigAndCreateMock::TearDown() {
-  // sgw_state_exit();
   bdestroy_wrapper(&config->itti_config.log_file);
   bdestroy_wrapper(&config->ipv4.if_name_S1u_S12_S4_up);
   bdestroy_wrapper(&config->ipv4.if_name_S5_S8_up);

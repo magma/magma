@@ -140,6 +140,7 @@ target_link_libraries(TASK_GRPC_SERVICE
     ${PROTOBUF_LIBRARIES}
     grpc++
     folly
+    TASK_SMS_ORC8R
     )
 target_include_directories(TASK_GRPC_SERVICE PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

@@ -28,6 +28,7 @@ typedef struct grpc_service_data_s {
   Init GRPC Service for MME
 */
 int grpc_service_init(void);
+void grpc_service_exit(void);
 
 #ifdef __cplusplus
 extern "C" {
