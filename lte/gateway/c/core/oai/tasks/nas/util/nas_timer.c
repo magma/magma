@@ -57,7 +57,7 @@ void nas_timer_start(
     timer_arg_t* time_out_cb_args) {
   if ((timer) && (timer->id == NAS_TIMER_INACTIVE_ID)) {
     timer->id = mme_app_start_timer_arg(
-        timer->sec * 1000, TIMER_REPEAT_ONCE, time_out_cb, time_out_cb_args);
+        timer->msec, TIMER_REPEAT_ONCE, time_out_cb, time_out_cb_args);
     if (NAS_TIMER_INACTIVE_ID != timer->id) {
       OAILOG_DEBUG(
           LOG_NAS_EMM, "NAS EBR Timer started UE " MME_UE_S1AP_ID_FMT "\n",

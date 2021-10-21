@@ -215,3 +215,6 @@ sgi_tunnel:
 # dp_tso:
 #   gtp_tso_enable: false
 #
+
+# [Experimental] Enable Sentry for this service
+sentry_enabled: false

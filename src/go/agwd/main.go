@@ -22,18 +22,20 @@ import (
 
 func main() {
 	configFlag := flag.String(
-		"c", "/etc/magma/accessd.json", "Path to config file")
+		"c", "/etc/magma/agwd.json", "Path to config file")
 	flag.Parse()
 
 	cfgr := config.NewConfigManager()
-	if err := config.LoadConfigFile(cfgr, *configFlag); err != nil {
-		panic(err)
-	}
+	cfgr_err := config.LoadConfigFile(cfgr, *configFlag)
 
 	lm := log.NewManager(zap.NewLogger())
 	lm.
 		LoggerFor("").
 		SetLevel(config.LogLevel(cfgr.Config().GetLogLevel()))
+
+	if cfgr_err != nil {
+		lm.LoggerFor("").Warning().Printf("using default configuration as LoadConfigFile failed with %q", cfgr_err)
+	}
 
 	server.Start(cfgr, lm.LoggerFor("server"))
 

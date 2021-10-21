@@ -80,6 +80,7 @@
   become: yes
   apt:
     name: "{{ packages }}"
+    only_upgrade: yes 
   vars:
     packages:
       - graphviz
@@ -88,6 +89,7 @@
       - openssl
       - dkms
       - uuid-runtime
+      - ca-certificates
       - ifupdown
   tags:
     - agwc

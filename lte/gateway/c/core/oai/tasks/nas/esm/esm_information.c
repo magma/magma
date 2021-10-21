@@ -299,7 +299,7 @@ static int esm_information(
         LOG_NAS_EMM,
         "UE " MME_UE_S1AP_ID_FMT "Timer T3489 (%lx) expires in %d seconds\n",
         ue_id, emm_context_p->esm_ctx.T3489.id,
-        emm_context_p->esm_ctx.T3489.sec);
+        emm_context_p->esm_ctx.T3489.msec);
   } else {
     bdestroy_wrapper(&data->msg);
     free_wrapper((void**) &data);

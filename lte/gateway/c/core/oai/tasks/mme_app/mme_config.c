@@ -62,6 +62,7 @@
 #include "3gpp_24.301.h"
 #include "TrackingAreaIdentity.h"
 #include "bstrlib.h"
+#include "mme_app_ue_context.h"
 #include "mme_default_values.h"
 #include "service303.h"
 #include "conversions.h"
@@ -187,16 +188,18 @@ void apn_map_config_init(apn_map_config_t* apn_map_config) {
 }
 
 void nas_config_init(nas_config_t* nas_conf) {
-  nas_conf->t3402_min               = T3402_DEFAULT_VALUE;
-  nas_conf->t3412_min               = T3412_DEFAULT_VALUE;
-  nas_conf->t3422_sec               = T3422_DEFAULT_VALUE;
-  nas_conf->t3450_sec               = T3450_DEFAULT_VALUE;
-  nas_conf->t3460_sec               = T3460_DEFAULT_VALUE;
-  nas_conf->t3470_sec               = T3470_DEFAULT_VALUE;
-  nas_conf->t3485_sec               = T3485_DEFAULT_VALUE;
-  nas_conf->t3486_sec               = T3486_DEFAULT_VALUE;
-  nas_conf->t3489_sec               = T3489_DEFAULT_VALUE;
-  nas_conf->t3495_sec               = T3495_DEFAULT_VALUE;
+  nas_conf->t3402_min  = T3402_DEFAULT_VALUE;
+  nas_conf->t3412_min  = T3412_DEFAULT_VALUE;
+  nas_conf->t3422_msec = 1000 * T3422_DEFAULT_VALUE;
+  nas_conf->t3450_msec = 1000 * T3450_DEFAULT_VALUE;
+  nas_conf->t3460_msec = 1000 * T3460_DEFAULT_VALUE;
+  nas_conf->t3470_msec = 1000 * T3470_DEFAULT_VALUE;
+  nas_conf->t3485_msec = 1000 * T3485_DEFAULT_VALUE;
+  nas_conf->t3486_msec = 1000 * T3486_DEFAULT_VALUE;
+  nas_conf->t3489_msec = 1000 * T3489_DEFAULT_VALUE;
+  nas_conf->t3495_msec = 1000 * T3495_DEFAULT_VALUE;
+  nas_conf->ts6a_msec  = 1000 * TS6A_DEFAULT_VALUE;
+  nas_conf->tics_msec  = 1000 * MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE;
   nas_conf->force_reject_tau        = true;
   nas_conf->force_reject_sr         = true;
   nas_conf->disable_esm_information = false;
@@ -1625,35 +1628,35 @@ int mme_config_parse_string(
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3422_TIMER, &aint))) {
-        config_pP->nas_config.t3422_sec = (uint32_t) aint;
+        config_pP->nas_config.t3422_msec = (uint32_t)(1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3450_TIMER, &aint))) {
-        config_pP->nas_config.t3450_sec = (uint32_t) aint;
+        config_pP->nas_config.t3450_msec = (uint32_t)(1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3460_TIMER, &aint))) {
-        config_pP->nas_config.t3460_sec = (uint32_t) aint;
+        config_pP->nas_config.t3460_msec = (uint32_t)(1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3470_TIMER, &aint))) {
-        config_pP->nas_config.t3470_sec = (uint32_t) aint;
+        config_pP->nas_config.t3470_msec = (uint32_t)(1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3485_TIMER, &aint))) {
-        config_pP->nas_config.t3485_sec = (uint32_t) aint;
+        config_pP->nas_config.t3485_msec = (uint32_t)(1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3486_TIMER, &aint))) {
-        config_pP->nas_config.t3486_sec = (uint32_t) aint;
+        config_pP->nas_config.t3486_msec = (uint32_t)(1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3489_TIMER, &aint))) {
-        config_pP->nas_config.t3489_sec = (uint32_t) aint;
+        config_pP->nas_config.t3489_msec = (uint32_t)(1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3495_TIMER, &aint))) {
-        config_pP->nas_config.t3495_sec = (uint32_t) aint;
+        config_pP->nas_config.t3495_msec = (uint32_t)(1000 * aint);
       }
       if ((config_setting_lookup_string(
               setting, MME_CONFIG_STRING_NAS_FORCE_REJECT_TAU,
@@ -1763,23 +1766,23 @@ int mme_config_parse_string(
     if (setting != NULL) {
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_SGS_TS6_1_TIMER, &aint))) {
-        config_pP->sgs_config.ts6_1_sec = (uint8_t) aint;
+        config_pP->sgs_config.ts6_1_msec = (uint8_t)(1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_SGS_TS8_TIMER, &aint))) {
-        config_pP->sgs_config.ts8_sec = (uint8_t) aint;
+        config_pP->sgs_config.ts8_msec = (uint8_t)(1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_SGS_TS9_TIMER, &aint))) {
-        config_pP->sgs_config.ts9_sec = (uint8_t) aint;
+        config_pP->sgs_config.ts9_msec = (uint8_t)(1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_SGS_TS10_TIMER, &aint))) {
-        config_pP->sgs_config.ts10_sec = (uint8_t) aint;
+        config_pP->sgs_config.ts10_msec = (uint8_t)(1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_SGS_TS13_TIMER, &aint))) {
-        config_pP->sgs_config.ts13_sec = (uint8_t) aint;
+        config_pP->sgs_config.ts13_msec = (uint8_t)(1000 * aint);
       }
     }
 #if (!EMBEDDED_SGW)
@@ -2160,23 +2163,29 @@ void mme_config_display(mme_config_t* config_pP) {
   OAILOG_INFO(
       LOG_CONFIG, "    T3412 ....: %d min\n", config_pP->nas_config.t3412_min);
   OAILOG_INFO(
-      LOG_CONFIG, "    T3422 ....: %d sec\n", config_pP->nas_config.t3422_sec);
+      LOG_CONFIG, "    T3422 ....: %d sec\n",
+      config_pP->nas_config.t3422_msec / 1000);
   OAILOG_INFO(
-      LOG_CONFIG, "    T3450 ....: %d sec\n", config_pP->nas_config.t3450_sec);
+      LOG_CONFIG, "    T3450 ....: %d sec\n",
+      config_pP->nas_config.t3450_msec / 1000);
   OAILOG_INFO(
-      LOG_CONFIG, "    T3460 ....: %d sec\n", config_pP->nas_config.t3460_sec);
+      LOG_CONFIG, "    T3460 ....: %d sec\n",
+      config_pP->nas_config.t3460_msec / 1000);
   OAILOG_INFO(
-      LOG_CONFIG, "    T3470 ....: %d sec\n", config_pP->nas_config.t3470_sec);
+      LOG_CONFIG, "    T3470 ....: %d sec\n",
+      config_pP->nas_config.t3470_msec / 1000);
   OAILOG_INFO(
-      LOG_CONFIG, "    T3485 ....: %d sec\n", config_pP->nas_config.t3485_sec);
+      LOG_CONFIG, "    T3485 ....: %d sec\n",
+      config_pP->nas_config.t3485_msec / 1000);
   OAILOG_INFO(
-      LOG_CONFIG, "    T3486 ....: %d sec\n", config_pP->nas_config.t3486_sec);
+      LOG_CONFIG, "    T3486 ....: %d sec\n",
+      config_pP->nas_config.t3486_msec / 1000);
   OAILOG_INFO(
-      LOG_CONFIG, "    T3489 ....: %d sec\n", config_pP->nas_config.t3489_sec);
+      LOG_CONFIG, "    T3489 ....: %d sec\n",
+      config_pP->nas_config.t3489_msec / 1000);
   OAILOG_INFO(
-      LOG_CONFIG, "    T3470 ....: %d sec\n", config_pP->nas_config.t3470_sec);
-  OAILOG_INFO(
-      LOG_CONFIG, "    T3495 ....: %d sec\n", config_pP->nas_config.t3495_sec);
+      LOG_CONFIG, "    T3495 ....: %d sec\n",
+      config_pP->nas_config.t3495_msec / 1000);
   OAILOG_INFO(LOG_CONFIG, "    NAS non standard features .:\n");
   OAILOG_INFO(
       LOG_CONFIG, "      Force reject TAU ............: %s\n",
