@@ -79,14 +79,6 @@ type Reindexer interface {
 	GetIndexerVersions() ([]*indexer.Versions, error)
 }
 
-func NewReindexerQueue(queue JobQueue, store Store) Reindexer {
-	return &reindexerQueue{queue: queue, store: store}
-}
-
-func NewReindexerSingleton(store Store) Reindexer {
-	return &reindexerSingleton{store: store, reindexerQueue: reindexerQueue{queue: nil, store: store}}
-}
-
 type reindexBatch struct {
 	networkID string
 	stateIDs  state_types.IDs

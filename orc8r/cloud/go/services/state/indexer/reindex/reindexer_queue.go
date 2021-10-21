@@ -20,6 +20,9 @@ type reindexerQueue struct {
 	store Store
 }
 
+func NewReindexerQueue(queue JobQueue, store Store) Reindexer {
+	return &reindexerQueue{queue: queue, store: store}
+}
 
 func (r *reindexerQueue) Run(ctx context.Context) {
 	batches := r.getReindexBatches(ctx)
