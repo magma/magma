@@ -50,8 +50,8 @@ class UpfMsgHandler {
    * Periodic messages about UPF session config
    *
    */
-  virtual void SetUPFSessionsConfig(
-      ServerContext* context, const UPFSessionConfigState* sess_config,
+  virtual void SendReportRuleStats(
+      ServerContext* context, const RuleRecordTable* request,
       std::function<void(Status, SmContextVoid)> response_callback) = 0;
 
   // Paging Notification handling
@@ -87,8 +87,8 @@ class UpfMsgManageHandler : public UpfMsgHandler {
    * Periodic messages about UPF session config
    *
    */
-  virtual void SetUPFSessionsConfig(
-      ServerContext* context, const UPFSessionConfigState* sess_config,
+  virtual void SendReportRuleStats(
+      ServerContext* context, const RuleRecordTable* request,
       std::function<void(Status, SmContextVoid)> response_callback);
 
   virtual void SendPagingRequest(

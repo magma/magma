@@ -112,6 +112,8 @@ MATCHER_P2(CheckUpdateRequestCount, monitorCount, chargingCount, "") {
 MATCHER_P(CheckUpdateRequestNumber, request_number, "") {
   auto request = static_cast<const UpdateSessionRequest&>(arg);
   for (const auto& credit_usage_update : request.updates()) {
+    auto imsi      = credit_usage_update.common_context().sid().id();
+    auto apn       = credit_usage_update.common_context().apn();
     int req_number = credit_usage_update.request_number();
     return req_number == request_number;
   }
@@ -324,6 +326,21 @@ MATCHER_P(CheckSrvResponse, expected_response, "") {
        actual_response_ambr->max_bandwidth_dl());
 
   return (unit_res && ul_ambr_res && dl_ambr_res);
+}
+
+MATCHER_P(CheckSendRequest, expected_request, "") {
+  auto req  = static_cast<const CreateSessionRequest>(arg);
+  auto imsi = req.common_context().sid().id();
+
+  auto apn      = req.common_context().apn();
+  auto rat_type = req.common_context().rat_type();
+
+  auto imsi_exp = expected_request.common_context().sid().id();
+
+  auto apn_exp      = expected_request.common_context().apn();
+  auto rat_type_exp = expected_request.common_context().rat_type();
+
+  return (imsi == imsi_exp && apn == apn_exp && rat_type == rat_type_exp);
 }
 
 };  // namespace magma

@@ -896,6 +896,10 @@ SessionTerminateRequest SessionState::make_termination_request(
   } else if (config_.rat_specific_context.has_wlan_context()) {
     const auto& wlan_context = config_.rat_specific_context.wlan_context();
     req.set_hardware_addr(wlan_context.mac_addr_binary());
+  } else if (config_.rat_specific_context.has_m5gsm_session_context()) {
+    const auto& m5gsm_session_context =
+        config_.rat_specific_context.m5gsm_session_context();
+    req.set_imei(m5gsm_session_context.imei());
   }
 
   // gx monitors

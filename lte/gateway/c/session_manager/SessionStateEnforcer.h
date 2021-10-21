@@ -35,13 +35,17 @@ limitations under the License.
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "AmfServiceClient.h"
-
+#include "LocalEnforcer.h"
 #define M5G_MIN_TEID (UINT32_MAX / 2)
 #define DEFAULT_PDR_VERSION 1
 #define DEFAULT_PDR_ID 0
 #define DEFAULT_PDR_PRECEDENCE 32
 
 namespace magma {
+
+using ImsiAndSessionID = std::pair<std::string, std::string>;
+using RuleRecordSet =
+    std::unordered_set<RuleRecord, RuleRecord_hash, RuleRecord_equal>;
 
 class SessionStateEnforcer {
  public:
@@ -52,7 +56,7 @@ class SessionStateEnforcer {
       std::unordered_multimap<std::string, uint32_t> pdr_map,
       std::shared_ptr<PipelinedClient> pipelined_client,
       std::shared_ptr<AmfServiceClient> amf_srv_client,
-      magma::mconfig::SessionD mconfig,
+      SessionReporter* reporter, magma::mconfig::SessionD mconfig,
       long session_force_termination_timeout_ms,
       uint32_t session_max_rtx_count);
 
@@ -201,6 +205,20 @@ class SessionStateEnforcer {
       const google::protobuf::RepeatedPtrField<magma::lte::DynamicRuleInstall>
           dynamic_rule_installs);
 
+  void aggregate_records(
+      SessionMap& session_map, const RuleRecordTable& records,
+      SessionUpdate& session_update);
+
+  UpdateSessionRequest collect_updates(
+      SessionMap& session_map,
+      std::vector<std::unique_ptr<ServiceAction>>& actions,
+      SessionUpdate& session_update) const;
+
+  void check_usage_for_reporting(
+      SessionMap session_map, SessionUpdate& session_uc);
+
+  static bool CLEANUP_DANGLING_FLOWS;
+
  private:
   ConvergedRuleStore GlobalRuleList;
   std::shared_ptr<StaticRuleStore> rule_store_;
@@ -208,6 +226,7 @@ class SessionStateEnforcer {
   std::unordered_multimap<std::string, uint32_t> pdr_map_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
   std::shared_ptr<AmfServiceClient> amf_srv_client_;
+  SessionReporter* reporter_;
   magma::mconfig::SessionD mconfig_;
   // Timer used to forcefully terminate session context on time out
   long session_force_termination_timeout_ms_;
@@ -240,6 +259,26 @@ class SessionStateEnforcer {
   void set_pdr_attributes(
       const std::string& imsi, std::unique_ptr<SessionState>& session_state,
       SetGroupPDR* rule);
+
+  void complete_termination_for_released_sessions(
+      SessionMap& session_map,
+      std::unordered_set<ImsiAndSessionID> sessions_with_reporting_flows,
+      SessionUpdate& session_update);
+
+  void cleanup_dead_sessions(const RuleRecordSet dead_sessions_to_cleanup);
+
+  void deactivate_flows_for_termination(
+      const std::string& imsi, const std::string& ip_addr,
+      const std::string& ipv6_addr, const uint32_t teid);
+
+  void handle_session_update_response(
+      const UpdateSessionRequest& request,
+      std::shared_ptr<SessionMap> session_map_ptr, SessionUpdate& session_uc,
+      Status status, UpdateSessionResponse response);
+
+  void handle_update_failure(
+      SessionMap& session_map, const UpdateRequestsBySession& failed_request,
+      SessionUpdate& updates);
 
 };  // End of class SessionStateEnforcer
 

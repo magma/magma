@@ -333,7 +333,7 @@ def fake_cwf_setup(ue_mac_controller, setup_ue_mac_request=None):
 
 def wait_for_enforcement_stats(
     controller, rule_list, wait_time=1,
-    max_sleep_time=25,
+    max_sleep_time=25, flag5g=0,
 ):
     """
     Wait until all rules from rule_list appear in reports from
@@ -352,20 +352,33 @@ def wait_for_enforcement_stats(
     """
     sleep_time = 0
     stats_reported = {rule: False for rule in rule_list}
-    times_called = len(controller._report_usage.call_args_list)
+    if flag5g:
+        times_called = len(controller._prepare_ruleRecord_report.call_args_list)
+    else:
+        times_called = len(controller._report_usage.call_args_list)
     controller._last_report_timestamp = datetime.now()
     while not all(stats_reported[rule] for rule in rule_list):
         hub.sleep(wait_time)
 
         # There is no sessiond report callback in testing so manually reset var
-        if times_called != len(controller._report_usage.call_args_list):
-            times_called = len(controller._report_usage.call_args_list)
-            controller._last_report_timestamp = datetime.now()
-        for reported_stats in controller._report_usage.call_args_list:
-            stats = reported_stats[0][0]
-            for rule in rule_list:
-                if rule in stats:
-                    stats_reported[rule] = True
+        if flag5g:
+            if times_called != len(controller._prepare_ruleRecord_report.call_args_list):
+                times_called = len(controller._prepare_ruleRecord_report.call_args_list)
+                controller._last_report_timestamp = datetime.now()
+            for reported_stats in controller._prepare_ruleRecord_report.call_args_list:
+                stats = reported_stats[0][0]
+                for rule in rule_list:
+                    if rule in stats:
+                        stats_reported[rule] = True
+        else:
+            if times_called != len(controller._report_usage.call_args_list):
+                times_called = len(controller._report_usage.call_args_list)
+                controller._last_report_timestamp = datetime.now()
+            for reported_stats in controller._report_usage.call_args_list:
+                stats = reported_stats[0][0]
+                for rule in rule_list:
+                    if rule in stats:
+                        stats_reported[rule] = True
 
         sleep_time = sleep_time + wait_time
         if (sleep_time >= max_sleep_time):

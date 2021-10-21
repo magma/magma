@@ -145,13 +145,14 @@ class RyuDirectSubscriberContext(SubscriberContext):
 
     def __init__(
         self, imsi, ip, enforcement_controller, table_id=5,
-        enforcement_stats_controller=None, nuke_flows_on_exit=True,
+        enforcement_stats_controller=None, nuke_flows_on_exit=True, local_f_teid_ng=0,
     ):
         self.cfg = SubContextConfig(imsi, ip, default_ambr_config, table_id)
         self._policies = []
         self._ec = enforcement_controller
         self._esc = enforcement_stats_controller
         self._nuke_flows_on_exit = nuke_flows_on_exit
+        self._local_f_teid_ng = local_f_teid_ng
 
     def add_policy(self, policy):
         self._policies.append(policy)
@@ -168,7 +169,7 @@ class RyuDirectSubscriberContext(SubscriberContext):
                 apn_ambr=default_ambr_config,
                 policies=self._policies,
                 shard_id=0,
-                local_f_teid_ng=0,
+                local_f_teid_ng=self._local_f_teid_ng,
             )
             if self._esc:
                 self._esc.activate_rules(
@@ -179,7 +180,7 @@ class RyuDirectSubscriberContext(SubscriberContext):
                     apn_ambr=default_ambr_config,
                     policies=self._policies,
                     shard_id=0,
-                    local_f_teid_ng=0,
+                    local_f_teid_ng=self._local_f_teid_ng,
                 )
         hub.joinall([hub.spawn(activate_flows)])
 

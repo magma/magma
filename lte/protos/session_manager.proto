@@ -40,6 +40,7 @@ message RuleRecord {
   uint32 teid = 10;
   //Indicates that the report is final and the flow will be deleted
   bool final_record = 11;
+  bool flag5g = 12;
 }
 
 message RuleRecordTable {
@@ -1124,7 +1125,7 @@ message UPFPagingInfo {
 // Set Interface from Pipelined
 service SetInterfaceForUserPlane {
     rpc SetUPFNodeState(UPFNodeState) returns (SmContextVoid) {}
-    rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (SmContextVoid) {}
+    rpc SendReportRuleStats(RuleRecordTable) returns (SmContextVoid) {}
     rpc SendPagingRequest(UPFPagingInfo) returns (SmContextVoid) {}
 }
 

@@ -18,11 +18,7 @@ from subprocess import check_output
 import ryu.app.ofctl.api as ofctl_api
 from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.policydb_pb2 import FlowDescription
-from lte.protos.session_manager_pb2 import (
-    RuleRecord,
-    RuleRecordTable,
-    UPFSessionState,
-)
+from lte.protos.session_manager_pb2 import RuleRecord, RuleRecordTable
 from magma.pipelined.app.base import (
     ControllerType,
     MagmaController,
@@ -36,7 +32,6 @@ from magma.pipelined.app.policy_mixin import (
 )
 from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
 from magma.pipelined.imsi import decode_imsi, encode_imsi
-from magma.pipelined.ng_manager.session_state_manager import SessionStateManager
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.exceptions import (
     MagmaDPDisconnectedError,
@@ -48,7 +43,6 @@ from magma.pipelined.openflow.registers import (
     DIRECTION_REG,
     IMSI_REG,
     NG_SESSION_ID_REG,
-    REG_ZERO_VAL,
     RULE_NUM_REG,
     RULE_VERSION_REG,
     SCRATCH_REGS,
@@ -203,6 +197,12 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             uplink_tunnel (int): tunnel ID of the subscriber.
             ip_addr (string): subscriber session ipv4 address
             rule (PolicyRule): policy rule proto
+            version (int): rule version
+            shard_id (int): shard_id
+            local_f_teid_ng (int): Local teid
+
+        Returns:
+             bool
         """
         def fail(err):
             self.logger.error(
@@ -433,7 +433,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         if self._datapath_id != ev.msg.datapath.id:
             self.logger.debug('Ignoring stats from different bridge')
             return
-
         self.unhandled_stats_msgs.append(ev.msg.body)
         if ev.msg.flags == OFPMPF_REPLY_MORE:
             # Wait for more multi-part responses thats received for the
@@ -472,8 +471,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         # This is done primarily for CWF integration tests, TODO rm
         self.total_usage = current_usage
         # Report only if their is no change in version
-        if self.ng_config.ng_service_enabled == True:
-            self._prepare_session_config_report(stats_msgs)
+        if self.ng_config.ng_service_enabled is True:
+            self._prepare_ruleRecord_report(current_usage)
 
     def deactivate_default_flow(self, imsi, ip_addr, local_f_teid_ng=0):
         if self._datapath is None:
@@ -538,6 +537,12 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         """
         Update the rule record map with the flow stat and return the
         updated map.
+
+        Args:
+            flow_stats: flow stats
+
+        Returns:
+              dict
         """
         current_usage = defaultdict(RuleRecord)
         for flow_stat in flow_stats:
@@ -567,10 +572,9 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             sid = _get_sid(flow_stat)
             if not sid:
                 continue
+            local_f_teid_ng = _get_ng_local_f_id(flow_stat)
             ipv4_addr = _get_ipv4(flow_stat)
             ipv6_addr = _get_ipv6(flow_stat)
-
-            local_f_teid_ng = _get_ng_local_f_id(flow_stat)
 
             # use a compound key to separate flows for the same rule but for
             # different subscribers
@@ -597,6 +601,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             elif ipv6_addr:
                 current_usage[key].ue_ipv6 = ipv6_addr
             if local_f_teid_ng:
+                current_usage[key].flag5g = True
                 current_usage[key].teid = local_f_teid_ng
 
             bytes_rx = 0
@@ -616,6 +621,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             else:
                 current_usage[key].dropped_rx += bytes_rx
                 current_usage[key].dropped_tx += bytes_tx
+
         return current_usage
 
     def _delete_old_flows(self, records):
@@ -743,42 +749,32 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             self.logger.error("Could not obtain rule records due to either InvalidDatapath, OFError or UnexpectedMultiReply")
             return RuleRecordTable()
 
-    def _prepare_session_config_report(self, stats_msgs):
-        session_config_dict = {}
+    def _prepare_ruleRecord_report(self, usage):
+        """
+        Convert to a Rule Record Table and send to sessiond for 5G flows
 
-        for flow_stats in stats_msgs:
-            for stat in flow_stats:
-                if stat.table_id != self.tbl_num:
-                    continue
+        Args:
+            usage: records
+        """
+        record_table = RuleRecordTable(
+            records=usage.values(),
+            epoch=global_epoch,
+            update_rule_versions=self._ovs_restarted,
+        )
+        if self._print_grpc_payload:
+            record_msg = 'Sending RPC payload: {0}{{\n{1}}}'.format(
+                record_table.DESCRIPTOR.name, str(record_table),
+            )
+            self.logger.info(record_msg)
+        future = self.ng_config.sessiond_setinterface.SendReportRuleStats.future(
+            record_table,
+            self.SESSIOND_RPC_TIMEOUT,
+        )
 
-                local_f_teid_ng = _get_ng_local_f_id(stat)
-                if not local_f_teid_ng or local_f_teid_ng == REG_ZERO_VAL:
-                    continue
-                # Already present
-                if local_f_teid_ng in session_config_dict:
-                    if local_f_teid_ng != session_config_dict[local_f_teid_ng].local_f_teid:
-                        self.logger.error("Mismatch local TEID value. Need to investigate")
-
-                    continue
-
-                sid = _get_sid(stat)
-                if not sid:
-                    continue
-
-                rule_version = _get_version(stat)
-                if rule_version == 0:
-                    continue
-
-                session_config_dict[local_f_teid_ng] = \
-                                             UPFSessionState(
-                                                 subscriber_id=sid,
-                                                 session_version=rule_version,
-                                                 local_f_teid=local_f_teid_ng,
-                                             )
-
-        SessionStateManager.report_session_config_state(
-            session_config_dict,
-            self.ng_config.sessiond_setinterface,
+        future.add_done_callback(
+            lambda future: self.loop.call_soon_threadsafe(
+                self._report_usage_done, future, usage.values(),
+            ),
         )
 
 

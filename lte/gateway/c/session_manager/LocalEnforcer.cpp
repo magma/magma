@@ -385,6 +385,8 @@ void LocalEnforcer::aggregate_records(
 
   for (const RuleRecord& record : records.records()) {
     const std::string &imsi = record.sid(), &ip = record.ue_ipv4();
+
+    if (record.flag5g() == true) continue;
     // TODO IPv6 add ipv6 to search criteria
     SessionSearchCriteria criteria(imsi, IMSI_AND_UE_IPV4_OR_IPV6, ip);
     auto session_it = session_store_.find_session(session_map, criteria);

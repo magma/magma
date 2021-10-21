@@ -32,6 +32,7 @@
 #include "SessionReporter.h"
 #include "SessionState.h"
 #include "SpgwServiceClient.h"
+#include "MobilitydClient.h"
 
 using grpc::Status;
 using ::testing::_;
@@ -351,6 +352,16 @@ class MockAmfServiceClient : public AmfServiceClient {
   MOCK_METHOD1(
       handle_notification_to_access,
       bool(const magma::SetSmNotificationContext&));
+};
+
+class MockMobilitydClient : public MobilitydClient {
+ public:
+  MockMobilitydClient() {
+    ON_CALL(*this, get_subscriberid_from_ipv4(_, _)).WillByDefault(Return());
+  }
+  MOCK_METHOD2(
+      get_subscriberid_from_ipv4,
+      void(const IPAddress&, std::function<void(Status status, SubscriberID)>));
 };
 
 }  // namespace magma

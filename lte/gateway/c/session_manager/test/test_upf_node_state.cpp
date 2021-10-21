@@ -42,6 +42,7 @@ class SetUPFNodeState : public ::testing::Test {
  public:
   virtual void SetUp() {
     rule_store    = std::make_shared<StaticRuleStore>();
+    reporter      = std::make_shared<MockSessionReporter>();
     session_store = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
     std::unordered_multimap<std::string, uint32_t> pdr_map;
@@ -56,7 +57,8 @@ class SetUPFNodeState : public ::testing::Test {
 
     session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
         rule_store, *session_store, pdr_map, pipelined_client, amf_srv_client,
-        mconfig, config["session_force_termination_timeout_ms"].as<int32_t>(),
+        reporter.get(), mconfig,
+        config["session_force_termination_timeout_ms"].as<int32_t>(),
         session_max_rtx_count);
 
     set_interface_for_up_mock =
@@ -73,6 +75,7 @@ class SetUPFNodeState : public ::testing::Test {
   std::shared_ptr<AsyncAmfServiceClient> amf_srv_client;
   std::shared_ptr<MockSetInterfaceForUserPlane> set_interface_for_up_mock;
   std::shared_ptr<UPFSessionConfigState> sess_config;
+  std::shared_ptr<MockSessionReporter> reporter;
 };  // End of class
 
 // Testing the functionality of SetUPFNodeState

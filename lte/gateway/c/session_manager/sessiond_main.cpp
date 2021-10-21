@@ -404,7 +404,8 @@ int main(int argc, char* argv[]) {
     std::unordered_multimap<std::string, uint32_t> pdr_map;
     conv_session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
         rule_store, *session_store, pdr_map, pipelined_client, amf_srv_client,
-        mconfig, config["session_force_termination_timeout_ms"].as<long>(),
+        reporter.get(), mconfig,
+        config["session_force_termination_timeout_ms"].as<long>(),
         session_max_rtx_count);
     // 5G related async msg handler service framework creation
     auto conv_set_message_handler =
@@ -432,6 +433,10 @@ int main(int argc, char* argv[]) {
     // 5G related SessionStateEnforcer main thread start to handled session
     // state
     conv_session_enforcer->attachEventBase(evb);
+    if (config["cleanup_all_dangling_flows"].IsDefined()) {
+      magma::SessionStateEnforcer::CLEANUP_DANGLING_FLOWS =
+          config["cleanup_all_dangling_flows"].as<bool>();
+    }
   }
 
   // For FWA always handle abort session

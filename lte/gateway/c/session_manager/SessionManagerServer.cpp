@@ -97,6 +97,8 @@ void SetInterfaceForUserPlaneAsyncService::init_call_data() {
   new SetUPFNodeStateCallData(cq_.get(), *this, *handler_);
   MLOG(MINFO) << "Initializing new call data for SendPagingRequest";
   new SendPagingRequestCallData(cq_.get(), *this, *handler_);
+  MLOG(MINFO) << "Initializing new call data for SendReportRuleStats";
+  new SendReportRuleStatsCallData(cq_.get(), *this, *handler_);
 }
 
 SessionProxyResponderAsyncService::SessionProxyResponderAsyncService(

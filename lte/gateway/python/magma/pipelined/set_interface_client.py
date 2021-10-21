@@ -15,9 +15,9 @@ import logging
 
 import grpc
 from lte.protos.session_manager_pb2 import (
+    RuleRecordTable,
     UPFNodeState,
     UPFPagingInfo,
-    UPFSessionConfigState,
 )
 from lte.protos.session_manager_pb2_grpc import SetInterfaceForUserPlaneStub
 
@@ -31,6 +31,13 @@ def send_node_state_association_request(
     """
     Make RPC call to send Node Association Setup/Release request to
     sessionD (SMF)
+
+    Args:
+        node_state_info: Nodestate
+        setinterface_stub: setinterfacestub
+
+    Returns:
+           bool
     """
     try:
         setinterface_stub.SetUPFNodeState(node_state_info, DEFAULT_GRPC_TIMEOUT)
@@ -44,19 +51,26 @@ def send_node_state_association_request(
         return False
 
 
-def send_periodic_session_update(
-    upf_session_config_state: UPFSessionConfigState,
+def periodic_ruleRecore_report(
+    record_table: RuleRecordTable,
     setinterface_stub: SetInterfaceForUserPlaneStub,
 ):
     """
     Make RPC call to send periodic messages to smf about sessions state.
+
+    Args:
+        record_table: RuleRecord
+        setinterface_stub: setinterfacestub
+
+    Returns:
+           bool
     """
     try:
-        setinterface_stub.SetUPFSessionsConfig(upf_session_config_state, DEFAULT_GRPC_TIMEOUT)
+        setinterface_stub.SendReportRuleStats(record_table, DEFAULT_GRPC_TIMEOUT)
         return True
     except grpc.RpcError as err:
         logging.error(
-            "send_periodic_session_update error[%s] %s",
+            "periodic_ruleRecore_report[%s] %s",
             err.code(),
             err.details(),
         )
@@ -68,7 +82,11 @@ def send_paging_intiated_notification(
     setinterface_stub: SetInterfaceForUserPlaneStub,
 ):
     """
-	Make RPC call to send paging initiated notification to sessionD
+    Make RPC call to send paging initiated notification to sessionD
+
+    Args:
+        paging_info: UPFPagingInfo structure
+        setinterface_stub: setinterfacestub
     """
     try:
         setinterface_stub.SetPagingInitiated(paging_info, DEFAULT_GRPC_TIMEOUT)

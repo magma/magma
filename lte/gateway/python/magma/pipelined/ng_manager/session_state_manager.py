@@ -20,14 +20,10 @@ from lte.protos.pipelined_pb2 import (
     PdrState,
     UPFSessionContextState,
 )
-from lte.protos.session_manager_pb2 import (
-    UPFSessionConfigState,
-    UPFSessionState,
-)
+from lte.protos.session_manager_pb2 import UPFSessionState
 from magma.pipelined.ng_manager.session_state_manager_util import (
     pdr_create_rule_entry,
 )
-from magma.pipelined.set_interface_client import send_periodic_session_update
 
 # Help to build failure report
 MsgParseOutput = NamedTuple(
@@ -142,20 +138,3 @@ class SessionStateManager:
             context_response.cause_info.cause_ie = pdr_validator.cause_info
 
         return context_response
-
-    @classmethod
-    def report_session_config_state(cls, session_config_dict, sessiond_stub):
-
-        SessionStateManager.send_message_offset += 1
-
-        # Send session config messages every 10 seconds
-        if SessionStateManager.send_message_offset % 5:
-            return
-
-        session_config_list = []
-        for index in session_config_dict:
-            session_config_list.append(session_config_dict[index])
-
-        session_config_msg = UPFSessionConfigState(upf_session_state=session_config_list)
-        if send_periodic_session_update(session_config_msg, sessiond_stub) == True:
-            SessionStateManager.periodic_config_msg_count += 1

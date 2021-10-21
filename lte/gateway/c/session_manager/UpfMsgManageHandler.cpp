@@ -79,64 +79,20 @@ void UpfMsgManageHandler::SetUPFNodeState(
 }
 
 /**
- * Periodic messages about UPF session config
+ * Periodic messages about UPF Rule Report
  *
  */
-void UpfMsgManageHandler::SetUPFSessionsConfig(
-    ServerContext* context, const UPFSessionConfigState* sess_config,
+void UpfMsgManageHandler::SendReportRuleStats(
+    ServerContext* context, const RuleRecordTable* request,
     std::function<void(Status, SmContextVoid)> response_callback) {
-  auto& ses_config = *sess_config;
-  int32_t count    = 0;
-  conv_enforcer_->get_event_base().runInEventBaseThread([this, &count,
-                                                         ses_config]() {
-    for (auto& upf_session : ses_config.upf_session_state()) {
-      // Deleting the IMSI prefix from imsi
-      std::string imsi_upf = upf_session.subscriber_id();
-      std::string imsi     = imsi_upf.substr(4, imsi_upf.length() - 4);
-      uint32_t version     = upf_session.session_version();
-      uint32_t teid        = upf_session.local_f_teid();
-      auto session_map     = session_store_.read_sessions({imsi});
-      /* Search with session search criteria of IMSI and session_id and
-       * find  respective session to operate
-       */
-      SessionSearchCriteria criteria(imsi, IMSI_AND_TEID, teid);
-      auto session_it = session_store_.find_session(session_map, criteria);
-      if (!session_it) {
-        MLOG(MERROR) << "No session found in SessionMap for IMSI " << imsi
-                     << " with teid " << teid;
-        continue;
-      }
-      auto& session    = **session_it;
-      auto cur_version = session->get_current_version();
-      if (version < cur_version) {
-        MLOG(MINFO) << "UPF verions of session imsi " << imsi << " of  teid "
-                    << teid << " recevied version " << version
-                    << " SMF latest version: " << cur_version << " Resending";
-        if (conv_enforcer_->is_incremented_rtx_counter_within_max(session)) {
-          RulesToProcess pending_activation, pending_deactivation;
-          const CreateSessionResponse& csr =
-              session->get_create_session_response();
-          std::vector<StaticRuleInstall> static_rule_installs =
-              conv_enforcer_->to_vec(csr.static_rules());
-          std::vector<DynamicRuleInstall> dynamic_rule_installs =
-              conv_enforcer_->to_vec(csr.dynamic_rules());
-
-          session->process_get_5g_rule_installs(
-              static_rule_installs, dynamic_rule_installs, &pending_activation,
-              &pending_deactivation);
-          conv_enforcer_->m5g_send_session_request_to_upf(
-              session, pending_activation, pending_deactivation);
-        }
-      } else {
-        count++;
-      }
-    }
-#if 0
-    if (ses_config.upf_session_state_size() != count) {
-      MLOG(MINFO) << "UPF periodic report config missmatch session:"
-                  << (ses_config.upf_session_state_size() - count);
-    }
-#endif
+  auto& request_cpy = *request;
+  conv_enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
+    auto session_map = session_store_.read_all_sessions();
+    SessionUpdate update =
+        SessionStore::get_default_session_update(session_map);
+    MLOG(MDEBUG) << "Size of " << request_cpy.records_size() << " records";
+    conv_enforcer_->aggregate_records(session_map, request_cpy, update);
+    conv_enforcer_->check_usage_for_reporting(std::move(session_map), update);
   });
   response_callback(Status::OK, SmContextVoid());
   return;

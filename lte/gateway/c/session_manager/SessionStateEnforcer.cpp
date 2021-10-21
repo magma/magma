@@ -33,6 +33,7 @@
 #include "magma_logging.h"
 #include "EnumToString.h"
 #include "SessionStateEnforcer.h"
+#include "GrpcMagmaUtils.h"
 
 #define DEFAULT_AMBR_UNITS (1024)
 #define DEFAULT_UP_LINK_PDR_ID 1
@@ -41,6 +42,7 @@
 
 std::shared_ptr<magma::SessionStateEnforcer> conv_session_enforcer;
 namespace magma {
+bool SessionStateEnforcer::CLEANUP_DANGLING_FLOWS = true;
 
 void call_back_upf(grpc::Status, magma::UPFSessionContextState response) {
   std::string imsi             = response.session_snapshot().subscriber_id();
@@ -62,7 +64,7 @@ SessionStateEnforcer::SessionStateEnforcer(
     std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
     std::unordered_multimap<std::string, uint32_t> pdr_map,
     std::shared_ptr<PipelinedClient> pipelined_client,
-    std::shared_ptr<AmfServiceClient> amf_srv_client,
+    std::shared_ptr<AmfServiceClient> amf_srv_client, SessionReporter* reporter,
     magma::mconfig::SessionD mconfig, long session_force_termination_timeout_ms,
     uint32_t session_max_rtx_count)
     : rule_store_(rule_store),
@@ -70,6 +72,7 @@ SessionStateEnforcer::SessionStateEnforcer(
       pdr_map_(pdr_map),
       pipelined_client_(pipelined_client),
       amf_srv_client_(amf_srv_client),
+      reporter_(reporter),
       mconfig_(mconfig),
       session_force_termination_timeout_ms_(
           session_force_termination_timeout_ms),
@@ -381,6 +384,10 @@ void SessionStateEnforcer::m5g_complete_termination(
   if (!session->can_complete_termination(&session_uc)) {
     return;  // error is logged in SessionState's complete_termination
   }
+  auto termination_req = session->make_termination_request(&session_uc);
+  auto logging_cb = SessionReporter::get_terminate_logging_cb(termination_req);
+  reporter_->report_terminate_session(termination_req, logging_cb);
+
   // Now remove all rules
   session->remove_all_rules(&session_uc);
   // Release and maintain TEID trakcing data structure TODO
@@ -919,6 +926,234 @@ void SessionStateEnforcer::update_session_with_policy(
   prepare_response_to_access(
       *session, magma::lte::M5GSMCause::OPERATION_SUCCESS, get_upf_n3_addr(),
       session->get_upf_local_teid());
+}
+
+void SessionStateEnforcer::aggregate_records(
+    SessionMap& session_map, const RuleRecordTable& records,
+    SessionUpdate& session_update) {
+  // Insert the IMSI+SessionID for sessions we received a rule record into a set
+  // for easy access
+  std::unordered_set<ImsiAndSessionID> sessions_with_reporting_flows;
+  // In some failure cases, PipelineD may still hold onto flows for sessions
+  // that do not exist in SessionD. In this case, send DeactivateFlowsRequest
+  RuleRecordSet dead_sessions_to_cleanup;
+
+  for (const RuleRecord& record : records.records()) {
+    const std::string& imsi = record.sid();
+    const uint32_t teid     = record.teid();
+
+    if (record.flag5g() == false || teid == 0) continue;
+
+    SessionSearchCriteria criteria(imsi, IMSI_AND_TEID, teid);
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MERROR) << "Could not find an active session for " << imsi << " and "
+                   << teid << " during record aggregation";
+      dead_sessions_to_cleanup.insert(record);
+      continue;
+    }
+
+    auto& session                 = **session_it;
+    const std::string& session_id = session->get_session_id();
+    sessions_with_reporting_flows.insert(ImsiAndSessionID(imsi, session_id));
+    if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
+      MLOG(MDEBUG) << session_id << " used " << record.bytes_tx()
+                   << " tx bytes and " << record.bytes_rx()
+                   << " rx bytes for rule " << record.rule_id();
+    }
+
+    session->add_rule_usage(
+        record.rule_id(), record.rule_version(), record.bytes_tx(),
+        record.bytes_rx(), record.dropped_tx(), record.dropped_rx(),
+        &session_update[imsi][session_id]);
+  }
+  if (records.records().size() > 0) {
+    MLOG(MINFO) << "Received stats for " << sessions_with_reporting_flows.size()
+                << " active sessions and " << dead_sessions_to_cleanup.size()
+                << " stale sessions";
+  }
+  complete_termination_for_released_sessions(
+      session_map, sessions_with_reporting_flows, session_update);
+  cleanup_dead_sessions(dead_sessions_to_cleanup);
+  return;
+}
+
+void SessionStateEnforcer::complete_termination_for_released_sessions(
+    SessionMap& session_map,
+    std::unordered_set<ImsiAndSessionID> sessions_with_reporting_flows,
+    SessionUpdate& session_update) {
+  // Iterate through sessions and notify that report has finished. Terminate any
+  // sessions that can be terminated.
+  std::vector<ImsiAndSessionID> sessions_to_terminate;
+  for (const auto& session_pair : session_map) {
+    const std::string imsi = session_pair.first;
+    for (const auto& session : session_pair.second) {
+      const std::string session_id = session->get_session_id();
+      // If we did not receive a rule record for the session, this means
+      // PipelineD has reported all usage for the session
+      auto imsi_and_session_id = ImsiAndSessionID(imsi, session_id);
+      if (session->get_state() == RELEASE &&
+          sessions_with_reporting_flows.find(imsi_and_session_id) ==
+              sessions_with_reporting_flows.end()) {
+        sessions_to_terminate.push_back(imsi_and_session_id);
+      }
+    }
+  }
+  // Do the actual termination in a separate loop since this can modify the
+  // session map structure
+  for (const auto& pair : sessions_to_terminate) {
+    const auto &imsi = pair.first, &session_id = pair.second;
+    m5g_complete_termination(session_map, imsi, session_id, session_update);
+  }
+
+  return;
+}
+
+void SessionStateEnforcer::cleanup_dead_sessions(
+    const RuleRecordSet dead_sessions_to_cleanup) {
+  if (dead_sessions_to_cleanup.size() == 0) {
+    return;
+  }
+  if (!CLEANUP_DANGLING_FLOWS) {
+    MLOG(MWARNING) << "Not cleaning up " << dead_sessions_to_cleanup.size()
+                   << " dangling sessions in PipelineD due to "
+                      "'cleanup_all_dangling_flows: false' in sessiond.yml";
+    return;
+  }
+  MLOG(MINFO) << "Deactivating flows for " << dead_sessions_to_cleanup.size()
+              << " dangling sessions in PipelineD";
+  for (const RuleRecord& record : dead_sessions_to_cleanup) {
+    deactivate_flows_for_termination(
+        record.sid(), record.ue_ipv4(), record.ue_ipv6(), record.teid());
+  }
+
+  return;
+}
+
+void SessionStateEnforcer::deactivate_flows_for_termination(
+    const std::string& imsi, const std::string& ip_addr,
+    const std::string& ipv6_addr, const uint32_t teid) {
+  SessionState::SessionInfo sess_info;
+  sess_info.nodeId.node_id = get_upf_node_id();
+  sess_info.state          = Fsm_state_FsmState_RELEASE;
+  sess_info.local_f_teid   = teid;
+  sess_info.subscriber_id  = imsi;
+  sess_info.ver_no         = DEFAULT_PDR_VERSION;
+  SetGroupPDR reqpdr_uplink;
+  RulesToProcess pending_activation;
+  RulesToProcess pending_deactivation;
+
+  GlobalRuleList.get_rule(DEFAULT_UP_LINK_PDR_ID, &reqpdr_uplink);
+  reqpdr_uplink.mutable_pdi()->set_ue_ip_adr(ip_addr);
+  reqpdr_uplink.mutable_pdi()->set_local_f_teid(teid);
+  reqpdr_uplink.set_pdr_state(PdrState::REMOVE);
+  reqpdr_uplink.mutable_activate_flow_req()->mutable_sid()->set_id(imsi);
+  reqpdr_uplink.mutable_activate_flow_req()->set_ip_addr(ip_addr);
+  reqpdr_uplink.mutable_activate_flow_req()->set_uplink_tunnel(teid);
+  reqpdr_uplink.mutable_deactivate_flow_req()->mutable_sid()->set_id(imsi);
+  reqpdr_uplink.mutable_deactivate_flow_req()->set_ip_addr(ip_addr);
+  reqpdr_uplink.mutable_deactivate_flow_req()->set_uplink_tunnel(teid);
+  sess_info.pdr_rules.push_back(reqpdr_uplink);
+
+  SetGroupPDR reqpdr_downlink;
+  GlobalRuleList.get_rule(DEFAULT_DOWN_LINK_PDR_ID, &reqpdr_downlink);
+  reqpdr_downlink.mutable_pdi()->set_ue_ip_adr(ip_addr);
+  reqpdr_downlink.set_pdr_state(PdrState::REMOVE);
+  reqpdr_downlink.mutable_activate_flow_req()->mutable_sid()->set_id(imsi);
+  reqpdr_downlink.mutable_activate_flow_req()->set_ip_addr(ip_addr);
+  reqpdr_downlink.mutable_deactivate_flow_req()->mutable_sid()->set_id(imsi);
+  reqpdr_downlink.mutable_deactivate_flow_req()->set_ip_addr(ip_addr);
+  sess_info.pdr_rules.push_back(reqpdr_downlink);
+  pipelined_client_->set_upf_session(
+      sess_info, pending_activation, pending_deactivation, call_back_upf);
+  return;
+}
+
+void SessionStateEnforcer::check_usage_for_reporting(
+    SessionMap session_map, SessionUpdate& session_uc) {
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto request = collect_updates(session_map, actions, session_uc);
+  if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
+    auto update_success = session_store_.update_sessions(session_uc);
+    if (update_success) {
+      MLOG(MDEBUG) << "Succeeded in updating session after no reporting";
+    } else {
+      MLOG(MERROR) << "Failed in updating session after no reporting";
+    }
+    return;  // nothing to report
+  }
+
+  MLOG(MINFO) << "Sending " << request.updates_size()
+              << " charging updates and " << request.usage_monitors_size()
+              << " monitor updates to OCS and PCRF";
+
+  // set reporting flag for those sessions reporting
+  session_store_.set_and_save_reporting_flag(true, request, session_uc);
+
+  // Before reporting and returning control to the event loop, increment the
+  // request numbers stored for the sessions in SessionStore
+  session_store_.sync_request_numbers(session_uc);
+
+  // report to cloud
+  reporter_->report_updates(
+      request,
+      [this, request, session_uc,
+       session_map_ptr = std::make_shared<SessionMap>(std::move(session_map))](
+          Status status, UpdateSessionResponse response) mutable {
+        handle_session_update_response(
+            request, session_map_ptr, session_uc, status, response);
+      });
+}
+
+UpdateSessionRequest SessionStateEnforcer::collect_updates(
+    SessionMap& session_map,
+    std::vector<std::unique_ptr<ServiceAction>>& actions,
+    SessionUpdate& session_update) const {
+  UpdateSessionRequest request;
+  for (const auto& session_pair : session_map) {
+    for (const auto& session : session_pair.second) {
+      std::string imsi = session_pair.first;
+      std::string sid  = session->get_session_id();
+      session->get_updates(&request, &actions, &session_update[imsi][sid]);
+    }
+  }
+  return request;
+}
+
+void SessionStateEnforcer::handle_session_update_response(
+    const UpdateSessionRequest& request,
+    std::shared_ptr<SessionMap> session_map_ptr, SessionUpdate& session_uc,
+    Status status, UpdateSessionResponse response) {
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(response));
+
+  // clear all the reporting flags
+  session_store_.set_and_save_reporting_flag(false, request, session_uc);
+  if (!status.ok()) {
+    MLOG(MERROR) << "UpdateSession request to FeG/PolicyDB failed entirely: "
+                 << status.error_message();
+    // handle_update_failure(*session_map_ptr, updates_by_session, session_uc);
+    session_store_.update_sessions(session_uc);
+    return;
+  }
+  session_store_.update_sessions(session_uc);
+}
+
+void SessionStateEnforcer::handle_update_failure(
+    SessionMap& session_map, const UpdateRequestsBySession& failed_request,
+    SessionUpdate& updates) {
+  for (const auto& request_by_id : failed_request.requests_by_id) {
+    const std::string& imsi       = request_by_id.first.first;
+    const std::string& session_id = request_by_id.first.second;
+    const auto& request           = request_by_id.second;
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MERROR) << "Could not reset failed update for " << session_id
+                   << " because it couldn't be found";
+      continue;
+    }
+    (**session_it)->handle_update_failure(request, &updates[imsi][session_id]);
+  }
 }
 
 }  // end namespace magma

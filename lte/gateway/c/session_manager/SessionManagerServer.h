@@ -311,28 +311,28 @@ class SetUPFNodeStateCallData
 };
 
 /*
- *  Class to handle SetUPFSessionConfig
+ *  Class to handle SendReportRuleStats
  */
-class SetUPFSessionsConfigCallData : public AsyncGRPCRequest<
-                                         SetInterfaceForUserPlane::AsyncService,
-                                         UPFSessionConfigState, SmContextVoid> {
+class SendReportRuleStatsCallData : public AsyncGRPCRequest<
+                                        SetInterfaceForUserPlane::AsyncService,
+                                        RuleRecordTable, SmContextVoid> {
  public:
-  SetUPFSessionsConfigCallData(
+  SendReportRuleStatsCallData(
       ServerCompletionQueue* cq,
       SetInterfaceForUserPlane::AsyncService& service,
       UpfMsgManageHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestSetUPFSessionsConfig(
+    service_.RequestSendReportRuleStats(
         &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
   }
 
  protected:
   void clone() override {
-    new SetUPFSessionsConfigCallData(cq_, service_, handler_);
+    new SendReportRuleStatsCallData(cq_, service_, handler_);
   }
 
   void process() override {
-    handler_.SetUPFSessionsConfig(&ctx_, &request_, get_finish_callback());
+    handler_.SendReportRuleStats(&ctx_, &request_, get_finish_callback());
   }
 
  private:
