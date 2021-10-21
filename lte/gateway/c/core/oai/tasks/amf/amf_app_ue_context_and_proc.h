@@ -268,6 +268,8 @@ typedef struct smf_context_s {
   int retransmission_count;
   protocol_configuration_options_t pco;
 
+  uint32_t count_duplicate_pdu_session_est_req;
+
   // Request to gnb on PDU establisment request
   pdu_session_resource_setup_req_t pdu_resource_setup_req;
   pdu_session_resource_setup_rsp_t pdu_resource_setup_rsp;

@@ -36,6 +36,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
 
 using magma5g::AsyncM5GMobilityServiceClient;
 using magma5g::AsyncSmfServiceClient;
@@ -44,10 +45,17 @@ extern amf_config_t amf_config;
 namespace magma5g {
 #define IMSI_LEN 15
 #define AMF_CAUSE_SUCCESS 1
-const uint32_t MAX_UE_PDU_SESSION_LIMIT = 15;
+const uint32_t MAX_UE_PDU_SESSION_LIMIT                             = 15;
+const uint32_t MAX_UE_INITIAL_PDU_SESSION_ESTABLISHMENT_REQ_ALLOWED = 5;
 
 int handle_sm_message_routing_failure(
     amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg, M5GMmCause m5gmmcause);
+int amf_max_pdu_session_reject(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg);
+int amf_pdu_session_establishment_reject(
+    amf_ue_ngap_id_t ue_id, uint8_t session_id, uint8_t pti, uint8_t cause);
+int construct_pdu_session_reject_dl_req(
+    uint8_t sequence_number, uint8_t session_id, uint8_t pti, uint8_t cause,
+    bool is_security_enabled, amf_nas_message_t* msg);
 
 static int pdu_session_resource_release_t3592_handler(
     zloop_t* loop, int timer_id, void* arg);
@@ -377,12 +385,37 @@ int amf_smf_send(
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   protocol_configuration_options_t* msg_pco;
 
+  if (!msg) {
+    return rc;
+  }
   if (amf_cause != AMF_CAUSE_SUCCESS) {
-    rc = amf_send_pdusession_reject(
-        &reject_req, msg->payload_container.smf_msg.header.pdu_session_id,
+    rc = amf_pdu_session_establishment_reject(
+        ue_id, msg->payload_container.smf_msg.header.pdu_session_id,
         msg->payload_container.smf_msg.header.procedure_transaction_id,
         amf_cause);
     return rc;
+  }
+
+  M5GSmCause cause = M5GSmCause::INVALID_CAUSE;
+  /**
+   * Cause #27 – Missing or unknown DNN
+   * the external DN because the DNN was not included
+   * although required or if the DNN could not be resolved.
+   * */
+  if (msg->dnn.dnn.empty()) {
+    cause = M5GSmCause::MISSING_OR_UNKNOWN_DNN;
+  }
+
+  /*
+  Cause #28 – Unknown PDU session type
+  the requested PDU session type could not be recognized or is not allowed.
+  */
+  M5GPduSessionType session_type = static_cast<M5GPduSessionType>(
+      msg->payload_container.smf_msg.msg.pdu_session_estab_request
+          .pdu_session_type.type_val);
+  if (M5GPduSessionType::UNSTRUCTURED == session_type ||
+      M5GPduSessionType::ETHERNET == session_type) {
+    cause = M5GSmCause::UNKNOWN_PDU_SESSION_TYPE;
   }
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
@@ -394,6 +427,37 @@ int amf_smf_send(
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
+  M5GRequestType requestType =
+      static_cast<M5GRequestType>(msg->request_type.type_val);
+  smf_ctx = amf_get_smf_context_by_pdu_session_id(
+      ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
+
+  if ((msg->payload_container.smf_msg.header.message_type ==
+       PDU_SESSION_ESTABLISHMENT_REQUEST) &&
+      (M5GRequestType::INITIAL_REQUEST == requestType) && smf_ctx) {
+    if (smf_ctx->count_duplicate_pdu_session_est_req >=
+        MAX_UE_INITIAL_PDU_SESSION_ESTABLISHMENT_REQ_ALLOWED - 1) {
+      cause = M5GSmCause::INVALID_PDU_SESSION_IDENTITY;
+    } else {
+      smf_ctx->count_duplicate_pdu_session_est_req += 1;
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "duplicate Initial PDU Session establishment request received");
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+    }
+  }
+
+  if (M5GSmCause::INVALID_CAUSE != cause) {
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        "PDU Session establishment request rejecting with cause %u",
+        static_cast<uint8_t>(cause));
+    rc = amf_pdu_session_establishment_reject(
+        ue_id, msg->payload_container.smf_msg.header.pdu_session_id,
+        msg->payload_container.smf_msg.header.procedure_transaction_id,
+        static_cast<uint8_t>(cause));
+    return rc;
+  }
   /*
    * 1) the Payload container type IE is set to "N1 SM information" and
    * 2) the Request type IE is set to "initial request" or "existing PDU
@@ -401,8 +465,6 @@ int amf_smf_send(
    * has already been reached for the UE, the AMF shall send back to the UE the
    * 5GSM message which was not forwarded and 5GMM cause #65
    */
-  M5GRequestType requestType =
-      static_cast<M5GRequestType>(msg->request_type.type_val);
 
   if ((N1_SM_INFO == msg->payload_container_type.type_val) &&
       ((M5GRequestType::INITIAL_REQUEST == requestType) ||
@@ -889,4 +951,182 @@ int handle_sm_message_routing_failure(
   }
   return rc;
 }
+
+/****************************************************************************
+ **                                                                        **
+ ** Name        :  construct_pdu_session_reject_dl_req()                   **
+ **                                                                        **
+ ** Description :  Construct Session Establishment Reject Struct           **
+ **                                                                        **
+ ** Inputs      :  sequence_number     : seq to construct Secure msgs      **
+ **                session_id	       : PDU Session Identity              **
+ **   		   pti                 : Procedure transaction identity    **
+ **		   is_security_enabled : indcates to construct plain msg   **
+ **				         secure msg                        **
+ **   		   msg                 : out parmaeter Session             **
+ **                                      Establishment Reject              **
+ **                                                                        **
+ **  Return     :  len                 : buffer required for               **
+ **                                      DLNASTransportMsg                 **
+ **                                                                        **
+ ***************************************************************************/
+
+int construct_pdu_session_reject_dl_req(
+    uint8_t sequence_number, uint8_t session_id, uint8_t pti, uint8_t cause,
+    bool is_security_enabled, amf_nas_message_t* msg) {
+  uint32_t len             = 0;
+  uint32_t container_len   = 0;
+  DLNASTransportMsg* dlmsg = nullptr;
+
+  if (nullptr == msg) {
+    return 0;
+  }
+  // Message construction for PDU Establishment Reject
+  // NAS-5GS (NAS) PDU
+  if (is_security_enabled) {
+    msg->security_protected.plain.amf.header.extended_protocol_discriminator =
+        M5G_MOBILITY_MANAGEMENT_MESSAGES;
+    msg->security_protected.plain.amf.header.message_type = DLNASTRANSPORT;
+    msg->header.security_header_type =
+        SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
+    dlmsg = &msg->security_protected.plain.amf.msg.downlinknas5gtransport;
+  } else {
+    msg->plain.amf.header.extended_protocol_discriminator =
+        M5G_MOBILITY_MANAGEMENT_MESSAGES;
+    msg->plain.amf.header.message_type = DLNASTRANSPORT;
+    msg->header.security_header_type   = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+    dlmsg = &msg->plain.amf.msg.downlinknas5gtransport;
+  }
+
+  msg->header.extended_protocol_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg->header.sequence_number = sequence_number;
+
+  // AmfHeader
+  dlmsg->extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  len++;
+  dlmsg->spare_half_octet.spare  = 0x00;
+  dlmsg->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  len++;
+  dlmsg->message_type.msg_type = DLNASTRANSPORT;
+  len++;
+  dlmsg->payload_container.iei = PAYLOAD_CONTAINER;
+
+  // SmfMsg
+  dlmsg->payload_container_type.iei      = 0;
+  dlmsg->payload_container_type.type_val = N1_SM_INFO;
+  len++;
+  dlmsg->pdu_session_identity.iei =
+      static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2);
+  len++;
+  dlmsg->pdu_session_identity.pdu_session_id = session_id;
+  len++;
+
+  SmfMsg& pdu_sess_est_reject = dlmsg->payload_container.smf_msg;
+  // header
+  pdu_sess_est_reject.header.extended_protocol_discriminator =
+      M5G_SESSION_MANAGEMENT_MESSAGES;
+  pdu_sess_est_reject.header.pdu_session_id = session_id;
+  pdu_sess_est_reject.header.message_type   = PDU_SESSION_ESTABLISHMENT_REJECT;
+  pdu_sess_est_reject.header.procedure_transaction_id = pti;
+  // container_len++;
+
+  // Smf NAS message
+  pdu_sess_est_reject.msg.pdu_session_estab_reject
+      .extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_SESSION_MANAGEMENT_MESSAGES;
+  container_len++;
+  pdu_sess_est_reject.msg.pdu_session_estab_reject.pdu_session_identity
+      .pdu_session_id = session_id;
+  container_len++;
+  pdu_sess_est_reject.msg.pdu_session_estab_reject.pti.pti = pti;
+  container_len++;
+  pdu_sess_est_reject.msg.pdu_session_estab_reject.message_type.msg_type =
+      PDU_SESSION_ESTABLISHMENT_REJECT;
+  container_len++;
+  pdu_sess_est_reject.msg.pdu_session_estab_reject.m5gsm_cause.cause_value =
+      cause;
+  container_len++;
+
+  dlmsg->payload_container.len = container_len;
+  len += 2;  // 2 bytes for container.len
+  len += dlmsg->payload_container.len;
+
+  /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
+   * so length is modified such that it will be mode of 4
+   */
+  AMF_GET_BYTE_ALIGNED_LENGTH(len);
+  if (SECURITY_HEADER_TYPE_NOT_PROTECTED != msg->header.security_header_type) {
+    amf_msg_header* header = &msg->security_protected.plain.amf.header;
+    /*
+     * Expand size of protected NAS message
+     */
+    len += NAS_MESSAGE_SECURITY_HEADER_SIZE;
+    /*
+     * Set header of plain NAS message
+     */
+    header->extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
+    header->security_header_type = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  }
+
+  return len;
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name        :  amf_pdu_session_establishment_reject()                  **
+ **                                                                        **
+ ** Description :  Send the Downlink Transport with 5GMM Cause to gnb      **
+ **                                                                        **
+ ** Inputs      :  amf_ue_ngap_id_t : pdusession response message          **
+ **                session_id	    : PDU Session Inputs                   **
+ **		   pti              : Procedure transaction identity       **
+ **		   5GSM cause       : 5GSM cause                           **
+ **                                                                        **
+ **  Return     :  RETURNok, RETURNerror                                   **
+ **                                                                        **
+ ***************************************************************************/
+int amf_pdu_session_establishment_reject(
+    amf_ue_ngap_id_t ue_id, uint8_t session_id, uint8_t pti, uint8_t cause) {
+  nas5g_error_code_t rc = M5G_AS_SUCCESS;
+  uint32_t bytes        = 0;
+  uint32_t len          = 0;
+  bstring buffer;
+  ue_m5gmm_context_s* ue_context = nullptr;
+  amf_nas_message_t msg          = {};
+
+  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (!ue_context) {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "UE Context not found for UE ID: " AMF_UE_NGAP_ID_FMT,
+        ue_id);
+    return M5G_AS_FAILURE;
+  }
+
+  len = construct_pdu_session_reject_dl_req(
+      ue_context->amf_context._security.dl_count.seq_num, session_id, pti,
+      cause, true, &msg);
+
+  if (len <= 0) {
+    OAILOG_WARNING(LOG_AMF_APP, "PDU Construction is failed \n");
+    return M5G_AS_FAILURE;
+  }
+  buffer = bfromcstralloc(len, "\0");
+  bytes  = nas5g_message_encode(
+      buffer->data, &msg, len, &ue_context->amf_context._security);
+
+  if (bytes > 0) {
+    buffer->slen = bytes;
+    amf_app_handle_nas_dl_req(ue_id, buffer, rc);
+
+  } else {
+    OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");
+    bdestroy_wrapper(&buffer);
+    rc = M5G_AS_FAILURE;
+  }
+  return rc;
+}
+
 }  // namespace magma5g
