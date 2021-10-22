@@ -1600,7 +1600,7 @@ func TestSubscriberBasename(t *testing.T) {
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `code=500, message=could not find entities matching [type:"base_name" key:"baseXXX" ]`,
+		ExpectedErrorSubstring: "code=500, message=rpc error: code = Unknown desc = could not find entities matching [type:\"base_name\" key:\"baseXXX\" ]",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1718,7 +1718,7 @@ func TestSubscriberPolicy(t *testing.T) {
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `code=500, message=could not find entities matching [type:"policy" key:"ruleXXX" ]`,
+		ExpectedErrorSubstring: "code=500, message=rpc error: code = Unknown desc = could not find entities matching [type:\"policy\" key:\"ruleXXX\" ]",
 	}
 	tests.RunUnitTest(t, e, tc)
 

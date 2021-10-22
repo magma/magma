@@ -502,7 +502,7 @@ func Test_ReleaseCINode(t *testing.T) {
 		ParamValues:    []string{"node1", "1"},
 		Handler:        releaseNode,
 		ExpectedStatus: 400,
-		ExpectedError:  "no node matching the provided ID and lease ID was found",
+		ExpectedError:  "rpc error: code = InvalidArgument desc = no node matching the provided ID and lease ID was found",
 	}
 	tests.RunUnitTest(t, e, tc)
 
