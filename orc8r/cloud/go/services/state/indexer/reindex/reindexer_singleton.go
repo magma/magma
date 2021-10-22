@@ -14,11 +14,11 @@ import (
 
 // This Reindexer runs as though it is a singleton
 type reindexerSingleton struct {
-	versioner IndexVersioner
+	versioner Versioner
 	store Store
 }
 
-func NewReindexerSingleton(store Store, versioner IndexVersioner) Reindexer {
+func NewReindexerSingleton(store Store, versioner Versioner) Reindexer {
 	return &reindexerSingleton{store: store, versioner: versioner}
 }
 

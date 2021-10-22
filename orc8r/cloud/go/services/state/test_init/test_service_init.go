@@ -85,7 +85,7 @@ func startSingletonService(t *testing.T, db *sql.DB) (reindex.Reindexer) {
 	require.NoError(t, err)
 	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
 
-	versioner := reindex.NewIndexVersioner(db, sqorc.GetSqlBuilder())
+	versioner := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
 	reindexer := reindex.NewReindexerSingleton(reindex.NewStore(factory), versioner)
 	indexerServicer := servicers.NewIndexerManagerServicer(reindexer, false)
 	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
