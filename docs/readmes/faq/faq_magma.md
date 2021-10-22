@@ -103,6 +103,11 @@ This section lists some of the commonly asked questions related to Magma operati
 
 - <https://github.com/magma/magma/tree/master/docs/readmes/lte>
 
+### How can I detach/purge a subscriber from AGW?
+
+- The command `s6a_service_cli.py delete <IMSI>,<IMSI>` will detach the list of subscriber from MME.
+- Detached subscribers will need to reattach to the network.
+
 ## Orchestrator
 
 ### How can I check production pods in Orchestrator running on Kubernetes?

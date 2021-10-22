@@ -18,6 +18,7 @@
 #include <vector>
 extern "C" {
 #include "bytes_to_ie.h"
+#include "conversions.h"
 #include "dynamic_memory_check.h"
 #include "ie_to_bytes.h"
 #include "log.h"
