@@ -287,6 +287,25 @@ TEST_F(SgwS8ConfigAndCreateMock, send_create_bearer_req_to_mme) {
   EXPECT_NE(
       sgw_s8_handle_create_bearer_request(sgw_state, &cb_req, &cause_value),
       INVALID_IMSI64);
+
+  // Validates sequence number matches with received create bearer request
+  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc =
+      pgw_get_procedure_create_bearer(sgw_pdn_session);
+  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
+
+  bool is_seq_number_updated                             = false;
+  sgw_eps_bearer_entry_wrapper_t* sgw_eps_bearer_entry_p = nullptr;
+  LIST_FOREACH(
+      sgw_eps_bearer_entry_p, pgw_ni_cbr_proc->pending_eps_bearers, entries) {
+    if ((sgw_eps_bearer_entry_p) &&
+        (sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->sgw_sequence_number ==
+         cb_req.sequence_number)) {
+      is_seq_number_updated = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(is_seq_number_updated == true);
+
   free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
   sgw_state_exit();
 }
@@ -350,9 +369,16 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_create_bearer_response) {
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc_after =
       pgw_get_procedure_create_bearer(sgw_pdn_session);
   EXPECT_TRUE(pgw_ni_cbr_proc_after == nullptr);
-  EXPECT_EQ(
-      sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->eps_bearer_id,
-      s11_actv_bearer_rsp.bearer_contexts.bearer_contexts[0].eps_bearer_id);
+  uint8_t bearer_id_updated = false;
+  for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx++) {
+    if (sgw_pdn_session->pdn_connection.sgw_eps_bearers_array[idx]
+            ->eps_bearer_id ==
+        s11_actv_bearer_rsp.bearer_contexts.bearer_contexts[0].eps_bearer_id) {
+      bearer_id_updated = true;
+      break;
+    }
+  }
+  EXPECT_EQ(bearer_id_updated, true);
   free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
   sgw_state_exit();
 }

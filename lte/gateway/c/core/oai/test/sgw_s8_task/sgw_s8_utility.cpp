@@ -158,15 +158,17 @@ void fill_delete_bearer_response(
     db_response->bearer_contexts.bearer_contexts[idx].cause.cause_value = cause;
   }
 }
+
 void fill_delete_bearer_request(
     s8_delete_bearer_request_t* db_req, uint32_t teid, uint8_t eps_bearer_id) {
-  db_req->context_teid = teid;
+  db_req->context_teid      = teid;
   db_req->num_eps_bearer_id = 1;
   for (uint8_t idx = 0; idx < db_req->num_eps_bearer_id; idx++) {
     db_req->eps_bearer_id[idx] = eps_bearer_id;
   }
   db_req->sequence_number = 2;
 }
+
 sgw_state_t* SgwS8Config::create_ue_context(mme_sgw_tunnel_t* sgw_s11_tunnel) {
   sgw_state_init(false, config);
   sgw_state_t* sgw_state     = get_sgw_state(false);

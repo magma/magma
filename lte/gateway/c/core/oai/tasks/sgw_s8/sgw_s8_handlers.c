@@ -1704,13 +1704,26 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
             (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
           ue_ipv6 = &eps_bearer_ctxt_p->paa.ipv6_address;
         }
-        struct in_addr ue_ipv4 = eps_bearer_ctxt_p->paa.ipv4_address;
-        struct in_addr enb     = {.s_addr = 0};
-        struct in_addr pgw     = {.s_addr = 0};
+        struct in_addr ue_ipv4    = eps_bearer_ctxt_p->paa.ipv4_address;
+        struct in_addr enb        = {.s_addr = 0};
+        struct in6_addr* enb_ipv6 = NULL;
+        struct in_addr pgw        = {.s_addr = 0};
+        struct in6_addr* pgw_ipv6 = NULL;
         enb.s_addr =
             eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
+
+        if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+            eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) {
+          enb_ipv6 =
+              &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
+        }
         pgw.s_addr = eps_bearer_ctxt_p->p_gw_address_in_use_up.address
                          .ipv4_address.s_addr;
+        if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+            eps_bearer_ctxt_p->p_gw_address_in_use_up.pdn_type == IPv6) {
+          pgw_ipv6 =
+              &eps_bearer_ctxt_p->p_gw_address_in_use_up.address.ipv6_address;
+        }
         OAILOG_INFO_UE(
             LOG_SGW_S8, imsi64,
             "Successfully created new EPS bearer entry with enb_ip:%x "
@@ -1721,7 +1734,7 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
 
 #if !MME_UNIT_TEST
         rc = gtpv1u_del_s8_tunnel(
-            enb, pgw, ue_ipv4, ue_ipv6,
+            enb, enb_ipv6, pgw, pgw_ipv6, ue_ipv4, ue_ipv6,
             eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt_p->s_gw_teid_S5_S8_up);
         if (rc != RETURNok) {

@@ -22,7 +22,7 @@ extern "C" {
 
 using grpc::ServerContext;
 using ::testing::Test;
-
+#define END_OF_TESTCASE_SLEEP_MS 500
 task_zmq_ctx_t task_zmq_ctx_main_grpc;
 static int handle_message_test_s8_grpc(
     zloop_t* loop, zsock_t* reader, void* arg);
@@ -50,9 +50,9 @@ void SgwS8MessagesTest::SetUp() {
       TASK_MAIN, task_id_list, 2, handle_message_test_s8_grpc,
       &task_zmq_ctx_main_grpc);
 
-  grpc_service_init();
   std::thread task_sgw_s8(start_mock_sgw_s8_task, sgw_s8_handler);
   task_sgw_s8.detach();
+  grpc_service_init();
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
 
@@ -60,8 +60,6 @@ void SgwS8MessagesTest::TearDown() {
   send_terminate_message_fatal(&task_zmq_ctx_main_grpc);
   destroy_task_context(&task_zmq_ctx_main_grpc);
   itti_free_desc_threads();
-  // grpc_service_exit();
-  // stop_grpc_service();
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
@@ -88,9 +86,7 @@ static int handle_message_test_s8_grpc(
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: {
-    } break;
-  }
+    default: { } break; }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -101,16 +97,20 @@ TEST_F(SgwS8MessagesTest, recv_create_bearer_req) {
   magma::feg::CreateBearerRequestPgw cb_req;
   build_grpc_create_bearer_req(&cb_req);
   grpc::ServerContext server_context;
-  magma::orc8r::Void response;
-  s8_message_receiver->CreateBearer(&server_context, &cb_req, &response);
   EXPECT_CALL(*sgw_s8_handler, sgw_s8_handle_create_bearer_request()).Times(1);
+  magma::orc8r::Void response;
+  grpc::Status status =
+      s8_message_receiver->CreateBearer(&server_context, &cb_req, &response);
+  EXPECT_TRUE(status.ok());
 }
 
 TEST_F(SgwS8MessagesTest, recv_delete_bearer_req) {
   magma::feg::DeleteBearerRequestPgw db_req;
   build_grpc_delete_bearer_req(&db_req);
   grpc::ServerContext server_context;
-  magma::orc8r::Void response;
-  s8_message_receiver->DeleteBearerRequest(&server_context, &db_req, &response);
   EXPECT_CALL(*sgw_s8_handler, sgw_s8_handle_delete_bearer_request()).Times(1);
+  magma::orc8r::Void response;
+  grpc::Status status = s8_message_receiver->DeleteBearerRequest(
+      &server_context, &db_req, &response);
+  EXPECT_TRUE(status.ok());
 }
