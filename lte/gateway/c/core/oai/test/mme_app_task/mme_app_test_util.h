@@ -11,8 +11,13 @@
  * limitations under the License.
  */
 #include <string>
+#include <vector>
+
 extern "C" {
+#include "3gpp_29.274.h"
 #include "mme_config.h"
+#include "intertask_interface_types.h"
+#include "s1ap_messages_types.h"
 }
 
 namespace magma {
@@ -24,7 +29,8 @@ namespace lte {
 #define NAS_RETX_LIMIT 5
 
 #define MME_APP_EXPECT_CALLS(                                                  \
-    dlNas, connEstConf, ctxRel, air, ulr, purgeReq, csr, dsr, setAppHealth)    \
+    dlNas, connEstConf, ctxRel, air, ulr, purgeReq, csr, mbr, relBearer, dsr,  \
+    setAppHealth)                                                              \
   do {                                                                         \
     EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport())         \
         .Times(dlNas)                                                          \
@@ -38,6 +44,9 @@ namespace lte {
     EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(purgeReq);          \
     EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request())        \
         .Times(csr);                                                           \
+    EXPECT_CALL(*spgw_handler, sgw_handle_modify_bearer_request()).Times(mbr); \
+    EXPECT_CALL(*spgw_handler, sgw_handle_release_access_bearers_request())    \
+        .Times(relBearer);                                                     \
     EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request())            \
         .Times(dsr)                                                            \
         .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \
@@ -71,6 +80,13 @@ void send_ics_response();
 void send_ue_ctx_release_complete();
 
 void send_ue_capabilities_ind();
+
+void send_context_release_req(s1cause rel_cause, task_id_t TASK_ID);
+
+void send_modify_bearer_resp(
+    std::vector<int>& bearer_to_modify, std::vector<int>& bearer_to_remove);
+
+void sgw_send_release_access_bearer_response(gtpv2c_cause_value_t cause);
 
 }  // namespace lte
 }  // namespace magma
