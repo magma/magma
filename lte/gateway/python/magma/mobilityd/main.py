@@ -17,7 +17,7 @@ from typing import Any, Optional
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 from magma.common.redis.client import get_default_client
-from magma.common.sentry import sentry_init
+from magma.common.sentry import SEND_TO_SENTRY, sentry_init
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.mobilityd.ip_address_man import IPAddressManager
@@ -115,8 +115,9 @@ def main():
     service = MagmaService('mobilityd', mconfigs_pb2.MobilityD())
 
     # Optionally pipe errors to Sentry
-    sentry_init(service_name=service.name)
+    sentry_init(service_name=service.name, requires_opt_in=True)
 
+    logging.error("Explicit logging test", extra=SEND_TO_SENTRY)
     # Load service configs and mconfig
     config = service.config
     mconfig = service.mconfig

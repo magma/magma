@@ -19,6 +19,7 @@ from enum import Enum
 import grpc
 from google.protobuf import message as proto_message
 from google.protobuf.json_format import MessageToJson
+from magma.common.sentry import SEND_TO_SENTRY
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos import common_pb2
 
@@ -39,6 +40,21 @@ def return_void(func):
     def wrapper(*args, **kwargs):
         func(*args, **kwargs)
         return common_pb2.Void()
+
+    return wrapper
+
+
+def log_error_sentry(func):
+    """
+    Reusable decorator for logging unexpected exceptions.
+    """
+
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as err:
+            logging.error("Uncaught error in gRPC request", exc_info=True, extra=SEND_TO_SENTRY)
+            raise err
 
     return wrapper
 

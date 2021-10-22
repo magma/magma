@@ -32,7 +32,7 @@ from lte.protos.mobilityd_pb2_grpc import (
     add_MobilityServiceServicer_to_server,
 )
 from lte.protos.subscriberdb_pb2 import SubscriberID
-from magma.common.rpc_utils import return_void
+from magma.common.rpc_utils import log_error_sentry, return_void
 from magma.subscriberdb.sid import SIDUtils
 
 from .ip_address_man import (
@@ -89,6 +89,7 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         self._ip_address_man.add_ip_block(ip_block)
 
     @return_void
+    @log_error_sentry
     def AddIPBlock(self, request, context):
         """ Add a range of IP addresses into the free IP pool
 
