@@ -928,6 +928,10 @@ void mme_app_handle_delete_session_rsp(
         "Removing  ue_ip:%x from ipv4_imsi map \n",
         (pdn_context)->paa.ipv4_address.s_addr);
 
+    
+    mme_app_remove_ue_ipv6_addr(
+        (pdn_context)->paa.ipv6_address.__in6_u.__u6_addr32,
+        ue_context_p->emm_context._imsi64);
     mme_app_remove_ue_ipv4_addr(
         (pdn_context)->paa.ipv4_address.s_addr,
         ue_context_p->emm_context._imsi64);
@@ -2258,9 +2262,8 @@ imsi64_t mme_app_handle_initial_paging_request(
   imsi64_t* imsi_list = NULL;
 
 if(paging_req->address.ipv4_addr.sin_addr.s_addr == 0){
-  OAILOG_DEBUG(
-      LOG_MME_APP, "paging is requested for ue_ipv6:%x \n",
-      paging_req->address.ipv6_addr.sin6_addr);
+  OAILOG_DEBUG( LOG_MME_APP, "paging is requested for ue_ipv6:%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x  \n", NIP6ADDR(&(paging_req->address.ipv6_addr.sin6_addr)));
+
 }
 	else {
   OAILOG_DEBUG(
@@ -2281,6 +2284,7 @@ if(paging_req->address.ipv4_addr.sin_addr.s_addr == 0)
    for (int idx = 0; idx < num_imsis_ipv6; idx++) {
     if (imsi_list[idx] != INVALID_IMSI64) {
       imsi64 = imsi_list[idx];
+      printf("ipv6imsi \n", imsi64 );
       mme_app_send_paging_request(mme_app_desc_p, imsi64);
     }
   }

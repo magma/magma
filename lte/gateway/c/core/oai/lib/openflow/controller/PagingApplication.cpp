@@ -230,7 +230,7 @@ void PagingApplication::add_paging_flow_ipv6(
 
   messenger.send_of_msg(fm, ev.get_connection());
   // Convert to string for logging
-  char ip_str[INET6_ADDRSTRLEN];
+  char ip_str[INET6_ADDRSTRLEN] = {};
   inet_ntop(AF_INET6, &(ue_ipv6), ip_str, INET6_ADDRSTRLEN);
   OAILOG_INFO(LOG_GTPV1U, "Added paging flow rule for UE IPv6 %s\n", ip_str);
 }
