@@ -1781,13 +1781,15 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
         sgw_free_eps_bearer_context(
             &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection
                  .sgw_eps_bearers_array[EBI_TO_INDEX(ebi)]);
-        break;
+        //break;
       }
     }
   }
   // Send DEACTIVATE_DEDICATED_BEARER_RSP to SPGW Service
-  spgw_handle_nw_init_deactivate_bearer_rsp(
-      s11_pcrf_ded_bearer_deactv_rsp->cause, ebi);
+  if (!s11_pcrf_ded_bearer_deactv_rsp->mme_initiated_lcl_deact) {
+    spgw_handle_nw_init_deactivate_bearer_rsp(
+        s11_pcrf_ded_bearer_deactv_rsp->cause, ebi);
+  }
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
 
@@ -2307,32 +2309,33 @@ static teid_t sgw_generate_new_s11_cp_teid(void) {
   OAILOG_FUNC_RETURN(LOG_SGW_S8, teid);
 }
 
-// Handles mme_initiated_deactv_bearer_req received from MME
-void sgw_handle_mme_initiated_deactv_bearer_req(
-    const itti_s11_mme_initiated_deactivate_bearer_req_t* const
-    s11_mme_init_deactv_bearer_req,
+// Handles delete bearer cmd from MME
+void sgw_handle_delete_bearer_cmd(
+    const itti_s11_delete_bearer_command_t* const
+    s11_delete_bearer_command,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
 
   OAILOG_INFO_UE(
-      LOG_SPGW_APP, imsi64, "Received mme_initiated_deactv_bearer_req for (ebi = %d)" TEID_FMT "\n",
-      s11_mme_init_deactv_bearer_req->ebi, s11_mme_init_deactv_bearer_req->s_gw_teid_s11_s4);
+      LOG_SPGW_APP, imsi64, "Received s11_delete_bearer_command for teid" TEID_FMT "\n",
+      s11_delete_bearer_command->teid);
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt =
-      sgw_cm_get_spgw_context(s11_mme_init_deactv_bearer_req->s_gw_teid_s11_s4);
+      sgw_cm_get_spgw_context(s11_delete_bearer_command->teid);
   if (!spgw_ctxt) {
     OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64, "hashtable_ts_get failed for teid " TEID_FMT " while processing mme_initiated_deactv_bearer_req\n",
-        s11_mme_init_deactv_bearer_req->s_gw_teid_s11_s4);
+        LOG_SPGW_APP, imsi64, "hashtable_ts_get failed for teid " TEID_FMT " while processing s11_delete_bearer_command\n",
+        s11_delete_bearer_command->teid);
     OAILOG_FUNC_OUT(TASK_SPGW_APP);
   }
 
   char* imsi = (char*) spgw_ctxt->sgw_eps_bearer_context_information.imsi.digit;
-  pcef_end_dedicated_bearer_session(imsi, s11_mme_init_deactv_bearer_req->ebi);
-
+  pcef_delete_dedicated_bearer(imsi, s11_delete_bearer_command->ebi_list);
+#if 0
+  for (uint8_t itr=0; itr < s11_delete_bearer_command->ebi_list.num_ebi) {
   eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
       &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection,
-      s11_mme_init_deactv_bearer_req->ebi);
+      s11_delete_bearer_command->ebi_list.ebis[itr]);
   if (eps_bearer_ctxt_p) {
     // Get all the DL flow rules for this dedicated bearer
     for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
@@ -2367,41 +2370,52 @@ void sgw_handle_mme_initiated_deactv_bearer_req(
 
     sgw_free_eps_bearer_context(
         &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection
-             .sgw_eps_bearers_array[EBI_TO_INDEX(s11_mme_init_deactv_bearer_req->ebi)]);
+             .sgw_eps_bearers_array[EBI_TO_INDEX(s11_delete_bearer_command->ebi_list.ebis[itr])]);
     OAILOG_INFO_UE(
         LOG_SPGW_APP, imsi64, "Removed bearer context for (ebi = %d)\n",
-        s11_mme_init_deactv_bearer_req->ebi);
+        s11_delete_bearer_command->ebi_list.ebis[itr]);
   } else {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64, "eps_bearer_ctxt is NULL for teid %u\n",
-        s11_mme_init_deactv_bearer_req->s_gw_teid_s11_s4);
+        s11_delete_bearer_command->s_gw_teid_s11_s4);
     OAILOG_FUNC_OUT(TASK_SPGW_APP);
   }
-  itti_s11_mme_initiated_deactivate_bearer_rsp_t* s11_mme_init_deact_bearer_rsp =
-      NULL;
+  }
+#endif
+  // Send itti_s11_nw_init_deactv_bearer_request_t to MME to delete the bearer/s
   MessageDef* message_p =
-      itti_alloc_new_message(TASK_SPGW_APP, S11_MME_INIT_DEACTIVATE_BEARER_RSP);
+      itti_alloc_new_message(TASK_SPGW_APP, S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST);
   if (message_p == NULL) {
     OAILOG_ERROR_UE(
         TASK_SPGW_APP, imsi64,
-        "Failed to allocate memory for MME initiated deactivate bearer response \n");
+        "Failed to allocate memory for S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST \n");
     OAILOG_FUNC_OUT(TASK_SPGW_APP);
   }
-  // Send MME initiated deactivate bearer response to MME
-  message_p->ittiMsgHeader.imsi = imsi64;
-  s11_mme_init_deact_bearer_rsp =
-      &message_p->ittiMsg.itti_s11_mme_initiated_deactivate_bearer_rsp;
-  s11_mme_init_deact_bearer_rsp->ebi = s11_mme_init_deactv_bearer_req->ebi;
-  s11_mme_init_deact_bearer_rsp->mme_teid_s11 = spgw_ctxt->sgw_eps_bearer_context_information.mme_teid_S11;
+  itti_s11_nw_init_deactv_bearer_request_t* delete_bearer_req =
+      &message_p->ittiMsg.s11_nw_init_deactv_bearer_request;
+
+  memset(
+      delete_bearer_req, 0,
+      sizeof(itti_s11_nw_init_deactv_bearer_request_t));
+
+  delete_bearer_req->s11_mme_teid = s11_delete_bearer_command->local_teid;
+  delete_bearer_req->delete_default_bearer = false;
+  delete_bearer_req->no_of_bearers         = s11_delete_bearer_command->ebi_list.num_ebi;
+
+  memcpy(
+      delete_bearer_req->ebi, s11_delete_bearer_command->ebi_list.ebis,
+      (sizeof(ebi_t) * delete_bearer_req->no_of_bearers));
+  print_bearer_ids_helper(
+      delete_bearer_req->ebi, delete_bearer_req->no_of_bearers);
 
   if (send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p) != RETURNok) {
     OAILOG_ERROR_UE(
         TASK_SPGW_APP, imsi64,
-        "Failed to send MME initiated deactivate bearer Response to MME\n");
+        "Failed to send s11_nw_init_deactv_bearer_request to MME\n");
     OAILOG_FUNC_OUT(TASK_SPGW_APP);
   }
   OAILOG_INFO_UE(
-      TASK_SPGW_APP, imsi64, "MME initiated deactivate bearer response sent to MME\n");
+      TASK_SPGW_APP, imsi64, "s11_nw_init_deactv_bearer_request sent to MME\n");
 
   OAILOG_FUNC_OUT(TASK_SPGW_APP);
 }

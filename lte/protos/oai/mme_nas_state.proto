@@ -72,6 +72,8 @@ message PdnContext {
   bool is_active = 17;
   ProtocolConfigurationOptions pco = 18;
   bool session_deletion_triggered = 19;
+  uint32 num_ebi_to_be_del = 20;
+  repeated uint32 ebi_to_be_del = 21;
 }
 
 message Regional_subscription {
@@ -135,7 +137,8 @@ message UeContext {
   SgsContext sgs_context = 102;
   uint32 tau_accept_eps_ber_cntx_status = 103;
   uint32 nb_delete_sessions = 104;
-  uint32 nb_ded_bearer_deactivation = 105;
+  uint32 nb_delete_bearer_cmd = 105;
+  bool mme_initiated_ded_bearer_deactivation = 106;
 
   Timer mobile_reachability_timer = 200 [deprecated=true];
   Timer implicit_detach_timer = 201 [deprecated=true];

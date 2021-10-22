@@ -418,6 +418,12 @@ void MmeNasStateConverter::pdn_context_to_proto(
     pdn_context_proto->add_bearer_contexts(
         state_pdn_context.bearer_contexts[i]);
   }
+  pdn_context_proto->set_num_ebi_to_be_del(state_pdn_context.num_ebi_to_be_del);
+  for (int i = 0; i < BEARERS_PER_UE; i++) {
+    pdn_context_proto->add_ebi_to_be_del(
+        state_pdn_context.ebi_to_be_del[i]);
+
+  }
 
   bstr_buffer = ip_address_to_bstring(&state_pdn_context.s_gw_address_s11_s4);
   BSTRING_TO_STRING(
@@ -469,6 +475,12 @@ void MmeNasStateConverter::proto_to_pdn_context(
     state_pdn_context->bearer_contexts[i] =
         pdn_context_proto.bearer_contexts(i);
   }
+  state_pdn_context->num_ebi_to_be_del = pdn_context_proto.num_ebi_to_be_del();
+  for (int i = 0; i < BEARERS_PER_UE; i++) {
+    state_pdn_context->ebi_to_be_del[i] =
+        pdn_context_proto.ebi_to_be_del(i);
+  }
+
   STRING_TO_BSTRING(pdn_context_proto.s_gw_address_s11_s4(), bstr_buffer);
   bstring_to_ip_address(bstr_buffer, &state_pdn_context->s_gw_address_s11_s4);
   bdestroy_wrapper(&bstr_buffer);
@@ -609,8 +621,10 @@ void MmeNasStateConverter::ue_context_to_proto(
       state_ue_context->tau_accept_eps_ber_cntx_status);
   ue_context_proto->set_nb_delete_sessions(
       state_ue_context->nb_delete_sessions);
-  ue_context_proto->set_nb_ded_bearer_deactivation(
-      state_ue_context->nb_ded_bearer_deactivation);
+  ue_context_proto->set_nb_delete_bearer_cmd(
+      state_ue_context->nb_delete_bearer_cmd);
+  ue_context_proto->set_mme_initiated_ded_bearer_deactivation(
+      state_ue_context->mme_initiated_ded_bearer_deactivation);
   ue_context_proto->set_rau_tau_timer(state_ue_context->rau_tau_timer);
   ue_context_proto->mutable_time_mobile_reachability_timer_started()
       ->set_seconds(state_ue_context->time_mobile_reachability_timer_started);
@@ -701,7 +715,8 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
       ue_context_proto.sgs_context(), state_ue_mm_context->sgs_context);
   state_ue_mm_context->tau_accept_eps_ber_cntx_status = ue_context_proto.tau_accept_eps_ber_cntx_status();
   state_ue_mm_context->nb_delete_sessions = ue_context_proto.nb_delete_sessions();
-  state_ue_mm_context->nb_ded_bearer_deactivation = ue_context_proto.nb_ded_bearer_deactivation();
+  state_ue_mm_context->nb_delete_bearer_cmd = ue_context_proto.nb_delete_bearer_cmd();
+  state_ue_mm_context->mme_initiated_ded_bearer_deactivation = ue_context_proto.mme_initiated_ded_bearer_deactivation();
 
   // Initialize timers to INVALID IDs
   state_ue_mm_context->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;

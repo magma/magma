@@ -201,13 +201,15 @@ status_code_e handle_and_fill_eps_bearer_cntxt_status(
     ue_mm_context_t* ue_mm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   ebi_t ebi          = 0;
+  ebi_t ebi_to_be_del[BEARERS_PER_UE]= {0};
   uint32_t itrn      = 0;
   uint8_t pos        = 0;
   uint8_t shift_bits = 8;
   pdn_cid_t pid      = 0;
   bool is_ebi_active = false;
+  uint8_t num_ebi = 0;
 
-  for (itrn = 0; itrn < BEARERS_PER_UE; itrn++) {
+  for (itrn = ESM_EBI_MIN; itrn < ESM_EBI_MAX; itrn++) {
     bearer_context_t* bearer_context =
         mme_app_get_bearer_context(ue_mm_context, itrn);
 
@@ -249,23 +251,31 @@ status_code_e handle_and_fill_eps_bearer_cntxt_status(
               ue_mm_context, ebi, pid, true /*no_delete_gtpv2c_tunnel*/);
           ue_mm_context->nb_delete_sessions ++;
           pdn_context->session_deletion_triggered = true;
-          OAILOG_INFO_UE(ue_mm_context->emm_context._imsi64,
-            LOG_NAS_ESM, "Deactivating default bearer with EBI %d for UE= " MME_UE_S1AP_ID_FMT " as it is inactive in UE\n", ebi, ue_mm_context->mme_ue_s1ap_id);
         } else {
           /* If default bearer deletion is already triggered for this dedicated
            * bearer, no need to trigger bearer deactivation explicitly as it will be
            * deactivated as part of default bearer deletion
            */
           if (!pdn_context->session_deletion_triggered) {
-            ue_mm_context->nb_ded_bearer_deactivation ++;
-            OAILOG_INFO_UE(ue_mm_context->emm_context._imsi64,
-              LOG_NAS_ESM, "Deactivating EBI %d for UE= " MME_UE_S1AP_ID_FMT " as it is inactive in UE\n", ebi, ue_mm_context->mme_ue_s1ap_id);
-            mme_app_send_deactivate_dedicated_bearer_request(ue_mm_context->emm_context._imsi64, pdn_context->s_gw_teid_s11_s4,pdn_context->default_ebi, ebi);
+            /* Store the bearers to be deleted in pdn context as
+             * delete bearer cmd has to be sent to spgw per PDN
+             */
+            pdn_context->ebi_to_be_del[pdn_context->num_ebi_to_be_del++] = ebi;
+            if (!ue_mm_context->mme_initiated_ded_bearer_deactivation) {
+              ue_mm_context->mme_initiated_ded_bearer_deactivation = true;
+            }
           }
         }
       } else {
         // Set the status of active bearers to be sent in TAU Accept
         (ue_mm_context->tau_accept_eps_ber_cntx_status) |= 1 << pos;
+      }
+    }
+  }
+  if (ue_mm_context->mme_initiated_ded_bearer_deactivation) {
+    for (uint8_t pid=0; pid < MAX_APN_PER_UE; pid++) {
+      if (ue_mm_context->pdn_contexts[pid] && (ue_mm_context->pdn_contexts[pid]->num_ebi_to_be_del > 0)) {
+        mme_app_send_deactivate_dedicated_bearer_request(ue_mm_context, ue_mm_context->pdn_contexts[pid]);
       }
     }
   }
@@ -483,7 +493,7 @@ status_code_e emm_proc_tracking_area_update_request(
                * handle_and_fill_eps_bearer_cntxt_status,
                * wait for response from spgw and then send TAU accept.
                */
-               if (ue_mm_context->nb_delete_sessions || ue_mm_context->nb_ded_bearer_deactivation) {
+               if (ue_mm_context->nb_delete_sessions || (ue_mm_context->nb_delete_bearer_cmd)) {
                  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
                }
             }

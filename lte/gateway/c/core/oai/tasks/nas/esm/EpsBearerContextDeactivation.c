@@ -359,7 +359,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     // Send delete dedicated bearer response to SPGW
     send_delete_dedicated_bearer_rsp(
         ue_context_p, delete_default_bearer, &ebi, 1, s_gw_teid_s11_s4,
-        REQUEST_ACCEPTED);
+        REQUEST_ACCEPTED, false);
   }
 
   // Reset is_pdn_disconnect flag
@@ -502,7 +502,7 @@ status_code_e eps_bearer_deactivate_t3495_handler(
         // Send delete_dedicated_bearer_rsp to SPGW
         send_delete_dedicated_bearer_rsp(
             ue_mm_context, delete_default_bearer, &ebi, 1, s_gw_teid_s11_s4,
-            UE_NOT_RESPONDING);
+            UE_NOT_RESPONDING, false);
       }
       // Reset is_pdn_disconnect flag
       if (ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) {

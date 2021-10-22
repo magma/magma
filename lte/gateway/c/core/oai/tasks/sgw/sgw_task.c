@@ -179,10 +179,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       }
     } break;
 
-    case S11_MME_INIT_DEACTIVATE_BEARER_REQ: {
-      // Handle dedicated bearer dectivation req from MME
-      sgw_handle_mme_initiated_deactv_bearer_req(
-          &received_message_p->ittiMsg.itti_s11_mme_initiated_deactivate_bearer_req, imsi64);
+    case S11_DELETE_BEARER_COMMAND: {
+      // Handle delete bearer cmd from MME
+      sgw_handle_delete_bearer_cmd(
+          &received_message_p->ittiMsg.s11_delete_bearer_command, imsi64);
       is_state_same = true;  // task state is not changed
     } break;
 

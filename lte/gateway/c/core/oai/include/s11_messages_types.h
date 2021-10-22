@@ -139,6 +139,7 @@ typedef struct itti_s11_nw_init_deactv_bearer_rsp_s {
                         ///< be
   bool delete_default_bearer;
   teid_t s_gw_teid_s11_s4;
+  bool mme_initiated_lcl_deact;
 } itti_s11_nw_init_deactv_bearer_rsp_t;
 
 //-------------

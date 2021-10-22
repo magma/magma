@@ -102,8 +102,8 @@ char convert_digit_to_char(char digit);
 int get_imeisv_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* imeisv);
 
-bool pcef_end_dedicated_bearer_session(
-    const char* imsi, ebi_t eps_bearer_id);
+bool pcef_delete_dedicated_bearer(
+    const char* imsi, ebi_list_t ebi_list);
 #ifdef __cplusplus
 }
 #endif
