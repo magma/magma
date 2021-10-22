@@ -2360,11 +2360,10 @@ static teid_t sgw_generate_new_s11_cp_teid(void) {
 
 // Handles delete bearer cmd from MME
 void sgw_handle_delete_bearer_cmd(
-    const itti_s11_delete_bearer_command_t* const
+    itti_s11_delete_bearer_command_t* 
     s11_delete_bearer_command,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
 
   OAILOG_INFO_UE(
       LOG_SPGW_APP, imsi64, "Received s11_delete_bearer_command for teid" TEID_FMT "\n",
@@ -2380,93 +2379,10 @@ void sgw_handle_delete_bearer_cmd(
 
   char* imsi = (char*) spgw_ctxt->sgw_eps_bearer_context_information.imsi.digit;
   pcef_delete_dedicated_bearer(imsi, s11_delete_bearer_command->ebi_list);
-#if 0
-  for (uint8_t itr=0; itr < s11_delete_bearer_command->ebi_list.num_ebi) {
-  eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-      &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection,
-      s11_delete_bearer_command->ebi_list.ebis[itr]);
-  if (eps_bearer_ctxt_p) {
-    // Get all the DL flow rules for this dedicated bearer
-    for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
-         ++itrn) {
-      // Prepare DL flow rule from stored packet filters
-      struct ip_flow_dl dlflow = {0};
-      struct in6_addr* ue_ipv6 = NULL;
-      if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
-          (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
-        ue_ipv6 = &eps_bearer_ctxt_p->paa.ipv6_address;
-      }
-      generate_dl_flow(
-          &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
-                .packetfiltercontents),
-          eps_bearer_ctxt_p->paa.ipv4_address.s_addr, ue_ipv6, &dlflow);
-      struct in_addr enb = {.s_addr = 0};
-      enb.s_addr =
-          eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
-      if (gtp_tunnel_ops->del_tunnel(
-          enb, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
-          eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-          eps_bearer_ctxt_p->enb_teid_S1u, &dlflow) != RETURNok) {
-        OAILOG_ERROR_UE(
-            LOG_SPGW_APP, imsi64,
-            "ERROR in deleting TUNNEL " TEID_FMT
-            " (eNB) <-> (SGW) " TEID_FMT "\n",
-            eps_bearer_ctxt_p->enb_teid_S1u,
-            eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
-      }
-    }
-
-    sgw_free_eps_bearer_context(
-        &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection
-             .sgw_eps_bearers_array[EBI_TO_INDEX(s11_delete_bearer_command->ebi_list.ebis[itr])]);
-    OAILOG_INFO_UE(
-        LOG_SPGW_APP, imsi64, "Removed bearer context for (ebi = %d)\n",
-        s11_delete_bearer_command->ebi_list.ebis[itr]);
-  } else {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64, "eps_bearer_ctxt is NULL for teid %u\n",
-        s11_delete_bearer_command->s_gw_teid_s11_s4);
-    OAILOG_FUNC_OUT(TASK_SPGW_APP);
-  }
-  }
-#endif
   // Send itti_s11_nw_init_deactv_bearer_request_t to MME to delete the bearer/s
   spgw_build_and_send_s11_deactivate_bearer_req(imsi64, s11_delete_bearer_command->ebi_list.num_ebi,
      s11_delete_bearer_command->ebi_list.ebis, false,s11_delete_bearer_command->local_teid);
-  /*MessageDef* message_p =
-      itti_alloc_new_message(TASK_SPGW_APP, S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        TASK_SPGW_APP, imsi64,
-        "Failed to allocate memory for S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST \n");
-    OAILOG_FUNC_OUT(TASK_SPGW_APP);
-  }
-  itti_s11_nw_init_deactv_bearer_request_t* delete_bearer_req =
-      &message_p->ittiMsg.s11_nw_init_deactv_bearer_request;
-
-  memset(
-      delete_bearer_req, 0,
-      sizeof(itti_s11_nw_init_deactv_bearer_request_t));
-
-  delete_bearer_req->s11_mme_teid = s11_delete_bearer_command->local_teid;
-  delete_bearer_req->delete_default_bearer = false;
-  delete_bearer_req->no_of_bearers         = s11_delete_bearer_command->ebi_list.num_ebi;
-
-  memcpy(
-      delete_bearer_req->ebi, s11_delete_bearer_command->ebi_list.ebis,
-      (sizeof(ebi_t) * delete_bearer_req->no_of_bearers));
-  print_bearer_ids_helper(
-      delete_bearer_req->ebi, delete_bearer_req->no_of_bearers);
-
-  if (send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p) != RETURNok) {
-    OAILOG_ERROR_UE(
-        TASK_SPGW_APP, imsi64,
-        "Failed to send s11_nw_init_deactv_bearer_request to MME\n");
-    OAILOG_FUNC_OUT(TASK_SPGW_APP);
-  }
-  OAILOG_INFO_UE(
-      TASK_SPGW_APP, imsi64, "s11_nw_init_deactv_bearer_request sent to MME\n");*/
 
   OAILOG_FUNC_OUT(TASK_SPGW_APP);
 }
