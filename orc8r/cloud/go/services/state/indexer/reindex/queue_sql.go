@@ -120,7 +120,7 @@ func NewSQLJobQueue(maxAttempts uint, db *sql.DB, builder sqorc.StatementBuilder
 }
 
 func (s *sqlJobQueue) Initialize() error {
-	err := s.InitializeVersioner()
+	err := s.Versioner.InitializeVersioner()
 	if err != nil {
 		return err
 	}

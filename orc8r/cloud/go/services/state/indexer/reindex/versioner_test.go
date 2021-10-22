@@ -11,12 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// NOTE: to run these tests outside the testing environment, e.g. from IntelliJ,
-// ensure postgres_test container is running, and use the following environment
-// variables to point to the relevant DB endpoints:
-//	- TEST_DATABASE_HOST=localhost
-//	- TEST_DATABASE_PORT_POSTGRES=5433
-
 package reindex_test
 
 import (
@@ -31,8 +25,7 @@ import (
 )
 
 func TestVersioner(t *testing.T) {
-	dbName := "state___versioner_test"
-	versioner := initVersioner(t, dbName)
+	versioner := initVersioner(t)
 
 	// Empty initially
 	v, err := versioner.GetIndexerVersions()
@@ -76,12 +69,13 @@ func TestVersioner(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
-func initVersioner(t *testing.T, dbName string) reindex.Versioner {
+func initVersioner(t *testing.T) reindex.Versioner {
 	indexer.DeregisterAllForTest(t)
-	db := sqorc.OpenCleanForTest(t, dbName, sqorc.PostgresDriver)
+	db, err := sqorc.Open("sqlite3", ":memory:")
+	assert.NoError(t, err)
 
 	v := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
-	err := v.InitializeVersioner()
+	err = v.InitializeVersioner()
 	assert.NoError(t, err)
 	return v
 }

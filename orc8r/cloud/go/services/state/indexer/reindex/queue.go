@@ -78,8 +78,9 @@ type JobQueue interface {
 	GetJobInfos() (map[string]JobInfo, error)
 }
 
-// Tracks version info for all tracked indexers
+// Versioner tracks version info for all tracked indexers
 type Versioner interface {
+	// TODO(reginawang3495): Rename to Initialize once JobQueue is removed
 	// Initialize the Versioner.
 	// Call before other methods.
 	InitializeVersioner() error
