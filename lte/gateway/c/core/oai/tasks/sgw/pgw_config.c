@@ -225,13 +225,15 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
   int i                         = 0;
   unsigned char buf_in_addr[sizeof(struct in_addr)];
   struct in_addr addr_start;
-  bstring system_cmd  = NULL;
-  libconfig_int mtu   = 0;
-  int prefix_mask     = 0;
-  char* pcscf_ipv4    = NULL;
-  char* pcscf_ipv6    = NULL;
-  char* dns_ipv6_addr = NULL;
-  char* nat_enabled   = NULL;
+  bstring system_cmd        = NULL;
+  libconfig_int mtu         = 0;
+  int prefix_mask           = 0;
+  char* pcscf_ipv4          = NULL;
+  char* pcscf_ipv6          = NULL;
+  char* dns_ipv6_addr       = NULL;
+  char* nat_enabled         = NULL;
+  char* enable5g_features   = NULL;
+  char* upf_node_identifier = NULL;
 
   config_init(&cfg);
 
@@ -398,6 +400,34 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
       OAILOG_INFO(
           LOG_SPGW_APP, "Parsing configuration file Nat enable: %s\n",
           nat_enabled);
+    }
+
+    if (config_setting_lookup_string(
+            setting_pgw, PGW_CONFIG_STRING_ENABLE5G_FEATURES,
+            (const char**) &enable5g_features)) {
+      if (strcasecmp(enable5g_features, "false") == 0) {
+        config_pP->enable5g_features = false;
+      } else {
+        config_pP->enable5g_features = true;
+      }
+      OAILOG_INFO(
+          LOG_SPGW_APP, "Parsing configuration file enable5g_features: %s\n",
+          enable5g_features);
+    }
+
+    if (config_setting_lookup_string(
+            setting_pgw, PGW_CONFIG_STRING_UPF_NODE_IDENTIFIER,
+            (const char**) &upf_node_identifier)) {
+      IPV4_STR_ADDR_TO_INADDR(
+          upf_node_identifier, config_pP->upf_node_identifier,
+          "BAD IPv4 ADDRESS FORMAT FOR UPF_NODE_IDENTIFIER !\n");
+      OAILOG_DEBUG(
+          LOG_SPGW_APP,
+          "Parsing configuration file upf_node_identifier IPv4 address: %s\n",
+          upf_node_identifier);
+    } else {
+      OAILOG_WARNING(
+          LOG_SPGW_APP, "NO UPF_NODE_IDENTIFIER CONFIGURATION FOUND\n");
     }
 
     if (config_setting_lookup_string(
@@ -594,6 +624,12 @@ void pgw_config_display(pgw_config_t* config_p) {
   OAILOG_INFO(
       LOG_SPGW_APP, "    NAT ..................: %s\n",
       config_p->enable_nat == 0 ? "false" : "true");
+  OAILOG_INFO(
+      LOG_SPGW_APP, "    enable5g_features.....: %s\n",
+      config_p->enable5g_features == 0 ? "false" : "true");
+  OAILOG_INFO(
+      LOG_SPGW_APP, "    upf_node_identifier...: %s\n",
+      inet_ntoa(*((struct in_addr*) &config_p->upf_node_identifier)));
   OAILOG_INFO(
       LOG_SPGW_APP, "    User TCP MSS clamping : %s\n",
       config_p->ue_tcp_mss_clamp == 0 ? "false" : "true");

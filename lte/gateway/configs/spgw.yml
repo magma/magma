@@ -20,6 +20,7 @@ ipv4_dns: "8.8.8.8" # will be replaced by dnsd if caching is enabled
 ipv4_sec_dns: "8.8.4.4"
 ovs_bridge_name: "gtp_br0"
 ovs_uplink_mac: "ff:ff:ff:ff:ff:ff"
+upf_node_identifier: "192.168.200.1"
 
 # Interface used for determing MTU
 pgw_uplink: "gtp_br0"

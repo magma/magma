@@ -19,6 +19,7 @@ import socket
 from create_oai_certs import generate_mme_certs
 from generate_service_config import generate_template_config
 from lte.protos.mconfig.mconfigs_pb2 import MME
+from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from magma.common.misc_utils import (
     IpPreference,
     get_ip_from_if,
@@ -45,6 +46,7 @@ DEFAULT_NGAP_AMF_NAME = "AMF_1"
 DEFAULT_NGAP_AMF_REGION_ID = "1"
 DEFAULT_NGAP_SET_ID = "1"
 DEFAULT_NGAP_AMF_POINTER = "0"
+DEFAULT_UPF_NODE_IDENTIFIER = "192.168.200.1"
 
 
 def _get_iface_ip(service, iface_config):
@@ -383,6 +385,48 @@ def _get_amf_pointer(service_mconfig: object) -> str:
 
     return service_mconfig.amf_pointer or DEFAULT_NGAP_AMF_POINTER
 
+def _get_spgw_converged_core_config(service_mconfig: object) -> bool:
+    """Retrieve enable5g_features config value. If it does not exist it defaults to False. It gives precedence to the service_mconfig file.
+
+    Args:
+        service_mconfig: This is a configuration placeholder for pipelined.
+
+    Returns:
+        enable_m5gfeatures.
+    """
+    enable_m5gfeatures = get_service_config_value(
+        'spgw', 'enable5g_features', None,
+    )
+
+    if enable_m5gfeatures is not None:
+        return enable_m5gfeatures
+
+    if service_mconfig.enable5g_features is not None:
+        return service_mconfig.enable5g_features
+
+    return False
+
+def _get_spgw_upf_node_identifier(service_mconfig: object):
+    """Retrieve upf_node_identifier config value. If it does not exist it defaults to DEFAULT_UPF_NODE_IDENTIFIER. It gives precedence to the service_mconfig file.
+
+    Args:
+        service_mconfig: This is a configuration placeholder for pipelined.
+
+    Returns:
+        upf_node_identifier.
+    """
+    m5gupf_node_identifier = get_service_config_value(
+        'spgw', 'upf_node_identifier', None,
+    )
+
+    if m5gupf_node_identifier is not None:
+        return m5gupf_node_identifier
+
+    if service_mconfig.upf_node_identifier is not None:
+        return service_mconfig.upf_node_identifier
+
+    return DEFAULT_UPF_NODE_IDENTIFIER
+
 
 def _get_context():
     """
@@ -446,6 +490,13 @@ def _get_context():
 
     context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or _get_iface_ip(
         "spgw", "s1u_iface_name",
+    )
+    spgw_service_config = load_service_mconfig('pipelined', PipelineD())
+    context["enable5g_features"] = _get_spgw_converged_core_config(
+        spgw_service_config
+    )
+    context["upf_node_identifier"] = _get_spgw_upf_node_identifier(
+        spgw_service_config
     )
 
     try:

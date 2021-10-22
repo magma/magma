@@ -80,6 +80,8 @@
 #define PGW_CONFIG_DNS_SERVER_IPV6_ADDRESS "DNS_SERVER_IPV6_ADDRESS"
 
 #define PGW_CONFIG_STRING_NAT_ENABLED "ENABLE_NAT"
+#define PGW_CONFIG_STRING_ENABLE5G_FEATURES "ENABLE5G_FEATURES"
+#define PGW_CONFIG_STRING_UPF_NODE_IDENTIFIER "UPF_NODE_IDENTIFIER"
 
 // may be more
 #define PGW_MAX_ALLOCATED_PDN_ADDRESSES 1024
@@ -116,6 +118,8 @@ typedef struct pgw_config_s {
   bool force_push_pco;
   uint16_t ue_mtu;
   bool enable_nat;
+  bool enable5g_features;
+  struct in_addr upf_node_identifier;
 
   struct {
     bool enabled;
