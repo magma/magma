@@ -198,7 +198,7 @@ void free_emm_attach_request_ies(emm_attach_request_ies_t** const params);
 
 status_code_e emm_proc_attach_request(
     mme_ue_s1ap_id_t ue_id, const bool ctx_is_new,
-    emm_attach_request_ies_t* const params);
+    STOLEN_REF emm_attach_request_ies_t* const params);
 
 status_code_e _emm_attach_reject(
     emm_context_t* emm_context, struct nas_base_proc_s* nas_base_proc);
