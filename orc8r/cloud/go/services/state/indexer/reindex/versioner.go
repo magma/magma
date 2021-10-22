@@ -12,20 +12,24 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-type indexVersionerImpl struct {
+type versioner struct {
 	db      *sql.DB
 	builder sqorc.StatementBuilder
 }
 
-func NewIndexVersioner(db *sql.DB, builder sqorc.StatementBuilder) IndexVersioner {
-	return &indexVersionerImpl{db: db, builder: builder}
+func NewVersioner(db *sql.DB, builder sqorc.StatementBuilder) Versioner {
+	return &versioner{db: db, builder: builder}
 }
 
-func (i *indexVersionerImpl) GetIndexerVersions() ([]*indexer.Versions, error) {
+func (v *versioner) InitializeVersioner() error {
+	return v.initVersionTable()
+}
+
+func (v *versioner) GetIndexerVersions() ([]*indexer.Versions, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		return getIndexerVersionsImpl(i.builder, tx)
+		return getIndexerVersions(v.builder, tx)
 	}
-	txRet, err := sqorc.ExecInTx(i.db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, txFn)
+	txRet, err := sqorc.ExecInTx(v.db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, txFn)
 	if err != nil {
 		return nil, err
 	}
@@ -33,15 +37,15 @@ func (i *indexVersionerImpl) GetIndexerVersions() ([]*indexer.Versions, error) {
 	return ret, nil
 }
 
-func (i *indexVersionerImpl) SetIndexerActualVersion(indexerID string, version indexer.Version) error {
+func (v *versioner) SetIndexerActualVersion(indexerID string, version indexer.Version) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		return nil, setIndexerActualVersionImpl(i.builder, tx, indexerID, version)
+		return nil, setIndexerActualVersion(v.builder, tx, indexerID, version)
 	}
-	_, err := sqorc.ExecInTx(i.db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, txFn)
+	_, err := sqorc.ExecInTx(v.db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, txFn)
 	return err
 }
 
-func getIndexerVersionsImpl(builder sqorc.StatementBuilder, tx *sql.Tx) ([]*indexer.Versions, error) {
+func getIndexerVersions(builder sqorc.StatementBuilder, tx *sql.Tx) ([]*indexer.Versions, error) {
 	old, err := getTrackedVersions(builder, tx)
 	if err != nil {
 		return nil, err
@@ -66,7 +70,7 @@ func getIndexerVersionsImpl(builder sqorc.StatementBuilder, tx *sql.Tx) ([]*inde
 	return composed, nil
 }
 
-func setIndexerActualVersionImpl(builder sqorc.StatementBuilder, tx *sql.Tx, indexerID string, version indexer.Version) error {
+func setIndexerActualVersion(builder sqorc.StatementBuilder, tx *sql.Tx, indexerID string, version indexer.Version) error {
 	_, err := builder.Update(versionTableName).
 		Set(actualColVersions, version).
 		Where(squirrel.Eq{idColVersions: indexerID}).
@@ -76,6 +80,21 @@ func setIndexerActualVersionImpl(builder sqorc.StatementBuilder, tx *sql.Tx, ind
 		return errors.Wrapf(err, "update indexer actual version for %s to %d", indexerID, version)
 	}
 	return nil
+}
+
+func (v *versioner) initVersionTable() error {
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		_, err := v.builder.CreateTable(versionTableName).
+			IfNotExists().
+			Column(idColVersions).Type(sqorc.ColumnTypeText).NotNull().PrimaryKey().EndColumn().
+			Column(actualColVersions).Type(sqorc.ColumnTypeInt).Default(0).NotNull().EndColumn().
+			Column(desiredColVersions).Type(sqorc.ColumnTypeInt).NotNull().EndColumn().
+			RunWith(tx).
+			Exec()
+		return nil, errors.Wrap(err, "initialize indexer versions table")
+	}
+	_, err := sqorc.ExecInTx(v.db, &sql.TxOptions{Isolation: sql.LevelRepeatableRead}, nil, txFn)
+	return err
 }
 
 func getTrackedVersions(builder sqorc.StatementBuilder, tx *sql.Tx) ([]*indexer.Versions, error) {

@@ -90,10 +90,10 @@ var (
 //	  be an issue, future updates to this type should consider the possibility of a sufficiently-large version being misinterpreted
 //	  by a SQL WHERE clause.
 type sqlJobQueue struct {
+	Versioner
 	maxAttempts uint
 	db          *sql.DB
 	builder     sqorc.StatementBuilder
-	IndexVersioner
 }
 
 // NewSQLJobQueue returns a new SQL-backed implementation of an unordered job queue.
@@ -104,7 +104,7 @@ type sqlJobQueue struct {
 // Populating the job queue is an exactly-once operation. We handle this in two parts
 //	- Populate <= 1 time
 //		- The job queue jobs are written as part of a tx that checks the "stored"
-//		  indexer versions, and these stored versions are updated the the "desired" versions during the same tx,
+//		  indexer versions, and these stored versions are updated the "desired" versions during the same tx,
 //		  ensuring no more than one controller instance will write to the job queue per code push.
 //		- There is a small race condition where multiple callers may both log that they successfully updated the job queue,
 //		  but this is inconsequential since the condition (a) requires near-simultaneous calls and (b) actually results in the
@@ -116,12 +116,11 @@ type sqlJobQueue struct {
 //
 // Only provides Postgres support due to use of the non-standard "FOR UPDATE SKIP LOCKED" clause.
 func NewSQLJobQueue(maxAttempts uint, db *sql.DB, builder sqorc.StatementBuilder) JobQueue {
-	i := NewIndexVersioner(db, builder)
-	return &sqlJobQueue{maxAttempts: maxAttempts, db: db, builder: builder, IndexVersioner: i}
+	return &sqlJobQueue{maxAttempts: maxAttempts, db: db, builder: builder, Versioner: NewVersioner(db, builder)}
 }
 
 func (s *sqlJobQueue) Initialize() error {
-	err := s.initVersionTable()
+	err := s.InitializeVersioner()
 	if err != nil {
 		return err
 	}
@@ -210,7 +209,7 @@ func (s *sqlJobQueue) CompleteJob(job *Job, withErr error) error {
 
 		// Only update indexer actual versions on successful job completion
 		if withErr == nil {
-			err := setIndexerActualVersionImpl(s.builder, tx, job.Idx.GetID(), job.To)
+			err := setIndexerActualVersion(s.builder, tx, job.Idx.GetID(), job.To)
 			if err != nil {
 				return nil, err
 			}
@@ -283,21 +282,6 @@ func (s *sqlJobQueue) initQueueTable() error {
 	return err
 }
 
-func (s *sqlJobQueue) initVersionTable() error {
-	txFn := func(tx *sql.Tx) (interface{}, error) {
-		_, err := s.builder.CreateTable(versionTableName).
-			IfNotExists().
-			Column(idColVersions).Type(sqorc.ColumnTypeText).NotNull().PrimaryKey().EndColumn().
-			Column(actualColVersions).Type(sqorc.ColumnTypeInt).Default(0).NotNull().EndColumn().
-			Column(desiredColVersions).Type(sqorc.ColumnTypeInt).NotNull().EndColumn().
-			RunWith(tx).
-			Exec()
-		return nil, errors.Wrap(err, "initialize indexer versions table")
-	}
-	_, err := sqorc.ExecInTx(s.db, &sql.TxOptions{Isolation: sql.LevelRepeatableRead}, nil, txFn)
-	return err
-}
-
 // addJobs adds reindex jobs to the table.
 func (s *sqlJobQueue) addJobs(tx *sql.Tx, newJobs []*reindexJob) error {
 	jobsToInsert, err := s.getComposedJobs(tx, newJobs)
@@ -326,7 +310,7 @@ func (s *sqlJobQueue) addJobs(tx *sql.Tx, newJobs []*reindexJob) error {
 // getNewJobs returns slice of reindex jobs to run.
 // Includes jobs where desired != actual.
 func (s *sqlJobQueue) getNewJobs(tx *sql.Tx) ([]*reindexJob, error) {
-	versions, err := getIndexerVersionsImpl(s.builder, tx)
+	versions, err := getIndexerVersions(s.builder, tx)
 	if err != nil {
 		return nil, err
 	}
