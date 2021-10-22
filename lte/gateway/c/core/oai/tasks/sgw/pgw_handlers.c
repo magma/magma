@@ -462,7 +462,14 @@ int32_t spgw_build_and_send_s11_deactivate_bearer_req(
       "Sending nw_initiated_deactv_bearer_req to mme_app "
       "with delete_default_bearer flag set to %d\n",
       s11_bearer_deactv_request->delete_default_bearer);
-  int rc = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
+  int rc = RETURNerror;
+  if (module == LOG_SPGW_APP) {
+    rc = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
+  } else if (module == LOG_SGW_S8) {
+    rc = send_msg_to_task(&sgw_s8_task_zmq_ctx, TASK_MME_APP, message_p);
+  } else {
+    OAILOG_ERROR_UE(module, imsi64, "Invalid module \n");
+  }
   OAILOG_FUNC_RETURN(module, rc);
 }
 

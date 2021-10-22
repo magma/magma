@@ -165,7 +165,7 @@ TEST_F(SgwS8Config, check_failed_to_create_dedicated_bearer) {
 
 // TC validates, failed to find PDN context on wrong sgw_s11_teid received in
 // delete bearer response
-TEST_F(SgwS8Config, delete_bearer_response) {
+TEST_F(SgwS8Config, delete_bearer_response_invalid_teid) {
   mme_sgw_tunnel_t sgw_s11_tunnel = {0};
   sgw_state_t* sgw_state          = create_ue_context(&sgw_s11_tunnel);
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
@@ -353,6 +353,142 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_create_bearer_response) {
   EXPECT_EQ(
       sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->eps_bearer_id,
       s11_actv_bearer_rsp.bearer_contexts.bearer_contexts[0].eps_bearer_id);
+  free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
+  sgw_state_exit();
+}
+
+TEST_F(SgwS8ConfigAndCreateMock, recv_delete_bearer_req) {
+  ASSERT_EQ(task_zmq_ctx_main_s8.ready, true);
+  mme_sgw_tunnel_t sgw_s11_tunnel = {0};
+  sgw_state_t* sgw_state          = create_ue_context(&sgw_s11_tunnel);
+  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
+      sgw_s11_tunnel.local_teid);
+  itti_s11_create_session_request_t session_req = {0};
+  fill_itti_csreq(&session_req, default_eps_bearer_id);
+  memcpy(session_req.apn, "internet", sizeof("internet"));
+  sgw_s11_tunnel.remote_teid = session_req.sender_fteid_for_cp.teid;
+  sgw_update_bearer_context_information_on_csreq(
+      sgw_state, sgw_pdn_session, sgw_s11_tunnel, &session_req, imsi64);
+  s8_create_bearer_request_t cb_req = {0};
+  fill_create_bearer_request(
+      &cb_req, sgw_s11_tunnel.local_teid, default_eps_bearer_id);
+  gtpv2c_cause_value_t cause_value = REQUEST_REJECTED;
+
+  EXPECT_NE(
+      sgw_s8_handle_create_bearer_request(sgw_state, &cb_req, &cause_value),
+      INVALID_IMSI64);
+
+  // Validates sequence number matches with received create bearer request
+  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc =
+      pgw_get_procedure_create_bearer(sgw_pdn_session);
+  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
+
+  bool is_seq_number_updated                             = false;
+  sgw_eps_bearer_entry_wrapper_t* sgw_eps_bearer_entry_p = nullptr;
+  LIST_FOREACH(
+      sgw_eps_bearer_entry_p, pgw_ni_cbr_proc->pending_eps_bearers, entries) {
+    if ((sgw_eps_bearer_entry_p) &&
+        (sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->sgw_sequence_number ==
+         cb_req.sequence_number)) {
+      is_seq_number_updated = true;
+      break;
+    }
+  }
+  uint32_t s1_u_sgw_fteid = 0;
+  if (is_seq_number_updated) {
+    s1_u_sgw_fteid =
+        sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
+  }
+
+  itti_s11_nw_init_actv_bearer_rsp_t s11_actv_bearer_rsp;
+  memset(&s11_actv_bearer_rsp, 0, sizeof(itti_s11_nw_init_actv_bearer_rsp_t));
+  fill_create_bearer_response(
+      &s11_actv_bearer_rsp, sgw_s11_tunnel.local_teid, 6, s1_u_sgw_fteid,
+      REQUEST_ACCEPTED);
+  sgw_s8_handle_s11_create_bearer_response(
+      sgw_state, &s11_actv_bearer_rsp, imsi64);
+
+  s8_delete_bearer_request_t db_req = {0};
+  fill_delete_bearer_request(
+      &db_req, sgw_s11_tunnel.local_teid,
+      s11_actv_bearer_rsp.bearer_contexts.bearer_contexts[0].eps_bearer_id);
+
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_nw_init_bearer_deactv_req())
+      .Times(1);
+  EXPECT_EQ(sgw_s8_handle_delete_bearer_request(sgw_state, &db_req), RETURNok);
+  free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
+  sgw_state_exit();
+}
+
+TEST_F(SgwS8ConfigAndCreateMock, delete_bearer_response) {
+  ASSERT_EQ(task_zmq_ctx_main_s8.ready, true);
+  mme_sgw_tunnel_t sgw_s11_tunnel = {0};
+  sgw_state_t* sgw_state          = create_ue_context(&sgw_s11_tunnel);
+  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
+      sgw_s11_tunnel.local_teid);
+  itti_s11_create_session_request_t session_req = {0};
+  fill_itti_csreq(&session_req, default_eps_bearer_id);
+  memcpy(session_req.apn, "internet", sizeof("internet"));
+  sgw_s11_tunnel.remote_teid = session_req.sender_fteid_for_cp.teid;
+  sgw_update_bearer_context_information_on_csreq(
+      sgw_state, sgw_pdn_session, sgw_s11_tunnel, &session_req, imsi64);
+  s8_create_bearer_request_t cb_req = {0};
+  fill_create_bearer_request(
+      &cb_req, sgw_s11_tunnel.local_teid, default_eps_bearer_id);
+  gtpv2c_cause_value_t cause_value = REQUEST_REJECTED;
+
+  EXPECT_NE(
+      sgw_s8_handle_create_bearer_request(sgw_state, &cb_req, &cause_value),
+      INVALID_IMSI64);
+
+  // Validates sequence number matches with received create bearer request
+  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc =
+      pgw_get_procedure_create_bearer(sgw_pdn_session);
+  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
+
+  bool is_seq_number_updated                             = false;
+  sgw_eps_bearer_entry_wrapper_t* sgw_eps_bearer_entry_p = nullptr;
+  LIST_FOREACH(
+      sgw_eps_bearer_entry_p, pgw_ni_cbr_proc->pending_eps_bearers, entries) {
+    if ((sgw_eps_bearer_entry_p) &&
+        (sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->sgw_sequence_number ==
+         cb_req.sequence_number)) {
+      is_seq_number_updated = true;
+      break;
+    }
+  }
+  uint32_t s1_u_sgw_fteid = 0;
+  if (is_seq_number_updated) {
+    s1_u_sgw_fteid =
+        sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
+  }
+
+  itti_s11_nw_init_actv_bearer_rsp_t s11_actv_bearer_rsp;
+  memset(&s11_actv_bearer_rsp, 0, sizeof(itti_s11_nw_init_actv_bearer_rsp_t));
+  fill_create_bearer_response(
+      &s11_actv_bearer_rsp, sgw_s11_tunnel.local_teid, 6, s1_u_sgw_fteid,
+      REQUEST_ACCEPTED);
+  sgw_s8_handle_s11_create_bearer_response(
+      sgw_state, &s11_actv_bearer_rsp, imsi64);
+
+  s8_delete_bearer_request_t db_req = {0};
+  fill_delete_bearer_request(
+      &db_req, sgw_s11_tunnel.local_teid,
+      s11_actv_bearer_rsp.bearer_contexts.bearer_contexts[0].eps_bearer_id);
+
+  EXPECT_EQ(sgw_s8_handle_delete_bearer_request(sgw_state, &db_req), RETURNok);
+
+  itti_s11_nw_init_deactv_bearer_rsp_t s11_delete_bearer_response = {0};
+
+  fill_delete_bearer_response(
+      &s11_delete_bearer_response, sgw_s11_tunnel.local_teid,
+      db_req.eps_bearer_id[0], REQUEST_ACCEPTED);
+  EXPECT_EQ(
+      sgw_s8_handle_s11_delete_bearer_response(
+          sgw_state, &s11_delete_bearer_response, imsi64),
+      RETURNok);
   free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
   sgw_state_exit();
 }

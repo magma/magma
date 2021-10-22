@@ -52,7 +52,7 @@ void sgw_s8_handle_s11_create_bearer_response(
     sgw_state_t* sgw_state,
     itti_s11_nw_init_actv_bearer_rsp_t* s11_actv_bearer_rsp, imsi64_t imsi64);
 
-void sgw_s8_handle_delete_bearer_request(
+int sgw_s8_handle_delete_bearer_request(
     sgw_state_t* sgw_state, const s8_delete_bearer_request_t* const db_req);
 
 status_code_e sgw_s8_handle_s11_delete_bearer_response(

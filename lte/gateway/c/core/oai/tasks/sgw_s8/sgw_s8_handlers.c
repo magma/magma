@@ -1506,7 +1506,7 @@ void sgw_s8_send_failed_create_bearer_response(
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
-void sgw_s8_handle_delete_bearer_request(
+int sgw_s8_handle_delete_bearer_request(
     sgw_state_t* sgw_state, const s8_delete_bearer_request_t* const db_req) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
 
@@ -1519,7 +1519,7 @@ void sgw_s8_handle_delete_bearer_request(
   if (!db_req) {
     OAILOG_ERROR(
         LOG_SGW_S8, "Received null delete bearer request from s8_proxy\n");
-    OAILOG_FUNC_OUT(LOG_SGW_S8);
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
   OAILOG_INFO(
       LOG_SGW_S8,
@@ -1538,7 +1538,7 @@ void sgw_s8_handle_delete_bearer_request(
     Imsi_t imsi = {0};
     sgw_s8_send_failed_delete_bearer_response(
         db_req, CONTEXT_NOT_FOUND, imsi, 0);
-    OAILOG_FUNC_OUT(LOG_SGW_S8);
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
   // Check if the received EBI is valid
   for (uint8_t idx = 0; idx < db_req->num_eps_bearer_id; idx++) {
@@ -1573,7 +1573,7 @@ void sgw_s8_handle_delete_bearer_request(
     sgw_s8_send_failed_delete_bearer_response(
         db_req, REQUEST_REJECTED, sgw_context_p->imsi,
         sgw_context_p->pdn_connection.p_gw_teid_S5_S8_cp);
-    OAILOG_FUNC_OUT(LOG_SGW_S8);
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
   if (no_of_bearers_to_be_deact > 0) {
     bool delete_default_bearer =
@@ -1585,7 +1585,7 @@ void sgw_s8_handle_delete_bearer_request(
         sgw_context_p->imsi64, no_of_bearers_to_be_deact, ebi_to_be_deactivated,
         delete_default_bearer, sgw_context_p->mme_teid_S11, LOG_SGW_S8);
   }
-  OAILOG_FUNC_OUT(LOG_SGW_S8);
+  OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNok);
 }
 
 // Handle NW-initiated dedicated bearer dectivation response from MME
@@ -1594,7 +1594,7 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
     const itti_s11_nw_init_deactv_bearer_rsp_t* const
         s11_delete_bearer_response_p,
     imsi64_t imsi64) {
-  uint32_t rc                              = RETURNerror;
+  uint32_t rc                              = RETURNok;
   ebi_t ebi                                = {0};
   uint32_t sequence_number                 = 0;
   char* pgw_cp_ip_port                     = NULL;
@@ -1603,7 +1603,7 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
   if (!s11_delete_bearer_response_p) {
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64, "Received null delete bearer response from MME\n");
-    OAILOG_FUNC_RETURN(LOG_SGW_S8, rc);
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
   OAILOG_INFO_UE(
       LOG_SGW_S8, imsi64,
@@ -1618,7 +1618,7 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
         LOG_SGW_S8, imsi64,
         "Failed to fetch sgw_eps_bearer_context_info from teid " TEID_FMT "\n",
         s11_delete_bearer_response_p->s_gw_teid_s11_s4);
-    OAILOG_FUNC_RETURN(LOG_SGW_S8, rc);
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
 
   /* If delete bearer request is initiated for default bearer
@@ -1627,7 +1627,7 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
   if (s11_delete_bearer_response_p->delete_default_bearer) {
     if (!s11_delete_bearer_response_p->lbi) {
       OAILOG_ERROR_UE(LOG_SGW_S8, imsi64, "LBI received from MME is NULL\n");
-      OAILOG_FUNC_RETURN(LOG_SGW_S8, rc);
+      OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
     }
     eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
         &sgw_context_p->pdn_connection, *(s11_delete_bearer_response_p->lbi));
@@ -1636,14 +1636,16 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
           LOG_SGW_S8, imsi64,
           "Failed to get bearer context for bearer_id :%u\n",
           *(s11_delete_bearer_response_p->lbi));
-      OAILOG_FUNC_RETURN(LOG_SGW_S8, rc);
+      OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
     }
     sequence_number         = eps_bearer_ctxt_p->sgw_sequence_number;
     uint8_t pgw_ip_port_len = strlen(eps_bearer_ctxt_p->pgw_cp_ip_port) + 1;
     pgw_cp_ip_port          = calloc(1, pgw_ip_port_len);
     memcpy(pgw_cp_ip_port, eps_bearer_ctxt_p->pgw_cp_ip_port, pgw_ip_port_len);
+#if !MME_UNIT_TEST
     // Delete ovs rules
     delete_userplane_tunnels(sgw_context_p);
+#endif
     sgw_remove_sgw_bearer_context_information(
         sgw_state, s11_delete_bearer_response_p->s_gw_teid_s11_s4, imsi64);
 
@@ -1683,6 +1685,7 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
             enb.s_addr, pgw.s_addr, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt_p->s_gw_teid_S5_S8_up);
 
+#if !MME_UNIT_TEST
         rc = gtpv1u_del_s8_tunnel(
             enb, pgw, ue_ipv4, ue_ipv6,
             eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
@@ -1695,7 +1698,7 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
               eps_bearer_ctxt_p->s_gw_teid_S5_S8_up,
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
         }
-
+#endif
         uint8_t pgw_ip_port_len = strlen(eps_bearer_ctxt_p->pgw_cp_ip_port) + 1;
         pgw_cp_ip_port          = calloc(1, pgw_ip_port_len);
         memcpy(

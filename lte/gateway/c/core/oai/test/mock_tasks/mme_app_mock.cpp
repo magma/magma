@@ -140,6 +140,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST: {
+      mme_app_handler_->mme_app_handle_nw_init_bearer_deactv_req();
     } break;
 
     case S1AP_PATH_SWITCH_REQUEST: {
