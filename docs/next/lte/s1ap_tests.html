@@ -163,7 +163,6 @@ TCP checksum is disabled on all VMs.</p>
 service file <code>/etc/systemd/system/magma@mme.service</code> (you will need sudo privileges):</p>
 <p><code>sudo systemctl daemon-reload</code></p>
 <ol>
-<li><p>In <code>/etc/magma/mobilityd.yml</code>, set <code>persist_to_redis</code> to <code>true</code></p></li>
 <li><p>Clean up all the state in redis: <code>redis-cli -p 6380 FLUSHALL</code>. This might
 throw a &quot;Could not connect&quot; error if magma@redis service is not running. Start
 the redis service with <code>sudo service magma@redis start</code> and then try again.</p></li>
