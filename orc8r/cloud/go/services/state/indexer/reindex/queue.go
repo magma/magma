@@ -58,10 +58,6 @@ type JobQueue interface {
 	// Tracks version info for all tracked indexers
 	Versioner
 
-	// Initialize the queue.
-	// Call before other methods.
-	Initialize() error
-
 	// PopulateJobs populates the queue with the necessary jobs read from the indexer registry.
 	// Returns true if job queue was updated with new jobs.
 	PopulateJobs() (bool, error)
@@ -80,10 +76,9 @@ type JobQueue interface {
 
 // Versioner tracks version info for all tracked indexers
 type Versioner interface {
-	// TODO(reginawang3495): Rename to Initialize once JobQueue is removed
-	// Initialize the Versioner.
+	// Initialize the current object.
 	// Call before other methods.
-	InitializeVersioner() error
+	Initialize() error
 
 	// GetIndexerVersions returns version info for all tracked indexers, keyed by indexer ID.
 	// Intended for use when automatic reindexing is disabled.

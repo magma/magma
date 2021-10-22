@@ -34,7 +34,7 @@ func NewVersioner(db *sql.DB, builder sqorc.StatementBuilder) Versioner {
 	return &versioner{db: db, builder: builder}
 }
 
-func (v *versioner) InitializeVersioner() error {
+func (v *versioner) Initialize() error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		_, err := v.builder.CreateTable(versionTableName).
 			IfNotExists().

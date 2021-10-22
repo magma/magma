@@ -75,7 +75,7 @@ func initVersioner(t *testing.T) reindex.Versioner {
 	assert.NoError(t, err)
 
 	v := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
-	err = v.InitializeVersioner()
+	err = v.Initialize()
 	assert.NoError(t, err)
 	return v
 }
