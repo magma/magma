@@ -103,6 +103,12 @@ func testDirectorydStorageImpl(t *testing.T, store storage.DirectorydStorage) {
 	assert.NoError(t, err)
 	assert.Equal(t, hostname3, recvd)
 
+	// deMap hwid3->hostname3
+	err = store.UnmapHWIDsToHostnames([]string{"hwid2", "hwid3"})
+	assert.NoError(t, err)
+	err = store.UnmapHWIDsToHostnames([]string{"some_unknown_hwid"})
+	assert.NoError(t, err)
+
 	//////////////////////////////
 	// Session ID -> IMSI
 	//////////////////////////////
@@ -162,6 +168,12 @@ func testDirectorydStorageImpl(t *testing.T, store storage.DirectorydStorage) {
 	recvd, err = store.GetIMSIForSessionID(nid1, sid0)
 	assert.NoError(t, err)
 	assert.Equal(t, imsi1, recvd)
+
+	// deMap sids->imsis
+	err = store.UnmapSessionIDsToIMSIs(nid0, []string{sid0, sid1})
+	assert.NoError(t, err)
+	err = store.UnmapSessionIDsToIMSIs(nid0, []string{"some_unknown_sid"})
+	assert.NoError(t, err)
 
 	//////////////////////////////
 	// Teid -> HwId
@@ -223,4 +235,9 @@ func testDirectorydStorageImpl(t *testing.T, store storage.DirectorydStorage) {
 	assert.NoError(t, err)
 	assert.Equal(t, hwid1, recvd)
 
+	// deMap teid0->HwId0
+	err = store.UnmapSgwCTeidToHWID(nid0, []string{teid0, teid1})
+	assert.NoError(t, err)
+	err = store.UnmapSgwCTeidToHWID(nid0, []string{"some_unknown_teid"})
+	assert.NoError(t, err)
 }

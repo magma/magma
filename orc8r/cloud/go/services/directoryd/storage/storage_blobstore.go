@@ -14,9 +14,9 @@ limitations under the License.
 package storage
 
 import (
-	"fmt"
 	"sort"
 
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/blobstore"
@@ -52,112 +52,109 @@ type directorydBlobstore struct {
 }
 
 func (d *directorydBlobstore) GetHostnameForHWID(hwid string) (string, error) {
-	store, err := d.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
-	if err != nil {
-		return "", errors.Wrap(err, "failed to start transaction")
-	}
-	defer store.Rollback()
 
-	blob, err := store.Get(
-		placeholderNetworkID,
-		storage.TK{Type: DirectorydTypeHWIDToHostname, Key: hwid},
-	)
-	if err == merrors.ErrNotFound {
-		return "", err
-	}
-	if err != nil {
-		return "", errors.Wrap(err, "failed to get hostname")
-	}
-
-	hostname := string(blob.Value)
-	return hostname, store.Commit()
-}
-
-func (d *directorydBlobstore) MapHWIDsToHostnames(hwidToHostname map[string]string) error {
-	store, err := d.factory.StartTransaction(nil)
-	if err != nil {
-		return errors.Wrap(err, "failed to start transaction")
-	}
-	defer store.Rollback()
-
-	blobs := convertKVToBlobs(DirectorydTypeHWIDToHostname, hwidToHostname)
-	err = store.CreateOrUpdate(placeholderNetworkID, blobs)
-	if err != nil {
-		return errors.Wrap(err, "failed to create or update HWID to hostname mapping")
-	}
-	return store.Commit()
+	res, err := d.getFromStore(placeholderNetworkID, DirectorydTypeHWIDToHostname, hwid)
+	printIfError(err, "Error GetHostnameForHWID: %+v", err)
+	return res, err
 }
 
 func (d *directorydBlobstore) GetIMSIForSessionID(networkID, sessionID string) (string, error) {
+
+	res, err := d.getFromStore(networkID, DirectorydTypeSessionIDToIMSI, sessionID)
+	printIfError(err, "Error GetIMSIForSessionID: %+v", err)
+	return res, err
+}
+
+func (d *directorydBlobstore) GetHWIDForSgwCTeid(networkID, teid string) (string, error) {
+	res, err := d.getFromStore(networkID, DirectorydTypeSgwCteidToHwid, teid)
+	printIfError(err, "Error GetHWIDForSgwCTeid: %+v", err)
+	return res, err
+}
+
+func (d *directorydBlobstore) MapHWIDsToHostnames(hwidToHostname map[string]string) error {
+	err := d.mapToStore(placeholderNetworkID, DirectorydTypeHWIDToHostname, hwidToHostname)
+	printIfError(err, "Error MapHWIDsToHostnames: %+v", err)
+	return err
+}
+
+func (d *directorydBlobstore) MapSessionIDsToIMSIs(networkID string, sessionIDToIMSI map[string]string) error {
+	err := d.mapToStore(networkID, DirectorydTypeSessionIDToIMSI, sessionIDToIMSI)
+	printIfError(err, "Error MapSessionIDsToIMSIs: %s", err)
+	return err
+}
+
+func (d *directorydBlobstore) MapSgwCTeidToHWID(networkID string, sgwCTeidToHwid map[string]string) error {
+	err := d.mapToStore(networkID, DirectorydTypeSgwCteidToHwid, sgwCTeidToHwid)
+	printIfError(err, "Error MapSgwCTeidToHWID: %+v", err)
+	return err
+}
+
+func (d *directorydBlobstore) UnmapHWIDsToHostnames(hwids []string) error {
+	err := d.unmapFromStore(placeholderNetworkID, DirectorydTypeHWIDToHostname, hwids)
+	printIfError(err, "Error UnmapHWIDsToHostnames: %+v", err)
+	return err
+}
+
+func (d *directorydBlobstore) UnmapSessionIDsToIMSIs(networkID string, sessionIDs []string) error {
+	err := d.unmapFromStore(networkID, DirectorydTypeSessionIDToIMSI, sessionIDs)
+	printIfError(err, "Error UnmapSessionIDsToIMSIs: %+v", err)
+	return err
+}
+
+func (d *directorydBlobstore) UnmapSgwCTeidToHWID(networkID string, teids []string) error {
+	err := d.unmapFromStore(networkID, DirectorydTypeSgwCteidToHwid, teids)
+	printIfError(err, "Error UnmapSessionIDsToIMSIs: %+v", err)
+	return err
+}
+
+func (d *directorydBlobstore) getFromStore(networkID, tkType, key string) (string, error) {
 	store, err := d.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
-		return "", errors.Wrap(err, "failed to start transaction")
+		return "", errors.Wrapf(err, "failed to start transaction to get %s for tkKey %s", key, tkType)
 	}
 	defer store.Rollback()
 
-	blob, err := store.Get(
-		networkID,
-		storage.TK{Type: DirectorydTypeSessionIDToIMSI, Key: sessionID},
-	)
+	blob, err := store.Get(networkID, storage.TK{Type: tkType, Key: key})
 	if err == merrors.ErrNotFound {
 		return "", err
 	}
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get IMSI")
+		return "", errors.Wrapf(err, "failed to get %s from %s", key, tkType)
 	}
-
-	imsi := string(blob.Value)
-	return imsi, store.Commit()
+	return string(blob.Value), store.Commit()
 }
 
-func (d *directorydBlobstore) MapSessionIDsToIMSIs(networkID string, sessionIDToIMSI map[string]string) error {
+func (d *directorydBlobstore) mapToStore(networkID, tkType string, keyToValueMap map[string]string) error {
 	store, err := d.factory.StartTransaction(nil)
 	if err != nil {
-		return errors.Wrap(err, "failed to start transaction")
+		return errors.Wrapf(err, "failed to start transaction mapToStore with map %+v for tkKey %s", keyToValueMap, tkType)
 	}
 	defer store.Rollback()
 
-	blobs := convertKVToBlobs(DirectorydTypeSessionIDToIMSI, sessionIDToIMSI)
+	blobs := convertKVToBlobs(tkType, keyToValueMap)
 	err = store.CreateOrUpdate(networkID, blobs)
 	if err != nil {
-		return errors.Wrap(err, "failed to create or update session ID to IMSI mapping")
+		return errors.Wrapf(err, "failed to mapToStore with map %+v for tkKey %s", keyToValueMap, tkType)
 	}
 	return store.Commit()
 }
 
-func (d *directorydBlobstore) GetHWIDForSgwCTeid(networkID, teid string) (string, error) {
-	store, err := d.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
-	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("failed to start transaction to get HwID from teid %s", teid))
-	}
-	defer store.Rollback()
-
-	blob, err := store.Get(
-		networkID,
-		storage.TK{Type: DirectorydTypeSgwCteidToHwid, Key: teid},
-	)
-	if err == merrors.ErrNotFound {
-		return "", err
-	}
-	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("failed to get HwID from teid %s", teid))
-	}
-
-	hwid := string(blob.Value)
-	return hwid, store.Commit()
-}
-
-func (d *directorydBlobstore) MapSgwCTeidToHWID(networkID string, sgwCTeidToHwid map[string]string) error {
+func (d *directorydBlobstore) unmapFromStore(networkID, tkType string, keys []string) error {
 	store, err := d.factory.StartTransaction(nil)
 	if err != nil {
-		return errors.Wrap(err, "failed to start transaction to Map sgwCTeidToHwid")
+		return errors.Wrapf(err, "failed to start transaction unmapFromStore with key %s for tkKey %s", keys, tkType)
 	}
 	defer store.Rollback()
 
-	blobs := convertKVToBlobs(DirectorydTypeSgwCteidToHwid, sgwCTeidToHwid)
-	err = store.CreateOrUpdate(networkID, blobs)
+	tks := storage.TKs{}
+	for _, key := range keys {
+		tks = append(tks, storage.TK{Type: tkType, Key: key})
+
+	}
+
+	err = store.Delete(networkID, tks)
 	if err != nil {
-		return errors.Wrap(err, "failed to create or update sgwCTeidToHwid map")
+		return errors.Wrapf(err, "failed to unmapFromStore with keys %s for tkKey %s", keys, tkType)
 	}
 	return store.Commit()
 }
@@ -171,6 +168,16 @@ func convertKVToBlobs(typ string, kv map[string]string) blobstore.Blobs {
 
 	// Sort by key for deterministic behavior in tests
 	sort.Slice(blobs, func(i, j int) bool { return blobs[i].Key < blobs[j].Key })
-
 	return blobs
+}
+
+// printIfError prints in case of errors.
+// Args:
+// 	err: error to check
+//  msg: message to print
+//  a: Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
+func printIfError(err error, msg string, a ...interface{}) {
+	if err != nil {
+		glog.Errorf(msg, a...)
+	}
 }

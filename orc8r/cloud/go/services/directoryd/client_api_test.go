@@ -155,6 +155,24 @@ func TestDirectorydMethods(t *testing.T) {
 	hwid, err := directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid0)
 	assert.NoError(t, err)
 	assert.Equal(t, hwid0, hwid)
+
+	// Remove sid0->imsi0 mapping
+	err = directoryd.UnmapSessionIDsToIMSIs(context.Background(), nid0, []string{sid0})
+	assert.NoError(t, err)
+	_, err = directoryd.GetIMSIForSessionID(context.Background(), nid0, sid0)
+	assert.Error(t, err)
+
+	// Remove hwid->imsi mapping
+	err = directoryd.UnmapHWIDsToHostnames(context.Background(), []string{hwid1})
+	assert.NoError(t, err)
+	_, err = directoryd.GetHostnameForHWID(context.Background(), hwid1)
+	assert.Error(t, err)
+
+	// Remove teid->hwid mapping
+	err = directoryd.UnmapSgwCTeidToHWID(context.Background(), nid0, []string{teid0})
+	assert.NoError(t, err)
+	_, err = directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid0)
+	assert.Error(t, err)
 }
 
 func TestDirectorydStateMethods(t *testing.T) {
