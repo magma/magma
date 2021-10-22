@@ -435,3 +435,11 @@
     path: '/etc/bazelrc'
     state: link
     force: yes
+
+# TODO: Fix magma-dev VM box and remove this step. 
+- name: Install Magma dependencies
+  retries: 5
+  apt:
+    state: latest
+    pkg:
+      - magma-libfluid

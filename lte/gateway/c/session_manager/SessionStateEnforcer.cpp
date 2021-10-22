@@ -619,10 +619,18 @@ void SessionStateEnforcer::prepare_response_to_access(
    * values and sent to AMF.
    */
   // For now its default QOS, AMBR has default values
-  rsp->mutable_session_ambr()->set_br_unit(AggregatedMaximumBitrate::KBPS);
-  rsp->mutable_session_ambr()->set_max_bandwidth_ul(DEFAULT_AMBR_UNITS);
-  rsp->mutable_session_ambr()->set_max_bandwidth_dl(DEFAULT_AMBR_UNITS);
-
+  rsp->mutable_session_ambr()->set_br_unit(
+      config.rat_specific_context.m5gsm_session_context()
+          .default_ambr()
+          .br_unit());
+  rsp->mutable_session_ambr()->set_max_bandwidth_ul(
+      config.rat_specific_context.m5gsm_session_context()
+          .default_ambr()
+          .max_bandwidth_ul());
+  rsp->mutable_session_ambr()->set_max_bandwidth_dl(
+      config.rat_specific_context.m5gsm_session_context()
+          .default_ambr()
+          .max_bandwidth_ul());
   /* This flag is used for sending defult qos value or getting from policy
    *  value to AMF.
    */

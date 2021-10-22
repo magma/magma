@@ -48,7 +48,6 @@ using magma::S8ServiceImpl;
 using magma::SMSOrc8rGatewayServiceImpl;
 using magma::SpgwServiceImpl;
 
-static SpgwServiceImpl spgw_service;
 static AmfServiceImpl amf_service;
 static S6aServiceImpl s6a_service;
 static S6aGatewayImpl s6a_proxy;
@@ -57,6 +56,7 @@ static SMSOrc8rGatewayServiceImpl sms_orc8r_service;
 static S1apServiceImpl s1ap_service;
 static HaServiceImpl ha_service;
 #if EMBEDDED_SGW
+static SpgwServiceImpl spgw_service;
 static S8ServiceImpl s8_service;
 #endif
 static std::unique_ptr<Server> server;
@@ -70,9 +70,6 @@ void start_grpc_service(bstring server_address) {
   ServerBuilder builder;
   builder.AddListeningPort(
       bdata(server_address), grpc::InsecureServerCredentials());
-#if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
-  builder.RegisterService(&spgw_service);
-#endif
   builder.RegisterService(&amf_service);
   builder.RegisterService(&s6a_service);
   // Start the SGS service only if non_eps_service_control is not set to OFF
@@ -93,6 +90,7 @@ void start_grpc_service(bstring server_address) {
   }
 
 #if EMBEDDED_SGW
+  builder.RegisterService(&spgw_service);
   builder.RegisterService(&s8_service);
 #endif
   server = builder.BuildAndStart();

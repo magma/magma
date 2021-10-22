@@ -26,16 +26,20 @@ from .mobility_store import MobilityStore
 
 IPV6_PREFIX_PART_LEN = 64
 IID_PART_LEN = 64
-MAX_IPV6_CONF_PREFIX_LEN = 48
-MAX_CALC_TRIES = 5
+MAX_IPV6_CONF_PREFIX_LEN = 58
+MAX_CALC_TRIES = 10
 
 
 class IPv6AllocatorPool(IPAllocator):
-    def __init__(self, store: MobilityStore, session_prefix_alloc_mode: str):
+    def __init__(
+        self, store: MobilityStore, session_prefix_alloc_mode: str,
+        ipv6_prefixlen: int = MAX_IPV6_CONF_PREFIX_LEN,
+    ):
         super().__init__()
         self._store = store
         self._assigned_ip_block = None
         self._ipv6_session_prefix_alloc_mode = session_prefix_alloc_mode
+        self._ipv6_prefixlen = ipv6_prefixlen
 
     def add_ip_block(self, ipblock: ip_network):
         """
@@ -51,7 +55,7 @@ class IPv6AllocatorPool(IPAllocator):
         ):
             raise OverlappedIPBlocksError(ipblock)
 
-        if ipblock.prefixlen > MAX_IPV6_CONF_PREFIX_LEN:
+        if ipblock.prefixlen > self._ipv6_prefixlen:
             msg = "IPv6 block exceeds maximum allowed prefix length"
             logging.error(msg)
             raise InvalidIPv6NetworkError(msg)
@@ -214,6 +218,7 @@ class IPv6AllocatorPool(IPAllocator):
             sid,
         )
         # TODO: Support multiple alloc modes
+        # TODO: Improve performance of iP allocation for smaller ipv6-blocks
         if self._ipv6_session_prefix_alloc_mode == IPv6SessionAllocType.RANDOM:
             for i in range(MAX_CALC_TRIES):
                 session_prefix_part = random.getrandbits(session_prefix_len)
