@@ -78,6 +78,7 @@
   loop:
     - "/var/opt/magma"
     - "/var/opt/magma/configs"
+    - "/var/opt/magma/configs/tmp"
     - "/var/opt/magma/certs"
     - "/etc/magma"
     - "/etc/magma/templates/"
