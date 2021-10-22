@@ -101,6 +101,9 @@ static void pcef_fill_create_session_req(
 status_code_e send_itti_pcef_create_session_response(
     const std::string& imsi, s5_create_session_request_t session_request,
     const grpc::Status& status) {
+#if MME_UNIT_TEST
+  return RETURNok;
+#endif
   MessageDef* message_p = nullptr;
 
   message_p =
