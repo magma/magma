@@ -383,13 +383,8 @@ class BootstrapManagerTest(TestCase):
             # certificate is invalid
             schedule_next_bootstrap_mock.reset_mock()
             not_before = \
-                datetime.datetime.utcnow() - datetime.timedelta(days=2)
-            not_after = \
-                datetime.datetime.utcnow() - datetime.timedelta(days=1)
-            invalid_cert = create_cert_message(
-                not_before=not_before,
-                not_after=not_after,
-            )
+                datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+            invalid_cert = create_cert_message(not_before=not_before)
             await self.manager._request_sign_done_success(invalid_cert)
             schedule_next_bootstrap_mock.assert_has_calls(
                 [call(hard_failure=True)],
@@ -518,6 +513,12 @@ class BootstrapManagerTest(TestCase):
             self.manager._ecdsa_sha256_response(challenge)
 
     def test__is_valid_certificate(self):
+        # not-yet-valid
+        not_before = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+        cert = create_cert_message(not_before=not_before)
+        is_valid = self.manager._is_valid_certificate(cert)
+        self.assertFalse(is_valid)
+
         # expiring soon
         with self.assertLogs() as log:
             not_before = datetime.datetime.utcnow()

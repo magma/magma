@@ -186,10 +186,10 @@ class GTPApplication : public Application {
 
   void add_tunnel_flow_action(
       uint32_t out_tei, uint32_t in_tei, std::string ue_imsi,
-      struct in_addr remote_ip, uint32_t egress_gtp_port,
-      fluid_base::OFConnection* connection, const OpenflowMessenger& messenger,
-      of13::FlowMod downlink_fm, const std::string& flow_type,
-      bool passthrough);
+      struct in_addr remote_ipv4, struct in6_addr remote_ipv6,
+      uint32_t egress_gtp_port, fluid_base::OFConnection* connection,
+      const OpenflowMessenger& messenger, of13::FlowMod downlink_fm,
+      const std::string& flow_type, bool passthrough);
 
   void add_downlink_tunnel_flow_action(
       const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,

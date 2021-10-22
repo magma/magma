@@ -5,7 +5,8 @@ option go_package = "magma/lte/cloud/go/protos/oai";
 
 message S1apTimer {
   int32 id = 1;  // long
-  int32 sec = 2; // long
+  int32 sec = 2 [deprecated = true]; // long
+  int32 msec = 3; // long
 }
 
 message SupportedTaiItems {

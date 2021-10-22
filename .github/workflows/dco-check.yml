@@ -39,7 +39,7 @@ jobs:
   dco_check_job:
     needs: reverted-pr-check
     if: ${{ needs.reverted-pr-check.outputs.is_reverted_pr == 'false' }}
-    name: DCO Check Job
+    name: DCO Check
     runs-on: ubuntu-latest
     steps:
     - name: Get PR Commits

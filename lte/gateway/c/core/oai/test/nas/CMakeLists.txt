@@ -36,4 +36,4 @@ target_include_directories(test_nas_converter PUBLIC
     ${CHECK_INCLUDE_DIRS}
     )
 
-add_test(NAMES test_nas_converter COMMAND test_nas_converter)
+add_test(NAME test_nas_converter COMMAND test_nas_converter)

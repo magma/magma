@@ -3124,8 +3124,8 @@ status_code_e s1ap_mme_handle_handover_notify(
 
     new_ue_ref_p->s1ap_ue_context_rel_timer.id =
         src_ue_ref_p->s1ap_ue_context_rel_timer.id;
-    new_ue_ref_p->s1ap_ue_context_rel_timer.sec =
-        src_ue_ref_p->s1ap_ue_context_rel_timer.sec;
+    new_ue_ref_p->s1ap_ue_context_rel_timer.msec =
+        src_ue_ref_p->s1ap_ue_context_rel_timer.msec;
     new_ue_ref_p->sctp_stream_recv =
         src_ue_ref_p->s1ap_handover_state.target_sctp_stream_recv;
     new_ue_ref_p->sctp_stream_send =
@@ -3389,8 +3389,8 @@ status_code_e s1ap_mme_handle_path_switch_request(
 
     new_ue_ref_p->s1ap_ue_context_rel_timer.id =
         ue_ref_p->s1ap_ue_context_rel_timer.id;
-    new_ue_ref_p->s1ap_ue_context_rel_timer.sec =
-        ue_ref_p->s1ap_ue_context_rel_timer.sec;
+    new_ue_ref_p->s1ap_ue_context_rel_timer.msec =
+        ue_ref_p->s1ap_ue_context_rel_timer.msec;
     // On which stream we received the message
     new_ue_ref_p->sctp_stream_recv = stream;
     new_ue_ref_p->sctp_stream_send = enb_association->next_sctp_stream;

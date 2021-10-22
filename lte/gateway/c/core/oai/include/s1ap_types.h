@@ -57,8 +57,8 @@ typedef struct s1ap_timer_arg_s {
 
 /* Timer structure */
 struct s1ap_timer_t {
-  long id;  /* The timer identifier                 */
-  long sec; /* The timer interval value in seconds  */
+  long id;   /* The timer identifier                 */
+  long msec; /* The timer interval value in seconds  */
 };
 
 // The current s1 state of the MME relating to the specific eNB.
