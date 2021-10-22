@@ -58,26 +58,9 @@ growpart /dev/xvda 1; resize2fs /dev/xvda1
 
 ### Using a generic server with 2 NICs
 
-Create/deploy an ubuntu 20.04 (latest version) server/instance with 2 interfaces (S1, Sgi) and the appropriate resources for your use case.
+Create/deploy an ubuntu 20.04 (latest version) server/instance with 2 interfaces and the appropriate resources for your use case.
 
-Your interfaces should be named eth0 and eth1. eth0 should be your Sgi interface, and eth1 should be S1 interface.
-
-If your interfaces are not named eth0 and eth1, you will have to use netplan to rename your interfaces and reboot
-```
-cat /etc/netplan/50-cloud-init.yaml
-network:
-    ethernets:
-        eth0:
-            dhcp4: true
-            match:
-                macaddress: 08:00:27:87:21:53
-            set-name: eth0
-        eth1:
-            dhcp4: true
-            match:
-                macaddress: 08:00:27:a5:27:4b
-            set-name: eth1
-```
+Your interfaces should be named eth0 (SGi) and eth1 (S1).
 
 Get the agw install script
 

@@ -18,10 +18,10 @@
     - agwc
 
 - name: Ensure ca-certificates is up to date
-  become: yes
+  become: true
   apt:
     name: "{{ packages }}"
-    only_upgrade: yes
+    only_upgrade: true
     state: latest
   vars:
     packages:
@@ -35,13 +35,13 @@
       deb {{ magma_pkgrepo_proto }}://{{ magma_pkgrepo_host }}{{ magma_pkgrepo_path }}
       {{ magma_pkgrepo_dist }} {{ magma_pkgrepo_component }}
     dest: /etc/apt/sources.list.d/{{ magma_pkgrepo_name }}.list
-  become: yes
+  become: true
   tags:
     - agwc
 
 - name: Add unvalidated Apt signing key.
   when: magma_pkgrepo_key_fingerprint == ""
-  become: yes
+  become: true
   block:
     - name: Download key
       apt_key:
@@ -61,7 +61,7 @@
 
 - name: Add validated Apt signing key.
   when: magma_pkgrepo_key_fingerprint != ""
-  become: yes
+  become: true
   apt_key:
     url: "{{ magma_pkgrepo_key }}"
     id: "{{ magma_pkgrepo_key_fingerprint }}"
@@ -70,14 +70,14 @@
     - agwc
 
 - name: Update and upgrade apt packages
-  become: yes
+  become: true
   apt:
-    update_cache: yes
+    update_cache: true
   tags:
     - agwc
 
 - name: Install runtime dependencies.
-  become: yes
+  become: true
   apt:
     name: "{{ packages }}"
   vars:
@@ -93,14 +93,14 @@
     - agwc
 
 - name: Preconfigure wireshark (tshark) SUID property
-  become: yes
-  ignore_errors: yes
+  become: true
+  ignore_errors: true
   shell: bash -c 'echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections'
   tags:
     - agwc
 
 - name: Installing magma.
-  become: yes
+  become: true
   apt:
     name: "{{ packages }}"
     dpkg_options: 'force-confold,force-confdef,force-overwrite'
@@ -110,7 +110,7 @@
 
 # Install openvswitch in containerized agw only
 - name: Install prebuilt openvswitch packages
-  become: yes
+  become: true
   apt:
     name: "{{ packages }}"
   vars:
@@ -145,7 +145,7 @@
     - agwc
 
 - name: Start service openvswitch-switch.
-  become: yes
+  become: true
   service:
     name: openvswitch-switch
     state: started
@@ -155,48 +155,48 @@
 
 # Ansible's service module doesn't support wildcards so we have to use shell
 - name: Stop all magma services.
-  become: yes
+  become: true
   shell: service magma@* stop
   tags:
     - skipfirstinstall
 
 - name: Bring up gtp_br0
   shell: ifup gtp_br0
-  become: yes
+  become: true
   tags:
     - skipfirstinstall
     - agwc
 
 - name: Bring up mtr0
   shell: ifup mtr0
-  become: yes
+  become: true
   tags:
     - skipfirstinstall
     - agwc
 
 - name: Bring up uplink_br0
   shell: ifup uplink_br0
-  become: yes
+  become: true
   tags:
     - skipfirstinstall
     - agwc
 
 - name: Bring up ipfix0
   shell: ifup ipfix0
-  become: yes
+  become: true
   tags:
     - skipfirstinstall
     - agwc
 
 - name: Bring up dhcp0
   shell: ifup dhcp0
-  become: yes
+  become: true
   tags:
     - skipfirstinstall
     - agwc
 
 - name: Start service magma@magmad.
-  become: yes
+  become: true
   service:
     name: magma@magmad
     state: started
