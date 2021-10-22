@@ -15,15 +15,28 @@
  *      contact@openairinterface.org
  */
 
-#include <netinet/ip.h>
-#include <arpa/inet.h>
-#include "OpenflowController.h"
 #include "PagingApplication.h"
-#include "MobilityClientAPI.h"
+#include <arpa/inet.h>                        // for inet_ntoa, inet_ntop
+#include <fluid/of13/openflow-13.h>           // for OFPCML_NO_BUFFER, OFPFC...
+#include <netinet/in.h>                       // for htonl, in_addr, INET_AD...
+#include <netinet/ip.h>                       // for ip
+#include <string.h>                           // for memcpy
+#include <sys/socket.h>                       // for AF_INET
+#include <fluid/of13/of13action.hh>           // for OutputAction
+#include <fluid/of13/of13instruction.hh>      // for ApplyActions
+#include <fluid/of13/of13match.hh>            // for EthType, IPv4Dst
+#include <fluid/of13msg.hh>                   // for FlowMod, PacketIn
+#include <fluid/ofcommon/openflow-common.hh>  // for fluid_msg
+#include <fluid/util/ipaddr.hh>               // for IPAddress
+#include "OpenflowController.h"               // for IP_ETH_TYPE
+#include "OpenflowMessenger.h"                // for OpenflowMessenger
+namespace fluid_base {
+class OFConnection;
+}
 
 extern "C" {
-#include "log.h"
-#include "sgw_paging.h"
+#include "log.h"         // for LOG_GTPV1U, OAILOG_DEBUG
+#include "sgw_paging.h"  // for sgw_send_paging_request
 }
 
 using namespace fluid_msg;

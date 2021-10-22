@@ -15,17 +15,27 @@
  *      contact@openairinterface.org
  */
 
-#include <netinet/ip.h>
-#include <arpa/inet.h>
-#include <string>
-
 #include "GTPApplication.h"
-#include "IMSIEncoder.h"
-#include "gtpv1u.h"
+#include <fluid/of13/openflow-13.h>           // for OFPFC_ADD, OFPG_ANY
+#include <netinet/in.h>                       // for in_addr, in6_addr, INAD...
+#include <fluid/of13/of13action.hh>           // for SetFieldAction, PushVLA...
+#include <fluid/of13/of13instruction.hh>      // for ApplyActions, GoToTable
+#include <fluid/of13/of13match.hh>            // for InPort, EthType, NXMRegX
+#include <fluid/of13msg.hh>                   // for FlowMod
+#include <fluid/ofcommon/openflow-common.hh>  // for fluid_msg
+#include <fluid/util/ethaddr.hh>              // for EthAddress
+#include <fluid/util/ipaddr.hh>               // for IPAddress
+#include <string>                             // for string
+#include "ControllerEvents.h"                 // for AddGTPTunnelEvent, Dele...
+#include "IMSIEncoder.h"                      // for IMSIEncoder
+#include "OpenflowMessenger.h"                // for OpenflowMessenger
+#include "gtpv1u.h"                           // for ip_flow_dl, ip_flow_dl:...
+namespace fluid_base {
+class OFConnection;
+}
 
 extern "C" {
-#include "log.h"
-#include "bstrlib.h"
+#include "log.h"  // for LOG_GTPV1U, OAILOG_DEBU...
 }
 
 using namespace fluid_msg;

@@ -35,13 +35,11 @@
    \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdlib.h>
-#include <openssl/crypto.h>
-#include <openssl/evp.h>
-
-#include "log.h"
-#include "common_defs.h"
 #include "digest.h"
+#include <openssl/crypto.h>  // for OPENSSL_free, OPENSSL_malloc
+#include <openssl/evp.h>     // for EVP_DigestFinal_ex, EVP_DigestInit_ex
+#include "common_defs.h"     // for RETURNerror, RETURNok, status_code_e
+#include "log.h"             // for LOG_UTIL, OAILOG_ERROR
 
 //------------------------------------------------------------------------------
 // evp_x can be EVP_sha256, ...

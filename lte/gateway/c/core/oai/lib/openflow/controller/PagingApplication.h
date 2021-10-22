@@ -17,8 +17,15 @@
 
 #pragma once
 
-#include "OpenflowController.h"
-
+#include <stdint.h>              // for uint8_t
+#include "ControllerEvents.h"    // for AddPagingRuleEvent, ControllerEvent ...
+#include "OpenflowController.h"  // for Application
+namespace fluid_base {
+class OFConnection;
+}
+namespace openflow {
+class OpenflowMessenger;
+}
 namespace openflow {
 #define ETH_HEADER_LENGTH 14
 

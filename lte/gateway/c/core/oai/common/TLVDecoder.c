@@ -21,11 +21,9 @@
   \company Eurecom
 */
 
-#include <stdio.h>
-#include <stdint.h>
-
-#include "bstrlib.h"
 #include "TLVDecoder.h"
+#include <stdint.h>   // for uint16_t, uint32_t, uint8_t
+#include "bstrlib.h"  // for bstring, bcatcstr, bformat, bformata, bfromcstr
 
 int errorCodeDecoder = 0;
 

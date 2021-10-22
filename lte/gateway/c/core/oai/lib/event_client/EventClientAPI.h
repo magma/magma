@@ -16,7 +16,11 @@
  */
 #pragma once
 
-#include "orc8r/protos/eventd.pb.h"
+namespace magma {
+namespace orc8r {
+class Event;
+}
+}  // namespace magma
 
 namespace magma {
 namespace lte {

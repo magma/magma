@@ -16,13 +16,14 @@
  */
 
 #include "EventClientAPI.h"
-
-#include <iostream>
-#include <thread>
-#include <grpcpp/support/status.h>
-#include <orc8r/protos/common.pb.h>
-
-#include "includes/EventdClient.h"
+#include <grpcpp/impl/codegen/status.h>            // for Status
+#include <grpcpp/impl/codegen/status_code_enum.h>  // for StatusCode, DEADLI...
+#include <orc8r/protos/common.pb.h>                // for Void
+#include <orc8r/protos/eventd.pb.h>                // for Event
+#include <iostream>                                // for operator<<, basic_...
+#include <string>                                  // for operator<<
+#include <thread>                                  // for thread
+#include "includes/EventdClient.h"                 // for AsyncEventdClient
 
 using grpc::Status;
 using grpc::StatusCode::DEADLINE_EXCEEDED;

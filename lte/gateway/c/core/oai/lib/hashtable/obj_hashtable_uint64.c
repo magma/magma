@@ -35,18 +35,17 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <inttypes.h>
-#include <stdbool.h>
-#include <pthread.h>
-
-#include "assertions.h"
-#include "bstrlib.h"
-#include "obj_hashtable.h"
-#include "dynamic_memory_check.h"
-#include "hashtable.h"
+#include <inttypes.h>              // for PRIx64
+#include <pthread.h>               // for pthread_mutex_unlock, pthread_mutex_t
+#include <stdbool.h>               // for true
+#include <stdint.h>                // for uint32_t, uint64_t, uint8_t
+#include <stdio.h>                 // for NULL, size_t
+#include <stdlib.h>                // for calloc
+#include <string.h>                // for memcmp, memcpy
+#include "bstrlib.h"               // for bstring, bassignformat, bcatcstr
+#include "dynamic_memory_check.h"  // for free_wrapper, bdestroy_wrapper
+#include "hashtable.h"             // for hash_size_t, HASH_TABLE_OK, hashta...
+#include "obj_hashtable.h"         // for obj_hash_table_uint64_t, obj_hash_...
 
 #if TRACE_HASHTABLE
 #define PRINT_HASHTABLE(hTbLe, ...)                                            \

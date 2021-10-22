@@ -18,10 +18,8 @@
 extern "C" {
 #endif
 
-#include <stdarg.h>
-#include <string.h>
-#include <limits.h>
-#include <ctype.h>
+#include <stdarg.h>  // for va_list
+#include <string.h>  // for size_t
 
 struct bStream;
 

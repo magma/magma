@@ -28,12 +28,10 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <execinfo.h>
-
 #include "backtrace.h"
+#include <execinfo.h>  // for backtrace, backtrace_symbols
+#include <stdio.h>     // for printf, size_t
+#include <stdlib.h>    // for free
 
 /* Obtain a backtrace and print it to stdout. */
 void display_backtrace(void) {

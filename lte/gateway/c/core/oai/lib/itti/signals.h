@@ -31,6 +31,8 @@
 #ifndef SIGNALS_H_
 #define SIGNALS_H_
 
+#include "intertask_interface.h"  // for task_zmq_ctx_t
+
 int signal_mask(void);
 
 int signal_handle(int* end, task_zmq_ctx_t* task_ctx);

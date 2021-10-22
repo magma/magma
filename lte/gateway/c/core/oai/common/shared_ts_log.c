@@ -34,21 +34,22 @@
    \date 2016
    \email: lionel.gauthier@eurecom.fr
 */
+
+#include "shared_ts_log.h"
+#include <czmq_library.h>
+#include <liblfds710.h>  // for lfds710_stack_element
+#include <pthread.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <sys/time.h>
-#include <pthread.h>
-
+#include "assertions.h"
 #include "bstrlib.h"
+#include "dynamic_memory_check.h"
 #include "hashtable.h"
 #include "intertask_interface.h"
-#include "log.h"
-#include "shared_ts_log.h"
-#include "assertions.h"
-#include "dynamic_memory_check.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
+#include "log.h"
 
 //-------------------------------
 #define LOG_MAX_QUEUE_ELEMENTS 2048

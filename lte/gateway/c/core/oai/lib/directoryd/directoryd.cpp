@@ -15,14 +15,12 @@
  *      contact@openairinterface.org
  */
 
-#include <grpcpp/impl/codegen/status.h>
-#include <string>
-#include <iostream>
-
-#include "GatewayDirectorydClient.h"
 #include "directoryd.h"
-#include "orc8r/protos/common.pb.h"
-#include "orc8r/protos/directoryd.pb.h"
+#include <grpcpp/impl/codegen/status.h>  // for Status
+#include <iostream>                      // for operator<<, basic_ostream
+#include <string>                        // for operator+, string, operator<<
+#include "GatewayDirectorydClient.h"     // for GatewayDirectoryServiceClient
+#include "orc8r/protos/common.pb.h"      // for Void
 
 static void directoryd_rpc_call_done(const grpc::Status& status);
 

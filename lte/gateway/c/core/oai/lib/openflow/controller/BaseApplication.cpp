@@ -15,13 +15,21 @@
  *      contact@openairinterface.org
  */
 
-#include <stdio.h>
-
 #include "BaseApplication.h"
-#include "includes/MetricsHelpers.h"
+#include <fluid/of13/openflow-13.h>           // for OFPFC_ADD, OFPFC_DELETE
+#include <stdio.h>                            // for snprintf
+#include <fluid/of13/of13instruction.hh>      // for GoToTable
+#include <fluid/of13msg.hh>                   // for FlowMod
+#include <fluid/ofcommon/openflow-common.hh>  // for fluid_msg
+#include "ControllerEvents.h"                 // for ErrorEvent, ControllerE...
+#include "OpenflowMessenger.h"                // for OpenflowMessenger
+#include "includes/MetricsHelpers.h"          // for increment_counter
+namespace fluid_base {
+class OFConnection;
+}
 
 extern "C" {
-#include "log.h"
+#include "log.h"  // for LOG_GTPV1U, OAILOG_DEBUG
 }
 
 using namespace fluid_msg;

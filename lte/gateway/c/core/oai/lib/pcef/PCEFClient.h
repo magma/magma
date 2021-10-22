@@ -17,24 +17,54 @@
 
 #pragma once
 
-#include <grpc++/grpc++.h>
-#include <stdint.h>
-#include <functional>
-#include <memory>
-
-#include "lte/protos/session_manager.grpc.pb.h"
-#include "includes/GRPCReceiver.h"
-
+#include <stdint.h>                              // for uint32_t
+#include <functional>                            // for function
+#include <memory>                                // for unique_ptr
+#include "includes/GRPCReceiver.h"               // for GRPCReceiver
+#include "lte/protos/apn.pb.h"                   // for lte
+#include "lte/protos/session_manager.grpc.pb.h"  // for LocalSessionManager:...
 namespace grpc {
 class Status;
 }  // namespace grpc
 namespace magma {
 namespace lte {
 class LocalCreateSessionRequest;
+}
+}  // namespace magma
+namespace magma {
+namespace lte {
 class LocalCreateSessionResponse;
+}
+}  // namespace magma
+namespace magma {
+namespace lte {
+class LocalEndSessionRequest;
+}
+}  // namespace magma
+namespace magma {
+namespace lte {
 class LocalEndSessionResponse;
-class SubscriberID;
-}  // namespace lte
+}
+}  // namespace magma
+namespace magma {
+namespace lte {
+class PolicyBearerBindingRequest;
+}
+}  // namespace magma
+namespace magma {
+namespace lte {
+class PolicyBearerBindingResponse;
+}
+}  // namespace magma
+namespace magma {
+namespace lte {
+class UpdateTunnelIdsRequest;
+}
+}  // namespace magma
+namespace magma {
+namespace lte {
+class UpdateTunnelIdsResponse;
+}
 }  // namespace magma
 
 using grpc::Status;

@@ -17,10 +17,32 @@
 
 #pragma once
 
-#include <gmp.h>  // gross but necessary to link spgw_config.h
-
-#include "OpenflowController.h"
-#include "gtpv1u.h"
+#include <stdint.h>              // for uint32_t, uint16_t, uint64_t
+#include <string>                // for string
+#include "OpenflowController.h"  // for Application
+namespace fluid_base {
+class OFConnection;
+}
+namespace fluid_msg {
+namespace of13 {
+class FlowMod;
+}
+}  // namespace fluid_msg
+namespace openflow {
+class AddGTPTunnelEvent;
+}
+namespace openflow {
+class ControllerEvent;
+}
+namespace openflow {
+class DeleteGTPTunnelEvent;
+}
+namespace openflow {
+class HandleDataOnGTPTunnelEvent;
+}
+namespace openflow {
+class OpenflowMessenger;
+}
 
 namespace openflow {
 

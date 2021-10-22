@@ -16,19 +16,17 @@
  */
 
 #include "redis_client.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <common_defs.h>
-
-#ifdef __cplusplus
-}
-#endif
-
-#include "includes/ServiceConfigLoader.h"
-#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
+#include <google/protobuf/message.h>  // for Message
+#include <stddef.h>                   // for size_t
+#include <yaml-cpp/node/impl.h>       // for Node::operator[], Node::as
+#include <yaml-cpp/node/node.h>       // for Node
+#include <yaml-cpp/yaml.h>
+#include <stdexcept>
+#include <future>                          // for future
+#include <cpp_redis/core/reply.hpp>        // for reply
+#include "common_defs.h"                   // for RETURNok, RETURNerror, sta...
+#include "includes/ServiceConfigLoader.h"  // for ServiceConfigLoader
+#include "orc8r/protos/redis.pb.h"         // for RedisState
 
 using google::protobuf::Message;
 
@@ -167,7 +165,6 @@ std::vector<std::string> RedisClient::get_keys(const std::string& pattern) {
     }
 
     cursor = std::stoi(response[0].as_string());
-    ;
   } while (cursor != 0);
 
   return replies;

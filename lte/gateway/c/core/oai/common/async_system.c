@@ -34,22 +34,21 @@
    \date 2017
    \email: lionel.gauthier@eurecom.fr
 */
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdarg.h>
 
-#include "bstrlib.h"
-#include "intertask_interface.h"
-#include "log.h"
 #include "async_system.h"
-#include "assertions.h"
-#include "dynamic_memory_check.h"
-#include "itti_free_defined_msg.h"
-#include "common_defs.h"
-#include "async_system_messages_types.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
+#include <czmq_library.h>               // for zloop_t, zsock_t
+#include <pthread.h>                    // for pthread_exit
+#include <stdarg.h>                     // for va_end, va_list, va_start
+#include <stdbool.h>                    // for bool
+#include <stdio.h>                      // for NULL, perror
+#include <stdlib.h>                     // for free, exit, system
+#include "bstrlib.h"                    // for bdata, bfromcstralloc, btrunc
+#include "common_defs.h"                // for status_code_e, RETURNerror
+#include "dynamic_memory_check.h"       // for bdestroy_wrapper
+#include "intertask_interface.h"        // for DEPRECATEDitti_alloc_new_me...
+#include "intertask_interface_types.h"  // for TASK_ASYNC_SYSTEM, MessageDef
+#include "itti_free_defined_msg.h"      // for itti_free_msg_content
+#include "log.h"                        // for LOG_ASYNC_SYSTEM, OAI_FPRIN...
 
 static void async_system_exit(void);
 

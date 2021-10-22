@@ -28,20 +28,19 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
-#include <string>
-#include <vector>
-#include <regex>
-#include <algorithm>
-#include <fstream>
-#include <cstdio>
-#include <stdlib.h>
-#include <unistd.h>
 #include "glog_logging.h"
-#include <glog/logging.h>
-#include <glog/stl_logging.h>
-
-#include <sys/types.h>
-#include <dirent.h>
+#include <dirent.h>                 // for closedir, opendir, readdir, DIR
+#include <gflags/gflags_declare.h>  // for clstring
+#include <glog/logging.h>           // for FlushLogFiles, InitGoogleLogging
+#include <stdlib.h>                 // for free, realpath
+#include <unistd.h>                 // for symlink
+#include <algorithm>                // for max, sort
+#include <cstdio>                   // for remove, sprintf
+#include <fstream>                  // for operator<<
+#include <memory>                   // for allocator_traits<>::value_type
+#include <regex>                    // for match_results<>::_Base_type, rege...
+#include <string>                   // for string, operator<, swap, basic_st...
+#include <vector>                   // for vector
 
 std::vector<std::string> read_directory(const std::string& dir_path) {
   char* absolute_dir_path = realpath(dir_path.c_str(), nullptr);

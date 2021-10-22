@@ -11,10 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <stdint.h>
-#include <iostream>
 #include "common_utility_funs.h"
-#include "lte/protos/mconfig/mconfigs.pb.h"
+#include <stddef.h>                          // for NULL
+#include <stdint.h>                          // for uint8_t
+#include "3gpp_23.003.h"                     // for plmn_t
+#include "amf_config.h"                      // for imsi64_t
+#include "common_defs.h"                     // for RETURNerror, RETURNok
+#include "conversions.h"                     // for IMSI_STRING_TO_IMSI64
+#include "hashtable.h"                       // for HASH_TABLE_OK, hashtable...
+#include "lte/protos/mconfig/mconfigs.pb.h"  // for ModeMapItem_FederatedMod...
+#include "mme_config.h"                      // for fed_mode_map_t, mme_config
+#include "obj_hashtable.h"                   // for obj_hashtable_get
 
 // Extract MCC and MNC from the imsi received and match with
 // configuration

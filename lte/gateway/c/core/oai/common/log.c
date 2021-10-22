@@ -34,35 +34,36 @@
    lionel.gauthier@eurecom.fr
 */
 
-#include <errno.h>
-#include <fcntl.h>
-#include <inttypes.h>
-#include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <stdarg.h>
-#include <pthread.h>
-#include <syslog.h>
-#include <assert.h>
-#include <netinet/in.h>
-#include <signal.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <time.h>
-
-#include "intertask_interface.h"
 #include "log.h"
-#include "shared_ts_log.h"
-#include "assertions.h"
-#include "dynamic_memory_check.h"
-#include "asn_system.h"
-#include "hashtable.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
+#include <assert.h>                     // for assert
+#include <czmq_library.h>               // for zloop_t, zsock_t
+#include <errno.h>                      // for errno
+#include <fcntl.h>                      // for fcntl, F_GETFL, F_SETFL, O_NO...
+#include <inttypes.h>                   // for PRIu64
+#include <netdb.h>                      // for addrinfo, freeaddrinfo, gai_s...
+#include <netinet/in.h>                 // for IPPROTO_TCP
+#include <pthread.h>                    // for pthread_self, pthread_t, pthr...
+#include <signal.h>                     // for signal, SIGPIPE
+#include <stdarg.h>                     // for va_list, va_end, va_start
+#include <stdbool.h>                    // for bool, false, true
+#include <stdio.h>                      // for snprintf, NULL, size_t, fclose
+#include <stdlib.h>                     // for calloc, free, atoi
+#include <string.h>                     // for strlen, strerror, memset, strstr
+#include <strings.h>                    // for strcasecmp
+#include <sys/param.h>                  // for MIN
+#include <sys/socket.h>                 // for connect, socket, AF_UNSPEC
+#include <sys/time.h>                   // for timeval, gettimeofday
+#include <sys/types.h>                  // for time_t, uint
+#include <syslog.h>                     // for closelog, openlog, syslog
+#include <time.h>                       // for localtime, strftime, time
+#include <unistd.h>                     // for close
+#include "assertions.h"                 // for AssertFatal
+#include "dynamic_memory_check.h"       // for bdestroy_wrapper, free_wrapper
+#include "glogwrapper/glog_logging.h"   // for flush_log, log_string, init_l...
+#include "hashtable.h"                  // for hashtable_ts_get, hash_key_t
+#include "intertask_interface.h"        // for start_timer, TIMER_REPEAT_ONCE
+#include "intertask_interface_types.h"  // for TASK_LOG, MessageDef, task_id_t
+#include "shared_ts_log.h"              // for shared_log_queue_item_s, shar...
 
 #if HAVE_CONFIG_H
 #include "config.h"

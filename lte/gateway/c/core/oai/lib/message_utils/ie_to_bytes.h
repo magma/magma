@@ -31,13 +31,11 @@
 #ifndef FILE_IE_TO_BYTES_SEEN
 #define FILE_IE_TO_BYTES_SEEN
 
-#include <stdbool.h>
-
-#include "common_ies.h"
-#include "common_types.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "TrackingAreaIdentity.h"
+#include <stdbool.h>               // for bool
+#include "3gpp_23.003.h"           // for ecgi_t, plmn_t
+#include "3gpp_24.008.h"           // for lai_t
+#include "TrackingAreaIdentity.h"  // for tai_t
+#include "common_ies.h"            // for MobileStationClassmark2_t
 
 // value field length of IEs (IEI and length indicator are excluded)
 #define IE_LENGTH_EPS_LOCATION_UPDATE_TYPE 1

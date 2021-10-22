@@ -16,7 +16,8 @@
  */
 
 #include "OpenflowMessenger.h"
-
+#include <fluid/OFConnection.hh>  // for OFConnection
+#include <fluid/ofcommon/msg.hh>  // for OFMsg
 namespace openflow {
 
 fluid_msg::of13::FlowMod DefaultMessenger::create_default_flow_mod(

@@ -17,8 +17,18 @@
 
 #pragma once
 
-#include <fluid/of13msg.hh>
-#include <fluid/OFServer.hh>
+// TODO: Once #5146 is resolved this can be included without <memory>
+#include <memory>                    // NOLINT
+#include <fluid/of13/openflow-13.h>  // NOLINT for ofp_flow_mod_command
+#include <fluid/of13msg.hh>          // NOLINT for FlowMod
+#include <stdint.h>                  // NOLINT for uint16_t, uint8_t
+
+namespace fluid_base {
+class OFConnection;
+}
+namespace fluid_msg {
+class OFMsg;
+}
 
 namespace openflow {
 /**

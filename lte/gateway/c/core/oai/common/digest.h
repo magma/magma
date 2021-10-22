@@ -37,10 +37,10 @@
 
 #ifndef FILE_DIGEST_SEEN
 #define FILE_DIGEST_SEEN
-#include <openssl/evp.h>
-#include <openssl/ossl_typ.h>
-#include <stddef.h>
-#include "common_defs.h"
+
+#include <openssl/ossl_typ.h>  // for EVP_MD
+#include <stddef.h>            // for size_t
+#include "common_defs.h"       // for status_code_e
 
 status_code_e digest_buffer(
     const EVP_MD* (*evp_x)(void), const unsigned char* buffer,

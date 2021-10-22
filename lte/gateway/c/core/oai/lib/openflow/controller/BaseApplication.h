@@ -17,8 +17,20 @@
 
 #pragma once
 
-#include "OpenflowController.h"
-
+#include <stdint.h>              // for uint16_t, uint32_t
+#include "OpenflowController.h"  // for Application
+namespace fluid_base {
+class OFConnection;
+}
+namespace openflow {
+class ControllerEvent;
+}
+namespace openflow {
+class ErrorEvent;
+}
+namespace openflow {
+class OpenflowMessenger;
+}
 namespace openflow {
 
 /**

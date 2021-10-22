@@ -17,13 +17,23 @@
 
 #pragma once
 
-#include <string>
+#include <stdint.h>                   // for uint64_t
+#include <memory>                     // for unique_ptr
+#include <string>                     // for string
+#include <vector>                     // for vector
+#include <cpp_redis/core/client.hpp>  // for client
+#include "common_defs.h"              // for status_code_e
 
-#include <cpp_redis/cpp_redis>
-#include <google/protobuf/message.h>
-
-#include <common_defs.h>
-#include "orc8r/protos/redis.pb.h"
+namespace google {
+namespace protobuf {
+class Message;
+}
+}  // namespace google
+namespace magma {
+namespace orc8r {
+class RedisState;
+}
+}  // namespace magma
 
 namespace magma {
 namespace lte {

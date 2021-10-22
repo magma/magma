@@ -4,10 +4,11 @@
 extern "C" {
 #endif
 
-#include "mme_config.h"
-#include "log.h"
-#include "conversions.h"
-#include "common_defs.h"
+#include <stdint.h>                // for uint8_t
+#include "TrackingAreaIdentity.h"  // for tac_t
+#include "common_types.h"          // for regional_subscription_t
+#include "log.h"                   // for log_proto_t
+#include "obj_hashtable.h"         // IWYU pragma: keep
 
 int match_fed_mode_map(const char* imsi, log_proto_t module);
 int verify_service_area_restriction(

@@ -17,10 +17,18 @@
 
 #pragma once
 
-#include <arpa/inet.h>
-#include <fluid/OFServer.hh>
-#include <fluid/ofcommon/openflow-common.hh>
-#include "gtpv1u.h"
+#include <netinet/in.h>                       // for in_addr, in6_addr
+#include <stddef.h>                           // for size_t
+#include <stdint.h>                           // for uint32_t, uint16_t, uin...
+#include <fluid/ofcommon/openflow-common.hh>  // for fluid_msg
+#include <string>                             // for string
+#include "gtpv1u.h"                           // for ip_flow_dl
+namespace fluid_base {
+class OFConnection;
+}
+namespace fluid_base {
+class OFHandler;
+}
 
 using namespace fluid_msg;
 

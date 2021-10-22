@@ -15,15 +15,24 @@
  *      contact@openairinterface.org
  */
 
-#include "OpenflowController.h"
-#include "PagingApplication.h"
-#include "BaseApplication.h"
 #include "ControllerMain.h"
-#include "GTPApplication.h"
+#include <netinet/in.h>          // for in_addr
+#include <stddef.h>              // for NULL
+#include <memory>                // for make_shared, static_pointer_cast
+#include <string>                // for string
+#include "BaseApplication.h"     // for BaseApplication
+#include "ControllerEvents.h"    // for HandleDataOnGTPTunnelEvent, AddGTPTu...
+#include "GTPApplication.h"      // for GTPApplication
+#include "OpenflowController.h"  // for OpenflowController
+#include "PagingApplication.h"   // for PagingApplication
+
 extern "C" {
-#include "log.h"
-#include "spgw_config.h"
-#include "common_defs.h"
+#include "bstrlib.h"      // for bdata
+#include "common_defs.h"  // for RETURNok
+#include "log.h"          // for OAILOG_FUNC_RETURN, LOG_GTPV1U, OAIL...
+#include "pgw_config.h"   // for pgw_config_t
+#include "sgw_config.h"   // for ovs_config_t, sgw_config_t
+#include "spgw_config.h"  // for spgw_config, spgw_config_t
 }
 
 static const int OFP_LOCAL   = 65534;

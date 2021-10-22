@@ -29,30 +29,29 @@
  */
 
 #define _GNU_SOURCE
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <string.h>
-#include <malloc.h>
-#include <stdint.h>
-
-#include "assertions.h"
 #include "intertask_interface.h"
-#include "common_defs.h"
+#include <assert.h>                // for assert
+#include <pthread.h>               // for pthread_self, pthread_create
+#include <stdbool.h>               // for false, true, bool
+#include <stddef.h>                // for offsetof
+#include <stdint.h>                // for uint32_t, uint8_t
+#include <stdio.h>                 // for NULL, size_t
+#include <stdlib.h>                // for free, malloc, calloc
+#include <string.h>                // for memcpy, memset
+#include <time.h>                  // for clock_gettime, timespec, CLOCK...
+#include <unistd.h>                // for usleep, sleep
+#include "assertions.h"            // for AssertFatal, CHECK_INIT_RETURN
+#include "common_defs.h"           // for RETURNok, status_code_e
+#include "dynamic_memory_check.h"  // for free_wrapper
+#include "log.h"                   // for LOG_ITTI, OAILOG_DEBUG, OAILOG...
+#include "signals.h"               // for signal_handle, signal_mask
 
 /* Includes "intertask_interface_init.h" to check prototype coherence, but
    disable threads and messages information generation.
 */
 #define CHECK_PROTOTYPE_ONLY
 #include "intertask_interface_init.h"
-
 #undef CHECK_PROTOTYPE_ONLY
-
-#include "signals.h"
-#include "dynamic_memory_check.h"
-#include "log.h"
 
 /* ITTI DEBUG groups */
 #define ITTI_DEBUG_POLL (1 << 0)

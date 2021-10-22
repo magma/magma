@@ -37,16 +37,15 @@
 #ifndef INTERTASK_INTERFACE_H_
 #define INTERTASK_INTERFACE_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <sys/types.h>
-#include <czmq.h>
-
-#include "intertask_interface_conf.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
-#include "common_defs.h"
+#include <czmq_library.h>               // for zsock_t, zloop_t
+#include <pthread.h>                    // for pthread_mutex_t
+#include <stdbool.h>                    // for bool
+#include <stdint.h>                     // for uint8_t
+#include <stdio.h>                      // for size_t
+#include "common_defs.h"                // for status_code_e
+#include "common_types.h"               // for imsi64_t
+#include "intertask_interface_types.h"  // for task_id_t, MessageDef, Messag...
+struct timespec;
 
 #define ITTI_MSG_ID(mSGpTR) ((mSGpTR)->ittiMsgHeader.messageId)
 #define ITTI_MSG_ORIGIN_ID(mSGpTR) ((mSGpTR)->ittiMsgHeader.originTaskId)

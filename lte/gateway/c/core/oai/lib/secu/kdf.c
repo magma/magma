@@ -15,13 +15,13 @@
  *      contact@openairinterface.org
  */
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <nettle/hmac.h>
-
-#include "security_types.h"
-#include "secu_defs.h"
-#include "dynamic_memory_check.h"
+#include <nettle/hmac.h>           // for hmac_sha256_ctx, hmac_sha256_digest
+#include <stdint.h>                // for uint8_t, uint32_t
+#include <stdlib.h>                // for calloc
+#include <string.h>                // for memcpy
+#include "dynamic_memory_check.h"  // for free_wrapper
+#include "secu_defs.h"             // for derive_NH, derive_keNB, kdf
+#include "security_types.h"        // for FC_KENB, FC_NH
 
 void kdf(
     const uint8_t* key, const unsigned key_len, uint8_t* s,

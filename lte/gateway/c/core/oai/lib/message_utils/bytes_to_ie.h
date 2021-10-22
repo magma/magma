@@ -31,14 +31,11 @@
 #ifndef FILE_BYTES_TO_IE_SEEN
 #define FILE_BYTES_TO_IE_SEEN
 
-#include <stdbool.h>
-#include <stdint.h>
-
-#include "common_ies.h"
-#include "common_types.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "intertask_interface.h"
+#include <stdbool.h>      // for bool
+#include <stdint.h>       // for uint8_t
+#include "3gpp_23.003.h"  // for tmsi_t
+#include "3gpp_24.008.h"  // for lai_t
+#include "common_ies.h"   // for MobileIdentity_t
 
 void bytes_to_lai(const char* bytes, lai_t* lai);
 void bytes_to_tmsi(const char* bytes, tmsi_t* tmsi);

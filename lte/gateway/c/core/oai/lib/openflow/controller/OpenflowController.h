@@ -17,16 +17,20 @@
 
 #pragma once
 
-#include <unordered_map>
-#include <list>
+#include <stddef.h>  // for size_t
+#include <stdint.h>  // for uint8_t, uint32_t
+// TODO: Once #5146 is resolved this can be included without <memory>
 #include <memory>
-
-#include <fluid/OFServer.hh>
-
-#include "ControllerEvents.h"
-#include "OpenflowMessenger.h"
-#include "common_defs.h"
-
+#include <fluid/OFConnection.hh>  // NOLINT for OFConnection, OFConnection::Event
+#include <fluid/OFServer.hh>      // NOLINT for OFServer
+#include <memory>                 // NOLINT for shared_ptr
+#include <unordered_map>          // NOLINT for unordered_map
+#include <vector>                 // NOLINT for vector
+#include "ControllerEvents.h"     // NOLINT for ControllerEvent (ptr only), Control...
+#include "common_defs.h"          // NOLINT for status_code_e
+namespace openflow {
+class OpenflowMessenger;
+}
 namespace openflow {
 
 #define IP_ETH_TYPE 0x0800

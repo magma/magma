@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 #include <libconfig.h>
+#include <limits.h>
 #include "log.h"
 #include <errno.h>
 #include "3gpp_24.501.h"

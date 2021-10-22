@@ -32,18 +32,17 @@
 #include "config.h"
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <signal.h>
-#include <ctype.h>
-
-#include "intertask_interface.h"
-#include "backtrace.h"
-#include "assertions.h"
 #include "signals.h"
-#include "intertask_interface_types.h"
+#include <bits/types/siginfo_t.h>  // for siginfo_t
+#include <ctype.h>                 // for isspace
+#include <signal.h>                // for sigaddset, sigemptyset, sigprocmask
+#include <stdio.h>                 // for fprintf, perror, stdout, fclose
+#include <stdlib.h>                // for atoi
+#include <string.h>                // for strlen, strncmp
+#include <unistd.h>                // for getpid, pid_t
+#include "assertions.h"            // for DevAssert
+#include "backtrace.h"             // for backtrace_handle_signal
+#include "intertask_interface.h"   // for send_terminate_message_fatal, task...
 
 #if defined(LOG_D) && defined(LOG_E)
 #define SIG_DEBUG(x, args...) OAILOG_D(EMU, x, ##args)

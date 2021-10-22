@@ -15,29 +15,34 @@
  *      contact@openairinterface.org
  */
 
-#include <grpcpp/impl/codegen/status.h>
-#include <cstring>
-#include <string>
-#include <conversions.h>
-#include <common_defs.h>
+#include "pcef_handlers.h"
+#include <arpa/inet.h>                      // for inet_ntop
+#include <conversions.h>                    // for IMSI_STRING_TO_IMSI64
+#include <grpcpp/impl/codegen/status.h>     // for Status
+#include <sys/socket.h>                     // for AF_INET
+#include <cstring>                          // for memcpy
+#include <string>                           // for string, allocator, operator+
+#include "lte/protos/session_manager.pb.h"  // for LTESessionContext, QosInf...
+#include "lte/protos/subscriberdb.pb.h"     // for SubscriberID
+#include "PCEFClient.h"                     // for PCEFClient
+#include "TrackingAreaIdentity.h"           // for tai_t
+#include "3gpp_23.003.h"                    // for imeisv_s::(anonymous unio...
+#include "3gpp_24.007.h"                    // for ebi_t
+#include "3gpp_29.274.h"                    // for bearer_qos_t
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "common_defs.h"
-#include "log.h"
+#include "intertask_interface.h"        // for itti_alloc_new_message
+#include "intertask_interface_types.h"  // for MessageDef, MessageHeader
+#include "common_defs.h"                // for RETURNerror, status_code_e
+#include "log.h"                        // for LOG_SPGW_APP, OAILOG_DEBUG
+#include "spgw_types.h"                 // for s5_create_session_request_t
 
 #ifdef __cplusplus
 }
 #endif
-
-#include "pcef_handlers.h"
-#include "PCEFClient.h"
-#include "MobilityClientAPI.h"
-#include "itti_types.h"
-#include "lte/protos/session_manager.pb.h"
-#include "spgw_types.h"
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 

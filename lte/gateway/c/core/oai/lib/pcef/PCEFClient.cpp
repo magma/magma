@@ -15,17 +15,18 @@
  *      contact@openairinterface.org
  */
 
-#include <grpcpp/channel.h>
-#include <grpcpp/impl/codegen/async_unary_call.h>
-#include <thread>
-#include <iostream>
-#include <string>
-#include <utility>
-
-#include "orc8r/protos/mconfig/mconfigs.pb.h"
 #include "PCEFClient.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "lte/protos/session_manager.pb.h"
+#include <grpcpp/channel.h>                        // IWYU pragma: keep
+#include <grpcpp/impl/codegen/async_unary_call.h>  // for default_delete
+#include <includes/GRPCReceiver.h>                 // for AsyncLocalResponse
+#include <iostream>                                // for operator<<, basic_...
+#include <thread>                                  // for thread
+#include <utility>                                 // for move
+#include "includes/ServiceRegistrySingleton.h"     // for ServiceRegistrySin...
+#include "lte/protos/session_manager.pb.h"         // for LocalCreateSession...
+namespace grpc {
+class Channel;
+}
 
 namespace grpc {
 class Status;

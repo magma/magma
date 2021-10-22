@@ -16,13 +16,10 @@
  */
 
 #include "service303_message_utils.h"
-
-#include <stddef.h>
-
-#include "assertions.h"
-#include "intertask_interface.h"
-#include "itti_types.h"
-#include "log.h"
+#include <stddef.h>               // for NULL
+#include "common_defs.h"          // for RETURNerror
+#include "intertask_interface.h"  // for send_msg_to_task, DEPRECATEDitt...
+#include "log.h"                  // for LOG_MME_APP, OAILOG_ERROR, OAIL...
 
 int send_app_health_to_service303(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id, bool healthy) {

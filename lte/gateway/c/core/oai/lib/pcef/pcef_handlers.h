@@ -17,17 +17,15 @@
 
 #pragma once
 
-#include <gmp.h>
-#include <netinet/in.h>
-#include <stdint.h>
+#include <netinet/in.h>  // for INET_ADDRSTRLEN
+#include <stdint.h>      // for uint32_t, uint8_t
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "intertask_interface.h"
-#include "common_types.h"
-#include "ip_forward_messages_types.h"
-#include "spgw_types.h"
+#include "common_types.h"        // for APN_MAX_LENGTH, IMEISV_DIGITS_MAX
+#include "s11_messages_types.h"  // for itti_s11_create_session_request_t
+#include "spgw_types.h"          // for s5_create_session_request_t, spgw_st...
 
 struct pcef_create_session_data {
   char msisdn[MSISDN_LENGTH + 1];

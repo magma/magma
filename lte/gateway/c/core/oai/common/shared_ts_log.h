@@ -38,13 +38,10 @@
 #ifndef FILE_SHARED_TS_LOG_SEEN
 #define FILE_SHARED_TS_LOG_SEEN
 
-#include <sys/time.h>
-#include <liblfds710.h>
-
+#include <liblfds710.h>  // for lfds710_stack_element
+#include "bstrlib.h"     // for bstring
 #include "log.h"
-#include "bstrlib.h"
-
-struct timeval;
+struct timeval;  // lines 47-47
 
 typedef enum {
   MIN_SH_TS_LOG_CLIENT = 0,

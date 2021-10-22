@@ -37,19 +37,16 @@
 
 #ifndef FILE_CONVERSIONS_SEEN
 #define FILE_CONVERSIONS_SEEN
-#include <stdio.h>
-#include <endian.h>
-#include <netinet/in.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <math.h>
 
-#include "bstrlib.h"
-#include "common_types.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
-#include "EpsQualityOfService.h"
+#include <endian.h>        // for BYTE_ORDER, LITTLE_ENDIAN
+#include <netinet/in.h>    // for s6_addr
+#include <stdbool.h>       // for false, true
+#include <stdint.h>        // for uint8_t
+#include <stdio.h>         // for NULL, size_t
+#include "3gpp_23.003.h"   // for imsi_t, IMSI_BCD8_SIZE, IMSI_BCD_DIGITS_MAX
+#include "bstrlib.h"       // for bstring
+#include "common_types.h"  // for paa_t, ip_address_t, imsi64_t, IMEI_64_FMT
+struct fteid_s;
 
 /* Endianness conversions for 16 and 32 bits integers from host to network order
  */

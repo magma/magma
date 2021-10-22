@@ -34,16 +34,15 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <inttypes.h>
-#include <pthread.h>
 
-#include "bstrlib.h"
-#include "dynamic_memory_check.h"
 #include "hashtable.h"
+#include <inttypes.h>              // for PRIx64
+#include <pthread.h>               // for pthread_mutex_unlock, pthread_mute...
+#include <stdbool.h>               // for true, false, bool
+#include <stdlib.h>                // for calloc, free, malloc
+#include <string.h>                // for memset
+#include "bstrlib.h"               // for bformat, bstring, bcatcstr, bconcat
+#include "dynamic_memory_check.h"  // for free_wrapper, bdestroy_wrapper
 
 #if TRACE_HASHTABLE
 #define PRINT_HASHTABLE(hTbLe, ...)                                            \

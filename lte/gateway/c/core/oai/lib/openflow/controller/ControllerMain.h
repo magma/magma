@@ -17,8 +17,7 @@
 
 #pragma once
 
-#include <stdbool.h>
-#include "gtpv1u.h"
+#include <stdint.h>  // for uint32_t
 
 #ifdef __cplusplus
 extern "C" {

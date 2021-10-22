@@ -18,6 +18,7 @@
 #include <gmock/gmock.h>
 
 #include "OpenflowController.h"
+#include "OpenflowMessenger.h"  // for DefaultMessenger, Openf...
 
 using namespace openflow;
 using namespace fluid_base;

@@ -18,10 +18,10 @@
 #ifndef FILE_SERVICE303_MESSAGE_UTILS
 #define FILE_SERVICE303_MESSAGE_UTILS
 
-#include <stdbool.h>
-
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
+#include <stdbool.h>                    // for bool
+#include "intertask_interface.h"        // for task_zmq_ctx_t
+#include "intertask_interface_types.h"  // for task_id_t
+#include "service303_messages_types.h"  // for application_mme_app_stats_msg_t
 
 int send_app_health_to_service303(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id, bool healthy);

@@ -34,11 +34,12 @@
   \company Eurecom
 */
 
-#include <stdint.h>
-#include <ctype.h>
-
 #include "conversions.h"
-#include "log.h"
+#include <ctype.h>        // for isspace
+#include <stdint.h>       // for uint8_t
+#include <string.h>       // for memcpy, memset
+#include "3gpp_29.274.h"  // for fteid_s
+#include "log.h"          // for LOG_COMMON, OAILOG_ERROR
 
 static const char hex_to_ascii_table[16] = {
     '0', '1', '2', '3', '4', '5', '6', '7',

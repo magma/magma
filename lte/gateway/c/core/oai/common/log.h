@@ -37,25 +37,20 @@
 #ifndef FILE_LOG_SEEN
 #define FILE_LOG_SEEN
 
-#include <syslog.h>
-#include <stdio.h>
-
-#include "gcc_diag.h"
+#include <pthread.h>    // for pthread_t
+#include <stdarg.h>     // for va_list
+#include <stdbool.h>    // for bool, false, true
+#include <stdint.h>     // for uint64_t, int32_t, uint8_t
+#include <stdio.h>      // for fflush, fprintf, stderr, stdout, NULL, size_t
+#include <sys/types.h>  // for time_t
+#include "bstrlib.h"    // for bstring
+#include "gcc_diag.h"   // for OAI_GCC_DIAG_OFF, OAI_GCC_DIAG_ON
+struct shared_log_queue_item_s;  // lines 58-58
 
 /* asn1c debug */
 extern int asn_debug;
 extern int asn1_xer_print;
 extern int fd_g_debug_lvl;
-
-#include <stdarg.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <pthread.h>
-
-#include "bstrlib.h"
-#include "glogwrapper/glog_logging.h"
-
-struct shared_log_queue_item_s;
 
 /* asn1c debug */
 extern int asn_debug;

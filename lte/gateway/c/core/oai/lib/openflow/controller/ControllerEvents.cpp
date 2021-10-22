@@ -15,9 +15,12 @@
  *      contact@openairinterface.org
  */
 
-#include <netinet/in.h>
-#include <string.h>
 #include "ControllerEvents.h"
+#include <netinet/in.h>  // for in_addr, in6_addr, in6addr_any, ntohs
+#include <string.h>      // for size_t, memcmp, NULL
+// TODO: Once #5146 is resolved this can be included without <memory>
+#include <memory>                 // NOLINT
+#include <fluid/OFConnection.hh>  // NOLINT for OFConnection, OFConnection::E...
 
 using namespace fluid_msg;
 
