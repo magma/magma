@@ -60,21 +60,128 @@ LOG_INCREMENT = 25
 UEInfo = namedtuple(
     'UEInfo', [
         'imsi_str', 'ipv4_src', 'ipv4_dst',
-        'rule_id',
+        'rule_id', 'in_teid', 'out_teid',
     ],
 )
 
 
+@grpc_wrapper
+def stress_test5g(client, args):
+    """
+    attach/detach script for smf session for 5g stress test
+    """
+    ue_dict = _gen_ue_set(args.number_of_iterations)
+    delta_time = 1 / args.attaches_per_sec
+    print("Attach every ~{0} seconds".format(delta_time))
+    if args.disable_qos:
+        print("QOS Disabled")
+        apn_ambr = None
+    else:
+        print("QOS Enabled")
+        apn_ambr = AggregatedMaximumBitrate(
+                max_bandwidth_ul=1000000000,
+                max_bandwidth_dl=1000000000,
+        )
+    print("Starting attaches")
+    timestamp = datetime.now()
+    completed_reqs = 0
+    for ue in ue_dict:
+        grpc_start_timestamp = datetime.now()
+        cls_sess = CreateSessionUtil(ue.imsi_str, args.session_id, args.version)
+        cls_sess.CreateSession(
+            ue.imsi_str, 'ADD', ue.in_teid, ue.out_teid,
+            ue.ipv4_src, ue.ipv4_dst,
+            '', ue.rule_id, '',
+            'allow', 10, apn_ambr=apn_ambr,
+        )
+        client.SetSMFSessions(cls_sess._set_session)
+        grpc_end_timestamp = datetime.now()
+        call_duration = (grpc_end_timestamp - grpc_start_timestamp).total_seconds()
+        if call_duration < delta_time:
+            time.sleep(delta_time - call_duration)
+        if completed_reqs % LOG_INCREMENT == 0:
+            print("Finished {0}".format(completed_reqs))
+        completed_reqs += 1
+    duration = (datetime.now() - timestamp).total_seconds()
+    print("Finished {0} attaches in {1} seconds".format(len(ue_dict), duration))
+    print("Actual attach rate = {0} UEs per sec".format(round(len(ue_dict) / duration)))
+
+    # detach script
+
+    time.sleep(args.time_between_detach)
+    print("Starting detaches")
+    timestamp = datetime.now()
+    completed_reqs = 0
+    for ue in ue_dict:
+        grpc_start_timestamp = datetime.now()
+        cls_sess = CreateSessionUtil(ue.imsi_str, args.session_id, args.version)
+        cls_sess.CreateSession(
+            ue.imsi_str, 'REMOVE', ue.in_teid, ue.out_teid,
+            ue.ipv4_src, ue.ipv4_dst,
+            ue.rule_id, '', '',
+            'allow', 10,
+        )
+        client.SetSMFSessions(cls_sess._set_session)
+        grpc_end_timestamp = datetime.now()
+        call_duration = (grpc_end_timestamp - grpc_start_timestamp).total_seconds()
+        if call_duration < delta_time:
+            time.sleep(delta_time - call_duration)
+        if completed_reqs % LOG_INCREMENT == 0:
+            print("Finished {0}".format(completed_reqs))
+        completed_reqs += 1
+    duration = (datetime.now() - timestamp).total_seconds()
+    print("Finished {0} detaches in {1} seconds".format(len(ue_dict), duration))
+    print("Actual detach rate = {0} UEs per sec".format(round(len(ue_dict) / duration)))
+
+
+def create_stress_test5g_parser(apps):
+    """
+    Create argparse subparser for the stress_test5g app.
+    """
+    app = apps.add_parser('stress_test5g')
+    subparsers = app.add_subparsers(title='subcommands', dest='cmd')
+    subcmd = subparsers.add_parser('set_smf_session5g', help='Stress Test for 5G')
+    subcmd.add_argument(
+        '--number_of_iterations', help='Number of Iterations',
+        type=int, default='100',
+    )
+    subcmd.add_argument(
+        '--disable_qos', help='If we want to disable QOS',
+        action="store_true",
+    )
+    subcmd.add_argument(
+        '--attaches_per_sec', help='Number of grpc Attach requests per second',
+        type=int, default=10,
+    )
+    subcmd.add_argument(
+        '--time_between_detach', help='Time between attaches and detaches in seconds',
+        type=int, default=10,
+    )
+    subcmd.add_argument(
+        '--session_id', help='Session Identity',
+        type=int, default=100,
+    )
+    subcmd.add_argument(
+        '--version', help='Session Version',
+        type=int, default=2,
+    )
+    subcmd.set_defaults(func=stress_test5g)
+
+
 def _gen_ue_set(num_of_ues):
     imsi = 123000000
+    in_teid = 50
+    out_teid = 100
     ue_set = set()
     for _ in range(0, num_of_ues):
         imsi_str = "IMSI" + str(imsi)
         ipv4_src = ".".join(str(random.randint(0, 255)) for _ in range(4))
         ipv4_dst = ".".join(str(random.randint(0, 255)) for _ in range(4))
         rule_id = "allow." + imsi_str
-        ue_set.add(UEInfo(imsi_str, ipv4_src, ipv4_dst, rule_id))
+        ue_set.add(UEInfo(imsi_str, ipv4_src, ipv4_dst, rule_id, in_teid, out_teid))
         imsi = imsi + 1
+        in_teid += 1
+        out_teid += 1
     return ue_set
 
 
@@ -802,6 +909,7 @@ def create_parser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     apps = parser.add_subparsers(title='apps', dest='cmd')
+    create_stress_test5g_parser(apps)
     create_pg_services_parser(apps)
     create_ng_services_parser(apps)
     create_enforcement_parser(apps)
