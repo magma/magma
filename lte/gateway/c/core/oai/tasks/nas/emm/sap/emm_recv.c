@@ -24,6 +24,7 @@
 #include "3gpp_24.008.h"
 #include "emm_recv.h"
 #include "common_defs.h"
+#include "dynamic_memory_check.h"
 #include "log.h"
 #include "emm_cause.h"
 #include "emm_proc.h"
