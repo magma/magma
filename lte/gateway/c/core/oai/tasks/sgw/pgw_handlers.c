@@ -68,11 +68,6 @@ static void delete_temporary_dedicated_bearer_context(
     teid_t s1_u_sgw_fteid, ebi_t lbi,
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context_p);
 
-static int32_t spgw_build_and_send_s11_deactivate_bearer_req(
-    imsi64_t imsi64, uint8_t no_of_bearers_to_be_deact,
-    ebi_t* ebi_to_be_deactivated, bool delete_default_bearer,
-    teid_t mme_teid_S11);
-
 static void spgw_handle_s5_response_with_error(
     spgw_state_t* spgw_state,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
@@ -426,7 +421,7 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
 }
 
 // Send ITTI message,S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST to mme_app
-static int32_t spgw_build_and_send_s11_deactivate_bearer_req(
+int32_t spgw_build_and_send_s11_deactivate_bearer_req(
     imsi64_t imsi64, uint8_t no_of_bearers_to_be_deact,
     ebi_t* ebi_to_be_deactivated, bool delete_default_bearer,
     teid_t mme_teid_S11) {

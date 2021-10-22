@@ -2432,7 +2432,9 @@ void sgw_handle_delete_bearer_cmd(
   }
 #endif
   // Send itti_s11_nw_init_deactv_bearer_request_t to MME to delete the bearer/s
-  MessageDef* message_p =
+  spgw_build_and_send_s11_deactivate_bearer_req(imsi64, s11_delete_bearer_command->ebi_list.num_ebi,
+     s11_delete_bearer_command->ebi_list.ebis, false,s11_delete_bearer_command->local_teid);
+  /*MessageDef* message_p =
       itti_alloc_new_message(TASK_SPGW_APP, S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST);
   if (message_p == NULL) {
     OAILOG_ERROR_UE(
@@ -2464,7 +2466,7 @@ void sgw_handle_delete_bearer_cmd(
     OAILOG_FUNC_OUT(TASK_SPGW_APP);
   }
   OAILOG_INFO_UE(
-      TASK_SPGW_APP, imsi64, "s11_nw_init_deactv_bearer_request sent to MME\n");
+      TASK_SPGW_APP, imsi64, "s11_nw_init_deactv_bearer_request sent to MME\n");*/
 
   OAILOG_FUNC_OUT(TASK_SPGW_APP);
 }

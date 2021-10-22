@@ -54,4 +54,9 @@ status_code_e spgw_send_nw_init_activate_bearer_rsp(
     gtpv2c_cause_value_t cause, imsi64_t imsi64,
     bearer_context_within_create_bearer_response_t* bearer_ctx,
     uint8_t default_bearer_id, char* policy_rule_name);
+
+int32_t spgw_build_and_send_s11_deactivate_bearer_req(
+    imsi64_t imsi64, uint8_t no_of_bearers_to_be_deact,
+    ebi_t* ebi_to_be_deactivated, bool delete_default_bearer,
+    teid_t mme_teid_S11);
 #endif /* FILE_PGW_HANDLERS_SEEN */
