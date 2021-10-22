@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import os
 import subprocess  # noqa: S404
 from pathlib import Path
 from typing import List
@@ -96,6 +97,7 @@ def benchmark_grpc_request(
     try:
         # call grpc GHZ load test tool
         subprocess.call(cmd_list)  # noqa: S603
+        os.remove(input_file)
     except subprocess.CalledProcessError as e:
         print(e.output)
         print('Check if gRPC GHZ tool is installed')

@@ -16,13 +16,13 @@ import ipaddress
 import json
 from typing import List
 
-from common import (
+from google.protobuf import json_format
+from load_tests.common import (
     PROTO_DIR,
     benchmark_grpc_request,
     make_full_request_type,
     make_output_file_path,
 )
-from google.protobuf import json_format
 from lte.protos.apn_pb2 import APNConfiguration
 from lte.protos.mobilityd_pb2 import (
     AllocateIPRequest,
@@ -181,26 +181,32 @@ def main():
         input_file = 'allocate_data.json'
         request_type = 'AllocateIPAddress'
         _build_allocate_ip_data(args.num, input_file)
-        benchmark_grpc_request(proto_path=PROTO_PATH,
-                               full_request_type=make_full_request_type(
-                                   MOBILITYD_SERVICE_RPC_PATH, request_type),
-                               input_file=input_file,
-                               output_file=make_output_file_path(request_type),
-                               num_reqs=args.num,
-                               address=MOBILITYD_PORT)
+        benchmark_grpc_request(
+            proto_path=PROTO_PATH,
+            full_request_type=make_full_request_type(
+                MOBILITYD_SERVICE_RPC_PATH, request_type,
+            ),
+            input_file=input_file,
+            output_file=make_output_file_path(request_type),
+            num_reqs=args.num,
+            address=MOBILITYD_PORT,
+        )
         _cleanup_subs()
 
     elif args.cmd == 'release':
         input_file = 'release_data.json'
         request_type = 'ReleaseIPAddress'
         _build_release_ip_data(client, input_file)
-        benchmark_grpc_request(proto_path=PROTO_PATH,
-                               full_request_type=make_full_request_type(
-                                   MOBILITYD_SERVICE_RPC_PATH, request_type),
-                               input_file=input_file,
-                               output_file=make_output_file_path(request_type),
-                               num_reqs=args.num,
-                               address=MOBILITYD_PORT)
+        benchmark_grpc_request(
+            proto_path=PROTO_PATH,
+            full_request_type=make_full_request_type(
+                MOBILITYD_SERVICE_RPC_PATH, request_type,
+            ),
+            input_file=input_file,
+            output_file=make_output_file_path(request_type),
+            num_reqs=args.num,
+            address=MOBILITYD_PORT,
+        )
 
     print('Done')
 

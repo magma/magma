@@ -14,14 +14,14 @@ import argparse
 import json
 from typing import List
 
-from common import (
+from google.protobuf import json_format
+from load_tests.common import (
     PROTO_DIR,
     benchmark_grpc_request,
     generate_subs,
     make_full_request_type,
     make_output_file_path,
 )
-from google.protobuf import json_format
 from lte.protos.session_manager_pb2 import (
     TGPP_LTE,
     CommonSessionContext,

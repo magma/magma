@@ -16,13 +16,13 @@ limitations under the License.
 import argparse
 import json
 
-from common import (
+from google.protobuf import json_format
+from load_tests.common import (
     PROTO_DIR,
     benchmark_grpc_request,
     make_full_request_type,
     make_output_file_path,
 )
-from google.protobuf import json_format
 from lte.protos.apn_pb2 import AggregatedMaximumBitrate
 from lte.protos.pipelined_pb2 import (
     ActivateFlowsRequest,
@@ -119,12 +119,15 @@ def activate_flows_test(args):
     ue_dict = _gen_ue_set(args.num_of_ues)
     _build_activate_flows_data(ue_dict, args.disable_qos, input_file)
     request_type = 'ActivateFlows'
-    benchmark_grpc_request(proto_path=PROTO_PATH,
-                           full_request_type=make_full_request_type(
-                               PIPELINED_SERVICE_RPC_PATH, request_type),
-                           input_file=input_file,
-                           output_file=make_output_file_path(request_type),
-                           num_reqs=args.num_of_ues, address=PIPELINED_PORT)
+    benchmark_grpc_request(
+        proto_path=PROTO_PATH,
+        full_request_type=make_full_request_type(
+            PIPELINED_SERVICE_RPC_PATH, request_type,
+        ),
+        input_file=input_file,
+        output_file=make_output_file_path(request_type),
+        num_reqs=args.num_of_ues, address=PIPELINED_PORT,
+    )
 
 
 def deactivate_flows_test(args):
@@ -132,12 +135,15 @@ def deactivate_flows_test(args):
     input_file = 'deactivate_flows.json'
     _build_deactivate_flows_data(ue_dict, input_file)
     request_type = 'DeactivateFlows'
-    benchmark_grpc_request(proto_path=PROTO_PATH,
-                           full_request_type=make_full_request_type(
-                               PIPELINED_SERVICE_RPC_PATH, request_type),
-                           input_file=input_file,
-                           output_file=make_output_file_path(request_type),
-                           num_reqs=args.num_of_ues, address=PIPELINED_PORT)
+    benchmark_grpc_request(
+        proto_path=PROTO_PATH,
+        full_request_type=make_full_request_type(
+            PIPELINED_SERVICE_RPC_PATH, request_type,
+        ),
+        input_file=input_file,
+        output_file=make_output_file_path(request_type),
+        num_reqs=args.num_of_ues, address=PIPELINED_PORT,
+    )
 
 
 def create_parser():
