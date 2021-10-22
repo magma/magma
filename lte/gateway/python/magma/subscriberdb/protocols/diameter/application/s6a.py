@@ -22,6 +22,7 @@ from magma.subscriberdb.metrics import (
 )
 from magma.subscriberdb.protocols.diameter import avp, message
 from magma.subscriberdb.store.base import SubscriberNotFoundError
+from magma.subscriberdb.subscription.utils import ServiceNotActive
 
 from . import abc
 
@@ -243,7 +244,14 @@ class S6AApplication(abc.Application):
                 state_id, msg, avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN,
             )
             logging.warning("Subscriber not found: %s", e)
-
+        except ServiceNotActive as e:
+            S6A_AUTH_FAILURE_TOTAL.labels(
+                code=avp.ResultCode.DIAMETER_ERROR_UNAUTHORIZED_SERVICE,
+            ).inc()
+            resp = self._gen_response(
+                state_id, msg, avp.ResultCode.DIAMETER_ERROR_UNAUTHORIZED_SERVICE,
+            )
+            logging.error("Service not active for %s: %s", imsi, e)
         self.writer.send_msg(resp)
 
     def _send_location_request(self, state_id, msg):

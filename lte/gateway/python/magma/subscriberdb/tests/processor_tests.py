@@ -29,6 +29,7 @@ from magma.subscriberdb.crypto.utils import CryptoError
 from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.base import SubscriberNotFoundError
 from magma.subscriberdb.store.sqlite import SqliteStore
+from magma.subscriberdb.subscription.utils import ServiceNotActive
 
 
 def _dummy_auth_tuple():
@@ -270,14 +271,14 @@ class ProcessorTests(unittest.TestCase):
         """
         Test if we get CryptoError if there is no LTE subscription
         """
-        with self.assertRaises(CryptoError):
+        with self.assertRaises(ServiceNotActive):
             self._processor.generate_lte_auth_vector("33333", 3 * b"\x00")
 
     def test_lte_auth_forbidden_network(self):
         """
         Test if we get CrptoError if forbidden network NT_EPC is selected
         """
-        with self.assertRaises(CryptoError):
+        with self.assertRaises(ServiceNotActive):
             self._processor.generate_lte_auth_vector("66666", 3 * b"\x00")
 
     def test_lte_resync_seq_overflow_protect(self):
@@ -395,7 +396,7 @@ class ProcessorTests(unittest.TestCase):
         """
         Test if we get CryptoError if forbidden network NT_5GC selected
         """
-        with self.assertRaises(CryptoError):
+        with self.assertRaises(ServiceNotActive):
             self._processor.generate_m5g_auth_vector("66666", 3 * b"\x00")
 
 

@@ -24,6 +24,7 @@ from magma.subscriberdb.sid import SIDUtils
 from .crypto.gsm import UnsafePreComputedA3A8
 from .crypto.milenage import Milenage
 from .crypto.utils import CryptoError
+from .subscription.utils import ServiceNotActive
 
 
 class GSMProcessor(metaclass=abc.ABCMeta):
@@ -115,7 +116,7 @@ class Processor(GSMProcessor, LTEProcessor):
         sub_profiles,
         op=None,
         amf=None,
-        sub_network=CoreNetworkType(),
+        sub_network=None,
     ):
         """
         Init the Processor with all the components.
@@ -129,7 +130,7 @@ class Processor(GSMProcessor, LTEProcessor):
         self._amf = amf
         self._default_sub_profile = default_sub_profile
         self._sub_profiles = sub_profiles
-        self._sub_network = sub_network
+        self._sub_network = sub_network or CoreNetworkType()
         if len(op) != 16:
             raise ValueError("OP is invalid len=%d value=%s" % (len(op), op))
         if len(amf) != 2:
@@ -181,10 +182,10 @@ class Processor(GSMProcessor, LTEProcessor):
         subs = self._store.get_subscriber_data(sid)
 
         if subs.lte.state != LTESubscription.ACTIVE:
-            raise CryptoError("LTE service not active for %s" % sid)
+            raise ServiceNotActive("LTE service not active for %s" % sid)
 
         if CoreNetworkType.NT_EPC in subs.sub_network.forbidden_network_types:
-            raise CryptoError("4G services not allowed for %s" % sid)
+            raise ServiceNotActive("LTE services not allowed for %s" % sid)
 
         if subs.lte.auth_algo != LTESubscription.MILENAGE:
             raise CryptoError("Unknown crypto (%s) for %s" % (subs.lte.auth_algo, sid))
@@ -296,10 +297,10 @@ class Processor(GSMProcessor, LTEProcessor):
         subs = self._store.get_subscriber_data(sid)
 
         if subs.lte.state != LTESubscription.ACTIVE:
-            raise CryptoError("LTE service not active for %s" % sid)
+            raise ServiceNotActive("5G service not active for %s" % sid)
 
         if CoreNetworkType.NT_5GC in subs.sub_network.forbidden_network_types:
-            raise CryptoError("5G services not allowed for %s" % sid)
+            raise ServiceNotActive("5G services not allowed for %s" % sid)
 
         if subs.lte.auth_algo != LTESubscription.MILENAGE:
             raise CryptoError("Unknown crypto (%s) for %s" % (subs.lte.auth_algo, sid))
