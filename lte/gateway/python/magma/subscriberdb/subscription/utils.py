@@ -17,4 +17,3 @@ class ServiceNotActive(Exception):
     Represents any error triggered during a service operation.
     """
     pass
-
