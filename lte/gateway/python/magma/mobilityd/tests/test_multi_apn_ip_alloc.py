@@ -16,6 +16,7 @@ import logging
 import unittest
 from typing import Optional
 
+import fakeredis
 from lte.protos.apn_pb2 import APNConfiguration
 from lte.protos.subscriberdb_pb2 import (
     LTESubscription,
@@ -23,7 +24,6 @@ from lte.protos.subscriberdb_pb2 import (
     SubscriberData,
     SubscriberState,
 )
-from magma.common.redis.client import get_default_client
 from magma.mobilityd.ip_address_man import IPAddressManager
 from magma.mobilityd.ip_allocator_multi_apn import IPAllocatorMultiAPNWrapper
 from magma.mobilityd.ip_allocator_pool import IpAllocatorPool
@@ -110,7 +110,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """
         Creates and sets up an IPAllocator with the given recycling interval.
         """
-        store = MobilityStore(get_default_client(), False, 3980)
+        store = MobilityStore(fakeredis.FakeStrictRedis())
         ip_allocator = IpAllocatorPool(store)
         ip_allocator_static = IPAllocatorStaticWrapper(
             store, MockedSubscriberDBStub(), ip_allocator,

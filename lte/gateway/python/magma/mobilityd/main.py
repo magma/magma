@@ -32,7 +32,6 @@ from magma.mobilityd.rpc_servicer import MobilityServiceRpcServicer
 
 DEFAULT_IPV6_PREFIX_ALLOC_MODE = 'RANDOM'
 RETRY_LIMIT = 300
-DEFAULT_REDIS_PORT = 6380
 
 
 def _get_ipv4_allocator(
@@ -134,8 +133,7 @@ def main():
     # persist to Redis
     client = get_default_client()
     store = MobilityStore(
-        client, config.get('persist_to_redis', False),
-        config.get('redis_port', DEFAULT_REDIS_PORT),
+        client,
     )
 
     chan = ServiceRegistry.get_rpc_channel(
