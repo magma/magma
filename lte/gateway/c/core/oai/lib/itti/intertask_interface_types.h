@@ -39,6 +39,7 @@
 
 #include <time.h>
 #include "itti_types.h"
+#include "common_types.h"
 
 #include "messages_types.h"
 
@@ -67,12 +68,10 @@
 /* Extract the instance from a message */
 #define ITTI_MESSAGE_GET_INSTANCE(mESSAGE) ((mESSAGE)->ittiMsgHeader.instance)
 
-#include <messages_types.h>
-
 /* This enum defines messages ids. Each one is unique. */
 typedef enum {
 #define MESSAGE_DEF(iD, sTRUCT, fIELDnAME) iD,
-#include <messages_def.h>
+#include "messages_def.h"
 #undef MESSAGE_DEF
 
   MESSAGES_ID_MAX,

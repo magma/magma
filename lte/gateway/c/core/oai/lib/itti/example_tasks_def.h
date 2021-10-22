@@ -28,6 +28,8 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
+#include "intertask_interface_types.h"
+
 // This task is mandatory and must always be placed in first position
 TASK_DEF(TASK_MAIN)
 
