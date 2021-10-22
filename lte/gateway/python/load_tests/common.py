@@ -11,12 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import subprocess  # noqa: S404
+from pathlib import Path
 from typing import List
 
 from lte.protos.subscriberdb_pb2 import SubscriberID
 
-IMPORT_PATH = '/home/vagrant/magma'
+IMPORT_PATH = str(Path.home()) + '/magma'
 RESULTS_PATH = '/var/tmp'
+PROTO_DIR = 'lte/protos'
 
 
 def generate_subs(num_subs: int) -> List[SubscriberID]:
