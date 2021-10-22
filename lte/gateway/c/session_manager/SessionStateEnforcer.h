@@ -217,6 +217,10 @@ class SessionStateEnforcer {
   void check_usage_for_reporting(
       SessionMap session_map, SessionUpdate& session_uc);
 
+  void deactivate_flows_for_termination(
+      const std::string& imsi, const std::string& ip_addr,
+      const std::string& ipv6_addr, const uint32_t teid);
+
   static bool CLEANUP_DANGLING_FLOWS;
 
  private:
@@ -266,10 +270,6 @@ class SessionStateEnforcer {
       SessionUpdate& session_update);
 
   void cleanup_dead_sessions(const RuleRecordSet dead_sessions_to_cleanup);
-
-  void deactivate_flows_for_termination(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const uint32_t teid);
 
   void handle_session_update_response(
       const UpdateSessionRequest& request,

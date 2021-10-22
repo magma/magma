@@ -343,4 +343,18 @@ MATCHER_P(CheckSendRequest, expected_request, "") {
   return (imsi == imsi_exp && apn == apn_exp && rat_type == rat_type_exp);
 }
 
+// MATCHER_P3(SessionCleanupCheck, imsi, agw_teid, version_no, "") {
+MATCHER_P(SessionCleanupCheck, request, "") {
+  auto req = static_cast<const SessionState::SessionInfo>(arg);
+
+  auto imsi_req = req.subscriber_id;
+  uint32_t teid = req.local_f_teid;
+  auto ver_no   = req.ver_no;
+
+  bool res = request.subscriber_id == imsi_req &&
+             request.local_f_teid == teid && request.ver_no == ver_no;
+
+  return res;
+}
+
 };  // namespace magma

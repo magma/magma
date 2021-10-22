@@ -738,6 +738,7 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(IMSI1, IP1, "rule1", 512, 512, record_list->Add());
+  // TODO for will add EXPECT_CALL for usage report once full code is ready.
 
   upf_session_manager->SendReportRuleStats(
       &server_context, &table,
@@ -904,6 +905,63 @@ TEST_F(SessionManagerHandlerTest, test_terminate_session_report) {
       session_map, IMSI1, session_i, update);
 
   EXPECT_EQ(session_map[IMSI1].size(), 0);
+}
+
+TEST_F(SessionManagerHandlerTest, test_cleanup_dangling_sessions) {
+  magma::SetSMSessionContext request;
+  set_sm_session_context(&request);
+
+  grpc::ServerContext server_context;
+  SessionState::SessionInfo sess_info;
+  SetGroupPDR reqpdr_uplink;
+  Action Value   = FORW;
+  uint32_t count = DEFAULT_PDR_ID;
+
+  sess_info.local_f_teid  = 10000;
+  sess_info.subscriber_id = IMSI1;
+  sess_info.ver_no        = 1;
+  reqpdr_uplink.set_pdr_id(++count);
+  reqpdr_uplink.set_precedence(32);
+  reqpdr_uplink.set_pdr_version(1);
+  reqpdr_uplink.set_pdr_state(PdrState::INSTALL);
+  reqpdr_uplink.mutable_pdi()->set_src_interface(ACCESS);
+
+  reqpdr_uplink.mutable_pdi()->set_net_instance("uplink");
+  reqpdr_uplink.set_o_h_remo_desc(0);
+  reqpdr_uplink.mutable_set_gr_far()->add_far_action_to_apply(Value);
+  reqpdr_uplink.mutable_activate_flow_req()->mutable_request_origin()->set_type(
+      RequestOriginType_OriginType_N4);
+  reqpdr_uplink.mutable_pdi()->set_ue_ip_adr(IP1);
+  reqpdr_uplink.mutable_pdi()->set_local_f_teid(10000);
+  reqpdr_uplink.set_pdr_state(PdrState::REMOVE);
+  sess_info.pdr_rules.push_back(reqpdr_uplink);
+
+  // PDR 2 details
+  SetGroupPDR reqpdr_downlink;
+  reqpdr_downlink.set_pdr_id(++count);
+  reqpdr_downlink.set_precedence(32);
+  reqpdr_downlink.set_pdr_version(1);
+  reqpdr_downlink.set_pdr_state(PdrState::INSTALL);
+  reqpdr_downlink.mutable_pdi()->set_src_interface(CORE);
+  reqpdr_downlink.mutable_set_gr_far()->add_far_action_to_apply(Value);
+
+  // Filling qos params
+  reqpdr_downlink.mutable_pdi()->set_net_instance("downlink");
+  reqpdr_downlink.mutable_activate_flow_req()
+      ->mutable_request_origin()
+      ->set_type(RequestOriginType_OriginType_N4);
+  reqpdr_downlink.mutable_pdi()->set_ue_ip_adr(IP1);
+  reqpdr_downlink.set_pdr_state(PdrState::REMOVE);
+  sess_info.pdr_rules.push_back(reqpdr_downlink);
+
+  EXPECT_CALL(
+      *pipelined_client,
+      set_upf_session(SessionCleanupCheck(sess_info), _, _, _))
+      .Times(1);
+
+  session_enforcer->deactivate_flows_for_termination(IMSI1, IP1, "", 10000);
+  EXPECT_EQ(sess_info.subscriber_id, IMSI1);
+
 }
 
 int main(int argc, char** argv) {
