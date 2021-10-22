@@ -1,15 +1,28 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package reindex
 
 import (
 	"database/sql"
 	"sort"
 
-	"magma/orc8r/cloud/go/services/state/indexer"
-	"magma/orc8r/cloud/go/sqorc"
-
 	"github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/services/state/indexer"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 type versioner struct {
@@ -22,7 +35,18 @@ func NewVersioner(db *sql.DB, builder sqorc.StatementBuilder) Versioner {
 }
 
 func (v *versioner) InitializeVersioner() error {
-	return v.initVersionTable()
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		_, err := v.builder.CreateTable(versionTableName).
+			IfNotExists().
+			Column(idColVersions).Type(sqorc.ColumnTypeText).NotNull().PrimaryKey().EndColumn().
+			Column(actualColVersions).Type(sqorc.ColumnTypeInt).Default(0).NotNull().EndColumn().
+			Column(desiredColVersions).Type(sqorc.ColumnTypeInt).NotNull().EndColumn().
+			RunWith(tx).
+			Exec()
+		return nil, errors.Wrap(err, "initialize indexer versions table")
+	}
+	_, err := sqorc.ExecInTx(v.db, &sql.TxOptions{Isolation: sql.LevelRepeatableRead}, nil, txFn)
+	return err
 }
 
 func (v *versioner) GetIndexerVersions() ([]*indexer.Versions, error) {
@@ -80,21 +104,6 @@ func setIndexerActualVersion(builder sqorc.StatementBuilder, tx *sql.Tx, indexer
 		return errors.Wrapf(err, "update indexer actual version for %s to %d", indexerID, version)
 	}
 	return nil
-}
-
-func (v *versioner) initVersionTable() error {
-	txFn := func(tx *sql.Tx) (interface{}, error) {
-		_, err := v.builder.CreateTable(versionTableName).
-			IfNotExists().
-			Column(idColVersions).Type(sqorc.ColumnTypeText).NotNull().PrimaryKey().EndColumn().
-			Column(actualColVersions).Type(sqorc.ColumnTypeInt).Default(0).NotNull().EndColumn().
-			Column(desiredColVersions).Type(sqorc.ColumnTypeInt).NotNull().EndColumn().
-			RunWith(tx).
-			Exec()
-		return nil, errors.Wrap(err, "initialize indexer versions table")
-	}
-	_, err := sqorc.ExecInTx(v.db, &sql.TxOptions{Isolation: sql.LevelRepeatableRead}, nil, txFn)
-	return err
 }
 
 func getTrackedVersions(builder sqorc.StatementBuilder, tx *sql.Tx) ([]*indexer.Versions, error) {

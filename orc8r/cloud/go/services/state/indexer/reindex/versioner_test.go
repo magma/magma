@@ -16,17 +16,18 @@ limitations under the License.
 // variables to point to the relevant DB endpoints:
 //	- TEST_DATABASE_HOST=localhost
 //	- TEST_DATABASE_PORT_POSTGRES=5433
+
 package reindex_test
 
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/mocks"
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	"magma/orc8r/cloud/go/sqorc"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestVersioner(t *testing.T) {
