@@ -282,7 +282,7 @@ int emm_proc_identification_complete(
           }
           create_new_attach_info(
               &old_imsi_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id,
-              attach_proc->ies, true);
+              STOLEN_REF attach_proc->ies, true);
           emm_ctx->emm_context_state = NEW_EMM_CONTEXT_CREATED;
           nas_proc_implicit_detach_ue_ind(old_imsi_ue_mm_ctx->mme_ue_s1ap_id);
           notify = false;
