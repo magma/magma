@@ -961,7 +961,6 @@ TEST_F(SessionManagerHandlerTest, test_cleanup_dangling_sessions) {
 
   session_enforcer->deactivate_flows_for_termination(IMSI1, IP1, "", 10000);
   EXPECT_EQ(sess_info.subscriber_id, IMSI1);
-
 }
 
 int main(int argc, char** argv) {
