@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * Unless required by applicable law or agreed to in writing, software
+ * Unless required by applicable law or agreed to in writing, softwis
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
@@ -73,7 +73,7 @@ TEST_F(NgapFlowTest, initial_ue_message_sunny_day) {
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   Ngap_NGAP_PDU_t decoded_pdu = {};
@@ -139,7 +139,7 @@ TEST_F(NgapFlowTest, uplink_nas_transport_sunny_day) {
 
   // verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // veriy number of connected GNB's are 1
+  // verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   Ngap_NGAP_PDU_t decoded_pdu = {};
@@ -188,7 +188,7 @@ TEST_F(NgapFlowTest, uplink_nas_transport_sunny_day) {
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(
       &ie->value.choice.AMF_UE_NGAP_ID,
-      reinterpret_cast<uint64_t*> (&amf_ue_ngap_id));
+      reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
   // verify uplinkNasTransport handled successfully
@@ -216,7 +216,7 @@ TEST_F(NgapFlowTest, downlink_nas_transport_auth_req_sunny_day) {
   unsigned int len = sizeof(dl_nas_auth_req_msg) / sizeof(unsigned char);
   // verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // veriy number of connected GNB's are 1
+  // verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_NAS_DL_DATA_REQ);
@@ -263,7 +263,7 @@ TEST_F(NgapFlowTest, initial_context_setup_request_sunny_day) {
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   message_p =
@@ -311,7 +311,7 @@ TEST_F(NgapFlowTest, initial_context_setup_response_sunny_day) {
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   Ngap_NGAP_PDU_t decoded_pdu = {};
@@ -361,7 +361,7 @@ TEST_F(NgapFlowTest, initial_context_setup_response_sunny_day) {
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(
       &ie->value.choice.AMF_UE_NGAP_ID,
-      reinterpret_cast<uint64_t*> (&amf_ue_ngap_id));
+      reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
   // Verify initial_context_Setup_rsp is encoded correctly
@@ -389,7 +389,7 @@ TEST_F(NgapFlowTest, ue_context_release_request_sunny_day) {
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   Ngap_NGAP_PDU_t decoded_pdu = {};
@@ -438,7 +438,7 @@ TEST_F(NgapFlowTest, ue_context_release_request_sunny_day) {
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(
       &ie->value.choice.AMF_UE_NGAP_ID,
-      reinterpret_cast<uint64_t*> (&amf_ue_ngap_id));
+      reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
   // check if Ngap_Cause IE present
@@ -447,7 +447,7 @@ TEST_F(NgapFlowTest, ue_context_release_request_sunny_day) {
       Ngap_ProtocolIE_ID_id_Cause);
   ASSERT_TRUE(ie != NULL);
 
-  // Veriy if UE_Context_Release_Request is handled properly
+  // Verify if UE_Context_Release_Request is handled properly
   EXPECT_EQ(
       ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
       RETURNok);
@@ -471,7 +471,7 @@ TEST_F(NgapFlowTest, ue_context_release_complete_sunny_day) {
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   Ngap_NGAP_PDU_t decoded_pdu = {};
@@ -520,10 +520,10 @@ TEST_F(NgapFlowTest, ue_context_release_complete_sunny_day) {
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(
       &ie->value.choice.AMF_UE_NGAP_ID,
-      reinterpret_cast<uint64_t*> (&amf_ue_ngap_id));
+      reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
-  // Veriy ue_context_release_complete is handled successfully
+  // Verify ue_context_release_complete is handled successfully
   EXPECT_EQ(
       ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
       RETURNok);
@@ -542,7 +542,7 @@ TEST_F(NgapFlowTest, ue_context_release_command_sunny_day) {
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   message_p =
@@ -583,7 +583,7 @@ TEST_F(NgapFlowTest, pdu_sess_resource_setup_req_sunny_day) {
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   message_p =
@@ -666,7 +666,7 @@ TEST_F(NgapFlowTest, pdu_session_resource_setup_resp_sunny_day) {
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   bstring pdu_ss_resource_response_succ_msg =
@@ -711,7 +711,7 @@ TEST_F(NgapFlowTest, pdu_session_resource_setup_resp_sunny_day) {
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(
       &ie->value.choice.AMF_UE_NGAP_ID,
-      reinterpret_cast<uint64_t*> (&amf_ue_ngap_id));
+      reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
   NGAP_FIND_PROTOCOLIE_BY_ID(
@@ -746,7 +746,7 @@ TEST_F(NgapFlowTest, pdu_sess_resource_rel_cmd_sunny_day) {
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   message_p =
@@ -792,7 +792,7 @@ TEST_F(NgapFlowTest, initial_context_setup_failure_rainy_day) {
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
   EXPECT_EQ(state->gnbs.num_elements, 1);
@@ -844,7 +844,7 @@ TEST_F(NgapFlowTest, initial_context_setup_failure_rainy_day) {
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(
       &ie->value.choice.AMF_UE_NGAP_ID,
-      reinterpret_cast<uint64_t*> (&amf_ue_ngap_id));
+      reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
   // check if NGAP_Cause IE present
@@ -881,7 +881,7 @@ TEST_F(NgapFlowTest, uplink_nas_transport_rainy_day) {
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   Ngap_NGAP_PDU_t decoded_pdu = {};
@@ -921,8 +921,10 @@ TEST_F(NgapFlowTest, uplink_nas_transport_rainy_day) {
   ASSERT_TRUE(ue_ref != NULL);
   ue_ref->gnb_ue_ngap_id = 0xffff;
 
-  // verify uplink_nas_transport is not handled as gnb_ue_ngap_id is invalid
-  // in ue_ref than ie present in uplink_nas_transport
+  /* verify uplink_nas_transport is not handled as gnb_ue_ngap_id present
+   * in ue_ref is not equal to the IE RAN_UE_NGAP_ID present in
+   * uplink_nas_transport
+   */
   EXPECT_EQ(
       ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
       RETURNerror);
@@ -935,11 +937,11 @@ TEST_F(NgapFlowTest, uplink_nas_transport_rainy_day) {
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(
       &ie->value.choice.AMF_UE_NGAP_ID,
-      reinterpret_cast<uint64_t*> (&amf_ue_ngap_id));
+      reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = 0xffff;
 
-  // verify uplink_nas_transport is not handled as amf_ue_ngap_id is invalid
-  // in ue_ref than ie present in uplink_nas_transport
+  // verify uplink_nas_transport is not handled as amf_ue_ngap_id present
+  // in ue_ref is not equal to IE AMF_UE_NGAP_ID present in uplink_nas_transport
   EXPECT_EQ(
       ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
       RETURNerror);
@@ -962,7 +964,7 @@ TEST_F(NgapFlowTest, downlink_nas_transport_auth_rainy_day) {
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_NAS_DL_DATA_REQ);
@@ -980,8 +982,8 @@ TEST_F(NgapFlowTest, downlink_nas_transport_auth_rainy_day) {
   ue_ref->gnb_ue_ngap_id = 0xffff;
   ue_ref->amf_ue_ngap_id = 0xffff;
 
-  // verify downlink_nas_transport is not handled as gnb_ue_ngap_id and
-  // amf_ue_nagp_id is invalid in ue_ref than ies present in
+  // verify downlink_nas_transport is not handled as gnb_ue_ngap_id,
+  // amf_ue_nagp_id  in ue_ref does not match with ies present in
   // downlink_nas_transport
   EXPECT_EQ(
       RETURNerror, ngap_generate_downlink_nas_transport(
@@ -1002,7 +1004,7 @@ TEST_F(NgapFlowTest, initial_context_setup_request_rainy_day) {
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   message_p =
@@ -1042,7 +1044,7 @@ TEST_F(NgapFlowTest, initial_context_setup_response_rainy_day) {
       0x00, 0x05, 0x00, 0x55, 0x40, 0x04, 0x80, 0x01, 0x00, 0x01};
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   Ngap_NGAP_PDU_t decoded_pdu = {};
@@ -1091,11 +1093,12 @@ TEST_F(NgapFlowTest, initial_context_setup_response_rainy_day) {
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(
       &ie->value.choice.AMF_UE_NGAP_ID,
-      reinterpret_cast<uint64_t*> (&amf_ue_ngap_id));
+      reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
   // verify initial_context_setup_response is not handled as gnb_ue_ngap_id
-  // is invalid in ue_ref than ie present in initial_context_setup_response
+  // present in ue_ref than is not equal to IE RAN_UE_NGAP_ID present in
+  // initial_context_setup_response
   EXPECT_EQ(
       ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
       RETURNerror);
@@ -1119,7 +1122,7 @@ TEST_F(NgapFlowTest, ue_context_release_request_rainy_day) {
       0x01, 0x00, 0x01, 0x00, 0x0f, 0x40, 0x02, 0x05, 0x00};
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   Ngap_NGAP_PDU_t decoded_pdu = {};
@@ -1167,9 +1170,10 @@ TEST_F(NgapFlowTest, ue_context_release_request_rainy_day) {
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(
       &ie->value.choice.AMF_UE_NGAP_ID,
-      reinterpret_cast<uint64_t*> (&amf_ue_ngap_id));
+      reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
   // verify ue_context_release_request is not handled as gnb_ue_ngap_id
-  // is invalid in ue_ref than ie present in ue_context_release_request
+  // present in ue_ref is not equal to  IE RAN_UE_NGAP_ID present
+  // in ue_context_release_request
   EXPECT_EQ(
       ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
       RETURNerror);
@@ -1193,7 +1197,7 @@ TEST_F(NgapFlowTest, ue_context_release_command_rainy_day) {
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   message_p =
@@ -1212,7 +1216,8 @@ TEST_F(NgapFlowTest, ue_context_release_command_rainy_day) {
   NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).cause = NGAP_USER_INACTIVITY;
 
   // verify ue_context_release_command is not handled as amf_ue_ngap_id
-  // is invalid in ue_ref than ie present in itti ue_context_release_command
+  // present in ue_ref is not equla to IE AMF_UE_NGAP_ID present in
+  // itti ue_context_release_command
   EXPECT_EQ(
       RETURNok, ngap_handle_ue_context_release_command(
                     state, &NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p),
@@ -1235,7 +1240,7 @@ TEST_F(NgapFlowTest, pdu_session_resource_setup_resp_rainy_day) {
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &p), RETURNok);
-  // Veriy number of connected GNB's are 1
+  // Verify number of connected GNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
   bstring pdu_ss_resource_response_succ_msg =
@@ -1280,18 +1285,20 @@ TEST_F(NgapFlowTest, pdu_session_resource_setup_resp_rainy_day) {
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(
       &ie->value.choice.AMF_UE_NGAP_ID,
-      reinterpret_cast<uint64_t*> (&amf_ue_ngap_id));
+      reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = 0xffff;
 
-  // verify pdu_session_resource_setup is not handled as ran_ue_ngap_id
-  // is invalid in ue_ref than ie present in pdu_session_resource_setup message
+  // verify pdu_session_resource_setup is not handled as amf_ue_ngap_id
+  // present in ue_ref is not equal to ie AMF_UE_NGAP_ID
+  // present in pdu_session_resource_setup message
   EXPECT_EQ(
       ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
       RETURNerror);
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
-  // verify pdu_session_resource_setup is not handled as amf_ue_ngap_id
-  // is invalid in ue_ref than ie present in pdu_session_resource_setup message
+  // verify pdu_session_resource_setup is not handled as ran_ue_ngap_id
+  // present in ue_ref is not equal to ie RAN_UE_NGAP_ID
+  // present in pdu_session_resource_setup message
   EXPECT_EQ(
       ngap_amf_handle_message(state, p.assoc_id, p.instreams, &decoded_pdu),
       RETURNerror);
@@ -1300,7 +1307,7 @@ TEST_F(NgapFlowTest, pdu_session_resource_setup_resp_rainy_day) {
       Ngap_PDUSessionResourceSetupResponseIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListSURes, false);
 
-  // veirfy Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListSURes ie is present
+  // verify Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListSURes ie is present
   ASSERT_TRUE(ie != NULL);
 
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
