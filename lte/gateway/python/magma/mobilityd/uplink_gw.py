@@ -56,7 +56,7 @@ class UplinkGatewayInfo:
         """
         self._backing_map = gw_info_map
         self._read_default_gw_timer = None
-        self._read_default_gw_v6_timer = None
+        self._read_default_gw_timer6 = None
         self._read_default_gw_interval_seconds = 20
 
     def get_gw_ip(self, vlan_id: Optional[str] = "", version: int = IPAddress.IPV4) -> Optional[str]:
@@ -150,7 +150,7 @@ class UplinkGatewayInfo:
 
         updated_info = GWInfo(ip=gw_ip, mac="", vlan=_get_vlan(vlan_id))
         self._backing_map[vlan_key] = updated_info
-        logging.info("GW update: GW IP[%s]: %s" % (vlan_key, ip))
+        logging.info("GW update: GW IP[%s]: %s", vlan_key, ip)
 
     def get_gw_mac(self, vlan_id: Optional[str] = None, version: int = IPAddress.IPV4) -> Optional[str]:
         """
@@ -195,7 +195,7 @@ class UplinkGatewayInfo:
         )
         updated_info = GWInfo(ip=gw_ip, mac=mac, vlan=_get_vlan(vlan_id))
         self._backing_map[vlan_key] = updated_info
-        logging.info("GW update: GW IP[%s]: %s : mac %s" % (vlan_key, ip, mac))
+        logging.info("GW update: GW IP[%s]: %s : mac %s", vlan_key, ip, mac)
 
     def get_all_router_ips(self) -> List[GWInfo]:
         return list(self._backing_map.values())

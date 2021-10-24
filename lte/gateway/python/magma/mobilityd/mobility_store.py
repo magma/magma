@@ -98,7 +98,7 @@ class defaultdict_key(defaultdict):
         # Follow defaultdict pattern in raising KeyError
         if self.default_factory is None:
             raise KeyError(key)
-        self[key] = self.default_factory(key)
+        self[key] = self.default_factory(key)  # pylint: disable=E1102
         return self[key]
 
 
