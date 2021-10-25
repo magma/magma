@@ -39,6 +39,7 @@ func (r *reindexerSingleton) Run(ctx context.Context) {
 	r.RunUnsafe(ctx, "", nil)
 }
 
+// TODO cleanup
 func (r *reindexerSingleton) RunUnsafe(ctx context.Context, indexerID string, sendUpdate func(string)) error {
 	batches := r.getReindexBatches(ctx)
 	glog.Infof("Reindex for indexer '%s' with state batches: %+v", indexerID, batches)
@@ -49,6 +50,7 @@ func (r *reindexerSingleton) RunUnsafe(ctx context.Context, indexerID string, se
 	glog.Infof("Reindex for indexer '%s' with reindex jobs: %+v", indexerID, jobs)
 
 	for _, j := range jobs {
+		TestHookReindexDone()
 		glog.Infof("Reindex for indexer '%s', execute job %+v", indexerID, j)
 		err = executeJob(ctx, j, batches)
 		if err != nil {
@@ -58,6 +60,7 @@ func (r *reindexerSingleton) RunUnsafe(ctx context.Context, indexerID string, se
 		if err != nil {
 			return err
 		}
+		TestHookReindexSuccess()
 		if sendUpdate != nil {
 			sendUpdate(fmt.Sprintf("indexer %s successfully reindexed from version %d to version %d", j.Idx.GetID(), j.From, j.To))
 		}
