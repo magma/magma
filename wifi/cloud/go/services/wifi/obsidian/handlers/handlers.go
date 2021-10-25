@@ -157,7 +157,7 @@ func getGateway(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return obsidian.HttpError(errors.Wrap(err, "failed to load wifi gateway"), http.StatusInternalServerError)
+		return obsidian.HTTPError(errors.Wrap(err, "failed to load wifi gateway"), http.StatusInternalServerError)
 	}
 
 	ret := &wifimodels.WifiGateway{
@@ -196,7 +196,7 @@ func deleteGateway(c echo.Context) error {
 
 	gwEnt, err := configurator.LoadEntity(reqCtx, nid, orc8r.MagmadGatewayType, gid, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil && err != merrors.ErrNotFound {
-		return obsidian.HttpError(err)
+		return obsidian.HTTPError(err)
 	}
 
 	err = configurator.DeleteEntities(
@@ -208,13 +208,13 @@ func deleteGateway(c echo.Context) error {
 		},
 	)
 	if err != nil {
-		return obsidian.HttpError(err)
+		return obsidian.HTTPError(err)
 	}
 
 	if gwEnt.PhysicalID != "" {
 		err = device.DeleteDevice(reqCtx, nid, orc8r.AccessGatewayRecordType, gwEnt.PhysicalID)
 		if err != nil {
-			return obsidian.HttpError(errors.Wrap(err, "failed to delete device for gateway"))
+			return obsidian.HTTPError(errors.Wrap(err, "failed to delete device for gateway"))
 		}
 	}
 
@@ -230,9 +230,9 @@ func listMeshes(c echo.Context) error {
 	ids, err := configurator.ListEntityKeys(c.Request().Context(), nid, wifi.MeshEntityType)
 	if err != nil {
 		if err == merrors.ErrNotFound {
-			return obsidian.HttpError(err, http.StatusNotFound)
+			return obsidian.HTTPError(err, http.StatusNotFound)
 		}
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HTTPError(err, http.StatusInternalServerError)
 	}
 	sort.Strings(ids)
 	return c.JSON(http.StatusOK, ids)
@@ -247,10 +247,10 @@ func createMesh(c echo.Context) error {
 
 	payload := &wifimodels.WifiMesh{}
 	if err := c.Bind(payload); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return obsidian.HTTPError(err, http.StatusBadRequest)
 	}
 	if err := payload.ValidateModel(reqCtx); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return obsidian.HTTPError(err, http.StatusBadRequest)
 	}
 
 	gwIDs := storage.TKs{}
@@ -272,7 +272,7 @@ func createMesh(c echo.Context) error {
 	)
 
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HTTPError(err, http.StatusInternalServerError)
 	}
 
 	return c.NoContent(http.StatusCreated)
@@ -289,7 +289,7 @@ func getMesh(c echo.Context) error {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
 	case err != nil:
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HTTPError(err, http.StatusInternalServerError)
 	}
 
 	ret := (&wifimodels.WifiMesh{}).FromBackendModels(ent)
@@ -305,10 +305,10 @@ func updateMesh(c echo.Context) error {
 
 	payload := &wifimodels.WifiMesh{}
 	if err := c.Bind(payload); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return obsidian.HTTPError(err, http.StatusBadRequest)
 	}
 	if err := payload.ValidateModel(reqCtx); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return obsidian.HTTPError(err, http.StatusBadRequest)
 	}
 	if string(payload.ID) != mid {
 		return echo.NewHTTPError(http.StatusBadRequest, "mesh ID in body must match mesh_id in path")
@@ -319,7 +319,7 @@ func updateMesh(c echo.Context) error {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
 	case err != nil:
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HTTPError(err, http.StatusInternalServerError)
 	}
 
 	oldGWIds := []string{}
@@ -336,7 +336,7 @@ func updateMesh(c echo.Context) error {
 
 	_, err = configurator.UpdateEntities(reqCtx, nid, payload.ToUpdateCriteria(), serdes.Entity)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HTTPError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -353,7 +353,7 @@ func deleteMesh(c echo.Context) error {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
 	case err != nil:
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HTTPError(err, http.StatusInternalServerError)
 	}
 
 	// Don't allow the deletion if there are still associated gateways
@@ -363,7 +363,7 @@ func deleteMesh(c echo.Context) error {
 
 	err = configurator.DeleteEntity(reqCtx, nid, wifi.MeshEntityType, mid)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HTTPError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
