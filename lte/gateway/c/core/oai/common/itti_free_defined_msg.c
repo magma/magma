@@ -243,6 +243,15 @@ void itti_free_msg_content(MessageDef* const message_p) {
       bdestroy_wrapper(
           &message_p->ittiMsg.ngap_initial_context_setup_req.nas_pdu);
       break;
+
+    case NGAP_PDUSESSIONRESOURCE_REL_REQ:
+      bdestroy_wrapper(
+          &message_p->ittiMsg.ngap_pdusessionresource_rel_req.nas_msg);
+      break;
+
+    case AMF_APP_UPLINK_DATA_IND:
+      bdestroy_wrapper(&message_p->ittiMsg.amf_app_ul_data_ind.nas_msg);
+      break;
     default:;
   }
 }
