@@ -58,9 +58,9 @@ growpart /dev/xvda 1; resize2fs /dev/xvda1
 
 ### Using a generic server with 2 NICs
 
-Create/deploy an ubuntu 20.04 (latest version) server/instance with 2 interfaces (S1, Sgi) and the appropriate resources for your use case.
+Create/deploy an ubuntu 20.04 (latest version) server/instance with 2 interfaces and the appropriate resources for your use case.
 
-Your interfaces should not be named eth0 or eth1, they will be changed to that. eth0 should be your Sgi interface, and eth1 should be S1 interface.
+Your interfaces should be named eth0 (SGi) and eth1 (S1).
 
 Get the agw install script
 
@@ -93,8 +93,7 @@ Edit .env in /var/opt/magma/docker to have your docker registry values, and S1 a
 Pull images and start containers
 ```
 cd /var/opt/magma/docker
-docker-compose pull
-docker-compose -f docker-compose.yml up -d
+./agw_upgrade.sh
 ```
 
 You can check your connection status with
@@ -112,4 +111,3 @@ Success!
 # PLMN changes may be required for testing
 
 We tested with 00101 PLMN. Your testing might require changes to the GUMMEI_LIST, TAI_LIST, and TAC_LIST configuration items in lte/gateway/docker/mme/configs/mme.conf that must be edited before your build of the images.
-

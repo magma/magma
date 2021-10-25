@@ -165,6 +165,7 @@ FROM $OS_DIST:$OS_RELEASE AS gateway_c
 ARG OS_DIST
 ARG OS_RELEASE
 ARG EXTRA_REPO
+ARG MAGMA_VERSION=master
 
 ENV MAGMA_ROOT /magma
 ENV C_BUILD /build/c
@@ -257,3 +258,5 @@ COPY --from=builder /magma/lte/gateway/docker/configs/mme-gen.conf .
 COPY --from=builder /magma/lte/gateway/docker/configs/mme_fd.conf .
 COPY --from=builder /magma/lte/gateway/docker/configs/spgw.conf .
 COPY --from=builder /magma/lte/gateway/docker/configs/mme.conf .
+RUN wget -q https://raw.githubusercontent.com/magma/magma/"${MAGMA_VERSION}"/lte/gateway/deploy/roles/magma/files/magma-create-gtp-port.sh \
+   -O /usr/local/bin/magma-create-gtp-port.sh && chmod +x /usr/local/bin/magma-create-gtp-port.sh
