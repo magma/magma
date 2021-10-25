@@ -21,15 +21,15 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "common_types.h"
-#include "conversions.h"
-#include "log.h"
-#include "mme_app_ue_context.h"
-#include "mme_app_defs.h"
-#include "mme_app_sgs_fsm.h"
-#include "common_defs.h"
-#include "mme_app_desc.h"
-#include "sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/mme_app_desc.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 
 /**********************************************************************************
  ** **

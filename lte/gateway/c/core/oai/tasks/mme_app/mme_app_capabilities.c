@@ -17,15 +17,15 @@
 
 #include <stddef.h>
 
-#include "bstrlib.h"
-#include "log.h"
-#include "mme_app_ue_context.h"
-#include "mme_app_defs.h"
-#include "common_types.h"
-#include "common_defs.h"
-#include "dynamic_memory_check.h"
-#include "mme_app_desc.h"
-#include "s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/mme_app_desc.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 
 status_code_e mme_app_handle_s1ap_ue_capabilities_ind(
     const itti_s1ap_ue_cap_ind_t* const s1ap_ue_cap_ind_pP) {

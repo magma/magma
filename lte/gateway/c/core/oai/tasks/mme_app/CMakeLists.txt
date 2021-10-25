@@ -81,6 +81,7 @@ else (EMBEDDED_SGW)
 endif (EMBEDDED_SGW)
 
 target_include_directories(TASK_MME_APP PUBLIC
+    $ENV{MAGMA_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${S1AP_C_DIR}
     $<TARGET_FILE_DIR:TASK_MME_APP>
