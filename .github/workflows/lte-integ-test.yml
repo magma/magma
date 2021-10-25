@@ -3,9 +3,11 @@
 name: LTE integ test
 
 on:  # yamllint disable-line rule:truthy
-  push:
-    branches:
-      - master
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
 
 jobs:
   lte-integ-test:
@@ -14,6 +16,16 @@ jobs:
       - run: echo "::set-output name=date::$(date +'%m-%d-%Y--%H-%M-%S')"
         id: date
       - uses: actions/checkout@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_AMI_MARIE }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_AMI_MARIE }}
+          aws-region: us-east-1
+      - name: populate .bazel-cache
+        run: |
+          aws s3 cp s3://magma-bazel-cache/.bazel-cache-repo/ ./.bazel-cache-repo/ --recursive
+          aws s3 cp s3://magma-bazel-cache/.bazel-cache/ ./.bazel-cache/ --recursive
       - name: setup pyenv
         uses: "gabrielfalcao/pyenv-action@v8"
         with:
