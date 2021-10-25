@@ -18,7 +18,7 @@
 #ifndef FILE_MME_APP_SGW_SELECTION_SEEN
 #define FILE_MME_APP_SGW_SELECTION_SEEN
 
-#include "TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 
 struct in_addr;
 /*! \file mme_app_sgw_selection.h

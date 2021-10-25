@@ -23,7 +23,7 @@
   */
 #define SGW
 
-#include "pgw_pcef_emulation.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.h"
 
 #include <inttypes.h>
 #include <netinet/in.h>
@@ -33,18 +33,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "assertions.h"
-#include "async_system.h"
-#include "bstrlib.h"
-#include "common_defs.h"
-#include "common_types.h"
-#include "dynamic_memory_check.h"
-#include "hashtable.h"
-#include "intertask_interface_types.h"
-#include "log.h"
-#include "pgw_config.h"
-#include "pgw_types.h"
-#include "spgw_config.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/async_system.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/pgw_config.h"
+#include "lte/gateway/c/core/oai/include/pgw_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
 
 /*
  * Function that adds predefined PCC rules to PGW struct,

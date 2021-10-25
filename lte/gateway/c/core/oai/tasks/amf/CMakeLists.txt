@@ -68,11 +68,13 @@ target_compile_definitions(TASK_AMF_APP PRIVATE
 target_link_libraries(TASK_AMF_APP 
   ${CONFIG_LIBRARIES}
   COMMON
+  TASK_GRPC_SERVICE
   LIB_BSTR LIB_HASHTABLE LIB_DIRECTORYD LIB_SECU LIB_EVENT_CLIENT LIB_NAS5G LIB_N11
   TASK_NGAP TASK_SERVICE303 LIB_S6A_PROXY
   protobuf cpp_redis yaml-cpp redis_utils
 )
 
 target_include_directories(TASK_AMF_APP PUBLIC
+  $ENV{MAGMA_ROOT}
   ${CMAKE_CURRENT_SOURCE_DIR}
     )

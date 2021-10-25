@@ -15,12 +15,12 @@
  *      contact@openairinterface.org
  */
 extern "C" {
-#include "log.h"
-#include "dynamic_memory_check.h"
-#include "nas_timer.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 }
 
-#include "nas_state_converter.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_state_converter.h"
 
 namespace magma {
 namespace lte {

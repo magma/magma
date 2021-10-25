@@ -142,6 +142,8 @@ target_link_libraries(TASK_GRPC_SERVICE
     folly
     )
 target_include_directories(TASK_GRPC_SERVICE PUBLIC
+    "SHM FISH"
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
     $<TARGET_FILE_DIR:TASK_GRPC_SERVICE>
     )

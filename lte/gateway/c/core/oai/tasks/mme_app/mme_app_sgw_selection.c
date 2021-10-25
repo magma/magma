@@ -27,13 +27,13 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "mme_config.h"
-#include "bstrlib.h"
-#include "log.h"
-#include "dynamic_memory_check.h"
-#include "TrackingAreaIdentity.h"
-#include "mme_app_sgw_selection.h"
-#include "mme_app_edns_emulation.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgw_selection.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.h"
 
 //------------------------------------------------------------------------------
 void mme_app_select_sgw(

@@ -45,6 +45,7 @@ target_link_libraries(LIB_NGAP
     LIB_BSTR LIB_HASHTABLE
 )
 target_include_directories(LIB_NGAP PUBLIC
+    $ENV{MAGMA_ROOT}
     ${NGAP_C_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/r16
 )

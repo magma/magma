@@ -11,15 +11,15 @@
  * limitations under the License.
  */
 #include <libconfig.h>
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include <errno.h>
-#include "3gpp_24.501.h"
-#include "amf_config.h"
-#include "amf_default_values.h"
-#include "mme_config.h"
-#include "TrackingAreaIdentity.h"
-#include "dynamic_memory_check.h"
-#include "assertions.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/common/amf_default_values.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
 
 static bool parse_bool(const char* str);
 

@@ -35,10 +35,10 @@ Description Defines the EPS Mobility Management procedure call manager,
 #ifndef FILE_EMM_MAIN_SEEN
 #define FILE_EMM_MAIN_SEEN
 
-#include "mme_config.h"
-#include "nas/commonDef.h"
-#include "nas/networkDef.h"
-#include "emm_data.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
+#include "lte/gateway/c/core/oai/include/nas/networkDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

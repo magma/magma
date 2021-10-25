@@ -18,9 +18,9 @@
 #include <assert.h>
 #include <stdarg.h>
 
-#include "service303.h"
-#include "includes/MagmaService.h"
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/include/service303.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "orc8r/protos/service303.pb.h"
 
 using magma::service303::MagmaService;

@@ -38,10 +38,10 @@
 #ifndef FILE_MME_APP_APN_SELECTION_SEEN
 #define FILE_MME_APP_APN_SELECTION_SEEN
 
-#include "bstrlib.h"
-#include "common_types.h"
-#include "mme_app_ue_context.h"
-#include "esm_proc.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
 
 struct apn_configuration_s* mme_app_select_apn(
     ue_mm_context_t* const ue_context, int* esm_cause);

@@ -30,12 +30,12 @@
 #ifndef FILE_MME_APP_DEFS_SEEN
 #define FILE_MME_APP_DEFS_SEEN
 
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
-#include "mme_app_desc.h"
-#include "mme_app_ue_context.h"
-#include "mme_app_sgs_fsm.h"
-#include "emm_proc.h"
+#include "lte/gateway/c/core/oai/include/mme_app_desc.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
 #include <czmq.h>
 
 #define INVALID_BEARER_INDEX (-1)

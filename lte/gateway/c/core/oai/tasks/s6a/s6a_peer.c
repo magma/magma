@@ -28,16 +28,16 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "bstrlib.h"
-#include "log.h"
-#include "intertask_interface.h"
-#include "common_defs.h"
-#include "s6a_defs.h"
-#include "assertions.h"
-#include "dynamic_memory_check.h"
-#include "mme_config.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
 #if !S6A_OVER_GRPC
 

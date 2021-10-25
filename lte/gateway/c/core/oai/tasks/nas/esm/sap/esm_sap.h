@@ -36,8 +36,8 @@ Description Defines the ESM Service Access Points at which the EPS
 #ifndef __ESM_SAP_H__
 #define __ESM_SAP_H__
 
-#include "common_defs.h"
-#include "esm_sapDef.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

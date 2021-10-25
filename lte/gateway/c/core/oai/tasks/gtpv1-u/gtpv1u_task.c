@@ -26,16 +26,16 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "log.h"
-#include "assertions.h"
-#include "intertask_interface.h"
-#include "gtpv1u.h"
-#include "gtpv1u_sgw_defs.h"
-#include "gtp_tunnel_upf.h"
-#include "pgw_ue_ip_address_alloc.h"
-#include "intertask_interface_types.h"
-#include "pgw_config.h"
-#include "spgw_config.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u_sgw_defs.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_upf.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/include/pgw_config.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
 
 const struct gtp_tunnel_ops* gtp_tunnel_ops;
 static struct in_addr current_ue_net;

@@ -15,11 +15,11 @@
  *      contact@openairinterface.org
  */
 
-#include "log.h"
-#include "mme_config.h"
-#include "nas_network.h"
-#include "nas_timer.h"
-#include "nas_proc.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_network.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

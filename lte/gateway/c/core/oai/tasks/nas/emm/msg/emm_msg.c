@@ -34,13 +34,13 @@
 *****************************************************************************/
 #include <stdint.h>
 
-#include "log.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.301.h"
-#include "emm_msg.h"
-#include "common_defs.h"
-#include "common_ies.h"
-#include "conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msg.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_ies.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

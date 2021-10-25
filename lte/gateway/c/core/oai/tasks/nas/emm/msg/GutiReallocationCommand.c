@@ -17,10 +17,10 @@
 
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "GutiReallocationCommand.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/GutiReallocationCommand.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 int decode_guti_reallocation_command(
     guti_reallocation_command_msg* guti_reallocation_command, uint8_t* buffer,

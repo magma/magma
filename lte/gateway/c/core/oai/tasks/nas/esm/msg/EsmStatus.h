@@ -20,9 +20,9 @@
 
 #include <stdint.h>
 
-#include "3gpp_24.007.h"
-#include "EsmCause.h"
-#include "MessageType.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define ESM_STATUS_MINIMUM_LENGTH (ESM_CAUSE_MINIMUM_LENGTH)

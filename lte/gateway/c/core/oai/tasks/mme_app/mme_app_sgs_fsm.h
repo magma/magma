@@ -35,10 +35,10 @@ Description Defines the SGS State Machine handling
 #ifndef FILE_SGS_FSM_SEEN
 #define FILE_SGS_FSM_SEEN
 
-#include "common_defs.h"
-#include "common_types.h"
-#include "sgs_messages_types.h"
-#include "3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/

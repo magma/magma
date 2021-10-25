@@ -21,13 +21,13 @@
 #include <netinet/in.h>
 #include <stdlib.h>
 
-#include "assertions.h"
-#include "bstrlib.h"
-#include "log.h"
-#include "gtpv1u.h"
-#include "ControllerMain.h"
-#include "3gpp_23.003.h"
-#include "spgw_config.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
 
 extern struct gtp_tunnel_ops gtp_tunnel_ops;
 

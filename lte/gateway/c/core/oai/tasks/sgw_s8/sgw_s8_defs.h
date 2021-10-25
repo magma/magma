@@ -13,9 +13,9 @@ limitations under the License.
 
 #pragma once
 
-#include "common_defs.h"
-#include "intertask_interface.h"
-#include "sgw_config.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/include/sgw_config.h"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 

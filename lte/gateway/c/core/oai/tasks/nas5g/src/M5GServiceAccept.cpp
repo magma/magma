@@ -10,8 +10,8 @@
  */
 
 #include <sstream>
-#include "M5GServiceAccept.h"
-#include "M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceAccept.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
 ServiceAcceptMsg::ServiceAcceptMsg(){};

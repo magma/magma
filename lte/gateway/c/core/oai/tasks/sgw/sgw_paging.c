@@ -20,16 +20,16 @@
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <sys/socket.h>
-#include <conversions.h>
+#include <lte/gateway/c/core/oai/common/conversions.h>
 
-#include "intertask_interface.h"
-#include "log.h"
-#include "MobilityClientAPI.h"
-#include "sgw_defs.h"
-#include "sgw_paging.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
-#include "s11_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_paging.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 
 void sgw_send_paging_request(const struct in_addr* dest_ip) {
   OAILOG_DEBUG(
