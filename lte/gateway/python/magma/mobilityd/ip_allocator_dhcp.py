@@ -76,9 +76,8 @@ class IPAllocatorDHCP(IPAllocator):
         )
 
     def remove_ip_blocks(
-        self,
-        ipblocks: List[ip_network],
-        force: bool = False,
+        self, *ipblocks: List[ip_network],
+        force: bool = False
     ) -> List[ip_network]:
         logging.warning(
             "Trying to delete ipblock from DHCP allocator: %s",
@@ -106,13 +105,13 @@ class IPAllocatorDHCP(IPAllocator):
             if ip in ipblock
         ]
 
-    def alloc_ip_address(self, sid: str, vlan_id: int) -> IPDesc:
+    def alloc_ip_address(self, sid: str, vlan: int) -> IPDesc:
         """
         Assumption: one-to-one mappings between SID and IP.
 
         Args:
             sid (string): universal subscriber id
-            vlan_id: vlan of the APN
+            vlan: vlan of the APN
 
         Returns:
             ipaddress.ip_address: IP address allocated
@@ -122,14 +121,14 @@ class IPAllocatorDHCP(IPAllocator):
         """
         mac = create_mac_from_sid(sid)
 
-        dhcp_desc = self._dhcp_client.get_dhcp_desc(mac, str(vlan_id))
+        dhcp_desc = self._dhcp_client.get_dhcp_desc(mac, vlan)
         LOG.debug(
             "allocate IP for %s mac %s dhcp_desc %s", sid, mac,
             dhcp_desc,
         )
 
         if dhcp_allocated_ip(dhcp_desc) is not True:
-            dhcp_desc = self._alloc_ip_address_from_dhcp(mac, vlan_id)
+            dhcp_desc = self._alloc_ip_address_from_dhcp(mac, vlan)
 
         if dhcp_allocated_ip(dhcp_desc):
             ip_block = ip_network(dhcp_desc.subnet)
@@ -139,7 +138,7 @@ class IPAllocatorDHCP(IPAllocator):
                 sid=sid,
                 ip_block=ip_block,
                 ip_type=IPType.DHCP,
-                vlan_id=vlan_id,
+                vlan_id=vlan,
             )
             self._store.assigned_ip_blocks.add(ip_block)
 

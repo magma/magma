@@ -79,13 +79,13 @@ class IPAllocatorStaticWrapper(IPAllocator):
         """
         return self._ip_allocator.list_allocated_ips(ipblock)
 
-    def alloc_ip_address(self, sid: str, vlan_id: int) -> IPDesc:
+    def alloc_ip_address(self, sid: str, vlan: int) -> IPDesc:
         """ Check if subscriber has static IP assigned.
         If it is not allocated use IP allocator to assign an IP.
         """
         ip_desc = self._allocate_static_ip(sid)
         if ip_desc is None:
-            ip_desc = self._ip_allocator.alloc_ip_address(sid, vlan_id)
+            ip_desc = self._ip_allocator.alloc_ip_address(sid, vlan)
         return ip_desc
 
     def release_ip(self, ip_desc: IPDesc):

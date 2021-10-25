@@ -201,14 +201,13 @@ class IpAllocatorPool(IPAllocator):
         ]
         return res
 
-    def alloc_ip_address(self, sid: str, vlan_id: int) -> IPDesc:
+    def alloc_ip_address(self, sid: str, vlan: int) -> IPDesc:
         """ Allocate an IP address from the free list
 
         Assumption: one-to-one mappings between SID and IP.
 
         Args:
             sid (string): universal subscriber id
-            vlan_id (int): unused
 
         Returns:
             ipaddress.ip_address: IP address allocated

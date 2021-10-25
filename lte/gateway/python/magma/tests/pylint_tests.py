@@ -42,15 +42,20 @@ class MagmaPyLintTest(unittest.TestCase):
             ],
             show_categories=["warning", "error", "fatal"],
         )
-        excluded_directories = [
-            'kernsnoopd',
-            'tests',
+        # TODO look up directories in magma/lte/gateway/python/magma
+        directories = [
+            'enodebd',
+            'health',
+            # 'mobilityd',
+            'monitord',
+            'pipelined',
+            'pkt_tester',
+            'policydb',
+            'redirectd',
+            'smsd',
+            'subscriberdb',
         ]
         parent_path = os.path.dirname(os.path.dirname(__file__))
-        directories = [
-            d.name for d in os.scandir(parent_path)
-            if d.is_dir() and d.name not in excluded_directories
-        ]
         for directory in directories:
             path = os.path.join(parent_path, directory)
             py_wrap.assertNoLintErrors(path)

@@ -424,14 +424,14 @@ class IPAddressManager:
                     sid, ip, sid, self._store.sid_ips_map.get(sid),
                 )
                 raise MappingNotFoundError(
-                    "(%s, %s) pair is not found" % (sid, ip),
+                    "(%s, %s) pair is not found", sid, str(ip),
                 )
             if not self.is_ip_in_state(ip, IPState.ALLOCATED):
                 logging.error(
                     "IP not found in used list, check if IP is "
                     "already released: <%s, %s>", sid, ip,
                 )
-                raise IPNotInUseError("IP not found in used list: %s" % ip)
+                raise IPNotInUseError("IP not found in used list: %s", str(ip))
 
             IP_RELEASED_TOTAL.inc()
 

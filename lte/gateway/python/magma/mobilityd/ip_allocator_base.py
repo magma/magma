@@ -35,9 +35,8 @@ class IPAllocator(ABC):
 
     @abstractmethod
     def remove_ip_blocks(
-        self,
-        ipblocks: List[ip_network],
-        force: bool,
+        self, *ipblocks: List[ip_network],
+        force: bool
     ) -> List[ip_network]:
         ...
 

@@ -89,17 +89,16 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         self._ip_address_man.add_ip_block(ip_block)
 
     @return_void
-    def AddIPBlock(self, request, context):
+    def AddIPBlock(self, ipblock_msg, context):
         """ Add a range of IP addresses into the free IP pool
 
         Args:
-            request (IPBlock): ip block to add. The request has the
+            ipblock_msg (IPBlock): ip block to add. ipblock_msg has the
             type IPBlock, a protobuf message type for the gRPC interface.
             Internal representation of ip blocks uses the ipaddress.ip_network
             type and is named as ipblock.
         """
         logging.debug("Received AddIPBlock")
-        ipblock_msg = request
         self._print_grpc(ipblock_msg)
         ipblock = self._ipblock_msg_to_ipblock(ipblock_msg, context)
         if ipblock is None:
@@ -113,10 +112,10 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         except IPVersionNotSupportedError:
             self._unimplemented_ip_version_error(context)
 
-    def ListAddedIPv4Blocks(self, request, context):
+    def ListAddedIPv4Blocks(self, void, context):
         """ Return a list of IPv4 blocks assigned """
         logging.debug("Received ListAddedIPv4Blocks")
-        self._print_grpc(request)
+        self._print_grpc(void)
         resp = ListAddedIPBlocksResponse()
 
         ip_blocks = self._ip_address_man.list_added_ip_blocks()
@@ -133,17 +132,16 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         self._print_grpc(resp)
         return resp
 
-    def ListAllocatedIPs(self, request, context):
+    def ListAllocatedIPs(self, ipblock_msg, context):
         """ Return a list of IPs allocated from a IP block
 
         Args:
-            request (IPBlock): ip block to add. The request has the
+            ipblock_msg (IPBlock): ip block to add. ipblock_msg has the
             type IPBlock, a protobuf message type for the gRPC interface.
             Internal representation of ip blocks uses the ipaddress.ip_network
             type and is named as ipblock.
         """
         logging.debug("Received ListAllocatedIPs")
-        ipblock_msg = request
         self._print_grpc(ipblock_msg)
         resp = ListAllocatedIPsResponse()
 
@@ -236,9 +234,8 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                 request.ip.version,
             )
             logging.info(
-                "Released IP %s for sid %s",
-                ip,
-                SIDUtils.to_str(request.sid),
+                "Released IP %s for sid %s"
+                % (ip, SIDUtils.to_str(request.sid)),
             )
         except IPNotInUseError:
             context.set_details('IP %s not in use' % ip)
@@ -314,9 +311,8 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         self._print_grpc(resp)
         return resp
 
-    def GetSubscriberIDFromIP(self, request, context):
+    def GetSubscriberIDFromIP(self, ip_addr, context):
         logging.debug("Received GetSubscriberIDFromIP")
-        ip_addr = request
         self._print_grpc(ip_addr)
 
         sent_ip = ipaddress.ip_address(ip_addr.address)
@@ -328,15 +324,15 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             resp = SubscriberID()
         else:
             # handle composite key case
-            sid, *_ = sid.partition('.')
+            sid, *rest = sid.partition('.')
             resp = SIDUtils.to_pb(sid)
         self._print_grpc(resp)
         return resp
 
-    def GetSubscriberIPTable(self, request, context):
+    def GetSubscriberIPTable(self, void, context):
         """ Get the full subscriber table """
         logging.debug("Received GetSubscriberIPTable")
-        self._print_grpc(request)
+        self._print_grpc(void)
 
         resp = SubscriberIPTable()
 
@@ -352,9 +348,9 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         self._print_grpc(resp)
         return resp
 
-    def ListGatewayInfo(self, request, context):
+    def ListGatewayInfo(self, void, context):
         logging.debug("Received ListGatewayInfo")
-        self._print_grpc(request)
+        self._print_grpc(void)
 
         resp = ListGWInfoResponse()
         gw_info_list = self._ip_address_man.list_gateway_info()
@@ -364,9 +360,8 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         return resp
 
     @return_void
-    def SetGatewayInfo(self, request, context):
+    def SetGatewayInfo(self, info, context):
         logging.debug("Received SetGatewayInfo")
-        info = request
         self._print_grpc(info)
         self._ip_address_man.set_gateway_info(info)
 
@@ -380,10 +375,8 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                 version,
             )
             logging.info(
-                "Allocated IP %s for sid %s for apn %s",
-                ip,
-                SIDUtils.to_str(request.sid),
-                request.apn,
+                "Allocated IP %s for sid %s for apn %s"
+                % (ip, SIDUtils.to_str(request.sid), request.apn),
             )
             ip_addr = IPAddress(address=ip.packed, version=version)
             return AllocateIPAddressResponse(
