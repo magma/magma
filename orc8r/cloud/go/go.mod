@@ -45,7 +45,6 @@ require (
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lib/pq v1.2.0
-	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/olivere/elastic/v7 v7.0.6
 	github.com/opencontainers/go-digest v1.0.0 // indirect
@@ -64,11 +63,11 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad
 	golang.org/x/net v0.0.0-20201021035429-f5854403a974
-	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
 	golang.org/x/tools v0.1.0
 	google.golang.org/grpc v1.31.0
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	gopkg.in/yaml.v2 v2.4.0
+	gotest.tools/gotestsum v1.7.0 // indirect
 	k8s.io/api v0.0.0-20191016110408-35e52d86657a
 	k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible

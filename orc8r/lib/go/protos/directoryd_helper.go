@@ -116,3 +116,13 @@ func (m *UnmapSgwCTeidToHWIDRequest) Validate() error {
 	}
 	return nil
 }
+
+func (m *GetNewSgwCTeidRequest) Validate() error {
+	if m == nil {
+		return errors.New("request cannot be nil")
+	}
+	if m.NetworkID == "" {
+		return errors.New("network ID cannot be empty")
+	}
+	return nil
+}

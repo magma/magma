@@ -51,16 +51,21 @@ message CreateSessionRequestPgw {
     PdnAddressAllocation paa = 9;
 
     string apn = 10;
-    Ambr ambr = 11;                      //Aggregate Maximum BitRate
+    // Aggregate Maximum BitRate
+    Ambr ambr = 11;
     SelectionModeType selection_mode = 12;
 
-    BearerContext bearer_context = 13;   // Contains AGW user plane FTEID
-    uint32 c_agw_teid = 14;              // AGW control plane TEID
+    // Contains AGW user plane F-TEID
+    BearerContext bearer_context = 13;
+    // AGW control plane TEID
+    uint32 c_agw_teid = 14;
 
     ProtocolConfigurationOptions protocol_configuration_options = 15;
     bytes indication_flag = 16;
     string charging_characteristics = 17;
     TimeZone time_zone = 18;
+
+    uint32 feg_relay_generated_c_agw_teid = 99;
 }
 
 enum PDNType {
