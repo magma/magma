@@ -187,6 +187,7 @@ func TestNewConfigManager(t *testing.T) {
 	assert.Equal(t, "unix:///tmp/sctpd_upstream.sock", cm.Config().SctpdUpstreamServiceTarget)
 	assert.Equal(t, "unix:///tmp/mme_sctpd_downstream.sock", cm.Config().MmeSctpdDownstreamServiceTarget)
 	assert.Equal(t, "unix:///tmp/mme_sctpd_upstream.sock", cm.Config().MmeSctpdUpstreamServiceTarget)
+	assert.Equal(t, "", cm.Config().SentryDsn)
 }
 
 func TestLoadConfigFile(t *testing.T) {
@@ -200,6 +201,7 @@ func TestLoadConfigFile(t *testing.T) {
 	assert.Equal(t, "b", cm.Config().SctpdUpstreamServiceTarget)
 	assert.Equal(t, "c", cm.Config().MmeSctpdDownstreamServiceTarget)
 	assert.Equal(t, "d", cm.Config().MmeSctpdUpstreamServiceTarget)
+	assert.Equal(t, "e", cm.Config().SentryDsn)
 }
 
 func TestNewConfigManager_DefaultNotFound(t *testing.T) {
