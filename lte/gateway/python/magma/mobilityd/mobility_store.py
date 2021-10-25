@@ -13,8 +13,6 @@ limitations under the License.
 from collections import defaultdict
 
 import redis
-from lte.protos.mobilityd_pb2 import GWInfo
-from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisFlatDict, RedisHashDict, RedisSet
 from magma.common.redis.serializers import (
     RedisSerde,
@@ -22,7 +20,6 @@ from magma.common.redis.serializers import (
     get_json_serializer,
 )
 from magma.mobilityd import serialize_utils
-from magma.mobilityd.ip_descriptor import IPDesc
 from magma.mobilityd.ip_descriptor_map import IpDescriptorMap
 from magma.mobilityd.uplink_gw import UplinkGatewayInfo
 
