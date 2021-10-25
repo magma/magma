@@ -9,25 +9,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
+load("//tools/build_defs:asn1c.bzl", "cc_asn1_library")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//lte/gateway/c/core:__subpackages__"])
 
-cc_library(
-    name = "libtins",
-    srcs = ["usr/lib/libtins.so"],
-    linkopts = ["-ltins"],
-)
-
-cc_library(
-    name = "libmnl",
-    srcs = ["usr/lib/x86_64-linux-gnu/libmnl.so"],
-    linkopts = ["-lmnl"],
-)
-
-# TODO(GH9710): Generate asn1c with Bazel
-native_binary(
-    name = "asn1c",
-    src = "usr/local/bin/asn1c",
-    out = "asn1c",
+cc_asn1_library(
+    name = "asn1_r15",
+    asn1_file = "messages/asn1/r15/s1ap-15.6.0.asn1",
+    prefix = "S1ap_",
 )
