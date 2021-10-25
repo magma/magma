@@ -49,7 +49,7 @@
 
 task_zmq_ctx_t ngap_task_zmq_ctx;
 
-uint16_t ngap_last_msg_latency = 0;
+uint64_t ngap_last_msg_latency = 0;
 
 static int ngap_send_init_sctp(void) {
   // Create and alloc new message
