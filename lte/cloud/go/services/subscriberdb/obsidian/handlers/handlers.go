@@ -523,7 +523,7 @@ func validateSubscriberProfiles(ctx context.Context, networkID string, profiles 
 		return echo.NewHTTPError(http.StatusBadRequest, errors.New("no cellular config found for network"))
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return obsidian.HTTPError(err, http.StatusInternalServerError)
 	}
 
 	networkProfiles := networkConfig.(*ltemodels.NetworkCellularConfigs).Epc.SubProfiles
@@ -668,7 +668,7 @@ func createSubscribers(ctx context.Context, networkID string, subs ...*subscribe
 	tks := storage.MakeTKs(lte.SubscriberEntityType, ids)
 	found, _, err := configurator.LoadSerializedEntities(ctx, networkID, nil, nil, nil, tks, configurator.EntityLoadCriteria{})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return obsidian.HTTPError(err, http.StatusInternalServerError)
 	}
 	if len(found) != 0 {
 		return echo.NewHTTPError(http.StatusBadRequest, errors.Errorf("found %v existing subscribers which would have been overwritten: %+v", len(found), found.TKs()))
@@ -676,7 +676,7 @@ func createSubscribers(ctx context.Context, networkID string, subs ...*subscribe
 
 	_, err = configurator.CreateEntities(ctx, networkID, ents, serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return obsidian.HTTPError(err, http.StatusInternalServerError)
 	}
 
 	return nil

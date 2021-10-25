@@ -211,13 +211,13 @@ func releaseCINode(c echo.Context) error {
 	// Figure out if the error was due to bad params
 	rpcErr, isRpcErr := status.FromError(err)
 	if !isRpcErr {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return obsidian.HTTPError(err, http.StatusInternalServerError)
 	} else {
 		switch rpcErr.Code() {
 		case codes.InvalidArgument:
-			return echo.NewHTTPError(http.StatusBadRequest, rpcErr.Err())
+			return obsidian.HTTPError(rpcErr.Err(), http.StatusBadRequest)
 		default:
-			return echo.NewHTTPError(http.StatusInternalServerError, rpcErr.Err())
+			return obsidian.HTTPError(rpcErr.Err(), http.StatusInternalServerError)
 		}
 	}
 }

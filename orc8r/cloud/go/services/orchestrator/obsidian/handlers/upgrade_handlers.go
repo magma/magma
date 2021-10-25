@@ -142,7 +142,7 @@ func createTierHandler(c echo.Context) error {
 	entity := tier.ToNetworkEntity()
 	_, err := configurator.CreateEntity(c.Request().Context(), networkID, entity, serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return obsidian.HTTPError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -263,7 +263,7 @@ func createTierGateway(c echo.Context) error {
 	update := (&models.TierGateways{}).ToAddGatewayUpdateCriteria(tierID, gatewayID)
 	_, err := configurator.UpdateEntity(c.Request().Context(), networkID, update, serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return obsidian.HTTPError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }

@@ -256,7 +256,7 @@ func TestUpdateNetworkProbeTask(t *testing.T) {
 		ParamNames:     []string{"network_id", "task_id"},
 		ParamValues:    []string{"n1", "IMSI1234"},
 		ExpectedStatus: 500,
-		ExpectedError:  "rpc error: code = Unknown desc = failed to load entity being updated: expected to load 1 ent for update, got 0",
+		ExpectedError:  "failed to load entity being updated: expected to load 1 ent for update, got 0",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -551,7 +551,7 @@ func TestUpdateNetworkProbeDestination(t *testing.T) {
 		ParamNames:     []string{"network_id", "destination_id"},
 		ParamValues:    []string{"n1", "1111-2222-3333"},
 		ExpectedStatus: 500,
-		ExpectedError:  "rpc error: code = Unknown desc = failed to load entity being updated: expected to load 1 ent for update, got 0",
+		ExpectedError:  "failed to load entity being updated: expected to load 1 ent for update, got 0",
 	}
 	tests.RunUnitTest(t, e, tc)
 
