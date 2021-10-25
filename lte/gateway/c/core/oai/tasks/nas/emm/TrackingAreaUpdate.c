@@ -201,13 +201,11 @@ status_code_e handle_and_fill_eps_bearer_cntxt_status(
     ue_mm_context_t* ue_mm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   ebi_t ebi          = 0;
-  ebi_t ebi_to_be_del[BEARERS_PER_UE]= {0};
   uint32_t itrn      = 0;
   uint8_t pos        = 0;
   uint8_t shift_bits = 8;
   pdn_cid_t pid      = 0;
   bool is_ebi_active = false;
-  uint8_t num_ebi = 0;
 
   for (itrn = ESM_EBI_MIN; itrn < ESM_EBI_MAX; itrn++) {
     bearer_context_t* bearer_context =
@@ -475,7 +473,7 @@ status_code_e emm_proc_tracking_area_update_request(
               ies->voicedomainpreferenceandueusagesetting,
               sizeof(voice_domain_preference_and_ue_usage_setting_t));
         }
-        /*Send eps_bearer_context_status in TAU Accept if received in TAU Req*/
+        // Send eps_bearer_context_status in TAU Accept if received in TAU Req
         if (tau_proc->ies->eps_bearer_context_status) {
           if (*tau_proc->ies->eps_bearer_context_status > 0) {
             if (handle_and_fill_eps_bearer_cntxt_status(

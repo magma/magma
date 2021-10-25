@@ -419,12 +419,6 @@ void MmeNasStateConverter::pdn_context_to_proto(
     pdn_context_proto->add_bearer_contexts(
         state_pdn_context.bearer_contexts[i]);
   }
-  pdn_context_proto->set_num_ebi_to_be_del(state_pdn_context.num_ebi_to_be_del);
-  for (int i = 0; i < BEARERS_PER_UE; i++) {
-    pdn_context_proto->add_ebi_to_be_del(
-        state_pdn_context.ebi_to_be_del[i]);
-
-  }
 
   bstr_buffer = ip_address_to_bstring(&state_pdn_context.s_gw_address_s11_s4);
   BSTRING_TO_STRING(
@@ -434,7 +428,6 @@ void MmeNasStateConverter::pdn_context_to_proto(
   esm_pdn_to_proto(
       state_pdn_context.esm_data, pdn_context_proto->mutable_esm_data());
   pdn_context_proto->set_is_active(state_pdn_context.is_active);
-  pdn_context_proto->set_session_deletion_triggered(state_pdn_context.session_deletion_triggered);
   if (state_pdn_context.pco != nullptr) {
     NasStateConverter::protocol_configuration_options_to_proto(
         *state_pdn_context.pco, pdn_context_proto->mutable_pco());
@@ -476,19 +469,12 @@ void MmeNasStateConverter::proto_to_pdn_context(
     state_pdn_context->bearer_contexts[i] =
         pdn_context_proto.bearer_contexts(i);
   }
-  state_pdn_context->num_ebi_to_be_del = pdn_context_proto.num_ebi_to_be_del();
-  for (int i = 0; i < BEARERS_PER_UE; i++) {
-    state_pdn_context->ebi_to_be_del[i] =
-        pdn_context_proto.ebi_to_be_del(i);
-  }
-
   STRING_TO_BSTRING(pdn_context_proto.s_gw_address_s11_s4(), bstr_buffer);
   bstring_to_ip_address(bstr_buffer, &state_pdn_context->s_gw_address_s11_s4);
   bdestroy_wrapper(&bstr_buffer);
   state_pdn_context->s_gw_teid_s11_s4 = pdn_context_proto.s_gw_teid_s11_s4();
   proto_to_esm_pdn(pdn_context_proto.esm_data(), &state_pdn_context->esm_data);
   state_pdn_context->is_active = pdn_context_proto.is_active();
-  state_pdn_context->session_deletion_triggered = pdn_context_proto.session_deletion_triggered();
   if (pdn_context_proto.has_pco()) {
     state_pdn_context->pco = (protocol_configuration_options_t*) calloc(
         1, sizeof(protocol_configuration_options_t));
