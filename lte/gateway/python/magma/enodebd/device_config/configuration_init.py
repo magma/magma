@@ -54,13 +54,13 @@ SingleEnodebConfig = namedtuple(
         'lte_a2_threshold_rsrp_irat_volte', 'lte_a2_threshold_rsrq_irat_volte',
         'a3_offset', 'a3_offset_anr',
         'a4_threshold_rsrp', 'lte_intra_a5_threshold_1_rsrp',
-        'lte_intra_a5_threshold_2_rsrp', 'b2_threshold1_rsrp',
+        'lte_intra_a5_threshold_2_rsrp', 'lte_inter_anr_a5_threshold_1_rsrp',
+        'lte_inter_anr_a5_threshold_2_rsrp', 'b2_threshold1_rsrp',
         'b2_threshold2_rsrp', 'b2_geran_irat_threshold',
         'qrxlevmin_sib1', 'qrxlevminoffset',
         's_intrasearch', 's_nonintrasearch',
         'qrxlevmin_sib3', 'reselection_priority',
-        'threshservinglow', 'x2_enable_disable',
-        'ciphering_algorithm', 'integrity_algorithm',
+        'threshservinglow', 'ciphering_algorithm', 'integrity_algorithm',
     ],
 )
 
@@ -113,6 +113,8 @@ def build_desired_config(
     _set_algorithm_a4_threshold_rsrp(cfg_desired, enb_config.a4_threshold_rsrp)
     _set_algorithm_lte_intra_a5_threshold_1_rsrp(cfg_desired, enb_config.lte_intra_a5_threshold_1_rsrp)
     _set_algorithm_lte_intra_a5_threshold_2_rsrp(cfg_desired, enb_config.lte_intra_a5_threshold_2_rsrp)
+    _set_algorithm_lte_inter_anr_a5_threshold_1_rsrp(cfg_desired, enb_config.lte_inter_anr_a5_threshold_1_rsrp)
+    _set_algorithm_lte_inter_anr_a5_threshold_2_rsrp(cfg_desired, enb_config.lte_inter_anr_a5_threshold_2_rsrp)
     _set_algorithm_b2_threshold1_rsrp(cfg_desired, enb_config.b2_threshold1_rsrp)
     _set_algorithm_b2_threshold2_rsrp(cfg_desired, enb_config.b2_threshold2_rsrp)
     _set_algorithm_b2_geran_irat_threshold(cfg_desired, enb_config.b2_geran_irat_threshold)
@@ -123,7 +125,6 @@ def build_desired_config(
     _set_algorithm_qrxlevmin_sib3(cfg_desired, enb_config.qrxlevmin_sib3)
     _set_algorithm_reselection_priority(cfg_desired, enb_config.reselection_priority)
     _set_algorithm_threshservinglow(cfg_desired, enb_config.threshservinglow)
-    _set_algorithm_x2_enable_disable(cfg_desired, enb_config.x2_enable_disable)
     _set_algorithm_ciphering_algorithm(cfg_desired, enb_config.ciphering_algorithm)
     _set_algorithm_integrity_algorithm(cfg_desired, enb_config.integrity_algorithm)
 
@@ -239,6 +240,8 @@ def _get_enb_config(
     a4_threshold_rsrp = None
     lte_intra_a5_threshold_1_rsrp = None
     lte_intra_a5_threshold_2_rsrp = None
+    lte_inter_anr_a5_threshold_1_rsrp = None
+    lte_inter_anr_a5_threshold_2_rsrp = None
     b2_threshold1_rsrp = None
     b2_threshold2_rsrp = None
     b2_geran_irat_threshold = None
@@ -249,7 +252,6 @@ def _get_enb_config(
     qrxlevmin_sib3 = None
     reselection_priority = None
     threshservinglow = None
-    x2_enable_disable = None
     ciphering_algorithm = None
     integrity_algorithm = None
     if mconfig.enb_configs_by_serial is not None and \
@@ -285,6 +287,8 @@ def _get_enb_config(
             a4_threshold_rsrp = enb_hoAlgorithm_config.a4_threshold_rsrp
             lte_intra_a5_threshold_1_rsrp = enb_hoAlgorithm_config.lte_intra_a5_threshold_1_rsrp
             lte_intra_a5_threshold_2_rsrp = enb_hoAlgorithm_config.lte_intra_a5_threshold_2_rsrp
+            lte_inter_anr_a5_threshold_1_rsrp = enb_hoAlgorithm_config.lte_inter_anr_a5_threshold_1_rsrp
+            lte_inter_anr_a5_threshold_2_rsrp = enb_hoAlgorithm_config.lte_inter_anr_a5_threshold_2_rsrp
             b2_threshold1_rsrp = enb_hoAlgorithm_config.b2_threshold1_rsrp
             b2_threshold2_rsrp = enb_hoAlgorithm_config.b2_threshold2_rsrp
             b2_geran_irat_threshold = enb_hoAlgorithm_config.b2_geran_irat_threshold
@@ -295,7 +299,6 @@ def _get_enb_config(
             qrxlevmin_sib3 = enb_hoAlgorithm_config.qrxlevmin_sib3
             reselection_priority = enb_hoAlgorithm_config.reselection_priority
             threshservinglow = enb_hoAlgorithm_config.threshservinglow
-            x2_enable_disable = enb_hoAlgorithm_config.x2_enable_disable
             ciphering_algorithm = enb_hoAlgorithm_config.ciphering_algorithm
             integrity_algorithm = enb_hoAlgorithm_config.integrity_algorithm
 
@@ -352,6 +355,8 @@ def _get_enb_config(
         a4_threshold_rsrp=a4_threshold_rsrp,
         lte_intra_a5_threshold_1_rsrp=lte_intra_a5_threshold_1_rsrp,
         lte_intra_a5_threshold_2_rsrp=lte_intra_a5_threshold_2_rsrp,
+        lte_inter_anr_a5_threshold_1_rsrp=lte_inter_anr_a5_threshold_1_rsrp,
+        lte_inter_anr_a5_threshold_2_rsrp=lte_inter_anr_a5_threshold_2_rsrp,
         b2_threshold1_rsrp=b2_threshold1_rsrp,
         b2_threshold2_rsrp=b2_threshold2_rsrp,
         b2_geran_irat_threshold=b2_geran_irat_threshold,
@@ -362,7 +367,6 @@ def _get_enb_config(
         qrxlevmin_sib3=qrxlevmin_sib3,
         reselection_priority=reselection_priority,
         threshservinglow=threshservinglow,
-        x2_enable_disable=x2_enable_disable,
         ciphering_algorithm=ciphering_algorithm,
         integrity_algorithm=integrity_algorithm,
     )
@@ -732,6 +736,27 @@ def _set_algorithm_lte_intra_a5_threshold_2_rsrp(
     """
     cfg.set_parameter(ParameterName.LTE_INTRA_A5_THRESHOLD_2_RSRP, lte_intra_a5_threshold_2_rsrp)
 
+def _set_algorithm_lte_inter_anr_a5_threshold_1_rsrp(
+        cfg: EnodebConfiguration,
+        lte_inter_anr_a5_threshold_1_rsrp: int,
+) -> None:
+    """
+    Set the following parameters:
+     - lte_intra_a5_threshold_1_rsrp
+    """
+    cfg.set_parameter(ParameterName.LTE_INTER_ANR_A5_THRESHOLD_1_RSRP, lte_inter_anr_a5_threshold_1_rsrp)
+
+def _set_algorithm_lte_inter_anr_a5_threshold_2_rsrp(
+        cfg: EnodebConfiguration,
+        lte_inter_anr_a5_threshold_2_rsrp: int,
+) -> None:
+    """
+    Set the following parameters:
+     - lte_intra_a5_threshold_2_rsrp
+    """
+    cfg.set_parameter(ParameterName.LTE_INTER_ANR_A5_THRESHOLD_2_RSRP, lte_inter_anr_a5_threshold_2_rsrp)
+
+
 def _set_algorithm_b2_threshold1_rsrp(
     cfg: EnodebConfiguration,
     b2_threshold1_rsrp: Any,
@@ -831,16 +856,6 @@ def _set_algorithm_threshservinglow(
      - threshservinglow
     """
     cfg.set_parameter(ParameterName.THRESHSERVINGLOW, threshservinglow)
-
-def _set_algorithm_x2_enable_disable(
-    cfg: EnodebConfiguration,
-    x2_enable_disable: Any,
-) -> None:
-    """
-    Set the following parameters:
-     - x2_enable_disable
-    """
-    cfg.set_parameter(ParameterName.X2_ENABLE_DISABLE, x2_enable_disable)
 
 def _set_algorithm_ciphering_algorithm(
     cfg: EnodebConfiguration,

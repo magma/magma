@@ -275,6 +275,14 @@ class BaicellsRTSTrDataModel(DataModel):
             FAPSERVICE_PATH + 'X_BAICELLS.COM.LTE.HOVInterA5Threshold2RSRP', True, TrParameterType.INT,
             False,
         ),
+        ParameterName.LTE_INTER_ANR_A5_THRESHOLD_1_RSRP: TrParam(
+            FAPSERVICE_PATH + 'X_BAICELLS.COM.LTE.ANR.InterAnrA5Threshold1RSRP', True, TrParameterType.INT,
+            False,
+            ),
+        ParameterName.LTE_INTER_ANR_A5_THRESHOLD_2_RSRP: TrParam(
+            FAPSERVICE_PATH + 'X_BAICELLS.COM.LTE.ANR.InterAnrA5Threshold2RSRP', True, TrParameterType.INT,
+            False,
+            ),
         ParameterName.B2_THRESHOLD1_RSRP: TrParam(
             FAPSERVICE_PATH + 'X_BAICELLS.COM.LTE.IRAT.B2threshold1RsrpHO', True, TrParameterType.UNSIGNED_INT,
             False,
@@ -319,10 +327,6 @@ class BaicellsRTSTrDataModel(DataModel):
         ParameterName.THRESHSERVINGLOW: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Mobility.IdleMode.IntraFreq.ThreshServingLow', True,
             TrParameterType.UNSIGNED_INT,
-            False,
-        ),
-        ParameterName.X2_ENABLE_DISABLE: TrParam(
-            FAPSERVICE_PATH + 'X_BAICELLS_COM_LTE.EnableX2', True, TrParameterType.BOOLEAN,
             False,
         ),
         ParameterName.CIPHERING_ALGORITHM: TrParam(

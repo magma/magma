@@ -15,6 +15,12 @@ import (
 // swagger:model hoAlgorithmConfiguration
 type HoAlgorithmConfiguration struct {
 
+	// l t e i n t e r a n r a5 t h r e s h o l d 1 r s r p
+	LTEINTERANRA5THRESHOLD1RSRP int32 `json:"LTE_INTER_ANR_A5_THRESHOLD_1_RSRP,omitempty"`
+
+	// l t e i n t e r a n r a5 t h r e s h o l d 2 r s r p
+	LTEINTERANRA5THRESHOLD2RSRP int32 `json:"LTE_INTER_ANR_A5_THRESHOLD_2_RSRP,omitempty"`
+
 	// a1 threshold rsrp
 	A1ThresholdRsrp uint32 `json:"a1_threshold_rsrp,omitempty"`
 
@@ -89,9 +95,6 @@ type HoAlgorithmConfiguration struct {
 
 	// time to trigger
 	TimeToTrigger string `json:"time_to_trigger,omitempty"`
-
-	// x2 enable disable
-	X2EnableDisable *bool `json:"x2_enable_disable,omitempty"`
 }
 
 // Validate validates this ho algorithm configuration

@@ -234,6 +234,32 @@ type OptConfig = {
   pci: string,
   tac: string,
   a1_threshold_rsrp: string,
+  lte_a1_threshold_rsrq: string,
+  hysteresis: string,
+  time_to_trigger: string,
+  a2_threshold_rsrp: string,
+  lte_a2_threshold_rsrq: string,
+  lte_a2_threshold_rsrp_irat_volte: string,
+  lte_a2_threshold_rsrq_irat_volte: string,
+  a3_offset: string,
+  a3_offset_anr: string,
+  a4_threshold_rsrp: string,
+  lte_intra_a5_threshold_1_rsrp: string,
+  lte_intra_a5_threshold_2_rsrp: string,
+  lte_inter_anr_a5_threshold_1_rsrp: string,
+  lte_inter_anr_a5_threshold_2_rsrp: string,
+  b2_threshold1_rsrp: string,
+  b2_threshold2_rsrp: string,
+  b2_geran_irat_threshold: string,
+  qrxlevmin_sib1: string,
+  qrxlevminoffset: string,
+  s_intrasearch: string,
+  s_nonintrasearch: string,
+  qrxlevmin_sib3: string,
+  reselection_priority: string,
+  threshservinglow: string,
+  ciphering_algorithm: string,
+  integrity_algorithm: string,
 };
 type OptKey = $Keys<OptConfig>;
 
@@ -282,6 +308,84 @@ export function RanEdit(props: Props) {
     tac: String(config.tac ?? ''),
     a1_threshold_rsrp: String(
       config.ho_algorithm_config.a1_threshold_rsrp ?? '',
+    ),
+    lte_a1_threshold_rsrq: String(
+      config.ho_algorithm_config.lte_a1_threshold_rsrq ?? '',
+    ),
+    hysteresis: String(
+      config.ho_algorithm_config.hysteresis ?? '',
+    ),
+    time_to_trigger: String(
+      config.ho_algorithm_config.time_to_trigger ?? '',
+    ),
+    a2_threshold_rsrp: String(
+      config.ho_algorithm_config.a2_threshold_rsrp ?? '',
+    ),
+    lte_a2_threshold_rsrq: String(
+      config.ho_algorithm_config.lte_a2_threshold_rsrq ?? '',
+    ),
+    lte_a2_threshold_rsrp_irat_volte: String(
+      config.ho_algorithm_config.lte_a2_threshold_rsrp_irat_volte ?? '',
+    ),
+    lte_a2_threshold_rsrq_irat_volte: String(
+      config.ho_algorithm_config.lte_a2_threshold_rsrq_irat_volte ?? '',
+    ),
+    a3_offset: String(
+      config.ho_algorithm_config.a3_offset ?? '',
+    ),
+    a3_offset_anr: String(
+      config.ho_algorithm_config.a3_offset_anr ?? '',
+    ),
+    a4_threshold_rsrp: String(
+      config.ho_algorithm_config.a4_threshold_rsrp ?? '',
+    ),
+    lte_intra_a5_threshold_1_rsrp: String(
+      config.ho_algorithm_config.lte_intra_a5_threshold_1_rsrp ?? '',
+    ),
+    lte_intra_a5_threshold_2_rsrp: String(
+      config.ho_algorithm_config.lte_intra_a5_threshold_2_rsrp ?? '',
+    ),
+      lte_inter_anr_a5_threshold_1_rsrp: String(
+      config.ho_algorithm_config.lte_inter_anr_a5_threshold_1_rsrp ?? '',
+    ),
+      lte_inter_anr_a5_threshold_2_rsrp: String(
+      config.ho_algorithm_config.lte_inter_anr_a5_threshold_2_rsrp ?? '',
+    ),
+    b2_threshold1_rsrp: String(
+      config.ho_algorithm_config.b2_threshold1_rsrp ?? '',
+    ),
+    b2_threshold2_rsrp: String(
+      config.ho_algorithm_config.b2_threshold2_rsrp ?? '',
+    ),
+    b2_geran_irat_threshold: String(
+      config.ho_algorithm_config.b2_geran_irat_threshold ?? '',
+    ),
+    qrxlevmin_sib1: String(
+      config.ho_algorithm_config.qrxlevmin_sib1 ?? '',
+    ),
+    qrxlevminoffset: String(
+      config.ho_algorithm_config.qrxlevminoffset ?? '',
+    ),
+    s_intrasearch: String(
+      config.ho_algorithm_config.s_intrasearch ?? '',
+    ),
+    s_nonintrasearch: String(
+      config.ho_algorithm_config.s_nonintrasearch ?? '',
+    ),
+    qrxlevmin_sib3: String(
+      config.ho_algorithm_config.qrxlevmin_sib3 ?? '',
+    ),
+    reselection_priority: String(
+      config.ho_algorithm_config.reselection_priority ?? '',
+    ),
+    threshservinglow: String(
+      config.ho_algorithm_config.threshservinglow ?? '',
+    ),
+    ciphering_algorithm: String(
+      config.ho_algorithm_config.ciphering_algorithm ?? '',
+    ),
+    integrity_algorithm: String(
+      config.ho_algorithm_config.integrity_algorithm ?? '',
     ),
   });
 
@@ -487,6 +591,293 @@ export function RanEdit(props: Props) {
                   }
                 />
               </AltFormField>
+              <AltFormField label={'lte a1 threshold rsrq'}>
+                <OutlinedInput
+                  data-testid="lte_a1_threshold_rsrq"
+                  placeholder="Enter LTEA1THRESHOLDRSRQ"
+                  fullWidth={true}
+                  value={optConfig.lte_a1_threshold_rsrq}
+                  onChange={({target}) =>
+                    handleOptChange('lte_a1_threshold_rsrq', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'hysteresis'}>
+                <OutlinedInput
+                  data-testid="hysteresis"
+                  placeholder="Enter HYSTERESIS"
+                  fullWidth={true}
+                  value={optConfig.hysteresis}
+                  onChange={({target}) =>
+                    handleOptChange('hysteresis', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'time to trigger'}>
+                <OutlinedInput
+                  data-testid="time_to_trigger"
+                  placeholder="Enter TIMETOTRIGGER"
+                  fullWidth={true}
+                  value={optConfig.time_to_trigger.toString()}
+                  onChange={({target}) =>
+                    handleOptChange('time_to_trigger', target.value.toString())
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'a2 threshold rsrp'}>
+                <OutlinedInput
+                  data-testid="a2_threshold_rsrp"
+                  placeholder="Enter A2THRESHOLDRSRP"
+                  fullWidth={true}
+                  value={optConfig.a2_threshold_rsrp}
+                  onChange={({target}) =>
+                    handleOptChange('a2_threshold_rsrp', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'lte a2 threshold rsrq'}>
+                <OutlinedInput
+                  data-testid="lte_a2_threshold_rsrq"
+                  placeholder="Enter LTEA2THRESHOLDRSRQ"
+                  fullWidth={true}
+                  value={optConfig.lte_a2_threshold_rsrq}
+                  onChange={({target}) =>
+                    handleOptChange('lte_a2_threshold_rsrq', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'lte a2 threshold rsrp irat volte'}>
+                <OutlinedInput
+                  data-testid="lte_a2_threshold_rsrp_irat_volte"
+                  placeholder="Enter LTEA2THRESHOLDRSRPIRATVOLTE"
+                  fullWidth={true}
+                  value={optConfig.lte_a2_threshold_rsrp_irat_volte}
+                  onChange={({target}) =>
+                    handleOptChange('lte_a2_threshold_rsrp_irat_volte', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'lte a2 threshold rsrq irat volte'}>
+                <OutlinedInput
+                  data-testid="lte_a2_threshold_rsrq_irat_volte"
+                  placeholder="Enter LTEA2THRESHOLDRSRQIRATVOLTE"
+                  fullWidth={true}
+                  value={optConfig.lte_a2_threshold_rsrq_irat_volte}
+                  onChange={({target}) =>
+                    handleOptChange('lte_a2_threshold_rsrq_irat_volte', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'a3 offset'}>
+                <OutlinedInput
+                  data-testid="a3_offset"
+                  placeholder="Enter A3OFFSET"
+                  fullWidth={true}
+                  value={optConfig.a3_offset}
+                  onChange={({target}) =>
+                    handleOptChange('a3_offset', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'a3 offset anr'}>
+                <OutlinedInput
+                  data-testid="a3_offset_anr"
+                  placeholder="Enter A3OFFSETANR"
+                  fullWidth={true}
+                  value={optConfig.a3_offset_anr}
+                  onChange={({target}) =>
+                    handleOptChange('a3_offset_anr', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'a4 threshold rsrp'}>
+                <OutlinedInput
+                  data-testid="a4_threshold_rsrp"
+                  placeholder="Enter A4THRESHOLDRSRP"
+                  fullWidth={true}
+                  value={optConfig.a4_threshold_rsrp}
+                  onChange={({target}) =>
+                    handleOptChange('a4_threshold_rsrp', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'lte intraa5 threshold1 rsrp'}>
+                <OutlinedInput
+                  data-testid="lte_intra_a5_threshold_1_rsrp"
+                  placeholder="Enter LTEINTRAA5THRESHOLD1RSRP"
+                  fullWidth={true}
+                  value={optConfig.lte_intra_a5_threshold_1_rsrp}
+                  onChange={({target}) =>
+                    handleOptChange('lte_intra_a5_threshold_1_rsrp', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'lte intraa5 threshold2 rsrp'}>
+                <OutlinedInput
+                  data-testid="lte_intra_a5_threshold_2_rsrp"
+                  placeholder="Enter LTEINTRAA5THRESHOLD2RSRP"
+                  fullWidth={true}
+                  value={optConfig.lte_intra_a5_threshold_2_rsrp}
+                  onChange={({target}) =>
+                    handleOptChange('lte_intra_a5_threshold_2_rsrp', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'lte interanra5 threshold1 rsrp'}>
+                <OutlinedInput
+                  data-testid="lte_inter_anr_a5_threshold_1_rsrp"
+                  placeholder="Enter LTEINTERANRA5THRESHOLD1RSRP"
+                  fullWidth={true}
+                  value={optConfig.lte_inter_anr_a5_threshold_1_rsrp}
+                  onChange={({target}) =>
+                    handleOptChange('lte_inter_anr_a5_threshold_1_rsrp', target.value)
+                }
+                />
+              </AltFormField>
+              <AltFormField label={'lte interanra5 threshold2 rsrp'}>
+                <OutlinedInput
+                  data-testid="lte_inter_anr_a5_threshold_2_rsrp"
+                  placeholder="Enter LTEINTERANRA5THRESHOLD2RSRP"
+                  fullWidth={true}
+                  value={optConfig.lte_inter_anr_a5_threshold_2_rsrp}
+                  onChange={({target}) =>
+                    handleOptChange('lte_inter_anr_a5_threshold_2_rsrp', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'b2 threshold1 rsrp'}>
+                <OutlinedInput
+                  data-testid="b2_threshold1_rsrp"
+                  placeholder="Enter B2THRESHOLD1RSRP"
+                  fullWidth={true}
+                  value={optConfig.b2_threshold1_rsrp}
+                  onChange={({target}) =>
+                    handleOptChange('b2_threshold1_rsrp', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'b2 threshold2 rsrp'}>
+                <OutlinedInput
+                  data-testid="b2_threshold2_rsrp"
+                  placeholder="Enter B2THRESHOLD2RSRP"
+                  fullWidth={true}
+                  value={optConfig.b2_threshold2_rsrp}
+                  onChange={({target}) =>
+                    handleOptChange('b2_threshold2_rsrp', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'b2 geran irat threshold'}>
+                <OutlinedInput
+                  data-testid="b2_geran_irat_threshold"
+                  placeholder="Enter B2GERANIRATTHRESHOLD"
+                  fullWidth={true}
+                  value={optConfig.b2_geran_irat_threshold}
+                  onChange={({target}) =>
+                    handleOptChange('b2_geran_irat_threshold', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'qrxlevmin sib1'}>
+                <OutlinedInput
+                  data-testid="qrxlevmin_sib1"
+                  placeholder="Enter QRXLEVMINSIB1"
+                  fullWidth={true}
+                  value={optConfig.qrxlevmin_sib1}
+                  onChange={({target}) =>
+                    handleOptChange('qrxlevmin_sib1', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'qrxlevminoffset'}>
+                <OutlinedInput
+                  data-testid="qrxlevminoffset"
+                  placeholder="Enter QRXLEVMINOFFSET"
+                  fullWidth={true}
+                  value={optConfig.qrxlevminoffset}
+                  onChange={({target}) =>
+                    handleOptChange('qrxlevminoffset', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'s intrasearch'}>
+                <OutlinedInput
+                  data-testid="s_intrasearch"
+                  placeholder="Enter SINTRASEARCH"
+                  fullWidth={true}
+                  value={optConfig.s_intrasearch}
+                  onChange={({target}) =>
+                    handleOptChange('s_intrasearch', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'s nonintrasearch'}>
+                <OutlinedInput
+                  data-testid="s_nonintrasearch"
+                  placeholder="Enter SNONINTRASEARCH"
+                  fullWidth={true}
+                  value={optConfig.s_nonintrasearch}
+                  onChange={({target}) =>
+                    handleOptChange('s_nonintrasearch', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'qrxlevmin sib3'}>
+                <OutlinedInput
+                  data-testid="qrxlevmin_sib3"
+                  placeholder="Enter QRXLEVMINSIB3"
+                  fullWidth={true}
+                  value={optConfig.qrxlevmin_sib3}
+                  onChange={({target}) =>
+                    handleOptChange('qrxlevmin_sib3', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'reselection priority'}>
+                <OutlinedInput
+                  data-testid="reselection_priority"
+                  placeholder="Enter RESELECTIONPRIORITY"
+                  fullWidth={true}
+                  value={optConfig.reselection_priority}
+                  onChange={({target}) =>
+                    handleOptChange('reselection_priority', target.value)
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'threshservinglow'}>
+                <OutlinedInput
+                  data-testid="threshservinglow"
+                  placeholder="Enter THRESHSERVINGLOW"
+                  fullWidth={true}
+                  value={optConfig.threshservinglow}
+                  onChange={({target}) =>
+                    handleOptChange('threshservinglow', target.value)
+                  }
+                />
+              </AltFormField>
+
+              <AltFormField label={'ciphering algorithm'}>
+                <OutlinedInput
+                  data-testid="ciphering_algorithm"
+                  placeholder="Enter CIPHERINGALGORITHM"
+                  fullWidth={true}
+                  value={optConfig.ciphering_algorithm.toString()}
+                  onChange={({target}) =>
+                    handleOptChange('ciphering_algorithm', target.value.toString())
+                  }
+                />
+              </AltFormField>
+              <AltFormField label={'integrity algorithm'}>
+                <OutlinedInput
+                  data-testid="integrity_algorithm"
+                  placeholder="Enter INTEGRITYALGORITHM"
+                  fullWidth={true}
+                  value={optConfig.integrity_algorithm.toString()}
+                  onChange={({target}) =>
+                    handleOptChange('integrity_algorithm', target.value.toString())
+                  }
+                />
+              </AltFormField>
 
               <AltFormField label={'Transmit'}>
                 <FormControl variant={'outlined'}>
@@ -645,6 +1036,32 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     bandwidth_mhz: optConfig.bandwidthMhz,
     ho_algorithm_config: {
       a1_threshold_rsrp: null,
+      lte_a1_threshold_rsrq: null,
+      hysteresis: null,
+      time_to_trigger: null,
+      a2_threshold_rsrp: null,
+      lte_a2_threshold_rsrq: null,
+      lte_a2_threshold_rsrp_irat_volte: null,
+      lte_a2_threshold_rsrq_irat_volte: null,
+      a3_offset: null,
+      a3_offset_anr: null,
+      a4_threshold_rsrp: null,
+      lte_intra_a5_threshold_1_rsrp: null,
+      lte_intra_a5_threshold_2_rsrp: null,
+      lte_inter_anr_a5_threshold_1_rsrp: null,
+      lte_inter_anr_a5_threshold_2_rsrp: null,
+      b2_threshold1_rsrp: null,
+      b2_threshold2_rsrp: null,
+      b2_geran_irat_threshold: null,
+      qrxlevmin_sib1: null,
+      qrxlevminoffset: null,
+      s_intrasearch: null,
+      s_nonintrasearch: null,
+      qrxlevmin_sib3: null,
+      reselection_priority: null,
+      threshservinglow: null,
+      ciphering_algorithm: null,
+      integrity_algorithm: null,
     },
   };
 
@@ -692,5 +1109,141 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
       optConfig.a1_threshold_rsrp,
     );
   }
+  if (optConfig.lte_a1_threshold_rsrq !== '') {
+    response.ho_algorithm_config.lte_a1_threshold_rsrq = parseInt(
+      optConfig.lte_a1_threshold_rsrq,
+    );
+  }
+  if (optConfig.hysteresis !== '') {
+    response.ho_algorithm_config.hysteresis = parseInt(
+      optConfig.hysteresis,
+    );
+  }
+  if (optConfig.time_to_trigger !== '') {
+    response.ho_algorithm_config.time_to_trigger = optConfig.time_to_trigger;
+  }
+  if (optConfig.a2_threshold_rsrp !== '') {
+    response.ho_algorithm_config.a2_threshold_rsrp = parseInt(
+      optConfig.a2_threshold_rsrp,
+    );
+  }
+  if (optConfig.lte_a2_threshold_rsrq !== '') {
+    response.ho_algorithm_config.lte_a2_threshold_rsrq = parseInt(
+      optConfig.lte_a2_threshold_rsrq,
+    );
+  }
+  if (optConfig.lte_a2_threshold_rsrq !== '') {
+    response.ho_algorithm_config.lte_a2_threshold_rsrq = parseInt(
+      optConfig.lte_a2_threshold_rsrq,
+    );
+  }
+  if (optConfig.lte_a2_threshold_rsrp_irat_volte !== '') {
+    response.ho_algorithm_config.lte_a2_threshold_rsrp_irat_volte = parseInt(
+      optConfig.lte_a2_threshold_rsrp_irat_volte,
+    );
+  }if (optConfig.lte_a2_threshold_rsrq_irat_volte !== '') {
+    response.ho_algorithm_config.lte_a2_threshold_rsrq_irat_volte = parseInt(
+      optConfig.lte_a2_threshold_rsrq_irat_volte,
+    );
+  }
+  if (optConfig.a3_offset !== '') {
+    response.ho_algorithm_config.a3_offset = parseInt(
+      optConfig.a3_offset,
+    );
+  }
+  if (optConfig.a3_offset_anr !== '') {
+    response.ho_algorithm_config.a3_offset_anr = parseInt(
+      optConfig.a3_offset_anr,
+    );
+  }if (optConfig.a4_threshold_rsrp !== '') {
+    response.ho_algorithm_config.a4_threshold_rsrp = parseInt(
+      optConfig.a4_threshold_rsrp,
+    );
+  }
+  if (optConfig.lte_intra_a5_threshold_1_rsrp !== '') {
+    response.ho_algorithm_config.lte_intra_a5_threshold_1_rsrp = parseInt(
+      optConfig.lte_intra_a5_threshold_1_rsrp,
+    );
+  }
+  if (optConfig.lte_intra_a5_threshold_2_rsrp !== '') {
+    response.ho_algorithm_config.lte_intra_a5_threshold_2_rsrp = parseInt(
+      optConfig.lte_intra_a5_threshold_2_rsrp,
+    );
+  }
+  if (optConfig.lte_inter_anr_a5_threshold_1_rsrp !== '') {
+    response.ho_algorithm_config.lte_inter_anr_a5_threshold_1_rsrp = parseInt(
+      optConfig.lte_inter_anr_a5_threshold_1_rsrp,
+    );
+  }
+  if (optConfig.lte_inter_anr_a5_threshold_2_rsrp !== '') {
+    response.ho_algorithm_config.lte_inter_anr_a5_threshold_2_rsrp = parseInt(
+      optConfig.lte_inter_anr_a5_threshold_2_rsrp,
+    );
+  }
+  if (optConfig.b2_threshold1_rsrp !== '') {
+    response.ho_algorithm_config.b2_threshold1_rsrp = parseInt(
+      optConfig.b2_threshold1_rsrp,
+    );
+  }
+  if (optConfig.b2_threshold2_rsrp !== '') {
+    response.ho_algorithm_config.b2_threshold2_rsrp = parseInt(
+      optConfig.b2_threshold2_rsrp,
+    );
+  }
+  if (optConfig.b2_geran_irat_threshold !== '') {
+    response.ho_algorithm_config.b2_geran_irat_threshold = parseInt(
+      optConfig.b2_geran_irat_threshold,
+    );
+  }
+  if (optConfig.qrxlevmin_sib1 !== '') {
+    response.ho_algorithm_config.qrxlevmin_sib1 = parseInt(
+      optConfig.qrxlevmin_sib1,
+    );
+  }
+  if (optConfig.qrxlevminoffset !== '') {
+    response.ho_algorithm_config.qrxlevminoffset = parseInt(
+      optConfig.qrxlevminoffset,
+    );
+  }
+  if (optConfig.s_intrasearch !== '') {
+    response.ho_algorithm_config.s_intrasearch = parseInt(
+      optConfig.s_intrasearch,
+    );
+  }
+  if (optConfig.s_nonintrasearch !== '') {
+    response.ho_algorithm_config.s_nonintrasearch = parseInt(
+      optConfig.s_nonintrasearch,
+    );
+  }
+  if (optConfig.qrxlevmin_sib3 !== '') {
+    response.ho_algorithm_config.qrxlevmin_sib3 = parseInt(
+      optConfig.qrxlevmin_sib3,
+    );
+  }
+  if (optConfig.reselection_priority !== '') {
+    response.ho_algorithm_config.reselection_priority = parseInt(
+      optConfig.reselection_priority,
+    );
+  }
+  /*if (optConfig.a1_threshold_rsrp !== '') {
+    response.ho_algorithm_config.a1_threshold_rsrp = parseInt(
+      optConfig.a1_threshold_rsrp,
+    );
+  }*/
+  if (optConfig.threshservinglow !== '') {
+    response.ho_algorithm_config.threshservinglow = parseInt(
+      optConfig.threshservinglow,
+    );
+  }
+  if (optConfig.ciphering_algorithm !== '') {
+    response.ho_algorithm_config.ciphering_algorithm = optConfig.ciphering_algorithm;
+  }
+  if (optConfig.integrity_algorithm !== '') {
+    response.ho_algorithm_config.integrity_algorithm = optConfig.integrity_algorithm;
+  }
+
+
+
+
   return response;
 }
