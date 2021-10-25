@@ -52,14 +52,12 @@ type directorydBlobstore struct {
 }
 
 func (d *directorydBlobstore) GetHostnameForHWID(hwid string) (string, error) {
-
 	res, err := d.getFromStore(placeholderNetworkID, DirectorydTypeHWIDToHostname, hwid)
 	printIfError(err, "Error GetHostnameForHWID: %+v", err)
 	return res, err
 }
 
 func (d *directorydBlobstore) GetIMSIForSessionID(networkID, sessionID string) (string, error) {
-
 	res, err := d.getFromStore(networkID, DirectorydTypeSessionIDToIMSI, sessionID)
 	printIfError(err, "Error GetIMSIForSessionID: %+v", err)
 	return res, err
@@ -146,13 +144,7 @@ func (d *directorydBlobstore) unmapFromStore(networkID, tkType string, keys []st
 	}
 	defer store.Rollback()
 
-	tks := storage.TKs{}
-	for _, key := range keys {
-		tks = append(tks, storage.TK{Type: tkType, Key: key})
-
-	}
-
-	err = store.Delete(networkID, tks)
+	err = store.Delete(networkID, storage.MakeTKs(tkType, keys))
 	if err != nil {
 		return errors.Wrapf(err, "failed to unmapFromStore with keys %s for tkKey %s", keys, tkType)
 	}
