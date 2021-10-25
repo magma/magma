@@ -430,7 +430,8 @@ status_code_e ngap_amf_handle_ng_setup_request(
    */
   if (ta_ret != TA_LIST_RET_OK) {
     OAILOG_ERROR(
-        LOG_NGAP, "No Common PLMN with gNB, generate_ng_setup_failure\n");
+        LOG_NGAP, "No Common PLMN with gNB, generate_ng_setup_failure : %d\n",
+        (int) ta_ret);
     rc = ngap_amf_generate_ng_setup_failure(
         assoc_id, Ngap_Cause_PR_misc, Ngap_CauseMisc_unknown_PLMN,
         Ngap_TimeToWait_v20s);
@@ -648,7 +649,7 @@ static void _ngap_amf_generate_ng_setup_response_pdu(Ngap_NGAP_PDU_t* pdu) {
     INT8_TO_OCTET_STRING(
         amf_config.plmn_support_list.plmn_support[i].s_nssai.sst, sST);
     if (amf_config.plmn_support_list.plmn_support[i].s_nssai.sd.v !=
-        NGAP_S_NSSAI_SD_INVALID_VALUE) {
+        AMF_S_NSSAI_SD_INVALID_VALUE) {
       // defaultSliceDifferentiator
       s_NSSAI->sD = CALLOC(1, sizeof(Ngap_SD_t));
       INT24_TO_OCTET_STRING(
