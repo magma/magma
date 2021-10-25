@@ -69,7 +69,7 @@ class SPGWAppProcedureTest : public ::testing::Test {
     std::cout << "Running setup" << std::endl;
     // initialize the SPGW task
     spgw_app_init(&spgw_config, mme_config.use_stateless);
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
   }
 
   virtual void TearDown() {

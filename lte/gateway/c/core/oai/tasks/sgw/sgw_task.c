@@ -245,11 +245,12 @@ status_code_e spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
     return RETURNerror;
   }
 
+/*
   if (RETURNerror ==
       pgw_pcef_emulation_init(spgw_state_p, &spgw_config_pP->pgw_config)) {
     return RETURNerror;
   }
-
+*/
   if (itti_create_task(TASK_SPGW_APP, &spgw_app_thread, NULL) < 0) {
     perror("pthread_create");
     OAILOG_ALERT(LOG_SPGW_APP, "Initializing SPGW-APP task interface: ERROR\n");
