@@ -79,6 +79,8 @@ void update_mme_app_stats_attached_ue_add(void) {
 void update_mme_app_stats_attached_ue_sub(void) {
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   if (mme_app_desc_p->nb_ue_attached != 0) (mme_app_desc_p->nb_ue_attached)--;
+  mme_app_desc_p->nb_ue_idle = get_max(
+      mme_app_desc_p->nb_ue_attached - mme_app_desc_p->nb_ue_connected, 0);
   return;
 }
 /*****************************************************/

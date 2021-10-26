@@ -148,15 +148,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
             LOG_MME_APP,
             "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT "\n",
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
-        printf(
-            "\n\nS11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT "\n",
-            received_message_p->ittiMsg.s11_modify_bearer_response.teid);
         if ((!ue_context_p->path_switch_req) && (!ue_context_p->erab_mod_ind)) {
           /* Updating statistics */
           mme_app_handle_modify_bearer_rsp(
               &received_message_p->ittiMsg.s11_modify_bearer_response,
               ue_context_p);
-          printf("\n\nCalling update_mme_app_stats_s1u_bearer_add() \n\n");
           update_mme_app_stats_s1u_bearer_add();
         } else if (ue_context_p->path_switch_req) {
           mme_app_handle_path_switch_req_ack(
@@ -189,7 +185,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S11_RELEASE_ACCESS_BEARERS_RESPONSE: {
-      printf("\n\nAT mme_app_handle_release_access_bearers_resp(...)\n\n");
       mme_app_handle_release_access_bearers_resp(
           mme_app_desc_p,
           &received_message_p->ittiMsg.s11_release_access_bearers_response);

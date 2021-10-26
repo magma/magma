@@ -44,7 +44,6 @@ void mme_app_select_sgw(
       mme_config.e_dns_emulation.sgw_ip_addr[0].s_addr;
   ((struct sockaddr_in*) sgw_in_addr)->sin_family = AF_INET;
 
-  printf("Received SGW IP Address %p\n", (void*) sgw_in_addr);
   OAILOG_DEBUG(
       LOG_MME_APP, "SGW  returned %s\n",
       inet_ntoa(((struct sockaddr_in*) sgw_in_addr)->sin_addr));

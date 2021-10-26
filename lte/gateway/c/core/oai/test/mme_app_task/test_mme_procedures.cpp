@@ -765,7 +765,7 @@ TEST_F(MmeAppProcedureTest, TestIcsRequestTimeout) {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
-TEST_F(MmeAppProcedureTest, TestMobileOriginatedServiceReq) {
+TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
@@ -870,6 +870,7 @@ TEST_F(MmeAppProcedureTest, TestMobileOriginatedServiceReq) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));

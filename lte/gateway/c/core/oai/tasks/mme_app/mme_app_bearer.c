@@ -606,10 +606,6 @@ imsi64_t mme_app_handle_initial_ue_message(
   }
   // Check if there is any existing UE context using S-TMSI/GUTI
   if (initial_pP->is_s_tmsi_valid) {
-    printf(
-        "\n\nINITIAL UE Message: Valid mme_code %u and S-TMSI %u received from "
-        "eNB.\n\n",
-        initial_pP->opt_s_tmsi.mme_code, initial_pP->opt_s_tmsi.m_tmsi);
     OAILOG_DEBUG(
         LOG_MME_APP,
         "INITIAL UE Message: Valid mme_code %u and S-TMSI %u received from "
@@ -677,9 +673,6 @@ imsi64_t mme_app_handle_initial_ue_message(
           ue_context_p->paging_retx_count                  = 0;
         }
       } else {
-        printf(
-            "\n\nNo UE context found for MME code %u and S-TMSI %u\n\n",
-            initial_pP->opt_s_tmsi.mme_code, initial_pP->opt_s_tmsi.m_tmsi);
         OAILOG_DEBUG(
             LOG_MME_APP, "No UE context found for MME code %u and S-TMSI %u\n",
             initial_pP->opt_s_tmsi.mme_code, initial_pP->opt_s_tmsi.m_tmsi);
@@ -697,7 +690,6 @@ imsi64_t mme_app_handle_initial_ue_message(
   }
   // create a new ue context if nothing is found
   if (!(ue_context_p)) {
-    printf("\n\nUE context doesn't exist -> create one\n\n");
     OAILOG_DEBUG(LOG_MME_APP, "UE context doesn't exist -> create one\n");
     if (!(ue_context_p = mme_create_new_ue_context())) {
       /*
@@ -1704,7 +1696,6 @@ void mme_app_handle_release_access_bearers_resp(
   /*
    * Updating statistics
    */
-  printf("\n\n I AM HEREEEEE!!!!! \n\n");
   update_mme_app_stats_s1u_bearer_sub();
 
   // Send UE Context Release Command
