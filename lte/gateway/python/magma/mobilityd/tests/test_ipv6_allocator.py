@@ -37,7 +37,7 @@ class TestIPV6Allocator(unittest.TestCase):
         """
         Creates and sets up an IPAllocator with the given IPv6 block.
         """
-        store = MobilityStore(fakeredis.FakeStrictRedis(), False, 3980)
+        store = MobilityStore(fakeredis.FakeStrictRedis())
         allocator = IPv6AllocatorPool(store, 'RANDOM')
         allocator.add_ip_block(block)
         return allocator

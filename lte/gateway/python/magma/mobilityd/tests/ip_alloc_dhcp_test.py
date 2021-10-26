@@ -19,6 +19,7 @@ import threading
 import unittest.mock
 from ipaddress import ip_network
 
+import fakeredis
 from magma.common.redis.client import get_default_client
 from magma.mobilityd.ip_address_man import (
     IPAddressManager,
@@ -64,7 +65,7 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         ]
         subprocess.check_call(setup_uplink_br)
 
-        store = MobilityStore(get_default_client(), False, 3980)
+        store = MobilityStore(fakeredis.FakeStrictRedis())
         ipv4_allocator = IPAllocatorDHCP(
             store, iface='t0uplink_p0',
             retry_limit=50,

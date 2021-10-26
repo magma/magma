@@ -60,3 +60,6 @@ event_registry:
   s1_setup_success:
     module: lte
     filename: mme_events.v1.yml
+
+# [Experimental] Enable Sentry for this service
+sentry_enabled: false

@@ -424,14 +424,14 @@ class IPAddressManager:
                     sid, ip, sid, self._store.sid_ips_map.get(sid),
                 )
                 raise MappingNotFoundError(
-                    "(%s, %s) pair is not found", sid, str(ip),
+                    "(%s, %s) pair is not found" % (sid, ip),
                 )
             if not self.is_ip_in_state(ip, IPState.ALLOCATED):
                 logging.error(
                     "IP not found in used list, check if IP is "
                     "already released: <%s, %s>", sid, ip,
                 )
-                raise IPNotInUseError("IP not found in used list: %s", str(ip))
+                raise IPNotInUseError("IP not found in used list: %s" % ip)
 
             IP_RELEASED_TOTAL.inc()
 
@@ -454,7 +454,7 @@ class IPAddressManager:
     def set_gateway_info(self, info: GWInfo):
         ip = str(ipaddress.ip_address(info.ip.address))
         with self._lock:
-            self._store.dhcp_gw_info.update_mac(ip, info.mac, info.vlan)
+            self._store.dhcp_gw_info.update_mac(ip, info.mac, info.vlan, info.ip.version)
 
     def _recycle_reaped_ips(self):
         """ Periodically called to recycle the given IPs

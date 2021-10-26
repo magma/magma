@@ -11,6 +11,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ################################################################################
+- name: Ensure ca-certificates is up to date
+  become: yes
+  apt:
+    name: "{{ packages }}"
+    only_upgrade: yes
+  vars:
+    packages:
+      - ca-certificates
 
 - name: Add GPG key for magma repository
   apt_key:

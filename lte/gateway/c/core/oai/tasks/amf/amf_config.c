@@ -794,3 +794,18 @@ static bool parse_bool(const char* str) {
 
   Fatal("Error in config file: got \"%s\" but expected bool\n", str);
 }
+
+/***************************************************************************
+**                                                                        **
+** Name:   amf_config_free()                                              **
+**                                                                        **
+** Description: de-initializes the amf config                             **
+**                                                                        **
+**                                                                        **
+***************************************************************************/
+void amf_config_free(amf_config_t* amf_config) {
+  free_wrapper((void**) &amf_config->served_tai.plmn_mcc);
+  free_wrapper((void**) &amf_config->served_tai.plmn_mnc);
+  free_wrapper((void**) &amf_config->served_tai.plmn_mnc_len);
+  free_wrapper((void**) &amf_config->served_tai.tac);
+}

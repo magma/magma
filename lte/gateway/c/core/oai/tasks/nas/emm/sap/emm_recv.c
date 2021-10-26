@@ -24,6 +24,7 @@
 #include "3gpp_24.008.h"
 #include "emm_recv.h"
 #include "common_defs.h"
+#include "dynamic_memory_check.h"
 #include "log.h"
 #include "emm_cause.h"
 #include "emm_proc.h"
@@ -208,7 +209,7 @@ status_code_e emm_recv_attach_request(
     rc         = emm_proc_attach_reject(ue_id, *emm_cause);
     *emm_cause = EMM_CAUSE_SUCCESS;
     // Free the ESM container
-    bdestroy(msg->esmmessagecontainer);
+    bdestroy_wrapper(&(msg->esmmessagecontainer));
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
@@ -229,10 +230,13 @@ status_code_e emm_recv_attach_request(
     rc         = emm_proc_attach_reject(ue_id, EMM_CAUSE_CONGESTION);
     *emm_cause = EMM_CAUSE_SUCCESS;
     // Free the ESM container
-    bdestroy(msg->esmmessagecontainer);
+    bdestroy_wrapper(&(msg->esmmessagecontainer));
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
+  // Dynamic memory allocation, if attach procedure is to be created
+  // it should be freed when attach proc is freed. Otherwise, it should
+  // be cleaned up properly
   emm_attach_request_ies_t* params = calloc(1, sizeof(*params));
   /*
    * Message processing
@@ -319,7 +323,7 @@ status_code_e emm_recv_attach_request(
       free_emm_attach_request_ies(
           (emm_attach_request_ies_t * * const) & params);
       // Free the ESM container
-      bdestroy(msg->esmmessagecontainer);
+      bdestroy_wrapper(&(msg->esmmessagecontainer));
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
 

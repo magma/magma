@@ -26,7 +26,7 @@ let browser;
 beforeEach(async () => {
   jest.setTimeout(60000);
   browser = await puppeteer.launch({
-    args: ['--ignore-certificate-errors'],
+    args: ['--ignore-certificate-errors', '--window-size=1920,1080'],
     headless: true,
     defaultViewport: null,
   });

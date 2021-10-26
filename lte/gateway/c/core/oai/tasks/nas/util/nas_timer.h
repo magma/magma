@@ -57,8 +57,8 @@ typedef int (*time_out_t)(zloop_t* loop, int timer_id, void* args);
 
 /* Timer structure */
 typedef struct nas_timer_s {
-  long int id;  /* The timer identifier                 */
-  uint32_t sec; /* The timer interval value in seconds  */
+  long int id;   /* The timer identifier                     */
+  uint32_t msec; /* The timer interval value in milliseconds */
 } nas_timer_t;
 
 typedef struct timer_arg_s {
