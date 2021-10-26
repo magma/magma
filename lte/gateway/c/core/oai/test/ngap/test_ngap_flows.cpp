@@ -358,7 +358,7 @@ TEST_F(NgapFlowTest, initial_context_setup_response_sunny_day) {
       reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
-  // Verify initial_context_Setup_rsp is encoded correctly
+  // Verify initial_context_setup_rsp is encoded correctly
   EXPECT_EQ(
       ngap_amf_handle_message(
           state, peerInfo.assoc_id, peerInfo.instreams, &decoded_pdu),
