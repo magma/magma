@@ -19,12 +19,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"magma/orc8r/lib/go/util"
-
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
+
+	"magma/orc8r/lib/go/util"
 )
 
 type (
@@ -176,23 +176,15 @@ func AttachHandlers(e *echo.Echo, handlers []Handler, m ...echo.MiddlewareFunc) 
 	}
 }
 
-// HTTPError wraps the passed error as an HTTP error and reformats rpc errors.
+// MakeHTTPError wraps the passed error as an echo HTTP error and reformats rpc errors.
+// echo.NewHTTPError is preferred where possible.
 // Code is optional, defaulting to http.StatusInternalServerError (500).
-func HTTPError(err error, code ...int) *echo.HTTPError {
+func MakeHTTPError(err error, code ...int) *echo.HTTPError {
 	status := http.StatusInternalServerError
 	if len(code) > 0 && isValidResponseCode(code[0]) {
 		status = code[0]
 	}
-	if isServerErrCode(status) {
-		glog.Infof("REST HTTP Error Status: %d, Message: %s", status, err)
-	} else {
-		glog.V(1).Infof("REST HTTP Error Status: %d, Message: %s", status, err)
-	}
 	return echo.NewHTTPError(status, grpc.ErrorDesc(err))
-}
-
-func isServerErrCode(code int) bool {
-	return code >= http.StatusInternalServerError && code <= http.StatusNetworkAuthenticationRequired
 }
 
 func isValidResponseCode(code int) bool {

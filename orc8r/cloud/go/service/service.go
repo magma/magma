@@ -174,7 +174,7 @@ func isServerErrCode(code int) bool {
 	return code >= http.StatusInternalServerError && code <= http.StatusNetworkAuthenticationRequired
 }
 
-// Logger is the middleware function
+// Logger is a middleware function that intelligently logs HTTP errors.
 func Logger(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		err := next(c)
@@ -182,9 +182,9 @@ func Logger(next echo.HandlerFunc) echo.HandlerFunc {
 			c.Error(err)
 			status := c.Response().Status
 			if isServerErrCode(status) {
-				glog.Infof("Error: %s", err)
+				glog.Infof("HTTP server error: %s", err)
 			} else {
-				glog.V(1).Infof("Error: %s", err)
+				glog.V(1).Infof("HTTP error: %s", err)
 			}
 		}
 		return err

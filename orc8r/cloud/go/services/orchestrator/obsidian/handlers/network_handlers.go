@@ -236,7 +236,7 @@ func getExistingDNSConfig(ctx context.Context, networkID string) (*models.Networ
 	if err == merrors.ErrNotFound {
 		return nil, echo.NewHTTPError(http.StatusNotFound)
 	} else if err != nil {
-		return nil, echo.NewHTTPError(http.StatusInternalServerError,err)
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return iDNSConfig.(*models.NetworkDNSConfig), nil
 }

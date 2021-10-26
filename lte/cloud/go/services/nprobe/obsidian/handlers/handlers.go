@@ -178,7 +178,7 @@ func updateNetworkProbeTask(c echo.Context) error {
 
 	_, err := configurator.UpdateEntity(reqCtx, networkID, payload.ToEntityUpdateCriteria(), serdes.Entity)
 	if err != nil {
-		return obsidian.HTTPError(err, http.StatusInternalServerError)
+		return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -298,7 +298,7 @@ func updateNetworkProbeDestination(c echo.Context) error {
 
 	_, err := configurator.UpdateEntity(reqCtx, networkID, payload.ToEntityUpdateCriteria(), serdes.Entity)
 	if err != nil {
-		return obsidian.HTTPError(err, http.StatusInternalServerError)
+		return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
