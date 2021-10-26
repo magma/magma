@@ -32,7 +32,7 @@ require (
 	github.com/magma/augmented-networks/accounting/protos v0.1.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	google.golang.org/grpc v1.31.0
 	magma/feg/cloud/go/protos v0.0.0
 	magma/lte/cloud/go v0.0.0
