@@ -195,7 +195,6 @@ jobs:
       - nms-flow-test
       - nms-eslint
       - nms-yarn-test
-      - nms-e2e-test
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: nms-build job
     runs-on: ubuntu-latest
