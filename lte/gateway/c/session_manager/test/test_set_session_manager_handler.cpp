@@ -738,7 +738,8 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(IMSI1, IP1, "rule1", 512, 512, record_list->Add());
-  // TODO(prabinak@wavelabs.ai): Will add EXPECT_CALL of report_updates & events_reporter.
+  // TODO(prabinak@wavelabs.ai): Will add EXPECT_CALL of report_updates &
+  // events_reporter.
 
   upf_session_manager->SendReportRuleStats(
       &server_context, &table,
