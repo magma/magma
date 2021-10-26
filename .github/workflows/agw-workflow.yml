@@ -130,8 +130,8 @@ jobs:
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
           run: |
-            cd /workspaces/magma/lte/gateway
-            make test_common
+            cd /workspaces/magma/
+            bazel test //orc8r/gateway/c/common/...:*
       - name: Run session_manager tests
         timeout-minutes: 10
         uses: addnab/docker-run-action@v2
@@ -140,8 +140,8 @@ jobs:
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
           run: |
-            cd /workspaces/magma/lte/gateway
-            make test_session_manager
+            cd /workspaces/magma/
+            bazel test //lte/gateway/c/session_manager/...:*
       - name: Extract commit title
         # yamllint enable
         if: failure() && github.ref == 'refs/heads/master'
