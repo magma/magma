@@ -30,6 +30,7 @@ import (
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/sqorc"
 
+	"github.com/golang/glog"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -64,10 +65,14 @@ func TestSingletonRun(t *testing.T) {
 	idx0.On("GetTypes").Return(allTypes).Once()
 	registerAndPopulateSingleton(t, idx0)
 	// Check
+	glog.Infof("IDX0 '%s", idx0)// TODO: fix, doesnt work
+
 	recvCh(t, ch)
 	idx0.AssertExpectations(t)
 	require.Equal(t, reindexSuccessNum, 1)
 	require.Equal(t, reindexDoneNum, 1)
+	glog.Infof("1 '%s", idx0)
+
 
 	// Bump existing indexer version
 	// Populate
@@ -75,11 +80,15 @@ func TestSingletonRun(t *testing.T) {
 	idx0a.On("GetTypes").Return(gwStateType).Once()
 	idx0a.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nNetworks)
 	registerAndPopulateSingleton(t, idx0a)
+	glog.Infof("2 '%s", idx0a)
+
 	// Check
 	recvCh(t, ch)
 	idx0a.AssertExpectations(t)
 	require.Equal(t, reindexSuccessNum, 2)
 	require.Equal(t, reindexDoneNum, 2)
+	glog.Infof("3 '%s", idx0a)
+
 
 	// Indexer returns err => reindex jobs fail
 	// Populate

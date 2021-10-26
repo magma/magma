@@ -19,7 +19,9 @@ import (
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state/indexer"
+	"magma/orc8r/cloud/go/services/state/indexer/metrics"
 	state_types "magma/orc8r/cloud/go/services/state/types"
+	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/util"
 
 	"github.com/golang/glog"
@@ -28,7 +30,7 @@ import (
 // This Reindexer runs as though it is a singleton
 type reindexerSingleton struct {
 	versioner Versioner
-	store Store
+	store     Store
 }
 
 func NewReindexerSingleton(store Store, versioner Versioner) Reindexer {
@@ -36,7 +38,76 @@ func NewReindexerSingleton(store Store, versioner Versioner) Reindexer {
 }
 
 func (r *reindexerSingleton) Run(ctx context.Context) {
+	batches := r.getReindexBatches(ctx)
+	for {
+		if isCanceled(ctx) {
+			glog.Warning("State reindexing async job canceled")
+			return
+		}
+		err := r.reindexJobs(ctx, batches)
+		if err == nil {
+			continue
+		}
+
+		if err == merrors.ErrNotFound {
+			glog.V(2).Infof("Failed to claim state reindex job from queue: %s", err)
+		} else {
+			glog.Errorf("Failed to get or complete state reindex job from queue: %s", err)
+		}
+		clock.Sleep(failedJobSleep)
+
+	}
 	r.RunUnsafe(ctx, "", nil)
+}
+
+// If no job available, returns ErrNotFound from magma/orc8r/lib/go/errors.
+func (r *reindexerSingleton) reindexJobs(ctx context.Context, batches []reindexBatch) error {
+	indexerID := ""
+
+	jobs, err := r.getJobs(indexerID)
+	glog.Infof("Reindex for indexer '%s' with reindex jobs: %+v", indexerID, jobs)
+	if err != nil || len(jobs) == 0 {
+		return err
+	}
+	if err != nil {
+		return wrap(err, ErrDefault, "")
+	}
+	if jobs == nil {
+		return merrors.ErrNotFound
+	}
+
+
+	for _, j := range jobs {
+		err = r.reindexJob(j, indexerID, ctx, batches, nil)
+		if err != nil {
+			return wrap(err, ErrDefault, indexerID)
+		}
+	}
+	return nil
+}
+
+func (r * reindexerSingleton) reindexJob(job *Job, indexerID string, ctx context.Context, batches []reindexBatch, sendUpdate func(string)) error {
+	defer TestHookReindexDone()
+	start := clock.Now()
+
+	glog.Infof("Reindex for indexer '%s', execute job %+v", indexerID, job)
+	jobErr := executeJob(ctx, job, batches)
+
+	err := r.versioner.SetIndexerActualVersion(job.Idx.GetID(), job.To)
+	if err != nil {
+		return fmt.Errorf("error completing state reindex job %+v with job err <%s>: %s", job, jobErr, err)
+	}
+	glog.V(2).Infof("Completed state reindex job %+v with job err %+v", job, jobErr)
+
+	duration := clock.Since(start).Seconds()
+	metrics.ReindexDuration.WithLabelValues(job.Idx.GetID()).Set(duration)
+	glog.Infof("Attempt at state reindex job %+v took %f seconds", job, duration)
+
+	TestHookReindexSuccess()
+	if sendUpdate != nil {
+		sendUpdate(fmt.Sprintf("indexer %s successfully reindexed from version %d to version %d", job.Idx.GetID(), job.From, job.To))
+	}
+	return nil
 }
 
 // TODO cleanup
@@ -50,19 +121,9 @@ func (r *reindexerSingleton) RunUnsafe(ctx context.Context, indexerID string, se
 	glog.Infof("Reindex for indexer '%s' with reindex jobs: %+v", indexerID, jobs)
 
 	for _, j := range jobs {
-		TestHookReindexDone()
-		glog.Infof("Reindex for indexer '%s', execute job %+v", indexerID, j)
-		err = executeJob(ctx, j, batches)
+		err = r.reindexJob(j, indexerID, ctx, batches, sendUpdate)
 		if err != nil {
 			return err
-		}
-		err = r.versioner.SetIndexerActualVersion(j.Idx.GetID(), j.To)
-		if err != nil {
-			return err
-		}
-		TestHookReindexSuccess()
-		if sendUpdate != nil {
-			sendUpdate(fmt.Sprintf("indexer %s successfully reindexed from version %d to version %d", j.Idx.GetID(), j.From, j.To))
 		}
 	}
 	return nil
@@ -76,6 +137,8 @@ func (r *reindexerSingleton) GetIndexerVersions() ([]*indexer.Versions, error) {
 // If indexer ID is non-empty, only gets job for that indexer.
 func (r *reindexerSingleton) getJobs(indexerID string) ([]*Job, error) {
 	idxs, err := getIndexers(indexerID)
+	glog.Infof("getIndexers '%s", idxs)
+
 	if err != nil {
 		return nil, err
 	}
@@ -127,5 +190,3 @@ func (r *reindexerSingleton) getReindexBatches(ctx context.Context) []reindexBat
 	}
 	return batches
 }
-
-
