@@ -1457,6 +1457,9 @@ workflows:
     jobs:
       - publish-amis-to-marketplace
 
+  quentin-test-ami:
+    jobs:
+      - publish-amis-to-marketplace
   nms:
     jobs:
       - nms-flow-test
