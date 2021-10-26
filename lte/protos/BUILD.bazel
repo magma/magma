@@ -11,6 +11,7 @@
 
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library", "cpp_proto_library")
+load("@rules_proto_grpc//python:defs.bzl", "python_grpc_library", "python_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -18,6 +19,12 @@ cpp_proto_library(
     name = "mconfigs_cpp_proto",
     protos = [":mconfigs_proto"],
     deps = ["//orc8r/protos:common_cpp_proto"],
+)
+
+python_proto_library(
+    name = "mconfigs_python_proto",
+    protos = [":mconfigs_proto"],
+    deps = ["//orc8r/protos:common_python_proto"],
 )
 
 proto_library(
@@ -46,6 +53,11 @@ cpp_proto_library(
     protos = [":apn_proto"],
 )
 
+python_proto_library(
+    name = "apn_python_proto",
+    protos = [":apn_proto"],
+)
+
 proto_library(
     name = "apn_proto",
     srcs = ["apn.proto"],
@@ -61,6 +73,16 @@ cpp_proto_library(
     ],
 )
 
+python_proto_library(
+    name = "subscriberdb_python_proto",
+    protos = [":subscriberdb_proto"],
+    deps = [
+        ":apn_python_proto",
+        "//orc8r/protos:common_python_proto",
+        "//orc8r/protos:digest_python_proto",
+    ],
+)
+
 cpp_grpc_library(
     name = "subscriberdb_cpp_grpc",
     protos = [":subscriberdb_proto"],
@@ -68,6 +90,16 @@ cpp_grpc_library(
         ":apn_cpp_proto",
         "//orc8r/protos:common_cpp_proto",
         "//orc8r/protos:digest_cpp_proto",
+    ],
+)
+
+python_grpc_library(
+    name = "subscriberdb_python_grpc",
+    protos = [":subscriberdb_proto"],
+    deps = [
+        ":apn_python_proto",
+        "//orc8r/protos:common_python_proto",
+        "//orc8r/protos:digest_python_proto",
     ],
 )
 

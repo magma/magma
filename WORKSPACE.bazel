@@ -12,6 +12,26 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//:third_party_repositories.bzl", "grpc", "protobuf")
 
+# rules_python import has to be higher in the WORKSPACE file because other rules below load an older
+# revision of rules_python, and WORKSPACE resolution doesn't support more than one variant.
+http_archive(
+    name = "rules_python",
+    sha256 = "cd6730ed53a002c56ce4e2f396ba3b3be262fd7cb68339f0377a45e8227fe332",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/0.5.0/rules_python-0.5.0.tar.gz",
+)
+
+load("@rules_python//python:pip.bzl", "pip_install", "pip_parse")
+
+pip_parse(
+    name = "pip3",
+    requirements_lock = "//experimental/bazel-base:requirements.txt",
+    extra_pip_args = ["--require-hashes"],
+)
+
+load("@pip3//:requirements.bzl", "install_deps")
+
+install_deps()
+
 ### BUILDIFIER DEPENDENCIES
 # See https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md
 # buildifier is written in Go and hence needs rules_go to be built.

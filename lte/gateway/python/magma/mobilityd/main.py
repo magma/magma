@@ -16,7 +16,7 @@ from typing import Any, Optional
 
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
-from magma.common.redis.client import get_default_client
+from orc8r.gateway.python.magma.common.redis.client import get_default_client
 from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
