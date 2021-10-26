@@ -15,10 +15,14 @@ limitations under the License.
 
 import argparse
 import json
-import os
-import subprocess
 
 from google.protobuf import json_format
+from load_tests.common import (
+    PROTO_DIR,
+    benchmark_grpc_request,
+    make_full_request_type,
+    make_output_file_path,
+)
 from lte.protos.apn_pb2 import AggregatedMaximumBitrate
 from lte.protos.pipelined_pb2 import (
     ActivateFlowsRequest,
@@ -32,12 +36,13 @@ from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.subscriberdb.sid import SIDUtils
 from scripts.pipelined_cli import _gen_ue_set
 
-PROTO_DIR = 'lte/protos'
-IMPORT_PATH = '/home/vagrant/magma'
-RESULTS_PATH = '/var/tmp'
+PIPELINED_SERVICE_NAME = 'pipelined'
+PIPELINED_SERVICE_RPC_PATH = 'magma.lte.Pipelined'
+PIPELINED_PORT = '0.0.0.0:50063'
+PROTO_PATH = PROTO_DIR + '/pipelined.proto'
 
 
-def _build_activate_flows_data(ue_dict, disable_qos):
+def _build_activate_flows_data(ue_dict, disable_qos: bool, input_file: str):
     activate_flow_reqs = []
 
     if disable_qos:
@@ -82,11 +87,11 @@ def _build_activate_flows_data(ue_dict, disable_qos):
         request_dict = json_format.MessageToDict(request)
         # Dumping ActivateFlows request into json
         activate_flow_reqs.append(request_dict)
-    with open('activate_flows.json', 'w') as file:
+    with open(input_file, 'w') as file:
         json.dump(activate_flow_reqs, file, separators=(',', ':'))
 
 
-def _build_deactivate_flows_data(ue_dict):
+def _build_deactivate_flows_data(ue_dict, input_file: str):
     deactivate_flow_reqs = []
 
     for ue in ue_dict:
@@ -105,53 +110,40 @@ def _build_deactivate_flows_data(ue_dict):
         request_dict = json_format.MessageToDict(request)
         # Dumping ActivateFlows request into json
         deactivate_flow_reqs.append(request_dict)
-    with open('deactivate_flows.json', 'w') as file:
+    with open(input_file, 'w') as file:
         json.dump(deactivate_flow_reqs, file, separators=(',', ':'))
 
 
-# Building gHZ cmd and call subprocess with given params
-def _get_ghz_cmd_params(req_type: str, num_reqs: int):
-    req_name = 'magma.lte.Pipelined/%s' % req_type
-    file_name = ''
-    if req_type == 'ActivateFlows':
-        file_name = 'activate_flows.json'
-    elif req_type == 'DeactivateFlows':
-        file_name = 'deactivate_flows.json'
-    else:
-        print('Use valid request type (ActivateFlows/DeactivateFlows)')
-        return
-    cmd_list = [
-        'ghz', '--insecure', '--proto',
-        '%s/pipelined.proto' % PROTO_DIR,
-        '-i', IMPORT_PATH, '--total', str(num_reqs),
-        '--call', req_name, '-D', file_name, '-O', 'json',
-        '-o', '%s/result_%s.json' % (RESULTS_PATH, req_type),
-        '0.0.0.0:50063',
-    ]
-
-    subprocess.call(cmd_list)
-    os.remove(file_name)
-
-
 def activate_flows_test(args):
+    input_file = 'activate_flows.json'
     ue_dict = _gen_ue_set(args.num_of_ues)
-    _build_activate_flows_data(ue_dict, args.disable_qos)
-    _benchmark_grpc_request(args, 'ActivateFlows')
+    _build_activate_flows_data(ue_dict, args.disable_qos, input_file)
+    request_type = 'ActivateFlows'
+    benchmark_grpc_request(
+        proto_path=PROTO_PATH,
+        full_request_type=make_full_request_type(
+            PIPELINED_SERVICE_RPC_PATH, request_type,
+        ),
+        input_file=input_file,
+        output_file=make_output_file_path(request_type),
+        num_reqs=args.num_of_ues, address=PIPELINED_PORT,
+    )
 
 
 def deactivate_flows_test(args):
     ue_dict = _gen_ue_set(args.num_of_ues)
-    _build_deactivate_flows_data(ue_dict)
-    _benchmark_grpc_request(args, 'DeactivateFlows')
-
-
-def _benchmark_grpc_request(args, req_name):
-    try:
-        # call grpc GHZ load test tool
-        _get_ghz_cmd_params(req_name, args.num_of_ues)
-    except subprocess.CalledProcessError as e:
-        print(e.output)
-        print('Check if gRPC GHZ tool is installed')
+    input_file = 'deactivate_flows.json'
+    _build_deactivate_flows_data(ue_dict, input_file)
+    request_type = 'DeactivateFlows'
+    benchmark_grpc_request(
+        proto_path=PROTO_PATH,
+        full_request_type=make_full_request_type(
+            PIPELINED_SERVICE_RPC_PATH, request_type,
+        ),
+        input_file=input_file,
+        output_file=make_output_file_path(request_type),
+        num_reqs=args.num_of_ues, address=PIPELINED_PORT,
+    )
 
 
 def create_parser():
@@ -198,8 +190,11 @@ def main():
         parser.print_usage()
         exit(1)
 
+    print('Preparing %s load test...' % args.cmd)
     # Execute the subcommand function
     args.func(args)
+
+    print('Done')
 
 
 if __name__ == "__main__":
