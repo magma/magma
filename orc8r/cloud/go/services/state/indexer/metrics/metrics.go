@@ -34,6 +34,8 @@ const (
 	SourceValueIndex = "index"
 	// SourceValueReindex indicates the metric originated during a reindex job.
 	SourceValueReindex = "reindex"
+	// SourceValueIndexRemove indicates the metric originated during Index Remove job.
+	SourceValueIndexRemove = "indexRemove"
 
 	// ReindexStatusSuccess indicates the reported job as a whole has completed successfully.
 	ReindexStatusSuccess = 1

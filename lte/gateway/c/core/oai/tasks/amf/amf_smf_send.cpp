@@ -19,6 +19,7 @@ extern "C" {
 #include "log.h"
 #include "conversions.h"
 #include "3gpp_38.401.h"
+#include "s6a_messages_types.h"
 #include "dynamic_memory_check.h"
 #ifdef __cplusplus
 }
@@ -33,6 +34,7 @@ extern "C" {
 #include "M5GMobilityServiceClient.h"
 #include "amf_app_timer_management.h"
 #include "amf_common.h"
+#include "mme_api.h"
 
 using magma5g::AsyncM5GMobilityServiceClient;
 using magma5g::AsyncSmfServiceClient;
@@ -162,7 +164,8 @@ int amf_send_pdusession_reject(
 **                                                                        **
 ***************************************************************************/
 void set_amf_smf_context(
-    PDUSessionEstablishmentRequestMsg* message, smf_context_t* smf_ctx) {
+    PDUSessionEstablishmentRequestMsg* message,
+    std::shared_ptr<smf_context_t> smf_ctx) {
   smf_ctx->smf_proc_data.pdu_session_identity = message->pdu_session_identity;
   smf_ctx->smf_proc_data.pti                  = message->pti;
   smf_ctx->smf_proc_data.message_type         = message->message_type;
@@ -185,7 +188,7 @@ void set_amf_smf_context(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void clear_amf_smf_context(smf_context_t* smf_ctx) {
+void clear_amf_smf_context(std::shared_ptr<smf_context_t> smf_ctx) {
   OAILOG_DEBUG(
       LOG_AMF_APP, "clearing saved context associated with the pdu session\n");
   memset(
@@ -207,7 +210,7 @@ void clear_amf_smf_context(smf_context_t* smf_ctx) {
 }
 
 int pdu_session_release_request_process(
-    ue_m5gmm_context_s* ue_context, smf_context_t* smf_ctx,
+    ue_m5gmm_context_s* ue_context, std::shared_ptr<smf_context_t> smf_ctx,
     amf_ue_ngap_id_t amf_ue_ngap_id, bool retransmit) {
   int rc                = 1;
   amf_smf_t amf_smf_msg = {};
@@ -246,7 +249,7 @@ int pdu_session_release_request_process(
 
 int pdu_session_resource_release_complete(
     ue_m5gmm_context_s* ue_context, amf_smf_t amf_smf_msg,
-    smf_context_t* smf_ctx) {
+    std::shared_ptr<smf_context_t> smf_ctx) {
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   int rc = 1;
 
@@ -284,7 +287,7 @@ static int pdu_session_resource_release_t3592_handler(
   amf_ue_ngap_id_t amf_ue_ngap_id = 0;
   uint8_t pdu_session_id          = 0;
   ue_pdu_id_t uepdu_id;
-  smf_context_t* smf_ctx = NULL;
+  std::shared_ptr<smf_context_t> smf_ctx;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   int rc = 0;
 
@@ -303,7 +306,7 @@ static int pdu_session_resource_release_t3592_handler(
 
   if (ue_context) {
     IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
-    smf_ctx = amf_smf_context_exists_pdu_session_id(ue_context, pdu_session_id);
+    smf_ctx = amf_get_smf_context_by_pdu_session_id(ue_context, pdu_session_id);
 
     if (smf_ctx == NULL) {
       OAILOG_ERROR(
@@ -366,8 +369,8 @@ int amf_smf_send(
     amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg, int amf_cause) {
   int rc = 1;
   SmfMsg reject_req;
-  amf_smf_t amf_smf_msg  = {};
-  smf_context_t* smf_ctx = NULL;
+  amf_smf_t amf_smf_msg = {};
+  std::shared_ptr<smf_context_t> smf_ctx;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   protocol_configuration_options_t* msg_pco;
 
@@ -401,7 +404,7 @@ int amf_smf_send(
   if ((N1_SM_INFO == msg->payload_container_type.type_val) &&
       ((M5GRequestType::INITIAL_REQUEST == requestType) ||
        (M5GRequestType::EXISTING_PDU_SESSION == requestType))) {
-    if (ue_context->amf_context.smf_ctxt_vector.size() >=
+    if (ue_context->amf_context.smf_ctxt_map.size() >=
         MAX_UE_PDU_SESSION_LIMIT) {
       OAILOG_ERROR(
           LOG_AMF_APP,
@@ -420,7 +423,7 @@ int amf_smf_send(
     smf_ctx = amf_insert_smf_context(
         ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
   } else {
-    smf_ctx = amf_smf_context_exists_pdu_session_id(
+    smf_ctx = amf_get_smf_context_by_pdu_session_id(
         ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
   }
 
@@ -557,15 +560,14 @@ int amf_smf_notification_send(
         magma::lte::NotifyUeEvents::UE_SERVICE_REQUEST_ON_PAGING);
   }
 
-  auto it = ue_context->amf_context.smf_ctxt_vector.begin();
-  if (it != ue_context->amf_context.smf_ctxt_vector.end()) {
-    smf_context_t smf_context = *it;
+  for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
+    std::shared_ptr<smf_context_t> smf_context = it.second;
 
-    if (smf_context.pdu_address.pdn_type == IPv4) {
+    if (smf_context->pdu_address.pdn_type == IPv4) {
       char ip_str[INET_ADDRSTRLEN];
 
       inet_ntop(
-          AF_INET, &(smf_context.pdu_address.ipv4_address.s_addr), ip_str,
+          AF_INET, &(smf_context->pdu_address.ipv4_address.s_addr), ip_str,
           INET_ADDRSTRLEN);
       req_common->set_ue_ipv4((char*) ip_str);
     }
@@ -594,7 +596,7 @@ int amf_smf_notification_send(
 int amf_update_smf_context_pdu_ip(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id, paa_t* address_info) {
   ue_m5gmm_context_s* ue_context;
-  smf_context_t* smf_ctx;
+  std::shared_ptr<smf_context_t> smf_ctx;
   imsi64_t imsi64;
   int rc = RETURNerror;
 
@@ -605,7 +607,7 @@ int amf_update_smf_context_pdu_ip(
     return rc;
   }
 
-  smf_ctx = amf_smf_context_exists_pdu_session_id(ue_context, pdu_session_id);
+  smf_ctx = amf_get_smf_context_by_pdu_session_id(ue_context, pdu_session_id);
   if (NULL == smf_ctx) {
     return rc;
   }
@@ -649,7 +651,7 @@ int amf_smf_handle_ip_address_response(
     rc = amf_smf_create_ipv4_session_grpc_req(
         response_p->imsi, response_p->apn, response_p->pdu_session_id,
         response_p->pdu_session_type, response_p->gnb_gtp_teid, response_p->pti,
-        response_p->gnb_gtp_teid_ip_addr, ip_str);
+        response_p->gnb_gtp_teid_ip_addr, ip_str, response_p->default_ambr);
 
     if (rc < 0) {
       OAILOG_ERROR(LOG_AMF_APP, "Create IPV4 Session \n");
@@ -657,6 +659,56 @@ int amf_smf_handle_ip_address_response(
   }
 
   return rc;
+}
+
+int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+  ue_m5gmm_context_s* ue_context_p     = NULL;
+  MessageDef* message_p                = NULL;
+  s6a_update_location_req_t* s6a_ulr_p = NULL;
+  int rc                               = RETURNok;
+
+  OAILOG_INFO(
+      LOG_AMF_APP,
+      "Sending UPDATE LOCATION REQ to subscriberd, ue_id = " AMF_UE_NGAP_ID_FMT,
+      ue_id);
+
+  ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (ue_context_p) {
+    OAILOG_INFO(
+        LOG_AMF_APP, "IMSI HANDLED =%lu\n", ue_context_p->amf_context.imsi64);
+  } else {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the ue_id= " AMF_UE_NGAP_ID_FMT,
+        ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+  }
+
+  message_p = itti_alloc_new_message(TASK_AMF_APP, S6A_UPDATE_LOCATION_REQ);
+  if (message_p == NULL) {
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
+  }
+
+  s6a_ulr_p = &message_p->ittiMsg.s6a_update_location_req;
+  memset(s6a_ulr_p, 0, sizeof(s6a_update_location_req_t));
+
+  IMSI64_TO_STRING(
+      ue_context_p->amf_context.imsi64, s6a_ulr_p->imsi, IMSI_LENGTH);
+
+  s6a_ulr_p->imsi_length    = strlen(s6a_ulr_p->imsi);
+  s6a_ulr_p->initial_attach = INITIAL_ATTACH;
+  plmn_t visited_plmn       = {0};
+  COPY_PLMN(visited_plmn, ue_context_p->amf_context.originating_tai.plmn);
+  memcpy(&s6a_ulr_p->visited_plmn, &visited_plmn, sizeof(plmn_t));
+  s6a_ulr_p->rat_type = RAT_NG_RAN;
+
+  // Set regional_subscription flag
+  s6a_ulr_p->supportedfeatures.regional_subscription = true;
+
+  rc = AsyncSmfServiceClient::getInstance().n11_update_location_req(s6a_ulr_p);
+
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
 /****************************************************************************

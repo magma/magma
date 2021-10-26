@@ -14,28 +14,35 @@ package main
 import (
 	"flag"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/magma/magma/src/go/agwd/config"
 	"github.com/magma/magma/src/go/agwd/server"
+	"github.com/magma/magma/src/go/crash"
+	crash_sentry "github.com/magma/magma/src/go/crash/sentry"
 	"github.com/magma/magma/src/go/log"
 	"github.com/magma/magma/src/go/log/zap"
 )
 
 func main() {
 	configFlag := flag.String(
-		"c", "/etc/magma/accessd.json", "Path to config file")
+		"c", "/etc/magma/agwd.json", "Path to config file")
 	flag.Parse()
 
 	cfgr := config.NewConfigManager()
-	if err := config.LoadConfigFile(cfgr, *configFlag); err != nil {
-		panic(err)
-	}
+	cfgr_err := config.LoadConfigFile(cfgr, *configFlag)
 
 	lm := log.NewManager(zap.NewLogger())
 	lm.
 		LoggerFor("").
 		SetLevel(config.LogLevel(cfgr.Config().GetLogLevel()))
 
-	server.Start(cfgr, lm.LoggerFor("server"))
+	if cfgr_err != nil {
+		lm.LoggerFor("").Warning().Printf("using default configuration as LoadConfigFile failed with %q", cfgr_err)
+	}
+
+	cr := crash_sentry.NewCrash(sentry.ClientOptions{Dsn: cfgr.Config().GetSentryDsn()})
+
+	crash.Wrap(cr, func() { server.Start(cfgr, lm.LoggerFor("server")) })
 
 	stopper := make(chan struct{})
 	<-stopper

@@ -26,16 +26,20 @@ from .mobility_store import MobilityStore
 
 IPV6_PREFIX_PART_LEN = 64
 IID_PART_LEN = 64
-MAX_IPV6_CONF_PREFIX_LEN = 48
-MAX_CALC_TRIES = 5
+MAX_IPV6_CONF_PREFIX_LEN = 58
+MAX_CALC_TRIES = 10
 
 
 class IPv6AllocatorPool(IPAllocator):
-    def __init__(self, store: MobilityStore, session_prefix_alloc_mode: str):
+    def __init__(
+        self, store: MobilityStore, session_prefix_alloc_mode: str,
+        ipv6_prefixlen: int = MAX_IPV6_CONF_PREFIX_LEN,
+    ):
         super().__init__()
         self._store = store
         self._assigned_ip_block = None
         self._ipv6_session_prefix_alloc_mode = session_prefix_alloc_mode
+        self._ipv6_prefixlen = ipv6_prefixlen
 
     def add_ip_block(self, ipblock: ip_network):
         """
@@ -51,7 +55,7 @@ class IPv6AllocatorPool(IPAllocator):
         ):
             raise OverlappedIPBlocksError(ipblock)
 
-        if ipblock.prefixlen > MAX_IPV6_CONF_PREFIX_LEN:
+        if ipblock.prefixlen > self._ipv6_prefixlen:
             msg = "IPv6 block exceeds maximum allowed prefix length"
             logging.error(msg)
             raise InvalidIPv6NetworkError(msg)
@@ -133,7 +137,7 @@ class IPv6AllocatorPool(IPAllocator):
         if not session_prefix_part:
             logging.error('Could not get IPv6 session prefix for sid: %s', sid)
             raise MaxCalculationError(
-                'Could not get IPv6 session prefix for sid: %s', sid,
+                'Could not get IPv6 session prefix for sid: %s' % sid,
             )
 
         # Get interface identifier from 64 bits fixed length
@@ -141,7 +145,7 @@ class IPv6AllocatorPool(IPAllocator):
         if not iid_part:
             logging.error('Could not get IPv6 IID for sid: %s', sid)
             raise MaxCalculationError(
-                'Could not get IPv6 IID for sid: %s', sid,
+                'Could not get IPv6 IID for sid: %s' % sid,
             )
 
         ipv6_addr = ipv6_addr_part + (session_prefix_part * iid_part)
@@ -167,7 +171,7 @@ class IPv6AllocatorPool(IPAllocator):
 
         session_prefix = self._store.sid_session_prefix_allocated.get(sid)
         if not session_prefix:
-            raise IPNotInUseError('IP %s not allocated', ip_addr)
+            raise IPNotInUseError('IP %s not allocated' % ip_addr)
 
         if ip_addr in self._assigned_ip_block and session_prefix:
             # Extract IID part of the given IPv6 prefix and session prefix
@@ -179,7 +183,7 @@ class IPv6AllocatorPool(IPAllocator):
                 del self._store.sid_session_prefix_allocated[sid]
                 del self._store.allocated_iid[sid]
             else:
-                raise IPNotInUseError('IP %s not allocated', ip_addr)
+                raise IPNotInUseError('IP %s not allocated' % ip_addr)
 
     def _get_ipv6_iid_part(self, sid: str, length: int = 64) -> Optional[int]:
         """
@@ -192,7 +196,7 @@ class IPv6AllocatorPool(IPAllocator):
 
         Returns: IID N bits
         """
-        for i in range(MAX_CALC_TRIES):
+        for _ in range(MAX_CALC_TRIES):
             rand_iid_bits = random.getrandbits(length)
             if rand_iid_bits not in self._store.allocated_iid.values():
                 self._store.allocated_iid[sid] = float(rand_iid_bits)
@@ -214,8 +218,9 @@ class IPv6AllocatorPool(IPAllocator):
             sid,
         )
         # TODO: Support multiple alloc modes
+        # TODO: Improve performance of iP allocation for smaller ipv6-blocks
         if self._ipv6_session_prefix_alloc_mode == IPv6SessionAllocType.RANDOM:
-            for i in range(MAX_CALC_TRIES):
+            for _ in range(MAX_CALC_TRIES):
                 session_prefix_part = random.getrandbits(session_prefix_len)
                 if session_prefix_part != session_prefix_allocated:
                     self._store.sid_session_prefix_allocated[

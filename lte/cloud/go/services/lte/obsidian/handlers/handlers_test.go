@@ -2733,6 +2733,7 @@ func TestListApns(t *testing.T) {
 					PreemptionVulnerability: swag.Bool(false),
 					PriorityLevel:           swag.Uint32(15),
 				},
+				PdnType: 0,
 			},
 		},
 		{
@@ -2748,6 +2749,7 @@ func TestListApns(t *testing.T) {
 					PreemptionVulnerability: swag.Bool(false),
 					PriorityLevel:           swag.Uint32(5),
 				},
+				PdnType: 1,
 			},
 		},
 	}, serdes.Entity)
@@ -2774,6 +2776,7 @@ func TestListApns(t *testing.T) {
 						PreemptionVulnerability: swag.Bool(false),
 						PriorityLevel:           swag.Uint32(15),
 					},
+					PdnType: 0,
 				},
 			},
 			"oai.ims": {
@@ -2789,6 +2792,7 @@ func TestListApns(t *testing.T) {
 						PreemptionVulnerability: swag.Bool(false),
 						PriorityLevel:           swag.Uint32(5),
 					},
+					PdnType: 1,
 				},
 			},
 		}),
@@ -2830,6 +2834,7 @@ func TestGetApn(t *testing.T) {
 				PreemptionVulnerability: swag.Bool(false),
 				PriorityLevel:           swag.Uint32(15),
 			},
+			PdnType: 0,
 		},
 	}, serdes.Entity)
 	assert.NoError(t, err)
@@ -2854,6 +2859,7 @@ func TestGetApn(t *testing.T) {
 					PreemptionVulnerability: swag.Bool(false),
 					PriorityLevel:           swag.Uint32(15),
 				},
+				PdnType: 0,
 			},
 		},
 	}

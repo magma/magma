@@ -61,6 +61,7 @@ generate_cpp_protos("${NGAP_STATE_CPP_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
 add_library(TASK_NGAP
     "${PROTO_SRCS}"
     "${PROTO_HDRS}"
+    ${NGAP_DIR}/ngap_client_servicer.cpp
     ${NGAP_DIR}/ngap_amf.c
     ${NGAP_DIR}/ngap_amf_encoder.c
     ${NGAP_DIR}/ngap_amf_decoder.c

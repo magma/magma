@@ -14,7 +14,7 @@
 # log_level is set in mconfig. it can be overridden here
 
 # Append GRPC content to the log
-print_grpc_payload: False
+print_grpc_payload: false
 
 # Size of subscriber pages returned from cloud
 subscriber_page_size: 5000
@@ -55,3 +55,6 @@ s6a_over_grpc: True
 
 # Number of thread workers for the gRPC server
 grpc_workers: 10
+
+# [Experimental] Enable Sentry for this service
+sentry_enabled: false

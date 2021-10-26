@@ -210,8 +210,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 rule.id, imsi, err,
             )
             return RuleModResult.FAILURE
-        if local_f_teid_ng:
-            version = self._session_rule_version_mapper.get_version(imsi, ip_addr, rule.id)
 
         msgs = self._get_rule_match_flow_msgs(
             imsi, msisdn, uplink_tunnel,

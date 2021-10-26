@@ -44,7 +44,7 @@ services:
     port: 9101
   feg_hello:
     ip_address: 127.0.0.1
-    port: 9093
+    port: 9094
   health:
     ip_address: 127.0.0.1
     port: 9107

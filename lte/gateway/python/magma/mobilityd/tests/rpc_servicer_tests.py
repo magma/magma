@@ -17,6 +17,7 @@ import subprocess
 import unittest.mock
 from concurrent import futures
 
+import fakeredis
 import grpc
 from lte.protos.mobilityd_pb2 import (
     AllocateIPRequest,
@@ -53,7 +54,7 @@ class RpcTests(unittest.TestCase):
         self._rpc_server = grpc.server(thread_pool)
         port = self._rpc_server.add_insecure_port('0.0.0.0:0')
 
-        store = MobilityStore(get_default_client(), False, 3980)
+        store = MobilityStore(fakeredis.FakeStrictRedis())
         store.dhcp_gw_info.read_default_gw()
         ip_allocator = IpAllocatorPool(store)
         ipv6_allocator = IPv6AllocatorPool(

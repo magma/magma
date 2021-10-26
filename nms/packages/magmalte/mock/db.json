@@ -1787,7 +1787,7 @@
       }
     }
   },
-  "subscribers_v2": {
+  "subscribers": {
     "subscribers": 
       {
         "IMSI001010002220018": {

@@ -12,18 +12,21 @@ on:  # yamllint disable-line rule:truthy
 jobs:
   path_filter:
     runs-on: ubuntu-latest
-    # Map a step output to a job output
     outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@master
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
         with:
-          # Only run the main job for changes including the following paths
-          paths: '["nms/**"]'
+          filters: |
+            filesChanged:
+              - [".github/workflows/nms-workflow.yml", "nms/**"]
   nms-flow-test:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: nms-flow-test job
     runs-on: ubuntu-latest
     env:
@@ -57,7 +60,7 @@ jobs:
           SLACK_FOOTER: ' '
   nms-eslint:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: nms-eslint job
     runs-on: ubuntu-latest
     env:
@@ -67,12 +70,21 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-      - run: yarn install
+      - name: apt install yarn
+        run: |
+          cd ${MAGMA_ROOT}/nms
+          sudo apt-get install -y apt-transport-https
+          curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+          echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+          sudo apt-get update -y
+          sudo apt-get install -y yarn
+      - name: Install dependencies
+        run: |
+          cd ${MAGMA_ROOT}/nms
+          yarn install --frozen-lockfile
       - name: run eslint
         run: |
           cd ${MAGMA_ROOT}/nms
-          yarn add eslint --dev -W
-          yarn eslint --init
           yarn run eslint ./
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
@@ -89,7 +101,7 @@ jobs:
           SLACK_FOOTER: ' '
   nms-yarn-test:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: nms-yarn-test job
     runs-on: ubuntu-latest
     env:
@@ -119,7 +131,7 @@ jobs:
           SLACK_FOOTER: ' '
   nms-e2e-test:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: nms-e2e-test job
     runs-on: ubuntu-latest
     env:
@@ -183,8 +195,7 @@ jobs:
       - nms-flow-test
       - nms-eslint
       - nms-yarn-test
-      - nms-e2e-test
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: nms-build job
     runs-on: ubuntu-latest
     env:

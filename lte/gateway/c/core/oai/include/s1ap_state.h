@@ -84,6 +84,9 @@ bool get_mme_ue_ids_no_imsi(
 
 void remove_ues_without_imsi_from_ue_id_coll(void);
 
+void clean_stale_enb_state(
+    s1ap_state_t* state, enb_description_t* new_enb_association);
+
 #ifdef __cplusplus
 }
 #endif

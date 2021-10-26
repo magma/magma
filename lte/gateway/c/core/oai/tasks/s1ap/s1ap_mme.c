@@ -28,13 +28,6 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <pthread.h>
-#include <netinet/in.h>
-
 #include "bstrlib.h"
 #include "hashtable.h"
 #include "log.h"
@@ -53,7 +46,6 @@
 #include "common_defs.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "mme_app_messages_types.h"
 #include "mme_default_values.h"
 #include "s1ap_messages_types.h"
@@ -91,20 +83,27 @@ static int s1ap_send_init_sctp(void) {
   MessageDef* message_p = NULL;
 
   message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_S1AP, SCTP_INIT_MSG);
-  message_p->ittiMsg.sctpInit.port         = S1AP_PORT_NUMBER;
-  message_p->ittiMsg.sctpInit.ppid         = S1AP_SCTP_PPID;
+  message_p->ittiMsg.sctpInit.port = S1AP_PORT_NUMBER;
+  message_p->ittiMsg.sctpInit.ppid = S1AP_SCTP_PPID;
+  message_p->ittiMsg.sctpInit.ipv6 = mme_config.ip.s1_ipv6_enabled;
+
+  /*
+   * SR WARNING: ipv6 multi-homing fails sometimes for localhost.
+   * Only allow multi homing when IPv6 is enabled.
+   */
   message_p->ittiMsg.sctpInit.ipv4         = 1;
-  message_p->ittiMsg.sctpInit.ipv6         = 0;
   message_p->ittiMsg.sctpInit.nb_ipv4_addr = 1;
   message_p->ittiMsg.sctpInit.ipv4_address[0].s_addr =
       mme_config.ip.s1_mme_v4.s_addr;
 
-  /*
-   * SR WARNING: ipv6 multi-homing fails sometimes for localhost.
-   * * * * Disable it for now.
-   */
-  message_p->ittiMsg.sctpInit.nb_ipv6_addr    = 0;
-  message_p->ittiMsg.sctpInit.ipv6_address[0] = in6addr_loopback;
+  if (message_p->ittiMsg.sctpInit.ipv6) {
+    message_p->ittiMsg.sctpInit.nb_ipv6_addr    = 1;
+    message_p->ittiMsg.sctpInit.ipv6_address[0] = mme_config.ip.s1_mme_v6;
+  } else {
+    message_p->ittiMsg.sctpInit.nb_ipv6_addr    = 0;
+    message_p->ittiMsg.sctpInit.ipv6_address[0] = in6addr_loopback;
+  }
+
   return send_msg_to_task(&s1ap_task_zmq_ctx, TASK_SCTP, message_p);
 }
 

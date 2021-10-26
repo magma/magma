@@ -50,6 +50,16 @@ def main() -> None:
     if args.print:
         return
 
+    if args.clear_db:
+        try:
+            cmd = ['docker-compose', 'down']
+            subprocess.run(cmd, check=True)
+            cmd = ['docker', 'volume', 'rm', '--force', 'orc8r_pgdata']
+            subprocess.run(cmd, check=True)
+        except subprocess.CalledProcessError as err:
+            exit(err.returncode)
+        return
+
     # Ensure build context exists, otherwise docker-compose throws an error
     pathlib.Path(HOST_BUILD_CTX).mkdir(parents=True, exist_ok=True)
 
@@ -125,6 +135,12 @@ def _parse_args() -> argparse.Namespace:
         '--down', '-d',
         action='store_true',
         help='Stop running containers',
+    )
+
+    parser.add_argument(
+        '--clear-db',
+        action='store_true',
+        help='Clear all content on the database',
     )
 
     args = parser.parse_args()

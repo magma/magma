@@ -39,6 +39,7 @@
 #include <stdint.h>
 
 #include "3gpp_23.003.h"
+#include "3gpp_24.008.h"
 #include "common_types.h"
 #include "security_types.h"
 

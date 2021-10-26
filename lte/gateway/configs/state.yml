@@ -48,3 +48,6 @@ state_protos:
 json_state:
   - redis_key: "directory_record"
     state_scope: "network"
+
+# [Experimental] Enable Sentry for this service
+sentry_enabled: false

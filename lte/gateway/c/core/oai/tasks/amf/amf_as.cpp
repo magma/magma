@@ -1213,46 +1213,46 @@ int initial_context_setup_request(
     pdusession_setup_item_t* item = nullptr;
     pdu_resource_transfer_ie = &req->PDU_Session_Resource_Setup_Transfer_List;
 
-    for (auto it = ue_context->amf_context.smf_ctxt_vector.begin();
-         it != ue_context->amf_context.smf_ctxt_vector.end(); it++) {
-      smf_context_t smf_context = *it;
-      if (smf_context.pdu_session_state == ACTIVE) {
+    for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
+      std::shared_ptr<smf_context_t> smf_context = it.second;
+      if (smf_context->pdu_session_state == ACTIVE) {
         uint8_t item_num     = 0;
         uint64_t ul_pdu_ambr = 0;
         uint64_t dl_pdu_ambr = 0;
         pdu_resource_transfer_ie->no_of_items += 1;
         item_num = pdu_resource_transfer_ie->no_of_items - 1;
         item     = &pdu_resource_transfer_ie->item[item_num];
-        ambr_calculation_pdu_session(&smf_context, &dl_pdu_ambr, &ul_pdu_ambr);
+        ambr_calculation_pdu_session(smf_context, &dl_pdu_ambr, &ul_pdu_ambr);
 
         // pdu session id
         item->Pdu_Session_ID =
-            smf_context.smf_proc_data.pdu_session_identity.pdu_session_id;
+            smf_context->smf_proc_data.pdu_session_identity.pdu_session_id;
 
         // pdu ambr
         item->PDU_Session_Resource_Setup_Request_Transfer
-            .pdu_aggregate_max_bit_rate.dl = dl_pdu_ambr;
+            .pdu_aggregate_max_bit_rate.dl = amf_ctx->subscribed_ue_ambr.br_dl;
         item->PDU_Session_Resource_Setup_Request_Transfer
-            .pdu_aggregate_max_bit_rate.ul = ul_pdu_ambr;
+            .pdu_aggregate_max_bit_rate.ul = amf_ctx->subscribed_ue_ambr.br_ul;
 
         // pdu session type
         item->PDU_Session_Resource_Setup_Request_Transfer.pdu_ip_type.pdn_type =
-            smf_context.pdu_address.pdn_type;
+            smf_context->pdu_address.pdn_type;
 
         // up transport info
         memcpy(
             &item->PDU_Session_Resource_Setup_Request_Transfer
                  .up_transport_layer_info.gtp_tnl.gtp_tied,
-            smf_context.gtp_tunnel_id.upf_gtp_teid, GNB_TEID_LEN);
+            smf_context->gtp_tunnel_id.upf_gtp_teid, GNB_TEID_LEN);
         item->PDU_Session_Resource_Setup_Request_Transfer
             .up_transport_layer_info.gtp_tnl.endpoint_ip_address = blk2bstr(
-            &smf_context.gtp_tunnel_id.upf_gtp_teid_ip_addr, GNB_IPV4_ADDR_LEN);
+            &smf_context->gtp_tunnel_id.upf_gtp_teid_ip_addr,
+            GNB_IPV4_ADDR_LEN);
 
         // qos flow list
         memcpy(
             &item->PDU_Session_Resource_Setup_Request_Transfer
                  .qos_flow_setup_request_list.qos_flow_req_item,
-            &smf_context.pdu_resource_setup_req
+            &smf_context->pdu_resource_setup_req
                  .pdu_session_resource_setup_request_transfer
                  .qos_flow_setup_request_list.qos_flow_req_item,
             sizeof(qos_flow_setup_request_item));

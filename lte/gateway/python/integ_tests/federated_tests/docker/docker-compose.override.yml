@@ -1,8 +1,8 @@
 version: "3.7"
 
 services:
-  test:
-    container_name: test
+  test2:
+    container_name: test2
     image: feg_gateway_go_base
     build:
       target: base
@@ -37,7 +37,7 @@ services:
 
   control_proxy:
     depends_on:
-      - test
+      - test2
     extra_hosts:
       - controller.magma.test:127.0.0.1
       - bootstrapper-controller.magma.test:127.0.0.1
@@ -57,7 +57,7 @@ services:
 
   magmad:
     depends_on:
-      - test
+      - test2
     build:
       context: ${BUILD_CONTEXT}
       dockerfile: feg/gateway/docker/python/Dockerfile

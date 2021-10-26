@@ -876,7 +876,7 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
             LOG_NAS_EMM,
             "EMM-PROC  - Timer T3450 %ld expires in %u"
             " seconds (TAU) for ue id " MME_UE_S1AP_ID_FMT "\n",
-            tau_proc->T3450.id, tau_proc->T3450.sec, tau_proc->ue_id);
+            tau_proc->T3450.id, tau_proc->T3450.msec, tau_proc->ue_id);
       } else {
         nas_delete_tau_procedure(emm_context);
       }

@@ -30,6 +30,11 @@ type Blob struct {
 	Version uint64
 }
 
+// TK converts a blob to its associated type and key.
+func (b Blob) TK() storage.TK {
+	return storage.TK{Type: b.Type, Key: b.Key}
+}
+
 type Blobs []Blob
 
 // TKs converts blobs to their associated type and key.
