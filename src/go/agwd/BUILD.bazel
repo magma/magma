@@ -8,8 +8,11 @@ go_library(
     deps = [
         "//src/go/agwd/config",
         "//src/go/agwd/server",
+        "//src/go/crash",
+        "//src/go/crash/sentry",
         "//src/go/log",
         "//src/go/log/zap",
+        "@com_github_getsentry_sentry_go//:sentry-go",
     ],
 )
 

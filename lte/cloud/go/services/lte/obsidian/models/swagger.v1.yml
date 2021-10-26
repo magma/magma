@@ -1710,8 +1710,6 @@ definitions:
         type: string
         format: byte
         example: EREREREREREREREREREREQ==
-        minLength: 15
-        maxLength: 16
         x-nullable: false
       lte_auth_amf:
         type: string

@@ -16,6 +16,7 @@
 extern "C" {
 #include "common_defs.h"
 #include "ngap_common.h"
+#include "dynamic_memory_check.h"
 }
 
 namespace magma5g {
@@ -38,7 +39,11 @@ status_code_e NGAPClientServicer::send_message_to_amf(
 #else  /* !MME_UNIT_TEST */
   OAILOG_DEBUG(LOG_NGAP, " Mock is Enabled \n");
   if (message->ittiMsgHeader.messageId == NGAP_INITIAL_UE_MESSAGE) {
-    bdestroy(NGAP_INITIAL_UE_MESSAGE(message).nas);
+    bdestroy_wrapper(&message->ittiMsg.ngap_initial_ue_message.nas);
+  } else if (message->ittiMsgHeader.messageId == AMF_APP_UPLINK_DATA_IND) {
+    bdestroy_wrapper(&message->ittiMsg.amf_app_ul_data_ind.nas_msg);
+  } else if (message->ittiMsgHeader.messageId == SCTP_DATA_REQ) {
+    bdestroy_wrapper(&message->ittiMsg.sctp_data_req.payload);
   }
 
   free(message);

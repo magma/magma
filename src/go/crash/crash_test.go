@@ -9,11 +9,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package crash
+package crash_test
 
 import (
 	"testing"
+	"time"
 
+	"github.com/golang/mock/gomock"
+	"github.com/magma/magma/src/go/crash"
+	mock_crash "github.com/magma/magma/src/go/crash/mock_crash"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,27 +26,27 @@ import (
 
 func TestLevel_String(t *testing.T) {
 	tests := []struct {
-		level Level
+		level crash.Level
 		want  string
 	}{
 		{
-			level: LevelDebug,
+			level: crash.LevelDebug,
 			want:  "debug",
 		},
 		{
-			level: LevelInfo,
+			level: crash.LevelInfo,
 			want:  "info",
 		},
 		{
-			level: LevelWarning,
+			level: crash.LevelWarning,
 			want:  "warning",
 		},
 		{
-			level: LevelError,
+			level: crash.LevelError,
 			want:  "error",
 		},
 		{
-			level: LevelFatal,
+			level: crash.LevelFatal,
 			want:  "fatal",
 		},
 	}
@@ -50,4 +55,29 @@ func TestLevel_String(t *testing.T) {
 		got := string(test.level)
 		assert.Equal(t, test.want, got)
 	}
+}
+
+// TestWrap_Panic confirms flush and recover are called properly when the function passed into wrap panics.
+func TestWrap_Panic(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	err := errors.New("panic")
+	mockCrash := mock_crash.NewMockCrash(ctrl)
+	mockCrash.EXPECT().Recover(err)
+	mockCrash.EXPECT().Flush(time.Second * 5)
+
+	crash.Wrap(mockCrash, func() {
+		panic(err)
+	})
+}
+
+// TestWrap_NoPanic confirms flush and recover are not called when the function doesn't panic.
+func TestWrap_NoPanic(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockCrash := mock_crash.NewMockCrash(ctrl)
+
+	crash.Wrap(mockCrash, func() {})
 }

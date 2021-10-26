@@ -183,5 +183,4 @@ class ServicePoller(Job):
                     err.code(),
                     err.details(),
                 )
-                if err.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
-                    self._service_info[service].continuous_timeouts += 1
+                self._service_info[service].continuous_timeouts += 1

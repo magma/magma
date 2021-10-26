@@ -57,6 +57,15 @@ RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
     # symlink to /usr/lib to match Magma VM
     ln -s /usr/local/lib/libtins.so /usr/lib/libtins.so
 
+# TODO(GH9710): Generate asn1c with Bazel - also this repo is really old :o 
+RUN git clone https://gitlab.eurecom.fr/oai/asn1c.git && \
+    cd asn1c && \
+    git checkout f12568d617dbf48497588f8e227d70388fa217c9 && \
+    autoreconf -iv && \
+    ./configure && \
+    make -j"$(nproc)" && \
+    make install
+
 # Update shared library configuration
 RUN ldconfig -v
 
