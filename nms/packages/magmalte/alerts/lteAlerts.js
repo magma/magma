@@ -97,7 +97,7 @@ export default function getLteAlerts(
     },
     'S1 Setup Failure': {
       alert: 'S1 Setup Failure',
-      expr: `increase(s1_setup{result="failure", networkID=~"${networkID}"}[5m]) > 0`,
+      expr: `increase(s1_setup{result="failure", networkID=~"${networkID}"}[1h]) > 0`,
       labels: {severity: 'major'},
       annotations: {
         description: 'Alerts when we have S1 setup failures',
