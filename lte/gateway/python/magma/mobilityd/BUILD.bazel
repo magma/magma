@@ -1,0 +1,20 @@
+load("@rules_python//python:defs.bzl", "py_library")
+
+py_binary(
+    name = "main",
+    srcs = ["main.py"],
+    # legacy_creat_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    legacy_create_init = False,
+    deps = [
+        ":ip_address_man",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:subscriberdb_python_grpc",
+        "//lte/protos:subscriberdb_python_proto",
+        "//orc8r/gateway/python/magma/common/redis:client",
+    ],
+)
+
+py_library(
+    name = "ip_address_man",
+    srcs = ["ip_address_man.py"],
+)

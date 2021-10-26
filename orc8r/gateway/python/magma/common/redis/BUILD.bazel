@@ -1,0 +1,22 @@
+load("@rules_python//python:defs.bzl", "py_library")
+load("@pip3//:requirements.bzl", "requirement")
+
+package(default_visibility = ["//visibility:public"])
+
+py_library(
+    name = "client",
+    srcs = ["client.py"],
+    deps = [
+        requirement("redis"),
+    ],
+)
+
+py_library(
+    name = "containers",
+    srcs = ["containers.py"],
+)
+
+py_library(
+    name = "serializers",
+    srcs = ["serializers.py"],
+)
