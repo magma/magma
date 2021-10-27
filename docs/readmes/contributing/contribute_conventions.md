@@ -308,6 +308,8 @@ Where applicable, the [Google C++ Style Guide](https://google.github.io/stylegui
 
 #### General
 
+- The [Airbnb Javascript Style Guide](https://github.com/airbnb/javascript) is authoritative
+- See `magma/nms/README.md` for full details
 - Import order should be: types, default components, and named components with each separated by a newline
 - Use `TitleCase` for component file names
 - Favor `map` and `forEach` functions in place of regular `for` loops

@@ -121,6 +121,25 @@ This likely corresponds to React errors.
 If this is the case, you should be able to see the relevant error logs through your web browser's developer tools.
 
 ---
+## Contributing
+
+Please follow the guidance in this section when opening pull requests that touch NMS code.
+
+### Copyright Header
+All Javascript files should start with a Magma copyright notice.
+
+### Style Guide
+As of October 2021, we are adopting the [Airbnb Javascript Style Guide](https://github.com/airbnb/javascript) for NMS code.
+
+### Verification
+Before submitting a pull request, make sure that both automated and manual verification is completed. Run Flow and Eslint checks for style issues. Run and update unit tests for all changes. Manual checks should also be used. Bring up a local development NMS, and work through the user flows that are impacted by your changes.
+
+### Pull Requests
+When submitting a pull request, include pictures of altered interfaces, and videos of altered user flows.
+
+Consult the `Testing` section below for additional details.
+
+---
 ## Testing
 
 ### Install Dependencies
