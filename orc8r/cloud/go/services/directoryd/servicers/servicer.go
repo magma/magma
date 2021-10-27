@@ -152,7 +152,7 @@ func (d *directoryLookupServicer) GetNewSgwCTeid(ctx context.Context, req *proto
 		return nil, errors.Wrap(err, "failed to validate GetNewSgwCTeid")
 	}
 
-	sgwCTeid, err := d.sgwCteidGen.GetUniqueUint32Id(req.NetworkID, d.store.GetHWIDForSgwCTeid)
+	sgwCTeid, err := d.sgwCteidGen.GetUniqueId(req.NetworkID, d.store.GetHWIDForSgwCTeid)
 	if err != nil {
 		err = fmt.Errorf("GetNewSgwCTeid could not get unique TEID: %s", err)
 		glog.Error(err)

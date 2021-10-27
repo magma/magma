@@ -15,7 +15,10 @@ package servicers_test
 
 import (
 	"fmt"
+	"math"
+	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -53,29 +56,40 @@ func (m *MockStore) getIDOnDatabaseAlwaysError(networkId string, id string) (str
 	return "", fmt.Errorf("unknkwn error")
 }
 
-func TestGetUniqueUint32Id_NoExistingId(t *testing.T) {
+func TestGetUniqueId_NoExistingId(t *testing.T) {
 	gen := servicers.NewIdGenerator()
 	mockStore := NewMockStore()
-	id, err := gen.GetUniqueUint32Id("any", mockStore.getIDOnDatabaseNotExistingMatch)
+	id, err := gen.GetUniqueId("any", mockStore.getIDOnDatabaseNotExistingMatch)
 	assert.NoError(t, err)
 	assert.NotEqual(t, uint32(0), id)
 	assert.Equal(t, 1, mockStore.Hits)
 }
 
-func TestGetUniqueUint32Id_AlreadyExistingId(t *testing.T) {
+func TestGetUniqueId_AlreadyExistingId(t *testing.T) {
 	gen := servicers.NewIdGenerator()
 	mockStore := NewMockStore()
-	id, err := gen.GetUniqueUint32Id("any", mockStore.getIDOnDatabaseWithExistingMatch)
+	id, err := gen.GetUniqueId("any", mockStore.getIDOnDatabaseWithExistingMatch)
 	assert.NoError(t, err)
 	assert.NotEqual(t, uint32(0), id)
 	assert.Equal(t, 2, mockStore.Hits)
 }
 
-func TestGetUniqueUint32Id_AlwaysErrors(t *testing.T) {
+func TestGetUniqueId_AlwaysErrors(t *testing.T) {
 	gen := servicers.NewIdGeneratorWithAttempts(3)
 	mockStore := NewMockStore()
-	id, err := gen.GetUniqueUint32Id("any", mockStore.getIDOnDatabaseAlwaysError)
+	id, err := gen.GetUniqueId("any", mockStore.getIDOnDatabaseAlwaysError)
 	assert.Error(t, err)
 	assert.Equal(t, uint32(0), id)
 	assert.Equal(t, 3, mockStore.Hits)
+}
+
+func TestGetRandomInt63(t *testing.T) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := 0; i < 10; i++ {
+		res := servicers.GetRandomInt63(r, 10, 11)
+		assert.Equal(t, int64(10), res)
+	}
+	r = rand.New(rand.NewSource(time.Now().UnixNano()))
+	res := servicers.GetRandomInt63(r, math.MaxUint32-1, math.MaxUint32)
+	assert.Equal(t, int64(math.MaxUint32-1), res)
 }
