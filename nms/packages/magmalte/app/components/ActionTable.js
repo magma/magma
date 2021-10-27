@@ -15,9 +15,10 @@
  */
 import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 
-import AddBox from '@material-ui/icons/AddBox';
+import AddCircleOutlined from '@material-ui/icons/AddCircleOutlined';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
 import Autocomplete from '@material-ui/lab/Autocomplete';
+import Button from '@material-ui/core/Button';
 import CardTitleRow from './layout/CardTitleRow';
 import Check from '@material-ui/icons/Check';
 import ChevronLeft from '@material-ui/icons/ChevronLeft';
@@ -56,7 +57,14 @@ const useStyles = makeStyles(_ => ({
 }));
 
 const tableIcons = {
-  Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
+  Add: forwardRef((props, ref) => (
+    <Button
+      startIcon={<AddCircleOutlined {...props} ref={ref} />}
+      variant="outlined"
+      color="primary">
+      {'Add New Row'}
+    </Button>
+  )),
   Check: forwardRef((props, ref) => <Check {...props} ref={ref} />),
 
   Clear: forwardRef((props, ref) => <Clear {...props} ref={ref} />),
