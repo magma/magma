@@ -159,8 +159,11 @@ class IPV6SolicitationController(MagmaController):
         """
         ofproto, parser = self._datapath.ofproto, self._datapath.ofproto_parser
 
-        if not tun_id or not tun_ipv4_dst:
-            self.logger.error("Packet missing tunnel information, can't reply")
+        if not tun_ipv4_dst:
+            self.logger.debug("Packet missing tunnel-dst information, can't reply")
+            return
+        if not tun_id:
+            self.logger.debug("Packet missing tunnel-id information, can't reply")
             return
 
         prefix = self.get_custom_prefix(ipv6_src)
@@ -199,6 +202,9 @@ class IPV6SolicitationController(MagmaController):
                 ),
             ),
         )
+        self.logger.debug("RA pkt response ->")
+        for p in pkt.protocols:
+            self.logger.debug(p)
         pkt.serialize()
 
         actions_out = [
@@ -227,8 +233,12 @@ class IPV6SolicitationController(MagmaController):
         ofproto, parser = self._datapath.ofproto, self._datapath.ofproto_parser
 
         # Only check direction OUT because direction IN doesn't need tunn info
-        if direction == Direction.OUT and (not tun_id or not tun_ipv4_dst):
-            self.logger.error("Packet missing tunnel information, can't reply")
+        if direction == Direction.OUT:
+            if not tun_id:
+                self.logger.error("NA: Packet missing tunnel-id information, can't reply")
+                return
+            if not tun_ipv4_dst:
+                self.logger.error("NA: Packet missing tunnel-dst information, can't reply")
             return
 
         prefix = self.get_custom_prefix(target_ipv6)
@@ -260,8 +270,9 @@ class IPV6SolicitationController(MagmaController):
                 ),
             ),
         )
-        self.logger.debug("NS pkt response %s", pkt)
-
+        self.logger.debug("NS pkt response ->")
+        for p in pkt.protocols:
+            self.logger.debug(p)
         pkt.serialize()
 
         # For NS from SGI response doesn't need tunnel information
