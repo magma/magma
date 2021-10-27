@@ -33,7 +33,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/NR
-          echo ${{ !steps.changes.outputs.filesChanged }} > ./pr/skipped
+          echo ${{ steps.changes.outputs.filesChanged == 'false'}} > ./pr/skipped
       - name: upload metadata
         uses: actions/upload-artifact@v2
         with:
@@ -218,11 +218,19 @@ jobs:
             ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwf
       - name: Tag and push to Docker Registry goradius
         if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
+          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
         # yamllint disable rule:line-length
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'goradius' --tag "${GITHUB_SHA:0:8}" --tag-latest true
       - name: Tag and push to Docker Registry xwfm-integ-tests
         if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
+          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
         # yamllint disable rule:line-length
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'xwfm-integ-tests' --tag "${GITHUB_SHA:0:8}" --tag-latest true

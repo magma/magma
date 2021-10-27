@@ -35,7 +35,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/NR
-          echo ${{ !steps.changes.outputs.filesChanged }} > ./pr/skipped
+          echo ${{ steps.changes.outputs.filesChanged == 'false'}} > ./pr/skipped
       - name: upload metadata
         uses: actions/upload-artifact@v2
         with:
@@ -503,4 +503,4 @@ jobs:
           SLACK_AVATAR: ":boom:"
         uses: Ilshidur/action-slack@2.1.0
         with:
-          args: "AGW  build failed on [${GITHUB_SHA:0:8}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
+          args: "AGW  build failed on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
