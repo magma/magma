@@ -140,7 +140,7 @@ services:
     security_opt:
       - seccomp:unconfined
     environment:
-      MAGMA_PRINT_GRPC_PAYLOAD: 1
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
     command: /usr/local/bin/sctpd
 
   oai_config:
@@ -158,7 +158,7 @@ services:
       - seccomp:unconfined
     privileged: true
     environment:
-      MAGMA_PRINT_GRPC_PAYLOAD: 1
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
     depends_on:
       - oai_config
     cap_add:
@@ -174,7 +174,7 @@ services:
       - seccomp:unconfined
     privileged: true
     environment:
-      MAGMA_PRINT_GRPC_PAYLOAD: 1
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -201,7 +201,7 @@ services:
       - seccomp:unconfined
     privileged: true
     environment:
-      MAGMA_PRINT_GRPC_PAYLOAD: 1
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
     depends_on:
       - directoryd
     healthcheck:
