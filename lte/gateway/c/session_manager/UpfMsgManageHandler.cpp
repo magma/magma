@@ -113,7 +113,19 @@ void UpfMsgManageHandler::SetUPFSessionsConfig(
                     << teid << " recevied version " << version
                     << " SMF latest version: " << cur_version << " Resending";
         if (conv_enforcer_->is_incremented_rtx_counter_within_max(session)) {
-          conv_enforcer_->m5g_send_session_request_to_upf(session);
+          RulesToProcess pending_activation, pending_deactivation;
+          const CreateSessionResponse& csr =
+              session->get_create_session_response();
+          std::vector<StaticRuleInstall> static_rule_installs =
+              conv_enforcer_->to_vec(csr.static_rules());
+          std::vector<DynamicRuleInstall> dynamic_rule_installs =
+              conv_enforcer_->to_vec(csr.dynamic_rules());
+
+          session->process_get_5g_rule_installs(
+              static_rule_installs, dynamic_rule_installs, &pending_activation,
+              &pending_deactivation);
+          conv_enforcer_->m5g_send_session_request_to_upf(
+              session, pending_activation, pending_deactivation);
         }
       } else {
         count++;

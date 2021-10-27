@@ -198,6 +198,12 @@ variable "lte_orc8r_chart_version" {
   default     = "0.2.1"
 }
 
+variable "wifi_orc8r_chart_version" {
+  description = "Version of the orchestrator wifi module Helm chart to install."
+  type        = string
+  default     = "0.2.0"
+}
+
 variable "orc8r_tag" {
   description = "Image tag for Orchestrator components."
   type        = string

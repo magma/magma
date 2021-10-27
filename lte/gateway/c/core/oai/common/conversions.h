@@ -44,6 +44,7 @@
 #include <stdint.h>
 #include <math.h>
 
+#include "bstrlib.h"
 #include "common_types.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
@@ -739,4 +740,24 @@ int ascii_to_hex(uint8_t* dst, const char* h);
       ((bYtE) &0x02 ? '1' : '0'), ((bYtE) &0x01 ? '1' : '0')
 
 int get_time_zone(void);
+
+/* Clear GUTI without free it */
+void clear_guti(guti_t* const guti);
+/* Clear IMSI without free it */
+void clear_imsi(imsi_t* const imsi);
+/* Clear IMEI without free it */
+void clear_imei(imei_t* const imei);
+/* Clear IMEISV without free it */
+void clear_imeisv(imeisv_t* const imeisv);
+
+bstring fteid_ip_address_to_bstring(const struct fteid_s* const fteid);
+void get_fteid_ip_address(
+    const struct fteid_s* const fteid, ip_address_t* const ip_address);
+bstring ip_address_to_bstring(const ip_address_t* ip_address);
+void bstring_to_ip_address(bstring const bstr, ip_address_t* const ip_address);
+void bstring_to_paa(bstring bstr, paa_t* paa);
+
+void copy_paa(paa_t* paa_dst, paa_t* paa_src);
+bstring paa_to_bstring(const paa_t* paa);
+
 #endif /* FILE_CONVERSIONS_SEEN */

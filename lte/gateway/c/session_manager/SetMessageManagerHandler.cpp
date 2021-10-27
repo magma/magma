@@ -40,8 +40,10 @@ namespace magma {
 /*Constructor*/
 SetMessageManagerHandler::SetMessageManagerHandler(
     std::shared_ptr<SessionStateEnforcer> m5genforcer,
-    SessionStore& session_store)
-    : session_store_(session_store), m5g_enforcer_(m5genforcer) {}
+    SessionStore& session_store, SessionReporter* reporter)
+    : session_store_(session_store),
+      m5g_enforcer_(m5genforcer),
+      reporter_(reporter) {}
 
 /* Building session config with required parameters
  * TODO Note: this function can be removed by implementing 5G specific
@@ -178,6 +180,23 @@ void SetMessageManagerHandler::SetSmfNotification(
     }
   });
 }
+
+static CreateSessionRequest make_create_session_request(
+    const SessionConfig& cfg, const std::string& session_id,
+    const std::unique_ptr<Timezone>& access_timezone) {
+  CreateSessionRequest create_request;
+  create_request.set_session_id(session_id);
+  create_request.mutable_common_context()->CopyFrom(cfg.common_context);
+  create_request.mutable_rat_specific_context()->CopyFrom(
+      cfg.rat_specific_context);
+
+  if (access_timezone != nullptr) {
+    create_request.mutable_access_timezone()->CopyFrom(*access_timezone);
+  }
+
+  return create_request;
+}
+
 /* Creeate respective SessionState and context*/
 void SetMessageManagerHandler::send_create_session(
     SessionMap& session_map, const std::string& imsi, SessionConfig& new_cfg,
@@ -268,6 +287,40 @@ void SetMessageManagerHandler::send_create_session(
                    << " due to failure writing to SessionStore.";
     }
   }
+  auto create_req = make_create_session_request(
+      new_cfg, session_id, m5g_enforcer_->get_access_timezone());
+  reporter_->report_create_session(
+      create_req, [this, imsi, session_id](
+                      Status status, CreateSessionResponse response) mutable {
+        if (status.ok()) {
+          MLOG(MINFO) << "Processing a CreateSessionResponse for "
+                      << session_id;
+          PrintGrpcMessage(
+              static_cast<const google::protobuf::Message&>(response));
+          auto session_map = session_store_.read_sessions({imsi});
+          SessionUpdate update =
+              SessionStore::get_default_session_update(session_map);
+          SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+          auto session_it = session_store_.find_session(session_map, criteria);
+          if (!session_it) {
+            MLOG(MWARNING) << "Could not find session " << session_id;
+            status = Status(grpc::ABORTED, "Session not found");
+            return;
+          }
+          auto& session                          = **session_it;
+          SessionStateUpdateCriteria* session_uc = &update[imsi][session_id];
+          m5g_enforcer_->update_session_with_policy(
+              session, response, session_uc);
+          session_store_.update_sessions(update);
+        } else {
+          MLOG(MINFO) << "Failed to initialize new session " << session_id
+                      << " in SessionD for subscriber " << imsi
+                      << " due to failure writing to SessionStore."
+                      << " An earlier update may have invalidated it.";
+          status = Status(
+              grpc::ABORTED, "Failed to write session to SessionD storage");
+        }
+      });
 }
 
 /* This starts releasing the session in main session enforcer thread context

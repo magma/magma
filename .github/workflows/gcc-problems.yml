@@ -9,7 +9,14 @@
 #######
 name: "GCC Warnings & Errors"
 on:
+  push:
+    branches:
+      - master
+      - v1.*
   pull_request:
+    branches:
+      - master
+      - v1.*
     types:
       - opened
       - reopened
@@ -21,20 +28,22 @@ env:
 jobs:
   path_filter:
     runs-on: ubuntu-latest
-    # Map a step output to a job output
     outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@master
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
         with:
-          # Only run the main job for changes including the following paths
-          paths: '[".github/workflows/gcc-problems.yml", "orc8r/gateway/c/**", "lte/gateway/c/**", "orc8r/protos/**", "lte/protos/**"]'
-
+          filters: |
+            filesChanged:
+              - [".github/workflows/gcc-problems.yml", "orc8r/gateway/c/**", "lte/gateway/c/**", "orc8r/protos/**", "lte/protos/**"]
   build_oai:
     needs:
       - path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: build oai job
     runs-on: ubuntu-latest
     steps:
@@ -76,11 +85,28 @@ jobs:
         with:
           name: build_logs_oai
           path: ${{ github.workspace }}/compile.log
+      - name: Extract commit title
+        id: commit
+        if: failure() && github.event_name == 'push'
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "build_oai failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "Feg workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
 
   build_session_manager:
     needs:
       - path_filter
-    if: ${{ needs.path_filter.outputs.should_skip == 'false' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: build session manager job
     runs-on: ubuntu-latest
     steps:
@@ -122,3 +148,20 @@ jobs:
         with:
           name: build_logs_session_manager
           path: ${{ github.workspace }}/compile.log
+      - name: Extract commit title
+        id: commit
+        if: failure() && github.event_name == 'push'
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "build_session_manager failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "Feg workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '

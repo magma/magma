@@ -142,8 +142,8 @@ ngap_message_handler_t ngap_message_handlers[][3] = {
     {/*ngap_amf_handle_ue_context_release_request*/ 0,
      ngap_amf_handle_ue_context_release_complete, 0}, /* UEContextRelease */
     {ngap_amf_handle_ue_context_release_request,
-     *ngap_amf_handle_ue_context_release_complete, 0}, /* CellTrafficTrace */
-    {0, 0, 0},                                         /* Kill */
+     ngap_amf_handle_ue_context_release_complete, 0}, /* CellTrafficTrace */
+    {0, 0, 0},                                        /* Kill */
     {0, 0, 0}, /* DownlinkUEAssociatedLPPaTransport  */
     {0, 0, 0}, /* UplinkUEAssociatedLPPaTransport */
     {ngap_amf_handle_uplink_nas_transport, 0, 0}, /* uplinkNASTransport */
@@ -425,6 +425,7 @@ status_code_e ngap_amf_handle_ng_setup_request(
   ta_ret = ngap_amf_compare_ta_lists(
       &ie_supported_tas->value.choice.SupportedTAList);
 
+#if 0
   /*
    * gNB and AMF have no common PLMN
    */
@@ -440,6 +441,7 @@ status_code_e ngap_amf_handle_ng_setup_request(
         "plmnid_or_tac_mismatch");
     OAILOG_FUNC_RETURN(LOG_NGAP, rc);
   }
+#endif
 
   Ngap_SupportedTAList_t* ta_list =
       &ie_supported_tas->value.choice.SupportedTAList;
@@ -1271,7 +1273,7 @@ status_code_e ngap_amf_handle_ue_context_release_complete(
         "for "
         "ueid " AMF_UE_NGAP_ID_FMT "\n",
         amf_ue_ngap_id);
-    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
   }
 }
 
@@ -1921,6 +1923,25 @@ status_code_e ngap_amf_handle_pduSession_setup_response(
 
       NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p)
           .pduSessionResource_setup_list.no_of_items += 1;
+      free(pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation
+               .uPTransportLayerInformation.choice.gTPTunnel.gTP_TEID.buf);
+      free(pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation
+               .uPTransportLayerInformation.choice.gTPTunnel
+               .transportLayerAddress.buf);
+      for (uint8_t i = 0;
+           i <
+           pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation
+               .associatedQosFlowList.list.count;
+           i++) {
+        free(pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation
+                 .associatedQosFlowList.list.array[i]
+                 ->qosFlowMappingIndication);
+        free(pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation
+                 .associatedQosFlowList.list.array[i]);
+      }
+      free(pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation
+               .associatedQosFlowList.list.array);
+      free(pDUSessionResourceSetupResponseTransfer);
     }
   }
 

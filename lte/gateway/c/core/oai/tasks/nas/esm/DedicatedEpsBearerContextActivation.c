@@ -292,7 +292,7 @@ status_code_e esm_proc_dedicated_eps_bearer_context_accept(
       mme_app_handle_create_dedicated_bearer_rsp(ue_context_p, ebi);
     } else {
       rc = esm_ebr_start_timer(
-          emm_context, ebi, NULL, ERAB_SETUP_RSP_TMR,
+          emm_context, ebi, NULL, 1000 * ERAB_SETUP_RSP_TMR,
           erab_setup_rsp_tmr_exp_ded_bearer_handler);
       if (rc != RETURNerror) {
         OAILOG_DEBUG(
@@ -575,7 +575,7 @@ static int dedicated_eps_bearer_activate(
      * Start T3485 retransmission timer
      */
     rc = esm_ebr_start_timer(
-        emm_context, ebi, msg_dup, mme_config.nas_config.t3485_sec,
+        emm_context, ebi, msg_dup, mme_config.nas_config.t3485_msec,
         dedicated_eps_bearer_activate_t3485_handler);
   }
   bdestroy_wrapper(&msg_dup);
@@ -655,7 +655,8 @@ status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(
         // Restart the timer
         rc = esm_ebr_start_timer(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, NULL,
-            ERAB_SETUP_RSP_TMR, erab_setup_rsp_tmr_exp_ded_bearer_handler);
+            1000 * ERAB_SETUP_RSP_TMR,
+            erab_setup_rsp_tmr_exp_ded_bearer_handler);
         if (rc != RETURNerror) {
           OAILOG_INFO(
               LOG_NAS_ESM,

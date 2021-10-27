@@ -207,6 +207,7 @@ func ConvertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[strin
 				PreemptionCapability:    swag.BoolValue(apnConfig.QosProfile.PreemptionCapability),
 				PreemptionVulnerability: swag.BoolValue(apnConfig.QosProfile.PreemptionVulnerability),
 			},
+			Pdn:      lte_protos.APNConfiguration_PDNType(apnConfig.PdnType),
 			Resource: apnResource,
 		}
 		if staticIP, found := cfg.StaticIps[assoc.Key]; found {

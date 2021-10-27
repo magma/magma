@@ -23,6 +23,7 @@ from magma.common.misc_utils import (
     IpPreference,
     get_ip_from_if,
     get_ip_from_if_cidr,
+    get_ipv6_from_if,
 )
 from magma.configuration.mconfig_managers import load_service_mconfig
 from magma.configuration.service_configs import get_service_config_value
@@ -52,6 +53,14 @@ def _get_iface_ip(service, iface_config):
     """
     iface_name = get_service_config_value(service, iface_config, "")
     return get_ip_from_if_cidr(iface_name)
+
+
+def _get_iface_ipv6(service, iface_config):
+    """
+    Get the interface IPv6 given its name.
+    """
+    iface_name = get_service_config_value(service, iface_config, "")
+    return get_ipv6_from_if(iface_name)
 
 
 def _get_primary_dns_ip(service_mconfig, iface_config):
@@ -395,6 +404,7 @@ def _get_context():
         'sgw_s5s8_up_iface_name': iface_name,
         "remote_sgw_ip": get_service_config_value("mme", "remote_sgw_ip", ""),
         "s1ap_ip": _get_iface_ip("mme", "s1ap_iface_name"),
+        "s1ap_ipv6": _get_iface_ipv6("mme", "s1ap_iface_name"),
         "oai_log_level": _get_oai_log_level(),
         "ipv4_dns": _get_primary_dns_ip(mme_service_config, "dns_iface_name"),
         "ipv4_sec_dns": _get_secondary_dns_ip(mme_service_config),

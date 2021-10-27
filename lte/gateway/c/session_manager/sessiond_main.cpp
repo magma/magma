@@ -409,7 +409,7 @@ int main(int argc, char* argv[]) {
     // 5G related async msg handler service framework creation
     auto conv_set_message_handler =
         std::make_unique<magma::SetMessageManagerHandler>(
-            conv_session_enforcer, *session_store);
+            conv_session_enforcer, *session_store, reporter.get());
     MLOG(MINFO) << "Initialized SetMessageManagerHandler";
     // 5G specific services to handle set messages from AMF and mme
     conv_set_message_service = new magma::AmfPduSessionSmContextAsyncService(

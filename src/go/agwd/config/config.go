@@ -85,6 +85,8 @@ func newDefaultConfig() *mconfig.AgwD {
 		SctpdUpstreamServiceTarget:      "unix:///tmp/sctpd_upstream.sock",
 		MmeSctpdDownstreamServiceTarget: "unix:///tmp/mme_sctpd_downstream.sock",
 		MmeSctpdUpstreamServiceTarget:   "unix:///tmp/mme_sctpd_upstream.sock",
+		// Sentry is disabled if DSN is not set.
+		SentryDsn: "",
 	}
 }
 

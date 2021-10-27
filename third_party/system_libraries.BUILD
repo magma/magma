@@ -9,6 +9,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
+
 package(default_visibility = ["//visibility:public"])
 
 # This configuration is used for building inside the Magma VM
@@ -54,4 +56,11 @@ cc_library(
     name = "libmnl",
     srcs = ["usr/lib/x86_64-linux-gnu/libmnl.so"],
     linkopts = ["-lmnl"],
+)
+
+# TODO(GH9710): Generate asn1c with Bazel
+native_binary(
+    name = "asn1c",
+    src = "usr/local/bin/asn1c",
+    out = "asn1c",
 )

@@ -90,4 +90,15 @@ int amf_start_registration_proc_authentication(
     amf_context_t* amf_context, nas_amf_registration_proc_t* registration_proc);
 
 int amf_handle_s6a_update_location_ans(const s6a_update_location_ans_t* ula_pP);
+
+nas_amf_registration_proc_t* nas_new_registration_procedure(
+    ue_m5gmm_context_s* ue_ctxt);
+
+nas_amf_ident_proc_t* nas5g_new_identification_procedure(
+    amf_context_t* const amf_context);
+
+nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context);
+nas5g_amf_auth_proc_t* nas5g_new_authentication_procedure(
+    amf_context_t* const amf_context);
+
 }  // namespace magma5g

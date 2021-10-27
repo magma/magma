@@ -16,6 +16,7 @@
 #include <thread>
 
 extern "C" {
+#include "conversions.h"
 #define CHECK_PROTOTYPE_ONLY
 #include "intertask_interface_init.h"
 #undef CHECK_PROTOTYPE_ONLY

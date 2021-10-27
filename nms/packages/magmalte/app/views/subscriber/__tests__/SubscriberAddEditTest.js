@@ -366,7 +366,9 @@ describe('<AddSubscriberButton />', () => {
 
     expect(queryByTestId('addSubscriberDialog')).toBeNull();
     // Add Subscriber
-    fireEvent.click(getByText('Add Subscriber'));
+    fireEvent.click(getByText('Manage Subscribers'));
+    await wait();
+    fireEvent.click(getByText('Add Subscribers'));
     await wait();
     expect(queryByTestId('addSubscriberDialog')).not.toBeNull();
 
@@ -426,26 +428,26 @@ describe('<AddSubscriberButton />', () => {
 
     // Save subscriber
     fireEvent.click(getByTestId('saveSubscriber'));
-    expect(
-      MagmaAPIBindings.postLteByNetworkIdSubscribersV2,
-    ).toHaveBeenCalledWith({
-      networkId: 'test',
-      subscribers: [
-        {
-          active_apns: undefined,
-          active_policies: undefined,
-          id: 'IMSI00000000001004',
-          lte: {
-            auth_algo: 'MILENAGE',
-            auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
-            auth_opc: 'jie2rw5pLnUPMmZ6OxRgXQ==',
-            state: 'ACTIVE',
-            sub_profile: 'default',
+    expect(MagmaAPIBindings.postLteByNetworkIdSubscribers).toHaveBeenCalledWith(
+      {
+        networkId: 'test',
+        subscribers: [
+          {
+            active_apns: undefined,
+            active_policies: undefined,
+            id: 'IMSI00000000001004',
+            lte: {
+              auth_algo: 'MILENAGE',
+              auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
+              auth_opc: 'jie2rw5pLnUPMmZ6OxRgXQ==',
+              state: 'ACTIVE',
+              sub_profile: 'default',
+            },
+            name: 'IMSI00000000001004',
           },
-          name: 'IMSI00000000001004',
-        },
-      ],
-    });
+        ],
+      },
+    );
   });
 
   it('Verify Subscriber edit', async () => {

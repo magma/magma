@@ -156,6 +156,25 @@ def get_ip_from_if(iface_name, preference=IpPreference.IPV4_PREFERRED):
     return get_if_ip_with_netmask(iface_name, preference)[0]
 
 
+def get_ipv6_from_if(iface_name):
+    """
+    Get ipv6 address from interface name and return as string.
+    Extract only ipv6 address from (ipv6, netmask)
+    """
+    ip6_addresses = netifaces.ifaddresses(iface_name)[netifaces.AF_INET6]
+    ret = None
+    for ip_rec in ip6_addresses:
+        if "addr" in ip_rec:
+            ip = ip_rec["addr"].split("%")[0]
+            # lower priority of link local address.
+            if ip.startswith('fe80') is False:
+                return ip
+            ret = ip_rec
+    if ret:
+        return ret["addr"].split("%")[0]
+    return "::"
+
+
 def get_all_ips_from_if(iface_name, preference=IpPreference.IPV4_PREFERRED):
     """
     Get all ip addresses from interface name and return as a list of string.

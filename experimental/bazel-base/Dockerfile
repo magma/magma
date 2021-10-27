@@ -33,6 +33,7 @@ RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/dow
     chmod +x bazelisk-linux-amd64 && \
     ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
 
+
 # Install Folly as a static library in the container
 RUN apt-get install -y --no-install-recommends cmake
 
@@ -53,7 +54,7 @@ RUN apt-get install -y --no-install-recommends \
     libdouble-conversion-dev \
     libiberty-dev
 
-##### Facebook Folly C++ lib
+# Facebook Folly C++ lib
 # Note: "Because folly does not provide any ABI compatibility guarantees from
 #        commit to commit, we generally recommend building folly as a static library."
 # Here we checkout the hash for v2021.02.22.00 (arbitrary recent version)
@@ -66,10 +67,15 @@ RUN git clone https://github.com/facebook/folly && cd folly && \
     cd / && \
     rm -rf folly
 
-#### libtins is required to build the connection_tracker
+# libtins is required to build the connection_tracker
 RUN apt-get install -y --no-install-recommends \
-    libpcap-dev \
-    libmnl-dev
+    cmake=3.16.3-1ubuntu1 \
+    libpcap-dev=1.9.1-3 \
+    libmnl-dev=1.0.4-2
+
+# dependency of @sentry_native//:sentry
+RUN apt-get -y install --no-install-recommends \
+    libcurl4-openssl-dev=7.68.0-1ubuntu2.7
 
 # TODO(@themarwhal): this might not be hard to bazelify if we can generate the config
 RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
@@ -84,7 +90,19 @@ RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
     # symlink to /usr/lib to match Magma VM
     ln -s /usr/local/lib/libtins.so /usr/lib/libtins.so
 
-#### Update shared library configuration
+RUN apt-get -y install --no-install-recommends \
+    libtool=2.4.6-14
+
+# TODO(GH9710): Generate asn1c with Bazel - also this repo is really old :o 
+RUN git clone https://gitlab.eurecom.fr/oai/asn1c.git && \
+    cd asn1c && \
+    git checkout f12568d617dbf48497588f8e227d70388fa217c9 && \
+    autoreconf -iv && \
+    ./configure && \
+    make -j"$(nproc)" && \
+    make install
+
+# Update shared library configuration
 RUN ldconfig -v
 
 RUN ln -s /magma/experimental/bazel-base/bazelrcs/docker.bazelrc /etc/bazelrc
