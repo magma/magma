@@ -312,9 +312,11 @@ export function RanEdit(props: Props) {
     lte_a1_threshold_rsrq: String(
       config.ho_algorithm_config.lte_a1_threshold_rsrq ?? '',
     ),
-    hysteresis: String('config.ho_algorithm_config.hysteresis ?? '''
+    hysteresis: String(
+      config.ho_algorithm_config.hysteresis ?? '',
     ),
-    time_to_trigger: String('config.ho_algorithm_config.time_to_trigger ?? '''
+    time_to_trigger: String(
+      config.ho_algorithm_config.time_to_trigger ?? '',
     ),
     a2_threshold_rsrp: String(
       config.ho_algorithm_config.a2_threshold_rsrp ?? '',
@@ -328,9 +330,11 @@ export function RanEdit(props: Props) {
     lte_a2_threshold_rsrq_irat_volte: String(
       config.ho_algorithm_config.lte_a2_threshold_rsrq_irat_volte ?? '',
     ),
-    a3_offset: String('config.ho_algorithm_config.a3_offset ?? '''
+    a3_offset: String(
+      config.ho_algorithm_config.a3_offset ?? '',
     ),
-    a3_offset_anr: String('config.ho_algorithm_config.a3_offset_anr ?? '''
+    a3_offset_anr: String(
+      config.ho_algorithm_config.a3_offset_anr ?? '',
     ),
     a4_threshold_rsrp: String(
       config.ho_algorithm_config.a4_threshold_rsrp ?? '',
@@ -356,20 +360,25 @@ export function RanEdit(props: Props) {
     b2_geran_irat_threshold: String(
       config.ho_algorithm_config.b2_geran_irat_threshold ?? '',
     ),
-    qrxlevmin_sib1: String('config.ho_algorithm_config.qrxlevmin_sib1 ?? '''
+    qrxlevmin_sib1: String(
+      config.ho_algorithm_config.qrxlevmin_sib1 ?? '',
     ),
-    qrxlevminoffset: String('config.ho_algorithm_config.qrxlevminoffset ?? '''
+    qrxlevminoffset: String(
+      config.ho_algorithm_config.qrxlevminoffset ?? '',
     ),
-    s_intrasearch: String('config.ho_algorithm_config.s_intrasearch ?? '''
+    s_intrasearch: String(
+      config.ho_algorithm_config.s_intrasearch ?? '',
     ),
-    s_nonintrasearch: String('config.ho_algorithm_config.s_nonintrasearch ?? '''
+    s_nonintrasearch: String(config.ho_algorithm_config.s_nonintrasearch ?? '',
     ),
-    qrxlevmin_sib3: String(' config.ho_algorithm_config.qrxlevmin_sib3 ?? '''
+    qrxlevmin_sib3: String(
+      config.ho_algorithm_config.qrxlevmin_sib3 ?? '',
     ),
     reselection_priority: String(
       config.ho_algorithm_config.reselection_priority ?? '',
     ),
-    threshservinglow: String('config.ho_algorithm_config.threshservinglow ?? '''
+    threshservinglow: String(
+      config.ho_algorithm_config.threshservinglow ?? '',
     ),
     ciphering_algorithm: String(
       config.ho_algorithm_config.ciphering_algorithm ?? '',
@@ -1253,3 +1262,5 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
 
   return response;
 }
+
+

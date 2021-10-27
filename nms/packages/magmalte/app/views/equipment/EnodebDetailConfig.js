@@ -450,7 +450,7 @@ function EnodebManagedRanConfig({
           enbInfo.enb.enodeb_config?.managed_config?.ho_algorithm_config
             ?.integrity_algorithm ?? '-',
       },
-      
+
     ],
 
   ];
@@ -516,3 +516,5 @@ function EnodebInfoConfig() {
 
   return <DataGrid data={data} testID="config" />;
 }
+
+
