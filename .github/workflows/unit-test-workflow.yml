@@ -52,7 +52,6 @@ jobs:
             else  {
               core.setOutput('should_not_skip', 'false');
             }
-            console.log("should_not_skip=" + skipFlag);
 
   unit-test-results:
     name: Cloud Unit Test Results
@@ -60,14 +59,7 @@ jobs:
     name: Upload unit test for ${{ github.event.workflow.name }}
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion != 'skipped' && github.event.workflow_run.head_repository.full_name != github.repository && needs.skip_check.outputs.should_not_skip == 'true'
-    #if: ${{ needs.skip_check.outputs.should_not_skip == 'true' }}
     steps:
-      - name: Log should_not_skip for debugging
-        env:
-          SKIP_CHECK: "${{ needs.skip_check.outputs.should_not_skip }}"
-        run: |
-            echo "Bash-SKIP_CHECK=$SKIP_CHECK, DONE."
-
       # Retrieve PR folder from triggering workflow artifacts
       - name: Download and Extract Artifacts
         env:
