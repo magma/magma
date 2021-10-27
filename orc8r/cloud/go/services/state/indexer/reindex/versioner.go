@@ -18,6 +18,7 @@ import (
 	"sort"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
@@ -46,6 +47,8 @@ func (v *versioner) Initialize() error {
 		return nil, errors.Wrap(err, "initialize indexer versions table")
 	}
 	_, err := sqorc.ExecInTx(v.db, &sql.TxOptions{Isolation: sql.LevelRepeatableRead}, nil, txFn)
+	glog.Infof("initialzed VERSIONER")
+
 	return err
 }
 

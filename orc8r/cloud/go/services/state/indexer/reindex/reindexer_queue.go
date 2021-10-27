@@ -106,7 +106,7 @@ func (r *reindexerQueue) claimAndReindexOne(ctx context.Context, batches []reind
 
 	jobErr := executeJob(ctx, job, batches)
 
-	err = r.queue.CompleteJob(job, jobErr)
+	err = r.queue.CompleteJob(job, jobErr) // Marking attempt as done, not successful
 	if err != nil {
 		return fmt.Errorf("error completing state reindex job %+v with job err <%s>: %s", job, jobErr, err)
 	}

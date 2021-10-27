@@ -38,6 +38,7 @@ func NewReindexerSingleton(store Store, versioner Versioner) Reindexer {
 }
 
 func (r *reindexerSingleton) Run(ctx context.Context) {
+	glog.V(2).Infof("called once")
 	batches := r.getReindexBatches(ctx)
 	for {
 		if isCanceled(ctx) {
@@ -45,6 +46,9 @@ func (r *reindexerSingleton) Run(ctx context.Context) {
 			return
 		}
 		err := r.reindexJobs(ctx, batches)
+
+		clock.Sleep(failedJobSleep)
+
 		if err == nil {
 			continue
 		}
@@ -54,6 +58,8 @@ func (r *reindexerSingleton) Run(ctx context.Context) {
 		} else {
 			glog.Errorf("Failed to get or complete state reindex job from queue: %s", err)
 		}
+		glog.V(2).Infof("sleep a minute")
+
 		clock.Sleep(failedJobSleep)
 
 	}
@@ -63,9 +69,11 @@ func (r *reindexerSingleton) Run(ctx context.Context) {
 // If no job available, returns ErrNotFound from magma/orc8r/lib/go/errors.
 func (r *reindexerSingleton) reindexJobs(ctx context.Context, batches []reindexBatch) error {
 	indexerID := ""
+	glog.Infof("called once")
+
 
 	jobs, err := r.getJobs(indexerID)
-	glog.Infof("Reindex for indexer '%s' with reindex jobs: %+v", indexerID, jobs)
+	glog.Infof("Reindex for indexer '%s' with reindex jobs: %+v, err: %s", indexerID, jobs, err)
 	if err != nil || len(jobs) == 0 {
 		return err
 	}
@@ -88,17 +96,19 @@ func (r *reindexerSingleton) reindexJobs(ctx context.Context, batches []reindexB
 
 func (r * reindexerSingleton) reindexJob(job *Job, indexerID string, ctx context.Context, batches []reindexBatch, sendUpdate func(string)) error {
 	defer TestHookReindexDone()
+	glog.Infof("running job: %s", job)
+
 	start := clock.Now()
 
-	glog.Infof("Reindex for indexer '%s', execute job %+v", indexerID, job)
+	// glog.Infof("Reindex for indexer '%s', execute job %+v", indexerID, job)
 	jobErr := executeJob(ctx, job, batches)
 
+	// TODO add indexer fail count increase
 	err := r.versioner.SetIndexerActualVersion(job.Idx.GetID(), job.To)
 	if err != nil {
 		return fmt.Errorf("error completing state reindex job %+v with job err <%s>: %s", job, jobErr, err)
 	}
 	glog.V(2).Infof("Completed state reindex job %+v with job err %+v", job, jobErr)
-
 	duration := clock.Since(start).Seconds()
 	metrics.ReindexDuration.WithLabelValues(job.Idx.GetID()).Set(duration)
 	glog.Infof("Attempt at state reindex job %+v took %f seconds", job, duration)
@@ -137,7 +147,6 @@ func (r *reindexerSingleton) GetIndexerVersions() ([]*indexer.Versions, error) {
 // If indexer ID is non-empty, only gets job for that indexer.
 func (r *reindexerSingleton) getJobs(indexerID string) ([]*Job, error) {
 	idxs, err := getIndexers(indexerID)
-	glog.Infof("getIndexers '%s", idxs)
 
 	if err != nil {
 		return nil, err
@@ -146,6 +155,8 @@ func (r *reindexerSingleton) getJobs(indexerID string) ([]*Job, error) {
 	var ret []*Job
 	for _, x := range idxs {
 		v, err := GetIndexerVersion(r.versioner, x.GetID())
+		glog.Infof("indexerVersion %s, %s", v, err)
+
 		if err != nil {
 			return nil, err
 		}

@@ -86,6 +86,7 @@ type reindexBatch struct {
 
 func executeJob(ctx context.Context, job *Job, batches []reindexBatch) error {
 	id := job.Idx.GetID()
+	glog.Infof("GET TYPES: %s", job.Idx)
 	stateTypes := job.Idx.GetTypes()
 
 	isFirst := job.From == 0
@@ -109,6 +110,8 @@ func executeJob(ctx context.Context, job *Job, batches []reindexBatch) error {
 			err = errors.Wrap(err, "get states")
 			return wrap(err, ErrDefault, id)
 		}
+		glog.Info("YAY INDEX")
+		glog.Info(batches)
 
 		errs, err := job.Idx.Index(b.networkID, statesByID)
 		if err != nil {
