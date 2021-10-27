@@ -198,6 +198,14 @@ class TestS1HandoverPingPong(unittest.TestCase):
             dl_flow_rules,
         )
 
+        # After S1 Overall Reloc Timer expiry, source ENB sends UE context
+        # release request to MME with cause tS1relocoverall-expiry.
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+        )
+        print("Received UE Context Release complete indication")
+
         #####################################
         # Source and Target ENBs are switched
         # Re-initiate the Handover Procedure
@@ -299,6 +307,15 @@ class TestS1HandoverPingPong(unittest.TestCase):
             num_ul_flows,
             dl_flow_rules,
         )
+
+        # After S1 Overall Reloc Timer expiry, source ENB sends UE context
+        # release request to MME with cause tS1relocoverall-expiry.
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+        )
+        print("Received UE Context Release complete indication")
+
 
         print(
             "************************* Running UE detach for UE Id:",
