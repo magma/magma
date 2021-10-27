@@ -264,6 +264,14 @@ TEST_F(SgwS8ConfigAndCreateMock, create_bearer_req_fails_to_find_ctxt) {
   sgw_state_exit();
 }
 
+MATCHER_P(check_params_in_cb_req, linked_eps_bearer_id, "") {
+  auto lbi_rcvd = static_cast<uint8_t>(arg);
+  if (lbi_rcvd != linked_eps_bearer_id) {
+    return false;
+  }
+  return true;
+}
+
 TEST_F(SgwS8ConfigAndCreateMock, send_create_bearer_req_to_mme) {
   ASSERT_EQ(task_zmq_ctx_main_s8.ready, true);
   mme_sgw_tunnel_t sgw_s11_tunnel = {0};
@@ -282,7 +290,10 @@ TEST_F(SgwS8ConfigAndCreateMock, send_create_bearer_req_to_mme) {
       &cb_req, sgw_s11_tunnel.local_teid, default_eps_bearer_id);
   gtpv2c_cause_value_t cause_value = REQUEST_REJECTED;
 
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_nw_init_ded_bearer_actv_req())
+  EXPECT_CALL(
+      *mme_app_handler,
+      mme_app_handle_nw_init_ded_bearer_actv_req(
+          check_params_in_cb_req((cb_req.linked_eps_bearer_id))))
       .Times(1);
   EXPECT_NE(
       sgw_s8_handle_create_bearer_request(sgw_state, &cb_req, &cause_value),
@@ -328,7 +339,10 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_create_bearer_response) {
       &cb_req, sgw_s11_tunnel.local_teid, default_eps_bearer_id);
   gtpv2c_cause_value_t cause_value = REQUEST_REJECTED;
 
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_nw_init_ded_bearer_actv_req())
+  EXPECT_CALL(
+      *mme_app_handler,
+      mme_app_handle_nw_init_ded_bearer_actv_req(
+          check_params_in_cb_req((cb_req.linked_eps_bearer_id))))
       .Times(1);
   EXPECT_NE(
       sgw_s8_handle_create_bearer_request(sgw_state, &cb_req, &cause_value),

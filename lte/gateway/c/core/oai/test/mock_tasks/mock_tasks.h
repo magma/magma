@@ -49,7 +49,7 @@ class MockMmeAppHandler {
  public:
   MOCK_METHOD0(mme_app_handle_initial_ue_message, void());
   MOCK_METHOD0(mme_app_handle_s1ap_ue_context_release_req, void());
-  MOCK_METHOD0(mme_app_handle_nw_init_ded_bearer_actv_req, void());
+  MOCK_METHOD1(mme_app_handle_nw_init_ded_bearer_actv_req, bool(uint8_t lbi));
   MOCK_METHOD0(mme_app_handle_nw_init_bearer_deactv_req, void());
 };
 

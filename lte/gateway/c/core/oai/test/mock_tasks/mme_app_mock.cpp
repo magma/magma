@@ -133,7 +133,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST: {
-      mme_app_handler_->mme_app_handle_nw_init_ded_bearer_actv_req();
+      itti_s11_nw_init_actv_bearer_request_t cb_req =
+          received_message_p->ittiMsg.s11_nw_init_actv_bearer_request;
+      mme_app_handler_->mme_app_handle_nw_init_ded_bearer_actv_req(cb_req.lbi);
     } break;
 
     case SGSAP_STATUS: {
