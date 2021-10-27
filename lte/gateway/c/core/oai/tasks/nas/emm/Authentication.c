@@ -1133,12 +1133,6 @@ status_code_e mme_app_handle_auth_t3460_expiry(
       // abort ANY ongoing EMM procedure (R10_5_4_2_7_b)
       nas_delete_all_emm_procedures(emm_ctx);
 
-      // Clean up MME APP UE context
-      memset((void*) &emm_sap, 0, sizeof(emm_sap));
-      emm_sap.primitive = EMMCN_IMPLICIT_DETACH_UE;
-      emm_sap.u.emm_cn.u.emm_cn_implicit_detach.ue_id = ue_id;
-      emm_sap_send(&emm_sap);
-      increment_counter("ue_attach", 1, 1, "action", "attach_abort");
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
