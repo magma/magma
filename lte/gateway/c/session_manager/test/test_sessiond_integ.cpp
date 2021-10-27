@@ -21,17 +21,17 @@
 #include <iostream>
 #include <thread>
 
-#include "Consts.h"
-#include "LocalEnforcer.h"
-#include "includes/MagmaService.h"
-#include "Matchers.h"
-#include "ProtobufCreators.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "SessiondMocks.h"
-#include "SessionManagerServer.h"
-#include "SessionReporter.h"
-#include "SessionStore.h"
-#include "ShardTracker.h"
+#include "lte/gateway/c/session_manager/test/Consts.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "lte/gateway/c/session_manager/test/Matchers.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
+#include "lte/gateway/c/session_manager/SessionManagerServer.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/ShardTracker.h"
 
 #define SESSION_TERMINATION_TIMEOUT_MS 100
 #define DEFAULT_PIPELINED_EPOCH 1

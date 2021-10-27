@@ -19,11 +19,11 @@
 #include <utility>
 #include <vector>
 
-#include "GrpcMagmaUtils.h"
-#include "LocalSessionManagerHandler.h"
-#include "magma_logging.h"
-#include "includes/SentryWrapper.h"
-#include "Utilities.h"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
+#include "lte/gateway/c/session_manager/LocalSessionManagerHandler.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
+#include "lte/gateway/c/session_manager/Utilities.h"
 
 using grpc::Status;
 

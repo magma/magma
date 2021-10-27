@@ -14,11 +14,11 @@
 #pragma once
 
 #include <cpp_redis/cpp_redis>
-#include <exception>      // IWYU pragma: keep
-#include <memory>         // for shared_ptr
-#include <set>            // for set
-#include <string>         // for string
-#include "StoreClient.h"  // for SessionMap, SessionVector, StoreClient
+#include <exception>                                    // IWYU pragma: keep
+#include <memory>                                       // for shared_ptr
+#include <set>                                          // for set
+#include <string>                                       // for string
+#include "lte/gateway/c/session_manager/StoreClient.h"  // for SessionMap, SessionVector, StoreClient
 namespace magma {
 class StaticRuleStore;
 }

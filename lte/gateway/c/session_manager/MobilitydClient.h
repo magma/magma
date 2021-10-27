@@ -16,9 +16,9 @@
 #include <unordered_map>
 #include <memory>
 #include <lte/protos/mobilityd.grpc.pb.h>
-#include "Types.h"
-#include "includes/GRPCReceiver.h"
-#include "SessionState.h"
+#include "lte/gateway/c/session_manager/Types.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
 
 using grpc::Status;
 

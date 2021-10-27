@@ -13,11 +13,11 @@
 #include <gtest/gtest.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <memory>
-#include "Consts.h"
-#include "LocalEnforcer.h"
-#include "ProtobufCreators.h"
-#include "SessiondMocks.h"
-#include "SessionStore.h"
+#include "lte/gateway/c/session_manager/test/Consts.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
 
 using grpc::ServerContext;
 using grpc::Status;

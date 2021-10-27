@@ -23,9 +23,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "includes/GRPCReceiver.h"
-#include "SessionState.h"
-#include "Types.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/Types.h"
 
 #define M5G_MIN_TEID (UINT32_MAX / 2)
 

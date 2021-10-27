@@ -16,9 +16,9 @@
 #include <sstream>
 #include <string>
 
-#include "ChargingGrant.h"
-#include "EnumToString.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/session_manager/ChargingGrant.h"
+#include "lte/gateway/c/session_manager/EnumToString.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {
 ChargingGrant::ChargingGrant(const StoredChargingGrant& marshaled) {

@@ -25,14 +25,14 @@
 #include <utility>
 #include <vector>
 
-#include "ChargingGrant.h"
-#include "CreditKey.h"
-#include "Monitor.h"
-#include "RuleStore.h"
-#include "SessionCredit.h"
-#include "SessionReporter.h"
-#include "StoredState.h"
-#include "Types.h"
+#include "lte/gateway/c/session_manager/ChargingGrant.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
+#include "lte/gateway/c/session_manager/Monitor.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionCredit.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/Types.h"
 
 namespace magma {
 using std::experimental::optional;

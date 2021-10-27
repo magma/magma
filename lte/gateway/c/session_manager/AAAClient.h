@@ -17,9 +17,9 @@
 #include <memory>
 #include <string>
 
-#include "includes/GRPCReceiver.h"
-#include "SessionState.h"
-#include "SessionStore.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
 
 using grpc::Status;
 

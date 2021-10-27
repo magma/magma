@@ -23,9 +23,9 @@
 
 #include <google/protobuf/util/time_util.h>
 
-#include "SetMessageManagerHandler.h"
-#include "magma_logging.h"
-#include "GrpcMagmaUtils.h"
+#include "lte/gateway/c/session_manager/SetMessageManagerHandler.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
 
 using grpc::Status;
 

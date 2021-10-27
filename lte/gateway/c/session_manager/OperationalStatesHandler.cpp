@@ -19,10 +19,10 @@
 #include <memory>
 #include <string>
 
-#include "EnumToString.h"
-#include "magma_logging.h"
-#include "OperationalStatesHandler.h"
-#include "Utilities.h"
+#include "lte/gateway/c/session_manager/EnumToString.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "lte/gateway/c/session_manager/OperationalStatesHandler.h"
+#include "lte/gateway/c/session_manager/Utilities.h"
 
 namespace magma {
 

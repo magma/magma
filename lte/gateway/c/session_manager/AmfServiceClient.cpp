@@ -1,6 +1,6 @@
-#include "AmfServiceClient.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/session_manager/AmfServiceClient.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 using grpc::Status;
 

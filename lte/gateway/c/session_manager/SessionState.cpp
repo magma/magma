@@ -20,16 +20,16 @@
 #include <utility>
 #include <vector>
 
-#include "CreditKey.h"
-#include "DiameterCodes.h"
-#include "EnumToString.h"
-#include "magma_logging.h"
-#include "includes/MetricsHelpers.h"
-#include "RuleStore.h"
-#include "SessionState.h"
-#include "StoredState.h"
-#include "Utilities.h"
-#include "ShardTracker.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
+#include "lte/gateway/c/session_manager/DiameterCodes.h"
+#include "lte/gateway/c/session_manager/EnumToString.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/Utilities.h"
+#include "lte/gateway/c/session_manager/ShardTracker.h"
 
 namespace {
 const char* UE_TRAFFIC_COUNTER_NAME = "ue_traffic";

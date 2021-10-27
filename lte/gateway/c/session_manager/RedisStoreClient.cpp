@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "RedisStoreClient.h"
+#include "lte/gateway/c/session_manager/RedisStoreClient.h"
 #include <folly/Range.h>              // for operator<<, StringPiece
 #include <folly/dynamic-inl.h>        // for dynamic::dynamic, dynamic::~dyn...
 #include <folly/dynamic.h>            // for dynamic
@@ -29,10 +29,10 @@
 #include <unordered_map>              // for _Node_iterator, unordered_map
 #include <utility>                    // for move, pair
 #include <vector>                     // for vector
-#include "includes/ServiceConfigLoader.h"  // for ServiceConfigLoader
-#include "SessionState.h"                  // for SessionState
-#include "StoredState.h"    // for deserialize_stored_session, ser...
-#include "magma_logging.h"  // for MERROR, MLOG
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.h"  // for ServiceConfigLoader
+#include "lte/gateway/c/session_manager/SessionState.h"  // for SessionState
+#include "lte/gateway/c/session_manager/StoredState.h"  // for deserialize_stored_session, ser...
+#include "orc8r/gateway/c/common/logging/magma_logging.h"  // for MERROR, MLOG
 namespace magma {
 class StaticRuleStore;
 }

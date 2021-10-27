@@ -24,13 +24,13 @@
 #include <utility>
 #include <vector>
 
-#include "DiameterCodes.h"
-#include "EnumToString.h"
-#include "LocalEnforcer.h"
-#include "magma_logging.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "Utilities.h"
-#include "GrpcMagmaUtils.h"
+#include "lte/gateway/c/session_manager/DiameterCodes.h"
+#include "lte/gateway/c/session_manager/EnumToString.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "lte/gateway/c/session_manager/Utilities.h"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
 
 namespace magma {
 bool LocalEnforcer::SEND_ACCESS_TIMEZONE   = false;

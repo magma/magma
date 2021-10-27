@@ -17,9 +17,9 @@
 
 #include <string>
 
-#include "ChargingGrant.h"
-#include "ServiceAction.h"
-#include "StoredState.h"
+#include "lte/gateway/c/session_manager/ChargingGrant.h"
+#include "lte/gateway/c/session_manager/ServiceAction.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
 
 namespace magma {
 std::string reauth_state_to_str(ReAuthState state);

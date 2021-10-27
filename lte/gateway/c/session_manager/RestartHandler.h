@@ -17,10 +17,10 @@
 #include <string>
 #include <unordered_map>
 
-#include "AAAClient.h"
-#include "DirectorydClient.h"
-#include "LocalEnforcer.h"
-#include "SessionReporter.h"
+#include "lte/gateway/c/session_manager/AAAClient.h"
+#include "lte/gateway/c/session_manager/DirectorydClient.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
 
 namespace magma {
 namespace sessiond {

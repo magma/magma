@@ -52,6 +52,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-function")
 endif ()
 
+include_directories("${MAGMA_ROOT}")
 include_directories("${OUTPUT_DIR}")
 include_directories("${MAGMA_ROOT}/orc8r/gateway/c/common/logging")
 

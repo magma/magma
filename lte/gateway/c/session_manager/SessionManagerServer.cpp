@@ -18,8 +18,8 @@
 #include <ctime>
 #include <memory>
 
-#include "magma_logging.h"
-#include "SessionManagerServer.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "lte/gateway/c/session_manager/SessionManagerServer.h"
 
 using grpc::Status;
 

@@ -20,9 +20,9 @@
 #include <string>
 #include <utility>
 
-#include "includes/EventdClient.h"
-#include "magma_logging.h"
-#include "SessionState.h"
+#include "orc8r/gateway/c/common/eventd/includes/EventdClient.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
 
 namespace magma {
 namespace lte {

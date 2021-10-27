@@ -20,7 +20,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "SessionState.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
 
 namespace magma {
 namespace lte {

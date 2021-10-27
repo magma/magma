@@ -19,8 +19,8 @@
 #include <string>
 #include <vector>
 
-#include "DiameterCodes.h"
-#include "StoredState.h"
+#include "lte/gateway/c/session_manager/DiameterCodes.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
 
 namespace magma {
 using namespace lte;

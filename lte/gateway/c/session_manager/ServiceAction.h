@@ -17,8 +17,8 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <experimental/optional>
 
-#include "CreditKey.h"
-#include "Types.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
+#include "lte/gateway/c/session_manager/Types.h"
 
 namespace magma {
 using namespace lte;

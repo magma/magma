@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <atomic>
 #include <memory>
-#include "StatsPoller.h"
+#include "lte/gateway/c/session_manager/StatsPoller.h"
 #define COOKIE 0
 #define COOKIE_MASK 0
 

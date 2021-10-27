@@ -19,7 +19,7 @@
 #include <memory>
 #include <string>
 
-#include "SessionStore.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
 
 namespace magma {
 const std::string TYPE                   = "type";

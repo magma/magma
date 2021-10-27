@@ -14,11 +14,11 @@
 #include <string>
 #include <thread>
 
-#include "EnumToString.h"
-#include "GrpcMagmaUtils.h"
-#include "magma_logging.h"
-#include "includes/SentryWrapper.h"
-#include "SessionProxyResponderHandler.h"
+#include "lte/gateway/c/session_manager/EnumToString.h"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
+#include "lte/gateway/c/session_manager/SessionProxyResponderHandler.h"
 
 using grpc::Status;
 

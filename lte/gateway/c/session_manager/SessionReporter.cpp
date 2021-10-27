@@ -15,10 +15,10 @@
 #include <iostream>
 #include <utility>
 
-#include "GrpcMagmaUtils.h"
-#include "magma_logging.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "SessionReporter.h"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
 
 namespace magma {
 

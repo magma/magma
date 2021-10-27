@@ -19,8 +19,8 @@
 #include <functional>
 #include <memory>
 
-#include "LocalEnforcer.h"
-#include "SessionStore.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
 
 using grpc::ServerContext;
 using grpc::Status;

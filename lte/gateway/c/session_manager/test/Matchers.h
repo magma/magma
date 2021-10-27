@@ -21,7 +21,7 @@
 #include <utility>
 #include <vector>
 
-#include "SessiondMocks.h"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
 
 using ::testing::Test;
 

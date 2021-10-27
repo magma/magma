@@ -18,11 +18,11 @@
 #include <functional>
 #include <memory>
 
-#include "SessionStateEnforcer.h"
-#include "SessionID.h"
-#include "SessionReporter.h"
-#include "SessionStore.h"
-#include "MobilitydClient.h"
+#include "lte/gateway/c/session_manager/SessionStateEnforcer.h"
+#include "lte/gateway/c/session_manager/SessionID.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/MobilitydClient.h"
 
 using grpc::Server;
 using grpc::ServerContext;

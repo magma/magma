@@ -25,10 +25,10 @@
 #include <grpc++/grpc++.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
-#include "SessionStateEnforcer.h"
-#include "SessionID.h"
-#include "SessionReporter.h"
-#include "SessionStore.h"
+#include "lte/gateway/c/session_manager/SessionStateEnforcer.h"
+#include "lte/gateway/c/session_manager/SessionID.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
 
 using grpc::ServerContext;
 using grpc::Status;

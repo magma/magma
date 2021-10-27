@@ -14,8 +14,8 @@
 #include <vector>
 #include <string>
 
-#include "Consts.h"
-#include "ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/test/Consts.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
 
 namespace magma {
 

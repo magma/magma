@@ -17,7 +17,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include "Utilities.h"
+#include "lte/gateway/c/session_manager/Utilities.h"
 
 namespace magma {
 

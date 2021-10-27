@@ -13,10 +13,10 @@
 
 #include <utility>
 
-#include "magma_logging.h"
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "StoredState.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
 
 namespace magma {
 namespace lte {

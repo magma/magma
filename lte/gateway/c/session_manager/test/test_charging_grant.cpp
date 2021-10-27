@@ -15,8 +15,8 @@
 #include <chrono>
 #include <thread>
 
-#include "ChargingGrant.h"
-#include "ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/ChargingGrant.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
 
 using ::testing::Test;
 

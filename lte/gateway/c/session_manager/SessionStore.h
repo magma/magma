@@ -20,12 +20,12 @@
 #include <string>
 #include <unordered_map>
 
-#include "MemoryStoreClient.h"
-#include "MeteringReporter.h"
-#include "RedisStoreClient.h"
-#include "RuleStore.h"
-#include "SessionState.h"
-#include "StoredState.h"
+#include "lte/gateway/c/session_manager/MemoryStoreClient.h"
+#include "lte/gateway/c/session_manager/MeteringReporter.h"
+#include "lte/gateway/c/session_manager/RedisStoreClient.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
 
 namespace magma {
 namespace lte {

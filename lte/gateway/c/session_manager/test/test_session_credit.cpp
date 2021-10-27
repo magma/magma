@@ -15,8 +15,8 @@
 #include <chrono>
 #include <thread>
 
-#include "ProtobufCreators.h"
-#include "SessionCredit.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/SessionCredit.h"
 
 using ::testing::Test;
 

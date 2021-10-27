@@ -15,10 +15,10 @@
 #include <chrono>
 #include <thread>
 
-#include "ProtobufCreators.h"
-#include "SessiondMocks.h"
-#include "SessionState.h"
-#include "SessionStateTester.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/test/SessionStateTester.h"
 
 using ::testing::Test;
 

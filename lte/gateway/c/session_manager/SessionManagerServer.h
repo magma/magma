@@ -18,10 +18,10 @@
 #include <memory>
 #include <utility>
 
-#include "LocalSessionManagerHandler.h"
-#include "SessionProxyResponderHandler.h"
-#include "SetMessageManagerHandler.h"
-#include "UpfMsgManageHandler.h"
+#include "lte/gateway/c/session_manager/LocalSessionManagerHandler.h"
+#include "lte/gateway/c/session_manager/SessionProxyResponderHandler.h"
+#include "lte/gateway/c/session_manager/SetMessageManagerHandler.h"
+#include "lte/gateway/c/session_manager/UpfMsgManageHandler.h"
 
 using grpc::ServerCompletionQueue;
 using grpc::ServerContext;

@@ -14,9 +14,9 @@
 #include <memory>
 #include <utility>
 
-#include "DirectorydClient.h"
-#include "magma_logging.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "lte/gateway/c/session_manager/DirectorydClient.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
 
 using grpc::Status;
 

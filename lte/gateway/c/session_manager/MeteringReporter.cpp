@@ -13,9 +13,9 @@
 
 #include <string>
 
-#include "includes/MagmaService.h"
-#include "MeteringReporter.h"
-#include "includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "lte/gateway/c/session_manager/MeteringReporter.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
 namespace magma {
 namespace lte {

@@ -15,11 +15,11 @@
 #include <limits>
 #include <string>
 
-#include "DiameterCodes.h"
-#include "EnumToString.h"
-#include "magma_logging_init.h"
-#include "SessionCredit.h"
-#include "Utilities.h"
+#include "lte/gateway/c/session_manager/DiameterCodes.h"
+#include "lte/gateway/c/session_manager/EnumToString.h"
+#include "orc8r/gateway/c/common/logging/magma_logging_init.h"
+#include "lte/gateway/c/session_manager/SessionCredit.h"
+#include "lte/gateway/c/session_manager/Utilities.h"
 
 namespace magma {
 

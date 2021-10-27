@@ -16,15 +16,15 @@
 
 #include <memory>
 
-#include "Consts.h"
-#include "magma_logging.h"
-#include "includes/MagmaService.h"
-#include "ProtobufCreators.h"
-#include "RuleStore.h"
-#include "SessionID.h"
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "StoredState.h"
+#include "lte/gateway/c/session_manager/test/Consts.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionID.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
 
 using magma::orc8r::MetricsContainer;
 using ::testing::Test;

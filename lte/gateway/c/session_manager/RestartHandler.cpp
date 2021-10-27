@@ -17,8 +17,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "magma_logging.h"
-#include "RestartHandler.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "lte/gateway/c/session_manager/RestartHandler.h"
 
 namespace magma {
 namespace sessiond {

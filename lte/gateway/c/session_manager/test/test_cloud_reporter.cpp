@@ -18,10 +18,10 @@
 #include <memory>
 #include <thread>
 
-#include "includes/MagmaService.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "SessiondMocks.h"
-#include "SessionReporter.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
 
 using grpc::Status;
 using ::testing::_;

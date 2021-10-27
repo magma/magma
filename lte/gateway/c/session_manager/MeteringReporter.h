@@ -14,8 +14,8 @@
 
 #include <string>
 
-#include "StoredState.h"
-#include "SessionCredit.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/SessionCredit.h"
 
 namespace magma {
 namespace lte {

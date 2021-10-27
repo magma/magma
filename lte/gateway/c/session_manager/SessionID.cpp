@@ -15,7 +15,7 @@
 #include <sstream>
 #include <string>
 
-#include "SessionID.h"
+#include "lte/gateway/c/session_manager/SessionID.h"
 
 SessionIDGenerator::SessionIDGenerator() {
   std::random_device rseed;

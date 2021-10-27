@@ -19,9 +19,9 @@
 #include <string>
 #include <unordered_map>
 
-#include "CreditKey.h"
-#include "magma_logging.h"
-#include "StoredState.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
 
 namespace magma {
 using google::protobuf::util::TimeUtil;

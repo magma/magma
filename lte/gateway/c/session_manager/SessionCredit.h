@@ -15,8 +15,8 @@
 
 #include <string>
 
-#include "StoredState.h"
-#include "Types.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
+#include "lte/gateway/c/session_manager/Types.h"
 
 namespace magma {
 /**

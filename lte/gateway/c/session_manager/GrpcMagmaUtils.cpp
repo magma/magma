@@ -19,8 +19,8 @@
 #include <sstream>  // for operator<<, basic_ostream
 #include <string>   // for string, operator<<, operator==
 
-#include "GrpcMagmaUtils.h"
-#include "magma_logging.h"  // for MINFO, MLOG
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"  // for MINFO, MLOG
 
 #define MAGMA_PRINT_GRPC_PAYLOAD "MAGMA_PRINT_GRPC_PAYLOAD"
 

@@ -21,12 +21,12 @@
 #include <ostream>    // for operator<<, basic_...
 #include <utility>    // for move
 
-#include "lte/protos/policydb.pb.h"             // for RepeatedField, Rep...
-#include "lte/protos/spgw_service.grpc.pb.h"    // for SpgwService::Stub
-#include "lte/protos/spgw_service.pb.h"         // for DeleteBearerRequest
-#include "magma_logging.h"                      // for MLOG, MERROR, MINFO
-#include "includes/ServiceRegistrySingleton.h"  // for ServiceRegistrySin...
-#include "SpgwServiceClient.h"
+#include "lte/protos/policydb.pb.h"           // for RepeatedField, Rep...
+#include "lte/protos/spgw_service.grpc.pb.h"  // for SpgwService::Stub
+#include "lte/protos/spgw_service.pb.h"       // for DeleteBearerRequest
+#include "orc8r/gateway/c/common/logging/magma_logging.h"  // for MLOG, MERROR, MINFO
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"  // for ServiceRegistrySin...
+#include "lte/gateway/c/session_manager/SpgwServiceClient.h"
 
 namespace grpc {
 class Channel;

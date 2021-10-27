@@ -30,9 +30,9 @@
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/util/time_util.h>
 #include <grpcpp/channel.h>
-#include "magma_logging.h"
-#include "EnumToString.h"
-#include "SessionStateEnforcer.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "lte/gateway/c/session_manager/EnumToString.h"
+#include "lte/gateway/c/session_manager/SessionStateEnforcer.h"
 
 #define DEFAULT_AMBR_UNITS (1024)
 #define DEFAULT_UP_LINK_PDR_ID 1

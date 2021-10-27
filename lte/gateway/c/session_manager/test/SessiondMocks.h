@@ -25,13 +25,13 @@
 #include <string>
 #include <vector>
 
-#include "LocalSessionManagerHandler.h"
-#include "UpfMsgManageHandler.h"
-#include "PipelinedClient.h"
-#include "RuleStore.h"
-#include "SessionReporter.h"
-#include "SessionState.h"
-#include "SpgwServiceClient.h"
+#include "lte/gateway/c/session_manager/LocalSessionManagerHandler.h"
+#include "lte/gateway/c/session_manager/UpfMsgManageHandler.h"
+#include "lte/gateway/c/session_manager/PipelinedClient.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SpgwServiceClient.h"
 
 using grpc::Status;
 using ::testing::_;

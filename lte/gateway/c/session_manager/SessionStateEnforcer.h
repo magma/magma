@@ -30,11 +30,11 @@ limitations under the License.
 #include <folly/io/async/EventBaseManager.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/policydb.pb.h>
-#include "PipelinedClient.h"
-#include "RuleStore.h"
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "AmfServiceClient.h"
+#include "lte/gateway/c/session_manager/PipelinedClient.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/AmfServiceClient.h"
 
 #define M5G_MIN_TEID (UINT32_MAX / 2)
 #define DEFAULT_PDR_VERSION 1

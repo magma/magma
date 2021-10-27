@@ -18,7 +18,7 @@
 #include <lte/protos/session_manager.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
-#include "includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
 
 using grpc::Status;
 

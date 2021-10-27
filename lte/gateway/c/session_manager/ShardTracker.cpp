@@ -15,7 +15,7 @@
 #include <vector>
 #include <set>
 
-#include "ShardTracker.h"
+#include "lte/gateway/c/session_manager/ShardTracker.h"
 
 namespace magma {
 

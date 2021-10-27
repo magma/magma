@@ -14,7 +14,7 @@
 #include <sstream>
 #include <string>
 
-#include "EnumToString.h"
+#include "lte/gateway/c/session_manager/EnumToString.h"
 
 namespace magma {
 std::string reauth_state_to_str(ReAuthState state) {

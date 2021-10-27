@@ -19,7 +19,7 @@
 #include <functional>
 #include <memory>
 
-#include "includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
 
 namespace magma {
 using namespace lte;

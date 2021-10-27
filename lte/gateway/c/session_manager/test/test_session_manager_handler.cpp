@@ -17,19 +17,19 @@
 
 #include <memory>
 
-#include "Consts.h"
-#include "LocalEnforcer.h"
-#include "magma_logging.h"
-#include "includes/MagmaService.h"
-#include "Matchers.h"
-#include "MeteringReporter.h"
-#include "ProtobufCreators.h"
-#include "RuleStore.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "SessiondMocks.h"
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "StoredState.h"
+#include "lte/gateway/c/session_manager/test/Consts.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "lte/gateway/c/session_manager/test/Matchers.h"
+#include "lte/gateway/c/session_manager/MeteringReporter.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
 
 using ::testing::Test;
 #define DEFAULT_PIPELINED_EPOCH 1

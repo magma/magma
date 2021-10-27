@@ -18,12 +18,12 @@
 #include <utility>
 #include <vector>
 
-#include "EnumToString.h"
-#include "GrpcMagmaUtils.h"
-#include "magma_logging.h"
-#include "PipelinedClient.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "Types.h"
+#include "lte/gateway/c/session_manager/EnumToString.h"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "lte/gateway/c/session_manager/PipelinedClient.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "lte/gateway/c/session_manager/Types.h"
 
 using grpc::Status;
 

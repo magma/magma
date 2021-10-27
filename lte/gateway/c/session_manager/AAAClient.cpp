@@ -15,10 +15,10 @@
 #include <string>
 #include <utility>
 
-#include "AAAClient.h"
-#include "magma_logging.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "SessionState.h"
+#include "lte/gateway/c/session_manager/AAAClient.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
 
 using grpc::Status;
 

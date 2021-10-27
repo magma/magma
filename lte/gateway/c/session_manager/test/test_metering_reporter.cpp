@@ -15,9 +15,9 @@
 #include <chrono>
 #include <thread>
 
-#include "includes/MagmaService.h"
-#include "MeteringReporter.h"
-#include "includes/MetricsSingleton.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "lte/gateway/c/session_manager/MeteringReporter.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.h"
 
 using magma::orc8r::MetricsContainer;
 using ::testing::Test;

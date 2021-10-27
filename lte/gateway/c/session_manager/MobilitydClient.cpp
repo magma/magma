@@ -13,9 +13,9 @@
 
 #include <memory>
 #include <utility>
-#include "MobilitydClient.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/session_manager/MobilitydClient.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 using grpc::Status;
 

@@ -20,7 +20,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "CreditKey.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
 
 // NOTE:
 // This file is intended for declaring types that are shared across classes.

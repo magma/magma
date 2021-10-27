@@ -25,8 +25,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "CreditKey.h"
-#include "Types.h"
+#include "lte/gateway/c/session_manager/CreditKey.h"
+#include "lte/gateway/c/session_manager/Types.h"
 
 namespace magma {
 using std::experimental::optional;

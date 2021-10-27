@@ -16,13 +16,13 @@
 
 #include <memory>
 
-#include "Consts.h"
-#include "magma_logging.h"
-#include "MemoryStoreClient.h"
-#include "ProtobufCreators.h"
-#include "RuleStore.h"
-#include "SessionID.h"
-#include "SessionState.h"
+#include "lte/gateway/c/session_manager/test/Consts.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "lte/gateway/c/session_manager/MemoryStoreClient.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionID.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
 
 using ::testing::Test;
 

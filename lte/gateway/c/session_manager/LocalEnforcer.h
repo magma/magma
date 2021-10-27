@@ -26,16 +26,16 @@
 #include <utility>
 #include <vector>
 
-#include "AAAClient.h"
-#include "DirectorydClient.h"
-#include "PipelinedClient.h"
-#include "RuleStore.h"
-#include "SessionEvents.h"
-#include "SessionReporter.h"
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "SpgwServiceClient.h"
-#include "ShardTracker.h"
+#include "lte/gateway/c/session_manager/AAAClient.h"
+#include "lte/gateway/c/session_manager/DirectorydClient.h"
+#include "lte/gateway/c/session_manager/PipelinedClient.h"
+#include "lte/gateway/c/session_manager/RuleStore.h"
+#include "lte/gateway/c/session_manager/SessionEvents.h"
+#include "lte/gateway/c/session_manager/SessionReporter.h"
+#include "lte/gateway/c/session_manager/SessionState.h"
+#include "lte/gateway/c/session_manager/SessionStore.h"
+#include "lte/gateway/c/session_manager/SpgwServiceClient.h"
+#include "lte/gateway/c/session_manager/ShardTracker.h"
 
 namespace magma {
 

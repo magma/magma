@@ -8,7 +8,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "UpfMsgManageHandler.h"
+#include "lte/gateway/c/session_manager/UpfMsgManageHandler.h"
 #include <google/protobuf/util/time_util.h>
 #include <chrono>
 #include <thread>
@@ -17,9 +17,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "magma_logging.h"
-#include "SessionStateEnforcer.h"
-#include "GrpcMagmaUtils.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "lte/gateway/c/session_manager/SessionStateEnforcer.h"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.h"
 #include "lte/protos/session_manager.pb.h"
 
 using grpc::Status;

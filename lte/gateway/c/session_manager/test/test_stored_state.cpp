@@ -16,9 +16,9 @@
 
 #include <memory>
 
-#include "magma_logging.h"
-#include "ProtobufCreators.h"
-#include "StoredState.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.h"
+#include "lte/gateway/c/session_manager/StoredState.h"
 
 using ::testing::Test;
 
