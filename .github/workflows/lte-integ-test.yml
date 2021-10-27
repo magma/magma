@@ -57,4 +57,4 @@ jobs:
           SLACK_AVATAR: ":boom:"
         uses: Ilshidur/action-slack@2.1.0
         with:
-          args: "LTE integration test test failed on [${GITHUB_SHA:0:8}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
+          args: "LTE integration test test failed on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"

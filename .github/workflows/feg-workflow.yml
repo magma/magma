@@ -33,7 +33,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/NR
-          echo ${{ !steps.changes.outputs.filesChanged }} > ./pr/skipped
+          echo ${{ steps.changes.outputs.filesChanged == 'false'}} > ./pr/skipped
       - name: upload metadata
         uses: actions/upload-artifact@v2
         with:
