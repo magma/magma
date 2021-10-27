@@ -259,7 +259,8 @@ void SgwS8ConfigAndCreateMock::SetUp() {
   task_mme_app.detach();
 
   sgw_s8_init(config);
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(SLEEP_AT_INITIALIZATION_TIME_MS));
 }
 
 void SgwS8ConfigAndCreateMock::TearDown() {

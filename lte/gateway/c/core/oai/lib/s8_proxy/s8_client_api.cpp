@@ -549,7 +549,7 @@ void send_s8_delete_session_request(
 static void fill_s8_create_bearer_response(
     const itti_s11_nw_init_actv_bearer_rsp_t* itti_msg,
     magma::feg::CreateBearerResponsePgw* proto_cb_rsp, teid_t pgw_s8_teid,
-    uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi) {
+    uint32_t sequence_number, STOLEN_REF char* pgw_cp_address, Imsi_t imsi) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
 
   proto_cb_rsp->set_cause(itti_msg->cause.cause_value);
@@ -594,7 +594,7 @@ static void fill_s8_create_bearer_response(
 
 void send_s8_create_bearer_response(
     const itti_s11_nw_init_actv_bearer_rsp_t* itti_msg, teid_t pgw_s8_teid,
-    uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi) {
+    uint32_t sequence_number, STOLEN_REF char* pgw_cp_address, Imsi_t imsi) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   magma::feg::CreateBearerResponsePgw proto_cb_rsp;
 
@@ -616,7 +616,7 @@ void send_s8_create_bearer_response(
 static void fill_s8_delete_bearer_response(
     const itti_s11_nw_init_deactv_bearer_rsp_t* itti_msg,
     magma::feg::DeleteBearerResponsePgw* proto_db_rsp, teid_t pgw_s8_teid,
-    uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi) {
+    uint32_t sequence_number, STOLEN_REF char* pgw_cp_address, Imsi_t imsi) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   proto_db_rsp->Clear();
   if (pgw_cp_address) {
@@ -648,7 +648,7 @@ static void fill_s8_delete_bearer_response(
 
 void send_s8_delete_bearer_response(
     const itti_s11_nw_init_deactv_bearer_rsp_t* itti_msg, teid_t pgw_s8_teid,
-    uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi) {
+    uint32_t sequence_number, STOLEN_REF char* pgw_cp_address, Imsi_t imsi) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   magma::feg::DeleteBearerResponsePgw proto_db_rsp;
 

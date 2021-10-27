@@ -264,9 +264,31 @@ TEST_F(SgwS8ConfigAndCreateMock, create_bearer_req_fails_to_find_ctxt) {
   sgw_state_exit();
 }
 
-MATCHER_P(check_params_in_cb_req, linked_eps_bearer_id, "") {
-  auto lbi_rcvd = static_cast<uint8_t>(arg);
-  if (lbi_rcvd != linked_eps_bearer_id) {
+MATCHER_P2(check_params_in_db_req, num_eps_bearer_id, eps_bearer_id, "") {
+  auto db_req_rcvd_at_mme =
+      static_cast<itti_s11_nw_init_deactv_bearer_request_t>(arg);
+  if (db_req_rcvd_at_mme.no_of_bearers != num_eps_bearer_id) {
+    return false;
+  }
+  if (memcmp(
+          db_req_rcvd_at_mme.ebi, eps_bearer_id,
+          sizeof(db_req_rcvd_at_mme.ebi))) {
+    return false;
+  }
+  return true;
+}
+
+MATCHER_P2(check_params_in_cb_req, linked_eps_bearer_id, tft, "") {
+  auto cb_req_rcvd_at_mme =
+      static_cast<itti_s11_nw_init_actv_bearer_request_t>(arg);
+  if (cb_req_rcvd_at_mme.lbi != linked_eps_bearer_id) {
+    return false;
+  }
+  if (!(cb_req_rcvd_at_mme.s1_u_sgw_fteid.teid)) {
+    return false;
+  }
+  if ((memcmp(
+          &cb_req_rcvd_at_mme.tft, &tft, sizeof(traffic_flow_template_t)))) {
     return false;
   }
   return true;
@@ -292,8 +314,8 @@ TEST_F(SgwS8ConfigAndCreateMock, send_create_bearer_req_to_mme) {
 
   EXPECT_CALL(
       *mme_app_handler,
-      mme_app_handle_nw_init_ded_bearer_actv_req(
-          check_params_in_cb_req((cb_req.linked_eps_bearer_id))))
+      mme_app_handle_nw_init_ded_bearer_actv_req(check_params_in_cb_req(
+          cb_req.linked_eps_bearer_id, cb_req.bearer_context[0].tft)))
       .Times(1);
   EXPECT_NE(
       sgw_s8_handle_create_bearer_request(sgw_state, &cb_req, &cause_value),
@@ -341,8 +363,8 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_create_bearer_response) {
 
   EXPECT_CALL(
       *mme_app_handler,
-      mme_app_handle_nw_init_ded_bearer_actv_req(
-          check_params_in_cb_req((cb_req.linked_eps_bearer_id))))
+      mme_app_handle_nw_init_ded_bearer_actv_req(check_params_in_cb_req(
+          cb_req.linked_eps_bearer_id, cb_req.bearer_context[0].tft)))
       .Times(1);
   EXPECT_NE(
       sgw_s8_handle_create_bearer_request(sgw_state, &cb_req, &cause_value),
@@ -454,7 +476,10 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_delete_bearer_req) {
       &db_req, sgw_s11_tunnel.local_teid,
       s11_actv_bearer_rsp.bearer_contexts.bearer_contexts[0].eps_bearer_id);
 
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_nw_init_bearer_deactv_req())
+  EXPECT_CALL(
+      *mme_app_handler,
+      mme_app_handle_nw_init_bearer_deactv_req(check_params_in_db_req(
+          db_req.num_eps_bearer_id, db_req.eps_bearer_id)))
       .Times(1);
   EXPECT_EQ(sgw_s8_handle_delete_bearer_request(sgw_state, &db_req), RETURNok);
   free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));

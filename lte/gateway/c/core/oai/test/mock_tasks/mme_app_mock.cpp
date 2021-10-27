@@ -133,16 +133,16 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST: {
-      itti_s11_nw_init_actv_bearer_request_t cb_req =
-          received_message_p->ittiMsg.s11_nw_init_actv_bearer_request;
-      mme_app_handler_->mme_app_handle_nw_init_ded_bearer_actv_req(cb_req.lbi);
+      mme_app_handler_->mme_app_handle_nw_init_ded_bearer_actv_req(
+          received_message_p->ittiMsg.s11_nw_init_actv_bearer_request);
     } break;
 
     case SGSAP_STATUS: {
     } break;
 
     case S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST: {
-      mme_app_handler_->mme_app_handle_nw_init_bearer_deactv_req();
+      mme_app_handler_->mme_app_handle_nw_init_bearer_deactv_req(
+          received_message_p->ittiMsg.s11_nw_init_deactv_bearer_request);
     } break;
 
     case S1AP_PATH_SWITCH_REQUEST: {

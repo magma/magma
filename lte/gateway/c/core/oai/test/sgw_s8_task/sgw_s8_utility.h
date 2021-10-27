@@ -31,6 +31,7 @@ extern "C" {
 #include "sgw_s8_defs.h"
 }
 
+#define SLEEP_AT_INITIALIZATION_TIME_MS 500
 void fill_imsi(char* imsi);
 void fill_itti_csreq(
     itti_s11_create_session_request_t* session_req_pP,
