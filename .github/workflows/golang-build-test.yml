@@ -26,7 +26,7 @@ jobs:
         if: always()
         run: |
           mkdir -p ./pr
-          echo -n ${{ steps.changes.outputs.filesChanged }} > ./pr/NOTSKIP
+          echo -n ${{ !steps.changes.outputs.filesChanged }} > ./pr/skipped
       - uses: actions/upload-artifact@v2
         if: always()
         with:
