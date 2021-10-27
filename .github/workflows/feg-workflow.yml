@@ -32,6 +32,17 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/feg-workflow.yml", "orc8r/**", "lte/**", "feg/**"]
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.changes.outputs.filesChanged }} > ./pr/NOTSKIP
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
   feg-lint:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
