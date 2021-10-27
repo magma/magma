@@ -117,7 +117,6 @@ COPY lte/gateway/c $MAGMA_ROOT/lte/gateway/c
 
 COPY lte/gateway/python/scripts $MAGMA_ROOT/lte/gateway/python/scripts
 COPY lte/gateway/docker $MAGMA_ROOT/lte/gateway/docker
-COPY lte/gateway/docker/mme/configs/ $MAGMA_ROOT/lte/gateway/docker/configs/
 
 ARG BUILD_TYPE=RelWithDebInfo
 ENV BUILD_TYPE=$BUILD_TYPE
@@ -222,4 +221,7 @@ RUN ldconfig 2> /dev/null
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma
 COPY orc8r/gateway/configs/templates /etc/magma/templates
+
+COPY lte/gateway/deploy/roles/magma/files/magma-bridge-reset.sh /usr/local/bin/
 COPY lte/gateway/deploy/roles/magma/files/magma-create-gtp-port.sh /usr/local/bin/
+COPY lte/gateway/deploy/roles/magma/files/magma-setup-wg.sh /usr/local/bin/

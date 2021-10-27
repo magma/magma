@@ -144,6 +144,14 @@
   tags:
     - agwc
 
+- name: Restart ovs
+  ignore_errors: yes
+  shell: |
+    ifdown gtp_br0
+    /etc/init.d/openvswitch-switch  force-reload-kmod
+  tags:
+    - agwc
+
 - name: bring up the containers.
   script: agw_upgrade.sh
   tags:

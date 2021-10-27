@@ -141,7 +141,10 @@ services:
       - seccomp:unconfined
     environment:
       MAGMA_PRINT_GRPC_PAYLOAD: 0
-    command: /usr/local/bin/sctpd
+    command: >
+      sh -c "/usr/local/bin/magma-bridge-reset.sh &&
+            /etc/init.d/openvswitch-switch load-kmod &&
+            /usr/local/bin/sctpd"
 
   oai_config:
     <<: *pyservice
