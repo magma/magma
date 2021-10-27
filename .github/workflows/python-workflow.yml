@@ -72,4 +72,3 @@ jobs:
               autopep8 --exit-code --select W191,W291,W292,W293,W391,E131,E2,E3 -r --in-place  $file;
               add-trailing-comma --py35-plus $file;
             done;
-
