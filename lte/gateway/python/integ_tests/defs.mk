@@ -160,6 +160,7 @@ s1aptests/test_guti_attach_with_zero_mtmsi.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
+s1aptests/test_paging_with_mme_restart.py \
 s1aptests/test_no_identity_rsp_with_mme_restart.py \
 s1aptests/test_agw_offload_idle_active_ue.py \
 s1aptests/test_standalone_pdn_conn_req_with_apn_correction.py \
@@ -220,7 +221,6 @@ s1aptests/test_restore_config_after_non_sanity.py
 
 # Non-Sanity: Flaky Test Cases
 # s1aptests/test_attach_detach_two_pdns_with_tcptraffic.py \ GitHubIssue 9670
-# s1aptests/test_paging_with_mme_restart.py \ GitHubIssue 9519
 # s1aptests/test_agw_offload_mixed_idle_active_multiue.py \ GitHubIssue 6063
 # s1aptests/test_attach_ul_udp_data_multi_ue.py \ Fails randomly with connection refused
 # s1aptests/test_attach_dl_udp_data_multi_ue.py \ Fails randomly with connection refused

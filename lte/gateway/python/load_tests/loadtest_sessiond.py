@@ -16,6 +16,7 @@ from typing import List
 
 from google.protobuf import json_format
 from load_tests.common import (
+    PROTO_DIR,
     benchmark_grpc_request,
     generate_subs,
     make_full_request_type,
@@ -31,13 +32,10 @@ from lte.protos.session_manager_pb2 import (
 )
 from lte.protos.subscriberdb_pb2 import SubscriberID
 
-PROTO_DIR = 'lte/protos'
 TEST_APN = 'magma.ipv4'
 CREATE_SESSION_FILENAME = '/tmp/create_session_data.json'
 END_SESSION_FILENAME = '/tmp/end_session_data.json'
 SESSIOND_PORT = '0.0.0.0:50065'
-IMPORT_PATH = '/home/vagrant/magma'
-RESULTS_PATH = '/var/tmp'
 PROTO_PATH = PROTO_DIR + '/session_manager.proto'
 SERVICE_NAME = 'magma.lte.LocalSessionManager'
 
@@ -152,6 +150,7 @@ def main():
         parser.print_usage()
         exit(1)
 
+    print('Preparing %s load test...' % args.cmd)
     subs = generate_subs(int(args.num))
     if args.cmd == 'create':
         _handle_create_session_benchmarking(subs)
