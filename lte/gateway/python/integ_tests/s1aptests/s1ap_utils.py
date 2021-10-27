@@ -699,7 +699,7 @@ class MagmadUtil(object):
 
         self._data = {
             "user": "vagrant",
-            "host": "192.168.8.178",
+            "host": "192.168.60.142",
             "password": "vagrant",
             "command": "test",
         }

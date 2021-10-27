@@ -37,7 +37,7 @@ const char* sHealthyConfig =
 
         # S-GW binded interface for S1-U communication (GTPV1-U) can be ethernet interface, virtual ethernet interface, we don't advise wireless interfaces
         SGW_INTERFACE_NAME_FOR_S1U_S12_S4_UP    = "eth1";
-        SGW_IPV4_ADDRESS_FOR_S1U_S12_S4_UP      = "192.168.8.178/24";
+        SGW_IPV4_ADDRESS_FOR_S1U_S12_S4_UP      = "192.168.60.142/24";
         SGW_IPV4_PORT_FOR_S1U_S12_S4_UP         = 2152;                         # INTEGER, port number, PREFER NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING
 
         # S-GW binded interface for S5 or S8 communication, not implemented, so leave it to none

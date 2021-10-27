@@ -265,11 +265,11 @@ const char* kHealthyConfig =
         # MME binded interface for S1-C or S1-MME  communication (S1AP), can be ethernet interface, virtual ethernet interface,
         # we don't advise wireless interfaces
         MME_INTERFACE_NAME_FOR_S1_MME         = "eth1";
-        MME_IPV4_ADDRESS_FOR_S1_MME           = "192.168.8.178/24";
+        MME_IPV4_ADDRESS_FOR_S1_MME           = "192.168.60.142/24";
 
         # MME binded interface for S11 communication (GTPV2-C)
         MME_INTERFACE_NAME_FOR_S11_MME        = "eth1";
-        MME_IPV4_ADDRESS_FOR_S11_MME          = "192.168.8.178/24";
+        MME_IPV4_ADDRESS_FOR_S11_MME          = "192.168.60.142/24";
         MME_PORT_FOR_S11_MME                  = 2123;
     };
 
