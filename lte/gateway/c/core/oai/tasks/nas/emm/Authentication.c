@@ -1132,7 +1132,6 @@ status_code_e mme_app_handle_auth_t3460_expiry(
 
       // abort ANY ongoing EMM procedure (R10_5_4_2_7_b)
       nas_delete_all_emm_procedures(emm_ctx);
-
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
