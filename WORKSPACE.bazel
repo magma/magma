@@ -119,10 +119,6 @@ load("//:cpp_repositories.bzl", "cpp_repositories")
 
 cpp_repositories()
 
-load("@com_github_storypku_rules_folly//bazel:folly_deps.bzl", "folly_deps")
-
-folly_deps()
-
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 
 boost_deps()
