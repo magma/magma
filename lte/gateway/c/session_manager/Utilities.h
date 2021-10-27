@@ -14,8 +14,16 @@
 
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/util/time_util.h>
-
+#include <stdint.h>
+#include <sys/types.h>
+#include <chrono>
 #include <string>
+
+namespace google {
+namespace protobuf {
+class Timestamp;
+}  // namespace protobuf
+}  // namespace google
 
 namespace magma {
 std::string bytes_to_hex(const std::string& s);

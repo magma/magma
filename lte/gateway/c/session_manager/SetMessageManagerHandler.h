@@ -18,17 +18,35 @@
   Description 	Defines Access and Mobility Management Messages
 *****************************************************************************/
 #pragma once
-#include <functional>
-#include <string>
-#include <memory>
-
 #include <grpc++/grpc++.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <stdint.h>
+#include <functional>
+#include <memory>
+#include <string>
 
-#include "SessionStateEnforcer.h"
 #include "SessionID.h"
 #include "SessionReporter.h"
+#include "SessionStateEnforcer.h"
 #include "SessionStore.h"
+#include "StoreClient.h"
+#include "Types.h"
+#include "orc8r/protos/common.pb.h"
+
+namespace grpc {
+class ServerContext;
+class Status;
+}  // namespace grpc
+namespace magma {
+class SessionReporter;
+class SessionStateEnforcer;
+namespace lte {
+class SessionStore;
+class SetSMSessionContext;
+class SetSmNotificationContext;
+class SmContextVoid;
+}  // namespace lte
+}  // namespace magma
 
 using grpc::ServerContext;
 using grpc::Status;

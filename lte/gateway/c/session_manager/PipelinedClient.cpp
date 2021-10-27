@@ -11,19 +11,36 @@
  * limitations under the License.
  */
 
-#include <google/protobuf/util/time_util.h>
-
+#include <glog/logging.h>
+#include <grpcpp/channel.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <algorithm>
+#include <cstdint>
 #include <memory>
+#include <ostream>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "EnumToString.h"
 #include "GrpcMagmaUtils.h"
-#include "magma_logging.h"
 #include "PipelinedClient.h"
-#include "includes/ServiceRegistrySingleton.h"
 #include "Types.h"
+#include "includes/ServiceRegistrySingleton.h"
+#include "lte/protos/apn.pb.h"
+#include "lte/protos/pipelined.grpc.pb.h"
+#include "lte/protos/pipelined.pb.h"
+#include "lte/protos/policydb.pb.h"
+#include "lte/protos/session_manager.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+#include "magma_logging.h"
+
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
 
 using grpc::Status;
 

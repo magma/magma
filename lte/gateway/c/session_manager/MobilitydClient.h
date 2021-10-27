@@ -12,13 +12,28 @@
  */
 #pragma once
 
+#include <lte/protos/mobilityd.grpc.pb.h>
+#include <stdint.h>
+#include <functional>
+#include <memory>
 #include <mutex>
 #include <unordered_map>
-#include <memory>
-#include <lte/protos/mobilityd.grpc.pb.h>
+
+#include "SessionState.h"
 #include "Types.h"
 #include "includes/GRPCReceiver.h"
-#include "SessionState.h"
+#include "lte/protos/apn.pb.h"
+
+namespace grpc {
+class Channel;
+class Status;
+}  // namespace grpc
+namespace magma {
+namespace lte {
+class IPAddress;
+class SubscriberID;
+}  // namespace lte
+}  // namespace magma
 
 using grpc::Status;
 

@@ -16,16 +16,32 @@
 #include <lte/protos/pipelined.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/subscriberdb.pb.h>
-
+#include <stdint.h>
+#include <experimental/optional>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "includes/GRPCReceiver.h"
 #include "SessionState.h"
 #include "Types.h"
+#include "includes/GRPCReceiver.h"
+#include "lte/protos/abort_session.pb.h"
+
+namespace grpc {
+class Channel;
+class Status;
+}  // namespace grpc
+namespace magma {
+namespace lte {
+class AggregatedMaximumBitrate;
+class RuleRecordTable;
+class SubscriberID;
+class Teids;
+}  // namespace lte
+}  // namespace magma
 
 #define M5G_MIN_TEID (UINT32_MAX / 2)
 

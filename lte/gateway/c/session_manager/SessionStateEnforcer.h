@@ -22,19 +22,37 @@ limitations under the License.
 
 #pragma once
 
-#include <unordered_map>
-#include <map>
-#include <unordered_set>
-#include <vector>
-
 #include <folly/io/async/EventBaseManager.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/policydb.pb.h>
+#include <stdint.h>
+#include <chrono>
+#include <map>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
+#include "AmfServiceClient.h"
 #include "PipelinedClient.h"
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "SessionStore.h"
-#include "AmfServiceClient.h"
+#include "StoreClient.h"
+#include "Types.h"
+#include "lte/protos/pipelined.pb.h"
+#include "lte/protos/session_manager.pb.h"
+
+namespace folly {
+class EventBase;
+}  // namespace folly
+namespace magma {
+class AmfServiceClient;
+class PipelinedClient;
+class SessionState;
+struct SessionStateUpdateCriteria;
+}  // namespace magma
 
 #define M5G_MIN_TEID (UINT32_MAX / 2)
 #define DEFAULT_PDR_VERSION 1
