@@ -13,10 +13,10 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
   skip_check:
-    name: Job to retrieve the value in pr/NOTSKIP file
+    name: Job to retrieve the value in pr/skipped file
     runs-on: ubuntu-latest
     outputs:
-      should_not_skip: ${{ steps.skip_check.outputs.should_not_skip }}
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
       - name: 'Download artifact'
         uses: actions/github-script@v3.1.0
@@ -45,12 +45,12 @@ jobs:
         with:
           script: |
             var fs = require('fs');
-            var skipFlag = fs.readFileSync('./NOTSKIP');
+            var skipFlag = fs.readFileSync('./skipped');
             if( skipFlag == 'true' ) {
-              core.setOutput('should_not_skip', 'true');
+              core.setOutput('should_skip', 'true');
             }
             else  {
-              core.setOutput('should_not_skip', 'false');
+              core.setOutput('should_skip', 'false');
             }
 
   unit-test-results:
@@ -58,7 +58,7 @@ jobs:
     needs: skip_check
     name: Upload unit test for ${{ github.event.workflow.name }}
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion != 'skipped' && github.event.workflow_run.head_repository.full_name != github.repository && needs.skip_check.outputs.should_not_skip == 'true'
+    if: github.event.workflow_run.conclusion != 'skipped' && github.event.workflow_run.head_repository.full_name != github.repository && needs.skip_check.outputs.should_skip == 'false'
     steps:
       - name: Download and Extract Artifacts
         env:
