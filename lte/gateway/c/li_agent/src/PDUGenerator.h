@@ -18,11 +18,11 @@
 #include <unordered_map>
 #include <string>
 
-#include "includes/MConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
 #include <lte/protos/mconfig/mconfigs.pb.h>
-#include "magma_logging.h"
-#include "ProxyConnector.h"
-#include "MobilitydClient.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "lte/gateway/c/li_agent/src/ProxyConnector.h"
+#include "lte/gateway/c/li_agent/src/MobilitydClient.h"
 
 namespace magma {
 namespace lte {
