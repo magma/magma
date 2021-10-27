@@ -15,35 +15,27 @@
 #include <grpcpp/grpcpp.h>                    // for Server, ServerBuilder
 #include <grpcpp/impl/codegen/status.h>       // for Status
 #include <orc8r/protos/service303.grpc.pb.h>  // for Service303, Service303:...
+#include <orc8r/protos/service303.pb.h>       // for ServiceInfo, ServiceInf...
 #include <chrono>                             // for steady_clock, steady_cl...
 #include <functional>                         // for function
 #include <list>                               // for list
 #include <map>                                // for map
 #include <memory>                             // for unique_ptr
 #include <string>                             // for string
-#include "orc8r/protos/service303.pb.h"       // for ServiceInfo, ServiceInf...
-namespace grpc {
-class ServerCompletionQueue;
-}
-namespace grpc {
-class ServerContext;
-}
-namespace grpc {
-class ServerContext;
-}
+
 namespace grpc {
 class Service;
-}
+class ServerContext;
+class ServerCompletionQueue;
+}  // namespace grpc
+
 namespace magma {
 namespace orc8r {
 class MetricsContainer;
-}
-}  // namespace magma
-namespace magma {
-namespace orc8r {
 class Void;
-}
+}  // namespace orc8r
 }  // namespace magma
+
 namespace magma {
 namespace service303 {
 class MetricsSingleton;

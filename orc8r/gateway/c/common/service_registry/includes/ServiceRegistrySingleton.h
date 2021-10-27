@@ -12,11 +12,16 @@
  */
 #pragma once
 
-#include <yaml-cpp/yaml.h>                 // IWYU pragma: keep
-#include <memory>                          // for shared_ptr, unique_ptr
-#include <string>                          // for string
+#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
+#include <yaml-cpp/node/impl.h>
+#include <yaml-cpp/node/node.h>
+#include <memory>  // for shared_ptr, unique_ptr
+#include <string>  // for string
+
 #include "includes/ServiceConfigLoader.h"  // for ServiceConfigLoader
+
 namespace grpc {
+
 class Channel;
 }
 namespace grpc {

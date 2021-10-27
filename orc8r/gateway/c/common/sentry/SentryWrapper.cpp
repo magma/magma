@@ -13,15 +13,18 @@
 
 #include "includes/SentryWrapper.h"
 
-#if SENTRY_ENABLED
-#include <experimental/optional>
-#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
+#include <bits/local_lim.h>
+#include <unistd.h>
+#include <yaml-cpp/node/impl.h>
+#include <yaml-cpp/node/node.h>
+#include <string>
 
+#if SENTRY_ENABLED
+#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
+#include <experimental/optional>
 #include <cstdlib>
 #include <fstream>
 #include <cstring>
-#include <limits.h>
-#include <unistd.h>
 
 #include "sentry.h"
 #include "includes/ServiceConfigLoader.h"

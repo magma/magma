@@ -11,8 +11,9 @@
  * limitations under the License.
  */
 
-#include "includes/ServiceRegistrySingleton.h"
 #include <gtest/gtest.h>
+
+#include "includes/ServiceRegistrySingleton.h"
 
 using magma::ServiceRegistrySingleton;
 using ::testing::Test;

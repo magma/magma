@@ -12,12 +12,21 @@
  */
 
 #include "includes/MConfigLoader.h"
+
+#include <bits/exception.h>
 #include <google/protobuf/stubs/status.h>    // for Status
 #include <google/protobuf/util/json_util.h>  // for JsonStringToMessage
+#include <nlohmann/json.hpp>                 // IWYU pragma: keep
 #include <cstdlib>                           // for getenv
-#include <fstream>                           // for operator<<, char_traits
-#include <nlohmann/json.hpp>                 // for basic_json<>::iterator
-#include "magma_logging.h"                   // for MLOG
+#include <fstream>                           // IWYU pragma: keep
+
+#include "magma_logging.h"  // for MLOG
+
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
 
 namespace {
 static constexpr const char* DYNAMIC_MCONFIG_PATH =

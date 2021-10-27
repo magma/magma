@@ -1,0 +1,5 @@
+# Map file for the include-what-you-use tool
+[
+    { include: ["<nlohmann/detail/iterators/iter_impl.hpp>", "private", "<nlohmann/json.hpp>", "public"] },
+    { include: ["<nlohmann/json_fwd.hpp>", "private", "<nlohmann/json.hpp>", "public"] },
+]
