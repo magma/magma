@@ -22,6 +22,16 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/golang-build-test.yml", "src/go/**"]
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.changes.outputs.filesChanged }} > ./pr/NOTSKIP
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
 
   build_src_go:
     needs: pre_job_src_go_determinator
