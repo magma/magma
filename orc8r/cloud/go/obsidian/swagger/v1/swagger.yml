@@ -11596,8 +11596,7 @@ definitions:
     type: object
   subscriber_static_ips:
     additionalProperties:
-      example: 192.168.100.1
-      format: ipv4
+      example: 192.168.100.1 or 2020::1
       minLength: 1
       type: string
     description: Mapping of APN ID to static IP address to allocate for the subscriber
