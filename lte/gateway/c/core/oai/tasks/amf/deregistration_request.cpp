@@ -231,17 +231,15 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
 **                                                                        **
 ***************************************************************************/
 void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
-  std::vector<smf_context_t>::iterator i;
-
   amf_smf_release_t smf_message;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
 
   memset(&smf_message, 0, sizeof(amf_smf_release_t));
 
-  for (i = ue_context->amf_context.smf_ctxt_vector.begin();
-       i != ue_context->amf_context.smf_ctxt_vector.end(); i++) {
+  for (auto& it : ue_context->amf_context.smf_ctxt_map) {
     IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
 
+    std::shared_ptr<smf_context_t> i = it.second;
     smf_message.pdu_session_id =
         i->smf_proc_data.pdu_session_identity.pdu_session_id;
 

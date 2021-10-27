@@ -52,7 +52,6 @@ set(COMMON_SRC
     TLVEncoder.c
     async_system.c
     backtrace.c
-    common_types.c
     conversions.c
     digest.c
     dynamic_memory_check.c
@@ -84,7 +83,7 @@ if (EXISTS "/etc/os-release")
   endif ()
 endif ()
 
-message("os_name", ${os_name})
+message("os_name" ${os_name})
 if ("${os_name}" STREQUAL "\"rhel\"")
   target_link_libraries(COMMON
       lfds710

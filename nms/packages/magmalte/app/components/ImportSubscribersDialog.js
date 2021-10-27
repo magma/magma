@@ -144,7 +144,7 @@ export async function parseFileAndSave(
       const {config: _, ...mutableSubscriber} = subscriber;
       return MagmaV1API.postLteByNetworkIdSubscribers({
         networkId: match.params.networkId || '',
-        subscriber: mutableSubscriber,
+        subscribers: [mutableSubscriber],
       }).catch(e => {
         failureIDs.push(subscriber.id);
         return e;

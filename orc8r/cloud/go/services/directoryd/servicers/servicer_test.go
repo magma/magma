@@ -42,13 +42,17 @@ const (
 	sid0  = "some_sessionid_0"
 	sid1  = "some_sessionid_1"
 	sid2  = "some_sessionid_2"
+
+	teid0 = "10"
+	teid1 = "11"
+	teid2 = "12"
 )
 
 func newTestDirectoryLookupServicer(t *testing.T) protos.DirectoryLookupServer {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
 
-	fact := blobstore.NewEntStorage(storage.DirectorydTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLBlobStorageFactory(storage.DirectorydTableBlobstore, db, sqorc.GetSqlBuilder())
 	err = fact.InitializeFactory()
 	assert.NoError(t, err)
 
@@ -90,6 +94,14 @@ func TestDirectoryLookupServicer_HostnameToHWID(t *testing.T) {
 	res, err = srv.GetHostnameForHWID(ctx, get)
 	assert.NoError(t, err)
 	assert.Equal(t, hn2, res.Hostname)
+
+	// DeMap hwid2
+	put_demap := &protos.UnmapHWIDToHostnameRequest{Hwids: []string{hwid2}}
+	_, err = srv.UnmapHWIDsToHostnames(ctx, put_demap)
+	assert.NoError(t, err)
+	get = &protos.GetHostnameForHWIDRequest{Hwid: hwid2}
+	_, err = srv.GetHostnameForHWID(ctx, get)
+	assert.Error(t, err)
 
 	// hwid0->hostname0 still intact
 	get = &protos.GetHostnameForHWIDRequest{Hwid: hwid0}
@@ -136,6 +148,14 @@ func TestDirectoryLookupServicer_SessionIDToIMSI(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, imsi0, res.Imsi)
 
+	// DeMap sid0 from network nid1
+	put_demap := &protos.UnmapSessionIDToIMSIRequest{NetworkID: nid1, SessionIDs: []string{sid0}}
+	_, err = srv.UnmapSessionIDsToIMSIs(ctx, put_demap)
+	assert.NoError(t, err)
+	get = &protos.GetIMSIForSessionIDRequest{NetworkID: nid1, SessionID: sid0}
+	_, err = srv.GetIMSIForSessionID(ctx, get)
+	assert.Error(t, err)
+
 	// Correctly network-partitioned: {nid0: sid0->imsi0, nid1: sid0->imsi1}
 	put = &protos.MapSessionIDToIMSIRequest{NetworkID: nid0, SessionIDToIMSI: map[string]string{sid0: imsi0}}
 	_, err = srv.MapSessionIDsToIMSIs(ctx, put)
@@ -158,5 +178,76 @@ func TestDirectoryLookupServicer_SessionIDToIMSI(t *testing.T) {
 	assert.Error(t, err)
 	put = &protos.MapSessionIDToIMSIRequest{SessionIDToIMSI: map[string]string{sid0: imsi0}}
 	_, err = srv.MapSessionIDsToIMSIs(ctx, put)
+	assert.Error(t, err)
+}
+
+func TestDirectoryLookupServicer_TeidToHWID(t *testing.T) {
+	srv := newTestDirectoryLookupServicer(t)
+	stateTestInit.StartTestService(t)
+	ctx := context.Background()
+
+	// Empty initially
+	get := &protos.GetHWIDForSgwCTeidRequest{NetworkID: nid0, Teid: teid0}
+	_, err := srv.GetHWIDForSgwCTeid(ctx, get)
+	assert.Error(t, err)
+
+	// Put and get teid0->hwid0
+	put := &protos.MapSgwCTeidToHWIDRequest{NetworkID: nid0, TeidToHwid: map[string]string{teid0: hwid0}}
+	_, err = srv.MapSgwCTeidToHWID(ctx, put)
+	assert.NoError(t, err)
+	get = &protos.GetHWIDForSgwCTeidRequest{NetworkID: nid0, Teid: teid0}
+	res, err := srv.GetHWIDForSgwCTeid(ctx, get)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid0, res.Hwid)
+
+	// Put and get sid1->imsi1, sid2->imsi2
+	put = &protos.MapSgwCTeidToHWIDRequest{NetworkID: nid0, TeidToHwid: map[string]string{teid1: hwid1, teid2: hwid2}}
+	_, err = srv.MapSgwCTeidToHWID(ctx, put)
+	assert.NoError(t, err)
+	get = &protos.GetHWIDForSgwCTeidRequest{NetworkID: nid0, Teid: teid1}
+	res, err = srv.GetHWIDForSgwCTeid(ctx, get)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid1, res.Hwid)
+	get = &protos.GetHWIDForSgwCTeidRequest{NetworkID: nid0, Teid: teid2}
+	res, err = srv.GetHWIDForSgwCTeid(ctx, get)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid2, res.Hwid)
+
+	// sid0->imsi0 still intact
+	get = &protos.GetHWIDForSgwCTeidRequest{NetworkID: nid0, Teid: teid0}
+	res, err = srv.GetHWIDForSgwCTeid(ctx, get)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid0, res.Hwid)
+
+	// Correctly network-partitioned: {nid0: sid0->imsi0, nid1: sid0->imsi1}
+	put = &protos.MapSgwCTeidToHWIDRequest{NetworkID: nid0, TeidToHwid: map[string]string{teid0: hwid0}}
+	_, err = srv.MapSgwCTeidToHWID(ctx, put)
+	assert.NoError(t, err)
+	put = &protos.MapSgwCTeidToHWIDRequest{NetworkID: nid1, TeidToHwid: map[string]string{teid0: hwid2}}
+	_, err = srv.MapSgwCTeidToHWID(ctx, put)
+	assert.NoError(t, err)
+	get = &protos.GetHWIDForSgwCTeidRequest{NetworkID: nid0, Teid: teid0}
+	res, err = srv.GetHWIDForSgwCTeid(ctx, get)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid0, res.Hwid)
+	get = &protos.GetHWIDForSgwCTeidRequest{NetworkID: nid1, Teid: teid0}
+	res, err = srv.GetHWIDForSgwCTeid(ctx, get)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid2, res.Hwid)
+
+	// DeMap teid0 from network nid1
+	put_demap := &protos.UnmapSgwCTeidToHWIDRequest{NetworkID: nid1, Teids: []string{teid0}}
+	_, err = srv.UnmapSgwCTeidToHWID(ctx, put_demap)
+	assert.NoError(t, err)
+	get = &protos.GetHWIDForSgwCTeidRequest{NetworkID: nid1, Teid: teid0}
+	_, err = srv.GetHWIDForSgwCTeid(ctx, get)
+	assert.Error(t, err)
+
+	// Fail with empty network ID
+	get = &protos.GetHWIDForSgwCTeidRequest{Teid: teid0}
+	_, err = srv.GetHWIDForSgwCTeid(ctx, get)
+	assert.Error(t, err)
+	put = &protos.MapSgwCTeidToHWIDRequest{TeidToHwid: map[string]string{teid0: hwid0}}
+	_, err = srv.MapSgwCTeidToHWID(ctx, put)
 	assert.Error(t, err)
 }

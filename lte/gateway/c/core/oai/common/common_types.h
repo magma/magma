@@ -39,16 +39,12 @@
 #define FILE_COMMON_TYPES_SEEN
 
 #include <inttypes.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 #include <stdint.h>
+#include <stdbool.h>
 
-#include "bstrlib.h"
 #include "3gpp_33.401.h"
-#include "3gpp_36.401.h"
 #include "security_types.h"
 #include "common_dim.h"
-#include "3gpp_24.008.h"
 #include "TrackingAreaIdentity.h"
 #include "common_defs.h"
 
@@ -173,13 +169,14 @@ typedef enum {
   RAT_GAN            = 1002,
   RAT_HSPA_EVOLUTION = 1003,
   RAT_EUTRAN         = 1004,
+  RAT_NG_RAN         = 1006,
   RAT_CDMA2000_1X    = 2000,
   RAT_HRPD           = 2001,
   RAT_UMB            = 2002,
   RAT_EHRPD          = 2003,
 } rat_type_t;
 
-#define NUMBER_OF_RAT_TYPE 11
+#define NUMBER_OF_RAT_TYPE 12
 
 typedef enum {
   SS_SERVICE_GRANTED             = 0,
@@ -263,9 +260,6 @@ typedef struct paa_s {
   int vlan;
 } paa_t;
 
-void copy_paa(paa_t* paa_dst, paa_t* paa_src);
-bstring paa_to_bstring(const paa_t* paa);
-
 //-----------------
 typedef struct {
   pdn_type_value_t pdn_type;
@@ -281,13 +275,6 @@ typedef struct {
 #define ZONE_CODE_LEN 2
   uint8_t zone_code[ZONE_CODE_LEN];
 } regional_subscription_t;
-
-bstring fteid_ip_address_to_bstring(const struct fteid_s* const fteid);
-void get_fteid_ip_address(
-    const struct fteid_s* const fteid, ip_address_t* const ip_address);
-bstring ip_address_to_bstring(const ip_address_t* ip_address);
-void bstring_to_ip_address(bstring const bstr, ip_address_t* const ip_address);
-void bstring_to_paa(bstring bstr, paa_t* paa);
 
 //-----------------
 typedef enum {

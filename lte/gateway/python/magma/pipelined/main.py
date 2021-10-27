@@ -100,6 +100,19 @@ def main():
     )
     service.config['sgi_management_iface_gw'] = sgi_gateway_ip
 
+    # SGi IPv6 address conf
+    sgi_ipv6 = service.config.get(
+        'sgi_management_iface_ipv6_addr',
+        service.mconfig.sgi_management_iface_ipv6_addr,
+    )
+    service.config['sgi_management_iface_ipv6_addr'] = sgi_ipv6
+
+    sgi_gateway_ipv6 = service.config.get(
+        'sgi_management_iface_ipv6_gw',
+        service.mconfig.sgi_management_iface_ipv6_gw,
+    )
+    service.config['sgi_management_iface_ipv6_gw'] = sgi_gateway_ipv6
+
     # Keep router mode off for smooth upgrade path
     service.config['dp_router_enabled'] = service.config.get(
         'dp_router_enabled',

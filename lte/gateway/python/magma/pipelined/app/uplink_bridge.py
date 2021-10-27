@@ -47,7 +47,7 @@ class UplinkBridgeController(MagmaController):
             'sgi_management_iface_vlan', 'sgi_management_iface_ip_addr',
             'dev_vlan_in', 'dev_vlan_out', 'ovs_vlan_workaround',
             'sgi_management_iface_gw', 'sgi_management_iface_ipv6_addr',
-            'sgi_management_iface_gw_ipv6',
+            'sgi_management_iface_ipv6_gw',
         ],
     )
 
@@ -91,7 +91,7 @@ class UplinkBridgeController(MagmaController):
         dev_vlan_out = config_dict.get('dev_vlan_out', self.DEFAULT_DEV_VLAN_OUT)
         ovs_vlan_workaround = config_dict.get('ovs_vlan_workaround', True)
         sgi_management_iface_gw = config_dict.get('sgi_management_iface_gw', "")
-        sgi_management_iface_gw_ipv6 = config_dict.get('sgi_management_iface_gw_ipv6', "")
+        sgi_management_iface_ipv6_gw = config_dict.get('sgi_management_iface_ipv6_gw', "")
 
         return self.UplinkConfig(
             enable_nat=enable_nat,
@@ -107,7 +107,7 @@ class UplinkBridgeController(MagmaController):
             dev_vlan_out=dev_vlan_out,
             ovs_vlan_workaround=ovs_vlan_workaround,
             sgi_management_iface_gw=sgi_management_iface_gw,
-            sgi_management_iface_gw_ipv6=sgi_management_iface_gw_ipv6,
+            sgi_management_iface_ipv6_gw=sgi_management_iface_ipv6_gw,
         )
 
     def initialize_on_connect(self, datapath):
@@ -331,7 +331,7 @@ class UplinkBridgeController(MagmaController):
             netifaces.AF_INET,
         )
         self._set_sgi_gw_ip(
-            if_name, self.config.sgi_management_iface_gw_ipv6,
+            if_name, self.config.sgi_management_iface_ipv6_gw,
             netifaces.AF_INET6,
         )
 

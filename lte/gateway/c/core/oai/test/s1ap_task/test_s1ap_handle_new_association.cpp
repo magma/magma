@@ -142,5 +142,36 @@ TEST(test_s1ap_handle_new_association, reassociate) {
   free_s1ap_state(s);
 }
 
+TEST(test_s1ap_handle_new_association, clean_stale_association) {
+  s1ap_state_t* s = create_s1ap_state(2, 2);
+  // 192.168.60.141 as network bytes
+  bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
+  sctp_new_peer_t p     = {
+      .instreams     = 1,
+      .outstreams    = 2,
+      .assoc_id      = 3,
+      .ran_cp_ipaddr = ran_cp_ipaddr,
+  };
+  EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNok);
+
+  EXPECT_EQ(s->enbs.num_elements, 1);
+
+  enb_description_t* enb_ref =
+      (enb_description_t*) calloc(1, sizeof(enb_description_t));
+
+  enb_description_t* enb_associated = NULL;
+  hashtable_ts_get(
+      &s->enbs, (const hash_key_t) p.assoc_id,
+      reinterpret_cast<void**>(&enb_associated));
+
+  enb_ref->enb_id = enb_associated->enb_id;
+  clean_stale_enb_state(s, enb_ref);
+  EXPECT_EQ(s->enbs.num_elements, 0);
+
+  bdestroy(ran_cp_ipaddr);
+  free_wrapper((void**) &enb_ref);
+  free_s1ap_state(s);
+}
+
 }  // namespace lte
 }  // namespace magma

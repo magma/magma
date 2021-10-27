@@ -208,8 +208,8 @@ void GTPApplication::add_uplink_s8_tunnel_flow(
 
   add_tunnel_flow_action(
       ev.get_pgw_out_tei(), ev.get_in_tei(), ev.get_imsi(), ev.get_pgw_ip(),
-      ev.get_pgw_gtp_portno(), ev.get_connection(), messenger, uplink_fm,
-      "S8 Uplink", true);
+      ev.get_pgw_ipv6(), ev.get_pgw_gtp_portno(), ev.get_connection(),
+      messenger, uplink_fm, "S8 Uplink", true);
 }
 
 void GTPApplication::add_down_link_s8_tunnel_flow(
@@ -223,8 +223,8 @@ void GTPApplication::add_down_link_s8_tunnel_flow(
 
   add_tunnel_flow_action(
       ev.get_out_tei(), ev.get_pgw_in_tei(), ev.get_imsi(), ev.get_enb_ip(),
-      ev.get_enb_gtp_portno(), ev.get_connection(), messenger, downlinklink_fm,
-      "S8 DnLink", true);
+      ev.get_enb_ipv6(), ev.get_enb_gtp_portno(), ev.get_connection(),
+      messenger, downlinklink_fm, "S8 DnLink", true);
 }
 
 void GTPApplication::delete_down_link_s8_tunnel_flow(
@@ -390,18 +390,26 @@ static void add_ded_brr_dl_match(
  */
 void GTPApplication::add_tunnel_flow_action(
     uint32_t out_tei, uint32_t in_tei, std::string ue_imsi,
-    struct in_addr remote_ip, uint32_t egress_gtp_port,
-    fluid_base::OFConnection* connection, const OpenflowMessenger& messenger,
-    of13::FlowMod downlink_fm, const std::string& flow_type, bool passthrough) {
+    struct in_addr remote_ipv4, struct in6_addr remote_ipv6,
+    uint32_t egress_gtp_port, fluid_base::OFConnection* connection,
+    const OpenflowMessenger& messenger, of13::FlowMod downlink_fm,
+    const std::string& flow_type, bool passthrough) {
   of13::ApplyActions apply_dl_inst;
   auto imsi = IMSIEncoder::compact_imsi(ue_imsi);
 
   // Set outgoing tunnel id and tunnel destination ip
   of13::SetFieldAction set_out_tunnel(new of13::TUNNELId(out_tei));
   apply_dl_inst.add_action(set_out_tunnel);
-  of13::SetFieldAction set_tunnel_dst(
-      new of13::TunnelIPv4Dst(remote_ip.s_addr));
-  apply_dl_inst.add_action(set_tunnel_dst);
+
+  if (remote_ipv4.s_addr != INADDR_ANY) {
+    of13::SetFieldAction set_tunnel_ipv4_dst(
+        new of13::TunnelIPv4Dst(remote_ipv4.s_addr));
+    apply_dl_inst.add_action(set_tunnel_ipv4_dst);
+  } else {
+    of13::SetFieldAction set_tunnel_ipv6_dst(
+        new of13::TunnelIPv6Dst(remote_ipv6.s6_addr));
+    apply_dl_inst.add_action(set_tunnel_ipv6_dst);
+  }
 
   int gtp_port = egress_gtp_port;
   if (gtp_port == 0) {
@@ -450,8 +458,8 @@ void GTPApplication::add_downlink_tunnel_flow_action(
 
   add_tunnel_flow_action(
       ev.get_out_tei(), in_teid, ev.get_imsi(), ev.get_enb_ip(),
-      ev.get_enb_gtp_portno(), ev.get_connection(), messenger, downlink_fm,
-      "S1 Downlink", passthrough);
+      ev.get_enb_ipv6(), ev.get_enb_gtp_portno(), ev.get_connection(),
+      messenger, downlink_fm, "S1 Downlink", passthrough);
 }
 
 void GTPApplication::add_downlink_tunnel_flow_ipv4(

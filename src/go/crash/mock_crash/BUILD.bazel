@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mock_crash",
+    srcs = ["mock_crash.go"],
+    importpath = "github.com/magma/magma/src/go/crash/mock_crash",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/go/crash",
+        "@com_github_golang_mock//gomock",
+    ],
+)

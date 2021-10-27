@@ -508,7 +508,7 @@ class UplinkBridgeWithNonNATTest_IP_VLAN_GW(unittest.TestCase):
                 'sgi_management_iface_vlan': cls.VLAN_TAG,
                 'sgi_management_iface_ip_addr': cls.SGi_IP,
                 'sgi_management_iface_gw': cls.SGi_GW,
-                'sgi_management_iface_gw_ipv6': cls.SGi_IPv6_GW,
+                'sgi_management_iface_ipv6_gw': cls.SGi_IPv6_GW,
                 'dev_vlan_in': "test_v_in",
                 'dev_vlan_out': "test_v_out",
                 'sgi_management_iface_ipv6_addr': 'fe80::48a3:2cff:aaaa:dd47/10',

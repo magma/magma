@@ -688,7 +688,7 @@ status_code_e erab_setup_rsp_tmr_exp_handler(
         // Restart the timer
         rc = esm_ebr_start_timer(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, NULL,
-            ERAB_SETUP_RSP_TMR, erab_setup_rsp_tmr_exp_handler);
+            1000 * ERAB_SETUP_RSP_TMR, erab_setup_rsp_tmr_exp_handler);
         if (rc != RETURNerror) {
           OAILOG_INFO(
               LOG_NAS_ESM,
@@ -846,7 +846,7 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
     } else {
       // Wait for ERAB SETUP RSP.Start a timer for 5 secs
       rc = esm_ebr_start_timer(
-          emm_context, ebi, NULL, ERAB_SETUP_RSP_TMR,
+          emm_context, ebi, NULL, 1000 * ERAB_SETUP_RSP_TMR,
           erab_setup_rsp_tmr_exp_handler);
       if (rc != RETURNerror) {
         OAILOG_DEBUG(

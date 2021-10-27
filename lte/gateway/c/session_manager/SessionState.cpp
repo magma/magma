@@ -1289,14 +1289,16 @@ RuleToProcess SessionState::make_rule_to_process(const PolicyRule& rule) {
   bool is_static    = static_rules_.get_rule(rule.id(), nullptr);
   PolicyType p_type = is_static ? STATIC : DYNAMIC;
 
-  // If there is a dedicated bearer TEID already in map, use it
-  PolicyID policy_id = PolicyID(p_type, rule.id());
-  bool dedicated_bearer_exists =
-      bearer_id_by_policy_.find(policy_id) != bearer_id_by_policy_.end();
-  if (dedicated_bearer_exists) {
-    to_process.teids = bearer_id_by_policy_[policy_id].teids;
-  } else {
-    to_process.teids = config_.common_context.teids();
+  if (!is_5g_session()) {
+    // If there is a dedicated bearer TEID already in map, use it
+    PolicyID policy_id = PolicyID(p_type, rule.id());
+    bool dedicated_bearer_exists =
+        bearer_id_by_policy_.find(policy_id) != bearer_id_by_policy_.end();
+    if (dedicated_bearer_exists) {
+      to_process.teids = bearer_id_by_policy_[policy_id].teids;
+    } else {
+      to_process.teids = config_.common_context.teids();
+    }
   }
 
   return to_process;
@@ -1373,8 +1375,12 @@ void SessionState::process_static_rule_installs(
     if (lifetime.is_within_lifetime(current_time)) {
       RuleToProcess to_process =
           activate_static_rule(rule_id, lifetime, session_uc);
-      classify_policy_activation(
-          to_process, STATIC, pending_activation, pending_bearer_setup);
+      if (is_5g_session()) {
+        pending_activation->push_back(to_process);
+      } else {
+        classify_policy_activation(
+            to_process, STATIC, pending_activation, pending_bearer_setup);
+      }
     }
     // If the rule is for future activation, schedule
     if (lifetime.before_lifetime(current_time)) {
@@ -1416,8 +1422,12 @@ void SessionState::process_dynamic_rule_installs(
     if (lifetime.is_within_lifetime(current_time)) {
       RuleToProcess to_process =
           insert_dynamic_rule(dynamic_rule, lifetime, session_uc);
-      classify_policy_activation(
-          to_process, DYNAMIC, pending_activation, pending_bearer_setup);
+      if (is_5g_session()) {
+        pending_activation->push_back(to_process);
+      } else {
+        classify_policy_activation(
+            to_process, DYNAMIC, pending_activation, pending_bearer_setup);
+      }
     }
     // If the rule is for future activation, schedule
     if (lifetime.before_lifetime(current_time)) {
@@ -2796,6 +2806,32 @@ void SessionState::increment_rule_stats(
 
 bool operator==(const Teids& lhs, const Teids& rhs) {
   return lhs.enb_teid() == rhs.enb_teid() && lhs.agw_teid() == rhs.agw_teid();
+}
+
+void SessionState::process_get_5g_rule_installs(
+    const std::vector<StaticRuleInstall>& static_rule_installs,
+    const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
+    RulesToProcess* pending_activation, RulesToProcess* pending_deactivation) {
+  for (const StaticRuleInstall& rule_install : static_rule_installs) {
+    const std::string& rule_id = rule_install.rule_id();
+    PolicyRule rule;
+    RuleToProcess to_process;
+    static_rules_.get_rule(rule_id, &rule);
+    to_process.version = get_current_rule_version(rule.id());
+    to_process.rule    = rule;
+    to_process.teids   = config_.common_context.teids();
+    pending_activation->push_back(to_process);
+    pending_deactivation->push_back(to_process);
+  }
+  for (const DynamicRuleInstall& rule_install : dynamic_rule_installs) {
+    const PolicyRule& dynamic_rule = rule_install.policy_rule();
+    RuleToProcess to_process;
+    to_process.version = get_current_rule_version(dynamic_rule.id());
+    to_process.rule    = dynamic_rule;
+    to_process.teids   = config_.common_context.teids();
+    pending_activation->push_back(to_process);
+    pending_deactivation->push_back(to_process);
+  }
 }
 
 }  // namespace magma

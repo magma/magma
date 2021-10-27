@@ -50,7 +50,8 @@ uint64_t get_bit_rate(uint8_t ambr_unit) {
  * AMBR calculation based on 9.11.4.14 of 24-501
  */
 void ambr_calculation_pdu_session(
-    smf_context_t* smf_context, uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr) {
+    std::shared_ptr<smf_context_t> smf_context, uint64_t* dl_pdu_ambr,
+    uint64_t* ul_pdu_ambr) {
   if ((smf_context->dl_ambr_unit == 0) || (smf_context->ul_ambr_unit == 0) ||
       (smf_context->dl_session_ambr == 0) ||
       (smf_context->dl_session_ambr == 0)) {
@@ -84,7 +85,7 @@ void ambr_calculation_pdu_session(
  */
 int pdu_session_resource_setup_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    smf_context_t* smf_context) {
+    std::shared_ptr<smf_context_t> smf_context) {
   pdu_session_resource_setup_request_transfer_t amf_pdu_ses_setup_transfer_req;
   itti_ngap_pdusession_resource_setup_req_t* ngap_pdu_ses_setup_req = nullptr;
   MessageDef* message_p                                             = nullptr;
@@ -121,8 +122,10 @@ int pdu_session_resource_setup_request(
   /* preparing for PDU_Session_Resource_Setup_Transfer.
    * amf_pdu_ses_setup_transfer_req is the structure to be filled.
    */
-  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.dl = dl_pdu_ambr;
-  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.ul = ul_pdu_ambr;
+  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.dl =
+      ue_context->amf_context.subscribed_ue_ambr.br_dl;
+  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.ul =
+      ue_context->amf_context.subscribed_ue_ambr.br_ul;
 
   // UPF teid 4 octet and respective ip address are from SMF context
   memcpy(
@@ -154,7 +157,7 @@ int pdu_session_resource_setup_request(
 /* Resource release request to gNB through NGAP */
 int pdu_session_resource_release_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    smf_context_t* smf_ctx, bool retransmit) {
+    std::shared_ptr<smf_context_t> smf_ctx, bool retransmit) {
   bstring buffer;
   uint32_t bytes                = 0;
   DLNASTransportMsg* encode_msg = NULL;

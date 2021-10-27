@@ -39,6 +39,8 @@ SWAGGER_V1_COMMON_DIR := $(SWAGGER_V1_SPECS_DIR)/common
 SWAGGER_V1_STANDALONE_DIR := $(SWAGGER_V1_SPECS_DIR)/standalone
 SWAGGER_NMS_OUT := $(MAGMA_ROOT)/nms/packages/magmalte/generated/MagmaAPIBindings.js
 
+OS_NAME := $(shell uname)
+
 export SWAGGER_ROOT
 export SWAGGER_COMMON
 export SWAGGER_V1_ROOT
@@ -167,7 +169,11 @@ $(SWAGGER_LIST): %_swagger:
 nms_fullgen: nms_prereqs nms_gen
 
 nms_prereqs:
-	$(MAKE) nms_prereqs_ubuntu || $(MAKE) nms_prereqs_osx
+ifeq ($(OS_NAME),Linux)
+	$(MAKE) nms_prereqs_ubuntu
+else ifeq ($(OS_NAME),Darwin)
+	$(MAKE) nms_prereqs_osx
+endif
 
 nms_prereqs_ubuntu: nms_node_ubuntu
 	NODE="$(shell which nodejs)"; ln -s $$NODE /usr/local/bin/node
@@ -187,7 +193,8 @@ nms_node_ubuntu:
 	curl -fSL https://deb.nodesource.com/setup_14.x | bash -
 	apt-get install -y nodejs
 	# And now install npm
-	apt install -y npm
+	apt install -y aptitude
+	aptitude install -y npm
 	# symlink nodejs executable
 	mkdir -p /usr/local/bin
 

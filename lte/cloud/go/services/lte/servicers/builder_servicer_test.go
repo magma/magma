@@ -321,7 +321,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newGatewayConfigNonNat("", "", ""),
+		Config:             newGatewayConfigNonNat("", "", "", "", ""),
 		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 	graph := configurator.EntityGraph{
@@ -480,7 +480,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	// validate SGi vlan tag mconfig
 	lteGW = configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newGatewayConfigNonNat("30", "", ""),
+		Config:             newGatewayConfigNonNat("30", "", "", "", ""),
 		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 	graph = configurator.EntityGraph{
@@ -512,7 +512,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	// validate SGi vlan tag mconfig
 	lteGW = configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newGatewayConfigNonNat("44", "1.2.3.4", ""),
+		Config:             newGatewayConfigNonNat("44", "1.2.3.4", "", "", ""),
 		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 	graph = configurator.EntityGraph{
@@ -545,7 +545,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	// validate SGi vlan tag mconfig
 	lteGW = configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newGatewayConfigNonNat("55", "1.2.3.4/24", "1.2.3.1"),
+		Config:             newGatewayConfigNonNat("55", "1.2.3.4/24", "1.2.3.1", "", ""),
 		ParentAssociations: storage.TKs{gw.GetTK()},
 	}
 	graph = configurator.EntityGraph{
@@ -575,6 +575,75 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
+	// validate SGi ipv6 address and gateway
+	// validate SGi vlan tag mconfig
+	lteGW = configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config:             newGatewayConfigNonNat("55", "", "", "2001:4860:4860:0:0:0:0:1111/64", "2a12:577:9941:f99c:0002:0001:c731:f114"),
+		ParentAssociations: storage.TKs{gw.GetTK()},
+	}
+	graph = configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTK(), To: lteGW.GetTK()},
+		},
+	}
+	expected["pipelined"] = &lte_mconfig.PipelineD{
+		LogLevel:      protos.LogLevel_INFO,
+		UeIpBlock:     "192.168.128.0/24",
+		NatEnabled:    false,
+		DefaultRuleId: "",
+		Services: []lte_mconfig.PipelineD_NetworkServices{
+			lte_mconfig.PipelineD_ENFORCEMENT,
+		},
+		SgiManagementIfaceVlan:     "55",
+		SgiManagementIfaceIpv6Addr: "2001:4860:4860:0:0:0:0:1111/64",
+		SgiManagementIfaceIpv6Gw:   "2a12:577:9941:f99c:0002:0001:c731:f114",
+		HeConfig:                   &lte_mconfig.PipelineD_HEConfig{},
+		LiUes:                      &lte_mconfig.PipelineD_LiUes{},
+		UpfNodeIdentifier:          "",
+		Enable5GFeatures:           false,
+	}
+
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
+	// validate SGi ipv4 and ipv6 address and gateway
+	// validate SGi vlan tag mconfig
+	lteGW = configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config:             newGatewayConfigNonNat("55", "1.2.3.4/24", "1.2.3.1", "2001:4860:4860:0:0:0:0:9999/96", "2a12:577:9941:f99c:0002:0001:c731:f114"),
+		ParentAssociations: storage.TKs{gw.GetTK()},
+	}
+	graph = configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTK(), To: lteGW.GetTK()},
+		},
+	}
+	expected["pipelined"] = &lte_mconfig.PipelineD{
+		LogLevel:      protos.LogLevel_INFO,
+		UeIpBlock:     "192.168.128.0/24",
+		NatEnabled:    false,
+		DefaultRuleId: "",
+		Services: []lte_mconfig.PipelineD_NetworkServices{
+			lte_mconfig.PipelineD_ENFORCEMENT,
+		},
+		SgiManagementIfaceVlan:     "55",
+		SgiManagementIfaceIpAddr:   "1.2.3.4/24",
+		SgiManagementIfaceGw:       "1.2.3.1",
+		SgiManagementIfaceIpv6Addr: "2001:4860:4860:0:0:0:0:9999/96",
+		SgiManagementIfaceIpv6Gw:   "2a12:577:9941:f99c:0002:0001:c731:f114",
+		HeConfig:                   &lte_mconfig.PipelineD_HEConfig{},
+		LiUes:                      &lte_mconfig.PipelineD_LiUes{},
+		UpfNodeIdentifier:          "",
+		Enable5GFeatures:           false,
+	}
+
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
 }
 
 func TestBuilder_Build_BaseCase(t *testing.T) {
@@ -1570,7 +1639,8 @@ func newDefaultGatewayConfig() *lte_models.GatewayCellularConfigs {
 	}
 }
 
-func newGatewayConfigNonNat(vlan string, sgi_ip string, sgi_gw string) *lte_models.GatewayCellularConfigs {
+// TODO: simplify function args.
+func newGatewayConfigNonNat(vlan string, sgi_ip string, sgi_gw string, sgi_ipv6 string, sgi_ipv6_gw string) *lte_models.GatewayCellularConfigs {
 	return &lte_models.GatewayCellularConfigs{
 		Ran: &lte_models.GatewayRanConfigs{
 			Pci:             260,
@@ -1582,6 +1652,8 @@ func newGatewayConfigNonNat(vlan string, sgi_ip string, sgi_gw string) *lte_mode
 			SgiManagementIfaceVlan:     vlan,
 			SgiManagementIfaceStaticIP: sgi_ip,
 			SgiManagementIfaceGw:       sgi_gw,
+			SgiManagementIfaceIPV6Addr: strfmt.IPv6(sgi_ipv6),
+			SgiManagementIfaceIPV6Gw:   strfmt.IPv6(sgi_ipv6_gw),
 		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",

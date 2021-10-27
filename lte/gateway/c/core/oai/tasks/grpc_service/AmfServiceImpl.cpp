@@ -112,7 +112,7 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.session_ambr.downlink_units =
       (uint32_t) req_m5g.session_ambr().max_bandwidth_dl();
 
-  itti_msg.qos_list.qos_flow_req_item.qos_flow_identifier = 5;
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_identifier = req_m5g.qos().qci();
 
   itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .qos_characteristic.non_dynamic_5QI_desc.fiveQI =

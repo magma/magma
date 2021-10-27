@@ -18,6 +18,7 @@
 
   vars:
     magma_root: /home/{{ ansible_user }}/magma
+    user: "{{ ansible_user }}"
     preburn: false
     full_provision: true
 
@@ -49,3 +50,9 @@
         magma_deps: /home/{{ ansible_user }}/magma-deps
     - role: fluent_bit
     - role: pyvenv
+
+  tasks:
+    # Only run installation for docker
+    - include_role:
+        name: docker
+        tasks_from: install

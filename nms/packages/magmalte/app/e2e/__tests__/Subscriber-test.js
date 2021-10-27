@@ -21,7 +21,7 @@ let browser;
 beforeEach(async () => {
   jest.setTimeout(60000);
   browser = await puppeteer.launch({
-    args: ['--ignore-certificate-errors'],
+    args: ['--ignore-certificate-errors', '--window-size=1920,1080'],
     headless: true,
     defaultViewport: null,
   });
@@ -128,59 +128,59 @@ describe('NMS', () => {
 //   }, 60000);
 // });
 
-describe('NMS Subscriber Edit', () => {
-  test('verifying subscriber dashboard', async () => {
-    const page = await browser.newPage();
-    try {
-      await page.goto(
-        'https://magma-test.localhost/nms/test/subscribers/overview/config/IMSI001010002220018/config',
-      );
-      // edit subscriber info
-      const editButtonSelector = '[data-testid="subscriber"]';
-      await page.waitForSelector(editButtonSelector);
-      await page.click(editButtonSelector);
+// describe('NMS Subscriber Edit', () => {
+//   test('verifying subscriber dashboard', async () => {
+//     const page = await browser.newPage();
+//     try {
+//       await page.goto(
+//         'https://magma-test.localhost/nms/test/subscribers/overview/config/IMSI001010002220018/config',
+//       );
+//       // edit subscriber info
+//       const editButtonSelector = '[data-testid="subscriber"]';
+//       await page.waitForSelector(editButtonSelector);
+//       await page.click(editButtonSelector);
 
-      const subscriberName = '[data-testid="name"]';
-      await page.waitForSelector(subscriberName);
-      await page.click(subscriberName, {clickCount: 3});
-      await page.type(subscriberName, 'test_subscriber');
+//       const subscriberName = '[data-testid="name"]';
+//       await page.waitForSelector(subscriberName);
+//       await page.click(subscriberName, {clickCount: 3});
+//       await page.type(subscriberName, 'test_subscriber');
 
-      // Save subscriber
-      const saveSubscriberInfo = '[data-testid="subscriber-saveButton"]';
-      await page.waitForSelector(saveSubscriberInfo);
-      await page.click(saveSubscriberInfo);
+//       // Save subscriber
+//       const saveSubscriberInfo = '[data-testid="subscriber-saveButton"]';
+//       await page.waitForSelector(saveSubscriberInfo);
+//       await page.click(saveSubscriberInfo);
 
-      await page.waitForXPath(`//span[text()='Subscriber saved successfully']`);
+//       await page.waitForXPath(`//span[text()='Subscriber saved successfully']`);
 
-      // edit subscriber traffic policy
-      // const trafficPolicySelector = '[data-testid="trafficPolicy"]';
-      // await page.waitForSelector(trafficPolicySelector);
-      // await page.click(trafficPolicySelector);
+//       // edit subscriber traffic policy
+//       // const trafficPolicySelector = '[data-testid="trafficPolicy"]';
+//       // await page.waitForSelector(trafficPolicySelector);
+//       // await page.click(trafficPolicySelector);
 
-      // const activeApns = '#activeApnTestId';
-      // await page.waitForSelector(activeApns);
-      // await page.click(activeApns);
+//       // const activeApns = '#activeApnTestId';
+//       // await page.waitForSelector(activeApns);
+//       // await page.click(activeApns);
 
-      // const apnCheckbox = 'input[type="checkbox"]';
-      // await page.waitForSelector(apnCheckbox);
-      // await page.click(apnCheckbox);
+//       // const apnCheckbox = 'input[type="checkbox"]';
+//       // await page.waitForSelector(apnCheckbox);
+//       // await page.click(apnCheckbox);
 
-      // Save subscriber
-      // const saveSubscriberTrafficPolicy =
-      //   '[data-testid="trafficPolicy-saveButton"]';
-      // await page.waitForSelector(saveSubscriberTrafficPolicy);
-      // await page.click(saveSubscriberTrafficPolicy, {clickCount: 2});
+//       // Save subscriber
+//       // const saveSubscriberTrafficPolicy =
+//       //   '[data-testid="trafficPolicy-saveButton"]';
+//       // await page.waitForSelector(saveSubscriberTrafficPolicy);
+//       // await page.click(saveSubscriberTrafficPolicy, {clickCount: 2});
 
-      // await page.waitForXPath(`//span[text()='Subscriber saved successfully']`);
-    } catch (err) {
-      await page.screenshot({
-        path: ARTIFACTS_DIR + 'subscriber_edit_failed.png',
-      });
-      await page.close();
-      throw err;
-    }
-    await page.screenshot({
-      path: ARTIFACTS_DIR + 'subscriber_edit.png',
-    });
-  }, 60000);
-});
+//       // await page.waitForXPath(`//span[text()='Subscriber saved successfully']`);
+//     } catch (err) {
+//       await page.screenshot({
+//         path: ARTIFACTS_DIR + 'subscriber_edit_failed.png',
+//       });
+//       await page.close();
+//       throw err;
+//     }
+//     await page.screenshot({
+//       path: ARTIFACTS_DIR + 'subscriber_edit.png',
+//     });
+//   }, 60000);
+// });

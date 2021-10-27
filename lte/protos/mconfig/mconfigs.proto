@@ -175,6 +175,11 @@ message PipelineD {
     bool enable5g_features = 18;
     string upf_node_identifier = 19;
 
+    // SGi management IPv6 address with network mask
+    string sgi_management_iface_ipv6_addr = 20;
+    // IPv6 address of SGi management network GW
+    string sgi_management_iface_ipv6_gw = 21;
+
     // DEPRECATED
     reserved 4, 11;
 }
@@ -515,4 +520,9 @@ message AgwD {
   string sctpd_upstream_service_target = 3;
   string mme_sctpd_downstream_service_target = 4;
   string mme_sctpd_upstream_service_target = 5;
+
+  // Sentry Client Options.
+  // The DSN to use. If the data source name is not set, the client is effectively
+  // disabled.
+  string sentry_dsn = 6;
 }

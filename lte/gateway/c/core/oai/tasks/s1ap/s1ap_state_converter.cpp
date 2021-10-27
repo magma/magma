@@ -181,8 +181,8 @@ void S1apStateConverter::ue_to_proto(
   proto->set_sctp_stream_send(ue->sctp_stream_send);
   proto->mutable_s1ap_ue_context_rel_timer()->set_id(
       ue->s1ap_ue_context_rel_timer.id);
-  proto->mutable_s1ap_ue_context_rel_timer()->set_sec(
-      ue->s1ap_ue_context_rel_timer.sec);
+  proto->mutable_s1ap_ue_context_rel_timer()->set_msec(
+      ue->s1ap_ue_context_rel_timer.msec);
   proto->mutable_s1ap_handover_state()->set_mme_ue_s1ap_id(
       ue->s1ap_handover_state.mme_ue_s1ap_id);
   proto->mutable_s1ap_handover_state()->set_source_enb_id(
@@ -200,14 +200,14 @@ void S1apStateConverter::proto_to_ue(
     const oai::UeDescription& proto, ue_description_t* ue) {
   memset(ue, 0, sizeof(*ue));
 
-  ue->s1_ue_state                   = (s1_ue_state_s) proto.s1_ue_state();
-  ue->enb_ue_s1ap_id                = proto.enb_ue_s1ap_id();
-  ue->mme_ue_s1ap_id                = proto.mme_ue_s1ap_id();
-  ue->sctp_assoc_id                 = proto.sctp_assoc_id();
-  ue->sctp_stream_recv              = proto.sctp_stream_recv();
-  ue->sctp_stream_send              = proto.sctp_stream_send();
-  ue->s1ap_ue_context_rel_timer.id  = proto.s1ap_ue_context_rel_timer().id();
-  ue->s1ap_ue_context_rel_timer.sec = proto.s1ap_ue_context_rel_timer().sec();
+  ue->s1_ue_state                    = (s1_ue_state_s) proto.s1_ue_state();
+  ue->enb_ue_s1ap_id                 = proto.enb_ue_s1ap_id();
+  ue->mme_ue_s1ap_id                 = proto.mme_ue_s1ap_id();
+  ue->sctp_assoc_id                  = proto.sctp_assoc_id();
+  ue->sctp_stream_recv               = proto.sctp_stream_recv();
+  ue->sctp_stream_send               = proto.sctp_stream_send();
+  ue->s1ap_ue_context_rel_timer.id   = proto.s1ap_ue_context_rel_timer().id();
+  ue->s1ap_ue_context_rel_timer.msec = proto.s1ap_ue_context_rel_timer().msec();
   ue->s1ap_handover_state.mme_ue_s1ap_id =
       proto.s1ap_handover_state().mme_ue_s1ap_id();
   ue->s1ap_handover_state.source_enb_id =

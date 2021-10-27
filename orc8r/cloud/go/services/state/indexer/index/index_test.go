@@ -72,10 +72,13 @@ func TestIndexImpl_HappyPath(t *testing.T) {
 
 	idx0.On("Index", nid0, serialize(t, indexTwo)).Return(state_types.StateErrors{id0: someErr}, nil).Once()
 	idx1.On("Index", nid0, serialize(t, indexOne)).Return(nil, someErr).Times(maxRetry)
+	idx0.On("DeIndex", nid0, serialize(t, indexTwo)).Return(state_types.StateErrors{id0: someErr}, nil).Once()
+	idx1.On("DeIndex", nid0, serialize(t, indexOne)).Return(nil, someErr).Times(maxRetry)
+
 	idx0.On("GetVersion").Return(indexer.Version(42))
-	idx1.On("GetVersion").Return(indexer.Version(42))
-	idx2.On("GetVersion").Return(indexer.Version(42))
-	idx3.On("GetVersion").Return(indexer.Version(42))
+	idx1.On("GetVersion").Return(indexer.Version(43))
+	idx2.On("GetVersion").Return(indexer.Version(44))
+	idx3.On("GetVersion").Return(indexer.Version(45))
 
 	indexer.DeregisterAllForTest(t)
 	state_test_init.StartNewTestIndexer(t, idx0)
@@ -91,6 +94,16 @@ func TestIndexImpl_HappyPath(t *testing.T) {
 	assert.Contains(t, e, iid1)
 	assert.Contains(t, e, index.ErrIndex)
 	assert.Contains(t, e, someErr.Error())
+
+	// All Remove Index occurs as expected
+	actual, err = index.DeIndex(nid0, serialize(t, in))
+	assert.NoError(t, err)
+	assert.Len(t, actual, 1)
+	e = actual[0].Error()
+	assert.Contains(t, e, iid1)
+	assert.Contains(t, e, index.ErrIndex)
+	assert.Contains(t, e, someErr.Error())
+
 	idx0.AssertExpectations(t)
 	idx1.AssertExpectations(t)
 	idx2.AssertExpectations(t)
