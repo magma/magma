@@ -14,11 +14,15 @@ syntax = "proto3";
 package magma.config;
 
 // Config is is used for fetching and setting configs in agwd.
+// TODO: When agwd is stable revert to using mconfig to handle configs.
 service Config {
   // GetConfig returns the current config set in agwd.
   rpc GetConfig (GetConfigRequest) returns (GetConfigResponse) {};
   // UpdateConfig updates the current config in agwd.
   rpc UpdateConfig (UpdateConfigRequest) returns (UpdateConfigResponse) {};
+  // ReplaceConfig overwrites the existing config in agwd.
+  // NOTE: This is susceptible to a race condition.
+  rpc ReplaceConfig (ReplaceConfigRequest) returns (ReplaceConfigResponse) {};
 }
 
 // GetConfigRequest
@@ -39,6 +43,15 @@ message UpdateConfigResponse {
   AgwD config = 1;
 }
 
+// ReplaceConfigRequest
+message ReplaceConfigRequest {
+  AgwD config = 1;
+}
+
+// ReplaceConfigResponse
+message ReplaceConfigResponse {
+  AgwD config = 1;
+}
 
 // Copied from lte/protos/mconfig/mconfigs.proto - will merge in the future once we determine path for mconfigs.
 //----------------------------------------------------------------------------
@@ -63,8 +76,19 @@ message AgwD {
   // The DSN to use. If the data source name is not set, the client is effectively
   // disabled.
   string sentry_dsn = 6;
-
   // location (unix socket, ipv4 or ipv6 address) where service is listening
-  string config_service_target = 7;
-  string pipelined_service_target = 8;
+  string pipelined_service_target = 7;
+  string vagrant_private_network_ip = 8;
+  string config_service_port = 9;
+  string capture_service_port = 10;
+  CaptureConfig capture_config = 11;
+
+}
+
+message CaptureConfig {
+  message MatchSpec {
+    string service = 1;
+    string method = 2;
+  }
+  repeated MatchSpec match_specs = 1;
 }
