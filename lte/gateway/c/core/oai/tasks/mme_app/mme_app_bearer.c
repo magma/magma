@@ -928,7 +928,6 @@ void mme_app_handle_delete_session_rsp(
         "Removing  ue_ip:%x from ipv4_imsi map \n",
         (pdn_context)->paa.ipv4_address.s_addr);
 
-    
     mme_app_remove_ue_ipv6_addr(
         (pdn_context)->paa.ipv6_address.__in6_u.__u6_addr32,
         ue_context_p->emm_context._imsi64);
@@ -1199,16 +1198,15 @@ status_code_e mme_app_handle_create_sess_resp(
               ue_context_p->emm_context._imsi64);
         }
 
-	else{
-	OAILOG_DEBUG_UE(
+        else {
+          OAILOG_DEBUG_UE(
               LOG_MME_APP, ue_context_p->emm_context._imsi64,
               " ipv6 address received in create session response is :%x \n",
               create_sess_resp_pP->paa.ipv6_address.__in6_u);
           mme_app_insert_ue_ipv6_addr(
               create_sess_resp_pP->paa.ipv6_address,
               ue_context_p->emm_context._imsi64);
-	
-	}	
+        }
       }
       transaction_identifier = current_bearer_p->transaction_identifier;
     }
@@ -2252,8 +2250,7 @@ imsi64_t mme_app_handle_initial_paging_request(
   OAILOG_FUNC_IN(LOG_MME_APP);
   imsi64_t imsi64 = INVALID_IMSI64;
 
-
- if (paging_req->imsi) {
+  if (paging_req->imsi) {
     IMSI_STRING_TO_IMSI64(paging_req->imsi, &imsi64);
     OAILOG_DEBUG_UE(LOG_MME_APP, imsi64, "paging is requested \n");
     mme_app_send_paging_request(mme_app_desc_p, imsi64);
@@ -2261,52 +2258,53 @@ imsi64_t mme_app_handle_initial_paging_request(
   }
   imsi64_t* imsi_list = NULL;
 
-if(paging_req->address.ipv4_addr.sin_addr.s_addr == 0){
-  OAILOG_DEBUG( LOG_MME_APP, "paging is requested for ue_ipv6:%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x  \n", NIP6ADDR(&(paging_req->address.ipv6_addr.sin6_addr)));
+  if (paging_req->address.ipv4_addr.sin_addr.s_addr == 0) {
+    OAILOG_DEBUG(
+        LOG_MME_APP,
+        "paging is requested for "
+        "ue_ipv6:%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x  \n",
+        NIP6ADDR(&(paging_req->address.ipv6_addr.sin6_addr)));
 
-}
-	else {
-  OAILOG_DEBUG(
-      LOG_MME_APP, "paging is requested for ue_ip:%x \n",
-      paging_req->address.ipv4_addr.sin_addr);
-	}
-
-if(paging_req->address.ipv4_addr.sin_addr.s_addr == 0)
-{
-    int num_imsis_ipv6 =
-      mme_app_get_imsi_from_ipv6(paging_req->address.ipv6_addr.sin6_addr, &imsi_list);
-  if (!(num_imsis_ipv6)) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Failed to fetch imsi from ue_ipv6:%x \n",
-        paging_req->address.ipv6_addr.sin6_addr);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  } else {
+    OAILOG_DEBUG(
+        LOG_MME_APP, "paging is requested for ue_ip:%x \n",
+        paging_req->address.ipv4_addr.sin_addr);
   }
-   for (int idx = 0; idx < num_imsis_ipv6; idx++) {
-    if (imsi_list[idx] != INVALID_IMSI64) {
-      imsi64 = imsi_list[idx];
-      printf("ipv6imsi \n", imsi64 );
-      mme_app_send_paging_request(mme_app_desc_p, imsi64);
+
+  if (paging_req->address.ipv4_addr.sin_addr.s_addr == 0) {
+    int num_imsis_ipv6 = mme_app_get_imsi_from_ipv6(
+        paging_req->address.ipv6_addr.sin6_addr, &imsi_list);
+    if (!(num_imsis_ipv6)) {
+      OAILOG_ERROR(
+          LOG_MME_APP, "Failed to fetch imsi from ue_ipv6:%x \n",
+          paging_req->address.ipv6_addr.sin6_addr);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    }
+    for (int idx = 0; idx < num_imsis_ipv6; idx++) {
+      if (imsi_list[idx] != INVALID_IMSI64) {
+        imsi64 = imsi_list[idx];
+        printf("ipv6imsi \n", imsi64);
+        mme_app_send_paging_request(mme_app_desc_p, imsi64);
+      }
     }
   }
- }
 
-
-else{
-  int num_imsis =
-      mme_app_get_imsi_from_ipv4(paging_req->address.ipv4_addr.sin_addr.s_addr, &imsi_list);
-  if (!(num_imsis)) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Failed to fetch imsi from ue_ip:%x \n",
-        paging_req->address.ipv4_addr);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-  }
-for (int idx = 0; idx < num_imsis; idx++) {
-    if (imsi_list[idx] != INVALID_IMSI64) {
-      imsi64 = imsi_list[idx];
+  else {
+    int num_imsis = mme_app_get_imsi_from_ipv4(
+        paging_req->address.ipv4_addr.sin_addr.s_addr, &imsi_list);
+    if (!(num_imsis)) {
+      OAILOG_ERROR(
+          LOG_MME_APP, "Failed to fetch imsi from ue_ip:%x \n",
+          paging_req->address.ipv4_addr);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
+    for (int idx = 0; idx < num_imsis; idx++) {
+      if (imsi_list[idx] != INVALID_IMSI64) {
+        imsi64 = imsi_list[idx];
+      }
+    }
+    mme_app_send_paging_request(mme_app_desc_p, imsi64);
   }
-  mme_app_send_paging_request(mme_app_desc_p, imsi64);
-}
   free_wrapper((void**) &imsi_list);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }

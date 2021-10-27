@@ -360,11 +360,12 @@ const uint32_t HandleDataOnGTPTunnelEvent::get_dl_flow_precedence() const {
   return dl_flow_precedence_;
 }
 
-AddPagingRuleEvent::AddPagingRuleEvent(const struct in_addr ue_ip,struct in6_addr* ue_ipv6)
+AddPagingRuleEvent::AddPagingRuleEvent(
+    const struct in_addr ue_ip, struct in6_addr* ue_ipv6)
     : ue_info_(ue_ip, ue_ipv6), ExternalEvent(EVENT_ADD_PAGING_RULE) {}
 
 const struct UeNetworkInfo& AddPagingRuleEvent::get_ue_info() const {
- return ue_info_;
+  return ue_info_;
 }
 
 const struct in_addr& AddPagingRuleEvent::get_ue_ip() const {
@@ -375,9 +376,9 @@ const struct in6_addr& AddPagingRuleEvent::get_ue_ipv6() const {
   return ue_info_.get_ipv6();
 }
 
-DeletePagingRuleEvent::DeletePagingRuleEvent(const struct in_addr ue_ip,struct in6_addr* ue_ipv6)
+DeletePagingRuleEvent::DeletePagingRuleEvent(
+    const struct in_addr ue_ip, struct in6_addr* ue_ipv6)
     : ue_info_(ue_ip, ue_ipv6), ExternalEvent(EVENT_DELETE_PAGING_RULE) {}
-
 
 const struct UeNetworkInfo& DeletePagingRuleEvent::get_ue_info() const {
   return ue_info_;

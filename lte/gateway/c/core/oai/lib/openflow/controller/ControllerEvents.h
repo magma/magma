@@ -303,7 +303,7 @@ class HandleDataOnGTPTunnelEvent : public ExternalEvent {
  */
 class AddPagingRuleEvent : public ExternalEvent {
  public:
-  AddPagingRuleEvent(const struct in_addr ue_ip,struct in6_addr* ue_ipv6);
+  AddPagingRuleEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6);
 
   const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;
@@ -319,7 +319,7 @@ class AddPagingRuleEvent : public ExternalEvent {
  */
 class DeletePagingRuleEvent : public ExternalEvent {
  public:
-  DeletePagingRuleEvent(const struct in_addr ue_ip,struct in6_addr* ue_ipv6);
+  DeletePagingRuleEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6);
 
   const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;

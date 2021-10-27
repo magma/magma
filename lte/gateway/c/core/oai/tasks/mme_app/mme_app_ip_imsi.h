@@ -21,13 +21,11 @@ extern "C" {
 #include "common_defs.h"
 #include "common_types.h"
 #include <netinet/in.h>
-//#include <fluid/util/ipaddr.hh>
-//#include <fluid/util/ethaddr.hh>  
 
 int mme_app_insert_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64);
 int mme_app_insert_ue_ipv6_addr(struct in6_addr ipv6_addr, imsi64_t imsi64);
 int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list);
-int mme_app_get_imsi_from_ipv6(struct  in6_addr ipv6_addr, imsi64_t** imsi_list);
+int mme_app_get_imsi_from_ipv6(struct in6_addr ipv6_addr, imsi64_t** imsi_list);
 void mme_app_remove_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64);
 void mme_app_remove_ue_ipv6_addr(uint32_t ipv6_addr, imsi64_t imsi64);
 #ifdef __cplusplus

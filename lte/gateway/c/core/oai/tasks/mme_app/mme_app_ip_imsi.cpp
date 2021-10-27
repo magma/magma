@@ -16,11 +16,10 @@ limitations under the License.
 #include <iostream>
 #include "mme_app_ip_imsi.h"
 #include "mme_app_ueip_imsi_map.h"
-//#include <fluid/util/ipaddr.hh> 
+//#include <fluid/util/ipaddr.hh>
 //#include <netinet/ip.h>
 #include "mme_app_state_manager.h"
 #include "lte/protos/mobilityd.pb.h"
-
 
 using magma::lte::MmeNasStateManager;
 // Description: Logs the content of ueip_imsi map
@@ -70,9 +69,6 @@ int mme_app_insert_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
     std::vector<uint64_t> vec = {imsi64};
     ueip_imsi_map[ipv4]       = vec;
     OAILOG_DEBUG_UE(LOG_MME_APP, imsi64, "Inserting ue_ip:%x \n", ipv4_addr);
-     OAILOG_DEBUG(
-      LOG_MME_APP, "imsihashtableinsertimsiipv4:%x \n",
-      ueip_imsi_map);
   } else {
     OAILOG_DEBUG_UE(
         LOG_MME_APP, imsi64, "Inserting imsi for existing ue_ip:%x \n",
@@ -82,7 +78,6 @@ int mme_app_insert_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
   MmeNasStateManager::getInstance().write_mme_ueip_imsi_map_to_db();
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
-
 
 /* Description: ue_ip address is allocated by either roaming PGWs or mobilityd
  * So there is possibility to allocate same ue ip address for different UEs.
@@ -96,19 +91,13 @@ int mme_app_insert_ue_ipv6_addr(struct in6_addr ipv6_addr, imsi64_t imsi64) {
   char ipv6[INET6_ADDRSTRLEN] = {0};
   inet_ntop(AF_INET6, (void*) &ipv6_addr, ipv6, INET6_ADDRSTRLEN);
   auto itr_map = ueip_imsi_map.find(ipv6);
-  
-    OAILOG_DEBUG(
-      LOG_MME_APP, "imsihashtableinsertimsi: \n",
-      ueip_imsi_map);
-
   if (itr_map == ueip_imsi_map.end()) {
     std::vector<uint64_t> vec = {imsi64};
     ueip_imsi_map[ipv6]       = vec;
-    OAILOG_DEBUG_UE(LOG_MME_APP, imsi64, "Inserting ue_ipv6:%s \n",ipv6);
+    OAILOG_DEBUG_UE(LOG_MME_APP, imsi64, "Inserting ue_ipv6:%s \n", ipv6);
   } else {
     OAILOG_DEBUG_UE(
-        LOG_MME_APP, imsi64, "Inserting imsi for existing ue_ipv6:%s \n",
-        ipv6);
+        LOG_MME_APP, imsi64, "Inserting imsi for existing ue_ipv6:%s \n", ipv6);
     ueip_imsi_map[ipv6].push_back(imsi64);
   }
   MmeNasStateManager::getInstance().write_mme_ueip_imsi_map_to_db();
@@ -127,9 +116,7 @@ int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list) {
   char ipv4[INET_ADDRSTRLEN] = {0};
   inet_ntop(AF_INET, (void*) &ipv4_addr, ipv4, INET_ADDRSTRLEN);
   auto itr_map = ueip_imsi_map.find(ipv4);
-  OAILOG_DEBUG(
-      LOG_MME_APP, "pagingipv4:%x \n",
-      ipv4);
+  OAILOG_DEBUG(LOG_MME_APP, "pagingipv4:%x \n", ipv4);
   if (itr_map == ueip_imsi_map.end()) {
     OAILOG_ERROR(LOG_MME_APP, " No imsi found for ip:%x \n", ipv4_addr);
   } else {
@@ -141,80 +128,60 @@ int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list) {
       (*imsi_list)[idx++] = vect_itr;
       OAILOG_DEBUG_UE(
           LOG_MME_APP, vect_itr, " Found imsi for ip:%x \n", ipv4_addr);
-    
-         OAILOG_DEBUG(
-      LOG_MME_APP, "imsihashtablegetimsiipv4:%x \n",
-      ueip_imsi_map);
-   
     }
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, num_imsis);
 }
 
-
 /* Description: The function shall provide list of imsis allocated for
  * ue ipv6 address; Imsi list is dynamically created and filled with imsis
  * The caller of function needs to free the memory allocated for imsi list
  */
-int mme_app_get_imsi_from_ipv6(struct in6_addr ipv6_addr, imsi64_t** imsi_list) {
+int mme_app_get_imsi_from_ipv6(
+    struct in6_addr ipv6_addr, imsi64_t** imsi_list) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   UeIpImsiMap& ueip_imsi_map =
       MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
-  int num_imsis_ipv6              = 0;
- char ipv6[INET6_ADDRSTRLEN] = {0};
-  //access uint32 and mask the first two in in6_addr
+  int num_imsis_ipv6          = 0;
+  char ipv6[INET6_ADDRSTRLEN] = {0};
+  // access uint32 and mask the first two in in6_addr
 
- 
-inet_ntop(AF_INET6, (void*) &ipv6_addr, ipv6, INET6_ADDRSTRLEN);
+  inet_ntop(AF_INET6, (void*) &ipv6_addr, ipv6, INET6_ADDRSTRLEN);
 
-if(inet_ntop(AF_INET6, (void*) &ipv6_addr, ipv6, INET6_ADDRSTRLEN) == NULL) {
-OAILOG_ERROR(LOG_MME_APP, "IPV6 address conversion IS NULL:%x \n",ipv6);
-OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-}
-
-struct in6_addr ue_ip6_masked;
-  
- // mask_ipv6_address(
-   //   (uint8_t*) &ue_ip6_masked, (const uint8_t*) &ipv6, mask.getIPv6());
-  
-  auto itr_map = ueip_imsi_map.find(ipv6);
-  
-  OAILOG_DEBUG(
-      LOG_MME_APP, "pagingipv6:%s \n",
-      ipv6);
- 
-  OAILOG_DEBUG(
-      LOG_MME_APP, "imsihashtablegetimsi \n");
-
-  for( const auto& n : ueip_imsi_map ) 
-  {
-      OAILOG_DEBUG(
-          LOG_MME_APP,  "IMSIKEY for ip:%s \n", n.first.c_str());
-
-      //std::cout << "IMSIKey:[" << n.first "]\n";
-    for (const auto& vect_itr : n.second) {
-      OAILOG_DEBUG(
-          LOG_MME_APP, "Debuglog Found imsi for ip:%s, Print IMSI64IPV6 %lu\n", n.first,vect_itr);
-    }
+  if (inet_ntop(AF_INET6, (void*) &ipv6_addr, ipv6, INET6_ADDRSTRLEN) == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "IPV6 address conversion IS NULL:%x \n", ipv6);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
+  struct in6_addr ue_ip6_masked;
+  auto itr_map = ueip_imsi_map.find(ipv6);
+  OAILOG_DEBUG(LOG_MME_APP, "pagingipv6:%s \n", ipv6);
+  OAILOG_DEBUG(LOG_MME_APP, "imsihashtablegetimsi \n");
+
+  for (const auto& n : ueip_imsi_map) {
+    OAILOG_DEBUG(LOG_MME_APP, "IMSIKEY for ip:%s \n", n.first.c_str());
+
+    for (const auto& vect_itr : n.second) {
+      OAILOG_DEBUG(
+          LOG_MME_APP, "Debuglog Found imsi for ip:%s, Print IMSI64IPV6 %lu\n",
+          n.first, vect_itr);
+    }
+  }
 
   if (itr_map == ueip_imsi_map.end()) {
     OAILOG_ERROR(LOG_MME_APP, " No imsi found for ip:%s \n", ipv6);
   } else {
-    uint8_t idx  = 0;
-    num_imsis_ipv6    = itr_map->second.size();
-    (*imsi_list) = (imsi64_t*) calloc(num_imsis_ipv6, sizeof(imsi64_t));
+    uint8_t idx    = 0;
+    num_imsis_ipv6 = itr_map->second.size();
+    (*imsi_list)   = (imsi64_t*) calloc(num_imsis_ipv6, sizeof(imsi64_t));
 
     for (const auto& vect_itr : itr_map->second) {
       (*imsi_list)[idx++] = vect_itr;
-      OAILOG_DEBUG_UE(
-          LOG_MME_APP, vect_itr, " Found imsi for ip:%s \n", ipv6);
+      OAILOG_DEBUG_UE(LOG_MME_APP, vect_itr, " Found imsi for ip:%s \n", ipv6);
     }
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, num_imsis_ipv6);
 }
-
 
 /* Description: Shall remove an entry from ueip_imsi map for matching
  *  ueip and imsi
@@ -256,7 +223,6 @@ void mme_app_remove_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-
 /* Description: Shall remove an entry from ueip_imsi map for matching
  *  ueip and imsi
  */
@@ -296,4 +262,3 @@ void mme_app_remove_ue_ipv6_addr(uint32_t ipv6_addr, imsi64_t imsi64) {
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
-
