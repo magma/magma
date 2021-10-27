@@ -37,7 +37,8 @@ namespace lte {
         .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \
     EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(connEstConf); \
     EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command())       \
-        .Times(ctxRel);                                                        \
+        .Times(ctxRel)                                                         \
+        .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \
     EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req())            \
         .Times(air);                                                           \
     EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(ulr);    \

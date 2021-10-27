@@ -258,6 +258,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   send_delete_session_resp();
 
+  // Wait for context release request
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
   send_ue_ctx_release_complete();
@@ -353,6 +355,8 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   send_delete_session_resp();
 
+  // Wait for context release request
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
   send_ue_ctx_release_complete();
@@ -376,7 +380,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirFailure) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  MME_APP_EXPECT_CALLS(1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 2);
+  MME_APP_EXPECT_CALLS(1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(
@@ -388,9 +392,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirFailure) {
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
-  // Check MME state: at this point, MME should be sending attach reject
-  // as well as context release request
-  send_activate_message_to_mme_app();
+  // Wait for context release request; MME should be sending attach reject
+  // as well as context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
@@ -420,7 +423,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirTimeout) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  MME_APP_EXPECT_CALLS(1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 2);
+  MME_APP_EXPECT_CALLS(1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(
@@ -429,9 +432,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirTimeout) {
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
-  // Check MME state: at this point, MME should be sending attach reject
-  // as well as context release request
-  send_activate_message_to_mme_app();
+  // Wait for context release request; MME should be sending attach reject
+  // as well as context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
@@ -461,7 +463,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyUlaFailure) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  MME_APP_EXPECT_CALLS(3, 0, 1, 1, 1, 0, 0, 0, 0, 0, 2);
+  MME_APP_EXPECT_CALLS(3, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(
@@ -488,9 +490,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyUlaFailure) {
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
-  // Check MME state: at this point, MME should be sending attach reject
-  // as well as context release request
-  send_activate_message_to_mme_app();
+  // Wait for context release request; MME should be sending attach reject
+  // as well as context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
@@ -595,11 +596,101 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   send_delete_session_resp();
 
+  // Wait for context release request
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
   send_ue_ctx_release_complete();
 
   // Check MME state after detach complete
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
+TEST_F(MmeAppProcedureTest, TestImsiAttachRejectAuthRetxFailure) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+
+  MME_APP_EXPECT_CALLS(6, 0, 2, 1, 0, 0, 0, 0, 0, 0, 1);
+
+  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(
+      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+
+  // Sending AIA to mme_app mimicing successful S6A response for AIR
+  send_authentication_info_resp(imsi, true);
+
+  // Wait for DL NAS Transport to max out retransmission limit
+  for (int i = 0; i < NAS_RETX_LIMIT; ++i) {
+    cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  }
+
+  // Wait for context release request; MME should be sending attach reject
+  // as well as context release command
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check if the context is properly released
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
+TEST_F(MmeAppProcedureTest, TestImsiAttachRejectSmcRetxFailure) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+
+  MME_APP_EXPECT_CALLS(6, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
+
+  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(
+      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+
+  // Sending AIA to mme_app mimicing successful S6A response for AIR
+  send_authentication_info_resp(imsi, true);
+
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending Authentication Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+
+  // Wait for DL NAS Transport to max out retransmission limit
+  for (int i = 0; i < NAS_RETX_LIMIT; ++i) {
+    cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  }
+
+  // Wait for context release request; MME should be performing
+  // implicit detach
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check if the context is properly released
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
@@ -692,6 +783,8 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   send_delete_session_resp();
 
+  // Wait for context release request
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
   send_ue_ctx_release_complete();
@@ -749,6 +842,8 @@ TEST_F(MmeAppProcedureTest, TestIcsRequestTimeout) {
   // mimicing SPGW task
   send_delete_session_resp();
 
+  // Wait for context release request
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
   send_ue_ctx_release_complete();
@@ -836,6 +931,8 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
   // mimicing SPGW
   sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
 
+  // Wait for context release request
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
   send_ue_ctx_release_complete();
@@ -859,6 +956,8 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   send_delete_session_resp();
 
+  // Wait for context release request
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
   send_ue_ctx_release_complete();
