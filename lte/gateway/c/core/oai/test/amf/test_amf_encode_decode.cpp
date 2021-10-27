@@ -733,9 +733,4 @@ TEST(test_delete_registration_proc, test_delete_registration_proc) {
   delete ue_ctxt;
 }
 
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma5g

@@ -513,6 +513,8 @@ static int _nas5g_message_protected_decode(
      * Decode the decrypted message as plain NAS message
      */
     bytes = _nas5g_message_plain_decode(plain_msg, header, msg, length);
+
+    free(plain_msg);
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, bytes);
 }

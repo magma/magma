@@ -809,3 +809,17 @@ void amf_config_free(amf_config_t* amf_config) {
   free_wrapper((void**) &amf_config->served_tai.plmn_mnc_len);
   free_wrapper((void**) &amf_config->served_tai.tac);
 }
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_config_exit()                                             **
+ **                                                                        **
+ ** Description: Cleanup configuration                                     **
+ **                                                                        **
+ ** Inputs:  void: no arguments                                            **
+ **                                                                        **
+ ***************************************************************************/
+void amf_config_exit(void) {
+  pthread_rwlock_destroy(&amf_config.rw_lock);
+  amf_config_free(&amf_config);
+}

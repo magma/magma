@@ -381,6 +381,24 @@ ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
 
 /****************************************************************************
  **                                                                        **
+ ** Name:    amf_lookup_guti_by_ueid()                                     **
+ **                                                                        **
+ ** Description:  Fetch the guti based on ue id                            **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id) {
+  amf_context_t* amf_ctxt = amf_context_get(ue_id);
+
+  if (amf_ctxt == NULL) {
+    return (0);
+  }
+
+  return amf_ctxt->m5_guti.m_tmsi;
+}
+
+/****************************************************************************
+ **                                                                        **
  ** Name:    amf_idle_mode_procedure()                                     **
  **                                                                        **
  ** Description:  Transition to idle mode                                  **
@@ -424,6 +442,9 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
 
   amf_remove_ue_context(ue_context_p);
 
+  // Clean up the procedures
+  amf_nas_proc_clean_up(ue_context_p);
+
   if (ue_context_p->gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) {
     h_rc = hashtable_uint64_ts_remove(
         amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
@@ -458,4 +479,5 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   delete ue_context_p;
   ue_context_p = NULL;
 }
+
 }  // namespace magma5g

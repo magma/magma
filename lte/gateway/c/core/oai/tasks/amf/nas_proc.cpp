@@ -512,4 +512,23 @@ int amf_handle_s6a_update_location_ans(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
+/* Cleanup all procedures in amf_context */
+void amf_nas_proc_clean_up(ue_m5gmm_context_s* ue_context_p) {
+  // Check if registrion procedure exists
+  nas_amf_registration_proc_t* registration_proc =
+      get_nas_specific_procedure_registration(&(ue_context_p->amf_context));
+
+  // Delete registration procedures
+  amf_delete_registration_proc(&(ue_context_p->amf_context));
+}
+
+void nas_amf_procedure_gc(amf_context_t* const amf_context) {
+  if (LIST_EMPTY(&amf_context->amf_procedures->amf_common_procs) &&
+      LIST_EMPTY(&amf_context->amf_procedures->cn_procs) &&
+      (!amf_context->amf_procedures->amf_specific_proc)) {
+    delete amf_context->amf_procedures;
+    amf_context->amf_procedures = nullptr;
+  }
+}
+
 }  // namespace magma5g

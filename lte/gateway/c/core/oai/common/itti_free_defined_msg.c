@@ -235,6 +235,11 @@ void itti_free_msg_content(MessageDef* const message_p) {
       // DO nothing
       break;
 
+    // AMF and NGAP Clean up messages
+    case NGAP_INITIAL_UE_MESSAGE:
+      bdestroy(NGAP_INITIAL_UE_MESSAGE(message_p).nas);
+      break;
+
     case NGAP_NAS_DL_DATA_REQ:
       bdestroy_wrapper(&message_p->ittiMsg.ngap_nas_dl_data_req.nas_msg);
       break;
@@ -252,6 +257,7 @@ void itti_free_msg_content(MessageDef* const message_p) {
     case AMF_APP_UPLINK_DATA_IND:
       bdestroy_wrapper(&message_p->ittiMsg.amf_app_ul_data_ind.nas_msg);
       break;
+
     default:;
   }
 }

@@ -425,7 +425,6 @@ status_code_e ngap_amf_handle_ng_setup_request(
   ta_ret = ngap_amf_compare_ta_lists(
       &ie_supported_tas->value.choice.SupportedTAList);
 
-#if 0
   /*
    * gNB and AMF have no common PLMN
    */
@@ -441,7 +440,6 @@ status_code_e ngap_amf_handle_ng_setup_request(
         "plmnid_or_tac_mismatch");
     OAILOG_FUNC_RETURN(LOG_NGAP, rc);
   }
-#endif
 
   Ngap_SupportedTAList_t* ta_list =
       &ie_supported_tas->value.choice.SupportedTAList;

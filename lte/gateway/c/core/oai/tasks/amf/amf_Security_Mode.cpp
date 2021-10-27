@@ -45,7 +45,7 @@ int amf_handle_security_complete_response(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   ue_m5gmm_context_s* ue_mm_context = NULL;
   amf_context_t* amf_ctx            = NULL;
-  int rc                            = RETURNerror;
+  int rc                            = RETURNok;
   OAILOG_DEBUG(
       LOG_NAS_AMF,
       "Security mode procedures complete for "
