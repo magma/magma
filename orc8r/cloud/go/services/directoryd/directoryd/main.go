@@ -58,7 +58,7 @@ func main() {
 		glog.Fatalf("Error opening db connection: %s", err)
 	}
 
-	fact := blobstore.NewEntStorage(dstorage.DirectorydTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLBlobStorageFactory(dstorage.DirectorydTableBlobstore, db, sqorc.GetSqlBuilder())
 	err = fact.InitializeFactory()
 	if err != nil {
 		glog.Fatalf("Error initializing directory storage: %s", err)

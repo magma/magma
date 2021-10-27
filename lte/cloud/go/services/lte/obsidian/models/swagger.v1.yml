@@ -1710,8 +1710,6 @@ definitions:
         type: string
         format: byte
         example: EREREREREREREREREREREQ==
-        minLength: 15
-        maxLength: 16
         x-nullable: false
       lte_auth_amf:
         type: string
@@ -2439,6 +2437,15 @@ definitions:
         $ref: '#/definitions/aggregated_maximum_bitrate'
       qos_profile:
         $ref: '#/definitions/qos_profile'
+      pdn_type:
+        type: integer
+        format: uint32
+        enum:
+          - 0
+          - 1
+          - 2
+          - 3
+        description: Value identifier for PDN type (0=IPv4 1=IPv6 2=IPv4v6 3=IPv4orv6)
 
   apn_name:
     type: string

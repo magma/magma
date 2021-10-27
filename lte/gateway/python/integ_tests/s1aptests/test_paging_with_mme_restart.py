@@ -21,12 +21,16 @@ from s1ap_utils import MagmadUtil
 
 
 class TestPagingWithMmeRestart(unittest.TestCase):
+    """Unittest: TestPagingWithMmeRestart"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
             stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
     def test_paging_with_mme_restart(self):
@@ -45,7 +49,6 @@ class TestPagingWithMmeRestart(unittest.TestCase):
         Step6 : Expecting normal flow of DL data
         """
         self._s1ap_wrapper.configUEDevice(1)
-        time.sleep(20)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
         print(
@@ -79,11 +82,13 @@ class TestPagingWithMmeRestart(unittest.TestCase):
             gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
         )
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, ue_cntxt_rel_req,
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST,
+            ue_cntxt_rel_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         time.sleep(0.3)
@@ -92,7 +97,9 @@ class TestPagingWithMmeRestart(unittest.TestCase):
             ue_id,
         )
         with self._s1ap_wrapper.configDownlinkTest(
-            req, duration=1, is_udp=True,
+            req,
+            duration=1,
+            is_udp=True,
         ) as test:
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertTrue(response, s1ap_types.tfwCmd.UE_PAGING_IND.value)
@@ -108,21 +115,6 @@ class TestPagingWithMmeRestart(unittest.TestCase):
                 print("Waiting for", j, "seconds")
                 time.sleep(1)
 
-            ''' Note: Below commented lines needs to be uncommented in case if
-             Paging Response timer is configured more than mme restart time
-             (~40 seconds) because on expiry MME re-transmits the Paging
-             Indication again
-
-             Currently Paging Response timer is set to 4 seconds defined by
-             macro, MME_APP_PAGING_RESPONSE_TIMER_VALUE in mme_app_ue_context.h
-             file With current timer value, Paging Indication is not
-             re-transmitted because timer expires before MME restarts '''
-
-            '''print("************************ wait on Paging Indication");
-            response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertTrue(response, s1ap_types.tfwCmd.UE_PAGING_IND.value)
-            print("************************ Received Paging Indication");'''
-
             # Send service request to reconnect UE
             ser_req = s1ap_types.ueserviceReq_t()
             ser_req.ue_Id = ue_id
@@ -130,20 +122,42 @@ class TestPagingWithMmeRestart(unittest.TestCase):
             ser_req.ueMtmsi.pres = False
             ser_req.rrcCause = s1ap_types.Rrc_Cause.TFW_MT_ACCESS.value
             self._s1ap_wrapper.s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req,
+                s1ap_types.tfwCmd.UE_SERVICE_REQUEST,
+                ser_req,
             )
-            response = self._s1ap_wrapper.s1_util.get_response()
+
+            # It has been observed that despite getting the restart command on
+            # time, MME sometimes restarts after a delay of 5-6 seconds.
+            # Currently Paging response timer is set to 4 seconds defined by
+            # macro, MME_APP_PAGING_RESPONSE_TIMER_VALUE in the file
+            # mme_app_ue_context.h. If MME restarts after expiry of paging
+            # response timer of 4 sec, it will again send the Paging indication
+            resp_count = 0
+            while True:
+                response = self._s1ap_wrapper.s1_util.get_response()
+
+                if response.msg_type == s1ap_types.tfwCmd.UE_PAGING_IND.value:
+                    resp_count += 1
+                    print(
+                        "******************** Ignoring re-transmitted (",
+                        resp_count,
+                        ") Paging indication",
+                    )
+                else:
+                    break
+
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
+                response.msg_type,
+                s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
             )
             test.verify()
 
         time.sleep(0.5)
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True,
+            ue_id,
+            s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
         )
-        time.sleep(0.5)
 
 
 if __name__ == "__main__":

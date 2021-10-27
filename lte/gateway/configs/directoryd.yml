@@ -15,3 +15,6 @@
 print_grpc_payload: false
 
 log_level: INFO
+
+# [Experimental] Enable Sentry for this service
+sentry_enabled: false

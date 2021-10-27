@@ -69,11 +69,24 @@ func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (
 	if err != nil {
 		return nil, err
 	}
-	stErrs, err := indexImpl(ctx, req.NetworkId, states)
+	stErrs, err := setSecondaryStates(ctx, req.NetworkId, states)
 	if err != nil {
 		return nil, err
 	}
 	res := &protos.IndexResponse{StateErrors: state_types.MakeProtoStateErrors(stErrs)}
+	return res, nil
+}
+
+func (i *indexerServicer) DeIndex(ctx context.Context, req *protos.DeIndexRequest) (*protos.DeIndexResponse, error) {
+	states, err := state_types.MakeStatesByID(req.States, serdes.State)
+	if err != nil {
+		return &protos.DeIndexResponse{}, err
+	}
+	stErrs, err := unsetSecondaryStates(ctx, req.NetworkId, states)
+	if err != nil {
+		return nil, err
+	}
+	res := &protos.DeIndexResponse{StateErrors: state_types.MakeProtoStateErrors(stErrs)}
 	return res, nil
 }
 
@@ -88,16 +101,83 @@ func (i *indexerServicer) CompleteReindex(ctx context.Context, req *protos.Compl
 	return nil, status.Errorf(codes.InvalidArgument, "unsupported from/to for CompleteReindex: %v to %v", req.FromVersion, req.ToVersion)
 }
 
-func indexImpl(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
-	return setSecondaryStates(ctx, networkID, states)
-}
-
-// setSecondaryState maps {sessionID -> IMSI} and {teid -> HwId}
+// setSecondaryStates maps {sessionID -> IMSI} and {TEID -> HWID}
 // Will attempt to update all secondary states, but will return error if any fails
 func setSecondaryStates(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
-	sessionIDToIMSI := map[string]string{}
-	teidoHwId := map[string]string{}
-	stateErrors := state_types.StateErrors{}
+	sessionIDToIMSI, teidoHwId, stateErrors := getMappings(states)
+	if len(sessionIDToIMSI) == 0 && len(teidoHwId) == 0 {
+		return stateErrors, nil
+	}
+	multiError := multierrors.NewMulti()
+	if len(sessionIDToIMSI) != 0 {
+		err := directoryd.MapSessionIDsToIMSIs(ctx, networkID, sessionIDToIMSI)
+		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of session IDs to IMSIs %+v", sessionIDToIMSI)
+	}
+	if len(teidoHwId) != 0 {
+		err := directoryd.MapSgwCTeidToHWID(ctx, networkID, teidoHwId)
+		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of teid To HwID %+v", sessionIDToIMSI)
+	}
+	// multiError will only be nil if both updates succeeded
+	return stateErrors, multiError.AsError()
+}
+
+// unsetSecondaryStates removes {sessionID -> IMSI} and {TEID -> HWID} mappings
+func unsetSecondaryStates(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
+	sessionIDToIMSI, teidoHwId, stateErrors := getMappings(states)
+	multiError := multierrors.NewMulti()
+
+	err := unsetTeids(ctx, networkID, teidoHwId)
+	multiError = multiError.Add(err)
+
+	err = unsetSessionIDs(ctx, networkID, sessionIDToIMSI)
+	multiError = multiError.Add(err)
+
+	return stateErrors, multiError.AsError()
+}
+
+// unsetTeids removes {TEID -> TEID} mappings
+func unsetTeids(ctx context.Context, networkID string, teidoHwId map[string]string) error {
+	var teids []string
+	for teid := range teidoHwId {
+		teids = append(teids, teid)
+	}
+	var err error
+	if len(teids) != 0 {
+		err = directoryd.UnmapSgwCTeidToHWID(ctx, networkID, teids)
+		if err != nil {
+			err = fmt.Errorf("UnmapSgwCTeidToHWID failed: %s", err)
+			glog.Error(err)
+		}
+	}
+	return err
+}
+
+// unsetSessionIDs removes {sessionID -> IMSI} mappings
+func unsetSessionIDs(ctx context.Context, networkID string, sessionIDToIMSI map[string]string) error {
+	var sessionIDs []string
+	for sessionID := range sessionIDToIMSI {
+		sessionIDs = append(sessionIDs, sessionID)
+	}
+	var err error
+	if len(sessionIDs) != 0 {
+		err = directoryd.UnmapSessionIDsToIMSIs(ctx, networkID, sessionIDs)
+		if err != nil {
+			err = fmt.Errorf("UnmapSessionIDsToIMSIs failed: %s", err)
+			glog.Error(err)
+		}
+	}
+	return err
+}
+
+// getMappings builds SessionID to IMSI and TEIDs to HWID maps from state
+func getMappings(states state_types.StatesByID) (
+	sessionIDToIMSI map[string]string,
+	teidoHwId map[string]string,
+	stateErrors state_types.StateErrors,
+) {
+	sessionIDToIMSI = map[string]string{}
+	teidoHwId = map[string]string{}
+	stateErrors = state_types.StateErrors{}
 	for id, st := range states {
 		params, err := extractRecordParameters(id, st)
 		if err != nil {
@@ -112,26 +192,11 @@ func setSecondaryStates(ctx context.Context, networkID string, states state_type
 			teidoHwId[teid] = params.hwid
 		}
 	}
-
-	if len(sessionIDToIMSI) == 0 && len(teidoHwId) == 0 {
-		return stateErrors, nil
-	}
-
-	multiError := multierrors.NewMulti()
-	if len(sessionIDToIMSI) != 0 {
-		err := directoryd.MapSessionIDsToIMSIs(ctx, networkID, sessionIDToIMSI)
-		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of session IDs to IMSIs %+v", sessionIDToIMSI)
-	}
-	if len(teidoHwId) != 0 {
-		err := directoryd.MapSgwCTeidToHWID(ctx, networkID, teidoHwId)
-		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of teid To HwID %+v", sessionIDToIMSI)
-	}
-	// multiError will only be nil if both updates succeeded
-	return stateErrors, multiError.AsError()
+	return
 }
 
-// extractRecordParameters extracts IMSI, SessionID, TEID and HwID from directory record
-// Returns error any error is found. No partial updates are allowed.
+// extractRecordParameters extracts IMSI, SessionID, TEID and HWID from directory record
+// Returns error if any error is found. No partial updates are allowed.
 func extractRecordParameters(id state_types.ID, st state_types.State) (*directorydRecordParameters, error) {
 	imsi := id.DeviceID
 	record, ok := st.ReportedState.(*directoryd_types.DirectoryRecord)
@@ -149,9 +214,9 @@ func extractRecordParameters(id state_types.ID, st state_types.State) (*director
 	if err != nil {
 		return nil, err
 	}
-	// log an error in case blank sessionId and no teid
+	// log an error in case blank sessionId and no TEID
 	if sessionID == "" && len(teids) == 0 {
-		glog.V(2).Infof("Session ID not found for record from %s", imsi)
+		glog.V(2).Infof("Session ID not found for IMSI %s in record %v", imsi, record)
 	}
 
 	return &directorydRecordParameters{
@@ -162,7 +227,7 @@ func extractRecordParameters(id state_types.ID, st state_types.State) (*director
 	}, nil
 }
 
-// getTeidToHwIdPair will return all the TEIDs for that IMSI and its current location (HwID)
+// getTeidToHwIdPair will return all the TEIDs for that IMSI and its current location (HWID)
 func getTeidToHwIdPair(record *directoryd_types.DirectoryRecord) ([]string, string, error) {
 	teids, err := record.GetSgwCTeids()
 	if err != nil {

@@ -32,7 +32,6 @@ from magma.mobilityd.rpc_servicer import MobilityServiceRpcServicer
 
 DEFAULT_IPV6_PREFIX_ALLOC_MODE = 'RANDOM'
 RETRY_LIMIT = 300
-DEFAULT_REDIS_PORT = 6380
 
 
 def _get_ipv4_allocator(
@@ -128,13 +127,13 @@ def main():
 
     dhcp_iface = config.get('dhcp_iface', 'dhcp0')
     dhcp_retry_limit = config.get('retry_limit', RETRY_LIMIT)
+    ipv6_prefixlen = config.get('ipv6_prefixlen', None)
 
     # TODO: consider adding gateway mconfig to decide whether to
     # persist to Redis
     client = get_default_client()
     store = MobilityStore(
-        client, config.get('persist_to_redis', False),
-        config.get('redis_port', DEFAULT_REDIS_PORT),
+        client,
     )
 
     chan = ServiceRegistry.get_rpc_channel(
@@ -155,6 +154,7 @@ def main():
             mconfig.ipv6_prefix_allocation_type,
             DEFAULT_IPV6_PREFIX_ALLOC_MODE,
         ),
+        ipv6_prefixlen=ipv6_prefixlen,
     )
 
     # Load IPAddressManager
@@ -181,6 +181,8 @@ def main():
             allocated_ipv6_block = ip_address_man.get_assigned_ipv6_block()
             if ipv6_block != allocated_ipv6_block:
                 ip_address_man.add_ip_block(ipv6_block)
+            # configure IPv6 default GW
+            store.dhcp_gw_info.read_default_gw_v6()
         except OverlappedIPBlocksError:
             logging.warning("Overlapped IPv6 block: %s", ipv6_block)
 

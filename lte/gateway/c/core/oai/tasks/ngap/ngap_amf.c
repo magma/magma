@@ -10,7 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -50,6 +49,8 @@
 
 task_zmq_ctx_t ngap_task_zmq_ctx;
 
+uint64_t ngap_last_msg_latency = 0;
+
 static int ngap_send_init_sctp(void) {
   // Create and alloc new message
   MessageDef* message_p = NULL;
@@ -73,10 +74,8 @@ static int ngap_send_init_sctp(void) {
 }
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  ngap_state_t* state = NULL;
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  ngap_state_t* state            = NULL;
+  MessageDef* received_message_p = receive_msg(reader);
 
   imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
   state           = get_ngap_state(false);
@@ -86,6 +85,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       LOG_NGAP, "Received msg from :[%s] id:[%d] name:[%s]\n",
       ITTI_MSG_ORIGIN_NAME(received_message_p), ITTI_MSG_ID(received_message_p),
       ITTI_MSG_NAME(received_message_p));
+
+  ngap_last_msg_latency = ITTI_MSG_LATENCY(received_message_p);  // microseconds
+
+  OAILOG_DEBUG(LOG_NGAP, "NGAP ZMQ latency: %ld.", ngap_last_msg_latency);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case SCTP_DATA_IND: {
@@ -107,6 +110,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
             state, SCTP_DATA_IND(received_message_p).assoc_id,
             SCTP_DATA_IND(received_message_p).stream, &pdu);
       }
+
+      ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &pdu);
 
       // Free received PDU array
       bdestroy_wrapper(&SCTP_DATA_IND(received_message_p).payload);
@@ -137,7 +142,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       ngap_amf_exit();
     } break;
 
@@ -188,7 +193,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   put_ngap_imsi_map();
   put_ngap_ue_state(imsi64);
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
@@ -359,23 +364,4 @@ void ngap_remove_gnb(ngap_state_t* state, gnb_description_t* gnb_ref) {
   hashtable_uint64_ts_destroy(&gnb_ref->ue_id_coll);
   hashtable_ts_free(&state->gnbs, gnb_ref->sctp_assoc_id);
   state->num_gnbs--;
-}
-
-/****************************************************************************
- **                                                                        **
- ** Name:    ngap_send_msg_to_task()                                        **
- **                                                                        **
- ** Description:  wrapper api for itti send                                **
- **                                                                        **
- **                                                                        **
- ***************************************************************************/
-status_code_e ngap_send_msg_to_task(
-    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
-    MessageDef* message) {
-  OAILOG_INFO(
-      LOG_NGAP, "Sending msg to :[%s] id: [%d]-[%s]\n",
-      itti_get_task_name(destination_task_id), ITTI_MSG_ID(message),
-      ITTI_MSG_NAME(message));
-
-  return send_msg_to_task(task_zmq_ctx_p, destination_task_id, message);
 }

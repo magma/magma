@@ -47,8 +47,6 @@ type NetworkEpcConfigs struct {
 
 	// lte auth op
 	// Required: true
-	// Max Length: 16
-	// Min Length: 15
 	// Format: byte
 	LteAuthOp strfmt.Base64 `json:"lte_auth_op"`
 
@@ -196,14 +194,6 @@ func (m *NetworkEpcConfigs) validateLteAuthAmf(formats strfmt.Registry) error {
 func (m *NetworkEpcConfigs) validateLteAuthOp(formats strfmt.Registry) error {
 
 	if err := validate.Required("lte_auth_op", "body", strfmt.Base64(m.LteAuthOp)); err != nil {
-		return err
-	}
-
-	if err := validate.MinLength("lte_auth_op", "body", string(m.LteAuthOp), 15); err != nil {
-		return err
-	}
-
-	if err := validate.MaxLength("lte_auth_op", "body", string(m.LteAuthOp), 16); err != nil {
 		return err
 	}
 

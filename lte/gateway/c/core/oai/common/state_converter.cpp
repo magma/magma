@@ -15,6 +15,10 @@
  *      contact@openairinterface.org
  */
 
+extern "C" {
+#include "conversions.h"
+}
+
 #include "state_converter.h"
 
 namespace magma {

@@ -253,8 +253,9 @@ int pdu_state_handle_message(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s* ue_m5gmm_context, amf_smf_t amf_smf_msg, char* imsi,
     itti_n11_create_pdu_session_response_t* pdu_session_resp, uint32_t ue_id) {
-  smf_context_t* smf_ctx = amf_smf_context_exists_pdu_session_id(
-      ue_m5gmm_context, amf_smf_msg.pdu_session_id);
+  std::shared_ptr<smf_context_t> smf_ctx =
+      amf_get_smf_context_by_pdu_session_id(
+          ue_m5gmm_context, amf_smf_msg.pdu_session_id);
 
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
     OAILOG_INFO(
