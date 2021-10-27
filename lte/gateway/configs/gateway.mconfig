@@ -82,7 +82,7 @@
       "allowedGrePeers": [
        ],
       "enable5gFeatures": false,
-      "upfNodeIdentifier": "192.168.60.142",
+      "upfNodeIdentifier": "192.168.8.178",
       "liUes": {}
     },
     "subscriberdb": {
