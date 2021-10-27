@@ -67,11 +67,11 @@ func TestSingletonRun(t *testing.T) {
 
 	// Single indexer
 	// Populate
-	// idx0 := getIndexer(id0, zero, version0, true)
-	idx0 := getIndexerNoIndex(id0, zero, version0, true)
+	idx0 := getIndexer(id0, zero, version0, true)
+	// idx0 := getIndexerNoIndex(id0, zero, version0, true)
 	idx0.On("GetTypes").Return(allTypes).Once()
 	// TODO: validate if correct. In Reindexer_queue_test, it's nBatches <which in printing should be 3?>
-	idx0.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nNetworks)
+	// idx0.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nNetworks)
 
 	registerAndPopulateSingleton(t, idx0)
 	// Check
@@ -123,7 +123,7 @@ func TestSingletonRun(t *testing.T) {
 	fail3 := getBasicIndexer(id3, version3)
 	fail3.On("GetTypes").Return(allTypes).Once()
 	fail3.On("PrepareReindex", zero, version3, true).Return(nil).Once()
-	fail3.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nNetworks) // TODO: check
+	fail3.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nBatches)
 	fail3.On("CompleteReindex", zero, version3).Return(someErr3).Once()
 	registerAndPopulateSingleton(t, fail1, fail2, fail3)
 
