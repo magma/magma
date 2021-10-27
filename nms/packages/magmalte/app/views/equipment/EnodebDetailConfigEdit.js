@@ -312,11 +312,9 @@ export function RanEdit(props: Props) {
     lte_a1_threshold_rsrq: String(
       config.ho_algorithm_config.lte_a1_threshold_rsrq ?? '',
     ),
-    hysteresis: String(
-      config.ho_algorithm_config.hysteresis ?? '',
+    hysteresis: String('config.ho_algorithm_config.hysteresis ?? '''
     ),
-    time_to_trigger: String(
-      config.ho_algorithm_config.time_to_trigger ?? '',
+    time_to_trigger: String('config.ho_algorithm_config.time_to_trigger ?? '''
     ),
     a2_threshold_rsrp: String(
       config.ho_algorithm_config.a2_threshold_rsrp ?? '',
@@ -330,11 +328,9 @@ export function RanEdit(props: Props) {
     lte_a2_threshold_rsrq_irat_volte: String(
       config.ho_algorithm_config.lte_a2_threshold_rsrq_irat_volte ?? '',
     ),
-    a3_offset: String(
-      config.ho_algorithm_config.a3_offset ?? '',
+    a3_offset: String('config.ho_algorithm_config.a3_offset ?? '''
     ),
-    a3_offset_anr: String(
-      config.ho_algorithm_config.a3_offset_anr ?? '',
+    a3_offset_anr: String('config.ho_algorithm_config.a3_offset_anr ?? '''
     ),
     a4_threshold_rsrp: String(
       config.ho_algorithm_config.a4_threshold_rsrp ?? '',
@@ -345,10 +341,10 @@ export function RanEdit(props: Props) {
     lte_intra_a5_threshold_2_rsrp: String(
       config.ho_algorithm_config.lte_intra_a5_threshold_2_rsrp ?? '',
     ),
-      lte_inter_anr_a5_threshold_1_rsrp: String(
+    lte_inter_anr_a5_threshold_1_rsrp: String(
       config.ho_algorithm_config.lte_inter_anr_a5_threshold_1_rsrp ?? '',
     ),
-      lte_inter_anr_a5_threshold_2_rsrp: String(
+    lte_inter_anr_a5_threshold_2_rsrp: String(
       config.ho_algorithm_config.lte_inter_anr_a5_threshold_2_rsrp ?? '',
     ),
     b2_threshold1_rsrp: String(
@@ -360,26 +356,20 @@ export function RanEdit(props: Props) {
     b2_geran_irat_threshold: String(
       config.ho_algorithm_config.b2_geran_irat_threshold ?? '',
     ),
-    qrxlevmin_sib1: String(
-      config.ho_algorithm_config.qrxlevmin_sib1 ?? '',
+    qrxlevmin_sib1: String('config.ho_algorithm_config.qrxlevmin_sib1 ?? '''
     ),
-    qrxlevminoffset: String(
-      config.ho_algorithm_config.qrxlevminoffset ?? '',
+    qrxlevminoffset: String('config.ho_algorithm_config.qrxlevminoffset ?? '''
     ),
-    s_intrasearch: String(
-      config.ho_algorithm_config.s_intrasearch ?? '',
+    s_intrasearch: String('config.ho_algorithm_config.s_intrasearch ?? '''
     ),
-    s_nonintrasearch: String(
-      config.ho_algorithm_config.s_nonintrasearch ?? '',
+    s_nonintrasearch: String('config.ho_algorithm_config.s_nonintrasearch ?? '''
     ),
-    qrxlevmin_sib3: String(
-      config.ho_algorithm_config.qrxlevmin_sib3 ?? '',
+    qrxlevmin_sib3: String(' config.ho_algorithm_config.qrxlevmin_sib3 ?? '''
     ),
     reselection_priority: String(
       config.ho_algorithm_config.reselection_priority ?? '',
     ),
-    threshservinglow: String(
-      config.ho_algorithm_config.threshservinglow ?? '',
+    threshservinglow: String('config.ho_algorithm_config.threshservinglow ?? '''
     ),
     ciphering_algorithm: String(
       config.ho_algorithm_config.ciphering_algorithm ?? '',
@@ -653,7 +643,10 @@ export function RanEdit(props: Props) {
                   fullWidth={true}
                   value={optConfig.lte_a2_threshold_rsrp_irat_volte}
                   onChange={({target}) =>
-                    handleOptChange('lte_a2_threshold_rsrp_irat_volte', target.value)
+                    handleOptChange(
+                      'lte_a2_threshold_rsrp_irat_volte',
+                      target.value,
+                    )
                   }
                 />
               </AltFormField>
@@ -664,7 +657,10 @@ export function RanEdit(props: Props) {
                   fullWidth={true}
                   value={optConfig.lte_a2_threshold_rsrq_irat_volte}
                   onChange={({target}) =>
-                    handleOptChange('lte_a2_threshold_rsrq_irat_volte', target.value)
+                    handleOptChange(
+                      'lte_a2_threshold_rsrq_irat_volte',
+                      target.value,
+                    )
                   }
                 />
               </AltFormField>
@@ -708,7 +704,10 @@ export function RanEdit(props: Props) {
                   fullWidth={true}
                   value={optConfig.lte_intra_a5_threshold_1_rsrp}
                   onChange={({target}) =>
-                    handleOptChange('lte_intra_a5_threshold_1_rsrp', target.value)
+                    handleOptChange(
+                      'lte_intra_a5_threshold_1_rsrp',
+                      target.value,
+                    )
                   }
                 />
               </AltFormField>
@@ -719,7 +718,10 @@ export function RanEdit(props: Props) {
                   fullWidth={true}
                   value={optConfig.lte_intra_a5_threshold_2_rsrp}
                   onChange={({target}) =>
-                    handleOptChange('lte_intra_a5_threshold_2_rsrp', target.value)
+                    handleOptChange(
+                      'lte_intra_a5_threshold_2_rsrp',
+                      target.value,
+                    )
                   }
                 />
               </AltFormField>
@@ -730,7 +732,10 @@ export function RanEdit(props: Props) {
                   fullWidth={true}
                   value={optConfig.lte_inter_anr_a5_threshold_1_rsrp}
                   onChange={({target}) =>
-                    handleOptChange('lte_inter_anr_a5_threshold_1_rsrp', target.value)
+                    handleOptChange(
+                      'lte_inter_anr_a5_threshold_1_rsrp',
+                      target.value,
+                    )
                 }
                 />
               </AltFormField>
@@ -741,7 +746,10 @@ export function RanEdit(props: Props) {
                   fullWidth={true}
                   value={optConfig.lte_inter_anr_a5_threshold_2_rsrp}
                   onChange={({target}) =>
-                    handleOptChange('lte_inter_anr_a5_threshold_2_rsrp', target.value)
+                    handleOptChange(
+                      'lte_inter_anr_a5_threshold_2_rsrp',
+                      target.value,
+                    )
                   }
                 />
               </AltFormField>
@@ -863,7 +871,10 @@ export function RanEdit(props: Props) {
                   fullWidth={true}
                   value={optConfig.ciphering_algorithm.toString()}
                   onChange={({target}) =>
-                    handleOptChange('ciphering_algorithm', target.value.toString())
+                    handleOptChange(
+                      'ciphering_algorithm',
+                      target.value.toString(),
+                    )
                   }
                 />
               </AltFormField>
@@ -874,7 +885,10 @@ export function RanEdit(props: Props) {
                   fullWidth={true}
                   value={optConfig.integrity_algorithm.toString()}
                   onChange={({target}) =>
-                    handleOptChange('integrity_algorithm', target.value.toString())
+                    handleOptChange(
+                      'integrity_algorithm',
+                      target.value.toString(),
+                    )
                   }
                 />
               </AltFormField>
@@ -1115,8 +1129,7 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     );
   }
   if (optConfig.hysteresis !== '') {
-    response.ho_algorithm_config.hysteresis = parseInt(
-      optConfig.hysteresis,
+    response.ho_algorithm_config.hysteresis = parseInt(optConfig.hysteresis
     );
   }
   if (optConfig.time_to_trigger !== '') {
@@ -1141,21 +1154,22 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     response.ho_algorithm_config.lte_a2_threshold_rsrp_irat_volte = parseInt(
       optConfig.lte_a2_threshold_rsrp_irat_volte,
     );
-  }if (optConfig.lte_a2_threshold_rsrq_irat_volte !== '') {
+  }
+  if (optConfig.lte_a2_threshold_rsrq_irat_volte !== '') {
     response.ho_algorithm_config.lte_a2_threshold_rsrq_irat_volte = parseInt(
       optConfig.lte_a2_threshold_rsrq_irat_volte,
     );
   }
   if (optConfig.a3_offset !== '') {
-    response.ho_algorithm_config.a3_offset = parseInt(
-      optConfig.a3_offset,
+    response.ho_algorithm_config.a3_offset = parseInt(optConfig.a3_offset
     );
   }
   if (optConfig.a3_offset_anr !== '') {
     response.ho_algorithm_config.a3_offset_anr = parseInt(
       optConfig.a3_offset_anr,
     );
-  }if (optConfig.a4_threshold_rsrp !== '') {
+  }
+  if (optConfig.a4_threshold_rsrp !== '') {
     response.ho_algorithm_config.a4_threshold_rsrp = parseInt(
       optConfig.a4_threshold_rsrp,
     );
@@ -1225,11 +1239,6 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
       optConfig.reselection_priority,
     );
   }
-  /*if (optConfig.a1_threshold_rsrp !== '') {
-    response.ho_algorithm_config.a1_threshold_rsrp = parseInt(
-      optConfig.a1_threshold_rsrp,
-    );
-  }*/
   if (optConfig.threshservinglow !== '') {
     response.ho_algorithm_config.threshservinglow = parseInt(
       optConfig.threshservinglow,
@@ -1241,9 +1250,6 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
   if (optConfig.integrity_algorithm !== '') {
     response.ho_algorithm_config.integrity_algorithm = optConfig.integrity_algorithm;
   }
-
-
-
 
   return response;
 }
