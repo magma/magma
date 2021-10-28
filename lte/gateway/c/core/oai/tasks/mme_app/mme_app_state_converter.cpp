@@ -700,10 +700,14 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
 
   proto_to_sgs_context(
       ue_context_proto.sgs_context(), state_ue_mm_context->sgs_context);
-  state_ue_mm_context->tau_accept_eps_ber_cntx_status = ue_context_proto.tau_accept_eps_ber_cntx_status();
-  state_ue_mm_context->nb_delete_sessions = ue_context_proto.nb_delete_sessions();
-  state_ue_mm_context->nb_delete_bearer_cmd = ue_context_proto.nb_delete_bearer_cmd();
-  state_ue_mm_context->mme_initiated_ded_bearer_deactivation = ue_context_proto.mme_initiated_ded_bearer_deactivation();
+  state_ue_mm_context->tau_accept_eps_ber_cntx_status =
+      ue_context_proto.tau_accept_eps_ber_cntx_status();
+  state_ue_mm_context->nb_delete_sessions =
+      ue_context_proto.nb_delete_sessions();
+  state_ue_mm_context->nb_delete_bearer_cmd =
+      ue_context_proto.nb_delete_bearer_cmd();
+  state_ue_mm_context->mme_initiated_ded_bearer_deactivation =
+      ue_context_proto.mme_initiated_ded_bearer_deactivation();
 
   // Initialize timers to INVALID IDs
   state_ue_mm_context->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;

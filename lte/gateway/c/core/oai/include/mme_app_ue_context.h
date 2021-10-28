@@ -629,7 +629,8 @@ void proc_new_attach_req(
 int eps_bearer_release(
     emm_context_t* emm_context_p, ebi_t ebi, pdn_cid_t* pid, int* bidx);
 
-status_code_e send_tau_accept_with_eps_bearer_ctx_status(ue_mm_context_t* ue_context);
+status_code_e send_tau_accept_with_eps_bearer_ctx_status(
+    ue_mm_context_t* ue_context);
 #endif /* FILE_MME_APP_UE_CONTEXT_SEEN */
 
 /* @} */

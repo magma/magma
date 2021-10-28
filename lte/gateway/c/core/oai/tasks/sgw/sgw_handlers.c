@@ -2359,19 +2359,21 @@ static teid_t sgw_generate_new_s11_cp_teid(void) {
 
 // Handles delete bearer cmd from MME
 void sgw_handle_delete_bearer_cmd(
-    itti_s11_delete_bearer_command_t* 
-    s11_delete_bearer_command,
+    itti_s11_delete_bearer_command_t* s11_delete_bearer_command,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
 
   OAILOG_INFO_UE(
-      LOG_SPGW_APP, imsi64, "Received s11_delete_bearer_command for teid" TEID_FMT "\n",
+      LOG_SPGW_APP, imsi64,
+      "Received s11_delete_bearer_command for teid" TEID_FMT "\n",
       s11_delete_bearer_command->teid);
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt =
       sgw_cm_get_spgw_context(s11_delete_bearer_command->teid);
   if (!spgw_ctxt) {
     OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64, "hashtable_ts_get failed for teid " TEID_FMT " while processing s11_delete_bearer_command\n",
+        LOG_SPGW_APP, imsi64,
+        "hashtable_ts_get failed for teid " TEID_FMT
+        " while processing s11_delete_bearer_command\n",
         s11_delete_bearer_command->teid);
     OAILOG_FUNC_OUT(TASK_SPGW_APP);
   }
@@ -2380,8 +2382,10 @@ void sgw_handle_delete_bearer_cmd(
   pcef_delete_dedicated_bearer(imsi, s11_delete_bearer_command->ebi_list);
 
   // Send itti_s11_nw_init_deactv_bearer_request_t to MME to delete the bearer/s
-  spgw_build_and_send_s11_deactivate_bearer_req(imsi64, s11_delete_bearer_command->ebi_list.num_ebi,
-     s11_delete_bearer_command->ebi_list.ebis, false,s11_delete_bearer_command->local_teid);
+  spgw_build_and_send_s11_deactivate_bearer_req(
+      imsi64, s11_delete_bearer_command->ebi_list.num_ebi,
+      s11_delete_bearer_command->ebi_list.ebis, false,
+      s11_delete_bearer_command->local_teid);
 
   OAILOG_FUNC_OUT(TASK_SPGW_APP);
 }

@@ -356,8 +356,7 @@ void mme_app_remove_stale_ue_context(
 
 void mme_app_handle_mme_init_local_deactivation(
     mme_app_desc_t* mme_app_desc_p,
-    itti_s11_nw_init_deactv_bearer_request_t* const
-        bearer_deactv_req_p);
+    itti_s11_nw_init_deactv_bearer_request_t* const bearer_deactv_req_p);
 
 void mme_app_send_deactivate_dedicated_bearer_request(
     ue_mm_context_t* ue_mm_context, pdn_context_t* pdn_context);
