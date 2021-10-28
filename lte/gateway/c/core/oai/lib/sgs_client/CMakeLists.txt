@@ -43,5 +43,6 @@ target_link_libraries(LIB_SGS_CLIENT
     LIB_BSTR LIB_HASHTABLE
     )
 target_include_directories(LIB_SGS_CLIENT PUBLIC
+    $ENV{MAGMA_ROOT}
     $<TARGET_FILE_DIR:LIB_SGS_CLIENT>
     ${CMAKE_CURRENT_SOURCE_DIR})
