@@ -30,17 +30,6 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/nms-workflow.yml", "nms/**"]
-      # Need to save metadata for deploy from PR job
-      - name: Save PR number and trigger type
-        run: |
-          mkdir -p ./pr
-          echo ${{ github.event.number }} > ./pr/NR
-          echo ${{ steps.changes.outputs.filesChanged == 'false'}} > ./pr/skipped
-      - name: upload metadata
-        uses: actions/upload-artifact@v2
-        with:
-          name: pr
-          path: pr/
   nms-flow-test:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
@@ -229,81 +218,4 @@ jobs:
           SLACK_USERNAME: "NMS workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-  nms-build:
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' || github.event_name == 'push'}}
-    needs: path_filter
-    name: nms-build job
-    runs-on: ubuntu-latest
-    env:
-      MAGMA_ROOT: "${{ github.workspace }}"
-      NMS_ROOT: "${{ github.workspace }}/nms/packages/magmalte"
-      DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
-      DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
-      DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run docker compose
-        id: nms-docker-compose
-        # yamllint disable rule:line-length
-        run: |
-          cd ${MAGMA_ROOT}/nms/packages/magmalte
-          docker-compose build magmalte
-      - name: Tag and push to Docker Registry
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-        # yamllint disable rule:line-length
-        run: |
-            ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${GITHUB_SHA:0:8}" --tag-latest false --project magmalte
-      - name: Export docker images to deploy them on pull_request
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir images
-          cd images
-          docker save magmalte_magmalte | gzip > magmalte.tar.gz
-      - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@v2
-        if: github.event_name == 'pull_request'
-        with:
-          name: docker-images
-          path: images
-      - name: Tag and push to Jfrog Registry
-        if: github.event_name == 'push'
-        env:
-          DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
-        run: |
-            ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project magmalte
-      - name: Extract commit title
-        id: commit
-        if: github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      # Notify ci channel when failing
-      # Plugin info: https://github.com/marketplace/actions/slack-notify
-      # yamllint enable
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_TITLE: "Github action nms-build failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "NMS workflow"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      # Notify ci channel when push succeeds
-      - name: Notify success to slack
-        if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "NMS Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "NMS workflow"
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '

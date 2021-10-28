@@ -83,7 +83,7 @@ jobs:
       if: failure() && github.ref == 'refs/heads/master'
       uses: rtCamp/action-slack-notify@v2.2.0
       env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
         SLACK_TITLE: "Github action CodeQL-analysis ${{ matrix.language }} failed"
         SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
         SLACK_USERNAME: "CodeQL-analysis ${{ matrix.language }} "

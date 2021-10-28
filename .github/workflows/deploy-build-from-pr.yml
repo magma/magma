@@ -4,29 +4,25 @@ name: Deploy PR build
 on:  # yamllint disable-line rule:truthy
   workflow_run:
     workflows:
-      - agw-workflow
-      - nms-workflow
-      - cloud-workflow
-      - cwag-workflow
-      - cwf-operator
-      - feg-workflow
-      - Push Helm Charts to Artifactory
+      - build-all
     types:
       - completed
 # Replace registries with new test registries reserved for PR builds
 jobs:
   deploy:
     if: github.event.workflow_run.event == 'pull_request'
-    name: Deploy artifacts from ${{ github.event.workflow.name }}
+    name: Deploy artifacts from PR
     runs-on: ubuntu-latest
     env:
       WORKFLOW_NAME: "${{ github.event.workflow.name }}"
       WORKFLOW_STATUS: "${{ github.event.workflow_run.conclusion }}"
     steps:
       - uses: hmarr/debug-action@v2
+      # Could be improved, only need the tag push docker and helm rotation script here
+      - name: checkout code
+        uses: actions/checkout@v2
       # Retrieve Generated artifacts and delete them to keep cache usage low
-      # Could handle case of no artifacts found in a better way (ie export trigger type in source workflow)
-      - name: Handle metadata from triggering workflow
+      - name: Download builds
         uses: actions/github-script@v3.1.0
         with:
           script: |
@@ -35,23 +31,34 @@ jobs:
                repo: context.repo.repo,
                run_id: ${{github.event.workflow_run.id }},
             });
-            var matchMetadataArtifact = artifacts.data.artifacts.filter((artifact) => {
-                          return artifact.name == "pr"
-                        })[0];
-            var download = await github.actions.downloadArtifact({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               artifact_id: matchMetadataArtifact.id,
-               archive_format: 'zip',
-            });
             var fs = require('fs');
-            fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
-            github.actions.deleteArtifact({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               artifact_id: matchMetadataArtifact.id
-            });
-      - run: unzip pr.zip
+            var i =0;
+            for (matchMetadataArtifact of artifacts.data.artifacts) {
+              if( matchMetadataArtifact.id == undefined || matchMetadataArtifact.id.length === 0){
+                console.log(String(matchMetadataArtifact));
+                continue;
+              }
+              var download = await github.actions.downloadArtifact({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            artifact_id: matchMetadataArtifact.id,
+                            archive_format: 'zip',
+                         });
+              fs.writeFileSync('${{github.workspace}}/artifact' + i + '.zip', Buffer.from(download.data));
+              console.log('Downloaded ' + matchMetadataArtifact.name + ' and placed it there ${{github.workspace}}/artifact' + i + '.zip');
+              github.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: matchMetadataArtifact.id
+              });
+              console.log(String(matchMetadataArtifact.id));
+              i=i+1
+            }
+      - run: |
+          for zipped_archive in `ls -a1 *.zip`
+          do
+            unzip $zipped_archive
+          done
       - name: Save metadata
         id: save_metadata
         uses: actions/github-script@v3.1.0
@@ -59,50 +66,10 @@ jobs:
           script: |
             var fs = require('fs');
             var issue_number = Number(fs.readFileSync('./NR'));
-            var skipped = String(fs.readFileSync('./skipped')).trim();
             console.log(String(issue_number))
-            console.log(String(skipped))
             core.setOutput('issue_number',issue_number );
-            core.setOutput('skipped',skipped );
-      # Could be improved, only need the tag push docker and helm rotation script here
-      - name: checkout code
-        if: ${{  steps.save_metadata.outputs.skipped == 'false' }}
-        uses: actions/checkout@v2
-      # Retrieve Generated artifacts and delete them to keep cache usage low
-      # Could handle case of no artifacts found in a better way (ie export trigger type in source workflow)
-      - name: 'Download artifacts'
-        id: download_artifacts
-        if: steps.save_metadata.outputs.skipped == 'false'
-        uses: actions/github-script@v3.1.0
-        with:
-          script: |
-            var artifacts = await github.actions.listWorkflowRunArtifacts({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               run_id: ${{github.event.workflow_run.id }},
-            });
-
-            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
-              return (artifact.name == "magma-packages" || artifact.name == "docker-images" || artifact.name == "helm-charts")
-            })[0];
-
-            var download = await github.actions.downloadArtifact({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               artifact_id: matchArtifact.id,
-               archive_format: 'zip',
-            });
-            var fs = require('fs');
-            fs.writeFileSync('${{github.workspace}}/artifacts.zip', Buffer.from(download.data));
-            github.actions.deleteArtifact({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               artifact_id: matchArtifact.id
-            });
-      - run: unzip artifacts.zip
-        if: steps.save_metadata.outputs.skipped == 'false'
       - name: upload to artifactory
-        if: github.event.workflow.name == 'agw-workflow' &&  steps.save_metadata.outputs.skipped == 'false'
+        continue-on-error: true
         run: |
           for i in `ls -a1 *.deb`
           do
@@ -110,15 +77,14 @@ jobs:
             curl -uci-bot:${{ secrets.JFROG_CIBOT_APIKEYS }} -XPUT "https://artifactory.magmacore.org/artifactory/debian-test/pool/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i
           done
       - name: extract images
-        if: ${{ steps.save_metadata.outputs.skipped == 'false' &&  ( github.event.workflow.name == 'nms-workflow' || github.event.workflow.name == 'cloud-workflow' ||  github.event.workflow.name == 'feg-workflow'  ||  github.event.workflow.name == 'cwf-operator'   ||  github.event.workflow.name == 'cwag-workflow' )}}
         run: |
           for IMAGES in `ls -a1 *.gz`
           do
             gzip -d $IMAGES
           done
           ls -R
-      - name: Tag and push to Jfrog Registry
-        if: steps.save_metadata.outputs.skipped == 'false' && github.event.workflow.name == 'nms-workflow'
+      - name: Tag and push nms docker images to registry
+        continue-on-error: true
         env:
           DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -127,8 +93,8 @@ jobs:
         run: |
           docker image load --input magmalte.tar
           ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${ISSUE_NUMBER}" --tag-latest true --project magmalte
-      - name: Tag and push to Jfrog Registry
-        if: github.event.workflow.name == 'cloud-workflow' && steps.save_metadata.outputs.skipped == 'false'
+      - name: Tag and push orc8r docker images to registry
+        continue-on-error: true
         env:
           DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -138,8 +104,8 @@ jobs:
           docker image load --input nginx.tar
           docker image load --input controller.tar
           ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${ISSUE_NUMBER}" --tag-latest true --project orc8r
-      - name: Tag and push to Jfrog Registry
-        if: github.event.workflow.name == 'cwf-operator' && steps.save_metadata.outputs.skipped == 'false'
+      - name: Tag and push cwf operator image
+        continue-on-error: true
         env:
           DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -148,8 +114,8 @@ jobs:
         run: |
           docker image load --input operator.tar
           ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${ISSUE_NUMBER}" --tag-latest true --project cwf
-      - name: Tag and push to Jfrog Registry
-        if: github.event.workflow.name == 'cwag-workflow' && steps.save_metadata.outputs.skipped == 'false'
+      - name: Tag and push cwag docker images to Regitry
+        continue-on-error: true
         env:
           DOCKER_REGISTRY: "cwf-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -162,8 +128,8 @@ jobs:
           docker image load --input gateway_sessiond.tar
           docker image load --input gateway_pipelined.tar
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${ISSUE_NUMBER}" --tag-latest true --project cwf
-      - name: Tag and push to Jfrog Registry
-        if: github.event.workflow.name == 'cwag-workflow' && steps.save_metadata.outputs.skipped == 'false'
+      - name: Tag and push xwfm docker images
+        continue-on-error: true
         env:
           DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
           DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
@@ -173,8 +139,8 @@ jobs:
           docker image load --input goradius.tar
           docker image load --input xwfm-integ-tests.tar
           ./ci-scripts/tag-push-docker.sh --images 'goradius|xwfm-integ-tests' --tag "${ISSUE_NUMBER}" --tag-latest true
-      - name: Tag and push to Jfrog Registry
-        if: github.event.workflow.name == 'feg-workflow' && steps.save_metadata.outputs.skipped == 'false' &&  steps.save_metadata.outputs.trigger_event != 'push'
+      - name: Tag and push feg docker images
+        continue-on-error: true
         env:
           DOCKER_REGISTRY: "feg-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -185,7 +151,6 @@ jobs:
           docker image load --input gateway_python.tar
           ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${ISSUE_NUMBER}" --tag-latest true --project feg
       - name: Push Helm charts and verify the push
-        if: github.event.workflow.name == 'Push Helm Charts to Artifactory' && steps.save_metadata.outputs.skipped == 'false'
         env:
           HELM_CHART_MUSEUM_API_URL: "https://artifactory.magmacore.org:443/artifactory/api"
           HELM_CHART_MUSEUM_URL: "https://artifactory.magmacore.org:443/artifactory/helm-test"
