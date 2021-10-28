@@ -47,8 +47,6 @@ func (v *versioner) Initialize() error {
 		return nil, errors.Wrap(err, "initialize indexer versions table")
 	}
 	_, err := sqorc.ExecInTx(v.db, &sql.TxOptions{Isolation: sql.LevelRepeatableRead}, nil, txFn)
-	glog.Infof("initialzed VERSIONER")
-
 	return err
 }
 
@@ -99,11 +97,15 @@ func getIndexerVersions(builder sqorc.StatementBuilder, tx *sql.Tx) ([]*indexer.
 }
 
 func setIndexerActualVersion(builder sqorc.StatementBuilder, tx *sql.Tx, indexerID string, version indexer.Version) error {
-	_, err := builder.Update(versionTableName).
+	v, err := getTrackedVersions(builder, tx)
+	glog.Infof("BEFORE version: %s", v)
+	_, err = builder.Update(versionTableName).
 		Set(actualColVersions, version).
 		Where(squirrel.Eq{idColVersions: indexerID}).
 		RunWith(tx).
 		Exec()
+	v, err = getTrackedVersions(builder, tx)
+	glog.Infof("AFTER version: %s", v)
 	if err != nil {
 		return errors.Wrapf(err, "update indexer actual version for %s to %d", indexerID, version)
 	}

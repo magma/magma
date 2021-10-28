@@ -35,17 +35,7 @@ var (
 // GetSharedMemoryDB returns a singleton in-memory database connection.
 func GetSharedMemoryDB() (*sql.DB, error) {
 	var err error
-	once.Do(func() {
-		// var sqlite3conn *sqlite3.SQLiteConn
-		// sql.Register(sqorc.SQLiteDriver, &sqlite3.SQLiteDriver{
-		// 	ConnectHook: func(conn *sqlite3.SQLiteConn) error {
-		// 		sqlite3conn = conn
-		// 		return nil
-		// 	},
-		// })
-		// sqlite3conn.SetLimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER, 32766)
-		instance, err = sqorc.Open(sqorc.SQLiteDriver, ":memory:")
-	})
+	once.Do(func() { instance, err = sqorc.Open(sqorc.SQLiteDriver, ":memory:") })
 
 	return instance, err
 }

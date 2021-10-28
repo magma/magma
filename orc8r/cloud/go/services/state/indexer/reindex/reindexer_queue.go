@@ -172,7 +172,6 @@ func (r *reindexerQueue) reportStatusMetrics() {
 	}
 }
 
-
 // Get network-segregated reindex batches with capped number of state IDs per batch.
 func (r *reindexerQueue) getReindexBatches(ctx context.Context) []reindexBatch {
 	var idsByNetwork state_types.IDsByNetwork
@@ -203,5 +202,3 @@ func (r *reindexerQueue) getReindexBatches(ctx context.Context) []reindexBatch {
 	}
 	return batches
 }
-
-

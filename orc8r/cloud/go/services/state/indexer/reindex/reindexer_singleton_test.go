@@ -35,25 +35,25 @@ import (
 )
 
 func TestSingletonRun(t *testing.T) {
-	// dbName := "state___singleton_reindex_test____run"
-
-	// Make nullipotent calls to handle code coverage indeterminacy
+	// Make nullimpotent calls to handle code coverage indeterminacy
 	reindex.TestHookReindexSuccess()
 	reindex.TestHookReindexDone()
 
 	// Writes to channel after completing a job
 	reindexSuccessNum, reindexDoneNum := 0, 0
 	ch := make(chan interface{})
-	reindex.TestHookReindexSuccess = func() { reindexSuccessNum += 1
-	glog.Infof("SUCCESS")
+
+	reindex.TestHookReindexSuccess = func() {
+		reindexSuccessNum += 1
+		glog.Infof("SUCCESS")
 		ch <- nil
 	}
 	defer func() { reindex.TestHookReindexSuccess = func() {} }()
 
-	reindex.TestHookReindexDone = func() { reindexDoneNum += 1
+	reindex.TestHookReindexDone = func() {
+		reindexDoneNum += 1
 		glog.Infof("DONE")
 		ch <- nil
-
 	}
 	defer func() { reindex.TestHookReindexSuccess = func() {} }()
 
@@ -66,35 +66,25 @@ func TestSingletonRun(t *testing.T) {
 	defer cancel()
 
 	// Single indexer
-	// Populate
 	idx0 := getIndexer(id0, zero, version0, true)
-	// idx0 := getIndexerNoIndex(id0, zero, version0, true)
 	idx0.On("GetTypes").Return(allTypes).Once()
-	// TODO: validate if correct. In Reindexer_queue_test, it's nBatches <which in printing should be 3?>
-	// idx0.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nNetworks)
+	// Register indexers
+	register(t, idx0)
 
-	registerAndPopulateSingleton(t, idx0)
 	// Check
-	glog.Infof("IDX0 '%s", idx0)// TODO: fix, doesnt work
-
 	recvCh(t, ch)
 	recvCh(t, ch)
-
-	// idx0.Index("", nil)
-	glog.Infof("DONE IDX0 '%s", idx0)// TODO: fix, doesnt work
 
 	idx0.AssertExpectations(t)
 	require.Equal(t, reindexSuccessNum, 1)
 	require.Equal(t, reindexDoneNum, 1)
-	glog.Infof("1 '%s", idx0)
-
 
 	// Bump existing indexer version
-	// Populate
 	idx0a := getIndexerNoIndex(id0, version0, version0a, false)
 	idx0a.On("GetTypes").Return(gwStateType).Once()
 	idx0a.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nNetworks)
-	registerAndPopulateSingleton(t, idx0a)
+	// Register indexers
+	register(t, idx0a)
 
 	// Check
 	recvCh(t, ch)
@@ -104,20 +94,19 @@ func TestSingletonRun(t *testing.T) {
 	require.Equal(t, reindexSuccessNum, 2)
 	require.Equal(t, reindexDoneNum, 2)
 
+	register(t)
+
 	// Indexer returns err => reindex jobs fail
-	// Populate
 	// Fail1 at PrepareReindex
 	fail1 := getBasicIndexer(id1, version1)
 	fail1.On("GetTypes").Return(allTypes).Once()
 	fail1.On("PrepareReindex", zero, version1, true).Return(someErr1).Once()
-	// registerAndPopulateSingleton(t, fail1)
 
 	// Fail2 at first Reindex
 	fail2 := getBasicIndexer(id2, version2)
 	fail2.On("GetTypes").Return(allTypes).Once()
 	fail2.On("PrepareReindex", zero, version2, true).Return(nil).Once()
 	fail2.On("Index", mock.Anything, mock.Anything).Return(nil, someErr2).Once()
-	// registerAndPopulateSingleton(t, fail2)
 
 	// Fail3 at CompleteReindex
 	fail3 := getBasicIndexer(id3, version3)
@@ -125,37 +114,24 @@ func TestSingletonRun(t *testing.T) {
 	fail3.On("PrepareReindex", zero, version3, true).Return(nil).Once()
 	fail3.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nBatches)
 	fail3.On("CompleteReindex", zero, version3).Return(someErr3).Once()
-	registerAndPopulateSingleton(t, fail1, fail2, fail3)
+
+	// Register indexers
+	register(t, fail1, fail2, fail3)
 
 	// Check
 	recvCh(t, ch)
 	recvCh(t, ch)
-
-
-	glog.Infof("AM DONE WITH THIS")
 	recvCh(t, ch)
-
-	recvCh(t, ch)
-
-	glog.Infof("AM DONE WITH THIS 2")
-
-	recvCh(t, ch)
-	recvCh(t, ch)
-
-
-	glog.Infof("AM DONE WITH THIS 3")
 
 	fail1.AssertExpectations(t)
 	fail2.AssertExpectations(t)
 	fail3.AssertExpectations(t)
-	require.Equal(t, 5, reindexSuccessNum)
+	require.Equal(t, 2, reindexSuccessNum)
 	require.Equal(t, 5, reindexDoneNum)
 }
 
-// func initSingletonReindexTest(t *testing.T, dbName string) (reindex.Reindexer) {
-	func initSingletonReindexTest(t *testing.T) (reindex.Reindexer, reindex.Versioner) {
-
-		indexer.DeregisterAllForTest(t)
+func initSingletonReindexTest(t *testing.T) (reindex.Reindexer, reindex.Versioner) {
+	indexer.DeregisterAllForTest(t)
 
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
@@ -193,11 +169,4 @@ func TestSingletonRun(t *testing.T) {
 	}
 
 	return reindexer, versioner
-}
-
-func registerAndPopulateSingleton(t *testing.T, idx ...indexer.Indexer) {
-	register(t, idx...)
-	// populated, err := q.PopulateJobs()
-	// assert.True(t, populated)
-	// assert.NoError(t, err)
 }

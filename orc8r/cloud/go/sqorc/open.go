@@ -37,15 +37,7 @@ const (
 // threads using a cached connection to the original database or opening
 // a new connection to a new database.
 func Open(driver string, source string) (*sql.DB, error) {
-	// var sqlite3conn *sqlite3.SQLiteConn
-	// sql.Register(SQLiteDriver, &sqlite3.SQLiteDriver{
-	// 	ConnectHook: func(conn *sqlite3.SQLiteConn) error {
-	// 		sqlite3conn = conn
-	// 		return nil
-	// 	},
-	// })
 	db, err := sql.Open(driver, source)
-	// sqlite3conn.SetLimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER, 32766)
 	if err != nil {
 		return nil, err
 	}

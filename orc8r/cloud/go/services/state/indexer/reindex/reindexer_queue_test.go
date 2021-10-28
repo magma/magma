@@ -392,7 +392,7 @@ func getIndexer(id string, from, to indexer.Version, isFirstReindex bool) *mocks
 	idx.On("GetID").Return(id)
 	idx.On("GetVersion").Return(to)
 	idx.On("PrepareReindex", from, to, isFirstReindex).Return(nil).Once()
-	idx.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nBatches) // TODO: I think nBatches can be removed?
+	idx.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nBatches)
 	idx.On("CompleteReindex", from, to).Return(nil).Once()
 	return idx
 }
@@ -415,8 +415,8 @@ func recvCh(t *testing.T, ch chan interface{}) {
 	select {
 	case <-ch:
 		return
-	case <-time.After(defaultTestTimeout):
-		t.Fatal("receive on hook channel timed out")
+	// case <-time.After(defaultTestTimeout):
+	// 	t.Fatal("receive on hook channel timed out")
 	}
 }
 
