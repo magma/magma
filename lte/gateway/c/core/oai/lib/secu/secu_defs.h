@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-#include "security_types.h"
+#include "lte/gateway/c/core/oai/common/security_types.h"
 
 #define SECU_DIRECTION_UPLINK 0
 #define SECU_DIRECTION_DOWNLINK 1
