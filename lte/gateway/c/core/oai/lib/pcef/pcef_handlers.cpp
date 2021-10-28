@@ -18,26 +18,26 @@
 #include <grpcpp/impl/codegen/status.h>
 #include <cstring>
 #include <string>
-#include <conversions.h>
-#include <common_defs.h>
+#include <lte/gateway/c/core/oai/common/conversions.h>
+#include <lte/gateway/c/core/oai/common/common_defs.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "common_defs.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "pcef_handlers.h"
-#include "PCEFClient.h"
-#include "MobilityClientAPI.h"
-#include "itti_types.h"
+#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.h"
+#include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/protos/session_manager.pb.h"
-#include "spgw_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
