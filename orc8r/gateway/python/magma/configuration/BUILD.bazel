@@ -1,0 +1,6 @@
+package(default_visibility = ["//visibility:public"])
+
+py_library(
+    name = "service_configs",
+    srcs = ["service_configs.py"],
+)
