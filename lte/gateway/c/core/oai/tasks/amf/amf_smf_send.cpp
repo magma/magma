@@ -663,10 +663,9 @@ int amf_smf_handle_ip_address_response(
 
 int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  ue_m5gmm_context_s* ue_context_p     = NULL;
-  MessageDef* message_p                = NULL;
-  s6a_update_location_req_t* s6a_ulr_p = NULL;
-  int rc                               = RETURNok;
+  ue_m5gmm_context_s* ue_context_p = NULL;
+  MessageDef* message_p            = NULL;
+  int rc                           = RETURNok;
 
   OAILOG_INFO(
       LOG_AMF_APP,
@@ -685,13 +684,7 @@ int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  message_p = itti_alloc_new_message(TASK_AMF_APP, S6A_UPDATE_LOCATION_REQ);
-  if (message_p == NULL) {
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
-  }
-
-  s6a_ulr_p = &message_p->ittiMsg.s6a_update_location_req;
-  memset(s6a_ulr_p, 0, sizeof(s6a_update_location_req_t));
+  s6a_update_location_req_t* s6a_ulr_p = new s6a_update_location_req_t();
 
   IMSI64_TO_STRING(
       ue_context_p->amf_context.imsi64, s6a_ulr_p->imsi, IMSI_LENGTH);
@@ -707,6 +700,8 @@ int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
   s6a_ulr_p->supportedfeatures.regional_subscription = true;
 
   rc = AsyncSmfServiceClient::getInstance().n11_update_location_req(s6a_ulr_p);
+
+  delete s6a_ulr_p;
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }

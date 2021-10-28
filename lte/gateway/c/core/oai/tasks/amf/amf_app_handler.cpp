@@ -513,12 +513,29 @@ imsi64_t amf_app_handle_initial_ue_message(
       " Sending NAS Establishment Indication to NAS for ue_id = "
       "(" AMF_UE_NGAP_ID_FMT ")",
       ue_context_p->amf_ue_ngap_id);
+
+  amf_ue_ngap_id_t ue_id = ue_context_p->amf_ue_ngap_id;
+
   nas_proc_establish_ind(
       ue_context_p->amf_ue_ngap_id, is_mm_ctx_new, initial_pP->tai,
       initial_pP->ecgi, initial_pP->m5g_rrc_establishment_cause, s_tmsi,
       initial_pP->nas);
 
-  return RETURNok;
+  initial_pP->nas = NULL;
+
+  /* In case duplicate attach handling, ue_context_p might be removed
+   * Before accessing ue_context_p, we shall validate whether UE context
+   * exists or not
+   */
+  if (INVALID_AMF_UE_NGAP_ID != ue_id) {
+    hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
+    if (hashtable_ts_is_key_exists(
+            amf_state_ue_id_ht, (const hash_key_t) ue_id) == HASH_TABLE_OK) {
+      imsi64 = ue_context_p->amf_context.imsi64;
+    }
+  }
+
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
 }
 
 /****************************************************************************
@@ -537,6 +554,7 @@ int amf_app_handle_uplink_nas_message(
     amf_app_desc_t* amf_app_desc_p, bstring msg, amf_ue_ngap_id_t ue_id,
     const tai_t originating_tai) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
+
   int rc = RETURNerror;
   if (msg) {
     amf_sap_t amf_sap = {};

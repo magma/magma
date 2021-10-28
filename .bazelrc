@@ -12,6 +12,7 @@ common:docker --repository_cache=/magma/.bazel-cache-repo
 
 build:devcontainer --disk_cache=/workspaces/magma/.bazel-cache
 common:devcontainer --repository_cache=/workspaces/magma/.bazel-cache-repo
+build:devcontainer --define=folly_so=1
 
 build:specify_vm_cc --action_env=CC=/usr/bin/gcc
 build:specify_vm_cc --action_env=CXX=/usr/bin/g++
@@ -19,6 +20,7 @@ build:specify_vm_cc --action_env=CXX=/usr/bin/g++
 # For building with Bazel inside the Magma VM
 build:vm --disk_cache=/home/vagrant/magma/.bazel-cache
 common:vm --repository_cache=/home/vagrant/magma/.bazel-cache-repo
+build:vm --define=folly_so=1
 build:vm --config=specify_vm_cc
 
 build:asan --strip=never

@@ -139,8 +139,6 @@ service file `/etc/systemd/system/magma@mme.service` (you will need sudo privile
 
  `sudo systemctl daemon-reload`
 
-1. In `/etc/magma/mobilityd.yml`, set `persist_to_redis` to `true`
-
 1. Clean up all the state in redis: `redis-cli -p 6380 FLUSHALL`. This might
 throw a "Could not connect" error if magma@redis service is not running. Start
 the redis service with `sudo service magma@redis start` and then try again.

@@ -51,3 +51,14 @@ type Crash interface {
 	Recover(err interface{}) EventID
 	Flush(timeout time.Duration) bool
 }
+
+// Wrap wraps the passed in function with a deferred crash reporter.
+func Wrap(crash Crash, fn func()) {
+	defer func() {
+		if err := recover(); err != nil {
+			crash.Recover(err)
+			crash.Flush(time.Second * 5)
+		}
+	}()
+	fn()
+}

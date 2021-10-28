@@ -9977,8 +9977,6 @@ definitions:
       lte_auth_op:
         example: EREREREREREREREREREREQ==
         format: byte
-        maxLength: 16
-        minLength: 15
         type: string
         x-nullable: false
       mcc:

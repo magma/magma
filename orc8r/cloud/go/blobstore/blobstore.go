@@ -22,64 +22,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 )
 
-// Blob encapsulates a blob for storage.
-type Blob struct {
-	Type    string
-	Key     string
-	Value   []byte
-	Version uint64
-}
-
-// TK converts a blob to its associated type and key.
-func (b Blob) TK() storage.TK {
-	return storage.TK{Type: b.Type, Key: b.Key}
-}
-
-type Blobs []Blob
-
-// TKs converts blobs to their associated type and key.
-func (bs Blobs) TKs() storage.TKs {
-	tks := make(storage.TKs, 0, len(bs))
-	for _, blob := range bs {
-		tks = append(tks, storage.TK{Type: blob.Type, Key: blob.Key})
-	}
-	return tks
-}
-
-// ByTK returns a computed view of a list of blobs as a map of
-// blobs keyed by blob TK.
-func (bs Blobs) ByTK() map[storage.TK]Blob {
-	ret := make(map[storage.TK]Blob, len(bs))
-	for _, blob := range bs {
-		ret[storage.TK{Type: blob.Type, Key: blob.Key}] = blob
-	}
-	return ret
-}
-
-func (bs Blobs) Keys() []string {
-	var keys []string
-	for _, b := range bs {
-		keys = append(keys, b.Key)
-	}
-	return keys
-}
-
-// CreateSearchFilter creates a search filter for the given criteria.
-// Nil elements result in no filtering. If you prefer to instantiate string
-// sets manually, you can also create a SearchFilter directly.
-func CreateSearchFilter(networkID *string, types []string, keys []string, keyPrefix *string) SearchFilter {
-	return SearchFilter{
-		NetworkID: networkID,
-		Types:     stringListToSet(types),
-		Keys:      stringListToSet(keys),
-		KeyPrefix: keyPrefix,
-	}
-}
-
-func GetDefaultLoadCriteria() LoadCriteria {
-	return LoadCriteria{LoadValue: true}
-}
-
 // BlobStorageFactory is an API to create a storage API bound to a transaction.
 type BlobStorageFactory interface {
 	InitializeFactory() error
@@ -184,6 +126,60 @@ func ListKeysByNetwork(store TransactionalBlobStorage) (map[string]storage.TKs, 
 	return tks, nil
 }
 
+// Blob encapsulates a blob for storage.
+type Blob struct {
+	Type    string
+	Key     string
+	Value   []byte
+	Version uint64
+}
+
+// TK converts a blob to its associated type and key.
+func (b Blob) TK() storage.TK {
+	return storage.TK{Type: b.Type, Key: b.Key}
+}
+
+type Blobs []Blob
+
+// TKs converts blobs to their associated type and key.
+func (bs Blobs) TKs() storage.TKs {
+	tks := make(storage.TKs, 0, len(bs))
+	for _, blob := range bs {
+		tks = append(tks, storage.TK{Type: blob.Type, Key: blob.Key})
+	}
+	return tks
+}
+
+// ByTK returns a computed view of a list of blobs as a map of
+// blobs keyed by blob TK.
+func (bs Blobs) ByTK() map[storage.TK]Blob {
+	ret := make(map[storage.TK]Blob, len(bs))
+	for _, blob := range bs {
+		ret[storage.TK{Type: blob.Type, Key: blob.Key}] = blob
+	}
+	return ret
+}
+
+func (bs Blobs) Keys() []string {
+	var keys []string
+	for _, b := range bs {
+		keys = append(keys, b.Key)
+	}
+	return keys
+}
+
+// CreateSearchFilter creates a search filter for the given criteria.
+// Nil elements result in no filtering. If you prefer to instantiate string
+// sets manually, you can also create a SearchFilter directly.
+func CreateSearchFilter(networkID *string, types []string, keys []string, keyPrefix *string) SearchFilter {
+	return SearchFilter{
+		NetworkID: networkID,
+		Types:     stringListToSet(types),
+		Keys:      stringListToSet(keys),
+		KeyPrefix: keyPrefix,
+	}
+}
+
 // SearchFilter specifies search parameters.
 // All fields are ANDed together in the final search that is performed.
 type SearchFilter struct {
@@ -237,6 +233,10 @@ func (sf SearchFilter) GetKeys() []string {
 	ret := funk.Keys(sf.Keys).([]string)
 	sort.Strings(ret)
 	return ret
+}
+
+func GetDefaultLoadCriteria() LoadCriteria {
+	return LoadCriteria{LoadValue: true}
 }
 
 // LoadCriteria specifies which fields of each blob should be loaded from the

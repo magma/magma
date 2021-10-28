@@ -1,12 +1,18 @@
 ---
 name: Python Format Check
 on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+      - v1.*
   pull_request:
+    branches:
+      - master
+      - v1.*
     types:
       - opened
       - reopened
       - synchronize
-
 jobs:
   pre_job:
     runs-on: ubuntu-latest
