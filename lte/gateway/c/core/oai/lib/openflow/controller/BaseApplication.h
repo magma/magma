@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "OpenflowController.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.h"
 
 namespace openflow {
 

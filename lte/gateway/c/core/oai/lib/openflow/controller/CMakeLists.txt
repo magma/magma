@@ -22,5 +22,6 @@ target_link_libraries(LIB_OPENFLOW_CONTROLLER
     TASK_SGW
     )
 target_include_directories(LIB_OPENFLOW_CONTROLLER PUBLIC
+    $ENV{MAGMA_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}
     )
