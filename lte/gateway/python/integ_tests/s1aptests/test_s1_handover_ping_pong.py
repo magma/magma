@@ -327,8 +327,8 @@ class TestS1HandoverPingPong(unittest.TestCase):
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
         )
 
-        print("Waiting for 3 seconds for the flow rules deletion")
-        time.sleep(3)
+        print("Waiting for 5 seconds for the flow rules deletion")
+        time.sleep(5)
         # Verify that all UL/DL flows are deleted
         self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
 
