@@ -26,7 +26,7 @@
             "command": "shellCommand.execute",
             "args": {
                 // Use bazel query to find all test targets. This will automatically pick up any new tests added.
-                "command": "bazel query 'tests(//lte/gateway/c/session_manager/test:all)' | cut -d ':' -f2",
+                "command": "bazel query 'tests(//lte/gateway/c/session_manager/test/...)' | cut -d ':' -f2",
             },
         }
     ]
