@@ -639,7 +639,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectAuthRetxFailure) {
   // as well as context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  
+
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
