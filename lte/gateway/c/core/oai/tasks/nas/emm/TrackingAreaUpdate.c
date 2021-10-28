@@ -275,6 +275,9 @@ static status_code_e handle_and_fill_eps_bearer_cntxt_status(
     for (uint8_t pid=0; pid < MAX_APN_PER_UE; pid++) {
       if (ue_mm_context->pdn_contexts[pid] && (ue_mm_context->pdn_contexts[pid]->num_ebi_to_be_del > 0)) {
         mme_app_send_deactivate_dedicated_bearer_request(ue_mm_context, ue_mm_context->pdn_contexts[pid]);
+        increment_counter(
+            "mme_initiated_dedicated_bearer_deactivation", 1, 2, "result", "success", "cause",
+            "local_deactivation");
       }
     }
   }

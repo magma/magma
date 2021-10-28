@@ -4616,7 +4616,7 @@ void mme_app_send_deactivate_dedicated_bearer_request(
   s11_delete_bearer_command->teid = pdn_context->s_gw_teid_s11_s4;
   s11_delete_bearer_command->local_teid = ue_mm_context->mme_teid_s11;
   s11_delete_bearer_command->ebi_list.num_ebi = pdn_context->num_ebi_to_be_del;
-  memcpy(s11_delete_bearer_command->ebi_list.ebis,pdn_context->ebi_to_be_del,sizeof(pdn_context->ebi_to_be_del));
+  memcpy(s11_delete_bearer_command->ebi_list.ebis,pdn_context->ebi_to_be_del,sizeof(s11_delete_bearer_command->ebi_list.ebis));
 
   OAILOG_INFO_UE(
       LOG_MME_APP, ue_mm_context->emm_context._imsi64,
