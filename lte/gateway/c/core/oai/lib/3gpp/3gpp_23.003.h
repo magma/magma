@@ -477,13 +477,4 @@ typedef struct ecgi_s {
 // 22 Addressing and identification for ANDSF
 // 23 Numbering, addressing and identification for the Relay Node OAM System
 
-/* Clear GUTI without free it */
-void clear_guti(guti_t* const guti);
-/* Clear IMSI without free it */
-void clear_imsi(imsi_t* const imsi);
-/* Clear IMEI without free it */
-void clear_imei(imei_t* const imei);
-/* Clear IMEISV without free it */
-void clear_imeisv(imeisv_t* const imeisv);
-
 #endif /* FILE_3GPP_23_003_SEEN */

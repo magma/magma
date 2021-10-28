@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "include/amf_client_servicer.h"
 #include <sstream>
 #ifdef __cplusplus
 extern "C" {
@@ -31,13 +31,12 @@ extern "C" {
 #include "amf_recv.h"
 #include "amf_identity.h"
 #include "amf_sap.h"
-#include "M5GAuthenticationServiceClient.h"
 #include "amf_app_timer_management.h"
 
 #define AMF_CAUSE_SUCCESS (1)
 #define MAX_5G_AUTH_VECTORS 1
 
-using magma5g::AsyncM5GAuthenticationServiceClient;
+using magma5g::AMFClientServicer;
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
@@ -137,17 +136,16 @@ static int start_authentication_information_procedure(
         LOG_AMF_APP,
         "Sending msg(grpc) to :[subscriberdb] for ue: [%s] auth-info\n",
         imsi_str);
-    AsyncM5GAuthenticationServiceClient::getInstance().get_subs_auth_info(
+    AMFClientServicer::getInstance().get_subs_auth_info(
         imsi_str, IMSI_LENGTH, reinterpret_cast<const char*>(snni), ue_id);
   } else if (auts->data) {
     OAILOG_INFO(
         LOG_AMF_APP,
         "Sending msg(grpc) to :[subscriberdb] for ue: [%s] auth-info-resync\n",
         imsi_str);
-    AsyncM5GAuthenticationServiceClient::getInstance()
-        .get_subs_auth_info_resync(
-            imsi_str, IMSI_LENGTH, reinterpret_cast<const char*>(snni),
-            auts->data, RAND_LENGTH_OCTETS + AUTS_LENGTH, ue_id);
+    AMFClientServicer::getInstance().get_subs_auth_info_resync(
+        imsi_str, IMSI_LENGTH, reinterpret_cast<const char*>(snni), auts->data,
+        RAND_LENGTH_OCTETS + AUTS_LENGTH, ue_id);
   }
 
   // Calling GRPC call for default QoS
@@ -621,11 +619,14 @@ void amf_ctx_clear_auth_vectors(amf_context_t* const ctxt) {
 
 int amf_auth_auth_rej(amf_ue_ngap_id_t ue_id) {
   int rc                               = RETURNerror;
+  ue_m5gmm_context_s* ue_mm_context    = nullptr;
   amf_sap_t amf_sap                    = {};
   amf_sap.primitive                    = AMFAS_SECURITY_REJ;
   amf_sap.u.amf_as.u.security.ue_id    = ue_id;
   amf_sap.u.amf_as.u.security.msg_type = AMF_AS_MSG_TYPE_AUTH;
   rc                                   = amf_sap_send(&amf_sap);
+  ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  amf_free_ue_context(ue_mm_context);
   return rc;
 }
 

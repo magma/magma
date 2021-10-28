@@ -52,7 +52,6 @@
 
 #include "signals.h"
 #include "dynamic_memory_check.h"
-#include "shared_ts_log.h"
 #include "log.h"
 
 /* ITTI DEBUG groups */

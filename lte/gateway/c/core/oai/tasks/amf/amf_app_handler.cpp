@@ -513,12 +513,29 @@ imsi64_t amf_app_handle_initial_ue_message(
       " Sending NAS Establishment Indication to NAS for ue_id = "
       "(" AMF_UE_NGAP_ID_FMT ")",
       ue_context_p->amf_ue_ngap_id);
+
+  amf_ue_ngap_id_t ue_id = ue_context_p->amf_ue_ngap_id;
+
   nas_proc_establish_ind(
       ue_context_p->amf_ue_ngap_id, is_mm_ctx_new, initial_pP->tai,
       initial_pP->ecgi, initial_pP->m5g_rrc_establishment_cause, s_tmsi,
       initial_pP->nas);
 
-  return RETURNok;
+  initial_pP->nas = NULL;
+
+  /* In case duplicate attach handling, ue_context_p might be removed
+   * Before accessing ue_context_p, we shall validate whether UE context
+   * exists or not
+   */
+  if (INVALID_AMF_UE_NGAP_ID != ue_id) {
+    hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
+    if (hashtable_ts_is_key_exists(
+            amf_state_ue_id_ht, (const hash_key_t) ue_id) == HASH_TABLE_OK) {
+      imsi64 = ue_context_p->amf_context.imsi64;
+    }
+  }
+
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
 }
 
 /****************************************************************************
@@ -537,6 +554,7 @@ int amf_app_handle_uplink_nas_message(
     amf_app_desc_t* amf_app_desc_p, bstring msg, amf_ue_ngap_id_t ue_id,
     const tai_t originating_tai) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
+
   int rc = RETURNerror;
   if (msg) {
     amf_sap_t amf_sap = {};
@@ -582,7 +600,7 @@ void amf_app_handle_pdu_session_response(
   DLNASTransportMsg encode_msg;
   int amf_rc = RETURNerror;
   ue_m5gmm_context_s* ue_context;
-  smf_context_t* smf_ctx;
+  std::shared_ptr<smf_context_t> smf_ctx;
   amf_smf_t amf_smf_msg;
   // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
   uint64_t ue_id = 0;
@@ -593,7 +611,7 @@ void amf_app_handle_pdu_session_response(
   // Handle smf_context
   ue_context = lookup_ue_ctxt_by_imsi(imsi64);
   if (ue_context) {
-    smf_ctx = amf_smf_context_exists_pdu_session_id(
+    smf_ctx = amf_get_smf_context_by_pdu_session_id(
         ue_context, pdu_session_resp->pdu_session_id);
     if (smf_ctx == NULL) {
       OAILOG_ERROR(
@@ -702,7 +720,7 @@ int amf_app_handle_pdu_session_accept(
   SmfMsg* smf_msg       = nullptr;
   bstring buffer;
   // smf_ctx declared and set but not used, commented to cleanup warnings
-  smf_context_t* smf_ctx                           = nullptr;
+  std::shared_ptr<smf_context_t> smf_ctx;
   ue_m5gmm_context_s* ue_context                   = nullptr;
   protocol_configuration_options_t* msg_accept_pco = nullptr;
 
@@ -715,7 +733,7 @@ int amf_app_handle_pdu_session_accept(
     return M5G_AS_FAILURE;
   }
 
-  smf_ctx = amf_smf_context_exists_pdu_session_id(
+  smf_ctx = amf_get_smf_context_by_pdu_session_id(
       ue_context, pdu_session_resp->pdu_session_id);
   if (!smf_ctx) {
     OAILOG_ERROR(
@@ -873,7 +891,7 @@ void amf_app_handle_resource_setup_response(
   amf_ue_ngap_id_t ue_id;
 
   ue_m5gmm_context_s* ue_context = nullptr;
-  smf_context_t* smf_ctx         = nullptr;
+  std::shared_ptr<smf_context_t> smf_ctx;
 
   /* Check if failure message is not NULL and if NULL,
    * it is successful message from gNB.
@@ -897,7 +915,7 @@ void amf_app_handle_resource_setup_response(
       return;
     }
 
-    smf_ctx = amf_smf_context_exists_pdu_session_id(
+    smf_ctx = amf_get_smf_context_by_pdu_session_id(
         ue_context,
         session_seup_resp.pduSessionResource_setup_list.item[0].Pdu_Session_ID);
     if (smf_ctx == NULL) {
@@ -1307,7 +1325,7 @@ void amf_app_handle_initial_context_setup_rsp(
     amf_app_desc_t* amf_app_desc_p,
     itti_amf_app_initial_context_setup_rsp_t* initial_context_rsp) {
   ue_m5gmm_context_s* ue_context = NULL;
-  smf_context_t* smf_context     = NULL;
+  std::shared_ptr<smf_context_t> smf_context;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   Ngap_PDUSession_Resource_Setup_Response_List_t* pdu_list =
       &initial_context_rsp->PDU_Session_Resource_Setup_Response_Transfer;
@@ -1325,7 +1343,7 @@ void amf_app_handle_initial_context_setup_rsp(
   /* activating pdu sessions when UE is in IDLE state  */
   if (pdu_list->no_of_items) {
     for (uint32_t index = 0; index < pdu_list->no_of_items; index++) {
-      smf_context = amf_smf_context_exists_pdu_session_id(
+      smf_context = amf_get_smf_context_by_pdu_session_id(
           ue_context, pdu_list->item[index].Pdu_Session_ID);
       if (smf_context == NULL) {
         OAILOG_ERROR(

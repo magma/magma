@@ -154,7 +154,8 @@ static bool emm_attach_ies_have_changed(
     emm_attach_request_ies_t* const ies2);
 
 static void emm_proc_create_procedure_attach_request(
-    ue_mm_context_t* const ue_mm_context, emm_attach_request_ies_t* const ies);
+    ue_mm_context_t* const ue_mm_context,
+    STOLEN_REF emm_attach_request_ies_t* const ies);
 
 static int emm_attach_update(
     emm_context_t* const emm_context, emm_attach_request_ies_t* const ies);
@@ -197,7 +198,7 @@ static int emm_attach_accept_retx(emm_context_t* emm_context);
 //------------------------------------------------------------------------------
 status_code_e emm_proc_attach_request(
     mme_ue_s1ap_id_t ue_id, const bool is_mm_ctx_new,
-    emm_attach_request_ies_t* const ies) {
+    STOLEN_REF emm_attach_request_ies_t* const ies) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   ue_mm_context_t ue_ctx;
@@ -321,8 +322,8 @@ status_code_e emm_proc_attach_request(
     // request
     if (guti_ue_mm_ctx) {
       create_new_attach_info(
-          &guti_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id, ies,
-          is_mm_ctx_new);
+          &guti_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id,
+          STOLEN_REF ies, is_mm_ctx_new);
       /*
        * This implies either UE or eNB has not sent S-TMSI in initial UE
        * message even though UE has old GUTI. Trigger clean up
@@ -401,8 +402,8 @@ status_code_e emm_proc_attach_request(
               ue_mm_context->mme_ue_s1ap_id);
           // process the new request as fresh attach request
           create_new_attach_info(
-              &imsi_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id, ies,
-              is_mm_ctx_new);
+              &imsi_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id,
+              STOLEN_REF ies, is_mm_ctx_new);
           // Trigger clean up
           nas_proc_implicit_detach_ue_ind(old_ue_id);
 
@@ -436,8 +437,8 @@ status_code_e emm_proc_attach_request(
           // After releasing of contexts of old UE, process the new request as
           // fresh attach request
           create_new_attach_info(
-              &imsi_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id, ies,
-              is_mm_ctx_new);
+              &imsi_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id,
+              STOLEN_REF ies, is_mm_ctx_new);
 
           nas_proc_implicit_detach_ue_ind(old_ue_id);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
@@ -469,6 +470,10 @@ status_code_e emm_proc_attach_request(
                 ue_id);
             mme_app_handle_detach_req(ue_mm_context->mme_ue_s1ap_id);
           }
+          if (ies) {
+            free_emm_attach_request_ies(
+                (emm_attach_request_ies_t * * const) & ies);
+          }
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
       } else if (
@@ -496,8 +501,8 @@ status_code_e emm_proc_attach_request(
               "duplicate_attach_request", 1, 1, "action",
               "processed_old_ctxt_cleanup");
           create_new_attach_info(
-              &imsi_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id, ies,
-              is_mm_ctx_new);
+              &imsi_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id,
+              STOLEN_REF ies, is_mm_ctx_new);
 
           // trigger clean up
           nas_proc_implicit_detach_ue_ind(old_ue_id);
@@ -544,51 +549,8 @@ status_code_e emm_proc_attach_request(
     }  // if imsi_emm_ctx != NULL
     // Allocate new context and process the new request as fresh attach request
     clear_emm_ctxt = true;
-  }  // If IMSI !=NULL
-     //  } else {
-     //    // This implies UE has GUTI from previous registration procedure
-     //    // Cleanup and remove current EMM context - TODO - IP address release
-     //    /* Note -
-  //     * Since we dont support IP address release here , this can result in
-  //     duplicate session  allocation.
-  //     * So rejecting the attach and deleting the old context so that next
-  //     attach from UE can be handled w/o
-  //     * causing duplicate session allocation.
-  //     */
-  //    new_emm_ctx = &ue_mm_context->emm_context;
-  //    struct nas_emm_attach_proc_s   no_attach_proc = {0};
-  //    no_attach_proc.ue_id       = ue_id;
-  //    no_attach_proc.emm_cause   = ue_ctx.emm_context.emm_cause;
-  //    no_attach_proc.esm_msg_out = NULL;
-  //    rc = _emm_attach_reject (new_emm_ctx, (struct nas_base_proc_s
-  //    *)&no_attach_proc); OAILOG_FUNC_RETURN (LOG_NAS_EMM, rc); #if 0
-  //    // TODO - send session delete request towards SGW
-  //    /*
-  //     * Notify ESM that all EPS bearer contexts allocated for this UE have
-  //     * to be locally deactivated
-  //     */
-  //    esm_sap_t                               esm_sap = {0};
-  //
-  //    esm_sap.primitive = ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ;
-  //    esm_sap.ue_id = ue_id;
-  //    esm_sap.ctx = &new_ue_mm_context->emm_context;
-  //    esm_sap.data.eps_bearer_context_deactivate.ebi = ESM_SAP_ALL_EBI;
-  //    rc = esm_sap_send (&esm_sap);
-  //
-  //    emm_sap_t                               emm_sap = {0};
-  //
-  //    /*
-  //     * Notify EMM that the UE has been implicitly detached
-  //     */
-  //    emm_sap.primitive = EMMREG_DETACH_REQ;
-  //    emm_sap.u.emm_reg.ue_id = ue_id;
-  //    emm_sap.u.emm_reg.ctx = &new_ue_mm_context->emm_context;
-  //    rc = emm_sap_send (&emm_sap);
-  //
-  //    _clear_emm_ctxt(&new_ue_mm_context->emm_context);
-  //    create_new_emm_ctxt = true;
-  //    #endif
-  //  }
+  }
+
   if (clear_emm_ctxt) {
     /*
      * Create UE's EMM context
@@ -623,7 +585,14 @@ status_code_e emm_proc_attach_request(
     new_emm_ctx->emm_context_state = UNKNOWN_GUTI;
   }
   if (!is_nas_specific_procedure_attach_running(&ue_mm_context->emm_context)) {
-    emm_proc_create_procedure_attach_request(ue_mm_context, ies);
+    emm_proc_create_procedure_attach_request(ue_mm_context, STOLEN_REF ies);
+  } else if (ies) {  // we should not be really here
+    OAILOG_WARNING(
+        LOG_NAS_EMM,
+        "EMM-PROC  - Freeing Attach Request IEs for ue_id "
+        "= " MME_UE_S1AP_ID_FMT,
+        ue_id);
+    free_emm_attach_request_ies((emm_attach_request_ies_t * * const) & ies);
   }
   rc = emm_attach_run_procedure(&ue_mm_context->emm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -913,7 +882,8 @@ void set_notif_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc) {
 /****************************************************************************/
 
 static void emm_proc_create_procedure_attach_request(
-    ue_mm_context_t* const ue_mm_context, emm_attach_request_ies_t* const ies) {
+    ue_mm_context_t* const ue_mm_context,
+    STOLEN_REF emm_attach_request_ies_t* const ies) {
   nas_emm_attach_proc_t* attach_proc =
       nas_new_attach_procedure(&ue_mm_context->emm_context);
   AssertFatal(attach_proc, "TODO Handle this");
@@ -2135,7 +2105,7 @@ static int emm_attach_accept_retx(emm_context_t* emm_context) {
       OAILOG_DEBUG(
           LOG_NAS_EMM,
           "UE " MME_UE_S1AP_ID_FMT " Timer T3450 %ld expires in %u seconds\n",
-          attach_proc->ue_id, attach_proc->T3450.id, attach_proc->T3450.sec);
+          attach_proc->ue_id, attach_proc->T3450.id, attach_proc->T3450.msec);
     } else {
       OAILOG_WARNING(
           LOG_NAS_EMM,
@@ -2764,7 +2734,8 @@ void proc_new_attach_req(
         VOICE_DOMAIN_PREF_UE_USAGE_SETTING;
   }
   if (!is_nas_specific_procedure_attach_running(&ue_mm_context->emm_context)) {
-    emm_proc_create_procedure_attach_request(ue_mm_context, attach_info.ies);
+    emm_proc_create_procedure_attach_request(
+        ue_mm_context, STOLEN_REF attach_info.ies);
   }
   emm_attach_run_procedure(&ue_mm_context->emm_context);
   OAILOG_FUNC_OUT(LOG_NAS_EMM);

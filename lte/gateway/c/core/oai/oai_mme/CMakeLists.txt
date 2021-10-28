@@ -31,7 +31,6 @@ endif ()
 
 add_executable(mme
     ${PROJECT_SOURCE_DIR}/oai_mme/oai_mme.c
-    ${PROJECT_SOURCE_DIR}/common/common_types.c
     ${PROJECT_SOURCE_DIR}/common/itti_free_defined_msg.c
     ${PROJECT_SOURCE_DIR}/tasks/service303/service303_task.c
     ${PROJECT_SOURCE_DIR}/tasks/service303/service303_mme_stats.c

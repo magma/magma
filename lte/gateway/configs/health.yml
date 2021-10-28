@@ -25,3 +25,6 @@ state_recovery:
   interval_check_mins: 3
   # Destination path to save redis RDB temp snapshots
   snapshots_dir: /tmp/redis_snapshots
+
+# [Experimental] Enable Sentry for this service
+sentry_enabled: false

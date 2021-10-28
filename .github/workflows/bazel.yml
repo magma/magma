@@ -17,15 +17,18 @@ env:
 jobs:
   path_filter:
     runs-on: ubuntu-latest
-    # Map a step output to a job output
     outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@master
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
         with:
-          # Only run the main job for changes including the following paths
-         paths: '[".github/workflows/bazel.yml", "lte/gateway/c/**", "orc8r/gateway/c/**", "orc8r/protos/**", "lte/protos/**", "src/go/**"]'
+          filters: |
+            filesChanged:
+              - [".github/workflows/bazel.yml", "lte/gateway/c/**", "orc8r/gateway/c/**", "orc8r/protos/**", "lte/protos/**", "src/go/**"]
 
   bazel_build_and_test:
     needs:
@@ -34,7 +37,7 @@ jobs:
     # or a pull_request that skip-duplicate-action wants to run again.
     if: |
       (github.event_name == `schedule` && github.ref == 'refs/heads/master')
-        || ${{ needs.path_filter.outputs.should_skip == 'false' }}
+        || ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: Bazel Build and Test Job
     runs-on: ubuntu-latest
     steps:

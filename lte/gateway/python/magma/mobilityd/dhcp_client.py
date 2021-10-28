@@ -233,7 +233,7 @@ class DHCPClient:
 
             # default in wait is 30 sec
             wait_time = max(wait_time, self._lease_renew_wait_min)
-            logging.debug("lease renewal check after: %s sec" % wait_time)
+            logging.debug("lease renewal check after: %s sec", wait_time)
             self._monitor_thread_event.wait(wait_time)
             if self._monitor_thread_event.is_set():
                 break
@@ -314,7 +314,7 @@ class DHCPClient:
                         mac_addr, vlan, DHCPState.REQUEST, dhcp_state,
                     )
             else:
-                LOG.debug("Unknown MAC: %s " % packet.summary())
+                LOG.debug("Unknown MAC: %s ", packet.summary())
                 return
 
     # ref: https://fossies.org/linux/scapy/scapy/layers/dhcp.py

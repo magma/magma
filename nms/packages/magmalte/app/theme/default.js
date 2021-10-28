@@ -242,6 +242,11 @@ export default createMuiTheme({
         margin: '0px',
       },
     },
+    MuiAlert: {
+      root: {
+        marginBottom: '16px',
+      },
+    },
     MuiBackdrop: {
       root: {
         backgroundColor: `rgba(50, 56, 69, 0.8)`, // colors.primary.brightGray RGB value
@@ -266,6 +271,17 @@ export default createMuiTheme({
           backgroundColor: colors.primary.brightGray,
           boxShadow: 'none',
         },
+      },
+      outlinedPrimary: {
+        border: `1px solid ${colors.primary.comet}`,
+
+        backgroundColor: colors.primary.white,
+        '&:hover, &:focus': {
+          backgroundColor: colors.primary.white,
+          boxShadow: 'none',
+          border: `1px solid ${colors.primary.comet}`,
+        },
+        color: colors.primary.comet,
       },
     },
     MuiCheckbox: {

@@ -1,9 +1,20 @@
 ---
+# Need to refactor helm script to use versioning from charts themselves in release process
 name: "Push Helm Charts to Artifactory"
 
 on:  # yamllint disable-line rule:truthy
   push:
-    branches: [master, v1.*]  # Running on v1.* to tag official release
+    branches:
+      - master
+      - v1.*
+  pull_request:
+    branches:
+      - master
+      - v1.*
+    types:
+      - opened
+      - reopened
+      - synchronize
 jobs:
   build_publish_helm_charts:
     env:
@@ -12,6 +23,8 @@ jobs:
       HELM_CHART_MUSEUM_USERNAME: "${{ secrets.HELM_CHART_MUSEUM_USERNAME }}"
       HELM_CHART_MUSEUM_TOKEN: "${{ secrets.HELM_CHART_MUSEUM_TOKEN }}"
       MAGMA_ROOT: "${{ github.workspace }}"
+      EVENT_NAME: "${{ github.event_name }}"
+      ISSUE_NUMBER: "${{ github.event.number }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -21,24 +34,48 @@ jobs:
         run: |
           if [ "${GITHUB_REF##*/}" = "master" ] ;then
             echo "VERSION=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+          elif [ "${EVENT_NAME}" = "pull_request" ]; then
+            echo "test"
+            echo "VERSION=${ISSUE_NUMBER}" >> $GITHUB_ENV
+            echo ${ISSUE_NUMBER}
           fi
       - name: Launch build and publish script
         run: |
           if [ "${GITHUB_REF##*/}" = "master" ] ;then
             orc8r/tools/helm/package.sh --deployment-type all --version $VERSION
+          elif [ "${EVENT_NAME}" = "pull_request" ] ;then
+            mkdir charts
+            orc8r/tools/helm/package.sh --deployment-type all --version $VERSION --only-package
           else
             orc8r/tools/helm/package.sh --deployment-type all
           fi
+      - name: Upload charts as artifacts
+        uses: actions/upload-artifact@v2
+        if: github.event_name == 'pull_request'
+        with:
+          name: helm-charts
+          path: charts
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      # Used as version for PR builds
+      - name: Save PR number
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+          echo "false" > ./pr/skipped
+      - uses: actions/upload-artifact@v2
+        with:
+          name: pr
+          path: pr/
       - name: Extract commit title
         id: commit
-        if: failure()
+        if: failure() && github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
-        if: failure()
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -49,6 +86,7 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
       - name: Only keep the last 20 uploaded versions
+        if: github.event_name == 'push'
         run: |
           pip install artifactory
           python ci-scripts/helm_repo_rotation.py

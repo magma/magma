@@ -209,10 +209,10 @@ nas_amf_ident_proc_t* nas5g_new_identification_procedure(
   }
   nas_amf_ident_proc_t* ident_proc       = new nas_amf_ident_proc_t;
   ident_proc->amf_com_proc.amf_proc.type = NAS_AMF_PROC_TYPE_COMMON;
-  ident_proc->T3570.sec                  = amf_config.nas_config.t3570_sec;
-  ident_proc->T3570.id                   = AMF_APP_TIMER_INACTIVE_ID;
-  ident_proc->amf_com_proc.type          = AMF_COMM_PROC_IDENT;
-  nas_amf_common_procedure_t* wrapper    = new nas_amf_common_procedure_t;
+  ident_proc->T3570.msec              = 1000 * amf_config.nas_config.t3570_sec;
+  ident_proc->T3570.id                = AMF_APP_TIMER_INACTIVE_ID;
+  ident_proc->amf_com_proc.type       = AMF_COMM_PROC_IDENT;
+  nas_amf_common_procedure_t* wrapper = new nas_amf_common_procedure_t;
   if (wrapper) {
     wrapper->proc = &ident_proc->amf_com_proc;
     LIST_INSERT_HEAD(
@@ -510,6 +510,25 @@ int amf_handle_s6a_update_location_ans(
       ula_pP->subscription_data.subscribed_ambr.br_unit);
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+}
+
+/* Cleanup all procedures in amf_context */
+void amf_nas_proc_clean_up(ue_m5gmm_context_s* ue_context_p) {
+  // Check if registrion procedure exists
+  nas_amf_registration_proc_t* registration_proc =
+      get_nas_specific_procedure_registration(&(ue_context_p->amf_context));
+
+  // Delete registration procedures
+  amf_delete_registration_proc(&(ue_context_p->amf_context));
+}
+
+void nas_amf_procedure_gc(amf_context_t* const amf_context) {
+  if (LIST_EMPTY(&amf_context->amf_procedures->amf_common_procs) &&
+      LIST_EMPTY(&amf_context->amf_procedures->cn_procs) &&
+      (!amf_context->amf_procedures->amf_specific_proc)) {
+    delete amf_context->amf_procedures;
+    amf_context->amf_procedures = nullptr;
+  }
 }
 
 }  // namespace magma5g

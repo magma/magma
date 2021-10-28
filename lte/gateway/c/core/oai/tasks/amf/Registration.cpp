@@ -963,9 +963,14 @@ void amf_delete_registration_proc(amf_context_t* amf_ctx) {
     if (proc->ies) {
       amf_delete_registration_ies(&proc->ies);
     }
-  }
 
-  amf_delete_child_procedures(amf_ctx, (nas5g_base_proc_t*) proc);
+    amf_delete_child_procedures(amf_ctx, (nas5g_base_proc_t*) proc);
+    delete_wrapper(&proc);
+
+    amf_ctx->amf_procedures->amf_specific_proc = nullptr;
+
+    nas_amf_procedure_gc(amf_ctx);
+  }
 }  // namespace magma5g
 
 /***********************************************************************
@@ -983,24 +988,26 @@ void amf_delete_registration_proc(amf_context_t* amf_ctx) {
  ***********************************************************************/
 void amf_delete_registration_ies(amf_registration_request_ies_t** ies) {
   if ((*ies)->imsi) {
-    delete_wrapper((void**) &(*ies)->imsi);
+    delete_wrapper(&(*ies)->imsi);
   }
 
   if ((*ies)->guti) {
-    delete_wrapper((void**) &(*ies)->guti);
+    delete_wrapper(&(*ies)->guti);
   }
 
   if ((*ies)->imei) {
-    delete_wrapper((void**) &(*ies)->imei);
+    delete_wrapper(&(*ies)->imei);
   }
 
   if ((*ies)->drx_parameter) {
-    delete_wrapper((void**) &(*ies)->drx_parameter);
+    delete_wrapper(&(*ies)->drx_parameter);
   }
 
   if ((*ies)->last_visited_registered_tai) {
-    delete_wrapper((void**) &(*ies)->last_visited_registered_tai);
+    delete_wrapper(&(*ies)->last_visited_registered_tai);
   }
+
+  delete_wrapper(ies);
 }
 
 /***********************************************************************
@@ -1034,14 +1041,30 @@ void amf_delete_child_procedures(
   }
 }
 
+static void delete_common_proc_by_type(nas_amf_common_proc_t* proc) {
+  if (proc) {
+    switch (proc->type) {
+      case AMF_COMM_PROC_AUTH: {
+        delete (reinterpret_cast<nas5g_amf_auth_proc_t*>(proc));
+      } break;
+      case AMF_COMM_PROC_SMC: {
+        delete (reinterpret_cast<nas_amf_smc_proc_t*>(proc));
+      } break;
+      case AMF_COMM_PROC_IDENT: {
+        delete (reinterpret_cast<nas_amf_ident_proc_t*>(proc));
+      } break;
+      default: {}
+    }
+  }
+}
+
 /***********************************************************************
  ** Name:    amf_delete_common_procedure()                            **
  **                                                                   **
  ** Description: deletes the nas registration specific common         **
  **              procedures                                           **
  **                                                                   **
- ** Inputs:  amf_ctx:   The amf context                               **
- **          proc: nas amf common proc                                **
+ ** Inputs:  proc: nas amf common proc                                **
  **                                                                   **
  **                                                                   **
  ** Outputs:     None                                                 **
@@ -1051,8 +1074,7 @@ void amf_delete_child_procedures(
  ***********************************************************************/
 void amf_delete_common_procedure(
     amf_context_t* amf_ctx, nas_amf_common_proc_t** proc) {
-  if (*proc) {
-    /* delete proc content */
+  if (proc && *proc) {
     switch ((*proc)->type) {
       case AMF_COMM_PROC_AUTH: {
       } break;
@@ -1062,49 +1084,30 @@ void amf_delete_common_procedure(
       } break;
       default: {}
     }
+  }
 
-    // remove proc from list
-    if (amf_ctx->amf_procedures) {
-      nas_amf_common_procedure_t* p1 =
-          LIST_FIRST(&amf_ctx->amf_procedures->amf_common_procs);
-      nas_amf_common_procedure_t* p2 = NULL;
-      while (p1) {
-        p2 = LIST_NEXT(p1, entries);
-        if (p1->proc == (nas_amf_common_proc_t*) (*proc)) {
-          LIST_REMOVE(p1, entries);
-          delete_wrapper((void**) &p1->proc);
-          delete_wrapper((void**) &p1);
-          return;
-        }
-        p1 = p2;
+  // remove proc from list
+  if (amf_ctx->amf_procedures) {
+    nas_amf_common_procedure_t* p1 =
+        LIST_FIRST(&amf_ctx->amf_procedures->amf_common_procs);
+    nas_amf_common_procedure_t* p2 = NULL;
+
+    // 2 methods: this one, the other: use parent struct macro and LIST_REMOVE
+    // without searching matching element in the list
+    while (p1) {
+      p2 = LIST_NEXT(p1, entries);
+      if (p1->proc == (nas_amf_common_proc_t*) (*proc)) {
+        LIST_REMOVE(p1, entries);
+        delete_common_proc_by_type(p1->proc);
+        delete (p1);
+        return;
       }
+      p1 = p2;
     }
+    nas_amf_procedure_gc(amf_ctx);
   }
 
-  // if not found in list, free it anyway
-  if (*proc) {
-    delete_wrapper((void**) proc);
-  }
-}
-
-/***********************************************************************
- ** Name:    delete_wrapper()                                         **
- **                                                                   **
- ** Description: deletes the memory                                   **
- **                                                                   **
- ** Inputs: ptr:   pointer to be freed                                **
- **                                                                   **
- **                                                                   **
- ** Outputs:     None                                                 **
- **      Return:    void                                              **
- **      Others:    None                                              **
- **                                                                   **
- ***********************************************************************/
-void delete_wrapper(void** ptr) {
-  if (ptr && *ptr) {
-    delete (*ptr);
-    *ptr = NULL;
-  }
+  return;
 }
 /****************************************************************************
 **                                                                        **
@@ -1149,6 +1152,7 @@ int amf_proc_registration_abort(
     message_p->ittiMsgHeader.imsi = ue_amf_context->amf_context.imsi64;
     send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
     amf_delete_registration_proc(amf_ctx);
+    amf_free_ue_context(ue_amf_context);
     rc = RETURNok;
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);

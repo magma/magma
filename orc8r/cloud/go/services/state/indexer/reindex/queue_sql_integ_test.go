@@ -34,7 +34,7 @@ import (
 )
 
 func init() {
-	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+	// _ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
 }
 
 func TestSQLReindexJobQueue_Integration_PopulateJobs(t *testing.T) {

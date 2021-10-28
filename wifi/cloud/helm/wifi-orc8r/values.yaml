@@ -1,0 +1,86 @@
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Reference to one or more secrets to be used when pulling images
+# ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# - name: orc8r-secrets-registry
+
+# Generic values applied to all orc8r application services
+controller:
+  # Configure pod disruption budgets for controller
+  # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+    maxUnavailable: ""
+
+  # orc8r_base image
+  image:
+    repository: <registry>/orc8r_base
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  spec:
+    # Postgres/mysql configuration
+    database:
+      driver: postgres      # mysql/postgres
+      sql_dialect: psql # maria/psql
+      db: magma          # DB Name
+      protocol: tcp
+      host: postgresql
+      port: 5432
+      user: postgres
+      pass: postgres
+    service_registry:
+      mode: "k8s"
+
+  podAnnotations: {}
+
+  # Number of controller replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign proxy to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
+# Define which secrets should be mounted by pods.
+secret:
+  certs: orc8r-secrets-certs
+  configs:
+    orc8r: orc8r-secrets-configs-orc8r
+  envdir: orc8r-secrets-envdir
+
+wifi:
+  service:
+    labels:
+      orc8r.io/mconfig_builder: "true"
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/wifi"

@@ -53,6 +53,7 @@ setup(
         'magma.subscriberdb.protocols.diameter.application',
         'magma.subscriberdb.store',
         'magma.kernsnoopd',
+        'load_tests',
     ],
     scripts=[
         'scripts/agw_health_cli.py',
@@ -83,6 +84,9 @@ setup(
         'scripts/cpe_monitoring_cli.py',
         'scripts/state_cli.py',
         'scripts/dp_probe_cli.py',
+        'load_tests/loadtest_sessiond.py',
+        'load_tests/loadtest_pipelined.py',
+        'load_tests/loadtest_mobilityd.py',
     ],
     package_data={'magma.redirectd.templates': ['*.html']},
     install_requires=[

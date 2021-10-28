@@ -216,7 +216,6 @@ def wait_after_send(test_controller, wait_time=1, max_sleep_time=20):
     sleep_time = 0
     pkt_cnt_old = -1
     while True:
-        hub.sleep(wait_time)
 
         pkt_cnt_new = sum(
             table.matched_count for table in
@@ -233,6 +232,7 @@ def wait_after_send(test_controller, wait_time=1, max_sleep_time=20):
                 "Waiting on pkts exceeded the max({}) sleep time".
                 format(max_sleep_time),
             )
+        hub.sleep(wait_time)
 
 
 def setup_controller(

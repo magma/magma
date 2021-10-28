@@ -2271,6 +2271,7 @@ status_code_e s1ap_mme_handle_handover_cancel(
   S1ap_HandoverCancelAcknowledge_t* out;
   S1ap_HandoverCancelAcknowledgeIEs_t* hca_ie = NULL;
   ue_description_t* ue_ref_p                  = NULL;
+  e_rab_admitted_list_t e_rab_admitted_list   = {0};
   mme_ue_s1ap_id_t mme_ue_s1ap_id             = INVALID_MME_UE_S1AP_ID;
   enb_ue_s1ap_id_t enb_ue_s1ap_id             = INVALID_ENB_UE_S1AP_ID;
   S1ap_Cause_PR cause_type;
@@ -2346,7 +2347,14 @@ status_code_e s1ap_mme_handle_handover_cancel(
     // this effectively cancels the HandoverPreparation proecedure as we
     // only send a HandoverCommand if the UE is in the S1AP_UE_HANDOVER
     // state.
-    ue_ref_p->s1_ue_state         = S1AP_UE_CONNECTED;
+    ue_ref_p->s1_ue_state = S1AP_UE_CONNECTED;
+    /* Free all the transport layer address pointers in ERAB admitted list
+     * before actually resetting the S1AP handover state
+     */
+    e_rab_admitted_list = ue_ref_p->s1ap_handover_state.e_rab_admitted_list;
+    for (int i = 0; i < e_rab_admitted_list.no_of_items; i++) {
+      bdestroy_wrapper(&e_rab_admitted_list.item[i].transport_layer_address);
+    }
     ue_ref_p->s1ap_handover_state = (struct s1ap_handover_state_s){0};
   } else {
     // Not a failure, but nothing for us to do.
@@ -3124,8 +3132,8 @@ status_code_e s1ap_mme_handle_handover_notify(
 
     new_ue_ref_p->s1ap_ue_context_rel_timer.id =
         src_ue_ref_p->s1ap_ue_context_rel_timer.id;
-    new_ue_ref_p->s1ap_ue_context_rel_timer.sec =
-        src_ue_ref_p->s1ap_ue_context_rel_timer.sec;
+    new_ue_ref_p->s1ap_ue_context_rel_timer.msec =
+        src_ue_ref_p->s1ap_ue_context_rel_timer.msec;
     new_ue_ref_p->sctp_stream_recv =
         src_ue_ref_p->s1ap_handover_state.target_sctp_stream_recv;
     new_ue_ref_p->sctp_stream_send =
@@ -3389,8 +3397,8 @@ status_code_e s1ap_mme_handle_path_switch_request(
 
     new_ue_ref_p->s1ap_ue_context_rel_timer.id =
         ue_ref_p->s1ap_ue_context_rel_timer.id;
-    new_ue_ref_p->s1ap_ue_context_rel_timer.sec =
-        ue_ref_p->s1ap_ue_context_rel_timer.sec;
+    new_ue_ref_p->s1ap_ue_context_rel_timer.msec =
+        ue_ref_p->s1ap_ue_context_rel_timer.msec;
     // On which stream we received the message
     new_ue_ref_p->sctp_stream_recv = stream;
     new_ue_ref_p->sctp_stream_send = enb_association->next_sctp_stream;
@@ -3720,7 +3728,7 @@ status_code_e s1ap_handle_new_association(
     /*
      * Create new context
      */
-    enb_association = s1ap_new_enb(state);
+    enb_association = s1ap_new_enb();
 
     if (enb_association == NULL) {
       /*

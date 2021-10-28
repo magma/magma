@@ -560,7 +560,7 @@ void mme_app_handle_conn_est_cnf(
    * context release command to eNB
    */
   if ((ue_context_p->initial_context_setup_rsp_timer.id = mme_app_start_timer(
-           ue_context_p->initial_context_setup_rsp_timer.sec * 1000,
+           ue_context_p->initial_context_setup_rsp_timer.msec,
            TIMER_REPEAT_ONCE,
            mme_app_handle_initial_context_setup_rsp_timer_expiry,
            ue_context_p->mme_ue_s1ap_id)) == -1) {
@@ -1903,7 +1903,7 @@ status_code_e mme_app_handle_mobile_reachability_timer_expiry(
 
   // Start Implicit Detach timer
   if ((ue_context_p->implicit_detach_timer.id = mme_app_start_timer(
-           ue_context_p->implicit_detach_timer.sec * 1000, TIMER_REPEAT_ONCE,
+           ue_context_p->implicit_detach_timer.msec, TIMER_REPEAT_ONCE,
            mme_app_handle_implicit_detach_timer_expiry,
            ue_context_p->mme_ue_s1ap_id)) == -1) {
     OAILOG_ERROR_UE(
@@ -2198,7 +2198,7 @@ status_code_e mme_app_paging_request_helper(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   if ((ue_context_p->paging_response_timer.id = mme_app_start_timer(
-           ue_context_p->paging_response_timer.sec * 1000, TIMER_REPEAT_ONCE,
+           ue_context_p->paging_response_timer.msec, TIMER_REPEAT_ONCE,
            mme_app_handle_paging_timer_expiry, ue_context_p->mme_ue_s1ap_id)) ==
       -1) {
     OAILOG_ERROR_UE(

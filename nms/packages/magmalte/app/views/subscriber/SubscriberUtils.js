@@ -62,3 +62,14 @@ export const SUBSCRIBER_EXPORT_COLUMNS = [
   {title: 'Data Plan', field: 'sub_profile'},
   {title: 'Active APNs', field: 'active_apns'},
 ];
+export const SUBSCRIBER_ADD_ERRORS = Object.freeze({
+  INVALID_IMSI:
+    'The IMSI should be a string IMSI followed by a number with 10-15 digits',
+  INVALID_AUTH_KEY:
+    'Auth key is not a valid hex (example: 000102030405060708090A0B0C0D0E0F)',
+  INVALID_AUTH_OPC:
+    'Auth opc is not a valid hex (example: 000102030405060708090A0B0C0D0E0F)',
+  REQUIRED_SUB_PROFILE: 'Please select a data plan',
+  DUPLICATE_IMSI: 'The IMSI is duplicated',
+  REQUIRED_AUTH_KEY: 'Auth key is required',
+});

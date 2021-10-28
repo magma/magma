@@ -32,6 +32,11 @@ namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 // Creating ue_context_map based on key:ue_id and value:ue_context
 std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
+// Creating smf_ctxt_map based on key:pdu_session_id and value:smf_context
+std::unordered_map<uint8_t, std::shared_ptr<smf_context_t>> smf_ctxt_map;
+
+std::shared_ptr<smf_context_t> amf_insert_smf_context(
+    ue_m5gmm_context_s*, uint8_t);
 
 amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
     amf_ue_ngap_id_t* amf_app_ue_ngap_id_generator_p) {
@@ -208,49 +213,42 @@ ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
  **                                                                        **
  ** Name:    amf_insert_smf_context()                                      **
  **                                                                        **
- ** Description: Insert smf context in the vector                          **
+ ** Description: Insert smf context in the map                             **
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-smf_context_t* amf_insert_smf_context(
+std::shared_ptr<smf_context_t> amf_insert_smf_context(
     ue_m5gmm_context_s* ue_context, uint8_t pdu_session_id) {
-  smf_context_t smf_context = {};
-  std::vector<smf_context_t>::iterator i;
-  int j = 0;
-
-  for (i = ue_context->amf_context.smf_ctxt_vector.begin();
-       i != ue_context->amf_context.smf_ctxt_vector.end(); i++, j++) {
-    if (i->smf_proc_data.pdu_session_identity.pdu_session_id ==
-        pdu_session_id) {
-      ue_context->amf_context.smf_ctxt_vector.at(j) = smf_context;
-      return ue_context->amf_context.smf_ctxt_vector.data() + j;
-    }
+  std::shared_ptr<smf_context_t> smf_context;
+  smf_context =
+      amf_get_smf_context_by_pdu_session_id(ue_context, pdu_session_id);
+  if (smf_context) {
+    return smf_context;
+  } else {
+    smf_context = std::make_shared<smf_context_t>();
+    ue_context->amf_context.smf_ctxt_map[pdu_session_id] = smf_context;
   }
-
-  // add new element to the vector
-  ue_context->amf_context.smf_ctxt_vector.push_back(smf_context);
-  return ue_context->amf_context.smf_ctxt_vector.data() + j;
+  return smf_context;
 }
 
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_smf_context_exists_pdu_session_id()                       **
+ ** Name:   amf_get_smf_context_by_pdu_session_id()                        **
  **                                                                        **
- ** Description: Get the smf context from the vector                       **
+ ** Description: Get the smf context from the map                          **
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-smf_context_t* amf_smf_context_exists_pdu_session_id(
+std::shared_ptr<smf_context_t> amf_get_smf_context_by_pdu_session_id(
     ue_m5gmm_context_s* ue_context, uint8_t id) {
-  std::vector<smf_context_t>::iterator i;
-  int j = 0;
-  for (i = ue_context->amf_context.smf_ctxt_vector.begin();
-       i != ue_context->amf_context.smf_ctxt_vector.end(); i++, j++) {
-    if (i->smf_proc_data.pdu_session_identity.pdu_session_id == id) {
-      return ue_context->amf_context.smf_ctxt_vector.data() + j;
+  std::shared_ptr<smf_context_t> smf_context;
+  for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
+    if (it.first == id) {
+      smf_context = it.second;
+      break;
     }
   }
-  return NULL;
+  return smf_context;
 }
 
 /****************************************************************************
@@ -383,6 +381,24 @@ ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
 
 /****************************************************************************
  **                                                                        **
+ ** Name:    amf_lookup_guti_by_ueid()                                     **
+ **                                                                        **
+ ** Description:  Fetch the guti based on ue id                            **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id) {
+  amf_context_t* amf_ctxt = amf_context_get(ue_id);
+
+  if (amf_ctxt == NULL) {
+    return (0);
+  }
+
+  return amf_ctxt->m5_guti.m_tmsi;
+}
+
+/****************************************************************************
+ **                                                                        **
  ** Name:    amf_idle_mode_procedure()                                     **
  **                                                                        **
  ** Description:  Transition to idle mode                                  **
@@ -395,9 +411,10 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
       PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context);
   amf_ue_ngap_id_t ue_id = ue_context_p->amf_ue_ngap_id;
 
-  for (auto it = ue_context_p->amf_context.smf_ctxt_vector.begin();
-       it != ue_context_p->amf_context.smf_ctxt_vector.end(); it++) {
-    it->pdu_session_state = INACTIVE;
+  std::shared_ptr<smf_context_t> smf_ctx;
+  for (auto& it : ue_context_p->amf_context.smf_ctxt_map) {
+    smf_ctx                    = it.second;
+    smf_ctx->pdu_session_state = INACTIVE;
   }
 
   amf_smf_notification_send(ue_id, ue_context_p, UE_IDLE_MODE_NOTIFY);
@@ -417,13 +434,16 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   hashtable_rc_t h_rc                = HASH_TABLE_OK;
   amf_app_desc_t* amf_app_desc_p     = get_amf_nas_state(false);
   amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
-
+  OAILOG_DEBUG(LOG_NAS_AMF, "amf_free_ue_context \n");
   hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
   if (!ue_context_p || !amf_ue_context_p) {
     return;
   }
 
   amf_remove_ue_context(ue_context_p);
+
+  // Clean up the procedures
+  amf_nas_proc_clean_up(ue_context_p);
 
   if (ue_context_p->gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) {
     h_rc = hashtable_uint64_ts_remove(
@@ -459,4 +479,5 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   delete ue_context_p;
   ue_context_p = NULL;
 }
+
 }  // namespace magma5g
