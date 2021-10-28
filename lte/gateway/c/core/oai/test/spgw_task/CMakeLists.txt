@@ -22,6 +22,7 @@ add_library(SPGW_TASK_TEST_LIB
     state_creators.cpp
     spgw_test_util.h
     spgw_test_util.cpp
+    spgw_test.cpp
     )
 
 link_directories(/usr/src/googletest/googlemock/lib/)

@@ -19,6 +19,6 @@ extern "C" {
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  OAILOG_INIT("SPGW", OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS);
+  OAILOG_INIT("MME", OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS);
   return RUN_ALL_TESTS();
 }

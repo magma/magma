@@ -58,6 +58,7 @@ int sgw_cm_remove_eps_bearer_entry(
 // Returns SPGW state pointer for given UE indexed by IMSI
 s_plus_p_gw_eps_bearer_context_information_t* sgw_cm_get_spgw_context(
     teid_t teid);
+spgw_ue_context_t* spgw_get_ue_context(imsi64_t imsi64);
 spgw_ue_context_t* spgw_create_or_get_ue_context(imsi64_t imsi64);
 
 int spgw_update_teid_in_ue_context(imsi64_t imsi64, teid_t teid);
