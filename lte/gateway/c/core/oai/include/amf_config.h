@@ -192,3 +192,4 @@ int amf_config_parse_file(amf_config_t*);
 void amf_config_display(amf_config_t*);
 
 void amf_config_exit(void);
+void amf_config_free(amf_config_t* amf_config);

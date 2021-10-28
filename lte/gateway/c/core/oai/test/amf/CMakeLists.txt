@@ -9,38 +9,47 @@
 
 cmake_minimum_required(VERSION 3.7.2)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-include_directories("${PROJECT_SOURCE_DIR}")
-include_directories("${PROJECT_SOURCE_DIR}/tasks/amf")
-include_directories("${PROJECT_SOURCE_DIR}/include/nas/")
-include_directories("${PROJECT_SOURCE_DIR}/lib/secu")
-
+# Dependencies
+find_package(Check REQUIRED)
+find_package(Threads REQUIRED)
 pkg_search_module(OPENSSL openssl REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIRS})
 
 pkg_search_module(CRYPTO libcrypto REQUIRED)
 include_directories(${CRYPTO_INCLUDE_DIRS})
 
-add_library(AMF_TASK_TEST_LIB
-    util_nas5g_pkt.h
+pkg_search_module(NETTLE nettle REQUIRED)
+include_directories(${NETTLE_INCLUDE_DIRS})
+
+
+include_directories(${PROJECT_SOURCE_DIR})
+include_directories("${PROJECT_SOURCE_DIR}/include/nas")
+
+include_directories("/usr/src/googletest/googlemock/include/")
+link_directories(/usr/src/googletest/googlemock/lib/)
+
+set(AMF_APP_TEST_SRC
+    amf_app_test.cpp
     util_nas5g_registration_pkt.cpp
     util_nas5g_auth_fail_pkt.cpp
     util_nas5g_ul_nas_pdu_decode.cpp
     util_nas5g_service_request_pkt.cpp
     util_nas5g_security_mode_reject_pkt.cpp
-    )
-link_directories(${PROJECT_SOURCE_DIR}/tasks/amf)
-target_link_libraries(AMF_TASK_TEST_LIB
-        ${CONFIG}
-        COMMON
-	LIB_NAS5G TASK_AMF_APP gtest gtest_main pthread rt yaml-cpp
-        ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
-        ${NETTLE_LIBRARIES}
+    test_amf_encode_decode.cpp
+    amf_app_test_util.cpp
+    test_amf_procedures.cpp
     )
 
-add_executable(amf_test test_amf.cpp)
-target_link_libraries(amf_test AMF_TASK_TEST_LIB TASK_AMF_APP)
-add_test(test_amf amf_test)
+add_executable(amf_app_test ${AMF_APP_TEST_SRC})
+
+target_link_libraries(amf_app_test
+    TASK_AMF_APP LIB_N11 LIB_NAS5G LIB_SECU ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
+    LIB_BSTR LIB_ITTI MOCK_TASKS gtest gtest_main crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
+    ${NETTLE_LIBRARIES}
+    )
+
+add_test(NAME test_amf_app COMMAND amf_app_test)

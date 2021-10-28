@@ -219,7 +219,7 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
 
   amf_free_ue_context(ue_context);
 
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
 /***************************************************************************

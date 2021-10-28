@@ -3720,7 +3720,7 @@ status_code_e s1ap_handle_new_association(
     /*
      * Create new context
      */
-    enb_association = s1ap_new_enb(state);
+    enb_association = s1ap_new_enb();
 
     if (enb_association == NULL) {
       /*

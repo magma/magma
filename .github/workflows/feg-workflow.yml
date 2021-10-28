@@ -6,9 +6,11 @@ on:
   push:
     branches:
       - master
+      - v1.*
   pull_request:
     branches:
       - master
+      - v1.*
     types: [opened, reopened, synchronize]
 
 jobs:
@@ -26,6 +28,17 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/feg-workflow.yml", "orc8r/**", "lte/**", "feg/**"]
+      # Need to save metadata for deploy from PR job
+      - name: Save PR number and trigger type
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+          echo ${{ steps.changes.outputs.filesChanged == 'false'}} > ./pr/skipped
+      - name: upload metadata
+        uses: actions/upload-artifact@v2
+        with:
+          name: pr
+          path: pr/
   feg-lint:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
@@ -61,7 +74,7 @@ jobs:
           files: '${{ env.MAGMA_ROOT}}/feg/gateway/coverage/feg.gocov'
           flags: feg-lint
       - name: Extract commit title
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         id: commit
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
@@ -69,7 +82,7 @@ jobs:
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -113,14 +126,14 @@ jobs:
           path: "/tmp/test-results"
       - name: Extract commit title
         id: commit
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -131,10 +144,8 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
   feg-build:
-    needs:
-      - path_filter
-      - feg-precommit
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' || github.event_name == 'push' }}
     name: feg-build
     runs-on: ubuntu-latest
     env:
@@ -170,13 +181,26 @@ jobs:
         run: |
             cd ${MAGMA_ROOT}/feg/gateway/docker
             python3 build.py -e
+      - name: Export docker images to deploy them on pull_request
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir images
+          cd images
+          docker save feg_gateway_go | gzip > gateway_go.tar.gz
+          docker save feg_gateway_python | gzip > gateway_python.tar.gz
+      - name: Upload docker images as artifacts
+        uses: actions/upload-artifact@v2
+        if: github.event_name == 'pull_request'
+        with:
+          name: docker-images
+          path: images
       - name: Tag and push to Docker Registry
-        if: github.ref == 'refs/heads/master'
+        if: github.event_name == 'push'
         # yamllint disable rule:line-length
         run: |
             ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project feg
       - name: Tag and push to Jfrog Registry
-        if: github.ref == 'refs/heads/master'
+        if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "feg-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -184,7 +208,7 @@ jobs:
         run: |
             ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project feg
       - name: Extract commit title
-        if: github.ref == 'refs/heads/master'
+        if: github.event_name == 'push'
         id: commit
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
@@ -193,7 +217,7 @@ jobs:
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
       - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -205,7 +229,7 @@ jobs:
           SLACK_FOOTER: ' '
       # Notify ci channel when push succeeds
       - name: Notify success to slack
-        if: success() && github.ref == 'refs/heads/master'
+        if: success() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}

@@ -21,12 +21,12 @@ extern "C" {
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
 #include "service303_message_utils.h"
+#include "amf_config.h"
 #include "amf_as_message.h"
 #ifdef __cplusplus
 }
 #endif
 #include "amf_app_messages_types.h"
-#include "amf_config.h"
 #include "amf_fsm.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_data.h"
@@ -208,26 +208,10 @@ extern "C" int amf_app_init(const amf_config_t* amf_config_p) {
  **                                                                        **
  ***************************************************************************/
 void amf_app_exit(void) {
+  clear_amf_nas_state();
+  amf_config_exit();
   destroy_task_context(&amf_app_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_AMF_APP terminated\n");
   pthread_exit(NULL);
-}
-/****************************************************************************
- **                                                                        **
- ** Name:    amf_send_msg_to_task()                                        **
- **                                                                        **
- ** Description:  wrapper api for itti send                                **
- **                                                                        **
- **                                                                        **
- ***************************************************************************/
-status_code_e amf_send_msg_to_task(
-    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
-    MessageDef* message) {
-  OAILOG_INFO(
-      LOG_AMF_APP, "Sending msg to :[%s] id: [%d]-[%s]\n",
-      itti_get_task_name(destination_task_id), ITTI_MSG_ID(message),
-      ITTI_MSG_NAME(message));
-
-  return send_msg_to_task(task_zmq_ctx_p, destination_task_id, message);
 }
 }  // namespace magma5g

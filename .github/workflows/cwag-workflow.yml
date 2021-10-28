@@ -5,9 +5,11 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
+      - v1.*
   pull_request:
     branches:
       - master
+      - v1.*
     types: [opened, reopened, synchronize]
 
 jobs:
@@ -26,6 +28,17 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/cwag-workflow.yml", "orc8r/**", "lte/**", "feg/**", "cwf/**"]
+      # Need to save metadata for deploy from PR job
+      - name: Save PR number and trigger type
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+          echo ${{ steps.changes.outputs.filesChanged == 'false'}} > ./pr/skipped
+      - name: upload metadata
+        uses: actions/upload-artifact@v2
+        with:
+          name: pr
+          path: pr/
   cwag-precommit:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
@@ -53,7 +66,7 @@ jobs:
             cd ${MAGMA_ROOT}/cwf/gateway
             make -C ${MAGMA_ROOT}/cwf/gateway/integ_tests precommit
       - name: Extract commit title
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         id: commit
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
@@ -61,7 +74,7 @@ jobs:
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -73,7 +86,7 @@ jobs:
           SLACK_FOOTER: ' '
   cwag-build:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' || github.event_name == 'push' }}
     name: cwag build job
     runs-on: ubuntu-latest
     env:
@@ -148,8 +161,47 @@ jobs:
              echo "Docker compose failed"
              exit 1
           fi
+      - name: Build xwf go radius
+        run: |
+          cd ${MAGMA_ROOT}/feg
+          docker build --build-arg BUILD_NUM=${GITHUB_SHA:0:8} --tag goradius -f radius/src/Dockerfile ./
+      - name: Load openvswitch kernel module for xwf integ test
+        # yamllint enable
+        run: sudo modprobe openvswitch
+      - name: Build xwfm-integ-tests
+        run: |
+          cd ${MAGMA_ROOT}
+          docker build --tag xwfm-integ-tests -f xwf/gateway/integ_tests/gw/Dockerfile ./
+      - name: Export docker images to deploy them on pull_request
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir images
+          cd images
+          docker save cwf_cwag_go | gzip > cwag_go.tar.gz
+          docker save cwf_gateway_go | gzip > gateway_go.tar.gz
+          docker save cwf_gateway_sessiond | gzip > gateway_sessiond.tar.gz
+          docker save cwf_gateway_python | gzip > gateway_python.tar.gz
+          docker save cwf_gateway_pipelined | gzip > gateway_pipelined.tar.gz
+          docker save goradius | gzip > goradius.tar.gz
+          docker save xwfm-integ-tests | gzip > xwfm-integ-tests.tar.gz
+      - name: Upload docker images as artifacts
+        uses: actions/upload-artifact@v2
+        if: github.event_name == 'pull_request'
+        with:
+          name: docker-images
+          path: images
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      # Used as version for PR builds
+      - name: Save PR number
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+      - uses: actions/upload-artifact@v2
+        with:
+          name: pr
+          path: pr/
       - name: Tag and push to Docker Registry
-        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+        if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
           DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
@@ -157,16 +209,34 @@ jobs:
         run: |
             ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwf
       - name: Tag and push to Jfrog Registry
-        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+        if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "cwf-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
             ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwf
+      - name: Tag and push to Docker Registry goradius
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
+          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+        # yamllint disable rule:line-length
+        run: |
+          ./ci-scripts/tag-push-docker.sh --images 'goradius' --tag "${GITHUB_SHA:0:8}" --tag-latest true
+      - name: Tag and push to Docker Registry xwfm-integ-tests
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
+          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+        # yamllint disable rule:line-length
+        run: |
+          ./ci-scripts/tag-push-docker.sh --images 'xwfm-integ-tests' --tag "${GITHUB_SHA:0:8}" --tag-latest true
       - name: Extract commit title
         id: commit
-        if: github.ref == 'refs/heads/master'
+        if: github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
@@ -174,11 +244,11 @@ jobs:
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
       - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "CWAG-deploy failed"
+          SLACK_TITLE: "CWAG/xwfm-deploy failed"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "CWAG workflow"
           SLACK_ICON_EMOJI: ":boom:"
@@ -186,80 +256,12 @@ jobs:
           SLACK_FOOTER: ' '
       # Notify ci channel when push succeeds
       - name: Notify success to slack
-        if: success() && github.ref == 'refs/heads/master'
+        if: success() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "*CWAG Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "CWAG workflow"
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
-          SLACK_FOOTER: ' '
-  xwfm-deploy-latest:
-    needs:
-      - path_filter
-      - cwag-deploy
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    name: xwfm deploy job
-    runs-on: ubuntu-latest
-    env:
-      MAGMA_ROOT: "${{ github.workspace }}"
-      DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
-      DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
-      DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build xwf go radius
-        run: |
-              cd ${MAGMA_ROOT}/feg
-              docker build --build-arg BUILD_NUM=${GITHUB_SHA:0:8} --tag goradius -f radius/src/Dockerfile ./
-      - name: Tag and push to Docker Registry
-        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
-        # yamllint disable rule:line-length
-        run: |
-            ./ci-scripts/tag-push-docker.sh --images 'goradius' --tag "${GITHUB_SHA:0:8}" --tag-latest true
-      - name: Load openvswitch kernel module for xwf integ test
-        # yamllint enable
-        run: sudo modprobe openvswitch
-      - name: Build xwfm-integ-tests
-        run: |
-              cd ${MAGMA_ROOT}
-              docker build --tag xwfm-integ-tests -f xwf/gateway/integ_tests/gw/Dockerfile ./
-      - name: Tag and push to Docker Registry
-        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
-        # yamllint disable rule:line-length
-        run: |
-            ./ci-scripts/tag-push-docker.sh --images 'xwfm-integ-tests' --tag "${GITHUB_SHA:0:8}" --tag-latest true
-      - name: Extract commit title
-        id: commit
-        if: github.ref == 'refs/heads/master'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      # Notify ci channel when failing
-      # Plugin info: https://github.com/marketplace/actions/slack-notify
-      # yamllint enable
-      - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action xwfm-deploy-latest failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "CWAG workflow"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      # Notify ci channel when push succeeds
-      - name: Notify success to slack
-        if: success() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "*xwfm Artifact Has Been Published*"
+          SLACK_TITLE: "*CWAG/xwfm Artifact Has Been Published*"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "CWAG workflow"
           SLACK_ICON_EMOJI: ":heavy_check_mark:"

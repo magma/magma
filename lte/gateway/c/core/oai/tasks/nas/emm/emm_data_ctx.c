@@ -653,6 +653,9 @@ void free_emm_ctx_memory(
   if (!ctxt) {
     return;
   }
+  if (ctxt->t3422_arg) {
+    free_wrapper((void**) &ctxt->t3422_arg);
+  }
   nas_delete_all_emm_procedures(ctxt);
   free_esm_context_content(&ctxt->esm_ctx);
   bdestroy_wrapper(&ctxt->esm_msg);

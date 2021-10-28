@@ -5,9 +5,11 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
+      - v1.*
   pull_request:
     branches:
       - master
+      - v1.*
     types: [opened, reopened, synchronize]
 
 jobs:
@@ -24,8 +26,18 @@ jobs:
         with:
           filters: |
             filesChanged:
-              - [".github/workflows/cloud-workflow.yml", "wifi/cloud/**", "cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/cloud/**", "orc8r/lib/**"]
-
+              - [".github/workflows/cloud-workflow.yml", "wifi/cloud/**", "lte/proto/**", "cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/cloud/**", "orc8r/lib/**"]
+      # Need to save metadata for deploy from PR job
+      - name: Save PR number and trigger type
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+          echo ${{ steps.changes.outputs.filesChanged == 'false'}} > ./pr/skipped
+      - name: upload metadata
+        uses: actions/upload-artifact@v2
+        with:
+          name: pr
+          path: pr/
   # Fail if checked-in generated code doesn't match output from
   # generation command.
   insync-checkin:
@@ -50,13 +62,13 @@ jobs:
             git status
             git diff-index --quiet HEAD
       - name: Extract commit title
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         id: commit
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -90,7 +102,7 @@ jobs:
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -128,12 +140,12 @@ jobs:
           flags: cloud_lint
       - name: Extract commit title
         id: commit
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -169,12 +181,12 @@ jobs:
           path: "${{ env.MAGMA_ROOT}}/orc8r/cloud/test-results/*"
       - name: Extract commit title
         id: commit
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -186,7 +198,7 @@ jobs:
           SLACK_FOOTER: ' '
   cloud-upload:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' && github.ref == 'refs/heads/master' }}
+    if: ${{ github.event_name == 'push'  }}
     name: cloud upload job
     runs-on: ubuntu-latest
     steps:
@@ -202,12 +214,12 @@ jobs:
           swaggerhub api:update MagmaCore/Magma/1.0.0 --file ${MAGMA_ROOT}/orc8r/cloud/go/obsidian/swagger/v1/swagger.yml --published=publish --visibility=public --setdefault
       - name: Extract commit title
         id: commit
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -220,11 +232,7 @@ jobs:
   orc8r-build:
     needs:
       - path_filter
-      - insync-checkin
-      - deploy-sync-checkin
-      - cloud-lint
-      - cloud-test
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' || github.event_name == 'push' }}
     name: orc8r build job
     runs-on: ubuntu-latest
     env:
@@ -243,6 +251,18 @@ jobs:
         run: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
             python3 build.py --all --nocache --parallel
+      - name: Export docker images to deploy them
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir images
+          cd images
+          docker save orc8r_nginx | gzip > nginx.tar.gz
+          docker save orc8r_controller  | gzip > controller.tar.gz
+      - uses: actions/upload-artifact@v2
+        if: github.event_name == 'pull_request'
+        with:
+          name: docker-images
+          path: images
       - name: Tag and push to Docker Registry
         if: github.ref == 'refs/heads/master'
         # yamllint disable rule:line-length
@@ -263,7 +283,7 @@ jobs:
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         # yamllint enable
         env:
@@ -276,7 +296,7 @@ jobs:
           SLACK_FOOTER: ' '
       # Notify ci channel when push succeeds
       - name: Notify success to Slack
-        if: success() && github.ref == 'refs/heads/master'
+        if: success() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}

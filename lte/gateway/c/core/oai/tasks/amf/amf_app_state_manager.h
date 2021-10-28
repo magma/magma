@@ -25,6 +25,8 @@ namespace magma5g {
  */
 amf_app_desc_t* get_amf_nas_state(bool read_from_redis);
 
+void clear_amf_nas_state();
+
 // Retrieving respective global hash table
 hash_table_ts_t* get_amf_ue_state();
 int amf_nas_state_init(const amf_config_t* amf_config_p);
@@ -73,10 +75,11 @@ class AmfNasStateManager {
   uint32_t amf_statistic_timer_;
   hash_table_ts_t* state_ue_ht;
   amf_app_desc_t* state_cache_p;
+  void free_state();
 
  private:
-  AmfNasStateManager() {}
-  ~AmfNasStateManager() {}
+  AmfNasStateManager();
+  ~AmfNasStateManager();
 
   // Initialize state that is non-persistent, e.g. mutex locks and timers
   void amf_nas_state_init_local_state();
