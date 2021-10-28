@@ -74,6 +74,7 @@ func TestSingletonRun(t *testing.T) {
 	// Check
 	recvCh(t, ch)
 	recvCh(t, ch)
+	// TODO: expect timeout
 
 	idx0.AssertExpectations(t)
 	require.Equal(t, reindexSuccessNum, 1)
@@ -89,12 +90,11 @@ func TestSingletonRun(t *testing.T) {
 	// Check
 	recvCh(t, ch)
 	recvCh(t, ch)
+	// TODO: expect timeout
 
 	idx0a.AssertExpectations(t)
 	require.Equal(t, reindexSuccessNum, 2)
 	require.Equal(t, reindexDoneNum, 2)
-
-	register(t)
 
 	// Indexer returns err => reindex jobs fail
 	// Fail1 at PrepareReindex
@@ -122,6 +122,7 @@ func TestSingletonRun(t *testing.T) {
 	recvCh(t, ch)
 	recvCh(t, ch)
 	recvCh(t, ch)
+	// TODO: expect timeout
 
 	fail1.AssertExpectations(t)
 	fail2.AssertExpectations(t)

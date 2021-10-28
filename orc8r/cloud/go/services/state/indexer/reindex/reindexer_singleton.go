@@ -138,7 +138,7 @@ func (r *reindexerSingleton) getJobs(indexerID string) ([]*Job, error) {
 		if v == nil {
 			return nil, fmt.Errorf("indexer %s version not tracked", x.GetID())
 		}
-		if v.Actual != v.Desired {
+		if v.Actual != v.Desired { // NOTE: x.GetVersion() != v.Actual would work but bug should be fixed
 			ret = append(ret, &Job{Idx: x, From: v.Actual, To: v.Desired})
 		}
 	}
