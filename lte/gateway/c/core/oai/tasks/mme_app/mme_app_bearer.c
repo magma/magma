@@ -611,11 +611,10 @@ imsi64_t mme_app_handle_initial_ue_message(
         "INITIAL UE Message: Valid mme_code %u and S-TMSI %u received from "
         "eNB.\n",
         initial_pP->opt_s_tmsi.mme_code, initial_pP->opt_s_tmsi.m_tmsi);
-    guti_t guti = {
-        .gummei.plmn     = {0},
-        .gummei.mme_gid  = 0,
-        .gummei.mme_code = 0,
-        .m_tmsi          = INVALID_M_TMSI};
+    guti_t guti = {.gummei.plmn     = {0},
+                   .gummei.mme_gid  = 0,
+                   .gummei.mme_code = 0,
+                   .m_tmsi          = INVALID_M_TMSI};
     plmn_t plmn;
     COPY_PLMN(plmn, (initial_pP->tai.plmn));
     is_guti_valid =
@@ -1142,7 +1141,7 @@ status_code_e mme_app_handle_create_sess_resp(
         "Create Session Response Cause value = (%d) for ue_id =(%u)\n",
         create_sess_resp_pP->cause.cause_value, ue_context_p->mme_ue_s1ap_id);
     create_session_response_fail.cause =
-        (pdn_conn_rsp_cause_t) (create_sess_resp_pP->cause.cause_value);
+        (pdn_conn_rsp_cause_t)(create_sess_resp_pP->cause.cause_value);
     goto error_handling_csr_failure;
   }
   increment_counter("mme_spgw_create_session_rsp", 1, 1, "result", "success");
@@ -3051,8 +3050,8 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
 
   ebi_t linked_eps_bearer_id = nw_init_bearer_actv_req_p->lbi;
   ue_context_p               = mme_ue_context_exists_s11_teid(
-                    &mme_app_desc_p->mme_ue_contexts,
-                    nw_init_bearer_actv_req_p->s11_mme_teid);
+      &mme_app_desc_p->mme_ue_contexts,
+      nw_init_bearer_actv_req_p->s11_mme_teid);
   bool is_msg_saved = false;
 
   if (ue_context_p == NULL) {
@@ -3374,7 +3373,7 @@ void mme_app_handle_handover_required(
   ho_request_p->cause                = handover_required_p->cause;
   ho_request_p->handover_type        = handover_required_p->handover_type;
   ho_request_p->src_tgt_container    = bstrcpy(
-         handover_required_p->src_tgt_container);  // ownership passed to receiver
+      handover_required_p->src_tgt_container);  // ownership passed to receiver
 
   // get the ambr
   ho_request_p->ue_ambr = ue_context_p->subscribed_ue_ambr;

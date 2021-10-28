@@ -310,7 +310,7 @@ status_code_e emm_proc_tracking_area_update_request(
     if (INVALID_M_TMSI != ies->old_guti.m_tmsi) {
       mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
       ue_mm_context                  = mme_ue_context_exists_guti(
-                           &mme_app_desc_p->mme_ue_contexts, &ies->old_guti);
+          &mme_app_desc_p->mme_ue_contexts, &ies->old_guti);
 
       if (ue_mm_context) {
         emm_context = &ue_mm_context->emm_context;

@@ -128,8 +128,8 @@ status_code_e esm_proc_eps_bearer_context_deactivate(
         if (ue_mm_context->bearer_contexts[bix]) {
           *pid = ue_mm_context->bearer_contexts[bix]->pdn_cx_id;
           rc   = eps_bearer_release(
-                emm_context_p, ue_mm_context->bearer_contexts[bix]->ebi, pid,
-                bidx);
+              emm_context_p, ue_mm_context->bearer_contexts[bix]->ebi, pid,
+              bidx);
 
           if (rc != RETURNok) {
             OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -462,7 +462,7 @@ status_code_e eps_bearer_deactivate_t3495_handler(
        */
       bstring b = bstrcpy(esm_ebr_timer_data->msg);
       rc        = eps_bearer_deactivate(
-                 esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
+          esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
       bdestroy_wrapper(&b);
     } else {
       /*
