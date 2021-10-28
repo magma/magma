@@ -26,12 +26,12 @@
 #define FILE_S1AP_MME_SEEN
 
 #if MME_CLIENT_TEST == 0
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #endif
 
-#include "common_defs.h"
-#include "s1ap_state.h"
-#include "s1ap_types.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.h"
+#include "lte/gateway/c/core/oai/include/s1ap_types.h"
 
 #define S1AP_ZMQ_LATENCY_TH                                                    \
   s1ap_zmq_th  // absolute threshold to be used for initial UE messages

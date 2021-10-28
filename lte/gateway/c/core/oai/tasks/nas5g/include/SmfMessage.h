@@ -11,14 +11,14 @@
 
 #pragma once
 #include <sstream>
-#include "M5GPDUSessionEstablishmentRequest.h"
-#include "M5GPDUSessionEstablishmentAccept.h"
-#include "M5GPDUSessionEstablishmentReject.h"
-#include "M5GPDUSessionReleaseRequest.h"
-#include "M5GPDUSessionReleaseReject.h"
-#include "M5GPDUSessionReleaseCommand.h"
-#include "M5GPDUSessionModificationRequest.h"
-#include "M5GPDUSessionModificationReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionEstablishmentRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionEstablishmentAccept.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionEstablishmentReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionReleaseRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionReleaseReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionReleaseCommand.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationReject.h"
 
 namespace magma5g {
 // Smf NAS Header Class

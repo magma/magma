@@ -13,9 +13,9 @@
 
 #pragma once
 #include <sstream>
-#include "amf_app_ue_context_and_proc.h"
-#include "M5GRegistrationAccept.h"
-#include "amf_asDefs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationAccept.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
 
 namespace magma5g {
 // AMF registration procedures

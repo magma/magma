@@ -12,8 +12,8 @@
 #include <iostream>
 #include <sstream>
 #include <cstdint>
-#include "M5GSpareHalfOctet.h"
-#include "M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
 SpareHalfOctetMsg::SpareHalfOctetMsg(){};

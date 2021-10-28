@@ -18,7 +18,7 @@
 #ifndef P_TMSI_SIGNATURE_H_
 #define P_TMSI_SIGNATURE_H_
 #include <stdint.h>
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #define P_TMSI_SIGNATURE_MINIMUM_LENGTH 4
 #define P_TMSI_SIGNATURE_MAXIMUM_LENGTH 4

@@ -17,11 +17,11 @@
 
 #include <stdint.h>
 
-#include "log.h"
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "TrackingAreaUpdateAccept.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateAccept.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 int decode_tracking_area_update_accept(
     tracking_area_update_accept_msg* tracking_area_update_accept,

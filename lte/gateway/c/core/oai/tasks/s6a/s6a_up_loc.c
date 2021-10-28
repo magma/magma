@@ -26,21 +26,21 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "bstrlib.h"
-#include "dynamic_memory_check.h"
-#include "log.h"
-#include "assertions.h"
-#include "conversions.h"
-#include "intertask_interface.h"
-#include "common_defs.h"
-#include "s6a_defs.h"
-#include "s6a_messages.h"
-#include "s6a_messages_types.h"
-#include "mme_config.h"
-#include "3gpp_23.003.h"
-#include "common_types.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
 struct avp;
 struct msg;

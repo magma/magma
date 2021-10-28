@@ -25,13 +25,13 @@
 #ifndef FILE_S1AP_MME_NAS_PROCEDURES_SEEN
 #define FILE_S1AP_MME_NAS_PROCEDURES_SEEN
 
-#include "common_defs.h"
-#include "3gpp_36.401.h"
-#include "bstrlib.h"
-#include "common_types.h"
-#include "mme_app_messages_types.h"
-#include "s1ap_messages_types.h"
-#include "s1ap_state.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.h"
 
 /** \brief Handle an Initial UE message.
  * \param assocId lower layer assoc id (SCTP)

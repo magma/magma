@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#include "3gpp_24.007.h"
-#include "esm_pt.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

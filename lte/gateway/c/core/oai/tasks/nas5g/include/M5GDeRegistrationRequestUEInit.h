@@ -11,13 +11,13 @@
 
 #pragma once
 #include <sstream>
-#include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GSecurityHeaderType.h"
-#include "M5GMessageType.h"
-#include "M5GSDeRegistrationType.h"
-#include "M5GNASKeySetIdentifier.h"
-#include "M5GSMobileIdentity.h"
-#include "M5GSpareHalfOctet.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSDeRegistrationType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASKeySetIdentifier.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMobileIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.h"
 
 namespace magma5g {
 class DeRegistrationRequestUEInitMsg {

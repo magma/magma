@@ -25,7 +25,7 @@
 #ifndef FILE_S11_MME_BEARER_MANAGER_SEEN
 #define FILE_S11_MME_BEARER_MANAGER_SEEN
 
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 /* @brief Create a new Release Access Bearers Request and send it to provided
  * S-GW. */

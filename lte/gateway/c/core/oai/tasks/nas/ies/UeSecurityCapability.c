@@ -18,10 +18,10 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "3gpp_24.301.h"
-#include "UeSecurityCapability.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeSecurityCapability.h"
 
 //------------------------------------------------------------------------------
 int decode_ue_security_capability(

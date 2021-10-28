@@ -38,20 +38,20 @@
         the nas message from ue to msc/vlr and vice versa
 
 *****************************************************************************/
-#include "emm_proc.h"
-#include "log.h"
-#include "emm_data.h"
-#include "mme_app_itti_messaging.h"
-#include "conversions.h"
-#include "3gpp_23.003.h"
-#include "3gpp_36.401.h"
-#include "DetachRequest.h"
-#include "MobileStationClassmark2.h"
-#include "bstrlib.h"
-#include "common_defs.h"
-#include "common_types.h"
-#include "esm_data.h"
-#include "mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

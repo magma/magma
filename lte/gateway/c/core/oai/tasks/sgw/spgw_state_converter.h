@@ -21,21 +21,21 @@
 extern "C" {
 #endif
 
-#include "assertions.h"
-#include "common_types.h"
-#include "hashtable.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "state_converter.h"
+#include "lte/gateway/c/core/oai/include/state_converter.h"
 #include "lte/protos/oai/std_3gpp_types.pb.h"
 #include "lte/protos/oai/spgw_state.pb.h"
-#include "spgw_types.h"
-#include "pgw_types.h"
-#include "pgw_procedures.h"
-#include "spgw_state.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#include "lte/gateway/c/core/oai/include/pgw_types.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
 
 namespace magma {
 namespace lte {

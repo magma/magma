@@ -21,7 +21,7 @@
 #define UE_ADDITIONAL_SECURITY_CAPABILITY_MINIMUM_LENGTH 6
 #define UE_ADDITIONAL_SECURITY_CAPABILITY_MAXIMUM_LENGTH 6
 
-#include "3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 
 int encode_ue_additional_security_capability(
     ue_additional_security_capability_t* uasc, uint8_t iei, uint8_t* buffer,

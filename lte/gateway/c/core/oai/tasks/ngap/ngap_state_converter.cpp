@@ -19,7 +19,7 @@
 
 *****************************************************************************/
 
-#include "ngap_state_converter.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_converter.h"
 using namespace std;
 using namespace magma::lte;
 using namespace magma::lte::oai;

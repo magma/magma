@@ -27,10 +27,10 @@
 #include <string.h>
 #include <errno.h>
 
-#include "common_defs.h"
-#include "s6a_defs.h"
-#include "s6a_messages.h"
-#include "assertions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
 
 #define CHECK_FD_FCT(fCT) DevAssert(fCT == 0);
 

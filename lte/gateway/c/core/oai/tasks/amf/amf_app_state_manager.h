@@ -13,8 +13,8 @@
 
 #pragma once
 #include <sstream>
-#include "amf_smfDefs.h"
-#include "amf_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
 
 namespace magma5g {
 /**

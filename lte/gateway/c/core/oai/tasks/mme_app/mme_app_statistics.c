@@ -15,9 +15,9 @@
  *      contact@openairinterface.org
  */
 
-#include "log.h"
-#include "mme_app_statistics.h"
-#include "mme_app_state.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/mme_app_statistics.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.h"
 
 /*********************************** Utility Functions to update
  * Statistics**************************************/

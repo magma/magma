@@ -34,9 +34,9 @@
 
 *****************************************************************************/
 
-#include "common_defs.h"
-#include "log.h"
-#include "mme_app_sgs_fsm.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

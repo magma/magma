@@ -30,16 +30,16 @@
 #include <stdint.h>
 #include <czmq.h>
 
-#include "common_defs.h"
-#include "3gpp_23.003.h"
-#include "3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "S1ap_Cause.h"
-#include "TrackingAreaIdentity.h"
-#include "bstrlib.h"
-#include "common_types.h"
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
-#include "s1ap_state.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.h"
 
 extern task_zmq_ctx_t s1ap_task_zmq_ctx;
 extern long s1ap_last_msg_latency;

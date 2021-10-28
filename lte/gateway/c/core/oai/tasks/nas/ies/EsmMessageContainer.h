@@ -19,7 +19,7 @@
 #define ESM_MESSAGE_CONTAINER_SEEN
 #include <stdint.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 struct scenario_s;
 struct scenario_player_msg_s;

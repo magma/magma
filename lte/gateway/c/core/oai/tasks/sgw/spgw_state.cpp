@@ -15,20 +15,20 @@
  *      contact@openairinterface.org
  */
 
-#include "spgw_state.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
 
 #include <cstdlib>
-#include <conversions.h>
+#include <lte/gateway/c/core/oai/common/conversions.h>
 
 extern "C" {
-#include "assertions.h"
-#include "bstrlib.h"
-#include "dynamic_memory_check.h"
-#include "pgw_procedures.h"
-#include "sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 }
 
-#include "spgw_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.h"
 
 using magma::lte::SpgwStateManager;
 

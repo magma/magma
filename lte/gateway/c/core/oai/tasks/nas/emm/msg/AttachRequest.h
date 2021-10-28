@@ -20,21 +20,21 @@
 
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "EpsAttachType.h"
-#include "NasKeySetIdentifier.h"
-#include "EpsMobileIdentity.h"
-#include "UeNetworkCapability.h"
-#include "EsmMessageContainer.h"
-#include "TrackingAreaIdentity.h"
-#include "AdditionalUpdateType.h"
-#include "GutiType.h"
-#include "UeAdditionalSecurityCapability.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/GutiType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeAdditionalSecurityCapability.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define ATTACH_REQUEST_MINIMUM_LENGTH                                          \

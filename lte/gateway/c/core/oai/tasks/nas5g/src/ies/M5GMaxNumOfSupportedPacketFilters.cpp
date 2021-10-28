@@ -13,8 +13,8 @@ limitations under the License.
 #include <sstream>
 #include <cstdint>
 #include <cstring>
-#include "M5GCommonDefs.h"
-#include "M5GMaxNumOfSupportedPacketFilters.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMaxNumOfSupportedPacketFilters.h"
 
 namespace magma5g {
 M5GMaxNumOfSupportedPacketFilters::M5GMaxNumOfSupportedPacketFilters() {}

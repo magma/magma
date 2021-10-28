@@ -20,15 +20,15 @@
 
 #include <stddef.h>
 
-#include "assertions.h"
-#include "bstrlib.h"
-#include "common_defs.h"
-#include "dynamic_memory_check.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "log.h"
-#include "mme_default_values.h"
-#include "grpc_service.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/mme_default_values.h"
+#include "lte/gateway/c/core/oai/include/grpc_service.h"
 
 static void grpc_service_exit(void);
 

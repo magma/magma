@@ -18,10 +18,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "ActivateDedicatedEpsBearerContextRequest.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextRequest.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 int decode_activate_dedicated_eps_bearer_context_request(
     activate_dedicated_eps_bearer_context_request_msg*

@@ -17,10 +17,10 @@
 
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "EmmInformation.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmInformation.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 int decode_emm_information(
     emm_information_msg* emm_information, uint8_t* buffer, uint32_t len) {
