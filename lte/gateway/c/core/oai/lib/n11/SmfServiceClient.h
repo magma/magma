@@ -16,12 +16,12 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/session_manager.pb.h>
 #include <lte/protos/subscriberdb.pb.h>
-#include "includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
 #include <stdint.h>
 #include <functional>
 #include <memory>
-#include "common_types.h"
-#include "s6a_client_api.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.h"
 
 using grpc::Status;
 using magma::lte::SetSmNotificationContext;
