@@ -11,20 +11,20 @@
  * limitations under the License.
  */
 
-#include "PipelinedClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedClientAPI.h"
 
 #include <grpcpp/security/credentials.h>
 #include <cstdint>
 #include <cstring>
 #include <string>
 
-#include "conversions.h"
-#include "common_defs.h"
-#include "service303.h"
-#include "spgw_types.h"
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 
-#include "PipelinedServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedServiceClient.h"
 
 using grpc::Channel;
 using grpc::ChannelCredentials;
