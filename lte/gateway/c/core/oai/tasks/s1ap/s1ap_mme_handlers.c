@@ -2276,6 +2276,7 @@ int s1ap_mme_handle_handover_cancel(
   S1ap_HandoverCancelAcknowledge_t* out;
   S1ap_HandoverCancelAcknowledgeIEs_t* hca_ie = NULL;
   ue_description_t* ue_ref_p                  = NULL;
+  e_rab_admitted_list_t e_rab_admitted_list   = {0};
   mme_ue_s1ap_id_t mme_ue_s1ap_id             = INVALID_MME_UE_S1AP_ID;
   enb_ue_s1ap_id_t enb_ue_s1ap_id             = INVALID_ENB_UE_S1AP_ID;
   S1ap_Cause_PR cause_type;
@@ -2351,7 +2352,14 @@ int s1ap_mme_handle_handover_cancel(
     // this effectively cancels the HandoverPreparation proecedure as we
     // only send a HandoverCommand if the UE is in the S1AP_UE_HANDOVER
     // state.
-    ue_ref_p->s1_ue_state         = S1AP_UE_CONNECTED;
+    ue_ref_p->s1_ue_state = S1AP_UE_CONNECTED;
+    /* Free all the transport layer address pointers in ERAB admitted list
+     * before actually resetting the S1AP handover state
+     */
+    e_rab_admitted_list = ue_ref_p->s1ap_handover_state.e_rab_admitted_list;
+    for (int i = 0; i < e_rab_admitted_list.no_of_items; i++) {
+      bdestroy_wrapper(&e_rab_admitted_list.item[i].transport_layer_address);
+    }
     ue_ref_p->s1ap_handover_state = (struct s1ap_handover_state_s){0};
   } else {
     // Not a failure, but nothing for us to do.
