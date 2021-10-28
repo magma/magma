@@ -4591,7 +4591,7 @@ void send_s11_modify_bearer_request(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-// Sends deactivate bearer req to spgw
+// Sends delete bearer cmd to spgw
 void mme_app_send_deactivate_dedicated_bearer_request(
     ue_mm_context_t* ue_mm_context, pdn_context_t* pdn_context) {
   OAILOG_FUNC_IN(LOG_MME_APP);

@@ -381,7 +381,7 @@ bool pcef_delete_dedicated_bearer(
     const char* imsi, const ebi_list_t ebi_list) {
   auto imsi_str = std::string(imsi);
 
-  // TODO-Send grpc message to session manager to end dedicated bearer session
+  // TODO-Send grpc message to session manager to delete dedicated bearer
   return true;
 }
 
