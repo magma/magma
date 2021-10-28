@@ -238,6 +238,7 @@ export function TraceContextProvider(props: Props) {
 export function SubscriberContextProvider(props: Props) {
   const {networkId} = props;
   const [subscriberMap, setSubscriberMap] = useState({});
+  const [forbiddenNetworkTypes, setForbiddenNetworkTypes] = useState({});
   const [sessionState, setSessionState] = useState({});
   const [subscriberMetrics, setSubscriberMetrics] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -250,6 +251,7 @@ export function SubscriberContextProvider(props: Props) {
       await InitSubscriberState({
         networkId,
         setSubscriberMap,
+        setForbiddenNetworkTypes,
         setSubscriberMetrics,
         setSessionState,
         enqueueSnackbar,
@@ -266,6 +268,7 @@ export function SubscriberContextProvider(props: Props) {
   return (
     <SubscriberContext.Provider
       value={{
+        forbiddenNetworkTypes: forbiddenNetworkTypes,
         state: subscriberMap,
         metrics: subscriberMetrics,
         sessionState: sessionState,
@@ -281,6 +284,7 @@ export function SubscriberContextProvider(props: Props) {
             subscriberMap,
             setSubscriberMap,
             setSessionState,
+            setForbiddenNetworkTypes,
             key,
             value,
             newState,
