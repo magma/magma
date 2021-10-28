@@ -20,6 +20,8 @@ include_directories("/usr/src/googletest/googlemock/include/")
 add_library(SPGW_TASK_TEST_LIB
     state_creators.h
     state_creators.cpp
+    spgw_test_util.h
+    spgw_test_util.cpp
     )
 
 link_directories(/usr/src/googletest/googlemock/lib/)

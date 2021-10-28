@@ -12,11 +12,18 @@
  */
 #include <string>
 
+extern "C" {
+#include "sgw_ie_defs.h"
+}
+
 namespace magma {
 namespace lte {
 
-#define END_OF_TEST_SLEEP_MS 500
+#define END_OF_TEST_SLEEP_MS 1000
 #define STATE_MAX_WAIT_MS 1000
 
+void send_create_session_request(
+    const std::string& imsi_str, int beareri_id,
+    bearer_context_to_be_created_t sample_bearer_context, plmn_t sample_plmn);
 }  // namespace lte
 }  // namespace magma

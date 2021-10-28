@@ -17,6 +17,7 @@
 
 #include "../mock_tasks/mock_tasks.h"
 #include "spgw_test_util.h"
+#include "spgw_state.h"
 
 extern "C" {
 #include "mme_config.h"
@@ -86,16 +87,57 @@ class SPGWAppProcedureTest : public ::testing::Test {
 
  protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
+  std::string test_imsi_str = "001010000000001";
+  plmn_t test_plmn          = {
+               .mcc_digit2 = 0,
+               .mcc_digit1 = 0,
+               .mnc_digit3 = 0x0f,
+               .mcc_digit3 = 1,
+               .mnc_digit2 = 1,
+               .mnc_digit1 = 0};
+  bearer_context_to_be_created_t sample_default_bearer_context = {
+      .eps_bearer_id    = 5,
+      .bearer_level_qos = {
+          .pci = 1,
+          .pl  = 15,
+          .pvi = 0,
+          .qci = 9,
+          .gbr = {},
+          .mbr = {.br_ul = 200000000, .br_dl = 100000000}}};
+}
+
+TEST_F(SPGWAppProcedureTest, TestIPAllocSuccess) {
+  // send a create session req to SPGW
+  spgw_state_t* spgw_state = get_spgw_state(false);
+  send_create_session_request(
+      test_imsi_str, 0, sample_default_bearer_context, test_plmn);
+  ASSERT_EQ(0, 0);
+  // Verify that a UE context exists in SPGW state after CSR is received
+
+  // Verify that no IP address is allocated for this UE
+
+  // send an IP alloc response to SPGW
+  // check that IP address is allocated after this message is done
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(10000));
 };
 
 TEST_F(SPGWAppProcedureTest, TestIPAllocFailure) {
   // send a create session req to SPGW
-  // send a IP alloc response to SPGW
-  // check if IP address is not allocated after this message is done
-  EXPECT_EQ(0, 0);
+  spgw_state_t* spgw_state = get_spgw_state(false);
+  // send_create_session_request( test_imsi_str, 0,
+  // sample_default_bearer_context, test_plmn);
+  ASSERT_EQ(0, 0);
+  // Verify that a UE context exists in SPGW state after CSR is received
+
+  // Verify that no IP address is allocated for this UE
+
+  // send an IP alloc response to SPGW with status as failure
+  // check that IP address is not allocated after this message is done
 
   // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+  std::this_thread::sleep_for(std::chrono::milliseconds(10000));
 }
 
 TEST_F(SPGWAppProcedureTest, TestCreateSessionRequest) {
@@ -107,7 +149,7 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionRequest) {
   // send s5 response to SPGW
   // check if ambr has been returned
 
-  EXPECT_EQ(0, 0);
+  ASSERT_EQ(0, 0);
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
