@@ -85,7 +85,8 @@ void send_ue_capabilities_ind();
 void send_context_release_req(s1cause rel_cause, task_id_t TASK_ID);
 
 void send_modify_bearer_resp(
-    std::vector<int>& bearer_to_modify, std::vector<int>& bearer_to_remove);
+    const std::vector<int>& bearer_to_modify,
+    const std::vector<int>& bearer_to_remove);
 
 void sgw_send_release_access_bearer_response(gtpv2c_cause_value_t cause);
 
