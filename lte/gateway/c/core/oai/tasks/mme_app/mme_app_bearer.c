@@ -3146,7 +3146,7 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
 void send_delete_dedicated_bearer_rsp(
     struct ue_mm_context_s* ue_context_p, bool delete_default_bearer,
     ebi_t ebi[], uint32_t num_bearer_context, teid_t s_gw_teid_s11_s4,
-    gtpv2c_cause_value_t cause, bool mme_initiated_lcl_deact) {
+    gtpv2c_cause_value_t cause, bool mme_initiated_local_deact) {
   itti_s11_nw_init_deactv_bearer_rsp_t* s11_deact_ded_bearer_rsp = NULL;
   MessageDef* message_p                                          = NULL;
   uint32_t i                                                     = 0;
@@ -3192,7 +3192,7 @@ void send_delete_dedicated_bearer_rsp(
       num_bearer_context;
   s11_deact_ded_bearer_rsp->imsi = ue_context_p->emm_context._imsi64;
   s11_deact_ded_bearer_rsp->s_gw_teid_s11_s4 = s_gw_teid_s11_s4;
-  s11_deact_ded_bearer_rsp->mme_initiated_lcl_deact = mme_initiated_lcl_deact;
+  s11_deact_ded_bearer_rsp->mme_initiated_local_deact = mme_initiated_local_deact;
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
@@ -4616,7 +4616,7 @@ void mme_app_send_deactivate_dedicated_bearer_request(
   s11_delete_bearer_command->teid = pdn_context->s_gw_teid_s11_s4;
   s11_delete_bearer_command->local_teid = ue_mm_context->mme_teid_s11;
   s11_delete_bearer_command->ebi_list.num_ebi = pdn_context->num_ebi_to_be_del;
-  memcpy(s11_delete_bearer_command->ebi_list.ebis,pdn_context->ebi_to_be_del,pdn_context->num_ebi_to_be_del);
+  memcpy(s11_delete_bearer_command->ebi_list.ebis,pdn_context->ebi_to_be_del,sizeof(pdn_context->ebi_to_be_del));
 
   OAILOG_INFO_UE(
       LOG_MME_APP, ue_mm_context->emm_context._imsi64,
@@ -4642,7 +4642,7 @@ void mme_app_handle_mme_init_local_deactivation(
 
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
-        LOG_MME_APP, "Cannot fetch UE context for teid: " TEID_FMT "received in bearer_deactv_req_p from spgw\n",
+        LOG_MME_APP, "Cannot fetch UE context for teid: " TEID_FMT " received in bearer_deactv_req_p from spgw\n",
         bearer_deactv_req_p->s11_mme_teid);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }

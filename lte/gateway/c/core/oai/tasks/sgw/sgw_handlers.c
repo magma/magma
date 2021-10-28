@@ -1812,12 +1812,11 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
         sgw_free_eps_bearer_context(
             &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection
                  .sgw_eps_bearers_array[EBI_TO_INDEX(ebi)]);
-        //break;
       }
     }
   }
   // Send DEACTIVATE_DEDICATED_BEARER_RSP to SPGW Service
-  if (!s11_pcrf_ded_bearer_deactv_rsp->mme_initiated_lcl_deact) {
+  if (!s11_pcrf_ded_bearer_deactv_rsp->mme_initiated_local_deact) {
     spgw_handle_nw_init_deactivate_bearer_rsp(
         s11_pcrf_ded_bearer_deactv_rsp->cause, ebi);
   }
