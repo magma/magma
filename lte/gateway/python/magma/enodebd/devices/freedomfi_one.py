@@ -809,6 +809,18 @@ class FreedomFiOneConfigurationInitializer(EnodebConfigurationPostProcessor):
         # Bump up the parameter key version
         self.acs.parameter_version_inc()
 
+        # Workaround a bug in Sercomm firmware in release 3920, 3921
+        # where the meaning of CellReservedForOperatorUse is wrong.
+        # Set to True to ensure the PLMN is not reserved
+        num_plmns = self.acs.data_model.get_num_plmns()
+        for i in range(1, num_plmns + 1):
+            object_name = ParameterName.PLMN_N % i
+            desired_cfg.set_parameter_for_object(
+                param_name=ParameterName.PLMN_N_CELL_RESERVED % i,
+                value=True,
+                object_name=object_name,
+            )
+
         if self.WEB_UI_ENABLE_LIST_KEY in service_cfg:
             serial_nos = service_cfg.get(self.WEB_UI_ENABLE_LIST_KEY)
             if self.acs.device_cfg.has_parameter(
