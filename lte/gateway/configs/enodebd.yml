@@ -48,4 +48,5 @@ web_ui_enable_list: []
 s1_interface: eth1
 
 # [Experimental] Enable Sentry for this service
-sentry_enabled: false
+# Allowed values: send_all_errors, send_selected_errors, disabled
+sentry: disabled

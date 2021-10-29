@@ -36,4 +36,5 @@ bridge_interface: gtp_br0
 redirect_rule_name:
 
 # [Experimental] Enable Sentry for this service
-sentry_enabled: false
+# Allowed values: send_all_errors, send_selected_errors, disabled
+sentry: disabled
