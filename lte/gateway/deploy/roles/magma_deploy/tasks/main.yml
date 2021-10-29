@@ -94,7 +94,18 @@
   become: true
   apt:
     name: "{{ packages }}"
-    only_upgrade: yes 
+    state: latest
+  vars:
+    packages:
+      - ifupdown
+  tags:
+    - agwc
+
+- name: Install runtime dependencies.
+  become: true
+  apt:
+    name: "{{ packages }}"
+    only_upgrade: yes
   vars:
     packages:
       - graphviz
