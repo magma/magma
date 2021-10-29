@@ -201,7 +201,7 @@ void pcef_update_teids(
 
   magma::PCEFClient::update_teids(
       request,
-      [&](grpc::Status status, magma::UpdateTunnelIdsResponse response) {
+      [request](grpc::Status status, magma::UpdateTunnelIdsResponse response) {
         if (status.error_code() == grpc::ABORTED) {
           MessageDef* message_p = DEPRECATEDitti_alloc_new_message_fatal(
               TASK_GRPC_SERVICE, GX_NW_INITIATED_DEACTIVATE_BEARER_REQ);
@@ -211,8 +211,8 @@ void pcef_update_teids(
           OAILOG_INFO(
               LOG_UTIL,
               "Received grpc::ABORTED for update_teids RPC for %s with error "
-              "msg: %s. Deactivating bearer %u",
-              imsi.c_str(), status.error_message().c_str(), default_bearer_id);
+              "msg: %s. Deactivating bearer %u.",
+              imsi.c_str(), status.error_message().c_str(), request.bearer_id());
           // strip off "IMSI" prefix
           imsi                  = imsi.substr(4, std::string::npos);
           itti_msg->imsi_length = imsi.size();
