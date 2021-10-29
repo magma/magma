@@ -463,9 +463,13 @@ typedef struct ue_mm_context_s {
   /* Storing activate_dedicated_bearer_req messages received
    * when UE is in ECM_IDLE state*/
   emm_cn_activate_dedicated_bearer_req_t* pending_ded_ber_req[BEARERS_PER_UE];
+  // EPS bearer context status IE to be sent in TAU accept msg
   eps_bearer_context_status_t tau_accept_eps_ber_cntx_status;
+  // Keeps track of num of delete session requests/responses sent/received
   uint8_t nb_delete_sessions;
+  // Keeps track of num of delete bearer cmds/responses sent/received
   uint8_t nb_delete_bearer_cmd;
+  // Flag to indicate MME has initiated dedicated bearer deactivation
   bool mme_initiated_ded_bearer_deactivation;
   LIST_HEAD(s11_procedures_s, mme_app_s11_proc_s) * s11_procedures;
 } ue_mm_context_t;
