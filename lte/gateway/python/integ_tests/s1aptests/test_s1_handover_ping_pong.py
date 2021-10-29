@@ -202,7 +202,8 @@ class TestS1HandoverPingPong(unittest.TestCase):
         # release request to MME with cause tS1relocoverall-expiry.
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print("Received UE Context Release complete indication")
 
@@ -312,10 +313,10 @@ class TestS1HandoverPingPong(unittest.TestCase):
         # release request to MME with cause tS1relocoverall-expiry.
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print("Received UE Context Release complete indication")
-
 
         print(
             "************************* Running UE detach for UE Id:",
