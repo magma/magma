@@ -90,7 +90,7 @@
   tags:
     - agwc
 
-- name: Install runtime dependencies.
+- name: Install ifupdown dependency.
   become: true
   apt:
     name: "{{ packages }}"
@@ -115,7 +115,6 @@
       - dkms
       - uuid-runtime
       - ca-certificates
-      - ifupdown
   tags:
     - agwc
 
