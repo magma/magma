@@ -20,6 +20,9 @@ metadata:
     app.kubernetes.io/component: nginx-proxy
 {{ include "labels" . | indent 4 }}
 {{ include "orc8r-labels" . | indent 4 }}
+{{ include "nginx-image-version-label" . | indent 4 }}
+  annotations:
+{{ include "release-name-annotation" . | indent 4 }}
 spec:
   replicas: {{ .Values.nginx.replicas }}
   selector:

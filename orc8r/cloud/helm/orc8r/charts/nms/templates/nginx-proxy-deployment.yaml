@@ -22,7 +22,12 @@ kind: Deployment
 metadata:
   name: nms-nginx-proxy
   labels:
+{{ include "default-labels" . | indent 4 }}
+{{ include "magmalte-image-version-label" . | indent 4 }}
 {{ tuple $envAll "nms" "nginx" | include "nms.labels" | indent 4 }}
+  annotations:
+{{ include "release-name-annotation" . | indent 4 }}
+
 spec:
   replicas: {{ .Values.nginx.replicas }}
   strategy:

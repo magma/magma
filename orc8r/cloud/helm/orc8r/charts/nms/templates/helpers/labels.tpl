@@ -33,3 +33,8 @@ app.kubernetes.io/name: {{ $application }}
 app.kubernetes.io/component: {{ $component }}
 app.kubernetes.io/instance: {{ $envAll.Release.Name }}
 {{- end -}}
+
+{{/* Generate selector labels */}}
+{{- define "magmalte-image-version-label" -}}
+image-version: {{ .Values.magmalte.image.tag}}
+{{- end -}}
