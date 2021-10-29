@@ -110,9 +110,9 @@ int ProtocolConfigurationOptions::m5g_decode_protocol_configuration_options(
 int ProtocolConfigurationOptions::DecodeProtocolConfigurationOptions(
     ProtocolConfigurationOptions* protocolconfigurationoptions, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
-  int decoded   = 0;
-  int decoded2  = 0;
-  uint8_t ielen = 0;
+  int decoded    = 0;
+  int decoded2   = 0;
+  uint16_t ielen = 0;
 
   if (iei) {
     decoded++;
@@ -122,8 +122,9 @@ int ProtocolConfigurationOptions::DecodeProtocolConfigurationOptions(
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
   decoded2 = m5g_decode_protocol_configuration_options(
-      &(protocolconfigurationoptions->pco), buffer + decoded, len - decoded);
+      &(protocolconfigurationoptions->pco), buffer + decoded, (uint32_t) ielen);
   if (decoded2 < 0) return decoded2;
+  if (decoded2 != ielen) return -1;
 
   return decoded + decoded2;
 };

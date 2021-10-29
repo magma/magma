@@ -463,6 +463,13 @@ int amf_smf_process_pdu_session_packet(
             amf_cause);
         return rc;
       }
+
+      smf_ctx->dnn.assign(
+          reinterpret_cast<char*>(msg->dnn.dnn), msg->dnn.len - 1);
+      smf_ctx->sst = msg->nssai.sst;
+      if (msg->nssai.sd[0]) {
+        memcpy(smf_ctx->sd, msg->nssai.sd, SD_LENGTH);
+      }
       set_amf_smf_context(
           &(msg->payload_container.smf_msg.msg.pdu_session_estab_request),
           smf_ctx);
