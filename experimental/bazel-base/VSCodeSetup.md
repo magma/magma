@@ -16,6 +16,9 @@ Open VSCode and use **Command+Shift+P** to open the editor preferences and selec
         "stackbuild.bazel-stack-vscode-cc",
         "augustocdias.tasks-shell-input",
         "ryuta46.multi-command",
+        "ms-python.python",
+        "njpwerner.autodocstring",
+        "ms-python.vscode-pylance",
     ],
 ```
 
