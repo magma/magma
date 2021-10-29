@@ -17,9 +17,9 @@
 #include "lte/protos/subscriberauth.pb.h"
 #include "lte/protos/subscriberauth.grpc.pb.h"
 
-#include "amf_client_proto_msg_to_itti_msg.h"
-#include "amf_app_messages_types.h"
-#include "M5GAuthenticationServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/n11/M5GAuthenticationServiceClient.h"
 
 using ::testing::Test;
 

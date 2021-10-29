@@ -11,12 +11,12 @@
  * limitations under the License.
  */
 
-#include "sgw_s8_utility.h"
+#include "lte/gateway/c/core/oai/test/sgw_s8_task/sgw_s8_utility.h"
 extern "C" {
-#include "pgw_procedures.h"
-#include "common_types.h"
-#include "mme_config.h"
-#include "mme_app_embedded_spgw.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.h"
 }
 using ::testing::Test;
 spgw_config_t spgw_config;

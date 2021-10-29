@@ -11,12 +11,12 @@
  * limitations under the License.
  */
 extern "C" {
-#include "bstrlib.h"
-#include "dynamic_memory_check.h"
-#include "s1ap_mme.h"
-#include "s1ap_mme_decoder.h"
-#include "s1ap_mme_handlers.h"
-#include "s1ap_mme_nas_procedures.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
 }
 
 namespace magma {

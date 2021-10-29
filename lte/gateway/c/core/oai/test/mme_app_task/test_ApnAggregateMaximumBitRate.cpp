@@ -19,10 +19,10 @@
 #include <glog/logging.h>
 
 extern "C" {
-#include "conversions.h"
-#include "ApnAggregateMaximumBitRate.h"
-#include "3gpp_23.003.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 }
 
 TEST(

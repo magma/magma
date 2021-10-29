@@ -18,11 +18,11 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 
-#include "PipelinedServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedServiceClient.h"
 #include "lte/protos/pipelined.grpc.pb.h"
 #include "lte/protos/pipelined.pb.h"
 #include "lte/protos/mobilityd.pb.h"
-#include "proto_converters.h"
+#include "lte/gateway/c/core/oai/lib/pipelined_client/proto_converters.h"
 
 namespace magma {
 namespace lte {
