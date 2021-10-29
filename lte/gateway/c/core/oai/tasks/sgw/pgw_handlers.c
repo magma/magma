@@ -245,7 +245,6 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
     if (hashtblP->nodes[i] != NULL) {
       node = hashtblP->nodes[i];
     }
-    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     while (node) {
       num_elements++;
       hashtable_ts_get(
@@ -266,6 +265,7 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
       }
       node = node->next;
     }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     i++;
   }
 
@@ -359,10 +359,10 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
       spgw_ctxt_p = node->data;
       num_elements++;
       if (spgw_ctxt_p != NULL) {
-        if (!strcmp(
+        if (!strncmp(
                 (const char*)
                     spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
-                (const char*) bearer_req_p->imsi)) {
+                (const char*) bearer_req_p->imsi, bearer_req_p->imsi_length)) {
           is_imsi_found = true;
           if ((bearer_req_p->lbi != 0) &&
               (bearer_req_p->lbi ==
