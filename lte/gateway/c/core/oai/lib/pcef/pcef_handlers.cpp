@@ -212,7 +212,8 @@ void pcef_update_teids(
               LOG_UTIL,
               "Received grpc::ABORTED for update_teids RPC for %s with error "
               "msg: %s. Deactivating bearer %u.",
-              imsi.c_str(), status.error_message().c_str(), request.bearer_id());
+              imsi.c_str(), status.error_message().c_str(),
+              request.bearer_id());
           // strip off "IMSI" prefix
           imsi                  = imsi.substr(4, std::string::npos);
           itti_msg->imsi_length = imsi.size();

@@ -245,6 +245,7 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
     if (hashtblP->nodes[i] != NULL) {
       node = hashtblP->nodes[i];
     }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     while (node) {
       num_elements++;
       hashtable_ts_get(
@@ -265,7 +266,6 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
       }
       node = node->next;
     }
-    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     i++;
   }
 
@@ -355,14 +355,18 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
          (!is_lbi_found)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
     if (hashtblP->nodes[i] != NULL) {
-      node        = hashtblP->nodes[i];
-      spgw_ctxt_p = node->data;
+      node = hashtblP->nodes[i];
+    }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
+    while (node) {
       num_elements++;
+      hashtable_ts_get(
+          hashtblP, (const hash_key_t) node->key, (void**) &spgw_ctxt_p);
       if (spgw_ctxt_p != NULL) {
-        if (!strncmp(
+        if (!strcmp(
                 (const char*)
                     spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
-                (const char*) bearer_req_p->imsi, bearer_req_p->imsi_length)) {
+                (const char*) bearer_req_p->imsi)) {
           is_imsi_found = true;
           if ((bearer_req_p->lbi != 0) &&
               (bearer_req_p->lbi ==
@@ -388,8 +392,8 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
           }
         }
       }
+      node = node->next;
     }
-    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     i++;
   }
 
