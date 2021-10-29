@@ -25,6 +25,7 @@ namespace lte {
 
 #define DEFAULT_BEARER_INDEX 0
 #define DEFAULT_EPS_BEARER_ID 5
+#define UNASSIGNED_UE_IP 0
 #define DEFAULT_UE_IP 0xc0a8800a  // 192.168.128.10
 #define DEFAULT_VLAN 0
 
@@ -37,8 +38,9 @@ void fill_ip_allocation_response(
     itti_ip_allocation_response_t* ip_alloc_resp_p, SGIStatus_t status,
     teid_t context_teid, ebi_t eps_bearer_id, unsigned long ue_ip, int vlan);
 
-void send_create_session_request(
-    const std::string& imsi_str, int beareri_id,
-    bearer_context_to_be_created_t sample_bearer_context, plmn_t sample_plmn);
+void fill_pcef_create_session_response(
+    itti_pcef_create_session_response_t* pcef_csr_resp_p,
+    PcefRpcStatus_t csr_status, teid_t context_teid, ebi_t eps_bearer_id,
+    SGIStatus_t sgi_status);
 }  // namespace lte
 }  // namespace magma

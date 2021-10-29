@@ -37,6 +37,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S11_CREATE_SESSION_RESPONSE: {
+      mme_app_handler_->mme_app_handle_create_sess_resp();
     } break;
 
     case S11_MODIFY_BEARER_RESPONSE: {
@@ -184,7 +185,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       stop_mock_mme_app_task();
     } break;
 
-    default: { } break; }
+    default: {} break; }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);

@@ -89,20 +89,15 @@ void fill_ip_allocation_response(
   ip_alloc_resp_p->paa.vlan                = vlan;
 }
 
-void send_create_session_request(
-    const std::string& imsi_str, int bearer_id,
-    bearer_context_to_be_created_t sample_bearer_context, plmn_t sample_plmn) {
-  MessageDef* message_p = DEPRECATEDitti_alloc_new_message_fatal(
-      TASK_MME_APP, S11_CREATE_SESSION_REQUEST);
-  itti_s11_create_session_request_t* session_request_p =
-      &message_p->ittiMsg.s11_create_session_request;
-
-  fill_create_session_request(
-      session_request_p, imsi_str, bearer_id, sample_bearer_context,
-      sample_plmn);
-  // send_msg_to_task(&task_zmq_ctx_main_spgw, TASK_SPGW_APP, message_p);
-  itti_free_msg_content(message_p);
-  free(message_p);
+void fill_pcef_create_session_response(
+    itti_pcef_create_session_response_t* pcef_csr_resp_p,
+    PcefRpcStatus_t rpc_status, teid_t context_teid, ebi_t eps_bearer_id,
+    SGIStatus_t sgi_status) {
+  pcef_csr_resp_p->rpc_status    = rpc_status;
+  pcef_csr_resp_p->teid          = context_teid;
+  pcef_csr_resp_p->eps_bearer_id = eps_bearer_id;
+  pcef_csr_resp_p->sgi_status    = sgi_status;
 }
+
 }  // namespace lte
 }  // namespace magma

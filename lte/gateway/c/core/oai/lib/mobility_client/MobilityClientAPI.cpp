@@ -89,7 +89,6 @@ int pgw_handle_allocate_ipv4_address(
             status, addr, vlan, subscriber_id_str.c_str(), apn_str.c_str(),
             pdn_type_str.c_str(), context_teid, eps_bearer_id);
       });
-
   return RETURNok;
 }
 
