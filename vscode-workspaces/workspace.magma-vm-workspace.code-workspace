@@ -12,17 +12,18 @@
 			"stackbuild.bazel-stack-vscode-cc",
 			"augustocdias.tasks-shell-input",
 			"ryuta46.multi-command",
+			"ms-python.python",
+			"njpwerner.autodocstring",
+			"ms-python.vscode-pylance",
 		]
 	},
 	"settings": {
 		"files.watcherExclude": {
 			"**/.bazel-cache/**": true,
 			"**/.bazel-cache-repo/**": true,
-		},		
-		"bsv.bazel.buildFlags": [
-		],
-		"bsv.bazel.testFlags": [
-		],
+		},
+		"bsv.bazel.buildFlags": [],
+		"bsv.bazel.testFlags": [],
 		"bsv.bes.enabled": false,
 		"bsv.bzl.codesearch.enabled": false,
 		"bsv.bzl.invocation.buildEventPublishAllActions": false,
@@ -48,6 +49,28 @@
 					"clangd.restart",
 				],
 			}
-		]
+		],
+		"python.analysis.extraPaths": [
+			"/home/vagrant/magma/orc8r/gateway/python/",
+			"/home/vagrant/magma/lte/gateway/python/",
+			"/home/vagrant/build/python/gen/",
+			"/home/vagrant/build/python/gen/orc8r/",
+			"/home/vagrant/build/python/gen/lte/",
+		],
+		"python.defaultInterpreterPath": "/home/vagrant/build/python/bin/python",
+		"python.linting.pylintEnabled": true,
+		"python.linting.pylintPath": "pylint",
+		"python.testing.pytestEnabled": false,
+		"python.testing.unittestEnabled": false,
+		"editor.formatOnSave": true,
+		"python.formatting.autopep8Args": [
+			// This should be the same set of flags as ones specified in `lte/gateway/precommit.py`
+			"--select=W191,W291,W292,W293,W391,E131,E2,E3",
+		],
+		"[python]": {
+			"editor.codeActionsOnSave": {
+				"source.organizeImports": true
+			}
+		},
 	},
 }
