@@ -340,6 +340,7 @@ TEST_F(S1apMmeHandlersTest, GenerateUEContextReleaseCommand) {
       .sctp_assoc_id  = assoc_id,
       .comp_s1ap_id   = S1AP_GENERATE_COMP_S1AP_ID(assoc_id, 1)};
 
+  EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(2);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
 
   S1ap_S1AP_PDU_t pdu_s1;
@@ -379,6 +380,140 @@ TEST_F(S1apMmeHandlersTest, GenerateUEContextReleaseCommand) {
   bdestroy_wrapper(&payload);
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu);
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
+}
+
+TEST_F(S1apMmeHandlersTest, HandleUEContextReleaseCommand) {
+  ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
+
+  EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
+  // Setup new association for testing
+  s1ap_state_t* s            = S1apStateManager::getInstance().get_state(false);
+  sctp_assoc_id_t assoc_id   = 1;
+  sctp_stream_id_t stream_id = 0;
+  setup_new_association(s, assoc_id);
+
+  S1ap_S1AP_PDU_t pdu_s1;
+  memset(&pdu_s1, 0, sizeof(pdu_s1));
+  ASSERT_EQ(RETURNok, generate_s1_setup_request_pdu(&pdu_s1));
+  ASSERT_EQ(RETURNok, s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu_s1));
+
+  uint8_t initial_ue_bytes[] = {
+      0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
+      0x00, 0x01, 0x00, 0x1a, 0x00, 0x20, 0x1f, 0x07, 0x41, 0x71, 0x08,
+      0x09, 0x10, 0x10, 0x00, 0x00, 0x00, 0x00, 0x10, 0x02, 0xe0, 0xe0,
+      0x00, 0x04, 0x02, 0x01, 0xd0, 0x11, 0x40, 0x08, 0x04, 0x02, 0x60,
+      0x04, 0x00, 0x02, 0x1c, 0x00, 0x00, 0x43, 0x00, 0x06, 0x00, 0x00,
+      0xf1, 0x10, 0x00, 0x01, 0x00, 0x64, 0x40, 0x08, 0x00, 0x00, 0xf1,
+      0x10, 0x00, 0x00, 0x00, 0xa0, 0x00, 0x86, 0x40, 0x01, 0x30};
+
+  bstring payload;
+  payload = blk2bstr(&initial_ue_bytes, sizeof(initial_ue_bytes));
+  S1ap_S1AP_PDU_t pdu;
+  memset(&pdu, 0, sizeof(pdu));
+
+  ASSERT_EQ(RETURNok, s1ap_mme_decode_pdu(&pdu, payload));
+  ASSERT_EQ(RETURNok, s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu));
+
+  handle_mme_ue_id_notification(s, assoc_id);
+
+  ASSERT_EQ(s->mmeid2associd.num_elements, 1);
+
+  // Send UE context release command mimicing MME_APP
+  MessageDef* message_p;
+  message_p =
+      itti_alloc_new_message(TASK_MME_APP, S1AP_UE_CONTEXT_RELEASE_COMMAND);
+  S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).mme_ue_s1ap_id = 7;
+  S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).enb_ue_s1ap_id = 1;
+  S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).cause =
+      S1AP_SCTP_SHUTDOWN_OR_RESET;
+  ASSERT_EQ(
+      send_msg_to_task(&task_zmq_ctx_main_s1ap, TASK_S1AP, message_p),
+      RETURNok);
+
+  // Freeing pdu and payload data
+  bdestroy_wrapper(&payload);
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu);
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  ASSERT_EQ(s->mmeid2associd.num_elements, 0);
+}
+
+TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnf) {
+  ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
+
+  // Setup new association for testing
+  s1ap_state_t* s            = S1apStateManager::getInstance().get_state(false);
+  sctp_assoc_id_t assoc_id   = 1;
+  sctp_stream_id_t stream_id = 0;
+  setup_new_association(s, assoc_id);
+
+  S1ap_S1AP_PDU_t pdu_s1;
+  memset(&pdu_s1, 0, sizeof(pdu_s1));
+  ASSERT_EQ(RETURNok, generate_s1_setup_request_pdu(&pdu_s1));
+  ASSERT_EQ(RETURNok, s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu_s1));
+
+  uint8_t initial_ue_bytes[] = {
+      0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
+      0x00, 0x01, 0x00, 0x1a, 0x00, 0x20, 0x1f, 0x07, 0x41, 0x71, 0x08,
+      0x09, 0x10, 0x10, 0x00, 0x00, 0x00, 0x00, 0x10, 0x02, 0xe0, 0xe0,
+      0x00, 0x04, 0x02, 0x01, 0xd0, 0x11, 0x40, 0x08, 0x04, 0x02, 0x60,
+      0x04, 0x00, 0x02, 0x1c, 0x00, 0x00, 0x43, 0x00, 0x06, 0x00, 0x00,
+      0xf1, 0x10, 0x00, 0x01, 0x00, 0x64, 0x40, 0x08, 0x00, 0x00, 0xf1,
+      0x10, 0x00, 0x00, 0x00, 0xa0, 0x00, 0x86, 0x40, 0x01, 0x30};
+
+  bstring payload;
+  payload = blk2bstr(&initial_ue_bytes, sizeof(initial_ue_bytes));
+  S1ap_S1AP_PDU_t pdu;
+  memset(&pdu, 0, sizeof(pdu));
+
+  ASSERT_EQ(RETURNok, s1ap_mme_decode_pdu(&pdu, payload));
+  ASSERT_EQ(RETURNok, s1ap_mme_handle_message(s, assoc_id, stream_id, &pdu));
+
+  handle_mme_ue_id_notification(s, assoc_id);
+
+  ASSERT_EQ(s->mmeid2associd.num_elements, 1);
+
+  // Send UE connection establishment cnf mimicing MME_APP
+  MessageDef* message_p;
+  message_p = itti_alloc_new_message(
+      TASK_MME_APP, MME_APP_CONNECTION_ESTABLISHMENT_CNF);
+  itti_mme_app_connection_establishment_cnf_t* establishment_cnf_p = NULL;
+  establishment_cnf_p =
+      &message_p->ittiMsg.mme_app_connection_establishment_cnf;
+  establishment_cnf_p->ue_id        = 7;
+  establishment_cnf_p->presencemask = 1;
+
+  establishment_cnf_p->no_of_e_rabs = 1;
+
+  establishment_cnf_p->e_rab_id[0] = 1;  //+ EPS_BEARER_IDENTITY_FIRST;
+  establishment_cnf_p->e_rab_level_qos_qci[0]            = 1;
+  establishment_cnf_p->e_rab_level_qos_priority_level[0] = 1;
+  establishment_cnf_p->transport_layer_address[0]        = bfromcstr("test");
+  establishment_cnf_p->gtp_teid[0]                       = 1;
+
+  //#pragma message  "Check ue_context_p ambr"
+  establishment_cnf_p->ue_ambr.br_ul = 1000;
+  establishment_cnf_p->ue_ambr.br_dl = 1000;
+
+  apn_ambr_bitrate_unit_t br_unit                                     = BPS;
+  establishment_cnf_p->ue_ambr.br_unit                                = br_unit;
+  establishment_cnf_p->ue_security_capabilities_encryption_algorithms = 1;
+  establishment_cnf_p->ue_security_capabilities_integrity_algorithms  = 1;
+  ASSERT_EQ(
+      send_msg_to_task(&task_zmq_ctx_main_s1ap, TASK_S1AP, message_p),
+      RETURNok);
+
+  // Freeing pdu and payload data
+  bdestroy_wrapper(&payload);
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu);
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
 
 }  // namespace lte
