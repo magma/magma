@@ -202,6 +202,7 @@ static void* grpc_async_service_thread(__attribute__((unused)) void* args) {
         .wait_for_requests();  // block here instead of on server
   });
   zloop_start(grpc_async_service_task_zmq_ctx.event_loop);
+  proxy_thread.join();
   AssertFatal(
       0, "Asserting as grpc_service_thread should not be exiting on its own!");
   return NULL;
