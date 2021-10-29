@@ -123,7 +123,7 @@ func (r *reindexerQueue) claimAndReindexOne(ctx context.Context, batches []reind
 // getJobs gets all required reindex jobs.
 // If indexer ID is non-empty, only gets job for that indexer.
 func (r *reindexerQueue) getJobs(indexerID string) ([]*Job, error) {
-	idxs, err := getIndexers(indexerID)
+	idxs, err := getIndexersFromRegistry(indexerID)
 	if err != nil {
 		return nil, err
 	}

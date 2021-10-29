@@ -18,7 +18,6 @@ import (
 	"sort"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
@@ -97,15 +96,11 @@ func getIndexerVersions(builder sqorc.StatementBuilder, tx *sql.Tx) ([]*indexer.
 }
 
 func setIndexerActualVersion(builder sqorc.StatementBuilder, tx *sql.Tx, indexerID string, version indexer.Version) error {
-	v, err := getTrackedVersions(builder, tx)
-	glog.Infof("BEFORE version: %s", v)
-	_, err = builder.Update(versionTableName).
+	_, err := builder.Update(versionTableName).
 		Set(actualColVersions, version).
 		Where(squirrel.Eq{idColVersions: indexerID}).
 		RunWith(tx).
 		Exec()
-	v, err = getTrackedVersions(builder, tx)
-	glog.Infof("AFTER version: %s", v)
 	if err != nil {
 		return errors.Wrapf(err, "update indexer actual version for %s to %d", indexerID, version)
 	}

@@ -29,7 +29,6 @@ import (
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
 
-	"github.com/golang/glog"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -45,14 +44,11 @@ func TestSingletonRun(t *testing.T) {
 
 	reindex.TestHookReindexSuccess = func() {
 		reindexSuccessNum += 1
-		glog.Infof("SUCCESS")
-		ch <- nil
 	}
 	defer func() { reindex.TestHookReindexSuccess = func() {} }()
 
 	reindex.TestHookReindexDone = func() {
 		reindexDoneNum += 1
-		glog.Infof("DONE")
 		ch <- nil
 	}
 	defer func() { reindex.TestHookReindexSuccess = func() {} }()
@@ -73,8 +69,7 @@ func TestSingletonRun(t *testing.T) {
 
 	// Check
 	recvCh(t, ch)
-	recvCh(t, ch)
-	// TODO: expect timeout
+	recvNoCh(t, ch)
 
 	idx0.AssertExpectations(t)
 	require.Equal(t, reindexSuccessNum, 1)
@@ -89,8 +84,7 @@ func TestSingletonRun(t *testing.T) {
 
 	// Check
 	recvCh(t, ch)
-	recvCh(t, ch)
-	// TODO: expect timeout
+	recvNoCh(t, ch)
 
 	idx0a.AssertExpectations(t)
 	require.Equal(t, reindexSuccessNum, 2)
@@ -122,7 +116,7 @@ func TestSingletonRun(t *testing.T) {
 	recvCh(t, ch)
 	recvCh(t, ch)
 	recvCh(t, ch)
-	// TODO: expect timeout
+	recvNoCh(t, ch)
 
 	fail1.AssertExpectations(t)
 	fail2.AssertExpectations(t)

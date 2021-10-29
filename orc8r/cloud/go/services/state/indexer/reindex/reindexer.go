@@ -131,7 +131,7 @@ func executeJob(ctx context.Context, job *Job, batches []reindexBatch) error {
 	return nil
 }
 
-func getIndexers(indexerID string) ([]indexer.Indexer, error) {
+func getIndexersFromRegistry(indexerID string) ([]indexer.Indexer, error) {
 	idxs, err := indexer.GetIndexers()
 	if err != nil {
 		return nil, err

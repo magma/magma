@@ -27,6 +27,10 @@ import (
 	"github.com/golang/glog"
 )
 
+// Major TODOs:
+// TODO(reginawang3495): Add save jobs/indexes # times run
+// TODO(reginawang3495): Remove "Desired" from Indexer.Versions once reindexer_queue and queue are removed
+
 // This Reindexer runs as though it is a singleton
 type reindexerSingleton struct {
 	versioner Versioner
@@ -39,6 +43,9 @@ func NewReindexerSingleton(store Store, versioner Versioner) Reindexer {
 }
 
 func (r *reindexerSingleton) Run(ctx context.Context) {
+	const indexerID = ""
+	var sendUpdate func(string) = nil
+
 	batches := r.getReindexBatches(ctx)
 	for {
 		if isCanceled(ctx) {
@@ -46,36 +53,25 @@ func (r *reindexerSingleton) Run(ctx context.Context) {
 			return
 		}
 
-		v, _ := GetIndexerVersion(r.versioner, "some_indexerid_0")
-		glog.Infof("version: %s", v)
-		// TODO(reginawang3495): report status metrics?
-
-		err := r.reindexJobs(ctx, batches)
-		v, _ = GetIndexerVersion(r.versioner, "some_indexerid_0")
-		glog.Infof("version: %s", v)
+		err := r.reindexJobs(ctx, indexerID, sendUpdate, batches)
 
 		if err == nil {
 			continue
 		}
 
-		glog.Errorf("Failed to get or complete state reindex job from queue: %s", err)
-
 		clock.Sleep(failedJobSleep)
-
 	}
 }
 
 func (r *reindexerSingleton) RunUnsafe(ctx context.Context, indexerID string, sendUpdate func(string)) error {
 	batches := r.getReindexBatches(ctx)
-	glog.Infof("Reindex for indexer '%s' with state batches: %+v", indexerID, batches)
 	jobs, err := r.getJobs(indexerID)
 	if err != nil || len(jobs) == 0 {
 		return err
 	}
-	glog.Infof("Reindex for indexer '%s' with reindex jobs: %+v", indexerID, jobs)
 
 	for _, j := range jobs {
-		err = r.reindexJob(j, indexerID, ctx, batches, sendUpdate)
+		err = r.reindexJob(j, ctx, batches, sendUpdate)
 		if err != nil {
 			return err
 		}
@@ -121,7 +117,7 @@ func (r *reindexerSingleton) getReindexBatches(ctx context.Context) []reindexBat
 // getJobs gets all required reindex jobs.
 // If indexer ID is non-empty, only gets job for that indexer.
 func (r *reindexerSingleton) getJobs(indexerID string) ([]*Job, error) {
-	idxs, err := getIndexers(indexerID)
+	idxs, err := getIndexersFromRegistry(indexerID)
 
 	if err != nil {
 		return nil, err
@@ -130,7 +126,6 @@ func (r *reindexerSingleton) getJobs(indexerID string) ([]*Job, error) {
 	var ret []*Job
 	for _, x := range idxs {
 		v, err := GetIndexerVersion(r.versioner, x.GetID())
-		glog.Infof("indexer: %s, version: %s", x, v)
 
 		if err != nil {
 			return nil, err
@@ -138,18 +133,15 @@ func (r *reindexerSingleton) getJobs(indexerID string) ([]*Job, error) {
 		if v == nil {
 			return nil, fmt.Errorf("indexer %s version not tracked", x.GetID())
 		}
-		if v.Actual != v.Desired { // NOTE: x.GetVersion() != v.Actual would work but bug should be fixed
-			ret = append(ret, &Job{Idx: x, From: v.Actual, To: v.Desired})
+		if x.GetVersion() != v.Actual {
+			ret = append(ret, &Job{Idx: x, From: v.Actual, To: x.GetVersion()})
 		}
 	}
 
 	return ret, nil
 }
 
-func (r *reindexerSingleton) reindexJobs(ctx context.Context, batches []reindexBatch) error {
-	const indexerID = ""
-	var sendUpdate func(string) = nil
-
+func (r *reindexerSingleton) reindexJobs(ctx context.Context, indexerID string, sendUpdate func(string), batches []reindexBatch) error {
 	jobs, err := r.getJobs(indexerID)
 	if err != nil || len(jobs) == 0 {
 		return err
@@ -162,7 +154,7 @@ func (r *reindexerSingleton) reindexJobs(ctx context.Context, batches []reindexB
 	}
 
 	for _, j := range jobs {
-		err = r.reindexJob(j, indexerID, ctx, batches, sendUpdate)
+		err = r.reindexJob(j, ctx, batches, sendUpdate)
 		if err != nil {
 			return wrap(err, ErrDefault, indexerID)
 		}
@@ -170,7 +162,7 @@ func (r *reindexerSingleton) reindexJobs(ctx context.Context, batches []reindexB
 	return nil
 }
 
-func (r * reindexerSingleton) reindexJob(job *Job, indexerID string, ctx context.Context, batches []reindexBatch, sendUpdate func(string)) error {
+func (r * reindexerSingleton) reindexJob(job *Job, ctx context.Context, batches []reindexBatch, sendUpdate func(string)) error {
 	defer TestHookReindexDone()
 
 	start := clock.Now()
@@ -178,12 +170,9 @@ func (r * reindexerSingleton) reindexJob(job *Job, indexerID string, ctx context
 	jobErr := executeJob(ctx, job, batches)
 
 	// TODO(reginawang3495) Add indexer fail count increase and logging
-	// v, err := GetIndexerVersion(r.versioner, job.Idx.GetID())
-	// glog.Infof("BEFORE indexer: %s, version: %s", job.Idx, v)
-	err := r.versioner.SetIndexerActualVersion(job.Idx.GetID(), job.To)
-	v, err := GetIndexerVersion(r.versioner, job.Idx.GetID())
-	glog.Infof("AFTER indexer: %s, version: %s", job.Idx, v)
-
+	// if jobErr == nil {
+	err:= r.versioner.SetIndexerActualVersion(job.Idx.GetID(), job.To)
+	// }
 
 	if err != nil {
 		return fmt.Errorf("error completing state reindex job %+v with job err <%s>: %s", job, jobErr, err)
@@ -200,8 +189,5 @@ func (r * reindexerSingleton) reindexJob(job *Job, indexerID string, ctx context
 	if sendUpdate != nil {
 		sendUpdate(fmt.Sprintf("indexer %s successfully reindexed from version %d to version %d", job.Idx.GetID(), job.From, job.To))
 	}
-	v, err = GetIndexerVersion(r.versioner, job.Idx.GetID())
-	glog.Infof("AFTER indexer: %s, version: %s", job.Idx, v)
-
 	return nil
 }
