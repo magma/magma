@@ -11,8 +11,8 @@
 
 #include <sstream>
 #include <cstdint>
-#include "M5GMMCause.h"
-#include "M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
 M5GMMCauseMsg::M5GMMCauseMsg(){};

@@ -244,5 +244,56 @@ void send_ue_capabilities_ind() {
   return;
 }
 
+void send_context_release_req(s1cause rel_cause, task_id_t TASK_ID) {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_ID, S1AP_UE_CONTEXT_RELEASE_REQ);
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).mme_ue_s1ap_id = 1;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_ue_s1ap_id = 0;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id         = 0;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause       = rel_cause;
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
+void send_modify_bearer_resp(
+    const std::vector<int>& bearer_to_modify,
+    const std::vector<int>& bearer_to_remove) {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_SPGW_APP, S11_MODIFY_BEARER_RESPONSE);
+  itti_s11_modify_bearer_response_t* modify_response_p =
+      &message_p->ittiMsg.s11_modify_bearer_response;
+  modify_response_p->teid              = 1;
+  modify_response_p->cause.cause_value = REQUEST_ACCEPTED;
+  for (int i = 0; i < bearer_to_modify.size(); ++i) {
+    modify_response_p->bearer_contexts_modified.bearer_contexts[i]
+        .eps_bearer_id = bearer_to_modify[i];
+    modify_response_p->bearer_contexts_modified.bearer_contexts[i]
+        .cause.cause_value = REQUEST_ACCEPTED;
+  }
+  modify_response_p->bearer_contexts_modified.num_bearer_context =
+      bearer_to_modify.size();
+  for (int i = 0; i < bearer_to_remove.size(); ++i) {
+    modify_response_p->bearer_contexts_marked_for_removal.bearer_contexts[i]
+        .eps_bearer_id = bearer_to_remove[i];
+    modify_response_p->bearer_contexts_marked_for_removal.bearer_contexts[i]
+        .cause.cause_value = REQUEST_ACCEPTED;
+  }
+  modify_response_p->bearer_contexts_marked_for_removal.num_bearer_context =
+      bearer_to_modify.size();
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
+void sgw_send_release_access_bearer_response(gtpv2c_cause_value_t cause) {
+  MessageDef* message_p = itti_alloc_new_message(
+      TASK_SPGW_APP, S11_RELEASE_ACCESS_BEARERS_RESPONSE);
+  itti_s11_release_access_bearers_response_t* release_access_bearers_resp_p =
+      &message_p->ittiMsg.s11_release_access_bearers_response;
+  release_access_bearers_resp_p->cause.cause_value = cause;
+  release_access_bearers_resp_p->teid              = 1;
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
 }  // namespace lte
 }  // namespace magma

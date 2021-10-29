@@ -16,26 +16,26 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "intertask_interface_types.h"
-#include "intertask_interface.h"
-#include "itti_free_defined_msg.h"
-#include "service303_message_utils.h"
-#include "amf_as_message.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/amf_as_message.h"
 #ifdef __cplusplus
 }
 #endif
-#include "amf_app_messages_types.h"
-#include "amf_config.h"
-#include "amf_fsm.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "amf_data.h"
-#include "amf_app_defs.h"
-#include "amf_authentication.h"
-#include "ngap_messages_types.h"
-#include "amf_app_state_manager.h"
-#include "amf_smfDefs.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_data.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
+#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 namespace magma5g {
 task_zmq_ctx_t amf_app_task_zmq_ctx;
@@ -208,26 +208,10 @@ extern "C" int amf_app_init(const amf_config_t* amf_config_p) {
  **                                                                        **
  ***************************************************************************/
 void amf_app_exit(void) {
+  clear_amf_nas_state();
+  amf_config_exit();
   destroy_task_context(&amf_app_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_AMF_APP terminated\n");
   pthread_exit(NULL);
-}
-/****************************************************************************
- **                                                                        **
- ** Name:    amf_send_msg_to_task()                                        **
- **                                                                        **
- ** Description:  wrapper api for itti send                                **
- **                                                                        **
- **                                                                        **
- ***************************************************************************/
-status_code_e amf_send_msg_to_task(
-    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
-    MessageDef* message) {
-  OAILOG_INFO(
-      LOG_AMF_APP, "Sending msg to :[%s] id: [%d]-[%s]\n",
-      itti_get_task_name(destination_task_id), ITTI_MSG_ID(message),
-      ITTI_MSG_NAME(message));
-
-  return send_msg_to_task(task_zmq_ctx_p, destination_task_id, message);
 }
 }  // namespace magma5g

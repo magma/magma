@@ -15,13 +15,13 @@
 
 #include <stdbool.h>
 
-#include "ngap_amf.h"
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "Ngap_Cause.h"
-#include "common_defs.h"
-#include "common_types.h"
-#include "ngap_messages_types.h"
-#include "sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 
 #define MAX_NUM_PARTIAL_NG_CONN_RESET 256
 

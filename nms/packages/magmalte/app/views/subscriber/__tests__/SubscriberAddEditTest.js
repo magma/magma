@@ -366,7 +366,9 @@ describe('<AddSubscriberButton />', () => {
 
     expect(queryByTestId('addSubscriberDialog')).toBeNull();
     // Add Subscriber
-    fireEvent.click(getByText('Add Subscriber'));
+    fireEvent.click(getByText('Manage Subscribers'));
+    await wait();
+    fireEvent.click(getByText('Add Subscribers'));
     await wait();
     expect(queryByTestId('addSubscriberDialog')).not.toBeNull();
 

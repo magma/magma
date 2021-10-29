@@ -15,25 +15,33 @@
  */
 import type {ActionQuery} from '../../components/ActionTable';
 import type {EnqueueSnackbarOptions} from 'notistack';
+import type {SubscriberInfo} from './SubscriberAddDialog';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {
   lte_subscription,
+  mutable_subscriber,
+  mutable_subscribers,
   paginated_subscribers,
   subscriber,
 } from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import LaunchIcon from '@material-ui/icons/Launch';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import NetworkContext from '../../components/context/NetworkContext';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberContext from '../../components/context/SubscriberContext';
+import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
+import {AddSubscriberDialog} from './SubscriberAddDialog';
 import {CsvBuilder} from 'filefy';
 import {
   DEFAULT_PAGE_SIZE,
@@ -45,11 +53,15 @@ import {
 } from '../../state/lte/SubscriberState';
 import {JsonDialog} from './SubscriberOverview';
 import {RenderLink} from './SubscriberOverview';
-import {base64ToHex} from '@fbcnms/util/strings';
+import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useEffect, useState} from 'react';
+import {useContext, useEffect, useRef, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
+import {withStyles} from '@material-ui/core/styles';
+
+// number of subscriber in a chunk
+const SUBSCRIBERS_CHUNK_SIZE = 1000;
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -162,7 +174,171 @@ async function exportSubscribers(props: ExportProps) {
   }
 }
 
-function SubscribersTable(props: WithAlert & {refresh: boolean}) {
+const StyledMenu = withStyles({
+  paper: {
+    border: '1px solid #d3d4d5',
+  },
+})(props => (
+  <Menu
+    elevation={0}
+    getContentAnchorEl={null}
+    anchorOrigin={{
+      vertical: 'bottom',
+      horizontal: 'center',
+    }}
+    transformOrigin={{
+      vertical: 'top',
+      horizontal: 'center',
+    }}
+    {...props}
+  />
+));
+
+function SubscriberActionsMenu(props: {onClose: () => void}) {
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [open, setOpen] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const ctx = useContext(SubscriberContext);
+  const successCountRef = useRef(0);
+  const handleClick = event => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  /**
+   * Post subscriber chunk or update subscriber(s) if param edit is set to true
+   *
+   * @param {Array<SubscriberInfo>} subscribers Array of subscribers to Add or Edit.
+   * @param {boolean} edit Update existing subscriber(s) if set to true.
+   */
+  const saveSubscribers = async (
+    subscribers: Array<SubscriberInfo>,
+    edit: boolean,
+  ) => {
+    // create array of subscriber chunk
+    const subscriberChunks = subscribers.reduce(
+      (resultArray, subscriber, index) => {
+        const chunkIndex = Math.floor(index / SUBSCRIBERS_CHUNK_SIZE);
+        if (!resultArray[chunkIndex]) {
+          resultArray[chunkIndex] = [];
+        }
+        const authKey =
+          subscriber.authKey && isValidHex(subscriber.authKey)
+            ? hexToBase64(subscriber.authKey)
+            : '';
+
+        const authOpc =
+          subscriber.authOpc !== undefined && isValidHex(subscriber.authOpc)
+            ? hexToBase64(subscriber.authOpc)
+            : '';
+        const newSubscriber: mutable_subscriber = {
+          active_apns: subscriber.apns,
+          active_policies: subscriber.policies,
+          id: subscriber.imsi,
+          name: subscriber.name,
+          lte: {
+            auth_algo: 'MILENAGE',
+            auth_key: authKey,
+            auth_opc: authOpc,
+            state: subscriber.state,
+            sub_profile: subscriber.dataPlan,
+          },
+        };
+
+        resultArray[chunkIndex].push(newSubscriber);
+        return resultArray;
+      },
+      [],
+    );
+    for (let i = 0; i < subscriberChunks.length; i++) {
+      const subscriberChunk = subscriberChunks[i];
+      try {
+        // PUT subscribers
+        if (edit) {
+          subscriberChunk.map(subscriber => {
+            ctx.setState?.(subscriber.id, subscriber);
+          });
+        } else {
+          // POST subscriber chunk if no errors
+          const success = await addSubscriberChunk(subscriberChunk);
+          if (success) {
+            successCountRef.current =
+              successCountRef.current + subscriberChunk.length;
+          } else {
+            enqueueSnackbar('Saving subscribers failed', {
+              variant: 'error',
+            });
+            return;
+          }
+        }
+      } catch (e) {
+        const errMsg = e.response?.data?.message ?? e.message ?? e;
+        enqueueSnackbar('Saving subscribers failed : ' + errMsg, {
+          variant: 'error',
+        });
+      }
+    }
+    enqueueSnackbar(` Subscriber(s) saved successfully`, {
+      variant: 'success',
+    });
+    props.onClose();
+    setOpen(false);
+  };
+
+  const addSubscriberChunk = async (addedSubscribers: mutable_subscribers) => {
+    try {
+      await ctx.setState?.('', addedSubscribers);
+      return true;
+    } catch (e) {
+      const errMsg = e.response?.data?.message ?? e.message ?? e;
+      setError('Error saving subscribers: ' + errMsg);
+      return false;
+    }
+  };
+
+  return (
+    <div>
+      <AddSubscriberDialog
+        error={error}
+        open={open}
+        onSave={subscribers => {
+          saveSubscribers(subscribers, false);
+        }}
+        onClose={() => {
+          setOpen(false);
+          props.onClose();
+        }}
+      />
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleClick}
+        endIcon={<ArrowDropDownIcon />}>
+        {'Manage Subscribers'}
+      </Button>
+      <StyledMenu
+        anchorEl={anchorEl}
+        keepMounted
+        open={Boolean(anchorEl)}
+        onClose={handleClose}>
+        <MenuItem data-testid="" onClick={() => setOpen(true)}>
+          <Text variant="subtitle2">Add Subscribers</Text>
+        </MenuItem>
+        <MenuItem>
+          <Text variant="subtitle2">Update Subscribers</Text>
+        </MenuItem>
+        <MenuItem>
+          <Text variant="subtitle2">Delete Subscribers</Text>
+        </MenuItem>
+      </StyledMenu>
+    </div>
+  );
+}
+
+function SubscribersTable(props: WithAlert) {
   const {history, match, relativeUrl} = useRouter();
   const [currRow, setCurrRow] = useState<SubscriberRowType>({});
   const classes = useStyles();
@@ -172,18 +348,15 @@ function SubscribersTable(props: WithAlert & {refresh: boolean}) {
   const ctx = useContext(SubscriberContext);
   const subscriberMetrics = ctx.metrics;
   const [jsonDialog, setJsonDialog] = useState(false);
-  // first token (page 1) is an empty string
   const [maxPageRowCount, setMaxPageRowCount] = useState(0);
+  // first token (page 1) is an empty string
   const [tokenList, setTokenList] = useState(['']);
   const onClose = () => setJsonDialog(false);
   const tableRef = React.useRef();
   const subscriberMap = ctx.state;
+  const [refresh, setRefresh] = useState(false);
 
   const tableColumns = [
-    {
-      title: 'Name',
-      field: 'name',
-    },
     {
       title: 'IMSI',
       field: 'imsi',
@@ -197,6 +370,10 @@ function SubscribersTable(props: WithAlert & {refresh: boolean}) {
           />
         );
       },
+    },
+    {
+      title: 'Name',
+      field: 'name',
     },
     {
       title: 'Service',
@@ -223,7 +400,7 @@ function SubscribersTable(props: WithAlert & {refresh: boolean}) {
   // refresh data on subscriber add
   useEffect(() => {
     tableRef.current?.onQueryChange();
-  }, [props.refresh]);
+  }, [refresh]);
   return (
     <>
       <div className={classes.dashboardRoot}>
@@ -231,8 +408,22 @@ function SubscribersTable(props: WithAlert & {refresh: boolean}) {
           key="title"
           icon={SettingsIcon}
           label={'Subscribers'}
-          filter={() => <ExportSubscribersButton />}
+          filter={() => (
+            <Grid container justify="flex-end" alignItems="center" spacing={2}>
+              <Grid item>
+                <ExportSubscribersButton />
+              </Grid>
+              <Grid item>
+                <SubscriberActionsMenu
+                  onClose={() => {
+                    setRefresh(!refresh);
+                  }}
+                />
+              </Grid>
+            </Grid>
+          )}
         />
+
         <JsonDialog open={jsonDialog} onClose={onClose} imsi={currRow.imsi} />
         <ActionTable
           tableRef={tableRef}

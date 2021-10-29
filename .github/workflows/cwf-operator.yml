@@ -5,6 +5,7 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
+      - v1.*
   pull_request:
     branches:
       - master
@@ -26,6 +27,17 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/cwf-operator.yml", "cwf/**", "k8s/**"]
+      # Need to save metadata for deploy from PR job
+      - name: Save PR number and trigger type
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+          echo ${{ steps.changes.outputs.filesChanged == 'false'}} > ./pr/skipped
+      - name: upload metadata
+        uses: actions/upload-artifact@v2
+        with:
+          name: pr
+          path: pr/
   cwf-operator-precommit:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
@@ -71,8 +83,7 @@ jobs:
   cwf-operator-build:
     needs:
       - path_filter
-      - cwf-operator-precommit
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' || github.event_name == 'push' }}
     name: cwf operator build job
     runs-on: ubuntu-latest
     env:
@@ -85,6 +96,28 @@ jobs:
         run: |
              cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator/docker
              DOCKER_REGISTRY=cwf_ docker-compose build --parallel
+      - name: Export docker images to deploy them on pull_request
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir images
+          cd images
+          docker save cwf_operator | gzip > operator.tar.gz
+      - name: Upload docker images as artifacts
+        uses: actions/upload-artifact@v2
+        if: github.event_name == 'pull_request'
+        with:
+          name: docker-images
+          path: images
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      # Used as version for PR builds
+      - name: Save PR number
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+      - uses: actions/upload-artifact@v2
+        with:
+          name: pr
+          path: pr/
       - name: Tag and push to Docker Registry
         if: github.ref == 'refs/heads/master'
         # yamllint disable rule:line-length

@@ -28,8 +28,8 @@
 #include <arpa/inet.h>
 #include <stdint.h>
 
-#include "spgw_state.h"
-#include "ip_forward_messages_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 
 void release_ue_ipv4_address(
     const char* imsi, const char* apn, struct in_addr* addr);

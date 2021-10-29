@@ -19,9 +19,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "AuthenticationFailureParameter.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/AuthenticationFailureParameter.h"
 
 int decode_authentication_failure_parameter(
     AuthenticationFailureParameter* authenticationfailureparameter, uint8_t iei,

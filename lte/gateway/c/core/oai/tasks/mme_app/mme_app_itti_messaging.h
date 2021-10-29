@@ -27,19 +27,19 @@
 #include <inttypes.h>
 #include <string.h>
 
-#include "log.h"
-#include "mme_config.h"
-#include "3gpp_36.401.h"
-#include "common_types.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
-#include "mme_app_desc.h"
-#include "mme_app_ue_context.h"
-#include "mme_app_procedures.h"
-#include "s1ap_messages_types.h"
-#include "mme_app_defs.h"
-#include "mme_app_timer.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/include/mme_app_desc.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_procedures.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
 
 void mme_app_itti_ue_context_release(
     struct ue_mm_context_s* ue_context_p, enum s1cause cause);

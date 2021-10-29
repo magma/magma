@@ -13,8 +13,8 @@ limitations under the License.
 #include <sstream>
 #include <cstdint>
 #include <cstring>
-#include "M5GCommonDefs.h"
-#include "M5GPDUSessionReActivationResult.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionReActivationResult.h"
 
 namespace magma5g {
 M5GPDUSessionReActivationResult::M5GPDUSessionReActivationResult(){};

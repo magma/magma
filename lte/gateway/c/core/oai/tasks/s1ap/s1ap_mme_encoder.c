@@ -18,11 +18,11 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "s1ap_common.h"
-#include "s1ap_mme_encoder.h"
-#include "assertions.h"
-#include "log.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_common.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_encoder.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 static inline int s1ap_mme_encode_initiating(
     S1ap_S1AP_PDU_t* pdu, uint8_t** buffer, uint32_t* length);

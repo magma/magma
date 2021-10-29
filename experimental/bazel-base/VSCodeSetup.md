@@ -11,11 +11,11 @@ Open VSCode and use **Command+Shift+P** to open the editor preferences and selec
 ```
     "remote.SSH.defaultExtensions": [
         "llvm-vs-code-extensions.vscode-clangd",
-        "mitaki28.vscode-clang",
         "stackbuild.bazel-stack-vscode",
         "coolchyni.beyond-debug",
         "stackbuild.bazel-stack-vscode-cc",
         "augustocdias.tasks-shell-input",
+        "ryuta46.multi-command",
     ],
 ```
 

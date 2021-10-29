@@ -19,9 +19,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "LlcServiceAccessPointIdentifier.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LlcServiceAccessPointIdentifier.h"
 
 int decode_llc_service_access_point_identifier(
     LlcServiceAccessPointIdentifier* llcserviceaccesspointidentifier,

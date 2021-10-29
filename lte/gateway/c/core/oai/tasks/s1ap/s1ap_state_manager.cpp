@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#include "s1ap_state_manager.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 namespace {
 constexpr char S1AP_ENB_COLL[]             = "s1ap_eNB_coll";

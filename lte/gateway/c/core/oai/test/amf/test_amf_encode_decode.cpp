@@ -36,7 +36,6 @@ const task_info_t tasks_info[] = {
 };
 
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
-struct mme_config_s mme_config;
 
 using ::testing::Test;
 
@@ -731,11 +730,6 @@ TEST(test_delete_registration_proc, test_delete_registration_proc) {
 
   delete_wrapper(&ue_ctxt->amf_context.amf_procedures);
   delete ue_ctxt;
-}
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
 
 }  // namespace magma5g

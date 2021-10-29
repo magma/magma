@@ -19,9 +19,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "MobileStationClassmark2.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.h"
 
 int decode_mobile_station_classmark_2(
     MobileStationClassmark2* mobilestationclassmark2, uint8_t iei,

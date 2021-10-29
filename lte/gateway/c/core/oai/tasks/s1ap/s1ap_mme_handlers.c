@@ -29,25 +29,25 @@
 #include <netinet/in.h>
 #include <string.h>
 
-#include "bstrlib.h"
-#include "hashtable.h"
-#include "log.h"
-#include "assertions.h"
-#include "conversions.h"
-#include "intertask_interface.h"
-#include "dynamic_memory_check.h"
-#include "mme_config.h"
-#include "s1ap_common.h"
-#include "s1ap_mme_encoder.h"
-#include "s1ap_mme_nas_procedures.h"
-#include "s1ap_mme_itti_messaging.h"
-#include "s1ap_mme.h"
-#include "s1ap_mme_ta.h"
-#include "s1ap_mme_handlers.h"
-#include "mme_events.h"
-#include "3gpp_23.003.h"
-#include "3gpp_36.401.h"
-#include "3gpp_36.413.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_common.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_encoder.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_ta.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
+#include "lte/gateway/c/core/oai/include/mme_events.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "BIT_STRING.h"
 #include "INTEGER.h"
 #include "S1ap_S1AP-PDU.h"
@@ -89,11 +89,11 @@
 #include "S1ap_UEPagingID.h"
 #include "S1ap_UERadioCapability.h"
 #include "asn_SEQUENCE_OF.h"
-#include "common_defs.h"
-#include "intertask_interface_types.h"
-#include "mme_app_messages_types.h"
-#include "includes/MetricsHelpers.h"
-#include "s1ap_state.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.h"
 
 struct S1ap_E_RABItem_s;
 struct S1ap_E_RABSetupItemBearerSURes_s;
@@ -2271,6 +2271,7 @@ status_code_e s1ap_mme_handle_handover_cancel(
   S1ap_HandoverCancelAcknowledge_t* out;
   S1ap_HandoverCancelAcknowledgeIEs_t* hca_ie = NULL;
   ue_description_t* ue_ref_p                  = NULL;
+  e_rab_admitted_list_t e_rab_admitted_list   = {0};
   mme_ue_s1ap_id_t mme_ue_s1ap_id             = INVALID_MME_UE_S1AP_ID;
   enb_ue_s1ap_id_t enb_ue_s1ap_id             = INVALID_ENB_UE_S1AP_ID;
   S1ap_Cause_PR cause_type;
@@ -2346,7 +2347,14 @@ status_code_e s1ap_mme_handle_handover_cancel(
     // this effectively cancels the HandoverPreparation proecedure as we
     // only send a HandoverCommand if the UE is in the S1AP_UE_HANDOVER
     // state.
-    ue_ref_p->s1_ue_state         = S1AP_UE_CONNECTED;
+    ue_ref_p->s1_ue_state = S1AP_UE_CONNECTED;
+    /* Free all the transport layer address pointers in ERAB admitted list
+     * before actually resetting the S1AP handover state
+     */
+    e_rab_admitted_list = ue_ref_p->s1ap_handover_state.e_rab_admitted_list;
+    for (int i = 0; i < e_rab_admitted_list.no_of_items; i++) {
+      bdestroy_wrapper(&e_rab_admitted_list.item[i].transport_layer_address);
+    }
     ue_ref_p->s1ap_handover_state = (struct s1ap_handover_state_s){0};
   } else {
     // Not a failure, but nothing for us to do.

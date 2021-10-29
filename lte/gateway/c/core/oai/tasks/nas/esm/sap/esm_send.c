@@ -18,15 +18,15 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "bstrlib.h"
-#include "log.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.301.h"
-#include "esm_send.h"
-#include "esm_cause.h"
-#include "ApnAggregateMaximumBitRate.h"
-#include "PdnAddress.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_send.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/PdnAddress.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

@@ -15,24 +15,24 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "secu_defs.h"
-#include "intertask_interface_types.h"
-#include "intertask_interface.h"
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
-#include "common_defs.h"
-#include "amf_asDefs.h"
-#include "amf_data.h"
-#include "amf_fsm.h"
-#include "amf_sap.h"
-#include "amf_config.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "amf_identity.h"
-#include "conversions.h"
-#include "amf_app_timer_management.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_data.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 
 namespace magma5g {
 
@@ -90,7 +90,7 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
   if (!(amf_context->amf_procedures)) {
     amf_context->amf_procedures = nas_new_amf_procedures(amf_context);
   }
-  nas_amf_smc_proc_t* smc_proc                   = new (nas_amf_smc_proc_t);
+  nas_amf_smc_proc_t* smc_proc                   = new (nas_amf_smc_proc_t)();
   smc_proc->amf_com_proc.amf_proc.base_proc.type = NAS_PROC_TYPE_AMF;
   smc_proc->amf_com_proc.amf_proc.type           = NAS_AMF_PROC_TYPE_COMMON;
   smc_proc->amf_com_proc.type                    = AMF_COMM_PROC_SMC;
@@ -99,7 +99,7 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
   // smc_proc->T3460.id  = NAS5G_TIMER_INACTIVE_ID;
 
   // nas_amf_common_procedure_t* wrapper = calloc(1, sizeof(*wrapper));
-  nas_amf_common_procedure_t* wrapper = new nas_amf_common_procedure_t;
+  nas_amf_common_procedure_t* wrapper = new nas_amf_common_procedure_t();
   if (wrapper) {
     wrapper->proc = &smc_proc->amf_com_proc;
     LIST_INSERT_HEAD(
@@ -390,6 +390,8 @@ int amf_proc_security_mode_control(
 
   if (smc_proc) {
     // Setup ongoing AMF procedure callback functions
+    ((nas5g_base_proc_t*) smc_proc)->parent =
+        (nas5g_base_proc_t*) amf_specific_proc;
     smc_proc->amf_com_proc.amf_proc.delivered               = NULL;
     smc_proc->amf_com_proc.amf_proc.base_proc.success_notif = success;
     smc_proc->amf_com_proc.amf_proc.base_proc.failure_notif = failure;

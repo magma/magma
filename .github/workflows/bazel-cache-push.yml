@@ -1,0 +1,59 @@
+---
+name: Push Bazel Cache To S3
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/bazel-cache-push.yml
+  schedule:
+    # Run once a day at midnight
+    - cron: '0 0 * * *'
+
+env:
+  BAZEL_CACHE: .bazel-cache
+  BAZEL_CACHE_TAR: bazel-cache-magma-vm.tar.gz
+  BAZEL_CACHE_REPO: .bazel-cache-repo
+  BAZEL_CACHE_REPO_TAR: bazel-cache-repo-magma-vm.tar.gz
+  S3_BUCKET_PATH: s3://magma-bazel-cache
+
+jobs:
+  bazel-build-and-push-cache:
+    runs-on: macos-10.15
+    steps:
+      - run: echo "::set-output name=date::$(date +'%m-%d-%Y--%H-%M-%S')"
+        id: date
+      - uses: actions/checkout@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
+          aws-region: us-east-1
+      - name: setup pyenv
+        uses: "gabrielfalcao/pyenv-action@v8"
+        with:
+          default: 3.8.5
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.5'
+      - name: Install pre requisites
+        run: |
+          pip3 install --upgrade pip
+          pip3 install ansible jsonpickle requests PyYAML
+          vagrant plugin install vagrant-vbguest vagrant-disksize
+      - name: Bring up the Magma VM
+        run: |
+          cd lte/gateway
+          vagrant up magma
+      - name: Build with bazel from scratch
+        run: |
+          cd lte/gateway
+          vagrant ssh -c 'cd ~/magma; bazel build ...' magma
+      - name: Upload .bazel-cache and .bazel-cache-repo to S3
+        run: |
+          tar -zcvf ${{ env.BAZEL_CACHE_TAR }} ${{ env.BAZEL_CACHE }}/
+          tar -zcvf ${{ env.BAZEL_CACHE_REPO_TAR }} ${{ env.BAZEL_CACHE_REPO }}/
+
+          aws s3 cp ${{ env.BAZEL_CACHE_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_TAR}}
+          aws s3 cp ${{ env.BAZEL_CACHE_REPO_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_REPO_TAR}}

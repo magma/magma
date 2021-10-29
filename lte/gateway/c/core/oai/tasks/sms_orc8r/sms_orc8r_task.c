@@ -26,14 +26,14 @@
 
 #include <stdio.h>
 
-#include "assertions.h"
-#include "log.h"
-#include "intertask_interface.h"
-#include "mme_config.h"
-#include "sgs_messages_types.h"
-#include "sms_orc8r_client_api.h"
-#include "common_defs.h"
-#include "intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/sms_orc8r_client_api.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 
 static void sms_orc8r_exit(void);
 

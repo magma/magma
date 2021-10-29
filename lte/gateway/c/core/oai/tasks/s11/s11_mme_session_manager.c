@@ -29,29 +29,29 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-#include "bstrlib.h"
-#include "conversions.h"
-#include "hashtable.h"
-#include "obj_hashtable.h"
-#include "log.h"
-#include "assertions.h"
-#include "intertask_interface.h"
-#include "hashtable.h"
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 
-#include "NwGtpv2c.h"
-#include "NwGtpv2cIe.h"
-#include "NwGtpv2cMsg.h"
-#include "NwGtpv2cMsgParser.h"
-#include "sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cIe.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsgParser.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 
-#include "mme_app_ue_context.h"
-#include "s11_common.h"
-#include "s11_mme_session_manager.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/s11/s11_common.h"
+#include "lte/gateway/c/core/oai/tasks/s11/s11_mme_session_manager.h"
 
 #include "../gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
-#include "s11_ie_formatter.h"
-#include "s11_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/s11/s11_ie_formatter.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 
 extern hash_table_ts_t* s11_mme_teid_2_gtv2c_teid_handle;
 

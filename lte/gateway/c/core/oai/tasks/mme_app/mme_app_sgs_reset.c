@@ -32,18 +32,18 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <mme_app_state.h>
+#include <lte/gateway/c/core/oai/include/mme_app_state.h>
 
-#include "log.h"
-#include "mme_app_sgs_fsm.h"
-#include "mme_app_defs.h"
-#include "common_defs.h"
-#include "common_types.h"
-#include "hashtable.h"
-#include "mme_api.h"
-#include "mme_app_desc.h"
-#include "mme_app_ue_context.h"
-#include "sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/include/mme_app_desc.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
