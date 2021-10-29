@@ -17,8 +17,8 @@
 
 #include <stdint.h>
 
-#include "assertions.h"
-#include "MessageType.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
 
 //------------------------------------------------------------------------------
 int decode_message_type(

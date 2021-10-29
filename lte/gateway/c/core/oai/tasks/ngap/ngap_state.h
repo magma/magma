@@ -25,9 +25,9 @@
 extern "C" {
 #endif
 
-#include "hashtable.h"
-#include "amf_config.h"
-#include "ngap_types.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
 
 int ngap_state_init(uint32_t max_ues, uint32_t max_gnbs, bool use_stateless);
 

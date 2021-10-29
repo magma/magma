@@ -16,10 +16,10 @@
  */
 #ifndef FILE_MME_APP_SPGW_SEEN
 #define FILE_MME_APP_SPGW_SEEN
-#include "mme_config.h"
-#include "amf_config.h"
-#include "sgw_config.h"
-#include "sgw_defs.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/sgw_config.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
 
 status_code_e mme_config_embedded_spgw_parse_opt_line(
     int argc, char* argv[], mme_config_t*, amf_config_t*, spgw_config_t*);

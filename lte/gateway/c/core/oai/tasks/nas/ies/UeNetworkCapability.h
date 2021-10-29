@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-#include "3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 
 int encode_ue_network_capability(
     ue_network_capability_t* uenetworkcapability, uint8_t iei, uint8_t* buffer,

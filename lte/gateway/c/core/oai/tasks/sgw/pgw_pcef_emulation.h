@@ -28,12 +28,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "common_defs.h"
-#include "queue.h"
-#include "bstrlib.h"
-#include "pgw_config.h"
-#include "pgw_types.h"
-#include "spgw_state.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/include/pgw_config.h"
+#include "lte/gateway/c/core/oai/include/pgw_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
 
 status_code_e pgw_pcef_emulation_init(
     spgw_state_t* state_p, const pgw_config_t* pgw_config_p);

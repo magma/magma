@@ -11,18 +11,18 @@
 
 #pragma once
 #include <sstream>
-#include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GPDUSessionIdentity.h"
-#include "M5GPTI.h"
-#include "M5GMessageType.h"
-#include "M5GIntegrityProtMaxDataRate.h"
-#include "M5GPDUSessionType.h"
-#include "M5GSSCMode.h"
-#include "M5GQOSRules.h"
-#include "M5GSessionAMBR.h"
-#include "M5GPDUAddress.h"
-#include "M5GDNN.h"
-#include "M5GProtocolConfigurationOptions.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GIntegrityProtMaxDataRate.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSSCMode.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQOSRules.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSessionAMBR.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUAddress.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GDNN.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GProtocolConfigurationOptions.h"
 
 namespace magma5g {
 // PDUSessionEstablishmentAccept Message Class

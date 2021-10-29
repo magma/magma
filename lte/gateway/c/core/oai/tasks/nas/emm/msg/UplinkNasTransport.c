@@ -17,9 +17,9 @@
 
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "UplinkNasTransport.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/UplinkNasTransport.h"
 
 int decode_uplink_nas_transport(
     uplink_nas_transport_msg* uplink_nas_transport, uint8_t* buffer,

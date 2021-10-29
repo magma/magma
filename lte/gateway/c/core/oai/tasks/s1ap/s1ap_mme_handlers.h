@@ -19,13 +19,13 @@
 #define FILE_S1AP_MME_HANDLERS_SEEN
 #include <stdbool.h>
 
-#include "common_defs.h"
-#include "s1ap_mme.h"
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "S1ap_Cause.h"
-#include "common_types.h"
-#include "s1ap_messages_types.h"
-#include "sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 
 #define MAX_NUM_PARTIAL_S1_CONN_RESET 256
 

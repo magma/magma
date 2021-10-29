@@ -18,12 +18,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "log.h"
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "AttachRequest.h"
-#include "UeNetworkCapability.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 int decode_attach_request(
     attach_request_msg* attach_request, uint8_t* buffer, uint32_t len) {

@@ -17,9 +17,9 @@
 
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "TrackingAreaUpdateComplete.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateComplete.h"
 
 int decode_tracking_area_update_complete(
     tracking_area_update_complete_msg* tracking_area_update_complete,

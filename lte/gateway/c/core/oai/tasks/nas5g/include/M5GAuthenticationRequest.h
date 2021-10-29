@@ -11,16 +11,16 @@
 
 #pragma once
 #include <sstream>
-#include "M5gNasMessage.h"
-#include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GSecurityHeaderType.h"
-#include "M5GSpareHalfOctet.h"
-#include "M5GMessageType.h"
-#include "M5GNASKeySetIdentifier.h"
-#include "M5GABBA.h"
-#include "M5GAuthenticationParameterRAND.h"
-#include "M5GAuthenticationParameterAUTN.h"
-#include "M5GEAPMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASKeySetIdentifier.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GABBA.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationParameterRAND.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationParameterAUTN.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GEAPMessage.h"
 
 namespace magma5g {
 // AuthenticationRequest Message Class

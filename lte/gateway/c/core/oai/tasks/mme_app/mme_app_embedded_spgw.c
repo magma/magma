@@ -17,12 +17,12 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "mme_app_embedded_spgw.h"
-#include "common_defs.h"
-#include "bstrlib.h"
-#include "log.h"
-#include "pgw_config.h"
-#include "sgw_config.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/pgw_config.h"
+#include "lte/gateway/c/core/oai/include/sgw_config.h"
 
 char* USAGE_TEXT =
     "==== EURECOM %s version: %s ====\n"  // PACKAGE_NAME, PACKAGE_VERSION
@@ -138,10 +138,11 @@ status_code_e mme_config_embedded_spgw_parse_opt_line(
     return RETURNerror;
   }
 
-  if (amf_config_parse_file(amf_config_p) != 0) {
+  if (amf_config_parse_file(amf_config_p, mme_config_p) != 0) {
     return RETURNerror;
   }
 
+  amf_config_display(amf_config_p);
   mme_config_display(mme_config_p);
   spgw_config_display(spgw_config_p);
 

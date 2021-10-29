@@ -32,12 +32,12 @@
 #include <stdbool.h>
 #include <libconfig.h>
 
-#include "bstrlib.h"
-#include "assertions.h"
-#include "log.h"
-#include "common_defs.h"
-#include "dynamic_memory_check.h"
-#include "sgw_config.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/sgw_config.h"
 
 #ifdef LIBCONFIG_LONG
 #define libconfig_int long
@@ -343,7 +343,6 @@ status_code_e sgw_config_parse_string(
         config_pP->udp_port_S1u_S12_S4_up_v6 = sgw_udp_port_S1u_S12_S4_up_v6;
       }
     }
-#if ENABLE_OPENFLOW
     config_setting_t* ovs_settings =
         config_setting_get_member(setting_sgw, SGW_CONFIG_STRING_OVS_CONFIG);
     if (ovs_settings == NULL) {
@@ -443,15 +442,15 @@ status_code_e sgw_config_parse_string(
     } else {
       Fatal("Couldn't find all ovs settings in spgw config\n");
     }
-#endif
   }
   config_destroy(&cfg);
   return RETURNok;
 }
 
 int sgw_config_parse_file(sgw_config_t* config_pP) {
-  FILE* fp = NULL;
-  fp       = fopen(bdata(config_pP->config_file), "r");
+  FILE* fp     = NULL;
+  int ret_code = RETURNerror;
+  fp           = fopen(bdata(config_pP->config_file), "r");
   if (fp == NULL) {
     OAILOG_CRITICAL(
         LOG_CONFIG, "Failed to open SGW configuration file at path: %s\n",
@@ -471,7 +470,9 @@ int sgw_config_parse_file(sgw_config_t* config_pP) {
         "Failed to read SGW configuration file at path: %s:\n",
         bdata(config_pP->config_file));
   }
-  return sgw_config_parse_string(bdata(buff), config_pP);
+  ret_code = sgw_config_parse_string(bdata(buff), config_pP);
+  bdestroy_wrapper(&buff);
+  return ret_code;
 }
 
 //------------------------------------------------------------------------------

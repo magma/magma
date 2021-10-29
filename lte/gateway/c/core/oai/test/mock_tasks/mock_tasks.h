@@ -67,6 +67,8 @@ class MockSpgwHandler {
  public:
   MOCK_METHOD0(sgw_handle_s11_create_session_request, void());
   MOCK_METHOD0(sgw_handle_delete_session_request, void());
+  MOCK_METHOD0(sgw_handle_modify_bearer_request, void());
+  MOCK_METHOD0(sgw_handle_release_access_bearers_request, void());
 };
 
 class MockService303Handler {

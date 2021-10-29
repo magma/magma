@@ -36,9 +36,9 @@ Description Defines the EPS Session Management procedure call manager,
 #ifndef __ESM_MAIN_H__
 #define __ESM_MAIN_H__
 
-#include "nas/networkDef.h"
-#include "emm_data.h"
-#include "esm_data.h"
+#include "lte/gateway/c/core/oai/include/nas/networkDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

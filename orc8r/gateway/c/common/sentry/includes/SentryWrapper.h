@@ -21,6 +21,8 @@ extern "C" {
 #define SENTRY_TAG_MME "MME"
 #define SENTRY_TAG_SESSIOND "SessionD"
 #define SENTRY_TAG_LEN 16
+#define SENTRY_DB_PREFIX ".sentry-native-"
+#define SENTRY_DB_PREFIX_LEN 16
 
 /**
  * @brief Struct to contain Sentry configuration relevant for C/C++ services
@@ -29,6 +31,8 @@ typedef struct sentry_config {
   float sample_rate;
   bool upload_mme_log;
   char url_native[MAX_URL_LENGTH];
+  // Add debug logging for sentry, useful for debugging connection issues
+  bool add_debug_logging;
 } sentry_config_t;
 
 /**
@@ -49,6 +53,13 @@ void shutdown_sentry(void);
  * @param name
  */
 void set_sentry_transaction(const char* name);
+
+/**
+ * @brief Log a message to sentry at ERROR level
+ *
+ * @param message
+ */
+void sentry_log_error(const char* message);
 
 #ifdef __cplusplus
 }

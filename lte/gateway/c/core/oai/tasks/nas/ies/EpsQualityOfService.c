@@ -15,16 +15,16 @@
  *      contact@openairinterface.org
  */
 
-#include "EpsQualityOfService.h"
+#include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
 
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "common_types.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 //------------------------------------------------------------------------------
 static int decode_eps_qos_bit_rates(

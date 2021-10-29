@@ -27,11 +27,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "common_defs.h"
-#include "bstrlib.h"
-#include "common_types.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 
 #define S1AP 18
 #define NGAP 60

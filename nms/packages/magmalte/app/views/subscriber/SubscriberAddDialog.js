@@ -16,8 +16,11 @@
 import type {subscriber} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
+import Alert from '@material-ui/lab/Alert';
+import AlertTitle from '@material-ui/lab/AlertTitle';
 import ApnContext from '../../components/context/ApnContext';
 import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import Checkbox from '@material-ui/core/Checkbox';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import Dialog from '@material-ui/core/Dialog';
@@ -28,6 +31,7 @@ import EditSubscriberApnStaticIps from './SubscriberApnStaticIpsEdit';
 import EditSubscriberTrafficPolicy from './SubscriberTrafficPolicyEdit';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
+import Grid from '@material-ui/core/Grid';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
 import LteNetworkContext from '../../components/context/LteNetworkContext';
@@ -39,14 +43,13 @@ import Select from '@material-ui/core/Select';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import Text from '../../theme/design-system/Text';
+import Tooltip from '@material-ui/core/Tooltip';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import nullthrows from '@fbcnms/util/nullthrows';
-
-import {
-  AltFormField,
-  LinearProgressWithLabel,
-  PasswordInput,
-} from '../../components/FormField';
+import {AltFormField, PasswordInput} from '../../components/FormField';
+import {DropzoneArea} from 'material-ui-dropzone';
+import {SUBSCRIBER_ADD_ERRORS} from '../../views/subscriber/SubscriberUtils';
 import {SelectEditComponent} from '../../components/ActionTable';
 import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import {colors, typography} from '../../theme/default';
@@ -110,6 +113,15 @@ const useStyles = makeStyles(theme => ({
   dialog: {
     height: '750px',
   },
+  ellipsis: {
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    width: '160px',
+    whiteSpace: 'nowrap',
+  },
+  rowId: {
+    color: colors.primary.comet,
+  },
 }));
 
 const MAX_UPLOAD_FILE_SZ_BYTES = 10 * 1024 * 1024;
@@ -153,7 +165,7 @@ function parseSubscriber(line: string) {
     authOpc: items[SUB_AUTH_OPC_OFFSET],
     state: items[SUB_STATE_OFFSET] === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
     dataPlan: items[SUB_DATAPLAN_OFFSET],
-    apns: items[SUB_APN_OFFSET].split('|')
+    apns: items[SUB_APN_OFFSET]?.split('|')
       .map(item => item.trim())
       .filter(Boolean),
     policies: items?.[SUB_POLICY_OFFSET]?.split('|')
@@ -207,29 +219,6 @@ type SubscriberActionType = {
   isOpen?: boolean,
   handleOpen?: boolean => void,
 };
-
-export default function AddSubscriberButton(props: SubscriberActionType) {
-  const classes = useStyles();
-  return (
-    <>
-      <AddSubscriberDialog
-        open={props.isOpen ?? false}
-        onClose={() => {
-          props.handleOpen?.(false);
-          props.onClose();
-        }}
-        onSave={subscribers => {
-          props.onSave(subscribers || []);
-        }}
-      />
-      <Button
-        onClick={() => props.handleOpen?.(true)}
-        className={classes.appBarBtn}>
-        {'Add Subscriber'}
-      </Button>
-    </>
-  );
-}
 
 export function BulkEditSubscriberButton(props: SubscriberActionType) {
   const classes = useStyles();
@@ -361,24 +350,32 @@ type DialogProps = {
   onClose: () => void,
   editProps?: EditProps,
   onSave?: (subscribers: Array<SubscriberInfo>) => void,
+  error?: string,
 };
 
-function AddSubscriberDialog(props: DialogProps) {
+/**
+ * Dialog used to Add/Delete/Update subscribers
+ */
+export function AddSubscriberDialog(props: DialogProps) {
   const classes = useStyles();
   return (
-    <Dialog
-      data-testid="addSubscriberDialog"
-      open={props.open}
-      fullWidth={true}
-      maxWidth="lg">
-      <DialogTitle
-        className={classes.topBar}
-        onClose={props.onClose}
-        label={'Add Subscribers'}
-      />
+    <>
+      <Dialog
+        data-testid="addSubscriberDialog"
+        open={props.open}
+        onSave={subscribers => {
+          props.onSave?.(subscribers || []);
+        }}
+        maxWidth="xl">
+        <DialogTitle
+          className={classes.topBar}
+          onClose={props.onClose}
+          label={'Add Subscribers'}
+        />
 
-      <AddSubscriberDetails {...props} />
-    </Dialog>
+        <AddSubscriberDetails {...props} />
+      </Dialog>
+    </>
   );
 }
 
@@ -599,20 +596,104 @@ export function SubscriberEditDialog(props: DialogProps) {
     </Dialog>
   );
 }
-function AddSubscriberDetails(props: DialogProps) {
+
+type AddSubscribersProps = {
+  // Subscribers to add, edit or delete
+  setSubscribers: (Array<SubscriberInfo>) => void,
+  subscribers: Array<SubscriberInfo>,
+  // Formatting error (eg: field missing, wrong IMSI format)
+  setAddError: (Array<string>) => void,
+  addError: Array<string>,
+  // Display dropzone if set to true
+  setUpload: boolean => void,
+  upload: boolean,
+  onClose: () => void,
+  // Add, edit or delete subscribers
+  onSave?: (Array<SubscriberInfo>) => void,
+  error?: string,
+  // Row added with the Add New Row button
+  rowAdd: boolean,
+  setRowAdd: boolean => void,
+};
+
+function AddSubscriberDetailsUpload(props: AddSubscribersProps) {
+  const {setSubscribers, setAddError, setUpload, upload, subscribers} = props;
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  return (
+    <>
+      <DialogContent>
+        <CardTitleRow label={'Upload CSV'} />
+        <Grid container>
+          <Grid item xs={12}>
+            <Alert severity="warning">
+              This will replace the subscribers you entered on the previous
+              page.
+            </Alert>
+          </Grid>
+          <Grid item xs={12}>
+            <DropzoneArea
+              useChipsForPreview
+              showPreviewsInDropzone={false}
+              filesLimit={1}
+              showAlerts={false}
+              onChange={async files => {
+                if (files.length) {
+                  try {
+                    const newSubscribers = await parseSubscriberFile(files[0]);
+                    if (newSubscribers) {
+                      setSubscribers([...newSubscribers]);
+                      const errors = validateSubscribers(newSubscribers);
+                      setAddError(errors);
+                      setUpload(false);
+                    }
+                  } catch (e) {
+                    enqueueSnackbar(e, {
+                      variant: 'error',
+                    });
+                  }
+                }
+              }}
+            />
+          </Grid>
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Grid container justify="space-between">
+          <Grid item>
+            {upload && <Button onClick={() => setUpload(false)}> Back </Button>}
+          </Grid>
+          <Grid item>
+            <Button onClick={props.onClose}> Cancel </Button>
+            <Button
+              data-testid="saveSubscriber"
+              onClick={() => {
+                props.onSave?.(subscribers);
+              }}>
+              {'Save and Add Subscribers'}
+            </Button>
+          </Grid>
+        </Grid>
+      </DialogActions>
+    </>
+  );
+}
+
+function AddSubscriberDetailsTable(props: AddSubscribersProps) {
+  const {
+    setSubscribers,
+    setAddError,
+    setUpload,
+    subscribers,
+    addError,
+    rowAdd,
+    setRowAdd,
+  } = props;
   const classes = useStyles();
-  const ctx = useContext(SubscriberContext);
   const apnCtx = useContext(ApnContext);
   const lteCtx = useContext(LteNetworkContext);
   const policyCtx = useContext(PolicyContext);
-  const [error, setError] = useState('');
-  const [subscribers, setSubscribers] = useState<Array<SubscriberInfo>>([]);
-  const successCountRef = useRef(0);
-  const fileInput = useRef(null);
-  const enqueueSnackbar = useEnqueueSnackbar();
-
   const apns = Array.from(new Set(Object.keys(apnCtx.state || {})));
-
   const subProfiles = Array.from(
     new Set(Object.keys(lteCtx.state.cellular?.epc?.sub_profiles || {})).add(
       'default',
@@ -621,56 +702,61 @@ function AddSubscriberDetails(props: DialogProps) {
   const policies = Array.from(
     new Set(Object.keys(policyCtx.state || {})).add('default'),
   );
+  const tableActions = {
+    onRowUpdate: (newData, oldData) => {
+      return new Promise((resolve, reject) => {
+        const err = validateSubscribers([newData]);
+        setAddError(err);
+        if (err.length > 0) {
+          return reject();
+        }
+        const dataUpdate = [...subscribers];
+        const index = oldData.tableData.id;
+        dataUpdate[index] = newData;
+        setSubscribers([...dataUpdate]);
+        resolve();
+      });
+    },
+    onRowDelete: oldData =>
+      new Promise(resolve => {
+        const dataDelete = [...subscribers];
+        const index = oldData.tableData.id;
+        dataDelete.splice(index, 1);
+        setSubscribers([...dataDelete]);
+        resolve();
+      }),
+  };
 
   return (
     <>
       <DialogContent>
-        {successCountRef.current > 0 && subscribers.length > 0 && (
-          <LinearProgressWithLabel
-            value={Math.round(
-              (successCountRef.current * 100) / subscribers.length,
-            )}
-            text={`${successCountRef.current}/${subscribers.length}`}
-          />
+        {(addError.length > 0 || props.error) && (
+          <Grid item>
+            <Alert severity="error">
+              <AlertTitle>Error Adding Subscriber(s)</AlertTitle>
+              {addError.length > 0 ? (
+                <ul>
+                  {addError.map(e => (
+                    <li>{e}</li>
+                  ))}
+                </ul>
+              ) : (
+                <> {props.error} </>
+              )}
+            </Alert>
+          </Grid>
         )}
-        {error !== '' && <FormLabel error>{error}</FormLabel>}
-        <input
-          type="file"
-          ref={fileInput}
-          accept={'.csv'}
-          style={{display: 'none'}}
-          onChange={async () => {
-            if (fileInput.current) {
-              try {
-                const newSubscribers = await parseSubscriberFile(
-                  fileInput.current.files[0],
-                );
-                setSubscribers([...subscribers, ...newSubscribers]);
-              } catch (e) {
-                enqueueSnackbar(e, {
-                  variant: 'error',
-                });
-              }
-            }
-          }}
-        />
+
         <ActionTable
           data={subscribers}
           columns={[
             {
-              title: 'Subscriber Name',
-              field: 'name',
-              editComponent: props => (
-                <OutlinedInput
-                  data-testid="name"
-                  variant="outlined"
-                  placeholder="Enter Name"
-                  type="text"
-                  value={props.value}
-                  onChange={e => {
-                    props.onChange(e.target.value);
-                  }}
-                />
+              title: '',
+              field: '',
+              width: '40px',
+              editable: 'never',
+              render: rowData => (
+                <Text variant="subtitle3">{rowData.tableData?.id + 1}</Text>
               ),
             },
             {
@@ -688,6 +774,22 @@ function AddSubscriberDetails(props: DialogProps) {
               ),
             },
             {
+              title: 'Subscriber Name',
+              field: 'name',
+              editComponent: props => (
+                <OutlinedInput
+                  data-testid="name"
+                  variant="outlined"
+                  placeholder="Enter Name"
+                  type="text"
+                  value={props.value}
+                  onChange={e => {
+                    props.onChange(e.target.value);
+                  }}
+                />
+              ),
+            },
+            {
               title: 'Auth Key',
               field: 'authKey',
               editComponent: props => (
@@ -698,6 +800,13 @@ function AddSubscriberDetails(props: DialogProps) {
                   onChange={v => props.onChange(v)}
                 />
               ),
+              render: rowData => {
+                return (
+                  <Tooltip title={rowData.authKey} placement="top">
+                    <div className={classes.ellipsis}>{rowData.authKey}</div>
+                  </Tooltip>
+                );
+              },
             },
             {
               title: 'Auth OPC',
@@ -710,6 +819,13 @@ function AddSubscriberDetails(props: DialogProps) {
                   onChange={v => props.onChange(v)}
                 />
               ),
+              render: rowData => {
+                return (
+                  <Tooltip title={rowData.authOpc} placement="top">
+                    <div className={classes.ellipsis}>{rowData.authOpc}</div>
+                  </Tooltip>
+                );
+              },
             },
             {
               title: 'Service',
@@ -813,68 +929,119 @@ function AddSubscriberDetails(props: DialogProps) {
             },
           ]}
           options={{
+            minBodyHeight: 400,
+            maxBodyHeight: 400,
             actionsColumnIndex: -1,
-            pageSizeOptions: [5, 10],
-          }}
-          editable={{
-            onRowAdd: newData =>
-              new Promise((resolve, reject) => {
-                const err = validateSubscriberInfo(newData, ctx.state);
-                setError(err);
-                if (err.length > 0) {
-                  return reject();
-                }
-                setSubscribers([...subscribers, newData]);
-                resolve();
-              }),
-            onRowUpdate: (newData, oldData) =>
-              new Promise((resolve, reject) => {
-                const err = validateSubscriberInfo(newData, ctx.state);
-                setError(err);
-                if (err.length > 0) {
-                  return reject();
-                }
-                const dataUpdate = [...subscribers];
-                const index = oldData.tableData.id;
-                dataUpdate[index] = newData;
-                setSubscribers([...dataUpdate]);
-                resolve();
-              }),
-            onRowDelete: oldData =>
-              new Promise(resolve => {
-                const dataDelete = [...subscribers];
-                const index = oldData.tableData.id;
-                dataDelete.splice(index, 1);
-                setSubscribers([...dataDelete]);
-                resolve();
-              }),
-          }}
-          actions={[
-            {
-              icon: forwardRef((props, ref) => (
-                <CloudUploadIcon {...props} ref={ref} />
-              )),
-              tooltip: 'Upload',
-              isFreeAction: true,
-              onClick: () => {
-                if (fileInput.current) {
-                  fileInput.current.click();
-                }
-              },
+            pageSize: 100,
+            pageSizeOptions: [100, 500],
+            tableLayout: 'fixed',
+            fixedColumns: {
+              left: 1,
             },
-          ]}
+          }}
+          editable={
+            subscribers.length > 0 && !rowAdd
+              ? tableActions
+              : {
+                  ...tableActions,
+                  onRowAdd: newData => {
+                    setRowAdd(true);
+                    return new Promise((resolve, reject) => {
+                      const err = validateSubscribers([newData]);
+                      setAddError(err);
+                      if (err.length > 0) {
+                        return reject();
+                      }
+                      setSubscribers([...subscribers, newData]);
+                      resolve();
+                    });
+                  },
+                }
+          }
+          actions={
+            subscribers.length > 0 && !rowAdd
+              ? []
+              : [
+                  {
+                    icon: forwardRef((props, ref) => (
+                      <Button
+                        startIcon={<CloudUploadIcon {...props} ref={ref} />}
+                        variant="outlined"
+                        color="primary">
+                        {'Upload CSV'}
+                      </Button>
+                    )),
+                    tooltip: 'Upload',
+                    isFreeAction: true,
+                    onClick: () => {
+                      setUpload(true);
+                    },
+                  },
+                ]
+          }
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose}> Cancel </Button>
-        <Button
-          data-testid="saveSubscriber"
-          onClick={() => {
-            props.onSave?.(subscribers);
-          }}>
-          {'Save and Add Subscribers'}
-        </Button>
+        <Grid container justify="space-between">
+          <Grid item>
+            <Button
+              disabled={!(subscribers.length > 0) || rowAdd}
+              onClick={() => {
+                setUpload(true);
+              }}>
+              Back
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button onClick={props.onClose}> Cancel </Button>
+            <Button
+              data-testid="saveSubscriber"
+              onClick={() => {
+                const err = validateSubscribers(subscribers);
+                setAddError(err);
+                if (!err.length) {
+                  props.onSave?.(subscribers);
+                }
+              }}>
+              {'Save and Add Subscribers'}
+            </Button>
+          </Grid>
+        </Grid>
       </DialogActions>
+    </>
+  );
+}
+/**
+ * Dialog content used to Add/Delete/Update subscribers
+ * Displays upload subscriber dropzone or subscriber table
+ */
+function AddSubscriberDetails(props: DialogProps) {
+  const [addError, setAddError] = useState([]);
+  const [subscribers, setSubscribers] = useState<Array<SubscriberInfo>>([]);
+  const [upload, setUpload] = useState(false);
+  const [rowAdd, setRowAdd] = useState(false);
+
+  const addSubscriberProps = {
+    upload,
+    setUpload,
+    subscribers,
+    setSubscribers,
+    addError,
+    setAddError,
+    error: props.error,
+    onClose: props.onClose,
+    onSave: props.onSave,
+    rowAdd,
+    setRowAdd,
+  };
+
+  return (
+    <>
+      {!upload ? (
+        <AddSubscriberDetailsTable {...addSubscriberProps} />
+      ) : (
+        <AddSubscriberDetailsUpload {...addSubscriberProps} />
+      )}
     </>
   );
 }
@@ -898,6 +1065,60 @@ export function validateSubscriberInfo(
   }
   return '';
 }
+type SubscriberError = $Values<typeof SUBSCRIBER_ADD_ERRORS>;
+/**
+ * Check subscriber fields format
+ * Returns array of errors
+ *
+ * @param {Array<SubscriberInfo>} subscribers Array of subcribers to validate
+ */
+export function validateSubscribers(subscribers: Array<SubscriberInfo>) {
+  const errors: {
+    [error: SubscriberError]: Array<number>,
+  } = {};
+  const imsiList = [];
+
+  Object.keys(SUBSCRIBER_ADD_ERRORS).map(error => {
+    const subscriberError = SUBSCRIBER_ADD_ERRORS[error];
+    errors[subscriberError] = [];
+  });
+  subscribers.forEach((info, i) => {
+    if (!info.authKey) {
+      errors[SUBSCRIBER_ADD_ERRORS['REQUIRED_AUTH_KEY']].push(i + 1);
+    }
+    if (!info?.imsi?.match(/^(IMSI\d{10,15})$/)) {
+      errors[SUBSCRIBER_ADD_ERRORS['INVALID_IMSI']].push(i + 1);
+    }
+    if (info.authKey && !isValidHex(info.authKey)) {
+      errors[SUBSCRIBER_ADD_ERRORS['INVALID_AUTH_KEY']].push(i + 1);
+    }
+    if (info.authOpc && !isValidHex(info.authOpc)) {
+      errors[SUBSCRIBER_ADD_ERRORS['INVALID_AUTH_OPC']].push(i + 1);
+    }
+    if (!info.dataPlan) {
+      errors[SUBSCRIBER_ADD_ERRORS['REQUIRED_SUB_PROFILE']].push(i + 1);
+    }
+    if (imsiList.includes(info.imsi)) {
+      errors[SUBSCRIBER_ADD_ERRORS['DUPLICATE_IMSI']].push(i + 1);
+    } else {
+      imsiList.push(info.imsi);
+    }
+  });
+
+  const errorList: Array<string> = Object.keys(SUBSCRIBER_ADD_ERRORS)
+    .map(error => SUBSCRIBER_ADD_ERRORS[error])
+    .reduce((res, errorMessage) => {
+      if (errors[errorMessage].length > 0) {
+        res.push(
+          `${errorMessage} : Row ${errors[errorMessage].sort().join(', ')}`,
+        );
+      }
+      return res;
+    }, []);
+
+  return errorList;
+}
+
 type subscriberStaticIpsRowType = {
   apnName: string,
   staticIp: string,

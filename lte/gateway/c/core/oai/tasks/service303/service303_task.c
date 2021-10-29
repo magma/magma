@@ -19,15 +19,15 @@
 
 #include <stdio.h>
 
-#include "assertions.h"
-#include "log.h"
-#include "intertask_interface.h"
-#include "common_defs.h"
-#include "service303.h"
-#include "bstrlib.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
-#include "itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 
 static void service303_server_exit(void);
 static void service303_message_exit(void);

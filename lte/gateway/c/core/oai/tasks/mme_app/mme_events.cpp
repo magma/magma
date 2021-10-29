@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "mme_events.h"
+#include "lte/gateway/c/core/oai/include/mme_events.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -24,13 +24,13 @@
 #include <folly/dynamic.h>
 #include <grpcpp/support/status.h>
 
-#include "conversions.h"
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 
 #include "orc8r/protos/common.pb.h"
 #include "orc8r/protos/eventd.pb.h"
 
-#include "EventClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/event_client/EventClientAPI.h"
 
 using grpc::Status;
 using magma::lte::init_eventd_client;

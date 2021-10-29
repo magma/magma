@@ -32,35 +32,33 @@ import (
 	state_types "magma/orc8r/cloud/go/services/state/types"
 )
 
-func TestIndexerSessionID(t *testing.T) {
-	const (
-		version indexer.Version = 1 // copied from indexer_servicer.go
+const (
+	version indexer.Version = 1 // copied from indexer_servicer.go
 
-		imsi0   = "some_imsi_0"
-		imsi1   = "some_imsi_1"
-		nid0    = "some_network_id_0"
-		sid0    = "some_session_id_0"
-		sid1    = "some_session_id_1"
-		teid0   = "1, 2, 3"
-		teid0_0 = "1"
-		teid0_1 = "2"
-		teid1   = "5, 6"
-		teid1_0 = "5"
-		teid1_1 = "6"
-		hwid0   = "hwid0"
-		hwid1   = "hwid1"
-	)
-	var (
-		types = []string{orc8r.DirectoryRecordType} // copied from indexer_servicer.go
-	)
+	imsi0 = "some_imsi_0"
+	imsi1 = "some_imsi_1"
+	nid0  = "some_network_id_0"
+	sid0  = "some_session_id_0"
+	sid1  = "some_session_id_1"
 
+	teid0   = "1, 2, 3"
+	teid0_0 = "1"
+	teid0_1 = "2"
+	teid1   = "5, 6"
+	teid1_0 = "5"
+	teid1_1 = "6"
+	hwid0   = "hwid0"
+	hwid1   = "hwid1"
+)
+
+var (
+	types = []string{orc8r.DirectoryRecordType} // copied from indexer_servicer.go
+)
+
+func TestSessionIDIndexer(t *testing.T) {
 	directoryd_test_init.StartTestService(t)
 	orchestrator_test_init.StartTestService(t)
 	idx := indexer.NewRemoteIndexer(orchestrator.ServiceName, version, types...)
-
-	// ////////////////////////////
-	// Session ID -> IMSI
-	// ////////////////////////////
 
 	record := &directoryd_types.DirectoryRecord{
 		Identifiers: map[string]interface{}{
@@ -69,15 +67,16 @@ func TestIndexerSessionID(t *testing.T) {
 		LocationHistory: []string{"apple"},
 	}
 
-	id := state_types.ID{
-		Type:     orc8r.DirectoryRecordType,
-		DeviceID: imsi0,
-	}
-	st := state_types.State{
+	recordState := state_types.State{
 		ReportedState:      record,
 		Version:            44,
 		TimeMs:             42,
 		CertExpirationTime: 43,
+	}
+
+	id := state_types.ID{
+		Type:     orc8r.DirectoryRecordType,
+		DeviceID: imsi0,
 	}
 
 	// Indexer subscription matches directory records
@@ -85,7 +84,7 @@ func TestIndexerSessionID(t *testing.T) {
 	assert.True(t, idx.GetTypes()[0] == orc8r.DirectoryRecordType)
 
 	// Index the imsi0->sid0 state, result is sid0->imsi0 reverse mapping
-	errs, err := idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.DirectoryRecordType)})
+	errs, err := idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, recordState, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
 	imsi, err := directoryd.GetIMSIForSessionID(context.Background(), nid0, sid0)
@@ -94,8 +93,8 @@ func TestIndexerSessionID(t *testing.T) {
 
 	// Update sid -- index imsi0->sid1, result is sid1->imsi0 reverse mapping
 	// Note that we specifically don't test for the presence of {sid0 -> ?}, as we allow stale derived state to persist.
-	st.ReportedState.(*directoryd_types.DirectoryRecord).Identifiers[directoryd_types.RecordKeySessionID] = sid1
-	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.DirectoryRecordType)})
+	recordState.ReportedState.(*directoryd_types.DirectoryRecord).Identifiers[directoryd_types.RecordKeySessionID] = sid1
+	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, recordState, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
 	imsi, err = directoryd.GetIMSIForSessionID(context.Background(), nid0, sid1)
@@ -105,14 +104,14 @@ func TestIndexerSessionID(t *testing.T) {
 	// Update imsi -- index imsi1->sid1, result is sid1->imsi1 reverse mapping
 	// Note that we specifically don't test for the presence of {sid0 -> ?}, as we allow stale derived state to persist.
 	id.DeviceID = imsi1
-	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.DirectoryRecordType)})
+	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, recordState, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
 	imsi, err = directoryd.GetIMSIForSessionID(context.Background(), nid0, sid1)
 	assert.NoError(t, err)
 	assert.Equal(t, imsi1, imsi)
 
-	// No errs when when can't deserialize state -- just logs
+	// No errs when can't deserialize state -- just logs
 	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: state_types.SerializedState{SerializedReportedState: []byte("0xdeadbeef")}})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
@@ -121,38 +120,60 @@ func TestIndexerSessionID(t *testing.T) {
 	assert.Equal(t, imsi1, imsi)
 
 	// Err when can deserialize but is wrong type
-	id.Type = orc8r.GatewayStateType
-	st.ReportedState = &models.GatewayStatus{Meta: map[string]string{"foo": "bar"}}
-	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.GatewayStateType)})
+	stateRecord2 := state_types.State{
+		ReportedState:      &models.GatewayStatus{Meta: map[string]string{"foo": "bar"}},
+		Version:            44,
+		TimeMs:             42,
+		CertExpirationTime: 43,
+	}
+
+	stateID2 := state_types.ID{
+		Type:     orc8r.GatewayStateType,
+		DeviceID: imsi0,
+	}
+
+	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{stateID2: serialize(t, stateRecord2, orc8r.GatewayStateType)})
 	assert.NoError(t, err)
-	assert.Error(t, errs[id])
+	assert.Error(t, errs[stateID2])
 	imsi, err = directoryd.GetIMSIForSessionID(context.Background(), nid0, sid1)
 	assert.NoError(t, err)
 	assert.Equal(t, imsi1, imsi)
 
-	// ////////////////////////////
-	// Teid -> HwId
-	// ////////////////////////////
-	record = &directoryd_types.DirectoryRecord{
+	// deIndex sessionID
+	recordState.ReportedState.(*directoryd_types.DirectoryRecord).Identifiers[directoryd_types.RecordKeySessionID] = sid0
+	errs, err = idx.DeIndex(nid0, state_types.SerializedStatesByID{id: serialize(t, recordState, orc8r.DirectoryRecordType)})
+	assert.NoError(t, err)
+	assert.Empty(t, errs)
+	_, err = directoryd.GetIMSIForSessionID(context.Background(), nid0, sid0)
+	assert.Error(t, err)
+}
+
+func TestTEIDIndexer(t *testing.T) {
+	directoryd_test_init.StartTestService(t)
+	orchestrator_test_init.StartTestService(t)
+	idx := indexer.NewRemoteIndexer(orchestrator.ServiceName, version, types...)
+
+	record := &directoryd_types.DirectoryRecord{
 		Identifiers: map[string]interface{}{
 			directoryd_types.RecordKeySpgCTeid: teid0,
 		},
 		LocationHistory: []string{hwid0, "apple"},
 	}
 
-	id = state_types.ID{
-		Type:     orc8r.DirectoryRecordType,
-		DeviceID: imsi0,
-	}
-	st = state_types.State{
+	recordState := state_types.State{
 		ReportedState:      record,
 		Version:            44,
 		TimeMs:             42,
 		CertExpirationTime: 43,
 	}
 
+	stateID := state_types.ID{
+		Type:     orc8r.DirectoryRecordType,
+		DeviceID: imsi0,
+	}
+
 	// Index the imsi0->teid0 state, result is teid0->hwid0 reverse mapping
-	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.DirectoryRecordType)})
+	errs, err := idx.Index(nid0, state_types.SerializedStatesByID{stateID: serialize(t, recordState, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
 	hwid, err := directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid0_0)
@@ -163,10 +184,10 @@ func TestIndexerSessionID(t *testing.T) {
 	assert.Equal(t, hwid0, hwid)
 
 	// Update teid -- index imsi0->teid1, result is teid1->hwud0 reverse mapping
-	st.ReportedState.(*directoryd_types.DirectoryRecord).Identifiers[directoryd_types.RecordKeySpgCTeid] = teid1
-	st.ReportedState.(*directoryd_types.DirectoryRecord).LocationHistory = []string{hwid1, "apple"}
+	recordState.ReportedState.(*directoryd_types.DirectoryRecord).Identifiers[directoryd_types.RecordKeySpgCTeid] = teid1
+	recordState.ReportedState.(*directoryd_types.DirectoryRecord).LocationHistory = []string{hwid1, "apple"}
 
-	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.DirectoryRecordType)})
+	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{stateID: serialize(t, recordState, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
 	hwid, err = directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid1_0)
@@ -177,14 +198,23 @@ func TestIndexerSessionID(t *testing.T) {
 	assert.Equal(t, hwid1, hwid)
 
 	// only log, no error when record doesnt include teid and sessionId is blank
-	st.ReportedState.(*directoryd_types.DirectoryRecord).Identifiers = map[string]interface{}{}
-	st.ReportedState.(*directoryd_types.DirectoryRecord).LocationHistory = []string{hwid1, "apple"}
-	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.GatewayStateType)})
+	recordState.ReportedState.(*directoryd_types.DirectoryRecord).Identifiers = map[string]interface{}{}
+	recordState.ReportedState.(*directoryd_types.DirectoryRecord).LocationHistory = []string{hwid1, "apple"}
+	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{stateID: serialize(t, recordState, orc8r.GatewayStateType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
 	hwid, err = directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid1_1)
 	assert.NoError(t, err)
 	assert.Equal(t, hwid1, hwid)
+
+	// deIndex teid
+	recordState.ReportedState.(*directoryd_types.DirectoryRecord).Identifiers[directoryd_types.RecordKeySpgCTeid] = teid1
+	recordState.ReportedState.(*directoryd_types.DirectoryRecord).LocationHistory = []string{hwid1, "apple"}
+	errs, err = idx.DeIndex(nid0, state_types.SerializedStatesByID{stateID: serialize(t, recordState, orc8r.DirectoryRecordType)})
+	assert.NoError(t, err)
+	assert.Empty(t, errs)
+	_, err = directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid1)
+	assert.Error(t, err)
 }
 
 func serialize(t *testing.T, st state_types.State, typ string) state_types.SerializedState {

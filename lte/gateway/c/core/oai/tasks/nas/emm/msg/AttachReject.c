@@ -17,10 +17,10 @@
 
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "AttachReject.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachReject.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 int decode_attach_reject(
     attach_reject_msg* attach_reject, uint8_t* buffer, uint32_t len) {

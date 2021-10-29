@@ -13,10 +13,10 @@
 
 #pragma once
 #include <sstream>
-#include "amf_as_message.h"
-#include "ngap_messages_types.h"
-#include "n11_messages_types.h"
-#include "amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/include/amf_as_message.h"
+#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/include/n11_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 
 namespace magma5g {
 typedef struct amf_app_desc_s {
@@ -28,7 +28,7 @@ typedef struct amf_app_desc_s {
 } amf_app_desc_t;
 
 // UL and DL routines.
-uint64_t amf_app_handle_initial_ue_message(
+imsi64_t amf_app_handle_initial_ue_message(
     amf_app_desc_t* amf_app_desc_p,
     itti_ngap_initial_ue_message_t* conn_est_ind_pP);
 int amf_app_handle_nas_dl_req(

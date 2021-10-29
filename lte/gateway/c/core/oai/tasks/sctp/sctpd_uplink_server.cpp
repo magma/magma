@@ -16,14 +16,14 @@
  */
 
 extern "C" {
-#include "sctpd_uplink_server.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_uplink_server.h"
 
 // #include "assertions.h"
-#include "bstrlib.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 
-#include "sctp_itti_messaging.h"
-#include "mme_config.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctp_itti_messaging.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 }
 
 #include <memory>

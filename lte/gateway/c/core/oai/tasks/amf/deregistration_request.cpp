@@ -19,23 +19,23 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
 #ifdef __cplusplus
 };
 #endif
 #include <unordered_map>
-#include "common_defs.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "amf_app_defs.h"
-#include "amf_recv.h"
-#include "amf_asDefs.h"
-#include "amf_as.h"
-#include "amf_sap.h"
-#include "amf_app_state_manager.h"
-#include "conversions.h"
-#include "M5GMobilityServiceClient.h"
-#include "includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
 using magma5g::AsyncM5GMobilityServiceClient;
 
@@ -219,7 +219,7 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
 
   amf_free_ue_context(ue_context);
 
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
 /***************************************************************************

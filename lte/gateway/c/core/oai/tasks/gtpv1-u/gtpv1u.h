@@ -26,7 +26,7 @@
 
 #include <arpa/inet.h>
 #include <net/if.h>
-#include "sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 
 #define GTPU_HEADER_OVERHEAD_MAX 64
 
@@ -165,11 +165,7 @@ struct gtp_tunnel_ops {
   const char* (*get_dev_name)(void);
 };
 
-#if ENABLE_OPENFLOW
 const struct gtp_tunnel_ops* gtp_tunnel_ops_init_openflow(void);
-#else
-const struct gtp_tunnel_ops* gtp_tunnel_ops_init_libgtpnl(void);
-#endif
 
 int gtpv1u_add_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,

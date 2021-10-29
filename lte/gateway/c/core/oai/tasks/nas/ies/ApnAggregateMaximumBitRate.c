@@ -17,10 +17,10 @@
 
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "ApnAggregateMaximumBitRate.h"
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 
 //------------------------------------------------------------------------------
 int decode_apn_aggregate_maximum_bit_rate(

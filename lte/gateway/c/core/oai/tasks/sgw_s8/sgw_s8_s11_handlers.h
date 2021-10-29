@@ -12,10 +12,10 @@ limitations under the License.
 */
 
 #pragma once
-#include "common_types.h"
-#include "s11_messages_types.h"
-#include "intertask_interface.h"
-#include "spgw_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
 
 void sgw_s8_handle_s11_create_session_request(
     sgw_state_t* sgw_state, itti_s11_create_session_request_t* session_req_p,

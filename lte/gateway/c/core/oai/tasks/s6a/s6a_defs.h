@@ -30,10 +30,10 @@
 #include <freeDiameter/freeDiameter-host.h>
 #include <freeDiameter/libfdcore.h>
 
-#include "common_defs.h"
-#include "mme_config.h"
-#include "queue.h"
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
 extern task_zmq_ctx_t s6a_task_zmq_ctx;
 

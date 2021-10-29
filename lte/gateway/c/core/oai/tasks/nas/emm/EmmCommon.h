@@ -45,11 +45,11 @@ Description Defines callback functions executed within EMM common procedures
 #define FILE_EMM_COMMON_SEEN
 #include <pthread.h>
 
-#include "common_defs.h"
-#include "common_types.h"
-#include "tree.h"
-#include "3gpp_36.401.h"
-#include "TrackingAreaIdentityList.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/tree.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/
@@ -135,7 +135,7 @@ struct emm_common_data_s* emm_common_data_context_get(
 
 void create_new_attach_info(
     emm_context_t* emm_context_p, mme_ue_s1ap_id_t mme_ue_s1ap_id,
-    struct emm_attach_request_ies_s* ies, bool is_mm_ctx_new);
+    STOLEN_REF struct emm_attach_request_ies_s* ies, bool is_mm_ctx_new);
 partial_list_t* emm_verify_orig_tai(const tai_t orig_tai);
 
 status_code_e verify_tau_tai(

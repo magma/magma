@@ -19,25 +19,25 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "bstrlib.h"
-#include "hashtable.h"
-#include "log.h"
-#include "assertions.h"
-#include "conversions.h"
-#include "intertask_interface.h"
-#include "dynamic_memory_check.h"
-#include "amf_config.h"
-#include "ngap_common.h"
-#include "ngap_amf_encoder.h"
-#include "ngap_amf_nas_procedures.h"
-#include "ngap_amf_itti_messaging.h"
-#include "ngap_amf.h"
-#include "ngap_amf_ta.h"
-#include "ngap_amf_handlers.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "3gpp_38.401.h"
-#include "3gpp_38.413.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_encoder.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_itti_messaging.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_ta.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 #include "BIT_STRING.h"
 #include "INTEGER.h"
 #include "Ngap_NGAP-PDU.h"
@@ -68,12 +68,12 @@
 #include "Ngap_UEPagingIdentity.c"
 #include "Ngap_UERadioCapability.h"
 #include "asn_SEQUENCE_OF.h"
-#include "common_defs.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
-#include "amf_app_messages_types.h"
-#include "includes/MetricsHelpers.h"
-#include "ngap_state.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.h"
 
 struct Ngap_IE;
 
@@ -142,8 +142,8 @@ ngap_message_handler_t ngap_message_handlers[][3] = {
     {/*ngap_amf_handle_ue_context_release_request*/ 0,
      ngap_amf_handle_ue_context_release_complete, 0}, /* UEContextRelease */
     {ngap_amf_handle_ue_context_release_request,
-     *ngap_amf_handle_ue_context_release_complete, 0}, /* CellTrafficTrace */
-    {0, 0, 0},                                         /* Kill */
+     ngap_amf_handle_ue_context_release_complete, 0}, /* CellTrafficTrace */
+    {0, 0, 0},                                        /* Kill */
     {0, 0, 0}, /* DownlinkUEAssociatedLPPaTransport  */
     {0, 0, 0}, /* UplinkUEAssociatedLPPaTransport */
     {ngap_amf_handle_uplink_nas_transport, 0, 0}, /* uplinkNASTransport */
@@ -430,7 +430,8 @@ status_code_e ngap_amf_handle_ng_setup_request(
    */
   if (ta_ret != TA_LIST_RET_OK) {
     OAILOG_ERROR(
-        LOG_NGAP, "No Common PLMN with gNB, generate_ng_setup_failure\n");
+        LOG_NGAP, "No Common PLMN with gNB, generate_ng_setup_failure : %d\n",
+        (int) ta_ret);
     rc = ngap_amf_generate_ng_setup_failure(
         assoc_id, Ngap_Cause_PR_misc, Ngap_CauseMisc_unknown_PLMN,
         Ngap_TimeToWait_v20s);
@@ -648,7 +649,7 @@ static void _ngap_amf_generate_ng_setup_response_pdu(Ngap_NGAP_PDU_t* pdu) {
     INT8_TO_OCTET_STRING(
         amf_config.plmn_support_list.plmn_support[i].s_nssai.sst, sST);
     if (amf_config.plmn_support_list.plmn_support[i].s_nssai.sd.v !=
-        NGAP_S_NSSAI_SD_INVALID_VALUE) {
+        AMF_S_NSSAI_SD_INVALID_VALUE) {
       // defaultSliceDifferentiator
       s_NSSAI->sD = CALLOC(1, sizeof(Ngap_SD_t));
       INT24_TO_OCTET_STRING(
@@ -1271,7 +1272,7 @@ status_code_e ngap_amf_handle_ue_context_release_complete(
         "for "
         "ueid " AMF_UE_NGAP_ID_FMT "\n",
         amf_ue_ngap_id);
-    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
   }
 }
 
@@ -1921,6 +1922,25 @@ status_code_e ngap_amf_handle_pduSession_setup_response(
 
       NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p)
           .pduSessionResource_setup_list.no_of_items += 1;
+      free(pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation
+               .uPTransportLayerInformation.choice.gTPTunnel.gTP_TEID.buf);
+      free(pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation
+               .uPTransportLayerInformation.choice.gTPTunnel
+               .transportLayerAddress.buf);
+      for (uint8_t i = 0;
+           i <
+           pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation
+               .associatedQosFlowList.list.count;
+           i++) {
+        free(pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation
+                 .associatedQosFlowList.list.array[i]
+                 ->qosFlowMappingIndication);
+        free(pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation
+                 .associatedQosFlowList.list.array[i]);
+      }
+      free(pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation
+               .associatedQosFlowList.list.array);
+      free(pDUSessionResourceSetupResponseTransfer);
     }
   }
 

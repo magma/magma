@@ -18,7 +18,7 @@
 #ifndef AUTHENTICATION_RESPONSE_PARAMETER_H_
 #define AUTHENTICATION_RESPONSE_PARAMETER_H_
 #include <stdint.h>
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #define AUTHENTICATION_RESPONSE_PARAMETER_MINIMUM_LENGTH 6
 #define AUTHENTICATION_RESPONSE_PARAMETER_MAXIMUM_LENGTH 18

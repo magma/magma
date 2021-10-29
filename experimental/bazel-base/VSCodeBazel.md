@@ -4,7 +4,7 @@
 
 ## Build and test all targets
 
-Run **Command+Shift+B** to trigger the default build configuration. In the Remote SSH workspace, it is set as `bazel build --config=vm ...`. In GitHub codespaces, it is set as `bazel build --config=devcontainer ...`.
+Run **Command+Shift+B** to trigger the default build configuration. Build tasks are defined in `.vscode/tasks.json`.
 
 ## Build specific targets and unit tests via codelens
 
@@ -19,13 +19,17 @@ At the top of each `BUILD.bazel` file, there is a codelens to build and test all
 
 ## Code jumping and navigation for C++ ([Intellisense](https://code.visualstudio.com/docs/editor/intellisense))
 
-In order to get code jumping and navigation working properly for C++, there are a few moving parts. We utilize [clangd](https://clangd.llvm.org) to enable smart code insights in VSCode. In order for [clangd](https://clangd.llvm.org) to work, we need to generate a `compile_commands.json` that serves as a compilation database for relevant targets.
+In order to get code jumping and navigation working properly for C++, there are a few moving parts. We utilize [clangd](https://clangd.llvm.org) to enable smart code insights in VSCode. [Clangd](https://clangd.llvm.org) searches for a `compile_commands.json` file that serves as a compilation database at $MAGMA_ROOT. Most often, clangd will need to be restarted when the compile_commands.json is modified.
 
-Note that since external libraries and generated source files are only pulled in after a build, you will have to build the relevant target at least once for code jumping and completion to work. See above section on how to build specific targets.
+Note that since external libraries and generated source files are only pulled in after a build, you will have to build the relevant target at least once for code jumping and completion to work. See above section on how to build specific targets with Bazel.
 
-As for compilation database generation, we have patched together a few commands into a task to make this easier. To generate the database, follow **Terminal->Run Task...->Refresh Compilation Database And Restart Clangd**. This is a wrapper command that runs `bsv.cc.compdb.generate` (**Bzl: Bazel/C++: Generate Compilation Database**) and then `clangd.restart` (**clangd: Restart language server**). If the wrapper command does not work, try running the indivdual commands opening up the command palette via **Command+Shift+P**.
+To generate the compilation database with Bazel, run **Command+Shift+P** to open the command palette and select **Multi command: Execute multi command**. Select the command **sentry_generateCcWithBazelAndRestartClangderror**. This is a wrapper command that runs two extension commands: `bsv.cc.compdb.generate` (**Bzl: Bazel/C++: Generate Compilation Database**) and then `clangd.restart` (**clangd: Restart language server**).
 
-If you get an error saying that `clangd` is not found, reinstall clangd with **clangd: Download language server** and try again.
+If you want to generate the compilation database another way, you will just need to symlink `$MAGMA_ROOT/compile_commands.json` to the file and restart clangd. We have a convenience task to choose and symlink the file. To use it, run  **Command+Shift+P** to open the command palette and select **Tasks: Run Task** and choose **Set compile_commands.json for IntelliSense**. This will prompt you to select a `compile_commands.json` to use. Once the task completes, restart clangd.
+
+If you see errors about clangd, try the following:
+1. For errors about `clangd` not being found, try running **clangd: Download language server** from the command palette
+2. For errors about the extension commands not being found, try running **clangd: Manually activate extension** to start the extension
 
 At this point, you should be able to jump to and have code completion for source files of generated and imported libraries.
 

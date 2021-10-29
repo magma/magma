@@ -22,10 +22,10 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "ngap_common.h"
-#include "ngap_amf_encoder.h"
-#include "assertions.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_encoder.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "Ngap_NGAP-PDU.h"
 #include "Ngap_Criticality.h"
 #include "Ngap_DownlinkNASTransport.h"

@@ -38,12 +38,12 @@ Description Defines EMM procedures executed by the Non-Access Stratum
 #ifndef __LOWERLAYER_H__
 #define __LOWERLAYER_H__
 
-#include "common_defs.h"
-#include "common_types.h"
-#include "bstrlib.h"
-#include "3gpp_24.007.h"
-#include "3gpp_36.401.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

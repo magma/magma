@@ -26,16 +26,16 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "log.h"
-#include "assertions.h"
-#include "intertask_interface.h"
-#include "gtpv1u.h"
-#include "gtpv1u_sgw_defs.h"
-#include "gtp_tunnel_upf.h"
-#include "pgw_ue_ip_address_alloc.h"
-#include "intertask_interface_types.h"
-#include "pgw_config.h"
-#include "spgw_config.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u_sgw_defs.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_upf.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/include/pgw_config.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
 
 const struct gtp_tunnel_ops* gtp_tunnel_ops;
 static struct in_addr current_ue_net;
@@ -118,7 +118,6 @@ int gtpv1u_init(
   OAILOG_DEBUG(LOG_GTPV1U, "Initializing GTPV1U interface\n");
 
   // Init gtp_tunnel_ops
-#if ENABLE_OPENFLOW
   // If pipeline config is enabled initialize userplane ops
   if (spgw_config->sgw_config.ovs_config.pipelined_managed_tbl0) {
     OAILOG_INFO(LOG_GTPV1U, "Initializing upf classifier for gtp apps");
@@ -127,10 +126,6 @@ int gtpv1u_init(
     OAILOG_DEBUG(LOG_GTPV1U, "Initializing gtp_tunnel_ops_openflow\n");
     gtp_tunnel_ops = gtp_tunnel_ops_init_openflow();
   }
-#else
-  OAILOG_DEBUG(LOG_GTPV1U, "Initializing gtp_tunnel_ops_libgtpnl\n");
-  gtp_tunnel_ops = gtp_tunnel_ops_init_libgtpnl();
-#endif
 
   if (gtp_tunnel_ops == NULL) {
     OAILOG_CRITICAL(LOG_GTPV1U, "ERROR in initializing gtp_tunnel_ops\n");

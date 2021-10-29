@@ -17,37 +17,39 @@
 #include <pthread.h>
 #include <netinet/in.h>
 
-#include "log.h"
-#include "bstrlib.h"
-#include "hashtable.h"
-#include "assertions.h"
-#include "ngap_state.h"
-#include "ngap_amf_decoder.h"
-#include "ngap_amf_handlers.h"
-#include "ngap_amf_nas_procedures.h"
-#include "ngap_amf_itti_messaging.h"
-#include "includes/MetricsHelpers.h"
-#include "dynamic_memory_check.h"
-#include "amf_config.h"
-#include "mme_config.h"
-#include "amf_default_values.h"
-#include "itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_decoder.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_itti_messaging.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/common/amf_default_values.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "Ngap_TimeToWait.h"
 
 #include "asn_internal.h"
-#include "sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 
-#include "common_defs.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
-#include "amf_app_messages_types.h"
-#include "amf_default_values.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
+#include "lte/gateway/c/core/oai/common/amf_default_values.h"
 
-#include "ngap_messages_types.h"
-#include "ngap_amf.h"
+#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
 
 task_zmq_ctx_t ngap_task_zmq_ctx;
+
+uint64_t ngap_last_msg_latency = 0;
 
 static int ngap_send_init_sctp(void) {
   // Create and alloc new message
@@ -72,10 +74,8 @@ static int ngap_send_init_sctp(void) {
 }
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  ngap_state_t* state = NULL;
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  ngap_state_t* state            = NULL;
+  MessageDef* received_message_p = receive_msg(reader);
 
   imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
   state           = get_ngap_state(false);
@@ -85,6 +85,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       LOG_NGAP, "Received msg from :[%s] id:[%d] name:[%s]\n",
       ITTI_MSG_ORIGIN_NAME(received_message_p), ITTI_MSG_ID(received_message_p),
       ITTI_MSG_NAME(received_message_p));
+
+  ngap_last_msg_latency = ITTI_MSG_LATENCY(received_message_p);  // microseconds
+
+  OAILOG_DEBUG(LOG_NGAP, "NGAP ZMQ latency: %ld.", ngap_last_msg_latency);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case SCTP_DATA_IND: {
@@ -138,7 +142,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       ngap_amf_exit();
     } break;
 
@@ -189,7 +193,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   put_ngap_imsi_map();
   put_ngap_ue_state(imsi64);
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 

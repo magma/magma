@@ -248,6 +248,7 @@ class InOutController(RestartMixin, MagmaController):
                 _get_vlan_egress_flow_msgs(
                     dp,
                     self._midle_tbl_num,
+                    ether_types.ETH_TYPE_IP,
                     self.config.mtr_ip,
                     self.config.mtr_port,
                     priority=flows.UE_FLOW_PRIORITY,
@@ -277,7 +278,16 @@ class InOutController(RestartMixin, MagmaController):
                 _get_vlan_egress_flow_msgs(
                     dp,
                     self._egress_tbl_num,
-                    "0.0.0.0/0",
+                    ether_types.ETH_TYPE_IP,
+                    None,
+                ),
+            )
+            msgs.extend(
+                _get_vlan_egress_flow_msgs(
+                    dp,
+                    self._egress_tbl_num,
+                    ether_types.ETH_TYPE_IPV6,
+                    None,
                 ),
             )
             msgs.extend(self._get_proxy_flow_msgs(dp))
@@ -685,7 +695,7 @@ class InOutController(RestartMixin, MagmaController):
 
 
 def _get_vlan_egress_flow_msgs(
-    dp, table_no, ip, out_port=None,
+    dp, table_no, eth_type, ip, out_port=None,
     priority=0, direction=Direction.IN,
 ):
     """
@@ -704,12 +714,20 @@ def _get_vlan_egress_flow_msgs(
         output_reg = TUN_PORT_REG
 
     # Pass non vlan packet as it is.
-    match = MagmaMatch(
-        direction=direction,
-        eth_type=ether_types.ETH_TYPE_IP,
-        vlan_vid=(0x0000, 0x1000),
-        ipv4_dst=ip,
-    )
+    # TODO: add support to match IPv6 address
+    if ip:
+        match = MagmaMatch(
+            direction=direction,
+            eth_type=eth_type,
+            vlan_vid=(0x0000, 0x1000),
+            ipv4_dst=ip,
+        )
+    else:
+        match = MagmaMatch(
+            direction=direction,
+            eth_type=eth_type,
+            vlan_vid=(0x0000, 0x1000),
+        )
     msgs.append(
         flows.get_add_output_flow_msg(
             dp, table_no, match, [],
@@ -718,12 +736,19 @@ def _get_vlan_egress_flow_msgs(
     )
 
     # remove vlan header for out_port.
-    match = MagmaMatch(
-        direction=direction,
-        eth_type=ether_types.ETH_TYPE_IP,
-        vlan_vid=(0x1000, 0x1000),
-        ipv4_dst=ip,
-    )
+    if ip:
+        match = MagmaMatch(
+            direction=direction,
+            eth_type=eth_type,
+            vlan_vid=(0x1000, 0x1000),
+            ipv4_dst=ip,
+        )
+    else:
+        match = MagmaMatch(
+            direction=direction,
+            eth_type=eth_type,
+            vlan_vid=(0x1000, 0x1000),
+        )
     actions_vlan_pop = [dp.ofproto_parser.OFPActionPopVlan()]
     msgs.append(
         flows.get_add_output_flow_msg(

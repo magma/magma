@@ -22,34 +22,34 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include "s1ap_mme.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include "bstrlib.h"
-#include "hashtable.h"
-#include "log.h"
-#include "assertions.h"
-#include "s1ap_mme_decoder.h"
-#include "s1ap_mme_handlers.h"
-#include "s1ap_mme_nas_procedures.h"
-#include "s1ap_mme_itti_messaging.h"
-#include "includes/MetricsHelpers.h"
-#include "service303_message_utils.h"
-#include "dynamic_memory_check.h"
-#include "mme_config.h"
-#include "itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "S1ap_TimeToWait.h"
 #include "asn_internal.h"
-#include "common_defs.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "mme_app_messages_types.h"
-#include "mme_default_values.h"
-#include "s1ap_messages_types.h"
-#include "sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
+#include "lte/gateway/c/core/oai/common/mme_default_values.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 
 #if S1AP_DEBUG_LIST
 #define eNB_LIST_OUT(x, args...)                                               \
@@ -62,8 +62,7 @@
 #endif
 
 bool s1ap_dump_ue_hash_cb(
-    const hash_key_t keyP, void* const ue_void, void* parameter,
-    void** unused_res);
+    hash_key_t keyP, void* ue_void, void* parameter, void** unused_res);
 static void start_stats_timer(void);
 static int handle_stats_timer(zloop_t* loop, int id, void* arg);
 static long epc_stats_timer_id;
@@ -447,7 +446,7 @@ void s1ap_dump_ue(const ue_description_t* const ue_ref) {
 }
 
 //------------------------------------------------------------------------------
-enb_description_t* s1ap_new_enb(s1ap_state_t* state) {
+enb_description_t* s1ap_new_enb(void) {
   enb_description_t* enb_ref = NULL;
 
   enb_ref = calloc(1, sizeof(enb_description_t));

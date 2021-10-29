@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 	"google.golang.org/grpc/codes"
@@ -123,6 +124,18 @@ func (srv *stateServicer) DeleteStates(ctx context.Context, req *protos.DeleteSt
 	}
 	networkID := req.GetNetworkID()
 	ids := idsToTKs(req.GetIds())
+
+	stateRequest := &protos.GetStatesRequest{NetworkID: networkID, Ids: req.Ids}
+	getStateRes, err := srv.getStates(ctx, stateRequest)
+	if err != nil {
+		glog.Errorf("Error trying to get state from %+v", stateRequest)
+	} else {
+		byID, err := state_types.MakeSerializedStatesByID(getStateRes.GetStates())
+		if err != nil {
+			return nil, internalErr(err, "ReportStates make states by ID")
+		}
+		go index.MustDeIndex(networkID, byID)
+	}
 
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {

@@ -17,8 +17,8 @@
 
 #include <stdint.h>
 
-#include "assertions.h"
-#include "SecurityHeaderType.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
 
 //------------------------------------------------------------------------------
 int decode_security_header_type(

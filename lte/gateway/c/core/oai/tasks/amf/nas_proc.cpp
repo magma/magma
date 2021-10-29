@@ -14,23 +14,23 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "intertask_interface_types.h"
-#include "intertask_interface.h"
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
-#include "conversions.h"
-#include "assertions.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 #include <sstream>
-#include "amf_asDefs.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "amf_authentication.h"
-#include "amf_sap.h"
-#include "amf_app_timer_management.h"
-#include "amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 
 extern amf_config_t amf_config;
 namespace magma5g {
@@ -510,6 +510,25 @@ int amf_handle_s6a_update_location_ans(
       ula_pP->subscription_data.subscribed_ambr.br_unit);
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+}
+
+/* Cleanup all procedures in amf_context */
+void amf_nas_proc_clean_up(ue_m5gmm_context_s* ue_context_p) {
+  // Check if registrion procedure exists
+  nas_amf_registration_proc_t* registration_proc =
+      get_nas_specific_procedure_registration(&(ue_context_p->amf_context));
+
+  // Delete registration procedures
+  amf_delete_registration_proc(&(ue_context_p->amf_context));
+}
+
+void nas_amf_procedure_gc(amf_context_t* const amf_context) {
+  if (LIST_EMPTY(&amf_context->amf_procedures->amf_common_procs) &&
+      LIST_EMPTY(&amf_context->amf_procedures->cn_procs) &&
+      (!amf_context->amf_procedures->amf_specific_proc)) {
+    delete amf_context->amf_procedures;
+    amf_context->amf_procedures = nullptr;
+  }
 }
 
 }  // namespace magma5g

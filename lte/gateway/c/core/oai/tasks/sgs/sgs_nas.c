@@ -24,10 +24,10 @@
 #define SGG
 #define SGS_NAS_C
 
-#include "log.h"
-#include "intertask_interface.h"
-#include "sgs_messages.h"
-#include "assertions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/tasks/sgs/sgs_messages.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
 
 int sgs_send_uplink_unitdata(
     itti_sgsap_uplink_unitdata_t* sgs_uplink_unitdata_p) {

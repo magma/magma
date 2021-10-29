@@ -16,13 +16,13 @@
  */
 #include <iostream>
 
-#include "CSFBGatewayServiceImpl.h"
-#include "proto_msg_to_itti_msg.h"
-#include "common_ies.h"
-#include "sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/CSFBGatewayServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/proto_msg_to_itti_msg.h"
+#include "lte/gateway/c/core/oai/common/common_ies.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 
 extern "C" {
-#include "sgs_service_handler.h"
+#include "lte/gateway/c/core/oai/include/sgs_service_handler.h"
 
 namespace grpc {
 class ServerContext;

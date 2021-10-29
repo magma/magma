@@ -25,12 +25,12 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "intertask_interface.h"
-#include "sctp_itti_messaging.h"
-#include "itti_types.h"
-#include "log.h"
-#include "sctp_messages_types.h"
-#include "itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctp_itti_messaging.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 
 //------------------------------------------------------------------------------
 status_code_e sctp_itti_send_lower_layer_conf(
