@@ -810,7 +810,12 @@ def _get_ipv4(flow):
         ip_register = 'ipv4_dst'
     if ip_register not in flow.match:
         return None
-    return flow.match[ip_register]
+    ipv4 = flow.match[ip_register]
+    # masked value returned as tuple
+    if type(ipv4) is tuple:
+        return ipv4[0]
+    else:
+        return ipv4
 
 
 def _get_ipv6(flow):
@@ -822,7 +827,12 @@ def _get_ipv6(flow):
         ip_register = 'ipv6_dst'
     if ip_register not in flow.match:
         return None
-    return flow.match[ip_register]
+    ipv6 = flow.match[ip_register]
+    # masked value returned as tuple
+    if type(ipv6) is tuple:
+        return ipv6[0]
+    else:
+        return ipv6
 
 
 def _get_version(flow):
