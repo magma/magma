@@ -5,3 +5,4 @@ set(CMAKE_CXX_STANDARD 14)
 
 add_library(glogwrapper glog_logging.cpp glog_logging.h)
 target_link_libraries(glogwrapper glog)
+target_include_directories(glogwrapper PUBLIC $ENV{MAGMA_ROOT})
