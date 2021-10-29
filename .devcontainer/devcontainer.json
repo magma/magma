@@ -48,7 +48,8 @@
 		"clangd.onConfigChanged": "restart",
 		// Update this field with any new targets that need compilation database generation
 		"bsv.cc.compdb.targets": [
-			"//lte/gateway/c/session_manager:sessiond"
+			"//lte/gateway/c/session_manager:sessiond",
+			"//lte/gateway/c/connection_tracker/src:main",
 		],
 		"multiCommand.commands": [
 			{
