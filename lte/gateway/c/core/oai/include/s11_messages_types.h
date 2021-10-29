@@ -36,7 +36,7 @@
 #ifndef FILE_S11_MESSAGES_TYPES_SEEN
 #define FILE_S11_MESSAGES_TYPES_SEEN
 
-#include "sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 
 #define S11_CREATE_SESSION_REQUEST(mSGpTR)                                     \
   (mSGpTR)->ittiMsg.s11_create_session_request

@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 
 #ifndef TRACKING_AREA_IDENTITY_SEEN
 #define TRACKING_AREA_IDENTITY_SEEN

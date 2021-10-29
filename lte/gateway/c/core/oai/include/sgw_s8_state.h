@@ -18,9 +18,9 @@ extern "C" {
 #endif
 
 #include <pthread.h>
-#include "hashtable.h"
-#include "spgw_types.h"
-#include "sgw_config.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#include "lte/gateway/c/core/oai/include/sgw_config.h"
 
 // Initializes SGW state struct when task process starts.
 int sgw_state_init(bool persist_state, const sgw_config_t* config);

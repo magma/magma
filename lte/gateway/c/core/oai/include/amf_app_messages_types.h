@@ -14,16 +14,16 @@
 #pragma once
 
 #include <stdint.h>
-#include "bstrlib.h"
-#include "3gpp_38.413.h"
-#include "3gpp_24.007.h"
-#include "3gpp_38.401.h"
-#include "3gpp_23.003.h"
-#include "common_types.h"
-#include "nas/securityDef.h"
-#include "amf_as_message.h"
-#include "TrackingAreaIdentity.h"
-#include "nas/as_message.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/include/amf_as_message.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/include/nas/as_message.h"
 
 #define AMF_APP_CONNECTION_ESTABLISHMENT_CNF(mSGpTR)                           \
   (mSGpTR)->ittiMsg.amf_app_connection_establishment_cnf
