@@ -15,23 +15,30 @@
  *      contact@openairinterface.org
  */
 
-#include "log.h"
-#include "mme_app_statistics.h"
-#include "mme_app_state.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/mme_app_statistics.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.h"
 
 /*********************************** Utility Functions to update
  * Statistics**************************************/
 
 /*****************************************************/
+static inline get_max(int num1, int num2) {
+  return (num1 > num2 ? num1 : num2);
+}
 // Number of Connected UEs
 void update_mme_app_stats_connected_ue_add(void) {
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   (mme_app_desc_p->nb_ue_connected)++;
+  mme_app_desc_p->nb_ue_idle = get_max(
+      mme_app_desc_p->nb_ue_attached - mme_app_desc_p->nb_ue_connected, 0);
   return;
 }
 void update_mme_app_stats_connected_ue_sub(void) {
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   if (mme_app_desc_p->nb_ue_connected != 0) (mme_app_desc_p->nb_ue_connected)--;
+  mme_app_desc_p->nb_ue_idle = get_max(
+      mme_app_desc_p->nb_ue_attached - mme_app_desc_p->nb_ue_connected, 0);
   return;
 }
 
@@ -72,6 +79,8 @@ void update_mme_app_stats_attached_ue_add(void) {
 void update_mme_app_stats_attached_ue_sub(void) {
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   if (mme_app_desc_p->nb_ue_attached != 0) (mme_app_desc_p->nb_ue_attached)--;
+  mme_app_desc_p->nb_ue_idle = get_max(
+      mme_app_desc_p->nb_ue_attached - mme_app_desc_p->nb_ue_connected, 0);
   return;
 }
 /*****************************************************/

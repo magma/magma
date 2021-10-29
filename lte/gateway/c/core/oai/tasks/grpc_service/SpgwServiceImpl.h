@@ -23,8 +23,8 @@
 #include "lte/protos/policydb.pb.h"
 
 extern "C" {
-#include "spgw_service_handler.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/include/spgw_service_handler.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 }
 
 namespace grpc {

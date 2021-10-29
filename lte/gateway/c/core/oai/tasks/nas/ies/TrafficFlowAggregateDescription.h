@@ -21,7 +21,7 @@
 #define TRAFFIC_FLOW_AGGREGATE_DESCRIPTION_MINIMUM_LENGTH 1
 #define TRAFFIC_FLOW_AGGREGATE_DESCRIPTION_MAXIMUM_LENGTH 1
 
-#include "3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 typedef traffic_flow_template_t traffic_flow_aggregate_description_t;
 
 int encode_traffic_flow_aggregate_description(

@@ -16,7 +16,7 @@
  */
 #include <stdio.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 char ip_addr_str[100];
 

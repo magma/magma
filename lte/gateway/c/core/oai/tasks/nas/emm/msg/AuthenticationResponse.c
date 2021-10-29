@@ -17,9 +17,9 @@
 
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "AuthenticationResponse.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationResponse.h"
 
 int decode_authentication_response(
     authentication_response_msg* authentication_response, uint8_t* buffer,

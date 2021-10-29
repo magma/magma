@@ -13,22 +13,22 @@ limitations under the License.
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "3gpp_29.274.h"
-#include "log.h"
-#include "common_defs.h"
-#include "intertask_interface.h"
-#include "sgw_context_manager.h"
-#include "spgw_types.h"
-#include "sgw_s8_state.h"
-#include "sgw_s8_s11_handlers.h"
-#include "s8_client_api.h"
-#include "gtpv1u.h"
-#include "dynamic_memory_check.h"
-#include "sgw_handlers.h"
-#include "directoryd.h"
-#include "conversions.h"
-#include "includes/MetricsHelpers.h"
-#include "pgw_procedures.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.h"
+#include "lte/gateway/c/core/oai/lib/s8_proxy/s8_client_api.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
+#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern struct gtp_tunnel_ops* gtp_tunnel_ops;

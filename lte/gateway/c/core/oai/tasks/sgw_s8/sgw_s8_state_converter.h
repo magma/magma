@@ -17,17 +17,17 @@ limitations under the License.
 extern "C" {
 #endif
 
-#include "assertions.h"
-#include "common_types.h"
-#include "hashtable.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "state_converter.h"
+#include "lte/gateway/c/core/oai/include/state_converter.h"
 #include "lte/protos/oai/sgw_state.pb.h"
-#include "spgw_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
 
 namespace magma {
 namespace lte {

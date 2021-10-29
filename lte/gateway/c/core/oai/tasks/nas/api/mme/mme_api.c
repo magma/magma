@@ -37,21 +37,21 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "bstrlib.h"
-#include "log.h"
-#include "assertions.h"
-#include "conversions.h"
-#include "3gpp_23.003.h"
-#include "3gpp_36.401.h"
-#include "common_types.h"
-#include "common_defs.h"
-#include "mme_api.h"
-#include "mme_app_ue_context.h"
-#include "mme_config.h"
-#include "emm_data.h"
-#include "EpsNetworkFeatureSupport.h"
-#include "mme_app_state.h"
-#include "EmmCommon.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.h"
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/

@@ -21,10 +21,10 @@
 
 #include "feg/protos/csfb.grpc.pb.h"
 #include "lte/protos/sms_orc8r.grpc.pb.h"
-#include "sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 
 extern "C" {
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
 namespace magma {
 namespace feg {

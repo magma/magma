@@ -33,7 +33,7 @@
 #ifndef FILE_S1AP_COMMON_SEEN
 #define FILE_S1AP_COMMON_SEEN
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 /* Defined in asn_internal.h */
 extern int asn_debug;
@@ -391,13 +391,13 @@ extern int asn1_xer_print;
 
 #include <stdbool.h>
 
-#include "mme_default_values.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "3gpp_33.401.h"
-#include "security_types.h"
-#include "common_types.h"
-#include "s1ap_state.h"
+#include "lte/gateway/c/core/oai/common/mme_default_values.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
+#include "lte/gateway/c/core/oai/common/security_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.h"
 
 #define S1AP_FIND_PROTOCOLIE_BY_ID(IE_TYPE, ie, container, IE_ID, mandatory)   \
   do {                                                                         \

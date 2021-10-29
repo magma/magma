@@ -14,12 +14,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "intertask_interface.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #ifdef __cplusplus
 }
 #endif
-#include "amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;

@@ -1,9 +1,9 @@
 #pragma once
 #include <arpa/inet.h>
-#include "common_defs.h"
-#include "magma_logging.h"
-#include "glogwrapper/glog_logging.h"
-#include "M5GNasEnums.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
+#include "lte/gateway/c/core/oai/common/glogwrapper/glog_logging.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 
 // AMF_TEST scheme output  nibbles needs to be reversed
 #define REV_NIBBLE(bUFFER, sIZE)                                               \

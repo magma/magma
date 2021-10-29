@@ -16,25 +16,25 @@
 extern "C" {
 #endif
 #include <string.h>
-#include "log.h"
-#include "conversions.h"
-#include "3gpp_38.401.h"
-#include "s6a_messages_types.h"
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
-#include "include/amf_session_manager_pco.h"
-#include "amf_recv.h"
-#include "amf_sap.h"
-#include "M5gNasMessage.h"
-#include "common_defs.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "SmfServiceClient.h"
-#include "M5GMobilityServiceClient.h"
-#include "amf_app_timer_management.h"
-#include "amf_common.h"
-#include "mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 
 using magma5g::AsyncM5GMobilityServiceClient;
 using magma5g::AsyncSmfServiceClient;

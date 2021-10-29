@@ -18,12 +18,12 @@
 #pragma once
 
 extern "C" {
-#include "mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 }
 
-#include <state_manager.h>
-#include "mme_app_state_converter.h"
-#include "includes/ServiceConfigLoader.h"
+#include <lte/gateway/c/core/oai/include/state_manager.h>
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_converter.h"
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.h"
 
 namespace magma {
 namespace lte {

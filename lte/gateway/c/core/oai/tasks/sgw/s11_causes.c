@@ -28,8 +28,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "s11_causes.h"
-#include "3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/s11_causes.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 
 static const SGWCauseMapping_t causes[] = {
     {LOCAL_DETACH, "Local detach", 0, 0, 0, 0},

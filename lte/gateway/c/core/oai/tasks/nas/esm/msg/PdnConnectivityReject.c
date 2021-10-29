@@ -18,11 +18,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "EsmCause.h"
-#include "PdnConnectivityReject.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnConnectivityReject.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 int decode_pdn_connectivity_reject(
     pdn_connectivity_reject_msg* pdn_connectivity_reject, uint8_t* buffer,

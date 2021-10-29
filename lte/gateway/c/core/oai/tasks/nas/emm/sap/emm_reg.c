@@ -17,10 +17,10 @@
 
 #include <assert.h>
 
-#include "common_defs.h"
-#include "log.h"
-#include "emm_reg.h"
-#include "emm_fsm.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_reg.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

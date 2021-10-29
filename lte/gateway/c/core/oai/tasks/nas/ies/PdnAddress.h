@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #define PDN_ADDRESS_MINIMUM_LENGTH 7
 #define PDN_ADDRESS_MAXIMUM_LENGTH 15

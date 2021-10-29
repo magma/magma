@@ -46,13 +46,13 @@
 #include <assert.h>
 #include <pthread.h>
 
-#include "dynamic_memory_check.h"
-#include "assertions.h"
-#include "common_defs.h"
-#include "log.h"
-#include "emm_data.h"
-#include "EmmCommon.h"
-#include "include/mme_config.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

@@ -19,9 +19,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "TmsiStatus.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TmsiStatus.h"
 
 int decode_tmsi_status(
     TmsiStatus* tmsistatus, uint8_t iei, uint8_t* buffer, uint32_t len) {

@@ -250,4 +250,10 @@ func TestDirectoryLookupServicer_TeidToHWID(t *testing.T) {
 	put = &protos.MapSgwCTeidToHWIDRequest{TeidToHwid: map[string]string{teid0: hwid0}}
 	_, err = srv.MapSgwCTeidToHWID(ctx, put)
 	assert.Error(t, err)
+
+	// Get Unique SGW C TEID
+	getUniqueTeid := &protos.GetNewSgwCTeidRequest{NetworkID: nid1}
+	resUniqueTeid, err := srv.GetNewSgwCTeid(ctx, getUniqueTeid)
+	assert.NoError(t, err)
+	assert.NotEqual(t, "0", resUniqueTeid.GetTeid())
 }

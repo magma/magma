@@ -26,8 +26,8 @@
 
 #include <stdint.h>
 
-#include "common_defs.h"
-#include "3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
 /**
  * protocol_configuration_options_ids_t

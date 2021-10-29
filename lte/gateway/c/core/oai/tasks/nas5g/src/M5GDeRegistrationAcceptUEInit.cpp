@@ -11,8 +11,8 @@
 
 #include <iostream>
 #include <sstream>
-#include "M5GDeRegistrationAcceptUEInit.h"
-#include "M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationAcceptUEInit.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
 DeRegistrationAcceptUEInitMsg::DeRegistrationAcceptUEInitMsg(){};

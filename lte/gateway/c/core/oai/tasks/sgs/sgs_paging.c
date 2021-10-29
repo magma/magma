@@ -26,12 +26,12 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "intertask_interface.h"
-#include "log.h"
-#include "assertions.h"
-#include "sgs_messages_types.h"
-#include "sgs_messages.h"
-#include "conversions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/sgs/sgs_messages.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 
 int sgs_send_paging_reject(
     itti_sgsap_paging_reject_t* const sgs_paging_reject_p) {

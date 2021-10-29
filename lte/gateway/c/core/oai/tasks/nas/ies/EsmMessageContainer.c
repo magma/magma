@@ -18,11 +18,11 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "EsmMessageContainer.h"
-#include "log.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 //------------------------------------------------------------------------------
 int decode_esm_message_container(

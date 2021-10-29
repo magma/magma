@@ -15,21 +15,21 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #ifdef __cplusplus
 }
 #endif
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 #include <unordered_map>
-#include "amf_app_ue_context_and_proc.h"
-#include "amf_authentication.h"
-#include "amf_as.h"
-#include "amf_recv.h"
-#include "amf_identity.h"
-#include "amf_sap.h"
-#include "amf_app_timer_management.h"
-#include "includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
 #define AMF_CAUSE_SUCCESS (1)
 #define AMF_CAUSE_UE_SEC_CAP_MISSMATCH (23)

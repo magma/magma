@@ -16,14 +16,14 @@
  */
 
 extern "C" {
-#include "sctpd_downlink_client.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_downlink_client.h"
 
 #include <arpa/inet.h>
 
-#include "assertions.h"
-#include "dynamic_memory_check.h"
-#include "log.h"
-#include "mme_config.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 }
 
 #include <memory>  // for make_unique<>

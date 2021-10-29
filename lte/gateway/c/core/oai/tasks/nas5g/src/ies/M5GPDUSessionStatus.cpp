@@ -13,8 +13,8 @@ limitations under the License.
 #include <sstream>
 #include <cstdint>
 #include <cstring>
-#include "M5GCommonDefs.h"
-#include "M5GPDUSessionStatus.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionStatus.h"
 
 namespace magma5g {
 M5GPDUSessionStatus::M5GPDUSessionStatus(){};

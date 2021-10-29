@@ -25,7 +25,7 @@
 #ifndef FILE_S11_COMMON_SEEN
 #define FILE_S11_COMMON_SEEN
 
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
 extern task_zmq_ctx_t s11_task_zmq_ctx;
 
