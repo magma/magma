@@ -18,6 +18,9 @@ metadata:
   labels:
     app.kubernetes.io/component: controller
 {{ include "default-labels" . | indent 4 }}
+{{ include "controller-image-version-label" . | indent 4 }}
+  annotations:
+{{ include "release-name-annotation" . | indent 4 }}
 spec:
   selector:
 {{ include "default-selector-labels" . | indent 4 }}

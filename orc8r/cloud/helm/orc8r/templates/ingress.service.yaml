@@ -21,12 +21,14 @@ metadata:
   labels:
     app.kubernetes.io/component: nginx-proxy
 {{ include "labels" . | indent 4 }}
+{{ include "nginx-image-version-label" . | indent 4 }}
 {{ include "orc8r-labels" . | indent 4 }}
     {{- with .Values.nginx.service.labels }}
 {{ toYaml . | indent 4 }}
     {{- end }}
-  {{- if or .Values.nginx.service.annotations .Values.nginx.service.extraAnnotations.clientcertLegacy }}
   annotations:
+{{ include "release-name-annotation" . | indent 4 }}
+  {{- if or .Values.nginx.service.annotations .Values.nginx.service.extraAnnotations.clientcertLegacy }}
 {{ with .Values.nginx.service.annotations }}{{ toYaml . | indent 4 }}{{ end }}
 {{ with .Values.nginx.service.extraAnnotations.clientcertLegacy }}{{ toYaml . | indent 4 }}{{ end }}
   {{- end }}
@@ -67,12 +69,14 @@ metadata:
   labels:
     app.kubernetes.io/component: nginx-proxy
 {{ include "labels" . | indent 4 }}
+{{ include "nginx-image-version-label" . | indent 4 }}
 {{ include "orc8r-labels" . | indent 4 }}
     {{- with .Values.nginx.service.labels }}
 {{ toYaml . | indent 4 }}
     {{- end }}
-  {{- if or .Values.nginx.service.annotations .Values.nginx.service.extraAnnotations.bootstrapLagacy }}
   annotations:
+{{ include "release-name-annotation" . | indent 4 }}
+  {{- if or .Values.nginx.service.annotations .Values.nginx.service.extraAnnotations.bootstrapLagacy }}
 {{ with .Values.nginx.service.annotations }}{{ toYaml . | indent 4 }}{{ end }}
 {{ with .Values.nginx.service.extraAnnotations.bootstrapLagacy }}{{ toYaml . | indent 4 }}{{ end }}
   {{- end }}
@@ -116,14 +120,16 @@ metadata:
   labels:
     app.kubernetes.io/component: nginx-proxy
 {{ include "labels" . | indent 4 }}
+{{ include "nginx-image-version-label" . | indent 4 }}
 {{ include "orc8r-labels" . | indent 4 }}
     {{- with .Values.nginx.service.labels }}
 {{ toYaml . | indent 4 }}
   {{- end }}
-  {{- if or .Values.nginx.service.annotations .Values.nginx.service.extraAnnotations.proxy }}
   annotations:
-  {{ with .Values.nginx.service.annotations }}{{ toYaml . | indent 4 }}{{ end }}
-  {{ with .Values.nginx.service.extraAnnotations.proxy }}{{ toYaml . | indent 4 }}{{ end }}
+{{ include "release-name-annotation" . | indent 4 }}
+  {{- if or .Values.nginx.service.annotations .Values.nginx.service.extraAnnotations.proxy }}
+{{ with .Values.nginx.service.annotations }}{{ toYaml . | indent 4 }}{{ end }}
+{{ with .Values.nginx.service.extraAnnotations.proxy }}{{ toYaml . | indent 4 }}{{ end }}
   {{- end }}
 spec:
   selector:
