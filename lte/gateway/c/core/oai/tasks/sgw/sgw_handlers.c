@@ -353,16 +353,12 @@ status_code_e sgw_handle_sgi_endpoint_created(
       create_session_response_p->bearer_contexts_created.bearer_contexts[0]
           .s1u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
 
-      //      OAILOG_INFO(LOG_COMMON, "sgw init pdn %d - creating ipv4",
-      //      resp_pP->pdn_type);
-      //        create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      //            .s1u_sgw_fteid.ipv4 = 1;
-      //        create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      //            .s1u_sgw_fteid.ipv4_address.s_addr =
-      //            state->sgw_ip_address_S1u_S12_S4_up.s_addr;
+      create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+          .s1u_sgw_fteid.ipv4 = 1;
+      create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+          .s1u_sgw_fteid.ipv4_address.s_addr =
+          state->sgw_ip_address_S1u_S12_S4_up.s_addr;
       if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled) {
-        OAILOG_INFO(
-            LOG_COMMON, "sgw init pdn %d - creating ipv6", resp_pP->pdn_type);
         create_session_response_p->bearer_contexts_created.bearer_contexts[0]
             .s1u_sgw_fteid.ipv6 = 1;
         memcpy(
