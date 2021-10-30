@@ -133,6 +133,26 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         self._print_grpc(resp)
         return resp
 
+    def ListAddedIPv6Blocks(self, request, context):
+        """ Return a list of IPv6 blocks assigned """
+        self._print_grpc(request)
+        resp = ListAddedIPBlocksResponse()
+
+        ip_blocks = self._ip_address_man.get_assigned_ipv6_block()
+
+        ip_block_msg_list = [
+            IPBlock(
+                version=IPAddress.IPV6,
+                net_address=block.network_address.packed,
+                prefix_len=block.prefixlen,
+            )
+            for block in ip_blocks
+        ]
+        resp.ip_block_list.extend(ip_block_msg_list)
+
+        self._print_grpc(resp)
+        return resp
+
     def ListAllocatedIPs(self, request, context):
         """ Return a list of IPs allocated from a IP block
 

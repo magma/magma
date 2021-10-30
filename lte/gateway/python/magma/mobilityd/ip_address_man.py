@@ -241,7 +241,7 @@ class IPAddressManager:
         :return: ip_network object for assigned block
         """
         with self._lock:
-            ip_block = self.ipv6_allocator.list_added_ip_blocks()[0]
+            ip_block = self.ipv6_allocator.list_added_ip_blocks()
         return ip_block
 
     def list_allocated_ips(self, ipblock: ip_network) -> List[ip_address]:
