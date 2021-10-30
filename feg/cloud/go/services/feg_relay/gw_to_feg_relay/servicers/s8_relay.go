@@ -43,20 +43,21 @@ func NewS8RelayRouter(router *gw_to_feg_relay.Router) S8RelayRouter {
 
 func (s S8RelayRouter) CreateSession(
 	c context.Context, req *protos.CreateSessionRequestPgw) (*protos.CreateSessionResponsePgw, error) {
-	client, ctx, cancel, err := s.getS8Client(c, req.GetImsi())
-	if err != nil {
-		return nil, err
-	}
-	defer cancel()
-
 	// Get unique SGW Control Plane TEID and inject it into the request
 	// TODO: change this to use the proper field once supported by MME
-	req.FegRelayGeneratedCAgwTeid, err = getUniqueSgwCTeid(ctx)
+	var err error
+	req.FegRelayGeneratedCAgwTeid, err = getUniqueSgwCTeid(c)
 	if err != nil {
 		err = fmt.Errorf("S8 Create Session couldn't get unite SgwCteid: %v; request: %s", err, req.String())
 		glog.Error(err)
 		return nil, err
 	}
+
+	client, ctx, cancel, err := s.getS8Client(c, req.GetImsi())
+	if err != nil {
+		return nil, err
+	}
+	defer cancel()
 
 	res, err := client.CreateSession(ctx, req)
 	if err != nil {
