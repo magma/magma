@@ -355,9 +355,13 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
          (!is_lbi_found)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
     if (hashtblP->nodes[i] != NULL) {
-      node        = hashtblP->nodes[i];
-      spgw_ctxt_p = node->data;
+      node = hashtblP->nodes[i];
+    }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
+    while (node) {
       num_elements++;
+      hashtable_ts_get(
+          hashtblP, (const hash_key_t) node->key, (void**) &spgw_ctxt_p);
       if (spgw_ctxt_p != NULL) {
         if (!strcmp(
                 (const char*)
@@ -388,8 +392,8 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
           }
         }
       }
+      node = node->next;
     }
-    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     i++;
   }
 
