@@ -421,9 +421,8 @@ definitions:
     description: Mapping of APN ID to static IP address to allocate for the subscriber at the edge
     additionalProperties:
       type: string
-      format: ipv4
       minLength: 1
-      example: '192.168.100.1'
+      example: '192.168.100.1 or 2020::1'
 
   lte_subscription:
     type: object
