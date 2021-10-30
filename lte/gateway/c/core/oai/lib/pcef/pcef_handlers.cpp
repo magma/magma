@@ -203,7 +203,7 @@ void pcef_update_teids(
       request,
       [request](grpc::Status status, magma::UpdateTunnelIdsResponse response) {
         if (status.error_code() == grpc::ABORTED) {
-          MessageDef* message_p = DEPRECATEDitti_alloc_new_message_fatal(
+          MessageDef* message_p = itti_alloc_new_message(
               TASK_GRPC_SERVICE, GX_NW_INITIATED_DEACTIVATE_BEARER_REQ);
           itti_gx_nw_init_deactv_bearer_request_t* itti_msg =
               &message_p->ittiMsg.gx_nw_init_deactv_bearer_request;
