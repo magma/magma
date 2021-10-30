@@ -16,6 +16,7 @@ package reindex
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/golang/glog"
 
@@ -38,6 +39,9 @@ type reindexerSingleton struct {
 	// TODO(reginawang3495) Add some structure to save jobs/indexes # times run
 }
 
+// TODO: to be setup and used in M2 Part C
+const reindexLoopInterval = 5 * time.Second
+
 func NewReindexerSingleton(store Store, versioner Versioner) Reindexer {
 	return &reindexerSingleton{store: store, versioner: versioner}
 }
@@ -53,30 +57,20 @@ func (r *reindexerSingleton) Run(ctx context.Context) {
 			return
 		}
 
-		err := r.reindexJobs(ctx, indexerID, sendUpdate, batches)
+		err := r.reindexJobs(ctx, indexerID, batches, sendUpdate)
 
-		if err == nil {
-			continue
+		// NOTE: consider sleeping when no err for perf reasons
+		if err != nil {
+			clock.Sleep(failedJobSleep)
+		} else {
+			clock.Sleep(reindexLoopInterval)
 		}
-
-		clock.Sleep(failedJobSleep)
 	}
 }
 
 func (r *reindexerSingleton) RunUnsafe(ctx context.Context, indexerID string, sendUpdate func(string)) error {
 	batches := r.getReindexBatches(ctx)
-	jobs, err := r.getJobs(indexerID)
-	if err != nil || len(jobs) == 0 {
-		return err
-	}
-
-	for _, j := range jobs {
-		err = r.reindexJob(j, ctx, batches, sendUpdate)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return r.reindexJobs(ctx, indexerID, batches, sendUpdate)
 }
 
 func (r *reindexerSingleton) GetIndexerVersions() ([]*indexer.Versions, error) {
@@ -114,42 +108,13 @@ func (r *reindexerSingleton) getReindexBatches(ctx context.Context) []reindexBat
 	return batches
 }
 
-// getJobs gets all required reindex jobs.
-// If indexer ID is non-empty, only gets job for that indexer.
-func (r *reindexerSingleton) getJobs(indexerID string) ([]*Job, error) {
-	idxs, err := getIndexersFromRegistry(indexerID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var ret []*Job
-	for _, x := range idxs {
-		v, err := GetIndexerVersion(r.versioner, x.GetID())
-
-		if err != nil {
-			return nil, err
-		}
-		if v == nil {
-			return nil, fmt.Errorf("indexer %s version not tracked", x.GetID())
-		}
-		if x.GetVersion() != v.Actual {
-			ret = append(ret, &Job{Idx: x, From: v.Actual, To: x.GetVersion()})
-		}
-	}
-
-	return ret, nil
-}
-
-func (r *reindexerSingleton) reindexJobs(ctx context.Context, indexerID string, sendUpdate func(string), batches []reindexBatch) error {
+func (r *reindexerSingleton) reindexJobs(ctx context.Context, indexerID string, batches []reindexBatch, sendUpdate func(string)) error {
 	jobs, err := r.getJobs(indexerID)
-	if err != nil || len(jobs) == 0 {
-		return err
-	}
 	if err != nil {
 		return wrap(err, ErrDefault, indexerID)
 	}
-	if jobs == nil {
+	// QUESTION: why return error if no jobs? this is brought over from Run / RunUnsafe of reindexer_queue
+	if len(jobs) == 0 {
 		return merrors.ErrNotFound
 	}
 
@@ -170,9 +135,8 @@ func (r *reindexerSingleton) reindexJob(job *Job, ctx context.Context, batches [
 	jobErr := executeJob(ctx, job, batches)
 
 	// TODO(reginawang3495) Add indexer fail count increase and logging
-	// if jobErr == nil {
+	// Set Indexer Version every time for now
 	err := r.versioner.SetIndexerActualVersion(job.Idx.GetID(), job.To)
-	// }
 
 	if err != nil {
 		return fmt.Errorf("error completing state reindex job %+v with job err <%s>: %s", job, jobErr, err)
@@ -190,4 +154,32 @@ func (r *reindexerSingleton) reindexJob(job *Job, ctx context.Context, batches [
 		sendUpdate(fmt.Sprintf("indexer %s successfully reindexed from version %d to version %d", job.Idx.GetID(), job.From, job.To))
 	}
 	return nil
+}
+
+// getJobs gets all required reindex jobs.
+// If indexer ID is non-empty, only gets job for that indexer.
+func (r *reindexerSingleton) getJobs(indexerID string) ([]*Job, error) {
+	idxs, err := getIndexersFromRegistry(indexerID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var ret []*Job
+	for _, x := range idxs {
+		// Get Indexer Version saved from memory
+		v, err := GetIndexerVersion(r.versioner, x.GetID())
+
+		if err != nil {
+			return nil, err
+		}
+		if v == nil {
+			return nil, fmt.Errorf("indexer %s version not tracked", x.GetID())
+		}
+		if x.GetVersion() != v.Actual {
+			ret = append(ret, &Job{Idx: x, From: v.Actual, To: x.GetVersion()})
+		}
+	}
+
+	return ret, nil
 }
