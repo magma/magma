@@ -215,11 +215,32 @@ function SubscriberInfoConfig({subscriberInfo}: {subscriberInfo: subscriber}) {
   const [authOPC, _setAuthOPC] = useState(subscriberInfo.lte.auth_opc ?? false);
   const [dataPlan, _setDataPlan] = useState(subscriberInfo.lte.sub_profile);
 
+  function CollapseItems(props) {
+    const data: DataRows[] = [
+      [
+        {
+          value: props.data || '-',
+        },
+      ],
+    ];
+
+    return <DataGrid data={data} />;
+  }
+
   const kpiData: DataRows[] = [
     [
       {
         category: 'LTE Network Access',
         value: subscriberInfo.lte.state,
+      },
+    ],
+    [
+      {
+        category: 'Forbidden Network Types',
+        value: subscriberInfo.forbidden_network_types?.length || 0,
+        collapse: subscriberInfo.forbidden_network_types?.map(data => (
+          <CollapseItems key={data} data={data} />
+        )) || <></>,
       },
     ],
     [
