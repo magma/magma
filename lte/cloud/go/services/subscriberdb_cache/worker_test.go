@@ -88,13 +88,15 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 		{
 			Type: lte.SubscriberEntityType, Key: "IMSI99999",
 			Config: &models.SubscriberConfig{
-				Lte: &models.LteSubscription{State: "ACTIVE"},
+				Lte:                   &models.LteSubscription{State: "ACTIVE"},
+				ForbiddenNetworkTypes: models.CoreNetworkTypes{"5GC"},
 			},
 		},
 		{
 			Type: lte.SubscriberEntityType, Key: "IMSI11111",
 			Config: &models.SubscriberConfig{
-				Lte: &models.LteSubscription{State: "ACTIVE"},
+				Lte:                   &models.LteSubscription{State: "ACTIVE"},
+				ForbiddenNetworkTypes: models.CoreNetworkTypes{"EPC"},
 			},
 		},
 	}, serdes.Entity)
@@ -117,6 +119,7 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 		Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
 		NetworkId:  &protos.NetworkID{Id: "n1"},
 		SubProfile: "default",
+		SubNetwork: &lte_protos.CoreNetworkType{ForbiddenNetworkTypes: []lte_protos.CoreNetworkType_CoreNetworkTypes{lte_protos.CoreNetworkType_NT_EPC}},
 	}
 	expectedDigestPrefix1, err := mproto.HashDeterministic(sub1)
 	assert.NoError(t, err)
@@ -130,6 +133,7 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 		Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
 		NetworkId:  &protos.NetworkID{Id: "n1"},
 		SubProfile: "default",
+		SubNetwork: &lte_protos.CoreNetworkType{ForbiddenNetworkTypes: []lte_protos.CoreNetworkType_CoreNetworkTypes{lte_protos.CoreNetworkType_NT_5GC}},
 	}
 	expectedDigestPrefix2, err := mproto.HashDeterministic(sub2)
 	assert.NoError(t, err)
@@ -196,9 +200,9 @@ func TestUpdateSubProtosByNetworkNoChange(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: "apn1", Config: &lte_models.ApnConfiguration{}},
-		{Type: lte.SubscriberEntityType, Key: "IMSI00001", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}}},
-		{Type: lte.SubscriberEntityType, Key: "IMSI00002", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}}},
-		{Type: lte.SubscriberEntityType, Key: "IMSI00003", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI00001", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}, ForbiddenNetworkTypes: models.CoreNetworkTypes{"EPC", "5GC"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI00002", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}, ForbiddenNetworkTypes: models.CoreNetworkTypes{"EPC", "5GC"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI00003", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "ACTIVE"}, ForbiddenNetworkTypes: models.CoreNetworkTypes{"EPC", "5GC"}}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 
@@ -252,6 +256,7 @@ func subProtoFromID(sid string) *lte_protos.SubscriberData {
 		Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
 		NetworkId:  &protos.NetworkID{Id: "n1"},
 		SubProfile: "default",
+		SubNetwork: &lte_protos.CoreNetworkType{ForbiddenNetworkTypes: []lte_protos.CoreNetworkType_CoreNetworkTypes{lte_protos.CoreNetworkType_NT_EPC, lte_protos.CoreNetworkType_NT_5GC}},
 	}
 	return subProto
 }

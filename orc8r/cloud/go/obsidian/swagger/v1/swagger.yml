@@ -7471,6 +7471,15 @@ definitions:
         format: uint64
         type: integer
     type: object
+  core_network_types:
+    description: List of core network types.
+    items:
+      enum:
+      - EPC
+      - 5GC
+      type: string
+      x-nullable: false
+    type: array
   csfb:
     description: csfb configuration
     properties:
@@ -9794,6 +9803,10 @@ definitions:
         $ref: '#/definitions/policy_ids'
       active_policies_by_apn:
         $ref: '#/definitions/policy_ids_by_apn'
+      forbidden_network_types:
+        $ref: '#/definitions/core_network_types'
+        description: List of Network Types to be restricted per subscriber. If not
+          configured, subscriber will have access to all Network Types by default.
       id:
         $ref: '#/definitions/subscriber_id'
       lte:
@@ -11512,6 +11525,8 @@ definitions:
         $ref: '#/definitions/policy_ids_by_apn'
       config:
         $ref: '#/definitions/subscriber_config'
+      forbidden_network_types:
+        $ref: '#/definitions/core_network_types'
       id:
         $ref: '#/definitions/subscriber_id'
       lte:
@@ -11533,6 +11548,8 @@ definitions:
     type: object
   subscriber_config:
     properties:
+      forbidden_network_types:
+        $ref: '#/definitions/core_network_types'
       lte:
         $ref: '#/definitions/lte_subscription'
       static_ips:

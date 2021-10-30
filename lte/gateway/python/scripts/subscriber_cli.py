@@ -16,6 +16,7 @@ limitations under the License.
 import argparse
 
 from lte.protos.subscriberdb_pb2 import (
+    CoreNetworkType,
     GSMSubscription,
     LTESubscription,
     SubscriberData,
@@ -33,6 +34,7 @@ def add_subscriber(client, args):
     gsm = GSMSubscription()
     lte = LTESubscription()
     state = SubscriberState()
+    sub_network = CoreNetworkType()
 
     if len(args.gsm_auth_tuple) != 0:
         gsm.state = GSMSubscription.ACTIVE
@@ -49,8 +51,21 @@ def add_subscriber(client, args):
     if args.lte_auth_opc is not None:
         lte.auth_opc = bytes.fromhex(args.lte_auth_opc)
 
+    if args.forbidden_network_types is not None:
+        if (len(args.forbidden_network_types.split(",")) > 2):
+            print("Forbidden Core Network Types are NT_5GC, NT_EPC")
+            return
+        for n in args.forbidden_network_types.split(","):
+            if n == "NT_5GC":
+                sub_network.forbidden_network_types.extend([CoreNetworkType.NT_5GC])
+            elif n == "NT_EPC":
+                sub_network.forbidden_network_types.extend([CoreNetworkType.NT_EPC])
+            else:
+                print("Invalid Network type, Forbidden Core Network Types are NT_5GC, NT_EPC")
+                return
+
     data = SubscriberData(
-        sid=SIDUtils.to_pb(args.sid), gsm=gsm, lte=lte, state=state,
+        sid=SIDUtils.to_pb(args.sid), gsm=gsm, lte=lte, state=state, sub_network=sub_network,
     )
     client.AddSubscriber(data)
 
@@ -209,6 +224,7 @@ def create_parser():
             type=int,
             help="LTE authentication seq number (hex digits)",
         )
+        cmd.add_argument("--forbidden-network-types", help="Core NetworkType Restriction")
 
     for cmd in [parser_update]:
         cmd.add_argument(
