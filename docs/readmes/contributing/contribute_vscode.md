@@ -34,6 +34,7 @@ Open VSCode and use **Command+Shift+P** to open the editor preferences and selec
         "ms-python.python",
         "njpwerner.autodocstring",
         "ms-python.vscode-pylance",
+        "pucelle.run-on-save",
     ],
 ```
 
@@ -90,14 +91,14 @@ We utilize [clangd](https://clangd.llvm.org) to enable smart code insights. Clan
 
 The compilation database can be gernated with both CMake and Bazel. The Bazel method will be described more in detail below. With CMake, it is not possible to generate a single compilation database for all C/C++ targets, so you will have generate one at a time and restart clangd.
 
-To generate the comilation database in the Remote SSH + Magma VM workspace, simply run `make build_oai`, or any other C/C++ target. Then run a task to symlink the root compilation database file to the newly generated one with the following steps.
+To generate the comilation database, simply run `make build_oai`, or any other C/C++ target. Then run a task to symlink the root compilation database file to the newly generated one with the following steps.
 
   1. Open the command palette (**Command+Shift+P**)
   2. Select **Tasks: Run Task** and choose **Set compile_commands.json for IntelliSense**
   3. Select a `compile_commands.json` to that was generated
   4. After the task completes, restart clangd
 
-In the devcontainer, follow the same steps but run `make build_oai_clang` instead to generate the database.
+The `compile_commands.json` at project root should contain a compilation instruction for each file in the target you specified. If you only see partial results, it might help to run the same make command a few more times.
 
 Once clangd is retarted, you should see some note about indexing in the bottom of your editor. Code completion and navigation should work after the indexing completes.
 

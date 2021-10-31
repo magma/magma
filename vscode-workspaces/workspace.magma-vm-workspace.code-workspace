@@ -15,6 +15,7 @@
 			"ms-python.python",
 			"njpwerner.autodocstring",
 			"ms-python.vscode-pylance",
+			"pucelle.run-on-save",
 		]
 	},
 	"settings": {
@@ -63,15 +64,16 @@
 		"python.linting.pylintPath": "pylint",
 		"python.testing.pytestEnabled": false,
 		"python.testing.unittestEnabled": false,
-		"editor.formatOnSave": true,
-		"python.formatting.autopep8Args": [
-			// This should be the same set of flags as ones specified in `lte/gateway/precommit.py`
-			"--select=W191,W291,W292,W293,W391,E131,E2,E3",
-		],
-		"[python]": {
-			"editor.codeActionsOnSave": {
-				"source.organizeImports": true
+		"runOnSave.shell": "bash",
+		"runOnSave.statusMessageTimeout": 3000,
+		"runOnSave.commands": [
+			{
+				"match": "\\.py$",
+				"command": "sudo ./lte/gateway/python/precommit.py -f -p ${fileRelative}",
+				"runIn": "backend",
+				"runningStatusMessage": "Running python formatting script on ${fileRelative}",
+				"finishStatusMessage": "${fileRelative} formatted"
 			}
-		},
+		]
 	},
 }

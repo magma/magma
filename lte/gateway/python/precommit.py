@@ -97,7 +97,7 @@ def _run_docker_cmd(commands: List[str], use_local_image: bool):
         docker_image = IMAGE_NAME + ':latest'
     else:
         docker_image = GITHUB_IMAGE_NAME
-    cmd_prefix = 'docker run -it -u 0'.split(' ')
+    cmd_prefix = 'docker run -t -u 0'.split(' ')
     cmd = cmd_prefix + volume_cmd + [docker_image] + commands
     _run(cmd)
 
