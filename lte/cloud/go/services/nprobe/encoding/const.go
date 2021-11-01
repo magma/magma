@@ -62,5 +62,7 @@ const (
 	IPV6PdnType asn1.Enumerated = 0x02
 
 	PartyQualifierTarget asn1.Enumerated = 0x03 // gPRSorEPS-Target
-	RatTypeEutran        uint8           = 0x06 // Ran access type EUTRAN
+
+	BearerID      uint8 = 0x01
+	RatTypeEutran uint8 = 0x06 // Ran access type EUTRAN
 )

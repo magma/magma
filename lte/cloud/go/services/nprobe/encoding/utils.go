@@ -279,42 +279,31 @@ func makeNetworkIdentifier(event *models.Event, operatorID uint32) NetworkIdenti
 // for bearer activation as defined in the asn1 schema
 func makeBearerActivationParams(event *models.Event) EPSSpecificParameters {
 	eventData := event.Value.(map[string]interface{})
-	if sessionID, ok := eventData["session_id"]; ok {
-		return EPSSpecificParameters{
-			EPSBearerIdentity:      []byte(sessionID.(string)),
-			PDNAddressAllocation:   makePdnAddressAllocation(event),
-			APN:                    encodeAPN(eventData["apn"].(string)),
-			RATType:                []byte{RatTypeEutran},
-			BearerActivationType:   DefaultBearer,
-			EPSLocationOfTheTarget: makeEPSLocation(event),
-		}
+	return EPSSpecificParameters{
+		EPSBearerIdentity:      []byte{BearerID},
+		PDNAddressAllocation:   makePdnAddressAllocation(event),
+		APN:                    encodeAPN(eventData["apn"].(string)),
+		RATType:                []byte{RatTypeEutran},
+		BearerActivationType:   DefaultBearer,
+		EPSLocationOfTheTarget: makeEPSLocation(event),
 	}
-	return EPSSpecificParameters{}
 }
 
 // makeBearerModificationParams returns the corresponding EPSSpecificParameters
 // for bearer modification as defined in the asn1 schema
 func makeBearerModificationParams(event *models.Event) EPSSpecificParameters {
-	eventData := event.Value.(map[string]interface{})
-	if sessionID, ok := eventData["session_id"]; ok {
-		return EPSSpecificParameters{
-			EPSBearerIdentity:      []byte(sessionID.(string)),
-			EPSLocationOfTheTarget: makeEPSLocation(event),
-		}
+	return EPSSpecificParameters{
+		EPSBearerIdentity:      []byte{BearerID},
+		EPSLocationOfTheTarget: makeEPSLocation(event),
 	}
-	return EPSSpecificParameters{}
 }
 
 // makeBearerDeactivationParams returns the corresponding EPSSpecificParameters
 // for bearer deactivation as defined in the asn1 schema
 func makeBearerDeactivationParams(event *models.Event) EPSSpecificParameters {
-	eventData := event.Value.(map[string]interface{})
-	if sessionID, ok := eventData["session_id"]; ok {
-		return EPSSpecificParameters{
-			EPSBearerIdentity:      []byte(sessionID.(string)),
-			BearerDeactivationType: DefaultBearer,
-			EPSLocationOfTheTarget: makeEPSLocation(event),
-		}
+	return EPSSpecificParameters{
+		EPSBearerIdentity:      []byte{BearerID},
+		BearerDeactivationType: DefaultBearer,
+		EPSLocationOfTheTarget: makeEPSLocation(event),
 	}
-	return EPSSpecificParameters{}
 }
