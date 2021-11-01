@@ -28,6 +28,7 @@ target_link_libraries(LIB_PCEF
     MAGMA_CONFIG LIB_BSTR LIB_HASHTABLE LIB_MOBILITY_CLIENT yaml-cpp
     )
 target_include_directories(LIB_PCEF PUBLIC
+    $ENV{MAGMA_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}
     $<TARGET_FILE_DIR:LIB_PCEF>
     )

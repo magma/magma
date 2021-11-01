@@ -17,8 +17,8 @@
 
 #include <stdint.h>
 
-#include "rijndael.h"
-#include "snow3g.h"
+#include "lte/gateway/c/core/oai/lib/secu/rijndael.h"
+#include "lte/gateway/c/core/oai/lib/secu/snow3g.h"
 
 static uint8_t MULx(uint8_t V, uint8_t c);
 static uint8_t MULxPOW(uint8_t V, uint8_t i, uint8_t c);

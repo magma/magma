@@ -39,9 +39,9 @@
 #include <inttypes.h>
 #include <pthread.h>
 
-#include "bstrlib.h"
-#include "dynamic_memory_check.h"
-#include "hashtable.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
 #if TRACE_HASHTABLE
 #define PRINT_HASHTABLE(hTbLe, ...)                                            \

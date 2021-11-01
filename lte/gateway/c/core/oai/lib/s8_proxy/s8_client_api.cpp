@@ -14,16 +14,16 @@ limitations under the License.
 #include <grpcpp/impl/codegen/status.h>
 #include "feg/protos/s8_proxy.grpc.pb.h"
 #include "orc8r/protos/common.pb.h"
-#include "s8_client_api.h"
-#include "S8Client.h"
-#include "pcef_handlers.h"
-#include "s8_itti_proto_conversion.h"
+#include "lte/gateway/c/core/oai/lib/s8_proxy/s8_client_api.h"
+#include "lte/gateway/c/core/oai/lib/s8_proxy/S8Client.h"
+#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.h"
+#include "lte/gateway/c/core/oai/lib/s8_proxy/s8_itti_proto_conversion.h"
 extern "C" {
-#include "intertask_interface.h"
-#include "log.h"
-#include "s8_messages_types.h"
-#include "common_defs.h"
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/s8_messages_types.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 }
 

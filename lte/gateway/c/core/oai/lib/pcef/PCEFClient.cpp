@@ -23,8 +23,8 @@
 #include <utility>
 
 #include "orc8r/protos/mconfig/mconfigs.pb.h"
-#include "PCEFClient.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
 #include "lte/protos/session_manager.pb.h"
 
 namespace grpc {

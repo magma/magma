@@ -143,6 +143,7 @@ s1aptests/test_dedicated_bearer_activation_idle_mode_paging_timer_expiry.py \
 s1aptests/test_multi_enb_multi_ue_diff_plmn.py \
 s1aptests/test_x2_handover.py \
 s1aptests/test_x2_handover_ping_pong.py \
+s1aptests/test_s1_handover.py \
 s1aptests/test_attach_mobile_reachability_timer_expiry.py \
 s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
@@ -160,6 +161,10 @@ s1aptests/test_guti_attach_with_zero_mtmsi.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
+s1aptests/test_s1_handover_ping_pong.py \
+s1aptests/test_s1_handover_cancel.py \
+s1aptests/test_s1_handover_failure.py \
+s1aptests/test_s1_handover_timer_expiry.py \
 s1aptests/test_paging_with_mme_restart.py \
 s1aptests/test_no_identity_rsp_with_mme_restart.py \
 s1aptests/test_agw_offload_idle_active_ue.py \

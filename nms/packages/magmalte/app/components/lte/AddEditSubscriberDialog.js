@@ -14,7 +14,11 @@
  * @format
  */
 
-import type {apn_list, subscriber} from '../../../generated/MagmaAPIBindings';
+import type {
+  apn_list,
+  core_network_types,
+  subscriber,
+} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -50,6 +54,7 @@ type EditingSubscriber = {
   lteState: 'ACTIVE' | 'INACTIVE',
   authKey: string,
   authOpc: string,
+  forbiddenNetworkTypes: core_network_types,
   subProfile: string,
   apnList: apn_list,
 };
@@ -60,6 +65,7 @@ type Props = {
   onSaveError: (reason: string) => void,
   editingSubscriber?: subscriber,
   subProfiles: Array<string>,
+  forbiddenNetworkTypes: core_network_types,
   apns: apn_list,
 };
 
@@ -72,6 +78,7 @@ function buildEditingSubscriber(
       lteState: 'ACTIVE',
       authKey: '',
       authOpc: '',
+      forbiddenNetworkTypes: [],
       subProfile: 'default',
       apnList: [],
     };
@@ -91,6 +98,7 @@ function buildEditingSubscriber(
     lteState: editingSubscriber.lte.state,
     authKey,
     authOpc,
+    forbiddenNetworkTypes: editingSubscriber.forbidden_network_types || [],
     subProfile: editingSubscriber.lte.sub_profile,
     apnList: editingSubscriber.active_apns || [],
   };
@@ -124,6 +132,7 @@ export default function AddEditSubscriberDialog(props: Props) {
         auth_opc: editingSubscriber.authOpc || undefined,
         sub_profile: editingSubscriber.subProfile,
       },
+      forbidden_network_types: editingSubscriber.forbiddenNetworkTypes,
       active_apns: editingSubscriber.apnList,
     };
     if (data.lte.auth_key && isValidHex(data.lte.auth_key)) {
@@ -218,6 +227,27 @@ export default function AddEditSubscriberDialog(props: Props) {
             {props.subProfiles.map(p => (
               <MenuItem value={p} key={p}>
                 {p}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl className={classes.input}>
+          <InputLabel htmlFor="forbiddenNetworkTypes">
+            Forbidden Network Types
+          </InputLabel>
+          <Select
+            inputProps={{id: 'forbiddenNetworkTypes'}}
+            value={editingSubscriber.forbiddenNetworkTypes}
+            multiple={false}
+            onChange={({target}) =>
+              setEditingSubscriber({
+                ...editingSubscriber,
+                forbiddenNetworkTypes: ((target.value: any): core_network_types),
+              })
+            }>
+            {props.forbiddenNetworkTypes.map(nw => (
+              <MenuItem value={nw} key={nw}>
+                {nw}
               </MenuItem>
             ))}
           </Select>

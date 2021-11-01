@@ -32,6 +32,7 @@ target_link_libraries(LIB_N11
     )
 
 target_include_directories(LIB_N11 PUBLIC
+    $ENV{MAGMA_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${MAGMA_LIB_DIR}/s6a_proxy
     $<TARGET_FILE_DIR:LIB_N11>

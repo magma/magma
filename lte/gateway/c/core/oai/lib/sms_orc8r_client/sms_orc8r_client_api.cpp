@@ -19,12 +19,12 @@
 #include <iostream>
 #include <string>
 
-#include "sms_orc8r_client_api.h"
-#include "SMSOrc8rClient.h"
+#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/sms_orc8r_client_api.h"
+#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/SMSOrc8rClient.h"
 #include "orc8r/protos/common.pb.h"
 
 extern "C" {
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 }
 
 void void_callback(grpc::Status status, magma::orc8r::Void void_response) {

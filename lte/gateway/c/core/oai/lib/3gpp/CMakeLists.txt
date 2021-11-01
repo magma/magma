@@ -10,5 +10,6 @@ target_link_libraries(LIB_3GPP
     LIB_BSTR LIB_S1AP LIB_NGAP
     )
 target_include_directories(LIB_3GPP PUBLIC
+    $ENV{MAGMA_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}
     )

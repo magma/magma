@@ -20,12 +20,12 @@
 #include <string>
 
 #include "lte/protos/mconfig/mconfigs.pb.h"
-#include "includes/MConfigLoader.h"
-#include "itti_msg_to_proto_msg.h"
-#include "bstrlib.h"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
+#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/itti_msg_to_proto_msg.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 extern "C" {
-#include "ie_to_bytes.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
 }
 
 #define MME_SERVICE "mme"

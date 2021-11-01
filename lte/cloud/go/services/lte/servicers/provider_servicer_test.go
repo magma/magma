@@ -17,7 +17,6 @@ import (
 	"context"
 	"testing"
 
-	strfmt "github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/stretchr/testify/assert"
 
@@ -116,7 +115,7 @@ func initSubscriber(t *testing.T, hwID string) {
 					AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 				},
-				StaticIps: map[string]strfmt.IPv4{"apn1": "192.168.100.1"},
+				StaticIps: map[string]string{"apn1": "192.168.100.1"},
 			},
 			Associations: storage.TKs{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
 		},
