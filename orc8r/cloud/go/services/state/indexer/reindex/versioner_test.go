@@ -52,7 +52,7 @@ func TestVersioner(t *testing.T) {
 	// Update one actual version
 	err = versioner.SetIndexerActualVersion(id2, version2)
 	assert.NoError(t, err)
-	gotv, err := reindex.GetIndexerVersion(versioner, id2)
+	gotv, err := versioner.GetIndexerVersion(id2)
 	assert.NoError(t, err)
 	assert.Equal(t, version2, gotv.Actual)
 

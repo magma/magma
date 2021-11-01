@@ -356,7 +356,7 @@ func TestSQLJobQueue_Integration_IndexerVersions(t *testing.T) {
 	// Update one actual version
 	err = q.SetIndexerActualVersion(id2, version2)
 	assert.NoError(t, err)
-	gotv, err := reindex.GetIndexerVersion(q, id2)
+	gotv, err := q.GetIndexerVersion(id2)
 	assert.NoError(t, err)
 	assert.Equal(t, version2, gotv.Actual)
 

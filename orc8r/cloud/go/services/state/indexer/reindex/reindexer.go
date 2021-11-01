@@ -184,7 +184,7 @@ func (r *reindexerImpl) getJobs(indexerID string) ([]*Job, error) {
 
 	var ret []*Job
 	for _, x := range idxs {
-		v, err := GetIndexerVersion(r.queue, x.GetID())
+		v, err := r.queue.GetIndexerVersion(x.GetID())
 		if err != nil {
 			return nil, err
 		}

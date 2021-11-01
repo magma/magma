@@ -444,7 +444,7 @@ func assertErrored(t *testing.T, q reindex.JobQueue, indexerID string, sentinel 
 }
 
 func assertVersions(t *testing.T, queue reindex.JobQueue, indexerID string, actual, desired indexer.Version) {
-	v, err := reindex.GetIndexerVersion(queue, indexerID)
+	v, err := queue.GetIndexerVersion(indexerID)
 	assert.NoError(t, err)
 	assert.Equal(t, actual, v.Actual)
 	assert.Equal(t, desired, v.Desired)
