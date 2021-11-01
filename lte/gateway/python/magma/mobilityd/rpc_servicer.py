@@ -233,7 +233,6 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         try:
             self._ip_address_man.release_ip_address(
                 composite_sid, ip,
-                request.ip.version,
             )
             logging.info(
                 "Released IP %s for sid %s",
