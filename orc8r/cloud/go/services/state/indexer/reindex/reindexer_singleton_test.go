@@ -69,6 +69,8 @@ func TestSingletonRun(t *testing.T) {
 
 	// Check
 	recvCh(t, ch)
+	// QUESTION: is this not recommended? We check that nothing else is sent for a whole second.
+	// This test takes a whole 4.8 seconds on my computer
 	recvNoCh(t, ch)
 
 	idx0.AssertExpectations(t)
