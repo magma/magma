@@ -105,6 +105,8 @@ typedef struct sgw_eps_bearer_ctxt_s {
   uint8_t num_sdf;
   uint32_t sdf_id[TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX];
   char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
+  bool update_teids;  // this is purely for optimization purposes and can be
+                      // safely initialized to true
 } sgw_eps_bearer_ctxt_t;
 
 typedef struct sgw_pdn_connection_s {
