@@ -536,6 +536,8 @@ void SpgwStateConverter::proto_to_sgw_eps_bearer(
   proto_to_traffic_flow_template(eps_bearer_proto.tft(), &eps_bearer->tft);
 
   eps_bearer->num_sdf = eps_bearer_proto.num_sdf();
+  eps_bearer->update_teids =
+      true;  // optimization purposes only, safe to set as true
 }
 
 void SpgwStateConverter::traffic_flow_template_to_proto(
