@@ -33,6 +33,7 @@ target_link_libraries(LIB_S8_PROXY
     )
 
 target_include_directories(LIB_S8_PROXY PUBLIC
+    $ENV{MAGMA_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}
     $<TARGET_FILE_DIR:LIB_S8_PROXY>
     )

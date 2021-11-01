@@ -26,16 +26,16 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "bstrlib.h"
-#include "dynamic_memory_check.h"
-#include "log.h"
-#include "common_types.h"
-#include "mme_app_ue_context.h"
-#include "mme_app_pdn_context.h"
-#include "mme_app_apn_selection.h"
-#include "mme_app_defs.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_pdn_context.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
 static void mme_app_pdn_context_init(
     ue_mm_context_t* const ue_context, pdn_context_t* const pdn_context);

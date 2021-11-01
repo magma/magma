@@ -35,13 +35,13 @@
 #include <string.h>  // memset
 #include <stdlib.h>  // malloc, free
 
-#include "nas_timer.h"
-#include "common_defs.h"
-#include "dynamic_memory_check.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
-#include "log.h"
-#include "mme_app_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
 
 //------------------------------------------------------------------------------
 status_code_e nas_timer_init(void) {

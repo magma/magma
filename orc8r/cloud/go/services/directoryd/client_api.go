@@ -217,6 +217,19 @@ func UnmapSgwCTeidToHWID(ctx context.Context, networkID string, teids []string) 
 	return nil
 }
 
+// GetNewSgwCTeid get an available teid
+func GetNewSgwCTeid(ctx context.Context, networkID string) (string, error) {
+	client, err := getDirectorydClient()
+	if err != nil {
+		return "", errors.Wrap(err, "failed to get directoryd client")
+	}
+	res, err := client.GetNewSgwCTeid(ctx, &protos.GetNewSgwCTeidRequest{NetworkID: networkID})
+	if err != nil {
+		return "", fmt.Errorf("failed to get new sgw c teid under network ID %s: %s", networkID, err)
+	}
+	return res.Teid, nil
+}
+
 //--------------------------
 // State service client APIs
 //--------------------------

@@ -27,16 +27,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "conversions.h"
-#include "log.h"
-#include "includes/MetricsHelpers.h"
-#include "intertask_interface.h"
-#include "mme_app_defs.h"
-#include "mme_app_ue_context.h"
-#include "3gpp_29.018.h"
-#include "mme_app_itti_messaging.h"
-#include "nas_proc.h"
-#include "mme_app_timer.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.018.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
 
 static void mme_app_handle_sgs_status_for_imsi_detach_ind(
     ue_mm_context_t* ue_context_p);

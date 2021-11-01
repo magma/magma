@@ -21,8 +21,8 @@
 #pragma once
 
 #include "Ngap_SupportedTAList.h"
-#include "TrackingAreaIdentity.h"
-#include "ngap_types.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
 
 enum {
   TA_LIST_UNKNOWN_TAC        = -2,

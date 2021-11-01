@@ -25,7 +25,7 @@
 #ifndef FILE_S11_MME_SESSION_MANAGER_SEEN
 #define FILE_S11_MME_SESSION_MANAGER_SEEN
 
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 /* @brief Create a new Create Session Request and send it to provided S-GW. */
 status_code_e s11_mme_create_session_request(

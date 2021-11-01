@@ -18,11 +18,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "log.h"
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "PdnConnectivityRequest.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnConnectivityRequest.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 int decode_pdn_connectivity_request(
     pdn_connectivity_request_msg* pdn_connectivity_request, uint8_t* buffer,

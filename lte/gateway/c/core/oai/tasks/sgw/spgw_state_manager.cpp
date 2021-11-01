@@ -15,11 +15,11 @@
  *      contact@openairinterface.org
  */
 
-#include "spgw_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.h"
 
 extern "C" {
-#include <dynamic_memory_check.h>
-#include "common_defs.h"
+#include <lte/gateway/c/core/oai/common/dynamic_memory_check.h>
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 }
 
 namespace magma {

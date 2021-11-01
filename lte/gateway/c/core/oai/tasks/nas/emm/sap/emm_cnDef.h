@@ -36,11 +36,11 @@ Description
 #ifndef FILE_EMM_CNDEF_SEEN
 #define FILE_EMM_CNDEF_SEEN
 
-#include "intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 
-#include "nas/as_message.h"
-#include "common_ies.h"
-#include "LocationAreaIdentification.h"
+#include "lte/gateway/c/core/oai/include/nas/as_message.h"
+#include "lte/gateway/c/core/oai/common/common_ies.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LocationAreaIdentification.h"
 
 typedef enum emmcn_primitive_s {
   _EMMCN_START = 400,

@@ -159,6 +159,16 @@ message SubscriberData {
   string sub_profile = 6;
 
   Non3GPPUserProfile non_3gpp = 7;
+
+  CoreNetworkType sub_network = 8;
+}
+
+message CoreNetworkType {
+  enum CoreNetworkTypes {
+      NT_EPC = 0;
+      NT_5GC = 1;
+  }
+  repeated CoreNetworkTypes forbidden_network_types = 1;
 }
 
 message SubscriberUpdate {

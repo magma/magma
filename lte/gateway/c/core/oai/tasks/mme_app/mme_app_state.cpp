@@ -15,9 +15,9 @@
  *      contact@openairinterface.org
  */
 
-#include "mme_app_state.h"
-#include "mme_app_state_manager.h"
-#include "mme_app_ip_imsi.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ip_imsi.h"
 
 using magma::lte::MmeNasStateManager;
 

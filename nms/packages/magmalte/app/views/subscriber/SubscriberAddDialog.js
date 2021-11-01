@@ -13,7 +13,10 @@
  * @flow strict-local
  * @format
  */
-import type {subscriber} from '../../../generated/MagmaAPIBindings';
+import type {
+  core_network_types,
+  subscriber,
+} from '../../../generated/MagmaAPIBindings';
 
 import ActionTable from '../../components/ActionTable';
 import Alert from '@material-ui/lab/Alert';
@@ -48,6 +51,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {AltFormField, PasswordInput} from '../../components/FormField';
+import {CoreNetworkTypes} from './SubscriberUtils';
 import {DropzoneArea} from 'material-ui-dropzone';
 import {SUBSCRIBER_ADD_ERRORS} from '../../views/subscriber/SubscriberUtils';
 import {SelectEditComponent} from '../../components/ActionTable';
@@ -135,6 +139,7 @@ export type SubscriberInfo = {
   authKey: string,
   authOpc: string,
   state: 'INACTIVE' | 'ACTIVE',
+  forbiddenNetworkTypes: core_network_types,
   dataPlan: string,
   apns: Array<string>,
   policies?: Array<string>,
@@ -145,10 +150,14 @@ const SUB_IMSI_OFFSET = 1;
 const SUB_AUTH_KEY_OFFSET = 2;
 const SUB_AUTH_OPC_OFFSET = 3;
 const SUB_STATE_OFFSET = 4;
-const SUB_DATAPLAN_OFFSET = 5;
-const SUB_APN_OFFSET = 6;
-const SUB_POLICY_OFFSET = 7;
-const SUB_MAX_FIELDS = 8;
+const SUB_FORBIDDEN_NETWORK_TYPE_OFFSET = 5;
+const SUB_DATAPLAN_OFFSET = 6;
+const SUB_APN_OFFSET = 7;
+const SUB_POLICY_OFFSET = 8;
+const SUB_MAX_FIELDS = 9;
+const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
+  key => CoreNetworkTypes[key],
+);
 
 function parseSubscriber(line: string) {
   const items = line.split(',').map(item => item.trim());
@@ -157,13 +166,18 @@ function parseSubscriber(line: string) {
       `Too many fields to parse, expected ${SUB_MAX_FIELDS} fields, received ${items.length} fields`,
     );
   }
-
   return {
     name: items[SUB_NAME_OFFSET],
     imsi: items[SUB_IMSI_OFFSET],
     authKey: items[SUB_AUTH_KEY_OFFSET],
     authOpc: items[SUB_AUTH_OPC_OFFSET],
     state: items[SUB_STATE_OFFSET] === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
+    forbiddenNetworkTypes: forbiddenNetworkTypes.filter(value =>
+      items[SUB_FORBIDDEN_NETWORK_TYPE_OFFSET].split('|')
+        .map(item => item.trim())
+        .filter(Boolean)
+        .includes(value),
+    ),
     dataPlan: items[SUB_DATAPLAN_OFFSET],
     apns: items[SUB_APN_OFFSET]?.split('|')
       .map(item => item.trim())
@@ -251,6 +265,7 @@ export function BulkEditSubscriberButton(props: SubscriberActionType) {
         await ctx.setState?.(subscriber.imsi, {
           active_apns: subscriber.apns,
           active_policies: subscriber.policies,
+          forbidden_network_types: subscriber.forbiddenNetworkTypes,
           id: subscriber.imsi,
           name: subscriber.name,
           lte: {
@@ -392,6 +407,7 @@ export type EditSubscriberProps = {
   onAddApnStaticIP: () => void,
   subProfiles: {},
   subscriberStaticIPRows: Array<subscriberStaticIpsRowType>,
+  forbiddenNetworkTypes: Array<subscriberForbiddenNetworkTypes>,
   authKey: string,
   authOpc: string,
   setAuthKey: (key: string) => void,
@@ -412,6 +428,7 @@ export function SubscriberEditDialog(props: DialogProps) {
   const [subscriberState, setSubscriberState] = useState<subscriber>(
     ctx.state[subscriberId],
   );
+
   const [authKey, setAuthKey] = useState(
     subscriberState.lte.auth_key
       ? base64ToHex(subscriberState.lte.auth_key)
@@ -434,6 +451,15 @@ export function SubscriberEditDialog(props: DialogProps) {
       },
     ),
   );
+
+  const subscriberCoreNetwork = Array<subscriberForbiddenNetworkTypes>(
+    Object.keys(CoreNetworkTypes).map((key: string) => {
+      return {
+        nwTypes: key,
+      };
+    }),
+  );
+
   const [error, setError] = useState('');
   useEffect(() => {
     setTabPos(props.editProps ? EditTableType[props.editProps.editTable] : 0);
@@ -481,6 +507,7 @@ export function SubscriberEditDialog(props: DialogProps) {
     },
     subProfiles: subProfiles,
     subscriberStaticIPRows: subscriberStaticIPRows,
+    forbiddenNetworkTypes: subscriberCoreNetwork,
     authKey: authKey,
     authOpc: authOpc,
     setAuthKey: (key: string) => setAuthKey(key),
@@ -842,6 +869,44 @@ function AddSubscriberDetailsTable(props: AddSubscribersProps) {
                 );
               },
             },
+
+            {
+              title: 'Forbidden Network Types',
+              field: 'forbiddenNetworkTypes',
+              editComponent: props => (
+                <FormControl>
+                  <Select
+                    data-testid="forbiddenNetworkTypes"
+                    multiple
+                    value={props.value ?? []}
+                    onChange={({target}) => props.onChange(target.value)}
+                    displayEmpty={true}
+                    renderValue={selected => {
+                      if (!selected.length) {
+                        return 'Select Forbidden Network Types';
+                      }
+                      return selected.join(', ');
+                    }}
+                    input={
+                      <OutlinedInput
+                        className={props.value ? '' : classes.placeholder}
+                      />
+                    }>
+                    {forbiddenNetworkTypes.map((k, idx) => (
+                      <MenuItem key={idx} value={k}>
+                        <Checkbox
+                          checked={
+                            props.value ? props.value.indexOf(k) > -1 : false
+                          }
+                        />
+                        <ListItemText primary={k} />
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              ),
+            },
+
             {
               title: 'Data Plan',
               field: 'dataPlan',
@@ -1124,6 +1189,10 @@ type subscriberStaticIpsRowType = {
   staticIp: string,
 };
 
+type subscriberForbiddenNetworkTypes = {
+  nwTypes: string,
+};
+
 function EditSubscriberDetails(props: EditSubscriberProps) {
   const classes = useStyles();
   return (
@@ -1172,6 +1241,37 @@ function EditSubscriberDetails(props: EditSubscriberProps) {
             }}
           />
         </AltFormField>
+        <AltFormField label={'Forbidden Network Types'}>
+          <FormControl className={classes.input}>
+            <Select
+              multiple
+              value={props.subscriberState.forbidden_network_types ?? []}
+              onChange={({target}) => {
+                props.onSubscriberChange(
+                  'forbidden_network_types',
+                  target.value,
+                );
+              }}
+              renderValue={selected => selected.join(', ')}
+              input={<OutlinedInput />}>
+              {forbiddenNetworkTypes.map((k: string, idx: number) => (
+                <MenuItem key={idx} value={k}>
+                  <Checkbox
+                    checked={
+                      props.subscriberState.forbidden_network_types != null
+                        ? props.subscriberState.forbidden_network_types.indexOf(
+                            k,
+                          ) > -1
+                        : false
+                    }
+                  />
+                  <ListItemText primary={k} />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </AltFormField>
+
         <AltFormField label={'Auth Key'}>
           <PasswordInput
             data-testid="authKey"

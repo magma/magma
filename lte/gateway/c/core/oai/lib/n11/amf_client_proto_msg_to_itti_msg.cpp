@@ -11,18 +11,18 @@
  * limitations under the License.
  */
 
-#include "amf_client_proto_msg_to_itti_msg.h"
+#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.h"
 
 #include <stdint.h>
 #include <string.h>
 #include <iostream>
 #include <string>
 
-#include "3gpp_33.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 
-#include "amf_app_messages_types.h"
-#include "common_types.h"
-#include "security_types.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/security_types.h"
 
 extern "C" {}
 

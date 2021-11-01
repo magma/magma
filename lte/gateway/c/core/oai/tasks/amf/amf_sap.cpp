@@ -15,13 +15,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #ifdef __cplusplus
 }
 #endif
-#include "common_defs.h"
-#include "amf_as.h"
-#include "amf_sap.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
 
 namespace magma5g {
 

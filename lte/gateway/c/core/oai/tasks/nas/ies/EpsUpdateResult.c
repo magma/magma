@@ -17,10 +17,10 @@
 
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "EpsUpdateResult.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateResult.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 
 //------------------------------------------------------------------------------
 int decode_eps_update_result(

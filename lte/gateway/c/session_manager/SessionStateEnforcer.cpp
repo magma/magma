@@ -667,6 +667,7 @@ void SessionStateEnforcer::prepare_response_to_access(
           .end_ipv4_addr());
 
   rsp_cmn->mutable_sid()->CopyFrom(config.common_context.sid());  // imsi
+  rsp_cmn->set_apn(config.common_context.apn());
   rsp_cmn->set_sm_session_state(config.common_context.sm_session_state());
   rsp_cmn->set_sm_session_version(config.common_context.sm_session_version());
   // Send message to AMF gRPC client handler.

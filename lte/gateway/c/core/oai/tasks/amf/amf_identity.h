@@ -15,15 +15,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "3gpp_38.401.h"
-#include "3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #ifdef __cplusplus
 }
 #endif
-#include "amf_smfDefs.h"
-#include "amf_asDefs.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "M5GIdentityResponse.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GIdentityResponse.h"
 
 namespace magma5g {
 #define AMF_CTXT_MEMBER_IMEI ((uint32_t) 1 << 1)

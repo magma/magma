@@ -36,6 +36,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       spgw_handler_->sgw_handle_delete_session_request();
     } break;
 
+    case S11_MODIFY_BEARER_REQUEST: {
+      spgw_handler_->sgw_handle_modify_bearer_request();
+    } break;
+
+    case S11_RELEASE_ACCESS_BEARERS_REQUEST: {
+      spgw_handler_->sgw_handle_release_access_bearers_request();
+    } break;
+
     default: { } break; }
   itti_free_msg_content(received_message_p);
   free(received_message_p);

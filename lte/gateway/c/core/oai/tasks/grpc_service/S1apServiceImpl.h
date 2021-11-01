@@ -24,7 +24,7 @@
 #include "lte/protos/s1ap_service.grpc.pb.h"
 
 extern "C" {
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 }
 
 namespace magma {

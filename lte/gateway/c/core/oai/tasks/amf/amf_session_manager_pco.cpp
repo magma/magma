@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 
-#include "include/amf_session_manager_pco.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.h"
 
 #include <netinet/in.h>
 
-#include "amf_config.h"
-#include "rfc_1332.h"
-#include "rfc_1877.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/common/rfc_1332.h"
+#include "lte/gateway/c/core/oai/common/rfc_1877.h"
 
 namespace magma5g {
 

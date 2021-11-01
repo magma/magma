@@ -37,8 +37,8 @@
 #include <netinet/in.h>
 #include <netinet/sctp.h>
 
-#include "mme_config.h"
-#include "amf_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
 
 /** \brief SCTP Init function. Initialize SCTP layer
  \param mme_config The global MME configuration structure

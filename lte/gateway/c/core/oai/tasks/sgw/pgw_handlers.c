@@ -31,35 +31,35 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "assertions.h"
-#include "intertask_interface.h"
-#include "log.h"
-#include "spgw_config.h"
-#include "pgw_pco.h"
-#include "dynamic_memory_check.h"
-#include "MobilityClientAPI.h"
-#include "pgw_handlers.h"
-#include "sgw_handlers.h"
-#include "pcef_handlers.h"
-#include "common_defs.h"
-#include "3gpp_23.003.h"
-#include "3gpp_23.401.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
-#include "common_types.h"
-#include "hashtable.h"
-#include "intertask_interface_types.h"
-#include "ip_forward_messages_types.h"
-#include "itti_types.h"
-#include "sgw_defs.h"
-#include "pgw_config.h"
-#include "s11_messages_types.h"
-#include "service303.h"
-#include "sgw_context_manager.h"
-#include "sgw_ie_defs.h"
-#include "pgw_procedures.h"
-#include "spgw_types.h"
-#include "conversions.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pco.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
+#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
+#include "lte/gateway/c/core/oai/include/pgw_config.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 
 extern spgw_config_t spgw_config;
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
@@ -355,9 +355,13 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
          (!is_lbi_found)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
     if (hashtblP->nodes[i] != NULL) {
-      node        = hashtblP->nodes[i];
-      spgw_ctxt_p = node->data;
+      node = hashtblP->nodes[i];
+    }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
+    while (node) {
       num_elements++;
+      hashtable_ts_get(
+          hashtblP, (const hash_key_t) node->key, (void**) &spgw_ctxt_p);
       if (spgw_ctxt_p != NULL) {
         if (!strcmp(
                 (const char*)
@@ -388,8 +392,8 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
           }
         }
       }
+      node = node->next;
     }
-    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     i++;
   }
 

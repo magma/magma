@@ -17,17 +17,17 @@
 
 #include <stdint.h>
 
-#include "log.h"
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "NASSecurityModeCommand.h"
-#include "3gpp_24.008.h"
-#include "NasKeySetIdentifier.h"
-#include "NasSecurityAlgorithms.h"
-#include "Nonce.h"
-#include "UeSecurityCapability.h"
-#include "common_defs.h"
-#include "UeAdditionalSecurityCapability.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeCommand.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/Nonce.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeSecurityCapability.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeAdditionalSecurityCapability.h"
 
 int decode_security_mode_command(
     security_mode_command_msg* security_mode_command, uint8_t* buffer,

@@ -35,7 +35,7 @@ Description NAS procedure functions triggered by the network
 #ifndef FILE_NAS_NETWORK_SEEN
 #define FILE_NAS_NETWORK_SEEN
 
-#include "mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/

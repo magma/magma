@@ -24,7 +24,7 @@
 #include <memory>
 
 #include "lte/protos/ha_orc8r.grpc.pb.h"
-#include "includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
 
 namespace magma {
 

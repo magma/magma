@@ -20,9 +20,9 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "VoiceDomainPreferenceAndUeUsageSetting.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/VoiceDomainPreferenceAndUeUsageSetting.h"
 
 int decode_voice_domain_preference_and_ue_usage_setting(
     VoiceDomainPreferenceAndUeUsageSetting*

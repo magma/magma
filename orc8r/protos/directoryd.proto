@@ -76,6 +76,14 @@ message UnmapSgwCTeidToHWIDRequest {
   repeated string teids= 2;
 }
 
+message GetNewSgwCTeidRequest {
+   string networkID = 1;
+}
+
+message GetNewSgwCTeidResponse{
+   string teid = 1;
+}
+
 // DirectoryLookup service associates various identities and locations.
 // This service runs in the controller, generating and consuming mostly derived state.
 service DirectoryLookup {
@@ -105,6 +113,10 @@ service DirectoryLookup {
 
   // UnmapSgwCTeidToHWID removes {teid -> HwId} for an specific Teid.
   rpc UnmapSgwCTeidToHWID(UnmapSgwCTeidToHWIDRequest) returns (Void) {};
+
+  // GetNewSgwCTeid get an available teid
+  rpc GetNewSgwCTeid(GetNewSgwCTeidRequest) returns (GetNewSgwCTeidResponse) {};
+
 }
 
 // --------------------------------------------------------------------------

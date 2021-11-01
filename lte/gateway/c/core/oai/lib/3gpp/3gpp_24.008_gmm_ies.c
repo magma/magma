@@ -39,12 +39,12 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "log.h"
-#include "common_defs.h"
-#include "assertions.h"
-#include "3gpp_24.008.h"
-#include "TLVDecoder.h"
-#include "TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 
 //******************************************************************************
 // 10.5.5 GPRS mobility management information elements

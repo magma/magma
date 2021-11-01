@@ -22,16 +22,16 @@
 extern "C" {
 #endif
 
-#include "mme_config.h"
-#include "s1ap_types.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/s1ap_types.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "common_defs.h"
-#include "state_manager.h"
-#include "s1ap_state_converter.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.h"
 
 namespace {
 constexpr char S1AP_STATE_TABLE[] = "s1ap_state";
