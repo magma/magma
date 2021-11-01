@@ -13,11 +13,7 @@
 
 #include "YAMLUtils.h"
 
-#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
-#include <yaml-cpp/node/detail/iterator.h>
-#include <yaml-cpp/node/impl.h>
-#include <yaml-cpp/node/iterator.h>
-#include <yaml-cpp/node/type.h>
+#include <yaml-cpp/yaml.h>
 #include <string>  // for string
 
 namespace magma {

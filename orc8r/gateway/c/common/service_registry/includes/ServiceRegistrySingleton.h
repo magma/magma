@@ -12,9 +12,7 @@
  */
 #pragma once
 
-#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
-#include <yaml-cpp/node/impl.h>
-#include <yaml-cpp/node/node.h>
+#include <yaml-cpp/yaml.h>
 #include <memory>  // for shared_ptr, unique_ptr
 #include <string>  // for string
 

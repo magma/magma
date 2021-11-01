@@ -15,12 +15,10 @@
 
 #include <bits/local_lim.h>
 #include <unistd.h>
-#include <yaml-cpp/node/impl.h>
-#include <yaml-cpp/node/node.h>
 #include <string>
 
 #if SENTRY_ENABLED
-#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
+#include <yaml-cpp/yaml.h>
 #include <experimental/optional>
 #include <cstdlib>
 #include <fstream>
