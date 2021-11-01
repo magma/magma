@@ -61,6 +61,19 @@ func (v *versioner) GetIndexerVersions() ([]*indexer.Versions, error) {
 	return ret, nil
 }
 
+func (v *versioner) GetIndexerVersion(indexerID string) (*indexer.Versions, error) {
+	versions, err := v.GetIndexerVersions()
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range versions {
+		if v.IndexerID == indexerID {
+			return v, nil
+		}
+	}
+	return nil, nil
+}
+
 func (v *versioner) SetIndexerActualVersion(indexerID string, version indexer.Version) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		return nil, setIndexerActualVersion(v.builder, tx, indexerID, version)

@@ -84,6 +84,10 @@ type Versioner interface {
 	// Intended for use when automatic reindexing is disabled.
 	GetIndexerVersions() ([]*indexer.Versions, error)
 
+	// GetIndexerVersion gets the tracked indexer versions for an indexer ID.
+	// Returns nil if not found.
+	GetIndexerVersion(indexerID string) (*indexer.Versions, error)
+
 	// SetIndexerActualVersion sets the actual version of an indexer, post-reindex.
 	// Intended for use when automatic reindexing is disabled.
 	SetIndexerActualVersion(indexerID string, actual indexer.Version) error
@@ -143,21 +147,6 @@ func GetStatuses(queue JobQueue) (map[string]Status, error) {
 		statuses[id] = info.Status
 	}
 	return statuses, nil
-}
-
-// GetIndexerVersion gets the tracked indexer versions for an indexer ID.
-// Returns nil if not found.
-func GetIndexerVersion(versioner Versioner, indexerID string) (*indexer.Versions, error) {
-	versions, err := versioner.GetIndexerVersions()
-	if err != nil {
-		return nil, err
-	}
-	for _, v := range versions {
-		if v.IndexerID == indexerID {
-			return v, nil
-		}
-	}
-	return nil, nil
 }
 
 func (j *Job) String() string {
