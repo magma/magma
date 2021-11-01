@@ -513,8 +513,8 @@ jobs:
         run: |
           mkdir images
           cd images
-          docker save feg_gateway_go | gzip > gateway_go.tar.gz
-          docker save feg_gateway_python | gzip > gateway_python.tar.gz
+          docker save feg_gateway_go | gzip > feg_gateway_go.tar.gz
+          docker save feg_gateway_python | gzip > feg_gateway_python.tar.gz
       - name: Upload docker images as artifacts
         uses: actions/upload-artifact@v2
         if: github.event_name == 'pull_request'
