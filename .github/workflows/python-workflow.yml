@@ -13,6 +13,11 @@ on:  # yamllint disable-line rule:truthy
       - opened
       - reopened
       - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   pre_job:
     runs-on: ubuntu-latest
