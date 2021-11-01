@@ -20,7 +20,7 @@
 
 #include <tins/tins.h>
 
-#include "PacketGenerator.h"
+#include "lte/gateway/c/connection_tracker/src/PacketGenerator.h"
 
 namespace magma {
 namespace lte {

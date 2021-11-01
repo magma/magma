@@ -14,8 +14,8 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
-#include "sctp_assoc.h"
-#include "sctp_desc.h"
+#include "lte/gateway/c/sctpd/src/sctp_assoc.h"
+#include "lte/gateway/c/sctpd/src/sctp_desc.h"
 
 using ::testing::Test;
 

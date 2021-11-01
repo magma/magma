@@ -11,14 +11,14 @@
  * limitations under the License.
  */
 
-#include "sctpd_downlink_impl.h"
+#include "lte/gateway/c/sctpd/src/sctpd_downlink_impl.h"
 
 #include <arpa/inet.h>
 #include <assert.h>
 #include <netinet/sctp.h>
 #include <unistd.h>
-#include "sctpd.h"
-#include "util.h"
+#include "lte/gateway/c/sctpd/src/sctpd.h"
+#include "lte/gateway/c/sctpd/src/util.h"
 
 namespace magma {
 namespace sctpd {
