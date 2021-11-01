@@ -282,10 +282,25 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
   }
 
   teid_t s1_u_sgw_fteid = spgw_get_new_s1u_teid(spgw_state);
+
+  sgw_eps_bearer_ctxt_t* bearer_ctxt_p = NULL;
+  bearer_ctxt_p                        = sgw_cm_get_eps_bearer_entry(
+      &spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection,
+      bearer_req_p->lbi);
+  if (bearer_ctxt_p == NULL) {
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64, "Failed to retrieve bearer ctxt:%u\n",
+        bearer_req_p->lbi);
+    *failed_cause = REQUEST_REJECTED;
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+  }
+
   // Create temporary dedicated bearer context
   rc = create_temporary_dedicated_bearer_context(
       &spgw_ctxt_p->sgw_eps_bearer_context_information, bearer_req_p,
-      spgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr, s1_u_sgw_fteid, 0,
+      bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.pdn_type,
+      spgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr,
+      &spgw_state->sgw_ipv6_address_S1u_S12_S4_up, s1_u_sgw_fteid, 0,
       LOG_SPGW_APP);
   if (rc != RETURNok) {
     OAILOG_ERROR_UE(
@@ -298,7 +313,9 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
   // Build and send ITTI message, s11_create_bearer_request to MME APP
   rc = sgw_build_and_send_s11_create_bearer_request(
       &spgw_ctxt_p->sgw_eps_bearer_context_information, bearer_req_p,
-      spgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr, s1_u_sgw_fteid,
+      bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.pdn_type,
+      spgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr,
+      &spgw_state->sgw_ipv6_address_S1u_S12_S4_up, s1_u_sgw_fteid,
       LOG_SPGW_APP);
   if (rc != RETURNok) {
     OAILOG_ERROR_UE(
@@ -526,7 +543,8 @@ uint32_t spgw_handle_nw_init_deactivate_bearer_rsp(
 int sgw_build_and_send_s11_create_bearer_request(
     sgw_eps_bearer_context_information_t* sgw_eps_bearer_context_information,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
-    uint32_t sgw_ip_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
+    pdn_type_t pdn_type, uint32_t sgw_ip_address_S1u_S12_S4_up,
+    struct in6_addr* sgw_ipv6_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
     log_proto_t module) {
   OAILOG_FUNC_IN(module);
   MessageDef* message_p = NULL;
@@ -564,11 +582,18 @@ int sgw_build_and_send_s11_create_bearer_request(
   s11_actv_bearer_request->s1_u_sgw_fteid.teid           = s1_u_sgw_fteid;
   s11_actv_bearer_request->s1_u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
   // Set IPv4 address type bit
-  s11_actv_bearer_request->s1_u_sgw_fteid.ipv4 = true;
 
-  // TODO - IPv6 address
-  s11_actv_bearer_request->s1_u_sgw_fteid.ipv4_address.s_addr =
-      sgw_ip_address_S1u_S12_S4_up;
+  if (pdn_type == IPv4 || pdn_type == IPv4_AND_v6) {
+    s11_actv_bearer_request->s1_u_sgw_fteid.ipv4 = true;
+    s11_actv_bearer_request->s1_u_sgw_fteid.ipv4_address.s_addr =
+        sgw_ip_address_S1u_S12_S4_up;
+  } else {
+    s11_actv_bearer_request->s1_u_sgw_fteid.ipv6 = true;
+    memcpy(
+        &s11_actv_bearer_request->s1_u_sgw_fteid.ipv6_address,
+        sgw_ipv6_address_S1u_S12_S4_up,
+        sizeof(s11_actv_bearer_request->s1_u_sgw_fteid.ipv6_address));
+  }
   message_p->ittiMsgHeader.imsi = sgw_eps_bearer_context_information->imsi64;
   OAILOG_INFO_UE(
       module, sgw_eps_bearer_context_information->imsi64,
@@ -582,7 +607,8 @@ int sgw_build_and_send_s11_create_bearer_request(
 int create_temporary_dedicated_bearer_context(
     sgw_eps_bearer_context_information_t* sgw_ctxt_p,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
-    uint32_t sgw_ip_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
+    pdn_type_t pdn_type, uint32_t sgw_ip_address_S1u_S12_S4_up,
+    struct in6_addr* sgw_ipv6_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
     uint32_t sequence_number, log_proto_t module) {
   OAILOG_FUNC_IN(module);
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p =
@@ -611,9 +637,18 @@ int create_temporary_dedicated_bearer_context(
   // SGW FTEID
   eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up = s1_u_sgw_fteid;
 
-  eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.pdn_type = IPv4;
-  eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.address.ipv4_address.s_addr =
-      sgw_ip_address_S1u_S12_S4_up;
+  if (pdn_type == IPv4 || pdn_type == IPv4_AND_v6) {
+    eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.pdn_type = IPv4;
+    eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.address.ipv4_address
+        .s_addr = sgw_ip_address_S1u_S12_S4_up;
+  } else {
+    eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.pdn_type = IPv6;
+    memcpy(
+        &eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.address.ipv6_address,
+        &sgw_ipv6_address_S1u_S12_S4_up,
+        sizeof(eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.address
+                   .ipv6_address));
+  }
   // DL TFT
   memcpy(
       &eps_bearer_ctxt_p->tft, &bearer_req_p->dl_tft,

@@ -352,12 +352,24 @@ status_code_e sgw_handle_sgi_endpoint_created(
           .s1u_sgw_fteid.teid = eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up;
       create_session_response_p->bearer_contexts_created.bearer_contexts[0]
           .s1u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
+
       create_session_response_p->bearer_contexts_created.bearer_contexts[0]
           .s1u_sgw_fteid.ipv4 = 1;
       create_session_response_p->bearer_contexts_created.bearer_contexts[0]
           .s1u_sgw_fteid.ipv4_address.s_addr =
           state->sgw_ip_address_S1u_S12_S4_up.s_addr;
-
+      if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled) {
+        create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+            .s1u_sgw_fteid.ipv6 = 1;
+        memcpy(
+            &create_session_response_p->bearer_contexts_created
+                 .bearer_contexts[0]
+                 .s1u_sgw_fteid.ipv6_address,
+            &state->sgw_ipv6_address_S1u_S12_S4_up,
+            sizeof(create_session_response_p->bearer_contexts_created
+                       .bearer_contexts[0]
+                       .s1u_sgw_fteid.ipv6_address));
+      }
       /*
        * Set the Cause information from bearer context created.
        * "Request accepted" is returned when the GTPv2 entity has accepted a

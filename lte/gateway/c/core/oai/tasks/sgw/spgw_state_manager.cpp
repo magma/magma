@@ -66,8 +66,18 @@ void SpgwStateManager::create_state() {
   state_cache_p->sgw_ip_address_S1u_S12_S4_up.s_addr =
       config_->sgw_config.ipv4.S1u_S12_S4_up.s_addr;
 
+  memcpy(
+      &state_cache_p->sgw_ipv6_address_S1u_S12_S4_up,
+      &config_->sgw_config.ipv6.S1u_S12_S4_up,
+      sizeof(state_cache_p->sgw_ipv6_address_S1u_S12_S4_up));
+
   state_cache_p->gtpv1u_data.sgw_ip_address_for_S1u_S12_S4_up =
       state_cache_p->sgw_ip_address_S1u_S12_S4_up;
+
+  memcpy(
+      &state_cache_p->gtpv1u_data.sgw_ipv6_address_for_S1u_S12_S4_up,
+      &state_cache_p->sgw_ipv6_address_S1u_S12_S4_up,
+      sizeof(state_cache_p->gtpv1u_data.sgw_ipv6_address_for_S1u_S12_S4_up));
 
   // Creating PGW related state structs
   state_cache_p->deactivated_predefined_pcc_rules = hashtable_ts_create(

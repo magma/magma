@@ -233,7 +233,7 @@ static uint32_t find_gtp_port_no(
   if (!spgw_config.sgw_config.ovs_config.multi_tunnel) {
     return 0;
   }
-  if ((uint32_t) enb_addr.s_addr == 0) {
+  if ((uint32_t) enb_addr.s_addr == 0 && enb_addr_ipv6 == NULL) {
     OAILOG_WARNING(LOG_GTPV1U, "zero enb IP address not supported");
     return 0;
   }

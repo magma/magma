@@ -445,9 +445,20 @@ static int sgw_s8_send_create_session_response(
     bearer_context->s1u_sgw_fteid.teid =
         default_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up;
     bearer_context->s1u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
-    bearer_context->s1u_sgw_fteid.ipv4           = 1;
-    bearer_context->s1u_sgw_fteid.ipv4_address.s_addr =
-        sgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr;
+
+    if (session_rsp_p->pdn_type == IPv4 ||
+        session_rsp_p->pdn_type == IPv4_AND_v6) {
+      bearer_context->s1u_sgw_fteid.ipv4 = 1;
+      bearer_context->s1u_sgw_fteid.ipv4_address.s_addr =
+          sgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr;
+    } else {
+      bearer_context->s1u_sgw_fteid.ipv6 = 1;
+      memcpy(
+          &bearer_context->s1u_sgw_fteid.ipv6_address,
+          &sgw_state->sgw_ipv6_address_S1u_S12_S4_up,
+          sizeof(bearer_context->s1u_sgw_fteid.ipv6_address));
+    }
+
     bearer_context->eps_bearer_id = session_rsp_p->eps_bearer_id;
     /*
      * Set the Cause information from bearer context created.
@@ -1301,6 +1312,15 @@ imsi64_t sgw_s8_handle_create_bearer_request(
   itti_gx_nw_init_actv_bearer_request_t itti_bearer_req = {0};
   s8_bearer_context_t bc_cbreq = cb_req->bearer_context[bearer_idx];
 
+  sgw_eps_bearer_ctxt_t* bearer_ctxt_p = NULL;
+  bearer_ctxt_p                        = sgw_cm_get_eps_bearer_entry(
+      &sgw_context_p->pdn_connection, cb_req->linked_eps_bearer_id);
+  if (bearer_ctxt_p == NULL) {
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, sgw_context_p->imsi64, "Failed to retrieve bearer ctxt\n");
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
+  }
+
   itti_bearer_req.lbi = cb_req->linked_eps_bearer_id;
 
   memcpy(
@@ -1311,7 +1331,9 @@ imsi64_t sgw_s8_handle_create_bearer_request(
   teid_t s1_u_sgw_fteid = sgw_get_new_s1u_teid(sgw_state);
   int rc                = create_temporary_dedicated_bearer_context(
       sgw_context_p, &itti_bearer_req,
-      sgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr, s1_u_sgw_fteid,
+      bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.pdn_type,
+      sgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr,
+      &sgw_state->sgw_ipv6_address_S1u_S12_S4_up, s1_u_sgw_fteid,
       cb_req->sequence_number, LOG_SGW_S8);
   if (rc != RETURNok) {
     OAILOG_ERROR_UE(
@@ -1337,7 +1359,9 @@ imsi64_t sgw_s8_handle_create_bearer_request(
 
   if (sgw_build_and_send_s11_create_bearer_request(
           sgw_context_p, &itti_bearer_req,
-          sgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr, s1_u_sgw_fteid,
+          bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.pdn_type,
+          sgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr,
+          &sgw_state->sgw_ipv6_address_S1u_S12_S4_up, s1_u_sgw_fteid,
           LOG_SGW_S8) != RETURNok) {
     OAILOG_ERROR_UE(
         LOG_SGW_S8, sgw_context_p->imsi64,
