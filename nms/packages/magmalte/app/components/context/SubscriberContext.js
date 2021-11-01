@@ -14,6 +14,7 @@
  * @format
  */
 import type {
+  core_network_types,
   gateway_id,
   mutable_subscriber,
   mutable_subscribers,
@@ -39,6 +40,7 @@ setState: POST, PUT, DELETE subscriber
 export type SubscriberContextType = {
   state: {[string]: subscriber},
   sessionState: {[string]: subscriber_state},
+  forbiddenNetworkTypes: {[string]: core_network_types},
   metrics?: {[string]: Metrics},
   gwSubscriberMap: {[gateway_id]: Array<subscriber_id>},
   setState?: (

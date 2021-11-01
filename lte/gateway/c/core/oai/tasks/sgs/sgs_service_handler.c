@@ -17,14 +17,14 @@
 
 #include <string.h>
 
-#include "assertions.h"
-#include "intertask_interface.h"
-#include "log.h"
-#include "common_defs.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
-#include "sgs_messages.h"
-#include "sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/tasks/sgs/sgs_messages.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 
 static void sgs_send_sgsap_vlr_reset_ack(void);
 

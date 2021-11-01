@@ -1,7 +1,14 @@
 ---
 name: lint-clang-format
 on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+      - v1.*
   pull_request:
+    branches:
+      - master
+      - v1.*
     types:
       - opened
       - reopened
@@ -35,3 +42,20 @@ jobs:
           extensions: 'h,hpp,c,cpp'
           clangFormatVersion: 7
           style: file
+      - name: Extract commit title
+        id: commit
+        if: failure() && github.event_name == 'push'
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "check_helm_chart_dependencies tests failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "Feg workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '

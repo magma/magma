@@ -18,10 +18,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "BearerResourceModificationReject.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceModificationReject.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 int decode_bearer_resource_modification_reject(
     bearer_resource_modification_reject_msg*

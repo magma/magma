@@ -11,6 +11,7 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
   comment_pr:
+    name: Comment on PR for check ${{ github.event.workflow.name }}
     runs-on: ubuntu-latest
     env:
       CHECK_GUIDELINE: "[Guide to the different CI checks and resolution guidelines](https://docs.magmacore.org/docs/next/contributing/contribute_ci_checks)"
@@ -69,6 +70,11 @@ jobs:
         with:
           script: |
             var fs = require('fs');
+            var isRevertedPR = fs.readFileSync('./RPR');
+            if( isRevertedPR == 'true' ) {
+              console.log("PR is a reverted PR. So exiting gracefully...");
+              process.exit(0);
+            }
             var issue_number = Number(fs.readFileSync('./NR'));
             const msg = fs.readFileSync('./msg',{encoding: 'utf8'})
 

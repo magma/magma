@@ -19,9 +19,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "GprsTimer.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/GprsTimer.h"
 
 static const long _gprs_timer_unit[] = {2, 60, 360, 60, 60, 60, 60, 0};
 

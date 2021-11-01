@@ -29,12 +29,12 @@
 #include <string.h>
 #include <libconfig.h>
 
-#include "bstrlib.h"
-#include "log.h"
-#include "assertions.h"
-#include "common_defs.h"
-#include "dynamic_memory_check.h"
-#include "spgw_config.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
 
 void spgw_config_display(spgw_config_t* config_p);
 
@@ -212,7 +212,7 @@ status_code_e spgw_config_parse_opt_line(
 void free_spgw_config(spgw_config_t* spgw_config_p) {
   OAI_FPRINTF_INFO("Cleaning up SPGW configs");
   free_pgw_config(&spgw_config_p->pgw_config);
+  free_sgw_config(&spgw_config_p->sgw_config);
   bdestroy_wrapper(&spgw_config_p->config_file);
-  bdestroy_wrapper(&spgw_config_p->sgw_config.config_file);
   bdestroy_wrapper(&spgw_config_p->pgw_config.config_file);
 }

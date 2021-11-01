@@ -18,9 +18,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "IdentityRequest.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/IdentityRequest.h"
 
 int decode_identity_request(
     identity_request_msg* identity_request, uint8_t* buffer, uint32_t len) {

@@ -18,9 +18,9 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 
 //------------------------------------------------------------------------------
 int decode_tracking_area_identity(

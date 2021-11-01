@@ -129,34 +129,6 @@ RUN make -C $MAGMA_ROOT/lte/gateway/ build_oai BUILD_TYPE="${BUILD_TYPE}"
 
 # Prepare config file
 COPY lte/gateway/configs $MAGMA_ROOT/lte/gateway/configs
-RUN apt-get install -y python3-pip && \
-    pip3 install jinja2-cli && \
-    cd $MAGMA_ROOT/lte/gateway/docker/configs/ && \
-    echo '{ \n' \
-    '"realm": "magma.com",	 \n'\
-    '"use_stateless": "", \n'\
-    '"conf_dir": "/magma-mme/etc", \n'\
-    '"hss_hostname": "hss", \n'\
-    '"mcc": "001", \n'\
-    '"mnc": "01", \n'\
-    '"mmeGid": "1", \n'\
-    '"mmeCode": "1", \n'\
-    '"tac": "1", \n'\
-    '"mmeRelativeCapacity": 11, \n'\
-    '"non_eps_service_control": "OFF", \n'\
-    '"csfb_mcc": "001", \n'\
-    '"csfb_mnc": "01", \n'\
-    '"lac": "1", \n'\
-    '"s1ap_iface_name": "eth0", \n'\
-    '"s1ap_ip": "192.168.61.133/24", \n'\
-    '"s11_iface_name": "eth0", \n'\
-    '"mme_s11_ip": "192.168.61.133/24", \n'\
-    '"oai_log_level": "INFO", \n'\
-    '"remote_sgw_ip": "192.168.61.130", \n'\
-    '"attachedEnodebTacs": [], \n'\
-    '"attached_enodeb_tacs": [1] }' \
-    > mme_vars.json && \
-    jinja2 ../../configs/templates/mme.conf.template mme_vars.json --format=json  > mme-gen.conf
 
 # -----------------------------------------------------------------------------
 # Dev/Production image
@@ -165,6 +137,7 @@ FROM $OS_DIST:$OS_RELEASE AS gateway_c
 ARG OS_DIST
 ARG OS_RELEASE
 ARG EXTRA_REPO
+ARG MAGMA_VERSION=master
 
 ENV MAGMA_ROOT /magma
 ENV C_BUILD /build/c
@@ -249,11 +222,4 @@ RUN ldconfig 2> /dev/null
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma
 COPY orc8r/gateway/configs/templates /etc/magma/templates
-RUN mkdir -p /var/opt/magma/tmp/
-
-WORKDIR /var/opt/magma/tmp
-RUN echo "use_stateless: false" > mme.yml 
-COPY --from=builder /magma/lte/gateway/docker/configs/mme-gen.conf .
-COPY --from=builder /magma/lte/gateway/docker/configs/mme_fd.conf .
-COPY --from=builder /magma/lte/gateway/docker/configs/spgw.conf .
-COPY --from=builder /magma/lte/gateway/docker/configs/mme.conf .
+COPY lte/gateway/deploy/roles/magma/files/magma-create-gtp-port.sh /usr/local/bin/

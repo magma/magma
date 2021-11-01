@@ -13,8 +13,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "M5GGprsTimer2.h"
-#include "M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer2.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
 GPRSTimer2Msg::GPRSTimer2Msg(){};

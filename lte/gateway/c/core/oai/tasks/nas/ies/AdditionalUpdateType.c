@@ -17,8 +17,8 @@
 
 #include <stdint.h>
 
-#include "assertions.h"
-#include "AdditionalUpdateType.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.h"
 
 //------------------------------------------------------------------------------
 int decode_additional_update_type(

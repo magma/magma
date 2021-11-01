@@ -11,11 +11,12 @@
  * limitations under the License.
  */
 
-#include "include/ngap_client_servicer.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/include/ngap_client_servicer.h"
 #include <memory>
 extern "C" {
-#include "common_defs.h"
-#include "ngap_common.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 }
 
 namespace magma5g {
@@ -37,10 +38,7 @@ status_code_e NGAPClientServicer::send_message_to_amf(
   ret = send_msg_to_task(task_zmq_ctx_p, destination_task_id, message);
 #else  /* !MME_UNIT_TEST */
   OAILOG_DEBUG(LOG_NGAP, " Mock is Enabled \n");
-  if (message->ittiMsgHeader.messageId == NGAP_INITIAL_UE_MESSAGE) {
-    bdestroy(NGAP_INITIAL_UE_MESSAGE(message).nas);
-  }
-
+  itti_free_msg_content(message);
   free(message);
 #endif /* !MME_UNIT_TEST */
 

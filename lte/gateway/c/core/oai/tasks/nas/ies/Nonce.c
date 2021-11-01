@@ -17,9 +17,9 @@
 
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "Nonce.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/Nonce.h"
 
 //------------------------------------------------------------------------------
 int decode_nonce(nonce_t* nonce, uint8_t iei, uint8_t* buffer, uint32_t len) {

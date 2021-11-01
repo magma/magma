@@ -15,24 +15,24 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "3gpp_24.501.h"
-#include "conversions.h"
-#include "intertask_interface_types.h"
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #ifdef __cplusplus
 }
 #endif
-#include "common_defs.h"
-#include "M5gNasMessage.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "amf_authentication.h"
-#include "amf_as.h"
-#include "amf_sap.h"
-#include "amf_recv.h"
-#include "amf_app_state_manager.h"
-#include "amf_app_timer_management.h"
-#include "includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
 #define M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH 1
 #define INVALID_IMSI64 (imsi64_t) 0
@@ -963,11 +963,14 @@ void amf_delete_registration_proc(amf_context_t* amf_ctx) {
     if (proc->ies) {
       amf_delete_registration_ies(&proc->ies);
     }
-  }
 
-  amf_delete_child_procedures(amf_ctx, (nas5g_base_proc_t*) proc);
-  delete_wrapper(&proc);
-  amf_ctx->amf_procedures->amf_specific_proc = nullptr;
+    amf_delete_child_procedures(amf_ctx, (nas5g_base_proc_t*) proc);
+    delete_wrapper(&proc);
+
+    amf_ctx->amf_procedures->amf_specific_proc = nullptr;
+
+    nas_amf_procedure_gc(amf_ctx);
+  }
 }  // namespace magma5g
 
 /***********************************************************************
@@ -1031,11 +1034,26 @@ void amf_delete_child_procedures(
     while (p1) {
       p2 = LIST_NEXT(p1, entries);
       if (((nas5g_base_proc_t*) p1->proc)->parent == parent_proc) {
-        LIST_REMOVE(p1, entries);
-        amf_delete_common_procedure(&p1->proc);
-        delete_wrapper(&p1);
+        amf_delete_common_procedure(amf_ctx, &p1->proc);
       }
       p1 = p2;
+    }
+  }
+}
+
+static void delete_common_proc_by_type(nas_amf_common_proc_t* proc) {
+  if (proc) {
+    switch (proc->type) {
+      case AMF_COMM_PROC_AUTH: {
+        delete (reinterpret_cast<nas5g_amf_auth_proc_t*>(proc));
+      } break;
+      case AMF_COMM_PROC_SMC: {
+        delete (reinterpret_cast<nas_amf_smc_proc_t*>(proc));
+      } break;
+      case AMF_COMM_PROC_IDENT: {
+        delete (reinterpret_cast<nas_amf_ident_proc_t*>(proc));
+      } break;
+      default: {}
     }
   }
 }
@@ -1054,21 +1072,41 @@ void amf_delete_child_procedures(
  **      Others:    None                                              **
  **                                                                   **
  ***********************************************************************/
-void amf_delete_common_procedure(nas_amf_common_proc_t** proc) {
+void amf_delete_common_procedure(
+    amf_context_t* amf_ctx, nas_amf_common_proc_t** proc) {
   if (proc && *proc) {
     switch ((*proc)->type) {
       case AMF_COMM_PROC_AUTH: {
-        delete_wrapper(reinterpret_cast<nas5g_amf_auth_proc_t**>(proc));
       } break;
       case AMF_COMM_PROC_SMC: {
-        delete_wrapper(reinterpret_cast<nas_amf_smc_proc_t**>(proc));
       } break;
       case AMF_COMM_PROC_IDENT: {
-        delete_wrapper(reinterpret_cast<nas_amf_ident_proc_t**>(proc));
       } break;
       default: {}
     }
   }
+
+  // remove proc from list
+  if (amf_ctx->amf_procedures) {
+    nas_amf_common_procedure_t* p1 =
+        LIST_FIRST(&amf_ctx->amf_procedures->amf_common_procs);
+    nas_amf_common_procedure_t* p2 = NULL;
+
+    // 2 methods: this one, the other: use parent struct macro and LIST_REMOVE
+    // without searching matching element in the list
+    while (p1) {
+      p2 = LIST_NEXT(p1, entries);
+      if (p1->proc == (nas_amf_common_proc_t*) (*proc)) {
+        LIST_REMOVE(p1, entries);
+        delete_common_proc_by_type(p1->proc);
+        delete (p1);
+        return;
+      }
+      p1 = p2;
+    }
+    nas_amf_procedure_gc(amf_ctx);
+  }
+
   return;
 }
 /****************************************************************************

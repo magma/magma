@@ -40,10 +40,10 @@
 
 #include <stdbool.h>
 
-#include "3gpp_24.007.h"
-#include "bstrlib.h"
-#include "common_types.h"
-#include "mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 
 typedef uint8_t mme_app_bearer_state_t;
 

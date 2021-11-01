@@ -13,22 +13,22 @@ limitations under the License.
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "3gpp_29.274.h"
-#include "log.h"
-#include "common_defs.h"
-#include "intertask_interface.h"
-#include "sgw_context_manager.h"
-#include "spgw_types.h"
-#include "sgw_s8_state.h"
-#include "sgw_s8_s11_handlers.h"
-#include "s8_client_api.h"
-#include "gtpv1u.h"
-#include "dynamic_memory_check.h"
-#include "sgw_handlers.h"
-#include "directoryd.h"
-#include "conversions.h"
-#include "includes/MetricsHelpers.h"
-#include "pgw_procedures.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.h"
+#include "lte/gateway/c/core/oai/lib/s8_proxy/s8_client_api.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
+#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern struct gtp_tunnel_ops* gtp_tunnel_ops;
@@ -588,7 +588,9 @@ void sgw_s8_handle_modify_bearer_request(
   uint8_t sgi_rsp_idx                                            = 0;
   itti_sgi_update_end_point_response_t sgi_update_end_point_resp = {0};
   struct in_addr enb                  = {.s_addr = 0};
+  struct in6_addr* enb_ipv6           = NULL;
   struct in_addr pgw                  = {.s_addr = 0};
+  struct in6_addr* pgw_ipv6           = NULL;
   sgw_eps_bearer_ctxt_t* bearer_ctx_p = NULL;
 
   OAILOG_INFO_UE(
@@ -633,8 +635,17 @@ void sgw_s8_handle_modify_bearer_request(
       sgi_update_end_point_resp.num_bearers_not_found++;
     } else {
       enb.s_addr = bearer_ctx_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
+
+      if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+          bearer_ctx_p->enb_ip_address_S1u.pdn_type == IPv6) {
+        enb_ipv6 = &bearer_ctx_p->enb_ip_address_S1u.address.ipv6_address;
+      }
       pgw.s_addr =
           bearer_ctx_p->p_gw_address_in_use_up.address.ipv4_address.s_addr;
+      if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+          bearer_ctx_p->p_gw_address_in_use_up.pdn_type == IPv6) {
+        pgw_ipv6 = &bearer_ctx_p->p_gw_address_in_use_up.address.ipv6_address;
+      }
 
       // Send end marker to eNB and then delete the tunnel if enb_ip is
       // different
@@ -658,7 +669,8 @@ void sgw_s8_handle_modify_bearer_request(
         gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
         // delete GTPv1-U tunnel
         gtpv1u_del_s8_tunnel(
-            enb, pgw, ue_ipv4, ue_ipv6, bearer_ctx_p->s_gw_teid_S1u_S12_S4_up,
+            enb, enb_ipv6, pgw, pgw_ipv6, ue_ipv4, ue_ipv6,
+            bearer_ctx_p->s_gw_teid_S1u_S12_S4_up,
             bearer_ctx_p->s_gw_teid_S5_S8_up);
       }
       populate_sgi_end_point_update(
@@ -776,11 +788,17 @@ static void sgw_s8_populate_mbr_bearer_contexts_modified(
 static int sgw_s8_add_gtp_up_tunnel(
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
     sgw_eps_bearer_context_information_t* sgw_context_p) {
-  int rv             = RETURNok;
-  struct in_addr enb = {.s_addr = 0};
-  struct in_addr pgw = {.s_addr = 0};
+  int rv                    = RETURNok;
+  struct in_addr enb        = {.s_addr = 0};
+  struct in6_addr* enb_ipv6 = NULL;
+  struct in_addr pgw        = {.s_addr = 0};
+  struct in6_addr* pgw_ipv6 = NULL;
   pgw.s_addr =
       eps_bearer_ctxt_p->p_gw_address_in_use_up.address.ipv4_address.s_addr;
+  if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+      eps_bearer_ctxt_p->p_gw_address_in_use_up.pdn_type == IPv6) {
+    pgw_ipv6 = &eps_bearer_ctxt_p->p_gw_address_in_use_up.address.ipv6_address;
+  }
   if ((pgw.s_addr == 0) && (eps_bearer_ctxt_p->p_gw_teid_S5_S8_up == 0)) {
     OAILOG_ERROR_UE(
         LOG_SGW_S8, sgw_context_p->imsi64,
@@ -791,6 +809,10 @@ static int sgw_s8_add_gtp_up_tunnel(
   }
   enb.s_addr =
       eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
+  if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+      eps_bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) {
+    enb_ipv6 = &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
+  }
 
   struct in_addr ue_ipv4   = {.s_addr = 0};
   struct in6_addr* ue_ipv6 = NULL;
@@ -834,7 +856,7 @@ static int sgw_s8_add_gtp_up_tunnel(
           pgw.s_addr, eps_bearer_ctxt_p->p_gw_teid_S5_S8_up);
     }
     rv = gtpv1u_add_s8_tunnel(
-        ue_ipv4, ue_ipv6, vlan, enb, pgw,
+        ue_ipv4, ue_ipv6, vlan, enb, enb_ipv6, pgw, pgw_ipv6,
         eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
         eps_bearer_ctxt_p->enb_teid_S1u, eps_bearer_ctxt_p->s_gw_teid_S5_S8_up,
         eps_bearer_ctxt_p->p_gw_teid_S5_S8_up, imsi);
@@ -857,7 +879,7 @@ static int sgw_s8_add_gtp_up_tunnel(
     }
     for (int i = 0; i < eps_bearer_ctxt_p->tft.numberofpacketfilters; ++i) {
       rv = gtpv1u_add_s8_tunnel(
-          ue_ipv4, ue_ipv6, vlan, enb, pgw,
+          ue_ipv4, ue_ipv6, vlan, enb, enb_ipv6, pgw, pgw_ipv6,
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u,
           eps_bearer_ctxt_p->s_gw_teid_S5_S8_up,
@@ -949,7 +971,9 @@ static void delete_userplane_tunnels(
     sgw_eps_bearer_context_information_t* sgw_context_p) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   struct in_addr enb                   = {.s_addr = 0};
+  struct in6_addr* enb_ipv6            = NULL;
   struct in_addr pgw                   = {.s_addr = 0};
+  struct in6_addr* pgw_ipv6            = NULL;
   sgw_eps_bearer_ctxt_t* bearer_ctxt_p = NULL;
   int rv                               = RETURNerror;
   struct in_addr ue_ipv4               = {.s_addr = 0};
@@ -962,8 +986,17 @@ static void delete_userplane_tunnels(
     if (bearer_ctxt_p) {
       enb.s_addr =
           bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
+
+      if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+          bearer_ctxt_p->enb_ip_address_S1u.pdn_type == IPv6) {
+        enb_ipv6 = &bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
+      }
       pgw.s_addr =
           bearer_ctxt_p->p_gw_address_in_use_up.address.ipv4_address.s_addr;
+      if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
+          bearer_ctxt_p->p_gw_address_in_use_up.pdn_type == IPv6) {
+        pgw_ipv6 = &bearer_ctxt_p->p_gw_address_in_use_up.address.ipv6_address;
+      }
       struct in6_addr* ue_ipv6 = NULL;
       if ((bearer_ctxt_p->paa.pdn_type == IPv6) ||
           (bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
@@ -972,7 +1005,8 @@ static void delete_userplane_tunnels(
       ue_ipv4 = bearer_ctxt_p->paa.ipv4_address;
       // Delete S1-U tunnel and S8-U tunnel
       rv = gtpv1u_del_s8_tunnel(
-          enb, pgw, ue_ipv4, ue_ipv6, bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+          enb, enb_ipv6, pgw, pgw_ipv6, ue_ipv4, ue_ipv6,
+          bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           bearer_ctxt_p->s_gw_teid_S5_S8_up);
       if (rv < 0) {
         OAILOG_ERROR_UE(

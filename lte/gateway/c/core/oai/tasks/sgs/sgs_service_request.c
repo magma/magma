@@ -26,13 +26,13 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "intertask_interface.h"
-#include "log.h"
-#include "sgs_defs.h"
-#include "assertions.h"
-#include "sgs_messages_types.h"
-#include "sgs_messages.h"
-#include "conversions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/sgs/sgs_defs.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/sgs/sgs_messages.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 
 int sgs_send_service_request(
     itti_sgsap_service_request_t* const sgs_service_request_p) {

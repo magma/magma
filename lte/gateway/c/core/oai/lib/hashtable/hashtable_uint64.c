@@ -60,7 +60,6 @@
    ASCII char values. It will probably generate lots of collisions on large hash
    tables.
 */
-
 static inline hash_size_t def_hashfunc(const uint64_t keyP) {
   return (hash_size_t) keyP;
 }
@@ -125,29 +124,6 @@ hash_table_uint64_t* hashtable_uint64_init(
   }
   hashtblP->is_allocated_by_malloc = false;
   return hashtblP;
-}
-
-//------------------------------------------------------------------------------
-/*
-   Initialization
-   hashtable_uint64_create() allocate and sets up the initial structure of the
-   hash table. The user specified size will be allocated and initialized to
-   NULL. The user can also specify a hash function. If the hashfunc argument is
-   NULL, a default hash function is used. If an error occurred, NULL is
-   returned. All other values in the returned hash_table_uint64_t pointer should
-   be released with hashtable_uint64_destroy().
-*/
-hash_table_uint64_t* hashtable_uint64_create(
-    const hash_size_t sizeP, hash_size_t (*hashfuncP)(const hash_key_t),
-    bstring display_name_pP) {
-  hash_table_uint64_t* hashtbl = NULL;
-
-  if (!(hashtbl = calloc(1, sizeof(hash_table_uint64_t)))) {
-    return NULL;
-  }
-  hashtbl = hashtable_uint64_init(hashtbl, sizeP, hashfuncP, display_name_pP);
-  hashtbl->is_allocated_by_malloc = true;
-  return hashtbl;
 }
 
 //------------------------------------------------------------------------------
@@ -256,40 +232,6 @@ hash_table_uint64_ts_t* hashtable_uint64_ts_create(
    possible hash value, and releases the elements. It also releases the nodes
    array and the hash_table_uint64_t.
 */
-hashtable_rc_t hashtable_uint64_destroy(hash_table_uint64_t* hashtblP) {
-  hash_size_t n            = 0;
-  hash_node_uint64_t *node = NULL, *oldnode = NULL;
-
-  if (!hashtblP) {
-    return HASH_TABLE_BAD_PARAMETER_HASHTABLE;
-  }
-
-  for (n = 0; n < hashtblP->size; ++n) {
-    node = hashtblP->nodes[n];
-
-    while (node) {
-      oldnode = node;
-      node    = node->next;
-      free_wrapper((void**) &oldnode);
-    }
-  }
-
-  free_wrapper((void**) &hashtblP->nodes);
-  bdestroy_wrapper(&hashtblP->name);
-  hashtblP->size = 0;
-  if (hashtblP->is_allocated_by_malloc) {
-    free_wrapper((void**) &hashtblP);
-  }
-  return HASH_TABLE_OK;
-}
-
-//------------------------------------------------------------------------------
-/*
-   Cleanup
-   The hashtable_uint64_destroy() walks through the linked lists for each
-   possible hash value, and releases the elements. It also releases the nodes
-   array and the hash_table_uint64_t.
-*/
 hashtable_rc_t hashtable_uint64_ts_destroy(hash_table_uint64_ts_t* hashtblP) {
   hash_size_t n            = 0;
   hash_node_uint64_t *node = NULL, *oldnode = NULL;
@@ -320,35 +262,6 @@ hashtable_rc_t hashtable_uint64_ts_destroy(hash_table_uint64_ts_t* hashtblP) {
     free_wrapper((void**) &hashtblP);
   }
   return HASH_TABLE_OK;
-}
-
-//------------------------------------------------------------------------------
-hashtable_rc_t hashtable_uint64_is_key_exists(
-    const hash_table_uint64_t* const hashtblP, const hash_key_t keyP) {
-  hash_node_uint64_t* node = NULL;
-  hash_size_t hash         = 0;
-
-  if (!hashtblP) {
-    return HASH_TABLE_BAD_PARAMETER_HASHTABLE;
-  }
-
-  hash = hashtblP->hashfunc(keyP) % hashtblP->size;
-  node = hashtblP->nodes[hash];
-
-  while (node) {
-    if (node->key == keyP) {
-      PRINT_HASHTABLE(
-          hashtblP, "%s(%s,key 0x%" PRIx64 ") return OK\n", __FUNCTION__,
-          bdata(hashtblP->name), keyP);
-      return HASH_TABLE_OK;
-    }
-
-    node = node->next;
-  }
-  PRINT_HASHTABLE(
-      hashtblP, "%s(%s,key 0x%" PRIx64 ") return KEY_NOT_EXISTS\n",
-      __FUNCTION__, bdata(hashtblP->name), keyP);
-  return HASH_TABLE_KEY_NOT_EXISTS;
 }
 
 //------------------------------------------------------------------------------
@@ -385,42 +298,6 @@ hashtable_rc_t hashtable_uint64_ts_is_key_exists(
 
 //------------------------------------------------------------------------------
 // may cost a lot CPU...
-// Also useful if we want to find an element in the collection based on compare
-// criteria different than the single key The compare criteria in implemented in
-// the funct_cb function
-hashtable_rc_t hashtable_uint64_apply_callback_on_elements(
-    hash_table_uint64_t* const hashtblP,
-    bool funct_cb(
-        hash_key_t keyP, uint64_t dataP, void* parameterP, void** resultP),
-    void* parameterP, void** resultP) {
-  hash_node_uint64_t* node  = NULL;
-  unsigned int i            = 0;
-  unsigned int num_elements = 0;
-
-  if (!hashtblP) {
-    return HASH_TABLE_BAD_PARAMETER_HASHTABLE;
-  }
-
-  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
-    if (hashtblP->nodes[i] != NULL) {
-      node = hashtblP->nodes[i];
-
-      while (node) {
-        num_elements++;
-        if (funct_cb(node->key, node->data, parameterP, resultP)) {
-          return HASH_TABLE_OK;
-        }
-        node = node->next;
-      }
-    }
-    i++;
-  }
-
-  return HASH_TABLE_OK;
-}
-
-//------------------------------------------------------------------------------
-// may cost a lot CPU...
 hashtable_key_array_t* hashtable_uint64_ts_get_keys(
     hash_table_uint64_ts_t* const hashtblP) {
   hash_node_uint64_t* node  = NULL;
@@ -446,36 +323,6 @@ hashtable_key_array_t* hashtable_uint64_ts_get_keys(
     i++;
   }
   return ka;
-}
-
-//------------------------------------------------------------------------------
-// may cost a lot CPU...
-hashtable_uint64_element_array_t* hashtable_uint64_ts_get_elements(
-    hash_table_uint64_ts_t* const hashtblP) {
-  hash_node_uint64_t* node             = NULL;
-  unsigned int i                       = 0;
-  hashtable_uint64_element_array_t* ea = NULL;
-
-  if ((!hashtblP) || !(hashtblP->num_elements)) {
-    return NULL;
-  }
-
-  ea           = calloc(1, sizeof(hashtable_uint64_element_array_t));
-  ea->elements = calloc(hashtblP->num_elements, sizeof(uint64_t));
-
-  while ((ea->num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
-    pthread_mutex_lock(&hashtblP->lock_nodes[i]);
-    if (hashtblP->nodes[i] != NULL) {
-      node = hashtblP->nodes[i];
-      while (node) {
-        ea->elements[ea->num_elements++] = node->data;
-        node                             = node->next;
-      }
-    }
-    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-    i++;
-  }
-  return ea;
 }
 
 //------------------------------------------------------------------------------
@@ -515,39 +362,6 @@ hashtable_rc_t hashtable_uint64_ts_apply_callback_on_elements(
     i++;
   }
 
-  return HASH_TABLE_OK;
-}
-
-//------------------------------------------------------------------------------
-hashtable_rc_t hashtable_uint64_dump_content(
-    const hash_table_uint64_t* const hashtblP, bstring str) {
-  hash_node_uint64_t* node = NULL;
-  unsigned int i           = 0;
-
-  if (!hashtblP) {
-    bcatcstr(str, "HASH_TABLE_BAD_PARAMETER_HASHTABLE");
-    return HASH_TABLE_BAD_PARAMETER_HASHTABLE;
-  }
-
-  while (i < hashtblP->size) {
-    if (hashtblP->nodes[i] != NULL) {
-      node = hashtblP->nodes[i];
-
-      while (node) {
-        bstring b0 = bformat(
-            "Key 0x%" PRIx64 " Element %" PRIx64 " Node %p\n", node->key,
-            node->data, node);
-        if (!b0) {
-          PRINT_HASHTABLE(hashtblP, "Error while dumping hashtable content");
-        } else {
-          bconcat(str, b0);
-          bdestroy_wrapper(&b0);
-        }
-        node = node->next;
-      }
-    }
-    i += 1;
-  }
   return HASH_TABLE_OK;
 }
 
@@ -802,42 +616,6 @@ hashtable_rc_t hashtable_uint64_ts_remove(
    Searching for an element is easy. We just search through the linked list for
    the corresponding hash value. NULL is returned if we didn't find it.
 */
-hashtable_rc_t hashtable_uint64_get(
-    const hash_table_uint64_t* const hashtblP, const hash_key_t keyP,
-    uint64_t* const dataP) {
-  hash_node_uint64_t* node = NULL;
-  hash_size_t hash         = 0;
-
-  if (!hashtblP) {
-    return HASH_TABLE_BAD_PARAMETER_HASHTABLE;
-  }
-
-  hash = hashtblP->hashfunc(keyP) % hashtblP->size;
-  node = hashtblP->nodes[hash];
-
-  while (node) {
-    if (node->key == keyP) {
-      *dataP = node->data;
-      PRINT_HASHTABLE(
-          hashtblP, "%s(%s,key 0x%" PRIx64 " data %p) return OK\n",
-          __FUNCTION__, bdata(hashtblP->name), keyP, *dataP);
-      return HASH_TABLE_OK;
-    }
-
-    node = node->next;
-  }
-
-  PRINT_HASHTABLE(
-      hashtblP, "%s(%s,key 0x%" PRIx64 ") return KEY_NOT_EXISTS\n",
-      __FUNCTION__, bdata(hashtblP->name), keyP);
-  return HASH_TABLE_KEY_NOT_EXISTS;
-}
-
-//------------------------------------------------------------------------------
-/*
-   Searching for an element is easy. We just search through the linked list for
-   the corresponding hash value. NULL is returned if we didn't find it.
-*/
 hashtable_rc_t hashtable_uint64_ts_get(
     const hash_table_uint64_ts_t* const hashtblP, const hash_key_t keyP,
     uint64_t* const dataP) {
@@ -870,158 +648,4 @@ hashtable_rc_t hashtable_uint64_ts_get(
       hashtblP, "%s(%s,key 0x%" PRIx64 ") return KEY_NOT_EXISTS\n",
       __FUNCTION__, bdata(hashtblP->name), keyP);
   return HASH_TABLE_KEY_NOT_EXISTS;
-}
-
-//------------------------------------------------------------------------------
-/*
-   Resizing
-   The number of elements in a hash table is not always known when creating the
-   table. If the number of elements grows too large, it will seriously reduce
-   the performance of most hash table operations. If the number of elements are
-   reduced, the hash table will waste memory. That is why we provide a function
-   for resizing the table. Resizing a hash table is not as easy as a realloc().
-   All hash values must be recalculated and each element must be inserted into
-   its new position. We create a temporary hash_table_uint64_t object (newtbl)
-   to be used while building the new hashes. This allows us to reuse
-   hashtable_uint64_insert() and hashtable_uint64_free(), when moving the
-   elements to the new table. After that, we can just free_wrapper the old table
-   and copy the elements from newtbl to hashtbl.
-*/
-
-hashtable_rc_t hashtable_uint64_resize(
-    hash_table_uint64_t* const hashtblP, const hash_size_t sizeP) {
-  hash_table_uint64_t newtbl;
-  hash_size_t n;
-  hash_node_uint64_t *node, *next;
-
-  if (!hashtblP) {
-    return HASH_TABLE_BAD_PARAMETER_HASHTABLE;
-  }
-  hash_size_t size = sizeP;
-  // upper power of two:
-  // http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2Float
-  //  By Sean Eron Anderson
-  // seander@cs.stanford.edu
-  // Individually, the code snippets here are in the public domain (unless
-  // otherwise noted) — feel free to use them however you please. The aggregate
-  // collection and descriptions are © 1997-2005 Sean Eron Anderson. The code
-  // and descriptions are distributed in the hope that they will be useful, but
-  // WITHOUT ANY WARRANTY and without even the implied warranty of
-  // merchantability or fitness for a particular purpose. As of May 5, 2005, all
-  // the code has been tested thoroughly. Thousands of people have read it.
-  // Moreover, Professor Randal Bryant, the Dean of Computer Science at Carnegie
-  // Mellon University, has personally tested almost everything with his Uclid
-  // code verification system. What he hasn't tested, I have checked against all
-  // possible inputs on a 32-bit machine. To the first person to inform me of a
-  // legitimate bug in the code, I'll pay a bounty of US$10 (by check or
-  // Paypal). If directed to a charity, I'll pay US$20.
-  size--;
-  size |= size >> 1;
-  size |= size >> 2;
-  size |= size >> 4;
-  size |= size >> 8;
-  size |= size >> 16;
-  size++;
-
-  newtbl.size     = size;
-  newtbl.hashfunc = hashtblP->hashfunc;
-
-  if (!(newtbl.nodes = calloc(size, sizeof(hash_node_uint64_t*)))) return -1;
-
-  for (n = 0; n < hashtblP->size; ++n) {
-    for (node = hashtblP->nodes[n]; node; node = next) {
-      next = node->next;
-      hashtable_uint64_remove(hashtblP, node->key);
-      hashtable_uint64_insert(&newtbl, node->key, node->data);
-    }
-  }
-
-  free_wrapper((void**) &hashtblP->nodes);
-  hashtblP->nodes = newtbl.nodes;
-  hashtblP->size  = newtbl.size;
-  return HASH_TABLE_OK;
-}
-
-//------------------------------------------------------------------------------
-/*
-   Resizing
-   The number of elements in a hash table is not always known when creating the
-   table. If the number of elements grows too large, it will seriously reduce
-   the performance of most hash table operations. If the number of elements are
-   reduced, the hash table will waste memory. That is why we provide a function
-   for resizing the table. Resizing a hash table is not as easy as a realloc().
-   All hash values must be recalculated and each element must be inserted into
-   its new position. We create a temporary hash_table_uint64_t object (newtbl)
-   to be used while building the new hashes. This allows us to reuse
-   hashtable_uint64_insert() and hashtable_uint64_free(), when moving the
-   elements to the new table. After that, we can just free_wrapper the old table
-   and copy the elements from newtbl to hashtbl. Dangerous not really thread
-   safe.
-*/
-
-hashtable_rc_t hashtable_uint64_ts_resize(
-    hash_table_uint64_ts_t* const hashtblP, const hash_size_t sizeP) {
-  hash_table_uint64_ts_t newtbl = {.mutex = PTHREAD_MUTEX_INITIALIZER, 0};
-  hash_size_t n                 = 0;
-  hash_node_uint64_t *node = NULL, *next = NULL;
-
-  if (!hashtblP) {
-    return HASH_TABLE_BAD_PARAMETER_HASHTABLE;
-  }
-  hash_size_t size = sizeP;
-  // upper power of two:
-  // http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2Float
-  //  By Sean Eron Anderson
-  // seander@cs.stanford.edu
-  // Individually, the code snippets here are in the public domain (unless
-  // otherwise noted) — feel free to use them however you please. The aggregate
-  // collection and descriptions are © 1997-2005 Sean Eron Anderson. The code
-  // and descriptions are distributed in the hope that they will be useful, but
-  // WITHOUT ANY WARRANTY and without even the implied warranty of
-  // merchantability or fitness for a particular purpose. As of May 5, 2005, all
-  // the code has been tested thoroughly. Thousands of people have read it.
-  // Moreover, Professor Randal Bryant, the Dean of Computer Science at Carnegie
-  // Mellon University, has personally tested almost everything with his Uclid
-  // code verification system. What he hasn't tested, I have checked against all
-  // possible inputs on a 32-bit machine. To the first person to inform me of a
-  // legitimate bug in the code, I'll pay a bounty of US$10 (by check or
-  // Paypal). If directed to a charity, I'll pay US$20.
-  size--;
-  size |= size >> 1;
-  size |= size >> 2;
-  size |= size >> 4;
-  size |= size >> 8;
-  size |= size >> 16;
-  size++;
-
-  newtbl.size     = size;
-  newtbl.hashfunc = hashtblP->hashfunc;
-
-  if (!(newtbl.nodes = calloc(size, sizeof(hash_node_uint64_t*))))
-    return HASH_TABLE_SYSTEM_ERROR;
-
-  if (!(newtbl.lock_nodes = calloc(size, sizeof(pthread_mutex_t)))) {
-    free_wrapper((void**) &newtbl.nodes);
-    return HASH_TABLE_SYSTEM_ERROR;
-  }
-  for (n = 0; n < hashtblP->size; ++n) {
-    pthread_mutex_init(&newtbl.lock_nodes[n], NULL);
-  }
-
-  pthread_mutex_lock(&hashtblP->mutex);
-  for (n = 0; n < hashtblP->size; ++n) {
-    for (node = hashtblP->nodes[n]; node; node = next) {
-      next = node->next;
-      hashtable_uint64_ts_remove(hashtblP, node->key);
-      hashtable_uint64_ts_insert(&newtbl, node->key, node->data);
-    }
-  }
-
-  free_wrapper((void**) &hashtblP->nodes);
-  free_wrapper((void**) &hashtblP->lock_nodes);
-  hashtblP->size       = newtbl.size;
-  hashtblP->nodes      = newtbl.nodes;
-  hashtblP->lock_nodes = newtbl.lock_nodes;
-  pthread_mutex_unlock(&hashtblP->mutex);
-  return HASH_TABLE_OK;
 }

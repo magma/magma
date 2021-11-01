@@ -17,9 +17,9 @@
 
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "ServiceReject.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceReject.h"
 
 int decode_service_reject(
     service_reject_msg* service_reject, uint8_t* buffer, uint32_t len) {

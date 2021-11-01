@@ -193,7 +193,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			SgiManagementIfaceVlan:     gwEpc.SgiManagementIfaceVlan,
 			SgiManagementIfaceIpAddr:   gwEpc.SgiManagementIfaceStaticIP,
 			SgiManagementIfaceGw:       gwEpc.SgiManagementIfaceGw,
-			SgiManagementIfaceIpv6Addr: string(gwEpc.SgiManagementIfaceIPV6Addr),
+			SgiManagementIfaceIpv6Addr: gwEpc.SgiManagementIfaceIPV6Addr,
 			SgiManagementIfaceIpv6Gw:   string(gwEpc.SgiManagementIfaceIPV6Gw),
 			HeConfig:                   heConfig,
 			LiUes:                      liUes,

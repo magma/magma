@@ -18,9 +18,9 @@
 #ifndef FILE_MME_APP_EDNS_EMULATION_SEEN
 #define FILE_MME_APP_EDNS_EMULATION_SEEN
 
-#include "common_defs.h"
-#include "bstrlib.h"
-#include "mme_config.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 
 struct in_addr;
 /*! \file mme_app_edns_emulation.h

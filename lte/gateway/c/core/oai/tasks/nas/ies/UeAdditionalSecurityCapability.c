@@ -20,11 +20,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-#include "TLVDecoder.h"
-#include "TLVEncoder.h"
-#include "UeAdditionalSecurityCapability.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeAdditionalSecurityCapability.h"
 
 //------------------------------------------------------------------------------
 int decode_ue_additional_security_capability(

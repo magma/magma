@@ -36,7 +36,6 @@ return_codes = Enum(
 )
 STATELESS_SERVICE_CONFIGS = [
     ("mme", "use_stateless", True),
-    ("mobilityd", "persist_to_redis", True),
     ("pipelined", "clean_restart", False),
     ("pipelined", "redis_enabled", True),
     ("sessiond", "support_stateless", True),

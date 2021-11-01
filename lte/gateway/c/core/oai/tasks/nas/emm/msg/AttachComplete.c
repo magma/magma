@@ -17,9 +17,9 @@
 
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "AttachComplete.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachComplete.h"
 
 int decode_attach_complete(
     attach_complete_msg* attach_complete, uint8_t* buffer, uint32_t len) {

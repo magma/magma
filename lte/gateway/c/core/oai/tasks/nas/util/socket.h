@@ -34,7 +34,7 @@ Description Implements TCP socket handlers
 #ifndef FILE_SOCKET_SEEN
 #define FILE_SOCKET_SEEN
 
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 #include <sys/types.h>
 
 /****************************************************************************/

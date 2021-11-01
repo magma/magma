@@ -52,6 +52,7 @@ set(MME_APP_TEST_SRC
     test_mme_app_emm_decode.cpp
     test_mme_app_config.cpp
     test_mme_procedures.cpp
+    test_sgw_config.cpp
     )
 
 add_executable(test_mme_app_ue_context_imsi ${MME_APP_UE_CONTEXT_IMSI_SRC})
@@ -81,7 +82,7 @@ target_link_libraries(test_nas_eps_quality_of_service
     )
 
 target_link_libraries(mme_app_test
-    TASK_MME_APP TASK_NAS ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
+    TASK_MME_APP TASK_NAS TASK_AMF_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
     LIB_BSTR LIB_ITTI MOCK_TASKS gtest gtest_main ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
     ${NETTLE_LIBRARIES}
     )

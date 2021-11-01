@@ -36,6 +36,11 @@ export function convertBitToMbit(val: number) {
   return (val / mBIT).toFixed(2);
 }
 
+export const CoreNetworkTypes = Object.freeze({
+  NT_EPC: 'EPC',
+  NT_5GC: '5GC',
+});
+
 export function getPromValue(resp: promql_return_object) {
   const respArr = resp?.data?.result
     ?.map(item => {
@@ -59,6 +64,18 @@ export const SUBSCRIBER_EXPORT_COLUMNS = [
   {title: 'Auth Key', field: 'auth_key'},
   {title: 'Auth OPC', field: 'auth_opc'},
   {title: 'Service', field: 'state'},
+  {title: 'Forbidden Network Types', field: 'forbidden_network_types'},
   {title: 'Data Plan', field: 'sub_profile'},
   {title: 'Active APNs', field: 'active_apns'},
 ];
+export const SUBSCRIBER_ADD_ERRORS = Object.freeze({
+  INVALID_IMSI:
+    'The IMSI should be a string IMSI followed by a number with 10-15 digits',
+  INVALID_AUTH_KEY:
+    'Auth key is not a valid hex (example: 000102030405060708090A0B0C0D0E0F)',
+  INVALID_AUTH_OPC:
+    'Auth opc is not a valid hex (example: 000102030405060708090A0B0C0D0E0F)',
+  REQUIRED_SUB_PROFILE: 'Please select a data plan',
+  DUPLICATE_IMSI: 'The IMSI is duplicated',
+  REQUIRED_AUTH_KEY: 'Auth key is required',
+});

@@ -55,9 +55,8 @@ type JobInfo struct {
 // State indexers are added to the queue for reindexing at initialization, and removed from the queue after the reindex is complete.
 // ClaimAvailableJob should be polled periodically, as jobs may become available at any time.
 type JobQueue interface {
-	// Initialize the queue.
-	// Call before other methods.
-	Initialize() error
+	// Tracks version info for all tracked indexers
+	Versioner
 
 	// PopulateJobs populates the queue with the necessary jobs read from the indexer registry.
 	// Returns true if job queue was updated with new jobs.
@@ -73,6 +72,13 @@ type JobQueue interface {
 	// GetJobInfos provides full information about job progress, keyed by indexer ID.
 	// A job info only includes an error when its job has been attempted at least the max number of attempts.
 	GetJobInfos() (map[string]JobInfo, error)
+}
+
+// Versioner tracks version info for all tracked indexers
+type Versioner interface {
+	// Initialize the current object.
+	// Call before other methods.
+	Initialize() error
 
 	// GetIndexerVersions returns version info for all tracked indexers, keyed by indexer ID.
 	// Intended for use when automatic reindexing is disabled.
@@ -141,8 +147,8 @@ func GetStatuses(queue JobQueue) (map[string]Status, error) {
 
 // GetIndexerVersion gets the tracked indexer versions for an indexer ID.
 // Returns nil if not found.
-func GetIndexerVersion(queue JobQueue, indexerID string) (*indexer.Versions, error) {
-	versions, err := queue.GetIndexerVersions()
+func GetIndexerVersion(versioner Versioner, indexerID string) (*indexer.Versions, error) {
+	versions, err := versioner.GetIndexerVersions()
 	if err != nil {
 		return nil, err
 	}

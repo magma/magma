@@ -27,6 +27,7 @@ import SubscriberDashboard from '../SubscriberOverview';
 import SubscriberDetailConfig from '../SubscriberDetailConfig';
 import defaultTheme from '../../../theme/default.js';
 
+import {CoreNetworkTypes} from '../SubscriberUtils';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
@@ -38,6 +39,9 @@ jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 afterEach(cleanup);
 const enqueueSnackbarMock = jest.fn();
+const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
+  key => CoreNetworkTypes[key],
+);
 jest
   .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
@@ -47,6 +51,7 @@ const subscribersMock = {
     name: 'subscriber0',
     active_apns: ['apn_0'],
     id: 'IMSI00000000001002',
+    forbidden_network_types: forbiddenNetworkTypes,
     lte: {
       auth_algo: 'MILENAGE',
       auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
@@ -55,6 +60,7 @@ const subscribersMock = {
       sub_profile: 'default',
     },
     config: {
+      forbidden_network_types: forbiddenNetworkTypes,
       lte: {
         auth_algo: 'MILENAGE',
         auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
@@ -69,6 +75,7 @@ const subscribersMock = {
     name: 'subscriber1',
     active_apns: [],
     id: 'IMSI00000000001003',
+    forbidden_network_types: forbiddenNetworkTypes,
     lte: {
       auth_algo: 'MILENAGE',
       auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
@@ -77,6 +84,7 @@ const subscribersMock = {
       sub_profile: 'default',
     },
     config: {
+      forbidden_network_types: forbiddenNetworkTypes,
       lte: {
         auth_algo: 'MILENAGE',
         auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
@@ -219,9 +227,11 @@ describe('<AddSubscriberButton />', () => {
   const AddWrapper = () => {
     const [subscribers, setSubscribers] = useState(subscribersMock);
     const [sessionState, setSessionState] = useState({});
+    const [forbiddenNetworkTypes, setForbiddenNetworkTypes] = useState({});
 
     const subscriberCtx = {
       state: subscribers,
+      forbiddenNetworkTypes: forbiddenNetworkTypes,
       gwSubscriberMap: {},
       sessionState: sessionState,
       setState: async (key, value?) =>
@@ -232,6 +242,7 @@ describe('<AddSubscriberButton />', () => {
           key: key,
           value: value,
           setSessionState: setSessionState,
+          setForbiddenNetworkTypes: setForbiddenNetworkTypes,
         }),
     };
     const policyCtx = {
@@ -288,6 +299,7 @@ describe('<AddSubscriberButton />', () => {
   const DetailWrapper = () => {
     const [subscribers, setSubscribers] = useState(subscribersMock);
     const [sessionState, setSessionState] = useState({});
+    const [forbiddenNetworkTypes, setForbiddenNetworkTypes] = useState({});
     const policyCtx = {
       state: policies,
       qosProfiles: {},
@@ -329,6 +341,7 @@ describe('<AddSubscriberButton />', () => {
                         IMSI00000000001002: subscribers['IMSI00000000001002'],
                       },
                       gwSubscriberMap: {},
+                      forbiddenNetworkTypes: forbiddenNetworkTypes,
                       sessionState: sessionState,
                       setState: (key, value?) =>
                         setSubscriberState({
@@ -336,6 +349,7 @@ describe('<AddSubscriberButton />', () => {
                           subscriberMap: subscribers,
                           setSubscriberMap: setSubscribers,
                           setSessionState,
+                          setForbiddenNetworkTypes,
                           key: key,
                           value: value,
                         }),
@@ -366,7 +380,9 @@ describe('<AddSubscriberButton />', () => {
 
     expect(queryByTestId('addSubscriberDialog')).toBeNull();
     // Add Subscriber
-    fireEvent.click(getByText('Add Subscriber'));
+    fireEvent.click(getByText('Manage Subscribers'));
+    await wait();
+    fireEvent.click(getByText('Add Subscribers'));
     await wait();
     expect(queryByTestId('addSubscriberDialog')).not.toBeNull();
 
@@ -407,7 +423,6 @@ describe('<AddSubscriberButton />', () => {
       fireEvent.change(authOpc, {
         target: {value: '8e27b6af0e692e750f32667a3b14605d'},
       });
-      // }
     } else {
       throw 'invalid type';
     }
@@ -477,6 +492,7 @@ describe('<AddSubscriberButton />', () => {
       subscriber: {
         active_apns: ['apn_0'],
         active_base_names: undefined,
+        forbidden_network_types: forbiddenNetworkTypes,
         id: 'IMSI00000000001002',
         lte: {
           auth_algo: 'MILENAGE',

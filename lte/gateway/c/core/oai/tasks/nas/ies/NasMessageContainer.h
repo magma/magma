@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #define NAS_MESSAGE_CONTAINER_MINIMUM_LENGTH 3
 #define NAS_MESSAGE_CONTAINER_MAXIMUM_LENGTH 253

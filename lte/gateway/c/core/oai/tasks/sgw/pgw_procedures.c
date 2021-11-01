@@ -24,9 +24,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "dynamic_memory_check.h"
-#include "sgw_context_manager.h"
-#include "pgw_procedures.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
 
 //------------------------------------------------------------------------------
 void delete_pending_procedures(

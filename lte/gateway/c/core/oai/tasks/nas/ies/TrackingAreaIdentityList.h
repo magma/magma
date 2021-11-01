@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-#include "TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 
 #define TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH 8
 #define TRACKING_AREA_IDENTITY_LIST_MAXIMUM_LENGTH 98

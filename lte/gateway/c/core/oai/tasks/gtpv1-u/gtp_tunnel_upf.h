@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "gtpv1u.h"
-#include "gtp_tunnel_openflow.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_openflow.h"
 
 const struct gtp_tunnel_ops* upf_gtp_tunnel_ops_init_openflow(void);
 

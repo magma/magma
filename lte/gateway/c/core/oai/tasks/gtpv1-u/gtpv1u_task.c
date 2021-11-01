@@ -26,16 +26,16 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "log.h"
-#include "assertions.h"
-#include "intertask_interface.h"
-#include "gtpv1u.h"
-#include "gtpv1u_sgw_defs.h"
-#include "gtp_tunnel_upf.h"
-#include "pgw_ue_ip_address_alloc.h"
-#include "intertask_interface_types.h"
-#include "pgw_config.h"
-#include "spgw_config.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u_sgw_defs.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_upf.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/include/pgw_config.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
 
 const struct gtp_tunnel_ops* gtp_tunnel_ops;
 static struct in_addr current_ue_net;
@@ -118,7 +118,6 @@ int gtpv1u_init(
   OAILOG_DEBUG(LOG_GTPV1U, "Initializing GTPV1U interface\n");
 
   // Init gtp_tunnel_ops
-#if ENABLE_OPENFLOW
   // If pipeline config is enabled initialize userplane ops
   if (spgw_config->sgw_config.ovs_config.pipelined_managed_tbl0) {
     OAILOG_INFO(LOG_GTPV1U, "Initializing upf classifier for gtp apps");
@@ -127,10 +126,6 @@ int gtpv1u_init(
     OAILOG_DEBUG(LOG_GTPV1U, "Initializing gtp_tunnel_ops_openflow\n");
     gtp_tunnel_ops = gtp_tunnel_ops_init_openflow();
   }
-#else
-  OAILOG_DEBUG(LOG_GTPV1U, "Initializing gtp_tunnel_ops_libgtpnl\n");
-  gtp_tunnel_ops = gtp_tunnel_ops_init_libgtpnl();
-#endif
 
   if (gtp_tunnel_ops == NULL) {
     OAILOG_CRITICAL(LOG_GTPV1U, "ERROR in initializing gtp_tunnel_ops\n");
@@ -174,8 +169,8 @@ int gtpv1u_init(
 
 int gtpv1u_add_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-    uint32_t i_tei, uint32_t o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
-    uint32_t flow_precedence_dl, char* apn) {
+    struct in6_addr* enb_ipv6, uint32_t i_tei, uint32_t o_tei, Imsi_t imsi,
+    struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl, char* apn) {
   OAILOG_DEBUG(LOG_GTPV1U, "Add tunnel ue %s", inet_ntoa(ue));
 
   if (spgw_config.pgw_config.enable_nat) {
@@ -204,30 +199,33 @@ int gtpv1u_add_tunnel(
   }
 
   return gtp_tunnel_ops->add_tunnel(
-      ue, ue_ipv6, vlan, enb, i_tei, o_tei, imsi, flow_dl, flow_precedence_dl,
-      apn);
+      ue, ue_ipv6, vlan, enb, enb_ipv6, i_tei, o_tei, imsi, flow_dl,
+      flow_precedence_dl, apn);
 }
 
 int gtpv1u_add_s8_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-    struct in_addr pgw, uint32_t i_tei, uint32_t o_tei, uint32_t pgw_in_tei,
-    uint32_t pgw_o_tei, Imsi_t imsi) {
+    struct in6_addr* enb_ipv6, struct in_addr pgw, struct in6_addr* pgw_ipv6,
+    uint32_t i_tei, uint32_t o_tei, uint32_t pgw_in_tei, uint32_t pgw_o_tei,
+    Imsi_t imsi) {
   OAILOG_DEBUG(LOG_GTPV1U, "Add S8 tunnel ue %s", inet_ntoa(ue));
   if (gtp_tunnel_ops->add_s8_tunnel) {
     return gtp_tunnel_ops->add_s8_tunnel(
-        ue, ue_ipv6, vlan, enb, pgw, i_tei, o_tei, pgw_in_tei, pgw_o_tei, imsi);
+        ue, ue_ipv6, vlan, enb, enb_ipv6, pgw, pgw_ipv6, i_tei, o_tei,
+        pgw_in_tei, pgw_o_tei, imsi);
   } else {
     return -EINVAL;
   }
 }
 
 int gtpv1u_del_s8_tunnel(
-    struct in_addr enb, struct in_addr pgw, struct in_addr ue,
-    struct in6_addr* ue_ipv6, uint32_t i_tei, uint32_t pgw_in_tei) {
+    struct in_addr enb, struct in6_addr* enb_ipv6, struct in_addr pgw,
+    struct in6_addr* pgw_ipv6, struct in_addr ue, struct in6_addr* ue_ipv6,
+    uint32_t i_tei, uint32_t pgw_in_tei) {
   OAILOG_DEBUG(LOG_GTPV1U, "Del S8 tunnel ue %s", inet_ntoa(ue));
   if (gtp_tunnel_ops->del_s8_tunnel) {
     return gtp_tunnel_ops->del_s8_tunnel(
-        enb, pgw, ue, ue_ipv6, i_tei, pgw_in_tei);
+        enb, enb_ipv6, pgw, pgw_ipv6, ue, ue_ipv6, i_tei, pgw_in_tei);
   } else {
     return -EINVAL;
   }

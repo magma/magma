@@ -22,8 +22,8 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include "common_defs.h"
-#include "sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 
 #ifndef FILE_S11_IE_FORMATTER_SEEN
 #define FILE_S11_IE_FORMATTER_SEEN

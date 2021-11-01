@@ -24,11 +24,11 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include "queue.h"
-#include "3gpp_23.401.h"
-#include "common_types.h"
-#include "pgw_pcef_emulation.h"
-#include "sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 
 typedef enum {
   // should introduce Gx IP CAN procedures, etc, here

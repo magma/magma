@@ -1,0 +1,117 @@
+---
+
+name: CWF integ test
+
+on:  # yamllint disable-line rule:truthy
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run docker compose
+        run: |
+          cd cwf/gateway/docker
+          docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.nginx.yml -f docker-compose.integ-test.yml build --force-rm  --parallel
+      - name: Export docker images to deploy them
+        run: |
+          mkdir images
+          cd images
+          docker save cwf_gateway_sessiond:latest | gzip > cwf_gateway_sessiond.tar.gz
+          docker save cwf_nginx:latest  | gzip > cwf_nginx.tar.gz
+          docker save cwf_gateway_python:latest | gzip > cwf_gateway_python.tar.gz
+          docker save cwf_cwag_go:latest  | gzip > cwf_cwag_go.tar.gz
+          docker save cwf_gateway_go:latest | gzip > cwf_gateway_go.tar.gz
+          docker save cwf_gateway_pipelined:latest | gzip > cwf_gateway_pipelined.tar.gz
+      - uses: actions/upload-artifact@v2
+        with:
+          name: docker-images
+          path: images
+      - name: Extract commit title
+        # yamllint enable
+        if: failure()
+        id: commit
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_USERNAME: "CWF integ test"
+          SLACK_AVATAR: ":boom:"
+        uses: Ilshidur/action-slack@2.1.0
+        with:
+          args: 'CWF integration test: docker build step failed on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commits/${{github.sha}}): ${{ steps.commit.outputs.title}}'
+  cwf-integ-test:
+    runs-on: macos-10.15
+    needs: docker-build
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker-practice/actions-setup-docker@master
+        with:
+          docker_version: "20.10"
+      - name: setup pyenv
+        uses: "gabrielfalcao/pyenv-action@v8"
+        with:
+          default: 3.8.5
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.5'
+      - name: Install pre requisites
+        run: |
+          pip3 install --upgrade pip
+          pip3 install ansible fabric3 jsonpickle requests PyYAML
+          vagrant plugin install vagrant-vbguest vagrant-disksize
+      - uses: actions/download-artifact@v2
+        with:
+          name: docker-images
+      - uses: geekyeggo/delete-artifact@v1
+        with:
+          name: docker-images
+      - name: extract and load images
+        run: |
+          for IMAGES in `ls -a1 *.gz`
+          do
+            gzip -d $IMAGES
+          done
+          docker image load --input cwf_gateway_sessiond.tar
+          docker image load --input cwf_nginx.tar
+          docker image load --input cwf_gateway_python.tar
+          docker image load --input cwf_cwag_go.tar
+          docker image load --input cwf_gateway_go.tar
+          docker image load --input cwf_gateway_pipelined.tar
+      - name: Run the integ test
+        run: |
+          cd cwf/gateway
+          fab integ_test:destroy_vm=True,transfer_images=True,test_result_xml=tests.xml
+      - name: upload test results
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: cwf/gateway/tests.xml
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action/composite@v1
+        with:
+          check_run_annotations: all tests
+          files: cwf/gateway/tests.xml
+      - name: Extract commit title
+        # yamllint enable
+        if: failure()
+        id: commit
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_USERNAME: "CWF integ test"
+          SLACK_AVATAR: ":boom:"
+        uses: Ilshidur/action-slack@2.1.0
+        with:
+          args: "CWF integration test test failed on [${{github.sha}}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"

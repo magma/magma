@@ -13,7 +13,7 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
   unit-test-results:
-    name: Cloud Unit Test Results
+    name: Upload unit test for ${{ github.event.workflow.name }}
     runs-on: ubuntu-latest
     if: >
       github.event.workflow_run.conclusion != 'skipped' &&

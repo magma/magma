@@ -8,8 +8,8 @@ BUILD_TYPE ?= Debug
 # MME is MME as described in 3GPP specs, it has at least S1AP, S11, S6a
 # interfaces.
 # AGW means Acces GateWay, is the result of the aggregation of MME, SGW and PGW.
-# First in FEATURES, select what to you want to build : mme or agw with libgtpnl
-# or agw with OVS (OpenFlow): FEATURE=mme or agw_gtpnl or agw_of
+# First in FEATURES, select what to you want to build : mme or agw with OpenFlow
+# (OVS): FEATURE=mme or agw_of
 # Then you can have other features that can be built for mme or agw :
 # s6a with fd (freeDiameter)
 
@@ -17,9 +17,9 @@ BUILD_TYPE ?= Debug
 FEATURES ?= agw_of
 # EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested
 # together.
-EXCLUSIVE_FEATURE_LIST = mme agw_gtpnl agw_of mme_oai
+EXCLUSIVE_FEATURE_LIST = mme agw_of mme_oai
 # AVAILABLE_FEATURE_LIST : every feature not in this list will trigger an error.
-AVAILABLE_FEATURE_LIST = s6a_fd mme agw_gtpnl agw_of mme_oai
+AVAILABLE_FEATURE_LIST = s6a_fd mme agw_of mme_oai
 REQUESTED_FEATURE_LIST = $(sort $(FEATURES))
 
 ifneq ($(words $(strip $(filter-out $(AVAILABLE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))), 0)
@@ -47,14 +47,12 @@ OAI_FLAGS = -DS6A_OVER_GRPC=True
 else ifeq ($(MAIN_FEATURE),mme_oai)
 # Set DS6A_OVER_GRPC=False if using OAI-HSS
 OAI_FLAGS = -DS6A_OVER_GRPC=False
-else ifeq ($(MAIN_FEATURE),agw_gtpnl)
-OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=False -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=False
 else ifeq ($(MAIN_FEATURE),agw_of)
-OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=True
+OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True
 
 else
 # default
-OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=True
+OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True
 
 endif
 

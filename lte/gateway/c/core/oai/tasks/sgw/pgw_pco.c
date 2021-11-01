@@ -26,15 +26,15 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
-#include "bstrlib.h"
-#include "log.h"
-#include "common_defs.h"
-#include "3gpp_24.008.h"
-#include "pgw_pco.h"
-#include "rfc_1877.h"
-#include "rfc_1332.h"
-#include "spgw_config.h"
-#include "pgw_config.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pco.h"
+#include "lte/gateway/c/core/oai/common/rfc_1877.h"
+#include "lte/gateway/c/core/oai/common/rfc_1332.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
+#include "lte/gateway/c/core/oai/include/pgw_config.h"
 
 //------------------------------------------------------------------------------
 status_code_e pgw_pco_push_protocol_or_container_id(

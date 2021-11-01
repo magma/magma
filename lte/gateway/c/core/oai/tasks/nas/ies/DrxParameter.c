@@ -19,9 +19,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "DrxParameter.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/DrxParameter.h"
 
 int decode_drx_parameter(
     DrxParameter* drxparameter, uint8_t iei, uint8_t* buffer, uint32_t len) {

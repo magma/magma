@@ -39,16 +39,12 @@
 #define FILE_COMMON_TYPES_SEEN
 
 #include <inttypes.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 #include <stdint.h>
+#include <stdbool.h>
 
-#include "bstrlib.h"
 #include "3gpp_33.401.h"
-#include "3gpp_36.401.h"
 #include "security_types.h"
 #include "common_dim.h"
-#include "3gpp_24.008.h"
 #include "TrackingAreaIdentity.h"
 #include "common_defs.h"
 
@@ -264,9 +260,6 @@ typedef struct paa_s {
   int vlan;
 } paa_t;
 
-void copy_paa(paa_t* paa_dst, paa_t* paa_src);
-bstring paa_to_bstring(const paa_t* paa);
-
 //-----------------
 typedef struct {
   pdn_type_value_t pdn_type;
@@ -282,13 +275,6 @@ typedef struct {
 #define ZONE_CODE_LEN 2
   uint8_t zone_code[ZONE_CODE_LEN];
 } regional_subscription_t;
-
-bstring fteid_ip_address_to_bstring(const struct fteid_s* const fteid);
-void get_fteid_ip_address(
-    const struct fteid_s* const fteid, ip_address_t* const ip_address);
-bstring ip_address_to_bstring(const ip_address_t* ip_address);
-void bstring_to_ip_address(bstring const bstr, ip_address_t* const ip_address);
-void bstring_to_paa(bstring bstr, paa_t* paa);
 
 //-----------------
 typedef enum {
@@ -410,6 +396,21 @@ typedef struct m5g_authentication_info_s {
   uint8_t nb_of_vectors;
   m5gauth_vector_t m5gauth_vector[MAX_EPS_AUTH_VECTORS];
 } m5g_authentication_info_t;
+
+typedef struct served_tai_s {
+  uint8_t nb_tai;
+  uint16_t* plmn_mcc;
+  uint16_t* plmn_mnc;
+  uint16_t* plmn_mnc_len;
+  uint16_t* tac;
+} served_tai_t;
+
+typedef struct partial_list_s {
+  uint8_t list_type;
+  uint8_t nb_elem;
+  plmn_t* plmn;
+  uint16_t* tac;
+} partial_list_t;
 
 typedef enum {
   DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE = 4181,

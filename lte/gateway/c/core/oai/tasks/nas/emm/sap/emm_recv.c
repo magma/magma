@@ -20,36 +20,37 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "bstrlib.h"
-#include "3gpp_24.008.h"
-#include "emm_recv.h"
-#include "common_defs.h"
-#include "log.h"
-#include "emm_cause.h"
-#include "emm_proc.h"
-#include "3gpp_requirements_24.301.h"
-#include "emm_sap.h"
-#include "includes/MetricsHelpers.h"
-#include "mme_app_itti_messaging.h"
-#include "conversions.h"
-#include "3gpp_24.301.h"
-#include "AdditionalUpdateType.h"
-#include "DetachType.h"
-#include "EmmCause.h"
-#include "EpsAttachType.h"
-#include "EpsBearerContextStatus.h"
-#include "EpsMobileIdentity.h"
-#include "GutiType.h"
-#include "MobileIdentity.h"
-#include "MobileStationClassmark2.h"
-#include "NASSecurityModeCommand.h"
-#include "NasKeySetIdentifier.h"
-#include "ServiceType.h"
-#include "emm_asDef.h"
-#include "emm_data.h"
-#include "mme_api.h"
-#include "mme_app_ue_context.h"
-#include "nas_procedures.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_recv.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
+#include "lte/gateway/c/core/oai/include/3gpp_requirements_24.301.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/DetachType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsBearerContextStatus.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/GutiType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeCommand.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ServiceType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -208,7 +209,7 @@ status_code_e emm_recv_attach_request(
     rc         = emm_proc_attach_reject(ue_id, *emm_cause);
     *emm_cause = EMM_CAUSE_SUCCESS;
     // Free the ESM container
-    bdestroy(msg->esmmessagecontainer);
+    bdestroy_wrapper(&(msg->esmmessagecontainer));
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
@@ -228,9 +229,14 @@ status_code_e emm_recv_attach_request(
         ue_id, mme_app_last_msg_latency, pre_mme_task_msg_latency);
     rc         = emm_proc_attach_reject(ue_id, EMM_CAUSE_CONGESTION);
     *emm_cause = EMM_CAUSE_SUCCESS;
+    // Free the ESM container
+    bdestroy_wrapper(&(msg->esmmessagecontainer));
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
+  // Dynamic memory allocation, if attach procedure is to be created
+  // it should be freed when attach proc is freed. Otherwise, it should
+  // be cleaned up properly
   emm_attach_request_ies_t* params = calloc(1, sizeof(*params));
   /*
    * Message processing
@@ -317,7 +323,7 @@ status_code_e emm_recv_attach_request(
       free_emm_attach_request_ies(
           (emm_attach_request_ies_t * * const) & params);
       // Free the ESM container
-      bdestroy(msg->esmmessagecontainer);
+      bdestroy_wrapper(&(msg->esmmessagecontainer));
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
 

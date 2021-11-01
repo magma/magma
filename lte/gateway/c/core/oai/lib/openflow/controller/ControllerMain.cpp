@@ -93,17 +93,17 @@ static void* external_event_callback(std::shared_ptr<void> data) {
 
 int openflow_controller_add_gtp_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-    uint32_t i_tei, uint32_t o_tei, const char* imsi,
+    struct in6_addr* enb_ipv6, uint32_t i_tei, uint32_t o_tei, const char* imsi,
     struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl,
     uint32_t gtp_portno) {
   if (flow_dl) {
     auto add_tunnel = std::make_shared<openflow::AddGTPTunnelEvent>(
-        ue, ue_ipv6, vlan, enb, i_tei, o_tei, imsi, flow_dl, flow_precedence_dl,
-        gtp_portno);
+        ue, ue_ipv6, vlan, enb, enb_ipv6, i_tei, o_tei, imsi, flow_dl,
+        flow_precedence_dl, gtp_portno);
     ctrl.inject_external_event(add_tunnel, external_event_callback);
   } else {
     auto add_tunnel = std::make_shared<openflow::AddGTPTunnelEvent>(
-        ue, ue_ipv6, vlan, enb, i_tei, o_tei, imsi, gtp_portno);
+        ue, ue_ipv6, vlan, enb, enb_ipv6, i_tei, o_tei, imsi, gtp_portno);
     ctrl.inject_external_event(add_tunnel, external_event_callback);
   }
   OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
@@ -126,12 +126,12 @@ int openflow_controller_del_gtp_tunnel(
 
 int openflow_controller_add_gtp_s8_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-    struct in_addr pgw, uint32_t i_tei, uint32_t o_tei, uint32_t pgw_in_tei,
-    uint32_t pgw_o_tei, const char* imsi, uint32_t enb_gtp_port,
-    uint32_t pgw_gtp_port) {
+    struct in6_addr* enb_ipv6, struct in_addr pgw, struct in6_addr* pgw_ipv6,
+    uint32_t i_tei, uint32_t o_tei, uint32_t pgw_in_tei, uint32_t pgw_o_tei,
+    const char* imsi, uint32_t enb_gtp_port, uint32_t pgw_gtp_port) {
   auto add_tunnel = std::make_shared<openflow::AddGTPTunnelEvent>(
-      ue, ue_ipv6, vlan, enb, pgw, i_tei, o_tei, pgw_in_tei, pgw_o_tei, imsi,
-      enb_gtp_port, pgw_gtp_port);
+      ue, ue_ipv6, vlan, enb, enb_ipv6, pgw, pgw_ipv6, i_tei, o_tei, pgw_in_tei,
+      pgw_o_tei, imsi, enb_gtp_port, pgw_gtp_port);
   ctrl.inject_external_event(add_tunnel, external_event_callback);
 
   OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);

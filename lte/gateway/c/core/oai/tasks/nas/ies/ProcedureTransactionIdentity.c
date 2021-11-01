@@ -19,10 +19,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "3gpp_24.007.h"
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "ProcedureTransactionIdentity.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ProcedureTransactionIdentity.h"
 
 int decode_procedure_transaction_identity(
     ProcedureTransactionIdentity* proceduretransactionidentity, uint8_t iei,

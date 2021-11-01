@@ -14,8 +14,8 @@ limitations under the License.
 #pragma once
 //--C includes -----------------------------------------------------------------
 extern "C" {
-#include "intertask_interface.h"
-#include "3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
 }
 ////--C++ includes
 ///---------------------------------------------------------------

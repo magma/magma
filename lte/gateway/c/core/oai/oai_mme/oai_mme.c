@@ -108,8 +108,7 @@ int main(int argc, char* argv[]) {
 #else
   CHECK_INIT_RETURN(mme_config_parse_opt_line(argc, argv, &mme_config));
 #endif
-  // Initialize Sentry error collection (Currently only supported on
-  // Ubuntu 20.04)
+  // Initialize Sentry error collection
   // We have to initialize here for now since itti_init asserts on there being
   // only 1 thread
   initialize_sentry(SENTRY_TAG_MME, &mme_config.sentry_config);

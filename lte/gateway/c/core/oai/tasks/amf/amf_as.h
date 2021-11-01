@@ -17,13 +17,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #ifdef __cplusplus
 };
 #endif
-#include "amf_app_ue_context_and_proc.h"
-#include "amf_asDefs.h"
-#include "amf_as_message.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
+#include "lte/gateway/c/core/oai/include/amf_as_message.h"
 
 namespace magma5g {
 

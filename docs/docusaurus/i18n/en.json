@@ -32,6 +32,9 @@
       "contributing/contribute_proposals": {
         "title": "Proposals Process"
       },
+      "contributing/contribute_vscode": {
+        "title": "Develop Magma With VSCode"
+      },
       "contributing/contribute_workflow": {
         "title": "Development Workflow"
       },

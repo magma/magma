@@ -28,28 +28,28 @@
 #include <stdint.h>
 #include <pthread.h>
 
-#include "assertions.h"
-#include "bstrlib.h"
-#include "log.h"
-#include "intertask_interface.h"
-#include "itti_free_defined_msg.h"
-#include "mme_config.h"
-#include "nas_network.h"
-#include "mme_app_extern.h"
-#include "mme_app_ue_context.h"
-#include "mme_app_defs.h"
-#include "mme_app_ha.h"
-#include "mme_app_statistics.h"
-#include "service303_message_utils.h"
-#include "common_defs.h"
-#include "mme_app_edns_emulation.h"
-#include "nas_proc.h"
-#include "common_types.h"
-#include "intertask_interface_types.h"
-#include "mme_app_messages_types.h"
-#include "mme_app_state.h"
-#include "s11_messages_types.h"
-#include "s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_network.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ha.h"
+#include "lte/gateway/c/core/oai/include/mme_app_statistics.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 
 static void check_mme_healthy_and_notify_service(void);
 static bool is_mme_app_healthy(void);
@@ -148,7 +148,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
             LOG_MME_APP,
             "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT "\n",
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
-
         if ((!ue_context_p->path_switch_req) && (!ue_context_p->erab_mod_ind)) {
           /* Updating statistics */
           mme_app_handle_modify_bearer_rsp(
