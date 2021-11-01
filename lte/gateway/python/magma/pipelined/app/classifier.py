@@ -248,7 +248,7 @@ class Classifier(MagmaController):
 
     def _install_uplink_tunnel_flows(
         self, priority: int, i_teid: int,
-        gtp_portno: int, sid: int,
+        gtp_portno: int, sid: int, o_teid: int,
     ):
 
         parser = self._datapath.ofproto_parser
@@ -256,7 +256,7 @@ class Classifier(MagmaController):
         actions = [
             parser.OFPActionSetField(eth_src=GTP_PORT_MAC),
             parser.OFPActionSetField(eth_dst="ff:ff:ff:ff:ff:ff"),
-            parser.NXActionRegLoad2(dst=INGRESS_TUN_ID_REG, value=i_teid),
+            parser.NXActionRegLoad2(dst=INGRESS_TUN_ID_REG, value=o_teid),
         ]
         if sid:
             actions.append(parser.OFPActionSetField(metadata=sid))
@@ -341,7 +341,7 @@ class Classifier(MagmaController):
 
         # Add flow for gtp port for Uplink Tunnel
         if i_teid:
-            self._install_uplink_tunnel_flows(priority, i_teid, gtp_portno, sid)
+            self._install_uplink_tunnel_flows(priority, i_teid, gtp_portno, sid, o_teid)
 
         if ip_flow_dl and ip_flow_dl.set_params:
             self._add_tunnel_ip_flow_dl(
