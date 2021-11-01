@@ -289,7 +289,8 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
       bearer_req_p->lbi);
   if (bearer_ctxt_p == NULL) {
     OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64, "Failed to retrieve bearer ctxt: \n ");
+        LOG_SPGW_APP, imsi64, "Failed to retrieve bearer ctxt:%u\n",
+        bearer_req_p->lbi);
     *failed_cause = REQUEST_REJECTED;
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }

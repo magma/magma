@@ -21,10 +21,10 @@ from generate_service_config import generate_template_config
 from lte.protos.mconfig.mconfigs_pb2 import MME
 from magma.common.misc_utils import (
     IpPreference,
+    get_if_ip_with_netmask,
     get_ip_from_if,
     get_ip_from_if_cidr,
     get_ipv6_from_if,
-    get_if_ip_with_netmask,
 )
 from magma.configuration.mconfig_managers import load_service_mconfig
 from magma.configuration.service_configs import get_service_config_value
@@ -406,7 +406,9 @@ def _get_context():
         "remote_sgw_ip": get_service_config_value("mme", "remote_sgw_ip", ""),
         "s1ap_ip": _get_iface_ip("mme", "s1ap_iface_name"),
         "s1ap_ipv6": _get_iface_ipv6("mme", "s1ap_iface_name"),
-        "s1ap_ipv6_enabled": get_service_config_value("mme", "s1ap_ipv6_enabled", False),
+        "s1ap_ipv6_enabled": get_service_config_value(
+            "mme", "s1ap_ipv6_enabled", default=False,
+        ),
         "oai_log_level": _get_oai_log_level(),
         "ipv4_dns": _get_primary_dns_ip(mme_service_config, "dns_iface_name"),
         "ipv4_sec_dns": _get_secondary_dns_ip(mme_service_config),

@@ -113,7 +113,6 @@ typedef struct sgw_config_s {
   struct {
     bstring if_name_S1u_S12_S4_up;
     struct in6_addr S1u_S12_S4_up;
-    int netmask_S1u_S12_S4_up;
 
     bool s1_ipv6_enabled;
   } ipv6;
