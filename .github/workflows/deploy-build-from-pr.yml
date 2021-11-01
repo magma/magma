@@ -147,8 +147,8 @@ jobs:
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
           ISSUE_NUMBER: "${{ steps.save_metadata.outputs.issue_number }}"
         run: |
-          docker image load --input gateway_go.tar
-          docker image load --input gateway_python.tar
+          docker image load --input feg_gateway_go.tar
+          docker image load --input feg_gateway_python.tar
           ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${ISSUE_NUMBER}" --tag-latest true --project feg
       - name: Push Helm charts and verify the push
         env:
