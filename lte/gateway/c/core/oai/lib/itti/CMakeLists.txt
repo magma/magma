@@ -16,5 +16,6 @@ target_link_libraries(LIB_ITTI
     LIB_BSTR LIB_HASHTABLE LIB_MESSAGE_UTILS
     )
 target_include_directories(LIB_ITTI PUBLIC
+    $ENV{MAGMA_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}
     )

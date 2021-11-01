@@ -26,6 +26,7 @@ target_link_libraries(LIB_DIRECTORYD
     )
 
 target_include_directories(LIB_DIRECTORYD PUBLIC
+    $ENV{MAGMA_ROOT} 
     ${CMAKE_CURRENT_SOURCE_DIR}
     $<TARGET_FILE_DIR:LIB_DIRECTORYD>
     )
