@@ -12,6 +12,7 @@ limitations under the License.
 """
 import logging
 import random
+from copy import deepcopy
 from ipaddress import ip_address, ip_network
 from typing import List, Optional
 
@@ -236,7 +237,11 @@ class IPv6AllocatorPool(IPAllocator):
         """
         Returns: assigned IP blocks on the allocator
         """
-        return [self._assigned_ip_block]
+        ret = []
+        for ipblock in self._store.assigned_ip_blocks:
+            if ipblock.version == 6:
+                ret.append(ipblock)
+        return list(deepcopy(ret))
 
     def list_allocated_ips(self, ipblock: ip_network) -> List[ip_address]:
         raise NotImplementedError
