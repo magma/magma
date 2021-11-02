@@ -460,7 +460,7 @@ void mme_config_exit(void);
 void free_mme_config(mme_config_t* mme_config);
 void clear_served_tai_config(served_tai_t* served_tai);
 
-void free_partial_lists(partial_list_t** partialList, uint8_t num_par_lists);
+void free_partial_lists(partial_list_t* partialList, uint8_t num_par_lists);
 
 #define mme_config_read_lock(mMEcONFIG)                                        \
   pthread_rwlock_rdlock(&(mMEcONFIG)->rw_lock)
