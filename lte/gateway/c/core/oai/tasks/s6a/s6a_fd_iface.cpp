@@ -25,19 +25,19 @@
 extern "C" {
 #endif
 
-#include "common_defs.h"
-#include "s6a_messages.h"
-#include "s6a_messages_types.h"
-#include "intertask_interface.h"
-#include "mme_config.h"
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "s6a_fd_iface.h"
-#include "includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_fd_iface.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
 #include <iostream>
 #include <exception>

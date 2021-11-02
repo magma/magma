@@ -694,8 +694,9 @@ func getCreateSubscriberEnts(sub *subscribermodels.MutableSubscriber) configurat
 		Key:  string(sub.ID),
 		Name: sub.Name,
 		Config: &subscribermodels.SubscriberConfig{
-			Lte:       sub.Lte,
-			StaticIps: sub.StaticIps,
+			Lte:                   sub.Lte,
+			StaticIps:             sub.StaticIps,
+			ForbiddenNetworkTypes: sub.ForbiddenNetworkTypes,
 		},
 		Associations: sub.GetAssocs(),
 	}
@@ -735,8 +736,9 @@ func updateSubscriber(ctx context.Context, networkID string, sub *subscribermode
 		Type:    lte.SubscriberEntityType,
 		NewName: swag.String(sub.Name),
 		NewConfig: &subscribermodels.SubscriberConfig{
-			Lte:       sub.Lte,
-			StaticIps: sub.StaticIps,
+			Lte:                   sub.Lte,
+			StaticIps:             sub.StaticIps,
+			ForbiddenNetworkTypes: sub.ForbiddenNetworkTypes,
 		},
 		AssociationsToSet: sub.GetAssocs(),
 	}

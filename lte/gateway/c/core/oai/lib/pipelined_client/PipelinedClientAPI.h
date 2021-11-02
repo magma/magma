@@ -18,7 +18,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 typedef enum {
   UE_SESSION_ACTIVE_STATE,
   UE_SESSION_UNREGISTERED_STATE,
@@ -28,8 +28,8 @@ typedef enum {
   UE_SESSION_RESUME_DATA_STATE,
 } ue_session_states;
 
-#include "3gpp_23.003.h"
-#include "gtpv1u.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 
 int upf_classifier_add_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,

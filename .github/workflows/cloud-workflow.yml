@@ -5,9 +5,11 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
+      - v1.*
   pull_request:
     branches:
       - master
+      - v1.*
     types: [opened, reopened, synchronize]
 
 jobs:
@@ -24,8 +26,7 @@ jobs:
         with:
           filters: |
             filesChanged:
-              - [".github/workflows/cloud-workflow.yml", "wifi/cloud/**", "cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/cloud/**", "orc8r/lib/**"]
-
+              - [".github/workflows/cloud-workflow.yml", "wifi/cloud/**", "lte/proto/**", "cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/cloud/**", "orc8r/lib/**"]
   # Fail if checked-in generated code doesn't match output from
   # generation command.
   insync-checkin:
@@ -50,13 +51,13 @@ jobs:
             git status
             git diff-index --quiet HEAD
       - name: Extract commit title
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         id: commit
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -90,7 +91,7 @@ jobs:
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -128,12 +129,12 @@ jobs:
           flags: cloud_lint
       - name: Extract commit title
         id: commit
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -169,12 +170,12 @@ jobs:
           path: "${{ env.MAGMA_ROOT}}/orc8r/cloud/test-results/*"
       - name: Extract commit title
         id: commit
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -183,107 +184,4 @@ jobs:
           SLACK_USERNAME: "Cloud workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-  cloud-upload:
-    needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' && github.ref == 'refs/heads/master' }}
-    name: cloud upload job
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install SwaggerHub CLI
-        run: npm install --global swaggerhub-cli
-      - name: Publish SwaggerHub API
-        env:
-          MAGMA_ROOT: "${{ github.workspace }}"
-          SWAGGERHUB_API_KEY: "${{ secrets.SWAGGERHUB_API_KEY }}"
-        run: |
-          swaggerhub api:unpublish MagmaCore/Magma/1.0.0
-          swaggerhub api:update MagmaCore/Magma/1.0.0 --file ${MAGMA_ROOT}/orc8r/cloud/go/obsidian/swagger/v1/swagger.yml --published=publish --visibility=public --setdefault
-      - name: Extract commit title
-        id: commit
-        if: failure() && github.ref == 'refs/heads/master'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to Slack
-        if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action cloud-upload failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Cloud workflow"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-  orc8r-build:
-    needs:
-      - path_filter
-      - insync-checkin
-      - deploy-sync-checkin
-      - cloud-lint
-      - cloud-test
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    name: orc8r build job
-    runs-on: ubuntu-latest
-    env:
-      MAGMA_ROOT: "${{ github.workspace }}"
-      DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
-      DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
-      DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run apt-get update
-        run: sudo apt-get update
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.7'
-      - name: Run build.py
-        run: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py --all --nocache --parallel
-      - name: Tag and push to Docker Registry
-        if: github.ref == 'refs/heads/master'
-        # yamllint disable rule:line-length
-        run: |
-            ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project orc8r
-      - name: Tag and push to Jfrog Registry
-        if: github.ref == 'refs/heads/master'
-        env:
-          DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
-        run: |
-            ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project orc8r
-      - name: Extract commit title
-        if: github.ref == 'refs/heads/master'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to Slack
-        if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        # yamllint enable
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_TITLE: "Github action orc8r-build failed"
-          SLACK_USERNAME: "Cloud workflow"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      # Notify ci channel when push succeeds
-      - name: Notify success to Slack
-        if: success() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "*Orchestrator images have been published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Cloud workflow"
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '

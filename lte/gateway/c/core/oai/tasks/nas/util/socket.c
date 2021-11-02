@@ -32,8 +32,8 @@
 
  *****************************************************************************/
 
-#include "socket.h"
-#include "nas/commonDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/socket.h"
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 
 #include <stdlib.h>  // malloc, free, atoi
 #include <string.h>  // memset
@@ -42,7 +42,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>  // socket, setsockopt, connect, bind, recv, send
 #include <netdb.h>       // getaddrinfo
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/

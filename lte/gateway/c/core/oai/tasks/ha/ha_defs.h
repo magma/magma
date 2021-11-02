@@ -13,8 +13,8 @@ limitations under the License.
 #ifndef HA_DEFS_H_
 #define HA_DEFS_H_
 
-#include "intertask_interface.h"
-#include "mme_config.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 
 extern task_zmq_ctx_t ha_task_zmq_ctx;
 

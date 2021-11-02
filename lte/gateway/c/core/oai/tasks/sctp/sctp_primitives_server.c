@@ -23,32 +23,32 @@
     @ingroup _sctp
 */
 
-#include "sctp_primitives_server.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctp_primitives_server.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <errno.h>
-#include "bstrlib.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "itti_free_defined_msg.h"
-#include "itti_types.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
-#include "assertions.h"
-#include "common_defs.h"
-#include "common_types.h"
-#include "dynamic_memory_check.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 
-#include "amf_default_values.h"
-#include "mme_default_values.h"
-#include "service303.h"
-#include "sctp_itti_messaging.h"
-#include "sctp_messages_types.h"
-#include "sctpd_downlink_client.h"
-#include "sctpd_uplink_server.h"
+#include "lte/gateway/c/core/oai/common/amf_default_values.h"
+#include "lte/gateway/c/core/oai/common/mme_default_values.h"
+#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctp_itti_messaging.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_downlink_client.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctpd_uplink_server.h"
 
 static void sctp_exit(void);
 

@@ -25,14 +25,14 @@
 #ifndef FILE_SGW_HANDLERS_SEEN
 #define FILE_SGW_HANDLERS_SEEN
 
-#include "common_defs.h"
-#include "common_types.h"
-#include "gtpv1_u_messages_types.h"
-#include "ip_forward_messages_types.h"
-#include "s11_messages_types.h"
-#include "spgw_state.h"
-#include "intertask_interface.h"
-#include "gtpv1u.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/gtpv1_u_messages_types.h"
+#include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 
 extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
 
@@ -107,13 +107,15 @@ void sgw_process_release_access_bearer_request(
 int sgw_build_and_send_s11_create_bearer_request(
     sgw_eps_bearer_context_information_t* sgw_eps_bearer_context_information,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
-    uint32_t sgw_ip_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
+    pdn_type_t pdn_type, uint32_t sgw_ip_address_S1u_S12_S4_up,
+    struct in6_addr* sgw_ipv6_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
     log_proto_t module);
 
 int create_temporary_dedicated_bearer_context(
     sgw_eps_bearer_context_information_t* sgw_ctxt_p,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
-    uint32_t sgw_ip_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
+    pdn_type_t pdn_type, uint32_t sgw_ip_address_S1u_S12_S4_up,
+    struct in6_addr* sgw_ipv6_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
     uint32_t sequence_number, log_proto_t module);
 
 void handle_failed_create_bearer_response(

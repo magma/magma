@@ -20,9 +20,9 @@
 #include <math.h>    // double ceil(double x);
 #include <stdlib.h>  // malloc, free
 
-#include "secu_defs.h"
-#include "conversions.h"
-#include "snow3g.h"
+#include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/secu/snow3g.h"
 
 uint64_t MUL64x(uint64_t V, uint64_t c);
 uint64_t MUL64xPOW(uint64_t V, uint32_t i, uint64_t c);

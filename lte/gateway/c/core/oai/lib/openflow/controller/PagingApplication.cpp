@@ -17,13 +17,13 @@
 
 #include <netinet/ip.h>
 #include <arpa/inet.h>
-#include "OpenflowController.h"
-#include "PagingApplication.h"
-#include "MobilityClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/PagingApplication.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
 
 extern "C" {
-#include "log.h"
-#include "sgw_paging.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_paging.h"
 }
 
 using namespace fluid_msg;

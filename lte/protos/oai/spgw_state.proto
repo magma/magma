@@ -138,6 +138,8 @@ message SgwEpsBearerContext {
     repeated uint32 sdf_ids = 26;
 
     string policy_rule_name = 27;
+
+    bytes sgw_ipv6_address_s1u_s12_s4_up = 28;
 }
 
 // traffic_flow_template

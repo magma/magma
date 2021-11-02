@@ -18,13 +18,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "EpsQualityOfService.h"
-#include "RadioPriority.h"
-#include "ApnAggregateMaximumBitRate.h"
-#include "ModifyEpsBearerContextRequest.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/RadioPriority.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ModifyEpsBearerContextRequest.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 int decode_modify_eps_bearer_context_request(
     modify_eps_bearer_context_request_msg* modify_eps_bearer_context_request,

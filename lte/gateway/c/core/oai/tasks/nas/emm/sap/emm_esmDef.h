@@ -37,8 +37,8 @@ Description Defines the EMMESM Service Access Point that provides
 #ifndef FILE_EMM_ESMDEF_SEEN
 #define FILE_EMM_ESMDEF_SEEN
 
-#include "bstrlib.h"
-#include "emm_data.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

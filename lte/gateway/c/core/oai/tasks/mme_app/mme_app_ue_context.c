@@ -28,10 +28,10 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-#include "conversions.h"
-#include "mme_app_ue_context.h"
-#include "3gpp_23.003.h"
-#include "3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 
 /**
  * @brief mme_app_copy_imsi: copies an mme imsi to another mme imsi

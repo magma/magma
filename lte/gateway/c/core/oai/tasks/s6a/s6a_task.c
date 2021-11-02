@@ -28,25 +28,25 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include "bstrlib.h"
-#include "3gpp_23.003.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
-#include "s6a_messages_types.h"
-#include "service303.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/include/service303.h"
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
-#include "log.h"
-#include "assertions.h"
-#include "intertask_interface.h"
-#include "itti_free_defined_msg.h"
-#include "common_defs.h"
-#include "s6a_defs.h"
-#include "s6a_messages.h"
-#include "mme_config.h"
-#include "s6a_client_api.h"
-#include "s6a_c_iface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_c_iface.h"
 
 static void s6a_exit(void);
 

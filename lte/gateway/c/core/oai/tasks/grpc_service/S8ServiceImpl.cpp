@@ -13,15 +13,15 @@ limitations under the License.
 #include <string>
 
 extern "C" {
-#include "intertask_interface.h"
-#include "log.h"
-#include "common_types.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 }
-#include "S8ServiceImpl.h"
-#include "s8_itti_proto_conversion.h"
-#include "spgw_state_converter.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.h"
+#include "lte/gateway/c/core/oai/lib/s8_proxy/s8_itti_proto_conversion.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.h"
 
 namespace grpc {
 class ServerContext;

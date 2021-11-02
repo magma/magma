@@ -15,20 +15,20 @@ limitations under the License.
 #include <sys/types.h>
 
 extern "C" {
-#include "common_types.h"
-#include "ha_defs.h"
-#include "ha_messages_types.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
-#include "log.h"
-#include "s1ap_state.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/tasks/ha/ha_defs.h"
+#include "lte/gateway/c/core/oai/include/ha_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.h"
 #include "S1ap_CauseRadioNetwork.h"
 }
 
-#include "HaClient.h"
-#include "mme_app_state_manager.h"
-#include "s1ap_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/ha/HaClient.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.h"
 
 static bool trigger_agw_offload_for_ue(
     const hash_key_t keyP, void* const elementP, void* parameterP,

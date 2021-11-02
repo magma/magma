@@ -38,14 +38,14 @@ Description Implements the API used by the NAS layer running in the MME
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "TrackingAreaIdentity.h"
-#include "TrackingAreaIdentityList.h"
-#include "3gpp_23.003.h"
-#include "common_defs.h"
-#include "common_types.h"
-#include "3gpp_36.401.h"
-#include "bstrlib.h"
-#include "mme_config.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 
 struct mme_config_s;
 

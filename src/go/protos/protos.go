@@ -22,3 +22,5 @@ package protos
 //go:generate protoc --go_out=. --go_opt=Mcommon.proto=magma/orc8r;orc8r -I ../../../orc8r/protos common.proto
 //go:generate protoc --go_out=. --go_opt=Mmconfigs.proto=magma/mconfig;mconfig --go_opt=Morc8r/protos/common.proto=github.com/magma/magma/src/go/protos/magma/orc8r -I ../../../lte/protos/mconfig -I ../../../ mconfigs.proto
 //go:generate protoc --go-grpc_out=. --go-grpc_opt=Mmconfigs.proto=magma/mconfig;mconfig -I ../../../lte/protos/mconfig -I ../../../ mconfigs.proto
+
+//go:generate protoc --go_out=. --go_opt=Mcapture.proto=magma/capture;capture -I magma/capture capture.proto

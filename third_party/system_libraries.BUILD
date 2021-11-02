@@ -13,6 +13,39 @@ load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 
 package(default_visibility = ["//visibility:public"])
 
+# This configuration is used for building inside the Magma VM
+# The default configuration applies for building inside the bazel build Docker container
+config_setting(
+    name = "use_folly_so",
+    values = {"define": "folly_so=1"},
+)
+
+cc_library(
+    name = "folly",
+    srcs = select({
+        ":use_folly_so": ["usr/local/lib/libfolly.so"],
+        "//conditions:default": [
+            "usr/local/lib/libfolly.a",
+            "usr/local/lib/libfmt.a",
+        ],
+    }),
+    linkopts = select({
+        ":use_folly_so": [
+            "-ldl",
+            "-levent",
+            "-ldouble-conversion",
+            "-lgflags",
+        ],
+        "//conditions:default": [
+            "-ldl",
+            "-levent",
+            "-ldouble-conversion",
+            "-lgflags",
+            "-liberty",
+        ],
+    }),
+)
+
 cc_library(
     name = "libtins",
     srcs = ["usr/lib/libtins.so"],

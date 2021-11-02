@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "MobilityClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
 
 #include <grpcpp/security/credentials.h>
 
@@ -23,14 +23,14 @@
 #include <cstring>
 #include <string>
 
-#include "common_defs.h"
-#include "common_types.h"
-#include "conversions.h"
-#include "intertask_interface.h"
-#include "log.h"
-#include "MobilityServiceClient.h"
-#include "includes/MetricsHelpers.h"
-#include "spgw_types.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
 
 using grpc::Channel;
 using grpc::ChannelCredentials;

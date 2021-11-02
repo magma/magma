@@ -35,7 +35,7 @@
 
 #include <libgen.h>
 
-#include "NwTypes.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
 
 /**
  * @file NwLog.h

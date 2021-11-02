@@ -13,13 +13,13 @@
 
 #pragma once
 
-#include "common_defs.h"
-#include "3gpp_38.401.h"
-#include "bstrlib.h"
-#include "common_types.h"
-#include "amf_app_messages_types.h"
-#include "ngap_messages_types.h"
-#include "ngap_state.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
+#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.h"
 struct ngap_message_s;
 
 #define FETCH_AMF_SET_ID_FROM_PDU(aSN, Amf_Set_Id)                             \

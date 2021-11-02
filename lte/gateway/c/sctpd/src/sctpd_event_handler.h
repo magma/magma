@@ -13,9 +13,9 @@
 
 #pragma once
 
-#include "sctp_connection.h"
+#include "lte/gateway/c/sctpd/src/sctp_connection.h"
 
-#include "sctpd_uplink_client.h"
+#include "lte/gateway/c/sctpd/src/sctpd_uplink_client.h"
 
 namespace magma {
 namespace sctpd {

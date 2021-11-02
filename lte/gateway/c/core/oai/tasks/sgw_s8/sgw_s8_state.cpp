@@ -11,20 +11,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "sgw_s8_state.h"
+#include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
 
 #include <cstdlib>
-#include <conversions.h>
+#include <lte/gateway/c/core/oai/common/conversions.h>
 
 extern "C" {
-#include "assertions.h"
-#include "bstrlib.h"
-#include "dynamic_memory_check.h"
-#include "sgw_context_manager.h"
-#include "pgw_procedures.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
 }
 
-#include "sgw_s8_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.h"
 
 using magma::lte::SgwStateManager;
 

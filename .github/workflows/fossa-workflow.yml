@@ -5,9 +5,11 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
+      - v1.*
   pull_request:
     branches:
       - master
+      - v1.*
 jobs:
   fossa-analyze:
     env:
@@ -32,14 +34,14 @@ jobs:
             sudo ${MAGMA_ROOT}/circleci/fossa-analyze-go.sh
       - name: Extract commit title
         id: commit
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}

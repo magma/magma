@@ -13,12 +13,12 @@
 
 #pragma once
 #include <sstream>
-#include "securityDef.h"
-#include "common_types.h"
-#include "3gpp_24.008.h"
-#include "TrackingAreaIdentity.h"
-#include "amf_config.h"
-#include "SmfMessage.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.h"
 
 #define NAS_MESSAGE_SECURITY_HEADER_SIZE 7
 typedef uint8_t amf_cause_t;

@@ -35,16 +35,16 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-#include "NwTypes.h"
-#include "NwLog.h"
-#include "NwUtils.h"
-#include "NwGtpv2cLog.h"
-#include "NwGtpv2c.h"
-#include "NwGtpv2cPrivate.h"
-#include "NwGtpv2cTrxn.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwLog.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwUtils.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2cLog.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2cPrivate.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2cTrxn.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 
 /*--------------------------------------------------------------------------*
                    P R I V A T E  D E C L A R A T I O N S

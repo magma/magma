@@ -16,12 +16,12 @@
 #include <functional>
 #include <memory>
 
-#include "3gpp_38.413.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 
 #include <grpc++/grpc++.h>
 #include "lte/protos/subscriberauth.grpc.pb.h"
 #include "lte/protos/subscriberauth.pb.h"
-#include "includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
 
 using grpc::Status;
 using magma::GRPCReceiver;

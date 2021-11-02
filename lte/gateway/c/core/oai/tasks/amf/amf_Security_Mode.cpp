@@ -15,20 +15,20 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "3gpp_24.501.h"
-#include "conversions.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #ifdef __cplusplus
 }
 #endif
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 #include <thread>
-#include "amf_fsm.h"
-#include "amf_recv.h"
-#include "amf_sap.h"
-#include "amf_app_timer_management.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 
 namespace magma5g {
 
@@ -45,7 +45,7 @@ int amf_handle_security_complete_response(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   ue_m5gmm_context_s* ue_mm_context = NULL;
   amf_context_t* amf_ctx            = NULL;
-  int rc                            = RETURNerror;
+  int rc                            = RETURNok;
   OAILOG_DEBUG(
       LOG_NAS_AMF,
       "Security mode procedures complete for "

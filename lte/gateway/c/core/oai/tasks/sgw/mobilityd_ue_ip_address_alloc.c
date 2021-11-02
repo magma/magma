@@ -15,12 +15,12 @@
  *      contact@openairinterface.org
  */
 
-#include "pgw_ue_ip_address_alloc.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.h"
 
-#include "log.h"
-#include "MobilityClientAPI.h"
-#include "service303.h"
-#include "includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
+#include "lte/gateway/c/core/oai/include/service303.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
 struct in_addr;
 

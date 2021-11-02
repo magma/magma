@@ -36,9 +36,9 @@ Description Defines the ESM Service Access Point that provides EPS
 #ifndef __ESM_SAPDEF_H__
 #define __ESM_SAPDEF_H__
 
-#include "bstrlib.h"
-#include "emm_data.h"
-#include "3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

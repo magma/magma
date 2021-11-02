@@ -15,21 +15,21 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "assertions.h"
-#include "conversions.h"
-#include "amf_config.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #ifdef __cplusplus
 }
 #endif
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 #include <unordered_map>
-#include "amf_identity.h"
-#include "amf_sap.h"
-#include "amf_recv.h"
-#include "amf_app_timer_management.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 
 extern amf_config_t amf_config;
 namespace magma5g {

@@ -1,0 +1,31 @@
+// Copyright 2021 The Magma Authors.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package magma.capture;
+
+import "google/protobuf/any.proto";
+
+// Capture is used for recording RPC calls for tracing, loggging, and testing purposes.
+
+// UnaryCall represents a single unary rpc call.
+message UnaryCall {
+  string method = 1;
+  google.protobuf.Any request = 2;
+  google.protobuf.Any response = 3;
+  string err = 4;
+}
+
+// Recording represents a recorded series of unary_calls.
+message Recording {
+  repeated UnaryCall unary_calls = 1;
+}

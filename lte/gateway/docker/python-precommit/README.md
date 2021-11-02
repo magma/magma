@@ -17,10 +17,11 @@ docker run -it -u 0 -v $MAGMA_ROOT:/code magma/py-lint:latest flake8 <args>
 ## Recommended: Use `lte/gateway/python/precommit.py`
 We have a utility script that wraps all necessary Docker commands with Python.
 You should refer to the script for all available commands, but the main ones are as follows.
+
+The script by default uses an up-to-date Docker image hosted on [GitHub](https://github.com/magma/magma/pkgs/container/python-precommit).
+
 ```bash
 cd $MAGMA/lte/gateway/python
-# to build the base image
-./precommit.py --build
 
 # to run the flake8 linter by specifying paths
 ./precommit.py --lint -p PATH1 PATH2

@@ -50,6 +50,7 @@
     "mapbox-gl": "^0.53.0",
     "mariadb": "^2.4.2",
     "material-table": "1.69.0",
+    "material-ui-dropzone": "^3.5.0",
     "pg": "^8.5.1",
     "pug": "^3.0.1",
     "react-chartjs-2": "^2.7.4",

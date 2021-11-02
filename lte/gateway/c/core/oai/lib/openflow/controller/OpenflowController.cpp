@@ -19,11 +19,11 @@
 #include <mutex>
 #include <chrono>
 #include <condition_variable>
-#include "OpenflowController.h"
-#include "ControllerMain.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.h"
 extern "C" {
-#include "log.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 }
 
 using namespace fluid_base;

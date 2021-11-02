@@ -30,23 +30,23 @@
 #include <assert.h>
 #include <errno.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-#include "dynamic_memory_check.h"
-#include "assertions.h"
-#include "hashtable.h"
-#include "log.h"
-#include "mme_config.h"
-#include "intertask_interface.h"
-#include "itti_free_defined_msg.h"
-#include "NwLog.h"
-#include "NwGtpv2c.h"
-#include "NwGtpv2cMsg.h"
-#include "s11_mme.h"
-#include "s11_mme_session_manager.h"
-#include "s11_mme_bearer_manager.h"
-#include "udp_messages_types.h"
-#include "s11_messages_types.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwLog.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
+#include "lte/gateway/c/core/oai/include/s11_mme.h"
+#include "lte/gateway/c/core/oai/tasks/s11/s11_mme_session_manager.h"
+#include "lte/gateway/c/core/oai/tasks/s11/s11_mme_bearer_manager.h"
+#include "lte/gateway/c/core/oai/include/udp_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 
 static nw_gtpv2c_stack_handle_t s11_mme_stack_handle = 0;
 // Store the GTPv2-C teid handle

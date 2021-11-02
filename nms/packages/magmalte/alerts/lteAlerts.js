@@ -22,7 +22,7 @@ export default function getLteAlerts(
   return {
     'Certificate Expiring Soon': {
       alert: 'Certificate Expiring Soon',
-      expr: `cert_expires_in_hours > 720`,
+      expr: `cert_expires_in_hours < 720`,
       labels: {severity: 'major'},
       annotations: {
         description: `Alerts when certificate necessary for Orc8r function is expiring soon`,
@@ -97,7 +97,7 @@ export default function getLteAlerts(
     },
     'S1 Setup Failure': {
       alert: 'S1 Setup Failure',
-      expr: `increase(s1_setup{result="failure", networkID=~"${networkID}"}[5m]) > 0`,
+      expr: `increase(s1_setup{result="failure", networkID=~"${networkID}"}[1h]) > 0`,
       labels: {severity: 'major'},
       annotations: {
         description: 'Alerts when we have S1 setup failures',

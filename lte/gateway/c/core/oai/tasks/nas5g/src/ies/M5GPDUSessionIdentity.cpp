@@ -11,9 +11,9 @@
 
 #include <sstream>
 #include <cstdint>
-#include "M5GPDUSessionIdentity.h"
-#include "M5GCommonDefs.h"
-#include "M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
 PDUSessionIdentityMsg::PDUSessionIdentityMsg(){};

@@ -23,9 +23,9 @@
 
 #include <fluid/OFServer.hh>
 
-#include "ControllerEvents.h"
-#include "OpenflowMessenger.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowMessenger.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 namespace openflow {
 

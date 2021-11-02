@@ -87,6 +87,7 @@ jobs:
             eventd
             feg
             feg_hello
+            feg_relay
             health
             magmad
             mme

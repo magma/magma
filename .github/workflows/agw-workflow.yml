@@ -5,10 +5,11 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
+      - v1.*
   pull_request:
     branches:
       - master
-      - 'v1.*'
+      - v1.*
     types: [opened, reopened, synchronize]
 
 env:
@@ -97,13 +98,13 @@ jobs:
           files: /var/tmp/codecovs/cover_lte.xml,/var/tmp/codecovs/cover_orc8r.xml
           flags: lte-test
       - name: Extract commit title
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         id: commit
         run: |
             str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
             echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -144,13 +145,13 @@ jobs:
             make test_session_manager
       - name: Extract commit title
         # yamllint enable
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         id: commit
         run: |
             str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
             echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -191,13 +192,13 @@ jobs:
             make test_li_agent
       - name: Extract commit title
         # yamllint enable
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         id: commit
         run: |
             str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
             echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -239,13 +240,13 @@ jobs:
             make build_connection_tracker BUILD_TYPE=RelWithDebInfo
       - name: Extract commit title
         # yamllint enable
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         id: commit
         run: |
             str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
             echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -312,13 +313,13 @@ jobs:
             make test_oai BUILD_TYPE=RelWithDebInfo;
       - name: Extract commit title
         # yamllint enable
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         id: commit
         run: |
             str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
             echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -349,13 +350,13 @@ jobs:
             docker run --env BRANCH=${{ env.BRANCH}} --env REVISION=${{ env.REVISION }} --volume ${{ env.MAGMA_ROOT }}:/magma --interactive magma-mme-build:latest /bin/bash -c 'cd /magma/lte/gateway;make clang_tidy_oai_upload'
       - name: Extract commit title
         # yamllint enable
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         id: commit
         run: |
             str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
             echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -386,13 +387,13 @@ jobs:
             docker run --env BRANCH=${{ env.BRANCH }} --env REVISION=${{ env.REVISION }} --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
       - name: Extract commit title
         # yamllint enable
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         id: commit
         run: |
             str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
             echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -422,13 +423,13 @@ jobs:
             docker run $ci_env --env CI=true --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info -F c_cpp"
       - name: Extract commit title
         # yamllint enable
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         id: commit
         run: |
             str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
             echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}

@@ -17,10 +17,10 @@
 
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "EsmCause.h"
-#include "EsmStatus.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmStatus.h"
 
 int decode_esm_status(
     esm_status_msg* esm_status, uint8_t* buffer, uint32_t len) {

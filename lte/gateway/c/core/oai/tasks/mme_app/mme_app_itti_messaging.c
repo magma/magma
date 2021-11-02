@@ -27,29 +27,29 @@
 #include <stdint.h>
 #include <netinet/in.h>
 
-#include "bstrlib.h"
-#include "log.h"
-#include "conversions.h"
-#include "common_types.h"
-#include "intertask_interface.h"
-#include "itti_free_defined_msg.h"
-#include "gcc_diag.h"
-#include "mme_config.h"
-#include "mme_app_ue_context.h"
-#include "mme_app_apn_selection.h"
-#include "mme_app_bearer_context.h"
-#include "sgw_ie_defs.h"
-#include "common_defs.h"
-#include "mme_app_itti_messaging.h"
-#include "mme_app_sgw_selection.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
-#include "emm_data.h"
-#include "esm_data.h"
-#include "mme_app_desc.h"
-#include "s11_messages_types.h"
-#include "common_utility_funs.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/gcc_diag.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgw_selection.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
+#include "lte/gateway/c/core/oai/include/mme_app_desc.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/common/common_utility_funs.h"
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP
@@ -299,10 +299,20 @@ status_code_e mme_app_send_s11_create_session_req(
       (teid_t) ue_mm_context->mme_ue_s1ap_id;
   session_request_p->sender_fteid_for_cp.interface_type = S11_MME_GTP_C;
   mme_config_read_lock(&mme_config);
-  session_request_p->sender_fteid_for_cp.ipv4_address.s_addr =
-      mme_config.ip.s11_mme_v4.s_addr;
+  if (session_request_p->pdn_type == IPv4 ||
+      session_request_p->pdn_type == IPv4_AND_v6) {
+    session_request_p->sender_fteid_for_cp.ipv4_address.s_addr =
+        mme_config.ip.s11_mme_v4.s_addr;
+    session_request_p->sender_fteid_for_cp.ipv4 = 1;
+  } else {
+    memcpy(
+        &session_request_p->sender_fteid_for_cp.ipv6_address,
+        &mme_config.ip.s11_mme_v6,
+        sizeof(session_request_p->sender_fteid_for_cp.ipv6_address));
+
+    session_request_p->sender_fteid_for_cp.ipv6 = 1;
+  }
   mme_config_unlock(&mme_config);
-  session_request_p->sender_fteid_for_cp.ipv4 = 1;
 
   // ue_mm_context->mme_teid_s11 = session_request_p->sender_fteid_for_cp.teid;
   ue_mm_context->pdn_contexts[pdn_cid]->s_gw_teid_s11_s4 = 0;

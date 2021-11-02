@@ -62,6 +62,7 @@ class IPv6AllocatorPool(IPAllocator):
 
         # For now only one IPv6 network is supported
         self._assigned_ip_block = ipblock
+        self._store.assigned_ip_blocks.add(ipblock)
 
     def remove_ip_blocks(
         self, ipblocks: List[ip_network],
@@ -113,6 +114,8 @@ class IPv6AllocatorPool(IPAllocator):
             self._assigned_ip_block,
         )
         self._assigned_ip_block = None
+        self._store.assigned_ip_blocks -= removed_blocks
+
         return removed_blocks
 
     def alloc_ip_address(self, sid: str, _) -> IPDesc:

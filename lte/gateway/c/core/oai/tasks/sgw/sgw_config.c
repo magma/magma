@@ -32,12 +32,12 @@
 #include <stdbool.h>
 #include <libconfig.h>
 
-#include "bstrlib.h"
-#include "assertions.h"
-#include "log.h"
-#include "common_defs.h"
-#include "dynamic_memory_check.h"
-#include "sgw_config.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/sgw_config.h"
 
 #ifdef LIBCONFIG_LONG
 #define libconfig_int long
@@ -69,17 +69,20 @@ status_code_e sgw_config_parse_string(
     const char* config_string, sgw_config_t* config_pP)
 
 {
-  config_t cfg                             = {0};
-  config_setting_t* setting_sgw            = NULL;
-  char* sgw_if_name_S1u_S12_S4_up          = NULL;
-  char* S1u_S12_S4_up                      = NULL;
-  char* sgw_if_name_S5_S8_up               = NULL;
-  char* S5_S8_up                           = NULL;
-  char* sgw_if_name_S11                    = NULL;
-  char* S11                                = NULL;
-  char* s1_ipv6_enabled                    = NULL;
-  libconfig_int sgw_udp_port_S1u_S12_S4_up = 2152;
-  config_setting_t* subsetting             = NULL;
+  config_t cfg                                = {0};
+  config_setting_t* setting_sgw               = NULL;
+  char* sgw_if_name_S1u_S12_S4_up             = NULL;
+  char* sgw_if_name_S1u_S12_S4_up_v6          = NULL;
+  char* S1u_S12_S4_up                         = NULL;
+  char* S1u_S12_S4_up_v6                      = NULL;
+  char* sgw_if_name_S5_S8_up                  = NULL;
+  char* S5_S8_up                              = NULL;
+  char* sgw_if_name_S11                       = NULL;
+  char* S11                                   = NULL;
+  char* s1_ipv6_enabled                       = NULL;
+  libconfig_int sgw_udp_port_S1u_S12_S4_up    = 2152;
+  libconfig_int sgw_udp_port_S1u_S12_S4_up_v6 = 2152;
+  config_setting_t* subsetting                = NULL;
 #if (!EMBEDDED_SGW)
   const char* astring = NULL;
 #endif
@@ -88,6 +91,8 @@ status_code_e sgw_config_parse_string(
   bstring mask               = NULL;
   struct in_addr in_addr_var = {0};
   (void) in_addr_var;
+  struct in6_addr in6_addr_var = {0};
+  (void) in6_addr_var;
 
   config_init(&cfg);
 
@@ -292,9 +297,33 @@ status_code_e sgw_config_parse_string(
       }
 
       if (config_setting_lookup_string(
-              setting_sgw, SGW_CONFIG_STRING_S1_IPV6_ENABLED,
-              (const char**) &s1_ipv6_enabled)) {
+              subsetting,
+              SGW_CONFIG_STRING_SGW_INTERFACE_NAME_FOR_S1U_S12_S4_UP,
+              (const char**) &sgw_if_name_S1u_S12_S4_up_v6) &&
+          config_setting_lookup_string(
+              subsetting, SGW_CONFIG_STRING_S1_IPV6_ENABLED,
+              (const char**) &s1_ipv6_enabled) &&
+          config_setting_lookup_string(
+              subsetting, SGW_CONFIG_STRING_SGW_IPV6_ADDRESS_FOR_S1U_S12_S4_UP,
+              (const char**) &S1u_S12_S4_up_v6)) {
         // S1AP IPv6 address
+        config_pP->ipv6.if_name_S1u_S12_S4_up =
+            bfromcstr(sgw_if_name_S1u_S12_S4_up_v6);
+        address = bfromcstr(S1u_S12_S4_up_v6);
+        IPV6_STR_ADDR_TO_INADDR(
+            bdata(address), config_pP->ipv6.S1u_S12_S4_up,
+            "BAD IPv6 ADDRESS FORMAT FOR S1u_S12_S4 !\n");
+        memcpy(
+            &in6_addr_var, &config_pP->ipv6.S1u_S12_S4_up,
+            sizeof(in6_addr_var));
+        bdestroy(address);
+        char buf[INET6_ADDRSTRLEN];
+        OAILOG_INFO(
+            LOG_SPGW_APP,
+            "Parsing configuration file found S1u_S12_S4_up: %s on %s\n",
+            inet_ntop(AF_INET6, &in6_addr_var, buf, INET6_ADDRSTRLEN),
+            bdata(config_pP->ipv6.if_name_S1u_S12_S4_up));
+
         config_pP->ipv6.s1_ipv6_enabled = parse_bool(s1_ipv6_enabled);
       }
 
@@ -304,6 +333,14 @@ status_code_e sgw_config_parse_string(
         config_pP->udp_port_S1u_S12_S4_up = sgw_udp_port_S1u_S12_S4_up;
       } else {
         config_pP->udp_port_S1u_S12_S4_up = sgw_udp_port_S1u_S12_S4_up;
+      }
+
+      if (config_setting_lookup_int(
+              subsetting, SGW_CONFIG_STRING_SGW_V6_PORT_FOR_S1U_S12_S4_UP,
+              &sgw_udp_port_S1u_S12_S4_up)) {
+        config_pP->udp_port_S1u_S12_S4_up_v6 = sgw_udp_port_S1u_S12_S4_up_v6;
+      } else {
+        config_pP->udp_port_S1u_S12_S4_up_v6 = sgw_udp_port_S1u_S12_S4_up_v6;
       }
     }
     config_setting_t* ovs_settings =
@@ -520,6 +557,7 @@ void free_sgw_config(sgw_config_t* sgw_config) {
   bdestroy_wrapper(&sgw_config->ipv4.if_name_S1u_S12_S4_up);
   bdestroy_wrapper(&sgw_config->ipv4.if_name_S5_S8_up);
   bdestroy_wrapper(&sgw_config->ipv4.if_name_S11);
+  bdestroy_wrapper(&sgw_config->ipv6.if_name_S1u_S12_S4_up);
 }
 
 static bool parse_bool(const char* str) {
