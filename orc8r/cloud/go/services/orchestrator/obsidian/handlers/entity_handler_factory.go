@@ -75,9 +75,9 @@ func GetPartialReadEntityHandler(path string, paramName string, model PartialEnt
 
 			err := model.FromBackendModels(c.Request().Context(), networkID, key)
 			if err == errors.ErrNotFound {
-				return obsidian.HttpError(err, http.StatusNotFound)
+				return obsidian.MakeHTTPError(err, http.StatusNotFound)
 			} else if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 			}
 			return c.JSON(http.StatusOK, model)
 		},
@@ -116,11 +116,11 @@ func GetPartialUpdateEntityHandler(path string, paramName string, model PartialE
 			reqCtx := c.Request().Context()
 			updates, err := requestedUpdate.(PartialEntityModel).ToUpdateCriteria(reqCtx, networkID, key)
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusBadRequest)
+				return obsidian.MakeHTTPError(err, http.StatusBadRequest)
 			}
 			_, err = configurator.UpdateEntities(reqCtx, networkID, updates, serdes)
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 			}
 			return c.NoContent(http.StatusNoContent)
 		},
