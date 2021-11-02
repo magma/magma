@@ -788,6 +788,7 @@ func (m *SubscriberData) GetSubNetwork() *CoreNetworkType {
 }
 
 type CoreNetworkType struct {
+	// Network Types to be restricted per subscriber. If not configured, Subscriber will have access to all Network Types by default.
 	ForbiddenNetworkTypes []CoreNetworkType_CoreNetworkTypes `protobuf:"varint,1,rep,packed,name=forbidden_network_types,json=forbiddenNetworkTypes,proto3,enum=magma.lte.CoreNetworkType_CoreNetworkTypes" json:"forbidden_network_types,omitempty"`
 	XXX_NoUnkeyedLiteral  struct{}                           `json:"-"`
 	XXX_unrecognized      []byte                             `json:"-"`
