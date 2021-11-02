@@ -52,7 +52,7 @@ class TestSMCTimer3460Expiry(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
-        print("*** Authentication Request Message Received ***",)
+        print("*** Authentication Request Message Received ***")
 
         # Trigger Authentication Response
         auth_res = s1ap_types.ueAuthResp_t()
@@ -60,7 +60,7 @@ class TestSMCTimer3460Expiry(unittest.TestCase):
         sqnRecvd = s1ap_types.ueSqnRcvd_t()
         sqnRecvd.pres = 0
         auth_res.sqnRcvd = sqnRecvd
-        print("*** Sending Authentication Response Message ***",)
+        print("*** Sending Authentication Response Message ***")
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
