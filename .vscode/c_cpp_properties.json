@@ -10,7 +10,6 @@
                 "${workspaceFolder}/lte/gateway/c/core/oai/lib/bstr/*",
                 "${workspaceFolder}/lte/gateway/c/core/oai/lib/hashtable/*",
                 "${workspaceFolder}/lte/gateway/c/core/oai/lib/itti/*",
-                "${workspaceFolder}/lte/gateway/c/core/oai/tasks/mme_app/",
                 "${workspaceFolder}/lte/gateway/c/core/oai/tasks/**",
                 "${workspaceFolder}/build/tasks/s1ap/r15",
                 "${workspaceFolder}/build/tasks/ngap/r16",
