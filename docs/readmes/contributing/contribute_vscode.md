@@ -15,11 +15,13 @@ There are two types of workspaces supported by the Magma team
 
 Visual Studio Code is available for downloads at [their official website](https://code.visualstudio.com).
 
-## Setup Remote SSH workspace with Magma VM
+## Opening up a VSCode workspace
+
+### Setup Remote SSH workspace with Magma VM
 
 The steps below need to only be done once. After your workspace is setup once, it is easily accessible via **File->Open Recent**.
 
-### Setup default extensions for SSH workspace
+#### Setup default extensions for SSH workspace
 
 Open VSCode and use **Command+Shift+P** to open the editor preferences and select **Preferences: Open Settings (JSON)**. This will open the user settings file for VSCode. Insert the following into the file. This configuration will take effect the next time VSCode connects to a remote host.
 
@@ -39,7 +41,7 @@ Open VSCode and use **Command+Shift+P** to open the editor preferences and selec
 
 Unlike with Devcontainer settings, there is no way to configure default extensions ouside of user settings. It may be good to periodically check this section for any updated extensions that should be installed.
 
-### Add the VM SSH config to ~/.ssh/config
+#### Add the VM SSH config to ~/.ssh/config
 
 **Prerequisite**: Have the Magma VM running.
 
@@ -62,7 +64,7 @@ Host magma
   ForwardAgent yes
 ```
 
-### Create a remote SSH workspace
+#### Create a remote SSH workspace
 
 A more detailed documentation is available on [the official VSCode doc on remote SSH](https://code.visualstudio.com/docs/remote/ssh).
 
@@ -70,7 +72,7 @@ Use **Command+Shift+X** to open the extensions tab and install the **[Remote SSH
 
 Inside the newly created VSCode window, go to **File → Open Workspace** and select  `/home/vagrant/magma/vscode-workspaces/workspace.magma-vm-workspace.code-workspace`.
 
-## Setup Devcontainer workspace with GitHub Codespaces
+### Open a Devcontainer workspace with GitHub Codespaces
 
 **Prerequisite**: Have access to [GitHub Codespaces](https://github.com/features/codespaces). If you do not have access, follow the instructions at `.devcontainer/README.md` to open it using Docker.
 
@@ -78,7 +80,7 @@ If you open a GitHub Codespaces from a Magma repo Pull Request, the devcontainer
 
 Any local changes made inside the devcontainer will be wiped when it is upgraded. This should not happen often and you will always be given a prompt before the devcontainer upgrades. To have persisting personal configs, refer to the GitHub's doc on [Personalizing Codespaces for your account](https://docs.github.com/en/codespaces/customizing-your-codespace/personalizing-codespaces-for-your-account).
 
-## Language and tool specific descriptions of what is enabled in VSCode
+## Language and tool specific feature guide
 
 We've enabled several extensions and custom configurations to improve developer experience, refer to the sections below for language and tool specific commands and features.
 
@@ -86,18 +88,18 @@ We've enabled several extensions and custom configurations to improve developer 
 
 > Supported in both Remote SSH + Magma VM and Devcontainer
 
-We utilize [clangd](https://clangd.llvm.org) to enable smart code insights. Clangd searches for a `compile_commands.json` file that serves as a compilation database at $MAGMA_ROOT. Most often, clangd will need to be restarted when the compile_commands.json is modified.
+We utilize [clangd](https://clangd.llvm.org) to enable smart code insights. Clangd looks at `$MAGMA_ROOT/compile_commands.json` to figure out file dependencies for code navigation. Most often, clangd will need to be restarted when the compile_commands.json is modified.
 
 The compilation database can be gernated with both CMake and Bazel. The Bazel method will be described more in detail below. With CMake, it is not possible to generate a single compilation database for all C/C++ targets, so you will have generate one at a time and restart clangd.
 
-To generate the comilation database in the Remote SSH + Magma VM workspace, simply run `make build_oai`, or any other C/C++ target. Then run a task to symlink the root compilation database file to the newly generated one with the following steps.
+To generate the compilation database with CMake, run `make build_oai` or the equivalent command for another target. This will generate a `compile_commands.json` file which contains compilation commands for every file in the target. Due to a quirk in our CMake configurations, you may need to run the build command twice to get a `compile_commands.json` file that contains all instructions.
+
+We can then symlink `$MAGMA_ROOT/compile_commands.json` to the generated file with the following steps
 
   1. Open the command palette (**Command+Shift+P**)
   2. Select **Tasks: Run Task** and choose **Set compile_commands.json for IntelliSense**
-  3. Select a `compile_commands.json` to that was generated
-  4. After the task completes, restart clangd
-
-In the devcontainer, follow the same steps but run `make build_oai_clang` instead to generate the database.
+  3. Select a `compile_commands.json`
+  4. After the task completes, restart clangd by running opening the command palette again and running **clangd: Restart language server** (If you see errors relating to clangd at this point, refer to [Dealing with clangd extension errors](#dealing-with-clangd-extension-errors))
 
 Once clangd is retarted, you should see some note about indexing in the bottom of your editor. Code completion and navigation should work after the indexing completes.
 
@@ -105,7 +107,7 @@ Once clangd is retarted, you should see some note about indexing in the bottom o
 
 If you see errors about clangd, try the following:
 
-  1. For errors about `clangd` not being found, try running **clangd: Download language server** from the command palette
+  1. For errors about `clangd` not being found, try running **clangd: Download language server** from the command palette. Reload the window after clangd is installed.
   2. For errors about the extension commands not being found, try running **clangd: Manually activate extension** to start the extension
 
 ### Python code completion and navigation
@@ -145,7 +147,7 @@ Refer to [Dealing with clangd extension errors](#dealing-with-clangd-extension-e
 
 #### Run unit tests with GDB
 
-> Currently only available for SessionD unit tests under `lte/gateway/c/session_manager/tests`, but it is easy to add configurations to enable it for any `cc_test`. Run `bazel query 'kind(cc_test,//...)'` to get the full list of available targets. Modify `.vscode/tasks.json` and `.vscode/launch.json` to enable GDB debugging for other targets.
+> Currently only available for SessionD unit tests under `lte/gateway/c/session_manager/tests`, but it is easy to add configurations to enable it for any `cc_test`. Run `bazel query 'kind(cc_test,//...)'` in the terminal to get the full list of available targets. Modify `.vscode/tasks.json` and `.vscode/launch.json` to enable GDB debugging for other targets.
 
 Run **Command+Shift+D** to open the debug tab. In the drop down menu at the top of the tab, select **(Remote SSH) Run SessionD test with GDB** and press the gree arrow. This will open up a new drop down menu with all SessionD unit test targets. Once a test is selected, VSCode will build the target in debug mode and launch the test with GDB.
 
