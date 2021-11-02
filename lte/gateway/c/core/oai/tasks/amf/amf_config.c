@@ -415,6 +415,7 @@ void amf_config_free(amf_config_t* amf_config) {
   free_wrapper((void**) &amf_config->served_tai.plmn_mnc_len);
   free_wrapper((void**) &amf_config->served_tai.tac);
 }
+
 /****************************************************************************
  **                                                                        **
  ** Name:    amf_config_exit()                                             **
@@ -428,6 +429,7 @@ void amf_config_exit(void) {
   pthread_rwlock_destroy(&amf_config.rw_lock);
   amf_config_free(&amf_config);
 }
+
 void clear_amf_config(amf_config_t* amf_config) {
   if (!amf_config) return;
 
@@ -440,8 +442,79 @@ void clear_amf_config(amf_config_t* amf_config) {
   bdestroy_wrapper(&amf_config->ip_capability);
   bdestroy_wrapper(&amf_config->amf_name);
   clear_served_tai_config(&amf_config->served_tai);
-  free_partial_lists(&amf_config->partial_list, amf_config->num_par_lists);
+  free_partial_lists(amf_config->partial_list, amf_config->num_par_lists);
   amf_config->num_par_lists = 0;
+}
+
+/***************************************************************************
+**                                                                        **
+** Name:   copy_served_tai_config_list()                                  **
+**                                                                        **
+** Description: copy tai list from mme_config to amf_config               **
+**                                                                        **
+**                                                                        **
+***************************************************************************/
+void copy_served_tai_config_list(amf_config_t* dest, const mme_config_t* src) {
+  if (!dest || !src) return;
+
+  // served_tai
+  if (dest->served_tai.nb_tai != src->served_tai.nb_tai) {
+    if (NULL != dest->served_tai.plmn_mcc)
+      free_wrapper((void**) &dest->served_tai.plmn_mcc);
+
+    if (NULL != dest->served_tai.plmn_mnc)
+      free_wrapper((void**) &dest->served_tai.plmn_mnc);
+
+    if (NULL != dest->served_tai.plmn_mnc_len)
+      free_wrapper((void**) &dest->served_tai.plmn_mnc_len);
+
+    if (NULL != dest->served_tai.tac)
+      free_wrapper((void**) &dest->served_tai.tac);
+
+    dest->served_tai.nb_tai = src->served_tai.nb_tai;
+    dest->served_tai.plmn_mcc =
+        calloc(dest->served_tai.nb_tai, sizeof(uint16_t));
+    dest->served_tai.plmn_mnc =
+        calloc(dest->served_tai.nb_tai, sizeof(uint16_t));
+    dest->served_tai.plmn_mnc_len =
+        calloc(dest->served_tai.nb_tai, sizeof(uint16_t));
+    dest->served_tai.tac = calloc(dest->served_tai.nb_tai, sizeof(uint16_t));
+  }
+  memcpy(
+      dest->served_tai.plmn_mcc, src->served_tai.plmn_mcc,
+      (dest->served_tai.nb_tai) * sizeof(uint16_t));
+  memcpy(
+      dest->served_tai.plmn_mnc, src->served_tai.plmn_mnc,
+      (dest->served_tai.nb_tai) * sizeof(uint16_t));
+  memcpy(
+      dest->served_tai.plmn_mnc_len, src->served_tai.plmn_mnc_len,
+      (dest->served_tai.nb_tai) * sizeof(uint16_t));
+  memcpy(
+      dest->served_tai.tac, src->served_tai.tac,
+      (dest->served_tai.nb_tai) * sizeof(uint16_t));
+
+  // num_par_lists
+  dest->num_par_lists = src->num_par_lists;
+
+  // partial_list
+  dest->partial_list = calloc(dest->num_par_lists, sizeof(partial_list_t));
+
+  for (uint8_t itr = 0; itr < src->num_par_lists && dest->partial_list; ++itr) {
+    dest->partial_list[itr].list_type = src->partial_list[itr].list_type;
+    dest->partial_list[itr].nb_elem   = src->partial_list[itr].nb_elem;
+
+    dest->partial_list[itr].plmn =
+        calloc(dest->partial_list[itr].nb_elem, sizeof(plmn_t));
+    memcpy(
+        dest->partial_list[itr].plmn, src->partial_list[itr].plmn,
+        (dest->partial_list[itr].nb_elem) * sizeof(plmn_t));
+
+    dest->partial_list[itr].tac =
+        calloc(dest->partial_list[itr].nb_elem, sizeof(tac_t));
+    memcpy(
+        dest->partial_list[itr].tac, src->partial_list[itr].tac,
+        (dest->partial_list[itr].nb_elem) * sizeof(tac_t));
+  }
 }
 
 void copy_amf_config_from_mme_config(
