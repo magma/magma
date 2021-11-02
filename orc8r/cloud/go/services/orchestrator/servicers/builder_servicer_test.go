@@ -39,6 +39,73 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	expectedJitteredSyncIntervalGW1 := uint32(592)
 	expectedJitteredSyncIntervalGW2 := uint32(568)
 
+	t.Run("test shared config", func(t *testing.T) {
+		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{
+			orc8r.NetworkSentryConfig: &models.NetworkSentryConfig{
+				SampleRate:   swag.Float32(0.75),
+				UploadMmeLog: true,
+				URLPython:    "https://www.example.com/v1/api",
+				URLNative:    "https://www.example.com/v1/api",
+			},
+		}}
+		gw := configurator.NetworkEntity{
+			Type: orc8r.MagmadGatewayType,
+			Key:  "gw1",
+			Config: &models.MagmadGatewayConfigs{
+				AutoupgradeEnabled:      swag.Bool(true),
+				AutoupgradePollInterval: 300,
+				CheckinInterval:         60,
+				CheckinTimeout:          10,
+				DynamicServices:         []string{},
+				FeatureFlags:            map[string]bool{},
+			},
+		}
+		graph := configurator.EntityGraph{
+			Entities: []configurator.NetworkEntity{gw},
+		}
+
+		expected := map[string]proto.Message{
+			"control_proxy": &mconfig_protos.ControlProxy{LogLevel: protos.LogLevel_INFO},
+			"magmad": &mconfig_protos.MagmaD{
+				LogLevel:                protos.LogLevel_INFO,
+				CheckinInterval:         60,
+				CheckinTimeout:          10,
+				AutoupgradeEnabled:      true,
+				AutoupgradePollInterval: 300,
+				PackageVersion:          "0.0.0-0",
+				Images:                  nil,
+				DynamicServices:         nil,
+				FeatureFlags:            nil,
+			},
+			"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
+			"td-agent-bit": &mconfig_protos.FluentBit{
+				ExtraTags:        map[string]string{"network_id": "n1", "gateway_id": "gw1"},
+				ThrottleRate:     1000,
+				ThrottleWindow:   5,
+				ThrottleInterval: "1m",
+			},
+			"eventd": &mconfig_protos.EventD{
+				LogLevel:       protos.LogLevel_INFO,
+				EventVerbosity: -1,
+			},
+			"state": &mconfig_protos.State{
+				SyncInterval: expectedDefaultJitteredSyncIntervalGW1,
+				LogLevel:     protos.LogLevel_INFO,
+			},
+			"shared_mconfig": &mconfig_protos.SharedMconfig{
+				SentryConfig: &mconfig_protos.SharedSentryConfig{
+					SampleRate:   0.75,
+					UploadMmeLog: true,
+					DsnPython:    "https://www.example.com/v1/api",
+					DsnNative:    "https://www.example.com/v1/api",
+				},
+			},
+		}
+		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
+		assert.NoError(t, err)
+		assert.Equal(t, expected, actual)
+	})
+
 	t.Run("no tier", func(t *testing.T) {
 		nw := configurator.Network{ID: "n1", Configs: map[string]interface{}{
 			"state_config": &models.StateConfig{
@@ -88,6 +155,9 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			"state": &mconfig_protos.State{
 				SyncInterval: expectedJitteredSyncIntervalGW1,
 				LogLevel:     protos.LogLevel_INFO,
+			},
+			"shared_mconfig": &mconfig_protos.SharedMconfig{
+				SentryConfig: nil,
 			},
 		}
 
@@ -164,6 +234,9 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			"state": &mconfig_protos.State{
 				SyncInterval: expectedJitteredSyncIntervalGW1,
 				LogLevel:     protos.LogLevel_INFO,
+			},
+			"shared_mconfig": &mconfig_protos.SharedMconfig{
+				SentryConfig: nil,
 			},
 		}
 
@@ -260,6 +333,9 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				SyncInterval: expectedJitteredSyncIntervalGW1,
 				LogLevel:     protos.LogLevel_INFO,
 			},
+			"shared_mconfig": &mconfig_protos.SharedMconfig{
+				SentryConfig: nil,
+			},
 		}
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
@@ -344,6 +420,9 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				SyncInterval: expectedDefaultJitteredSyncIntervalGW1,
 				LogLevel:     protos.LogLevel_INFO,
 			},
+			"shared_mconfig": &mconfig_protos.SharedMconfig{
+				SentryConfig: nil,
+			},
 		}
 
 		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
@@ -419,6 +498,9 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			"state": &mconfig_protos.State{
 				SyncInterval: expectedJitteredSyncIntervalGW2,
 				LogLevel:     protos.LogLevel_INFO,
+			},
+			"shared_mconfig": &mconfig_protos.SharedMconfig{
+				SentryConfig: nil,
 			},
 		}
 
@@ -512,9 +594,10 @@ func buildBaseOrchestrator(network *configurator.Network, graph *configurator.En
 
 	// Only return configs relevant to base orc8r
 	ret := map[string]proto.Message{
-		"control_proxy": configs["control_proxy"],
-		"metricsd":      configs["metricsd"],
-		"state":         configs["state"],
+		"control_proxy":  configs["control_proxy"],
+		"metricsd":       configs["metricsd"],
+		"state":          configs["state"],
+		"shared_mconfig": configs["shared_mconfig"],
 	}
 	_, ok := configs["magmad"]
 	if ok {
