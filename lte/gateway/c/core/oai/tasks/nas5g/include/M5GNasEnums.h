@@ -28,6 +28,7 @@ enum class M5GIei : uint8_t {
 };
 
 enum class M5GMmCause : uint8_t {
+  UNKNOWN_CAUSE,
   ILLEGAL_UE                                          = 0b00000011,
   PEI_NOT_ACCEPTED                                    = 0b00000101,
   ILLEGAL_ME                                          = 0b00000110,

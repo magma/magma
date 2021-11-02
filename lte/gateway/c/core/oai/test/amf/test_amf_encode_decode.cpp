@@ -16,10 +16,11 @@
 #include "../../tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
-#include "util_s6a_update_location.h"
-#include "tasks/amf/amf_recv.h"
-#include "tasks/amf/amf_identity.h"
-#include "tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.h"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
@@ -107,10 +108,6 @@ uint8_t NAS5GPktSnapShot::service_request[37] = {
 uint8_t NAS5GPktSnapShot::registration_reject[4] = {0x00, 0x00, 0x00, 0x00};
 
 uint8_t NAS5GPktSnapShot::security_mode_reject[4] = {0x7e, 0x00, 0x5f, 0x24};
-
-extern int construct_pdu_session_reject_dl_req(
-    uint8_t sequence_number, uint8_t session_id, uint8_t pti, uint8_t cause,
-    bool is_security_enabled, amf_nas_message_t* msg);
 
 class AmfNas5GTest : public ::testing::Test {
  protected:
@@ -690,47 +687,6 @@ TEST(test_amf_nas5g_pkt_process, test_amf_security_mode_reject_message_data) {
   EXPECT_EQ(sm_reject.sec_header_type.sec_hdr, (uint8_t) 0x00);
   EXPECT_EQ(sm_reject.message_type.msg_type, SEC_MODE_REJECT);
   EXPECT_EQ(sm_reject.m5gmm_cause.m5gmm_cause, 0x24);
-}
-
-TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
-  uint32_t bytes         = 0;
-  uint32_t container_len = 0;
-  bstring buffer;
-  amf_nas_message_t* msg = nullptr;
-
-  /* build uplinknastransport */
-  // uplink nas transport(pdu session request)
-  uint8_t pdu[44] = {0x7e, 0x00, 0x67, 0x01, 0x00, 0x15, 0x2e, 0x01, 0x01,
-                     0xc1, 0xff, 0xff, 0x91, 0xa1, 0x28, 0x01, 0x00, 0x7b,
-                     0x00, 0x07, 0x80, 0x00, 0x0a, 0x00, 0x00, 0x0d, 0x00,
-                     0x12, 0x01, 0x81, 0x22, 0x01, 0x01, 0x25, 0x09, 0x08,
-                     0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
-  uint32_t len    = sizeof(pdu) / sizeof(uint8_t);
-
-  NAS5GPktSnapShot nas5g_pkt_snap;
-  ULNASTransportMsg pdu_sess_est_req;
-  bool decode_res = false;
-  memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
-
-  decode_res = decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len);
-
-  EXPECT_EQ(decode_res, true);
-  /* build uplinknastransport */
-
-  std::string dnn("internet");
-  EXPECT_EQ(dnn, pdu_sess_est_req.dnn.dnn);
-
-  buffer = bfromcstralloc(len, "\0");
-  bytes  = pdu_sess_est_req.EncodeULNASTransportMsg(
-      &pdu_sess_est_req, buffer->data, len);
-  EXPECT_GT(bytes, 0);
-  ULNASTransportMsg decode_pdu_sess_est_req = {};
-  decode_res = decode_ul_nas_transport_msg(&decode_pdu_sess_est_req, pdu, len);
-  EXPECT_EQ(decode_res, true);
-  /* build uplinknastransport */
-  EXPECT_EQ(dnn, decode_pdu_sess_est_req.dnn.dnn);
-
-  bdestroy(buffer);
 }
 
 TEST(test_dl_msg, test_amf_pdu_session_establish_reject_message_data) {
