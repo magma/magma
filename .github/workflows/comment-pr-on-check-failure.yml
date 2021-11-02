@@ -9,6 +9,10 @@ on:  # yamllint disable-line rule:truthy
     types:
       - completed
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   comment_pr:
     name: Comment on PR for check ${{ github.event.workflow.name }}
