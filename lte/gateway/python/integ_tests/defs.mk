@@ -95,6 +95,8 @@ s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej.py \
 s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej_ded_bearer_activation.py \
 s1aptests/test_ics_timer_expiry_ue_registered.py \
 s1aptests/test_ics_timer_expiry_ue_unregistered.py \
+s1aptests/test_smc_timer_3460_expiry.py \
+s1aptests/test_identity_timer_3470_expiry.py \
 s1aptests/test_attach_service_with_multi_pdns_and_bearers_multi_ue.py \
 s1aptests/test_attach_service_with_multi_pdns_and_bearers_failure.py \
 s1aptests/test_dedicated_bearer_activation_idle_mode_multi_ue.py \
