@@ -107,6 +107,8 @@ typedef struct sgw_eps_bearer_ctxt_s {
   char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
   uint32_t sgw_sequence_number;
   char* pgw_cp_ip_port;
+  bool update_teids;  // this is purely for optimization purposes and can be
+                      // safely initialized to true
 } sgw_eps_bearer_ctxt_t;
 
 typedef struct sgw_pdn_connection_s {
