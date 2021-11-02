@@ -25,11 +25,18 @@
             "group": "build"
         },
         {
-            "label": "Set compile_commands.json for IntelliSense",
+            "label": "Set compile_commands.json for IntelliSense (make sure you have run `make build_X`!)",
             "type": "shell",
             "command": "rm compile_commands.json || true && ln -s ${input:pickCompileCommandsFile} ${workspaceFolder}/compile_commands.json",
             "problemMatcher": []
-        }
+        },
+        {
+            "label": "Activate clangd extension on workspace startup",
+            "command": "${command:clangd.activate}",
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        },
     ],
     "inputs": [
         {
@@ -37,6 +44,7 @@
             "type": "command",
             "command": "shellCommand.execute",
             "args": {
+                "description": "Pick a compile_commands.json",
                 "command": "sudo find ${env:C_BUILD} -name 'compile_commands.json'",
             },
         }
