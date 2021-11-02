@@ -11,11 +11,11 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include <libconfig.h>
 
 extern "C" {
-#include "include/sgw_config.h"
+#include "lte/gateway/c/core/oai/include/sgw_config.h"
 }
 
 namespace magma {

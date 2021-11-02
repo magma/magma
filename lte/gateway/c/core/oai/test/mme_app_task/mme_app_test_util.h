@@ -14,10 +14,10 @@
 #include <vector>
 
 extern "C" {
-#include "3gpp_29.274.h"
-#include "mme_config.h"
-#include "intertask_interface_types.h"
-#include "s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 }
 
 namespace magma {

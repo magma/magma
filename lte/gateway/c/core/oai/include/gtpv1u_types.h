@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "common_types.h"
-#include "hashtable.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
 #define GTPV1U_UDP_PORT (2152)
 #define MAX_BEARERS_PER_UE (11)

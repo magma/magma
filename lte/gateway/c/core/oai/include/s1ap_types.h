@@ -19,11 +19,11 @@
 
 #include <stdint.h>
 
-#include "3gpp_36.401.h"
-#include "3gpp_36.413.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 
-#include "common_types.h"
-#include "hashtable.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
 // Forward declarations
 struct enb_description_s;

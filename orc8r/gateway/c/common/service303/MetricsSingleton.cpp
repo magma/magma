@@ -12,12 +12,19 @@
  */
 
 #include "includes/MetricsSingleton.h"
-#include <prometheus/registry.h>  // for Registry
-#include <prometheus/family.h>
-#include <prometheus/counter.h>
-#include <prometheus/gauge.h>
-#include <prometheus/histogram.h>
-#include <vector>  // for vector
+
+#include <algorithm>
+#include <vector>
+
+#include "prometheus/counter_builder.h"
+#include "prometheus/gauge_builder.h"
+#include "prometheus/histogram_builder.h"
+#include "prometheus/counter.h"
+#include "prometheus/gauge.h"
+#include "prometheus/histogram.h"
+#include "prometheus/registry.h"
+
+#include "includes/MetricsRegistry.h"
 
 using magma::service303::MetricsSingleton;
 using prometheus::BuildCounter;

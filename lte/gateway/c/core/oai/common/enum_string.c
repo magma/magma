@@ -37,8 +37,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "common_types.h"
-#include "enum_string.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/enum_string.h"
 
 enum_to_string_t rat_to_string[NUMBER_OF_RAT_TYPE] = {
     {RAT_WLAN, "WLAN"},      {RAT_VIRTUAL, "VIRUTAL"},

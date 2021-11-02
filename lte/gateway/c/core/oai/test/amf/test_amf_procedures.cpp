@@ -17,13 +17,13 @@
 #include "../mock_tasks/mock_tasks.h"
 
 extern "C" {
-#include "common_types.h"
-#include "amf_config.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
 }
-#include "include/amf_client_servicer.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "amf_app_state_manager.h"
-#include "amf_app_test_util.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 
 using ::testing::Test;
 

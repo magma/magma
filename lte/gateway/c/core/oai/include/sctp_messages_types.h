@@ -40,9 +40,9 @@
 #include <arpa/inet.h>
 #include <stdint.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 
 typedef uint32_t sctp_ppid_t;
 

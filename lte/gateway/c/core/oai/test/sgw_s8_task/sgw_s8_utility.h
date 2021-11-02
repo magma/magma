@@ -13,22 +13,22 @@
 
 #include <gtest/gtest.h>
 #include <string>
-#include "sgw_s8_state_manager.h"
-#include "sgw_s8_state.h"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.h"
+#include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
 #include "../mock_tasks/mock_tasks.h"
 
-extern "C" {
-#include "log.h"
-#include "sgw_s8_s11_handlers.h"
-#include "sgw_handlers.h"
-#include "spgw_types.h"
-#include "s11_messages_types.h"
-#include "common_types.h"
-#include "sgw_config.h"
-#include "dynamic_memory_check.h"
-#include "sgw_context_manager.h"
-#include "gtpv1u.h"
-#include "sgw_s8_defs.h"
+    extern "C" {
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/sgw_config.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.h"
 }
 
 #define SLEEP_AT_INITIALIZATION_TIME_MS 500

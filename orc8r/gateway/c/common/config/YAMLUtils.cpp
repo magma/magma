@@ -12,9 +12,9 @@
  */
 
 #include "YAMLUtils.h"
-#include <yaml-cpp/yaml.h>                     // IWYU pragma: keep
-#include <boost/iterator/iterator_facade.hpp>  // for operator!=, iterator_f...
-#include <string>                              // for string
+
+#include <yaml-cpp/yaml.h>
+#include <string>  // for string
 
 namespace magma {
 

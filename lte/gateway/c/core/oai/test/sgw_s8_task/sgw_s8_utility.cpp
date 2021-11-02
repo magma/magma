@@ -12,8 +12,8 @@
  */
 
 #include <memory>
-#include "sgw_s8_utility.h"
-#include "ControllerMain.h"
+#include "lte/gateway/c/core/oai/test/sgw_s8_task/sgw_s8_utility.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.h"
 
 task_zmq_ctx_t task_zmq_ctx_main_s8;
 const struct gtp_tunnel_ops* gtp_tunnel_ops;

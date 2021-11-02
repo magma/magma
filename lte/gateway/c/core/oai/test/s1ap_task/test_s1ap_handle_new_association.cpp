@@ -13,12 +13,12 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "S1ap_S1AP-PDU.h"
-#include "s1ap_mme_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
 }
 
-#include "s1ap_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.h"
 
 using ::testing::Test;
 

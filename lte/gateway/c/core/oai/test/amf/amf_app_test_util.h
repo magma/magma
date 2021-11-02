@@ -15,11 +15,11 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "amf_config.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
 }
-#include "amf_app_messages_types.h"
-#include "amf_authentication.h"
-#include "amf_app_defs.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
 
 using ::testing::_;
 using ::testing::Return;

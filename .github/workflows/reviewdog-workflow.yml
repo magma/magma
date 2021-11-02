@@ -7,6 +7,9 @@ on:  # yamllint disable-line rule:truthy
       - reopened
       - synchronize
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number}}
+  cancel-in-progress: true
 # Applies on all review jobs below
 # See Reviewdog doc provided at https://github.com/reviewdog/reviewdog
 # github-pr-check: Adds lint as annotations in the PR that can be toggled by pressing 'a'

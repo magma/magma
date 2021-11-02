@@ -20,7 +20,7 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
-#include "udp_messages_types.h"
+#include "lte/gateway/c/core/oai/include/udp_messages_types.h"
 
 MESSAGE_DEF(UDP_INIT, udp_init_t, udp_init)
 MESSAGE_DEF(UDP_DATA_REQ, udp_data_req_t, udp_data_req)

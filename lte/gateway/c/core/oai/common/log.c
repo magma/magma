@@ -54,15 +54,15 @@
 #include <sys/types.h>
 #include <time.h>
 
-#include "intertask_interface.h"
-#include "log.h"
-#include "shared_ts_log.h"
-#include "assertions.h"
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/shared_ts_log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "asn_system.h"
-#include "hashtable.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
 #if HAVE_CONFIG_H
 #include "config.h"
