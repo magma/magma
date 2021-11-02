@@ -16,7 +16,11 @@ from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.ipv6_prefix_store import get_ipv6_interface_id
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import DIRECTION_REG, Direction
+from magma.pipelined.openflow.registers import (
+    DIRECTION_REG,
+    TUN_PORT_REG,
+    Direction,
+)
 from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib.packet import ether_types, ethernet, icmpv6, in_proto, ipv6, packet
@@ -315,7 +319,10 @@ class IPV6SolicitationController(MagmaController):
         direction = ev.msg.match[DIRECTION_REG]
         if 'tunnel_id' in ev.msg.match:
             tun_id = ev.msg.match['tunnel_id']
-            tun_id_dst = self._tunnel_id_mapper.get_tunnel(tun_id)
+
+            tun_id_dst = ev.msg.match.get(TUN_PORT_REG, None)
+            if not tun_id_dst:
+                tun_id_dst = self._tunnel_id_mapper.get_tunnel(tun_id)
 
             if 'tun_ipv4_src' in ev.msg.match:
                 tun_ipv4_src = ev.msg.match['tun_ipv4_src']
