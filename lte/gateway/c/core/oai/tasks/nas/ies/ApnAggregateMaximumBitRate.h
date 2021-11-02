@@ -19,7 +19,7 @@
 #define APN_AGGREGATE_MAXIMUM_BIT_RATE_SEEN
 
 #include <stdint.h>
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 
 #define APN_AGGREGATE_MAXIMUM_BIT_RATE_MINIMUM_LENGTH 4
 #define APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_LENGTH 8

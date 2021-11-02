@@ -16,14 +16,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "amf_service_handler.h"
-#include "log.h"
-#include "conversions.h"
+#include "lte/gateway/c/core/oai/include/amf_service_handler.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include "AmfServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/AmfServiceImpl.h"
 #include "lte/protos/session_manager.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
 

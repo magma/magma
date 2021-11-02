@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"net/http"
 
 	"github.com/golang/glog"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
@@ -165,7 +166,29 @@ func getEchoServerForOrchestratorService(serviceName string) (*echo.Echo, error)
 	e := echo.New()
 	e.Server.Addr = portStr
 	e.HideBanner = true
+	e.Use(Logger)
 	return e, nil
+}
+
+func isServerErrCode(code int) bool {
+	return code >= http.StatusInternalServerError && code <= http.StatusNetworkAuthenticationRequired
+}
+
+// Logger is a middleware function that intelligently logs HTTP errors.
+func Logger(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		err := next(c)
+		if err != nil {
+			c.Error(err)
+			status := c.Response().Status
+			if isServerErrCode(status) {
+				glog.Infof("HTTP server error: %s", err)
+			} else {
+				glog.V(1).Infof("HTTP error: %s", err)
+			}
+		}
+		return err
+	}
 }
 
 type Config struct {

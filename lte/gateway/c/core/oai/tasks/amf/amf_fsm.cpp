@@ -14,21 +14,21 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #ifdef __cplusplus
 }
 #endif
 #include <iostream>
 #include <cstring>
-#include "common_defs.h"
-#include "M5gNasMessage.h"
-#include "amf_app_defs.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "amf_recv.h"
-#include "amf_smfDefs.h"
-#include "amf_app_defs.h"
-#include "amf_as_message.h"
-#include "amf_fsm.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
+#include "lte/gateway/c/core/oai/include/amf_as_message.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
 
 namespace magma5g {
 

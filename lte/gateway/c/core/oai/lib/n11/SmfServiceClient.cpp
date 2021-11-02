@@ -24,8 +24,8 @@
 #include <arpa/inet.h>
 #include <utility>
 
-#include "includes/ServiceRegistrySingleton.h"
-#include "SmfServiceClient.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.h"
 using grpc::Status;
 using magma::AsyncLocalResponse;
 using magma::ServiceRegistrySingleton;

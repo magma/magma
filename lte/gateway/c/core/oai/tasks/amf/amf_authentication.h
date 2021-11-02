@@ -14,8 +14,8 @@
 #pragma once
 #include <sstream>
 #include <thread>
-#include "amf_app_messages_types.h"
-#include "amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 
 namespace magma5g {
 

@@ -14,6 +14,7 @@ import ipaddress
 
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.policydb_pb2 import FlowMatch
+from magma.pipelined.ipv6_prefix_store import IPV6_PREFIX_LEN, get_ipv6_prefix
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import (
     DPI_REG,
@@ -55,6 +56,10 @@ def _check_pkt_protocol(match):
     ):
         raise FlowMatchError("To use udp rules set ip_proto to IPPROTO_UDP")
     return True
+
+
+def get_ipv6_match_value(ip_addr) -> str:
+    return get_ipv6_prefix(str(ip_addr.address.decode('utf-8'))) + "/" + IPV6_PREFIX_LEN
 
 
 def flow_match_to_magma_match(match, ip_addr=None):
@@ -104,16 +109,18 @@ def flow_match_to_magma_match(match, ip_addr=None):
         if ip_addr.version == IPAddress.IPV4:
             ip_src_reg = 'ipv4_src'
             ip_dst_reg = 'ipv4_dst'
+            ip_addr_str = ip_addr.address.decode('utf-8')
         else:
             match_kwargs['eth_type'] = ether_types.ETH_TYPE_IPV6
             ip_src_reg = 'ipv6_src'
             ip_dst_reg = 'ipv6_dst'
+            ip_addr_str = get_ipv6_match_value(ip_addr)
 
-        if ip_addr.address.decode('utf-8'):
+        if ip_addr_str:
             if get_direction_for_match(match) == Direction.OUT:
-                match_kwargs[ip_src_reg] = ip_addr.address.decode('utf-8')
+                match_kwargs[ip_src_reg] = ip_addr_str
             else:
-                match_kwargs[ip_dst_reg] = ip_addr.address.decode('utf-8')
+                match_kwargs[ip_dst_reg] = ip_addr_str
 
     return MagmaMatch(
         direction=get_direction_for_match(match),
@@ -204,17 +211,19 @@ def get_ue_ip_match_args(ip_addr: IPAddress, direction: Direction):
         if ip_addr.version == ip_addr.IPV4:
             ip_src_reg = 'ipv4_src'
             ip_dst_reg = 'ipv4_dst'
+            ip_addr_str = ip_addr.address.decode('utf-8')
         else:
             ip_src_reg = 'ipv6_src'
             ip_dst_reg = 'ipv6_dst'
+            ip_addr_str = get_ipv6_match_value(ip_addr)
 
-        if not ip_addr.address.decode('utf-8'):
+        if not ip_addr_str:
             return ip_match
 
         if direction == Direction.OUT:
-            ip_match = {ip_src_reg: ip_addr.address.decode('utf-8')}
+            ip_match = {ip_src_reg: ip_addr_str}
         else:
-            ip_match = {ip_dst_reg: ip_addr.address.decode('utf-8')}
+            ip_match = {ip_dst_reg: ip_addr_str}
     return ip_match
 
 

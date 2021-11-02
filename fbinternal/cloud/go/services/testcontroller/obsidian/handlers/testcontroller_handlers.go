@@ -64,7 +64,7 @@ func GetObsidianHandlers() []obsidian.Handler {
 func listTestCases(c echo.Context) error {
 	tcs, err := testcontroller.GetTestCases(c.Request().Context(), nil, serdes.TestController)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	ret := make([]*models.E2eTestCase, 0, len(tcs))
@@ -80,7 +80,7 @@ func listEnodebdTestCase(c echo.Context) error {
 	// low-scale enough that it won't matter
 	tcs, err := testcontroller.GetTestCases(c.Request().Context(), nil, serdes.TestController)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	ret := []*models.EnodebdE2eTest{}
@@ -97,10 +97,10 @@ func listEnodebdTestCase(c echo.Context) error {
 func createEnodebdTestCase(c echo.Context) error {
 	tc := &models.MutableEnodebdE2eTest{}
 	if err := c.Bind(tc); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	if err := tc.Validate(strfmt.Default); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	runTraffic := *(tc.Config).RunTrafficTests
 	enodedTestType := testcontroller.EnodedTestCaseType
@@ -110,7 +110,7 @@ func createEnodebdTestCase(c echo.Context) error {
 
 	err := testcontroller.CreateOrUpdateTestCase(c.Request().Context(), *tc.Pk, enodedTestType, tc.Config, serdes.TestController)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -123,7 +123,7 @@ func getEnodebdTestCase(c echo.Context) error {
 
 	res, err := testcontroller.GetTestCases(c.Request().Context(), []int64{pk}, serdes.TestController)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	ret, ok := res[pk]
 	if !ok || (ret.TestCaseType != testcontroller.EnodedTestCaseType && ret.TestCaseType != testcontroller.EnodedTestExcludeTraffic) {
@@ -139,10 +139,10 @@ func updateEnodebdTestCase(c echo.Context) error {
 	}
 	cfg := &models.EnodebdTestConfig{}
 	if err := c.Bind(cfg); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	if err := cfg.Validate(strfmt.Default); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	runTraffic := *cfg.RunTrafficTests
@@ -152,7 +152,7 @@ func updateEnodebdTestCase(c echo.Context) error {
 	}
 	err := testcontroller.CreateOrUpdateTestCase(c.Request().Context(), pk, enodedTestType, cfg, serdes.TestController)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -165,7 +165,7 @@ func deleteEnodebdTestCase(e echo.Context) error {
 
 	err := testcontroller.DeleteTestCase(pk)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return e.NoContent(http.StatusNoContent)
 }
@@ -223,7 +223,7 @@ func getTestPk(e echo.Context) (int64, *echo.HTTPError) {
 	}
 	i, err := strconv.ParseInt(params[0], 10, 64)
 	if err != nil {
-		return 0, obsidian.HttpError(err, http.StatusBadRequest)
+		return 0, echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	return i, nil
 }

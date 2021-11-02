@@ -91,13 +91,13 @@ func GetPartialReadNetworkHandler(path string, model PartialNetworkModel, serdes
 			}
 			network, err := configurator.LoadNetwork(c.Request().Context(), networkID, true, true, serdes)
 			if err == merrors.ErrNotFound {
-				return obsidian.HttpError(err, http.StatusNotFound)
+				return obsidian.MakeHTTPError(err, http.StatusNotFound)
 			} else if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 			}
 			ret := model.GetFromNetwork(network)
 			if ret == nil {
-				return obsidian.HttpError(fmt.Errorf("Not found"), http.StatusNotFound)
+				return obsidian.MakeHTTPError(fmt.Errorf("Not found"), http.StatusNotFound)
 			}
 			return c.JSON(http.StatusOK, ret)
 		},
@@ -134,18 +134,18 @@ func GetPartialUpdateNetworkHandler(path string, model PartialNetworkModel, serd
 			reqCtx := c.Request().Context()
 			network, err := configurator.LoadNetwork(reqCtx, networkID, true, true, serdes)
 			if err == merrors.ErrNotFound {
-				return obsidian.HttpError(err, http.StatusNotFound)
+				return obsidian.MakeHTTPError(err, http.StatusNotFound)
 			} else if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 			}
 
 			updateCriteria, err := requestedUpdate.(PartialNetworkModel).ToUpdateCriteria(network)
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusBadRequest)
+				return obsidian.MakeHTTPError(err, http.StatusBadRequest)
 			}
 			err = configurator.UpdateNetworks(reqCtx, []configurator.NetworkUpdateCriteria{updateCriteria}, serdes)
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 			}
 			return c.NoContent(http.StatusNoContent)
 		},
@@ -173,7 +173,7 @@ func GetPartialDeleteNetworkHandler(path string, key string, serdes serde.Regist
 			}
 			err := configurator.UpdateNetworks(c.Request().Context(), []configurator.NetworkUpdateCriteria{update}, serdes)
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 			}
 			return c.NoContent(http.StatusNoContent)
 		},
@@ -197,7 +197,7 @@ func getListTypedNetworksHandler(path string, networkType string) obsidian.Handl
 		HandlerFunc: func(c echo.Context) error {
 			ids, err := configurator.ListNetworksOfType(c.Request().Context(), networkType)
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 			}
 			sort.Strings(ids)
 			return c.JSON(http.StatusOK, ids)
@@ -216,7 +216,7 @@ func getCreateTypedNetworkHandler(path string, networkType string, network Netwo
 			}
 			err = configurator.CreateNetwork(c.Request().Context(), payload.ToConfiguratorNetwork(), serdes)
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 			}
 			return c.NoContent(http.StatusCreated)
 
@@ -239,7 +239,7 @@ func getGetTypedNetworkHandler(path string, networkType string, networkModel Net
 				return c.NoContent(http.StatusNotFound)
 			}
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 			}
 			if network.Type != networkType {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, networkType))
@@ -272,7 +272,7 @@ func getUpdateTypedNetworkHandler(path string, networkType string, networkModel 
 				return c.NoContent(http.StatusNotFound)
 			}
 			if err != nil {
-				return obsidian.HttpError(errors.Wrap(err, "failed to load network to check type"), http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(errors.Wrap(err, "failed to load network to check type"), http.StatusInternalServerError)
 			}
 			if network.Type != networkType {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, networkType))
@@ -280,7 +280,7 @@ func getUpdateTypedNetworkHandler(path string, networkType string, networkModel 
 
 			err = configurator.UpdateNetworks(reqCtx, []configurator.NetworkUpdateCriteria{payload.ToUpdateCriteria()}, serdes)
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 			}
 			return c.NoContent(http.StatusNoContent)
 		},
@@ -303,7 +303,7 @@ func getDeleteTypedNetworkHandler(path string, networkType string, serdes serde.
 				return c.NoContent(http.StatusNotFound)
 			}
 			if err != nil {
-				return obsidian.HttpError(errors.Wrap(err, "failed to load network to check type"), http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(errors.Wrap(err, "failed to load network to check type"), http.StatusInternalServerError)
 			}
 			if network.Type != networkType {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, networkType))
@@ -311,7 +311,7 @@ func getDeleteTypedNetworkHandler(path string, networkType string, serdes serde.
 
 			err = configurator.DeleteNetwork(reqCtx, nid)
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 			}
 			return c.NoContent(http.StatusNoContent)
 		},
@@ -322,11 +322,11 @@ func getDeleteTypedNetworkHandler(path string, networkType string, serdes serde.
 func getAndValidateNetwork(c echo.Context, network interface{}) (NetworkModel, error) {
 	iModel := reflect.New(reflect.TypeOf(network).Elem()).Interface().(NetworkModel)
 	if err := c.Bind(iModel); err != nil {
-		return nil, obsidian.HttpError(err, http.StatusBadRequest)
+		return nil, obsidian.MakeHTTPError(err, http.StatusBadRequest)
 	}
 	// Run validations specified by the swagger spec
 	if err := iModel.ValidateModel(c.Request().Context()); err != nil {
-		return nil, obsidian.HttpError(err, http.StatusBadRequest)
+		return nil, obsidian.MakeHTTPError(err, http.StatusBadRequest)
 	}
 	return iModel, nil
 }

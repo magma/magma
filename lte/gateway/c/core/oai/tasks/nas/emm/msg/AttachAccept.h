@@ -20,18 +20,18 @@
 
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "EpsAttachResult.h"
-#include "TrackingAreaIdentityList.h"
-#include "EsmMessageContainer.h"
-#include "EpsMobileIdentity.h"
-#include "EmmCause.h"
-#include "EpsNetworkFeatureSupport.h"
-#include "AdditionalUpdateResult.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachResult.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateResult.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define ATTACH_ACCEPT_MINIMUM_LENGTH                                           \

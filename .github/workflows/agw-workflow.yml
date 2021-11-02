@@ -30,17 +30,6 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/agw-workflow.yml", "orc8r/**", "lte/**"]
-      # Need to save metadata for deploy from PR job
-      - name: Save PR number and trigger type
-        run: |
-          mkdir -p ./pr
-          echo ${{ github.event.number }} > ./pr/NR
-          echo ${{ steps.changes.outputs.filesChanged == 'false'}} > ./pr/skipped
-      - name: upload metadata
-        uses: actions/upload-artifact@v2
-        with:
-          name: pr
-          path: pr/
   lte-test:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
@@ -450,57 +439,3 @@ jobs:
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
-  agw-build:
-    needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' || github.event_name == 'push' }}
-    runs-on: macos-10.15
-    steps:
-      - uses: actions/checkout@v2
-      - name: setup pyenv
-        uses: "gabrielfalcao/pyenv-action@v8"
-        with:
-          default: 3.8.5
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.8.5'
-      - name: Install pre requisites
-        run: |
-          pip3 install --upgrade pip
-          pip3 install ansible fabric3 jsonpickle requests PyYAML
-          vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-vbguest vagrant-mutate
-      - name: Build AGW
-        run: |
-          cd lte/gateway
-          fab release package:vcs=git
-          mkdir magma-packages
-          vagrant ssh -c "cp -r magma-packages /vagrant"
-      - name: Publish debian packages
-        if: github.event_name == 'push'
-        run: |
-          cd lte/gateway/magma-packages
-          for i in `ls -a1 *.deb`
-          do
-            echo "Pushing package $i to JFROG artifiactory: https://artifactory.magmacore.org/artifactory/debian-test/pool"
-            curl -uci-bot:${{ secrets.JFROG_CIBOT_APIKEYS }} -XPUT "https://artifactory.magmacore.org/artifactory/debian-test/pool/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i
-          done
-      - uses: actions/upload-artifact@v2
-        if: github.event_name == 'pull_request'
-        with:
-          name: magma-packages
-          path: lte/gateway/magma-packages/*.deb
-      - name: Extract commit title
-        # yamllint enable
-        if: failure() && github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_USERNAME: "Github action agw build failed"
-          SLACK_AVATAR: ":boom:"
-        uses: Ilshidur/action-slack@2.1.0
-        with:
-          args: "AGW  build failed on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"

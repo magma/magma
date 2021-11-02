@@ -17,16 +17,21 @@ Install the following tools:
 3. [VirtualBox](https://www.virtualbox.org/)
 4. [Vagrant](https://vagrantup.com)
 
-Replace `brew` with your OS-appropriate package manager as necessary.
+Replace `brew` with your OS-appropriate package manager as necessary, or see
+the [pyenv installation instructions](https://github.com/pyenv/pyenv#installation).
 
 ```bash
 brew install go@1.13 pyenv
 
-# Replace .zshrc with your appropriate shell RC file
-# IMPORTANT: Use .bash_profile, not .bashrc for bash
+# NOTE: this assumes you're using zsh.
+# See the above pyenv install instructions if using alternative shells.
 echo 'export PATH="/usr/local/opt/go@1.13/bin:$PATH"' >> ~/.zshrc
-echo 'if command -v pyenv 1>/dev/null 2>&1; then eval "$(pyenv init -)"; fi' >> ~/.zshrc
+echo 'eval "$(pyenv init --path)"' >> ~/.zprofile
+echo 'eval "$(pyenv init -)"' >> ~/.zshrc
 exec $SHELL
+
+# IMPORTANT: close your terminal tab and open a new one before continuing
+
 pyenv install 3.8.10
 pyenv global 3.8.10
 

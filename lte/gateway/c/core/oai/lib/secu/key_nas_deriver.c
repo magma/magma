@@ -18,8 +18,8 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "security_types.h"
-#include "secu_defs.h"
+#include "lte/gateway/c/core/oai/common/security_types.h"
+#include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 
 /*!
    @brief Derive the kNASenc from kasme and perform truncate on the generated

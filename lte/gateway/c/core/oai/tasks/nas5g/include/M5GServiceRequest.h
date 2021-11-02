@@ -11,15 +11,15 @@
 
 #pragma once
 #include <sstream>
-#include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GSecurityHeaderType.h"
-#include "M5GSpareHalfOctet.h"
-#include "M5GMessageType.h"
-#include "M5GNASKeySetIdentifier.h"
-#include "M5GServiceType.h"
-#include "M5GSMobileIdentity.h"
-#include "M5GUplinkDataStatus.h"
-#include "M5GPDUSessionStatus.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASKeySetIdentifier.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GServiceType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMobileIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUplinkDataStatus.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionStatus.h"
 
 namespace magma5g {
 // ServiceRequest Message Class

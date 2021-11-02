@@ -18,7 +18,7 @@
 #ifndef SMS_ORC8R_MESSAGES_H_
 #define SMS_ORC8R_MESSAGES_H_
 
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
 extern task_zmq_ctx_t sms_orc8r_task_zmq_ctx;
 

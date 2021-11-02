@@ -22,10 +22,10 @@ Instructions on joining our Slack workspace is provided in the [Magma community 
 | emakeev          | evgeniym@fb.com                        | emak                     |
 | HannaFar         | hfarag@fb.com                          | Hanna Farag              |
 | hcgatewood       | hcgatewood@fb.com                      | Hunter Gatewood(FB)      |
-| karthiksubraveti | ksubraveti@fb.com                      | karthiksubraveti         |
 | koolzz           | koolzz@fb.com                          | Nick Yurchenko           |
 | lionelgo         | lionel.gauthier@eurecom.fr             | Lionel Gauthier(Eurecom) |
 | mattymo          | matt@freedomfi.com                     | Matthew Mosesohn         |
+| markjen          | markjen@fb.com                         | Mark Jen                 |
 | pshelar          | pbshelar@fb.com                        | pravin                   |
 | quentinDERORY    | derory.quentin@gmail.com               | Quentin Derory           |
 | rdefosse         | raphael.defosseux@openairinterface.org | Raphael Defosseux(OSA)   |

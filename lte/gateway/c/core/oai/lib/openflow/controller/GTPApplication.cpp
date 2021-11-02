@@ -19,13 +19,13 @@
 #include <arpa/inet.h>
 #include <string>
 
-#include "GTPApplication.h"
-#include "IMSIEncoder.h"
-#include "gtpv1u.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/GTPApplication.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/IMSIEncoder.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 
 extern "C" {
-#include "log.h"
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 }
 
 using namespace fluid_msg;
@@ -171,7 +171,7 @@ void GTPApplication::add_uplink_tunnel_flow(
   apply_ul_inst.add_action(set_eth_dst);
 
   of13::SetFieldAction set_tunnel_id(
-      new of13::NXMRegX(TUNNEL_ID_REG, ev.get_in_tei()));
+      new of13::NXMRegX(TUNNEL_ID_REG, ev.get_out_tei()));
   apply_ul_inst.add_action(set_tunnel_id);
 
   int vlan_id = ev.get_ue_info().get_vlan();

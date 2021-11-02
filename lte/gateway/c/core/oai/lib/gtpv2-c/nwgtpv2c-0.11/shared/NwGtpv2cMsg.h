@@ -34,8 +34,8 @@
 #ifndef __NW_GTPV2C_MSG_H__
 #define __NW_GTPV2C_MSG_H__
 
-#include "NwTypes.h"
-#include "NwGtpv2c.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
 
 /**
  * @file NwGtpv2cMsg.h

@@ -37,10 +37,10 @@ Description Defines the EMMREG Service Access Point that provides
 #ifndef FILE_EMM_REGDEF_SEEN
 #define FILE_EMM_REGDEF_SEEN
 
-#include "common_types.h"
-#include "nas/commonDef.h"
-#include "3gpp_36.401.h"
-#include "emm_fsm.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.h"
 #include <stdbool.h>
 
 /****************************************************************************/

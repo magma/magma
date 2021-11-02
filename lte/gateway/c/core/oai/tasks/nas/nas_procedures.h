@@ -28,18 +28,18 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "3gpp_24.008.h"
-#include "3gpp_23.003.h"
-#include "3gpp_33.401.h"
-#include "3gpp_36.401.h"
-#include "bstrlib.h"
-#include "common_defs.h"
-#include "common_types.h"
-#include "emm_fsm.h"
-#include "nas_timer.h"
-#include "queue.h"
-#include "nas/securityDef.h"
-#include "security_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/common/security_types.h"
 
 struct emm_context_s;
 struct nas_base_proc_s;

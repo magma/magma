@@ -108,6 +108,7 @@ docker exec -it magmad /usr/local/bin/checkin_cli.py
 Success!
 ```
 
-# PLMN changes may be required for testing
+# MME config changes
 
-We tested with 00101 PLMN. Your testing might require changes to the GUMMEI_LIST, TAI_LIST, and TAC_LIST configuration items in lte/gateway/docker/mme/configs/mme.conf that must be edited before your build of the images.
+MME configuration is generated automatically from /var/opt/magma/configs/gateway.mconfig.
+A restart of the mme container is required to apply new changes.

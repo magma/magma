@@ -151,6 +151,11 @@ async function exportSubscribers(props: ExportProps) {
               case 'state':
               case 'sub_profile':
                 return subscriberConfig[columnDef.field];
+              case 'forbidden_network_types':
+              case 'name':
+                return typeof subscriberInfo[columnDef.field] === 'object'
+                  ? subscriberInfo[columnDef.field].join(', ')
+                  : subscriberInfo[columnDef.field];
               case 'id':
               case 'active_apns':
               case 'name':
@@ -237,6 +242,7 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
         const newSubscriber: mutable_subscriber = {
           active_apns: subscriber.apns,
           active_policies: subscriber.policies,
+          forbidden_network_types: subscriber.forbiddenNetworkTypes,
           id: subscriber.imsi,
           name: subscriber.name,
           lte: {

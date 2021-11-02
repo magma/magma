@@ -25,11 +25,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-#include "NwGtpv2c.h"
-#include "s11_common.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
+#include "lte/gateway/c/core/oai/tasks/s11/s11_common.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 
 nw_rc_t s11_ie_indication_generic(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,

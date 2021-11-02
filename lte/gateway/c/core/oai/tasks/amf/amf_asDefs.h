@@ -16,15 +16,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #ifdef __cplusplus
 };
 #endif
-#include "TrackingAreaIdentity.h"
-#include "common_types.h"
-#include "amf_config.h"
-#include "amf_securityDef.h"
-#include "amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/amf_securityDef.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 
 #define AUTH_KNAS_INT_SIZE 16 /* NAS integrity key     */
 #define AUTH_KNAS_ENC_SIZE 16 /* NAS cyphering key     */

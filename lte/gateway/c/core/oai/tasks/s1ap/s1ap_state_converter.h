@@ -24,18 +24,18 @@ extern "C" {
 
 #include <cstdint>
 
-#include "assertions.h"
-#include "dynamic_memory_check.h"
-#include "hashtable.h"
-#include "s1ap_types.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/include/s1ap_types.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "state_converter.h"
+#include "lte/gateway/c/core/oai/include/state_converter.h"
 #include "lte/protos/oai/s1ap_state.pb.h"
-#include "s1ap_state.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.h"
 
 namespace magma {
 namespace lte {

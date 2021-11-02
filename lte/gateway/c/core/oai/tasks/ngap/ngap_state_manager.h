@@ -25,16 +25,16 @@
 extern "C" {
 #endif
 
-#include "amf_config.h"
-#include "ngap_types.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "common_defs.h"
-#include "state_manager.h"
-#include "ngap_state_converter.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_converter.h"
 using namespace magma::lte;
 using namespace magma::lte::oai;
 

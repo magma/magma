@@ -23,11 +23,11 @@
 #include <openssl/evp.h>
 #include <openssl/ossl_typ.h>
 
-#include "secu_defs.h"
-#include "assertions.h"
-#include "conversions.h"
-#include "dynamic_memory_check.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 
 /*!
    @brief Create integrity cmac t for a given message.

@@ -19,9 +19,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "PacketFlowIdentifier.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/PacketFlowIdentifier.h"
 
 int decode_packet_flow_identifier(
     PacketFlowIdentifier* packetflowidentifier, uint8_t iei, uint8_t* buffer,

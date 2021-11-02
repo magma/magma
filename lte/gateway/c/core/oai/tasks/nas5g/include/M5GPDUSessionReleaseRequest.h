@@ -11,10 +11,10 @@
 
 #pragma once
 #include <sstream>
-#include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GPDUSessionIdentity.h"
-#include "M5GPTI.h"
-#include "M5GMessageType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.h"
 
 namespace magma5g {
 // PDUSessionReleaseRequest Message Class
