@@ -17,7 +17,7 @@
 #include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
 #include "../mock_tasks/mock_tasks.h"
 
-    extern "C" {
+extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
