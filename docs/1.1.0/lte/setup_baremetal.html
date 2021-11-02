@@ -47,21 +47,18 @@ git <span class="hljs-built_in">clone</span> git://github.com/ansible/ansible.gi
 <li>Create boot USB stick</li>
 </ol>
 <ul>
-<li>Download .iso image from <a href="http://cdimage.debian.org/mirror/cdimage/archive/9.9.0/amd64/iso-cd/debian-9.9.0-amd64-netinst.iso">Debian mirror</a></li>
+<li>Download .iso image from <a href="https://cdimage.debian.org/cdimage/archive/9.13.0/amd64/iso-cd/debian-9.13.0-amd64-netinst.iso">Debian mirror</a></li>
 <li>Create bootable usb using etcher <a href="https://tutorials.ubuntu.com/tutorial/tutorial-create-a-usb-stick-on-macos#0">tutorial here</a></li>
-<li>Boot your AGW host from USB (Press F11 to select boot sequence, :warning: This might be different for your machine)</li>
-<li>Select “Install” option.</li>
-<li>Configuration.
+<li>Boot your AGW host from USB
+(Press F11 to select boot sequence, :warning: This might be different for
+your machine). If you see 2 options to boot from USB, select the non-UEFI
+option.</li>
+<li>Install and configure you access gateway according to your network defaults.
 <ul>
-<li>Hostname: “magma”</li>
-<li>Domain name : “”</li>
-<li>Root password: “magma”</li>
-<li>Username : “magma”</li>
-<li>Password: “magma”</li>
-<li>Partition disk: Use entire disk and put all files in one partition</li>
-<li>Only install ssh server and utilities.</li>
+<li>Make sure to enable ssh server and utilities (untick every other)</li>
 </ul></li>
-<li>Connect you SGi interface to the internet and select this port during the installation process to get an IP using DHCP.</li>
+<li>Connect your SGi interface to the internet and select this port during the
+installation process to get an IP using DHCP.</li>
 </ul>
 <ol start="2">
 <li>Prepare AGW</li>
