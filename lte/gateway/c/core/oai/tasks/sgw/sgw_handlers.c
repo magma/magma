@@ -553,10 +553,16 @@ static void sgw_add_gtp_tunnel(
           ue_ipv4, ue_ipv6, vlan, enb,
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE, apn);
+      // (@ulaskozat) We only need to update the TEIDs during session creation
+      // which triggers rule installments on sessiond. When pipelined needs to
+      // use eNB TEID for reporting we need to change this logic into something
+      // more meaningful.
+      bool update_teids               = eps_bearer_ctxt_p->update_teids;
+      eps_bearer_ctxt_p->update_teids = false;
       if (rv < 0) {
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, imsi64, "ERROR in setting up TUNNEL err=%d\n", rv);
-      } else {
+      } else if (update_teids) {
         pcef_update_teids(
             (char*) imsi.digit, eps_bearer_ctxt_p->eps_bearer_id,
             eps_bearer_ctxt_p->enb_teid_S1u,

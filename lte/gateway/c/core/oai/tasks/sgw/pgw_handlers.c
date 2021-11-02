@@ -195,7 +195,7 @@ void spgw_handle_pcef_create_session_response(
 
   char* apn = (char*) bearer_ctxt_info_p->sgw_eps_bearer_context_information
                   .pdn_connection.apn_in_use;
-
+  eps_bearer_ctx_p->update_teids = true;
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi64, imsi_str, IMSI_BCD_DIGITS_MAX);
 
