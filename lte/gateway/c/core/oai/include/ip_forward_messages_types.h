@@ -30,9 +30,9 @@
 #ifndef FILE_SGI_FORWARD_MESSAGES_TYPES_SEEN
 #define FILE_SGI_FORWARD_MESSAGES_TYPES_SEEN
 
-#include "common_types.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 typedef enum SGIStatus_e {
   SGI_STATUS_OK                                   = 16,
   SGI_STATUS_ERROR_CONTEXT_NOT_FOUND              = 64,

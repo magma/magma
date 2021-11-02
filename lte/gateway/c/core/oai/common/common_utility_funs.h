@@ -4,10 +4,10 @@
 extern "C" {
 #endif
 
-#include "mme_config.h"
-#include "log.h"
-#include "conversions.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 int match_fed_mode_map(const char* imsi, log_proto_t module);
 int verify_service_area_restriction(

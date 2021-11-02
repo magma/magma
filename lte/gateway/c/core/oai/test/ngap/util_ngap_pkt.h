@@ -19,22 +19,22 @@
 #include "Ngap_Cause.h"
 #include "Ngap_NGAP-PDU.h"
 #include "Ngap_ProtocolIE-Field.h"
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "assertions.h"
-#include "common_defs.h"
-#include "conversions.h"
-#include "ngap_amf_encoder.h"
-#include "ngap_amf_decoder.h"
-#include "ngap_amf_nas_procedures.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_encoder.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_decoder.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_nas_procedures.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include "ngap_types.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
 
 #define NGAP_TEST_PDU_FETCH_AMF_SET_ID_FROM_PDU(aSN, Amf_Set_Id)               \
   DevCheck((aSN).size == 2, (aSN).size, 0, 0);                                 \

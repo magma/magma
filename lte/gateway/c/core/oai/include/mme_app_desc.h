@@ -22,7 +22,7 @@
 #include <stdint.h>
 #include <pthread.h>
 
-#include "mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 
 typedef struct mme_app_desc_s {
   /* UE contexts */

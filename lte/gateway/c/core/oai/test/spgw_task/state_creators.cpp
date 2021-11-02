@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "state_creators.h"
+#include "lte/gateway/c/core/oai/test/spgw_task/state_creators.h"
 
 namespace magma {
 

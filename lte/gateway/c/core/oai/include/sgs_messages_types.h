@@ -30,10 +30,10 @@
 #ifndef FILE_SGS_MESSAGES_TYPES_SEEN
 #define FILE_SGS_MESSAGES_TYPES_SEEN
 
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "common_ies.h"
-#include "TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/common/common_ies.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 
 #define SGSAP_LOCATION_UPDATE_REQ(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.sgsap_location_update_req

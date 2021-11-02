@@ -10,10 +10,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "s1ap_mme_test_utils.h"
+#include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"
 
 extern "C" {
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 }
 
 namespace magma {

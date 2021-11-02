@@ -13,9 +13,9 @@
 #include <string.h>
 #include <gtest/gtest.h>
 
-#include "spgw_state_converter.h"
-#include "sgw_defs.h"
-#include "state_creators.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
+#include "lte/gateway/c/core/oai/test/spgw_task/state_creators.h"
 
 namespace magma {
 namespace lte {

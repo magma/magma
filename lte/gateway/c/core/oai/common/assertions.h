@@ -33,7 +33,7 @@
 #include <stdarg.h>
 #include <inttypes.h>
 
-#include "backtrace.h"
+#include "lte/gateway/c/core/oai/common/backtrace.h"
 
 #ifndef ASSERTIONS_H_
 #define ASSERTIONS_H_

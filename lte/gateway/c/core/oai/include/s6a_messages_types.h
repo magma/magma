@@ -38,10 +38,10 @@
 
 #include <stdint.h>
 
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "common_types.h"
-#include "security_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/security_types.h"
 
 #define S6A_UPDATE_LOCATION_REQ(mSGpTR)                                        \
   (mSGpTR)->ittiMsg.s6a_update_location_req

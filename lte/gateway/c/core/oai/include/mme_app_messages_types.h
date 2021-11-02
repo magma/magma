@@ -38,14 +38,14 @@
 
 #include <stdint.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-#include "3gpp_24.007.h"
-#include "3gpp_36.401.h"
-#include "common_types.h"
-#include "nas/securityDef.h"
-#include "nas/as_message.h"
-#include "s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/include/nas/as_message.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 
 #include "S1ap_Source-ToTarget-TransparentContainer.h"
 #include "S1ap_HandoverType.h"
