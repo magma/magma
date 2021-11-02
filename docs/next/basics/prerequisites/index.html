@@ -65,14 +65,19 @@ Additional prerequisites for developers can be found in the developer's guide.</
 <li><a href="https://www.virtualbox.org/">VirtualBox</a></li>
 <li><a href="https://vagrantup.com">Vagrant</a></li>
 </ol>
-<p>Replace <code>brew</code> with your OS-appropriate package manager as necessary.</p>
+<p>Replace <code>brew</code> with your OS-appropriate package manager as necessary, or see
+the <a href="https://github.com/pyenv/pyenv#installation">pyenv installation instructions</a>.</p>
 <pre><code class="hljs css language-bash">brew install go@1.13 pyenv
 
-<span class="hljs-comment"># Replace .zshrc with your appropriate shell RC file</span>
-<span class="hljs-comment"># IMPORTANT: Use .bash_profile, not .bashrc for bash</span>
+<span class="hljs-comment"># <span class="hljs-doctag">NOTE:</span> this assumes you're using zsh.</span>
+<span class="hljs-comment"># See the above pyenv install instructions if using alternative shells.</span>
 <span class="hljs-built_in">echo</span> <span class="hljs-string">'export PATH="/usr/local/opt/go@1.13/bin:$PATH"'</span> &gt;&gt; ~/.zshrc
-<span class="hljs-built_in">echo</span> <span class="hljs-string">'if command -v pyenv 1&gt;/dev/null 2&gt;&amp;1; then eval "$(pyenv init -)"; fi'</span> &gt;&gt; ~/.zshrc
+<span class="hljs-built_in">echo</span> <span class="hljs-string">'eval "$(pyenv init --path)"'</span> &gt;&gt; ~/.zprofile
+<span class="hljs-built_in">echo</span> <span class="hljs-string">'eval "$(pyenv init -)"'</span> &gt;&gt; ~/.zshrc
 <span class="hljs-built_in">exec</span> <span class="hljs-variable">$SHELL</span>
+
+<span class="hljs-comment"># IMPORTANT: close your terminal tab and open a new one before continuing</span>
+
 pyenv install 3.8.10
 pyenv global 3.8.10
 
