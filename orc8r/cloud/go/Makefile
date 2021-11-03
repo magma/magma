@@ -1,7 +1,6 @@
 MODULE_NAME=orc8r
 TOOL_DEPS:= \
 	magma/orc8r/cloud/go/tools/swaggergen \
-	github.com/facebookincubator/ent/cmd/entc \
 	github.com/go-swagger/go-swagger/cmd/swagger \
 	github.com/golang/protobuf/protoc-gen-go \
 	github.com/ory/go-acc \
