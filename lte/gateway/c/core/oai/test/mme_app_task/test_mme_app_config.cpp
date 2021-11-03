@@ -156,7 +156,7 @@ const char* kHealthyConfig =
     {
       # outcome drop timer value (seconds)
       #  S1AP_OUTCOME_TIMER = 10;
-      AMF_NAME = "AMF_1"
+      AMF_NAME = "MAGMAAMF1"
     };
     # AMF served GUAMFIs
     # AMF code DEFAULT  size = 8 bits
