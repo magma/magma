@@ -61,7 +61,7 @@ jobs:
         id: changed_files
         uses: mmagician/get-changed-files@v2
         with:
-          format: 'space-delimited'
+          format: 'json'
       - name: Load problem matcher
         # If needed https://github.com/microsoft/vscode-cpptools/issues/2266 for path fixups
         #
@@ -81,7 +81,7 @@ jobs:
           run: |
             cd /workspaces/magma/lte/gateway/
             CPPFLAGS="-Wextra -Wshadow -Wimplicit-fallthrough -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wjump-misses-init -Wformat=2 -Wstrict-overflow=4 -Wuninitialized -Wshift-overflow=2" make build_oai 2>&1 > /workspaces/magma/compile.log
-            for file in ${{ steps.changed_files.outputs.all }};
+            echo "${{ steps.changed_files.outputs.all }}" | jq --raw-output '.[]' | while read f
             do grep "$file" /workspaces/magma/compile.log | xo '/\/magma\/((.*):(\d+):(\d+):\s+(?:fatal\s)?(warning|error):\s+(.*))/$1/' || true;
             done;
       - name: Store build_logs_oai Artifact
@@ -124,7 +124,7 @@ jobs:
         id: changed_files
         uses: mmagician/get-changed-files@v2
         with:
-          format: 'space-delimited'
+          format: 'json'
       - name: Load problem matcher
         # If needed https://github.com/microsoft/vscode-cpptools/issues/2266 for path fixups
         #
@@ -144,7 +144,7 @@ jobs:
           run: |
             cd /workspaces/magma/lte/gateway/
             CPPFLAGS="-Wextra -Wshadow -Wimplicit-fallthrough -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wjump-misses-init -Wformat=2 -Wstrict-overflow=4 -Wuninitialized -Wshift-overflow=2" make build_session_manager 2>&1 > /workspaces/magma/compile.log
-            for file in ${{ steps.changed_files.outputs.all }};
+            echo "${{ steps.changed_files.outputs.all }}" | jq --raw-output '.[]' | while read f
             do grep "$file" /workspaces/magma/compile.log | xo '/\/magma\/((.*):(\d+):(\d+):\s+(?:fatal\s)?(warning|error):\s+(.*))/$1/' || true;
             done;
       - name: Store build_logs_session_manager Artifact
