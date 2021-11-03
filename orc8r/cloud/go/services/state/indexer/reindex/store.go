@@ -29,10 +29,10 @@ type Store interface {
 }
 
 type storeImpl struct {
-	factory blobstore.BlobStorageFactory
+	factory blobstore.StoreFactory
 }
 
-func NewStore(factory blobstore.BlobStorageFactory) Store {
+func NewStore(factory blobstore.StoreFactory) Store {
 	return &storeImpl{factory: factory}
 }
 

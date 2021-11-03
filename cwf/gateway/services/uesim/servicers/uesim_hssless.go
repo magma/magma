@@ -14,14 +14,16 @@ limitations under the License.
 package servicers
 
 import (
+	"strings"
+
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/gateway/services/aaa/session_manager"
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/lib/go/protos"
-	"strings"
 
 	"context"
+
 	"github.com/golang/glog"
 )
 
@@ -32,13 +34,13 @@ const (
 
 // UESimServerHssLess tracks all the UEs being simulated.
 type UESimServerHssLess struct {
-	store blobstore.BlobStorageFactory
+	store blobstore.StoreFactory
 	cfg   *UESimConfig
 }
 
 // NewUESimServerHssLess initializes a UESimServer with an empty store map.
 // Output: a new UESimServerHssLess
-func NewUESimServerHssLess(factory blobstore.BlobStorageFactory) (*UESimServerHssLess, error) {
+func NewUESimServerHssLess(factory blobstore.StoreFactory) (*UESimServerHssLess, error) {
 	config, err := GetUESimConfig()
 	if err != nil {
 		return nil, err

@@ -98,6 +98,7 @@ typedef struct m5g_nas_config_s {
   bool enable_apn_correction;
   m5g_apn_map_config_t m5g_apn_map_config;
 } m5g_nas_config_t;
+
 typedef uint64_t imsi64_t;
 
 typedef struct ngap_config_s {
@@ -193,6 +194,7 @@ void amf_config_display(amf_config_t*);
 void clear_amf_config(amf_config_t*);
 void copy_amf_config_from_mme_config(
     amf_config_t* dest, const mme_config_t* src);
+void copy_served_tai_config_list(amf_config_t* dest, const mme_config_t* src);
 
 void amf_config_exit(void);
 void amf_config_free(amf_config_t* amf_config);

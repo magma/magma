@@ -23,12 +23,14 @@ import (
 	"time"
 
 	"fbc/lib/go/radius"
+
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
 	"context"
+
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
@@ -47,7 +49,7 @@ const (
 
 // UESimServer tracks all the UEs being simulated.
 type UESimServer struct {
-	store blobstore.BlobStorageFactory
+	store blobstore.StoreFactory
 	cfg   *UESimConfig
 }
 
@@ -126,7 +128,7 @@ func (summary *TrafficSummary) ToProto() *cwfprotos.TrafficSummary {
 
 // NewUESimServer initializes a UESimServer with an empty store map.
 // Output: a new UESimServer
-func NewUESimServer(factory blobstore.BlobStorageFactory) (*UESimServer, error) {
+func NewUESimServer(factory blobstore.StoreFactory) (*UESimServer, error) {
 	config, err := GetUESimConfig()
 	if err != nil {
 		return nil, err
@@ -259,7 +261,7 @@ func blobToUE(blob blobstore.Blob) (*cwfprotos.UEConfig, error) {
 }
 
 // getUE gets the UE with the specified IMSI from the blobstore.
-func getUE(blobStoreFactory blobstore.BlobStorageFactory, imsi string) (ue *cwfprotos.UEConfig, err error) {
+func getUE(blobStoreFactory blobstore.StoreFactory, imsi string) (ue *cwfprotos.UEConfig, err error) {
 	store, err := blobStoreFactory.StartTransaction(nil)
 	if err != nil {
 		err = errors.Wrap(err, "Error while starting transaction")

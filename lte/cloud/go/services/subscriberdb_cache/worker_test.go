@@ -264,7 +264,7 @@ func subProtoFromID(sid string) *lte_protos.SubscriberData {
 func initializeSyncstore(t *testing.T) syncstore.SyncStore {
 	db, err := test_utils.GetSharedMemoryDB()
 	assert.NoError(t, err)
-	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLStoreFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, fact.InitializeFactory())
 	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{TableNamePrefix: "subscriber", CacheWriterValidIntervalSecs: 150})
 	assert.NoError(t, err)

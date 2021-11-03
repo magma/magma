@@ -47,7 +47,7 @@ func (srv *TestHealthServer) UpdateHealth(
 	return srv.HealthServer.UpdateHealth(ctx, req)
 }
 
-func NewTestHealthServer(mockFactory blobstore.BlobStorageFactory) (*TestHealthServer, error) {
+func NewTestHealthServer(mockFactory blobstore.StoreFactory) (*TestHealthServer, error) {
 	store, err := storage.NewHealthBlobstore(mockFactory)
 	if err != nil {
 		return nil, err
