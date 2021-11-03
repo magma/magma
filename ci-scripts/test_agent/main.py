@@ -23,6 +23,8 @@ class WorkerState:
 
 
 num_of_testers = 1
+# Initialize firebase client as global
+db_client = FirebaseClient()
 
 
 def test_done_callback(tester_id, workload, valid, report):
@@ -32,25 +34,27 @@ def test_done_callback(tester_id, workload, valid, report):
 
 
 def main():
-    # Initialize firebase client
-    db_client = FirebaseClient()
     state = WorkerState.READY
     testers = []
     for i in range(num_of_testers):
         testers.append(Tester(i))
-
     while True:
         testers_state = []
         for tester in testers:
             if tester.is_ready():
+                print("tester is ready")
                 new_workload = db_client.pop_next_workload()
+                print("new workload is", new_workload)
                 if new_workload:
                     build = db_client.get_build(new_workload)
                     if build:
                         tester.start_test(new_workload, build, test_done_callback)
+                else:
+                    print("Waiting for new workload")
             testers_state.append({'state': tester.get_state(), 'current_workload': tester.get_current_workload().val()})
 
         db_client.update_worker_state(num_of_testers, testers_state)
+        print("Waiting for Available tester")
         time.sleep(15)
 
 

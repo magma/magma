@@ -48,6 +48,11 @@ class FirebaseClient:
         }
         self.db.child("workers").child(self.config['agent_id']).child("state").update(data, self.user['idToken'])
 
+    def read_workloads(self):
+        reports = self.db.child("workers").child(self.config['agent_id']).child("reports").get(self.user['idToken'])
+        for r in reports.each():
+            print(r.val())
+
     def pop_next_workload(self):
         workloads = self.db.child("workers").child(self.config['agent_id']).child("workloads").get(self.user['idToken'])
         bestWorkload = None
