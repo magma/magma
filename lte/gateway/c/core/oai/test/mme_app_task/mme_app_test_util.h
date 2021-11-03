@@ -72,7 +72,7 @@ void send_authentication_info_resp(const std::string& imsi, bool success);
 
 void send_s6a_ula(const std::string& imsi, bool success);
 
-void send_create_session_resp();
+void send_create_session_resp(gtpv2c_cause_value_t cause_value);
 
 void send_delete_session_resp();
 

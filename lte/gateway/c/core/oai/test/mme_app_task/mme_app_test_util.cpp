@@ -164,28 +164,35 @@ void send_s6a_ula(const std::string& imsi, bool success) {
   return;
 }
 
-void send_create_session_resp() {
+void send_create_session_resp(gtpv2c_cause_value_t cause_value) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_SPGW_APP, S11_CREATE_SESSION_RESPONSE);
   itti_s11_create_session_response_t* create_session_response_p =
       &message_p->ittiMsg.s11_create_session_response;
-  create_session_response_p->teid                    = 1;
-  create_session_response_p->cause.cause_value       = REQUEST_ACCEPTED;
-  create_session_response_p->paa.pdn_type            = IPv4;
-  create_session_response_p->paa.ipv4_address.s_addr = 1000;
+
+  create_session_response_p->teid              = 1;
+  create_session_response_p->cause.cause_value = cause_value;
   create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .cause.cause_value = REQUEST_ACCEPTED;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .s1u_sgw_fteid.teid = 1000;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .s1u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .s1u_sgw_fteid.ipv4 = 1;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .s1u_sgw_fteid.ipv4_address.s_addr = 100;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .eps_bearer_id                                                    = 5;
+      .cause.cause_value = cause_value;
   create_session_response_p->bearer_contexts_created.num_bearer_context = 1;
+
+  if (cause_value == REQUEST_ACCEPTED) {
+    create_session_response_p->paa.pdn_type            = IPv4;
+    create_session_response_p->paa.ipv4_address.s_addr = 1000;
+    create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+        .s1u_sgw_fteid.teid = 1000;
+    create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+        .s1u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
+    create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+        .s1u_sgw_fteid.ipv4 = 1;
+    create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+        .s1u_sgw_fteid.ipv4_address.s_addr = 100;
+    create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+        .eps_bearer_id = 5;
+    create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+        .s1u_sgw_fteid.ipv6 = 1;
+  }
+
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }
