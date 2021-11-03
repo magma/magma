@@ -6,6 +6,11 @@ on:  # yamllint disable-line rule:truthy
       - opened
       - reopened
       - synchronize
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/bazel.yml
   schedule:
     # Run once a day to build bazel cache at 0200 hours
     - cron: '0 2 * * *'
@@ -26,7 +31,7 @@ jobs:
     steps:
       # Need to get git on push event
       - uses: actions/checkout@v2
-        if: github.event_name == 'push'
+        if: github.event_name == 'schedule' || github.event_name == 'push'
       - uses: dorny/paths-filter@v2
         id: changes
         with:
