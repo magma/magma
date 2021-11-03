@@ -215,4 +215,6 @@ void free_spgw_config(spgw_config_t* spgw_config_p) {
   free_sgw_config(&spgw_config_p->sgw_config);
   bdestroy_wrapper(&spgw_config_p->config_file);
   bdestroy_wrapper(&spgw_config_p->pgw_config.config_file);
+  bdestroy_wrapper(&spgw_config_p->service303_config.name);
+  bdestroy_wrapper(&spgw_config_p->service303_config.version);
 }

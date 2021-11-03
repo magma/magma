@@ -101,6 +101,9 @@ static void pcef_fill_create_session_req(
 status_code_e send_itti_pcef_create_session_response(
     const std::string& imsi, s5_create_session_request_t session_request,
     const grpc::Status& status) {
+#if MME_UNIT_TEST
+  return RETURNok;
+#endif
   MessageDef* message_p = nullptr;
 
   message_p =
@@ -193,6 +196,9 @@ void pcef_send_policy2bearer_binding(
 void pcef_update_teids(
     const char* imsi, uint8_t default_bearer_id, uint32_t enb_teid,
     uint32_t agw_teid) {
+#if MME_UNIT_TEST
+  return;
+#endif
   magma::UpdateTunnelIdsRequest request;
   request.mutable_sid()->set_id("IMSI" + std::string(imsi));
   request.set_bearer_id(default_bearer_id);
@@ -203,6 +209,9 @@ void pcef_update_teids(
       request,
       [request](grpc::Status status, magma::UpdateTunnelIdsResponse response) {
         if (status.error_code() == grpc::ABORTED) {
+#if MME_UNIT_TEST
+          return;
+#endif
           MessageDef* message_p = DEPRECATEDitti_alloc_new_message_fatal(
               TASK_GRPC_SERVICE, GX_NW_INITIATED_DEACTIVATE_BEARER_REQ);
           itti_gx_nw_init_deactv_bearer_request_t* itti_msg =

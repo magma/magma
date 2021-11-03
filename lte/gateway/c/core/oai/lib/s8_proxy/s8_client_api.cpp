@@ -107,6 +107,9 @@ static void get_paa_from_proto_msg(
 static void recv_s8_delete_session_response(
     imsi64_t imsi64, teid_t context_teid, const grpc::Status& status,
     magma::feg::DeleteSessionResponsePgw& response) {
+#if MME_UNIT_TEST
+  return;
+#endif
   OAILOG_FUNC_IN(LOG_SGW_S8);
 
   s8_delete_session_response_t* s8_delete_session_rsp = NULL;
@@ -158,6 +161,9 @@ static void recv_s8_create_session_response(
     imsi64_t imsi64, teid_t context_teid, bearer_qos_t dflt_bearer_qos,
     const grpc::Status& status,
     magma::feg::CreateSessionResponsePgw& response) {
+#if MME_UNIT_TEST
+  return;
+#endif
   OAILOG_FUNC_IN(LOG_SGW_S8);
   s8_create_session_response_t* s5_response = NULL;
   MessageDef* message_p                     = NULL;
