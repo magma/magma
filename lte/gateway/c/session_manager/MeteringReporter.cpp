@@ -11,10 +11,15 @@
  * limitations under the License.
  */
 
+#include <stddef.h>
+#include <cstdint>
 #include <string>
+#include <unordered_map>
+#include <utility>
 
-#include "includes/MagmaService.h"
 #include "MeteringReporter.h"
+#include "StoredState.h"
+#include "Types.h"
 #include "includes/MetricsHelpers.h"
 
 namespace magma {

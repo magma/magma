@@ -10,16 +10,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <grpc/impl/codegen/port_platform.h>
-#include <stdarg.h>
-#include <stdlib.h>
-
+#include <glog/logging.h>
+#include <grpc/impl/codegen/log.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <chrono>
-#include <ctime>
 #include <memory>
+#include <ostream>
+#include <utility>
 
-#include "magma_logging.h"
 #include "SessionManagerServer.h"
+#include "magma_logging.h"
 
 using grpc::Status;
 
