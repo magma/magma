@@ -45,7 +45,7 @@ gen::
 #		Go, Python, and C++. I spent 3 hours trying to fix its C++
 #		compilation to no success, so for now this is what we get.
 # 	(4) Duplicated protoc calls. Need to move all protos to a single (IDL)
-#		directory per module, then generate to a single base output directory.
+#		directory per module.
 gen_protos::
 	cd $(MAGMA_ROOT) ; \
 	for x in $$(find $(MODULE_NAME)/protos -name '*.proto') ; do \
@@ -119,6 +119,6 @@ COVER_FILE=$(COVER_DIR)/$(MODULE_NAME).gocov
 cover: tools cover_pre
 	go-acc ./... --covermode count --output $(COVER_FILE)
 	# Don't measure coverage for tools and generated files
-	awk '!/\.pb\.go|_swaggergen\.go|\/mocks\/|\/tools\/|\/blobstore\/ent\//' $(COVER_FILE) > $(COVER_FILE).tmp && mv $(COVER_FILE).tmp $(COVER_FILE)
+	awk '!/\.pb\.go|_swaggergen\.go|\/mocks\/|\/tools\/|\/blobstore\//' $(COVER_FILE) > $(COVER_FILE).tmp && mv $(COVER_FILE).tmp $(COVER_FILE)
 cover_pre:
 	mkdir -p $(COVER_DIR)

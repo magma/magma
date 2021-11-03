@@ -91,6 +91,10 @@ def main() -> None:
         _run(['build', 'test'])
         _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make lint'])
         _down(args)
+    elif args.tidy:
+        _run(['build', 'test'])
+        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make tidy'])
+        _down(args)
     elif args.precommit:
         _run(['build', 'test'])
         _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make precommit'])
@@ -321,6 +325,11 @@ def _parse_args() -> argparse.Namespace:
         '--lint', '-l',
         action='store_true',
         help='Mount the source code and run the linter',
+    )
+    parser.add_argument(
+        '--tidy', '-i',
+        action='store_true',
+        help='Mount the source code and run go mod tidy',
     )
     parser.add_argument(
         '--coverage', '-o',
