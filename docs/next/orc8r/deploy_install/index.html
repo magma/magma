@@ -81,25 +81,31 @@ Secrets Manager and you can delete them locally afterwards.</p>
 <pre><code class="hljs css language-bash">mkdir -p ~/secrets/certs
 <span class="hljs-built_in">cd</span> ~/secrets/certs
 </code></pre>
-<p>You will need the following certificates and private keys placed in this
-directory</p>
+<p>You will need the following 3 certs</p>
 <ol>
-<li>The public SSL certificate for your Orchestrator domain,
-with <code>CN=*.yourdomain.com</code>. This can be an SSL certificate chain, but it must be
-in one file</li>
-<li>The private key which corresponds to the above SSL certificate</li>
-<li>The root CA certificate which verifies your SSL certificate</li>
+<li>TLS certificate
+<ul>
+<li>CN: <code>yourdomain.com</code></li>
+<li>SANs
+<ul>
+<li><code>yourdomain.com</code></li>
+<li><code>*.yourdomain.com</code></li>
+<li><code>*.nms.yourdomain.com</code></li>
+</ul></li>
+</ul></li>
+<li>TLS certificate's private key</li>
+<li>TLS certificate's root CA certificate (which signed <code>controller.crt</code>)</li>
 </ol>
 <p>If you aren't worried about a browser warning, you can generate self-signed
-versions of these certs. Though please note that using trusted certs in
-production deployments is encouraged</p>
+certs. Though please note that using trusted certs in production deployments
+is encouraged</p>
 <pre><code class="hljs css language-bash"><span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/cloud/deploy/scripts/self_sign_certs.sh yourdomain.com
 </code></pre>
 <p>Alternatively, if you already have these certs, rename and move them as follows</p>
 <ol>
-<li>Rename your public SSL certificate to <code>controller.crt</code></li>
-<li>Rename your SSL certificate's private key to <code>controller.key</code></li>
-<li>Rename your SSL certificate's root CA certificate to <code>rootCA.pem</code></li>
+<li>Rename your public TLS certificate to <code>controller.crt</code></li>
+<li>Rename your TLS certificate's private key to <code>controller.key</code></li>
+<li>Rename your TLS certificate's root CA certificate to <code>rootCA.pem</code></li>
 <li>Put these three files under the directory you created above</li>
 </ol>
 <p>Next, with the domain certs placed in the correct directory, generate the
