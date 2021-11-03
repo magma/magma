@@ -61,12 +61,16 @@ class RuleMappersTest(unittest.TestCase):
 
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
-                imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[0]),
-            -1)
+                imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[0],
+            ),
+            0,
+        )
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
-                imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[1]),
-            -1)
+                imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[1],
+            ),
+            0,
+        )
 
     def test_session_rule_version_mapper_cwf(self):
         rule_ids = ['rule1', 'rule2']
@@ -97,12 +101,17 @@ class RuleMappersTest(unittest.TestCase):
 
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
-                imsi, None, rule_ids[0]),
-            -1)
+                imsi, None, rule_ids[0],
+            ),
+            0,
+        )
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
-                imsi, None, rule_ids[1]),
-            -1)
+                imsi, None, rule_ids[1],
+            ),
+            0,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -140,7 +140,8 @@ class SessionRuleToVersionMapper:
         with self._lock:
             version = self._version_by_imsi_and_rule.get(key)
             if version is None:
-                version = -1
+                """Set to zero to allow proper cleanup of old flows"""
+                version = 0
         return version
 
     def remove(self, imsi: str, ip_addr: IPAddress, rule_id: str, version: int):
