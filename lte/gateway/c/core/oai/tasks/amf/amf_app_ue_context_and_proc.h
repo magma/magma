@@ -858,6 +858,9 @@ tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id);
 
 int amf_idle_mode_procedure(amf_context_t* amf_ctx);
 void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p);
+int m5g_security_select_algorithms(
+    const int ue_iaP, const int ue_eaP, int* const amf_iaP, int* const amf_eaP);
+
 /************************************************************************
  ** Name:    delete_wrapper()                                         **
  **                                                                   **
