@@ -34,7 +34,7 @@ const (
 	// DirectorydTypeSessionIDToIMSI is the blobstore type field for the session ID to IMSI mapping.
 	DirectorydTypeSessionIDToIMSI = "sessionid_to_imsi"
 
-	// DirectorydTypeSessionIDToIMSI is the blobstore type field for the session ID to IMSI mapping.
+	// DirectorydTypeSgwCteidToHwid is the blobstore type field for the session ID to IMSI mapping.
 	DirectorydTypeSgwCteidToHwid = "sgwCteid_to_hwid"
 
 	// Blobstore needs a network ID, so for network-agnostic types we use a placeholder value.
@@ -43,12 +43,12 @@ const (
 
 // NewDirectorydBlobstore returns a directoryd storage implementation
 // backed by the provided blobstore factory.
-func NewDirectorydBlobstore(factory blobstore.BlobStorageFactory) DirectorydStorage {
+func NewDirectorydBlobstore(factory blobstore.StoreFactory) DirectorydStorage {
 	return &directorydBlobstore{factory: factory}
 }
 
 type directorydBlobstore struct {
-	factory blobstore.BlobStorageFactory
+	factory blobstore.StoreFactory
 }
 
 func (d *directorydBlobstore) GetHostnameForHWID(hwid string) (string, error) {
@@ -130,7 +130,7 @@ func (d *directorydBlobstore) mapToStore(networkID, tkType string, keyToValueMap
 	defer store.Rollback()
 
 	blobs := convertKVToBlobs(tkType, keyToValueMap)
-	err = store.CreateOrUpdate(networkID, blobs)
+	err = store.Write(networkID, blobs)
 	if err != nil {
 		return errors.Wrapf(err, "failed to mapToStore with map %+v for tkKey %s", keyToValueMap, tkType)
 	}

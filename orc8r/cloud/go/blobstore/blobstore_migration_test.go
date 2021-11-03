@@ -25,16 +25,16 @@ import (
 )
 
 func TestBlobstoreImplMigrations(t *testing.T) {
-	makeBlobstores := func() (blobstore.BlobStorageFactory, blobstore.BlobStorageFactory) {
+	makeBlobstores := func() (blobstore.StoreFactory, blobstore.StoreFactory) {
 		var tableName = "states"
 		db, err := sqorc.Open("sqlite3", ":memory:")
 		assert.NoError(t, err)
 
-		sqlFact := blobstore.NewSQLBlobStorageFactory(tableName, db, sqorc.GetSqlBuilder())
+		sqlFact := blobstore.NewSQLStoreFactory(tableName, db, sqorc.GetSqlBuilder())
 		err = sqlFact.InitializeFactory()
 		assert.NoError(t, err)
 
-		sqlFact2 := blobstore.NewSQLBlobStorageFactory(tableName, db, sqorc.GetSqlBuilder())
+		sqlFact2 := blobstore.NewSQLStoreFactory(tableName, db, sqorc.GetSqlBuilder())
 		return sqlFact, sqlFact2
 	}
 
@@ -47,8 +47,8 @@ func TestBlobstoreImplMigrations(t *testing.T) {
 
 func checkBlobstoreMigration(
 	t *testing.T,
-	fact1 blobstore.BlobStorageFactory,
-	fact2 blobstore.BlobStorageFactory,
+	fact1 blobstore.StoreFactory,
+	fact2 blobstore.StoreFactory,
 ) {
 	var networkID = "id1"
 	var expectedBlobs = blobstore.Blobs{
@@ -70,7 +70,7 @@ func checkBlobstoreMigration(
 // Assumes that expectedBlobs length is at least 2.
 func checkReadBlobs(
 	t *testing.T,
-	fact blobstore.BlobStorageFactory,
+	fact blobstore.StoreFactory,
 	networkID string,
 	expectedBlobs blobstore.Blobs,
 	blobNotInFact blobstore.Blob,
@@ -105,7 +105,7 @@ func checkReadBlobs(
 // This function should have no side effects.
 func checkWriteBlobs(
 	t *testing.T,
-	fact blobstore.BlobStorageFactory,
+	fact blobstore.StoreFactory,
 	networkID string,
 	expectedBlobs blobstore.Blobs,
 	blobNotInFact blobstore.Blob,
@@ -137,7 +137,7 @@ func checkWriteBlobs(
 	_, err = store.Get(networkID, expectedBlobs[1].TK())
 	assert.Equal(t, magmaerrors.ErrNotFound, err)
 
-	err = store.CreateOrUpdate(networkID, blobstore.Blobs{
+	err = store.Write(networkID, blobstore.Blobs{
 		expectedBlobs[1],
 		blobNotInFact,
 	})
@@ -157,7 +157,7 @@ func checkWriteBlobs(
 
 func checkRollback(
 	t *testing.T,
-	fact blobstore.BlobStorageFactory,
+	fact blobstore.StoreFactory,
 	networkID string,
 	blobNotInFact blobstore.Blob,
 ) {
@@ -168,7 +168,7 @@ func checkRollback(
 	assert.NoError(t, err)
 	inputBlobs := blobMap[networkID]
 
-	err = store.CreateOrUpdate(networkID, blobstore.Blobs{blobNotInFact})
+	err = store.Write(networkID, blobstore.Blobs{blobNotInFact})
 	assert.NoError(t, err)
 	checkBlobInStore(t, store, networkID, blobNotInFact)
 
@@ -187,14 +187,14 @@ func checkRollback(
 
 func createBlobs(
 	t *testing.T,
-	fact blobstore.BlobStorageFactory,
+	fact blobstore.StoreFactory,
 	networkID string,
 	blobs blobstore.Blobs,
 ) {
 	store, err := fact.StartTransaction(nil)
 	assert.NoError(t, err)
 
-	err = store.CreateOrUpdate(networkID, blobs)
+	err = store.Write(networkID, blobs)
 	assert.NoError(t, err)
 
 	err = store.Commit()
@@ -203,7 +203,7 @@ func createBlobs(
 
 func checkBlobInStore(
 	t *testing.T,
-	store blobstore.TransactionalBlobStorage,
+	store blobstore.Store,
 	networkID string,
 	expectedBlob blobstore.Blob,
 ) {

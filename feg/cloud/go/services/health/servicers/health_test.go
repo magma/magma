@@ -37,8 +37,8 @@ import (
 
 func TestHealthServer_GetHealth(t *testing.T) {
 	configurator_test_init.StartTestService(t)
-	store := &mocks.TransactionalBlobStorage{}
-	factory := &mocks.BlobStorageFactory{}
+	store := &mocks.Store{}
+	factory := &mocks.StoreFactory{}
 	clock.SetAndFreezeClock(t, time.Unix(1551916956, 0))
 	service, err := servicers.NewTestHealthServer(factory)
 	assert.NoError(t, err)
@@ -93,8 +93,8 @@ func TestHealthServer_GetHealth(t *testing.T) {
 func TestHealthServer_UpdateHealth_SingleGateway(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
-	store := &mocks.TransactionalBlobStorage{}
-	factory := &mocks.BlobStorageFactory{}
+	store := &mocks.Store{}
+	factory := &mocks.StoreFactory{}
 	clock.SetAndFreezeClock(t, time.Unix(1551916956, 0))
 	service, err := servicers.NewTestHealthServer(factory)
 	assert.NoError(t, err)
@@ -113,9 +113,9 @@ func TestHealthServer_UpdateHealth_SingleGateway(t *testing.T) {
 		Key:  test_utils.TestFegNetwork,
 	}
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(2)
-	store.On("CreateOrUpdate", test_utils.TestFegNetwork, blobstore.Blobs{healthBlob}).Return(nil).Once()
+	store.On("Write", test_utils.TestFegNetwork, blobstore.Blobs{healthBlob}).Return(nil).Once()
 	store.On("GetExistingKeys", []string{test_utils.TestFegNetwork}, mock.AnythingOfType("SearchFilter")).Return([]string{}, nil)
-	store.On("CreateOrUpdate", test_utils.TestFegNetwork, blobstore.Blobs{clusterBlob}).Return(nil).Once()
+	store.On("Write", test_utils.TestFegNetwork, blobstore.Blobs{clusterBlob}).Return(nil).Once()
 	store.On("Get", test_utils.TestFegNetwork, clusterTK).Return(clusterBlob, nil).Once()
 	store.On("Commit").Return(nil).Times(2)
 
@@ -129,8 +129,8 @@ func TestHealthServer_UpdateHealth_SingleGateway(t *testing.T) {
 	unhealthyBlob, err := fegstorage.HealthToBlob(test_utils.TestFegLogicalId1, unhealthyRequest.GetHealthStats())
 	assert.NoError(t, err)
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(2)
-	store.On("CreateOrUpdate", test_utils.TestFegNetwork, blobstore.Blobs{unhealthyBlob}).Return(nil)
-	store.On("CreateOrUpdate", test_utils.TestFegNetwork, blobstore.Blobs{clusterBlob}).Return(nil)
+	store.On("Write", test_utils.TestFegNetwork, blobstore.Blobs{unhealthyBlob}).Return(nil)
+	store.On("Write", test_utils.TestFegNetwork, blobstore.Blobs{clusterBlob}).Return(nil)
 	store.On("GetExistingKeys", []string{test_utils.TestFegNetwork}, mock.Anything).Return([]string{test_utils.TestFegNetwork}, nil)
 	store.On("Get", test_utils.TestFegNetwork, clusterTK).Return(clusterBlob, nil).Once()
 	store.On("Commit").Return(nil).Times(2)
@@ -144,8 +144,8 @@ func TestHealthServer_UpdateHealth_SingleGateway(t *testing.T) {
 func TestHealthServer_UpdateHealth_DualFeg_HealthyActive(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
-	store := &mocks.TransactionalBlobStorage{}
-	factory := &mocks.BlobStorageFactory{}
+	store := &mocks.Store{}
+	factory := &mocks.StoreFactory{}
 	clock.SetAndFreezeClock(t, time.Unix(1551916956, 0))
 	service, err := servicers.NewTestHealthServer(factory)
 	assert.NoError(t, err)
@@ -172,7 +172,7 @@ func TestHealthServer_UpdateHealth_DualFeg_HealthyActive(t *testing.T) {
 		Key:  gwId2,
 	}
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(3)
-	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{healthBlob}).Return(nil)
+	store.On("Write", testNetworkID, blobstore.Blobs{healthBlob}).Return(nil)
 	store.On("GetExistingKeys", []string{testNetworkID}, mock.AnythingOfType("SearchFilter")).Return([]string{testNetworkID}, nil)
 	store.On("Get", testNetworkID, clusterTK).Return(clusterBlob, nil)
 	store.On("Get", testNetworkID, healthTK2).Return(healthBlob2, nil)
@@ -186,7 +186,7 @@ func TestHealthServer_UpdateHealth_DualFeg_HealthyActive(t *testing.T) {
 	// Update test servicer to simulate like this request is coming from standby feg
 	service.Feg1 = false
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(3)
-	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{healthBlob2}).Return(nil)
+	store.On("Write", testNetworkID, blobstore.Blobs{healthBlob2}).Return(nil)
 	store.On("GetExistingKeys", []string{testNetworkID}, mock.AnythingOfType("SearchFilter")).Return([]string{testNetworkID}, nil)
 	store.On("Get", testNetworkID, clusterTK).Return(clusterBlob, nil)
 	store.On("Get", testNetworkID, healthTK).Return(healthBlob, nil)
@@ -202,8 +202,8 @@ func TestHealthServer_UpdateHealth_DualFeg_HealthyActive(t *testing.T) {
 func TestNewHealthServer_UpdateHealth_FailoverFromActive(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
-	store := &mocks.TransactionalBlobStorage{}
-	factory := &mocks.BlobStorageFactory{}
+	store := &mocks.Store{}
+	factory := &mocks.StoreFactory{}
 	clock.SetAndFreezeClock(t, time.Unix(1551916956, 0))
 	service, err := servicers.NewTestHealthServer(factory)
 	assert.NoError(t, err)
@@ -232,11 +232,11 @@ func TestNewHealthServer_UpdateHealth_FailoverFromActive(t *testing.T) {
 	assert.NoError(t, err)
 
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(4)
-	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{unhealthyBlob}).Return(nil)
+	store.On("Write", testNetworkID, blobstore.Blobs{unhealthyBlob}).Return(nil)
 	store.On("GetExistingKeys", []string{testNetworkID}, mock.AnythingOfType("SearchFilter")).Return([]string{testNetworkID}, nil)
 	store.On("Get", testNetworkID, clusterTK).Return(clusterBlob, nil)
 	store.On("Get", testNetworkID, healthTK2).Return(healthyBlob, nil)
-	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{updatedClusterBlob}).Return(nil)
+	store.On("Write", testNetworkID, blobstore.Blobs{updatedClusterBlob}).Return(nil)
 	store.On("Commit").Return(nil).Times(4)
 
 	res, err := service.UpdateHealth(context.Background(), unhealthyRequest)
@@ -248,8 +248,8 @@ func TestNewHealthServer_UpdateHealth_FailoverFromActive(t *testing.T) {
 func TestNewHealthServer_UpdateHealth_FailoverFromStandby(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
-	store := &mocks.TransactionalBlobStorage{}
-	factory := &mocks.BlobStorageFactory{}
+	store := &mocks.Store{}
+	factory := &mocks.StoreFactory{}
 	clock.SetAndFreezeClock(t, time.Unix(1551916956, 0))
 	service, err := servicers.NewTestHealthServer(factory)
 	assert.NoError(t, err)
@@ -281,11 +281,11 @@ func TestNewHealthServer_UpdateHealth_FailoverFromStandby(t *testing.T) {
 	assert.NoError(t, err)
 
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(4)
-	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{healthyBlob}).Return(nil)
+	store.On("Write", testNetworkID, blobstore.Blobs{healthyBlob}).Return(nil)
 	store.On("GetExistingKeys", []string{testNetworkID}, mock.AnythingOfType("SearchFilter")).Return([]string{testNetworkID}, nil)
 	store.On("Get", testNetworkID, clusterTK).Return(clusterBlob, nil)
 	store.On("Get", testNetworkID, healthTK).Return(unhealthyBlob, nil)
-	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{updatedClusterBlob}).Return(nil)
+	store.On("Write", testNetworkID, blobstore.Blobs{updatedClusterBlob}).Return(nil)
 	store.On("Commit").Return(nil).Times(4)
 
 	res, err := service.UpdateHealth(context.Background(), healthyRequest)
@@ -297,8 +297,8 @@ func TestNewHealthServer_UpdateHealth_FailoverFromStandby(t *testing.T) {
 func TestNewHealtherServer_UpdateHealth_AllUnhealthy(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
-	store := &mocks.TransactionalBlobStorage{}
-	factory := &mocks.BlobStorageFactory{}
+	store := &mocks.Store{}
+	factory := &mocks.StoreFactory{}
 	clock.SetAndFreezeClock(t, time.Unix(1551916956, 0))
 	service, err := servicers.NewTestHealthServer(factory)
 	assert.NoError(t, err)
@@ -326,7 +326,7 @@ func TestNewHealtherServer_UpdateHealth_AllUnhealthy(t *testing.T) {
 		Key:  gwId2,
 	}
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(3)
-	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{unhealthyBlob}).Return(nil)
+	store.On("Write", testNetworkID, blobstore.Blobs{unhealthyBlob}).Return(nil)
 	store.On("GetExistingKeys", []string{testNetworkID}, mock.AnythingOfType("SearchFilter")).Return([]string{testNetworkID}, nil)
 	store.On("Get", testNetworkID, clusterTK).Return(clusterBlob, nil)
 	store.On("Get", testNetworkID, healthTK2).Return(unhealthyBlob, nil)
@@ -341,7 +341,7 @@ func TestNewHealtherServer_UpdateHealth_AllUnhealthy(t *testing.T) {
 	service.Feg1 = false
 
 	factory.On("StartTransaction", mock.Anything).Return(store, nil).Times(3)
-	store.On("CreateOrUpdate", testNetworkID, blobstore.Blobs{unhealthyBlob2}).Return(nil)
+	store.On("Write", testNetworkID, blobstore.Blobs{unhealthyBlob2}).Return(nil)
 	store.On("GetExistingKeys", []string{testNetworkID}, mock.AnythingOfType("SearchFilter")).Return([]string{testNetworkID}, nil)
 	store.On("Get", testNetworkID, clusterTK).Return(clusterBlob, nil)
 	store.On("Get", testNetworkID, healthTK).Return(unhealthyBlob, nil)

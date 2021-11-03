@@ -23,10 +23,10 @@ import (
 )
 
 type deviceServicer struct {
-	factory blobstore.BlobStorageFactory
+	factory blobstore.StoreFactory
 }
 
-func NewDeviceServicer(factory blobstore.BlobStorageFactory) (protos.DeviceServer, error) {
+func NewDeviceServicer(factory blobstore.StoreFactory) (protos.DeviceServer, error) {
 	if factory == nil {
 		return nil, fmt.Errorf("storage cannot be nil")
 	}
@@ -53,7 +53,7 @@ func (srv *deviceServicer) RegisterDevices(ctx context.Context, req *protos.Regi
 		return nil, fmt.Errorf("the following keys: %v are already registered", existingKeys)
 	}
 
-	err = store.CreateOrUpdate(req.NetworkID, blobs)
+	err = store.Write(req.NetworkID, blobs)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (srv *deviceServicer) UpdateDevices(ctx context.Context, req *protos.Regist
 	defer store.Rollback()
 
 	blobs := protos.EntitiesToBlobs(req.GetEntities())
-	err = store.CreateOrUpdate(req.NetworkID, blobs)
+	err = store.Write(req.NetworkID, blobs)
 	if err != nil {
 		return nil, err
 	}
