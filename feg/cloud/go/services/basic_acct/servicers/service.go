@@ -225,15 +225,17 @@ func ToAnAcctSession(session *protos.AcctSession) *anpb.Session {
 		SessionId:   session.GetSessionId(),
 		ProviderApn: session.GetServingApn(),
 	}
-	switch usr := session.GetUser().(type) {
-	case *protos.AcctSession_IMSI:
-		res.User = &anpb.Session_IMSI{IMSI: usr.IMSI}
-	case *protos.AcctSession_CertificateSerialNumber:
-		res.User = &anpb.Session_CertificateSerialNumber{CertificateSerialNumber: usr.CertificateSerialNumber}
-	case *protos.AcctSession_Name:
-		res.User = &anpb.Session_Name{Name: usr.Name}
-	case *protos.AcctSession_HardwareAddr:
-		res.User = &anpb.Session_HardwareAddr{HardwareAddr: usr.HardwareAddr}
+	if session.GetUser() != nil {
+		switch usr := session.GetUser().(type) {
+		case *protos.AcctSession_IMSI:
+			res.User = &anpb.Session_IMSI{IMSI: usr.IMSI}
+		case *protos.AcctSession_CertificateSerialNumber:
+			res.User = &anpb.Session_CertificateSerialNumber{CertificateSerialNumber: usr.CertificateSerialNumber}
+		case *protos.AcctSession_Name:
+			res.User = &anpb.Session_Name{Name: usr.Name}
+		case *protos.AcctSession_HardwareAddr:
+			res.User = &anpb.Session_HardwareAddr{HardwareAddr: usr.HardwareAddr}
+		}
 	}
 	res.AvailableQos = &anpb.QoS{
 		DownloadMbps: session.GetAvailableQos().GetDownloadMbps(),
