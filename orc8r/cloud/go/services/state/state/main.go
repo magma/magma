@@ -90,7 +90,7 @@ func newStateServicer(store blobstore.StoreFactory) protos.StateServiceServer {
 	return servicer
 }
 
-func newIndexerManagerServicer(cfg *config.ConfigMap, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
+func newIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
 	queue := reindex.NewSQLJobQueue(reindex.DefaultMaxAttempts, db, sqorc.GetSqlBuilder())
 	err := queue.Initialize()
 	if err != nil {
