@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "includes/MagmaService.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
 
 #include <grpcpp/impl/codegen/completion_queue.h>  // for ServerCompletionQueue
 #include <grpcpp/security/server_credentials.h>    // for InsecureServerCred...
@@ -31,10 +31,10 @@
 #include <vector>       // for vector
 #include <algorithm>
 
-#include "includes/MetricsSingleton.h"          // for MetricsSingleton
-#include "ProcFileUtils.h"                      // for ProcFileUtils::mem...
-#include "includes/ServiceRegistrySingleton.h"  // for ServiceRegistrySin...
-#include "magma_logging_init.h"                 // for set_verbosity
+#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.h"          // for MetricsSingleton
+#include "orc8r/gateway/c/common/service303/ProcFileUtils.h"                      // for ProcFileUtils::mem...
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"  // for ServiceRegistrySin...
+#include "orc8r/gateway/c/common/logging/magma_logging_init.h"                 // for set_verbosity
 
 namespace grpc {
 class ServerContext;
