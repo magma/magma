@@ -39,7 +39,7 @@ var (
 // GetServiceConfig loads a config by name to a map of parameters
 // Input: configName - name of config to load, e.g. control_proxy
 // Output: map of parameters if it exists, error if not
-func GetServiceConfig(moduleName string, serviceName string) (*ConfigMap, error) {
+func GetServiceConfig(moduleName string, serviceName string) (*Map, error) {
 	cfgDirMu.RLock()
 	main, legacy, overwrite := configDir, oldConfigDir, configOverrideDir
 	cfgDirMu.RUnlock()
@@ -47,7 +47,7 @@ func GetServiceConfig(moduleName string, serviceName string) (*ConfigMap, error)
 }
 
 // MustGetServiceConfig is same as GetServiceConfig but fails on errors.
-func MustGetServiceConfig(moduleName string, serviceName string) *ConfigMap {
+func MustGetServiceConfig(moduleName string, serviceName string) *Map {
 	cfg, err := GetServiceConfig(moduleName, serviceName)
 	if err != nil {
 		glog.Fatal(err)
@@ -59,13 +59,13 @@ func MustGetServiceConfig(moduleName string, serviceName string) *ConfigMap {
 // from all known modules.
 // The list of known modules is determined by listing all non-directory files
 // under /etc/magma/configs.
-func GetServiceConfigs(serviceName string) (map[string]*ConfigMap, error) {
+func GetServiceConfigs(serviceName string) (map[string]*Map, error) {
 	modules, err := getModules()
 	if err != nil {
 		return nil, err
 	}
 
-	ret := map[string]*ConfigMap{}
+	ret := map[string]*Map{}
 	for _, moduleName := range modules {
 		cfg, err := GetServiceConfig(moduleName, serviceName)
 		if err != nil {
@@ -166,13 +166,13 @@ func SetConfigDirectories(main, legacy, overwrite string) {
 	cfgDirMu.Unlock()
 }
 
-func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string) (*ConfigMap, error) {
+func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string) (*Map, error) {
 	moduleName, serviceName = strings.ToLower(moduleName), strings.ToLower(serviceName)
 	configFileName := getServiceConfigFilePath(moduleName, serviceName, configDir, oldConfigDir)
 	config, err := loadYamlFile(configFileName)
 	if err != nil {
 		// If error - try Override cfg
-		config = &ConfigMap{RawMap: map[interface{}]interface{}{}}
+		config = &Map{RawMap: map[interface{}]interface{}{}}
 		glog.Errorf("Error Loading %s::%s configs from '%s': %v", moduleName, serviceName, configFileName, err)
 	} else {
 		glog.Infof("Successfully loaded '%s::%s' service configs from '%s'", moduleName, serviceName, configFileName)
@@ -210,7 +210,7 @@ func getServiceConfigFilePath(moduleName, serviceName, configDir, oldConfigDir s
 	return configFileName
 }
 
-func updateMap(baseMap, overrides *ConfigMap) *ConfigMap {
+func updateMap(baseMap, overrides *Map) *Map {
 	for k, v := range overrides.RawMap {
 		baseMap.RawMap[k] = v
 	}
@@ -236,7 +236,7 @@ func getModules() ([]string, error) {
 // loadYamlFile loads a config by file name to a map of parameters
 // Input: configFileName - name of config file to load, e.g. /etc/magma/control_proxy.yml
 // Output: map of parameters if it exists, error if not
-func loadYamlFile(configFileName string) (*ConfigMap, error) {
+func loadYamlFile(configFileName string) (*Map, error) {
 	yamlFile, err := ioutil.ReadFile(configFileName)
 	if err != nil {
 		return nil, err
@@ -246,5 +246,5 @@ func loadYamlFile(configFileName string) (*ConfigMap, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ConfigMap{configMap}, nil
+	return &Map{configMap}, nil
 }
