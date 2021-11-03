@@ -19,35 +19,34 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/hashicorp/go-multierror"
 
 	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/metrics"
 	state_types "magma/orc8r/cloud/go/services/state/types"
-	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/util"
 )
 
 // Major TODOs:
-// TODO(reginawang3495): Add save jobs/indexes # times run
 // TODO(reginawang3495): Remove "Desired" from Indexer.Versions once reindexer_queue and queue are removed
 
-// This Reindexer runs as though it is a singleton
+// reindexerSingleton runs as though it is a singleton
 type reindexerSingleton struct {
-	versioner Versioner
+	Versioner
 	store     Store
-	// TODO(reginawang3495) Add some structure to save jobs/indexes # times run
 }
 
-// TODO: to be setup and used in M2 Part C
+// TODO(reginawang3495): to be setup and used in M2 Part C
 const reindexLoopInterval = 5 * time.Second
 
 func NewReindexerSingleton(store Store, versioner Versioner) Reindexer {
-	return &reindexerSingleton{store: store, versioner: versioner}
+	return &reindexerSingleton{store: store, Versioner: versioner}
 }
 
 func (r *reindexerSingleton) Run(ctx context.Context) {
+	// indexerID being "" means that we are retrieving jobs on all indices
 	const indexerID = ""
+	// TODO(reginawang3495) will support non-nil sendUpdate from Run after removing queue impl
 	var sendUpdate func(string) = nil
 
 	batches := r.getReindexBatches(ctx)
@@ -58,13 +57,10 @@ func (r *reindexerSingleton) Run(ctx context.Context) {
 		}
 
 		err := r.reindexJobs(ctx, indexerID, batches, sendUpdate)
-
-		// NOTE: consider sleeping when no err for perf reasons
 		if err != nil {
 			clock.Sleep(failedJobSleep)
-		} else {
-			clock.Sleep(reindexLoopInterval)
 		}
+		clock.Sleep(reindexLoopInterval)
 	}
 }
 
@@ -73,11 +69,7 @@ func (r *reindexerSingleton) RunUnsafe(ctx context.Context, indexerID string, se
 	return r.reindexJobs(ctx, indexerID, batches, sendUpdate)
 }
 
-func (r *reindexerSingleton) GetIndexerVersions() ([]*indexer.Versions, error) {
-	return r.versioner.GetIndexerVersions()
-}
-
-// Get network-segregated reindex batches with capped number of state IDs per batch.
+// getReindexBatches gets network-segregated reindex batches with capped number of state IDs per batch.
 func (r *reindexerSingleton) getReindexBatches(ctx context.Context) []reindexBatch {
 	var idsByNetwork state_types.IDsByNetwork
 	for {
@@ -113,18 +105,16 @@ func (r *reindexerSingleton) reindexJobs(ctx context.Context, indexerID string, 
 	if err != nil {
 		return wrap(err, ErrDefault, indexerID)
 	}
-	// QUESTION: why return error if no jobs? this is brought over from Run / RunUnsafe of reindexer_queue
-	if len(jobs) == 0 {
-		return merrors.ErrNotFound
-	}
+
+	var errs *multierror.Error
 
 	for _, j := range jobs {
 		err = r.reindexJob(j, ctx, batches, sendUpdate)
 		if err != nil {
-			return wrap(err, ErrDefault, indexerID)
+			errs = multierror.Append(errs, err)
 		}
 	}
-	return nil
+	return errs.ErrorOrNil()
 }
 
 func (r *reindexerSingleton) reindexJob(job *Job, ctx context.Context, batches []reindexBatch, sendUpdate func(string)) error {
@@ -134,9 +124,10 @@ func (r *reindexerSingleton) reindexJob(job *Job, ctx context.Context, batches [
 
 	jobErr := executeJob(ctx, job, batches)
 
-	// TODO(reginawang3495) Add indexer fail count increase and logging
-	// Set Indexer Version every time for now
-	err := r.versioner.SetIndexerActualVersion(job.Idx.GetID(), job.To)
+	if jobErr != nil {
+		return fmt.Errorf("error executing job %+v with job err <%s>", job, jobErr)
+	}
+	err := r.SetIndexerActualVersion(job.Idx.GetID(), job.To)
 
 	if err != nil {
 		return fmt.Errorf("error completing state reindex job %+v with job err <%s>: %s", job, jobErr, err)
@@ -167,8 +158,8 @@ func (r *reindexerSingleton) getJobs(indexerID string) ([]*Job, error) {
 
 	var ret []*Job
 	for _, x := range idxs {
-		// Get Indexer Version saved from memory
-		v, err := GetIndexerVersion(r.versioner, x.GetID())
+		// Get Indexer Version saved in db
+		v, err := GetIndexerVersion(r.Versioner, x.GetID())
 
 		if err != nil {
 			return nil, err
