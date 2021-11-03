@@ -18,8 +18,8 @@
 #ifndef MS_NETWORK_CAPABILITY_H_
 #define MS_NETWORK_CAPABILITY_H_
 #include <stdint.h>
-#include "bstrlib.h"
-#include "3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
 typedef ms_network_capability_t MsNetworkCapability;
 

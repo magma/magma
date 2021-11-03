@@ -14,7 +14,7 @@ import (
 
 // SubscriberStaticIps Mapping of APN ID to static IP address to allocate for the subscriber at the edge
 // swagger:model subscriber_static_ips
-type SubscriberStaticIps map[string]strfmt.IPv4
+type SubscriberStaticIps map[string]string
 
 // Validate validates this subscriber static ips
 func (m SubscriberStaticIps) Validate(formats strfmt.Registry) error {
@@ -23,10 +23,6 @@ func (m SubscriberStaticIps) Validate(formats strfmt.Registry) error {
 	for k := range m {
 
 		if err := validate.MinLength(k, "body", string(m[k]), 1); err != nil {
-			return err
-		}
-
-		if err := validate.FormatOf(k, "body", "ipv4", m[k].String(), formats); err != nil {
 			return err
 		}
 

@@ -21,10 +21,10 @@
 #include "feg/protos/s6a_proxy.pb.h"
 
 extern "C" {
-#include "s6a_service_handler.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/include/s6a_service_handler.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 }
-#include "S6aGatewayImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S6aGatewayImpl.h"
 
 namespace grpc {
 class Channel;

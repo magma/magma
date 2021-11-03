@@ -15,15 +15,15 @@
  *      contact@openairinterface.org
  */
 
-#include "OpenflowController.h"
-#include "PagingApplication.h"
-#include "BaseApplication.h"
-#include "ControllerMain.h"
-#include "GTPApplication.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/PagingApplication.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/BaseApplication.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/GTPApplication.h"
 extern "C" {
-#include "log.h"
-#include "spgw_config.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 }
 
 static const int OFP_LOCAL   = 65534;

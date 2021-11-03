@@ -17,9 +17,9 @@
 
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "GutiReallocationComplete.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/GutiReallocationComplete.h"
 
 int decode_guti_reallocation_complete(
     guti_reallocation_complete_msg* guti_reallocation_complete, uint8_t* buffer,

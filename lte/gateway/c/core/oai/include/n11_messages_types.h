@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 //-----------------------------------------------------------------------------
 /** @struct itti_n11_create_pdu_session_response_t
  *  @brief Create PDU Session Response */

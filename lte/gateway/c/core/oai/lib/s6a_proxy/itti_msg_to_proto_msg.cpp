@@ -15,11 +15,11 @@
  *      contact@openairinterface.org
  */
 
-#include "itti_msg_to_proto_msg.h"
-#include "security_types.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/itti_msg_to_proto_msg.h"
+#include "lte/gateway/c/core/oai/common/security_types.h"
 
 extern "C" {
-#include "ie_to_bytes.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
 }
 
 namespace magma {

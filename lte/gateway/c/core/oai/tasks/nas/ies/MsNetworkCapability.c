@@ -19,9 +19,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "MsNetworkCapability.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MsNetworkCapability.h"
 
 int decode_ms_network_capability(
     MsNetworkCapability* msnetworkcapability, uint8_t iei, uint8_t* buffer,

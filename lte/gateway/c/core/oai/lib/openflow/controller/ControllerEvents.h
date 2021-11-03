@@ -20,7 +20,7 @@
 #include <arpa/inet.h>
 #include <fluid/OFServer.hh>
 #include <fluid/ofcommon/openflow-common.hh>
-#include "gtpv1u.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 
 using namespace fluid_msg;
 

@@ -44,12 +44,12 @@
 #include <stdint.h>
 #include <math.h>
 
-#include "bstrlib.h"
-#include "common_types.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
-#include "EpsQualityOfService.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
 
 /* Endianness conversions for 16 and 32 bits integers from host to network order
  */

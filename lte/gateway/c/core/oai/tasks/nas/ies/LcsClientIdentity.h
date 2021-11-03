@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #define LCS_CLIENT_IDENTITY_MINIMUM_LENGTH 3
 #define LCS_CLIENT_IDENTITY_MAXIMUM_LENGTH 257

@@ -21,7 +21,7 @@
  * \company Eurecom
  * \email:
  */
-#include "mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 
 #ifndef UDP_PRIMITIVES_SERVER_H_
 #define UDP_PRIMITIVES_SERVER_H_

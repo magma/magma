@@ -49,25 +49,25 @@
 #include <libconfig.h>
 #include <netinet/in.h>
 
-#include "assertions.h"
-#include "dynamic_memory_check.h"
-#include "log.h"
-#include "common_defs.h"
-#include "mme_config.h"
-#include "amf_config.h"
-#include "3gpp_33.401.h"
-#include "intertask_interface_conf.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "3gpp_24.301.h"
-#include "TrackingAreaIdentity.h"
-#include "bstrlib.h"
-#include "mme_app_ue_context.h"
-#include "mme_default_values.h"
-#include "service303.h"
-#include "conversions.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
+#include "lte/gateway/c/core/oai/common/intertask_interface_conf.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/common/mme_default_values.h"
+#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #if EMBEDDED_SGW
-#include "sgw_config.h"
+#include "lte/gateway/c/core/oai/include/sgw_config.h"
 #endif
 static bool parse_bool(const char* str);
 
@@ -280,12 +280,14 @@ void mme_config_init(mme_config_t* config) {
   sac_to_tacs_map_config_init(&config->sac_to_tacs_map);
 }
 
-void free_partial_lists(mme_config_t* config_pP) {
-  for (uint8_t itr = 0; itr < config_pP->num_par_lists; itr++) {
-    free_wrapper((void**) &(config_pP->partial_list[itr].plmn));
-    free_wrapper((void**) &(config_pP->partial_list[itr].tac));
+void free_partial_lists(partial_list_t* partial_list, uint8_t num_par_lists) {
+  if ((!partial_list) || (!num_par_lists)) return;
+
+  for (uint8_t itr = 0; itr < num_par_lists; itr++) {
+    free_wrapper((void**) &(partial_list[itr].plmn));
+    free_wrapper((void**) &(partial_list[itr].tac));
   }
-  free_wrapper((void**) &config_pP->partial_list);
+  free_wrapper((void**) &partial_list);
 }
 
 void free_mme_config(mme_config_t* mme_config) {
@@ -311,7 +313,9 @@ void free_mme_config(mme_config_t* mme_config) {
   free_wrapper((void**) &mme_config->served_tai.plmn_mnc_len);
   free_wrapper((void**) &mme_config->served_tai.tac);
 
-  free_partial_lists(mme_config);
+  clear_served_tai_config(&mme_config->served_tai);
+  free_partial_lists(mme_config->partial_list, mme_config->num_par_lists);
+  mme_config->num_par_lists = 0;
 
   bdestroy_wrapper(&mme_config->service303_config.name);
   bdestroy_wrapper(&mme_config->service303_config.version);
@@ -2367,4 +2371,24 @@ static bool parse_bool(const char* str) {
   if (strcasecmp(str, "") == 0) return false;
 
   Fatal("Error in config file: got \"%s\" but expected bool\n", str);
+}
+
+void clear_served_tai_config(served_tai_t* served_tai) {
+  if (served_tai->plmn_mcc) {
+    free(served_tai->plmn_mcc);
+    served_tai->plmn_mcc = NULL;
+  }
+  if (served_tai->plmn_mnc) {
+    free(served_tai->plmn_mnc);
+    served_tai->plmn_mnc = NULL;
+  }
+  if (served_tai->plmn_mnc_len) {
+    free(served_tai->plmn_mnc_len);
+    served_tai->plmn_mnc_len = NULL;
+  }
+  if (served_tai->tac) {
+    free(served_tai->tac);
+    served_tai->tac = NULL;
+  }
+  served_tai->nb_tai = 0;
 }

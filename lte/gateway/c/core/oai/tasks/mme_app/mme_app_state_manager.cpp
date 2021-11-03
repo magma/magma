@@ -17,13 +17,13 @@
 
 #include <string>
 extern "C" {
-#include "assertions.h"
-#include "dynamic_memory_check.h"
-#include "emm_proc.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 }
 
-#include "mme_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.h"
 
 namespace {
 constexpr char MME_NAS_STATE_KEY[] = "mme_nas_state";

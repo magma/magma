@@ -17,10 +17,9 @@ limitations under the License.
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "common_defs.h"
-#include "common_types.h"
-#include <netinet/in.h>
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 
 int mme_app_insert_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64);
 int mme_app_insert_ue_ipv6_addr(struct in6_addr ipv6_addr, imsi64_t imsi64);

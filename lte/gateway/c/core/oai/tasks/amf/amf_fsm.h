@@ -18,7 +18,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #ifdef __cplusplus
 };

@@ -13,13 +13,13 @@ limitations under the License.
 
 #include <string>
 
-#include "HaServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/HaServiceImpl.h"
 #include "lte/protos/ha_service.pb.h"
 extern "C" {
-#include "log.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 }
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 

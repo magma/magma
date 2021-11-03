@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "sctp_desc.h"
+#include "lte/gateway/c/sctpd/src/sctp_desc.h"
 
 #include "assert.h"
 

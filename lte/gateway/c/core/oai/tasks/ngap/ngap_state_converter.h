@@ -27,18 +27,18 @@ extern "C" {
 
 #include <cstdint>
 
-#include "assertions.h"
-#include "dynamic_memory_check.h"
-#include "hashtable.h"
-#include "ngap_types.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "state_converter.h"
+#include "lte/gateway/c/core/oai/include/state_converter.h"
 #include "lte/protos/oai/ngap_state.pb.h"
-#include "ngap_state.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.h"
 using namespace std;
 using namespace magma::lte;
 using namespace magma::lte::oai;

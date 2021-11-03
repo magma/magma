@@ -9,6 +9,11 @@ on:  # yamllint disable-line rule:truthy
       - synchronize
     paths:
       - CODEOWNERS
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   sanity:
     runs-on: ubuntu-latest

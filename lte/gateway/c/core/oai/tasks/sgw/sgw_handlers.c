@@ -30,42 +30,42 @@
 #include <stdbool.h>
 #include <string.h>
 #include <netinet/in.h>
-#include <MobilityClientAPI.h>
+#include <lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h>
 
-#include "bstrlib.h"
-#include "dynamic_memory_check.h"
-#include "assertions.h"
-#include "hashtable.h"
-#include "common_defs.h"
-#include "intertask_interface.h"
-#include "log.h"
-#include "sgw_ie_defs.h"
-#include "3gpp_23.401.h"
-#include "common_types.h"
-#include "sgw_handlers.h"
-#include "sgw_context_manager.h"
-#include "pgw_pco.h"
-#include "spgw_config.h"
-#include "gtpv1u.h"
-#include "pgw_ue_ip_address_alloc.h"
-#include "pgw_pcef_emulation.h"
-#include "pgw_procedures.h"
-#include "service303.h"
-#include "includes/MetricsHelpers.h"
-#include "pcef_handlers.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
-#include "pgw_config.h"
-#include "queue.h"
-#include "sgw_defs.h"
-#include "sgw_config.h"
-#include "pgw_handlers.h"
-#include "conversions.h"
-#include "spgw_state.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pco.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
+#include "lte/gateway/c/core/oai/include/service303.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/include/pgw_config.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
+#include "lte/gateway/c/core/oai/include/sgw_config.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern spgw_config_t spgw_config;
@@ -352,12 +352,24 @@ status_code_e sgw_handle_sgi_endpoint_created(
           .s1u_sgw_fteid.teid = eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up;
       create_session_response_p->bearer_contexts_created.bearer_contexts[0]
           .s1u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
+
       create_session_response_p->bearer_contexts_created.bearer_contexts[0]
           .s1u_sgw_fteid.ipv4 = 1;
       create_session_response_p->bearer_contexts_created.bearer_contexts[0]
           .s1u_sgw_fteid.ipv4_address.s_addr =
           state->sgw_ip_address_S1u_S12_S4_up.s_addr;
-
+      if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled) {
+        create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+            .s1u_sgw_fteid.ipv6 = 1;
+        memcpy(
+            &create_session_response_p->bearer_contexts_created
+                 .bearer_contexts[0]
+                 .s1u_sgw_fteid.ipv6_address,
+            &state->sgw_ipv6_address_S1u_S12_S4_up,
+            sizeof(create_session_response_p->bearer_contexts_created
+                       .bearer_contexts[0]
+                       .s1u_sgw_fteid.ipv6_address));
+      }
       /*
        * Set the Cause information from bearer context created.
        * "Request accepted" is returned when the GTPv2 entity has accepted a
@@ -550,10 +562,16 @@ static void sgw_add_gtp_tunnel(
           ue_ipv4, ue_ipv6, vlan, enb, enb_ipv6,
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE, apn);
+      // (@ulaskozat) We only need to update the TEIDs during session creation
+      // which triggers rule installments on sessiond. When pipelined needs to
+      // use eNB TEID for reporting we need to change this logic into something
+      // more meaningful.
+      bool update_teids               = eps_bearer_ctxt_p->update_teids;
+      eps_bearer_ctxt_p->update_teids = false;
       if (rv < 0) {
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, imsi64, "ERROR in setting up TUNNEL err=%d\n", rv);
-      } else {
+      } else if (update_teids) {
         pcef_update_teids(
             (char*) imsi.digit, eps_bearer_ctxt_p->eps_bearer_id,
             eps_bearer_ctxt_p->enb_teid_S1u,

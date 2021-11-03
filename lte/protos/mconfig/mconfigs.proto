@@ -387,6 +387,9 @@ message MME {
 
     // AMF pointer
     string amf_pointer = 53;
+
+    // SGW S1U ipv6 endpoint on AGW
+    string ipv6_sgw_s1u_addr = 54;
 }
 
 message FederatedModeMap {

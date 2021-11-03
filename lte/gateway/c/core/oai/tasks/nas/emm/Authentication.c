@@ -20,40 +20,40 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "bstrlib.h"
-#include "log.h"
-#include "dynamic_memory_check.h"
-#include "assertions.h"
-#include "common_types.h"
-#include "conversions.h"
-#include "3gpp_requirements_24.301.h"
-#include "3gpp_24.008.h"
-#include "mme_app_ue_context.h"
-#include "emm_proc.h"
-#include "nas_timer.h"
-#include "emm_data.h"
-#include "emm_sap.h"
-#include "emm_cause.h"
-#include "includes/MetricsHelpers.h"
-#include "EmmCommon.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.301.h"
-#include "3gpp_33.401.h"
-#include "3gpp_36.401.h"
-#include "AuthenticationResponse.h"
-#include "TrackingAreaIdentity.h"
-#include "common_defs.h"
-#include "emm_asDef.h"
-#include "emm_cnDef.h"
-#include "emm_fsm.h"
-#include "nas_procedures.h"
-#include "s6a_messages_types.h"
-#include "nas/securityDef.h"
-#include "security_types.h"
-#include "intertask_interface.h"
-#include "nas_proc.h"
-#include "mme_app_defs.h"
-#include "mme_app_timer.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/include/3gpp_requirements_24.301.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationResponse.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/common/security_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -1132,13 +1132,6 @@ status_code_e mme_app_handle_auth_t3460_expiry(
 
       // abort ANY ongoing EMM procedure (R10_5_4_2_7_b)
       nas_delete_all_emm_procedures(emm_ctx);
-
-      // Clean up MME APP UE context
-      memset((void*) &emm_sap, 0, sizeof(emm_sap));
-      emm_sap.primitive = EMMCN_IMPLICIT_DETACH_UE;
-      emm_sap.u.emm_cn.u.emm_cn_implicit_detach.ue_id = ue_id;
-      emm_sap_send(&emm_sap);
-      increment_counter("ue_attach", 1, 1, "action", "attach_abort");
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);

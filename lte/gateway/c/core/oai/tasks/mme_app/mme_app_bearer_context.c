@@ -26,15 +26,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "bstrlib.h"
-#include "dynamic_memory_check.h"
-#include "log.h"
-#include "common_types.h"
-#include "mme_app_ue_context.h"
-#include "common_defs.h"
-#include "mme_app_bearer_context.h"
-#include "3gpp_29.274.h"
-#include "esm_data.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
 
 static void mme_app_bearer_context_init(bearer_context_t* const bearer_context);
 

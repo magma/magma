@@ -15,7 +15,9 @@ package servicers
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/services/directoryd/storage"
@@ -23,11 +25,15 @@ import (
 )
 
 type directoryLookupServicer struct {
-	store storage.DirectorydStorage
+	store       storage.DirectorydStorage
+	sgwCteidGen *IdGenerator
 }
 
 func NewDirectoryLookupServicer(store storage.DirectorydStorage) (protos.DirectoryLookupServer, error) {
-	srv := &directoryLookupServicer{store: store}
+	srv := &directoryLookupServicer{
+		store:       store,
+		sgwCteidGen: NewIdGenerator(),
+	}
 	return srv, nil
 }
 
@@ -138,4 +144,19 @@ func (d *directoryLookupServicer) GetHWIDForSgwCTeid(
 	res := &protos.GetHWIDForSgwCTeidResponse{Hwid: hwid}
 
 	return res, err
+}
+
+func (d *directoryLookupServicer) GetNewSgwCTeid(ctx context.Context, req *protos.GetNewSgwCTeidRequest) (*protos.GetNewSgwCTeidResponse, error) {
+	err := req.Validate()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate GetNewSgwCTeid")
+	}
+
+	sgwCTeid, err := d.sgwCteidGen.GetUniqueId(req.NetworkID, d.store.GetHWIDForSgwCTeid)
+	if err != nil {
+		err = fmt.Errorf("GetNewSgwCTeid could not get unique TEID: %s", err)
+		glog.Error(err)
+		return nil, err
+	}
+	return &protos.GetNewSgwCTeidResponse{Teid: fmt.Sprint(sgwCTeid)}, nil
 }

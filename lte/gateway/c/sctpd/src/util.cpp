@@ -11,12 +11,12 @@
  * limitations under the License.
  */
 
-#include "util.h"
+#include "lte/gateway/c/sctpd/src/util.h"
 
 #include <netinet/sctp.h>
 #include <unistd.h>
 
-#include "sctpd.h"
+#include "lte/gateway/c/sctpd/src/sctpd.h"
 
 namespace magma {
 namespace sctpd {

@@ -12,9 +12,9 @@
  */
 
 #include <iostream>
-#include "util_nas5g_pkt.h"
-#include "rfc_1877.h"
-#include "rfc_1332.h"
+#include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.h"
+#include "lte/gateway/c/core/oai/common/rfc_1877.h"
+#include "lte/gateway/c/core/oai/common/rfc_1332.h"
 
 namespace magma5g {
 

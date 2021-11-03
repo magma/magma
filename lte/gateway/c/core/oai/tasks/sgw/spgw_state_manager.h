@@ -17,10 +17,10 @@
 
 #pragma once
 
-#include "state_manager.h"
-#include "spgw_state.h"
-#include "spgw_state_converter.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/include/state_manager.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 namespace {
 constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE    = 512;

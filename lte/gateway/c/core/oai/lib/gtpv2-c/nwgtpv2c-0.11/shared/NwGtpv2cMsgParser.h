@@ -32,9 +32,9 @@
  *----------------------------------------------------------------------------*/
 
 #include <string.h>
-#include "NwTypes.h"
-#include "NwGtpv2c.h"
-#include "NwGtpv2cIe.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cIe.h"
 
 #ifndef __NW_GTPV2C_MSG_PARSER_H__
 #define __NW_GTPV2C_MSG_PARSER_H__

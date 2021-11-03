@@ -12,7 +12,7 @@
 #pragma once
 #include <sstream>
 #include <cstdint>
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 namespace magma5g {
 // AuthenticationResponseParameter IE Class

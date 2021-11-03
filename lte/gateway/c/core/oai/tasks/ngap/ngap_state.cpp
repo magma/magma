@@ -19,22 +19,22 @@
 
 *****************************************************************************/
 
-#include "ngap_state.h"
-#include "ngap_types.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
 #include <cstdlib>
 #include <cstring>
 
 #include <memory.h>
 
 extern "C" {
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-#include "assertions.h"
-#include "common_defs.h"
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 }
 
-#include "ngap_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.h"
 
 using magma5g::NgapStateManager;
 

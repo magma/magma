@@ -22,12 +22,12 @@
    \version 0.1
 */
 
-#include "s1ap_mme_decoder.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
 
-#include "bstrlib.h"
-#include "log.h"
-#include "assertions.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "S1ap_S1AP-PDU.h"
 #include "S1ap_InitiatingMessage.h"
 #include "S1ap_ProcedureCode.h"

@@ -20,8 +20,8 @@
 
 #include <lte/protos/sctpd.grpc.pb.h>
 
-#include "sctpd_event_handler.h"
-#include "sctpd_uplink_client.h"
+#include "lte/gateway/c/sctpd/src/sctpd_event_handler.h"
+#include "lte/gateway/c/sctpd/src/sctpd_uplink_client.h"
 
 using ::testing::_;
 using ::testing::AllOf;

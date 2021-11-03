@@ -18,9 +18,9 @@
 #include <limits>
 #include <utility>
 
-#include "Consts.h"
-#include "PDUGenerator.h"
-#include "LIAgentdMocks.h"
+#include "lte/gateway/c/li_agent/src/test/Consts.h"
+#include "lte/gateway/c/li_agent/src/PDUGenerator.h"
+#include "lte/gateway/c/li_agent/src/test/LIAgentdMocks.h"
 
 using grpc::Status;
 

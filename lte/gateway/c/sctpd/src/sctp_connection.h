@@ -20,7 +20,7 @@
 
 #include <lte/protos/sctpd.grpc.pb.h>
 
-#include "sctp_desc.h"
+#include "lte/gateway/c/sctpd/src/sctp_desc.h"
 
 struct sctp_assoc_change;
 

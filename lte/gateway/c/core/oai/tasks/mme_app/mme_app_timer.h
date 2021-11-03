@@ -18,9 +18,9 @@ limitations under the License.
 extern "C" {
 #endif
 
-#include "intertask_interface.h"
-#include "mme_app_ue_context.h"
-#include "nas_timer.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 
 #define MME_APP_TIMER_INACTIVE_ID (-1)
 

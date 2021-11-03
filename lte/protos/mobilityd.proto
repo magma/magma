@@ -153,6 +153,10 @@ service MobilityService {
   //
   rpc ListAddedIPv4Blocks (magma.orc8r.Void) returns (ListAddedIPBlocksResponse);
 
+  // Return a list of assigned IPv6 blocks
+  //
+  rpc ListAddedIPv6Blocks (magma.orc8r.Void) returns (ListAddedIPBlocksResponse);
+
   // Return a list of allocated IPs inside a IP block
   // Throws INVALID_ARGUMENT if IPBlock is invalid
   // Throws FAILED_PRECONDITION if IPBlock is not previously assigned

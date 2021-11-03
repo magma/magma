@@ -18,11 +18,11 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "ngap_amf_decoder.h"
-#include "bstrlib.h"
-#include "log.h"
-#include "assertions.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_decoder.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "Ngap_NGAP-PDU.h"
 #include "Ngap_InitiatingMessage.h"
 #include "Ngap_ProcedureCode.h"

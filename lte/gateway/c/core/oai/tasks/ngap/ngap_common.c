@@ -24,9 +24,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ngap_common.h"
-#include "dynamic_memory_check.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "ANY.h"
 #include "Ngap_NGAP-PDU.h"
 #include "Ngap_InitiatingMessage.h"

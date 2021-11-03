@@ -15,14 +15,14 @@
  *      contact@openairinterface.org
  */
 
-#include "EventClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/event_client/EventClientAPI.h"
 
 #include <iostream>
 #include <thread>
 #include <grpcpp/support/status.h>
 #include <orc8r/protos/common.pb.h>
 
-#include "includes/EventdClient.h"
+#include "orc8r/gateway/c/common/eventd/includes/EventdClient.h"
 
 using grpc::Status;
 using grpc::StatusCode::DEADLINE_EXCEEDED;

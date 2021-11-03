@@ -8,6 +8,10 @@ on:  # yamllint disable-line rule:truthy
       - edited
       - synchronize
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   reverted-pr-check:
     name: Reverted PR Check Job

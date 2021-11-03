@@ -19,7 +19,6 @@ import (
 
 	"github.com/labstack/echo"
 
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
 )
 
@@ -33,11 +32,11 @@ import (
 func GetAndValidatePayload(c echo.Context, model interface{}) (serde.ValidatableModel, *echo.HTTPError) {
 	iModel := reflect.New(reflect.TypeOf(model).Elem()).Interface().(serde.ValidatableModel)
 	if err := c.Bind(iModel); err != nil {
-		return nil, obsidian.HttpError(err, http.StatusBadRequest)
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	// Run validations specified by the swagger spec
 	if err := iModel.ValidateModel(c.Request().Context()); err != nil {
-		return nil, obsidian.HttpError(err, http.StatusBadRequest)
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	return iModel, nil
 }

@@ -16,15 +16,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "log.h"
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
-#include "common_defs.h"
-#include "amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 
 namespace magma5g {
 

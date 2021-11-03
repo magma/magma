@@ -17,10 +17,10 @@
 
 #include <stdint.h>
 
-#include "log.h"
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "ServiceRequest.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceRequest.h"
 
 int decode_service_request(
     service_request_msg* service_request, uint8_t* buffer, uint32_t len) {

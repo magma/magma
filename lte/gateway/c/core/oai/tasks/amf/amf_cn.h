@@ -14,7 +14,7 @@
 #ifndef FILE_AMF_CN_SEEN
 #define FILE_AMF_CN_SEEN
 
-#include "amf_sap.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
 int amf_cn_send(const amf_cn_t* msg);
 
 #endif /* FILE_AMF_CN_SEEN */

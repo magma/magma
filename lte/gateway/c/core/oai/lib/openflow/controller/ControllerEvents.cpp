@@ -17,7 +17,7 @@
 
 #include <netinet/in.h>
 #include <string.h>
-#include "ControllerEvents.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.h"
 
 using namespace fluid_msg;
 

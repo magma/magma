@@ -12,6 +12,8 @@
  */
 #pragma once
 
+#include <stdint.h>
+
 #include "magma_logging.h"
 
 // GLOG LOGGING

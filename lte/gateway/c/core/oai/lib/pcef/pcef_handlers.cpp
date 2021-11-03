@@ -18,26 +18,26 @@
 #include <grpcpp/impl/codegen/status.h>
 #include <cstring>
 #include <string>
-#include <conversions.h>
-#include <common_defs.h>
+#include <lte/gateway/c/core/oai/common/conversions.h>
+#include <lte/gateway/c/core/oai/common/common_defs.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "common_defs.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "pcef_handlers.h"
-#include "PCEFClient.h"
-#include "MobilityClientAPI.h"
-#include "itti_types.h"
+#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.h"
+#include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/protos/session_manager.pb.h"
-#include "spgw_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
@@ -200,8 +200,33 @@ void pcef_update_teids(
   request.set_agw_teid(agw_teid);
 
   magma::PCEFClient::update_teids(
-      request, [&](grpc::Status status,
-                   magma::UpdateTunnelIdsResponse response) { return; });
+      request,
+      [request](grpc::Status status, magma::UpdateTunnelIdsResponse response) {
+        if (status.error_code() == grpc::ABORTED) {
+          MessageDef* message_p = DEPRECATEDitti_alloc_new_message_fatal(
+              TASK_GRPC_SERVICE, GX_NW_INITIATED_DEACTIVATE_BEARER_REQ);
+          itti_gx_nw_init_deactv_bearer_request_t* itti_msg =
+              &message_p->ittiMsg.gx_nw_init_deactv_bearer_request;
+          std::string imsi = request.sid().id();
+          OAILOG_INFO(
+              LOG_UTIL,
+              "Received grpc::ABORTED for update_teids RPC for %s with error "
+              "msg: %s. Deactivating bearer %u.",
+              imsi.c_str(), status.error_message().c_str(),
+              request.bearer_id());
+          // strip off "IMSI" prefix
+          imsi                  = imsi.substr(4, std::string::npos);
+          itti_msg->imsi_length = imsi.size();
+          strcpy(itti_msg->imsi, imsi.c_str());
+          itti_msg->lbi           = request.bearer_id();
+          itti_msg->no_of_bearers = 1;
+          itti_msg->ebi[0]        = request.bearer_id();
+          send_msg_to_task(
+              &grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
+        }
+
+        return;
+      });
 }
 
 /*

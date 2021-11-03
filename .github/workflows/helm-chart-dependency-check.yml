@@ -15,6 +15,11 @@ on:  # yamllint disable-line rule:truthy
       - opened
       - reopened
       - synchronize  # yamllint disable-line rule:truthy
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   check_helm_chart_dependencies:
     env:

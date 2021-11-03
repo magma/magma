@@ -14,6 +14,10 @@ on:  # yamllint disable-line rule:truthy
       - reopened
       - synchronize
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   pre_job_src_go_determinator:
     runs-on: ubuntu-latest

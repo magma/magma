@@ -9,34 +9,33 @@
  * limitations under the License.
  */
 
-#include "util_nas5g_pkt.h"
-#include "include/amf_session_manager_pco.h"
+#include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.h"
 #include <gtest/gtest.h>
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "../../tasks/amf/amf_app_ue_context_and_proc.h"
-#include "mme_config.h"
-#include "amf_authentication.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
 
 extern "C" {
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #define CHECK_PROTOTYPE_ONLY
-#include "intertask_interface_init.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
 #undef CHECK_PROTOTYPE_ONLY
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 }
 
 const task_info_t tasks_info[] = {
     {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
 #define TASK_DEF(tHREADiD)                                                     \
   {THREAD_##tHREADiD, #tHREADiD, "ipc://IPC_" #tHREADiD},
-#include <tasks_def.h>
+#include <lte/gateway/c/core/oai/include/tasks_def.h>
 #undef TASK_DEF
 };
 
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
-struct mme_config_s mme_config;
 
 using ::testing::Test;
 
@@ -731,11 +730,6 @@ TEST(test_delete_registration_proc, test_delete_registration_proc) {
 
   delete_wrapper(&ue_ctxt->amf_context.amf_procedures);
   delete ue_ctxt;
-}
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
 
 }  // namespace magma5g

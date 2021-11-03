@@ -39,9 +39,9 @@
 
 #pragma once
 
-#include "3gpp_24.007.h"
-#include "3gpp_29.274.h"
-#include "ip_forward_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 
 #define GX_NW_INITIATED_ACTIVATE_BEARER_REQ(mSGpTR)                            \
   (mSGpTR)->ittiMsg.gx_nw_init_actv_bearer_request

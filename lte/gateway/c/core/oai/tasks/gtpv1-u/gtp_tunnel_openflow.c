@@ -21,13 +21,13 @@
 #include <netinet/in.h>
 #include <stdlib.h>
 
-#include "assertions.h"
-#include "bstrlib.h"
-#include "log.h"
-#include "gtpv1u.h"
-#include "ControllerMain.h"
-#include "3gpp_23.003.h"
-#include "spgw_config.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
 
 extern struct gtp_tunnel_ops gtp_tunnel_ops;
 
@@ -233,7 +233,7 @@ static uint32_t find_gtp_port_no(
   if (!spgw_config.sgw_config.ovs_config.multi_tunnel) {
     return 0;
   }
-  if ((uint32_t) enb_addr.s_addr == 0) {
+  if ((uint32_t) enb_addr.s_addr == 0 && enb_addr_ipv6 == NULL) {
     OAILOG_WARNING(LOG_GTPV1U, "zero enb IP address not supported");
     return 0;
   }

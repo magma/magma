@@ -28,12 +28,12 @@ const NProbeBlobType = "nprobe"
 
 // NewNProbeBlobstore returns a nprobe storage implementation
 // backed by the provided blobstore factory.
-func NewNProbeBlobstore(factory blobstore.BlobStorageFactory) NProbeStorage {
+func NewNProbeBlobstore(factory blobstore.StoreFactory) NProbeStorage {
 	return &nprobeBlobStore{factory: factory}
 }
 
 type nprobeBlobStore struct {
-	factory blobstore.BlobStorageFactory
+	factory blobstore.StoreFactory
 }
 
 // StoreNProbeData stores current state for a given networkID and taskID
@@ -49,7 +49,7 @@ func (c *nprobeBlobStore) StoreNProbeData(networkID, taskID string, data models.
 		return err
 	}
 
-	err = store.CreateOrUpdate(networkID, blobstore.Blobs{dataBlob})
+	err = store.Write(networkID, blobstore.Blobs{dataBlob})
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("failed to store nprobe data  %s", taskID))
 	}

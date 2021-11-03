@@ -18,14 +18,14 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "emm_data.h"
-#include "emm_proc.h"
-#include "nas_procedures.h"
-#include "dynamic_memory_check.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 }
 
-#include "nas_state_converter.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_state_converter.h"
 
 namespace magma {
 namespace lte {

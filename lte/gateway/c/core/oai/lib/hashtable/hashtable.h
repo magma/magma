@@ -42,7 +42,7 @@
 #include <pthread.h>
 #include <stddef.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 typedef size_t hash_size_t;
 typedef uint64_t hash_key_t;

@@ -32,8 +32,8 @@
 
 *****************************************************************************/
 
-#include "parser.h"
-#include "nas/commonDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/parser.h"
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 
 #include <stdio.h>   // fprintf
 #include <string.h>  // strcmp, strncpy

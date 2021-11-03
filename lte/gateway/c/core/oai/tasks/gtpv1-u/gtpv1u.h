@@ -26,7 +26,7 @@
 
 #include <arpa/inet.h>
 #include <net/if.h>
-#include "sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 
 #define GTPU_HEADER_OVERHEAD_MAX 64
 
