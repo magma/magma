@@ -16,8 +16,6 @@ limitations under the License.
 #include <iostream>
 #include "mme_app_ip_imsi.h"
 #include "mme_app_ueip_imsi_map.h"
-//#include <fluid/util/ipaddr.hh>
-//#include <netinet/ip.h>
 #include "mme_app_state_manager.h"
 #include "lte/protos/mobilityd.pb.h"
 
@@ -116,7 +114,6 @@ int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list) {
   char ipv4[INET_ADDRSTRLEN] = {0};
   inet_ntop(AF_INET, (void*) &ipv4_addr, ipv4, INET_ADDRSTRLEN);
   auto itr_map = ueip_imsi_map.find(ipv4);
-  OAILOG_DEBUG(LOG_MME_APP, "pagingipv4:%x \n", ipv4);
   if (itr_map == ueip_imsi_map.end()) {
     OAILOG_ERROR(LOG_MME_APP, " No imsi found for ip:%x \n", ipv4_addr);
   } else {
@@ -144,8 +141,6 @@ int mme_app_get_imsi_from_ipv6(
       MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
   int num_imsis_ipv6          = 0;
   char ipv6[INET6_ADDRSTRLEN] = {0};
-  // access uint32 and mask the first two in in6_addr
-
   inet_ntop(AF_INET6, (void*) &ipv6_addr, ipv6, INET6_ADDRSTRLEN);
 
   if (inet_ntop(AF_INET6, (void*) &ipv6_addr, ipv6, INET6_ADDRSTRLEN) == NULL) {
@@ -155,18 +150,6 @@ int mme_app_get_imsi_from_ipv6(
 
   struct in6_addr ue_ip6_masked;
   auto itr_map = ueip_imsi_map.find(ipv6);
-  OAILOG_DEBUG(LOG_MME_APP, "pagingipv6:%s \n", ipv6);
-  OAILOG_DEBUG(LOG_MME_APP, "imsihashtablegetimsi \n");
-
-  for (const auto& n : ueip_imsi_map) {
-    OAILOG_DEBUG(LOG_MME_APP, "IMSIKEY for ip:%s \n", n.first.c_str());
-
-    for (const auto& vect_itr : n.second) {
-      OAILOG_DEBUG(
-          LOG_MME_APP, "Debuglog Found imsi for ip:%s, Print IMSI64IPV6 %lu\n",
-          n.first, vect_itr);
-    }
-  }
 
   if (itr_map == ueip_imsi_map.end()) {
     OAILOG_ERROR(LOG_MME_APP, " No imsi found for ip:%s \n", ipv6);
