@@ -334,10 +334,10 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
 
-  mme-clang-warnings:
+  mme-clang-tidy-and-warning-and-cpp-cov:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    name: mme clang warnings job
+    name: mme clang tidy/warning and cpp cov
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"

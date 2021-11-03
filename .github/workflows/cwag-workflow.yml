@@ -77,5 +77,3 @@ jobs:
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
-
-        # TODO bring up the containers and check for crashloops

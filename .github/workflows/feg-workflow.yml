@@ -32,7 +32,7 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/feg-workflow.yml", "orc8r/**", "lte/**", "feg/**"]
-  feg-tests:
+  feg-lint-precommit:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: feg lint and precommit
