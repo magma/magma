@@ -12,13 +12,12 @@
  */
 
 #include "includes/ServiceConfigLoader.h"
-#include <yaml-cpp/exceptions.h>  // for BadFile
-#include <yaml-cpp/node/impl.h>   // for Node::Node, Node::~Node
-#include <yaml-cpp/node/parse.h>  // for LoadFile
-#include <iostream>               // for operator<<, basic_ostream
-#include <string>                 // for allocator, operator+, char_traits
-#include "YAMLUtils.h"            // for YAMLUtils
-#include "magma_logging.h"        // for MLOG
+
+#include <iostream>  // for operator<<, basic_ostream
+#include <string>    // for allocator, operator+, char_traits
+
+#include "YAMLUtils.h"      // for YAMLUtils
+#include "magma_logging.h"  // for MLOG
 
 namespace magma {
 

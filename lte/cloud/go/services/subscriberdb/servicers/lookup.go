@@ -38,13 +38,13 @@ import (
 // Each subscriber should have at most one IP per APN, so the IP+IMSI+APN
 // triplet is enforced to be unique.
 type lookupServicer struct {
-	factory blobstore.BlobStorageFactory
+	factory blobstore.StoreFactory
 	store   subscriberdb_storage.IPLookup
 }
 
 // NewLookupServicer returns a new subscriber lookup servicer.
 // Stores should be initialized by the caller.
-func NewLookupServicer(msisdnFact blobstore.BlobStorageFactory, ipStore subscriberdb_storage.IPLookup) protos.SubscriberLookupServer {
+func NewLookupServicer(msisdnFact blobstore.StoreFactory, ipStore subscriberdb_storage.IPLookup) protos.SubscriberLookupServer {
 	return &lookupServicer{factory: msisdnFact, store: ipStore}
 }
 
@@ -102,7 +102,7 @@ func (l *lookupServicer) SetMSISDN(ctx context.Context, req *protos.SetMSISDNReq
 		return nil, makeErr(err, "get msisdn from blobstore")
 	}
 
-	err = store.CreateOrUpdate(req.NetworkId, blobstore.Blobs{{
+	err = store.Write(req.NetworkId, blobstore.Blobs{{
 		Type:  lte.MSISDNBlobstoreType,
 		Key:   req.Msisdn,
 		Value: []byte(req.Imsi),

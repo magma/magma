@@ -15,10 +15,10 @@
 #include "endian.h"
 
 extern "C" {
-#include "NwGtpv2c.h"
-#include "NwGtpv2cMsg.h"
-#include "NwGtpv2cPrivate.h"
-#include "gtpv2c_ie_formatter.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2cPrivate.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
 }
 using ::testing::Test;
 

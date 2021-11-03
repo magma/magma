@@ -13,9 +13,9 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "AttachRequest.h"
-#include "dynamic_memory_check.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 }
 
 namespace magma {

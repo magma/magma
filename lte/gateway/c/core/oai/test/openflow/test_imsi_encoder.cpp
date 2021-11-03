@@ -19,7 +19,7 @@
 #include <gtest/gtest-test-part.h>   // for TestPartResult
 #include <gtest/gtest.h>             // for InitGoogleTest, RUN_ALL_TESTS
 #include <string>                    // for basic_string, string
-#include "IMSIEncoder.h"             // for IMSIEncoder, openflow
+#include "lte/gateway/c/core/oai/lib/openflow/controller/IMSIEncoder.h"  // for IMSIEncoder, openflow
 
 using ::testing::Test;
 using ::testing::Values;

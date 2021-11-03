@@ -12,7 +12,7 @@
  */
 
 #include <iostream>
-#include "util_nas5g_pkt.h"
+#include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.h"
 
 namespace magma5g {
 

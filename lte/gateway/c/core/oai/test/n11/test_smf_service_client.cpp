@@ -12,10 +12,10 @@
  */
 #include <gtest/gtest.h>
 #include <glog/logging.h>
-#include "mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 
 #include "lte/protos/session_manager.pb.h"
-#include "SmfServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.h"
 
 using ::testing::Test;
 

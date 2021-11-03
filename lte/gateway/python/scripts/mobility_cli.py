@@ -62,6 +62,16 @@ def list_ipv4_blocks_handler(client, args):
 
 
 @grpc_wrapper
+def list_ipv6_blocks_handler(client, args):
+    resp = client.ListAddedIPv6Blocks(Void())
+    print("IPv6 Blocks Assigned:")
+    for block_msg in resp.ip_block_list:
+        ip = ipaddress.ip_address(block_msg.net_address)
+        block = ipaddress.ip_network("%s/%d" % (ip, block_msg.prefix_len))
+        print("\t%s" % block)
+
+
+@grpc_wrapper
 def allocate_ip_handler(client, args):
     try:
         sid_msg = SIDUtils.to_pb(args.sid)
@@ -243,6 +253,12 @@ def main():
         'list_ipv4_blocks', help='List assigned IPv4 blocks',
     )
     subparser.set_defaults(func=list_ipv4_blocks_handler)
+
+    # list_ipv6_blocks
+    subparser = subparsers.add_parser(
+        'list_ipv6_blocks', help='List assigned IPv6 blocks',
+    )
+    subparser.set_defaults(func=list_ipv6_blocks_handler)
 
     # allocate_ip
     subparser = subparsers.add_parser(

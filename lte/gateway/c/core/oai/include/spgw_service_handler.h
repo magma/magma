@@ -18,7 +18,7 @@
 #pragma once
 
 #include <sys/types.h>
-#include "messages_types.h"
+#include "lte/gateway/c/core/oai/include/messages_types.h"
 
 /*
  * Sends an GX_NW_INITIATED_ACTIVATE_BEARER_REQ message to SPGW.

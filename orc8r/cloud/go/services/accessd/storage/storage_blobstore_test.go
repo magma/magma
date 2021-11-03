@@ -32,8 +32,8 @@ import (
 )
 
 func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
-	var blobFactMock *mocks.BlobStorageFactory
-	var blobStoreMock *mocks.TransactionalBlobStorage
+	var blobFactMock *mocks.StoreFactory
+	var blobStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	ids := []*protos.Identity{
@@ -74,8 +74,8 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 	searchResult := map[string]blobstore.Blobs{placeholderNetworkID: blobs}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store := astorage.NewAccessdBlobstore(blobFactMock)
 
@@ -85,8 +85,8 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.ListKeys fails
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
@@ -103,8 +103,8 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.ListKeys succeeds with empty return
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
@@ -123,8 +123,8 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.GetMany fails
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
@@ -142,8 +142,8 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On(
@@ -166,8 +166,8 @@ func TestAccessdBlobstore_ListAllIdentity(t *testing.T) {
 }
 
 func TestAccessdBlobstore_GetACL(t *testing.T) {
-	var blobFactMock *mocks.BlobStorageFactory
-	var blobStoreMock *mocks.TransactionalBlobStorage
+	var blobFactMock *mocks.StoreFactory
+	var blobStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	id := identity.NewOperator("testOperator")
@@ -182,8 +182,8 @@ func TestAccessdBlobstore_GetACL(t *testing.T) {
 	blobs := blobstore.Blobs{{Type: astorage.AccessdDefaultType, Key: idHash, Value: marshaledACL}}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store := astorage.NewAccessdBlobstore(blobFactMock)
 
@@ -193,8 +193,8 @@ func TestAccessdBlobstore_GetACL(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Call with nil id
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
@@ -206,8 +206,8 @@ func TestAccessdBlobstore_GetACL(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.Get fails with ErrNotFound
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, nil).Once()
@@ -221,8 +221,8 @@ func TestAccessdBlobstore_GetACL(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.Get fails with error other than ErrNotFound
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, someErr).Once()
@@ -235,8 +235,8 @@ func TestAccessdBlobstore_GetACL(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobs, nil).Once()
@@ -251,8 +251,8 @@ func TestAccessdBlobstore_GetACL(t *testing.T) {
 }
 
 func TestAccessdBlobstore_GetManyACL(t *testing.T) {
-	var blobFactMock *mocks.BlobStorageFactory
-	var blobStoreMock *mocks.TransactionalBlobStorage
+	var blobFactMock *mocks.StoreFactory
+	var blobStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	ids := []*protos.Identity{
@@ -294,8 +294,8 @@ func TestAccessdBlobstore_GetManyACL(t *testing.T) {
 	}
 
 	// Call with nil ids
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	store := astorage.NewAccessdBlobstore(blobFactMock)
 
 	_, err = store.GetManyACL(nil)
@@ -305,8 +305,8 @@ func TestAccessdBlobstore_GetManyACL(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Fail to start transaction
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
@@ -316,8 +316,8 @@ func TestAccessdBlobstore_GetManyACL(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.GetMany fails
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, someErr).Once()
@@ -329,8 +329,8 @@ func TestAccessdBlobstore_GetManyACL(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.GetMany succeeds with empty return
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, nil).Once()
@@ -344,8 +344,8 @@ func TestAccessdBlobstore_GetManyACL(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobs, nil).Once()
@@ -362,8 +362,8 @@ func TestAccessdBlobstore_GetManyACL(t *testing.T) {
 }
 
 func TestAccessdBlobstore_PutACL(t *testing.T) {
-	var blobFactMock *mocks.BlobStorageFactory
-	var blobStoreMock *mocks.TransactionalBlobStorage
+	var blobFactMock *mocks.StoreFactory
+	var blobStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	id := identity.NewOperator("testOperator")
@@ -377,8 +377,8 @@ func TestAccessdBlobstore_PutACL(t *testing.T) {
 	blobs := blobstore.Blobs{{Type: astorage.AccessdDefaultType, Key: idHash, Value: marshaledACL}}
 
 	// Call with nil id
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	store := astorage.NewAccessdBlobstore(blobFactMock)
 
 	err = store.PutACL(nil, acl)
@@ -388,8 +388,8 @@ func TestAccessdBlobstore_PutACL(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Call with nil acl
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
 	err = store.PutACL(id, nil)
@@ -399,8 +399,8 @@ func TestAccessdBlobstore_PutACL(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Fail to start transaction
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
@@ -410,11 +410,11 @@ func TestAccessdBlobstore_PutACL(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.Put fails
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("CreateOrUpdate", mock.Anything, blobs).Return(someErr).Once()
+	blobStoreMock.On("Write", mock.Anything, blobs).Return(someErr).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
 	err = store.PutACL(id, acl)
@@ -422,11 +422,11 @@ func TestAccessdBlobstore_PutACL(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("CreateOrUpdate", mock.Anything, blobs).
+	blobStoreMock.On("Write", mock.Anything, blobs).
 		Return(nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
@@ -438,8 +438,8 @@ func TestAccessdBlobstore_PutACL(t *testing.T) {
 }
 
 func TestAccessdBlobstore_UpdateACLWithEntities(t *testing.T) {
-	var blobFactMock *mocks.BlobStorageFactory
-	var blobStoreMock *mocks.TransactionalBlobStorage
+	var blobFactMock *mocks.StoreFactory
+	var blobStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	id := identity.NewOperator("testOperator")
@@ -459,8 +459,8 @@ func TestAccessdBlobstore_UpdateACLWithEntities(t *testing.T) {
 	blobsFinal := blobstore.Blobs{{Type: astorage.AccessdDefaultType, Key: idHash, Value: marshaledACLFinal}}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store := astorage.NewAccessdBlobstore(blobFactMock)
 
@@ -470,8 +470,8 @@ func TestAccessdBlobstore_UpdateACLWithEntities(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Call with nil id
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
 	err = store.UpdateACLWithEntities(nil, entities)
@@ -481,8 +481,8 @@ func TestAccessdBlobstore_UpdateACLWithEntities(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Call with nil entities slice
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
 	err = store.UpdateACLWithEntities(id, nil)
@@ -492,8 +492,8 @@ func TestAccessdBlobstore_UpdateACLWithEntities(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Call with nil element in entities slice
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Get", mock.Anything, tk).Return(blobsInitial[0], nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
@@ -506,8 +506,8 @@ func TestAccessdBlobstore_UpdateACLWithEntities(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.Get fails
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("Get", mock.Anything, tk).Return(blobstore.Blob{}, someErr).Once()
@@ -519,12 +519,12 @@ func TestAccessdBlobstore_UpdateACLWithEntities(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.Put fails
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("Get", mock.Anything, tk).Return(blobsInitial[0], nil).Once()
-	blobStoreMock.On("CreateOrUpdate", mock.Anything, blobsFinal).Return(someErr).Once()
+	blobStoreMock.On("Write", mock.Anything, blobsFinal).Return(someErr).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
 	err = store.UpdateACLWithEntities(id, entities)
@@ -532,12 +532,12 @@ func TestAccessdBlobstore_UpdateACLWithEntities(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("Get", mock.Anything, tk).Return(blobsInitial[0], nil).Once()
-	blobStoreMock.On("CreateOrUpdate", mock.Anything, blobsFinal).Return(nil).Once()
+	blobStoreMock.On("Write", mock.Anything, blobsFinal).Return(nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
@@ -548,16 +548,16 @@ func TestAccessdBlobstore_UpdateACLWithEntities(t *testing.T) {
 }
 
 func TestAccessdBlobstore_DeleteACL(t *testing.T) {
-	var blobFactMock *mocks.BlobStorageFactory
-	var blobStoreMock *mocks.TransactionalBlobStorage
+	var blobFactMock *mocks.StoreFactory
+	var blobStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	id := identity.NewOperator("testOperator")
 	tks := storage.TKs{{Type: astorage.AccessdDefaultType, Key: id.HashString()}}
 
 	// Call with nil id
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	store := astorage.NewAccessdBlobstore(blobFactMock)
 
 	err := store.DeleteACL(nil)
@@ -567,8 +567,8 @@ func TestAccessdBlobstore_DeleteACL(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Fail to start transaction
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store = astorage.NewAccessdBlobstore(blobFactMock)
 
@@ -578,8 +578,8 @@ func TestAccessdBlobstore_DeleteACL(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.Delete fails
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("Delete", mock.Anything, tks).Return(someErr).Once()
@@ -591,8 +591,8 @@ func TestAccessdBlobstore_DeleteACL(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("Delete", mock.Anything, tks).Return(nil).Once()

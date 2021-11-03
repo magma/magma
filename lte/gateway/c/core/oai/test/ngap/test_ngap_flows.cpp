@@ -11,16 +11,16 @@
  * limitations under the License.
  */
 
-#include "mock_utils.h"
-#include "util_ngap_pkt.h"
+#include "lte/gateway/c/core/oai/test/ngap/mock_utils.h"
+#include "lte/gateway/c/core/oai/test/ngap/util_ngap_pkt.h"
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "log.h"
-#include "ngap_amf_handlers.h"
-#include "amf_config.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
 }
-#include "ngap_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.h"
 
 using ::testing::Test;
 

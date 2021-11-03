@@ -25,8 +25,8 @@
 #include <freeDiameter/freeDiameter-host.h>
 #include <freeDiameter/libfdcore.h>
 
-#include "log.h"
-#include "oai_mme.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/oai_mme/oai_mme.h"
 
 // TODO: (amar) unused function check with OAI.
 int oai_mme_log_specific(int log_level) {

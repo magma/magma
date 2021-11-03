@@ -37,24 +37,24 @@ const (
 	verCol  = "version"
 )
 
-// NewSQLBlobStorageFactory returns a BlobStorageFactory implementation which
+// NewSQLStoreFactory returns a StoreFactory implementation which
 // will return storage APIs backed by SQL.
-func NewSQLBlobStorageFactory(tableName string, db *sql.DB, sqlBuilder sqorc.StatementBuilder) BlobStorageFactory {
-	return &sqlBlobStoreFactory{tableName: tableName, db: db, builder: sqlBuilder}
+func NewSQLStoreFactory(tableName string, db *sql.DB, sqlBuilder sqorc.StatementBuilder) StoreFactory {
+	return &sqlStoreFactory{tableName: tableName, db: db, builder: sqlBuilder}
 }
 
-type sqlBlobStoreFactory struct {
+type sqlStoreFactory struct {
 	tableName string
 	db        *sql.DB
 	builder   sqorc.StatementBuilder
 }
 
-func (fact *sqlBlobStoreFactory) StartTransaction(opts *storage.TxOptions) (TransactionalBlobStorage, error) {
+func (fact *sqlStoreFactory) StartTransaction(opts *storage.TxOptions) (Store, error) {
 	tx, err := fact.db.BeginTx(context.Background(), getSqlOpts(opts))
 	if err != nil {
 		return nil, err
 	}
-	return &sqlBlobStorage{tableName: fact.tableName, tx: tx, builder: fact.builder}, nil
+	return &sqlStore{tableName: fact.tableName, tx: tx, builder: fact.builder}, nil
 }
 
 func getSqlOpts(opts *storage.TxOptions) *sql.TxOptions {
@@ -67,7 +67,7 @@ func getSqlOpts(opts *storage.TxOptions) *sql.TxOptions {
 	return &sql.TxOptions{ReadOnly: opts.ReadOnly, Isolation: sql.IsolationLevel(opts.Isolation)}
 }
 
-func (fact *sqlBlobStoreFactory) InitializeFactory() error {
+func (fact *sqlStoreFactory) InitializeFactory() error {
 	tx, err := fact.db.Begin()
 	if err != nil {
 		return err
@@ -83,7 +83,7 @@ func (fact *sqlBlobStoreFactory) InitializeFactory() error {
 	return tx.Commit()
 }
 
-func (fact *sqlBlobStoreFactory) initTable(tx *sql.Tx, tableName string) error {
+func (fact *sqlStoreFactory) initTable(tx *sql.Tx, tableName string) error {
 	_, err := fact.builder.CreateTable(tableName).
 		IfNotExists().
 		Column(nidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
@@ -97,13 +97,13 @@ func (fact *sqlBlobStoreFactory) initTable(tx *sql.Tx, tableName string) error {
 	return err
 }
 
-type sqlBlobStorage struct {
+type sqlStore struct {
 	tableName string
 	tx        *sql.Tx
 	builder   sqorc.StatementBuilder
 }
 
-func (store *sqlBlobStorage) Commit() error {
+func (store *sqlStore) Commit() error {
 	if store.tx == nil {
 		return errors.New("There is no current transaction to commit")
 	}
@@ -113,7 +113,7 @@ func (store *sqlBlobStorage) Commit() error {
 	return err
 }
 
-func (store *sqlBlobStorage) Rollback() error {
+func (store *sqlStore) Rollback() error {
 	if store.tx == nil {
 		return errors.New("There is no current transaction to rollback")
 	}
@@ -123,7 +123,7 @@ func (store *sqlBlobStorage) Rollback() error {
 	return err
 }
 
-func (store *sqlBlobStorage) Get(networkID string, id storage.TK) (Blob, error) {
+func (store *sqlStore) Get(networkID string, id storage.TK) (Blob, error) {
 	multiRet, err := store.GetMany(networkID, storage.TKs{id})
 	if err != nil {
 		return Blob{}, err
@@ -134,7 +134,7 @@ func (store *sqlBlobStorage) Get(networkID string, id storage.TK) (Blob, error) 
 	return multiRet[0], nil
 }
 
-func (store *sqlBlobStorage) GetMany(networkID string, ids storage.TKs) (Blobs, error) {
+func (store *sqlStore) GetMany(networkID string, ids storage.TKs) (Blobs, error) {
 	if err := store.validateTx(); err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (store *sqlBlobStorage) GetMany(networkID string, ids storage.TKs) (Blobs, 
 	return blobs, nil
 }
 
-func (store *sqlBlobStorage) Search(filter SearchFilter, criteria LoadCriteria) (map[string]Blobs, error) {
+func (store *sqlStore) Search(filter SearchFilter, criteria LoadCriteria) (map[string]Blobs, error) {
 	ret := map[string]Blobs{}
 	if err := store.validateTx(); err != nil {
 		return ret, err
@@ -236,7 +236,7 @@ func (store *sqlBlobStorage) Search(filter SearchFilter, criteria LoadCriteria) 
 	return ret, nil
 }
 
-func (store *sqlBlobStorage) CreateOrUpdate(networkID string, blobs Blobs) error {
+func (store *sqlStore) Write(networkID string, blobs Blobs) error {
 	// defer tx validation to GetMany
 	existingBlobs, err := store.GetMany(networkID, getBlobIDs(blobs))
 	if err != nil {
@@ -260,7 +260,7 @@ func (store *sqlBlobStorage) CreateOrUpdate(networkID string, blobs Blobs) error
 	return nil
 }
 
-func (store *sqlBlobStorage) GetExistingKeys(keys []string, filter SearchFilter) ([]string, error) {
+func (store *sqlStore) GetExistingKeys(keys []string, filter SearchFilter) ([]string, error) {
 	if err := store.validateTx(); err != nil {
 		return nil, err
 	}
@@ -298,7 +298,7 @@ func (store *sqlBlobStorage) GetExistingKeys(keys []string, filter SearchFilter)
 	return scannedKeys, nil
 }
 
-func (store *sqlBlobStorage) Delete(networkID string, ids storage.TKs) error {
+func (store *sqlStore) Delete(networkID string, ids storage.TKs) error {
 	if err := store.validateTx(); err != nil {
 		return err
 	}
@@ -315,7 +315,7 @@ func (store *sqlBlobStorage) Delete(networkID string, ids storage.TKs) error {
 	return err
 }
 
-func (store *sqlBlobStorage) IncrementVersion(networkID string, id storage.TK) error {
+func (store *sqlStore) IncrementVersion(networkID string, id storage.TK) error {
 	if err := store.validateTx(); err != nil {
 		return err
 	}
@@ -335,14 +335,14 @@ func (store *sqlBlobStorage) IncrementVersion(networkID string, id storage.TK) e
 	return nil
 }
 
-func (store *sqlBlobStorage) validateTx() error {
+func (store *sqlStore) validateTx() error {
 	if store.tx == nil {
 		return errors.New("no transaction is available")
 	}
 	return nil
 }
 
-func (store *sqlBlobStorage) updateExistingBlobs(networkID string, blobsToChange map[storage.TK]blobChange) error {
+func (store *sqlStore) updateExistingBlobs(networkID string, blobsToChange map[storage.TK]blobChange) error {
 	// Let squirrel cache prepared statements for us (there should only be 1)
 	sc := sq.NewStmtCache(store.tx)
 	defer sqorc.ClearStatementCacheLogOnError(sc, "updateExistingBlobs")
@@ -374,7 +374,7 @@ func (store *sqlBlobStorage) updateExistingBlobs(networkID string, blobsToChange
 	return nil
 }
 
-func (store *sqlBlobStorage) insertNewBlobs(networkID string, blobs Blobs) error {
+func (store *sqlStore) insertNewBlobs(networkID string, blobs Blobs) error {
 	insertBuilder := store.builder.Insert(store.tableName).
 		Columns(nidCol, typeCol, keyCol, valCol, verCol)
 	for _, blob := range blobs {

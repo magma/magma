@@ -12,9 +12,15 @@
  */
 #pragma once
 
+#include <google/protobuf/message.h>  // for Message
 #include <istream>                    // for istream
 #include <string>                     // for string
-#include <google/protobuf/message.h>  // for Message
+
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
 
 namespace magma {
 /**

@@ -39,17 +39,17 @@
 #include <stdbool.h>
 #include <stdarg.h>
 
-#include "bstrlib.h"
-#include "intertask_interface.h"
-#include "log.h"
-#include "async_system.h"
-#include "assertions.h"
-#include "dynamic_memory_check.h"
-#include "itti_free_defined_msg.h"
-#include "common_defs.h"
-#include "async_system_messages_types.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/async_system.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/async_system_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
 static void async_system_exit(void);
 

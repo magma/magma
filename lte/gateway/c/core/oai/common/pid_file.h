@@ -38,7 +38,7 @@
 #define FILE_PID_FILE_SEEN
 #include <stdbool.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 char* get_pid_file_name(bstring pid_dir);
 

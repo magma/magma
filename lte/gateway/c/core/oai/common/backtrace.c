@@ -33,7 +33,7 @@
 #include <signal.h>
 #include <execinfo.h>
 
-#include "backtrace.h"
+#include "lte/gateway/c/core/oai/common/backtrace.h"
 
 /* Obtain a backtrace and print it to stdout. */
 void display_backtrace(void) {

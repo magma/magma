@@ -390,7 +390,7 @@ void get_session_req_data(
   if (data->imeisv_exists) {
     convert_imeisv_to_string(data->imeisv);
   }
-  data->uli_exists    = get_uli_from_session_req(saved_req, data->uli);
+  data->uli_exists = get_uli_from_session_req(saved_req, data->uli);
   get_plmn_from_session_req(saved_req, data);
   get_imsi_plmn_from_session_req(saved_req, data);
   memcpy(

@@ -11,8 +11,8 @@
  * limitations under the License.
  */
 
-#include "sgw_s8_utility.h"
-#include "ControllerMain.h"
+#include "lte/gateway/c/core/oai/test/sgw_s8_task/sgw_s8_utility.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.h"
 
 const struct gtp_tunnel_ops* gtp_tunnel_ops;
 void fill_imsi(char* imsi) {
