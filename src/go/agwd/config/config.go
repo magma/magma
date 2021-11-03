@@ -17,6 +17,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/magma/magma/src/go/protos/magma/config"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -24,19 +25,20 @@ import (
 
 	"github.com/magma/magma/src/go/agwd/config/internal/grpcutil"
 	"github.com/magma/magma/src/go/log"
-	"github.com/magma/magma/src/go/protos/magma/mconfig"
 )
 
-// LogLevel translates protobuf defined mconfig.AgwD_LogLevel to log.Level.
-func LogLevel(l mconfig.AgwD_LogLevel) log.Level {
+//go:generate go run github.com/golang/mock/mockgen -package config -destination mock_config/mock_config.go . Configer
+
+// LogLevel translates protobuf defined config.AgwD_LogLevel to log.Level.
+func LogLevel(l config.AgwD_LogLevel) log.Level {
 	switch l {
-	case mconfig.AgwD_DEBUG:
+	case config.AgwD_DEBUG:
 		return log.DebugLevel
-	case mconfig.AgwD_INFO:
+	case config.AgwD_INFO:
 		return log.InfoLevel
-	case mconfig.AgwD_WARN:
+	case config.AgwD_WARN:
 		return log.WarnLevel
-	case mconfig.AgwD_ERROR:
+	case config.AgwD_ERROR:
 		return log.ErrorLevel
 	}
 	return log.InfoLevel
@@ -68,25 +70,27 @@ func ParseTarget(target string) resolver.Target {
 
 // Configer returns a parsed config.
 type Configer interface {
-	Config() *mconfig.AgwD
+	Config() *config.AgwD
+	UpdateConfig(*config.AgwD) error
 }
 
 // ConfigManager implements Configer via a loaded config.
 type ConfigManager struct {
-	config *mconfig.AgwD
+	config *config.AgwD
 
 	sync.RWMutex
 }
 
-func newDefaultConfig() *mconfig.AgwD {
-	return &mconfig.AgwD{
-		LogLevel:                        mconfig.AgwD_INFO,
+func newDefaultConfig() *config.AgwD {
+	return &config.AgwD{
+		LogLevel:                        config.AgwD_INFO,
 		SctpdDownstreamServiceTarget:    "unix:///tmp/sctpd_downstream.sock",
 		SctpdUpstreamServiceTarget:      "unix:///tmp/sctpd_upstream.sock",
 		MmeSctpdDownstreamServiceTarget: "unix:///tmp/mme_sctpd_downstream.sock",
 		MmeSctpdUpstreamServiceTarget:   "unix:///tmp/mme_sctpd_upstream.sock",
 		// Sentry is disabled if DSN is not set.
-		SentryDsn: "",
+		SentryDsn:           "",
+		ConfigServiceTarget: "127.0.0.1:50090",
 	}
 }
 
@@ -134,7 +138,7 @@ func NewConfigManager() *ConfigManager {
 }
 
 // Config returns the current config.
-func (c *ConfigManager) Config() *mconfig.AgwD {
+func (c *ConfigManager) Config() *config.AgwD {
 	c.RLock()
 	defer c.RUnlock()
 
@@ -142,14 +146,14 @@ func (c *ConfigManager) Config() *mconfig.AgwD {
 }
 
 // Merge updates the managed config.
-func (c *ConfigManager) Merge(update *mconfig.AgwD) {
+func (c *ConfigManager) Merge(update *config.AgwD) {
 	c.Lock()
 	defer c.Unlock()
 
 	// clone to prevent data race on proto fields
-	config, ok := proto.Clone(c.config).(*mconfig.AgwD)
+	config, ok := proto.Clone(c.config).(*config.AgwD)
 	if !ok {
-		panic("clone of defaultConfig not *mconfig.AgwD")
+		panic("clone of defaultConfig not *config.AgwD")
 	}
 	proto.Merge(config, update)
 	c.config = config
@@ -160,7 +164,7 @@ func loadConfigFile(
 	readFile func(string) ([]byte, error),
 	unmarshalProto func([]byte, proto.Message) error,
 	path string,
-) (*mconfig.AgwD, error) {
+) (*config.AgwD, error) {
 	if _, err := osStat(path); err != nil {
 		return nil, errors.Wrap(err, "path="+path)
 	}
@@ -170,7 +174,7 @@ func loadConfigFile(
 		return nil, errors.Wrap(err, "path="+path)
 	}
 	filtered := []byte(filterJSONComments(string(bytes)))
-	config := &mconfig.AgwD{}
+	config := &config.AgwD{}
 	if err := unmarshalProto(filtered, config); err != nil {
 		return nil, errors.Wrapf(
 			err,
@@ -191,5 +195,12 @@ func LoadConfigFile(cm *ConfigManager, path string) error {
 	}
 
 	cm.Merge(loaded)
+	return nil
+}
+
+// UpdateConfig updates CongfigManager with a config file.
+// TODO: Add validation and error checks on fields being updated.
+func (cm *ConfigManager) UpdateConfig(config *config.AgwD) error {
+	cm.Merge(config)
 	return nil
 }

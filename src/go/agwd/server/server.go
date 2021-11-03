@@ -18,6 +18,8 @@ import (
 	"runtime"
 	"time"
 
+	configpb "github.com/magma/magma/src/go/protos/magma/config"
+	service_config "github.com/magma/magma/src/go/service/config"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
@@ -39,6 +41,7 @@ func newServiceRouter(cfgr config.Configer) service.Router {
 	if err != nil {
 		panic(err)
 	}
+
 	return service.NewRouter(
 		sctpdpb.NewSctpdDownlinkClient(sctpdDownstreamConn),
 		sctpdpb.NewSctpdUplinkClient(mmeGrpcConn),
@@ -112,6 +115,10 @@ func startSctpdUplinkServer(
 	cfgr config.Configer, logger log.Logger, sr service.Router,
 ) {
 	target := config.ParseTarget(cfgr.Config().GetSctpdUpstreamServiceTarget())
+	if target.Scheme == "unix" {
+		cleanupUnixSocketOrDie(logger, target.Endpoint)
+	}
+
 	listener, err := net.Listen(target.Scheme, target.Endpoint)
 	if err != nil {
 		panic(errors.Wrapf(
@@ -127,8 +134,32 @@ func startSctpdUplinkServer(
 	go grpcServer.Serve(listener)
 }
 
+func startConfigServer(
+	cfgr config.Configer, logger log.Logger,
+) {
+	target := config.ParseTarget(cfgr.Config().GetConfigServiceTarget())
+	if target.Scheme == "unix" {
+		cleanupUnixSocketOrDie(logger, target.Endpoint)
+	}
+
+	listener, err := net.Listen(target.Scheme, target.Endpoint)
+	if err != nil {
+		panic(errors.Wrapf(
+			err,
+			"net.Listen(network=%s, address=%s)",
+			target.Scheme,
+			target.Endpoint))
+	}
+
+	grpcServer := grpc.NewServer()
+	configServer := service_config.NewConfigServer(logger, cfgr)
+	configpb.RegisterConfigServer(grpcServer, configServer)
+	go grpcServer.Serve(listener)
+}
+
 func Start(cfgr config.Configer, logger log.Logger) {
 	sr := newServiceRouter(cfgr)
 	startSctpdDownlinkServer(cfgr, logger, sr)
 	startSctpdUplinkServer(cfgr, logger, sr)
+	startConfigServer(cfgr, logger)
 }
