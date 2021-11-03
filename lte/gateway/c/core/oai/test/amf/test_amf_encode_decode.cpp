@@ -1452,9 +1452,4 @@ TEST(test_optional_pdu, test_pdu_session_accept_optional) {
   sm_free_protocol_configuration_options(&msg_accept_pco);
 }
 
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
 }  // namespace magma5g

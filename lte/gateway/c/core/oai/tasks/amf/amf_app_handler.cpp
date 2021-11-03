@@ -38,6 +38,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/n11_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_map.h"
 
 extern amf_config_t amf_config;
 extern amf_config_t amf_config;
@@ -51,6 +52,7 @@ void amf_ue_context_update_coll_keys(
     const amf_ue_ngap_id_t amf_ue_ngap_id, const imsi64_t imsi,
     const teid_t amf_teid_n11, const guti_m5_t* const guti_p) {
   hashtable_rc_t h_rc                 = HASH_TABLE_OK;
+  map_rc_t m_rc                       = MAP_OK;
   hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
   OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_TRACE(
@@ -64,21 +66,19 @@ void amf_ue_context_update_coll_keys(
 
   if ((gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) &&
       (ue_context_p->gnb_ngap_id_key != gnb_ngap_id_key)) {
-    h_rc = hashtable_uint64_ts_remove(
-        amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
-        (const hash_key_t) ue_context_p->gnb_ngap_id_key);
-    h_rc = hashtable_uint64_ts_insert(
-        amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
-        (const hash_key_t) gnb_ngap_id_key, amf_ue_ngap_id);
+    m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.remove(
+        ue_context_p->gnb_ngap_id_key);
+    m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.insert(
+        gnb_ngap_id_key, amf_ue_ngap_id);
 
-    if (HASH_TABLE_OK != h_rc) {
+    if (MAP_OK != m_rc) {
       OAILOG_ERROR_UE(
           LOG_AMF_APP, imsi,
           "Error could not update this ue context %p "
           "gnb_ue_ngap_ue_id " GNB_UE_NGAP_ID_FMT
           "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT " %s\n",
           ue_context_p, ue_context_p->gnb_ue_ngap_id,
-          ue_context_p->amf_ue_ngap_id, hashtable_rc_code2string(h_rc));
+          ue_context_p->amf_ue_ngap_id, map_rc_code2string(m_rc).c_str());
     }
     ue_context_p->gnb_ngap_id_key = gnb_ngap_id_key;
   }
@@ -108,19 +108,12 @@ void amf_ue_context_update_coll_keys(
         amf_ue_ngap_id);
   }
 
-  h_rc = hashtable_uint64_ts_remove(
-      amf_ue_context_p->imsi_amf_ue_id_htbl,
-      (const hash_key_t) ue_context_p->amf_context.imsi64);
+  m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.remove(
+      ue_context_p->amf_context.imsi64);
 
   if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
-    h_rc = hashtable_uint64_ts_insert(
-        amf_ue_context_p->imsi_amf_ue_id_htbl, (const hash_key_t) imsi,
-        amf_ue_ngap_id);
+    m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.insert(imsi, amf_ue_ngap_id);
   } else {
-    h_rc = HASH_TABLE_KEY_NOT_EXISTS;
-  }
-
-  if (HASH_TABLE_OK != h_rc) {
     OAILOG_ERROR(
         LOG_AMF_APP,
         "Insertion of Hash entry failed for  "
@@ -128,21 +121,13 @@ void amf_ue_context_update_coll_keys(
         amf_ue_ngap_id);
   }
 
-  h_rc = hashtable_uint64_ts_remove(
-      amf_ue_context_p->tun11_ue_context_htbl,
-      (const hash_key_t) ue_context_p->amf_teid_n11);
+  m_rc = amf_ue_context_p->tun11_ue_context_htbl.remove(
+      ue_context_p->amf_teid_n11);
 
   if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
-    h_rc = hashtable_uint64_ts_insert(
-        amf_ue_context_p->tun11_ue_context_htbl,
-        (const hash_key_t) amf_teid_n11, (uint64_t) amf_ue_ngap_id);
+    m_rc = amf_ue_context_p->tun11_ue_context_htbl.insert(
+        amf_teid_n11, amf_ue_ngap_id);
   } else {
-    h_rc = HASH_TABLE_KEY_NOT_EXISTS;
-  }
-
-  if (HASH_TABLE_OK != h_rc) {
-    // TODO: this method is deprecated and will be removed once the AMF's
-    // context is migrated to map in the upcoming multi-UE PR
     OAILOG_ERROR(
         LOG_AMF_APP,
         "Insertion of Hash entry failed for  "
@@ -165,19 +150,11 @@ void amf_ue_context_update_coll_keys(
         (guti_p->guamfi.plmn.mcc_digit3 !=
          ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3) ||
         (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID)) {
-      h_rc = obj_hashtable_uint64_ts_remove(
-          amf_ue_context_p->guti_ue_context_htbl,
-          &ue_context_p->amf_context.m5_guti, sizeof(*guti_p));
+      m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(*guti_p);
       if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
-        h_rc = obj_hashtable_uint64_ts_insert(
-            amf_ue_context_p->guti_ue_context_htbl, (const void* const) guti_p,
-            sizeof(*guti_p), (uint64_t) amf_ue_ngap_id);
+        m_rc = amf_ue_context_p->guti_ue_context_htbl.insert(
+            *guti_p, amf_ue_ngap_id);
       } else {
-        h_rc = HASH_TABLE_KEY_NOT_EXISTS;
-      }
-      if (HASH_TABLE_OK != h_rc) {
-        // TODO: this method is deprecated and will be removed once the AMF's
-        // context is migrated to map in the upcoming multi-UE PR
         OAILOG_ERROR(
             LOG_AMF_APP,
             "Insertion of Hash entry failed for  "
@@ -280,15 +257,13 @@ static bool amf_app_construct_guti(
 // Get existing GUTI details
 ue_m5gmm_context_s* amf_ue_context_exists_guti(
     amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p) {
-  hashtable_rc_t h_rc            = HASH_TABLE_OK;
+  map_rc_t m_rc                  = MAP_OK;
   uint64_t amf_ue_ngap_id64      = 0;
   ue_m5gmm_context_t* ue_context = NULL;
 
-  h_rc = obj_hashtable_uint64_ts_get(
-      amf_ue_context_p->guti_ue_context_htbl, (const void*) guti_p,
-      sizeof(*guti_p), &amf_ue_ngap_id64);
+  m_rc = amf_ue_context_p->guti_ue_context_htbl.get(*guti_p, &amf_ue_ngap_id64);
 
-  if (HASH_TABLE_OK == h_rc) {
+  if (MAP_OK == m_rc) {
     ue_context = amf_ue_context_exists_amf_ue_ngap_id(
         (amf_ue_ngap_id_t) amf_ue_ngap_id64);
     if (ue_context) {
@@ -385,9 +360,8 @@ imsi64_t amf_app_handle_initial_ue_message(
           ue_context_release_command(
               ue_context_p->amf_ue_ngap_id, ue_context_p->gnb_ue_ngap_id,
               NGAP_NAS_NORMAL_RELEASE);
-          hashtable_uint64_ts_remove(
-              amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl,
-              (const hash_key_t) ue_context_p->gnb_ngap_id_key);
+          amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.remove(
+              ue_context_p->gnb_ngap_id_key);
           ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
         }
 
