@@ -373,17 +373,6 @@ static void convert_bearer_context_to_proto(
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
-static void convert_imeisv_to_string(char* imeisv) {
-  OAILOG_FUNC_IN(LOG_SGW_S8);
-  uint8_t idx = 0;
-  for (; idx < IMEISV_DIGITS_MAX; idx++) {
-    imeisv[idx] = convert_digit_to_char(imeisv[idx]);
-  }
-  imeisv[idx] = '\0';
-
-  OAILOG_FUNC_OUT(LOG_SGW_S8);
-}
-
 static void convert_pco_to_proto_msg(
     protocol_configuration_options_t pco,
     magma::feg::ProtocolConfigurationOptions* proto_pco) {

@@ -341,28 +341,38 @@ int get_msisdn_from_session_req(
   return len;
 }
 
+void convert_imeisv_to_string(char* imeisv) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  uint8_t idx = 0;
+  for (; idx < IMEISV_DIGITS_MAX; idx++) {
+    imeisv[idx] = convert_digit_to_char(imeisv[idx]);
+  }
+  imeisv[idx] = '\0';
+
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
 int get_imeisv_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* imeisv) {
   if (saved_req->mei.present & MEI_IMEISV) {
     // IMEISV as defined in 3GPP TS 23.003 MEI_IMEISV
-    imeisv[0]                 = saved_req->mei.choice.imeisv.u.num.tac8;
-    imeisv[1]                 = saved_req->mei.choice.imeisv.u.num.tac7;
-    imeisv[2]                 = saved_req->mei.choice.imeisv.u.num.tac6;
-    imeisv[3]                 = saved_req->mei.choice.imeisv.u.num.tac5;
-    imeisv[4]                 = saved_req->mei.choice.imeisv.u.num.tac4;
-    imeisv[5]                 = saved_req->mei.choice.imeisv.u.num.tac3;
-    imeisv[6]                 = saved_req->mei.choice.imeisv.u.num.tac2;
-    imeisv[7]                 = saved_req->mei.choice.imeisv.u.num.tac1;
-    imeisv[8]                 = saved_req->mei.choice.imeisv.u.num.snr6;
-    imeisv[9]                 = saved_req->mei.choice.imeisv.u.num.snr5;
-    imeisv[10]                = saved_req->mei.choice.imeisv.u.num.snr4;
-    imeisv[11]                = saved_req->mei.choice.imeisv.u.num.snr3;
-    imeisv[12]                = saved_req->mei.choice.imeisv.u.num.snr2;
-    imeisv[13]                = saved_req->mei.choice.imeisv.u.num.snr1;
-    imeisv[14]                = saved_req->mei.choice.imeisv.u.num.svn2;
-    imeisv[15]                = saved_req->mei.choice.imeisv.u.num.svn1;
+    imeisv[0]                 = saved_req->mei.choice.imeisv.u.num.tac1;
+    imeisv[1]                 = saved_req->mei.choice.imeisv.u.num.tac2;
+    imeisv[2]                 = saved_req->mei.choice.imeisv.u.num.tac3;
+    imeisv[3]                 = saved_req->mei.choice.imeisv.u.num.tac4;
+    imeisv[4]                 = saved_req->mei.choice.imeisv.u.num.tac5;
+    imeisv[5]                 = saved_req->mei.choice.imeisv.u.num.tac6;
+    imeisv[6]                 = saved_req->mei.choice.imeisv.u.num.tac7;
+    imeisv[7]                 = saved_req->mei.choice.imeisv.u.num.tac8;
+    imeisv[8]                 = saved_req->mei.choice.imeisv.u.num.snr1;
+    imeisv[9]                 = saved_req->mei.choice.imeisv.u.num.snr2;
+    imeisv[10]                = saved_req->mei.choice.imeisv.u.num.snr3;
+    imeisv[11]                = saved_req->mei.choice.imeisv.u.num.snr4;
+    imeisv[12]                = saved_req->mei.choice.imeisv.u.num.snr5;
+    imeisv[13]                = saved_req->mei.choice.imeisv.u.num.snr6;
+    imeisv[14]                = saved_req->mei.choice.imeisv.u.num.svn1;
+    imeisv[15]                = saved_req->mei.choice.imeisv.u.num.svn2;
     imeisv[IMEISV_DIGITS_MAX] = '\0';
-
     return 1;
   }
   return 0;
@@ -377,7 +387,10 @@ void get_session_req_data(
   data->msisdn_len = get_msisdn_from_session_req(saved_req, data->msisdn);
 
   data->imeisv_exists = get_imeisv_from_session_req(saved_req, data->imeisv);
-  data->uli_exists    = get_uli_from_session_req(saved_req, data->uli);
+  if (data->imeisv_exists) {
+    convert_imeisv_to_string(data->imeisv);
+  }
+  data->uli_exists = get_uli_from_session_req(saved_req, data->uli);
   get_plmn_from_session_req(saved_req, data);
   get_imsi_plmn_from_session_req(saved_req, data);
   memcpy(
