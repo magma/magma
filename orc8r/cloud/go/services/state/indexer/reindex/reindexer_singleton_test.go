@@ -59,7 +59,6 @@ func TestSingletonRun(t *testing.T) {
 	r := initSingletonReindexTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	go r.Run(ctx)
-	defer cancel()
 
 	// Single indexer
 	idx0 := getIndexer(id0, zero, version0, true)
@@ -69,8 +68,6 @@ func TestSingletonRun(t *testing.T) {
 
 	// Check
 	recvCh(t, ch)
-	// QUESTION: is this not recommended? We check that nothing else is sent for a whole second.
-	// This test takes a whole 4.8 seconds on my computer
 	recvNoCh(t, ch)
 
 	idx0.AssertExpectations(t)
@@ -118,6 +115,7 @@ func TestSingletonRun(t *testing.T) {
 	recvCh(t, ch)
 	recvCh(t, ch)
 	recvCh(t, ch)
+	cancel()
 	recvNoCh(t, ch)
 
 	fail1.AssertExpectations(t)
