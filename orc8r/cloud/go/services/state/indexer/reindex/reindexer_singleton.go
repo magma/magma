@@ -44,7 +44,7 @@ func NewReindexerSingleton(store Store, versioner Versioner) Reindexer {
 }
 
 func (r *reindexerSingleton) Run(ctx context.Context) {
-	// indexerID being "" means that we are retrieving jobs on all indices
+	// indexerID being "" means that we are reindexing all indexers
 	const indexerID = ""
 	// TODO(reginawang3495) will support non-nil sendUpdate from Run after removing queue impl
 	var sendUpdate func(string) = nil
@@ -56,10 +56,7 @@ func (r *reindexerSingleton) Run(ctx context.Context) {
 			return
 		}
 
-		err := r.reindexJobs(ctx, indexerID, batches, sendUpdate)
-		if err != nil {
-			clock.Sleep(failedJobSleep)
-		}
+		r.reindexJobs(ctx, indexerID, batches, sendUpdate)
 		clock.Sleep(reindexLoopInterval)
 	}
 }
@@ -124,14 +121,13 @@ func (r *reindexerSingleton) reindexJob(job *Job, ctx context.Context, batches [
 
 	jobErr := executeJob(ctx, job, batches)
 
-	if jobErr != nil {
-		return fmt.Errorf("error executing job %+v with job err <%s>", job, jobErr)
+	if jobErr == nil {
+		err := r.SetIndexerActualVersion(job.Idx.GetID(), job.To)
+		if err != nil {
+			return fmt.Errorf("error completing state reindex job %+v: %s", job, err)
+		}
 	}
-	err := r.SetIndexerActualVersion(job.Idx.GetID(), job.To)
 
-	if err != nil {
-		return fmt.Errorf("error completing state reindex job %+v with job err <%s>: %s", job, jobErr, err)
-	}
 	glog.V(2).Infof("Completed state reindex job %+v with job err %+v", job, jobErr)
 
 	duration := clock.Since(start).Seconds()
@@ -139,6 +135,7 @@ func (r *reindexerSingleton) reindexJob(job *Job, ctx context.Context, batches [
 	glog.Infof("Attempt at state reindex job %+v took %f seconds", job, duration)
 
 	if jobErr == nil {
+		// TODO(reginawang3495): refactor out at the end of milestone by using sendUpdate instead of this test hook
 		TestHookReindexSuccess()
 	}
 	if sendUpdate != nil {
