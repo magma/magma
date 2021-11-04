@@ -69,6 +69,7 @@ add_custom_command(TARGET SERVICE303_LIB POST_BUILD
     ${PROJECT_SOURCE_DIR}/includes/*.h ${MAGMA_INCLUDE_DIR})
 
 target_include_directories(SERVICE303_LIB PUBLIC
+    $ENV{MAGMA_ROOT}
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
     $<TARGET_FILE_DIR:SERVICE303_LIB>
     "/usr/local/include/prometheus"

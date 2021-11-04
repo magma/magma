@@ -18,7 +18,7 @@
 #include <memory>    // for shared_ptr
 #include <string>    // for string
 
-#include "MetricsRegistry.h"  // for MetricsRegistry, Registry
+#include "orc8r/gateway/c/common/service303/includes/MetricsRegistry.h"  // for MetricsRegistry, Registry
 
 namespace grpc {
 class Server;

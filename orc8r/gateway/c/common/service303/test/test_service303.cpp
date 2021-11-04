@@ -20,11 +20,11 @@
 #include <string>
 #include <thread>
 
-#include "includes/MetricsRegistry.h"
-#include "includes/MetricsSingleton.h"
-#include "includes/MetricsHelpers.h"
-#include "includes/MagmaService.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsRegistry.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
 
 using grpc::Channel;
 using grpc::ChannelCredentials;

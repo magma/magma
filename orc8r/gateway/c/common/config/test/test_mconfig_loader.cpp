@@ -16,7 +16,7 @@
 
 #include <sstream>
 
-#include "includes/MConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
 #include "lte/protos/mconfig/mconfigs.pb.h"
 
 namespace {

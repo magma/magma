@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "includes/MetricsSingleton.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.h"
 
 #include <algorithm>
 #include <vector>
@@ -24,7 +24,7 @@
 #include "prometheus/histogram.h"
 #include "prometheus/registry.h"
 
-#include "includes/MetricsRegistry.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsRegistry.h"
 
 using magma::service303::MetricsSingleton;
 using prometheus::BuildCounter;
