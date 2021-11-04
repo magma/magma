@@ -23,14 +23,14 @@
 #include <fluid/util/ethaddr.hh>    // for fluid_msg
 #include <memory>                   // for unique_ptr
 // TODO: Once #5146 is resolved this can be re-ordered above <memory>
-#include <fluid/OFConnection.hh>        // for OFConnection, OFConnection::E...
-#include <stdexcept>                    // for runtime_error
-#include "ControllerEvents.h"           // for EVENT_PACKET_IN, EVENT_SWITCH...
-#include "OpenflowController.h"         // for OpenflowController, OFPT_PACK...
+#include <fluid/OFConnection.hh>  // for OFConnection, OFConnection::E...
+#include <stdexcept>              // for runtime_error
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.h"  // for EVENT_PACKET_IN, EVENT_SWITCH...
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.h"  // for OpenflowController, OFPT_PACK...
 #include "gmock/gmock-matchers.h"       // for AnythingMatcher, _
 #include "gmock/gmock-spec-builders.h"  // for EXPECT_CALL, TypedExpectation
 #include "gmock/gmock.h"                // for InitGoogleMock
-#include "openflow_mocks.h"             // for MockApplication
+#include "lte/gateway/c/core/oai/test/openflow/openflow_mocks.h"  // for MockApplication
 
 using ::testing::_;
 using ::testing::InSequence;

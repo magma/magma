@@ -18,7 +18,7 @@
 #ifndef AUTHENTICATION_PARAMETER_AUTN_H_
 #define AUTHENTICATION_PARAMETER_AUTN_H_
 #include <stdint.h>
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #define AUTHENTICATION_PARAMETER_AUTN_MINIMUM_LENGTH 17
 #define AUTHENTICATION_PARAMETER_AUTN_MAXIMUM_LENGTH 17

@@ -17,15 +17,29 @@
   tags:
     - agwc
 
-- name: Ensure ca-certificates is up to date
+- name: Update ca-certs
   become: true
   apt:
-    name: "{{ packages }}"
-    only_upgrade: true
-    state: latest
-  vars:
-    packages:
-      - ca-certificates
+    name: ca-certificates
+    update_cache: true
+  tags:
+    - agwc
+
+- name: Forbid usage of expired Let's Encrypt CA cert
+  ignore_errors: true
+  become: true
+  lineinfile:
+    path: /etc/ca-certificates.conf
+    regexp: 'mozilla/DST_Root_CA_X3.crt'
+    line: '!mozilla/DST_Root_CA_X3.crt'
+  tags:
+    - agwc
+
+
+- name: Trigger update of CA certs
+  ignore_errors: true
+  become: true
+  command: update-ca-certificates
   tags:
     - agwc
 

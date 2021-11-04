@@ -52,7 +52,7 @@ func newTestDirectoryLookupServicer(t *testing.T) protos.DirectoryLookupServer {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
 
-	fact := blobstore.NewSQLBlobStorageFactory(storage.DirectorydTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLStoreFactory(storage.DirectorydTableBlobstore, db, sqorc.GetSqlBuilder())
 	err = fact.InitializeFactory()
 	assert.NoError(t, err)
 
@@ -250,4 +250,10 @@ func TestDirectoryLookupServicer_TeidToHWID(t *testing.T) {
 	put = &protos.MapSgwCTeidToHWIDRequest{TeidToHwid: map[string]string{teid0: hwid0}}
 	_, err = srv.MapSgwCTeidToHWID(ctx, put)
 	assert.Error(t, err)
+
+	// Get Unique SGW C TEID
+	getUniqueTeid := &protos.GetNewSgwCTeidRequest{NetworkID: nid1}
+	resUniqueTeid, err := srv.GetNewSgwCTeid(ctx, getUniqueTeid)
+	assert.NoError(t, err)
+	assert.NotEqual(t, "0", resUniqueTeid.GetTeid())
 }

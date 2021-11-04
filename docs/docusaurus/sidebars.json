@@ -5,8 +5,7 @@
       "basics/prerequisites",
       "basics/quick_start_guide"
     ],
-    "Tutorials": [
-    ],
+    "Tutorials": [],
     "Usage": [
       {
         "type": "subcategory",
@@ -18,14 +17,14 @@
           "howtos/events_monitoring",
           "howtos/he_api",
           "howtos/inbound_roaming",
-          "howtos/pcap"
+          "howtos/pcap",
+          "howtos/l3_transport"
         ]
       },
       {
         "type": "subcategory",
         "label": "Access Gateway",
-        "ids": [
-        ]
+        "ids": []
       },
       {
         "type": "subcategory",
@@ -79,7 +78,7 @@
       }
     ],
     "Deploy": [
-     {
+      {
         "type": "subcategory",
         "label": "General",
         "ids": [
@@ -235,6 +234,7 @@
         "ids": [
           "contributing/contribute_onboarding",
           "contributing/contribute_workflow",
+          "contributing/contribute_vscode",
           "contributing/contribute_conventions",
           "contributing/contribute_id_mappings",
           "contributing/contribute_ci_checks"

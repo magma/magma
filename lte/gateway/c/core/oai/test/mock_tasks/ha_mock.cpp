@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 
 task_zmq_ctx_t task_zmq_ctx_ha;
 

@@ -18,9 +18,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "AuthenticationRequest.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationRequest.h"
 
 int decode_authentication_request(
     authentication_request_msg* authentication_request, uint8_t* buffer,

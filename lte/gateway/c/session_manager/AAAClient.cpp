@@ -11,14 +11,24 @@
  * limitations under the License.
  */
 
+#include <glog/logging.h>
+#include <grpcpp/channel.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <memory>
+#include <ostream>
 #include <string>
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include "AAAClient.h"
-#include "magma_logging.h"
-#include "includes/ServiceRegistrySingleton.h"
 #include "SessionState.h"
+#include "Types.h"
+#include "feg/gateway/services/aaa/protos/accounting.grpc.pb.h"
+#include "feg/gateway/services/aaa/protos/accounting.pb.h"
+#include "includes/ServiceRegistrySingleton.h"
+#include "lte/protos/session_manager.pb.h"
+#include "magma_logging.h"
 
 using grpc::Status;
 

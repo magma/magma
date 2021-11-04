@@ -23,7 +23,7 @@
 //=====================================================================================================
 
 #include <iostream>
-#include "util_ngap_pkt.h"
+#include "lte/gateway/c/core/oai/test/ngap/util_ngap_pkt.h"
 
 int encode_setup_failure_pdu(
     Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {

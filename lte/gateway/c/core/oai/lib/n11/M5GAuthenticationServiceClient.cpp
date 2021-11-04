@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "M5GAuthenticationServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/n11/M5GAuthenticationServiceClient.h"
 
 #include <cstring>
 #include <iostream>
@@ -20,8 +20,8 @@
 #include <thread>
 #include <cassert>
 
-#include "3gpp_38.413.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 
 #include <google/protobuf/util/time_util.h>
 #include <grpcpp/impl/codegen/client_context.h>
@@ -29,8 +29,8 @@
 
 #include "lte/protos/subscriberauth.grpc.pb.h"
 #include "lte/protos/subscriberauth.pb.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "amf_client_proto_msg_to_itti_msg.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.h"
 
 using grpc::Channel;
 using grpc::ClientContext;

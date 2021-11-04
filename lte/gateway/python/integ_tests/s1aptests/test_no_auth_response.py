@@ -44,7 +44,7 @@ class TestNoAuthResponse(unittest.TestCase):
             service="mme",
             name=str(metricsd.ue_detach),
             labels={str(metricsd.cause): "implicit_detach"},
-            value=1,
+            value=0,
         ),
         MetricValue(
             service="mme",

@@ -18,7 +18,7 @@
 #pragma once
 
 #include <stdbool.h>
-#include "gtpv1u.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 
 #ifdef __cplusplus
 extern "C" {

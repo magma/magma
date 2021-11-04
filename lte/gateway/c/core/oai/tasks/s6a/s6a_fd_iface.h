@@ -22,14 +22,14 @@
 extern "C" {
 #endif
 
-#include "s6a_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
 #include <freeDiameter/freeDiameter-host.h>
 #include <freeDiameter/libfdcore.h>
 #ifdef __cplusplus
 }
 #endif
 
-#include "s6a_viface.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_viface.h"
 
 class S6aFdIface : public S6aViface {
  public:

@@ -15,15 +15,15 @@
 #include <stdlib.h>
 #include <thread>
 
-#include "includes/MagmaService.h"
-#include "includes/MConfigLoader.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
 
-#include "InterfaceMonitor.h"
-#include "PDUGenerator.h"
-#include "ProxyConnector.h"
-#include "Utilities.h"
-#include "magma_logging_init.h"
+#include "lte/gateway/c/li_agent/src/InterfaceMonitor.h"
+#include "lte/gateway/c/li_agent/src/PDUGenerator.h"
+#include "lte/gateway/c/li_agent/src/ProxyConnector.h"
+#include "lte/gateway/c/li_agent/src/Utilities.h"
+#include "orc8r/gateway/c/common/logging/magma_logging_init.h"
 
 static uint32_t get_log_verbosity(
     const YAML::Node& config, magma::mconfig::LIAgentD mconfig) {

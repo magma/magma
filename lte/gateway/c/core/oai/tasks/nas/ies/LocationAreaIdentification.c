@@ -19,9 +19,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "LocationAreaIdentification.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LocationAreaIdentification.h"
 
 int decode_location_area_identification(
     LocationAreaIdentification* locationareaidentification, uint8_t iei,

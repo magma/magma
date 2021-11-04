@@ -20,8 +20,8 @@
 #include <memory>
 #include <string>
 
-#include "PipelinedClientAPI.h"
-#include "includes/GRPCReceiver.h"
+#include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedClientAPI.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
 #include "lte/protos/pipelined.grpc.pb.h"
 
 namespace grpc {

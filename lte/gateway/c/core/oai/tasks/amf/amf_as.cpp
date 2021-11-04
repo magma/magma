@@ -16,30 +16,30 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "conversions.h"
-#include "3gpp_24.008.h"
-#include "secu_defs.h"
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
-#include "common_defs.h"
-#include "M5gNasMessage.h"
-#include "amf_app_defs.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "amf_authentication.h"
-#include "amf_as.h"
-#include "amf_fsm.h"
-#include "amf_recv.h"
-#include "M5GDLNASTransport.h"
-#include "S6aClient.h"
-#include "proto_msg_to_itti_msg.h"
-#include "ngap_messages_types.h"
-#include "M5GAuthenticationServiceClient.h"
-#include "M5GMMCause.h"
-#include "3gpp_38.401.h"
-#include "amf_common.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/proto_msg_to_itti_msg.h"
+#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/n11/M5GAuthenticationServiceClient.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 using magma5g::AsyncM5GAuthenticationServiceClient;
 
 using namespace magma;
@@ -987,10 +987,6 @@ static int amf_as_security_req(
         if (ue_context) {
           amf_security_context_t* amf_security_context =
               &ue_context->amf_context._security;
-          amf_security_context->selected_algorithms.integrity =
-              M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA2;  // TODO get this computed
-          amf_security_context->selected_algorithms.encryption =
-              M5G_NAS_SECURITY_ALGORITHMS_5G_EA0;  // TODO get this computed
           nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
               .nas_sec_algorithms.tca =
               amf_security_context->selected_algorithms.encryption;
@@ -1371,8 +1367,8 @@ uint16_t amf_as_establish_cnf(
     m5gmm_state_t state =
         PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->mm_state;
 
-    if ((state != REGISTERED_CONNECTED) &&
-        !(registration_proc->registration_accept_sent)) {
+    if (registration_proc && !(registration_proc->registration_accept_sent) &&
+        (state != REGISTERED_CONNECTED)) {
       /*GNB key, generated in AMF from KAMF and shared with gNB as part of
        * InitialContextSetupRequest*/
       derive_5gkey_gnb(

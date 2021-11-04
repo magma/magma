@@ -25,18 +25,18 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "log.h"
-#include "assertions.h"
-#include "conversions.h"
-#include "mme_config.h"
-#include "mme_api.h"
-#include "s1ap_mme_ta.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_ta.h"
 #include "S1ap_BPLMNs.h"
 #include "S1ap_PLMNidentity.h"
 #include "S1ap_SupportedTAs-Item.h"
 #include "S1ap_TAC.h"
-#include "TrackingAreaIdentity.h"
-#include "s1ap_types.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/include/s1ap_types.h"
 
 static int s1ap_mme_compare_plmn(const S1ap_PLMNidentity_t* const plmn) {
   int i            = 0;

@@ -34,12 +34,12 @@
 
 *****************************************************************************/
 
-#include "network_api.h"
-#include "common_types.h"
-#include "log.h"
-#include "socket.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/network/network_api.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/socket.h"
 
-#include "nas/as_message.h"
+#include "lte/gateway/c/core/oai/include/nas/as_message.h"
 
 #include <string.h>  // strerror, memset
 #include <netdb.h>   // gai_strerror

@@ -21,10 +21,10 @@
 
 #include "feg/protos/s6a_proxy.pb.h"
 #include "feg/protos/s6a_proxy.grpc.pb.h"
-#include "s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
 
 extern "C" {
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 }
 
 namespace magma {

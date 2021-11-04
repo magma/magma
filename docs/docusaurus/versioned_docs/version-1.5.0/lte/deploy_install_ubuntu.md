@@ -24,26 +24,14 @@ satisfies the following requirements:
 
 ### 1. Create boot USB stick and install Ubuntu on your AGW host
 
-- Download Ubuntu Server 20.04 LTS .iso image from Ubuntu website
+- Download the Ubuntu Server 20.04 LTS .iso image from the Ubuntu website
 - Create bootable usb using etcher [tutorial here](https://tutorials.ubuntu.com/tutorial/tutorial-create-a-usb-stick-on-macos#0)
 - Boot your AGW host from USB
   (Press F11 to select boot sequence, :warning: This might be different for
   your machine). If you see 2 options to boot from USB, select the non-UEFI
   option.
-- Select “Install” option.
-- Network missing firmware "No"
-- Primary network interface "enp1s0"
-- Configuration.
-  * hostname: <choose host name>. Default is "magma". You need to select unique
-    host name in case of multiple AGW in network.
-  * Domain name : “”
-  * Root password: “magma”
-  * Username : “magma”
-  * Password: “magma”
-  * Partition disk: "Use entire disk"
-  * Select disk to partition: "sda"
-  * Partitioning scheme: "All files in one partition"
-  * Only tick ssh server and utilities (untick every other)
+- Install and configure you access gateway according to your network defaults.
+    - Make sure to enable ssh server and utilities (untick every other)
 - Connect your SGi interface to the internet and select this port during the
 installation process to get an IP using DHCP.
 

@@ -241,7 +241,7 @@ class IPAddressManager:
         :return: ip_network object for assigned block
         """
         with self._lock:
-            ip_block = self.ipv6_allocator.list_added_ip_blocks()[0]
+            ip_block = self.ipv6_allocator.list_added_ip_blocks()
         return ip_block
 
     def list_allocated_ips(self, ipblock: ip_network) -> List[ip_address]:
@@ -396,7 +396,6 @@ class IPAddressManager:
 
     def release_ip_address(
         self, sid: str, ip: ip_address,
-        version: int = IPAddress.IPV4,
     ):
         """ Release an IP address.
 
@@ -435,10 +434,10 @@ class IPAddressManager:
 
             IP_RELEASED_TOTAL.inc()
 
-            if version == IPAddress.IPV4:
+            if ip.version == 4:
                 self._store.ip_state_map.mark_ip_state(ip, IPState.RELEASED)
                 self._try_set_recycle_timer()  # start the timer to recycle
-            elif version == IPAddress.IPV6:
+            elif ip.version == 6:
                 # For IPv6, no recycling logic
                 ip_desc = self._store.ipv6_state_map.mark_ip_state(
                     ip,

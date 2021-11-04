@@ -36,8 +36,8 @@
 */
 #include <stdlib.h>
 
-#include "dynamic_memory_check.h"
-#include "assertions.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
 
 //------------------------------------------------------------------------------
 void free_wrapper(void** ptr) {

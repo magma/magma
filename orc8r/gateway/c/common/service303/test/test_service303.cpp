@@ -11,15 +11,14 @@
  * limitations under the License.
  */
 
-#include <map>
-#include <pthread.h>
-#include <string>
 #include <unistd.h>
-#include <thread>
-
-#include <gtest/gtest.h>
+#include <pthread.h>
 #include <prometheus/registry.h>
-#include "orc8r/protos/metricsd.pb.h"
+#include <gtest/gtest.h>
+#include <map>
+#include <orc8r/protos/metricsd.pb.h>
+#include <string>
+#include <thread>
 
 #include "includes/MetricsRegistry.h"
 #include "includes/MetricsSingleton.h"

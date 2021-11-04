@@ -54,6 +54,7 @@ add_library(TASK_AMF_APP
     nas5g_message.cpp
     amf_app_timer_management.cpp
     amf_session_manager_pco.cpp
+    amf_client_servicer.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
 )
@@ -68,7 +69,7 @@ target_link_libraries(TASK_AMF_APP
   ${CONFIG_LIBRARIES}
   COMMON
   LIB_BSTR LIB_HASHTABLE LIB_DIRECTORYD LIB_SECU LIB_EVENT_CLIENT LIB_NAS5G LIB_N11
-  TASK_NGAP TASK_SERVICE303 LIB_S6A_PROXY
+  TASK_GRPC_SERVICE TASK_NGAP TASK_SERVICE303 LIB_S6A_PROXY
   protobuf cpp_redis yaml-cpp redis_utils
 )
 

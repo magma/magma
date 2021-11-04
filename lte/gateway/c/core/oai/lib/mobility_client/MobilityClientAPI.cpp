@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "MobilityClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
 
 #include <grpcpp/security/credentials.h>
 
@@ -23,14 +23,14 @@
 #include <cstring>
 #include <string>
 
-#include "common_defs.h"
-#include "common_types.h"
-#include "conversions.h"
-#include "intertask_interface.h"
-#include "log.h"
-#include "MobilityServiceClient.h"
-#include "includes/MetricsHelpers.h"
-#include "spgw_types.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
 
 using grpc::Channel;
 using grpc::ChannelCredentials;
@@ -68,6 +68,9 @@ int get_assigned_ipv4_block(
 int pgw_handle_allocate_ipv4_address(
     const char* subscriber_id, const char* apn, const char* pdn_type,
     teid_t context_teid, ebi_t eps_bearer_id) {
+#if MME_UNIT_TEST
+  return RETURNok;  // skip this call for unit testing
+#endif
   auto subscriber_id_str = std::string(subscriber_id);
   auto apn_str           = std::string(apn);
   auto pdn_type_str      = std::string(pdn_type);
@@ -93,6 +96,9 @@ static void handle_allocate_ipv4_address_status(
     const Status& status, struct in_addr inaddr, int vlan, const char* imsi,
     const char* apn, const char* pdn_type, teid_t context_teid,
     ebi_t eps_bearer_id) {
+#if MME_UNIT_TEST
+  return;
+#endif
   MessageDef* message_p;
   message_p = itti_alloc_new_message(TASK_GRPC_SERVICE, IP_ALLOCATION_RESPONSE);
   if (!message_p) {
@@ -174,6 +180,9 @@ int get_subscriber_id_from_ipv4(
 int pgw_handle_allocate_ipv6_address(
     const char* subscriber_id, const char* apn, const char* pdn_type,
     teid_t context_teid, ebi_t eps_bearer_id) {
+#if MME_UNIT_TEST
+  return RETURNok;
+#endif
   auto subscriber_id_str = std::string(subscriber_id);
   auto apn_str           = std::string(apn);
   auto pdn_type_str      = std::string(pdn_type);
@@ -207,6 +216,9 @@ static void handle_allocate_ipv6_address_status(
     const Status& status, struct in6_addr addr, int vlan, const char* imsi,
     const char* apn, const char* pdn_type, teid_t context_teid,
     ebi_t eps_bearer_id) {
+#if MME_UNIT_TEST
+  return;
+#endif
   MessageDef* message_p;
   message_p = itti_alloc_new_message(TASK_GRPC_SERVICE, IP_ALLOCATION_RESPONSE);
   if (!message_p) {
@@ -264,6 +276,9 @@ static void handle_allocate_ipv6_address_status(
 int pgw_handle_allocate_ipv4v6_address(
     const char* subscriber_id, const char* apn, const char* pdn_type,
     teid_t context_teid, ebi_t eps_bearer_id) {
+#if MME_UNIT_TEST
+  return RETURNok;
+#endif
   auto subscriber_id_str = std::string(subscriber_id);
   auto apn_str           = std::string(apn);
   auto pdn_type_str      = std::string(pdn_type);
@@ -306,6 +321,9 @@ static void handle_allocate_ipv4v6_address_status(
     const Status& status, struct in_addr ip4_addr, struct in6_addr ip6_addr,
     int vlan, const char* imsi, const char* apn, const char* pdn_type,
     teid_t context_teid, ebi_t eps_bearer_id) {
+#if MME_UNIT_TEST
+  return;
+#endif
   MessageDef* message_p;
   message_p = itti_alloc_new_message(TASK_GRPC_SERVICE, IP_ALLOCATION_RESPONSE);
   if (!message_p) {

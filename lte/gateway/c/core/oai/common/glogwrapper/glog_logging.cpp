@@ -36,7 +36,7 @@
 #include <cstdio>
 #include <stdlib.h>
 #include <unistd.h>
-#include "glog_logging.h"
+#include "lte/gateway/c/core/oai/common/glogwrapper/glog_logging.h"
 #include <glog/logging.h>
 #include <glog/stl_logging.h>
 

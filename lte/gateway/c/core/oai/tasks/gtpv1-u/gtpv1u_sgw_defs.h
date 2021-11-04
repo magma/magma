@@ -17,9 +17,9 @@
 #ifndef FILE_GTPV1U_SGW_DEFS_SEEN
 #define FILE_GTPV1U_SGW_DEFS_SEEN
 
-#include "gtpv1u_types.h"
-#include "spgw_config.h"
-#include "spgw_state.h"
+#include "lte/gateway/c/core/oai/include/gtpv1u_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
 
 int gtpv1u_init(
     spgw_state_t* spgw_state_p, spgw_config_t* spgw_config, bool persist_state);

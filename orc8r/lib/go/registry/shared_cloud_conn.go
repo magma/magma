@@ -42,7 +42,7 @@ var sharedCloudConnectionTTL = DefaultSharedCloudConnectionTTL
 // Output: *grpc.ClientConn with connection to cloud service
 //         error if it exists
 func (r *ServiceRegistry) GetSharedCloudConnection(service string) (*grpc.ClientConn, error) {
-	cpc, ok := controlProxyConfig.Load().(*config.ConfigMap)
+	cpc, ok := controlProxyConfig.Load().(*config.Map)
 	if (!ok) || cpc == nil {
 		var err error
 		// moduleName is "" since all feg configs lie in /etc/magma/configs without a module name
@@ -70,7 +70,7 @@ func (r *ServiceRegistry) GetSharedCloudConnection(service string) (*grpc.Client
 // Note:   controlProxyConfig differences are ignored in cached connection mapping,
 //         if an update to ConfigMap is required - use CleanupSharedCloudConnection() to flush the service conn cache
 func (r *ServiceRegistry) GetSharedCloudConnectionFromServiceConfig(
-	controlProxyConfig *config.ConfigMap, service string) (*grpc.ClientConn, error) {
+	controlProxyConfig *config.Map, service string) (*grpc.ClientConn, error) {
 
 	// First try to get an existing connection with reader lock
 	r.cloudConnMu.RLock()

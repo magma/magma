@@ -35,16 +35,16 @@ Description Defines the EPS Mobility Management procedures executed at
 #ifndef FILE_EMM_PROC_SEEN
 #define FILE_EMM_PROC_SEEN
 
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
-#include "nas/commonDef.h"
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-#include "emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 
-#include "nas_message.h"  //nas_message_decode_status_t
-#include "mme_app_ue_context.h"
-#include "MobileStationClassmark2.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.h"  //nas_message_decode_status_t
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/

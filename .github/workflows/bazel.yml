@@ -6,6 +6,11 @@ on:  # yamllint disable-line rule:truthy
       - opened
       - reopened
       - synchronize
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/bazel.yml
   schedule:
     # Run once a day to build bazel cache at 0200 hours
     - cron: '0 2 * * *'
@@ -13,6 +18,10 @@ env:
   DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-007ddb9"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 jobs:
   path_filter:
@@ -22,7 +31,7 @@ jobs:
     steps:
       # Need to get git on push event
       - uses: actions/checkout@v2
-        if: github.event_name == 'push'
+        if: github.event_name == 'schedule' || github.event_name == 'push'
       - uses: dorny/paths-filter@v2
         id: changes
         with:
@@ -48,12 +57,41 @@ jobs:
           uses: actions/cache@v2
           with:
             path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-            key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}
+            key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
+            restore-keys: |
+              ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+
         - name: Bazel Cache Repo
           uses: actions/cache@v2
           with:
             path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
-            key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}
+            key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
+            restore-keys: |
+              ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+
+        # This check is needed to ensure that Bazel's unbounded cache growth doesn't result in a
+        # situation where the cache never updates (e.g. due to exceeding GitHub's cache size limit)
+        # thereby only ever using the last successful cache version. This solution will result in a
+        # few slower CI actions around the time cache is detected to be too large, but it should
+        # incrementally improve thereafter.
+        - name: Ensure cache size
+          env:
+            BAZEL_CACHE_DIR: .${{ env.BAZEL_CACHE }}
+            BAZEL_CACHE_REPO_DIR: .${{ env.BAZEL_CACHE_REPO }}
+          run: |
+            # See https://stackoverflow.com/a/27485157 for reference.
+            EXPANDED_BAZEL_CACHE_PATH="${BAZEL_CACHE_DIR/#\~/$HOME}"
+            EXPANDED_BAZEL_CACHE_REPO_PATH="${BAZEL_CACHE_REPO_DIR/#\~/$HOME}"
+
+            CACHE_SIZE_MB=$(du -smc $EXPANDED_BAZEL_CACHE_PATH $EXPANDED_BAZEL_CACHE_REPO_PATH | grep total | cut -f1)
+            echo "Total size of Bazel cache (rounded up to MBs): $CACHE_SIZE_MB"
+            # Use a 4.5GB threshold since actions/cache compresses the results, and Bazel caches seem
+            # to only increase by a few hundred megabytes across changes for unrelated branches.
+            if [[ "$CACHE_SIZE_MB" -gt 4500 ]]; then
+              echo "Cache exceeds cut-off; resetting it (will result in a slow build)"
+              rm -rf $EXPANDED_BAZEL_CACHE_PATH $EXPANDED_BAZEL_CACHE_REPO_PATH
+            fi
+
         - name: Bazel Build
           uses: addnab/docker-run-action@v2
           with:
@@ -62,7 +100,7 @@ jobs:
             options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
             run: |
               cd /workspaces/magma
-              bazel build ... --config=devcontainer
+              bazel build ...
         - name: Bazel Test
           if: github.event_name == 'pull_request'
           uses: addnab/docker-run-action@v2
@@ -72,4 +110,4 @@ jobs:
             options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
             run: |
               cd /workspaces/magma
-              bazel test ... --test_output=errors --config=devcontainer
+              bazel test ... --test_output=errors --cache_test_results=no

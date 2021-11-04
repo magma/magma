@@ -18,16 +18,16 @@
 #ifndef FILE_NAS_SECURITY_MODE_COMMAND_SEEN
 #define FILE_NAS_SECURITY_MODE_COMMAND_SEEN
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "NasSecurityAlgorithms.h"
-#include "NasKeySetIdentifier.h"
-#include "UeAdditionalSecurityCapability.h"
-#include "UeSecurityCapability.h"
-#include "Nonce.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeAdditionalSecurityCapability.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeSecurityCapability.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/Nonce.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define SECURITY_MODE_COMMAND_MINIMUM_LENGTH                                   \

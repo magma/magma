@@ -40,10 +40,10 @@ type syncStore struct {
 	tableNamePrefix              string
 	db                           *sql.DB
 	builder                      sqorc.StatementBuilder
-	fact                         blobstore.BlobStorageFactory
+	fact                         blobstore.StoreFactory
 }
 
-func NewSyncStore(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.BlobStorageFactory, config Config) (SyncStore, error) {
+func NewSyncStore(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.StoreFactory, config Config) (SyncStore, error) {
 	err := config.Validate(true)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid configs for syncstore")
@@ -128,7 +128,7 @@ func (l *syncStore) RecordResync(network string, gateway string, t int64) error 
 	}
 	defer store.Rollback()
 
-	err = store.CreateOrUpdate(network, blobstore.Blobs{{
+	err = store.Write(network, blobstore.Blobs{{
 		Type:  lastResyncBlobstoreType,
 		Key:   gateway,
 		Value: encodeInt64(t),
@@ -148,7 +148,7 @@ func (l *syncStore) recordCacheWriterStartTime(network string, writerID string) 
 	}
 	defer store.Rollback()
 
-	err = store.CreateOrUpdate(network, blobstore.Blobs{{
+	err = store.Write(network, blobstore.Blobs{{
 		Type:  cacheWriterBlobstoreType,
 		Key:   writerID,
 		Value: encodeInt64(clock.Now().Unix()),
@@ -224,7 +224,7 @@ func (l *syncStore) getStoredNetworksSQL(tx *sql.Tx, tableName string) ([]string
 	return storedNetworks, nil
 }
 
-func getStoredNetworksBlobstore(store blobstore.TransactionalBlobStorage) ([]string, error) {
+func getStoredNetworksBlobstore(store blobstore.Store) ([]string, error) {
 	keysByNetwork, err := blobstore.ListKeysByNetwork(store)
 	if err != nil {
 		return nil, errors.Wrap(err, "list blobstore keys by network")

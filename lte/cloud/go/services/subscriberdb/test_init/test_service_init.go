@@ -46,11 +46,11 @@ func StartTestService(t *testing.T) {
 	// Init storage
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.LookupTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLStoreFactory(subscriberdb.LookupTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, fact.InitializeFactory())
 	ipStore := storage.NewIPLookup(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, ipStore.Initialize())
-	syncstoreFact := blobstore.NewSQLBlobStorageFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
+	syncstoreFact := blobstore.NewSQLStoreFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, syncstoreFact.InitializeFactory())
 	subscriberStore, err := syncstore.NewSyncStoreReader(db, sqorc.GetSqlBuilder(), syncstoreFact, syncstore.Config{TableNamePrefix: subscriberdb.SyncstoreTableNamePrefix})
 	assert.NoError(t, err)

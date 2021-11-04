@@ -29,14 +29,14 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-#include "bstrlib.h"
-#include "dynamic_memory_check.h"
-#include "assertions.h"
-#include "hashtable.h"
-#include "obj_hashtable.h"
-#include "common_defs.h"
-#include "log.h"
-#include "sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 
 //-----------------------------------------------------------------------------
 void sgw_display_sgw_eps_bearer_context(
@@ -340,6 +340,15 @@ s_plus_p_gw_eps_bearer_context_information_t* sgw_cm_get_spgw_context(
       state_teid_ht, (const hash_key_t) teid,
       (void**) &spgw_bearer_context_info);
   return spgw_bearer_context_info;
+}
+
+spgw_ue_context_t* spgw_get_ue_context(imsi64_t imsi64) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  spgw_ue_context_t* ue_context_p = NULL;
+  hash_table_ts_t* state_ue_ht    = get_spgw_ue_state();
+  hashtable_ts_get(
+      state_ue_ht, (const hash_key_t) imsi64, (void**) &ue_context_p);
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, ue_context_p);
 }
 
 spgw_ue_context_t* spgw_create_or_get_ue_context(imsi64_t imsi64) {

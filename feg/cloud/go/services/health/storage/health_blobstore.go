@@ -26,12 +26,12 @@ import (
 )
 
 type healthBlobstore struct {
-	factory blobstore.BlobStorageFactory
+	factory blobstore.StoreFactory
 }
 
 // NewHealthBlobstore creates a new HealthBlobstore using the provided
 // blobstore factory for the underlying storage functionality.
-func NewHealthBlobstore(factory blobstore.BlobStorageFactory) (HealthBlobstore, error) {
+func NewHealthBlobstore(factory blobstore.StoreFactory) (HealthBlobstore, error) {
 	if factory == nil {
 		return nil, fmt.Errorf("Storage factory is nil")
 	}
@@ -41,7 +41,7 @@ func NewHealthBlobstore(factory blobstore.BlobStorageFactory) (HealthBlobstore, 
 }
 
 // GetHealth fetches health status for the given networkID and gatewayID from
-// the TransactionalBlobStorage.
+// the blobstore.
 func (h *healthBlobstore) GetHealth(networkID string, gatewayID string) (*fegprotos.HealthStats, error) {
 	store, err := h.factory.StartTransaction(nil)
 	if err != nil {
@@ -66,7 +66,7 @@ func (h *healthBlobstore) GetHealth(networkID string, gatewayID string) (*fegpro
 }
 
 // UpdateHealth updates the given gateway's health status in the
-// TransactionalBlobStorage.
+// blobstore.
 func (h *healthBlobstore) UpdateHealth(networkID string, gatewayID string, healthStats *fegprotos.HealthStats) error {
 	healthBlob, err := HealthToBlob(gatewayID, healthStats)
 	if err != nil {
@@ -76,7 +76,7 @@ func (h *healthBlobstore) UpdateHealth(networkID string, gatewayID string, healt
 	if err != nil {
 		return err
 	}
-	err = store.CreateOrUpdate(networkID, blobstore.Blobs{healthBlob})
+	err = store.Write(networkID, blobstore.Blobs{healthBlob})
 	if err != nil {
 		store.Rollback()
 		return err
@@ -85,7 +85,7 @@ func (h *healthBlobstore) UpdateHealth(networkID string, gatewayID string, healt
 }
 
 // UpdateClusterState updates the given cluster's state in the
-// TransactionalBlobStorage.
+// blobstore.
 func (h *healthBlobstore) UpdateClusterState(networkID string, clusterID string, logicalID string) error {
 	clusterBlob, err := ClusterToBlob(clusterID, logicalID)
 	if err != nil {
@@ -95,7 +95,7 @@ func (h *healthBlobstore) UpdateClusterState(networkID string, clusterID string,
 	if err != nil {
 		return err
 	}
-	err = store.CreateOrUpdate(networkID, blobstore.Blobs{clusterBlob})
+	err = store.Write(networkID, blobstore.Blobs{clusterBlob})
 	if err != nil {
 		store.Rollback()
 		return err
@@ -104,7 +104,7 @@ func (h *healthBlobstore) UpdateClusterState(networkID string, clusterID string,
 }
 
 // GetClusterState retrieves the stored clusterState for the provided networkID
-// and logicalID from the TransactionalBlobStorage. The clusterState is
+// and logicalID from the blobstore. The clusterState is
 // initialized if it doesn't already exist.
 func (h *healthBlobstore) GetClusterState(networkID string, logicalID string) (*fegprotos.ClusterState, error) {
 	keys := []string{networkID}
@@ -146,11 +146,11 @@ func (h *healthBlobstore) GetClusterState(networkID string, logicalID string) (*
 	return retClusterState, store.Commit()
 }
 
-func (h *healthBlobstore) initializeCluster(store blobstore.TransactionalBlobStorage, networkID string, clusterID string, logicalID string) error {
+func (h *healthBlobstore) initializeCluster(store blobstore.Store, networkID string, clusterID string, logicalID string) error {
 	glog.V(2).Infof("Initializing clusterState for networkID: %s with active: %s", networkID, logicalID)
 	clusterBlob, err := ClusterToBlob(networkID, logicalID)
 	if err != nil {
 		return err
 	}
-	return store.CreateOrUpdate(networkID, blobstore.Blobs{clusterBlob})
+	return store.Write(networkID, blobstore.Blobs{clusterBlob})
 }

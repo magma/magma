@@ -221,7 +221,8 @@ func TestListSubscribers(t *testing.T) {
 					AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					State:    "ACTIVE",
 				},
-				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
+				StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
+				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 			},
 			Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 		},
@@ -235,6 +236,7 @@ func TestListSubscribers(t *testing.T) {
 					State:      "ACTIVE",
 					SubProfile: "foo",
 				},
+				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			},
 			Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn1}},
 		},
@@ -248,6 +250,7 @@ func TestListSubscribers(t *testing.T) {
 					State:      "ACTIVE",
 					SubProfile: "foo",
 				},
+				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			},
 			Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}},
 		},
@@ -295,6 +298,7 @@ func TestListSubscribers(t *testing.T) {
 				State:      "ACTIVE",
 				SubProfile: "foo",
 			},
+			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			Config: &subscriberModels.SubscriberConfig{
 				Lte: &subscriberModels.LteSubscription{
 					AuthAlgo:   "MILENAGE",
@@ -303,6 +307,7 @@ func TestListSubscribers(t *testing.T) {
 					State:      "ACTIVE",
 					SubProfile: "foo",
 				},
+				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			},
 			ActiveApns: subscriberModels.ApnList{apn1},
 		},
@@ -315,6 +320,7 @@ func TestListSubscribers(t *testing.T) {
 				State:      "ACTIVE",
 				SubProfile: "foo",
 			},
+			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			Config: &subscriberModels.SubscriberConfig{
 				Lte: &subscriberModels.LteSubscription{
 					AuthAlgo:   "MILENAGE",
@@ -323,6 +329,7 @@ func TestListSubscribers(t *testing.T) {
 					State:      "ACTIVE",
 					SubProfile: "foo",
 				},
+				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			},
 			ActiveApns: subscriberModels.ApnList{apn2},
 		},
@@ -375,6 +382,7 @@ func TestListSubscribers(t *testing.T) {
 				State:      "ACTIVE",
 				SubProfile: "default",
 			},
+			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 			Config: &subscriberModels.SubscriberConfig{
 				Lte: &subscriberModels.LteSubscription{
 					AuthAlgo:   "MILENAGE",
@@ -383,7 +391,8 @@ func TestListSubscribers(t *testing.T) {
 					State:      "ACTIVE",
 					SubProfile: "default",
 				},
-				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
+				StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
+				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 			},
 			ActiveApns: subscriberModels.ApnList{apn2, apn1},
 			Monitoring: &subscriberModels.SubscriberStatus{
@@ -469,7 +478,8 @@ func TestGetSubscriber(t *testing.T) {
 				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:    "ACTIVE",
 			},
-			StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
+			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
+			StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
 		},
 		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}, serdes.Entity)
@@ -492,6 +502,7 @@ func TestGetSubscriber(t *testing.T) {
 				State:      "ACTIVE",
 				SubProfile: "default",
 			},
+			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 			Config: &subscriberModels.SubscriberConfig{
 				Lte: &subscriberModels.LteSubscription{
 					AuthAlgo:   "MILENAGE",
@@ -500,7 +511,8 @@ func TestGetSubscriber(t *testing.T) {
 					State:      "ACTIVE",
 					SubProfile: "default",
 				},
-				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
+				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
+				StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
 			},
 			ActiveApns: subscriberModels.ApnList{apn2, apn1},
 		},
@@ -556,6 +568,7 @@ func TestGetSubscriber(t *testing.T) {
 				State:      "ACTIVE",
 				SubProfile: "default",
 			},
+			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 			Config: &subscriberModels.SubscriberConfig{
 				Lte: &subscriberModels.LteSubscription{
 					AuthAlgo:   "MILENAGE",
@@ -564,7 +577,8 @@ func TestGetSubscriber(t *testing.T) {
 					State:      "ACTIVE",
 					SubProfile: "default",
 				},
-				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
+				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
+				StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
 			},
 			ActiveApns: subscriberModels.ApnList{apn2, apn1},
 			Monitoring: &subscriberModels.SubscriberStatus{
@@ -1207,7 +1221,8 @@ func TestUpdateSubscriber(t *testing.T) {
 			State:      "ACTIVE",
 			SubProfile: "default",
 		},
-		ActiveApns: subscriberModels.ApnList{apn2, apn1},
+		ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC", "EPC"},
+		ActiveApns:            subscriberModels.ApnList{apn2, apn1},
 	}
 	tc := tests.Test{
 		Method:         "PUT",
@@ -1242,6 +1257,7 @@ func TestUpdateSubscriber(t *testing.T) {
 				State:      "ACTIVE",
 				SubProfile: "default",
 			},
+			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC", "EPC"},
 		},
 		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}},
 	}, serdes.Entity)
@@ -1257,8 +1273,9 @@ func TestUpdateSubscriber(t *testing.T) {
 			State:      "INACTIVE",
 			SubProfile: "foo",
 		},
-		StaticIps:  subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
-		ActiveApns: subscriberModels.ApnList{apn2, apn1},
+		ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{},
+		StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
+		ActiveApns:            subscriberModels.ApnList{apn2, apn1},
 	}
 	tc = tests.Test{
 		Method:         "PUT",
@@ -1465,6 +1482,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 				State:      "ACTIVE",
 				SubProfile: "default",
 			},
+			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 		},
 		Associations: storage.TKs{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}, serdes.Entity)
@@ -1527,6 +1545,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 				State:      "ACTIVE",
 				SubProfile: "foo",
 			},
+			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 		},
 		GraphID:      "2",
 		Version:      1,
@@ -1558,6 +1577,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 				State:      "ACTIVE",
 				SubProfile: "default",
 			},
+			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 		},
 		GraphID:      "2",
 		Version:      2,
@@ -2235,6 +2255,7 @@ func newMutableSubscriber(id string) *subscriberModels.MutableSubscriber {
 			State:      "ACTIVE",
 			SubProfile: "default",
 		},
+		ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC", "EPC"},
 		StaticIps: subscriberModels.SubscriberStaticIps{
 			"apn1": "192.168.100.1",
 		},

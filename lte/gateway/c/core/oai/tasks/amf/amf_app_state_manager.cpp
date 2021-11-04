@@ -14,13 +14,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
-#include "common_defs.h"
-#include "amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 
 namespace magma5g {
 constexpr char AMF_NAS_STATE_KEY[] = "amf_nas_state";
@@ -31,7 +31,8 @@ constexpr char AMF_TUN_UE_ID_TABLE_NAME[]  = "amf_app_tun11_ue_context_htbl";
 constexpr char AMF_GUTI_UE_ID_TABLE_NAME[] = "amf_app_tun11_ue_context_htbl";
 constexpr char AMF_GNB_UE_ID_AMF_UE_ID_TABLE_NAME[] =
     "anf_app_gnb_ue_ngap_id_ue_context_htbl";
-constexpr char AMF_TASK_NAME[] = "AMF";
+constexpr char AMF_TASK_NAME[]  = "AMF";
+const int NUM_MAX_UE_HTBL_LISTS = 6;
 
 /*hash function similar to default to initialize during hash table
  * initialization*/
@@ -46,6 +47,19 @@ static hash_size_t amf_def_hashfunc(const uint64_t keyP) {
 AmfNasStateManager& AmfNasStateManager::getInstance() {
   static AmfNasStateManager instance;
   return instance;
+}
+
+// Constructor for MME NAS state object
+AmfNasStateManager::AmfNasStateManager()
+    : max_ue_htbl_lists_(NUM_MAX_UE_HTBL_LISTS) {}
+
+// Destructor for MME NAS state object
+AmfNasStateManager::~AmfNasStateManager() {
+  free_state();
+}
+
+void clear_amf_nas_state() {
+  AmfNasStateManager::getInstance().free_state();
 }
 
 // Singleton class initializer which calls to create new object of
@@ -84,6 +98,34 @@ void AmfNasStateManager::create_state() {
 
   // Initialize the local timers, which are non-persistent
   amf_nas_state_init_local_state();
+}
+
+// Delete the hashtables for amf NAS state
+// TODO in future PR, Hash table is replaced by MAP & hash table is depricated
+void AmfNasStateManager::clear_amf_nas_hashtables() {
+  if (!state_cache_p) {
+    return;
+  }
+
+  hashtable_ts_destroy(state_ue_ht);
+  hashtable_uint64_ts_destroy(
+      state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl);
+  hashtable_uint64_ts_destroy(
+      state_cache_p->amf_ue_contexts.tun11_ue_context_htbl);
+  hashtable_uint64_ts_destroy(
+      state_cache_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl);
+  obj_hashtable_uint64_ts_destroy(
+      state_cache_p->amf_ue_contexts.guti_ue_context_htbl);
+}
+
+// Free the memory allocated to state pointer
+void AmfNasStateManager::free_state() {
+  if (!state_cache_p) {
+    return;
+  }
+  clear_amf_nas_hashtables();
+  delete state_cache_p;
+  state_cache_p = nullptr;
 }
 
 // Create the hashtables for AMF and NAS state
@@ -134,23 +176,6 @@ amf_app_desc_t* AmfNasStateManager::get_state(bool read_from_redis) {
     create_hashtables();
   }
   return state_cache_p;
-}
-
-// Delete the hashtables for AMF NAS state
-// TODO in future PR, Hash table is replaced by MAP & hash table is depricated
-void AmfNasStateManager::clear_amf_nas_hashtables() {
-  if (!state_cache_p) {
-    return;
-  }
-  hashtable_ts_destroy(state_ue_ht);
-  hashtable_uint64_ts_destroy(
-      state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl);
-  hashtable_uint64_ts_destroy(
-      state_cache_p->amf_ue_contexts.tun11_ue_context_htbl);
-  hashtable_uint64_ts_destroy(
-      state_cache_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl);
-  obj_hashtable_uint64_ts_destroy(
-      state_cache_p->amf_ue_contexts.guti_ue_context_htbl);
 }
 
 hash_table_ts_t* AmfNasStateManager::get_ue_state_ht() {

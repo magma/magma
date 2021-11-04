@@ -20,18 +20,17 @@ import (
 
 	"github.com/labstack/echo"
 
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 )
 
 func getVersionHandler(c echo.Context) error {
 	version, ok := os.LookupEnv("VERSION_TAG")
 	if !ok {
-		return obsidian.HttpError(errors.New("Failed to get Orc8r version"), http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, errors.New("Failed to get Orc8r version"))
 	}
 	chartVersion, ok := os.LookupEnv("HELM_VERSION_TAG")
 	if !ok {
-		return obsidian.HttpError(errors.New("Failed to get Helm chart version"), http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, errors.New("Failed to get Helm chart version"))
 	}
 	versionInfo := models.VersionInfo{
 		ContainerImageVersion: version,

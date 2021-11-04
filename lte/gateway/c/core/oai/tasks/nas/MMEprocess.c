@@ -33,12 +33,12 @@
 
  *****************************************************************************/
 
-#include "nas/commonDef.h"
-#include "log.h"
-#include "nas_timer.h"
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 
-#include "network_api.h"
-#include "nas_network.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/network/network_api.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_network.h"
 #include "nas_parser.h"
 
 #include <stdlib.h>  // exit

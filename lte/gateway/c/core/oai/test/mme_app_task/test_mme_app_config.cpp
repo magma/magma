@@ -11,10 +11,11 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 extern "C" {
-#include "include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
 }
 
 namespace magma {
@@ -155,7 +156,7 @@ const char* kHealthyConfig =
     {
       # outcome drop timer value (seconds)
       #  S1AP_OUTCOME_TIMER = 10;
-      AMF_NAME = "AMF_1"
+      AMF_NAME = "MAGMAAMF1"
     };
     # AMF served GUAMFIs
     # AMF code DEFAULT  size = 8 bits
@@ -898,5 +899,97 @@ TEST(MMEConfigTest, TestHealthySctpdConfig) {
   free_mme_config(&mme_config);
 }
 
+TEST(MMEConfigTest, TestCopyAmfConfigFromMMEConfig) {
+  mme_config_t mme_config = {0};
+  amf_config_t amf_config = {0};
+
+  EXPECT_EQ(mme_config_parse_string(kHealthyConfig, &mme_config), 0);
+
+  copy_amf_config_from_mme_config(&amf_config, &mme_config);
+
+  if (mme_config.log_config.output)
+    EXPECT_EQ(
+        0, strcmp(
+               (char*) mme_config.log_config.output->data,
+               (char*) amf_config.log_config.output->data));
+  EXPECT_EQ(
+      mme_config.log_config.is_output_thread_safe,
+      amf_config.log_config.is_output_thread_safe);
+  EXPECT_EQ(
+      mme_config.log_config.mme_app_log_level,
+      amf_config.log_config.amf_app_log_level);
+
+  if (mme_config.realm)
+    EXPECT_EQ(
+        0,
+        strcmp((char*) mme_config.realm->data, (char*) amf_config.realm->data));
+
+  if (mme_config.full_network_name)
+    EXPECT_EQ(
+        0, strcmp(
+               (char*) mme_config.full_network_name->data,
+               (char*) amf_config.full_network_name->data));
+
+  if (mme_config.short_network_name)
+    EXPECT_EQ(
+        0, strcmp(
+               (char*) mme_config.short_network_name->data,
+               (char*) amf_config.short_network_name->data));
+
+  EXPECT_EQ(mme_config.daylight_saving_time, amf_config.daylight_saving_time);
+  if (mme_config.pid_dir)
+    EXPECT_EQ(
+        0, strcmp(
+               (char*) mme_config.pid_dir->data,
+               (char*) amf_config.pid_dir->data));
+  EXPECT_EQ(mme_config.max_enbs, amf_config.max_gnbs);
+  EXPECT_EQ(mme_config.relative_capacity, amf_config.relative_capacity);
+
+  EXPECT_EQ(mme_config.use_stateless, amf_config.use_stateless);
+  EXPECT_EQ(
+      mme_config.unauthenticated_imsi_supported,
+      amf_config.unauthenticated_imsi_supported);
+
+  EXPECT_EQ(mme_config.num_par_lists, amf_config.num_par_lists);
+  for (uint8_t itr = 0;
+       itr < mme_config.num_par_lists && mme_config.partial_list; ++itr) {
+    EXPECT_EQ(
+        mme_config.partial_list[itr].list_type,
+        amf_config.partial_list[itr].list_type);
+    EXPECT_EQ(
+        mme_config.partial_list[itr].nb_elem,
+        amf_config.partial_list[itr].nb_elem);
+
+    for (uint8_t idx = 0; idx < mme_config.partial_list[itr].nb_elem; idx++) {
+      if (mme_config.partial_list[itr].plmn &&
+          mme_config.partial_list[itr].tac) {
+        EXPECT_EQ(
+            mme_config.partial_list[itr].plmn[idx].mcc_digit2,
+            amf_config.partial_list[itr].plmn[idx].mcc_digit2);
+        EXPECT_EQ(
+            mme_config.partial_list[itr].plmn[idx].mcc_digit1,
+            amf_config.partial_list[itr].plmn[idx].mcc_digit1);
+        EXPECT_EQ(
+            mme_config.partial_list[itr].plmn[idx].mnc_digit3,
+            amf_config.partial_list[itr].plmn[idx].mnc_digit3);
+        EXPECT_EQ(
+            mme_config.partial_list[itr].plmn[idx].mcc_digit3,
+            amf_config.partial_list[itr].plmn[idx].mcc_digit3);
+        EXPECT_EQ(
+            mme_config.partial_list[itr].plmn[idx].mnc_digit2,
+            amf_config.partial_list[itr].plmn[idx].mnc_digit2);
+        EXPECT_EQ(
+            mme_config.partial_list[itr].plmn[idx].mnc_digit1,
+            amf_config.partial_list[itr].plmn[idx].mnc_digit1);
+        EXPECT_EQ(
+            mme_config.partial_list[itr].tac[idx],
+            amf_config.partial_list[itr].tac[idx]);
+      }
+    }
+  }
+
+  clear_amf_config(&amf_config);
+  free_mme_config(&mme_config);
+}
 }  // namespace lte
 }  // namespace magma

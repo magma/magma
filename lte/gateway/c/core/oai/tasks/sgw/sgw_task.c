@@ -28,25 +28,25 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 
-#include "assertions.h"
-#include "bstrlib.h"
-#include "dynamic_memory_check.h"
-#include "hashtable.h"
-#include "log.h"
-#include "common_defs.h"
-#include "gtpv1_u_messages_types.h"
-#include "gtpv1u_sgw_defs.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "itti_free_defined_msg.h"
-#include "sgw_defs.h"
-#include "sgw_handlers.h"
-#include "pgw_handlers.h"
-#include "sgw_config.h"
-#include "sgw_context_manager.h"
-#include "pgw_ue_ip_address_alloc.h"
-#include "pgw_pcef_emulation.h"
-#include "spgw_config.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/gtpv1_u_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u_sgw_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.h"
+#include "lte/gateway/c/core/oai/include/sgw_config.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
 
 static void spgw_app_exit(void);
 
@@ -240,10 +240,12 @@ status_code_e spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
   // Read SPGW state for subscribers from db
   read_spgw_ue_state_db();
 
+#if !MME_UNIT_TEST  // No need to initialize OVS data path for unit tests
   if (gtpv1u_init(spgw_state_p, spgw_config_pP, persist_state) < 0) {
     OAILOG_ALERT(LOG_SPGW_APP, "Initializing GTPv1-U ERROR\n");
     return RETURNerror;
   }
+#endif
 
   if (RETURNerror ==
       pgw_pcef_emulation_init(spgw_state_p, &spgw_config_pP->pgw_config)) {
@@ -264,7 +266,9 @@ status_code_e spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
 static void spgw_app_exit(void) {
   OAILOG_DEBUG(LOG_SPGW_APP, "Cleaning SGW\n");
   put_spgw_state();
+#if !MME_UNIT_TEST  // No need to initialize OVS data path for unit tests
   gtpv1u_exit();
+#endif
   spgw_state_exit();
   destroy_task_context(&spgw_app_task_zmq_ctx);
   OAILOG_DEBUG(LOG_SPGW_APP, "Finished cleaning up SGW\n");

@@ -36,11 +36,11 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "NwTypes.h"
-#include "NwUtils.h"
-#include "NwError.h"
-#include "NwGtpv2cPrivate.h"
-#include "NwGtpv2cTunnel.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwUtils.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwError.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2cPrivate.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2cTunnel.h"
 
 #ifdef __cplusplus
 extern "C" {

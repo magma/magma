@@ -36,15 +36,15 @@ Description Defines the EMM primitives available at the EMMAS Service
 *****************************************************************************/
 #ifndef FILE_EMM_ASDEF_SEEN
 #define FILE_EMM_ASDEF_SEEN
-#include "common_types.h"
-#include "nas/commonDef.h"
-#include "nas/securityDef.h"
-#include "MobileIdentity.h"
-#include "TrackingAreaIdentityList.h"
-#include "3gpp_36.401.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

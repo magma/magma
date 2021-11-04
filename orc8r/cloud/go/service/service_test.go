@@ -29,7 +29,7 @@ import (
 )
 
 func init() {
-	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+	// _ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
 
 	_ = flag.Set("run_echo_server", "true")
 }

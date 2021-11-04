@@ -5,9 +5,19 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
+      - v1.*
   pull_request:
     branches:
       - master
+      - v1.*
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 jobs:
   path_filter:
@@ -45,6 +55,12 @@ jobs:
         run: |
             cd ${MAGMA_ROOT}/nms
             yarn run flow
+      - name: Extract commit title
+        id: commit
+        if: failure() && github.event_name == 'push'
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -52,7 +68,7 @@ jobs:
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "NMS flow-test failed"
+          SLACK_TITLE: "NMS flow tests failed"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "NMS workflow"
           SLACK_ICON_EMOJI: ":boom:"
@@ -86,6 +102,12 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/nms
           yarn run eslint ./
+      - name: Extract commit title
+        id: commit
+        if: failure() && github.event_name == 'push'
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -93,7 +115,7 @@ jobs:
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "NMS eslint failed"
+          SLACK_TITLE: "NMS eslint tests failed"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "NMS workflow"
           SLACK_ICON_EMOJI: ":boom:"
@@ -116,6 +138,12 @@ jobs:
           cd ${MAGMA_ROOT}/nms
           yarn add jest@^26.4.2 -W --dev
           yarn test:ci
+      - name: Extract commit title
+        id: commit
+        if: failure() && github.event_name == 'push'
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -123,7 +151,7 @@ jobs:
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "NMS yarn test failed"
+          SLACK_TITLE: "NMS yarn tests failed"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "NMS workflow"
           SLACK_ICON_EMOJI: ":boom:"
@@ -176,6 +204,12 @@ jobs:
         with:
           name: NMS Test Results
           path: "/tmp/nms_artifacts/*"
+      - name: Extract commit title
+        id: commit
+        if: failure() && github.event_name == 'push'
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -183,78 +217,9 @@ jobs:
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "NMS nms-e2e-test failed"
+          SLACK_TITLE: "NMS e2e tests failed"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "NMS workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-  nms-build:
-    needs:
-      - path_filter
-      - nms-flow-test
-      - nms-eslint
-      - nms-yarn-test
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    name: nms-build job
-    runs-on: ubuntu-latest
-    env:
-      MAGMA_ROOT: "${{ github.workspace }}"
-      NMS_ROOT: "${{ github.workspace }}/nms/packages/magmalte"
-      DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
-      DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
-      DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run docker compose
-        id: nms-docker-compose
-        # yamllint disable rule:line-length
-        run: |
-          cd ${MAGMA_ROOT}/nms/packages/magmalte
-          docker-compose build magmalte
-      - name: Tag and push to Docker Registry
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-        # yamllint disable rule:line-length
-        run: |
-            ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${GITHUB_SHA:0:8}" --tag-latest false --project magmalte
-      - name: Tag and push to Jfrog Registry
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-        env:
-          DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
-        run: |
-            ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project magmalte
-      - name: Extract commit title
-        id: commit
-        if: github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      # Notify ci channel when failing
-      # Plugin info: https://github.com/marketplace/actions/slack-notify
-      # yamllint enable
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_TITLE: "Github action nms-build failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "NMS workflow"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      # Notify ci channel when push succeeds
-      - name: Notify success to slack
-        if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "NMS Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "NMS workflow"
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '

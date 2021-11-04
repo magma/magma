@@ -76,8 +76,11 @@ func RunUnitTest(t *testing.T, e *echo.Echo, test Test) {
 	assert.Equal(t, test.ExpectedStatus, recorder.Code)
 
 	if test.ExpectedError != "" {
+		// echo.HTTPError prefixes the error with the status code, so we pop
+		// that off before comparing
 		if httpErr, ok := handlerErr.(*echo.HTTPError); ok {
-			assert.Equal(t, test.ExpectedError, httpErr.Message)
+			// Coerce returned message to string, to avoid type mismatches
+			assert.Equal(t, test.ExpectedError, fmt.Sprintf("%s", httpErr.Message))
 		} else {
 			assert.EqualError(t, handlerErr, test.ExpectedError)
 		}

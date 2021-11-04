@@ -14,19 +14,19 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "intertask_interface.h"
-#include "directoryd.h"
-#include "conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #ifdef __cplusplus
 }
 #endif
 #include <unordered_map>
-#include "common_defs.h"
-#include "dynamic_memory_check.h"
-#include "amf_app_state_manager.h"
-#include "amf_recv.h"
-#include "amf_common.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
@@ -381,6 +381,24 @@ ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
 
 /****************************************************************************
  **                                                                        **
+ ** Name:    amf_lookup_guti_by_ueid()                                     **
+ **                                                                        **
+ ** Description:  Fetch the guti based on ue id                            **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id) {
+  amf_context_t* amf_ctxt = amf_context_get(ue_id);
+
+  if (amf_ctxt == NULL) {
+    return (0);
+  }
+
+  return amf_ctxt->m5_guti.m_tmsi;
+}
+
+/****************************************************************************
+ **                                                                        **
  ** Name:    amf_idle_mode_procedure()                                     **
  **                                                                        **
  ** Description:  Transition to idle mode                                  **
@@ -424,6 +442,9 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
 
   amf_remove_ue_context(ue_context_p);
 
+  // Clean up the procedures
+  amf_nas_proc_clean_up(ue_context_p);
+
   if (ue_context_p->gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) {
     h_rc = hashtable_uint64_ts_remove(
         amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
@@ -458,4 +479,5 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   delete ue_context_p;
   ue_context_p = NULL;
 }
+
 }  // namespace magma5g

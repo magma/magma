@@ -32,8 +32,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#include "assertions.h"
-#include "memory_pools.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/itti/memory_pools.h"
 
 /*------------------------------------------------------------------------------*/
 const static int mp_debug = 0;

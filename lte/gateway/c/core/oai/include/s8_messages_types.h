@@ -12,10 +12,10 @@ limitations under the License.
 */
 
 #pragma once
-#include "3gpp_23.003.h"
-#include "3gpp_29.274.h"
-#include "common_types.h"
-#include "sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 
 #define S8_CREATE_SESSION_RSP(mSGpTR) (mSGpTR)->ittiMsg.s8_create_session_rsp
 #define S8_DELETE_SESSION_RSP(mSGpTR) (mSGpTR)->ittiMsg.s8_delete_session_rsp

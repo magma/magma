@@ -38,7 +38,7 @@
 #define FILE_ASN1_CONVERSIONS_SEEN
 
 #include "BIT_STRING.h"
-#include "assertions.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
 
 //-----------------------begin func -------------------
 

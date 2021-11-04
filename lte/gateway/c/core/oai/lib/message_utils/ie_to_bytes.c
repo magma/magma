@@ -30,7 +30,7 @@
 
 #include <stdbool.h>
 
-#include "ie_to_bytes.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
 
 // 18.4.24 in 3GPP TS 29.018
 void tmsi_status_to_bytes(const bool* tmsi_status, char* byte_arr) {

@@ -16,25 +16,25 @@
 extern "C" {
 #endif
 #include <string.h>
-#include "log.h"
-#include "conversions.h"
-#include "3gpp_38.401.h"
-#include "s6a_messages_types.h"
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
-#include "include/amf_session_manager_pco.h"
-#include "amf_recv.h"
-#include "amf_sap.h"
-#include "M5gNasMessage.h"
-#include "common_defs.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "SmfServiceClient.h"
-#include "M5GMobilityServiceClient.h"
-#include "amf_app_timer_management.h"
-#include "amf_common.h"
-#include "mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 
 using magma5g::AsyncM5GMobilityServiceClient;
 using magma5g::AsyncSmfServiceClient;
@@ -663,10 +663,9 @@ int amf_smf_handle_ip_address_response(
 
 int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  ue_m5gmm_context_s* ue_context_p     = NULL;
-  MessageDef* message_p                = NULL;
-  s6a_update_location_req_t* s6a_ulr_p = NULL;
-  int rc                               = RETURNok;
+  ue_m5gmm_context_s* ue_context_p = NULL;
+  MessageDef* message_p            = NULL;
+  int rc                           = RETURNok;
 
   OAILOG_INFO(
       LOG_AMF_APP,
@@ -685,13 +684,7 @@ int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  message_p = itti_alloc_new_message(TASK_AMF_APP, S6A_UPDATE_LOCATION_REQ);
-  if (message_p == NULL) {
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
-  }
-
-  s6a_ulr_p = &message_p->ittiMsg.s6a_update_location_req;
-  memset(s6a_ulr_p, 0, sizeof(s6a_update_location_req_t));
+  s6a_update_location_req_t* s6a_ulr_p = new s6a_update_location_req_t();
 
   IMSI64_TO_STRING(
       ue_context_p->amf_context.imsi64, s6a_ulr_p->imsi, IMSI_LENGTH);
@@ -707,6 +700,8 @@ int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
   s6a_ulr_p->supportedfeatures.regional_subscription = true;
 
   rc = AsyncSmfServiceClient::getInstance().n11_update_location_req(s6a_ulr_p);
+
+  delete s6a_ulr_p;
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }

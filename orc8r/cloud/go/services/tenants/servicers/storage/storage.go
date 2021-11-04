@@ -23,10 +23,10 @@ type Store interface {
 }
 
 type blobstoreStore struct {
-	factory blobstore.BlobStorageFactory
+	factory blobstore.StoreFactory
 }
 
-func NewBlobstoreStore(factory blobstore.BlobStorageFactory) Store {
+func NewBlobstoreStore(factory blobstore.StoreFactory) Store {
 	return &blobstoreStore{factory}
 }
 
@@ -41,7 +41,7 @@ func (b *blobstoreStore) CreateTenant(tenantID int64, tenant protos.Tenant) erro
 	if err != nil {
 		return err
 	}
-	err = store.CreateOrUpdate(networkWildcard, blobstore.Blobs{tenantBlob})
+	err = store.Write(networkWildcard, blobstore.Blobs{tenantBlob})
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (b *blobstoreStore) SetTenant(tenantID int64, tenant protos.Tenant) error {
 	if err != nil {
 		return err
 	}
-	err = store.CreateOrUpdate(networkWildcard, blobstore.Blobs{tenantBlob})
+	err = store.Write(networkWildcard, blobstore.Blobs{tenantBlob})
 	if err != nil {
 		return err
 	}

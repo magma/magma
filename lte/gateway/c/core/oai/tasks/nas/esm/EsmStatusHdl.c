@@ -18,19 +18,19 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "bstrlib.h"
-#include "common_types.h"
-#include "3gpp_24.007.h"
-#include "mme_app_ue_context.h"
-#include "esm_proc.h"
-#include "common_defs.h"
-#include "log.h"
-#include "emm_sap.h"
-#include "3gpp_24.301.h"
-#include "3gpp_36.401.h"
-#include "EsmCause.h"
-#include "emm_data.h"
-#include "emm_esmDef.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

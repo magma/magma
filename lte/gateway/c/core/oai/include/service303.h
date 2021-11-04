@@ -17,9 +17,9 @@
 
 #pragma once
 
-#include "service303_messages_types.h"
+#include "lte/gateway/c/core/oai/include/service303_messages_types.h"
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #define SERVICE303_MME_PACKAGE_NAME "mme"
 #define SERVICE303_MME_PACKAGE_VERSION "1.0"
 #define SERVICE303_SPGW_PACKAGE_NAME "spgw"

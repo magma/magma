@@ -23,11 +23,11 @@ extern "C" {
 
 #include <stdint.h>
 
-#include "3gpp_23.003.h"
-#include "assertions.h"
-#include "common_types.h"
-#include "hashtable.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 
 #ifdef __cplusplus
 }

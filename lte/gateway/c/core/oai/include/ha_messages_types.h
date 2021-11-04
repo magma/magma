@@ -15,7 +15,7 @@ limitations under the License.
 
 #include <stdint.h>
 
-#include "3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 
 #define AGW_OFFLOAD_REQ(mSGpTR) (mSGpTR)->ittiMsg.ha_agw_offload_req
 

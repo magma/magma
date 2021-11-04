@@ -9,13 +9,24 @@
 #######
 name: "GCC Warnings & Errors"
 on:
+  push:
+    branches:
+      - master
+      - v1.*
   pull_request:
+    branches:
+      - master
+      - v1.*
     types:
       - opened
       - reopened
       - synchronize
 env:
   DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-007ddb9"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 # See [Example Sharing Container Between Jobs](https://github.com/docker/build-push-action/issues/225)
 jobs:
@@ -50,7 +61,7 @@ jobs:
         id: changed_files
         uses: mmagician/get-changed-files@v2
         with:
-          format: 'space-delimited'
+          format: 'csv'
       - name: Load problem matcher
         # If needed https://github.com/microsoft/vscode-cpptools/issues/2266 for path fixups
         #
@@ -70,7 +81,7 @@ jobs:
           run: |
             cd /workspaces/magma/lte/gateway/
             CPPFLAGS="-Wextra -Wshadow -Wimplicit-fallthrough -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wjump-misses-init -Wformat=2 -Wstrict-overflow=4 -Wuninitialized -Wshift-overflow=2" make build_oai 2>&1 > /workspaces/magma/compile.log
-            for file in ${{ steps.changed_files.outputs.all }};
+            echo "${{ steps.changed_files.outputs.all }}" | tr , '\n' | while read f
             do grep "$file" /workspaces/magma/compile.log | xo '/\/magma\/((.*):(\d+):(\d+):\s+(?:fatal\s)?(warning|error):\s+(.*))/$1/' || true;
             done;
       - name: Store build_logs_oai Artifact
@@ -78,6 +89,23 @@ jobs:
         with:
           name: build_logs_oai
           path: ${{ github.workspace }}/compile.log
+      - name: Extract commit title
+        id: commit
+        if: failure() && github.event_name == 'push'
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "build_oai failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "Feg workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
 
   build_session_manager:
     needs:
@@ -96,7 +124,7 @@ jobs:
         id: changed_files
         uses: mmagician/get-changed-files@v2
         with:
-          format: 'space-delimited'
+          format: 'csv'
       - name: Load problem matcher
         # If needed https://github.com/microsoft/vscode-cpptools/issues/2266 for path fixups
         #
@@ -116,7 +144,7 @@ jobs:
           run: |
             cd /workspaces/magma/lte/gateway/
             CPPFLAGS="-Wextra -Wshadow -Wimplicit-fallthrough -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wjump-misses-init -Wformat=2 -Wstrict-overflow=4 -Wuninitialized -Wshift-overflow=2" make build_session_manager 2>&1 > /workspaces/magma/compile.log
-            for file in ${{ steps.changed_files.outputs.all }};
+            echo "${{ steps.changed_files.outputs.all }}" | tr , '\n' | while read f
             do grep "$file" /workspaces/magma/compile.log | xo '/\/magma\/((.*):(\d+):(\d+):\s+(?:fatal\s)?(warning|error):\s+(.*))/$1/' || true;
             done;
       - name: Store build_logs_session_manager Artifact
@@ -124,3 +152,20 @@ jobs:
         with:
           name: build_logs_session_manager
           path: ${{ github.workspace }}/compile.log
+      - name: Extract commit title
+        id: commit
+        if: failure() && github.event_name == 'push'
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "build_session_manager failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "Feg workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '

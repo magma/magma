@@ -23,11 +23,11 @@ extern "C" {
 
 #include <pthread.h>
 
-#include "hashtable.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
-#include "gtpv1u_types.h"
-#include "spgw_types.h"
-#include "spgw_config.h"
+#include "lte/gateway/c/core/oai/include/gtpv1u_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
 
 // Initializes SGW state struct when task process starts.
 int spgw_state_init(bool persist_state, const spgw_config_t* spgw_config_p);
