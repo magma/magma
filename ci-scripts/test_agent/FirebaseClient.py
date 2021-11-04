@@ -31,10 +31,10 @@ class FirebaseClient:
         # Get a reference to the database service
         self.db = self.firebase.database()
 
-    def push_test_report(self, workload, valid, report):
+    def push_test_report(self, workload, verdict, report):
         data = {
             'timestamp': int(time.time()),
-            'valid': valid,
+            'verdict': verdict,
             'workload': workload.val(),
             'report': report,
         }
@@ -59,8 +59,8 @@ class FirebaseClient:
         for workload in workloads.each():
             print(workload.val())
             # skip if not valid
-            if workload.val().get('state') != "queued":
-                continue
+            #if workload.val().get('state') != "queued":
+            #    continue
 
             # check if first workload
             if bestWorkload is None:

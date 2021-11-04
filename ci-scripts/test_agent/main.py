@@ -27,9 +27,9 @@ num_of_testers = 1
 db_client = FirebaseClient()
 
 
-def test_done_callback(tester_id, workload, valid, report):
+def test_done_callback(tester_id, workload, verdict, report):
     db_client.mark_workload_done(workload)
-    db_client.push_test_report(workload, valid, report)
+    db_client.push_test_report(workload, verdict, report)
     return
 
 
@@ -51,10 +51,13 @@ def main():
                         tester.start_test(new_workload, build, test_done_callback)
                 else:
                     print("Waiting for new workload")
-            testers_state.append({'state': tester.get_state(), 'current_workload': tester.get_current_workload().val()})
+            current_workload = tester.get_current_workload()
+            if current_workload:
+                testers_state.append({'state': tester.get_state(), 'current_workload': current_workload.val()})
+            else:
+                testers_state.append({'state': tester.get_state(), 'current_workload': None})
 
         db_client.update_worker_state(num_of_testers, testers_state)
-        print("Waiting for Available tester")
         time.sleep(15)
 
 
