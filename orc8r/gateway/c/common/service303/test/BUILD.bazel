@@ -35,6 +35,7 @@ cc_test(
     name = "service303_test",
     size = "small",
     srcs = ["test_service303.cpp"],
+    flaky = True,
     deps = [
         "//orc8r/gateway/c/common/service303",
         "@com_google_googletest//:gtest_main",
