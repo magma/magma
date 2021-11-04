@@ -87,6 +87,11 @@ jobs:
           docker image load --input cwf_cwag_go.tar
           docker image load --input cwf_gateway_go.tar
           docker image load --input cwf_gateway_pipelined.tar
+      - name: Open up network interfaces for VM
+        run: |
+          sudo mkdir -p /etc/vbox/
+          sudo touch /etc/vbox/networks.conf
+          sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
       - name: Run the integ test
         run: |
           cd cwf/gateway
