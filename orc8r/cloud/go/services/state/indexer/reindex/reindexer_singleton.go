@@ -33,7 +33,7 @@ import (
 // reindexerSingleton runs as though it is a singleton
 type reindexerSingleton struct {
 	Versioner
-	store     Store
+	store Store
 }
 
 // TODO(reginawang3495): to be setup and used in M2 Part C
