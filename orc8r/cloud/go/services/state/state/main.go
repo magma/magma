@@ -102,7 +102,7 @@ func newIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.Stor
 	}
 
 	autoReindex := cfg.MustGetBool(state_config.EnableAutomaticReindexing)
-	reindexer := reindex.NewReindexer(queue, reindex.NewStore(store))
+	reindexer := reindex.NewReindexerQueue(queue, reindex.NewStore(store))
 	servicer := servicers.NewIndexerManagerServicer(reindexer, autoReindex)
 
 	if autoReindex && storage.GetSQLDriver() != sqorc.PostgresDriver {
