@@ -27,7 +27,6 @@ import (
 	"magma/orc8r/lib/go/util"
 )
 
-// Major TODOs:
 // TODO(reginawang3495): Remove "Desired" from Indexer.Versions once reindexer_queue and queue are removed
 
 // reindexerSingleton runs as though it is a singleton
