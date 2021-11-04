@@ -31,10 +31,10 @@
 #include <vector>       // for vector
 #include <algorithm>
 
-#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.h"          // for MetricsSingleton
-#include "orc8r/gateway/c/common/service303/ProcFileUtils.h"                      // for ProcFileUtils::mem...
+#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.h"  // for MetricsSingleton
+#include "orc8r/gateway/c/common/service303/ProcFileUtils.h"  // for ProcFileUtils::mem...
 #include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"  // for ServiceRegistrySin...
-#include "orc8r/gateway/c/common/logging/magma_logging_init.h"                 // for set_verbosity
+#include "orc8r/gateway/c/common/logging/magma_logging_init.h"  // for set_verbosity
 
 namespace grpc {
 class ServerContext;

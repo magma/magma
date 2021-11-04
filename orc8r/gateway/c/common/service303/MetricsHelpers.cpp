@@ -12,7 +12,7 @@
  */
 
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
-#include <stdarg.h>                     // for va_end, va_list, va_start
+#include <stdarg.h>  // for va_end, va_list, va_start
 #include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.h"  // for MetricsSingleton
 
 using magma::service303::MetricsSingleton;
