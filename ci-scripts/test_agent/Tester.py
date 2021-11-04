@@ -14,10 +14,11 @@ import threading
 import subprocess
 import pickle
 
+
 class TesterState:
-    READY = 'READY'
-    BUSY = 'BUSY'
-    OFFLINE = 'OFFLINE'
+    READY = "READY"
+    BUSY = "BUSY"
+    OFFLINE = "OFFLINE"
 
 
 class Tester:
@@ -29,7 +30,7 @@ class Tester:
 
     def test_ended(self):
         # Get test results and prepare report
-        verdict, report = self.load_test_results(dbfile='/tmp/test_res_pickle')
+        verdict, report = self.load_test_results(dbfile="/tmp/test_res_pickle")
         # Callback
         self.callback(self.id, self.current_workload, verdict, report)
         self.current_workload = None
@@ -37,20 +38,20 @@ class Tester:
         self.state = TesterState.READY
 
     def load_test_results(self, dbfile):
-        """ test run can dump their results (dict) in pickle
+        """test run can dump their results (dict) in pickle
         which can be loaded here and used to push back to DB
         data format = {'verdict' = True/False, 'report': 'html file name with path'}
         """
         try:
-            with open(dbfile, 'rb') as dbfile:
+            with open(dbfile, "rb") as dbfile:
                 db = pickle.load(dbfile)
         except (IOError, OSError, pickle.PickleError, pickle.UnpicklingError):
             print("Not a valid returning null")
             return False, None
         else:
-            with open(db['report'], "r") as rfile:
+            with open(db["report"], "r") as rfile:
                 report = rfile.read()
-            verdict = 'pass' if db['verdict'] else "fail"
+            verdict = "pass" if db["verdict"] else "fail"
             return verdict, report
 
     def start_test(self, workload, build, test_done_callback):
@@ -59,7 +60,7 @@ class Tester:
         self.callback = test_done_callback
 
         # start test on current_workload
-        print('Tester {} Starting test on workload'.format(self.id))
+        print("Tester {} Starting test on workload".format(self.id))
         print(workload.key(), "==>", workload.val())
 
         # register callback to call_ended()
@@ -70,11 +71,14 @@ class Tester:
             proc.wait()
             call_ended()
             return
-        thread = threading.Thread(target=run_hil_thread, args=(self.test_ended, ['./run_test.sh']))
+
+        thread = threading.Thread(
+            target=run_hil_thread, args=(self.test_ended, ["./run_test.sh"])
+        )
         thread.start()
 
         self.state = TesterState.BUSY
-        print('test started on workload'.format(self.id))
+        print("test started on workload".format(self.id))
         return
 
     def is_ready(self):

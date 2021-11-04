@@ -53,9 +53,16 @@ def main():
                     print("Waiting for new workload")
             current_workload = tester.get_current_workload()
             if current_workload:
-                testers_state.append({'state': tester.get_state(), 'current_workload': current_workload.val()})
+                testers_state.append(
+                    {
+                        "state": tester.get_state(),
+                        "current_workload": current_workload.val(),
+                    }
+                )
             else:
-                testers_state.append({'state': tester.get_state(), 'current_workload': None})
+                testers_state.append(
+                    {"state": tester.get_state(), "current_workload": None}
+                )
 
         db_client.update_worker_state(num_of_testers, testers_state)
         time.sleep(15)
