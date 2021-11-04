@@ -36,7 +36,7 @@ type reindexerSingleton struct {
 }
 
 // TODO(reginawang3495): to be setup and used in M2 Part C
-const reindexLoopInterval = 5 * time.Second
+const reindexLoopInterval = time.Minute
 
 func NewReindexerSingleton(store Store, versioner Versioner) Reindexer {
 	return &reindexerSingleton{store: store, Versioner: versioner}
@@ -102,8 +102,7 @@ func (r *reindexerSingleton) reindexJobs(ctx context.Context, indexerID string, 
 		return wrap(err, ErrDefault, indexerID)
 	}
 
-	var errs *multierror.Error
-
+	errs := &multierror.Error{}
 	for _, j := range jobs {
 		err = r.reindexJob(j, ctx, batches, sendUpdate)
 		if err != nil {
