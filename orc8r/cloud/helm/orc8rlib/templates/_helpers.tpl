@@ -34,4 +34,5 @@ image-version: {{ .Values.controller.image.tag}}
 {{/* Generate image version tag labels */}}
 {{- define "release-name-annotation" -}}
 release-name: {{ .Release.Name }}
+chart-version: {{ .Chart.Version}}
 {{- end -}}

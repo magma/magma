@@ -28,11 +28,15 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/component: nginx-proxy
+{{ include "nginx-image-version-label" . | indent 6 }}
   template:
     metadata:
       labels:
         app.kubernetes.io/component: nginx-proxy
 {{ include "selector-labels" . | indent 8 }}
+{{ include "nginx-image-version-label" . | indent 8 }}
+      annotations:
+{{ include "release-name-annotation" . | indent 8 }}
     spec:
       {{- with .Values.nginx.nodeSelector }}
       nodeSelector:

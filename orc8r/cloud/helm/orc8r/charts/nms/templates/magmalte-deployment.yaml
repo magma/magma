@@ -31,11 +31,15 @@ spec:
   replicas: {{ .Values.magmalte.replicas }}
   selector:
     matchLabels:
+{{ include "magmalte-image-version-label" . | indent 6 }}
 {{ tuple $envAll "nms" "magmalte" | include "nms.selector-labels" | indent 6 }}
   template:
     metadata:
       labels:
 {{ tuple $envAll "nms" "magmalte" | include "nms.selector-labels" | indent 8 }}
+{{ include "magmalte-image-version-label" . | indent 8 }}
+      annotations:
+{{ include "release-name-annotation" . | indent 8 }}
     spec:
       {{- if .Values.rbac }}
       serviceAccountName: {{ $serviceAccountName }}
