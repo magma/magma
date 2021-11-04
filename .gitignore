@@ -92,6 +92,7 @@ orc8r/cloud/test-results/
 
 # FB internal
 fb
+fbcinternal
 
 # MacOS artifacts
 .DS_Store
