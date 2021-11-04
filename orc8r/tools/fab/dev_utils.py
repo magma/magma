@@ -14,7 +14,7 @@ limitations under the License.
 import json
 import os
 import subprocess
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import jsonpickle
 import requests
@@ -102,8 +102,10 @@ PORTAL_URL = 'https://127.0.0.1:9443/magma/v1/'
 
 def get_next_available_gateway_id(
         network_id: str,
-        url: Optional[str] = None,
-        admin_cert: Optional[types.ClientCert] = None,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
 ) -> str:
     """
     Returns the next available gateway ID in the sequence gwN for the given
@@ -111,14 +113,16 @@ def get_next_available_gateway_id(
 
     Args:
         network_id: Network to check for available gateways
-        url: API base URL
         admin_cert: Client cert to use with the API
 
     Returns:
         Next available gateway ID in the form gwN
     """
     # res is a dict mapping gw ID to full resource
-    res = cloud_get(f'networks/{network_id}/gateways', url, admin_cert)
+    res = cloud_get(
+        f'networks/{network_id}/gateways',
+        admin_cert=admin_cert,
+    )
 
     # res could also return paginated gateways, so need to unwrap the mapping
     gateways = res.get('gateways', res)
@@ -133,28 +137,30 @@ def get_next_available_gateway_id(
 
 def does_network_exist(
         network_id: str,
-        url: Optional[str] = None,
-        admin_cert: Optional[types.ClientCert] = None,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
 ) -> bool:
     """
     Check for the existence of a network ID
     Args:
         network_id: Network to check
-        url: API base URL
         admin_cert: Cert for API access
 
     Returns:
         True if the network exists, False otherwise
     """
-    networks = cloud_get('/networks', url, admin_cert)
+    networks = cloud_get('/networks', admin_cert)
     return network_id in networks
 
 
 def create_tier_if_not_exists(
-        network_id: str,
-        tier_id: str,
-        url: Optional[str] = None,
-        admin_cert: Optional[types.ClientCert] = None,
+        network_id: str, tier_id: str,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
 ) -> None:
     """
     Create a placeholder tier on Orchestrator if the specified one doesn't
@@ -163,11 +169,9 @@ def create_tier_if_not_exists(
     Args:
         network_id: Network the tier belongs to
         tier_id: ID for the tier
-        url: API base URL
         admin_cert: Cert for API access
     """
-    tiers = cloud_get(f'networks/{network_id}/tiers', url, admin_cert)
-
+    tiers = cloud_get(f'networks/{network_id}/tiers', admin_cert=admin_cert)
     if tier_id in tiers:
         return
 
@@ -211,7 +215,7 @@ def get_gateway_hardware_id_from_docker(location_docker_compose: str) -> str:
             cd(location_docker_compose):
         hardware_id = local(
             'docker-compose exec magmad bash -c "cat /etc/snowflake"',
-            capture=True,
+        capture=True,
         )
     return str(hardware_id)
 
@@ -259,10 +263,11 @@ def delete_gateway_certs_from_docker(location_docker_compose: str):
 
 
 def is_hw_id_registered(
-        network_id: str,
-        hw_id: str,
-        url: Optional[str] = None,
-        admin_cert: Optional[types.ClientCert] = None,
+        network_id: str, hw_id: str,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
 ) -> (bool, str):
     """
     Check if a hardware ID is already registered for a given network. Note that
@@ -272,7 +277,6 @@ def is_hw_id_registered(
     Args:
         network_id: Network to check
         hw_id: HW ID to check
-        url: API base URL
         admin_cert: Cert for API access
 
     Returns:
@@ -281,11 +285,9 @@ def is_hw_id_registered(
     # gateways is a dict mapping gw ID to full resource
     paginated_gateways = cloud_get(
         f'networks/{network_id}/gateways',
-        url,
-        admin_cert,
+        admin_cert=admin_cert,
     )
-    # Handle paginated or flat response
-    gateways = paginated_gateways.get('gateways', paginated_gateways)
+    gateways = paginated_gateways['gateways']
     for gw in gateways.values():
         if gw['device']['hardware_id'] == hw_id:
             return True, gw['id']
@@ -319,28 +321,23 @@ def connect_gateway_to_cloud(control_proxy_setting_path, cert_path):
 
 def cloud_get(
         resource: str,
-        url: Optional[str] = None,
-        admin_cert: Optional[types.ClientCert] = None,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
 ) -> Any:
     """
     Send a GET request to an API URI
     Args:
         resource: URI to request
-        url: API base URL
         admin_cert: API client certificate
 
     Returns:
         JSON-encoded response content
     """
-    url = url or PORTAL_URL
-    admin_cert = admin_cert or types.ClientCert(
-            cert='./../../.cache/test_certs/admin_operator.pem',
-            key='./../../.cache/test_certs/admin_operator.key.pem',
-        )
-
     if resource.startswith("/"):
         resource = resource[1:]
-    resp = requests.get(url + resource, verify=False, cert=admin_cert)
+    resp = requests.get(PORTAL_URL + resource, verify=False, cert=admin_cert)
     if resp.status_code != 200:
         raise Exception(
             'Received a %d response: %s' %
@@ -353,8 +350,10 @@ def cloud_post(
         resource: str,
         data: Any,
         params: Dict[str, str] = None,
-        url: Optional[str] = None,
-        admin_cert: Optional[types.ClientCert] = None,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
 ):
     """
     Send a POST request to an API URI
@@ -363,16 +362,10 @@ def cloud_post(
         resource: URI to request
         data: JSON-serializable payload
         params: Params to include with the request
-        url: API base URL
         admin_cert: API client certificate
     """
-    url = url or PORTAL_URL
-    admin_cert = admin_cert or types.ClientCert(
-            cert='./../../.cache/test_certs/admin_operator.pem',
-            key='./../../.cache/test_certs/admin_operator.key.pem',
-        )
     resp = requests.post(
-        url + resource,
+        PORTAL_URL + resource,
         data=jsonpickle.pickler.encode(data),
         params=params,
         headers={'content-type': 'application/json'},
@@ -389,29 +382,24 @@ def cloud_post(
 
 def cloud_delete(
         resource: str,
-        url: Optional[str] = None,
-        admin_cert: Optional[types.ClientCert] = None,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
 ) -> Any:
     """
     Send a delete request to an API URI
 
     Args:
         resource: URI to request
-        url: API base URL
         admin_cert: API client certificate
 
     Returns:
         JSON-encoded response content
     """
-    url = url or PORTAL_URL
-    admin_cert = admin_cert or types.ClientCert(
-        cert='./../../.cache/test_certs/admin_operator.pem',
-        key='./../../.cache/test_certs/admin_operator.key.pem',
-    )
-
     if resource.startswith("/"):
         resource = resource[1:]
-    resp = requests.delete(url + resource, verify=False, cert=admin_cert)
+    resp = requests.delete(PORTAL_URL + resource, verify=False, cert=admin_cert)
     if resp.status_code not in [200, 201, 204]:
         raise Exception(
             'Delete Request failed: \n%s \nReceived a %d response: %s\nFAILED!' %
