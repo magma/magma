@@ -14,7 +14,10 @@
  * @format
  */
 
-import type {promql_return_object} from '../../../generated/MagmaAPIBindings';
+import type {
+  core_network_types,
+  promql_return_object,
+} from '../../../generated/MagmaAPIBindings';
 
 const mBIT = 1000000;
 const kBIT = 1000;
@@ -79,3 +82,25 @@ export const SUBSCRIBER_ADD_ERRORS = Object.freeze({
   DUPLICATE_IMSI: 'The IMSI is duplicated',
   REQUIRED_AUTH_KEY: 'Auth key is required',
 });
+
+const SUBSCRIBER_ACTION_TYPE = Object.freeze({
+  ADD: 'add',
+  EDIT: 'edit',
+  DELETE: 'delete',
+});
+
+export type SubscriberActionType = $Values<typeof SUBSCRIBER_ACTION_TYPE>;
+
+export const REFRESH_TIMEOUT = 1000;
+
+export type SubscriberInfo = {
+  name: string,
+  imsi: string,
+  authKey: string,
+  authOpc: string,
+  state: 'INACTIVE' | 'ACTIVE',
+  forbiddenNetworkTypes: core_network_types,
+  dataPlan: string,
+  apns: Array<string>,
+  policies?: Array<string>,
+};
