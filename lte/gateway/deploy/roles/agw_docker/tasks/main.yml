@@ -144,11 +144,8 @@
   tags:
     - agwc
 
-- name: Restart ovs
-  ignore_errors: yes
-  shell: |
-    ifdown gtp_br0
-    /etc/init.d/openvswitch-switch  force-reload-kmod
+- name: upgrade ovs
+  script: ovs-kmod-upgrade.sh
   tags:
     - agwc
 
