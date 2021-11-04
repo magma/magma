@@ -81,7 +81,7 @@ func StartTestSingletonServiceInternal(t *testing.T) reindex.Reindexer {
 func startSingletonService(t *testing.T, db *sql.DB) reindex.Reindexer {
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
 
-	factory := blobstore.NewSQLBlobStorageFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
+	factory := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	require.NoError(t, factory.InitializeFactory())
 	stateServicer, err := servicers.NewStateServicer(factory)
 	require.NoError(t, err)
