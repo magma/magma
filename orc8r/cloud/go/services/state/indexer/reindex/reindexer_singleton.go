@@ -17,14 +17,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/golang/glog"
+
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/metrics"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/util"
-
-	"github.com/golang/glog"
 )
 
 // Major TODOs:
@@ -162,7 +162,7 @@ func (r *reindexerSingleton) reindexJobs(ctx context.Context, indexerID string, 
 	return nil
 }
 
-func (r * reindexerSingleton) reindexJob(job *Job, ctx context.Context, batches []reindexBatch, sendUpdate func(string)) error {
+func (r *reindexerSingleton) reindexJob(job *Job, ctx context.Context, batches []reindexBatch, sendUpdate func(string)) error {
 	defer TestHookReindexDone()
 
 	start := clock.Now()
@@ -171,7 +171,7 @@ func (r * reindexerSingleton) reindexJob(job *Job, ctx context.Context, batches 
 
 	// TODO(reginawang3495) Add indexer fail count increase and logging
 	// if jobErr == nil {
-	err:= r.versioner.SetIndexerActualVersion(job.Idx.GetID(), job.To)
+	err := r.versioner.SetIndexerActualVersion(job.Idx.GetID(), job.To)
 	// }
 
 	if err != nil {

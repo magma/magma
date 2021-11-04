@@ -17,15 +17,14 @@ import (
 	"context"
 	"fmt"
 
-	"magma/orc8r/cloud/go/clock"
-	merrors "magma/orc8r/lib/go/errors"
-	"magma/orc8r/lib/go/util"
+	"github.com/golang/glog"
 
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/metrics"
 	state_types "magma/orc8r/cloud/go/services/state/types"
-
-	"github.com/golang/glog"
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/util"
 )
 
 type reindexerQueue struct {
@@ -141,7 +140,6 @@ func (r *reindexerQueue) getJobs(indexerID string) ([]*Job, error) {
 			ret = append(ret, &Job{Idx: x, From: v.Actual, To: v.Desired})
 		}
 	}
-
 	return ret, nil
 }
 

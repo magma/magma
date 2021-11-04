@@ -36,7 +36,6 @@ var (
 func GetSharedMemoryDB() (*sql.DB, error) {
 	var err error
 	once.Do(func() { instance, err = sqorc.Open(sqorc.SQLiteDriver, ":memory:") })
-
 	return instance, err
 }
 

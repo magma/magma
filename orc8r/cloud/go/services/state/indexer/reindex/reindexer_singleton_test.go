@@ -18,6 +18,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+
 	"magma/orc8r/cloud/go/clock"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test "magma/orc8r/cloud/go/services/configurator/test_utils"
@@ -28,9 +31,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
-
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSingletonRun(t *testing.T) {
@@ -56,7 +56,7 @@ func TestSingletonRun(t *testing.T) {
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
 
-	r, _ := initSingletonReindexTest(t)
+	r := initSingletonReindexTest(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	go r.Run(ctx)
 	defer cancel()
@@ -125,7 +125,7 @@ func TestSingletonRun(t *testing.T) {
 	require.Equal(t, 5, reindexDoneNum)
 }
 
-func initSingletonReindexTest(t *testing.T) (reindex.Reindexer, reindex.Versioner) {
+func initSingletonReindexTest(t *testing.T) reindex.Reindexer {
 	indexer.DeregisterAllForTest(t)
 
 	configurator_test_init.StartTestService(t)
@@ -137,7 +137,7 @@ func initSingletonReindexTest(t *testing.T) (reindex.Reindexer, reindex.Versione
 	configurator_test.RegisterGateway(t, nid1, hwid1, &models.GatewayDevice{HardwareID: hwid1})
 	configurator_test.RegisterGateway(t, nid2, hwid2, &models.GatewayDevice{HardwareID: hwid2})
 
-	reindexer, versioner := state_test_init.StartTestSingletonServiceInternal(t)
+	reindexer := state_test_init.StartTestSingletonServiceInternal(t)
 	ctxByNetwork := map[string]context.Context{
 		nid0: state_test.GetContextWithCertificate(t, hwid0),
 		nid1: state_test.GetContextWithCertificate(t, hwid1),
@@ -163,5 +163,5 @@ func initSingletonReindexTest(t *testing.T) (reindex.Reindexer, reindex.Versione
 		reportGatewayStatus(t, ctxByNetwork[nid], gwStatus)
 	}
 
-	return reindexer, versioner
+	return reindexer
 }

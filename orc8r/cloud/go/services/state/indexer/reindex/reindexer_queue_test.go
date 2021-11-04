@@ -57,7 +57,7 @@ const (
 
 	defaultJobTimeout  = 5 * time.Minute // copied from queue_sql.go
 	defaultTestTimeout = 5 * time.Second
-	shortTestTimeout = 1 * time.Second
+	shortTestTimeout   = 1 * time.Second
 
 	// Cause 3 batches per network
 	// 200 directory records + 1 gw status => ceil(201 / 100) = 3 batches per network
