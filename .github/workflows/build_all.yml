@@ -106,6 +106,7 @@ jobs:
       - name: Build AGW
         run: |
           cd lte/gateway
+          echo '* 192.168.0.0/16' > /etc/vbox/networks.conf
           fab release package:vcs=git
           mkdir magma-packages
           vagrant ssh -c "cp -r magma-packages /vagrant"
