@@ -12,13 +12,19 @@
  */
 #pragma once
 
-#include <experimental/optional>
+#include <bits/exception.h>
+#include <folly/hash/Hash.h>
 #include <folly/io/async/EventBaseManager.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-
+#include <stdint.h>
+#include <chrono>
+#include <ctime>
+#include <experimental/optional>
+#include <functional>
 #include <iomanip>
+#include <iosfwd>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -27,6 +33,7 @@
 #include <vector>
 
 #include "AAAClient.h"
+#include "CreditKey.h"
 #include "DirectorydClient.h"
 #include "PipelinedClient.h"
 #include "RuleStore.h"
@@ -34,10 +41,40 @@
 #include "SessionReporter.h"
 #include "SessionState.h"
 #include "SessionStore.h"
-#include "SpgwServiceClient.h"
 #include "ShardTracker.h"
+#include "SpgwServiceClient.h"
+#include "StoreClient.h"
+#include "Types.h"
+#include "lte/protos/pipelined.pb.h"
+#include "lte/protos/session_manager.pb.h"
+
+namespace aaa {
+class AAAClient;
+}  // namespace aaa
+namespace folly {
+class EventBase;
+}  // namespace folly
+namespace google {
+namespace protobuf {
+class Timestamp;
+}  // namespace protobuf
+}  // namespace google
+namespace grpc {
+class Status;
+}  // namespace grpc
 
 namespace magma {
+class PipelinedClient;
+class ServiceAction;
+class SessionReporter;
+class ShardTracker;
+class SpgwServiceClient;
+class StaticRuleStore;
+namespace lte {
+class EventsReporter;
+class SubscriberID;
+}  // namespace lte
+struct SessionStateUpdateCriteria;
 
 using ImsiAndSessionID = std::pair<std::string, std::string>;
 

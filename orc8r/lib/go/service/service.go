@@ -83,7 +83,7 @@ type Service struct {
 	StartTimeSecs uint64
 
 	// Config of the service
-	Config *config.ConfigMap
+	Config *config.Map
 }
 
 // NewServiceWithOptions returns a new GRPC orchestrator service implementing

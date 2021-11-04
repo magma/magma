@@ -15,4 +15,8 @@
     { include: ["<yaml-cpp/stlemitter.h>", "private", "<yaml-cpp/yaml.h>", "public"] },
     { include: ["<yaml-cpp/exceptions.h>", "private", "<yaml-cpp/yaml.h>", "public"] },
     { include: ["@<yaml-cpp/node/.*>", "private", "<yaml-cpp/yaml.h>", "public"] },
+
+    # folly
+    { include: ["<folly/dynamic-inl.h>", "private", "<folly/dynamic.h>", "public"] },
+    { include: ["<folly/lang/Assume-inl.h>", "private", "<folly/lang/Assume.h>", "public"] },
 ]

@@ -43,18 +43,20 @@ mkdir -p ~/secrets/certs
 cd ~/secrets/certs
 ```
 
-You will need the following certificates and private keys placed in this
-directory
+You will need the following 3 certs
 
-1. The public SSL certificate for your Orchestrator domain,
-with `CN=*.yourdomain.com`. This can be an SSL certificate chain, but it must be
-in one file
-2. The private key which corresponds to the above SSL certificate
-3. The root CA certificate which verifies your SSL certificate
+1. TLS certificate
+   - CN: `yourdomain.com`
+   - SANs
+        - `yourdomain.com`
+        - `*.yourdomain.com`
+        - `*.nms.yourdomain.com`
+2. TLS certificate's private key
+3. TLS certificate's root CA certificate (which signed `controller.crt`)
 
 If you aren't worried about a browser warning, you can generate self-signed
-versions of these certs. Though please note that using trusted certs in
-production deployments is encouraged
+certs. Though please note that using trusted certs in production deployments
+is encouraged
 
 ```bash
 ${MAGMA_ROOT}/orc8r/cloud/deploy/scripts/self_sign_certs.sh yourdomain.com
@@ -62,9 +64,9 @@ ${MAGMA_ROOT}/orc8r/cloud/deploy/scripts/self_sign_certs.sh yourdomain.com
 
 Alternatively, if you already have these certs, rename and move them as follows
 
-1. Rename your public SSL certificate to `controller.crt`
-2. Rename your SSL certificate's private key to `controller.key`
-3. Rename your SSL certificate's root CA certificate to `rootCA.pem`
+1. Rename your public TLS certificate to `controller.crt`
+2. Rename your TLS certificate's private key to `controller.key`
+3. Rename your TLS certificate's root CA certificate to `rootCA.pem`
 4. Put these three files under the directory you created above
 
 Next, with the domain certs placed in the correct directory, generate the

@@ -10,17 +10,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cxxabi.h>
+#include <glog/logging.h>
+#include <google/protobuf/stubs/common.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <chrono>
 #include <future>
 #include <memory>
+#include <ostream>
 #include <string>
+#include <system_error>
+#include <thread>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
-#include "magma_logging.h"
+#include "AAAClient.h"
+#include "DirectorydClient.h"
 #include "RestartHandler.h"
+#include "SessionReporter.h"
+#include "SessionStore.h"
+#include "lte/protos/session_manager.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+#include "magma_logging.h"
+#include "orc8r/protos/directoryd.pb.h"
 
 namespace magma {
+class LocalEnforcer;
+namespace orc8r {
+class Void;
+}  // namespace orc8r
+
 namespace sessiond {
 
 const uint RestartHandler::max_cleanup_retries_  = 3;

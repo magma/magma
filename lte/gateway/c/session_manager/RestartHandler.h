@@ -12,8 +12,10 @@
  */
 #pragma once
 
+#include <sys/types.h>
 #include <future>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 
@@ -22,7 +24,18 @@
 #include "LocalEnforcer.h"
 #include "SessionReporter.h"
 
+namespace aaa {
+class AsyncAAAClient;
+}  // namespace aaa
+
 namespace magma {
+class DirectorydClient;
+class LocalEnforcer;
+class SessionReporter;
+namespace lte {
+class SessionStore;
+}  // namespace lte
+
 namespace sessiond {
 
 /**

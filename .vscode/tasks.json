@@ -22,7 +22,7 @@
                 "build",
                 "//lte/gateway/c/session_manager/test:all"
             ],
-            "group": "build"
+            "group": "build",
         },
         {
             "label": "Set compile_commands.json for IntelliSense (make sure you have run `make build_X`!)",

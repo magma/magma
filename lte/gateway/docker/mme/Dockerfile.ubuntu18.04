@@ -18,13 +18,11 @@ RUN [ "/bin/bash", "-c", "echo \"Install general purpose packages\" && \
     DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y gnupg wget software-properties-common autoconf automake \
     libtool curl make g++ unzip git build-essential autoconf libtool pkg-config \
-    gcc-6 g++-6 apt-transport-https ca-certificates apt-utils vim redis-server tzdata \
+    gcc-7 g++-7 apt-transport-https ca-certificates apt-utils vim redis-server tzdata \
     libssl-dev ninja-build golang python2.7 automake perl libgmp3-dev clang-format-7 && \
-    echo \"Configure C/C++ compiler v6.5 as primary\" && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 10 && \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 10 && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 20 && \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 20 && \
+    echo \"Configure C/C++ compiler v7.5 as primary\" && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 20 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 20 && \
     echo \"Add required package repository for CMake\" && \
     wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - && \
     apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' && \
@@ -300,7 +298,7 @@ RUN apt-get update && \
 
 # Copy pre-built shared object files
 COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/liblsan.so.0 /usr/lib/x86_64-linux-gnu/
-COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libasan.so.3 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libasan.so.4 /usr/lib/x86_64-linux-gnu/
 COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libubsan.so.0 /usr/lib/x86_64-linux-gnu/
 COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 /usr/lib/x86_64-linux-gnu/
 COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libconfig.so.9 /usr/lib/x86_64-linux-gnu/

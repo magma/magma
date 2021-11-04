@@ -788,7 +788,7 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context);
 // PDU session related communication to gNB
 int pdu_session_resource_setup_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    std::shared_ptr<smf_context_t>);
+    std::shared_ptr<smf_context_t> smf_context, bstring nas_msg);
 void amf_app_handle_resource_setup_response(
     itti_ngap_pdusessionresource_setup_rsp_t session_seup_resp);
 int pdu_session_resource_release_request(
@@ -858,6 +858,9 @@ tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id);
 
 int amf_idle_mode_procedure(amf_context_t* amf_ctx);
 void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p);
+int m5g_security_select_algorithms(
+    const int ue_iaP, const int ue_eaP, int* const amf_iaP, int* const amf_eaP);
+
 /************************************************************************
  ** Name:    delete_wrapper()                                         **
  **                                                                   **

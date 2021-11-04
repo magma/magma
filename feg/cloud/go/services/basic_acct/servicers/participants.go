@@ -27,6 +27,7 @@ import (
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
 	"magma/orc8r/cloud/go/services/configurator"
+	magmapb "magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -41,19 +42,22 @@ func RetrieveParticipants(ctx context.Context, session *protos.AcctSession) (pro
 		err = status.Errorf(codes.InvalidArgument, "nil Session")
 		return
 	}
-	gwId, err := gw_to_feg_relay.RetrieveGatewayIdentity(ctx)
+	var gwId *magmapb.Identity_Gateway
+	gwId, err = gw_to_feg_relay.RetrieveGatewayIdentity(ctx)
 	if err != nil {
 		return
 	}
 	gw = gwId.GetLogicalId()
 	provider = gwId.GetNetworkId()
-	imsi := session.GetIMSI()
-	if len(imsi) == 0 {
-		err = status.Errorf(
-			codes.InvalidArgument, "no IMSI for session: %s, serving network: %s", session.GetSessionId(), provider)
-		return
+	if session.GetUser() != nil {
+		imsi := session.GetIMSI()
+		if len(imsi) == 0 {
+			err = status.Errorf(
+				codes.InvalidArgument, "no IMSI for session: %s, serving network: %s", session.GetSessionId(), provider)
+			return
+		}
+		consumer, err = FindServingFeGNetworkId(ctx, provider, imsi)
 	}
-	consumer, err = FindServingFeGNetworkId(ctx, provider, imsi)
 	return
 }
 

@@ -525,6 +525,7 @@ void SpgwStateConverter::proto_to_sgw_eps_bearer(
       bfromcstr(eps_bearer_proto.sgw_ip_address_s1u_s12_s4_up().c_str()),
   bstring_to_ip_address(
       ip_addr_bstr, &eps_bearer->s_gw_ip_address_S1u_S12_S4_up);
+  bdestroy_wrapper(&ip_addr_bstr);
 
   // if ipv6 addr is present it will overwrite, if not it will skip
   ip_addr_bstr =

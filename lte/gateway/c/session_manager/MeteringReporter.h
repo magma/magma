@@ -14,10 +14,13 @@
 
 #include <string>
 
-#include "StoredState.h"
 #include "SessionCredit.h"
+#include "StoredState.h"
 
 namespace magma {
+struct SessionStateUpdateCriteria;
+struct TotalCreditUsage;
+
 namespace lte {
 
 class MeteringReporter {
