@@ -8,7 +8,7 @@ hide_title: true
 
 This document provides an introduction to Orchestrator functionality and architecture.
 
-## Functionality
+### Functionality
 
 Magma's Orchestrator is a centralized controller for a set of networks. Orchestrator handles the control plane for various types of gateways in Magma. Orchestrator functionality is composed of two primary components
 
