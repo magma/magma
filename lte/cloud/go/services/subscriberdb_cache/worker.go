@@ -64,7 +64,7 @@ func RenewDigests(config Config, store syncstore.SyncStore) (map[string]string, 
 		return nil, nil, errors.Wrap(err, "get networks to update")
 	}
 
-	errs := &multierror.Error{}
+	var errs *multierror.Error
 	rootDigestsByNetwork := map[string]string{}
 	leafDigestsByNetwork := map[string][]*protos.LeafDigest{}
 	for _, network := range toUpdate {

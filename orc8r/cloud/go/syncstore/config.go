@@ -32,7 +32,7 @@ type Config struct {
 }
 
 func (config *Config) Validate(writer bool) error {
-	errs := &multierror.Error{}
+	var errs *multierror.Error
 	if config.TableNamePrefix == "" {
 		errs = multierror.Append(errs, errors.New("empty table name prefix for syncstore"))
 	}

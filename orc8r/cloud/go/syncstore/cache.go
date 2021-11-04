@@ -62,7 +62,7 @@ func (l *cacheWriter) InsertMany(objects map[string][]byte) error {
 	insertQuery := l.builder.
 		Insert(l.id).
 		Columns(nidCol, idCol, objCol)
-	errs := &multierror.Error{}
+	var errs *multierror.Error
 	for id, obj := range objects {
 		insertQuery = insertQuery.Values(l.network, id, obj)
 	}

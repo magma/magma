@@ -527,7 +527,7 @@ func validateSubscriberProfiles(ctx context.Context, networkID string, profiles 
 	}
 
 	networkProfiles := networkConfig.(*ltemodels.NetworkCellularConfigs).Epc.SubProfiles
-	errs := &multierror.Error{}
+	var errs *multierror.Error
 	for _, p := range nonDefaultProfiles {
 		if _, ok := networkProfiles[p]; !ok {
 			errs = multierror.Append(errs, errors.Errorf("subscriber profile '%s' does not exist for the network", p))

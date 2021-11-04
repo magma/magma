@@ -72,7 +72,7 @@ func Map(inputs []In, nWorkers int, f Func) ([]Out, error) {
 
 	// Outputs
 	rets := make([]Out, nJobs)
-	errs := &multierror.Error{}
+	var errs *multierror.Error
 	for i := 0; i < nJobs; i++ {
 		ret := <-outputs
 		rets[ret.idx] = ret.output

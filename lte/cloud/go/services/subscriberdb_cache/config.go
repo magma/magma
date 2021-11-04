@@ -26,7 +26,7 @@ type Config struct {
 }
 
 func (config Config) Validate() error {
-	errs := &multierror.Error{}
+	var errs *multierror.Error
 	if config.SleepIntervalSecs <= 0 {
 		errs = multierror.Append(errs, errors.Errorf("invalid worker sleep interval"))
 	}

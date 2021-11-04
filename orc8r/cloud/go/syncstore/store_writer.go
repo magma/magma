@@ -179,7 +179,7 @@ func (l *syncStore) CollectGarbage(trackedNetworks []string) {
 // collectGarbageSQL drops all contents in the digests and cached objects SQL storage
 // that are unrelated to the tracked networks.
 func (l *syncStore) collectGarbageSQL(tracked []string) error {
-	errs := &multierror.Error{}
+	var errs *multierror.Error
 	tableNames := []string{l.cacheTableName, l.digestTableName}
 	for _, tableName := range tableNames {
 		txFn := func(tx *sql.Tx) (interface{}, error) {
@@ -247,7 +247,7 @@ func (l *syncStore) collectGarbageLastResync(tracked []string) error {
 	}
 	deleted, _ := funk.DifferenceString(stored, tracked)
 
-	errs := &multierror.Error{}
+	var errs *multierror.Error
 	for _, network := range deleted {
 		keys, err := blobstore.ListKeys(store, network, lastResyncBlobstoreType)
 		if err != nil {
@@ -267,7 +267,7 @@ func (l *syncStore) collectGarbageLastResync(tracked []string) error {
 }
 
 func (l *syncStore) collectGarbageCacheWriter(tracked []string) error {
-	errs := &multierror.Error{}
+	var errs *multierror.Error
 
 	invalidByNetwork, err := l.getInvalidCacheWriter(tracked, l.cacheWriterValidIntervalSecs)
 	if err != nil {
@@ -306,7 +306,7 @@ func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidInte
 	deleted, _ := funk.DifferenceString(stored, tracked)
 
 	invalidByNetwork := map[string][]string{}
-	errs := &multierror.Error{}
+	var errs *multierror.Error
 	for _, network := range deleted {
 		keys, err := blobstore.ListKeys(store, network, cacheWriterBlobstoreType)
 		if err != nil {
@@ -347,7 +347,7 @@ func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidInte
 // dropInvalidCaches drops the temporary caches held by invalid cache writers, and
 // returns the IDs of those successfully dropped.
 func (l *syncStore) dropInvalidCaches(invalidByNetwork map[string][]string) (map[string][]string, error) {
-	errs := &multierror.Error{}
+	var errs *multierror.Error
 	deletedByNetwork := map[string][]string{}
 	for network, invalid := range invalidByNetwork {
 		var deleted []string
@@ -377,7 +377,7 @@ func (l *syncStore) deleteCacheWriterBlobstoreRecords(deletedByNetwork map[strin
 	}
 	defer store.Rollback()
 
-	errs := &multierror.Error{}
+	var errs *multierror.Error
 	for network, deleted := range deletedByNetwork {
 		tks := storage.MakeTKs(cacheWriterBlobstoreType, deleted)
 		err := store.Delete(network, tks)

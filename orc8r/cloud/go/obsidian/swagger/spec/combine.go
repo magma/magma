@@ -30,7 +30,7 @@ import (
 // This custom-built functionality mirrors the "official" implementation.
 // See: https://github.com/go-openapi/analysis/blob/master/mixin.go
 func Combine(yamlCommon string, yamlSpecs []string) (string, error, error) {
-	warnings := &multierror.Error{}
+	var warnings *multierror.Error
 
 	common, specs, errs := unmarshalToSwagger(yamlCommon, yamlSpecs)
 	if errs != nil {
@@ -89,7 +89,7 @@ func combine(common swagger.Spec, specs []swagger.Spec) (swagger.Spec, error) {
 // from YAML format to Swagger structs.
 // Returned error is a list of errors from incompatible swagger specs.
 func unmarshalToSwagger(yamlCommon string, yamlSpecs []string) (swagger.Spec, []swagger.Spec, error) {
-	errs := &multierror.Error{}
+	var errs *multierror.Error
 
 	editedYAMLSpecs := makeAllYAMLReferencesLocal(yamlSpecs)
 	specs := unmarshalManyFromYAML(editedYAMLSpecs, errs)
