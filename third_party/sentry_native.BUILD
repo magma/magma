@@ -15,8 +15,8 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 # Source files generated with cmake.
 configure_out_srcs = [
-    # TODO(@themarwhal): Generate a static library - GH9323
-    "build/lib/libsentry.so",
+    "build/lib/libsentry.a",
+    "build/lib/libbreakpad_client.a",
 ]
 
 # Header files generated with cmake.
@@ -39,7 +39,7 @@ genrule(
         "cp -R $$(pwd)/external/sentry_native/* $$TMP_DIR",
         "cd $$TMP_DIR",
         # See sentry-native/src/CMakeLists.txt @ GitHub for how these values are used
-        "cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DSENTRY_BUILD_TESTS=0 -DSENTRY_BUILD_EXAMPLES=0",
+        "cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_SHARED_LIBS=OFF -DSENTRY_BUILD_TESTS=0 -DSENTRY_BUILD_EXAMPLES=0",
         "cmake --build build --parallel",
         "cmake --install build --prefix install --config RelWithDebInfo",
         # Copy out generated libraries into the path specified by outs
@@ -54,5 +54,6 @@ cc_library(
     srcs = configure_out_srcs,
     hdrs = configure_out_hdrs,
     includes = ["build/include"],
+    linkopts = ["-lcurl"],
     visibility = ["//visibility:public"],
 )
