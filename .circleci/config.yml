@@ -319,7 +319,7 @@ commands:
           org: lf-9c
       - sentry-upload:
           executable_name: << parameters.executable_name >>
-          project: lab-si-cpp
+          project: si-agw-native
           org: lf-9c
 
   sentry-release:
