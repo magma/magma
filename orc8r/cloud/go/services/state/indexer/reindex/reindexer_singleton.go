@@ -176,4 +176,3 @@ func (r *reindexerSingleton) getJobs(indexerID string) ([]*Job, error) {
 
 	return ret, nil
 }
-
