@@ -34,6 +34,14 @@ import (
 )
 
 func TestRunUnchangingReindexBatches(t *testing.T) {
+	testReindexBatches(t, initTestUnchangingBatches)
+}
+
+func TestRunChangingReindexBatches(t *testing.T) {
+	testReindexBatches(t, initTestChangingBatches)
+}
+
+func testReindexBatches(t *testing.T, initSingletonReindexTest func(t *testing.T) context.CancelFunc) {
 	// Make nullimpotent calls to handle code coverage indeterminacy
 	reindex.TestHookReindexSuccess()
 	reindex.TestHookReindexDone()
@@ -123,88 +131,7 @@ func TestRunUnchangingReindexBatches(t *testing.T) {
 	require.Equal(t, 5, reindexDoneNum)
 }
 
-func TestRunChangingReindexBatches(t *testing.T) {
-	// Make nullimpotent calls to handle code coverage indeterminacy
-	reindex.TestHookReindexDone()
-
-	// Writes to channel after completing a job
-	reindexDoneNum := 0
-	ch := make(chan interface{})
-
-	reindex.TestHookReindexDone = func() {
-		reindexDoneNum += 1
-		ch <- nil
-	}
-	defer func() { reindex.TestHookReindexDone = func() {} }()
-
-	clock.SkipSleeps(t)
-	defer clock.ResumeSleeps(t)
-
-	cancel := initSingletonReindexTestChangingBatch(t)
-
-	// Single indexer
-	idx0 := getIndexer(id0, zero, version0, true)
-	idx0.On("GetTypes").Return(allTypes).Once()
-	// Register indexers
-	register(t, idx0)
-
-	// Check
-	recvCh(t, ch)
-	recvNoCh(t, ch)
-
-	idx0.AssertExpectations(t)
-	require.Equal(t, reindexDoneNum, 1)
-
-	// Bump existing indexer version
-	idx0a := getIndexerNoIndex(id0, version0, version0a, false)
-	idx0a.On("GetTypes").Return(gwStateType).Once()
-	idx0a.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nNetworks)
-	// Register indexers
-	register(t, idx0a)
-
-	// Check
-	recvCh(t, ch)
-	recvNoCh(t, ch)
-
-	idx0a.AssertExpectations(t)
-	require.Equal(t, reindexDoneNum, 2)
-
-	// Indexer returns err => reindex jobs fail
-	// Fail1 at PrepareReindex
-	fail1 := getBasicIndexer(id1, version1)
-	fail1.On("GetTypes").Return(allTypes).Once()
-	fail1.On("PrepareReindex", zero, version1, true).Return(someErr1).Once()
-
-	// Fail2 at first Reindex
-	fail2 := getBasicIndexer(id2, version2)
-	fail2.On("GetTypes").Return(allTypes).Once()
-	fail2.On("PrepareReindex", zero, version2, true).Return(nil).Once()
-	fail2.On("Index", mock.Anything, mock.Anything).Return(nil, someErr2).Once()
-
-	// Fail3 at CompleteReindex
-	fail3 := getBasicIndexer(id3, version3)
-	fail3.On("GetTypes").Return(allTypes).Once()
-	fail3.On("PrepareReindex", zero, version3, true).Return(nil).Once()
-	fail3.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nBatches)
-	fail3.On("CompleteReindex", zero, version3).Return(someErr3).Once()
-
-	// Register indexers
-	register(t, fail1, fail2, fail3)
-
-	// Check
-	recvCh(t, ch)
-	recvCh(t, ch)
-	recvCh(t, ch)
-	cancel()
-	recvNoCh(t, ch)
-
-	fail1.AssertExpectations(t)
-	fail2.AssertExpectations(t)
-	fail3.AssertExpectations(t)
-	require.Equal(t, 5, reindexDoneNum)
-}
-
-func initSingletonReindexTest(t *testing.T) ( context.CancelFunc) {
+func initTestUnchangingBatches(t *testing.T) context.CancelFunc {
 	indexer.DeregisterAllForTest(t)
 
 	configurator_test_init.StartTestService(t)
@@ -250,7 +177,7 @@ func initSingletonReindexTest(t *testing.T) ( context.CancelFunc) {
 	return cancel
 }
 
-func initSingletonReindexTestChangingBatch(t *testing.T) (context.CancelFunc) {
+func initTestChangingBatches(t *testing.T) context.CancelFunc {
 	indexer.DeregisterAllForTest(t)
 
 	configurator_test_init.StartTestService(t)
