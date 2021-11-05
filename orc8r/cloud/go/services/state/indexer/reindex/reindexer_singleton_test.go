@@ -51,7 +51,7 @@ func TestSingletonRun(t *testing.T) {
 		reindexDoneNum += 1
 		ch <- nil
 	}
-	defer func() { reindex.TestHookReindexSuccess = func() {} }()
+	defer func() { reindex.TestHookReindexDone = func() {} }()
 
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
@@ -123,6 +123,51 @@ func TestSingletonRun(t *testing.T) {
 	fail3.AssertExpectations(t)
 	require.Equal(t, 2, reindexSuccessNum)
 	require.Equal(t, 5, reindexDoneNum)
+}
+
+func TestRunChangingReindexBatches(t *testing.T) {
+	// Make nullimpotent calls to handle code coverage indeterminacy
+	reindex.TestHookReindexDone()
+
+	// Writes to channel after completing a job
+	reindexDoneNum := 0
+	ch := make(chan interface{})
+
+	reindex.TestHookReindexDone = func() {
+		reindexDoneNum += 1
+		ch <- nil
+	}
+	defer func() { reindex.TestHookReindexDone = func() {} }()
+
+	clock.SkipSleeps(t)
+	defer clock.ResumeSleeps(t)
+
+	r := initSingletonReindexTest(t)
+	ctx, _ := context.WithCancel(context.Background())
+	go r.Run(ctx)
+
+	// Fail3 at CompleteReindex
+	fail1 := getBasicIndexer(id3, version3)
+	fail1.On("GetTypes").Return(allTypes).Once()
+	fail1.On("PrepareReindex", zero, version3, true).Return(nil).Once()
+	fail1.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nBatches)
+	fail1.On("CompleteReindex", zero, version3).Return(someErr3).Once()
+
+	// Register indexers
+	register(t, fail1)
+
+	// Check
+	recvCh(t, ch)
+
+	registerExtra
+
+	recvCh(t, ch)
+
+	// cancel()
+	// recvNoCh(t, ch)
+
+	fail1.AssertExpectations(t)
+	require.Equal(t, 2, reindexDoneNum)
 }
 
 func initSingletonReindexTest(t *testing.T) reindex.Reindexer {
