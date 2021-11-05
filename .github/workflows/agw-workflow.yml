@@ -25,7 +25,7 @@ jobs:
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
-      # Need to get git on push event
+      # Need to get git on push event test
       - uses: actions/checkout@v2
         if: github.event_name == 'push'
       - uses: dorny/paths-filter@v2
