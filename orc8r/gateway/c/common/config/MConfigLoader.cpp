@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "includes/MConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
 
 #include <bits/exception.h>
 #include <google/protobuf/stubs/status.h>    // for Status
@@ -20,7 +20,7 @@
 #include <cstdlib>  // for getenv
 #include <fstream>  // IWYU pragma: keep
 
-#include "magma_logging.h"  // for MLOG
+#include "orc8r/gateway/c/common/logging/magma_logging.h"  // for MLOG
 
 namespace google {
 namespace protobuf {

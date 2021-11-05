@@ -131,7 +131,8 @@ Additional features such as formatting on save is enabled for the Python source 
 #### Build specific targets and unit tests via codelens
 
 The **bazel-stack-vscode** extension adds [codelens](https://code.visualstudio.com/blogs/2017/02/12/code-lens-roundup) directly into `BUILD.bazel` files. Utilizing this makes building and testing as easy as clicking a button.
-For example, to run a single unit test for SessionD, open `lte/gateway/c/session_manager/test/BUILD.bazel` and click the `test` codelens. Similarly, click the `build` codelens to build only.
+
+For example, to run a single unit test for SessionD, open `lte/gateway/c/session_manager/test/BUILD.bazel` and click the `test` codelens. Similarly, click the `build` codelens to build only. If the codelens does not show up, try opening up a different `BUILD.bazel` file, or reloading the file (**Command+Shift+P** then **File: Revert File**).
 
 ![SessionD Unit Test Codelens](assets/contributing/sessiond-unit-test-codelens.png)
 
@@ -139,7 +140,7 @@ At the top of each `BUILD.bazel` file, there is a codelens to build and test all
 
 #### Generate compilation database with Bazel
 
-To generate the compilation database with Bazel, run **Command+Shift+P** to open the command palette and select **Multi command: Execute multi command**. Select the command **sentry_generateCcWithBazelAndRestartClangderror**. This is a wrapper command that runs two extension commands: `bsv.cc.compdb.generate` (**Bzl: Bazel/C++: Generate Compilation Database**) and then `clangd.restart` (**clangd: Restart language server**).
+To generate the compilation database with Bazel, run **Command+Shift+P** to open the command palette and select **Multi command: Execute multi command**. Select the command **generateCcWithBazelAndRestartClangderror**. This is a wrapper command that runs two extension commands: `bsv.cc.compdb.generate` (**Bzl: Bazel/C++: Generate Compilation Database**) and then `clangd.restart` (**clangd: Restart language server**).
 
 This compilation database will contain necessary information for all C / C++ targets available to be built with Bazel.
 
@@ -149,7 +150,11 @@ Refer to [Dealing with clangd extension errors](#dealing-with-clangd-extension-e
 
 > Currently only available for SessionD unit tests under `lte/gateway/c/session_manager/tests`, but it is easy to add configurations to enable it for any `cc_test`. Run `bazel query 'kind(cc_test,//...)'` in the terminal to get the full list of available targets. Modify `.vscode/tasks.json` and `.vscode/launch.json` to enable GDB debugging for other targets.
 
-Run **Command+Shift+D** to open the debug tab. In the drop down menu at the top of the tab, select **(Remote SSH) Run SessionD test with GDB** and press the gree arrow. This will open up a new drop down menu with all SessionD unit test targets. Once a test is selected, VSCode will build the target in debug mode and launch the test with GDB.
+First, build the test target that you wish to test. You can do this in the terminal by running Bazel directly, or through the codelens UI in the corresponding `BUILD.bazel` file.
+
+Run **Command+Shift+D** to open the debug tab. In the drop down menu at the top of the tab, select **(Remote SSH) Run SessionD test with GDB** and press the gree arrow. This will open up a new drop down menu with all SessionD unit test targets. Once a test is selected, VSCode will launch the test with GDB.
+
+The test output will be printed out in the terminal tab, and the debug console tab will contain a GDB interface.
 
 ![SessionD Start Debug](assets/contributing/sessiond-start-debug.png)
 

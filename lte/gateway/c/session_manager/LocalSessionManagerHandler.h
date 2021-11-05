@@ -13,8 +13,11 @@
 #pragma once
 
 #include <grpc++/grpc++.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-
+#include <stdint.h>
+#include <chrono>
+#include <experimental/optional>
 #include <functional>
 #include <memory>
 #include <string>
@@ -23,6 +26,34 @@
 #include "SessionID.h"
 #include "SessionReporter.h"
 #include "SessionStore.h"
+#include "StoreClient.h"
+#include "orc8r/protos/common.pb.h"
+
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
+namespace magma {
+class DirectorydClient;
+class LocalEnforcer;
+class SessionReporter;
+class SessionState;
+namespace lte {
+class EventsReporter;
+class LocalCreateSessionRequest;
+class LocalCreateSessionResponse;
+class LocalEndSessionRequest;
+class LocalEndSessionResponse;
+class PolicyBearerBindingRequest;
+class PolicyBearerBindingResponse;
+class RuleRecordTable;
+class SessionRules;
+class SetupFlowsResult;
+class SubscriberID;
+class UpdateTunnelIdsRequest;
+class UpdateTunnelIdsResponse;
+}  // namespace lte
+struct SessionConfig;
+}  // namespace magma
 
 using grpc::ServerContext;
 using grpc::Status;

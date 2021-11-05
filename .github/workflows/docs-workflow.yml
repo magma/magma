@@ -1,5 +1,5 @@
 ---
-name: docs-workflow
+name: Markdown lint check
 
 on:  # yamllint disable-line rule:truthy
   push:
@@ -33,7 +33,7 @@ jobs:
   markdown-lint:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    name: markdown lint job
+    name: Markdown lint check
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"

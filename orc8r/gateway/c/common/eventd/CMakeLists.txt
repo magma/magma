@@ -56,6 +56,7 @@ add_custom_command(TARGET EVENTD POST_BUILD
     ${PROJECT_SOURCE_DIR}/includes/*.h ${MAGMA_INCLUDE_DIR})
 
 target_include_directories(EVENTD PUBLIC
+    $ENV{MAGMA_ROOT}
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
     $<TARGET_FILE_DIR:EVENTD>)
 

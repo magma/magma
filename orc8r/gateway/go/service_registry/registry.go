@@ -15,6 +15,7 @@ package service_registry
 
 import (
 	"context"
+
 	"google.golang.org/grpc"
 
 	platform_registry "magma/orc8r/lib/go/registry"
@@ -43,7 +44,7 @@ type GatewayRegistry interface {
 	// 		  cloud_port, rootca_cert, gateway_cert/key fields if direct cloud connection is needed
 	//        service - name of cloud service to connect to
 	// Output: *grpc.ClientConn with connection to cloud service error if it exists
-	GetCloudConnectionFromServiceConfig(controlProxyConfig *config.ConfigMap, service string) (*grpc.ClientConn, error)
+	GetCloudConnectionFromServiceConfig(controlProxyConfig *config.Map, service string) (*grpc.ClientConn, error)
 	// GetSharedCloudConnection returns a new GRPC service connection to the service in the cloud for a gateway
 	// either directly or via control proxy
 	// GetSharedCloudConnection will return an existing cached cloud connection if it's available and healthy,
@@ -54,7 +55,7 @@ type GatewayRegistry interface {
 	// and local_port params
 	// GetSharedCloudConnectionFromServiceConfig will return an existing cached cloud connection if it's available and
 	// healthy, if not - it'll try to create, cache and return a new cloud connection
-	GetSharedCloudConnectionFromServiceConfig(controlProxyConfig *config.ConfigMap, service string) (*grpc.ClientConn, error)
+	GetSharedCloudConnectionFromServiceConfig(controlProxyConfig *config.Map, service string) (*grpc.ClientConn, error)
 	// GetClientConnection provides a gRPC connection to a service on the address addr.
 	CleanupSharedCloudConnection(service string) bool
 

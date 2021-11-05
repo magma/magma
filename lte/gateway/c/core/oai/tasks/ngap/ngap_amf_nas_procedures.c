@@ -683,15 +683,32 @@ void ngap_handle_conn_est_cnf(
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   // list of NSSAI: later implement with loop
-  Ngap_AllowedNSSAI_Item_t* nssai_item;
+  amf_config_read_lock(&amf_config);
+  for (int i = 0; i < amf_config.plmn_support_list.plmn_support_count; i++) {
+    Ngap_AllowedNSSAI_Item_t* nssai_item = NULL;
+    Ngap_S_NSSAI_t* s_NSSAI              = NULL;
+    Ngap_SST_t* sST                      = NULL;
 
-  nssai_item =
-      (Ngap_AllowedNSSAI_Item_t*) calloc(1, sizeof(Ngap_AllowedNSSAI_Item_t));
-  nssai_item->s_NSSAI.sST.size   = 1;
-  nssai_item->s_NSSAI.sST.buf    = (uint8_t*) calloc(1, sizeof(uint8_t));
-  nssai_item->s_NSSAI.sST.buf[0] = 0x1;
+    nssai_item =
+        (Ngap_AllowedNSSAI_Item_t*) CALLOC(1, sizeof(Ngap_AllowedNSSAI_Item_t));
+    s_NSSAI = &nssai_item->s_NSSAI;
+    sST     = &s_NSSAI->sST;
 
-  ASN_SEQUENCE_ADD(&ie->value.choice.AllowedNSSAI.list, nssai_item);
+    INT8_TO_OCTET_STRING(
+        amf_config.plmn_support_list.plmn_support[i].s_nssai.sst, sST);
+
+    if (amf_config.plmn_support_list.plmn_support[i].s_nssai.sd.v !=
+        AMF_S_NSSAI_SD_INVALID_VALUE) {
+      // defaultSliceDifferentiator
+      s_NSSAI->sD = CALLOC(1, sizeof(Ngap_SD_t));
+      INT24_TO_OCTET_STRING(
+          amf_config.plmn_support_list.plmn_support[i].s_nssai.sd.v,
+          s_NSSAI->sD);
+    }
+
+    ASN_SEQUENCE_ADD(&ie->value.choice.AllowedNSSAI.list, nssai_item);
+  }
+  amf_config_unlock(&amf_config);
 
   // UESecurityCapabilities
   ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(
@@ -1200,6 +1217,19 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
             1, sizeof(Ngap_PDUSessionResourceSetupItemSUReq_t));
 
     ngap_pdusession_setup_item_ies->pDUSessionID = session_item->Pdu_Session_ID;
+
+    ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU =
+        calloc(1, sizeof(Ngap_NAS_PDU_t));
+    ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->size =
+        blength(pdusession_resource_setup_req->nas_pdu);
+
+    ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->buf = calloc(
+        blength(pdusession_resource_setup_req->nas_pdu), sizeof(uint8_t));
+
+    memcpy(
+        ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->buf,
+        bdata(pdusession_resource_setup_req->nas_pdu),
+        ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->size);
 
     /*NSSAI*/
     ngap_pdusession_setup_item_ies->s_NSSAI.sST.size = 1;

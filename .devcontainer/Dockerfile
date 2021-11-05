@@ -151,6 +151,9 @@ RUN wget --progress=dot:giga https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz &&
     rm -rf nettle* && \
     rm -rf gnutls*
 
+##### Useful for logfile modification e.g. pruning all /magma/... prefix from GCC warning logs
+RUN GOBIN="/usr/bin/" go get github.com/ezekg/xo
+
 ##### GRPC and it's dependencies
 RUN git clone --recurse-submodules -b v1.35.0 https://github.com/grpc/grpc && \
     cd grpc && \

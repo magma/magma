@@ -39,5 +39,5 @@ dependencies:
     repository: ""
     condition: logging.enabled
   - name: orc8rlib
-    version: 0.1.2
+    version: 0.1.3
     repository: file://../orc8rlib

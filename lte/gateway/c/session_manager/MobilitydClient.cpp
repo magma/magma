@@ -11,11 +11,23 @@
  * limitations under the License.
  */
 
+#include <grpcpp/channel.h>
 #include <memory>
 #include <utility>
+
 #include "MobilitydClient.h"
 #include "includes/ServiceRegistrySingleton.h"
-#include "magma_logging.h"
+#include "lte/protos/mobilityd.grpc.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+
+namespace grpc {
+class Status;
+}  // namespace grpc
+namespace magma {
+namespace lte {
+class IPAddress;
+}  // namespace lte
+}  // namespace magma
 
 using grpc::Status;
 

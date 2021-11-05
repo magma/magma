@@ -90,7 +90,7 @@ func newStateServicer(store blobstore.StoreFactory) protos.StateServiceServer {
 	return servicer
 }
 
-func newIndexerManagerServicer(cfg *config.ConfigMap, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
+func newIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
 	queue := reindex.NewSQLJobQueue(reindex.DefaultMaxAttempts, db, sqorc.GetSqlBuilder())
 	err := queue.Initialize()
 	if err != nil {
@@ -102,7 +102,7 @@ func newIndexerManagerServicer(cfg *config.ConfigMap, db *sql.DB, store blobstor
 	}
 
 	autoReindex := cfg.MustGetBool(state_config.EnableAutomaticReindexing)
-	reindexer := reindex.NewReindexer(queue, reindex.NewStore(store))
+	reindexer := reindex.NewReindexerQueue(queue, reindex.NewStore(store))
 	servicer := servicers.NewIndexerManagerServicer(reindexer, autoReindex)
 
 	if autoReindex && storage.GetSQLDriver() != sqorc.PostgresDriver {

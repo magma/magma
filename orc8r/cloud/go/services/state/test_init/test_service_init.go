@@ -17,6 +17,7 @@ import (
 	"database/sql"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"magma/orc8r/cloud/go/blobstore"
@@ -60,10 +61,38 @@ func startService(t *testing.T, db *sql.DB) (reindex.Reindexer, reindex.JobQueue
 
 	queue := reindex.NewSQLJobQueue(singleAttempt, db, sqorc.GetSqlBuilder())
 	require.NoError(t, queue.Initialize())
-	reindexer := reindex.NewReindexer(queue, reindex.NewStore(factory))
+	reindexer := reindex.NewReindexerQueue(queue, reindex.NewStore(factory))
 	indexerServicer := servicers.NewIndexerManagerServicer(reindexer, false)
 	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
 
 	go srv.RunTest(lis)
 	return reindexer, queue
+}
+
+// StartTestSingletonServiceInternal instantiates a test DB-backed singleton service, returning
+// the derived reindexer and job queue for internal usage.
+// Supported drivers include: postgres.
+func StartTestSingletonServiceInternal(t *testing.T) reindex.Reindexer {
+	db, err := sqorc.Open("sqlite3", ":memory:")
+	assert.NoError(t, err)
+	return startSingletonService(t, db)
+}
+
+func startSingletonService(t *testing.T, db *sql.DB) reindex.Reindexer {
+	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
+
+	factory := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
+	require.NoError(t, factory.InitializeFactory())
+	stateServicer, err := servicers.NewStateServicer(factory)
+	require.NoError(t, err)
+	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
+
+	versioner := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
+	versioner.Initialize()
+	reindexer := reindex.NewReindexerSingleton(reindex.NewStore(factory), versioner)
+	indexerServicer := servicers.NewIndexerManagerServicer(reindexer, false)
+	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
+
+	go srv.RunTest(lis)
+	return reindexer
 }

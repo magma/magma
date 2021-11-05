@@ -34,7 +34,7 @@ const (
 )
 
 // GetObsidianHandlers returns all obsidian handlers for metricsd
-func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
+func GetObsidianHandlers(configMap *config.Map) []obsidian.Handler {
 	useSeriesCache, _ := configMap.GetBool(metricsd.UseSeriesCache)
 	var ret []obsidian.Handler
 	client, err := promAPI.NewClient(promAPI.Config{Address: configMap.MustGetString(metricsd.PrometheusQueryAddress)})

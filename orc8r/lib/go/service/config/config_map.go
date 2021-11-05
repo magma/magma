@@ -21,18 +21,18 @@ import (
 	"github.com/golang/glog"
 )
 
-// ConfigMap represents a map generated from a service YML file.
-type ConfigMap struct {
+// Map represents a map generated from a service YML file.
+type Map struct {
 	RawMap map[interface{}]interface{}
 }
 
-// NewConfigMap creates a new ConfigMap based on the input map.
-func NewConfigMap(config map[interface{}]interface{}) *ConfigMap {
-	return &ConfigMap{config}
+// NewMap creates a new Map based on the input config map.
+func NewMap(config map[interface{}]interface{}) *Map {
+	return &Map{config}
 }
 
 // GetInt retrieves the int parameter keyed by the passed key.
-func (c *ConfigMap) GetInt(key string) (int, error) {
+func (c *Map) GetInt(key string) (int, error) {
 	if err := c.Validate(); err != nil {
 		return 0, err
 	}
@@ -49,7 +49,7 @@ func (c *ConfigMap) GetInt(key string) (int, error) {
 }
 
 // GetBool retrieves the bool parameter keyed by the passed key.
-func (c *ConfigMap) GetBool(key string) (bool, error) {
+func (c *Map) GetBool(key string) (bool, error) {
 	if err := c.Validate(); err != nil {
 		return false, err
 	}
@@ -66,7 +66,7 @@ func (c *ConfigMap) GetBool(key string) (bool, error) {
 }
 
 // GetString retrieves the string parameter keyed by the passed key.
-func (c *ConfigMap) GetString(key string) (string, error) {
+func (c *Map) GetString(key string) (string, error) {
 	if err := c.Validate(); err != nil {
 		return "", err
 	}
@@ -83,7 +83,7 @@ func (c *ConfigMap) GetString(key string) (string, error) {
 }
 
 // GetStrings retrieves the []string parameter keyed by the passed key.
-func (c *ConfigMap) GetStrings(key string) ([]string, error) {
+func (c *Map) GetStrings(key string) ([]string, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (c *ConfigMap) GetStrings(key string) ([]string, error) {
 }
 
 // GetMap retrieves the map[interface{}]interface{} parameter keyed by the passed key.
-func (c *ConfigMap) GetMap(key string) (map[interface{}]interface{}, error) {
+func (c *Map) GetMap(key string) (map[interface{}]interface{}, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (c *ConfigMap) GetMap(key string) (map[interface{}]interface{}, error) {
 }
 
 // MustGetInt is same as GetInt but fails on errors and when the value does not exist.
-func (c *ConfigMap) MustGetInt(key string) int {
+func (c *Map) MustGetInt(key string) int {
 	param, err := c.GetInt(key)
 	if err != nil {
 		glog.Fatalf("Error retrieving %s: %v\n", key, err)
@@ -126,7 +126,7 @@ func (c *ConfigMap) MustGetInt(key string) int {
 }
 
 // MustGetBool is same as GetBool but fails on errors and when the value does not exist.
-func (c *ConfigMap) MustGetBool(key string) bool {
+func (c *Map) MustGetBool(key string) bool {
 	param, err := c.GetBool(key)
 	if err != nil {
 		glog.Fatalf("Error retrieving %s: %v\n", key, err)
@@ -135,7 +135,7 @@ func (c *ConfigMap) MustGetBool(key string) bool {
 }
 
 // MustGetString is same as GetString but fails on errors and when the value does not exist.
-func (c *ConfigMap) MustGetString(key string) string {
+func (c *Map) MustGetString(key string) string {
 	str, err := c.GetString(key)
 	if err != nil {
 		glog.Fatalf("Error retrieving %s: %v\n", key, err)
@@ -144,7 +144,7 @@ func (c *ConfigMap) MustGetString(key string) string {
 }
 
 // MustGetStrings is same as GetStrings but fails on errors and when the value does not exist.
-func (c *ConfigMap) MustGetStrings(key string) []string {
+func (c *Map) MustGetStrings(key string) []string {
 	param, err := c.GetStrings(key)
 	if err != nil {
 		glog.Fatalf("Error retrieving %s: %v\n", key, err)
@@ -153,7 +153,7 @@ func (c *ConfigMap) MustGetStrings(key string) []string {
 }
 
 // MustGetMap is same as GetMap but fails on errors and when the value does not exist.
-func (c *ConfigMap) MustGetMap(key string) map[interface{}]interface{} {
+func (c *Map) MustGetMap(key string) map[interface{}]interface{} {
 	param, err := c.GetMap(key)
 	if err != nil {
 		glog.Fatalf("Error retrieving %s: %v\n", key, err)
@@ -163,7 +163,7 @@ func (c *ConfigMap) MustGetMap(key string) map[interface{}]interface{} {
 
 // SetString tries to set set the given string pointer to config value
 // keyed by the passed key.
-func (c *ConfigMap) SetString(strPtr *string, key string) error {
+func (c *Map) SetString(strPtr *string, key string) error {
 	if err := c.Validate(); err != nil {
 		return err
 	}
@@ -179,7 +179,7 @@ func (c *ConfigMap) SetString(strPtr *string, key string) error {
 }
 
 // Validate the config map.
-func (c *ConfigMap) Validate() error {
+func (c *Map) Validate() error {
 	if c == nil {
 		return errors.New("validate config map: map cannot be nil")
 	}

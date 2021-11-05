@@ -57,6 +57,7 @@ const (
 
 	defaultJobTimeout  = 5 * time.Minute // copied from queue_sql.go
 	defaultTestTimeout = 5 * time.Second
+	shortTestTimeout   = 1 * time.Second
 
 	// Cause 3 batches per network
 	// 200 directory records + 1 gw status => ceil(201 / 100) = 3 batches per network
@@ -417,6 +418,15 @@ func recvCh(t *testing.T, ch chan interface{}) {
 		return
 	case <-time.After(defaultTestTimeout):
 		t.Fatal("receive on hook channel timed out")
+	}
+}
+
+func recvNoCh(t *testing.T, ch chan interface{}) {
+	select {
+	case <-ch:
+		t.Fatal("should not receive anything from hook channel")
+	case <-time.After(shortTestTimeout):
+		return
 	}
 }
 

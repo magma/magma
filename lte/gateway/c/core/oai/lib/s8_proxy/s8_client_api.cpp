@@ -107,6 +107,9 @@ static void get_paa_from_proto_msg(
 static void recv_s8_delete_session_response(
     imsi64_t imsi64, teid_t context_teid, const grpc::Status& status,
     magma::feg::DeleteSessionResponsePgw& response) {
+#if MME_UNIT_TEST
+  return;
+#endif
   OAILOG_FUNC_IN(LOG_SGW_S8);
 
   s8_delete_session_response_t* s8_delete_session_rsp = NULL;
@@ -158,6 +161,9 @@ static void recv_s8_create_session_response(
     imsi64_t imsi64, teid_t context_teid, bearer_qos_t dflt_bearer_qos,
     const grpc::Status& status,
     magma::feg::CreateSessionResponsePgw& response) {
+#if MME_UNIT_TEST
+  return;
+#endif
   OAILOG_FUNC_IN(LOG_SGW_S8);
   s8_create_session_response_t* s5_response = NULL;
   MessageDef* message_p                     = NULL;
@@ -370,17 +376,6 @@ static void convert_bearer_context_to_proto(
   bc->mutable_user_plane_fteid()->set_ipv6_address(sgw_s8_up_ipv6);
   bc->mutable_user_plane_fteid()->set_teid(msg_bc->s5_s8_u_sgw_fteid.teid);
   convert_qos_to_proto_msg(&msg_bc->bearer_level_qos, bc->mutable_qos());
-  OAILOG_FUNC_OUT(LOG_SGW_S8);
-}
-
-static void convert_imeisv_to_string(char* imeisv) {
-  OAILOG_FUNC_IN(LOG_SGW_S8);
-  uint8_t idx = 0;
-  for (; idx < IMEISV_DIGITS_MAX; idx++) {
-    imeisv[idx] = convert_digit_to_char(imeisv[idx]);
-  }
-  imeisv[idx] = '\0';
-
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 

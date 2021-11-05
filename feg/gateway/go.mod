@@ -38,7 +38,7 @@ require (
 	github.com/prometheus/common v0.26.0
 	github.com/shirou/gopsutil/v3 v3.21.5
 	github.com/stretchr/objx v0.3.0 // indirect
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/thoas/go-funk v0.7.0
 	github.com/wmnsk/go-gtp v0.8.0
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
