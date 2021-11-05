@@ -69,10 +69,12 @@ const (
 	nid0 = "some_networkid_0"
 	nid1 = "some_networkid_1"
 	nid2 = "some_networkid_2"
+	nid3 = "some_networkid_3"
 
 	hwid0 = "some_hwid_0"
 	hwid1 = "some_hwid_1"
 	hwid2 = "some_hwid_2"
+	hwid3 = "some_hwid_3"
 
 	id0 = "some_indexerid_0"
 	id1 = "some_indexerid_1"
