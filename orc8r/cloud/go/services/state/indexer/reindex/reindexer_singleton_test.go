@@ -159,7 +159,7 @@ func TestRunChangingReindexBatches(t *testing.T) {
 	// Check
 	recvCh(t, ch)
 
-	registerExtra
+	// registerExtra
 
 	recvCh(t, ch)
 
