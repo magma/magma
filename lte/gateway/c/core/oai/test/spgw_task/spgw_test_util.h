@@ -23,15 +23,17 @@ namespace lte {
 #define END_OF_TEST_SLEEP_MS 1000
 #define STATE_MAX_WAIT_MS 1000
 
+#define DEFAULT_MME_S11_TEID 1
 #define DEFAULT_BEARER_INDEX 0
 #define DEFAULT_EPS_BEARER_ID 5
 #define UNASSIGNED_UE_IP 0
 #define DEFAULT_UE_IP 0xc0a8800a  // 192.168.128.10
 #define DEFAULT_VLAN 0
+#define DEFAULT_ENB_GTP_TEID 1
 
 void fill_create_session_request(
     itti_s11_create_session_request_t* session_request_p,
-    const std::string& imsi_str, int bearer_id,
+    const std::string& imsi_str, teid_t mme_s11_teid, int bearer_id,
     bearer_context_to_be_created_t sample_bearer_context, plmn_t sample_plmn);
 
 void fill_ip_allocation_response(
@@ -42,5 +44,10 @@ void fill_pcef_create_session_response(
     itti_pcef_create_session_response_t* pcef_csr_resp_p,
     PcefRpcStatus_t csr_status, teid_t context_teid, ebi_t eps_bearer_id,
     SGIStatus_t sgi_status);
+
+void fill_modify_bearer_request(
+    itti_s11_modify_bearer_request_t* modify_bearer_req, teid_t mme_s11_teid,
+    int bearer_id, ebi_t eps_bearer_id, teid_t sgw_s11_teid,
+    teid_t enb_gtp_teid);
 }  // namespace lte
 }  // namespace magma

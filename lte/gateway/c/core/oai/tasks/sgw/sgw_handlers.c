@@ -557,11 +557,13 @@ static void sgw_add_gtp_tunnel(
             ip6_str, enb.s_addr, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt_p->enb_teid_S1u);
       }
-
+#if !MME_UNIT_TEST
       rv = gtpv1u_add_tunnel(
           ue_ipv4, ue_ipv6, vlan, enb, enb_ipv6,
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE, apn);
+#endif
+
       // (@ulaskozat) We only need to update the TEIDs during session creation
       // which triggers rule installments on sessiond. When pipelined needs to
       // use eNB TEID for reporting we need to change this logic into something

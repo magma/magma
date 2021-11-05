@@ -41,6 +41,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S11_MODIFY_BEARER_RESPONSE: {
+      mme_app_handler_->mme_app_handle_modify_bearer_rsp();
     } break;
 
     case S11_RELEASE_ACCESS_BEARERS_RESPONSE: {

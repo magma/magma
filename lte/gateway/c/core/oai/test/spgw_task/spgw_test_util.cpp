@@ -24,13 +24,13 @@ extern task_zmq_ctx_t task_zmq_ctx_main_spgw;
 
 void fill_create_session_request(
     itti_s11_create_session_request_t* session_request_p,
-    const std::string& imsi_str, int bearer_id,
+    const std::string& imsi_str, teid_t mme_s11_teid, int bearer_id,
     bearer_context_to_be_created_t sample_bearer_context, plmn_t sample_plmn) {
   session_request_p->teid = 0;
   strncpy(
       (char*) session_request_p->imsi.digit, imsi_str.c_str(), imsi_str.size());
-  session_request_p->imsi.length = imsi_str.size();
-  session_request_p->sender_fteid_for_cp.teid == 1;
+  session_request_p->imsi.length                        = imsi_str.size();
+  session_request_p->sender_fteid_for_cp.teid           = mme_s11_teid;
   session_request_p->sender_fteid_for_cp.interface_type = S11_MME_GTP_C;
 
   session_request_p->uli.present = 0;
@@ -80,9 +80,10 @@ void fill_create_session_request(
 
 void fill_ip_allocation_response(
     itti_ip_allocation_response_t* ip_alloc_resp_p, SGIStatus_t status,
-    teid_t context_teid, ebi_t eps_bearer_id, unsigned long ue_ip, int vlan) {
+    teid_t sgw_s11_context_teid, ebi_t eps_bearer_id, unsigned long ue_ip,
+    int vlan) {
   ip_alloc_resp_p->status                  = status;
-  ip_alloc_resp_p->context_teid            = context_teid;
+  ip_alloc_resp_p->context_teid            = sgw_s11_context_teid;
   ip_alloc_resp_p->eps_bearer_id           = eps_bearer_id;
   ip_alloc_resp_p->paa.ipv4_address.s_addr = ue_ip;
   ip_alloc_resp_p->paa.pdn_type            = IPv4;
@@ -91,12 +92,46 @@ void fill_ip_allocation_response(
 
 void fill_pcef_create_session_response(
     itti_pcef_create_session_response_t* pcef_csr_resp_p,
-    PcefRpcStatus_t rpc_status, teid_t context_teid, ebi_t eps_bearer_id,
-    SGIStatus_t sgi_status) {
+    PcefRpcStatus_t rpc_status, teid_t sgw_s11_context_teid,
+    ebi_t eps_bearer_id, SGIStatus_t sgi_status) {
   pcef_csr_resp_p->rpc_status    = rpc_status;
-  pcef_csr_resp_p->teid          = context_teid;
+  pcef_csr_resp_p->teid          = sgw_s11_context_teid;
   pcef_csr_resp_p->eps_bearer_id = eps_bearer_id;
   pcef_csr_resp_p->sgi_status    = sgi_status;
+}
+
+void fill_modify_bearer_request(
+    itti_s11_modify_bearer_request_t* modify_bearer_req, teid_t mme_s11_teid,
+    int bearer_id, ebi_t eps_bearer_id, teid_t sgw_s11_context_teid,
+    teid_t enb_gtp_teid) {
+  modify_bearer_req->local_teid                = mme_s11_teid;
+  modify_bearer_req->delay_dl_packet_notif_req = 0;
+  modify_bearer_req->bearer_contexts_to_be_modified.bearer_contexts[bearer_id]
+      .eps_bearer_id = eps_bearer_id;
+
+  modify_bearer_req->edns_peer_ip.addr_v4.sin_addr.s_addr =
+      0x7f000001;  // localhost
+  modify_bearer_req->edns_peer_ip.addr_v4.sin_family = AF_INET;
+
+  modify_bearer_req->teid = sgw_s11_context_teid;
+
+  // populate the eNB FTEID
+  modify_bearer_req->bearer_contexts_to_be_modified.bearer_contexts[bearer_id]
+      .s1_eNB_fteid.teid = enb_gtp_teid;
+  modify_bearer_req->bearer_contexts_to_be_modified.bearer_contexts[bearer_id]
+      .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
+  modify_bearer_req->bearer_contexts_to_be_modified.bearer_contexts[bearer_id]
+      .s1_eNB_fteid.ipv4 = 1;
+
+  // Only one bearer context to be sent for default PDN
+  modify_bearer_req->bearer_contexts_to_be_modified.num_bearer_context = 1;
+  modify_bearer_req->bearer_contexts_to_be_removed.num_bearer_context  = 0;
+  modify_bearer_req->mme_fq_csid.node_id_type = GLOBAL_UNICAST_IPv4;
+  modify_bearer_req->mme_fq_csid.csid         = 0;
+  memset(
+      &modify_bearer_req->indication_flags, 0,
+      sizeof(modify_bearer_req->indication_flags));
+  modify_bearer_req->rat_type = RAT_EUTRAN;
 }
 
 }  // namespace lte
