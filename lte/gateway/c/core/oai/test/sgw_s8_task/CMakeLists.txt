@@ -13,22 +13,33 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+create_proto_dir("orc8r" ORC8R_OUT_DIR)
+# Common protos
+set(ORC8R_CPP_PROTOS common )
+generate_cpp_protos("${ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
+    "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_OUT_DIR})
 include_directories("${PROJECT_SOURCE_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}/tasks/sgw_s8")
+
+include_directories("/usr/src/googletest/googlemock/include/")
+link_directories(/usr/src/googletest/googlemock/lib/)
 
 set(SGW_S8_TEST_CONFIG_SRC
     sgw_s8_test.cpp
     sgw_s8_utility.cpp
     sgw_csr.cpp
     sgw_dedicated_bearer.cpp
+    sgw_s8_recv_grpc_messages.cpp
     )
 
-add_executable(sgw_s8_test ${SGW_S8_TEST_CONFIG_SRC})
+add_executable(sgw_s8_test ${SGW_S8_TEST_CONFIG_SRC}
+              ${PROJECT_SOURCE_DIR}/tasks/grpc_service/grpc_service_task.c
+              )
 
 target_link_libraries(sgw_s8_test
     LIB_S8_PROXY
     ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
-    TASK_SGW_S8
+    TASK_SGW_S8 LIB_BSTR LIB_ITTI MOCK_TASKS TASK_GRPC_SERVICE
     gtest gtest_main
     )
 

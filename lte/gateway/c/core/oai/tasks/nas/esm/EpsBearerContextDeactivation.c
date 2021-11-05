@@ -279,12 +279,13 @@ status_code_e esm_proc_eps_bearer_context_deactivate_request(
 pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     emm_context_t* emm_context_p, ebi_t ebi, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc                        = RETURNerror;
-  pdn_cid_t pid                 = MAX_APN_PER_UE;
-  ue_mm_context_t* ue_context_p = NULL;
-  bool delete_default_bearer    = false;
-  int bid                       = BEARERS_PER_UE;
-  teid_t s_gw_teid_s11_s4       = 0;
+  int rc                             = RETURNerror;
+  pdn_cid_t pid                      = MAX_APN_PER_UE;
+  ue_mm_context_t* ue_context_p      = NULL;
+  bool delete_default_bearer         = false;
+  int bid                            = BEARERS_PER_UE;
+  teid_t s_gw_teid_s11_s4            = 0;
+  bool route_s11_messages_to_s8_task = false;
 
   ue_context_p =
       PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
@@ -324,7 +325,8 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
   }
 
   s_gw_teid_s11_s4 = ue_context_p->pdn_contexts[pid]->s_gw_teid_s11_s4;
-
+  route_s11_messages_to_s8_task =
+      ue_context_p->pdn_contexts[pid]->route_s11_messages_to_s8_task;
   // If bearer id == 0, default bearer is deleted
   if (ue_context_p->pdn_contexts[pid]->default_ebi == ebi) {
     delete_default_bearer = true;
@@ -359,7 +361,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     // Send delete dedicated bearer response to SPGW
     send_delete_dedicated_bearer_rsp(
         ue_context_p, delete_default_bearer, &ebi, 1, s_gw_teid_s11_s4,
-        REQUEST_ACCEPTED);
+        REQUEST_ACCEPTED, route_s11_messages_to_s8_task);
   }
 
   // Reset is_pdn_disconnect flag
@@ -486,6 +488,8 @@ status_code_e eps_bearer_deactivate_t3495_handler(
       // Send bearer_deactivation_reject to MME
       teid_t s_gw_teid_s11_s4 =
           ue_mm_context->pdn_contexts[pdn_id]->s_gw_teid_s11_s4;
+      bool route_s11_messages_to_s8_task =
+          ue_mm_context->pdn_contexts[pdn_id]->route_s11_messages_to_s8_task;
 
       if (ue_mm_context->pdn_contexts[pdn_id]->default_ebi == ebi) {
         delete_default_bearer = true;
@@ -502,7 +506,7 @@ status_code_e eps_bearer_deactivate_t3495_handler(
         // Send delete_dedicated_bearer_rsp to SPGW
         send_delete_dedicated_bearer_rsp(
             ue_mm_context, delete_default_bearer, &ebi, 1, s_gw_teid_s11_s4,
-            UE_NOT_RESPONDING);
+            UE_NOT_RESPONDING, route_s11_messages_to_s8_task);
       }
       // Reset is_pdn_disconnect flag
       if (ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) {

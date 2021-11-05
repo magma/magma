@@ -63,6 +63,7 @@ class MmeAppProcedureTest : public ::testing::Test {
     mme_sctp_bounded   = false;
     s1ap_handler       = std::make_shared<MockS1apHandler>();
     s6a_handler        = std::make_shared<MockS6aHandler>();
+    s8_handler         = std::make_shared<MockS8Handler>();
     spgw_handler       = std::make_shared<MockSpgwHandler>();
     service303_handler = std::make_shared<MockService303Handler>();
     itti_init(
@@ -88,7 +89,7 @@ class MmeAppProcedureTest : public ::testing::Test {
     std::thread task_s11(start_mock_s11_task);
     std::thread task_service303(start_mock_service303_task, service303_handler);
     std::thread task_sgs(start_mock_sgs_task);
-    std::thread task_sgw_s8(start_mock_sgw_s8_task);
+    std::thread task_sgw_s8(start_mock_sgw_s8_task, s8_handler);
     std::thread task_sms_orc8r(start_mock_sms_orc8r_task);
     std::thread task_spgw(start_mock_spgw_task, spgw_handler);
     task_ha.detach();
@@ -121,6 +122,7 @@ class MmeAppProcedureTest : public ::testing::Test {
   std::shared_ptr<MockS6aHandler> s6a_handler;
   std::shared_ptr<MockSpgwHandler> spgw_handler;
   std::shared_ptr<MockService303Handler> service303_handler;
+  std::shared_ptr<MockS8Handler> s8_handler;
   const uint8_t nas_msg_imsi_attach_req[31] = {
       0x07, 0x41, 0x71, 0x08, 0x09, 0x10, 0x10, 0x00, 0x00, 0x00, 0x00,
       0x10, 0x02, 0xe0, 0xe0, 0x00, 0x04, 0x02, 0x01, 0xd0, 0x11, 0x40,

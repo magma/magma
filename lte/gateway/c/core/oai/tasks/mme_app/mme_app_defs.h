@@ -334,7 +334,7 @@ void mme_app_update_paging_tai_list(
 void send_delete_dedicated_bearer_rsp(
     struct ue_mm_context_s* ue_context_p, bool delete_default_bearer,
     ebi_t ebi[], uint32_t num_bearer_context, teid_t s_gw_teid_s11_s4,
-    gtpv2c_cause_value_t cause);
+    gtpv2c_cause_value_t cause, bool route_s11_messages_to_s8_task);
 
 int mme_app_create_sgs_context(ue_mm_context_t* ue_context_p);
 
