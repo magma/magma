@@ -816,8 +816,9 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectIdentRetxFailure) {
     cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   }
 
-  // Wait for context release request; MME should be performing
-  // implicit detach
+  // Wait for context release request; MME should be sending attach reject
+  // as well as context release command.
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -901,7 +902,9 @@ TEST_F(MmeAppProcedureTest, TestCreateSessionFailure) {
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  MME_APP_EXPECT_CALLS(3, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1);
+  // Context release request is triggered twice once during Attach Reject
+  // and once during processing the response for Delete Session Request
+  MME_APP_EXPECT_CALLS(3, 0, 2, 1, 1, 1, 1, 0, 0, 1, 1);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(
@@ -934,11 +937,19 @@ TEST_F(MmeAppProcedureTest, TestCreateSessionFailure) {
   // triggered in the current code and need to wait for that event at
   // spgw handler.
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   send_ue_ctx_release_complete();
+
+  // Constructing and sending Delete Session Response to mme_app
+  // mimicing SPGW task
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  send_delete_session_resp();
+
+  // Waiting for the receptiopn of the second context release request
+  // which is triggered after receiving delete session response.
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Check if the context is properly released
   send_activate_message_to_mme_app();
