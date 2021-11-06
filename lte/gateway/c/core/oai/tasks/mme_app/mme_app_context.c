@@ -1900,6 +1900,8 @@ void mme_ue_context_update_ue_emm_state(
 
     // Update Stats
     update_mme_app_stats_attached_ue_add();
+    printf(
+        "UE STATE - REGISTERED.");
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "UE STATE - REGISTERED.\n");

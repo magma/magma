@@ -302,5 +302,23 @@ void sgw_send_release_access_bearer_response(gtpv2c_cause_value_t cause) {
   return;
 }
 
+void send_s11_deactivate_bearer_req(
+    uint8_t no_of_bearers_to_be_deact, uint8_t* ebi_to_be_deactivated,
+    bool delete_default_bearer) {
+  MessageDef* message_p = itti_alloc_new_message(
+      TASK_SPGW_APP, S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST);
+  itti_s11_nw_init_deactv_bearer_request_t* s11_bearer_deactv_request =
+      &message_p->ittiMsg.s11_nw_init_deactv_bearer_request;
+
+  s11_bearer_deactv_request->s11_mme_teid          = 1;
+  s11_bearer_deactv_request->delete_default_bearer = delete_default_bearer;
+  s11_bearer_deactv_request->no_of_bearers         = no_of_bearers_to_be_deact;
+  memcpy(
+      s11_bearer_deactv_request->ebi, ebi_to_be_deactivated,
+      (sizeof(ebi_t) * no_of_bearers_to_be_deact));
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
 }  // namespace lte
 }  // namespace magma

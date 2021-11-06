@@ -233,8 +233,6 @@ status_code_e emm_proc_extended_service_request(
  * --------------------------------------------------------------------------
  */
 
-status_code_e emm_proc_detach(
-    mme_ue_s1ap_id_t ue_id, emm_proc_detach_type_t type);
 status_code_e emm_proc_sgs_detach_request(
     mme_ue_s1ap_id_t ue_id, emm_proc_sgs_detach_type_t type);
 status_code_e emm_proc_nw_initiated_detach_request(
