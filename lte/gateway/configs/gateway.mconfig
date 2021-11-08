@@ -16,8 +16,8 @@
       "mmeGid": 1,
       "mmeRelativeCapacity": 11,
       "logLevel": "INFO",
-      "mcc": "901",
-      "mnc": "70",
+      "mcc": "001",
+      "mnc": "01",
       "tac": 1,
       "enableDnsCaching": false,
       "relayEnabled": false,
@@ -39,7 +39,7 @@
       "ipv6DnsAddress": "2001:4860:4860:0:0:0:0:8888",
       "natEnabled": true,
       "congestionControlEnabled": true,
-      "enable5gFeatures": true,
+      "enable5gFeatures": false,
       "defaultSliceServiceType": "1",
       "defaultSliceDifferentiator" : "0xffffff"
     },
@@ -81,7 +81,7 @@
        ],
       "allowedGrePeers": [
        ],
-      "enable5gFeatures": true,
+      "enable5gFeatures": false,
       "upfNodeIdentifier": "192.168.60.142",
       "liUes": {}
     },
@@ -90,7 +90,7 @@
       "logLevel": "INFO",
       "lteAuthOp": "EREREREREREREREREREREQ==",
       "lteAuthAmf": "gAA=",
-      "enable5gFeatures": true,
+      "enable5gFeatures": false,
       "sync_interval": 300
     },
     "state":{
@@ -127,7 +127,7 @@
       "logLevel": "INFO",
       "relayEnabled": false,
       "gxGyRelayEnabled": false,
-      "enable5gFeatures": true
+      "enable5gFeatures": false
     },
     "td-agent-bit": {
       "@type": "type.googleapis.com/magma.mconfig.FluentBit",

@@ -46,7 +46,8 @@ namespace magma5g {
 #define AMF_CAUSE_SUCCESS 1
 const uint32_t MAX_UE_PDU_SESSION_LIMIT = 15;
 
-int handle_sm_message_routing_failure(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg, M5GMmCause m5gmmcause);
+int handle_sm_message_routing_failure(
+    amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg, M5GMmCause m5gmmcause);
 
 static int pdu_session_resource_release_t3592_handler(
     zloop_t* loop, int timer_id, void* arg);
@@ -510,7 +511,8 @@ int amf_smf_send(
         OAILOG_INFO(
             LOG_AMF_APP,
             "DNN mismatch or DNN missing, reject with a cause: 91 \n");
-        M5GMmCause cause_dnn_reject = M5GMmCause::DNN_NOT_SUPPORTED_OR_NOT_SUBSCRIBED;
+        M5GMmCause cause_dnn_reject =
+            M5GMmCause::DNN_NOT_SUPPORTED_OR_NOT_SUBSCRIBED;
         rc = handle_sm_message_routing_failure(ue_id, msg, cause_dnn_reject);
         return rc;
       }
@@ -776,7 +778,7 @@ int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
 
 /****************************************************************************
  **                                                                        **
- ** Name        :  handle_sm_message_routing_failure()                            **
+ ** Name        :  handle_sm_message_routing_failure() **
  **                                                                        **
  ** Description :  Send the Downlink Transport with 5GMM Cause to gnb      **
  **                                                                        **
@@ -850,7 +852,7 @@ int handle_sm_message_routing_failure(
       ulmsg->payload_container.smf_msg.header.pdu_session_id;
   len++;
 
-  dlmsg->m5gmm_cause.iei = static_cast<uint8_t>(M5GIei::M5GMM_CAUSE);
+  dlmsg->m5gmm_cause.iei         = static_cast<uint8_t>(M5GIei::M5GMM_CAUSE);
   dlmsg->m5gmm_cause.m5gmm_cause = static_cast<uint8_t>(m5gmmcause);
   len += 2;
 
