@@ -71,7 +71,15 @@ func main() {
 
 	stateServicer := newStateServicer(store)
 	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
-	indexerManagerServer := newIndexerManagerServicer(srv.Config, db, store)
+
+	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
+
+	var indexerManagerServer indexer_protos.IndexerManagerServer
+	if singletonReindex {
+		indexerManagerServer  = newSingletonIndexerManagerServicer(srv.Config, db, store)
+	} else {
+		indexerManagerServer  = newIndexerManagerServicer(srv.Config, db, store)
+	}
 	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
 
 	go metrics.PeriodicallyReportGatewayStatus(gatewayStatusReportInterval)
@@ -108,6 +116,27 @@ func newIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.Stor
 	if autoReindex && storage.GetSQLDriver() != sqorc.PostgresDriver {
 		glog.Warning(nonPostgresDriverMessage)
 	}
+
+	if autoReindex {
+		glog.Info("Automatic reindexing enabled for state service")
+		go reindexer.Run(context.Background())
+	} else {
+		glog.Info("Automatic reindexing disabled for state service")
+	}
+
+	return servicer
+}
+
+func newSingletonIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
+	versioner := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
+	err := versioner.Initialize()
+	if err != nil {
+		glog.Fatal("Error initializing state reindex queue")
+	}
+
+	autoReindex := cfg.MustGetBool(state_config.EnableAutomaticReindexing)
+	reindexer := reindex.NewReindexerSingleton(reindex.NewStore(store), versioner)
+	servicer := servicers.NewIndexerManagerServicer(reindexer, autoReindex)
 
 	if autoReindex {
 		glog.Info("Automatic reindexing enabled for state service")
