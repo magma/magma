@@ -1,0 +1,75 @@
+load("@rules_python//python:defs.bzl","py_test")
+
+py_test(
+    name = "ip_alloc_dhcp_test",
+    srcs = ["ip_alloc_dhcp_test.py"],
+    legacy_create_init = False,
+    visibility = ["//visibility:public"],
+    deps = ["//lte/gateway/python/magma/mobilityd:mobilityd"],
+    timeout = "short",
+    tags = ["unittest", "mobilityd"],
+)
+py_test(
+    name = "ip_allocator_dhcp_mac_addr_test",
+    srcs = ["ip_allocator_dhcp_mac_addr_test.py"],
+    legacy_create_init = False,
+    visibility = ["//visibility:public"],
+    deps = ["//lte/gateway/python/magma/mobilityd:mobilityd"],
+    timeout = "short",
+    tags = ["unittest", "mobilityd"],
+)
+py_test(
+    name = "test_dhcp_client",
+    srcs = ["test_dhcp_client.py"],
+    legacy_create_init = False,
+    visibility = ["//visibility:public"],
+    deps = ["//lte/gateway/python/magma/mobilityd:mobilityd"],
+    timeout = "short",
+    tags = ["unittest", "mobilityd"],
+)
+py_test(
+    name = "test_ipv6_allocator",
+    srcs = ["test_ipv6_allocator.py"],
+    legacy_create_init = False,
+    visibility = ["//visibility:public"],
+    deps = ["//lte/gateway/python/magma/mobilityd:mobilityd"],
+    timeout = "short",
+    tags = ["unittest", "mobilityd"],
+)
+py_test(
+    name = "test_multi_apn_ip_alloc",
+    srcs = ["test_multi_apn_ip_alloc.py"],
+    legacy_create_init = False,
+    visibility = ["//visibility:public"],
+    deps = ["//lte/gateway/python/magma/mobilityd:mobilityd"],
+    timeout = "short",
+    tags = ["unittest", "mobilityd"],
+)
+py_test(
+    name = "test_static_ip_alloc",
+    srcs = ["test_static_ip_alloc.py"],
+    legacy_create_init = False,
+    visibility = ["//visibility:public"],
+    deps = ["//lte/gateway/python/magma/mobilityd:mobilityd"],
+    timeout = "short",
+    tags = ["unittest", "mobilityd"],
+)
+py_test(
+    name = "test_static_ipv6_alloc",
+    srcs = ["test_static_ipv6_alloc.py"],
+    legacy_create_init = False,
+    visibility = ["//visibility:public"],
+    deps = ["//lte/gateway/python/magma/mobilityd:mobilityd"],
+    timeout = "short",
+    tags = ["unittest", "mobilityd"],
+)
+py_test(
+    name = "test_uplink_gw",
+    srcs = ["test_uplink_gw.py"],
+    legacy_create_init = False,
+    visibility = ["//visibility:public"],
+    deps = ["//lte/gateway/python/magma/mobilityd:mobilityd"],
+    timeout = "short",
+    tags = ["unittest", "mobilityd"],
+)
+

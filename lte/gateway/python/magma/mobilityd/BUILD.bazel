@@ -1,10 +1,10 @@
-load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_python//python:defs.bzl", "py_library","py_binary")
 load("@subpar//:subpar.bzl", "par_binary")
 
 par_binary(
-    name = "main_par",
+    name = "mobilityd_par",
     main = "main.py",
-    srcs = glob(["*.py"]), #["main.py"],
+    srcs = glob(["*.py"]),
     # legacy_creat_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
     legacy_create_init = False,
     # zip_safe = False enables shared libraries to be extracted to a temp folder, see https://github.com/google/subpar/issues/37
@@ -17,12 +17,13 @@ par_binary(
         "//orc8r/gateway/python/magma/common/redis:client",
         "//orc8r/gateway/python/magma/configuration:service_configs",
     ],
+    visibility = ["//visibility:public"],
 )
 
 py_binary(
-    name = "main",
-    srcs = ["main.py"],
-    # legacy_creat_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    name = "mobilityd",
+    main = "main.py",
+    srcs = glob(["*.py"]),
     legacy_create_init = False,
     deps = [
         ":ip_address_man",
@@ -32,6 +33,7 @@ py_binary(
         "//orc8r/gateway/python/magma/common/redis:client",
         "//orc8r/gateway/python/magma/configuration:service_configs",
     ],
+    visibility = ["//visibility:public"],
 )
 
 py_library(
