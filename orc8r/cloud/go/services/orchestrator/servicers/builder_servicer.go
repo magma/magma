@@ -101,7 +101,6 @@ func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage
 	vals["control_proxy"] = &mconfig_protos.ControlProxy{LogLevel: protos.LogLevel_INFO}
 	vals["metricsd"] = &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO}
 	vals["state"] = getStateMconfig(net, gatewayID)
-	vals["shared_mconfig"] = &mconfig_protos.SharedMconfig{SentryConfig: getNetworkSentryConfig(&net)}
 
 	configs, err := mconfig.MarshalConfigs(vals)
 	if err != nil {
@@ -215,21 +214,4 @@ func getStateMconfig(net configurator.Network, gwKey string) *mconfig_protos.Sta
 	}
 	mconfigProto.SyncInterval = math.JitterUint32(mconfigProto.SyncInterval, gwKey, 0.25)
 	return mconfigProto
-}
-
-func getNetworkSentryConfig(network *configurator.Network) *mconfig_protos.SharedSentryConfig {
-	iSentryConfig, found := network.Configs[orc8r.NetworkSentryConfig]
-	if !found || iSentryConfig == nil {
-		return nil
-	}
-	sentryConfig, ok := iSentryConfig.(*models.NetworkSentryConfig)
-	if !ok {
-		return nil
-	}
-	return &mconfig_protos.SharedSentryConfig{
-		SampleRate:   swag.Float32Value(sentryConfig.SampleRate),
-		UploadMmeLog: sentryConfig.UploadMmeLog,
-		DsnNative:    string(sentryConfig.URLNative),
-		DsnPython:    string(sentryConfig.URLPython),
-	}
 }

@@ -18,35 +18,6 @@ import "orc8r/protos/common.proto";
 package magma.mconfig;
 option go_package = "magma/orc8r/lib/go/protos/mconfig";
 
-
-//===========================================================================
-// SharedMConfig is a wrapper around configs that are shared amongst services
-//===========================================================================
-message SharedMconfig {
-  SharedSentryConfig sentry_config = 1;
-}
-
-// --------------------------------------------------------------------------
-// SentryConfig stores the network-wide Sentry.io configuration
-// TODO(hcgatewood): rename, duplicated in lte/.../mconfigs
-// --------------------------------------------------------------------------
-message SharedSentryConfig {
-  // dsn_python initializes the Sentry Python SDK and sets the remote URL.
-  // If set to empty string, Sentry Python SDK will not be initialized.
-  string dsn_python = 1;
-  // dsn_native initializes the Sentry Native SDK for C/C++ and sets the
-  // remote URL. If set to empty string, Sentry Native SDK will not be
-  // initialized.
-  string dsn_native = 2;
-  // upload_mme_log decides whether MME service log file (/var/log/mme.log)
-  // is uploaded along with MME crashreports
-  bool upload_mme_log = 3;
-  // sample_rate sets the rate at which Python error events are sampled.
-  // sample_rate should be a number between 0 (0% of errors sent) and 1 (100%
-  // of errors sent)
-  float sample_rate = 4;
-}
-
 // ===========================================================================
 // Service-specific configs
 // ===========================================================================

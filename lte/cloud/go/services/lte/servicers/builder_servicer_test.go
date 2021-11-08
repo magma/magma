@@ -148,8 +148,8 @@ func TestBuilder_Build(t *testing.T) {
 			SentryConfig: &lte_mconfig.SentryConfig{
 				SampleRate:   0.75,
 				UploadMmeLog: true,
-				DsnPython:    "https://www.example.com/v1/api",
-				DsnNative:    "https://www.example.com/v1/api",
+				UrlPython:    "https://www.example.com/v1/api",
+				UrlNative:    "https://www.example.com/v1/api",
 			},
 			Enable5GFeatures: false,
 		},
@@ -188,8 +188,8 @@ func TestBuilder_Build(t *testing.T) {
 			SentryConfig: &lte_mconfig.SentryConfig{
 				SampleRate:   0.75,
 				UploadMmeLog: true,
-				DsnPython:    "https://www.example.com/v1/api",
-				DsnNative:    "https://www.example.com/v1/api",
+				UrlPython:    "https://www.example.com/v1/api",
+				UrlNative:    "https://www.example.com/v1/api",
 			},
 			Enable5GFeatures: false,
 		},

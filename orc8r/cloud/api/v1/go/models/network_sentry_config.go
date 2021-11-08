@@ -25,12 +25,12 @@ type NetworkSentryConfig struct {
 	// upload mme log
 	UploadMmeLog bool `json:"upload_mme_log,omitempty"`
 
-	// dsn native
+	// url native
 	// Min Length: 0
 	// Format: uri
 	URLNative strfmt.URI `json:"url_native,omitempty"`
 
-	// dsn python
+	// url python
 	// Min Length: 0
 	// Format: uri
 	URLPython strfmt.URI `json:"url_python,omitempty"`
