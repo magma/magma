@@ -27,14 +27,31 @@ int DNNMsg::DecodeDNNMsg(
   int decoded   = 0;
   uint8_t ielen = 0;
 
-  /*** Will be supported POST MVC ***/
   if (iei > 0) {
+    DECODE_U8(buffer + decoded, dnn_message->iei, decoded);
     CHECK_IEI_DECODER(iei, (unsigned char) *buffer);
-    IES_DECODE_U8(buffer, decoded, ielen);
+    MLOG(MDEBUG) << "iei : " << std::hex << static_cast<int>(dnn_message->iei);
   }
+  DECODE_U8(buffer + decoded, ielen, decoded);
   CHECK_LENGTH_DECODER(len - decoded, ielen);
+  dnn_message->len = ielen;
+  MLOG(MDEBUG) << "len : " << static_cast<int>(dnn_message->len);
+
+  uint8_t dnn_len = 0;
+  DECODE_U8(buffer + decoded, dnn_len, decoded);
+  MLOG(MDEBUG) << "dnn_len : " << static_cast<int>(dnn_len);
+
+  MLOG(MDEBUG) << std::string(
+      (const char*) (buffer + decoded), static_cast<int>(dnn_len));
+  dnn_message->dnn =
+      std::string((const char*) (buffer + decoded), static_cast<int>(dnn_len))
+          .c_str();
+
+  decoded = decoded + dnn_len;
+  MLOG(MDEBUG) << "dnn str : " << dnn_message->dnn;
+
   return decoded;
-};
+}
 
 // Encode DNN Message
 int DNNMsg::EncodeDNNMsg(
@@ -46,17 +63,22 @@ int DNNMsg::EncodeDNNMsg(
 
   if (iei > 0) {
     CHECK_IEI_ENCODER(iei, (unsigned char) dnn_message->iei);
-    *buffer = iei;
-    encoded++;
+    ENCODE_U8(buffer, iei, encoded);
+    MLOG(MDEBUG) << "iei : " << std::hex << static_cast<int>(dnn_message->iei);
   }
 
-  MLOG(MDEBUG) << "EncodeDNN : ";
-  IES_ENCODE_U8(buffer, encoded, dnn_message->len);
-  MLOG(MDEBUG) << "Length = " << std::hex << int(dnn_message->len);
+  ENCODE_U8(buffer + encoded, dnn_message->len, encoded);
+  MLOG(MDEBUG) << "len : " << static_cast<int>(dnn_message->len);
+
+  ENCODE_U8(buffer + encoded, dnn_message->dnn.length(), encoded);
+  MLOG(MDEBUG) << "dnn len : " << dnn_message->dnn.length();
+
   std::copy(dnn_message->dnn.begin(), dnn_message->dnn.end(), buffer + encoded);
   BUFFER_PRINT_LOG(buffer + encoded, dnn_message->dnn.length());
+  MLOG(MDEBUG) << "dnn str : " << dnn_message->dnn;
   encoded = encoded + dnn_message->dnn.length();
 
   return encoded;
 };
+
 }  // namespace magma5g
