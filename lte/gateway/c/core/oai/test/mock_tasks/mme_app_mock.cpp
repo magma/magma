@@ -48,6 +48,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S11_DELETE_SESSION_RESPONSE: {
+      mme_app_handler_->mme_app_handle_delete_sess_rsp();
     } break;
 
     case S11_SUSPEND_ACKNOWLEDGE: {

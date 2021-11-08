@@ -57,6 +57,7 @@ class MockMmeAppHandler {
       mme_app_handle_nw_init_bearer_deactv_req,
       bool(itti_s11_nw_init_deactv_bearer_request_t db_req));
   MOCK_METHOD0(mme_app_handle_modify_bearer_rsp, void());
+  MOCK_METHOD0(mme_app_handle_delete_sess_rsp, void());
 };
 
 class MockSctpHandler {

@@ -14,13 +14,45 @@
 #include "spgw_test_util.h"
 
 extern "C" {
-#include "itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 }
 
 namespace magma {
 namespace lte {
 
 extern task_zmq_ctx_t task_zmq_ctx_main_spgw;
+
+bool expect_num_sessions(
+    spgw_state_t* spgw_state, unsigned long int imsi64,
+    int expected_num_ue_contexts, int expected_num_teids) {
+  hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
+  if (state_ue_ht->num_elements != expected_num_ue_contexts) {
+    return false;
+  }
+  if (expected_num_ue_contexts == 0) {
+    return true;
+  }
+
+  // If one UE context exists, check that teids also exist in hashtable
+  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(imsi64);
+  int num_teids                   = 0;
+  sgw_s11_teid_t* s11_teid_p      = nullptr;
+  LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
+    if (s11_teid_p &&
+        (sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid) != nullptr)) {
+      num_teids++;
+    }
+  }
+  if (num_teids != expected_num_teids) {
+    return false;
+  }
+  return true;
+}
 
 void fill_create_session_request(
     itti_s11_create_session_request_t* session_request_p,
@@ -102,15 +134,15 @@ void fill_pcef_create_session_response(
 
 void fill_modify_bearer_request(
     itti_s11_modify_bearer_request_t* modify_bearer_req, teid_t mme_s11_teid,
-    int bearer_id, ebi_t eps_bearer_id, teid_t sgw_s11_context_teid,
-    teid_t enb_gtp_teid) {
+    teid_t sgw_s11_context_teid, teid_t enb_gtp_teid, int bearer_id,
+    ebi_t eps_bearer_id) {
   modify_bearer_req->local_teid                = mme_s11_teid;
   modify_bearer_req->delay_dl_packet_notif_req = 0;
   modify_bearer_req->bearer_contexts_to_be_modified.bearer_contexts[bearer_id]
       .eps_bearer_id = eps_bearer_id;
 
-  modify_bearer_req->edns_peer_ip.addr_v4.sin_addr.s_addr =
-      0x7f000001;  // localhost
+  modify_bearer_req->edns_peer_ip.addr_v4.sin_addr.s_addr = DEFAULT_EDNS_IP;
+
   modify_bearer_req->edns_peer_ip.addr_v4.sin_family = AF_INET;
 
   modify_bearer_req->teid = sgw_s11_context_teid;
@@ -132,6 +164,31 @@ void fill_modify_bearer_request(
       &modify_bearer_req->indication_flags, 0,
       sizeof(modify_bearer_req->indication_flags));
   modify_bearer_req->rat_type = RAT_EUTRAN;
+}
+
+void fill_delete_session_request(
+    itti_s11_delete_session_request_t* delete_session_req, teid_t mme_s11_teid,
+    teid_t sgw_s11_context_teid, ebi_t eps_bearer_id, plmn_t test_plmn) {
+  delete_session_req->local_teid = mme_s11_teid;
+  delete_session_req->teid       = sgw_s11_context_teid;
+  delete_session_req->noDelete   = true;
+  delete_session_req->lbi        = eps_bearer_id;
+
+  // EDNS address
+  delete_session_req->edns_peer_ip.addr_v4.sin_family      = AF_INET;
+  delete_session_req->edns_peer_ip.addr_v4.sin_addr.s_addr = DEFAULT_EDNS_IP;
+
+  // Sender FTEID
+  delete_session_req->sender_fteid_for_cp.teid           = mme_s11_teid;
+  delete_session_req->sender_fteid_for_cp.interface_type = S11_MME_GTP_C;
+  delete_session_req->sender_fteid_for_cp.ipv4           = 1;
+
+  delete_session_req->indication_flags.oi = 1;
+  delete_session_req->peer_ip.s_addr      = DEFAULT_SGW_IP;
+  delete_session_req->trxn                = nullptr;
+
+  // PLMN
+  COPY_PLMN_IN_ARRAY_FMT(delete_session_req->serving_network, test_plmn);
 }
 
 }  // namespace lte

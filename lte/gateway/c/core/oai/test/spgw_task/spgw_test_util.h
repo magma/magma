@@ -12,8 +12,11 @@
  */
 #include <string>
 
+#include "spgw_state.h"
+
 extern "C" {
 #include "intertask_interface.h"
+#include "sgw_context_manager.h"
 #include "sgw_ie_defs.h"
 }
 
@@ -30,6 +33,13 @@ namespace lte {
 #define DEFAULT_UE_IP 0xc0a8800a  // 192.168.128.10
 #define DEFAULT_VLAN 0
 #define DEFAULT_ENB_GTP_TEID 1
+#define ERROR_SGW_S11_TEID 100
+#define DEFAULT_EDNS_IP 0x7f000001  // localhost
+#define DEFAULT_SGW_IP 0x7f000001   // localhost
+
+bool expect_num_sessions(
+    spgw_state_t* spgw_state, unsigned long int imsi64,
+    int expected_num_ue_contexts, int expected_num_teids);
 
 void fill_create_session_request(
     itti_s11_create_session_request_t* session_request_p,
@@ -47,7 +57,11 @@ void fill_pcef_create_session_response(
 
 void fill_modify_bearer_request(
     itti_s11_modify_bearer_request_t* modify_bearer_req, teid_t mme_s11_teid,
-    int bearer_id, ebi_t eps_bearer_id, teid_t sgw_s11_teid,
-    teid_t enb_gtp_teid);
+    teid_t sgw_s11_teid, teid_t enb_gtp_teid, int bearer_id,
+    ebi_t eps_bearer_id);
+
+void fill_delete_session_request(
+    itti_s11_delete_session_request_t* delete_session_req, teid_t mme_s11_teid,
+    teid_t sgw_s11_context_teid, ebi_t eps_bearer_id, plmn_t test_plmn);
 }  // namespace lte
 }  // namespace magma
