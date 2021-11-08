@@ -54,7 +54,7 @@ class FirebaseClient:
             data, self.user["idToken"]
         )
 
-    def read_workloads(self):
+    def print_reports(self):
         reports = (
             self.db.child("workers")
             .child(self.config["agent_id"])

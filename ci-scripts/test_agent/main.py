@@ -42,7 +42,7 @@ def main():
         testers_state = []
         for tester in testers:
             if tester.is_ready():
-                print("tester is ready")
+                print("tester {} is ready".format(tester.get_id()))
                 new_workload = db_client.pop_next_workload()
                 print("new workload is", new_workload)
                 if new_workload:

@@ -84,6 +84,9 @@ class Tester:
     def is_ready(self):
         return self.state == TesterState.READY
 
+    def get_id(self):
+        return self.id
+
     def get_state(self):
         return self.state
 
