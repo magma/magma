@@ -14,8 +14,12 @@ limitations under the License.
 package storage
 
 import (
+	"fmt"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/certifier/protos"
@@ -29,6 +33,12 @@ const (
 
 	// CertInfoType is the type of CertInfo used in blobstore type fields.
 	CertInfoType = "certificate_info"
+
+	// HTTPBasicAuthTableBlobstore is the service-wide blobstore table for certifier data
+	HTTPBasicAuthTableBlobstore = "http_basic_auth_blobstore"
+
+	// HTTPBasicAuthType is the type of CertInfo used in blobstore type fields.
+	HTTPBasicAuthType = "http_basic_auth"
 
 	// Blobstore needs a network ID, but certifier is network-agnostic so we
 	// will use a placeholder value.
@@ -164,6 +174,58 @@ func (c *certifierBlobstore) DeleteCertInfo(serialNumber string) error {
 	err = store.Delete(placeholderNetworkID, storage.TKs{tk})
 	if err != nil {
 		return errors.Wrap(err, "failed to delete certificate info")
+	}
+
+	return store.Commit()
+}
+
+func (c *certifierBlobstore) ListHTTPBasicAuth() ([]string, error) {
+	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to start transaction")
+	}
+	defer store.Rollback()
+
+	users, err := blobstore.ListKeys(store, placeholderNetworkID, HTTPBasicAuthType)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to list keys")
+	}
+
+	return users, store.Commit()
+}
+
+func (c *certifierBlobstore) UpdateHTTPBasicAuth(username string, password []byte) error {
+	store, err := c.factory.StartTransaction(nil)
+	if err != nil {
+		return status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
+	}
+	defer store.Rollback()
+
+	err = store.Write(
+		placeholderNetworkID,
+		blobstore.Blobs{
+			{Type: HTTPBasicAuthType, Key: username, Value: password},
+		},
+	)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("failed to update password for user %s", username))
+	}
+
+	return store.Commit()
+}
+
+func (c *certifierBlobstore) DeleteHTTPBasicAuth(username string) error {
+	store, err := c.factory.StartTransaction(nil)
+	if err != nil {
+		return status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
+	}
+	defer store.Rollback()
+
+	tk := storage.TK{Type: HTTPBasicAuthType, Key: username}
+	err = store.Delete(placeholderNetworkID, storage.TKs{tk})
+
+	if err != nil {
+		return status.Errorf(codes.Internal, "failed to delete users: %s", err)
 	}
 
 	return store.Commit()

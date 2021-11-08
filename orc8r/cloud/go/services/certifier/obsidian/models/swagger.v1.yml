@@ -1,0 +1,121 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/services/certifier/obsidian/models
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+  temp-gen-filename: certifier-swagger.yml
+  output-dir: orc8r/cloud/go/services/certifier/obsidian
+  types:
+    - go-struct-name: HTTPBasicAuth
+      filename: http_basic_auth_swaggergen.go
+
+
+info:
+  title: Certifier HTTP Basic Auth Management
+  description: Certifier REST APIs
+  version: 1.0.0
+
+basePath: /magma/v1
+
+paths:
+  /http_basic_auth:
+    get:
+      responses:
+        "200":
+          description: Get list of all usernames
+          schema:
+            type: array
+            items:
+              type: string
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      summary: List all usernames
+      tags:
+        - HTTP Basic Auth
+    post:
+      parameters:
+        - name: user
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/http_basic_auth'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      summary: Create a user
+      tags:
+        - HTTP Basic Auth
+  /http_basic_auth/{username}:
+    put:
+      parameters:
+        - $ref: '#/parameters/username'
+        - name: password
+          description: New password for user
+          in: body
+          required: true
+          schema:
+            properties:
+              password:
+                type: string
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      summary: Update user password
+      tags:
+        - HTTP Basic Auth
+    delete:
+      parameters:
+        - $ref: '#/parameters/username'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      summary: Remove a user
+      tags:
+        - HTTP Basic Auth
+
+  /http_basic_auth/login:
+    get:
+      parameters:
+        - name: user
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/http_basic_auth'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      summary: Create a user
+      tags:
+        - HTTP Basic Auth
+
+parameters:
+  username:
+    in: path
+    name: username
+    description: username
+    required: true
+    type: string
+
+definitions:
+  http_basic_auth:
+    description: User's authentication info
+    type: object
+    required:
+      - username
+      - password
+    properties:
+      username:
+        type: string
+      password:
+        type: string # TODO(christinewang5): should i put more restrictions on password
+

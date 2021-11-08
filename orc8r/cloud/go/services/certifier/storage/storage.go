@@ -38,4 +38,10 @@ type CertifierStorage interface {
 	// DeleteCertInfo removes the serial number and its certificate info.
 	// Returns success even when nothing is deleted (i.e. serial number not found).
 	DeleteCertInfo(serialNumber string) error
+
+	ListHTTPBasicAuth() ([]string, error)
+
+	UpdateHTTPBasicAuth(username string, password []byte) error
+
+	DeleteHTTPBasicAuth(username string) error
 }
