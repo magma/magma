@@ -147,6 +147,7 @@ int amf_smf_create_pdu_session(
   imsi64_t imsi64                   = INVALID_IMSI64;
   amf_context_t* amf_ctxt_p         = NULL;
   ue_m5gmm_context_s* ue_mm_context = NULL;
+  std::shared_ptr<smf_context_t> smf_ctx;
 
   OAILOG_INFO(
       LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s] session\n",
@@ -154,6 +155,8 @@ int amf_smf_create_pdu_session(
 
   IMSI_STRING_TO_IMSI64((char*) imsi, &imsi64);
   ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
+  smf_ctx       = amf_get_smf_context_by_pdu_session_id(
+      ue_mm_context, message->pdu_session_id);
 
   if (ue_mm_context) {
     amf_ctxt_p = &ue_mm_context->amf_context;
@@ -168,9 +171,9 @@ int amf_smf_create_pdu_session(
       LOG_AMF_APP, "Sending msg(grpc) to :[mobilityd] for ue: [%s] ip-addr\n",
       imsi);
   AsyncM5GMobilityServiceClient::getInstance().allocate_ipv4_address(
-      imsi, "internet", message->pdu_session_id, message->pti, AF_INET,
-      message->gnb_gtp_teid, message->gnb_gtp_teid_ip_addr, 4,
-      amf_ctxt_p->subscribed_ue_ambr);
+      imsi, reinterpret_cast<char*>(smf_ctx->apn), message->pdu_session_id,
+      message->pti, AF_INET, message->gnb_gtp_teid,
+      message->gnb_gtp_teid_ip_addr, 4, amf_ctxt_p->subscribed_ue_ambr);
 
   return (RETURNok);
 }
