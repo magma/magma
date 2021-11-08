@@ -15,7 +15,7 @@
     <a href="https://codecov.io/gh/magma/magma"><img src="https://codecov.io/gh/magma/magma/branch/master/graph/badge.svg" alt="CodeCov"></a>
     <a href="docs/readmes/lte/hil_tests.md"><img src="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanityres.svg" alt="HIL AGW tests"></a>
 </p>
-
+#
 Magma is an open-source software platform that gives network operators an open, flexible and extendable mobile core network solution. Magma enables better connectivity by:
 
 - Allowing operators to offer cellular service without vendor lock-in with a modern, open source core network
