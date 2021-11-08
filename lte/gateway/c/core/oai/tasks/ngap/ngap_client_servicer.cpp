@@ -11,12 +11,12 @@
  * limitations under the License.
  */
 
-#include "include/ngap_client_servicer.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/include/ngap_client_servicer.h"
 #include <memory>
 extern "C" {
-#include "common_defs.h"
-#include "ngap_common.h"
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 }
 
 namespace magma5g {

@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "s1ap_state.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -23,14 +23,14 @@
 #include <memory.h>
 
 extern "C" {
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-#include "assertions.h"
-#include "common_defs.h"
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 }
 
-#include "s1ap_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.h"
 
 using magma::lte::S1apStateManager;
 

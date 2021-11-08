@@ -17,12 +17,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "bstrlib.h"
-#include "3gpp_24.501.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
 #ifdef __cplusplus
 };
 #endif
-#include "amf_securityDef.h"
+#include "lte/gateway/c/core/oai/include/amf_securityDef.h"
 
 typedef uint8_t ksi_t;
 #define AMF_CTXT_MEMBER_AUTH_VECTORS ((uint32_t) 1 << 7)

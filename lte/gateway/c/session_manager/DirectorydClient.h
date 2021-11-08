@@ -15,15 +15,27 @@
 #include <orc8r/protos/common.pb.h>
 #include <orc8r/protos/directoryd.grpc.pb.h>
 #include <orc8r/protos/directoryd.pb.h>
-
+#include <stdint.h>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
 
-#include "includes/GRPCReceiver.h"
 #include "SessionState.h"
+#include "includes/GRPCReceiver.h"
+
+namespace grpc {
+class Channel;
+class Status;
+}  // namespace grpc
 
 namespace magma {
+namespace orc8r {
+class AllDirectoryRecords;
+class DeleteRecordRequest;
+class UpdateRecordRequest;
+}  // namespace orc8r
+
 using namespace orc8r;
 using grpc::Status;
 

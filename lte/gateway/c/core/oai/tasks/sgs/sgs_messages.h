@@ -18,7 +18,7 @@
 #ifndef SGS_MESSAGES_H_
 #define SGS_MESSAGES_H_
 
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
 extern task_zmq_ctx_t sgs_task_zmq_ctx;
 

@@ -94,6 +94,7 @@ include(FindThreads)
 
 pkg_search_module(CONFIG libconfig REQUIRED)
 include_directories(${CONFIG_INCLUDE_DIRS})
+include_directories($ENV{MAGMA_ROOT})
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

@@ -18,7 +18,7 @@
 #ifndef AUTHENTICATION_PARAMETER_RAND_H_
 #define AUTHENTICATION_PARAMETER_RAND_H_
 #include <stdint.h>
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #define AUTHENTICATION_PARAMETER_RAND_MINIMUM_LENGTH 16
 #define AUTHENTICATION_PARAMETER_RAND_MAXIMUM_LENGTH 16

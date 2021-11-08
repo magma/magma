@@ -14,25 +14,25 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include "grpc_service.h"
+#include "lte/gateway/c/core/oai/include/grpc_service.h"
 
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/security/server_credentials.h>
 #include <memory>
 
-#include "CSFBGatewayServiceImpl.h"
-#include "SMSOrc8rGatewayServiceImpl.h"
-#include "S1apServiceImpl.h"
-#include "S6aGatewayImpl.h"
-#include "S6aServiceImpl.h"
-#include "SpgwServiceImpl.h"
-#include "AmfServiceImpl.h"
-#include "HaServiceImpl.h"
-#include "S8ServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/CSFBGatewayServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/SMSOrc8rGatewayServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S1apServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S6aGatewayImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S6aServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/AmfServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/HaServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.h"
 
 extern "C" {
-#include "log.h"
-#include "mme_config.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 }
 
 using grpc::InsecureServerCredentials;
@@ -74,13 +74,15 @@ void start_grpc_service(bstring server_address) {
   builder.RegisterService(&s6a_service);
   // Start the SGS service only if non_eps_service_control is not set to OFF
   char* non_eps_service_control = bdata(mme_config.non_eps_service_control);
-  if (!strcmp(non_eps_service_control, "CSFB_SMS") ||
-      !strcmp(non_eps_service_control, "SMS")) {
-    builder.RegisterService(&sgs_service);
-  }
-  // Start the SMS service only if non_eps_service_control is set to SMS_ORC8R
-  if (!strcmp(non_eps_service_control, "SMS_ORC8R")) {
-    builder.RegisterService(&sms_orc8r_service);
+  if (non_eps_service_control) {
+    if (!strcmp(non_eps_service_control, "CSFB_SMS") ||
+        !strcmp(non_eps_service_control, "SMS")) {
+      builder.RegisterService(&sgs_service);
+    }
+    // Start the SMS service only if non_eps_service_control is set to SMS_ORC8R
+    if (!strcmp(non_eps_service_control, "SMS_ORC8R")) {
+      builder.RegisterService(&sms_orc8r_service);
+    }
   }
   builder.RegisterService(&s1ap_service);
   if (mme_config.use_ha) {

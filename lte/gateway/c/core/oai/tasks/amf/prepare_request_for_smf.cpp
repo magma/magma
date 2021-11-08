@@ -14,25 +14,25 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "conversions.h"
-#include "3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
 #ifdef __cplusplus
 }
 #endif
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 #include <cstdint>
 #include <cstring>
 #include <string>
-#include "MobilityServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.h"
 #include <unistd.h>
 #include <thread>
-#include "SmfServiceClient.h"
-#include "amf_smfDefs.h"
-#include "conversions.h"
+#include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/protos/session_manager.pb.h"
-#include "M5GMobilityServiceClient.h"
-#include "amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 
 #define VERSION_0 0
 

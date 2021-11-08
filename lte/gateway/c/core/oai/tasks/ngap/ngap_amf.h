@@ -13,10 +13,10 @@
 
 #pragma once
 
-#include "common_defs.h"
-#include "intertask_interface.h"
-#include "ngap_types.h"
-#include "amf_config.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
 
 extern bool hss_associated;
 

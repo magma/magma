@@ -10,23 +10,23 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "secu_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 #ifdef __cplusplus
 }
 #endif
-#include "amf_data.h"
-#include "dynamic_memory_check.h"
-#include "3gpp_24.301.h"
-#include "common_defs.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "M5gNasMessage.h"
-#include "amf_app_defs.h"
-#include "amf_as.h"
-#include "amf_fsm.h"
-#include "amf_recv.h"
-#include "M5GDLNASTransport.h"
-#include "amf_common.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_data.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 namespace magma5g {
 
 #define NAS5G_MESSAGE_SECURITY_HEADER_SIZE 7
@@ -913,6 +913,54 @@ static uint32_t _nas5g_message_get_mac(
   }
 
   switch (amf_security_context->selected_algorithms.integrity) {
+    case M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA1: {
+      uint8_t mac[4];
+      nas_stream_cipher_t stream_cipher;
+      uint32_t count;
+      uint32_t* mac32;
+
+      if (direction == SECU_DIRECTION_UPLINK) {
+        count = 0x00000000 |
+                ((amf_security_context->ul_count.overflow & 0x0000FFFF) << 8) |
+                (amf_security_context->ul_count.seq_num & 0x000000FF);
+      } else {
+        count = 0x00000000 |
+                ((amf_security_context->dl_count.overflow & 0x0000FFFF) << 8) |
+                (amf_security_context->dl_count.seq_num & 0x000000FF);
+      }
+
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA1 %s count.seq_num %u count "
+          "%u\n",
+          (direction == SECU_DIRECTION_UPLINK) ? "UPLINK" : "DOWNLINK",
+          (direction == SECU_DIRECTION_UPLINK) ?
+              amf_security_context->ul_count.seq_num :
+              amf_security_context->dl_count.seq_num,
+          count);
+      stream_cipher.key        = amf_security_context->knas_int;
+      stream_cipher.key_length = AUTH_KNAS_INT_SIZE;
+      stream_cipher.count      = count;
+      stream_cipher.bearer     = 0x01;  // 33.401 section 8.1.1
+      stream_cipher.direction  = direction;
+      stream_cipher.message    = const_cast<uint8_t*>(buffer);
+      /*
+       *        * length in bits
+       *               */
+      stream_cipher.blength = length << 3;
+      nas_stream_encrypt_eia1(&stream_cipher, mac);
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA1 returned MAC %x.%x.%x.%x(%u) "
+          "for "
+          "length "
+          "%" PRIu32 ", direction %d, count %d\n",
+          mac[0], mac[1], mac[2], mac[3], *(reinterpret_cast<uint32_t*>(&mac)),
+          length, direction, count);
+      mac32 = reinterpret_cast<uint32_t*>(&mac);
+      OAILOG_FUNC_RETURN(LOG_NAS, ntohl(*mac32));
+    } break;
+
     case M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA2: {
       uint8_t mac[4];
       nas_stream_cipher_t stream_cipher;

@@ -16,7 +16,11 @@ from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.ipv6_prefix_store import get_ipv6_interface_id
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import DIRECTION_REG, Direction
+from magma.pipelined.openflow.registers import (
+    DIRECTION_REG,
+    TUN_PORT_REG,
+    Direction,
+)
 from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib.packet import ether_types, ethernet, icmpv6, in_proto, ipv6, packet
@@ -152,15 +156,15 @@ class IPV6SolicitationController(MagmaController):
 
     def _send_router_advertisement(
         self, ipv6_src: str, tun_id: int,
-        tun_ipv4_dst: str, output_port,
+        output_port,
     ):
         """
         Generates the Router Advertisement response packet
         """
         ofproto, parser = self._datapath.ofproto, self._datapath.ofproto_parser
 
-        if not tun_id or not tun_ipv4_dst:
-            self.logger.error("Packet missing tunnel information, can't reply")
+        if not tun_id:
+            self.logger.debug("Packet missing tunnel-id information, can't reply")
             return
 
         prefix = self.get_custom_prefix(ipv6_src)
@@ -199,11 +203,13 @@ class IPV6SolicitationController(MagmaController):
                 ),
             ),
         )
+        self.logger.debug("RA pkt response ->")
+        for p in pkt.protocols:
+            self.logger.debug(p)
         pkt.serialize()
 
         actions_out = [
             parser.NXActionSetTunnel(tun_id=tun_id),
-            parser.NXActionRegLoad2(dst='tun_ipv4_dst', value=tun_ipv4_dst),
             parser.OFPActionOutput(port=output_port),
         ]
         out = parser.OFPPacketOut(
@@ -219,7 +225,7 @@ class IPV6SolicitationController(MagmaController):
 
     def _send_neighbor_advertisement(
         self, target_ipv6: str, tun_id: int,
-        tun_ipv4_dst: str, output_port, direction,
+        output_port, direction,
     ):
         """
         Generates the Neighbor Advertisement response packet
@@ -227,8 +233,10 @@ class IPV6SolicitationController(MagmaController):
         ofproto, parser = self._datapath.ofproto, self._datapath.ofproto_parser
 
         # Only check direction OUT because direction IN doesn't need tunn info
-        if direction == Direction.OUT and (not tun_id or not tun_ipv4_dst):
-            self.logger.error("Packet missing tunnel information, can't reply")
+        if direction == Direction.OUT:
+            if not tun_id:
+                self.logger.error("NA: Packet missing tunnel-id information, can't reply")
+                return
             return
 
         prefix = self.get_custom_prefix(target_ipv6)
@@ -260,8 +268,9 @@ class IPV6SolicitationController(MagmaController):
                 ),
             ),
         )
-        self.logger.debug("NS pkt response %s", pkt)
-
+        self.logger.debug("NS pkt response ->")
+        for p in pkt.protocols:
+            self.logger.debug(p)
         pkt.serialize()
 
         # For NS from SGI response doesn't need tunnel information
@@ -269,7 +278,6 @@ class IPV6SolicitationController(MagmaController):
         if direction == Direction.OUT:
             actions_out.extend([
                 parser.NXActionSetTunnel(tun_id=tun_id),
-                parser.NXActionRegLoad2(dst='tun_ipv4_dst', value=tun_ipv4_dst),
             ])
         actions_out.append(parser.OFPActionOutput(port=output_port))
         out = parser.OFPPacketOut(
@@ -296,7 +304,7 @@ class IPV6SolicitationController(MagmaController):
 
         in_port = ev.msg.match['in_port']
         tun_id = None
-        tun_ipv4_src = None
+
         tun_id_dst = None
         if DIRECTION_REG not in ev.msg.match:
             self.logger.error("Packet missing direction reg, can't reply")
@@ -304,13 +312,13 @@ class IPV6SolicitationController(MagmaController):
         direction = ev.msg.match[DIRECTION_REG]
         if 'tunnel_id' in ev.msg.match:
             tun_id = ev.msg.match['tunnel_id']
-            tun_id_dst = self._tunnel_id_mapper.get_tunnel(tun_id)
 
-            if 'tun_ipv4_src' in ev.msg.match:
-                tun_ipv4_src = ev.msg.match['tun_ipv4_src']
+            tun_id_dst = ev.msg.match.get(TUN_PORT_REG, None)
+            if not tun_id_dst:
+                tun_id_dst = self._tunnel_id_mapper.get_tunnel(tun_id)
 
         pkt = packet.Packet(msg.data)
-        self.logger.debug("Received PKT ->")
+        self.logger.debug("Received PKT -> on port %d tun_id: %s tun_id_dst: %s", in_port, tun_id, tun_id_dst)
         for p in pkt.protocols:
             self.logger.debug(p)
 
@@ -321,13 +329,13 @@ class IPV6SolicitationController(MagmaController):
             self.logger.debug("Received router solicitation MSG")
             self._send_router_advertisement(
                 ipv6_header.src, tun_id_dst,
-                tun_ipv4_src, in_port,
+                in_port,
             )
         elif icmpv6_header.type_ == icmpv6.ND_NEIGHBOR_SOLICIT:
             self.logger.debug("Received neighbor solicitation MSG")
             self._send_neighbor_advertisement(
                 icmpv6_header.data.dst,
-                tun_id_dst, tun_ipv4_src,
+                tun_id_dst,
                 in_port, direction,
             )
 

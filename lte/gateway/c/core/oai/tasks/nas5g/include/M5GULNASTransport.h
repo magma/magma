@@ -11,13 +11,13 @@
 
 #pragma once
 #include <sstream>
-#include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GSpareHalfOctet.h"
-#include "M5GSecurityHeaderType.h"
-#include "M5GMessageType.h"
-#include "M5GPayloadContainerType.h"
-#include "M5GPayloadContainer.h"
-#include "M5GRequestType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainerType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainer.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GRequestType.h"
 
 namespace magma5g {
 // ULNASTransport Message Class

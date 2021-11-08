@@ -1652,7 +1652,7 @@ func newGatewayConfigNonNat(vlan string, sgi_ip string, sgi_gw string, sgi_ipv6 
 			SgiManagementIfaceVlan:     vlan,
 			SgiManagementIfaceStaticIP: sgi_ip,
 			SgiManagementIfaceGw:       sgi_gw,
-			SgiManagementIfaceIPV6Addr: strfmt.IPv6(sgi_ipv6),
+			SgiManagementIfaceIPV6Addr: sgi_ipv6,
 			SgiManagementIfaceIPV6Gw:   strfmt.IPv6(sgi_ipv6_gw),
 		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{

@@ -17,7 +17,7 @@
 #include <string>
 #include <memory>
 
-#include "PDUGenerator.h"
+#include "lte/gateway/c/li_agent/src/PDUGenerator.h"
 
 namespace magma {
 namespace lte {

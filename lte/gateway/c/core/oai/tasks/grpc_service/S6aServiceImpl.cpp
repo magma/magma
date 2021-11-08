@@ -19,10 +19,10 @@
 #include "lte/protos/s6a_service.pb.h"
 
 extern "C" {
-#include "s6a_service_handler.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/include/s6a_service_handler.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 }
-#include "S6aServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S6aServiceImpl.h"
 
 namespace grpc {
 class Channel;

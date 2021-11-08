@@ -19,9 +19,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "CipheringKeySequenceNumber.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/CipheringKeySequenceNumber.h"
 
 int decode_ciphering_key_sequence_number(
     CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,

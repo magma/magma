@@ -19,16 +19,16 @@
 extern "C" {
 #endif
 
-#include "common_defs.h"
-#include "s6a_defs.h"
-#include "s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "s6a_client_api.h"
-#include "s6a_grpc_iface.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_grpc_iface.h"
 
 //------------------------------------------------------------------------------
 S6aGrpcIface::S6aGrpcIface(void) {

@@ -18,31 +18,31 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "bstrlib.h"
-#include "log.h"
-#include "dynamic_memory_check.h"
-#include "common_types.h"
-#include "3gpp_24.007.h"
-#include "mme_app_ue_context.h"
-#include "mme_app_defs.h"
-#include "esm_proc.h"
-#include "emm_data.h"
-#include "esm_data.h"
-#include "esm_cause.h"
-#include "esm_ebr.h"
-#include "esm_ebr_context.h"
-#include "emm_sap.h"
-#include "mme_config.h"
-#include "3gpp_24.301.h"
-#include "3gpp_36.401.h"
-#include "EsmCause.h"
-#include "common_defs.h"
-#include "emm_esmDef.h"
-#include "esm_sapDef.h"
-#include "esm_pt.h"
-#include "mme_app_state.h"
-#include "mme_app_timer.h"
-#include "mme_app_defs.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr_context.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -279,12 +279,13 @@ status_code_e esm_proc_eps_bearer_context_deactivate_request(
 pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     emm_context_t* emm_context_p, ebi_t ebi, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc                        = RETURNerror;
-  pdn_cid_t pid                 = MAX_APN_PER_UE;
-  ue_mm_context_t* ue_context_p = NULL;
-  bool delete_default_bearer    = false;
-  int bid                       = BEARERS_PER_UE;
-  teid_t s_gw_teid_s11_s4       = 0;
+  int rc                             = RETURNerror;
+  pdn_cid_t pid                      = MAX_APN_PER_UE;
+  ue_mm_context_t* ue_context_p      = NULL;
+  bool delete_default_bearer         = false;
+  int bid                            = BEARERS_PER_UE;
+  teid_t s_gw_teid_s11_s4            = 0;
+  bool route_s11_messages_to_s8_task = false;
 
   ue_context_p =
       PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
@@ -324,7 +325,8 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
   }
 
   s_gw_teid_s11_s4 = ue_context_p->pdn_contexts[pid]->s_gw_teid_s11_s4;
-
+  route_s11_messages_to_s8_task =
+      ue_context_p->pdn_contexts[pid]->route_s11_messages_to_s8_task;
   // If bearer id == 0, default bearer is deleted
   if (ue_context_p->pdn_contexts[pid]->default_ebi == ebi) {
     delete_default_bearer = true;
@@ -359,7 +361,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     // Send delete dedicated bearer response to SPGW
     send_delete_dedicated_bearer_rsp(
         ue_context_p, delete_default_bearer, &ebi, 1, s_gw_teid_s11_s4,
-        REQUEST_ACCEPTED, false);
+        REQUEST_ACCEPTED, route_s11_messages_to_s8_task, false);
   }
 
   // Reset is_pdn_disconnect flag
@@ -486,6 +488,8 @@ status_code_e eps_bearer_deactivate_t3495_handler(
       // Send bearer_deactivation_reject to MME
       teid_t s_gw_teid_s11_s4 =
           ue_mm_context->pdn_contexts[pdn_id]->s_gw_teid_s11_s4;
+      bool route_s11_messages_to_s8_task =
+          ue_mm_context->pdn_contexts[pdn_id]->route_s11_messages_to_s8_task;
 
       if (ue_mm_context->pdn_contexts[pdn_id]->default_ebi == ebi) {
         delete_default_bearer = true;
@@ -502,7 +506,7 @@ status_code_e eps_bearer_deactivate_t3495_handler(
         // Send delete_dedicated_bearer_rsp to SPGW
         send_delete_dedicated_bearer_rsp(
             ue_mm_context, delete_default_bearer, &ebi, 1, s_gw_teid_s11_s4,
-            UE_NOT_RESPONDING, false);
+            UE_NOT_RESPONDING, route_s11_messages_to_s8_task, false);
       }
       // Reset is_pdn_disconnect flag
       if (ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) {

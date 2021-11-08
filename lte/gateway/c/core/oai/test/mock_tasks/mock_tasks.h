@@ -14,27 +14,27 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #define CHECK_PROTOTYPE_ONLY
-#include "intertask_interface_init.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
 #undef CHECK_PROTOTYPE_ONLY
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 }
 
 const task_info_t tasks_info[] = {
     {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
 #define TASK_DEF(tHREADiD)                                                     \
   {THREAD_##tHREADiD, #tHREADiD, "ipc://IPC_" #tHREADiD},
-#include <tasks_def.h>
+#include <lte/gateway/c/core/oai/include/tasks_def.h>
 #undef TASK_DEF
 };
 
 /* Map message id to message information */
 const message_info_t messages_info[] = {
 #define MESSAGE_DEF(iD, sTRUCT, fIELDnAME) {iD, sizeof(sTRUCT), #iD},
-#include <messages_def.h>
+#include <lte/gateway/c/core/oai/include/messages_def.h>
 #undef MESSAGE_DEF
 };
 
@@ -49,6 +49,13 @@ class MockMmeAppHandler {
  public:
   MOCK_METHOD0(mme_app_handle_initial_ue_message, void());
   MOCK_METHOD0(mme_app_handle_s1ap_ue_context_release_req, void());
+  MOCK_METHOD0(mme_app_handle_create_sess_resp, void());
+  MOCK_METHOD1(
+      mme_app_handle_nw_init_ded_bearer_actv_req,
+      bool(itti_s11_nw_init_actv_bearer_request_t cb_req));
+  MOCK_METHOD1(
+      mme_app_handle_nw_init_bearer_deactv_req,
+      bool(itti_s11_nw_init_deactv_bearer_request_t db_req));
 };
 
 class MockSctpHandler {
@@ -67,11 +74,23 @@ class MockSpgwHandler {
  public:
   MOCK_METHOD0(sgw_handle_s11_create_session_request, void());
   MOCK_METHOD0(sgw_handle_delete_session_request, void());
+  MOCK_METHOD0(sgw_handle_modify_bearer_request, void());
+  MOCK_METHOD0(sgw_handle_release_access_bearers_request, void());
 };
 
 class MockService303Handler {
  public:
   MOCK_METHOD0(service303_set_application_health, void());
+};
+
+class MockS8Handler {
+ public:
+  MOCK_METHOD1(
+      sgw_s8_handle_create_bearer_request,
+      bool(s8_create_bearer_request_t cb_req));
+  MOCK_METHOD1(
+      sgw_s8_handle_delete_bearer_request,
+      bool(s8_delete_bearer_request_t db_req));
 };
 
 void start_mock_ha_task();
@@ -82,6 +101,7 @@ void start_mock_s6a_task(std::shared_ptr<MockS6aHandler>);
 void start_mock_s11_task();
 void start_mock_service303_task(std::shared_ptr<MockService303Handler>);
 void start_mock_sgs_task();
-void start_mock_sgw_s8_task();
+void start_mock_sgw_s8_task(std::shared_ptr<MockS8Handler>);
 void start_mock_sms_orc8r_task();
 void start_mock_spgw_task(std::shared_ptr<MockSpgwHandler>);
+void start_mock_grpc_task();

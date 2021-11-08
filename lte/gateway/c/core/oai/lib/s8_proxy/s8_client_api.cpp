@@ -14,16 +14,16 @@ limitations under the License.
 #include <grpcpp/impl/codegen/status.h>
 #include "feg/protos/s8_proxy.grpc.pb.h"
 #include "orc8r/protos/common.pb.h"
-#include "s8_client_api.h"
-#include "S8Client.h"
-#include "pcef_handlers.h"
-#include "s8_itti_proto_conversion.h"
+#include "lte/gateway/c/core/oai/lib/s8_proxy/s8_client_api.h"
+#include "lte/gateway/c/core/oai/lib/s8_proxy/S8Client.h"
+#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.h"
+#include "lte/gateway/c/core/oai/lib/s8_proxy/s8_itti_proto_conversion.h"
 extern "C" {
-#include "intertask_interface.h"
-#include "log.h"
-#include "s8_messages_types.h"
-#include "common_defs.h"
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/s8_messages_types.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 }
 
@@ -107,6 +107,9 @@ static void get_paa_from_proto_msg(
 static void recv_s8_delete_session_response(
     imsi64_t imsi64, teid_t context_teid, const grpc::Status& status,
     magma::feg::DeleteSessionResponsePgw& response) {
+#if MME_UNIT_TEST
+  return;
+#endif
   OAILOG_FUNC_IN(LOG_SGW_S8);
 
   s8_delete_session_response_t* s8_delete_session_rsp = NULL;
@@ -158,6 +161,9 @@ static void recv_s8_create_session_response(
     imsi64_t imsi64, teid_t context_teid, bearer_qos_t dflt_bearer_qos,
     const grpc::Status& status,
     magma::feg::CreateSessionResponsePgw& response) {
+#if MME_UNIT_TEST
+  return;
+#endif
   OAILOG_FUNC_IN(LOG_SGW_S8);
   s8_create_session_response_t* s5_response = NULL;
   MessageDef* message_p                     = NULL;
@@ -339,10 +345,15 @@ static void cbresp_convert_bearer_context_to_proto(
   bc->set_id(msg_bc->eps_bearer_id);
   bc->set_cause(msg_bc->cause.cause_value);
   char sgw_s8_up_ip[INET_ADDRSTRLEN];
+  char sgw_s8_up_ipv6[INET6_ADDRSTRLEN];
   inet_ntop(
       AF_INET, &msg_bc->s5_s8_u_sgw_fteid.ipv4_address.s_addr, sgw_s8_up_ip,
       INET_ADDRSTRLEN);
+  inet_ntop(
+      AF_INET6, &msg_bc->s5_s8_u_sgw_fteid.ipv6_address.s6_addr, sgw_s8_up_ipv6,
+      INET6_ADDRSTRLEN);
   bc->mutable_user_plane_fteid()->set_ipv4_address(sgw_s8_up_ip);
+  bc->mutable_user_plane_fteid()->set_ipv6_address(sgw_s8_up_ipv6);
   bc->mutable_user_plane_fteid()->set_teid(msg_bc->s5_s8_u_sgw_fteid.teid);
   convert_qos_to_proto_msg(&msg_bc->bearer_level_qos, bc->mutable_qos());
   OAILOG_FUNC_OUT(LOG_SGW_S8);
@@ -354,23 +365,17 @@ static void convert_bearer_context_to_proto(
   OAILOG_FUNC_IN(LOG_SGW_S8);
   bc->set_id(msg_bc->eps_bearer_id);
   char sgw_s8_up_ip[INET_ADDRSTRLEN];
+  char sgw_s8_up_ipv6[INET6_ADDRSTRLEN];
   inet_ntop(
       AF_INET, &msg_bc->s5_s8_u_sgw_fteid.ipv4_address.s_addr, sgw_s8_up_ip,
       INET_ADDRSTRLEN);
+  inet_ntop(
+      AF_INET6, &msg_bc->s5_s8_u_sgw_fteid.ipv6_address.s6_addr, sgw_s8_up_ipv6,
+      INET6_ADDRSTRLEN);
   bc->mutable_user_plane_fteid()->set_ipv4_address(sgw_s8_up_ip);
+  bc->mutable_user_plane_fteid()->set_ipv6_address(sgw_s8_up_ipv6);
   bc->mutable_user_plane_fteid()->set_teid(msg_bc->s5_s8_u_sgw_fteid.teid);
   convert_qos_to_proto_msg(&msg_bc->bearer_level_qos, bc->mutable_qos());
-  OAILOG_FUNC_OUT(LOG_SGW_S8);
-}
-
-static void convert_imeisv_to_string(char* imeisv) {
-  OAILOG_FUNC_IN(LOG_SGW_S8);
-  uint8_t idx = 0;
-  for (; idx < IMEISV_DIGITS_MAX; idx++) {
-    imeisv[idx] = convert_digit_to_char(imeisv[idx]);
-  }
-  imeisv[idx] = '\0';
-
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
@@ -549,7 +554,7 @@ void send_s8_delete_session_request(
 static void fill_s8_create_bearer_response(
     const itti_s11_nw_init_actv_bearer_rsp_t* itti_msg,
     magma::feg::CreateBearerResponsePgw* proto_cb_rsp, teid_t pgw_s8_teid,
-    uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi) {
+    uint32_t sequence_number, STOLEN_REF char* pgw_cp_address, Imsi_t imsi) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
 
   proto_cb_rsp->set_cause(itti_msg->cause.cause_value);
@@ -594,7 +599,7 @@ static void fill_s8_create_bearer_response(
 
 void send_s8_create_bearer_response(
     const itti_s11_nw_init_actv_bearer_rsp_t* itti_msg, teid_t pgw_s8_teid,
-    uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi) {
+    uint32_t sequence_number, STOLEN_REF char* pgw_cp_address, Imsi_t imsi) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   magma::feg::CreateBearerResponsePgw proto_cb_rsp;
 
@@ -609,6 +614,60 @@ void send_s8_create_bearer_response(
 
   magma::S8Client::s8_create_bearer_response(
       proto_cb_rsp,
+      [&](grpc::Status status, magma::orc8r::Void void_response) { return; });
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
+static void fill_s8_delete_bearer_response(
+    const itti_s11_nw_init_deactv_bearer_rsp_t* itti_msg,
+    magma::feg::DeleteBearerResponsePgw* proto_db_rsp, teid_t pgw_s8_teid,
+    uint32_t sequence_number, STOLEN_REF char* pgw_cp_address, Imsi_t imsi) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  proto_db_rsp->Clear();
+  if (pgw_cp_address) {
+    proto_db_rsp->set_pgwaddrs(pgw_cp_address, strlen(pgw_cp_address));
+    free(pgw_cp_address);
+  }
+  proto_db_rsp->set_imsi(reinterpret_cast<char*>(imsi.digit), imsi.length);
+  proto_db_rsp->set_sequence_number(sequence_number);
+  proto_db_rsp->set_c_pgw_teid(pgw_s8_teid);
+  if (itti_msg->lbi) {
+    proto_db_rsp->set_linked_bearer_id(*(itti_msg->lbi));
+  }
+  convert_pco_to_proto_msg(
+      itti_msg->pco, proto_db_rsp->mutable_protocol_configuration_options());
+  proto_db_rsp->set_cause(itti_msg->cause.cause_value);
+
+  for (uint8_t idx = 0; idx < itti_msg->bearer_contexts.num_bearer_context;
+       idx++) {
+    magma::feg::BearerContext* bearer_context =
+        proto_db_rsp->add_bearer_context();
+    bearer_context->set_cause(
+        itti_msg->bearer_contexts.bearer_contexts[idx].cause.cause_value);
+    bearer_context->set_id(
+        itti_msg->bearer_contexts.bearer_contexts[idx].eps_bearer_id);
+  }
+
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
+void send_s8_delete_bearer_response(
+    const itti_s11_nw_init_deactv_bearer_rsp_t* itti_msg, teid_t pgw_s8_teid,
+    uint32_t sequence_number, STOLEN_REF char* pgw_cp_address, Imsi_t imsi) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  magma::feg::DeleteBearerResponsePgw proto_db_rsp;
+
+  OAILOG_INFO(
+      LOG_SGW_S8,
+      "Sending delete bearer response for context_tied " TEID_FMT "\n",
+      pgw_s8_teid);
+
+  fill_s8_delete_bearer_response(
+      itti_msg, &proto_db_rsp, pgw_s8_teid, sequence_number, pgw_cp_address,
+      imsi);
+
+  magma::S8Client::s8_delete_bearer_response(
+      proto_db_rsp,
       [&](grpc::Status status, magma::orc8r::Void void_response) { return; });
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }

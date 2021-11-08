@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "amf_app_test_util.h"
+#include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 
 #include <gtest/gtest.h>
 

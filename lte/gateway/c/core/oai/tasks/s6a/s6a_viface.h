@@ -21,7 +21,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
 #ifdef __cplusplus
 }
 #endif

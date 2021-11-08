@@ -36,7 +36,7 @@
 #ifndef FILE_S11_MESSAGES_TYPES_SEEN
 #define FILE_S11_MESSAGES_TYPES_SEEN
 
-#include "sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 
 #define S11_CREATE_SESSION_REQUEST(mSGpTR)                                     \
   (mSGpTR)->ittiMsg.s11_create_session_request
@@ -135,7 +135,9 @@ typedef struct itti_s11_nw_init_deactv_bearer_rsp_s {
                         ///< be
   bool delete_default_bearer;
   teid_t s_gw_teid_s11_s4;
-  bool mme_initiated_local_deact;
+  protocol_configuration_options_t pco;  /// PCO protocol_configuration_options
+  bool mme_initiated_local_deact; ///< Indicates MME initiated bearer
+                                  ///< deactivation
 } itti_s11_nw_init_deactv_bearer_rsp_t;
 
 //-------------

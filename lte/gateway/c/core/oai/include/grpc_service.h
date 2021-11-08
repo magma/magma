@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "bstrlib.h"
-#include "mme_default_values.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/mme_default_values.h"
 
 typedef struct grpc_service_data_s {
   bstring server_address;
@@ -28,6 +28,7 @@ typedef struct grpc_service_data_s {
   Init GRPC Service for MME
 */
 int grpc_service_init(void);
+void grpc_service_exit(void);
 
 #ifdef __cplusplus
 extern "C" {

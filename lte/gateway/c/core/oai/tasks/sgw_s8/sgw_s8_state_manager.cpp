@@ -12,13 +12,13 @@ limitations under the License.
 */
 
 extern "C" {
-#include <dynamic_memory_check.h>
-#include "backtrace.h"
+#include <lte/gateway/c/core/oai/common/dynamic_memory_check.h>
+#include "lte/gateway/c/core/oai/common/backtrace.h"
 }
 
-#include "sgw_context_manager.h"
-#include "sgw_s8_state_manager.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 namespace magma {
 namespace lte {
@@ -72,6 +72,11 @@ void SgwStateManager::create_state() {
   state_cache_p->sgw_ip_address_S1u_S12_S4_up.s_addr =
       config_->ipv4.S1u_S12_S4_up.s_addr;
 
+  memcpy(
+      &state_cache_p->sgw_ipv6_address_S1u_S12_S4_up,
+      &config_->ipv4.S1u_S12_S4_up.s_addr,
+      sizeof(state_cache_p->sgw_ipv6_address_S1u_S12_S4_up));
+
   state_cache_p->sgw_ip_address_S5S8_up.s_addr = config_->ipv4.S5_S8_up.s_addr;
 
   state_cache_p->imsi_ue_context_htbl = hashtable_ts_create(
@@ -113,5 +118,8 @@ status_code_e SgwStateManager::read_ue_state_from_db() {
   return RETURNok;
 }
 
+sgw_state_t* SgwStateManager::get_state(bool read_from_db) {
+  return state_cache_p;
+}
 }  // namespace lte
 }  // namespace magma

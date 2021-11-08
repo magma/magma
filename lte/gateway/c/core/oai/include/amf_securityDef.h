@@ -14,7 +14,7 @@
 #pragma once
 #include <sstream>
 #include <thread>
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 using namespace std;
 namespace magma5g {

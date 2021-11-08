@@ -6,8 +6,13 @@ on:  # yamllint disable-line rule:truthy
       - DCO check
       - Python Format Check
       - Semantic PR
+      - Markdown lint check
     types:
       - completed
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 jobs:
   comment_pr:
@@ -64,6 +69,13 @@ jobs:
           ### Howto
           - [Instructions on formatting your PR title](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines)
           - For PRs with only one commit, the commit message must also be semantic. See [Changing a commit message](https://docs.github.com/en/github/committing-changes-to-your-project/creating-and-editing-commits/changing-a-commit-message) for a howto
+          - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
+      - name: Markdown lint comment message
+        if: ${{ github.event.workflow.name == 'Markdown lint check' }}
+        run: |
+          echo "Oops! Looks like you failed the \`Markdown lint check\`.
+          ### Howto
+          - [Instructions on formatting your Markdown changes](https://magma.github.io/magma/docs/next/docs/docs_overview#precommit)
           - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
       - name: Comment on PR
         uses: actions/github-script@v3

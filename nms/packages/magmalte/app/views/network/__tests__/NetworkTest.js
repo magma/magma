@@ -30,6 +30,7 @@ import SubscriberContext from '../../../components/context/SubscriberContext';
 import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default.js';
 
+import {CoreNetworkTypes} from '../../subscriber/SubscriberUtils';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {UpdateNetworkState} from '../../../state/lte/NetworkState';
@@ -42,6 +43,9 @@ jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 afterEach(cleanup);
 const enqueueSnackbarMock = jest.fn();
+const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
+  key => CoreNetworkTypes[key],
+);
 jest
   .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
@@ -198,6 +202,7 @@ describe('<NetworkDashboard />', () => {
   const subscribers = {
     IMSI00000000001002: {
       active_apns: ['oai.ipv4'],
+      forbidden_network_types: forbiddenNetworkTypes,
       id: 'IMSI722070171001002',
       lte: {
         auth_algo: 'MILENAGE',
@@ -207,6 +212,7 @@ describe('<NetworkDashboard />', () => {
         sub_profile: 'default',
       },
       config: {
+        forbidden_network_types: forbiddenNetworkTypes,
         lte: {
           auth_algo: 'MILENAGE',
           auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
@@ -305,6 +311,8 @@ describe('<NetworkDashboard />', () => {
 
     const subscriberCtx = {
       state: subscribers,
+      forbidden_network_types: subscribers,
+      forbiddenNetworkTypes: {},
       gwSubscriberMap: {},
       sessionState: {},
     };

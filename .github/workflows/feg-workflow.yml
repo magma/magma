@@ -13,6 +13,10 @@ on:
       - v1.*
     types: [opened, reopened, synchronize]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   path_filter:
     runs-on: ubuntu-latest
@@ -28,21 +32,10 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/feg-workflow.yml", "orc8r/**", "lte/**", "feg/**"]
-      # Need to save metadata for deploy from PR job
-      - name: Save PR number and trigger type
-        run: |
-          mkdir -p ./pr
-          echo ${{ github.event.number }} > ./pr/NR
-          echo ${{ steps.changes.outputs.filesChanged == 'false'}} > ./pr/skipped
-      - name: upload metadata
-        uses: actions/upload-artifact@v2
-        with:
-          name: pr
-          path: pr/
-  feg-lint:
+  feg-lint-precommit:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    name: feg lint job
+    name: feg lint and precommit
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on  # yamllint disable-line rule:truthy
@@ -58,21 +51,45 @@ jobs:
               ./circleci/golang_before_install.sh
       - name: Run go mod download with retry
         uses: nick-invision/retry@v2
+        continue-on-error: true
+        if: always()
+        id: feg-lint-init
         with:
           command: cd ${MAGMA_ROOT}/cwf/gateway && go mod download
           timeout_minutes: 10
       - name: Go lint code
+        continue-on-error: true
+        id: feg-lint
         run: |
               cd ${MAGMA_ROOT}/feg/gateway
               make -C ${MAGMA_ROOT}/feg/gateway lint
       - name: Generate test coverage
+        continue-on-error: true
+        id: feg-lint-cov
         run: |
               cd ${MAGMA_ROOT}/feg/gateway
               make -C ${MAGMA_ROOT}/feg/gateway cover
       - uses: codecov/codecov-action@v1
+        continue-on-error: true
+        id: feg-lint-codecov
         with:
           files: '${{ env.MAGMA_ROOT}}/feg/gateway/coverage/feg.gocov'
           flags: feg-lint
+      - name: make feg precommit
+        if: always()
+        continue-on-error: true
+        id: feg-precommit
+        run: |
+          go get gotest.tools/gotestsum
+          cd ${MAGMA_ROOT}/feg/gateway
+          make -C ${MAGMA_ROOT}/feg/gateway precommit
+      - name: Upload Test Results
+        id: feg-precommit-upload
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results
+          path: "/tmp/test-results"
       - name: Extract commit title
         if: failure() && github.event_name == 'push'
         id: commit
@@ -82,7 +99,7 @@ jobs:
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
+        if: ( steps.feg-lint-init.outcome=='failure' || steps.feg-lint.outcome=='failure' || steps.feg-lint-cov.outcome=='failure' || steps.feg-lint-codecov.outcome=='failure'  ) && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -92,48 +109,10 @@ jobs:
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
-  feg-precommit:
-    needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    name: feg pre-commit job
-    runs-on: ubuntu-latest
-    env:
-      GO111MODULE: on  # yamllint disable-line rule:truthy
-      MAGMA_ROOT: "${{ github.workspace }}"
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.15.7'
-      - run: go version
-      - name: Run golang_before_install.sh script
-        run: ./circleci/golang_before_install.sh
-      - name: Run go mod download with retry
-        uses: nick-invision/retry@v2
-        with:
-          command: cd ${MAGMA_ROOT}/cwf/gateway && go mod download
-          timeout_minutes: 10
-      - name: make feg precommit
-        run: |
-            go get gotest.tools/gotestsum
-            cd ${MAGMA_ROOT}/feg/gateway
-            make -C ${MAGMA_ROOT}/feg/gateway precommit
-      - name: Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: Unit Test Results
-          path: "/tmp/test-results"
-      - name: Extract commit title
-        id: commit
-        if: failure() && github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
+        if: ( steps.feg-precommit.outcome=='failure' || steps.feg-precommit-upload.outcome=='failure' ) && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -142,101 +121,4 @@ jobs:
           SLACK_USERNAME: "FeG workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-  feg-build:
-    needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' || github.event_name == 'push' }}
-    name: feg-build
-    runs-on: ubuntu-latest
-    env:
-      MAGMA_ROOT: "${{ github.workspace }}"
-      DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
-      DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
-      DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.7'
-      - name: generate test certs and snowflake
-        run: |
-            # TODO add rootCA.pem and snowflake files in the ubuntu-1604:201903-01 image
-            # create directories
-            cd ${MAGMA_ROOT} && mkdir -p .cache/test_certs/ && mkdir -p .cache/feg/
-            # create test certs
-            cd ${MAGMA_ROOT}/.cache/test_certs/
-            openssl genrsa -out rootCA.key 2048
-            openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 365000 -out rootCA.pem -subj "/C=US/CN=rootca.magma.test"
-            # create snowflake
-            cd ${MAGMA_ROOT}/.cache/feg/ && touch snowflake
-      - name: Build docker images
-        env:
-          DOCKER_REGISTRY: feg_
-        run: |
-            cd ${MAGMA_ROOT}/feg/gateway/docker
-            python3 build.py
-      - name: run docker containers and check health
-        env:
-          DOCKER_REGISTRY: feg_
-        run: |
-            cd ${MAGMA_ROOT}/feg/gateway/docker
-            python3 build.py -e
-      - name: Export docker images to deploy them on pull_request
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir images
-          cd images
-          docker save feg_gateway_go | gzip > gateway_go.tar.gz
-          docker save feg_gateway_python | gzip > gateway_python.tar.gz
-      - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@v2
-        if: github.event_name == 'pull_request'
-        with:
-          name: docker-images
-          path: images
-      - name: Tag and push to Docker Registry
-        if: github.event_name == 'push'
-        # yamllint disable rule:line-length
-        run: |
-            ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project feg
-      - name: Tag and push to Jfrog Registry
-        if: github.event_name == 'push'
-        env:
-          DOCKER_REGISTRY: "feg-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
-        run: |
-            ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project feg
-      - name: Extract commit title
-        if: github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      # Notify ci channel when failing
-      # Plugin info: https://github.com/marketplace/actions/slack-notify
-      # yamllint enable
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "FeG-precommit tests failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Feg workflow"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      # Notify ci channel when push succeeds
-      - name: Notify success to slack
-        if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "*FeG Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "FeG workflow"
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '

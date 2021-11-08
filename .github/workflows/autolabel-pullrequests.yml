@@ -29,6 +29,10 @@ on:  # yamllint disable-line rule:truthy
       - 'wifi/**'
       - 'xwf/**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   AutoLabelPR:
     runs-on: ubuntu-latest

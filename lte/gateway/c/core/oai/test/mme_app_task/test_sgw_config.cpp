@@ -11,11 +11,11 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include <libconfig.h>
 
 extern "C" {
-#include "include/sgw_config.h"
+#include "lte/gateway/c/core/oai/include/sgw_config.h"
 }
 
 namespace magma {
@@ -43,6 +43,9 @@ const char* sHealthyConfig =
         # S-GW binded interface for S5 or S8 communication, not implemented, so leave it to none
         SGW_INTERFACE_NAME_FOR_S5_S8_UP         = "eth0";         # STRING, interface name
         SGW_IPV4_ADDRESS_FOR_S5_S8_UP           = "10.0.2.15/24";                 # STRING, CIDR
+
+        SGW_IPV6_ADDRESS_FOR_S1U_S12_S4_UP      = "2001:db8::1234:5678";
+        SGW_IPV6_PORT_FOR_S1U_S12_S4_UP         = 2152;
         SGW_S1_IPV6_ENABLED = "True";
     };
 
@@ -73,7 +76,8 @@ TEST(SGWConfigTest, TestParseHealthyConfig) {
   sgw_config_t sgw_config = {0};
   EXPECT_EQ(sgw_config_parse_string(sHealthyConfig, &sgw_config), 0);
   EXPECT_EQ(std::string(bdata(sgw_config.ovs_config.bridge_name)), "gtp_br0");
-  ASSERT_EQ(sgw_config.ipv6.s1_ipv6_enabled, false);
+  EXPECT_EQ(std::string(bdata(sgw_config.ipv6.if_name_S1u_S12_S4_up)), "eth1");
+  ASSERT_EQ(sgw_config.ipv6.s1_ipv6_enabled, true);
   free_sgw_config(&sgw_config);
 }
 

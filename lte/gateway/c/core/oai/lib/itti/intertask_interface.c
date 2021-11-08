@@ -38,21 +38,21 @@
 #include <malloc.h>
 #include <stdint.h>
 
-#include "assertions.h"
-#include "intertask_interface.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 /* Includes "intertask_interface_init.h" to check prototype coherence, but
    disable threads and messages information generation.
 */
 #define CHECK_PROTOTYPE_ONLY
-#include "intertask_interface_init.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
 
 #undef CHECK_PROTOTYPE_ONLY
 
-#include "signals.h"
-#include "dynamic_memory_check.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/lib/itti/signals.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 
 /* ITTI DEBUG groups */
 #define ITTI_DEBUG_POLL (1 << 0)

@@ -11,12 +11,17 @@
  * limitations under the License.
  */
 
+#include <glog/logging.h>
+#include <algorithm>
 #include <ctime>
 #include <limits>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "ChargingGrant.h"
+#include "CreditKey.h"
+#include "DiameterCodes.h"
 #include "EnumToString.h"
 #include "magma_logging.h"
 

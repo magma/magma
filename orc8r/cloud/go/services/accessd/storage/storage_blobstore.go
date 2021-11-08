@@ -37,11 +37,11 @@ const (
 )
 
 type accessdBlobstore struct {
-	factory blobstore.BlobStorageFactory
+	factory blobstore.StoreFactory
 }
 
 // NewAccessdBlobstore returns an initialized instance of accessdBlobstore as AccessdStorage.
-func NewAccessdBlobstore(factory blobstore.BlobStorageFactory) AccessdStorage {
+func NewAccessdBlobstore(factory blobstore.StoreFactory) AccessdStorage {
 	return &accessdBlobstore{factory: factory}
 }
 
@@ -157,7 +157,7 @@ func (a *accessdBlobstore) PutACL(id *protos.Identity, acl *accessprotos.AccessC
 	}
 
 	blob := blobstore.Blob{Type: AccessdDefaultType, Key: id.HashString(), Value: marshaledACL}
-	err = store.CreateOrUpdate(placeholderNetworkID, blobstore.Blobs{blob})
+	err = store.Write(placeholderNetworkID, blobstore.Blobs{blob})
 	if err != nil {
 		return status.Errorf(codes.Internal, "failed to put acl: %s", err)
 	}
@@ -205,7 +205,7 @@ func (a *accessdBlobstore) UpdateACLWithEntities(id *protos.Identity, entities [
 	}
 
 	blobPut := blobstore.Blob{Type: AccessdDefaultType, Key: id.HashString(), Value: marshaledACL}
-	err = store.CreateOrUpdate(placeholderNetworkID, blobstore.Blobs{blobPut})
+	err = store.Write(placeholderNetworkID, blobstore.Blobs{blobPut})
 	if err != nil {
 		return status.Errorf(codes.Internal, "failed to put acl: %s", err)
 	}

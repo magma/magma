@@ -12,9 +12,14 @@
  */
 #pragma once
 #include <grpc++/grpc++.h>
+#include <grpcpp/channel.h>
+#include <grpcpp/impl/codegen/completion_queue.h>
+#include <grpcpp/impl/codegen/server_context.h>
 #include <lte/protos/abort_session.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-
+#include <atomic>
+#include <functional>
+#include <iosfwd>
 #include <memory>
 #include <utility>
 
@@ -22,6 +27,17 @@
 #include "SessionProxyResponderHandler.h"
 #include "SetMessageManagerHandler.h"
 #include "UpfMsgManageHandler.h"
+#include "lte/protos/abort_session.pb.h"
+#include "lte/protos/session_manager.pb.h"
+
+namespace grpc {
+class Status;
+}  // namespace grpc
+namespace magma {
+namespace orc8r {
+class Void;
+}  // namespace orc8r
+}  // namespace magma
 
 using grpc::ServerCompletionQueue;
 using grpc::ServerContext;

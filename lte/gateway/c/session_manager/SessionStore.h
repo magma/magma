@@ -12,9 +12,9 @@
  */
 #pragma once
 
-#include <experimental/optional>
 #include <lte/protos/session_manager.grpc.pb.h>
-
+#include <stdint.h>
+#include <experimental/optional>
 #include <memory>
 #include <set>
 #include <string>
@@ -25,10 +25,18 @@
 #include "RedisStoreClient.h"
 #include "RuleStore.h"
 #include "SessionState.h"
+#include "StoreClient.h"
 #include "StoredState.h"
 
 namespace magma {
+class StaticRuleStore;
+struct SessionStateUpdateCriteria;
+
 namespace lte {
+class MeteringReporter;
+class RedisStoreClient;
+class UpdateSessionRequest;
+
 using std::experimental::optional;
 
 // Value int represents the request numbers needed for requests to PCRF

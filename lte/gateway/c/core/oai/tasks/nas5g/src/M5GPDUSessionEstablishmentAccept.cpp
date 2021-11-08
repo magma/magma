@@ -10,9 +10,9 @@
  */
 
 #include <sstream>
-#include "M5GPDUSessionEstablishmentAccept.h"
-#include "M5GCommonDefs.h"
-#include "M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionEstablishmentAccept.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
 PDUSessionEstablishmentAcceptMsg::PDUSessionEstablishmentAcceptMsg(){};

@@ -17,7 +17,7 @@
 #include <memory>
 #include <stdint.h>
 
-#include "sctp_assoc.h"
+#include "lte/gateway/c/sctpd/src/sctp_assoc.h"
 
 namespace magma {
 namespace sctpd {

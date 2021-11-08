@@ -11,9 +11,28 @@
  * limitations under the License.
  */
 
+#include <folly/json.h>
+#include <glog/logging.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <stdint.h>
+#include <ostream>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include "CreditKey.h"
 #include "EnumToString.h"
+#include "SessionCredit.h"
 #include "SessionEvents.h"
+#include "SessionState.h"
+#include "Types.h"
 #include "Utilities.h"
+#include "includes/EventdClient.h"
+#include "lte/protos/policydb.pb.h"
+#include "lte/protos/session_manager.pb.h"
+#include "magma_logging.h"
+#include "orc8r/protos/common.pb.h"
+#include "orc8r/protos/eventd.pb.h"
 
 using magma::orc8r::Event;
 using magma::orc8r::Void;

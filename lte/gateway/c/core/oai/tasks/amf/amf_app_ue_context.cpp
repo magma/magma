@@ -14,19 +14,19 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "log.h"
-#include "intertask_interface.h"
-#include "directoryd.h"
-#include "conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #ifdef __cplusplus
 }
 #endif
 #include <unordered_map>
-#include "common_defs.h"
-#include "dynamic_memory_check.h"
-#include "amf_app_state_manager.h"
-#include "amf_recv.h"
-#include "amf_common.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;

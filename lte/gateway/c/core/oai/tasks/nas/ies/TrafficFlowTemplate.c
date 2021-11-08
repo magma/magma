@@ -19,9 +19,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "TrafficFlowTemplate.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrafficFlowTemplate.h"
 
 static int decode_traffic_flow_template_delete_packet(
     DeletePacketFilter* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,

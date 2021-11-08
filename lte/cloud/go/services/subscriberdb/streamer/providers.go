@@ -176,7 +176,7 @@ func subscriberToMconfig(ent configurator.NetworkEntity, apnConfigs map[string]*
 			Resource: apnResource,
 		}
 		if staticIP, found := cfg.StaticIps[assoc.Key]; found {
-			apnProto.AssignedStaticIp = string(staticIP)
+			apnProto.AssignedStaticIp = staticIP
 		}
 		non3gpp.ApnConfig = append(non3gpp.ApnConfig, apnProto)
 	}

@@ -26,54 +26,54 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <3gpp_29.274.h>
+#include <lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h>
 #include <inttypes.h>
 #include <netinet/in.h>
 
-#include "bstrlib.h"
-#include "dynamic_memory_check.h"
-#include "log.h"
-#include "conversions.h"
-#include "common_types.h"
-#include "intertask_interface.h"
-#include "mme_config.h"
-#include "mme_app_ue_context.h"
-#include "mme_app_defs.h"
-#include "mme_app_bearer_context.h"
-#include "sgw_ie_defs.h"
-#include "common_defs.h"
-#include "mme_app_itti_messaging.h"
-#include "mme_app_procedures.h"
-#include "mme_app_statistics.h"
-#include "nas_proc.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_24.301.h"
-#include "3gpp_36.401.h"
-#include "3gpp_36.413.h"
-#include "CsfbResponse.h"
-#include "ServiceType.h"
-#include "TrackingAreaIdentity.h"
-#include "nas/as_message.h"
-#include "emm_data.h"
-#include "esm_data.h"
-#include "hashtable.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
-#include "mme_api.h"
-#include "mme_app_state.h"
-#include "mme_app_messages_types.h"
-#include "s11_messages_types.h"
-#include "s1ap_messages_types.h"
-#include "nas/securityDef.h"
-#include "includes/MetricsHelpers.h"
-#include "sgs_messages_types.h"
-#include "secu_defs.h"
-#include "esm_proc.h"
-#include "mme_app_timer.h"
-#include "mme_app_pdn_context.h"
-#include "mme_app_ip_imsi.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_procedures.h"
+#include "lte/gateway/c/core/oai/include/mme_app_statistics.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/CsfbResponse.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ServiceType.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/include/nas/as_message.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_pdn_context.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ip_imsi.h"
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP
@@ -3147,7 +3147,7 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
 void send_delete_dedicated_bearer_rsp(
     struct ue_mm_context_s* ue_context_p, bool delete_default_bearer,
     ebi_t ebi[], uint32_t num_bearer_context, teid_t s_gw_teid_s11_s4,
-    gtpv2c_cause_value_t cause, bool mme_initiated_local_deact) {
+    gtpv2c_cause_value_t cause, bool route_s11_messages_to_s8_task, bool mme_initiated_local_deact) {
   itti_s11_nw_init_deactv_bearer_rsp_t* s11_deact_ded_bearer_rsp = NULL;
   MessageDef* message_p                                          = NULL;
   uint32_t i                                                     = 0;
@@ -3173,6 +3173,7 @@ void send_delete_dedicated_bearer_rsp(
       sizeof(itti_s11_nw_init_deactv_bearer_rsp_t));
 
   s11_deact_ded_bearer_rsp->delete_default_bearer = delete_default_bearer;
+  s11_deact_ded_bearer_rsp->cause.cause_value     = cause;
 
   if (delete_default_bearer) {
     s11_deact_ded_bearer_rsp->lbi  = calloc(1, sizeof(ebi_t));
@@ -3198,13 +3199,23 @@ void send_delete_dedicated_bearer_rsp(
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
-  OAILOG_INFO_UE(
-      LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      " Sending nw_initiated_deactv_bearer_rsp to SGW with %d bearers for ue "
-      "id " MME_UE_S1AP_ID_FMT "\n",
-      num_bearer_context, ue_context_p->mme_ue_s1ap_id);
-  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
-
+  if (route_s11_messages_to_s8_task) {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        " Sending nw_initiated_deactv_bearer_rsp to SGW_S8 with %d bearers for "
+        "ue "
+        "id " MME_UE_S1AP_ID_FMT "\n",
+        num_bearer_context, ue_context_p->mme_ue_s1ap_id);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
+  } else {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        " Sending nw_initiated_deactv_bearer_rsp to SPGW with %d bearers for "
+        "ue "
+        "id " MME_UE_S1AP_ID_FMT "\n",
+        num_bearer_context, ue_context_p->mme_ue_s1ap_id);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -3323,7 +3334,7 @@ void mme_app_handle_nw_init_bearer_deactv_req(
       send_delete_dedicated_bearer_rsp(
           ue_context_p, nw_init_bearer_deactv_req_p->delete_default_bearer, ebi,
           num_bearers_deleted, pdn_context->s_gw_teid_s11_s4, REQUEST_ACCEPTED,
-          false);
+          pdn_context->route_s11_messages_to_s8_task, false);
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -4709,7 +4720,7 @@ void mme_app_handle_mme_init_local_deactivation(
   send_delete_dedicated_bearer_rsp(
       ue_context_p, false, bearer_deactv_req_p->ebi,
       bearer_deactv_req_p->no_of_bearers, pdn_context->s_gw_teid_s11_s4,
-      REQUEST_ACCEPTED, true);
+      REQUEST_ACCEPTED, pdn_context->route_s11_messages_to_s8_task, true);
   ue_context_p->nb_delete_bearer_cmd--;
   if (ue_context_p->nb_delete_bearer_cmd == 0) {
     // Send TAU accept

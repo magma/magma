@@ -18,7 +18,7 @@
 #ifndef AUTHENTICATION_FAILURE_PARAMETER_H_
 #define AUTHENTICATION_FAILURE_PARAMETER_H_
 #include <stdint.h>
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #define AUTHENTICATION_FAILURE_PARAMETER_MINIMUM_LENGTH 16
 #define AUTHENTICATION_FAILURE_PARAMETER_MAXIMUM_LENGTH 16

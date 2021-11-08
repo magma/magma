@@ -15,13 +15,13 @@ limitations under the License.
 #define SGW_S8_TASK_C
 
 #include <stdio.h>
-#include "log.h"
-#include "assertions.h"
-#include "common_defs.h"
-#include "itti_free_defined_msg.h"
-#include "sgw_s8_defs.h"
-#include "sgw_s8_s11_handlers.h"
-#include "sgw_s8_state.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.h"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.h"
+#include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg);
 static void sgw_s8_exit(void);
@@ -115,6 +115,15 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {
       sgw_s8_handle_s11_create_bearer_response(
           sgw_state, &received_message_p->ittiMsg.s11_nw_init_actv_bearer_rsp,
+          imsi64);
+    } break;
+    case S8_DELETE_BEARER_REQ: {
+      sgw_s8_handle_delete_bearer_request(
+          sgw_state, &received_message_p->ittiMsg.s8_delete_bearer_req);
+    } break;
+    case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
+      sgw_s8_handle_s11_delete_bearer_response(
+          sgw_state, &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp,
           imsi64);
     } break;
 

@@ -19,12 +19,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-#include "log.h"
-#include "TLVEncoder.h"
-#include "TLVDecoder.h"
-#include "TrafficFlowAggregateDescription.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrafficFlowAggregateDescription.h"
 
 //------------------------------------------------------------------------------
 int decode_traffic_flow_aggregate_description(

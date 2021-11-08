@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <string.h>
 #include <sstream>
-#include <SmfMessage.h>
+#include <lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.h>
 #define PAYLOAD_CONTAINER_CONTENTS_MAX_LEN 8192
 
 namespace magma5g {

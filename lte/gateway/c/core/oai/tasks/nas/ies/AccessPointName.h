@@ -18,7 +18,7 @@
 #ifndef ACCESS_POINT_NAME_H_
 #define ACCESS_POINT_NAME_H_
 #include <stdint.h>
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #define ACCESS_POINT_NAME_MINIMUM_LENGTH 3
 #define ACCESS_POINT_NAME_MAXIMUM_LENGTH 102

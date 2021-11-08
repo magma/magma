@@ -24,9 +24,9 @@
 
 #ifndef FILE_PGW_HANDLERS_SEEN
 #define FILE_PGW_HANDLERS_SEEN
-#include "common_defs.h"
-#include "gx_messages_types.h"
-#include "spgw_state.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/gx_messages_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
 
 void handle_s5_create_session_request(
     spgw_state_t* spgw_state,
@@ -58,5 +58,5 @@ status_code_e spgw_send_nw_init_activate_bearer_rsp(
 int32_t spgw_build_and_send_s11_deactivate_bearer_req(
     imsi64_t imsi64, uint8_t no_of_bearers_to_be_deact,
     ebi_t* ebi_to_be_deactivated, bool delete_default_bearer,
-    teid_t mme_teid_S11);
+    teid_t mme_teid_S11, log_proto_t module);
 #endif /* FILE_PGW_HANDLERS_SEEN */

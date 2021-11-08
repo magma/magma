@@ -13,11 +13,11 @@
 
 #pragma once
 
-#include "3gpp_23.003.h"
-#include "3gpp_38.401.h"
-#include "bstrlib.h"
-#include "n11_messages_types.h"
-#include "TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/include/n11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 
 #define MAX_NO_OF_PDUSESSIONS 16
 #define MAX_QosFlow 16

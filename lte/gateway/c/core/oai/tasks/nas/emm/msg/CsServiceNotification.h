@@ -20,16 +20,16 @@
 
 #include <stdint.h>
 
-#include "SecurityHeaderType.h"
-#include "MessageType.h"
-#include "PagingIdentity.h"
-#include "Cli.h"
-#include "SsCode.h"
-#include "LcsIndicator.h"
-#include "LcsClientIdentity.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/PagingIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/Cli.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SsCode.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LcsIndicator.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LcsClientIdentity.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define CS_SERVICE_NOTIFICATION_MINIMUM_LENGTH (PAGING_IDENTITY_MINIMUM_LENGTH)

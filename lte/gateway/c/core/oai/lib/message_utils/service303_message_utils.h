@@ -20,8 +20,8 @@
 
 #include <stdbool.h>
 
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 
 int send_app_health_to_service303(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id, bool healthy);

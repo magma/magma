@@ -12,11 +12,11 @@
 #pragma once
 #include <sstream>
 #include <cstdint>
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #ifdef __cplusplus
 };
 #endif

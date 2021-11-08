@@ -11,16 +11,16 @@
 
 #pragma once
 #include <sstream>
-#include "M5gNasMessage.h"
-#include "M5GExtendedProtocolDiscriminator.h"
-#include "M5GPDUSessionIdentity.h"
-#include "M5GPTI.h"
-#include "M5GMessageType.h"
-#include "M5GIntegrityProtMaxDataRate.h"
-#include "M5GPDUSessionType.h"
-#include "M5GSSCMode.h"
-#include "M5GProtocolConfigurationOptions.h"
-#include "M5GMaxNumOfSupportedPacketFilters.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GIntegrityProtMaxDataRate.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionType.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSSCMode.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GProtocolConfigurationOptions.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMaxNumOfSupportedPacketFilters.h"
 
 namespace magma5g {
 // PDUSessionEstablishmentRequest Message Class

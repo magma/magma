@@ -29,9 +29,9 @@ extern "C" {
 
 #include <stdint.h>
 
-#include "3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 
-#include "spgw_state.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
 
 #define INITIAL_SGW_S8_S1U_TEID 0x7FFFFFFF
 void sgw_display_sgw_eps_bearer_context(
@@ -58,6 +58,7 @@ int sgw_cm_remove_eps_bearer_entry(
 // Returns SPGW state pointer for given UE indexed by IMSI
 s_plus_p_gw_eps_bearer_context_information_t* sgw_cm_get_spgw_context(
     teid_t teid);
+spgw_ue_context_t* spgw_get_ue_context(imsi64_t imsi64);
 spgw_ue_context_t* spgw_create_or_get_ue_context(imsi64_t imsi64);
 
 int spgw_update_teid_in_ue_context(imsi64_t imsi64, teid_t teid);

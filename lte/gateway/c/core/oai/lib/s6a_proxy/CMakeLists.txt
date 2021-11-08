@@ -37,6 +37,7 @@ target_link_libraries(LIB_S6A_PROXY
     MAGMA_CONFIG LIB_BSTR LIB_HASHTABLE TASK_S6A
     )
 target_include_directories(LIB_S6A_PROXY PUBLIC
+    $ENV{MAGMA_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}
     $<TARGET_FILE_DIR:LIB_S6A_PROXY>
     )

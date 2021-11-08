@@ -16,11 +16,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #ifdef __cplusplus
 }
 #endif
-#include "amf_app_messages_types.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
 #include "lte/protos/subscriberauth.pb.h"
 
 using magma::lte::M5GAuthenticationInformationAnswer;

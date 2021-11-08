@@ -15,23 +15,23 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "intertask_interface_types.h"
-#include "intertask_interface.h"
-#include "conversions.h"
-#include "log.h"
-#include "dynamic_memory_check.h"
-#include "secu_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 #ifdef __cplusplus
 }
 #endif
-#include "3gpp_23.003.h"
-#include "common_defs.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "amf_authentication.h"
-#include "amf_recv.h"
-#include "amf_identity.h"
-#include "amf_sap.h"
-#include "amf_app_timer_management.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 
 #define AMF_CAUSE_SUCCESS (1)
 #define MAX_5G_AUTH_VECTORS 1

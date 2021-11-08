@@ -5,6 +5,7 @@ add_library(LIB_MESSAGE_UTILS
     )
 target_include_directories(LIB_MESSAGE_UTILS
     PUBLIC
+    $ENV{MAGMA_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}
     PRIVATE
     ${LIB_DIR}/itti

@@ -10,12 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <sstream>
 
 #include <google/protobuf/message.h>
 #include <gtest/gtest.h>
 
-#include "includes/MConfigLoader.h"
+#include <sstream>
+
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
 #include "lte/protos/mconfig/mconfigs.pb.h"
 
 namespace {

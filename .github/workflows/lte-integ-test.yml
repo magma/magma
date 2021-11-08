@@ -4,9 +4,11 @@ name: LTE integ test
 
 on:  # yamllint disable-line rule:truthy
   workflow_dispatch:
-  push:
-    branches:
-      - master
+  workflow_run:
+    workflows:
+      - build-all
+    types:
+      - completed
 
 jobs:
   lte-integ-test:
@@ -27,6 +29,11 @@ jobs:
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML
           vagrant plugin install vagrant-vbguest vagrant-disksize
+      - name: Open up network interfaces for VM
+        run: |
+          sudo mkdir -p /etc/vbox/
+          sudo touch /etc/vbox/networks.conf
+          sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
       - name: Run the integ test
         run: |
           cd lte/gateway

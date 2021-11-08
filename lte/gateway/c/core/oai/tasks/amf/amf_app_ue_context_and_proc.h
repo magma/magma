@@ -17,51 +17,51 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "bstrlib.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.301.h"
-#include "3gpp_24.008.h"
-#include "3gpp_38.331.h"
-#include "3gpp_38.413.h"
-#include "3gpp_24.501.h"
-#include "TrackingAreaIdentity.h"
-#include "hashtable.h"
-#include "ngap_cause.h"
-#include "obj_hashtable.h"
-#include "queue.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.331.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/tasks/amf/ngap_cause.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 #ifdef __cplusplus
 };
 #endif
 #include <unordered_map>
 #include <vector>
-#include "amf_fsm.h"
-#include "amf_data.h"
-#include "amf_smfDefs.h"
-#include "AmfMessage.h"
-#include "amf_app_messages_types.h"
-#include "M5GRegistrationRequest.h"
-#include "ngap_messages_types.h"
-#include "amf_common.h"
-#include "assertions.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_data.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/AmfMessage.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationRequest.h"
+#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
 
 // NAS messages
-#include "M5GDLNASTransport.h"
-#include "M5GRegistrationRequest.h"
-#include "M5GRegistrationAccept.h"
-#include "M5GIdentityRequest.h"
-#include "M5GIdentityResponse.h"
-#include "M5GAuthenticationRequest.h"
-#include "M5GAuthenticationResponse.h"
-#include "M5GSecurityModeCommand.h"
-#include "M5GSecurityModeComplete.h"
-#include "M5GSecurityModeReject.h"
-#include "M5GDeRegistrationRequestUEInit.h"
-#include "M5GDeRegistrationAcceptUEInit.h"
-#include "M5GDeRegistrationRequestUEInit.h"
-#include "M5GDeRegistrationAcceptUEInit.h"
-#include "M5GULNASTransport.h"
-#include "M5GDLNASTransport.h"
-#include "M5GServiceReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationAccept.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GIdentityRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GIdentityResponse.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationResponse.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeCommand.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeComplete.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationRequestUEInit.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationAcceptUEInit.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationRequestUEInit.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationAcceptUEInit.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GULNASTransport.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceReject.h"
 
 namespace magma5g {
 #define NAS5G_TIMER_INACTIVE_ID (-1)
@@ -788,7 +788,7 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context);
 // PDU session related communication to gNB
 int pdu_session_resource_setup_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    std::shared_ptr<smf_context_t>);
+    std::shared_ptr<smf_context_t> smf_context, bstring nas_msg);
 void amf_app_handle_resource_setup_response(
     itti_ngap_pdusessionresource_setup_rsp_t session_seup_resp);
 int pdu_session_resource_release_request(
@@ -858,6 +858,9 @@ tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id);
 
 int amf_idle_mode_procedure(amf_context_t* amf_ctx);
 void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p);
+int m5g_security_select_algorithms(
+    const int ue_iaP, const int ue_eaP, int* const amf_iaP, int* const amf_eaP);
+
 /************************************************************************
  ** Name:    delete_wrapper()                                         **
  **                                                                   **

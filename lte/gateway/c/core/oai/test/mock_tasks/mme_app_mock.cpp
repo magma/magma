@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 
 task_zmq_ctx_t task_zmq_ctx_mme;
 static std::shared_ptr<MockMmeAppHandler> mme_app_handler_;
@@ -37,6 +37,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S11_CREATE_SESSION_RESPONSE: {
+      mme_app_handler_->mme_app_handle_create_sess_resp();
     } break;
 
     case S11_MODIFY_BEARER_RESPONSE: {
@@ -133,12 +134,16 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST: {
+      mme_app_handler_->mme_app_handle_nw_init_ded_bearer_actv_req(
+          received_message_p->ittiMsg.s11_nw_init_actv_bearer_request);
     } break;
 
     case SGSAP_STATUS: {
     } break;
 
     case S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST: {
+      mme_app_handler_->mme_app_handle_nw_init_bearer_deactv_req(
+          received_message_p->ittiMsg.s11_nw_init_deactv_bearer_request);
     } break;
 
     case S1AP_PATH_SWITCH_REQUEST: {

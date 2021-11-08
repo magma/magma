@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 
 #define PDN_TYPE_MINIMUM_LENGTH 1
 #define PDN_TYPE_MAXIMUM_LENGTH 1

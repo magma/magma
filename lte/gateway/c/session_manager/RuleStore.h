@@ -14,7 +14,7 @@
 
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/policydb.pb.h>
-
+#include <stdint.h>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -24,8 +24,15 @@
 
 #include "CreditKey.h"
 #include "includes/GRPCReceiver.h"
+#include "lte/protos/apn.pb.h"
 
 namespace magma {
+namespace lte {
+class PolicyRule;
+class SetGroupFAR;
+class SetGroupPDR;
+}  // namespace lte
+
 using namespace lte;
 /**
  * Template class for keeping track of a map of one key to many policy rules

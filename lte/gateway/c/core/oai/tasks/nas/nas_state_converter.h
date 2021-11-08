@@ -18,17 +18,17 @@
 #pragma once
 
 extern "C" {
-#include "emm_data.h"
-#include "emm_proc.h"
-#include "esm_proc.h"
-#include "nas_message.h"
-#include "nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
 }
 
 #include <sstream>
 #include "lte/protos/oai/nas_state.pb.h"
 #include "lte/protos/oai/spgw_state.pb.h"
-#include "state_converter.h"
+#include "lte/gateway/c/core/oai/include/state_converter.h"
 
 using magma::lte::oai::TrafficFlowTemplate;
 /******************************************************************************
