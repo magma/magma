@@ -69,16 +69,19 @@ const (
 	nid0 = "some_networkid_0"
 	nid1 = "some_networkid_1"
 	nid2 = "some_networkid_2"
+	nid3 = "some_networkid_3"
 
 	hwid0 = "some_hwid_0"
 	hwid1 = "some_hwid_1"
 	hwid2 = "some_hwid_2"
+	hwid3 = "some_hwid_3"
 
 	id0 = "some_indexerid_0"
 	id1 = "some_indexerid_1"
 	id2 = "some_indexerid_2"
 	id3 = "some_indexerid_3"
 	id4 = "some_indexerid_4"
+	id5 = "some_indexerid_5"
 
 	zero      indexer.Version = 0
 	version0  indexer.Version = 10
@@ -91,6 +94,8 @@ const (
 	version3a indexer.Version = 400
 	version4  indexer.Version = 50
 	version4a indexer.Version = 500
+	version5  indexer.Version = 60
+	version5a indexer.Version = 600
 )
 
 var (

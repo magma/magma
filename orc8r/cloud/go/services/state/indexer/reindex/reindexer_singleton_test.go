@@ -33,15 +33,7 @@ import (
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
 )
 
-func TestRunUnchangingReindexBatches(t *testing.T) {
-	testReindexBatches(t, initTestUnchangingBatches)
-}
-
-func TestRunChangingReindexBatches(t *testing.T) {
-	testReindexBatches(t, initTestChangingBatches)
-}
-
-func testReindexBatches(t *testing.T, initSingletonReindexTest func(t *testing.T) context.CancelFunc) {
+func TestSingletonRun(t *testing.T) {
 	// Make nullimpotent calls to handle code coverage indeterminacy
 	reindex.TestHookReindexSuccess()
 	reindex.TestHookReindexDone()
@@ -64,7 +56,7 @@ func testReindexBatches(t *testing.T, initSingletonReindexTest func(t *testing.T
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
 
-	cancel := initSingletonReindexTest(t)
+	cancel, reindexer := initSingletonReindexTest(t)
 
 	// Single indexer
 	idx0 := getIndexer(id0, zero, version0, true)
@@ -121,6 +113,9 @@ func testReindexBatches(t *testing.T, initSingletonReindexTest func(t *testing.T
 	recvCh(t, ch)
 	recvCh(t, ch)
 	recvCh(t, ch)
+
+	// Unregister indexers
+	register(t)
 	cancel()
 	recvNoCh(t, ch)
 
@@ -129,9 +124,27 @@ func testReindexBatches(t *testing.T, initSingletonReindexTest func(t *testing.T
 	fail3.AssertExpectations(t)
 	require.Equal(t, 2, reindexSuccessNum)
 	require.Equal(t, 5, reindexDoneNum)
+
+	// Test that a network/hardware pair that has been added after Run will
+	// still be considered and will have its states reindexed as well
+	addNetworks(t, reindexer)
+
+	idx5 := getIndexerNoIndex(id5, zero, indexer.Version(version5), true)
+	idx5.On("GetTypes").Return(allTypes).Once()
+	idx5.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(4 * 3)
+	// Register indexers
+	register(t, idx5)
+
+	// Check
+	recvCh(t, ch)
+	recvNoCh(t, ch)
+
+	idx5.AssertExpectations(t)
+	require.Equal(t, 3, reindexSuccessNum)
+	require.Equal(t, 6, reindexDoneNum)
 }
 
-func initTestUnchangingBatches(t *testing.T) context.CancelFunc {
+func initSingletonReindexTest(t *testing.T) (context.CancelFunc, reindex.Reindexer) {
 	indexer.DeregisterAllForTest(t)
 
 	configurator_test_init.StartTestService(t)
@@ -174,33 +187,22 @@ func initTestUnchangingBatches(t *testing.T) context.CancelFunc {
 	ctx, cancel := context.WithCancel(context.Background())
 	go reindexer.Run(ctx)
 
-	return cancel
+	return cancel, reindexer
 }
 
-func initTestChangingBatches(t *testing.T) context.CancelFunc {
-	indexer.DeregisterAllForTest(t)
-
-	configurator_test_init.StartTestService(t)
-	device_test_init.StartTestService(t)
-	reindexer := state_test_init.StartTestSingletonServiceInternal(t)
-	ctx, cancel := context.WithCancel(context.Background())
+func addNetworks(t *testing.T, reindexer reindex.Reindexer) {
+	ctx, _ := context.WithCancel(context.Background())
 	go reindexer.Run(ctx)
 
-	configurator_test.RegisterNetwork(t, nid0, "Network 0 for reindex test")
-	configurator_test.RegisterNetwork(t, nid1, "Network 1 for reindex test")
-	configurator_test.RegisterNetwork(t, nid2, "Network 2 for reindex test")
-	configurator_test.RegisterGateway(t, nid0, hwid0, &models.GatewayDevice{HardwareID: hwid0})
-	configurator_test.RegisterGateway(t, nid1, hwid1, &models.GatewayDevice{HardwareID: hwid1})
-	configurator_test.RegisterGateway(t, nid2, hwid2, &models.GatewayDevice{HardwareID: hwid2})
+	configurator_test.RegisterNetwork(t, nid3, "Network 3 for reindex test")
+	configurator_test.RegisterGateway(t, nid3, hwid3, &models.GatewayDevice{HardwareID: hwid3})
 
 	ctxByNetwork := map[string]context.Context{
-		nid0: state_test.GetContextWithCertificate(t, hwid0),
-		nid1: state_test.GetContextWithCertificate(t, hwid1),
-		nid2: state_test.GetContextWithCertificate(t, hwid2),
+		nid3: state_test.GetContextWithCertificate(t, hwid3),
 	}
 
 	// Report enough directory records to cause 3 batches per network (with the +1 gateway status per network)
-	for _, nid := range []string{nid0, nid1, nid2} {
+	for _, nid := range []string{nid3} {
 		var records []*directoryd_types.DirectoryRecord
 		var deviceIDs []string
 		for i := 0; i < directoryRecordsPerNetwork; i++ {
@@ -214,9 +216,7 @@ func initTestChangingBatches(t *testing.T) context.CancelFunc {
 
 	// Report one gateway status per network
 	gwStatus := &models.GatewayStatus{Meta: map[string]string{"foo": "bar"}}
-	for _, nid := range []string{nid0, nid1, nid2} {
+	for _, nid := range []string{nid3} {
 		reportGatewayStatus(t, ctxByNetwork[nid], gwStatus)
 	}
-
-	return cancel
 }
