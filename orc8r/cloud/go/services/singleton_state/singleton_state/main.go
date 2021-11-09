@@ -69,12 +69,11 @@ func main() {
 		store := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 		err = store.InitializeFactory()
 		if err != nil {
-			glog.Fatalf("Error initializing state database: %v", err)
+			glog.Fatalf("Error initializing singleton_state database: %v", err)
 		}
 
 		stateServicer := newStateServicer(store)
 		protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
-		glog.Info("srv.Config %s", srv.Config)
 
 		indexerManagerServer := newSingletonIndexerManagerServicer(srv.Config, db, store)
 
@@ -98,12 +97,10 @@ func newStateServicer(store blobstore.StoreFactory) protos.StateServiceServer {
 }
 
 func newSingletonIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
-	glog.Info("newSingletonIndexerManagerServicer")
-
 	versioner := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
 	err := versioner.Initialize()
 	if err != nil {
-		glog.Fatal("Error initializing state reindex queue")
+		glog.Fatal("Error initializing state reindex versioner")
 	}
 
 	autoReindex := cfg.MustGetBool(state_config.EnableAutomaticReindexing)
