@@ -12,17 +12,11 @@
 # limitations under the License
 
 # Magma files collection based on map paths_to_collect
-- name: Create a dest directory for magma files under report directory
-  file:
-    path: "{{report_dir_output.stdout}}/{{item | dirname}}"
-    state: directory
-    mode: "0700"
-  with_fileglob: "{{paths_to_collect}}"
 
-
-
-- name: Copy magma files to destination
-  copy:
+- name: Fetch magma files to destination
+  fetch:
     src: "{{item}}"
-    dest: "{{report_dir_output.stdout }}/{{item | dirname}}"
+    dest: "{{report_dir_output.stdout }}/{{item | dirname}}/"
+    flat: yes
+    validate_checksum: no
   with_fileglob: "{{paths_to_collect}}"
