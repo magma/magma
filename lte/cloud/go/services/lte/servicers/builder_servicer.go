@@ -646,8 +646,8 @@ func getNetworkSentryConfig(network *configurator.Network) *lte_mconfig.SentryCo
 	return &lte_mconfig.SentryConfig{
 		SampleRate:   swag.Float32Value(sentryConfig.SampleRate),
 		UploadMmeLog: sentryConfig.UploadMmeLog,
-		UrlNative:    string(sentryConfig.URLNative),
-		UrlPython:    string(sentryConfig.URLPython),
+		DsnNative:    string(sentryConfig.URLNative),
+		DsnPython:    string(sentryConfig.URLPython),
 	}
 }
 

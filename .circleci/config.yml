@@ -317,6 +317,10 @@ commands:
           executable_name: << parameters.executable_name >>
           project: magma-staging-native
           org: lf-9c
+      - sentry-upload:
+          executable_name: << parameters.executable_name >>
+          project: si-agw-native
+          org: lf-9c
 
   sentry-release:
     steps:
@@ -1034,6 +1038,8 @@ workflows:
           <<: *master_and_develop
       - lte-agw-deploy:
           <<: *only_master
+          requires:
+            - lte-integ-test
 
   release:
     jobs:

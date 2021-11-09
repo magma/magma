@@ -72,7 +72,7 @@ void send_authentication_info_resp(const std::string& imsi, bool success);
 
 void send_s6a_ula(const std::string& imsi, bool success);
 
-void send_create_session_resp();
+void send_create_session_resp(gtpv2c_cause_value_t cause_value);
 
 void send_delete_session_resp();
 
@@ -89,6 +89,9 @@ void send_modify_bearer_resp(
     const std::vector<int>& bearer_to_remove);
 
 void sgw_send_release_access_bearer_response(gtpv2c_cause_value_t cause);
+void send_s11_deactivate_bearer_req(
+    uint8_t no_of_bearers_to_be_deact, uint8_t* ebi_to_be_deactivated,
+    bool delete_default_bearer);
 
 }  // namespace lte
 }  // namespace magma

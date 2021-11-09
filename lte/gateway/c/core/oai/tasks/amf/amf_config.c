@@ -232,6 +232,12 @@ int amf_config_parse_file(
       config_pP->amf_name = bfromcstr(astring);
     }
 
+    // DEFAULT_DNN
+    if (config_setting_lookup_string(
+            setting_amf, CONFIG_DEFAULT_DNN, (const char**) &astring)) {
+      config_pP->default_dnn = bfromcstr(astring);
+    }
+
     // AMF_PLMN_SUPPORT SETTING
     setting = config_setting_get_member(
         setting_amf, AMF_CONFIG_AMF_PLMN_SUPPORT_LIST);

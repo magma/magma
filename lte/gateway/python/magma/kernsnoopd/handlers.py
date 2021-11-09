@@ -130,8 +130,11 @@ class ByteCounter(EBPFHandler):
                 # TODO: destination service name inference does not work
                 # get destination service from host and port
                 logging.debug(
-                    f'{service_name} sent {count.value} bytes to '
-                    f'({d_host}, {key.dport})',
+                    '%s sent %s bytes to (%s, %s)',
+                    service_name,
+                    count.value,
+                    d_host,
+                    key.dport,
                 )
                 _inc_service_counter(service_name, '', count.value)
             except ValueError:
