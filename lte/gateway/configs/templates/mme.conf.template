@@ -344,7 +344,7 @@ AMF :
     AMF_NAME = "{{ amf_name }}";
     DEFAULT_DNN = "{{ default_dnn }}";
     PLMN_SUPPORT_LIST = (
-       { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; DEFAULT_SLICE_SERVICE_TYPE="{{ default_slice_service_type }}" ; DEFAULT_SLICE_DIFFERENTIATOR="{{ default_slice_differentiator }}"; }
+       { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; AMF_DEFAULT_SLICE_SERVICE_TYPE="{{ amf_default_slice_service_type }}" ; AMF_DEFAULT_SLICE_DIFFERENTIATOR="{{ amf_default_slice_differentiator }}"; }
     );
 
     # AMF served GUAMFIs

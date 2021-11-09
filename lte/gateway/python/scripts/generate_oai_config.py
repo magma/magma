@@ -282,7 +282,7 @@ def _get_default_slice_service_type_config(service_mconfig: object) -> str:
         slice service type value.
     """
     enable_default_service_slice_type = get_service_config_value(
-        'mme', 'default_slice_service_type', None,
+        'mme', 'amf_default_slice_service_type', None,
     )
 
     if enable_default_service_slice_type is not None:
@@ -301,7 +301,7 @@ def _get_default_slice_differentiator_type_config(service_mconfig: object) -> st
         slice differentiator config value.
     """
     enable_default_slice_differentiator_type = get_service_config_value(
-        'mme', 'default_slice_differentiator', None,
+        'mme', 'amf_default_slice_differentiator', None,
     )
 
     if enable_default_slice_differentiator_type is not None:
@@ -456,10 +456,10 @@ def _get_context():
         "accept_combined_attach_tau_wo_csfb": get_service_config_value("mme", "accept_combined_attach_tau_wo_csfb", ""),
         "sentry_config": mme_service_config.sentry_config,
         "enable5g_features": _get_converged_core_config(mme_service_config),
-        "default_slice_service_type": _get_default_slice_service_type_config(
+        "amf_default_slice_service_type": _get_default_slice_service_type_config(
             mme_service_config,
         ),
-        "default_slice_differentiator": _get_default_slice_differentiator_type_config(
+        "amf_default_slice_differentiator": _get_default_slice_differentiator_type_config(
             mme_service_config,
         ),
         "amf_name": _get_amf_name_config(mme_service_config),

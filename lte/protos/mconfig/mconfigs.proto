@@ -372,10 +372,10 @@ message MME {
     bool enable5g_features = 46;
 
     // AMF Slice Service Type (SST)
-    string default_slice_service_type = 47;
+    string amf_default_slice_service_type = 47;
 
     // AMF Slice Descriptor (SD)
-    string default_slice_differentiator = 48;
+    string amf_default_slice_differentiator = 48;
 
     // AMF Name
     string amf_name = 50;
