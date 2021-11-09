@@ -236,8 +236,11 @@ typedef struct pdn_context_s {
   protocol_configuration_options_t* pco;
   bool ue_rej_act_def_ber_req;
   bool route_s11_messages_to_s8_task;
+  // Indicates bearer deletion is triggered for the default bearer
   bool session_deletion_triggered;
+  // Number of dedicated bearers to be deleted
   uint8_t num_ebi_to_be_del;
+  // List of dedicated bearers to be deleted
   ebi_t ebi_to_be_del[BEARERS_PER_UE];
 } pdn_context_t;
 
