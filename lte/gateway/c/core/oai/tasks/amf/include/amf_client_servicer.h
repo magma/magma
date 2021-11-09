@@ -70,6 +70,10 @@ class AMFClientServicerBase {
       const ambr_t& state_ambr);
 
   virtual bool set_smf_session(SetSMSessionContext& request);
+  virtual bool get_decrypt_imsi_info(
+      const uint8_t ue_pubkey_identifier, const std::string& ue_pubkey,
+      const std::string& ciphertext, const std::string& mac_tag,
+      amf_ue_ngap_id_t ue_id);
 };
 
 class AMFClientServicer : public AMFClientServicerBase {
@@ -125,6 +129,12 @@ class AMFClientServicer : public AMFClientServicerBase {
   }
 
   bool set_smf_session(SetSMSessionContext& request) { return true; }
+  bool get_decrypt_imsi_info(
+      const uint8_t ue_pubkey_identifier, const std::string& ue_pubkey,
+      const std::string& ciphertext, const std::string& mac_tag,
+      amf_ue_ngap_id_t ue_id) override {
+    return true;
+  }
 #endif /* MME_UNIT_TEST */
 
  private:

@@ -85,4 +85,19 @@ void convert_proto_msg_to_itti_m5g_auth_info_ans(
   return;
 }
 
+void convert_proto_msg_to_itti_amf_decrypted_imsi_info_ans(
+    M5GSUCIRegistrationAnswer response,
+    itti_amf_decrypted_imsi_info_ans_t* amf_app_decrypted_imsi_info_resp) {
+  if (response.ue_msin_recv().length() <= 0) {
+    std::cout << "[ERROR] Decrypted IMSI response is invalid:"
+              << response.ue_msin_recv().length() << std::endl;
+    return;
+  }
+  amf_app_decrypted_imsi_info_resp->imsi_length =
+      response.ue_msin_recv().length();
+  memcpy(
+      amf_app_decrypted_imsi_info_resp->imsi, response.ue_msin_recv().c_str(),
+      amf_app_decrypted_imsi_info_resp->imsi_length);
+}
+
 }  // namespace magma5g

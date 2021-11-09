@@ -1030,4 +1030,5 @@ static int authenthication_t3560_handler(
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
+
 }  // namespace magma5g

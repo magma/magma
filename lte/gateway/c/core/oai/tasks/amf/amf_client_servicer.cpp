@@ -13,12 +13,14 @@
 
 #include "include/amf_client_servicer.h"
 #include "M5GAuthenticationServiceClient.h"
+#include "M5GSUCIRegistrationServiceClient.h"
 #include "amf_common.h"
 #include <memory>
 #include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
 #include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.h"
 
 using magma5g::AsyncM5GAuthenticationServiceClient;
+using magma5g::AsyncM5GSUCIRegistrationServiceClient;
 
 namespace magma5g {
 
@@ -75,6 +77,15 @@ int AMFClientServicerBase::amf_smf_create_pdu_session_ipv4(
 
 bool AMFClientServicerBase::set_smf_session(SetSMSessionContext& request) {
   return AsyncSmfServiceClient::getInstance().set_smf_session(request);
+}
+
+bool AMFClientServicerBase::get_decrypt_imsi_info(
+    const uint8_t ue_pubkey_identifier, const std::string& ue_pubkey,
+    const std::string& ciphertext, const std::string& mac_tag,
+    amf_ue_ngap_id_t ue_id) {
+  return (AsyncM5GSUCIRegistrationServiceClient::getInstance()
+              .get_decrypt_imsi_info(
+                  ue_pubkey_identifier, ue_pubkey, ciphertext, mac_tag, ue_id));
 }
 
 AMFClientServicer& AMFClientServicer::getInstance() {
