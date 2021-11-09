@@ -423,3 +423,41 @@ jobs:
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
+
+  session_manager_test:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: session manager test job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run session_manager tests
+        timeout-minutes: 10
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_session_manager
+      - name: Extract commit title
+        # yamllint enable
+        if: failure() && github.event_name == 'push'
+        id: commit
+        run: |
+            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action session_manager_test failed"
+          SLACK_USERNAME: "AGW workflow"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
