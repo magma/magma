@@ -6,6 +6,19 @@ build --cxxopt=-std=c++14
 build --strip=never
 build --compilation_mode=dbg
 
+# Needed for coverage collection
+build --javacopt="-source 8"
+build --javacopt="-target 8"
+build --host_javabase=@bazel_tools//tools/jdk:remote_jdk11
+build --javabase=@bazel_tools//tools/jdk:remote_jdk11
+build --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_java11
+build --java_toolchain=@bazel_tools//tools/jdk:toolchain_java11
+
+# Coverage options
+coverage --config=coverage
+build:coverage --combined_report=lcov
+build:coverage --instrumentation_filter="//(orc8r|lte)/gateway/c[/:],-//(orc8r|lte)/protos[/:],-/*/test[/:]"
+
 # For building with Bazel inside the Magma-Builder Docker container
 build:docker --disk_cache=/magma/.bazel-cache
 common:docker --repository_cache=/magma/.bazel-cache-repo

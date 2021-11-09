@@ -18,6 +18,8 @@ concurrency:
 
 env:
   DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-3c02c72"
+  BAZEL_CACHE: bazel-cache
+  BAZEL_CACHE_REPO: bazel-cache-repo
 
 jobs:
   path_filter:
@@ -119,34 +121,78 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
 
-  session_manager_test:
+  c_cpp_unit_tests:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    name: session manager test job
+    name: Run C/C++ unit tests and upload coverage with Bazel
     runs-on: ubuntu-latest
-    env:
-      MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
-      - name: Run common tests
+      - name: Check Out Repo
+        # This is necessary for overlays into the Docker container below.
+        uses: actions/checkout@v2
+      - name: Bazel Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+      - name: Bazel Cache Repo
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+      - name: Build C / C++ code with Bazel
         uses: addnab/docker-run-action@v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
-            cd /workspaces/magma/lte/gateway
-            make test_common
-      - name: Run session_manager tests
-        timeout-minutes: 10
+            cd /workspaces/magma
+            bazel build //orc8r/gateway/c/...:* //lte/gateway/c/...:*
+      - name: Test C / C++ code with Bazel
+        uses: addnab/docker-run-action@v2
+        with:
+          shell: bash
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma
+            bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* --test_output=errors
+            TEST_RESULT=$?
+            # copy out test results
+            mkdir -p c-cpp-test-results/
+            echo "created c-cpp-test-results/ directory, copying out test result XMLs"
+            find bazel-out/k8-dbg/testlogs/ -name "*.xml" | while IFS= read -r f; do cp "$f" "c-cpp-test-results/${f//\//_}"; done
+            exit $TEST_RESULT
+      - name: Run coverage with Bazel
+        if: always()
         uses: addnab/docker-run-action@v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
-            cd /workspaces/magma/lte/gateway
-            make test_session_manager
+            cd /workspaces/magma
+            # Collecting coverage with Bazel can be slow. We can follow this thread to see if this can be improved: https://github.com/bazelbuild/bazel/issues/8178
+            bazel coverage //orc8r/gateway/c/...:* //lte/gateway/c/...:*
+            # copy out coverage information into magma so that it's accessible from the CI node
+            cp bazel-out/_coverage/_coverage_report.dat .
+      - name: Upload code coverage
+        if: always()
+        uses: codecov/codecov-action@v1
+        with:
+          flags: c_cpp_bazel
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results
+          path: c-cpp-test-results/
       - name: Extract commit title
         # yamllint enable
         if: failure() && github.event_name == 'push'
@@ -159,9 +205,9 @@ jobs:
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action session_manager_test failed"
+          SLACK_TITLE: "Github action c_cpp_unit_tests failed"
           SLACK_USERNAME: "AGW workflow"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title }}"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -175,15 +221,6 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - uses: actions/checkout@v2
-      - name: Run common tests
-        uses: addnab/docker-run-action@v2
-        with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
-          run: |
-            cd /workspaces/magma/lte/gateway
-            make test_common
       - name: Run li agent tests
         timeout-minutes: 5
         uses: addnab/docker-run-action@v2
@@ -213,54 +250,6 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
 
-  connection-tracker-test:
-    needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    name: connection tracker test job
-    runs-on: ubuntu-latest
-    env:
-      MAGMA_ROOT: "${{ github.workspace }}"
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build connection tracker with BUILD_TYPE=Debug
-        timeout-minutes: 5
-        uses: addnab/docker-run-action@v2
-        with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
-          run: |
-            cd /workspaces/magma/lte/gateway
-            make build_connection_tracker BUILD_TYPE=Debug
-      - name: Build connection tracker with BUILD_TYPE=RelWithDebInfo
-        timeout-minutes: 5
-        uses: addnab/docker-run-action@v2
-        with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
-          run: |
-            cd /workspaces/magma/lte/gateway
-            make build_connection_tracker BUILD_TYPE=RelWithDebInfo
-      - name: Extract commit title
-        # yamllint enable
-        if: failure() && github.event_name == 'push'
-        id: commit
-        run: |
-            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action connection-tracker-test failed"
-          SLACK_USERNAME: "AGW workflow"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-
   mme_test:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
@@ -270,15 +259,6 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - uses: actions/checkout@v2
-      - name: Run common tests
-        uses: addnab/docker-run-action@v2
-        with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
-          run: |
-            cd /workspaces/magma/lte/gateway
-            make test_common
       - name: Run sctpd tests with Debug build type
         uses: addnab/docker-run-action@v2
         with:
@@ -364,14 +344,15 @@ jobs:
             docker build --tag magma-mme-build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
             docker run --env BRANCH=${{ env.BRANCH }} --env REVISION=${{ env.REVISION }} --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
       - name: Run codecov
-        continue-on-error: true
-        if: always()
-        id: c-cpp-codecov
         # yamllint disable rule:line-length
         run: |
             docker build --tag magma/c_cpp_build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
             ci_env=$(bash <(curl -s https://codecov.io/env))
-            docker run $ci_env --env CI=true --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info -F c_cpp"
+            docker run $ci_env --env CI=true --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;cp /build/c/coverage.info /magma/"
+      - name: Upload code coverage
+        uses: codecov/codecov-action@v1
+        with:
+          flags: c_cpp
       - name: Extract commit title
         # yamllint enable
         if: failure() && github.event_name == 'push'
@@ -409,6 +390,36 @@ jobs:
           SLACK_TITLE: "Github action mme-clang-tidy failed"
           SLACK_USERNAME: "AGW workflow"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+
+  lint-clang-format:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: DoozyX/clang-format-lint-action@v0.12
+        with:
+          source: 'orc8r/gateway/c lte/gateway/c'
+          extensions: 'h,hpp,c,cpp'
+          clangFormatVersion: 7
+          style: file
+      - name: Extract commit title
+        id: commit
+        if: failure() && github.event_name == 'push'
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "lint-clang-format check failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "Feg workflow"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
