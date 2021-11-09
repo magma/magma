@@ -113,7 +113,7 @@ jobs:
       - name: Build AGW
         run: |
           cd lte/gateway
-          fab release package:vcs=git
+          fab release package:vcs=git,destroy_vm=True
           mkdir magma-packages
           vagrant ssh -c "cp -r magma-packages /vagrant"
       - name: Publish debian packages
