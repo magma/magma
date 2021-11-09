@@ -74,9 +74,7 @@ func main() {
 
 		stateServicer := newStateServicer(store)
 		protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
-
 		indexerManagerServer := newSingletonIndexerManagerServicer(srv.Config, db, store)
-
 		indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
 	}
 

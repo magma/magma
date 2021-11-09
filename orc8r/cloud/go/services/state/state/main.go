@@ -61,7 +61,6 @@ func main() {
 	}
 
 	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
-
 	if !singletonReindex {
 		db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
 		if err != nil {
@@ -75,9 +74,7 @@ func main() {
 
 		stateServicer := newStateServicer(store)
 		protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
-
 		indexerManagerServer := newIndexerManagerServicer(srv.Config, db, store)
-
 		indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
 	}
 
