@@ -203,10 +203,10 @@ Status SpgwServiceImpl::DeleteBearer(
   itti_msg.imsi_length = imsi.size();
   strcpy(itti_msg.imsi, imsi.c_str());
   itti_msg.lbi           = request->link_bearer_id();
-  itti_msg.no_of_bearers = 1;
+  itti_msg.no_of_bearers = request->eps_bearer_ids_size();
   for (int i = 0; i < request->eps_bearer_ids_size() && i < BEARERS_PER_UE;
        i++) {
-    itti_msg.ebi[0] = request->eps_bearer_ids(i);
+    itti_msg.ebi[i] = request->eps_bearer_ids(i);
     send_deactivate_bearer_request_itti(&itti_msg);
   }
   return Status::OK;
