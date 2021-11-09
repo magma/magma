@@ -10,10 +10,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+MODE=$1
 WHOAMI=$(whoami)
 MAGMA_USER="ubuntu"
 MAGMA_VERSION="${MAGMA_VERSION:-master}"
-GIT_URL="${GIT_URL:-https://github.com/magma/magma.git}"
+GIT_URL="${GIT_URL:-https://github.com/ymasmoudi/magma.git}"
 DEPLOY_PATH="/opt/magma/lte/gateway/deploy"
 
 echo "Checking if the script has been executed by root user"
@@ -53,12 +54,17 @@ rm -rf /opt/magma/
 git clone "${GIT_URL}" /opt/magma
 cd /opt/magma || exit
 git checkout "$MAGMA_VERSION"
+git checkout agwc_eks_orchestration_support
+
 
 echo "Generating localhost hostfile for Ansible"
 echo "[agw_docker]
 127.0.0.1 ansible_connection=local" > $DEPLOY_PATH/agw_hosts
 
-# install magma and its dependencies including OVS.
-su - $MAGMA_USER -c "sudo ansible-playbook -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags agwc $DEPLOY_PATH/magma_docker.yml"
-
+if [ "$MODE" == "eks" ]; then
+  su - $MAGMA_USER -c "sudo ansible-playbook -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags eks $DEPLOY_PATH/magma_docker.yml"
+else
+  # install magma and its dependencies including OVS.
+  su - $MAGMA_USER -c "sudo ansible-playbook -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags agwc $DEPLOY_PATH/magma_docker.yml"
+fi
 cd /root || exit
