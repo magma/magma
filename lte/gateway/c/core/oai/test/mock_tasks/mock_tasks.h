@@ -56,6 +56,7 @@ class MockMmeAppHandler {
   MOCK_METHOD1(
       mme_app_handle_nw_init_bearer_deactv_req,
       bool(itti_s11_nw_init_deactv_bearer_request_t db_req));
+  MOCK_METHOD0(nas_proc_dl_transfer_rej, void());
 };
 
 class MockSctpHandler {
