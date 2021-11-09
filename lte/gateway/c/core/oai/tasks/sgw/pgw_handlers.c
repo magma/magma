@@ -395,7 +395,7 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
                 no_of_bearers_rej++;
               }
             }
-            break; // while (node)
+            break;  // while (node)
           }
         }
       }
