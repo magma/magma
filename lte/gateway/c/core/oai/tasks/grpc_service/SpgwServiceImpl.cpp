@@ -206,7 +206,7 @@ Status SpgwServiceImpl::DeleteBearer(
   itti_msg.no_of_bearers = 1;
   for (int i = 0; i < request->eps_bearer_ids_size() && i < BEARERS_PER_UE;
        i++) {
-    itti_msg.ebi[0] = request->eps_bearer_ids(i);
+    itti_msg.ebi[i] = request->eps_bearer_ids(i);
     send_deactivate_bearer_request_itti(&itti_msg);
   }
   return Status::OK;
