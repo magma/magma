@@ -1,6 +1,12 @@
 ---
 name: "Dockerfile Push"
 on:  # yamllint disable-line rule:truthy
+  pull_request:
+    paths:
+      - .devcontainer/Dockerfile
+      - .github/workflows/docker-push.yml
+      - lte/gateway/docker/mme/Dockerfile.ubuntu20.04
+      - lte/gateway/docker/python-precommit/Dockerfile
   push:
     branches:
       - master
