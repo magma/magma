@@ -34,7 +34,7 @@ class TestEpsBearerContextStatusDefBearerDeact(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_eps_bearer_context_status_def_bearer_deact(self):
-        """Attach a single UE. Create 2 secondary PDNs and 2
+        """Attach a single UE. Create 2 secondary PDNs and add 2
         dedicated bearers to the secondary PDNs.Send EPS bearer context status
         IE in TAU request with only default bearer i.e bearer id 5 as active
         """
