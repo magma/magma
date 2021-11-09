@@ -11,7 +11,9 @@
  * limitations under the License.
  */
 
-#include "spgw_test_util.h"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
+
+#include <cstdint>
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
@@ -27,9 +29,9 @@ namespace lte {
 
 extern task_zmq_ctx_t task_zmq_ctx_main_spgw;
 
-bool expect_num_sessions(
-    spgw_state_t* spgw_state, unsigned long int imsi64,
-    int expected_num_ue_contexts, int expected_num_teids) {
+bool is_num_sessions_valid(
+    spgw_state_t* spgw_state, uint64_t imsi64, int expected_num_ue_contexts,
+    int expected_num_teids) {
   hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
   if (state_ue_ht->num_elements != expected_num_ue_contexts) {
     return false;

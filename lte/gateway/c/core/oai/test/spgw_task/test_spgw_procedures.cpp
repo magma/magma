@@ -12,26 +12,25 @@
  */
 
 #include <gtest/gtest.h>
+#include <cstdint>
 #include <string>
 #include <thread>
 
-#include "../mock_tasks/mock_tasks.h"
-#include "3gpp_29.274.h"
-#include "common_defs.h"
-#include "common_types.h"
-#include "hashtable.h"
-#include "s11_messages_types.h"
-#include "spgw_test_util.h"
-
-#include "spgw_types.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 
 extern "C" {
-#include "mme_config.h"
-#include "pgw_handlers.h"
-
-#include "sgw_defs.h"
-#include "sgw_handlers.h"
-#include "spgw_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
 }
 
 extern bool hss_associated;
@@ -97,9 +96,9 @@ class SPGWAppProcedureTest : public ::testing::Test {
 
  protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
-  std::string test_imsi_str          = "001010000000001";
-  unsigned long long int test_imsi64 = 1010000000001;
-  plmn_t test_plmn                   = {.mcc_digit2 = 0,
+  std::string test_imsi_str = "001010000000001";
+  uint64_t test_imsi64      = 1010000000001;
+  plmn_t test_plmn          = {.mcc_digit2 = 0,
                       .mcc_digit1 = 0,
                       .mnc_digit3 = 0x0f,
                       .mcc_digit3 = 1,
@@ -188,7 +187,7 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
   ASSERT_EQ(return_code, RETURNok);
 
   // verify that exactly one session exists in SPGW state
-  ASSERT_TRUE(expect_num_sessions(spgw_state, test_imsi64, 1, 1));
+  ASSERT_TRUE(is_num_sessions_valid(spgw_state, test_imsi64, 1, 1));
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -324,7 +323,7 @@ TEST_F(SPGWAppProcedureTest, TestModifyBearerFailure) {
   ASSERT_EQ(return_code, RETURNok);
 
   // verify that no session exists in SPGW state
-  ASSERT_TRUE(expect_num_sessions(spgw_state, test_imsi64, 0, 0));
+  ASSERT_TRUE(is_num_sessions_valid(spgw_state, test_imsi64, 0, 0));
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -403,7 +402,7 @@ TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
   ASSERT_EQ(return_code, RETURNok);
 
   // verify that exactly one session exists in SPGW state
-  ASSERT_TRUE(expect_num_sessions(spgw_state, test_imsi64, 1, 1));
+  ASSERT_TRUE(is_num_sessions_valid(spgw_state, test_imsi64, 1, 1));
 
   // create sample delete session request
   itti_s11_delete_session_request_t sample_delete_session_request = {};
@@ -418,7 +417,7 @@ TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
   ASSERT_EQ(return_code, RETURNok);
 
   // verify SPGW state is cleared
-  ASSERT_TRUE(expect_num_sessions(spgw_state, test_imsi64, 0, 0));
+  ASSERT_TRUE(is_num_sessions_valid(spgw_state, test_imsi64, 0, 0));
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }

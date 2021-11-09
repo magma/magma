@@ -12,12 +12,12 @@
  */
 #include <string>
 
-#include "spgw_state.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
 
 extern "C" {
-#include "intertask_interface.h"
-#include "sgw_context_manager.h"
-#include "sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 }
 
 namespace magma {
@@ -37,9 +37,9 @@ namespace lte {
 #define DEFAULT_EDNS_IP 0x7f000001  // localhost
 #define DEFAULT_SGW_IP 0x7f000001   // localhost
 
-bool expect_num_sessions(
-    spgw_state_t* spgw_state, unsigned long int imsi64,
-    int expected_num_ue_contexts, int expected_num_teids);
+bool is_num_sessions_valid(
+    spgw_state_t* spgw_state, uint64_t imsi64, int expected_num_ue_contexts,
+    int expected_num_teids);
 
 void fill_create_session_request(
     itti_s11_create_session_request_t* session_request_p,
