@@ -9,11 +9,51 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
+load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier", "buildifier_test")
 load("@bazel_gazelle//:def.bzl", "gazelle")
 
 buildifier(
     name = "buildifier",
+    lint_mode = "fix",
+    mode = "fix",
+)
+
+buildifier_test(
+    name = "check_starlark_format",
+    size = "small",
+    timeout = "short",
+    srcs = ["//:starlark_files"],
+)
+
+filegroup(
+    name = "starlark_files",
+    srcs = glob(
+        include = [
+            "**/*.BUILD",
+            "**/*.bzl",
+            "**/*.sky",
+            "**/BUILD",
+            "**/BUILD.*.bazel",
+            "**/BUILD.*.oss",
+            "**/BUILD.bazel",
+            "**/WORKSPACE",
+            "**/WORKSPACE.*.bazel",
+            "**/WORKSPACE.*.oss",
+            "**/WORKSPACE.bazel",
+            "*.BUILD",
+            "*.bzl",
+            "*.sky",
+            "BUILD.*.bazel",
+            "BUILD.*.oss",
+            "WORKSPACE.*.bazel",
+            "WORKSPACE.*.oss",
+        ],
+        exclude = [
+            "bazel-*/**",
+            ".git/**",
+            "go_repositories.bzl",  # generated file
+        ],
+    ),
 )
 
 # gazelle:prefix github.com/magma/magma

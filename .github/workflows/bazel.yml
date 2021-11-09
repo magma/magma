@@ -27,7 +27,7 @@ jobs:
   path_filter:
     runs-on: ubuntu-latest
     outputs:
-      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+      files_changed: ${{ steps.changes.outputs.files_changed }}
     steps:
       # Need to get git on push event
       - uses: dorny/paths-filter@v2
@@ -35,8 +35,17 @@ jobs:
         id: changes
         with:
           filters: |
-            filesChanged:
-              - [".github/workflows/bazel.yml", "lte/gateway/c/**", "orc8r/gateway/c/**", "orc8r/protos/**", "lte/protos/**", "src/go/**"]
+            files_changed:
+              - '.github/workflows/bazel.yml'
+              - 'orc8r/gateway/c/**'
+              - 'orc8r/protos/**'
+              - 'lte/gateway/c/**'
+              - 'lte/protos/**'
+              - 'src/go/**'
+              - '**/BUILD'
+              - '**/*.BUILD'
+              - '**/*.bazel'
+              - '**/*.bzl'
 
   bazel_build_and_test:
     needs: path_filter
@@ -44,7 +53,7 @@ jobs:
     # or a pull_request that skip-duplicate-action wants to run again.
     if: |
       (github.event_name == `schedule` && github.ref == 'refs/heads/master')
-        || ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+        || ${{ needs.path_filter.outputs.files_changed == 'true' }}
     name: Bazel Build and Test Job
     runs-on: ubuntu-latest
     steps:
@@ -89,23 +98,29 @@ jobs:
               echo "Cache exceeds cut-off; resetting it (will result in a slow build)"
               rm -rf $EXPANDED_BAZEL_CACHE_PATH $EXPANDED_BAZEL_CACHE_REPO_PATH
             fi
-
-        - name: Bazel Build
+        - name: Setup Devcontainer Image
+          uses: addnab/docker-run-action@v2
+          with:
+            image: ${{ env.DEVCONTAINER_IMAGE }}
+            # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+            run: |
+              echo "Pulled the devontainer image!"
+        - name: Run `bazel build //...`
           uses: addnab/docker-run-action@v2
           with:
             image: ${{ env.DEVCONTAINER_IMAGE }}
             # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-            options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
+            options: -v ${{ github.workspace }}:/workspaces/magma/
             run: |
               cd /workspaces/magma
-              bazel build ...
-        - name: Bazel Test
+              bazel build //...
+        - name: Run `bazel test //...`
           if: github.event_name == 'pull_request'
           uses: addnab/docker-run-action@v2
           with:
             image: ${{ env.DEVCONTAINER_IMAGE }}
             # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-            options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
+            options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
             run: |
               cd /workspaces/magma
-              bazel test ... --test_output=errors --cache_test_results=no
+              bazel test //... --test_output=errors --cache_test_results=no
