@@ -54,10 +54,9 @@ func (r *reindexerSingleton) Run(ctx context.Context) {
 			return
 		}
 
-		jobs, err := r.getJobs(indexerID)
-		if err == nil && jobs != nil {
-			batches := r.getReindexBatches(ctx)
-			r.reindexJobs(ctx, jobs, batches, sendUpdate)
+		err := r.findAndReindexJobs(ctx, indexerID, sendUpdate)
+		if err != nil {
+			glog.Errorf("Failed to getJobs for indexerID %s: %v", indexerID, err)
 		}
 
 		clock.Sleep(reindexLoopInterval)
@@ -75,6 +74,18 @@ func (r *reindexerSingleton) RunUnsafe(ctx context.Context, indexerID string, se
 
 	batches := r.getReindexBatches(ctx)
 	return r.reindexJobs(ctx, jobs, batches, sendUpdate)
+}
+
+func (r *reindexerSingleton) findAndReindexJobs(ctx context.Context, indexerID string, sendUpdate func(string)) error {
+	jobs, err := r.getJobs(indexerID)
+	if err != nil {
+		return err
+	}
+	if jobs != nil {
+		batches := r.getReindexBatches(ctx)
+		r.reindexJobs(ctx, jobs, batches, sendUpdate)
+	}
+	return nil
 }
 
 // getReindexBatches gets network-segregated reindex batches with capped number of state IDs per batch.

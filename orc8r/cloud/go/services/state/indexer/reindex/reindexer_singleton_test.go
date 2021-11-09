@@ -56,7 +56,10 @@ func TestSingletonRun(t *testing.T) {
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
 
-	cancel, reindexer := initSingletonReindexTest(t)
+	reindexer := initSingletonReindexTest(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go reindexer.Run(ctx)
 
 	// Single indexer
 	idx0 := getIndexer(id0, zero, version0, true)
@@ -87,7 +90,27 @@ func TestSingletonRun(t *testing.T) {
 	require.Equal(t, reindexSuccessNum, 2)
 	require.Equal(t, reindexDoneNum, 2)
 
+	// Test that a network/hardware pair that has been added after Run
+	// will have its states reindexed as well
+
+	reportMoreState(t)
+
+	idx5 := getIndexerNoIndex(id5, zero, version5, true)
+	idx5.On("GetTypes").Return(allTypes).Once()
+	idx5.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(newNBatches)
+	// Register indexers
+	register(t, idx5)
+
+	// Check
+	recvCh(t, ch)
+	recvNoCh(t, ch)
+
+	idx5.AssertExpectations(t)
+	require.Equal(t, 3, reindexSuccessNum)
+	require.Equal(t, 3, reindexDoneNum)
+
 	// Indexer returns err => reindex jobs fail
+
 	// Fail1 at PrepareReindex
 	fail1 := getBasicIndexer(id1, version1)
 	fail1.On("GetTypes").Return(allTypes).Once()
@@ -103,7 +126,7 @@ func TestSingletonRun(t *testing.T) {
 	fail3 := getBasicIndexer(id3, version3)
 	fail3.On("GetTypes").Return(allTypes).Once()
 	fail3.On("PrepareReindex", zero, version3, true).Return(nil).Once()
-	fail3.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nBatches)
+	fail3.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(newNBatches)
 	fail3.On("CompleteReindex", zero, version3).Return(someErr3).Once()
 
 	// Register indexers
@@ -113,38 +136,20 @@ func TestSingletonRun(t *testing.T) {
 	recvCh(t, ch)
 	recvCh(t, ch)
 	recvCh(t, ch)
-
-	// Unregister indexers
-	register(t)
 	cancel()
 	recvNoCh(t, ch)
 
 	fail1.AssertExpectations(t)
 	fail2.AssertExpectations(t)
 	fail3.AssertExpectations(t)
-	require.Equal(t, 2, reindexSuccessNum)
-	require.Equal(t, 5, reindexDoneNum)
-
-	// Test that a network/hardware pair that has been added after Run will
-	// still be considered and will have its states reindexed as well
-	addNetworks(t, reindexer)
-
-	idx5 := getIndexerNoIndex(id5, zero, indexer.Version(version5), true)
-	idx5.On("GetTypes").Return(allTypes).Once()
-	idx5.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(4 * 3)
-	// Register indexers
-	register(t, idx5)
-
-	// Check
-	recvCh(t, ch)
-	recvNoCh(t, ch)
-
-	idx5.AssertExpectations(t)
 	require.Equal(t, 3, reindexSuccessNum)
 	require.Equal(t, 6, reindexDoneNum)
 }
 
-func initSingletonReindexTest(t *testing.T) (context.CancelFunc, reindex.Reindexer) {
+// initSingletonReindexTest reports enough directory records to cause 3 batches per network
+// (with the +1 gateway status per network). It creates 3 networks,
+// so numBatches following this method will be 3 * 3 = 9
+func initSingletonReindexTest(t *testing.T) reindex.Reindexer {
 	indexer.DeregisterAllForTest(t)
 
 	configurator_test_init.StartTestService(t)
@@ -157,13 +162,12 @@ func initSingletonReindexTest(t *testing.T) (context.CancelFunc, reindex.Reindex
 	configurator_test.RegisterGateway(t, nid1, hwid1, &models.GatewayDevice{HardwareID: hwid1})
 	configurator_test.RegisterGateway(t, nid2, hwid2, &models.GatewayDevice{HardwareID: hwid2})
 
+	reindexer := state_test_init.StartTestSingletonServiceInternal(t)
 	ctxByNetwork := map[string]context.Context{
 		nid0: state_test.GetContextWithCertificate(t, hwid0),
 		nid1: state_test.GetContextWithCertificate(t, hwid1),
 		nid2: state_test.GetContextWithCertificate(t, hwid2),
 	}
-
-	reindexer := state_test_init.StartTestSingletonServiceInternal(t)
 
 	// Report enough directory records to cause 3 batches per network (with the +1 gateway status per network)
 	for _, nid := range []string{nid0, nid1, nid2} {
@@ -184,16 +188,13 @@ func initSingletonReindexTest(t *testing.T) (context.CancelFunc, reindex.Reindex
 		reportGatewayStatus(t, ctxByNetwork[nid], gwStatus)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	go reindexer.Run(ctx)
-
-	return cancel, reindexer
+	return reindexer
 }
 
-func addNetworks(t *testing.T, reindexer reindex.Reindexer) {
-	ctx, _ := context.WithCancel(context.Background())
-	go reindexer.Run(ctx)
-
+// reportMoreState reports enough directory records to cause 3 batches per network
+// (with the +1 gateway status per network). It adds an extra network from 3 -> 4),
+// so numBatches following this method will be 3 * 4 = 12
+func reportMoreState(t *testing.T) {
 	configurator_test.RegisterNetwork(t, nid3, "Network 3 for reindex test")
 	configurator_test.RegisterGateway(t, nid3, hwid3, &models.GatewayDevice{HardwareID: hwid3})
 
@@ -201,7 +202,6 @@ func addNetworks(t *testing.T, reindexer reindex.Reindexer) {
 		nid3: state_test.GetContextWithCertificate(t, hwid3),
 	}
 
-	// Report enough directory records to cause 3 batches per network (with the +1 gateway status per network)
 	for _, nid := range []string{nid3} {
 		var records []*directoryd_types.DirectoryRecord
 		var deviceIDs []string
