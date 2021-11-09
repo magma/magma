@@ -13,13 +13,27 @@
 #pragma once
 
 #include <feg/gateway/services/aaa/protos/accounting.grpc.pb.h>
-
+#include <stdint.h>
+#include <functional>
 #include <memory>
 #include <string>
 
-#include "includes/GRPCReceiver.h"
 #include "SessionState.h"
 #include "SessionStore.h"
+#include "StoreClient.h"
+#include "includes/GRPCReceiver.h"
+
+namespace aaa {
+namespace protos {
+class acct_resp;
+class add_sessions_request;
+class terminate_session_request;
+}  // namespace protos
+}  // namespace aaa
+namespace grpc {
+class Channel;
+class Status;
+}  // namespace grpc
 
 using grpc::Status;
 

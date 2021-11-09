@@ -595,8 +595,14 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             ),
             call.set_parameter('sas_location', 'indoor'),
             call.set_parameter('sas_height_type', 'AMSL'),
+            call.set_parameter_for_object(
+                param_name='PLMN 1 cell reserved',
+                value=True, object_name='PLMN 1',
+            ),
         ]
-        self.assertEqual(cfg_desired.mock_calls.sort(), expected.sort())
+        cfg_desired.mock_calls.sort()
+        expected.sort()
+        self.assertEqual(cfg_desired.mock_calls, expected)
 
         # Check without sas config
         service_cfg = {
@@ -627,8 +633,14 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             call.set_parameter('carrier_number', 2),
             call.set_parameter('contiguous_cc', 0),
             call.set_parameter('web_ui_enable', False),
+            call.set_parameter_for_object(
+                param_name='PLMN 1 cell reserved',
+                value=True, object_name='PLMN 1',
+            ),
         ]
-        self.assertEqual(cfg_desired.mock_calls.sort(), expected.sort())
+        cfg_desired.mock_calls.sort()
+        expected.sort()
+        self.assertEqual(cfg_desired.mock_calls, expected)
 
         service_cfg['web_ui_enable_list'] = ["2006CW5000023"]
 
@@ -646,15 +658,19 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             call.set_parameter('contiguous_cc', 0),
             call.set_parameter('web_ui_enable', False),
             call.set_parameter('web_ui_enable', True),
+            call.set_parameter_for_object(
+                param_name='PLMN 1 cell reserved',
+                value=True, object_name='PLMN 1',
+            ),
         ]
         cfg_desired = Mock()
         cfg_init.postprocess(
             EnodebConfigBuilder.get_mconfig(),
             service_cfg, cfg_desired,
         )
-        print(cfg_desired.mock_calls)
-        print(type(cfg_desired.mock_calls))
-        self.assertEqual(cfg_desired.mock_calls.sort(), expected.sort())
+        cfg_desired.mock_calls.sort()
+        expected.sort()
+        self.assertEqual(cfg_desired.mock_calls, expected)
 
     @patch('magma.configuration.service_configs.CONFIG_DIR', SRC_CONFIG_DIR)
     def test_service_cfg_parsing(self):

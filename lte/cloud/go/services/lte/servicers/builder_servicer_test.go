@@ -148,8 +148,8 @@ func TestBuilder_Build(t *testing.T) {
 			SentryConfig: &lte_mconfig.SentryConfig{
 				SampleRate:   0.75,
 				UploadMmeLog: true,
-				UrlPython:    "https://www.example.com/v1/api",
-				UrlNative:    "https://www.example.com/v1/api",
+				DsnPython:    "https://www.example.com/v1/api",
+				DsnNative:    "https://www.example.com/v1/api",
 			},
 			Enable5GFeatures: false,
 		},
@@ -188,8 +188,8 @@ func TestBuilder_Build(t *testing.T) {
 			SentryConfig: &lte_mconfig.SentryConfig{
 				SampleRate:   0.75,
 				UploadMmeLog: true,
-				UrlPython:    "https://www.example.com/v1/api",
-				UrlNative:    "https://www.example.com/v1/api",
+				DsnPython:    "https://www.example.com/v1/api",
+				DsnNative:    "https://www.example.com/v1/api",
 			},
 			Enable5GFeatures: false,
 		},
@@ -1652,7 +1652,7 @@ func newGatewayConfigNonNat(vlan string, sgi_ip string, sgi_gw string, sgi_ipv6 
 			SgiManagementIfaceVlan:     vlan,
 			SgiManagementIfaceStaticIP: sgi_ip,
 			SgiManagementIfaceGw:       sgi_gw,
-			SgiManagementIfaceIPV6Addr: strfmt.IPv6(sgi_ipv6),
+			SgiManagementIfaceIPV6Addr: sgi_ipv6,
 			SgiManagementIfaceIPV6Gw:   strfmt.IPv6(sgi_ipv6_gw),
 		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{

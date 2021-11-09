@@ -118,11 +118,14 @@ def get_next_available_gateway_id(
     Returns:
         Next available gateway ID in the form gwN
     """
-    # gateways is a dict mapping gw ID to full resource
-    gateways = cloud_get(
+    # res is a dict mapping gw ID to full resource
+    res = cloud_get(
         f'networks/{network_id}/gateways',
         admin_cert=admin_cert,
     )
+
+    # res could also return paginated gateways, so need to unwrap the mapping
+    gateways = res.get('gateways', res)
 
     n = len(gateways) + 1
     candidate = f'gw{n}'

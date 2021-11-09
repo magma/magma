@@ -94,6 +94,8 @@ services:
       TEST_MODE: "1"
       RESOLVER: 127.0.0.11
       SERVICE_REGISTRY_MODE: yaml
+    depends_on:
+      - controller
     restart: always
 #    logging:
 #      driver: fluentd

@@ -24,8 +24,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "bstrlib.h"
-#include "TLVDecoder.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 
 int errorCodeDecoder = 0;
 

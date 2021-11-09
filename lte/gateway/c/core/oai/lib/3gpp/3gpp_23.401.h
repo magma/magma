@@ -39,17 +39,17 @@
 
 #include <stdint.h>
 
-#include "hashtable.h"
-#include "obj_hashtable.h"
-#include "queue.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
+#include "lte/gateway/c/core/oai/common/queue.h"
 
-#include "3gpp_23.003.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
-#include "common_types.h"
-#include "s11_messages_types.h"
-#include "gx_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/gx_messages_types.h"
 
 //==============================================================================
 // 5.7 Information storage
@@ -107,6 +107,8 @@ typedef struct sgw_eps_bearer_ctxt_s {
   char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
   uint32_t sgw_sequence_number;
   char* pgw_cp_ip_port;
+  bool update_teids;  // this is purely for optimization purposes and can be
+                      // safely initialized to true
 } sgw_eps_bearer_ctxt_t;
 
 typedef struct sgw_pdn_connection_s {

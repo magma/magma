@@ -2,27 +2,11 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "(Bazel) Refresh Compilation Database And Restart Clangd",
-            "type": "shell",
-            "command": "echo 'Regenerated compilation database and restarted clangd!'",
-            "dependsOrder": "sequence",
-            "dependsOn": [
-                "bsv.cc.compdb.generate",
-                "clangd.restart"
-            ],
-            "runOptions": {
-                "runOn": "folderOpen"
-            },
-            "problemMatcher": []
-        },
-        {
             "label": "(Bazel) Build All",
             "type": "shell",
             "command": "bazel",
             "args": [
                 "build",
-                "-c",
-                "dbg",
                 "..."
             ],
             "group": {
@@ -36,12 +20,33 @@
             "command": "bazel",
             "args": [
                 "build",
-                "--config=${env:VSCODE_BAZEL_BUILD_CONFIG}",
-                "-c",
-                "dbg",
                 "//lte/gateway/c/session_manager/test:all"
             ],
-            "group": "build"
+            "group": "build",
+        },
+        {
+            "label": "Set compile_commands.json for IntelliSense (make sure you have run `make build_X`!)",
+            "type": "shell",
+            "command": "rm compile_commands.json || true && ln -s ${input:pickCompileCommandsFile} ${workspaceFolder}/compile_commands.json",
+            "problemMatcher": []
+        },
+        {
+            "label": "Activate clangd extension on workspace startup",
+            "command": "${command:clangd.activate}",
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        },
+    ],
+    "inputs": [
+        {
+            "id": "pickCompileCommandsFile",
+            "type": "command",
+            "command": "shellCommand.execute",
+            "args": {
+                "description": "Pick a compile_commands.json",
+                "command": "sudo find ${env:C_BUILD} -name 'compile_commands.json'",
+            },
         }
     ]
 }

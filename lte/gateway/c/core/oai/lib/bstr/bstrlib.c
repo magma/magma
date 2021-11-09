@@ -22,7 +22,7 @@
 #include <ctype.h>
 #include <limits.h>
 
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 /* Optionally include a mechanism for debugging memory */
 

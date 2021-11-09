@@ -34,6 +34,9 @@ type Subscriber struct {
 	// Required: true
 	Config *SubscriberConfig `json:"config"`
 
+	// forbidden network types
+	ForbiddenNetworkTypes CoreNetworkTypes `json:"forbidden_network_types,omitempty"`
+
 	// id
 	// Required: true
 	ID models1.SubscriberID `json:"id"`
@@ -76,6 +79,10 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateConfig(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateForbiddenNetworkTypes(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -182,6 +189,22 @@ func (m *Subscriber) validateConfig(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *Subscriber) validateForbiddenNetworkTypes(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ForbiddenNetworkTypes) { // not required
+		return nil
+	}
+
+	if err := m.ForbiddenNetworkTypes.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("forbidden_network_types")
+		}
+		return err
 	}
 
 	return nil

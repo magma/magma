@@ -36,11 +36,11 @@ const (
 )
 
 type certifierBlobstore struct {
-	factory blobstore.BlobStorageFactory
+	factory blobstore.StoreFactory
 }
 
 // NewCertifierBlobstore returns an initialized instance of certifierBlobstore as CertifierStorage.
-func NewCertifierBlobstore(factory blobstore.BlobStorageFactory) CertifierStorage {
+func NewCertifierBlobstore(factory blobstore.StoreFactory) CertifierStorage {
 	return &certifierBlobstore{factory: factory}
 }
 
@@ -145,7 +145,7 @@ func (c *certifierBlobstore) PutCertInfo(serialNumber string, certInfo *protos.C
 	}
 
 	blob := blobstore.Blob{Type: CertInfoType, Key: serialNumber, Value: marshaledCertInfo}
-	err = store.CreateOrUpdate(placeholderNetworkID, blobstore.Blobs{blob})
+	err = store.Write(placeholderNetworkID, blobstore.Blobs{blob})
 	if err != nil {
 		return errors.Wrap(err, "failed to put certificate info")
 	}

@@ -297,10 +297,10 @@ int amf_proc_security_mode_control(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc                       = RETURNerror;
   bool security_context_is_new = false;
-  // TODO: Hardcoded values Will be taken care in upcoming PR
-  int amf_eea       = 0;
-  int amf_eia       = 0;  // Integrity Algorithm 2
-  uint8_t ak_sqn[6] = {0};
+  int amf_ea                   = M5G_NAS_SECURITY_ALGORITHMS_5G_EA0;
+  int amf_ia                   = M5G_NAS_SECURITY_ALGORITHMS_5G_IA0;
+  uint8_t snni[32]             = {0};
+  uint8_t ak_sqn[6]            = {0};
 
   OAILOG_DEBUG(
       LOG_NAS_AMF,
@@ -347,9 +347,13 @@ int amf_proc_security_mode_control(
       amf_ctx->_security.dl_count.overflow = 0;
       amf_ctx->_security.dl_count.seq_num  = 0;
 
-      rc                                                = RETURNok;
-      amf_ctx->_security.selected_algorithms.encryption = amf_eea;
-      amf_ctx->_security.selected_algorithms.integrity  = amf_eia;
+      // Compute NAS cyphering and integrity keys
+      rc = m5g_security_select_algorithms(
+          amf_ctx->ue_sec_capability.ia, amf_ctx->ue_sec_capability.ea, &amf_ia,
+          &amf_ea);
+      amf_ctx->_security.selected_algorithms.encryption = amf_ea;
+      amf_ctx->_security.selected_algorithms.integrity  = amf_ia;
+
       if (rc == RETURNerror) {
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
       }
@@ -501,6 +505,65 @@ int amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id) {
   }
   amf_app_handle_deregistration_req(ue_id);
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    m5g_security_select_algorithms()                              **
+ **                                                                        **
+ ** Description: Select int and enc algorithms based on UE capabilities and**
+ **      AMF capabilities and AMF preferences                              **
+ **                                                                        **
+ ** Inputs:  ue_capabilities:  security capabilities supported by UE       **
+ **                                                                        **
+ ** Outputs: amf_ia:     integrity algorithms supported by AMF             **
+ **          amf_ea:     ciphering algorithms supported by AMF             **
+ **                                                                        **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ***************************************************************************/
+
+int m5g_security_select_algorithms(
+    const int ue_iaP, const int ue_eaP, int* const amf_iaP,
+    int* const amf_eaP) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  int preference_index;
+
+  *amf_iaP = M5G_NAS_SECURITY_ALGORITHMS_5G_IA0;
+  *amf_eaP = M5G_NAS_SECURITY_ALGORITHMS_5G_EA0;
+
+  for (preference_index = 0; preference_index < 8; preference_index++) {
+    if (ue_iaP &
+        (0x80 >> amf_config.nas_config
+                     .preferred_integrity_algorithm[preference_index])) {
+      OAILOG_DEBUG(
+          LOG_NAS_AMF,
+          "Selected  NAS_SECURITY_ALGORITHMS_IA%d (choice num %d)\n",
+          amf_config.nas_config.preferred_integrity_algorithm[preference_index],
+          preference_index);
+      *amf_iaP =
+          amf_config.nas_config.preferred_integrity_algorithm[preference_index];
+      break;
+    }
+  }
+
+  for (preference_index = 0; preference_index < 8; preference_index++) {
+    if (ue_eaP &
+        (0x80 >> amf_config.nas_config
+                     .preferred_ciphering_algorithm[preference_index])) {
+      OAILOG_DEBUG(
+          LOG_NAS_AMF,
+          "Selected  NAS_SECURITY_ALGORITHMS_EA%d (choice num %d)\n",
+          amf_config.nas_config.preferred_ciphering_algorithm[preference_index],
+          preference_index);
+      *amf_eaP =
+          amf_config.nas_config.preferred_ciphering_algorithm[preference_index];
+      break;
+    }
+  }
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
 }  // namespace magma5g

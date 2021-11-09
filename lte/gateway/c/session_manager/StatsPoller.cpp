@@ -11,9 +11,13 @@
  * limitations under the License.
  */
 #include <stdint.h>
-#include <atomic>
+#include <chrono>
 #include <memory>
+#include <thread>
+
+#include "LocalEnforcer.h"
 #include "StatsPoller.h"
+
 #define COOKIE 0
 #define COOKIE_MASK 0
 

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "sctpd_event_handler.h"
+#include "lte/gateway/c/sctpd/src/sctpd_event_handler.h"
 
 #include <lte/protos/sctpd.grpc.pb.h>
 

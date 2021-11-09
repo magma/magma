@@ -13,8 +13,18 @@
 
 #pragma once
 #include <sstream>
-#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "hashtable.h"
+#include "obj_hashtable.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "amf_smfDefs.h"
+#include "amf_app_defs.h"
 
 namespace magma5g {
 /**

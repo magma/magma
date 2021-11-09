@@ -23,7 +23,7 @@
 //=====================================================================================================
 
 #include <iostream>
-#include "util_ngap_pkt.h"
+#include "lte/gateway/c/core/oai/test/ngap/util_ngap_pkt.h"
 
 uint8_t intialUeGuti[157] = {
     0x00, 0x0f, 0x40, 0x80, 0x98, 0x00, 0x00, 0x06, 0x00, 0x55, 0x00, 0x02,

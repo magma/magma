@@ -20,11 +20,11 @@ limitations under the License.
 #include <functional>
 #include <memory>
 
-#include "includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
 #include "feg/protos/s8_proxy.grpc.pb.h"
 
 extern "C" {
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
 namespace grpc {
 class Status;
@@ -54,6 +54,10 @@ class S8Client : public GRPCReceiver {
 
   static void s8_create_bearer_response(
       const CreateBearerResponsePgw& cbr_rsp,
+      std::function<void(grpc::Status, magma::orc8r::Void)> callback);
+
+  static void s8_delete_bearer_response(
+      const DeleteBearerResponsePgw& db_rsp,
       std::function<void(grpc::Status, magma::orc8r::Void)> callback);
 
  public:

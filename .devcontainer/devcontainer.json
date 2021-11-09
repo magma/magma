@@ -17,8 +17,9 @@
 		"coolchyni.beyond-debug",
 		"stackbuild.bazel-stack-vscode-cc",
 		"augustocdias.tasks-shell-input",
+		"ryuta46.multi-command",
 	],
-	"image": "ghcr.io/magma/devcontainer:sha-007ddb9",
+	"image": "ghcr.io/magma/devcontainer:sha-3c02c72",
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash",
 		"files.watcherExclude": {
@@ -47,7 +48,17 @@
 		"clangd.onConfigChanged": "restart",
 		// Update this field with any new targets that need compilation database generation
 		"bsv.cc.compdb.targets": [
-			"//lte/gateway/c/session_manager:sessiond"
+			"//lte/gateway/c/session_manager:sessiond",
+			"//lte/gateway/c/connection_tracker/src:main",
+		],
+		"multiCommand.commands": [
+			{
+				"command": "multiCommand.generateCcWithBazelAndRestartClangderror",
+				"sequence": [
+					"bsv.cc.compdb.generate",
+					"clangd.restart",
+				],
+			}
 		]
 	},
 	"mounts": [

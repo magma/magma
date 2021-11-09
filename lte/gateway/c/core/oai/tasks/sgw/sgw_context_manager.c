@@ -342,6 +342,15 @@ s_plus_p_gw_eps_bearer_context_information_t* sgw_cm_get_spgw_context(
   return spgw_bearer_context_info;
 }
 
+spgw_ue_context_t* spgw_get_ue_context(imsi64_t imsi64) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  spgw_ue_context_t* ue_context_p = NULL;
+  hash_table_ts_t* state_ue_ht    = get_spgw_ue_state();
+  hashtable_ts_get(
+      state_ue_ht, (const hash_key_t) imsi64, (void**) &ue_context_p);
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, ue_context_p);
+}
+
 spgw_ue_context_t* spgw_create_or_get_ue_context(imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   spgw_ue_context_t* ue_context_p = NULL;

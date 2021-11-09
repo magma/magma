@@ -11,9 +11,10 @@
  * limitations under the License.
  */
 #pragma once
+#include <stdint.h>
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
 
 namespace magma {
 

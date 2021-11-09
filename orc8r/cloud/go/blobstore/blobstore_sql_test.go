@@ -27,7 +27,7 @@ import (
 	merrors "magma/orc8r/lib/go/errors"
 )
 
-func TestSqlBlobStorage_Get(t *testing.T) {
+func TestSQLStore_Get(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
 			mock.ExpectQuery(
@@ -41,7 +41,7 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 				)
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+		run: func(store blobstore.Store) (interface{}, error) {
 			return store.Get("network", storage.TK{Type: "t1", Key: "k1"})
 		},
 
@@ -60,7 +60,7 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 				)
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+		run: func(store blobstore.Store) (interface{}, error) {
 			return store.Get("network", storage.TK{Type: "t2", Key: "k2"})
 		},
 
@@ -78,7 +78,7 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 				WillReturnError(errors.New("mock query error"))
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+		run: func(store blobstore.Store) (interface{}, error) {
 			return store.Get("network", storage.TK{Type: "t3", Key: "k3"})
 		},
 
@@ -90,7 +90,7 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 	runCase(t, queryError)
 }
 
-func TestSqlBlobStorage_GetMany(t *testing.T) {
+func TestSQLStore_GetMany(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
 			mock.ExpectQuery(
@@ -106,7 +106,7 @@ func TestSqlBlobStorage_GetMany(t *testing.T) {
 				)
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+		run: func(store blobstore.Store) (interface{}, error) {
 			return store.GetMany("network", storage.TKs{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
 		},
 
@@ -124,7 +124,7 @@ func TestSqlBlobStorage_GetMany(t *testing.T) {
 				WillReturnError(errors.New("mock query error"))
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+		run: func(store blobstore.Store) (interface{}, error) {
 			return store.GetMany("network", storage.TKs{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
 		},
 
@@ -136,7 +136,7 @@ func TestSqlBlobStorage_GetMany(t *testing.T) {
 	runCase(t, queryError)
 }
 
-func TestSqlBlobStorage_Search(t *testing.T) {
+func TestSQLStore_Search(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
 			mock.ExpectQuery("SELECT network_id, type, \"key\", version, value FROM network_table").
@@ -148,7 +148,7 @@ func TestSqlBlobStorage_Search(t *testing.T) {
 				)
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+		run: func(store blobstore.Store) (interface{}, error) {
 			return store.Search(
 				blobstore.CreateSearchFilter(strPtr("network"), []string{"t1", "t2", "t3"}, []string{"k1", "k2", "k3"}, nil),
 				blobstore.GetDefaultLoadCriteria(),
@@ -175,7 +175,7 @@ func TestSqlBlobStorage_Search(t *testing.T) {
 				)
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+		run: func(store blobstore.Store) (interface{}, error) {
 			return store.Search(
 				blobstore.CreateSearchFilter(strPtr("network"), []string{"t1", "t2"}, nil, strPtr("kprefix")),
 				blobstore.GetDefaultLoadCriteria(),
@@ -203,7 +203,7 @@ func TestSqlBlobStorage_Search(t *testing.T) {
 				)
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+		run: func(store blobstore.Store) (interface{}, error) {
 			return store.Search(
 				blobstore.CreateSearchFilter(nil, nil, nil, nil),
 				blobstore.GetDefaultLoadCriteria(),
@@ -233,7 +233,7 @@ func TestSqlBlobStorage_Search(t *testing.T) {
 				)
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+		run: func(store blobstore.Store) (interface{}, error) {
 			return store.Search(
 				blobstore.CreateSearchFilter(nil, []string{"t1", "t2", "t3"}, []string{"k1", "k2", "k3"}, nil),
 				blobstore.GetDefaultLoadCriteria(),
@@ -262,7 +262,7 @@ func TestSqlBlobStorage_Search(t *testing.T) {
 				)
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+		run: func(store blobstore.Store) (interface{}, error) {
 			return store.Search(
 				blobstore.CreateSearchFilter(nil, []string{"t1", "t2", "t3"}, []string{"k1", "k2", "k3"}, nil),
 				blobstore.LoadCriteria{LoadValue: false},
@@ -287,7 +287,7 @@ func TestSqlBlobStorage_Search(t *testing.T) {
 				WillReturnError(errors.New("mock error"))
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+		run: func(store blobstore.Store) (interface{}, error) {
 			return store.Search(
 				blobstore.CreateSearchFilter(strPtr("network"), []string{"t1", "t2", "t3"}, []string{"k1", "k2", "k3"}, nil),
 				blobstore.GetDefaultLoadCriteria(),
@@ -305,7 +305,7 @@ func TestSqlBlobStorage_Search(t *testing.T) {
 	runCase(t, queryError)
 }
 
-func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
+func TestSQLStore_CreateOrUpdate(t *testing.T) {
 	// (t1, k1) exists, (t2, k2) does not
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
@@ -328,8 +328,8 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 				WillReturnResult(sqlmock.NewResult(1, 1))
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			err := store.CreateOrUpdate(
+		run: func(store blobstore.Store) (interface{}, error) {
+			err := store.Write(
 				"network",
 				blobstore.Blobs{
 					{Type: "t1", Key: "k1", Value: []byte("goodbye"), Version: 0},
@@ -364,8 +364,8 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			updatePrepare.WillBeClosed()
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			err := store.CreateOrUpdate(
+		run: func(store blobstore.Store) (interface{}, error) {
+			err := store.Write(
 				"network",
 				blobstore.Blobs{
 					{Type: "t1", Key: "k1", Value: []byte("goodbye"), Version: 100},
@@ -395,8 +395,8 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 				WillReturnResult(sqlmock.NewResult(1, 1))
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			err := store.CreateOrUpdate(
+		run: func(store blobstore.Store) (interface{}, error) {
+			err := store.Write(
 				"network",
 				blobstore.Blobs{
 					{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 0},
@@ -427,8 +427,8 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			updatePrepare.WillBeClosed()
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			err := store.CreateOrUpdate(
+		run: func(store blobstore.Store) (interface{}, error) {
+			err := store.Write(
 				"network",
 				blobstore.Blobs{
 					{Type: "t1", Key: "k1", Value: []byte("goodbye"), Version: 0},
@@ -463,8 +463,8 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 				WillReturnError(errors.New("mock query error"))
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			err := store.CreateOrUpdate(
+		run: func(store blobstore.Store) (interface{}, error) {
+			err := store.Write(
 				"network",
 				blobstore.Blobs{
 					{Type: "t1", Key: "k1", Value: []byte("goodbye"), Version: 0},
@@ -485,7 +485,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 	runCase(t, insertError)
 }
 
-func TestSqlBlobStorage_Delete(t *testing.T) {
+func TestSQLStore_Delete(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
 			mock.ExpectExec("DELETE FROM network_table").
@@ -493,7 +493,7 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 				WillReturnResult(sqlmock.NewResult(1, 1))
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+		run: func(store blobstore.Store) (interface{}, error) {
 			err := store.Delete("network", storage.TKs{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
 			return nil, err
 		},
@@ -509,7 +509,7 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 				WillReturnError(errors.New("mock query error"))
 		},
 
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+		run: func(store blobstore.Store) (interface{}, error) {
 			err := store.Delete("network", storage.TKs{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
 			return nil, err
 		},
@@ -522,7 +522,7 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 	runCase(t, queryError)
 }
 
-func TestSqlBlobStorage_IncrementVersion(t *testing.T) {
+func TestSQLStore_IncrementVersion(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
 			mock.ExpectExec("INSERT INTO network_table \\(network_id,type,\"key\",version\\) "+
@@ -533,7 +533,7 @@ func TestSqlBlobStorage_IncrementVersion(t *testing.T) {
 				WithArgs("network", "t1", "k1", 1).
 				WillReturnResult(sqlmock.NewResult(1, 1))
 		},
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+		run: func(store blobstore.Store) (interface{}, error) {
 			err := store.IncrementVersion("network", storage.TK{Type: "t1", Key: "k1"})
 			return nil, err
 		},
@@ -544,13 +544,13 @@ func TestSqlBlobStorage_IncrementVersion(t *testing.T) {
 	runCase(t, happyPath)
 }
 
-func TestSqlBlobStorage_Integration(t *testing.T) {
+func TestSQLStore_Integration(t *testing.T) {
 	// Use an in-memory sqlite data store
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
-	fact := blobstore.NewSQLBlobStorageFactory("network_table", db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLStoreFactory("network_table", db, sqorc.GetSqlBuilder())
 	integration(t, fact)
 }
 
@@ -559,7 +559,7 @@ type testCase struct {
 	setup func(sqlmock.Sqlmock)
 
 	// run the test case
-	run func(blobstore.TransactionalBlobStorage) (interface{}, error)
+	run func(blobstore.Store) (interface{}, error)
 
 	expectedError      error
 	matchErrorInstance bool
@@ -572,7 +572,7 @@ func runCase(t *testing.T, test *testCase) {
 		t.Fatalf("Error opening stub DB conn: %s", err)
 	}
 
-	factory := blobstore.NewSQLBlobStorageFactory("network_table", db, sqorc.GetSqlBuilder())
+	factory := blobstore.NewSQLStoreFactory("network_table", db, sqorc.GetSqlBuilder())
 	expectCreateTable(mock)
 	err = factory.InitializeFactory()
 	assert.NoError(t, err)

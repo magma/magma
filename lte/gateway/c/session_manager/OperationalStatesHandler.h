@@ -13,7 +13,6 @@
 #pragma once
 
 #include <folly/dynamic.h>
-
 #include <list>
 #include <map>
 #include <memory>
@@ -22,6 +21,11 @@
 #include "SessionStore.h"
 
 namespace magma {
+class SessionState;
+namespace lte {
+class SessionStore;
+}  // namespace lte
+
 const std::string TYPE                   = "type";
 const std::string SUBSCRIBER_STATE_TYPE  = "subscriber_state";
 const std::string DEVICE_ID              = "device_id";

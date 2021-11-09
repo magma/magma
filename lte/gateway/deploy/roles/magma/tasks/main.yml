@@ -293,6 +293,16 @@
     dest: /etc/network/interfaces.d/gtp
   when: full_provision
 
+- name: Configure IPv6 address on eth0 interface
+  blockinfile:
+    block: |
+        iface eth0 inet6 static
+              address 2020::10/64
+              gateway 2020::1
+    insertafter: "iface eth0 inet dhcp"
+    path: "/etc/network/interfaces"
+  when: full_provision
+
 - name: Delete the OVS bridge on system initialization
   lineinfile: dest=/etc/default/openvswitch-switch regexp='.*OVS_CTL_OPTS=.*' line='OVS_CTL_OPTS=\'--delete-bridges\'' state=present
   when: full_provision
@@ -420,14 +430,13 @@
     src: patches/aioeventlet_fd_exception.patch
     dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
 
+# TODO: preburn this
 - name: Install requirements for VSCode <-> Bazel integration
-  when: preburn
+  retries: 5
   apt:
-    state: present
-    update_cache: yes 
+    state: latest
     pkg:
       - clangd-12
-  retries: 5
 
 - name: Symlink system wide bazelrc into the VM
   file:
@@ -443,7 +452,3 @@
     state: latest
     pkg:
       - magma-libfluid
-
-- name: Set IPv6 address for magma dev
-  retries: 5
-  shell: ip -6 a add  2020::10/64 dev eth0 && ip -6 r add default via 2020::1

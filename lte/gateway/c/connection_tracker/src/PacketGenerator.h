@@ -14,7 +14,7 @@
 
 #include <tins/tins.h>
 
-#include "magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 struct flow_information {
   uint32_t saddr;    /* Source address */

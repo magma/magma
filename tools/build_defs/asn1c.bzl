@@ -14,9 +14,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 def _get_dir_name(name):
-    # we need to postfix the directory name with .cc to trick Bazel into thinking this is a valid input
+    # we need to postfix the directory name with .c to trick Bazel into thinking this is a valid input
     # Related GH issue: https://github.com/bazelbuild/bazel/issues/10552
-    return name + ".cc"
+    return name + ".c"
 
 def _contruct_substitution_commands(ctx, dir_path):
     """Returns a list of commands that replaces certain strings with another. 

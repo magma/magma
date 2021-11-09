@@ -31,7 +31,7 @@ func init() {
 	flag.Parse()
 }
 
-func createUeSimServer(store blobstore.BlobStorageFactory) (protos.UESimServer, error) {
+func createUeSimServer(store blobstore.StoreFactory) (protos.UESimServer, error) {
 	config, err := servicers.GetUESimConfig()
 	if err != nil {
 		glog.Fatalf("Error getting UESim Config : %s ", err)

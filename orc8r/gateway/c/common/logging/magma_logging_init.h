@@ -12,7 +12,9 @@
  */
 #pragma once
 
-#include "magma_logging.h"
+#include <stdint.h>
+
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 // GLOG LOGGING
 #ifdef LOG_WITH_GLOG

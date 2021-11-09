@@ -719,9 +719,6 @@ static int registration_accept_t3550_handler(
           registration_proc->retransmission_count);
       // To abort the registration procedure
       amf_proc_registration_abort(amf_ctx, ue_amf_context);
-      // Clean up all the sessions.
-      amf_smf_context_cleanup_pdu_session(ue_amf_context);
-      amf_free_ue_context(ue_amf_context);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);

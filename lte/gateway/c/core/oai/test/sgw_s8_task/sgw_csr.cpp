@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "sgw_s8_utility.h"
+#include "lte/gateway/c/core/oai/test/sgw_s8_task/sgw_s8_utility.h"
 
 using ::testing::Test;
 

@@ -44,7 +44,7 @@ const (
 	cacheWriterBlobstoreType = "cache_writer_creation_time"
 )
 
-func NewSyncStoreReader(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.BlobStorageFactory, config Config) (SyncStoreReader, error) {
+func NewSyncStoreReader(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.StoreFactory, config Config) (SyncStoreReader, error) {
 	err := config.Validate(false)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid configs for syncstore reader")

@@ -38,9 +38,9 @@
 #define INTERTASK_INTERFACE_TYPES_H_
 
 #include <time.h>
-#include "itti_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
-#include "messages_types.h"
+#include "lte/gateway/c/core/oai/include/messages_types.h"
 
 /* Defines to handle bit fields on unsigned long values */
 #define UL_BIT_MASK(lENGTH) ((1UL << (lENGTH)) - 1UL)
@@ -67,12 +67,12 @@
 /* Extract the instance from a message */
 #define ITTI_MESSAGE_GET_INSTANCE(mESSAGE) ((mESSAGE)->ittiMsgHeader.instance)
 
-#include <messages_types.h>
+#include <lte/gateway/c/core/oai/include/messages_types.h>
 
 /* This enum defines messages ids. Each one is unique. */
 typedef enum {
 #define MESSAGE_DEF(iD, sTRUCT, fIELDnAME) iD,
-#include <messages_def.h>
+#include <lte/gateway/c/core/oai/include/messages_def.h>
 #undef MESSAGE_DEF
 
   MESSAGES_ID_MAX,
@@ -83,7 +83,7 @@ typedef enum {
   THREAD_NULL = 0,
 
 #define TASK_DEF(tHREADiD) THREAD_##tHREADiD,
-#include <tasks_def.h>
+#include <lte/gateway/c/core/oai/include/tasks_def.h>
 #undef TASK_DEF
 
   THREAD_MAX,
@@ -93,7 +93,7 @@ typedef enum {
 //! Sub-tasks id, to defined offset form thread id
 typedef enum {
 #define TASK_DEF(tHREADiD) tHREADiD##_THREAD = THREAD_##tHREADiD,
-#include <tasks_def.h>
+#include <lte/gateway/c/core/oai/include/tasks_def.h>
 #undef TASK_DEF
 } task_thread_id_t;
 
@@ -102,7 +102,7 @@ typedef enum {
   TASK_UNKNOWN = 0,
 
 #define TASK_DEF(tHREADiD) tHREADiD,
-#include <tasks_def.h>
+#include <lte/gateway/c/core/oai/include/tasks_def.h>
 #undef TASK_DEF
 
   TASK_MAX,
@@ -111,7 +111,7 @@ typedef enum {
 
 typedef union msg_s {
 #define MESSAGE_DEF(iD, sTRUCT, fIELDnAME) sTRUCT fIELDnAME;
-#include <messages_def.h>
+#include <lte/gateway/c/core/oai/include/messages_def.h>
 #undef MESSAGE_DEF
 } msg_t;
 

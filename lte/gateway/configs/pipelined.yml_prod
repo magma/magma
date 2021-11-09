@@ -46,6 +46,9 @@ default_rule_tag: 0x1
 
 # Pipeline application level configs
 access_control:
+  # Blocks access to all AGW local IPs from UEs.
+  block_agw_local_ips: true
+
   # Traffic to ip blocks in the specified direction in the blocklist will be
   # dropped. Each entry in the blocklist should consist of an ip and a
   # direction('inbound' or 'outbound'). If direction is not specified, then

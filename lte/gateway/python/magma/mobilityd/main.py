@@ -78,6 +78,37 @@ def _get_ipv4_allocator(
     return ip_allocator
 
 
+def _get_ipv6_allocator(
+        store: MobilityStore, allocator_type: int,
+        static_ip_enabled: bool, mconfig: any,
+        ipv6_prefixlen: int,
+        subscriberdb_rpc_stub: SubscriberDBStub = None,
+):
+
+    # Init IPv6 allocator, for now only IP_POOL mode is supported for IPv6
+    ip_allocator = IPv6AllocatorPool(
+        store=store,
+        session_prefix_alloc_mode=_get_value_or_default(
+            mconfig.ipv6_prefix_allocation_type,
+            DEFAULT_IPV6_PREFIX_ALLOC_MODE,
+        ),
+        ipv6_prefixlen=ipv6_prefixlen,
+    )
+
+    if static_ip_enabled:
+        ip_allocator = IPAllocatorStaticWrapper(
+            store=store, subscriberdb_rpc_stub=subscriberdb_rpc_stub,
+            ip_allocator=ip_allocator, ipv6=True,
+        )
+
+    logging.info(
+        "IPv6 allocator: %s static ip: %s ",
+        allocator_type,
+        static_ip_enabled,
+    )
+    return ip_allocator
+
+
 def _get_ip_block(
     ip_block_str: str,
     ip_type: str,
@@ -148,13 +179,12 @@ def main():
     )
 
     # Init IPv6 allocator, for now only IP_POOL mode is supported for IPv6
-    ipv6_allocator = IPv6AllocatorPool(
-        store=store,
-        session_prefix_alloc_mode=_get_value_or_default(
-            mconfig.ipv6_prefix_allocation_type,
-            DEFAULT_IPV6_PREFIX_ALLOC_MODE,
-        ),
-        ipv6_prefixlen=ipv6_prefixlen,
+    ipv6_allocator = _get_ipv6_allocator(
+        store, allocator_type,
+        static_ip_enabled,
+        mconfig,
+        ipv6_prefixlen,
+        SubscriberDBStub(chan),
     )
 
     # Load IPAddressManager

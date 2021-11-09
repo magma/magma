@@ -11,8 +11,13 @@
  * limitations under the License.
  */
 #include <string>
+#include <vector>
+
 extern "C" {
-#include "mme_config.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 }
 
 namespace magma {
@@ -24,20 +29,25 @@ namespace lte {
 #define NAS_RETX_LIMIT 5
 
 #define MME_APP_EXPECT_CALLS(                                                  \
-    dlNas, connEstConf, ctxRel, air, ulr, purgeReq, csr, dsr, setAppHealth)    \
+    dlNas, connEstConf, ctxRel, air, ulr, purgeReq, csr, mbr, relBearer, dsr,  \
+    setAppHealth)                                                              \
   do {                                                                         \
     EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport())         \
         .Times(dlNas)                                                          \
         .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \
     EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(connEstConf); \
     EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command())       \
-        .Times(ctxRel);                                                        \
+        .Times(ctxRel)                                                         \
+        .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \
     EXPECT_CALL(*s6a_handler, s6a_viface_authentication_info_req())            \
         .Times(air);                                                           \
     EXPECT_CALL(*s6a_handler, s6a_viface_update_location_req()).Times(ulr);    \
     EXPECT_CALL(*s6a_handler, s6a_viface_purge_ue()).Times(purgeReq);          \
     EXPECT_CALL(*spgw_handler, sgw_handle_s11_create_session_request())        \
         .Times(csr);                                                           \
+    EXPECT_CALL(*spgw_handler, sgw_handle_modify_bearer_request()).Times(mbr); \
+    EXPECT_CALL(*spgw_handler, sgw_handle_release_access_bearers_request())    \
+        .Times(relBearer);                                                     \
     EXPECT_CALL(*spgw_handler, sgw_handle_delete_session_request())            \
         .Times(dsr)                                                            \
         .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \
@@ -62,7 +72,7 @@ void send_authentication_info_resp(const std::string& imsi, bool success);
 
 void send_s6a_ula(const std::string& imsi, bool success);
 
-void send_create_session_resp();
+void send_create_session_resp(gtpv2c_cause_value_t cause_value);
 
 void send_delete_session_resp();
 
@@ -71,6 +81,17 @@ void send_ics_response();
 void send_ue_ctx_release_complete();
 
 void send_ue_capabilities_ind();
+
+void send_context_release_req(s1cause rel_cause, task_id_t TASK_ID);
+
+void send_modify_bearer_resp(
+    const std::vector<int>& bearer_to_modify,
+    const std::vector<int>& bearer_to_remove);
+
+void sgw_send_release_access_bearer_response(gtpv2c_cause_value_t cause);
+void send_s11_deactivate_bearer_req(
+    uint8_t no_of_bearers_to_be_deact, uint8_t* ebi_to_be_deactivated,
+    bool delete_default_bearer);
 
 }  // namespace lte
 }  // namespace magma

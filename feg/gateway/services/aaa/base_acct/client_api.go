@@ -55,8 +55,11 @@ func Start(request *protos.AcctSession) (*protos.AcctSessionResp, error) {
 		return nil, err
 	}
 	resp, err := client.Start(context.Background(), request)
+	initApnFromSession(request)
 	if err != nil {
 		glog.Error(err)
+	} else {
+		resetHeartbeat()
 	}
 	return resp, err
 }
@@ -73,6 +76,8 @@ func Update(request *protos.AcctUpdateReq) (*protos.AcctSessionResp, error) {
 	resp, err := client.Update(context.Background(), request)
 	if err != nil {
 		glog.Error(err)
+	} else {
+		resetHeartbeat()
 	}
 	return resp, err
 }
@@ -87,6 +92,8 @@ func Stop(request *protos.AcctUpdateReq) (*protos.AcctStopResp, error) {
 	resp, err := client.Stop(context.Background(), request)
 	if err != nil {
 		glog.Error(err)
+	} else {
+		resetHeartbeat()
 	}
 	return resp, err
 }

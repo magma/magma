@@ -27,7 +27,7 @@
       "csfbMcc": "001",
       "csfbMnc": "01",
       "lac": 1,
-      "amfName": "AMF_1",
+      "amfName": "MAGMAAMF1",
       "amfRegionId": "1",
       "amfSetId": "1",
       "amfPointer": "0",

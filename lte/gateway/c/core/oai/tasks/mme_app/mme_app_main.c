@@ -148,7 +148,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
             LOG_MME_APP,
             "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT "\n",
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
-
         if ((!ue_context_p->path_switch_req) && (!ue_context_p->erab_mod_ind)) {
           /* Updating statistics */
           mme_app_handle_modify_bearer_rsp(

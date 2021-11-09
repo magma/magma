@@ -21,7 +21,7 @@
 
 #include <lte/protos/sctpd.grpc.pb.h>
 
-#include "magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {
 namespace sctpd {

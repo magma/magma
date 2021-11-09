@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 
 #define EPS_QUALITY_OF_SERVICE_MINIMUM_LENGTH 2
 #define EPS_QUALITY_OF_SERVICE_MAXIMUM_LENGTH 10

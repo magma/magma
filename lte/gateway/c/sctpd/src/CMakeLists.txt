@@ -55,6 +55,7 @@ target_link_libraries(SCTPD_LIB
     )
 
 target_include_directories(SCTPD_LIB PUBLIC
+    $ENV{MAGMA_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}
     $<TARGET_FILE_DIR:SCTPD_LIB>
     )

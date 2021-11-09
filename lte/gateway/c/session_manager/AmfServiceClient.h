@@ -12,13 +12,26 @@
  */
 #pragma once
 
+#include <grpc++/grpc++.h>
+#include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <stdint.h>
+#include <memory>
 #include <mutex>
 
-#include <grpc++/grpc++.h>
-#include <lte/protos/session_manager.pb.h>
-#include <lte/protos/session_manager.grpc.pb.h>
-
 #include "includes/GRPCReceiver.h"
+#include "lte/protos/apn.pb.h"
+
+namespace grpc {
+class Channel;
+class Status;
+}  // namespace grpc
+namespace magma {
+namespace lte {
+class SetSMSessionContextAccess;
+class SetSmNotificationContext;
+}  // namespace lte
+}  // namespace magma
 
 using grpc::Status;
 

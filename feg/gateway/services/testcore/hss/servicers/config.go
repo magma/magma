@@ -137,7 +137,7 @@ func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
 			glog.Errorf("hss.yml value is not a map: %+v", v)
 			continue
 		}
-		configMap := &config.ConfigMap{RawMap: rawMap}
+		configMap := &config.Map{RawMap: rawMap}
 
 		// If auth_key is incorrect, skip subscriber
 		authKey, err := configMap.GetString("auth_key")

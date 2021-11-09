@@ -20,19 +20,29 @@
   Description 	Objects run in main thread context invoked by folly event
 *****************************************************************************/
 
+#include <folly/io/async/EventBase.h>
+#include <glog/logging.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <algorithm>
+#include <cstdint>
+#include <experimental/optional>
+#include <memory>
+#include <ostream>
 #include <string>
-#include <time.h>
 #include <utility>
 #include <vector>
-#include <memory>
 
-#include <google/protobuf/repeated_field.h>
-#include <google/protobuf/timestamp.pb.h>
-#include <google/protobuf/util/time_util.h>
-#include <grpcpp/channel.h>
-#include "magma_logging.h"
+#include "AmfServiceClient.h"
 #include "EnumToString.h"
+#include "PipelinedClient.h"
+#include "SessionState.h"
 #include "SessionStateEnforcer.h"
+#include "StoredState.h"
+#include "lte/protos/apn.pb.h"
+#include "lte/protos/mconfig/mconfigs.pb.h"
+#include "lte/protos/policydb.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+#include "magma_logging.h"
 
 #define DEFAULT_AMBR_UNITS (1024)
 #define DEFAULT_UP_LINK_PDR_ID 1
@@ -667,6 +677,7 @@ void SessionStateEnforcer::prepare_response_to_access(
           .end_ipv4_addr());
 
   rsp_cmn->mutable_sid()->CopyFrom(config.common_context.sid());  // imsi
+  rsp_cmn->set_apn(config.common_context.apn());
   rsp_cmn->set_sm_session_state(config.common_context.sm_session_state());
   rsp_cmn->set_sm_session_version(config.common_context.sm_session_version());
   // Send message to AMF gRPC client handler.

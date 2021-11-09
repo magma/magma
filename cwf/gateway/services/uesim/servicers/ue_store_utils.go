@@ -21,7 +21,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func addUeToStore(srvstore blobstore.BlobStorageFactory, ue *cwfprotos.UEConfig) {
+func addUeToStore(srvstore blobstore.StoreFactory, ue *cwfprotos.UEConfig) {
 	blob, err := ueToBlob(ue)
 	store, err := srvstore.StartTransaction(nil)
 	if err != nil {
@@ -44,7 +44,7 @@ func addUeToStore(srvstore blobstore.BlobStorageFactory, ue *cwfprotos.UEConfig)
 		}
 	}()
 
-	err = store.CreateOrUpdate(networkIDPlaceholder, blobstore.Blobs{blob})
+	err = store.Write(networkIDPlaceholder, blobstore.Blobs{blob})
 
 }
 

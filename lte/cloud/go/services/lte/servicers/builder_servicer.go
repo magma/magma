@@ -193,7 +193,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			SgiManagementIfaceVlan:     gwEpc.SgiManagementIfaceVlan,
 			SgiManagementIfaceIpAddr:   gwEpc.SgiManagementIfaceStaticIP,
 			SgiManagementIfaceGw:       gwEpc.SgiManagementIfaceGw,
-			SgiManagementIfaceIpv6Addr: string(gwEpc.SgiManagementIfaceIPV6Addr),
+			SgiManagementIfaceIpv6Addr: gwEpc.SgiManagementIfaceIPV6Addr,
 			SgiManagementIfaceIpv6Gw:   string(gwEpc.SgiManagementIfaceIPV6Gw),
 			HeConfig:                   heConfig,
 			LiUes:                      liUes,
@@ -646,8 +646,8 @@ func getNetworkSentryConfig(network *configurator.Network) *lte_mconfig.SentryCo
 	return &lte_mconfig.SentryConfig{
 		SampleRate:   swag.Float32Value(sentryConfig.SampleRate),
 		UploadMmeLog: sentryConfig.UploadMmeLog,
-		UrlNative:    string(sentryConfig.URLNative),
-		UrlPython:    string(sentryConfig.URLPython),
+		DsnNative:    string(sentryConfig.URLNative),
+		DsnPython:    string(sentryConfig.URLPython),
 	}
 }
 

@@ -21,9 +21,9 @@
 extern "C" {
 #endif
 
-#include "hashtable.h"
-#include "mme_config.h"
-#include "s1ap_types.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/s1ap_types.h"
 
 int s1ap_state_init(uint32_t max_ues, uint32_t max_enbs, bool use_stateless);
 

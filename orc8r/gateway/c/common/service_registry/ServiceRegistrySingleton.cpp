@@ -11,18 +11,16 @@
  * limitations under the License.
  */
 
-#include "includes/ServiceRegistrySingleton.h"
-#include <assert.h>                            // for assert
-#include <grpcpp/create_channel.h>             // for CreateCustomChannel
-#include <grpcpp/impl/codegen/config.h>        // for string
-#include <grpcpp/security/credentials.h>       // for SslCredentials, SslCre...
-#include <grpcpp/support/channel_arguments.h>  // for ChannelArguments
-#include <fstream>                             // for basic_ostream, basic_o...
-#include <stdexcept>                           // for invalid_argument
-#include <string>                              // for string, allocator, ope...
-namespace grpc {
-class Channel;
-}
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+
+#include <grpcpp/create_channel.h>  // IWYU pragma: keep
+#include <grpcpp/channel.h>         // IWYU pragma: keep
+#include <assert.h>                 // for assert
+#include <grpcpp/security/credentials.h>
+#include <grpcpp/support/channel_arguments.h>
+#include <fstream>  // IWYU pragma: keep
+#include <string>   // for string, allocator, ope...
+#include <stdexcept>
 
 using grpc::CreateCustomChannel;
 using grpc::InsecureChannelCredentials;

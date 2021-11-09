@@ -11,13 +11,19 @@
  * limitations under the License.
  */
 #include <google/protobuf/util/time_util.h>
-
+#include <time.h>
 #include <algorithm>
 #include <chrono>
 #include <iomanip>
 #include <sstream>
 
 #include "Utilities.h"
+
+namespace google {
+namespace protobuf {
+class Timestamp;
+}  // namespace protobuf
+}  // namespace google
 
 namespace magma {
 

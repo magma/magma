@@ -25,6 +25,7 @@ add_library(ASYNC_GRPC
 target_link_libraries(ASYNC_GRPC PRIVATE MAGMA_LOGGING)
 
 target_include_directories(ASYNC_GRPC PUBLIC
+    $ENV{MAGMA_ROOT}
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
     )
 

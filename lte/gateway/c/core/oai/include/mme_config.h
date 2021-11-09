@@ -41,16 +41,15 @@
 #include <stdint.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
-#include "mme_default_values.h"
-#include "common_types.h"
-#include "amf_config.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "log.h"
-#include "service303.h"
-#include "hashtable.h"
-#include "obj_hashtable.h"
-#include "includes/SentryWrapper.h"
+#include "lte/gateway/c/core/oai/common/mme_default_values.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
 
 /* Currently supporting max 5 GUMMEI's in the mme configuration */
 #define MIN_GUMMEI 1
@@ -257,20 +256,6 @@ typedef struct eps_network_feature_config_s {
 #define TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS 0x00
 #define TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS 0x01
 #define TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS 0x02
-typedef struct served_tai_s {
-  uint8_t nb_tai;
-  uint16_t* plmn_mcc;
-  uint16_t* plmn_mnc;
-  uint16_t* plmn_mnc_len;
-  uint16_t* tac;
-} served_tai_t;
-
-typedef struct partial_list_s {
-  uint8_t list_type;
-  uint8_t nb_elem;
-  plmn_t* plmn;
-  uint16_t* tac;
-} partial_list_t;
 
 typedef struct sctp_config_s {
   bstring upstream_sctp_sock;
@@ -472,8 +457,10 @@ void mme_config_display(mme_config_t*);
 void create_partial_lists(mme_config_t* config_pP);
 void mme_config_exit(void);
 
-void free_partial_lists(mme_config_t* config_pP);
 void free_mme_config(mme_config_t* mme_config);
+void clear_served_tai_config(served_tai_t* served_tai);
+
+void free_partial_lists(partial_list_t* partialList, uint8_t num_par_lists);
 
 #define mme_config_read_lock(mMEcONFIG)                                        \
   pthread_rwlock_rdlock(&(mMEcONFIG)->rw_lock)

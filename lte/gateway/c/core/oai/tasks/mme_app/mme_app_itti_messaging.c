@@ -299,10 +299,20 @@ status_code_e mme_app_send_s11_create_session_req(
       (teid_t) ue_mm_context->mme_ue_s1ap_id;
   session_request_p->sender_fteid_for_cp.interface_type = S11_MME_GTP_C;
   mme_config_read_lock(&mme_config);
-  session_request_p->sender_fteid_for_cp.ipv4_address.s_addr =
-      mme_config.ip.s11_mme_v4.s_addr;
+  if (session_request_p->pdn_type == IPv4 ||
+      session_request_p->pdn_type == IPv4_AND_v6) {
+    session_request_p->sender_fteid_for_cp.ipv4_address.s_addr =
+        mme_config.ip.s11_mme_v4.s_addr;
+    session_request_p->sender_fteid_for_cp.ipv4 = 1;
+  } else {
+    memcpy(
+        &session_request_p->sender_fteid_for_cp.ipv6_address,
+        &mme_config.ip.s11_mme_v6,
+        sizeof(session_request_p->sender_fteid_for_cp.ipv6_address));
+
+    session_request_p->sender_fteid_for_cp.ipv6 = 1;
+  }
   mme_config_unlock(&mme_config);
-  session_request_p->sender_fteid_for_cp.ipv4 = 1;
 
   // ue_mm_context->mme_teid_s11 = session_request_p->sender_fteid_for_cp.teid;
   ue_mm_context->pdn_contexts[pdn_cid]->s_gw_teid_s11_s4 = 0;

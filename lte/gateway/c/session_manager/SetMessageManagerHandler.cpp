@@ -17,15 +17,38 @@
   Author/Editor Sanjay Kumar Ojha
   Description 	Acts as 5G Landing object in SessionD & start 5G related flow
 *****************************************************************************/
-#include <chrono>
-#include <thread>
+#include <folly/io/async/EventBase.h>
+#include <glog/logging.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <grpcpp/impl/codegen/status_code_enum.h>
+#include <experimental/optional>
+#include <ostream>
 #include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include <google/protobuf/util/time_util.h>
-
-#include "SetMessageManagerHandler.h"
-#include "magma_logging.h"
 #include "GrpcMagmaUtils.h"
+#include "SessionReporter.h"
+#include "SessionState.h"
+#include "SessionStateEnforcer.h"
+#include "SessionStore.h"
+#include "SetMessageManagerHandler.h"
+#include "lte/protos/session_manager.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+#include "magma_logging.h"
+
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
+namespace magma {
+struct SessionStateUpdateCriteria;
+}  // namespace magma
 
 using grpc::Status;
 

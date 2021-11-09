@@ -108,8 +108,16 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
         decoded_result += 1;
         decoded += decoded_result;
         break;
-      case M5GIei::S_NSSA:
       case M5GIei::DNN:
+        if ((decoded_result = ul_nas_transport->dnn.DecodeDNNMsg(
+                 &ul_nas_transport->dnn, static_cast<uint8_t>(M5GIei::DNN),
+                 buffer + decoded, len - decoded)) < 0) {
+          return decoded_result;
+        } else {
+          decoded += decoded_result;
+        }
+        break;
+      case M5GIei::S_NSSA:
       case M5GIei::ADDITIONAL_INFORMATION:
         // TLV Types. 1 byte for Type and 1 Byte for size
         type_len   = sizeof(uint8_t);

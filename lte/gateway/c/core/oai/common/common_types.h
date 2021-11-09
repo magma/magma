@@ -42,11 +42,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "3gpp_33.401.h"
-#include "security_types.h"
-#include "common_dim.h"
-#include "TrackingAreaIdentity.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
+#include "lte/gateway/c/core/oai/common/security_types.h"
+#include "lte/gateway/c/core/oai/common/common_dim.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 //------------------------------------------------------------------------------
 typedef uint16_t sctp_stream_id_t;
@@ -397,6 +397,21 @@ typedef struct m5g_authentication_info_s {
   m5gauth_vector_t m5gauth_vector[MAX_EPS_AUTH_VECTORS];
 } m5g_authentication_info_t;
 
+typedef struct served_tai_s {
+  uint8_t nb_tai;
+  uint16_t* plmn_mcc;
+  uint16_t* plmn_mnc;
+  uint16_t* plmn_mnc_len;
+  uint16_t* tac;
+} served_tai_t;
+
+typedef struct partial_list_s {
+  uint8_t list_type;
+  uint8_t nb_elem;
+  plmn_t* plmn;
+  uint16_t* tac;
+} partial_list_t;
+
 typedef enum {
   DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE = 4181,
   DIAMETER_ERROR_USER_UNKNOWN              = 5001,
@@ -433,7 +448,7 @@ typedef enum {
   INITIAL_ATTACH_PROCEDURE
 } s6a_cancellation_type_t;
 
-#include "nas/commonDef.h"
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 
 struct fteid_s;
 

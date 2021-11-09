@@ -21,6 +21,7 @@ from generate_service_config import generate_template_config
 from lte.protos.mconfig.mconfigs_pb2 import MME
 from magma.common.misc_utils import (
     IpPreference,
+    get_if_ip_with_netmask,
     get_ip_from_if,
     get_ip_from_if_cidr,
     get_ipv6_from_if,
@@ -41,10 +42,11 @@ DEFAULT_P_CSCF_IPV4_ADDR = "172.27.23.150"
 DEFAULT_P_CSCF_IPV6_ADDR = "2a12:577:9941:f99c:0002:0001:c731:f114"
 DEFAULT_NGAP_S_NSSAI_SST = "1"
 DEFAULT_NGAP_S_NSSAI_SD = "0xffffff"
-DEFAULT_NGAP_AMF_NAME = "AMF_1"
+DEFAULT_NGAP_AMF_NAME = "MAGMAAMF1"
 DEFAULT_NGAP_AMF_REGION_ID = "1"
 DEFAULT_NGAP_SET_ID = "1"
 DEFAULT_NGAP_AMF_POINTER = "0"
+DEFAULT_DEFAULT_DNN = ""
 
 
 def _get_iface_ip(service, iface_config):
@@ -254,7 +256,7 @@ def _get_converged_core_config(service_mconfig: object) -> bool:
     Args:
         service_mconfig: This is a configuration placeholder for mme.
 
-    Returns: 
+    Returns:
         enable_m5gfeatures.
     """
     enable_m5gfeatures = get_service_config_value(
@@ -325,6 +327,25 @@ def _get_amf_name_config(service_mconfig: object) -> str:
         return enable_amf_name_config
 
     return service_mconfig.amf_name or DEFAULT_NGAP_AMF_NAME
+
+
+def _get_default_dnn_config(service_mconfig: object) -> str:
+    """Retrieve default_dnn config value. If it does not exist, it defaults to DEFAULT_DEFAULT_DNN.
+
+    Args:
+        service_mconfig: This is a configuration placeholder for mme.
+
+    Returns:
+        default dnn string.
+    """
+    enable_default_dnn_config = get_service_config_value(
+        'mme', 'default_dnn', None,
+    )
+
+    if enable_default_dnn_config is not None:
+        return enable_default_dnn_config
+
+    return DEFAULT_DEFAULT_DNN
 
 
 def _get_amf_region_id(service_mconfig: object) -> str:
@@ -405,6 +426,9 @@ def _get_context():
         "remote_sgw_ip": get_service_config_value("mme", "remote_sgw_ip", ""),
         "s1ap_ip": _get_iface_ip("mme", "s1ap_iface_name"),
         "s1ap_ipv6": _get_iface_ipv6("mme", "s1ap_iface_name"),
+        "s1ap_ipv6_enabled": get_service_config_value(
+            "mme", "s1ap_ipv6_enabled", default=False,
+        ),
         "oai_log_level": _get_oai_log_level(),
         "ipv4_dns": _get_primary_dns_ip(mme_service_config, "dns_iface_name"),
         "ipv4_sec_dns": _get_secondary_dns_ip(mme_service_config),
@@ -442,9 +466,14 @@ def _get_context():
         "amf_region_id": _get_amf_region_id(mme_service_config),
         "amf_set_id": _get_amf_set_id(mme_service_config),
         "amf_pointer": _get_amf_pointer(mme_service_config),
+        "default_dnn": _get_default_dnn_config(mme_service_config),
     }
 
     context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or _get_iface_ip(
+        "spgw", "s1u_iface_name",
+    )
+
+    context["s1u_ipv6"] = mme_service_config.ipv6_sgw_s1u_addr or _get_iface_ipv6(
         "spgw", "s1u_iface_name",
     )
 
