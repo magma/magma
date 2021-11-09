@@ -56,10 +56,10 @@ func TestSingletonRun(t *testing.T) {
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
 
-	reindexer := initSingletonReindexTest(t)
+	r := initSingletonReindexTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	go reindexer.Run(ctx)
+	go r.Run(ctx)
 
 	// Single indexer
 	idx0 := getIndexer(id0, zero, version0, true)
@@ -192,7 +192,7 @@ func initSingletonReindexTest(t *testing.T) reindex.Reindexer {
 }
 
 // reportMoreState reports enough directory records to cause 3 batches per network
-// (with the +1 gateway status per network). It adds an extra network from 3 -> 4),
+// (with the +1 gateway status per network). It adds an extra network from 3 -> 4,
 // so numBatches following this method will be 3 * 4 = 12
 func reportMoreState(t *testing.T) {
 	configurator_test.RegisterNetwork(t, nid3, "Network 3 for reindex test")
