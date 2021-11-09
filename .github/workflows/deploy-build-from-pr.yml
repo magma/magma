@@ -68,14 +68,6 @@ jobs:
             var issue_number = Number(fs.readFileSync('./NR'));
             console.log(String(issue_number))
             core.setOutput('issue_number',issue_number );
-      - name: upload to artifactory
-        continue-on-error: true
-        run: |
-          for i in `ls -a1 *.deb`
-          do
-            echo "Pushing package $i to JFROG artifiactory: https://artifactory.magmacore.org/artifactory/debian-ci/pool"
-            curl -uci-bot:${{ secrets.JFROG_CIBOT_APIKEYS }} -XPUT "https://artifactory.magmacore.org/artifactory/debian-ci/pool/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i
-          done
       - name: extract images
         run: |
           for IMAGES in `ls -a1 *.gz`

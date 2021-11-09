@@ -86,6 +86,7 @@ jobs:
           pip install artifactory
           python ci-scripts/helm_repo_rotation.py
   agw-build:
+    if: github.event_name == 'push'
     runs-on: macos-10.15
     outputs:
       artifacts: ${{ steps.publish_packages.outputs.artifact }}
