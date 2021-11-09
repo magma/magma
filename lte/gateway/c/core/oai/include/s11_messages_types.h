@@ -136,8 +136,8 @@ typedef struct itti_s11_nw_init_deactv_bearer_rsp_s {
   bool delete_default_bearer;
   teid_t s_gw_teid_s11_s4;
   protocol_configuration_options_t pco;  /// PCO protocol_configuration_options
-  bool mme_initiated_local_deact; ///< Indicates MME initiated bearer
-                                  ///< deactivation
+  bool mme_initiated_local_deact;        ///< Indicates MME initiated bearer
+                                         ///< deactivation
 } itti_s11_nw_init_deactv_bearer_rsp_t;
 
 //-------------

@@ -3147,7 +3147,8 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
 void send_delete_dedicated_bearer_rsp(
     struct ue_mm_context_s* ue_context_p, bool delete_default_bearer,
     ebi_t ebi[], uint32_t num_bearer_context, teid_t s_gw_teid_s11_s4,
-    gtpv2c_cause_value_t cause, bool route_s11_messages_to_s8_task, bool mme_initiated_local_deact) {
+    gtpv2c_cause_value_t cause, bool route_s11_messages_to_s8_task,
+    bool mme_initiated_local_deact) {
   itti_s11_nw_init_deactv_bearer_rsp_t* s11_deact_ded_bearer_rsp = NULL;
   MessageDef* message_p                                          = NULL;
   uint32_t i                                                     = 0;
