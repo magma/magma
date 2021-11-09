@@ -132,8 +132,8 @@ jobs:
         continue-on-error: true
         env:
           DOCKER_REGISTRY: "orc8r-ci.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.JFROG_USERNAME }}"
           ISSUE_NUMBER: "${{ steps.save_metadata.outputs.issue_number }}"
         run: |
           docker image load --input goradius.tar
