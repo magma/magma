@@ -1030,4 +1030,35 @@ static int authenthication_t3560_handler(
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
+
+/***************************************************************************
+**                                                                        **
+** Name:    get_decrypt_imsi_suci_extension()                             **
+**                                                                        **
+** Description: Invokes .get_decrypt_imsi_info                            **
+**              to fetch decrypted imsi                                   **
+**                                                                        **
+**                                                                        **
+***************************************************************************/
+int get_decrypt_imsi_suci_extension(
+    amf_context_t* amf_context, uint8_t ue_pubkey_identifier,
+    std::string ciphertext, std::string mac_tag) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+
+  int rc = RETURNerror;
+  amf_ue_ngap_id_t ue_id =
+      PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context)
+          ->amf_ue_ngap_id;
+
+  OAILOG_INFO(
+      LOG_AMF_APP,
+      "Sending msg(grpc) to :[subscriberdb] for ue: [%d] decrypt-imsi\n",
+      ue_id);
+
+  AMFClientServicer::getInstance().get_decrypt_imsi_info(
+      ue_pubkey_identifier, ciphertext, mac_tag, ue_id);
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+}
+
 }  // namespace magma5g

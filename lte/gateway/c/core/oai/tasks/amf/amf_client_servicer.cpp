@@ -13,10 +13,12 @@
 
 #include "include/amf_client_servicer.h"
 #include "M5GAuthenticationServiceClient.h"
+#include "M5GSUCIRegistrationServiceClient.h"
 #include "amf_common.h"
 #include <memory>
 
 using magma5g::AsyncM5GAuthenticationServiceClient;
+using magma5g::AsyncM5GSUCIRegistrationServiceClient;
 
 namespace magma5g {
 
@@ -40,6 +42,14 @@ bool AMFClientServicerBase::get_subs_auth_info_resync(
       AsyncM5GAuthenticationServiceClient::getInstance()
           .get_subs_auth_info_resync(
               imsi, imsi_length, snni, resync_info, resync_info_len, ue_id));
+}
+
+bool AMFClientServicerBase::get_decrypt_imsi_info(
+    const uint8_t ue_pubkey_identifier, const std::string& ciphertext,
+    const std::string& mac_tag, amf_ue_ngap_id_t ue_id) {
+  return (AsyncM5GSUCIRegistrationServiceClient::getInstance()
+              .get_decrypt_imsi_info(
+                  ue_pubkey_identifier, ciphertext, mac_tag, ue_id));
 }
 
 AMFClientServicer& AMFClientServicer::getInstance() {

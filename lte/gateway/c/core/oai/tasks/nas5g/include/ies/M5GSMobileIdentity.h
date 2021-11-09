@@ -104,6 +104,12 @@ class ImsiM5GSMobileIdentity {
   uint8_t msin_digit4 : 4;
   uint8_t msin_digit5 : 4;
   uint8_t numOfValidImsiDigits : 4;
+#define EMPHERAL_PUBLICK_KEY_LENGTH 32
+  uint8_t empheral_public_key[EMPHERAL_PUBLICK_KEY_LENGTH + 1];
+#define CIPHERTEXT_LENGTH 5
+  uint8_t ciphertext[CIPHERTEXT_LENGTH + 1];
+#define MAC_TAG_LENGTH 8
+  uint8_t mac_tag[MAC_TAG_LENGTH + 1];
 };
 
 // 5GS mobile identity information element for type of identity or "SUCI" SPEC :

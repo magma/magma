@@ -168,7 +168,6 @@ message CoreNetworkType {
       NT_EPC = 0;
       NT_5GC = 1;
   }
-  // Network Types to be restricted per subscriber. If not configured, Subscriber will have access to all Network Types by default.
   repeated CoreNetworkTypes forbidden_network_types = 1;
 }
 
@@ -210,6 +209,22 @@ service SubscriberDB {
   // List the subscribers in the store.
   //
   rpc ListSubscribers (magma.orc8r.Void) returns (SubscriberIDSet) {}
+
+  // Adds a new suciprofile to the store.
+  // Throws ALREADY_EXISTS if the suciprofile already exists.
+  rpc AddSuciProfile (SuciProfileData) returns (magma.orc8r.Void) {}
+
+  // Deletes an existing suciprofile.
+  // If the subscriber is not already present, this request is ignored.
+  //rpc DeleteSuciprofile (uint32) returns (magma.orc8r.Void) {}
+
+  // Returns the SubscriberData for a suciprofile.
+  // Throws NOT_FOUND if the suciprofile is missing.
+  rpc GetSuciProfile (SuciProfileData) returns (SuciProfileData) {}
+
+  // List the suciprofile in the store.
+  //rpc ListSuciProfiles (magma.orc8r.Void) returns (SuciProfileList) {}
+
 }
 
 // --------------------------------------------------------------------------
@@ -224,6 +239,8 @@ service SubscriberDBCloud {
   rpc Sync (SyncRequest) returns (SyncResponse) {}
   // ListSubscribers lists pages of subscribers stored.
   rpc ListSubscribers (ListSubscribersRequest) returns (ListSubscribersResponse) {}
+  // List SuciProfiles per Network
+  rpc ListSuciProfiles (ListSuciProfilesRequest) returns (ListSuciProfilesResponse) {}
 }
 
 message CheckInSyncRequest {
@@ -271,3 +288,49 @@ message ListSubscribersResponse {
   // Deprecated
   reserved 3, 4;
 }
+
+message ListSuciProfilesRequest {
+  // page_size is the maximum number of entities returned per request.
+  uint32 page_size = 1;
+  // page_token is a serialized entity page token for paginated loads.
+  string page_token = 2;
+}
+
+message ListSuciProfilesResponse {
+  repeated SuciProfileData suci_profiles = 1;
+  string next_page_token = 2;
+  // digests contains all digests for the network.
+}
+
+message SuciProfileData {
+    enum ECIESProtectionScheme {
+        ProfileA = 0;
+        ProfileB = 1;
+    }
+    // HPLMN Public Key Identifier
+    uint32 home_net_public_key_id = 1;
+    ECIESProtectionScheme protection_scheme =2;
+    // HPLMN Public Key
+    bytes home_net_public_key = 3;
+    // HPLMN Private Key
+    bytes home_net_private_key = 4;
+}
+
+message M5GSUCIRegistrationRequest {
+    //Home network public key identifier
+    uint32 ue_pubkey_identifier = 1;
+    //UE Private Key
+    bytes ue_ciphertext = 2;
+    //Protection scheme output
+    bytes ue_encrypted_mac = 3;
+}
+
+message M5GSUCIRegistrationAnswer {
+    //UE de concealed msin
+    string ue_msin_recv = 1;
+}
+
+service M5GSUCIRegistration {
+     rpc M5GDecryptImsiSUCIRegistration (M5GSUCIRegistrationRequest ) returns (M5GSUCIRegistrationAnswer ) {}
+}
+

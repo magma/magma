@@ -194,6 +194,27 @@ int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
 
   MLOG(MDEBUG) << "Length :  " << int(ielen);
   memcpy(&imsi->scheme_output, buffer + decoded, ielen - decoded);
+
+  if ((imsi->type_of_identity == M5GSMobileIdentityMsg_SUCI_IMSI) &&
+      (imsi->protect_schm_id != 0)) {
+    MLOG(MDEBUG) << "  SUCI Registration is enabled with protect_schm_id= "
+                 << std::hex << int(imsi->protect_schm_id);
+
+    memcpy(
+        &imsi->empheral_public_key, buffer + decoded,
+        EMPHERAL_PUBLICK_KEY_LENGTH);
+    decoded += EMPHERAL_PUBLICK_KEY_LENGTH;
+    imsi->empheral_public_key[EMPHERAL_PUBLICK_KEY_LENGTH] = '\0';
+
+    memcpy(&imsi->ciphertext, buffer + decoded, CIPHERTEXT_LENGTH);
+    decoded += CIPHERTEXT_LENGTH;
+    imsi->ciphertext[CIPHERTEXT_LENGTH] = '\0';
+
+    memcpy(&imsi->mac_tag, buffer + decoded, MAC_TAG_LENGTH);
+    decoded += MAC_TAG_LENGTH;
+    imsi->mac_tag[MAC_TAG_LENGTH] = '\0';
+  }
+
   // AMF_TEST scheme output  nibbles needs to be reversed
   REV_NIBBLE(imsi->scheme_output, 5);
 
@@ -230,9 +251,20 @@ int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
                << int(imsi->protect_schm_id);
   MLOG(MDEBUG) << "  Home Network Public Key Identifier = " << std::hex
                << int(imsi->home_nw_id);
-  MLOG(MDEBUG) << "  Scheme Output = ";
-  BUFFER_PRINT_LOG(imsi->scheme_output, tmp)
+  // MLOG(MDEBUG) << "  Scheme Output = ";
+  // BUFFER_PRINT_LOG(imsi->scheme_output, tmp)
 
+  if ((imsi->type_of_identity == M5GSMobileIdentityMsg_SUCI_IMSI) &&
+      (imsi->protect_schm_id != 0)) {
+    MLOG(MDEBUG) << "  ECC empheral public key = ";
+    BUFFER_PRINT_LOG(imsi->empheral_public_key, EMPHERAL_PUBLICK_KEY_LENGTH)
+
+    MLOG(MDEBUG) << "  Ciphertext = ";
+    BUFFER_PRINT_LOG(imsi->ciphertext, CIPHERTEXT_LENGTH)
+
+    MLOG(MDEBUG) << "  MAC tag = ";
+    BUFFER_PRINT_LOG(imsi->mac_tag, MAC_TAG_LENGTH)
+  }
   return (decoded);
 };
 
