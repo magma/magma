@@ -1322,14 +1322,6 @@ void amf_app_handle_initial_context_setup_rsp(
 
   // Handle smf_context
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(initial_context_rsp->ue_id);
-
-  // s6a update location request
-  int rc = amf_send_n11_update_location_req(ue_context->amf_ue_ngap_id);
-
-  if (rc == RETURNerror) {
-    OAILOG_INFO(LOG_AMF_APP, "AMF_APP: n11_update_location_req failure\n");
-  }
-
   if (!ue_context) {
     OAILOG_ERROR(
         LOG_AMF_APP, " Ue context not found for the id " AMF_UE_NGAP_ID_FMT,
@@ -1397,6 +1389,12 @@ void amf_app_handle_initial_context_setup_rsp(
             &amf_smf_grpc_ies, imsi, smf_context->pdu_session_version);
       }
     }
+  }
+
+  // s6a update location request
+  int rc = amf_send_n11_update_location_req(ue_context->amf_ue_ngap_id);
+  if (rc == RETURNerror) {
+    OAILOG_INFO(LOG_AMF_APP, "AMF_APP: n11_update_location_req failure\n");
   }
 
   // update UE state

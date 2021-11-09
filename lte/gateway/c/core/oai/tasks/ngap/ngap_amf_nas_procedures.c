@@ -1292,6 +1292,24 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
 
   } /*for loop*/
 
+  ie = CALLOC(1, sizeof(Ngap_PDUSessionResourceSetupRequestIEs_t));
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  ie->id = Ngap_ProtocolIE_ID_id_UEAggregateMaximumBitRate;
+  ie->criticality = Ngap_Criticality_reject;
+  ie->value.present = Ngap_PDUSessionResourceSetupRequestIEs__value_PR_UEAggregateMaximumBitRate;
+
+  Ngap_UEAggregateMaximumBitRate_t *UEAggregateMaximumBitRate = NULL;
+  UEAggregateMaximumBitRate = &ie->value.choice.UEAggregateMaximumBitRate;
+
+  asn_uint642INTEGER(
+    &UEAggregateMaximumBitRate->uEAggregateMaximumBitRateUL,
+    pdusession_resource_setup_req->ue_aggregate_maximum_bit_rate.ul);
+
+  asn_uint642INTEGER(
+    &UEAggregateMaximumBitRate->uEAggregateMaximumBitRateDL,
+    pdusession_resource_setup_req->ue_aggregate_maximum_bit_rate.dl);
+
   if (ngap_amf_encode_pdu(&pdu, &buffer_p, &length) < 0) {
     OAILOG_ERROR(LOG_NGAP, "Encoding of IEs failed \n");
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
