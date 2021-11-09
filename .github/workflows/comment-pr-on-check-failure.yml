@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   comment_pr:
+    if: github.event.workflow_run.event == 'pull_request'
     name: Comment on PR for check ${{ github.event.workflow.name }}
     runs-on: ubuntu-latest
     env:
