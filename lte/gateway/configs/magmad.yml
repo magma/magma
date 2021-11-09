@@ -174,4 +174,5 @@ services_to_restart:
 restart_timeout_threshold: 15
 
 # [Experimental] Enable Sentry for this service
-sentry_enabled: false
+# Allowed values: send_all_errors, send_selected_errors, disabled
+sentry: disabled

@@ -27,4 +27,5 @@ state_recovery:
   snapshots_dir: /tmp/redis_snapshots
 
 # [Experimental] Enable Sentry for this service
-sentry_enabled: false
+# Allowed values: send_all_errors, send_selected_errors, disabled
+sentry: disabled
