@@ -50,6 +50,13 @@ variable "magma_uuid" {
 variable "global_tags" {
   default = {}
 }
+
+variable "enable_orc8r_blue_green_deployment" {
+  description = "Flag to enable the deployment for a blue & green Orc8r instances in the same infrastructure"
+  type        = bool
+  default     = false
+}
+
 ##############################################################################
 # K8s configuration
 ##############################################################################
@@ -72,7 +79,7 @@ variable "cluster_name" {
 variable "cluster_version" {
   description = "Kubernetes version for the EKS cluster."
   type        = string
-  default     = "1.17"
+  default     = "1.21"
 }
 
 variable "eks_worker_group_key" {
@@ -132,6 +139,26 @@ variable "thanos_worker_groups" {
     },
   ]
 
+}
+
+variable "blue_green_worker_groups" {
+  # Check the docs at https://github.com/terraform-aws-modules/terraform-aws-eks
+  # for the complete set of valid properties for these objects. This worker group exists
+  # in order to increase the capacity of the EKS resources to accommodate a second instance
+  # of the Orc8r/NMS
+  description = "Worker group configuration for EKS. Default value is 1 worker group consisting of 5 t3.medium instances."
+  type        = any
+  default = [
+    {
+      name                 = "wg-1"
+      instance_type        = "t3.medium"
+      asg_desired_capacity = 8
+      asg_min_size         = 1
+      asg_max_size         = 8
+      autoscaling_enabled  = false
+      kubelet_extra_args = "" // object types must be identical (see thanos_worker_groups)
+    },
+  ]
 }
 
 variable "eks_map_roles" {
