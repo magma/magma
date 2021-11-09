@@ -3,7 +3,7 @@ name: "\U0001F680 Feedback form"
 about: Describe a problem, suggest a new idea or functionality for the project
 title: ''
 labels: 'type: feature'
-assignees: amarpad, ekowtaylor, talkhasib
+assignees: aswin-alexander, talkhasib
 
 ---
 
