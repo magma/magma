@@ -32,9 +32,7 @@ jobs:
           if [ "${GITHUB_REF##*/}" = "master" ] ;then
             echo "VERSION=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
           elif [ "${EVENT_NAME}" = "pull_request" ]; then
-            echo "test"
             echo "VERSION=${ISSUE_NUMBER}" >> $GITHUB_ENV
-            echo ${ISSUE_NUMBER}
           fi
       - name: Launch build and publish script
         run: |
