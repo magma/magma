@@ -265,6 +265,8 @@ int amf_handle_registration_request(
       &(ue_context->amf_context.originating_tai), (const void*) originating_tai,
       sizeof(tai_t));
 
+  ue_context->amf_context.decode_status = decode_status;
+
   if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_INITIAL) {
     OAILOG_DEBUG(LOG_NAS_AMF, "New REGISTRATION_REQUEST processing\n");
     // Check integrity and ciphering algorithm bits
@@ -399,6 +401,50 @@ int amf_handle_registration_request(
             found_imsi->second = guti_and_amf_id;
           }
         }
+      } else {
+        /*
+         * Extract the SUPI or IMSI from SUCI as scheme output is not encrypted
+         */
+        // params->imsi = new imsi_t();
+        /* Copying PLMN to local supi which is imsi*/
+        supi_imsi.plmn.mcc_digit1 =
+            msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit1;
+        supi_imsi.plmn.mcc_digit2 =
+            msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit2;
+        supi_imsi.plmn.mcc_digit3 =
+            msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit3;
+        supi_imsi.plmn.mnc_digit1 =
+            msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit1;
+        supi_imsi.plmn.mnc_digit2 =
+            msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit2;
+        supi_imsi.plmn.mnc_digit3 =
+            msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit3;
+
+        ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit1 =
+            supi_imsi.plmn.mcc_digit1;
+        ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit2 =
+            supi_imsi.plmn.mcc_digit2;
+        ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit3 =
+            supi_imsi.plmn.mcc_digit3;
+        ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit1 =
+            supi_imsi.plmn.mnc_digit1;
+        ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit2 =
+            supi_imsi.plmn.mnc_digit2;
+        ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit3 =
+            supi_imsi.plmn.mnc_digit3;
+
+        ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
+
+        std::string ciphertext = reinterpret_cast<char*>(
+            msg->m5gs_mobile_identity.mobile_identity.imsi.ciphertext);
+        std::string mac_tag = reinterpret_cast<char*>(
+            msg->m5gs_mobile_identity.mobile_identity.imsi.mac_tag);
+
+        get_decrypt_imsi_suci_extension(
+            &ue_context->amf_context,
+            msg->m5gs_mobile_identity.mobile_identity.imsi.home_nw_id,
+            ciphertext, mac_tag);
+        OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
       }
     } else if (
         msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==

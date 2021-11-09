@@ -46,6 +46,10 @@ class AMFClientServicerBase {
   virtual bool get_subs_auth_info_resync(
       const std::string& imsi, uint8_t imsi_length, const char* snni,
       const void* resync_info, uint8_t resync_info_len, amf_ue_ngap_id_t ue_id);
+
+  virtual bool get_decrypt_imsi_info(
+      const uint8_t ue_pubkey_identifier, const std::string& ciphertext,
+      const std::string& mac_tag, amf_ue_ngap_id_t ue_id);
 };
 
 class AMFClientServicer : public AMFClientServicerBase {
@@ -78,6 +82,13 @@ class AMFClientServicer : public AMFClientServicerBase {
       amf_ue_ngap_id_t ue_id) override {
     return true;
   }
+
+  bool get_decrypt_imsi_info(
+      const uint8_t ue_pubkey_identifier, const std::string& ciphertext,
+      const std::string& mac_tag, amf_ue_ngap_id_t ue_id) override {
+    return true;
+  }
+
 #endif /* MME_UNIT_TEST */
 
  private:

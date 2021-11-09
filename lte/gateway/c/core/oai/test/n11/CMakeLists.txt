@@ -3,6 +3,7 @@ include_directories("${PROJECT_SOURCE_DIR}/n11")
 
 add_executable(smf_service_client test_smf_service_client.cpp)
 add_executable(auth_service_client test_auth_service_client.cpp)
+#add_executable(suci_ext_service_client test_suci_ext_service_client.cpp)
 
 target_link_libraries(smf_service_client
 	LIB_N11 gtest gtest_main pthread protobuf rt yaml-cpp
@@ -13,3 +14,4 @@ target_link_libraries(auth_service_client
 
 add_test(test_smf_service_client smf_service_client)
 add_test(test_auth_service_client auth_service_client)
+#add_test(test_suci_ext_service_client suci_ext_service_client)
