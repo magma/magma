@@ -36,6 +36,17 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/agw-workflow.yml", "orc8r/**", "lte/**"]
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
   lte-test:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}

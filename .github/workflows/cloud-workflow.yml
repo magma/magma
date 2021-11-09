@@ -31,6 +31,16 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/cloud-workflow.yml", "wifi/cloud/**", "lte/proto/**", "cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/cloud/**", "orc8r/lib/**"]
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
   # Fail if checked-in generated code doesn't match output from
   # generation command.
   cloud-tests:
