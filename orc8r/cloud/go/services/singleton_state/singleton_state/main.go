@@ -55,14 +55,13 @@ provide directions in the upgrade notes.
 `
 
 func main() {
-	srv, err := service.NewOrchestratorService(orc8r.ModuleName, state.ServiceName)
+	srv, err := service.NewOrchestratorService(orc8r.ModuleName, "singleton_state")
 	if err != nil {
-		glog.Fatalf("Error creating state service %v", err)
+		glog.Fatalf("Error creating singleton_state service %v", err)
 	}
 
 	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
-
-	if !singletonReindex {
+	if singletonReindex {
 		db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
 		if err != nil {
 			glog.Fatalf("Error connecting to database: %v", err)
@@ -75,8 +74,9 @@ func main() {
 
 		stateServicer := newStateServicer(store)
 		protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
+		glog.Info("srv.Config %s", srv.Config)
 
-		indexerManagerServer := newIndexerManagerServicer(srv.Config, db, store)
+		indexerManagerServer := newSingletonIndexerManagerServicer(srv.Config, db, store)
 
 		indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
 	}
@@ -97,24 +97,18 @@ func newStateServicer(store blobstore.StoreFactory) protos.StateServiceServer {
 	return servicer
 }
 
-func newIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
-	queue := reindex.NewSQLJobQueue(reindex.DefaultMaxAttempts, db, sqorc.GetSqlBuilder())
-	err := queue.Initialize()
+func newSingletonIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
+	glog.Info("newSingletonIndexerManagerServicer")
+
+	versioner := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
+	err := versioner.Initialize()
 	if err != nil {
 		glog.Fatal("Error initializing state reindex queue")
 	}
-	_, err = queue.PopulateJobs()
-	if err != nil {
-		glog.Fatalf("Unexpected error initializing reindex job queue: %s", err)
-	}
 
 	autoReindex := cfg.MustGetBool(state_config.EnableAutomaticReindexing)
-	reindexer := reindex.NewReindexerQueue(queue, reindex.NewStore(store))
+	reindexer := reindex.NewReindexerSingleton(reindex.NewStore(store), versioner)
 	servicer := servicers.NewIndexerManagerServicer(reindexer, autoReindex)
-
-	if autoReindex && storage.GetSQLDriver() != sqorc.PostgresDriver {
-		glog.Warning(nonPostgresDriverMessage)
-	}
 
 	if autoReindex {
 		glog.Info("Automatic reindexing enabled for state service")

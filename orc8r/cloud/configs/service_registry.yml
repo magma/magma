@@ -122,6 +122,11 @@ services:
     port: 9105
     proxy_type: "clientcert"
 
+  singleton_state:
+    host: "localhost"
+    port: 9122
+    proxy_type: "clientcert"
+
   device:
     host: "localhost"
     port: 9106
