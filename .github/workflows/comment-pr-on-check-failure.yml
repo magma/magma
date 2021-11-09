@@ -11,7 +11,7 @@ on:  # yamllint disable-line rule:truthy
       - completed
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{ github.event.workflow.name }}
   cancel-in-progress: true
 
 jobs:
