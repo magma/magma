@@ -54,3 +54,10 @@
 !protos/
 
 !xwf/gateway/
+
+!*.bzl
+!*.bazel
+!*.BUILD
+!.bazelrc
+!.bazelignore
+!.bazelversion
