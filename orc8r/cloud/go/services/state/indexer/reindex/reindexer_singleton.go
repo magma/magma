@@ -48,21 +48,44 @@ func (r *reindexerSingleton) Run(ctx context.Context) {
 	// TODO(reginawang3495) will support non-nil sendUpdate from Run after removing queue impl
 	var sendUpdate func(string) = nil
 
-	batches := r.getReindexBatches(ctx)
 	for {
 		if isCanceled(ctx) {
 			glog.Warning("State reindexing async job canceled")
 			return
 		}
 
-		r.reindexJobs(ctx, indexerID, batches, sendUpdate)
+		err := r.findAndReindexJobs(ctx, indexerID, sendUpdate)
+		if err != nil {
+			glog.Errorf("Failed to getJobs for indexerID %s: %v", indexerID, err)
+		}
+
 		clock.Sleep(reindexLoopInterval)
 	}
 }
 
 func (r *reindexerSingleton) RunUnsafe(ctx context.Context, indexerID string, sendUpdate func(string)) error {
+	jobs, err := r.getJobs(indexerID)
+	if err != nil {
+		return wrap(err, ErrDefault, indexerID)
+	}
+	if jobs == nil {
+		return nil
+	}
+
 	batches := r.getReindexBatches(ctx)
-	return r.reindexJobs(ctx, indexerID, batches, sendUpdate)
+	return r.reindexJobs(ctx, jobs, batches, sendUpdate)
+}
+
+func (r *reindexerSingleton) findAndReindexJobs(ctx context.Context, indexerID string, sendUpdate func(string)) error {
+	jobs, err := r.getJobs(indexerID)
+	if err != nil {
+		return err
+	}
+	if jobs != nil {
+		batches := r.getReindexBatches(ctx)
+		r.reindexJobs(ctx, jobs, batches, sendUpdate)
+	}
+	return nil
 }
 
 // getReindexBatches gets network-segregated reindex batches with capped number of state IDs per batch.
@@ -96,15 +119,10 @@ func (r *reindexerSingleton) getReindexBatches(ctx context.Context) []reindexBat
 	return batches
 }
 
-func (r *reindexerSingleton) reindexJobs(ctx context.Context, indexerID string, batches []reindexBatch, sendUpdate func(string)) error {
-	jobs, err := r.getJobs(indexerID)
-	if err != nil {
-		return wrap(err, ErrDefault, indexerID)
-	}
-
+func (r *reindexerSingleton) reindexJobs(ctx context.Context, jobs []*Job, batches []reindexBatch, sendUpdate func(string)) error {
 	errs := &multierror.Error{}
 	for _, j := range jobs {
-		err = r.reindexJob(j, ctx, batches, sendUpdate)
+		err := r.reindexJob(j, ctx, batches, sendUpdate)
 		if err != nil {
 			errs = multierror.Append(errs, err)
 		}
