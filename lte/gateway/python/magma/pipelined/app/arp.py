@@ -15,7 +15,6 @@ from collections import namedtuple
 
 import netifaces
 from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupUEMacRequest
-from magma.common.misc_utils import cidr_to_ip_netmask_tuple
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.directoryd_client import get_all_records
 from magma.pipelined.openflow import flows
@@ -53,7 +52,7 @@ class ArpController(MagmaController):
     ArpdConfig = namedtuple(
         'ArpdConfig',
         [
-            'virtual_iface', 'virtual_mac', 'ue_ip_blocks', 'cwf_check_quota_ip',
+            'virtual_iface', 'virtual_mac', 'cwf_check_quota_ip',
             'cwf_bridge_mac', 'mtr_ip', 'mtr_mac', 'enable_nat',
         ],
     )
@@ -68,11 +67,11 @@ class ArpController(MagmaController):
         self.local_eth_addr = kwargs['config']['local_ue_eth_addr']
         self.setup_type = kwargs['config']['setup_type']
         self.allow_unknown_uplink_arps = kwargs['config']['allow_unknown_arps']
-        self.config = self._get_config(kwargs['config'], kwargs['mconfig'])
+        self.config = self._get_config(kwargs['config'])
         self._current_ues = []
         self._datapath = None
 
-    def _get_config(self, config_dict, mconfig):
+    def _get_config(self, config_dict):
         def get_virtual_iface_mac(iface):
             virt_ifaddresses = netifaces.ifaddresses(iface)
             return virt_ifaddresses[netifaces.AF_LINK][0]['addr']
@@ -105,7 +104,6 @@ class ArpController(MagmaController):
             virtual_iface=virtual_iface,
             virtual_mac=virtual_mac,
             # TODO deprecate this, use mobilityD API to get ip-blocks
-            ue_ip_blocks=[cidr_to_ip_netmask_tuple(mconfig.ue_ip_block)],
             cwf_check_quota_ip=config_dict.get('quota_check_ip', None),
             cwf_bridge_mac=get_virtual_iface_mac(config_dict['bridge_name']),
             mtr_ip=mtr_ip,
@@ -135,23 +133,19 @@ class ArpController(MagmaController):
             if self.allow_unknown_uplink_arps:
                 self._install_allow_incoming_arp_flow(datapath)
 
-        elif self.config.enable_nat is True:
-            if self.local_eth_addr:
-                for ip_block in self.config.ue_ip_blocks:
-                    self.add_ue_arp_flows(
-                        datapath, ip_block,
-                        self.config.virtual_mac,
-                    )
+        elif self.setup_type == 'LTE':
+            if self.config.enable_nat:
+                # TODO: move this to in/out controller
                 self._install_default_eth_dst_flow(datapath)
-        else:
-            # Nan Nat flows, from high priority to lower:
+
+            # ARP flows, from high priority to lower:
             # UE_FLOW_PRIORITY    : MTR IP arp flow
             # UE_FLOW_PRIORITY    : Router IP
             # UE_FLOW_PRIORITY -1 : drop flow for untagged arp requests
             # DEFAULT_PRIORITY    : ARP responder for all tagged IPs. Table
             #                       zero would tag ARP requests for valid UE IPs.
             self.logger.info(
-                "APR: Non-Nat special mac %s",
+                "APR: special mac %s",
                 self.config.virtual_mac,
             )
 
