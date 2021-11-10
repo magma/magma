@@ -15,7 +15,7 @@ import logging
 
 import grpc
 from integ_tests.gateway.rpc import get_rpc_channel
-from orc8r.protos.magmad_pb2 import RestartServicesRequest
+from orc8r.protos.magmad_pb2 import RestartServicesRequest, ServiceRequest, ServiceState
 from orc8r.protos.magmad_pb2_grpc import MagmadStub
 
 
@@ -29,6 +29,17 @@ class MagmadServiceClient(metaclass=abc.ABCMeta):
 
         Args:
             services: List of str of services names
+
+        """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def get_service_status(self, service):
+        """
+        Get magmad service status.
+
+        Args:
+            service: str of service names
 
         """
         raise NotImplementedError()
@@ -48,6 +59,17 @@ class MagmadServiceGrpc(MagmadServiceClient):
             request.services.append(s)
         try:
             self._magmad_stub.RestartServices(request)
+        except grpc.RpcError as error:
+            err_code = error.exception().code()
+            if err_code == grpc.StatusCode.FAILED_PRECONDITION:
+                logging.info("Ignoring FAILED_PRECONDITION exception")
+            else:
+                raise
+
+    def get_service_status(self, service) -> ServiceState:
+        request = ServiceRequest(service=service)
+        try:
+            return self._magmad_stub.GetServiceStatus(request)
         except grpc.RpcError as error:
             err_code = error.exception().code()
             if err_code == grpc.StatusCode.FAILED_PRECONDITION:

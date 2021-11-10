@@ -44,6 +44,15 @@ def restart_services(client, args):
 
 
 @grpc_wrapper
+def get_service_status(client, args):
+    status = client.GetServiceStatus(
+        magmad_pb2.ServiceRequest(service=args.service),
+    )
+    print(status)
+
+
+
+@grpc_wrapper
 def ping(client, args):
     response = client.RunNetworkTests(
         magmad_pb2.NetworkTestRequest(
@@ -173,6 +182,8 @@ def create_parser():
         'config_stateless',
         help='Change AGW stateless mode',
     )
+    parser_get_service_status = subparsers.add_parser(
+        'get_service_status', help='Get service status')
 
     parser_ping.add_argument(
         'hosts', nargs='+', type=str,
@@ -215,6 +226,9 @@ def create_parser():
         'switch', type=str,
         help='Enable/Disable',
     )
+    parser_get_service_status.add_argument(
+        'service', type=str, help='Service to get status'
+    )
 
     # Add function callbacks
     parser_start.set_defaults(func=start_services)
@@ -228,6 +242,7 @@ def create_parser():
     parser_tail_logs.set_defaults(func=tail_logs)
     parser_stateless_check.set_defaults(func=check_stateless)
     parser_stateless_config.set_defaults(func=config_stateless)
+    parser_get_service_status.set_defaults(func=get_service_status)
     return parser
 
 

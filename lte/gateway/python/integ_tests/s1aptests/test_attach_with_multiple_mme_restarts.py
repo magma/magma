@@ -52,8 +52,8 @@ class TestAttachWithMultipleMmeRestarts(unittest.TestCase):
         print("************************* Received UE_AUTH_REQ_IND")
 
         # Try consecutive mme restarts
-        self._s1ap_wrapper.magmad_util.restart_mme_and_wait()
-        self._s1ap_wrapper.magmad_util.restart_mme_and_wait()
+        self._s1ap_wrapper.magmad_util.restart_service_and_wait("mme")
+        self._s1ap_wrapper.magmad_util.restart_service_and_wait("mme")
 
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = 1
@@ -71,7 +71,7 @@ class TestAttachWithMultipleMmeRestarts(unittest.TestCase):
         )
         print("************************* Received UE_SEC_MOD_CMD_IND")
 
-        self._s1ap_wrapper.magmad_util.restart_mme_and_wait()
+        self._s1ap_wrapper.magmad_util.restart_service_and_wait("mme")
 
         print("************************* Sending UE_SEC_MOD_COMPLETE")
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
@@ -92,7 +92,7 @@ class TestAttachWithMultipleMmeRestarts(unittest.TestCase):
         )
         print("************************* Received UE_ATTACH_ACCEPT_IND")
 
-        self._s1ap_wrapper.magmad_util.restart_mme_and_wait()
+        self._s1ap_wrapper.magmad_util.restart_service_and_wait("mme")
 
         # Trigger Attach Complete
         print("************************* Sending UE_ATTACH_COMPLETE")

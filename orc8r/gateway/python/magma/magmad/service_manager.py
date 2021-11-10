@@ -116,6 +116,9 @@ class ServiceManager(object):
         )
         magmad_events.restarted_services(services)
 
+    def get_service_status(self, service):
+        return self._service_control[service].status()
+
     async def update_dynamic_services(self, dynamic_services: List[str]):
         """
         Start/Stop dynamic services, after running this the only dynamic

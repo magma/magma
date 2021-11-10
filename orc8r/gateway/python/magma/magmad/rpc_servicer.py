@@ -146,6 +146,14 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         )
         self._magma_service.reload_mconfig()
 
+    def GetServiceStatus(self, request, context):
+        """ 
+        Retrieve status of magmad managed service.
+        """
+        self._print_grpc(request)
+        status = self._service_manager.get_service_status(request.service)
+        return magmad_pb2.ServiceState(state=status.value)
+
     def GetConfigs(self, _, context):
         # TODO: support streaming mconfig manager impl
         return self._mconfig_manager.load_mconfig()

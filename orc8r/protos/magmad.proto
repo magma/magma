@@ -112,6 +112,24 @@ message ConfigureStatelessRequest {
   Cmd config_cmd = 1;
 }
 
+message ServiceRequest {
+  string service = 1;
+}
+
+message ServiceState {
+  enum State {
+    INVALID = 0;
+    ACTIVE = 1;
+    ACTIVATING = 2;
+    DEACTIVATING = 3;
+    INACTIVE = 4;
+    FAILED = 5;
+    UNKNOWN = 6;
+    ERROR = 7;
+  }
+  State state = 1;
+}
+
 // --------------------------------------------------------------------------
 // Magmad service definition.
 // --------------------------------------------------------------------------
@@ -134,6 +152,9 @@ service Magmad {
 
   // Get current AG configs
   rpc GetConfigs (Void) returns (GatewayConfigs) {}
+
+  // Get current service status
+  rpc GetServiceStatus (ServiceRequest) returns (ServiceState) {}
 
   // Execute some network commands to check gateway network health
   rpc RunNetworkTests (NetworkTestRequest) returns (NetworkTestResponse) {}

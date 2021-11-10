@@ -58,6 +58,7 @@ from magma.subscriberdb.sid import SIDUtils
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
+from orc8r.protos.magmad_pb2 import ServiceState
 
 DEFAULT_GRPC_TIMEOUT = 10
 
@@ -380,14 +381,14 @@ class S1ApUtil(object):
         detach_req.ue_Id = ue_id
         detach_req.ueDetType = reason_type
         assert (
-                self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
-                == 0
+            self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
+            == 0
         )
         if reason_type == s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value:
             response = self.get_response()
             assert (
-                    s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
-                    == response.msg_type
+                s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
+                == response.msg_type
             )
 
         # Now wait for the context release response
@@ -439,8 +440,8 @@ class S1ApUtil(object):
                 },
             )
             assert (
-                    len(total_dl_ovs_flows_created)
-                    == total_num_dl_flows_to_be_verified
+                len(total_dl_ovs_flows_created)
+                == total_num_dl_flows_to_be_verified
             )
 
             # Now verify the rules for every flow
@@ -482,7 +483,7 @@ class S1ApUtil(object):
                                 5,
                             )  # sleep for 5 seconds before retrying
                         assert (
-                                len(downlink_flows) >= num_dl_flows
+                            len(downlink_flows) >= num_dl_flows
                         ), "Downlink flow missing for UE"
                         assert downlink_flows[0]["match"][ip_dst] == ue_ip_addr
                         actions = downlink_flows[0]["instructions"][0][
@@ -519,7 +520,8 @@ class S1ApUtil(object):
                 break
             time.sleep(5)  # sleep for 5 seconds before retrying
         assert len(uplink_flows) == num_ul_flows,\
-            "Uplink flow missing for UE: %d != %d" % (len(uplink_flows), num_ul_flows)
+            "Uplink flow missing for UE: %d != %d" % (
+                len(uplink_flows), num_ul_flows)
 
         assert uplink_flows[0]["match"]["tunnel_id"] is not None
 
@@ -551,7 +553,7 @@ class S1ApUtil(object):
                     break
                 time.sleep(5)  # sleep for 5 seconds before retrying
             assert (
-                    len(paging_flows) == num_paging_flows_to_be_verified
+                len(paging_flows) == num_paging_flows_to_be_verified
             ), "Paging flow missing for UE"
 
             # TODO - Verify that the action is to send to controller
@@ -765,8 +767,8 @@ class MagmadUtil(object):
         config_stateless_script = "/usr/local/bin/config_stateless_agw.py"
 
         ret_code = self.exec_command(
-            magtivate_cmd + " && " + venvsudo_cmd + " python3 " +
-            config_stateless_script + " " + cmd.name.lower(),
+            magtivate_cmd + " && " + venvsudo_cmd + " python3 "
+            + config_stateless_script + " " + cmd.name.lower(),
         )
 
         if ret_code == 0:
@@ -838,14 +840,8 @@ class MagmadUtil(object):
         Args:
             service: (str) service to check if it's active
         """
-        is_active_service_cmd = "systemctl is-active magma@" + service
-        try:
-            result_str = self.exec_command_output(is_active_service_cmd)
-        except subprocess.CalledProcessError as e:
-            # if service is disabled / masked, is-enabled will return
-            # non-zero exit status
-            result_str = e.output
-        return result_str.strip() == "active"
+        service_status = self._magmad_client.get_service_status(service)
+        return service_status.state == ServiceState.ACTIVE
 
     def update_mme_config_for_sanity(self, cmd):
         mme_config_update_script = (
@@ -862,29 +858,29 @@ class MagmadUtil(object):
             print("MME configuration is updated successfully")
         elif ret_code == 1:
             assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: Invalid command"
+                "Failed to "
+                + action
+                + " MME configuration. Error: Invalid command"
             )
         elif ret_code == 2:
             assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: MME configuration file is "
-                    + "missing"
+                "Failed to "
+                + action
+                + " MME configuration. Error: MME configuration file is "
+                + "missing"
             )
         elif ret_code == 3:
             assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: MME configuration's backup file "
-                    + "is missing"
+                "Failed to "
+                + action
+                + " MME configuration. Error: MME configuration's backup file "
+                + "is missing"
             )
         else:
             assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: Unknown error"
+                "Failed to "
+                + action
+                + " MME configuration. Error: Unknown error"
             )
 
     def update_mme_config_for_non_sanity(self, cmd):
@@ -1088,11 +1084,18 @@ class MagmadUtil(object):
         print("Ha service configuration failed")
         return -1
 
-    def restart_mme_and_wait(self):
-        print("Restarting mme service on gateway")
-        self.restart_services(["mme"])
-        print("Waiting for mme to restart. 20 sec")
-        time.sleep(20)
+    def restart_service_and_wait(self, service: str, timeout: int = 30, retry: bool = True):
+        print("Restarting %s service on gateway" % service)
+        self.restart_services([service])
+        print("Waiting for %s to restart. %s sec" % (service, timeout))
+        for j in range(timeout):
+            print("Waiting for", j, "seconds")
+            time.sleep(1)
+        if retry and not self.is_service_active(service):
+            print('Retrying since service is not yet active')
+            for j in range(timeout):
+                print("Waiting for", j, "seconds")
+                time.sleep(1)
 
     def restart_sctpd(self):
         """
@@ -1132,7 +1135,8 @@ class MagmadUtil(object):
                 num_htbl_entries += 1
 
         s1ap_imsi_map_cmd = "state_cli.py parse s1ap_imsi_map"
-        s1ap_imsi_map_state = self.exec_command_output(magtivate_cmd + " && " + s1ap_imsi_map_cmd)
+        s1ap_imsi_map_state = self.exec_command_output(
+            magtivate_cmd + " && " + s1ap_imsi_map_cmd)
         # Remove state version output to get only hashmap entries
         s1ap_imsi_map_entries = len(s1ap_imsi_map_state.split("\n")[:-4]) // 4
 
@@ -1590,7 +1594,8 @@ class SessionManagerUtil(object):
         res = None
         self.get_flow_match(flow_list, flow_match_list)
 
-        policy_rule = self.get_policy_rule(policy_id, qos, flow_match_list, he_urls)
+        policy_rule = self.get_policy_rule(
+            policy_id, qos, flow_match_list, he_urls)
 
         qos = QoSInformation(qci=qos["qci"])
 
@@ -1650,9 +1655,11 @@ class SessionManagerUtil(object):
 
     def _print_directoryd_content(self):
         try:
-            allRecordsResponse = self._directorydstub.GetAllDirectoryRecords(Void(), DEFAULT_GRPC_TIMEOUT)
+            allRecordsResponse = self._directorydstub.GetAllDirectoryRecords(
+                Void(), DEFAULT_GRPC_TIMEOUT)
         except grpc.RpcError as e:
-            print("error: couldnt print directoryd content. gRPC failed with %s: %s" % (e.code(), e.details()))
+            print("error: couldnt print directoryd content. gRPC failed with %s: %s" % (
+                e.code(), e.details()))
             return
         if allRecordsResponse is None:
             print("No records were found at directoryd")
@@ -1772,9 +1779,11 @@ class HeaderEnrichmentUtils:
 
     def restart_envoy_service(self):
         print("restarting envoy")
-        self.magma_utils.exec_command_output("sudo service magma@envoy_controller restart")
+        self.magma_utils.exec_command_output(
+            "sudo service magma@envoy_controller restart")
         time.sleep(5)
-        self.magma_utils.exec_command_output("sudo service magma_dp@envoy restart")
+        self.magma_utils.exec_command_output(
+            "sudo service magma_dp@envoy restart")
         time.sleep(20)
         print("restarting envoy done")
 

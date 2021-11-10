@@ -62,11 +62,7 @@ class TestAttachDetachWithMmeRestart(unittest.TestCase):
                 "************************* Restarting MME service on",
                 "gateway",
             )
-            self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-            for j in range(30):
-                print("Waiting for", j, "seconds")
-                time.sleep(1)
+            self._s1ap_wrapper.magmad_util.restart_service_and_wait("mme")
 
             # Now detach the UE
             print(
