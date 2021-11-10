@@ -1,3 +1,15 @@
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #pragma once
 #include <pthread.h>
@@ -7,13 +19,12 @@
 #include <mutex>
 #include <string>
 
-#include "3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 
 namespace std {
 typedef size_t hash_size_t;
 /*Default hash function*/
-static hash_size_t amf_def_hashfunc(
-    const void* const keyP, const int key_sizeP) {
+static hash_size_t def_hashfunc(const void* const keyP, const int key_sizeP) {
   hash_size_t hash = 0;
   int key_size     = key_sizeP;
 
@@ -47,7 +58,7 @@ struct equal_to<guti_m5_t> {
 template<>
 struct hash<guti_m5_t> {
   size_t operator()(const guti_m5_t& k) const {
-    return amf_def_hashfunc(&k, sizeof(k));
+    return def_hashfunc(&k, sizeof(k));
   }
 };
 }  // namespace std
@@ -55,7 +66,7 @@ namespace magma5g {
 
 /*Enum for Map Return code
   Note: If new named constant is added to the enumeration list, add the new case
-  in map_rc_code2string() located in amf_map.cpp*/
+  in map_rc_code2string()*/
 typedef enum map_return_code_e {
   MAP_OK = 0,
   MAP_KEY_NOT_EXISTS,
@@ -66,6 +77,53 @@ typedef enum map_return_code_e {
   MAP_EMPTY,
   MAP_DUMP_FAIL
 } map_rc_t;
+
+/***************************************************************************
+**                                                                        **
+** Name:    map_rc_code2string()                                          **
+**                                                                        **
+** Description: This converts the map_rc_t, return code to string         **
+**                                                                        **
+***************************************************************************/
+
+static std::string map_rc_code2string(map_rc_t rc) {
+  switch (rc) {
+    case MAP_OK:
+      return "MAP_OK";
+      break;
+
+    case MAP_KEY_NOT_EXISTS:
+      return "MAP_KEY_NOT_EXISTS";
+      break;
+
+    case MAP_SEARCH_NO_RESULT:
+      return "MAP_SEARCH_NO_RESULT";
+      break;
+
+    case MAP_KEY_ALREADY_EXISTS:
+      return "MAP_KEY_ALREADY_EXISTS";
+      break;
+
+    case MAP_BAD_PARAMETER_KEY:
+      return "MAP_BAD_PARAMETER_KEY";
+      break;
+
+    case MAP_BAD_PARAMETER_VALUE:
+      return "MAP_BAD_PARAMETER_VALUE";
+      break;
+
+    case MAP_EMPTY:
+      return "MAP_EMPTY";
+      break;
+
+    case MAP_DUMP_FAIL:
+      return "MAP_DUMP_FAIL";
+      break;
+
+    default:
+      return "UNKNOWN map_rc_t";
+  }
+}
 
 /***************************************************************************
 **                                                                        **
@@ -167,15 +225,8 @@ struct map_ts_s {
   }
 };
 
-// Helper Function Declarations:
-// Function to convert the return codes into string before logging them.
-std::string map_rc_code2string(map_rc_t rc);
-
 // Map Declarations:
 // Map- Key: uint64_t , Data: uint64_t
 typedef map_ts_s<uint64_t, uint64_t> map_uint64_ts_t;
-
-// Map Key: guti_m5_t Data: uint64_t;
-typedef map_ts_s<guti_m5_t, uint64_t> obj_map_uint64_ts_t;
 
 }  // namespace magma5g

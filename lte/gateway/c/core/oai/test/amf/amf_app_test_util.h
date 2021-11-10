@@ -20,7 +20,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_map.h"
+#include "lte/gateway/c/core/oai/include/map.h"
 
 using ::testing::_;
 using ::testing::Return;

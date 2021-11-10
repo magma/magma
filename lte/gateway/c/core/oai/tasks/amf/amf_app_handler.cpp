@@ -38,7 +38,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/n11_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_map.h"
+#include "lte/gateway/c/core/oai/include/map.h"
 
 extern amf_config_t amf_config;
 extern amf_config_t amf_config;
