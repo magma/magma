@@ -47,7 +47,7 @@ func main() {
 
 	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
 	if singletonReindex {
-		glog.Info("Running orc8r_worker service")
+		glog.Info("Running singleton reindexer")
 
 		db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
 		if err != nil {

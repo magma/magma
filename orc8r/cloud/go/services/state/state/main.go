@@ -75,7 +75,7 @@ func main() {
 
 	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
 	if !singletonReindex {
-		glog.Info("Running state service")
+		glog.Info("Running reindexer")
 		indexerManagerServer := newIndexerManagerServicer(srv.Config, db, store)
 		indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
 	}
