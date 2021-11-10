@@ -167,7 +167,6 @@ func parseAddress(addr string) (*address, error) {
 	if len(matches) < 2 {
 		return &address{ip: ipAddr, version: version, port: 0}, nil
 	}
-
 	// Don't support port ranges for now
 	portInt, err := strconv.ParseInt(matches[1], 10, 32)
 	if err != nil {
