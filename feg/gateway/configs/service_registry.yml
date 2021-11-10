@@ -57,6 +57,9 @@ services:
   ctraced:
     ip_address: 127.0.0.1
     port: 50079
+  n7_proxy:
+    ip_address: 127.0.0.1
+    port: 9118
 
   # Development/Test Services
   mock_ocs:

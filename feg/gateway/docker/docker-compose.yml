@@ -127,6 +127,11 @@ services:
     container_name: radiusd
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/radiusd -logtostderr=true -v=0
 
+  n7_proxy:
+    <<: *goservice
+    container_name: n7_proxy
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/n7_proxy -logtostderr=true -v=0
+
   control_proxy:
     <<: *pyservice
     container_name: control_proxy

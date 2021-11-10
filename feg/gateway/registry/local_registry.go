@@ -48,6 +48,7 @@ const (
 	MOCK_PCRF        = "MOCK_PCRF"
 	MOCK_PCRF2       = "MOCK_PCRF2"
 	MOCK_HSS         = "HSS"
+	N7_PROXY         = "N7_PROXY"
 
 	SESSION_MANAGER = "SESSIOND"
 )
@@ -97,6 +98,8 @@ func init() {
 	addLocalService(HLR_PROXY, 9116)
 	addLocalService(PIPELINED, 9117)
 	addLocalService(ENVOY_CONTROLLER, 9118)
+
+	addLocalService(N7_PROXY, 9119)
 
 	addLocalService(MOCK_OCS, 9201)
 	addLocalService(MOCK_PCRF, 9202)

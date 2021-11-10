@@ -244,3 +244,26 @@ message S8Config {
     string pgw_address = 3;
     string apn_operator_suffix = 4;
 }
+
+message HttpServerConfig {
+    // Base URL pointing to the HTTP2 SBI server
+    string api_root = 1;
+    // Token URL for getting the OAuth2 token
+    string token_url = 2;
+    // OAuth2 Client ID that will be used for getting the bearer token
+    string client_id = 3;
+    // OAuth2 Client secret used for getting the bearer token
+    string client_secret = 4;
+}
+
+message N7Config {
+    orc8r.LogLevel log_level = 1;
+    // Disables N7 interface
+    bool disable_n7 = 2;
+    // Multiple PCFs configuration
+    repeated HttpServerConfig servers = 3;
+    // Percentage of request failures considered to be unhealthy
+    float request_failure_threshold = 4;
+    // Minimum number of requests necessary to consider a metrics snapshot valid
+    uint32 minimum_request_threshold = 5;
+}
