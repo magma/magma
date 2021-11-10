@@ -1148,7 +1148,15 @@ export type paginated_gateways = {
 };
 export type paginated_subscribers = {
     next_page_token: page_token,
-    subscribers: {},
+    subscribers: {
+        [string]: subscriber,
+    },
+    total_count: number,
+};
+export type paginated_subscribers_abbreviated = {
+    next_page_token: page_token,
+    subscribers: Array < string >
+        ,
     total_count: number,
 };
 export type ping_request = {
@@ -7220,6 +7228,48 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getLteByNetworkIdSubscribersVerboseFalse(
+            parameters: {
+                'networkId': string,
+                'msisdn' ? : string,
+                'ip' ? : string,
+                'verbose' ? : boolean,
+                'pageSize' ? : number,
+                'pageToken' ? : string,
+            }
+        ): Promise < paginated_subscribers_abbreviated >
+        {
+            let path = '/lte/{network_id}/subscribers?verbose=false';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['msisdn'] !== undefined) {
+                query['msisdn'] = parameters['msisdn'];
+            }
+
+            if (parameters['ip'] !== undefined) {
+                query['ip'] = parameters['ip'];
+            }
+
+            if (parameters['verbose'] !== undefined) {
+                query['verbose'] = parameters['verbose'];
+            }
+
+            if (parameters['pageSize'] !== undefined) {
+                query['page_size'] = parameters['pageSize'];
+            }
+
+            if (parameters['pageToken'] !== undefined) {
+                query['page_token'] = parameters['pageToken'];
+            }
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getNetworks(): Promise < Array < string >
         >
         {

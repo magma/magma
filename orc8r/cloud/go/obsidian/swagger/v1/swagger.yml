@@ -3856,6 +3856,37 @@ paths:
       summary: Change a subscriber's data profile
       tags:
       - Subscribers
+  /lte/{network_id}/subscribers?verbose=false:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - description: Filter to subscribers with the passed MSISDN
+        in: query
+        name: msisdn
+        required: false
+        type: string
+      - description: Filter to subscribers assigned the passed IP address
+        in: query
+        name: ip
+        required: false
+        type: string
+      - description: Show full subscribers if true (default) or just show IDs
+        in: query
+        name: verbose
+        required: false
+        type: boolean
+      - $ref: '#/parameters/page_size'
+      - $ref: '#/parameters/page_token'
+      responses:
+        "200":
+          description: List of subscribers in the network
+          schema:
+            $ref: '#/definitions/paginated_subscribers_abbreviated'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List subscribers in the network with pagination support
+      tags:
+      - Subscribers
   /networks:
     get:
       responses:
@@ -10750,7 +10781,30 @@ definitions:
       next_page_token:
         $ref: '#/definitions/page_token'
       subscribers:
+        additionalProperties:
+          $ref: '#/definitions/subscriber'
+          x-nullable: true
         type: object
+      total_count:
+        description: estimated total number of subscriber entries
+        example: 10
+        format: int64
+        type: integer
+        x-nullable: false
+    required:
+    - next_page_token
+    - subscribers
+    - total_count
+    type: object
+  paginated_subscribers_abbreviated:
+    description: Abbreviated page of subscribers
+    properties:
+      next_page_token:
+        $ref: '#/definitions/page_token'
+      subscribers:
+        items:
+          type: string
+        type: array
       total_count:
         description: estimated total number of subscriber entries
         example: 10

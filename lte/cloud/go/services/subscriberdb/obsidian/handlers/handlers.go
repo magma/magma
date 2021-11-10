@@ -229,10 +229,19 @@ func listSubscribersHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusOK, nil)
 	}
-	paginatedSubs := subscribermodels.PaginatedSubscribers{
-		TotalCount:    int64(count),
-		NextPageToken: subscribermodels.PageToken(nextPageToken),
-		Subscribers:   subscribersVerbosity(subs, verbose),
+	var paginatedSubs interface{}
+	if verbose {
+		paginatedSubs = subscribermodels.PaginatedSubscribers{
+			TotalCount:    int64(count),
+			NextPageToken: subscribermodels.PageToken(nextPageToken),
+			Subscribers:   subscribersVerbosity(subs, verbose).(map[string]*subscribermodels.Subscriber),
+		}
+	} else {
+		paginatedSubs = subscribermodels.PaginatedSubscribersAbbreviated{
+			TotalCount:    int64(count),
+			NextPageToken: subscribermodels.PageToken(nextPageToken),
+			Subscribers:   subscribersVerbosity(subs, verbose).([]string),
+		}
 	}
 	return c.JSON(http.StatusOK, paginatedSubs)
 }
