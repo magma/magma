@@ -18,6 +18,8 @@ import (
 	"database/sql"
 	"time"
 
+	"magma/orc8r/cloud/go/services/singleton_state"
+
 	"github.com/golang/glog"
 
 	"magma/orc8r/cloud/go/blobstore"
@@ -31,37 +33,22 @@ import (
 	"magma/orc8r/cloud/go/services/state/servicers"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
-	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/service/config"
 )
 
 // how often to report gateway status
 const gatewayStatusReportInterval = time.Second * 60
 
-const nonPostgresDriverMessage = `Configuration warning:
-
-This deployment has automatic state reindexing enabled, but is targeting a
-database driver other than Postgres. This will cause the state service
-to log a (harmless) DB syntax error, due to its use of Postgres-specific
-syntax for automatic reindexing.
-
-(Option 1) Continue using non-Postgres driver. To clear this warning, update
-the state.yml cloud config to set enable_automatic_reindexing to false.
-Keep in mind that, for this option, you will have to perform manual state
-reindexing on every Orc8r upgrade. We provide a CLI to manage this, and will
-provide directions in the upgrade notes.
-
-(Option 2) Switch to a Postgres driver.
-`
-
 func main() {
-	srv, err := service.NewOrchestratorService(orc8r.ModuleName, "singleton_state")
+	srv, err := service.NewOrchestratorService(orc8r.ModuleName, singleton_state.ServiceName)
 	if err != nil {
 		glog.Fatalf("Error creating singleton_state service %v", err)
 	}
 
 	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
 	if singletonReindex {
+		glog.Info("Running singleton_state service")
+
 		db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
 		if err != nil {
 			glog.Fatalf("Error connecting to database: %v", err)
@@ -69,11 +56,9 @@ func main() {
 		store := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 		err = store.InitializeFactory()
 		if err != nil {
-			glog.Fatalf("Error initializing singleton_state database: %v", err)
+			glog.Fatalf("Error initializing state database: %v", err)
 		}
 
-		stateServicer := newStateServicer(store)
-		protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
 		indexerManagerServer := newSingletonIndexerManagerServicer(srv.Config, db, store)
 		indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
 	}
@@ -82,23 +67,15 @@ func main() {
 
 	err = srv.Run()
 	if err != nil {
-		glog.Fatalf("Error running state service: %v", err)
+		glog.Fatalf("Error running singleton_state service: %v", err)
 	}
-}
-
-func newStateServicer(store blobstore.StoreFactory) protos.StateServiceServer {
-	servicer, err := servicers.NewStateServicer(store)
-	if err != nil {
-		glog.Fatalf("Error creating state servicer: %v", err)
-	}
-	return servicer
 }
 
 func newSingletonIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
 	versioner := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
 	err := versioner.Initialize()
 	if err != nil {
-		glog.Fatal("Error initializing state reindex versioner")
+		glog.Fatal("Error initializing singleton_state reindex versioner")
 	}
 
 	autoReindex := cfg.MustGetBool(state_config.EnableAutomaticReindexing)
@@ -106,10 +83,10 @@ func newSingletonIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobs
 	servicer := servicers.NewIndexerManagerServicer(reindexer, autoReindex)
 
 	if autoReindex {
-		glog.Info("Automatic reindexing enabled for state service")
+		glog.Info("Automatic reindexing enabled for singleton_state service")
 		go reindexer.Run(context.Background())
 	} else {
-		glog.Info("Automatic reindexing disabled for state service")
+		glog.Info("Automatic reindexing disabled for singleton_state service")
 	}
 
 	return servicer
