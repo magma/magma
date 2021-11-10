@@ -6,9 +6,9 @@ inputs:
   DEVCONTAINER_IMAGE:
     description: "the docker image tag to test"
     required: true
-  BAZEL_CACHE: bazel-cache
+  BAZEL_CACHE:
     required: true
-  BAZEL_CACHE_REPO: bazel-cache-repo
+  BAZEL_CACHE_REPO:
     required: true
   SLACK_WEBHOOK_CI:
     description: "slack webhook ci"
