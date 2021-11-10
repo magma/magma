@@ -461,14 +461,12 @@ void mme_app_handle_conn_est_cnf(
       if (!j) {
         establishment_cnf_p->nas_pdu[j] = nas_conn_est_cnf_p->nas_msg;
         nas_conn_est_cnf_p->nas_msg     = NULL;
-#if DEBUG_IS_ON
         if (!establishment_cnf_p->nas_pdu[j]) {
           OAILOG_ERROR_UE(
               LOG_MME_APP, emm_context_p->_imsi64,
               "No NAS PDU found ue " MME_UE_S1AP_ID_FMT "\n",
               nas_conn_est_cnf_p->ue_id);
         }
-#endif
       }
       j = j + 1;
     }

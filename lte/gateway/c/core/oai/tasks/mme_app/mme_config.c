@@ -1872,7 +1872,6 @@ void mme_config_display(mme_config_t* config_pP) {
       LOG_CONFIG, "Built with S6A_OVER_GRPC .....................: %d\n",
       S6A_OVER_GRPC);
 
-#if DEBUG_IS_ON
   OAILOG_DEBUG(
       LOG_CONFIG, "Built with CMAKE_BUILD_TYPE ................: %s\n",
       CMAKE_BUILD_TYPE);
@@ -1891,7 +1890,7 @@ void mme_config_display(mme_config_t* config_pP) {
   OAILOG_DEBUG(
       LOG_CONFIG, "Built with TRACE_3GPP_SPEC .................: %d\n",
       TRACE_3GPP_SPEC);
-#endif
+
   OAILOG_INFO(LOG_CONFIG, "Configuration:\n");
   OAILOG_INFO(
       LOG_CONFIG, "- File .................................: %s\n",
