@@ -140,79 +140,13 @@ jobs:
     name: Run C/C++ unit tests with Bazel
     runs-on: ubuntu-latest
     steps:
-      - name: Check Out Repo
-        # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@v2
-      - name: Bazel Cache
-        uses: actions/cache@v2
+      - uses: actions/checkout@v2
+      - uses: ./.github/workflows/composite/c_cpp_unit_tests
         with:
-          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
-      - name: Bazel Cache Repo
-        uses: actions/cache@v2
-        with:
-          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
-          key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
-      - name: Setup Devcontainer Image
-        uses: addnab/docker-run-action@v2
-        with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
-          run: |
-            echo "Pulled the devontainer image!"
-      - name: Build C / C++ code with Bazel
-        uses: addnab/docker-run-action@v2
-        with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
-          run: |
-            cd /workspaces/magma
-            bazel build //orc8r/gateway/c/...:* //lte/gateway/c/...:*
-      - name: Test C / C++ code with Bazel
-        uses: addnab/docker-run-action@v2
-        with:
-          shell: bash
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
-          run: |
-            cd /workspaces/magma
-            bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* --test_output=errors
-            TEST_RESULT=$?
-            # copy out test results
-            mkdir -p c-cpp-test-results/
-            echo "created c-cpp-test-results/ directory, copying out test result XMLs"
-            find bazel-out/k8-dbg/testlogs/ -name "*.xml" | while IFS= read -r f; do cp "$f" "c-cpp-test-results/${f//\//_}"; done
-            exit $TEST_RESULT
-      - name: Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: Unit Test Results
-          path: c-cpp-test-results/
-      - name: Extract commit title
-        # yamllint enable
-        if: failure() && github.event_name == 'push'
-        id: commit
-        run: |
-            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action c_cpp_unit_tests failed"
-          SLACK_USERNAME: "AGW workflow"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title }}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
+          DEVCONTAINER_IMAGE: ${{ env.DEVCONTAINER_IMAGE }}
+          BAZEL_CACHE: ${{ env.BAZEL_CACHE }}
+          BAZEL_CACHE_REPO: ${{ env.BAZEL_CACHE_REPO }}
+          SLACK_WEBHOOK_CI: ${{ secrets.SLACK_WEBHOOK_CI }}
 
   li_agent_test:
     needs: path_filter
