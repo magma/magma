@@ -434,6 +434,32 @@ func TestListSubscribers(t *testing.T) {
 		ExpectedResult: tests.JSONMarshaler(expectedResult),
 	}
 	tests.RunUnitTest(t, e, tc)
+
+	expectedResultAbbreviated := subscriberModels.PaginatedSubscribersAbbreviated{
+		TotalCount:    expectedResult.TotalCount,
+		NextPageToken: expectedResult.NextPageToken,
+	}
+
+	for k := range expectedResult.Subscribers {
+		expectedResultAbbreviated.Subscribers = append(expectedResultAbbreviated.Subscribers, k)
+	}
+
+	if len(expectedResult.Subscribers) == 0 || expectedResult.TotalCount == 0 {
+		t.Errorf("Checking output schema of empty subscriber list? That's a problem!" +
+			"Make sure there's at least one subscriber.")
+	}
+
+	// Get last page of subscribers
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot + "?page_size=2&verbose=false&page_token=Cg5JTVNJMDk4NzY1NDMyMg==",
+		Handler:        listSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(expectedResultAbbreviated),
+	}
+	tests.RunUnitTest(t, e, tc)
 }
 
 func TestGetSubscriber(t *testing.T) {
