@@ -805,13 +805,14 @@ class MagmadUtil(object):
 
     def restart_services(self, services):
         """
-        Restart a list of magmad services.
+        Restart a list of magmad services. Blocking command.
 
         Args:
             services: List of (str) services names
 
         """
-        self._magmad_client.restart_services(services)
+        for s in services:
+            self.exec_command("sudo systemctl restart magma@{}".format(s))
 
     def enable_service(self, service):
         """
