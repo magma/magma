@@ -60,20 +60,22 @@ func main() {
 		glog.Fatalf("Error creating state service %v", err)
 	}
 
+	db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
+	if err != nil {
+		glog.Fatalf("Error connecting to database: %v", err)
+	}
+	store := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
+	err = store.InitializeFactory()
+	if err != nil {
+		glog.Fatalf("Error initializing state database: %v", err)
+	}
+
+	stateServicer := newStateServicer(store)
+	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
+
 	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
 	if !singletonReindex {
-		db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
-		if err != nil {
-			glog.Fatalf("Error connecting to database: %v", err)
-		}
-		store := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
-		err = store.InitializeFactory()
-		if err != nil {
-			glog.Fatalf("Error initializing state database: %v", err)
-		}
-
-		stateServicer := newStateServicer(store)
-		protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
+		glog.Info("Running state service")
 		indexerManagerServer := newIndexerManagerServicer(srv.Config, db, store)
 		indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
 	}

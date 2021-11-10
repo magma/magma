@@ -18,7 +18,7 @@ import (
 	"database/sql"
 	"time"
 
-	"magma/orc8r/cloud/go/services/singleton_state"
+	"magma/orc8r/cloud/go/services/orc8r_worker"
 
 	"github.com/golang/glog"
 
@@ -40,14 +40,14 @@ import (
 const gatewayStatusReportInterval = time.Second * 60
 
 func main() {
-	srv, err := service.NewOrchestratorService(orc8r.ModuleName, singleton_state.ServiceName)
+	srv, err := service.NewOrchestratorService(orc8r.ModuleName, orc8r_worker.ServiceName)
 	if err != nil {
-		glog.Fatalf("Error creating singleton_state service %v", err)
+		glog.Fatalf("Error creating orc8r_worker service %v", err)
 	}
 
 	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
 	if singletonReindex {
-		glog.Info("Running singleton_state service")
+		glog.Info("Running orc8r_worker service")
 
 		db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
 		if err != nil {
@@ -67,7 +67,7 @@ func main() {
 
 	err = srv.Run()
 	if err != nil {
-		glog.Fatalf("Error running singleton_state service: %v", err)
+		glog.Fatalf("Error running orc8r_worker service: %v", err)
 	}
 }
 
@@ -75,7 +75,7 @@ func newSingletonIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobs
 	versioner := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
 	err := versioner.Initialize()
 	if err != nil {
-		glog.Fatal("Error initializing singleton_state reindex versioner")
+		glog.Fatal("Error initializing orc8r_worker reindex versioner")
 	}
 
 	autoReindex := cfg.MustGetBool(state_config.EnableAutomaticReindexing)
@@ -83,10 +83,10 @@ func newSingletonIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobs
 	servicer := servicers.NewIndexerManagerServicer(reindexer, autoReindex)
 
 	if autoReindex {
-		glog.Info("Automatic reindexing enabled for singleton_state service")
+		glog.Info("Automatic reindexing enabled for orc8r_worker service")
 		go reindexer.Run(context.Background())
 	} else {
-		glog.Info("Automatic reindexing disabled for singleton_state service")
+		glog.Info("Automatic reindexing disabled for orc8r_worker service")
 	}
 
 	return servicer

@@ -11,8 +11,8 @@
  * limitations under the License.
  */
 
-package singleton_state
+package orc8r_worker
 
 const (
-	ServiceName = "singleton_state"
+	ServiceName = "orc8r_worker"
 )

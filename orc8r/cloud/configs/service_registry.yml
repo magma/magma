@@ -122,7 +122,7 @@ services:
     port: 9105
     proxy_type: "clientcert"
 
-  singleton_state:
+  orc8r_worker:
     host: "localhost"
     port: 9122
     proxy_type: "clientcert"
