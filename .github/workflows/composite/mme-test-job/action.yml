@@ -5,12 +5,12 @@ inputs:
   DEVCONTAINER_IMAGE:
     description: "the docker image tag to test"
     required: true
+  MAGMA_ROOT:
+    description: "should be set to github.workspace"
+    required: true
 
 runs:
   using: "composite"
-  name: mme test job
-  env:
-    MAGMA_ROOT: "${{ github.workspace }}"
   steps:
     - uses: actions/checkout@v2
     - name: Run sctpd tests with Debug build type
@@ -18,7 +18,7 @@ runs:
       with:
         image: ${{ inputs.DEVCONTAINER_IMAGE }}
         # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-        options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+        options: --volume ${{ inputs.MAGMA_ROOT }}:/workspaces/magma --volume ${{ inputs.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
         run: |
           cd /workspaces/magma/lte/gateway
           make test_sctpd BUILD_TYPE=Debug
@@ -27,7 +27,7 @@ runs:
       with:
         image: ${{ inputs.DEVCONTAINER_IMAGE }}
         # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-        options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+        options: --volume ${{ inputs.MAGMA_ROOT }}:/workspaces/magma --volume ${{ inputs.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
         run: |
           cd /workspaces/magma/lte/gateway
           make test_sctpd BUILD_TYPE=RelWithDebInfo
@@ -36,7 +36,7 @@ runs:
       with:
         image: ${{ inputs.DEVCONTAINER_IMAGE }}
         # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-        options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+        options: --volume ${{ inputs.MAGMA_ROOT }}:/workspaces/magma --volume ${{ inputs.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
         run: |
           cd /workspaces/magma/lte/gateway
           make test_oai BUILD_TYPE=Debug;
@@ -45,7 +45,7 @@ runs:
       with:
         image: ${{ inputs.DEVCONTAINER_IMAGE }}
         # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-        options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+        options: --volume ${{ inputs.MAGMA_ROOT }}:/workspaces/magma --volume ${{ inputs.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
         run: |
           cd /workspaces/magma/lte/gateway
           make test_oai BUILD_TYPE=RelWithDebInfo;

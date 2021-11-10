@@ -257,13 +257,12 @@ jobs:
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: mme test job
     runs-on: ubuntu-latest
-    # env:
-    #   MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - uses: actions/checkout@v2
       - uses: ./.github/workflows/composite/mme-test-job
         with:
           DEVCONTAINER_IMAGE: ${{ env.DEVCONTAINER_IMAGE }}
+          MAGMA_ROOT: ${{ github.workspace }}
 
   mme-clang-tidy-and-warning-and-cpp-cov:
     needs: path_filter
