@@ -1,0 +1,45 @@
+name: Helm chart smoke tests
+
+#on: 
+#  pull_request:
+#    branches:
+#      - 'move_dp_to_magma'
+#  push:
+#    branches:
+#      - 'move_dp_to_magma'
+on:
+  pull_request:
+    branches:
+      - "cl_develop"
+  push:
+    branches:
+      - "!cl_develop"
+
+jobs:
+  helm_chart_tests:
+    name: "Helm chart smoke tests"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dp
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set env
+      run: |
+        echo "MINIKUBE_DP_MAX_MEMORY=$(grep MemTotal /proc/meminfo | awk '{printf "%dm",$2/1024 - 1}')" >> $GITHUB_ENV
+    - name: Install Minikube
+      uses: manusa/actions-setup-minikube@v2.4.1
+      with:
+        minikube version: 'v1.21.0'
+        kubernetes version: 'v1.20.7'
+        github token: ${{ secrets.GITHUB_TOKEN }}
+        start args: "--memory=$MINIKUBE_DP_MAX_MEMORY --addons=metrics-server"
+        driver: "docker"
+
+    - name: Setup Minikube
+      run: |
+        make _ci_init
+
+    - name: Run helm chart smoke tests
+      run: | 
+        CI=false make _ci_chart_smoke_tests

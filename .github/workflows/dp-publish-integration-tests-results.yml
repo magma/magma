@@ -1,0 +1,33 @@
+name: Integration Tests Results
+
+on:
+  workflow_run:
+    workflows:
+      - "Integration tests"
+    types:
+      - completed
+
+jobs:
+  integration-test-results:
+    name: Integration test results
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - protocol-controller
+    steps:
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          workflow: integration-tests.yml
+          path: test-results-${{ matrix.service }}
+
+      - name: Publish integration test results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        with:
+          commit: ${{ github.event.workflow_run.head_sha }}
+          files: test-results-${{ matrix.service }}/**/*.xml
+          comment_title: "Integration Test Results"
