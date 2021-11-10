@@ -263,6 +263,7 @@ jobs:
         with:
           DEVCONTAINER_IMAGE: ${{ env.DEVCONTAINER_IMAGE }}
           MAGMA_ROOT: ${{ github.workspace }}
+          SLACK_WEBHOOK_CI: ${{ secrets.SLACK_WEBHOOK_CI }}
 
   mme-clang-tidy-and-warning-and-cpp-cov:
     needs: path_filter

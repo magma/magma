@@ -8,6 +8,9 @@ inputs:
   MAGMA_ROOT:
     description: "should be set to github.workspace"
     required: true
+  SLACK_WEBHOOK_CI:
+    description: "slack webhook ci"
+    required: true
 
 runs:
   using: "composite"
@@ -60,7 +63,7 @@ runs:
       if: failure() && github.event_name == 'push'
       uses: rtCamp/action-slack-notify@v2.2.0
       env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+        SLACK_WEBHOOK: ${{ inputs.SLACK_WEBHOOK }}
         SLACK_TITLE: "Github action mme_test failed"
         SLACK_USERNAME: "AGW workflow"
         SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
