@@ -51,6 +51,11 @@
 !orc8r/tools/ansible/roles/fluent_bit/files
 !orc8r/tools/docker/
 
+!dp/cloud/go/
+!dp/cloud/python/
+!dp/protos/
+!dp/Makefile
+
 !protos/
 
 !xwf/gateway/

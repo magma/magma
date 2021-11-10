@@ -27,6 +27,11 @@ services:
     port: 9200
     proxy_type: "clientcert"
 
+  dp_service:
+    host: "localhost"
+    port: 50053
+    proxy_type: "clientcert"
+
   orchestrator:
     host: "localhost"
     port: 9112

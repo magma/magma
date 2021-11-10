@@ -1,0 +1,2 @@
+class RequestRouterException(Exception):
+    pass
