@@ -56,6 +56,7 @@ runs:
       # yamllint enable
       if: failure() && github.event_name == 'push'
       id: commit
+      shell: bash
       run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
