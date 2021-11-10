@@ -57,7 +57,7 @@ class UplinkGatewayInfo:
         self._backing_map = gw_info_map
         self._read_default_gw_timer = None
         self._read_default_gw_timer6 = None
-        self._read_default_gw_interval_seconds = 20
+        self._read_default_gw_interval_seconds = 5
 
     def get_gw_ip(self, vlan_id: Optional[str] = "", version: int = IPAddress.IPV4) -> Optional[str]:
         """

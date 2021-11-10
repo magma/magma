@@ -199,7 +199,8 @@ def main():
             allocated_ip_blocks = ip_address_man.list_added_ip_blocks()
             if ipv4_block not in allocated_ip_blocks:
                 # Cleanup previously allocated IP blocks
-                ip_address_man.remove_ip_blocks(*allocated_ip_blocks, force=True)
+                ip_address_man.remove_ip_blocks(
+                    *allocated_ip_blocks, force=True)
                 ip_address_man.add_ip_block(ipv4_block)
         except OverlappedIPBlocksError:
             logging.warning("Overlapped IPv4 block: %s", ipv4_block)
