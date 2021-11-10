@@ -35,7 +35,9 @@ jobs:
         with:
           filters: |
             filesChanged:
-              - [".github/workflows/agw-workflow.yml", "orc8r/**", "lte/**"]
+              - '.github/workflows/agw-workflow.yml'
+              - 'orc8r/**'
+              - 'lte/**'
       - name: Save should_not_skip output
         if: always()
         run: |
@@ -467,7 +469,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Run session_manager tests
-        timeout-minutes: 10
+        timeout-minutes: 20
         uses: addnab/docker-run-action@v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
