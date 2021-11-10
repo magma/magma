@@ -42,7 +42,7 @@ magmalte:
   image:
     repository:
     tag: latest
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
 
   deployment:
     spec:
@@ -88,7 +88,7 @@ nginx:
   image:
     repository: nginx
     tag: latest
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
 
   service:
     type: LoadBalancer
