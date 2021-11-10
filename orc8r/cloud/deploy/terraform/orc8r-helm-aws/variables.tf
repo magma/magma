@@ -75,6 +75,12 @@ variable "monitoring_kubernetes_namespace" {
   default     = "monitoring"
 }
 
+variable "orc8r_staging_namespace" {
+  description = "K8s namespace to install staging Orchestrator components into."
+  type        = string
+  default     = ""
+}
+
 ##############################################################################
 # General Orchestrator configuration
 ##############################################################################

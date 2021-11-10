@@ -17,6 +17,13 @@ resource "kubernetes_namespace" "orc8r" {
   }
 }
 
+resource "kubernetes_namespace" "staging-orc8r" {
+  count = var.orc8r_staging_namespace != "" ? 1 : 0
+  metadata {
+    name = var.orc8r_staging_namespace
+  }
+}
+
 resource "kubernetes_namespace" "monitoring" {
   metadata {
     name = var.monitoring_kubernetes_namespace
