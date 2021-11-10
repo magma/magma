@@ -36,6 +36,7 @@ jobs:
           filters: |
             filesChanged:
               - '.github/workflows/agw-workflow.yml'
+              - '.github/workflows/composite/**'
               - 'orc8r/**'
               - 'lte/**'
       - name: Save should_not_skip output
