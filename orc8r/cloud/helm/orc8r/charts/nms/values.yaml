@@ -29,12 +29,12 @@ magmalte:
     host: 0.0.0.0
     port: 8081
     mapbox_access_token: ""
-    mysql_host: mysql
-    mysql_port: 3306
+    mysql_host: postgresql
+    mysql_port: 5432
     mysql_db: magma
-    mysql_user: magma
-    mysql_pass: password
-    mysql_dialect: mysql
+    mysql_user: postgres
+    mysql_pass: postgres
+    mysql_dialect: postgres
     grafana_address: orc8r-user-grafana:3000
 
   labels: {}
