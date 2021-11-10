@@ -213,3 +213,56 @@ nms:
 
 logging:
   enabled: false
+
+dp:
+  enabled: ${dp_enabled}
+
+  configuration_controller:
+    sasEndpointUrl: "${dp_sas_endpoint_url}"
+    image:
+      repository: "${docker_registry}/configuration-controller"
+      tag: "${docker_tag}"
+
+    database:
+      driver: postgres
+      db: ${orc8r_db_name}
+      host: ${orc8r_db_host}
+      port: ${orc8r_db_port}
+      user: ${orc8r_db_user}
+      pass: ${orc8r_db_pass}
+
+  protocol_controller:
+    image:
+      repository: "${docker_registry}/protocol-controller"
+      tag: "${docker_tag}"
+
+  radio_controller:
+    image:
+      repository: "${docker_registry}/radio-controller"
+      tag: "${docker_tag}"
+
+    database:
+      driver: postgres
+      db: ${orc8r_db_name}
+      host: ${orc8r_db_host}
+      port: ${orc8r_db_port}
+      user: ${orc8r_db_user}
+      pass: ${orc8r_db_pass}
+
+  active_mode_controller:
+    image:
+      repository: "${docker_registry}/radio-controller"
+      tag: "${docker_tag}"
+
+  db_service:
+    image:
+      repository: "${docker_registry}/radio-controller"
+      tag: "${docker_tag}"
+
+    database:
+      driver: postgres
+      db: ${orc8r_db_name}
+      host: ${orc8r_db_host}
+      port: ${orc8r_db_port}
+      user: ${orc8r_db_user}
+      pass: ${orc8r_db_pass}

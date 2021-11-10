@@ -149,16 +149,36 @@ resource "helm_release" "wifi-orc8r" {
   }
 }
 
+resource "helm_release" "dp-orc8r" {
+  count = var.orc8r_deployment_type == "all" ? 1 : 0
+
+  name                = "domain-proxy"
+  namespace           = kubernetes_namespace.orc8r.metadata[0].name
+  repository          = var.helm_repo
+  repository_username = var.helm_user
+  repository_password = var.helm_pass
+  chart               = "domain-proxy"
+  version             = var.dp_orc8r_chart_version
+  keyring             = ""
+  timeout             = 600
+  values              = [data.template_file.orc8r_values.rendered]
+
+  set_sensitive {
+    name  = "controller.spec.database.pass"
+    value = var.orc8r_db_pass
+  }
+}
+
 
 data "template_file" "orc8r_values" {
   template = file("${path.module}/templates/orc8r-values.tpl")
   vars = {
     orc8r_chart_version = var.orc8r_chart_version
-    image_pull_secret = kubernetes_secret.artifactory.metadata.0.name
-    docker_registry   = var.docker_registry
-    docker_tag        = local.orc8r_tag
+    image_pull_secret   = kubernetes_secret.artifactory.metadata.0.name
+    docker_registry     = var.docker_registry
+    docker_tag          = local.orc8r_tag
 
-    magma_uuid = var.magma_uuid
+    magma_uuid     = var.magma_uuid
     certs_secret   = kubernetes_secret.orc8r_certs.metadata.0.name
     configs_secret = kubernetes_secret.orc8r_configs.metadata.0.name
     envdir_secret  = kubernetes_secret.orc8r_envdir.metadata.0.name
@@ -182,7 +202,7 @@ data "template_file" "orc8r_values" {
     orc8r_db_user    = var.orc8r_db_user
     orc8r_db_pass    = var.orc8r_db_pass
 
-    deploy_nms  = var.deploy_nms
+    deploy_nms = var.deploy_nms
 
     metrics_pvc_promcfg  = kubernetes_persistent_volume_claim.storage["promcfg"].metadata.0.name
     metrics_pvc_promdata = kubernetes_persistent_volume_claim.storage["promdata"].metadata.0.name
@@ -199,8 +219,11 @@ data "template_file" "orc8r_values" {
     alertmanager_url          = format("%s-alertmanager:9093", var.helm_deployment_name)
     prometheus_url            = format("%s-prometheus:9090", var.helm_deployment_name)
 
-    prometheus_configurer_version = var.prometheus_configurer_version
+    prometheus_configurer_version   = var.prometheus_configurer_version
     alertmanager_configurer_version = var.alertmanager_configurer_version
+
+    dp_enabled          = var.dp_enabled
+    dp_sas_endpoint_url = var.dp_sas_endpoint_url
 
     thanos_enabled        = var.thanos_enabled
     thanos_bucket         = var.thanos_enabled ? aws_s3_bucket.thanos_object_store_bucket[0].bucket : ""

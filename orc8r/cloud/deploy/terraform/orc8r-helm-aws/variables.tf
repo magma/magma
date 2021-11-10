@@ -200,6 +200,12 @@ variable "wifi_orc8r_chart_version" {
   default     = "0.2.1"
 }
 
+variable "dp_orc8r_chart_version" {
+  description = "Version of the orchestrator domain proxy module Helm chart to install."
+  type        = string
+  default     = "0.1.1"
+}
+
 variable "orc8r_tag" {
   description = "Image tag for Orchestrator components."
   type        = string
@@ -451,4 +457,27 @@ variable "cloudwatch_exporter_enabled" {
   description = "Enable cloudwatch exporter"
   default     = false
   type        = bool
+}
+
+
+##############################################################################
+# Domain proxy variables
+##############################################################################
+
+variable "dp_enabled" {
+  description = "Enable domain proxy"
+  type        = bool
+  default     = false
+}
+
+variable "dp_sas_endpoint_url" {
+  description = "Sas endpoint url where to connect DP to."
+  type        = string
+  default     = "https://fake-sas-service/v1.2"
+}
+
+variable "dp_api_prefix" {
+  description = "Protocol controller api prefix."
+  type        = string
+  default     = "/sas/v1"
 }
