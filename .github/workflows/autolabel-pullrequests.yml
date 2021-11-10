@@ -41,15 +41,30 @@ jobs:
         with:
           script: |
 
-            let lbl;
-            let lbls = new Set(); // Set of label strings
+            let curLbls = new Set(); // Set of current labels strings on the PR
+            let newLbls = new Set(); // Set of new label strings
 
+            const curLblObjs = await github.issues.listLabelsOnIssue({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            //console.log("CurrentLabels=" + JSON.stringify(curLbls, null, 4));
+            // Copy current PR labels in to a Set
+            for (const l of curLblObjs['data']) {
+              console.log("Current LabelName: " + l['name'] + " LabelDescription: " + l['description']);
+              curLbls.add(l['name']);
+            }
+
+            // Fetch files modified in the PR
             const pulledFiles = await github.pulls.listFiles({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number,
             });
 
+            // Identify component labels based on the files modified in the PR
             for (const f of pulledFiles['data']) {
              switch (true) {
               case /^ci-scripts\/.*/.test(f.filename):
@@ -65,73 +80,85 @@ jobs:
               case /^lte\/gateway\/Vagrantfile/.test(f.filename):
               case /^cwf\/gateway\/Vagrantfile/.test(f.filename):
                 console.log("file changed under CI component : " + f['filename']);
-                lbls.add("component: ci");
+                if(!curLbls.has("component: ci")) {
+                  newLbls.add("component: ci");
+                }
                 break;
               case /^nms\/.*/.test(f.filename):
                 console.log("file changed under NMS component : " + f['filename']);
-                lbls.add("component: nms");
+                if(!curLbls.has("component: nms")) {
+                  newLbls.add("component: nms");
+                }
                 break;
               case /^cwf\/.*/.test(f.filename):
               case /^feg\/radius\/.*/.test(f.filename):
                 console.log("file changed under CWF component : " + f['filename']);
-                lbls.add("component: cwf");
+                if(!curLbls.has("component: cwf")) {
+                  newLbls.add("component: cwf");
+                }
                 break;
               case /^feg\/.*/.test(f.filename):
                 console.log("file changed under FEG component : " + f['filename']);
-                lbls.add("component: feg");
+                if(!curLbls.has("component: feg")) {
+                  newLbls.add("component: feg");
+                }
                 break;
               case /^openwrt\/.*/.test(f.filename):
                 console.log("file changed under OPENWRT component : " + f['filename']);
-                lbls.add("component: openwrt");
+                if(!curLbls.has("component: openwrt")) {
+                  newLbls.add("component: openwrt");
+                }
                 break;
               case /^lte\/gateway\/.*/.test(f.filename):
               case /^lte\/protos\/.*/.test(f.filename):
               case /^orc8r\/gateway\/c\/.*/.test(f.filename):
               case /^third_party\/gtp_ovs\/.*/.test(f.filename):
                 console.log("file changed under AGW component : " + f['filename']);
-                lbls.add("component: agw");
+                if(!curLbls.has("component: agw")) {
+                  newLbls.add("component: agw");
+                }
                 break;
               case /.*\/cloud\/.*/.test(f.filename):
               case /^\.golangci\.yml/.test(f.filename):
               case /^orc8r\/.*/.test(f.filename):
                 console.log("file changed under ORC8R component : " + f['filename']);
-                lbls.add("component: orc8r");
+                if(!curLbls.has("component: orc8r")) {
+                  newLbls.add("component: orc8r");
+                }
                 break;
               case /^xwf\/.*/.test(f.filename):
                 console.log("file changed under XWF component : " + f['filename']);
-                lbls.add("component: xwf");
+                if(!curLbls.has("component: xwf")) {
+                  newLbls.add("component: xwf");
+                }
                 break;
               case /^show-tech\/.*/.test(f.filename):
                 console.log("file changed under SHOW-TECH component : " + f['filename']);
-                lbls.add("component: show-tech");
+                if(!curLbls.has("component: show-tech")) {
+                  newLbls.add("component: show-tech");
+                }
                 break;
               case /^docs\/.*/.test(f.filename):
                 console.log("file changed under DOCS: " + f['filename']);
-                lbls.add("component: docs");
+                if(!curLbls.has("component: docs")) {
+                  newLbls.add("component: docs");
+                }
                 break;
              } // end of switch case
             } // end of for loop
 
-            const curLbls = await github.issues.listLabelsOnIssue({
-                                          issue_number: context.issue.number,
-                                          owner: context.repo.owner,
-                                          repo: context.repo.repo,
-                                        });
-            //console.log("CurrentLabels=" + JSON.stringify(curLbls, null, 4));
-            for (const l of curLbls['data']) {
-                //console.log("LabelName: " + l['name'] + " LabelDescription: " + l['description']);
-                if(!(l['name'].startsWith("component: ")))  {
-                  console.log("Adding Label:" + l['name']);
-                  lbls.add(l['name']);
-                }
-            }
-
-            if( lbls.size == 0 )  {
-              console.log("No components changed in this PR: " + context.issue.number);
+            if( newLbls.size == 0 )  {
+              console.log("No new component files changed in this PR: " + context.issue.number);
             }
             else  {
-              let uniqLbls = Array.from(lbls);
+              for (const l of curLblObjs['data']) {
+                if(!(l['name'].startsWith("component: ")))  {
+                  console.log("Adding Label:" + l['name']);
+                  newLbls.add(l['name']);
+                }
+              }
 
+              let uniqLbls = Array.from(newLbls);
               github.issues.setLabels({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
