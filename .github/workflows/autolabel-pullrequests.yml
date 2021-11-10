@@ -91,6 +91,7 @@ jobs:
                 console.log("file changed under AGW component : " + f['filename']);
                 lbls.add("component: agw");
                 break;
+              case /.*\/cloud\/.*/.test(f.filename):
               case /^\.golangci\.yml/.test(f.filename):
               case /^orc8r\/.*/.test(f.filename):
                 console.log("file changed under ORC8R component : " + f['filename']);
@@ -110,6 +111,20 @@ jobs:
                 break;
              } // end of switch case
             } // end of for loop
+
+            const curLbls = await github.issues.listLabelsOnIssue({
+                                          issue_number: context.issue.number,
+                                          owner: context.repo.owner,
+                                          repo: context.repo.repo,
+                                        });
+            //console.log("CurrentLabels=" + JSON.stringify(curLbls, null, 4));
+            for (const l of curLbls['data']) {
+                //console.log("LabelName: " + l['name'] + " LabelDescription: " + l['description']);
+                if(!(l['name'].startsWith("component: ")))  {
+                  console.log("Adding Label:" + l['name']);
+                  lbls.add(l['name']);
+                }
+            }
 
             if( lbls.size == 0 )  {
               console.log("No components changed in this PR: " + context.issue.number);
