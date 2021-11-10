@@ -1449,7 +1449,8 @@ void LocalEnforcer::handle_set_session_rules(
     RuleSetBySubscriber rule_set_by_sub(rules_per_sub);
 
     for (const auto& session : session_it->second) {
-      auto& uc           = session_update[imsi][session->get_session_id()];
+      auto session_id    = session->get_session_id();
+      auto& uc           = session_update[imsi][session_id];
       const auto& config = session->get_config();
 
       const auto& apn = config.common_context.apn();
@@ -1469,8 +1470,7 @@ void LocalEnforcer::handle_set_session_rules(
 
       // Propagate these rule changes to PipelineD and MME (if 4G)
       propagate_rule_updates_to_pipelined(
-          session->get_session_id(), config, pending_activation,
-          pending_deactivation, false);
+          session_id, config, pending_activation, pending_deactivation, false);
       if (config.common_context.rat_type() == TGPP_LTE) {
         const BearerUpdate update = session->get_dedicated_bearer_updates(
             pending_bearer_setup, pending_deactivation, &uc);
