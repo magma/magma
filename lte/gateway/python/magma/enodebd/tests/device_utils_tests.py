@@ -27,43 +27,64 @@ class EnodebConfigUtilsTest(TestCase):
     def test_get_device_name(self) -> None:
         # Baicells
         oui = '34ED0B'
-        version = 'BaiStation_V100R001C00B110SPC003'
-        data_model = get_device_name(oui, version)
+        sw_version = 'BaiStation_V100R001C00B110SPC003'
+        hw_version = ''
+        product_class = ''
+        data_model = get_device_name(oui, sw_version, hw_version, product_class)
         expected = EnodebDeviceName.BAICELLS
         self.assertEqual(data_model, expected, 'Incorrect data model')
 
         # Baicells before bug-fix
         oui = '34ED0B'
-        version = 'BaiStation_V100R001C00B110SPC002'
-        data_model = get_device_name(oui, version)
+        sw_version = 'BaiStation_V100R001C00B110SPC002'
+        hw_version = ''
+        product_class = ''
+        data_model = get_device_name(oui, sw_version, hw_version, product_class)
         expected = EnodebDeviceName.BAICELLS_OLD
         self.assertEqual(data_model, expected, 'Incorrect data model')
 
         # Baicells QAFB
         oui = '48BF74'
-        version = 'BaiBS_QAFB_some_version'
-        data_model = get_device_name(oui, version)
+        sw_version = 'BaiBS_QAFB_some_version'
+        hw_version = ''
+        product_class = ''
+        data_model = get_device_name(oui, sw_version, hw_version, product_class)
         expected = EnodebDeviceName.BAICELLS_QAFB
+        self.assertEqual(data_model, expected, 'Incorrect data model')
+
+        # Baicells 436Q (QRTB software)
+        oui = '48BF74'
+        sw_version = 'BaiBS_QRTB_some_version'
+        hw_version = 'E01'
+        product_class = 'FAP/mBS31001/SC'
+        data_model = get_device_name(oui, sw_version, hw_version, product_class)
+        expected = EnodebDeviceName.BAICELLS_436Q
         self.assertEqual(data_model, expected, 'Incorrect data model')
 
         # Cavium
         oui = '000FB7'
-        version = 'Some version of Cavium'
-        data_model = get_device_name(oui, version)
+        sw_version = 'Some version of Cavium'
+        hw_version = ''
+        product_class = ''
+        data_model = get_device_name(oui, sw_version, hw_version, product_class)
         expected = EnodebDeviceName.CAVIUM
         self.assertEqual(data_model, expected, 'Incorrect data model')
 
         # Unsupported device OUI
         oui = 'beepboopbeep'
-        version = 'boopboopboop'
+        sw_version = 'boopboopboop'
+        hw_version = ''
+        product_class = ''
         with self.assertRaises(UnrecognizedEnodebError):
-            get_device_name(oui, version)
+            get_device_name(oui, sw_version, hw_version, product_class)
 
         # Unsupported software version for Baicells
         oui = '34ED0B'
-        version = 'blingblangblong'
+        sw_version = 'blingblangblong'
+        hw_version = ''
+        product_class = ''
         with self.assertRaises(UnrecognizedEnodebError):
-            get_device_name(oui, version)
+            get_device_name(oui, sw_version, hw_version, product_class)
 
     def test_parse_version(self):
         """ Test that version string is parsed correctly """

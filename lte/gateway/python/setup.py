@@ -127,6 +127,7 @@ setup(
         'ovs>=2.13',
         'prometheus-client>=0.3.1',
         'aioeventlet==0.5.1',  # aioeventlet-build.sh
+        'parameterized==0.8.1',
     ],
     extras_require={
         'dev': [

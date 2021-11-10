@@ -407,6 +407,7 @@ class WaitGetTransientParametersState(EnodebAcsState):
             when_add: str,
             when_set: str,
             when_skip: str,
+            request_all_params: bool = False,
     ):
         super().__init__()
         self.acs = acs
@@ -416,6 +417,7 @@ class WaitGetTransientParametersState(EnodebAcsState):
         self.add_obj_transition = when_add
         self.set_transition = when_set
         self.skip_transition = when_skip
+        self.request_all_params = request_all_params
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         if not isinstance(message, models.GetParameterValuesResponse):
@@ -444,6 +446,7 @@ class WaitGetTransientParametersState(EnodebAcsState):
                 get_params_to_get(
                     self.acs.device_cfg,
                     self.acs.data_model,
+                    request_all_params=self.request_all_params,
                 ),
             ) > 0
         if should_get_params:
@@ -566,10 +569,11 @@ class WaitGetParametersState(EnodebAcsState):
 
 
 class GetObjectParametersState(EnodebAcsState):
-    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str, request_all_params: bool = False):
         super().__init__()
         self.acs = acs
         self.done_transition = when_done
+        self.request_all_params = request_all_params
 
     def get_msg(self, message: Any) -> AcsMsgAndTransition:
         """ Respond with GetParameterValuesRequest """
@@ -577,6 +581,7 @@ class GetObjectParametersState(EnodebAcsState):
             self.acs.desired_cfg,
             self.acs.device_cfg,
             self.acs.data_model,
+            self.request_all_params,
         )
 
         # Generate the request

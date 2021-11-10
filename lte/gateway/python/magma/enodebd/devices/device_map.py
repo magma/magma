@@ -14,6 +14,7 @@ limitations under the License.
 from typing import Type
 
 from magma.enodebd.devices.baicells import BaicellsHandler
+from magma.enodebd.devices.baicells_436Q import Baicells436QHandler
 from magma.enodebd.devices.baicells_old import BaicellsOldHandler
 from magma.enodebd.devices.baicells_qafa import BaicellsQAFAHandler
 from magma.enodebd.devices.baicells_qafb import BaicellsQAFBHandler
@@ -33,6 +34,7 @@ DEVICE_HANDLER_BY_NAME = {
     EnodebDeviceName.BAICELLS_QAFA: BaicellsQAFAHandler,
     EnodebDeviceName.BAICELLS_QAFB: BaicellsQAFBHandler,
     EnodebDeviceName.BAICELLS_RTS: BaicellsRTSHandler,
+    EnodebDeviceName.BAICELLS_436Q: Baicells436QHandler,
     EnodebDeviceName.CAVIUM: CaviumHandler,
     EnodebDeviceName.FREEDOMFI_ONE: FreedomFiOneHandler,
 }
