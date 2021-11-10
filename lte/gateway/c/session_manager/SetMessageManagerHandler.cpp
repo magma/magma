@@ -63,10 +63,12 @@ namespace magma {
 /*Constructor*/
 SetMessageManagerHandler::SetMessageManagerHandler(
     std::shared_ptr<SessionStateEnforcer> m5genforcer,
-    SessionStore& session_store, SessionReporter* reporter)
+    SessionStore& session_store, SessionReporter* reporter,
+    std::shared_ptr<EventsReporter> events_reporter)
     : session_store_(session_store),
       m5g_enforcer_(m5genforcer),
-      reporter_(reporter) {}
+      reporter_(reporter),
+      events_reporter_(events_reporter) {}
 
 /* Building session config with required parameters
  * TODO Note: this function can be removed by implementing 5G specific
@@ -86,6 +88,22 @@ SessionConfig SetMessageManagerHandler::m5g_build_session_config(
       SSC_MODE_3);
 
   return cfg;
+}
+
+bool SetMessageManagerHandler::validate_session_request(
+    const SessionConfig cfg) {
+  const auto rat_type               = cfg.common_context.rat_type();
+  const CommonSessionContext common = cfg.common_context;
+  if (rat_type != TGPP_NR) {
+    // We don't support outside of 5G
+    std::ostringstream failure_stream;
+    failure_stream << "Received an invalid RAT type " << rat_type;
+    std::string failure_msg = failure_stream.str();
+    MLOG(MERROR) << failure_msg;
+    events_reporter_->session_create_failure(cfg, failure_msg);
+    return false;
+  }
+  return true;
 }
 
 /* Handling set message from AMF
@@ -152,6 +170,13 @@ void SetMessageManagerHandler::SetAmfSessionContext(
         /* it's new UE establisment request and need to create the session
          * context
          */
+        bool status = validate_session_request(cfg);
+        if (!status) {
+          Status status(
+              grpc::FAILED_PRECONDITION, "Received an invalid RAT type ");
+          response_callback(status, SmContextVoid());
+          return;
+        }
         auto session_map = session_store_.read_sessions({imsi});
         send_create_session(session_map, imsi, cfg, pdu_id);
         response_callback(Status::OK, SmContextVoid());
@@ -291,6 +316,11 @@ void SetMessageManagerHandler::send_create_session(
   if (!success) {
     MLOG(MERROR) << "Failed to initialize SessionStore for 5G session "
                  << session_id;
+    std::ostringstream failure_stream;
+    failure_stream
+        << "Failed to initialize SessionStore for 5G session of IMSI " << imsi;
+    std::string failure_msg = failure_stream.str();
+    events_reporter_->session_create_failure(new_cfg, failure_msg);
     return;
   } else {
     /* writing of SessionMap in memory through SessionStore object*/
@@ -313,7 +343,7 @@ void SetMessageManagerHandler::send_create_session(
   auto create_req = make_create_session_request(
       new_cfg, session_id, m5g_enforcer_->get_access_timezone());
   reporter_->report_create_session(
-      create_req, [this, imsi, session_id](
+      create_req, [this, imsi, new_cfg, session_id](
                       Status status, CreateSessionResponse response) mutable {
         if (status.ok()) {
           MLOG(MINFO) << "Processing a CreateSessionResponse for "
@@ -342,6 +372,8 @@ void SetMessageManagerHandler::send_create_session(
                       << " An earlier update may have invalidated it.";
           status = Status(
               grpc::ABORTED, "Failed to write session to SessionD storage");
+          events_reporter_->session_create_failure(
+              new_cfg, "Failed to initialize session in SessionProxy/PolicyDB");
         }
       });
 }

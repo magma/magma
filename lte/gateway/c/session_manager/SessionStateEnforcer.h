@@ -36,6 +36,7 @@ limitations under the License.
 
 #include "AmfServiceClient.h"
 #include "PipelinedClient.h"
+#include "LocalEnforcer.h"
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "SessionStore.h"
@@ -70,6 +71,8 @@ class SessionStateEnforcer {
       std::unordered_multimap<std::string, uint32_t> pdr_map,
       std::shared_ptr<PipelinedClient> pipelined_client,
       std::shared_ptr<AmfServiceClient> amf_srv_client,
+      SessionReporter* reporter,
+      std::shared_ptr<EventsReporter> events_reporter,
       magma::mconfig::SessionD mconfig,
       long session_force_termination_timeout_ms,
       uint32_t session_max_rtx_count);
@@ -226,6 +229,8 @@ class SessionStateEnforcer {
   std::unordered_multimap<std::string, uint32_t> pdr_map_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
   std::shared_ptr<AmfServiceClient> amf_srv_client_;
+  SessionReporter* reporter_;
+  std::shared_ptr<EventsReporter> events_reporter_;
   magma::mconfig::SessionD mconfig_;
   // Timer used to forcefully terminate session context on time out
   long session_force_termination_timeout_ms_;

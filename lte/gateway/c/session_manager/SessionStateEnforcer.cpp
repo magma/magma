@@ -72,7 +72,8 @@ SessionStateEnforcer::SessionStateEnforcer(
     std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
     std::unordered_multimap<std::string, uint32_t> pdr_map,
     std::shared_ptr<PipelinedClient> pipelined_client,
-    std::shared_ptr<AmfServiceClient> amf_srv_client,
+    std::shared_ptr<AmfServiceClient> amf_srv_client, SessionReporter* reporter,
+    std::shared_ptr<EventsReporter> events_reporter,
     magma::mconfig::SessionD mconfig, long session_force_termination_timeout_ms,
     uint32_t session_max_rtx_count)
     : rule_store_(rule_store),
@@ -80,6 +81,8 @@ SessionStateEnforcer::SessionStateEnforcer(
       pdr_map_(pdr_map),
       pipelined_client_(pipelined_client),
       amf_srv_client_(amf_srv_client),
+      reporter_(reporter),
+      events_reporter_(events_reporter),
       mconfig_(mconfig),
       session_force_termination_timeout_ms_(
           session_force_termination_timeout_ms),
@@ -171,12 +174,24 @@ bool SessionStateEnforcer::m5g_update_session_context(
       static_rule_installs, dynamic_rule_installs, &pending_activation,
       &pending_deactivation, nullptr, &pending_scheduling, &session_uc);
 
+  std::unordered_set<uint32_t> charging_credits_received;
+  for (const auto& credit : csr.credits()) {
+    if (session->receive_charging_credit(credit, &session_uc)) {
+      charging_credits_received.insert(credit.charging_key());
+    }
+  }
+  for (const auto& monitor : csr.usage_monitors()) {
+    auto uc = get_default_update_criteria();
+    session->receive_monitor(monitor, &session_uc);
+  }
   /* Reset the upf resend retransmission counter counter, send the session
    * creation request to UPF
    */
   session_state->reset_rtx_counter();
   m5g_send_session_request_to_upf(
       session_state, pending_activation, pending_deactivation);
+  events_reporter_->session_created(
+      imsi, session_id, session->get_config(), session);
   return true;
 }
 
@@ -391,6 +406,10 @@ void SessionStateEnforcer::m5g_complete_termination(
   if (!session->can_complete_termination(&session_uc)) {
     return;  // error is logged in SessionState's complete_termination
   }
+  auto termination_req = session->make_termination_request(&session_uc);
+  auto logging_cb = SessionReporter::get_terminate_logging_cb(termination_req);
+  reporter_->report_terminate_session(termination_req, logging_cb);
+  events_reporter_->session_terminated(imsi, session);
   // Now remove all rules
   session->remove_all_rules(&session_uc);
   // Release and maintain TEID trakcing data structure TODO

@@ -326,4 +326,19 @@ MATCHER_P(CheckSrvResponse, expected_response, "") {
   return (unit_res && ul_ambr_res && dl_ambr_res);
 }
 
+MATCHER_P(CheckSendRequest, expected_request, "") {
+  auto req  = static_cast<const CreateSessionRequest>(arg);
+  auto imsi = req.common_context().sid().id();
+
+  auto apn      = req.common_context().apn();
+  auto rat_type = req.common_context().rat_type();
+
+  auto imsi_exp = expected_request.common_context().sid().id();
+
+  auto apn_exp      = expected_request.common_context().apn();
+  auto rat_type_exp = expected_request.common_context().rat_type();
+
+  return (imsi == imsi_exp && apn == apn_exp && rat_type == rat_type_exp);
+}
+
 };  // namespace magma
