@@ -20,6 +20,7 @@ cc_binary(
         "-DLOG_WITH_GLOG",
     ],
     linkstatic = True,
+    visibility = ["//visibility:public"],
     deps = [
         ":config",
         ":sctpd_downlink_impl",

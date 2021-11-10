@@ -12,6 +12,8 @@ build --cxxopt=-std=c++14
 build --cxxopt=-DLOG_WITH_GLOG=1
 build --experimental_strict_action_env
 
+build --host_force_python=PY3
+
 # MAGMA VM CONFIGS
 build:specify_vm_cc --action_env=CC=/usr/bin/gcc
 build:vm --disk_cache=/home/vagrant/magma/.bazel-cache

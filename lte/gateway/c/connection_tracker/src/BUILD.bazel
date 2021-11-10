@@ -17,6 +17,7 @@ cc_binary(
     copts = [
         "-DLOG_WITH_GLOG",
     ],
+    visibility = ["//visibility:public"],
     deps = [
         ":event_tracker",
         "//lte/protos:mconfigs_cpp_proto",

@@ -19,6 +19,7 @@ cc_binary(
     copts = [
         "-DLOG_WITH_GLOG",
     ],
+    visibility = ["//visibility:public"],
     deps = [
         ":interface_monitor",
         "//orc8r/gateway/c/common/config:mconfig_loader",

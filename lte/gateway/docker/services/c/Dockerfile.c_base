@@ -1,0 +1,151 @@
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+# -----------------------------------------------------------------------------
+# Builder image for C binaries and Magma proto files
+# -----------------------------------------------------------------------------
+ARG OS_DIST=ubuntu
+ARG OS_RELEASE=focal
+ARG EXTRA_REPO=https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/
+ARG CLANG_VERSION=3.8
+
+FROM $OS_DIST:$OS_RELEASE AS builder
+ARG OS_DIST OS_RELEASE EXTRA_REPO CLANG_VERSION
+
+ENV TZ=America/New_York
+
+# Add the magma apt repo
+RUN apt-get update && \
+  apt-get install -y apt-utils software-properties-common apt-transport-https gnupg wget
+
+RUN wget https://raw.githubusercontent.com/magma/magma/master/orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub -P /tmp
+RUN apt-key add /tmp/jfrog.pub && \
+  apt-add-repository "deb ${EXTRA_REPO} ${OS_RELEASE} main"
+
+# Install dependencies required for building
+RUN apt-get update && apt-get install -y \
+  sudo \
+  curl \
+  unzip \
+  cmake \
+  git \
+  build-essential \
+  autoconf \
+  libtool \
+  pkg-config \
+  clang-11 \
+  libc++-dev \
+  autogen \
+  libxml2-dev \
+  libxslt-dev \
+  libgoogle-glog-dev \
+  libfolly-dev \
+  libsctp-dev \
+  libpcap-dev \
+  libtins-dev \
+  libmnl-dev \
+  uuid-dev \
+  libcurl4-openssl-dev \
+  magma-libfluid \
+  libdouble-conversion-dev \
+  libboost-chrono-dev \
+  libboost-context-dev \
+  libboost-program-options-dev \
+  libboost-filesystem-dev \
+  libboost-regex-dev \
+  check \
+  liblfds710 \
+  libssl-dev \
+  libsctp-dev \
+  libtspi-dev \
+  oai-asn1c \
+  oai-nettle \
+  oai-gnutls \
+  oai-freediameter \
+  libconfig-dev \
+  libgmp3-dev \
+  libczmq-dev
+
+# -----------------------------------------------------------------------------
+# Dev/Production image
+# -----------------------------------------------------------------------------
+FROM $OS_DIST:$OS_RELEASE AS gateway_c
+ARG OS_DIST OS_RELEASE EXTRA_REPO
+
+ENV TZ=America/New_York
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+  apt-utils \
+  apt-transport-https \
+  ca-certificates \
+  wget \
+  gnupg \
+  sudo \
+  netcat \
+  psmisc \
+  openssl \
+  net-tools \
+  tshark \
+  tzdata \
+  iproute2 \
+  iptables \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/magma.list
+RUN wget -qO - https://facebookconnectivity.jfrog.io/artifactory/api/security/keypair/default-gpg-key/public | apt-key add -
+
+RUN apt-get update && apt-get install -y libopenvswitch openvswitch-datapath-dkms openvswitch-common openvswitch-switch
+
+# Copy pre-built shared object files
+COPY --from=builder /usr/lib/x86_64-linux-gnu/liblsan.so.0 /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libboost* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libevent-* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libsnappy.* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libdouble-conversion.* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libicui18n.* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libicuuc.* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libicudata.* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libconfig.* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libczmq.* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libevent* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libzmq* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libsodium* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libpgm* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libnorm* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libgflags* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libgssapi_krb5* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libkrb5* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libk5crypto* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libkeyutils* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libcurl* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libunwind* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/librtmp* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libssh* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libmnl* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libsctp* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libglog* /usr/lib/x86_64-linux-gnu/
+
+
+COPY --from=builder /usr/local/lib/liblfds710.so /usr/local/lib/
+COPY --from=builder /usr/local/lib/libfolly.so /usr/local/lib/
+COPY --from=builder /usr/lib/libnettle.so  /usr/local/lib/
+COPY --from=builder /usr/lib/libfluid* /usr/local/lib/
+COPY --from=builder /usr/lib/libgnutls.so.* /usr/local/lib/
+COPY --from=builder /usr/lib/libhogweed.so.2 /usr/local/lib/
+COPY --from=builder /usr/lib/libtins* /usr/local/lib/
+
+COPY --from=builder /usr/local/lib/libfdproto.so.6 /usr/local/lib/
+COPY --from=builder /usr/local/lib/libfdcore.so.6 /usr/local/lib/
+
+RUN ldconfig 2> /dev/null

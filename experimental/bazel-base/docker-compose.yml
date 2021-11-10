@@ -8,6 +8,11 @@ services:
             - ${MAGMA_ROOT}:/magma
             - ${MAGMA_ROOT}/lte/gateway/configs:/etc/magma
             - bazel-output:/tmp/bazel
+            # These are needed to build Docker images from inside the builder container (Tested on Mac OS and Ubuntu 20.04)
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /var/lib/docker/:/var/lib/docker/
+            - /usr/bin/docker:/usr/bin/docker
         working_dir: /magma
+        privileged: true
 volumes:
     bazel-output:

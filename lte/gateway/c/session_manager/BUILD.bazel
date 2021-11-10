@@ -487,6 +487,7 @@ cc_binary(
     # From bazel doc: this flag makes it so all user libraries are linked statically (if a static version is available),
     #                 but where system libraries (excluding C/C++ runtime libraries) are linked dynamically
     linkstatic = True,
+    visibility = ["//visibility:public"],
     deps = [
         ":operational_states_handler",
         ":policy_loader",

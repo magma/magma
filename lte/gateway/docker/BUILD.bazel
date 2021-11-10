@@ -1,0 +1,30 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer")
+
+container_image(
+    name = "agw_c_services",
+    base = "@loaded_dockerfile_docker_agw_c_base//image",
+    layers = [":executables_layer"],
+)
+
+# Layer to copy all executables into /usr/local/bin
+container_layer(
+    name = "executables_layer",
+    directory = "/usr/local/bin",
+    files = [
+        "//lte/gateway/c/connection_tracker/src:connectiond",
+        "//lte/gateway/c/li_agent/src:liagentd",
+        "//lte/gateway/c/sctpd/src:sctpd",
+        "//lte/gateway/c/session_manager:sessiond",
+    ],
+)
