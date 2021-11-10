@@ -53,7 +53,6 @@ jobs:
             //console.log("CurrentLabels=" + JSON.stringify(curLbls, null, 4));
             // Copy current PR labels in to a Set
             for (const l of curLblObjs['data']) {
-              console.log("Current LabelName: " + l['name'] + " LabelDescription: " + l['description']);
               curLbls.add(l['name']);
             }
 
