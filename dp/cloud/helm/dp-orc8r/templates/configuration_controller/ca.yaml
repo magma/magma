@@ -1,0 +1,14 @@
+{{- if .Values.create -}}
+{{- $fullName := include "domain-proxy.fullname" . -}}
+{{- if (empty (lookup "v1" "Secret" .Release.Namespace "${fullName}-cc-ca")) -}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $fullName }}-cc-ca
+type: Opaque
+data:
+{{- $pathca := printf "%s" .Values.configuration_controller.tlsConfig.paths.ca }}
+  ca.crt: |
+{{ (.Files.Get $pathca) | b64enc | indent 4 }}
+{{- end -}}
+{{- end }}

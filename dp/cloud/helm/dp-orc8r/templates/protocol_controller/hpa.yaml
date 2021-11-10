@@ -1,0 +1,28 @@
+{{- if and .Values.create .Values.protocol_controller.autoscaling.enabled .Values.protocol_controller.enabled }}
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "domain-proxy.protocol_controller.fullname" . }}
+  labels:
+    {{- include "domain-proxy.protocol_controller.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "domain-proxy.protocol_controller.fullname" . }}
+  minReplicas: {{ .Values.protocol_controller.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.protocol_controller.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.protocol_controller.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: {{ .Values.protocol_controller.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.protocol_controller.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        targetAverageUtilization: {{ .Values.protocol_controller.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}

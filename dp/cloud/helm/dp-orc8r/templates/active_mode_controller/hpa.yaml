@@ -1,0 +1,43 @@
+{{/*
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+
+{{- if and .Values.create .Values.active_mode_controller.enabled -}}
+{{- if .Values.active_mode_controller.autoscaling.enabled }}
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "domain-proxy.active_mode_controller.fullname" . }}
+  labels:
+    {{- include "domain-proxy.active_mode_controller.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "domain-proxy.active_mode_controller.fullname" . }}
+  minReplicas: {{ .Values.active_mode_controller.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.active_mode_controller.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.active_mode_controller.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: {{ .Values.active_mode_controller.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.active_mode_controller.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        targetAverageUtilization: {{ .Values.active_mode_controller.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}
+{{- end }}

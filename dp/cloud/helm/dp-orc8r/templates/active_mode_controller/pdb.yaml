@@ -1,0 +1,18 @@
+{{- if and .Values.create .Values.active_mode_controller.enabled .Values.active_mode_controller.podDisruptionBudget.enabled -}}
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "domain-proxy.active_mode_controller.fullname" . }}
+  labels:
+    {{- include "domain-proxy.active_mode_controller.labels" . | nindent 4 }}
+spec:
+  {{- with .Values.active_mode_controller.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ . }}
+  {{- end }}
+  {{- with .Values.active_mode_controller.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ . }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "domain-proxy.active_mode_controller.matchLabels" . | nindent 6 }}
+{{- end }}

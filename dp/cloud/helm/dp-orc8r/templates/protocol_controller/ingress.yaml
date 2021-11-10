@@ -1,0 +1,56 @@
+{{- if and .Values.create .Values.protocol_controller.ingress.enabled -}}
+{{- $fullName := include "domain-proxy.protocol_controller.fullname" . -}}
+{{- $svcPort := .Values.protocol_controller.service.port -}}
+{{- $caSecret := printf "%s/%s-pc-ca" .Release.Namespace (include "domain-proxy.fullname" .) -}}
+{{- $tlsSecret := printf "%s-pc" (include "domain-proxy.fullname" .) -}}
+{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: {{ template "domain-proxy.ingress.apiVersion" . }}
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "domain-proxy.configuration_controller.labels" . | nindent 4 }}
+  annotations:
+  {{- if .Values.protocol_controller.tlsConfig.paths.ca }} 
+    nginx.ingress.kubernetes.io/auth-tls-secret: {{ $caSecret }}
+  {{- end }}
+  {{- with .Values.protocol_controller.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.protocol_controller.ingress.tls }}
+  tls:
+    {{- range .Values.protocol_controller.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ default $tlsSecret .secretName }}
+    {{- end }}
+  {{ else }}
+  tls:
+    - hosts:
+    {{- range .Values.protocol_controller.ingress.hosts }}
+        - {{ .host | quote }}
+    {{- end }}
+      secretName: {{ default $tlsSecret .secretName }}
+  {{- end }}
+  rules:
+    {{- range .Values.protocol_controller.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
+            pathType: {{ .pathType }}
+            {{- end }}
+            backend:
+              serviceName: {{ $fullName }}
+              servicePort: {{ $svcPort }}
+          {{- end }}
+    {{- end }}
+  {{- end }}

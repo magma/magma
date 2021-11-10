@@ -1,0 +1,13 @@
+{{- if and .Values.create .Values.configuration_controller.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    {{-  include "domain-proxy.configuration_controller.labels" . | nindent 4 }}
+  name: {{ include "domain-proxy.configuration_controller.fullname" . }}
+{{ include "domain-proxy.namespace" . | indent 2 }}
+data:
+{{- if .Values.configuration_controller.sasEndpointUrl }}
+  SAS_URL: {{ .Values.configuration_controller.sasEndpointUrl }}
+{{- end }}
+{{- end }}

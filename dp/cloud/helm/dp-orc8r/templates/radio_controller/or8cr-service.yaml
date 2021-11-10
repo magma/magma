@@ -1,0 +1,16 @@
+{{- if and .Values.create .Values.radio_controller.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Namespace }}-dp-service
+  labels:
+    {{- include "domain-proxy.radio_controller.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: 9180
+      targetPort: 50053
+      protocol: TCP
+      name: grpc
+  selector:
+    {{- include "domain-proxy.radio_controller.matchLabels" . | nindent 4 }}
+{{- end }}

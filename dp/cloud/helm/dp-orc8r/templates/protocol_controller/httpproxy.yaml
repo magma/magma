@@ -1,0 +1,33 @@
+{{- if and .Values.create .Values.protocol_controller.httpproxy.enabled -}}
+{{- $fullName := include "domain-proxy.protocol_controller.fullname" . -}}
+{{- $svcPort := .Values.protocol_controller.service.port -}}
+{{- $caSecret := printf "%s/%s-pc-ca" .Release.Namespace (include "domain-proxy.fullname" .) -}}
+{{- $tlsSecret := printf "%s-pc" (include "domain-proxy.fullname" .) -}}
+apiVersion: {{ template "httpproxy.apiVersion" . }}
+kind: HTTPProxy
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "domain-proxy.protocol_controller.labels" . | nindent 4 }}
+  {{- with .Values.protocol_controller.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  virtualhost:
+    fqdn: {{ .Values.protocol_controller.httpproxy.virtualhost.fqdn | quote }}
+    tls:
+      secretName: {{ default $tlsSecret .Values.protocol_controller.httpproxy.virtualhost.tls.secretName }}
+      clientValidation:
+      {{- if .Values.protocol_controller.tlsConfig.paths.ca }}
+        caSecret: {{ $caSecret }}
+      {{ else }}
+        caSecret: {{ .Values.protocol_controller.httpproxy.virtualhost.tls.caSecret }}
+      {{- end }}
+  routes:
+    - conditions:
+        - prefix: {{ .Values.protocol_controller.httpproxy.virtualhost.path }}
+      services:
+        - name: {{ $fullName }}
+          port: {{ $svcPort }}
+{{- end }}

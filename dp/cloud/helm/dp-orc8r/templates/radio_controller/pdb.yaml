@@ -1,0 +1,18 @@
+{{- if and .Values.create .Values.radio_controller.enabled .Values.radio_controller.podDisruptionBudget.enabled -}}
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "domain-proxy.radio_controller.fullname" . }}
+  labels:
+    {{- include "domain-proxy.radio_controller.labels" . | nindent 4 }}
+spec:
+  {{- with .Values.radio_controller.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ . }}
+  {{- end }}
+  {{- with .Values.radio_controller.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ . }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "domain-proxy.radio_controller.matchLabels" . | nindent 6 }}
+{{- end }}
