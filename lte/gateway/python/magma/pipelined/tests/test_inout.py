@@ -15,6 +15,7 @@ import unittest
 import warnings
 from concurrent.futures import Future
 
+from magma.pipelined.app import inout
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.app.start_pipelined import (
     PipelinedController,
@@ -30,11 +31,19 @@ from magma.pipelined.tests.pipelined_test_util import (
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 
+def mocked_get_virtual_iface_mac(iface):
+    if iface == 'test_mtr1':
+        return 'ae:fa:b2:76:37:5d'
+    if iface == 'testing_br':
+        return 'bb:fa:b2:76:37:5d'
+
+
 class InOutTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP = '192.168.128.1'
+    MTR_PORT = "test_mtr1"
 
     @classmethod
     def setUpClass(cls):
@@ -46,8 +55,16 @@ class InOutTest(unittest.TestCase):
         to apps launched by using futures.
         """
         super(InOutTest, cls).setUpClass()
+        inout.get_virtual_iface_mac = mocked_get_virtual_iface_mac
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([])
+
+        BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+        BridgeTools.create_internal_iface(
+            cls.BRIDGE,
+            cls.MTR_PORT, None,
+        )
+        mtr_port_no = BridgeTools.get_ofport(cls.MTR_PORT)
 
         inout_controller_reference = Future()
         testing_controller_reference = Future()
@@ -73,14 +90,16 @@ class InOutTest(unittest.TestCase):
                 'enable_nat': True,
                 'uplink_gw_mac': '11:22:33:44:55:66',
                 'uplink_port': OFPP_LOCAL,
+                'virtual_interface': cls.BRIDGE,
+                'mtr_ip': '5.6.7.8',
+                'mtr_interface': cls.MTR_PORT,
+                'ovs_mtr_port_number': mtr_port_no,
             },
             mconfig=None,
             loop=None,
             service_manager=cls.service_manager,
             integ_test=False,
         )
-
-        BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
 
         cls.thread = start_ryu_app_thread(test_setup)
         cls.inout_controller = inout_controller_reference.result()
@@ -96,6 +115,7 @@ class InOutTest(unittest.TestCase):
         assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
 
 
+# LTE with incomplete MTR config
 class InOutTestLTE(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
