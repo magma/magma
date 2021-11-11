@@ -63,6 +63,7 @@ def integ_test(
     transfer_images=False, destroy_vm=False, no_build=False,
     tests_to_run="all", skip_unit_tests=False, test_re=None,
     test_result_xml=None, run_tests=True, count="1", provision_vm=True,
+    rerun_fails="1",
 ):
     """
     Run the integration tests. This defaults to running on local vagrant
@@ -101,6 +102,8 @@ def integ_test(
     count: When set to a number, the integrations tests will be run that many times
 
     test_result_xml: When set to a path, a JUnit style test summary in XML will be produced at the path
+
+    rerun_fails: Number of times to re-run a test on failure
     """
     try:
         tests_to_run = SubTests(tests_to_run)
@@ -204,12 +207,12 @@ def integ_test(
         )
         execute(
             _run_integ_tests, gateway_host, trf_host,
-            tests_to_run, test_re, count, test_result_xml,
+            tests_to_run, test_re, count, test_result_xml, rerun_fails,
         )
     else:
         execute(
             _run_integ_tests, test_host, trf_host,
-            tests_to_run, test_re, count, test_result_xml,
+            tests_to_run, test_re, count, test_result_xml, rerun_fails,
         )
 
     # If we got here means everything work well!!
@@ -470,7 +473,7 @@ def _add_docker_host_remote_network_envvar():
 
 def _run_integ_tests(
     test_host, trf_host, tests_to_run: SubTests,
-    test_re=None, count="1", test_result_xml=None,
+    test_re, count, test_result_xml, rerun_fails,
 ):
     """ Run the integration tests """
     # add docker host environment as well
@@ -483,8 +486,8 @@ def _run_integ_tests(
 
     # QOS take a while to run. Increasing the timeout to 50m
     go_test_cmd = "gotestsum --format=standard-verbose "
-    # Retry once on failure
-    go_test_cmd += "--rerun-fails=1 --packages='./...' "
+    # Set retry count on failure
+    go_test_cmd += "--rerun-fails=" + rerun_fails + " --packages='./...' "
     if test_result_xml:  # generate test result XML in cwf/gateway directory
         go_test_cmd += "--junitfile ../" + test_result_xml + " "
     go_test_cmd += " -- -test.short -timeout 50m -count " + count  # go test args

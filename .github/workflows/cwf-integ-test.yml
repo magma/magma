@@ -9,6 +9,11 @@ on:  # yamllint disable-line rule:truthy
       - build-all
     types:
       - completed
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
 
 jobs:
   docker-build:
@@ -95,7 +100,7 @@ jobs:
       - name: Run the integ test
         run: |
           cd cwf/gateway
-          fab integ_test:destroy_vm=True,transfer_images=True,test_result_xml=tests.xml
+          fab integ_test:destroy_vm=True,transfer_images=True,test_result_xml=tests.xml,rerun_fails=3
       - name: upload test results
         uses: actions/upload-artifact@v2
         with:
