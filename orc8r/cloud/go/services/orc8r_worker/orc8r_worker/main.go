@@ -41,7 +41,10 @@ func main() {
 	}
 
 	// TODO(reginawang3495): rename function name when non-singleton is removed
-	attemptSingletonIndexerManagerServicer(srv)
+	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
+	if singletonReindex {
+		startSingletonIndexer(srv)
+	}
 
 	err = srv.Run()
 	if err != nil {
@@ -49,25 +52,23 @@ func main() {
 	}
 }
 
-func attemptSingletonIndexerManagerServicer(srv *service.OrchestratorService) {
-	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
-	if singletonReindex {
-		glog.Info("Running singleton reindexer")
+func startSingletonIndexer(srv *service.OrchestratorService) {
+	glog.Info("Running singleton reindexer")
 
-		db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
-		if err != nil {
-			glog.Fatalf("Error connecting to database: %v", err)
-		}
-		store := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
-		err = store.InitializeFactory()
-		if err != nil {
-			glog.Fatalf("Error initializing state database: %v", err)
-		}
-
-		indexerManagerServer := newSingletonIndexerManagerServicer(srv.Config, db, store)
-		indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
+	db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
+	if err != nil {
+		glog.Fatalf("Error connecting to database: %v", err)
 	}
+	store := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
+	err = store.InitializeFactory()
+	if err != nil {
+		glog.Fatalf("Error initializing state database: %v", err)
+	}
+
+	indexerManagerServer := newSingletonIndexerManagerServicer(srv.Config, db, store)
+	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
 }
+
 func newSingletonIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
 	versioner := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
 	err := versioner.Initialize()
