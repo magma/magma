@@ -106,19 +106,3 @@ jobs:
         with:
           check_run_annotations: all tests
           files: cwf/gateway/tests.xml
-      - name: Extract commit title
-        # yamllint enable
-        if: failure()
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to slack
-        if: failure()
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_USERNAME: "CWF integ test"
-          SLACK_AVATAR: ":boom:"
-        uses: Ilshidur/action-slack@2.1.0
-        with:
-          args: "CWF integration test test failed on [${{github.sha}}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
