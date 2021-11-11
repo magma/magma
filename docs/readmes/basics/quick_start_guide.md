@@ -154,8 +154,9 @@ After starting the Orchestrator with `HOST [magma/orc8r/cloud/docker]$ ./run.py`
 and importing `admin_operator.pfx`, you should be able to visit the Swagger UI
 at [https://localhost:9443/swagger/v1/ui](https://localhost:9443/swagger/v1/ui).
 Note that your browser may refuse to accept the server certificate from
-`localhost:9443`. Firefox and Safari will let you override this warning, but
-Chrome will not.
+`localhost:9443`. Firefox and Safari will let you override this warning. Chrome 
+will as well if you type in "thisisunsafe"--see [here](https://www.technipages.com/google-chrome-bypass-your-connection-is-not-private-message)
+for details.
 
 ### Connecting Your Local LTE Gateway to Your Local Cloud
 
