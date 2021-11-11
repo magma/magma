@@ -432,7 +432,7 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
   uint8_t* offset;
   uint32_t encoded_tmsi = ntohl(guti->m_tmsi);
 
-  offset = reinterpret_cast<uint8_t*> & encoded_tmsi;
+  offset = reinterpret_cast<uint8_t*>(&encoded_tmsi);
 
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
       .mobile_identity.guti.tmsi1 = *offset;
