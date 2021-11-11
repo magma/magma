@@ -155,8 +155,7 @@ and importing `admin_operator.pfx`, you should be able to visit the Swagger UI
 at [https://localhost:9443/swagger/v1/ui](https://localhost:9443/swagger/v1/ui).
 Note that your browser may refuse to accept the server certificate from
 `localhost:9443`. Firefox and Safari will let you override this warning. Chrome
-will also let you bypass the warning if you type "thisisunsafe". See [here](https://www.technipages.com/google-chrome-bypass-your-connection-is-not-private-message)
-for details.
+will also let you [bypass the warning if you type `thisisunsafe`](https://www.technipages.com/google-chrome-bypass-your-connection-is-not-private-message).
 
 ### Connecting Your Local LTE Gateway to Your Local Cloud
 
