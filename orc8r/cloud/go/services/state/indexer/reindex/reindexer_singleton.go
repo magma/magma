@@ -60,6 +60,7 @@ func (r *reindexerSingleton) Run(ctx context.Context) {
 		}
 
 		clock.Sleep(reindexLoopInterval)
+		glog.Infof("Sleeping for %d seconds before looking for new jobs to reindex", reindexLoopInterval / time.Second)
 	}
 }
 
