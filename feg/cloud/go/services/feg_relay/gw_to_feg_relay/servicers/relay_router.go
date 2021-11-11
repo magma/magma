@@ -29,6 +29,7 @@ const (
 	FegSessionProxy gateway_registry.GwServiceType = "session_proxy"
 	FegHello        gateway_registry.GwServiceType = "feg_hello"
 	FegSwxProxy     gateway_registry.GwServiceType = "swx_proxy"
+	FegN7Proxy      gateway_registry.GwServiceType = "n7_proxy"
 )
 
 // RelayRouter implements generic routing logic and currently just embeds gw_to_feg_relay.Router functionality

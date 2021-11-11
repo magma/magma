@@ -29,7 +29,7 @@ func (s *RelayRouter) CreateSession(
 	ctx context.Context, r *protos.CreateSessionRequest) (*protos.CreateSessionResponse, error) {
 
 	// CreateSession's SID is just IMSI with "IMSI" prefix which findServingNHFeg() should remove
-	client, ctx, cancel, err := s.getSessionProxyClient(ctx, r.GetCommonContext().GetSid().GetId())
+	client, ctx, cancel, err := s.getProxyClient(ctx, r.CommonContext.RatType, r.GetCommonContext().GetSid().GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (s *RelayRouter) UpdateSession(
 	// send a separate Update request for each unique PLMN ID
 	for plmnid, req := range reqMap {
 		go func(plmnid string, req *protos.UpdateSessionRequest) {
-			client, ctx, cancel, err := s.getSessionProxyClient(ctx, plmnid)
+			client, ctx, cancel, err := s.getProxyClient(ctx, req.Updates[0].CommonContext.RatType, plmnid)
 			if err != nil {
 				glog.Errorf("failed connect to Session Proxy for PLMNID '%s': %v", plmnid, err)
 				resultChan <- genUpdateErrorResp(req)
@@ -111,7 +111,7 @@ func (s *RelayRouter) TerminateSession(
 	ctx context.Context, r *protos.SessionTerminateRequest) (*protos.SessionTerminateResponse, error) {
 
 	// TerminateSession's SID is just IMSI with "IMSI" prefix which findServingNHFeg() should remove
-	client, ctx, cancel, err := s.getSessionProxyClient(ctx, r.GetCommonContext().GetSid().GetId())
+	client, ctx, cancel, err := s.getProxyClient(ctx, r.CommonContext.RatType, r.GetCommonContext().GetSid().GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -127,6 +127,26 @@ func (s *RelayRouter) getSessionProxyClient(
 		return nil, nil, nil, err
 	}
 	return protos.NewCentralSessionControllerClient(conn), ctx, cancel, nil
+}
+
+//N7_proxy service for 5G
+func (s *RelayRouter) getN7ProxyClient(
+	c context.Context, imsi string) (protos.CentralSessionControllerClient, context.Context, context.CancelFunc, error) {
+	conn, ctx, cancel, err := s.GetFegServiceConnection(c, imsi, FegN7Proxy)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	return protos.NewCentralSessionControllerClient(conn), ctx, cancel, nil
+}
+
+//Service selection based on the RAT Type
+func (s *RelayRouter) getProxyClient(
+	ctx context.Context, r protos.RATType, imsi string) (protos.CentralSessionControllerClient, context.Context, context.CancelFunc, error) {
+	if r == protos.RATType_TGPP_NR {
+		return s.getN7ProxyClient(ctx, imsi)
+	} else {
+		return s.getSessionProxyClient(ctx, imsi)
+	}
 }
 
 func genUpdateErrorResp(req *protos.UpdateSessionRequest) *protos.UpdateSessionResponse {
