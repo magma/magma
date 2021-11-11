@@ -1237,18 +1237,18 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
 
     ngap_pdusession_setup_item_ies->pDUSessionID = session_item->Pdu_Session_ID;
 
-    ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU =
-        calloc(1, sizeof(Ngap_NAS_PDU_t));
-    ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->size =
-        blength(pdusession_resource_setup_req->nas_pdu);
-
     if (pdusession_resource_setup_req->nas_pdu) {
+      ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU =
+          calloc(1, sizeof(Ngap_NAS_PDU_t));
+
       ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->buf = calloc(
           blength(pdusession_resource_setup_req->nas_pdu), sizeof(uint8_t));
+      ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->size =
+          blength(pdusession_resource_setup_req->nas_pdu);
 
       memcpy(
           ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->buf,
-          bdata(pdusession_resource_setup_req->nas_pdu),
+          pdusession_resource_setup_req->nas_pdu->data,
           ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->size);
     }
 
