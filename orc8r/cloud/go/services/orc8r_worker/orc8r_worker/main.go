@@ -40,10 +40,10 @@ func main() {
 		glog.Fatalf("Error creating orc8r_worker service %v", err)
 	}
 
-	// TODO(reginawang3495): rename function name when non-singleton is removed
+	// TODO(reginawang3495): rename function name when jobQueue reindexer is removed
 	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
 	if singletonReindex {
-		startSingletonIndexer(srv)
+		startSingletonReindexer(srv)
 	}
 
 	err = srv.Run()
@@ -52,7 +52,7 @@ func main() {
 	}
 }
 
-func startSingletonIndexer(srv *service.OrchestratorService) {
+func startSingletonReindexer(srv *service.OrchestratorService) {
 	glog.Info("Running singleton reindexer")
 
 	db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
