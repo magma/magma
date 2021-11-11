@@ -194,19 +194,37 @@ func (c *certifierBlobstore) ListHTTPBasicAuth() ([]string, error) {
 	return users, store.Commit()
 }
 
-func (c *certifierBlobstore) UpdateHTTPBasicAuth(username string, password []byte) error {
+func (c *certifierBlobstore) GetHTTPBasicAuth(username string) (*protos.Operator, error) {
+	store, err := c.factory.StartTransaction(nil)
+	if err != nil {
+		return nil, status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
+	}
+	defer store.Rollback()
+	operatorBlob, err := store.Get(placeholderNetworkID, storage.TK{Type: HTTPBasicAuthType, Key: username})
+	if err != nil {
+		return nil, err
+	}
+	operator, err := operatorFromBlob(operatorBlob)
+	if err != nil {
+		return nil, err
+	}
+	return &operator, err
+
+}
+
+func (c *certifierBlobstore) PutHTTPBasicAuth(username string, operator *protos.Operator) error {
 	store, err := c.factory.StartTransaction(nil)
 	if err != nil {
 		return status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
 	}
 	defer store.Rollback()
 
-	err = store.Write(
-		placeholderNetworkID,
-		blobstore.Blobs{
-			{Type: HTTPBasicAuthType, Key: username, Value: password},
-		},
-	)
+	operatorBlob, err := operatorToBlob(username, operator)
+	if err != nil {
+		return err
+	}
+
+	err = store.Write(placeholderNetworkID, blobstore.Blobs{operatorBlob})
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("failed to update password for user %s", username))
 	}
@@ -229,4 +247,22 @@ func (c *certifierBlobstore) DeleteHTTPBasicAuth(username string) error {
 	}
 
 	return store.Commit()
+}
+
+func operatorFromBlob(blob blobstore.Blob) (protos.Operator, error) {
+	operator := protos.Operator{}
+	err := proto.Unmarshal(blob.Value, &operator)
+	if err != nil {
+		return operator, err
+	}
+	return operator, nil
+}
+
+func operatorToBlob(username string, operator *protos.Operator) (blobstore.Blob, error) {
+	marshalledOperator, err := proto.Marshal(operator)
+	if err != nil {
+		return blobstore.Blob{}, err
+	}
+	operatorBlob := blobstore.Blob{Type: HTTPBasicAuthType, Key: username, Value: marshalledOperator}
+	return operatorBlob, nil
 }

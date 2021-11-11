@@ -18,18 +18,20 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"golang.org/x/crypto/bcrypt"
 
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/services/certifier"
+	certProto "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 )
 
 const (
+	UserParam           = ":username"
 	HTTPBasicAuth       = "http_basic_auth"
 	ListHTTPBasicAuth   = obsidian.V1Root + HTTPBasicAuth
-	ManageHTTPBasicAuth = ListHTTPBasicAuth + obsidian.UrlSep + ":username"
+	ManageHTTPBasicAuth = ListHTTPBasicAuth + obsidian.UrlSep + UserParam
 )
 
 func GetHandlers(storage storage.CertifierStorage) []obsidian.Handler {
@@ -45,7 +47,6 @@ func GetHandlers(storage storage.CertifierStorage) []obsidian.Handler {
 func getListHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		users, err := storage.ListHTTPBasicAuth()
-		glog.Errorf("christine wtf are these users %s", users)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
@@ -61,17 +62,25 @@ func getCreateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.Handle
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request for HTTP basic auth: %v", err))
 		}
 		username := fmt.Sprintf("%v", data["username"])
-		strPassword := fmt.Sprintf("%v", data["password"])
-		password := []byte(strPassword)
+
+		password := []byte(fmt.Sprintf("%v", data["password"]))
 		hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error hashing password: %v", err))
 		}
 
-		glog.Errorf("christine username %s", username)
-		glog.Errorf("christine WHY IS THE PASSWORD ALWAYS THE SAME?? %s		 %s", strPassword, hashedPassword)
+		token, err := certifier.GenerateToken(certifier.Personal)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error generating personal access token for operator: %v", err))
+		}
 
-		err = storage.UpdateHTTPBasicAuth(username, hashedPassword)
+		operator := &certProto.Operator{
+			Username: username,
+			Password: string(hashedPassword[:]),
+			Tokens:   &certProto.TokenList{Token: []string{token}},
+		}
+
+		err = storage.PutHTTPBasicAuth(username, operator)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
@@ -87,10 +96,24 @@ func getUpdateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.Handle
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request for HTTP basic auth: %v", err))
 		}
-		strPassword := fmt.Sprintf("%v", data["password"])
-		password := []byte(strPassword)
-		hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
-		err = storage.UpdateHTTPBasicAuth(username, hashedPassword)
+
+		newPassword := []byte(fmt.Sprintf("%v", data["password"]))
+		hashedPassword, err := bcrypt.GenerateFromPassword(newPassword, bcrypt.DefaultCost)
+
+		// get old operator
+		operator, err := storage.GetHTTPBasicAuth(username)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting existing user: %v", err))
+		}
+
+		// update new operator blob
+		newOperator := &certProto.Operator{
+			Username: username,
+			Password: string(hashedPassword[:]),
+			Tokens:   operator.Tokens,
+		}
+		storage.PutHTTPBasicAuth(username, newOperator)
+
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}

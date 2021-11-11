@@ -9418,7 +9418,7 @@ definitions:
     type: object
     x-go-custom-tag: magma_alt_name:"HSS"
   http_basic_auth:
-    description: User's basic authentication info
+    description: User's authentication info
     properties:
       password:
         type: string

@@ -41,7 +41,9 @@ type CertifierStorage interface {
 
 	ListHTTPBasicAuth() ([]string, error)
 
-	UpdateHTTPBasicAuth(username string, password []byte) error
+	PutHTTPBasicAuth(username string, operator *protos.Operator) error
 
 	DeleteHTTPBasicAuth(username string) error
+
+	GetHTTPBasicAuth(username string) (*protos.Operator, error)
 }

@@ -48,6 +48,31 @@ message GetCARequest {
   CertType cert_type = 1;
 }
 
+message TokenList {
+  repeated string token = 1;
+}
+
+message Operator {
+  string username = 1;
+  string password = 2;
+  TokenList tokens = 3;
+}
+
+enum Action {
+  NONE = 0;
+  READ = 1;
+  WRITE = 2;
+}
+
+message Policy {
+  string token = 1;
+  string effect = 2;
+  Action action = 3;
+  message ResourceList {
+    repeated string resource = 4;
+  }
+}
+
 service Certifier {
 
   // Returns the cert of the requested CA
@@ -83,6 +108,6 @@ service Certifier {
   rpc GetAll(Void) returns (CertificateInfoMap) {}
 
   // cleanup expired certificates
-  //
   rpc CollectGarbage (Void) returns (Void) {}
+
 }

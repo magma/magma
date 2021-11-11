@@ -13,7 +13,7 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// HTTPBasicAuth User's basic authentication info
+// HTTPBasicAuth User's authentication info
 // swagger:model http_basic_auth
 type HTTPBasicAuth struct {
 

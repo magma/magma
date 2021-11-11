@@ -81,23 +81,6 @@ paths:
       tags:
         - HTTP Basic Auth
 
-  /http_basic_auth/login:
-    get:
-      parameters:
-        - name: user
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/http_basic_auth'
-      responses:
-        "201":
-          description: Success
-        default:
-          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-      summary: Create a user
-      tags:
-        - HTTP Basic Auth
-
 parameters:
   username:
     in: path
@@ -118,4 +101,3 @@ definitions:
         type: string
       password:
         type: string # TODO(christinewang5): should i put more restrictions on password
-
