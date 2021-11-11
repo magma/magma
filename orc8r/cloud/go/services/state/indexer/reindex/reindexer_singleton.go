@@ -63,6 +63,7 @@ func (r *reindexerSingleton) Run(ctx context.Context) {
 	}
 }
 
+// TODO(reginawang3495): remove RunUnsafe when jobQueue reindexer is removed
 func (r *reindexerSingleton) RunUnsafe(ctx context.Context, indexerID string, sendUpdate func(string)) error {
 	jobs, err := r.getJobs(indexerID)
 	if err != nil {

@@ -20,4 +20,5 @@ const (
 	// When value is true, state service handles automatically reindex state indexers.
 	// When value is false, reindexing must be handled by the provided CLI.
 	EnableAutomaticReindexing = "enable_automatic_reindexing"
+	EnableSingletonReindex    = "enable_singleton_reindex"
 )
