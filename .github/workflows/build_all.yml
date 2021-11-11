@@ -665,7 +665,7 @@ jobs:
           SLACK_FOOTER: ' '
   Publish_to_firebase:
     name: Publish to firebase
-    if: github.event_name == 'push'
+    if: always() && github.event_name == 'push'
     runs-on: ubuntu-latest
     needs: [agw-build]
     steps:
