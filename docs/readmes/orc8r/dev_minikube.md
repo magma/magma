@@ -39,12 +39,12 @@ helm upgrade --install \
 There are 2 ways you can publish your own images: to a private registry, or to a localhost registry. Choose an option, then complete the relevant prerequisites:
 
 1. Publish to private registry (specifically, we'll use [DockerHub](https://hub.docker.com/))
-   - `docker login`
+    - `docker login`
     - Use `registry.hub.docker.com/USERNAME` as your registry name
 2. Publish to localhost registry (specifically, we'll use the [local Docker registry via Minikube](https://minikube.sigs.k8s.io/docs/handbook/registry/#docker-on-macos))
     - `minikube addons enable registry`
     - `docker run --rm -it --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:$(minikube ip):5000"`
-      - This should hang, open new tab for other commands
+        - This should hang, open new tab for other commands
     - Use `localhost:5000` as your registry name
 
 After completing the prerequisites listed above, follow the instructions at [Building Orchestrator](./dev_build.md#build-and-publish-container-images) to publish container images to the chosen registry.
