@@ -583,7 +583,8 @@ TEST_F(NgapFlowTest, pdu_sess_resource_setup_req_sunny_day) {
   uint8_t ip_buff[4]           = {0xc0, 0xa8, 0x3c, 0x8e};
   m5g_ue_description_t* ue_ref = NULL;
   itti_ngap_pdusession_resource_setup_req_t* ngap_pdu_ses_setup_req = nullptr;
-  pdu_session_resource_setup_request_transfer_t amf_pdu_ses_setup_transfer_req;
+  pdu_session_resource_setup_request_transfer_t amf_pdu_ses_setup_transfer_req =
+      {};
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &peerInfo), RETURNok);

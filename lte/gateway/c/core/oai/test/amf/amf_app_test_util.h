@@ -68,12 +68,12 @@ int send_uplink_nas_pdu_session_establishment_request(
 void create_ip_address_response_itti(
     itti_amf_ip_allocation_response_t& response);
 
-int send_ip_address_response_grpc();
+int send_ip_address_response_itti();
 
 void create_pdu_session_response_ipv4_itti(
     itti_n11_create_pdu_session_response_t& response);
 
-int send_pdu_session_response_grpc();
+int send_pdu_session_response_itti();
 
 void create_pdu_resource_setup_response_itti(
     itti_ngap_pdusessionresource_setup_rsp_t& response, amf_ue_ngap_id_t ue_id);

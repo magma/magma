@@ -94,8 +94,7 @@ int create_session_grpc_req_on_gnb_setup_rsp(
       LOG_AMF_APP, "Sending PDU session Establishment 2nd Request to SMF");
 
   OAILOG_INFO(
-      LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s] session\n",
-      imsi);
+      LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s]\n", imsi);
 
   AMFClientServicer::getInstance().set_smf_session(req);
 

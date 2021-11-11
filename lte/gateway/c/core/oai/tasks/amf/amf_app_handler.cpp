@@ -617,13 +617,13 @@ int amf_app_handle_pdu_session_response(
       OAILOG_ERROR(
           LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
           pdu_session_resp->pdu_session_id);
-      return rc;
+      return RETURNerror;
     }
     ue_id = ue_context->amf_ue_ngap_id;
   } else {
     OAILOG_ERROR(
         LOG_AMF_APP, "ue context not found for the imsi=%lu\n", imsi64);
-    return rc;
+    return RETURNerror;
   }
 
   get_ambr_unit(

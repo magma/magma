@@ -49,7 +49,7 @@ class AMFAppProcedureTest : public ::testing::Test {
 
   virtual void TearDown() {
     clear_amf_nas_state();
-    amf_config_free(&amf_config);
+    clear_amf_config(&amf_config);
     destroy_task_context(&amf_app_task_zmq_ctx);
     itti_free_desc_threads();
   }
@@ -302,11 +302,11 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionSetup) {
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send ip address response  from pipelined */
-  rc = send_ip_address_response_grpc();
+  rc = send_ip_address_response_itti();
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send pdu session setup response  from smf */
-  rc = send_pdu_session_response_grpc();
+  rc = send_pdu_session_response_itti();
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send pdu resource setup response  from UE */

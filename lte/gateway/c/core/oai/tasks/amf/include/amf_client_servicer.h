@@ -84,31 +84,11 @@ class AMFClientServicer : public AMFClientServicerBase {
       task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
       MessageDef* message_p) override {
     OAILOG_DEBUG(LOG_AMF_APP, " Mock is Enabled \n");
-    status_code_e rc = RETURNerror;
-    switch (ITTI_MSG_ID(message_p)) {
-      case NGAP_PDUSESSION_RESOURCE_SETUP_REQ: {
-        itti_ngap_pdusession_resource_setup_req_t*
-            pdusession_resource_setup_req =
-                &NGAP_PDUSESSION_RESOURCE_SETUP_REQ(message_p);
-        Ngap_PDUSession_Resource_Setup_Request_List_t* resource_list =
-            &(pdusession_resource_setup_req->pduSessionResource_setup_list);
-        pdusession_setup_item_t* session_item = &(resource_list->item[0]);
-        pdu_session_resource_setup_request_transfer_t* session_transfer =
-            &(session_item->PDU_Session_Resource_Setup_Request_Transfer);
-        bdestroy(session_transfer->up_transport_layer_info.gtp_tnl
-                     .endpoint_ip_address);
-        bdestroy(pdusession_resource_setup_req->nas_pdu);
-        rc = RETURNok;
-        break;
-      }
-      default: { break; }
-    }
-
+    status_code_e rc = RETURNok;
     itti_free_msg_content(message_p);
     free(message_p);
     return rc;
   }
-
   bool get_subs_auth_info(
       const std::string& imsi, uint8_t imsi_length, const char* snni,
       amf_ue_ngap_id_t ue_id) override {

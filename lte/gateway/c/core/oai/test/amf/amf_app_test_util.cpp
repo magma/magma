@@ -171,7 +171,7 @@ int send_uplink_nas_pdu_session_establishment_request(
   bstring pdu_session_est_req;
   tai_t originating_tai = {};
 
-  if ((!amf_app_desc_p) || (!nas_msg) || (0 == nas_msg_length)) {
+  if ((!amf_app_desc_p) || (!nas_msg) || (nas_msg_length == 0)) {
     return RETURNerror;
   }
 
@@ -185,7 +185,7 @@ int send_uplink_nas_pdu_session_establishment_request(
   rc     = amf_app_handle_uplink_nas_message(
       amf_app_desc_p, pdu_session_est_req, ue_id, originating_tai);
 
-  return (rc);
+  return rc;
 }
 
 void create_ip_address_response_itti(
@@ -212,7 +212,7 @@ void create_ip_address_response_itti(
   response.result           = 0;
 }
 
-int send_ip_address_response_grpc() {
+int send_ip_address_response_itti() {
   int rc = RETURNerror;
 
   itti_amf_ip_allocation_response_t response = {};
@@ -263,7 +263,7 @@ void create_pdu_session_response_ipv4_itti(
       AF_INET, "192.168.128.200", response.pdu_address.redirect_server_address);
 }
 
-int send_pdu_session_response_grpc() {
+int send_pdu_session_response_itti() {
   int rc                                          = RETURNerror;
   itti_n11_create_pdu_session_response_t response = {};
   create_pdu_session_response_ipv4_itti(response);
