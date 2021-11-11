@@ -112,7 +112,7 @@ func TestFlowAddresses(t *testing.T) {
 	assert.Equal(t, flow5.IpDst, (*protos.IPAddress)(nil))
 	assert.Equal(t, flow5.TcpDst, uint32(0))
 
-	//test out of range int32 number
+	//test out of range uint32 number
 	flow6Desc, err := policydb.GetFlowDescriptionFromFlowString("permit in 6 from b522::10 4294967313 to any")
 	assert.Error(t, err)
 	assert.Nil(t, flow6Desc)
