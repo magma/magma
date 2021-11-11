@@ -75,6 +75,15 @@ variable "monitoring_kubernetes_namespace" {
   default     = "monitoring"
 }
 
+variable "orc8r_is_staging_deployment" {
+  description = <<EOT
+    Indicates if the orc8r-app being deploy is a staging environment.
+    Staging environment does not deploy Logging, Metrics and Alerts
+    EOT
+  type        = bool
+  default     = false
+}
+
 ##############################################################################
 # General Orchestrator configuration
 ##############################################################################

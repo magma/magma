@@ -212,5 +212,9 @@ data "template_file" "orc8r_values" {
     thanos_store_selector   = var.thanos_store_node_selector != "" ? format("compute-type: %s", var.thanos_store_node_selector) : "{}"
 
     region = var.region
+
+    # Staging deployments does not deploy neither logging nor metrics
+    enable_logging = !var.orc8r_is_staging_deployment
+    enable_metrics = !var.orc8r_is_staging_deployment
   }
 }
