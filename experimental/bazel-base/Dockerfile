@@ -20,7 +20,8 @@ RUN apt-get update && \
         git \
         gnupg2 \
         g++ \
-        python-dev \
+        python3 \
+        python-is-python3 \
         zip \
         unzip \
         vim \
