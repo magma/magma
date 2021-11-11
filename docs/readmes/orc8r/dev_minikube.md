@@ -15,7 +15,7 @@ Deploying Orc8r on Minikube is the easiest way to test changes to the Helm chart
 Set up Minikube with the following command, including sufficient resources and seeding the metrics config files
 
 ```bash
-minikube start --cni=bridge --driver=hyperkit --memory=8gb --cpus=8 --mount --mount-string "${MAGMA_ROOT}/orc8r/cloud/docker/metrics-configs:/configs"
+minikube start --cni=bridge --driver=hyperkit --memory=8gb --cpus=8 --kubernetes-version='v1.20.2' --mount --mount-string "${MAGMA_ROOT}/orc8r/cloud/docker/metrics-configs:/configs"
 ```
 
 > Note: This has been tested on MacOS. There are a lot of things that can go wrong with spinning up Minikube, so if you have problems check for documentation specific to your system. Also make sure you are not connected to a VPN when running this command.
@@ -39,11 +39,12 @@ helm upgrade --install \
 There are 2 ways you can publish your own images: to a private registry, or to a localhost registry. Choose an option, then complete the relevant prerequisites:
 
 1. Publish to private registry (specifically, we'll use [DockerHub](https://hub.docker.com/))
-   - `docker login`
+    - `docker login`
     - Use `registry.hub.docker.com/USERNAME` as your registry name
 2. Publish to localhost registry (specifically, we'll use the [local Docker registry via Minikube](https://minikube.sigs.k8s.io/docs/handbook/registry/#docker-on-macos))
     - `minikube addons enable registry`
     - `docker run --rm -it --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:$(minikube ip):5000"`
+        - This should hang, open new tab for other commands
     - Use `localhost:5000` as your registry name
 
 After completing the prerequisites listed above, follow the instructions at [Building Orchestrator](./dev_build.md#build-and-publish-container-images) to publish container images to the chosen registry.
@@ -121,7 +122,7 @@ helm dep update
 helm upgrade --install --namespace orc8r --values ${MAGMA_ROOT}/orc8r/cloud/helm/lte.values.yaml lte .
 ```
 
-If successful, you should get something like this
+It may take a couple minutes before all pods are finished being created, but if successful, you should get something like this
 
 ```bash
 $ kubectl --namespace orc8r get pods
@@ -157,17 +158,16 @@ kubectl exec -it --namespace orc8r deploy/orc8r-orchestrator -- \
 Now ensure the API and your certs are working
 
 ```bash
-# Tab 1
+# Tab 1 (should hang)
 kubectl --namespace orc8r port-forward svc/orc8r-nginx-proxy 7443:8443 7444:8444 9443:443
 
 # Tab 2
-# Assumes CERTS_DIR is set
+export CERTS_DIR=${MAGMA_ROOT}/.cache/test_certs  # mirrored from above
 curl \
   --insecure \
   --cert ${CERTS_DIR}/admin_operator.pem \
   --key ${CERTS_DIR}/admin_operator.key.pem \
   https://localhost:9443
-
 # Should output: "hello"
 ```
 
