@@ -50,3 +50,17 @@ sentry_upload_mme_log: false
 # Rate at which we want to sample Python error events
 # Should be a number between 0 (0% of errors sent) and 1 (100% of errors sent)
 sentry_sample_rate: 1.0
+# Message patterns that are excluded from Sentry (regex substring match)
+sentry_excluded_errors:
+  - 'GetServiceInfo'
+  - 'GetOperationalStates'
+  - 'ConnectionError'
+  - 'CheckinError'
+  - 'Checkin Error'
+  - 'GetChallenge error!'
+  - 'Connection to FluentBit'
+  - '\[SyncRPC\]'
+  - 'Metrics upload error'
+  - 'Streaming from the cloud failed!'
+  - 'Fetch subscribers error!'
+  - 'GRPC call failed for state replication'

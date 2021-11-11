@@ -12,18 +12,24 @@ limitations under the License.
 """
 import logging
 import os
+import re
 from enum import Enum
 from functools import wraps
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import sentry_sdk
 import snowflake
 from magma.configuration.service_configs import get_service_config_value
 from orc8r.protos.mconfig import mconfigs_pb2
 
+Event = Dict[str, Any]
+Hint = Dict[str, Any]
+SentryHook = Callable[[Event, Hint], Optional[Event]]
+
 CONTROL_PROXY = 'control_proxy'
 SENTRY_CONFIG = 'sentry'
 SENTRY_URL = 'sentry_url_python'
+SENTRY_EXCLUDED = 'sentry_excluded_errors'
 SENTRY_SAMPLE_RATE = 'sentry_sample_rate'
 CLOUD_ADDRESS = 'cloud_address'
 ORC8R_CLOUD_ADDRESS = 'orc8r_cloud_address'
@@ -37,6 +43,7 @@ SEND_TO_ERROR_MONITORING = {SEND_TO_ERROR_MONITORING_KEY: True}
 
 
 class SentryStatus(Enum):
+    """Describes which kind of Sentry monitoring is configured"""
     SEND_ALL_ERRORS = 'send_all_errors'
     SEND_SELECTED_ERRORS = 'send_selected_errors'
     DISABLED = 'disabled'
@@ -59,16 +66,6 @@ def send_uncaught_errors_to_monitoring(enabled: bool):
         return func
 
     return error_logging_wrapper
-
-
-def _ignore_if_not_marked(
-        event: Dict[str, Any],
-        hint: Dict[str, Any],  # pylint: disable=unused-argument
-) -> Optional[Dict[str, Any]]:
-    if event.get(LOGGING_EXTRA) and event.get(LOGGING_EXTRA).get(SEND_TO_ERROR_MONITORING_KEY):
-        del event[LOGGING_EXTRA][SEND_TO_ERROR_MONITORING_KEY]
-        return event
-    return None
 
 
 def get_sentry_status(service_name: str) -> SentryStatus:
@@ -125,6 +122,61 @@ def get_sentry_dsn_and_sample_rate(sentry_mconfig: mconfigs_pb2.SharedSentryConf
     return dsn_python, sample_rate
 
 
+def _ignore_if_not_marked(event: Event) -> Optional[Event]:
+    if event.get(LOGGING_EXTRA) and event.get(LOGGING_EXTRA).get(SEND_TO_ERROR_MONITORING_KEY):
+        logging.info("Sending because of present tag")
+        del event[LOGGING_EXTRA][SEND_TO_ERROR_MONITORING_KEY]
+        return event
+    logging.info("Ignoring because of missing tag")
+    return None
+
+
+def _filter_excluded_messages(event: Event, hint: Hint, patterns_to_exclude: List[str]) -> Optional[Event]:
+    explicit_message = event.get('message')
+
+    log_entry = event.get("logentry")
+    log_message = log_entry.get('message') if log_entry else None
+
+    exc_info = hint.get("exc_info")
+    exception_message = str(exc_info[1]) if exc_info else None
+
+    messages = [msg for msg in (explicit_message, log_message, exception_message) if msg]
+    if not messages:
+        return event
+
+    for pattern in patterns_to_exclude:
+        for message in messages:
+            if re.search(pattern, message):
+                return None
+
+    return event
+
+
+def _get_before_send_hook(
+        sentry_status: SentryStatus,
+        patterns_to_exclude: List[str],
+) -> Optional[SentryHook]:
+
+    def filter_excluded_and_unmarked_messages(
+            event: Event, hint: Hint,
+    ) -> Optional[Event]:
+        event = _ignore_if_not_marked(event)
+        if event and patterns_to_exclude:
+            return _filter_excluded_messages(event, hint, patterns_to_exclude)
+        return None
+
+    def filter_excluded_messages(
+            event: Event, hint: Hint,
+    ) -> Optional[Event]:
+        return _filter_excluded_messages(event, hint, patterns_to_exclude)
+
+    if sentry_status == SentryStatus.SEND_SELECTED_ERRORS:
+        return filter_excluded_and_unmarked_messages
+    if patterns_to_exclude:
+        return filter_excluded_messages
+    return None
+
+
 def sentry_init(service_name: str, sentry_mconfig: mconfigs_pb2.SharedSentryConfig) -> None:
     """Initialize connection and start piping errors to sentry.io."""
 
@@ -142,11 +194,17 @@ def sentry_init(service_name: str, sentry_mconfig: mconfigs_pb2.SharedSentryConf
         )
         return
 
+    excluded_patterns = get_service_config_value(
+        CONTROL_PROXY,
+        SENTRY_EXCLUDED,
+        default=[],
+    )
+
     sentry_sdk.init(
         dsn=dsn_python,
         release=os.getenv(COMMIT_HASH),
         traces_sample_rate=sample_rate,
-        before_send=_ignore_if_not_marked if sentry_status == SentryStatus.SEND_SELECTED_ERRORS else None,
+        before_send=_get_before_send_hook(sentry_status, excluded_patterns),
     )
 
     cloud_address = get_service_config_value(
