@@ -17,7 +17,15 @@ from typing import List
 
 from lte.protos.subscriberdb_pb2 import SubscriberID
 
-IMPORT_PATH = str(Path.home()) + '/magma'
+parents = Path.cwd().parents
+parts = Path.cwd().parts
+home = str(Path.home())
+if 'lte' in parts and len(parents) > 3:
+    # Get relative import path for protos
+    IMPORT_PATH = parents[3]
+else:
+    IMPORT_PATH = str(home) + '/magma'
+
 RESULTS_PATH = '/var/tmp'
 PROTO_DIR = 'lte/protos'
 
@@ -76,6 +84,7 @@ def benchmark_grpc_request(
     output_file: str,
     num_reqs: int,
     address: str,
+    import_path: str = None,
 ):
     """Run GHZ based GRPC benchmarking
 
@@ -87,9 +96,13 @@ def benchmark_grpc_request(
         num_reqs (int): number of requests to send
         address (str): address to the service being benchmarked
     """
+    import_path = import_path or IMPORT_PATH
+    if not Path(import_path).exists():
+        print('Protobuf import path directory does not exist, exiting')
+        return
     cmd_list = [
         'ghz',
-        '--insecure', '--proto', proto_path, '-i', IMPORT_PATH, '--total',
+        '--insecure', '--proto', proto_path, '-i', import_path, '--total',
         str(num_reqs), '--call', full_request_type, '-D', input_file,
         '-O', 'json', '-o', output_file, address,
     ]
