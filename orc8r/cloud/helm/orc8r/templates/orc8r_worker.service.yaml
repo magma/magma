@@ -31,4 +31,3 @@ spec:
       port: 9180
       targetPort: 9122
   {{- end -}}
-

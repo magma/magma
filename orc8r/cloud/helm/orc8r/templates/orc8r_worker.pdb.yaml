@@ -23,4 +23,3 @@ spec:
     matchLabels:
       app.kubernetes.io/component: orc8r-worker
 {{- end }}
-
