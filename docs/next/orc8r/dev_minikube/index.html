@@ -59,7 +59,7 @@
 <h2><a class="anchor" aria-hidden="true" id="prerequisites"></a><a href="#prerequisites" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Prerequisites</h2>
 <h3><a class="anchor" aria-hidden="true" id="spin-up-minikube"></a><a href="#spin-up-minikube" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Spin up Minikube</h3>
 <p>Set up Minikube with the following command, including sufficient resources and seeding the metrics config files</p>
-<pre><code class="hljs css language-bash">minikube start --cni=bridge --driver=hyperkit --memory=8gb --cpus=8 --mount --mount-string <span class="hljs-string">"<span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/cloud/docker/metrics-configs:/configs"</span>
+<pre><code class="hljs css language-bash">minikube start --cni=bridge --driver=hyperkit --memory=8gb --cpus=8 --kubernetes-version=<span class="hljs-string">'v1.20.2'</span> --mount --mount-string <span class="hljs-string">"<span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/cloud/docker/metrics-configs:/configs"</span>
 </code></pre>
 <blockquote>
 <p>Note: This has been tested on MacOS. There are a lot of things that can go wrong with spinning up Minikube, so if you have problems check for documentation specific to your system. Also make sure you are not connected to a VPN when running this command.</p>
@@ -87,7 +87,10 @@ helm upgrade --install \
 <li>Publish to localhost registry (specifically, we'll use the <a href="https://minikube.sigs.k8s.io/docs/handbook/registry/#docker-on-macos">local Docker registry via Minikube</a>)
 <ul>
 <li><code>minikube addons enable registry</code></li>
-<li><code>docker run --rm -it --network=host alpine ash -c &quot;apk add socat &amp;&amp; socat TCP-LISTEN:5000,reuseaddr,fork TCP:$(minikube ip):5000&quot;</code></li>
+<li><code>docker run --rm -it --network=host alpine ash -c &quot;apk add socat &amp;&amp; socat TCP-LISTEN:5000,reuseaddr,fork TCP:$(minikube ip):5000&quot;</code>
+<ul>
+<li>This should hang, open new tab for other commands</li>
+</ul></li>
 <li>Use <code>localhost:5000</code> as your registry name</li>
 </ul></li>
 </ol>
@@ -148,7 +151,7 @@ helm upgrade --install --namespace orc8r --values <span class="hljs-variable">${
 helm dep update
 helm upgrade --install --namespace orc8r --values <span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/cloud/helm/lte.values.yaml lte .
 </code></pre>
-<p>If successful, you should get something like this</p>
+<p>It may take a couple minutes before all pods are finished being created, but if successful, you should get something like this</p>
 <pre><code class="hljs css language-bash">$ kubectl --namespace orc8r get pods
 
 NAME                                             READY   STATUS    RESTARTS   AGE
@@ -174,17 +177,16 @@ postgresql-0                                     1/1     Running   4          6d
   admin_operator
 </code></pre>
 <p>Now ensure the API and your certs are working</p>
-<pre><code class="hljs css language-bash"><span class="hljs-comment"># Tab 1</span>
+<pre><code class="hljs css language-bash"><span class="hljs-comment"># Tab 1 (should hang)</span>
 kubectl --namespace orc8r port-forward svc/orc8r-nginx-proxy 7443:8443 7444:8444 9443:443
 
 <span class="hljs-comment"># Tab 2</span>
-<span class="hljs-comment"># Assumes CERTS_DIR is set</span>
+<span class="hljs-built_in">export</span> CERTS_DIR=<span class="hljs-variable">${MAGMA_ROOT}</span>/.cache/test_certs  <span class="hljs-comment"># mirrored from above</span>
 curl \
   --insecure \
   --cert <span class="hljs-variable">${CERTS_DIR}</span>/admin_operator.pem \
   --key <span class="hljs-variable">${CERTS_DIR}</span>/admin_operator.key.pem \
   https://localhost:9443
-
 <span class="hljs-comment"># Should output: "hello"</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="access-nms"></a><a href="#access-nms" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Access NMS</h3>
