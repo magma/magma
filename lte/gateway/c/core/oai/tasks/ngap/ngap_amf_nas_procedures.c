@@ -882,6 +882,25 @@ void ngap_handle_conn_est_cnf(
       free(pduSessionResourceSetupRequestTransferIEs);
 
     } /*for loop*/
+
+    ie = CALLOC(1, sizeof(Ngap_InitialContextSetupRequestIEs_t));
+
+    ie->id          = Ngap_ProtocolIE_ID_id_UEAggregateMaximumBitRate;
+    ie->criticality = Ngap_Criticality_reject;
+    ie->value.present =
+        Ngap_InitialContextSetupRequestIEs__value_PR_UEAggregateMaximumBitRate;
+
+    Ngap_UEAggregateMaximumBitRate_t* UEAggregateMaximumBitRate = NULL;
+    UEAggregateMaximumBitRate = &ie->value.choice.UEAggregateMaximumBitRate;
+
+    asn_uint642INTEGER(
+        &UEAggregateMaximumBitRate->uEAggregateMaximumBitRateUL,
+        conn_est_cnf_pP->ue_aggregate_max_bit_rate.ul);
+
+    asn_uint642INTEGER(
+        &UEAggregateMaximumBitRate->uEAggregateMaximumBitRateDL,
+        conn_est_cnf_pP->ue_aggregate_max_bit_rate.dl);
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
   }
 
   if (conn_est_cnf_pP->nas_pdu) {
@@ -1291,6 +1310,25 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
     free(pduSessionResourceSetupRequestTransferIEs);
 
   } /*for loop*/
+
+  ie = CALLOC(1, sizeof(Ngap_PDUSessionResourceSetupRequestIEs_t));
+
+  ie->id          = Ngap_ProtocolIE_ID_id_UEAggregateMaximumBitRate;
+  ie->criticality = Ngap_Criticality_reject;
+  ie->value.present =
+      Ngap_PDUSessionResourceSetupRequestIEs__value_PR_UEAggregateMaximumBitRate;
+
+  Ngap_UEAggregateMaximumBitRate_t* UEAggregateMaximumBitRate = NULL;
+  UEAggregateMaximumBitRate = &ie->value.choice.UEAggregateMaximumBitRate;
+
+  asn_uint642INTEGER(
+      &UEAggregateMaximumBitRate->uEAggregateMaximumBitRateUL,
+      pdusession_resource_setup_req->ue_aggregate_maximum_bit_rate.ul);
+
+  asn_uint642INTEGER(
+      &UEAggregateMaximumBitRate->uEAggregateMaximumBitRateDL,
+      pdusession_resource_setup_req->ue_aggregate_maximum_bit_rate.dl);
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   if (ngap_amf_encode_pdu(&pdu, &buffer_p, &length) < 0) {
     OAILOG_ERROR(LOG_NGAP, "Encoding of IEs failed \n");
