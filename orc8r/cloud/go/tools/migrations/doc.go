@@ -14,7 +14,7 @@
 /*
 	Package migrations houses the orc8r data migration executables.
 
-	This doc.go describes how to write an orc8r data migration.
+	This const.go describes how to write an orc8r data migration.
 
 	Functionality
 

@@ -38,7 +38,7 @@ import (
 
 const (
 	// SerdeDomain is a copy of the state service's serde domain, from
-	// orc8r/cloud/go/services/state/doc.go.
+	// orc8r/cloud/go/services/state/const.go.
 	SerdeDomain = "state"
 )
 
