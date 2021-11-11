@@ -33,7 +33,7 @@ func GetPlmnID(imsi string, mncLen int) []byte {
 	}
 	imsiBytes := [6]byte{}
 	for i := 0; i < 6; i++ {
-		v, err := strconv.Atoi(imsi[i : i+1])
+		v, err := strconv.ParseInt(imsi[i:i+1], 10, 8)
 		if err != nil {
 			glog.Errorf("Invalid Digit '%s' in IMSI '%s': %v", imsi[i:i+1], imsi, err)
 		}

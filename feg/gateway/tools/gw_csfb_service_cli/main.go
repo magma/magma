@@ -157,7 +157,7 @@ func marshalLocationUpdateAccept() (decode.SGsMessageType, *any.Any, error) {
 func marshalLocationUpdateReject() (decode.SGsMessageType, *any.Any, error) {
 	var rejectCause []byte
 	if len(flag.Args()) == 2 {
-		rejectCauseCode, err := strconv.Atoi(flag.Arg(1))
+		rejectCauseCode, err := strconv.ParseInt(flag.Arg(1), 10, 8)
 		if err != nil {
 			return decode.SGsAPLocationUpdateReject, nil, err
 		}
