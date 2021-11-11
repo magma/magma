@@ -28,6 +28,7 @@ db_client = FirebaseClient()
 
 
 def test_done_callback(tester_id, workload, verdict, report):
+    db_client.user = db_client.auth.refresh(db_client.user["refreshToken"])
     db_client.mark_workload_done(workload)
     db_client.push_test_report(workload, verdict, report)
     return
@@ -64,8 +65,10 @@ def main():
                     {"state": tester.get_state(), "current_workload": None}
                 )
 
+        time.sleep(1)
+        db_client.user = db_client.auth.refresh(db_client.user["refreshToken"])
         db_client.update_worker_state(num_of_testers, testers_state)
-        time.sleep(15)
+        time.sleep(14)
 
 
 if __name__ == "__main__":

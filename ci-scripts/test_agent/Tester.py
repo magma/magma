@@ -32,6 +32,7 @@ class Tester:
         # Get test results and prepare report
         verdict, report = self.load_test_results(dbfile="/tmp/test_res_pickle")
         # Callback
+        print("Test report created pushing to DB")
         self.callback(self.id, self.current_workload, verdict, report)
         self.current_workload = None
         self.current_build = None
@@ -59,27 +60,36 @@ class Tester:
         self.current_build = build
         self.callback = test_done_callback
 
-        # start test on current_workload
-        print("Tester {} Starting test on workload".format(self.id))
-        print(workload.key(), "==>", workload.val())
-
-        # register callback to call_ended()
-        # TODO pass pickle file from here to test run so we have control over it.
-
         def run_hil_thread(call_ended, popen_args):
-            proc = subprocess.Popen(*popen_args, stdout=subprocess.PIPE)
+            proc = subprocess.Popen(*popen_args, stdout=subprocess.PIPE, shell=True)
             proc.wait()
             call_ended()
             return
 
-        thread = threading.Thread(
-            target=run_hil_thread, args=(self.test_ended, ["./run_test.sh"])
-        )
-        thread.start()
+        if self.current_build.val()["agw"]["valid"]:
+            magma_build = self.current_build.val()["agw"]["artifacts"]["downloadUri"]
+            # start test on current_workload
+            print("Tester {} Starting test on workload".format(self.id))
+            print(workload.key(), "==>", workload.val())
 
-        self.state = TesterState.BUSY
-        print("test started on workload".format(self.id))
-        return
+            # register callback to call_ended()
+            # TODO pass pickle file from here to test run so we have control over it.
+
+            thread = threading.Thread(
+                target=run_hil_thread,
+                args=(self.test_ended, ["./run_test.sh " + magma_build]),
+            )
+            thread.start()
+
+            self.state = TesterState.BUSY
+            print("test started on workload".format(self.id))
+            return
+        else:
+            self.callback(self.id, self.current_workload, "INCONCLUSIVE", "NA")
+            self.current_workload = None
+            self.current_build = None
+            self.state = TesterState.READY
+            return
 
     def is_ready(self):
         return self.state == TesterState.READY
