@@ -136,7 +136,7 @@ func parseProto(proto string) (protos.FlowMatch_IPProto, error) {
 	if proto == "ip" {
 		return protos.FlowMatch_IPPROTO_IP, nil
 	}
-	protoInt, err := strconv.Atoi(proto)
+	protoInt, err := strconv.ParseInt(proto, 10, 32)
 	if err != nil {
 		return protos.FlowMatch_IPPROTO_IP, err
 	}

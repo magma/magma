@@ -53,6 +53,15 @@ func TestFlowProto(t *testing.T) {
 	udp, err := policydb.GetFlowDescriptionFromFlowString("permit in 17 from any to any")
 	assert.NoError(t, err)
 	assert.Equal(t, udp.Match.IpProto, protos.FlowMatch_IPPROTO_UDP)
+
+	//test out of range int32 number
+	protoOutOfRange, err := policydb.GetFlowDescriptionFromFlowString("permit in 4294967313 from any to any")
+	assert.Error(t, err)
+	assert.Nil(t, protoOutOfRange)
+
+	protoNotNumber, err := policydb.GetFlowDescriptionFromFlowString("permit in not_number from any to any")
+	assert.Error(t, err)
+	assert.Nil(t, protoNotNumber)
 }
 
 func TestFlowAddresses(t *testing.T) {
