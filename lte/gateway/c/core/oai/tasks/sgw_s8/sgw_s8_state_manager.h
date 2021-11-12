@@ -13,7 +13,7 @@ limitations under the License.
 
 #pragma once
 
-#include <lte/gateway/c/core/oai/include/state_manager.h>
+#include "lte/gateway/c/core/oai/include/state_manager.h"
 #include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
 #include "lte/protos/oai/sgw_state.pb.h"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_converter.h"

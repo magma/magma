@@ -32,7 +32,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <lte/gateway/c/core/oai/include/mme_app_state.h>
+#include "lte/gateway/c/core/oai/include/mme_app_state.h"
 
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"

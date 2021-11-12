@@ -18,7 +18,7 @@
 #include "lte/gateway/c/core/oai/include/spgw_state.h"
 
 #include <cstdlib>
-#include <lte/gateway/c/core/oai/common/conversions.h>
+#include "lte/gateway/c/core/oai/common/conversions.h"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/assertions.h"
