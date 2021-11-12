@@ -173,5 +173,8 @@ func parseAddress(addr string) (*address, error) {
 	if err != nil {
 		return nil, err
 	}
+	if portInt < 0 || portInt > 4294967295 {
+		return nil, fmt.Errorf("Number %d is outside the boundaries of unit32 type", portInt)
+	}
 	return &address{ip: ipAddr, version: version, port: uint32(portInt)}, nil
 }
