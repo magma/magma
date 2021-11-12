@@ -16,7 +16,7 @@
     file: all.yaml
   tags:
     - agwc
-    - eks
+    - base
 
 - name: Update ca-certs
   become: true
@@ -25,7 +25,7 @@
     update_cache: true
   tags:
     - agwc
-    - eks
+    - base
 
 - name: Forbid usage of expired Let's Encrypt CA cert
   ignore_errors: true
@@ -36,7 +36,7 @@
     line: '!mozilla/DST_Root_CA_X3.crt'
   tags:
     - agwc
-    - eks
+    - base
 
 
 - name: Trigger update of CA certs
@@ -45,7 +45,7 @@
   command: update-ca-certificates
   tags:
     - agwc
-    - eks
+    - base
 
 - name: Configuring private package manager.
   copy:
@@ -56,7 +56,7 @@
   become: true
   tags:
     - agwc
-    - eks
+    - base
 
 - name: Add unvalidated Apt signing key.
   when: magma_pkgrepo_key_fingerprint == ""
@@ -77,7 +77,7 @@
           };
   tags:
     - agwc
-    - eks
+    - base
 
 - name: Add validated Apt signing key.
   when: magma_pkgrepo_key_fingerprint != ""
@@ -88,7 +88,7 @@
     state: present
   tags:
     - agwc
-    - eks
+    - base
 
 - name: Update and upgrade apt packages
   become: true
@@ -96,7 +96,7 @@
     update_cache: true
   tags:
     - agwc
-    - eks
+    - base
 
 - name: Install runtime dependencies.
   become: true
@@ -115,7 +115,7 @@
       - ifupdown
   tags:
     - agwc
-    - eks
+    - base
 
 - name: Preconfigure wireshark (tshark) SUID property
   become: true
@@ -123,7 +123,7 @@
   shell: bash -c 'echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections'
   tags:
     - agwc
-    - eks
+    - base
 
 - name: Installing magma.
   become: true
@@ -149,7 +149,7 @@
   tags:
     - never
     - agwc
-    - eks
+    - base
 
 - name: Create interfaces.d if it does not exist
   file:
@@ -157,7 +157,7 @@
     state: directory
   tags:
     - agwc
-    - eks
+    - base
 
 # Copy these files in containerized agw only
 - name: copy necessary files for ovs
@@ -171,6 +171,7 @@
   tags:
     - never
     - agwc
+    - base
 
 - name: Start service openvswitch-switch.
   become: true
@@ -180,6 +181,7 @@
   tags:
     - skipfirstinstall
     - agwc
+    - base
 
 # Ansible's service module doesn't support wildcards so we have to use shell
 - name: Stop all magma services.
@@ -194,6 +196,7 @@
   tags:
     - skipfirstinstall
     - agwc
+    - base
 
 - name: Bring up mtr0
   shell: ifup mtr0
@@ -201,6 +204,7 @@
   tags:
     - skipfirstinstall
     - agwc
+    - base
 
 - name: Bring up uplink_br0
   shell: ifup uplink_br0
@@ -208,6 +212,7 @@
   tags:
     - skipfirstinstall
     - agwc
+    - base
 
 - name: Bring up ipfix0
   shell: ifup ipfix0
@@ -215,6 +220,7 @@
   tags:
     - skipfirstinstall
     - agwc
+    - base
 
 - name: Bring up dhcp0
   shell: ifup dhcp0
@@ -222,6 +228,7 @@
   tags:
     - skipfirstinstall
     - agwc
+    - base
 
 - name: Start service magma@magmad.
   become: true
@@ -235,4 +242,4 @@
   shell: ansible-galaxy collection install community.general
   tags:
     - agwc
-    - eks
+    - base

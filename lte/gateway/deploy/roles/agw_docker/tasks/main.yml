@@ -15,7 +15,7 @@
     file: all.yaml
   tags:
     - agwc
-    - eks
+    - base
 
 - name: Install aptitude using apt
   apt: name=aptitude state=latest force_apt_get=yes
@@ -72,7 +72,7 @@
 - name: create directories for magma configs and files
   tags:
     - agwc
-    - eks
+    - base
   file:
     path: "{{ item }}"
     state: directory
@@ -91,13 +91,13 @@
   sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
   tags:
     - agwc
-    - eks
+    - base
 
 - name: touch snowflake
   shell: touch /etc/snowflake
   tags:
     - agwc
-    - eks
+    - base
 
 - name: start docker service
   systemd: name=docker state=started enabled=yes
@@ -116,13 +116,13 @@
   shell: cp -r  /opt/magma/lte/gateway/configs/* /etc/magma/
   tags:
     - agwc
-    - eks
+    - base
 
 - name: copy the config files for orchestrator
   shell: cp -r  /opt/magma/orc8r/gateway/configs/templates/* /etc/magma/templates/
   tags:
     - agwc
-    - eks
+    - base
 
 - name: copy docker compose config file
   shell: cp -r  /opt/magma/lte/gateway/docker/docker-compose.yaml /var/opt/magma/docker/
@@ -133,7 +133,7 @@
   shell: cp -f /etc/magma/pipelined.yml_prod /etc/magma/pipelined.yml
   tags:
     - agwc
-    - eks
+    - base
 
 - name: docker login
   shell: docker login -u {{ docker_user }} -p {{ docker_pass }}  {{ docker_registry }}
