@@ -41,7 +41,6 @@ jobs:
         with:
           script: |
 
-            let curCompLbls = new Set(); // Set of current labels strings on the PR
             let newCompLbls = new Set(); // Set of new label strings
 
             const curLblObjs = await github.issues.listLabelsOnIssue({
@@ -50,14 +49,19 @@ jobs:
               repo: context.repo.repo,
             });
 
-            //console.log("CurrentLabels=" + JSON.stringify(curCompLbls, null, 4));
-            // Copy current PR labels in to a Set
+            // Delete current component labels from PR
+            // Will identify new component labels later based on the files modified in the PR
             for (const l of curLblObjs['data']) {
               //console.log("Current LabelName: " + l['name'] + " LabelDescription: " + l['description']);
               if(l['name'].startsWith("component: "))  {
-                curCompLbls.add(l['name']);
-              }
-            }
+                github.issues.removeLabel({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: l['name'],
+                });
+              } // end of if block
+            } // end of for loop
 
             // Fetch files modified in the PR
             const pulledFiles = await github.pulls.listFiles({
@@ -66,7 +70,7 @@ jobs:
               pull_number: context.issue.number,
             });
 
-            // Identify component labels based on the files modified in the PR
+            // Identify new component labels based on the files modified in the PR
             for (const f of pulledFiles['data']) {
              switch (true) {
               case /^ci-scripts\/.*/.test(f.filename):
@@ -133,18 +137,6 @@ jobs:
               console.log("No new component files changed in this PR: " + context.issue.number);
             }
             else  {
-              for (const l of curCompLbls) {
-                if(!newCompLbls.has(l))  {
-                  console.log("Removing the Label:" + l + " since its no more applicable for the PR: " + context.issue.number);
-                  github.issues.removeLabel({
-                    issue_number: context.issue.number,
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    name: l,
-                  });
-                } // end of if block
-              } // end of for loop
-
               let uniqLbls = Array.from(newCompLbls);
               github.issues.addLabels({
                 issue_number: context.issue.number,
