@@ -229,7 +229,7 @@ jobs:
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma/lte/gateway
             make test_li_agent
@@ -252,6 +252,77 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
 
+  sctpd_test:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: sctpd test job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Devcontainer Image
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the devontainer image!"
+      - name: Build SCTPD with Debug build type
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make build_sctpd BUILD_TYPE=Debug
+      - name: Run SCTPD tests with Debug build type
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_sctpd BUILD_TYPE=Debug
+      - name: Build SCTPD with RelWithDebInfo build type
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make build_sctpd BUILD_TYPE=RelWithDebInfo
+      - name: Run SCTPD tests with RelWithDebInfo build type
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_sctpd BUILD_TYPE=RelWithDebInfo
+      - name: Extract commit title
+        # yamllint enable
+        if: failure() && github.event_name == 'push'
+        id: commit
+        run: |
+            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action sctpd_test failed"
+          SLACK_USERNAME: "AGW workflow"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+
   mme_test:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
@@ -261,39 +332,46 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - uses: actions/checkout@v2
-      - name: Run sctpd tests with Debug build type
+      - name: Setup Devcontainer Image
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the devontainer image!"
+      - name: Build MME with Debug build type
         uses: addnab/docker-run-action@v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma/lte/gateway
-            make test_sctpd BUILD_TYPE=Debug
-      - name: Run sctpd tests with RelWithDebInfo build type
+            make build_oai BUILD_TYPE=Debug;
+      - name: Run MME tests with Debug build type
         uses: addnab/docker-run-action@v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
-          run: |
-            cd /workspaces/magma/lte/gateway
-            make test_sctpd BUILD_TYPE=RelWithDebInfo
-      - name: Run mme tests with Debug build type
-        uses: addnab/docker-run-action@v2
-        with:
-          image: ${{ env.DEVCONTAINER_IMAGE }}
-          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma/lte/gateway
             make test_oai BUILD_TYPE=Debug;
-      - name: Run mme tests with RelWithDebInfo build type
+      - name: Build MME with RelWithDebInfo type
         uses: addnab/docker-run-action@v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make build_oai BUILD_TYPE=RelWithDebInfo;
+      - name: Run MME tests with RelWithDebInfo build type
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma/lte/gateway
             make test_oai BUILD_TYPE=RelWithDebInfo;
