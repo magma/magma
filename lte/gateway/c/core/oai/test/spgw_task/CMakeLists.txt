@@ -16,6 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(SPGW_LIB_DIR $ENV{C_BUILD}/oai/tasks/sgw)
 
 include_directories("/usr/src/googletest/googlemock/include/")
+include_directories("${SPGW_LIB_DIR}")
 
 add_library(SPGW_TASK_TEST_LIB
     state_creators.h
@@ -23,6 +24,8 @@ add_library(SPGW_TASK_TEST_LIB
     spgw_test_util.h
     spgw_test_util.cpp
     spgw_test.cpp
+    mock_spgw_op.h
+    mock_spgw_op.cpp
     )
 
 link_directories(/usr/src/googletest/googlemock/lib/)
@@ -35,7 +38,7 @@ target_link_libraries(SPGW_TASK_TEST_LIB
 
 set_target_properties(SPGW_TASK_TEST_LIB PROPERTIES LINKER_LANGUAGE CXX)
 
-foreach (sgw_test spgw_state_converter spgw_procedures)
+foreach (sgw_test spgw_state_converter spgw_procedures spgw_procedures_with_injected_state)
   add_executable(${sgw_test}_test test_${sgw_test}.cpp)
   target_link_libraries(${sgw_test}_test SPGW_TASK_TEST_LIB)
   add_test(test_${sgw_test} ${sgw_test}_test)
