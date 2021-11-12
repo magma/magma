@@ -1,0 +1,17 @@
+---
+name: ARM??
+on:  # yamllint disable-line rule:truthy
+  # Use pull_request_target to gain write permissions.
+  # Ref: https://github.blog/2020-08-03-github-actions-improvements-for-fork-and-pull-request-workflows/
+  pull_request:
+    types: [opened]
+
+jobs:
+  # This job is a manual approximation of https://github.com/peter-evans/create-or-update-comment
+  comment:
+    runs-on: macos-11
+    steps:
+      - name: ARM????
+        if: always()
+        run: |
+          uname -m
