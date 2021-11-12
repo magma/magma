@@ -9,6 +9,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
 package(default_visibility = ["//lte/gateway/c/sctpd/src:__subpackages__"])
 
 cc_binary(
@@ -26,8 +28,6 @@ cc_library(
     name = "sctpd_event_handler",
     srcs = ["sctpd_event_handler.cpp"],
     hdrs = ["sctpd_event_handler.h"],
-    # TODO(@smoeller): Migrate to using full path for includes - GH8494
-    strip_include_prefix = "/lte/gateway/c/sctpd/src",
     deps = [
         ":sctp_connection",
         ":sctpd_uplink_client",
@@ -38,8 +38,6 @@ cc_library(
     name = "sctpd_uplink_client",
     srcs = ["sctpd_uplink_client.cpp"],
     hdrs = ["sctpd_uplink_client.h"],
-    # TODO(@smoeller): Migrate to using full path for includes - GH8494
-    strip_include_prefix = "/lte/gateway/c/sctpd/src",
     deps = [
         ":util",
         "//lte/protos:sctpd_cpp_grpc",
@@ -60,8 +58,6 @@ cc_library(
     name = "sctp_connection",
     srcs = ["sctp_connection.cpp"],
     hdrs = ["sctp_connection.h"],
-    # TODO(@smoeller): Migrate to using full path for includes - GH8494
-    strip_include_prefix = "/lte/gateway/c/sctpd/src",
     deps = [
         ":sctp_desc",
         "//lte/protos:sctpd_cpp_grpc",
@@ -72,8 +68,6 @@ cc_library(
     name = "sctp_desc",
     srcs = ["sctp_desc.cpp"],
     hdrs = ["sctp_desc.h"],
-    # TODO(@smoeller): Migrate to using full path for includes - GH8494
-    strip_include_prefix = "/lte/gateway/c/sctpd/src",
     deps = [
         ":sctp_assoc",
     ],
@@ -83,8 +77,6 @@ cc_library(
     name = "sctp_assoc",
     srcs = ["sctp_assoc.cpp"],
     hdrs = ["sctp_assoc.h"],
-    # TODO(@smoeller): Migrate to using full path for includes - GH8494
-    strip_include_prefix = "/lte/gateway/c/sctpd/src",
     deps = [
         ":util",
     ],

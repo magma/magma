@@ -9,10 +9,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
 package(default_visibility = ["//lte/gateway/c/li_agent/src:__subpackages__"])
 
 cc_binary(
-    name = "main",
+    name = "liagentd",
     srcs = ["main.cpp"],
     deps = [
         ":interface_monitor",
@@ -35,8 +37,6 @@ cc_library(
     name = "pdu_generator",
     srcs = ["PDUGenerator.cpp"],
     hdrs = ["PDUGenerator.h"],
-    # TODO(@smoeller): Migrate to using full path for includes - GH8494
-    strip_include_prefix = "/lte/gateway/c/li_agent/src",
     deps = [
         ":mobilityd_client",
         ":proxy_connector",
@@ -52,8 +52,6 @@ cc_library(
     name = "proxy_connector",
     srcs = ["ProxyConnector.cpp"],
     hdrs = ["ProxyConnector.h"],
-    # TODO(@smoeller): Migrate to using full path for includes - GH8494
-    strip_include_prefix = "/lte/gateway/c/li_agent/src",
     deps = [
         "//orc8r/gateway/c/common/logging",
     ],
@@ -63,8 +61,6 @@ cc_library(
     name = "mobilityd_client",
     srcs = ["MobilitydClient.cpp"],
     hdrs = ["MobilitydClient.h"],
-    # TODO(@smoeller): Migrate to using full path for includes - GH8494
-    strip_include_prefix = "/lte/gateway/c/li_agent/src",
     deps = [
         "//lte/protos:mobilityd_cpp_grpc",
         "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
@@ -76,8 +72,6 @@ cc_library(
     name = "utilities",
     srcs = ["Utilities.cpp"],
     hdrs = ["Utilities.h"],
-    # TODO(@smoeller): Migrate to using full path for includes - GH8494
-    strip_include_prefix = "/lte/gateway/c/li_agent/src",
     deps = [
         "//lte/protos:mconfigs_cpp_proto",
         "//orc8r/gateway/c/common/config:mconfig_loader",
