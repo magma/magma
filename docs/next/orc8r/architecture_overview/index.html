@@ -101,6 +101,7 @@ Orchestrator, LTE, and FeG modules.</p>
 <li><em>dispatcher</em> maintains SyncRPC connections (HTTP2 bidirectional streams) with gateways</li>
 <li><em>metricsd</em> collects runtime metrics from gateways and Orchestrator services</li>
 <li><em>obsidian</em> verifies API request access control and reverse proxies requests to Orchestrator services with the appropriate API handlers</li>
+<li><em>orc8r_worker</em> is a singleton that runs different classes as singletons. It currently only runs the reindexer as a singleton</li>
 <li><em>orchestrator</em> provides
 <ul>
 <li>Mconfigs for configuration of core gateway service configurations (e.g. magmad, eventd, state)</li>
