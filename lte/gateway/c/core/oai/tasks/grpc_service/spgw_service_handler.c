@@ -16,7 +16,7 @@
  */
 #include <string.h>
 #include <sys/types.h>
-#include <lte/gateway/c/core/oai/common/conversions.h>
+#include "lte/gateway/c/core/oai/common/conversions.h"
 
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
