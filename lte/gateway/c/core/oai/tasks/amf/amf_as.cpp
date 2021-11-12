@@ -13,6 +13,7 @@
 
 #include <sstream>
 #include <thread>
+#include <memory>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -431,7 +432,7 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
   uint8_t* offset;
   uint32_t encoded_tmsi = ntohl(guti->m_tmsi);
 
-  offset = (uint8_t*) &encoded_tmsi;
+  offset = reinterpret_cast<uint8_t*>(&encoded_tmsi);
 
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
       .mobile_identity.guti.tmsi1 = *offset;
@@ -913,7 +914,8 @@ static int amf_as_security_req(
   /*
    * Setup the NAS security message
    */
-  if (amf_msg) switch (msg->msg_type) {
+  if (amf_msg) {
+    switch (msg->msg_type) {
       case AMF_AS_MSG_TYPE_IDENT:
         size = amf_identity_request(msg, &amf_msg->msg.identityrequestmsg);
         nas_msg.header.security_header_type =
@@ -966,7 +968,6 @@ static int amf_as_security_req(
             (const char*) abba_buff, 2);
         nas_msg.plain.amf.msg.authenticationrequestmsg.auth_rand.iei = 0x21;
         nas_msg.plain.amf.msg.authenticationrequestmsg.auth_autn.iei = 0x20;
-
       } break;
       case AMF_AS_MSG_TYPE_SMC: {
         size = 8;
@@ -1022,6 +1023,7 @@ static int amf_as_security_req(
             "message 0x%.2x is not valid\n",
             msg->msg_type);
     }
+  }
 
   if (size > 0) {
     amf_context_t* amf_ctx                       = NULL;
@@ -1103,7 +1105,8 @@ static int amf_as_security_rej(
   /*
    * Setup the NAS security message
    */
-  if (amf_msg) switch (msg->msg_type) {
+  if (amf_msg) {
+    switch (msg->msg_type) {
       case AMF_AS_MSG_TYPE_AUTH: {
         size = amf_auth_reject(msg, &amf_msg->msg.authenticationrejectmsg);
         nas_msg.header.security_header_type =
@@ -1120,6 +1123,7 @@ static int amf_as_security_rej(
       }
       default: { OAILOG_DEBUG(LOG_AMF_APP, " Invalid as msg type \n"); }
     }
+  }
 
   if (size > 0) {
     amf_context_t* amf_ctx                       = NULL;
@@ -1205,54 +1209,54 @@ int initial_context_setup_request(
   req->Security_Key = (unsigned char*) &amf_ctx->_security.kgnb;
   memcpy(&req->Ngap_guami, &amf_ctx->m5_guti.guamfi, sizeof(guamfi_t));
 
-  if (ue_context->mm_state == REGISTERED_IDLE) {
+  req->ue_aggregate_max_bit_rate.dl = amf_ctx->subscribed_ue_ambr.br_dl;
+  req->ue_aggregate_max_bit_rate.ul = amf_ctx->subscribed_ue_ambr.br_ul;
+
+  for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
     pdusession_setup_item_t* item = nullptr;
     pdu_resource_transfer_ie = &req->PDU_Session_Resource_Setup_Transfer_List;
 
-    for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
-      std::shared_ptr<smf_context_t> smf_context = it.second;
-      if (smf_context->pdu_session_state == ACTIVE) {
-        uint8_t item_num     = 0;
-        uint64_t ul_pdu_ambr = 0;
-        uint64_t dl_pdu_ambr = 0;
-        pdu_resource_transfer_ie->no_of_items += 1;
-        item_num = pdu_resource_transfer_ie->no_of_items - 1;
-        item     = &pdu_resource_transfer_ie->item[item_num];
-        ambr_calculation_pdu_session(smf_context, &dl_pdu_ambr, &ul_pdu_ambr);
+    std::shared_ptr<smf_context_t> smf_context = it.second;
+    if (smf_context->pdu_session_state == ACTIVE) {
+      uint8_t item_num     = 0;
+      uint64_t ul_pdu_ambr = 0;
+      uint64_t dl_pdu_ambr = 0;
+      pdu_resource_transfer_ie->no_of_items += 1;
+      item_num = pdu_resource_transfer_ie->no_of_items - 1;
+      item     = &pdu_resource_transfer_ie->item[item_num];
+      ambr_calculation_pdu_session(smf_context, &dl_pdu_ambr, &ul_pdu_ambr);
 
-        // pdu session id
-        item->Pdu_Session_ID =
-            smf_context->smf_proc_data.pdu_session_identity.pdu_session_id;
+      // pdu session id
+      item->Pdu_Session_ID =
+          smf_context->smf_proc_data.pdu_session_identity.pdu_session_id;
 
-        // pdu ambr
-        item->PDU_Session_Resource_Setup_Request_Transfer
-            .pdu_aggregate_max_bit_rate.dl = amf_ctx->subscribed_ue_ambr.br_dl;
-        item->PDU_Session_Resource_Setup_Request_Transfer
-            .pdu_aggregate_max_bit_rate.ul = amf_ctx->subscribed_ue_ambr.br_ul;
+      // pdu ambr
+      item->PDU_Session_Resource_Setup_Request_Transfer
+          .pdu_aggregate_max_bit_rate.dl = dl_pdu_ambr;
+      item->PDU_Session_Resource_Setup_Request_Transfer
+          .pdu_aggregate_max_bit_rate.ul = ul_pdu_ambr;
 
-        // pdu session type
-        item->PDU_Session_Resource_Setup_Request_Transfer.pdu_ip_type.pdn_type =
-            smf_context->pdu_address.pdn_type;
+      // pdu session type
+      item->PDU_Session_Resource_Setup_Request_Transfer.pdu_ip_type.pdn_type =
+          smf_context->pdu_address.pdn_type;
 
-        // up transport info
-        memcpy(
-            &item->PDU_Session_Resource_Setup_Request_Transfer
-                 .up_transport_layer_info.gtp_tnl.gtp_tied,
-            smf_context->gtp_tunnel_id.upf_gtp_teid, GNB_TEID_LEN);
-        item->PDU_Session_Resource_Setup_Request_Transfer
-            .up_transport_layer_info.gtp_tnl.endpoint_ip_address = blk2bstr(
-            &smf_context->gtp_tunnel_id.upf_gtp_teid_ip_addr,
-            GNB_IPV4_ADDR_LEN);
+      // up transport info
+      memcpy(
+          &item->PDU_Session_Resource_Setup_Request_Transfer
+               .up_transport_layer_info.gtp_tnl.gtp_tied,
+          smf_context->gtp_tunnel_id.upf_gtp_teid, GNB_TEID_LEN);
+      item->PDU_Session_Resource_Setup_Request_Transfer.up_transport_layer_info
+          .gtp_tnl.endpoint_ip_address = blk2bstr(
+          &smf_context->gtp_tunnel_id.upf_gtp_teid_ip_addr, GNB_IPV4_ADDR_LEN);
 
-        // qos flow list
-        memcpy(
-            &item->PDU_Session_Resource_Setup_Request_Transfer
-                 .qos_flow_setup_request_list.qos_flow_req_item,
-            &smf_context->pdu_resource_setup_req
-                 .pdu_session_resource_setup_request_transfer
-                 .qos_flow_setup_request_list.qos_flow_req_item,
-            sizeof(qos_flow_setup_request_item));
-      }
+      // qos flow list
+      memcpy(
+          &item->PDU_Session_Resource_Setup_Request_Transfer
+               .qos_flow_setup_request_list.qos_flow_req_item,
+          &smf_context->pdu_resource_setup_req
+               .pdu_session_resource_setup_request_transfer
+               .qos_flow_setup_request_list.qos_flow_req_item,
+          sizeof(qos_flow_setup_request_item));
     }
   }
 
@@ -1304,6 +1308,8 @@ uint16_t amf_as_establish_cnf(
   amf_context_t* amf_ctx                       = NULL;
   amf_security_context_t* amf_security_context = NULL;
   amf_ctx                                      = amf_context_get(msg->ue_id);
+  ue_m5gmm_context_s* ue_mm_context =
+      amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
   if (amf_ctx) {
     if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
       amf_security_context                  = &amf_ctx->_security;
@@ -1374,13 +1380,17 @@ uint16_t amf_as_establish_cnf(
       derive_5gkey_gnb(
           amf_security_context->kamf, as_msg->nas_ul_count,
           amf_security_context->kgnb);
-      initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
       registration_proc->registration_accept_sent++;
-      OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
-    } else if (
-        (state == REGISTERED_IDLE) || ((state == REGISTERED_CONNECTED) &&
-                                       (msg->nas_info == AMF_AS_NAS_INFO_SR))) {
+    }
+
+    if ((ue_mm_context->ue_context_request) ||
+        ((msg->nas_info == AMF_AS_NAS_INFO_SR) &&
+         (msg->pdu_session_status_ie &
+          AMF_AS_PDU_SESSION_REACTIVATION_STATUS))) {
       initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
+    } else {
+      amf_app_handle_nas_dl_req(as_msg->ue_id, as_msg->nas_msg, M5G_AS_SUCCESS);
+      ue_mm_context->mm_state = REGISTERED_CONNECTED;
     }
 
     as_msg->err_code = M5G_AS_SUCCESS;
