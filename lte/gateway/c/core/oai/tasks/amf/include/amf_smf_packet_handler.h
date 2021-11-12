@@ -30,8 +30,7 @@ int amf_pdu_session_establishment_reject(
 int construct_pdu_session_reject_dl_req(
     uint8_t sequence_number, uint8_t session_id, uint8_t pti, uint8_t cause,
     bool is_security_enabled, amf_nas_message_t* msg);
-M5GSmCause amf_smf_validate_ie_params(
-    amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg);
+M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg);
 M5GMmCause amf_smf_validate_context(
     amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg);
 }  // namespace magma5g

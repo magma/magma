@@ -367,7 +367,7 @@ static int pdu_session_resource_release_t3592_handler(
 ***************************************************************************/
 int amf_smf_process_pdu_session_packet(
     amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg, int amf_cause) {
-  int rc = 1;
+  int rc = M5G_AS_SUCCESS;
   SmfMsg reject_req;
   amf_smf_t amf_smf_msg = {};
   std::shared_ptr<smf_context_t> smf_ctx;
@@ -395,7 +395,7 @@ int amf_smf_process_pdu_session_packet(
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  M5GSmCause cause = amf_smf_validate_ie_params(ue_id, msg);
+  M5GSmCause cause = amf_smf_get_smcause(ue_id, msg);
 
   if (M5GSmCause::INVALID_CAUSE != cause) {
     OAILOG_DEBUG(
@@ -564,22 +564,27 @@ int amf_smf_process_pdu_session_packet(
 }
 /***************************************************************************
 **                                                                        **
-** Name:    amf_smf_validate_ie_params()                                  **
+** Name:    amf_smf_get_smcause()                                         **
 **                                                                        **
 ** Description: function to handle PDU Session Establishment Failures     **
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-M5GSmCause amf_smf_validate_ie_params(
-    amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
+M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
   std::shared_ptr<smf_context_t> smf_ctx;
   M5GSmCause cause = M5GSmCause::INVALID_CAUSE;
+
+  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (!ue_context) {
+    return cause;
+  }
   /*
   Cause #27 – Missing or unknown DNN
   the external DNN because the DNN was not included
   although required or if the DNN could not be resolved.
   */
-  if (msg->dnn.dnn.empty()) {
+  if (msg->dnn.dnn.empty() &&
+      (ue_context->amf_context.apn_config_profile.nb_apns == 0)) {
     cause = M5GSmCause::MISSING_OR_UNKNOWN_DNN;
   }
 
@@ -590,8 +595,8 @@ M5GSmCause amf_smf_validate_ie_params(
   M5GPduSessionType session_type = static_cast<M5GPduSessionType>(
       msg->payload_container.smf_msg.msg.pdu_session_estab_request
           .pdu_session_type.type_val);
-  if (M5GPduSessionType::UNSTRUCTURED == session_type ||
-      M5GPduSessionType::ETHERNET == session_type) {
+  if (session_type == M5GPduSessionType::UNSTRUCTURED ||
+      session_type == M5GPduSessionType::ETHERNET) {
     cause = M5GSmCause::UNKNOWN_PDU_SESSION_TYPE;
   }
 
@@ -602,7 +607,6 @@ M5GSmCause amf_smf_validate_ie_params(
   Session IDentity, AMF will not process PDUSession Establishment requests for 5
   times, after that AMF rejects with reason #43.
   */
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   M5GRequestType requestType =
       static_cast<M5GRequestType>(msg->request_type.type_val);
   smf_ctx = amf_get_smf_context_by_pdu_session_id(
@@ -610,7 +614,7 @@ M5GSmCause amf_smf_validate_ie_params(
 
   if ((msg->payload_container.smf_msg.header.message_type ==
        PDU_SESSION_ESTABLISHMENT_REQUEST) &&
-      (M5GRequestType::INITIAL_REQUEST == requestType) && smf_ctx) {
+      (requestType == M5GRequestType::INITIAL_REQUEST) && smf_ctx) {
     if (smf_ctx->duplicate_pdu_session_est_req_count >=
         MAX_UE_INITIAL_PDU_SESSION_ESTABLISHMENT_REQ_ALLOWED - 1) {
       cause = M5GSmCause::INVALID_PDU_SESSION_IDENTITY;
@@ -618,7 +622,7 @@ M5GSmCause amf_smf_validate_ie_params(
       smf_ctx->duplicate_pdu_session_est_req_count += 1;
       OAILOG_INFO(
           LOG_AMF_APP,
-          "duplicate Initial PDU Session establishment request received");
+          "Duplicate Initial PDU Session establishment request received");
     }
   }
   return cause;
@@ -627,7 +631,7 @@ M5GSmCause amf_smf_validate_ie_params(
 **                                                                        **
 ** Name:    amf_smf_validate_context()                                    **
 **                                                                        **
-** Description: function to handle 5GMM cause                             **
+** Description: function to check if max PDU sessions reached             **
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
@@ -867,7 +871,7 @@ int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
 
 /****************************************************************************
  **                                                                        **
- ** Name        :  handle_sm_message_routing_failure() **
+ ** Name        :  handle_sm_message_routing_failure()                     **
  **                                                                        **
  ** Description :  Send the Downlink Transport with 5GMM Cause to gnb      **
  **                                                                        **
@@ -989,11 +993,11 @@ int handle_sm_message_routing_failure(
  ** Description :  Construct Session Establishment Reject Struct           **
  **                                                                        **
  ** Inputs      :  sequence_number     : seq to construct Secure msgs      **
- **                session_id	       : PDU Session Identity              **
- **   		   pti                 : Procedure transaction identity    **
- **		   is_security_enabled : indcates to construct plain msg   **
- **				         secure msg                        **
- **   		   msg                 : out parmaeter Session             **
+ **                session_id          : PDU Session Identity              **
+ **                pti                 : Procedure transaction identity    **
+ **                is_security_enabled : indcates to construct plain msg   **
+ **                                      secure msg                        **
+ **                msg                 : out parameter Session             **
  **                                      Establishment Reject              **
  **                                                                        **
  **  Return     :  len                 : buffer required for               **
@@ -1060,7 +1064,6 @@ int construct_pdu_session_reject_dl_req(
   pdu_sess_est_reject.header.pdu_session_id = session_id;
   pdu_sess_est_reject.header.message_type   = PDU_SESSION_ESTABLISHMENT_REJECT;
   pdu_sess_est_reject.header.procedure_transaction_id = pti;
-  // container_len++;
 
   // Smf NAS message
   pdu_sess_est_reject.msg.pdu_session_estab_reject
@@ -1110,9 +1113,9 @@ int construct_pdu_session_reject_dl_req(
  ** Description :  Send the Downlink Transport with 5GMM Cause to gnb      **
  **                                                                        **
  ** Inputs      :  amf_ue_ngap_id_t : pdusession response message          **
- **                session_id	    : PDU Session Inputs                   **
- **		   pti              : Procedure transaction identity       **
- **		   5GSM cause       : 5GSM cause                           **
+ **                session_id       : PDU Session Inputs                   **
+ **                pti              : Procedure transaction identity       **
+ **                5GSM cause       : 5GSM cause                           **
  **                                                                        **
  **  Return     :  RETURNok, RETURNerror                                   **
  **                                                                        **
