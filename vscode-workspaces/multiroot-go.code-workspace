@@ -1,0 +1,57 @@
+{
+	"folders": [
+		{
+			"path": ".",
+			"name": "vscode-workspaces"
+		},
+		{
+			"path": "../cwf/cloud/go",
+			"name": "cwf/cloud"
+		},
+		{
+			"path": "../cwf/gateway",
+			"name": "cwf/gateway"
+		},
+		{
+			"path": "../fbinternal/cloud",
+			"name": "fbinternal/cloud"
+		},
+		{
+			"path": "../feg/cloud/go",
+			"name": "feg/cloud"
+		},
+		{
+			"path": "../feg/radius/src",
+			"name": "feg/radius/src"
+		},
+		{
+			"path": "../lte/cloud/go",
+			"name": "lte/cloud"
+		},
+		{
+			"path": "../orc8r/cloud/go",
+			"name": "orc8r/cloud"
+		},
+		{
+			"path": "../orc8r/gateway/go",
+			"name": "orc8r/gateway"
+		},
+		{
+			"path": "../orc8r/lib/go",
+			"name": "orc8r/lib"
+		},
+		{
+			"path": "../src/go",
+			"name": "src"
+		},
+		{
+			"path": "../wifi/cloud/go",
+			"name": "wifi/cloud",
+		},
+	],
+	"extensions": {
+		"recommendations": [
+			"golang.go",
+		]
+	},
+}
