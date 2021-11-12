@@ -68,14 +68,16 @@ ENV MAGMA_ROOT /magma
 ENV XDG_CACHE_HOME ${MAGMA_ROOT}/.cache
 
 # Copy Bazel files at root and third_party
-COPY WORKSPACE.bazel ${MAGMA_ROOT}/
-COPY BUILD.bazel ${MAGMA_ROOT}/
-COPY .bazelignore ${MAGMA_ROOT}/
-COPY .bazelrc ${MAGMA_ROOT}/
-COPY .bazelversion ${MAGMA_ROOT}/
-COPY cpp_repositories.bzl ${MAGMA_ROOT}/
-COPY go_repositories.bzl ${MAGMA_ROOT}/
-COPY third_party_repositories.bzl ${MAGMA_ROOT}/
+COPY WORKSPACE.bazel \
+     BUILD.bazel \
+     .bazelignore \
+     .bazelrc \
+     .bazelversion \
+     cpp_repositories.bzl \
+     go_repositories.bzl \
+     third_party_repositories.bzl \
+     # destination
+     ${MAGMA_ROOT}/
 COPY third_party ${MAGMA_ROOT}/third_party
 
 # Copy proto files
@@ -118,13 +120,14 @@ COPY --from=builder /usr/lib/x86_64-linux-gnu/libssl* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/openssl* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libcrypto* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libunwind* /usr/lib/x86_64-linux-gnu/
-
 COPY --from=builder /usr/local/lib/libfolly.so /usr/local/lib/
 
 RUN ldconfig 2> /dev/null
 
 # Copy the build artifacts.
 COPY --from=builder /magma/bazel-bin/lte/gateway/c/session_manager/sessiond /usr/local/bin/sessiond
+
+RUN apt-get clean
 
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma
