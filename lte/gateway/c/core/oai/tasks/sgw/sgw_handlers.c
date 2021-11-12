@@ -30,7 +30,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <netinet/in.h>
-#include <lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h>
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"

@@ -21,18 +21,18 @@
 extern "C" {
 #endif
 
-#include <lte/gateway/c/core/oai/common/assertions.h>
-#include <lte/gateway/c/core/oai/common/common_defs.h>
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 #include <cstdlib>
-#include <lte/gateway/c/core/oai/common/log.h>
-#include <lte/gateway/c/core/oai/lib/hashtable/hashtable.h>
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
 #ifdef __cplusplus
 }
 #endif
 
 #include <unordered_map>
-#include <lte/gateway/c/core/oai/common/conversions.h>
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/redis_utils/redis_client.h"
 
 namespace {
