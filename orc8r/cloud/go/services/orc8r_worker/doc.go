@@ -15,6 +15,4 @@ limitations under the License.
 //
 // The orc8r_worker service is a singleton service that runs different classes.
 // It currently only runs the reindexer as a singleton.
-
-
 package orc8r_worker
