@@ -17,8 +17,9 @@
 
 # ubuntu bionic image
 ARG OS_DIST=ubuntu
-ARG OS_RELEASE=bionic
-ARG EXTRA_REPO=https://facebookconnectivity.jfrog.io/artifactory/cwf-prod
+ARG OS_RELEASE=focal
+ARG EXTRA_REPO=https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/
+#ARG EXTRA_REPO=https://facebookconnectivity.jfrog.io/artifactory/cwf-prod
 
 # Stretch is required for c build
 FROM $OS_DIST:$OS_RELEASE AS builder
@@ -117,7 +118,7 @@ COPY --from=builder /usr/lib/x86_64-linux-gnu/libicui18n.* /usr/lib/x86_64-linux
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libicuuc.* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libicudata.* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libssl* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/openssl* /usr/lib/x86_64-linux-gnu/
+#COPY --from=builder /usr/lib/x86_64-linux-gnu/openssl* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libcrypto* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libunwind* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/local/lib/libfolly.so /usr/local/lib/
