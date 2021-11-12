@@ -42,9 +42,9 @@ class FirebaseClient:
             "report": report,
         }
         # Use build_id as key for report. Overwrites any existing report
-        self.db.child("workers").child(self.config["agent_id"]).child("reports").child(
-            build_id
-        ).set(data, self.user["idToken"])
+        self.db.child("workers").child(self.config["agent_id"]).child("reports").child(build_id).set(
+            data, self.user["idToken"],
+        )
 
     def update_worker_state(self, num_of_testers, testers_state):
         data = {
