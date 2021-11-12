@@ -177,7 +177,7 @@ class ServicePoller(Job):
                 )
                 self._service_info[service].continuous_timeouts = 0
             except grpc.RpcError as err:
-                logging.error(
+                logging.warning(
                     "GetServiceInfo Error for %s! [%s] %s",
                     service,
                     err.code(),
