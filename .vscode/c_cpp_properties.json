@@ -14,7 +14,7 @@
                 "${workspaceFolder}/build/tasks/s1ap/r15",
                 "${workspaceFolder}/build/tasks/ngap/r16",
                 "${workspaceFolder}/orc8r/gateway/c/common/sentry",
-                "${workspaceFolder}",
+                "${workspaceFolder}"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
