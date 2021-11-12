@@ -8,6 +8,12 @@ hide_title: true
 These are the prerequisites to setting up a full private LTE Magma deployment.
 Additional prerequisites for developers can be found in the [developer's guide](../contributing/contribute_onboarding.md).
 
+## Operating System
+
+Currently, the main development operating system (OS) is **macOS**. Documentation is mainly focused on that operating system.
+To develop on a **Linux OS**, the package manager (brew for macOS) will need to be replaced by the appropriate package manager for the respective Linux distribution (e.g. apt, yum, etc.).
+**Windows OS** is currently _not_ supported as developing environment, due to some dependencies on Linux-only tools during setup, such as Ansible or `fcntl`. You can try to use a [DevContainer setup](../contributing/contribute_vscode.md#open-a-devcontainer-workspace-with-github-codespaces) though.
+
 ## Development Tools
 
 Install the following tools:
