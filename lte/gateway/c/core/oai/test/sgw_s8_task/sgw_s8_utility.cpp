@@ -244,8 +244,6 @@ static int handle_message_test_sgw_s8(
 void SgwS8ConfigAndCreateMock::SetUp() {
   mme_app_handler = std::make_shared<MockMmeAppHandler>();
 
-  // stop mme service, so that there are no active grpc server running
-  system("sudo service magma@* stop");
   itti_init(
       TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
       NULL);
