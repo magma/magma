@@ -110,8 +110,10 @@ int pdu_session_resource_setup_request(
    * leveraged ambr calculation from qos_params_to_eps_qos and 24-501 spec used
    */
   ambr_calculation_pdu_session(smf_context, &dl_pdu_ambr, &ul_pdu_ambr);
-  ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.dl = dl_pdu_ambr;
-  ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.ul = ul_pdu_ambr;
+  ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.dl =
+      ue_context->amf_context.subscribed_ue_ambr.br_dl;
+  ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.ul =
+      ue_context->amf_context.subscribed_ue_ambr.br_ul;
 
   // Hardcoded number of pdu sessions as 1
   ngap_pdu_ses_setup_req->pduSessionResource_setup_list.no_of_items = 1;
@@ -122,10 +124,8 @@ int pdu_session_resource_setup_request(
   /* preparing for PDU_Session_Resource_Setup_Transfer.
    * amf_pdu_ses_setup_transfer_req is the structure to be filled.
    */
-  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.dl =
-      ue_context->amf_context.subscribed_ue_ambr.br_dl;
-  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.ul =
-      ue_context->amf_context.subscribed_ue_ambr.br_ul;
+  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.dl = dl_pdu_ambr;
+  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.ul = ul_pdu_ambr;
 
   // UPF teid 4 octet and respective ip address are from SMF context
   memcpy(

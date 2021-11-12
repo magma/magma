@@ -447,6 +447,9 @@ class UplinkBridgeController(MagmaController):
         flush_ip = ["ip", ver, "addr", "flush", "dev", if_name]
         subprocess.check_call(flush_ip)
 
+        flush_ip = ["ip", ver, "route", "flush", "dev", if_name]
+        subprocess.check_call(flush_ip)
+
     def _cleanup_ipv4_and_ipv6(self, if_name: str):
         self._cleanup_if(if_name=if_name, flush=True, af_inet=netifaces.AF_INET)
         self._cleanup_if(if_name=if_name, flush=True, af_inet=netifaces.AF_INET6)
