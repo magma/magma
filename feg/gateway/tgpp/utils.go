@@ -33,9 +33,12 @@ func GetPlmnID(imsi string, mncLen int) []byte {
 	}
 	imsiBytes := [6]byte{}
 	for i := 0; i < 6; i++ {
-		v, err := strconv.ParseInt(imsi[i:i+1], 10, 8)
+		v, err := strconv.Atoi(imsi[i : i+1])
 		if err != nil {
 			glog.Errorf("Invalid Digit '%s' in IMSI '%s': %v", imsi[i:i+1], imsi, err)
+		}
+		if v < 0 || v > 255 {
+			glog.Errorf("Digit '%d' in IMSI '%s' is outside the bounds of byte type", v, imsi)
 		}
 		imsiBytes[i] = byte(v)
 	}
