@@ -10,16 +10,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */}}
-{{- include "orc8rlib.pdb" (list . "state.pdb") -}}
-{{- define "state.pdb" -}}
+{{- include "orc8rlib.pdb" (list . "orc8r_worker.pdb") -}}
+{{- define "orc8r_worker.pdb" -}}
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
-  name: orc8r-state
+  name: orc8r-orc8r-worker
   labels:
-    app.kubernetes.io/component: state
+    app.kubernetes.io/component: orc8r-worker
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/component: state
+      app.kubernetes.io/component: orc8r-worker
 {{- end }}
