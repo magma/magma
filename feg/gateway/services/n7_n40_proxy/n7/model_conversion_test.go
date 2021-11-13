@@ -34,19 +34,27 @@ const (
 	PDU_SESSION_ID = 10
 	GPSI1          = "9876543210"
 	APN1           = "apn.magma.com"
+	MON_KEY1       = "mon_key_1"
+	MON_KEY2       = "mon_key_2"
 )
 
 var (
-	AccessType3gpp     = sbi.AccessType("3GPP_ACCESS")
-	DnnMagma           = sbi.Dnn(APN1)
-	Gpsi1              = sbi.Gpsi(GPSI1)
-	UeIpv4             = sbi.Ipv4Addr(UE_IPV4)
-	PduSessionTypeIpv4 = sbi.PduSessionType("IPV4")
-	RatTypeNR          = sbi.RatType("NR")
-	UeTzIST            = sbi.TimeZone("+05:30")
-	SmPolicyUrl        = "https://example.com//npcf-smpolicycontrol/v1/sm-policies/12345"
-	ActTime            = time.Unix(1634906551, 0)
-	DeactTime          = time.Unix(1634913751, 0)
+	AccessType3gpp            = sbi.AccessType("3GPP_ACCESS")
+	DnnMagma                  = sbi.Dnn(APN1)
+	Gpsi1                     = sbi.Gpsi(GPSI1)
+	UeIpv4                    = sbi.Ipv4Addr(UE_IPV4)
+	PduSessionTypeIpv4        = sbi.PduSessionType("IPV4")
+	RatTypeNR                 = sbi.RatType("NR")
+	UeTzIST                   = sbi.TimeZone("+05:30")
+	SmPolicyUrl               = "https://example.com//npcf-smpolicycontrol/v1/sm-policies/12345"
+	ActTime                   = time.Unix(1634906551, 0)
+	DeactTime                 = time.Unix(1634913751, 0)
+	UsageTx1           uint64 = 3000000
+	UsageRx1           uint64 = 7000000
+	UsageTotal1        uint64 = UsageTx1 + UsageRx1
+	UsageTx2           uint64 = 8000000
+	UsageRx2           uint64 = 14000000
+	UsageTotal2        uint64 = UsageTx2 + UsageRx2
 )
 
 func TestSmPolicyContextFromProto(t *testing.T) {
@@ -264,4 +272,49 @@ func TestGetSbiTimezone(t *testing.T) {
 	tz1 = protos.Timezone{OffsetMinutes: 0}
 	sbiTz = n7.GetSbiTimeZone(&tz1)
 	assert.Equal(t, "+00:00", string(*sbiTz))
+}
+
+func TestSmPolicyDeleteFromProto(t *testing.T) {
+	termSessProto := &protos.SessionTerminateRequest{
+		SessionId: SESSION_ID1,
+		CommonContext: &protos.CommonSessionContext{
+			Sid:     &protos.SubscriberID{Id: IMSI1},
+			RatType: protos.RATType_TGPP_NR,
+			UeIpv4:  UE_IPV4,
+		},
+		TgppCtx: &protos.TgppContext{GxDestHost: SmPolicyUrl},
+		MonitorUsages: []*protos.UsageMonitorUpdate{
+			{
+				MonitoringKey: []byte(MON_KEY1),
+				BytesTx:       UsageTx1,
+				BytesRx:       UsageRx1,
+			},
+			{
+				MonitoringKey: []byte(MON_KEY2),
+				BytesTx:       UsageTx2,
+				BytesRx:       UsageRx2,
+			},
+		},
+	}
+	expected := n7_sbi.PostSmPoliciesSmPolicyIdDeleteJSONRequestBody{
+		AccuUsageReports: &[]n7_sbi.AccuUsageReport{
+			{
+				RefUmIds:         MON_KEY1,
+				VolUsageUplink:   n7.GetSbiVolume(UsageTx1),
+				VolUsageDownlink: n7.GetSbiVolume(UsageRx1),
+				VolUsage:         n7.GetSbiVolume(UsageTotal1),
+			},
+			{
+				RefUmIds:         MON_KEY2,
+				VolUsageUplink:   n7.GetSbiVolume(UsageTx2),
+				VolUsageDownlink: n7.GetSbiVolume(UsageRx2),
+				VolUsage:         n7.GetSbiVolume(UsageTotal2),
+			},
+		},
+	}
+	reqBody := n7.GetSmPolicyDeleteReqBody(termSessProto)
+	// Check if JSON conversion is successful
+	_, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+	assert.Equal(t, &expected, reqBody)
 }
