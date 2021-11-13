@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
@@ -38,4 +39,8 @@ func NewN7Client(cfg *PCFConfig) (*n7_sbi.ClientWithResponses, error) {
 		n7_sbi.WithHTTPClient(tokenConfig.Client(tokenCtxt)),
 	)
 	return client, err
+}
+
+func removeIMSIPrefix(imsi string) string {
+	return strings.TrimPrefix(imsi, "IMSI")
 }
