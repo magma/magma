@@ -32,6 +32,7 @@ const (
 	HTTPBasicAuth       = "http_basic_auth"
 	ListHTTPBasicAuth   = obsidian.V1Root + HTTPBasicAuth
 	ManageHTTPBasicAuth = ListHTTPBasicAuth + obsidian.UrlSep + UserParam
+	Login               = ListHTTPBasicAuth + obsidian.UrlSep + "login"
 )
 
 func GetHandlers(storage storage.CertifierStorage) []obsidian.Handler {
@@ -40,6 +41,7 @@ func GetHandlers(storage storage.CertifierStorage) []obsidian.Handler {
 		{Path: ListHTTPBasicAuth, Methods: obsidian.POST, HandlerFunc: getCreateHTTPBasicAuthHandler(storage)},
 		{Path: ManageHTTPBasicAuth, Methods: obsidian.PUT, HandlerFunc: getUpdateHTTPBasicAuthHandler(storage)},
 		{Path: ManageHTTPBasicAuth, Methods: obsidian.DELETE, HandlerFunc: getDeleteHTTPBasicAuthHandler(storage)},
+		{Path: Login, Methods: obsidian.POST, HandlerFunc: getLoginHandler(storage)},
 	}
 	return ret
 }
@@ -61,8 +63,8 @@ func getCreateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.Handle
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request for HTTP basic auth: %v", err))
 		}
-		username := fmt.Sprintf("%v", data["username"])
 
+		username := fmt.Sprintf("%v", data["username"])
 		password := []byte(fmt.Sprintf("%v", data["password"]))
 		hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 		if err != nil {
@@ -76,7 +78,7 @@ func getCreateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.Handle
 
 		operator := &certProto.Operator{
 			Username: username,
-			Password: string(hashedPassword[:]),
+			Password: hashedPassword,
 			Tokens:   &certProto.TokenList{Token: []string{token}},
 		}
 
@@ -109,7 +111,7 @@ func getUpdateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.Handle
 		// update new operator blob
 		newOperator := &certProto.Operator{
 			Username: username,
-			Password: string(hashedPassword[:]),
+			Password: hashedPassword,
 			Tokens:   operator.Tokens,
 		}
 		storage.PutHTTPBasicAuth(username, newOperator)
@@ -129,5 +131,34 @@ func getDeleteHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.Handle
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 		return nil
+	}
+}
+
+func getLoginHandler(storage storage.CertifierStorage) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		data := make(map[string]interface{})
+		err := json.NewDecoder(c.Request().Body).Decode(&data)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request for HTTP basic auth: %v", err))
+		}
+
+		username := fmt.Sprintf("%v", data["username"])
+		password := []byte(fmt.Sprintf("%v", data["password"]))
+
+		operator, err := storage.GetHTTPBasicAuth(username)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+
+		// check password hash
+		hashedPassword := operator.GetPassword()
+		err = bcrypt.CompareHashAndPassword(hashedPassword, password)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized, "wrong password")
+		}
+
+		// return tokens for access if correct password
+		tokens := operator.GetTokens().GetToken()
+		return c.JSON(http.StatusOK, tokens)
 	}
 }

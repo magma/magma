@@ -222,7 +222,7 @@ certifier:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/http_basic_auth,
         /magma/v1/http_basic_auth/:username,
-
+        /magma/v1/http_basic_auth/login,
 configurator:
   service:
     labels: {}

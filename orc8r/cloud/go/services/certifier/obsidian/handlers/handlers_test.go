@@ -5,7 +5,6 @@ import (
 )
 
 func TestListHTTPBasicAuthTokens(t *testing.T) {
-
 	// configuratorTestInit.StartTestService(t)
 	// deviceTestInit.StartTestService(t)
 	// stateTestInit.StartTestService(t)

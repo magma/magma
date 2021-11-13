@@ -31,6 +31,7 @@ func GenerateToken(prefix TokenPrefix) (string, error) {
 }
 
 func ValidateTokenChecksum(token string) error {
+	token = stripTokenHeader(token)
 	bytes, err := base62.DecodeString(token)
 	if err != nil {
 		return err
@@ -41,6 +42,10 @@ func ValidateTokenChecksum(token string) error {
 		return errors.New("invalid token")
 	}
 	return nil
+}
+
+func stripTokenHeader(token string) string {
+	return token[3:]
 }
 
 func i32tob(val uint32) []byte {

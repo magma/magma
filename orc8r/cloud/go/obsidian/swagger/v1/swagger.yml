@@ -12,6 +12,13 @@ produces:
 schemes:
 - https
 - http
+securityDefinitions:
+  tokenAuth:
+    type: apiKey
+    name: X-Magma-Client-Access-Token
+    in: header
+security:
+- tokenAuth: []
 tags:
 - description: Access point name
   name: APNs
@@ -1895,7 +1902,7 @@ paths:
     get:
       responses:
         "200":
-          description: Get list of all usernames
+          description: Success
           schema:
             items:
               type: string
@@ -1949,6 +1956,26 @@ paths:
         default:
           $ref: '#/responses/UnexpectedError'
       summary: Update user password
+      tags:
+      - HTTP Basic Auth
+  /http_basic_auth/login:
+    post:
+      parameters:
+      - in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/http_basic_auth'
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              type: string
+            type: array
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List all the tokens given a user
       tags:
       - HTTP Basic Auth
   /lte:

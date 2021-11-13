@@ -17,6 +17,7 @@ import (
 	"regexp"
 	"sort"
 
+	"github.com/golang/glog"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -33,20 +34,24 @@ func Combine(yamlCommon string, yamlSpecs []string) (string, error, error) {
 	warnings := &multierror.Error{}
 
 	common, specs, errs := unmarshalToSwagger(yamlCommon, yamlSpecs)
+	glog.Errorf("christine unmarshalToSwagger %+v", common)
 	if errs != nil {
 		warnings = multierror.Append(warnings, errs)
 	}
 
 	combined, errs := combine(common, specs)
+	glog.Errorf("christine combined %+v", combined)
 	if errs != nil {
 		warnings = multierror.Append(warnings, errs)
 	}
 
 	out, err := marshalToYAML(combined)
+	glog.Errorf("christine marshalToYaml %+v", out)
 	if err != nil {
 		return "", nil, err
 	}
 
+	glog.Errorf("christine doneee")
 	return out, warnings.ErrorOrNil(), nil
 }
 
@@ -67,21 +72,21 @@ func combine(common swagger.Spec, specs []swagger.Spec) (swagger.Spec, error) {
 
 	errs := &multierror.Error{}
 
-	combined := swagger.Spec{
-		Swagger:  common.Swagger,
-		Info:     common.Info,
-		BasePath: common.BasePath,
-		Consumes: common.Consumes,
-		Produces: common.Produces,
-		Schemes:  common.Schemes,
-
-		Tags:        combineTags(common.Tags, tags, errs),
-		Paths:       combineSubSpec(common.Paths, paths, "paths", errs),
-		Responses:   combineSubSpec(common.Responses, responses, "responses", errs),
-		Parameters:  combineSubSpec(common.Parameters, parameters, "parameters", errs),
-		Definitions: combineSubSpec(common.Definitions, definitions, "definitions", errs),
+	var combined = swagger.Spec{
+		Swagger:             common.Swagger,
+		Info:                common.Info,
+		BasePath:            common.BasePath,
+		Consumes:            common.Consumes,
+		Produces:            common.Produces,
+		Schemes:             common.Schemes,
+		SecurityDefinitions: common.SecurityDefinitions,
+		Security:            common.Security,
+		Tags:                combineTags(common.Tags, tags, errs),
+		Paths:               combineSubSpec(common.Paths, paths, "paths", errs),
+		Responses:           combineSubSpec(common.Responses, responses, "responses", errs),
+		Parameters:          combineSubSpec(common.Parameters, parameters, "parameters", errs),
+		Definitions:         combineSubSpec(common.Definitions, definitions, "definitions", errs),
 	}
-
 	return combined, errs.ErrorOrNil()
 }
 

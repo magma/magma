@@ -54,7 +54,7 @@ message TokenList {
 
 message Operator {
   string username = 1;
-  string password = 2;
+  bytes password = 2;
   TokenList tokens = 3;
 }
 

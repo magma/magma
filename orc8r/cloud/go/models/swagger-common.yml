@@ -31,6 +31,7 @@ info:
   description: Magma REST APIs
   version: 1.0.0
 
+
 basePath: /magma/v1
 
 consumes:
@@ -42,6 +43,15 @@ produces:
 schemes:
   - https
   - http
+
+securityDefinitions:
+  tokenAuth:
+    type: apiKey
+    in: header
+    name: X-Magma-Client-Access-Token
+
+security:
+  - tokenAuth: []
 
 paths:
   /foo:

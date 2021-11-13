@@ -24,7 +24,7 @@ paths:
     get:
       responses:
         "200":
-          description: Get list of all usernames
+          description: Success
           schema:
             type: array
             items:
@@ -78,6 +78,28 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
       summary: Remove a user
+      tags:
+        - HTTP Basic Auth
+
+  /http_basic_auth/login:
+    post:
+#      security: [ ] # no security
+      parameters:
+        - name: user
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/http_basic_auth'
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: array
+            items:
+              type: string
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      summary: List all the tokens given a user
       tags:
         - HTTP Basic Auth
 
