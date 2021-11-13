@@ -505,7 +505,8 @@ class LocalEnforcer {
    * even if pending_activation is empty
    */
   void propagate_rule_updates_to_pipelined(
-      const SessionConfig& config, const RulesToProcess& pending_activation,
+      const std::string& session_id, const SessionConfig& config,
+      const RulesToProcess& pending_activation,
       const RulesToProcess& pending_deactivation, bool always_send_activate);
 
   /**
@@ -606,9 +607,9 @@ class LocalEnforcer {
       const std::string& ap_name, Status status, FlowResponse resp);
 
   void handle_activate_ue_flows_callback(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids, Status status,
-      ActivateFlowsResult resp);
+      const std::string& imsi, const std::string& session_id,
+      const std::string& ip_addr, const std::string& ipv6_addr,
+      const Teids teids, Status status, ActivateFlowsResult resp);
 
   /**
    * start_session_termination starts the termination process. This includes:
