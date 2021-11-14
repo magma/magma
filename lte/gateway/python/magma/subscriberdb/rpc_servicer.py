@@ -19,6 +19,16 @@ from magma.common.rpc_utils import print_grpc, return_void
 from magma.subscriberdb.sid import SIDUtils
 
 from .store.base import DuplicateSubscriberError, SubscriberNotFoundError
+from typing import NamedTuple
+
+
+suci_profile_data = NamedTuple(
+    'suci_profile_data', [
+        ('protection_scheme', int),
+        ('home_net_public_key', bytes),
+        ('home_net_private_key', bytes),
+    ],
+)
 
 
 class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
@@ -123,5 +133,65 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         print_grpc(
             response, self._print_grpc_payload,
             "List Subscribers Response:",
+        )
+        return response
+
+class SuciProfileDBRpcServicer(subscriberdb_pb2_grpc.SuciProfileDBServicer):
+    """
+    gRPC based server for the SubscriberDB.
+    """
+
+    def __init__(self, suciprofile_db, print_grpc_payload: bool = False):
+        """
+        Store should be thread-safe since we use a thread pool for requests.
+        """
+        self.suciprofile_db = suciprofile_db
+        self._print_grpc_payload = print_grpc_payload
+
+    def add_to_server(self, server):
+        """
+        Add the servicer to a gRPC server
+        """
+        subscriberdb_pb2_grpc.add_SuciProfileDBServicer_to_server(self, server)
+
+    def AddSuciProfile(self, request, context):
+        """
+        Adds a suciprofile to the store
+        """
+        print_grpc(request, self._print_grpc_payload, "Add SuciProfile Request:")
+
+        try:
+             self.suciprofile_db[request.home_net_public_key_id] = suci_profile_data(
+                    request.protection_scheme, request.home_net_public_key,
+                    request.home_net_private_key)
+
+        except DuplicateSubscriberError:
+            context.set_details("Duplicate suciprofile: %d" % request.home_net_public_key_id)
+            context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+
+    def DeleteSuciProfile(self, request, context):
+        """
+        Adds a subscriber to the store
+        """
+        print_grpc(request, self._print_grpc_payload, "Delete SuciProfile Request:")
+
+        try:
+             del self.suciprofile_db[request.home_net_public_key_id]
+        except DuplicateSubscriberError:
+            context.set_details("Deleting suciprofile: %d" % request.home_net_public_key_id)
+            context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+
+    def ListSubscribers(self, request, context):  # pylint:disable=unused-argument
+        """
+        Returns a list of suciprofile from the store
+        """
+        print_grpc(
+            request, self._print_grpc_payload,
+            "List Suciprofile Request:",
+        )
+        response = subscriberdb_pb2.SuciProfileList(self.suciprofile_db.items())
+        print_grpc(
+            response, self._print_grpc_payload,
+            "List SuciProfile Response:",
         )
         return response
