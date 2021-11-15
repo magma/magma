@@ -33,7 +33,6 @@ namespace lte {
 #define DEFAULT_UE_IP 0xc0a8800a  // 192.168.128.10
 #define DEFAULT_VLAN 0
 #define DEFAULT_ENB_GTP_TEID 1
-#define ERROR_ENB_GTP_TEID 100
 #define ERROR_SGW_S11_TEID 100
 #define DEFAULT_EDNS_IP 0x7f000001  // localhost
 #define DEFAULT_SGW_IP 0x7f000001   // localhost

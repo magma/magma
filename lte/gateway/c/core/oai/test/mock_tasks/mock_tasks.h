@@ -61,6 +61,7 @@ class MockMmeAppHandler {
   MOCK_METHOD0(mme_app_handle_modify_bearer_rsp, void());
   MOCK_METHOD0(mme_app_handle_delete_sess_rsp, void());
   MOCK_METHOD0(nas_proc_dl_transfer_rej, void());
+  MOCK_METHOD0(mme_app_handle_release_access_bearers_resp, void());
 };
 
 class MockSctpHandler {
