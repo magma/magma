@@ -1,0 +1,145 @@
+/*
+Copyright 2021 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+// Protobuf version 3
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+package magma.lte.oai;
+
+option go_package = "magma/lte/cloud/go/protos";
+
+// Contains sctp data (SCTP <-> NGAP)
+message bstring {
+  int32 mlen = 1;
+  int32 slen = 2;
+  // TODO(for golang developer): check equivalent or alternative type for unsigned char*
+  string data = 3;                
+};
+
+// Contains IPV4 address
+message in_addr {
+	uint32 s_addr = 1;
+}
+
+// Contains IPv6 address 
+message in6_addr {
+	repeated string s6_addr = 1;               
+}
+
+// After receiving data request from NGAP, sctp confirming the data 
+// TODO(for golang developer): Find alternative data type for below message data members
+message sctp_data_cnf {
+  bstring payload = 1;		        		
+  uint32 assoc_id = 2;				
+  uint32 stream = 3;  
+  // It will be set to mme_ue_s1ap_id or amf_ue_ngap_id based          
+  // on the xap_id 
+  uint32 agw_ue_xap_id = 4;         
+  uint32 amf_ue_ngap_id = 5;
+  uint32 ppid = 6;					
+  bool is_success = 7;
+} 
+
+// NGAP sending data request to Sctp
+// TODO(for golang developer): Find alternative data type for below message data members
+message sctp_data_req {
+  bstring payload = 1;
+  uint32 assoc_id = 2;				
+  uint32 stream = 3;		
+  // It will be set to mme_ue_s1ap_id or amf_ue_ngap_id
+  // based on the xap_id for helping data_rej
+  uint32 agw_ue_xap_id = 4;  		
+  uint32 amf_ue_ngap_id = 5;		
+  uint32 ppid = 6;					
+} 
+
+// Sctp sending data indication to NGAP
+// TODO(for golang developer): Find alternative data type for below message data members
+message sctp_data_ind {
+  // SCTP buffer
+  bstring payload = 1;   
+  // SCTP physical association ID         
+  uint32 assoc_id = 2;  
+  // Stream number on which data had been received				
+  uint32 stream = 3;  
+  // Number of input streams for the SCTP connection 						
+  uint32 instreams = 4;   				
+  // Number of output streams for the SCTP connection                      				
+  uint32 outstreams = 5;  				
+}
+
+// Sctp initialization message
+// TODO(for golang developer): Find alternative data type for below message data members
+message sctp_init {
+// Request usage of ipv4 
+uint32 ipv4  = 1;					
+// Request usage of ipv6 
+uint32 ipv6  = 2; 					
+uint32 nb_ipv4_addr = 3;				
+repeated in_addr ipv4_address = 4;
+uint32 nb_ipv6_addr = 5; 				
+repeated in6_addr ipv6_address = 6;
+uint32 port = 7; 					
+uint32 ppid = 8;						
+};
+
+// Sctp sending this message to NGAP for closing sctp connection
+// TODO(for golang developer): Find alternative data type for below message data members
+message sctp_close_association {
+  uint32 assoc_id = 1;						
+  // True if the association is being closed down because of a reset.
+  bool reset = 2;
+} 
+
+// Sctp message for new peer connection
+// TODO(for golang developer): Find alternative data type for below message data members
+message sctp_new_peer {
+  uint32 instreams = 1;
+  uint32 outstreams = 2;
+  uint32 assoc_id = 3;				
+  bstring ran_cp_ipaddr = 4;
+}
+
+// To know Server is initailized or not
+message sctp_amf_server_initialized {
+  bool successful = 1;
+} 
+
+// SctpService for handling different messages on sctp 
+// connections towards NGAP
+service SctpService {
+
+// SCTP -> NGAP
+rpc SctpDataCnf(sctp_data_cnf) returns (magma.orc8r.Void){};
+
+// NGAP -> SCTP
+rpc SctpDataReq(sctp_data_req) returns (magma.orc8r.Void){};
+
+// SCTP -> NGAP
+rpc SctpDataInd(sctp_data_ind) returns (magma.orc8r.Void){};
+
+// NGAP -> SCTP
+rpc SctpInit(sctp_init) returns (magma.orc8r.Void){};
+
+// SCTP -> NGAP
+rpc SctpCloseAssociation(sctp_close_association) returns (magma.orc8r.Void){};
+
+// SCTP -> NGAP
+rpc SctpNewPeer(sctp_new_peer) returns (magma.orc8r.Void){};
+
+// SCTP -> AMF
+rpc SctpAmfServerInitialized(sctp_amf_server_initialized) returns (magma.orc8r.Void){};
+}
+

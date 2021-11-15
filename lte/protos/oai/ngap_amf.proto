@@ -1,0 +1,441 @@
+/*
+Copyright 2021 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+// Protobuf version 3
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+package magma.lte.oai;
+
+option go_package = "magma/lte/cloud/go/protos"; 
+
+// Members of Initial UE message
+
+// TODO(for golang developer): Find alternative data type for below message data members
+// Contains NAS message
+message bstring {
+  int32 mlen = 1;
+  int32 slen = 2;
+  string data = 3;               
+};
+
+// TODO(for golang developer): Find alternative data type for below message data members
+// Public Land Mobile Network identifier.
+// PLMN = BCD encoding (Mobile Country Code + Mobile Network Code).
+message plmn_t {                 
+  uint32 mcc_digit2 = 1;
+  uint32 mcc_digit1 = 2;
+  uint32 mnc_digit3 = 3;
+  uint32 mcc_digit3 = 4;
+  uint32 mnc_digit2 = 5;
+  uint32 mnc_digit1 = 6;
+} 
+
+// Tracking Area identity (TAI)
+// It is used to identify tracking areas
+message tai_t {
+  plmn_t plmn = 1;
+  uint32 tac = 2;                
+}
+
+// The ECI shall be of fixed length of 28 bits and shall be coded using
+// full hexadecimal representation. The exact coding of the ECI is the
+// responsibility of each PLMN operator. 
+message eci_t {
+  uint32 cell_id = 1;     
+  uint32 empty = 2;       
+} 
+
+// The E-UTRAN Cell Global Identification (ECGI) shall be composed of the
+// concatenation of the PLMN Identifier (PLMN-Id) and the E-UTRAN Cell Identity
+// (ECI) .
+message ecgi_t {
+  plmn_t plmn = 1;
+  // The ECI shall be of fixed length of 28 bits 
+  eci_t cell_identity = 2; 
+} 
+
+// 5G S-Temporary Mobile Subscriber Identity
+message s_tmsi_m5_t {
+  uint32 amf_set_id = 1;           
+  uint32 amf_pointer = 2;     
+  // M-Temporary Mobile Subscriber Identity     
+  uint32 m_tmsi = 3; 
+} 
+
+// Message containing the Globally Unique AMF Identity.
+message  guamfi_t {
+  plmn_t plmn = 1; 
+  uint32 amf_regionid = 2;        
+  uint32 amf_set_id = 3;          
+  uint32 amf_pointer = 4;         
+}
+
+// Transparent message (NGAP -> AMF)
+message ngap_initial_ue_message_t {
+  uint32 gnb_ue_ngap_id = 1;          
+  ecgi_t e_utran_cgi = 2;
+}
+
+// Members of Initial Context Setup Request message
+
+// TODO(for golang developer): Find alternative data type for below message data members
+// Indicates the QoS Characteristics for a standardized or pre-configured 5QI
+// for downlink and uplink. 
+message non_dynamic_5QI_descriptor {
+  int64 fiveQI = 1;         
+} 
+
+// Indicates the QoS Characteristics for a Non-standardized or not pre-configured
+// 5QI for downlink and uplink. 
+message qos_characteristics_t {
+  non_dynamic_5QI_descriptor non_dynamic_5QI_desc = 1;
+} 
+
+// Defines the relative importance of a QoS flow for allocation and retention of
+// NG-RAN resources
+message m5g_allocation_and_retention_priority {
+  
+  // Indicates the preemption capability of the request
+  // on other QoS flows
+  enum pre_emption_capability {   
+    SHALL_NOT_TRIGGER_PRE_EMPTION = 0;
+    MAY_TRIGGER_PRE_EMPTION = 1;
+  } 
+
+  // Indicates the vulnerability of the QoS flow to
+  // pre-emption of other QoS flows. 
+  enum pre_emption_vulnerability {    
+    NOT_PREEMPTABLE = 0;
+    PRE_EMPTABLE = 1;
+  }
+
+  // Defines the relative importance of a resource request
+  int64 priority_level = 1;
+  pre_emption_capability pre_emption_cap = 2;
+  pre_emption_vulnerability pre_emption_vul = 3;
+} 
+
+// Defines the QoS parameters to be applied to a QoS Flow
+message qos_flow_level_qos_parameters {
+  qos_characteristics_t qos_characteristic = 1;
+  m5g_allocation_and_retention_priority alloc_reten_priority = 2; 
+} 
+
+// Maximum no. of QoS flows allowed within one PDU session
+message qos_flow_setup_request_item {
+
+  // identifies a QoS flow within a PDU Session
+  uint32 qos_flow_identifier = 1;
+
+  qos_flow_level_qos_parameters qos_flow_level_qos_param = 2;
+  // E-RAB ID is optional spec-38413 - 9.3.4.1
+} 
+
+// Indicates a list of QoS Flows that are identified by the QoS Flow Identifier
+message qos_flow_request_list_t {
+  qos_flow_setup_request_item qos_flow_req_item = 1;
+} 
+
+// Applicable for all Non-GBR QoS flows per PDU session 
+message amf_ue_aggregate_maximum_bit_rate_t {
+  uint64 dl = 1;
+  uint64 ul = 2;
+}
+
+// Provide the Transport Layer Information
+// TODO(for golang developer): fill size of array as per protobuf 
+message gtp_tunnel {
+  bstring endpoint_ip_address = 1;  
+  
+  repeated uint32 gtp_tied = 2;   
+} 
+
+// For delivery of UL PDU's
+message up_transport_layer_information_t {
+  gtp_tunnel gtp_tnl = 1;
+} 
+
+// Indicates the PDU Session Type 
+message amf_pdn_type_value_t {
+enum pdn_type_value_t {
+  IPv4        = 0;
+  IPv6        = 1;
+  IPv4_AND_v6 = 2;
+  IPv4_OR_v6  = 3;
+  IP_MAX      = 4;           
+} 
+
+  pdn_type_value_t pdn_type = 1;
+} 
+
+// This IE message is transparent to the AMF 
+message pdu_session_resource_setup_request_transfer_t {
+  amf_ue_aggregate_maximum_bit_rate_t pdu_aggregate_max_bit_rate = 1;
+  up_transport_layer_information_t up_transport_layer_info = 2;
+  amf_pdn_type_value_t pdu_ip_type = 3;
+  qos_flow_request_list_t qos_flow_setup_request_list = 4;
+} 
+
+// Ngap_S-NSSAI - identifier for a Network Slice
+// TODO(for golang developer): check pointer related stuff
+message Ngap_SNSSAI_t {
+  bstring sST = 1;
+  // OPTIONAL  
+  bstring sD = 2;            
+}
+
+
+message pdusession_setup_item_t {
+  // 5GC – UE or UE – 5GC message that is transferred without
+  // interpretation in the NG-RAN node -- (optional)
+  bstring nas_pdu = 1; 
+
+  // PDU Session for a UE. The definition and use of then  
+  // PDU Session ID is specified in TS 23.501 [9].
+  int64 Pdu_Session_ID = 2;  
+
+  // S-NSSAI as defined in TS 23.003 [23].
+  Ngap_SNSSAI_t Ngap_s_nssai = 3; 
+
+  // Containing the PDU Session Resource Setup Request Transfer IE
+  pdu_session_resource_setup_request_transfer_t
+      PDU_Session_Resource_Setup_Request_Transfer = 4;  
+} 
+
+// Pdu Session Resource Setup list
+message Ngap_PDUSession_Resource_Setup_Request_List_t {
+  uint32 no_of_items = 1;
+  repeated pdusession_setup_item_t item = 2;     
+} 
+
+// Defines the supported algorithms for encryption and integrity protection in the UE
+message Ngap_ue_security_capabilities_t {   
+  uint32 m5g_encryption_algo = 1;
+  uint32 m5g_integrity_protection_algo = 2;
+  uint32 e_utra_encryption_algo = 3;
+  uint32 e_utra_integrity_protection_algo = 4;
+} 
+
+
+// Members of Initial Context Setup Response message 
+
+// Provide the Transport Layer Information
+// TODO(for golang developer): check type and size of array as per protobuf.
+message response_gtp_tunnel_t {
+  repeated string transportLayerAddress = 1;          
+  repeated string gTP_TEID = 2;
+} 
+
+// Indicates the list of QoS flows
+// TODO(for golang developer): check type and size of array as per protobuf
+message AssociatedQosFlowList_t {
+  int64 items = 1;
+  repeated int64 QosFlowIdentifier = 2;              
+} 
+
+// Indicates the NG-U transport layer information and associated list of QoS flows. 
+message QosFlowPerTNLInformation_t {
+  response_gtp_tunnel_t tunnel = 1;
+  AssociatedQosFlowList_t associatedQosFlowList = 2;
+} 
+
+message pdusession_setup_response_item_t {
+  // PDU Session for a UE. The definition and use of the  
+  // PDU Session ID is specified in TS 23.501 [9].
+  int64 Pdu_Session_ID = 1;   
+
+  // Containing the PDU Session Resource Setup Request
+  QosFlowPerTNLInformation_t
+      PDU_Session_Resource_Setup_Response_Transfer = 2;  
+} 
+
+// Contains the list of Pdu Session Resource Setup Response
+// TODO(for golang developer): Find alternative data type for below message data members
+message Ngap_PDUSession_Resource_Setup_Response_List_t {
+  uint32 no_of_items = 1;
+  repeated pdusession_setup_response_item_t item = 2;    
+} 
+
+
+// Different message procedures exchanging between ( SCTP <--> NGAP <--> AMF )
+
+// Indicates the reason for RRC Connection Establishment as received 
+// from the UE in the EstablishmentCause
+enum m5g_rrc_establishment_cause_t {
+  UNDEFINED = 0;                             
+  M5G_EMERGENCY = 1;
+  M5G_HIGH_PRIORITY_ACCESS = 2;
+  M5G_MT_ACCESS = 3;
+  M5G_MO_SIGNALING = 4;
+  M5G_MO_DATA = 5;
+  M5G_MO_VOICE_CALL = 6;
+  M5G_MO_VIDEOCALL = 7;
+  M5G_MO_SMS = 8;
+  M5G_MPS_PRIORITYACCESS = 9;
+  M5G_MCS_PRIORITYACCESS = 10;
+  M5G_SPARE6 = 11;
+  M5G_SPARE5 = 12;
+  M5G_SPARE4 = 13;
+  M5G_SPARE3 = 14;
+  M5G_SPARE2 = 15;
+  M5G_SPARE1 = 16;
+}
+
+// UeContextRequest 
+enum m5g_uecontextrequest_t {  
+  undefined = 0;                       
+  M5G_UEContextRequest_requested = 1;
+}
+
+// Initial UE Message (NGAP -> AMF)
+// TODO(for golang developer): Find alternative data type for below message data members
+message itti_ngap_initial_ue_message {
+
+  // TODO: (doubt on comment): key stored in AMF_APP for AMF_APP forward NAS 
+  // response to NGAP
+  uint32 sctp_assoc_id = 1;                                                    
+  uint32 gnb_id = 2;
+  uint32 gnb_ue_ngap_id = 3;
+  uint64 amf_ue_ngap_id = 4;
+  bstring nas = 5;  
+
+  // Indicating the Tracking Area from which the UE has sent the NAS 
+  // message                     
+  tai_t tai = 6; 
+        
+  // Indicating the cell from which the UE has sent the NAS message
+  ecgi_t ecgi = 7; 
+
+  // Establishment cause 
+  m5g_rrc_establishment_cause_t
+      m5g_rrc_establishment_cause = 8;  
+
+  m5g_uecontextrequest_t ue_context_request = 9; 
+  bool is_s_tmsi_valid = 10;
+  bool is_csg_id_valid = 11;
+  bool is_guamfi_valid = 12;
+  s_tmsi_m5_t opt_s_tmsi = 13;
+
+  // Closed subscriber group
+  uint32 opt_csg_id = 14;					
+  guamfi_t opt_guamfi = 15;
+  // Transparent message from ngap to be forwarded to AMF_APP or
+  // to NGAP if connection establishment is rejected by NAS.
+  ngap_initial_ue_message_t transparent = 16;
+}
+
+enum Type_of_Message_t {
+  invalid_message = 0;
+  initiating_message = 1;
+  successful_outcome = 2;
+  unsuccessful_outcome = 3;
+} 
+
+message Ngap_Message_Type_t {
+  uint32 Procedure_Code = 1;
+  Type_of_Message_t Type_of_Message = 2;
+} 
+
+// Initial Context Setup Request (AMF -> NGAP)
+// This message is sent by the AMF to request the setup of a UE context.
+// Direction: AMF → NG-RAN node (gNodeB)
+message Ngap_initial_context_setup_request {
+  Ngap_Message_Type_t Ngap_Message_Type = 1;
+
+  // This IE uniquely identifies the UE association over
+  // the NG interface, as described in TS 38.401
+  uint64 amf_ue_ngap_id = 2;  
+
+  // This IE uniquely identifies the UE association over
+  // the NG interface within the NG-RAN node
+  uint32 ran_ue_ngap_id = 3; 
+
+  guamfi_t Ngap_guami = 4;
+
+  // PDU Session for a UE. The definition and use of the
+  // PDU Session ID is specified in TS 23.501 [9].
+  int64 Pdu_Session_ID = 5;  
+
+  // S-NSSAI as defined in TS 23.003 [23].
+  Ngap_SNSSAI_t Ngap_s_nssai = 6;  
+
+  // Containing the PDU Session Resource Setup Request
+  // Transfer IE specified in subclause 9.3.4.1 in TS 38413
+  Ngap_PDUSession_Resource_Setup_Request_List_t
+      PDU_Session_Resource_Setup_Transfer_List = 7;  
+
+  // Allowed NSSAI contains the allowed NSSAI.
+  Ngap_SNSSAI_t
+      allowed_nssai = 8;  
+
+  Ngap_ue_security_capabilities_t ue_security_capabilities = 9;
+
+  // Security Key is used to apply security in the 
+  // NG-RAN for different scenarios as defined in TS 33.501
+  string Security_Key = 10; 
+
+  // Optional 
+  bstring nas_pdu = 11;  
+} 
+
+// Initial Context Setup Response (NGAP -> AMF) to confirm the setup of a UE context.
+message itti_amf_app_initial_context_setup_rsp {
+  uint64 ue_id = 1;
+
+  // Containing the PDU Session Resource Setup Request                                   
+  Ngap_PDUSession_Resource_Setup_Response_List_t
+      PDU_Session_Resource_Setup_Response_Transfer = 2;  
+} 
+
+// Downlink NAS Transport (AMF -> NGAP)
+message itti_ngap_nas_dl_data_req  {
+  uint64 amf_ue_ngap_id = 1;
+  uint32 gnb_ue_ngap_id = 2;
+  // Downlink NAS message    				
+  bstring nas_msg = 3; 
+} 
+
+// Uplink NAS Transport (NGAP -> AMF)
+message itti_amf_app_ul_data_ind {
+  // UE lower layer identifier    
+  uint64 ue_id = 1; 
+
+  // Uplink NAS message 
+  bstring nas_msg = 2;   
+
+  // Indicating the Tracking Area from which the UE has sent the NAS message 
+  tai_t tai = 3;
+
+  // Indicating the cell from which the UE has sent the NAS message  
+  ecgi_t cgi = 4;
+} 
+
+// Service defined to handle different N1 and N2 messages.
+service NgapAmf_N1_N2_Messages {
+// NGAP -> AMF
+rpc SendNgapInitialUeMessage(itti_ngap_initial_ue_message) returns (magma.orc8r.Void){};
+
+// AMF -> NGAP
+rpc SendInitialContextSetupReq(Ngap_initial_context_setup_request) returns (magma.orc8r.Void){};
+
+// NGAP -> AMF
+rpc SendInitialContextSetupRes(itti_amf_app_initial_context_setup_rsp) returns (magma.orc8r.Void){};
+
+// AMF -> NGAP
+rpc SendNasDownlinkDataReq(itti_ngap_nas_dl_data_req) returns (magma.orc8r.Void){};
+
+// NGAP -> AMF
+rpc SendAmfAppUplinkDataInd(itti_amf_app_ul_data_ind) returns (magma.orc8r.Void){};
+}
