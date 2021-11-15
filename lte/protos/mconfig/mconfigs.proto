@@ -370,9 +370,9 @@ message MME {
 
     // Enables 5G Standalone (SA) at a network level
     bool enable5g_features = 46;
-
+  
     // AMF Slice Service Type (SST)
-    string default_slice_service_type = 47;
+    uint32 default_slice_service_type = 47;
 
     // AMF Slice Descriptor (SD)
     string default_slice_differentiator = 48;
