@@ -379,22 +379,26 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           flags: c_cpp
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
       - name: Run mme-clang-tidy
         if: always()
-        id: mme-clang-tidy
-        # yamllint disable rule:line-length
-        run: |
-            docker build --tag magma-mme-build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
-            docker run --env BRANCH=${{ env.BRANCH}} --env REVISION=${{ env.REVISION }} --volume ${{ env.MAGMA_ROOT }}:/magma --interactive magma-mme-build:latest /bin/bash -c 'cd /magma/lte/gateway;make clang_tidy_oai_upload'
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --env BRANCH=${{ env.BRANCH}} --env REVISION=${{ env.REVISION }} -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd $MAGMA_ROOT/lte/gateway
+            make clang_tidy_oai_upload
       - name: Run mme-clang-warnings
         if: always()
-        id: mme-clang-warning
-        # yamllint disable rule:line-length
-        run: |
-            docker build --tag magma-mme-build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
-            docker run --env BRANCH=${{ env.BRANCH }} --env REVISION=${{ env.REVISION }} --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --env BRANCH=${{ env.BRANCH}} --env REVISION=${{ env.REVISION }} -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd $MAGMA_ROOT/lte/gateway
+            make clang_warning_oai_upload
       - name: Extract commit title
         # yamllint enable
         if: failure() && github.event_name == 'push'
