@@ -44,6 +44,9 @@ def main():
     build_metadata_env = os.environ["BUILD_METADATA"]
     agw_artifacts_env = os.environ["AGW_ARTIFACTS"]
     agw_valid_env = os.environ["AGW_VALID"]
+    feg_docker_env = os.environ["FEG_DOCKER"]
+    feg_jfrog_env = os.environ["FEG_JFROG"]
+    feg_valid_env = os.environ["FEG_VALID"]
 
     # Prepare list of registered test workers
     workers = [x.strip() for x in workers_env.split(",")]
@@ -69,6 +72,23 @@ def main():
     build_info["agw"] = {
         "valid": agw_valid,
         "artifacts": agw_artifacts,
+    }
+
+    # Add feg arifacts
+    feg_docker = {}
+    feg_jfrog = {}
+    feg_valid = False
+    if feg_valid_env == "true":
+        try:
+            feg_docker = json.loads(feg_docker_env)
+            feg_jfrog = json.loads(feg_jfrog_env)
+            feg_valid = True
+        except ValueError:
+            print("Decoding feg artifacts JSON has failed: ", feg_docker_env, feg_jfrog_env)
+    build_info["feg"] = {
+        "valid": feg_valid,
+        "docker": feg_docker,
+        "jfrog": feg_jfrog,
     }
 
     # Prepare workload
