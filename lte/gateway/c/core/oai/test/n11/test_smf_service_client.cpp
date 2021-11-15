@@ -75,8 +75,7 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
       rat_req->mutable_gnode_endpoint()->end_ipv4_addr());
   uint8_t* pti_decoded = (uint8_t*) rat_req->procedure_trans_identity().c_str();
   EXPECT_TRUE(pti == *pti_decoded);
-  EXPECT_TRUE(
-      ipv4_addr == rat_req->mutable_pdu_address()->redirect_server_address());
+  EXPECT_TRUE(ipv4_addr == req_cmn->ue_ipv4());
 }
 
 int main(int argc, char** argv) {
