@@ -58,9 +58,21 @@ func ParseResult(pingOut []byte, res *protos.PingResult) {
 				res.Error = fmt.Sprintf("invalid packets summary line: '%s'", string(lines[n+1]))
 				return
 			}
-			iVal, _ := strconv.Atoi(string(matches[1]))
+			//iVal, _ := strconv.Atoi(string(matches[1]))
+			iVal, err := strconv.ParseInt(string(matches[1]), 10, 32)
+			if err != nil {
+				//return protos.FlowMatch_IPPROTO_IP, err
+				//if variable is in bounds of byte type (0-255)
+				res.Error = fmt.Sprintf("%s", err)
+				return
+			}
 			res.PacketsTransmitted = int32(iVal)
-			iVal, _ = strconv.Atoi(string(matches[2]))
+			//iVal, _ = strconv.Atoi(string(matches[2]))
+			iVal, err = strconv.ParseInt(string(matches[2]), 10, 32)
+			if err != nil {
+				res.Error = fmt.Sprintf("%s", err)
+				return
+			}
 			res.PacketsReceived = int32(iVal)
 			if n+1 == end {
 				if len(res.Error) == 0 {
