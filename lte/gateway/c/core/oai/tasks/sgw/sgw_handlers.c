@@ -2317,6 +2317,7 @@ void sgw_process_release_access_bearer_request(
           eps_bearer_ctxt->p_gw_teid_S5_S8_up,
           eps_bearer_ctxt->s_gw_ip_address_S5_S8_up.address.ipv4_address.s_addr,
           eps_bearer_ctxt->s_gw_teid_S5_S8_up);
+#if !MME_UNIT_TEST  // skip tunnel deletion for unit tests
       if (module == LOG_SPGW_APP) {
         rv = gtp_tunnel_ops->del_tunnel(
             enb, enb_ipv6, eps_bearer_ctxt->paa.ipv4_address, ue_ipv6,
@@ -2350,6 +2351,7 @@ void sgw_process_release_access_bearer_request(
       } else {
         OAILOG_DEBUG(module, "Set the paging rule for IP Addr: %s\n", ip_str);
       }
+#endif
       sgw_release_all_enb_related_information(eps_bearer_ctxt);
     }
   }

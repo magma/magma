@@ -33,13 +33,18 @@ namespace lte {
 #define DEFAULT_UE_IP 0xc0a8800a  // 192.168.128.10
 #define DEFAULT_VLAN 0
 #define DEFAULT_ENB_GTP_TEID 1
+#define ERROR_ENB_GTP_TEID 100
 #define ERROR_SGW_S11_TEID 100
 #define DEFAULT_EDNS_IP 0x7f000001  // localhost
 #define DEFAULT_SGW_IP 0x7f000001   // localhost
+#define DEFAULT_ENB_IP 0xc0a83c8d // 192.168.60.141
 
 bool is_num_sessions_valid(
-    spgw_state_t* spgw_state, uint64_t imsi64, int expected_num_ue_contexts,
+    uint64_t imsi64, int expected_num_ue_contexts,
     int expected_num_teids);
+
+bool is_num_s1_bearers_valid(
+    teid_t context_teid, int expected_num_active_bearers);
 
 void fill_create_session_request(
     itti_s11_create_session_request_t* session_request_p,
@@ -63,5 +68,9 @@ void fill_modify_bearer_request(
 void fill_delete_session_request(
     itti_s11_delete_session_request_t* delete_session_req, teid_t mme_s11_teid,
     teid_t sgw_s11_context_teid, ebi_t eps_bearer_id, plmn_t test_plmn);
+
+void fill_release_access_bearer_request(
+    itti_s11_release_access_bearers_request_t* release_access_bearers_req,
+    teid_t mme_s11_teid, teid_t sgw_s11_context_teid);
 }  // namespace lte
 }  // namespace magma

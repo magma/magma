@@ -30,7 +30,7 @@ namespace lte {
 extern task_zmq_ctx_t task_zmq_ctx_main_spgw;
 
 bool is_num_sessions_valid(
-    spgw_state_t* spgw_state, uint64_t imsi64, int expected_num_ue_contexts,
+    uint64_t imsi64, int expected_num_ue_contexts,
     int expected_num_teids) {
   hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
   if (state_ue_ht->num_elements != expected_num_ue_contexts) {
@@ -54,6 +54,31 @@ bool is_num_sessions_valid(
     return false;
   }
   return true;
+}
+
+bool is_num_s1_bearers_valid(
+    teid_t context_teid, int expected_num_active_bearers) {
+  s_plus_p_gw_eps_bearer_context_information_t* ctxt_p =
+      sgw_cm_get_spgw_context(context_teid);
+  if (ctxt_p == nullptr) {
+    return false;
+  }
+  sgw_eps_bearer_context_information_t sgw_context_p =
+      ctxt_p->sgw_eps_bearer_context_information;
+  int num_active_bearers = 0;
+  for (int ebx = 0; ebx < BEARERS_PER_UE; ebx++) {
+    sgw_eps_bearer_ctxt_t* eps_bearer_ctxt =
+        sgw_context_p.pdn_connection.sgw_eps_bearers_array[ebx];
+    if ((eps_bearer_ctxt) &&
+        (eps_bearer_ctxt->enb_ip_address_S1u.address.ipv4_address.s_addr !=
+         0)) {
+      num_active_bearers++;
+    }
+  }
+  if (num_active_bearers == expected_num_active_bearers) {
+    return true;
+  }
+  return false;
 }
 
 void fill_create_session_request(
@@ -156,6 +181,8 @@ void fill_modify_bearer_request(
       .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
   modify_bearer_req->bearer_contexts_to_be_modified.bearer_contexts[bearer_id]
       .s1_eNB_fteid.ipv4 = 1;
+  modify_bearer_req->bearer_contexts_to_be_modified.bearer_contexts[bearer_id]
+      .s1_eNB_fteid.ipv4_address.s_addr = DEFAULT_ENB_IP;
 
   // Only one bearer context to be sent for default PDN
   modify_bearer_req->bearer_contexts_to_be_modified.num_bearer_context = 1;
@@ -191,6 +218,17 @@ void fill_delete_session_request(
 
   // PLMN
   COPY_PLMN_IN_ARRAY_FMT(delete_session_req->serving_network, test_plmn);
+}
+
+void fill_release_access_bearer_request(
+    itti_s11_release_access_bearers_request_t* release_access_bearers_req,
+    teid_t mme_s11_teid, teid_t sgw_s11_context_teid) {
+  release_access_bearers_req->local_teid = mme_s11_teid;
+  release_access_bearers_req->teid       = sgw_s11_context_teid;
+  release_access_bearers_req->edns_peer_ip.addr_v4.sin_addr.s_addr =
+      DEFAULT_EDNS_IP;
+  release_access_bearers_req->edns_peer_ip.addr_v4.sin_family = AF_INET;
+  release_access_bearers_req->originating_node                = NODE_TYPE_MME;
 }
 
 }  // namespace lte
