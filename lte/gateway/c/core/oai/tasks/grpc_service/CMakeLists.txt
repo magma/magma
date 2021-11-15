@@ -110,6 +110,7 @@ add_library(TASK_GRPC_SERVICE
     amf_service_handler.c
     proto_msg_to_itti_msg.cpp
     grpc_service.cpp
+    grpc_service_task.c
     S8ServiceImpl.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
@@ -129,6 +130,7 @@ add_library(TASK_GRPC_SERVICE
     amf_service_handler.c
     proto_msg_to_itti_msg.cpp
     grpc_service.cpp
+    grpc_service_task.c
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )

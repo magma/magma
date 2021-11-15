@@ -32,9 +32,7 @@ set(SGW_S8_TEST_CONFIG_SRC
     sgw_s8_recv_grpc_messages.cpp
     )
 
-add_executable(sgw_s8_test ${SGW_S8_TEST_CONFIG_SRC}
-              ${PROJECT_SOURCE_DIR}/tasks/grpc_service/grpc_service_task.c
-              )
+add_executable(sgw_s8_test ${SGW_S8_TEST_CONFIG_SRC})
 
 target_link_libraries(sgw_s8_test
     LIB_S8_PROXY
