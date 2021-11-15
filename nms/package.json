@@ -16,10 +16,10 @@
     "@babel/register": "^7.13.16",
     "@babel/runtime": "^7.14.0",
     "@fbcnms/util": "^0.1.0",
+    "axios": "^0.21.2",
     "babel-plugin-fbt": "^0.10.4",
     "babel-plugin-fbt-runtime": "^0.9.9",
     "babel-plugin-lodash": "^3.3.4",
-    "axios": "^0.21.1",
     "fbt": "^0.10.6"
   },
   "devDependencies": {
