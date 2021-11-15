@@ -468,8 +468,8 @@ status_code_e nas_proc_ula_success(mme_ue_s1ap_id_t ue_id) {
   emm_cn_ula_success.ue_id                = ue_id;
   emm_sap.primitive                       = EMMCN_ULA_SUCCESS;
   emm_sap.u.emm_cn.u.emm_cn_ula_success   = &emm_cn_ula_success;
-  OAILOG_INFO_UE(
-      LOG_NAS_ESM, emm_sap.u.emm_esm.ctx->_imsi64,
+  OAILOG_INFO(
+      LOG_NAS_ESM,
       "Received S6a-Update Location Answer Success for ue_id "
       "= " MME_UE_S1AP_ID_FMT "\n",
       emm_cn_ula_success.ue_id);
