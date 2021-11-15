@@ -153,6 +153,9 @@ s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_idle_mode_with_mme_restart.py \
 s1aptests/test_3485_timer_for_dedicated_bearer_with_mme_restart.py \
 s1aptests/test_3485_timer_for_default_bearer_with_mme_restart.py \
+s1aptests/test_mobile_reachability_timer_with_mme_restart.py \
+s1aptests/test_implicit_detach_timer_with_mme_restart.py \
+s1aptests/test_ics_timer_expiry_with_mme_restart.py \
 s1aptests/test_paging_after_mme_restart.py \
 s1aptests/test_attach_nw_initiated_detach_fail.py \
 s1aptests/test_tau_ta_updating.py \
@@ -237,9 +240,6 @@ s1aptests/test_restore_config_after_non_sanity.py
 #---------------
 
 # Enable these tests once the CI job time-out has increased
-# s1aptests/test_mobile_reachability_timer_with_mme_restart.py \
-# s1aptests/test_implicit_detach_timer_with_mme_restart.py \
-# s1aptests/test_ics_timer_expiry_with_mme_restart.py \
 
 # s1aptests/test_attach_dl_udp_data.py \
 # s1aptests/test_attach_dl_tcp_data.py \
