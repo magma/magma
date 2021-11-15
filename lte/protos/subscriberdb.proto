@@ -37,10 +37,6 @@ message SubscriberIDSet {
   repeated SubscriberID sids = 1;
 }
 
-message SuciProfileList {
-  repeated SuciProfile sp = 1;
-}
-
 // --------------------------------------------------------------------------
 // GSM/LTE subscription info
 // --------------------------------------------------------------------------
@@ -172,7 +168,6 @@ message CoreNetworkType {
       NT_EPC = 0;
       NT_5GC = 1;
   }
-  // Network Types to be restricted per subscriber. If not configured, Subscriber will have access to all Network Types by default.
   repeated CoreNetworkTypes forbidden_network_types = 1;
 }
 
@@ -214,6 +209,22 @@ service SubscriberDB {
   // List the subscribers in the store.
   //
   rpc ListSubscribers (magma.orc8r.Void) returns (SubscriberIDSet) {}
+
+  // Adds a new suciprofile to the store.
+  // Throws ALREADY_EXISTS if the suciprofile already exists.
+  rpc AddSuciProfile (SuciProfileData) returns (magma.orc8r.Void) {}
+
+  // Deletes an existing suciprofile.
+  // If the subscriber is not already present, this request is ignored.
+  //rpc DeleteSuciprofile (uint32) returns (magma.orc8r.Void) {}
+
+  // Returns the SubscriberData for a suciprofile.
+  // Throws NOT_FOUND if the suciprofile is missing.
+  rpc GetSuciProfile (SuciProfileData) returns (SuciProfileData) {}
+
+  // List the suciprofile in the store.
+  //rpc ListSuciProfiles (magma.orc8r.Void) returns (SuciProfileList) {}
+
 }
 
 // --------------------------------------------------------------------------
@@ -228,6 +239,8 @@ service SubscriberDBCloud {
   rpc Sync (SyncRequest) returns (SyncResponse) {}
   // ListSubscribers lists pages of subscribers stored.
   rpc ListSubscribers (ListSubscribersRequest) returns (ListSubscribersResponse) {}
+  // List SuciProfiles per Network
+  rpc ListSuciProfiles (ListSuciProfilesRequest) returns (ListSuciProfilesResponse) {}
 }
 
 message CheckInSyncRequest {
@@ -276,7 +289,20 @@ message ListSubscribersResponse {
   reserved 3, 4;
 }
 
-message SuciProfile {
+message ListSuciProfilesRequest {
+  // page_size is the maximum number of entities returned per request.
+  uint32 page_size = 1;
+  // page_token is a serialized entity page token for paginated loads.
+  string page_token = 2;
+}
+
+message ListSuciProfilesResponse {
+  repeated SuciProfileData suci_profiles = 1;
+  string next_page_token = 2;
+  // digests contains all digests for the network.
+}
+
+message SuciProfileData {
     enum ECIESProtectionScheme {
         ProfileA = 0;
         ProfileB = 1;
@@ -290,35 +316,18 @@ message SuciProfile {
     bytes home_net_private_key = 4;
 }
 
-
-
-service SuciProfileDB {
- // Adds a new suciprofile to the store.
-  // Throws ALREADY_EXISTS if the suciprofile already exists.
-  rpc AddSuciProfile (SuciProfile) returns (magma.orc8r.Void) {}
-
-  // Deletes an existing suciprofile.
-  // If the suciprofile is not already present, this request is ignored.
-  rpc DeleteSuciProfile (SuciProfile) returns (magma.orc8r.Void) {}
-
-  // List the suciprofile in the store.
-  rpc ListSuciProfile (magma.orc8r.Void) returns (SuciProfileList) {}
-}
-
 message M5GSUCIRegistrationRequest {
     //Home network public key identifier
     uint32 ue_pubkey_identifier = 1;
-    //UE public key
-    bytes ue_pubkey = 2;
-    //UE ciphertext
-    bytes ue_ciphertext = 3;
+    //UE Private Key
+    bytes ue_ciphertext = 2;
     //Protection scheme output
-    bytes ue_encrypted_mac = 4;
+    bytes ue_encrypted_mac = 3;
 }
 
 message M5GSUCIRegistrationAnswer {
     //UE de concealed msin
-    bytes ue_msin_recv = 1;
+    string ue_msin_recv = 1;
 }
 
 service M5GSUCIRegistration {
