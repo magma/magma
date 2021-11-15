@@ -61,8 +61,8 @@ static void start_grpc_s8_service(bstring server_address) {
 }
 
 void start_mock_grpc_task() {
-#define GRPCSERVICES_SERVER_ADDRESS "127.0.0.1:50095"
-  grpc_service_config.server_address = bfromcstr(GRPCSERVICES_SERVER_ADDRESS);
+  grpc_service_config.server_address =
+      bfromcstr(TEST_GRPCSERVICES_SERVER_ADDRESS);
 
   init_task_context(
       TASK_GRPC_SERVICE, nullptr, 0, handle_message, &task_zmq_ctx_grpc);
