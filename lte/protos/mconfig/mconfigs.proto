@@ -37,6 +37,8 @@ message SentryConfig {
     // sample_rate should be a number between 0 (0% of errors sent) and 1 (100%
     // of errors sent)
     float sample_rate = 4;
+    // message patterns that are excluded from Sentry (regex substring match)
+    repeated string exclusion_patterns = 5;
 }
 
 //------------------------------------------------------------------------------

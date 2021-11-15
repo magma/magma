@@ -19,10 +19,11 @@ from magma.common.sentry import (
     Event,
     Hint,
     SentryStatus,
+    SharedSentryConfig,
     _filter_excluded_messages,
     _get_before_send_hook,
+    _get_shared_sentry_config,
     _ignore_if_not_marked,
-    get_sentry_dsn_and_sample_rate,
     send_uncaught_errors_to_monitoring,
 )
 from orc8r.protos.mconfig import mconfigs_pb2
@@ -60,22 +61,29 @@ class SentryTests(unittest.TestCase):
         self.assertEqual(logging.ERROR, log_record.levelno)
 
     @mock.patch('magma.common.sentry.get_service_config_value')
-    def test_get_sentry_dsn_and_sample_rate_from_control_proxy(self, get_service_config_value_mock):
+    def test_get_shared_sentry_config_from_control_proxy(self, get_service_config_value_mock):
         """Test if control_proxy.yml overrides mconfig.
         """
-        get_service_config_value_mock.side_effect = ['https://test.me', 0.5]
+        get_service_config_value_mock.side_effect = ['https://test.me', 0.5, ["Excluded"]]
         sentry_mconfig = mconfigs_pb2.SharedSentryConfig()
-        self.assertEqual(('https://test.me', 0.5), get_sentry_dsn_and_sample_rate(sentry_mconfig))
+        self.assertEqual(
+            SharedSentryConfig('https://test.me', 0.5, ["Excluded"]),
+            _get_shared_sentry_config(sentry_mconfig),
+        )
 
     @mock.patch('magma.common.sentry.get_service_config_value')
-    def test_get_sentry_dsn_and_sample_rate_from_mconfig(self, get_service_config_value_mock):
+    def test_get_shared_sentry_config_from_mconfig(self, get_service_config_value_mock):
         """Test if mconfig is used if control_proxy.yml is empty.
         """
-        get_service_config_value_mock.side_effect = ['', 0.5]
+        get_service_config_value_mock.side_effect = ['', 0.5, ["Excluded"]]
         sentry_mconfig = mconfigs_pb2.SharedSentryConfig()
         sentry_mconfig.dsn_python = 'https://test.me'
         sentry_mconfig.sample_rate = 1
-        self.assertEqual(('https://test.me', 1), get_sentry_dsn_and_sample_rate(sentry_mconfig))
+        sentry_mconfig.exclusion_patterns.append("another error")
+        self.assertEqual(
+            SharedSentryConfig('https://test.me', 1, ["another error"]),
+            _get_shared_sentry_config(sentry_mconfig),
+        )
 
     def test_exclusion_pattern_for_log_messages(self):
         """Test events written by error logs can be filtered"""

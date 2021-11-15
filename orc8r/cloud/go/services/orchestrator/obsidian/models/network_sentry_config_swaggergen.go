@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"encoding/json"
+
 	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
@@ -16,6 +18,10 @@ import (
 // NetworkSentryConfig Sentry.io configuration
 // swagger:model network_sentry_config
 type NetworkSentryConfig struct {
+
+	// log message patterns that are excluded (regex substring match)
+	// Min Items: 0
+	ExclusionPatterns []string `json:"exclusion_patterns"`
 
 	// sample rate
 	// Maximum: 1
@@ -36,9 +42,26 @@ type NetworkSentryConfig struct {
 	URLPython strfmt.URI `json:"url_python,omitempty"`
 }
 
+func (m *NetworkSentryConfig) UnmarshalJSON(b []byte) error {
+	type NetworkSentryConfigAlias NetworkSentryConfig
+	var t NetworkSentryConfigAlias
+	if err := json.Unmarshal([]byte("{\"exclusion_patterns\":[\"GetServiceInfo\",\"GetOperationalStates\",\"ConnectionError\",\"CheckinError\",\"Checkin Error\",\"GetChallenge error!\",\"Connection to FluentBit\",\"\\\\[SyncRPC\\\\]\",\"Metrics upload error\",\"Streaming from the cloud failed!\",\"Fetch subscribers error!\",\"GRPC call failed for state replication\"],\"sample_rate\":1,\"upload_mme_log\":false}"), &t); err != nil {
+		return err
+	}
+	if err := json.Unmarshal(b, &t); err != nil {
+		return err
+	}
+	*m = NetworkSentryConfig(t)
+	return nil
+}
+
 // Validate validates this network sentry config
 func (m *NetworkSentryConfig) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateExclusionPatterns(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateSampleRate(formats); err != nil {
 		res = append(res, err)
@@ -55,6 +78,21 @@ func (m *NetworkSentryConfig) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *NetworkSentryConfig) validateExclusionPatterns(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ExclusionPatterns) { // not required
+		return nil
+	}
+
+	iExclusionPatternsSize := int64(len(m.ExclusionPatterns))
+
+	if err := validate.MinItems("exclusion_patterns", "body", iExclusionPatternsSize, 0); err != nil {
+		return err
+	}
+
 	return nil
 }
 

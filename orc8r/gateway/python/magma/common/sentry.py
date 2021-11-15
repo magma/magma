@@ -13,9 +13,10 @@ limitations under the License.
 import logging
 import os
 import re
+from dataclasses import dataclass
 from enum import Enum
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional
 
 import sentry_sdk
 import snowflake
@@ -39,7 +40,8 @@ HWID = 'hwid'
 SERVICE_NAME = 'service_name'
 LOGGING_EXTRA = 'extra'
 SEND_TO_ERROR_MONITORING_KEY = "send_to_error_monitoring"
-SEND_TO_ERROR_MONITORING = {SEND_TO_ERROR_MONITORING_KEY: True}
+# Dictionary constant for convenience, must not be mutated
+SEND_TO_ERROR_MONITORING = {SEND_TO_ERROR_MONITORING_KEY: True}  # noqa: WPS407
 
 
 class SentryStatus(Enum):
@@ -47,6 +49,15 @@ class SentryStatus(Enum):
     SEND_ALL_ERRORS = 'send_all_errors'
     SEND_SELECTED_ERRORS = 'send_selected_errors'
     DISABLED = 'disabled'
+
+
+@dataclass
+class SharedSentryConfig(object):
+    """Sentry configuration shared by all Python services,
+    taken from shared mconfig or control_proxy.yml"""
+    dsn: str
+    sample_rate: float
+    exclusion_patterns: List[str]
 
 
 def send_uncaught_errors_to_monitoring(enabled: bool):
@@ -83,7 +94,7 @@ def get_sentry_status(service_name: str) -> SentryStatus:
 
 
 # TODO when control_proxy.yml is outdated move to shared mconfig entirely
-def get_sentry_dsn_and_sample_rate(sentry_mconfig: mconfigs_pb2.SharedSentryConfig) -> Tuple[str, float]:
+def _get_shared_sentry_config(sentry_mconfig: mconfigs_pb2.SharedSentryConfig) -> SharedSentryConfig:
     """Get Sentry configs with the following priority
 
     1) control_proxy.yml (if sentry_python_url is present)
@@ -96,30 +107,34 @@ def get_sentry_dsn_and_sample_rate(sentry_mconfig: mconfigs_pb2.SharedSentryConf
     Returns:
         (str, float): sentry url, sentry sample rate
     """
-    dsn_python = get_service_config_value(
+    dsn = get_service_config_value(
         CONTROL_PROXY,
         SENTRY_URL,
         default='',
     )
 
-    if not dsn_python:
+    if not dsn:
         # Here, we assume that `dsn` and `sample_rate` should be pulled
         # from the same source, that is the source where the user has
         # entered the `dsn`.
         # Without this coupling `dsn` and `sample_rate` could possibly
         # be pulled from different sources.
-        logging.info("Sentry config: dsn_python and sample_rate are pulled from shared mconfig.")
-        dsn_python = sentry_mconfig.dsn_python
+        dsn = sentry_mconfig.dsn_python
         sample_rate = sentry_mconfig.sample_rate
-        return dsn_python, sample_rate
-
-    logging.info("Sentry config: dsn_python and sample_rate are pulled from control_proxy.yml.")
-    sample_rate = get_service_config_value(
-        CONTROL_PROXY,
-        SENTRY_SAMPLE_RATE,
-        default=DEFAULT_SAMPLE_RATE,
-    )
-    return dsn_python, sample_rate
+        exclusion_patterns = sentry_mconfig.exclusion_patterns
+    else:
+        logging.info("Sentry config: dsn_python and sample_rate are pulled from control_proxy.yml.")
+        sample_rate = get_service_config_value(
+            CONTROL_PROXY,
+            SENTRY_SAMPLE_RATE,
+            default=DEFAULT_SAMPLE_RATE,
+        )
+        exclusion_patterns = get_service_config_value(
+            CONTROL_PROXY,
+            SENTRY_EXCLUDED,
+            default=DEFAULT_SAMPLE_RATE,
+        )
+    return SharedSentryConfig(dsn, sample_rate, exclusion_patterns)
 
 
 def _ignore_if_not_marked(event: Event) -> Optional[Event]:
@@ -184,9 +199,9 @@ def sentry_init(service_name: str, sentry_mconfig: mconfigs_pb2.SharedSentryConf
     if sentry_status == SentryStatus.DISABLED:
         return
 
-    dsn_python, sample_rate = get_sentry_dsn_and_sample_rate(sentry_mconfig)
+    sentry_config = _get_shared_sentry_config(sentry_mconfig)
 
-    if not dsn_python:
+    if not sentry_config.dsn:
         logging.info(
             'Sentry disabled because of missing dsn_python. '
             'See documentation (Configure > AGW) on how to configure '
@@ -194,17 +209,11 @@ def sentry_init(service_name: str, sentry_mconfig: mconfigs_pb2.SharedSentryConf
         )
         return
 
-    excluded_patterns = get_service_config_value(
-        CONTROL_PROXY,
-        SENTRY_EXCLUDED,
-        default=[],
-    )
-
     sentry_sdk.init(
-        dsn=dsn_python,
+        dsn=sentry_config.dsn,
         release=os.getenv(COMMIT_HASH),
-        traces_sample_rate=sample_rate,
-        before_send=_get_before_send_hook(sentry_status, excluded_patterns),
+        traces_sample_rate=sentry_config.sample_rate,
+        before_send=_get_before_send_hook(sentry_status, sentry_config.exclusion_patterns),
     )
 
     cloud_address = get_service_config_value(
