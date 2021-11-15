@@ -15,6 +15,7 @@ import warnings
 from concurrent.futures import Future
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
+from magma.pipelined.app import inout
 from magma.pipelined.app.inout import EGRESS, INGRESS
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.bridge_util import BridgeTools
@@ -45,6 +46,13 @@ from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 
+def mocked_get_virtual_iface_mac(iface):
+    if iface == 'test_mtr1':
+        return 'ae:fa:b2:76:37:5d'
+    if iface == 'testing_br':
+        return 'bb:bb:b2:76:37:5d'
+
+
 class UEMacAddressTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
@@ -69,6 +77,7 @@ class UEMacAddressTest(unittest.TestCase):
         to apps launched by using futures.
         """
         super(UEMacAddressTest, cls).setUpClass()
+        inout.get_virtual_iface_mac = mocked_get_virtual_iface_mac
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([], ['ue_mac', 'arpd'])
         cls._tbl_num = cls.service_manager.get_table_num(

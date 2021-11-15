@@ -42,10 +42,7 @@ class MagmaPyLintTest(unittest.TestCase):
             ],
             show_categories=["warning", "error", "fatal"],
         )
-        excluded_directories = [
-            'kernsnoopd',
-            'tests',
-        ]
+        excluded_directories = []
         parent_path = os.path.dirname(os.path.dirname(__file__))
         directories = [
             d.name for d in os.scandir(parent_path)

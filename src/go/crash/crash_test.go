@@ -57,7 +57,8 @@ func TestLevel_String(t *testing.T) {
 	}
 }
 
-// TestWrap_Panic confirms flush and recover are called properly when the function passed into wrap panics.
+// TestWrap_Panic confirms flush and recover are called properly when the function passed into wrap panics. Also that
+// the panic is re-raised to end the program.
 func TestWrap_Panic(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -67,9 +68,16 @@ func TestWrap_Panic(t *testing.T) {
 	mockCrash.EXPECT().Recover(err)
 	mockCrash.EXPECT().Flush(time.Second * 5)
 
-	crash.Wrap(mockCrash, func() {
-		panic(err)
-	})
+	func() {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Fatal("Wrap did not re-raise the panic")
+			}
+		}()
+		crash.Wrap(mockCrash, func() {
+			panic(err)
+		})
+	}()
 }
 
 // TestWrap_NoPanic confirms flush and recover are not called when the function doesn't panic.

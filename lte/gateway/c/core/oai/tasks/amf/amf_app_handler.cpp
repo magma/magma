@@ -32,6 +32,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/include/n11_messages_types.h"
@@ -862,7 +863,11 @@ int amf_app_handle_pdu_session_accept(
       buffer->data, &msg, len, &ue_context->amf_context._security);
   if (bytes > 0) {
     buffer->slen = bytes;
-    pdu_session_resource_setup_request(ue_context, ue_id, smf_ctx, buffer);
+    if (ue_context->ue_context_request) {
+      pdu_session_resource_setup_request(ue_context, ue_id, smf_ctx, buffer);
+    } else {
+      initial_context_setup_request(ue_id, &ue_context->amf_context, buffer);
+    }
 
   } else {
     OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");
@@ -1330,7 +1335,6 @@ void amf_app_handle_initial_context_setup_rsp(
     return;
   }
 
-  /* activating pdu sessions when UE is in IDLE state  */
   if (pdu_list->no_of_items) {
     for (uint32_t index = 0; index < pdu_list->no_of_items; index++) {
       smf_context = amf_get_smf_context_by_pdu_session_id(

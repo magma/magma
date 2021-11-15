@@ -271,6 +271,7 @@ cc_test(
     name = "set_session_manager_handler_test",
     size = "small",
     srcs = ["test_set_session_manager_handler.cpp"],
+    flaky = True,
     deps = [
         ":matchers",
         ":protobuf_creators",

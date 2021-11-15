@@ -660,6 +660,13 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
           "Started for ue id: " AMF_UE_NGAP_ID_FMT,
           registration_proc->T3550.id, registration_proc->ue_id);
     }
+
+    // s6a update location request
+    int rc =
+        amf_send_n11_update_location_req(ue_m5gmm_context_p->amf_ue_ngap_id);
+    if (rc == RETURNerror) {
+      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: n11_update_location_req failure\n");
+    }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -719,9 +726,6 @@ static int registration_accept_t3550_handler(
           registration_proc->retransmission_count);
       // To abort the registration procedure
       amf_proc_registration_abort(amf_ctx, ue_amf_context);
-      // Clean up all the sessions.
-      amf_smf_context_cleanup_pdu_session(ue_amf_context);
-      amf_free_ue_context(ue_amf_context);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);

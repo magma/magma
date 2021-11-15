@@ -317,6 +317,10 @@ commands:
           executable_name: << parameters.executable_name >>
           project: magma-staging-native
           org: lf-9c
+      - sentry-upload:
+          executable_name: << parameters.executable_name >>
+          project: si-agw-native
+          org: lf-9c
 
   sentry-release:
     steps:
@@ -704,18 +708,6 @@ jobs:
           version_path: versions/feg_version
       - magma_slack_notify
 
-  cwf-integ-test:
-    machine:
-      image: ubuntu-1604:201903-01
-    steps:
-      - build/determinator:
-          <<: *all_gateways_build_verify
-      - magma_integ_test:
-          stack: cwf
-          test: 'True'
-          build: 'False'
-          deploy: 'False'
-
   cwag-deploy:
     parameters:
       tag:
@@ -1034,6 +1026,8 @@ workflows:
           <<: *master_and_develop
       - lte-agw-deploy:
           <<: *only_master
+          requires:
+            - lte-integ-test
 
   release:
     jobs:
@@ -1074,11 +1068,6 @@ workflows:
           requires:
             - release-hold
             - ami-hold
-
-  cwag:
-    jobs:
-      - cwf-integ-test:
-          <<: *master_and_develop
 
       # GH9026: Disabling test until it is fixed
       # - xwfm-test:

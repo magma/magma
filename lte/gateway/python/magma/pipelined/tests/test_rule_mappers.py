@@ -75,13 +75,13 @@ class RuleMappersTest(unittest.TestCase):
             self._session_rule_version_mapper.get_version(
                 imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[0],
             ),
-            -1,
+            0,
         )
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
                 imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[1],
             ),
-            -1,
+            0,
         )
 
     def test_session_rule_version_mapper_cwf(self):
@@ -124,13 +124,13 @@ class RuleMappersTest(unittest.TestCase):
             self._session_rule_version_mapper.get_version(
                 imsi, None, rule_ids[0],
             ),
-            -1,
+            0,
         )
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
                 imsi, None, rule_ids[1],
             ),
-            -1,
+            0,
         )
 
 

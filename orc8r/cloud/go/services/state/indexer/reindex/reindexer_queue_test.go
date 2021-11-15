@@ -57,27 +57,34 @@ const (
 
 	defaultJobTimeout  = 5 * time.Minute // copied from queue_sql.go
 	defaultTestTimeout = 5 * time.Second
+	shortTestTimeout   = 1 * time.Second
 
 	// Cause 3 batches per network
 	// 200 directory records + 1 gw status => ceil(201 / 100) = 3 batches per network
 	nStatesToReindexPerCall    = 100 // copied from reindex.go
 	directoryRecordsPerNetwork = 2 * nStatesToReindexPerCall
 	nNetworks                  = 3
-	nBatches                   = 9
+	// 3 networks and 3 batches per network = 3 * 3 = 9
+	nBatches = 9
+	// 4 networks and 3 batches per network = 4 * 3 = 12
+	newNBatches = 12
 
 	nid0 = "some_networkid_0"
 	nid1 = "some_networkid_1"
 	nid2 = "some_networkid_2"
+	nid3 = "some_networkid_3"
 
 	hwid0 = "some_hwid_0"
 	hwid1 = "some_hwid_1"
 	hwid2 = "some_hwid_2"
+	hwid3 = "some_hwid_3"
 
 	id0 = "some_indexerid_0"
 	id1 = "some_indexerid_1"
 	id2 = "some_indexerid_2"
 	id3 = "some_indexerid_3"
 	id4 = "some_indexerid_4"
+	id5 = "some_indexerid_5"
 
 	zero      indexer.Version = 0
 	version0  indexer.Version = 10
@@ -90,6 +97,7 @@ const (
 	version3a indexer.Version = 400
 	version4  indexer.Version = 50
 	version4a indexer.Version = 500
+	version5  indexer.Version = 60
 )
 
 var (
@@ -298,6 +306,9 @@ func TestRunUnsafe(t *testing.T) {
 	assertVersions(t, q, id4, version4, version4)
 }
 
+// initReindexTest reports enough directory records to cause 3 batches per network
+// (with the +1 gateway status per network). It creates 3 networks,
+// so numBatches following this method will be 3 * 3 = 9
 func initReindexTest(t *testing.T, dbName string) (reindex.Reindexer, reindex.JobQueue) {
 	indexer.DeregisterAllForTest(t)
 
@@ -417,6 +428,15 @@ func recvCh(t *testing.T, ch chan interface{}) {
 		return
 	case <-time.After(defaultTestTimeout):
 		t.Fatal("receive on hook channel timed out")
+	}
+}
+
+func recvNoCh(t *testing.T, ch chan interface{}) {
+	select {
+	case <-ch:
+		t.Fatal("should not receive anything from hook channel")
+	case <-time.After(shortTestTimeout):
+		return
 	}
 }
 

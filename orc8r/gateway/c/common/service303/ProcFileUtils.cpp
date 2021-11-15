@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-#include "ProcFileUtils.h"
+#include "orc8r/gateway/c/common/service303/ProcFileUtils.h"
 #include <fstream>  // for basic_istream, ifstream
 #include <string>   // for string, operator>>, stod
 

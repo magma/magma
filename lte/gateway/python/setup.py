@@ -52,6 +52,7 @@ setup(
         'magma.subscriberdb.protocols.diameter',
         'magma.subscriberdb.protocols.diameter.application',
         'magma.subscriberdb.store',
+        'magma.subscriberdb.subscription',
         'magma.kernsnoopd',
         'load_tests',
     ],

@@ -231,50 +231,6 @@ void clear_emm_ctxt(emm_context_t* emm_context) {
    --------------------------------------------------------------------------
 */
 
-/*
-   --------------------------------------------------------------------------
-            Detach procedure executed by the MME
-   --------------------------------------------------------------------------
-*/
-/****************************************************************************
- **                                                                        **
- ** Name:    emm_proc_detach()                                         **
- **                                                                        **
- ** Description: Initiate the detach procedure to inform the UE that it is **
- **      detached for EPS services, or to re-attach to the network **
- **      and re-establish all PDN connections.                     **
- **                                                                        **
- **              3GPP TS 24.301, section 5.5.2.3.1                         **
- **      In state EMM-REGISTERED the network initiates the detach  **
- **      procedure by sending a DETACH REQUEST message to the UE,  **
- **      starting timer T3422 and entering state EMM-DEREGISTERED- **
- **      INITIATED.                                                **
- **                                                                        **
- ** Inputs:  ue_id:      UE lower layer identifier                  **
- **      type:      Type of the requested detach               **
- **      Others:    _emm_detach_type_str                       **
- **                                                                        **
- ** Outputs:     None                                                      **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    T3422                                      **
- **                                                                        **
- ***************************************************************************/
-status_code_e emm_proc_detach(
-    mme_ue_s1ap_id_t ue_id, emm_proc_detach_type_t type) {
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
-
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMM-PROC  - Initiate detach type = %s (%d) for ue id " MME_UE_S1AP_ID_FMT
-      "\n",
-      emm_detach_type_str[type], type, ue_id);
-  /*
-   * TODO
-   */
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-}
-
 /****************************************************************************
  **                                                                        **
  ** Name:    emm_proc_sgs_detach_request                                   **

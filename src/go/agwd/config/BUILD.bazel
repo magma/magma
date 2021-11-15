@@ -8,7 +8,7 @@ go_library(
     deps = [
         "//src/go/agwd/config/internal/grpcutil",
         "//src/go/log",
-        "//src/go/protos/magma/mconfig",
+        "//src/go/protos/magma/config",
         "@com_github_pkg_errors//:errors",
         "@org_golang_google_grpc//resolver",
         "@org_golang_google_protobuf//encoding/protojson",
@@ -23,7 +23,7 @@ go_test(
     embed = [":config"],
     deps = [
         "//src/go/log",
-        "//src/go/protos/magma/mconfig",
+        "//src/go/protos/magma/config",
         "@com_github_pkg_errors//:errors",
         "@com_github_stretchr_testify//assert",
         "@org_golang_google_grpc//resolver",

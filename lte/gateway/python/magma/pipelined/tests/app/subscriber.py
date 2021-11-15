@@ -104,39 +104,6 @@ class SubscriberContext(abc.ABC):
         raise NotImplementedError()
 
 
-class RyuRPCSubscriberContext(SubscriberContext):
-    """
-    RyuRestSubscriberContext uses grpc calls to enforcement_controller for
-    testing subscriber rules
-    """
-
-    def __init__(self, imsi, ip, pipelined_stub, table_id=5):
-        self.cfg = SubContextConfig(imsi, ip, default_ambr_config, table_id)
-        self._policies = []
-        self._pipelined_stub = pipelined_stub
-
-    def add_policy(self, policy):
-        self._policies.append(policy)
-        return self
-
-    def _activate_subscriber_rules(self):
-        try_grpc_call_with_retries(
-            lambda: self._pipelined_stub.ActivateFlows(
-                ActivateFlowsRequest(
-                    sid=SIDUtils.to_pb(self.cfg.imsi),
-                    policies=self._policies,
-                ),
-            ),
-        )
-
-    def _deactivate_subscriber_rules(self):
-        try_grpc_call_with_retries(
-            lambda: self._pipelined_stub.DeactivateFlows(
-                DeactivateFlowsRequest(sid=SIDUtils.to_pb(self.cfg.imsi)),
-            ),
-        )
-
-
 class RyuDirectSubscriberContext(SubscriberContext):
     """
     RyuDirectSubscriberContext uses ryu.hub and enforcement_controller to

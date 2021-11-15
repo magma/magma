@@ -10,8 +10,7 @@
 # limitations under the License.
 
 load("@rules_proto//proto:defs.bzl", "proto_library")
-load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
-load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library", "cpp_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 

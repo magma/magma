@@ -49,6 +49,9 @@ int amf_handle_deregistration_ue_origin_req(
     amf_ue_ngap_id_t ue_id, DeRegistrationRequestUEInitMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t decode_status);
 int amf_smf_send(amf_ue_ngap_id_t ueid, ULNASTransportMsg* msg, int amf_cause);
+int amf_validate_dnn(
+    const amf_context_s* amf_ctxt_p, std::string dnn_string, int* index,
+    bool ue_sent_dnn);
 int amf_smf_notification_send(
     amf_ue_ngap_id_t ueid, ue_m5gmm_context_s* ue_context,
     notify_ue_event notify_event_type);
@@ -62,8 +65,6 @@ int amf_registration_success_security_cb(amf_context_t* amf_context);
 int amf_proc_registration_reject(
     const amf_ue_ngap_id_t ue_id, amf_cause_t amf_cause);
 
-void amf_app_handle_cm_idle_on_ue_context_release(
-    itti_ngap_ue_context_release_req_t cm_idle_req);
 // Handle UE CONTEXT RELEASE COMMAND in DL to NGAP
 void ue_context_release_command(
     amf_ue_ngap_id_t amf_ue_ngap_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,

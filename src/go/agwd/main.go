@@ -25,7 +25,7 @@ import (
 
 func main() {
 	configFlag := flag.String(
-		"c", "/etc/magma/agwd.json", "Path to config file")
+		"c", "/etc/magma/agwd_cfg.json", "Path to config file")
 	flag.Parse()
 
 	cfgr := config.NewConfigManager()

@@ -72,7 +72,7 @@ class SmsRelay(Job):
             return
 
         for msg in smsd_resp.messages:
-            logging.error('%s', msg)
+            logging.info('%s', msg)
             await self._send_sms(msg)
 
     async def _get_attached_imsis(self) -> List[str]:

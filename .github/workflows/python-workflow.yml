@@ -33,6 +33,18 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/python-workflow.yml", "**/*.py"]
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      - name: Save PR number
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ github.event.number }} > ./pr/NR
+          echo -n "false" > ./pr/RPR
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
 
   run-formatters-and-check-for-errors:
     needs: pre_job
@@ -63,12 +75,16 @@ jobs:
           image: magma/py-lint:latest
           options: -u 0 -v ${{ github.workspace }}:/code
           run: |
+            echo "Running formatting tools. This should be equivalent to running './lte/gateway/python/precommit.py --format --diff' locally."
             for file in ${{ steps.py-changes.outputs.py }};
             do
-              echo "Running formatting commands for $file...";
               set -e
-              isort --check-only $file;
-              autopep8 --exit-code --select W191,W291,W292,W293,W391,E131,E2,E3 -r --in-place  $file;
+              echo ""
+              echo "Running isort on $file...";
+              isort --diff --check-only $file;
+              echo "Running autopep8 on $file...";
+              autopep8 --diff --exit-code --select W191,W291,W292,W293,W391,E131,E2,E3 -r $file;
+              echo "Running add-trailing-comma on $file...";
               add-trailing-comma --py35-plus $file;
             done;
       # Need to save PR number as Github action does not propagate it with workflow_run event
