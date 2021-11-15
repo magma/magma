@@ -189,34 +189,35 @@ int send_uplink_nas_pdu_session_establishment_request(
 }
 
 void create_ip_address_response_itti(
-    itti_amf_ip_allocation_response_t& response) {
+    itti_amf_ip_allocation_response_t* response) {
+  if (!response) return;
   std::string apn = "internet";
-  std::copy(apn.begin(), apn.end(), std::begin(response.apn));
-  response.default_ambr.br_unit    = BPS;
-  response.default_ambr.br_dl      = 200000000;
-  response.default_ambr.br_ul      = 100000000;
-  response.gnb_gtp_teid            = 0;
-  response.gnb_gtp_teid_ip_addr[0] = 0xc0;
-  response.gnb_gtp_teid_ip_addr[1] = 0xa8;
-  response.gnb_gtp_teid_ip_addr[2] = 0x3c;
-  response.gnb_gtp_teid_ip_addr[3] = 0x96;
-  std::string imsi                 = "222456000000001";
-  std::copy(imsi.begin(), imsi.end(), std::begin(response.imsi));
-  response.imsi_length  = 15;
-  response.paa.pdn_type = IPv4;
-  inet_pton(AF_INET, "192.168.128.254", &(response.paa.ipv4_address));
-  response.paa.vlan         = 1;
-  response.pdu_session_id   = 1;
-  response.pdu_session_type = IPv4;
-  response.pti              = 0x01;
-  response.result           = 0;
+  std::copy(apn.begin(), apn.end(), std::begin(response->apn));
+  response->default_ambr.br_unit    = BPS;
+  response->default_ambr.br_dl      = 200000000;
+  response->default_ambr.br_ul      = 100000000;
+  response->gnb_gtp_teid            = 0;
+  response->gnb_gtp_teid_ip_addr[0] = 0xc0;
+  response->gnb_gtp_teid_ip_addr[1] = 0xa8;
+  response->gnb_gtp_teid_ip_addr[2] = 0x3c;
+  response->gnb_gtp_teid_ip_addr[3] = 0x96;
+  std::string imsi                  = "222456000000001";
+  std::copy(imsi.begin(), imsi.end(), std::begin(response->imsi));
+  response->imsi_length  = 15;
+  response->paa.pdn_type = IPv4;
+  inet_pton(AF_INET, "192.168.128.254", &(response->paa.ipv4_address));
+  response->paa.vlan         = 1;
+  response->pdu_session_id   = 1;
+  response->pdu_session_type = IPv4;
+  response->pti              = 0x01;
+  response->result           = 0;
 }
 
 int send_ip_address_response_itti() {
   int rc = RETURNerror;
 
   itti_amf_ip_allocation_response_t response = {};
-  create_ip_address_response_itti(response);
+  create_ip_address_response_itti(&response);
 
   rc = amf_smf_handle_ip_address_response(&response);
 
@@ -224,49 +225,51 @@ int send_ip_address_response_itti() {
 }
 
 void create_pdu_session_response_ipv4_itti(
-    itti_n11_create_pdu_session_response_t& response) {
+    itti_n11_create_pdu_session_response_t* response) {
+  if (!response) return;
   std::string imsi = "222456000000001";
-  std::copy(imsi.begin(), imsi.end(), std::begin(response.imsi));
+  std::copy(imsi.begin(), imsi.end(), std::begin(response->imsi));
 
-  response.sm_session_fsm_state = sm_session_fsm_state_t::CREATING;
-  response.sm_session_version   = 0;
-  response.pdu_session_id       = 1;
-  response.pdu_session_type     = IPV4;
-  response.selected_ssc_mode    = SSC_MODE_3;
-  response.m5gsm_cause          = M5GSM_OPERATION_SUCCESS;
+  response->sm_session_fsm_state = sm_session_fsm_state_t::CREATING;
+  response->sm_session_version   = 0;
+  response->pdu_session_id       = 1;
+  response->pdu_session_type     = IPV4;
+  response->selected_ssc_mode    = SSC_MODE_3;
+  response->m5gsm_cause          = M5GSM_OPERATION_SUCCESS;
 
-  response.session_ambr.uplink_unit_type   = 0;
-  response.session_ambr.uplink_units       = 100000000;
-  response.session_ambr.downlink_unit_type = 0;
-  response.session_ambr.downlink_units     = 100000000;
+  response->session_ambr.uplink_unit_type   = 0;
+  response->session_ambr.uplink_units       = 100000000;
+  response->session_ambr.downlink_unit_type = 0;
+  response->session_ambr.downlink_units     = 100000000;
 
-  response.qos_list.qos_flow_req_item.qos_flow_identifier = 9;
-  response.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+  response->qos_list.qos_flow_req_item.qos_flow_identifier = 9;
+  response->qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .qos_characteristic.non_dynamic_5QI_desc.fiveQI = 9;
-  response.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+  response->qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .alloc_reten_priority.priority_level = 1;
-  response.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+  response->qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .alloc_reten_priority.pre_emption_cap = SHALL_NOT_TRIGGER_PRE_EMPTION;
-  response.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+  response->qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .alloc_reten_priority.pre_emption_vul = NOT_PREEMPTABLE;
-  response.upf_endpoint.teid[0]             = 0x7f;
-  response.upf_endpoint.teid[1]             = 0xff;
-  response.upf_endpoint.teid[2]             = 0xff;
-  response.upf_endpoint.teid[3]             = 0xff;
-  inet_pton(AF_INET, "192.168.128.200", response.upf_endpoint.end_ipv4_addr);
+  response->upf_endpoint.teid[0]            = 0x7f;
+  response->upf_endpoint.teid[1]            = 0xff;
+  response->upf_endpoint.teid[2]            = 0xff;
+  response->upf_endpoint.teid[3]            = 0xff;
+  inet_pton(AF_INET, "192.168.128.200", response->upf_endpoint.end_ipv4_addr);
 
-  response.always_on_pdu_session_indication     = false;
-  response.allowed_ssc_mode                     = SSC_MODE_3;
-  response.m5gsm_congetion_re_attempt_indicator = true;
-  response.pdu_address.redirect_address_type    = IPV4_1;
+  response->always_on_pdu_session_indication     = false;
+  response->allowed_ssc_mode                     = SSC_MODE_3;
+  response->m5gsm_congetion_re_attempt_indicator = true;
+  response->pdu_address.redirect_address_type    = IPV4_1;
   inet_pton(
-      AF_INET, "192.168.128.200", response.pdu_address.redirect_server_address);
+      AF_INET, "192.168.128.200",
+      response->pdu_address.redirect_server_address);
 }
 
 int send_pdu_session_response_itti() {
   int rc                                          = RETURNerror;
   itti_n11_create_pdu_session_response_t response = {};
-  create_pdu_session_response_ipv4_itti(response);
+  create_pdu_session_response_ipv4_itti(&response);
 
   imsi64_t imsi64;
   IMSI_STRING_TO_IMSI64(response.imsi, &imsi64);
@@ -283,14 +286,15 @@ int send_pdu_session_response_itti() {
 }
 
 void create_pdu_resource_setup_response_itti(
-    itti_ngap_pdusessionresource_setup_rsp_t& response,
+    itti_ngap_pdusessionresource_setup_rsp_t* response,
     amf_ue_ngap_id_t ue_id) {
-  response.amf_ue_ngap_id                                       = ue_id;
-  response.gnb_ue_ngap_id                                       = 1;
-  response.pduSessionResource_setup_list.item[0].Pdu_Session_ID = 1;
-  response.pduSessionResource_setup_list.no_of_items            = 1;
+  if (!response) return;
+  response->amf_ue_ngap_id                                       = ue_id;
+  response->gnb_ue_ngap_id                                       = 1;
+  response->pduSessionResource_setup_list.item[0].Pdu_Session_ID = 1;
+  response->pduSessionResource_setup_list.no_of_items            = 1;
   response_gtp_tunnel_t* tunnel =
-      &response.pduSessionResource_setup_list.item[0]
+      &response->pduSessionResource_setup_list.item[0]
            .PDU_Session_Resource_Setup_Response_Transfer.tunnel;
   tunnel->gTP_TEID[0] = 0x0;
   tunnel->gTP_TEID[1] = 0x0;
@@ -303,7 +307,7 @@ void create_pdu_resource_setup_response_itti(
   tunnel->transportLayerAddress[3] = 0x96;
 
   AssociatedQosFlowList_t* qosFlow =
-      &response.pduSessionResource_setup_list.item[0]
+      &response->pduSessionResource_setup_list.item[0]
            .PDU_Session_Resource_Setup_Response_Transfer.associatedQosFlowList;
   qosFlow->items                = 1;
   qosFlow->QosFlowIdentifier[0] = 9;
@@ -311,7 +315,7 @@ void create_pdu_resource_setup_response_itti(
 int send_pdu_resource_setup_response(amf_ue_ngap_id_t ue_id) {
   int rc                                            = RETURNok;
   itti_ngap_pdusessionresource_setup_rsp_t response = {};
-  create_pdu_resource_setup_response_itti(response, ue_id);
+  create_pdu_resource_setup_response_itti(&response, ue_id);
 
   amf_app_handle_resource_setup_response(response);
 
@@ -319,24 +323,25 @@ int send_pdu_resource_setup_response(amf_ue_ngap_id_t ue_id) {
 }
 
 void create_pdu_notification_response_itti(
-    itti_n11_received_notification_t& response) {
+    itti_n11_received_notification_t* response) {
+  if (!response) return;
   std::string imsi = "222456000000001";
-  std::copy(imsi.begin(), imsi.end(), std::begin(response.imsi));
-  response.sm_session_fsm_state = CREATING_0;
-  response.sm_session_version   = 0;
-  response.pdu_session_id       = 1;
-  response.request_type         = EXISTING_PDU_SESSION;
-  response.m5g_sm_capability.multi_homed_ipv6_pdu_session = false;
-  response.m5g_sm_capability.reflective_qos               = false;
-  response.m5gsm_cause      = M5GSM_OPERATION_SUCCESS;
-  response.pdu_session_type = IPV4;
-  response.notify_ue_evnt   = PDU_SESSION_STATE_NOTIFY;
+  std::copy(imsi.begin(), imsi.end(), std::begin(response->imsi));
+  response->sm_session_fsm_state = CREATING_0;
+  response->sm_session_version   = 0;
+  response->pdu_session_id       = 1;
+  response->request_type         = EXISTING_PDU_SESSION;
+  response->m5g_sm_capability.multi_homed_ipv6_pdu_session = false;
+  response->m5g_sm_capability.reflective_qos               = false;
+  response->m5gsm_cause      = M5GSM_OPERATION_SUCCESS;
+  response->pdu_session_type = IPV4;
+  response->notify_ue_evnt   = PDU_SESSION_STATE_NOTIFY;
 }
 
 int send_pdu_notification_response() {
   int rc                                    = RETURNerror;
   itti_n11_received_notification_t response = {};
-  create_pdu_notification_response_itti(response);
+  create_pdu_notification_response_itti(&response);
 
   rc = amf_app_handle_notification_received(&response);
 

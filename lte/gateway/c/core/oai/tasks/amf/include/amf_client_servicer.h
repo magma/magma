@@ -24,10 +24,11 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
 #include <memory>
 #include <string>
-#include <lte/protos/session_manager.grpc.pb.h>
-#include <lte/protos/session_manager.pb.h>
+#include "lte/protos/session_manager.grpc.pb.h"
+#include "lte/protos/session_manager.pb.h"
 
 using grpc::Status;
 using magma::lte::SetSmNotificationContext;
@@ -84,10 +85,9 @@ class AMFClientServicer : public AMFClientServicerBase {
       task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
       MessageDef* message_p) override {
     OAILOG_DEBUG(LOG_AMF_APP, " Mock is Enabled \n");
-    status_code_e rc = RETURNok;
     itti_free_msg_content(message_p);
     free(message_p);
-    return rc;
+    return RETURNok;
   }
   bool get_subs_auth_info(
       const std::string& imsi, uint8_t imsi_length, const char* snni,

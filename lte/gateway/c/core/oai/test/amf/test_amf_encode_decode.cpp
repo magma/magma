@@ -862,7 +862,7 @@ TEST(test_dnn, test_amf_validate_dnn) {
   ULNASTransportMsg msg;
   bool decode_res = false;
   memset(&msg, 0, sizeof(ULNASTransportMsg));
-  std::string dnn_string((char*) msg.dnn.dnn, msg.dnn.len);
+  std::string dnn_string(reinterpret_cast<char*>(msg.dnn.dnn), msg.dnn.len);
   int idx          = 0;
   bool ue_sent_dnn = true;
   // decoding uplink uplink nas transport(pdu session request)

@@ -489,7 +489,8 @@ int amf_smf_process_pdu_session_packet(
         ue_sent_dnn = false;
         dnn_string  = default_dnn;
       } else {
-        dnn_string.copy((char*) msg->dnn.dnn, msg->dnn.len - 1);
+        dnn_string.assign(
+            reinterpret_cast<char*>(msg->dnn.dnn), msg->dnn.len - 1);
       }
 
       int validate = amf_validate_dnn(
