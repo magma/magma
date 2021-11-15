@@ -23,6 +23,8 @@ import (
 	n7_sbi "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
 	"magma/feg/gateway/services/n7_n40_proxy/metrics"
 	"magma/feg/gateway/services/n7_n40_proxy/n7"
+	"magma/feg/gateway/services/n7_n40_proxy/notify"
+	"magma/gateway/service_registry"
 	"magma/lte/cloud/go/protos"
 )
 
@@ -35,6 +37,7 @@ type CentralSessionController struct {
 	dbClient      policydb.PolicyDBClient
 	cfg           *SessionControllerConfig
 	healthTracker *metrics.SessionHealthTracker
+	notifHandler  *notify.NotificationHandler
 }
 
 type SessionControllerConfig struct {
@@ -46,7 +49,12 @@ func NewCentralSessionController(
 	n7config *n7.N7Config,
 	dbClient policydb.PolicyDBClient,
 	policyClient n7_sbi.ClientWithResponsesInterface,
+	cloudReg service_registry.GatewayRegistry,
 ) (*CentralSessionController, error) {
+	notifHandler, err := notify.NewStartedNotificationHandlerWithHandlers(&n7config.Client, cloudReg)
+	if err != nil {
+		return nil, err
+	}
 	return &CentralSessionController{
 		policyClient: policyClient,
 		dbClient:     dbClient,
@@ -55,6 +63,7 @@ func NewCentralSessionController(
 			RequestTimeout: DefaultN7Timeout,
 		},
 		healthTracker: metrics.NewSessionHealthTracker(),
+		notifHandler:  notifHandler,
 	}, nil
 }
 
@@ -96,4 +105,9 @@ func (srv *CentralSessionController) TerminateSession(
 ) (*protos.SessionTerminateResponse, error) {
 
 	return (&protos.UnimplementedCentralSessionControllerServer{}).TerminateSession(ctx, request)
+}
+
+// Close gracefully shuts down the CentralSessionController
+func (srv *CentralSessionController) Close() {
+	srv.notifHandler.Shutdown()
 }

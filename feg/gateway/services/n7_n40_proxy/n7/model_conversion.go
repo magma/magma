@@ -30,6 +30,35 @@ import (
 	"magma/lte/cloud/go/protos"
 )
 
+var FailureCodeProtoToN7Map = []n7_sbi.FailureCode{
+	"UNUSED",                 // 0
+	"UNK_RULE_ID",            // 1
+	"RA_GR_ERR",              // 2
+	"SER_ID_ERR",             // 3
+	"NF_MAL",                 // 4
+	"RES_LIM",                // 5
+	"MAX_NR_QoS_FLOW",        // 6
+	"UNKNOWN",                // 7
+	"UNKNOWN",                // 8
+	"MISS_FLOW_INFO",         // 10
+	"RES_ALLO_FAIL",          // 11
+	"UNSUCC_QOS_VAL",         // 12
+	"INCOR_FLOW_INFO",        // 13
+	"PS_TO_CS_HAN",           // 14
+	"APP_ID_ERR",             // 15
+	"NO_QOS_FLOW_BOUND",      // 16
+	"FILTER_RES",             // 17
+	"UNKNOWN",                // 18
+	"MISS_REDI_SER_ADDR",     // 19
+	"CM_END_USER_SER_DENIED", // 20
+	"CM_CREDIT_CON_NOT_APP",  // 21
+	"CM_AUTH_REJ",            // 22
+	"CM_USER_UNK",            // 23
+	"CM_RAT_FAILED",          // 24
+	"UNKNOWN",                // 25
+	"UNKNOWN",                // 26
+}
+
 //
 // From Proto to SBI types
 //
@@ -65,6 +94,36 @@ func GetSmPolicyContextDataN7(
 	}
 
 	return reqBody
+}
+
+// IsReAuthSuccess checks if the PolicyReAuthAnswer received is successful
+func IsReAuthSuccess(raa *protos.PolicyReAuthAnswer) bool {
+	if raa.Result == protos.ReAuthResult_UPDATE_INITIATED ||
+		raa.Result == protos.ReAuthResult_UPDATE_NOT_NEEDED ||
+		len(raa.FailedRules) == 0 {
+		// no errors to send
+		return true
+	}
+	return false
+}
+
+// BuildPartialSuccessReportN7 returns a PartialSuccessReport with the list of rules that had
+// failed ot install. If there are no FailedRules returns an empty RuleReports.
+func BuildPartialSuccessReportN7(raa *protos.PolicyReAuthAnswer) *n7_sbi.PartialSuccessReport {
+	ruleReports := []n7_sbi.RuleReport{}
+	for ruleId, failureCode := range raa.FailedRules {
+		ruleReport := n7_sbi.RuleReport{
+			PccRuleIds:  []string{ruleId},
+			RuleStatus:  n7_sbi.RuleStatusINACTIVE,
+			FailureCode: getFailureCodeN7(failureCode),
+		}
+		ruleReports = append(ruleReports, ruleReport)
+	}
+
+	return &n7_sbi.PartialSuccessReport{
+		FailureCause: n7_sbi.FailureCausePCCRULEEVENT,
+		RuleReports:  &ruleReports,
+	}
 }
 
 func getSbiRatType(ratType protos.RATType) *sbi.RatType {
@@ -132,6 +191,15 @@ func getSbiPduSesionType(pduSessionType protos.PduSessionType) sbi.PduSessionTyp
 	}
 }
 
+func getFailureCodeN7(failureCodeProto protos.PolicyReAuthAnswer_FailureCode) *n7_sbi.FailureCode {
+	failureCodeNum := int(failureCodeProto)
+	if failureCodeNum > len(FailureCodeProtoToN7Map) {
+		return nil
+	}
+	retFailCode := FailureCodeProtoToN7Map[failureCodeNum]
+	return &retFailCode
+}
+
 // From SBI types to proto
 
 func GetCreateSessionResponseProto(
@@ -162,6 +230,27 @@ func GetCreateSessionResponseProto(
 		rpcResp.Offline = *smPolicyDecision.Offline
 	}
 	return rpcResp
+}
+
+func GetPolicyReauthRequestProto(
+	sessionId string,
+	imsi string,
+	smPolicyDecision *n7_sbi.SmPolicyDecision,
+) *protos.PolicyReAuthRequest {
+	staticRules, dynamicRules, rulesToRemove := getPccRules(smPolicyDecision)
+	eventTriggers, revalidationTime := getEventTriggersInfoProto(
+		smPolicyDecision.PolicyCtrlReqTriggers, smPolicyDecision.RevalidationTime)
+	umCredits := getUsageMonitorsProtoForUpdateNotify(smPolicyDecision)
+	return &protos.PolicyReAuthRequest{
+		SessionId:              sessionId,
+		Imsi:                   imsi,
+		RulesToInstall:         staticRules,
+		DynamicRulesToInstall:  dynamicRules,
+		RulesToRemove:          rulesToRemove,
+		EventTriggers:          eventTriggers,
+		RevalidationTime:       revalidationTime,
+		UsageMonitoringCredits: umCredits,
+	}
 }
 
 func getPccRules(
@@ -514,6 +603,38 @@ func getCreditUnitsProto(volume *common5g.VolumeRm) *protos.CreditUnit {
 		return &protos.CreditUnit{IsValid: false}
 	}
 	return &protos.CreditUnit{IsValid: true, Volume: uint64(*volume)}
+}
+
+func getUsageMonitorsProtoForUpdateNotify(smPolicyDecision *n7_sbi.SmPolicyDecision) []*protos.UsageMonitoringCredit {
+	monitors := []*protos.UsageMonitoringCredit{}
+	// Usage monitorting at pcc rule level
+	if smPolicyDecision.PccRules != nil {
+		for _, pccRule := range smPolicyDecision.PccRules.AdditionalProperties {
+			if pccRule.RefUmData == nil || len((*pccRule.RefUmData)[0]) == 0 {
+				continue
+			}
+			umEntry, found := smPolicyDecision.UmDecs.Get((*pccRule.RefUmData)[0])
+			if !found {
+				continue
+			}
+			monitors = append(monitors, getUsageMonitoringCreditsProto((*pccRule.RefUmData)[0], &umEntry, protos.MonitoringLevel_PCC_RULE_LEVEL))
+		}
+	}
+	// Usage monitoring at session level
+	if smPolicyDecision.SessRules != nil {
+		for _, sessRule := range smPolicyDecision.SessRules.AdditionalProperties {
+			if sessRule.RefUmData == nil || len(*sessRule.RefUmData) == 0 {
+				continue
+			}
+			umEntry, found := smPolicyDecision.UmDecs.Get(*sessRule.RefUmData)
+			if !found {
+				continue
+			}
+			monitors = append(monitors, getUsageMonitoringCreditsProto(*sessRule.RefUmData, &umEntry, protos.MonitoringLevel_SESSION_LEVEL))
+		}
+	}
+
+	return monitors
 }
 
 //
