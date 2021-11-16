@@ -128,6 +128,8 @@ class ArpController(MagmaController):
             if self.allow_unknown_uplink_arps:
                 self._install_allow_incoming_arp_flow(datapath)
 
+            self._install_default_arp_drop_flow(datapath)
+
         elif self.setup_type == 'LTE':
             # ARP flows, from high priority to lower:
             # UE_FLOW_PRIORITY    : MTR IP arp flow
@@ -150,7 +152,6 @@ class ArpController(MagmaController):
             )
 
         self._install_default_forward_flow(datapath)
-        self._install_default_arp_drop_flow(datapath)
 
     def handle_restart(
         self,
