@@ -179,6 +179,7 @@ func (c *certifierBlobstore) DeleteCertInfo(serialNumber string) error {
 	return store.Commit()
 }
 
+// TODO(christinewang5): separate two implementations of blobstore, they are diff tables with diff functions
 func (c *certifierBlobstore) ListHTTPBasicAuth() ([]string, error) {
 	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
@@ -208,8 +209,7 @@ func (c *certifierBlobstore) GetHTTPBasicAuth(username string) (*protos.Operator
 	if err != nil {
 		return nil, err
 	}
-	return &operator, err
-
+	return &operator, nil
 }
 
 func (c *certifierBlobstore) PutHTTPBasicAuth(username string, operator *protos.Operator) error {

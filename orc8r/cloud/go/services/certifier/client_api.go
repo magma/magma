@@ -226,16 +226,14 @@ func VerifyDateRange(certInfo CertDateRange) error {
 	return nil
 }
 
-func GetUser(ctx context.Context) (certifierprotos.Operator, error) {
+func GetOperatorTokens(ctx context.Context, getOpReq *certifierprotos.GetOperatorRequest) (*certifierprotos.Operator_TokenList, error) {
 	client, err := getCertifierClient()
 	if err != nil {
 		return nil, err
 	}
-
-	certInfo, err := client.GetIdentity(ctx, sn)
+	tokens, err := client.GetOperatorTokens(ctx, getOpReq)
 	if err != nil {
-		glog.Errorf("Failed to get identity with SN: %s, %s", sn.Sn, err)
 		return nil, err
 	}
-	return certInfo, nil
+	return tokens, nil
 }

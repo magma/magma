@@ -53,13 +53,15 @@ type CAInfo struct {
 }
 
 type CertifierServer struct {
-	store storage.CertifierStorage
-	CAs   map[protos.CertType]*CAInfo
+	store     storage.CertifierStorage
+	userStore storage.CertifierStorage
+	CAs       map[protos.CertType]*CAInfo
 }
 
-func NewCertifierServer(store storage.CertifierStorage, CAs map[protos.CertType]*CAInfo) (srv *CertifierServer, err error) {
+func NewCertifierServer(store storage.CertifierStorage, userStore storage.CertifierStorage, CAs map[protos.CertType]*CAInfo) (srv *CertifierServer, err error) {
 	srv = new(CertifierServer)
 	srv.store = store
+	srv.userStore = userStore
 	if CAs == nil {
 		return nil, fmt.Errorf("CA info not provided to certifier")
 	}
@@ -448,4 +450,29 @@ func (srv *CertifierServer) CollectGarbageImpl(ctx context.Context) (int, error)
 		return count, status.Error(codes.Internal, multiErr.Error())
 	}
 	return count, nil
+}
+
+// GetOperatorTokens gets all operator tokens after authentication
+func (srv *CertifierServer) GetOperatorTokens(ctx context.Context, getOpReq *certprotos.GetOperatorRequest) (*certprotos.Operator_TokenList, error) {
+	username := getOpReq.GetUsername()
+	user, err := srv.userStore.GetHTTPBasicAuth(username)
+	if err != nil {
+		return &certprotos.Operator_TokenList{}, status.Errorf(
+			codes.NotFound, "failed to fetch user %s from database: %v", username, err)
+	}
+	// check if token is registered with user
+	// TODO(christinewang5): ugh why is finding things in list so hard? should i use a map?
+	token := getOpReq.GetToken()
+	flag := false
+	tokens := user.GetTokens()
+
+	for _, t := range tokens.GetToken() {
+		if t == token {
+			flag = true
+		}
+	}
+	if !flag {
+		return &certprotos.Operator_TokenList{}, status.Errorf(codes.PermissionDenied, "token %s is not registered with user %s", token, user)
+	}
+	return tokens, nil
 }

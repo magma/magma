@@ -79,7 +79,7 @@ func getCreateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.Handle
 		operator := &certProto.Operator{
 			Username: username,
 			Password: hashedPassword,
-			Tokens:   &certProto.TokenList{Token: []string{token}},
+			Tokens:   &certProto.Operator_TokenList{Token: []string{token}},
 		}
 
 		err = storage.PutHTTPBasicAuth(username, operator)

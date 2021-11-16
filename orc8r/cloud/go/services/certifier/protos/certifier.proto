@@ -48,29 +48,39 @@ message GetCARequest {
   CertType cert_type = 1;
 }
 
-message TokenList {
-  repeated string token = 1;
-}
 
 message Operator {
   string username = 1;
   bytes password = 2;
+  message TokenList {
+    repeated string token = 1;
+  }
   TokenList tokens = 3;
 }
 
-enum Action {
-  NONE = 0;
-  READ = 1;
-  WRITE = 2;
-}
 
 message Policy {
   string token = 1;
-  string effect = 2;
+  enum Effect {
+    ALLOW = 0;
+    DENY = 1;
+    UNKNOWN = 2;
+  }
+  Effect effect = 2;
+  enum Action {
+    NONE = 0;
+    READ = 1;
+    WRITE = 2;
+  }
   Action action = 3;
   message ResourceList {
     repeated string resource = 4;
   }
+}
+
+message GetOperatorRequest {
+  string username = 1;
+  string token = 2;
 }
 
 service Certifier {
@@ -110,4 +120,6 @@ service Certifier {
   // cleanup expired certificates
   rpc CollectGarbage (Void) returns (Void) {}
 
+  // Get all operator tokens
+  rpc GetOperatorTokens (GetOperatorRequest) returns (Operator.TokenList) {}
 }

@@ -112,7 +112,7 @@ func main() {
 	analytics_protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
 
 	// Register servicer
-	servicer, err := servicers.NewCertifierServer(store, caMap)
+	servicer, err := servicers.NewCertifierServer(store, userStore, caMap)
 	if err != nil {
 		glog.Fatalf("Failed to create certifier server: %s", err)
 	}

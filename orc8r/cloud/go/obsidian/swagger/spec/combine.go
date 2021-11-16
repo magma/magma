@@ -17,7 +17,6 @@ import (
 	"regexp"
 	"sort"
 
-	"github.com/golang/glog"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -34,24 +33,20 @@ func Combine(yamlCommon string, yamlSpecs []string) (string, error, error) {
 	warnings := &multierror.Error{}
 
 	common, specs, errs := unmarshalToSwagger(yamlCommon, yamlSpecs)
-	glog.Errorf("christine unmarshalToSwagger %+v", common)
 	if errs != nil {
 		warnings = multierror.Append(warnings, errs)
 	}
 
 	combined, errs := combine(common, specs)
-	glog.Errorf("christine combined %+v", combined)
 	if errs != nil {
 		warnings = multierror.Append(warnings, errs)
 	}
 
 	out, err := marshalToYAML(combined)
-	glog.Errorf("christine marshalToYaml %+v", out)
 	if err != nil {
 		return "", nil, err
 	}
 
-	glog.Errorf("christine doneee")
 	return out, warnings.ErrorOrNil(), nil
 }
 

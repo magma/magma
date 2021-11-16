@@ -18,14 +18,15 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/golang/glog"
+	"github.com/labstack/echo"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/services/certifier"
+	certifierprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	merrors "magma/orc8r/lib/go/errors"
-
-	"github.com/golang/glog"
-	"github.com/labstack/echo"
 )
 
 // Access CertificateMiddleware:
@@ -106,7 +107,6 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := c.Request()
 		header := req.Header.Get(CLIENT_ACCESS_TOKEN_KEY)
-		glog.Errorf("CHRISTINE tokens %+v", tokens)
 		// TODO(christinewang5): remove after bootstrapping admin token
 		// if len(tokens) == 0 {
 		// 	return echo.NewHTTPError(http.StatusUnauthorized, "missing REST client tokens")
@@ -115,10 +115,21 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
+
 		if err := certifier.ValidateToken(token); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
 
+		// make sure that token is registered with user
+		getOpReq := certifierprotos.GetOperatorRequest{
+			Username: username,
+			Token:    token,
+		}
+		tokensList, err := certifier.GetOperatorTokens(req.Context(), &getOpReq)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+		// TODO(christine): take tokenList, request type, resource and exchange for permission decision
 		if next != nil {
 			glog.V(4).Info("Access middleware successfully verified permissions. Sending request to the next middleware.")
 			return next(c)
@@ -132,22 +143,22 @@ func parseAuthHeader(header string) (string, string, error) {
 	s := strings.Split(header, ":")
 	// TODO(christinewang5): remove after bootstrapping admin token
 	if len(s) != 2 {
-		return "christine", "op_NrOl5nlf744Rs6yurvYeIICGTehRPe0HQie9KSmcLd1ix20qR", nil
+		return "admin", "op_phFtTnqE0jmUYTuZ5cfeg4oetY9sFmcwHukbPx7O1AIqH5psE", nil
 	}
+	// admin:op_phFtTnqE0jmUYTuZ5cfeg4oetY9sFmcwHukbPx7O1AIqH5psE
 	// if len(s) != 2 {
 	// 	return s[0], s[1], echo.NewHTTPError(http.StatusUnauthorized, "missing REST client tokens")
 	// }
 	return s[0], s[1], nil
 }
 
-type PolicyDecision int64
-
-const (
-	Allow   PolicyDecision = 0
-	Deny                   = 1
-	Unknown                = 2
-)
-
-func authorizeUser(username string, token string) PolicyDecision {
-
-}
+// type PolicyDecision int64
+// const (
+// 	Allow   PolicyDecision = 0
+// 	Deny                   = 1
+// 	Unknown                = 2
+// )
+//
+// func authorizeUser(username string, token string) PolicyDecision {
+//
+// }
