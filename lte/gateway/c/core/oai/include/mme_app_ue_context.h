@@ -581,10 +581,6 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const mme_ue_context_p);
  */
 void mme_app_state_free_ue_context(void** ue_context_node);
 
-/** \brief Dump the UE contexts present in the tree
- **/
-void mme_app_dump_ue_contexts(void);
-
 void mme_app_handle_s1ap_ue_context_release_req(
     const itti_s1ap_ue_context_release_req_t* s1ap_ue_context_release_req);
 
