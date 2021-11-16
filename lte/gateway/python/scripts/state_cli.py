@@ -194,6 +194,14 @@ class StateCLI(object):
             deserializer = get_proto_deserializer(proto)
             version_deserializer = get_proto_version_deserializer()
             print(deserializer(value))
+            v = deserializer(value)
+            print(v)
+            # print(type(v))
+            # Write the new address book back to disk.
+            print(">>>>>>> save proto file")
+            f = open("sample.bin.v10", "wb")
+            f.write(v.SerializeToString())
+            f.close()
             print('==================')
             print('State version: %s' % version_deserializer(value))
         else:

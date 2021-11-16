@@ -8,10 +8,10 @@ namespace magma {
 namespace lte {
 
 int mock_read_spgw_ue_state_db() {
-  int number_of_samples = 1;
-  for (int i = 0; i < number_of_samples; ++i) {
+  int number_of_ue_samples = 1;
+  for (int i = 0; i < number_of_ue_samples; ++i) {
     oai::SpgwUeContext ue_proto = oai::SpgwUeContext();
-    std::string name_of_sample = "/home/vagrant/magma/lte/gateway/c/core/oai/test/spgw_task/data/sample.bin.v6";
+    std::string name_of_sample = "/home/vagrant/magma/lte/gateway/c/core/oai/test/spgw_task/data/sample.bin.v10";
     std::fstream input(name_of_sample.c_str(), std::ios::in | std::ios::binary);
     if (!ue_proto.ParseFromIstream(&input)) {
       std::cerr << "Failed to parse the sample: " << name_of_sample << std::endl;

@@ -60,8 +60,10 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
     std::cout << "Running setup" << std::endl;
     // initialize the SPGW task
     // might need to mock this function
-    spgw_state_init(false, &spgw_config);    
-    mock_spgw_app_init();
+    // spgw_state_init(false, &spgw_config);
+    spgw_app_init(&spgw_config, mme_config.use_stateless);    
+    // mock_spgw_app_init();
+    mock_read_spgw_ue_state_db();
     
     std::this_thread::sleep_for(
         std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -99,23 +101,18 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
                            .qci = 9,
                            .gbr = {},
                            }}; // .mbr = {} .br_ul = 200000000, .br_dl = 100000000
+  int test_mme_s11_teid = 14;
+  int test_bearer_index = 5;
+  in_addr_t test_ue_ip = 0x01020305;
+
 };
 
 TEST_F(SPGWAppInjectedStateProcedureTest, TestIPAllocFailure) {
   spgw_state_t* spgw_state = get_spgw_state(false);
 
-  itti_s11_create_session_request_t sample_session_req_p = {};
-  fill_create_session_request(
-      &sample_session_req_p, test_imsi_str, DEFAULT_MME_S11_TEID, 
-      DEFAULT_BEARER_INDEX,
-      sample_default_bearer_context, test_plmn);
-
   // Verify that a UE context exists in SPGW state after CSR is received
   spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  ASSERT_TRUE(ue_context_p != nullptr);
 
-  // Verify that teid is created
-  ASSERT_FALSE(LIST_EMPTY(&ue_context_p->sgw_s11_teid_list));
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
@@ -128,19 +125,117 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestIPAllocFailure) {
            .pdn_connection,
       DEFAULT_EPS_BEARER_ID);
 
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
-
   // send an IP alloc response to SPGW with status as failure
   itti_ip_allocation_response_t test_ip_alloc_resp = {};
   fill_ip_allocation_response(
       &test_ip_alloc_resp, SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED,
-      ue_sgw_teid, DEFAULT_EPS_BEARER_ID, DEFAULT_UE_IP, DEFAULT_VLAN);
+      ue_sgw_teid, DEFAULT_EPS_BEARER_ID, 0x0d80a8c0, DEFAULT_VLAN);
   status_code_e ip_alloc_rc = sgw_handle_ip_allocation_rsp(
       spgw_state, &test_ip_alloc_resp, test_imsi64);
 
   // check that IP address is not allocated
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
+  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == 0x0d80a8c0);
 
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
+TEST_F(SPGWAppInjectedStateProcedureTest, TestCreateSessionPCEFFailure) {
+  spgw_state_t* spgw_state = get_spgw_state(false);
+  
+  // Verify that a UE context exists in SPGW state after CSR is received
+  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
+
+  // Verify that teid is created
+  teid_t ue_sgw_teid =
+      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
+
+  // Verify that no IP address is allocated for this UE
+  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
+      sgw_cm_get_spgw_context(ue_sgw_teid);
+
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+           .pdn_connection,
+      DEFAULT_EPS_BEARER_ID);
+
+  // send an IP alloc response to SPGW
+  itti_ip_allocation_response_t test_ip_alloc_resp = {};
+  fill_ip_allocation_response(
+      &test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
+      0x0d80a8c0, DEFAULT_VLAN);
+  status_code_e ip_alloc_rc = sgw_handle_ip_allocation_rsp(
+      spgw_state, &test_ip_alloc_resp, test_imsi64);
+
+  // check if IP address is allocated after this message is done
+  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == 0x0d80a8c0);
+
+  // send pcef create session response to SPGW
+  itti_pcef_create_session_response_t sample_pcef_csr_resp;
+  fill_pcef_create_session_response(
+      &sample_pcef_csr_resp, PCEF_STATUS_FAILED, ue_sgw_teid,
+      DEFAULT_EPS_BEARER_ID, SGI_STATUS_OK);
+
+  // check if MME gets a create session response
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
+
+  spgw_handle_pcef_create_session_response(
+      spgw_state, &sample_pcef_csr_resp, test_imsi64);
+
+  // verify that spgw context for IMSI has been cleared
+  ue_context_p = spgw_get_ue_context(test_imsi64);
+  ASSERT_TRUE(ue_context_p == nullptr);
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
+TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
+  spgw_state_t* spgw_state  = get_spgw_state(false);
+  
+  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
+
+  // create sample delete session request
+  teid_t ue_sgw_teid =
+      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
+
+  // check if IP address is allocated after this message is done
+  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
+      sgw_cm_get_spgw_context(ue_sgw_teid);
+
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+           .pdn_connection,
+      DEFAULT_EPS_BEARER_ID);
+
+  char str[INET_ADDRSTRLEN];
+  
+    // now get it back and print it
+    inet_ntop(AF_INET, &(eps_bearer_ctxt_p->paa.ipv4_address.s_addr), str, INET_ADDRSTRLEN);
+
+  std::cout << "======== IP: " << std::string(str) << std::endl;
+  std::cout <<  "val : " << std::hex << eps_bearer_ctxt_p->paa.ipv4_address.s_addr << std::endl;
+  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == 0x0d80a8c0); //c0a8800d    
+
+  // verify that exactly one session exists in SPGW state
+  ASSERT_TRUE(is_num_sessions_valid(spgw_state, test_imsi64, 1, 1));
+
+  
+
+  itti_s11_delete_session_request_t sample_delete_session_request = {};
+  fill_delete_session_request(
+      &sample_delete_session_request, test_mme_s11_teid, ue_sgw_teid,
+      DEFAULT_EPS_BEARER_ID, test_plmn);
+
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_delete_sess_rsp()).Times(1);
+
+  status_code_e return_code = RETURNerror;
+  return_code = sgw_handle_delete_session_request(
+      &sample_delete_session_request, test_imsi64);
+  ASSERT_EQ(return_code, RETURNok);
+
+  // verify SPGW state is cleared
+  ASSERT_TRUE(is_num_sessions_valid(spgw_state, test_imsi64, 0, 0));
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }

@@ -1038,8 +1038,10 @@ status_code_e sgw_handle_modify_bearer_request(
     }
     sgw_handle_sgi_endpoint_updated(&sgi_update_end_point_resp, imsi64);
   } else {  // bearer_ctxt_info_p not found
+    printf("============ sgw_handle_modify_bearer_request : bearer_ctxt_info_p not found \n");
     rv = send_mbr_failure(LOG_SPGW_APP, modify_bearer_pP, imsi64);
     if (rv != RETURNok) {
+      printf("============ sgw_handle_modify_bearer_request : send_mbr_failure failed \n");
       OAILOG_ERROR_UE(
           LOG_SPGW_APP, imsi64,
           "Error in sending modify bearer response to MME App for the failed "

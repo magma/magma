@@ -542,6 +542,7 @@ void SpgwStateConverter::proto_to_sgw_eps_bearer(
   bdestroy_wrapper(&ip_addr_bstr);
   eps_bearer->enb_teid_S1u = eps_bearer_proto.enb_teid_s1u();
 
+  std::cout << "============ eps paa:" << eps_bearer_proto.paa() << std::endl; 
   ip_addr_bstr = bfromcstr(eps_bearer_proto.paa().c_str());
   bstring_to_paa(ip_addr_bstr, &eps_bearer->paa);
   bdestroy_wrapper(&ip_addr_bstr);
@@ -1001,6 +1002,7 @@ void SpgwStateConverter::ue_to_proto(
 
 void SpgwStateConverter::proto_to_ue(
     const oai::SpgwUeContext& ue_proto, spgw_ue_context_t* ue_context_p) {
+  std::cout << "========== This must launch serval times" << std::endl;
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   hash_table_ts_t* state_ue_ht   = nullptr;
   hash_table_ts_t* state_teid_ht = nullptr;
