@@ -44,4 +44,4 @@ add_custom_command(TARGET ASYNC_GRPC POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${MAGMA_INCLUDE_DIR})
 add_custom_command(TARGET ASYNC_GRPC POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-    ${PROJECT_SOURCE_DIR}/includes/*.h ${MAGMA_INCLUDE_DIR})
+    ${PROJECT_SOURCE_DIR}/includes/* ${MAGMA_INCLUDE_DIR})
