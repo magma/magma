@@ -26,7 +26,7 @@ RUN apt-get update && \
         unzip \
         vim \
         wget \
-        zip \
+        zip
 
 # Install bazel
 WORKDIR /usr/sbin
