@@ -43,6 +43,7 @@ def main():
     build_id = os.environ["BUILD_ID"]
     build_metadata_env = os.environ["BUILD_METADATA"]
     agw_artifacts_env = os.environ["AGW_ARTIFACTS"]
+    feg_artifacts_env = os.environ["FEG_ARTIFACTS"]
 
     # Prepare list of registered test workers
     workers = [x.strip() for x in workers_env.split(",")]
@@ -56,7 +57,7 @@ def main():
         print("Decoding build_metadata_env JSON failed: ", build_metadata_env)
     build_info = {"metadata": build_metadata}
 
-    # Add agw arifacts
+    # Add AGW artifacts
     agw_artifacts = {}
     try:
         agw_artifacts = json.loads(agw_artifacts_env)
@@ -70,6 +71,15 @@ def main():
             agw_artifacts["artifacts"] = {"downloadUri": package}
             break
     build_info["agw"] = agw_artifacts
+
+    # Add FEG artifacts
+    feg_artifacts = {}
+    try:
+        feg_artifacts = json.loads(feg_artifacts_env)
+    except ValueError:
+        print("Decoding feg artifacts JSON has failed: ", feg_artifacts_env)
+        feg_artifacts = {"packages": [], "valid": False}
+    build_info["feg"] = feg_artifacts
 
     # Prepare workload
     workload = {
