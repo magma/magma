@@ -31,6 +31,7 @@ target_link_libraries(SPGW_TASK_TEST_LIB
     TASK_SGW MOCK_TASKS
     gmock_main gtest gtest_main gmock
     pthread rt yaml-cpp
+    TASK_GRPC_SERVICE
     )
 
 set_target_properties(SPGW_TASK_TEST_LIB PROPERTIES LINKER_LANGUAGE CXX)
