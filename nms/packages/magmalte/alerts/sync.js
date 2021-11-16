@@ -104,7 +104,7 @@ async function syncAlerts(req: FBCNMSRequest, res: ExpressResponse) {
     }
     res.status(200).end();
   } catch (e) {
-    res.status(500).end("Exception occurred");
+    res.status(500).end('Exception occurred');
   }
 }
 

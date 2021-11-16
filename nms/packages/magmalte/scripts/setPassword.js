@@ -114,8 +114,7 @@ function main() {
     role: AccessRoles.SUPERUSER,
   };
   console.log(
-    'Creating a new user: email=' +
-      userObject.email,
+    'Creating a new user: email=' + userObject.email,
   );
   createOrUpdateUser(userObject)
     .then(_res => {
