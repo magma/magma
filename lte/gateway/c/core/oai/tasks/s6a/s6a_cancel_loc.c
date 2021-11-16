@@ -23,7 +23,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <lte/gateway/c/core/oai/common/conversions.h>
+#include "lte/gateway/c/core/oai/common/conversions.h"
 
 #include "lte/gateway/c/core/oai/common/assertions.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"

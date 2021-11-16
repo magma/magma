@@ -16,4 +16,4 @@ enable_automatic_reindexing: True
 
 # When true, use a singleton service to reindex states.
 # When false, use service(s) and a JobQueue to reindex states.
-enable_singleton_reindex: False
+enable_singleton_reindex: True

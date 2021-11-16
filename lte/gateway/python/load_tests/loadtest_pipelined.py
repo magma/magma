@@ -66,13 +66,17 @@ def _build_activate_flows_data(ue_dict, disable_qos: bool, input_file: str):
                         flow_list=[
                             FlowDescription(
                                 match=FlowMatch(
-                                    ip_dst=convert_ipv4_str_to_ip_proto(ue.ipv4_src),
+                                    ip_dst=convert_ipv4_str_to_ip_proto(
+                                        ue.ipv4_src,
+                                    ),
                                     direction=FlowMatch.UPLINK,
                                 ),
                             ),
                             FlowDescription(
                                 match=FlowMatch(
-                                    ip_src=convert_ipv4_str_to_ip_proto(ue.ipv4_dst),
+                                    ip_src=convert_ipv4_str_to_ip_proto(
+                                        ue.ipv4_dst,
+                                    ),
                                     direction=FlowMatch.DOWNLINK,
                                 ),
                             ),
@@ -127,6 +131,7 @@ def activate_flows_test(args):
         input_file=input_file,
         output_file=make_output_file_path(request_type),
         num_reqs=args.num_of_ues, address=PIPELINED_PORT,
+        import_path=args.import_path,
     )
 
 
@@ -143,6 +148,7 @@ def deactivate_flows_test(args):
         input_file=input_file,
         output_file=make_output_file_path(request_type),
         num_reqs=args.num_of_ues, address=PIPELINED_PORT,
+        import_path=args.import_path,
     )
 
 
@@ -174,6 +180,9 @@ def create_parser():
         subcmd.add_argument(
             '--disable_qos', help='If we want to disable QOS',
             action="store_true",
+        )
+        subcmd.add_argument(
+            '--import_path', default=None, help='Protobuf import path directory',
         )
     parser_activate.set_defaults(func=activate_flows_test)
     parser_deactivate.set_defaults(func=deactivate_flows_test)

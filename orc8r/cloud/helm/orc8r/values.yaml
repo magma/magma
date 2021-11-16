@@ -296,6 +296,11 @@ service_registry:
     labels: {}
     annotations: {}
 
+orc8r_worker:
+  service:
+    labels: {}
+    annotations: {}
+
 state:
   service:
     labels: {}

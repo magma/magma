@@ -30,7 +30,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <netinet/in.h>
-#include <lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h>
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
@@ -1179,10 +1179,6 @@ status_code_e sgw_handle_delete_session_request(
       /*
        * Remove eps bearer context, S11 bearer context and s11 tunnel
        */
-      sgw_cm_remove_eps_bearer_entry(
-          &ctx_p->sgw_eps_bearer_context_information.pdn_connection,
-          delete_session_req_pP->lbi);
-
       sgw_cm_remove_bearer_context_information(
           delete_session_req_pP->teid, imsi64);
       increment_counter("spgw_delete_session", 1, 1, "result", "success");
@@ -1435,10 +1431,6 @@ void handle_s5_create_session_response(
       "Deleted default bearer context with SGW C-plane TEID = %u "
       "as create session response failure is received\n",
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.mme_teid_S11);
-  sgw_cm_remove_eps_bearer_entry(
-      &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      sgi_create_endpoint_resp.eps_bearer_id);
   sgw_cm_remove_bearer_context_information(
       session_resp.context_teid,
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64);
@@ -1779,9 +1771,6 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
         sizeof(paa_t));
 
     sgw_handle_sgi_endpoint_deleted(&sgi_delete_end_point_request, imsi64);
-
-    sgw_cm_remove_eps_bearer_entry(
-        &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection, ebi);
 
     sgw_cm_remove_bearer_context_information(
         s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4, imsi64);

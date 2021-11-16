@@ -13,13 +13,13 @@ limitations under the License.
 
 from collections import namedtuple
 
-import netifaces
 from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupUEMacRequest
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.directoryd_client import get_all_records
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, load_passthrough
+from magma.pipelined.utils import get_virtual_iface_mac
 from ryu.controller import dpset
 from ryu.lib.packet import arp, ether_types
 
@@ -72,10 +72,6 @@ class ArpController(MagmaController):
         self._datapath = None
 
     def _get_config(self, config_dict):
-        def get_virtual_iface_mac(iface):
-            virt_ifaddresses = netifaces.ifaddresses(iface)
-            return virt_ifaddresses[netifaces.AF_LINK][0]['addr']
-
         enable_nat = config_dict.get('enable_nat', True)
         setup_type = config_dict.get('setup_type', None)
 
@@ -122,7 +118,6 @@ class ArpController(MagmaController):
                 datapath, self.config.mtr_ip,
                 self.config.mtr_mac,
             )
-            self._install_local_eth_dst_flow(datapath)
 
         if self.setup_type == 'CWF':
             self.set_incoming_arp_flows(
@@ -134,10 +129,6 @@ class ArpController(MagmaController):
                 self._install_allow_incoming_arp_flow(datapath)
 
         elif self.setup_type == 'LTE':
-            if self.config.enable_nat:
-                # TODO: move this to in/out controller
-                self._install_default_eth_dst_flow(datapath)
-
             # ARP flows, from high priority to lower:
             # UE_FLOW_PRIORITY    : MTR IP arp flow
             # UE_FLOW_PRIORITY    : Router IP
@@ -349,30 +340,6 @@ class ArpController(MagmaController):
         flows.add_drop_flow(
             datapath, self.table_num, match, [],
             priority=flows.DEFAULT_PRIORITY,
-        )
-
-    def _install_default_eth_dst_flow(self, datapath):
-        """
-        Add lower-pri flow rule to set `eth_dst` on outgoing packets to the
-        specified MAC address.
-        """
-        self.logger.info(
-            'Setting default eth_dst to %s',
-            self.config.virtual_iface,
-        )
-        parser = datapath.ofproto_parser
-        match = MagmaMatch(
-            eth_type=ether_types.ETH_TYPE_IP,
-            direction=Direction.OUT,
-        )
-        actions = [
-            parser.NXActionRegLoad2(dst='eth_dst', value=self.config.virtual_mac),
-        ]
-        flows.add_resubmit_next_service_flow(
-            datapath, self.table_num, match,
-            actions,
-            priority=flows.DEFAULT_PRIORITY,
-            resubmit_table=self.next_table,
         )
 
     def _install_local_eth_dst_flow(self, datapath):

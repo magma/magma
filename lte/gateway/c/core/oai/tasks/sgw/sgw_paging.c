@@ -20,7 +20,7 @@
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <sys/socket.h>
-#include <lte/gateway/c/core/oai/common/conversions.h>
+#include "lte/gateway/c/core/oai/common/conversions.h"
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/common/log.h"

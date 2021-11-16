@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 extern "C" {
-#include <lte/gateway/c/core/oai/common/dynamic_memory_check.h>
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/backtrace.h"
 }
 
