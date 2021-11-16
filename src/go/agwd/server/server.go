@@ -80,6 +80,23 @@ func cleanupUnixSocket(
 	return nil
 }
 
+func startListenerOrDie(logger log.Logger, configTarget string) net.Listener {
+	target := config.TargetSchemeAdapter(config.ParseTarget(configTarget))
+	if target.Scheme == "unix" {
+		cleanupUnixSocketOrDie(logger, target.Endpoint)
+	}
+
+	listener, err := net.Listen(target.Scheme, target.Endpoint)
+	if err != nil {
+		panic(errors.Wrapf(
+			err,
+			"net.Listen(network=%s, address=%s)",
+			target.Scheme,
+			target.Endpoint))
+	}
+	return listener
+}
+
 func cleanupUnixSocketOrDie(logger log.Logger, path string) {
 	if err := cleanupUnixSocket(logger, os.Stat, os.Remove, net.DialTimeout, path); err != nil {
 		panic(errors.Wrapf(
@@ -92,20 +109,7 @@ func cleanupUnixSocketOrDie(logger log.Logger, path string) {
 func startSctpdDownlinkServer(
 	cfgr config.Configer, logger log.Logger, sr service.Router,
 ) {
-	target := config.ParseTarget(cfgr.Config().GetMmeSctpdDownstreamServiceTarget())
-	if target.Scheme == "unix" {
-		cleanupUnixSocketOrDie(logger, target.Endpoint)
-	}
-
-	listener, err := net.Listen(
-		target.Scheme, target.Endpoint)
-	if err != nil {
-		panic(errors.Wrapf(
-			err,
-			"net.Listen(network=%s, address=%s)",
-			target.Scheme,
-			target.Endpoint))
-	}
+	listener := startListenerOrDie(logger, cfgr.Config().GetMmeSctpdDownstreamServiceTarget())
 
 	grpcServer := grpc.NewServer()
 	sctpdDownlinkServer := sctpd.NewProxyDownlinkServer(logger, sr)
@@ -114,9 +118,8 @@ func startSctpdDownlinkServer(
 		if err := grpcServer.Serve(listener); err != nil {
 			panic(errors.Wrapf(
 				err,
-				"startSctpdDownlinkServer(network=%s, address=%s)",
-				target.Scheme,
-				target.Endpoint))
+				"startSctpdDownlinkServer(%s)",
+				listener.Addr()))
 		}
 	}()
 }
@@ -124,19 +127,7 @@ func startSctpdDownlinkServer(
 func startSctpdUplinkServer(
 	cfgr config.Configer, logger log.Logger, sr service.Router,
 ) {
-	target := config.ParseTarget(cfgr.Config().GetSctpdUpstreamServiceTarget())
-	if target.Scheme == "unix" {
-		cleanupUnixSocketOrDie(logger, target.Endpoint)
-	}
-
-	listener, err := net.Listen(target.Scheme, target.Endpoint)
-	if err != nil {
-		panic(errors.Wrapf(
-			err,
-			"net.Listen(network=%s, address=%s)",
-			target.Scheme,
-			target.Endpoint))
-	}
+	listener := startListenerOrDie(logger, cfgr.Config().GetSctpdUpstreamServiceTarget())
 
 	grpcServer := grpc.NewServer()
 	sctpdUplinkServer := sctpd.NewProxyUplinkServer(logger, sr)
@@ -145,24 +136,15 @@ func startSctpdUplinkServer(
 		if err := grpcServer.Serve(listener); err != nil {
 			panic(errors.Wrapf(
 				err,
-				"startSctpdUplinkServer(network=%s, address=%s)",
-				target.Scheme,
-				target.Endpoint))
+				"startSctpdUplinkServer(%s)",
+				listener.Addr()))
 		}
 	}()
 }
 
 func startPipelinedServer(cfgr config.Configer, logger log.Logger) {
-	target := config.ParseTarget(cfgr.Config().GetPipelinedServiceTarget())
-	listener, err := net.Listen(target.Scheme, target.Endpoint)
+	listener := startListenerOrDie(logger, cfgr.Config().GetPipelinedServiceTarget())
 
-	if err != nil {
-		panic(errors.Wrapf(
-			err,
-			"net.Listen(network=%s, address=%s)",
-			target.Scheme,
-			target.Endpoint))
-	}
 	grpcServer := grpc.NewServer()
 	pipelinedServer := pipelined.NewPipelinedServer(logger)
 	pipelinedpb.RegisterPipelinedServer(grpcServer, pipelinedServer)
@@ -170,9 +152,8 @@ func startPipelinedServer(cfgr config.Configer, logger log.Logger) {
 		if err := grpcServer.Serve(listener); err != nil {
 			panic(errors.Wrapf(
 				err,
-				"startPipelinedServer(network=%s, address=%s)",
-				target.Scheme,
-				target.Endpoint))
+				"startPipelinedServer(%s)",
+				listener.Addr()))
 		}
 	}()
 }
@@ -180,24 +161,19 @@ func startPipelinedServer(cfgr config.Configer, logger log.Logger) {
 func startConfigServer(
 	cfgr config.Configer, logger log.Logger,
 ) {
-	target := config.ParseTarget(cfgr.Config().GetConfigServiceTarget())
-	if target.Scheme == "unix" {
-		cleanupUnixSocketOrDie(logger, target.Endpoint)
-	}
-
-	listener, err := net.Listen(target.Scheme, target.Endpoint)
-	if err != nil {
-		panic(errors.Wrapf(
-			err,
-			"net.Listen(network=%s, address=%s)",
-			target.Scheme,
-			target.Endpoint))
-	}
+	listener := startListenerOrDie(logger, cfgr.Config().GetConfigServiceTarget())
 
 	grpcServer := grpc.NewServer()
 	configServer := service_config.NewConfigServer(logger, cfgr)
 	configpb.RegisterConfigServer(grpcServer, configServer)
-	go grpcServer.Serve(listener)
+	go func() {
+		if err := grpcServer.Serve(listener); err != nil {
+			panic(errors.Wrapf(
+				err,
+				"startConfigServer(%s)",
+				listener.Addr()))
+		}
+	}()
 }
 
 func Start(cfgr config.Configer, logger log.Logger) {

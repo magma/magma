@@ -21,7 +21,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-
 // Script to dial Pipelined/GetStats gRPC and print out the results
 // useful for build/debug purposes
 func main() {
@@ -43,7 +42,7 @@ func main() {
 	defer conn.Close()
 	ctx := context.Background()
 	req := &pipelinedpb.GetStatsRequest{
-		Cookie: 0,
+		Cookie:     0,
 		CookieMask: 0,
 	}
 

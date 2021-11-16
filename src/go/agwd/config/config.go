@@ -53,22 +53,33 @@ const (
 
 // ParseTarget takes a target in string form and returns a resolved Target.
 // Extends functionality in grpc/internal/grpcutil.ParseTarget to support ipv4
-// and ipv6 schemes. Return tcp4Scheme or tcp6Scheme so the Scheme can be passed
-// directly to net.Listen.
+// and ipv6 schemes.
 func ParseTarget(target string) resolver.Target {
 	if strings.HasPrefix(target, ipv4Scheme+":") {
 		return resolver.Target{
-			Scheme:   tcp4Scheme,
+			Scheme:   ipv4Scheme,
 			Endpoint: target[len(ipv4Scheme)+1:],
 		}
 	}
 	if strings.HasPrefix(target, ipv6Scheme+":") {
 		return resolver.Target{
-			Scheme:   tcp6Scheme,
+			Scheme:   ipv6Scheme,
 			Endpoint: target[len(ipv6Scheme)+1:],
 		}
 	}
 	return grpcutil.ParseTarget(target, false)
+}
+
+// TargetSchemeAdapter takes a gRPC formatted Target such as {ipv4, ipv6}
+// and translates to net.Listen's required network type such as {tcp4, tcp6}.
+func TargetSchemeAdapter(target resolver.Target) resolver.Target {
+	if target.Scheme == ipv4Scheme {
+		target.Scheme = tcp4Scheme
+	}
+	if target.Scheme == ipv6Scheme {
+		target.Scheme = tcp6Scheme
+	}
+	return target
 }
 
 // Configer returns a parsed config.
@@ -92,9 +103,9 @@ func newDefaultConfig() *config.AgwD {
 		MmeSctpdDownstreamServiceTarget: "unix:///tmp/mme_sctpd_downstream.sock",
 		MmeSctpdUpstreamServiceTarget:   "unix:///tmp/mme_sctpd_upstream.sock",
 		// Sentry is disabled if DSN is not set.
-		SentryDsn:           "",
-		ConfigServiceTarget: "tcp4:127.0.0.1:50090",
-		PipelinedServiceTarget: "tcp4:0.0.0.0:12345",
+		SentryDsn:              "",
+		ConfigServiceTarget:    "ipv4:127.0.0.1:50090",
+		PipelinedServiceTarget: "ipv4:127.0.0.1:12345",
 	}
 }
 

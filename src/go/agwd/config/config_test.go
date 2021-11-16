@@ -96,7 +96,7 @@ func TestParseTarget(t *testing.T) {
 		{
 			target: "ipv4:localhost:1234",
 			want: resolver.Target{
-				Scheme:    "tcp4",
+				Scheme:    "ipv4",
 				Authority: "",
 				Endpoint:  "localhost:1234",
 			},
@@ -104,7 +104,7 @@ func TestParseTarget(t *testing.T) {
 		{
 			target: "ipv6:[2607:f8b0:400e:c00::ef]:443",
 			want: resolver.Target{
-				Scheme:    "tcp6",
+				Scheme:    "ipv6",
 				Authority: "",
 				Endpoint:  "[2607:f8b0:400e:c00::ef]:443",
 			},
@@ -112,7 +112,7 @@ func TestParseTarget(t *testing.T) {
 		{
 			target: "ipv6:[::]:1234",
 			want: resolver.Target{
-				Scheme:    "tcp6",
+				Scheme:    "ipv6",
 				Authority: "",
 				Endpoint:  "[::]:1234",
 			},
@@ -127,6 +127,53 @@ func TestParseTarget(t *testing.T) {
 			got,
 			"ParseTarget(%s) = %v, want %v",
 			test.target,
+			got,
+			test.want)
+	}
+}
+
+func TestTargetSchemeAdapter(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		input resolver.Target
+		want  resolver.Target
+	}{
+		{},
+		{
+			input: resolver.Target{
+				Scheme: "unix",
+			},
+			want: resolver.Target{
+				Scheme: "unix",
+			},
+		},
+		{
+			input: resolver.Target{
+				Scheme: "ipv4",
+			},
+			want: resolver.Target{
+				Scheme: "tcp4",
+			},
+		},
+		{
+			input: resolver.Target{
+				Scheme: "ipv6",
+			},
+			want: resolver.Target{
+				Scheme: "tcp6",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		got := TargetSchemeAdapter(test.input)
+		assert.Equal(
+			t,
+			test.want,
+			got,
+			"TargetSchemeAdapter(%s) = %v, want %v",
+			test.input,
 			got,
 			test.want)
 	}
@@ -188,8 +235,8 @@ func TestNewConfigManager(t *testing.T) {
 	assert.Equal(t, "unix:///tmp/mme_sctpd_downstream.sock", cm.Config().MmeSctpdDownstreamServiceTarget)
 	assert.Equal(t, "unix:///tmp/mme_sctpd_upstream.sock", cm.Config().MmeSctpdUpstreamServiceTarget)
 	assert.Equal(t, "", cm.Config().SentryDsn)
-	assert.Equal(t, "tcp4:127.0.0.1:50090", cm.Config().ConfigServiceTarget)
-	assert.Equal(t, "tcp4:0.0.0.0:12345", cm.Config().PipelinedServiceTarget)
+	assert.Equal(t, "ipv4:127.0.0.1:50090", cm.Config().ConfigServiceTarget)
+	assert.Equal(t, "ipv4:127.0.0.1:12345", cm.Config().PipelinedServiceTarget)
 }
 
 func TestLoadConfigFile(t *testing.T) {
