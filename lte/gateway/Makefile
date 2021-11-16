@@ -148,9 +148,9 @@ build_oai_clang: ## Build OAI with Clang, store compiler outputs to log
 
 format_all:
 	find $(MAGMA_ROOT)/orc8r/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
-	clang-format --style=file -i {} \;
+	/usr/bin/clang-format-11 --style=file -i {} \;
 	find $(MAGMA_ROOT)/lte/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
-	clang-format --style=file -i {} \;
+	/usr/bin/clang-format-11 --style=file -i {} \;
 
 # Upload Clang-Warning counts by type to Google Sheet via Google Survey
 #  Graph available at https://docs.google.com/spreadsheets/d/1ndiIKJNI2IJZBwavnu1x_KwwvlQppnoYEOtYdihqiIQ/edit#gid=734064581
