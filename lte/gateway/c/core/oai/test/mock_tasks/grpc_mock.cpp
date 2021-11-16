@@ -13,8 +13,8 @@
 
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/security/server_credentials.h>
-#include "mock_tasks.h"
-#include "grpc_service.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/include/grpc_service.h"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.h"
 
 task_zmq_ctx_t task_zmq_ctx_grpc;
