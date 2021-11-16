@@ -124,7 +124,7 @@ jobs:
             for (const l of curLblObjs['data']) {
               //console.log("Current LabelName: " + l['name'] + " LabelDescription: " + l['description']);
               if(l['name'].startsWith("component: "))  {
-                if(newCompLbls.has(l['name'])  {
+                if(newCompLbls.has(l['name']))  {
                   newCompLbls.delete(l['name']);
                 }
                 else  {
