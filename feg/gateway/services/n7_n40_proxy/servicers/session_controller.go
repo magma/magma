@@ -20,7 +20,8 @@ import (
 	"github.com/golang/glog"
 
 	"magma/feg/gateway/policydb"
-	n7_client "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
+	n7_sbi "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
+	"magma/feg/gateway/services/n7_n40_proxy/metrics"
 	"magma/feg/gateway/services/n7_n40_proxy/n7"
 	"magma/lte/cloud/go/protos"
 )
@@ -30,9 +31,10 @@ const (
 )
 
 type CentralSessionController struct {
-	policyClient *n7_client.ClientWithResponses
-	dbClient     policydb.PolicyDBClient
-	cfg          *SessionControllerConfig
+	policyClient  *n7_sbi.ClientWithResponses
+	dbClient      policydb.PolicyDBClient
+	cfg           *SessionControllerConfig
+	healthTracker *metrics.SessionHealthTracker
 }
 
 type SessionControllerConfig struct {
@@ -59,6 +61,7 @@ func NewCentralSessionController(
 			N7Config:       n7config,
 			RequestTimeout: DefaultN7Timeout,
 		},
+		healthTracker: metrics.NewSessionHealthTracker(),
 	}, nil
 }
 

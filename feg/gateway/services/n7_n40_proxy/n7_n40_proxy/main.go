@@ -16,14 +16,14 @@ package main
 import (
 	"flag"
 
+	"github.com/golang/glog"
+
+	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/policydb"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/n7_n40_proxy/servicers"
-
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/lib/go/service"
-
-	"github.com/golang/glog"
 )
 
 func init() {
@@ -50,6 +50,7 @@ func main() {
 
 	// Add GRPC handlers to the service
 	lteprotos.RegisterCentralSessionControllerServer(srv.GrpcServer, sessController)
+	protos.RegisterServiceHealthServer(srv.GrpcServer, sessController)
 
 	// Run the service
 	err = srv.Run()
