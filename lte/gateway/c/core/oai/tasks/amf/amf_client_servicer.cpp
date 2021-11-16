@@ -15,7 +15,6 @@
 #include "M5GAuthenticationServiceClient.h"
 #include "amf_common.h"
 #include <memory>
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.h"
 #include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
 #include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.h"
 
