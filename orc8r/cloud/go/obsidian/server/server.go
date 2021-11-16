@@ -59,6 +59,8 @@ func Start() {
 	portStr := fmt.Sprintf(":%d", obsidian.Port)
 	log.Printf("Starting %s on %s", obsidian.Product, portStr)
 
+	e.Use(access.TokenMiddleware)
+
 	if obsidian.TLS {
 		var caCerts []byte
 		caCerts, err = ioutil.ReadFile(obsidian.ClientCAPoolPath)
@@ -114,7 +116,7 @@ func Start() {
 			s.TLSConfig.NextProtos = append(s.TLSConfig.NextProtos, "h2")
 		}
 	} else {
-		e.Use(access.Middleware)
+		e.Use(access.CertificateMiddleware)
 	}
 
 	reverseProxyHandler := reverse_proxy.NewReverseProxyHandler()

@@ -18,20 +18,21 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/golang/glog"
-	"github.com/labstack/echo"
-
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
+	"magma/orc8r/cloud/go/services/certifier"
 	merrors "magma/orc8r/lib/go/errors"
+
+	"github.com/golang/glog"
+	"github.com/labstack/echo"
 )
 
-// Access Middleware:
+// Access CertificateMiddleware:
 // 1) determines request's access type (READ/WRITE)
 // 2) finds Operator & Entities of the request
 // 3) verifies Operator's access permissions for the entities
-func Middleware(next echo.HandlerFunc) echo.HandlerFunc {
+func CertificateMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		decorate := getDecorator(c.Request())
 		req := c.Request()
@@ -99,4 +100,54 @@ func transformErr(decorate logDecorator, err error, status int, errFmt string, e
 func makeErr(decorate logDecorator, status int, errFmt string, errArgs ...interface{}) error {
 	glog.V(1).Infof("REST middleware (obsidian) rejected request: %s", decorate(errFmt, errArgs...))
 	return echo.NewHTTPError(status, fmt.Sprintf(errFmt, errArgs...))
+}
+
+func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req := c.Request()
+		header := req.Header.Get(CLIENT_ACCESS_TOKEN_KEY)
+		glog.Errorf("CHRISTINE tokens %+v", tokens)
+		// TODO(christinewang5): remove after bootstrapping admin token
+		// if len(tokens) == 0 {
+		// 	return echo.NewHTTPError(http.StatusUnauthorized, "missing REST client tokens")
+		// }
+		username, token, err := parseAuthHeader(header)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+		if err := certifier.ValidateToken(token); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+
+		if next != nil {
+			glog.V(4).Info("Access middleware successfully verified permissions. Sending request to the next middleware.")
+			return next(c)
+		}
+
+		return nil
+	}
+}
+
+func parseAuthHeader(header string) (string, string, error) {
+	s := strings.Split(header, ":")
+	// TODO(christinewang5): remove after bootstrapping admin token
+	if len(s) != 2 {
+		return "christine", "op_NrOl5nlf744Rs6yurvYeIICGTehRPe0HQie9KSmcLd1ix20qR", nil
+	}
+	// if len(s) != 2 {
+	// 	return s[0], s[1], echo.NewHTTPError(http.StatusUnauthorized, "missing REST client tokens")
+	// }
+	return s[0], s[1], nil
+}
+
+type PolicyDecision int64
+
+const (
+	Allow   PolicyDecision = 0
+	Deny                   = 1
+	Unknown                = 2
+)
+
+func authorizeUser(username string, token string) PolicyDecision {
+
 }

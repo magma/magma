@@ -262,7 +262,7 @@ func startTestMidlewareServer(t *testing.T) *echo.Echo {
 		return c.String(http.StatusOK, "All good!")
 	})
 
-	e.Use(access.Middleware) // inject obsidian access control middleware
+	e.Use(access.CertificateMiddleware) // inject obsidian access control middleware
 
 	go func(t *testing.T) {
 		assert.NoError(t, e.Start(""))

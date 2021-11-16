@@ -22,4 +22,6 @@ const (
 	CLIENT_CERT_CN_KEY = "X-Magma-Client-Cert-Cn"
 	// Client Certificate Serial Number Header
 	CLIENT_CERT_SN_KEY = "X-Magma-Client-Cert-Serial"
+	// Client Access Token Header
+	CLIENT_ACCESS_TOKEN_KEY = "X-Magma-Client-Access-Token"
 )

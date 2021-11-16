@@ -225,3 +225,17 @@ func VerifyDateRange(certInfo CertDateRange) error {
 	}
 	return nil
 }
+
+func GetUser(ctx context.Context) (certifierprotos.Operator, error) {
+	client, err := getCertifierClient()
+	if err != nil {
+		return nil, err
+	}
+
+	certInfo, err := client.GetIdentity(ctx, sn)
+	if err != nil {
+		glog.Errorf("Failed to get identity with SN: %s, %s", sn.Sn, err)
+		return nil, err
+	}
+	return certInfo, nil
+}

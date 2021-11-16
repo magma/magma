@@ -83,7 +83,7 @@ paths:
 
   /http_basic_auth/login:
     post:
-#      security: [ ] # no security
+      security: [ ] # no security
       parameters:
         - name: user
           in: body

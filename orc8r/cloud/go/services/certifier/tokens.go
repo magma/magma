@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"hash/crc32"
+	"strings"
 
 	"github.com/jxskiss/base62"
 )
@@ -30,8 +31,34 @@ func GenerateToken(prefix TokenPrefix) (string, error) {
 	return string(prefix) + "_" + token, nil
 }
 
-func ValidateTokenChecksum(token string) error {
-	token = stripTokenHeader(token)
+func ValidateToken(token string) error {
+	value, err := stripTokenHeader(token)
+	if err != nil {
+		return err
+	}
+	if err := validateTokenChecksum(value); err != nil {
+		return err
+	}
+	return nil
+}
+
+func stripTokenHeader(token string) (string, error) {
+	s := strings.Split(token, "_")
+	prefix, value := s[0], s[1]
+
+	if len(s) != 2 {
+		return "", errors.New("missing token prefix")
+	}
+
+	// validate token prefix
+	switch prefix {
+	case string(Personal):
+		return value, nil
+	}
+	return "", errors.New("invalid token prefix")
+}
+
+func validateTokenChecksum(token string) error {
 	bytes, err := base62.DecodeString(token)
 	if err != nil {
 		return err
@@ -39,13 +66,9 @@ func ValidateTokenChecksum(token string) error {
 	orignalChecksum := btoi32(bytes[len(bytes)-4:])
 	newChecksum := crc32.ChecksumIEEE(bytes[:len(bytes)-4])
 	if orignalChecksum != newChecksum {
-		return errors.New("invalid token")
+		return errors.New("invalid token checksum")
 	}
 	return nil
-}
-
-func stripTokenHeader(token string) string {
-	return token[3:]
 }
 
 func i32tob(val uint32) []byte {
