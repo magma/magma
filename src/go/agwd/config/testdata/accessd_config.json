@@ -10,7 +10,8 @@
   "mme_sctpd_downstream_service_target": "c",  // trailing comment
   "mme_sctpd_upstream_service_target": "d",
   "sentry_dsn": "e",
-  "config_service_target": "f"
+  "config_service_target": "f",
+  "pipelined_service_target": "g"
   // single line comment
 }
 /*

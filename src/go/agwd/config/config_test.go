@@ -132,6 +132,53 @@ func TestParseTarget(t *testing.T) {
 	}
 }
 
+func TestTargetSchemeAdapter(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		input resolver.Target
+		want  resolver.Target
+	}{
+		{},
+		{
+			input: resolver.Target{
+				Scheme: "unix",
+			},
+			want: resolver.Target{
+				Scheme: "unix",
+			},
+		},
+		{
+			input: resolver.Target{
+				Scheme: "ipv4",
+			},
+			want: resolver.Target{
+				Scheme: "tcp4",
+			},
+		},
+		{
+			input: resolver.Target{
+				Scheme: "ipv6",
+			},
+			want: resolver.Target{
+				Scheme: "tcp6",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		got := TargetSchemeAdapter(test.input)
+		assert.Equal(
+			t,
+			test.want,
+			got,
+			"TargetSchemeAdapter(%s) = %v, want %v",
+			test.input,
+			got,
+			test.want)
+	}
+}
+
 func TestFilterCStyleComments(t *testing.T) {
 	t.Parallel()
 
@@ -188,7 +235,8 @@ func TestNewConfigManager(t *testing.T) {
 	assert.Equal(t, "unix:///tmp/mme_sctpd_downstream.sock", cm.Config().MmeSctpdDownstreamServiceTarget)
 	assert.Equal(t, "unix:///tmp/mme_sctpd_upstream.sock", cm.Config().MmeSctpdUpstreamServiceTarget)
 	assert.Equal(t, "", cm.Config().SentryDsn)
-	assert.Equal(t, "127.0.0.1:50090", cm.Config().ConfigServiceTarget)
+	assert.Equal(t, "tcp4:127.0.0.1:50090", cm.Config().ConfigServiceTarget)
+	assert.Equal(t, "tcp4:0.0.0.0:12345", cm.Config().PipelinedServiceTarget)
 }
 
 func TestLoadConfigFile(t *testing.T) {
@@ -204,6 +252,7 @@ func TestLoadConfigFile(t *testing.T) {
 	assert.Equal(t, "d", cm.Config().MmeSctpdUpstreamServiceTarget)
 	assert.Equal(t, "e", cm.Config().SentryDsn)
 	assert.Equal(t, "f", cm.Config().ConfigServiceTarget)
+	assert.Equal(t, "g", cm.Config().PipelinedServiceTarget)
 }
 
 func TestNewConfigManager_DefaultNotFound(t *testing.T) {

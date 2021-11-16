@@ -46,7 +46,9 @@ func LogLevel(l config.AgwD_LogLevel) log.Level {
 
 const (
 	ipv4Scheme = "ipv4"
+	tcp4Scheme = "tcp4"
 	ipv6Scheme = "ipv6"
+	tcp6Scheme = "tcp6"
 )
 
 // ParseTarget takes a target in string form and returns a resolved Target.
@@ -66,6 +68,18 @@ func ParseTarget(target string) resolver.Target {
 		}
 	}
 	return grpcutil.ParseTarget(target, false)
+}
+
+// TargetSchemeAdapter takes a gRPC formatted Target such as {ipv4, ipv6}
+// and translates to net.Listen's required network type such as {tcp4, tcp6}.
+func TargetSchemeAdapter(target resolver.Target) resolver.Target {
+	if target.Scheme == ipv4Scheme {
+		target.Scheme = tcp4Scheme
+	}
+	if target.Scheme == ipv6Scheme {
+		target.Scheme = tcp6Scheme
+	}
+	return target
 }
 
 // Configer returns a parsed config.
@@ -89,8 +103,9 @@ func newDefaultConfig() *config.AgwD {
 		MmeSctpdDownstreamServiceTarget: "unix:///tmp/mme_sctpd_downstream.sock",
 		MmeSctpdUpstreamServiceTarget:   "unix:///tmp/mme_sctpd_upstream.sock",
 		// Sentry is disabled if DSN is not set.
-		SentryDsn:           "",
-		ConfigServiceTarget: "127.0.0.1:50090",
+		SentryDsn:              "",
+		ConfigServiceTarget:    "tcp4:127.0.0.1:50090",
+		PipelinedServiceTarget: "tcp4:0.0.0.0:12345",
 	}
 }
 
