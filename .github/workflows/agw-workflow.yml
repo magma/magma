@@ -349,7 +349,7 @@ jobs:
           run: |
             echo "Pulled the devontainer image!"
             bazel # pull down bazel, if bazel download fails we can fail before we do all the lengthy work below
-      - name: Run codecov with CMake (MME / SCTPD / LIAGENT)
+      - name: Run codecov with CMake (MME)
         if: always()
         uses: addnab/docker-run-action@v2
         with:
@@ -360,7 +360,7 @@ jobs:
             cd $MAGMA_ROOT/lte/gateway
             make coverage
             cp $C_BUILD/coverage.info $MAGMA_ROOT
-      - name: Run coverage with Bazel (COMMON / SESSIOND)
+      - name: Run coverage with Bazel (COMMON / SESSIOND / SCTPD / LIAGENT / CONNECTIOND)
         if: always()
         uses: addnab/docker-run-action@v2
         with:

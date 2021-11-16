@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 # Dependency of prometheus-cpp
 # modified from https://github.com/jupp0r/prometheus-cpp WORKSPACE @ d8326b2bba945a435f299e7526c403d7a1f68c1f
 package(default_visibility = ["//visibility:public"])

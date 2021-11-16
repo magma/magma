@@ -107,29 +107,29 @@ def _gen_with_asn1c_impl(ctx):
 
 def _get_attrs():
     return {
-        # This makes it so that the executable asn1c is treated as an input to this rule
-        "_asn1c": attr.label(
-            executable = True,
-            default = Label("@system_libraries//:asn1c"),
-            cfg = "host",
-        ),
         "asn1_file": attr.label(
             mandatory = True,
             allow_single_file = [".asn1"],
             doc = """The asn file asn1c should use to generate files""",
         ),
-        "prefix": attr.string(
-            mandatory = True,
-            doc = """Value that is set to ASN1C_PREFIX""",
+        "files_to_remove": attr.string_list(
+            doc = """A list of file names to remove after code generation""",
         ),
         "flags": attr.string(
             doc = """Command line flags passed to asn1c""",
         ),
+        "prefix": attr.string(
+            mandatory = True,
+            doc = """Value that is set to ASN1C_PREFIX""",
+        ),
         "substitutions": attr.string_dict(
             doc = """A string map of any substitions to be made""",
         ),
-        "files_to_remove": attr.string_list(
-            doc = """A list of file names to remove after code generation""",
+        # This makes it so that the executable asn1c is treated as an input to this rule
+        "_asn1c": attr.label(
+            executable = True,
+            default = Label("@system_libraries//:asn1c"),
+            cfg = "host",
         ),
     }
 

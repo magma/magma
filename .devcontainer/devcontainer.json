@@ -25,11 +25,9 @@
 		"files.watcherExclude": {
 			"**/.bazel-cache/**": true,
 			"**/.bazel-cache-repo/**": true,
-		},		
-		"bsv.bazel.buildFlags": [
-		],
-		"bsv.bazel.testFlags": [
-		],
+		},
+		"bsv.bazel.buildFlags": [],
+		"bsv.bazel.testFlags": [],
 		"bsv.bes.enabled": false,
 		"bsv.bzl.codesearch.enabled": false,
 		"bsv.bzl.invocation.buildEventPublishAllActions": false,
@@ -46,10 +44,12 @@
 			"--background-index",
 		],
 		"clangd.onConfigChanged": "restart",
-		// Update this field with any new targets that need compilation database generation
+		// Update this field with any new Bazel targets that need compilation database generation
 		"bsv.cc.compdb.targets": [
 			"//lte/gateway/c/session_manager:sessiond",
-			"//lte/gateway/c/connection_tracker/src:main",
+			"//lte/gateway/c/sctpd/src:sctpd",
+			"//lte/gateway/c/li_agent/src:liagentd",
+			"//lte/gateway/c/connection_tracker/src:connectiond",
 		],
 		"multiCommand.commands": [
 			{

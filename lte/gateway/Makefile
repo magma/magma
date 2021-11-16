@@ -238,11 +238,6 @@ coverage_oai: test_oai
 	lcov -r /tmp/coverage_oai.info.raw "/*/test/*" "/usr/*" "/build/*protos*" -o /tmp/coverage_oai.info
 	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
 
-coverage_sctpd: test_sctpd
-	lcov --capture --directory $(C_BUILD) --output-file /tmp/coverage_sctpd.info.raw
-	lcov -r /tmp/coverage_sctpd.info.raw "/*/test/*" "/usr/*" "/build/*protos*" -o /tmp/coverage_sctpd.info
-	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
-
 # format and test c/session_manager
 precommit_sm: format_all test_session_manager
 
@@ -292,11 +287,11 @@ clang_tidy_oai_upload: clang_tidy_oai
 		https://docs.google.com/forms/d/e/1FAIpQLSfHGqOmDhUMAWHSjA_w6NOGqglQBx2IaO1bXLo6zrOE95sRWQ/formResponse?usp=pp_url
 
 ## Generate complete code structural information prior to any test execution
-base_coverage: build_oai build_sctpd
+base_coverage: build_oai
 	lcov --initial --directory $(C_BUILD) -c --output-file /tmp/coverage_initialize.info.raw
 	lcov -r /tmp/coverage_initialize.info.raw "/*/test/*" "/usr/*" "/build/*protos*" -o /tmp/coverage_initialize.info
 	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
 
 # Combine results of sub-coverages
-coverage: base_coverage coverage_oai coverage_sctpd
-	lcov -a /tmp/coverage_initialize.info -a /tmp/coverage_oai.info -a /tmp/coverage_sctpd.info -o $(C_BUILD)/coverage.info
+coverage: base_coverage coverage_oai
+	lcov -a /tmp/coverage_initialize.info -a /tmp/coverage_oai.info -o $(C_BUILD)/coverage.info
