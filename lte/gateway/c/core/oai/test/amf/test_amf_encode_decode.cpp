@@ -16,10 +16,10 @@
 #include "../../tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
-#include "util_s6a_update_location.h"
-#include "tasks/amf/amf_recv.h"
-#include "tasks/amf/amf_identity.h"
-#include "tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
