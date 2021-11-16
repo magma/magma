@@ -43,26 +43,6 @@ jobs:
 
             let newCompLbls = new Set(); // Set of new label strings
 
-            const curLblObjs = await github.issues.listLabelsOnIssue({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            });
-
-            // Delete current component labels from PR
-            // Will identify new component labels later based on the files modified in the PR
-            for (const l of curLblObjs['data']) {
-              //console.log("Current LabelName: " + l['name'] + " LabelDescription: " + l['description']);
-              if(l['name'].startsWith("component: "))  {
-                github.issues.removeLabel({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name: l['name'],
-                });
-              } // end of if block
-            } // end of for loop
-
             // Fetch files modified in the PR
             const pulledFiles = await github.pulls.listFiles({
               owner: context.repo.owner,
@@ -131,6 +111,31 @@ jobs:
                 newCompLbls.add("component: docs");
                 break;
              } // end of switch case
+            } // end of for loop
+
+
+            const curLblObjs = await github.issues.listLabelsOnIssue({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            // Delete current component labels from PR that are no more valid
+            for (const l of curLblObjs['data']) {
+              //console.log("Current LabelName: " + l['name'] + " LabelDescription: " + l['description']);
+              if(l['name'].startsWith("component: "))  {
+                if(newCompLbls.has(l['name'])  {
+                  newCompLbls.delete(l['name']);
+                }
+                else  {
+                  github.issues.removeLabel({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: l['name'],
+                  });
+                }
+              } // end of if block
             } // end of for loop
 
             if( newCompLbls.size == 0 )  {
