@@ -70,7 +70,7 @@ function GatewayConfigYml(props: Props) {
   };
 
   const onSave = () => {
-    const config = serviceConfig.replace(/"/g, '\\"');
+    const config = serviceConfig.replace(/\\/g, "");
     props
       .confirm('Are you sure you want to save this config?')
       .then(async confirm => {
