@@ -1,5 +1,5 @@
 ---
-name: Push Bazel Cache To S3
+name: Push CI component to cache
 on:  # yamllint disable-line rule:truthy
   push:
     branches:
@@ -14,14 +14,16 @@ env:
   BAZEL_CACHE: .bazel-cache
   BAZEL_CACHE_MAGMA_VM_TAR: bazel-cache-magma-vm.tar.gz
   BAZEL_CACHE_DEVCONTAINER_TAR: bazel-cache-devcontainer.tar.gz
-  
+
   BAZEL_CACHE_REPO: .bazel-cache-repo
   BAZEL_CACHE_REPO_MAGMA_VM_TAR: bazel-cache-repo-magma-vm.tar.gz
   BAZEL_CACHE_REPO_DEVCONTAINER_TAR: bazel-cache-repo-devcontainer.tar.gz
-  
+
   S3_BUCKET_PATH: s3://magma-bazel-cache
 
   DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-3c02c72"
+
+  VIRTUALBOX_LATEST: "1.1.20210928"
 
 jobs:
   bazel-build-magma-vm-and-push-cache:
@@ -90,3 +92,24 @@ jobs:
 
           aws s3 cp ${{ env.BAZEL_CACHE_DEVCONTAINER_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_DEVCONTAINER_TAR}}
           aws s3 cp ${{ env.BAZEL_CACHE_REPO_DEVCONTAINER_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_REPO_DEVCONTAINER_TAR}}
+
+  virtualbox-push-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
+          aws-region: us-east-1
+      - name: Bazel Build
+        run: |
+          apt update
+          apt install -y wget
+          cd /tmp/
+          wget https://app.vagrantup.com/magmacore/boxes/magma_dev/versions/{{ env.VIRTUALBOX_LATEST }}/providers/virtualbox.box
+      - name: Upload .bazel-cache and .bazel-cache-repo to S3
+        run: |
+          cd /tmp/
+          aws s3 cp virtualbox.box ${{ env.S3_BUCKET_PATH }}/virtualbox_{{ env.VIRTUALBOX_LATEST }}.box
