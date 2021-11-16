@@ -22,8 +22,8 @@ import (
 //LogRequestWithVerbosity prints out request when the service binary is run
 // with log_verbosity verbosity
 func LogRequestWithVerbosity(req *http.Request, verbosity glog.Level) {
-	glog.V(verbosity).Infof("Printing request metadata: \nHeader: %v\n"+
-		"Host: %v\nURL: %v\nTrailer: %v\nProto: %v\nRequestURI: %v\n"+
-		"RemoteAddr: %v\nMethod: %v\n", req.Header, req.Host, req.URL,
+	glog.V(verbosity).Infof("Printing request metadata: \nHost: %v\n"+
+		"URL: %v\nTrailer: %v\nProto: %v\nRequestURI: %v\n"+
+		"RemoteAddr: %v\nMethod: %v\n", req.Host, req.URL,
 		req.Trailer, req.Proto, req.RequestURI, req.RemoteAddr, req.Method)
 }
