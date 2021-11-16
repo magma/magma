@@ -341,6 +341,14 @@ jobs:
           key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+      - name: Setup Devcontainer Image
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the devontainer image!"
+            bazel # pull down bazel, if bazel download fails we can fail before we do all the lengthy work below
       - name: Run codecov with CMake (MME / SCTPD / LIAGENT)
         if: always()
         uses: addnab/docker-run-action@v2
@@ -366,6 +374,7 @@ jobs:
             # copy out coverage information into magma so that it's accessible from the CI node
             cp bazel-out/_coverage/_coverage_report.dat $MAGMA_ROOT
       - name: Upload code coverage
+        if: always()
         id: c-cpp-codecov-upload
         uses: codecov/codecov-action@v1
         with:
