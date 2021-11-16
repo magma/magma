@@ -897,7 +897,6 @@ static int emm_as_establish_req(emm_as_establish_t* msg, int* emm_cause) {
 
     case SERVICE_REQUEST:
       // Requirement MME24.301R10_4.4.4.3_1
-      increment_counter("service_request", 1, NO_LABELS);
       OAILOG_INFO(
           LOG_NAS_EMM,
           "EMMAS-SAP - Message Type = SERVICE_REQUEST(0x%x) for (ue_id "

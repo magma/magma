@@ -322,7 +322,7 @@ export const NetworkDBData = (networkIDs: Array<string>): GrafanaDBData => {
               },
               {
                 expr:
-                  'sum(rate(service_request{networkID=~"$networkID"}[5m])) by (networkID)-sum(rate(s1_setup{result="success",networkID=~"$networkID"}[5m])) by (networkID)',
+                  'sum(rate(service_request{networkID=~"$networkID",result="failure"}[5m])) by (networkID)',
                 legendFormat: 'Failure: {{networkID}}',
               },
             ],
@@ -342,7 +342,7 @@ export const NetworkDBData = (networkIDs: Array<string>): GrafanaDBData => {
               },
               {
                 expr:
-                  'sum(increase(service_request{networkID=~"$networkID"}[1h])) by (networkID)-sum(increase(s1_setup{result="success",networkID=~"$networkID"}[1h])) by (networkID)',
+                  'sum(increase(service_request{networkID=~"$networkID",result="failure"}[1h])) by (networkID)',
                 legendFormat: 'Failure: {{networkID}}',
               },
             ],
@@ -530,7 +530,7 @@ export const GatewayDBData = (networkIDs: Array<string>): GrafanaDBData => {
               },
               {
                 expr:
-                  'sum(rate(service_request{gatewayID=~"$gatewayID",networkID=~"$networkID"}[5m])) by (gatewayID,networkID)-sum(rate(s1_setup{gatewayID=~"$gatewayID",result="success",networkID=~"$networkID"}[5m])) by (gatewayID,networkID)',
+                  'sum(rate(service_request{gatewayID=~"$gatewayID",networkID=~"$networkID",result="failure"}[5m])) by (gatewayID,networkID)',
                 legendFormat: 'Failure: {{networkID}}',
               },
             ],
@@ -550,7 +550,7 @@ export const GatewayDBData = (networkIDs: Array<string>): GrafanaDBData => {
               },
               {
                 expr:
-                  'sum(increase(service_request{gatewayID=~"$gatewayID",networkID=~"$networkID"}[1h])) by (gatewayID,networkID)-sum(increase(s1_setup{gatewayID=~"$gatewayID",result="success",networkID=~"$networkID"}[1h])) by (gatewayID,networkID)',
+                  'sum(increase(service_request{gatewayID=~"$gatewayID",networkID=~"$networkID",result="failure"}[1h])) by (gatewayID,networkID)',
                 legendFormat: 'Failure: {{networkID}}',
               },
             ],

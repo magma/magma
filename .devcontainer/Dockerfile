@@ -69,7 +69,8 @@ RUN echo "Install general purpose packages" && \
         ninja-build \
         perl \
         pkg-config \
-        python2.7 \
+        python3 \
+        python-is-python3 \
         redis-server \
         ruby \
         rubygems \
@@ -119,8 +120,7 @@ RUN echo "Install 3rd party dependencies" && \
     echo "Install ZeroMQ" && \
     apt-get install -y libczmq-dev && \
     echo "Install dependencies for Sentry Native" && \
-    apt-get install -y libcurl4-openssl-dev && \
-    ln -s /usr/bin/python2.7 /usr/local/bin/python
+    apt-get install -y libcurl4-openssl-dev
 
 RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
 

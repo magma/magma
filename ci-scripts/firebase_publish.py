@@ -43,10 +43,7 @@ def main():
     build_id = os.environ["BUILD_ID"]
     build_metadata_env = os.environ["BUILD_METADATA"]
     agw_artifacts_env = os.environ["AGW_ARTIFACTS"]
-    agw_valid_env = os.environ["AGW_VALID"]
-    feg_docker_env = os.environ["FEG_DOCKER"]
-    feg_jfrog_env = os.environ["FEG_JFROG"]
-    feg_valid_env = os.environ["FEG_VALID"]
+    feg_artifacts_env = os.environ["FEG_ARTIFACTS"]
 
     # Prepare list of registered test workers
     workers = [x.strip() for x in workers_env.split(",")]
@@ -60,36 +57,29 @@ def main():
         print("Decoding build_metadata_env JSON failed: ", build_metadata_env)
     build_info = {"metadata": build_metadata}
 
-    # Add agw arifacts
+    # Add AGW artifacts
     agw_artifacts = {}
-    agw_valid = False
-    if agw_valid_env == "true":
-        try:
-            agw_artifacts = json.loads(agw_artifacts_env)
-            agw_valid = True
-        except ValueError:
-            print("Decoding agw artifacts JSON has failed: ", agw_artifacts_env)
-    build_info["agw"] = {
-        "valid": agw_valid,
-        "artifacts": agw_artifacts,
-    }
+    try:
+        agw_artifacts = json.loads(agw_artifacts_env)
+    except ValueError:
+        print("Decoding agw artifacts JSON has failed: ", agw_artifacts_env)
+        agw_artifacts = {"packages": [], "valid": False}
 
-    # Add feg arifacts
-    feg_docker = {}
-    feg_jfrog = {}
-    feg_valid = False
-    if feg_valid_env == "true":
-        try:
-            feg_docker = json.loads(feg_docker_env)
-            feg_jfrog = json.loads(feg_jfrog_env)
-            feg_valid = True
-        except ValueError:
-            print("Decoding feg artifacts JSON has failed: ", feg_docker_env, feg_jfrog_env)
-    build_info["feg"] = {
-        "valid": feg_valid,
-        "docker": feg_docker,
-        "jfrog": feg_jfrog,
-    }
+    # TODO: Remove this backward compatibility code
+    for package in agw_artifacts["packages"]:
+        if "magma_" in package:
+            agw_artifacts["artifacts"] = {"downloadUri": package}
+            break
+    build_info["agw"] = agw_artifacts
+
+    # Add FEG artifacts
+    feg_artifacts = {}
+    try:
+        feg_artifacts = json.loads(feg_artifacts_env)
+    except ValueError:
+        print("Decoding feg artifacts JSON has failed: ", feg_artifacts_env)
+        feg_artifacts = {"packages": [], "valid": False}
+    build_info["feg"] = feg_artifacts
 
     # Prepare workload
     workload = {

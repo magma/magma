@@ -45,6 +45,9 @@ func main() {
 	defer conn.Close()
 	cl := protos.NewHelloClient(conn)
 	fmt.Printf("Sending  Greeting: '%s', Code: %d\n", msg, code)
+	if code < 0 || code > 4294967295 {
+		log.Fatal(fmt.Errorf("Code %d is outside the bounds of unit32 type", code))
+	}
 	res, err := cl.SayHello(context.Background(), &protos.HelloRequest{Greeting: msg, GrpcErrCode: uint32(code)})
 	if err != nil {
 		log.Fatal(err)
