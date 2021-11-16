@@ -25,8 +25,10 @@ import (
 
 	"github.com/magma/magma/src/go/agwd/config"
 	"github.com/magma/magma/src/go/log"
+	pipelinedpb "github.com/magma/magma/src/go/protos/magma/pipelined"
 	sctpdpb "github.com/magma/magma/src/go/protos/magma/sctpd"
 	"github.com/magma/magma/src/go/service"
+	"github.com/magma/magma/src/go/service/pipelined"
 	"github.com/magma/magma/src/go/service/sctpd"
 )
 
@@ -108,7 +110,15 @@ func startSctpdDownlinkServer(
 	grpcServer := grpc.NewServer()
 	sctpdDownlinkServer := sctpd.NewProxyDownlinkServer(logger, sr)
 	sctpdpb.RegisterSctpdDownlinkServer(grpcServer, sctpdDownlinkServer)
-	go grpcServer.Serve(listener)
+	go func() {
+		if err := grpcServer.Serve(listener); err != nil {
+			panic(errors.Wrapf(
+				err,
+				"startSctpdDownlinkServer(network=%s, address=%s)",
+				target.Scheme,
+				target.Endpoint))
+		}
+	}()
 }
 
 func startSctpdUplinkServer(
@@ -131,7 +141,40 @@ func startSctpdUplinkServer(
 	grpcServer := grpc.NewServer()
 	sctpdUplinkServer := sctpd.NewProxyUplinkServer(logger, sr)
 	sctpdpb.RegisterSctpdUplinkServer(grpcServer, sctpdUplinkServer)
-	go grpcServer.Serve(listener)
+	go func() {
+		if err := grpcServer.Serve(listener); err != nil {
+			panic(errors.Wrapf(
+				err,
+				"startSctpdUplinkServer(network=%s, address=%s)",
+				target.Scheme,
+				target.Endpoint))
+		}
+	}()
+}
+
+func startPipelinedServer(cfgr config.Configer, logger log.Logger) {
+	target := config.ParseTarget(cfgr.Config().GetPipelinedServiceTarget())
+	listener, err := net.Listen(target.Scheme, target.Endpoint)
+
+	if err != nil {
+		panic(errors.Wrapf(
+			err,
+			"net.Listen(network=%s, address=%s)",
+			target.Scheme,
+			target.Endpoint))
+	}
+	grpcServer := grpc.NewServer()
+	pipelinedServer := pipelined.NewPipelinedServer(logger)
+	pipelinedpb.RegisterPipelinedServer(grpcServer, pipelinedServer)
+	go func() {
+		if err := grpcServer.Serve(listener); err != nil {
+			panic(errors.Wrapf(
+				err,
+				"startPipelinedServer(network=%s, address=%s)",
+				target.Scheme,
+				target.Endpoint))
+		}
+	}()
 }
 
 func startConfigServer(
@@ -159,7 +202,8 @@ func startConfigServer(
 
 func Start(cfgr config.Configer, logger log.Logger) {
 	sr := newServiceRouter(cfgr)
-	startSctpdDownlinkServer(cfgr, logger, sr)
+	startPipelinedServer(cfgr, logger)
 	startSctpdUplinkServer(cfgr, logger, sr)
 	startConfigServer(cfgr, logger)
+	startSctpdDownlinkServer(cfgr, logger, sr)
 }

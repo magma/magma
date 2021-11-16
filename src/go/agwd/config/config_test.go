@@ -96,7 +96,7 @@ func TestParseTarget(t *testing.T) {
 		{
 			target: "ipv4:localhost:1234",
 			want: resolver.Target{
-				Scheme:    "ipv4",
+				Scheme:    "tcp4",
 				Authority: "",
 				Endpoint:  "localhost:1234",
 			},
@@ -104,7 +104,7 @@ func TestParseTarget(t *testing.T) {
 		{
 			target: "ipv6:[2607:f8b0:400e:c00::ef]:443",
 			want: resolver.Target{
-				Scheme:    "ipv6",
+				Scheme:    "tcp6",
 				Authority: "",
 				Endpoint:  "[2607:f8b0:400e:c00::ef]:443",
 			},
@@ -112,7 +112,7 @@ func TestParseTarget(t *testing.T) {
 		{
 			target: "ipv6:[::]:1234",
 			want: resolver.Target{
-				Scheme:    "ipv6",
+				Scheme:    "tcp6",
 				Authority: "",
 				Endpoint:  "[::]:1234",
 			},
@@ -188,7 +188,8 @@ func TestNewConfigManager(t *testing.T) {
 	assert.Equal(t, "unix:///tmp/mme_sctpd_downstream.sock", cm.Config().MmeSctpdDownstreamServiceTarget)
 	assert.Equal(t, "unix:///tmp/mme_sctpd_upstream.sock", cm.Config().MmeSctpdUpstreamServiceTarget)
 	assert.Equal(t, "", cm.Config().SentryDsn)
-	assert.Equal(t, "127.0.0.1:50090", cm.Config().ConfigServiceTarget)
+	assert.Equal(t, "tcp4:127.0.0.1:50090", cm.Config().ConfigServiceTarget)
+	assert.Equal(t, "tcp4:0.0.0.0:12345", cm.Config().PipelinedServiceTarget)
 }
 
 func TestLoadConfigFile(t *testing.T) {
@@ -204,6 +205,7 @@ func TestLoadConfigFile(t *testing.T) {
 	assert.Equal(t, "d", cm.Config().MmeSctpdUpstreamServiceTarget)
 	assert.Equal(t, "e", cm.Config().SentryDsn)
 	assert.Equal(t, "f", cm.Config().ConfigServiceTarget)
+	assert.Equal(t, "g", cm.Config().PipelinedServiceTarget)
 }
 
 func TestNewConfigManager_DefaultNotFound(t *testing.T) {

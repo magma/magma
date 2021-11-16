@@ -64,5 +64,7 @@ message AgwD {
   // disabled.
   string sentry_dsn = 6;
 
+  // location (unix socket, ipv4 or ipv6 address) where service is listening
   string config_service_target = 7;
+  string pipelined_service_target = 8;
 }
