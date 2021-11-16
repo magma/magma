@@ -113,9 +113,7 @@ function main() {
     password: args[2],
     role: AccessRoles.SUPERUSER,
   };
-  console.log(
-    'Creating a new user: email=' + userObject.email,
-  );
+  console.log('Creating a new user: email=' + userObject.email);
   createOrUpdateUser(userObject)
     .then(_res => {
       console.log('Success');
