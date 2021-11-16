@@ -37,18 +37,19 @@ namespace lte {
 #define DEFAULT_EDNS_IP 0x7f000001  // localhost
 #define DEFAULT_SGW_IP 0x7f000001   // localhost
 
-bool is_num_sessions_valid(
-    spgw_state_t* spgw_state, uint64_t imsi64, int expected_num_ue_contexts,
-    int expected_num_teids);
+bool is_num_sessions_valid(spgw_state_t* spgw_state, uint64_t imsi64,
+                           int expected_num_ue_contexts,
+                           int expected_num_teids);
 
 void fill_create_session_request(
     itti_s11_create_session_request_t* session_request_p,
     const std::string& imsi_str, teid_t mme_s11_teid, int bearer_id,
     bearer_context_to_be_created_t sample_bearer_context, plmn_t sample_plmn);
 
-void fill_ip_allocation_response(
-    itti_ip_allocation_response_t* ip_alloc_resp_p, SGIStatus_t status,
-    teid_t context_teid, ebi_t eps_bearer_id, unsigned long ue_ip, int vlan);
+void fill_ip_allocation_response(itti_ip_allocation_response_t* ip_alloc_resp_p,
+                                 SGIStatus_t status, teid_t context_teid,
+                                 ebi_t eps_bearer_id, unsigned long ue_ip,
+                                 int vlan);
 
 void fill_pcef_create_session_response(
     itti_pcef_create_session_response_t* pcef_csr_resp_p,

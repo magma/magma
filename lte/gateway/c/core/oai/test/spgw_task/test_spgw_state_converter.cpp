@@ -44,7 +44,7 @@ TEST_F(SPGWStateConverterTest, TestSPGWStateConversion) {
     EXPECT_EQ(initial_state.gtpv1u_teid, final_state.gtpv1u_teid);
 
     gtpv1u_data_t initial_gtp_data = initial_state.gtpv1u_data;
-    gtpv1u_data_t final_gtp_data   = final_state.gtpv1u_data;
+    gtpv1u_data_t final_gtp_data = final_state.gtpv1u_data;
     EXPECT_EQ(initial_gtp_data.fd0, final_gtp_data.fd0);
     EXPECT_EQ(initial_gtp_data.fd1u, final_gtp_data.fd1u);
   }

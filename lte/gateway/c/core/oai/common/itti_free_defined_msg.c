@@ -153,17 +153,17 @@ void itti_free_msg_content(MessageDef* const message_p) {
       break;
     case S11_PAGING_REQUEST: {
       if (message_p->ittiMsg.s11_paging_request.imsi) {
-        free_wrapper((void**) &message_p->ittiMsg.s11_paging_request.imsi);
+        free_wrapper((void**)&message_p->ittiMsg.s11_paging_request.imsi);
       }
     } break;
 
     case S1AP_ENB_INITIATED_RESET_ACK:
-      free_wrapper((void**) &message_p->ittiMsg.s1ap_enb_initiated_reset_ack
+      free_wrapper((void**)&message_p->ittiMsg.s1ap_enb_initiated_reset_ack
                        .ue_to_reset_list);
       break;
     case S1AP_UE_CAPABILITIES_IND: {
       free_wrapper(
-          (void**) &message_p->ittiMsg.s1ap_ue_cap_ind.radio_capabilities);
+          (void**)&message_p->ittiMsg.s1ap_ue_cap_ind.radio_capabilities);
       break;
     }
     case S1AP_ENB_DEREGISTERED_IND:
@@ -211,7 +211,7 @@ void itti_free_msg_content(MessageDef* const message_p) {
 
     case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP:
       free_wrapper(
-          (void**) &message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp.lbi);
+          (void**)&message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp.lbi);
       break;
 
     case SCTP_INIT_MSG:

@@ -23,12 +23,11 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MsNetworkCapability.h"
 
-int decode_ms_network_capability(
-    MsNetworkCapability* msnetworkcapability, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
-  int decoded   = 0;
+int decode_ms_network_capability(MsNetworkCapability* msnetworkcapability,
+                                 uint8_t iei, uint8_t* buffer, uint32_t len) {
+  int decoded = 0;
   uint8_t ielen = 0;
-  uint8_t b     = 0;
+  uint8_t b = 0;
 
   if (iei > 0) {
     CHECK_IEI_DECODER(iei, *buffer);
@@ -40,7 +39,7 @@ int decode_ms_network_capability(
   OAILOG_INFO(LOG_NAS_EMM, "decode_ms_network_capability len = %d\n", ielen);
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
-  b                         = *(buffer + decoded);
+  b = *(buffer + decoded);
   msnetworkcapability->gea1 = (b & MS_NETWORK_CAPABILITY_GEA1) >> 7;
   msnetworkcapability->smdc =
       (b & MS_NETWORK_CAPABILITY_SM_CAP_VIA_DEDICATED_CHANNELS) >> 6;
@@ -74,8 +73,8 @@ int decode_ms_network_capability(
           (b & MS_NETWORK_CAPABILITY_PS_INTER_RAT_HO_GERAN_TO_EUTRAN_S1) >> 6;
       msnetworkcapability->emm_cpc =
           (b & MS_NETWORK_CAPABILITY_EMM_COMBINED_PROCEDURE) >> 5;
-      msnetworkcapability->isr     = (b & MS_NETWORK_CAPABILITY_ISR) >> 4;
-      msnetworkcapability->srvcc   = (b & MS_NETWORK_CAPABILITY_SRVCC) >> 3;
+      msnetworkcapability->isr = (b & MS_NETWORK_CAPABILITY_ISR) >> 4;
+      msnetworkcapability->srvcc = (b & MS_NETWORK_CAPABILITY_SRVCC) >> 3;
       msnetworkcapability->epc_cap = (b & MS_NETWORK_CAPABILITY_EPC) >> 2;
       msnetworkcapability->nf_cap =
           (b & MS_NETWORK_CAPABILITY_NOTIFICATION) >> 1;
@@ -110,9 +109,8 @@ int decode_ms_network_capability(
   return decoded;
 }
 
-int encode_ms_network_capability(
-    MsNetworkCapability* msnetworkcapability, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_ms_network_capability(MsNetworkCapability* msnetworkcapability,
+                                 uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
 
@@ -172,8 +170,8 @@ int encode_ms_network_capability(
   return encoded;
 }
 
-void dump_ms_network_capability_xml(
-    MsNetworkCapability* msnetworkcapability, uint8_t iei) {
+void dump_ms_network_capability_xml(MsNetworkCapability* msnetworkcapability,
+                                    uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Ms Network Capability>\n");
 
   if (iei > 0)
@@ -187,45 +185,41 @@ void dump_ms_network_capability_xml(
   OAILOG_DEBUG(LOG_NAS, "    <SMGC>%01x</SMGC>\n", msnetworkcapability->smgc);
   OAILOG_DEBUG(LOG_NAS, "    <UCS2>%01x</UCS2>\n", msnetworkcapability->ucs2);
   OAILOG_DEBUG(LOG_NAS, "    <SSSI>%02x</SSSI>\n", msnetworkcapability->sssi);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <SOLSA>%01x</SOLSA>\n", msnetworkcapability->solsa);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <REVLI>%01x</REVLI>\n", msnetworkcapability->revli);
+  OAILOG_DEBUG(LOG_NAS, "    <SOLSA>%01x</SOLSA>\n",
+               msnetworkcapability->solsa);
+  OAILOG_DEBUG(LOG_NAS, "    <REVLI>%01x</REVLI>\n",
+               msnetworkcapability->revli);
   OAILOG_DEBUG(LOG_NAS, "    <PFC>%01x</PFC>\n", msnetworkcapability->pfc);
   OAILOG_DEBUG(LOG_NAS, "    <EGEA>%06x</EGEA>\n", msnetworkcapability->egea);
   OAILOG_DEBUG(LOG_NAS, "    <LCS>%01x</LCS>\n", msnetworkcapability->lcs);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <PS_HO_UTRAN>%01x<PS_HO_UTRAN/>\n",
-      msnetworkcapability->ps_ho_utran);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <PS_HO_EUTRAN>%01x<PS_HO_EUTRAN/>\n",
-      msnetworkcapability->ps_ho_eutran);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <EMM_CPC>%01x<EMM_CPC/>\n", msnetworkcapability->emm_cpc);
+  OAILOG_DEBUG(LOG_NAS, "    <PS_HO_UTRAN>%01x<PS_HO_UTRAN/>\n",
+               msnetworkcapability->ps_ho_utran);
+  OAILOG_DEBUG(LOG_NAS, "    <PS_HO_EUTRAN>%01x<PS_HO_EUTRAN/>\n",
+               msnetworkcapability->ps_ho_eutran);
+  OAILOG_DEBUG(LOG_NAS, "    <EMM_CPC>%01x<EMM_CPC/>\n",
+               msnetworkcapability->emm_cpc);
   OAILOG_DEBUG(LOG_NAS, "    <ISR>%01x<ISR/>\n", msnetworkcapability->isr);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <SRVCC>%01x<SRVCC/>\n", msnetworkcapability->srvcc);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <EPC_CAP>%01x<EPC_CAP/>\n", msnetworkcapability->epc_cap);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <NF_CAP>%01x<NF_CAP/>\n", msnetworkcapability->nf_cap);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <GERAN_NS>%01x<GERAN_NS/>\n",
-      msnetworkcapability->geran_ns);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <UP_INTEG_PROT_SUPPORT>%01x<UP_INTEG_PROT_SUPPORT/>\n",
-      msnetworkcapability->up_integ_prot_support);
+  OAILOG_DEBUG(LOG_NAS, "    <SRVCC>%01x<SRVCC/>\n",
+               msnetworkcapability->srvcc);
+  OAILOG_DEBUG(LOG_NAS, "    <EPC_CAP>%01x<EPC_CAP/>\n",
+               msnetworkcapability->epc_cap);
+  OAILOG_DEBUG(LOG_NAS, "    <NF_CAP>%01x<NF_CAP/>\n",
+               msnetworkcapability->nf_cap);
+  OAILOG_DEBUG(LOG_NAS, "    <GERAN_NS>%01x<GERAN_NS/>\n",
+               msnetworkcapability->geran_ns);
+  OAILOG_DEBUG(LOG_NAS,
+               "    <UP_INTEG_PROT_SUPPORT>%01x<UP_INTEG_PROT_SUPPORT/>\n",
+               msnetworkcapability->up_integ_prot_support);
   OAILOG_DEBUG(LOG_NAS, "    <GIA4>%01x<GIA4/>\n", msnetworkcapability->gia4);
   OAILOG_DEBUG(LOG_NAS, "    <GIA5>%01x<GIA5/>\n", msnetworkcapability->gia5);
   OAILOG_DEBUG(LOG_NAS, "    <GIA6>%01x<GIA6/>\n", msnetworkcapability->gia6);
   OAILOG_DEBUG(LOG_NAS, "    <GIA7>%01x<GIA7/>\n", msnetworkcapability->gia7);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <EPCO_IE_IND>%01x<EPCO_IE_IND/>\n",
-      msnetworkcapability->epco_ie_ind);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <REST_USE_ENHANC_COV_CAP>%01x<REST_USE_ENHANC_COV_CAP/>\n",
-      msnetworkcapability->rest_use_enhanc_cov_cap);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <EN_DC>%01x<EN_DC/>\n", msnetworkcapability->en_dc);
+  OAILOG_DEBUG(LOG_NAS, "    <EPCO_IE_IND>%01x<EPCO_IE_IND/>\n",
+               msnetworkcapability->epco_ie_ind);
+  OAILOG_DEBUG(LOG_NAS,
+               "    <REST_USE_ENHANC_COV_CAP>%01x<REST_USE_ENHANC_COV_CAP/>\n",
+               msnetworkcapability->rest_use_enhanc_cov_cap);
+  OAILOG_DEBUG(LOG_NAS, "    <EN_DC>%01x<EN_DC/>\n",
+               msnetworkcapability->en_dc);
   OAILOG_DEBUG(LOG_NAS, "</Ms Network Capability>\n");
 }

@@ -37,13 +37,13 @@ typedef struct ue_pdu_id {
 
 #define AMF_APP_TIMER_INACTIVE_ID (-1)
 
-int amf_app_start_timer(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler, timer_arg_t id);
+int amf_app_start_timer(size_t msec, timer_repeat_t repeat,
+                        zloop_timer_fn handler, timer_arg_t id);
 
 void amf_app_stop_timer(int timer_id);
 
-int amf_pdu_start_timer(
-    size_t msec, timer_repeat_t repeat, zloop_timer_fn handler, ue_pdu_id_t id);
+int amf_pdu_start_timer(size_t msec, timer_repeat_t repeat,
+                        zloop_timer_fn handler, ue_pdu_id_t id);
 
 void amf_pdu_stop_timer(int timer_id);
 
@@ -71,16 +71,14 @@ class AmfUeContext {
   AmfUeContext(AmfUeContext const&) = delete;
   void operator=(AmfUeContext const&) = delete;
 
-  int StartTimer(
-      size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-      timer_arg_t id);
+  int StartTimer(size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
+                 timer_arg_t id);
   void StopTimer(int timer_id);
 
   bool GetTimerArg(const int timer_id, timer_arg_t* arg) const;
 
-  int StartPduTimer(
-      size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-      ue_pdu_id_t id);
+  int StartPduTimer(size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
+                    ue_pdu_id_t id);
   void StopPduTimer(int timer_id);
 
   bool GetPduTimerArg(const int timer_id, ue_pdu_id_t* arg) const;

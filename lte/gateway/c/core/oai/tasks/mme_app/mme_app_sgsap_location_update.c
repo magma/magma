@@ -65,25 +65,22 @@
 void mme_app_update_granted_service_for_ue(ue_mm_context_t* ue_context) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   additional_updt_t additional_update_type =
-      (additional_updt_t) ue_context->emm_context.additional_update_type;
+      (additional_updt_t)ue_context->emm_context.additional_update_type;
   mme_config_read_lock(&mme_config);
 
   if ((additional_update_type != MME_APP_SMS_ONLY) &&
-      !(strcmp(
-          (const char*) mme_config.non_eps_service_control->data,
-          "CSFB_SMS"))) {
+      !(strcmp((const char*)mme_config.non_eps_service_control->data,
+               "CSFB_SMS"))) {
     ue_context->granted_service = GRANTED_SERVICE_CSFB_SMS;
     OAILOG_INFO(LOG_MME_APP, "Granted service is GRANTED_SERVICE_CSFB_SMS\n");
   } else if (additional_update_type == MME_APP_SMS_ONLY) {
     ue_context->granted_service = GRANTED_SERVICE_SMS_ONLY;
     OAILOG_INFO(LOG_MME_APP, "Granted service is GRANTED_SERVICE_SMS_ONLY\n");
-  } else if (
-      (additional_update_type != MME_APP_SMS_ONLY) &&
-      (!(strcmp(
-           (const char*) mme_config.non_eps_service_control->data, "SMS")) ||
-       !(strcmp(
-           (const char*) mme_config.non_eps_service_control->data,
-           "SMS_ORC8R")))) {
+  } else if ((additional_update_type != MME_APP_SMS_ONLY) &&
+             (!(strcmp((const char*)mme_config.non_eps_service_control->data,
+                       "SMS")) ||
+              !(strcmp((const char*)mme_config.non_eps_service_control->data,
+                       "SMS_ORC8R")))) {
     ue_context->granted_service = GRANTED_SERVICE_SMS_ONLY;
     OAILOG_INFO(LOG_MME_APP, "Granted service is  GRANTED_SERVICE_SMS_ONLY\n");
   } else {
@@ -136,8 +133,8 @@ uint8_t get_eps_attach_type(uint8_t emm_attach_type) {
  ** Inputs:              Mobile Id                                           **
  **                                                                          **
  ******************************************************************************/
-void mme_app_send_itti_sgsap_ue_activity_ind(
-    const char* imsi, const unsigned int imsi_len) {
+void mme_app_send_itti_sgsap_ue_activity_ind(const char* imsi,
+                                             const unsigned int imsi_len) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef* message_p = NULL;
 
@@ -150,20 +147,18 @@ void mme_app_send_itti_sgsap_ue_activity_ind(
         imsi, imsi_len);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  memset(
-      &message_p->ittiMsg.sgsap_ue_activity_ind, 0,
-      sizeof(itti_sgsap_ue_activity_ind_t));
+  memset(&message_p->ittiMsg.sgsap_ue_activity_ind, 0,
+         sizeof(itti_sgsap_ue_activity_ind_t));
   memcpy(SGSAP_UE_ACTIVITY_IND(message_p).imsi, imsi, imsi_len);
   OAILOG_DEBUG(LOG_MME_APP, " Imsi : %s %d \n", imsi, imsi_len);
   SGSAP_UE_ACTIVITY_IND(message_p).imsi[imsi_len] = '\0';
-  SGSAP_UE_ACTIVITY_IND(message_p).imsi_length    = imsi_len;
+  SGSAP_UE_ACTIVITY_IND(message_p).imsi_length = imsi_len;
   if ((send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p)) ==
       RETURNok) {
-    OAILOG_DEBUG(
-        LOG_MME_APP,
-        "Sending ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi: %s"
-        " imsi_len: %d \n",
-        imsi, imsi_len);
+    OAILOG_DEBUG(LOG_MME_APP,
+                 "Sending ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi: %s"
+                 " imsi_len: %d \n",
+                 imsi, imsi_len);
   } else {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -182,8 +177,8 @@ void mme_app_send_itti_sgsap_ue_activity_ind(
  ** Inputs:              Mobile Id **
  ** **
  ***********************************************************************************/
-static int copy_mobile_identity_helper(
-    MobileIdentity_t* mobileid_dest, MobileIdentity_t* mobileid_src) {
+static int copy_mobile_identity_helper(MobileIdentity_t* mobileid_dest,
+                                       MobileIdentity_t* mobileid_src) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   if (mobileid_src->typeofidentity == MOBILE_IDENTITY_IMSI) {
@@ -191,7 +186,7 @@ static int copy_mobile_identity_helper(
   } else if (mobileid_src->typeofidentity == MOBILE_IDENTITY_TMSI) {
     memcpy(mobileid_dest->u.tmsi, mobileid_src->u.tmsi, mobileid_src->length);
   }
-  mobileid_dest->length         = mobileid_src->length;
+  mobileid_dest->length = mobileid_src->length;
   mobileid_dest->typeofidentity = mobileid_src->typeofidentity;
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -207,9 +202,8 @@ static int copy_mobile_identity_helper(
  ** **
  ***********************************************************************************/
 
-static int build_sgs_status(
-    char* imsi, uint8_t imsi_length, lai_t laicsfb, MobileIdentity_t* mobileid,
-    uint8_t msg_id) {
+static int build_sgs_status(char* imsi, uint8_t imsi_length, lai_t laicsfb,
+                            MobileIdentity_t* mobileid, uint8_t msg_id) {
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -218,7 +212,7 @@ static int build_sgs_status(
   message_p =
       DEPRECATEDitti_alloc_new_message_fatal(TASK_MME_APP, SGSAP_STATUS);
   itti_sgsap_status_t* sgsap_status = &message_p->ittiMsg.sgsap_status;
-  memset((void*) sgsap_status, 0, sizeof(itti_sgsap_status_t));
+  memset((void*)sgsap_status, 0, sizeof(itti_sgsap_status_t));
 
   // Encode IMSI
   sgsap_status->presencemask = SGSAP_IMSI;
@@ -232,9 +226,8 @@ static int build_sgs_status(
   sgsap_status->error_msg.msg_type = msg_id;
 
   // Encode IMSI
-  memcpy(
-      &sgsap_status->error_msg.u.sgsap_location_update_acc.imsi, imsi,
-      imsi_length);
+  memcpy(&sgsap_status->error_msg.u.sgsap_location_update_acc.imsi, imsi,
+         imsi_length);
   sgsap_status->error_msg.u.sgsap_location_update_acc.imsi_length = imsi_length;
   sgsap_status->presencemask |= SGSAP_IMSI;
 
@@ -282,7 +275,7 @@ static status_code_e handle_cs_domain_loc_updt_acc(
     itti_sgsap_location_update_acc_t* const itti_sgsap_location_update_acc,
     struct ue_mm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  int rc                          = RETURNok;
+  int rc = RETURNok;
   struct emm_context_s* emm_ctx_p = &ue_context_p->emm_context;
 
   if (!emm_ctx_p) {
@@ -305,9 +298,8 @@ static status_code_e handle_cs_domain_loc_updt_acc(
       itti_sgsap_location_update_acc->laicsfb.mncdigit3;
   emm_ctx_p->csfbparams.lai.lac = itti_sgsap_location_update_acc->laicsfb.lac;
 
-  OAILOG_DEBUG(
-      LOG_MME_APP, "MME-APP - Mobile Identity presence mask %u \n",
-      itti_sgsap_location_update_acc->presencemask);
+  OAILOG_DEBUG(LOG_MME_APP, "MME-APP - Mobile Identity presence mask %u \n",
+               itti_sgsap_location_update_acc->presencemask);
 
   // Store Mobile Identity to be sent in Attach Accept/TAU Accept
   if (itti_sgsap_location_update_acc->presencemask & SGSAP_MOBILE_IDENTITY) {
@@ -319,9 +311,8 @@ static status_code_e handle_cs_domain_loc_updt_acc(
       MOBILE_ID_CHAR_TO_MOBILE_ID_IMSI_NAS(
           itti_sgsap_location_update_acc->mobileid.u.imsi, imsi_p,
           itti_sgsap_location_update_acc->mobileid.length);
-    } else if (
-        itti_sgsap_location_update_acc->mobileid.typeofidentity ==
-        MOBILE_IDENTITY_TMSI) {
+    } else if (itti_sgsap_location_update_acc->mobileid.typeofidentity ==
+               MOBILE_IDENTITY_TMSI) {
       tmsi_mobile_identity_t received_tmsi = {0};
       MOBILE_ID_CHAR_TO_MOBILE_ID_TMSI_NAS(
           itti_sgsap_location_update_acc->mobileid.u.tmsi, (&received_tmsi),
@@ -329,13 +320,11 @@ static status_code_e handle_cs_domain_loc_updt_acc(
       /* If the rcvd TMSI is different from the stored TMSI,
        * store the new TMSI and set flag
        */
-      if (MME_APP_COMPARE_TMSI(
-              emm_ctx_p->csfbparams.mobileid.tmsi, received_tmsi) ==
-          RETURNerror) {
+      if (MME_APP_COMPARE_TMSI(emm_ctx_p->csfbparams.mobileid.tmsi,
+                               received_tmsi) == RETURNerror) {
         OAILOG_INFO(LOG_MME_APP, "MME-APP - New TMSI Allocated\n");
-        memcpy(
-            &emm_ctx_p->csfbparams.mobileid.tmsi, (&received_tmsi),
-            sizeof(itti_sgsap_location_update_acc->mobileid.u.tmsi));
+        memcpy(&emm_ctx_p->csfbparams.mobileid.tmsi, (&received_tmsi),
+               sizeof(itti_sgsap_location_update_acc->mobileid.u.tmsi));
         emm_ctx_p->csfbparams.newTmsiAllocated = true;
       }
     }
@@ -409,8 +398,8 @@ status_code_e mme_app_handle_nas_cs_domain_location_update_req(
         ue_context_p->emm_context._imsi64);
     // Send SGSAP Location Update Request message to SGS task
     send_itti_sgsap_location_update_req(ue_context_p);
-  } else if (
-      ue_context_p->sgs_context->ts6_1_timer.id != MME_APP_TIMER_INACTIVE_ID) {
+  } else if (ue_context_p->sgs_context->ts6_1_timer.id !=
+             MME_APP_TIMER_INACTIVE_ID) {
     // Ignore the the messae as Location Update procedure is already triggered
     OAILOG_WARNING(
         LOG_MME_APP,
@@ -434,21 +423,20 @@ status_code_e send_itti_sgsap_location_update_req(
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   MessageDef* message_p = NULL;
-  int rc                = RETURNok;
+  int rc = RETURNok;
   uint8_t tau_updt_type = -1;
 
-  message_p = DEPRECATEDitti_alloc_new_message_fatal(
-      TASK_MME_APP, SGSAP_LOCATION_UPDATE_REQ);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_MME_APP,
+                                                     SGSAP_LOCATION_UPDATE_REQ);
   itti_sgsap_location_update_req_t* sgsap_location_update_req =
       &message_p->ittiMsg.sgsap_location_update_req;
-  memset(
-      (void*) sgsap_location_update_req, 0,
-      sizeof(itti_sgsap_location_update_req_t));
+  memset((void*)sgsap_location_update_req, 0,
+         sizeof(itti_sgsap_location_update_req_t));
 
   // IMSI
-  IMSI64_TO_STRING(
-      ue_context_p->emm_context._imsi64, sgsap_location_update_req->imsi,
-      ue_context_p->emm_context._imsi.length);
+  IMSI64_TO_STRING(ue_context_p->emm_context._imsi64,
+                   sgsap_location_update_req->imsi,
+                   ue_context_p->emm_context._imsi.length);
   sgsap_location_update_req->imsi_length =
       ue_context_p->emm_context._imsi.length;
 
@@ -464,9 +452,8 @@ status_code_e send_itti_sgsap_location_update_req(
     if ((tau_updt_type == EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING) ||
         (tau_updt_type == EPS_UPDATE_TYPE_PERIODIC_UPDATING)) {
       sgsap_location_update_req->locationupdatetype = NORMAL_LOCATION_UPDATE;
-    } else if (
-        tau_updt_type ==
-        EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING_WITH_IMSI_ATTACH) {
+    } else if (tau_updt_type ==
+               EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING_WITH_IMSI_ATTACH) {
       sgsap_location_update_req->locationupdatetype = IMSI_ATTACH;
     }
   }
@@ -478,7 +465,7 @@ status_code_e send_itti_sgsap_location_update_req(
   sgsap_location_update_req->newlaicsfb.mncdigit1 = mme_config.lai.mncdigit1;
   sgsap_location_update_req->newlaicsfb.mncdigit2 = mme_config.lai.mncdigit2;
   sgsap_location_update_req->newlaicsfb.mncdigit3 = mme_config.lai.mncdigit3;
-  sgsap_location_update_req->newlaicsfb.lac       = mme_config.lai.lac;
+  sgsap_location_update_req->newlaicsfb.lac = mme_config.lai.lac;
   mme_config_unlock(&mme_config);
 
   // IMEISV
@@ -511,11 +498,10 @@ status_code_e send_itti_sgsap_location_update_req(
   // Send SGSAP Location Update Request to SGS task
   if ((send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p)) !=
       RETURNok) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to send SGS-Location Update Request for UE "
-        "ID" MME_UE_S1AP_ID_FMT "\n",
-        ue_context_p->mme_ue_s1ap_id);
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Failed to send SGS-Location Update Request for UE "
+                 "ID" MME_UE_S1AP_ID_FMT "\n",
+                 ue_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -525,22 +511,20 @@ status_code_e send_itti_sgsap_location_update_req(
   mme_ue_context_update_ue_sgs_neaf(ue_context_p->mme_ue_s1ap_id, false);
 
   if (ue_context_p->sgs_context == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "SGS Context is NULL for UE ID " MME_UE_S1AP_ID_FMT,
-        ue_context_p->mme_ue_s1ap_id);
+    OAILOG_ERROR(LOG_MME_APP,
+                 "SGS Context is NULL for UE ID " MME_UE_S1AP_ID_FMT,
+                 ue_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   /* Start Ts6-1 timer and change SGS state to LA_UPDATE_REQUESTED */
-  sgs_fsm_set_status(
-      ue_context_p->mme_ue_s1ap_id, ue_context_p->sgs_context,
-      SGS_LA_UPDATE_REQUESTED);
+  sgs_fsm_set_status(ue_context_p->mme_ue_s1ap_id, ue_context_p->sgs_context,
+                     SGS_LA_UPDATE_REQUESTED);
   if ((ue_context_p->sgs_context->ts6_1_timer.id = mme_app_start_timer(
            ue_context_p->sgs_context->ts6_1_timer.msec, TIMER_REPEAT_ONCE,
            mme_app_handle_ts6_1_timer_expiry, ue_context_p->mme_ue_s1ap_id)) ==
       -1) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Failed to start Ts6-1 timer for UE id  %d \n",
-        ue_context_p->mme_ue_s1ap_id);
+    OAILOG_ERROR(LOG_MME_APP, "Failed to start Ts6-1 timer for UE id  %d \n",
+                 ue_context_p->mme_ue_s1ap_id);
     ue_context_p->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
   } else {
     OAILOG_DEBUG(
@@ -564,9 +548,9 @@ status_code_e send_itti_sgsap_location_update_req(
 status_code_e mme_app_handle_sgsap_location_update_acc(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_location_update_acc_t* const itti_sgsap_location_update_acc) {
-  imsi64_t imsi64                      = INVALID_IMSI64;
+  imsi64_t imsi64 = INVALID_IMSI64;
   struct ue_mm_context_s* ue_context_p = NULL;
-  int rc                               = RETURNok;
+  int rc = RETURNok;
   sgs_fsm_t sgs_fsm;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -575,9 +559,8 @@ status_code_e mme_app_handle_sgsap_location_update_acc(
   ue_context_p =
       mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Unknown IMSI in mme_app_handle_sgsap_location_update_acc\n");
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Unknown IMSI in mme_app_handle_sgsap_location_update_acc\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (ue_context_p->sgs_context == NULL) {
@@ -588,15 +571,15 @@ status_code_e mme_app_handle_sgsap_location_update_acc(
   }
 
   sgs_fsm.primitive = _SGS_LOCATION_UPDATE_ACCEPT;
-  sgs_fsm.ue_id     = ue_context_p->mme_ue_s1ap_id;
-  sgs_fsm.ctx       = ue_context_p->sgs_context;
-  ((sgs_context_t*) sgs_fsm.ctx)->sgsap_msg =
-      (void*) itti_sgsap_location_update_acc;
+  sgs_fsm.ue_id = ue_context_p->mme_ue_s1ap_id;
+  sgs_fsm.ctx = ue_context_p->sgs_context;
+  ((sgs_context_t*)sgs_fsm.ctx)->sgsap_msg =
+      (void*)itti_sgsap_location_update_acc;
 
   if (sgs_fsm_process(&sgs_fsm) != RETURNok) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Error in invoking FSM handler for primitive %d \n",
-        sgs_fsm.primitive);
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Error in invoking FSM handler for primitive %d \n",
+                 sgs_fsm.primitive);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -615,8 +598,8 @@ status_code_e mme_app_handle_sgsap_location_update_acc(
 status_code_e mme_app_handle_sgsap_location_update_rej(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_location_update_rej_t* const itti_sgsap_location_update_rej) {
-  imsi64_t imsi64                      = INVALID_IMSI64;
-  int rc                               = RETURNok;
+  imsi64_t imsi64 = INVALID_IMSI64;
+  int rc = RETURNok;
   struct ue_mm_context_s* ue_context_p = NULL;
   sgs_fsm_t sgs_fsm;
 
@@ -628,9 +611,8 @@ status_code_e mme_app_handle_sgsap_location_update_rej(
   ue_context_p =
       mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Unknown IMSI in mme_app_handle_sgsap_location_update_rej\n");
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Unknown IMSI in mme_app_handle_sgsap_location_update_rej\n");
     mme_ue_context_dump_coll_keys(&mme_app_desc_p->mme_ue_contexts);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
@@ -642,15 +624,15 @@ status_code_e mme_app_handle_sgsap_location_update_rej(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   sgs_fsm.primitive = _SGS_LOCATION_UPDATE_REJECT;
-  sgs_fsm.ue_id     = ue_context_p->mme_ue_s1ap_id;
-  sgs_fsm.ctx       = (void*) ue_context_p->sgs_context;
-  ((sgs_context_t*) sgs_fsm.ctx)->sgsap_msg =
-      (void*) itti_sgsap_location_update_rej;
+  sgs_fsm.ue_id = ue_context_p->mme_ue_s1ap_id;
+  sgs_fsm.ctx = (void*)ue_context_p->sgs_context;
+  ((sgs_context_t*)sgs_fsm.ctx)->sgsap_msg =
+      (void*)itti_sgsap_location_update_rej;
 
   if (sgs_fsm_process(&sgs_fsm) != RETURNok) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Error in invoking FSM handler for primitive %d \n",
-        sgs_fsm.primitive);
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Error in invoking FSM handler for primitive %d \n",
+                 sgs_fsm.primitive);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -667,26 +649,25 @@ status_code_e mme_app_handle_sgsap_location_update_rej(
  **                                                                          **
  *******************************************************************************/
 status_code_e sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
-  int rc                                                             = RETURNok;
+  int rc = RETURNok;
   itti_sgsap_location_update_acc_t* itti_sgsap_location_update_acc_p = NULL;
-  MobileIdentity_t* mobileid                                         = NULL;
+  MobileIdentity_t* mobileid = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  sgs_context_t* sgs_context = (sgs_context_t*) fsm_evt->ctx;
+  sgs_context_t* sgs_context = (sgs_context_t*)fsm_evt->ctx;
   itti_sgsap_location_update_acc_p =
-      (itti_sgsap_location_update_acc_t*) sgs_context->sgsap_msg;
+      (itti_sgsap_location_update_acc_t*)sgs_context->sgsap_msg;
 
   if (sgs_context == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "SGS Context is NULL for UE ID " MME_UE_S1AP_ID_FMT,
-        fsm_evt->ue_id);
+    OAILOG_ERROR(LOG_MME_APP,
+                 "SGS Context is NULL for UE ID " MME_UE_S1AP_ID_FMT,
+                 fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
   if (sgs_context->ts6_1_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    OAILOG_DEBUG(
-        LOG_MME_APP,
-        "Dropping Location Update Accept as Ts6-1 timer is running\n");
+    OAILOG_DEBUG(LOG_MME_APP,
+                 "Dropping Location Update Accept as Ts6-1 timer is running\n");
   }
   // If we received Location Updt Accept from MSC/VLR and ts6_1_timer is not
   // running
@@ -704,20 +685,18 @@ status_code_e sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
       OAILOG_DEBUG(
           LOG_MME_APP,
           "Dropping Location Update Accept as Ts8/Ts9 timer is running\n");
-    } else if (
-        (sgs_context->ts8_timer.id == MME_APP_TIMER_INACTIVE_ID) &&
-        (sgs_context->ts9_timer.id == MME_APP_TIMER_INACTIVE_ID)) {
+    } else if ((sgs_context->ts8_timer.id == MME_APP_TIMER_INACTIVE_ID) &&
+               (sgs_context->ts9_timer.id == MME_APP_TIMER_INACTIVE_ID)) {
       OAILOG_DEBUG(LOG_MME_APP, "Send SGS-STATUS message\n");
       // Send SGS-STATUS message to SGS task
       if (itti_sgsap_location_update_acc_p->presencemask &
           SGSAP_MOBILE_IDENTITY) {
         mobileid = &itti_sgsap_location_update_acc_p->mobileid;
       }
-      if (build_sgs_status(
-              itti_sgsap_location_update_acc_p->imsi,
-              itti_sgsap_location_update_acc_p->imsi_length,
-              itti_sgsap_location_update_acc_p->laicsfb, mobileid,
-              SGsAP_LOCATION_UPDATE_ACCEPT) == RETURNok) {
+      if (build_sgs_status(itti_sgsap_location_update_acc_p->imsi,
+                           itti_sgsap_location_update_acc_p->imsi_length,
+                           itti_sgsap_location_update_acc_p->laicsfb, mobileid,
+                           SGsAP_LOCATION_UPDATE_ACCEPT) == RETURNok) {
         OAILOG_DEBUG(LOG_MME_APP, "SGS-STATUS message sent to SGS task\n");
       }
     }
@@ -739,10 +718,10 @@ status_code_e sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  sgs_context_t* sgs_context = (sgs_context_t*) fsm_evt->ctx;
+  sgs_context_t* sgs_context = (sgs_context_t*)fsm_evt->ctx;
   if (sgs_context == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Unknown UE ID " MME_UE_S1AP_ID_FMT, fsm_evt->ue_id);
+    OAILOG_ERROR(LOG_MME_APP, "Unknown UE ID " MME_UE_S1AP_ID_FMT,
+                 fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   // If we received Location Updt Accept from MSC/VLR and ts6_1_timer is not
@@ -774,43 +753,42 @@ status_code_e sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
  **                                                                          **
  *******************************************************************************/
 status_code_e sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
-  int rc                                                             = RETURNok;
+  int rc = RETURNok;
   itti_sgsap_location_update_acc_t* itti_sgsap_location_update_acc_p = NULL;
-  struct ue_mm_context_s* ue_context_p                               = NULL;
-  MobileIdentity_t* mobileid                                         = NULL;
+  struct ue_mm_context_s* ue_context_p = NULL;
+  MobileIdentity_t* mobileid = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(fsm_evt->ue_id);
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Unknown UE ID " MME_UE_S1AP_ID_FMT, fsm_evt->ue_id);
+    OAILOG_ERROR(LOG_MME_APP, "Unknown UE ID " MME_UE_S1AP_ID_FMT,
+                 fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  sgs_context_t* sgs_context = (sgs_context_t*) fsm_evt->ctx;
+  sgs_context_t* sgs_context = (sgs_context_t*)fsm_evt->ctx;
   if (sgs_context == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "SGS context not found for UE ID " MME_UE_S1AP_ID_FMT,
-        fsm_evt->ue_id);
+    OAILOG_ERROR(LOG_MME_APP,
+                 "SGS context not found for UE ID " MME_UE_S1AP_ID_FMT,
+                 fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   itti_sgsap_location_update_acc_p =
-      (itti_sgsap_location_update_acc_t*) sgs_context->sgsap_msg;
+      (itti_sgsap_location_update_acc_t*)sgs_context->sgsap_msg;
   if (sgs_context->ts6_1_timer.id != MME_APP_TIMER_INACTIVE_ID) {
     /*Update SGS context and set VLR Reliable to true*/
-    sgs_context->sgs_state    = SGS_ASSOCIATED;
+    sgs_context->sgs_state = SGS_ASSOCIATED;
     sgs_context->vlr_reliable = true;
 
     /*Stop Ts6-1 timer*/
     mme_app_stop_timer(ue_context_p->sgs_context->ts6_1_timer.id);
 
     sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
-    if ((handle_cs_domain_loc_updt_acc(
-            itti_sgsap_location_update_acc_p, ue_context_p)) == RETURNerror) {
-      OAILOG_DEBUG(
-          LOG_MME_APP,
-          "Failed to update CSFB params received from MSC/VLR for "
-          "UE " IMSI_64_FMT "\n",
-          ue_context_p->emm_context._imsi64);
+    if ((handle_cs_domain_loc_updt_acc(itti_sgsap_location_update_acc_p,
+                                       ue_context_p)) == RETURNerror) {
+      OAILOG_DEBUG(LOG_MME_APP,
+                   "Failed to update CSFB params received from MSC/VLR for "
+                   "UE " IMSI_64_FMT "\n",
+                   ue_context_p->emm_context._imsi64);
       rc = RETURNerror;
     }
   } else if (sgs_context->ts6_1_timer.id == MME_APP_TIMER_INACTIVE_ID) {
@@ -831,20 +809,18 @@ status_code_e sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
       OAILOG_DEBUG(
           LOG_MME_APP,
           "Dropping Location Update Accept as Ts8/Ts9 timer is running\n");
-    } else if (
-        (sgs_context->ts8_timer.id == MME_APP_TIMER_INACTIVE_ID) &&
-        (sgs_context->ts8_timer.id == MME_APP_TIMER_INACTIVE_ID)) {
+    } else if ((sgs_context->ts8_timer.id == MME_APP_TIMER_INACTIVE_ID) &&
+               (sgs_context->ts8_timer.id == MME_APP_TIMER_INACTIVE_ID)) {
       OAILOG_DEBUG(LOG_MME_APP, "Send SGS-STATUS message\n");
       if (itti_sgsap_location_update_acc_p->presencemask &
           SGSAP_MOBILE_IDENTITY) {
         mobileid = &itti_sgsap_location_update_acc_p->mobileid;
       }
       // Send SGS-STATUS message to SGS task
-      if (build_sgs_status(
-              itti_sgsap_location_update_acc_p->imsi,
-              itti_sgsap_location_update_acc_p->imsi_length,
-              itti_sgsap_location_update_acc_p->laicsfb, mobileid,
-              SGsAP_LOCATION_UPDATE_ACCEPT) == RETURNok) {
+      if (build_sgs_status(itti_sgsap_location_update_acc_p->imsi,
+                           itti_sgsap_location_update_acc_p->imsi_length,
+                           itti_sgsap_location_update_acc_p->laicsfb, mobileid,
+                           SGsAP_LOCATION_UPDATE_ACCEPT) == RETURNok) {
         OAILOG_DEBUG(LOG_MME_APP, "SGS-STATUS message sent to SGS task\n");
       }
     }
@@ -864,9 +840,9 @@ status_code_e sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
 status_code_e sgs_fsm_null_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
   int rc = RETURNok;
   OAILOG_FUNC_IN(LOG_MME_APP);
-  OAILOG_ERROR(
-      LOG_MME_APP, "Dropping message as it is received in NULL state for UE %d",
-      fsm_evt->ue_id);
+  OAILOG_ERROR(LOG_MME_APP,
+               "Dropping message as it is received in NULL state for UE %d",
+               fsm_evt->ue_id);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -882,31 +858,31 @@ status_code_e sgs_fsm_null_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
  ** **
  *****************************************************************************************/
 status_code_e sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
-  int rc                                                             = RETURNok;
-  struct ue_mm_context_s* ue_context_p                               = NULL;
+  int rc = RETURNok;
+  struct ue_mm_context_s* ue_context_p = NULL;
   itti_sgsap_location_update_rej_t* itti_sgsap_location_update_rej_p = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
-  lai_t* lai      = NULL;
+  lai_t* lai = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  sgs_context_t* sgs_context = (sgs_context_t*) fsm_evt->ctx;
+  sgs_context_t* sgs_context = (sgs_context_t*)fsm_evt->ctx;
   itti_sgsap_location_update_rej_p =
-      (itti_sgsap_location_update_rej_t*) sgs_context->sgsap_msg;
+      (itti_sgsap_location_update_rej_t*)sgs_context->sgsap_msg;
   IMSI_STRING_TO_IMSI64(itti_sgsap_location_update_rej_p->imsi, &imsi64);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(fsm_evt->ue_id);
   if (ue_context_p == NULL) {
     mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-    OAILOG_ERROR(
-        LOG_MME_APP, "Unknown UE ID " MME_UE_S1AP_ID_FMT, fsm_evt->ue_id);
+    OAILOG_ERROR(LOG_MME_APP, "Unknown UE ID " MME_UE_S1AP_ID_FMT,
+                 fsm_evt->ue_id);
     mme_ue_context_dump_coll_keys(&mme_app_desc_p->mme_ue_contexts);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
   if (sgs_context == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "SGS Context is NULL for UE ID " MME_UE_S1AP_ID_FMT,
-        fsm_evt->ue_id);
+    OAILOG_ERROR(LOG_MME_APP,
+                 "SGS Context is NULL for UE ID " MME_UE_S1AP_ID_FMT,
+                 fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   // Change SGS state to NULL
@@ -921,9 +897,8 @@ status_code_e sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
     lai = &itti_sgsap_location_update_rej_p->laicsfb;
   }
   // Handle SGS Location Update Failure
-  nas_proc_cs_domain_location_updt_fail(
-      itti_sgsap_location_update_rej_p->cause, lai,
-      ue_context_p->mme_ue_s1ap_id);
+  nas_proc_cs_domain_location_updt_fail(itti_sgsap_location_update_rej_p->cause,
+                                        lai, ue_context_p->mme_ue_s1ap_id);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -936,13 +911,13 @@ status_code_e sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              ue_mm_context_s **
  ** **
  ***********************************************************************************/
-status_code_e mme_app_handle_ts6_1_timer_expiry(
-    zloop_t* loop, int timer_id, void* args) {
+status_code_e mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id,
+                                                void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
-    OAILOG_WARNING(
-        LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_WARNING(LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n",
+                   timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   struct ue_mm_context_s* ue_context_p =
@@ -955,20 +930,19 @@ status_code_e mme_app_handle_ts6_1_timer_expiry(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   if (ue_context_p->sgs_context == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Ts6-1  Timer expired, but sgs context is NULL for "
-        "ue-id " MME_UE_S1AP_ID_FMT "\n",
-        mme_ue_s1ap_id);
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Ts6-1  Timer expired, but sgs context is NULL for "
+                 "ue-id " MME_UE_S1AP_ID_FMT "\n",
+                 mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
 
   ue_context_p->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  ue_context_p->sgs_context->sgs_state      = SGS_NULL;
+  ue_context_p->sgs_context->sgs_state = SGS_NULL;
 
   // Handle SGS Location Update Failure
-  nas_proc_cs_domain_location_updt_fail(
-      SGS_MSC_NOT_REACHABLE, NULL, mme_ue_s1ap_id);
+  nas_proc_cs_domain_location_updt_fail(SGS_MSC_NOT_REACHABLE, NULL,
+                                        mme_ue_s1ap_id);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
@@ -983,26 +957,26 @@ status_code_e mme_app_handle_ts6_1_timer_expiry(
  ** **
  ***********************************************************************************/
 status_code_e sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
-  int rc                                                             = RETURNok;
-  struct ue_mm_context_s* ue_context_p                               = NULL;
+  int rc = RETURNok;
+  struct ue_mm_context_s* ue_context_p = NULL;
   itti_sgsap_location_update_rej_t* itti_sgsap_location_update_rej_p = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  sgs_context_t* sgs_context = (sgs_context_t*) fsm_evt->ctx;
+  sgs_context_t* sgs_context = (sgs_context_t*)fsm_evt->ctx;
   itti_sgsap_location_update_rej_p =
-      (itti_sgsap_location_update_rej_t*) sgs_context->sgsap_msg;
+      (itti_sgsap_location_update_rej_t*)sgs_context->sgsap_msg;
   IMSI_STRING_TO_IMSI64(itti_sgsap_location_update_rej_p->imsi, &imsi64);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(fsm_evt->ue_id);
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Unknown UE ID " MME_UE_S1AP_ID_FMT, fsm_evt->ue_id);
+    OAILOG_ERROR(LOG_MME_APP, "Unknown UE ID " MME_UE_S1AP_ID_FMT,
+                 fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (sgs_context == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "SGS context not found for UE ID " MME_UE_S1AP_ID_FMT,
-        fsm_evt->ue_id);
+    OAILOG_ERROR(LOG_MME_APP,
+                 "SGS context not found for UE ID " MME_UE_S1AP_ID_FMT,
+                 fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   OAILOG_DEBUG(
@@ -1031,32 +1005,32 @@ status_code_e mme_app_create_sgs_context(ue_mm_context_t* ue_context_p) {
 
   ue_context_p->sgs_context = calloc(1, sizeof(sgs_context_t));
   if (!ue_context_p->sgs_context) {
-    OAILOG_CRITICAL(
-        LOG_MME_APP,
-        "Cannot create SGS Context for UE-ID " MME_UE_S1AP_ID_FMT " \n",
-        ue_context_p->mme_ue_s1ap_id);
+    OAILOG_CRITICAL(LOG_MME_APP,
+                    "Cannot create SGS Context for UE-ID " MME_UE_S1AP_ID_FMT
+                    " \n",
+                    ue_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   // Initialize SGS context to default values
-  ue_context_p->sgs_context->sgs_state      = SGS_NULL;
-  ue_context_p->sgs_context->vlr_reliable   = false;
-  ue_context_p->sgs_context->neaf           = false;
+  ue_context_p->sgs_context->sgs_state = SGS_NULL;
+  ue_context_p->sgs_context->vlr_reliable = false;
+  ue_context_p->sgs_context->neaf = false;
   ue_context_p->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->sgs_context->ts6_1_timer.msec =
       mme_config.sgs_config.ts6_1_msec;
-  ue_context_p->sgs_context->ts8_timer.id   = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->sgs_context->ts8_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->sgs_context->ts8_timer.msec = mme_config.sgs_config.ts8_msec;
   ue_context_p->sgs_context->ts8_retransmission_count = 0;
-  ue_context_p->sgs_context->ts9_timer.id   = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->sgs_context->ts9_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->sgs_context->ts9_timer.msec = mme_config.sgs_config.ts9_msec;
   ue_context_p->sgs_context->ts9_retransmission_count = 0;
-  ue_context_p->sgs_context->ts10_timer.id   = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->sgs_context->ts10_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->sgs_context->ts10_timer.msec = mme_config.sgs_config.ts10_msec;
   ue_context_p->sgs_context->ts10_retransmission_count = 0;
-  ue_context_p->sgs_context->ts13_timer.id   = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->sgs_context->ts13_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->sgs_context->ts13_timer.msec = mme_config.sgs_config.ts13_msec;
   ue_context_p->sgs_context->ts13_retransmission_count = 0;
-  ue_context_p->sgs_context->call_cancelled            = false;
+  ue_context_p->sgs_context->call_cancelled = false;
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 

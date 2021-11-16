@@ -33,14 +33,12 @@ extern "C" {
 
 #define SLEEP_AT_INITIALIZATION_TIME_MS 500
 void fill_imsi(char* imsi);
-void fill_itti_csreq(
-    itti_s11_create_session_request_t* session_req_pP,
-    uint8_t default_eps_bearer_id);
+void fill_itti_csreq(itti_s11_create_session_request_t* session_req_pP,
+                     uint8_t default_eps_bearer_id);
 void fill_itti_csrsp(s8_create_session_response_t* csr_resp, uint32_t teid);
 
-void fill_create_bearer_request(
-    s8_create_bearer_request_t* cb_req, uint32_t teid,
-    uint8_t default_eps_bearer_id);
+void fill_create_bearer_request(s8_create_bearer_request_t* cb_req,
+                                uint32_t teid, uint8_t default_eps_bearer_id);
 
 void fill_create_bearer_response(
     itti_s11_nw_init_actv_bearer_rsp_t* cb_response, uint32_t teid,
@@ -50,8 +48,8 @@ void fill_delete_bearer_response(
     itti_s11_nw_init_deactv_bearer_rsp_t* db_response,
     uint32_t s_gw_teid_s11_s4, uint8_t eps_bearer_id,
     gtpv2c_cause_value_t cause);
-void fill_delete_bearer_request(
-    s8_delete_bearer_request_t* db_req, uint32_t teid, uint8_t eps_bearer_id);
+void fill_delete_bearer_request(s8_delete_bearer_request_t* db_req,
+                                uint32_t teid, uint8_t eps_bearer_id);
 // Initialize config params
 class SgwS8Config : public ::testing::Test {
  public:
@@ -60,7 +58,7 @@ class SgwS8Config : public ::testing::Test {
  protected:
   sgw_config_t* config =
       reinterpret_cast<sgw_config_t*>(calloc(1, sizeof(sgw_config_t)));
-  uint64_t imsi64               = 1010000000001;
+  uint64_t imsi64 = 1010000000001;
   uint8_t default_eps_bearer_id = 5;
   virtual void SetUp();
   void sgw_s8_config_init();
@@ -82,7 +80,7 @@ class SgwS8ConfigAndCreateMock : public ::testing::Test {
  protected:
   sgw_config_t* config =
       reinterpret_cast<sgw_config_t*>(calloc(1, sizeof(sgw_config_t)));
-  uint64_t imsi64               = 1010000000001;
+  uint64_t imsi64 = 1010000000001;
   uint8_t default_eps_bearer_id = 5;
   virtual void SetUp();
   void sgw_s8_config_init();

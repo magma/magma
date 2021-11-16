@@ -40,9 +40,7 @@ extern bool mme_sctp_bounded;
 namespace magma {
 namespace lte {
 
-ACTION_P(ReturnFromAsyncTask, cv) {
-  cv->notify_all();
-}
+ACTION_P(ReturnFromAsyncTask, cv) { cv->notify_all(); }
 
 task_zmq_ctx_t task_zmq_ctx_main;
 
@@ -50,7 +48,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: { } break; }
+    default: {
+    } break;
+  }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -60,28 +60,27 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 class MmeAppProcedureTest : public ::testing::Test {
   virtual void SetUp() {
     mme_hss_associated = false;
-    mme_sctp_bounded   = false;
-    s1ap_handler       = std::make_shared<MockS1apHandler>();
-    s6a_handler        = std::make_shared<MockS6aHandler>();
-    s8_handler         = std::make_shared<MockS8Handler>();
-    spgw_handler       = std::make_shared<MockSpgwHandler>();
+    mme_sctp_bounded = false;
+    s1ap_handler = std::make_shared<MockS1apHandler>();
+    s6a_handler = std::make_shared<MockS6aHandler>();
+    s8_handler = std::make_shared<MockS8Handler>();
+    spgw_handler = std::make_shared<MockSpgwHandler>();
     service303_handler = std::make_shared<MockService303Handler>();
-    itti_init(
-        TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
-        NULL);
+    itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
+              NULL, NULL);
 
     // initialize mme config
     mme_config_init(&mme_config);
     nas_config_timer_reinit(&mme_config.nas_config, MME_APP_TIMER_TO_MSEC);
     create_partial_lists(&mme_config);
-    mme_config.use_stateless                              = true;
+    mme_config.use_stateless = true;
     mme_config.nas_config.prefered_integrity_algorithm[0] = EIA2_128_ALG_ID;
 
     task_id_t task_id_list[10] = {
         TASK_MME_APP,    TASK_HA,  TASK_S1AP,   TASK_S6A,      TASK_S11,
         TASK_SERVICE303, TASK_SGS, TASK_SGW_S8, TASK_SPGW_APP, TASK_SMS_ORC8R};
-    init_task_context(
-        TASK_MAIN, task_id_list, 10, handle_message, &task_zmq_ctx_main);
+    init_task_context(TASK_MAIN, task_id_list, 10, handle_message,
+                      &task_zmq_ctx_main);
 
     std::thread task_ha(start_mock_ha_task);
     std::thread task_s1ap(start_mock_s1ap_task, s1ap_handler);
@@ -137,19 +136,19 @@ class MmeAppProcedureTest : public ::testing::Test {
   const uint8_t nas_msg_smc_resp[19] = {
       0x47, 0xc0, 0xb5, 0x35, 0x6b, 0x00, 0x07, 0x5e, 0x23, 0x09,
       0x33, 0x08, 0x45, 0x86, 0x34, 0x12, 0x31, 0x71, 0xf2};
-  const uint8_t nas_msg_ident_resp[11]  = {0x07, 0x56, 0x08, 0x09, 0x10, 0x10,
+  const uint8_t nas_msg_ident_resp[11] = {0x07, 0x56, 0x08, 0x09, 0x10, 0x10,
                                           0x00, 0x00, 0x00, 0x00, 0x10};
   const uint8_t nas_msg_attach_comp[13] = {0x27, 0xb6, 0x28, 0x5a, 0x49,
                                            0x01, 0x07, 0x43, 0x00, 0x03,
                                            0x52, 0x00, 0xc2};
-  const uint8_t nas_msg_detach_req[21]  = {
+  const uint8_t nas_msg_detach_req[21] = {
       0x27, 0x8f, 0xf4, 0x06, 0xe5, 0x02, 0x07, 0x45, 0x09, 0x0b, 0xf6,
       0x00, 0xf1, 0x10, 0x00, 0x01, 0x01, 0x46, 0x93, 0xe8, 0xb8};
   const uint8_t nas_msg_detach_accept[8] = {0x17, 0x88, 0x16, 0x67,
                                             0xd3, 0x02, 0x07, 0x46};
 
   std::string imsi = "001010000000001";
-  plmn_t plmn      = {.mcc_digit2 = 0,
+  plmn_t plmn = {.mcc_digit2 = 0,
                  .mcc_digit1 = 0,
                  .mnc_digit3 = 0x0f,
                  .mcc_digit3 = 1,
@@ -200,8 +199,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
   MME_APP_EXPECT_CALLS(3, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
+                              sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi, true);
@@ -209,14 +208,14 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_auth_resp, sizeof(nas_msg_auth_resp),
+                               plmn);
 
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_smc_resp, sizeof(nas_msg_smc_resp),
+                               plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
   send_s6a_ula(imsi, true);
@@ -233,8 +232,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
 
   // Constructing and sending Attach Complete to mme_app
   // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_attach_comp, sizeof(nas_msg_attach_comp),
+                               plmn);
 
   // Wait for DL NAS Transport for EMM Information
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -242,7 +241,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
   // Constructing and sending Modify Bearer Response to mme_app
   // mimicing SPGW
   std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
+  std::vector<int> b_rm = {};
   send_modify_bearer_resp(b_modify, b_rm);
 
   // Check MME state after Modify Bearer Response
@@ -255,8 +254,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
 
   // Constructing and sending Detach Request to mme_app
   // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_detach_req, sizeof(nas_msg_detach_req), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
+                               plmn);
 
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
@@ -291,14 +290,14 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
   MME_APP_EXPECT_CALLS(4, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_guti_attach_req, sizeof(nas_msg_guti_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_guti_attach_req,
+                              sizeof(nas_msg_guti_attach_req), plmn);
 
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Identity Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_ident_resp, sizeof(nas_msg_ident_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_ident_resp, sizeof(nas_msg_ident_resp),
+                               plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi, true);
@@ -306,14 +305,14 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_auth_resp, sizeof(nas_msg_auth_resp),
+                               plmn);
 
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_smc_resp, sizeof(nas_msg_smc_resp),
+                               plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
   send_s6a_ula(imsi, true);
@@ -330,8 +329,8 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
 
   // Constructing and sending Attach Complete to mme_app
   // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_attach_comp, sizeof(nas_msg_attach_comp),
+                               plmn);
 
   // Wait for DL NAS Transport for EMM Information
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -339,7 +338,7 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
   // Constructing and sending Modify Bearer Response to mme_app
   // mimicing SPGW
   std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
+  std::vector<int> b_rm = {};
   send_modify_bearer_resp(b_modify, b_rm);
 
   // Check MME state after Modify Bearer Response
@@ -352,8 +351,8 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
 
   // Constructing and sending Detach Request to mme_app
   // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_detach_req, sizeof(nas_msg_detach_req), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
+                               plmn);
 
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
@@ -388,8 +387,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirFailure) {
   MME_APP_EXPECT_CALLS(1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
+                              sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing negative S6A response for AIR
   send_authentication_info_resp(imsi, false);
@@ -429,8 +428,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirTimeout) {
   MME_APP_EXPECT_CALLS(1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
+                              sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Wait for context release request; MME should be sending attach reject
   // as well as context release command
@@ -467,8 +466,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyUlaFailure) {
   MME_APP_EXPECT_CALLS(3, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
+                              sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi, true);
@@ -476,14 +475,14 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyUlaFailure) {
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_auth_resp, sizeof(nas_msg_auth_resp),
+                               plmn);
 
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_smc_resp, sizeof(nas_msg_smc_resp),
+                               plmn);
 
   // Sending ULA to mme_app mimicing negative S6A response for ULR
   send_s6a_ula(imsi, false);
@@ -523,8 +522,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
   MME_APP_EXPECT_CALLS(15, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
+                              sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi, true);
@@ -534,16 +533,16 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
     cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   }
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_auth_resp, sizeof(nas_msg_auth_resp),
+                               plmn);
 
   // Wait for DL NAS Transport up to retransmission limit
   for (int i = 0; i < NAS_RETX_LIMIT; ++i) {
     cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   }
   // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_smc_resp, sizeof(nas_msg_smc_resp),
+                               plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
   send_s6a_ula(imsi, true);
@@ -565,8 +564,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
   }
   // Constructing and sending Attach Complete to mme_app
   // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_attach_comp, sizeof(nas_msg_attach_comp),
+                               plmn);
 
   // Wait for DL NAS Transport for EMM Information
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -574,7 +573,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
   // Constructing and sending Modify Bearer Response to mme_app
   // mimicing SPGW
   std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
+  std::vector<int> b_rm = {};
   send_modify_bearer_resp(b_modify, b_rm);
 
   // Check MME state after Modify Bearer Response
@@ -587,8 +586,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
 
   // Constructing and sending Detach Request to mme_app
   // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_detach_req, sizeof(nas_msg_detach_req), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
+                               plmn);
 
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
@@ -623,8 +622,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectAuthRetxFailure) {
   MME_APP_EXPECT_CALLS(6, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
+                              sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi, true);
@@ -664,16 +663,16 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectSmcRetxFailure) {
   MME_APP_EXPECT_CALLS(6, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
+                              sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi, true);
 
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_auth_resp, sizeof(nas_msg_auth_resp),
+                               plmn);
 
   // Wait for DL NAS Transport to max out retransmission limit
   for (int i = 0; i < NAS_RETX_LIMIT; ++i) {
@@ -709,16 +708,16 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
   MME_APP_EXPECT_CALLS(8, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_guti_attach_req, sizeof(nas_msg_guti_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_guti_attach_req,
+                              sizeof(nas_msg_guti_attach_req), plmn);
 
   // Wait for DL NAS Transport up to retransmission limit
   for (int i = 0; i < NAS_RETX_LIMIT; ++i) {
     cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   }
   // Constructing and sending Identity Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_ident_resp, sizeof(nas_msg_ident_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_ident_resp, sizeof(nas_msg_ident_resp),
+                               plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi, true);
@@ -726,14 +725,14 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_auth_resp, sizeof(nas_msg_auth_resp),
+                               plmn);
 
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_smc_resp, sizeof(nas_msg_smc_resp),
+                               plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
   send_s6a_ula(imsi, true);
@@ -750,8 +749,8 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
 
   // Constructing and sending Attach Complete to mme_app
   // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_attach_comp, sizeof(nas_msg_attach_comp),
+                               plmn);
 
   // Wait for DL NAS Transport for EMM Information
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -759,7 +758,7 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
   // Constructing and sending Modify Bearer Response to mme_app
   // mimicing SPGW
   std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
+  std::vector<int> b_rm = {};
   send_modify_bearer_resp(b_modify, b_rm);
 
   // Check MME state after Modify Bearer Response
@@ -772,8 +771,8 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
 
   // Constructing and sending Detach Request to mme_app
   // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_detach_req, sizeof(nas_msg_detach_req), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
+                               plmn);
 
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
@@ -808,8 +807,8 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectIdentRetxFailure) {
   MME_APP_EXPECT_CALLS(6, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
+                              sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi, true);
@@ -849,8 +848,8 @@ TEST_F(MmeAppProcedureTest, TestIcsRequestTimeout) {
   MME_APP_EXPECT_CALLS(2, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
+                              sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi, true);
@@ -858,14 +857,14 @@ TEST_F(MmeAppProcedureTest, TestIcsRequestTimeout) {
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_auth_resp, sizeof(nas_msg_auth_resp),
+                               plmn);
 
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_smc_resp, sizeof(nas_msg_smc_resp),
+                               plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
   send_s6a_ula(imsi, true);
@@ -910,8 +909,8 @@ TEST_F(MmeAppProcedureTest, TestCreateSessionFailure) {
   MME_APP_EXPECT_CALLS(3, 0, 2, 1, 1, 1, 1, 0, 0, 1, 1);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
+                              sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi, true);
@@ -919,14 +918,14 @@ TEST_F(MmeAppProcedureTest, TestCreateSessionFailure) {
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_auth_resp, sizeof(nas_msg_auth_resp),
+                               plmn);
 
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_smc_resp, sizeof(nas_msg_smc_resp),
+                               plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
   send_s6a_ula(imsi, true);
@@ -976,8 +975,8 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetach) {
   MME_APP_EXPECT_CALLS(4, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
+                              sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi, true);
@@ -985,14 +984,14 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetach) {
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_auth_resp, sizeof(nas_msg_auth_resp),
+                               plmn);
 
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_smc_resp, sizeof(nas_msg_smc_resp),
+                               plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
   send_s6a_ula(imsi, true);
@@ -1009,8 +1008,8 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetach) {
 
   // Constructing and sending Attach Complete to mme_app
   // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_attach_comp, sizeof(nas_msg_attach_comp),
+                               plmn);
 
   // Wait for DL NAS Transport for EMM Information
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -1018,7 +1017,7 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetach) {
   // Constructing and sending Modify Bearer Response to mme_app
   // mimicing SPGW
   std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
+  std::vector<int> b_rm = {};
   send_modify_bearer_resp(b_modify, b_rm);
 
   // Check MME state after Modify Bearer Response
@@ -1040,8 +1039,8 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetach) {
 
   // Constructing and sending Detach Accept to mme_app
   // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_detach_accept, sizeof(nas_msg_detach_accept), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_detach_accept,
+                               sizeof(nas_msg_detach_accept), plmn);
 
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
@@ -1076,8 +1075,8 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedExpiredDetach) {
   MME_APP_EXPECT_CALLS(8, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
+                              sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi, true);
@@ -1085,14 +1084,14 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedExpiredDetach) {
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_auth_resp, sizeof(nas_msg_auth_resp),
+                               plmn);
 
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_smc_resp, sizeof(nas_msg_smc_resp),
+                               plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
   send_s6a_ula(imsi, true);
@@ -1109,8 +1108,8 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedExpiredDetach) {
 
   // Constructing and sending Attach Complete to mme_app
   // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_attach_comp, sizeof(nas_msg_attach_comp),
+                               plmn);
 
   // Wait for DL NAS Transport for EMM Information
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -1118,7 +1117,7 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedExpiredDetach) {
   // Constructing and sending Modify Bearer Response to mme_app
   // mimicing SPGW
   std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
+  std::vector<int> b_rm = {};
   send_modify_bearer_resp(b_modify, b_rm);
 
   // Check MME state after Modify Bearer Response
@@ -1142,8 +1141,8 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedExpiredDetach) {
 
   // Constructing and sending Detach Accept to mme_app
   // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_detach_accept, sizeof(nas_msg_detach_accept), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_detach_accept,
+                               sizeof(nas_msg_detach_accept), plmn);
 
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
@@ -1178,8 +1177,8 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetachRetxFailure) {
   MME_APP_EXPECT_CALLS(8, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
+                              sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi, true);
@@ -1187,14 +1186,14 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetachRetxFailure) {
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_auth_resp, sizeof(nas_msg_auth_resp),
+                               plmn);
 
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_smc_resp, sizeof(nas_msg_smc_resp),
+                               plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
   send_s6a_ula(imsi, true);
@@ -1211,8 +1210,8 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetachRetxFailure) {
 
   // Constructing and sending Attach Complete to mme_app
   // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_attach_comp, sizeof(nas_msg_attach_comp),
+                               plmn);
 
   // Wait for DL NAS Transport for EMM Information
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -1220,7 +1219,7 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetachRetxFailure) {
   // Constructing and sending Modify Bearer Response to mme_app
   // mimicing SPGW
   std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
+  std::vector<int> b_rm = {};
   send_modify_bearer_resp(b_modify, b_rm);
 
   // Check MME state after Modify Bearer Response
@@ -1278,8 +1277,8 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
   MME_APP_EXPECT_CALLS(3, 1, 2, 1, 1, 1, 1, 1, 1, 1, 3);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
-  send_mme_app_initial_ue_msg(
-      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+  send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
+                              sizeof(nas_msg_imsi_attach_req), plmn);
 
   // Sending AIA to mme_app mimicing successful S6A response for AIR
   send_authentication_info_resp(imsi, true);
@@ -1287,14 +1286,14 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Authentication Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_auth_resp, sizeof(nas_msg_auth_resp),
+                               plmn);
 
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending SMC Response to mme_app mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_smc_resp, sizeof(nas_msg_smc_resp),
+                               plmn);
 
   // Sending ULA to mme_app mimicing successful S6A response for ULR
   send_s6a_ula(imsi, true);
@@ -1311,8 +1310,8 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
 
   // Constructing and sending Attach Complete to mme_app
   // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_attach_comp, sizeof(nas_msg_attach_comp),
+                               plmn);
 
   // Wait for DL NAS Transport for EMM Information
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -1320,7 +1319,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
   // Constructing and sending Modify Bearer Response to mme_app
   // mimicing SPGW
   std::vector<int> b_modify = {5};
-  std::vector<int> b_rm     = {};
+  std::vector<int> b_rm = {};
   send_modify_bearer_resp(b_modify, b_rm);
 
   // Check MME state after Modify Bearer Response
@@ -1356,8 +1355,8 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
   // Constructing and sending Detach Request to mme_app
   // mimicing S1AP
-  send_mme_app_uplink_data_ind(
-      nas_msg_detach_req, sizeof(nas_msg_detach_req), plmn);
+  send_mme_app_uplink_data_ind(nas_msg_detach_req, sizeof(nas_msg_detach_req),
+                               plmn);
 
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task

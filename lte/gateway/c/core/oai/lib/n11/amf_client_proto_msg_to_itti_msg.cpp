@@ -39,42 +39,38 @@ void convert_proto_msg_to_itti_m5g_auth_info_ans(
     return;
   }
   itti_msg->auth_info.nb_of_vectors = msg.m5gauth_vectors_size();
-  uint8_t idx                       = 0;
+  uint8_t idx = 0;
   while (idx < itti_msg->auth_info.nb_of_vectors) {
     auto m5gauth_vector = msg.m5gauth_vectors(idx);
     m5gauth_vector_t* itti_m5gauth_vector =
         &(itti_msg->auth_info.m5gauth_vector[idx]);
     if (m5gauth_vector.rand().length() <= RAND_LENGTH_OCTETS) {
-      memcpy(
-          itti_m5gauth_vector->rand, m5gauth_vector.rand().c_str(),
-          m5gauth_vector.rand().length());
+      memcpy(itti_m5gauth_vector->rand, m5gauth_vector.rand().c_str(),
+             m5gauth_vector.rand().length());
     }
     uint8_t xres_star_len = 0;
-    xres_star_len         = m5gauth_vector.xres_star().length();
+    xres_star_len = m5gauth_vector.xres_star().length();
     if ((xres_star_len > XRES_LENGTH_MIN) &&
         (xres_star_len <= XRES_LENGTH_MAX)) {
       itti_m5gauth_vector->xres_star.size = m5gauth_vector.xres_star().length();
-      memcpy(
-          itti_m5gauth_vector->xres_star.data,
-          m5gauth_vector.xres_star().c_str(), xres_star_len);
+      memcpy(itti_m5gauth_vector->xres_star.data,
+             m5gauth_vector.xres_star().c_str(), xres_star_len);
     } else {
       std::cout << "[ERROR] Invalid xres_star length " << xres_star_len
                 << std::endl;
       return;
     }
     if (m5gauth_vector.autn().length() == AUTN_LENGTH_OCTETS) {
-      memcpy(
-          itti_m5gauth_vector->autn, m5gauth_vector.autn().c_str(),
-          m5gauth_vector.autn().length());
+      memcpy(itti_m5gauth_vector->autn, m5gauth_vector.autn().c_str(),
+             m5gauth_vector.autn().length());
     } else {
       std::cout << "[ERROR] Invalid AUTN length "
                 << m5gauth_vector.autn().length() << std::endl;
       return;
     }
     if (m5gauth_vector.kseaf().length() == KSEAF_LENGTH_OCTETS) {
-      memcpy(
-          itti_m5gauth_vector->kseaf, m5gauth_vector.kseaf().c_str(),
-          m5gauth_vector.kseaf().length());
+      memcpy(itti_m5gauth_vector->kseaf, m5gauth_vector.kseaf().c_str(),
+             m5gauth_vector.kseaf().length());
     } else {
       std::cout << "[ERROR] Invalid KSEAF length "
                 << m5gauth_vector.kseaf().length() << std::endl;

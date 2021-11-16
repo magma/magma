@@ -33,7 +33,7 @@ namespace magma {
 using google::protobuf::util::TimeUtil;
 
 SessionConfig::SessionConfig(const LocalCreateSessionRequest& request) {
-  common_context       = request.common_context();
+  common_context = request.common_context();
   rat_specific_context = request.rat_specific_context();
 }
 
@@ -79,23 +79,24 @@ AggregatedMaximumBitrate_BitrateUnitsAMBR SessionConfig::get_apn_ambr_units(
 
 SessionStateUpdateCriteria get_default_update_criteria() {
   SessionStateUpdateCriteria uc{};
-  uc.is_fsm_updated             = false;
-  uc.is_config_updated          = false;
-  uc.request_number_increment   = 0;
-  uc.updated_pdp_end_time       = 0;
+  uc.is_fsm_updated = false;
+  uc.is_config_updated = false;
+  uc.request_number_increment = 0;
+  uc.updated_pdp_end_time = 0;
   uc.charging_credit_to_install = StoredChargingCreditMap(4, &ccHash, &ccEqual);
-  uc.charging_credit_map        = std::unordered_map<
-      CreditKey, SessionCreditUpdateCriteria, decltype(&ccHash),
-      decltype(&ccEqual)>(4, &ccHash, &ccEqual);
+  uc.charging_credit_map =
+      std::unordered_map<CreditKey, SessionCreditUpdateCriteria,
+                         decltype(&ccHash), decltype(&ccEqual)>(4, &ccHash,
+                                                                &ccEqual);
   uc.is_session_level_key_updated = false;
-  uc.is_bearer_mapping_updated    = false;
-  uc.policy_version_and_stats     = {};
-  uc.create_session_response      = {};
+  uc.is_bearer_mapping_updated = false;
+  uc.policy_version_and_stats = {};
+  uc.create_session_response = {};
   return uc;
 }
 
 std::string serialize_stored_session_config(const SessionConfig& stored) {
-  folly::dynamic marshaled    = folly::dynamic::object;
+  folly::dynamic marshaled = folly::dynamic::object;
   marshaled["common_context"] = stored.common_context.SerializeAsString();
   marshaled["rat_specific_context"] =
       stored.rat_specific_context.SerializeAsString();
@@ -105,7 +106,7 @@ std::string serialize_stored_session_config(const SessionConfig& stored) {
 }
 
 SessionConfig deserialize_stored_session_config(const std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
   auto stored = SessionConfig{};
@@ -122,7 +123,7 @@ SessionConfig deserialize_stored_session_config(const std::string& serialized) {
 }
 
 std::string serialize_stored_final_action_info(const FinalActionInfo& stored) {
-  folly::dynamic marshaled  = folly::dynamic::object;
+  folly::dynamic marshaled = folly::dynamic::object;
   marshaled["final_action"] = static_cast<int>(stored.final_action);
 
   std::string redirect_server;
@@ -141,10 +142,10 @@ std::string serialize_stored_final_action_info(const FinalActionInfo& stored) {
 
 FinalActionInfo deserialize_stored_final_action_info(
     const std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
-  auto stored         = FinalActionInfo{};
+  auto stored = FinalActionInfo{};
   stored.final_action = static_cast<ChargingCredit_FinalAction>(
       marshaled["final_action"].getInt());
 
@@ -160,14 +161,14 @@ FinalActionInfo deserialize_stored_final_action_info(
 
 std::string serialize_stored_charging_grant(StoredChargingGrant& stored) {
   folly::dynamic marshaled = folly::dynamic::object;
-  marshaled["is_final"]    = stored.is_final;
+  marshaled["is_final"] = stored.is_final;
   marshaled["final_action_info"] =
       serialize_stored_final_action_info(stored.final_action_info);
-  marshaled["expiry_time"]   = std::to_string(stored.expiry_time);
-  marshaled["reauth_state"]  = static_cast<int>(stored.reauth_state);
+  marshaled["expiry_time"] = std::to_string(stored.expiry_time);
+  marshaled["reauth_state"] = static_cast<int>(stored.reauth_state);
   marshaled["service_state"] = static_cast<int>(stored.service_state);
-  marshaled["credit"]        = serialize_stored_session_credit(stored.credit);
-  marshaled["suspended"]     = stored.suspended;
+  marshaled["credit"] = serialize_stored_session_credit(stored.credit);
+  marshaled["suspended"] = stored.suspended;
 
   std::string serialized = folly::toJson(marshaled);
   return serialized;
@@ -175,11 +176,11 @@ std::string serialize_stored_charging_grant(StoredChargingGrant& stored) {
 
 StoredChargingGrant deserialize_stored_charging_grant(
     const std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
-  auto stored              = StoredChargingGrant{};
-  stored.is_final          = marshaled["is_final"].getBool();
+  auto stored = StoredChargingGrant{};
+  stored.is_final = marshaled["is_final"].getBool();
   stored.final_action_info = deserialize_stored_final_action_info(
       marshaled["final_action_info"].getString());
   stored.reauth_state =
@@ -196,17 +197,17 @@ StoredChargingGrant deserialize_stored_charging_grant(
 }
 
 std::string serialize_stored_session_credit(StoredSessionCredit& stored) {
-  folly::dynamic marshaled       = folly::dynamic::object;
-  marshaled["reporting"]         = stored.reporting;
+  folly::dynamic marshaled = folly::dynamic::object;
+  marshaled["reporting"] = stored.reporting;
   marshaled["credit_limit_type"] = static_cast<int>(stored.credit_limit_type);
-  marshaled["buckets"]           = folly::dynamic::object();
+  marshaled["buckets"] = folly::dynamic::object();
   marshaled["grant_tracking_type"] =
       static_cast<int>(stored.grant_tracking_type);
   marshaled["received_granted_units"] =
       stored.received_granted_units.SerializeAsString();
-  marshaled["report_last_credit"]  = stored.report_last_credit;
+  marshaled["report_last_credit"] = stored.report_last_credit;
   marshaled["time_of_first_usage"] = std::to_string(stored.time_of_first_usage);
-  marshaled["time_of_last_usage"]  = std::to_string(stored.time_of_last_usage);
+  marshaled["time_of_last_usage"] = std::to_string(stored.time_of_last_usage);
 
   for (int bucket_int = USED_TX; bucket_int != BUCKET_ENUM_MAX_VALUE;
        bucket_int++) {
@@ -221,10 +222,10 @@ std::string serialize_stored_session_credit(StoredSessionCredit& stored) {
 
 StoredSessionCredit deserialize_stored_session_credit(
     const std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
-  auto stored      = StoredSessionCredit{};
+  auto stored = StoredSessionCredit{};
   stored.reporting = marshaled["reporting"].getBool();
   stored.credit_limit_type =
       static_cast<CreditLimitType>(marshaled["credit_limit_type"].getInt());
@@ -235,15 +236,15 @@ StoredSessionCredit deserialize_stored_session_credit(
   received_granted_units.ParseFromString(
       marshaled["received_granted_units"].getString());
   stored.received_granted_units = received_granted_units;
-  stored.report_last_credit     = marshaled["report_last_credit"].getBool();
-  stored.time_of_first_usage    = static_cast<uint64_t>(
+  stored.report_last_credit = marshaled["report_last_credit"].getBool();
+  stored.time_of_first_usage = static_cast<uint64_t>(
       std::stoul(marshaled["time_of_first_usage"].getString()));
   stored.time_of_last_usage = static_cast<uint64_t>(
       std::stoul(marshaled["time_of_last_usage"].getString()));
 
   for (int bucket_int = USED_TX; bucket_int != BUCKET_ENUM_MAX_VALUE;
        bucket_int++) {
-    Bucket bucket          = static_cast<Bucket>(bucket_int);
+    Bucket bucket = static_cast<Bucket>(bucket_int);
     stored.buckets[bucket] = static_cast<uint64_t>(std::stoul(
         marshaled["buckets"][std::to_string(bucket_int)].getString()));
   }
@@ -255,14 +256,14 @@ std::string serialize_stored_monitor(StoredMonitor& stored) {
   folly::dynamic marshaled = folly::dynamic::object;
 
   marshaled["credit"] = serialize_stored_session_credit(stored.credit);
-  marshaled["level"]  = static_cast<int>(stored.level);
+  marshaled["level"] = static_cast<int>(stored.level);
 
   std::string serialized = folly::toJson(marshaled);
   return serialized;
 }
 
 StoredMonitor deserialize_stored_monitor(const std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
   auto stored = StoredMonitor{};
@@ -278,11 +279,11 @@ std::string serialize_stored_charging_credit_map(
   folly::dynamic marshaled = folly::dynamic::object;
 
   folly::dynamic credit_keys = folly::dynamic::array;
-  folly::dynamic credit_map  = folly::dynamic::object;
+  folly::dynamic credit_map = folly::dynamic::object;
   for (auto& credit_pair : stored) {
-    CreditKey credit_key       = credit_pair.first;
-    folly::dynamic key2        = folly::dynamic::object;
-    key2["rating_group"]       = std::to_string(credit_key.rating_group);
+    CreditKey credit_key = credit_pair.first;
+    folly::dynamic key2 = folly::dynamic::object;
+    key2["rating_group"] = std::to_string(credit_key.rating_group);
     key2["service_identifier"] = std::to_string(credit_key.service_identifier);
     credit_keys.push_back(key2);
 
@@ -291,7 +292,7 @@ std::string serialize_stored_charging_credit_map(
     credit_map[key] = serialize_stored_charging_grant(credit_pair.second);
   }
   marshaled["credit_keys"] = credit_keys;
-  marshaled["credit_map"]  = credit_map;
+  marshaled["credit_map"] = credit_map;
 
   std::string serialized = folly::toJson(marshaled);
   return serialized;
@@ -299,7 +300,7 @@ std::string serialize_stored_charging_credit_map(
 
 StoredChargingCreditMap deserialize_stored_charging_credit_map(
     std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
   auto stored = StoredChargingCreditMap(4, &ccHash, &ccEqual);
@@ -323,23 +324,23 @@ std::string serialize_stored_usage_monitor_map(StoredMonitorMap& stored) {
   folly::dynamic marshaled = folly::dynamic::object;
 
   folly::dynamic monitor_keys = folly::dynamic::array;
-  folly::dynamic monitor_map  = folly::dynamic::object;
+  folly::dynamic monitor_map = folly::dynamic::object;
   for (auto& monitor_pair : stored) {
     monitor_keys.push_back(monitor_pair.first);
     monitor_map[monitor_pair.first] =
         serialize_stored_monitor(monitor_pair.second);
   }
   marshaled["monitor_keys"] = monitor_keys;
-  marshaled["monitor_map"]  = monitor_map;
+  marshaled["monitor_map"] = monitor_map;
 
   std::string serialized = folly::toJson(marshaled);
   return serialized;
 }
 
 StoredMonitorMap deserialize_stored_usage_monitor_map(std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
-  auto stored              = StoredMonitorMap{};
+  auto stored = StoredMonitorMap{};
   for (auto& key : marshaled["monitor_keys"]) {
     std::string monitor_key = key.getString();
     stored[monitor_key] =
@@ -350,7 +351,7 @@ StoredMonitorMap deserialize_stored_usage_monitor_map(std::string& serialized) {
 }
 
 EventTriggerStatus deserialize_pending_event_triggers(std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
   auto stored = EventTriggerStatus{};
@@ -374,23 +375,23 @@ std::string serialize_pending_event_triggers(
   folly::dynamic marshaled = folly::dynamic::object;
 
   folly::dynamic keys = folly::dynamic::array;
-  folly::dynamic map  = folly::dynamic::object;
+  folly::dynamic map = folly::dynamic::object;
   for (auto& trigger_pair : event_triggers) {
     auto key = std::to_string(int(trigger_pair.first));
     keys.push_back(key);
     map[key] = int(trigger_pair.second);
   }
   marshaled["event_trigger_keys"] = keys;
-  marshaled["event_trigger_map"]  = map;
+  marshaled["event_trigger_map"] = map;
 
   std::string serialized = folly::toJson(marshaled);
   return serialized;
 }
 
 RuleStats deserialize_rule_stats(std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
-  auto stored              = RuleStats{};
+  auto stored = RuleStats{};
 
   stored.tx = static_cast<uint64_t>(std::stoul(marshaled["tx"].getString()));
   stored.rx = static_cast<uint64_t>(std::stoul(marshaled["rx"].getString()));
@@ -403,11 +404,11 @@ RuleStats deserialize_rule_stats(std::string& serialized) {
 }
 
 PolicyStatsMap deserialize_policy_stats_map(std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
   auto stored = PolicyStatsMap{};
-  auto map    = marshaled["policy_stats_map"];
+  auto map = marshaled["policy_stats_map"];
   for (auto& key : marshaled["policy_stats_keys"]) {
     StatsPerPolicy stats;
     stats.current_version =
@@ -428,7 +429,7 @@ std::string serialize_policy_stats_map(PolicyStatsMap stats_map) {
   folly::dynamic marshaled = folly::dynamic::object;
 
   folly::dynamic keys = folly::dynamic::array;
-  folly::dynamic map  = folly::dynamic::object;
+  folly::dynamic map = folly::dynamic::object;
 
   for (auto& policy_pair : stats_map) {
     auto key = policy_pair.first;
@@ -440,40 +441,40 @@ std::string serialize_policy_stats_map(PolicyStatsMap stats_map) {
         static_cast<int>(policy_pair.second.last_reported_version);
 
     folly::dynamic stats_keys = folly::dynamic::array;
-    folly::dynamic stats_map  = folly::dynamic::object;
+    folly::dynamic stats_map = folly::dynamic::object;
     for (auto& stat : policy_pair.second.stats_map) {
       std::string version_str = std::to_string(stat.first);
       stats_keys.push_back(version_str);
-      folly::dynamic stats   = folly::dynamic::object;
-      stats["tx"]            = std::to_string(stat.second.tx);
-      stats["rx"]            = std::to_string(stat.second.rx);
-      stats["dropped_tx"]    = std::to_string(stat.second.dropped_tx);
-      stats["dropped_rx"]    = std::to_string(stat.second.dropped_rx);
+      folly::dynamic stats = folly::dynamic::object;
+      stats["tx"] = std::to_string(stat.second.tx);
+      stats["rx"] = std::to_string(stat.second.rx);
+      stats["dropped_tx"] = std::to_string(stat.second.dropped_tx);
+      stats["dropped_rx"] = std::to_string(stat.second.dropped_rx);
       stats_map[version_str] = folly::toJson(stats);
     }
     usage["stats_keys"] = stats_keys;
-    usage["stats_map"]  = stats_map;
+    usage["stats_map"] = stats_map;
 
     map[key] = usage;
   }
 
   marshaled["policy_stats_keys"] = keys;
-  marshaled["policy_stats_map"]  = map;
+  marshaled["policy_stats_map"] = map;
 
   std::string serialized = folly::toJson(marshaled);
   return serialized;
 }
 
 BearerIDByPolicyID deserialize_bearer_id_by_policy(std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
   auto stored = BearerIDByPolicyID{};
   for (auto& bearer_id_by_policy : marshaled) {
     PolicyType policy_type = PolicyType(bearer_id_by_policy["type"].getInt());
-    std::string rule_id    = bearer_id_by_policy["rule_id"].getString();
-    auto policy_id         = PolicyID(policy_type, rule_id);
-    stored[policy_id]      = BearerIDAndTeid();
+    std::string rule_id = bearer_id_by_policy["rule_id"].getString();
+    auto policy_id = PolicyID(policy_type, rule_id);
+    stored[policy_id] = BearerIDAndTeid();
     stored[policy_id].bearer_id =
         static_cast<uint32_t>(bearer_id_by_policy["bearer_id"].getInt());
     stored[policy_id].teids.set_agw_teid(
@@ -489,8 +490,8 @@ std::string serialize_bearer_id_by_policy(BearerIDByPolicyID bearer_map) {
 
   for (auto& pair : bearer_map) {
     folly::dynamic bearer_id_by_policy = folly::dynamic::object;
-    bearer_id_by_policy["type"]      = static_cast<int>(pair.first.policy_type);
-    bearer_id_by_policy["rule_id"]   = pair.first.rule_id;
+    bearer_id_by_policy["type"] = static_cast<int>(pair.first.policy_type);
+    bearer_id_by_policy["rule_id"] = pair.first.rule_id;
     bearer_id_by_policy["bearer_id"] = static_cast<int>(pair.second.bearer_id);
     bearer_id_by_policy["agw_teid"] =
         static_cast<int>(pair.second.teids.agw_teid());
@@ -504,24 +505,24 @@ std::string serialize_bearer_id_by_policy(BearerIDByPolicyID bearer_map) {
 
 std::string serialize_stored_session(StoredSessionState& stored) {
   folly::dynamic marshaled = folly::dynamic::object;
-  marshaled["fsm_state"]   = static_cast<int>(stored.fsm_state);
-  marshaled["config"]      = serialize_stored_session_config(stored.config);
+  marshaled["fsm_state"] = static_cast<int>(stored.fsm_state);
+  marshaled["config"] = serialize_stored_session_config(stored.config);
   marshaled["charging_pool"] =
       serialize_stored_charging_credit_map(stored.credit_map);
   marshaled["monitor_map"] =
       serialize_stored_usage_monitor_map(stored.monitor_map);
   marshaled["session_level_key"] = stored.session_level_key;
-  marshaled["imsi"]              = stored.imsi;
-  marshaled["shard_id"]          = stored.shard_id;
-  marshaled["session_id"]        = stored.session_id;
+  marshaled["imsi"] = stored.imsi;
+  marshaled["shard_id"] = stored.shard_id;
+  marshaled["session_id"] = stored.session_id;
   marshaled["subscriber_quota_state"] =
       static_cast<int>(stored.subscriber_quota_state);
   marshaled["create_session_response"] =
       stored.create_session_response.SerializeAsString();
 
-  marshaled["tgpp_context"]   = stored.tgpp_context.SerializeAsString();
+  marshaled["tgpp_context"] = stored.tgpp_context.SerializeAsString();
   marshaled["pdp_start_time"] = std::to_string(stored.pdp_start_time);
-  marshaled["pdp_end_time"]   = std::to_string(stored.pdp_end_time);
+  marshaled["pdp_end_time"] = std::to_string(stored.pdp_end_time);
 
   marshaled["pending_event_triggers"] =
       serialize_pending_event_triggers(stored.pending_event_triggers);
@@ -572,10 +573,10 @@ std::string serialize_stored_session(StoredSessionState& stored) {
 }
 
 StoredSessionState deserialize_stored_session(std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
-  auto stored      = StoredSessionState{};
+  auto stored = StoredSessionState{};
   stored.fsm_state = SessionFsmState(marshaled["fsm_state"].getInt());
   stored.config =
       deserialize_stored_session_config(marshaled["config"].getString());
@@ -584,16 +585,16 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
   stored.monitor_map = deserialize_stored_usage_monitor_map(
       marshaled["monitor_map"].getString());
   stored.session_level_key = marshaled["session_level_key"].getString();
-  stored.imsi              = marshaled["imsi"].getString();
-  stored.shard_id          = marshaled["shard_id"].getInt();
-  stored.session_id        = marshaled["session_id"].getString();
+  stored.imsi = marshaled["imsi"].getString();
+  stored.shard_id = marshaled["shard_id"].getInt();
+  stored.session_id = marshaled["session_id"].getString();
   stored.subscriber_quota_state =
       static_cast<magma::lte::SubscriberQuotaUpdate_Type>(
           marshaled["subscriber_quota_state"].getInt());
 
   google::protobuf::Timestamp revalidation_time;
   revalidation_time.ParseFromString(marshaled["revalidation_time"].getString());
-  stored.revalidation_time      = revalidation_time;
+  stored.revalidation_time = revalidation_time;
   stored.pending_event_triggers = deserialize_pending_event_triggers(
       marshaled["pending_event_triggers"].getString());
 

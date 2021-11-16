@@ -57,9 +57,9 @@ class QOSRulesMsg {
   QOSRule qos_rule[1];
   QOSRulesMsg();
   ~QOSRulesMsg();
-  int EncodeQOSRulesMsg(
-      QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeQOSRulesMsg(
-      QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer,
+                        uint32_t len);
+  int DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer,
+                        uint32_t len);
 };
 }  // namespace magma5g

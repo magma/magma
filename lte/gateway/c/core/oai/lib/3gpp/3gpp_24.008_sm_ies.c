@@ -53,17 +53,17 @@
 //------------------------------------------------------------------------------
 // 10.5.6.1 Access Point Name
 //------------------------------------------------------------------------------
-int decode_access_point_name_ie(
-    access_point_name_t* access_point_name, bool is_ie_present, uint8_t* buffer,
-    const uint32_t len) {
-  int decoded   = 0;
+int decode_access_point_name_ie(access_point_name_t* access_point_name,
+                                bool is_ie_present, uint8_t* buffer,
+                                const uint32_t len) {
+  int decoded = 0;
   uint8_t ielen = 0;
 
   *access_point_name = NULL;
 
   if (is_ie_present > 0) {
-    CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-        buffer, ACCESS_POINT_NAME_IE_MIN_LENGTH, len);
+    CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
+                                         ACCESS_POINT_NAME_IE_MIN_LENGTH, len);
     CHECK_IEI_DECODER(SM_ACCESS_POINT_NAME_IEI, *buffer);
     decoded++;
   } else {
@@ -78,7 +78,7 @@ int decode_access_point_name_ie(
   if (1 <= ielen) {
     int length_apn = *(buffer + decoded);
     decoded++;
-    *access_point_name = blk2bstr((void*) (buffer + decoded), length_apn);
+    *access_point_name = blk2bstr((void*)(buffer + decoded), length_apn);
     decoded += length_apn;
     ielen = ielen - 1 - length_apn;
     while (1 <= ielen) {
@@ -89,11 +89,10 @@ int decode_access_point_name_ie(
 
       // apn terminated by '.' ?
       if (length_apn > 0) {
-        AssertFatal(
-            ielen >= length_apn,
-            "Mismatch in lengths remaining ielen %d apn length %d", ielen,
-            length_apn);
-        bcatblk(*access_point_name, (void*) (buffer + decoded), length_apn);
+        AssertFatal(ielen >= length_apn,
+                    "Mismatch in lengths remaining ielen %d apn length %d",
+                    ielen, length_apn);
+        bcatblk(*access_point_name, (void*)(buffer + decoded), length_apn);
         decoded += length_apn;
         ielen = ielen - length_apn;
       }
@@ -103,20 +102,20 @@ int decode_access_point_name_ie(
 }
 
 //------------------------------------------------------------------------------
-int encode_access_point_name_ie(
-    access_point_name_t access_point_name, bool is_ie_present, uint8_t* buffer,
-    const uint32_t len) {
-  uint8_t* lenPtr                                      = NULL;
-  uint32_t encoded                                     = 0;
-  int encode_result                                    = 0;
-  uint32_t length_index                                = 0;
-  uint32_t index                                       = 0;
-  uint32_t index_copy                                  = 0;
+int encode_access_point_name_ie(access_point_name_t access_point_name,
+                                bool is_ie_present, uint8_t* buffer,
+                                const uint32_t len) {
+  uint8_t* lenPtr = NULL;
+  uint32_t encoded = 0;
+  int encode_result = 0;
+  uint32_t length_index = 0;
+  uint32_t index = 0;
+  uint32_t index_copy = 0;
   uint8_t apn_encoded[ACCESS_POINT_NAME_IE_MAX_LENGTH] = {0};
 
   if (is_ie_present > 0) {
-    CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-        buffer, ACCESS_POINT_NAME_IE_MAX_LENGTH, len);
+    CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
+                                         ACCESS_POINT_NAME_IE_MAX_LENGTH, len);
     *buffer = SM_ACCESS_POINT_NAME_IEI;
     encoded++;
   } else {
@@ -126,16 +125,16 @@ int encode_access_point_name_ie(
 
   lenPtr = (buffer + encoded);
   encoded++;
-  index        = 0;  // index on original APN string
+  index = 0;         // index on original APN string
   length_index = 0;  // marker where to write partial length
-  index_copy   = 1;
+  index_copy = 1;
 
   while ((access_point_name->data[index] != 0) &&
          (index < access_point_name->slen)) {
     if (access_point_name->data[index] == '.') {
       apn_encoded[length_index] = index_copy - length_index - 1;
-      length_index              = index_copy;
-      index_copy                = length_index + 1;
+      length_index = index_copy;
+      index_copy = length_index + 1;
     } else {
       apn_encoded[index_copy] = access_point_name->data[index];
       index_copy++;
@@ -145,7 +144,7 @@ int encode_access_point_name_ie(
   }
 
   apn_encoded[length_index] = index_copy - length_index - 1;
-  bstring bapn              = blk2bstr(apn_encoded, index_copy);
+  bstring bapn = blk2bstr(apn_encoded, index_copy);
 
   if ((encode_result = encode_bstring(bapn, buffer + encoded, len - encoded)) <
       0) {
@@ -166,16 +165,15 @@ void copy_protocol_configuration_options(
     protocol_configuration_options_t* const pco_dst,
     const protocol_configuration_options_t* const pco_src) {
   if ((pco_dst) && (pco_src)) {
-    pco_dst->ext                    = pco_src->ext;
-    pco_dst->spare                  = pco_src->spare;
+    pco_dst->ext = pco_src->ext;
+    pco_dst->spare = pco_src->spare;
     pco_dst->configuration_protocol = pco_src->configuration_protocol;
     pco_dst->num_protocol_or_container_id =
         pco_src->num_protocol_or_container_id;
-    AssertFatal(
-        PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID >=
-            pco_dst->num_protocol_or_container_id,
-        "Invalid number of protocol_or_container_id %d",
-        pco_dst->num_protocol_or_container_id);
+    AssertFatal(PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID >=
+                    pco_dst->num_protocol_or_container_id,
+                "Invalid number of protocol_or_container_id %d",
+                pco_dst->num_protocol_or_container_id);
     for (int i = 0; i < pco_src->num_protocol_or_container_id; i++) {
       pco_dst->protocol_or_container_ids[i].id =
           pco_src->protocol_or_container_ids[i].id;
@@ -210,7 +208,7 @@ void free_protocol_configuration_options(
         bdestroy_wrapper(&pco->protocol_or_container_ids[i].contents);
       }
     }
-    free_wrapper((void**) protocol_configuration_options);
+    free_wrapper((void**)protocol_configuration_options);
   }
 }
 
@@ -218,7 +216,7 @@ void free_protocol_configuration_options(
 int decode_protocol_configuration_options(
     protocol_configuration_options_t* protocolconfigurationoptions,
     const uint8_t* const buffer, const uint32_t len) {
-  int decoded       = 0;
+  int decoded = 0;
   int decode_result = 0;
 
   if (((*(buffer + decoded) >> 7) & 0x1) != 1) {
@@ -237,7 +235,7 @@ int decode_protocol_configuration_options(
   decoded++;
   protocolconfigurationoptions->num_protocol_or_container_id = 0;
 
-  while (3 <= ((int32_t) len - (int32_t) decoded)) {
+  while (3 <= ((int32_t)len - (int32_t)decoded)) {
     DECODE_U16(
         buffer + decoded,
         protocolconfigurationoptions
@@ -257,18 +255,18 @@ int decode_protocol_configuration_options(
                 ->protocol_or_container_ids[protocolconfigurationoptions
                                                 ->num_protocol_or_container_id]
                 .length) {
-      if ((decode_result = decode_bstring(
-               &protocolconfigurationoptions
-                    ->protocol_or_container_ids
-                        [protocolconfigurationoptions
-                             ->num_protocol_or_container_id]
-                    .contents,
-               protocolconfigurationoptions
-                   ->protocol_or_container_ids
-                       [protocolconfigurationoptions
-                            ->num_protocol_or_container_id]
-                   .length,
-               buffer + decoded, len - decoded)) < 0) {
+      if ((decode_result =
+               decode_bstring(&protocolconfigurationoptions
+                                   ->protocol_or_container_ids
+                                       [protocolconfigurationoptions
+                                            ->num_protocol_or_container_id]
+                                   .contents,
+                              protocolconfigurationoptions
+                                  ->protocol_or_container_ids
+                                      [protocolconfigurationoptions
+                                           ->num_protocol_or_container_id]
+                                  .length,
+                              buffer + decoded, len - decoded)) < 0) {
         return decode_result;
       } else {
         decoded += decode_result;
@@ -288,8 +286,8 @@ int decode_protocol_configuration_options(
 int decode_protocol_configuration_options_ie(
     protocol_configuration_options_t* protocolconfigurationoptions,
     const bool iei_present, const uint8_t* const buffer, const uint32_t len) {
-  int decoded   = 0;
-  int decoded2  = 0;
+  int decoded = 0;
+  int decoded2 = 0;
   uint8_t ielen = 0;
 
   if (iei_present) {
@@ -316,8 +314,8 @@ int encode_protocol_configuration_options(
     const protocol_configuration_options_t* const protocolconfigurationoptions,
     uint8_t* buffer, const uint32_t len) {
   uint8_t num_protocol_or_container_id = 0;
-  uint32_t encoded                     = 0;
-  int encode_result                    = 0;
+  uint32_t encoded = 0;
+  int encode_result = 0;
 
   *(buffer + encoded) =
       0x00 | (1 << 7) |
@@ -326,12 +324,11 @@ int encode_protocol_configuration_options(
 
   while (num_protocol_or_container_id <
          protocolconfigurationoptions->num_protocol_or_container_id) {
-    ENCODE_U16(
-        buffer + encoded,
-        protocolconfigurationoptions
-            ->protocol_or_container_ids[num_protocol_or_container_id]
-            .id,
-        encoded);
+    ENCODE_U16(buffer + encoded,
+               protocolconfigurationoptions
+                   ->protocol_or_container_ids[num_protocol_or_container_id]
+                   .id,
+               encoded);
     *(buffer + encoded) =
         protocolconfigurationoptions
             ->protocol_or_container_ids[num_protocol_or_container_id]
@@ -356,7 +353,7 @@ int encode_protocol_configuration_options(
 int encode_protocol_configuration_options_ie(
     const protocol_configuration_options_t* const protocolconfigurationoptions,
     const bool iei_present, uint8_t* buffer, const uint32_t len) {
-  uint8_t* lenPtr  = NULL;
+  uint8_t* lenPtr = NULL;
   uint32_t encoded = 0;
 
   if (iei_present) {
@@ -382,15 +379,15 @@ int encode_protocol_configuration_options_ie(
 //------------------------------------------------------------------------------
 // 10.5.6.5 Quality of service
 //------------------------------------------------------------------------------
-int decode_quality_of_service_ie(
-    quality_of_service_t* qualityofservice, const bool iei_present,
-    uint8_t* buffer, const uint32_t len) {
-  int decoded   = 0;
+int decode_quality_of_service_ie(quality_of_service_t* qualityofservice,
+                                 const bool iei_present, uint8_t* buffer,
+                                 const uint32_t len) {
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei_present) {
-    CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-        buffer, QUALITY_OF_SERVICE_IE_MIN_LENGTH, len);
+    CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
+                                         QUALITY_OF_SERVICE_IE_MIN_LENGTH, len);
     CHECK_IEI_DECODER(SM_QUALITY_OF_SERVICE_IEI, *buffer);
     decoded++;
   } else {
@@ -401,16 +398,16 @@ int decode_quality_of_service_ie(
   ielen = *(buffer + decoded);
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
-  qualityofservice->delayclass       = (*(buffer + decoded) >> 3) & 0x7;
+  qualityofservice->delayclass = (*(buffer + decoded) >> 3) & 0x7;
   qualityofservice->reliabilityclass = *(buffer + decoded) & 0x7;
   decoded++;
-  qualityofservice->peakthroughput  = (*(buffer + decoded) >> 4) & 0xf;
+  qualityofservice->peakthroughput = (*(buffer + decoded) >> 4) & 0xf;
   qualityofservice->precedenceclass = *(buffer + decoded) & 0x7;
   decoded++;
   qualityofservice->meanthroughput = *(buffer + decoded) & 0x1f;
   decoded++;
-  qualityofservice->trafficclass           = (*(buffer + decoded) >> 5) & 0x7;
-  qualityofservice->deliveryorder          = (*(buffer + decoded) >> 3) & 0x3;
+  qualityofservice->trafficclass = (*(buffer + decoded) >> 5) & 0x7;
+  qualityofservice->deliveryorder = (*(buffer + decoded) >> 3) & 0x3;
   qualityofservice->deliveryoferroneoussdu = *(buffer + decoded) & 0x7;
   decoded++;
   qualityofservice->maximumsdusize = *(buffer + decoded);
@@ -419,10 +416,10 @@ int decode_quality_of_service_ie(
   decoded++;
   qualityofservice->maximumbitratedownlink = *(buffer + decoded);
   decoded++;
-  qualityofservice->residualber   = (*(buffer + decoded) >> 4) & 0xf;
+  qualityofservice->residualber = (*(buffer + decoded) >> 4) & 0xf;
   qualityofservice->sduratioerror = *(buffer + decoded) & 0xf;
   decoded++;
-  qualityofservice->transferdelay           = (*(buffer + decoded) >> 2) & 0x3f;
+  qualityofservice->transferdelay = (*(buffer + decoded) >> 2) & 0x3f;
   qualityofservice->traffichandlingpriority = *(buffer + decoded) & 0x3;
   decoded++;
   qualityofservice->guaranteedbitrateuplink = *(buffer + decoded);
@@ -436,15 +433,15 @@ int decode_quality_of_service_ie(
 }
 
 //------------------------------------------------------------------------------
-int encode_quality_of_service_ie(
-    quality_of_service_t* qualityofservice, const bool iei_present,
-    uint8_t* buffer, const uint32_t len) {
+int encode_quality_of_service_ie(quality_of_service_t* qualityofservice,
+                                 const bool iei_present, uint8_t* buffer,
+                                 const uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
 
   if (iei_present) {
-    CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-        buffer, QUALITY_OF_SERVICE_IE_MIN_LENGTH, len);
+    CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
+                                         QUALITY_OF_SERVICE_IE_MIN_LENGTH, len);
     *buffer = SM_QUALITY_OF_SERVICE_IEI;
     encoded++;
   } else {
@@ -493,16 +490,14 @@ int encode_quality_of_service_ie(
 //------------------------------------------------------------------------------
 // 10.5.6.7 Linked TI
 //------------------------------------------------------------------------------
-int encode_linked_ti_ie(
-    linked_ti_t* linkedti, const bool iei_present, uint8_t* buffer,
-    const uint32_t len) {
+int encode_linked_ti_ie(linked_ti_t* linkedti, const bool iei_present,
+                        uint8_t* buffer, const uint32_t len) {
   Fatal("TODO Implement encode_linked_ti_ie");
   return -1;
 }
 
-int decode_linked_ti_ie(
-    linked_ti_t* linkedti, const bool iei_present, uint8_t* buffer,
-    const uint32_t len) {
+int decode_linked_ti_ie(linked_ti_t* linkedti, const bool iei_present,
+                        uint8_t* buffer, const uint32_t len) {
   Fatal("TODO Implement decode_linked_ti_ie");
   return -1;
 }
@@ -557,7 +552,7 @@ int encode_llc_service_access_point_identifier_ie(
 int decode_packet_flow_identifier_ie(
     packet_flow_identifier_t* packetflowidentifier, const bool iei_present,
     uint8_t* buffer, const uint32_t len) {
-  int decoded   = 0;
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei_present) {
@@ -722,9 +717,8 @@ static int decode_traffic_flow_template_packet_filter(
          */
         packetfilter->packetfiltercontents.flags |=
             TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG;
-        IES_DECODE_U16(
-            buffer, decoded,
-            packetfilter->packetfiltercontents.singlelocalport);
+        IES_DECODE_U16(buffer, decoded,
+                       packetfilter->packetfiltercontents.singlelocalport);
         break;
 
       case TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE:
@@ -747,9 +741,8 @@ static int decode_traffic_flow_template_packet_filter(
          */
         packetfilter->packetfiltercontents.flags |=
             TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG;
-        IES_DECODE_U16(
-            buffer, decoded,
-            packetfilter->packetfiltercontents.singleremoteport);
+        IES_DECODE_U16(buffer, decoded,
+                       packetfilter->packetfiltercontents.singleremoteport);
         break;
 
       case TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE:
@@ -783,14 +776,12 @@ static int decode_traffic_flow_template_packet_filter(
          */
         packetfilter->packetfiltercontents.flags |=
             TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG;
-        IES_DECODE_U8(
-            buffer, decoded,
-            packetfilter->packetfiltercontents.typdeofservice_trafficclass
-                .value);
-        IES_DECODE_U8(
-            buffer, decoded,
-            packetfilter->packetfiltercontents.typdeofservice_trafficclass
-                .mask);
+        IES_DECODE_U8(buffer, decoded,
+                      packetfilter->packetfiltercontents
+                          .typdeofservice_trafficclass.value);
+        IES_DECODE_U8(buffer, decoded,
+                      packetfilter->packetfiltercontents
+                          .typdeofservice_trafficclass.mask);
         break;
 
       case TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL:
@@ -799,8 +790,8 @@ static int decode_traffic_flow_template_packet_filter(
          */
         packetfilter->packetfiltercontents.flags |=
             TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG;
-        IES_DECODE_U24(
-            buffer, decoded, packetfilter->packetfiltercontents.flowlabel);
+        IES_DECODE_U24(buffer, decoded,
+                       packetfilter->packetfiltercontents.flowlabel);
         break;
 
       default:
@@ -827,7 +818,7 @@ static int decode_traffic_flow_template_delete_packet(
     delete_packet_filter_t* packetfilter, const uint8_t* const buffer,
     const uint32_t len) {
   return decode_traffic_flow_template_packet_filter_identifier(
-      (packet_filter_identifier_t*) packetfilter, buffer, len);
+      (packet_filter_identifier_t*)packetfilter, buffer, len);
 }
 
 //------------------------------------------------------------------------------
@@ -835,7 +826,7 @@ static int decode_traffic_flow_template_create_tft(
     create_new_tft_t* packetfilter, const uint8_t* const buffer,
     const uint32_t len) {
   return decode_traffic_flow_template_packet_filter(
-      (packet_filter_t*) packetfilter, buffer, len);
+      (packet_filter_t*)packetfilter, buffer, len);
 }
 
 //------------------------------------------------------------------------------
@@ -843,7 +834,7 @@ static int decode_traffic_flow_template_add_packet(
     add_packet_filter_t* packetfilter, const uint8_t* const buffer,
     const uint32_t len) {
   return decode_traffic_flow_template_packet_filter(
-      (packet_filter_t*) packetfilter, buffer, len);
+      (packet_filter_t*)packetfilter, buffer, len);
 }
 
 //------------------------------------------------------------------------------
@@ -851,18 +842,18 @@ static int decode_traffic_flow_template_replace_packet(
     replace_packet_filter_t* packetfilter, const uint8_t* const buffer,
     const uint32_t len) {
   return decode_traffic_flow_template_packet_filter(
-      (packet_filter_t*) packetfilter, buffer, len);
+      (packet_filter_t*)packetfilter, buffer, len);
 }
 
 //------------------------------------------------------------------------------
-int decode_traffic_flow_template(
-    traffic_flow_template_t* trafficflowtemplate, const uint8_t* const buffer,
-    const uint32_t len) {
-  int decoded        = 0;
+int decode_traffic_flow_template(traffic_flow_template_t* trafficflowtemplate,
+                                 const uint8_t* const buffer,
+                                 const uint32_t len) {
+  int decoded = 0;
   int decoded_result = 0;
 
-  trafficflowtemplate->tftoperationcode      = (*(buffer + decoded) >> 5) & 0x7;
-  trafficflowtemplate->ebit                  = (*(buffer + decoded) >> 4) & 0x1;
+  trafficflowtemplate->tftoperationcode = (*(buffer + decoded) >> 5) & 0x7;
+  trafficflowtemplate->ebit = (*(buffer + decoded) >> 4) & 0x1;
   trafficflowtemplate->numberofpacketfilters = *(buffer + decoded) & 0xf;
   decoded++;
 
@@ -880,9 +871,8 @@ int decode_traffic_flow_template(
       }
       decoded += decoded_result;
     }
-  } else if (
-      trafficflowtemplate->tftoperationcode ==
-      TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT) {
+  } else if (trafficflowtemplate->tftoperationcode ==
+             TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT) {
     for (int i = 0; i < trafficflowtemplate->numberofpacketfilters; i++) {
       decoded_result = decode_traffic_flow_template_create_tft(
           &trafficflowtemplate->packetfilterlist.createnewtft[i],
@@ -892,9 +882,8 @@ int decode_traffic_flow_template(
       }
       decoded += decoded_result;
     }
-  } else if (
-      trafficflowtemplate->tftoperationcode ==
-      TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET_FILTER_TO_EXISTING_TFT) {
+  } else if (trafficflowtemplate->tftoperationcode ==
+             TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET_FILTER_TO_EXISTING_TFT) {
     for (int i = 0; i < trafficflowtemplate->numberofpacketfilters; i++) {
       decoded_result = decode_traffic_flow_template_add_packet(
           &trafficflowtemplate->packetfilterlist.addpacketfilter[i],
@@ -924,8 +913,8 @@ int decode_traffic_flow_template(
 int decode_traffic_flow_template_ie(
     traffic_flow_template_t* trafficflowtemplate, const bool iei_present,
     const uint8_t* const buffer, const uint32_t len) {
-  int decoded   = 0;
-  int decoded2  = 0;
+  int decoded = 0;
+  int decoded2 = 0;
   uint8_t ielen = 0;
 
   if (iei_present) {
@@ -942,8 +931,8 @@ int decode_traffic_flow_template_ie(
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
-  decoded2 = decode_traffic_flow_template(
-      trafficflowtemplate, buffer + decoded, len - decoded);
+  decoded2 = decode_traffic_flow_template(trafficflowtemplate, buffer + decoded,
+                                          len - decoded);
   if (decoded2 < 0) return decoded2;
   return decoded + decoded2;
 }
@@ -978,9 +967,8 @@ static int encode_traffic_flow_template_packet_filter(
   /*
    * Packet filter identifier and direction
    */
-  IES_ENCODE_U8(
-      buffer, encoded,
-      ((packetfilter->direction << 4) | (packetfilter->identifier)));
+  IES_ENCODE_U8(buffer, encoded,
+                ((packetfilter->direction << 4) | (packetfilter->identifier)));
   /*
    * Packet filter evaluation precedence
    */
@@ -994,7 +982,7 @@ static int encode_traffic_flow_template_packet_filter(
   /*
    * Packet filter contents
    */
-  int pkfstart  = encoded;
+  int pkfstart = encoded;
   uint16_t flag = TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
 
   while (flag <= TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG) {
@@ -1037,8 +1025,8 @@ static int encode_traffic_flow_template_packet_filter(
         /*
          * Protocol identifier/Next header type
          */
-        IES_ENCODE_U8(
-            buffer, encoded, TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER);
+        IES_ENCODE_U8(buffer, encoded,
+                      TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER);
         IES_ENCODE_U8(
             buffer, encoded,
             packetfilter->packetfiltercontents.protocolidentifier_nextheader);
@@ -1049,9 +1037,8 @@ static int encode_traffic_flow_template_packet_filter(
          * Single local port type
          */
         IES_ENCODE_U8(buffer, encoded, TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT);
-        IES_ENCODE_U16(
-            buffer, encoded,
-            packetfilter->packetfiltercontents.singlelocalport);
+        IES_ENCODE_U16(buffer, encoded,
+                       packetfilter->packetfiltercontents.singlelocalport);
         break;
 
       case TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG:
@@ -1071,11 +1058,10 @@ static int encode_traffic_flow_template_packet_filter(
         /*
          * Single remote port type
          */
-        IES_ENCODE_U8(
-            buffer, encoded, TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT);
-        IES_ENCODE_U16(
-            buffer, encoded,
-            packetfilter->packetfiltercontents.singleremoteport);
+        IES_ENCODE_U8(buffer, encoded,
+                      TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT);
+        IES_ENCODE_U16(buffer, encoded,
+                       packetfilter->packetfiltercontents.singleremoteport);
         break;
 
       case TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG:
@@ -1095,8 +1081,8 @@ static int encode_traffic_flow_template_packet_filter(
         /*
          * Security parameter index type
          */
-        IES_ENCODE_U8(
-            buffer, encoded, TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX);
+        IES_ENCODE_U8(buffer, encoded,
+                      TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX);
         IES_ENCODE_U32(
             buffer, encoded,
             packetfilter->packetfiltercontents.securityparameterindex);
@@ -1106,17 +1092,14 @@ static int encode_traffic_flow_template_packet_filter(
         /*
          * Type of service/Traffic class type
          */
-        IES_ENCODE_U8(
-            buffer, encoded,
-            TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS);
-        IES_ENCODE_U8(
-            buffer, encoded,
-            packetfilter->packetfiltercontents.typdeofservice_trafficclass
-                .value);
-        IES_ENCODE_U8(
-            buffer, encoded,
-            packetfilter->packetfiltercontents.typdeofservice_trafficclass
-                .mask);
+        IES_ENCODE_U8(buffer, encoded,
+                      TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS);
+        IES_ENCODE_U8(buffer, encoded,
+                      packetfilter->packetfiltercontents
+                          .typdeofservice_trafficclass.value);
+        IES_ENCODE_U8(buffer, encoded,
+                      packetfilter->packetfiltercontents
+                          .typdeofservice_trafficclass.mask);
         break;
 
       case TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG:
@@ -1148,8 +1131,8 @@ static int encode_traffic_flow_template_packet_filter(
 static int encode_traffic_flow_template_delete_packet(
     const delete_packet_filter_t* packetfilter, uint8_t* buffer,
     const uint32_t len) {
-  return encode_traffic_flow_template_packet_filter_identifier(
-      packetfilter, buffer, len);
+  return encode_traffic_flow_template_packet_filter_identifier(packetfilter,
+                                                               buffer, len);
 }
 
 //------------------------------------------------------------------------------
@@ -1193,17 +1176,15 @@ int encode_traffic_flow_template(
           &trafficflowtemplate->packetfilterlist.deletepacketfilter[i],
           (buffer + encoded), len - encoded);
     }
-  } else if (
-      trafficflowtemplate->tftoperationcode ==
-      TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT) {
+  } else if (trafficflowtemplate->tftoperationcode ==
+             TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT) {
     for (int i = 0; i < trafficflowtemplate->numberofpacketfilters; i++) {
       encoded += encode_traffic_flow_template_create_tft(
           &trafficflowtemplate->packetfilterlist.createnewtft[i],
           (buffer + encoded), len - encoded);
     }
-  } else if (
-      trafficflowtemplate->tftoperationcode ==
-      TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET_FILTER_TO_EXISTING_TFT) {
+  } else if (trafficflowtemplate->tftoperationcode ==
+             TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET_FILTER_TO_EXISTING_TFT) {
     for (int i = 0; i < trafficflowtemplate->numberofpacketfilters; i++) {
       encoded += encode_traffic_flow_template_add_packet(
           &trafficflowtemplate->packetfilterlist.addpacketfilter[i],
@@ -1226,7 +1207,7 @@ int encode_traffic_flow_template(
 int encode_traffic_flow_template_ie(
     const traffic_flow_template_t* const trafficflowtemplate,
     const bool iei_present, uint8_t* buffer, const uint32_t len) {
-  uint8_t* lenPtr  = NULL;
+  uint8_t* lenPtr = NULL;
   uint32_t encoded = 0;
 
   if (iei_present) {
@@ -1242,24 +1223,22 @@ int encode_traffic_flow_template_ie(
   lenPtr = (buffer + encoded);
   encoded++;
 
-  encoded += encode_traffic_flow_template(
-      trafficflowtemplate, buffer + encoded, len - encoded);
+  encoded += encode_traffic_flow_template(trafficflowtemplate, buffer + encoded,
+                                          len - encoded);
 
   *lenPtr = encoded - 1 - ((iei_present) ? 1 : 0);
   return encoded;
 }
 
 //------------------------------------------------------------------------------
-void copy_traffic_flow_template(
-    traffic_flow_template_t* const tft_dst,
-    const traffic_flow_template_t* const tft_src) {
+void copy_traffic_flow_template(traffic_flow_template_t* const tft_dst,
+                                const traffic_flow_template_t* const tft_src) {
   if ((tft_dst) && (tft_src)) {
-    tft_dst->tftoperationcode      = tft_src->tftoperationcode;
-    tft_dst->ebit                  = tft_src->ebit;
+    tft_dst->tftoperationcode = tft_src->tftoperationcode;
+    tft_dst->ebit = tft_src->ebit;
     tft_dst->numberofpacketfilters = tft_src->numberofpacketfilters;
-    memcpy(
-        &tft_dst->packetfilterlist, &tft_src->packetfilterlist,
-        sizeof(tft_src->packetfilterlist));
+    memcpy(&tft_dst->packetfilterlist, &tft_src->packetfilterlist,
+           sizeof(tft_src->packetfilterlist));
     tft_dst->parameterslist.num_parameters =
         tft_src->parameterslist.num_parameters;
     // not necessary now to create a subroutine for subtype
@@ -1286,5 +1265,5 @@ void free_traffic_flow_template(traffic_flow_template_t** tft) {
     free_traffic_flow_template_parameter(
         &trafficflowtemplate->parameterslist.parameter[i]);
   }
-  free_wrapper((void**) tft);
+  free_wrapper((void**)tft);
 }

@@ -68,10 +68,10 @@ status_code_e sgs_null_handler(const sgs_fsm_t* evt) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   if (sgs_fsm_get_status(evt->ue_id, evt->ctx) != SGS_NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "SGS not in the SGS_NULL state for UE Id: " MME_UE_S1AP_ID_FMT "\n",
-        evt->ue_id);
+    OAILOG_ERROR(LOG_MME_APP,
+                 "SGS not in the SGS_NULL state for UE Id: " MME_UE_S1AP_ID_FMT
+                 "\n",
+                 evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -111,9 +111,8 @@ status_code_e sgs_null_handler(const sgs_fsm_t* evt) {
     } break;
 
     default: {
-      OAILOG_ERROR(
-          LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
-          evt->primitive);
+      OAILOG_ERROR(LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
+                   evt->primitive);
     } break;
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);

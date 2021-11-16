@@ -65,34 +65,34 @@ status_code_e sgw_config_process(sgw_config_t* config_pP) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e sgw_config_parse_string(
-    const char* config_string, sgw_config_t* config_pP)
+status_code_e sgw_config_parse_string(const char* config_string,
+                                      sgw_config_t* config_pP)
 
 {
-  config_t cfg                                = {0};
-  config_setting_t* setting_sgw               = NULL;
-  char* sgw_if_name_S1u_S12_S4_up             = NULL;
-  char* sgw_if_name_S1u_S12_S4_up_v6          = NULL;
-  char* S1u_S12_S4_up                         = NULL;
-  char* S1u_S12_S4_up_v6                      = NULL;
-  char* sgw_if_name_S5_S8_up                  = NULL;
-  char* S5_S8_up                              = NULL;
-  char* sgw_if_name_S11                       = NULL;
-  char* S11                                   = NULL;
-  char* s1_ipv6_enabled                       = NULL;
-  libconfig_int sgw_udp_port_S1u_S12_S4_up    = 2152;
+  config_t cfg = {0};
+  config_setting_t* setting_sgw = NULL;
+  char* sgw_if_name_S1u_S12_S4_up = NULL;
+  char* sgw_if_name_S1u_S12_S4_up_v6 = NULL;
+  char* S1u_S12_S4_up = NULL;
+  char* S1u_S12_S4_up_v6 = NULL;
+  char* sgw_if_name_S5_S8_up = NULL;
+  char* S5_S8_up = NULL;
+  char* sgw_if_name_S11 = NULL;
+  char* S11 = NULL;
+  char* s1_ipv6_enabled = NULL;
+  libconfig_int sgw_udp_port_S1u_S12_S4_up = 2152;
   libconfig_int sgw_udp_port_S1u_S12_S4_up_v6 = 2152;
-  config_setting_t* subsetting                = NULL;
+  config_setting_t* subsetting = NULL;
 #if (!EMBEDDED_SGW)
   const char* astring = NULL;
 #endif
-  bstring address            = NULL;
-  bstring cidr               = NULL;
-  bstring mask               = NULL;
+  bstring address = NULL;
+  bstring cidr = NULL;
+  bstring mask = NULL;
   struct in_addr in_addr_var = {0};
-  (void) in_addr_var;
+  (void)in_addr_var;
   struct in6_addr in6_addr_var = {0};
-  (void) in6_addr_var;
+  (void)in6_addr_var;
 
   config_init(&cfg);
 
@@ -101,19 +101,17 @@ status_code_e sgw_config_parse_string(
    */
   if (!config_read_string(&cfg, config_string)) {
     Fatal("\n\n\n\\n\n\nFailed %s\n\n\n\n\n\n\n\n", config_error_text(&cfg));
-    OAILOG_CRITICAL(
-        LOG_CONFIG, "Failed to parse SGW configuration file: %s:%d - %s\n",
-        bdata(config_pP->config_file), config_error_line(&cfg),
-        config_error_text(&cfg));
+    OAILOG_CRITICAL(LOG_CONFIG,
+                    "Failed to parse SGW configuration file: %s:%d - %s\n",
+                    bdata(config_pP->config_file), config_error_line(&cfg),
+                    config_error_text(&cfg));
     config_destroy(&cfg);
-    Fatal(
-        "Failed to parse SGW configuration file %s!\n",
-        bdata(config_pP->config_file));
+    Fatal("Failed to parse SGW configuration file %s!\n",
+          bdata(config_pP->config_file));
   }
 
-  OAILOG_INFO(
-      LOG_SPGW_APP, "Parsing configuration file provided %s\n",
-      bdata(config_pP->config_file));
+  OAILOG_INFO(LOG_SPGW_APP, "Parsing configuration file provided %s\n",
+              bdata(config_pP->config_file));
   setting_sgw = config_lookup(&cfg, SGW_CONFIG_STRING_SGW_CONFIG);
   if (setting_sgw) {
 #if (!EMBEDDED_SGW)
@@ -121,22 +119,22 @@ status_code_e sgw_config_parse_string(
     subsetting =
         config_setting_get_member(setting_sgw, LOG_CONFIG_STRING_LOGGING);
 
-    config_pP->log_config.udp_log_level      = MAX_LOG_LEVEL;  // Means invalid
-    config_pP->log_config.gtpv1u_log_level   = MAX_LOG_LEVEL;
-    config_pP->log_config.gtpv2c_log_level   = MAX_LOG_LEVEL;
-    config_pP->log_config.sctp_log_level     = MAX_LOG_LEVEL;
-    config_pP->log_config.s1ap_log_level     = MAX_LOG_LEVEL;
-    config_pP->log_config.nas_log_level      = MAX_LOG_LEVEL;
-    config_pP->log_config.mme_app_log_level  = MAX_LOG_LEVEL;
+    config_pP->log_config.udp_log_level = MAX_LOG_LEVEL;  // Means invalid
+    config_pP->log_config.gtpv1u_log_level = MAX_LOG_LEVEL;
+    config_pP->log_config.gtpv2c_log_level = MAX_LOG_LEVEL;
+    config_pP->log_config.sctp_log_level = MAX_LOG_LEVEL;
+    config_pP->log_config.s1ap_log_level = MAX_LOG_LEVEL;
+    config_pP->log_config.nas_log_level = MAX_LOG_LEVEL;
+    config_pP->log_config.mme_app_log_level = MAX_LOG_LEVEL;
     config_pP->log_config.spgw_app_log_level = MAX_LOG_LEVEL;
-    config_pP->log_config.s11_log_level      = MAX_LOG_LEVEL;
-    config_pP->log_config.s6a_log_level      = MAX_LOG_LEVEL;
-    config_pP->log_config.util_log_level     = MAX_LOG_LEVEL;
-    config_pP->log_config.itti_log_level     = MAX_LOG_LEVEL;
+    config_pP->log_config.s11_log_level = MAX_LOG_LEVEL;
+    config_pP->log_config.s6a_log_level = MAX_LOG_LEVEL;
+    config_pP->log_config.util_log_level = MAX_LOG_LEVEL;
+    config_pP->log_config.itti_log_level = MAX_LOG_LEVEL;
     config_pP->log_config.async_system_log_level = MAX_LOG_LEVEL;
     if (subsetting) {
-      if (config_setting_lookup_string(
-              subsetting, LOG_CONFIG_STRING_OUTPUT, (const char**) &astring)) {
+      if (config_setting_lookup_string(subsetting, LOG_CONFIG_STRING_OUTPUT,
+                                       (const char**)&astring)) {
         if (astring != NULL) {
           if (config_pP->log_config.output) {
             bassigncstr(config_pP->log_config.output, astring);
@@ -146,9 +144,9 @@ status_code_e sgw_config_parse_string(
         }
       }
 
-      if (config_setting_lookup_string(
-              subsetting, LOG_CONFIG_STRING_OUTPUT_THREAD_SAFE,
-              (const char**) &astring)) {
+      if (config_setting_lookup_string(subsetting,
+                                       LOG_CONFIG_STRING_OUTPUT_THREAD_SAFE,
+                                       (const char**)&astring)) {
         if (astring != NULL) {
           if (strcasecmp(astring, "yes") == 0) {
             config_pP->log_config.is_output_thread_safe = true;
@@ -158,59 +156,59 @@ status_code_e sgw_config_parse_string(
         }
       }
 
-      if (config_setting_lookup_string(
-              subsetting, LOG_CONFIG_STRING_COLOR, (const char**) &astring)) {
+      if (config_setting_lookup_string(subsetting, LOG_CONFIG_STRING_COLOR,
+                                       (const char**)&astring)) {
         if (!strcasecmp("yes", astring))
           config_pP->log_config.color = true;
         else
           config_pP->log_config.color = false;
       }
-      if (config_setting_lookup_string(
-              subsetting, LOG_CONFIG_STRING_UDP_LOG_LEVEL,
-              (const char**) &astring)) {
+      if (config_setting_lookup_string(subsetting,
+                                       LOG_CONFIG_STRING_UDP_LOG_LEVEL,
+                                       (const char**)&astring)) {
         config_pP->log_config.udp_log_level = OAILOG_LEVEL_STR2INT(astring);
       }
 
-      if (config_setting_lookup_string(
-              subsetting, LOG_CONFIG_STRING_GTPV1U_LOG_LEVEL,
-              (const char**) &astring)) {
+      if (config_setting_lookup_string(subsetting,
+                                       LOG_CONFIG_STRING_GTPV1U_LOG_LEVEL,
+                                       (const char**)&astring)) {
         config_pP->log_config.gtpv1u_log_level = OAILOG_LEVEL_STR2INT(astring);
       }
 
-      if (config_setting_lookup_string(
-              subsetting, LOG_CONFIG_STRING_GTPV2C_LOG_LEVEL,
-              (const char**) &astring)) {
+      if (config_setting_lookup_string(subsetting,
+                                       LOG_CONFIG_STRING_GTPV2C_LOG_LEVEL,
+                                       (const char**)&astring)) {
         config_pP->log_config.gtpv2c_log_level = OAILOG_LEVEL_STR2INT(astring);
       }
 
-      if (config_setting_lookup_string(
-              subsetting, LOG_CONFIG_STRING_SPGW_APP_LOG_LEVEL,
-              (const char**) &astring)) {
+      if (config_setting_lookup_string(subsetting,
+                                       LOG_CONFIG_STRING_SPGW_APP_LOG_LEVEL,
+                                       (const char**)&astring)) {
         config_pP->log_config.spgw_app_log_level =
             OAILOG_LEVEL_STR2INT(astring);
       }
 
-      if (config_setting_lookup_string(
-              subsetting, LOG_CONFIG_STRING_S11_LOG_LEVEL,
-              (const char**) &astring)) {
+      if (config_setting_lookup_string(subsetting,
+                                       LOG_CONFIG_STRING_S11_LOG_LEVEL,
+                                       (const char**)&astring)) {
         config_pP->log_config.s11_log_level = OAILOG_LEVEL_STR2INT(astring);
       }
 
-      if (config_setting_lookup_string(
-              subsetting, LOG_CONFIG_STRING_UTIL_LOG_LEVEL,
-              (const char**) &astring)) {
+      if (config_setting_lookup_string(subsetting,
+                                       LOG_CONFIG_STRING_UTIL_LOG_LEVEL,
+                                       (const char**)&astring)) {
         config_pP->log_config.util_log_level = OAILOG_LEVEL_STR2INT(astring);
       }
 
-      if (config_setting_lookup_string(
-              subsetting, LOG_CONFIG_STRING_ITTI_LOG_LEVEL,
-              (const char**) &astring)) {
+      if (config_setting_lookup_string(subsetting,
+                                       LOG_CONFIG_STRING_ITTI_LOG_LEVEL,
+                                       (const char**)&astring)) {
         config_pP->log_config.itti_log_level = OAILOG_LEVEL_STR2INT(astring);
       }
 
-      if (config_setting_lookup_string(
-              subsetting, LOG_CONFIG_STRING_ASYNC_SYSTEM_LOG_LEVEL,
-              (const char**) &astring)) {
+      if (config_setting_lookup_string(subsetting,
+                                       LOG_CONFIG_STRING_ASYNC_SYSTEM_LOG_LEVEL,
+                                       (const char**)&astring)) {
         config_pP->log_config.async_system_log_level =
             OAILOG_LEVEL_STR2INT(astring);
       }
@@ -223,33 +221,32 @@ status_code_e sgw_config_parse_string(
       if ((config_setting_lookup_string(
                subsetting,
                SGW_CONFIG_STRING_SGW_INTERFACE_NAME_FOR_S1U_S12_S4_UP,
-               (const char**) &sgw_if_name_S1u_S12_S4_up) &&
+               (const char**)&sgw_if_name_S1u_S12_S4_up) &&
            config_setting_lookup_string(
                subsetting, SGW_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S1U_S12_S4_UP,
-               (const char**) &S1u_S12_S4_up) &&
+               (const char**)&S1u_S12_S4_up) &&
            config_setting_lookup_string(
                subsetting, SGW_CONFIG_STRING_SGW_INTERFACE_NAME_FOR_S5_S8_UP,
-               (const char**) &sgw_if_name_S5_S8_up) &&
+               (const char**)&sgw_if_name_S5_S8_up) &&
            config_setting_lookup_string(
                subsetting, SGW_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S5_S8_UP,
-               (const char**) &S5_S8_up) &&
+               (const char**)&S5_S8_up) &&
            config_setting_lookup_string(
                subsetting, SGW_CONFIG_STRING_SGW_INTERFACE_NAME_FOR_S11,
-               (const char**) &sgw_if_name_S11) &&
+               (const char**)&sgw_if_name_S11) &&
            config_setting_lookup_string(
                subsetting, SGW_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11,
-               (const char**) &S11))) {
+               (const char**)&S11))) {
         config_pP->ipv4.if_name_S1u_S12_S4_up =
             bfromcstr(sgw_if_name_S1u_S12_S4_up);
-        cidr                  = bfromcstr(S1u_S12_S4_up);
+        cidr = bfromcstr(S1u_S12_S4_up);
         struct bstrList* list = bsplit(cidr, '/');
         AssertFatal(2 == list->qty, "Bad CIDR address %s", bdata(cidr));
         address = list->entry[0];
-        mask    = list->entry[1];
-        IPV4_STR_ADDR_TO_INADDR(
-            bdata(address), config_pP->ipv4.S1u_S12_S4_up,
-            "BAD IP ADDRESS FORMAT FOR S1u_S12_S4 !\n");
-        config_pP->ipv4.netmask_S1u_S12_S4_up = atoi((const char*) mask->data);
+        mask = list->entry[1];
+        IPV4_STR_ADDR_TO_INADDR(bdata(address), config_pP->ipv4.S1u_S12_S4_up,
+                                "BAD IP ADDRESS FORMAT FOR S1u_S12_S4 !\n");
+        config_pP->ipv4.netmask_S1u_S12_S4_up = atoi((const char*)mask->data);
         bstrListDestroy(list);
         in_addr_var.s_addr = config_pP->ipv4.S1u_S12_S4_up.s_addr;
         OAILOG_INFO(
@@ -259,63 +256,58 @@ status_code_e sgw_config_parse_string(
             bdata(config_pP->ipv4.if_name_S1u_S12_S4_up));
         bdestroy(cidr);
         config_pP->ipv4.if_name_S5_S8_up = bfromcstr(sgw_if_name_S5_S8_up);
-        cidr                             = bfromcstr(S5_S8_up);
-        list                             = bsplit(cidr, '/');
+        cidr = bfromcstr(S5_S8_up);
+        list = bsplit(cidr, '/');
         AssertFatal(2 == list->qty, "Bad CIDR address %s", bdata(cidr));
         address = list->entry[0];
-        mask    = list->entry[1];
-        IPV4_STR_ADDR_TO_INADDR(
-            bdata(address), config_pP->ipv4.S5_S8_up,
-            "BAD IP ADDRESS FORMAT FOR S5_S8 !\n");
-        config_pP->ipv4.netmask_S5_S8_up = atoi((const char*) mask->data);
+        mask = list->entry[1];
+        IPV4_STR_ADDR_TO_INADDR(bdata(address), config_pP->ipv4.S5_S8_up,
+                                "BAD IP ADDRESS FORMAT FOR S5_S8 !\n");
+        config_pP->ipv4.netmask_S5_S8_up = atoi((const char*)mask->data);
         bstrListDestroy(list);
         in_addr_var.s_addr = config_pP->ipv4.S5_S8_up.s_addr;
-        OAILOG_INFO(
-            LOG_SPGW_APP,
-            "Parsing configuration file found S5_S8_up: %s/%d on %s\n",
-            inet_ntoa(in_addr_var), config_pP->ipv4.netmask_S5_S8_up,
-            bdata(config_pP->ipv4.if_name_S5_S8_up));
+        OAILOG_INFO(LOG_SPGW_APP,
+                    "Parsing configuration file found S5_S8_up: %s/%d on %s\n",
+                    inet_ntoa(in_addr_var), config_pP->ipv4.netmask_S5_S8_up,
+                    bdata(config_pP->ipv4.if_name_S5_S8_up));
 
         bdestroy(cidr);
         config_pP->ipv4.if_name_S11 = bfromcstr(sgw_if_name_S11);
-        cidr                        = bfromcstr(S11);
-        list                        = bsplit(cidr, '/');
+        cidr = bfromcstr(S11);
+        list = bsplit(cidr, '/');
         AssertFatal(2 == list->qty, "Bad CIDR address %s", bdata(cidr));
         address = list->entry[0];
-        mask    = list->entry[1];
-        IPV4_STR_ADDR_TO_INADDR(
-            bdata(address), config_pP->ipv4.S11,
-            "BAD IP ADDRESS FORMAT FOR S11 !\n");
-        config_pP->ipv4.netmask_S11 = atoi((const char*) mask->data);
+        mask = list->entry[1];
+        IPV4_STR_ADDR_TO_INADDR(bdata(address), config_pP->ipv4.S11,
+                                "BAD IP ADDRESS FORMAT FOR S11 !\n");
+        config_pP->ipv4.netmask_S11 = atoi((const char*)mask->data);
         bstrListDestroy(list);
         in_addr_var.s_addr = config_pP->ipv4.S11.s_addr;
-        OAILOG_INFO(
-            LOG_SPGW_APP, "Parsing configuration file found S11: %s/%d on %s\n",
-            inet_ntoa(in_addr_var), config_pP->ipv4.netmask_S11,
-            bdata(config_pP->ipv4.if_name_S11));
+        OAILOG_INFO(LOG_SPGW_APP,
+                    "Parsing configuration file found S11: %s/%d on %s\n",
+                    inet_ntoa(in_addr_var), config_pP->ipv4.netmask_S11,
+                    bdata(config_pP->ipv4.if_name_S11));
         bdestroy(cidr);
       }
 
       if (config_setting_lookup_string(
               subsetting,
               SGW_CONFIG_STRING_SGW_INTERFACE_NAME_FOR_S1U_S12_S4_UP,
-              (const char**) &sgw_if_name_S1u_S12_S4_up_v6) &&
-          config_setting_lookup_string(
-              subsetting, SGW_CONFIG_STRING_S1_IPV6_ENABLED,
-              (const char**) &s1_ipv6_enabled) &&
+              (const char**)&sgw_if_name_S1u_S12_S4_up_v6) &&
+          config_setting_lookup_string(subsetting,
+                                       SGW_CONFIG_STRING_S1_IPV6_ENABLED,
+                                       (const char**)&s1_ipv6_enabled) &&
           config_setting_lookup_string(
               subsetting, SGW_CONFIG_STRING_SGW_IPV6_ADDRESS_FOR_S1U_S12_S4_UP,
-              (const char**) &S1u_S12_S4_up_v6)) {
+              (const char**)&S1u_S12_S4_up_v6)) {
         // S1AP IPv6 address
         config_pP->ipv6.if_name_S1u_S12_S4_up =
             bfromcstr(sgw_if_name_S1u_S12_S4_up_v6);
         address = bfromcstr(S1u_S12_S4_up_v6);
-        IPV6_STR_ADDR_TO_INADDR(
-            bdata(address), config_pP->ipv6.S1u_S12_S4_up,
-            "BAD IPv6 ADDRESS FORMAT FOR S1u_S12_S4 !\n");
-        memcpy(
-            &in6_addr_var, &config_pP->ipv6.S1u_S12_S4_up,
-            sizeof(in6_addr_var));
+        IPV6_STR_ADDR_TO_INADDR(bdata(address), config_pP->ipv6.S1u_S12_S4_up,
+                                "BAD IPv6 ADDRESS FORMAT FOR S1u_S12_S4 !\n");
+        memcpy(&in6_addr_var, &config_pP->ipv6.S1u_S12_S4_up,
+               sizeof(in6_addr_var));
         bdestroy(address);
         char buf[INET6_ADDRSTRLEN];
         OAILOG_INFO(
@@ -348,30 +340,30 @@ status_code_e sgw_config_parse_string(
     if (ovs_settings == NULL) {
       Fatal("Couldn't find OVS subsetting in spgw config\n");
     }
-    char* ovs_bridge_name                       = NULL;
-    libconfig_int gtp_port_num                  = 0;
-    libconfig_int mtr_port_num                  = 0;
-    libconfig_int internal_sampling_port_num    = 0;
+    char* ovs_bridge_name = NULL;
+    libconfig_int gtp_port_num = 0;
+    libconfig_int mtr_port_num = 0;
+    libconfig_int internal_sampling_port_num = 0;
     libconfig_int internal_sampling_fwd_tbl_num = 0;
-    libconfig_int uplink_port_num               = 0;
-    char* multi_tunnel                          = NULL;
-    char* agw_l3_tunnel                         = NULL;
-    char* gtp_echo                              = NULL;
-    char* gtp_csum                              = NULL;
+    libconfig_int uplink_port_num = 0;
+    char* multi_tunnel = NULL;
+    char* agw_l3_tunnel = NULL;
+    char* gtp_echo = NULL;
+    char* gtp_csum = NULL;
 
-    char* uplink_mac             = NULL;
+    char* uplink_mac = NULL;
     char* pipelined_managed_tbl0 = NULL;
-    if (config_setting_lookup_string(
-            ovs_settings, SGW_CONFIG_STRING_OVS_BRIDGE_NAME,
-            (const char**) &ovs_bridge_name) &&
+    if (config_setting_lookup_string(ovs_settings,
+                                     SGW_CONFIG_STRING_OVS_BRIDGE_NAME,
+                                     (const char**)&ovs_bridge_name) &&
         config_setting_lookup_int(
             ovs_settings, SGW_CONFIG_STRING_OVS_GTP_PORT_NUM, &gtp_port_num) &&
-        config_setting_lookup_int(
-            ovs_settings, SGW_CONFIG_STRING_OVS_UPLINK_PORT_NUM,
-            &uplink_port_num) &&
-        config_setting_lookup_string(
-            ovs_settings, SGW_CONFIG_STRING_OVS_UPLINK_MAC,
-            (const char**) &uplink_mac) &&
+        config_setting_lookup_int(ovs_settings,
+                                  SGW_CONFIG_STRING_OVS_UPLINK_PORT_NUM,
+                                  &uplink_port_num) &&
+        config_setting_lookup_string(ovs_settings,
+                                     SGW_CONFIG_STRING_OVS_UPLINK_MAC,
+                                     (const char**)&uplink_mac) &&
         config_setting_lookup_int(
             ovs_settings, SGW_CONFIG_STRING_OVS_MTR_PORT_NUM, &mtr_port_num) &&
         config_setting_lookup_int(
@@ -380,22 +372,22 @@ status_code_e sgw_config_parse_string(
         config_setting_lookup_int(
             ovs_settings, SGW_CONFIG_STRING_OVS_INTERNAL_SAMPLING_FWD_TBL_NUM,
             &internal_sampling_fwd_tbl_num) &&
-        config_setting_lookup_string(
-            ovs_settings, SGW_CONFIG_STRING_OVS_MULTI_TUNNEL,
-            (const char**) &multi_tunnel) &&
-        config_setting_lookup_string(
-            ovs_settings, SGW_CONFIG_STRING_OVS_GTP_ECHO,
-            (const char**) &gtp_echo) &&
-        config_setting_lookup_string(
-            ovs_settings, SGW_CONFIG_STRING_OVS_GTP_CHECKSUM,
-            (const char**) &gtp_csum) &&
-        config_setting_lookup_string(
-            ovs_settings, SGW_CONFIG_STRING_AGW_L3_TUNNEL,
-            (const char**) &agw_l3_tunnel) &&
+        config_setting_lookup_string(ovs_settings,
+                                     SGW_CONFIG_STRING_OVS_MULTI_TUNNEL,
+                                     (const char**)&multi_tunnel) &&
+        config_setting_lookup_string(ovs_settings,
+                                     SGW_CONFIG_STRING_OVS_GTP_ECHO,
+                                     (const char**)&gtp_echo) &&
+        config_setting_lookup_string(ovs_settings,
+                                     SGW_CONFIG_STRING_OVS_GTP_CHECKSUM,
+                                     (const char**)&gtp_csum) &&
+        config_setting_lookup_string(ovs_settings,
+                                     SGW_CONFIG_STRING_AGW_L3_TUNNEL,
+                                     (const char**)&agw_l3_tunnel) &&
         config_setting_lookup_string(
             ovs_settings, SGW_CONFIG_STRING_OVS_PIPELINED_CONFIG_ENABLED,
-            (const char**) &pipelined_managed_tbl0)) {
-      config_pP->ovs_config.bridge_name  = bfromcstr(ovs_bridge_name);
+            (const char**)&pipelined_managed_tbl0)) {
+      config_pP->ovs_config.bridge_name = bfromcstr(ovs_bridge_name);
       config_pP->ovs_config.gtp_port_num = gtp_port_num;
       config_pP->ovs_config.mtr_port_num = mtr_port_num;
       config_pP->ovs_config.internal_sampling_port_num =
@@ -403,16 +395,15 @@ status_code_e sgw_config_parse_string(
       config_pP->ovs_config.internal_sampling_fwd_tbl_num =
           internal_sampling_fwd_tbl_num;
       config_pP->ovs_config.uplink_port_num = uplink_port_num;
-      config_pP->ovs_config.uplink_mac      = bfromcstr(uplink_mac);
+      config_pP->ovs_config.uplink_mac = bfromcstr(uplink_mac);
 
       if (strcasecmp(pipelined_managed_tbl0, "false") == 0) {
         config_pP->ovs_config.pipelined_managed_tbl0 = false;
       } else {
         config_pP->ovs_config.pipelined_managed_tbl0 = true;
       }
-      OAILOG_INFO(
-          LOG_SPGW_APP, "Pipelined config enable: %s\n",
-          pipelined_managed_tbl0);
+      OAILOG_INFO(LOG_SPGW_APP, "Pipelined config enable: %s\n",
+                  pipelined_managed_tbl0);
 
       if (strcasecmp(multi_tunnel, "false") == 0) {
         config_pP->ovs_config.multi_tunnel = false;
@@ -448,27 +439,25 @@ status_code_e sgw_config_parse_string(
 }
 
 int sgw_config_parse_file(sgw_config_t* config_pP) {
-  FILE* fp     = NULL;
+  FILE* fp = NULL;
   int ret_code = RETURNerror;
-  fp           = fopen(bdata(config_pP->config_file), "r");
+  fp = fopen(bdata(config_pP->config_file), "r");
   if (fp == NULL) {
-    OAILOG_CRITICAL(
-        LOG_CONFIG, "Failed to open SGW configuration file at path: %s\n",
-        bdata(config_pP->config_file));
-    Fatal(
-        "Failed to open SGW configuration file at path: %s\n",
-        bdata(config_pP->config_file));
+    OAILOG_CRITICAL(LOG_CONFIG,
+                    "Failed to open SGW configuration file at path: %s\n",
+                    bdata(config_pP->config_file));
+    Fatal("Failed to open SGW configuration file at path: %s\n",
+          bdata(config_pP->config_file));
   }
 
-  bstring buff = bread((bNread) fread, fp);
+  bstring buff = bread((bNread)fread, fp);
   if (buff == NULL) {
     fclose(fp);
-    OAILOG_CRITICAL(
-        LOG_CONFIG, "Failed to read SGW configuration file at path: %s\n",
-        bdata(config_pP->config_file));
-    Fatal(
-        "Failed to read SGW configuration file at path: %s:\n",
-        bdata(config_pP->config_file));
+    OAILOG_CRITICAL(LOG_CONFIG,
+                    "Failed to read SGW configuration file at path: %s\n",
+                    bdata(config_pP->config_file));
+    Fatal("Failed to read SGW configuration file at path: %s:\n",
+          bdata(config_pP->config_file));
   }
   ret_code = sgw_config_parse_string(bdata(buff), config_pP);
   bdestroy_wrapper(&buff);
@@ -477,75 +466,57 @@ int sgw_config_parse_file(sgw_config_t* config_pP) {
 
 //------------------------------------------------------------------------------
 void sgw_config_display(sgw_config_t* config_p) {
-  OAILOG_INFO(
-      LOG_SPGW_APP, "==== EURECOM %s v%s ====\n", PACKAGE_NAME,
-      PACKAGE_VERSION);
+  OAILOG_INFO(LOG_SPGW_APP, "==== EURECOM %s v%s ====\n", PACKAGE_NAME,
+              PACKAGE_VERSION);
   OAILOG_INFO(LOG_SPGW_APP, "Configuration:\n");
-  OAILOG_INFO(
-      LOG_SPGW_APP, "- File .................................: %s\n",
-      bdata(config_p->config_file));
+  OAILOG_INFO(LOG_SPGW_APP, "- File .................................: %s\n",
+              bdata(config_p->config_file));
 
   OAILOG_INFO(LOG_SPGW_APP, "- S1-U:\n");
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    port number ......: %d\n",
-      config_p->udp_port_S1u_S12_S4_up);
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    S1u_S12_S4 iface .....: %s\n",
-      bdata(config_p->ipv4.if_name_S1u_S12_S4_up));
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    S1u_S12_S4 ip ........: %s/%u\n",
-      inet_ntoa(config_p->ipv4.S1u_S12_S4_up),
-      config_p->ipv4.netmask_S1u_S12_S4_up);
+  OAILOG_INFO(LOG_SPGW_APP, "    port number ......: %d\n",
+              config_p->udp_port_S1u_S12_S4_up);
+  OAILOG_INFO(LOG_SPGW_APP, "    S1u_S12_S4 iface .....: %s\n",
+              bdata(config_p->ipv4.if_name_S1u_S12_S4_up));
+  OAILOG_INFO(LOG_SPGW_APP, "    S1u_S12_S4 ip ........: %s/%u\n",
+              inet_ntoa(config_p->ipv4.S1u_S12_S4_up),
+              config_p->ipv4.netmask_S1u_S12_S4_up);
   OAILOG_INFO(LOG_SPGW_APP, "- S5-S8:\n");
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    S5_S8 iface ..........: %s\n",
-      bdata(config_p->ipv4.if_name_S5_S8_up));
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    S5_S8 ip .............: %s/%u\n",
-      inet_ntoa(config_p->ipv4.S5_S8_up), config_p->ipv4.netmask_S5_S8_up);
+  OAILOG_INFO(LOG_SPGW_APP, "    S5_S8 iface ..........: %s\n",
+              bdata(config_p->ipv4.if_name_S5_S8_up));
+  OAILOG_INFO(LOG_SPGW_APP, "    S5_S8 ip .............: %s/%u\n",
+              inet_ntoa(config_p->ipv4.S5_S8_up),
+              config_p->ipv4.netmask_S5_S8_up);
   OAILOG_INFO(LOG_SPGW_APP, "- S11:\n");
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    S11 iface ............: %s\n",
-      bdata(config_p->ipv4.if_name_S11));
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    S11 ip ...............: %s/%u\n",
-      inet_ntoa(config_p->ipv4.S11), config_p->ipv4.netmask_S11);
+  OAILOG_INFO(LOG_SPGW_APP, "    S11 iface ............: %s\n",
+              bdata(config_p->ipv4.if_name_S11));
+  OAILOG_INFO(LOG_SPGW_APP, "    S11 ip ...............: %s/%u\n",
+              inet_ntoa(config_p->ipv4.S11), config_p->ipv4.netmask_S11);
   OAILOG_INFO(LOG_SPGW_APP, "- ITTI:\n");
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    queue size .......: %u (bytes)\n",
-      config_p->itti_config.queue_size);
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    log file .........: %s\n",
-      bdata(config_p->itti_config.log_file));
+  OAILOG_INFO(LOG_SPGW_APP, "    queue size .......: %u (bytes)\n",
+              config_p->itti_config.queue_size);
+  OAILOG_INFO(LOG_SPGW_APP, "    log file .........: %s\n",
+              bdata(config_p->itti_config.log_file));
 #if (!EMBEDDED_SGW)
   OAILOG_INFO(LOG_SPGW_APP, "- Logging:\n");
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    Output ..............: %s\n",
-      bdata(config_p->log_config.output));
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    Output thread-safe...: %s\n",
-      (config_p->log_config.is_output_thread_safe) ? "true" : "false");
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    UDP log level........: %s\n",
-      OAILOG_LEVEL_INT2STR(config_p->log_config.udp_log_level));
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    GTPV1-U log level....: %s\n",
-      OAILOG_LEVEL_INT2STR(config_p->log_config.gtpv1u_log_level));
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    GTPV2-C log level....: %s\n",
-      OAILOG_LEVEL_INT2STR(config_p->log_config.gtpv2c_log_level));
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    S/P-GW APP log level.: %s\n",
-      OAILOG_LEVEL_INT2STR(config_p->log_config.spgw_app_log_level));
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    S11 log level........: %s\n",
-      OAILOG_LEVEL_INT2STR(config_p->log_config.s11_log_level));
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    UTIL log level.......: %s\n",
-      OAILOG_LEVEL_INT2STR(config_p->log_config.util_log_level));
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    ITTI log level.......: %s (InTer-Task Interface)\n",
-      OAILOG_LEVEL_INT2STR(config_p->log_config.itti_log_level));
+  OAILOG_INFO(LOG_SPGW_APP, "    Output ..............: %s\n",
+              bdata(config_p->log_config.output));
+  OAILOG_INFO(LOG_SPGW_APP, "    Output thread-safe...: %s\n",
+              (config_p->log_config.is_output_thread_safe) ? "true" : "false");
+  OAILOG_INFO(LOG_SPGW_APP, "    UDP log level........: %s\n",
+              OAILOG_LEVEL_INT2STR(config_p->log_config.udp_log_level));
+  OAILOG_INFO(LOG_SPGW_APP, "    GTPV1-U log level....: %s\n",
+              OAILOG_LEVEL_INT2STR(config_p->log_config.gtpv1u_log_level));
+  OAILOG_INFO(LOG_SPGW_APP, "    GTPV2-C log level....: %s\n",
+              OAILOG_LEVEL_INT2STR(config_p->log_config.gtpv2c_log_level));
+  OAILOG_INFO(LOG_SPGW_APP, "    S/P-GW APP log level.: %s\n",
+              OAILOG_LEVEL_INT2STR(config_p->log_config.spgw_app_log_level));
+  OAILOG_INFO(LOG_SPGW_APP, "    S11 log level........: %s\n",
+              OAILOG_LEVEL_INT2STR(config_p->log_config.s11_log_level));
+  OAILOG_INFO(LOG_SPGW_APP, "    UTIL log level.......: %s\n",
+              OAILOG_LEVEL_INT2STR(config_p->log_config.util_log_level));
+  OAILOG_INFO(LOG_SPGW_APP,
+              "    ITTI log level.......: %s (InTer-Task Interface)\n",
+              OAILOG_LEVEL_INT2STR(config_p->log_config.itti_log_level));
 #endif
 }
 

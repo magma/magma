@@ -54,12 +54,11 @@ int EventTracker::init_conntrack_event_loop() {
     exit(EXIT_FAILURE);
   }
 
-  if (mnl_socket_bind(
-          nl,
-          NF_NETLINK_CONNTRACK_NEW |
-              // NF_NETLINK_CONNTRACK_UPDATE |
-              NF_NETLINK_CONNTRACK_DESTROY,
-          MNL_SOCKET_AUTOPID) < 0) {
+  if (mnl_socket_bind(nl,
+                      NF_NETLINK_CONNTRACK_NEW |
+                          // NF_NETLINK_CONNTRACK_UPDATE |
+                          NF_NETLINK_CONNTRACK_DESTROY,
+                      MNL_SOCKET_AUTOPID) < 0) {
     perror("mnl_socket_bind");
     exit(EXIT_FAILURE);
   }
@@ -70,7 +69,7 @@ int EventTracker::init_conntrack_event_loop() {
       perror("mnl_socket_recvfrom");
       exit(EXIT_FAILURE);
     }
-    ret = mnl_cb_run(buf, ret, 0, 0, data_cb, (void*) this);
+    ret = mnl_cb_run(buf, ret, 0, 0, data_cb, (void*)this);
     if (ret == -1) {
       perror("mnl_cb_run");
       exit(EXIT_FAILURE);
@@ -85,8 +84,8 @@ int EventTracker::init_conntrack_event_loop() {
 }  // namespace magma
 
 static int parse_ip_cb(const struct nlattr* attr, void* data) {
-  const struct nlattr** tb = (const struct nlattr**) data;
-  int type                 = mnl_attr_get_type(attr);
+  const struct nlattr** tb = (const struct nlattr**)data;
+  int type = mnl_attr_get_type(attr);
 
   if (mnl_attr_type_valid(attr, CTA_IP_MAX) < 0) return MNL_CB_OK;
 
@@ -109,19 +108,19 @@ static void parse_ip(const struct nlattr* nest, struct flow_information* flow) {
   mnl_attr_parse_nested(nest, parse_ip_cb, tb);
   if (tb[CTA_IP_V4_SRC]) {
     struct in_addr* in =
-        (struct in_addr*) mnl_attr_get_payload(tb[CTA_IP_V4_SRC]);
+        (struct in_addr*)mnl_attr_get_payload(tb[CTA_IP_V4_SRC]);
     flow->saddr = in->s_addr;
   }
   if (tb[CTA_IP_V4_DST]) {
     struct in_addr* in =
-        (struct in_addr*) mnl_attr_get_payload(tb[CTA_IP_V4_DST]);
+        (struct in_addr*)mnl_attr_get_payload(tb[CTA_IP_V4_DST]);
     flow->daddr = in->s_addr;
   }
 }
 
 static int parse_proto_cb(const struct nlattr* attr, void* data) {
-  const struct nlattr** tb = (const struct nlattr**) data;
-  int type                 = mnl_attr_get_type(attr);
+  const struct nlattr** tb = (const struct nlattr**)data;
+  int type = mnl_attr_get_type(attr);
 
   if (mnl_attr_type_valid(attr, CTA_PROTO_MAX) < 0) return MNL_CB_OK;
 
@@ -147,8 +146,8 @@ static int parse_proto_cb(const struct nlattr* attr, void* data) {
   return MNL_CB_OK;
 }
 
-static void parse_proto(
-    const struct nlattr* nest, struct flow_information* flow) {
+static void parse_proto(const struct nlattr* nest,
+                        struct flow_information* flow) {
   struct nlattr* tb[CTA_PROTO_MAX + 1] = {};
 
   mnl_attr_parse_nested(nest, parse_proto_cb, tb);
@@ -164,8 +163,8 @@ static void parse_proto(
 }
 
 static int parse_tuple_cb(const struct nlattr* attr, void* data) {
-  const struct nlattr** tb = (const struct nlattr**) data;
-  int type                 = mnl_attr_get_type(attr);
+  const struct nlattr** tb = (const struct nlattr**)data;
+  int type = mnl_attr_get_type(attr);
 
   if (mnl_attr_type_valid(attr, CTA_TUPLE_MAX) < 0) return MNL_CB_OK;
 
@@ -187,8 +186,8 @@ static int parse_tuple_cb(const struct nlattr* attr, void* data) {
   return MNL_CB_OK;
 }
 
-static void print_tuple(
-    const struct nlattr* nest, struct flow_information* flow) {
+static void print_tuple(const struct nlattr* nest,
+                        struct flow_information* flow) {
   struct nlattr* tb[CTA_TUPLE_MAX + 1] = {};
 
   mnl_attr_parse_nested(nest, parse_tuple_cb, tb);
@@ -201,8 +200,8 @@ static void print_tuple(
 }
 
 static int data_attr_cb(const struct nlattr* attr, void* data) {
-  const struct nlattr** tb = (const struct nlattr**) data;
-  int type                 = mnl_attr_get_type(attr);
+  const struct nlattr** tb = (const struct nlattr**)data;
+  int type = mnl_attr_get_type(attr);
 
   if (mnl_attr_type_valid(attr, CTA_MAX) < 0) return MNL_CB_OK;
 
@@ -228,7 +227,7 @@ static int data_attr_cb(const struct nlattr* attr, void* data) {
 
 static int data_cb(const struct nlmsghdr* nlh, void* data) {
   struct nlattr* tb[CTA_MAX + 1] = {};
-  struct nfgenmsg* nfg = (struct nfgenmsg*) mnl_nlmsg_get_payload(nlh);
+  struct nfgenmsg* nfg = (struct nfgenmsg*)mnl_nlmsg_get_payload(nlh);
   struct flow_information flow;
   struct in_addr src_ip;
   struct in_addr dst_ip;
@@ -240,7 +239,7 @@ static int data_cb(const struct nlmsghdr* nlh, void* data) {
   mnl_attr_parse(nlh, sizeof(*nfg), data_attr_cb, tb);
 
   // If zone isn't set the event isn't coming from the OVS commited flow
-  if (!tb[CTA_ZONE] || ((magma::lte::EventTracker*) data)->zone_ !=
+  if (!tb[CTA_ZONE] || ((magma::lte::EventTracker*)data)->zone_ !=
                            ntohs(mnl_attr_get_u16(tb[CTA_ZONE]))) {
     return 0;
   }
@@ -272,7 +271,7 @@ static int data_cb(const struct nlmsghdr* nlh, void* data) {
     MLOG(MINFO) << "From zone " << mnl_attr_get_u16(tb[CTA_ZONE]);
   }
 
-  ((magma::lte::EventTracker*) data)->pkt_gen_->send_packet(&flow);
+  ((magma::lte::EventTracker*)data)->pkt_gen_->send_packet(&flow);
 
   return MNL_CB_OK;
 }

@@ -28,18 +28,16 @@ TEST_F(SessionStateTest, test_insert_monitor) {
   EXPECT_EQ(update_criteria.static_rules_to_install.size(), 0);
   insert_rule(1, "m1", "rule1", STATIC, 0, 0);
   EXPECT_EQ(true, session_state->active_monitored_rules_exist());
-  EXPECT_TRUE(
-      std::find(
-          update_criteria.static_rules_to_install.begin(),
-          update_criteria.static_rules_to_install.end(),
-          "rule1") != update_criteria.static_rules_to_install.end());
+  EXPECT_TRUE(std::find(update_criteria.static_rules_to_install.begin(),
+                        update_criteria.static_rules_to_install.end(),
+                        "rule1") !=
+              update_criteria.static_rules_to_install.end());
 
   receive_credit_from_pcrf("m1", 1024, MonitoringLevel::PCC_RULE_LEVEL);
   EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL), 1024);
-  EXPECT_EQ(
-      update_criteria.monitor_credit_to_install["m1"]
-          .credit.buckets[ALLOWED_TOTAL],
-      1024);
+  EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"]
+                .credit.buckets[ALLOWED_TOTAL],
+            1024);
 }
 
 // Insert a monitor, then remove. Assert that the update criteria reflects the
@@ -50,10 +48,9 @@ TEST_F(SessionStateTest, test_remove_monitor) {
 
   receive_credit_from_pcrf("m1", 1000, MonitoringLevel::PCC_RULE_LEVEL);
   EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL), 1000);
-  EXPECT_EQ(
-      update_criteria.monitor_credit_to_install["m1"]
-          .credit.buckets[ALLOWED_TOTAL],
-      1000);
+  EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"]
+                .credit.buckets[ALLOWED_TOTAL],
+            1000);
 
   session_state->add_rule_usage("rule1", 1, 1000, 0, 0, 0, nullptr);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 1000);

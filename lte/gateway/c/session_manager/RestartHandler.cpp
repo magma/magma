@@ -43,7 +43,7 @@ class Void;
 
 namespace sessiond {
 
-const uint RestartHandler::max_cleanup_retries_  = 3;
+const uint RestartHandler::max_cleanup_retries_ = 3;
 const uint RestartHandler::rpc_retry_interval_s_ = 5;
 
 RestartHandler::RestartHandler(
@@ -127,15 +127,15 @@ bool RestartHandler::launch_threads_to_terminate_with_retries() {
 // This function is executed in the main thread before multiple terminate
 // threads are launched. So no locking is necessary here.
 bool RestartHandler::populate_sessions_to_terminate_with_retries() {
-  uint rpc_try  = 0;
+  uint rpc_try = 0;
   bool finished = false;
   std::promise<bool> directoryd_res;
 
   while (rpc_try < max_cleanup_retries_) {
     std::future<bool> directoryd_future = directoryd_res.get_future();
     directoryd_client_->get_all_directoryd_records(
-        [this, &directoryd_res](
-            Status status, const AllDirectoryRecords& response) {
+        [this, &directoryd_res](Status status,
+                                const AllDirectoryRecords& response) {
           if (!status.ok()) {
             directoryd_res.set_value(false);
             return;
@@ -164,8 +164,8 @@ bool RestartHandler::populate_sessions_to_terminate_with_retries() {
   return finished;
 }
 
-void RestartHandler::terminate_previous_session(
-    const std::string& sid, const std::string& session_id) {
+void RestartHandler::terminate_previous_session(const std::string& sid,
+                                                const std::string& session_id) {
   SessionTerminateRequest term_req;
   term_req.mutable_common_context()->mutable_sid()->set_id(sid);
   term_req.set_session_id(session_id);

@@ -49,12 +49,12 @@
 //------------------------------------------------------------------------------
 // 10.5.4.32 Supported codec list
 //------------------------------------------------------------------------------
-int decode_supported_codec_list(
-    supported_codec_list_t* supportedcodeclist, const bool iei_present,
-    uint8_t* buffer, const uint32_t len) {
+int decode_supported_codec_list(supported_codec_list_t* supportedcodeclist,
+                                const bool iei_present, uint8_t* buffer,
+                                const uint32_t len) {
   int decode_result = 0;
-  int decoded       = 0;
-  uint8_t ielen     = 0;
+  int decoded = 0;
+  uint8_t ielen = 0;
 
   if (iei_present) {
     CHECK_IEI_DECODER(CC_SUPPORTED_CODEC_LIST_IE, *buffer);
@@ -64,8 +64,8 @@ int decode_supported_codec_list(
   ielen = *(buffer + decoded);
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
-  if ((decode_result = decode_bstring(
-           supportedcodeclist, ielen, buffer + decoded, len - decoded)) < 0) {
+  if ((decode_result = decode_bstring(supportedcodeclist, ielen,
+                                      buffer + decoded, len - decoded)) < 0) {
     return decode_result;
   } else {
     decoded += decode_result;
@@ -74,18 +74,18 @@ int decode_supported_codec_list(
 }
 
 //------------------------------------------------------------------------------
-int encode_supported_codec_list(
-    supported_codec_list_t* supportedcodeclist, const bool iei_present,
-    uint8_t* buffer, const uint32_t len) {
+int encode_supported_codec_list(supported_codec_list_t* supportedcodeclist,
+                                const bool iei_present, uint8_t* buffer,
+                                const uint32_t len) {
   uint8_t* lenPtr;
-  uint32_t encoded       = 0;
+  uint32_t encoded = 0;
   uint32_t encode_result = 0;
 
   /*
    * Checking IEI and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, SUPPORTED_CODEC_LIST_IE_MIN_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
+                                       SUPPORTED_CODEC_LIST_IE_MIN_LENGTH, len);
 
   if (iei_present) {
     *buffer = CC_SUPPORTED_CODEC_LIST_IE;
@@ -95,8 +95,8 @@ int encode_supported_codec_list(
   lenPtr = (buffer + encoded);
   encoded++;
 
-  if ((encode_result = encode_bstring(
-           *supportedcodeclist, buffer + encoded, len - encoded)) < 0)
+  if ((encode_result = encode_bstring(*supportedcodeclist, buffer + encoded,
+                                      len - encoded)) < 0)
     return encode_result;
   else
     encoded += encode_result;

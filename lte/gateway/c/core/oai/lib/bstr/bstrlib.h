@@ -64,10 +64,10 @@ extern int bconchar(bstring b0, char c);
 extern int bcatcstr(bstring b, const char* s);
 extern int bcatblk(bstring b, const void* s, int len);
 extern int binsert(bstring s1, int pos, const_bstring s2, unsigned char fill);
-extern int binsertblk(
-    bstring s1, int pos, const void* s2, int len, unsigned char fill);
-extern int breplace(
-    bstring b1, int pos, int len, const_bstring b2, unsigned char fill);
+extern int binsertblk(bstring s1, int pos, const void* s2, int len,
+                      unsigned char fill);
+extern int breplace(bstring b1, int pos, int len, const_bstring b2,
+                    unsigned char fill);
 extern int bdelete(bstring s1, int pos, int len);
 extern int bsetstr(bstring b0, int pos, const_bstring b1, unsigned char fill);
 extern int btrunc(bstring b, int n);
@@ -89,9 +89,8 @@ extern int bstrListDestroy(struct bstrList* sl);
 
 /* String split and join functions */
 extern struct bstrList* bsplit(const_bstring str, unsigned char splitChar);
-extern int bsplitcb(
-    const_bstring str, unsigned char splitChar, int pos,
-    int (*cb)(void* parm, int ofs, int len), void* parm);
+extern int bsplitcb(const_bstring str, unsigned char splitChar, int pos,
+                    int (*cb)(void* parm, int ofs, int len), void* parm);
 
 /* Miscellaneous functions */
 extern int btrimws(bstring b);
@@ -120,22 +119,22 @@ struct tagbstring {
 };
 
 /* Accessor macros */
-#define blengthe(b, e)                                                         \
-  (((b) == (void*) 0 || (b)->slen < 0) ? (int) (e) : ((b)->slen))
+#define blengthe(b, e) \
+  (((b) == (void*)0 || (b)->slen < 0) ? (int)(e) : ((b)->slen))
 #define blength(b) (blengthe((b), 0))
-#define bdataofse(b, o, e)                                                     \
-  (((b) == (void*) 0 || (b)->data == (void*) 0) ? (char*) (e) :                \
-                                                  ((char*) (b)->data) + (o))
-#define bdataofs(b, o) (bdataofse((b), (o), (void*) 0))
+#define bdataofse(b, o, e)                                 \
+  (((b) == (void*)0 || (b)->data == (void*)0) ? (char*)(e) \
+                                              : ((char*)(b)->data) + (o))
+#define bdataofs(b, o) (bdataofse((b), (o), (void*)0))
 #define bdatae(b, e) (bdataofse(b, 0, e))
 #define bdata(b) (bdataofs(b, 0))
-#define bchare(b, p, e)                                                        \
-  ((((unsigned) (p)) < (unsigned) blength(b)) ? ((b)->data[(p)]) : (e))
+#define bchare(b, p, e) \
+  ((((unsigned)(p)) < (unsigned)blength(b)) ? ((b)->data[(p)]) : (e))
 #define bchar(b, p) bchare((b), (p), '\0')
 
 /* Static constant string initialization macro */
-#define bsStaticMlen(q, m)                                                     \
-  { (m), (int) sizeof(q) - 1, (unsigned char*) ("" q "") }
+#define bsStaticMlen(q, m) \
+  { (m), (int)sizeof(q) - 1, (unsigned char*)("" q "") }
 #if defined(_MSC_VER)
 #define bsStatic(q) bsStaticMlen(q, -32)
 #endif

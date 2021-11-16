@@ -59,10 +59,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   // imsi64_t imsi64                =
   // itti_get_associated_imsi(received_message_p);
 
-  OAILOG_INFO(
-      LOG_AMF_APP, "Received msg from :[%s] id:[%d] name:[%s]\n",
-      ITTI_MSG_ORIGIN_NAME(received_message_p), ITTI_MSG_ID(received_message_p),
-      ITTI_MSG_NAME(received_message_p));
+  OAILOG_INFO(LOG_AMF_APP, "Received msg from :[%s] id:[%d] name:[%s]\n",
+              ITTI_MSG_ORIGIN_NAME(received_message_p),
+              ITTI_MSG_ID(received_message_p),
+              ITTI_MSG_NAME(received_message_p));
 
   switch (ITTI_MSG_ID(received_message_p)) {
     /* Handle Initial UE message from NGAP */
@@ -99,9 +99,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       break;
 
     case S6A_UPDATE_LOCATION_ANS: {
-      OAILOG_INFO(
-          LOG_MME_APP,
-          "Received S6A Update Location Answer from subscriberd\n");
+      OAILOG_INFO(LOG_MME_APP,
+                  "Received S6A Update Location Answer from subscriberd\n");
       amf_handle_s6a_update_location_ans(
           &received_message_p->ittiMsg.s6a_update_location_ans);
     } break;
@@ -164,8 +163,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 void* amf_app_thread(void* args) {
   itti_mark_task_ready(TASK_AMF_APP);
   const task_id_t tasks[] = {TASK_NGAP, TASK_SERVICE303};
-  init_task_context(
-      TASK_AMF_APP, tasks, 2, handle_message, &amf_app_task_zmq_ctx);
+  init_task_context(TASK_AMF_APP, tasks, 2, handle_message,
+                    &amf_app_task_zmq_ctx);
   // Service started, but not healthy yet
   send_app_health_to_service303(&amf_app_task_zmq_ctx, TASK_AMF_APP, false);
   zloop_start(amf_app_task_zmq_ctx.event_loop);

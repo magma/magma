@@ -52,9 +52,9 @@ typedef uint32_t sctp_ppid_t;
 #define SCTP_INIT_MSG(msg) (msg)->ittiMsg.sctpInit
 #define SCTP_NEW_ASSOCIATION(msg) (msg)->ittiMsg.sctp_new_peer
 #define SCTP_CLOSE_ASSOCIATION(msg) (msg)->ittiMsg.sctp_close_association
-#define SCTP_MME_SERVER_INITIALIZED(msg)                                       \
+#define SCTP_MME_SERVER_INITIALIZED(msg) \
   (msg)->ittiMsg.sctp_mme_server_initialized
-#define SCTP_AMF_SERVER_INITIALIZED(msg)                                       \
+#define SCTP_AMF_SERVER_INITIALIZED(msg) \
   (msg)->ittiMsg.sctp_amf_server_initialized
 
 typedef struct sctp_data_cnf_s {

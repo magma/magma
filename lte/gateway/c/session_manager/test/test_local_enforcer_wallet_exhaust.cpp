@@ -43,16 +43,16 @@ Teids teids0;
 class LocalEnforcerTest : public ::testing::Test {
  protected:
   void SetUpWithMConfig(magma::mconfig::SessionD mconfig) {
-    reporter      = std::make_shared<MockSessionReporter>();
-    rule_store    = std::make_shared<StaticRuleStore>();
+    reporter = std::make_shared<MockSessionReporter>();
+    rule_store = std::make_shared<StaticRuleStore>();
     session_store = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
-    pipelined_client   = std::make_shared<MockPipelinedClient>();
-    spgw_client        = std::make_shared<MockSpgwServiceClient>();
-    aaa_client         = std::make_shared<MockAAAClient>();
-    events_reporter    = std::make_shared<MockEventsReporter>();
+    pipelined_client = std::make_shared<MockPipelinedClient>();
+    spgw_client = std::make_shared<MockSpgwServiceClient>();
+    aaa_client = std::make_shared<MockAAAClient>();
+    events_reporter = std::make_shared<MockEventsReporter>();
     auto shard_tracker = std::make_shared<ShardTracker>();
-    local_enforcer     = std::make_unique<LocalEnforcer>(
+    local_enforcer = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
         spgw_client, aaa_client, shard_tracker, 0, 0, mconfig);
     evb = folly::EventBaseManager::get()->getEventBase();
@@ -84,19 +84,19 @@ class LocalEnforcerTest : public ::testing::Test {
     return mconfig;
   }
 
-  void insert_static_rule(
-      uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id) {
+  void insert_static_rule(uint32_t rating_group, const std::string& m_key,
+                          const std::string& rule_id) {
     rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
   }
 
-  void initialize_session(
-      SessionMap& session_map, const std::string& session_id,
-      const SessionConfig& cfg, const CreateSessionResponse& response) {
+  void initialize_session(SessionMap& session_map,
+                          const std::string& session_id,
+                          const SessionConfig& cfg,
+                          const CreateSessionResponse& response) {
     const std::string imsi = cfg.get_imsi();
     auto session = local_enforcer->create_initializing_session(session_id, cfg);
-    local_enforcer->update_session_with_policy_response(
-        session, response, nullptr);
+    local_enforcer->update_session_with_policy_response(session, response,
+                                                        nullptr);
     session_map[imsi].push_back(std::move(session));
   }
 
@@ -125,13 +125,12 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
   insert_static_rule(0, "m1", "rule1");
 
   // Create a CreateSessionResponse with one Gx monitor:m1 and one rule:rule1
-  create_session_create_response(
-      IMSI1, SESSION_ID_1, "m1", rules_to_install, &response);
+  create_session_create_response(IMSI1, SESSION_ID_1, "m1", rules_to_install,
+                                 &response);
 
-  EXPECT_CALL(
-      *pipelined_client,
-      update_subscriber_quota_state(
-          CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_VALID_QUOTA)));
+  EXPECT_CALL(*pipelined_client,
+              update_subscriber_quota_state(CheckSubscriberQuotaUpdate(
+                  SubscriberQuotaUpdate_Type_VALID_QUOTA)));
   initialize_session(session_map, SESSION_ID_1, cwf_session_config, response);
   local_enforcer->update_tunnel_ids(
       session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
@@ -141,21 +140,20 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
       session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
   EXPECT_TRUE(success);
 
-  auto session_map    = session_store->read_sessions(SessionRead{IMSI1});
+  auto session_map = session_store->read_sessions(SessionRead{IMSI1});
   auto session_update = session_store->get_default_session_update(session_map);
   EXPECT_EQ(session_map[IMSI1].size(), 1);
 
   auto& uc = session_update[IMSI1][SESSION_ID_1];
   // remove all monitored policies to trigger a termination schedule
   uc.static_rules_to_uninstall = {"rule1"};
-  success                      = session_store->update_sessions(session_update);
+  success = session_store->update_sessions(session_update);
   EXPECT_TRUE(success);
   std::cerr << "\n\n going to call sync on restart \n\n\n";
 
-  EXPECT_CALL(
-      *pipelined_client,
-      update_subscriber_quota_state(
-          CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_NO_QUOTA)));
+  EXPECT_CALL(*pipelined_client,
+              update_subscriber_quota_state(CheckSubscriberQuotaUpdate(
+                  SubscriberQuotaUpdate_Type_NO_QUOTA)));
 
   // Syncing will schedule a termination for this IMSI
   local_enforcer->sync_sessions_on_restart(std::time_t(0));
@@ -164,15 +162,14 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
   // quota_exhaust_termination_on_init_ms is set to 0
   // We expect the termination to take place once we run evb->loopOnce()
   EXPECT_CALL(*aaa_client, terminate_session(_, _)).Times(1);
-  EXPECT_CALL(
-      *pipelined_client,
-      update_subscriber_quota_state(
-          CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_TERMINATE)));
+  EXPECT_CALL(*pipelined_client,
+              update_subscriber_quota_state(CheckSubscriberQuotaUpdate(
+                  SubscriberQuotaUpdate_Type_TERMINATE)));
   evb->loopOnce();
 
   // At this point, the state should have transitioned from
   // SESSION_ACTIVE -> SESSION_RELEASED
-  session_map            = session_store->read_sessions(SessionRead{IMSI1});
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
   auto updated_fsm_state = session_map[IMSI1].front()->get_state();
   EXPECT_EQ(updated_fsm_state, SESSION_RELEASED);
 }
@@ -183,8 +180,8 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota) {
 
   std::vector<std::string> static_rules{"static_1"};
   CreateSessionResponse response;
-  create_session_create_response(
-      IMSI1, SESSION_ID_1, "m1", static_rules, &response);
+  create_session_create_response(IMSI1, SESSION_ID_1, "m1", static_rules,
+                                 &response);
 
   StaticRuleInstall static_rule_install;
   static_rule_install.set_rule_id("static_1");
@@ -193,10 +190,9 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota) {
 
   std::vector<SubscriberQuotaUpdate_Type> expected_states{
       SubscriberQuotaUpdate_Type_VALID_QUOTA};
-  EXPECT_CALL(
-      *pipelined_client,
-      update_subscriber_quota_state(
-          CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_VALID_QUOTA)))
+  EXPECT_CALL(*pipelined_client,
+              update_subscriber_quota_state(CheckSubscriberQuotaUpdate(
+                  SubscriberQuotaUpdate_Type_VALID_QUOTA)))
       .Times(1);
   initialize_session(session_map, SESSION_ID_1, cwf_session_config, response);
   local_enforcer->update_tunnel_ids(
@@ -209,15 +205,14 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota) {
 
   std::vector<std::string> static_rules{};  // no rule installs
   CreateSessionResponse response;
-  create_session_create_response(
-      IMSI1, SESSION_ID_1, "m1", static_rules, &response);
+  create_session_create_response(IMSI1, SESSION_ID_1, "m1", static_rules,
+                                 &response);
 
   std::vector<SubscriberQuotaUpdate_Type> expected_states{
       SubscriberQuotaUpdate_Type_NO_QUOTA};
-  EXPECT_CALL(
-      *pipelined_client,
-      update_subscriber_quota_state(
-          CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_NO_QUOTA)))
+  EXPECT_CALL(*pipelined_client,
+              update_subscriber_quota_state(CheckSubscriberQuotaUpdate(
+                  SubscriberQuotaUpdate_Type_NO_QUOTA)))
       .Times(1);
   initialize_session(session_map, SESSION_ID_1, cwf_session_config, response);
   local_enforcer->update_tunnel_ids(
@@ -231,8 +226,8 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
 
   std::vector<std::string> static_rules{"static_1"};
   CreateSessionResponse response;
-  create_session_create_response(
-      IMSI1, SESSION_ID_1, "m1", static_rules, &response);
+  create_session_create_response(IMSI1, SESSION_ID_1, "m1", static_rules,
+                                 &response);
   initialize_session(session_map, SESSION_ID_1, cwf_session_config, response);
   local_enforcer->update_tunnel_ids(
       session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
@@ -246,10 +241,9 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
 
   std::vector<SubscriberQuotaUpdate_Type> expected_states{
       SubscriberQuotaUpdate_Type_TERMINATE};
-  EXPECT_CALL(
-      *pipelined_client,
-      update_subscriber_quota_state(
-          CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_TERMINATE)))
+  EXPECT_CALL(*pipelined_client,
+              update_subscriber_quota_state(CheckSubscriberQuotaUpdate(
+                  SubscriberQuotaUpdate_Type_TERMINATE)))
       .Times(1);
 
   PolicyReAuthAnswer answer;
@@ -265,8 +259,8 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update) {
 
   std::vector<std::string> static_rules{"static_1", "static_2"};
   CreateSessionResponse response;
-  create_session_create_response(
-      IMSI1, SESSION_ID_1, "m1", static_rules, &response);
+  create_session_create_response(IMSI1, SESSION_ID_1, "m1", static_rules,
+                                 &response);
   initialize_session(session_map, SESSION_ID_1, cwf_session_config, response);
   local_enforcer->update_tunnel_ids(
       session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
@@ -275,38 +269,37 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update) {
   // static_1 is still active
   UpdateSessionResponse update_response;
   auto monitor = update_response.mutable_usage_monitor_responses()->Add();
-  create_monitor_update_response(
-      IMSI1, SESSION_ID_1, "m1", MonitoringLevel::PCC_RULE_LEVEL, 2048,
-      monitor);
+  create_monitor_update_response(IMSI1, SESSION_ID_1, "m1",
+                                 MonitoringLevel::PCC_RULE_LEVEL, 2048,
+                                 monitor);
   monitor->add_rules_to_remove("static_2");
   auto update = SessionStore::get_default_session_update(session_map);
-  local_enforcer->update_session_credits_and_rules(
-      session_map, update_response, update);
+  local_enforcer->update_session_credits_and_rules(session_map, update_response,
+                                                   update);
 
   // send an update response with rule removals for "static_1" to indicate
   // total monitoring quota exhaustion
   update_response.clear_usage_monitor_responses();
   monitor = update_response.mutable_usage_monitor_responses()->Add();
-  create_monitor_update_response(
-      IMSI1, SESSION_ID_1, "m1", MonitoringLevel::PCC_RULE_LEVEL, 0, monitor);
+  create_monitor_update_response(IMSI1, SESSION_ID_1, "m1",
+                                 MonitoringLevel::PCC_RULE_LEVEL, 0, monitor);
   monitor->add_rules_to_remove("static_1");
 
   std::vector<SubscriberQuotaUpdate_Type> expected_states = {
       SubscriberQuotaUpdate_Type_TERMINATE};
-  EXPECT_CALL(
-      *pipelined_client,
-      update_subscriber_quota_state(
-          CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_TERMINATE)))
+  EXPECT_CALL(*pipelined_client,
+              update_subscriber_quota_state(CheckSubscriberQuotaUpdate(
+                  SubscriberQuotaUpdate_Type_TERMINATE)))
       .Times(1);
 
-  local_enforcer->update_session_credits_and_rules(
-      session_map, update_response, update);
+  local_enforcer->update_session_credits_and_rules(session_map, update_response,
+                                                   update);
 }
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   FLAGS_logtostderr = 1;
-  FLAGS_v           = 10;
+  FLAGS_v = 10;
   return RUN_ALL_TESTS();
 }
 

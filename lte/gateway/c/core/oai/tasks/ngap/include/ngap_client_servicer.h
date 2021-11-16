@@ -30,9 +30,9 @@ namespace magma5g {
 class NGAPClientServicerBase {
  public:
   virtual ~NGAPClientServicerBase() = default;
-  virtual status_code_e send_message_to_amf(
-      task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
-      MessageDef* message) = 0;
+  virtual status_code_e send_message_to_amf(task_zmq_ctx_t* task_zmq_ctx_p,
+                                            task_id_t destination_task_id,
+                                            MessageDef* message) = 0;
 };
 
 class NGAPClientServicer : public NGAPClientServicerBase {
@@ -44,9 +44,9 @@ class NGAPClientServicer : public NGAPClientServicerBase {
   NGAPClientServicer(NGAPClientServicer const&) = delete;
   void operator=(NGAPClientServicer const&) = delete;
 
-  status_code_e send_message_to_amf(
-      task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
-      MessageDef* message);
+  status_code_e send_message_to_amf(task_zmq_ctx_t* task_zmq_ctx_p,
+                                    task_id_t destination_task_id,
+                                    MessageDef* message);
 };
 
 }  // namespace magma5g

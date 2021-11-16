@@ -16,14 +16,14 @@ class NSSAIMsg {
  public:
   uint8_t iei;
   uint8_t len;
-  const int NSSAI_VAL_MAX    = 74;
+  const int NSSAI_VAL_MAX = 74;
   const int NSSAI_MIN_LENGTH = 4;
   uint8_t nssaival[2];
   NSSAIMsg();
   ~NSSAIMsg();
-  int EncodeNSSAIMsg(
-      NSSAIMsg* nssai, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeNSSAIMsg(
-      NSSAIMsg* nssai, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeNSSAIMsg(NSSAIMsg* nssai, uint8_t iei, uint8_t* buffer,
+                     uint32_t len);
+  int DecodeNSSAIMsg(NSSAIMsg* nssai, uint8_t iei, uint8_t* buffer,
+                     uint32_t len);
 };
 }  // namespace magma5g

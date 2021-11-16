@@ -27,10 +27,10 @@ typedef uint16_t short_mac_t;
 
 #define SHORT_MAC_FMT "%" PRIX16
 
-int encode_short_mac(
-    short_mac_t* shortmac, uint8_t iei, uint8_t* buffer, uint32_t len);
+int encode_short_mac(short_mac_t* shortmac, uint8_t iei, uint8_t* buffer,
+                     uint32_t len);
 
-int decode_short_mac(
-    short_mac_t* shortmac, uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_short_mac(short_mac_t* shortmac, uint8_t iei, uint8_t* buffer,
+                     uint32_t len);
 
 #endif /* SHORT MAC_SEEN */

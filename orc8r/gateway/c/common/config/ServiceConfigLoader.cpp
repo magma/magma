@@ -23,7 +23,7 @@ namespace magma {
 
 YAML::Node ServiceConfigLoader::load_service_config(
     const std::string& service_name) {
-  auto file_path         = std::string(CONFIG_DIR) + service_name + ".yml";
+  auto file_path = std::string(CONFIG_DIR) + service_name + ".yml";
   YAML::Node base_config = YAML::LoadFile(file_path);
 
   // Try to override original file, if an override exists

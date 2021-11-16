@@ -44,7 +44,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: { } break; }
+    default: {
+    } break;
+  }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -55,20 +57,19 @@ class SPGWAppProcedureTest : public ::testing::Test {
   virtual void SetUp() {
     // setup mock MME app task
     mme_app_handler = std::make_shared<MockMmeAppHandler>();
-    itti_init(
-        TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
-        NULL);
+    itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
+              NULL, NULL);
 
     // initialize configs
     mme_config_init(&mme_config);
     spgw_config_init(&spgw_config);
     create_partial_lists(&mme_config);
     mme_config.use_stateless = false;
-    hss_associated           = true;
+    hss_associated = true;
 
     task_id_t task_id_list[2] = {TASK_MME_APP, TASK_SPGW_APP};
-    init_task_context(
-        TASK_MAIN, task_id_list, 2, handle_message, &task_zmq_ctx_main_spgw);
+    init_task_context(TASK_MAIN, task_id_list, 2, handle_message,
+                      &task_zmq_ctx_main_spgw);
 
     std::thread task_mme_app(start_mock_mme_app_task, mme_app_handler);
     task_mme_app.detach();
@@ -97,17 +98,17 @@ class SPGWAppProcedureTest : public ::testing::Test {
  protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
   std::string test_imsi_str = "001010000000001";
-  uint64_t test_imsi64      = 1010000000001;
-  plmn_t test_plmn          = {.mcc_digit2 = 0,
+  uint64_t test_imsi64 = 1010000000001;
+  plmn_t test_plmn = {.mcc_digit2 = 0,
                       .mcc_digit1 = 0,
                       .mnc_digit3 = 0x0f,
                       .mcc_digit3 = 1,
                       .mnc_digit2 = 1,
                       .mnc_digit1 = 0};
   bearer_context_to_be_created_t sample_default_bearer_context = {
-      .eps_bearer_id    = 5,
+      .eps_bearer_id = 5,
       .bearer_level_qos = {.pci = 1,
-                           .pl  = 15,
+                           .pl = 15,
                            .pvi = 0,
                            .qci = 9,
                            .gbr = {},
@@ -115,13 +116,13 @@ class SPGWAppProcedureTest : public ::testing::Test {
 };
 
 TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
-  spgw_state_t* spgw_state  = get_spgw_state(false);
+  spgw_state_t* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
   // expect call to MME create session response
   itti_s11_create_session_request_t sample_session_req_p = {};
-  fill_create_session_request(
-      &sample_session_req_p, test_imsi_str, DEFAULT_MME_S11_TEID,
-      DEFAULT_BEARER_INDEX, sample_default_bearer_context, test_plmn);
+  fill_create_session_request(&sample_session_req_p, test_imsi_str,
+                              DEFAULT_MME_S11_TEID, DEFAULT_BEARER_INDEX,
+                              sample_default_bearer_context, test_plmn);
 
   // trigger create session req to SPGW
   return_code = sgw_handle_s11_create_session_request(
@@ -151,11 +152,11 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
 
   // send an IP alloc response to SPGW
   itti_ip_allocation_response_t test_ip_alloc_resp = {};
-  fill_ip_allocation_response(
-      &test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
-      DEFAULT_UE_IP, DEFAULT_VLAN);
-  return_code = sgw_handle_ip_allocation_rsp(
-      spgw_state, &test_ip_alloc_resp, test_imsi64);
+  fill_ip_allocation_response(&test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid,
+                              DEFAULT_EPS_BEARER_ID, DEFAULT_UE_IP,
+                              DEFAULT_VLAN);
+  return_code = sgw_handle_ip_allocation_rsp(spgw_state, &test_ip_alloc_resp,
+                                             test_imsi64);
 
   ASSERT_EQ(return_code, RETURNok);
 
@@ -164,21 +165,21 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
 
   // send pcef create session response to SPGW
   itti_pcef_create_session_response_t sample_pcef_csr_resp;
-  fill_pcef_create_session_response(
-      &sample_pcef_csr_resp, PCEF_STATUS_OK, ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
-      SGI_STATUS_OK);
+  fill_pcef_create_session_response(&sample_pcef_csr_resp, PCEF_STATUS_OK,
+                                    ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
+                                    SGI_STATUS_OK);
 
   // check if MME gets a create session response
   EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
 
-  spgw_handle_pcef_create_session_response(
-      spgw_state, &sample_pcef_csr_resp, test_imsi64);
+  spgw_handle_pcef_create_session_response(spgw_state, &sample_pcef_csr_resp,
+                                           test_imsi64);
 
   // create sample modify default bearer request
   itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(
-      &sample_modify_bearer_req, DEFAULT_MME_S11_TEID, ue_sgw_teid,
-      DEFAULT_ENB_GTP_TEID, DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
+  fill_modify_bearer_request(&sample_modify_bearer_req, DEFAULT_MME_S11_TEID,
+                             ue_sgw_teid, DEFAULT_ENB_GTP_TEID,
+                             DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
 
   EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
   return_code =
@@ -196,9 +197,9 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
 TEST_F(SPGWAppProcedureTest, TestCreateSessionIPAllocFailure) {
   spgw_state_t* spgw_state = get_spgw_state(false);
   itti_s11_create_session_request_t sample_session_req_p = {};
-  fill_create_session_request(
-      &sample_session_req_p, test_imsi_str, DEFAULT_MME_S11_TEID,
-      DEFAULT_BEARER_INDEX, sample_default_bearer_context, test_plmn);
+  fill_create_session_request(&sample_session_req_p, test_imsi_str,
+                              DEFAULT_MME_S11_TEID, DEFAULT_BEARER_INDEX,
+                              sample_default_bearer_context, test_plmn);
 
   // trigger create session req to SPGW
   status_code_e create_session_rc = sgw_handle_s11_create_session_request(
@@ -245,9 +246,9 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionPCEFFailure) {
   spgw_state_t* spgw_state = get_spgw_state(false);
   // expect call to MME create session response
   itti_s11_create_session_request_t sample_session_req_p = {};
-  fill_create_session_request(
-      &sample_session_req_p, test_imsi_str, DEFAULT_MME_S11_TEID,
-      DEFAULT_BEARER_INDEX, sample_default_bearer_context, test_plmn);
+  fill_create_session_request(&sample_session_req_p, test_imsi_str,
+                              DEFAULT_MME_S11_TEID, DEFAULT_BEARER_INDEX,
+                              sample_default_bearer_context, test_plmn);
 
   // trigger create session req to SPGW
   status_code_e create_session_rc = sgw_handle_s11_create_session_request(
@@ -277,9 +278,9 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionPCEFFailure) {
 
   // send an IP alloc response to SPGW
   itti_ip_allocation_response_t test_ip_alloc_resp = {};
-  fill_ip_allocation_response(
-      &test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
-      DEFAULT_UE_IP, DEFAULT_VLAN);
+  fill_ip_allocation_response(&test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid,
+                              DEFAULT_EPS_BEARER_ID, DEFAULT_UE_IP,
+                              DEFAULT_VLAN);
   status_code_e ip_alloc_rc = sgw_handle_ip_allocation_rsp(
       spgw_state, &test_ip_alloc_resp, test_imsi64);
 
@@ -288,15 +289,15 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionPCEFFailure) {
 
   // send pcef create session response to SPGW
   itti_pcef_create_session_response_t sample_pcef_csr_resp;
-  fill_pcef_create_session_response(
-      &sample_pcef_csr_resp, PCEF_STATUS_FAILED, ue_sgw_teid,
-      DEFAULT_EPS_BEARER_ID, SGI_STATUS_OK);
+  fill_pcef_create_session_response(&sample_pcef_csr_resp, PCEF_STATUS_FAILED,
+                                    ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
+                                    SGI_STATUS_OK);
 
   // check if MME gets a create session response
   EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
 
-  spgw_handle_pcef_create_session_response(
-      spgw_state, &sample_pcef_csr_resp, test_imsi64);
+  spgw_handle_pcef_create_session_response(spgw_state, &sample_pcef_csr_resp,
+                                           test_imsi64);
 
   // verify that spgw context for IMSI has been cleared
   ue_context_p = spgw_get_ue_context(test_imsi64);
@@ -307,14 +308,14 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionPCEFFailure) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestModifyBearerFailure) {
-  spgw_state_t* spgw_state  = get_spgw_state(false);
+  spgw_state_t* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
   // create sample modify default bearer request
   itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(
-      &sample_modify_bearer_req, DEFAULT_MME_S11_TEID, ERROR_SGW_S11_TEID,
-      DEFAULT_ENB_GTP_TEID, DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
+  fill_modify_bearer_request(&sample_modify_bearer_req, DEFAULT_MME_S11_TEID,
+                             ERROR_SGW_S11_TEID, DEFAULT_ENB_GTP_TEID,
+                             DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
 
   EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
   return_code =
@@ -330,13 +331,13 @@ TEST_F(SPGWAppProcedureTest, TestModifyBearerFailure) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
-  spgw_state_t* spgw_state  = get_spgw_state(false);
+  spgw_state_t* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
   // expect call to MME create session response
   itti_s11_create_session_request_t sample_session_req_p = {};
-  fill_create_session_request(
-      &sample_session_req_p, test_imsi_str, DEFAULT_MME_S11_TEID,
-      DEFAULT_BEARER_INDEX, sample_default_bearer_context, test_plmn);
+  fill_create_session_request(&sample_session_req_p, test_imsi_str,
+                              DEFAULT_MME_S11_TEID, DEFAULT_BEARER_INDEX,
+                              sample_default_bearer_context, test_plmn);
 
   // trigger create session req to SPGW
   return_code = sgw_handle_s11_create_session_request(
@@ -366,11 +367,11 @@ TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
 
   // send an IP alloc response to SPGW
   itti_ip_allocation_response_t test_ip_alloc_resp = {};
-  fill_ip_allocation_response(
-      &test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
-      DEFAULT_UE_IP, DEFAULT_VLAN);
-  return_code = sgw_handle_ip_allocation_rsp(
-      spgw_state, &test_ip_alloc_resp, test_imsi64);
+  fill_ip_allocation_response(&test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid,
+                              DEFAULT_EPS_BEARER_ID, DEFAULT_UE_IP,
+                              DEFAULT_VLAN);
+  return_code = sgw_handle_ip_allocation_rsp(spgw_state, &test_ip_alloc_resp,
+                                             test_imsi64);
 
   ASSERT_EQ(return_code, RETURNok);
 
@@ -379,21 +380,21 @@ TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
 
   // send pcef create session response to SPGW
   itti_pcef_create_session_response_t sample_pcef_csr_resp;
-  fill_pcef_create_session_response(
-      &sample_pcef_csr_resp, PCEF_STATUS_OK, ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
-      SGI_STATUS_OK);
+  fill_pcef_create_session_response(&sample_pcef_csr_resp, PCEF_STATUS_OK,
+                                    ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
+                                    SGI_STATUS_OK);
 
   // check if MME gets a create session response
   EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
 
-  spgw_handle_pcef_create_session_response(
-      spgw_state, &sample_pcef_csr_resp, test_imsi64);
+  spgw_handle_pcef_create_session_response(spgw_state, &sample_pcef_csr_resp,
+                                           test_imsi64);
 
   // create sample modify default bearer request
   itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(
-      &sample_modify_bearer_req, DEFAULT_MME_S11_TEID, ue_sgw_teid,
-      DEFAULT_ENB_GTP_TEID, DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
+  fill_modify_bearer_request(&sample_modify_bearer_req, DEFAULT_MME_S11_TEID,
+                             ue_sgw_teid, DEFAULT_ENB_GTP_TEID,
+                             DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
 
   EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
   return_code =
@@ -406,9 +407,9 @@ TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
 
   // create sample delete session request
   itti_s11_delete_session_request_t sample_delete_session_request = {};
-  fill_delete_session_request(
-      &sample_delete_session_request, DEFAULT_MME_S11_TEID, ue_sgw_teid,
-      DEFAULT_EPS_BEARER_ID, test_plmn);
+  fill_delete_session_request(&sample_delete_session_request,
+                              DEFAULT_MME_S11_TEID, ue_sgw_teid,
+                              DEFAULT_EPS_BEARER_ID, test_plmn);
 
   EXPECT_CALL(*mme_app_handler, mme_app_handle_delete_sess_rsp()).Times(1);
 

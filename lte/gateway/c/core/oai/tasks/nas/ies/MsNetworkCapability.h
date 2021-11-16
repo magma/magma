@@ -23,15 +23,14 @@
 
 typedef ms_network_capability_t MsNetworkCapability;
 
-int encode_ms_network_capability(
-    MsNetworkCapability* msnetworkcapability, uint8_t iei, uint8_t* buffer,
-    uint32_t len) __attribute__((unused));
+int encode_ms_network_capability(MsNetworkCapability* msnetworkcapability,
+                                 uint8_t iei, uint8_t* buffer, uint32_t len)
+    __attribute__((unused));
 
-int decode_ms_network_capability(
-    MsNetworkCapability* msnetworkcapability, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int decode_ms_network_capability(MsNetworkCapability* msnetworkcapability,
+                                 uint8_t iei, uint8_t* buffer, uint32_t len);
 
-void dump_ms_network_capability_xml(
-    MsNetworkCapability* msnetworkcapability, uint8_t iei);
+void dump_ms_network_capability_xml(MsNetworkCapability* msnetworkcapability,
+                                    uint8_t iei);
 
 #endif /* MS NETWORK CAPABILITY_H_ */

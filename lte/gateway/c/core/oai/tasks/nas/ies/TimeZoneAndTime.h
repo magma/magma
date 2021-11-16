@@ -32,14 +32,12 @@ typedef struct TimeZoneAndTime_tag {
   uint8_t timezone;
 } TimeZoneAndTime;
 
-int encode_time_zone_and_time(
-    TimeZoneAndTime* timezoneandtime, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int encode_time_zone_and_time(TimeZoneAndTime* timezoneandtime, uint8_t iei,
+                              uint8_t* buffer, uint32_t len);
 
 void dump_time_zone_and_time_xml(TimeZoneAndTime* timezoneandtime, uint8_t iei);
 
-int decode_time_zone_and_time(
-    TimeZoneAndTime* timezoneandtime, uint8_t iei, uint8_t* buffer,
-    uint32_t len);
+int decode_time_zone_and_time(TimeZoneAndTime* timezoneandtime, uint8_t iei,
+                              uint8_t* buffer, uint32_t len);
 
 #endif /* TIME ZONE AND TIME_H_ */

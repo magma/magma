@@ -33,9 +33,8 @@ extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 
 class AMFAppProcedureTest : public ::testing::Test {
   virtual void SetUp() {
-    itti_init(
-        TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
-        NULL);
+    itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
+              NULL, NULL);
 
     // initialize mme config
     amf_config_init(&amf_config);
@@ -57,7 +56,7 @@ class AMFAppProcedureTest : public ::testing::Test {
  protected:
   amf_app_desc_t* amf_app_desc_p;
   std::string imsi = "222456000000001";
-  plmn_t plmn      = {.mcc_digit2 = 0,
+  plmn_t plmn = {.mcc_digit2 = 0,
                  .mcc_digit1 = 0,
                  .mnc_digit3 = 0x0f,
                  .mcc_digit3 = 1,
@@ -102,8 +101,8 @@ amf_context_t* get_amf_context_by_ueid(amf_ue_ngap_id_t ue_id) {
   return amf_ctx;
 }
 
-bool validate_auth_procedure(
-    amf_ue_ngap_id_t ue_id, uint32_t expected_retransmission_count) {
+bool validate_auth_procedure(amf_ue_ngap_id_t ue_id,
+                             uint32_t expected_retransmission_count) {
   amf_context_t* amf_ctx = get_amf_context_by_ueid(ue_id);
   if (amf_ctx == NULL) {
     return false;
@@ -124,8 +123,8 @@ bool validate_auth_procedure(
   return true;
 }
 
-bool validate_smc_procedure(
-    amf_ue_ngap_id_t ue_id, uint32_t expected_retransmission_count) {
+bool validate_smc_procedure(amf_ue_ngap_id_t ue_id,
+                            uint32_t expected_retransmission_count) {
   amf_context_t* amf_ctx = get_amf_context_by_ueid(ue_id);
   if (amf_ctx == NULL) {
     return false;
@@ -153,18 +152,18 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcNoTMSI) {
 
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
-  imsi64          = send_initial_ue_message_no_tmsi(
-      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
-      sizeof(initial_ue_message_hexbuf));
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
 
   /* Check if UE Context is created with correct imsi */
   bool res = false;
-  res      = get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id);
+  res = get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id);
   EXPECT_TRUE(res == true);
 
   /* Send the authentication response message from subscriberdb */
   int rc = RETURNok;
-  rc     = send_proc_authentication_info_answer(imsi, ue_id, true);
+  rc = send_proc_authentication_info_answer(imsi, ue_id, true);
   EXPECT_TRUE(rc == RETURNok);
 
   /* Validate if authentication procedure is initialized as expected */
@@ -182,9 +181,9 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcNoTMSI) {
   EXPECT_TRUE(res == true);
 
   /* Send uplinkg nas message for security mode complete response from UE */
-  rc = send_uplink_nas_message_ue_smc_response(
-      amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
-      sizeof(ue_smc_response_hexbuf));
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplink nas message for registration complete response from UE */
@@ -197,18 +196,18 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcNoTMSI) {
 }
 
 TEST_F(AMFAppProcedureTest, TestDeRegistration) {
-  int rc                 = RETURNerror;
+  int rc = RETURNerror;
   amf_ue_ngap_id_t ue_id = 0;
 
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
-  imsi64          = send_initial_ue_message_no_tmsi(
-      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
-      sizeof(initial_ue_message_hexbuf));
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
 
   /* Check if UE Context is created with correct imsi */
   bool res = false;
-  res      = get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id);
+  res = get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id);
   EXPECT_TRUE(res == true);
 
   /* Send the authentication response message from subscriberdb */
@@ -222,9 +221,9 @@ TEST_F(AMFAppProcedureTest, TestDeRegistration) {
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplinkg nas message for security mode complete response from UE */
-  rc = send_uplink_nas_message_ue_smc_response(
-      amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
-      sizeof(ue_smc_response_hexbuf));
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);

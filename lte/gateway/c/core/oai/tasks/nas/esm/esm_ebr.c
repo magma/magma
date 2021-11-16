@@ -122,11 +122,10 @@ status_code_e esm_ebr_assign(emm_context_t* emm_context) {
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_EBI_UNASSIGNED);
   }
 
-  OAILOG_DEBUG(
-      LOG_NAS_ESM,
-      "ESM-FSM - EPS bearer identity = %u assigned for "
-      "ue_id:" MME_UE_S1AP_ID_FMT "\n",
-      INDEX_TO_EBI(i), ue_context_p->mme_ue_s1ap_id);
+  OAILOG_DEBUG(LOG_NAS_ESM,
+               "ESM-FSM - EPS bearer identity = %u assigned for "
+               "ue_id:" MME_UE_S1AP_ID_FMT "\n",
+               INDEX_TO_EBI(i), ue_context_p->mme_ue_s1ap_id);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, INDEX_TO_EBI(i));
 }
 
@@ -150,7 +149,7 @@ status_code_e esm_ebr_assign(emm_context_t* emm_context) {
  ***************************************************************************/
 status_code_e esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  esm_ebr_context_t* ebr_ctx       = NULL;
+  esm_ebr_context_t* ebr_ctx = NULL;
   bearer_context_t* bearer_context = NULL;
 
   if ((ebi < ESM_EBI_MIN) || (ebi > ESM_EBI_MAX)) {
@@ -175,11 +174,10 @@ status_code_e esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
    * Do not release active EPS bearer context
    */
   if (ebr_ctx->status != ESM_EBR_INACTIVE) {
-    OAILOG_ERROR(
-        LOG_NAS_ESM,
-        "ESM-FSM   - EPS bearer context is not INACTIVE for ue "
-        "id " MME_UE_S1AP_ID_FMT "\n",
-        ue_mm_context->mme_ue_s1ap_id);
+    OAILOG_ERROR(LOG_NAS_ESM,
+                 "ESM-FSM   - EPS bearer context is not INACTIVE for ue "
+                 "id " MME_UE_S1AP_ID_FMT "\n",
+                 ue_mm_context->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
 
@@ -187,11 +185,10 @@ status_code_e esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
    * Stop the retransmission timer if still running
    */
   if (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID || ebr_ctx->args) {
-    OAILOG_INFO(
-        LOG_NAS_ESM,
-        "ESM-FSM   - Stop retransmission timer %ld for ue "
-        "id " MME_UE_S1AP_ID_FMT "\n",
-        ebr_ctx->timer.id, ue_mm_context->mme_ue_s1ap_id);
+    OAILOG_INFO(LOG_NAS_ESM,
+                "ESM-FSM   - Stop retransmission timer %ld for ue "
+                "id " MME_UE_S1AP_ID_FMT "\n",
+                ebr_ctx->timer.id, ue_mm_context->mme_ue_s1ap_id);
     esm_ebr_timer_data_t* esm_ebr_timer_data = ebr_ctx->args;
     // stop the timer if it's running
     if (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID) {
@@ -204,7 +201,7 @@ status_code_e esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
       if (esm_ebr_timer_data->msg) {
         bdestroy_wrapper(&esm_ebr_timer_data->msg);
       }
-      free_wrapper((void**) &esm_ebr_timer_data);
+      free_wrapper((void**)&esm_ebr_timer_data);
     }
     ebr_ctx->args = NULL;
   }
@@ -243,16 +240,16 @@ status_code_e esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
  **      Others:    _esm_ebr_data                              **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_ebr_start_timer(
-    emm_context_t* emm_context, ebi_t ebi, CLONE_REF const_bstring msg,
-    uint32_t msec, time_out_t cb) {
+status_code_e esm_ebr_start_timer(emm_context_t* emm_context, ebi_t ebi,
+                                  CLONE_REF const_bstring msg, uint32_t msec,
+                                  time_out_t cb) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  esm_ebr_context_t* ebr_ctx       = NULL;
+  esm_ebr_context_t* ebr_ctx = NULL;
   bearer_context_t* bearer_context = NULL;
 
   if ((ebi < ESM_EBI_MIN) || (ebi > ESM_EBI_MAX)) {
-    OAILOG_ERROR(
-        LOG_NAS_ESM, "ESM-FSM   - Retransmission timer bad ebi %d\n", ebi);
+    OAILOG_ERROR(LOG_NAS_ESM, "ESM-FSM   - Retransmission timer bad ebi %d\n",
+                 ebi);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
 
@@ -271,18 +268,18 @@ status_code_e esm_ebr_start_timer(
     /*
      * EPS bearer context not assigned
      */
-    OAILOG_ERROR_UE(
-        LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
-        "ESM-FSM - EPS bearer context not assigned for ebi %u \n", ebi);
+    OAILOG_ERROR_UE(LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
+                    "ESM-FSM - EPS bearer context not assigned for ebi %u \n",
+                    ebi);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
   ebr_ctx = &bearer_context->esm_ebr_context;
 
   esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
-  ebr_ctx->timer.msec                      = msec;
+  ebr_ctx->timer.msec = msec;
   timer_arg_t timer_args;
   timer_args.ue_id = ue_mm_context->mme_ue_s1ap_id;
-  timer_args.ebi   = ebi;
+  timer_args.ebi = ebi;
 
   if (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID) {
     // Re-start the retransmission timer
@@ -299,12 +296,12 @@ status_code_e esm_ebr_start_timer(
       esm_ebr_timer_data = ebr_ctx->args;
     } else {
       esm_ebr_timer_data =
-          (esm_ebr_timer_data_t*) calloc(1, sizeof(esm_ebr_timer_data_t));
+          (esm_ebr_timer_data_t*)calloc(1, sizeof(esm_ebr_timer_data_t));
 
       if (esm_ebr_timer_data) {
         // Set the UE identifier
         esm_ebr_timer_data->ue_id = ue_mm_context->mme_ue_s1ap_id;
-        esm_ebr_timer_data->ctx   = emm_context;
+        esm_ebr_timer_data->ctx = emm_context;
         // Set the EPS bearer identity
         esm_ebr_timer_data->ebi = ebi;
         // Reset the retransmission counter
@@ -321,11 +318,11 @@ status_code_e esm_ebr_start_timer(
   }
 
   if ((esm_ebr_timer_data) && (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID)) {
-    OAILOG_INFO(
-        LOG_NAS_ESM,
-        "ESM-FSM   - Retransmission timer %ld expires in "
-        "%d seconds for ue id " MME_UE_S1AP_ID_FMT "\n",
-        ebr_ctx->timer.id, ebr_ctx->timer.msec, esm_ebr_timer_data->ue_id);
+    OAILOG_INFO(LOG_NAS_ESM,
+                "ESM-FSM   - Retransmission timer %ld expires in "
+                "%d seconds for ue id " MME_UE_S1AP_ID_FMT "\n",
+                ebr_ctx->timer.id, ebr_ctx->timer.msec,
+                esm_ebr_timer_data->ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   } else {
     OAILOG_ERROR(
@@ -355,7 +352,7 @@ status_code_e esm_ebr_start_timer(
  **                                                                        **
  ***************************************************************************/
 status_code_e esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi) {
-  esm_ebr_context_t* ebr_ctx       = NULL;
+  esm_ebr_context_t* ebr_ctx = NULL;
   bearer_context_t* bearer_context = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -383,10 +380,10 @@ status_code_e esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi) {
    * Stop the retransmission timer if still running
    */
   if (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID || ebr_ctx->args) {
-    OAILOG_INFO(
-        LOG_NAS_ESM,
-        "ESM-FSM   - Stop retransmission timer %ld " MME_UE_S1AP_ID_FMT "\n",
-        ebr_ctx->timer.id, ue_mm_context->mme_ue_s1ap_id);
+    OAILOG_INFO(LOG_NAS_ESM,
+                "ESM-FSM   - Stop retransmission timer %ld " MME_UE_S1AP_ID_FMT
+                "\n",
+                ebr_ctx->timer.id, ue_mm_context->mme_ue_s1ap_id);
     esm_ebr_timer_data_t* esm_ebr_timer_data = ebr_ctx->args;
     nas_timer_stop(&(ebr_ctx->timer));
     /*
@@ -396,7 +393,7 @@ status_code_e esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi) {
       if (esm_ebr_timer_data->msg) {
         bdestroy_wrapper(&esm_ebr_timer_data->msg);
       }
-      free_wrapper((void**) &esm_ebr_timer_data);
+      free_wrapper((void**)&esm_ebr_timer_data);
     }
     ebr_ctx->args = NULL;
   }
@@ -422,8 +419,8 @@ status_code_e esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-ebi_t esm_ebr_get_pending_ebi(
-    emm_context_t* emm_context, esm_ebr_state status) {
+ebi_t esm_ebr_get_pending_ebi(emm_context_t* emm_context,
+                              esm_ebr_state status) {
   int i;
 
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -475,12 +472,11 @@ ebi_t esm_ebr_get_pending_ebi(
  **      Others:    _esm_ebr_data                              **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_ebr_set_status(
-    emm_context_t* emm_context, ebi_t ebi, esm_ebr_state status,
-    bool ue_requested) {
+status_code_e esm_ebr_set_status(emm_context_t* emm_context, ebi_t ebi,
+                                 esm_ebr_state status, bool ue_requested) {
   bearer_context_t* bearer_context = NULL;
-  esm_ebr_context_t* ebr_ctx       = 0;
-  esm_ebr_state old_status         = ESM_EBR_INACTIVE;
+  esm_ebr_context_t* ebr_ctx = 0;
+  esm_ebr_state old_status = ESM_EBR_INACTIVE;
 
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
@@ -490,9 +486,9 @@ status_code_e esm_ebr_set_status(
   }
 
   if ((ebi < ESM_EBI_MIN) || (ebi > ESM_EBI_MAX)) {
-    OAILOG_ERROR(
-        LOG_NAS_ESM,
-        "ESM-FSM   - Invalid EPS bearer identity range ebi= (%d) \n", ebi);
+    OAILOG_ERROR(LOG_NAS_ESM,
+                 "ESM-FSM   - Invalid EPS bearer identity range ebi= (%d) \n",
+                 ebi);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
 
@@ -510,33 +506,30 @@ status_code_e esm_ebr_set_status(
     /*
      * EPS bearer context not assigned
      */
-    OAILOG_ERROR(
-        LOG_NAS_ESM,
-        "ESM-FSM   - EPS bearer context not assigned \n"
-        "(ebi=%d)",
-        ebi);
+    OAILOG_ERROR(LOG_NAS_ESM,
+                 "ESM-FSM   - EPS bearer context not assigned \n"
+                 "(ebi=%d)",
+                 ebi);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
 
-  ebr_ctx    = &bearer_context->esm_ebr_context;
+  ebr_ctx = &bearer_context->esm_ebr_context;
   old_status = ebr_ctx->status;
 
   if (status < ESM_EBR_STATE_MAX) {
     if (status != old_status) {
-      OAILOG_INFO(
-          LOG_NAS_ESM,
-          "ESM-FSM   - Status of EPS bearer context %d changed:"
-          " %s ===> %s for ue id " MME_UE_S1AP_ID_FMT "\n",
-          ebi, esm_ebr_state_str[old_status], esm_ebr_state_str[status],
-          ue_mm_context->mme_ue_s1ap_id);
+      OAILOG_INFO(LOG_NAS_ESM,
+                  "ESM-FSM   - Status of EPS bearer context %d changed:"
+                  " %s ===> %s for ue id " MME_UE_S1AP_ID_FMT "\n",
+                  ebi, esm_ebr_state_str[old_status], esm_ebr_state_str[status],
+                  ue_mm_context->mme_ue_s1ap_id);
       ebr_ctx->status = status;
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
     } else {
-      OAILOG_INFO(
-          LOG_NAS_ESM,
-          "ESM-FSM   - Status of EPS bearer context %d unchanged:"
-          " %s \n",
-          ebi, esm_ebr_state_str[status]);
+      OAILOG_INFO(LOG_NAS_ESM,
+                  "ESM-FSM   - Status of EPS bearer context %d unchanged:"
+                  " %s \n",
+                  ebi, esm_ebr_state_str[status]);
     }
   }
 
@@ -625,10 +618,9 @@ bool esm_ebr_is_reserved(ebi_t ebi) {
 bool esm_ebr_is_not_in_use(emm_context_t* emm_context, ebi_t ebi) {
   ue_mm_context_t* ue_mm_context =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
-  return (
-      (ebi == ESM_EBI_UNASSIGNED) ||
-      (ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)] == NULL) ||
-      (ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)]->ebi) != ebi);
+  return ((ebi == ESM_EBI_UNASSIGNED) ||
+          (ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)] == NULL) ||
+          (ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)]->ebi) != ebi);
 }
 
 /****************************************************************************/

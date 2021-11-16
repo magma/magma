@@ -38,29 +38,22 @@ void service303_s1ap_statistics_read(
 
 void service303_statistics_display(void) {
   size_t label = 0;
-  OAILOG_DEBUG(
-      LOG_SERVICE303,
-      "======================================= STATISTICS "
-      "============================================\n\n");
+  OAILOG_DEBUG(LOG_SERVICE303,
+               "======================================= STATISTICS "
+               "============================================\n\n");
   OAILOG_DEBUG(LOG_SERVICE303, "               |   Current Status|\n");
-  OAILOG_DEBUG(
-      LOG_SERVICE303, "Attached UEs   | %10u      |\n",
-      (uint32_t) get_gauge("ue_registered", label));
-  OAILOG_DEBUG(
-      LOG_SERVICE303, "Connected UEs  | %10u      |\n",
-      (uint32_t) get_gauge("ue_connected", label));
-  OAILOG_DEBUG(
-      LOG_SERVICE303, "Connected eNBs | %10u      |\n",
-      (uint32_t) get_gauge("enb_connected", label));
-  OAILOG_DEBUG(
-      LOG_SERVICE303, "Default Bearers| %10u      |\n",
-      (uint32_t) get_gauge("default_eps_bearers", label));
-  OAILOG_DEBUG(
-      LOG_SERVICE303, "S1-U Bearers   | %10u      |\n\n",
-      (uint32_t) get_gauge("s1u_bearers", label));
+  OAILOG_DEBUG(LOG_SERVICE303, "Attached UEs   | %10u      |\n",
+               (uint32_t)get_gauge("ue_registered", label));
+  OAILOG_DEBUG(LOG_SERVICE303, "Connected UEs  | %10u      |\n",
+               (uint32_t)get_gauge("ue_connected", label));
+  OAILOG_DEBUG(LOG_SERVICE303, "Connected eNBs | %10u      |\n",
+               (uint32_t)get_gauge("enb_connected", label));
+  OAILOG_DEBUG(LOG_SERVICE303, "Default Bearers| %10u      |\n",
+               (uint32_t)get_gauge("default_eps_bearers", label));
+  OAILOG_DEBUG(LOG_SERVICE303, "S1-U Bearers   | %10u      |\n\n",
+               (uint32_t)get_gauge("s1u_bearers", label));
 
-  OAILOG_DEBUG(
-      LOG_SERVICE303,
-      "======================================= STATISTICS "
-      "============================================\n\n");
+  OAILOG_DEBUG(LOG_SERVICE303,
+               "======================================= STATISTICS "
+               "============================================\n\n");
 }

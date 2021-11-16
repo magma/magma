@@ -50,9 +50,9 @@ class S6aGatewayImpl final : public S6aGatewayService::Service {
    * @param response (out): CancelLocationAnswer
    * @return grpc Status instance
    */
-  grpc::Status CancelLocation(
-      ServerContext* context, const CancelLocationRequest* request,
-      CancelLocationAnswer* response) override;
+  grpc::Status CancelLocation(ServerContext* context,
+                              const CancelLocationRequest* request,
+                              CancelLocationAnswer* response) override;
   /*
    * Reset Request
    * S6a Command Code: 322
@@ -62,9 +62,8 @@ class S6aGatewayImpl final : public S6aGatewayService::Service {
    * @param response (out): ResetAnswer
    * @return grpc Status instance
    */
-  grpc::Status Reset(
-      ServerContext* context, const ResetRequest* request,
-      ResetAnswer* response) override;
+  grpc::Status Reset(ServerContext* context, const ResetRequest* request,
+                     ResetAnswer* response) override;
 };
 
 }  // namespace magma

@@ -25,10 +25,10 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 
-int decode_attach_request(
-    attach_request_msg* attach_request, uint8_t* buffer, uint32_t len) {
+int decode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
+                          uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int decoded        = 0;
+  int decoded = 0;
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -52,25 +52,25 @@ int decode_attach_request(
 
   decoded++;
 
-  if ((decoded_result = decode_eps_mobile_identity(
-           &attach_request->oldgutiorimsi, 0, buffer + decoded,
-           len - decoded)) < 0) {
+  if ((decoded_result =
+           decode_eps_mobile_identity(&attach_request->oldgutiorimsi, 0,
+                                      buffer + decoded, len - decoded)) < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, TLV_VALUE_DOESNT_MATCH);
   } else
     decoded += decoded_result;
 
-  if ((decoded_result = decode_ue_network_capability(
-           &attach_request->uenetworkcapability, 0, buffer + decoded,
-           len - decoded)) < 0) {
+  if ((decoded_result =
+           decode_ue_network_capability(&attach_request->uenetworkcapability, 0,
+                                        buffer + decoded, len - decoded)) < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, TLV_VALUE_DOESNT_MATCH);
   }
 
   else
     decoded += decoded_result;
 
-  if ((decoded_result = decode_esm_message_container(
-           &attach_request->esmmessagecontainer, 0, buffer + decoded,
-           len - decoded)) < 0) {
+  if ((decoded_result =
+           decode_esm_message_container(&attach_request->esmmessagecontainer, 0,
+                                        buffer + decoded, len - decoded)) < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, TLV_VALUE_DOESNT_MATCH);
   } else
     decoded += decoded_result;
@@ -178,9 +178,9 @@ int decode_attach_request(
         break;
 
       case ATTACH_REQUEST_TMSI_STATUS_IEI:
-        if ((decoded_result = decode_tmsi_status(
-                 &attach_request->tmsistatus, true, buffer + decoded,
-                 len - decoded)) <= 0) {
+        if ((decoded_result =
+                 decode_tmsi_status(&attach_request->tmsistatus, true,
+                                    buffer + decoded, len - decoded)) <= 0) {
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
         }
 
@@ -331,10 +331,9 @@ int decode_attach_request(
       case ATTACH_REQUEST_DEVICE_PROPERTIES_IEI:
       case ATTACH_REQUEST_DEVICE_PROPERTIES_LOW_PRIO_IEI:
         // Skip these IEs. We do not support congestion handling.
-        OAILOG_INFO(
-            LOG_NAS_EMM,
-            "EMM-MSG - Device Properties IE in Attach Request is not "
-            "supported. Skipping this IE.");
+        OAILOG_INFO(LOG_NAS_EMM,
+                    "EMM-MSG - Device Properties IE in Attach Request is not "
+                    "supported. Skipping this IE.");
         decoded += 1;  // Device Properties is 1 byte
         break;
 
@@ -347,16 +346,16 @@ int decode_attach_request(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded);
 }
 
-int encode_attach_request(
-    attach_request_msg* attach_request, uint8_t* buffer, uint32_t len) {
-  int encoded       = 0;
+int encode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
+                          uint32_t len) {
+  int encoded = 0;
   int encode_result = 0;
 
   /*
    * Checking IEI and pointer
    */
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, ATTACH_REQUEST_MINIMUM_LENGTH, len);
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, ATTACH_REQUEST_MINIMUM_LENGTH,
+                                       len);
   *(buffer + encoded) =
       ((encode_u8_nas_key_set_identifier(&attach_request->naskeysetidentifier) &
         0x0f)
@@ -388,10 +387,10 @@ int encode_attach_request(
   if ((attach_request->presencemask &
        ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_PRESENT) ==
       ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_PRESENT) {
-    if ((encode_result = encode_p_tmsi_signature_ie(
-             attach_request->oldptmsisignature,
-             ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result =
+             encode_p_tmsi_signature_ie(attach_request->oldptmsisignature,
+                                        ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_IEI,
+                                        buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
@@ -400,10 +399,10 @@ int encode_attach_request(
 
   if ((attach_request->presencemask & ATTACH_REQUEST_ADDITIONAL_GUTI_PRESENT) ==
       ATTACH_REQUEST_ADDITIONAL_GUTI_PRESENT) {
-    if ((encode_result = encode_eps_mobile_identity(
-             &attach_request->additionalguti,
-             ATTACH_REQUEST_ADDITIONAL_GUTI_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result =
+             encode_eps_mobile_identity(&attach_request->additionalguti,
+                                        ATTACH_REQUEST_ADDITIONAL_GUTI_IEI,
+                                        buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
@@ -500,10 +499,10 @@ int encode_attach_request(
   if ((attach_request->presencemask &
        ATTACH_REQUEST_SUPPORTED_CODECS_PRESENT) ==
       ATTACH_REQUEST_SUPPORTED_CODECS_PRESENT) {
-    if ((encode_result = encode_supported_codec_list(
-             &attach_request->supportedcodecs,
-             ATTACH_REQUEST_SUPPORTED_CODECS_IEI, buffer + encoded,
-             len - encoded)) < 0)
+    if ((encode_result =
+             encode_supported_codec_list(&attach_request->supportedcodecs,
+                                         ATTACH_REQUEST_SUPPORTED_CODECS_IEI,
+                                         buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
@@ -525,9 +524,9 @@ int encode_attach_request(
 
   if ((attach_request->presencemask & ATTACH_REQUEST_OLD_GUTI_TYPE_PRESENT) ==
       ATTACH_REQUEST_OLD_GUTI_TYPE_PRESENT) {
-    if ((encode_result = encode_guti_type(
-             &attach_request->oldgutitype, ATTACH_REQUEST_OLD_GUTI_TYPE_IEI,
-             buffer + encoded, len - encoded)) < 0)
+    if ((encode_result = encode_guti_type(&attach_request->oldgutitype,
+                                          ATTACH_REQUEST_OLD_GUTI_TYPE_IEI,
+                                          buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else

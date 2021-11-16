@@ -44,13 +44,13 @@ class AmfServiceImpl final : public SmfPduSessionSmContext::Service {
  public:
   AmfServiceImpl();
 
-  grpc::Status SetAmfNotification(
-      ServerContext* context, const SetSmNotificationContext* notif,
-      SmContextVoid* response) override;
+  grpc::Status SetAmfNotification(ServerContext* context,
+                                  const SetSmNotificationContext* notif,
+                                  SmContextVoid* response) override;
 
-  grpc::Status SetSmfSessionContext(
-      ServerContext* context, const SetSMSessionContextAccess* request,
-      SmContextVoid* response) override;
+  grpc::Status SetSmfSessionContext(ServerContext* context,
+                                    const SetSMSessionContextAccess* request,
+                                    SmContextVoid* response) override;
 };
 
 }  // namespace magma

@@ -40,7 +40,7 @@ using namespace magma::lte::oai;
 
 namespace magma5g {
 constexpr char NGAP_STATE_TABLE[] = "ngap_state";
-constexpr char NGAP_TASK_NAME[]   = "NGAP";
+constexpr char NGAP_TASK_NAME[] = "NGAP";
 }  // namespace magma5g
 
 namespace magma5g {
@@ -61,9 +61,9 @@ void free_ngap_state(ngap_state_t* state_cache_p);
  * to maintain NGAP task state, allocating and freeing related state structs.
  */
 class NgapStateManager
-    : public StateManager<
-          ngap_state_t, m5g_ue_description_t, oai::NgapState,
-          magma::lte::oai::Ngap_UeDescription, NgapStateConverter> {
+    : public StateManager<ngap_state_t, m5g_ue_description_t, oai::NgapState,
+                          magma::lte::oai::Ngap_UeDescription,
+                          NgapStateConverter> {
  public:
   /**
    * Returns an instance of NGapStateManager, guaranteed to be thread safe and

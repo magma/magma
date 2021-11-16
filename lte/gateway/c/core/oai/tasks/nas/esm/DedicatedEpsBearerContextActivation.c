@@ -61,11 +61,12 @@
    retransmission counter */
 #define DEDICATED_EPS_BEARER_ACTIVATE_COUNTER_MAX 5
 
-static int dedicated_eps_bearer_activate(
-    emm_context_t* emm_context, ebi_t ebi, STOLEN_REF bstring* msg);
+static int dedicated_eps_bearer_activate(emm_context_t* emm_context, ebi_t ebi,
+                                         STOLEN_REF bstring* msg);
 
-static status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(
-    zloop_t* loop, int timer_id, void* args);
+static status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(zloop_t* loop,
+                                                               int timer_id,
+                                                               void* args);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -109,11 +110,10 @@ status_code_e esm_proc_dedicated_eps_bearer_context(
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
-  OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-PROC  - Dedicated EPS bearer context activation "
-      "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d)\n",
-      ue_id, pid);
+  OAILOG_INFO(LOG_NAS_ESM,
+              "ESM-PROC  - Dedicated EPS bearer context activation "
+              "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d)\n",
+              ue_id, pid);
   /*
    * Assign new EPS bearer context
    */
@@ -133,11 +133,10 @@ status_code_e esm_proc_dedicated_eps_bearer_context(
       /*
        * No resource available
        */
-      OAILOG_WARNING(
-          LOG_NAS_ESM,
-          "ESM-PROC  - Failed to create dedicated EPS "
-          "bearer context (ebi=%d), ue id " MME_UE_S1AP_ID_FMT "\n",
-          *ebi, ue_id);
+      OAILOG_WARNING(LOG_NAS_ESM,
+                     "ESM-PROC  - Failed to create dedicated EPS "
+                     "bearer context (ebi=%d), ue id " MME_UE_S1AP_ID_FMT "\n",
+                     *ebi, ue_id);
       *esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
     }
@@ -145,11 +144,10 @@ status_code_e esm_proc_dedicated_eps_bearer_context(
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   }
 
-  OAILOG_WARNING(
-      LOG_NAS_ESM,
-      "ESM-PROC  - Failed to assign new EPS bearer context for ue "
-      "id " MME_UE_S1AP_ID_FMT "\n",
-      ue_id);
+  OAILOG_WARNING(LOG_NAS_ESM,
+                 "ESM-PROC  - Failed to assign new EPS bearer context for ue "
+                 "id " MME_UE_S1AP_ID_FMT "\n",
+                 ue_id);
   *esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
 }
@@ -189,11 +187,10 @@ status_code_e esm_proc_dedicated_eps_bearer_context_request(
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
 
-  OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-PROC  - Initiate dedicated EPS bearer context "
-      "activation (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
-      ue_id, ebi);
+  OAILOG_INFO(LOG_NAS_ESM,
+              "ESM-PROC  - Initiate dedicated EPS bearer context "
+              "activation (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
+              ue_id, ebi);
   /*
    * Send activate dedicated EPS bearer context request message and
    * * * * start timer T3485
@@ -204,18 +201,17 @@ status_code_e esm_proc_dedicated_eps_bearer_context_request(
     /*
      * Set the EPS bearer context state to ACTIVE PENDING
      */
-    rc = esm_ebr_set_status(
-        emm_context, ebi, ESM_EBR_ACTIVE_PENDING, ue_triggered);
+    rc = esm_ebr_set_status(emm_context, ebi, ESM_EBR_ACTIVE_PENDING,
+                            ue_triggered);
 
     if (rc != RETURNok) {
       /*
        * The EPS bearer context was already in ACTIVE PENDING state
        */
-      OAILOG_WARNING(
-          LOG_NAS_ESM,
-          "ESM-PROC  - EBI %d was already ACTIVE PENDING for ue "
-          "id " MME_UE_S1AP_ID_FMT "\n",
-          ebi, ue_id);
+      OAILOG_WARNING(LOG_NAS_ESM,
+                     "ESM-PROC  - EBI %d was already ACTIVE PENDING for ue "
+                     "id " MME_UE_S1AP_ID_FMT "\n",
+                     ebi, ue_id);
     }
   }
 
@@ -247,7 +243,7 @@ status_code_e esm_proc_dedicated_eps_bearer_context_request(
 status_code_e esm_proc_dedicated_eps_bearer_context_accept(
     emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc                        = RETURNerror;
+  int rc = RETURNerror;
   ue_mm_context_t* ue_context_p = NULL;
 
   ue_context_p =
@@ -256,11 +252,10 @@ status_code_e esm_proc_dedicated_eps_bearer_context_accept(
     OAILOG_ERROR(LOG_NAS_ESM, "Failed to find ue context from emm_context \n");
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
-  OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-PROC  - Dedicated EPS bearer context activation "
-      "accepted by the UE (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%u)\n",
-      ue_context_p->mme_ue_s1ap_id, ebi);
+  OAILOG_INFO(LOG_NAS_ESM,
+              "ESM-PROC  - Dedicated EPS bearer context activation "
+              "accepted by the UE (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%u)\n",
+              ue_context_p->mme_ue_s1ap_id, ebi);
   /*
    * Stop T3485 timer
    */
@@ -291,15 +286,14 @@ status_code_e esm_proc_dedicated_eps_bearer_context_accept(
     if (bearer_ctx->enb_fteid_s1u.teid) {
       mme_app_handle_create_dedicated_bearer_rsp(ue_context_p, ebi);
     } else {
-      rc = esm_ebr_start_timer(
-          emm_context, ebi, NULL, 1000 * ERAB_SETUP_RSP_TMR,
-          erab_setup_rsp_tmr_exp_ded_bearer_handler);
+      rc =
+          esm_ebr_start_timer(emm_context, ebi, NULL, 1000 * ERAB_SETUP_RSP_TMR,
+                              erab_setup_rsp_tmr_exp_ded_bearer_handler);
       if (rc != RETURNerror) {
-        OAILOG_DEBUG(
-            LOG_NAS_ESM,
-            "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
-            "ue_id=" MME_UE_S1AP_ID_FMT "ebi (%u)",
-            ue_context_p->mme_ue_s1ap_id, ebi);
+        OAILOG_DEBUG(LOG_NAS_ESM,
+                     "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
+                     "ue_id=" MME_UE_S1AP_ID_FMT "ebi (%u)",
+                     ue_context_p->mme_ue_s1ap_id, ebi);
       }
     }
   }
@@ -346,11 +340,11 @@ status_code_e esm_proc_dedicated_eps_bearer_context_reject(
     OAILOG_ERROR(LOG_NAS_ESM, "Failed to find ue context from emm_context \n");
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
-  OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-PROC  - Dedicated EPS bearer context activation "
-      "not accepted by the UE for ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%u\n",
-      ue_context_p->mme_ue_s1ap_id, ebi);
+  OAILOG_INFO(LOG_NAS_ESM,
+              "ESM-PROC  - Dedicated EPS bearer context activation "
+              "not accepted by the UE for ue_id=" MME_UE_S1AP_ID_FMT
+              ", ebi=%u\n",
+              ue_context_p->mme_ue_s1ap_id, ebi);
   /*
    * Stop T3485 timer if running
    */
@@ -358,13 +352,13 @@ status_code_e esm_proc_dedicated_eps_bearer_context_reject(
 
   if (rc != RETURNerror) {
     pdn_cid_t pid = MAX_APN_PER_UE;
-    int bid       = BEARERS_PER_UE;
+    int bid = BEARERS_PER_UE;
 
     /*
      * Release the dedicated EPS bearer context and enter state INACTIVE
      */
-    rc = esm_proc_eps_bearer_context_deactivate(
-        emm_context, true, ebi, &pid, &bid, NULL);
+    rc = esm_proc_eps_bearer_context_deactivate(emm_context, true, ebi, &pid,
+                                                &bid, NULL);
 
     if (rc != RETURNok) {
       OAILOG_INFO(
@@ -410,16 +404,17 @@ status_code_e esm_proc_dedicated_eps_bearer_context_reject(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-status_code_e dedicated_eps_bearer_activate_t3485_handler(
-    zloop_t* loop, int timer_id, void* args) {
+status_code_e dedicated_eps_bearer_activate_t3485_handler(zloop_t* loop,
+                                                          int timer_id,
+                                                          void* args) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
   timer_arg_t timer_args;
   if (args) {
-    timer_args = *((timer_arg_t*) args);
+    timer_args = *((timer_arg_t*)args);
   } else if (!mme_app_get_timer_arg(timer_id, &timer_args)) {
-    OAILOG_WARNING(
-        LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_WARNING(LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n",
+                   timer_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   }
   mme_ue_s1ap_id_t ue_id = timer_args.ue_id;
@@ -440,11 +435,10 @@ status_code_e dedicated_eps_bearer_activate_t3485_handler(
 
   bearer_context_t* bearer_context = ue_mm_context->bearer_contexts[bid];
   if (bearer_context == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
-        "Failed to find bearer context for bearer_id:%u and "
-        "ue_id " MME_UE_S1AP_ID_FMT "\n",
-        ebi, ue_id);
+    OAILOG_ERROR_UE(LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
+                    "Failed to find bearer context for bearer_id:%u and "
+                    "ue_id " MME_UE_S1AP_ID_FMT "\n",
+                    ebi, ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   }
 
@@ -453,16 +447,15 @@ status_code_e dedicated_eps_bearer_activate_t3485_handler(
   if (ebr_ctx && ebr_ctx->args) {
     // Get retransmission timer parameters data
     esm_ebr_timer_data_t* esm_ebr_timer_data =
-        (esm_ebr_timer_data_t*) (ebr_ctx->args);
+        (esm_ebr_timer_data_t*)(ebr_ctx->args);
     // Increment the retransmission counter
     esm_ebr_timer_data->count += 1;
-    OAILOG_WARNING(
-        LOG_NAS_ESM,
-        "ESM-PROC  - T3485 timer expired (ue_id=" MME_UE_S1AP_ID_FMT
-        ", ebi=%d), "
-        "retransmission counter = %d\n",
-        esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi,
-        esm_ebr_timer_data->count);
+    OAILOG_WARNING(LOG_NAS_ESM,
+                   "ESM-PROC  - T3485 timer expired (ue_id=" MME_UE_S1AP_ID_FMT
+                   ", ebi=%d), "
+                   "retransmission counter = %d\n",
+                   esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi,
+                   esm_ebr_timer_data->count);
 
     ebr_ctx->timer.id = NAS_TIMER_INACTIVE_ID;
 
@@ -472,8 +465,8 @@ status_code_e dedicated_eps_bearer_activate_t3485_handler(
        * * * * to the UE
        */
       bstring b = bstrcpy(esm_ebr_timer_data->msg);
-      rc        = dedicated_eps_bearer_activate(
-          esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
+      rc = dedicated_eps_bearer_activate(esm_ebr_timer_data->ctx,
+                                         esm_ebr_timer_data->ebi, &b);
       bdestroy_wrapper(&b);
     } else {
       // The maximum number of activate dedicated EPS bearer context request
@@ -483,15 +476,15 @@ status_code_e dedicated_eps_bearer_activate_t3485_handler(
       // esm_proc_eps_bearer_context_deactivate().
 
       pdn_cid_t pid = MAX_APN_PER_UE;
-      bid           = BEARERS_PER_UE;
+      bid = BEARERS_PER_UE;
       /*
        * Release the dedicated EPS bearer context, enter state INACTIVE and
        * stop T3485 timer. Timer is stopped inside
        * esm_proc_eps_bearer_context_deactivate()
        */
-      rc = esm_proc_eps_bearer_context_deactivate(
-          esm_ebr_timer_data->ctx, true, esm_ebr_timer_data->ebi, &pid, &bid,
-          NULL);
+      rc = esm_proc_eps_bearer_context_deactivate(esm_ebr_timer_data->ctx, true,
+                                                  esm_ebr_timer_data->ebi, &pid,
+                                                  &bid, NULL);
 
       // Send dedicated_eps_bearer_reject to MME APP
       if (rc != RETURNerror) {
@@ -526,8 +519,8 @@ status_code_e dedicated_eps_bearer_activate_t3485_handler(
  **      Others:    T3485                                                  **
  **                                                                        **
  ***************************************************************************/
-static int dedicated_eps_bearer_activate(
-    emm_context_t* emm_context, ebi_t ebi, STOLEN_REF bstring* msg) {
+static int dedicated_eps_bearer_activate(emm_context_t* emm_context, ebi_t ebi,
+                                         STOLEN_REF bstring* msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   emm_sap_t emm_sap = {0};
   int rc;
@@ -543,7 +536,7 @@ static int dedicated_eps_bearer_activate(
    * message has to be sent to the UE
    */
   emm_sap.u.emm_esm.ue_id = ue_id;
-  emm_sap.u.emm_esm.ctx   = emm_context;
+  emm_sap.u.emm_esm.ctx = emm_context;
   if (!(bearer_context->enb_fteid_s1u.teid)) {
     emm_sap.primitive = EMMESM_ACTIVATE_BEARER_REQ;
     emm_esm_activate_bearer_req_t* emm_esm_activate =
@@ -559,7 +552,7 @@ static int dedicated_eps_bearer_activate(
         LOG_NAS_ESM, emm_context->_imsi64,
         "Send dedicated bearer activation in erab setup for ebi:%u \n", ebi);
   } else {
-    emm_sap.primitive            = EMMESM_UNITDATA_REQ;
+    emm_sap.primitive = EMMESM_UNITDATA_REQ;
     emm_sap.u.emm_esm.u.data.msg = *msg;
     OAILOG_DEBUG_UE(
         LOG_NAS_ESM, emm_context->_imsi64,
@@ -568,15 +561,15 @@ static int dedicated_eps_bearer_activate(
         ebi);
   }
   bstring msg_dup = bstrcpy(*msg);
-  rc              = emm_sap_send(&emm_sap);
+  rc = emm_sap_send(&emm_sap);
 
   if (rc != RETURNerror) {
     /*
      * Start T3485 retransmission timer
      */
-    rc = esm_ebr_start_timer(
-        emm_context, ebi, msg_dup, mme_config.nas_config.t3485_msec,
-        dedicated_eps_bearer_activate_t3485_handler);
+    rc = esm_ebr_start_timer(emm_context, ebi, msg_dup,
+                             mme_config.nas_config.t3485_msec,
+                             dedicated_eps_bearer_activate_t3485_handler);
   }
   bdestroy_wrapper(&msg_dup);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -598,14 +591,15 @@ static int dedicated_eps_bearer_activate(
  **                                                                        **
  ***************************************************************************/
 
-status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(
-    zloop_t* loop, int timer_id, void* args) {
+status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(zloop_t* loop,
+                                                        int timer_id,
+                                                        void* args) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
   timer_arg_t timer_args;
   if (!mme_app_get_timer_arg(timer_id, &timer_args)) {
-    OAILOG_WARNING(
-        LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_WARNING(LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n",
+                   timer_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   }
   mme_ue_s1ap_id_t ue_id = timer_args.ue_id;
@@ -626,11 +620,10 @@ status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(
 
   bearer_context_t* bearer_context = ue_mm_context->bearer_contexts[bid];
   if (bearer_context == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
-        "Failed to find bearer context for bearer_id:%u and "
-        "ue_id " MME_UE_S1AP_ID_FMT "\n",
-        ebi, ue_id);
+    OAILOG_ERROR_UE(LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
+                    "Failed to find bearer context for bearer_id:%u and "
+                    "ue_id " MME_UE_S1AP_ID_FMT "\n",
+                    ebi, ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   }
 
@@ -639,7 +632,7 @@ status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(
   if (ebr_ctx && ebr_ctx->args) {
     // Get retransmission timer parameters data
     esm_ebr_timer_data_t* esm_ebr_timer_data =
-        (esm_ebr_timer_data_t*) (ebr_ctx->args);
+        (esm_ebr_timer_data_t*)(ebr_ctx->args);
     // Increment the retransmission counter
     esm_ebr_timer_data->count += 1;
     OAILOG_WARNING(
@@ -653,18 +646,17 @@ status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(
     if (!bearer_context->enb_fteid_s1u.teid) {
       if (esm_ebr_timer_data->count < ERAB_SETUP_RSP_COUNTER_MAX) {
         // Restart the timer
-        rc = esm_ebr_start_timer(
-            esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, NULL,
-            1000 * ERAB_SETUP_RSP_TMR,
-            erab_setup_rsp_tmr_exp_ded_bearer_handler);
+        rc = esm_ebr_start_timer(esm_ebr_timer_data->ctx,
+                                 esm_ebr_timer_data->ebi, NULL,
+                                 1000 * ERAB_SETUP_RSP_TMR,
+                                 erab_setup_rsp_tmr_exp_ded_bearer_handler);
         if (rc != RETURNerror) {
-          OAILOG_INFO(
-              LOG_NAS_ESM,
-              "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
-              "ue_id=" MME_UE_S1AP_ID_FMT
-              "ebi (%u)"
-              "\n",
-              esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi);
+          OAILOG_INFO(LOG_NAS_ESM,
+                      "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
+                      "ue_id=" MME_UE_S1AP_ID_FMT
+                      "ebi (%u)"
+                      "\n",
+                      esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi);
         }
       } else {
         // Dedicated bearers on S1 will not be set up.
@@ -685,12 +677,12 @@ status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(
           if (esm_ebr_timer_data->msg) {
             bdestroy_wrapper(&esm_ebr_timer_data->msg);
           }
-          free_wrapper((void**) &esm_ebr_timer_data);
+          free_wrapper((void**)&esm_ebr_timer_data);
         }
       }
     } else {
-      mme_app_handle_create_dedicated_bearer_rsp(
-          ue_mm_context, esm_ebr_timer_data->ebi);
+      mme_app_handle_create_dedicated_bearer_rsp(ue_mm_context,
+                                                 esm_ebr_timer_data->ebi);
       if (bearer_context->esm_ebr_context.timer.id != NAS_TIMER_INACTIVE_ID) {
         bearer_context->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
       }
@@ -698,7 +690,7 @@ status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(
         if (esm_ebr_timer_data->msg) {
           bdestroy_wrapper(&esm_ebr_timer_data->msg);
         }
-        free_wrapper((void**) &esm_ebr_timer_data);
+        free_wrapper((void**)&esm_ebr_timer_data);
       }
     }
   }

@@ -43,7 +43,7 @@ int decode_linked_eps_bearer_identity(
 int decode_u8_linked_eps_bearer_identity(
     linked_eps_bearer_identity_t* linkedepsbeareridentity, uint8_t iei,
     uint8_t value, uint32_t len) {
-  int decoded     = 0;
+  int decoded = 0;
   uint8_t* buffer = &value;
 
   *linkedepsbeareridentity = *buffer & 0xf;
@@ -73,7 +73,7 @@ uint8_t encode_u8_linked_eps_bearer_identity(
   uint8_t bufferReturn;
   uint8_t* buffer = &bufferReturn;
   uint8_t encoded = 0;
-  uint8_t iei     = 0;
+  uint8_t iei = 0;
 
   *(buffer + encoded) = 0x00 | (iei & 0xf0) | (*linkedepsbeareridentity & 0xf);
   encoded++;

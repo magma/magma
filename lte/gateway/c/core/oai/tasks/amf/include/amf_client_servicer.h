@@ -35,17 +35,18 @@ namespace magma5g {
 
 class AMFClientServicerBase {
  public:
-  virtual status_code_e amf_send_msg_to_task(
-      task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
-      MessageDef* message);
+  virtual status_code_e amf_send_msg_to_task(task_zmq_ctx_t* task_zmq_ctx_p,
+                                             task_id_t destination_task_id,
+                                             MessageDef* message);
 
-  virtual bool get_subs_auth_info(
-      const std::string& imsi, uint8_t imsi_length, const char* snni,
-      amf_ue_ngap_id_t ue_id);
+  virtual bool get_subs_auth_info(const std::string& imsi, uint8_t imsi_length,
+                                  const char* snni, amf_ue_ngap_id_t ue_id);
 
-  virtual bool get_subs_auth_info_resync(
-      const std::string& imsi, uint8_t imsi_length, const char* snni,
-      const void* resync_info, uint8_t resync_info_len, amf_ue_ngap_id_t ue_id);
+  virtual bool get_subs_auth_info_resync(const std::string& imsi,
+                                         uint8_t imsi_length, const char* snni,
+                                         const void* resync_info,
+                                         uint8_t resync_info_len,
+                                         amf_ue_ngap_id_t ue_id);
 };
 
 class AMFClientServicer : public AMFClientServicerBase {
@@ -56,9 +57,9 @@ class AMFClientServicer : public AMFClientServicerBase {
   void operator=(AMFClientServicer const&) = delete;
 
 #if MME_UNIT_TEST
-  status_code_e amf_send_msg_to_task(
-      task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
-      MessageDef* message_p) override {
+  status_code_e amf_send_msg_to_task(task_zmq_ctx_t* task_zmq_ctx_p,
+                                     task_id_t destination_task_id,
+                                     MessageDef* message_p) override {
     OAILOG_DEBUG(LOG_AMF_APP, " Mock is Enabled \n");
 
     itti_free_msg_content(message_p);
@@ -66,16 +67,15 @@ class AMFClientServicer : public AMFClientServicerBase {
     return RETURNok;
   }
 
-  bool get_subs_auth_info(
-      const std::string& imsi, uint8_t imsi_length, const char* snni,
-      amf_ue_ngap_id_t ue_id) override {
+  bool get_subs_auth_info(const std::string& imsi, uint8_t imsi_length,
+                          const char* snni, amf_ue_ngap_id_t ue_id) override {
     return true;
   }
 
-  bool get_subs_auth_info_resync(
-      const std::string& imsi, uint8_t imsi_length, const char* snni,
-      const void* resync_info, uint8_t resync_info_len,
-      amf_ue_ngap_id_t ue_id) override {
+  bool get_subs_auth_info_resync(const std::string& imsi, uint8_t imsi_length,
+                                 const char* snni, const void* resync_info,
+                                 uint8_t resync_info_len,
+                                 amf_ue_ngap_id_t ue_id) override {
     return true;
   }
 #endif /* MME_UNIT_TEST */

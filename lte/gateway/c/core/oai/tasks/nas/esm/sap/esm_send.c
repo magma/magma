@@ -51,9 +51,9 @@ status_code_e esm_send_esm_information_request(
   /*
    * Mandatory - ESM message header
    */
-  msg->protocoldiscriminator        = EPS_SESSION_MANAGEMENT_MESSAGE;
-  msg->epsbeareridentity            = ebi;
-  msg->messagetype                  = ESM_INFORMATION_REQUEST;
+  msg->protocoldiscriminator = EPS_SESSION_MANAGEMENT_MESSAGE;
+  msg->epsbeareridentity = ebi;
+  msg->messagetype = ESM_INFORMATION_REQUEST;
   msg->proceduretransactionidentity = pti;
   OAILOG_NOTICE(
       LOG_NAS_ESM,
@@ -81,23 +81,23 @@ status_code_e esm_send_esm_information_request(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_send_status(
-    pti_t pti, ebi_t ebi, esm_status_msg* msg, int esm_cause) {
+status_code_e esm_send_status(pti_t pti, ebi_t ebi, esm_status_msg* msg,
+                              int esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   /*
    * Mandatory - ESM message header
    */
-  msg->protocoldiscriminator        = EPS_SESSION_MANAGEMENT_MESSAGE;
-  msg->epsbeareridentity            = ebi;
-  msg->messagetype                  = ESM_STATUS;
+  msg->protocoldiscriminator = EPS_SESSION_MANAGEMENT_MESSAGE;
+  msg->epsbeareridentity = ebi;
+  msg->messagetype = ESM_STATUS;
   msg->proceduretransactionidentity = pti;
   /*
    * Mandatory - ESM cause code
    */
   msg->esmcause = esm_cause;
-  OAILOG_WARNING(
-      LOG_NAS_ESM, "ESM-SAP   - Send ESM Status message (pti=%d, ebi=%d)\n",
-      msg->proceduretransactionidentity, msg->epsbeareridentity);
+  OAILOG_WARNING(LOG_NAS_ESM,
+                 "ESM-SAP   - Send ESM Status message (pti=%d, ebi=%d)\n",
+                 msg->proceduretransactionidentity, msg->epsbeareridentity);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
 }
 
@@ -125,15 +125,16 @@ status_code_e esm_send_status(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_send_pdn_connectivity_reject(
-    pti_t pti, pdn_connectivity_reject_msg* msg, int esm_cause) {
+status_code_e esm_send_pdn_connectivity_reject(pti_t pti,
+                                               pdn_connectivity_reject_msg* msg,
+                                               int esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   /*
    * Mandatory - ESM message header
    */
-  msg->protocoldiscriminator        = EPS_SESSION_MANAGEMENT_MESSAGE;
-  msg->epsbeareridentity            = EPS_BEARER_IDENTITY_UNASSIGNED;
-  msg->messagetype                  = PDN_CONNECTIVITY_REJECT;
+  msg->protocoldiscriminator = EPS_SESSION_MANAGEMENT_MESSAGE;
+  msg->epsbeareridentity = EPS_BEARER_IDENTITY_UNASSIGNED;
+  msg->messagetype = PDN_CONNECTIVITY_REJECT;
   msg->proceduretransactionidentity = pti;
   /*
    * Mandatory - ESM cause code
@@ -143,11 +144,10 @@ status_code_e esm_send_pdn_connectivity_reject(
    * Optional IEs
    */
   msg->presencemask = 0;
-  OAILOG_DEBUG(
-      LOG_NAS_ESM,
-      "ESM-SAP   - Send PDN Connectivity Reject message "
-      "(pti=%d, ebi=%d)\n",
-      msg->proceduretransactionidentity, msg->epsbeareridentity);
+  OAILOG_DEBUG(LOG_NAS_ESM,
+               "ESM-SAP   - Send PDN Connectivity Reject message "
+               "(pti=%d, ebi=%d)\n",
+               msg->proceduretransactionidentity, msg->epsbeareridentity);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
 }
 
@@ -169,15 +169,16 @@ status_code_e esm_send_pdn_connectivity_reject(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_send_pdn_disconnect_reject(
-    pti_t pti, pdn_disconnect_reject_msg* msg, int esm_cause) {
+status_code_e esm_send_pdn_disconnect_reject(pti_t pti,
+                                             pdn_disconnect_reject_msg* msg,
+                                             int esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   /*
    * Mandatory - ESM message header
    */
-  msg->protocoldiscriminator        = EPS_SESSION_MANAGEMENT_MESSAGE;
-  msg->epsbeareridentity            = EPS_BEARER_IDENTITY_UNASSIGNED;
-  msg->messagetype                  = PDN_DISCONNECT_REJECT;
+  msg->protocoldiscriminator = EPS_SESSION_MANAGEMENT_MESSAGE;
+  msg->epsbeareridentity = EPS_BEARER_IDENTITY_UNASSIGNED;
+  msg->messagetype = PDN_DISCONNECT_REJECT;
   msg->proceduretransactionidentity = pti;
   /*
    * Mandatory - ESM cause code
@@ -187,11 +188,10 @@ status_code_e esm_send_pdn_disconnect_reject(
    * Optional IEs
    */
   msg->presencemask = 0;
-  OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-SAP   - Send PDN Disconnect Reject message "
-      "(pti=%d, ebi=%d)\n",
-      msg->proceduretransactionidentity, msg->epsbeareridentity);
+  OAILOG_INFO(LOG_NAS_ESM,
+              "ESM-SAP   - Send PDN Disconnect Reject message "
+              "(pti=%d, ebi=%d)\n",
+              msg->proceduretransactionidentity, msg->epsbeareridentity);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
 }
 
@@ -233,12 +233,12 @@ status_code_e esm_send_activate_default_eps_bearer_context_request(
    * Mandatory - ESM message header
    */
   msg->protocoldiscriminator = EPS_SESSION_MANAGEMENT_MESSAGE;
-  msg->epsbeareridentity     = ebi;
-  msg->messagetype           = ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST;
+  msg->epsbeareridentity = ebi;
+  msg->messagetype = ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST;
   msg->proceduretransactionidentity = pti;
-  OAILOG_DEBUG(
-      LOG_NAS_ESM, "Activate default EPS bearer context (pti=%d, ebi=%d) \n",
-      msg->proceduretransactionidentity, msg->epsbeareridentity);
+  OAILOG_DEBUG(LOG_NAS_ESM,
+               "Activate default EPS bearer context (pti=%d, ebi=%d) \n",
+               msg->proceduretransactionidentity, msg->epsbeareridentity);
   /*
    * Mandatory - EPS QoS
    */
@@ -246,55 +246,43 @@ status_code_e esm_send_activate_default_eps_bearer_context_request(
   OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  qci:  %u\n", qos->qci);
 
   if (qos->bitRatesPresent) {
-    OAILOG_DEBUG(
-        LOG_NAS_ESM, "ESM-SAP   - epsqos  maxBitRateForUL:  %u\n",
-        qos->bitRates.maxBitRateForUL);
-    OAILOG_DEBUG(
-        LOG_NAS_ESM, "ESM-SAP   - epsqos  maxBitRateForDL:  %u\n",
-        qos->bitRates.maxBitRateForDL);
-    OAILOG_DEBUG(
-        LOG_NAS_ESM, "ESM-SAP   - epsqos  guarBitRateForUL: %u\n",
-        qos->bitRates.guarBitRateForUL);
-    OAILOG_DEBUG(
-        LOG_NAS_ESM, "ESM-SAP   - epsqos  guarBitRateForDL: %u\n",
-        qos->bitRates.guarBitRateForDL);
+    OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  maxBitRateForUL:  %u\n",
+                 qos->bitRates.maxBitRateForUL);
+    OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  maxBitRateForDL:  %u\n",
+                 qos->bitRates.maxBitRateForDL);
+    OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  guarBitRateForUL: %u\n",
+                 qos->bitRates.guarBitRateForUL);
+    OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  guarBitRateForDL: %u\n",
+                 qos->bitRates.guarBitRateForDL);
   } else {
     OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  no bit rates defined\n");
   }
 
   if (qos->bitRatesExtPresent) {
-    OAILOG_DEBUG(
-        LOG_NAS_ESM, "ESM-SAP   - epsqos  maxBitRateForUL  Ext: %u\n",
-        qos->bitRatesExt.maxBitRateForUL);
-    OAILOG_DEBUG(
-        LOG_NAS_ESM, "ESM-SAP   - epsqos  maxBitRateForDL  Ext: %u\n",
-        qos->bitRatesExt.maxBitRateForDL);
-    OAILOG_DEBUG(
-        LOG_NAS_ESM, "ESM-SAP   - epsqos  guarBitRateForUL Ext: %u\n",
-        qos->bitRatesExt.guarBitRateForUL);
-    OAILOG_DEBUG(
-        LOG_NAS_ESM, "ESM-SAP   - epsqos  guarBitRateForDL Ext: %u\n",
-        qos->bitRatesExt.guarBitRateForDL);
+    OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  maxBitRateForUL  Ext: %u\n",
+                 qos->bitRatesExt.maxBitRateForUL);
+    OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  maxBitRateForDL  Ext: %u\n",
+                 qos->bitRatesExt.maxBitRateForDL);
+    OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  guarBitRateForUL Ext: %u\n",
+                 qos->bitRatesExt.guarBitRateForUL);
+    OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  guarBitRateForDL Ext: %u\n",
+                 qos->bitRatesExt.guarBitRateForDL);
   } else {
     OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  no bit rates ext defined\n");
   }
 
   if (qos->bitRatesExt2Present) {
-    OAILOG_DEBUG(
-        LOG_NAS_ESM, "ESM-SAP   - epsqos  maxBitRateForUL  Ext2: %u\n",
-        qos->bitRatesExt2.maxBitRateForUL);
-    OAILOG_DEBUG(
-        LOG_NAS_ESM, "ESM-SAP   - epsqos  maxBitRateForDL  Ext2: %u\n",
-        qos->bitRatesExt2.maxBitRateForDL);
-    OAILOG_DEBUG(
-        LOG_NAS_ESM, "ESM-SAP   - epsqos  guarBitRateForUL Ext2: %u\n",
-        qos->bitRatesExt2.guarBitRateForUL);
-    OAILOG_DEBUG(
-        LOG_NAS_ESM, "ESM-SAP   - epsqos  guarBitRateForDL Ext2: %u\n",
-        qos->bitRatesExt2.guarBitRateForDL);
+    OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  maxBitRateForUL  Ext2: %u\n",
+                 qos->bitRatesExt2.maxBitRateForUL);
+    OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  maxBitRateForDL  Ext2: %u\n",
+                 qos->bitRatesExt2.maxBitRateForDL);
+    OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  guarBitRateForUL Ext2: %u\n",
+                 qos->bitRatesExt2.guarBitRateForUL);
+    OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  guarBitRateForDL Ext2: %u\n",
+                 qos->bitRatesExt2.guarBitRateForDL);
   } else {
-    OAILOG_DEBUG(
-        LOG_NAS_ESM, "ESM-SAP   - epsqos  no bit rates ext2 defined\n");
+    OAILOG_DEBUG(LOG_NAS_ESM,
+                 "ESM-SAP   - epsqos  no bit rates ext2 defined\n");
   }
 
   if (apn == NULL) {
@@ -311,9 +299,8 @@ status_code_e esm_send_activate_default_eps_bearer_context_request(
    */
   OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - pdn_type is %u\n", pdn_type);
   msg->pdnaddress.pdntypevalue = pdn_type;
-  OAILOG_STREAM_HEX(
-      OAILOG_LEVEL_DEBUG, LOG_NAS_ESM, "ESM-SAP   - pdn_addr is ",
-      bdata(pdn_addr), blength(pdn_addr));
+  OAILOG_STREAM_HEX(OAILOG_LEVEL_DEBUG, LOG_NAS_ESM, "ESM-SAP   - pdn_addr is ",
+                    bdata(pdn_addr), blength(pdn_addr));
   msg->pdnaddress.pdnaddressinformation = pdn_addr;
   /*
    * Optional - ESM cause code
@@ -329,25 +316,23 @@ status_code_e esm_send_activate_default_eps_bearer_context_request(
   if (pco->num_protocol_or_container_id) {
     msg->presencemask |=
         ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
-    copy_protocol_configuration_options(
-        &msg->protocolconfigurationoptions, pco);
+    copy_protocol_configuration_options(&msg->protocolconfigurationoptions,
+                                        pco);
   }
   //#pragma message  "TEST LG FORCE APN-AMBR"
-  OAILOG_DEBUG(
-      LOG_NAS_ESM, "ESM-SAP   - FORCE APN-AMBR DL %lu UL %lu\n",
-      pdn_context_p->subscribed_apn_ambr.br_dl,
-      pdn_context_p->subscribed_apn_ambr.br_ul);
+  OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - FORCE APN-AMBR DL %lu UL %lu\n",
+               pdn_context_p->subscribed_apn_ambr.br_dl,
+               pdn_context_p->subscribed_apn_ambr.br_ul);
   msg->presencemask |=
       ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_APNAMBR_PRESENT;
-  bit_rate_value_to_eps_qos(
-      &msg->apnambr, pdn_context_p->subscribed_apn_ambr.br_dl,
-      pdn_context_p->subscribed_apn_ambr.br_ul,
-      pdn_context_p->subscribed_apn_ambr.br_unit);
-  OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-SAP   - Send Activate Default EPS Bearer Context "
-      "Request message (pti=%d, ebi=%d)\n",
-      msg->proceduretransactionidentity, msg->epsbeareridentity);
+  bit_rate_value_to_eps_qos(&msg->apnambr,
+                            pdn_context_p->subscribed_apn_ambr.br_dl,
+                            pdn_context_p->subscribed_apn_ambr.br_ul,
+                            pdn_context_p->subscribed_apn_ambr.br_unit);
+  OAILOG_INFO(LOG_NAS_ESM,
+              "ESM-SAP   - Send Activate Default EPS Bearer Context "
+              "Request message (pti=%d, ebi=%d)\n",
+              msg->proceduretransactionidentity, msg->epsbeareridentity);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
 }
 
@@ -388,10 +373,10 @@ status_code_e esm_send_activate_dedicated_eps_bearer_context_request(
    * Mandatory - ESM message header
    */
   msg->protocoldiscriminator = EPS_SESSION_MANAGEMENT_MESSAGE;
-  msg->epsbeareridentity     = ebi;
-  msg->messagetype           = ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST;
+  msg->epsbeareridentity = ebi;
+  msg->messagetype = ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST;
   msg->proceduretransactionidentity = pti;
-  msg->linkedepsbeareridentity      = linked_ebi;
+  msg->linkedepsbeareridentity = linked_ebi;
   /*
    * Mandatory - EPS QoS
    */
@@ -408,17 +393,15 @@ status_code_e esm_send_activate_dedicated_eps_bearer_context_request(
    */
   msg->presencemask = 0;
   if (pco) {
-    memcpy(
-        &msg->protocolconfigurationoptions, pco,
-        sizeof(protocol_configuration_options_t));
+    memcpy(&msg->protocolconfigurationoptions, pco,
+           sizeof(protocol_configuration_options_t));
     msg->presencemask |=
         ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_IEI;
   }
-  OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-SAP   - Send Activate Dedicated EPS Bearer Context "
-      "Request message (pti=%d, ebi=%d)\n",
-      msg->proceduretransactionidentity, msg->epsbeareridentity);
+  OAILOG_INFO(LOG_NAS_ESM,
+              "ESM-SAP   - Send Activate Dedicated EPS Bearer Context "
+              "Request message (pti=%d, ebi=%d)\n",
+              msg->proceduretransactionidentity, msg->epsbeareridentity);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
 }
 
@@ -449,9 +432,9 @@ status_code_e esm_send_deactivate_eps_bearer_context_request(
   /*
    * Mandatory - ESM message header
    */
-  msg->protocoldiscriminator        = EPS_SESSION_MANAGEMENT_MESSAGE;
-  msg->epsbeareridentity            = ebi;
-  msg->messagetype                  = DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST;
+  msg->protocoldiscriminator = EPS_SESSION_MANAGEMENT_MESSAGE;
+  msg->epsbeareridentity = ebi;
+  msg->messagetype = DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST;
   msg->proceduretransactionidentity = pti;
   /*
    * Mandatory - ESM cause code
@@ -461,11 +444,10 @@ status_code_e esm_send_deactivate_eps_bearer_context_request(
    * Optional IEs
    */
   msg->presencemask = 0;
-  OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-SAP   - Send Deactivate EPS Bearer Context Request "
-      "message (pti=%d, ebi=%d)\n",
-      msg->proceduretransactionidentity, msg->epsbeareridentity);
+  OAILOG_INFO(LOG_NAS_ESM,
+              "ESM-SAP   - Send Deactivate EPS Bearer Context Request "
+              "message (pti=%d, ebi=%d)\n",
+              msg->proceduretransactionidentity, msg->epsbeareridentity);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
 }
 

@@ -50,24 +50,22 @@ static void handle_allocate_ipv4_address_status(
 
   itti_amf_ip_allocation_response_t* amf_ip_allocation_response_p;
   amf_ip_allocation_response_p = &message_p->ittiMsg.amf_ip_allocation_response;
-  memset(
-      amf_ip_allocation_response_p, 0,
-      sizeof(itti_amf_ip_allocation_response_t));
+  memset(amf_ip_allocation_response_p, 0,
+         sizeof(itti_amf_ip_allocation_response_t));
 
   memcpy(amf_ip_allocation_response_p->imsi, imsi, IMSI_BCD_DIGITS_MAX);
-  amf_ip_allocation_response_p->imsi_length      = IMSI_BCD_DIGITS_MAX;
-  amf_ip_allocation_response_p->pdu_session_id   = pdu_session_id;
-  amf_ip_allocation_response_p->pti              = pti;
+  amf_ip_allocation_response_p->imsi_length = IMSI_BCD_DIGITS_MAX;
+  amf_ip_allocation_response_p->pdu_session_id = pdu_session_id;
+  amf_ip_allocation_response_p->pti = pti;
   amf_ip_allocation_response_p->pdu_session_type = pdu_session_type;
   amf_ip_allocation_response_p->paa.ipv4_address = in_ip4_addr;
-  amf_ip_allocation_response_p->paa.pdn_type     = IPv4;
-  amf_ip_allocation_response_p->paa.vlan         = vlan;
+  amf_ip_allocation_response_p->paa.pdn_type = IPv4;
+  amf_ip_allocation_response_p->paa.vlan = vlan;
 
   amf_ip_allocation_response_p->gnb_gtp_teid = gnb_gtp_teid;
 
-  memcpy(
-      amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr,
-      4);
+  memcpy(amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr,
+         gnb_gtp_teid_ip_addr, 4);
 
   memcpy(amf_ip_allocation_response_p->apn, apn, strlen(apn) + 1);
 
@@ -93,13 +91,13 @@ int AsyncM5GMobilityServiceClient::allocate_ipv4_address(
     uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len,
     const ambr_t& subscribed_ue_ambr) {
   auto subscriber_id_str = std::string(subscriber_id);
-  auto apn_str           = std::string(apn);
+  auto apn_str = std::string(apn);
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
       subscriber_id_str, apn,
       [subscriber_id_str, apn, pdu_session_id, pti, pdu_session_type,
        gnb_gtp_teid, gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len,
-       subscribed_ue_ambr](
-          const Status& status, const AllocateIPAddressResponse& ip_msg) {
+       subscribed_ue_ambr](const Status& status,
+                           const AllocateIPAddressResponse& ip_msg) {
         struct in_addr addr;
         std::string ipv4_addr_str;
 
@@ -119,8 +117,8 @@ int AsyncM5GMobilityServiceClient::allocate_ipv4_address(
 
 int AsyncM5GMobilityServiceClient::release_ipv4_address(
     const char* subscriber_id, const char* apn, const struct in_addr* addr) {
-  MobilityServiceClient::getInstance().ReleaseIPv4Address(
-      subscriber_id, apn, *addr);
+  MobilityServiceClient::getInstance().ReleaseIPv4Address(subscriber_id, apn,
+                                                          *addr);
   return RETURNok;
 }
 

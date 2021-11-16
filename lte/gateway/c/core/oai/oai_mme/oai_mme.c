@@ -84,20 +84,17 @@ static int main_init(void) {
   return RETURNok;
 }
 
-static void main_exit(void) {
-  destroy_task_context(&main_zmq_ctx);
-}
+static void main_exit(void) { destroy_task_context(&main_zmq_ctx); }
 
 int main(int argc, char* argv[]) {
   srand(time(NULL));
   char* pid_file_name;
 
-  CHECK_INIT_RETURN(OAILOG_INIT(
-      MME_CONFIG_STRING_MME_CONFIG, OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS));
+  CHECK_INIT_RETURN(OAILOG_INIT(MME_CONFIG_STRING_MME_CONFIG,
+                                OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS));
   CHECK_INIT_RETURN(shared_log_init(MAX_LOG_PROTOS));
-  CHECK_INIT_RETURN(itti_init(
-      TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
-      NULL));
+  CHECK_INIT_RETURN(itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info,
+                              messages_info, NULL, NULL));
 
   /*
    * Parse the command line for options and set the mme_config accordingly.
@@ -123,7 +120,7 @@ int main(int argc, char* argv[]) {
   if (!pid_file_lock(pid_file_name)) {
     exit(-EDEADLK);
   }
-  free_wrapper((void**) &pid_file_name);
+  free_wrapper((void**)&pid_file_name);
 
   /*
    * Calling each layer init function

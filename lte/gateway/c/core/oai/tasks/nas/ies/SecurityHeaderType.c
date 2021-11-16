@@ -21,17 +21,15 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
 
 //------------------------------------------------------------------------------
-int decode_security_header_type(
-    security_header_type_t* securityheadertype, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int decode_security_header_type(security_header_type_t* securityheadertype,
+                                uint8_t iei, uint8_t* buffer, uint32_t len) {
   Fatal("TODO Implement decode_security_header_type");
   return -1;
 }
 
 //------------------------------------------------------------------------------
-int encode_security_header_type(
-    security_header_type_t* securityheadertype, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_security_header_type(security_header_type_t* securityheadertype,
+                                uint8_t iei, uint8_t* buffer, uint32_t len) {
   Fatal("TODO Implement encode_security_header_type");
   return -1;
 }

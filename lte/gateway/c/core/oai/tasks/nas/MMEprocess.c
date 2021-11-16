@@ -85,9 +85,8 @@ status_code_e main(int argc, const char* argv[]) {
   const char* nhost = nas_parser_get_network_host();
   const char* nport = nas_parser_get_network_port();
 
-  OAILOG_TRACE(
-      INFO, "MME-MAIN  - %s -nhost %s -nport %s -trace 0x%x", argv[0], nhost,
-      nport, nas_parser_get_trace_level());
+  OAILOG_TRACE(INFO, "MME-MAIN  - %s -nhost %s -nport %s -trace 0x%x", argv[0],
+               nhost, nport, nas_parser_get_trace_level());
 
   /*
    * Initialize the Network interface
@@ -110,8 +109,8 @@ status_code_e main(int argc, const char* argv[]) {
   /*
    * Set up signal handlers
    */
-  (void) _nas_set_signal_handler(SIGINT, _nas_signal_handler);
-  (void) _nas_set_signal_handler(SIGTERM, _nas_signal_handler);
+  (void)_nas_set_signal_handler(SIGINT, _nas_signal_handler);
+  (void)_nas_set_signal_handler(SIGTERM, _nas_signal_handler);
   pthread_attr_t attr;
 
   pthread_attr_init(&attr);
@@ -124,10 +123,9 @@ status_code_e main(int argc, const char* argv[]) {
 
   if (pthread_create(&network_mngr, &attr, _nas_network_mngr, &network_fd) !=
       0) {
-    OAILOG_TRACE(
-        ERROR,
-        "MME-MAIN  - "
-        "Failed to create the network management thread");
+    OAILOG_TRACE(ERROR,
+                 "MME-MAIN  - "
+                 "Failed to create the network management thread");
     network_api_close(network_fd);
     exit(EXIT_FAILURE);
   }
@@ -174,10 +172,10 @@ static void* _nas_network_mngr(void* args) {
   int ret_code;
   int network_message_id;
   int bytes;
-  int* fd = (int*) args;
+  int* fd = (int*)args;
 
-  OAILOG_TRACE(
-      INFO, "MME-MAIN  - Network connection manager started (%d)", *fd);
+  OAILOG_TRACE(INFO, "MME-MAIN  - Network connection manager started (%d)",
+               *fd);
 
   /*
    * Network receiving loop
@@ -193,10 +191,9 @@ static void* _nas_network_mngr(void* args) {
        * Failed to read data from the network sublayer;
        * * * * exit from the receiving loop
        */
-      OAILOG_TRACE(
-          ERROR,
-          "MME-MAIN  - "
-          "Failed to read data from the network sublayer");
+      OAILOG_TRACE(ERROR,
+                   "MME-MAIN  - "
+                   "Failed to read data from the network sublayer");
       break;
     }
 
@@ -230,21 +227,19 @@ static void* _nas_network_mngr(void* args) {
        * The network data message has not been successfully
        * * * * processed
        */
-      OAILOG_TRACE(
-          WARNING,
-          "MME-MAIN  - "
-          "The network procedure call 0x%x failed",
-          network_message_id);
+      OAILOG_TRACE(WARNING,
+                   "MME-MAIN  - "
+                   "The network procedure call 0x%x failed",
+                   network_message_id);
     }
   }
 
   /*
    * Close the connection to the network sublayer
    */
-  OAILOG_TRACE(
-      WARNING,
-      "MME-MAIN  - "
-      "The network connection endpoint manager exited");
+  OAILOG_TRACE(WARNING,
+               "MME-MAIN  - "
+               "The network connection endpoint manager exited");
   OAILOG_FUNC_RETURN(NULL);
 }
 
@@ -269,21 +264,21 @@ static int _nas_set_signal_handler(int signal, void(handler)(int)) {
   /*
    * Initialize signal set
    */
-  (void) memset(&act, 0, sizeof(act));
-  (void) sigfillset(&act.sa_mask);
-  (void) sigdelset(&act.sa_mask, SIGHUP);
-  (void) sigdelset(&act.sa_mask, SIGINT);
-  (void) sigdelset(&act.sa_mask, SIGTERM);
-  (void) sigdelset(&act.sa_mask, SIGILL);
-  (void) sigdelset(&act.sa_mask, SIGTRAP);
-  (void) sigdelset(&act.sa_mask, SIGIOT);
+  (void)memset(&act, 0, sizeof(act));
+  (void)sigfillset(&act.sa_mask);
+  (void)sigdelset(&act.sa_mask, SIGHUP);
+  (void)sigdelset(&act.sa_mask, SIGINT);
+  (void)sigdelset(&act.sa_mask, SIGTERM);
+  (void)sigdelset(&act.sa_mask, SIGILL);
+  (void)sigdelset(&act.sa_mask, SIGTRAP);
+  (void)sigdelset(&act.sa_mask, SIGIOT);
 #ifndef LINUX
-  (void) sigdelset(&act.sa_mask, SIGEMT);
+  (void)sigdelset(&act.sa_mask, SIGEMT);
 #endif
-  (void) sigdelset(&act.sa_mask, SIGFPE);
-  (void) sigdelset(&act.sa_mask, SIGBUS);
-  (void) sigdelset(&act.sa_mask, SIGSEGV);
-  (void) sigdelset(&act.sa_mask, SIGSYS);
+  (void)sigdelset(&act.sa_mask, SIGFPE);
+  (void)sigdelset(&act.sa_mask, SIGBUS);
+  (void)sigdelset(&act.sa_mask, SIGSEGV);
+  (void)sigdelset(&act.sa_mask, SIGSYS);
   /*
    * Initialize signal handler
    */
@@ -293,8 +288,8 @@ static int _nas_set_signal_handler(int signal, void(handler)(int)) {
     return RETURNerror;
   }
 
-  OAILOG_TRACE(
-      INFO, "MME-MAIN  - Handler successfully set for signal %d", signal);
+  OAILOG_TRACE(INFO, "MME-MAIN  - Handler successfully set for signal %d",
+               signal);
   OAILOG_FUNC_RETURN(RETURNok);
 }
 

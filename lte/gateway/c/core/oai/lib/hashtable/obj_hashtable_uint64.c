@@ -49,9 +49,9 @@
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
 #if TRACE_HASHTABLE
-#define PRINT_HASHTABLE(hTbLe, ...)                                            \
-  do {                                                                         \
-    if (hTbLe->log_enabled) OAILOG_TRACE(LOG_UTIL, ##__VA_ARGS__);             \
+#define PRINT_HASHTABLE(hTbLe, ...)                                \
+  do {                                                             \
+    if (hTbLe->log_enabled) OAILOG_TRACE(LOG_UTIL, ##__VA_ARGS__); \
   } while (0)
 #else
 #define PRINT_HASHTABLE(...)
@@ -68,15 +68,15 @@
 
 static hash_size_t def_hashfunc(const void* const keyP, const int key_sizeP) {
   hash_size_t hash = 0;
-  int key_size     = key_sizeP;
+  int key_size = key_sizeP;
 
   // may use MD4 ?
   while (key_size > 0) {
     uint32_t val = 0;
-    int size     = sizeof(val);
+    int size = sizeof(val);
     while ((size > 0) && (key_size > 0)) {
       val = val << 8;
-      val |= ((uint8_t*) keyP)[key_size - 1];
+      val |= ((uint8_t*)keyP)[key_size - 1];
       size--;
       key_size--;
     }
@@ -128,7 +128,7 @@ obj_hash_table_uint64_t* obj_hashtable_uint64_init(
   size++;
 
   if (!(hashtblP->nodes = calloc(size, sizeof(obj_hash_node_uint64_t*)))) {
-    free_wrapper((void**) &hashtblP);
+    free_wrapper((void**)&hashtblP);
     return NULL;
   }
 
@@ -172,8 +172,8 @@ obj_hash_table_uint64_t* obj_hashtable_uint64_create(
 
   if (!(hashtbl = calloc(1, sizeof(obj_hash_table_uint64_t)))) return NULL;
 
-  return obj_hashtable_uint64_init(
-      hashtbl, sizeP, hashfuncP, freekeyfuncP, display_name_pP);
+  return obj_hashtable_uint64_init(hashtbl, sizeP, hashfuncP, freekeyfuncP,
+                                   display_name_pP);
 }
 
 //------------------------------------------------------------------------------
@@ -217,9 +217,9 @@ obj_hash_table_uint64_t* obj_hashtable_uint64_ts_init(
   size++;
 
   if (!(hashtblP->lock_nodes = calloc(size, sizeof(pthread_mutex_t)))) {
-    free_wrapper((void**) &hashtblP->nodes);
-    free_wrapper((void**) &hashtblP->name);
-    free_wrapper((void**) &hashtblP);
+    free_wrapper((void**)&hashtblP->nodes);
+    free_wrapper((void**)&hashtblP->name);
+    free_wrapper((void**)&hashtblP);
     return NULL;
   }
 
@@ -273,13 +273,13 @@ obj_hash_table_uint64_t* obj_hashtable_uint64_ts_create(
   size |= size >> 16;
   size++;
 
-  if (!(hashtbl = obj_hashtable_uint64_create(
-            size, hashfuncP, freekeyfuncP, display_name_pP))) {
+  if (!(hashtbl = obj_hashtable_uint64_create(size, hashfuncP, freekeyfuncP,
+                                              display_name_pP))) {
     return NULL;
   }
 
-  return obj_hashtable_uint64_ts_init(
-      hashtbl, size, hashfuncP, freekeyfuncP, display_name_pP);
+  return obj_hashtable_uint64_ts_init(hashtbl, size, hashfuncP, freekeyfuncP,
+                                      display_name_pP);
 }
 
 //------------------------------------------------------------------------------
@@ -300,18 +300,18 @@ hashtable_rc_t obj_hashtable_uint64_ts_destroy(
 
     while (node) {
       oldnode = node;
-      node    = node->next;
+      node = node->next;
       hashtblP->freekeyfunc(&oldnode->key);
-      free_wrapper((void**) &oldnode);
+      free_wrapper((void**)&oldnode);
     }
     pthread_mutex_unlock(&hashtblP->lock_nodes[n]);
     pthread_mutex_destroy(&hashtblP->lock_nodes[n]);
   }
 
-  free_wrapper((void**) &hashtblP->nodes);
-  free_wrapper((void**) &hashtblP->lock_nodes);
+  free_wrapper((void**)&hashtblP->nodes);
+  free_wrapper((void**)&hashtblP->lock_nodes);
   bdestroy_wrapper(&hashtblP->name);
-  free_wrapper((void**) &hashtblP);
+  free_wrapper((void**)&hashtblP);
   return HASH_TABLE_OK;
 }
 
@@ -319,7 +319,7 @@ hashtable_rc_t obj_hashtable_uint64_ts_destroy(
 hashtable_rc_t obj_hashtable_uint64_ts_dump_content(
     const obj_hash_table_uint64_t* const hashtblP, bstring str) {
   obj_hash_node_uint64_t* node = NULL;
-  unsigned int i               = 0;
+  unsigned int i = 0;
 
   if (hashtblP == NULL) {
     bcatcstr(str, "HASH_TABLE_BAD_PARAMETER_HASHTABLE");
@@ -332,9 +332,9 @@ hashtable_rc_t obj_hashtable_uint64_ts_dump_content(
       node = hashtblP->nodes[i];
 
       while (node) {
-        bstring b0 = bformat(
-            "Hash %x Key %p Key length %d Element %" PRIx64 "\n", i, node->key,
-            node->key_size, node->data);
+        bstring b0 =
+            bformat("Hash %x Key %p Key length %d Element %" PRIx64 "\n", i,
+                    node->key, node->key_size, node->data);
         if (!b0) {
           PRINT_HASHTABLE(hashtblP, "Error while dumping hashtable content");
         } else {
@@ -378,7 +378,7 @@ hashtable_rc_t obj_hashtable_uint64_ts_insert(
   while (node) {
     if (node->key == keyP) {
       if (node->data != dataP) {
-        node->data     = dataP;
+        node->data = dataP;
         node->key_size = key_sizeP;
         // no waste of memory here because if node->key == keyP, it is a reuse
         // of the same key
@@ -391,9 +391,8 @@ hashtable_rc_t obj_hashtable_uint64_ts_insert(
       }
       node->data = dataP;
       pthread_mutex_unlock(&hashtblP->lock_nodes[hash]);
-      PRINT_HASHTABLE(
-          hashtblP, "%s(%s,key %p data %p) hash %lx return ok\n", __FUNCTION__,
-          bdata(hashtblP->name), keyP, dataP, hash);
+      PRINT_HASHTABLE(hashtblP, "%s(%s,key %p data %p) hash %lx return ok\n",
+                      __FUNCTION__, bdata(hashtblP->name), keyP, dataP, hash);
       return HASH_TABLE_OK;
     }
 
@@ -402,23 +401,21 @@ hashtable_rc_t obj_hashtable_uint64_ts_insert(
 
   if (!(node = calloc(1, sizeof(obj_hash_node_uint64_t)))) {
     pthread_mutex_unlock(&hashtblP->lock_nodes[hash]);
-    PRINT_HASHTABLE(
-        hashtblP, "%s(%s,key %p) hash %lx return SYSTEM_ERROR\n", __FUNCTION__,
-        bdata(hashtblP->name), keyP, hash);
+    PRINT_HASHTABLE(hashtblP, "%s(%s,key %p) hash %lx return SYSTEM_ERROR\n",
+                    __FUNCTION__, bdata(hashtblP->name), keyP, hash);
     return HASH_TABLE_SYSTEM_ERROR;
   }
 
   if (!(node->key = calloc(1, key_sizeP))) {
-    free_wrapper((void**) &node);
+    free_wrapper((void**)&node);
     pthread_mutex_unlock(&hashtblP->lock_nodes[hash]);
-    PRINT_HASHTABLE(
-        hashtblP, "%s(%s,key %p) hash %lx return SYSTEM_ERROR\n", __FUNCTION__,
-        bdata(hashtblP->name), keyP, hash);
+    PRINT_HASHTABLE(hashtblP, "%s(%s,key %p) hash %lx return SYSTEM_ERROR\n",
+                    __FUNCTION__, bdata(hashtblP->name), keyP, hash);
     return HASH_TABLE_SYSTEM_ERROR;
   }
 
   memcpy(node->key, keyP, key_sizeP);
-  node->data     = dataP;
+  node->data = dataP;
   node->key_size = key_sizeP;
 
   if (hashtblP->nodes[hash]) {
@@ -471,17 +468,16 @@ hashtable_rc_t obj_hashtable_uint64_ts_remove(
       }
 
       hashtblP->freekeyfunc(&node->key);
-      free_wrapper((void**) &node);
+      free_wrapper((void**)&node);
       __sync_fetch_and_sub(&hashtblP->num_elements, 1);
       pthread_mutex_unlock(&hashtblP->lock_nodes[hash]);
-      PRINT_HASHTABLE(
-          hashtblP, "%s(%s,key %p) hash %lx return OK\n", __FUNCTION__,
-          bdata(hashtblP->name), keyP, hash);
+      PRINT_HASHTABLE(hashtblP, "%s(%s,key %p) hash %lx return OK\n",
+                      __FUNCTION__, bdata(hashtblP->name), keyP, hash);
       return HASH_TABLE_OK;
     }
 
     prevnode = node;
-    node     = node->next;
+    node = node->next;
   }
   pthread_mutex_unlock(&hashtblP->lock_nodes[hash]);
 
@@ -537,9 +533,9 @@ hashtable_rc_t obj_hashtable_uint64_ts_get(
   }
 
   pthread_mutex_unlock(&hashtblP->lock_nodes[hash]);
-  PRINT_HASHTABLE(
-      hashtblP, "%s(%s,key %p klen %u) hash %lx return KEY_NOT_EXISTS\n",
-      __FUNCTION__, bdata(hashtblP->name), keyP, key_sizeP, hash);
+  PRINT_HASHTABLE(hashtblP,
+                  "%s(%s,key %p klen %u) hash %lx return KEY_NOT_EXISTS\n",
+                  __FUNCTION__, bdata(hashtblP->name), keyP, key_sizeP, hash);
   return HASH_TABLE_KEY_NOT_EXISTS;
 }
 
@@ -550,7 +546,7 @@ hashtable_rc_t obj_hashtable_uint64_ts_get(
 hashtable_rc_t obj_hashtable_uint64_ts_get_keys(
     const obj_hash_table_uint64_t* const hashtblP, void*** keysP,
     unsigned int* sizeP) {
-  size_t n                     = 0;
+  size_t n = 0;
   obj_hash_node_uint64_t* node = NULL;
   obj_hash_node_uint64_t* next = NULL;
 
@@ -567,9 +563,8 @@ hashtable_rc_t obj_hashtable_uint64_ts_get_keys(
       pthread_mutex_lock(&hashtblP->lock_nodes[n]);
       for (node = hashtblP->nodes[n]; node; node = next) {
         (*keysP)[(*sizeP)++] = node->key;
-        PRINT_HASHTABLE(
-            hashtblP, "At index %u Saving key %p into %p \n", (*sizeP) - 1,
-            node->key, *keysP[(*sizeP) - 1]);
+        PRINT_HASHTABLE(hashtblP, "At index %u Saving key %p into %p \n",
+                        (*sizeP) - 1, node->key, *keysP[(*sizeP) - 1]);
         next = node->next;
       }
       pthread_mutex_unlock(&hashtblP->lock_nodes[n]);

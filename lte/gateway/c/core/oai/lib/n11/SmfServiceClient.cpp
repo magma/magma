@@ -30,8 +30,8 @@ using grpc::Status;
 using magma::AsyncLocalResponse;
 using magma::ServiceRegistrySingleton;
 
-void handle_session_context_response(
-    grpc::Status status, magma::lte::SmContextVoid response) {
+void handle_session_context_response(grpc::Status status,
+                                     magma::lte::SmContextVoid response) {
   if (!status.ok()) {
     std::cout << "AsyncSetAmfSessionContext fails with code "
               << status.error_code() << ", msg: " << status.error_message()
@@ -42,11 +42,13 @@ void handle_session_context_response(
 using namespace magma::lte;
 namespace magma5g {
 
-SetSMSessionContext create_sm_pdu_session_v4(
-    char* imsi, uint8_t* apn, uint32_t pdu_session_id,
-    uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
-    const ambr_t& state_ambr) {
+SetSMSessionContext create_sm_pdu_session_v4(char* imsi, uint8_t* apn,
+                                             uint32_t pdu_session_id,
+                                             uint32_t pdu_session_type,
+                                             uint32_t gnb_gtp_teid, uint8_t pti,
+                                             uint8_t* gnb_gtp_teid_ip_addr,
+                                             char* ipv4_addr, uint32_t version,
+                                             const ambr_t& state_ambr) {
   magma::lte::SetSMSessionContext req;
 
   auto* req_common = req.mutable_common_context();
@@ -59,7 +61,7 @@ SetSMSessionContext create_sm_pdu_session_v4(
       magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
 
   // Encode APU, storing apn value
-  req_common->set_apn((char*) apn);
+  req_common->set_apn((char*)apn);
 
   // Encode RAT TYPE
   req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
@@ -96,11 +98,11 @@ SetSMSessionContext create_sm_pdu_session_v4(
   req_rat_specific->mutable_gnode_endpoint()->set_end_ipv4_addr(ipv4_str);
 
   // Set the PTI
-  req_rat_specific->set_procedure_trans_identity((const char*) (&(pti)));
+  req_rat_specific->set_procedure_trans_identity((const char*)(&(pti)));
 
   // Set the PDU Address
   req_rat_specific->mutable_pdu_address()->set_redirect_server_address(
-      (char*) ipv4_addr);
+      (char*)ipv4_addr);
 
   // Set the default QoS values
   req_rat_specific->mutable_default_ambr()->set_max_bandwidth_ul(
@@ -132,10 +134,10 @@ int AsyncSmfServiceClient::amf_smf_create_pdu_session_ipv4(
 }
 
 bool AsyncSmfServiceClient::set_smf_session(SetSMSessionContext& request) {
-  SetSMFSessionRPC(
-      request, [](const Status& status, const SmContextVoid& response) {
-        handle_session_context_response(status, response);
-      });
+  SetSMFSessionRPC(request,
+                   [](const Status& status, const SmContextVoid& response) {
+                     handle_session_context_response(status, response);
+                   });
 
   return true;
 }
@@ -143,8 +145,8 @@ bool AsyncSmfServiceClient::set_smf_session(SetSMSessionContext& request) {
 void AsyncSmfServiceClient::SetSMFSessionRPC(
     SetSMSessionContext& request,
     const std::function<void(Status, SmContextVoid)>& callback) {
-  auto localResp = new AsyncLocalResponse<SmContextVoid>(
-      std::move(callback), RESPONSE_TIMEOUT);
+  auto localResp = new AsyncLocalResponse<SmContextVoid>(std::move(callback),
+                                                         RESPONSE_TIMEOUT);
 
   localResp->set_response_reader(std::move(stub_->AsyncSetAmfSessionContext(
       localResp->get_context(), request, &queue_)));
@@ -163,8 +165,8 @@ bool AsyncSmfServiceClient::set_smf_notification(
 void AsyncSmfServiceClient::SetSMFNotificationRPC(
     SetSmNotificationContext& notify,
     const std::function<void(Status, SmContextVoid)>& callback) {
-  auto localResp = new AsyncLocalResponse<SmContextVoid>(
-      std::move(callback), RESPONSE_TIMEOUT);
+  auto localResp = new AsyncLocalResponse<SmContextVoid>(std::move(callback),
+                                                         RESPONSE_TIMEOUT);
 
   localResp->set_response_reader(std::move(stub_->AsyncSetSmfNotification(
       localResp->get_context(), notify, &queue_)));

@@ -33,22 +33,22 @@ Teids teids2;
 class LocalEnforcerStatsPollerTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
-    reporter       = std::make_shared<MockSessionReporter>();
+    reporter = std::make_shared<MockSessionReporter>();
     pipelined_mock = std::make_shared<MockPipelined>();
-    rule_store     = std::make_shared<StaticRuleStore>();
-    session_store  = std::make_shared<SessionStore>(
+    rule_store = std::make_shared<StaticRuleStore>();
+    session_store = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
-    pipelined_client     = std::make_shared<MockPipelinedClient>();
-    spgw_client          = std::make_shared<MockSpgwServiceClient>();
-    aaa_client           = std::make_shared<MockAAAClient>();
-    events_reporter      = std::make_shared<MockEventsReporter>();
+    pipelined_client = std::make_shared<MockPipelinedClient>();
+    spgw_client = std::make_shared<MockSpgwServiceClient>();
+    aaa_client = std::make_shared<MockAAAClient>();
+    events_reporter = std::make_shared<MockEventsReporter>();
     auto default_mconfig = get_default_mconfig();
-    auto shard_tracker   = std::make_shared<ShardTracker>();
-    local_enforcer       = std::make_unique<LocalEnforcer>(
+    auto shard_tracker = std::make_shared<ShardTracker>();
+    local_enforcer = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
         spgw_client, aaa_client, shard_tracker, 0, 0, default_mconfig);
     session_map = SessionMap{};
-    test_cfg_   = get_default_config("");
+    test_cfg_ = get_default_config("");
 
     teids0.set_agw_teid(0);
     teids0.set_enb_teid(0);
@@ -72,19 +72,19 @@ class LocalEnforcerStatsPollerTest : public ::testing::Test {
     return cfg;
   }
 
-  void insert_static_rule(
-      uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id) {
+  void insert_static_rule(uint32_t rating_group, const std::string& m_key,
+                          const std::string& rule_id) {
     rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
   }
 
-  void initialize_session(
-      SessionMap& session_map, const std::string& session_id,
-      const SessionConfig& cfg, const CreateSessionResponse& response) {
+  void initialize_session(SessionMap& session_map,
+                          const std::string& session_id,
+                          const SessionConfig& cfg,
+                          const CreateSessionResponse& response) {
     const std::string imsi = cfg.get_imsi();
     auto session = local_enforcer->create_initializing_session(session_id, cfg);
-    local_enforcer->update_session_with_policy_response(
-        session, response, nullptr);
+    local_enforcer->update_session_with_policy_response(session, response,
+                                                        nullptr);
     session_map[imsi].push_back(std::move(session));
   }
 
@@ -110,15 +110,15 @@ TEST_F(LocalEnforcerStatsPollerTest, test_poll_stats) {
   insert_static_rule(1, "", "rule4");
 
   CreateSessionResponse response;
-  initialize_session(
-      session_map, SESSION_ID_1, get_default_config(IMSI1), response);
+  initialize_session(session_map, SESSION_ID_1, get_default_config(IMSI1),
+                     response);
   local_enforcer->update_tunnel_ids(
       session_map,
       create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
   RuleRecordTable table;
 
   auto record_list = table.mutable_records();
-  auto ue_ipv4     = test_cfg_.common_context.ue_ipv4();
+  auto ue_ipv4 = test_cfg_.common_context.ue_ipv4();
   create_rule_record(IMSI1, ue_ipv4, "rule1", 10, 20, record_list->Add());
   create_rule_record(IMSI1, ue_ipv4, "rule2", 15, 35, record_list->Add());
   create_rule_record(IMSI1, ue_ipv4, "rule3", 100, 150, record_list->Add());
@@ -128,19 +128,19 @@ TEST_F(LocalEnforcerStatsPollerTest, test_poll_stats) {
 
   local_enforcer->aggregate_records(session_map, table, update);
 
-  int cookie      = 0;
+  int cookie = 0;
   int cookie_mask = 0;
   EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_))
       .Times(1);
   local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
 
-  cookie      = 1;
+  cookie = 1;
   cookie_mask = 0;
   EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_))
       .Times(1);
   local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
 
-  cookie      = 0;
+  cookie = 0;
   cookie_mask = 1;
   EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_))
       .Times(1);
@@ -150,7 +150,7 @@ TEST_F(LocalEnforcerStatsPollerTest, test_poll_stats) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   FLAGS_logtostderr = 1;
-  FLAGS_v           = 10;
+  FLAGS_v = 10;
   return RUN_ALL_TESTS();
 }
 

@@ -61,8 +61,8 @@ namespace magma5g {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int create_session_grpc_req_on_gnb_setup_rsp(
-    amf_smf_establish_t* message, char* imsi, uint32_t version) {
+int create_session_grpc_req_on_gnb_setup_rsp(amf_smf_establish_t* message,
+                                             char* imsi, uint32_t version) {
   int rc = RETURNerror;
   magma::lte::SetSMSessionContext req;
 
@@ -89,8 +89,8 @@ int create_session_grpc_req_on_gnb_setup_rsp(
   inet_ntop(AF_INET, message->gnb_gtp_teid_ip_addr, ipv4_str, INET_ADDRSTRLEN);
   req_rat_specific->mutable_gnode_endpoint()->set_end_ipv4_addr(ipv4_str);
 
-  OAILOG_DEBUG(
-      LOG_AMF_APP, "Sending PDU session Establishment 2nd Request to SMF");
+  OAILOG_DEBUG(LOG_AMF_APP,
+               "Sending PDU session Establishment 2nd Request to SMF");
 
   AsyncSmfServiceClient::getInstance().set_smf_session(req);
 
@@ -109,15 +109,14 @@ int amf_smf_create_ipv4_session_grpc_req(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, const ambr_t& state_ambr) {
-  imsi64_t imsi64                   = INVALID_IMSI64;
+  imsi64_t imsi64 = INVALID_IMSI64;
   ue_m5gmm_context_s* ue_mm_context = NULL;
-  amf_context_t* amf_ctxt_p         = NULL;
+  amf_context_t* amf_ctxt_p = NULL;
 
-  OAILOG_INFO(
-      LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s] session\n",
-      imsi);
+  OAILOG_INFO(LOG_AMF_APP,
+              "Sending msg(grpc) to :[sessiond] for ue: [%s] session\n", imsi);
 
-  IMSI_STRING_TO_IMSI64((char*) imsi, &imsi64);
+  IMSI_STRING_TO_IMSI64((char*)imsi, &imsi64);
   ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
 
   if (ue_mm_context) {
@@ -142,21 +141,20 @@ int amf_smf_create_ipv4_session_grpc_req(
  * **                                                                        **
  * **                                                                        **
  * ***************************************************************************/
-int amf_smf_create_pdu_session(
-    amf_smf_establish_t* message, char* imsi, uint32_t version) {
-  imsi64_t imsi64                   = INVALID_IMSI64;
-  amf_context_t* amf_ctxt_p         = NULL;
+int amf_smf_create_pdu_session(amf_smf_establish_t* message, char* imsi,
+                               uint32_t version) {
+  imsi64_t imsi64 = INVALID_IMSI64;
+  amf_context_t* amf_ctxt_p = NULL;
   ue_m5gmm_context_s* ue_mm_context = NULL;
   std::shared_ptr<smf_context_t> smf_ctx;
 
-  OAILOG_INFO(
-      LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s] session\n",
-      imsi);
+  OAILOG_INFO(LOG_AMF_APP,
+              "Sending msg(grpc) to :[sessiond] for ue: [%s] session\n", imsi);
 
-  IMSI_STRING_TO_IMSI64((char*) imsi, &imsi64);
+  IMSI_STRING_TO_IMSI64((char*)imsi, &imsi64);
   ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
-  smf_ctx       = amf_get_smf_context_by_pdu_session_id(
-      ue_mm_context, message->pdu_session_id);
+  smf_ctx = amf_get_smf_context_by_pdu_session_id(ue_mm_context,
+                                                  message->pdu_session_id);
 
   if (ue_mm_context) {
     amf_ctxt_p = &ue_mm_context->amf_context;
@@ -167,9 +165,8 @@ int amf_smf_create_pdu_session(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
 
-  OAILOG_INFO(
-      LOG_AMF_APP, "Sending msg(grpc) to :[mobilityd] for ue: [%s] ip-addr\n",
-      imsi);
+  OAILOG_INFO(LOG_AMF_APP,
+              "Sending msg(grpc) to :[mobilityd] for ue: [%s] ip-addr\n", imsi);
   AsyncM5GMobilityServiceClient::getInstance().allocate_ipv4_address(
       imsi, reinterpret_cast<char*>(smf_ctx->apn), message->pdu_session_id,
       message->pti, AF_INET, message->gnb_gtp_teid,
@@ -198,7 +195,7 @@ int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
       req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
   req_rat_specific->set_pdu_session_id(message->pdu_session_id);
   req_rat_specific->set_procedure_trans_identity(
-      (const char*) (&(message->pti)));
+      (const char*)(&(message->pti)));
 
   AsyncSmfServiceClient::getInstance().set_smf_session(req);
 

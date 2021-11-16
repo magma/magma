@@ -35,8 +35,8 @@ std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
 // Creating smf_ctxt_map based on key:pdu_session_id and value:smf_context
 std::unordered_map<uint8_t, std::shared_ptr<smf_context_t>> smf_ctxt_map;
 
-std::shared_ptr<smf_context_t> amf_insert_smf_context(
-    ue_m5gmm_context_s*, uint8_t);
+std::shared_ptr<smf_context_t> amf_insert_smf_context(ue_m5gmm_context_s*,
+                                                      uint8_t);
 
 amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
     amf_ue_ngap_id_t* amf_app_ue_ngap_id_generator_p) {
@@ -55,7 +55,7 @@ amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
  ***************************************************************************/
 void notify_ngap_new_ue_amf_ngap_id_association(
     const ue_m5gmm_context_s* ue_context_p) {
-  MessageDef* message_p                                      = NULL;
+  MessageDef* message_p = NULL;
   itti_amf_app_ngap_amf_ue_id_notification_t* notification_p = NULL;
 
   OAILOG_FUNC_IN(LOG_AMF_APP);
@@ -69,7 +69,7 @@ void notify_ngap_new_ue_amf_ngap_id_association(
   memset(notification_p, 0, sizeof(itti_amf_app_ngap_amf_ue_id_notification_t));
   notification_p->gnb_ue_ngap_id = ue_context_p->gnb_ue_ngap_id;
   notification_p->amf_ue_ngap_id = ue_context_p->amf_ue_ngap_id;
-  notification_p->sctp_assoc_id  = ue_context_p->sctp_assoc_id_key;
+  notification_p->sctp_assoc_id = ue_context_p->sctp_assoc_id_key;
 
   amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
@@ -83,9 +83,9 @@ void notify_ngap_new_ue_amf_ngap_id_association(
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-int amf_insert_ue_context(
-    amf_ue_ngap_id_t ue_id, amf_ue_context_t* amf_ue_context_p,
-    ue_m5gmm_context_s* ue_context_p) {
+int amf_insert_ue_context(amf_ue_ngap_id_t ue_id,
+                          amf_ue_context_t* amf_ue_context_p,
+                          ue_m5gmm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (amf_ue_context_p == NULL) {
     OAILOG_ERROR(LOG_AMF_APP, "Invalid AMF UE context received\n");
@@ -116,9 +116,9 @@ int amf_insert_ue_context(
     } else {
       // Overwrite the existing element.
       found_ue_id->second = ue_context_p;
-      OAILOG_DEBUG(
-          LOG_AMF_APP,
-          "Overwriting the Existing entry UE_ID = " AMF_UE_NGAP_ID_FMT, ue_id);
+      OAILOG_DEBUG(LOG_AMF_APP,
+                   "Overwriting the Existing entry UE_ID = " AMF_UE_NGAP_ID_FMT,
+                   ue_id);
     }
   }
 
@@ -142,13 +142,13 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void) {
     return NULL;
   }
 
-  new_p->amf_ue_ngap_id  = INVALID_AMF_UE_NGAP_ID;
+  new_p->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
   new_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
-  new_p->gnb_ue_ngap_id  = INVALID_GNB_UE_NGAP_ID;
+  new_p->gnb_ue_ngap_id = INVALID_GNB_UE_NGAP_ID;
 
   // Initialize timers to INVALID IDs
-  new_p->m5_mobile_reachability_timer.id    = AMF_APP_TIMER_INACTIVE_ID;
-  new_p->m5_implicit_detach_timer.id        = AMF_APP_TIMER_INACTIVE_ID;
+  new_p->m5_mobile_reachability_timer.id = AMF_APP_TIMER_INACTIVE_ID;
+  new_p->m5_implicit_detach_timer.id = AMF_APP_TIMER_INACTIVE_ID;
   new_p->m5_initial_context_setup_rsp_timer = (amf_app_timer_t){
       AMF_APP_TIMER_INACTIVE_ID, AMF_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE};
   new_p->m5_ulr_response_timer = (amf_app_timer_t){
@@ -158,7 +158,7 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void) {
   new_p->mm_state = DEREGISTERED;
 
   new_p->amf_context._security.eksi = KSI_NO_KEY_AVAILABLE;
-  new_p->mm_state                   = DEREGISTERED;
+  new_p->mm_state = DEREGISTERED;
 
   return new_p;
 }
@@ -265,23 +265,23 @@ int amf_context_upsert_imsi(amf_context_t* elm) {
   amf_ue_ngap_id_t ue_id =
       (PARENT_STRUCT(elm, ue_m5gmm_context_s, amf_context))->amf_ue_ngap_id;
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
-  h_rc                           = hashtable_uint64_ts_remove(
+  h_rc = hashtable_uint64_ts_remove(
       amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl,
-      (const hash_key_t) elm->imsi64);
+      (const hash_key_t)elm->imsi64);
 
   if (ue_id != INVALID_AMF_UE_NGAP_ID) {
     h_rc = hashtable_uint64_ts_insert(
         amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl,
-        (const hash_key_t) elm->imsi64, ue_id);
+        (const hash_key_t)elm->imsi64, ue_id);
   } else {
     h_rc = HASH_TABLE_KEY_NOT_EXISTS;
   }
   if (h_rc != HASH_TABLE_OK) {
-    OAILOG_TRACE(
-        LOG_AMF_APP,
-        "Error could not update this ue context "
-        "amf_ue_s1ap_id " AMF_UE_S1AP_ID_FMT " imsi " IMSI_64_FMT ": %s\n",
-        ue_id, elm->imsi64, hashtable_rc_code2string(h_rc));
+    OAILOG_TRACE(LOG_AMF_APP,
+                 "Error could not update this ue context "
+                 "amf_ue_s1ap_id " AMF_UE_S1AP_ID_FMT " imsi " IMSI_64_FMT
+                 ": %s\n",
+                 ue_id, elm->imsi64, hashtable_rc_code2string(h_rc));
     return RETURNerror;
   }
   return RETURNok;
@@ -339,8 +339,8 @@ ue_m5gmm_context_s* ue_context_loopkup_by_guti(tmsi_t tmsi_rcv) {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-void ue_context_update_ue_id(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t ue_id) {
+void ue_context_update_ue_id(ue_m5gmm_context_s* ue_context,
+                             amf_ue_ngap_id_t ue_id) {
   if (ue_id == ue_context->amf_ue_ngap_id) {
     return;
   }
@@ -413,7 +413,7 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
 
   std::shared_ptr<smf_context_t> smf_ctx;
   for (auto& it : ue_context_p->amf_context.smf_ctxt_map) {
-    smf_ctx                    = it.second;
+    smf_ctx = it.second;
     smf_ctx->pdu_session_state = INACTIVE;
   }
 
@@ -431,8 +431,8 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
  **                                                                        **
  ***************************************************************************/
 void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
-  hashtable_rc_t h_rc                = HASH_TABLE_OK;
-  amf_app_desc_t* amf_app_desc_p     = get_amf_nas_state(false);
+  hashtable_rc_t h_rc = HASH_TABLE_OK;
+  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
   amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
   OAILOG_DEBUG(LOG_NAS_AMF, "amf_free_ue_context \n");
   hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
@@ -448,16 +448,16 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   if (ue_context_p->gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) {
     h_rc = hashtable_uint64_ts_remove(
         amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
-        (const hash_key_t) ue_context_p->gnb_ngap_id_key);
+        (const hash_key_t)ue_context_p->gnb_ngap_id_key);
     if (h_rc != HASH_TABLE_OK)
       OAILOG_TRACE(LOG_AMF_APP, "Error Could not remove this ue context \n");
     ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
   }
 
   if (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
-    h_rc = hashtable_ts_remove(
-        amf_state_ue_id_ht, (const hash_key_t) ue_context_p->amf_ue_ngap_id,
-        reinterpret_cast<void**>(&ue_context_p));
+    h_rc = hashtable_ts_remove(amf_state_ue_id_ht,
+                               (const hash_key_t)ue_context_p->amf_ue_ngap_id,
+                               reinterpret_cast<void**>(&ue_context_p));
     if (h_rc != HASH_TABLE_OK)
       OAILOG_TRACE(LOG_AMF_APP, "Error Could not remove this ue context \n");
     ue_context_p->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
@@ -465,16 +465,14 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
 
   hashtable_uint64_ts_remove(
       amf_ue_context_p->imsi_amf_ue_id_htbl,
-      (const hash_key_t) ue_context_p->amf_context.imsi64);
+      (const hash_key_t)ue_context_p->amf_context.imsi64);
 
-  hashtable_uint64_ts_remove(
-      amf_ue_context_p->tun11_ue_context_htbl,
-      (const hash_key_t) ue_context_p->amf_teid_n11);
+  hashtable_uint64_ts_remove(amf_ue_context_p->tun11_ue_context_htbl,
+                             (const hash_key_t)ue_context_p->amf_teid_n11);
 
-  obj_hashtable_uint64_ts_remove(
-      amf_ue_context_p->guti_ue_context_htbl,
-      &ue_context_p->amf_context.m5_guti,
-      sizeof(ue_context_p->amf_context.m5_guti));
+  obj_hashtable_uint64_ts_remove(amf_ue_context_p->guti_ue_context_htbl,
+                                 &ue_context_p->amf_context.m5_guti,
+                                 sizeof(ue_context_p->amf_context.m5_guti));
 
   delete ue_context_p;
   ue_context_p = NULL;

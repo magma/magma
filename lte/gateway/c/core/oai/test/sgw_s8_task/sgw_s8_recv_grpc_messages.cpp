@@ -24,8 +24,8 @@ using grpc::ServerContext;
 using ::testing::Test;
 #define END_OF_TESTCASE_SLEEP_MS 500
 task_zmq_ctx_t task_zmq_ctx_main_grpc;
-static int handle_message_test_s8_grpc(
-    zloop_t* loop, zsock_t* reader, void* arg);
+static int handle_message_test_s8_grpc(zloop_t* loop, zsock_t* reader,
+                                       void* arg);
 
 class SgwS8MessagesTest : public ::testing::Test {
  protected:
@@ -41,14 +41,12 @@ class SgwS8MessagesTest : public ::testing::Test {
 
 void SgwS8MessagesTest::SetUp() {
   s8_message_receiver = std::make_shared<magma::S8ServiceImpl>();
-  sgw_s8_handler      = std::make_shared<MockS8Handler>();
-  itti_init(
-      TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
-      NULL);
+  sgw_s8_handler = std::make_shared<MockS8Handler>();
+  itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
+            NULL, NULL);
   task_id_t task_id_list[2] = {TASK_GRPC_SERVICE, TASK_SGW_S8};
-  init_task_context(
-      TASK_MAIN, task_id_list, 2, handle_message_test_s8_grpc,
-      &task_zmq_ctx_main_grpc);
+  init_task_context(TASK_MAIN, task_id_list, 2, handle_message_test_s8_grpc,
+                    &task_zmq_ctx_main_grpc);
 
   std::thread task_sgw_s8(start_mock_sgw_s8_task, sgw_s8_handler);
   task_sgw_s8.detach();
@@ -81,12 +79,14 @@ void SgwS8MessagesTest::build_grpc_create_bearer_req(
   return;
 }
 
-static int handle_message_test_s8_grpc(
-    zloop_t* loop, zsock_t* reader, void* arg) {
+static int handle_message_test_s8_grpc(zloop_t* loop, zsock_t* reader,
+                                       void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: { } break; }
+    default: {
+    } break;
+  }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -104,9 +104,8 @@ MATCHER_P(check_s8_params_in_cb_req, cb_req, "") {
   if (cb_req_rcvd_at_sgw_s8.sequence_number != cb_req.sequence_number()) {
     return false;
   }
-  if (memcmp(
-          cb_req_rcvd_at_sgw_s8.pgw_cp_address, cb_req.pgwaddrs().c_str(),
-          cb_req.pgwaddrs().size())) {
+  if (memcmp(cb_req_rcvd_at_sgw_s8.pgw_cp_address, cb_req.pgwaddrs().c_str(),
+             cb_req.pgwaddrs().size())) {
     return false;
   }
   return true;
@@ -133,9 +132,8 @@ TEST_F(SgwS8MessagesTest, recv_create_bearer_req) {
   magma::feg::CreateBearerRequestPgw cb_req;
   build_grpc_create_bearer_req(&cb_req);
   grpc::ServerContext server_context;
-  EXPECT_CALL(
-      *sgw_s8_handler,
-      sgw_s8_handle_create_bearer_request(check_s8_params_in_cb_req(cb_req)))
+  EXPECT_CALL(*sgw_s8_handler, sgw_s8_handle_create_bearer_request(
+                                   check_s8_params_in_cb_req(cb_req)))
       .Times(1);
   magma::orc8r::Void response;
   grpc::Status status =
@@ -147,9 +145,8 @@ TEST_F(SgwS8MessagesTest, recv_delete_bearer_req) {
   magma::feg::DeleteBearerRequestPgw db_req;
   build_grpc_delete_bearer_req(&db_req);
   grpc::ServerContext server_context;
-  EXPECT_CALL(
-      *sgw_s8_handler,
-      sgw_s8_handle_delete_bearer_request(check_s8_params_in_db_req(db_req)))
+  EXPECT_CALL(*sgw_s8_handler, sgw_s8_handle_delete_bearer_request(
+                                   check_s8_params_in_db_req(db_req)))
       .Times(1);
   magma::orc8r::Void response;
   grpc::Status status = s8_message_receiver->DeleteBearerRequest(

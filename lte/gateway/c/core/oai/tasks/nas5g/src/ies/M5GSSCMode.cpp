@@ -21,8 +21,8 @@ SSCModeMsg::SSCModeMsg(){};
 SSCModeMsg::~SSCModeMsg(){};
 
 // Decode SSCMode IE
-int SSCModeMsg::DecodeSSCModeMsg(
-    SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int SSCModeMsg::DecodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei,
+                                 uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   // Storing the IEI Information
@@ -41,14 +41,14 @@ int SSCModeMsg::DecodeSSCModeMsg(
 };
 
 // Encode SSCMode IE
-int SSCModeMsg::EncodeSSCModeMsg(
-    SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int SSCModeMsg::EncodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei,
+                                 uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
   // CHECKING IEI
   if (iei > 0) {
-    CHECK_IEI_ENCODER(
-        (uint8_t) iei, (uint8_t)(0x00 | (ssc_mode->iei & 0x0f) << 4));
+    CHECK_IEI_ENCODER((uint8_t)iei,
+                      (uint8_t)(0x00 | (ssc_mode->iei & 0x0f) << 4));
     *buffer = (ssc_mode->iei & 0x0f) << 4;
     MLOG(MDEBUG) << "In EncodeSSCModeMsg: iei" << std::hex << int(*buffer);
     encoded++;

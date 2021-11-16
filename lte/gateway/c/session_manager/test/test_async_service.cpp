@@ -40,7 +40,7 @@ class AsyncServiceTest : public ::testing::Test {
         std::make_shared<service303::MagmaService>("test_service", "1.0");
 
     auto mock_handler_p = std::make_unique<MockSessionHandler>();
-    mock_handler        = mock_handler_p.get();
+    mock_handler = mock_handler_p.get();
 
     async_service = std::make_shared<LocalSessionManagerAsyncService>(
         magma_service->GetNewCompletionQueue(), std::move(mock_handler_p));
@@ -116,8 +116,8 @@ TEST_F(AsyncServiceTest, test_single_thread) {
       .WillRepeatedly(testing::InvokeArgument<2>(Status::OK, end_resp));
 
   Void void_resp;
-  EXPECT_CALL(
-      *mock_handler, ReportRuleStats(testing::_, testing::_, testing::_))
+  EXPECT_CALL(*mock_handler,
+              ReportRuleStats(testing::_, testing::_, testing::_))
       .Times(1)
       .WillRepeatedly(testing::InvokeArgument<2>(Status::OK, void_resp));
 
@@ -135,8 +135,8 @@ TEST_F(AsyncServiceTest, test_multi_thread) {
       .Times(3)
       .WillRepeatedly(testing::InvokeArgument<2>(Status::OK, response));
   Void void_resp;
-  EXPECT_CALL(
-      *mock_handler, ReportRuleStats(testing::_, testing::_, testing::_))
+  EXPECT_CALL(*mock_handler,
+              ReportRuleStats(testing::_, testing::_, testing::_))
       .Times(3)
       .WillRepeatedly(testing::InvokeArgument<2>(Status::OK, void_resp));
 

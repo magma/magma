@@ -22,9 +22,9 @@ namespace magma {
 namespace sctpd {
 
 // Set up basic sctp options of socket "sd"
-int set_sctp_opts(
-    const int sd, const uint16_t instreams, const uint16_t outstreams,
-    const uint16_t max_attempts, const uint16_t init_timeout);
+int set_sctp_opts(const int sd, const uint16_t instreams,
+                  const uint16_t outstreams, const uint16_t max_attempts,
+                  const uint16_t init_timeout);
 
 // Convert address specified in InitReq into struct sockaddr for sctp setup
 int convert_addrs(const InitReq* req, struct sockaddr** addrs, int* num_addrs);
@@ -73,13 +73,13 @@ fail:
   return -1;
 }
 
-int set_sctp_opts(
-    const int sd, const uint16_t instreams, const uint16_t outstreams,
-    const uint16_t max_attempts, const uint16_t init_timeout) {
+int set_sctp_opts(const int sd, const uint16_t instreams,
+                  const uint16_t outstreams, const uint16_t max_attempts,
+                  const uint16_t init_timeout) {
   struct sctp_initmsg init;
-  init.sinit_num_ostreams   = outstreams;
-  init.sinit_max_instreams  = instreams;
-  init.sinit_max_attempts   = max_attempts;
+  init.sinit_num_ostreams = outstreams;
+  init.sinit_max_instreams = instreams;
+  init.sinit_max_attempts = max_attempts;
   init.sinit_max_init_timeo = init_timeout;
 
   if (setsockopt(sd, IPPROTO_SCTP, SCTP_INITMSG, &init, sizeof(init)) < 0) {
@@ -90,7 +90,7 @@ int set_sctp_opts(
   int on = 1;
 
   struct linger sctp_linger;
-  sctp_linger.l_onoff  = on;
+  sctp_linger.l_onoff = on;
   sctp_linger.l_linger = 0;  // send an ABORT
   if (setsockopt(sd, SOL_SOCKET, SO_LINGER, &sctp_linger, sizeof(sctp_linger)) <
       0) {
@@ -100,8 +100,8 @@ int set_sctp_opts(
 
   struct sctp_event_subscribe event;
   event.sctp_association_event = on;
-  event.sctp_shutdown_event    = on;
-  event.sctp_data_io_event     = on;
+  event.sctp_shutdown_event = on;
+  event.sctp_data_io_event = on;
 
   if (setsockopt(sd, IPPROTO_SCTP, SCTP_EVENTS, &event, sizeof(event)) < 0) {
     MLOG_perror("setsockopt");
@@ -118,26 +118,26 @@ int convert_addrs(const InitReq* req, struct sockaddr** addrs, int* num_addrs) {
 
   auto num_ipv4_addrs = req->ipv4_addrs_size();
   auto num_ipv6_addrs = req->ipv6_addrs_size();
-  *num_addrs          = num_ipv4_addrs + num_ipv6_addrs;
+  *num_addrs = num_ipv4_addrs + num_ipv6_addrs;
 
-  *addrs = (struct sockaddr*) calloc(*num_addrs, sizeof(struct sockaddr*));
+  *addrs = (struct sockaddr*)calloc(*num_addrs, sizeof(struct sockaddr*));
   if (*addrs == NULL) return -1;
 
   for (i = 0; i < num_ipv4_addrs; i++) {
-    ipv4_addr = (struct sockaddr_in*) &(*addrs)[i];
+    ipv4_addr = (struct sockaddr_in*)&(*addrs)[i];
 
     ipv4_addr->sin_family = AF_INET;
-    ipv4_addr->sin_port   = htons(req->port());
+    ipv4_addr->sin_port = htons(req->port());
     if (inet_aton(req->ipv4_addrs(i).c_str(), &ipv4_addr->sin_addr) < 0) {
       return -1;
     }
   }
 
   for (i = 0; i < num_ipv6_addrs; i++) {
-    ipv6_addr = (struct sockaddr_in6*) &(*addrs)[i + num_ipv4_addrs];
+    ipv6_addr = (struct sockaddr_in6*)&(*addrs)[i + num_ipv4_addrs];
 
     ipv6_addr->sin6_family = AF_INET6;
-    ipv6_addr->sin6_port   = htons(req->port());
+    ipv6_addr->sin6_port = htons(req->port());
     if (inet_pton(AF_INET6, req->ipv6_addrs(i).c_str(), &ipv6_addr->sin6_addr) <
         0) {
       return -1;
@@ -147,27 +147,27 @@ int convert_addrs(const InitReq* req, struct sockaddr** addrs, int* num_addrs) {
   return 0;
 }
 
-int pull_peer_ipaddr(
-    const int sd, const uint32_t assoc_id, std::string& ran_cp_ipaddr) {
-  int n_remote_addr             = -1;
+int pull_peer_ipaddr(const int sd, const uint32_t assoc_id,
+                     std::string& ran_cp_ipaddr) {
+  int n_remote_addr = -1;
   struct sockaddr* remote_addrs = NULL;
-  n_remote_addr                 = sctp_getpaddrs(sd, assoc_id, &remote_addrs);
+  n_remote_addr = sctp_getpaddrs(sd, assoc_id, &remote_addrs);
 
   // Since socket is opened as AF_INET6, remote address comes as IPv6 formatted
   // for both IPv4 and IPv6 end points
   const uint8_t* remote_addr_ipv6_bytes =
-      ((const struct sockaddr_in6*) &remote_addrs[0])->sin6_addr.s6_addr;
+      ((const struct sockaddr_in6*)&remote_addrs[0])->sin6_addr.s6_addr;
   const char* fromaddr = NULL;
   if (n_remote_addr >= 1) {
     // Picking the first address only.
     // Check if remote_addrs[0] is IPv6 formatted IPv4 address
     if (IN6_IS_ADDR_V4MAPPED(
-            &((struct sockaddr_in6*) &remote_addrs[0])->sin6_addr)) {
+            &((struct sockaddr_in6*)&remote_addrs[0])->sin6_addr)) {
       // First 12 bytes are ::FFFF for IPv4-mapped-IPv6
-      fromaddr      = (const char*) remote_addr_ipv6_bytes + 12;
+      fromaddr = (const char*)remote_addr_ipv6_bytes + 12;
       ran_cp_ipaddr = std::string(fromaddr, 4);
     } else {
-      fromaddr      = (const char*) remote_addr_ipv6_bytes;
+      fromaddr = (const char*)remote_addr_ipv6_bytes;
       ran_cp_ipaddr = std::string(fromaddr, 16);
     }
   }

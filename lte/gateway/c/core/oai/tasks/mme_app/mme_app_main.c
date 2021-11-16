@@ -57,7 +57,7 @@ static void mme_app_exit(void);
 static void start_stats_timer(void);
 
 bool mme_hss_associated = false;
-bool mme_sctp_bounded   = false;
+bool mme_sctp_bounded = false;
 task_zmq_ctx_t mme_app_task_zmq_ctx;
 bool mme_congestion_control_enabled = true;
 long mme_app_last_msg_latency;
@@ -69,18 +69,18 @@ mme_congestion_params_t mme_congestion_params;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
-  imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
+  imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
 
   bool is_task_state_same = false;
-  bool force_ue_write     = false;
+  bool force_ue_write = false;
 
   mme_app_last_msg_latency =
       ITTI_MSG_LATENCY(received_message_p);  // microseconds
   pre_mme_task_msg_latency = ITTI_MSG_LASTHOP_LATENCY(received_message_p);
 
-  OAILOG_DEBUG(
-      LOG_MME_APP, "MME APP ZMQ latency: %ld.", mme_app_last_msg_latency);
+  OAILOG_DEBUG(LOG_MME_APP, "MME APP ZMQ latency: %ld.",
+               mme_app_last_msg_latency);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case MESSAGE_TEST: {
@@ -109,7 +109,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           MME_APP_UL_DATA_IND(received_message_p).tai,
           MME_APP_UL_DATA_IND(received_message_p).cgi,
           &MME_APP_UL_DATA_IND(received_message_p).nas_msg);
-      force_ue_write     = true;
+      force_ue_write = true;
       is_task_state_same = true;
     } break;
 
@@ -133,8 +133,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S11_MODIFY_BEARER_RESPONSE: {
       ue_mm_context_t* ue_context_p = NULL;
-      OAILOG_INFO(
-          LOG_MME_APP, "Received S11 MODIFY BEARER RESPONSE from SPGW\n");
+      OAILOG_INFO(LOG_MME_APP,
+                  "Received S11 MODIFY BEARER RESPONSE from SPGW\n");
       ue_context_p = mme_ue_context_exists_s11_teid(
           &mme_app_desc_p->mme_ue_contexts,
           received_message_p->ittiMsg.s11_modify_bearer_response.teid);
@@ -226,8 +226,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       /*
        * We received the update location answer message from HSS -> Handle it
        */
-      OAILOG_INFO(
-          LOG_MME_APP, "Received S6A Update Location Answer from S6A\n");
+      OAILOG_INFO(LOG_MME_APP,
+                  "Received S6A Update Location Answer from S6A\n");
       mme_app_handle_s6a_update_location_ans(
           mme_app_desc_p, &received_message_p->ittiMsg.s6a_update_location_ans);
       is_task_state_same = true;
@@ -305,8 +305,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case SGSAP_LOCATION_UPDATE_ACC: {
       /*Received SGSAP Location Update Accept message from SGS task*/
-      OAILOG_INFO(
-          LOG_MME_APP, "Received SGSAP Location Update Accept from SGS\n");
+      OAILOG_INFO(LOG_MME_APP,
+                  "Received SGSAP Location Update Accept from SGS\n");
       mme_app_handle_sgsap_location_update_acc(
           mme_app_desc_p,
           &received_message_p->ittiMsg.sgsap_location_update_acc);
@@ -401,8 +401,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_HANDOVER_NOTIFY: {
-      mme_app_handle_handover_notify(
-          mme_app_desc_p, &S1AP_HANDOVER_NOTIFY(received_message_p));
+      mme_app_handle_handover_notify(mme_app_desc_p,
+                                     &S1AP_HANDOVER_NOTIFY(received_message_p));
     } break;
 
     case S6A_AUTH_INFO_ANS: {
@@ -416,9 +416,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case MME_APP_DOWNLINK_DATA_CNF: {
       bstring nas_msg = NULL;
-      nas_proc_dl_transfer_cnf(
-          MME_APP_DL_DATA_CNF(received_message_p).ue_id,
-          MME_APP_DL_DATA_CNF(received_message_p).err_code, &nas_msg);
+      nas_proc_dl_transfer_cnf(MME_APP_DL_DATA_CNF(received_message_p).ue_id,
+                               MME_APP_DL_DATA_CNF(received_message_p).err_code,
+                               &nas_msg);
       is_task_state_same = true;
     } break;
 
@@ -500,20 +500,20 @@ static void* mme_app_thread(__attribute__((unused)) void* args) {
   start_stats_timer();
 
   zloop_start(mme_app_task_zmq_ctx.event_loop);
-  AssertFatal(
-      0, "Asserting as mme_app_thread should not be exiting on its own!");
+  AssertFatal(0,
+              "Asserting as mme_app_thread should not be exiting on its own!");
   return NULL;
 }
 
 static void mme_app_init_congestion_params(const mme_config_t* mme_config_p) {
   mme_congestion_params.mme_app_zmq_congest_th =
-      (long) mme_config_p->mme_app_zmq_congest_th;
+      (long)mme_config_p->mme_app_zmq_congest_th;
   mme_congestion_params.mme_app_zmq_auth_th =
-      (long) mme_config_p->mme_app_zmq_auth_th;
+      (long)mme_config_p->mme_app_zmq_auth_th;
   mme_congestion_params.mme_app_zmq_ident_th =
-      (long) mme_config_p->mme_app_zmq_ident_th;
+      (long)mme_config_p->mme_app_zmq_ident_th;
   mme_congestion_params.mme_app_zmq_smc_th =
-      (long) mme_config_p->mme_app_zmq_smc_th;
+      (long)mme_config_p->mme_app_zmq_smc_th;
 }
 
 //------------------------------------------------------------------------------
@@ -534,7 +534,7 @@ status_code_e mme_app_init(const mme_config_t* mme_config_p) {
   mme_app_init_congestion_params(mme_config_p);
 
   // Initialize global stats timer
-  epc_stats_timer_sec = (size_t) mme_config_p->stats_timer_sec;
+  epc_stats_timer_sec = (size_t)mme_config_p->stats_timer_sec;
 
   /*
    * Create the thread associated with MME applicative layer
@@ -551,18 +551,18 @@ status_code_e mme_app_init(const mme_config_t* mme_config_p) {
 static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   application_mme_app_stats_msg_t stats_msg;
-  stats_msg.nb_ue_attached         = mme_app_desc_p->nb_ue_attached;
-  stats_msg.nb_ue_connected        = mme_app_desc_p->nb_ue_connected;
+  stats_msg.nb_ue_attached = mme_app_desc_p->nb_ue_attached;
+  stats_msg.nb_ue_connected = mme_app_desc_p->nb_ue_connected;
   stats_msg.nb_default_eps_bearers = mme_app_desc_p->nb_default_eps_bearers;
-  stats_msg.nb_s1u_bearers         = mme_app_desc_p->nb_s1u_bearers;
-  return send_mme_app_stats_to_service303(
-      &mme_app_task_zmq_ctx, TASK_MME_APP, &stats_msg);
+  stats_msg.nb_s1u_bearers = mme_app_desc_p->nb_s1u_bearers;
+  return send_mme_app_stats_to_service303(&mme_app_task_zmq_ctx, TASK_MME_APP,
+                                          &stats_msg);
 }
 
 static void start_stats_timer(void) {
-  epc_stats_timer_id = start_timer(
-      &mme_app_task_zmq_ctx, 1000 * epc_stats_timer_sec, TIMER_REPEAT_FOREVER,
-      handle_stats_timer, NULL);
+  epc_stats_timer_id =
+      start_timer(&mme_app_task_zmq_ctx, 1000 * epc_stats_timer_sec,
+                  TIMER_REPEAT_FOREVER, handle_stats_timer, NULL);
 }
 
 static void check_mme_healthy_and_notify_service(void) {

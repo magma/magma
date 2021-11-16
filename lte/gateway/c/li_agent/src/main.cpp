@@ -25,8 +25,8 @@
 #include "lte/gateway/c/li_agent/src/Utilities.h"
 #include "orc8r/gateway/c/common/logging/magma_logging_init.h"
 
-static uint32_t get_log_verbosity(
-    const YAML::Node& config, magma::mconfig::LIAgentD mconfig) {
+static uint32_t get_log_verbosity(const YAML::Node& config,
+                                  magma::mconfig::LIAgentD mconfig) {
   if (!config["log_level"].IsDefined()) {
     if (mconfig.log_level() < 0 || mconfig.log_level() > 4) {
       return MINFO;
@@ -55,7 +55,7 @@ int main(void) {
   magma::init_logging(LIAGENTD);
 
   auto mconfig = magma::lte::load_mconfig();
-  auto config  = magma::ServiceConfigLoader{}.load_service_config(LIAGENTD);
+  auto config = magma::ServiceConfigLoader{}.load_service_config(LIAGENTD);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
 
   // Ignoring SIGPIPE due to ssl write throwing it occasionally
@@ -73,14 +73,14 @@ int main(void) {
   MLOG(MINFO) << "Starting LI Agent service " << config;
 
   std::string interface_name = config["interface_name"].as<std::string>();
-  std::string pkt_dst_mac    = config["pkt_dst_mac"].as<std::string>();
-  std::string pkt_src_mac    = config["pkt_src_mac"].as<std::string>();
-  std::string proxy_addr     = config["proxy_addr"].as<std::string>();
-  std::string cert_file      = config["cert_file"].as<std::string>();
-  std::string key_file       = config["key_file"].as<std::string>();
-  int proxy_port             = config["proxy_port"].as<int>();
-  int sync_interval          = config["sync_interval"].as<int>();
-  int inactivity_time        = config["inactivity_time"].as<int>();
+  std::string pkt_dst_mac = config["pkt_dst_mac"].as<std::string>();
+  std::string pkt_src_mac = config["pkt_src_mac"].as<std::string>();
+  std::string proxy_addr = config["proxy_addr"].as<std::string>();
+  std::string cert_file = config["cert_file"].as<std::string>();
+  std::string key_file = config["key_file"].as<std::string>();
+  int proxy_port = config["proxy_port"].as<int>();
+  int sync_interval = config["sync_interval"].as<int>();
+  int inactivity_time = config["inactivity_time"].as<int>();
 
   auto mobilityd_client = std::make_unique<magma::lte::AsyncMobilitydClient>();
   std::thread mobilitydd_response_handling_thread([&]() {

@@ -36,7 +36,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S6A_PURGE_UE_REQ: {
       s6a_handler_->s6a_viface_purge_ue();
     }
-    default: { } break; }
+    default: {
+    } break;
+  }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
 

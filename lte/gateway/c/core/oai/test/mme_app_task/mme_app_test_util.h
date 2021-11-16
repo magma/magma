@@ -28,9 +28,8 @@ namespace lte {
 #define STATE_MAX_WAIT_MS 1000
 #define NAS_RETX_LIMIT 5
 
-#define MME_APP_EXPECT_CALLS(                                                  \
-    dlNas, connEstConf, ctxRel, air, ulr, purgeReq, csr, mbr, relBearer, dsr,  \
-    setAppHealth)                                                              \
+#define MME_APP_EXPECT_CALLS(dlNas, connEstConf, ctxRel, air, ulr, purgeReq,   \
+                             csr, mbr, relBearer, dsr, setAppHealth)           \
   do {                                                                         \
     EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport())         \
         .Times(dlNas)                                                          \
@@ -62,11 +61,11 @@ void send_sctp_mme_server_initialized();
 
 void send_activate_message_to_mme_app();
 
-void send_mme_app_initial_ue_msg(
-    const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn);
+void send_mme_app_initial_ue_msg(const uint8_t* nas_msg, uint8_t nas_msg_length,
+                                 const plmn_t& plmn);
 
-void send_mme_app_uplink_data_ind(
-    const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn);
+void send_mme_app_uplink_data_ind(const uint8_t* nas_msg,
+                                  uint8_t nas_msg_length, const plmn_t& plmn);
 
 void send_authentication_info_resp(const std::string& imsi, bool success);
 
@@ -84,14 +83,13 @@ void send_ue_capabilities_ind();
 
 void send_context_release_req(s1cause rel_cause, task_id_t TASK_ID);
 
-void send_modify_bearer_resp(
-    const std::vector<int>& bearer_to_modify,
-    const std::vector<int>& bearer_to_remove);
+void send_modify_bearer_resp(const std::vector<int>& bearer_to_modify,
+                             const std::vector<int>& bearer_to_remove);
 
 void sgw_send_release_access_bearer_response(gtpv2c_cause_value_t cause);
-void send_s11_deactivate_bearer_req(
-    uint8_t no_of_bearers_to_be_deact, uint8_t* ebi_to_be_deactivated,
-    bool delete_default_bearer);
+void send_s11_deactivate_bearer_req(uint8_t no_of_bearers_to_be_deact,
+                                    uint8_t* ebi_to_be_deactivated,
+                                    bool delete_default_bearer);
 
 }  // namespace lte
 }  // namespace magma

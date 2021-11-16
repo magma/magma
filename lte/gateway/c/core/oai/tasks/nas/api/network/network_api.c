@@ -84,9 +84,9 @@ static struct {
 
 #define NETWORK_API_OPEN(a, b, c) _network_api_id.open(a, b, c)
 #define NETWORK_API_GETFD() _network_api_id.getfd(_network_api_id.endpoint)
-#define NETWORK_API_RECV(a, b)                                                 \
+#define NETWORK_API_RECV(a, b) \
   _network_api_id.recv(_network_api_id.endpoint, a, b)
-#define NETWORK_API_SEND(a, b)                                                 \
+#define NETWORK_API_SEND(a, b) \
   _network_api_id.send(_network_api_id.endpoint, a, b)
 #define NETWORK_API_CLOSE() _network_api_id.close(_network_api_id.endpoint)
 
@@ -132,10 +132,10 @@ status_code_e network_api_initialize(const char* host, const char* port) {
   /*
    * Initialize network socket handlers
    */
-  _network_api_id.open  = socket_udp_open;
+  _network_api_id.open = socket_udp_open;
   _network_api_id.getfd = socket_get_fd;
-  _network_api_id.recv  = socket_recv;
-  _network_api_id.send  = socket_send;
+  _network_api_id.recv = socket_recv;
+  _network_api_id.send = socket_send;
   _network_api_id.close = socket_close;
   /*
    * Initialize UDP communication channel with the network layer
@@ -147,15 +147,14 @@ status_code_e network_api_initialize(const char* host, const char* port) {
   if (_network_api_id.endpoint == NULL) {
     const char* error = ((errno < 0) ? gai_strerror(errno) : strerror(errno));
 
-    OAILOG_ERROR(
-        LOG_NAS, "NET-API   - Failed to open connection endpoint, %s", error);
+    OAILOG_ERROR(LOG_NAS, "NET-API   - Failed to open connection endpoint, %s",
+                 error);
     OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
   }
 
   gethostname(_network_api_send_buffer, NETWORK_API_SEND_BUFFER_SIZE);
-  OAILOG_INFO(
-      LOG_NAS, "NET-API   - Network's UDP socket %d is BOUND to %s/%s",
-      network_api_get_fd(), _network_api_send_buffer, port);
+  OAILOG_INFO(LOG_NAS, "NET-API   - Network's UDP socket %d is BOUND to %s/%s",
+              network_api_get_fd(), _network_api_send_buffer, port);
   OAILOG_FUNC_RETURN(LOG_NAS, RETURNok);
 }
 
@@ -196,7 +195,7 @@ status_code_e network_api_get_fd(void) {
  ***************************************************************************/
 const void* network_api_get_data(void) {
   OAILOG_FUNC_IN(LOG_NAS);
-  OAILOG_FUNC_RETURN(LOG_NAS, (void*) (&_as_data));
+  OAILOG_FUNC_RETURN(LOG_NAS, (void*)(&_as_data));
 }
 
 /****************************************************************************
@@ -245,13 +244,12 @@ status_code_e network_api_read_data(int fd) {
   } else if (rbytes == 0) {
     OAILOG_WARNING(LOG_NAS, "NET-API   - A signal was caught");
   } else {
-    OAILOG_INFO(
-        LOG_NAS,
-        "NET-API   - %d bytes received from the network "
-        "sublayer",
-        rbytes);
-    OAILOG_STREAM_HEX(
-        OAILOG_LEVEL_DEBUG, LOG_NAS, "", _network_api_recv_buffer, rbytes);
+    OAILOG_INFO(LOG_NAS,
+                "NET-API   - %d bytes received from the network "
+                "sublayer",
+                rbytes);
+    OAILOG_STREAM_HEX(OAILOG_LEVEL_DEBUG, LOG_NAS, "", _network_api_recv_buffer,
+                      rbytes);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS, rbytes);
@@ -302,10 +300,10 @@ status_code_e network_api_send_data(int fd, size_t length) {
   } else if (sbytes == 0) {
     OAILOG_WARNING(LOG_NAS, "NET-API   - A signal was caught");
   } else {
-    OAILOG_INFO(
-        LOG_NAS, "NET-API   - %d bytes sent to the network sublayer", sbytes);
-    OAILOG_STREAM_HEX(
-        OAILOG_LEVEL_DEBUG, LOG_NAS, "", _network_api_recv_buffer, sbytes);
+    OAILOG_INFO(LOG_NAS, "NET-API   - %d bytes sent to the network sublayer",
+                sbytes);
+    OAILOG_STREAM_HEX(OAILOG_LEVEL_DEBUG, LOG_NAS, "", _network_api_recv_buffer,
+                      sbytes);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS, sbytes);
@@ -376,8 +374,8 @@ status_code_e network_api_decode_data(size_t length) {
   int as_id = as_message_decode(_network_api_recv_buffer, &_as_data, length);
 
   if (as_id != RETURNerror) {
-    OAILOG_INFO(
-        LOG_NAS, "NET-API   - AS message id=0x%x successfully decoded", as_id);
+    OAILOG_INFO(LOG_NAS, "NET-API   - AS message id=0x%x successfully decoded",
+                as_id);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS, as_id);
@@ -403,9 +401,8 @@ status_code_e network_api_encode_data(void* data) {
   /*
    * Encode the Access Stratum  message
    */
-  int bytes = as_message_encode(
-      _network_api_send_buffer, (as_message_t*) (data),
-      NETWORK_API_SEND_BUFFER_SIZE);
+  int bytes = as_message_encode(_network_api_send_buffer, (as_message_t*)(data),
+                                NETWORK_API_SEND_BUFFER_SIZE);
 
   if (bytes != RETURNerror) {
     OAILOG_INFO(LOG_NAS, "NET-API   - %d bytes encoded", bytes);
@@ -434,11 +431,10 @@ status_code_e as_message_send(as_message_t* as_msg) {
   int bytes;
 
   OAILOG_FUNC_IN(LOG_NAS);
-  OAILOG_INFO(
-      LOG_NAS,
-      "NET-API   - Send message 0x%.4x to the Access Stratum "
-      "layer",
-      as_msg->msg_id);
+  OAILOG_INFO(LOG_NAS,
+              "NET-API   - Send message 0x%.4x to the Access Stratum "
+              "layer",
+              as_msg->msg_id);
   /*
    * Encode the AS message
    */

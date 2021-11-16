@@ -84,34 +84,33 @@ class NAS5GPktSnapShot {
 };
 
 //  API for testing decode registration request
-bool decode_registration_request_msg(
-    RegistrationRequestMsg* reg_request, const uint8_t* buffer, uint32_t len);
+bool decode_registration_request_msg(RegistrationRequestMsg* reg_request,
+                                     const uint8_t* buffer, uint32_t len);
 
-bool encode_registration_reject_msg(
-    RegistrationRejectMsg* reg_reject, const uint8_t* buffer, uint32_t len);
+bool encode_registration_reject_msg(RegistrationRejectMsg* reg_reject,
+                                    const uint8_t* buffer, uint32_t len);
 
-bool decode_registration_reject_msg(
-    RegistrationRejectMsg* reg_reject, const uint8_t* buffer, uint32_t len);
+bool decode_registration_reject_msg(RegistrationRejectMsg* reg_reject,
+                                    const uint8_t* buffer, uint32_t len);
 
-bool decode_auth_failure_decode_msg(
-    AuthenticationFailureMsg* auth_failure, const uint8_t* buffer,
-    uint32_t len);
+bool decode_auth_failure_decode_msg(AuthenticationFailureMsg* auth_failure,
+                                    const uint8_t* buffer, uint32_t len);
 
-bool decode_ul_nas_transport_msg(
-    ULNASTransportMsg* ul_nas_pdu, const uint8_t* buffer, uint32_t len);
+bool decode_ul_nas_transport_msg(ULNASTransportMsg* ul_nas_pdu,
+                                 const uint8_t* buffer, uint32_t len);
 
 bool decode_ul_nas_deregister_request_msg(
     DeRegistrationRequestUEInitMsg* dereg_req, const uint8_t* buffer,
     uint32_t len);
 
-bool decode_service_request_msg(
-    ServiceRequestMsg* sv_request, const uint8_t* buffer, uint32_t len);
+bool decode_service_request_msg(ServiceRequestMsg* sv_request,
+                                const uint8_t* buffer, uint32_t len);
 
 void gen_ipcp_pco_options(protocol_configuration_options_t* const pco_resp);
 
 int gen_dns_pco_options(protocol_configuration_options_t* const pco_resp);
 
-bool decode_security_mode_reject_msg(
-    SecurityModeRejectMsg* sm_reject, const uint8_t* buffer, uint32_t len);
+bool decode_security_mode_reject_msg(SecurityModeRejectMsg* sm_reject,
+                                     const uint8_t* buffer, uint32_t len);
 
 }  // namespace magma5g

@@ -28,14 +28,13 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
-MESSAGE_DEF(
-    PCEF_CREATE_SESSION_RESPONSE, itti_pcef_create_session_response_t,
-    pcef_create_session_response)
+MESSAGE_DEF(PCEF_CREATE_SESSION_RESPONSE, itti_pcef_create_session_response_t,
+            pcef_create_session_response)
 
-MESSAGE_DEF(
-    GX_NW_INITIATED_ACTIVATE_BEARER_REQ, itti_gx_nw_init_actv_bearer_request_t,
-    gx_nw_init_actv_bearer_request)
+MESSAGE_DEF(GX_NW_INITIATED_ACTIVATE_BEARER_REQ,
+            itti_gx_nw_init_actv_bearer_request_t,
+            gx_nw_init_actv_bearer_request)
 
-MESSAGE_DEF(
-    GX_NW_INITIATED_DEACTIVATE_BEARER_REQ,
-    itti_gx_nw_init_deactv_bearer_request_t, gx_nw_init_deactv_bearer_request)
+MESSAGE_DEF(GX_NW_INITIATED_DEACTIVATE_BEARER_REQ,
+            itti_gx_nw_init_deactv_bearer_request_t,
+            gx_nw_init_deactv_bearer_request)

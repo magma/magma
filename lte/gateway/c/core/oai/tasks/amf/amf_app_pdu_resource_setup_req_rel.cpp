@@ -49,9 +49,9 @@ uint64_t get_bit_rate(uint8_t ambr_unit) {
 /*
  * AMBR calculation based on 9.11.4.14 of 24-501
  */
-void ambr_calculation_pdu_session(
-    std::shared_ptr<smf_context_t> smf_context, uint64_t* dl_pdu_ambr,
-    uint64_t* ul_pdu_ambr) {
+void ambr_calculation_pdu_session(std::shared_ptr<smf_context_t> smf_context,
+                                  uint64_t* dl_pdu_ambr,
+                                  uint64_t* ul_pdu_ambr) {
   if ((smf_context->dl_ambr_unit == 0) || (smf_context->ul_ambr_unit == 0) ||
       (smf_context->dl_session_ambr == 0) ||
       (smf_context->dl_session_ambr == 0)) {
@@ -88,7 +88,7 @@ int pdu_session_resource_setup_request(
     std::shared_ptr<smf_context_t> smf_context, bstring nas_msg) {
   pdu_session_resource_setup_request_transfer_t amf_pdu_ses_setup_transfer_req;
   itti_ngap_pdusession_resource_setup_req_t* ngap_pdu_ses_setup_req = nullptr;
-  MessageDef* message_p                                             = nullptr;
+  MessageDef* message_p = nullptr;
   uint64_t dl_pdu_ambr;
   uint64_t ul_pdu_ambr;
 
@@ -96,9 +96,8 @@ int pdu_session_resource_setup_request(
       itti_alloc_new_message(TASK_AMF_APP, NGAP_PDUSESSION_RESOURCE_SETUP_REQ);
   ngap_pdu_ses_setup_req =
       &message_p->ittiMsg.ngap_pdusession_resource_setup_req;
-  memset(
-      ngap_pdu_ses_setup_req, 0,
-      sizeof(itti_ngap_pdusession_resource_setup_req_t));
+  memset(ngap_pdu_ses_setup_req, 0,
+         sizeof(itti_ngap_pdusession_resource_setup_req_t));
 
   // start filling message in DL to NGAP
   ngap_pdu_ses_setup_req->gnb_ue_ngap_id = ue_context->gnb_ue_ngap_id;
@@ -136,13 +135,12 @@ int pdu_session_resource_setup_request(
       &smf_context->gtp_tunnel_id.upf_gtp_teid_ip_addr, GNB_IPV4_ADDR_LEN);
   amf_pdu_ses_setup_transfer_req.pdu_ip_type.pdn_type = IPv4;
 
-  memcpy(
-      &amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list
-           .qos_flow_req_item,
-      &smf_context->pdu_resource_setup_req
-           .pdu_session_resource_setup_request_transfer
-           .qos_flow_setup_request_list.qos_flow_req_item,
-      sizeof(qos_flow_setup_request_item));
+  memcpy(&amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list
+              .qos_flow_req_item,
+         &smf_context->pdu_resource_setup_req
+              .pdu_session_resource_setup_request_transfer
+              .qos_flow_setup_request_list.qos_flow_req_item,
+         sizeof(qos_flow_setup_request_item));
   // Adding respective header to amf_pdu_ses_setup_transfer_request
   ngap_pdu_ses_setup_req->pduSessionResource_setup_list.item[0]
       .PDU_Session_Resource_Setup_Request_Transfer =
@@ -157,15 +155,16 @@ int pdu_session_resource_setup_request(
 }
 
 /* Resource release request to gNB through NGAP */
-int pdu_session_resource_release_request(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    std::shared_ptr<smf_context_t> smf_ctx, bool retransmit) {
+int pdu_session_resource_release_request(ue_m5gmm_context_s* ue_context,
+                                         amf_ue_ngap_id_t amf_ue_ngap_id,
+                                         std::shared_ptr<smf_context_t> smf_ctx,
+                                         bool retransmit) {
   bstring buffer;
-  uint32_t bytes                = 0;
+  uint32_t bytes = 0;
   DLNASTransportMsg* encode_msg = NULL;
-  SmfMsg* smf_msg               = NULL;
-  uint32_t len                  = 0;
-  uint32_t container_len        = 0;
+  SmfMsg* smf_msg = NULL;
+  uint32_t len = 0;
+  uint32_t container_len = 0;
   amf_nas_message_t msg;
   nas5g_error_code_t rc = M5G_AS_SUCCESS;
 
@@ -180,20 +179,20 @@ int pdu_session_resource_release_request(
       ue_context->amf_context._security.dl_count.seq_num;
 
   encode_msg = &msg.security_protected.plain.amf.msg.downlinknas5gtransport;
-  smf_msg    = &encode_msg->payload_container.smf_msg;
+  smf_msg = &encode_msg->payload_container.smf_msg;
 
   // NAS5g AmfHeader
   encode_msg->extended_protocol_discriminator.extended_proto_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
   len++;
-  encode_msg->spare_half_octet.spare  = 0x00;
+  encode_msg->spare_half_octet.spare = 0x00;
   encode_msg->sec_header_type.sec_hdr = 0x00;
   len++;
   encode_msg->message_type.msg_type = DLNASTRANSPORT;
   len++;
   encode_msg->payload_container.iei = PAYLOAD_CONTAINER;
   // encode_msg->payload_container_type.iei      = PAYLOAD_CONTAINER_TYPE;
-  encode_msg->payload_container_type.iei      = 0;
+  encode_msg->payload_container_type.iei = 0;
   encode_msg->payload_container_type.type_val = N1_SM_INFO;
   len++;
   encode_msg->pdu_session_identity.iei = 0x12;
@@ -207,7 +206,7 @@ int pdu_session_resource_release_request(
       M5G_SESSION_MANAGEMENT_MESSAGES;
   smf_msg->header.pdu_session_id =
       smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
-  smf_msg->header.message_type             = PDU_SESSION_RELEASE_COMMAND;
+  smf_msg->header.message_type = PDU_SESSION_RELEASE_COMMAND;
   smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
   smf_msg->msg.pdu_session_release_command.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
@@ -243,8 +242,8 @@ int pdu_session_resource_release_request(
     header->security_header_type = SECURITY_HEADER_TYPE_NOT_PROTECTED;
   }
   buffer = bfromcstralloc(len, "\0");
-  bytes  = nas5g_message_encode(
-      buffer->data, &msg, len, &ue_context->amf_context._security);
+  bytes = nas5g_message_encode(buffer->data, &msg, len,
+                               &ue_context->amf_context._security);
 
   if (retransmit) {
     if (bytes > 0) {
@@ -259,16 +258,15 @@ int pdu_session_resource_release_request(
   }
 
   itti_ngap_pdusessionresource_rel_req_t* ngap_pdu_ses_release_req = nullptr;
-  MessageDef* message_p                                            = nullptr;
+  MessageDef* message_p = nullptr;
   pdu_session_resource_release_command_transfer amf_pdu_ses_rel_transfer_req;
 
   message_p =
       itti_alloc_new_message(TASK_AMF_APP, NGAP_PDUSESSIONRESOURCE_REL_REQ);
   ngap_pdu_ses_release_req =
       &message_p->ittiMsg.ngap_pdusessionresource_rel_req;
-  memset(
-      ngap_pdu_ses_release_req, 0,
-      sizeof(itti_ngap_pdusessionresource_rel_req_t));
+  memset(ngap_pdu_ses_release_req, 0,
+         sizeof(itti_ngap_pdusessionresource_rel_req_t));
 
   // start filling message in DL to NGAP
   ngap_pdu_ses_release_req->gnb_ue_ngap_id = ue_context->gnb_ue_ngap_id;
@@ -295,7 +293,7 @@ int pdu_session_resource_release_request(
   // Send message to NGAP task
   if (bytes > 0) {
     //    buffer->slen = bytes;
-    buffer->slen                      = bytes;
+    buffer->slen = bytes;
     ngap_pdu_ses_release_req->nas_msg = bstrcpy(buffer);
     bdestroy(buffer);
   } else {

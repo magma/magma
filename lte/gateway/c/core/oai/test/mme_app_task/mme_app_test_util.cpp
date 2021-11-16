@@ -29,8 +29,8 @@ namespace lte {
 extern task_zmq_ctx_t task_zmq_ctx_main;
 
 void nas_config_timer_reinit(nas_config_t* nas_conf, uint32_t timeout_msec) {
-  nas_conf->t3402_min  = 1;
-  nas_conf->t3412_min  = 1;
+  nas_conf->t3402_min = 1;
+  nas_conf->t3412_min = 1;
   nas_conf->t3422_msec = timeout_msec;
   nas_conf->t3450_msec = timeout_msec;
   nas_conf->t3460_msec = timeout_msec;
@@ -39,8 +39,8 @@ void nas_config_timer_reinit(nas_config_t* nas_conf, uint32_t timeout_msec) {
   nas_conf->t3486_msec = timeout_msec;
   nas_conf->t3489_msec = timeout_msec;
   nas_conf->t3495_msec = timeout_msec;
-  nas_conf->ts6a_msec  = timeout_msec;
-  nas_conf->tics_msec  = timeout_msec;
+  nas_conf->ts6a_msec = timeout_msec;
+  nas_conf->tics_msec = timeout_msec;
   return;
 }
 
@@ -58,32 +58,32 @@ void send_activate_message_to_mme_app() {
   return;
 }
 
-void send_mme_app_initial_ue_msg(
-    const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn) {
+void send_mme_app_initial_ue_msg(const uint8_t* nas_msg, uint8_t nas_msg_length,
+                                 const plmn_t& plmn) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
-  ITTI_MSG_LASTHOP_LATENCY(message_p)               = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id  = 0;
+  ITTI_MSG_LASTHOP_LATENCY(message_p) = 0;
+  S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id = 0;
   S1AP_INITIAL_UE_MESSAGE(message_p).enb_ue_s1ap_id = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).enb_id         = 0;
+  S1AP_INITIAL_UE_MESSAGE(message_p).enb_id = 0;
   S1AP_INITIAL_UE_MESSAGE(message_p).nas = blk2bstr(nas_msg, nas_msg_length);
-  S1AP_INITIAL_UE_MESSAGE(message_p).tai.plmn           = plmn;
-  S1AP_INITIAL_UE_MESSAGE(message_p).tai.tac            = 1;
-  S1AP_INITIAL_UE_MESSAGE(message_p).ecgi.plmn          = plmn;
+  S1AP_INITIAL_UE_MESSAGE(message_p).tai.plmn = plmn;
+  S1AP_INITIAL_UE_MESSAGE(message_p).tai.tac = 1;
+  S1AP_INITIAL_UE_MESSAGE(message_p).ecgi.plmn = plmn;
   S1AP_INITIAL_UE_MESSAGE(message_p).ecgi.cell_identity = {0, 0, 0};
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }
 
-void send_mme_app_uplink_data_ind(
-    const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn) {
+void send_mme_app_uplink_data_ind(const uint8_t* nas_msg,
+                                  uint8_t nas_msg_length, const plmn_t& plmn) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S1AP, MME_APP_UPLINK_DATA_IND);
-  ITTI_MSG_LASTHOP_LATENCY(message_p)     = 0;
-  MME_APP_UL_DATA_IND(message_p).ue_id    = 1;
-  MME_APP_UL_DATA_IND(message_p).nas_msg  = blk2bstr(nas_msg, nas_msg_length);
+  ITTI_MSG_LASTHOP_LATENCY(message_p) = 0;
+  MME_APP_UL_DATA_IND(message_p).ue_id = 1;
+  MME_APP_UL_DATA_IND(message_p).nas_msg = blk2bstr(nas_msg, nas_msg_length);
   MME_APP_UL_DATA_IND(message_p).tai.plmn = plmn;
-  MME_APP_UL_DATA_IND(message_p).tai.tac  = 1;
+  MME_APP_UL_DATA_IND(message_p).tai.tac = 1;
   MME_APP_UL_DATA_IND(message_p).cgi.plmn = plmn;
   MME_APP_UL_DATA_IND(message_p).cgi.cell_identity = {0, 0, 0};
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
@@ -94,13 +94,13 @@ void send_authentication_info_resp(const std::string& imsi, bool success) {
   MessageDef* message_p = itti_alloc_new_message(TASK_S6A, S6A_AUTH_INFO_ANS);
   s6a_auth_info_ans_t* itti_msg = &message_p->ittiMsg.s6a_auth_info_ans;
   strncpy(itti_msg->imsi, imsi.c_str(), imsi.size());
-  itti_msg->imsi_length    = imsi.size();
+  itti_msg->imsi_length = imsi.size();
   itti_msg->result.present = S6A_RESULT_BASE;
   if (success) {
     itti_msg->result.choice.base = DIAMETER_SUCCESS;
     magma::feg::AuthenticationInformationAnswer aia;
     magma::feg::AuthenticationInformationAnswer::EUTRANVector eutran_vector;
-    uint8_t xres_buf[XRES_LENGTH_MAX]    = {0x66, 0xff, 0x47, 0x2d, 0xd4, 0x93,
+    uint8_t xres_buf[XRES_LENGTH_MAX] = {0x66, 0xff, 0x47, 0x2d, 0xd4, 0x93,
                                          0xf1, 0x5a, 0x00, 0x00, 0x00, 0x00,
                                          0x00, 0x00, 0x00, 0x00};
     uint8_t rand_buf[RAND_LENGTH_OCTETS] = {0x68, 0x16, 0xa1, 0x0c, 0x0f, 0xeb,
@@ -113,10 +113,10 @@ void send_authentication_info_resp(const std::string& imsi, bool success) {
         0xc3, 0x5f, 0x03, 0x8f, 0x5f, 0xbe, 0xcc, 0x23, 0xc4, 0xd1, 0xa7,
         0xd6, 0x8a, 0xf7, 0x05, 0x32, 0xf2, 0x37, 0xf6, 0x40, 0x47, 0xdd,
         0x29, 0x6e, 0x7d, 0x0e, 0xf6, 0xe9, 0x26, 0x5f, 0x24, 0x39};
-    eutran_vector.set_rand((const void*) rand_buf, RAND_LENGTH_OCTETS);
-    eutran_vector.set_xres((const void*) xres_buf, XRES_LENGTH_MAX);
-    eutran_vector.set_autn((const void*) autn_buf, AUTN_LENGTH_OCTETS);
-    eutran_vector.set_kasme((const void*) kasme_buf, KASME_LENGTH_OCTETS);
+    eutran_vector.set_rand((const void*)rand_buf, RAND_LENGTH_OCTETS);
+    eutran_vector.set_xres((const void*)xres_buf, XRES_LENGTH_MAX);
+    eutran_vector.set_autn((const void*)autn_buf, AUTN_LENGTH_OCTETS);
+    eutran_vector.set_kasme((const void*)kasme_buf, KASME_LENGTH_OCTETS);
     aia.set_error_code(magma::feg::ErrorCode::SUCCESS);
     auto eutran_vectors = aia.mutable_eutran_vectors();
     eutran_vectors->Add()->CopyFrom(eutran_vector);
@@ -134,7 +134,7 @@ void send_s6a_ula(const std::string& imsi, bool success) {
   s6a_update_location_ans_t* itti_msg =
       &message_p->ittiMsg.s6a_update_location_ans;
   strncpy(itti_msg->imsi, imsi.c_str(), imsi.size());
-  itti_msg->imsi_length    = imsi.size();
+  itti_msg->imsi_length = imsi.size();
   itti_msg->result.present = S6A_RESULT_BASE;
   if (success) {
     itti_msg->result.choice.base = DIAMETER_SUCCESS;
@@ -170,14 +170,14 @@ void send_create_session_resp(gtpv2c_cause_value_t cause_value) {
   itti_s11_create_session_response_t* create_session_response_p =
       &message_p->ittiMsg.s11_create_session_response;
 
-  create_session_response_p->teid              = 1;
+  create_session_response_p->teid = 1;
   create_session_response_p->cause.cause_value = cause_value;
   create_session_response_p->bearer_contexts_created.bearer_contexts[0]
       .cause.cause_value = cause_value;
   create_session_response_p->bearer_contexts_created.num_bearer_context = 1;
 
   if (cause_value == REQUEST_ACCEPTED) {
-    create_session_response_p->paa.pdn_type            = IPv4;
+    create_session_response_p->paa.pdn_type = IPv4;
     create_session_response_p->paa.ipv4_address.s_addr = 1000;
     create_session_response_p->bearer_contexts_created.bearer_contexts[0]
         .s1u_sgw_fteid.teid = 1000;
@@ -203,9 +203,9 @@ void send_delete_session_resp() {
   itti_s11_delete_session_response_t* delete_session_resp_p =
       &message_p->ittiMsg.s11_delete_session_response;
   delete_session_resp_p->cause.cause_value = REQUEST_ACCEPTED;
-  delete_session_resp_p->teid              = 1;
-  delete_session_resp_p->peer_ip.s_addr    = 100;
-  delete_session_resp_p->lbi               = 5;
+  delete_session_resp_p->teid = 1;
+  delete_session_resp_p->peer_ip.s_addr = 100;
+  delete_session_resp_p->lbi = 5;
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }
@@ -213,14 +213,14 @@ void send_delete_session_resp() {
 void send_ics_response() {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_RSP);
-  MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).ue_id                        = 1;
+  MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).ue_id = 1;
   MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).e_rab_setup_list.no_of_items = 1;
   MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
       .e_rab_setup_list.item[0]
       .e_rab_id = 5;
   MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
       .e_rab_setup_list.item[0]
-      .gtp_teid                     = 0;
+      .gtp_teid = 0;
   uint8_t transport_address_buff[4] = {0, 0, 0, 0};
   MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
       .e_rab_setup_list.item[0]
@@ -240,13 +240,13 @@ void send_ue_ctx_release_complete() {
 void send_ue_capabilities_ind() {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S1AP, S1AP_UE_CAPABILITIES_IND);
-  itti_s1ap_ue_cap_ind_t* ue_cap_ind_p    = &message_p->ittiMsg.s1ap_ue_cap_ind;
-  ue_cap_ind_p->enb_ue_s1ap_id            = 0;
-  ue_cap_ind_p->mme_ue_s1ap_id            = 1;
+  itti_s1ap_ue_cap_ind_t* ue_cap_ind_p = &message_p->ittiMsg.s1ap_ue_cap_ind;
+  ue_cap_ind_p->enb_ue_s1ap_id = 0;
+  ue_cap_ind_p->mme_ue_s1ap_id = 1;
   ue_cap_ind_p->radio_capabilities_length = 200;
   // using malloc to create uninitialized buffer
   ue_cap_ind_p->radio_capabilities =
-      (uint8_t*) malloc(ue_cap_ind_p->radio_capabilities_length);
+      (uint8_t*)malloc(ue_cap_ind_p->radio_capabilities_length);
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }
@@ -256,20 +256,19 @@ void send_context_release_req(s1cause rel_cause, task_id_t TASK_ID) {
       itti_alloc_new_message(TASK_ID, S1AP_UE_CONTEXT_RELEASE_REQ);
   S1AP_UE_CONTEXT_RELEASE_REQ(message_p).mme_ue_s1ap_id = 1;
   S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_ue_s1ap_id = 0;
-  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id         = 0;
-  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause       = rel_cause;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id = 0;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause = rel_cause;
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }
 
-void send_modify_bearer_resp(
-    const std::vector<int>& bearer_to_modify,
-    const std::vector<int>& bearer_to_remove) {
+void send_modify_bearer_resp(const std::vector<int>& bearer_to_modify,
+                             const std::vector<int>& bearer_to_remove) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_SPGW_APP, S11_MODIFY_BEARER_RESPONSE);
   itti_s11_modify_bearer_response_t* modify_response_p =
       &message_p->ittiMsg.s11_modify_bearer_response;
-  modify_response_p->teid              = 1;
+  modify_response_p->teid = 1;
   modify_response_p->cause.cause_value = REQUEST_ACCEPTED;
   for (int i = 0; i < bearer_to_modify.size(); ++i) {
     modify_response_p->bearer_contexts_modified.bearer_contexts[i]
@@ -297,25 +296,24 @@ void sgw_send_release_access_bearer_response(gtpv2c_cause_value_t cause) {
   itti_s11_release_access_bearers_response_t* release_access_bearers_resp_p =
       &message_p->ittiMsg.s11_release_access_bearers_response;
   release_access_bearers_resp_p->cause.cause_value = cause;
-  release_access_bearers_resp_p->teid              = 1;
+  release_access_bearers_resp_p->teid = 1;
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }
 
-void send_s11_deactivate_bearer_req(
-    uint8_t no_of_bearers_to_be_deact, uint8_t* ebi_to_be_deactivated,
-    bool delete_default_bearer) {
+void send_s11_deactivate_bearer_req(uint8_t no_of_bearers_to_be_deact,
+                                    uint8_t* ebi_to_be_deactivated,
+                                    bool delete_default_bearer) {
   MessageDef* message_p = itti_alloc_new_message(
       TASK_SPGW_APP, S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST);
   itti_s11_nw_init_deactv_bearer_request_t* s11_bearer_deactv_request =
       &message_p->ittiMsg.s11_nw_init_deactv_bearer_request;
 
-  s11_bearer_deactv_request->s11_mme_teid          = 1;
+  s11_bearer_deactv_request->s11_mme_teid = 1;
   s11_bearer_deactv_request->delete_default_bearer = delete_default_bearer;
-  s11_bearer_deactv_request->no_of_bearers         = no_of_bearers_to_be_deact;
-  memcpy(
-      s11_bearer_deactv_request->ebi, ebi_to_be_deactivated,
-      (sizeof(ebi_t) * no_of_bearers_to_be_deact));
+  s11_bearer_deactv_request->no_of_bearers = no_of_bearers_to_be_deact;
+  memcpy(s11_bearer_deactv_request->ebi, ebi_to_be_deactivated,
+         (sizeof(ebi_t) * no_of_bearers_to_be_deact));
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }

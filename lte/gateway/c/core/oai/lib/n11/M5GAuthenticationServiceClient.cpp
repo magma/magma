@@ -62,12 +62,12 @@ static void handle_subs_authentication_info_ans(
   itti_amf_subs_auth_info_ans_t* amf_app_subs_auth_info_resp_p;
   amf_app_subs_auth_info_resp_p =
       &message_p->ittiMsg.amf_app_subs_auth_info_resp;
-  memset(
-      amf_app_subs_auth_info_resp_p, 0, sizeof(itti_amf_subs_auth_info_ans_t));
+  memset(amf_app_subs_auth_info_resp_p, 0,
+         sizeof(itti_amf_subs_auth_info_ans_t));
 
   strncpy(amf_app_subs_auth_info_resp_p->imsi, imsi.c_str(), imsi_length);
   amf_app_subs_auth_info_resp_p->imsi_length = imsi_length;
-  amf_app_subs_auth_info_resp_p->ue_id       = ue_id;
+  amf_app_subs_auth_info_resp_p->ue_id = ue_id;
 
   magma5g::convert_proto_msg_to_itti_m5g_auth_info_ans(
       response, amf_app_subs_auth_info_resp_p);
@@ -111,8 +111,8 @@ bool AsyncM5GAuthenticationServiceClient::get_subs_auth_info(
       request, [imsi, imsi_length, ue_id](
                    const Status& status,
                    const M5GAuthenticationInformationAnswer& response) {
-        handle_subs_authentication_info_ans(
-            status, response, imsi, imsi_length, ue_id);
+        handle_subs_authentication_info_ans(status, response, imsi, imsi_length,
+                                            ue_id);
       });
   return true;
 }
@@ -127,8 +127,8 @@ bool AsyncM5GAuthenticationServiceClient::get_subs_auth_info_resync(
       request, [imsi, imsi_length, ue_id](
                    const Status& status,
                    const M5GAuthenticationInformationAnswer& response) {
-        handle_subs_authentication_info_ans(
-            status, response, imsi, imsi_length, ue_id);
+        handle_subs_authentication_info_ans(status, response, imsi, imsi_length,
+                                            ue_id);
       });
   return true;
 }

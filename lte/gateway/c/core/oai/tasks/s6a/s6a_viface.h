@@ -30,10 +30,10 @@ class S6aViface {
  public:
   // LG-EURECOM const args in methods signature should match between derived
   // classes (grpc, freeDiameter)
-  virtual bool update_location_req(s6a_update_location_req_t* ulr_p)       = 0;
-  virtual bool authentication_info_req(s6a_auth_info_req_t* air_p)         = 0;
+  virtual bool update_location_req(s6a_update_location_req_t* ulr_p) = 0;
+  virtual bool authentication_info_req(s6a_auth_info_req_t* air_p) = 0;
   virtual bool send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP) = 0;
-  virtual bool purge_ue(const char* imsi)                                  = 0;
+  virtual bool purge_ue(const char* imsi) = 0;
   virtual ~S6aViface(){};
 };
 

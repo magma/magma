@@ -26,7 +26,7 @@
 int decode_mobile_station_classmark_2(
     MobileStationClassmark2* mobilestationclassmark2, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
-  int decoded   = 0;
+  int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -37,25 +37,25 @@ int decode_mobile_station_classmark_2(
   ielen = *(buffer + decoded);
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
-  mobilestationclassmark2->revisionlevel     = (*(buffer + decoded) >> 5) & 0x3;
-  mobilestationclassmark2->esind             = (*(buffer + decoded) >> 4) & 0x1;
-  mobilestationclassmark2->a51               = (*(buffer + decoded) >> 3) & 0x1;
+  mobilestationclassmark2->revisionlevel = (*(buffer + decoded) >> 5) & 0x3;
+  mobilestationclassmark2->esind = (*(buffer + decoded) >> 4) & 0x1;
+  mobilestationclassmark2->a51 = (*(buffer + decoded) >> 3) & 0x1;
   mobilestationclassmark2->rfpowercapability = *(buffer + decoded) & 0x7;
   decoded++;
-  mobilestationclassmark2->pscapability      = (*(buffer + decoded) >> 6) & 0x1;
+  mobilestationclassmark2->pscapability = (*(buffer + decoded) >> 6) & 0x1;
   mobilestationclassmark2->ssscreenindicator = (*(buffer + decoded) >> 4) & 0x3;
-  mobilestationclassmark2->smcapability      = (*(buffer + decoded) >> 3) & 0x1;
-  mobilestationclassmark2->vbs               = (*(buffer + decoded) >> 2) & 0x1;
-  mobilestationclassmark2->vgcs              = (*(buffer + decoded) >> 1) & 0x1;
-  mobilestationclassmark2->fc                = *(buffer + decoded) & 0x1;
+  mobilestationclassmark2->smcapability = (*(buffer + decoded) >> 3) & 0x1;
+  mobilestationclassmark2->vbs = (*(buffer + decoded) >> 2) & 0x1;
+  mobilestationclassmark2->vgcs = (*(buffer + decoded) >> 1) & 0x1;
+  mobilestationclassmark2->fc = *(buffer + decoded) & 0x1;
   decoded++;
-  mobilestationclassmark2->cm3      = (*(buffer + decoded) >> 7) & 0x1;
+  mobilestationclassmark2->cm3 = (*(buffer + decoded) >> 7) & 0x1;
   mobilestationclassmark2->lcsvacap = (*(buffer + decoded) >> 5) & 0x1;
-  mobilestationclassmark2->ucs2     = (*(buffer + decoded) >> 4) & 0x1;
-  mobilestationclassmark2->solsa    = (*(buffer + decoded) >> 3) & 0x1;
-  mobilestationclassmark2->cmsp     = (*(buffer + decoded) >> 2) & 0x1;
-  mobilestationclassmark2->a53      = (*(buffer + decoded) >> 1) & 0x1;
-  mobilestationclassmark2->a52      = *(buffer + decoded) & 0x1;
+  mobilestationclassmark2->ucs2 = (*(buffer + decoded) >> 4) & 0x1;
+  mobilestationclassmark2->solsa = (*(buffer + decoded) >> 3) & 0x1;
+  mobilestationclassmark2->cmsp = (*(buffer + decoded) >> 2) & 0x1;
+  mobilestationclassmark2->a53 = (*(buffer + decoded) >> 1) & 0x1;
+  mobilestationclassmark2->a52 = *(buffer + decoded) & 0x1;
   decoded++;
 #if NAS_DEBUG
   dump_mobile_station_classmark_2_xml(mobilestationclassmark2, iei);
@@ -121,34 +121,28 @@ void dump_mobile_station_classmark_2_xml(
      */
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
-  OAILOG_DEBUG(
-      LOG_NAS, "    <Revision level>%u</Revision level>\n",
-      mobilestationclassmark2->revisionlevel);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <ES IND>%u</ES IND>\n", mobilestationclassmark2->esind);
+  OAILOG_DEBUG(LOG_NAS, "    <Revision level>%u</Revision level>\n",
+               mobilestationclassmark2->revisionlevel);
+  OAILOG_DEBUG(LOG_NAS, "    <ES IND>%u</ES IND>\n",
+               mobilestationclassmark2->esind);
   OAILOG_DEBUG(LOG_NAS, "    <A51>%u</A51>\n", mobilestationclassmark2->a51);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <RF power capability>%u</RF power capability>\n",
-      mobilestationclassmark2->rfpowercapability);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <PS capability>%u</PS capability>\n",
-      mobilestationclassmark2->pscapability);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <SS Screen indicator>%u</SS Screen indicator>\n",
-      mobilestationclassmark2->ssscreenindicator);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <SM capability>%u</SM capability>\n",
-      mobilestationclassmark2->smcapability);
+  OAILOG_DEBUG(LOG_NAS, "    <RF power capability>%u</RF power capability>\n",
+               mobilestationclassmark2->rfpowercapability);
+  OAILOG_DEBUG(LOG_NAS, "    <PS capability>%u</PS capability>\n",
+               mobilestationclassmark2->pscapability);
+  OAILOG_DEBUG(LOG_NAS, "    <SS Screen indicator>%u</SS Screen indicator>\n",
+               mobilestationclassmark2->ssscreenindicator);
+  OAILOG_DEBUG(LOG_NAS, "    <SM capability>%u</SM capability>\n",
+               mobilestationclassmark2->smcapability);
   OAILOG_DEBUG(LOG_NAS, "    <VBS>%u</VBS>\n", mobilestationclassmark2->vbs);
   OAILOG_DEBUG(LOG_NAS, "    <VGCS>%u</VGCS>\n", mobilestationclassmark2->vgcs);
   OAILOG_DEBUG(LOG_NAS, "    <FC>%u</FC>\n", mobilestationclassmark2->fc);
   OAILOG_DEBUG(LOG_NAS, "    <CM3>%u</CM3>\n", mobilestationclassmark2->cm3);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <LCSVA CAP>%u</LCSVA CAP>\n",
-      mobilestationclassmark2->lcsvacap);
+  OAILOG_DEBUG(LOG_NAS, "    <LCSVA CAP>%u</LCSVA CAP>\n",
+               mobilestationclassmark2->lcsvacap);
   OAILOG_DEBUG(LOG_NAS, "    <UCS2>%u</UCS2>\n", mobilestationclassmark2->ucs2);
-  OAILOG_DEBUG(
-      LOG_NAS, "    <SoLSA>%u</SoLSA>\n", mobilestationclassmark2->solsa);
+  OAILOG_DEBUG(LOG_NAS, "    <SoLSA>%u</SoLSA>\n",
+               mobilestationclassmark2->solsa);
   OAILOG_DEBUG(LOG_NAS, "    <CMSP>%u</CMSP>\n", mobilestationclassmark2->cmsp);
   OAILOG_DEBUG(LOG_NAS, "    <A53>%u</A53>\n", mobilestationclassmark2->a53);
   OAILOG_DEBUG(LOG_NAS, "    <A52>%u</A52>\n", mobilestationclassmark2->a52);

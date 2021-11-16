@@ -22,8 +22,8 @@ SmfMsg::SmfMsg(){};
 SmfMsg::~SmfMsg(){};
 
 // Decode SMF Message Header
-int SmfMsg::SmfMsgDecodeHeaderMsg(
-    SmfMsgHeader* hdr, uint8_t* buffer, uint32_t len) {
+int SmfMsg::SmfMsgDecodeHeaderMsg(SmfMsgHeader* hdr, uint8_t* buffer,
+                                  uint32_t len) {
   int size = 0;
 
   MLOG(MDEBUG) << "SmfMsgDecodeHeaderMsg:" << std::endl;
@@ -51,8 +51,8 @@ int SmfMsg::SmfMsgDecodeHeaderMsg(
 }
 
 // Encode SMF Message Header
-int SmfMsg::SmfMsgEncodeHeaderMsg(
-    SmfMsgHeader* hdr, uint8_t* buffer, uint32_t len) {
+int SmfMsg::SmfMsgEncodeHeaderMsg(SmfMsgHeader* hdr, uint8_t* buffer,
+                                  uint32_t len) {
   int size = 0;
 
   MLOG(MDEBUG) << "SmfMsgEncodeHeaderMsg:";
@@ -71,7 +71,7 @@ int SmfMsg::SmfMsgEncodeHeaderMsg(
     MLOG(MERROR) << "Error : Buffer is Empty ";
     return (RETURNerror);
   }
-  if ((unsigned char) hdr->extended_protocol_discriminator !=
+  if ((unsigned char)hdr->extended_protocol_discriminator !=
       M5G_SESSION_MANAGEMENT_MESSAGES) {
     MLOG(MERROR) << "Error : TLV not supported";
     return (TLV_PROTOCOL_NOT_SUPPORTED);
@@ -97,7 +97,7 @@ int SmfMsg::SmfMsgDecodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
     return (RETURNerror);
   }
 
-  switch ((unsigned char) msg->header.message_type) {
+  switch ((unsigned char)msg->header.message_type) {
     case PDU_SESSION_ESTABLISHMENT_REQUEST:
       decode_result = msg->msg.pdu_session_estab_request
                           .DecodePDUSessionEstablishmentRequestMsg(
@@ -139,7 +139,7 @@ int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
     return (RETURNerror);
   }
 
-  switch ((unsigned char) msg->header.message_type) {
+  switch ((unsigned char)msg->header.message_type) {
     case PDU_SESSION_ESTABLISHMENT_REQUEST:
       encode_result = msg->msg.pdu_session_estab_request
                           .EncodePDUSessionEstablishmentRequestMsg(

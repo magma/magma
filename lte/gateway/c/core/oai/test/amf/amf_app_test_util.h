@@ -27,8 +27,8 @@ using ::testing::Return;
 namespace magma5g {
 
 /* Utility : Get ue_id from imsi */
-bool get_ue_id_from_imsi(
-    amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64, amf_ue_ngap_id_t* ue_id);
+bool get_ue_id_from_imsi(amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64,
+                         amf_ue_ngap_id_t* ue_id);
 
 /* API for creating intial UE message without TMSI */
 imsi64_t send_initial_ue_message_no_tmsi(
@@ -38,30 +38,38 @@ imsi64_t send_initial_ue_message_no_tmsi(
     uint8_t nas_msg_length);
 
 /* API for creating subscriberdb auth answer */
-int send_proc_authentication_info_answer(
-    const std::string& imsi, amf_ue_ngap_id_t ue_id, bool success);
+int send_proc_authentication_info_answer(const std::string& imsi,
+                                         amf_ue_ngap_id_t ue_id, bool success);
 
 /* API for creating uplink nas message for Auth Response */
-int send_uplink_nas_message_ue_auth_response(
-    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t amf_ue_ngap_id,
-    const plmn_t& plmn, const uint8_t* nas_msg, uint8_t nas_msg_length);
+int send_uplink_nas_message_ue_auth_response(amf_app_desc_t* amf_app_desc_p,
+                                             amf_ue_ngap_id_t amf_ue_ngap_id,
+                                             const plmn_t& plmn,
+                                             const uint8_t* nas_msg,
+                                             uint8_t nas_msg_length);
 
 /* API for creating uplink nas message for security mode complete response */
-int send_uplink_nas_message_ue_smc_response(
-    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
-    const uint8_t* nas_msg, uint8_t nas_msg_length);
+int send_uplink_nas_message_ue_smc_response(amf_app_desc_t* amf_app_desc_p,
+                                            amf_ue_ngap_id_t ue_id,
+                                            const plmn_t& plmn,
+                                            const uint8_t* nas_msg,
+                                            uint8_t nas_msg_length);
 
 /* API for sending initial context setup response */
-void send_initial_context_response(
-    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id);
+void send_initial_context_response(amf_app_desc_t* amf_app_desc_p,
+                                   amf_ue_ngap_id_t ue_id);
 
 /* API for creating uplink nas message for registration complete response */
-int send_uplink_nas_registration_complete(
-    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
-    const uint8_t* nas_msg, uint8_t nas_msg_length);
+int send_uplink_nas_registration_complete(amf_app_desc_t* amf_app_desc_p,
+                                          amf_ue_ngap_id_t ue_id,
+                                          const plmn_t& plmn,
+                                          const uint8_t* nas_msg,
+                                          uint8_t nas_msg_length);
 
-int send_uplink_nas_ue_deregistration_request(
-    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
-    uint8_t* nas_msg, uint8_t nas_msg_length);
+int send_uplink_nas_ue_deregistration_request(amf_app_desc_t* amf_app_desc_p,
+                                              amf_ue_ngap_id_t ue_id,
+                                              const plmn_t& plmn,
+                                              uint8_t* nas_msg,
+                                              uint8_t nas_msg_length);
 
 }  // namespace magma5g

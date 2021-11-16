@@ -26,9 +26,10 @@ status_code_e AMFClientServicerBase::amf_send_msg_to_task(
   return (send_msg_to_task(task_zmq_ctx_p, destination_task_id, message));
 }
 
-bool AMFClientServicerBase::get_subs_auth_info(
-    const std::string& imsi, uint8_t imsi_length, const char* snni,
-    amf_ue_ngap_id_t ue_id) {
+bool AMFClientServicerBase::get_subs_auth_info(const std::string& imsi,
+                                               uint8_t imsi_length,
+                                               const char* snni,
+                                               amf_ue_ngap_id_t ue_id) {
   return (AsyncM5GAuthenticationServiceClient::getInstance().get_subs_auth_info(
       imsi, imsi_length, snni, ue_id));
 }
@@ -36,10 +37,9 @@ bool AMFClientServicerBase::get_subs_auth_info(
 bool AMFClientServicerBase::get_subs_auth_info_resync(
     const std::string& imsi, uint8_t imsi_length, const char* snni,
     const void* resync_info, uint8_t resync_info_len, amf_ue_ngap_id_t ue_id) {
-  return (
-      AsyncM5GAuthenticationServiceClient::getInstance()
-          .get_subs_auth_info_resync(
-              imsi, imsi_length, snni, resync_info, resync_info_len, ue_id));
+  return (AsyncM5GAuthenticationServiceClient::getInstance()
+              .get_subs_auth_info_resync(imsi, imsi_length, snni, resync_info,
+                                         resync_info_len, ue_id));
 }
 
 AMFClientServicer& AMFClientServicer::getInstance() {
@@ -47,9 +47,9 @@ AMFClientServicer& AMFClientServicer::getInstance() {
   return instance;
 }
 
-status_code_e amf_send_msg_to_task(
-    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
-    MessageDef* message) {
+status_code_e amf_send_msg_to_task(task_zmq_ctx_t* task_zmq_ctx_p,
+                                   task_id_t destination_task_id,
+                                   MessageDef* message) {
   return (magma5g::AMFClientServicer::getInstance().amf_send_msg_to_task(
       task_zmq_ctx_p, destination_task_id, message));
 }

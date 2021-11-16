@@ -69,8 +69,8 @@
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
 
-static int esm_msg_encode_header(
-    const esm_msg_header_t* header, uint8_t* buffer, uint32_t len);
+static int esm_msg_encode_header(const esm_msg_header_t* header,
+                                 uint8_t* buffer, uint32_t len);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -104,11 +104,10 @@ int esm_msg_decode(ESM_msg* msg, uint8_t* buffer, uint32_t len) {
   header_result = esm_msg_decode_header(&msg->header, buffer, len);
 
   if (header_result < 0) {
-    OAILOG_ERROR(
-        LOG_NAS_ESM,
-        "ESM-MSG   - Failed to decode ESM message header "
-        "(%d)\n",
-        header_result);
+    OAILOG_ERROR(LOG_NAS_ESM,
+                 "ESM-MSG   - Failed to decode ESM message header "
+                 "(%d)\n",
+                 header_result);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, header_result);
   }
 
@@ -177,8 +176,8 @@ int esm_msg_decode(ESM_msg* msg, uint8_t* buffer, uint32_t len) {
       break;
 
     case PDN_DISCONNECT_REJECT:
-      decode_result = decode_pdn_disconnect_reject(
-          &msg->pdn_disconnect_reject, buffer, len);
+      decode_result = decode_pdn_disconnect_reject(&msg->pdn_disconnect_reject,
+                                                   buffer, len);
       break;
 
     case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST:
@@ -226,19 +225,17 @@ int esm_msg_decode(ESM_msg* msg, uint8_t* buffer, uint32_t len) {
       break;
 
     default:
-      OAILOG_ERROR(
-          LOG_NAS_ESM, "ESM-MSG   - Unexpected message type: 0x%x\n",
-          msg->header.message_type);
+      OAILOG_ERROR(LOG_NAS_ESM, "ESM-MSG   - Unexpected message type: 0x%x\n",
+                   msg->header.message_type);
       decode_result = TLV_WRONG_MESSAGE_TYPE;
       break;
   }
 
   if (decode_result < 0) {
-    OAILOG_ERROR(
-        LOG_NAS_ESM,
-        "ESM-MSG   - Failed to decode L3 ESM message 0x%x "
-        "(%u)\n",
-        msg->header.message_type, decode_result);
+    OAILOG_ERROR(LOG_NAS_ESM,
+                 "ESM-MSG   - Failed to decode L3 ESM message 0x%x "
+                 "(%u)\n",
+                 msg->header.message_type, decode_result);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, decode_result);
   }
 
@@ -272,19 +269,17 @@ int esm_msg_encode(ESM_msg* msg, uint8_t* buffer, uint32_t len) {
   header_result = esm_msg_encode_header(&msg->header, buffer, len);
 
   if (header_result < 0) {
-    OAILOG_ERROR(
-        LOG_NAS_ESM,
-        "ESM-MSG   - Failed to encode ESM message header "
-        "(%d)\n",
-        header_result);
+    OAILOG_ERROR(LOG_NAS_ESM,
+                 "ESM-MSG   - Failed to encode ESM message header "
+                 "(%d)\n",
+                 header_result);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, header_result);
   }
 
-  OAILOG_TRACE(
-      LOG_NAS_ESM,
-      "ESM-MSG   - Encoded ESM message header "
-      "(%d)\n",
-      header_result);
+  OAILOG_TRACE(LOG_NAS_ESM,
+               "ESM-MSG   - Encoded ESM message header "
+               "(%d)\n",
+               header_result);
   buffer += header_result;
   len -= header_result;
 
@@ -350,8 +345,8 @@ int esm_msg_encode(ESM_msg* msg, uint8_t* buffer, uint32_t len) {
       break;
 
     case PDN_DISCONNECT_REJECT:
-      encode_result = encode_pdn_disconnect_reject(
-          &msg->pdn_disconnect_reject, buffer, len);
+      encode_result = encode_pdn_disconnect_reject(&msg->pdn_disconnect_reject,
+                                                   buffer, len);
       break;
 
     case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST:
@@ -399,19 +394,17 @@ int esm_msg_encode(ESM_msg* msg, uint8_t* buffer, uint32_t len) {
       break;
 
     default:
-      OAILOG_ERROR(
-          LOG_NAS_ESM, "ESM-MSG   - Unexpected message type: 0x%x\n",
-          msg->header.message_type);
+      OAILOG_ERROR(LOG_NAS_ESM, "ESM-MSG   - Unexpected message type: 0x%x\n",
+                   msg->header.message_type);
       encode_result = TLV_WRONG_MESSAGE_TYPE;
       break;
   }
 
   if (encode_result < 0) {
-    OAILOG_ERROR(
-        LOG_NAS_ESM,
-        "ESM-MSG   - Failed to encode L3 ESM message 0x%x "
-        "(%d)\n",
-        msg->header.message_type, encode_result);
+    OAILOG_ERROR(LOG_NAS_ESM,
+                 "ESM-MSG   - Failed to encode L3 ESM message 0x%x "
+                 "(%d)\n",
+                 msg->header.message_type, encode_result);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, header_result + encode_result);
@@ -441,8 +434,8 @@ int esm_msg_encode(ESM_msg* msg, uint8_t* buffer, uint32_t len) {
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_msg_decode_header(
-    esm_msg_header_t* header, const uint8_t* buffer, uint32_t len) {
+int esm_msg_decode_header(esm_msg_header_t* header, const uint8_t* buffer,
+                          uint32_t len) {
   int size = 0;
 
   /*
@@ -455,7 +448,7 @@ int esm_msg_decode_header(
   /*
    * Decode the EPS bearer identity and the protocol discriminator
    */
-  DECODE_U8(buffer + size, *(uint8_t*) (header), size);
+  DECODE_U8(buffer + size, *(uint8_t*)(header), size);
   /*
    * Decode the procedure transaction identity
    */
@@ -469,9 +462,9 @@ int esm_msg_decode_header(
    * Check the protocol discriminator
    */
   if (header->protocol_discriminator != EPS_SESSION_MANAGEMENT_MESSAGE) {
-    OAILOG_ERROR(
-        LOG_NAS_ESM, "ESM-MSG   - Unexpected protocol discriminator: 0x%x\n",
-        header->protocol_discriminator);
+    OAILOG_ERROR(LOG_NAS_ESM,
+                 "ESM-MSG   - Unexpected protocol discriminator: 0x%x\n",
+                 header->protocol_discriminator);
     return (TLV_PROTOCOL_NOT_SUPPORTED);
   }
 
@@ -496,8 +489,8 @@ int esm_msg_decode_header(
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-static int esm_msg_encode_header(
-    const esm_msg_header_t* header, uint8_t* buffer, uint32_t len) {
+static int esm_msg_encode_header(const esm_msg_header_t* header,
+                                 uint8_t* buffer, uint32_t len) {
   int size = 0;
 
   /*
@@ -511,16 +504,16 @@ static int esm_msg_encode_header(
    * Check the protocol discriminator
    */
   else if (header->protocol_discriminator != EPS_SESSION_MANAGEMENT_MESSAGE) {
-    OAILOG_ERROR(
-        LOG_NAS_ESM, "ESM-MSG   - Unexpected protocol discriminator: 0x%x\n",
-        header->protocol_discriminator);
+    OAILOG_ERROR(LOG_NAS_ESM,
+                 "ESM-MSG   - Unexpected protocol discriminator: 0x%x\n",
+                 header->protocol_discriminator);
     return (TLV_PROTOCOL_NOT_SUPPORTED);
   }
 
   /*
    * Encode the EPS bearer identity and the protocol discriminator
    */
-  ENCODE_U8(buffer + size, *(uint8_t*) (header), size);
+  ENCODE_U8(buffer + size, *(uint8_t*)(header), size);
   /*
    * Encode the procedure transaction identity
    */

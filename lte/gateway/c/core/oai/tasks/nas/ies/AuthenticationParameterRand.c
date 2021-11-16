@@ -26,7 +26,7 @@
 int decode_authentication_parameter_rand(
     AuthenticationParameterRand* authenticationparameterrand, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
-  int decoded   = 0;
+  int decoded = 0;
   uint8_t ielen = 16;
   int decode_result;
 
@@ -35,9 +35,8 @@ int decode_authentication_parameter_rand(
     decoded++;
   }
 
-  if ((decode_result = decode_bstring(
-           authenticationparameterrand, ielen, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decode_result = decode_bstring(authenticationparameterrand, ielen,
+                                      buffer + decoded, len - decoded)) < 0)
     return decode_result;
   else
     decoded += decode_result;
@@ -62,8 +61,8 @@ int encode_authentication_parameter_rand(
     encoded++;
   }
 
-  if ((encode_result = encode_bstring(
-           authenticationparameterrand, buffer + encoded, len - encoded)) < 0) {
+  if ((encode_result = encode_bstring(authenticationparameterrand,
+                                      buffer + encoded, len - encoded)) < 0) {
     return encode_result;
   } else {
     encoded += encode_result;

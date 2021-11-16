@@ -16,7 +16,7 @@ namespace magma {
 
 gtpv1u_data_t make_gtpv1u_data(int fd0, int fd1u) {
   gtpv1u_data_t data;
-  data.fd0  = fd0;
+  data.fd0 = fd0;
   data.fd1u = fd1u;
   return data;
 }

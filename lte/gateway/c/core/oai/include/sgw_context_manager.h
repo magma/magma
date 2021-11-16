@@ -41,8 +41,8 @@ void sgw_display_s11_bearer_context_information(
     sgw_eps_bearer_context_information_t* sgw_context_information);
 void pgw_lite_cm_free_apn(pgw_apn_t** apnP);
 
-mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(
-    teid_t remote_teid, teid_t local_teid);
+mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(teid_t remote_teid,
+                                           teid_t local_teid);
 s_plus_p_gw_eps_bearer_context_information_t*
 sgw_cm_create_bearer_context_information_in_collection(teid_t teid);
 int sgw_cm_remove_bearer_context_information(teid_t teid, imsi64_t imsi64);

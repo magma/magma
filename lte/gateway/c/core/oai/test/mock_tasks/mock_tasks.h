@@ -25,7 +25,7 @@ extern "C" {
 
 const task_info_t tasks_info[] = {
     {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
-#define TASK_DEF(tHREADiD)                                                     \
+#define TASK_DEF(tHREADiD) \
   {THREAD_##tHREADiD, #tHREADiD, "ipc://IPC_" #tHREADiD},
 #include "lte/gateway/c/core/oai/include/tasks_def.h"
 #undef TASK_DEF
@@ -50,12 +50,10 @@ class MockMmeAppHandler {
   MOCK_METHOD0(mme_app_handle_initial_ue_message, void());
   MOCK_METHOD0(mme_app_handle_s1ap_ue_context_release_req, void());
   MOCK_METHOD0(mme_app_handle_create_sess_resp, void());
-  MOCK_METHOD1(
-      mme_app_handle_nw_init_ded_bearer_actv_req,
-      bool(itti_s11_nw_init_actv_bearer_request_t cb_req));
-  MOCK_METHOD1(
-      mme_app_handle_nw_init_bearer_deactv_req,
-      bool(itti_s11_nw_init_deactv_bearer_request_t db_req));
+  MOCK_METHOD1(mme_app_handle_nw_init_ded_bearer_actv_req,
+               bool(itti_s11_nw_init_actv_bearer_request_t cb_req));
+  MOCK_METHOD1(mme_app_handle_nw_init_bearer_deactv_req,
+               bool(itti_s11_nw_init_deactv_bearer_request_t db_req));
   MOCK_METHOD0(mme_app_handle_modify_bearer_rsp, void());
   MOCK_METHOD0(mme_app_handle_delete_sess_rsp, void());
   MOCK_METHOD0(nas_proc_dl_transfer_rej, void());
@@ -88,12 +86,10 @@ class MockService303Handler {
 
 class MockS8Handler {
  public:
-  MOCK_METHOD1(
-      sgw_s8_handle_create_bearer_request,
-      bool(s8_create_bearer_request_t cb_req));
-  MOCK_METHOD1(
-      sgw_s8_handle_delete_bearer_request,
-      bool(s8_delete_bearer_request_t db_req));
+  MOCK_METHOD1(sgw_s8_handle_create_bearer_request,
+               bool(s8_create_bearer_request_t cb_req));
+  MOCK_METHOD1(sgw_s8_handle_delete_bearer_request,
+               bool(s8_delete_bearer_request_t db_req));
 };
 
 void start_mock_ha_task();

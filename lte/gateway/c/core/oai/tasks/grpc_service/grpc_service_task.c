@@ -42,9 +42,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       grpc_service_exit();
       break;
     default:
-      OAILOG_DEBUG(
-          LOG_UTIL, "Unknown message ID %d: %s\n",
-          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      OAILOG_DEBUG(LOG_UTIL, "Unknown message ID %d: %s\n",
+                   ITTI_MSG_ID(received_message_p),
+                   ITTI_MSG_NAME(received_message_p));
       break;
   }
 
@@ -68,7 +68,7 @@ static void* grpc_service_thread(__attribute__((unused)) void* args) {
 
 status_code_e grpc_service_init(void) {
   OAILOG_DEBUG(LOG_UTIL, "Initializing grpc_service task interface\n");
-  grpc_service_config                 = calloc(1, sizeof(grpc_service_data_t));
+  grpc_service_config = calloc(1, sizeof(grpc_service_data_t));
   grpc_service_config->server_address = bfromcstr(GRPCSERVICES_SERVER_ADDRESS);
 
   if (itti_create_task(TASK_GRPC_SERVICE, &grpc_service_thread, NULL) < 0) {
@@ -80,7 +80,7 @@ status_code_e grpc_service_init(void) {
 
 void grpc_service_exit(void) {
   bdestroy_wrapper(&grpc_service_config->server_address);
-  free_wrapper((void**) &grpc_service_config);
+  free_wrapper((void**)&grpc_service_config);
   stop_grpc_service();
   destroy_task_context(&grpc_service_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_GRPC_SERVICE terminated\n");

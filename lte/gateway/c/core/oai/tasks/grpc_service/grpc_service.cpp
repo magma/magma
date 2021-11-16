@@ -65,11 +65,11 @@ static std::unique_ptr<Server> server;
 // MagmaService, which implements Service303::Service as the
 // base service and can add other services on top.
 void start_grpc_service(bstring server_address) {
-  OAILOG_INFO(
-      LOG_SPGW_APP, "Starting service at : %s\n ", bdata(server_address));
+  OAILOG_INFO(LOG_SPGW_APP, "Starting service at : %s\n ",
+              bdata(server_address));
   ServerBuilder builder;
-  builder.AddListeningPort(
-      bdata(server_address), grpc::InsecureServerCredentials());
+  builder.AddListeningPort(bdata(server_address),
+                           grpc::InsecureServerCredentials());
   builder.RegisterService(&amf_service);
   builder.RegisterService(&s6a_service);
   // Start the SGS service only if non_eps_service_control is not set to OFF
