@@ -342,7 +342,7 @@ void SessionState::sess_infocopy(struct SessionInfo* info) {
   if (!info->pdr_rules.empty()) {
     // Get the UE ip address from first rule
     auto& rule    = info->pdr_rules.front();
-    info->ip_addr = rule.pdi().ue_ip_adr();
+    info->ip_addr = rule.pdi().ue_ipv4();
   }
 }
 

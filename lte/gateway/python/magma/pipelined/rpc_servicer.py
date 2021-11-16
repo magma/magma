@@ -73,6 +73,7 @@ from magma.pipelined.metrics import (
 )
 from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
 from magma.pipelined.policy_converters import (
+    convert_ip_str_to_ip_proto,
     convert_ipv4_str_to_ip_proto,
     convert_ipv6_bytes_to_ip_proto,
 )
@@ -1004,10 +1005,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             pdr_entry.precedence,
             pdr_entry.local_f_teid,
             pdr_entry.far_action.o_teid,
-            convert_ipv4_str_to_ip_proto(pdr_entry.ue_ip_addr),
             pdr_entry.far_action.gnb_ip_addr,
+            pdr_entry.ue_ip_addr,
             encode_imsi(subscriber_id),
             True,
+            pdr_entry.ue_ipv6_addr,
         )
 
         return ret
@@ -1053,7 +1055,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if pdr_entry.pdr_state == PdrState.Value('REMOVE'):
             qos_enforce_rule = pdr_entry.del_qos_enforce_rule
             if qos_enforce_rule.ip_addr:
-                ipv4 = convert_ipv4_str_to_ip_proto(qos_enforce_rule.ip_addr)
+                ipv4 = convert_ip_str_to_ip_proto(qos_enforce_rule.ip_addr)
                 self._ng_deactivate_qer_flows(
                     ipv4, local_f_teid_ng,
                     qos_enforce_rule,
@@ -1078,7 +1080,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         elif pdr_entry.pdr_state == PdrState.Value('INSTALL'):
             qos_enforce_rule = pdr_entry.add_qos_enforce_rule
             if qos_enforce_rule.ip_addr:
-                ipv4 = convert_ipv4_str_to_ip_proto(qos_enforce_rule.ip_addr)
+                ipv4 = convert_ip_str_to_ip_proto(qos_enforce_rule.ip_addr)
 
                 enforcement_res = \
                       self._ng_activate_qer_flow(
