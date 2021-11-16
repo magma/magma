@@ -115,9 +115,7 @@ function main() {
   };
   console.log(
     'Creating a new user: email=' +
-      userObject.email +
-      ', password=' +
-      userObject.password,
+      userObject.email,
   );
   createOrUpdateUser(userObject)
     .then(_res => {
