@@ -124,3 +124,27 @@ jobs:
             run: |
               cd /workspaces/magma
               bazel test //... --test_output=errors --cache_test_results=no
+        - name: Assert Gazelle repository changes are committed
+          if: github.event_name == 'pull_request'
+          uses: addnab/docker-run-action@v2
+          with:
+            image: ${{ env.DEVCONTAINER_IMAGE }}
+            # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+            options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+            run: |
+              cd /workspaces/magma
+              bazel run //:gazelle -- update-repos -from_file=src/go/go.mod -to_macro=go_repositories.bzl%go_repositories
+              # Fail the step if gazelle modified anything
+              git diff --exit-code
+        - name: Assert Gazelle build file changes are committed
+          if: github.event_name == 'pull_request'
+          uses: addnab/docker-run-action@v2
+          with:
+            image: ${{ env.DEVCONTAINER_IMAGE }}
+            # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+            options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+            run: |
+              cd /workspaces/magma
+              bazel run //:gazelle
+              # Fail the step if gazelle modified anything
+              git diff --exit-code
