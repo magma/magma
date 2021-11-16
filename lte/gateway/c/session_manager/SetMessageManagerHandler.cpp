@@ -170,8 +170,7 @@ void SetMessageManagerHandler::SetAmfSessionContext(
         /* it's new UE establisment request and need to create the session
          * context
          */
-        bool status = validate_session_request(cfg);
-        if (!status) {
+        if (!validate_session_request(cfg)) {
           Status status(
               grpc::FAILED_PRECONDITION, "Received an invalid RAT type ");
           response_callback(status, SmContextVoid());
@@ -314,12 +313,11 @@ void SetMessageManagerHandler::send_create_session(
   bool success = m5g_enforcer_->m5g_init_session_credit(
       *session_map_ptr, imsi, session_id, new_cfg);
   if (!success) {
-    MLOG(MERROR) << "Failed to initialize SessionStore for 5G session "
-                 << session_id;
     std::ostringstream failure_stream;
-    failure_stream
-        << "Failed to initialize SessionStore for 5G session of IMSI " << imsi;
+    failure_stream << "Failed to initialize SessionStore for 5G session "
+                   << session_id;
     std::string failure_msg = failure_stream.str();
+    MLOG(MERROR) << failure_msg;
     events_reporter_->session_create_failure(new_cfg, failure_msg);
     return;
   } else {

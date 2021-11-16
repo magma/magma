@@ -219,9 +219,9 @@ SessionState::SessionState(
       config_(cfg),
       current_version_(0),
       rtx_counter_(0),
+      subscriber_quota_state_(SubscriberQuotaUpdate_Type_VALID_QUOTA),
       static_rules_(rule_store),
       credit_map_(4, &ccHash, &ccEqual),
-      subscriber_quota_state_(SubscriberQuotaUpdate_Type_VALID_QUOTA),
       session_level_key_("") {}
 
 /* get-set methods of new messages  for 5G*/

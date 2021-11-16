@@ -410,51 +410,29 @@ void LocalEnforcer::aggregate_records(
     const std::string &imsi = record.sid(), &ip = record.ue_ipv4();
     const uint32_t teid = record.teid();
     // TODO IPv6 add ipv6 to search criteria
-    SessionSearchCriteria criteria(imsi, IMSI_AND_UE_IPV4_OR_IPV6, ip);
+    SessionSearchCriteria criteria(
+        imsi, IMSI_AND_UE_IPV4_OR_IPV6_OR_TEID, ip, teid);
     auto session_it = session_store_.find_session(session_map, criteria);
     if (!session_it) {
-      MLOG(MERROR) << "Could not find an active session for 4G " << imsi
-                   << " and " << ip << " during record aggregation";
-      if (teid) {
-        SessionSearchCriteria criteria(imsi, IMSI_AND_TEID, teid);
-        auto session_it = session_store_.find_session(session_map, criteria);
-        if (!session_it) {
-          dead_sessions_to_cleanup.insert(record);
-          continue;
-        }
-        auto& session                 = **session_it;
-        const std::string& session_id = session->get_session_id();
-        sessions_with_reporting_flows.insert(
-            ImsiAndSessionID(imsi, session_id));
-        if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
-          MLOG(MDEBUG) << session_id << " used " << record.bytes_tx()
-                       << " tx bytes and " << record.bytes_rx()
-                       << " rx bytes for rule " << record.rule_id();
-        }
-        session->add_rule_usage(
-            record.rule_id(), record.rule_version(), record.bytes_tx(),
-            record.bytes_rx(), record.dropped_tx(), record.dropped_rx(),
-            &session_update[imsi][session_id]);
-        continue;
-      } else {
-        dead_sessions_to_cleanup.insert(record);
-        continue;
-      }
-    } else {
-      auto& session                 = **session_it;
-      const std::string& session_id = session->get_session_id();
-      sessions_with_reporting_flows.insert(ImsiAndSessionID(imsi, session_id));
-      if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
-        MLOG(MDEBUG) << session_id << " used " << record.bytes_tx()
-                     << " tx bytes and " << record.bytes_rx()
-                     << " rx bytes for rule " << record.rule_id();
-      }
-
-      session->add_rule_usage(
-          record.rule_id(), record.rule_version(), record.bytes_tx(),
-          record.bytes_rx(), record.dropped_tx(), record.dropped_rx(),
-          &session_update[imsi][session_id]);
+      MLOG(MERROR) << "Could not find an 4G and 5G active session for " << imsi
+                   << " and " << ip << " or " << teid
+                   << " during record aggregation";
+      dead_sessions_to_cleanup.insert(record);
+      continue;
     }
+    auto& session                 = **session_it;
+    const std::string& session_id = session->get_session_id();
+    sessions_with_reporting_flows.insert(ImsiAndSessionID(imsi, session_id));
+    if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
+      MLOG(MDEBUG) << session_id << " used " << record.bytes_tx()
+                   << " tx bytes and " << record.bytes_rx()
+                   << " rx bytes for rule " << record.rule_id();
+    }
+
+    session->add_rule_usage(
+        record.rule_id(), record.rule_version(), record.bytes_tx(),
+        record.bytes_rx(), record.dropped_tx(), record.dropped_rx(),
+        &session_update[imsi][session_id]);
   }
   if (records.records().size() > 0) {
     MLOG(MINFO) << "Received stats for " << sessions_with_reporting_flows.size()

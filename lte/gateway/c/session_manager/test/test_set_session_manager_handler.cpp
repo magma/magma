@@ -36,6 +36,7 @@
 #include "magma_logging.h"
 #include "PipelinedClient.h"
 #include "AmfServiceClient.h"
+#include "DirectorydClient.h"
 #include "Consts.h"
 #include "EnumToString.h"
 
@@ -58,9 +59,13 @@ class SessionManagerHandlerTest : public ::testing::Test {
         rule_store, std::make_shared<MeteringReporter>());
     reporter = std::make_shared<MockSessionReporter>();
     std::unordered_multimap<std::string, uint32_t> pdr_map;
-    pipelined_client = std::make_shared<MockPipelinedClient>();
-    amf_srv_client   = std::make_shared<magma::MockAmfServiceClient>();
-    events_reporter  = std::make_shared<MockEventsReporter>();
+    pipelined_client       = std::make_shared<MockPipelinedClient>();
+    amf_srv_client         = std::make_shared<magma::MockAmfServiceClient>();
+    events_reporter        = std::make_shared<MockEventsReporter>();
+    auto shard_tracker     = std::make_shared<ShardTracker>();
+    aaa_client             = std::make_shared<MockAAAClient>();
+    spgw_client            = std::make_shared<MockSpgwServiceClient>();
+    auto directoryd_client = std::make_shared<MockDirectorydClient>();
     magma::mconfig::SessionD mconfig;
     mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
     auto default_mconfig = get_default_mconfig();
@@ -87,6 +92,10 @@ class SessionManagerHandlerTest : public ::testing::Test {
 
     upf_session_manager = std::make_shared<UpfMsgManageHandler>(
         session_enforcer, mobilityd_client, *session_store);
+
+    local_enforcer = std::make_unique<LocalEnforcer>(
+        reporter, rule_store, *session_store, pipelined_client, events_reporter,
+        spgw_client, aaa_client, shard_tracker, 0, 0, default_mconfig);
   }
 
   virtual void TearDown() { delete evb; }
@@ -196,6 +205,10 @@ class SessionManagerHandlerTest : public ::testing::Test {
   std::shared_ptr<MockEventsReporter> events_reporter;
   std::shared_ptr<UpfMsgManageHandler> upf_session_manager;
   std::shared_ptr<MockMobilitydClient> mobilityd_client;
+  std::unique_ptr<LocalEnforcer> local_enforcer;
+  std::shared_ptr<MockSpgwServiceClient> spgw_client;
+  std::shared_ptr<MockAAAClient> aaa_client;
+  std::shared_ptr<LocalSessionManagerHandlerImpl> session_manager;
 };  // End of class
 
 TEST_F(SessionManagerHandlerTest, test_SetAmfSessionContext) {
@@ -723,7 +736,12 @@ TEST_F(SessionManagerHandlerTest, test_create_session_policy_report) {
   // Run session creation in the EventBase loop
   evb->loopOnce();
   evb->loopOnce();
-
+  SessionConfig cfg;
+  cfg.common_context       = request.common_context();
+  cfg.rat_specific_context = request.rat_specific_context();
+  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
+      SSC_MODE_3);
+  CreateSessionResponse response;
   auto session_map = session_store->read_sessions({IMSI1});
   auto it          = session_map.find(IMSI1);
   EXPECT_FALSE(it == session_map.end());
@@ -731,6 +749,37 @@ TEST_F(SessionManagerHandlerTest, test_create_session_policy_report) {
 
   auto& session_temp = session_map[IMSI1][0];
   EXPECT_EQ(session_temp->get_config().common_context.sid().id(), IMSI1);
+
+  std::string session_id = id_gen_.gen_session_id(IMSI1);
+  session_enforcer->m5g_init_session_credit(
+      session_map, IMSI1, session_id, cfg);
+  response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
+  create_credit_update_response(
+      IMSI1, session_id, 1, 1025, response.mutable_credits()->Add());
+  SessionUpdate update = SessionStore::get_default_session_update(session_map);
+  SessionSearchCriteria criteria(IMSI1, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store->find_session(session_map, criteria);
+  auto& session_t = **session_it;
+  SessionStateUpdateCriteria* session_uc = &update[IMSI1][session_id];
+  session_t->set_config(cfg, session_uc);
+  EXPECT_TRUE(session_t->is_5g_session());
+
+  session_enforcer->update_session_with_policy(session_t, response, session_uc);
+  session_t->set_upf_teid_endpoint("192.168.200.1", 2147483647, session_uc);
+  EXPECT_CALL(
+      *events_reporter,
+      session_created(IMSI1, session_id, testing::_, testing::_))
+      .Times(1);
+
+  session_enforcer->m5g_update_session_context(
+      session_map, IMSI1, session_t, update);
+
+  bool write_success =
+      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
+  EXPECT_TRUE(write_success);
+
+  auto session_map_2 = session_store->read_sessions(SessionRead{IMSI1});
+  EXPECT_EQ(session_map_2[IMSI1].front()->get_request_number(), 1);
 }
 
 TEST_F(SessionManagerHandlerTest, test_terminate_session_policy_report) {
@@ -773,154 +822,129 @@ TEST_F(SessionManagerHandlerTest, test_terminate_session_policy_report) {
       *reporter,
       report_terminate_session(CheckTerminateRequestCount(IMSI1, 0, 0), _))
       .Times(1);
+  EXPECT_CALL(*events_reporter, session_terminated(IMSI1, testing::_)).Times(1);
+
   session_enforcer->m5g_complete_termination(
       session_map, IMSI1, session_i, update);
 
   EXPECT_EQ(session_map[IMSI1].size(), 0);
 }
 
-TEST_F(SessionManagerHandlerTest, test_SessionCreation_EventReporter) {
-  insert_static_rule(1, "mk1", "rule1");
+TEST_F(SessionManagerHandlerTest, test_single_record_5g) {
   magma::SetSMSessionContext request;
   set_sm_session_context(&request);
+  insert_static_rule(1, "", "rule1");
+  CreateSessionResponse response;
+  auto credits = response.mutable_credits();
+  create_credit_update_response(IMSI1, SESSION_ID_1, 1, 1024, credits->Add());
+  StaticRuleInstall rule1;
+  rule1.set_rule_id("rule1");
+  auto rules_to_install = response.mutable_static_rules();
+  rules_to_install->Add()->CopyFrom(rule1);
 
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  create_rule_record(
+      IMSI1, "192.168.128.11", "rule1", 16, 32, 2147483647, record_list->Add());
+  SessionConfig cfg;
+  cfg.common_context       = request.common_context();
+  cfg.rat_specific_context = request.rat_specific_context();
+  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
+      SSC_MODE_3);
   grpc::ServerContext server_context;
-
   set_session_manager->SetAmfSessionContext(
       &server_context, &request,
       [this](grpc::Status status, SmContextVoid Void) {});
 
   // Run session creation in the EventBase loop
   evb->loopOnce();
+  auto session_map = session_store->read_sessions({IMSI1});
+  session_enforcer->m5g_init_session_credit(
+      session_map, IMSI1, SESSION_ID_1, cfg);
+  SessionSearchCriteria criteria(IMSI1, IMSI_AND_SESSION_ID, SESSION_ID_1);
+  auto session_it = session_store->find_session(session_map, criteria);
+  auto& session_t = **session_it;
+  auto update     = SessionStore::get_default_session_update(session_map);
+  session_enforcer->update_session_with_policy(session_t, response, nullptr);
+  session_enforcer->m5g_update_session_context(
+      session_map, IMSI1, session_t, update);
+  local_enforcer->aggregate_records(session_map, table, update);
+  assert_charging_credit(
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{1, 1024}});
+}
+
+TEST_F(SessionManagerHandlerTest, test_update_session_credits_and_rules_5g) {
+  magma::SetSMSessionContext request;
+  set_sm_session_context(&request);
+
+  insert_static_rule(1, "", "rule1");
+
+  CreateSessionResponse response;
+  auto credits = response.mutable_credits();
+  create_credit_update_response(IMSI1, SESSION_ID_1, 1, 4096, credits->Add());
   SessionConfig cfg;
   cfg.common_context       = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
   cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
       SSC_MODE_3);
+  grpc::ServerContext server_context;
+  set_session_manager->SetAmfSessionContext(
+      &server_context, &request,
+      [this](grpc::Status status, SmContextVoid Void) {});
 
+  // Run session creation in the EventBase loop
+  evb->loopOnce();
   auto session_map = session_store->read_sessions({IMSI1});
-  auto it          = session_map.find(IMSI1);
-  EXPECT_FALSE(it == session_map.end());
-  EXPECT_EQ(session_map[IMSI1].size(), 1);
-  auto& session_temp = session_map[IMSI1][0];
-  EXPECT_EQ(session_temp->get_config().common_context.sid().id(), IMSI1);
-  CreateSessionResponse response;
-  response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
-
-  std::string session_id = id_gen_.gen_session_id(IMSI1);
   session_enforcer->m5g_init_session_credit(
-      session_map, IMSI1, session_id, cfg);
-  response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
-  create_credit_update_response(
-      IMSI1, session_id, 1, 1025, response.mutable_credits()->Add());
-  SessionUpdate update = SessionStore::get_default_session_update(session_map);
-  SessionSearchCriteria criteria(IMSI1, IMSI_AND_SESSION_ID, session_id);
+      session_map, IMSI1, SESSION_ID_1, cfg);
+  SessionSearchCriteria criteria(IMSI1, IMSI_AND_SESSION_ID, SESSION_ID_1);
   auto session_it = session_store->find_session(session_map, criteria);
   auto& session_t = **session_it;
-  SessionStateUpdateCriteria* session_uc = &update[IMSI1][session_id];
-  session_t->set_config(cfg, session_uc);
-  EXPECT_TRUE(session_t->is_5g_session());
-
-  session_enforcer->update_session_with_policy(session_t, response, session_uc);
-  session_t->set_upf_teid_endpoint("192.168.200.1", 1000, session_uc);
-  EXPECT_CALL(
-      *events_reporter,
-      session_created(IMSI1, session_id, testing::_, testing::_))
-      .Times(1);
-
+  auto update     = SessionStore::get_default_session_update(session_map);
+  session_enforcer->update_session_with_policy(session_t, response, nullptr);
   session_enforcer->m5g_update_session_context(
       session_map, IMSI1, session_t, update);
 
-  bool write_success =
-      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
-  EXPECT_TRUE(write_success);
+  assert_charging_credit(
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{1, 4096}});
 
-  auto session_map_2 = session_store->read_sessions(SessionRead{IMSI1});
-  EXPECT_EQ(session_map_2[IMSI1].front()->get_request_number(), 1);
-}
+  insert_static_rule(1, "1", "rule1");
 
-TEST_F(SessionManagerHandlerTest, test_SessionTerminate_EventReport) {
-  CreateSessionResponse response;
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  create_rule_record(IMSI1, "rule1", 1024, 1024, record_list->Add());
+  // auto update = SessionStore::get_default_session_update(session_map);
+  auto uc = get_default_update_criteria();
+  session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
+  local_enforcer->aggregate_records(session_map, table, update);
+
+  session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
+
+  UpdateSessionResponse update_response;
+  auto credit_updates_response = update_response.mutable_responses();
   create_credit_update_response(
-      IMSI1, SESSION_ID_1, 1, 1024, response.mutable_credits()->Add());
-  magma::SetSMSessionContext request;
-  set_sm_session_context(&request);
+      IMSI1, SESSION_ID_1, 1, 24, credit_updates_response->Add());
 
-  grpc::ServerContext server_context;
+  auto monitor_updates_response =
+      update_response.mutable_usage_monitor_responses();
+  create_monitor_update_response(
+      IMSI1, SESSION_ID_1, "1", MonitoringLevel::PCC_RULE_LEVEL, 2048,
+      monitor_updates_response->Add());
 
-  set_session_manager->SetAmfSessionContext(
-      &server_context, &request,
-      [this](grpc::Status status, SmContextVoid Void) {});
+  create_credit_update_response(
+      IMSI1, SESSION_ID_2, 1, 400, credit_updates_response->Add());
+  create_monitor_update_response(
+      IMSI1, SESSION_ID_2, "1", MonitoringLevel::PCC_RULE_LEVEL, 500,
+      monitor_updates_response->Add());
 
-  // Run session creation in the EventBase loop
-  evb->loopOnce();
-  evb->loopOnce();
-  SessionConfig cfg;
-  cfg.common_context       = request.common_context();
-  cfg.rat_specific_context = request.rat_specific_context();
-  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
+  local_enforcer->update_session_credits_and_rules(
+      session_map, update_response, update);
 
-  auto session_map = session_store->read_sessions({IMSI1});
-  auto it          = session_map.find(IMSI1);
-  EXPECT_FALSE(it == session_map.end());
-  EXPECT_EQ(session_map[IMSI1].size(), 1);
-  auto& session_temp = session_map[IMSI1][0];
-  EXPECT_EQ(session_temp->get_config().common_context.sid().id(), IMSI1);
-  SessionUpdate update = SessionStore::get_default_session_update(session_map);
-  uint32_t pdu_id      = 5;
-  SessionSearchCriteria id1_success_sid(IMSI1, IMSI_AND_PDUID, pdu_id);
-  auto session_it = session_store->find_session(session_map, id1_success_sid);
-  auto& session   = **session_it;
-  auto session_i  = session->get_session_id();
-  EXPECT_CALL(*events_reporter, session_terminated(IMSI1, testing::_)).Times(1);
-  session_enforcer->m5g_complete_termination(
-      session_map, IMSI1, session_i, update);
-
-  EXPECT_EQ(session_map[IMSI1].size(), 0);
-}
-
-TEST_F(SessionManagerHandlerTest, test_SessionCreationFailure_EventReport) {
-  magma::SetSMSessionContext request;
-  auto* req =
-      request.mutable_rat_specific_context()->mutable_m5gsm_session_context();
-  auto* reqcmn = request.mutable_common_context();
-  req->set_pdu_session_id({0x5});
-  req->set_request_type(magma::RequestType::INITIAL_REQUEST);
-  req->mutable_pdu_address()->set_redirect_address_type(
-      magma::RedirectServer::IPV4);
-  req->mutable_pdu_address()->set_redirect_server_address("10.20.30.40");
-  req->set_priority_access(magma::priorityaccess::High);
-  req->set_imei("123456789012345");
-  req->set_gpsi("9876543210");
-  req->set_pcf_id("1357924680123456");
-
-  reqcmn->mutable_sid()->set_id("IMSI000000000000001");
-  reqcmn->set_sm_session_state(magma::SMSessionFSMState::CREATING_0);
-  reqcmn->set_rat_type(magma::RATType::TGPP_LTE);
-
-  grpc::ServerContext server_context;
-  SessionConfig cfg;
-  cfg.common_context       = request.common_context();
-  cfg.rat_specific_context = request.rat_specific_context();
-  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
-
-  EXPECT_CALL(*events_reporter, session_create_failure(cfg, testing::_))
-      .Times(1);
-
-  set_session_manager->SetAmfSessionContext(
-      &server_context, &request,
-      [this](grpc::Status status, SmContextVoid Void) {});
-
-  // Run session creation in the EventBase loop
-  evb->loopOnce();
-  evb->loopOnce();
-
-  auto session_map = session_store->read_sessions({IMSI1});
-  auto it          = session_map.find(IMSI1);
-  EXPECT_FALSE(it == session_map.end());
-  EXPECT_EQ(session_map[IMSI1].size(), 0);
+  assert_charging_credit(
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{1, 4120}});
+  assert_monitor_credit(
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{"1", 2048}});
 }
 
 int main(int argc, char** argv) {

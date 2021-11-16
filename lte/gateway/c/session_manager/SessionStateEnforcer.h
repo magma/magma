@@ -36,11 +36,11 @@ limitations under the License.
 
 #include "AmfServiceClient.h"
 #include "PipelinedClient.h"
-#include "LocalEnforcer.h"
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "StoreClient.h"
+#include "SessionEvents.h"
 #include "Types.h"
 #include "lte/protos/pipelined.pb.h"
 #include "lte/protos/session_manager.pb.h"
