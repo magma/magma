@@ -171,6 +171,8 @@ jobs:
   orc8r-build:
     name: orc8r build job
     runs-on: ubuntu-latest
+    outputs:
+      artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
       DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
@@ -205,13 +207,16 @@ jobs:
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project orc8r
       - name: Tag and push to Jfrog Registry
-        if: github.ref == 'refs/heads/master'
+        id: publish_artifacts
+        if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project orc8r
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/nginx:${GITHUB_SHA:0:8}\", \"$DOCKER_REGISTRY/controller:${GITHUB_SHA:0:8}\"],\"valid\":true}"
+          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
       - name: Extract commit title
         if: github.ref == 'refs/heads/master'
         id: commit
@@ -278,6 +283,8 @@ jobs:
   cwag-deploy:
     name: cwag deploy job
     runs-on: ubuntu-latest
+    outputs:
+      artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -357,6 +364,7 @@ jobs:
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwf
       - name: Tag and push to Jfrog Registry
+        id: publish_artifacts
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "cwf-test.artifactory.magmacore.org"
@@ -364,6 +372,8 @@ jobs:
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwf
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/cwag_go:${GITHUB_SHA:0:8}\", \"$DOCKER_REGISTRY/gateway_go:${GITHUB_SHA:0:8}\", \"$DOCKER_REGISTRY/gateway_python:${GITHUB_SHA:0:8}\", \"$DOCKER_REGISTRY/gateway_sessiond:${GITHUB_SHA:0:8}\",\"$DOCKER_REGISTRY/gateway_pipelined:${GITHUB_SHA:0:8}\"],\"valid\":true}"
+          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
       - name: Tag and push to Docker Registry goradius
         if: github.event_name == 'push'
         env:
@@ -595,6 +605,8 @@ jobs:
   nms-build:
     name: nms-build job
     runs-on: ubuntu-latest
+    outputs:
+      artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
       NMS_ROOT: "${{ github.workspace }}/nms/packages/magmalte"
@@ -627,6 +639,7 @@ jobs:
           name: docker-images-nms
           path: images
       - name: Tag and push to Jfrog Registry
+        id: publish_artifacts
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
@@ -634,6 +647,8 @@ jobs:
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project magmalte
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/magmalte:${GITHUB_SHA:0:8}\"],\"valid\":true}"
+          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
       - name: Extract commit title
         id: commit
         if: github.event_name == 'push'
@@ -671,7 +686,7 @@ jobs:
     name: Publish to firebase
     if: always() && github.event_name == 'push'
     runs-on: ubuntu-latest
-    needs: [agw-build, feg-build]
+    needs: [agw-build, feg-build, orc8r-build, cwag-deploy, nms-build]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -685,6 +700,9 @@ jobs:
           BUILD_METADATA: '{"github:workflow": "${{ github.workflow }}", "github:run_id": "${{ github.run_id }}", "github:actor": "${{ github.actor }}", "github:repository": "${{ github.repository }}", "github:event_name": "${{ github.event_name }}", "github:sha": "${{ github.sha }}", "github:sha:url": "${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}", "github:ref": "${{ github.ref }}"}'
           AGW_ARTIFACTS: ${{ needs.agw-build.outputs.artifacts }}
           FEG_ARTIFACTS: ${{ needs.feg-build.outputs.artifacts }}
+          ORC8R_ARTIFACTS: ${{ needs.orc8r-build.outputs.artifacts }}
+          CWAG_ARTIFACTS: ${{ needs.cwag-deploy.outputs.artifacts }}
+          NMS_ARTIFACTS: ${{ needs.nms-build.outputs.artifacts }}
         run: |
           python -m pip install --upgrade pip
           pip install Pyrebase
