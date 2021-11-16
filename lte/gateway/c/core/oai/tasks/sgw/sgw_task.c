@@ -238,6 +238,7 @@ status_code_e spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
   spgw_state_t* spgw_state_p = get_spgw_state(false);
 
   // Read SPGW state for subscribers from db
+  printf("================ this ze calllll\n");
   read_spgw_ue_state_db();
 
 #if !MME_UNIT_TEST  // No need to initialize OVS data path for unit tests

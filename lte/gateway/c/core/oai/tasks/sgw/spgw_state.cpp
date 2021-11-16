@@ -53,6 +53,7 @@ hash_table_ts_t* get_spgw_teid_state() {
 }
 
 int read_spgw_ue_state_db() {
+    std::cout << "================ this ze calllll 2" << std::endl;
   return SpgwStateManager::getInstance().read_ue_state_from_db();
 }
 
