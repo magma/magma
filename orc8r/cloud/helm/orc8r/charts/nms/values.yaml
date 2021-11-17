@@ -20,6 +20,9 @@ imagePullSecrets: []
 secret:
   certs: orc8r-certs
 
+certs:
+  enabled: true
+
 rbac: false
 
 magmalte:

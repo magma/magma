@@ -19,6 +19,8 @@ nms:
       tag: 1.5.0
   nginx:
     create: true
+  certs:
+    enabled: true
 
 # Reference to one or more secrets to be used when pulling images
 # ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
