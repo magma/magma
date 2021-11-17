@@ -444,10 +444,8 @@ func TestListSubscribers(t *testing.T) {
 		expectedResultAbbreviated.Subscribers = append(expectedResultAbbreviated.Subscribers, k)
 	}
 
-	if len(expectedResult.Subscribers) == 0 || expectedResult.TotalCount == 0 {
-		t.Errorf("Checking output schema of empty subscriber list? That's a problem!" +
-			"Make sure there's at least one subscriber.")
-	}
+	assert.NotEqual(t, 0, len(expectedResult.Subscribers), "Subscriber list empty! Make sure there's at least one subscriber")
+	assert.NotEqual(t, 0, expectedResult.TotalCount, "Total count empty! Make sure there's at least one subscriber")
 
 	// Get last page of subscribers
 	tc = tests.Test{
