@@ -36,10 +36,10 @@ def test_done_callback(tester_id, workload, verdict, report):
 
 
 def do_token_refresh():
-    """
-    This function is used to run in its own thread and
+    """This function is used to run in its own thread and
     refresh token every 30 min
     """
+
     print("Refreshing Firebase Token:", datetime.now())
     db_client.user = db_client.auth.refresh(db_client.user["refreshToken"])
     threading.Timer(RefreshTokenTime, do_token_refresh).start()
