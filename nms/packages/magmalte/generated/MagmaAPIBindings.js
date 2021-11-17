@@ -1148,9 +1148,7 @@ export type paginated_gateways = {
 };
 export type paginated_subscribers = {
     next_page_token: page_token,
-    subscribers: {
-        [string]: subscriber,
-    },
+    subscribers: {},
     total_count: number,
 };
 export type ping_request = {
@@ -7003,6 +7001,7 @@ export default class MagmaAPIBindings {
                 'networkId': string,
                 'msisdn' ? : string,
                 'ip' ? : string,
+                'verbose' ? : boolean,
                 'pageSize' ? : number,
                 'pageToken' ? : string,
             }
@@ -7023,6 +7022,10 @@ export default class MagmaAPIBindings {
 
             if (parameters['ip'] !== undefined) {
                 query['ip'] = parameters['ip'];
+            }
+
+            if (parameters['verbose'] !== undefined) {
+                query['verbose'] = parameters['verbose'];
             }
 
             if (parameters['pageSize'] !== undefined) {

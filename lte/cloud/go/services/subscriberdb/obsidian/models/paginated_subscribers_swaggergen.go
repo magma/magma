@@ -23,7 +23,7 @@ type PaginatedSubscribers struct {
 
 	// subscribers
 	// Required: true
-	Subscribers map[string]*Subscriber `json:"subscribers"`
+	Subscribers interface{} `json:"subscribers"`
 
 	// estimated total number of subscriber entries
 	// Required: true
@@ -66,17 +66,8 @@ func (m *PaginatedSubscribers) validateNextPageToken(formats strfmt.Registry) er
 
 func (m *PaginatedSubscribers) validateSubscribers(formats strfmt.Registry) error {
 
-	for k := range m.Subscribers {
-
-		if err := validate.Required("subscribers"+"."+k, "body", m.Subscribers[k]); err != nil {
-			return err
-		}
-		if val, ok := m.Subscribers[k]; ok {
-			if err := val.Validate(formats); err != nil {
-				return err
-			}
-		}
-
+	if err := validate.Required("subscribers", "body", m.Subscribers); err != nil {
+		return err
 	}
 
 	return nil

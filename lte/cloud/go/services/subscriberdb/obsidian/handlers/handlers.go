@@ -62,6 +62,7 @@ const (
 	ParamIP        = "ip"
 	ParamPageSize  = "page_size"
 	ParamPageToken = "page_token"
+	ParamVerbose   = "verbose"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -127,6 +128,23 @@ type subscriberFilter func(sub *subscribermodels.Subscriber) bool
 
 func acceptAll(*subscribermodels.Subscriber) bool { return true }
 
+// subscribersVerbosity filters a subscribers list for the specified verbosity.
+// If verbose mode is used, the list is returned as-is (a map of MSISDN strings
+// to Subscribers).
+// If non-verbose mode is used, an array of MSISDN strings is returned instead.
+func subscribersVerbosity(subs map[string]*subscribermodels.Subscriber, verbose bool) interface{} {
+	if verbose {
+		return subs
+	}
+
+	subsIds := make([]string, 0, len(subs))
+	for k := range subs {
+		subsIds = append(subsIds, k)
+	}
+
+	return subsIds
+}
+
 // listSubscribersHandler handles the subscriber endpoint.
 // The returned subscribers can be filtered using the following query
 // parameters
@@ -169,6 +187,11 @@ func listSubscribersHandler(c echo.Context) error {
 	pageToken := c.QueryParam(ParamPageToken)
 	reqCtx := c.Request().Context()
 
+	verbose, err := strconv.ParseBool(c.QueryParam(ParamVerbose))
+	if err != nil {
+		verbose = true
+	}
+
 	// First check for query params to filter by
 	if msisdn := c.QueryParam(ParamMSISDN); msisdn != "" {
 		queryIMSI, err := subscriberdb.GetIMSIForMSISDN(reqCtx, networkID, msisdn)
@@ -179,7 +202,7 @@ func listSubscribersHandler(c echo.Context) error {
 		if err != nil {
 			return makeErr(err)
 		}
-		return c.JSON(http.StatusOK, subs)
+		return c.JSON(http.StatusOK, subscribersVerbosity(subs, verbose))
 	}
 	if ip := c.QueryParam(ParamIP); ip != "" {
 		queryIMSIs, err := subscriberdb.GetIMSIsForIP(reqCtx, networkID, ip)
@@ -191,7 +214,7 @@ func listSubscribersHandler(c echo.Context) error {
 		if err != nil {
 			return makeErr(err)
 		}
-		return c.JSON(http.StatusOK, subs)
+		return c.JSON(http.StatusOK, subscribersVerbosity(subs, verbose))
 	}
 
 	// List subscribers for a given page. If no page is specified, the max
@@ -209,7 +232,7 @@ func listSubscribersHandler(c echo.Context) error {
 	paginatedSubs := subscribermodels.PaginatedSubscribers{
 		TotalCount:    int64(count),
 		NextPageToken: subscribermodels.PageToken(nextPageToken),
-		Subscribers:   subs,
+		Subscribers:   subscribersVerbosity(subs, verbose),
 	}
 	return c.JSON(http.StatusOK, paginatedSubs)
 }

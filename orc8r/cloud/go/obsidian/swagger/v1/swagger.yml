@@ -3732,6 +3732,11 @@ paths:
         name: ip
         required: false
         type: string
+      - description: Show full subscribers if true (default) or just show IDs
+        in: query
+        name: verbose
+        required: false
+        type: boolean
       - $ref: '#/parameters/page_size'
       - $ref: '#/parameters/page_token'
       responses:
@@ -10745,9 +10750,6 @@ definitions:
       next_page_token:
         $ref: '#/definitions/page_token'
       subscribers:
-        additionalProperties:
-          $ref: '#/definitions/subscriber'
-          x-nullable: true
         type: object
       total_count:
         description: estimated total number of subscriber entries
