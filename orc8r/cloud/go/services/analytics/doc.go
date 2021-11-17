@@ -18,5 +18,5 @@ limitations under the License.
 package analytics
 
 const (
-	ServiceName = "ANALYTICS"
+	ServiceName = "analytics"
 )

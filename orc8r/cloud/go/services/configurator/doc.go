@@ -72,7 +72,7 @@ package configurator
 
 const (
 	// ServiceName is the name of this service.
-	ServiceName = "CONFIGURATOR"
+	ServiceName = "configurator"
 
 	// NetworkConfigSerdeDomain is the Serde domain for network configs.
 	NetworkConfigSerdeDomain = "configurator_network_configs"

@@ -29,5 +29,5 @@ limitations under the License.
 package streamer
 
 const (
-	ServiceName = "STREAMER"
+	ServiceName = "streamer"
 )
