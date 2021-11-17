@@ -13,7 +13,7 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// PaginatedSubscriberIds Abbreviated page of subscribers
+// PaginatedSubscriberIds Page of subscriber IDs
 // swagger:model paginated_subscriber_ids
 type PaginatedSubscriberIds struct {
 
@@ -25,7 +25,7 @@ type PaginatedSubscriberIds struct {
 	// Required: true
 	Subscribers []string `json:"subscribers"`
 
-	// estimated total number of subscriber entries
+	// Estimated total number of subscriber entries
 	// Required: true
 	TotalCount int64 `json:"total_count"`
 }

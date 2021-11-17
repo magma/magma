@@ -426,7 +426,7 @@ definitions:
           $ref: '#/definitions/subscriber'
 
   paginated_subscriber_ids:
-    description: Abbreviated page of subscribers
+    description: Page of subscriber IDs
     type: object
     required:
       - next_page_token
@@ -436,7 +436,7 @@ definitions:
       total_count:
         type: integer
         format: int64
-        description: estimated total number of subscriber entries
+        description: Estimated total number of subscriber entries
         example: 10
         x-nullable: false
       next_page_token:

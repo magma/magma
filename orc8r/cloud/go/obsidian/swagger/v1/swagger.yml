@@ -10776,7 +10776,7 @@ definitions:
     - total_count
     type: object
   paginated_subscriber_ids:
-    description: Abbreviated page of subscribers
+    description: Page of subscriber IDs
     properties:
       next_page_token:
         $ref: '#/definitions/page_token'
@@ -10785,7 +10785,7 @@ definitions:
           type: string
         type: array
       total_count:
-        description: estimated total number of subscriber entries
+        description: Estimated total number of subscriber entries
         example: 10
         format: int64
         type: integer
