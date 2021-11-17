@@ -2,7 +2,8 @@
 name: "Semantic PR"
 
 on:  # yamllint disable-line rule:truthy
-  pull_request:
+  # Semantic PR module only works with pull_request_target
+  pull_request_target:
     types:
       - opened
       - edited
