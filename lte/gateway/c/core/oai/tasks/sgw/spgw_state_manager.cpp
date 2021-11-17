@@ -119,8 +119,6 @@ void SpgwStateManager::free_state() {
 }
 
 status_code_e SpgwStateManager::read_ue_state_from_db() {
-    std::cout << "================ this ze calllll 3" << std::endl;
-
   if (!persist_state_enabled) {
     return RETURNok;
   }
@@ -133,9 +131,7 @@ status_code_e SpgwStateManager::read_ue_state_from_db() {
     OAILOG_DEBUG(log_task, "Reading UE state from db for key %s", key.c_str());
     spgw_ue_context_t* ue_context_p =
         (spgw_ue_context_t*) calloc(1, sizeof(spgw_ue_context_t));
-    
-    std::cout << "================ this ze calllll 5" << std::endl;
-    SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
+        SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
   }
   return RETURNok;
 }
