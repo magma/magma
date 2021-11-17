@@ -71,14 +71,15 @@ spec:
             {{- range tuple "controller" "certifier" }}
             - name: {{ . }}
               mountPath: /var/opt/magma/certs/{{ . }}
+              readOnly: true
             {{- end }}
             {{- else }}
             {{- range tuple "certs" "envdir" }}
             - name: {{ . }}
               mountPath: /var/opt/magma/{{ . }}
-            {{- end }}
-            {{- end }}
               readOnly: true
+            {{- end }}
+            {{- end }}
           ports:
             - name: clientcert
               containerPort: {{ .Values.nginx.service.port.clientcert.targetPort }}
