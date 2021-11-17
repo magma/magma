@@ -9,12 +9,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier", "buildifier_test")
 load("@bazel_gazelle//:def.bzl", "gazelle")
+load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier", "buildifier_test")
 
 buildifier(
     name = "buildifier",
     lint_mode = "fix",
+    lint_warnings = ["all"],
     mode = "fix",
 )
 
@@ -23,6 +24,9 @@ buildifier_test(
     size = "small",
     timeout = "short",
     srcs = ["//:starlark_files"],
+    lint_mode = "warn",
+    lint_warnings = ["all"],
+    verbose = True,
 )
 
 filegroup(
