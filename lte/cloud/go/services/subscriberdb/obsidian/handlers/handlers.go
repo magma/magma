@@ -128,11 +128,11 @@ type subscriberFilter func(sub *subscribermodels.Subscriber) bool
 
 func acceptAll(*subscribermodels.Subscriber) bool { return true }
 
-// filterSubscribersIfNonverbose filters a subscribers list for the specified verbosity.
+// mapSubscribersForVerbosity filters a subscribers list for the specified verbosity.
 // If verbose mode is used, the list is returned as-is (a map of MSISDN strings
 // to Subscribers).
 // If non-verbose mode is used, an array of MSISDN strings is returned instead.
-func filterSubscribersIfNonverbose(subs map[string]*subscribermodels.Subscriber, verbose bool) interface{} {
+func mapSubscribersForVerbosity(subs map[string]*subscribermodels.Subscriber, verbose bool) interface{} {
 	if verbose {
 		return subs
 	}
@@ -202,7 +202,7 @@ func listSubscribersHandler(c echo.Context) error {
 		if err != nil {
 			return makeErr(err)
 		}
-		return c.JSON(http.StatusOK, filterSubscribersIfNonverbose(subs, verbose))
+		return c.JSON(http.StatusOK, mapSubscribersForVerbosity(subs, verbose))
 	}
 	if ip := c.QueryParam(ParamIP); ip != "" {
 		queryIMSIs, err := subscriberdb.GetIMSIsForIP(reqCtx, networkID, ip)
@@ -214,7 +214,7 @@ func listSubscribersHandler(c echo.Context) error {
 		if err != nil {
 			return makeErr(err)
 		}
-		return c.JSON(http.StatusOK, filterSubscribersIfNonverbose(subs, verbose))
+		return c.JSON(http.StatusOK, mapSubscribersForVerbosity(subs, verbose))
 	}
 
 	// List subscribers for a given page. If no page is specified, the max
@@ -234,13 +234,13 @@ func listSubscribersHandler(c echo.Context) error {
 		paginatedSubs = subscribermodels.PaginatedSubscribers{
 			TotalCount:    int64(count),
 			NextPageToken: subscribermodels.PageToken(nextPageToken),
-			Subscribers:   filterSubscribersIfNonverbose(subs, verbose).(map[string]*subscribermodels.Subscriber),
+			Subscribers:   mapSubscribersForVerbosity(subs, verbose).(map[string]*subscribermodels.Subscriber),
 		}
 	} else {
 		paginatedSubs = subscribermodels.PaginatedSubscribersAbbreviated{
 			TotalCount:    int64(count),
 			NextPageToken: subscribermodels.PageToken(nextPageToken),
-			Subscribers:   filterSubscribersIfNonverbose(subs, verbose).([]string),
+			Subscribers:   mapSubscribersForVerbosity(subs, verbose).([]string),
 		}
 	}
 	return c.JSON(http.StatusOK, paginatedSubs)
