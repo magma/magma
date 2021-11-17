@@ -11,5 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package nprobe provides the network probe service.
-package nprobe
+package ha
+
+const (
+	ServiceName = "ha"
+)

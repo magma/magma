@@ -11,4 +11,11 @@
  * limitations under the License.
  */
 
-package cwf
+package health
+
+const (
+	ServiceName       = "health"
+	DBTableName       = "health"
+	HealthStatusType  = "health_status"
+	ClusterStatusType = "cluster_status"
+)

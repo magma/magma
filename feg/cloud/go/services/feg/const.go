@@ -11,4 +11,8 @@
  * limitations under the License.
  */
 
-package cwf
+package feg
+
+const (
+	ServiceName = "feg"
+)
