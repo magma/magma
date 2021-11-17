@@ -30,8 +30,7 @@ namespace lte {
 extern task_zmq_ctx_t task_zmq_ctx_main_spgw;
 
 bool is_num_sessions_valid(
-    uint64_t imsi64, int expected_num_ue_contexts,
-    int expected_num_teids) {
+    uint64_t imsi64, int expected_num_ue_contexts, int expected_num_teids) {
   hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
   if (state_ue_ht->num_elements != expected_num_ue_contexts) {
     return false;

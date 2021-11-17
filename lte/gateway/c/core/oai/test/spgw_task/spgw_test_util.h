@@ -36,11 +36,10 @@ namespace lte {
 #define ERROR_SGW_S11_TEID 100
 #define DEFAULT_EDNS_IP 0x7f000001  // localhost
 #define DEFAULT_SGW_IP 0x7f000001   // localhost
-#define DEFAULT_ENB_IP 0xc0a83c8d // 192.168.60.141
+#define DEFAULT_ENB_IP 0xc0a83c8d   // 192.168.60.141
 
 bool is_num_sessions_valid(
-    uint64_t imsi64, int expected_num_ue_contexts,
-    int expected_num_teids);
+    uint64_t imsi64, int expected_num_ue_contexts, int expected_num_teids);
 
 bool is_num_s1_bearers_valid(
     teid_t context_teid, int expected_num_active_bearers);
