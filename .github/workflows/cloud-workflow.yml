@@ -58,31 +58,28 @@ jobs:
       - name: deploy-sync-checkin
         if: always()
         id: deploy-sync-checkin
-        continue-on-error: true
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
           ./run_deployer.bash --deploy-dir /tmp/deploy_dir --build --test check_all
       - name: Lint cloud Go code
         if: always()
-        continue-on-error: true
         id: cloud-lint-lint
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
           python3 build.py --lint
       - name: Generate test coverage
-        continue-on-error: true
+        if: steps.cloud-lint-lint.outcome=='success'
         id: cloud-lint-cov
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
           python3 build.py --coverage
       - uses: codecov/codecov-action@v1
-        continue-on-error: true
+        if: steps.cloud-lint-cov.outcome=='success'
         id: cloud-lint-codecov
         with:
           files: '${{ env.MAGMA_ROOT}}/orc8r/cloud/coverage/all.gocov'
           flags: cloud_lint
       - name: Run tests cloud Go
-        continue-on-error: true
         if: always()
         id: cloud-test
         run: |
