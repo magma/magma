@@ -7,7 +7,7 @@
 #include <ostream>
 #include <utility>
 
-#include "includes/ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.hpp"
 #include "lte/protos/session_manager.grpc.pb.h"
 #include "lte/protos/session_manager.pb.h"
 #include "magma_logging.h"

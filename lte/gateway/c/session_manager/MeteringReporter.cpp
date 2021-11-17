@@ -20,7 +20,7 @@
 #include "MeteringReporter.h"
 #include "StoredState.h"
 #include "Types.h"
-#include "includes/MetricsHelpers.h"
+#include "includes/MetricsHelpers.hpp"
 
 namespace magma {
 namespace lte {

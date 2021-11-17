@@ -21,7 +21,7 @@
 #include <utility>
 
 #include "SessionState.h"
-#include "includes/EventdClient.h"
+#include "includes/EventdClient.hpp"
 #include "magma_logging.h"
 
 namespace magma {
