@@ -52,6 +52,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/NR
+          echo -n "false" > ./pr/RPR
       - uses: actions/upload-artifact@v2
         if: always()
         with:
