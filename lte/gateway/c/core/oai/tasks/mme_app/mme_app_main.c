@@ -50,6 +50,7 @@
 #include "lte/gateway/c/core/oai/include/mme_app_state.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_test_serialization.h"
 
 static void check_mme_healthy_and_notify_service(void);
 static bool is_mme_app_healthy(void);
@@ -457,6 +458,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           mme_app_desc_p, &S1AP_REMOVE_STALE_UE_CONTEXT(received_message_p));
     } break;
 
+    case MME_APP_TEST_PROTOBUF_SERIALIZATION: {
+      mme_app_test_protobuf_serialization(
+          mme_app_desc_p,
+          MME_APP_TEST_PROTOBUF_SERIALIZATION(received_message_p).num_loops);
+      force_ue_write     = false;
+      is_task_state_same = true;
+    } break;
+
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
       free(received_message_p);
@@ -491,8 +500,9 @@ static void* mme_app_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_MME_APP);
   init_task_context(
       TASK_MME_APP,
-      (task_id_t[]){TASK_SPGW_APP, TASK_SGS, TASK_SMS_ORC8R, TASK_S11, TASK_S6A,
-                    TASK_S1AP, TASK_SERVICE303, TASK_HA, TASK_SGW_S8},
+      (task_id_t[]){
+          TASK_SPGW_APP, TASK_SGS, TASK_SMS_ORC8R, TASK_S11, TASK_S6A,
+          TASK_S1AP, TASK_SERVICE303, TASK_HA, TASK_SGW_S8},
       9, handle_message, &mme_app_task_zmq_ctx);
 
   // Service started, but not healthy yet

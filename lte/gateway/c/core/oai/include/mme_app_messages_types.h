@@ -65,6 +65,8 @@
   (mSGpTR)->ittiMsg.mme_app_handover_request
 #define MME_APP_HANDOVER_COMMAND(mSGpTR)                                       \
   (mSGpTR)->ittiMsg.mme_app_handover_command
+#define MME_APP_TEST_PROTOBUF_SERIALIZATION(mSGpTR)                            \
+  (mSGpTR)->ittiMsg.mme_app_test_protobuf_serialization
 
 typedef struct itti_mme_app_connection_establishment_cnf_s {
   mme_ue_s1ap_id_t ue_id;
@@ -190,5 +192,9 @@ typedef struct itti_mme_app_handover_command_s {
   uint32_t source_enb_id;
   uint32_t target_enb_id;
 } itti_mme_app_handover_command_t;
+
+typedef struct itti_mme_app_test_protobuf_serialization_s {
+  uint num_loops;
+} itti_mme_app_test_protobuf_serialization_t;
 
 #endif /* FILE_MME_APP_MESSAGES_TYPES_SEEN */
