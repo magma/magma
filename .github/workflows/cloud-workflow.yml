@@ -55,18 +55,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: '3.7'
-      - name: insync-checkin
-        if: always()
-        id: insync-checkin
-        continue-on-error: true
-        run: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py --generate
-            sudo chown -R $USER $MAGMA_ROOT/*
-            git add .
-            echo GIT_STATUS=$(git status) >> $GITHUB_ENV
-            git status
-            git diff-index --quiet HEAD
       - name: deploy-sync-checkin
         if: always()
         id: deploy-sync-checkin
@@ -114,17 +102,6 @@ jobs:
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to Slack for insync-checkin
-        if: steps.insync-checkin.outcome=='failure' && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action insync-checkin failed"
-          SLACK_USERNAME: "Cloud workflow"
-          SLACK_MESSAGE: "COMMIT TITLE:\n ${{steps.commit.outputs.title}}\n\n\n GIT STATUS OUTPUT:\n ${{env.GIT_STATUS}}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
       - name: Notify failure to Slack for deploy-sync-checkin
         if: steps.deploy-sync-checkin.outcome=='failure' && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
@@ -132,7 +109,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action insync-checkin failed"
           SLACK_USERNAME: "Cloud workflow"
-          SLACK_MESSAGE: "COMMIT TITLE:\n ${{steps.commit.outputs.title}}\n\n\n GIT STATUS OUTPUT:\n ${{env.GIT_STATUS}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
