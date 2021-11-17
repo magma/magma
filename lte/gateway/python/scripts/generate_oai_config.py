@@ -287,8 +287,7 @@ def _get_default_slice_service_type_config(service_mconfig: object) -> str:
 
     if enable_default_service_slice_type is not None:
         if isinstance(enable_default_service_slice_type, int):
-            return str(enable_default_service_slice_type)
-        
+            return str(enable_default_service_slice_type)       
         return enable_default_service_slice_type
 
     return service_mconfig.default_slice_service_type or DEFAULT_NGAP_S_NSSAI_SST
