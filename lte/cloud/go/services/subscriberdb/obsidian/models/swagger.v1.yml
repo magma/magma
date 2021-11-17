@@ -14,7 +14,7 @@ magma-gen-meta:
     - go-struct-name: PaginatedSubscribers
       filename: paginated_subscribers_swaggergen.go
     - go-struct-name: PaginatedSubscribersAbbreviated
-      filename: paginated_subscribers_abbreviated_swaggergen.go
+      filename: paginated_subscriber_ids_swaggergen.go
     - go-struct-name: LteSubscription
       filename: lte_subscription_swaggergen.go
     - go-struct-name: SubscriberStatus
@@ -121,7 +121,7 @@ paths:
         '200':
           description: List of subscribers in the network
           schema:
-            $ref: '#/definitions/paginated_subscribers_abbreviated'
+            $ref: '#/definitions/paginated_subscriber_ids'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -425,7 +425,7 @@ definitions:
           x-nullable: true
           $ref: '#/definitions/subscriber'
 
-  paginated_subscribers_abbreviated:
+  paginated_subscriber_ids:
     description: Abbreviated page of subscribers
     type: object
     required:

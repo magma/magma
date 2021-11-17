@@ -1146,17 +1146,17 @@ export type paginated_gateways = {
     page_token: page_token,
     total_count: number,
 };
+export type paginated_subscriber_ids = {
+    next_page_token: page_token,
+    subscribers: Array < string >
+        ,
+    total_count: number,
+};
 export type paginated_subscribers = {
     next_page_token: page_token,
     subscribers: {
         [string]: subscriber,
     },
-    total_count: number,
-};
-export type paginated_subscribers_abbreviated = {
-    next_page_token: page_token,
-    subscribers: Array < string >
-        ,
     total_count: number,
 };
 export type ping_request = {
@@ -7237,7 +7237,7 @@ export default class MagmaAPIBindings {
                 'pageSize' ? : number,
                 'pageToken' ? : string,
             }
-        ): Promise < paginated_subscribers_abbreviated >
+        ): Promise < paginated_subscriber_ids >
         {
             let path = '/lte/{network_id}/subscribers?verbose=false';
             let body;

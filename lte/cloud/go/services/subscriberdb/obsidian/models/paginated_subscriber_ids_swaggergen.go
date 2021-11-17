@@ -13,9 +13,9 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// PaginatedSubscribersAbbreviated Abbreviated page of subscribers
-// swagger:model paginated_subscribers_abbreviated
-type PaginatedSubscribersAbbreviated struct {
+// PaginatedSubscriberIds Abbreviated page of subscribers
+// swagger:model paginated_subscriber_ids
+type PaginatedSubscriberIds struct {
 
 	// next page token
 	// Required: true
@@ -30,8 +30,8 @@ type PaginatedSubscribersAbbreviated struct {
 	TotalCount int64 `json:"total_count"`
 }
 
-// Validate validates this paginated subscribers abbreviated
-func (m *PaginatedSubscribersAbbreviated) Validate(formats strfmt.Registry) error {
+// Validate validates this paginated subscriber ids
+func (m *PaginatedSubscriberIds) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateNextPageToken(formats); err != nil {
@@ -52,7 +52,7 @@ func (m *PaginatedSubscribersAbbreviated) Validate(formats strfmt.Registry) erro
 	return nil
 }
 
-func (m *PaginatedSubscribersAbbreviated) validateNextPageToken(formats strfmt.Registry) error {
+func (m *PaginatedSubscriberIds) validateNextPageToken(formats strfmt.Registry) error {
 
 	if err := m.NextPageToken.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
@@ -64,7 +64,7 @@ func (m *PaginatedSubscribersAbbreviated) validateNextPageToken(formats strfmt.R
 	return nil
 }
 
-func (m *PaginatedSubscribersAbbreviated) validateSubscribers(formats strfmt.Registry) error {
+func (m *PaginatedSubscriberIds) validateSubscribers(formats strfmt.Registry) error {
 
 	if err := validate.Required("subscribers", "body", m.Subscribers); err != nil {
 		return err
@@ -73,7 +73,7 @@ func (m *PaginatedSubscribersAbbreviated) validateSubscribers(formats strfmt.Reg
 	return nil
 }
 
-func (m *PaginatedSubscribersAbbreviated) validateTotalCount(formats strfmt.Registry) error {
+func (m *PaginatedSubscriberIds) validateTotalCount(formats strfmt.Registry) error {
 
 	if err := validate.Required("total_count", "body", int64(m.TotalCount)); err != nil {
 		return err
@@ -83,7 +83,7 @@ func (m *PaginatedSubscribersAbbreviated) validateTotalCount(formats strfmt.Regi
 }
 
 // MarshalBinary interface implementation
-func (m *PaginatedSubscribersAbbreviated) MarshalBinary() ([]byte, error) {
+func (m *PaginatedSubscriberIds) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -91,8 +91,8 @@ func (m *PaginatedSubscribersAbbreviated) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *PaginatedSubscribersAbbreviated) UnmarshalBinary(b []byte) error {
-	var res PaginatedSubscribersAbbreviated
+func (m *PaginatedSubscriberIds) UnmarshalBinary(b []byte) error {
+	var res PaginatedSubscriberIds
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

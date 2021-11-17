@@ -237,7 +237,7 @@ func listSubscribersHandler(c echo.Context) error {
 			Subscribers:   mapSubscribersForVerbosity(subs, verbose).(map[string]*subscribermodels.Subscriber),
 		}
 	} else {
-		paginatedSubs = subscribermodels.PaginatedSubscribersAbbreviated{
+		paginatedSubs = subscribermodels.PaginatedSubscriberIds{
 			TotalCount:    int64(count),
 			NextPageToken: subscribermodels.PageToken(nextPageToken),
 			Subscribers:   mapSubscribersForVerbosity(subs, verbose).([]string),

@@ -435,7 +435,7 @@ func TestListSubscribers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	expectedResultAbbreviated := subscriberModels.PaginatedSubscribersAbbreviated{
+	expectedResultAbbreviated := subscriberModels.PaginatedSubscriberIds{
 		TotalCount:    expectedResult.TotalCount,
 		NextPageToken: expectedResult.NextPageToken,
 	}

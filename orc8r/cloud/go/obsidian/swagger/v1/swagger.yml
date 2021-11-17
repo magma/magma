@@ -3881,7 +3881,7 @@ paths:
         "200":
           description: List of subscribers in the network
           schema:
-            $ref: '#/definitions/paginated_subscribers_abbreviated'
+            $ref: '#/definitions/paginated_subscriber_ids'
         default:
           $ref: '#/responses/UnexpectedError'
       summary: List subscribers in the network with pagination support
@@ -10775,16 +10775,15 @@ definitions:
     - gateways
     - total_count
     type: object
-  paginated_subscribers:
-    description: Page of subscribers
+  paginated_subscriber_ids:
+    description: Abbreviated page of subscribers
     properties:
       next_page_token:
         $ref: '#/definitions/page_token'
       subscribers:
-        additionalProperties:
-          $ref: '#/definitions/subscriber'
-          x-nullable: true
-        type: object
+        items:
+          type: string
+        type: array
       total_count:
         description: estimated total number of subscriber entries
         example: 10
@@ -10796,15 +10795,16 @@ definitions:
     - subscribers
     - total_count
     type: object
-  paginated_subscribers_abbreviated:
-    description: Abbreviated page of subscribers
+  paginated_subscribers:
+    description: Page of subscribers
     properties:
       next_page_token:
         $ref: '#/definitions/page_token'
       subscribers:
-        items:
-          type: string
-        type: array
+        additionalProperties:
+          $ref: '#/definitions/subscriber'
+          x-nullable: true
+        type: object
       total_count:
         description: estimated total number of subscriber entries
         example: 10
