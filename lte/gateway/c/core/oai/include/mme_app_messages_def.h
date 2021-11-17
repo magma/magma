@@ -66,3 +66,7 @@ MESSAGE_DEF(
 MESSAGE_DEF(
     MME_APP_HANDOVER_COMMAND, itti_mme_app_handover_command_t,
     mme_app_handover_command)
+MESSAGE_DEF(
+    MME_APP_TEST_PROTOBUF_SERIALIZATION,
+    itti_mme_app_test_protobuf_serialization_t,
+    mme_app_test_protobuf_serialization)

@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <string.h>
+#include <mcheck.h>
 
 #include "lte/gateway/c/core/oai/include/mme_events.h"
 
@@ -63,6 +64,7 @@
 #include "lte/gateway/c/core/oai/include/service303.h"
 #include "lte/gateway/c/core/oai/common/shared_ts_log.h"
 #include "lte/gateway/c/core/oai/include/grpc_service.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_test_serialization.h"
 
 static void send_timer_recovery_message(void);
 
@@ -76,9 +78,10 @@ static int main_init(void) {
   // broadcast messages or timer messages)
   init_task_context(
       TASK_MAIN,
-      (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
-                    TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP, TASK_SGW_S8,
-                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG},
+      (task_id_t[]){
+          TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER, TASK_S6A,
+          TASK_S1AP, TASK_SCTP, TASK_SPGW_APP, TASK_SGW_S8, TASK_GRPC_SERVICE,
+          TASK_LOG, TASK_SHARED_TS_LOG},
       11, NULL, &main_zmq_ctx);
 
   return RETURNok;
@@ -179,6 +182,9 @@ int main(int argc, char* argv[]) {
   if (mme_config.use_stateless) {
     send_timer_recovery_message();
   }
+
+  mme_app_schedule_test_protobuf_serialization(10);
+
   /*
    * Handle signals here
    */
