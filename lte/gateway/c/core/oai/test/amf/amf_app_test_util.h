@@ -85,7 +85,7 @@ void create_pdu_notification_response_itti(
 
 int send_pdu_notification_response();
 
-/* Create pdu session establishment  release from ue */
+/* Create pdu session  release from ue */
 int send_uplink_nas_pdu_session_release_request(
     amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
     const uint8_t* nas_msg, uint8_t nas_msg_length);

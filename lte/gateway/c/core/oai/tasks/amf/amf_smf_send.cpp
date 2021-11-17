@@ -586,7 +586,7 @@ M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
   the external DNN because the DNN was not included
   although required or if the DNN could not be resolved.
   */
-  if (msg->dnn.dnn.empty() &&
+  if (msg->dnn.len == 0 &&
       (ue_context->amf_context.apn_config_profile.nb_apns == 0)) {
     cause = M5GSmCause::MISSING_OR_UNKNOWN_DNN;
     return cause;
@@ -680,7 +680,7 @@ int amf_validate_dnn(
   if (dnn_string.empty()) {
     return RETURNok;
   }
-  for (int i = 0; i < MAX_APN_PER_UE; i++) {
+  for (uint8_t i = 0; i < amf_ctxt_p->apn_config_profile.nb_apns; i++) {
     if (strcmp(
             amf_ctxt_p->apn_config_profile.apn_configuration[i]
                 .service_selection,

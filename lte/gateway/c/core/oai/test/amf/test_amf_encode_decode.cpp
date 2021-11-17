@@ -800,7 +800,6 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   EXPECT_EQ(decode_res, true);
   // build uplinknastransport
 
-  // std::string dnn("internet");
   uint8_t dnn[9] = {0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
   EXPECT_EQ(0, memcmp(pdu_sess_est_req.dnn.dnn, dnn, pdu_sess_est_req.dnn.len));
 
@@ -811,8 +810,6 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   ULNASTransportMsg decode_pdu_sess_est_req = {};
   decode_res = decode_ul_nas_transport_msg(&decode_pdu_sess_est_req, pdu, len);
   EXPECT_EQ(decode_res, true);
-  // build uplinknastransport
-  // EXPECT_EQ(dnn, decode_pdu_sess_est_req.dnn.dnn);
   EXPECT_EQ(
       0, memcmp(
              decode_pdu_sess_est_req.dnn.dnn, dnn,
