@@ -19,6 +19,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"math/big"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -53,15 +54,13 @@ type CAInfo struct {
 }
 
 type CertifierServer struct {
-	store     storage.CertifierStorage
-	userStore storage.CertifierStorage
-	CAs       map[protos.CertType]*CAInfo
+	store storage.CertifierStorage
+	CAs   map[protos.CertType]*CAInfo
 }
 
-func NewCertifierServer(store storage.CertifierStorage, userStore storage.CertifierStorage, CAs map[protos.CertType]*CAInfo) (srv *CertifierServer, err error) {
+func NewCertifierServer(store storage.CertifierStorage, CAs map[protos.CertType]*CAInfo) (srv *CertifierServer, err error) {
 	srv = new(CertifierServer)
 	srv.store = store
-	srv.userStore = userStore
 	if CAs == nil {
 		return nil, fmt.Errorf("CA info not provided to certifier")
 	}
@@ -455,17 +454,16 @@ func (srv *CertifierServer) CollectGarbageImpl(ctx context.Context) (int, error)
 // GetOperatorTokens gets all operator tokens after authentication
 func (srv *CertifierServer) GetOperatorTokens(ctx context.Context, getOpReq *certprotos.GetOperatorRequest) (*certprotos.Operator_TokenList, error) {
 	username := getOpReq.GetUsername()
-	user, err := srv.userStore.GetHTTPBasicAuth(username)
+	user, err := srv.store.GetHTTPBasicAuth(username)
 	if err != nil {
 		return &certprotos.Operator_TokenList{}, status.Errorf(
-			codes.NotFound, "failed to fetch user %s from database: %v", username, err)
+			codes.Internal, "failed to fetch user %s from database: %v", username, err)
 	}
 	// check if token is registered with user
 	// TODO(christinewang5): ugh why is finding things in list so hard? should i use a map?
 	token := getOpReq.GetToken()
 	flag := false
 	tokens := user.GetTokens()
-
 	for _, t := range tokens.GetToken() {
 		if t == token {
 			flag = true
@@ -475,4 +473,67 @@ func (srv *CertifierServer) GetOperatorTokens(ctx context.Context, getOpReq *cer
 		return &certprotos.Operator_TokenList{}, status.Errorf(codes.PermissionDenied, "token %s is not registered with user %s", token, user)
 	}
 	return tokens, nil
+}
+
+func (srv *CertifierServer) GetPolicyDecision(ctx context.Context, getPDReq *certprotos.GetPolicyDecisionRequest) (*certprotos.PolicyDecision, error) {
+	tokens := getPDReq.TokenList
+	resource := getPDReq.Resource
+	action := getPDReq.RequestAction
+	for _, t := range tokens.GetToken() {
+		effect, _ := srv.getPolicyDecisionFromToken(t, resource, action)
+		// return the policy decision once we encounter the first allow or deny
+		// TODO(christinewang5) hmm which one would take precedent if multiple polices for the same resource?
+		switch effect {
+		case certprotos.Effect_ALLOW:
+		case certprotos.Effect_DENY:
+			return &certprotos.PolicyDecision{Effect: effect}, nil
+		default:
+			continue
+		}
+	}
+	return nil, nil
+}
+
+// check if the request
+func (srv *CertifierServer) getPolicyDecisionFromToken(token string, resource string, action certprotos.Action) (certprotos.Effect, error) {
+	policy, err := srv.store.GetPolicy(token)
+	if err != nil {
+		status.Errorf(codes.Internal, "failed to get policy from db: %v", err)
+	}
+	effect, err := checkResource(resource, policy)
+	// return if the policy denies the user or is unknown for the resource
+	if effect == certprotos.Effect_DENY || effect == certprotos.Effect_UNKNOWN {
+		return effect, status.Errorf(codes.PermissionDenied, "not authorized to read/write resource")
+	} else if err != nil {
+		return effect, err
+	}
+	// checks if user can read/write the resource
+	effect = checkAction(action, policy)
+	return effect, nil
+}
+
+// checkResource checks if the requested resource is authorized by the policy
+func checkResource(resource string, policy *certprotos.Policy) (certprotos.Effect, error) {
+	effect := policy.GetEffect()
+	// checks if any of policy's resource list allows/denies the requested resource
+	for _, pr := range policy.GetResources().GetResource() {
+		// TODO(christinewang5): kind of abusing the notion of filepaths here but oh well
+		if ok, err := filepath.Match(resource, pr); ok {
+			return effect, err
+		} else {
+			glog.Errorf("failed to match resource path %v", err)
+		}
+	}
+	// defaults to unknown if resource is not explicitly allowed/denied by policy
+	return effect, nil
+}
+
+// checkAction checks if the requested action is authorized by the policy
+func checkAction(action certprotos.Action, policy *certprotos.Policy) certprotos.Effect {
+	if policy.GetAction() == certprotos.Action_WRITE {
+		return certprotos.Effect_ALLOW
+	} else if policy.GetAction() == certprotos.Action_READ && action == certprotos.Action_READ {
+		return certprotos.Effect_ALLOW
+	}
+	return certprotos.Effect_DENY
 }

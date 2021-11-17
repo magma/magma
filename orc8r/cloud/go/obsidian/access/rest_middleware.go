@@ -119,6 +119,7 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if err := certifier.ValidateToken(token); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
+		glog.Errorf("christine succesfully validated token")
 
 		// make sure that token is registered with user
 		getOpReq := certifierprotos.GetOperatorRequest{
@@ -127,9 +128,24 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		tokensList, err := certifier.GetOperatorTokens(req.Context(), &getOpReq)
 		if err != nil {
+			glog.Errorf("christine GetOperatorTokens err %v", err)
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
-		// TODO(christine): take tokenList, request type, resource and exchange for permission decision
+		glog.Errorf("christine got tokenList %v", tokensList)
+
+		// take tokenList, request type, resource and exchange for permission decision
+		requestType := getRequestAction(req, nil)
+		resource := req.RequestURI
+		getPDReq := &certifierprotos.GetPolicyDecisionRequest{
+			TokenList:     tokensList,
+			RequestAction: requestType,
+			Resource:      resource,
+		}
+		pd, err := certifier.GetPolicyDecision(req.Context(), getPDReq)
+		if err != nil || pd.Effect == certifierprotos.Effect_DENY {
+			return echo.NewHTTPError(http.StatusUnauthorized, err)
+		}
+
 		if next != nil {
 			glog.V(4).Info("Access middleware successfully verified permissions. Sending request to the next middleware.")
 			return next(c)
@@ -143,22 +159,24 @@ func parseAuthHeader(header string) (string, string, error) {
 	s := strings.Split(header, ":")
 	// TODO(christinewang5): remove after bootstrapping admin token
 	if len(s) != 2 {
-		return "admin", "op_phFtTnqE0jmUYTuZ5cfeg4oetY9sFmcwHukbPx7O1AIqH5psE", nil
+		return "root", "op_oyBe2SmUx8Gr6o7NcpjXjVP50oNmFNAHKqy1JasH5lHzpNfGA", nil
 	}
-	// admin:op_phFtTnqE0jmUYTuZ5cfeg4oetY9sFmcwHukbPx7O1AIqH5psE
 	// if len(s) != 2 {
 	// 	return s[0], s[1], echo.NewHTTPError(http.StatusUnauthorized, "missing REST client tokens")
 	// }
 	return s[0], s[1], nil
 }
 
-// type PolicyDecision int64
-// const (
-// 	Allow   PolicyDecision = 0
-// 	Deny                   = 1
-// 	Unknown                = 2
-// )
-//
-// func authorizeUser(username string, token string) PolicyDecision {
-//
-// }
+// getRequestType returns the required request permission (READ, WRITE
+// or READ+WRITE) corresponding to the request method.
+func getRequestAction(req *http.Request, decorate logDecorator) certifierprotos.Action {
+	switch req.Method {
+	case "GET", "HEAD":
+		return certifierprotos.Action_READ
+	case "PUT", "POST", "DELETE":
+		return certifierprotos.Action_WRITE
+	default:
+		glog.Info(decorate("Unclassified HTTP method '%s', defaulting to read+write requested permissions", req.Method))
+		return certifierprotos.Action_READ | certifierprotos.Action_WRITE
+	}
+}

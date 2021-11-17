@@ -58,29 +58,41 @@ message Operator {
   TokenList tokens = 3;
 }
 
+enum Effect {
+  UNKNOWN = 0;
+  DENY = 1;
+  ALLOW = 2;
+}
+
+enum Action {
+  NONE = 0;
+  READ = 1;
+  WRITE = 2;
+}
 
 message Policy {
   string token = 1;
-  enum Effect {
-    ALLOW = 0;
-    DENY = 1;
-    UNKNOWN = 2;
-  }
   Effect effect = 2;
-  enum Action {
-    NONE = 0;
-    READ = 1;
-    WRITE = 2;
-  }
   Action action = 3;
   message ResourceList {
     repeated string resource = 4;
   }
+  ResourceList resources = 4;
 }
 
 message GetOperatorRequest {
   string username = 1;
   string token = 2;
+}
+
+message GetPolicyDecisionRequest {
+  Operator.TokenList tokenList = 1;
+  Action  requestAction = 2;
+  string resource = 3;
+}
+
+message PolicyDecision {
+  Effect effect = 1;
 }
 
 service Certifier {
@@ -120,6 +132,9 @@ service Certifier {
   // cleanup expired certificates
   rpc CollectGarbage (Void) returns (Void) {}
 
-  // Get all operator tokens
+  // Get all operator tokens given a username and token
   rpc GetOperatorTokens (GetOperatorRequest) returns (Operator.TokenList) {}
+
+  // Returns a policy decision given tokens, request action
+  rpc GetPolicyDecision (GetPolicyDecisionRequest) returns (PolicyDecision) {}
 }

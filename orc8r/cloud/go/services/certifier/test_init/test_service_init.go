@@ -45,9 +45,7 @@ func StartTestService(t *testing.T) {
 	}
 	store := test_utils.NewSQLBlobstore(t, storage.CertifierTableBlobstore)
 	certStore := storage.NewCertifierBlobstore(store)
-	userFact := test_utils.NewSQLBlobstore(t, storage.HTTPBasicAuthTableBlobstore)
-	userStore := storage.NewCertifierBlobstore(userFact)
-	certServer, err := servicers.NewCertifierServer(certStore, userStore, caMap)
+	certServer, err := servicers.NewCertifierServer(certStore, caMap)
 	if err != nil {
 		t.Fatalf("Failed to create certifier server: %s", err)
 	}

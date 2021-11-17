@@ -71,13 +71,6 @@ func main() {
 	}
 	store := storage.NewCertifierBlobstore(fact)
 
-	userFact := blobstore.NewSQLStoreFactory(storage.HTTPBasicAuthTableBlobstore, db, sqorc.GetSqlBuilder())
-	err = userFact.InitializeFactory()
-	if err != nil {
-		glog.Fatalf("Error initializing user database: %s", err)
-	}
-	userStore := storage.NewCertifierBlobstore(userFact)
-
 	// Add servicers to the service
 	caMap := map[protos.CertType]*servicers.CAInfo{}
 	bootstrapCert, bootstrapPrivKey, err := cert.LoadCertAndPrivKey(*bootstrapCACertFile, *bootstrapCAKeyFile)
@@ -112,7 +105,7 @@ func main() {
 	analytics_protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
 
 	// Register servicer
-	servicer, err := servicers.NewCertifierServer(store, userStore, caMap)
+	servicer, err := servicers.NewCertifierServer(store, caMap)
 	if err != nil {
 		glog.Fatalf("Failed to create certifier server: %s", err)
 	}
@@ -120,7 +113,7 @@ func main() {
 
 	// Add handlers that manages users to Swagger
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(certifier.ServiceName))
-	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers(userStore))
+	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers(store))
 
 	// Start Garbage Collector Ticker
 	go func() {

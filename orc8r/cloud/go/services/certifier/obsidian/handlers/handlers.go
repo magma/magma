@@ -81,11 +81,21 @@ func getCreateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.Handle
 			Password: hashedPassword,
 			Tokens:   &certProto.Operator_TokenList{Token: []string{token}},
 		}
-
-		err = storage.PutHTTPBasicAuth(username, operator)
-		if err != nil {
+		if err = storage.PutHTTPBasicAuth(username, operator); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
+
+		// TODO(christinewang5): remove this once bootstrapping is finished...
+		policy := &certProto.Policy{
+			Token:     token,
+			Effect:    certProto.Effect_ALLOW,
+			Action:    certProto.Action_WRITE,
+			Resources: &certProto.Policy_ResourceList{Resource: []string{"*"}},
+		}
+		if err = storage.PutPolicy(token, policy); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+
 		return nil
 	}
 }

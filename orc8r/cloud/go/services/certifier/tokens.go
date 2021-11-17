@@ -16,15 +16,16 @@ const (
 )
 
 func GenerateToken(prefix TokenPrefix) (string, error) {
+	// generate 32 random bytes
 	bytes := make([]byte, 32)
 	_, err := rand.Read(bytes)
 	if err != nil {
 		return "", err
 	}
-
+	// generate checksum bytes
 	checksum := crc32.ChecksumIEEE(bytes)
 	checksumBytes := i32tob(checksum)
-
+	// combine to form final token
 	finalBytes := append(bytes, checksumBytes...)
 	token := base62.StdEncoding.EncodeToString(finalBytes)
 

@@ -237,3 +237,15 @@ func GetOperatorTokens(ctx context.Context, getOpReq *certifierprotos.GetOperato
 	}
 	return tokens, nil
 }
+
+func GetPolicyDecision(ctx context.Context, getPDReq *certifierprotos.GetPolicyDecisionRequest) (*certifierprotos.PolicyDecision, error) {
+	client, err := getCertifierClient()
+	if err != nil {
+		return nil, err
+	}
+	pd, err := client.GetPolicyDecision(ctx, getPDReq)
+	if err != nil {
+		return nil, err
+	}
+	return pd, nil
+}

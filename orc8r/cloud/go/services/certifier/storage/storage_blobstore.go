@@ -40,6 +40,12 @@ const (
 	// HTTPBasicAuthType is the type of CertInfo used in blobstore type fields.
 	HTTPBasicAuthType = "http_basic_auth"
 
+	// PolicyTableBlobstore is the service-wide blobstore table for policies
+	PolicyTableBlobstore = "policy_blobstore"
+
+	// PolicyType is the type of policy used in blobstore type fileds
+	PolicyType = "policy"
+
 	// Blobstore needs a network ID, but certifier is network-agnostic so we
 	// will use a placeholder value.
 	placeholderNetworkID = "placeholder_network"
@@ -179,7 +185,6 @@ func (c *certifierBlobstore) DeleteCertInfo(serialNumber string) error {
 	return store.Commit()
 }
 
-// TODO(christinewang5): separate two implementations of blobstore, they are diff tables with diff functions
 func (c *certifierBlobstore) ListHTTPBasicAuth() ([]string, error) {
 	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
@@ -249,6 +254,7 @@ func (c *certifierBlobstore) DeleteHTTPBasicAuth(username string) error {
 	return store.Commit()
 }
 
+// TODO(christinewang5): extract to entityFromBlob & entityToBlob maybe, i also feel like i'm writing the same functions, are there no generics in go ugh
 func operatorFromBlob(blob blobstore.Blob) (protos.Operator, error) {
 	operator := protos.Operator{}
 	err := proto.Unmarshal(blob.Value, &operator)
@@ -265,4 +271,78 @@ func operatorToBlob(username string, operator *protos.Operator) (blobstore.Blob,
 	}
 	operatorBlob := blobstore.Blob{Type: HTTPBasicAuthType, Key: username, Value: marshalledOperator}
 	return operatorBlob, nil
+}
+
+func (c *certifierBlobstore) GetPolicy(token string) (*protos.Policy, error) {
+	store, err := c.factory.StartTransaction(nil)
+	if err != nil {
+		return nil, status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
+	}
+	defer store.Rollback()
+
+	policyBlob, err := store.Get(placeholderNetworkID, storage.TK{Type: PolicyType, Key: token})
+	if err != nil {
+		return nil, err
+	}
+	policy, err := policyFromBlob(policyBlob)
+	if err != nil {
+		return nil, err
+	}
+	return &policy, nil
+
+}
+
+func (c *certifierBlobstore) PutPolicy(token string, policy *protos.Policy) error {
+	store, err := c.factory.StartTransaction(nil)
+	if err != nil {
+		return status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
+	}
+	defer store.Rollback()
+
+	policyBlob, err := policyToBlob(token, policy)
+	if err != nil {
+		return err
+	}
+
+	err = store.Write(placeholderNetworkID, blobstore.Blobs{policyBlob})
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("failed to create or update policy for token %s", token))
+	}
+
+	return store.Commit()
+}
+
+func (c *certifierBlobstore) DeleteToken(token string) error {
+	store, err := c.factory.StartTransaction(nil)
+	if err != nil {
+		return status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
+	}
+	defer store.Rollback()
+
+	tk := storage.TK{Type: PolicyType, Key: token}
+	err = store.Delete(placeholderNetworkID, storage.TKs{tk})
+	if err != nil {
+		return status.Errorf(codes.Internal, "failed to delete policy: %s", err)
+	}
+
+	return store.Commit()
+}
+
+func policyFromBlob(blob blobstore.Blob) (protos.Policy, error) {
+	policy := protos.Policy{}
+	err := proto.Unmarshal(blob.Value, &policy)
+	if err != nil {
+		return policy, err
+	}
+	return policy, nil
+
+}
+
+func policyToBlob(username string, policy *protos.Policy) (blobstore.Blob, error) {
+	marshalledPolicy, err := proto.Marshal(policy)
+	if err != nil {
+		return blobstore.Blob{}, err
+	}
+	policyBlob := blobstore.Blob{Type: PolicyType, Key: username, Value: marshalledPolicy}
+	return policyBlob, nil
 }

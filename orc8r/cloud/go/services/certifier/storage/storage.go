@@ -46,4 +46,6 @@ type CertifierStorage interface {
 	DeleteHTTPBasicAuth(username string) error
 
 	GetHTTPBasicAuth(username string) (*protos.Operator, error)
+	GetPolicy(token string) (*protos.Policy, error)
+	PutPolicy(token string, policy *protos.Policy) error
 }
