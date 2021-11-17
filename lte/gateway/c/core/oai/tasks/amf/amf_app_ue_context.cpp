@@ -84,19 +84,10 @@ void notify_ngap_new_ue_amf_ngap_id_association(
  **                                                                        **
  ***************************************************************************/
 int amf_insert_ue_context(
-    amf_ue_ngap_id_t ue_id, amf_ue_context_t* amf_ue_context_p,
-    ue_m5gmm_context_s* ue_context_p) {
+    amf_ue_ngap_id_t ue_id, ue_m5gmm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  if (amf_ue_context_p == NULL) {
-    OAILOG_ERROR(LOG_AMF_APP, "Invalid AMF UE context received\n");
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
-  }
   if (ue_context_p == NULL) {
     OAILOG_ERROR(LOG_AMF_APP, "Invalid UE context received\n");
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
-  }
-  if (ue_context_p->gnb_ngap_id_key == INVALID_GNB_UE_NGAP_ID_KEY) {
-    OAILOG_ERROR(LOG_AMF_APP, "Invalid gnb_ngap_id_key received\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 

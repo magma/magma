@@ -8,6 +8,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <chrono>
+#include <thread>
+
+#include "../mock_tasks/mock_tasks.h"
+
+extern "C" {
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#define CHECK_PROTOTYPE_ONLY
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
+#undef CHECK_PROTOTYPE_ONLY
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
+}
 
 #include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.h"
@@ -20,17 +36,15 @@
 #include "tasks/amf/amf_recv.h"
 #include "tasks/amf/amf_identity.h"
 #include "tasks/amf/amf_app_ue_context_and_proc.h"
+#include "tasks/amf/amf_sap.h"
+#include "tasks/amf/amf_app_state_manager.h"
+#include "tasks/amf/amf_as.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 
-extern "C" {
-#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#define CHECK_PROTOTYPE_ONLY
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
-#undef CHECK_PROTOTYPE_ONLY
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
-}
-
+#if 0
 const task_info_t tasks_info[] = {
     {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
 #define TASK_DEF(tHREADiD)                                                     \
@@ -38,12 +52,13 @@ const task_info_t tasks_info[] = {
 #include "lte/gateway/c/core/oai/include/tasks_def.h"
 #undef TASK_DEF
 };
-
-task_zmq_ctx_t grpc_service_task_zmq_ctx;
+#endif
 
 using ::testing::Test;
+task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 namespace magma5g {
+extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 extern std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
 
@@ -98,11 +113,23 @@ uint8_t NAS5GPktSnapShot::deregistrarion_request[17] = {
     0x7e, 0x00, 0x45, 0x01, 0x00, 0x0b, 0xf2, 0x22, 0xf2,
     0x54, 0x00, 0x00, 0x00, 0x18, 0x5d, 0x2e, 0x00};
 
+// service request with service type data
 uint8_t NAS5GPktSnapShot::service_request[37] = {
     0x7e, 0x00, 0x4c, 0x10, 0x00, 0x07, 0xf4, 0x00, 0x00, 0xe4,
     0x2c, 0x6c, 0x68, 0x71, 0x00, 0x15, 0x7e, 0x00, 0x4c, 0x10,
     0x00, 0x07, 0xf4, 0x00, 0x00, 0xe4, 0x2c, 0x6c, 0x68, 0x40,
     0x02, 0x20, 0x00, 0x50, 0x02, 0x20, 0x00};
+
+// service request with service type signaling
+uint8_t NAS5GPktSnapShot::service_req_signalling[13] = {
+    0x7e, 0x00, 0x4c, 0x00, 0x00, 0x07, 0xf4,
+    0x00, 0x40, 0x21, 0x2e, 0x50, 0x25};
+
+// service request with service type data and without IE uplink
+// data status
+uint8_t service_request_without_uplink_status[] = {
+    0x7e, 0x00, 0x4c, 0x1b, 0x00, 0x07, 0xf4, 0x01, 0x00,
+    0x17, 0xd7, 0xb7, 0x33, 0x50, 0x02, 0x20, 0x00};
 
 uint8_t NAS5GPktSnapShot::registration_reject[4] = {0x00, 0x00, 0x00, 0x00};
 
@@ -842,6 +869,373 @@ TEST(test_dnn, test_amf_validate_dnn) {
   int rc = amf_validate_dnn(&amf_ctx, dnn_string, &idx, ue_sent_dnn);
   EXPECT_TRUE(rc == RETURNok);
 }
+
+class AmfUeContextTestServiceRequestProc : public ::testing::Test {
+ protected:
+#define MCC_DIGIT1 2
+#define MCC_DIGIT2 2
+#define MCC_DIGIT3 2
+#define MNC_DIGIT1 4
+#define MNC_DIGIT2 5
+#define MNC_DIGIT3 6
+#define IMSI64 222456000000101
+#define M_TMSI 0X212e5025
+#define AMF_SET_ID 1
+#define AMF_POINTER 0
+#define AMF_REGION_ID 1
+#define AMF_TAC 0x03
+
+  ue_m5gmm_context_s* ue_context;
+  amf_app_desc_t* amf_app_desc_p;
+  guti_m5_t guti;
+  tai_t tai;
+  const amf_ue_ngap_id_t AMF_UE_NGAP_ID = 0x05;
+  const gnb_ue_ngap_id_t gNB_UE_NGAP_ID = 0x09;
+  const uint32_t gnb_id                 = 0x01;
+  const imsi64_t imis64                 = IMSI64;
+  const uint32_t m_imsi                 = M_TMSI;
+
+  virtual void SetUp() {
+    itti_init(
+        TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
+        NULL);
+    amf_config_init(&amf_config);
+    amf_nas_state_init(&amf_config);
+
+    ue_context     = amf_create_new_ue_context();
+    amf_app_desc_p = get_amf_nas_state(false);
+
+    // insert ue context
+    if (ue_context) {
+      amf_insert_ue_context(AMF_UE_NGAP_ID, ue_context);
+    }
+
+    // imsi64
+    ue_context->amf_context.imsi64 = imis64;
+    // ue security context
+    ue_context->amf_context.member_present_mask |= AMF_CTXT_MEMBER_SECURITY;
+    // ueContextReq
+    ue_context->ue_context_request = M5G_UEContextRequest_requested;
+    // ue state
+    ue_context->mm_state = REGISTERED_IDLE;
+    // 5G TMSI
+    ue_context->amf_context.m5_guti.m_tmsi = m_imsi;
+    guti.m_tmsi = ue_context->amf_context.m5_guti.m_tmsi;
+
+    amf_config_read_lock(&amf_config);
+    // AMF GUAMI CONFIG
+    amf_config.guamfi.guamfi[0].plmn.mcc_digit1 = MCC_DIGIT1;
+    amf_config.guamfi.guamfi[0].plmn.mcc_digit2 = MCC_DIGIT2;
+    amf_config.guamfi.guamfi[0].plmn.mcc_digit3 = MCC_DIGIT3;
+    amf_config.guamfi.guamfi[0].plmn.mnc_digit1 = MNC_DIGIT1;
+    amf_config.guamfi.guamfi[0].plmn.mnc_digit2 = MNC_DIGIT2;
+    amf_config.guamfi.guamfi[0].plmn.mnc_digit3 = MNC_DIGIT3;
+    amf_config.guamfi.guamfi[0].amf_set_id      = AMF_SET_ID;
+    amf_config.guamfi.guamfi[0].amf_pointer     = AMF_POINTER;
+    amf_config.guamfi.guamfi[0].amf_regionid    = AMF_REGION_ID;
+    memcpy(
+        &ue_context->amf_context.m5_guti.guamfi, &amf_config.guamfi.guamfi[0],
+        sizeof(guamfi_t));
+    memcpy(&guti.guamfi, &amf_config.guamfi.guamfi[0], sizeof(guamfi_t));
+    amf_config_unlock(&amf_config);
+    ue_context->amf_ue_ngap_id = AMF_UE_NGAP_ID;
+    // insert ue context based on new guti
+    amf_ue_context_on_new_guti(ue_context, &guti);
+    // tai
+    tai.plmn = guti.guamfi.plmn;
+    tai.tac  = AMF_TAC;
+  }
+  virtual void TearDown() {
+    delete ue_context;
+    clear_amf_nas_state();
+    itti_free_desc_threads();
+    amf_config_free(&amf_config);
+  }
+};
+
+TEST_F(AmfUeContextTestServiceRequestProc, test_amf_service_accept_message) {
+  ServiceAcceptMsg service_accept;
+  uint8_t buffer[50] = {0};
+  amf_sap_t amf_sap;
+  amf_as_message_t as_msg;
+
+  service_accept.extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+
+  service_accept.sec_header_type.sec_hdr = 0;
+  service_accept.spare_half_octet.spare  = 0;
+
+  service_accept.message_type.msg_type               = M5G_SERVICE_ACCEPT;
+  service_accept.pdu_session_status.iei              = PDU_SESSION_STATUS;
+  service_accept.pdu_session_status.len              = 0x02;
+  service_accept.pdu_session_status.pduSessionStatus = 0x05;
+  service_accept.pdu_session_status.iei = PDU_SESSION_REACTIVATION_RESULT;
+  service_accept.pdu_session_status.len = 0x02;
+  service_accept.pdu_session_status.pduSessionStatus = 0x05;
+
+  // Verify nas encoding is successful
+  EXPECT_NE(
+      service_accept.EncodeServiceAcceptMsg(&service_accept, buffer, 0), 0);
+
+  amf_sap.primitive                     = AMFAS_ESTABLISH_CNF;
+  amf_sap.u.amf_as.u.establish.ue_id    = AMF_UE_NGAP_ID;
+  amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
+
+  // Verify nas encoding is successful
+  EXPECT_EQ(
+      AS_NAS_ESTABLISH_CNF_,
+      amf_as_establish_cnf(
+          &amf_sap.u.amf_as.u.establish, &as_msg.msg.nas_establish_rsp));
+}
+
+/* Test for service type signalling */
+TEST_F(
+    AmfUeContextTestServiceRequestProc,
+    test_amf_service_type_signalling_sunny_day) {
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  ServiceRequestMsg service_request;
+  bool decode_res                               = 0;
+  amf_nas_message_decode_status_t decode_status = {0};
+  MessageDef* message_p                         = NULL;
+  amf_app_desc_t* amf_app_desc_p                = get_amf_nas_state(false);
+
+  uint32_t len = nas5g_pkt_snap.get_service_request_signalling_len();
+
+  memset(&service_request, 0, sizeof(ServiceRequestMsg));
+
+  decode_res = decode_service_request_msg(
+      &service_request, nas5g_pkt_snap.service_req_signalling, len);
+  // Verify service request is decoded
+  EXPECT_EQ(decode_res, true);
+  // veriy service request NAS IE's
+  EXPECT_EQ(
+      service_request.extended_protocol_discriminator
+          .extended_proto_discriminator,
+      M5G_MOBILITY_MANAGEMENT_MESSAGES);
+  EXPECT_EQ(service_request.sec_header_type.sec_hdr, (uint8_t) 0x00);
+  EXPECT_EQ(service_request.message_type.msg_type, M5G_SERVICE_REQUEST);
+  EXPECT_EQ(service_request.nas_key_set_identifier.nas_key_set_identifier, 0);
+  EXPECT_EQ(
+      service_request.service_type.service_type_value, SERVICE_TYPE_SIGNALING);
+
+  // Verify service request is handled
+  EXPECT_EQ(
+      RETURNok, amf_handle_service_request(
+                    AMF_UE_NGAP_ID, &service_request, decode_status));
+  // Verify UE moved to REGISTERED
+  EXPECT_EQ(REGISTERED_CONNECTED, ue_context->mm_state);
+  // Forcing UE state IDLE to handle initial ue message
+  ue_context->mm_state = REGISTERED_IDLE;
+
+  // Allocate initial UE message
+  message_p = itti_alloc_new_message(TASK_NGAP, NGAP_INITIAL_UE_MESSAGE);
+  NGAP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id  = 1;
+  NGAP_INITIAL_UE_MESSAGE(message_p).gnb_ue_ngap_id = gNB_UE_NGAP_ID;
+  NGAP_INITIAL_UE_MESSAGE(message_p).gnb_id         = gnb_id;
+  NGAP_INITIAL_UE_MESSAGE(message_p).nas =
+      blk2bstr(nas5g_pkt_snap.service_req_signalling, len);
+  NGAP_INITIAL_UE_MESSAGE(message_p).m5g_rrc_establishment_cause =
+      M5G_MO_SIGNALLING;
+  NGAP_INITIAL_UE_MESSAGE(message_p).is_s_tmsi_valid        = true;
+  NGAP_INITIAL_UE_MESSAGE(message_p).opt_s_tmsi.amf_set_id  = 1;
+  NGAP_INITIAL_UE_MESSAGE(message_p).opt_s_tmsi.amf_pointer = 0;
+  NGAP_INITIAL_UE_MESSAGE(message_p).opt_s_tmsi.m_tmsi      = guti.m_tmsi;
+  NGAP_INITIAL_UE_MESSAGE(message_p).gnb_ue_ngap_id         = gNB_UE_NGAP_ID;
+  NGAP_INITIAL_UE_MESSAGE(message_p).tai                    = tai;
+  NGAP_INITIAL_UE_MESSAGE(message_p).ue_context_request =
+      M5G_UEContextRequest_requested;
+
+  // verify initial ue message is handled
+  EXPECT_EQ(
+      ue_context->amf_context.imsi64,
+      amf_app_handle_initial_ue_message(
+          amf_app_desc_p, &NGAP_INITIAL_UE_MESSAGE(message_p)));
+
+  // Verify UE moved to REGISTERED
+  EXPECT_EQ(REGISTERED_CONNECTED, ue_context->mm_state);
+  itti_free_msg_content(message_p);
+  free(message_p);
+}
+
+/* Test for service type signalling */
+TEST_F(
+    AmfUeContextTestServiceRequestProc,
+    test_amf_service_type_signalling_rainy_day) {
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  ServiceRequestMsg service_request;
+  bool decode_res                               = 0;
+  amf_nas_message_decode_status_t decode_status = {0};
+
+  uint32_t len = nas5g_pkt_snap.get_service_request_signalling_len();
+
+  memset(&service_request, 0, sizeof(ServiceRequestMsg));
+
+  decode_res = decode_service_request_msg(
+      &service_request, nas5g_pkt_snap.service_req_signalling, len);
+  // Verify service request is decoded
+  EXPECT_EQ(decode_res, true);
+  // veriy service request NAS IE's
+  EXPECT_EQ(
+      service_request.extended_protocol_discriminator
+          .extended_proto_discriminator,
+      M5G_MOBILITY_MANAGEMENT_MESSAGES);
+  EXPECT_EQ(service_request.sec_header_type.sec_hdr, (uint8_t) 0x00);
+  EXPECT_EQ(service_request.message_type.msg_type, M5G_SERVICE_REQUEST);
+  EXPECT_EQ(service_request.nas_key_set_identifier.nas_key_set_identifier, 0);
+  EXPECT_EQ(
+      service_request.service_type.service_type_value, SERVICE_TYPE_SIGNALING);
+
+  ue_context->amf_context.m5_guti.m_tmsi = 0X25502e22;
+  // Verify service request is not handled as TMSI not matching
+  EXPECT_EQ(
+      RETURNok, amf_handle_service_request(
+                    AMF_UE_NGAP_ID, &service_request, decode_status));
+  // Verify UE still remains in IDLE state
+  EXPECT_EQ(REGISTERED_IDLE, ue_context->mm_state);
+}
+
+/* Test for Initial Ue message in connected mode */
+TEST_F(
+    AmfUeContextTestServiceRequestProc,
+    test_amf_initial_ue_message_connected_mode_sunny_day) {
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  ServiceRequestMsg service_request;
+  bool decode_res                               = 0;
+  amf_nas_message_decode_status_t decode_status = {0};
+  MessageDef* message_p                         = NULL;
+  amf_app_desc_t* amf_app_desc_p                = get_amf_nas_state(false);
+  gnb_ngap_id_key_t gnb_ngap_id_key             = INVALID_GNB_UE_NGAP_ID_KEY;
+
+  uint32_t len = nas5g_pkt_snap.get_service_request_signalling_len();
+
+  decode_res = decode_service_request_msg(
+      &service_request, nas5g_pkt_snap.service_req_signalling, len);
+  // Verify service request is decoded
+  EXPECT_EQ(decode_res, true);
+  ue_context->mm_state = REGISTERED_CONNECTED;
+
+  // Allocate initial UE message
+  message_p = itti_alloc_new_message(TASK_NGAP, NGAP_INITIAL_UE_MESSAGE);
+  NGAP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id  = 1;
+  NGAP_INITIAL_UE_MESSAGE(message_p).gnb_ue_ngap_id = gNB_UE_NGAP_ID;
+  NGAP_INITIAL_UE_MESSAGE(message_p).gnb_id         = gnb_id;
+  NGAP_INITIAL_UE_MESSAGE(message_p).nas =
+      blk2bstr(nas5g_pkt_snap.service_req_signalling, len);
+  NGAP_INITIAL_UE_MESSAGE(message_p).m5g_rrc_establishment_cause =
+      M5G_MO_SIGNALLING;
+  NGAP_INITIAL_UE_MESSAGE(message_p).is_s_tmsi_valid        = true;
+  NGAP_INITIAL_UE_MESSAGE(message_p).opt_s_tmsi.amf_set_id  = 1;
+  NGAP_INITIAL_UE_MESSAGE(message_p).opt_s_tmsi.amf_pointer = 0;
+  NGAP_INITIAL_UE_MESSAGE(message_p).opt_s_tmsi.m_tmsi      = guti.m_tmsi;
+  NGAP_INITIAL_UE_MESSAGE(message_p).tai                    = tai;
+  NGAP_INITIAL_UE_MESSAGE(message_p).ue_context_request =
+      M5G_UEContextRequest_requested;
+  AMF_APP_GNB_NGAP_ID_KEY(
+      gnb_ngap_id_key, NGAP_INITIAL_UE_MESSAGE(message_p).gnb_id,
+      NGAP_INITIAL_UE_MESSAGE(message_p).gnb_ue_ngap_id);
+  ue_context->gnb_ngap_id_key = gnb_ngap_id_key;
+  // change gnb_ud_ngap_id and gnb_id to generate new gnb_ngap_key
+  NGAP_INITIAL_UE_MESSAGE(message_p).gnb_ue_ngap_id = gNB_UE_NGAP_ID + 1;
+  NGAP_INITIAL_UE_MESSAGE(message_p).gnb_id         = gnb_id + 1;
+
+  // verify initial ue message is handled
+  EXPECT_EQ(
+      ue_context->amf_context.imsi64,
+      amf_app_handle_initial_ue_message(
+          amf_app_desc_p, &NGAP_INITIAL_UE_MESSAGE(message_p)));
+
+  // Verify new gnb_ngap_id_key got generated
+  EXPECT_NE(gnb_ngap_id_key, ue_context->gnb_ngap_id_key);
+
+  // Verify UE still in CONNECTED MODE though initial ue message is received
+  EXPECT_EQ(REGISTERED_CONNECTED, ue_context->mm_state);
+  itti_free_msg_content(message_p);
+  free(message_p);
+}
+
+/* Test for service request without NGAP IE ueContextRequest */
+TEST_F(
+    AmfUeContextTestServiceRequestProc,
+    test_amf_without_ueContextRequest_sunny_day) {
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  ServiceRequestMsg service_request;
+  bool decode_res                               = 0;
+  amf_nas_message_decode_status_t decode_status = {0};
+  MessageDef* message_p                         = NULL;
+  amf_app_desc_t* amf_app_desc_p                = get_amf_nas_state(false);
+
+  uint32_t len = nas5g_pkt_snap.get_service_request_signalling_len();
+
+  memset(&service_request, 0, sizeof(ServiceRequestMsg));
+
+  decode_res = decode_service_request_msg(
+      &service_request, nas5g_pkt_snap.service_req_signalling, len);
+  // Verify service request is decoded
+  EXPECT_EQ(decode_res, true);
+  // veriy service request NAS IE's
+  EXPECT_EQ(
+      service_request.extended_protocol_discriminator
+          .extended_proto_discriminator,
+      M5G_MOBILITY_MANAGEMENT_MESSAGES);
+  EXPECT_EQ(service_request.sec_header_type.sec_hdr, (uint8_t) 0x00);
+  EXPECT_EQ(service_request.message_type.msg_type, M5G_SERVICE_REQUEST);
+  EXPECT_EQ(service_request.nas_key_set_identifier.nas_key_set_identifier, 0);
+  EXPECT_EQ(
+      service_request.service_type.service_type_value, SERVICE_TYPE_SIGNALING);
+
+  // making ue_context_request IE NULL
+  ue_context->ue_context_request = (m5g_uecontextrequest_t) 0;
+  // Verify service request is handled
+  EXPECT_EQ(
+      RETURNok, amf_handle_service_request(
+                    AMF_UE_NGAP_ID, &service_request, decode_status));
+  // Verify UE moved to REGISTERED
+  EXPECT_EQ(REGISTERED_CONNECTED, ue_context->mm_state);
+}
+
+/* service request without IE UplinkDataStatus */
+TEST_F(
+    AmfUeContextTestServiceRequestProc,
+    test_amf_service_request_without_uplinkDataStatus_RainyDay) {
+  ServiceRequestMsg service_request;
+  bool decode_res                               = 0;
+  amf_nas_message_decode_status_t decode_status = {0};
+  MessageDef* message_p                         = NULL;
+  amf_app_desc_t* amf_app_desc_p                = get_amf_nas_state(false);
+  gnb_ngap_id_key_t gnb_ngap_id_key             = INVALID_GNB_UE_NGAP_ID_KEY;
+
+  uint32_t len =
+      sizeof(service_request_without_uplink_status) / sizeof(uint8_t);
+
+  decode_res = decode_service_request_msg(
+      &service_request, service_request_without_uplink_status, len);
+  // Verify service request is decoded
+  EXPECT_EQ(decode_res, true);
+  EXPECT_EQ(
+      service_request.extended_protocol_discriminator
+          .extended_proto_discriminator,
+      M5G_MOBILITY_MANAGEMENT_MESSAGES);
+  EXPECT_EQ(service_request.sec_header_type.sec_hdr, (uint8_t) 0x00);
+  EXPECT_EQ(service_request.message_type.msg_type, M5G_SERVICE_REQUEST);
+  EXPECT_EQ(service_request.nas_key_set_identifier.nas_key_set_identifier, 1);
+  EXPECT_EQ(service_request.service_type.service_type_value, SERVICE_TYPE_DATA);
+  // Verify UP_LINK_DATA_STATUS is not present
+  EXPECT_NE(service_request.uplink_data_status.iei, UP_LINK_DATA_STATUS);
+  EXPECT_NE(service_request.uplink_data_status.len, 0x02);
+  EXPECT_NE(service_request.uplink_data_status.uplinkDataStatus, 0x0020);
+  EXPECT_EQ(service_request.pdu_session_status.iei, PDU_SESSION_STATUS);
+  EXPECT_EQ(service_request.pdu_session_status.len, 0x02);
+  EXPECT_EQ(service_request.pdu_session_status.pduSessionStatus, 0x0020);
+  // Verify service request is rejected as
+  // conditional IE Uplink Status is not present
+  EXPECT_EQ(
+      RETURNok, amf_handle_service_request(
+                    AMF_UE_NGAP_ID, &service_request, decode_status));
+
+  // Verify UE still in CONNECTED MODE though initial ue message is received
+  EXPECT_EQ(REGISTERED_IDLE, ue_context->mm_state);
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
