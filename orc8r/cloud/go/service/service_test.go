@@ -62,7 +62,7 @@ func TestServiceRun(t *testing.T) {
 	assert.NoError(t, err)
 
 	expectedServiceInfo := protos.ServiceInfo{
-		Name:          "STATE",
+		Name:          "state",
 		Version:       "0.0.0",
 		State:         protos.ServiceInfo_ALIVE,
 		Health:        protos.ServiceInfo_APP_HEALTHY,
