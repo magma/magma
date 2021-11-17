@@ -54,7 +54,8 @@ jobs:
               console.log(String(matchMetadataArtifact.id));
               i=i+1
             }
-      - run: |
+      - name: Unzip
+        run: |
           for zipped_archive in `ls -a1 *.zip`
           do
             unzip $zipped_archive
@@ -69,6 +70,7 @@ jobs:
             console.log(String(issue_number))
             core.setOutput('issue_number',issue_number );
       - name: extract images
+        id: extract_images
         run: |
           for IMAGES in `ls -a1 *.gz`
           do
@@ -76,7 +78,7 @@ jobs:
           done
           ls -R
       - name: Tag and push nms docker images to registry
-        continue-on-error: true
+        if: steps.extract_images.outcome=='success'
         env:
           DOCKER_REGISTRY: "orc8r-ci.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -86,7 +88,7 @@ jobs:
           docker image load --input magmalte.tar
           ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${ISSUE_NUMBER}" --tag-latest true --project magmalte
       - name: Tag and push orc8r docker images to registry
-        continue-on-error: true
+        if: steps.extract_images.outcome=='success'
         env:
           DOCKER_REGISTRY: "orc8r-ci.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -97,7 +99,7 @@ jobs:
           docker image load --input controller.tar
           ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${ISSUE_NUMBER}" --tag-latest true --project orc8r
       - name: Tag and push cwf operator image
-        continue-on-error: true
+        if: steps.extract_images.outcome=='success'
         env:
           DOCKER_REGISTRY: "orc8r-ci.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -107,7 +109,7 @@ jobs:
           docker image load --input operator.tar
           ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${ISSUE_NUMBER}" --tag-latest true --project cwf
       - name: Tag and push cwag docker images to Regitry
-        continue-on-error: true
+        if: steps.extract_images.outcome=='success'
         env:
           DOCKER_REGISTRY: "cwf-ci.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -121,7 +123,7 @@ jobs:
           docker image load --input gateway_pipelined.tar
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${ISSUE_NUMBER}" --tag-latest true --project cwf
       - name: Tag and push xwfm docker images
-        continue-on-error: true
+        if: steps.extract_images.outcome=='success'
         env:
           DOCKER_REGISTRY: "orc8r-ci.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -132,7 +134,7 @@ jobs:
           docker image load --input xwfm-integ-tests.tar
           ./ci-scripts/tag-push-docker.sh --images 'goradius|xwfm-integ-tests' --tag "${ISSUE_NUMBER}" --tag-latest true
       - name: Tag and push feg docker images
-        continue-on-error: true
+        if: steps.extract_images.outcome=='success'
         env:
           DOCKER_REGISTRY: "feg-ci.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -143,6 +145,7 @@ jobs:
           docker image load --input feg_gateway_python.tar
           ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${ISSUE_NUMBER}" --tag-latest true --project feg
       - name: Push Helm charts and verify the push
+        if: steps.save_metadata.outcome=='success'
         env:
           HELM_CHART_MUSEUM_API_URL: "https://artifactory.magmacore.org:443/artifactory/api"
           HELM_CHART_MUSEUM_URL: "https://artifactory.magmacore.org:443/artifactory/helm-ci"
