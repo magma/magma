@@ -1,0 +1,31 @@
+---
+name: "Build Docker image for MME"
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+    paths:
+      - lte/gateway/docker/mme/Dockerfile.ubuntu20.04
+      - .github/workflows/docker-builder-mme-builder.yml
+      - .github/workflows/composite/**
+  schedule:
+    - cron: '0 0,6,12,18 * * *'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_STREAM: ${{ github.repository }}/mme_builder_focal
+  IMAGE_TAGS: type=sha
+  DOCKERFILE: lte/gateway/docker/mme/Dockerfile.ubuntu20.04
+
+jobs:
+  build_dockerfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/workflows/composite/docker-builder
+        with:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_STREAM: ${{ env.IMAGE_STREAM }}
+          IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
+          DOCKERFILE: ${{ env.DOCKERFILE }}
+          GITHUB_TOKEN: $${{ secrets.GITHUB_TOKEN }}
