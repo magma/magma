@@ -61,11 +61,6 @@ paths:
           type: string
           description: Filter to subscribers assigned the passed IP address
           required: false
-        - in: query
-          name: verbose
-          type: boolean
-          description: Show full subscribers if true (default) or just show IDs
-          required: false
         - $ref: './orc8r-swagger-common.yml#/parameters/page_size'
         - $ref: './orc8r-swagger-common.yml#/parameters/page_token'
       responses:
@@ -109,11 +104,6 @@ paths:
           name: ip
           type: string
           description: Filter to subscribers assigned the passed IP address
-          required: false
-        - in: query
-          name: verbose
-          type: boolean
-          description: Show full subscribers if true (default) or just show IDs
           required: false
         - $ref: './orc8r-swagger-common.yml#/parameters/page_size'
         - $ref: './orc8r-swagger-common.yml#/parameters/page_token'

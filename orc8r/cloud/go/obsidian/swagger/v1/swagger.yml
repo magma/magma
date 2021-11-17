@@ -3732,11 +3732,6 @@ paths:
         name: ip
         required: false
         type: string
-      - description: Show full subscribers if true (default) or just show IDs
-        in: query
-        name: verbose
-        required: false
-        type: boolean
       - $ref: '#/parameters/page_size'
       - $ref: '#/parameters/page_token'
       responses:
@@ -3870,11 +3865,6 @@ paths:
         name: ip
         required: false
         type: string
-      - description: Show full subscribers if true (default) or just show IDs
-        in: query
-        name: verbose
-        required: false
-        type: boolean
       - $ref: '#/parameters/page_size'
       - $ref: '#/parameters/page_token'
       responses:
