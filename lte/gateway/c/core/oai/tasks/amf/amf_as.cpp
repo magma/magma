@@ -218,7 +218,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
           decode_status);
       break;
     case ULNASTRANSPORT:
-      rc = amf_smf_send(
+      rc = amf_smf_process_pdu_session_packet(
           msg->ue_id, &amf_msg->msg.uplinknas5gtransport, *amf_cause);
       break;
     default:

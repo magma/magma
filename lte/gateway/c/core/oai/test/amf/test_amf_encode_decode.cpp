@@ -43,6 +43,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.h"
 
 #if 0
 const task_info_t tasks_info[] = {
@@ -715,6 +716,42 @@ TEST(test_amf_nas5g_pkt_process, test_amf_security_mode_reject_message_data) {
   EXPECT_EQ(sm_reject.m5gmm_cause.m5gmm_cause, 0x24);
 }
 
+TEST(test_dl_msg, test_amf_pdu_session_establish_reject_message_data) {
+  uint8_t sequence_number  = 0;
+  bool is_security_enabled = false;
+  amf_nas_message_t msg    = {};
+  uint8_t cause            = 27;
+  uint8_t pti              = 1;
+  uint8_t session_id       = 1;
+  bstring buffer;
+  uint32_t bytes = 0;
+
+  int len = construct_pdu_session_reject_dl_req(
+      sequence_number, session_id, pti, cause, is_security_enabled, &msg);
+  buffer = bfromcstralloc(len, "\0");
+  bytes  = nas5g_message_encode(buffer->data, &msg, len, nullptr);
+  EXPECT_GT(bytes, 0);
+
+  amf_nas_message_t decode_msg                  = {0};
+  amf_nas_message_decode_status_t decode_status = {};
+  int status                                    = RETURNerror;
+  status                                        = nas5g_message_decode(
+      buffer->data, &decode_msg, bytes, nullptr, &decode_status);
+
+  DLNASTransportMsg* dlmsg = &decode_msg.plain.amf.msg.downlinknas5gtransport;
+
+  EXPECT_EQ(dlmsg->pdu_session_identity.pdu_session_id, session_id);
+  SmfMsg& pdu_sess_est_reject = dlmsg->payload_container.smf_msg;
+
+  EXPECT_EQ(pdu_sess_est_reject.header.pdu_session_id, session_id);
+  EXPECT_EQ(pdu_sess_est_reject.header.procedure_transaction_id, pti);
+  EXPECT_EQ(pdu_sess_est_reject.msg.pdu_session_estab_reject.pti.pti, pti);
+  EXPECT_EQ(
+      pdu_sess_est_reject.msg.pdu_session_estab_reject.m5gsm_cause.cause_value,
+      cause);
+
+  bdestroy_wrapper(&buffer);
+}
 /* Test for delete_wrapper */
 TEST(test_delete_wrapper, test_delete_wrapper) {
   amf_registration_request_ies_t* req_ies =
@@ -1234,6 +1271,115 @@ TEST_F(
 
   // Verify UE still in CONNECTED MODE though initial ue message is received
   EXPECT_EQ(REGISTERED_IDLE, ue_context->mm_state);
+}
+
+TEST(test_pdu_negative, test_unknown_pdu_session_type) {
+  amf_nas_message_t msg = {};
+
+  // build uplinknastransport //
+  // uplink nas transport(pdu session request)
+  uint8_t pdu[44] = {0x7e, 0x00, 0x67, 0x01, 0x00, 0x15, 0x2e, 0x01, 0x01,
+                     0xc1, 0xff, 0xff, 0x95, 0xa1, 0x28, 0x01, 0x00, 0x7b,
+                     0x00, 0x07, 0x80, 0x00, 0x0a, 0x00, 0x00, 0x0d, 0x00,
+                     0x12, 0x01, 0x81, 0x22, 0x01, 0x01, 0x25, 0x09, 0x08,
+                     0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
+
+  uint32_t len = sizeof(pdu) / sizeof(uint8_t);
+
+  ULNASTransportMsg pdu_sess_est_req;
+  bool decode_res = false;
+  memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
+
+  decode_res = decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len);
+
+  EXPECT_EQ(decode_res, true);
+
+  amf_ue_ngap_id_t ue_id = 1;
+
+  // creating ue_context
+  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
+  ue_context_map.insert(
+      std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
+
+  M5GSmCause cause = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
+  EXPECT_EQ(cause, M5GSmCause::UNKNOWN_PDU_SESSION_TYPE);
+
+  ue_context_map.clear();
+  delete ue_context;
+}
+
+TEST(test_pdu_negative, test_pdu_unknown_dnn_missing_dnn) {
+  amf_nas_message_t msg = {};
+
+  // build uplinknastransport //
+  // uplink nas transport(pdu session request)
+  uint8_t pdu[33] = {0x7e, 0x00, 0x67, 0x01, 0x00, 0x15, 0x2e, 0x01, 0x01,
+                     0xc1, 0xff, 0xff, 0x91, 0xa1, 0x28, 0x01, 0x00, 0x7b,
+                     0x00, 0x07, 0x80, 0x00, 0x0a, 0x00, 0x00, 0x0d, 0x00,
+                     0x12, 0x01, 0x81, 0x22, 0x01, 0x01};
+  uint32_t len    = sizeof(pdu) / sizeof(uint8_t);
+
+  ULNASTransportMsg pdu_sess_est_req;
+  bool decode_res = false;
+  memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
+
+  decode_res = decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len);
+
+  EXPECT_EQ(decode_res, true);
+
+  amf_ue_ngap_id_t ue_id = 1;
+
+  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
+  ue_context_map.insert(
+      std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
+  M5GSmCause cause = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
+  EXPECT_EQ(cause, M5GSmCause::MISSING_OR_UNKNOWN_DNN);
+
+  ue_context_map.clear();
+  delete ue_context;
+}
+
+TEST(test_pdu_negative, test_pdu_invalid_pdu_identity) {
+  amf_nas_message_t msg = {};
+
+  // build uplinknastransport //
+  // uplink nas transport(pdu session request)
+  uint8_t pdu[44] = {0x7e, 0x00, 0x67, 0x01, 0x00, 0x15, 0x2e, 0x01, 0x01,
+                     0xc1, 0xff, 0xff, 0x91, 0xa1, 0x28, 0x01, 0x00, 0x7b,
+                     0x00, 0x07, 0x80, 0x00, 0x0a, 0x00, 0x00, 0x0d, 0x00,
+                     0x12, 0x01, 0x81, 0x22, 0x01, 0x01, 0x25, 0x09, 0x08,
+                     0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
+
+  uint32_t len = sizeof(pdu) / sizeof(uint8_t);
+
+  ULNASTransportMsg pdu_sess_est_req;
+  bool decode_res = false;
+  memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
+
+  decode_res = decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len);
+
+  EXPECT_EQ(decode_res, true);
+
+  amf_ue_ngap_id_t ue_id = 1;
+  uint8_t pdu_session_id = 1;
+
+  // creating ue_context
+  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
+  ue_context_map.insert(
+      std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
+  std::shared_ptr<smf_context_t> smf_ctx =
+      amf_insert_smf_context(ue_context, pdu_session_id);
+
+  for (int req_cnt = 0;
+       req_cnt < MAX_UE_INITIAL_PDU_SESSION_ESTABLISHMENT_REQ_ALLOWED;
+       req_cnt++) {
+    amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
+  }
+  M5GSmCause cause_dup = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
+  EXPECT_EQ(cause_dup, M5GSmCause::INVALID_PDU_SESSION_IDENTITY);
+
+  ue_context_map.clear();
+  delete ue_context;
 }
 
 int main(int argc, char** argv) {

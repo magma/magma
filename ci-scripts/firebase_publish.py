@@ -43,7 +43,10 @@ def main():
     build_id = os.environ["BUILD_ID"]
     build_metadata_env = os.environ["BUILD_METADATA"]
     agw_artifacts_env = os.environ["AGW_ARTIFACTS"]
-    agw_valid_env = os.environ["AGW_VALID"]
+    feg_artifacts_env = os.environ["FEG_ARTIFACTS"]
+    orc8r_artifacts_env = os.environ["ORC8R_ARTIFACTS"]
+    cwag_artifacts_env = os.environ["CWAG_ARTIFACTS"]
+    nms_artifacts_env = os.environ["NMS_ARTIFACTS"]
 
     # Prepare list of registered test workers
     workers = [x.strip() for x in workers_env.split(",")]
@@ -57,19 +60,56 @@ def main():
         print("Decoding build_metadata_env JSON failed: ", build_metadata_env)
     build_info = {"metadata": build_metadata}
 
-    # Add agw arifacts
+    # Add AGW artifacts
     agw_artifacts = {}
-    agw_valid = False
-    if agw_valid_env == "true":
-        try:
-            agw_artifacts = json.loads(agw_artifacts_env)
-            agw_valid = True
-        except ValueError:
-            print("Decoding agw artifacts JSON has failed: ", agw_artifacts_env)
-    build_info["agw"] = {
-        "valid": agw_valid,
-        "artifacts": agw_artifacts,
-    }
+    try:
+        agw_artifacts = json.loads(agw_artifacts_env)
+    except ValueError:
+        print("Decoding AGW artifacts JSON has failed: ", agw_artifacts_env)
+        agw_artifacts = {"packages": [], "valid": False}
+
+    # TODO: Remove this backward compatibility code
+    for package in agw_artifacts["packages"]:
+        if "magma_" in package:
+            agw_artifacts["artifacts"] = {"downloadUri": package}
+            break
+    build_info["agw"] = agw_artifacts
+
+    # Add FEG artifacts
+    feg_artifacts = {}
+    try:
+        feg_artifacts = json.loads(feg_artifacts_env)
+    except ValueError:
+        print("Decoding FEG artifacts JSON has failed: ", feg_artifacts_env)
+        feg_artifacts = {"packages": [], "valid": False}
+    build_info["feg"] = feg_artifacts
+
+    # Add ORC8R artifacts
+    orc8r_artifacts = {}
+    try:
+        orc8r_artifacts = json.loads(orc8r_artifacts_env)
+    except ValueError:
+        print("Decoding ORC8R artifacts JSON has failed: ", orc8r_artifacts_env)
+        orc8r_artifacts = {"packages": [], "valid": False}
+    build_info["orc8r"] = orc8r_artifacts
+
+    # Add CWAG artifacts
+    cwag_artifacts = {}
+    try:
+        cwag_artifacts = json.loads(cwag_artifacts_env)
+    except ValueError:
+        print("Decoding CWAG artifacts JSON has failed: ", cwag_artifacts_env)
+        cwag_artifacts = {"packages": [], "valid": False}
+    build_info["cwag"] = cwag_artifacts
+
+    # Add NMS artifacts
+    nms_artifacts = {}
+    try:
+        nms_artifacts = json.loads(nms_artifacts_env)
+    except ValueError:
+        print("Decoding NMS artifacts JSON has failed: ", nms_artifacts_env)
+        nms_artifacts = {"packages": [], "valid": False}
+    build_info["nms"] = nms_artifacts
 
     # Prepare workload
     workload = {

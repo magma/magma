@@ -9,6 +9,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 # We can get rid of this once we upgrade cpp-redis to a more up-to-date version - GH8321
 cc_library(
     name = "cpp_redis",

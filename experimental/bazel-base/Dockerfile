@@ -14,25 +14,29 @@ RUN apt-get update && \
         build-essential \
         ca-certificates \
         curl \
-        # dependency of @sentry_native//:sentry
-        libcurl4-openssl-dev \
         gcc \
         git \
         gnupg2 \
         g++ \
-        python-dev \
-        zip \
+        # dependency of @sentry_native//:sentry
+        libcurl4-openssl-dev \
+        # dependency of sctpd
+        libsctp-dev \
+        libssl-dev \
+        python3 \
+        python-is-python3 \
         unzip \
+        # dependency of liagent
+        uuid-dev \
         vim \
         wget \
-        libssl-dev
+        zip
 
 # Install bazel
 WORKDIR /usr/sbin
 RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
     chmod +x bazelisk-linux-amd64 && \
     ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
-
 
 # Install Folly as a static library in the container
 RUN apt-get install -y --no-install-recommends cmake
@@ -69,13 +73,8 @@ RUN git clone https://github.com/facebook/folly && cd folly && \
 
 # libtins is required to build the connection_tracker
 RUN apt-get install -y --no-install-recommends \
-    cmake=3.16.3-1ubuntu1 \
     libpcap-dev=1.9.1-3 \
     libmnl-dev=1.0.4-2
-
-# dependency of @sentry_native//:sentry
-RUN apt-get -y install --no-install-recommends \
-    libcurl4-openssl-dev=7.68.0-1ubuntu2.7
 
 # TODO(@themarwhal): this might not be hard to bazelify if we can generate the config
 RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
@@ -93,7 +92,7 @@ RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
 RUN apt-get -y install --no-install-recommends \
     libtool=2.4.6-14
 
-# TODO(GH9710): Generate asn1c with Bazel - also this repo is really old :o 
+# TODO(GH9710): Generate asn1c with Bazel - also this repo is really old :o
 RUN git clone https://gitlab.eurecom.fr/oai/asn1c.git && \
     cd asn1c && \
     git checkout f12568d617dbf48497588f8e227d70388fa217c9 && \

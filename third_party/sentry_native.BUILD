@@ -11,6 +11,8 @@
 
 # Based off of and modified from https://github.com/google/ml-metadata/blob/284af0c9d0d8467b6e69b632f4aedd0f40daac4c/ml_metadata/libmysqlclient.BUILD
 
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 # Source files generated with cmake.
 configure_out_srcs = [
     # TODO(@themarwhal): Generate a static library - GH9323

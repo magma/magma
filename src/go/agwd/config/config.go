@@ -46,22 +46,25 @@ func LogLevel(l config.AgwD_LogLevel) log.Level {
 
 const (
 	ipv4Scheme = "ipv4"
+	tcp4Scheme = "tcp4"
 	ipv6Scheme = "ipv6"
+	tcp6Scheme = "tcp6"
 )
 
 // ParseTarget takes a target in string form and returns a resolved Target.
 // Extends functionality in grpc/internal/grpcutil.ParseTarget to support ipv4
-// and ipv6 schemes.
+// and ipv6 schemes. Return tcp4Scheme or tcp6Scheme so the Scheme can be passed
+// directly to net.Listen.
 func ParseTarget(target string) resolver.Target {
 	if strings.HasPrefix(target, ipv4Scheme+":") {
 		return resolver.Target{
-			Scheme:   ipv4Scheme,
+			Scheme:   tcp4Scheme,
 			Endpoint: target[len(ipv4Scheme)+1:],
 		}
 	}
 	if strings.HasPrefix(target, ipv6Scheme+":") {
 		return resolver.Target{
-			Scheme:   ipv6Scheme,
+			Scheme:   tcp6Scheme,
 			Endpoint: target[len(ipv6Scheme)+1:],
 		}
 	}
@@ -90,7 +93,8 @@ func newDefaultConfig() *config.AgwD {
 		MmeSctpdUpstreamServiceTarget:   "unix:///tmp/mme_sctpd_upstream.sock",
 		// Sentry is disabled if DSN is not set.
 		SentryDsn:           "",
-		ConfigServiceTarget: "127.0.0.1:50090",
+		ConfigServiceTarget: "tcp4:127.0.0.1:50090",
+		PipelinedServiceTarget: "tcp4:0.0.0.0:12345",
 	}
 }
 
