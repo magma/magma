@@ -44,7 +44,7 @@ require (
 	github.com/thoas/go-funk v0.7.0
 	github.com/wmnsk/go-gtp v0.8.0
 	google.golang.org/grpc v1.33.2
-	google.golang.org/protobuf v1.26.0
+	google.golang.org/protobuf v1.27.1
 	gotest.tools/gotestsum v1.7.0 // indirect
 	layeh.com/radius v0.0.0-20201203135236-838e26d0c9be
 	magma/feg/cloud/go v0.0.0
