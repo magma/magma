@@ -24,8 +24,9 @@ option go_package = "magma/lte/cloud/go/protos";
 // --------------------------------------------------------------------------
 message IPAddress {
   enum IPVersion {
-    IPV4 = 0;
-    IPV6 = 1;
+    IPV4   = 0;
+    IPV6   = 1;
+    IPV4V6 = 2;
   }
   IPVersion version  = 1;
   bytes address = 2; // network byte order
@@ -41,8 +42,9 @@ message IPLookupRequest {
   string apn = 2;
 
   enum IPVersion {
-    IPV4 = 0;
-    IPV6 = 1;
+    IPV4   = 0;
+    IPV6   = 1;
+    IPV4V6 = 2;
   }
   IPVersion version = 3;
 }
@@ -57,8 +59,9 @@ message IPLookupRequest {
 // --------------------------------------------------------------------------
 message IPBlock {
   enum IPVersion {
-    IPV4 = 0;
-    IPV6 = 1;
+    IPV4   = 0;
+    IPV6   = 1;
+    IPV4V6 = 2;
   }
   IPVersion version = 1;
   bytes net_address = 2; // network byte order
@@ -161,6 +164,9 @@ service MobilityService {
   // Throws INVALID_ARGUMENT if IPBlock is invalid
   // Throws FAILED_PRECONDITION if IPBlock is not previously assigned
   //
+
+  rpc ListAddedIPv4v6Blocks (magma.orc8r.Void) returns (ListAddedIPBlocksResponse); 
+
   rpc ListAllocatedIPs (IPBlock) returns (ListAllocatedIPsResponse);
 
   // Allocate an IP address from the free IP pool

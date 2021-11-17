@@ -118,6 +118,162 @@ SetSMSessionContext create_sm_pdu_session_v4(
   return (req);
 }
 
+SetSMSessionContext create_sm_pdu_session_v6(
+    char* imsi, uint8_t* apn, uint32_t pdu_session_id,
+    uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
+    uint8_t* gnb_gtp_teid_ip_addr, char* ipv6_addr, uint32_t version,
+    const ambr_t& state_ambr) {
+  magma::lte::SetSMSessionContext req;
+
+  auto* req_common = req.mutable_common_context();
+
+  // Encode IMSI
+  req_common->mutable_sid()->mutable_id()->assign(imsi);
+
+  // Encode TYPE IMSI
+  req_common->mutable_sid()->set_type(
+      magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
+
+  // Encode APU, storing apn value
+  req_common->set_apn((char*) apn);
+
+  // Encode RAT TYPE
+  req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
+
+  // Put in CREATING STATE
+  req_common->set_sm_session_state(magma::lte::SMSessionFSMState::CREATING_0);
+
+  // Create with Default Version
+  req_common->set_sm_session_version(version);
+
+  auto* req_rat_specific =
+      req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
+
+  // Set the Session ID
+  req_rat_specific->set_pdu_session_id(pdu_session_id);
+
+  // Set the Type of Request
+  req_rat_specific->set_request_type(magma::lte::RequestType::INITIAL_REQUEST);
+
+  // Set the Address type
+  req_rat_specific->mutable_pdu_address()->set_redirect_address_type(
+      magma::lte::RedirectServer::IPV6);
+
+  // Type is IPv6
+  req_rat_specific->set_pdu_session_type(magma::lte::PduSessionType::IPV6);
+
+  // TEID of GNB
+  req_rat_specific->mutable_gnode_endpoint()->set_teid(gnb_gtp_teid);
+
+  // IP Address of GNB
+
+  char ipv6_str[INET6_ADDRSTRLEN] = {0};
+  inet_ntop(AF_INET, gnb_gtp_teid_ip_addr, ipv6_str, INET6_ADDRSTRLEN);
+  req_rat_specific->mutable_gnode_endpoint()->set_end_ipv6_addr(ipv6_str);
+
+  // Set the PTI
+  req_rat_specific->set_procedure_trans_identity((const char*) (&(pti)));
+
+  // Set the PDU Address
+  req_rat_specific->mutable_pdu_address()->set_redirect_server_address(
+      (char*) ipv6_addr);
+
+  // Set the default QoS values
+  req_rat_specific->mutable_default_ambr()->set_max_bandwidth_ul(
+      state_ambr.br_ul);
+  req_rat_specific->mutable_default_ambr()->set_max_bandwidth_dl(
+      state_ambr.br_dl);
+
+  // For UT
+  // state_ambr.br_unit = 1;
+
+  req_rat_specific->mutable_default_ambr()->set_br_unit(
+      static_cast<magma::lte::AggregatedMaximumBitrate::BitrateUnitsAMBR>(
+          state_ambr.br_unit));
+
+  return (req);
+}
+
+SetSMSessionContext create_sm_pdu_session_v4v6(
+    char* imsi, uint8_t* apn, uint32_t pdu_session_id,
+    uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
+    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, char* ipv6_addr,
+    uint32_t version, const ambr_t& state_ambr) {
+  magma::lte::SetSMSessionContext req;
+
+  auto* req_common = req.mutable_common_context();
+
+  // Encode IMSI
+  req_common->mutable_sid()->mutable_id()->assign(imsi);
+
+  // Encode TYPE IMSI
+  req_common->mutable_sid()->set_type(
+      magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
+
+  // Encode APU, storing apn value
+  req_common->set_apn((char*) apn);
+
+  // Encode RAT TYPE
+  req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
+
+  // Put in CREATING STATE
+  req_common->set_sm_session_state(magma::lte::SMSessionFSMState::CREATING_0);
+
+  // Create with Default Version
+  req_common->set_sm_session_version(version);
+
+  auto* req_rat_specific =
+      req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
+
+  // Set the Session ID
+  req_rat_specific->set_pdu_session_id(pdu_session_id);
+
+  // Set the Type of Request
+  req_rat_specific->set_request_type(magma::lte::RequestType::INITIAL_REQUEST);
+
+  // Set the Address type
+  req_rat_specific->mutable_pdu_address()->set_redirect_address_type(
+      magma::lte::RedirectServer::IPv4_AND_v6);
+
+  // Type is IPv4v6
+  req_rat_specific->set_pdu_session_type(
+      magma::lte::PduSessionType::IPv4_AND_v6);
+  // TEID of GNB
+  req_rat_specific->mutable_gnode_endpoint()->set_teid(gnb_gtp_teid);
+
+  // IP Address of GNB
+
+  char ipv4_str[INET_ADDRSTRLEN]  = {0};
+  char ipv6_str[INET6_ADDRSTRLEN] = {0};
+  inet_ntop(AF_INET, gnb_gtp_teid_ip_addr, ipv4_str, INET_ADDRSTRLEN);
+  inet_ntop(AF_INET6, gnb_gtp_teid_ip_addr, ipv6_str, INET6_ADDRSTRLEN);
+  req_rat_specific->mutable_gnode_endpoint()->set_end_ipv4_addr(ipv4_str);
+  req_rat_specific->mutable_gnode_endpoint()->set_end_ipv6_addr(ipv6_str);
+
+  // Set the PTI
+  req_rat_specific->set_procedure_trans_identity((const char*) (&(pti)));
+
+  // Set the PDU Address
+  req_rat_specific->mutable_pdu_address()->set_redirect_server_address(
+      (char*) ipv4_addr);
+  req_rat_specific->mutable_pdu_address()->set_redirect_server_address(
+      (char*) ipv6_addr);
+
+  // Set the default QoS values
+  req_rat_specific->mutable_default_ambr()->set_max_bandwidth_ul(
+      state_ambr.br_ul);
+  req_rat_specific->mutable_default_ambr()->set_max_bandwidth_dl(
+      state_ambr.br_dl);
+
+  // For UT
+  // state_ambr.br_unit = 1;
+
+  req_rat_specific->mutable_default_ambr()->set_br_unit(
+      static_cast<magma::lte::AggregatedMaximumBitrate::BitrateUnitsAMBR>(
+          state_ambr.br_unit));
+
+  return (req);
+}
 int AsyncSmfServiceClient::amf_smf_create_pdu_session_ipv4(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
@@ -126,6 +282,32 @@ int AsyncSmfServiceClient::amf_smf_create_pdu_session_ipv4(
   magma::lte::SetSMSessionContext req = create_sm_pdu_session_v4(
       imsi, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
       gnb_gtp_teid_ip_addr, ipv4_addr, version, state_ambr);
+
+  AsyncSmfServiceClient::getInstance().set_smf_session(req);
+  return 0;
+}
+
+int AsyncSmfServiceClient::amf_smf_create_pdu_session_ipv6(
+    char* imsi, uint8_t* apn, uint32_t pdu_session_id,
+    uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
+    uint8_t* gnb_gtp_teid_ip_addr, char* ipv6_addr, uint32_t version,
+    const ambr_t& state_ambr) {
+  magma::lte::SetSMSessionContext req = create_sm_pdu_session_v6(
+      imsi, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
+      gnb_gtp_teid_ip_addr, ipv6_addr, version, state_ambr);
+
+  AsyncSmfServiceClient::getInstance().set_smf_session(req);
+  return 0;
+}
+
+int AsyncSmfServiceClient::amf_smf_create_pdu_session_ipv4v6(
+    char* imsi, uint8_t* apn, uint32_t pdu_session_id,
+    uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
+    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, char* ipv6_addr,
+    uint32_t version, const ambr_t& state_ambr) {
+  magma::lte::SetSMSessionContext req = create_sm_pdu_session_v4v6(
+      imsi, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
+      gnb_gtp_teid_ip_addr, ipv4_addr, ipv6_addr, version, state_ambr);
 
   AsyncSmfServiceClient::getInstance().set_smf_session(req);
   return 0;

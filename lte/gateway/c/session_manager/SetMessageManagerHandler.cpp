@@ -246,6 +246,21 @@ void SetMessageManagerHandler::send_create_session(
               new_cfg.rat_specific_context.m5gsm_session_context()
                   .gnode_endpoint()
                   .end_ipv4_addr());
+
+      cfg.rat_specific_context.mutable_m5gsm_session_context()
+          ->mutable_gnode_endpoint()
+          ->set_end_ipv6_addr(
+              new_cfg.rat_specific_context.m5gsm_session_context()
+                  .gnode_endpoint()
+                  .end_ipv6_addr());
+
+      cfg.rat_specific_context.mutable_m5gsm_session_context()
+          ->mutable_gnode_endpoint()
+          ->set_end_ipv4v6_addr(
+              new_cfg.rat_specific_context.m5gsm_session_context()
+                  .gnode_endpoint()
+                  .end_ipv4v6_addr());
+
       cfg.rat_specific_context.mutable_m5gsm_session_context()
           ->mutable_gnode_endpoint()
           ->set_teid(new_cfg.rat_specific_context.m5gsm_session_context()

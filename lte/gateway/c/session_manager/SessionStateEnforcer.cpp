@@ -676,6 +676,16 @@ void SessionStateEnforcer::prepare_response_to_access(
           .upf_endpoint()
           .end_ipv4_addr());
 
+  rsp->mutable_upf_endpoint()->set_end_ipv6_addr(
+      config.rat_specific_context.m5gsm_session_context()
+          .upf_endpoint()
+          .end_ipv6_addr());
+
+  rsp->mutable_upf_endpoint()->set_end_ipv4v6_addr(
+      config.rat_specific_context.m5gsm_session_context()
+          .upf_endpoint()
+          .end_ipv4v6_addr());
+
   rsp_cmn->mutable_sid()->CopyFrom(config.common_context.sid());  // imsi
   rsp_cmn->set_apn(config.common_context.apn());
   rsp_cmn->set_sm_session_state(config.common_context.sm_session_state());

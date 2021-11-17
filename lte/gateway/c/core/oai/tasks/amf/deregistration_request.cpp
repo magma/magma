@@ -252,6 +252,17 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
           imsi, reinterpret_cast<const char*>(i->apn),
           &(i->pdu_address.ipv4_address));
     }
+    if (i->pdu_address.pdn_type == IPv6) {
+      AsyncM5GMobilityServiceClient::getInstance().release_ipv6_address(
+          imsi, reinterpret_cast<const char*>(i->apn),
+          &(i->pdu_address.ipv6_address));
+    }
+     if (i->pdu_address.pdn_type == IPv4_AND_v6 ) {
+     AsyncM5GMobilityServiceClient::getInstance().release_ipv4v6_address(
+         imsi, reinterpret_cast<const char*>(i->apn),
+         &(i->pdu_address.ipv4_address),&(i->pdu_address.ipv6_address));
+
+   } 
   }
 }
 

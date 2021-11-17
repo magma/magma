@@ -100,6 +100,17 @@ int amf_smf_create_ipv4_session_grpc_req(
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, const ambr_t& state_ambr);
 
+int amf_smf_create_ipv6_session_grpc_req(
+    char* imsi, uint8_t* apn, uint32_t pdu_session_id,
+    uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
+    uint8_t* gnb_gtp_teid_ip_addr, char* ipv6_addr, const ambr_t& state_ambr);
+
+int amf_smf_create_ipv4v6_session_grpc_req(
+    char* imsi, uint8_t* apn, uint32_t pdu_session_id,
+    uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
+    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, char* ipv6_addr,
+    const ambr_t& state_ambr);
+
 int create_session_grpc_req_on_gnb_setup_rsp(
     amf_smf_establish_t* message, char* imsi, uint32_t version);
 int create_session_grpc_req(amf_smf_establish_t* message, char* imsi);

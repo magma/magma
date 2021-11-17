@@ -60,11 +60,13 @@ OpState get_operational_states(magma::SessionStore* session_store) {
 
 folly::dynamic get_dynamic_session_state(
     const std::unique_ptr<SessionState>& session) {
-  folly::dynamic state      = folly::dynamic::object;
-  const auto config         = session->get_config().common_context;
-  state[SESSION_ID]         = session->get_session_id();
-  state[MSISDN]             = config.msisdn();
-  state[magma::IPV4]        = config.ue_ipv4();
+  folly::dynamic state = folly::dynamic::object;
+  const auto config    = session->get_config().common_context;
+  state[SESSION_ID]    = session->get_session_id();
+  state[MSISDN]        = config.msisdn();
+  state[magma::IPV4]   = config.ue_ipv4();
+  state[magma::IPV6]   = config.ue_ipv6();
+  //  state[magma::IPV4V6]      = config.ue_ipv4v6();
   state[APN]                = config.apn();
   state[SESSION_START_TIME] = session->get_pdp_start_time();
   state[LIFECYCLE_STATE]    = session_fsm_state_to_str(session->get_state());

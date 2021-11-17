@@ -1005,6 +1005,13 @@ void SessionState::set_upf_teid_endpoint(
   config_.rat_specific_context.mutable_m5gsm_session_context()
       ->mutable_upf_endpoint()
       ->set_end_ipv4_addr(ip_addr);
+  config_.rat_specific_context.mutable_m5gsm_session_context()
+      ->mutable_upf_endpoint()
+      ->set_end_ipv6_addr(ip_addr);
+  config_.rat_specific_context.mutable_m5gsm_session_context()
+      ->mutable_upf_endpoint()
+      ->set_end_ipv4v6_addr(ip_addr);
+
   uc->updated_config    = config_;
   uc->is_config_updated = true;
   return;
@@ -1032,9 +1039,10 @@ SessionState::SessionInfo SessionState::get_session_info_for_setup() {
   info.imsi      = get_imsi();
   info.ip_addr   = config_.common_context.ue_ipv4();
   info.ipv6_addr = config_.common_context.ue_ipv6();
-  info.teids     = config_.common_context.teids();
-  info.msisdn    = config_.common_context.msisdn();
-  info.ambr      = config_.get_apn_ambr();
+  // info.ipv4v6_addr =config_.common_context.ue_ipv4v6();
+  info.teids  = config_.common_context.teids();
+  info.msisdn = config_.common_context.msisdn();
+  info.ambr   = config_.get_apn_ambr();
 
   std::vector<PolicyRule> gx_dynamic_rules, gy_dynamic_rules;
   dynamic_rules_.get_rules(gx_dynamic_rules);

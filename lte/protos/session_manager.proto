@@ -32,6 +32,7 @@ message RuleRecord {
   string ue_ipv4 = 5;
   // Used for HE
   string ue_ipv6 = 6;
+  string ue_ipv4v6 = 12;
   uint64 dropped_tx = 7;
   uint64 dropped_rx = 8;
   // Rule version with which the flow was installed with
@@ -81,6 +82,7 @@ message CommonSessionContext {
   SMSessionFSMState sm_session_state = 7;
   uint32 sm_session_version = 9;
   string ue_ipv6 = 10;
+  string ue_ipv4v6 = 8;
   // TEIDs corresponding to the default bearer
   Teids teids = 11;
 }
@@ -99,6 +101,9 @@ message TeidSet {
   string end_ipv4_addr = 2;
   uint32 teid_value = 3;
   string end_ipv4_addr_string = 4;
+  string end_ipv6_addr = 5;
+  string end_ipv4v6_addr = 6;
+
 }
 
 enum NotifyUeEvents {
@@ -408,6 +413,8 @@ message RedirectServer {
     IPV6 = 1;
     URL = 2;
     SIP_URI = 3;
+    IPv4_AND_v6 = 4;
+
   }
   RedirectAddressType redirect_address_type = 1;
   string redirect_server_address = 2;
@@ -693,10 +700,10 @@ message NodeID {
 
 // PduSessionType
 enum PduSessionType {
-   IPV4 = 0;
-   IPV6 = 1;
-   IPV4IPV6 = 2;
-   UNSTRUCTURED = 3;
+   IPV4          = 0;
+   IPV6          = 1;
+   IPv4_AND_v6   = 2;
+   UNSTRUCTURED  = 3;
 }
 
 

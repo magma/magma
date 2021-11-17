@@ -255,6 +255,7 @@ typedef struct paa_s {
   pdn_type_value_t pdn_type;
   struct in_addr ipv4_address;
   struct in6_addr ipv6_address;
+  struct in6_addr ipv4v6_address;
   /* Note in rel.8 the ipv6 prefix length has a fixed value of /64 */
   uint8_t ipv6_prefix_length;
   int vlan;
@@ -266,6 +267,7 @@ typedef struct {
   struct {
     struct in_addr ipv4_address;
     struct in6_addr ipv6_address;
+    // struct in6_addr ipv4v6__address;
   } address;
 } ip_address_t;
 

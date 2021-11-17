@@ -273,6 +273,13 @@ int pdu_session_resource_release_complete(
         &(smf_ctx->pdu_address.ipv4_address));
   }
 
+  if (smf_ctx->pdu_address.pdn_type == IPv6) {
+    // Clean up the Mobility IP Address
+    AsyncM5GMobilityServiceClient::getInstance().release_ipv6_address(
+        imsi, reinterpret_cast<const char*>(smf_ctx->apn),
+        &(smf_ctx->pdu_address.ipv6_address));
+  }
+
   OAILOG_DEBUG(
       LOG_AMF_APP, "clear saved context associated with the PDU session\n");
   clear_amf_smf_context(smf_ctx);
@@ -736,6 +743,27 @@ int amf_smf_notification_send(
           INET_ADDRSTRLEN);
       req_common->set_ue_ipv4((char*) ip_str);
     }
+    if (smf_context->pdu_address.pdn_type == IPv6) {
+      char ip_str[INET6_ADDRSTRLEN];
+
+      inet_ntop(
+          AF_INET6, &(smf_context->pdu_address.ipv6_address.s6_addr), ip_str,
+          INET6_ADDRSTRLEN);
+      req_common->set_ue_ipv6((char*) ip_str);
+    }
+    if (smf_context->pdu_address.pdn_type == IPv4_AND_v6) {
+      char ip_str_ipv4[INET_ADDRSTRLEN];
+      char ip_str_ipv6[INET6_ADDRSTRLEN];
+
+      inet_ntop(
+          AF_INET, &(smf_context->pdu_address.ipv4_address.s_addr), ip_str_ipv4,
+          INET_ADDRSTRLEN);
+      req_common->set_ue_ipv4((char*) ip_str_ipv4);
+      inet_ntop(
+          AF_INET6, &(smf_context->pdu_address.ipv6_address.s6_addr), ip_str_ipv6,
+          INET6_ADDRSTRLEN);
+      req_common->set_ue_ipv6((char*) ip_str_ipv6);
+    }
   }
   // Set the PDU Address
 
@@ -822,6 +850,46 @@ int amf_smf_handle_ip_address_response(
       OAILOG_ERROR(LOG_AMF_APP, "Create IPV4 Session \n");
     }
   }
+
+  if (response_p->paa.pdn_type == IPv6) {
+    char ip_str[INET6_ADDRSTRLEN];
+
+    inet_ntop(
+        AF_INET, &(response_p->paa.ipv6_address.s6_addr), ip_str,
+        INET6_ADDRSTRLEN);
+
+    rc = amf_smf_create_ipv6_session_grpc_req(
+        response_p->imsi, response_p->apn, response_p->pdu_session_id,
+        response_p->pdu_session_type, response_p->gnb_gtp_teid, response_p->pti,
+        response_p->gnb_gtp_teid_ip_addr, ip_str, response_p->default_ambr);
+
+    if (rc < 0) {
+      OAILOG_ERROR(LOG_AMF_APP, "Create IPV6 Session \n");
+    }
+  }
+
+      if (response_p->paa.pdn_type ==  IPv4_AND_v6 ) {
+       char ip_str_ipv4[INET_ADDRSTRLEN];
+       char ip_str_ipv6[INET6_ADDRSTRLEN];
+        
+        inet_ntop(
+        AF_INET, &(response_p->paa.ipv4_address.s_addr), ip_str_ipv4,
+        INET_ADDRSTRLEN);
+
+        inet_ntop(
+        AF_INET, &(response_p->paa.ipv6_address.s6_addr), ip_str_ipv6,
+        INET6_ADDRSTRLEN);
+      
+       rc = amf_smf_create_ipv4v6_session_grpc_req(
+          response_p->imsi, response_p->apn, response_p->pdu_session_id,
+          response_p->pdu_session_type, response_p->gnb_gtp_teid,
+    response_p->pti, response_p->gnb_gtp_teid_ip_addr,ip_str_ipv4,ip_str_ipv6,
+    response_p->default_ambr);
+
+      if (rc < 0) {
+        OAILOG_ERROR(LOG_AMF_APP, "Create IPV4V6 Session \n");
+      }
+    }
 
   return rc;
 }

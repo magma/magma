@@ -85,6 +85,100 @@ static void handle_allocate_ipv4_address_status(
   send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
 }
 
+static void handle_allocate_ipv6_address_status(
+    const grpc::Status& status, struct in6_addr addr, int vlan,
+    const char* imsi, const char* apn, uint32_t pdu_session_id, uint8_t pti,
+    uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+    uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len,
+    const ambr_t& subscribed_ue_ambr) {
+  MessageDef* message_p;
+  message_p =
+      itti_alloc_new_message(TASK_GRPC_SERVICE, AMF_IP_ALLOCATION_RESPONSE);
+
+  itti_amf_ip_allocation_response_t* amf_ip_allocation_response_p;
+  amf_ip_allocation_response_p = &message_p->ittiMsg.amf_ip_allocation_response;
+  memset(
+      amf_ip_allocation_response_p, 0,
+      sizeof(itti_amf_ip_allocation_response_t));
+
+  memcpy(amf_ip_allocation_response_p->imsi, imsi, IMSI_BCD_DIGITS_MAX);
+  amf_ip_allocation_response_p->imsi_length      = IMSI_BCD_DIGITS_MAX;
+  amf_ip_allocation_response_p->pdu_session_id   = pdu_session_id;
+  amf_ip_allocation_response_p->pti              = pti;
+  amf_ip_allocation_response_p->pdu_session_type = pdu_session_type;
+  amf_ip_allocation_response_p->paa.ipv6_address = addr;
+  amf_ip_allocation_response_p->paa.pdn_type     = IPv6;
+  amf_ip_allocation_response_p->paa.vlan         = vlan;
+
+  amf_ip_allocation_response_p->gnb_gtp_teid = gnb_gtp_teid;
+
+  memcpy(
+      amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr,
+      6);
+
+  memcpy(amf_ip_allocation_response_p->apn, apn, strlen(apn) + 1);
+
+  if (status.ok()) {
+    amf_ip_allocation_response_p->result = 0;
+  } else {
+    amf_ip_allocation_response_p->result = -1;
+  }
+
+  amf_ip_allocation_response_p->default_ambr.br_ul = subscribed_ue_ambr.br_ul;
+  amf_ip_allocation_response_p->default_ambr.br_dl = subscribed_ue_ambr.br_dl;
+  amf_ip_allocation_response_p->default_ambr.br_unit =
+      subscribed_ue_ambr.br_unit;
+
+  send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
+}
+
+static void handle_allocate_ipv4v6_address_status(
+    const grpc::Status& status, struct in_addr ip4_addr,
+    struct in6_addr ip6_addr, int vlan, const char* imsi, const char* apn,
+    uint32_t pdu_session_id, uint8_t pti, uint32_t pdu_session_type,
+    uint32_t gnb_gtp_teid, uint8_t* gnb_gtp_teid_ip_addr,
+    uint8_t gnb_gtp_teid_ip_addr_len, const ambr_t& subscribed_ue_ambr) {
+  MessageDef* message_p;
+  message_p = itti_alloc_new_message(TASK_GRPC_SERVICE, IP_ALLOCATION_RESPONSE);
+  itti_amf_ip_allocation_response_t* amf_ip_allocation_response_p;
+  amf_ip_allocation_response_p = &message_p->ittiMsg.amf_ip_allocation_response;
+  memset(
+      amf_ip_allocation_response_p, 0,
+      sizeof(itti_amf_ip_allocation_response_t));
+  amf_ip_allocation_response_p->imsi_length      = IMSI_BCD_DIGITS_MAX;
+  amf_ip_allocation_response_p->pdu_session_id   = pdu_session_id;
+  amf_ip_allocation_response_p->pti              = pti;
+  amf_ip_allocation_response_p->pdu_session_type = pdu_session_type;
+  amf_ip_allocation_response_p->paa.ipv4_address = ip4_addr;
+  amf_ip_allocation_response_p->paa.ipv6_address = ip6_addr;
+  amf_ip_allocation_response_p->paa.pdn_type     = IPv4_AND_v6;
+  amf_ip_allocation_response_p->paa.vlan         = vlan;
+
+  amf_ip_allocation_response_p->gnb_gtp_teid = gnb_gtp_teid;
+
+  memcpy(
+      amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr,
+      4);
+  memcpy(
+      amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr,
+      6);
+
+  memcpy(amf_ip_allocation_response_p->apn, apn, strlen(apn) + 1);
+
+  if (status.ok()) {
+    amf_ip_allocation_response_p->result = 0;
+  } else {
+    amf_ip_allocation_response_p->result = -1;
+  }
+
+  amf_ip_allocation_response_p->default_ambr.br_ul = subscribed_ue_ambr.br_ul;
+  amf_ip_allocation_response_p->default_ambr.br_dl = subscribed_ue_ambr.br_dl;
+  amf_ip_allocation_response_p->default_ambr.br_unit =
+      subscribed_ue_ambr.br_unit;
+
+  send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
+}
+
 namespace magma5g {
 
 int AsyncM5GMobilityServiceClient::allocate_ipv4_address(
@@ -116,10 +210,84 @@ int AsyncM5GMobilityServiceClient::allocate_ipv4_address(
       });
   return RETURNok;
 }
+int AsyncM5GMobilityServiceClient::allocate_ipv6_address(
+    const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+    uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+    uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len,
+    const ambr_t& subscribed_ue_ambr) {
+  auto subscriber_id_str = std::string(subscriber_id);
+  auto apn_str           = std::string(apn);
+  MobilityServiceClient::getInstance().AllocateIPv6AddressAsync(
+      subscriber_id_str, apn,
+      [subscriber_id_str, apn, pdu_session_id, pti, pdu_session_type,
+       gnb_gtp_teid, gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len,
+       subscribed_ue_ambr](
+          const Status& status, const AllocateIPAddressResponse& ip_msg) {
+        struct in6_addr ip6_addr;
+        std::string ipv6_addr_str;
 
+        if (ip_msg.ip_list_size() > 0) {
+          ipv6_addr_str = ip_msg.ip_list(0).address();
+        }
+        memcpy(&ip6_addr.s6_addr, ipv6_addr_str.c_str(), sizeof(in6_addr));
+        int vlan = atoi(ip_msg.vlan().c_str());
+
+        handle_allocate_ipv6_address_status(
+            status, ip6_addr, vlan, subscriber_id_str.c_str(), apn,
+            pdu_session_id, pti, pdu_session_type, gnb_gtp_teid,
+            gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len, subscribed_ue_ambr);
+      });
+  return RETURNok;
+}
+int AsyncM5GMobilityServiceClient::allocate_ipv4v6_address(
+    const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+    uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+    uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len,
+    const ambr_t& subscribed_ue_ambr) {
+  auto subscriber_id_str = std::string(subscriber_id);
+  auto apn_str           = std::string(apn);
+  MobilityServiceClient::getInstance().AllocateIPv4v6AddressAsync(
+      subscriber_id_str, apn,
+      [subscriber_id_str, apn, pdu_session_id, pti, pdu_session_type,
+       gnb_gtp_teid, gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len,
+       subscribed_ue_ambr](
+          const Status& status, const AllocateIPAddressResponse& ip_msg) {
+        struct in_addr ip4_addr;
+        struct in6_addr ip6_addr;
+        std::string ipv4_addr_str;
+        std::string ipv6_addr_str;
+        if (ip_msg.ip_list_size() == 2) {
+          ipv4_addr_str = ip_msg.ip_list(0).address();
+          ipv6_addr_str = ip_msg.ip_list(1).address();
+        }
+        memcpy(&ip4_addr, ipv4_addr_str.c_str(), sizeof(in_addr));
+        memcpy(&ip6_addr, ipv6_addr_str.c_str(), sizeof(in6_addr));
+        int vlan = atoi(ip_msg.vlan().c_str());
+        handle_allocate_ipv4v6_address_status(
+            status, ip4_addr, ip6_addr, vlan, subscriber_id_str.c_str(), apn,
+            pdu_session_id, pti, pdu_session_type, gnb_gtp_teid,
+            gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len, subscribed_ue_ambr);
+      });
+  return RETURNok;
+}
 int AsyncM5GMobilityServiceClient::release_ipv4_address(
     const char* subscriber_id, const char* apn, const struct in_addr* addr) {
   MobilityServiceClient::getInstance().ReleaseIPv4Address(
+      subscriber_id, apn, *addr);
+  return RETURNok;
+}
+
+int AsyncM5GMobilityServiceClient::release_ipv6_address(
+    const char* subscriber_id, const char* apn, const struct in6_addr* addr) {
+  MobilityServiceClient::getInstance().ReleaseIPv6Address(
+      subscriber_id, apn, *addr);
+  return RETURNok;
+}
+
+int AsyncM5GMobilityServiceClient::release_ipv4v6_address(
+    const char* subscriber_id, const char* apn, const struct in_addr* ipv4_addr,
+    const struct in6_addr* addr) {
+  MobilityServiceClient::getInstance().ReleaseIPv6Address(
       subscriber_id, apn, *addr);
   return RETURNok;
 }
