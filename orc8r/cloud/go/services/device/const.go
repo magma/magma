@@ -11,4 +11,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package ctraced
+package device
+
+// SerdeDomain is the domain for all Serde implementations for the device
+// service
+const (
+	SerdeDomain = "device"
+
+	// ServiceName is the name of this service
+	ServiceName = "device"
+
+	// DBTableName is the name of the sql table used for this service
+	DBTableName = "device"
+)
