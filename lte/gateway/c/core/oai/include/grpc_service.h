@@ -20,8 +20,6 @@
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/mme_default_values.h"
 
-#define TEST_GRPCSERVICES_SERVER_ADDRESS "127.0.0.1:50095"
-
 typedef struct grpc_service_data_s {
   bstring server_address;
 } grpc_service_data_t;
