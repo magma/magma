@@ -51,10 +51,29 @@ spec:
 {{ toYaml . | trimSuffix "\n" | indent 8 }}
       {{- end }}
       volumes:
+        {{- if .Values.certs.enabled }}
         {{- range tuple "admin-operator" "bootstrapper" "controller" "certifier" "fluentd" "root" "nms" }}
         - name: {{ . }}
           secret:
             secretName: orc8r-{{ . }}-tls
+        {{- end }}
+        {{- else }}
+        - name: certs
+          secret:
+            secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
+        - name: envdir
+          secret:
+            secretName: {{ required "secret.envdir must be provided" .Values.secret.envdir }}
+        {{- if .Values.secret.configs }}
+        {{- range $module, $secretName := .Values.secret.configs }}
+        - name: {{ $secretName }}-{{ $module }}
+          secret:
+            secretName: {{ $secretName }}
+        {{- end }}
+        {{- else }}
+        - name: "empty-configs"
+          emptyDir: {}
+        {{- end }}
         {{- end }}
       containers:
       -
