@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"context"
+
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 
@@ -30,7 +31,7 @@ import (
 )
 
 const (
-	ServiceName = "DIRECTORYD"
+	ServiceName = "directoryd"
 	ImsiPrefix  = "IMSI"
 
 	UseCloudDirectordEnv = "USE_CLOUD_DIRECTORYD"

@@ -15,5 +15,5 @@ limitations under the License.
 package lte
 
 const (
-	ServiceName = "LTE"
+	ServiceName = "lte"
 )

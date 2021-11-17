@@ -41,5 +41,5 @@ limitations under the License.
 package metricsd
 
 const (
-	ServiceName = "METRICSD"
+	ServiceName = "metricsd"
 )

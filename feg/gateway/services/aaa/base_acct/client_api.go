@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	ServiceName = "BASE_ACCT"
+	ServiceName = "base_acct"
 )
 
 // Get a thin RPC client to the gateway base_acct service.

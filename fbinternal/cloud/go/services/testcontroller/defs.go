@@ -11,12 +11,11 @@
  * limitations under the License.
  */
 
-// Package state contains the state service, an orchestrator microservice which
-// manages device-reported state.
-package state
+package testcontroller
 
 const (
-	ServiceName = "state"
-	SerdeDomain = "state"
-	DBTableName = "states"
+	ServiceName = "testcontroller"
+
+	EnodedTestCaseType       = "enodebd_e2e" // Includes traffic tests
+	EnodedTestExcludeTraffic = "enodebd_e2e_exclude_traffic"
 )

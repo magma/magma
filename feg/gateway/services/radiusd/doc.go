@@ -17,4 +17,4 @@ limitations under the License.
 // from the radius server
 package radiusd
 
-const ServiceName = "RADIUSD"
+const ServiceName = "radiusd"

@@ -29,7 +29,7 @@ import (
 	"magma/orc8r/lib/go/registry"
 )
 
-const ServiceName = "DIRECTORYD"
+const ServiceName = "directoryd"
 
 //-------------------------------
 // Directoryd service client APIs
