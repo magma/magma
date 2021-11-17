@@ -17,10 +17,10 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
-#define PAYLOAD_CONTAINER_LENGTH 2
+#define PAYLOAD_CONTAINER_TAG_LENGTH 2
 #define AMF_CAUSE_SUCCESS 1
-const uint32_t MAX_UE_PDU_SESSION_LIMIT                             = 15;
-const uint32_t MAX_UE_INITIAL_PDU_SESSION_ESTABLISHMENT_REQ_ALLOWED = 5;
+#define MAX_UE_PDU_SESSION_LIMIT 15
+#define MAX_UE_INITIAL_PDU_SESSION_ESTABLISHMENT_REQ_ALLOWED 5
 
 int handle_sm_message_routing_failure(
     amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg, M5GMmCause m5gmmcause);

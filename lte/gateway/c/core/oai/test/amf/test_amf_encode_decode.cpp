@@ -899,7 +899,8 @@ TEST(test_pdu_negative, test_unknown_pdu_session_type) {
 
   decode_res = decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len);
 
-  // build uplinknastransport
+  EXPECT_EQ(decode_res, true);
+
   amf_ue_ngap_id_t ue_id = 1;
 
   // creating ue_context
@@ -908,7 +909,7 @@ TEST(test_pdu_negative, test_unknown_pdu_session_type) {
       std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
 
   M5GSmCause cause = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
-  EXPECT_EQ(M5GSmCause::UNKNOWN_PDU_SESSION_TYPE, cause);
+  EXPECT_EQ(cause, M5GSmCause::UNKNOWN_PDU_SESSION_TYPE);
 
   ue_context_map.clear();
   delete ue_context;
@@ -931,14 +932,15 @@ TEST(test_pdu_negative, test_pdu_unknown_dnn_missing_dnn) {
 
   decode_res = decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len);
 
-  // build uplinknastransport
+  EXPECT_EQ(decode_res, true);
+
   amf_ue_ngap_id_t ue_id = 1;
 
   ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
   ue_context_map.insert(
       std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
   M5GSmCause cause = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
-  EXPECT_EQ(M5GSmCause::MISSING_OR_UNKNOWN_DNN, cause);
+  EXPECT_EQ(cause, M5GSmCause::MISSING_OR_UNKNOWN_DNN);
 
   ue_context_map.clear();
   delete ue_context;
@@ -964,7 +966,6 @@ TEST(test_pdu_negative, test_pdu_invalid_pdu_identity) {
   decode_res = decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len);
 
   EXPECT_EQ(decode_res, true);
-  // build uplinknastransport
 
   amf_ue_ngap_id_t ue_id = 1;
   uint8_t pdu_session_id = 1;
@@ -976,13 +977,13 @@ TEST(test_pdu_negative, test_pdu_invalid_pdu_identity) {
   std::shared_ptr<smf_context_t> smf_ctx =
       amf_insert_smf_context(ue_context, pdu_session_id);
 
-  M5GSmCause cause     = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
-  M5GSmCause cause_2   = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
-  M5GSmCause cause_3   = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
-  M5GSmCause cause_4   = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
-  M5GSmCause cause_5   = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
+  for (int req_cnt = 0;
+       req_cnt < MAX_UE_INITIAL_PDU_SESSION_ESTABLISHMENT_REQ_ALLOWED;
+       req_cnt++) {
+    amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
+  }
   M5GSmCause cause_dup = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
-  EXPECT_EQ(M5GSmCause::INVALID_PDU_SESSION_IDENTITY, cause_dup);
+  EXPECT_EQ(cause_dup, M5GSmCause::INVALID_PDU_SESSION_IDENTITY);
 
   ue_context_map.clear();
   delete ue_context;

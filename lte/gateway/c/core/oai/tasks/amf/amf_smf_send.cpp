@@ -586,6 +586,7 @@ M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
   if (msg->dnn.dnn.empty() &&
       (ue_context->amf_context.apn_config_profile.nb_apns == 0)) {
     cause = M5GSmCause::MISSING_OR_UNKNOWN_DNN;
+    return cause;
   }
 
   /*
@@ -598,6 +599,7 @@ M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
   if (session_type == M5GPduSessionType::UNSTRUCTURED ||
       session_type == M5GPduSessionType::ETHERNET) {
     cause = M5GSmCause::UNKNOWN_PDU_SESSION_TYPE;
+    return cause;
   }
 
   /*
@@ -655,7 +657,7 @@ M5GMmCause amf_smf_validate_context(
        (M5GRequestType::EXISTING_PDU_SESSION == requestType))) {
     if (ue_context->amf_context.smf_ctxt_map.size() >=
         MAX_UE_PDU_SESSION_LIMIT) {
-      M5GMmCause mm_cause = M5GMmCause::MAX_PDU_SESSIONS_REACHED;
+      mm_cause = M5GMmCause::MAX_PDU_SESSIONS_REACHED;
     }
   }
   return mm_cause;
@@ -1083,7 +1085,7 @@ int construct_pdu_session_reject_dl_req(
   container_len++;
 
   dlmsg->payload_container.len = container_len;
-  len += PAYLOAD_CONTAINER_LENGTH;
+  len += PAYLOAD_CONTAINER_TAG_LENGTH;
   len += dlmsg->payload_container.len;
 
   /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
