@@ -27,10 +27,10 @@ extern "C" {
 #include <sstream>
 #include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 
 extern amf_config_t amf_config;
 namespace magma5g {

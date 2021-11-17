@@ -23,7 +23,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/spgw_service_handler.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 }
-#include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.hpp"
 
 namespace grpc {
 class ServerContext;

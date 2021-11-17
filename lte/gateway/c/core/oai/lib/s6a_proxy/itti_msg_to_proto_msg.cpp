@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/itti_msg_to_proto_msg.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/itti_msg_to_proto_msg.hpp"
 #include "lte/gateway/c/core/oai/common/security_types.h"
 
 extern "C" {

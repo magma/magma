@@ -46,7 +46,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
-#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 #include "lte/gateway/c/core/oai/include/nas/securityDef.h"

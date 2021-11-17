@@ -26,10 +26,10 @@ extern "C" {
 
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.h"
-#include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.hpp"
+#include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.hpp"
 
 using grpc::Status;
 using magma::lte::AllocateIPAddressResponse;

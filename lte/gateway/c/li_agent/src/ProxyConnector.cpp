@@ -16,7 +16,7 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-#include "lte/gateway/c/li_agent/src/ProxyConnector.h"
+#include "lte/gateway/c/li_agent/src/ProxyConnector.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {

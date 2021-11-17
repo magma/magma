@@ -25,7 +25,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/nas/nas_state_converter.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_state_converter.hpp"
 
 namespace magma {
 namespace lte {

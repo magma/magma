@@ -11,16 +11,16 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/sctpd/src/sctpd.h"
+#include "lte/gateway/c/sctpd/src/sctpd.hpp"
 
 #include <memory>
 #include <grpcpp/grpcpp.h>
 #include <signal.h>
 
-#include "lte/gateway/c/sctpd/src/sctpd_downlink_impl.h"
-#include "lte/gateway/c/sctpd/src/sctpd_event_handler.h"
-#include "lte/gateway/c/sctpd/src/sctpd_uplink_client.h"
-#include "lte/gateway/c/sctpd/src/util.h"
+#include "lte/gateway/c/sctpd/src/sctpd_downlink_impl.hpp"
+#include "lte/gateway/c/sctpd/src/sctpd_event_handler.hpp"
+#include "lte/gateway/c/sctpd/src/sctpd_uplink_client.hpp"
+#include "lte/gateway/c/sctpd/src/util.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging_init.h"
 
 using grpc::Server;

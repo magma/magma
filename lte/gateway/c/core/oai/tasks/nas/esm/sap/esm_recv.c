@@ -40,7 +40,7 @@
 #include "lte/gateway/c/core/oai/include/mme_app_desc.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
-#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
 
 /****************************************************************************/

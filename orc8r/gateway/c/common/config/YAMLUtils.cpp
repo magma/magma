@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "orc8r/gateway/c/common/config/YAMLUtils.h"
+#include "orc8r/gateway/c/common/config/YAMLUtils.hpp"
 
 #include <yaml-cpp/yaml.h>
 #include <string>  // for string

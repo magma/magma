@@ -11,7 +11,7 @@
 
 #include <sstream>
 #include <cstdint>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {

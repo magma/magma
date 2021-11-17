@@ -19,7 +19,7 @@
 
 *****************************************************************************/
 
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.hpp"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
 #include <cstdlib>
 #include <cstring>
@@ -34,7 +34,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.hpp"
 
 using magma5g::NgapStateManager;
 

@@ -14,21 +14,21 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include "lte/gateway/c/core/oai/include/grpc_service.h"
+#include "lte/gateway/c/core/oai/include/grpc_service.hpp"
 
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/security/server_credentials.h>
 #include <memory>
 
-#include "lte/gateway/c/core/oai/tasks/grpc_service/CSFBGatewayServiceImpl.h"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/SMSOrc8rGatewayServiceImpl.h"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/S1apServiceImpl.h"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/S6aGatewayImpl.h"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/S6aServiceImpl.h"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.h"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/AmfServiceImpl.h"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/HaServiceImpl.h"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/CSFBGatewayServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/SMSOrc8rGatewayServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S1apServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S6aGatewayImpl.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S6aServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/AmfServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/HaServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"

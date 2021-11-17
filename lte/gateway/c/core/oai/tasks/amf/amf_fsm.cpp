@@ -24,11 +24,11 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
 #include "lte/gateway/c/core/oai/include/amf_as_message.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.hpp"
 
 namespace magma5g {
 

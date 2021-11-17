@@ -19,9 +19,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 }
-#include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.hpp"
 #include "lte/gateway/c/core/oai/lib/s8_proxy/s8_itti_proto_conversion.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.hpp"
 
 namespace grpc {
 class ServerContext;

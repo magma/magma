@@ -10,14 +10,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.h"
+#include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.hpp"
 
 #include <chrono>
 #include <gtest/gtest.h>
 #include <thread>
 
 #include "feg/protos/s6a_proxy.pb.h"
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"

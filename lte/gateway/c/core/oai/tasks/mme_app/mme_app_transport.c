@@ -31,7 +31,7 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
-#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/include/nas/as_message.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"

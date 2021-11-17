@@ -23,7 +23,7 @@ cc_binary(
 cc_library(
     name = "event_tracker",
     srcs = ["EventTracker.cpp"],
-    hdrs = ["EventTracker.h"],
+    hdrs = ["EventTracker.hpp"],
     deps = [
         ":packet_generator",
         "@system_libraries//:libmnl",
@@ -33,7 +33,7 @@ cc_library(
 cc_library(
     name = "packet_generator",
     srcs = ["PacketGenerator.cpp"],
-    hdrs = ["PacketGenerator.h"],
+    hdrs = ["PacketGenerator.hpp"],
     deps = [
         "//orc8r/gateway/c/common/logging",
         "@system_libraries//:libtins",

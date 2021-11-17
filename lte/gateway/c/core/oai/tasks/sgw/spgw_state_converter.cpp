@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/conversions.h"

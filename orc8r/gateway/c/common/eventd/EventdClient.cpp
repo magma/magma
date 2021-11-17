@@ -10,14 +10,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "orc8r/gateway/c/common/eventd/includes/EventdClient.h"
+#include "orc8r/gateway/c/common/eventd/includes/EventdClient.hpp"
 
 #include <grpcpp/channel.h>
 #include <utility>                        // for move
 #include <orc8r/protos/common.pb.h>       // for Void
 #include <orc8r/protos/eventd.grpc.pb.h>  // for EventService::Stub
 
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"  // for ServiceRegistrySin...
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"  // for ServiceRegistrySin...
 
 namespace grpc {
 class Status;

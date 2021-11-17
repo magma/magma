@@ -14,9 +14,9 @@ limitations under the License.
 #include <grpcpp/impl/codegen/status.h>
 #include "feg/protos/s8_proxy.grpc.pb.h"
 #include "orc8r/protos/common.pb.h"
-#include "lte/gateway/c/core/oai/lib/s8_proxy/s8_client_api.h"
-#include "lte/gateway/c/core/oai/lib/s8_proxy/S8Client.h"
-#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.h"
+#include "lte/gateway/c/core/oai/lib/s8_proxy/s8_client_api.hpp"
+#include "lte/gateway/c/core/oai/lib/s8_proxy/S8Client.hpp"
+#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
 #include "lte/gateway/c/core/oai/lib/s8_proxy/s8_itti_proto_conversion.h"
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"

@@ -31,7 +31,7 @@ extern "C" {
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 
-#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 
 #define INITIAL_SGW_S8_S1U_TEID 0x7FFFFFFF
 void sgw_display_sgw_eps_bearer_context(

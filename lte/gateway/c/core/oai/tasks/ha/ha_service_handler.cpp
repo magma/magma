@@ -22,13 +22,13 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/s1ap_state.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "S1ap_CauseRadioNetwork.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/ha/HaClient.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/ha/HaClient.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 
 static bool trigger_agw_offload_for_ue(
     const hash_key_t keyP, void* const elementP, void* parameterP,

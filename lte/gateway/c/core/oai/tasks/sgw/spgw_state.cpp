@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 
 #include <cstdlib>
 #include "lte/gateway/c/core/oai/common/conversions.h"
@@ -28,7 +28,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.hpp"
 
 using magma::lte::SpgwStateManager;
 

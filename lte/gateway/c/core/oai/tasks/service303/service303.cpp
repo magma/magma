@@ -18,8 +18,8 @@
 #include <assert.h>
 #include <stdarg.h>
 
-#include "lte/gateway/c/core/oai/include/service303.h"
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "lte/gateway/c/core/oai/include/service303.hpp"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "orc8r/protos/service303.pb.h"
 

@@ -19,8 +19,8 @@
 #include <iostream>
 #include <string>
 
-#include "lte/gateway/c/core/oai/lib/sgs_client/csfb_client_api.h"
-#include "lte/gateway/c/core/oai/lib/sgs_client/CSFBClient.h"
+#include "lte/gateway/c/core/oai/lib/sgs_client/csfb_client_api.hpp"
+#include "lte/gateway/c/core/oai/lib/sgs_client/CSFBClient.hpp"
 #include "orc8r/protos/common.pb.h"
 
 void empty_callback(grpc::Status status, magma::Void void_response) {

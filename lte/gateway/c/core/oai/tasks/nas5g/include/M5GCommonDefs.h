@@ -2,7 +2,7 @@
 #include <arpa/inet.h>
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
-#include "lte/gateway/c/core/oai/common/glogwrapper/glog_logging.h"
+#include "lte/gateway/c/core/oai/common/glogwrapper/glog_logging.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 
 // AMF_TEST scheme output  nibbles needs to be reversed

@@ -33,7 +33,7 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
-#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/include/service303.hpp"
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -45,7 +45,7 @@
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_c_iface.h"
 
 static void s6a_exit(void);

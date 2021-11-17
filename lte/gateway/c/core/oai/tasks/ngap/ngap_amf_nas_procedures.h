@@ -19,7 +19,7 @@
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.hpp"
 struct ngap_message_s;
 
 #define FETCH_AMF_SET_ID_FROM_PDU(aSN, Amf_Set_Id)                             \

@@ -17,7 +17,7 @@
 #pragma once
 #include <gmock/gmock.h>
 
-#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"
 
 using namespace openflow;
 using namespace fluid_base;

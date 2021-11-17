@@ -36,8 +36,8 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_fd_iface.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_fd_iface.hpp"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 #include <iostream>
 #include <exception>

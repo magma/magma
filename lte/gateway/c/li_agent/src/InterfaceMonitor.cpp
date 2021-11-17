@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <utility>
 
-#include "lte/gateway/c/li_agent/src/InterfaceMonitor.h"
+#include "lte/gateway/c/li_agent/src/InterfaceMonitor.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {

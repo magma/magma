@@ -62,9 +62,9 @@ message("Proto_hdr are ${PROTO_HDRS}")
 
 add_library(CONNECTION_TRACKER
     PacketGenerator.cpp
-    PacketGenerator.h
+    PacketGenerator.hpp
     EventTracker.cpp
-    EventTracker.h
+    EventTracker.hpp
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 

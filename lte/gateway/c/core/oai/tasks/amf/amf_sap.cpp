@@ -20,8 +20,8 @@ extern "C" {
 }
 #endif
 #include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
 
 namespace magma5g {
 

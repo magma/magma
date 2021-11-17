@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
 
 #include <grpcpp/impl/codegen/completion_queue.h>  // for ServerCompletionQueue
 #include <grpcpp/security/server_credentials.h>    // for InsecureServerCred...
@@ -31,9 +31,9 @@
 #include <vector>       // for vector
 #include <algorithm>
 
-#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.h"  // for MetricsSingleton
-#include "orc8r/gateway/c/common/service303/ProcFileUtils.h"  // for ProcFileUtils::mem...
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"  // for ServiceRegistrySin...
+#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.hpp"  // for MetricsSingleton
+#include "orc8r/gateway/c/common/service303/ProcFileUtils.hpp"  // for ProcFileUtils::mem...
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"  // for ServiceRegistrySin...
 #include "orc8r/gateway/c/common/logging/magma_logging_init.h"  // for set_verbosity
 
 namespace grpc {

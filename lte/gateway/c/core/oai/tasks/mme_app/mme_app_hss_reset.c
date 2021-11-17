@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <stdbool.h>
-#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"

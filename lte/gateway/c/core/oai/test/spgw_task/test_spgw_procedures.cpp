@@ -17,7 +17,7 @@
 #include <thread>
 
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
-#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_config.h"

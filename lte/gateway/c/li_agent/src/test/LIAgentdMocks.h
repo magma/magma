@@ -20,11 +20,11 @@
 
 #include "lte/protos/mobilityd.pb.h"
 #include "lte/protos/mobilityd.grpc.pb.h"
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 
-#include "lte/gateway/c/li_agent/src/MobilitydClient.h"
-#include "lte/gateway/c/li_agent/src/ProxyConnector.h"
-#include "lte/gateway/c/li_agent/src/Utilities.h"
+#include "lte/gateway/c/li_agent/src/MobilitydClient.hpp"
+#include "lte/gateway/c/li_agent/src/ProxyConnector.hpp"
+#include "lte/gateway/c/li_agent/src/Utilities.hpp"
 
 using grpc::Status;
 using ::testing::_;

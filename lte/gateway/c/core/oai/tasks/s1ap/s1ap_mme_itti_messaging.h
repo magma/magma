@@ -39,7 +39,7 @@
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
-#include "lte/gateway/c/core/oai/include/s1ap_state.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 
 extern task_zmq_ctx_t s1ap_task_zmq_ctx;
 extern long s1ap_last_msg_latency;

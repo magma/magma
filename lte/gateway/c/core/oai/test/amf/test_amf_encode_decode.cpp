@@ -15,10 +15,10 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "../../tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
-#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.hpp"
+#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 
 extern "C" {

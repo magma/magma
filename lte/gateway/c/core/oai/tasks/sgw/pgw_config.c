@@ -26,7 +26,7 @@
 
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
 
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 #include <errno.h>
 #include <string.h>
 #include <sys/socket.h>

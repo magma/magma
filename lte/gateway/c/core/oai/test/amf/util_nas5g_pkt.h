@@ -11,18 +11,18 @@
 
 #pragma once
 
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationFailure.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationReject.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationFailure.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GULNASTransport.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationRequestUEInit.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceAccept.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GULNASTransport.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationRequestUEInit.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeReject.hpp"
 
 namespace magma5g {
 

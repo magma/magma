@@ -26,7 +26,7 @@
 #define FILE_PGW_HANDLERS_SEEN
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/gx_messages_types.h"
-#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 
 void handle_s5_create_session_request(
     spgw_state_t* spgw_state,

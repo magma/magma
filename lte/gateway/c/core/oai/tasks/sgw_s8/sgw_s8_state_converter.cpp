@@ -16,7 +16,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_converter.h"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_converter.hpp"
 
 using magma::lte::oai::SgwState;
 using magma::lte::oai::SgwUeContext;

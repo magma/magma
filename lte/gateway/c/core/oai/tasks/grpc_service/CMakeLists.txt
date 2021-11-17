@@ -110,7 +110,7 @@ add_library(TASK_GRPC_SERVICE
     grpc_service.cpp
     grpc_service_task.c
     S8ServiceImpl.cpp
-    S8ServiceImpl.h
+    S8ServiceImpl.hpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/core/oai/tasks/ngap/include/ngap_client_servicer.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/include/ngap_client_servicer.hpp"
 #include <memory>
 extern "C" {
 #include "lte/gateway/c/core/oai/common/common_defs.h"

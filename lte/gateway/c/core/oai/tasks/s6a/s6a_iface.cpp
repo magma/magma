@@ -27,9 +27,9 @@ extern "C" {
 #endif
 
 #if S6A_OVER_GRPC
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_grpc_iface.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_grpc_iface.hpp"
 #else
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_fd_iface.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_fd_iface.hpp"
 #endif
 
 #include <new>

@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"
+#include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.hpp"
 
 #include <cstdlib>
 
@@ -22,7 +22,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 
 namespace magma {
 namespace lte {

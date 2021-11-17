@@ -25,8 +25,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
 }
 
-#include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.h"
+#include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 
 extern bool hss_associated;
 

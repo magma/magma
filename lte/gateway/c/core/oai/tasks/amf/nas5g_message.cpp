@@ -15,17 +15,17 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/amf/amf_data.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_data.hpp"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 namespace magma5g {
 

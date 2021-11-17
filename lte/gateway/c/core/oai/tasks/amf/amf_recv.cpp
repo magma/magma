@@ -23,13 +23,13 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include <unordered_map>
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 #define AMF_CAUSE_SUCCESS (1)
 #define AMF_CAUSE_UE_SEC_CAP_MISSMATCH (23)

@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer2.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer2.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
