@@ -8,6 +8,15 @@ on:  # yamllint disable-line rule:truthy
       - experimental/bazel-base/Dockerfile
       - .github/workflows/docker-builder-bazel-base.yml
       - .github/workflows/composite/**
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - experimental/bazel-base/Dockerfile
+      - .github/workflows/docker-builder-bazel-base.yml
+      - .github/workflows/composite/**
   schedule:
     - cron: '13 3 * * *'
 

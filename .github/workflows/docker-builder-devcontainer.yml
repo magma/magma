@@ -8,6 +8,15 @@ on:  # yamllint disable-line rule:truthy
       - .devcontainer/Dockerfile
       - .github/workflows/docker-builder-devcontainer.yml
       - .github/workflows/composite/**
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - .devcontainer/Dockerfile
+      - .github/workflows/docker-builder-devcontainer.yml
+      - .github/workflows/composite/**
   schedule:
     - cron: '0 0,6,12,18 * * *'
 

@@ -8,6 +8,15 @@ on:  # yamllint disable-line rule:truthy
       - lte/gateway/docker/python-precommit/Dockerfile
       - .github/workflows/docker-builder-python-precommit.yml
       - .github/workflows/composite/**
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - lte/gateway/docker/python-precommit/Dockerfile
+      - .github/workflows/docker-builder-python-precommit.yml
+      - .github/workflows/composite/**
   schedule:
     - cron: '0 0,6,12,18 * * *'
 
