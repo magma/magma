@@ -29,7 +29,6 @@ RefreshTokenTime = 1800
 
 
 def test_done_callback(tester_id, workload, verdict, report):
-    db_client.user = db_client.auth.refresh(db_client.user["refreshToken"])
     db_client.mark_workload_done(workload)
     db_client.push_test_report(workload, verdict, report)
     return
