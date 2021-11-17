@@ -99,7 +99,7 @@ class HeTableTest(unittest.TestCase):
 
         BridgeTools.create_veth_pair(cls.VETH, cls.VETH_NS)
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
-        BridgeTools.add_ovs_port(cls.BRIDGE, cls.VETH, cls.PROXY_PORT)
+        # BridgeTools.add_ovs_port(cls.BRIDGE, cls.VETH, cls.PROXY_PORT)
 
         he_controller_reference = Future()
         testing_controller_reference = Future()

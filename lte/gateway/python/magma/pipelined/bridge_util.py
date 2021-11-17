@@ -116,6 +116,10 @@ class BridgeTools:
         """
             Add interface to ovs bridge
         """
+        if ofp_port:
+            set_port_no = "ofport_request=" + ofp_port
+        else:
+            set_port_no = ""
         try:
             add_port_cmd = [
                 "ovs-vsctl", "--may-exist",
@@ -124,7 +128,7 @@ class BridgeTools:
                 iface_name,
                 "--", "set", "interface",
                 iface_name,
-                "ofport_request=" + ofp_port,
+                set_port_no,
             ]
             subprocess.check_call(add_port_cmd)
             logging.debug("add_port_cmd %s", add_port_cmd)
