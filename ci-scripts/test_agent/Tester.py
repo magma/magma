@@ -32,7 +32,7 @@ class Tester:
         # Get test results and prepare report
         verdict, report = self.load_test_results(dbfile="/tmp/test_res_pickle")
         # Callback
-        print("Test report created pushing to DB")
+        print("Test ended. Invoking callback function")
         self.callback(self.id, self.current_workload, verdict, report)
         self.current_workload = None
         self.current_build = None
@@ -67,25 +67,42 @@ class Tester:
             return
 
         if self.current_build.val()["agw"]["valid"]:
-            magma_build = self.current_build.val()["agw"]["artifacts"]["downloadUri"]
-            # start test on current_workload
-            print("Tester {} Starting test on workload".format(self.id))
-            print(workload.key(), "==>", workload.val())
-
-            # register callback to call_ended()
-            # TODO pass pickle file from here to test run so we have control over it.
-
-            thread = threading.Thread(
-                target=run_hil_thread,
-                args=(self.test_ended, ["./run_test.sh " + magma_build]),
+            magma_build = next(
+                (
+                    pkg
+                    for pkg in self.current_build.val()["agw"]["packages"]
+                    if "magma_" in pkg
+                ),
+                None,
             )
-            thread.start()
+            if magma_build:
+                # start test on current_workload
+                print("Tester {} Starting test on workload".format(self.id))
+                print(workload.key(), "==>", workload.val())
 
-            self.state = TesterState.BUSY
-            print("test started on workload".format(self.id))
-            return
+                # register callback to call_ended()
+                # TODO pass pickle file from here to test run so we have control over it.
+
+                thread = threading.Thread(
+                    target=run_hil_thread,
+                    args=(self.test_ended, ["./run_test.sh " + magma_build]),
+                )
+                thread.start()
+
+                self.state = TesterState.BUSY
+                print("test started on workload".format(self.id))
+                return
+            else:
+                print("No Magma Package found in packages list")
+                self.callback(self.id, self.current_workload, "fail", "No Test Done")
+                self.current_workload = None
+                self.current_build = None
+                self.state = TesterState.READY
+                return
+
         else:
-            self.callback(self.id, self.current_workload, "INCONCLUSIVE", "NA")
+            print("Build check is not valid")
+            self.callback(self.id, self.current_workload, "fail", "No Test Done")
             self.current_workload = None
             self.current_build = None
             self.state = TesterState.READY
