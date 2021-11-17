@@ -77,7 +77,7 @@ class Tester:
             )
             if magma_build:
                 # start test on current_workload
-                print("Tester {} Starting test on workload".format(self.id))
+                print(f"Tester {self.id} Starting test on workload")
                 print(workload.key(), "==>", workload.val())
 
                 # register callback to call_ended()
@@ -90,15 +90,13 @@ class Tester:
                 thread.start()
 
                 self.state = TesterState.BUSY
-                print("test started on workload".format(self.id))
-                return
+                print(f"test {self.id} started on workload")
             else:
                 print("No Magma Package found in packages list")
                 self.callback(self.id, self.current_workload, "fail", "NA")
                 self.current_workload = None
                 self.current_build = None
                 self.state = TesterState.READY
-                return
 
         else:
             print("Build check is not valid")
@@ -106,7 +104,8 @@ class Tester:
             self.current_workload = None
             self.current_build = None
             self.state = TesterState.READY
-            return
+
+        return
 
     def is_ready(self):
         return self.state == TesterState.READY
