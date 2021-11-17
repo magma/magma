@@ -382,7 +382,6 @@ jobs:
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
       - name: Run mme-clang-tidy
-        continue-on-error: true
         if: always()
         id: mme-clang-tidy
         # yamllint disable rule:line-length
@@ -390,7 +389,6 @@ jobs:
             docker build --tag magma-mme-build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
             docker run --env BRANCH=${{ env.BRANCH}} --env REVISION=${{ env.REVISION }} --volume ${{ env.MAGMA_ROOT }}:/magma --interactive magma-mme-build:latest /bin/bash -c 'cd /magma/lte/gateway;make clang_tidy_oai_upload'
       - name: Run mme-clang-warnings
-        continue-on-error: true
         if: always()
         id: mme-clang-warning
         # yamllint disable rule:line-length
