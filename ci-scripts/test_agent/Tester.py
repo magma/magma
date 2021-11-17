@@ -41,7 +41,7 @@ class Tester:
     def load_test_results(self, dbfile):
         """test run can dump their results (dict) in pickle
         which can be loaded here and used to push back to DB
-        data format = {'verdict' = True/False, 'report': 'html file name with path'}
+        data format = {'verdict' = True/False, 'report': 'html file text'}
         """
         try:
             with open(dbfile, "rb") as dbfile:
@@ -81,7 +81,7 @@ class Tester:
                 print(workload.key(), "==>", workload.val())
 
                 # register callback to call_ended()
-                # TODO pass pickle file from here to test run so we have control over it.
+                # TODO pass pickle file from here to test run.
 
                 thread = threading.Thread(
                     target=run_hil_thread,
@@ -94,7 +94,7 @@ class Tester:
                 return
             else:
                 print("No Magma Package found in packages list")
-                self.callback(self.id, self.current_workload, "fail", "No Test Done")
+                self.callback(self.id, self.current_workload, "fail", "NA")
                 self.current_workload = None
                 self.current_build = None
                 self.state = TesterState.READY
@@ -102,7 +102,7 @@ class Tester:
 
         else:
             print("Build check is not valid")
-            self.callback(self.id, self.current_workload, "fail", "No Test Done")
+            self.callback(self.id, self.current_workload, "fail", "NA")
             self.current_workload = None
             self.current_build = None
             self.state = TesterState.READY
