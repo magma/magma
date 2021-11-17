@@ -27,7 +27,7 @@
 
 #include "SessionState.h"
 #include "Types.h"
-#include "includes/GRPCReceiver.h"
+#include "includes/GRPCReceiver.hpp"
 #include "lte/protos/abort_session.pb.h"
 
 namespace grpc {

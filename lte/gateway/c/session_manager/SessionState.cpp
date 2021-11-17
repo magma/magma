@@ -30,7 +30,7 @@
 #include "SessionState.h"
 #include "StoredState.h"
 #include "Utilities.h"
-#include "includes/MetricsHelpers.h"
+#include "includes/MetricsHelpers.hpp"
 #include "magma_logging.h"
 
 namespace {

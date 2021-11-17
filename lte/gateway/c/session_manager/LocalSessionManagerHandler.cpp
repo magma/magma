@@ -35,7 +35,7 @@
 #include "StoredState.h"
 #include "Types.h"
 #include "Utilities.h"
-#include "includes/SentryWrapper.h"
+#include "includes/SentryWrapper.hpp"
 #include "lte/protos/pipelined.pb.h"
 #include "lte/protos/session_manager.pb.h"
 #include "lte/protos/subscriberdb.pb.h"

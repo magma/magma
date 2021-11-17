@@ -21,7 +21,7 @@
 
 #include "SessionState.h"
 #include "Types.h"
-#include "includes/GRPCReceiver.h"
+#include "includes/GRPCReceiver.hpp"
 #include "lte/protos/apn.pb.h"
 
 namespace grpc {

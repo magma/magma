@@ -26,7 +26,7 @@
 #include "ObjectMap.h"    // for SUCCESS
 #include "RedisMap.hpp"   // for RedisMap
 #include "Serializers.h"  // for get_proto_deserializer, get_pro
-#include "includes/ServiceConfigLoader.h"  // for ServiceConfigLoader
+#include "includes/ServiceConfigLoader.hpp"  // for ServiceConfigLoader
 #include "lte/protos/policydb.pb.h"        // for PolicyRule
 #include "magma_logging.h"                 // for MLOG, MERROR, MDEBUG, MINFO
 

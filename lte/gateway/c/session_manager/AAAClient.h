@@ -21,7 +21,7 @@
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "StoreClient.h"
-#include "includes/GRPCReceiver.h"
+#include "includes/GRPCReceiver.hpp"
 
 namespace aaa {
 namespace protos {

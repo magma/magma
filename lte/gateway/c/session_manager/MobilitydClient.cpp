@@ -16,7 +16,7 @@
 #include <utility>
 
 #include "MobilitydClient.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.hpp"
 #include "lte/protos/mobilityd.grpc.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
 
