@@ -74,7 +74,7 @@ http {
     error_log /var/log/nginx/error.log info;
     access_log /var/log/nginx/access.log json_custom;
 
-    ssl_certificate     {{ ssl_certificate }};
+    ssl_certificate {{ ssl_certificate }};
     ssl_certificate_key {{ ssl_certificate_key }};
     ssl_verify_client on;
     ssl_client_certificate {{ ssl_client_certificate }};
@@ -120,7 +120,7 @@ http {
     error_log /var/log/nginx/error.log info;
     access_log /var/log/nginx/access.log json_custom;
 
-    ssl_certificate     {{ ssl_certificate }};
+    ssl_certificate {{ ssl_certificate }};
     ssl_certificate_key {{ ssl_certificate_key }};
 
     location / {
@@ -152,7 +152,7 @@ http {
     error_log /var/log/nginx/error.log info;
     access_log /var/log/nginx/access.log json_custom;
 
-    ssl_certificate     {{ ssl_certificate }};
+    ssl_certificate {{ ssl_certificate }};
     ssl_certificate_key {{ ssl_certificate_key }};
     ssl_verify_client on;
     ssl_client_certificate {{ ssl_client_certificate }};
