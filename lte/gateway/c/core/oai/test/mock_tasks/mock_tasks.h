@@ -38,6 +38,8 @@ const message_info_t messages_info[] = {
 #undef MESSAGE_DEF
 };
 
+#define TEST_GRPCSERVICES_SERVER_ADDRESS "127.0.0.1:50095"
+
 class MockS1apHandler {
  public:
   MOCK_METHOD0(s1ap_generate_downlink_nas_transport, void());
