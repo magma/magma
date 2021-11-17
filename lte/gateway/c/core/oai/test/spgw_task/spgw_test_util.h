@@ -37,6 +37,8 @@ namespace lte {
 #define DEFAULT_EDNS_IP 0x7f000001  // localhost
 #define DEFAULT_SGW_IP 0x7f000001   // localhost
 #define DEFAULT_ENB_IP 0xc0a83c8d   // 192.168.60.141
+#define DEFAULT_POLICY_RULE_NAME "Policy_Rule0"
+#define DEFAULT_POLICY_RULE_NAME_LEN 12
 
 bool is_num_sessions_valid(
     uint64_t imsi64, int expected_num_ue_contexts, int expected_num_teids);
@@ -67,8 +69,14 @@ void fill_delete_session_request(
     itti_s11_delete_session_request_t* delete_session_req, teid_t mme_s11_teid,
     teid_t sgw_s11_context_teid, ebi_t eps_bearer_id, plmn_t test_plmn);
 
+<<<<<<< HEAD
 void fill_release_access_bearer_request(
     itti_s11_release_access_bearers_request_t* release_access_bearers_req,
     teid_t mme_s11_teid, teid_t sgw_s11_context_teid);
+=======
+void fill_nw_initiated_activate_bearer_request(
+    itti_gx_nw_init_actv_bearer_request_t* gx_nw_init_actv_req_p,
+    std::string imsi_str, ebi_t lbi, bearer_qos_t qos);
+>>>>>>> 66bdda718 (Add unit test for dedicated bearer)
 }  // namespace lte
 }  // namespace magma
