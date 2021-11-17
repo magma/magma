@@ -103,6 +103,11 @@ int SmfMsg::SmfMsgDecodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
                           .DecodePDUSessionEstablishmentRequestMsg(
                               &msg->msg.pdu_session_estab_request, buffer, len);
       break;
+    case PDU_SESSION_ESTABLISHMENT_REJECT:
+      decode_result = msg->msg.pdu_session_estab_reject
+                          .DecodePDUSessionEstablishmentRejectMsg(
+                              &msg->msg.pdu_session_estab_reject, buffer, len);
+      break;
     case PDU_SESSION_RELEASE_REQUEST:
     case PDU_SESSION_RELEASE_COMPLETE:
       decode_result =

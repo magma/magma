@@ -28,6 +28,7 @@ enum class M5GIei : uint8_t {
 };
 
 enum class M5GMmCause : uint8_t {
+  UNKNOWN_CAUSE,
   ILLEGAL_UE                                          = 0b00000011,
   PEI_NOT_ACCEPTED                                    = 0b00000101,
   ILLEGAL_ME                                          = 0b00000110,
@@ -66,12 +67,68 @@ enum class M5GMmCause : uint8_t {
   UNSPECIFIED_PROTOCOL_ERROR                          = 0b01101111,
 };
 
+enum class M5GSmCause : uint8_t {
+  INVALID_CAUSE,
+  OPERATOR_DETERMINED_BARRING                       = 0b00001000,
+  INSUFFICIENT_RESOURCES                            = 0b00011010,
+  MISSING_OR_UNKNOWN_DNN                            = 0b00011011,
+  UNKNOWN_PDU_SESSION_TYPE                          = 0b00011100,
+  USER_AUTHENTICATION_OR_AUTHORIZATION_FAILED       = 0b00011101,
+  REQUEST_REJECTED_UNSPECIFIED                      = 0b00011111,
+  SERVICE_OPTION_NOT_SUPPORTED                      = 0b00100000,
+  REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED           = 0b00100001,
+  PTI_ALREADY_IN_USE                                = 0b00100011,
+  REGULAR_DEACTIVATION                              = 0b00100100,
+  NETWORK_FAILURE                                   = 0b00100110,
+  REACTIVATION_REQUESTED                            = 0b00100111,
+  SEMANTIC_ERROR_IN_THE_TFT_OPERATION               = 0b00101001,
+  SYNTACTICAL_ERROR_IN_THE_TFT_OPERATION            = 0b00101010,
+  INVALID_PDU_SESSION_IDENTITY                      = 0b00101011,
+  SEMANTIC_ERRORS_IN_PACKET_FILTER                  = 0b00101100,
+  SYNTACTICAL_ERROR_IN_PACKET_FILTER                = 0b00101101,
+  OUT_OF_LADN_SERVICE_AREA                          = 0b00101110,
+  PTI_MISMATCH                                      = 0b00101111,
+  PDU_SESSION_TYPE_IPV4_ONLY_ALLOWED                = 0b00110010,
+  PDU_SESSION_TYPE_IPV6_ONLY_ALLOWED                = 0b00110011,
+  PDU_SESSION_DOES_NOT_EXIST                        = 0b00110110,
+  PDU_SESSION_TYPE_IPV4V6_ONLY_ALLOWED              = 0b00111001,
+  PDU_SESSION_TYPE_UNSTRUCTURED_ONLY_ALLOWED        = 0b00111010,
+  UNSUPPORTED_5QI_VALUE                             = 0b00111011,
+  PDU_SESSION_TYPE_ETHERNET_ONLY_ALLOWED            = 0b00111101,
+  INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE_AND_DNN = 0b01000011,
+  NOT_SUPPORTED_SSC_MODE                            = 0b01000100,
+  INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE         = 0b01000101,
+  MISSING_OR_UNKNOWN_DNN_IN_A_SLICE                 = 0b01000110,
+  INVALID_PTI_VALUE                                 = 0b01010001,
+  MAXIMUM_DATA_RATE_PER_UE_FOR_USER_PLANE_INTEGRITY_PROTECTION_IS_TOO_LOW =
+      0b01010010,
+  SEMANTIC_ERROR_IN_THE_QOS_OPERATION                 = 0b01010011,
+  SYNTACTICAL_ERROR_IN_THE_QOS_OPERATION              = 0b01010100,
+  INVALID_MAPPED_EPS_BEARER_IDENTITY                  = 0b01010101,
+  SEMANTICALLY_INCORRECT_MESSAGE                      = 0b01011111,
+  INVALID_MANDATORY_INFORMATION                       = 0b01100000,
+  MESSAGE_TYPE_NON_EXISTENT_OR_NOT_IMPLEMENTED        = 0b01100001,
+  MESSAGE_TYPE_NOT_COMPATIBLE_WITH_THE_PROTOCOLSTATE  = 0b01100010,
+  INFORMATION_ELEMENT_NON_EXISTENT_OR_NOT_IMPLEMENTED = 0b01100011,
+  CONDITIONAL_IE_ERROR                                = 0b01100100,
+  MESSAGE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE      = 0b01100101,
+  PROTOCOL_ERROR_UNSPECIFIED                          = 0b01101111,
+};
+
 enum class M5GRequestType : uint8_t {
   INITIAL_REQUEST                = 0b001,
   EXISTING_PDU_SESSION           = 0b010,
   INITIAL_EMERGENCY_REQUEST      = 0b011,
   EXISTING_EMERGENCY_PDU_SESSION = 0b100,
   MODIFICATION_REQUEST           = 0b101,
+};
+
+enum class M5GPduSessionType : uint8_t {
+  IPV4         = 0b001,
+  IPV6         = 0b010,
+  IPV4V6       = 0b011,
+  UNSTRUCTURED = 0b100,
+  ETHERNET     = 0b101,
 };
 
 }  // namespace magma5g
