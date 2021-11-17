@@ -349,7 +349,8 @@ status_code_e nas_proc_authentication_info_answer(
   DevAssert(aia);
   IMSI_STRING_TO_IMSI64((char*) aia->imsi, &imsi64);
 
-  OAILOG_DEBUG(LOG_NAS_EMM, "Handling imsi " IMSI_64_FMT "\n", imsi64);
+  OAILOG_DEBUG_UE(
+      LOG_NAS_EMM, imsi64, "Handling imsi " IMSI_64_FMT "\n", imsi64);
 
   ue_mm_context_p = mme_ue_context_exists_imsi(
       &mme_app_desc_p->mme_ue_contexts, (const hash_key_t) imsi64);
@@ -358,14 +359,15 @@ status_code_e nas_proc_authentication_info_answer(
   }
 
   if (!(emm_ctxt_p)) {
-    OAILOG_ERROR(
-        LOG_NAS_EMM, "That's embarrassing as we don't know this IMSI\n");
+    OAILOG_ERROR_UE(
+        LOG_NAS_EMM, imsi64,
+        "That's embarrassing as we don't know this IMSI\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = ue_mm_context_p->mme_ue_s1ap_id;
-  OAILOG_INFO(
-      LOG_NAS_EMM,
+  OAILOG_INFO_UE(
+      LOG_NAS_EMM, imsi64,
       "Received Authentication Information Answer from S6A for"
       " ue_id = " MME_UE_S1AP_ID_FMT "\n",
       mme_ue_s1ap_id);
@@ -381,14 +383,16 @@ status_code_e nas_proc_authentication_info_answer(
     DevCheck(
         aia->auth_info.nb_of_vectors > 0, aia->auth_info.nb_of_vectors, 1, 0);
 
-    OAILOG_DEBUG(
-        LOG_NAS_EMM, "INFORMING NAS ABOUT AUTH RESP SUCCESS got %u vector(s)\n",
+    OAILOG_DEBUG_UE(
+        LOG_NAS_EMM, imsi64,
+        "INFORMING NAS ABOUT AUTH RESP SUCCESS got %u vector(s)\n",
         aia->auth_info.nb_of_vectors);
     rc = nas_proc_auth_param_res(
         mme_ue_s1ap_id, aia->auth_info.nb_of_vectors,
         aia->auth_info.eutran_vector);
   } else {
-    OAILOG_ERROR(LOG_NAS_EMM, "INFORMING NAS ABOUT AUTH RESP ERROR CODE\n");
+    OAILOG_ERROR_UE(
+        LOG_NAS_EMM, imsi64, "INFORMING NAS ABOUT AUTH RESP ERROR CODE\n");
     increment_counter(
         "ue_attach", 1, 2, "result", "failure", "cause",
         "auth_info_failure_from_hss");
@@ -404,8 +408,8 @@ status_code_e nas_proc_authentication_info_answer(
       rc = nas_proc_auth_param_fail(
           mme_ue_s1ap_id, s6a_error_2_nas_cause(aia->result.choice.base, 0));
     } else {
-      OAILOG_ERROR(
-          LOG_NAS_EMM,
+      OAILOG_ERROR_UE(
+          LOG_NAS_EMM, imsi64,
           "Auth info Rsp failure for imsi " IMSI_64_FMT
           ", experimental_error_code %d \n",
           imsi64, aia->result.choice.experimental);
@@ -482,8 +486,8 @@ status_code_e nas_proc_cs_respose_success(
 
   emm_sap.primitive                             = EMMCN_CS_RESPONSE_SUCCESS;
   emm_sap.u.emm_cn.u.emm_cn_cs_response_success = cs_response_success;
-  OAILOG_INFO(
-      LOG_NAS_ESM,
+  OAILOG_INFO_UE(
+      LOG_NAS_ESM, emm_sap.u.emm_esm.ctx->_imsi64,
       "Handle Create Session Response Success at NAS for ue_id "
       "= " MME_UE_S1AP_ID_FMT "\n",
       cs_response_success->ue_id);
@@ -577,9 +581,6 @@ status_code_e nas_proc_downlink_unitdata(
   DevAssert(dl_unitdata);
 
   IMSI_STRING_TO_IMSI64(dl_unitdata->imsi, &imsi64);
-
-  OAILOG_DEBUG(LOG_NAS_EMM, "Handling imsi " IMSI_64_FMT "\n", imsi64);
-
   ctxt = emm_context_get_by_imsi(&_emm_data, imsi64);
 
   if (!(ctxt)) {
@@ -587,7 +588,8 @@ status_code_e nas_proc_downlink_unitdata(
         LOG_NAS_EMM, "That's embarrassing as we don't know this IMSI\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
-
+  OAILOG_DEBUG_UE(
+      LOG_NAS_EMM, ctxt->_imsi64, "Handling imsi " IMSI_64_FMT "\n", imsi64);
   emm_as->nas_info = EMM_AS_NAS_DL_NAS_TRANSPORT;
   emm_as->nas_msg  = bstrcpy(dl_unitdata->nas_msg_container);
   /*
