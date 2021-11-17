@@ -253,7 +253,7 @@ std::shared_ptr<smf_context_t> amf_get_smf_context_by_pdu_session_id(
  ***************************************************************************/
 // in upcoming PR with MAP implementation, this routine will be depricated
 int amf_context_upsert_imsi(amf_context_t* elm) {
-  map_rc_t m_rc = MAP_OK;
+  magma::map_rc_t m_rc = magma::MAP_OK;
   amf_ue_ngap_id_t ue_id =
       (PARENT_STRUCT(elm, ue_m5gmm_context_s, amf_context))->amf_ue_ngap_id;
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
@@ -420,7 +420,7 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
  ***************************************************************************/
 void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   hashtable_rc_t h_rc                = HASH_TABLE_OK;
-  map_rc_t m_rc                      = MAP_OK;
+  magma::map_rc_t m_rc               = magma::MAP_OK;
   amf_app_desc_t* amf_app_desc_p     = get_amf_nas_state(false);
   amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
   OAILOG_DEBUG(LOG_NAS_AMF, "amf_free_ue_context \n");
@@ -438,7 +438,7 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
     m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.remove(
         ue_context_p->gnb_ngap_id_key);
 
-    if (m_rc != MAP_OK)
+    if (m_rc != magma::MAP_OK)
       OAILOG_TRACE(LOG_AMF_APP, "Error Could not remove this ue context \n");
     ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
   }

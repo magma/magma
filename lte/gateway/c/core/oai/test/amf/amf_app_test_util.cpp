@@ -405,9 +405,9 @@ int send_uplink_nas_ue_deregistration_request(
 bool get_ue_id_from_imsi(
     amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64, amf_ue_ngap_id_t* ue_id) {
   amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
-  map_rc_t rc_map                    = MAP_OK;
+  magma::map_rc_t rc_map             = magma::MAP_OK;
   rc_map = amf_ue_context_p->imsi_amf_ue_id_htbl.get(imsi64, ue_id);
-  if (rc_map != MAP_OK) {
+  if (rc_map != magma::MAP_OK) {
     return (false);
   }
   return true;

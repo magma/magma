@@ -51,8 +51,9 @@ void amf_ue_context_update_coll_keys(
     const gnb_ngap_id_key_t gnb_ngap_id_key,
     const amf_ue_ngap_id_t amf_ue_ngap_id, const imsi64_t imsi,
     const teid_t amf_teid_n11, const guti_m5_t* const guti_p) {
-  hashtable_rc_t h_rc                 = HASH_TABLE_OK;
-  map_rc_t m_rc                       = MAP_OK;
+  hashtable_rc_t h_rc  = HASH_TABLE_OK;
+  magma::map_rc_t m_rc = magma::MAP_OK;
+  // TODO: Migrate the amf_state_ue_id_ht to the map implementation.
   hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
   OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_TRACE(
@@ -71,7 +72,7 @@ void amf_ue_context_update_coll_keys(
     m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.insert(
         gnb_ngap_id_key, amf_ue_ngap_id);
 
-    if (MAP_OK != m_rc) {
+    if (m_rc != magma::MAP_OK) {
       OAILOG_ERROR_UE(
           LOG_AMF_APP, imsi,
           "Error could not update this ue context %p "
@@ -257,13 +258,13 @@ static bool amf_app_construct_guti(
 // Get existing GUTI details
 ue_m5gmm_context_s* amf_ue_context_exists_guti(
     amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p) {
-  map_rc_t m_rc                  = MAP_OK;
+  magma::map_rc_t m_rc           = magma::MAP_OK;
   uint64_t amf_ue_ngap_id64      = 0;
   ue_m5gmm_context_t* ue_context = NULL;
 
   m_rc = amf_ue_context_p->guti_ue_context_htbl.get(*guti_p, &amf_ue_ngap_id64);
 
-  if (MAP_OK == m_rc) {
+  if (m_rc == magma::MAP_OK) {
     ue_context = amf_ue_context_exists_amf_ue_ngap_id(
         (amf_ue_ngap_id_t) amf_ue_ngap_id64);
     if (ue_context) {

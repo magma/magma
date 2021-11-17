@@ -62,7 +62,7 @@ struct hash<guti_m5_t> {
   }
 };
 }  // namespace std
-namespace magma5g {
+namespace magma {
 
 /*Enum for Map Return code
   Note: If new named constant is added to the enumeration list, add the new case
@@ -225,8 +225,4 @@ struct map_ts_s {
   }
 };
 
-// Map Declarations:
-// Map- Key: uint64_t , Data: uint64_t
-typedef map_ts_s<uint64_t, uint64_t> map_uint64_ts_t;
-
-}  // namespace magma5g
+}  // namespace magma
