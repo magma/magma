@@ -16,7 +16,7 @@ nms:
     create: true
     image:
       repository: docker.artifactory.magmacore.org/magmalte
-      tag: 1.5.0
+      tag: 1.6.0
   nginx:
     create: true
   certs:
@@ -57,6 +57,7 @@ secret:
 # certs sub-chart configuration.
 certs:
   create: true
+  enabled: true
 
   domainName: ""
 
@@ -102,16 +103,10 @@ nginx:
     loadBalancerIP: ""
     loadBalancerSourceRanges: []
 
-  # nginx certificates and key
-  certs:
-    sslCertificate: "/var/opt/magma/certs/controller/tls.crt"
-    sslCertificateKey: "/var/opt/magma/certs/controller/tls.key"
-    sslClientCertificate: "/var/opt/magma/certs/certifier/tls.crt"
-
   # nginx image
   image:
     repository: docker.artifactory.magmacore.org/nginx
-    tag: 1.5.0
+    tag: 1.6.0
     pullPolicy: IfNotPresent
 
   # Settings affecting nginx application
@@ -157,7 +152,7 @@ controller:
   # orc8r_base image
   image:
     repository: docker.artifactory.magmacore.org/controller
-    tag: 1.5.0
+    tag: 1.6.0
     pullPolicy: IfNotPresent
 
   spec:

@@ -81,12 +81,21 @@ spec:
               value: {{ .Values.nginx.spec.resolver | quote }}
             - name: SERVICE_REGISTRY_MODE
               value: {{ .Values.controller.spec.service_registry.mode }}
+{{- if .Values.certs.enabled }}
             - name: SSL_CERTIFICATE
-              value: {{ .Values.nginx.certs.sslCertificate }}
+              value: "/var/opt/magma/certs/controller/tls.crt"
             - name: SSL_CERTIFICATE_KEY
-              value: {{ .Values.nginx.certs.sslCertificateKey }}
+              value: "/var/opt/magma/certs/controller/tls.key"
             - name: SSL_CLIENT_CERTIFICATE
-              value: {{ .Values.nginx.certs.sslClientCertificate }}
+              value: "/var/opt/magma/certs/certifier/tls.crt"
+{{- else }}
+            - name: SSL_CERTIFICATE
+              value: "/var/opt/magma/certs/controller.crt"
+            - name: SSL_CERTIFICATE_KEY
+              value: "/var/opt/magma/certs/controller.key"
+            - name: SSL_CLIENT_CERTIFICATE
+              value: "/var/opt/magma/certs/certifier.pem"
+{{- end }}
           livenessProbe:
             tcpSocket:
               port: health
