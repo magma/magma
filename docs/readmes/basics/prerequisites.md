@@ -6,14 +6,20 @@ hide_title: true
 # Prerequisites
 
 These are the prerequisites to setting up a full private LTE Magma deployment.
-Additional prerequisites for developers can be found in the developer's guide.
+Additional prerequisites for developers can be found in the [developer's guide](../contributing/contribute_onboarding.md).
+
+## Operating System
+
+Currently, the main development operating system (OS) is **macOS**. Documentation is mainly focused on that operating system.
+To develop on a **Linux OS**, the package manager (brew for macOS) will need to be replaced by the appropriate package manager for the respective Linux distribution (e.g. apt, yum, etc.).
+**Windows OS** is currently _not_ supported as developing environment, due to some dependencies on Linux-only tools during setup, such as Ansible or `fcntl`. You can try to use a [DevContainer setup](../contributing/contribute_vscode.md#open-a-devcontainer-workspace-with-github-codespaces) though.
 
 ## Development Tools
 
 Install the following tools:
 
 1. [Docker](https://www.docker.com) and Docker Compose
-2. [Homebrew](https://brew.sh/) *only* for MacOS users
+2. [Homebrew](https://brew.sh/) *only* for macOS users
 3. [VirtualBox](https://www.virtualbox.org/)
 4. [Vagrant](https://vagrantup.com)
 
@@ -40,10 +46,10 @@ vagrant plugin install vagrant-vbguest
 ```
 
 **Note**: In the case where installation of `fabric3` through pip was unsuccessful,
-try switching to other package installers. For example, for MacOS users, try
+try switching to other package installers. For example, for macOS users, try
 running `brew install fabric`.
 
-If you are on MacOS, you should start Docker for Mac and increase the memory
+If you are on macOS, you should start Docker for Mac and increase the memory
 allocation for the Docker engine to at least 4GB (Preferences -> Resources ->
 Advanced). If you are running into build/test failures with Go that report
 "signal killed", you likely need to increase Docker's allocated resources.
@@ -69,7 +75,7 @@ git tag -l
 
 ## Build/Deploy Tooling
 
-We support building the AGW and Orchestrator on MacOS and Linux host operating
+We support building the AGW and Orchestrator on macOS and Linux host operating
 systems. Doing so on a Windows environment should be possible but has not been
 tested. You may prefer to use a Linux virtual machine if you are on a Windows
 host.
