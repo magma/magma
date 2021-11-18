@@ -39,7 +39,7 @@ class NAS5GPktSnapShot {
   static uint8_t service_request[37];
   static uint8_t registration_reject[4];
   static uint8_t security_mode_reject[4];
-  static uint8_t service_req_signalling[13];
+  static uint8_t service_req_signaling[13];
 
   uint32_t get_reg_req_buffer_len() {
     return sizeof(reg_req_buffer) / sizeof(unsigned char);
@@ -81,8 +81,8 @@ class NAS5GPktSnapShot {
     return sizeof(security_mode_reject) / sizeof(unsigned char);
   }
 
-  uint32_t get_service_request_signalling_len() {
-    return sizeof(service_req_signalling) / sizeof(uint8_t);
+  uint32_t get_service_request_signaling_len() {
+    return sizeof(service_req_signaling) / sizeof(uint8_t);
   }
   NAS5GPktSnapShot() {}
 };

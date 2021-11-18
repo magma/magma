@@ -28,19 +28,16 @@ extern "C" {
 #include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.h"
 #include <gtest/gtest.h>
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
 #include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.h"
@@ -112,7 +109,7 @@ uint8_t NAS5GPktSnapShot::service_request[37] = {
     0x02, 0x20, 0x00, 0x50, 0x02, 0x20, 0x00};
 
 // service request with service type signaling
-uint8_t NAS5GPktSnapShot::service_req_signalling[13] = {
+uint8_t NAS5GPktSnapShot::service_req_signaling[13] = {
     0x7e, 0x00, 0x4c, 0x00, 0x00, 0x07, 0xf4,
     0x00, 0x40, 0x21, 0x2e, 0x50, 0x25};
 
@@ -1013,10 +1010,10 @@ TEST_F(AmfUeContextTestServiceRequestProc, test_amf_service_accept_message) {
           &amf_sap.u.amf_as.u.establish, &as_msg.msg.nas_establish_rsp));
 }
 
-/* Test for service type signalling */
+/* Test for service type signaling */
 TEST_F(
     AmfUeContextTestServiceRequestProc,
-    test_amf_service_type_signalling_sunny_day) {
+    test_amf_service_type_signaling_sunny_day) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   ServiceRequestMsg service_request;
   bool decode_res                               = 0;
@@ -1024,12 +1021,12 @@ TEST_F(
   MessageDef* message_p                         = NULL;
   amf_app_desc_t* amf_app_desc_p                = get_amf_nas_state(false);
 
-  uint32_t len = nas5g_pkt_snap.get_service_request_signalling_len();
+  uint32_t len = nas5g_pkt_snap.get_service_request_signaling_len();
 
   memset(&service_request, 0, sizeof(ServiceRequestMsg));
 
   decode_res = decode_service_request_msg(
-      &service_request, nas5g_pkt_snap.service_req_signalling, len);
+      &service_request, nas5g_pkt_snap.service_req_signaling, len);
   // Verify service request is decoded
   EXPECT_EQ(decode_res, true);
   // veriy service request NAS IE's
@@ -1058,7 +1055,7 @@ TEST_F(
   NGAP_INITIAL_UE_MESSAGE(message_p).gnb_ue_ngap_id = gNB_UE_NGAP_ID;
   NGAP_INITIAL_UE_MESSAGE(message_p).gnb_id         = gnb_id;
   NGAP_INITIAL_UE_MESSAGE(message_p).nas =
-      blk2bstr(nas5g_pkt_snap.service_req_signalling, len);
+      blk2bstr(nas5g_pkt_snap.service_req_signaling, len);
   NGAP_INITIAL_UE_MESSAGE(message_p).m5g_rrc_establishment_cause =
       M5G_MO_SIGNALLING;
   NGAP_INITIAL_UE_MESSAGE(message_p).is_s_tmsi_valid        = true;
@@ -1082,21 +1079,21 @@ TEST_F(
   free(message_p);
 }
 
-/* Test for service type signalling */
+/* Test for service type signaling */
 TEST_F(
     AmfUeContextTestServiceRequestProc,
-    test_amf_service_type_signalling_rainy_day) {
+    test_amf_service_type_signaling_rainy_day) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   ServiceRequestMsg service_request;
   bool decode_res                               = 0;
   amf_nas_message_decode_status_t decode_status = {0};
 
-  uint32_t len = nas5g_pkt_snap.get_service_request_signalling_len();
+  uint32_t len = nas5g_pkt_snap.get_service_request_signaling_len();
 
   memset(&service_request, 0, sizeof(ServiceRequestMsg));
 
   decode_res = decode_service_request_msg(
-      &service_request, nas5g_pkt_snap.service_req_signalling, len);
+      &service_request, nas5g_pkt_snap.service_req_signaling, len);
   // Verify service request is decoded
   EXPECT_EQ(decode_res, true);
   // veriy service request NAS IE's
@@ -1131,10 +1128,10 @@ TEST_F(
   amf_app_desc_t* amf_app_desc_p                = get_amf_nas_state(false);
   gnb_ngap_id_key_t gnb_ngap_id_key             = INVALID_GNB_UE_NGAP_ID_KEY;
 
-  uint32_t len = nas5g_pkt_snap.get_service_request_signalling_len();
+  uint32_t len = nas5g_pkt_snap.get_service_request_signaling_len();
 
   decode_res = decode_service_request_msg(
-      &service_request, nas5g_pkt_snap.service_req_signalling, len);
+      &service_request, nas5g_pkt_snap.service_req_signaling, len);
   // Verify service request is decoded
   EXPECT_EQ(decode_res, true);
   ue_context->mm_state = REGISTERED_CONNECTED;
@@ -1145,7 +1142,7 @@ TEST_F(
   NGAP_INITIAL_UE_MESSAGE(message_p).gnb_ue_ngap_id = gNB_UE_NGAP_ID;
   NGAP_INITIAL_UE_MESSAGE(message_p).gnb_id         = gnb_id;
   NGAP_INITIAL_UE_MESSAGE(message_p).nas =
-      blk2bstr(nas5g_pkt_snap.service_req_signalling, len);
+      blk2bstr(nas5g_pkt_snap.service_req_signaling, len);
   NGAP_INITIAL_UE_MESSAGE(message_p).m5g_rrc_establishment_cause =
       M5G_MO_SIGNALLING;
   NGAP_INITIAL_UE_MESSAGE(message_p).is_s_tmsi_valid        = true;
@@ -1189,12 +1186,12 @@ TEST_F(
   MessageDef* message_p                         = NULL;
   amf_app_desc_t* amf_app_desc_p                = get_amf_nas_state(false);
 
-  uint32_t len = nas5g_pkt_snap.get_service_request_signalling_len();
+  uint32_t len = nas5g_pkt_snap.get_service_request_signaling_len();
 
   memset(&service_request, 0, sizeof(ServiceRequestMsg));
 
   decode_res = decode_service_request_msg(
-      &service_request, nas5g_pkt_snap.service_req_signalling, len);
+      &service_request, nas5g_pkt_snap.service_req_signaling, len);
   // Verify service request is decoded
   EXPECT_EQ(decode_res, true);
   // veriy service request NAS IE's
