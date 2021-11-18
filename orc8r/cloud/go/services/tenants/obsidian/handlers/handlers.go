@@ -28,8 +28,9 @@ import (
 )
 
 const (
-	TenantRootPath = obsidian.V1Root + "tenants"
-	TenantInfoURL  = TenantRootPath + obsidian.UrlSep + ":tenant_id"
+	TenantRootPath  = obsidian.V1Root + "tenants"
+	TenantInfoURL   = TenantRootPath + obsidian.UrlSep + ":tenant_id"
+	ControlProxyURL = TenantInfoURL + obsidian.UrlSep + "control_proxy"
 )
 
 func GetObsidianHandlers() []obsidian.Handler {
@@ -58,6 +59,16 @@ func GetObsidianHandlers() []obsidian.Handler {
 			Path:        TenantInfoURL,
 			Methods:     obsidian.DELETE,
 			HandlerFunc: DeleteTenantHandler,
+		},
+		{
+			Path:        ControlProxyURL,
+			Methods:     obsidian.GET,
+			HandlerFunc: GetControlProxyHandler,
+		},
+		{
+			Path:        ControlProxyURL,
+			Methods:     obsidian.PUT,
+			HandlerFunc: CreateOrUpdateControlProxyHandler,
 		},
 	}
 }
@@ -145,6 +156,58 @@ func DeleteTenantHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("Tenant %d does not exist", tenantID))
 	case err != nil:
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func GetControlProxyHandler(c echo.Context) error {
+	tenantID, terr := obsidian.GetTenantID(c)
+	if terr != nil {
+		return terr
+	}
+
+	_, err := tenants.GetTenant(c.Request().Context(), tenantID)
+	switch {
+	case err == errors.ErrNotFound:
+		return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("Tenant %d does not exist", tenantID))
+	case err != nil:
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	controlProxy, err := tenants.GetControlProxy(c.Request().Context(), tenantID)
+	switch {
+	case err == errors.ErrNotFound:
+		return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("Control Proxy for tenantID %d does not exist", tenantID))
+	case err != nil:
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	return c.JSON(http.StatusOK, models.ControlProxy{ID: &tenantID, ControlProxy: &controlProxy.ControlProxy})
+}
+
+func CreateOrUpdateControlProxyHandler(c echo.Context) error {
+	tenantID, terr := obsidian.GetTenantID(c)
+	if terr != nil {
+		return terr
+	}
+
+	_, err := tenants.GetTenant(c.Request().Context(), tenantID)
+	switch {
+	case err == errors.ErrNotFound:
+		return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("Tenant %d does not exist", tenantID))
+	case err != nil:
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	var controlProxy = protos.IDAndControlProxy{}
+	err = json.NewDecoder(c.Request().Body).Decode(&controlProxy)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("error decoding request: %v", err))
+	}
+
+	err = tenants.CreateOrUpdateControlProxy(c.Request().Context(), tenantID, controlProxy)
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Error setting control_proxy info: %v", err))
 	}
 	return c.NoContent(http.StatusNoContent)
 }

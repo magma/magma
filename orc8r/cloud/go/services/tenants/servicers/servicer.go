@@ -98,3 +98,38 @@ func (s *tenantsServicer) DeleteTenant(c context.Context, request *protos.GetTen
 	}
 	return &protos.Void{}, nil
 }
+
+func (s *tenantsServicer) GetControlProxy(c context.Context, request *protos.GetTenantRequest) (*protos.IDAndControlProxy, error) {
+	_, err := s.store.GetTenant(request.Id)
+	switch {
+	case err == errors.ErrNotFound:
+		return nil, status.Errorf(codes.NotFound, "Tenant %d not found", request.Id)
+	case err != nil:
+		return nil, status.Errorf(codes.Internal, "Error getting tenant %d: %v", request.Id, err)
+	}
+
+	controlProxy, err := s.store.GetControlProxy(request.Id)
+	switch {
+	case err == errors.ErrNotFound:
+		return nil, status.Errorf(codes.NotFound, "controlProxy %d not found", request.Id)
+	case err != nil:
+		return nil, status.Errorf(codes.Internal, "Error getting controlProxy %d: %v", request.Id, err)
+	}
+	return controlProxy, nil
+}
+
+func (s *tenantsServicer) CreateOrUpdateControlProxy(c context.Context, request *protos.IDAndControlProxy) (*protos.Void, error) {
+	_, err := s.store.GetTenant(request.Id)
+	switch {
+	case err == errors.ErrNotFound:
+		return nil, status.Errorf(codes.NotFound, "Tenant %d not found", request.Id)
+	case err != nil:
+		return nil, status.Errorf(codes.Internal, "Error getting tenant %d: %v", request.Id, err)
+	}
+
+	err = s.store.CreateOrUpdateControlProxy(request.Id, *request)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Error setting tenant %d: %v", request.Id, err)
+	}
+	return &protos.Void{}, nil
+}

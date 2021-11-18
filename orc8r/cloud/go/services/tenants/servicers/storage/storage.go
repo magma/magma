@@ -20,6 +20,8 @@ type Store interface {
 	GetAllTenants() (*protos.TenantList, error)
 	SetTenant(tenantID int64, tenant protos.Tenant) error
 	DeleteTenant(tenantID int64) error
+	GetControlProxy(tenantID int64) (*protos.IDAndControlProxy, error)
+	CreateOrUpdateControlProxy(tenantID int64, controlProxy protos.IDAndControlProxy) error
 }
 
 type blobstoreStore struct {
@@ -147,6 +149,46 @@ func (b *blobstoreStore) DeleteTenant(tenantID int64) error {
 	return store.Commit()
 }
 
+func (b *blobstoreStore) GetControlProxy(tenantID int64) (*protos.IDAndControlProxy, error) {
+	store, err := b.factory.StartTransaction(nil)
+	if err != nil {
+		return nil, err
+	}
+	defer store.Rollback()
+
+	controlProxyTK := storage.TK{
+		Type: tenants.ControlProxyInfoType,
+		Key:  strconv.FormatInt(tenantID, 10),
+	}
+	controlProxyBlob, err := store.Get(networkWildcard, controlProxyTK)
+	if err != nil {
+		return nil, err
+	}
+	retControlProxy, err := controlProxyFromBlob(controlProxyBlob)
+	if err != nil {
+		return nil, err
+	}
+	return &retControlProxy, store.Commit()
+}
+
+func (b *blobstoreStore) CreateOrUpdateControlProxy(tenantID int64, controlProxy protos.IDAndControlProxy) error {
+	store, err := b.factory.StartTransaction(nil)
+	if err != nil {
+		return err
+	}
+	defer store.Rollback()
+
+	controlProxyBlob, err := controlProxyToBlob(tenantID, controlProxy)
+	if err != nil {
+		return err
+	}
+	err = store.Write(networkWildcard, blobstore.Blobs{controlProxyBlob})
+	if err != nil {
+		return err
+	}
+	return store.Commit()
+}
+
 func tenantToBlob(tenantID int64, tenant protos.Tenant) (blobstore.Blob, error) {
 	marshaledTenant, err := protos.Marshal(&tenant)
 	if err != nil {
@@ -166,4 +208,25 @@ func tenantFromBlob(blob blobstore.Blob) (protos.Tenant, error) {
 		return protos.Tenant{}, errors.Wrap(err, "Error unmarshaling protobuf")
 	}
 	return tenant, nil
+}
+
+func controlProxyToBlob(tenantID int64, controlProxy protos.IDAndControlProxy) (blobstore.Blob, error) {
+	marshaledControlProxy, err := protos.Marshal(&controlProxy)
+	if err != nil {
+		return blobstore.Blob{}, errors.Wrap(err, "Error marshaling protobuf")
+	}
+	return blobstore.Blob{
+		Type:  tenants.ControlProxyInfoType,
+		Key:   strconv.FormatInt(tenantID, 10),
+		Value: marshaledControlProxy,
+	}, nil
+}
+
+func controlProxyFromBlob(blob blobstore.Blob) (protos.IDAndControlProxy, error) {
+	controlProxy := protos.IDAndControlProxy{}
+	err := protos.Unmarshal(blob.Value, &controlProxy)
+	if err != nil {
+		return protos.IDAndControlProxy{}, errors.Wrap(err, "Error unmarshaling protobuf")
+	}
+	return controlProxy, nil
 }

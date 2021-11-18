@@ -27,6 +27,9 @@ var (
 		Key:   "word",
 		Value: marshaledTenant0,
 	}
+
+	sampleControlProxy        = protos.IDAndControlProxy{Id: 0, ControlProxy: "{...}"}
+	sampleControlProxyBlob, _ = controlProxyToBlob(0, sampleControlProxy)
 )
 
 func setupTestStore() (*mocks.Store, Store) {
@@ -159,5 +162,30 @@ func TestBlobstoreStore_DeleteTenant(t *testing.T) {
 	txStore, s = setupTestStore()
 	txStore.On("Delete", networkWildcard, storage.TKs{{Type: tenants.TenantInfoType, Key: "0"}}).Return(errors.New("error"))
 	err = s.DeleteTenant(0)
+	assert.EqualError(t, err, "error")
+}
+
+func TestBlobstoreStore_GetControlProxy(t *testing.T) {
+	txStore, s := setupTestStore()
+	txStore.On("Get", networkWildcard, storage.TK{Type: tenants.ControlProxyInfoType, Key: "0"}).Return(sampleControlProxyBlob, nil)
+	controlProxy, err := s.GetControlProxy(0)
+	assert.NoError(t, err)
+	assert.Equal(t, sampleControlProxy, *controlProxy)
+
+	txStore, s = setupTestStore()
+	txStore.On("Get", networkWildcard, storage.TK{Type: tenants.ControlProxyInfoType, Key: "0"}).Return(blobstore.Blob{}, errors.New("error"))
+	_, err = s.GetControlProxy(0)
+	assert.EqualError(t, err, "error")
+}
+
+func TestBlobstoreStore_CreateOrUpdateControlProxy(t *testing.T) {
+	txStore, s := setupTestStore()
+	txStore.On("Write", networkWildcard, blobstore.Blobs{sampleControlProxyBlob}).Return(nil)
+	err := s.CreateOrUpdateControlProxy(0, sampleControlProxy)
+	assert.NoError(t, err)
+
+	txStore, s = setupTestStore()
+	txStore.On("Write", networkWildcard, blobstore.Blobs{sampleControlProxyBlob}).Return(errors.New("error"))
+	err = s.CreateOrUpdateControlProxy(0, sampleControlProxy)
 	assert.EqualError(t, err, "error")
 }

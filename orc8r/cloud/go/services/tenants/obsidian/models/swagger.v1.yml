@@ -94,6 +94,38 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /tenants/{tenant_id}/control_proxy:
+    get:
+      summary: Retrieve ControlProxy Info By Tenant ID
+      tags:
+        - Tenants
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+      responses:
+        '200':
+          description: Requested ControlProxy Information
+          schema:
+            $ref: '#/definitions/control_proxy'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Create or Update ControlProxy
+      tags:
+        - Tenants
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+        - in: body
+          name: controlProxy
+          description: ControlProxy to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/control_proxy'
+      responses:
+        '204':
+          description: Ok
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 definitions:
   tenant:
     type: object
@@ -114,3 +146,17 @@ definitions:
         type: array
         items:
           type: string
+  control_proxy:
+    type: object
+    required:
+      - id
+      - control_proxy
+    properties:
+      id:
+        description: Unique integer identifier
+        type: integer
+        format: int64
+        minimum: 0
+      control_proxy:
+        description: Control proxy of the tenant
+        type: string

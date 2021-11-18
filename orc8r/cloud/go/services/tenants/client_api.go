@@ -126,3 +126,39 @@ func DeleteTenant(ctx context.Context, tenantID int64) error {
 	}
 	return err
 }
+
+func GetControlProxy(ctx context.Context, tenantID int64) (*protos.IDAndControlProxy, error) {
+	oc, err := getTenantsClient()
+	if err != nil {
+		return nil, err
+	}
+
+	controlProxy, err := oc.GetControlProxy(ctx, &protos.GetTenantRequest{Id: tenantID})
+	if err != nil {
+		switch {
+		case status.Convert(err).Code() == codes.NotFound:
+			return controlProxy, merrors.ErrNotFound
+		default:
+			return controlProxy, err
+		}
+	}
+	return controlProxy, nil
+}
+
+func CreateOrUpdateControlProxy(ctx context.Context, tenantID int64, controlProxy protos.IDAndControlProxy) error {
+	oc, err := getTenantsClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = oc.CreateOrUpdateControlProxy(ctx, &controlProxy)
+	if err != nil {
+		switch {
+		case status.Convert(err).Code() == codes.NotFound:
+			return merrors.ErrNotFound
+		default:
+			return err
+		}
+	}
+	return err
+}

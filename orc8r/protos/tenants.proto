@@ -35,10 +35,17 @@ message IDAndTenant {
     Tenant tenant = 2;
 }
 
+message IDAndControlProxy {
+  int64 id = 1;
+  string controlProxy = 2;
+}
+
 service TenantsService {
     rpc GetAllTenants (Void) returns (TenantList) {}
     rpc GetTenant (GetTenantRequest) returns (Tenant) {}
     rpc CreateTenant (IDAndTenant) returns (Void) {}
     rpc SetTenant (IDAndTenant) returns (Void) {}
     rpc DeleteTenant (GetTenantRequest) returns (Void) {}
+    rpc GetControlProxy (GetTenantRequest) returns (IDAndControlProxy) {}
+    rpc CreateOrUpdateControlProxy (IDAndControlProxy) returns (Void) {}
 }

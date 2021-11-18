@@ -5749,6 +5749,37 @@ paths:
       summary: Set Tenant info
       tags:
       - Tenants
+  /tenants/{tenant_id}/control_proxy:
+    get:
+      parameters:
+      - $ref: '#/parameters/tenant_id'
+      responses:
+        "200":
+          description: Requested ControlProxy Information
+          schema:
+            $ref: '#/definitions/control_proxy'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Retrieve ControlProxy Info By Tenant ID
+      tags:
+      - Tenants
+    put:
+      parameters:
+      - $ref: '#/parameters/tenant_id'
+      - description: ControlProxy to be updated
+        in: body
+        name: controlProxy
+        required: true
+        schema:
+          $ref: '#/definitions/control_proxy'
+      responses:
+        "204":
+          description: Ok
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Create or Update ControlProxy
+      tags:
+      - Tenants
   /tenants/{tenant_id}/metrics/api/v1/label/{label_name}/values:
     get:
       parameters:
@@ -7470,6 +7501,20 @@ definitions:
         example: 1552968732
         format: uint64
         type: integer
+    type: object
+  control_proxy:
+    properties:
+      control_proxy:
+        description: Control proxy of the tenant
+        type: string
+      id:
+        description: Unique integer identifier
+        format: int64
+        minimum: 0
+        type: integer
+    required:
+    - id
+    - control_proxy
     type: object
   core_network_types:
     description: List of core network types.
