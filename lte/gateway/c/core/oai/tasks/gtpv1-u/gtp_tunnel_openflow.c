@@ -354,8 +354,8 @@ int openflow_forward_data_on_tunnel(
       ue, ue_ipv6, i_tei, flow_dl, flow_precedence_dl);
 }
 
-int openflow_add_paging_rule(struct in_addr ue) {
-  return openflow_controller_add_paging_rule(ue);
+int openflow_add_paging_rule(Imsi_t imsi, struct in_addr ue) {
+  return openflow_controller_add_paging_rule((const char*) imsi.digit, ue);
 }
 
 int openflow_delete_paging_rule(struct in_addr ue) {
