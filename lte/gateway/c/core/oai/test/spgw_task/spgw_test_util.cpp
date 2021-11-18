@@ -34,11 +34,9 @@ bool is_num_sessions_valid(
     uint64_t imsi64, int expected_num_ue_contexts, int expected_num_teids) {
   hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
   if (state_ue_ht->num_elements != expected_num_ue_contexts) {
-    std::cout << "Hung: is_num_sessions_valid: false 1: " << "real: " << state_ue_ht->num_elements << " | expected: " << expected_num_ue_contexts << std::endl;
     return false;
   }
   if (expected_num_ue_contexts == 0) {
-    std::cout << "Hung: is_num_sessions_valid: true 1" << std::endl;
     return true;
   }
 
@@ -47,7 +45,6 @@ bool is_num_sessions_valid(
   if (expected_num_teids == 0)
   {
     if (!ue_context_p)
-      std::cout << "========== Hung: ue_contetxt_p is null" << std::endl;
     return ue_context_p == nullptr;
   }
   int num_teids                   = 0;
@@ -61,7 +58,6 @@ bool is_num_sessions_valid(
     }
   }
   if (num_teids != expected_num_teids) {
-    std::cout << "is_num_sessions_valid: real: " << num_teids << " | expected: " << expected_num_teids << std::endl;
     return false;
   }
   return true;
