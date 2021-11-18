@@ -16,7 +16,7 @@ nms:
     create: true
     image:
       repository: docker.artifactory.magmacore.org/magmalte
-      tag: 1.6.0
+      tag: 1.6.1
   nginx:
     create: true
   certs:
@@ -106,7 +106,7 @@ nginx:
   # nginx image
   image:
     repository: docker.artifactory.magmacore.org/nginx
-    tag: 1.6.0
+    tag: 1.6.1
     pullPolicy: IfNotPresent
 
   # Settings affecting nginx application
@@ -152,7 +152,7 @@ controller:
   # orc8r_base image
   image:
     repository: docker.artifactory.magmacore.org/controller
-    tag: 1.6.0
+    tag: 1.6.1
     pullPolicy: IfNotPresent
 
   spec:
