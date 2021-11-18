@@ -35,18 +35,26 @@ bool is_num_sessions_valid(
     int expected_num_teids) {
   hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
   if (state_ue_ht->num_elements != expected_num_ue_contexts) {
-    std::cout << "is_num_sessions_valid: false 1: " << "real: " << state_ue_ht->num_elements << " | expected: " << expected_num_ue_contexts << std::endl;
+    std::cout << "Hung: is_num_sessions_valid: false 1: " << "real: " << state_ue_ht->num_elements << " | expected: " << expected_num_ue_contexts << std::endl;
     return false;
   }
   if (expected_num_ue_contexts == 0) {
-    std::cout << "is_num_sessions_valid: true 1" << std::endl;
+    std::cout << "Hung: is_num_sessions_valid: true 1" << std::endl;
     return true;
   }
 
   // If one UE context exists, check that teids also exist in hashtable
   spgw_ue_context_t* ue_context_p = spgw_get_ue_context(imsi64);
+  if (expected_num_teids == 0)
+  {
+    if (!ue_context_p)
+      std::cout << "========== Hung: ue_contetxt_p is null" << std::endl;
+    return ue_context_p == nullptr;
+  }
   int num_teids                   = 0;
   sgw_s11_teid_t* s11_teid_p      = nullptr;
+  if (!ue_context_p)
+    return false;
   LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
     if (s11_teid_p &&
         (sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid) != nullptr)) {
