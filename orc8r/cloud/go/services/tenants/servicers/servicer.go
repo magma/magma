@@ -86,9 +86,11 @@ func (s *tenantsServicer) SetTenant(c context.Context, request *protos.IDAndTena
 
 func (s *tenantsServicer) DeleteTenant(c context.Context, request *protos.GetTenantRequest) (*protos.Void, error) {
 	err := s.store.DeleteTenant(request.Id)
-	err = errorHandlingForGet(err, "tenant", request.Id)
-	if err != nil {
-		return nil, err
+	switch {
+	case err == errors.ErrNotFound:
+		return nil, status.Errorf(codes.NotFound, "Tenant %d not found", request.Id)
+	case err != nil:
+		return nil, status.Errorf(codes.Internal, "Error deleting tenant %d: %v", request.Id, err)
 	}
 	return &protos.Void{}, nil
 }
