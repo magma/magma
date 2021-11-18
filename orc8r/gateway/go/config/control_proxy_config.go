@@ -35,6 +35,7 @@ const (
 	DefaultBootstrapPort         = 443
 	DefaultLocalPort             = 8443
 	DefaultProxyCloudConnection  = true
+	DefaultSkipVerify            = true
 )
 
 // ControlProxyCfg represents control_proxy.yml configuration struct
@@ -46,27 +47,29 @@ type ControlProxyCfg struct {
 	GwCertFile    string `yaml:"gateway_cert"`
 	GwCertKeyFile string `yaml:"gateway_key"`
 
-	LocalPort            int    `yaml:"local_port"`
-	CloudAddr            string `yaml:"cloud_address"`
-	CloudPort            int    `yaml:"cloud_port"`
-	BootstrapAddr        string `yaml:"bootstrap_address"`
-	BootstrapPort        int    `yaml:"bootstrap_port"`
-	ProxyCloudConnection bool   `yaml:"proxy_cloud_connections"`
+	LocalPort                 int    `yaml:"local_port"`
+	CloudAddr                 string `yaml:"cloud_address"`
+	CloudPort                 int    `yaml:"cloud_port"`
+	BootstrapAddr             string `yaml:"bootstrap_address"`
+	BootstrapPort             int    `yaml:"bootstrap_port"`
+	ProxyCloudConnection      bool   `yaml:"proxy_cloud_connections"`
+	CloudConnectionSkipVerify bool   `yaml:"cloud_connection_skip_verify"`
 }
 
 // NewDefaultControlProxyCfg returns new Bootstrapper struct with default configuration
 func NewDefaultControlProxyCfg() *ControlProxyCfg {
 	return &ControlProxyCfg{
-		NghttpxConfigLocation: DefaultNghttpxConfigLocation,
-		RootCaFile:            DefaultRootCaFile,
-		GwCertFile:            DefaultGwCertFile,
-		GwCertKeyFile:         DefaultGwCertKeyFile,
-		LocalPort:             DefaultLocalPort,
-		CloudAddr:             "",
-		CloudPort:             DefaultCloudPort,
-		BootstrapAddr:         "",
-		BootstrapPort:         DefaultBootstrapPort,
-		ProxyCloudConnection:  DefaultProxyCloudConnection,
+		NghttpxConfigLocation:     DefaultNghttpxConfigLocation,
+		RootCaFile:                DefaultRootCaFile,
+		GwCertFile:                DefaultGwCertFile,
+		GwCertKeyFile:             DefaultGwCertKeyFile,
+		LocalPort:                 DefaultLocalPort,
+		CloudAddr:                 "",
+		CloudPort:                 DefaultCloudPort,
+		BootstrapAddr:             "",
+		BootstrapPort:             DefaultBootstrapPort,
+		ProxyCloudConnection:      DefaultProxyCloudConnection,
+		CloudConnectionSkipVerify: DefaultSkipVerify,
 	}
 }
 

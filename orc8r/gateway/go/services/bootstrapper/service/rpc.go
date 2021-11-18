@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"context"
+
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
@@ -101,7 +102,7 @@ func (b *Bootstrapper) getGrpcOpts(useProxy bool, cfg *config.ControlProxyCfg) [
 			}
 		} else {
 			tlsCfg = &tls.Config{
-				InsecureSkipVerify: true,
+				InsecureSkipVerify: cfg.CloudConnectionSkipVerify,
 			}
 		}
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsCfg)))
