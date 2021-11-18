@@ -317,13 +317,13 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionSetup) {
   EXPECT_TRUE(rc == RETURNok);
 
   /* Send uplink nas message for pdu session release request from UE */
-  rc = send_uplink_nas_pdu_session_release_request(
+  rc = send_uplink_nas_pdu_session_release_message(
       amf_app_desc_p, ue_id, plmn, pdu_sess_release_hexbuf,
       sizeof(pdu_sess_release_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
-  /* Send uplink nas message for pdu session release request from UE */
-  rc = send_uplink_nas_pdu_session_release_request(
+  /* Send uplink nas message for pdu session release complete from UE */
+  rc = send_uplink_nas_pdu_session_release_message(
       amf_app_desc_p, ue_id, plmn, pdu_sess_release_complete_hexbuf,
       sizeof(pdu_sess_release_complete_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
@@ -331,7 +331,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionSetup) {
   rc = send_pdu_notification_response();
   EXPECT_TRUE(rc == RETURNok);
 
-  /* Send uplink nas message for registration complete response from UE */
+  /* Send uplink nas message for deregistration complete response from UE */
   rc = send_uplink_nas_ue_deregistration_request(
       amf_app_desc_p, ue_id, plmn, ue_initiated_dereg_hexbuf,
       sizeof(ue_initiated_dereg_hexbuf));

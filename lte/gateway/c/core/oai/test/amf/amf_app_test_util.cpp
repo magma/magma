@@ -160,7 +160,7 @@ int send_uplink_nas_registration_complete(
   return (rc);
 }
 
-/* Create pdu session establishment  request from ue */
+/* Create pdu session establishment request from ue */
 int send_uplink_nas_pdu_session_establishment_request(
     amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
     const uint8_t* nas_msg, uint8_t nas_msg_length) {
@@ -178,6 +178,7 @@ int send_uplink_nas_pdu_session_establishment_request(
 
   ue_m5gmm_context_s* ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
   if (!ue_context_p) {
     return RETURNerror;
   }
@@ -345,25 +346,25 @@ int send_pdu_notification_response() {
   return rc;
 }
 
-/* Create pdu session release  request from ue */
-int send_uplink_nas_pdu_session_release_request(
+/* Create pdu session release message from ue */
+int send_uplink_nas_pdu_session_release_message(
     amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
     const uint8_t* nas_msg, uint8_t nas_msg_length) {
-  bstring pdu_session_est_req;
+  bstring pdu_session_req;
   tai_t originating_tai = {};
 
   if ((!amf_app_desc_p) || (!nas_msg) || (nas_msg_length == 0)) {
     return RETURNerror;
   }
 
-  pdu_session_est_req = blk2bstr(nas_msg, nas_msg_length);
+  pdu_session_req = blk2bstr(nas_msg, nas_msg_length);
 
   originating_tai.plmn = plmn;
   originating_tai.tac  = 1;
 
   int rc     = RETURNerror;
   int status = amf_app_handle_uplink_nas_message(
-      amf_app_desc_p, pdu_session_est_req, ue_id, originating_tai);
+      amf_app_desc_p, pdu_session_req, ue_id, originating_tai);
 
   if (status > 0) {
     rc = RETURNok;
