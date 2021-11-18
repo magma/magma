@@ -11,7 +11,7 @@
 #include <chrono>
 #include <thread>
 
-#include "../mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
@@ -29,31 +29,21 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.h"
 #include <gtest/gtest.h>
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "../../tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
-#include "util_s6a_update_location.h"
-#include "tasks/amf/amf_recv.h"
-#include "tasks/amf/amf_identity.h"
-#include "tasks/amf/amf_app_ue_context_and_proc.h"
-#include "tasks/amf/amf_sap.h"
-#include "tasks/amf/amf_app_state_manager.h"
-#include "tasks/amf/amf_as.h"
+#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.h"
-
-#if 0
-const task_info_t tasks_info[] = {
-    {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
-#define TASK_DEF(tHREADiD)                                                     \
-  {THREAD_##tHREADiD, #tHREADiD, "ipc://IPC_" #tHREADiD},
-#include "lte/gateway/c/core/oai/include/tasks_def.h"
-#undef TASK_DEF
-};
-#endif
 
 using ::testing::Test;
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
@@ -929,8 +919,6 @@ class AmfUeContextTestServiceRequestProc : public ::testing::Test {
   const amf_ue_ngap_id_t AMF_UE_NGAP_ID = 0x05;
   const gnb_ue_ngap_id_t gNB_UE_NGAP_ID = 0x09;
   const uint32_t gnb_id                 = 0x01;
-  const imsi64_t imis64                 = IMSI64;
-  const uint32_t m_imsi                 = M_TMSI;
 
   virtual void SetUp() {
     itti_init(
@@ -948,7 +936,7 @@ class AmfUeContextTestServiceRequestProc : public ::testing::Test {
     }
 
     // imsi64
-    ue_context->amf_context.imsi64 = imis64;
+    ue_context->amf_context.imsi64 = IMSI64;
     // ue security context
     ue_context->amf_context.member_present_mask |= AMF_CTXT_MEMBER_SECURITY;
     // ueContextReq
@@ -956,7 +944,7 @@ class AmfUeContextTestServiceRequestProc : public ::testing::Test {
     // ue state
     ue_context->mm_state = REGISTERED_IDLE;
     // 5G TMSI
-    ue_context->amf_context.m5_guti.m_tmsi = m_imsi;
+    ue_context->amf_context.m5_guti.m_tmsi = M_TMSI;
     guti.m_tmsi = ue_context->amf_context.m5_guti.m_tmsi;
 
     amf_config_read_lock(&amf_config);
