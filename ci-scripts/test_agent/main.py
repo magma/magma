@@ -10,7 +10,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import threading
 import time
 
 from FirebaseClient import FirebaseClient
@@ -36,7 +35,6 @@ def test_done_callback(tester_id, workload, verdict, report):
 def main():
     state = WorkerState.READY
     testers = []
-    threading.Timer(db_client.RefreshTokenTime, db_client.do_token_refresh).start()
     for i in range(num_of_testers):
         testers.append(Tester(i))
     while True:

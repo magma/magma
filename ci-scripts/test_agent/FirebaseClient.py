@@ -12,11 +12,12 @@ limitations under the License.
 """
 
 import json
-import pyrebase
 import threading
 import time
-
 from datetime import datetime
+
+import pyrebase
+
 
 class FirebaseClient:
     def __init__(self):
@@ -35,6 +36,7 @@ class FirebaseClient:
         self.db = self.firebase.database()
         # token refresh timer
         self.RefreshTokenTime = 1800
+        threading.Timer(self.RefreshTokenTime, self.do_token_refresh).start()
 
     def push_test_report(self, workload, verdict, report):
         build_id = workload.val().get("build_id")
