@@ -409,9 +409,7 @@ imsi64_t amf_app_handle_initial_ue_message(
             amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
             ue_context_p->amf_teid_n11, &guti);
 
-        amf_insert_ue_context(
-            ue_context_p->amf_ue_ngap_id, &amf_app_desc_p->amf_ue_contexts,
-            ue_context_p);
+        amf_insert_ue_context(ue_context_p->amf_ue_ngap_id, ue_context_p);
         imsi64 = ue_context_p->amf_context.imsi64;
       }
     } else {
@@ -482,9 +480,7 @@ imsi64_t amf_app_handle_initial_ue_message(
     AMF_APP_GNB_NGAP_ID_KEY(
         ue_context_p->gnb_ngap_id_key, initial_pP->gnb_id,
         initial_pP->gnb_ue_ngap_id);
-    amf_insert_ue_context(
-        ue_context_p->amf_ue_ngap_id, &amf_app_desc_p->amf_ue_contexts,
-        ue_context_p);
+    amf_insert_ue_context(ue_context_p->amf_ue_ngap_id, ue_context_p);
   }
   ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
   ue_context_p->gnb_ue_ngap_id    = initial_pP->gnb_ue_ngap_id;
