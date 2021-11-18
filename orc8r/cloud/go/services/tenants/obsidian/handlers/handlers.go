@@ -171,7 +171,7 @@ func GetControlProxyHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, models.ControlProxy{ID: &tenantID, ControlProxy: &controlProxy.ControlProxy})
+	return c.JSON(http.StatusOK, models.ControlProxy{ControlProxy: &controlProxy.ControlProxy})
 }
 
 func CreateOrUpdateControlProxyHandler(c echo.Context) error {
