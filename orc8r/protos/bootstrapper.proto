@@ -101,8 +101,9 @@ message GetTokenResponse {
 }
 
 message GetGatewayRegistrationInfoRequest {
+  string network_id = 1;
   // token is a nonce prepended by bootstrapper.tokenPrepend
-  string token = 1;
+  string token = 2;
 }
 
 message GetGatewayRegistrationInfoResponse {
