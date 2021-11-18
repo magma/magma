@@ -19,7 +19,7 @@
 
 #include "lte/gateway/c/core/oai/include/gtpv1u_types.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
-#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 
 int gtpv1u_init(
     spgw_state_t* spgw_state_p, spgw_config_t* spgw_config, bool persist_state);

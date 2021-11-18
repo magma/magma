@@ -40,10 +40,10 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
-#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
 
 /****************************************************************************/

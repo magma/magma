@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <sstream>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 

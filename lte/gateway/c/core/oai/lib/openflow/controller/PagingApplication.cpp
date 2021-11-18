@@ -17,9 +17,9 @@
 
 #include <netinet/ip.h>
 #include <arpa/inet.h>
-#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.h"
-#include "lte/gateway/c/core/oai/lib/openflow/controller/PagingApplication.h"
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/PagingApplication.hpp"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"

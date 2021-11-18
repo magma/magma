@@ -10,7 +10,7 @@
  */
 
 #include <sstream>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {

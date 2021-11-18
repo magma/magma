@@ -14,7 +14,7 @@
 #include <cstdint>
 #include <cstring>
 #include <array>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMobileIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMobileIdentity.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {

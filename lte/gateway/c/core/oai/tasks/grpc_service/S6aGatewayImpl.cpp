@@ -24,7 +24,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/s6a_service_handler.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 }
-#include "lte/gateway/c/core/oai/tasks/grpc_service/S6aGatewayImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S6aGatewayImpl.hpp"
 
 namespace grpc {
 class Channel;

@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/oai/include/mme_events.h"
+#include "lte/gateway/c/core/oai/include/mme_events.hpp"
 
 #include <cstdlib>
 #include <iostream>
@@ -30,7 +30,7 @@
 #include "orc8r/protos/common.pb.h"
 #include "orc8r/protos/eventd.pb.h"
 
-#include "lte/gateway/c/core/oai/lib/event_client/EventClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/event_client/EventClientAPI.hpp"
 
 using grpc::Status;
 using magma::lte::init_eventd_client;

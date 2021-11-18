@@ -14,7 +14,7 @@
 #include <iostream>
 #include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.h"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
-#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.h"
+#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.hpp"
 
 namespace magma5g {
 // api to mock handling of s6a_update_location_ans

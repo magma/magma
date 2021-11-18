@@ -19,7 +19,7 @@
 
 *****************************************************************************/
 
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.hpp"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"

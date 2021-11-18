@@ -13,7 +13,7 @@
 #include <sstream>
 #include <bitset>
 #include <cstdint>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSRegistrationResult.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSRegistrationResult.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {

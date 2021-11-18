@@ -14,10 +14,10 @@
 #include <gtest/gtest.h>
 #include <thread>
 #include "../mock_tasks/mock_tasks.h"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.hpp"
 #include "feg/protos/s8_proxy.grpc.pb.h"
 extern "C" {
-#include "lte/gateway/c/core/oai/include/grpc_service.h"
+#include "lte/gateway/c/core/oai/include/grpc_service.hpp"
 }
 
 using grpc::ServerContext;

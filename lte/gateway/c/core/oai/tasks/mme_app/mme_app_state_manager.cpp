@@ -23,7 +23,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 
 namespace {
 constexpr char MME_NAS_STATE_KEY[] = "mme_nas_state";

@@ -19,7 +19,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/conversions.h"
 }
 
-#include "lte/gateway/c/core/oai/include/state_converter.h"
+#include "lte/gateway/c/core/oai/include/state_converter.hpp"
 
 namespace magma {
 namespace lte {

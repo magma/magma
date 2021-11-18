@@ -62,16 +62,16 @@ generate_grpc_protos("${RPC_LTE_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
     ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
 add_library(LI_AGENT
-    Utilities.h
+    Utilities.hpp
     Utilities.cpp
     MobilitydClient.cpp
-    MobilitydClient.h
+    MobilitydClient.hpp
     PDUGenerator.cpp
-    PDUGenerator.h
+    PDUGenerator.hpp
     InterfaceMonitor.cpp
-    InterfaceMonitor.h
+    InterfaceMonitor.hpp
     ProxyConnector.cpp
-    ProxyConnector.h
+    ProxyConnector.hpp
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 

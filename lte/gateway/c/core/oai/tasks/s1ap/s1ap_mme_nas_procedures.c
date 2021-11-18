@@ -37,7 +37,7 @@
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
-#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "INTEGER.h"
@@ -64,7 +64,7 @@
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "asn_SEQUENCE_OF.h"
 #include "lte/gateway/c/core/oai/include/nas/securityDef.h"
-#include "lte/gateway/c/core/oai/include/s1ap_state.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "S1ap_CauseMisc.h"
 #include "S1ap_CauseNas.h"
 #include "S1ap_CauseProtocol.h"
@@ -74,7 +74,7 @@
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
 #include "S1ap_ProtocolIE-Field.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_common.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 extern bool s1ap_congestion_control_enabled;
 extern long s1ap_last_msg_latency;

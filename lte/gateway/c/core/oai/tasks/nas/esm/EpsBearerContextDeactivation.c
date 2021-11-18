@@ -40,7 +40,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.h"
-#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
 

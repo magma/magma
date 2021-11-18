@@ -14,7 +14,7 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.hpp"
 
 #include <arpa/inet.h>
 #include <grpcpp/impl/codegen/status.h>

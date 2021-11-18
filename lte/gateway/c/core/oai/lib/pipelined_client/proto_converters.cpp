@@ -11,8 +11,8 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/core/oai/lib/pipelined_client/proto_converters.h"
-#include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/pipelined_client/proto_converters.hpp"
+#include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedClientAPI.hpp"
 
 namespace magma {
 namespace lte {

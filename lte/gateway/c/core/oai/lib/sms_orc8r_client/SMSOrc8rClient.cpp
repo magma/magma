@@ -19,9 +19,9 @@
 #include <thread>  // std::thread
 #include <utility>
 
-#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/SMSOrc8rClient.h"
-#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/itti_msg_to_proto_msg.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/SMSOrc8rClient.hpp"
+#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/itti_msg_to_proto_msg.hpp"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 #include "lte/protos/sms_orc8r.pb.h"
 #include "orc8r/protos/common.pb.h"
 

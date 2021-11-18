@@ -19,8 +19,8 @@
 #include <string>
 #include <iostream>
 
-#include "lte/gateway/c/core/oai/lib/directoryd/GatewayDirectorydClient.h"
-#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.h"
+#include "lte/gateway/c/core/oai/lib/directoryd/GatewayDirectorydClient.hpp"
+#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.hpp"
 #include "orc8r/protos/common.pb.h"
 #include "orc8r/protos/directoryd.pb.h"
 

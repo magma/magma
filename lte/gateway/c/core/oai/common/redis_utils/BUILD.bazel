@@ -16,7 +16,7 @@ package(default_visibility = ["//lte/gateway/c/core:__subpackages__"])
 cc_library(
     name = "redis_client",
     srcs = ["redis_client.cpp"],
-    hdrs = ["redis_client.h"],
+    hdrs = ["redis_client.hpp"],
     deps = [
         "//lte/gateway/c/core/oai/common:common_defs",
         "//orc8r/gateway/c/common/config:service_config_loader",

@@ -32,9 +32,9 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.h"
-#include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.h"
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
+#include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.hpp"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/protos/session_manager.pb.h"
 #include "lte/gateway/c/core/oai/include/spgw_types.h"

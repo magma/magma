@@ -16,7 +16,7 @@ package(default_visibility = ["//lte/gateway/c/core:__subpackages__"])
 cc_library(
     name = "eventd_client",
     srcs = ["EventClientAPI.cpp"],
-    hdrs = ["EventClientAPI.h"],
+    hdrs = ["EventClientAPI.hpp"],
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/lte/gateway/c/core/oai/lib/event_client",
     deps = [

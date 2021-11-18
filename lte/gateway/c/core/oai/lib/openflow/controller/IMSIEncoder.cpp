@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <string>
 #include <string.h>
-#include "lte/gateway/c/core/oai/lib/openflow/controller/IMSIEncoder.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/IMSIEncoder.hpp"
 
 namespace openflow {
 

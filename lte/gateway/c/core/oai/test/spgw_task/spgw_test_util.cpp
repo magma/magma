@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.hpp"
 
 #include <cstdint>
 

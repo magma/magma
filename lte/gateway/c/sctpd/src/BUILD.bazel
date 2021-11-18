@@ -27,7 +27,7 @@ cc_binary(
 cc_library(
     name = "sctpd_event_handler",
     srcs = ["sctpd_event_handler.cpp"],
-    hdrs = ["sctpd_event_handler.h"],
+    hdrs = ["sctpd_event_handler.hpp"],
     deps = [
         ":sctp_connection",
         ":sctpd_uplink_client",
@@ -37,7 +37,7 @@ cc_library(
 cc_library(
     name = "sctpd_uplink_client",
     srcs = ["sctpd_uplink_client.cpp"],
-    hdrs = ["sctpd_uplink_client.h"],
+    hdrs = ["sctpd_uplink_client.hpp"],
     deps = [
         ":util",
         "//lte/protos:sctpd_cpp_grpc",
@@ -47,7 +47,7 @@ cc_library(
 cc_library(
     name = "sctpd_downlink_impl",
     srcs = ["sctpd_downlink_impl.cpp"],
-    hdrs = ["sctpd_downlink_impl.h"],
+    hdrs = ["sctpd_downlink_impl.hpp"],
     deps = [
         ":sctp_connection",
         "//lte/protos:sctpd_cpp_grpc",
@@ -57,7 +57,7 @@ cc_library(
 cc_library(
     name = "sctp_connection",
     srcs = ["sctp_connection.cpp"],
-    hdrs = ["sctp_connection.h"],
+    hdrs = ["sctp_connection.hpp"],
     deps = [
         ":sctp_desc",
         "//lte/protos:sctpd_cpp_grpc",
@@ -67,7 +67,7 @@ cc_library(
 cc_library(
     name = "sctp_desc",
     srcs = ["sctp_desc.cpp"],
-    hdrs = ["sctp_desc.h"],
+    hdrs = ["sctp_desc.hpp"],
     deps = [
         ":sctp_assoc",
     ],
@@ -76,7 +76,7 @@ cc_library(
 cc_library(
     name = "sctp_assoc",
     srcs = ["sctp_assoc.cpp"],
-    hdrs = ["sctp_assoc.h"],
+    hdrs = ["sctp_assoc.hpp"],
     deps = [
         ":util",
     ],
@@ -85,7 +85,7 @@ cc_library(
 cc_library(
     name = "util",
     srcs = ["util.cpp"],
-    hdrs = ["util.h"],
+    hdrs = ["util.hpp"],
     deps = [
         ":config",
         "//lte/protos:sctpd_cpp_grpc",
@@ -96,5 +96,5 @@ cc_library(
 
 cc_library(
     name = "config",
-    hdrs = ["sctpd.h"],
+    hdrs = ["sctpd.hpp"],
 )

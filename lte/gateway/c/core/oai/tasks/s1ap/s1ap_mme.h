@@ -30,7 +30,7 @@
 #endif
 
 #include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/s1ap_state.h"
+#include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_types.h"
 
 #define S1AP_ZMQ_LATENCY_TH                                                    \

@@ -49,7 +49,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
 #include "lte/gateway/c/core/oai/include/mme_app_desc.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
-#include "lte/gateway/c/core/oai/common/common_utility_funs.h"
+#include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP

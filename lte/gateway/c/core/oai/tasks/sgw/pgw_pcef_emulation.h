@@ -33,7 +33,7 @@
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
 #include "lte/gateway/c/core/oai/include/pgw_types.h"
-#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 
 status_code_e pgw_pcef_emulation_init(
     spgw_state_t* state_p, const pgw_config_t* pgw_config_p);

@@ -19,8 +19,8 @@
 #include <mutex>
 #include <chrono>
 #include <condition_variable>
-#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.h"
-#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.hpp"
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"

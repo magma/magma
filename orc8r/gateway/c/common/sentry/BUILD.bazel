@@ -16,7 +16,7 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "sentry_wrapper",
     srcs = ["SentryWrapper.cpp"],
-    hdrs = ["includes/SentryWrapper.h"],
+    hdrs = ["includes/SentryWrapper.hpp"],
     # TODO(@themarwhal): Enable Sentry by default - GH9302
     copts = ["-DSENTRY_ENABLED"],
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299

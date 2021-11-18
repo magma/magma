@@ -28,7 +28,7 @@
 #include <arpa/inet.h>
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 
 void release_ue_ipv4_address(
