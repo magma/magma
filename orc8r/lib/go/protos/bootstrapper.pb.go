@@ -7,6 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	timestamp "github.com/golang/protobuf/ptypes/timestamp"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -52,6 +53,9 @@ func (ChallengeKey_KeyType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_b592b3c4e9ae6813, []int{1, 0}
 }
 
+// --------------------------------------------------------------------------
+// Protos for Bootstrapper servicer
+// --------------------------------------------------------------------------
 type Challenge struct {
 	KeyType              ChallengeKey_KeyType `protobuf:"varint,1,opt,name=key_type,json=keyType,proto3,enum=magma.orc8r.ChallengeKey_KeyType" json:"key_type,omitempty"`
 	Challenge            []byte               `protobuf:"bytes,2,opt,name=challenge,proto3" json:"challenge,omitempty"`
@@ -99,9 +103,7 @@ func (m *Challenge) GetChallenge() []byte {
 	return nil
 }
 
-// --------------------------------------------------------------------------
 // Challenge key stores the key used for challenge-response during bootstrap.
-// --------------------------------------------------------------------------
 type ChallengeKey struct {
 	KeyType ChallengeKey_KeyType `protobuf:"varint,1,opt,name=key_type,json=keyType,proto3,enum=magma.orc8r.ChallengeKey_KeyType" json:"key_type,omitempty"`
 	// Public key encoded in DER format
@@ -394,6 +396,517 @@ func (m *Response_ECDSA) GetS() []byte {
 	return nil
 }
 
+type GetTokenRequest struct {
+	Gateway *GatewayInfo `protobuf:"bytes,1,opt,name=gateway,proto3" json:"gateway,omitempty"`
+	// refresh is true if a new token should be generated regardless of old token timeout
+	Refresh              bool     `protobuf:"varint,2,opt,name=refresh,proto3" json:"refresh,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetTokenRequest) Reset()         { *m = GetTokenRequest{} }
+func (m *GetTokenRequest) String() string { return proto.CompactTextString(m) }
+func (*GetTokenRequest) ProtoMessage()    {}
+func (*GetTokenRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b592b3c4e9ae6813, []int{3}
+}
+
+func (m *GetTokenRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetTokenRequest.Unmarshal(m, b)
+}
+func (m *GetTokenRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetTokenRequest.Marshal(b, m, deterministic)
+}
+func (m *GetTokenRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetTokenRequest.Merge(m, src)
+}
+func (m *GetTokenRequest) XXX_Size() int {
+	return xxx_messageInfo_GetTokenRequest.Size(m)
+}
+func (m *GetTokenRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetTokenRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetTokenRequest proto.InternalMessageInfo
+
+func (m *GetTokenRequest) GetGateway() *GatewayInfo {
+	if m != nil {
+		return m.Gateway
+	}
+	return nil
+}
+
+func (m *GetTokenRequest) GetRefresh() bool {
+	if m != nil {
+		return m.Refresh
+	}
+	return false
+}
+
+type GetTokenResponse struct {
+	// token is a nonce prepended by bootstrapper.tokenPrepend
+	Token                string               `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	Timeout              *timestamp.Timestamp `protobuf:"bytes,2,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *GetTokenResponse) Reset()         { *m = GetTokenResponse{} }
+func (m *GetTokenResponse) String() string { return proto.CompactTextString(m) }
+func (*GetTokenResponse) ProtoMessage()    {}
+func (*GetTokenResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b592b3c4e9ae6813, []int{4}
+}
+
+func (m *GetTokenResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetTokenResponse.Unmarshal(m, b)
+}
+func (m *GetTokenResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetTokenResponse.Marshal(b, m, deterministic)
+}
+func (m *GetTokenResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetTokenResponse.Merge(m, src)
+}
+func (m *GetTokenResponse) XXX_Size() int {
+	return xxx_messageInfo_GetTokenResponse.Size(m)
+}
+func (m *GetTokenResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetTokenResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetTokenResponse proto.InternalMessageInfo
+
+func (m *GetTokenResponse) GetToken() string {
+	if m != nil {
+		return m.Token
+	}
+	return ""
+}
+
+func (m *GetTokenResponse) GetTimeout() *timestamp.Timestamp {
+	if m != nil {
+		return m.Timeout
+	}
+	return nil
+}
+
+type GetGatewayRegistrationInfoRequest struct {
+	// token is a nonce prepended by bootstrapper.tokenPrepend
+	Token                string   `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetGatewayRegistrationInfoRequest) Reset()         { *m = GetGatewayRegistrationInfoRequest{} }
+func (m *GetGatewayRegistrationInfoRequest) String() string { return proto.CompactTextString(m) }
+func (*GetGatewayRegistrationInfoRequest) ProtoMessage()    {}
+func (*GetGatewayRegistrationInfoRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b592b3c4e9ae6813, []int{5}
+}
+
+func (m *GetGatewayRegistrationInfoRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetGatewayRegistrationInfoRequest.Unmarshal(m, b)
+}
+func (m *GetGatewayRegistrationInfoRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetGatewayRegistrationInfoRequest.Marshal(b, m, deterministic)
+}
+func (m *GetGatewayRegistrationInfoRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetGatewayRegistrationInfoRequest.Merge(m, src)
+}
+func (m *GetGatewayRegistrationInfoRequest) XXX_Size() int {
+	return xxx_messageInfo_GetGatewayRegistrationInfoRequest.Size(m)
+}
+func (m *GetGatewayRegistrationInfoRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetGatewayRegistrationInfoRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetGatewayRegistrationInfoRequest proto.InternalMessageInfo
+
+func (m *GetGatewayRegistrationInfoRequest) GetToken() string {
+	if m != nil {
+		return m.Token
+	}
+	return ""
+}
+
+type GetGatewayRegistrationInfoResponse struct {
+	// Types that are valid to be assigned to Response:
+	//	*GetGatewayRegistrationInfoResponse_GatewayRegistrationInfo
+	//	*GetGatewayRegistrationInfoResponse_Error
+	Response             isGetGatewayRegistrationInfoResponse_Response `protobuf_oneof:"response"`
+	XXX_NoUnkeyedLiteral struct{}                                      `json:"-"`
+	XXX_unrecognized     []byte                                        `json:"-"`
+	XXX_sizecache        int32                                         `json:"-"`
+}
+
+func (m *GetGatewayRegistrationInfoResponse) Reset()         { *m = GetGatewayRegistrationInfoResponse{} }
+func (m *GetGatewayRegistrationInfoResponse) String() string { return proto.CompactTextString(m) }
+func (*GetGatewayRegistrationInfoResponse) ProtoMessage()    {}
+func (*GetGatewayRegistrationInfoResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b592b3c4e9ae6813, []int{6}
+}
+
+func (m *GetGatewayRegistrationInfoResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetGatewayRegistrationInfoResponse.Unmarshal(m, b)
+}
+func (m *GetGatewayRegistrationInfoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetGatewayRegistrationInfoResponse.Marshal(b, m, deterministic)
+}
+func (m *GetGatewayRegistrationInfoResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetGatewayRegistrationInfoResponse.Merge(m, src)
+}
+func (m *GetGatewayRegistrationInfoResponse) XXX_Size() int {
+	return xxx_messageInfo_GetGatewayRegistrationInfoResponse.Size(m)
+}
+func (m *GetGatewayRegistrationInfoResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetGatewayRegistrationInfoResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetGatewayRegistrationInfoResponse proto.InternalMessageInfo
+
+type isGetGatewayRegistrationInfoResponse_Response interface {
+	isGetGatewayRegistrationInfoResponse_Response()
+}
+
+type GetGatewayRegistrationInfoResponse_GatewayRegistrationInfo struct {
+	GatewayRegistrationInfo *GatewayRegistrationInfo `protobuf:"bytes,1,opt,name=gatewayRegistrationInfo,proto3,oneof"`
+}
+
+type GetGatewayRegistrationInfoResponse_Error struct {
+	Error string `protobuf:"bytes,2,opt,name=error,proto3,oneof"`
+}
+
+func (*GetGatewayRegistrationInfoResponse_GatewayRegistrationInfo) isGetGatewayRegistrationInfoResponse_Response() {
+}
+
+func (*GetGatewayRegistrationInfoResponse_Error) isGetGatewayRegistrationInfoResponse_Response() {}
+
+func (m *GetGatewayRegistrationInfoResponse) GetResponse() isGetGatewayRegistrationInfoResponse_Response {
+	if m != nil {
+		return m.Response
+	}
+	return nil
+}
+
+func (m *GetGatewayRegistrationInfoResponse) GetGatewayRegistrationInfo() *GatewayRegistrationInfo {
+	if x, ok := m.GetResponse().(*GetGatewayRegistrationInfoResponse_GatewayRegistrationInfo); ok {
+		return x.GatewayRegistrationInfo
+	}
+	return nil
+}
+
+func (m *GetGatewayRegistrationInfoResponse) GetError() string {
+	if x, ok := m.GetResponse().(*GetGatewayRegistrationInfoResponse_Error); ok {
+		return x.Error
+	}
+	return ""
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*GetGatewayRegistrationInfoResponse) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*GetGatewayRegistrationInfoResponse_GatewayRegistrationInfo)(nil),
+		(*GetGatewayRegistrationInfoResponse_Error)(nil),
+	}
+}
+
+type RegisterRequest struct {
+	// token is a nonce prepended by bootstrapper.tokenPrepend
+	Token string           `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	Hwid  *AccessGatewayID `protobuf:"bytes,2,opt,name=hwid,proto3" json:"hwid,omitempty"`
+	// challenge_key is gateway's long-term public key
+	ChallengeKey         *ChallengeKey `protobuf:"bytes,3,opt,name=challenge_key,json=challengeKey,proto3" json:"challenge_key,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *RegisterRequest) Reset()         { *m = RegisterRequest{} }
+func (m *RegisterRequest) String() string { return proto.CompactTextString(m) }
+func (*RegisterRequest) ProtoMessage()    {}
+func (*RegisterRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b592b3c4e9ae6813, []int{7}
+}
+
+func (m *RegisterRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RegisterRequest.Unmarshal(m, b)
+}
+func (m *RegisterRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RegisterRequest.Marshal(b, m, deterministic)
+}
+func (m *RegisterRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegisterRequest.Merge(m, src)
+}
+func (m *RegisterRequest) XXX_Size() int {
+	return xxx_messageInfo_RegisterRequest.Size(m)
+}
+func (m *RegisterRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegisterRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RegisterRequest proto.InternalMessageInfo
+
+func (m *RegisterRequest) GetToken() string {
+	if m != nil {
+		return m.Token
+	}
+	return ""
+}
+
+func (m *RegisterRequest) GetHwid() *AccessGatewayID {
+	if m != nil {
+		return m.Hwid
+	}
+	return nil
+}
+
+func (m *RegisterRequest) GetChallengeKey() *ChallengeKey {
+	if m != nil {
+		return m.ChallengeKey
+	}
+	return nil
+}
+
+type RegisterResponse struct {
+	// Types that are valid to be assigned to Response:
+	//	*RegisterResponse_ControlProxy
+	//	*RegisterResponse_Error
+	Response             isRegisterResponse_Response `protobuf_oneof:"response"`
+	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
+	XXX_unrecognized     []byte                      `json:"-"`
+	XXX_sizecache        int32                       `json:"-"`
+}
+
+func (m *RegisterResponse) Reset()         { *m = RegisterResponse{} }
+func (m *RegisterResponse) String() string { return proto.CompactTextString(m) }
+func (*RegisterResponse) ProtoMessage()    {}
+func (*RegisterResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b592b3c4e9ae6813, []int{8}
+}
+
+func (m *RegisterResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RegisterResponse.Unmarshal(m, b)
+}
+func (m *RegisterResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RegisterResponse.Marshal(b, m, deterministic)
+}
+func (m *RegisterResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegisterResponse.Merge(m, src)
+}
+func (m *RegisterResponse) XXX_Size() int {
+	return xxx_messageInfo_RegisterResponse.Size(m)
+}
+func (m *RegisterResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegisterResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RegisterResponse proto.InternalMessageInfo
+
+type isRegisterResponse_Response interface {
+	isRegisterResponse_Response()
+}
+
+type RegisterResponse_ControlProxy struct {
+	ControlProxy string `protobuf:"bytes,1,opt,name=control_proxy,json=controlProxy,proto3,oneof"`
+}
+
+type RegisterResponse_Error struct {
+	Error string `protobuf:"bytes,2,opt,name=error,proto3,oneof"`
+}
+
+func (*RegisterResponse_ControlProxy) isRegisterResponse_Response() {}
+
+func (*RegisterResponse_Error) isRegisterResponse_Response() {}
+
+func (m *RegisterResponse) GetResponse() isRegisterResponse_Response {
+	if m != nil {
+		return m.Response
+	}
+	return nil
+}
+
+func (m *RegisterResponse) GetControlProxy() string {
+	if x, ok := m.GetResponse().(*RegisterResponse_ControlProxy); ok {
+		return x.ControlProxy
+	}
+	return ""
+}
+
+func (m *RegisterResponse) GetError() string {
+	if x, ok := m.GetResponse().(*RegisterResponse_Error); ok {
+		return x.Error
+	}
+	return ""
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*RegisterResponse) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*RegisterResponse_ControlProxy)(nil),
+		(*RegisterResponse_Error)(nil),
+	}
+}
+
+type GatewayRegistrationInfo struct {
+	Gateway              *GatewayInfo `protobuf:"bytes,1,opt,name=gateway,proto3" json:"gateway,omitempty"`
+	RootCA               string       `protobuf:"bytes,2,opt,name=rootCA,proto3" json:"rootCA,omitempty"`
+	DomainName           string       `protobuf:"bytes,3,opt,name=domain_name,json=domainName,proto3" json:"domain_name,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
+	XXX_unrecognized     []byte       `json:"-"`
+	XXX_sizecache        int32        `json:"-"`
+}
+
+func (m *GatewayRegistrationInfo) Reset()         { *m = GatewayRegistrationInfo{} }
+func (m *GatewayRegistrationInfo) String() string { return proto.CompactTextString(m) }
+func (*GatewayRegistrationInfo) ProtoMessage()    {}
+func (*GatewayRegistrationInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b592b3c4e9ae6813, []int{9}
+}
+
+func (m *GatewayRegistrationInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GatewayRegistrationInfo.Unmarshal(m, b)
+}
+func (m *GatewayRegistrationInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GatewayRegistrationInfo.Marshal(b, m, deterministic)
+}
+func (m *GatewayRegistrationInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GatewayRegistrationInfo.Merge(m, src)
+}
+func (m *GatewayRegistrationInfo) XXX_Size() int {
+	return xxx_messageInfo_GatewayRegistrationInfo.Size(m)
+}
+func (m *GatewayRegistrationInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_GatewayRegistrationInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GatewayRegistrationInfo proto.InternalMessageInfo
+
+func (m *GatewayRegistrationInfo) GetGateway() *GatewayInfo {
+	if m != nil {
+		return m.Gateway
+	}
+	return nil
+}
+
+func (m *GatewayRegistrationInfo) GetRootCA() string {
+	if m != nil {
+		return m.RootCA
+	}
+	return ""
+}
+
+func (m *GatewayRegistrationInfo) GetDomainName() string {
+	if m != nil {
+		return m.DomainName
+	}
+	return ""
+}
+
+type GatewayInfo struct {
+	NetworkId            string           `protobuf:"bytes,1,opt,name=network_id,json=networkId,proto3" json:"network_id,omitempty"`
+	LogicalId            *AccessGatewayID `protobuf:"bytes,2,opt,name=logical_id,json=logicalId,proto3" json:"logical_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
+}
+
+func (m *GatewayInfo) Reset()         { *m = GatewayInfo{} }
+func (m *GatewayInfo) String() string { return proto.CompactTextString(m) }
+func (*GatewayInfo) ProtoMessage()    {}
+func (*GatewayInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b592b3c4e9ae6813, []int{10}
+}
+
+func (m *GatewayInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GatewayInfo.Unmarshal(m, b)
+}
+func (m *GatewayInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GatewayInfo.Marshal(b, m, deterministic)
+}
+func (m *GatewayInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GatewayInfo.Merge(m, src)
+}
+func (m *GatewayInfo) XXX_Size() int {
+	return xxx_messageInfo_GatewayInfo.Size(m)
+}
+func (m *GatewayInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_GatewayInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GatewayInfo proto.InternalMessageInfo
+
+func (m *GatewayInfo) GetNetworkId() string {
+	if m != nil {
+		return m.NetworkId
+	}
+	return ""
+}
+
+func (m *GatewayInfo) GetLogicalId() *AccessGatewayID {
+	if m != nil {
+		return m.LogicalId
+	}
+	return nil
+}
+
+type TokenInfo struct {
+	Gateway              *GatewayInfo         `protobuf:"bytes,1,opt,name=gateway,proto3" json:"gateway,omitempty"`
+	Nonce                string               `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Timeout              *timestamp.Timestamp `protobuf:"bytes,3,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *TokenInfo) Reset()         { *m = TokenInfo{} }
+func (m *TokenInfo) String() string { return proto.CompactTextString(m) }
+func (*TokenInfo) ProtoMessage()    {}
+func (*TokenInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b592b3c4e9ae6813, []int{11}
+}
+
+func (m *TokenInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TokenInfo.Unmarshal(m, b)
+}
+func (m *TokenInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TokenInfo.Marshal(b, m, deterministic)
+}
+func (m *TokenInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TokenInfo.Merge(m, src)
+}
+func (m *TokenInfo) XXX_Size() int {
+	return xxx_messageInfo_TokenInfo.Size(m)
+}
+func (m *TokenInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_TokenInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TokenInfo proto.InternalMessageInfo
+
+func (m *TokenInfo) GetGateway() *GatewayInfo {
+	if m != nil {
+		return m.Gateway
+	}
+	return nil
+}
+
+func (m *TokenInfo) GetNonce() string {
+	if m != nil {
+		return m.Nonce
+	}
+	return ""
+}
+
+func (m *TokenInfo) GetTimeout() *timestamp.Timestamp {
+	if m != nil {
+		return m.Timeout
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterEnum("magma.orc8r.ChallengeKey_KeyType", ChallengeKey_KeyType_name, ChallengeKey_KeyType_value)
 	proto.RegisterType((*Challenge)(nil), "magma.orc8r.Challenge")
@@ -402,44 +915,80 @@ func init() {
 	proto.RegisterType((*Response_Echo)(nil), "magma.orc8r.Response.Echo")
 	proto.RegisterType((*Response_RSA)(nil), "magma.orc8r.Response.RSA")
 	proto.RegisterType((*Response_ECDSA)(nil), "magma.orc8r.Response.ECDSA")
+	proto.RegisterType((*GetTokenRequest)(nil), "magma.orc8r.GetTokenRequest")
+	proto.RegisterType((*GetTokenResponse)(nil), "magma.orc8r.GetTokenResponse")
+	proto.RegisterType((*GetGatewayRegistrationInfoRequest)(nil), "magma.orc8r.GetGatewayRegistrationInfoRequest")
+	proto.RegisterType((*GetGatewayRegistrationInfoResponse)(nil), "magma.orc8r.GetGatewayRegistrationInfoResponse")
+	proto.RegisterType((*RegisterRequest)(nil), "magma.orc8r.RegisterRequest")
+	proto.RegisterType((*RegisterResponse)(nil), "magma.orc8r.RegisterResponse")
+	proto.RegisterType((*GatewayRegistrationInfo)(nil), "magma.orc8r.GatewayRegistrationInfo")
+	proto.RegisterType((*GatewayInfo)(nil), "magma.orc8r.GatewayInfo")
+	proto.RegisterType((*TokenInfo)(nil), "magma.orc8r.TokenInfo")
 }
 
 func init() { proto.RegisterFile("orc8r/protos/bootstrapper.proto", fileDescriptor_b592b3c4e9ae6813) }
 
 var fileDescriptor_b592b3c4e9ae6813 = []byte{
-	// 507 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x53, 0x5d, 0x6f, 0xda, 0x30,
-	0x14, 0x4d, 0x0a, 0xb4, 0xf4, 0x92, 0x56, 0xc8, 0x53, 0x37, 0x08, 0x48, 0xeb, 0xd2, 0x97, 0x3e,
-	0x05, 0x8d, 0x69, 0xd3, 0x1e, 0xa6, 0x69, 0xe1, 0xa3, 0x50, 0xf5, 0xa1, 0x92, 0x53, 0x69, 0xd2,
-	0x5e, 0x50, 0x30, 0x77, 0x21, 0x82, 0x26, 0x99, 0xed, 0x0a, 0xe5, 0x9f, 0xec, 0x1f, 0xec, 0x7f,
-	0xec, 0x97, 0x4d, 0x31, 0x21, 0x21, 0x12, 0xeb, 0x4b, 0x9f, 0x62, 0xfb, 0x9c, 0x7b, 0xce, 0xcd,
-	0xb1, 0x2f, 0xbc, 0x8d, 0x38, 0xfb, 0xcc, 0x7b, 0x31, 0x8f, 0x64, 0x24, 0x7a, 0xf3, 0x28, 0x92,
-	0x42, 0x72, 0x2f, 0x8e, 0x91, 0xdb, 0xea, 0x8c, 0x34, 0x1e, 0x3d, 0xff, 0xd1, 0xb3, 0x15, 0xcd,
-	0xec, 0x96, 0xd8, 0x0c, 0xb9, 0x0c, 0x7e, 0x06, 0x3b, 0xaa, 0xd9, 0x29, 0xa1, 0xc1, 0x02, 0x43,
-	0x19, 0xc8, 0x64, 0x0b, 0x5a, 0x3e, 0x9c, 0x0e, 0x97, 0xde, 0x7a, 0x8d, 0xa1, 0x8f, 0xe4, 0x0b,
-	0xd4, 0x57, 0x98, 0xcc, 0x64, 0x12, 0x63, 0x4b, 0xbf, 0xd4, 0xaf, 0xcf, 0xfb, 0xef, 0xec, 0x3d,
-	0x1f, 0x3b, 0x67, 0xde, 0x61, 0x62, 0xdf, 0x61, 0xf2, 0x90, 0xc4, 0x48, 0x4f, 0x56, 0xdb, 0x05,
-	0xe9, 0xc2, 0x29, 0xdb, 0x11, 0x5a, 0x47, 0x97, 0xfa, 0xb5, 0x41, 0x8b, 0x03, 0xeb, 0x8f, 0x0e,
-	0xc6, 0x7e, 0xfd, 0x0b, 0xcd, 0x9a, 0x50, 0x59, 0x61, 0x92, 0xd9, 0xa4, 0x4b, 0x6b, 0x02, 0x27,
-	0x19, 0x8b, 0xd4, 0xa1, 0x3a, 0x1e, 0x4e, 0xef, 0x9b, 0x1a, 0x79, 0x03, 0xaf, 0xdc, 0xfb, 0x9b,
-	0x87, 0xef, 0x0e, 0x1d, 0xcf, 0xa8, 0xeb, 0xcc, 0xdc, 0xa9, 0xd3, 0xff, 0xf8, 0xa9, 0xa9, 0x93,
-	0x36, 0x5c, 0xe4, 0xc0, 0x78, 0x38, 0x2a, 0xa0, 0x23, 0xeb, 0x6f, 0x05, 0xea, 0x14, 0x45, 0x1c,
-	0x85, 0x02, 0xc9, 0x7b, 0xa8, 0x2d, 0x37, 0xb3, 0x60, 0xa1, 0x5a, 0x6c, 0xf4, 0xbb, 0xa5, 0x16,
-	0x1d, 0xc6, 0x50, 0x88, 0x89, 0x27, 0x71, 0xe3, 0x25, 0xb7, 0x23, 0x5a, 0x5d, 0x6e, 0x6e, 0x17,
-	0xcf, 0xe7, 0x40, 0x1c, 0x38, 0x43, 0xb6, 0x8c, 0x66, 0x3c, 0x73, 0x68, 0x55, 0x94, 0xb0, 0x59,
-	0x12, 0xde, 0xd9, 0xdb, 0x63, 0xb6, 0x8c, 0xa6, 0x1a, 0x35, 0xd2, 0x92, 0xbc, 0xa7, 0xaf, 0x60,
-	0x70, 0xe1, 0x15, 0x0a, 0x55, 0xa5, 0xd0, 0x3e, 0xac, 0x40, 0x5d, 0x67, 0xaa, 0xd1, 0x06, 0x17,
-	0x5e, 0x5e, 0x3f, 0x82, 0x73, 0x64, 0x8b, 0x7d, 0x85, 0x9a, 0x52, 0xe8, 0xfc, 0xa7, 0x87, 0x34,
-	0x9e, 0xa9, 0x46, 0xcf, 0x54, 0x51, 0xae, 0x62, 0x41, 0x85, 0x09, 0xde, 0x3a, 0x56, 0xa5, 0xcd,
-	0xf2, 0xd5, 0xb9, 0x94, 0xa6, 0xa0, 0x69, 0x41, 0x35, 0xfd, 0x03, 0x62, 0x42, 0x3d, 0xf7, 0xd2,
-	0x55, 0x22, 0xf9, 0xde, 0xbc, 0x82, 0x0a, 0x75, 0x9d, 0x34, 0x35, 0x11, 0xf8, 0xa1, 0x27, 0x9f,
-	0xf8, 0x8e, 0x53, 0x1c, 0x98, 0x57, 0x50, 0x53, 0x6d, 0x10, 0x03, 0x74, 0x9e, 0xc1, 0x3a, 0x4f,
-	0x77, 0x22, 0x8b, 0x58, 0x17, 0x03, 0x28, 0x5c, 0xfa, 0xbf, 0x75, 0x30, 0x06, 0x7b, 0x63, 0x43,
-	0x6e, 0xc0, 0x98, 0xa0, 0x2c, 0xde, 0xfa, 0xb3, 0x37, 0x69, 0xbe, 0x3e, 0xfc, 0x14, 0x2d, 0x8d,
-	0x7c, 0x83, 0x06, 0xc5, 0x5f, 0x4f, 0x28, 0xa4, 0x1b, 0xf8, 0x21, 0xb9, 0x38, 0x98, 0x99, 0xd9,
-	0x2a, 0xd7, 0x6f, 0x27, 0x92, 0x79, 0x12, 0x2d, 0x6d, 0xd0, 0xf9, 0xd1, 0x56, 0x60, 0x6f, 0x3b,
-	0x97, 0xeb, 0x60, 0xde, 0xf3, 0xa3, 0x6c, 0x3c, 0xe7, 0xc7, 0xea, 0xfb, 0xe1, 0x5f, 0x00, 0x00,
-	0x00, 0xff, 0xff, 0x66, 0x62, 0xe2, 0x84, 0x01, 0x04, 0x00, 0x00,
+	// 931 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0xdd, 0x8e, 0xdb, 0x44,
+	0x14, 0xb6, 0x9b, 0x64, 0x13, 0x9f, 0x78, 0xdb, 0x30, 0xb4, 0xbb, 0x59, 0xef, 0x56, 0xdb, 0x4e,
+	0x41, 0xea, 0x95, 0x03, 0xe1, 0x47, 0x20, 0x50, 0x45, 0x36, 0xbb, 0x4d, 0xa2, 0x4a, 0x14, 0x4d,
+	0x56, 0x42, 0x20, 0x81, 0xf1, 0xda, 0xb3, 0x8e, 0x95, 0xc4, 0x13, 0xc6, 0x13, 0x85, 0x5c, 0x71,
+	0xc7, 0x0d, 0x2f, 0x00, 0x4f, 0x80, 0xc4, 0x63, 0xf0, 0x22, 0xbc, 0x0a, 0xf2, 0x78, 0x9c, 0x38,
+	0x56, 0x12, 0x56, 0xed, 0x55, 0x72, 0xce, 0xf9, 0xce, 0xcf, 0x77, 0x66, 0xce, 0x19, 0xc3, 0x39,
+	0xe3, 0xde, 0x67, 0xbc, 0x35, 0xe3, 0x4c, 0xb0, 0xb8, 0x75, 0xc3, 0x98, 0x88, 0x05, 0x77, 0x67,
+	0x33, 0xca, 0x6d, 0xa9, 0x43, 0xf5, 0xa9, 0x1b, 0x4c, 0x5d, 0x5b, 0xc2, 0xac, 0xb3, 0x0d, 0xb4,
+	0x47, 0xb9, 0x08, 0x6f, 0xc3, 0x0c, 0x6a, 0x9d, 0x6e, 0x58, 0x43, 0x9f, 0x46, 0x22, 0x14, 0x4b,
+	0x65, 0x3c, 0x0f, 0x18, 0x0b, 0x26, 0x34, 0xb5, 0xde, 0xcc, 0x6f, 0x5b, 0x22, 0x9c, 0xd2, 0x58,
+	0xb8, 0xd3, 0x59, 0x0a, 0xc0, 0x01, 0x18, 0xdd, 0x91, 0x3b, 0x99, 0xd0, 0x28, 0xa0, 0xe8, 0x4b,
+	0xa8, 0x8d, 0xe9, 0xd2, 0x11, 0xcb, 0x19, 0x6d, 0xea, 0x4f, 0xf4, 0xe7, 0xf7, 0xdb, 0x4f, 0xed,
+	0x5c, 0x21, 0xf6, 0x0a, 0xf9, 0x8a, 0x2e, 0xed, 0x57, 0x74, 0x79, 0xbd, 0x9c, 0x51, 0x52, 0x1d,
+	0xa7, 0x7f, 0xd0, 0x19, 0x18, 0x5e, 0x06, 0x68, 0xde, 0x7b, 0xa2, 0x3f, 0x37, 0xc9, 0x5a, 0x81,
+	0xff, 0xd2, 0xc1, 0xcc, 0xfb, 0xbf, 0x65, 0xb2, 0x06, 0x94, 0xc6, 0x74, 0xa9, 0xd2, 0x24, 0x7f,
+	0x71, 0x0f, 0xaa, 0x0a, 0x85, 0x6a, 0x50, 0xbe, 0xea, 0xf6, 0x5f, 0x37, 0x34, 0x74, 0x0c, 0xef,
+	0x0e, 0x5f, 0xbf, 0xbc, 0xfe, 0xb6, 0x43, 0xae, 0x1c, 0x32, 0xec, 0x38, 0xc3, 0x7e, 0xa7, 0xfd,
+	0xc9, 0xa7, 0x0d, 0x1d, 0x9d, 0xc0, 0xa3, 0x95, 0xe1, 0xaa, 0x7b, 0xb9, 0x36, 0xdd, 0xc3, 0xff,
+	0x94, 0xa0, 0x46, 0x68, 0x3c, 0x63, 0x51, 0x4c, 0xd1, 0x87, 0x50, 0x19, 0x2d, 0x9c, 0xd0, 0x97,
+	0x25, 0xd6, 0xdb, 0x67, 0x1b, 0x25, 0x76, 0x3c, 0x8f, 0xc6, 0x71, 0xcf, 0x15, 0x74, 0xe1, 0x2e,
+	0x07, 0x97, 0xa4, 0x3c, 0x5a, 0x0c, 0xfc, 0xfd, 0x7d, 0x40, 0x1d, 0x38, 0xa4, 0xde, 0x88, 0x39,
+	0x5c, 0x65, 0x68, 0x96, 0x64, 0x60, 0x6b, 0x23, 0x70, 0x96, 0xde, 0xbe, 0xf2, 0x46, 0xac, 0xaf,
+	0x11, 0x33, 0x71, 0x59, 0xd5, 0xf4, 0x02, 0x4c, 0x1e, 0xbb, 0xeb, 0x08, 0x65, 0x19, 0xe1, 0x64,
+	0x7b, 0x04, 0x32, 0xec, 0xf4, 0x35, 0x52, 0xe7, 0xb1, 0xbb, 0xf2, 0xbf, 0x84, 0xfb, 0xd4, 0xf3,
+	0xf3, 0x11, 0x2a, 0x32, 0xc2, 0xe9, 0x8e, 0x1a, 0x92, 0xf6, 0xf4, 0x35, 0x72, 0x28, 0x9d, 0x56,
+	0x51, 0x30, 0x94, 0xbc, 0x98, 0x37, 0x0f, 0xa4, 0x6b, 0x63, 0xf3, 0xe8, 0x86, 0x84, 0x24, 0x46,
+	0x0b, 0x43, 0x39, 0x61, 0x80, 0x2c, 0xa8, 0xad, 0x72, 0xe9, 0xb2, 0x23, 0x2b, 0xd9, 0x7a, 0x06,
+	0x25, 0x32, 0xec, 0x24, 0x5d, 0x8b, 0xc3, 0x20, 0x72, 0xc5, 0x9c, 0x67, 0x98, 0xb5, 0xc2, 0x7a,
+	0x06, 0x15, 0x59, 0x06, 0x32, 0x41, 0xe7, 0xca, 0xac, 0xf3, 0x44, 0x8a, 0x55, 0x8b, 0xf5, 0xf8,
+	0x02, 0xd6, 0x59, 0xb0, 0x03, 0x0f, 0x7a, 0x54, 0x5c, 0xb3, 0x31, 0x8d, 0x08, 0xfd, 0x79, 0x4e,
+	0x63, 0x81, 0xda, 0x50, 0x0d, 0xd2, 0xa3, 0x52, 0x87, 0xd9, 0xdc, 0x28, 0x3a, 0x3b, 0xc6, 0xe8,
+	0x96, 0x91, 0x0c, 0x88, 0x9a, 0x50, 0xe5, 0xf4, 0x96, 0xd3, 0x78, 0x24, 0xd3, 0xd4, 0x48, 0x26,
+	0xe2, 0x1f, 0xa1, 0xb1, 0x4e, 0xa0, 0x5a, 0xf2, 0x10, 0x2a, 0x22, 0x51, 0xc8, 0xf8, 0x06, 0x49,
+	0x05, 0xf4, 0x31, 0x54, 0x93, 0xa9, 0x63, 0x73, 0x21, 0x63, 0x24, 0x67, 0x9d, 0x4e, 0xa5, 0x9d,
+	0x4d, 0xa5, 0x7d, 0x9d, 0x4d, 0x25, 0xc9, 0xa0, 0xf8, 0x73, 0x78, 0xda, 0xa3, 0x42, 0x15, 0x45,
+	0x68, 0x10, 0x26, 0x1b, 0x42, 0x84, 0x2c, 0x92, 0x05, 0x2a, 0x4a, 0x5b, 0x13, 0xe2, 0xbf, 0x75,
+	0xc0, 0xfb, 0x7c, 0x55, 0xb5, 0x3f, 0xc1, 0x71, 0xb0, 0x1d, 0xa2, 0xfa, 0xf3, 0xde, 0xb6, 0xfe,
+	0x14, 0xb1, 0x7d, 0x8d, 0xec, 0x0a, 0x83, 0x8e, 0xa0, 0x42, 0x39, 0x67, 0x5c, 0xf2, 0x36, 0xfa,
+	0x1a, 0x49, 0xc5, 0x8d, 0x83, 0xfa, 0x53, 0x87, 0x07, 0xa9, 0x23, 0xe5, 0x7b, 0x69, 0xa1, 0x0f,
+	0xa0, 0x3c, 0x5a, 0x84, 0xbe, 0x6a, 0xe2, 0xff, 0x4e, 0x62, 0xe8, 0xa3, 0x17, 0x70, 0xb8, 0x1a,
+	0x3c, 0x27, 0x59, 0x17, 0xa5, 0x2d, 0x93, 0x92, 0xdf, 0x33, 0xc4, 0xf4, 0x72, 0x12, 0xfe, 0x01,
+	0x1a, 0xeb, 0xd2, 0x54, 0xd7, 0xde, 0x87, 0x43, 0x8f, 0x45, 0x82, 0xb3, 0x89, 0x33, 0xe3, 0xec,
+	0x97, 0xf4, 0x2e, 0x25, 0xdc, 0x4c, 0xa5, 0xfe, 0x26, 0xd1, 0xde, 0x89, 0xfa, 0x6f, 0x3a, 0x1c,
+	0xef, 0xe8, 0xea, 0x1b, 0x5d, 0xd6, 0x23, 0x38, 0xe0, 0x8c, 0x89, 0x6e, 0x27, 0x4d, 0x4a, 0x94,
+	0x84, 0xce, 0xa1, 0xee, 0xb3, 0xa9, 0x1b, 0x46, 0x4e, 0xe4, 0x4e, 0xd3, 0x85, 0x63, 0x10, 0x48,
+	0x55, 0x5f, 0xbb, 0x53, 0x8a, 0x43, 0xa8, 0xe7, 0x02, 0xa2, 0xc7, 0x00, 0x11, 0x15, 0x0b, 0xc6,
+	0xc7, 0xd9, 0xe2, 0x33, 0x88, 0xa1, 0x34, 0x03, 0x1f, 0x7d, 0x01, 0x30, 0x61, 0x41, 0xe8, 0xb9,
+	0x13, 0xe7, 0x8e, 0xa7, 0x61, 0x28, 0xfc, 0xc0, 0xc7, 0xbf, 0xeb, 0x60, 0xc8, 0xa1, 0x79, 0x63,
+	0x96, 0x0f, 0xa1, 0x12, 0xb1, 0xc8, 0xa3, 0x8a, 0x64, 0x2a, 0xe4, 0x87, 0xac, 0x74, 0xe7, 0x21,
+	0x6b, 0xff, 0xa1, 0x83, 0x79, 0x91, 0x7b, 0x7d, 0xd1, 0x4b, 0x30, 0x7b, 0x54, 0xac, 0x5f, 0xc4,
+	0xbd, 0xbc, 0xac, 0xa3, 0xed, 0x17, 0x09, 0x6b, 0xe8, 0x2b, 0xa8, 0xab, 0xcb, 0x3c, 0x0c, 0x83,
+	0x08, 0x3d, 0xda, 0xba, 0x59, 0xad, 0x4d, 0xb6, 0xdd, 0xf4, 0x61, 0xf7, 0x5c, 0x41, 0xb1, 0xd6,
+	0xfe, 0x57, 0x87, 0x77, 0xba, 0x13, 0x36, 0xf7, 0xf3, 0x57, 0x03, 0x0d, 0xa0, 0x96, 0x6d, 0x9d,
+	0x42, 0x6d, 0x85, 0x6d, 0x67, 0x3d, 0xde, 0x61, 0x55, 0x77, 0x4f, 0x43, 0xbf, 0x82, 0xb5, 0x7b,
+	0x49, 0x20, 0xbb, 0xe8, 0xbe, 0x7f, 0x13, 0x59, 0xad, 0x3b, 0xe3, 0xb3, 0x02, 0xda, 0xdf, 0x81,
+	0x59, 0xe4, 0x96, 0x4d, 0x5b, 0x81, 0x5b, 0x61, 0x3f, 0x14, 0xb8, 0x15, 0x47, 0x14, 0x6b, 0x17,
+	0xa7, 0xdf, 0x9f, 0x48, 0x44, 0x2b, 0xfd, 0x36, 0x9a, 0x84, 0x37, 0xad, 0x80, 0xa9, 0x4f, 0xa4,
+	0x9b, 0x03, 0xf9, 0xfb, 0xd1, 0x7f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x35, 0xa5, 0x4c, 0xf3, 0x85,
+	0x09, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -558,6 +1107,186 @@ var _Bootstrapper_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RequestSign",
 			Handler:    _Bootstrapper_RequestSign_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "orc8r/protos/bootstrapper.proto",
+}
+
+// CloudRegistrationClient is the client API for CloudRegistration service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type CloudRegistrationClient interface {
+	GetToken(ctx context.Context, in *GetTokenRequest, opts ...grpc.CallOption) (*GetTokenResponse, error)
+	GetGatewayRegistrationInfo(ctx context.Context, in *GetGatewayRegistrationInfoRequest, opts ...grpc.CallOption) (*GetGatewayRegistrationInfoResponse, error)
+}
+
+type cloudRegistrationClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewCloudRegistrationClient(cc grpc.ClientConnInterface) CloudRegistrationClient {
+	return &cloudRegistrationClient{cc}
+}
+
+func (c *cloudRegistrationClient) GetToken(ctx context.Context, in *GetTokenRequest, opts ...grpc.CallOption) (*GetTokenResponse, error) {
+	out := new(GetTokenResponse)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.CloudRegistration/GetToken", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudRegistrationClient) GetGatewayRegistrationInfo(ctx context.Context, in *GetGatewayRegistrationInfoRequest, opts ...grpc.CallOption) (*GetGatewayRegistrationInfoResponse, error) {
+	out := new(GetGatewayRegistrationInfoResponse)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.CloudRegistration/GetGatewayRegistrationInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CloudRegistrationServer is the server API for CloudRegistration service.
+type CloudRegistrationServer interface {
+	GetToken(context.Context, *GetTokenRequest) (*GetTokenResponse, error)
+	GetGatewayRegistrationInfo(context.Context, *GetGatewayRegistrationInfoRequest) (*GetGatewayRegistrationInfoResponse, error)
+}
+
+// UnimplementedCloudRegistrationServer can be embedded to have forward compatible implementations.
+type UnimplementedCloudRegistrationServer struct {
+}
+
+func (*UnimplementedCloudRegistrationServer) GetToken(ctx context.Context, req *GetTokenRequest) (*GetTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetToken not implemented")
+}
+func (*UnimplementedCloudRegistrationServer) GetGatewayRegistrationInfo(ctx context.Context, req *GetGatewayRegistrationInfoRequest) (*GetGatewayRegistrationInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGatewayRegistrationInfo not implemented")
+}
+
+func RegisterCloudRegistrationServer(s *grpc.Server, srv CloudRegistrationServer) {
+	s.RegisterService(&_CloudRegistration_serviceDesc, srv)
+}
+
+func _CloudRegistration_GetToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudRegistrationServer).GetToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.orc8r.CloudRegistration/GetToken",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudRegistrationServer).GetToken(ctx, req.(*GetTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudRegistration_GetGatewayRegistrationInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGatewayRegistrationInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudRegistrationServer).GetGatewayRegistrationInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.orc8r.CloudRegistration/GetGatewayRegistrationInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudRegistrationServer).GetGatewayRegistrationInfo(ctx, req.(*GetGatewayRegistrationInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _CloudRegistration_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "magma.orc8r.CloudRegistration",
+	HandlerType: (*CloudRegistrationServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetToken",
+			Handler:    _CloudRegistration_GetToken_Handler,
+		},
+		{
+			MethodName: "GetGatewayRegistrationInfo",
+			Handler:    _CloudRegistration_GetGatewayRegistrationInfo_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "orc8r/protos/bootstrapper.proto",
+}
+
+// RegistrationClient is the client API for Registration service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type RegistrationClient interface {
+	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+}
+
+type registrationClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewRegistrationClient(cc grpc.ClientConnInterface) RegistrationClient {
+	return &registrationClient{cc}
+}
+
+func (c *registrationClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
+	out := new(RegisterResponse)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.Registration/Register", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// RegistrationServer is the server API for Registration service.
+type RegistrationServer interface {
+	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
+}
+
+// UnimplementedRegistrationServer can be embedded to have forward compatible implementations.
+type UnimplementedRegistrationServer struct {
+}
+
+func (*UnimplementedRegistrationServer) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
+}
+
+func RegisterRegistrationServer(s *grpc.Server, srv RegistrationServer) {
+	s.RegisterService(&_Registration_serviceDesc, srv)
+}
+
+func _Registration_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RegistrationServer).Register(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.orc8r.Registration/Register",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RegistrationServer).Register(ctx, req.(*RegisterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _Registration_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "magma.orc8r.Registration",
+	HandlerType: (*RegistrationServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Register",
+			Handler:    _Registration_Register_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
