@@ -12,7 +12,6 @@ limitations under the License.
 """
 import threading
 import time
-from datetime import datetime
 
 from FirebaseClient import FirebaseClient
 from Tester import Tester
@@ -26,7 +25,6 @@ class WorkerState:
 num_of_testers = 1
 # Initialize firebase client as global
 db_client = FirebaseClient()
-RefreshTokenTime = 1800
 
 
 def test_done_callback(tester_id, workload, verdict, report):
@@ -35,18 +33,10 @@ def test_done_callback(tester_id, workload, verdict, report):
     return
 
 
-def do_token_refresh():
-    """Run in its own thread and refresh token every 30 min."""
-
-    print("Refreshing Firebase Token:", datetime.now())
-    db_client.user = db_client.auth.refresh(db_client.user["refreshToken"])
-    threading.Timer(RefreshTokenTime, do_token_refresh).start()
-
-
 def main():
     state = WorkerState.READY
     testers = []
-    do_token_refresh()
+    threading.Timer(db_client.RefreshTokenTime, db_client.do_token_refresh).start()
     for i in range(num_of_testers):
         testers.append(Tester(i))
     while True:

@@ -66,11 +66,11 @@ class Tester:
             call_ended()
             return
 
-        if self.current_build.val()["agw"]["valid"]:
+        if self.current_build.val().get("agw", {}).get("valid", False):
             magma_build = next(
                 (
                     pkg
-                    for pkg in self.current_build.val()["agw"]["packages"]
+                    for pkg in self.current_build.val().get("agw", {}).get("packages", [])
                     if "magma_" in pkg
                 ),
                 None,
