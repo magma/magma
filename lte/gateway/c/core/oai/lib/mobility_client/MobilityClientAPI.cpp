@@ -155,8 +155,10 @@ static void handle_allocate_ipv4_address_status(
 
 void release_ipv4_address(
     const char* subscriber_id, const char* apn, const struct in_addr* addr) {
-  MobilityServiceClient::getInstance().ReleaseIPv4Address(
-      subscriber_id, apn, *addr);
+  #if !MME_UNIT_TEST
+    MobilityServiceClient::getInstance().ReleaseIPv4Address(
+      subscriber_id, apn, *addr);  // skip this call for unit testing
+  #endif
 }
 
 int get_ipv4_address_for_subscriber(
