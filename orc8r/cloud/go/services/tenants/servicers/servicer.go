@@ -63,7 +63,7 @@ func (s *tenantsServicer) CreateTenant(c context.Context, request *protos.IDAndT
 
 func (s *tenantsServicer) GetTenant(c context.Context, request *protos.GetTenantRequest) (*protos.Tenant, error) {
 	tenant, err := s.store.GetTenant(request.Id)
-	err = errorHandlingForGet(err, "getting", "tenant", request.Id)
+	err = errorHandlingForGet(err, "tenant", request.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (s *tenantsServicer) GetTenant(c context.Context, request *protos.GetTenant
 
 func (s *tenantsServicer) SetTenant(c context.Context, request *protos.IDAndTenant) (*protos.Void, error) {
 	_, err := s.store.GetTenant(request.Id)
-	err = errorHandlingForGet(err, "getting", "tenant", request.Id)
+	err = errorHandlingForGet(err, "tenant", request.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (s *tenantsServicer) SetTenant(c context.Context, request *protos.IDAndTena
 
 func (s *tenantsServicer) DeleteTenant(c context.Context, request *protos.GetTenantRequest) (*protos.Void, error) {
 	err := s.store.DeleteTenant(request.Id)
-	err = errorHandlingForGet(err, "deleting", "tenant", request.Id)
+	err = errorHandlingForGet(err, "tenant", request.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -95,13 +95,13 @@ func (s *tenantsServicer) DeleteTenant(c context.Context, request *protos.GetTen
 
 func (s *tenantsServicer) GetControlProxy(c context.Context, request *protos.GetTenantRequest) (*protos.GetControlProxyResponse, error) {
 	_, err := s.store.GetTenant(request.Id)
-	err = errorHandlingForGet(err, "getting", "tenant", request.Id)
+	err = errorHandlingForGet(err, "tenant", request.Id)
 	if err != nil {
 		return nil, err
 	}
 
 	controlProxy, err := s.store.GetControlProxy(request.Id)
-	err = errorHandlingForGet(err, "getting", "controlProxy", request.Id)
+	err = errorHandlingForGet(err, "controlProxy", request.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (s *tenantsServicer) GetControlProxy(c context.Context, request *protos.Get
 
 func (s *tenantsServicer) CreateOrUpdateControlProxy(c context.Context, request *protos.CreateOrUpdateControlProxyRequest) (*protos.Void, error) {
 	_, err := s.store.GetTenant(request.Id)
-	err = errorHandlingForGet(err, "getting","tenant", request.Id)
+	err = errorHandlingForGet(err, "tenant", request.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -122,14 +122,12 @@ func (s *tenantsServicer) CreateOrUpdateControlProxy(c context.Context, request 
 	return &protos.Void{}, nil
 }
 
-// errorHandlingForGet handles errors for get requests
-// Example input parameters are: { requestAction: "setting", getType: "tenant", id: 0 }
-func errorHandlingForGet(err error, requestAction string, getType string, id int64) error {
+func errorHandlingForGet(err error, getType string, id int64) error {
 	switch {
 	case err == errors.ErrNotFound:
 		return status.Errorf(codes.NotFound, "%s %d not found", getType, id)
 	case err != nil:
-		return status.Errorf(codes.Internal, "Error %s %s %d: %v", requestAction, getType, id, err)
+		return status.Errorf(codes.Internal, "Error %s getting %d: %v", getType, id, err)
 	}
 	return nil
 }

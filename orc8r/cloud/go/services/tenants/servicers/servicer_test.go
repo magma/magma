@@ -54,7 +54,7 @@ func TestTenantsServicer(t *testing.T) {
 	// Empty db, no tenant found
 	_, err = srv.GetTenant(context.Background(), &protos.GetTenantRequest{Id: 1})
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
-	assert.Equal(t, "Tenant 1 not found", status.Convert(err).Message())
+	assert.Equal(t, "tenant 1 not found", status.Convert(err).Message())
 
 	// Create "test" tenant
 	createResp, err := srv.CreateTenant(context.Background(), &protos.IDAndTenant{
@@ -72,7 +72,7 @@ func TestTenantsServicer(t *testing.T) {
 	// Get "other" tenant
 	_, err = srv.GetTenant(context.Background(), &protos.GetTenantRequest{Id: 2})
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
-	assert.Equal(t, "Tenant 2 not found", status.Convert(err).Message())
+	assert.Equal(t, "tenant 2 not found", status.Convert(err).Message())
 
 	// Update "test" tenant
 	setResp, err := srv.SetTenant(context.Background(), &protos.IDAndTenant{
@@ -92,7 +92,7 @@ func TestTenantsServicer(t *testing.T) {
 		Tenant: &sampleTenant2,
 	})
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
-	assert.Equal(t, "Tenant 3 not found", status.Convert(err).Message())
+	assert.Equal(t, "tenant 3 not found", status.Convert(err).Message())
 
 	// Create second tenant
 	_, err = srv.CreateTenant(context.Background(), &protos.IDAndTenant{
@@ -113,7 +113,7 @@ func TestTenantsServicer(t *testing.T) {
 
 	_, err = srv.GetTenant(context.Background(), &protos.GetTenantRequest{Id: 2})
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
-	assert.Equal(t, "Tenant 2 not found", status.Convert(err).Message())
+	assert.Equal(t, "tenant 2 not found", status.Convert(err).Message())
 }
 
 func TestControlProxyTenantsServicer(t *testing.T) {
@@ -123,12 +123,12 @@ func TestControlProxyTenantsServicer(t *testing.T) {
 	// Get control_proxy not set
 	_, err = srv.GetControlProxy(context.Background(), &protos.GetTenantRequest{Id: 0})
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
-	assert.Equal(t, "Tenant 0 not found", status.Convert(err).Message())
+	assert.Equal(t, "tenant 0 not found", status.Convert(err).Message())
 
 	// Create control_proxy when tenant not created yet
 	_, err = srv.CreateOrUpdateControlProxy(context.Background(), &sampleCreateControlProxyReq)
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
-	assert.Equal(t, "Tenant 0 not found", status.Convert(err).Message())
+	assert.Equal(t, "tenant 0 not found", status.Convert(err).Message())
 
 	// Create "test" tenant
 	createResp, err := srv.CreateTenant(context.Background(), &protos.IDAndTenant{
@@ -162,7 +162,7 @@ func TestControlProxyTenantsServicer(t *testing.T) {
 	// Get control_proxy not set
 	_, err = srv.GetControlProxy(context.Background(), &protos.GetTenantRequest{Id: 2})
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
-	assert.Equal(t, "Tenant 2 not found", status.Convert(err).Message())
+	assert.Equal(t, "tenant 2 not found", status.Convert(err).Message())
 }
 
 func newTestService(t *testing.T) (protos.TenantsServiceServer, error) {
