@@ -13,7 +13,7 @@ apiVersion: v2
 appVersion: "1.0"
 description: Helm chart for the Magma Orchestrator
 name: orc8r
-version: 1.5.23
+version: 1.5.24
 home: https://www.magmacore.org
 sources:
   - https://github.com/magma/magma
