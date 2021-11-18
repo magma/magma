@@ -114,11 +114,9 @@ func GetTenantHandler(c echo.Context) error {
 		return terr
 	}
 	tenantInfo, err := tenants.GetTenant(c.Request().Context(), tenantID)
-	switch {
-	case err == errors.ErrNotFound:
-		return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("Tenant %d does not exist", tenantID))
-	case err != nil:
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	err = errorHandlingForGet(err, fmt.Errorf("Tenant %d does not exist", tenantID), err)
+	if err != nil {
+		return err
 	}
 	return c.JSON(http.StatusOK, models.Tenant{ID: &tenantID, Name: tenantInfo.Name, Networks: tenantInfo.Networks})
 }
@@ -136,11 +134,9 @@ func SetTenantHandler(c echo.Context) error {
 	}
 
 	err = tenants.SetTenant(c.Request().Context(), tenantID, tenantInfo)
-	switch {
-	case err == errors.ErrNotFound:
-		return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("Tenant %d does not exist", tenantID))
-	case err != nil:
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Error setting tenant info: %v", err))
+	err = errorHandlingForGet(err, fmt.Errorf("Tenant %d does not exist", tenantID), fmt.Errorf("Error setting tenant info: %v", err))
+	if err != nil {
+		return err
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -151,11 +147,9 @@ func DeleteTenantHandler(c echo.Context) error {
 		return terr
 	}
 	err := tenants.DeleteTenant(c.Request().Context(), tenantID)
-	switch {
-	case err == errors.ErrNotFound:
-		return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("Tenant %d does not exist", tenantID))
-	case err != nil:
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	err = errorHandlingForGet(err, fmt.Errorf("Tenant %d does not exist", tenantID), err)
+	if err != nil {
+		return err
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -167,19 +161,15 @@ func GetControlProxyHandler(c echo.Context) error {
 	}
 
 	_, err := tenants.GetTenant(c.Request().Context(), tenantID)
-	switch {
-	case err == errors.ErrNotFound:
-		return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("Tenant %d does not exist", tenantID))
-	case err != nil:
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	err = errorHandlingForGet(err, fmt.Errorf("Tenant %d does not exist", tenantID), err)
+	if err != nil {
+		return err
 	}
 
 	controlProxy, err := tenants.GetControlProxy(c.Request().Context(), tenantID)
-	switch {
-	case err == errors.ErrNotFound:
-		return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("Control Proxy for tenantID %d does not exist", tenantID))
-	case err != nil:
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	err = errorHandlingForGet(err, fmt.Errorf("Control Proxy for tenantID %d does not exist", tenantID), err)
+	if err != nil {
+		return err
 	}
 	return c.JSON(http.StatusOK, models.ControlProxy{ID: &tenantID, ControlProxy: &controlProxy.ControlProxy})
 }
@@ -191,23 +181,30 @@ func CreateOrUpdateControlProxyHandler(c echo.Context) error {
 	}
 
 	_, err := tenants.GetTenant(c.Request().Context(), tenantID)
-	switch {
-	case err == errors.ErrNotFound:
-		return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("Tenant %d does not exist", tenantID))
-	case err != nil:
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	err = errorHandlingForGet(err, fmt.Errorf("Tenant %d does not exist", tenantID), err)
+	if err != nil {
+		return err
 	}
 
-	var controlProxy = protos.IDAndControlProxy{}
+	var controlProxy = protos.CreateOrUpdateControlProxyRequest{}
 	err = json.NewDecoder(c.Request().Body).Decode(&controlProxy)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("error decoding request: %v", err))
 	}
 
-	err = tenants.CreateOrUpdateControlProxy(c.Request().Context(), tenantID, controlProxy)
-
+	err = tenants.CreateOrUpdateControlProxy(c.Request().Context(), controlProxy)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Error setting control_proxy info: %v", err))
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func errorHandlingForGet(err error, notFoundErr error, nonNilErr error) error {
+	switch {
+	case err == errors.ErrNotFound:
+		return echo.NewHTTPError(http.StatusNotFound, notFoundErr)
+	case err != nil:
+		return echo.NewHTTPError(http.StatusInternalServerError, nonNilErr)
+	}
+	return nil
 }

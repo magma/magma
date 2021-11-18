@@ -20,11 +20,6 @@ type ControlProxy struct {
 	// Control proxy of the tenant
 	// Required: true
 	ControlProxy *string `json:"control_proxy"`
-
-	// Unique integer identifier
-	// Required: true
-	// Minimum: 0
-	ID *int64 `json:"id"`
 }
 
 // Validate validates this control proxy
@@ -32,10 +27,6 @@ func (m *ControlProxy) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateControlProxy(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateID(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -48,19 +39,6 @@ func (m *ControlProxy) Validate(formats strfmt.Registry) error {
 func (m *ControlProxy) validateControlProxy(formats strfmt.Registry) error {
 
 	if err := validate.Required("control_proxy", "body", m.ControlProxy); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *ControlProxy) validateID(formats strfmt.Registry) error {
-
-	if err := validate.Required("id", "body", m.ID); err != nil {
-		return err
-	}
-
-	if err := validate.MinimumInt("id", "body", int64(*m.ID), 0, false); err != nil {
 		return err
 	}
 

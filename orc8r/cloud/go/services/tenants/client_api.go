@@ -72,17 +72,8 @@ func GetTenant(ctx context.Context, tenantID int64) (*protos.Tenant, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	tenant, err := oc.GetTenant(ctx, &protos.GetTenantRequest{Id: tenantID})
-	if err != nil {
-		switch {
-		case status.Convert(err).Code() == codes.NotFound:
-			return tenant, merrors.ErrNotFound
-		default:
-			return tenant, err
-		}
-	}
-	return tenant, nil
+	return tenant, errorHandling(err)
 }
 
 func SetTenant(ctx context.Context, tenantID int64, tenant protos.Tenant) error {
@@ -98,15 +89,7 @@ func SetTenant(ctx context.Context, tenantID int64, tenant protos.Tenant) error 
 			Tenant: &tenant,
 		},
 	)
-	if err != nil {
-		switch {
-		case status.Convert(err).Code() == codes.NotFound:
-			return merrors.ErrNotFound
-		default:
-			return err
-		}
-	}
-	return err
+	return errorHandling(err)
 }
 
 func DeleteTenant(ctx context.Context, tenantID int64) error {
@@ -114,44 +97,29 @@ func DeleteTenant(ctx context.Context, tenantID int64) error {
 	if err != nil {
 		return err
 	}
-
 	_, err = oc.DeleteTenant(ctx, &protos.GetTenantRequest{Id: tenantID})
-	if err != nil {
-		switch {
-		case status.Convert(err).Code() == codes.NotFound:
-			return merrors.ErrNotFound
-		default:
-			return err
-		}
-	}
-	return err
+	return errorHandling(err)
 }
 
-func GetControlProxy(ctx context.Context, tenantID int64) (*protos.IDAndControlProxy, error) {
+func GetControlProxy(ctx context.Context, tenantID int64) (*protos.GetControlProxyResponse, error) {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return nil, err
 	}
-
 	controlProxy, err := oc.GetControlProxy(ctx, &protos.GetTenantRequest{Id: tenantID})
-	if err != nil {
-		switch {
-		case status.Convert(err).Code() == codes.NotFound:
-			return controlProxy, merrors.ErrNotFound
-		default:
-			return controlProxy, err
-		}
-	}
-	return controlProxy, nil
+	return controlProxy, errorHandling(err)
 }
 
-func CreateOrUpdateControlProxy(ctx context.Context, tenantID int64, controlProxy protos.IDAndControlProxy) error {
+func CreateOrUpdateControlProxy(ctx context.Context, controlProxy protos.CreateOrUpdateControlProxyRequest) error {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return err
 	}
-
 	_, err = oc.CreateOrUpdateControlProxy(ctx, &controlProxy)
+	return errorHandling(err)
+}
+
+func errorHandling(err error) error {
 	if err != nil {
 		switch {
 		case status.Convert(err).Code() == codes.NotFound:

@@ -63,11 +63,9 @@ func (s *tenantsServicer) CreateTenant(c context.Context, request *protos.IDAndT
 
 func (s *tenantsServicer) GetTenant(c context.Context, request *protos.GetTenantRequest) (*protos.Tenant, error) {
 	tenant, err := s.store.GetTenant(request.Id)
-	switch {
-	case err == errors.ErrNotFound:
-		return nil, status.Errorf(codes.NotFound, "Tenant %d not found", request.Id)
-	case err != nil:
-		return nil, status.Errorf(codes.Internal, "Error getting tenant %d: %v", request.Id, err)
+	err = errorHandlingForGet(err, "getting", "tenant", request.Id)
+	if err != nil {
+		return nil, err
 	}
 	return tenant, nil
 
@@ -75,11 +73,9 @@ func (s *tenantsServicer) GetTenant(c context.Context, request *protos.GetTenant
 
 func (s *tenantsServicer) SetTenant(c context.Context, request *protos.IDAndTenant) (*protos.Void, error) {
 	_, err := s.store.GetTenant(request.Id)
-	switch {
-	case err == errors.ErrNotFound:
-		return nil, status.Errorf(codes.NotFound, "Tenant %d not found", request.Id)
-	case err != nil:
-		return nil, status.Errorf(codes.Internal, "Error getting tenant %d: %v", request.Id, err)
+	err = errorHandlingForGet(err, "getting", "tenant", request.Id)
+	if err != nil {
+		return nil, err
 	}
 	err = s.store.SetTenant(request.Id, *request.Tenant)
 	if err != nil {
@@ -90,46 +86,50 @@ func (s *tenantsServicer) SetTenant(c context.Context, request *protos.IDAndTena
 
 func (s *tenantsServicer) DeleteTenant(c context.Context, request *protos.GetTenantRequest) (*protos.Void, error) {
 	err := s.store.DeleteTenant(request.Id)
-	switch {
-	case err == errors.ErrNotFound:
-		return nil, status.Errorf(codes.NotFound, "Tenant %d not found", request.Id)
-	case err != nil:
-		return nil, status.Errorf(codes.Internal, "Error deleting tenant %d: %v", request.Id, err)
+	err = errorHandlingForGet(err, "deleting", "tenant", request.Id)
+	if err != nil {
+		return nil, err
 	}
 	return &protos.Void{}, nil
 }
 
-func (s *tenantsServicer) GetControlProxy(c context.Context, request *protos.GetTenantRequest) (*protos.IDAndControlProxy, error) {
+func (s *tenantsServicer) GetControlProxy(c context.Context, request *protos.GetTenantRequest) (*protos.GetControlProxyResponse, error) {
 	_, err := s.store.GetTenant(request.Id)
-	switch {
-	case err == errors.ErrNotFound:
-		return nil, status.Errorf(codes.NotFound, "Tenant %d not found", request.Id)
-	case err != nil:
-		return nil, status.Errorf(codes.Internal, "Error getting tenant %d: %v", request.Id, err)
+	err = errorHandlingForGet(err, "getting", "tenant", request.Id)
+	if err != nil {
+		return nil, err
 	}
 
 	controlProxy, err := s.store.GetControlProxy(request.Id)
-	switch {
-	case err == errors.ErrNotFound:
-		return nil, status.Errorf(codes.NotFound, "controlProxy %d not found", request.Id)
-	case err != nil:
-		return nil, status.Errorf(codes.Internal, "Error getting controlProxy %d: %v", request.Id, err)
+	err = errorHandlingForGet(err, "getting", "controlProxy", request.Id)
+	if err != nil {
+		return nil, err
 	}
-	return controlProxy, nil
+	return &protos.GetControlProxyResponse{Id: request.Id, ControlProxy: controlProxy}, nil
 }
 
-func (s *tenantsServicer) CreateOrUpdateControlProxy(c context.Context, request *protos.IDAndControlProxy) (*protos.Void, error) {
+func (s *tenantsServicer) CreateOrUpdateControlProxy(c context.Context, request *protos.CreateOrUpdateControlProxyRequest) (*protos.Void, error) {
 	_, err := s.store.GetTenant(request.Id)
-	switch {
-	case err == errors.ErrNotFound:
-		return nil, status.Errorf(codes.NotFound, "Tenant %d not found", request.Id)
-	case err != nil:
-		return nil, status.Errorf(codes.Internal, "Error getting tenant %d: %v", request.Id, err)
+	err = errorHandlingForGet(err, "getting","tenant", request.Id)
+	if err != nil {
+		return nil, err
 	}
 
-	err = s.store.CreateOrUpdateControlProxy(request.Id, *request)
+	err = s.store.CreateOrUpdateControlProxy(request.Id, request.ControlProxy)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Error setting tenant %d: %v", request.Id, err)
 	}
 	return &protos.Void{}, nil
+}
+
+// errorHandlingForGet handles errors for get requests
+// Example input parameters are: { requestAction: "setting", getType: "tenant", id: 0 }
+func errorHandlingForGet(err error, requestAction string, getType string, id int64) error {
+	switch {
+	case err == errors.ErrNotFound:
+		return status.Errorf(codes.NotFound, "%s %d not found", getType, id)
+	case err != nil:
+		return status.Errorf(codes.Internal, "Error %s %s %d: %v", requestAction, getType, id, err)
+	}
+	return nil
 }

@@ -49,7 +49,7 @@ tags:
   name: Rating Groups
 - description: Endpoints related to SMS
   name: SMS
-- description: Viewing and Setting Tenant information
+- description: Viewing and setting tenant information
   name: Tenants
 - description: Configuration to manage upgrades
   name: Upgrades
@@ -5724,12 +5724,12 @@ paths:
       - $ref: '#/parameters/tenant_id'
       responses:
         "200":
-          description: Requested Tenant Information
+          description: Requested tenant information
           schema:
             $ref: '#/definitions/tenant'
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Retrieve Tenant Info By Tenant ID
+      summary: Retrieve tenant info by tenant ID
       tags:
       - Tenants
     put:
@@ -5746,7 +5746,7 @@ paths:
           description: Ok
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Set Tenant info
+      summary: Set tenant info
       tags:
       - Tenants
   /tenants/{tenant_id}/control_proxy:
@@ -5755,20 +5755,20 @@ paths:
       - $ref: '#/parameters/tenant_id'
       responses:
         "200":
-          description: Requested ControlProxy Information
+          description: Requested control proxy info
           schema:
             $ref: '#/definitions/control_proxy'
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Retrieve ControlProxy Info By Tenant ID
+      summary: Retrieve control proxy info by tenant ID
       tags:
       - Tenants
     put:
       parameters:
       - $ref: '#/parameters/tenant_id'
-      - description: ControlProxy to be updated
+      - description: Control proxy to be updated
         in: body
-        name: controlProxy
+        name: control_proxy
         required: true
         schema:
           $ref: '#/definitions/control_proxy'
@@ -5777,7 +5777,7 @@ paths:
           description: Ok
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Create or Update ControlProxy
+      summary: Create or update control proxy
       tags:
       - Tenants
   /tenants/{tenant_id}/metrics/api/v1/label/{label_name}/values:
@@ -7507,13 +7507,7 @@ definitions:
       control_proxy:
         description: Control proxy of the tenant
         type: string
-      id:
-        description: Unique integer identifier
-        format: int64
-        minimum: 0
-        type: integer
     required:
-    - id
     - control_proxy
     type: object
   core_network_types:

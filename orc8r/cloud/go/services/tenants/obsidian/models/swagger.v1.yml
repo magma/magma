@@ -15,7 +15,7 @@ info:
 
 tags:
   - name: Tenants
-    description: Viewing and Setting Tenant information
+    description: Viewing and setting tenant information
 
 basePath: /magma/v1
 
@@ -53,20 +53,20 @@ paths:
 
   /tenants/{tenant_id}:
     get:
-      summary: Retrieve Tenant Info By Tenant ID
+      summary: Retrieve tenant info by tenant ID
       tags:
       - Tenants
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
       responses:
         '200':
-          description: Requested Tenant Information
+          description: Requested tenant information
           schema:
             $ref: '#/definitions/tenant'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
-      summary: Set Tenant info
+      summary: Set tenant info
       tags:
         - Tenants
       parameters:
@@ -96,27 +96,27 @@ paths:
 
   /tenants/{tenant_id}/control_proxy:
     get:
-      summary: Retrieve ControlProxy Info By Tenant ID
+      summary: Retrieve control proxy info by tenant ID
       tags:
         - Tenants
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
       responses:
         '200':
-          description: Requested ControlProxy Information
+          description: Requested control proxy info
           schema:
             $ref: '#/definitions/control_proxy'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
-      summary: Create or Update ControlProxy
+      summary: Create or update control proxy
       tags:
         - Tenants
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
         - in: body
-          name: controlProxy
-          description: ControlProxy to be updated
+          name: control_proxy
+          description: Control proxy to be updated
           required: true
           schema:
             $ref: '#/definitions/control_proxy'
@@ -149,14 +149,8 @@ definitions:
   control_proxy:
     type: object
     required:
-      - id
       - control_proxy
     properties:
-      id:
-        description: Unique integer identifier
-        type: integer
-        format: int64
-        minimum: 0
       control_proxy:
         description: Control proxy of the tenant
         type: string

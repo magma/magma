@@ -35,7 +35,12 @@ message IDAndTenant {
     Tenant tenant = 2;
 }
 
-message IDAndControlProxy {
+message GetControlProxyResponse {
+  int64 id = 1;
+  string controlProxy = 2;
+}
+
+message CreateOrUpdateControlProxyRequest {
   int64 id = 1;
   string controlProxy = 2;
 }
@@ -46,6 +51,6 @@ service TenantsService {
     rpc CreateTenant (IDAndTenant) returns (Void) {}
     rpc SetTenant (IDAndTenant) returns (Void) {}
     rpc DeleteTenant (GetTenantRequest) returns (Void) {}
-    rpc GetControlProxy (GetTenantRequest) returns (IDAndControlProxy) {}
-    rpc CreateOrUpdateControlProxy (IDAndControlProxy) returns (Void) {}
+    rpc GetControlProxy (GetTenantRequest) returns (GetControlProxyResponse) {}
+    rpc CreateOrUpdateControlProxy (CreateOrUpdateControlProxyRequest) returns (Void) {}
 }

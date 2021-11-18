@@ -2,6 +2,7 @@ package storage
 
 import (
 	"errors"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,8 +29,12 @@ var (
 		Value: marshaledTenant0,
 	}
 
-	sampleControlProxy        = protos.IDAndControlProxy{Id: 0, ControlProxy: "{...}"}
-	sampleControlProxyBlob, _ = controlProxyToBlob(0, sampleControlProxy)
+	sampleControlProxy     = "{...}"
+	sampleControlProxyBlob = blobstore.Blob{
+		Type:  tenants.ControlProxyInfoType,
+		Key:   strconv.FormatInt(0, 10),
+		Value: []byte(sampleControlProxy),
+	}
 )
 
 func setupTestStore() (*mocks.Store, Store) {
@@ -170,7 +175,7 @@ func TestBlobstoreStore_GetControlProxy(t *testing.T) {
 	txStore.On("Get", networkWildcard, storage.TK{Type: tenants.ControlProxyInfoType, Key: "0"}).Return(sampleControlProxyBlob, nil)
 	controlProxy, err := s.GetControlProxy(0)
 	assert.NoError(t, err)
-	assert.Equal(t, sampleControlProxy, *controlProxy)
+	assert.Equal(t, sampleControlProxy, controlProxy)
 
 	txStore, s = setupTestStore()
 	txStore.On("Get", networkWildcard, storage.TK{Type: tenants.ControlProxyInfoType, Key: "0"}).Return(blobstore.Blob{}, errors.New("error"))
