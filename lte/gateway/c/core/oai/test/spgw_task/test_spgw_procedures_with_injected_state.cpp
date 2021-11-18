@@ -22,6 +22,8 @@ extern bool hss_associated;
 namespace magma {
 namespace lte {
 
+#define test_EPS_BEARER_ID 5
+
 task_zmq_ctx_t task_zmq_ctx_main_spgw;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
@@ -59,8 +61,9 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
 
     std::cout << "Running setup" << std::endl;
     // initialize the SPGW task
-    spgw_app_init(&spgw_config, mme_config.use_stateless);    
-    mock_read_spgw_ue_state_db();
+    spgw_app_init(&spgw_config, mme_config.use_stateless);
+    name_of_ue_samples = load_file_into_vector_of_line_content("/home/vagrant/magma/lte/gateway/c/core/oai/test/spgw_task/data_list.txt");    
+    mock_read_spgw_ue_state_db(name_of_ue_samples);
     
     std::this_thread::sleep_for(
         std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -101,36 +104,9 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
   int test_bearer_index = 5;
   in_addr_t test_ue_ip = 0x05030201;
   in_addr_t test_ue_ip2 = 0x0d80a8c0;
+  std::vector<std::string> name_of_ue_samples; 
 
 };
-
-TEST_F(SPGWAppInjectedStateProcedureTest, TestIPAllocFailure) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
-
-  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
-      sgw_cm_get_spgw_context(ue_sgw_teid);
-
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
-
-  itti_ip_allocation_response_t test_ip_alloc_resp = {};
-  fill_ip_allocation_response(
-      &test_ip_alloc_resp, SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED,
-      ue_sgw_teid, DEFAULT_EPS_BEARER_ID, test_ue_ip2, DEFAULT_VLAN);
-  status_code_e ip_alloc_rc = sgw_handle_ip_allocation_rsp(
-      spgw_state, &test_ip_alloc_resp, test_imsi64);
-
-  // check that IP address is not allocated
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == test_ue_ip2);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
-}
 
 TEST_F(SPGWAppInjectedStateProcedureTest, TestCreateSessionPCEFFailure) {
   spgw_state_t* spgw_state = get_spgw_state(false);
@@ -146,12 +122,12 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestCreateSessionPCEFFailure) {
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
       &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
            .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
+      test_EPS_BEARER_ID);
 
   // send an IP alloc response to SPGW
   itti_ip_allocation_response_t test_ip_alloc_resp = {};
   fill_ip_allocation_response(
-      &test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
+      &test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid, test_EPS_BEARER_ID,
       test_ue_ip2, DEFAULT_VLAN);
   status_code_e ip_alloc_rc = sgw_handle_ip_allocation_rsp(
       spgw_state, &test_ip_alloc_resp, test_imsi64);
@@ -163,7 +139,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestCreateSessionPCEFFailure) {
   itti_pcef_create_session_response_t sample_pcef_csr_resp;
   fill_pcef_create_session_response(
       &sample_pcef_csr_resp, PCEF_STATUS_FAILED, ue_sgw_teid,
-      DEFAULT_EPS_BEARER_ID, SGI_STATUS_OK);
+      test_EPS_BEARER_ID, SGI_STATUS_OK);
 
   // check if MME gets a create session response
   EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
@@ -191,18 +167,18 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
 
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
       &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
+           .pdn_connection, test_EPS_BEARER_ID);
 
+//   std::cout << " ========= " << std::hex << eps_bearer_ctxt_p->paa.ipv4_address.s_addr << std::endl;
   ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == test_ue_ip2);    
 
   // verify that exactly one session exists in SPGW state
-  ASSERT_TRUE(is_num_sessions_valid(spgw_state, test_imsi64, 1, 1));
+  ASSERT_TRUE(is_num_sessions_valid(spgw_state, test_imsi64, name_of_ue_samples.size(), 1));
 
   itti_s11_delete_session_request_t sample_delete_session_request = {};
   fill_delete_session_request(
       &sample_delete_session_request, test_mme_s11_teid, ue_sgw_teid,
-      DEFAULT_EPS_BEARER_ID, test_plmn);
+      test_EPS_BEARER_ID, test_plmn);
 
   EXPECT_CALL(*mme_app_handler, mme_app_handle_delete_sess_rsp()).Times(1);
 
@@ -212,7 +188,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
   ASSERT_EQ(return_code, RETURNok);
 
   // verify SPGW state is cleared
-  ASSERT_TRUE(is_num_sessions_valid(spgw_state, test_imsi64, 0, 0));
+  ASSERT_TRUE(is_num_sessions_valid(spgw_state, test_imsi64, name_of_ue_samples.size()-1, 0));
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
