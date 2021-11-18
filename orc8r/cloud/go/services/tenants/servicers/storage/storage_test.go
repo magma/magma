@@ -30,8 +30,8 @@ var (
 		Value: marshaledTenant0,
 	}
 
-	sampleControlProxy     = "{ info }"
-	sampleControlProxy2     = "{ info2 }"
+	sampleControlProxy  = "{ info }"
+	sampleControlProxy2 = "{ info2 }"
 )
 
 func setupTestStore() (*mocks.Store, Store) {

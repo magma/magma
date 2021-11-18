@@ -163,7 +163,7 @@ func TestControlProxyTenantsServicer(t *testing.T) {
 	// Get control_proxy not set
 	_, err = srv.GetControlProxy(context.Background(), &protos.GetTenantRequest{Id: sampleTenantID + 1})
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
-	assert.Equal(t, fmt.Sprintf("tenant %d not found", sampleTenantID + 1), status.Convert(err).Message())
+	assert.Equal(t, fmt.Sprintf("tenant %d not found", sampleTenantID+1), status.Convert(err).Message())
 }
 
 func newTestService(t *testing.T) (protos.TenantsServiceServer, error) {
