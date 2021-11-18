@@ -746,6 +746,30 @@ export function EPCEdit(props: Props) {
               />
             </AltFormField>
           )}
+          <AltFormField label={'SGi management Gateway IPv6 address'}>
+            <OutlinedInput
+              data-testid="gwSgiIpv6"
+              placeholder="2001:4860:4860:0:0:0:0:1"
+              type="string"
+              fullWidth={true}
+              value={EPCConfig.sgi_management_iface_ipv6_gw ?? ''}
+              onChange={({target}) =>
+                handleEPCChange('sgi_management_iface_ipv6_gw', target.value)
+              }
+            />
+          </AltFormField>
+          <AltFormField label={'SGi management interface IPv6 address'}>
+            <OutlinedInput
+              data-testid="sgiStaticIpv6"
+              placeholder="2001:4860:4860:0:0:0:0:8888/64"
+              type="string"
+              fullWidth={true}
+              value={EPCConfig.sgi_management_iface_ipv6_addr ?? ''}
+              onChange={({target}) =>
+                handleEPCChange('sgi_management_iface_ipv6_addr', target.value)
+              }
+            />
+          </AltFormField>
         </List>
       </DialogContent>
       <DialogActions>
