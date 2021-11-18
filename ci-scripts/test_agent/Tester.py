@@ -92,14 +92,14 @@ class Tester:
                 self.state = TesterState.BUSY
                 print(f"test {self.id} started on workload")
             else:
-                print("No Magma Package found in packages list")
+                print("No Magma package found in packages list")
                 self.callback(self.id, self.current_workload, "fail", "NA")
                 self.current_workload = None
                 self.current_build = None
                 self.state = TesterState.READY
 
         else:
-            print("Build check is not valid")
+            print(f"Invalid AGW build {self.id}. Terminate test")
             self.callback(self.id, self.current_workload, "fail", "NA")
             self.current_workload = None
             self.current_build = None
