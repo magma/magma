@@ -193,7 +193,6 @@ export type config_info = {
 };
 export type control_proxy = {
     control_proxy: string,
-    id: number,
 };
 export type core_network_types = Array < "EPC" | "5GC" >
 ;
