@@ -17,7 +17,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -113,7 +112,6 @@ func (s *tenantsServicer) GetControlProxy(c context.Context, request *protos.Get
 
 func (s *tenantsServicer) CreateOrUpdateControlProxy(c context.Context, request *protos.CreateOrUpdateControlProxyRequest) (*protos.Void, error) {
 	_, err := s.store.GetTenant(request.Id)
-	glog.Infof("requestid %v", request.Id)
 	err = errorHandlingForGet(err, "tenant", request.Id)
 	if err != nil {
 		return nil, err
@@ -121,6 +119,7 @@ func (s *tenantsServicer) CreateOrUpdateControlProxy(c context.Context, request 
 
 	err = s.store.CreateOrUpdateControlProxy(request.Id, request.ControlProxy)
 	if err != nil {
+		request.GetControlProxy()
 		return nil, status.Errorf(codes.Internal, "Error setting control proxy %d: %v", request.Id, err)
 	}
 	return &protos.Void{}, nil

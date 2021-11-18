@@ -175,7 +175,6 @@ func TestBlobstoreStore_ControlProxy(t *testing.T) {
 	assert.NoError(t, factory.InitializeFactory())
 	s := NewBlobstoreStore(factory)
 
-	// 0 is an edge case
 	_, err = s.GetControlProxy(0)
 	assert.EqualError(t, err, "Not found")
 

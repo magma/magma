@@ -188,6 +188,7 @@ func CreateOrUpdateControlProxyHandler(c echo.Context) error {
 
 	var controlProxy = protos.CreateOrUpdateControlProxyRequest{}
 	err = json.NewDecoder(c.Request().Body).Decode(&controlProxy)
+	controlProxy.Id = tenantID
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("error decoding request: %v", err))
 	}

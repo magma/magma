@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/golang/glog"
 	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/blobstore"
@@ -162,7 +161,6 @@ func (b *blobstoreStore) GetControlProxy(tenantID int64) (string, error) {
 		Key:  strconv.FormatInt(tenantID, 10),
 	}
 	controlProxyBlob, err := store.Get(networkWildcard, controlProxyTK)
-	glog.Infof("controlProxyBlob: %v, value: %v", controlProxyBlob, controlProxyBlob.Value)
 	if err != nil {
 		return "", err
 	}
@@ -181,8 +179,6 @@ func (b *blobstoreStore) CreateOrUpdateControlProxy(tenantID int64, controlProxy
 		Key:   strconv.FormatInt(tenantID, 10),
 		Value: []byte(controlProxy),
 	}
-	glog.Infof("controlProxyBlob: %v type %v ket %v tid %v", controlProxyBlob, controlProxyBlob.Type, controlProxyBlob.Key, tenantID)
-
 
 	err = store.Write(networkWildcard, blobstore.Blobs{controlProxyBlob})
 	if err != nil {

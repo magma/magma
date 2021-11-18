@@ -28,7 +28,7 @@ var (
 	}
 	sampleTenantID      int64 = 3
 	sampleControlProxy        = "{ otherInfo }"
-	sampleControlProxy2       = "{ otherInfo }"
+	sampleControlProxy2       = "{ otherInfo2 }"
 
 	sampleCreateControlProxyReq = protos.CreateOrUpdateControlProxyRequest{
 		Id:           sampleTenantID,
