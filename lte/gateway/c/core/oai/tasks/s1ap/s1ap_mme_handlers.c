@@ -2470,7 +2470,7 @@ status_code_e s1ap_mme_handle_handover_request(
       S1ap_ProcedureCode_id_HandoverResourceAllocation;
   pdu.choice.initiatingMessage.value.present =
       S1ap_InitiatingMessage__value_PR_HandoverRequest;
-  pdu.choice.initiatingMessage.criticality = S1ap_Criticality_ignore;
+  pdu.choice.initiatingMessage.criticality = S1ap_Criticality_reject;
   out = &pdu.choice.initiatingMessage.value.choice.HandoverRequest;
 
   /* MME-UE-ID: mandatory */
