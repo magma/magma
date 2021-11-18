@@ -316,10 +316,78 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
 
-  mme-clang-tidy-and-warning-and-cpp-cov:
+  mme-clang-tidy-and-warning:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    name: mme clang tidy/warning and cpp cov
+    name: Upload MME clang-tidy and clang-warning outputs
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      BRANCH: "${{ github.base_ref }}"
+      REVISION: "${{ github.sha }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Devcontainer Image
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the devontainer image!"
+      - name: Run mme-clang-tidy
+        if: always()
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --env BRANCH=${{ env.BRANCH}} --env REVISION=${{ env.REVISION }} -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd $MAGMA_ROOT/lte/gateway
+            make clang_tidy_oai_upload
+      - name: Run mme-clang-warnings
+        if: always()
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --env BRANCH=${{ env.BRANCH}} --env REVISION=${{ env.REVISION }} -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd $MAGMA_ROOT/lte/gateway
+            make clang_warning_oai_upload
+      - name: Extract commit title
+        # yamllint enable
+        if: failure() && github.event_name == 'push'
+        id: commit
+        run: |
+            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: steps.mme-clang-warning.outcome=='failure' && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action mme-clang-warnings failed"
+          SLACK_USERNAME: "AGW workflow"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      - name: Notify failure to slack
+        if: steps.mme-clang-tidy.outcome=='failure' && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action mme-clang-tidy failed"
+          SLACK_USERNAME: "AGW workflow"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+
+  c-cpp-codecov:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: C / C++ code coverage
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
@@ -379,22 +447,6 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           flags: c_cpp
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-      - name: Run mme-clang-tidy
-        if: always()
-        id: mme-clang-tidy
-        # yamllint disable rule:line-length
-        run: |
-            docker build --tag magma-mme-build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
-            docker run --env BRANCH=${{ env.BRANCH}} --env REVISION=${{ env.REVISION }} --volume ${{ env.MAGMA_ROOT }}:/magma --interactive magma-mme-build:latest /bin/bash -c 'cd /magma/lte/gateway;make clang_tidy_oai_upload'
-      - name: Run mme-clang-warnings
-        if: always()
-        id: mme-clang-warning
-        # yamllint disable rule:line-length
-        run: |
-            docker build --tag magma-mme-build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
-            docker run --env BRANCH=${{ env.BRANCH }} --env REVISION=${{ env.REVISION }} --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
       - name: Extract commit title
         # yamllint enable
         if: failure() && github.event_name == 'push'
@@ -408,28 +460,6 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action c-cpp-codecov-upload failed"
-          SLACK_USERNAME: "AGW workflow"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      - name: Notify failure to slack
-        if: steps.mme-clang-warning.outcome=='failure' && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action mme-clang-warnings failed"
-          SLACK_USERNAME: "AGW workflow"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      - name: Notify failure to slack
-        if: steps.mme-clang-tidy.outcome=='failure' && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action mme-clang-tidy failed"
           SLACK_USERNAME: "AGW workflow"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_ICON_EMOJI: ":boom:"
