@@ -60,9 +60,6 @@ RUN apt-get update && apt-get install -y \
   libtool \
   pkg-config \
   libgflags-dev \
-  libgtest-dev \
-  clang-11 \
-  #clang-format-11 \
   libc++-dev \
   protobuf-compiler \
   grpc-dev \
@@ -92,9 +89,7 @@ RUN apt-get update && apt-get install -y \
   libboost-filesystem-dev \
   libboost-regex-dev \
   check \
-  libgtest-dev \
   liblfds710 \
-  google-mock \
   libssl-dev \
   libsctp-dev \
   libtspi-dev \
