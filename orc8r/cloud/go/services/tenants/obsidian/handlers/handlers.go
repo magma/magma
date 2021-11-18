@@ -167,7 +167,7 @@ func GetControlProxyHandler(c echo.Context) error {
 	}
 
 	controlProxy, err := tenants.GetControlProxy(c.Request().Context(), tenantID)
-	err = errorHandlingForGet(err, fmt.Errorf("Control Proxy for tenantID %d does not exist", tenantID), err)
+	err = errorHandlingForGet(err, fmt.Errorf("Control proxy for tenantID %d does not exist", tenantID), err)
 	if err != nil {
 		return err
 	}

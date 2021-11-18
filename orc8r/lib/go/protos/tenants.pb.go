@@ -6,6 +6,7 @@ package protos
 import (
 	context "context"
 	fmt "fmt"
+	"github.com/golang/glog"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -585,6 +586,7 @@ func _TenantsService_CreateOrUpdateControlProxy_Handler(srv interface{}, ctx con
 		FullMethod: "/magma.orc8r.TenantsService/CreateOrUpdateControlProxy",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		glog.Infof("ctx: %v, req: %v", ctx, req)
 		return srv.(TenantsServiceServer).CreateOrUpdateControlProxy(ctx, req.(*CreateOrUpdateControlProxyRequest))
 	}
 	return interceptor(ctx, in, info, handler)

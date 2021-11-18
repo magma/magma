@@ -2,6 +2,7 @@ package servicers_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,7 +26,7 @@ var (
 		Name:     "test2",
 		Networks: []string{"network_1"},
 	}
-	sampleTenantID      int64 = 0
+	sampleTenantID      int64 = 3
 	sampleControlProxy        = "{ otherInfo }"
 	sampleControlProxy2       = "{ otherInfo }"
 
@@ -121,33 +122,33 @@ func TestControlProxyTenantsServicer(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Get control_proxy not set
-	_, err = srv.GetControlProxy(context.Background(), &protos.GetTenantRequest{Id: 0})
+	_, err = srv.GetControlProxy(context.Background(), &protos.GetTenantRequest{Id: sampleTenantID})
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
-	assert.Equal(t, "tenant 0 not found", status.Convert(err).Message())
+	assert.Equal(t, fmt.Sprintf("tenant %d not found", sampleTenantID), status.Convert(err).Message())
 
 	// Create control_proxy when tenant not created yet
 	_, err = srv.CreateOrUpdateControlProxy(context.Background(), &sampleCreateControlProxyReq)
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
-	assert.Equal(t, "tenant 0 not found", status.Convert(err).Message())
+	assert.Equal(t, fmt.Sprintf("tenant %d not found", sampleTenantID), status.Convert(err).Message())
 
 	// Create "test" tenant
 	createResp, err := srv.CreateTenant(context.Background(), &protos.IDAndTenant{
-		Id:     0,
+		Id:     sampleTenantID,
 		Tenant: &sampleTenant,
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, &protos.Void{}, createResp)
 
 	// Get control_proxy not set
-	_, err = srv.GetControlProxy(context.Background(), &protos.GetTenantRequest{Id: 0})
+	_, err = srv.GetControlProxy(context.Background(), &protos.GetTenantRequest{Id: sampleTenantID})
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
-	assert.Equal(t, "controlProxy 0 not found", status.Convert(err).Message())
+	assert.Equal(t, fmt.Sprintf("controlProxy %d not found", sampleTenantID), status.Convert(err).Message())
 
 	// Create control_proxy
 	_, err = srv.CreateOrUpdateControlProxy(context.Background(), &sampleCreateControlProxyReq)
 	assert.NoError(t, err)
 	// get updated control_proxy
-	controlProxy, err := srv.GetControlProxy(context.Background(), &protos.GetTenantRequest{Id: 0})
+	controlProxy, err := srv.GetControlProxy(context.Background(), &protos.GetTenantRequest{Id: sampleTenantID})
 	assert.NoError(t, err)
 	assert.Equal(t, *controlProxy, sampleGetControlProxyRes)
 
@@ -155,14 +156,14 @@ func TestControlProxyTenantsServicer(t *testing.T) {
 	_, err = srv.CreateOrUpdateControlProxy(context.Background(), &sampleCreateControlProxyReq2)
 	assert.NoError(t, err)
 	// get updated control_proxy
-	controlProxy, err = srv.GetControlProxy(context.Background(), &protos.GetTenantRequest{Id: 0})
+	controlProxy, err = srv.GetControlProxy(context.Background(), &protos.GetTenantRequest{Id: sampleTenantID})
 	assert.NoError(t, err)
 	assert.Equal(t, *controlProxy, sampleGetControlProxyRes2)
 
 	// Get control_proxy not set
-	_, err = srv.GetControlProxy(context.Background(), &protos.GetTenantRequest{Id: 2})
+	_, err = srv.GetControlProxy(context.Background(), &protos.GetTenantRequest{Id: sampleTenantID + 1})
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
-	assert.Equal(t, "tenant 2 not found", status.Convert(err).Message())
+	assert.Equal(t, fmt.Sprintf("tenant %d not found", sampleTenantID + 1), status.Convert(err).Message())
 }
 
 func newTestService(t *testing.T) (protos.TenantsServiceServer, error) {

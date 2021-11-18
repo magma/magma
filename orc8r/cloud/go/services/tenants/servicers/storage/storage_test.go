@@ -4,14 +4,16 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"magma/orc8r/cloud/go/sqorc"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
 	"magma/orc8r/cloud/go/services/tenants"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -28,12 +30,8 @@ var (
 		Value: marshaledTenant0,
 	}
 
-	sampleControlProxy     = "{...}"
-	sampleControlProxyBlob = blobstore.Blob{
-		Type:  tenants.ControlProxyInfoType,
-		Key:   "3",
-		Value: []byte(sampleControlProxy),
-	}
+	sampleControlProxy     = "{ info }"
+	sampleControlProxy2     = "{ info2 }"
 )
 
 func setupTestStore() (*mocks.Store, Store) {
@@ -169,27 +167,35 @@ func TestBlobstoreStore_DeleteTenant(t *testing.T) {
 	assert.EqualError(t, err, "error")
 }
 
-func TestBlobstoreStore_GetControlProxy(t *testing.T) {
-	txStore, s := setupTestStore()
-	txStore.On("Get", networkWildcard, storage.TK{Type: tenants.ControlProxyInfoType, Key: "0"}).Return(sampleControlProxyBlob, nil)
-	controlProxy, err := s.GetControlProxy(0)
+// TODO(reginawang3495): Do or make ticket for making other tests in this file use less mocking
+func TestBlobstoreStore_ControlProxy(t *testing.T) {
+	db, err := sqorc.Open("sqlite3", ":memory:")
+	assert.NoError(t, err)
+	factory := blobstore.NewSQLStoreFactory(tenants.DBTableName, db, sqorc.GetSqlBuilder())
+	assert.NoError(t, factory.InitializeFactory())
+	s := NewBlobstoreStore(factory)
+
+	// 0 is an edge case
+	_, err = s.GetControlProxy(0)
+	assert.EqualError(t, err, "Not found")
+
+	_, err = s.GetControlProxy(3)
+	assert.EqualError(t, err, "Not found")
+
+	err = s.CreateOrUpdateControlProxy(3, sampleControlProxy)
+	assert.NoError(t, err)
+
+	controlProxy, err := s.GetControlProxy(3)
 	assert.NoError(t, err)
 	assert.Equal(t, sampleControlProxy, controlProxy)
 
-	txStore, s = setupTestStore()
-	txStore.On("Get", networkWildcard, storage.TK{Type: tenants.ControlProxyInfoType, Key: "0"}).Return(blobstore.Blob{}, errors.New("error"))
 	_, err = s.GetControlProxy(0)
-	assert.EqualError(t, err, "error")
-}
+	assert.EqualError(t, err, "Not found")
 
-func TestBlobstoreStore_CreateOrUpdateControlProxy(t *testing.T) {
-	txStore, s := setupTestStore()
-	txStore.On("Write", networkWildcard, blobstore.Blobs{sampleControlProxyBlob}).Return(nil)
-	err := s.CreateOrUpdateControlProxy(0, sampleControlProxy)
+	err = s.CreateOrUpdateControlProxy(0, sampleControlProxy2)
 	assert.NoError(t, err)
 
-	txStore, s = setupTestStore()
-	txStore.On("Write", networkWildcard, blobstore.Blobs{sampleControlProxyBlob}).Return(errors.New("error"))
-	err = s.CreateOrUpdateControlProxy(0, sampleControlProxy)
-	assert.EqualError(t, err, "error")
+	controlProxy, err = s.GetControlProxy(0)
+	assert.NoError(t, err)
+	assert.Equal(t, sampleControlProxy2, controlProxy)
 }
