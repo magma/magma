@@ -19,7 +19,7 @@ To develop on a **Linux OS**, the package manager (brew for macOS) will need to 
 Install the following tools:
 
 1. [Docker](https://www.docker.com) and Docker Compose
-2. [Homebrew](https://brew.sh/) *only* for MacOS users
+2. [Homebrew](https://brew.sh/) *only* for macOS users
 3. [VirtualBox](https://www.virtualbox.org/)
 4. [Vagrant](https://vagrantup.com)
 
@@ -46,10 +46,10 @@ vagrant plugin install vagrant-vbguest
 ```
 
 **Note**: In the case where installation of `fabric3` through pip was unsuccessful,
-try switching to other package installers. For example, for MacOS users, try
+try switching to other package installers. For example, for macOS users, try
 running `brew install fabric`.
 
-If you are on MacOS, you should start Docker for Mac and increase the memory
+If you are on macOS, you should start Docker for Mac and increase the memory
 allocation for the Docker engine to at least 4GB (Preferences -> Resources ->
 Advanced). If you are running into build/test failures with Go that report
 "signal killed", you likely need to increase Docker's allocated resources.
@@ -75,7 +75,7 @@ git tag -l
 
 ## Build/Deploy Tooling
 
-We support building the AGW and Orchestrator on MacOS and Linux host operating
+We support building the AGW and Orchestrator on macOS and Linux host operating
 systems. Doing so on a Windows environment should be possible but has not been
 tested. You may prefer to use a Linux virtual machine if you are on a Windows
 host.
