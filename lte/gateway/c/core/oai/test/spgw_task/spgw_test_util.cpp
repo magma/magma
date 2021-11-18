@@ -296,20 +296,34 @@ void fill_release_access_bearer_request(
 
   void fill_nw_initiated_activate_bearer_response(
       itti_s11_nw_init_actv_bearer_rsp_t * nw_actv_bearer_resp,
-      teid_t mme_s11_teid, teid_t sgw_s11_context_teid, int bearer_index,
-      ebi_t eps_bearer_id, gtpv2c_cause_value_t cause, plmn_t plmn) {
-    nw_actv_bearer_resp->sgw_s11_teid = sgw_s11_context_teid;
+      teid_t mme_s11_teid, teid_t sgw_s11_cp_teid, teid_t sgw_s11_ded_teid,
+      teid_t s1u_enb_ded_teid, ebi_t eps_bearer_id, gtpv2c_cause_value_t cause,
+      plmn_t plmn) {
+    nw_actv_bearer_resp->sgw_s11_teid = sgw_s11_cp_teid;
     COPY_PLMN_IN_ARRAY_FMT(nw_actv_bearer_resp->serving_network, plmn);
     nw_actv_bearer_resp->cause.cause_value = cause;
-    nw_actv_bearer_resp->bearer_contexts.bearer_contexts[bearer_index]
+
+    int msg_bearer_index = 0;
+    nw_actv_bearer_resp->bearer_contexts.bearer_contexts[msg_bearer_index]
         .eps_bearer_id = eps_bearer_id;
-    nw_actv_bearer_resp->bearer_contexts.bearer_contexts[bearer_index]
+    nw_actv_bearer_resp->bearer_contexts.bearer_contexts[msg_bearer_index]
         .cause.cause_value = REQUEST_ACCEPTED;
-    nw_actv_bearer_resp->bearer_contexts.bearer_contexts[bearer_index]
-        .s1u_enb_fteid.teid = DEFAULT_ENB_GTP_TEID;
-    nw_actv_bearer_resp->bearer_contexts.bearer_contexts[bearer_index]
-        .s1u_sgw_fteid.teid = DEFAULT_ENB_GTP_TEID;
-    nw_actv_bearer_resp->bearer_contexts.num_bearer_context++;
+
+    // Fill eNB S1u Fteid with new teid for dedicated bearer
+    nw_actv_bearer_resp->bearer_contexts.bearer_contexts[msg_bearer_index]
+        .s1u_enb_fteid = {.ipv4           = true,
+                          .interface_type = S1_U_ENODEB_GTP_U,
+                          .teid           = s1u_enb_ded_teid,
+                          .ipv4_address   = {.s_addr = DEFAULT_ENB_IP}};
+
+    // Fill SGW S1u Fteid
+    nw_actv_bearer_resp->bearer_contexts.bearer_contexts[msg_bearer_index]
+        .s1u_sgw_fteid = {.ipv4           = true,
+                          .interface_type = S1_U_SGW_GTP_U,
+                          .teid           = sgw_s11_ded_teid,
+                          .ipv4_address   = {.s_addr = DEFAULT_SGW_IP}};
+
+    nw_actv_bearer_resp->bearer_contexts.num_bearer_context = 1;
   }
 
 }  // namespace lte

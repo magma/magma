@@ -730,11 +730,12 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivation) {
       DEFAULT_EPS_BEARER_ID, sample_dedicated_bearer_qos);
 
   // check that MME gets a bearer activation request
-  /*EXPECT_CALL(
+  EXPECT_CALL(
       *mme_app_handler, mme_app_handle_nw_init_ded_bearer_actv_req(
                             check_params_in_create_bearer_req(
-                                sample_gx_nw_init_ded_bearer_actv_req.lbi)))
-      .Times(1);*/
+                                sample_gx_nw_init_ded_bearer_actv_req.lbi,
+                                sample_gx_nw_init_ded_bearer_actv_req.ul_tft)))
+      .Times(1);
 
   return_code = spgw_handle_nw_initiated_bearer_actv_req(
       spgw_state, &sample_gx_nw_init_ded_bearer_actv_req, test_imsi64,
@@ -742,7 +743,17 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivation) {
 
   ASSERT_EQ(return_code, RETURNok);
 
+  // fetch new SGW teid for the pending bearer procedure
+  teid_t ue_ded_bearer_sgw_teid = 100;
+
   // send bearer activation response from MME
+  itti_s11_nw_init_actv_bearer_rsp_t sample_nw_init_ded_bearer_actv_resp = {};
+  fill_nw_initiated_activate_bearer_response(
+      &sample_nw_init_ded_bearer_actv_resp, DEFAULT_MME_S11_TEID, ue_sgw_teid,
+      ue_ded_bearer_sgw_teid, DEFAULT_ENB_GTP_TEID + 1,
+      DEFAULT_EPS_BEARER_ID + 1, REQUEST_ACCEPTED, test_plmn);
+  return_code = sgw_handle_nw_initiated_actv_bearer_rsp(
+      &sample_nw_init_ded_bearer_actv_resp, test_imsi64);
 
   // check that bearer is created
 

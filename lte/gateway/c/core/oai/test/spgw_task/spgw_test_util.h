@@ -32,6 +32,7 @@ namespace lte {
 #define UNASSIGNED_UE_IP 0
 #define DEFAULT_UE_IP 0xc0a8800a  // 192.168.128.10
 #define DEFAULT_VLAN 0
+#define DEFAULT_ENB_IP 0xc0a88129  // 192.168.129.41
 #define DEFAULT_ENB_GTP_TEID 1
 #define ERROR_SGW_S11_TEID 100
 #define DEFAULT_EDNS_IP 0x7f000001  // localhost
@@ -69,14 +70,19 @@ void fill_delete_session_request(
     itti_s11_delete_session_request_t* delete_session_req, teid_t mme_s11_teid,
     teid_t sgw_s11_context_teid, ebi_t eps_bearer_id, plmn_t test_plmn);
 
-<<<<<<< HEAD
 void fill_release_access_bearer_request(
     itti_s11_release_access_bearers_request_t* release_access_bearers_req,
     teid_t mme_s11_teid, teid_t sgw_s11_context_teid);
-=======
+
 void fill_nw_initiated_activate_bearer_request(
     itti_gx_nw_init_actv_bearer_request_t* gx_nw_init_actv_req_p,
     std::string imsi_str, ebi_t lbi, bearer_qos_t qos);
->>>>>>> 66bdda718 (Add unit test for dedicated bearer)
+
+void fill_nw_initiated_activate_bearer_response(
+    itti_s11_nw_init_actv_bearer_rsp_t* nw_actv_bearer_resp,
+    teid_t mme_s11_teid, teid_t sgw_s11_cp_teid, teid_t sgw_s11_ded_teid,
+    teid_t s1u_enb_ded_teid, ebi_t eps_bearer_id, gtpv2c_cause_value_t cause,
+    plmn_t plmn);
+
 }  // namespace lte
 }  // namespace magma
