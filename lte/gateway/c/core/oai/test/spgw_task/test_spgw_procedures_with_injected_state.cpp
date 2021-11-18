@@ -62,7 +62,7 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
     std::cout << "Running setup" << std::endl;
     // initialize the SPGW task
     spgw_app_init(&spgw_config, mme_config.use_stateless);
-    name_of_ue_samples = load_file_into_vector_of_line_content("/home/vagrant/magma/lte/gateway/c/core/oai/test/spgw_task/data_list.txt");    
+    name_of_ue_samples = load_file_into_vector_of_line_content("/home/vagrant/magma/lte/gateway/c/core/oai/test/spgw_task/data/data_list.txt");    
     mock_read_spgw_ue_state_db(name_of_ue_samples);
     
     std::this_thread::sleep_for(
@@ -169,10 +169,9 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
       &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
            .pdn_connection, test_EPS_BEARER_ID);
 
-//   std::cout << " ========= " << std::hex << eps_bearer_ctxt_p->paa.ipv4_address.s_addr << std::endl;
   ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == test_ue_ip2);    
 
-  // verify that exactly one session exists in SPGW state
+  // verify that exactly one session exists in SPGW state for the testing ue
   ASSERT_TRUE(is_num_sessions_valid(spgw_state, test_imsi64, name_of_ue_samples.size(), 1));
 
   itti_s11_delete_session_request_t sample_delete_session_request = {};
@@ -187,7 +186,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
       &sample_delete_session_request, test_imsi64);
   ASSERT_EQ(return_code, RETURNok);
 
-  // verify SPGW state is cleared
+  // verify the context of testing ue is cleared
   ASSERT_TRUE(is_num_sessions_valid(spgw_state, test_imsi64, name_of_ue_samples.size()-1, 0));
 
   // Sleep to ensure that messages are received and contexts are released
