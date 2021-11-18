@@ -17,6 +17,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -235,7 +236,7 @@ func sendSar(addr string, client swxClient) int {
 }
 
 func sendMar(addr string, client swxClient) int {
-	if numVectors < 0 || numVectors > 4294967295 {
+	if numVectors > math.MaxUint32 {
 		fmt.Printf("numVectors %d is outside the bounds of unit32 type", numVectors)
 		return 2
 	}
