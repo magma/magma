@@ -472,10 +472,8 @@ int amf_nas_proc_authentication_info_answer(
 int amf_handle_s6a_update_location_ans(
     const s6a_update_location_ans_t* ula_pP) {
   imsi64_t imsi64                   = INVALID_IMSI64;
-  int rc                            = RETURNerror;
   amf_context_t* amf_ctxt_p         = NULL;
   ue_m5gmm_context_s* ue_mm_context = NULL;
-  int amf_cause                     = -1;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
   IMSI_STRING_TO_IMSI64((char*) ula_pP->imsi, &imsi64);
@@ -520,10 +518,6 @@ int amf_handle_s6a_update_location_ans(
 
 /* Cleanup all procedures in amf_context */
 void amf_nas_proc_clean_up(ue_m5gmm_context_s* ue_context_p) {
-  // Check if registrion procedure exists
-  nas_amf_registration_proc_t* registration_proc =
-      get_nas_specific_procedure_registration(&(ue_context_p->amf_context));
-
   // Delete registration procedures
   amf_delete_registration_proc(&(ue_context_p->amf_context));
 }

@@ -299,7 +299,6 @@ int amf_proc_security_mode_control(
   bool security_context_is_new = false;
   int amf_ea                   = M5G_NAS_SECURITY_ALGORITHMS_5G_EA0;
   int amf_ia                   = M5G_NAS_SECURITY_ALGORITHMS_5G_IA0;
-  uint8_t snni[32]             = {0};
   uint8_t ak_sqn[6]            = {0};
 
   OAILOG_DEBUG(

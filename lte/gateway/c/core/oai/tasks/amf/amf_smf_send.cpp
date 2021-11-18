@@ -213,17 +213,7 @@ void clear_amf_smf_context(std::shared_ptr<smf_context_t> smf_ctx) {
 int pdu_session_release_request_process(
     ue_m5gmm_context_s* ue_context, std::shared_ptr<smf_context_t> smf_ctx,
     amf_ue_ngap_id_t amf_ue_ngap_id, bool retransmit) {
-  int rc                = 1;
-  amf_smf_t amf_smf_msg = {};
-  // amf_cause = amf_smf_handle_pdu_release_request(
-  //              msg, &amf_smf_msg);
-
-  int smf_cause             = SMF_CAUSE_SUCCESS;
-  amf_smf_msg.u.release.pti = smf_ctx->smf_proc_data.pti.pti;
-  amf_smf_msg.u.release.pdu_session_id =
-      smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
-  amf_smf_msg.u.release.cause_value = smf_cause;
-
+  int rc = RETURNerror;
   OAILOG_DEBUG(
       LOG_AMF_APP, "sending PDU session resource release request to gNB \n");
 
@@ -839,7 +829,6 @@ int amf_smf_handle_ip_address_response(
 int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   ue_m5gmm_context_s* ue_context_p = NULL;
-  MessageDef* message_p            = NULL;
   int rc                           = RETURNok;
 
   OAILOG_INFO(
@@ -897,12 +886,9 @@ int handle_sm_message_routing_failure(
     amf_ue_ngap_id_t ue_id, ULNASTransportMsg* ulmsg, M5GMmCause m5gmmcause) {
   nas5g_error_code_t rc    = M5G_AS_FAILURE;
   DLNASTransportMsg* dlmsg = nullptr;
-  SmfMsg* smf_msg          = nullptr;
   uint32_t bytes           = 0;
   uint32_t len             = 0;
-  uint32_t container_len   = 0;
   bstring buffer;
-  smf_context_t* smf_ctx         = nullptr;
   ue_m5gmm_context_s* ue_context = nullptr;
   amf_nas_message_t msg          = {};
 
