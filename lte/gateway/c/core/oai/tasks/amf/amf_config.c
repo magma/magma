@@ -447,6 +447,7 @@ void clear_amf_config(amf_config_t* amf_config) {
   bdestroy_wrapper(&amf_config->short_network_name);
   bdestroy_wrapper(&amf_config->ip_capability);
   bdestroy_wrapper(&amf_config->amf_name);
+  bdestroy_wrapper(&amf_config->default_dnn);
   clear_served_tai_config(&amf_config->served_tai);
   free_partial_lists(amf_config->partial_list, amf_config->num_par_lists);
   amf_config->num_par_lists = 0;

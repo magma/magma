@@ -592,10 +592,9 @@ static void get_ambr_unit(
 /* Received the session created response message from SMF. Populate and Send
  * PDU Session Resource Setup Request message to gNB and  PDU Session
  * Establishment Accept Message to UE*/
-void amf_app_handle_pdu_session_response(
+int amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp) {
   DLNASTransportMsg encode_msg;
-  int amf_rc = RETURNerror;
   ue_m5gmm_context_s* ue_context;
   std::shared_ptr<smf_context_t> smf_ctx;
   amf_smf_t amf_smf_msg;
@@ -614,13 +613,13 @@ void amf_app_handle_pdu_session_response(
       OAILOG_ERROR(
           LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
           pdu_session_resp->pdu_session_id);
-      return;
+      return RETURNerror;
     }
     ue_id = ue_context->amf_ue_ngap_id;
   } else {
     OAILOG_ERROR(
         LOG_AMF_APP, "ue context not found for the imsi=%lu\n", imsi64);
-    return;
+    return RETURNerror;
   }
 
   get_ambr_unit(
@@ -681,7 +680,10 @@ void amf_app_handle_pdu_session_response(
         REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
         // smf_ctx->pdu_session_state, ue_context, amf_smf_msg, NULL,
         CREATING, ue_context, amf_smf_msg, NULL, pdu_session_resp, ue_id);
+    rc = RETURNok;
   }
+
+  return rc;
 }
 
 /****************************************************************************

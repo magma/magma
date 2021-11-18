@@ -814,8 +814,8 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   EXPECT_EQ(decode_res, true);
   // build uplinknastransport
 
-  std::string dnn("internet");
-  EXPECT_EQ(dnn, pdu_sess_est_req.dnn.dnn);
+  uint8_t dnn[9] = {0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
+  EXPECT_EQ(0, memcmp(pdu_sess_est_req.dnn.dnn, dnn, pdu_sess_est_req.dnn.len));
 
   buffer = bfromcstralloc(len, "\0");
   bytes  = pdu_sess_est_req.EncodeULNASTransportMsg(
@@ -824,8 +824,10 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   ULNASTransportMsg decode_pdu_sess_est_req = {};
   decode_res = decode_ul_nas_transport_msg(&decode_pdu_sess_est_req, pdu, len);
   EXPECT_EQ(decode_res, true);
-  // build uplinknastransport
-  EXPECT_EQ(dnn, decode_pdu_sess_est_req.dnn.dnn);
+  EXPECT_EQ(
+      0, memcmp(
+             decode_pdu_sess_est_req.dnn.dnn, dnn,
+             decode_pdu_sess_est_req.dnn.len));
   bdestroy(buffer);
 }
 
@@ -871,9 +873,9 @@ TEST(test_dnn, test_amf_validate_dnn) {
   ULNASTransportMsg msg;
   bool decode_res = false;
   memset(&msg, 0, sizeof(ULNASTransportMsg));
-  std::string dnn_string = msg.dnn.dnn;
-  int idx                = 0;
-  bool ue_sent_dnn       = true;
+  std::string dnn_string(reinterpret_cast<char*>(msg.dnn.dnn), msg.dnn.len);
+  int idx          = 0;
+  bool ue_sent_dnn = true;
   // decoding uplink uplink nas transport(pdu session request)
   decode_res = decode_ul_nas_transport_msg(&msg, pdu, len);
   EXPECT_EQ(decode_res, true);
