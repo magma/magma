@@ -180,9 +180,6 @@ func (b *blobstoreStore) CreateOrUpdateControlProxy(tenantID int64, controlProxy
 		Value: []byte(controlProxy),
 	}
 
-	if err != nil {
-		return err
-	}
 	err = store.Write(networkWildcard, blobstore.Blobs{controlProxyBlob})
 	if err != nil {
 		return err

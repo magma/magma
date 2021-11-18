@@ -2,7 +2,6 @@ package storage
 
 import (
 	"errors"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,7 +31,7 @@ var (
 	sampleControlProxy     = "{...}"
 	sampleControlProxyBlob = blobstore.Blob{
 		Type:  tenants.ControlProxyInfoType,
-		Key:   strconv.FormatInt(0, 10),
+		Key:   "3",
 		Value: []byte(sampleControlProxy),
 	}
 )
