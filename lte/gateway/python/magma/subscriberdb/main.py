@@ -25,9 +25,10 @@ from magma.subscriberdb.protocols.diameter.server import S6aServer
 from magma.subscriberdb.protocols.m5g_auth_servicer import M5GAuthRpcServicer
 from magma.subscriberdb.protocols.s6a_proxy_servicer import S6aProxyRpcServicer
 from magma.subscriberdb.rpc_servicer import SubscriberDBRpcServicer
+from magma.subscriberdb.rpc_servicer import SuciProfileDBRpcServicer
 from magma.subscriberdb.store.sqlite import SqliteStore
 from magma.subscriberdb.subscription_profile import get_default_sub_profile
-
+from magma.subscriberdb.protocols.m5g_auth_servicer import M5GSUCIRegRpcServicer
 
 def main():
     """Main routine for subscriberdb service."""  # noqa: D401
@@ -35,6 +36,8 @@ def main():
 
     # Optionally pipe errors to Sentry
     sentry_init(service_name=service.name)
+
+    suciprofile_db = dict()
 
     # Initialize a store to keep all subscriber data.
     store = SqliteStore(
@@ -57,6 +60,13 @@ def main():
         service.config.get('print_grpc_payload', False),
     )
     subscriberdb_servicer.add_to_server(service.rpc_server)
+
+    suciprofilerdb_servicer = SuciProfileDBRpcServicer(
+        store,
+        suciprofile_db,
+        service.config.get('print_grpc_payload', False),
+    )
+    suciprofilerdb_servicer.add_to_server(service.rpc_server)
 
     # Start a background thread to stream updates from the cloud
     if service.config.get('enable_streaming'):
@@ -96,6 +106,15 @@ def main():
                 service.config.get('print_grpc_payload', False),
             )
             m5g_subs_auth_servicer.add_to_server(service.rpc_server)
+
+        if service.config.get('enable5g_features', service.mconfig.enable5g_features):
+            logging.info('Cater to 5G SUPI Registration')
+            m5g_suci_reg_servicer = M5GSUCIRegRpcServicer(
+                processor,
+                suciprofile_db,
+                service.config.get('print_grpc_payload', False),
+            )
+            m5g_suci_reg_servicer.add_to_server(service.rpc_server)
 
         if service.config.get('s6a_over_grpc'):
             logging.info('Running s6a over grpc')

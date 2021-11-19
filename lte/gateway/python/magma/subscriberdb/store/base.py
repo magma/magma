@@ -146,3 +146,20 @@ class DuplicateSubscriberError(Exception):
     to delete the old subscriber and add, or declare an error.
     """
     pass
+
+class SuciProfileNotFoundError(Exception):
+    """
+    Exception thrown when a suciprofile is not present in the store
+    when a query is requested for that suciprofile
+    """
+    pass
+
+
+class DuplicateSuciProfileError(Exception):
+    """
+    Exception thrown when a suciprofile is requested to be added to the store,
+    and the subscriber is already present. The application can choose
+    to delete the old suciprofile and add, or declare an error.
+    """
+    pass
+

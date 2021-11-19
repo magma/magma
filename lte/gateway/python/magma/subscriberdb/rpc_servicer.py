@@ -19,6 +19,19 @@ from magma.common.rpc_utils import print_grpc, return_void
 from magma.subscriberdb.sid import SIDUtils
 
 from .store.base import DuplicateSubscriberError, SubscriberNotFoundError
+from typing import NamedTuple
+from lte.protos.subscriberdb_pb2 import (
+    SuciProfile,
+)
+
+
+suci_profile_data = NamedTuple(
+    'suci_profile_data', [
+        ('protection_scheme', int),
+        ('home_net_public_key', bytes),
+        ('home_net_private_key', bytes),
+    ],
+)
 
 
 class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
@@ -123,5 +136,80 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         print_grpc(
             response, self._print_grpc_payload,
             "List Subscribers Response:",
+        )
+        return response
+
+class SuciProfileDBRpcServicer(subscriberdb_pb2_grpc.SuciProfileDBServicer):
+    """
+    gRPC based server for the SubscriberDB.
+    """
+
+    def __init__(self, store, suciprofile_db: dict, print_grpc_payload: bool = False):
+        """
+        Store should be thread-safe since we use a thread pool for requests.
+        """
+        self._store = store
+        self.suciprofile_db = suciprofile_db
+        self._print_grpc_payload = print_grpc_payload
+
+    def add_to_server(self, server):
+        """
+        Add the servicer to a gRPC server
+        """
+        subscriberdb_pb2_grpc.add_SuciProfileDBServicer_to_server(self, server)
+
+    @return_void
+    def AddSuciProfile(self, request, context):
+        """
+        Adds a suciprofile to the store
+        """
+        print_grpc(request, self._print_grpc_payload, "Add SuciProfile Request:")
+
+        if request.home_net_public_key_id in self.suciprofile_db.keys():
+            logging.warning("home_net_public_key_id:%d already exist", 
+                    request.home_net_public_key_id)
+            context.set_details("Duplicate suciprofile") 
+            context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+            raise grpc.RpcError("Key already exists")
+
+        self.suciprofile_db[request.home_net_public_key_id] = suci_profile_data(
+                    request.protection_scheme, request.home_net_public_key,
+                    request.home_net_private_key)
+
+    @return_void
+    def DeleteSuciProfile(self, request, context):
+        """
+        Adds a subscriber to the store
+        """
+        print_grpc(request, self._print_grpc_payload, "Delete SuciProfile Request:")
+
+        if request.home_net_public_key_id not in self.suciprofile_db.keys():
+            logging.warning("The home_net_public_key_id:%d is not a valid key, try again",
+                        request.home_net_public_key_id)
+            context.set_details("Suciprofile not found")
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            raise grpc.RpcError("Key is invalid")
+        else:
+            del self.suciprofile_db[request.home_net_public_key_id]
+
+    def ListSuciProfile(self, request, context):
+        """
+        Returns a list of suciprofile from the store
+        """
+        print_grpc(
+            request, self._print_grpc_payload,
+            "List Suciprofile Request:",
+        )
+        suciprofiles = []
+        for k, v in self.suciprofile_db.items():
+            suciprofiles.append(SuciProfile(home_net_public_key_id = int(k),
+                        protection_scheme = v.protection_scheme,
+                        home_net_public_key = v.home_net_public_key,
+                        home_net_private_key = v.home_net_private_key))
+
+        response = subscriberdb_pb2.SuciProfileList(sp=suciprofiles)
+        print_grpc(
+            response, self._print_grpc_payload,
+            "List SuciProfile Response:",
         )
         return response
