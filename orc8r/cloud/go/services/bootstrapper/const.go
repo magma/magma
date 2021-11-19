@@ -13,4 +13,10 @@ limitations under the License.
 
 package bootstrapper
 
-const ServiceName = "BOOTSTRAPPER"
+const (
+	ServiceName           = "BOOTSTRAPPER"
+	DBTableName           = "bootstrapper"
+	LogicalIDTokenInfoMap = "logical_id_to_token_info"
+	NonceTokenInfoMap     = "nonce_to_token_info"
+	TokenPrepend          = "reg-"
+)
