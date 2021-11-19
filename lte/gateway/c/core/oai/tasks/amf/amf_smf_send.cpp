@@ -401,6 +401,14 @@ int amf_smf_process_pdu_session_packet(
       rc = handle_sm_message_routing_failure(ue_id, msg, mm_cause);
       return rc;
     }
+    smf_ctx = amf_get_smf_context_by_pdu_session_id(
+      ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
+
+    if (smf_ctx && smf_ctx->duplicate_pdu_session_est_req_count > 1) {
+      OAILOG_DEBUG(
+        LOG_AMF_APP, "Duplicate PDU Session Establishment Request, Dropped");
+      return rc;
+    }
   }
   IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
   if (msg->payload_container.smf_msg.header.message_type ==
@@ -493,6 +501,8 @@ int amf_smf_process_pdu_session_packet(
         M5GMmCause cause_dnn_reject =
             M5GMmCause::DNN_NOT_SUPPORTED_OR_NOT_SUBSCRIBED;
         rc = handle_sm_message_routing_failure(ue_id, msg, cause_dnn_reject);
+        ue_context->amf_context.smf_ctxt_map.erase(
+            msg->payload_container.smf_msg.header.pdu_session_id);
         return rc;
       }
 
@@ -895,7 +905,7 @@ int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
  ***************************************************************************/
 int handle_sm_message_routing_failure(
     amf_ue_ngap_id_t ue_id, ULNASTransportMsg* ulmsg, M5GMmCause m5gmmcause) {
-  nas5g_error_code_t rc    = M5G_AS_FAILURE;
+  nas5g_error_code_t rc    = M5G_AS_SUCCESS;
   DLNASTransportMsg* dlmsg = nullptr;
   uint32_t bytes           = 0;
   uint32_t len             = 0;
@@ -916,7 +926,7 @@ int handle_sm_message_routing_failure(
     OAILOG_ERROR(
         LOG_AMF_APP, "UE Context not found for UE ID: " AMF_UE_NGAP_ID_FMT,
         ue_id);
-    return rc;
+    return M5G_AS_FAILURE;
   }
 
   // Message construction for PDU Establishment Reject
