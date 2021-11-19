@@ -42,8 +42,10 @@ const message_info_t messages_info[] = {
 
 class MockS1apHandler {
  public:
-  MOCK_METHOD0(s1ap_generate_downlink_nas_transport, void());
-  MOCK_METHOD0(s1ap_handle_conn_est_cnf, void());
+  MOCK_METHOD1(
+      s1ap_generate_downlink_nas_transport,
+      void(itti_s1ap_nas_dl_data_req_t cb_req));
+  MOCK_METHOD1(s1ap_handle_conn_est_cnf, void(bstring nas_pdu));
   MOCK_METHOD0(s1ap_handle_ue_context_release_command, void());
 };
 
