@@ -146,6 +146,13 @@
         "ids": [
           "feg/configure_federation"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "nms/nms_organizations"
+        ]
       }
     ],
     "Upgrade": [
