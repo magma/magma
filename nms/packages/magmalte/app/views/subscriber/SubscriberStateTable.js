@@ -52,13 +52,12 @@ const useStyles = makeStyles(theme => ({
 export type SubscriberRowType = {
   name: string,
   imsi: string,
-  activeApns?: string,
-  ipAddresses?: string,
   activeSessions?: number,
   service: string,
   currentUsage: string,
-  dailyAvg: string,
   lastReportedTime: Date | string,
+  emm: string,
+  ecm: string,
 };
 
 type SubscriberSessionRowType = {
@@ -165,30 +164,20 @@ export default function SubscriberStateTable() {
     (imsi: string) => {
       const subscriberInfo = subscriberMap[imsi] || {};
       const metrics = subscriberMetrics?.[`${imsi}`];
-      const subscriber =
+      const subscriberState =
         // $FlowIgnore
-        refreshingSessionState.sessionState?.[imsi]?.subscriber_state || {};
-      const ipAddresses = [];
-      const activeApns = [];
+        refreshingSessionState.sessionState?.[imsi]?.mme || {};
+      const emmVal = subscriberState.mmState;
+      const ecmVal = subscriberState.ecmState;
       let activeSessions = 0;
-      Object.keys(subscriber || {}).forEach(apn => {
-        subscriber[apn].forEach(session => {
-          if (session.lifecycle_state === 'SESSION_ACTIVE') {
-            ipAddresses.push(session?.ipv4);
-            activeSessions++;
-          }
-        });
-        activeApns.push(apn);
-      });
       return {
         name: subscriberInfo.name ?? imsi,
         imsi: imsi,
         service: subscriberInfo.lte?.state || '',
         currentUsage: metrics?.currentUsage ?? '0',
-        activeApns: activeApns.length > 0 ? activeApns.join() : '-',
+        emm: emmVal === 1 ? 'Registered' : 'Deregistered',
+        ecm: ecmVal === 1 ? 'Connected' : 'Idle',
         activeSessions: activeSessions,
-        ipAddress: ipAddresses.length > 0 ? ipAddresses.join() : '-',
-        dailyAvg: metrics?.dailyAvg ?? '0',
         lastReportedTime:
           subscriberInfo.monitoring?.icmp?.last_reported_time === 0
             ? new Date(subscriberInfo.monitoring?.icmp?.last_reported_time)
@@ -198,10 +187,6 @@ export default function SubscriberStateTable() {
   );
 
   const tableColumns = [
-    {
-      title: 'Name',
-      field: 'name',
-    },
     {
       title: 'IMSI',
       field: 'imsi',
@@ -217,6 +202,10 @@ export default function SubscriberStateTable() {
       },
     },
     {
+      title: 'Name',
+      field: 'name',
+    },
+    {
       title: 'Service',
       field: 'service',
       width: 100,
@@ -227,8 +216,13 @@ export default function SubscriberStateTable() {
       width: 175,
     },
     {
-      title: 'Daily Average',
-      field: 'dailyAvg',
+      title: 'EMM',
+      field: 'emm',
+      width: 175,
+    },
+    {
+      title: 'ECM',
+      field: 'ecm',
       width: 175,
     },
     {
@@ -241,14 +235,6 @@ export default function SubscriberStateTable() {
       title: 'Active Sessions',
       field: 'activeSessions',
       width: 175,
-    },
-    {
-      title: 'Active APNs',
-      field: 'activeApns',
-    },
-    {
-      title: 'Session IP Address',
-      field: 'ipAddress',
     },
   ];
   const onClose = () => setJsonDialog(false);
