@@ -38,9 +38,6 @@ import (
 	"magma/orc8r/cloud/api/v1/go/client/subscribers"
 	"magma/orc8r/cloud/api/v1/go/client/tenants"
 	"magma/orc8r/cloud/api/v1/go/client/upgrades"
-	"magma/orc8r/cloud/api/v1/go/client/wifi_gateways"
-	"magma/orc8r/cloud/api/v1/go/client/wifi_meshes"
-	"magma/orc8r/cloud/api/v1/go/client/wifi_networks"
 )
 
 // Default magma HTTP client.
@@ -140,12 +137,6 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Magma {
 
 	cli.Upgrades = upgrades.New(transport, formats)
 
-	cli.WifiGateways = wifi_gateways.New(transport, formats)
-
-	cli.WifiMeshes = wifi_meshes.New(transport, formats)
-
-	cli.WifiNetworks = wifi_networks.New(transport, formats)
-
 	return cli
 }
 
@@ -244,12 +235,6 @@ type Magma struct {
 
 	Upgrades *upgrades.Client
 
-	WifiGateways *wifi_gateways.Client
-
-	WifiMeshes *wifi_meshes.Client
-
-	WifiNetworks *wifi_networks.Client
-
 	Transport runtime.ClientTransport
 }
 
@@ -310,11 +295,5 @@ func (c *Magma) SetTransport(transport runtime.ClientTransport) {
 	c.Tenants.SetTransport(transport)
 
 	c.Upgrades.SetTransport(transport)
-
-	c.WifiGateways.SetTransport(transport)
-
-	c.WifiMeshes.SetTransport(transport)
-
-	c.WifiNetworks.SetTransport(transport)
 
 }
