@@ -16,6 +16,7 @@ import logging
 from typing import List, NamedTuple, Optional
 
 import grpc
+from lte.protos import subscriberdb_pb2
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.s6a_service_pb2_grpc import S6aServiceStub
 from lte.protos.subscriberdb_pb2 import (
@@ -23,6 +24,7 @@ from lte.protos.subscriberdb_pb2 import (
     ListSubscribersRequest,
     LTESubscription,
     SubscriberData,
+    SuciProfile,
     SyncRequest,
 )
 from magma.common.grpc_client_manager import GRPCClientManager
@@ -51,6 +53,19 @@ ProcessedChangeset = NamedTuple(
     ],
 )
 
+CloudSuciProfilesInfo = NamedTuple(
+    'CloudSuciProfilesInfo', [
+        ('sp', List[SuciProfile]),
+    ],
+)
+
+suci_profile_data = NamedTuple(
+    'suci_profile_data', [
+        ('protection_scheme', int),
+        ('home_network_public_key', bytes),
+        ('home_network_private_key', bytes),
+    ],
+)
 
 class SubscriberDBCloudClient(SDWatchdogTask):
     """
@@ -70,6 +85,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         subscriber_page_size: int,
         sync_interval: int,
         grpc_client_manager: GRPCClientManager,
+
     ):
         """
         Initialize subscriberdb client
@@ -90,11 +106,18 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         self._loop = loop
         self._subscriber_page_size = subscriber_page_size
         self._store = store
+        suciprofile_db = dict()
+        self.suciprofile_db = suciprofile_db
 
         # grpc_client_manager to manage grpc client recycling
         self._grpc_client_manager = grpc_client_manager
 
     async def _run(self) -> None:
+
+        suciprofiles_info = await self._list_suciprofiles()
+        if suciprofiles_info is None:
+            return
+
         in_sync = await self._check_subscribers_in_sync()
         if in_sync:
             return
@@ -107,7 +130,6 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         if subscribers_info is None:
             return
 
-        # Process subscriber data before digest data, in case there's a gateway
         # failure between the calls
         self._process_subscribers(subscribers_info.subscribers)
         self._update_root_digest(subscribers_info.root_digest)
@@ -244,6 +266,47 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         )
         return subscribers_info
 
+    async def _list_suciprofiles(self) -> Optional[CloudSuciProfilesInfo]:
+        subscriberdb_cloud_client = self._grpc_client_manager.get_client()
+        sp = SuciProfile()
+        while not sp:
+
+            try:
+                res = await grpc_async_wrapper(
+                    subscriberdb_cloud_client.ListSuciProfiles.future(
+                        self.SUBSCRIBERDB_REQUEST_TIMEOUT,
+                    ),
+                    self._loop,
+                )
+                self.suciprofile_db[res.home_net_public_key_id] = suci_profile_data(
+                            res.protection_scheme, res.home_net_public_key,
+                            res.home_net_private_key)
+
+                suciprofiles = []
+                for k, v in self.suciprofile_db.items():
+                    suciprofiles.append(SuciProfile(home_network_public_key_identifier = int(k),
+                                protection_scheme = v.protection_scheme,
+                                home_network_public_key = v.home_network_public_key,
+                                home_network_private_key = v.home_network_private_key))
+                logging.info("List of suciprofiles: %s", suciprofiles)
+                res = subscriberdb_pb2.SuciProfileList(sp=suciprofiles)
+                return res
+
+            except grpc.RpcError as err:
+                logging.error(
+                    "Fetch suci profiles error! [%s] %s", err.code(),
+                    err.details(),
+                )
+                return None
+            logging.info(
+                "Successfully fetched all suciprofiles "
+                "pages from the cloud!",
+            )
+        suciprofiles_info = CloudSuciProfilesInfo(
+            sp=sp,
+        )
+        return suciprofiles_info
+
     def _process_changeset(self, changeset: Optional[Changeset]) -> ProcessedChangeset:
         if changeset is None:
             return ProcessedChangeset(to_renew=[], deleted=[])
@@ -275,7 +338,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         if leaf_digests is None:
             return
         self._store.update_leaf_digests(leaf_digests)
-
+    
     def _process_subscribers(self, subscribers: List[SubscriberData]) -> None:
         active_subscriber_ids = []
         sids = []
@@ -289,7 +352,8 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         self._detach_deleted_subscribers(old_sub_ids, active_subscriber_ids)
         logging.debug("Resync with subscribers: %s", ','.join(sids))
         self._store.resync(subscribers)
-
+    
+        
     def _detach_deleted_subscribers(self, old_sub_ids, new_sub_ids):
         """
         Detach deleted subscribers from store and network.

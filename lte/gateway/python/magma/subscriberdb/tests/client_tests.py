@@ -13,6 +13,7 @@ limitations under the License.
 
 # pylint: disable=protected-access
 import asyncio
+import logging
 import tempfile
 import unittest
 from concurrent import futures
@@ -28,6 +29,8 @@ from lte.protos.subscriberdb_pb2 import (
     ListSubscribersResponse,
     SubscriberData,
     SubscriberID,
+    SuciProfile,
+    SuciProfileList,
     SyncRequest,
     SyncResponse,
 )
@@ -188,7 +191,16 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
             ),
         )
 
-
+    def ListSuciProfiles(self, request, context) -> SuciProfileList:
+        sp = SuciProfile()
+        logging.error("List suci profiles TC")
+        if request.home_network_public_identifier < 0:
+            raise grpc.RpcError("Test Exception")
+        else:
+            return SuciProfileList(
+               sp=sp,    
+            )
+        
 class SubscriberDBCloudClientTests(unittest.TestCase):
     """Tests for the SubscriberDBCloudClient"""
 
@@ -197,6 +209,11 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
         # Create sqlite3 database for testing
         self._tmpfile = tempfile.TemporaryDirectory()
         self.loop = asyncio.new_event_loop()
+        #home_network_public_key_identifier = SuciProfile.home_network_public_key_identifier
+        #home_network_public_key=SuciProfile.home_network_public_key,
+        #home_network_private_key=SuciProfile.home_network_private_key,
+        #protection_scheme=SuciProfile.protection_scheme,
+
         asyncio.set_event_loop(self.loop)
         store = SqliteStore(
             '{filename}{slash}'.format(
@@ -204,6 +221,7 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
                 slash='/',
             ),
         )
+        #suciprofile_db = dict()
 
         ServiceRegistry.add_service('test', '0.0.0.0', 0)  # noqa: S104
         ServiceRegistry._PROXY_CONFIG = {
@@ -247,8 +265,13 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
         self.subscriberdb_cloud_client = SubscriberDBCloudClient(
             loop=self.service.loop,
             store=store,
+            #suciprofile_db=self.suciprofile_db,
             subscriber_page_size=2,
             sync_interval=10,
+            #home_network_public_key_identifier=home_network_public_key_identifier,
+            #home_network_public_key=home_network_public_key,
+            #home_network_private_key=home_network_private_key,
+            #protection_scheme=protection_scheme,
             grpc_client_manager=grpc_client_manager,
         )
         self.subscriberdb_cloud_client.start()
@@ -288,6 +311,13 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
             ),
         ]
 
+    @ unittest.mock.patch(
+        'magma.common.service_registry.ServiceRegistry.get_rpc_channel',
+    )
+    def list_suci_profiles(self):
+        return [
+            SuciProfileList(self.suciprofile_db.items())
+        ]
     @ unittest.mock.patch(
         'magma.common.service_registry.ServiceRegistry.get_rpc_channel',
     )
@@ -407,6 +437,25 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
     @ unittest.mock.patch(
         'magma.common.service_registry.ServiceRegistry.get_rpc_channel',
     )
+    
+        #def test_sync_suciprofiles(self, get_grpc_mock):
+        #async def test():  # noqa: WPS430
+        #    get_grpc_mock.return_value = self.channel
+        #    res = (
+        #        await.self.subscriberdb_cloud_client._sync_suciprofiles()
+        #    )
+        #    self.assertEqual(False, res)
+        #    self.subscriberdb_cloud_client._suciprofile_db.home_network_public_key_identifier()
+        #    res = (
+        #        await self.subscriberdb_cloud_client._sync_suciprofiles()
+        #    )
+        #    self.assertEqual(True, res)
+        #self.subscriberdb_cloud_client._periodic_task.cancel()
+        #self.loop.run_until_complete(test())
+    #@ unittest.mock.patch(
+    #    'magma.common.service_registry.ServiceRegistry.get_rpc_channel',
+    #)
+
     def test_sync_subscribers(self, get_grpc_mock):
         """
         Test Sync RPC success
