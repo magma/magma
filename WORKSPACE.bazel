@@ -10,7 +10,7 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("//:third_party_repositories.bzl", "grpc", "protobuf")
+load("//bazel:third_party_repositories.bzl", "grpc", "protobuf")
 
 ### BUILDIFIER DEPENDENCIES
 # See https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md
@@ -36,9 +36,9 @@ http_archive(
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
-load("//:go_repositories.bzl", "go_repositories")
+load("//bazel:go_repositories.bzl", "go_repositories")
 
-# gazelle:repository_macro go_repositories.bzl%go_repositories
+# gazelle:repository_macro bazel/go_repositories.bzl%go_repositories
 go_repositories()
 
 go_rules_dependencies()
@@ -115,7 +115,7 @@ load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 grpc_deps()
 ### PROTO / GRPC DEPENDENCIES ###
 
-load("//:cpp_repositories.bzl", "cpp_repositories")
+load("//bazel:cpp_repositories.bzl", "cpp_repositories")
 
 cpp_repositories()
 
@@ -127,6 +127,6 @@ boost_deps()
 # This assumes that the build is done in the Docker container or VBox VM
 new_local_repository(
     name = "system_libraries",
-    build_file = "//third_party:system_libraries.BUILD",
+    build_file = "//bazel/external:system_libraries.BUILD",
     path = "/",
 )

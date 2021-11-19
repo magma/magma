@@ -49,7 +49,7 @@ def cpp_repositories():
 
     http_archive(
         name = "github_nlohmann_json",
-        build_file = "//third_party:nlohmann_json.BUILD",
+        build_file = "//bazel/external:nlohmann_json.BUILD",
         sha256 = "69cc88207ce91347ea530b227ff0776db82dcb8de6704e1a3d74f4841bc651cf",
         urls = ["https://github.com/nlohmann/json/releases/download/v3.6.1/include.zip"],
     )
@@ -57,7 +57,7 @@ def cpp_repositories():
     # prometheus_cpp dependency
     new_git_repository(
         name = "prometheus_client_model",
-        build_file = "//:third_party/prometheus_client_model.BUILD",
+        build_file = "//bazel/external:prometheus_client_model.BUILD",
         # Used what master was around when D6071833@fb was authored (Oct 18, 2017)
         # The metrics.proto pulled here should match what we have in orc8r/protos/prometheus/metrics.proto
         commit = "fa8ad6fec33561be4280a8f0514318c79d7f6cb6",
@@ -68,7 +68,7 @@ def cpp_repositories():
     # prometheus_cpp dependency
     new_git_repository(
         name = "civetweb",
-        build_file = "//:third_party/civetweb.BUILD",
+        build_file = "//bazel/external:civetweb.BUILD",
         commit = "fbdee7440be24f904208c15a1fc9e2582b866049",
         remote = "https://github.com/civetweb/civetweb.git",
         shallow_since = "1474835570 +0200",
@@ -94,7 +94,7 @@ def cpp_repositories():
         sha256 = "3859289d8254685fc775bda73de03dad27df923423b8ceb375b02d036c03b02f",
         strip_prefix = "cpp_redis-4.3.1",
         # TODO(@themarwhal): We do not need a custom BUILD file if we upgrade to a more recent version of cpp_redis - GH8321
-        build_file = "//third_party:cpp_redis.BUILD",
+        build_file = "//bazel/external:cpp_redis.BUILD",
         url = "https://github.com/cpp-redis/cpp_redis/archive/refs/tags/4.3.1.tar.gz",
     )
 
@@ -107,7 +107,7 @@ def cpp_repositories():
 
     new_git_repository(
         name = "sentry_native",
-        build_file = "//third_party:sentry_native.BUILD",
+        build_file = "//bazel/external:sentry_native.BUILD",
         # 0.4.12 tag
         commit = "3436a29d839aa7437548be940ab62a85ca699635",
         # This is important, we pull in get_sentry/breakpad this way

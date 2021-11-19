@@ -26,7 +26,7 @@ Notes:
 When updating or adding a new dependency, run
 
 ```sh
-bazel run //:gazelle -- update-repos -from_file=src/go/go.mod -to_macro=go_repositories.bzl%go_repositories
+bazel run //:gazelle -- update-repos -from_file=src/go/go.mod -to_macro=bazel/go_repositories.bzl%go_repositories
 ```
 
 To generate BUILD.bazel files, run
