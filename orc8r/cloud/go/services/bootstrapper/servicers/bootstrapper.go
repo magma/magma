@@ -51,6 +51,8 @@ const TimeLength = 8 // length of time encoded in byte array from int64
 const MinKeyLength = 1024
 const GatewayCertificateDuration = time.Hour * 97 // 4 days, lifetime of GW Certificate
 
+const signedChallengeMismatch = "signed challenge doesn't match; ensure gateway challenge key matches the one provisioned at Orc8r"
+
 var (
 	bootstrapAttempts = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -252,9 +254,12 @@ func verifySoftwareRSASHA256(resp *protos.Response, key []byte) error {
 	}
 
 	hashed := sha256.Sum256(resp.Challenge)
-	err = rsa.VerifyPKCS1v15(
-		publicKey.(*rsa.PublicKey), crypto.SHA256, hashed[:], response.Signature)
-	return err
+	err = rsa.VerifyPKCS1v15(publicKey.(*rsa.PublicKey), crypto.SHA256, hashed[:], response.Signature)
+	if err != nil {
+		return errors.Wrap(err, signedChallengeMismatch)
+	}
+
+	return nil
 }
 
 // verify response with ecdsa signature ahd sha256 hash
@@ -274,8 +279,9 @@ func verifySoftwareECDSASHA256(resp *protos.Response, key []byte) error {
 	s.SetBytes(response.S)
 	hashed := sha256.Sum256(resp.Challenge)
 	if !ecdsa.Verify(publicKey.(*ecdsa.PublicKey), hashed[:], &r, &s) {
-		return fmt.Errorf("Wrong response")
+		return fmt.Errorf(signedChallengeMismatch)
 	}
+
 	return nil
 }
 
