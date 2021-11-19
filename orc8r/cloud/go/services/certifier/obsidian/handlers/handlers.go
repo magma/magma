@@ -23,7 +23,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/certifier"
-	certProto "magma/orc8r/cloud/go/services/certifier/protos"
+	certProtos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 )
 
@@ -56,6 +56,7 @@ func getListHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.HandlerF
 	}
 }
 
+// TODO(christinewang5): should not be able to create users that already exist
 func getCreateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		data := make(map[string]interface{})
@@ -76,21 +77,21 @@ func getCreateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.Handle
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error generating personal access token for operator: %v", err))
 		}
 
-		operator := &certProto.Operator{
+		operator := &certProtos.Operator{
 			Username: username,
 			Password: hashedPassword,
-			Tokens:   &certProto.Operator_TokenList{Token: []string{token}},
+			Tokens:   &certProtos.Operator_TokenList{Token: []string{token}},
 		}
 		if err = storage.PutHTTPBasicAuth(username, operator); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 
 		// TODO(christinewang5): remove this once bootstrapping is finished...
-		policy := &certProto.Policy{
+		policy := &certProtos.Policy{
 			Token:     token,
-			Effect:    certProto.Effect_ALLOW,
-			Action:    certProto.Action_WRITE,
-			Resources: &certProto.Policy_ResourceList{Resource: []string{"*"}},
+			Effect:    certProtos.Effect_ALLOW,
+			Action:    certProtos.Action_WRITE,
+			Resources: &certProtos.Policy_ResourceList{Resource: []string{"*"}},
 		}
 		if err = storage.PutPolicy(token, policy); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -119,7 +120,7 @@ func getUpdateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.Handle
 		}
 
 		// update new operator blob
-		newOperator := &certProto.Operator{
+		newOperator := &certProtos.Operator{
 			Username: username,
 			Password: hashedPassword,
 			Tokens:   operator.Tokens,

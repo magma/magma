@@ -31,7 +31,6 @@ info:
   description: Magma REST APIs
   version: 1.0.0
 
-
 basePath: /magma/v1
 
 consumes:

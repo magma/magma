@@ -19,7 +19,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"math/big"
-	"path/filepath"
+	"path"
 	"strings"
 	"time"
 
@@ -484,17 +484,16 @@ func (srv *CertifierServer) GetPolicyDecision(ctx context.Context, getPDReq *cer
 		// return the policy decision once we encounter the first allow or deny
 		// TODO(christinewang5) hmm which one would take precedent if multiple polices for the same resource?
 		switch effect {
-		case certprotos.Effect_ALLOW:
-		case certprotos.Effect_DENY:
+		case certprotos.Effect_ALLOW, certprotos.Effect_DENY:
 			return &certprotos.PolicyDecision{Effect: effect}, nil
 		default:
 			continue
 		}
 	}
-	return nil, nil
+	// default to unknown if no policy permits
+	return &certprotos.PolicyDecision{Effect: certprotos.Effect_DENY}, nil
 }
 
-// check if the request
 func (srv *CertifierServer) getPolicyDecisionFromToken(token string, resource string, action certprotos.Action) (certprotos.Effect, error) {
 	policy, err := srv.store.GetPolicy(token)
 	if err != nil {
@@ -509,7 +508,19 @@ func (srv *CertifierServer) getPolicyDecisionFromToken(token string, resource st
 	}
 	// checks if user can read/write the resource
 	effect = checkAction(action, policy)
+
 	return effect, nil
+}
+
+// TODO(christinewang5): lol is this sketchy
+func buildPatternHelper(pattern string, resource string) string {
+	patternComponents := strings.Split(pattern, "/")
+	resourceComponents := strings.Split(resource, "/")
+	lenDiff := len(resourceComponents) - len(patternComponents)
+	if lenDiff != 0 {
+		return pattern + strings.Repeat("/*", lenDiff)
+	}
+	return pattern
 }
 
 // checkResource checks if the requested resource is authorized by the policy
@@ -517,9 +528,9 @@ func checkResource(resource string, policy *certprotos.Policy) (certprotos.Effec
 	effect := policy.GetEffect()
 	// checks if any of policy's resource list allows/denies the requested resource
 	for _, pr := range policy.GetResources().GetResource() {
-		// TODO(christinewang5): kind of abusing the notion of filepaths here but oh well
-		if ok, err := filepath.Match(resource, pr); ok {
-			return effect, err
+		pattern := buildPatternHelper(pr, resource)
+		if ok, err := path.Match(pattern, resource); ok {
+			return effect, nil
 		} else {
 			glog.Errorf("failed to match resource path %v", err)
 		}

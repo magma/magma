@@ -107,6 +107,7 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := c.Request()
 		header := req.Header.Get(CLIENT_ACCESS_TOKEN_KEY)
+
 		// TODO(christinewang5): remove after bootstrapping admin token
 		// if len(tokens) == 0 {
 		// 	return echo.NewHTTPError(http.StatusUnauthorized, "missing REST client tokens")
@@ -119,7 +120,6 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if err := certifier.ValidateToken(token); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
-		glog.Errorf("christine succesfully validated token")
 
 		// make sure that token is registered with user
 		getOpReq := certifierprotos.GetOperatorRequest{
@@ -128,24 +128,21 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		tokensList, err := certifier.GetOperatorTokens(req.Context(), &getOpReq)
 		if err != nil {
-			glog.Errorf("christine GetOperatorTokens err %v", err)
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
-		glog.Errorf("christine got tokenList %v", tokensList)
 
 		// take tokenList, request type, resource and exchange for permission decision
 		requestType := getRequestAction(req, nil)
 		resource := req.RequestURI
-		getPDReq := &certifierprotos.GetPolicyDecisionRequest{
+		getPDReq := certifierprotos.GetPolicyDecisionRequest{
 			TokenList:     tokensList,
 			RequestAction: requestType,
 			Resource:      resource,
 		}
-		pd, err := certifier.GetPolicyDecision(req.Context(), getPDReq)
+		pd, err := certifier.GetPolicyDecision(req.Context(), &getPDReq)
 		if err != nil || pd.Effect == certifierprotos.Effect_DENY {
-			return echo.NewHTTPError(http.StatusUnauthorized, err)
+			return echo.NewHTTPError(http.StatusForbidden, err)
 		}
-
 		if next != nil {
 			glog.V(4).Info("Access middleware successfully verified permissions. Sending request to the next middleware.")
 			return next(c)

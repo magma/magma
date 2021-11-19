@@ -24,8 +24,6 @@ import (
 // a Swagger spec and merges them together to return a combined spec.
 func GetCombinedSpec(yamlCommon string) (string, error) {
 	servicers, err := GetSpecServicers()
-	// TODO(christinewang5): remove?
-	glog.Infof("GetCombinedSpec Servicers: %+v", servicers)
 	if err != nil {
 		return "", err
 	}

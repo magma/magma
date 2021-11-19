@@ -17,15 +17,19 @@ import (
 	"net/http"
 	"testing"
 
+	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/obsidian/access"
+	certifier_test_service "magma/orc8r/cloud/go/services/certifier/test_init"
+	"magma/orc8r/cloud/go/services/certifier/test_utils"
+
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 
-	"magma/orc8r/cloud/go/obsidian/access"
 	tenantsh "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
 )
 
 func TestMiddlewareWithoutCertifier(t *testing.T) {
-	e := startTestMidlewareServer(t)
+	e := startTestMiddlewareServer(t)
 
 	listener := WaitForTestServer(t, e)
 
@@ -43,15 +47,46 @@ func TestMiddlewareWithoutCertifier(t *testing.T) {
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, 503, s)
+}
 
+func TestAuthMiddleware(t *testing.T) {
+	// set up auth middleware by creating root user, non-admin user bob, and their respective policies
+	certifier_test_service.StartTestService(t)
+	store := test_utils.GetCertifierBlobstore(t)
+	bob := "bob"
+	root := "root"
+	bobUser, bobToken := test_utils.CreateTestUser(t, bob, "password")
+	rootUser, rootToken := test_utils.CreateTestUser(t, root, "password")
+	err := store.PutHTTPBasicAuth(bob, &bobUser)
+	err = store.PutHTTPBasicAuth(root, &rootUser)
+	bobPolicy := test_utils.CreateUserPolicy(t, bobToken)
+	rootPolicy := test_utils.CreateAdminPolicy(t, rootToken)
+	err = store.PutPolicy(bobToken, &bobPolicy)
+	err = store.PutPolicy(rootToken, &rootPolicy)
+	assert.NoError(t, err)
+
+	e := startTestMiddlewareServer(t)
+	// TODO(christinewang5): eventually test with certificate middleware
+	e.Use(access.TokenMiddleware)
+	listener := WaitForTestServer(t, e)
+	if listener == nil {
+		return
+	}
+	urlPrefix := "http://" + listener.Addr().String()
+	testNetworkURLRoot := urlPrefix + "/magma/v1/networks"
+	s, err := SendRequestWithToken("GET", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, root, rootToken)
+	assert.NoError(t, err)
+	assert.Equal(t, 200, s)
+	s, err = SendRequestWithToken("GET", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, bob, bobToken)
+	assert.NoError(t, err)
+	assert.Equal(t, 403, s)
 }
 
 func TestMiddleware(t *testing.T) {
-
 	operCertSn, superCertSn := MockAccessControl(t)
 
-	e := startTestMidlewareServer(t)
-
+	e := startTestMiddlewareServer(t)
+	e.Use(access.CertificateMiddleware) // inject obsidian access control middleware
 	listener := WaitForTestServer(t, e)
 
 	if listener == nil {
@@ -214,55 +249,39 @@ func TestMiddleware(t *testing.T) {
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, 200, s)
-
 }
 
-func startTestMidlewareServer(t *testing.T) *echo.Echo {
+func startTestMiddlewareServer(t *testing.T) *echo.Echo {
 	e := echo.New()
-
 	assert.NotNil(t, e)
 
-	// Endpoint requiring Network Wildcard READ Access Permissions
-	e.GET(RegisterNetworkV1, func(c echo.Context) error {
+	dummyHandlerFunc := func(c echo.Context) error {
 		return c.String(http.StatusOK, "All good!")
-	})
+	}
+
+	// Endpoint requiring Network Wildcard READ Access Permissions
+	e.GET(RegisterNetworkV1, dummyHandlerFunc)
 
 	// Endpoint requiring Network Wildcard WRITE Access Permissions
-	e.POST(RegisterNetworkV1, func(c echo.Context) error {
-		return c.String(http.StatusOK, "")
-	})
+	e.POST(RegisterNetworkV1, dummyHandlerFunc)
 
 	// Endpoint requiring a specific Network READ Entity Access Permissions
-	e.GET(ManageNetworkV1, func(c echo.Context) error {
-		return c.String(http.StatusOK, "All good!")
-	})
+	e.GET(ManageNetworkV1, dummyHandlerFunc)
 
 	// Endpoint requiring a specific Network WRITE Entity Access Permissions
-	e.PUT(ManageNetworkV1, func(c echo.Context) error {
-		return c.String(http.StatusOK, "")
-	})
+	e.PUT(ManageNetworkV1, dummyHandlerFunc)
 
 	// Endpoint requiring supervisor permissions
-	e.GET("/malformed/url", func(c echo.Context) error {
-		return c.String(http.StatusOK, "All good!")
-	})
+	e.GET("/malformed/url", dummyHandlerFunc)
 
 	// Endpoint requiring Write supervisor permissions
-	e.PUT("/malformed/url", func(c echo.Context) error {
-		return c.String(http.StatusOK, "!")
-	})
+	e.PUT("/malformed/url", dummyHandlerFunc)
 
 	// Tenants Endpoint requiring Network Wildcard WRITE access permissions
-	e.POST(tenantsh.TenantInfoURL, func(c echo.Context) error {
-		return c.String(http.StatusOK, "All good!")
-	})
+	e.POST(tenantsh.TenantInfoURL, dummyHandlerFunc)
 
 	// Tenants Endpoint requiring Network Wildcard READ access permissions
-	e.GET(tenantsh.TenantInfoURL, func(c echo.Context) error {
-		return c.String(http.StatusOK, "All good!")
-	})
-
-	e.Use(access.CertificateMiddleware) // inject obsidian access control middleware
+	e.GET(tenantsh.TenantInfoURL, dummyHandlerFunc)
 
 	go func(t *testing.T) {
 		assert.NoError(t, e.Start(""))
