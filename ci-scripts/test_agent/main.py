@@ -10,7 +10,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 import time
 
 from FirebaseClient import FirebaseClient
@@ -63,7 +62,6 @@ def main():
                 testers_state.append(
                     {"state": tester.get_state(), "current_workload": None}
                 )
-
         db_client.update_worker_state(num_of_testers, testers_state)
         time.sleep(15)
 

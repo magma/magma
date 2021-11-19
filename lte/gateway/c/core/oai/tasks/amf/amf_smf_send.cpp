@@ -38,6 +38,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
 
 using magma5g::AsyncM5GMobilityServiceClient;
 using magma5g::AsyncSmfServiceClient;
@@ -268,7 +269,7 @@ int pdu_session_resource_release_complete(
 
   if (smf_ctx->pdu_address.pdn_type == IPv4) {
     // Clean up the Mobility IP Address
-    AsyncM5GMobilityServiceClient::getInstance().release_ipv4_address(
+    AMFClientServicer::getInstance().release_ipv4_address(
         imsi, reinterpret_cast<const char*>(smf_ctx->apn),
         &(smf_ctx->pdu_address.ipv4_address));
   }
@@ -484,11 +485,12 @@ int amf_smf_process_pdu_session_packet(
       bool ue_sent_dnn = true;
       std::string dnn_string;
 
-      if (msg->dnn.dnn.empty()) {
+      if (msg->dnn.len <= 0) {
         ue_sent_dnn = false;
         dnn_string  = default_dnn;
       } else {
-        dnn_string = msg->dnn.dnn;
+        dnn_string.assign(
+            reinterpret_cast<char*>(msg->dnn.dnn), msg->dnn.len - 1);
       }
 
       int validate = amf_validate_dnn(
@@ -509,7 +511,8 @@ int amf_smf_process_pdu_session_packet(
       } else {
         OAILOG_INFO(
             LOG_AMF_APP,
-            "DNN mismatch or DNN missing, reject with a cause: 91 \n");
+            "DNN is not Supported or not Subscribed, reject with a cause: 91 "
+            "\n");
         M5GMmCause cause_dnn_reject =
             M5GMmCause::DNN_NOT_SUPPORTED_OR_NOT_SUBSCRIBED;
         rc = handle_sm_message_routing_failure(ue_id, msg, cause_dnn_reject);
@@ -583,7 +586,7 @@ M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
   the external DNN because the DNN was not included
   although required or if the DNN could not be resolved.
   */
-  if (msg->dnn.dnn.empty() &&
+  if (msg->dnn.len == 0 &&
       (ue_context->amf_context.apn_config_profile.nb_apns == 0)) {
     cause = M5GSmCause::MISSING_OR_UNKNOWN_DNN;
     return cause;
@@ -677,7 +680,7 @@ int amf_validate_dnn(
   if (dnn_string.empty()) {
     return RETURNok;
   }
-  for (int i = 0; i < MAX_APN_PER_UE; i++) {
+  for (uint8_t i = 0; i < amf_ctxt_p->apn_config_profile.nb_apns; i++) {
     if (strcmp(
             amf_ctxt_p->apn_config_profile.apn_configuration[i]
                 .service_selection,
