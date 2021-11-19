@@ -62,43 +62,102 @@ Additional prerequisites for developers can be found in the <a href="/magma/docs
 To develop on a <strong>Linux OS</strong>, the package manager (brew for macOS) will need to be replaced by the appropriate package manager for the respective Linux distribution (e.g. apt, yum, etc.).
 <strong>Windows OS</strong> is currently <em>not</em> supported as developing environment, due to some dependencies on Linux-only tools during setup, such as Ansible or <code>fcntl</code>. You can try to use a <a href="/magma/docs/next/contributing/contribute_vscode#open-a-devcontainer-workspace-with-github-codespaces">DevContainer setup</a> though.</p>
 <h2><a class="anchor" aria-hidden="true" id="development-tools"></a><a href="#development-tools" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Development Tools</h2>
-<p>Install the following tools:</p>
+<p>Development can occur from multiple OS's, where <strong>macOS</strong> and <strong>Ubuntu</strong> are <strong>explicitly supported</strong>, with additional polish for macOS.</p>
+<p><strong>Note:</strong> If you still want to contribute from a different OS, you will need to figure out some workarounds to install the tooling. You might want to follow one of the guides, either macOS or Ubuntu, and replicate the steps in your preferred OS.</p>
+<h3><a class="anchor" aria-hidden="true" id="macos"></a><a href="#macos" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>macOS</h3>
+<ol>
+<li><p>Install the following tools</p>
 <ol>
 <li><a href="https://www.docker.com">Docker</a> and Docker Compose</li>
-<li><a href="https://brew.sh/">Homebrew</a> <em>only</em> for macOS users</li>
+<li><a href="https://brew.sh/">Homebrew</a></li>
 <li><a href="https://www.virtualbox.org/">VirtualBox</a></li>
 <li><a href="https://vagrantup.com">Vagrant</a></li>
 </ol>
-<p>Replace <code>brew</code> with your OS-appropriate package manager as necessary, or see
-the <a href="https://github.com/pyenv/pyenv#installation">pyenv installation instructions</a>.</p>
 <pre><code class="hljs css language-bash">brew install go@1.13 pyenv
-
 <span class="hljs-comment"># <span class="hljs-doctag">NOTE:</span> this assumes you're using zsh.</span>
 <span class="hljs-comment"># See the above pyenv install instructions if using alternative shells.</span>
 <span class="hljs-built_in">echo</span> <span class="hljs-string">'export PATH="/usr/local/opt/go@1.13/bin:$PATH"'</span> &gt;&gt; ~/.zshrc
 <span class="hljs-built_in">echo</span> <span class="hljs-string">'eval "$(pyenv init --path)"'</span> &gt;&gt; ~/.zprofile
 <span class="hljs-built_in">echo</span> <span class="hljs-string">'eval "$(pyenv init -)"'</span> &gt;&gt; ~/.zshrc
 <span class="hljs-built_in">exec</span> <span class="hljs-variable">$SHELL</span>
-
 <span class="hljs-comment"># IMPORTANT: close your terminal tab and open a new one before continuing</span>
-
 pyenv install 3.8.10
 pyenv global 3.8.10
-
 pip3 install ansible fabric3 jsonpickle requests PyYAML
 vagrant plugin install vagrant-vbguest
 </code></pre>
 <p><strong>Note</strong>: In the case where installation of <code>fabric3</code> through pip was unsuccessful,
-try switching to other package installers. For example, for macOS users, try
-running <code>brew install fabric</code>.</p>
-<p>If you are on macOS, you should start Docker for Mac and increase the memory
+try switching to other package installers. Try running <code>brew install fabric</code>.</p>
+<p>You should start Docker Desktop and increase the memory
 allocation for the Docker engine to at least 4GB (Preferences -&gt; Resources -&gt;
 Advanced). If you are running into build/test failures with Go that report
 &quot;signal killed&quot;, you likely need to increase Docker's allocated resources.</p>
-<p><img src="/magma/docs/assets/docker-config.png" alt="Increasing docker engine resources"></p>
+<p><img src="/magma/docs/assets/docker-config.png" alt="Increasing docker engine resources"></p></li>
+</ol>
+<h3><a class="anchor" aria-hidden="true" id="ubuntu"></a><a href="#ubuntu" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Ubuntu</h3>
+<ol>
+<li><p>Install the following tools</p>
+<ol>
+<li><a href="https://docs.docker.com/engine/install/ubuntu/">Docker</a> and <a href="https://docs.docker.com/compose/install/">Docker Compose</a></li>
+<li><a href="https://www.virtualbox.org/wiki/Linux_Downloads">VirtualBox</a></li>
+<li><a href="https://www.vagrantup.com/downloads">Vagrant</a></li>
+</ol></li>
+<li><p>Install golang version 13.</p>
+<ol>
+<li><p>Download the tar file.</p>
+<pre><code class="hljs css language-bash">wget https://golang.org/dl/go1.13.15.linux-amd64.tar.gz
+</code></pre></li>
+<li><p>Extract the archive you downloaded into <code>/usr/local</code>, creating a Go tree in <code>/usr/local/go</code>.</p>
+<pre><code class="hljs css language-bash">sudo rm -rf /usr/<span class="hljs-built_in">local</span>/go &amp;&amp; sudo tar -C /usr/<span class="hljs-built_in">local</span> -xzf go1.13.15.linux-amd64.tar.gz
+</code></pre></li>
+<li><p>Add <code>/usr/local/go/bin</code> to the PATH environment variable.</p>
+<pre><code class="hljs css language-bash"><span class="hljs-built_in">export</span> PATH=<span class="hljs-variable">$PATH</span>:/usr/<span class="hljs-built_in">local</span>/go/bin
+</code></pre></li>
+<li><p>Verify that you've installed Go by opening a command prompt and typing the following command</p>
+<pre><code class="hljs css language-bash">go version
+</code></pre>
+<p>You should expect something like this</p>
+<pre><code class="hljs css language-bash">go version go1.13.15 linux/amd64
+</code></pre></li>
+</ol></li>
+<li><p>Install <code>pyenv</code>.</p>
+<ol>
+<li><p>Update system packages.</p>
+<pre><code class="hljs css language-bash">sudo apt update -y
+</code></pre></li>
+<li><p>Install some necessary dependencies. <strong>If you are using <code>zsh</code> instead of <code>bash</code>, replace</strong> <code>.bashrc</code> <strong>for</strong> <code>.zshrc</code>.</p>
+<pre><code class="hljs css language-bash">apt install -y make build-essential libssl-dev zlib1g-dev libbz2-dev    libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev  libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
+</code></pre></li>
+<li><p>Clone <code>pyenv</code> repository.</p>
+<pre><code class="hljs css language-bash">git <span class="hljs-built_in">clone</span> https://github.com/pyenv/pyenv.git ~/.pyenv
+</code></pre></li>
+<li><p>Configure <code>pyenv</code>.</p>
+<pre><code class="hljs css language-bash"><span class="hljs-built_in">echo</span> <span class="hljs-string">'export PYENV_ROOT="$HOME/.pyenv"'</span> &gt;&gt; ~/.bashrc
+<span class="hljs-built_in">echo</span> <span class="hljs-string">'export PATH="$PYENV_ROOT/bin:$PATH"'</span> &gt;&gt; ~/.bashrc
+<span class="hljs-built_in">echo</span> -e <span class="hljs-string">'if command -v pyenv 1&gt;/dev/null 2&gt;&amp;1; then\n eval "$(pyenv init -) "\nfi'</span> &gt;&gt; ~/.bashrc
+<span class="hljs-built_in">exec</span> <span class="hljs-string">"<span class="hljs-variable">$SHELL</span>"</span>
+</code></pre></li>
+<li><p>Create python virtual environment version 3.7.3.</p>
+<pre><code class="hljs css language-bash">pyenv install 3.7.3
+pyenv global 3.7.3
+</code></pre></li>
+</ol></li>
+<li><p>Install <code>pip3</code> and its dependencies.</p>
+<ol>
+<li><p>Install <code>pip3</code>.</p>
+<pre><code class="hljs css language-bash">sudo apt install python3-pip
+</code></pre></li>
+<li><p>Install the following dependencies</p>
+<pre><code class="hljs css language-bash">pip3 install ansible fabric3 jsonpickle requests PyYAML
+</code></pre></li>
+</ol></li>
+<li><p>Install <code>vagrant</code> necessary plugin.</p>
+<pre><code class="hljs css language-bash">vagrant plugin install vagrant-vbguest
+</code></pre></li>
+</ol>
 <h2><a class="anchor" aria-hidden="true" id="downloading-magma"></a><a href="#downloading-magma" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Downloading Magma</h2>
 <p>You can find Magma code on <a href="https://github.com/magma/magma">Github</a>.</p>
-<p>To download Magma current version, or a specific release do the following:</p>
+<p>To download Magma current version, or a specific release do the following</p>
 <pre><code class="hljs css language-bash">git <span class="hljs-built_in">clone</span> https://github.com/magma/magma.git
 <span class="hljs-built_in">cd</span> magma
 
@@ -114,12 +173,24 @@ systems. Doing so on a Windows environment should be possible but has not been
 tested. You may prefer to use a Linux virtual machine if you are on a Windows
 host.</p>
 <p>First, follow the previous section on developer tools. Then, install some
-additional prerequisite tools (replace <code>brew</code> with your OS-appropriate package
-manager as necessary):</p>
+additional prerequisite tools.</p>
+<h3><a class="anchor" aria-hidden="true" id="macos-1"></a><a href="#macos-1" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>macOS</h3>
+<p>Install necessary dependencies and configure the aws cli</p>
 <pre><code class="hljs css language-bash">brew install aws-iam-authenticator kubectl helm terraform
 python3 -m pip install awscli boto3
 aws configure
 </code></pre>
+<h3><a class="anchor" aria-hidden="true" id="ubuntu-1"></a><a href="#ubuntu-1" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Ubuntu</h3>
+<p>Install the following</p>
+<ol>
+<li><p><a href="https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html">aws-iam-authenticator for Linux</a>.</p></li>
+<li><p><a href="https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#install-using-native-package-management">kubectl for Linux</a>.</p></li>
+<li><p><a href="https://helm.sh/docs/intro/install/">Helm for Linux</a>.</p></li>
+<li><p><a href="https://learn.hashicorp.com/tutorials/terraform/install-cli">Terraform for Linux</a>.</p></li>
+<li><p>awscli</p>
+<pre><code class="hljs css language-bash">sudo apt install awscli
+</code></pre></li>
+</ol>
 <h3><a class="anchor" aria-hidden="true" id="orchestrator-and-nms"></a><a href="#orchestrator-and-nms" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Orchestrator and NMS</h3>
 <p>Orchestrator deployment depends on the following components</p>
 <ol>
@@ -140,21 +211,21 @@ you will use something else for managing AWS credentials.</p>
 <h3><a class="anchor" aria-hidden="true" id="access-gateways"></a><a href="#access-gateways" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Access Gateways</h3>
 <p>Access gateways (AGWs) can be deployed on to any AMD64 architecture machine
 which can support a Debian or Ubuntu 20.04 Linux installation. The basic system
-requirements for the AGW production hardware are:</p>
+requirements for the AGW production hardware are</p>
 <ol>
 <li>2+ physical Ethernet interfaces</li>
 <li>AMD64 dual-core processor around 2GHz clock speed or faster</li>
 <li>4GB RAM</li>
 <li>32GB or greater SSD storage</li>
 </ol>
-<p>In addition, in order to build the AGW, you should have on hand:</p>
+<p>In addition, in order to build the AGW, you should have on hand</p>
 <ol>
 <li>A USB stick with 2GB+ capacity to load a Debian Stretch ISO</li>
 <li>Peripherals (keyboard, screen) for your production AGW box for use during
 provisioning</li>
 </ol>
 <h3><a class="anchor" aria-hidden="true" id="ran-equipment"></a><a href="#ran-equipment" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>RAN Equipment</h3>
-<p>We currently have tested with the following EnodeB's:</p>
+<p>We currently have tested with the following EnodeB's</p>
 <ol>
 <li>Baicells Nova 233 TDD Outdoor</li>
 <li>Baicells Nova 243 TDD Outdoor</li>
@@ -162,7 +233,7 @@ provisioning</li>
 </ol>
 <p>Support for other RAN hardware can be implemented inside the <code>enodebd</code> service
 on the AGW, but we recommend starting with one of these EnodeBs.</p>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/basics/introduction"><span class="arrow-prev">← </span><span>Introduction</span></a><a class="docs-next button" href="/magma/docs/next/basics/quick_start_guide"><span>Quick Start Guide</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#operating-system">Operating System</a></li><li><a href="#development-tools">Development Tools</a></li><li><a href="#downloading-magma">Downloading Magma</a></li><li><a href="#builddeploy-tooling">Build/Deploy Tooling</a><ul class="toc-headings"><li><a href="#orchestrator-and-nms">Orchestrator and NMS</a></li></ul></li><li><a href="#production-hardware">Production Hardware</a><ul class="toc-headings"><li><a href="#access-gateways">Access Gateways</a></li><li><a href="#ran-equipment">RAN Equipment</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/basics/introduction"><span class="arrow-prev">← </span><span>Introduction</span></a><a class="docs-next button" href="/magma/docs/next/basics/quick_start_guide"><span>Quick Start Guide</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#operating-system">Operating System</a></li><li><a href="#development-tools">Development Tools</a><ul class="toc-headings"><li><a href="#macos">macOS</a></li><li><a href="#ubuntu">Ubuntu</a></li></ul></li><li><a href="#downloading-magma">Downloading Magma</a></li><li><a href="#builddeploy-tooling">Build/Deploy Tooling</a><ul class="toc-headings"><li><a href="#macos-1">macOS</a></li><li><a href="#ubuntu-1">Ubuntu</a></li><li><a href="#orchestrator-and-nms">Orchestrator and NMS</a></li></ul></li><li><a href="#production-hardware">Production Hardware</a><ul class="toc-headings"><li><a href="#access-gateways">Access Gateways</a></li><li><a href="#ran-equipment">RAN Equipment</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
                   if (e.target !== document.body) {
                     return;
