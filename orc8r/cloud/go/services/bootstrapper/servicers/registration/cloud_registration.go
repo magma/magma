@@ -15,9 +15,17 @@ import (
 )
 
 const (
-	nonceLength = 12
+	rootCAFilePath = "/var/opt/magma/certs/rootCA.pem"
+
+	// length of timeout for the nonce
 	timeoutDuration = 30 * time.Minute
-	maxRetriesToGenerateNonce = 10
+
+	// number of characters that the nonce will have
+	// 52^7 chance = 1.0280717e+12
+	nonceLength = 7
+
+	// 1.0280717e+12^5 = a lot
+	maxRetriesToGenerateNonce = 5
 )
 
 type cloudRegistrationServicer struct {
@@ -32,20 +40,20 @@ func NewCloudRegistrationServicer(store Store) (protos.CloudRegistrationServer, 
 }
 
 func (crs *cloudRegistrationServicer) GetToken(c context.Context, request *protos.GetTokenRequest) (*protos.GetTokenResponse, error) {
-	n := request.Gateway.NetworkId
-	l := request.Gateway.LogicalId.Id
+	networkId := request.Gateway.NetworkId
+	logicalId := request.Gateway.LogicalId.Id
 
-	tokenInfo, err := crs.store.GetTokenInfoFromLogicalID(n, l)
+	tokenInfo, err := crs.store.GetTokenInfoFromLogicalID(networkId, logicalId)
 	if err != nil {
-		glog.Infof("Could not get tokenInfo for networkID %v and logicalID %v: %v", n, l, err)
+		glog.Infof("Could not get tokenInfo for networkID %v and logicalID %v: %v", networkId, logicalId, err)
 	}
 
-	refresh := request.Refresh || tokenInfo == nil || tokenTimedOut(tokenInfo)
+	refresh := request.Refresh || tokenInfo == nil || isTokenExpired(tokenInfo)
 	if refresh {
 		// TODO(reginawang3495) add a test with tokenInfo = nil to make sure it works
-		tokenInfo, err = crs.generateAndSaveTokenInfo(n, l, tokenInfo.Nonce)
+		tokenInfo, err = crs.generateAndSaveTokenInfo(networkId, logicalId, tokenInfo.Nonce)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "Could not generate and save tokenInfo for networkID %v and logicalID %v: %v", n, l, err)
+			return nil, status.Errorf(codes.Internal, "Could not generate and save tokenInfo for networkID %v and logicalID %v: %v", networkId, logicalId, err)
 		}
 	}
 
@@ -68,7 +76,7 @@ func (crs *cloudRegistrationServicer) GetGatewayRegistrationInfo(c context.Conte
 	if err != nil {
 		return &protos.GetGatewayRegistrationInfoResponse{
 			Response: &protos.GetGatewayRegistrationInfoResponse_Error{
-				Error: fmt.Sprintf("%v", err),
+				Error: fmt.Sprintf("Error reading rootCA.pem file: %v", err),
 			},
 		}, nil
 	}
@@ -136,9 +144,9 @@ func (crs *cloudRegistrationServicer) generateUniqueNonce(maxRetries int, length
 }
 
 func getRootCA() (string, error) {
-	body, err := ioutil.ReadFile("/var/opt/magma/certs/rootCA.pem")
+	body, err := ioutil.ReadFile(rootCAFilePath)
 	if err != nil {
-		return "", status.Errorf(codes.Internal, "Error reading rootCA.pem file: %v", err)
+		return "", err
 	}
 	return string(body), nil
 }
