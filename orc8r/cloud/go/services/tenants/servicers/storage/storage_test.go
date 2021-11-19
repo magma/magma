@@ -168,7 +168,6 @@ func TestBlobstoreStore_DeleteTenant(t *testing.T) {
 	assert.EqualError(t, err, "error")
 }
 
-// TODO(reginawang3495): Do or make ticket for making other tests in this file use less mocking
 func TestBlobstoreStore_ControlProxy(t *testing.T) {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)

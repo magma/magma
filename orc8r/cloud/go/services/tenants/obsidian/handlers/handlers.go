@@ -170,7 +170,6 @@ func GetControlProxyHandler(c echo.Context) error {
 	controlProxy, err := tenants.GetControlProxy(c.Request().Context(), tenantID)
 	if err != nil {
 		return mapErr(err, fmt.Errorf("control proxy for tenantID %d does not exist", tenantID), err)
-		return mapErr(err, fmt.Errorf("control proxy for tenantID %d does not exist", tenantID), err)
 	}
 
 	return c.JSON(http.StatusOK, models.ControlProxy{ControlProxy: &controlProxy.ControlProxy})
