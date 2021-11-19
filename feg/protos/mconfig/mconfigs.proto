@@ -244,3 +244,41 @@ message S8Config {
     string pgw_address = 3;
     string apn_operator_suffix = 4;
 }
+
+message SbiServerConfig {
+    // Base URL pointing to the HTTP2 SBI server
+    string api_root = 1;
+    // Token URL for getting the OAuth2 token
+    string token_url = 2;
+    // OAuth2 Client ID that will be used for getting the bearer token
+    string client_id = 3;
+    // OAuth2 Client secret used for getting the bearer token
+    string client_secret = 4;
+}
+
+message N7ClientConfig {
+    // LocalAddr on which the notification listener listens
+    string local_addr = 1;
+    // Notification API Root on which the notification will be invoked
+    string notify_api_root = 2;
+}
+
+message N7Config {
+    // Disables N7 interface
+    bool disable_n7 = 1;
+    // PCF configuration
+    SbiServerConfig server = 2;
+    // N7 consumer config for handling notifications
+    N7ClientConfig client = 3;
+}
+
+message N7N40ProxyConfig {
+    // Service log level
+    orc8r.LogLevel log_level = 1;
+    // N7 Interface configuration
+    N7Config n7_config = 2;
+    // Percentage of request failures considered to be unhealthy
+    float request_failure_threshold = 3;
+    // Minimum number of requests necessary to consider a metrics snapshot valid
+    uint32 minimum_request_threshold = 4;
+}
