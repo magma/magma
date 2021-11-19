@@ -814,8 +814,9 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   EXPECT_EQ(decode_res, true);
   // build uplinknastransport
 
+  EXPECT_EQ(pdu_sess_est_req.nssai.sst, 1);
   uint8_t dnn[9] = {0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
-  EXPECT_EQ(0, memcmp(pdu_sess_est_req.dnn.dnn, dnn, pdu_sess_est_req.dnn.len));
+  EXPECT_EQ(memcmp(pdu_sess_est_req.dnn.dnn, dnn, pdu_sess_est_req.dnn.len), 0);
 
   buffer = bfromcstralloc(len, "\0");
   bytes  = pdu_sess_est_req.EncodeULNASTransportMsg(
@@ -824,10 +825,9 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   ULNASTransportMsg decode_pdu_sess_est_req = {};
   decode_res = decode_ul_nas_transport_msg(&decode_pdu_sess_est_req, pdu, len);
   EXPECT_EQ(decode_res, true);
-  EXPECT_EQ(
-      0, memcmp(
-             decode_pdu_sess_est_req.dnn.dnn, dnn,
-             decode_pdu_sess_est_req.dnn.len));
+  EXPECT_EQ(decode_pdu_sess_est_req.nssai.sst, 1);
+  EXPECT_EQ(memcmp(pdu_sess_est_req.dnn.dnn, dnn, pdu_sess_est_req.dnn.len), 0);
+
   bdestroy(buffer);
 }
 
@@ -1367,6 +1367,89 @@ TEST(test_pdu_negative, test_pdu_invalid_pdu_identity) {
 
   ue_context_map.clear();
   delete ue_context;
+}
+
+TEST(test_optional_pdu, test_pdu_session_accept_optional) {
+  uint32_t bytes         = 0;
+  uint32_t container_len = 0;
+  bstring buffer;
+  amf_nas_message_t msg                                   = {};
+  protocol_configuration_options_t* msg_accept_pco        = nullptr;
+  protocol_configuration_options_t* decode_msg_accept_pco = nullptr;
+
+  // build downlinknastransport
+  // downlink nas transport(pdu session accept)
+  uint8_t pdu[82] = {
+      0x7e, 0x00, 0x68, 0x01, 0x00, 0x4a, 0x2e, 0x01, 0x01, 0xc2, 0x11, 0x00,
+      0x09, 0x02, 0x00, 0x06, 0x31, 0x31, 0x01, 0x01, 0x02, 0x09, 0x06, 0x0a,
+      0x00, 0x01, 0x0a, 0x00, 0x01, 0x29, 0x05, 0x01, 0x05, 0x05, 0x05, 0x1e,
+      0x22, 0x04, 0x03, 0x03, 0x06, 0x09, 0x79, 0x00, 0x06, 0x09, 0x20, 0x41,
+      0x01, 0x01, 0x09, 0x7b, 0x00, 0x0f, 0x80, 0x00, 0x0d, 0x04, 0x08, 0x08,
+      0x08, 0x08, 0x00, 0x0c, 0x04, 0xc0, 0xa8, 0x78, 0x0d, 0x25, 0x09, 0x08,
+      0x49, 0x4e, 0x54, 0x45, 0x52, 0x4e, 0x45, 0x54, 0x12, 0x01};
+
+  uint32_t len = sizeof(pdu) / sizeof(uint8_t);
+
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  DLNASTransportMsg pdu_sess_accept;
+  int decode_res = 0;
+  memset(&pdu_sess_accept, 0, sizeof(DLNASTransportMsg));
+  SmfMsg* smf_msg = &pdu_sess_accept.payload_container.smf_msg;
+
+  msg_accept_pco =
+      &(smf_msg->msg.pdu_session_estab_accept.protocolconfigurationoptions.pco);
+  decode_res =
+      pdu_sess_accept.DecodeDLNASTransportMsg(&pdu_sess_accept, pdu, len);
+
+  EXPECT_GT(decode_res, 0);
+
+  // PDU Session type : IPv4 (pdu_address.type_val = 1)
+  EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val, 1);
+  // NSSAI
+  EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sst, 3);
+  uint8_t sd[3] = {0x03, 0x06, 0x09};
+  EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sd[0], sd[0]);
+  EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sd[1], sd[1]);
+  EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sd[2], sd[2]);
+  // DNN
+  uint8_t dnn[9] = {0x49, 0x4e, 0x54, 0x45, 0x52, 0x4e, 0x45, 0x54};
+  EXPECT_EQ(
+      memcmp(
+          smf_msg->msg.pdu_session_estab_accept.dnn.dnn, dnn,
+          smf_msg->msg.pdu_session_estab_accept.dnn.len),
+      0);
+
+  buffer = bfromcstralloc(len, "\0");
+  bytes  = pdu_sess_accept.EncodeDLNASTransportMsg(
+      &pdu_sess_accept, buffer->data, len);
+  EXPECT_GT(bytes, 0);
+  DLNASTransportMsg decode_pdu_sess_accept;
+  memset(&decode_pdu_sess_accept, 0, sizeof(DLNASTransportMsg));
+  decode_res = decode_pdu_sess_accept.DecodeDLNASTransportMsg(
+      &decode_pdu_sess_accept, pdu, len);
+
+  smf_msg = &decode_pdu_sess_accept.payload_container.smf_msg;
+  EXPECT_GT(decode_res, 0);
+
+  EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val, 1);
+  EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sst, 3);
+  EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sd[0], sd[0]);
+  EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sd[1], sd[1]);
+  EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sd[2], sd[2]);
+  EXPECT_EQ(
+      memcmp(
+          smf_msg->msg.pdu_session_estab_accept.dnn.dnn, dnn,
+          smf_msg->msg.pdu_session_estab_accept.dnn.len),
+      0);
+
+  bdestroy(buffer);
+  decode_msg_accept_pco =
+      &(smf_msg->msg.pdu_session_estab_accept.protocolconfigurationoptions.pco);
+
+  // Clean up the PCO contents
+  sm_free_protocol_configuration_options(&decode_msg_accept_pco);
+  // Clean up the PCO contents
+  sm_free_protocol_configuration_options(&msg_accept_pco);
 }
 
 int main(int argc, char** argv) {
