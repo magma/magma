@@ -60,37 +60,36 @@ func (crs *cloudRegistrationServicer) GetToken(c context.Context, request *proto
 	return &protos.GetTokenResponse{Timeout: tokenInfo.Timeout, Token: nonceToToken(tokenInfo.Nonce)}, nil
 }
 
-func (crs *cloudRegistrationServicer) GetGatewayRegistrationInfo(c context.Context, request *protos.GetGatewayRegistrationInfoRequest) (*protos.GetGatewayRegistrationInfoResponse, error) {
+func (crs *cloudRegistrationServicer) GetInfoForGatewayRegistration(c context.Context, request *protos.GetInfoForGatewayRegistrationRequest) (*protos.GetInfoForGatewayRegistrationResponse, error) {
+	rootCA, err := getRootCA()
+	if err != nil {
+		return nil, err
+	}
+	domainName := getDomainName()
+
+	return &protos.GetInfoForGatewayRegistrationResponse{
+		RootCA:               rootCA,
+		DomainName:           domainName,
+	}, nil
+}
+
+func (crs *cloudRegistrationServicer) GetGatewayPreregisterInfo(c context.Context, request *protos.GetGatewayPreregisterInfoRequest) (*protos.GetGatewayPreregisterInfoResponse, error) {
 	nonce := nonceFromToken(request.Token)
 
 	tokenInfo, err := crs.store.GetTokenInfoFromNonce(nonce)
 	if err != nil {
-		return &protos.GetGatewayRegistrationInfoResponse{
-			Response: &protos.GetGatewayRegistrationInfoResponse_Error{
+		return &protos.GetGatewayPreregisterInfoResponse{
+			Response: &protos.GetGatewayPreregisterInfoResponse_Error{
 				Error: fmt.Sprintf("Could not get token info from nonce %v: %v", nonce, err),
 			},
 		}, nil
 	}
 
-	rootCA, err := getRootCA()
-	if err != nil {
-		return &protos.GetGatewayRegistrationInfoResponse{
-			Response: &protos.GetGatewayRegistrationInfoResponse_Error{
-				Error: fmt.Sprintf("Error reading rootCA.pem file: %v", err),
-			},
-		}, nil
-	}
-	domainName := getDomainName()
-
-	return &protos.GetGatewayRegistrationInfoResponse{
-		Response: &protos.GetGatewayRegistrationInfoResponse_GatewayRegistrationInfo{
-			GatewayRegistrationInfo: &protos.GatewayRegistrationInfo{
-				Gateway: &protos.GatewayInfo{
-					NetworkId: tokenInfo.Gateway.NetworkId,
-					LogicalId: tokenInfo.Gateway.LogicalId,
-				},
-				RootCA:     rootCA,
-				DomainName: domainName,
+	return &protos.GetGatewayPreregisterInfoResponse{
+		Response:             &protos.GetGatewayPreregisterInfoResponse_GatewayPreregisterInfo{
+			GatewayPreregisterInfo: &protos.GatewayPreregisterInfo{
+				NetworkId:           tokenInfo.GatewayPreregisterInfo.NetworkId,
+				LogicalId:            tokenInfo.GatewayPreregisterInfo.LogicalId,
 			},
 		},
 	}, nil
@@ -110,11 +109,9 @@ func (crs *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string,
 		}
 
 	tokenInfo := protos.TokenInfo{
-		Gateway: &protos.GatewayInfo{
+		GatewayPreregisterInfo: &protos.  GatewayPreregisterInfo{
 			NetworkId: networkID,
-			LogicalId: &protos.AccessGatewayID{
-				Id: logicalID,
-			},
+			LogicalId: logicalID,
 		},
 		Nonce:   nonce,
 		Timeout: timeout,
