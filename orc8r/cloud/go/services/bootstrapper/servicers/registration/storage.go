@@ -1,6 +1,21 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package registration
 
 import (
+	mErrors "magma/orc8r/lib/go/errors"
+
 	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/blobstore"
@@ -33,9 +48,9 @@ func (b *blobstoreStore) SetTokenInfo(oldNonce string, tokenInfo protos.TokenInf
 	}
 	defer store.Rollback()
 
-	n := tokenInfo.Gateway.NetworkId
+	n := tokenInfo.GatewayPreregisterInfo.NetworkId
 
-	lBlob, err := tokenInfoToBlob(bootstrapper.LogicalIDTokenInfoMap, tokenInfo.Gateway.LogicalId.Id, tokenInfo)
+	lBlob, err := tokenInfoToBlob(bootstrapper.LogicalIDToTokenInfo, tokenInfo.GatewayPreregisterInfo.LogicalId, tokenInfo)
 	if err != nil {
 		return err
 	}
@@ -44,7 +59,7 @@ func (b *blobstoreStore) SetTokenInfo(oldNonce string, tokenInfo protos.TokenInf
 		return err
 	}
 
-	nBlob, err := tokenInfoToBlob(bootstrapper.NonceTokenInfoMap, tokenInfo.Nonce, tokenInfo)
+	nBlob, err := tokenInfoToBlob(bootstrapper.NonceTokenToInfoMap, tokenInfo.Nonce, tokenInfo)
 	if err != nil {
 		return err
 	}
@@ -53,13 +68,15 @@ func (b *blobstoreStore) SetTokenInfo(oldNonce string, tokenInfo protos.TokenInf
 		return err
 	}
 
-	oldNonceTK := storage.TKs{{
-		Type: bootstrapper.NonceTokenInfoMap,
-		Key:  oldNonce,
-	}}
-	err = store.Delete(networkWildcard, oldNonceTK)
-	if err != nil {
-		return err
+	if oldNonce != "" {
+		oldNonceTK := storage.TKs{{
+			Type: string(bootstrapper.NonceTokenToInfoMap),
+			Key:  oldNonce,
+		}}
+		err = store.Delete(networkWildcard, oldNonceTK)
+		if err != nil {
+			return err
+		}
 	}
 
 	return store.Commit()
@@ -73,7 +90,7 @@ func (b *blobstoreStore) GetTokenInfoFromLogicalID(networkID string, logicalID s
 	defer store.Rollback()
 
 	lTK := storage.TK{
-		Type: bootstrapper.LogicalIDTokenInfoMap,
+		Type: string(bootstrapper.LogicalIDToTokenInfo),
 		Key:  logicalID,
 	}
 
@@ -98,7 +115,7 @@ func (b *blobstoreStore) GetTokenInfoFromNonce(nonce string) (*protos.TokenInfo,
 	defer store.Rollback()
 
 	nTK := storage.TK{
-		Type: bootstrapper.NonceTokenInfoMap,
+		Type: string(bootstrapper.NonceTokenToInfoMap),
 		Key:  nonce,
 	}
 
@@ -118,22 +135,25 @@ func (b *blobstoreStore) GetTokenInfoFromNonce(nonce string) (*protos.TokenInfo,
 func (b *blobstoreStore) IsNonceUnique(nonce string) (bool, error) {
 	ti, err := b.GetTokenInfoFromNonce(nonce)
 	if err != nil {
+		if err == mErrors.ErrNotFound {
+			return true, nil
+		}
 		return false, err
 	}
 
-	return ti != nil, nil
+	return ti == nil, nil
 }
 
 // tokenInfoToBlob turns the input tokenInfo into a blob
 // For blobType bootstrapper.LogicalIDTokenInfoMap, key should be a LogicalID
 // For blobType bootstrapper.NonceTokenInfoMap, key should be a Nonce
-func tokenInfoToBlob(blobType string, key string, tokenInfo protos.TokenInfo) (blobstore.Blob, error) {
+func tokenInfoToBlob(blobType bootstrapper.DBBlobType, key string, tokenInfo protos.TokenInfo) (blobstore.Blob, error) {
 	marshaledTokenInfo, err := protos.Marshal(&tokenInfo)
 	if err != nil {
 		return blobstore.Blob{}, errors.Wrap(err, "Error marshaling protobuf")
 	}
 	return blobstore.Blob{
-		Type:  blobType,
+		Type:  string(blobType),
 		Key:   key,
 		Value: marshaledTokenInfo,
 	}, nil

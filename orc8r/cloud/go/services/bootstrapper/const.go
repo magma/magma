@@ -16,7 +16,11 @@ package bootstrapper
 const (
 	ServiceName           = "BOOTSTRAPPER"
 	DBTableName           = "bootstrapper"
-	LogicalIDTokenInfoMap = "logical_id_to_token_info"
-	NonceTokenInfoMap     = "nonce_to_token_info"
 	TokenPrepend          = "reg-"
+)
+
+type DBBlobType string
+const (
+	LogicalIDToTokenInfo DBBlobType = "logical_id_to_token_info"
+	NonceTokenToInfoMap DBBlobType = "nonce_to_token_info"
 )

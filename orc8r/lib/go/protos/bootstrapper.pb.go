@@ -397,7 +397,7 @@ func (m *Response_ECDSA) GetS() []byte {
 }
 
 type GetTokenRequest struct {
-	Gateway *GatewayInfo `protobuf:"bytes,1,opt,name=gateway,proto3" json:"gateway,omitempty"`
+	Gateway *GatewayPreregisterInfo `protobuf:"bytes,1,opt,name=gateway,proto3" json:"gateway,omitempty"`
 	// refresh is true if a new token should be generated regardless of old token timeout
 	Refresh              bool     `protobuf:"varint,2,opt,name=refresh,proto3" json:"refresh,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -430,7 +430,7 @@ func (m *GetTokenRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GetTokenRequest proto.InternalMessageInfo
 
-func (m *GetTokenRequest) GetGateway() *GatewayInfo {
+func (m *GetTokenRequest) GetGateway() *GatewayPreregisterInfo {
 	if m != nil {
 		return m.Gateway
 	}
@@ -492,7 +492,85 @@ func (m *GetTokenResponse) GetTimeout() *timestamp.Timestamp {
 	return nil
 }
 
-type GetGatewayRegistrationInfoRequest struct {
+type GetInfoForGatewayRegistrationRequest struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetInfoForGatewayRegistrationRequest) Reset()         { *m = GetInfoForGatewayRegistrationRequest{} }
+func (m *GetInfoForGatewayRegistrationRequest) String() string { return proto.CompactTextString(m) }
+func (*GetInfoForGatewayRegistrationRequest) ProtoMessage()    {}
+func (*GetInfoForGatewayRegistrationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b592b3c4e9ae6813, []int{5}
+}
+
+func (m *GetInfoForGatewayRegistrationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetInfoForGatewayRegistrationRequest.Unmarshal(m, b)
+}
+func (m *GetInfoForGatewayRegistrationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetInfoForGatewayRegistrationRequest.Marshal(b, m, deterministic)
+}
+func (m *GetInfoForGatewayRegistrationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetInfoForGatewayRegistrationRequest.Merge(m, src)
+}
+func (m *GetInfoForGatewayRegistrationRequest) XXX_Size() int {
+	return xxx_messageInfo_GetInfoForGatewayRegistrationRequest.Size(m)
+}
+func (m *GetInfoForGatewayRegistrationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetInfoForGatewayRegistrationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetInfoForGatewayRegistrationRequest proto.InternalMessageInfo
+
+type GetInfoForGatewayRegistrationResponse struct {
+	RootCA               string   `protobuf:"bytes,1,opt,name=rootCA,proto3" json:"rootCA,omitempty"`
+	DomainName           string   `protobuf:"bytes,2,opt,name=domain_name,json=domainName,proto3" json:"domain_name,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetInfoForGatewayRegistrationResponse) Reset()         { *m = GetInfoForGatewayRegistrationResponse{} }
+func (m *GetInfoForGatewayRegistrationResponse) String() string { return proto.CompactTextString(m) }
+func (*GetInfoForGatewayRegistrationResponse) ProtoMessage()    {}
+func (*GetInfoForGatewayRegistrationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b592b3c4e9ae6813, []int{6}
+}
+
+func (m *GetInfoForGatewayRegistrationResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetInfoForGatewayRegistrationResponse.Unmarshal(m, b)
+}
+func (m *GetInfoForGatewayRegistrationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetInfoForGatewayRegistrationResponse.Marshal(b, m, deterministic)
+}
+func (m *GetInfoForGatewayRegistrationResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetInfoForGatewayRegistrationResponse.Merge(m, src)
+}
+func (m *GetInfoForGatewayRegistrationResponse) XXX_Size() int {
+	return xxx_messageInfo_GetInfoForGatewayRegistrationResponse.Size(m)
+}
+func (m *GetInfoForGatewayRegistrationResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetInfoForGatewayRegistrationResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetInfoForGatewayRegistrationResponse proto.InternalMessageInfo
+
+func (m *GetInfoForGatewayRegistrationResponse) GetRootCA() string {
+	if m != nil {
+		return m.RootCA
+	}
+	return ""
+}
+
+func (m *GetInfoForGatewayRegistrationResponse) GetDomainName() string {
+	if m != nil {
+		return m.DomainName
+	}
+	return ""
+}
+
+type GetGatewayPreregisterInfoRequest struct {
 	// token is a nonce prepended by bootstrapper.tokenPrepend
 	Token                string   `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -500,116 +578,116 @@ type GetGatewayRegistrationInfoRequest struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetGatewayRegistrationInfoRequest) Reset()         { *m = GetGatewayRegistrationInfoRequest{} }
-func (m *GetGatewayRegistrationInfoRequest) String() string { return proto.CompactTextString(m) }
-func (*GetGatewayRegistrationInfoRequest) ProtoMessage()    {}
-func (*GetGatewayRegistrationInfoRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b592b3c4e9ae6813, []int{5}
+func (m *GetGatewayPreregisterInfoRequest) Reset()         { *m = GetGatewayPreregisterInfoRequest{} }
+func (m *GetGatewayPreregisterInfoRequest) String() string { return proto.CompactTextString(m) }
+func (*GetGatewayPreregisterInfoRequest) ProtoMessage()    {}
+func (*GetGatewayPreregisterInfoRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b592b3c4e9ae6813, []int{7}
 }
 
-func (m *GetGatewayRegistrationInfoRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GetGatewayRegistrationInfoRequest.Unmarshal(m, b)
+func (m *GetGatewayPreregisterInfoRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetGatewayPreregisterInfoRequest.Unmarshal(m, b)
 }
-func (m *GetGatewayRegistrationInfoRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GetGatewayRegistrationInfoRequest.Marshal(b, m, deterministic)
+func (m *GetGatewayPreregisterInfoRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetGatewayPreregisterInfoRequest.Marshal(b, m, deterministic)
 }
-func (m *GetGatewayRegistrationInfoRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetGatewayRegistrationInfoRequest.Merge(m, src)
+func (m *GetGatewayPreregisterInfoRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetGatewayPreregisterInfoRequest.Merge(m, src)
 }
-func (m *GetGatewayRegistrationInfoRequest) XXX_Size() int {
-	return xxx_messageInfo_GetGatewayRegistrationInfoRequest.Size(m)
+func (m *GetGatewayPreregisterInfoRequest) XXX_Size() int {
+	return xxx_messageInfo_GetGatewayPreregisterInfoRequest.Size(m)
 }
-func (m *GetGatewayRegistrationInfoRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetGatewayRegistrationInfoRequest.DiscardUnknown(m)
+func (m *GetGatewayPreregisterInfoRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetGatewayPreregisterInfoRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_GetGatewayRegistrationInfoRequest proto.InternalMessageInfo
+var xxx_messageInfo_GetGatewayPreregisterInfoRequest proto.InternalMessageInfo
 
-func (m *GetGatewayRegistrationInfoRequest) GetToken() string {
+func (m *GetGatewayPreregisterInfoRequest) GetToken() string {
 	if m != nil {
 		return m.Token
 	}
 	return ""
 }
 
-type GetGatewayRegistrationInfoResponse struct {
+type GetGatewayPreregisterInfoResponse struct {
 	// Types that are valid to be assigned to Response:
-	//	*GetGatewayRegistrationInfoResponse_GatewayRegistrationInfo
-	//	*GetGatewayRegistrationInfoResponse_Error
-	Response             isGetGatewayRegistrationInfoResponse_Response `protobuf_oneof:"response"`
-	XXX_NoUnkeyedLiteral struct{}                                      `json:"-"`
-	XXX_unrecognized     []byte                                        `json:"-"`
-	XXX_sizecache        int32                                         `json:"-"`
+	//	*GetGatewayPreregisterInfoResponse_GatewayPreregisterInfo
+	//	*GetGatewayPreregisterInfoResponse_Error
+	Response             isGetGatewayPreregisterInfoResponse_Response `protobuf_oneof:"response"`
+	XXX_NoUnkeyedLiteral struct{}                                     `json:"-"`
+	XXX_unrecognized     []byte                                       `json:"-"`
+	XXX_sizecache        int32                                        `json:"-"`
 }
 
-func (m *GetGatewayRegistrationInfoResponse) Reset()         { *m = GetGatewayRegistrationInfoResponse{} }
-func (m *GetGatewayRegistrationInfoResponse) String() string { return proto.CompactTextString(m) }
-func (*GetGatewayRegistrationInfoResponse) ProtoMessage()    {}
-func (*GetGatewayRegistrationInfoResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b592b3c4e9ae6813, []int{6}
+func (m *GetGatewayPreregisterInfoResponse) Reset()         { *m = GetGatewayPreregisterInfoResponse{} }
+func (m *GetGatewayPreregisterInfoResponse) String() string { return proto.CompactTextString(m) }
+func (*GetGatewayPreregisterInfoResponse) ProtoMessage()    {}
+func (*GetGatewayPreregisterInfoResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b592b3c4e9ae6813, []int{8}
 }
 
-func (m *GetGatewayRegistrationInfoResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GetGatewayRegistrationInfoResponse.Unmarshal(m, b)
+func (m *GetGatewayPreregisterInfoResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetGatewayPreregisterInfoResponse.Unmarshal(m, b)
 }
-func (m *GetGatewayRegistrationInfoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GetGatewayRegistrationInfoResponse.Marshal(b, m, deterministic)
+func (m *GetGatewayPreregisterInfoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetGatewayPreregisterInfoResponse.Marshal(b, m, deterministic)
 }
-func (m *GetGatewayRegistrationInfoResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetGatewayRegistrationInfoResponse.Merge(m, src)
+func (m *GetGatewayPreregisterInfoResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetGatewayPreregisterInfoResponse.Merge(m, src)
 }
-func (m *GetGatewayRegistrationInfoResponse) XXX_Size() int {
-	return xxx_messageInfo_GetGatewayRegistrationInfoResponse.Size(m)
+func (m *GetGatewayPreregisterInfoResponse) XXX_Size() int {
+	return xxx_messageInfo_GetGatewayPreregisterInfoResponse.Size(m)
 }
-func (m *GetGatewayRegistrationInfoResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetGatewayRegistrationInfoResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_GetGatewayRegistrationInfoResponse proto.InternalMessageInfo
-
-type isGetGatewayRegistrationInfoResponse_Response interface {
-	isGetGatewayRegistrationInfoResponse_Response()
+func (m *GetGatewayPreregisterInfoResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetGatewayPreregisterInfoResponse.DiscardUnknown(m)
 }
 
-type GetGatewayRegistrationInfoResponse_GatewayRegistrationInfo struct {
-	GatewayRegistrationInfo *GatewayRegistrationInfo `protobuf:"bytes,1,opt,name=gatewayRegistrationInfo,proto3,oneof"`
+var xxx_messageInfo_GetGatewayPreregisterInfoResponse proto.InternalMessageInfo
+
+type isGetGatewayPreregisterInfoResponse_Response interface {
+	isGetGatewayPreregisterInfoResponse_Response()
 }
 
-type GetGatewayRegistrationInfoResponse_Error struct {
+type GetGatewayPreregisterInfoResponse_GatewayPreregisterInfo struct {
+	GatewayPreregisterInfo string `protobuf:"bytes,1,opt,name=GatewayPreregisterInfo,proto3,oneof"`
+}
+
+type GetGatewayPreregisterInfoResponse_Error struct {
 	Error string `protobuf:"bytes,2,opt,name=error,proto3,oneof"`
 }
 
-func (*GetGatewayRegistrationInfoResponse_GatewayRegistrationInfo) isGetGatewayRegistrationInfoResponse_Response() {
+func (*GetGatewayPreregisterInfoResponse_GatewayPreregisterInfo) isGetGatewayPreregisterInfoResponse_Response() {
 }
 
-func (*GetGatewayRegistrationInfoResponse_Error) isGetGatewayRegistrationInfoResponse_Response() {}
+func (*GetGatewayPreregisterInfoResponse_Error) isGetGatewayPreregisterInfoResponse_Response() {}
 
-func (m *GetGatewayRegistrationInfoResponse) GetResponse() isGetGatewayRegistrationInfoResponse_Response {
+func (m *GetGatewayPreregisterInfoResponse) GetResponse() isGetGatewayPreregisterInfoResponse_Response {
 	if m != nil {
 		return m.Response
 	}
 	return nil
 }
 
-func (m *GetGatewayRegistrationInfoResponse) GetGatewayRegistrationInfo() *GatewayRegistrationInfo {
-	if x, ok := m.GetResponse().(*GetGatewayRegistrationInfoResponse_GatewayRegistrationInfo); ok {
-		return x.GatewayRegistrationInfo
+func (m *GetGatewayPreregisterInfoResponse) GetGatewayPreregisterInfo() string {
+	if x, ok := m.GetResponse().(*GetGatewayPreregisterInfoResponse_GatewayPreregisterInfo); ok {
+		return x.GatewayPreregisterInfo
 	}
-	return nil
+	return ""
 }
 
-func (m *GetGatewayRegistrationInfoResponse) GetError() string {
-	if x, ok := m.GetResponse().(*GetGatewayRegistrationInfoResponse_Error); ok {
+func (m *GetGatewayPreregisterInfoResponse) GetError() string {
+	if x, ok := m.GetResponse().(*GetGatewayPreregisterInfoResponse_Error); ok {
 		return x.Error
 	}
 	return ""
 }
 
 // XXX_OneofWrappers is for the internal use of the proto package.
-func (*GetGatewayRegistrationInfoResponse) XXX_OneofWrappers() []interface{} {
+func (*GetGatewayPreregisterInfoResponse) XXX_OneofWrappers() []interface{} {
 	return []interface{}{
-		(*GetGatewayRegistrationInfoResponse_GatewayRegistrationInfo)(nil),
-		(*GetGatewayRegistrationInfoResponse_Error)(nil),
+		(*GetGatewayPreregisterInfoResponse_GatewayPreregisterInfo)(nil),
+		(*GetGatewayPreregisterInfoResponse_Error)(nil),
 	}
 }
 
@@ -628,7 +706,7 @@ func (m *RegisterRequest) Reset()         { *m = RegisterRequest{} }
 func (m *RegisterRequest) String() string { return proto.CompactTextString(m) }
 func (*RegisterRequest) ProtoMessage()    {}
 func (*RegisterRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b592b3c4e9ae6813, []int{7}
+	return fileDescriptor_b592b3c4e9ae6813, []int{9}
 }
 
 func (m *RegisterRequest) XXX_Unmarshal(b []byte) error {
@@ -684,7 +762,7 @@ func (m *RegisterResponse) Reset()         { *m = RegisterResponse{} }
 func (m *RegisterResponse) String() string { return proto.CompactTextString(m) }
 func (*RegisterResponse) ProtoMessage()    {}
 func (*RegisterResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b592b3c4e9ae6813, []int{8}
+	return fileDescriptor_b592b3c4e9ae6813, []int{10}
 }
 
 func (m *RegisterResponse) XXX_Unmarshal(b []byte) error {
@@ -750,122 +828,67 @@ func (*RegisterResponse) XXX_OneofWrappers() []interface{} {
 	}
 }
 
-type GatewayRegistrationInfo struct {
-	Gateway              *GatewayInfo `protobuf:"bytes,1,opt,name=gateway,proto3" json:"gateway,omitempty"`
-	RootCA               string       `protobuf:"bytes,2,opt,name=rootCA,proto3" json:"rootCA,omitempty"`
-	DomainName           string       `protobuf:"bytes,3,opt,name=domain_name,json=domainName,proto3" json:"domain_name,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_unrecognized     []byte       `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
+type GatewayPreregisterInfo struct {
+	NetworkId            string   `protobuf:"bytes,1,opt,name=network_id,json=networkId,proto3" json:"network_id,omitempty"`
+	LogicalId            string   `protobuf:"bytes,2,opt,name=logical_id,json=logicalId,proto3" json:"logical_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GatewayRegistrationInfo) Reset()         { *m = GatewayRegistrationInfo{} }
-func (m *GatewayRegistrationInfo) String() string { return proto.CompactTextString(m) }
-func (*GatewayRegistrationInfo) ProtoMessage()    {}
-func (*GatewayRegistrationInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b592b3c4e9ae6813, []int{9}
+func (m *GatewayPreregisterInfo) Reset()         { *m = GatewayPreregisterInfo{} }
+func (m *GatewayPreregisterInfo) String() string { return proto.CompactTextString(m) }
+func (*GatewayPreregisterInfo) ProtoMessage()    {}
+func (*GatewayPreregisterInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b592b3c4e9ae6813, []int{11}
 }
 
-func (m *GatewayRegistrationInfo) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GatewayRegistrationInfo.Unmarshal(m, b)
+func (m *GatewayPreregisterInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GatewayPreregisterInfo.Unmarshal(m, b)
 }
-func (m *GatewayRegistrationInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GatewayRegistrationInfo.Marshal(b, m, deterministic)
+func (m *GatewayPreregisterInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GatewayPreregisterInfo.Marshal(b, m, deterministic)
 }
-func (m *GatewayRegistrationInfo) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GatewayRegistrationInfo.Merge(m, src)
+func (m *GatewayPreregisterInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GatewayPreregisterInfo.Merge(m, src)
 }
-func (m *GatewayRegistrationInfo) XXX_Size() int {
-	return xxx_messageInfo_GatewayRegistrationInfo.Size(m)
+func (m *GatewayPreregisterInfo) XXX_Size() int {
+	return xxx_messageInfo_GatewayPreregisterInfo.Size(m)
 }
-func (m *GatewayRegistrationInfo) XXX_DiscardUnknown() {
-	xxx_messageInfo_GatewayRegistrationInfo.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_GatewayRegistrationInfo proto.InternalMessageInfo
-
-func (m *GatewayRegistrationInfo) GetGateway() *GatewayInfo {
-	if m != nil {
-		return m.Gateway
-	}
-	return nil
+func (m *GatewayPreregisterInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_GatewayPreregisterInfo.DiscardUnknown(m)
 }
 
-func (m *GatewayRegistrationInfo) GetRootCA() string {
-	if m != nil {
-		return m.RootCA
-	}
-	return ""
-}
+var xxx_messageInfo_GatewayPreregisterInfo proto.InternalMessageInfo
 
-func (m *GatewayRegistrationInfo) GetDomainName() string {
-	if m != nil {
-		return m.DomainName
-	}
-	return ""
-}
-
-type GatewayInfo struct {
-	NetworkId            string           `protobuf:"bytes,1,opt,name=network_id,json=networkId,proto3" json:"network_id,omitempty"`
-	LogicalId            *AccessGatewayID `protobuf:"bytes,2,opt,name=logical_id,json=logicalId,proto3" json:"logical_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
-	XXX_unrecognized     []byte           `json:"-"`
-	XXX_sizecache        int32            `json:"-"`
-}
-
-func (m *GatewayInfo) Reset()         { *m = GatewayInfo{} }
-func (m *GatewayInfo) String() string { return proto.CompactTextString(m) }
-func (*GatewayInfo) ProtoMessage()    {}
-func (*GatewayInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b592b3c4e9ae6813, []int{10}
-}
-
-func (m *GatewayInfo) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GatewayInfo.Unmarshal(m, b)
-}
-func (m *GatewayInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GatewayInfo.Marshal(b, m, deterministic)
-}
-func (m *GatewayInfo) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GatewayInfo.Merge(m, src)
-}
-func (m *GatewayInfo) XXX_Size() int {
-	return xxx_messageInfo_GatewayInfo.Size(m)
-}
-func (m *GatewayInfo) XXX_DiscardUnknown() {
-	xxx_messageInfo_GatewayInfo.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_GatewayInfo proto.InternalMessageInfo
-
-func (m *GatewayInfo) GetNetworkId() string {
+func (m *GatewayPreregisterInfo) GetNetworkId() string {
 	if m != nil {
 		return m.NetworkId
 	}
 	return ""
 }
 
-func (m *GatewayInfo) GetLogicalId() *AccessGatewayID {
+func (m *GatewayPreregisterInfo) GetLogicalId() string {
 	if m != nil {
 		return m.LogicalId
 	}
-	return nil
+	return ""
 }
 
 type TokenInfo struct {
-	Gateway              *GatewayInfo         `protobuf:"bytes,1,opt,name=gateway,proto3" json:"gateway,omitempty"`
-	Nonce                string               `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	Timeout              *timestamp.Timestamp `protobuf:"bytes,3,opt,name=timeout,proto3" json:"timeout,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
-	XXX_unrecognized     []byte               `json:"-"`
-	XXX_sizecache        int32                `json:"-"`
+	GatewayPreregisterInfo *GatewayPreregisterInfo `protobuf:"bytes,1,opt,name=gateway_preregister_info,json=gatewayPreregisterInfo,proto3" json:"gateway_preregister_info,omitempty"`
+	Nonce                  string                  `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Timeout                *timestamp.Timestamp    `protobuf:"bytes,3,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	XXX_NoUnkeyedLiteral   struct{}                `json:"-"`
+	XXX_unrecognized       []byte                  `json:"-"`
+	XXX_sizecache          int32                   `json:"-"`
 }
 
 func (m *TokenInfo) Reset()         { *m = TokenInfo{} }
 func (m *TokenInfo) String() string { return proto.CompactTextString(m) }
 func (*TokenInfo) ProtoMessage()    {}
 func (*TokenInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b592b3c4e9ae6813, []int{11}
+	return fileDescriptor_b592b3c4e9ae6813, []int{12}
 }
 
 func (m *TokenInfo) XXX_Unmarshal(b []byte) error {
@@ -886,9 +909,9 @@ func (m *TokenInfo) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_TokenInfo proto.InternalMessageInfo
 
-func (m *TokenInfo) GetGateway() *GatewayInfo {
+func (m *TokenInfo) GetGatewayPreregisterInfo() *GatewayPreregisterInfo {
 	if m != nil {
-		return m.Gateway
+		return m.GatewayPreregisterInfo
 	}
 	return nil
 }
@@ -917,78 +940,81 @@ func init() {
 	proto.RegisterType((*Response_ECDSA)(nil), "magma.orc8r.Response.ECDSA")
 	proto.RegisterType((*GetTokenRequest)(nil), "magma.orc8r.GetTokenRequest")
 	proto.RegisterType((*GetTokenResponse)(nil), "magma.orc8r.GetTokenResponse")
-	proto.RegisterType((*GetGatewayRegistrationInfoRequest)(nil), "magma.orc8r.GetGatewayRegistrationInfoRequest")
-	proto.RegisterType((*GetGatewayRegistrationInfoResponse)(nil), "magma.orc8r.GetGatewayRegistrationInfoResponse")
+	proto.RegisterType((*GetInfoForGatewayRegistrationRequest)(nil), "magma.orc8r.GetInfoForGatewayRegistrationRequest")
+	proto.RegisterType((*GetInfoForGatewayRegistrationResponse)(nil), "magma.orc8r.GetInfoForGatewayRegistrationResponse")
+	proto.RegisterType((*GetGatewayPreregisterInfoRequest)(nil), "magma.orc8r.GetGatewayPreregisterInfoRequest")
+	proto.RegisterType((*GetGatewayPreregisterInfoResponse)(nil), "magma.orc8r.GetGatewayPreregisterInfoResponse")
 	proto.RegisterType((*RegisterRequest)(nil), "magma.orc8r.RegisterRequest")
 	proto.RegisterType((*RegisterResponse)(nil), "magma.orc8r.RegisterResponse")
-	proto.RegisterType((*GatewayRegistrationInfo)(nil), "magma.orc8r.GatewayRegistrationInfo")
-	proto.RegisterType((*GatewayInfo)(nil), "magma.orc8r.GatewayInfo")
+	proto.RegisterType((*GatewayPreregisterInfo)(nil), "magma.orc8r.GatewayPreregisterInfo")
 	proto.RegisterType((*TokenInfo)(nil), "magma.orc8r.TokenInfo")
 }
 
 func init() { proto.RegisterFile("orc8r/protos/bootstrapper.proto", fileDescriptor_b592b3c4e9ae6813) }
 
 var fileDescriptor_b592b3c4e9ae6813 = []byte{
-	// 931 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0xdd, 0x8e, 0xdb, 0x44,
-	0x14, 0xb6, 0x9b, 0x64, 0x13, 0x9f, 0x78, 0xdb, 0x30, 0xb4, 0xbb, 0x59, 0xef, 0x56, 0xdb, 0x4e,
-	0x41, 0xea, 0x95, 0x03, 0xe1, 0x47, 0x20, 0x50, 0x45, 0x36, 0xbb, 0x4d, 0xa2, 0x4a, 0x14, 0x4d,
-	0x56, 0x42, 0x20, 0x81, 0xf1, 0xda, 0xb3, 0x8e, 0x95, 0xc4, 0x13, 0xc6, 0x13, 0x85, 0x5c, 0x71,
-	0xc7, 0x0d, 0x2f, 0x00, 0x4f, 0x80, 0xc4, 0x63, 0xf0, 0x22, 0xbc, 0x0a, 0xf2, 0x78, 0x9c, 0x38,
-	0x56, 0x12, 0x56, 0xed, 0x55, 0x72, 0xce, 0xf9, 0xce, 0xcf, 0x77, 0x66, 0xce, 0x19, 0xc3, 0x39,
-	0xe3, 0xde, 0x67, 0xbc, 0x35, 0xe3, 0x4c, 0xb0, 0xb8, 0x75, 0xc3, 0x98, 0x88, 0x05, 0x77, 0x67,
-	0x33, 0xca, 0x6d, 0xa9, 0x43, 0xf5, 0xa9, 0x1b, 0x4c, 0x5d, 0x5b, 0xc2, 0xac, 0xb3, 0x0d, 0xb4,
-	0x47, 0xb9, 0x08, 0x6f, 0xc3, 0x0c, 0x6a, 0x9d, 0x6e, 0x58, 0x43, 0x9f, 0x46, 0x22, 0x14, 0x4b,
-	0x65, 0x3c, 0x0f, 0x18, 0x0b, 0x26, 0x34, 0xb5, 0xde, 0xcc, 0x6f, 0x5b, 0x22, 0x9c, 0xd2, 0x58,
-	0xb8, 0xd3, 0x59, 0x0a, 0xc0, 0x01, 0x18, 0xdd, 0x91, 0x3b, 0x99, 0xd0, 0x28, 0xa0, 0xe8, 0x4b,
-	0xa8, 0x8d, 0xe9, 0xd2, 0x11, 0xcb, 0x19, 0x6d, 0xea, 0x4f, 0xf4, 0xe7, 0xf7, 0xdb, 0x4f, 0xed,
-	0x5c, 0x21, 0xf6, 0x0a, 0xf9, 0x8a, 0x2e, 0xed, 0x57, 0x74, 0x79, 0xbd, 0x9c, 0x51, 0x52, 0x1d,
-	0xa7, 0x7f, 0xd0, 0x19, 0x18, 0x5e, 0x06, 0x68, 0xde, 0x7b, 0xa2, 0x3f, 0x37, 0xc9, 0x5a, 0x81,
-	0xff, 0xd2, 0xc1, 0xcc, 0xfb, 0xbf, 0x65, 0xb2, 0x06, 0x94, 0xc6, 0x74, 0xa9, 0xd2, 0x24, 0x7f,
-	0x71, 0x0f, 0xaa, 0x0a, 0x85, 0x6a, 0x50, 0xbe, 0xea, 0xf6, 0x5f, 0x37, 0x34, 0x74, 0x0c, 0xef,
-	0x0e, 0x5f, 0xbf, 0xbc, 0xfe, 0xb6, 0x43, 0xae, 0x1c, 0x32, 0xec, 0x38, 0xc3, 0x7e, 0xa7, 0xfd,
-	0xc9, 0xa7, 0x0d, 0x1d, 0x9d, 0xc0, 0xa3, 0x95, 0xe1, 0xaa, 0x7b, 0xb9, 0x36, 0xdd, 0xc3, 0xff,
-	0x94, 0xa0, 0x46, 0x68, 0x3c, 0x63, 0x51, 0x4c, 0xd1, 0x87, 0x50, 0x19, 0x2d, 0x9c, 0xd0, 0x97,
-	0x25, 0xd6, 0xdb, 0x67, 0x1b, 0x25, 0x76, 0x3c, 0x8f, 0xc6, 0x71, 0xcf, 0x15, 0x74, 0xe1, 0x2e,
-	0x07, 0x97, 0xa4, 0x3c, 0x5a, 0x0c, 0xfc, 0xfd, 0x7d, 0x40, 0x1d, 0x38, 0xa4, 0xde, 0x88, 0x39,
-	0x5c, 0x65, 0x68, 0x96, 0x64, 0x60, 0x6b, 0x23, 0x70, 0x96, 0xde, 0xbe, 0xf2, 0x46, 0xac, 0xaf,
-	0x11, 0x33, 0x71, 0x59, 0xd5, 0xf4, 0x02, 0x4c, 0x1e, 0xbb, 0xeb, 0x08, 0x65, 0x19, 0xe1, 0x64,
-	0x7b, 0x04, 0x32, 0xec, 0xf4, 0x35, 0x52, 0xe7, 0xb1, 0xbb, 0xf2, 0xbf, 0x84, 0xfb, 0xd4, 0xf3,
-	0xf3, 0x11, 0x2a, 0x32, 0xc2, 0xe9, 0x8e, 0x1a, 0x92, 0xf6, 0xf4, 0x35, 0x72, 0x28, 0x9d, 0x56,
-	0x51, 0x30, 0x94, 0xbc, 0x98, 0x37, 0x0f, 0xa4, 0x6b, 0x63, 0xf3, 0xe8, 0x86, 0x84, 0x24, 0x46,
-	0x0b, 0x43, 0x39, 0x61, 0x80, 0x2c, 0xa8, 0xad, 0x72, 0xe9, 0xb2, 0x23, 0x2b, 0xd9, 0x7a, 0x06,
-	0x25, 0x32, 0xec, 0x24, 0x5d, 0x8b, 0xc3, 0x20, 0x72, 0xc5, 0x9c, 0x67, 0x98, 0xb5, 0xc2, 0x7a,
-	0x06, 0x15, 0x59, 0x06, 0x32, 0x41, 0xe7, 0xca, 0xac, 0xf3, 0x44, 0x8a, 0x55, 0x8b, 0xf5, 0xf8,
-	0x02, 0xd6, 0x59, 0xb0, 0x03, 0x0f, 0x7a, 0x54, 0x5c, 0xb3, 0x31, 0x8d, 0x08, 0xfd, 0x79, 0x4e,
-	0x63, 0x81, 0xda, 0x50, 0x0d, 0xd2, 0xa3, 0x52, 0x87, 0xd9, 0xdc, 0x28, 0x3a, 0x3b, 0xc6, 0xe8,
-	0x96, 0x91, 0x0c, 0x88, 0x9a, 0x50, 0xe5, 0xf4, 0x96, 0xd3, 0x78, 0x24, 0xd3, 0xd4, 0x48, 0x26,
-	0xe2, 0x1f, 0xa1, 0xb1, 0x4e, 0xa0, 0x5a, 0xf2, 0x10, 0x2a, 0x22, 0x51, 0xc8, 0xf8, 0x06, 0x49,
-	0x05, 0xf4, 0x31, 0x54, 0x93, 0xa9, 0x63, 0x73, 0x21, 0x63, 0x24, 0x67, 0x9d, 0x4e, 0xa5, 0x9d,
-	0x4d, 0xa5, 0x7d, 0x9d, 0x4d, 0x25, 0xc9, 0xa0, 0xf8, 0x73, 0x78, 0xda, 0xa3, 0x42, 0x15, 0x45,
-	0x68, 0x10, 0x26, 0x1b, 0x42, 0x84, 0x2c, 0x92, 0x05, 0x2a, 0x4a, 0x5b, 0x13, 0xe2, 0xbf, 0x75,
-	0xc0, 0xfb, 0x7c, 0x55, 0xb5, 0x3f, 0xc1, 0x71, 0xb0, 0x1d, 0xa2, 0xfa, 0xf3, 0xde, 0xb6, 0xfe,
-	0x14, 0xb1, 0x7d, 0x8d, 0xec, 0x0a, 0x83, 0x8e, 0xa0, 0x42, 0x39, 0x67, 0x5c, 0xf2, 0x36, 0xfa,
-	0x1a, 0x49, 0xc5, 0x8d, 0x83, 0xfa, 0x53, 0x87, 0x07, 0xa9, 0x23, 0xe5, 0x7b, 0x69, 0xa1, 0x0f,
-	0xa0, 0x3c, 0x5a, 0x84, 0xbe, 0x6a, 0xe2, 0xff, 0x4e, 0x62, 0xe8, 0xa3, 0x17, 0x70, 0xb8, 0x1a,
-	0x3c, 0x27, 0x59, 0x17, 0xa5, 0x2d, 0x93, 0x92, 0xdf, 0x33, 0xc4, 0xf4, 0x72, 0x12, 0xfe, 0x01,
-	0x1a, 0xeb, 0xd2, 0x54, 0xd7, 0xde, 0x87, 0x43, 0x8f, 0x45, 0x82, 0xb3, 0x89, 0x33, 0xe3, 0xec,
-	0x97, 0xf4, 0x2e, 0x25, 0xdc, 0x4c, 0xa5, 0xfe, 0x26, 0xd1, 0xde, 0x89, 0xfa, 0x6f, 0x3a, 0x1c,
-	0xef, 0xe8, 0xea, 0x1b, 0x5d, 0xd6, 0x23, 0x38, 0xe0, 0x8c, 0x89, 0x6e, 0x27, 0x4d, 0x4a, 0x94,
-	0x84, 0xce, 0xa1, 0xee, 0xb3, 0xa9, 0x1b, 0x46, 0x4e, 0xe4, 0x4e, 0xd3, 0x85, 0x63, 0x10, 0x48,
-	0x55, 0x5f, 0xbb, 0x53, 0x8a, 0x43, 0xa8, 0xe7, 0x02, 0xa2, 0xc7, 0x00, 0x11, 0x15, 0x0b, 0xc6,
-	0xc7, 0xd9, 0xe2, 0x33, 0x88, 0xa1, 0x34, 0x03, 0x1f, 0x7d, 0x01, 0x30, 0x61, 0x41, 0xe8, 0xb9,
-	0x13, 0xe7, 0x8e, 0xa7, 0x61, 0x28, 0xfc, 0xc0, 0xc7, 0xbf, 0xeb, 0x60, 0xc8, 0xa1, 0x79, 0x63,
-	0x96, 0x0f, 0xa1, 0x12, 0xb1, 0xc8, 0xa3, 0x8a, 0x64, 0x2a, 0xe4, 0x87, 0xac, 0x74, 0xe7, 0x21,
-	0x6b, 0xff, 0xa1, 0x83, 0x79, 0x91, 0x7b, 0x7d, 0xd1, 0x4b, 0x30, 0x7b, 0x54, 0xac, 0x5f, 0xc4,
-	0xbd, 0xbc, 0xac, 0xa3, 0xed, 0x17, 0x09, 0x6b, 0xe8, 0x2b, 0xa8, 0xab, 0xcb, 0x3c, 0x0c, 0x83,
-	0x08, 0x3d, 0xda, 0xba, 0x59, 0xad, 0x4d, 0xb6, 0xdd, 0xf4, 0x61, 0xf7, 0x5c, 0x41, 0xb1, 0xd6,
-	0xfe, 0x57, 0x87, 0x77, 0xba, 0x13, 0x36, 0xf7, 0xf3, 0x57, 0x03, 0x0d, 0xa0, 0x96, 0x6d, 0x9d,
-	0x42, 0x6d, 0x85, 0x6d, 0x67, 0x3d, 0xde, 0x61, 0x55, 0x77, 0x4f, 0x43, 0xbf, 0x82, 0xb5, 0x7b,
-	0x49, 0x20, 0xbb, 0xe8, 0xbe, 0x7f, 0x13, 0x59, 0xad, 0x3b, 0xe3, 0xb3, 0x02, 0xda, 0xdf, 0x81,
-	0x59, 0xe4, 0x96, 0x4d, 0x5b, 0x81, 0x5b, 0x61, 0x3f, 0x14, 0xb8, 0x15, 0x47, 0x14, 0x6b, 0x17,
-	0xa7, 0xdf, 0x9f, 0x48, 0x44, 0x2b, 0xfd, 0x36, 0x9a, 0x84, 0x37, 0xad, 0x80, 0xa9, 0x4f, 0xa4,
-	0x9b, 0x03, 0xf9, 0xfb, 0xd1, 0x7f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x35, 0xa5, 0x4c, 0xf3, 0x85,
-	0x09, 0x00, 0x00,
+	// 973 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0xdd, 0x6e, 0xe2, 0x46,
+	0x14, 0xb6, 0x03, 0x04, 0x38, 0x38, 0xbb, 0x74, 0xba, 0x4b, 0x89, 0x93, 0x28, 0x59, 0xa7, 0x5b,
+	0xed, 0x4d, 0xa1, 0x4b, 0x7f, 0x94, 0x8b, 0x76, 0x55, 0x42, 0x12, 0x40, 0x2b, 0x75, 0x57, 0x43,
+	0xd4, 0xaa, 0x95, 0x52, 0xd7, 0xb1, 0x27, 0xc6, 0x05, 0x3c, 0x74, 0x3c, 0x88, 0x22, 0xf5, 0xa6,
+	0x77, 0x7d, 0x84, 0xf6, 0x09, 0xfa, 0x06, 0x7d, 0x80, 0xbe, 0x4c, 0x5f, 0xa3, 0xf2, 0x78, 0x6c,
+	0x83, 0x05, 0x24, 0x55, 0xaf, 0xe0, 0xfc, 0x7f, 0xf3, 0x9d, 0x39, 0x67, 0x0c, 0xc7, 0x94, 0xd9,
+	0x67, 0xac, 0x39, 0x65, 0x94, 0xd3, 0xa0, 0x79, 0x4b, 0x29, 0x0f, 0x38, 0xb3, 0xa6, 0x53, 0xc2,
+	0x1a, 0x42, 0x87, 0x2a, 0x13, 0xcb, 0x9d, 0x58, 0x0d, 0xe1, 0xa6, 0x1f, 0xae, 0x78, 0xdb, 0x84,
+	0x71, 0xef, 0xce, 0x8b, 0x5d, 0xf5, 0x83, 0x15, 0xab, 0xe7, 0x10, 0x9f, 0x7b, 0x7c, 0x21, 0x8d,
+	0xc7, 0x2e, 0xa5, 0xee, 0x98, 0x44, 0xd6, 0xdb, 0xd9, 0x5d, 0x93, 0x7b, 0x13, 0x12, 0x70, 0x6b,
+	0x32, 0x8d, 0x1c, 0x0c, 0x17, 0xca, 0x9d, 0xa1, 0x35, 0x1e, 0x13, 0xdf, 0x25, 0xe8, 0x73, 0x28,
+	0x8d, 0xc8, 0xc2, 0xe4, 0x8b, 0x29, 0xa9, 0xab, 0x27, 0xea, 0x8b, 0x47, 0xad, 0x67, 0x8d, 0x25,
+	0x20, 0x8d, 0xc4, 0xf3, 0x35, 0x59, 0x34, 0x5e, 0x93, 0xc5, 0xf5, 0x62, 0x4a, 0x70, 0x71, 0x14,
+	0xfd, 0x41, 0x87, 0x50, 0xb6, 0x63, 0x87, 0xfa, 0xce, 0x89, 0xfa, 0x42, 0xc3, 0xa9, 0xc2, 0xf8,
+	0x53, 0x05, 0x6d, 0x39, 0xfe, 0x7f, 0x16, 0xab, 0x42, 0x6e, 0x44, 0x16, 0xb2, 0x4c, 0xf8, 0xd7,
+	0xe8, 0x42, 0x51, 0x7a, 0xa1, 0x12, 0xe4, 0x2f, 0x3b, 0xbd, 0x37, 0x55, 0x05, 0xbd, 0x07, 0xef,
+	0x0e, 0xde, 0x5c, 0x5d, 0x7f, 0xd3, 0xc6, 0x97, 0x26, 0x1e, 0xb4, 0xcd, 0x41, 0xaf, 0xdd, 0xfa,
+	0xf4, 0xb3, 0xaa, 0x8a, 0xf6, 0xe1, 0x69, 0x62, 0xb8, 0xec, 0x5c, 0xa4, 0xa6, 0x1d, 0xe3, 0xef,
+	0x1c, 0x94, 0x30, 0x09, 0xa6, 0xd4, 0x0f, 0x08, 0x7a, 0x09, 0x85, 0xe1, 0xdc, 0xf4, 0x1c, 0x01,
+	0xb1, 0xd2, 0x3a, 0x5c, 0x81, 0xd8, 0xb6, 0x6d, 0x12, 0x04, 0x5d, 0x8b, 0x93, 0xb9, 0xb5, 0xe8,
+	0x5f, 0xe0, 0xfc, 0x70, 0xde, 0x77, 0xb6, 0xf3, 0x80, 0xda, 0xb0, 0x47, 0xec, 0x21, 0x35, 0x99,
+	0xac, 0x50, 0xcf, 0x89, 0xc4, 0xfa, 0x4a, 0xe2, 0xb8, 0x7c, 0xe3, 0xd2, 0x1e, 0xd2, 0x9e, 0x82,
+	0xb5, 0x30, 0x24, 0xc1, 0xf4, 0x0a, 0x34, 0x16, 0x58, 0x69, 0x86, 0xbc, 0xc8, 0xb0, 0xbf, 0x3e,
+	0x03, 0x1e, 0xb4, 0x7b, 0x0a, 0xae, 0xb0, 0xc0, 0x4a, 0xe2, 0x2f, 0xe0, 0x11, 0xb1, 0x9d, 0xe5,
+	0x0c, 0x05, 0x91, 0xe1, 0x60, 0x03, 0x86, 0x90, 0x9e, 0x9e, 0x82, 0xf7, 0x44, 0x50, 0x92, 0xc5,
+	0x80, 0x9c, 0x1d, 0xb0, 0xfa, 0xae, 0x08, 0xad, 0xae, 0xb6, 0x6e, 0x80, 0x71, 0x68, 0xd4, 0x0d,
+	0xc8, 0x87, 0x27, 0x40, 0x3a, 0x94, 0x92, 0x5a, 0xaa, 0x60, 0x24, 0x91, 0xf5, 0x53, 0xc8, 0xe1,
+	0x41, 0x3b, 0x64, 0x2d, 0xf0, 0x5c, 0xdf, 0xe2, 0x33, 0x16, 0xfb, 0xa4, 0x0a, 0xfd, 0x14, 0x0a,
+	0x02, 0x06, 0xd2, 0x40, 0x65, 0xd2, 0xac, 0xb2, 0x50, 0x0a, 0x24, 0xc5, 0x6a, 0x70, 0x0e, 0x69,
+	0x15, 0xe3, 0x47, 0x78, 0xdc, 0x25, 0xfc, 0x9a, 0x8e, 0x88, 0x8f, 0xc9, 0x4f, 0x33, 0x12, 0x70,
+	0xf4, 0x05, 0x14, 0xdd, 0xa8, 0x55, 0xb2, 0x99, 0xa7, 0x2b, 0xa0, 0x65, 0x1b, 0xdf, 0x32, 0xc2,
+	0x88, 0xeb, 0x05, 0x9c, 0xb0, 0xbe, 0x7f, 0x47, 0x71, 0x1c, 0x83, 0xea, 0x50, 0x64, 0xe4, 0x8e,
+	0x91, 0x60, 0x28, 0x2a, 0x96, 0x70, 0x2c, 0x1a, 0xdf, 0x43, 0x35, 0xad, 0x25, 0xd9, 0x79, 0x02,
+	0x05, 0x1e, 0x2a, 0x44, 0xa9, 0x32, 0x8e, 0x04, 0xf4, 0x09, 0x14, 0xc3, 0x01, 0xa4, 0x33, 0x2e,
+	0x72, 0x84, 0x6d, 0x8f, 0x06, 0xb4, 0x11, 0x0f, 0x68, 0xe3, 0x3a, 0x1e, 0x50, 0x1c, 0xbb, 0x1a,
+	0x1f, 0xc0, 0xfb, 0x5d, 0xc2, 0x43, 0x34, 0x57, 0x94, 0x49, 0x98, 0x58, 0x60, 0x64, 0x16, 0xf7,
+	0x68, 0x7c, 0x40, 0xe3, 0x07, 0x78, 0x7e, 0x8f, 0x9f, 0x04, 0x57, 0x83, 0x5d, 0x46, 0x29, 0xef,
+	0xb4, 0x25, 0x3a, 0x29, 0xa1, 0x63, 0xa8, 0x38, 0x74, 0x62, 0x79, 0xbe, 0xe9, 0x5b, 0x93, 0xe8,
+	0xee, 0x96, 0x31, 0x44, 0xaa, 0xaf, 0xac, 0x09, 0x31, 0xce, 0xe0, 0xa4, 0x4b, 0xf8, 0x06, 0xa6,
+	0x24, 0xcd, 0x6b, 0x4f, 0x6e, 0xfc, 0xaa, 0xc2, 0xb3, 0x2d, 0xa1, 0x12, 0xd8, 0x19, 0xd4, 0xd6,
+	0x7b, 0x44, 0xc9, 0x7a, 0x0a, 0xde, 0x60, 0x47, 0x35, 0x28, 0x10, 0xc6, 0x28, 0x8b, 0x40, 0xf7,
+	0x14, 0x1c, 0x89, 0x2b, 0x77, 0xe2, 0x0f, 0x15, 0x1e, 0x63, 0x19, 0xb4, 0x15, 0x2d, 0xfa, 0x08,
+	0xf2, 0xc3, 0xb9, 0xe7, 0xc8, 0x26, 0xdd, 0x3b, 0xf4, 0x9e, 0x83, 0x5e, 0xc1, 0x5e, 0x32, 0xe3,
+	0x66, 0xb8, 0x99, 0x72, 0x6b, 0x86, 0x72, 0x79, 0xa5, 0x61, 0xcd, 0x5e, 0x92, 0x8c, 0x1b, 0xa8,
+	0xa6, 0xd0, 0x24, 0x1b, 0xcf, 0x61, 0xcf, 0xa6, 0x3e, 0x67, 0x74, 0x6c, 0x4e, 0x19, 0xfd, 0x79,
+	0x91, 0x90, 0xa0, 0x49, 0xf5, 0xdb, 0x50, 0xfb, 0xa0, 0xa3, 0x7f, 0xbd, 0x89, 0x58, 0x74, 0x04,
+	0xe0, 0x13, 0x3e, 0xa7, 0x6c, 0x14, 0x6f, 0xb9, 0x32, 0x2e, 0x4b, 0x4d, 0xdf, 0x09, 0xcd, 0x63,
+	0xea, 0x7a, 0xb6, 0x35, 0x36, 0x25, 0x1f, 0x65, 0x5c, 0x96, 0x9a, 0xbe, 0x63, 0xfc, 0xa5, 0x42,
+	0x59, 0x5c, 0x7c, 0x91, 0xeb, 0x06, 0xea, 0x72, 0x5a, 0xcc, 0x69, 0x5a, 0xc6, 0xf4, 0xe2, 0x06,
+	0x3e, 0x70, 0xe4, 0x6a, 0xee, 0x7a, 0xa8, 0x4f, 0xa0, 0xe0, 0x53, 0xdf, 0x8e, 0x2f, 0x66, 0x24,
+	0x2c, 0xcf, 0x54, 0xee, 0xc1, 0x33, 0xd5, 0xfa, 0x5d, 0x05, 0xed, 0x7c, 0xe9, 0xdd, 0x45, 0x57,
+	0xa0, 0x75, 0x09, 0x4f, 0xdf, 0xc2, 0xad, 0x4d, 0xd7, 0x6b, 0xeb, 0xfb, 0x6a, 0x28, 0xe8, 0x4b,
+	0xa8, 0xc8, 0xbb, 0x35, 0xf0, 0x5c, 0x1f, 0x3d, 0x5d, 0xbb, 0x53, 0xf5, 0xfa, 0x6a, 0x7c, 0xf4,
+	0xa4, 0xdb, 0x16, 0x27, 0x86, 0xd2, 0xfa, 0x67, 0x07, 0xde, 0xe9, 0x8c, 0xe9, 0xcc, 0x59, 0x9e,
+	0x5d, 0xd4, 0x87, 0x52, 0xbc, 0x64, 0x32, 0xd8, 0x32, 0x7b, 0x4e, 0x3f, 0xda, 0x60, 0x95, 0x57,
+	0x41, 0x41, 0xbf, 0xa9, 0x70, 0xb4, 0x75, 0x51, 0xa0, 0x97, 0xd9, 0x14, 0xf7, 0x2e, 0x1f, 0xbd,
+	0xf5, 0x5f, 0x42, 0x12, 0x28, 0xbf, 0xc0, 0xfe, 0xc6, 0xad, 0x80, 0x3e, 0xcc, 0xa6, 0xdc, 0xba,
+	0x78, 0xf4, 0xc6, 0x43, 0xdd, 0xe3, 0xea, 0xad, 0x6f, 0x41, 0xcb, 0x72, 0x1c, 0x0f, 0x61, 0x86,
+	0xe3, 0xcc, 0xda, 0xc8, 0x70, 0x9c, 0x9d, 0x5c, 0x43, 0x39, 0x3f, 0xf8, 0x6e, 0x5f, 0x78, 0x34,
+	0xa3, 0xaf, 0xb3, 0xb1, 0x77, 0xdb, 0x74, 0xa9, 0xfc, 0x48, 0xbb, 0xdd, 0x15, 0xbf, 0x1f, 0xff,
+	0x1b, 0x00, 0x00, 0xff, 0xff, 0xc7, 0x75, 0x33, 0xbe, 0x07, 0x0a, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1117,8 +1143,14 @@ var _Bootstrapper_serviceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type CloudRegistrationClient interface {
+	// GetToken saves and sends out a token related to input:networkID and input:logicalID
+	// It will refresh the token if input:refresh is true or token is expired
 	GetToken(ctx context.Context, in *GetTokenRequest, opts ...grpc.CallOption) (*GetTokenResponse, error)
-	GetGatewayRegistrationInfo(ctx context.Context, in *GetGatewayRegistrationInfoRequest, opts ...grpc.CallOption) (*GetGatewayRegistrationInfoResponse, error)
+	// GetInfoForGatewayRegistration sends out information needed for gateways to register themselves
+	GetInfoForGatewayRegistration(ctx context.Context, in *GetInfoForGatewayRegistrationRequest, opts ...grpc.CallOption) (*GetInfoForGatewayRegistrationResponse, error)
+	// GetGatewayPreregisterInfo sends out information that has been set when the operator preregistered
+	// the device with networkID and logicalID
+	GetGatewayPreregisterInfo(ctx context.Context, in *GetGatewayPreregisterInfoRequest, opts ...grpc.CallOption) (*GetGatewayPreregisterInfoResponse, error)
 }
 
 type cloudRegistrationClient struct {
@@ -1138,9 +1170,18 @@ func (c *cloudRegistrationClient) GetToken(ctx context.Context, in *GetTokenRequ
 	return out, nil
 }
 
-func (c *cloudRegistrationClient) GetGatewayRegistrationInfo(ctx context.Context, in *GetGatewayRegistrationInfoRequest, opts ...grpc.CallOption) (*GetGatewayRegistrationInfoResponse, error) {
-	out := new(GetGatewayRegistrationInfoResponse)
-	err := c.cc.Invoke(ctx, "/magma.orc8r.CloudRegistration/GetGatewayRegistrationInfo", in, out, opts...)
+func (c *cloudRegistrationClient) GetInfoForGatewayRegistration(ctx context.Context, in *GetInfoForGatewayRegistrationRequest, opts ...grpc.CallOption) (*GetInfoForGatewayRegistrationResponse, error) {
+	out := new(GetInfoForGatewayRegistrationResponse)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.CloudRegistration/GetInfoForGatewayRegistration", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudRegistrationClient) GetGatewayPreregisterInfo(ctx context.Context, in *GetGatewayPreregisterInfoRequest, opts ...grpc.CallOption) (*GetGatewayPreregisterInfoResponse, error) {
+	out := new(GetGatewayPreregisterInfoResponse)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.CloudRegistration/GetGatewayPreregisterInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1149,8 +1190,14 @@ func (c *cloudRegistrationClient) GetGatewayRegistrationInfo(ctx context.Context
 
 // CloudRegistrationServer is the server API for CloudRegistration service.
 type CloudRegistrationServer interface {
+	// GetToken saves and sends out a token related to input:networkID and input:logicalID
+	// It will refresh the token if input:refresh is true or token is expired
 	GetToken(context.Context, *GetTokenRequest) (*GetTokenResponse, error)
-	GetGatewayRegistrationInfo(context.Context, *GetGatewayRegistrationInfoRequest) (*GetGatewayRegistrationInfoResponse, error)
+	// GetInfoForGatewayRegistration sends out information needed for gateways to register themselves
+	GetInfoForGatewayRegistration(context.Context, *GetInfoForGatewayRegistrationRequest) (*GetInfoForGatewayRegistrationResponse, error)
+	// GetGatewayPreregisterInfo sends out information that has been set when the operator preregistered
+	// the device with networkID and logicalID
+	GetGatewayPreregisterInfo(context.Context, *GetGatewayPreregisterInfoRequest) (*GetGatewayPreregisterInfoResponse, error)
 }
 
 // UnimplementedCloudRegistrationServer can be embedded to have forward compatible implementations.
@@ -1160,8 +1207,11 @@ type UnimplementedCloudRegistrationServer struct {
 func (*UnimplementedCloudRegistrationServer) GetToken(ctx context.Context, req *GetTokenRequest) (*GetTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetToken not implemented")
 }
-func (*UnimplementedCloudRegistrationServer) GetGatewayRegistrationInfo(ctx context.Context, req *GetGatewayRegistrationInfoRequest) (*GetGatewayRegistrationInfoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetGatewayRegistrationInfo not implemented")
+func (*UnimplementedCloudRegistrationServer) GetInfoForGatewayRegistration(ctx context.Context, req *GetInfoForGatewayRegistrationRequest) (*GetInfoForGatewayRegistrationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetInfoForGatewayRegistration not implemented")
+}
+func (*UnimplementedCloudRegistrationServer) GetGatewayPreregisterInfo(ctx context.Context, req *GetGatewayPreregisterInfoRequest) (*GetGatewayPreregisterInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGatewayPreregisterInfo not implemented")
 }
 
 func RegisterCloudRegistrationServer(s *grpc.Server, srv CloudRegistrationServer) {
@@ -1186,20 +1236,38 @@ func _CloudRegistration_GetToken_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CloudRegistration_GetGatewayRegistrationInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetGatewayRegistrationInfoRequest)
+func _CloudRegistration_GetInfoForGatewayRegistration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInfoForGatewayRegistrationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CloudRegistrationServer).GetGatewayRegistrationInfo(ctx, in)
+		return srv.(CloudRegistrationServer).GetInfoForGatewayRegistration(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/magma.orc8r.CloudRegistration/GetGatewayRegistrationInfo",
+		FullMethod: "/magma.orc8r.CloudRegistration/GetInfoForGatewayRegistration",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CloudRegistrationServer).GetGatewayRegistrationInfo(ctx, req.(*GetGatewayRegistrationInfoRequest))
+		return srv.(CloudRegistrationServer).GetInfoForGatewayRegistration(ctx, req.(*GetInfoForGatewayRegistrationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudRegistration_GetGatewayPreregisterInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGatewayPreregisterInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudRegistrationServer).GetGatewayPreregisterInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.orc8r.CloudRegistration/GetGatewayPreregisterInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudRegistrationServer).GetGatewayPreregisterInfo(ctx, req.(*GetGatewayPreregisterInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1213,8 +1281,12 @@ var _CloudRegistration_serviceDesc = grpc.ServiceDesc{
 			Handler:    _CloudRegistration_GetToken_Handler,
 		},
 		{
-			MethodName: "GetGatewayRegistrationInfo",
-			Handler:    _CloudRegistration_GetGatewayRegistrationInfo_Handler,
+			MethodName: "GetInfoForGatewayRegistration",
+			Handler:    _CloudRegistration_GetInfoForGatewayRegistration_Handler,
+		},
+		{
+			MethodName: "GetGatewayPreregisterInfo",
+			Handler:    _CloudRegistration_GetGatewayPreregisterInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
