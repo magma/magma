@@ -52,7 +52,7 @@ enum SessionSearchCriteriaType {
   IMSI_AND_BEARER                  = 4,
   IMSI_AND_TEID                    = 5,
   IMSI_AND_PDUID                   = 6,
-  IMSI_AND_UE_IPV4_OR_IPV6_OR_TEID = 7,
+  IMSI_AND_UE_IPV4_OR_IPV6_OR_UPF_TEID = 7,
 };
 
 struct SessionSearchCriteria {

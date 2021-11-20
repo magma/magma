@@ -128,6 +128,18 @@ void SetMessageManagerHandler::SetAmfSessionContext(
     // extract values from proto
     std::string imsi = request_cpy.common_context().sid().id();
     std::string dnn  = request_cpy.common_context().apn();
+    const auto rat_type = request_cpy.common_context().rat_type();
+    if (rat_type != TGPP_NR) {
+      // We don't support outside of 5G
+      std::ostringstream failure_stream;
+      failure_stream << "Received an invalid RAT type " << rat_type;
+      std::string failure_msg = failure_stream.str();
+      MLOG(MERROR) << failure_msg;
+      Status status(
+           grpc::FAILED_PRECONDITION, failure_msg);
+      response_callback(status, SmContextVoid());
+      return;
+    }
     // Fetch PDU session ID from rat_specific_context and
     // pdu_id is unique to IMSI
     uint32_t pdu_id = request_cpy.rat_specific_context()
@@ -170,12 +182,6 @@ void SetMessageManagerHandler::SetAmfSessionContext(
         /* it's new UE establisment request and need to create the session
          * context
          */
-        if (!validate_session_request(cfg)) {
-          Status status(
-              grpc::FAILED_PRECONDITION, "Received an invalid RAT type ");
-          response_callback(status, SmContextVoid());
-          return;
-        }
         auto session_map = session_store_.read_sessions({imsi});
         send_create_session(session_map, imsi, cfg, pdu_id);
         response_callback(Status::OK, SmContextVoid());

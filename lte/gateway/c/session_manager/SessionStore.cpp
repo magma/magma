@@ -322,7 +322,7 @@ optional<SessionVector::iterator> SessionStore::find_session(
         }
         break;  // break IMSI_AND_PDUID
 
-      case IMSI_AND_UE_IPV4_OR_IPV6_OR_TEID:
+      case IMSI_AND_UE_IPV4_OR_IPV6_OR_UPF_TEID:
         switch (context.rat_type()) {
           case RATType::TGPP_WLAN:
             return it;
@@ -340,7 +340,7 @@ optional<SessionVector::iterator> SessionStore::find_session(
             break;
           default:
             MLOG(MERROR)
-                << "Search criteria for IMSI_AND_UE_IPV4_OR_IPV6_OR_TEID"
+                << "Search criteria for IMSI_AND_UE_IPV4_OR_IPV6_OR_UPF_TEID"
                    " not implemented for this RAT "
                 << context.rat_type();
             break;
