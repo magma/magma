@@ -90,22 +90,6 @@ SessionConfig SetMessageManagerHandler::m5g_build_session_config(
   return cfg;
 }
 
-bool SetMessageManagerHandler::validate_session_request(
-    const SessionConfig cfg) {
-  const auto rat_type               = cfg.common_context.rat_type();
-  const CommonSessionContext common = cfg.common_context;
-  if (rat_type != TGPP_NR) {
-    // We don't support outside of 5G
-    std::ostringstream failure_stream;
-    failure_stream << "Received an invalid RAT type " << rat_type;
-    std::string failure_msg = failure_stream.str();
-    MLOG(MERROR) << failure_msg;
-    events_reporter_->session_create_failure(cfg, failure_msg);
-    return false;
-  }
-  return true;
-}
-
 /* Handling set message from AMF
  * check if it is INITIAL_REQUEST or EXISTING_PDU_SESSION
  * if it is INITIAL_REQUEST need to create the session context in SessionMap
