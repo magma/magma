@@ -40,8 +40,8 @@ func NewCloudRegistrationServicer(store Store) (protos.CloudRegistrationServer, 
 }
 
 func (crs *cloudRegistrationServicer) GetToken(c context.Context, request *protos.GetTokenRequest) (*protos.GetTokenResponse, error) {
-	networkId := request.Gateway.NetworkId
-	logicalId := request.Gateway.LogicalId.Id
+	networkId := request.GatewayPreregisterInfo.NetworkId
+	logicalId := request.GatewayPreregisterInfo.LogicalId
 
 	tokenInfo, err := crs.store.GetTokenInfoFromLogicalID(networkId, logicalId)
 	if err != nil {
@@ -68,7 +68,7 @@ func (crs *cloudRegistrationServicer) GetInfoForGatewayRegistration(c context.Co
 	domainName := getDomainName()
 
 	return &protos.GetInfoForGatewayRegistrationResponse{
-		RootCA:               rootCA,
+		RootCa:               rootCA,
 		DomainName:           domainName,
 	}, nil
 }
@@ -109,7 +109,7 @@ func (crs *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string,
 		}
 
 	tokenInfo := protos.TokenInfo{
-		GatewayPreregisterInfo: &protos.  GatewayPreregisterInfo{
+		GatewayPreregisterInfo: &protos.GatewayPreregisterInfo{
 			NetworkId: networkID,
 			LogicalId: logicalID,
 		},
