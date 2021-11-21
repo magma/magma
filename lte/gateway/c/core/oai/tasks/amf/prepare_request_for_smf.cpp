@@ -172,8 +172,7 @@ int amf_smf_create_pdu_session(
       imsi);
   AMFClientServicer::getInstance().allocate_ipv4_address(
       imsi, smf_ctx->dnn.c_str(), message->pdu_session_id, message->pti,
-      AF_INET, message->gnb_gtp_teid, message->gnb_gtp_teid_ip_addr, 4,
-      amf_ctxt_p->subscribed_ue_ambr);
+      AF_INET, message->gnb_gtp_teid, message->gnb_gtp_teid_ip_addr, 4);
 
   return (RETURNok);
 }

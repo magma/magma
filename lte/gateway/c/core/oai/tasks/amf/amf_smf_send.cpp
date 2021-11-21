@@ -494,14 +494,7 @@ int amf_smf_process_pdu_session_packet(
       free(default_dnn);
 
       if (validate == RETURNok) {
-        smf_ctx->dnn.assign(
-            reinterpret_cast<char*>(ue_context->amf_context.apn_config_profile
-                                        .apn_configuration[index_dnn]
-                                        .service_selection),
-            strlen(ue_context->amf_context.apn_config_profile
-                       .apn_configuration[index_dnn]
-                       .service_selection));
-        OAILOG_INFO(LOG_AMF_APP, "dnn selected %s\n", smf_ctx->dnn.c_str());
+        smf_dnn_ambr_select(smf_ctx, ue_context, index_dnn);
       } else {
         OAILOG_INFO(
             LOG_AMF_APP,
@@ -558,6 +551,32 @@ int amf_smf_process_pdu_session_packet(
       break;
   }
   return rc;
+}
+/***************************************************************************
+**                                                                        **
+** Name:    smf_dnn_ambr_select()                                         **
+**                                                                        **
+** Description: Copy dnn and ambr info in smf context                     **
+**                                                                        **
+**                                                                        **
+***************************************************************************/
+void smf_dnn_ambr_select(
+    const std::shared_ptr<smf_context_t>& smf_ctx,
+    ue_m5gmm_context_s* ue_context, int index_dnn) {
+  smf_ctx->dnn.assign(
+      reinterpret_cast<char*>(ue_context->amf_context.apn_config_profile
+                                  .apn_configuration[index_dnn]
+                                  .service_selection),
+      strlen(ue_context->amf_context.apn_config_profile
+                 .apn_configuration[index_dnn]
+                 .service_selection));
+  OAILOG_INFO(LOG_AMF_APP, "dnn selected %s\n", smf_ctx->dnn.c_str());
+
+  memcpy(
+      &smf_ctx->smf_ctx_ambr,
+      &ue_context->amf_context.apn_config_profile.apn_configuration[index_dnn]
+           .ambr,
+      sizeof(ambr_t));
 }
 /***************************************************************************
 **                                                                        **
@@ -756,24 +775,8 @@ int amf_smf_notification_send(
 **                                                                        **
 ***************************************************************************/
 int amf_update_smf_context_pdu_ip(
-    char* imsi, uint8_t* apn, uint32_t pdu_session_id, paa_t* address_info) {
-  ue_m5gmm_context_s* ue_context;
-  std::shared_ptr<smf_context_t> smf_ctx;
-  imsi64_t imsi64;
-  int rc = RETURNerror;
-
-  IMSI_STRING_TO_IMSI64(imsi, &imsi64);
-
-  ue_context = lookup_ue_ctxt_by_imsi(imsi64);
-  if (ue_context == NULL) {
-    return rc;
-  }
-
-  smf_ctx = amf_get_smf_context_by_pdu_session_id(ue_context, pdu_session_id);
-  if (NULL == smf_ctx) {
-    return rc;
-  }
-
+    const std::shared_ptr<smf_context_t>& smf_ctx, paa_t* address_info) {
+  OAILOG_INFO(LOG_AMF_APP, "SMF context PDU address updated\n");
   memcpy(&(smf_ctx->pdu_address), address_info, sizeof(paa_t));
 
   return RETURNok;
@@ -789,11 +792,31 @@ int amf_update_smf_context_pdu_ip(
 ***************************************************************************/
 int amf_smf_handle_ip_address_response(
     itti_amf_ip_allocation_response_t* response_p) {
+  ue_m5gmm_context_s* ue_context;
+  std::shared_ptr<smf_context_t> smf_ctx;
+  imsi64_t imsi64;
   int rc = RETURNerror;
 
-  rc = amf_update_smf_context_pdu_ip(
-      response_p->imsi, response_p->apn, response_p->pdu_session_id,
-      &(response_p->paa));
+  IMSI_STRING_TO_IMSI64(response_p->imsi, &imsi64);
+  ue_context = lookup_ue_ctxt_by_imsi(imsi64);
+
+  if (ue_context == NULL) {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "UE Context for [%s] not found \n",
+        reinterpret_cast<char*>(response_p->imsi));
+    return rc;
+  }
+
+  smf_ctx = amf_get_smf_context_by_pdu_session_id(
+      ue_context, response_p->pdu_session_id);
+  if (NULL == smf_ctx) {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "Smf Context not found for pdu session id: [%s] \n",
+        reinterpret_cast<char*>(response_p->pdu_session_id));
+    return rc;
+  }
+
+  rc = amf_update_smf_context_pdu_ip(smf_ctx, &(response_p->paa));
 
   if (rc < 0) {
     OAILOG_ERROR(
@@ -813,7 +836,7 @@ int amf_smf_handle_ip_address_response(
     rc = amf_smf_create_ipv4_session_grpc_req(
         response_p->imsi, response_p->apn, response_p->pdu_session_id,
         response_p->pdu_session_type, response_p->gnb_gtp_teid, response_p->pti,
-        response_p->gnb_gtp_teid_ip_addr, ip_str, response_p->default_ambr);
+        response_p->gnb_gtp_teid_ip_addr, ip_str, smf_ctx->smf_ctx_ambr);
 
     if (rc < 0) {
       OAILOG_ERROR(LOG_AMF_APP, "Create IPV4 Session \n");
