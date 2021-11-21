@@ -23,9 +23,9 @@ from magma.enodebd.tr069 import models
 
 
 def process_inform_message(
-    inform: Any,
-    data_model: DataModel,
-    device_cfg: EnodebConfiguration,
+        inform: Any,
+        data_model: DataModel,
+        device_cfg: EnodebConfiguration,
 ) -> None:
     """
     Modifies the device configuration based on what is received in the Inform
@@ -51,12 +51,12 @@ def process_inform_message(
 
 
 def get_device_name_from_inform(
-    inform: models.Inform,
+        inform: models.Inform,
 ) -> EnodebDeviceName:
     def _get_param_value_from_path_suffix(
-        suffix: str,
-        path_list: List[str],
-        param_values_by_path: Dict[str, Any],
+            suffix: str,
+            path_list: List[str],
+            param_values_by_path: Dict[str, Any],
     ) -> Any:
         for path in path_list:
             if path.endswith(suffix):
@@ -85,8 +85,8 @@ def get_device_name_from_inform(
 
 
 def does_inform_have_event(
-    inform: models.Inform,
-    event_code: str,
+        inform: models.Inform,
+        event_code: str,
 ) -> bool:
     """ True if the Inform message contains the specified event code """
     for event in inform.Event.EventStruct:
@@ -96,7 +96,7 @@ def does_inform_have_event(
 
 
 def _get_param_values_by_path(
-    inform: models.Inform,
+        inform: models.Inform,
 ) -> Dict[str, Any]:
     if not hasattr(inform, 'ParameterList') or \
             not hasattr(inform.ParameterList, 'ParameterValueStruct'):
@@ -134,8 +134,8 @@ def are_tr069_params_equal(param_a: Any, param_b: Any, type_: str) -> bool:
 
 
 def get_all_objects_to_add(
-    desired_cfg: EnodebConfiguration,
-    device_cfg: EnodebConfiguration,
+        desired_cfg: EnodebConfiguration,
+        device_cfg: EnodebConfiguration,
 ) -> List[ParameterName]:
     """
     Find a ParameterName that needs to be added to the eNB configuration,
@@ -153,8 +153,8 @@ def get_all_objects_to_add(
 
 
 def get_all_objects_to_delete(
-    desired_cfg: EnodebConfiguration,
-    device_cfg: EnodebConfiguration,
+        desired_cfg: EnodebConfiguration,
+        device_cfg: EnodebConfiguration,
 ) -> List[ParameterName]:
     """
     Find a ParameterName that needs to be deleted from the eNB configuration,
@@ -166,9 +166,9 @@ def get_all_objects_to_delete(
 
 
 def get_params_to_get(
-    device_cfg: EnodebConfiguration,
-    data_model: DataModel,
-    request_all_params: bool = False,
+        device_cfg: EnodebConfiguration,
+        data_model: DataModel,
+        request_all_params: bool = False,
 ) -> List[ParameterName]:
     """
     Returns the names of params not belonging to objects that are added/removed
@@ -182,9 +182,9 @@ def get_params_to_get(
 
 
 def get_object_params_to_get(
-    desired_cfg: Optional[EnodebConfiguration],
-    device_cfg: EnodebConfiguration,
-    data_model: DataModel,
+        desired_cfg: Optional[EnodebConfiguration],
+        device_cfg: EnodebConfiguration,
+        data_model: DataModel,
 ) -> List[ParameterName]:
     """
     Returns a list of parameter names for object parameters we don't know the
@@ -221,10 +221,10 @@ READ_ONLY_PARAMETERS = [
 
 
 def get_param_values_to_set(
-    desired_cfg: EnodebConfiguration,
-    device_cfg: EnodebConfiguration,
-    data_model: DataModel,
-    exclude_admin: bool = False,
+        desired_cfg: EnodebConfiguration,
+        device_cfg: EnodebConfiguration,
+        data_model: DataModel,
+        exclude_admin: bool = False,
 ) -> Dict[ParameterName, Any]:
     """
     Get a map of param names to values for parameters that we will
@@ -251,9 +251,9 @@ def get_param_values_to_set(
 
 
 def get_obj_param_values_to_set(
-    desired_cfg: EnodebConfiguration,
-    device_cfg: EnodebConfiguration,
-    data_model: DataModel,
+        desired_cfg: EnodebConfiguration,
+        device_cfg: EnodebConfiguration,
+        data_model: DataModel,
 ) -> Dict[ParameterName, Dict[ParameterName, Any]]:
     """ Returns a map from object name to (a map of param name to value) """
     param_values = {}
@@ -271,10 +271,10 @@ def get_obj_param_values_to_set(
 
 
 def get_all_param_values_to_set(
-    desired_cfg: EnodebConfiguration,
-    device_cfg: EnodebConfiguration,
-    data_model: DataModel,
-    exclude_admin: bool = False,
+        desired_cfg: EnodebConfiguration,
+        device_cfg: EnodebConfiguration,
+        data_model: DataModel,
+        exclude_admin: bool = False,
 ) -> Dict[ParameterName, Any]:
     """ Returns a map of param names to values that we need to set """
     param_values = get_param_values_to_set(
@@ -292,8 +292,8 @@ def get_all_param_values_to_set(
 
 
 def parse_get_parameter_values_response(
-    data_model: DataModel,
-    message: models.GetParameterValuesResponse,
+        data_model: DataModel,
+        message: models.GetParameterValuesResponse,
 ) -> Dict[ParameterName, Any]:
     """ Returns a map of ParameterName to the value read from the response """
     param_values_by_path = {}
@@ -313,7 +313,7 @@ def parse_get_parameter_values_response(
 
 
 def get_optional_param_to_check(
-    data_model: DataModel,
+        data_model: DataModel,
 ) -> Optional[ParameterName]:
     """
     If there is a parameter which is optional in the data model, and we do not

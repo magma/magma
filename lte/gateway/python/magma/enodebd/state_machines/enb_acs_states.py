@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import re
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from typing import Any, Optional
@@ -121,10 +122,10 @@ class WaitInformState(EnodebAcsState):
     """
 
     def __init__(
-        self,
-        acs: EnodebAcsStateMachine,
-        when_done: str,
-        when_boot: Optional[str] = None,
+            self,
+            acs: EnodebAcsStateMachine,
+            when_done: str,
+            when_boot: Optional[str] = None,
     ):
         super().__init__()
         self.acs = acs
@@ -183,7 +184,7 @@ class GetRPCMethodsState(EnodebAcsState):
         resp.MethodList = models.MethodList()
         RPC_METHODS = ['Inform', 'GetRPCMethods', 'TransferComplete']
         resp.MethodList.arrayType = 'xsd:string[%d]' \
-                                          % len(RPC_METHODS)
+                                    % len(RPC_METHODS)
         resp.MethodList.string = RPC_METHODS
         return AcsMsgAndTransition(resp, self.done_transition)
 
@@ -204,13 +205,14 @@ class BaicellsRemWaitState(EnodebAcsState):
     TR-069 session.
     """
 
-    CONFIG_DELAY_AFTER_BOOT = 600
+    CONFIG_DELAY_AFTER_BOOT = 300
 
     def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
         super().__init__()
         self.acs = acs
         self.done_transition = when_done
         self.rem_timer = None
+        self.timer_handle = None
 
     def enter(self):
         self.rem_timer = StateMachineTimer(self.CONFIG_DELAY_AFTER_BOOT)
@@ -220,7 +222,17 @@ class BaicellsRemWaitState(EnodebAcsState):
             self.CONFIG_DELAY_AFTER_BOOT,
         )
 
+        def check_timer() -> None:
+            if self.rem_timer.is_done():
+                self.acs.transition(self.done_transition)
+
+        self.timer_handle = \
+            self.acs.event_loop.call_later(
+                self.CONFIG_DELAY_AFTER_BOOT, check_timer,
+            )
+
     def exit(self):
+        self.timer_handle.cancel()
         self.rem_timer = None
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
@@ -229,6 +241,14 @@ class BaicellsRemWaitState(EnodebAcsState):
         process_inform_message(
             message, self.acs.data_model,
             self.acs.device_cfg,
+        )
+        name_to_val = parse_get_parameter_values_response(self.acs.data_model, message)
+        if 'REM status' in name_to_val:
+            if name_to_val['REM status'] == '1':
+                self.exit()
+                self.acs.transition(self.done_transition)
+        logger.debug(
+            'Recevied CPE parameter values : %s', str(name_to_val),
         )
         return AcsReadMsgResult(True, None)
 
@@ -248,10 +268,10 @@ class BaicellsRemWaitState(EnodebAcsState):
 
 class WaitEmptyMessageState(EnodebAcsState):
     def __init__(
-        self,
-        acs: EnodebAcsStateMachine,
-        when_done: str,
-        when_missing: Optional[str] = None,
+            self,
+            acs: EnodebAcsStateMachine,
+            when_done: str,
+            when_missing: Optional[str] = None,
     ):
         super().__init__()
         self.acs = acs
@@ -459,17 +479,17 @@ class WaitGetTransientParametersState(EnodebAcsState):
         if should_get_obj_params:
             return self.get_obj_params_transition
         elif len(
-            get_all_objects_to_delete(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
+                get_all_objects_to_delete(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
         ) > 0:
             return self.rm_obj_transition
         elif len(
-            get_all_objects_to_add(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
+                get_all_objects_to_add(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
         ) > 0:
             return self.add_obj_transition
         return self.skip_transition
@@ -485,10 +505,10 @@ class GetParametersState(EnodebAcsState):
     """
 
     def __init__(
-        self,
-        acs: EnodebAcsStateMachine,
-        when_done: str,
-        request_all_params: bool = False,
+            self,
+            acs: EnodebAcsStateMachine,
+            when_done: str,
+            request_all_params: bool = False,
     ):
         super().__init__()
         self.acs = acs
@@ -597,12 +617,12 @@ class GetObjectParametersState(EnodebAcsState):
 
 class WaitGetObjectParametersState(EnodebAcsState):
     def __init__(
-        self,
-        acs: EnodebAcsStateMachine,
-        when_delete: str,
-        when_add: str,
-        when_set: str,
-        when_skip: str,
+            self,
+            acs: EnodebAcsStateMachine,
+            when_delete: str,
+            when_add: str,
+            when_set: str,
+            when_skip: str,
     ):
         super().__init__()
         self.acs = acs
@@ -627,6 +647,7 @@ class WaitGetObjectParametersState(EnodebAcsState):
         # Number of PLMN objects reported can be incorrect. Let's count them
         num_plmns = 0
         obj_to_params = self.acs.data_model.get_numbered_param_names()
+        logger.info('enb obj_to_params= %s', obj_to_params)
         while True:
             obj_name = ParameterName.PLMN_N % (num_plmns + 1)
             if obj_name not in obj_to_params or len(obj_to_params[obj_name]) == 0:
@@ -652,7 +673,7 @@ class WaitGetObjectParametersState(EnodebAcsState):
                     obj_name,
                 )
         num_plmns_reported = \
-                int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
+            int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
         if num_plmns != num_plmns_reported:
             logger.warning(
                 "eNB reported %d PLMNs but found %d",
@@ -674,25 +695,25 @@ class WaitGetObjectParametersState(EnodebAcsState):
             )
 
         if len(
-            get_all_objects_to_delete(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
+                get_all_objects_to_delete(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
         ) > 0:
             return AcsReadMsgResult(True, self.rm_obj_transition)
         elif len(
-            get_all_objects_to_add(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
+                get_all_objects_to_add(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
         ) > 0:
             return AcsReadMsgResult(True, self.add_obj_transition)
         elif len(
-            get_all_param_values_to_set(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-                self.acs.data_model,
-            ),
+                get_all_param_values_to_set(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                    self.acs.data_model,
+                ),
         ) > 0:
             return AcsReadMsgResult(True, self.set_params_transition)
         return AcsReadMsgResult(True, self.skip_transition)
@@ -703,10 +724,10 @@ class WaitGetObjectParametersState(EnodebAcsState):
 
 class DeleteObjectsState(EnodebAcsState):
     def __init__(
-        self,
-        acs: EnodebAcsStateMachine,
-        when_add: str,
-        when_skip: str,
+            self,
+            acs: EnodebAcsStateMachine,
+            when_add: str,
+            when_skip: str,
     ):
         super().__init__()
         self.acs = acs
@@ -725,6 +746,7 @@ class DeleteObjectsState(EnodebAcsState):
             self.acs.desired_cfg,
             self.acs.device_cfg,
         )[0]
+        logger.debug('get obj to delete %s', self.deleted_param)
         request.ObjectName = \
             self.acs.data_model.get_parameter(self.deleted_param).path
         return AcsMsgAndTransition(request, None)
@@ -757,10 +779,10 @@ class DeleteObjectsState(EnodebAcsState):
         if len(obj_list_to_delete) > 0:
             return AcsReadMsgResult(True, None)
         if len(
-            get_all_objects_to_add(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
+                get_all_objects_to_add(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
         ) == 0:
             return AcsReadMsgResult(True, self.skip_transition)
         return AcsReadMsgResult(True, self.add_obj_transition)
@@ -809,7 +831,8 @@ class AddObjectsState(EnodebAcsState):
         else:
             return AcsReadMsgResult(False, None)
         instance_n = message.InstanceNumber
-        self.acs.device_cfg.add_object(self.added_param % instance_n)
+        self.added_param = re.sub(r'\d', str(instance_n), self.added_param)
+        self.acs.device_cfg.add_object(self.added_param)
         obj_list_to_add = get_all_objects_to_add(
             self.acs.desired_cfg,
             self.acs.device_cfg,
@@ -837,7 +860,7 @@ class SetParameterValuesState(EnodebAcsState):
             self.acs.data_model,
         )
         request.ParameterList.arrayType = 'cwmp:ParameterValueStruct[%d]' \
-                                           % len(param_values)
+                                          % len(param_values)
         request.ParameterList.ParameterValueStruct = []
         logger.debug(
             'Sending TR069 request to set CPE parameter values: %s',
@@ -847,7 +870,7 @@ class SetParameterValuesState(EnodebAcsState):
         # calls.
         if self.acs.has_version_key:
             request.ParameterKey = models.ParameterKeyType()
-            request.ParameterKey.Data =\
+            request.ParameterKey.Data = \
                 "SetParameter-{:10.0f}".format(self.acs.parameter_version_key)
             request.ParameterKey.type = 'xsd:string'
 
@@ -939,11 +962,11 @@ class SetParameterValuesNotAdminState(EnodebAcsState):
 
 class WaitSetParameterValuesState(EnodebAcsState):
     def __init__(
-        self,
-        acs: EnodebAcsStateMachine,
-        when_done: str,
-        when_apply_invasive: str,
-        status_non_zero_allowed: bool = False,
+            self,
+            acs: EnodebAcsStateMachine,
+            when_done: str,
+            when_apply_invasive: str,
+            status_non_zero_allowed: bool = False,
     ):
         super().__init__()
         self.acs = acs
@@ -1162,10 +1185,10 @@ class WaitInformMRebootState(EnodebAcsState):
     INFORM_EVENT_CODE = 'M Reboot'
 
     def __init__(
-        self,
-        acs: EnodebAcsStateMachine,
-        when_done: str,
-        when_timeout: str,
+            self,
+            acs: EnodebAcsStateMachine,
+            when_done: str,
+            when_timeout: str,
     ):
         super().__init__()
         self.acs = acs
@@ -1267,8 +1290,8 @@ class ErrorState(EnodebAcsState):
     """
 
     def __init__(
-        self, acs: EnodebAcsStateMachine,
-        inform_transition_target: Optional[str] = None,
+            self, acs: EnodebAcsStateMachine,
+            inform_transition_target: Optional[str] = None,
     ):
         super().__init__()
         self.acs = acs

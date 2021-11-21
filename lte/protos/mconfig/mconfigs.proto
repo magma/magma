@@ -72,6 +72,61 @@ message EnodebD {
         int32 tac = 8;
         int32 cell_id = 9;
         string ip_address = 10;
+        // EnodeB Device Neighbor Freq parameters.
+        map <string, neighbor_freq_table> neighbor_freq_list = 11;
+        // EnodeB Device Neighbor Cell parameters.
+        // https://usp-data-models.broadband-forum.org/tr-196-2-1-1-usp.html#D.
+        // FAPService:2.FAPService.{i}.CellConfig.UMTS.RAN.NeighborList.
+        map <string, neighbor_cell_table> neighbor_cell_list = 12;
+        message neighbor_freq_table {
+          // Neighbor freq index
+          uint32 index = 1;
+          // Neighbor Freq E-UTRA Absolute Radio Frequency Channel Number
+          uint32 earfcn = 2;
+          // Q offset range for neighbor cell.
+          int32 q_offset_range = 3;
+          // Minimum required quality measure, spec in db. See Section 10.3.2.3
+          int32 q_rx_lev_min_sib5 = 4;
+          // Used to limit the allowed UE uplink tr power on the serving freq.
+          int32 p_max = 5;
+          // The E-UTRA parameter.
+          uint32 t_reselection_eutra = 6;
+          // Scaling factor for intra-frequency TreselectionEUTRA in
+          // Medium-mobility state. The value of TReselectionEUTRASFMedium
+          // divided by 100 yields the actual SF value.
+          uint32 t_reselection_eutra_sf_medium = 7;
+          // Threshold used when re-selecting from a lower priority
+          // E-UTRAN frequency, specified in dB
+          uint32 resel_thresh_high = 8;
+          // Threshold used when re-selecting from a higher priority
+          // E-UTRAN frequency, specified in dB
+          uint32 resel_thresh_low = 9;
+          // Absolute priority of this E-UTRA frequency carrier, as used
+          // by the inter-frequency cell re-selection procedure.
+          uint32 reselection_priority = 10;
+          // Neighbor enable and disable parameter.
+          bool enable = 11;
+        }
+        message neighbor_cell_table {
+          // Neighbor Cell Object index.
+          uint32 index = 1;
+          // Enodeb Neighbor Cell PLMN ID Consists of MCC and MNC.
+          string plmn = 2;
+          // Enodeb Neighbor Cell Identifier that identifies a cell.
+          uint32 cell_id = 3;
+          // Cell individual offset applicable to a spec neighbor cell.
+          uint32 earfcn = 4;
+          // Physical Cell ID for Neighbor cell.
+          uint32 pci = 5;
+          // Tacking Area Code for LTE FAT as spec in SIB1 message.
+          uint32 tac = 6;
+          // Enodeb Neighbor Cell Q Offset Parameter..
+          int32 q_offset = 7;
+          // Cell individual offset applicable to a specific neighboring cell.
+          int32 cio = 8;
+          // Enodeb Neighbor Cell enable and disable.
+          bool enable = 9;
+        }
     }
 
     orc8r.LogLevel log_level = 1;

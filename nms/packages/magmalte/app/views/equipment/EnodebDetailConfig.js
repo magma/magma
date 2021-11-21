@@ -27,6 +27,7 @@ import JsonEditor from '../../components/JsonEditor';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import nullthrows from '@fbcnms/util/nullthrows';
+import {NeighborCellConfig, NeighborFreqConfig} from './EnodebDetailNeighbor';
 
 import {EnodeConfigFdd} from './EnodebDetailConfigFdd';
 import {EnodeConfigTdd} from './EnodebDetailConfigTdd';
@@ -37,6 +38,10 @@ import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 260,
+  },
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
@@ -160,6 +165,10 @@ export default function EnodebConfig() {
           ) : (
             <EnodebUnmanagedRanConfig enbInfo={enbInfo} />
           )}
+
+          <NeighborFreqConfig />
+
+          <NeighborCellConfig />
         </Grid>
       </Grid>
     </div>

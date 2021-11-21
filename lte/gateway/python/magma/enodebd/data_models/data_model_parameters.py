@@ -86,6 +86,33 @@ class ParameterName():
     PERF_MGMT_PASSWORD = 'Perf mgmt password'
 
 
+class BaicellsParameterName():
+    NUM_LTE_NEIGHBOR_FREQ = 'nums neighbor'
+    NEGIH_FREQ_LIST = 'neighbor_freq_list %d'
+    NEIGHBOR_FREQ_INDEX_N = 'neighbor freq index %d'
+    NEIGHBOR_FREQ_EARFCN_N = 'neighbor freq earfcn %d'
+    NEIGHBOR_FREQ_Q_OFFSETRANGE_N = 'neighbor freq qoffsetrange %d'
+    NEIGHBOR_FREQ_QRXLEVMINSIB5_N = 'neighbor freq qrxlevminsib5 %d'
+    NEIGHBOR_FREQ_PMAX_N = 'neighbor freq pmax %d'
+    NEIGHBOR_FREQ_TRESELECTIONEUTRA_N = 'neighbor freq tReselectionEutra %d'
+    NEIGHBOR_FREQ_TRESELECTIONEUTRASFMEDIUM_N = 'neighbor freq tReselectionEutraSFMedium %d'
+    NEIGHBOR_FREQ_RESELTHRESHHIGH_N = 'neighbor freq ReselThreshHigh %d'
+    NEIGHBOR_FREQ_RESELTHRESHLOW_N = 'neighbor freq ReselThreshLow %d'
+    NEIGHBOR_FREQ_RESELECTIONPRIORITY_N = 'neighbor freq ReselectionPriority %d'
+    NEIGHBOR_FREQ_ENABLE_N = 'neighbor freq enable %d'
+
+    NUM_LTE_NEIGHBOR_CELL = 'nums neighbor cell'
+    NEIGHBOR_CELL_LIST_N = 'neighbor_cell_list %d'
+    NEIGHBOR_CELL_PLMN_N = 'neighbor_cell_plmn %d'
+    NEIGHBOR_CELL_CELL_ID_N = 'neighbor_cell_id %d'
+    NEIGHBOR_CELL_EARFCN_N = 'neighbor_cell_earfcn %d'
+    NEIGHBOR_CELL_PCI_N = 'neighbor_cell_pci %d'
+    NEIGHBOR_CELL_QOFFSET_N = 'neighbor_cell_qoffset %d'
+    NEIGHBOR_CELL_CIO_N = 'neighbor_cell_cio %d'
+    NEIGHBOR_CELL_TAC_N = 'neighbor_cell_tac %d'
+    NEIGHBOR_CELL_ENABLE_N = 'neighbor_cell_enable %d'
+
+
 class TrParameterType():
     BOOLEAN = 'boolean'
     STRING = 'string'

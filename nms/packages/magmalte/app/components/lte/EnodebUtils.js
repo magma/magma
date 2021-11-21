@@ -26,6 +26,7 @@ export const EnodebDeviceClass: {
   BAICELLS_ID: 'Baicells ID TDD/FDD',
   NURAN_CAVIUM_OC_LTE: 'NuRAN Cavium OC-LTE',
   FREEDOMFI_ONE: 'FreedomFi One',
+  BAICELLS_NOVA_227_OD_TDD: 'Baicells Nova-227 OD TDD',
 });
 
 export const EnodebBandwidthOption: {

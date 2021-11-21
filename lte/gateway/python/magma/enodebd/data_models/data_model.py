@@ -68,9 +68,9 @@ class DataModel(ABC):
         return self._presence_by_param[param_name]
 
     def set_parameter_presence(
-        self,
-        param_name: ParameterName,
-        is_present: bool,
+            self,
+            param_name: ParameterName,
+            is_present: bool,
     ) -> None:
         """ Mark optional parameter as either missing or not """
         self._presence_by_param[param_name] = is_present
@@ -108,9 +108,9 @@ class DataModel(ABC):
 
     @classmethod
     def transform_for_magma(
-        cls,
-        param_name: ParameterName,
-        enb_value: Any,
+            cls,
+            param_name: ParameterName,
+            enb_value: Any,
     ) -> Any:
         """
         Convert a parameter from its device specific formatting to the
@@ -135,9 +135,9 @@ class DataModel(ABC):
 
     @classmethod
     def transform_for_enb(
-        cls,
-        param_name: ParameterName,
-        magma_value: Any,
+            cls,
+            param_name: ParameterName,
+            magma_value: Any,
     ) -> Any:
         """
         Convert a parameter from the format that Magma understands to
@@ -163,8 +163,8 @@ class DataModel(ABC):
 
     @classmethod
     def get_parameter_name_from_path(
-        cls,
-        param_path: str,
+            cls,
+            param_path: str,
     ) -> Optional[ParameterName]:
         """
         Args:
@@ -199,7 +199,7 @@ class DataModel(ABC):
     @classmethod
     @abstractmethod
     def _get_magma_transforms(
-        cls,
+            cls,
     ) -> Dict[ParameterName, Callable[[Any], Any]]:
         """
         For the same parameter, different data models have their own
@@ -216,7 +216,7 @@ class DataModel(ABC):
     @classmethod
     @abstractmethod
     def _get_enb_transforms(
-        cls,
+            cls,
     ) -> Dict[ParameterName, Callable[[Any], Any]]:
         """
         For the same parameter, different data models have their own
@@ -261,7 +261,7 @@ class DataModel(ABC):
     @classmethod
     @abstractmethod
     def get_numbered_param_names(
-        cls,
+            cls,
     ) -> Dict[ParameterName, List[ParameterName]]:
         """
         Returns:

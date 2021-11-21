@@ -14,13 +14,18 @@ limitations under the License.
 # pylint: disable=protected-access
 from unittest import TestCase
 
-from magma.enodebd.data_models.data_model_parameters import ParameterName
+from magma.enodebd.data_models.data_model_parameters import (
+    BaicellsParameterName,
+    ParameterName,
+)
 from magma.enodebd.device_config.configuration_init import (
     _get_enb_config,
     _set_bandwidth,
     _set_earfcn_freq_band_mode,
     _set_management_server,
     _set_misc_static_params,
+    _set_neighbor_cell_list,
+    _set_neighbor_freq_list,
     _set_pci,
     _set_perf_mgmt,
     _set_plmnids_tac,
@@ -28,7 +33,8 @@ from magma.enodebd.device_config.configuration_init import (
     _set_tdd_subframe_config,
 )
 from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
-from magma.enodebd.devices.baicells import BaicellsTrDataModel
+from magma.enodebd.devices.baicells_rts import BaicellsRTSTrDataModel
+from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.tests.test_utils.config_builder import EnodebConfigBuilder
 
@@ -36,9 +42,10 @@ from magma.enodebd.tests.test_utils.config_builder import EnodebConfigBuilder
 class EnodebConfigurationFactoryTest(TestCase):
 
     def setUp(self):
-        self.data_model = BaicellsTrDataModel()
-        self.cfg = EnodebConfiguration(BaicellsTrDataModel())
-        self.device_cfg = EnodebConfiguration(BaicellsTrDataModel())
+        self.data_model = BaicellsRTSTrDataModel()
+        # self.cfg = EnodebConfiguration(BaicellsTrDataModel())
+        self.cfg = EnodebConfiguration(BaicellsRTSTrDataModel())
+        self.device_cfg = EnodebConfiguration(BaicellsRTSTrDataModel())
 
     def tearDown(self):
         self.data_model = None
@@ -217,6 +224,135 @@ class EnodebConfigurationFactoryTest(TestCase):
             'Second PLMN should be disabled',
         )
 
+    def test_set_neighbor_freq_list(self):
+        # We only handle neighbor freq list for now
+        mconfig = EnodebConfigBuilder.get_mconfig(EnodebDeviceName.BAICELLS_RTS)
+        self.device_cfg.set_parameter(
+            ParameterName.SERIAL_NUMBER,
+            '120200002618AGP0003',
+        )
+        enb_config = _get_enb_config(mconfig, self.device_cfg)
+        neighbor_freq_list = enb_config \
+            .neighbor_freq_list
+
+        _set_neighbor_freq_list(self.cfg, neighbor_freq_list)
+        # with self.assertRaises(ConfigurationError):
+        #     _set_neighbor_freq_list(self.cfg, neighbor_freq_list)
+
+        self.assertTrue(
+            self.cfg.get_parameter_for_object(
+                BaicellsParameterName.NEIGHBOR_FREQ_EARFCN_N % 1, BaicellsParameterName.NEGIH_FREQ_LIST % 1,
+            ),
+            'First Neghbor Freq List Earfcn should be exist',
+        )
+        self.assertTrue(
+            self.cfg.get_parameter_for_object(
+                BaicellsParameterName.NEIGHBOR_FREQ_PMAX_N % 1, BaicellsParameterName.NEGIH_FREQ_LIST % 1,
+            ),
+            'First Neghbor Freq List PMax should be exist',
+        )
+        self.assertTrue(
+            self.cfg.get_parameter_for_object(
+                BaicellsParameterName.NEIGHBOR_FREQ_Q_OFFSETRANGE_N % 1, BaicellsParameterName.NEGIH_FREQ_LIST % 1,
+            ),
+            'First Neghbor Freq List QOffset should be exist',
+        )
+        self.assertTrue(
+            self.cfg.get_parameter_for_object(
+                BaicellsParameterName.NEIGHBOR_FREQ_RESELTHRESHLOW_N % 1, BaicellsParameterName.NEGIH_FREQ_LIST % 1,
+            ),
+            'First Neghbor Freq List ReselThreshLow should be exist',
+        )
+        self.assertTrue(
+            self.cfg.get_parameter_for_object(
+                BaicellsParameterName.NEIGHBOR_FREQ_RESELTHRESHHIGH_N % 1, BaicellsParameterName.NEGIH_FREQ_LIST % 1,
+            ),
+            'First Neghbor Freq List ReselThreshHigh should be exist',
+        )
+        self.assertTrue(
+            self.cfg.get_parameter_for_object(
+                BaicellsParameterName.NEIGHBOR_FREQ_TRESELECTIONEUTRA_N % 1, BaicellsParameterName.NEGIH_FREQ_LIST % 1,
+            ),
+            'First Neghbor Freq List TreslectionEutra should be exist',
+        )
+        self.assertTrue(
+            self.cfg.get_parameter_for_object(
+                BaicellsParameterName.NEIGHBOR_FREQ_QRXLEVMINSIB5_N % 1, BaicellsParameterName.NEGIH_FREQ_LIST % 1,
+            ),
+            'First Neghbor Freq List qRxLevMinSIB5 should be exist',
+        )
+        self.assertTrue(
+            self.cfg.get_parameter_for_object(
+                BaicellsParameterName.NEIGHBOR_FREQ_RESELECTIONPRIORITY_N % 1,
+                BaicellsParameterName.NEGIH_FREQ_LIST % 1,
+            ),
+            'First Neghbor Freq List ReselectionPriority should be exist',
+        )
+
+    def test_set_neighbor_cell_list(self):
+        # We only handle neighbor freq list for now
+        mconfig = EnodebConfigBuilder.get_mconfig(EnodebDeviceName.BAICELLS_RTS)
+        self.device_cfg.set_parameter(
+            ParameterName.SERIAL_NUMBER,
+            '120200002618AGP0003',
+        )
+        enb_config = _get_enb_config(mconfig, self.device_cfg)
+        neighbor_cell_list = enb_config \
+            .neighbor_cell_list
+
+        # with self.assertRaises(ConfigurationError):
+        _set_neighbor_cell_list(self.cfg, neighbor_cell_list)
+
+        self.assertTrue(
+            self.cfg.get_parameter_for_object(
+                BaicellsParameterName.NEIGHBOR_CELL_EARFCN_N % 1,
+                BaicellsParameterName.NEIGHBOR_CELL_LIST_N % 1,
+            ),
+            'First Neghbor Cell List Earfcn should be exist',
+        )
+        self.assertTrue(
+            self.cfg.get_parameter_for_object(
+                BaicellsParameterName.NEIGHBOR_CELL_PLMN_N % 1,
+                BaicellsParameterName.NEIGHBOR_CELL_LIST_N % 1,
+            ),
+            'First Neghbor Cell List PLMN should be exist',
+        )
+        self.assertTrue(
+            self.cfg.get_parameter_for_object(
+                BaicellsParameterName.NEIGHBOR_CELL_CELL_ID_N % 1,
+                BaicellsParameterName.NEIGHBOR_CELL_LIST_N % 1,
+            ),
+            'First Neghbor Cell List Cell ID should be exist',
+        )
+        self.assertTrue(
+            self.cfg.get_parameter_for_object(
+                BaicellsParameterName.NEIGHBOR_CELL_PCI_N % 1,
+                BaicellsParameterName.NEIGHBOR_CELL_LIST_N % 1,
+            ),
+            'First Neghbor Cell List PCI should be exist',
+        )
+        self.assertTrue(
+            self.cfg.get_parameter_for_object(
+                BaicellsParameterName.NEIGHBOR_CELL_TAC_N % 1,
+                BaicellsParameterName.NEIGHBOR_CELL_LIST_N % 1,
+            ),
+            'First Neghbor Cell List TAC should be exist',
+        )
+        self.assertTrue(
+            self.cfg.get_parameter_for_object(
+                BaicellsParameterName.NEIGHBOR_CELL_QOFFSET_N % 1,
+                BaicellsParameterName.NEIGHBOR_CELL_LIST_N % 1,
+            ),
+            'First Neghbor Cell List Qoffset should be exist',
+        )
+        self.assertTrue(
+            self.cfg.get_parameter_for_object(
+                BaicellsParameterName.NEIGHBOR_CELL_CIO_N % 1,
+                BaicellsParameterName.NEIGHBOR_CELL_LIST_N % 1,
+            ),
+            'First Neghbor Cell List CIO should be exist',
+        )
+
     def test_set_earafcn_freq_band_mode(self):
         # Invalid earfcndl
         with self.assertRaises(ConfigurationError):
@@ -265,4 +401,67 @@ class EnodebConfigurationFactoryTest(TestCase):
         self.assertTrue(
             enb_config.earfcndl == 39151,
             "Should give earfcndl from specific eNB config",
+        )
+        mconfig = EnodebConfigBuilder.get_mconfig(device=EnodebDeviceName.BAICELLS_RTS)
+        self.device_cfg.set_parameter(
+            ParameterName.SERIAL_NUMBER,
+            '120200002618AGP0003',
+        )
+        enb_config = _get_enb_config(mconfig, self.device_cfg)
+        self.assertTrue(
+            enb_config \
+            .neighbor_freq_list['1'].earfcn == 44290,
+            'Should give neighbor_freq_list Earfcn from specific eNB config',
+        )
+        self.assertTrue(
+            enb_config \
+            .neighbor_freq_list['1'].enable == True,
+            'Should give neighbor_freq_list Enable from specific eNB config',
+        )
+        self.assertTrue(
+            enb_config \
+            .neighbor_freq_list['1'].index == 1,
+            'Should give neighbor_freq_list Index from specific eNB config',
+        )
+        self.assertTrue(
+            enb_config \
+            .neighbor_freq_list['1'].resel_thresh_high == 6,
+            'Should give neighbor_freq_list ReselThreshHigh'
+            'from specific eNB config',
+        )
+        self.assertTrue(
+            enb_config \
+            .neighbor_freq_list['1'].p_max == 6,
+            'Should give neighbor_freq_list PMax'
+            'from specific eNB config',
+        )
+        self.assertTrue(
+            enb_config \
+            .neighbor_freq_list['1'].q_offset_range == -24,
+            'Should give neighbor_freq_list QOffsetRange'
+            'from specific eNB config',
+        )
+        self.assertTrue(
+            enb_config \
+            .neighbor_freq_list['1'].q_rx_lev_min_sib5 == -30,
+            'Should give neighbor_freq_list QRxLevMinSib5'
+            'from specific eNB config',
+        )
+        self.assertTrue(
+            enb_config \
+            .neighbor_freq_list['1'].resel_thresh_low == 5,
+            'Should give neighbor_freq_list ReselThreshLow'
+            'from specific eNB config',
+        )
+        self.assertTrue(
+            enb_config \
+            .neighbor_freq_list['1'].reselection_priority == 1,
+            'Should give neighbor_freq_list ReselectionPriority'
+            'from specific eNB config',
+        )
+        self.assertTrue(
+            enb_config \
+            .neighbor_cell_list['1'].enable == True,
+            'Should give neighbor_cell_list enable'
+            'from specific eNB config',
         )

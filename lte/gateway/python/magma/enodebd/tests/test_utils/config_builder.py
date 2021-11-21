@@ -18,8 +18,8 @@ from magma.enodebd.devices.device_utils import EnodebDeviceName
 class EnodebConfigBuilder:
     @classmethod
     def get_mconfig(
-        cls,
-        device: EnodebDeviceName = EnodebDeviceName.BAICELLS,
+            cls,
+            device: EnodebDeviceName = EnodebDeviceName.BAICELLS,
     ) -> mconfigs_pb2.EnodebD:
         mconfig = mconfigs_pb2.EnodebD()
         mconfig.bandwidth_mhz = 20
@@ -36,6 +36,49 @@ class EnodebConfigBuilder:
         elif device is EnodebDeviceName.CAVIUM:
             # fdd config
             mconfig.fdd_config.earfcndl = 2405
+        elif device is EnodebDeviceName.BAICELLS_RTS:
+            device_id = '120200002618AGP0003'
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_freq_list['1'].earfcn = 44290
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_freq_list['1'].enable = True
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_freq_list['1'].index = 1
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_freq_list['1'].p_max = 6
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_freq_list['1'].q_offset_range = -24
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_freq_list['1'].q_rx_lev_min_sib5 = -30
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_freq_list['1'].resel_thresh_high = 6
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_freq_list['1'].resel_thresh_low = 5
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_freq_list['1'].reselection_priority = 1
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_freq_list['1'].t_reselection_eutra = 1
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_cell_list['1'].plmn = '00101'
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_cell_list['1'].cell_id = 138777000
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_cell_list['1'].earfcn = 44290
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_cell_list['1'].pci = 260
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_cell_list['1'].tac = 1
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_cell_list['1'].q_offset = -24
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_cell_list['1'].cio = -24
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_cell_list['1'].index = 1
+            mconfig.enb_configs_by_serial[device_id] \
+                .neighbor_cell_list['1'].enable = True
+            mconfig.tdd_config.earfcndl = 39150
+            mconfig.tdd_config.subframe_assignment = 2
+            mconfig.tdd_config.special_subframe_pattern = 7
         else:
             # tdd config
             mconfig.tdd_config.earfcndl = 39150
@@ -46,7 +89,7 @@ class EnodebConfigBuilder:
 
     @classmethod
     def get_multi_enb_mconfig(
-        cls,
+            cls,
     ) -> mconfigs_pb2.EnodebD:
         mconfig = mconfigs_pb2.EnodebD()
         mconfig.bandwidth_mhz = 20
@@ -66,46 +109,46 @@ class EnodebConfigBuilder:
         mconfig.tdd_config.special_subframe_pattern = 7
 
         id1 = '120200002618AGP0003'
-        #enb_conf_1 = mconfigs_pb2.EnodebD.EnodebConfig()
-        mconfig.enb_configs_by_serial[id1]\
-                .earfcndl = 39151
-        mconfig.enb_configs_by_serial[id1]\
-                .subframe_assignment = 2
-        mconfig.enb_configs_by_serial[id1]\
-                .special_subframe_pattern = 7
-        mconfig.enb_configs_by_serial[id1]\
-                .pci = 259
-        mconfig.enb_configs_by_serial[id1]\
-                .bandwidth_mhz = 20
+        # enb_conf_1 = mconfigs_pb2.EnodebD.EnodebConfig()
+        mconfig.enb_configs_by_serial[id1] \
+            .earfcndl = 39151
+        mconfig.enb_configs_by_serial[id1] \
+            .subframe_assignment = 2
+        mconfig.enb_configs_by_serial[id1] \
+            .special_subframe_pattern = 7
+        mconfig.enb_configs_by_serial[id1] \
+            .pci = 259
+        mconfig.enb_configs_by_serial[id1] \
+            .bandwidth_mhz = 20
         mconfig.enb_configs_by_serial[id1] \
             .tac = 1
         mconfig.enb_configs_by_serial[id1] \
             .cell_id = 0
-        mconfig.enb_configs_by_serial[id1]\
+        mconfig.enb_configs_by_serial[id1] \
             .transmit_enabled = True
-        mconfig.enb_configs_by_serial[id1]\
+        mconfig.enb_configs_by_serial[id1] \
             .device_class = 'Baicells Band 40'
 
         id2 = '120200002618AGP0004'
-        #enb_conf_2 = mconfigs_pb2.EnodebD.EnodebConfig()
-        mconfig.enb_configs_by_serial[id2]\
-                .earfcndl = 39151
-        mconfig.enb_configs_by_serial[id2]\
-                .subframe_assignment = 2
-        mconfig.enb_configs_by_serial[id2]\
-                .special_subframe_pattern = 7
-        mconfig.enb_configs_by_serial[id2]\
-                .pci = 261
+        # enb_conf_2 = mconfigs_pb2.EnodebD.EnodebConfig()
+        mconfig.enb_configs_by_serial[id2] \
+            .earfcndl = 39151
+        mconfig.enb_configs_by_serial[id2] \
+            .subframe_assignment = 2
+        mconfig.enb_configs_by_serial[id2] \
+            .special_subframe_pattern = 7
+        mconfig.enb_configs_by_serial[id2] \
+            .pci = 261
         mconfig.enb_configs_by_serial[id2] \
             .bandwidth_mhz = 20
         mconfig.enb_configs_by_serial[id2] \
             .tac = 1
         mconfig.enb_configs_by_serial[id2] \
             .cell_id = 0
-        mconfig.enb_configs_by_serial[id2]\
-                .transmit_enabled = True
-        mconfig.enb_configs_by_serial[id2]\
-                .device_class = 'Baicells Band 40'
+        mconfig.enb_configs_by_serial[id2] \
+            .transmit_enabled = True
+        mconfig.enb_configs_by_serial[id2] \
+            .device_class = 'Baicells Band 40'
 
         return mconfig
 

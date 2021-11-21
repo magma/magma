@@ -125,8 +125,8 @@ class BaicellsQAFBHandler(BasicEnodebAcsStateMachine):
 
 
 def _get_object_params_to_get(
-    device_cfg: EnodebConfiguration,
-    data_model: DataModel,
+        device_cfg: EnodebConfiguration,
+        data_model: DataModel,
 ) -> List[ParameterName]:
     """
     Returns a list of parameter names for object parameters we don't know the
@@ -213,17 +213,17 @@ class BaicellsQafbWaitGetTransientParametersState(EnodebAcsState):
         if should_get_obj_params:
             return self.get_obj_params_transition
         elif len(
-            get_all_objects_to_delete(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
+                get_all_objects_to_delete(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
         ) > 0:
             return self.rm_obj_transition
         elif len(
-            get_all_objects_to_add(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
+                get_all_objects_to_add(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
         ) > 0:
             return self.add_obj_transition
         return self.skip_transition
@@ -328,25 +328,25 @@ class BaicellsQafbGetObjectParametersState(EnodebAcsState):
             )
 
         if len(
-            get_all_objects_to_delete(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
+                get_all_objects_to_delete(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
         ) > 0:
             return AcsReadMsgResult(True, self.rm_obj_transition)
         elif len(
-            get_all_objects_to_add(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
+                get_all_objects_to_add(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
         ) > 0:
             return AcsReadMsgResult(True, self.add_obj_transition)
         elif len(
-            get_all_param_values_to_set(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-                self.acs.data_model,
-            ),
+                get_all_param_values_to_set(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                    self.acs.data_model,
+                ),
         ) > 0:
             return AcsReadMsgResult(True, self.set_params_transition)
         return AcsReadMsgResult(True, self.skip_transition)
@@ -389,45 +389,103 @@ class BaicellsQAFBTrDataModel(DataModel):
         ParameterName.FAP_SERVICE: TrParam(FAPSERVICE_PATH, True, TrParameterType.OBJECT, False),
 
         # Qualcomm units do not expose MME_Status (We assume that the eNB is broadcasting state is connected to the MME)
-        ParameterName.MME_STATUS: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.X_QUALCOMM_FAPControl.OpState', True, TrParameterType.BOOLEAN, False),
+        ParameterName.MME_STATUS: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.1.LTE.X_QUALCOMM_FAPControl.OpState', True,
+            TrParameterType.BOOLEAN, False,
+        ),
         ParameterName.GPS_LAT: TrParam(DEVICE_PATH + 'FAP.GPS.latitude', True, TrParameterType.STRING, False),
         ParameterName.GPS_LONG: TrParam(DEVICE_PATH + 'FAP.GPS.longitude', True, TrParameterType.STRING, False),
         ParameterName.SW_VERSION: TrParam(DEVICE_PATH + 'DeviceInfo.SoftwareVersion', True, TrParameterType.STRING, False),
-        ParameterName.SERIAL_NUMBER: TrParam(DEVICE_PATH + 'DeviceInfo.SerialNumber', True, TrParameterType.STRING, False),
+        ParameterName.SERIAL_NUMBER: TrParam(
+            DEVICE_PATH + 'DeviceInfo.SerialNumber', True, TrParameterType.STRING, False,
+        ),
 
         # Capabilities
-        ParameterName.DUPLEX_MODE_CAPABILITY: TrParam(EEPROM_PATH + 'div_multiple', True, TrParameterType.STRING, False),
+        ParameterName.DUPLEX_MODE_CAPABILITY: TrParam(
+            EEPROM_PATH + 'div_multiple', True, TrParameterType.STRING,
+            False,
+        ),
         ParameterName.BAND_CAPABILITY: TrParam(EEPROM_PATH + 'work_mode', True, TrParameterType.STRING, False),
 
         # RF-related parameters
-        ParameterName.EARFCNDL: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.RAN.RF.EARFCNDL', True, TrParameterType.INT, False),
-        ParameterName.PCI: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.RAN.RF.PhyCellID', True, TrParameterType.INT, False),
-        ParameterName.DL_BANDWIDTH: TrParam(DEVICE_PATH + 'Services.RfConfig.1.RfCarrierCommon.carrierBwMhz', True, TrParameterType.INT, False),
-        ParameterName.SUBFRAME_ASSIGNMENT: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.RAN.PHY.TDDFrame.SubFrameAssignment', True, 'bool', False),
-        ParameterName.SPECIAL_SUBFRAME_PATTERN: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.RAN.PHY.TDDFrame.SpecialSubframePatterns', True, TrParameterType.INT, False),
-        ParameterName.CELL_ID: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.RAN.Common.CellIdentity', True, TrParameterType.UNSIGNED_INT, False),
+        ParameterName.EARFCNDL: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.1.LTE.RAN.RF.EARFCNDL', True, TrParameterType.INT,
+            False,
+        ),
+        ParameterName.PCI: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.1.LTE.RAN.RF.PhyCellID', True, TrParameterType.INT,
+            False,
+        ),
+        ParameterName.DL_BANDWIDTH: TrParam(
+            DEVICE_PATH + 'Services.RfConfig.1.RfCarrierCommon.carrierBwMhz', True,
+            TrParameterType.INT, False,
+        ),
+        ParameterName.SUBFRAME_ASSIGNMENT: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.1.LTE.RAN.PHY.TDDFrame.SubFrameAssignment', True, 'bool', False,
+        ),
+        ParameterName.SPECIAL_SUBFRAME_PATTERN: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.1.LTE.RAN.PHY.TDDFrame.SpecialSubframePatterns', True, TrParameterType.INT,
+            False,
+        ),
+        ParameterName.CELL_ID: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.1.LTE.RAN.Common.CellIdentity', True,
+            TrParameterType.UNSIGNED_INT, False,
+        ),
 
         # Other LTE parameters
-        ParameterName.ADMIN_STATE: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.X_QUALCOMM_FAPControl.AdminState', False, TrParameterType.STRING, False),
-        ParameterName.OP_STATE: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.X_QUALCOMM_FAPControl.OpState', True, TrParameterType.BOOLEAN, False),
-        ParameterName.RF_TX_STATUS: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.X_QUALCOMM_FAPControl.OpState', True, TrParameterType.BOOLEAN, False),
+        ParameterName.ADMIN_STATE: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.1.LTE.X_QUALCOMM_FAPControl.AdminState', False,
+            TrParameterType.STRING, False,
+        ),
+        ParameterName.OP_STATE: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.1.LTE.X_QUALCOMM_FAPControl.OpState', True,
+            TrParameterType.BOOLEAN, False,
+        ),
+        ParameterName.RF_TX_STATUS: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.1.LTE.X_QUALCOMM_FAPControl.OpState', True,
+            TrParameterType.BOOLEAN, False,
+        ),
 
         # Core network parameters
-        ParameterName.MME_IP: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkServerList', True, TrParameterType.STRING, False),
-        ParameterName.MME_PORT: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkPort', True, TrParameterType.INT, False),
+        ParameterName.MME_IP: TrParam(
+            FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkServerList', True,
+            TrParameterType.STRING, False,
+        ),
+        ParameterName.MME_PORT: TrParam(
+            FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkPort', True,
+            TrParameterType.INT, False,
+        ),
         # This parameter is standard but doesn't exist
         # ParameterName.NUM_PLMNS: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNListNumberOfEntries', True, TrParameterType.INT, False),
         ParameterName.TAC: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.TAC', True, TrParameterType.INT, False),
-        ParameterName.IP_SEC_ENABLE: TrParam('boardconf.ipsec.ipsecConfig.onBoot', False, TrParameterType.BOOLEAN, False),
+        ParameterName.IP_SEC_ENABLE: TrParam(
+            'boardconf.ipsec.ipsecConfig.onBoot', False, TrParameterType.BOOLEAN,
+            False,
+        ),
 
         # Management server parameters
-        ParameterName.PERIODIC_INFORM_ENABLE: TrParam(DEVICE_PATH + 'ManagementServer.PeriodicInformEnable', False, TrParameterType.BOOLEAN, False),
-        ParameterName.PERIODIC_INFORM_INTERVAL: TrParam(DEVICE_PATH + 'ManagementServer.PeriodicInformInterval', False, TrParameterType.INT, False),
+        ParameterName.PERIODIC_INFORM_ENABLE: TrParam(
+            DEVICE_PATH + 'ManagementServer.PeriodicInformEnable', False,
+            TrParameterType.BOOLEAN, False,
+        ),
+        ParameterName.PERIODIC_INFORM_INTERVAL: TrParam(
+            DEVICE_PATH + 'ManagementServer.PeriodicInformInterval', False,
+            TrParameterType.INT, False,
+        ),
 
         # Performance management parameters
-        ParameterName.PERF_MGMT_ENABLE: TrParam(FAPSERVICE_PATH + 'CellConfig.1.X_QUALCOMM_PerfMgmt.Config.Enable', False, TrParameterType.BOOLEAN, False),
-        ParameterName.PERF_MGMT_UPLOAD_INTERVAL: TrParam(DEVICE_PATH + 'FAP.PerfMgmt.Config.PeriodicUploadInterval', False, TrParameterType.INT, False),
-        ParameterName.PERF_MGMT_UPLOAD_URL: TrParam(DEVICE_PATH + 'FAP.PerfMgmt.Config.URL', False, TrParameterType.STRING, False),
+        ParameterName.PERF_MGMT_ENABLE: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.1.X_QUALCOMM_PerfMgmt.Config.Enable',
+            False, TrParameterType.BOOLEAN, False,
+        ),
+        ParameterName.PERF_MGMT_UPLOAD_INTERVAL: TrParam(
+            DEVICE_PATH + 'FAP.PerfMgmt.Config.PeriodicUploadInterval',
+            False, TrParameterType.INT, False,
+        ),
+        ParameterName.PERF_MGMT_UPLOAD_URL: TrParam(
+            DEVICE_PATH + 'FAP.PerfMgmt.Config.URL', False,
+            TrParameterType.STRING, False,
+        ),
     }
 
     NUM_PLMNS_IN_CONFIG = 6
@@ -436,11 +494,23 @@ class BaicellsQAFBTrDataModel(DataModel):
     }
     for i in range(1, NUM_PLMNS_IN_CONFIG + 1):
         TRANSFORMS_FOR_ENB[ParameterName.PLMN_N_CELL_RESERVED % i] = transform_for_enb.cell_reserved
-        PARAMETERS[ParameterName.PLMN_N % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.' % i, True, TrParameterType.STRING, False)
-        PARAMETERS[ParameterName.PLMN_N_CELL_RESERVED % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' % i, True, TrParameterType.STRING, False)
-        PARAMETERS[ParameterName.PLMN_N_ENABLE % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.Enable' % i, True, TrParameterType.BOOLEAN, False)
-        PARAMETERS[ParameterName.PLMN_N_PRIMARY % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.IsPrimary' % i, True, TrParameterType.BOOLEAN, False)
-        PARAMETERS[ParameterName.PLMN_N_PLMNID % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.PLMNID' % i, True, TrParameterType.STRING, False)
+        PARAMETERS[ParameterName.PLMN_N % i] = TrParam(
+            FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.' % i, True,
+            TrParameterType.STRING, False,
+        )
+        PARAMETERS[ParameterName.PLMN_N_CELL_RESERVED % i] = TrParam(
+            FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' % i, True,
+            TrParameterType.STRING, False,
+        )
+        PARAMETERS[ParameterName.PLMN_N_ENABLE % i] = TrParam(
+            FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.Enable' % i, True, TrParameterType.BOOLEAN, False,
+        )
+        PARAMETERS[ParameterName.PLMN_N_PRIMARY % i] = TrParam(
+            FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.IsPrimary' % i, True, TrParameterType.BOOLEAN, False,
+        )
+        PARAMETERS[ParameterName.PLMN_N_PLMNID % i] = TrParam(
+            FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.PLMNID' % i, True, TrParameterType.STRING, False,
+        )
 
     TRANSFORMS_FOR_ENB[ParameterName.ADMIN_STATE] = transform_for_enb.admin_state
     TRANSFORMS_FOR_MAGMA = {
@@ -455,7 +525,7 @@ class BaicellsQAFBTrDataModel(DataModel):
 
     @classmethod
     def _get_magma_transforms(
-        cls,
+            cls,
     ) -> Dict[ParameterName, Callable[[Any], Any]]:
         return cls.TRANSFORMS_FOR_MAGMA
 
@@ -491,7 +561,7 @@ class BaicellsQAFBTrDataModel(DataModel):
 
     @classmethod
     def get_numbered_param_names(
-        cls,
+            cls,
     ) -> Dict[ParameterName, List[ParameterName]]:
         names = {}
         for i in range(1, cls.NUM_PLMNS_IN_CONFIG + 1):

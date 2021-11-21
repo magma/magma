@@ -57,11 +57,11 @@ class Tr069MessageBuilder:
 
     @classmethod
     def get_qafb_inform(
-        cls,
-        oui: str = '48BF74',
-        sw_version: str = 'BaiBS_QAFB_1.6.4',
-        enb_serial: str = '1202000181186TB0006',
-        event_codes: Optional[List[str]] = None,
+            cls,
+            oui: str = '48BF74',
+            sw_version: str = 'BaiBS_QAFB_1.6.4',
+            enb_serial: str = '1202000181186TB0006',
+            event_codes: Optional[List[str]] = None,
     ) -> models.Inform:
         if event_codes is None:
             event_codes = []
@@ -131,11 +131,11 @@ class Tr069MessageBuilder:
 
     @classmethod
     def get_inform(
-        cls,
-        oui: str = '48BF74',
-        sw_version: str = 'BaiBS_RTS_3.1.6',
-        enb_serial: str = '120200002618AGP0003',
-        event_codes: Optional[List[str]] = None,
+            cls,
+            oui: str = '48BF74',
+            sw_version: str = 'BaiBS_RTS_3.1.6',
+            enb_serial: str = '120200002618AGP0003',
+            event_codes: Optional[List[str]] = None,
     ) -> models.Inform:
         if event_codes is None:
             event_codes = []
@@ -203,7 +203,7 @@ class Tr069MessageBuilder:
 
     @classmethod
     def get_qafb_read_only_param_values_response(
-        cls,
+            cls,
     ) -> models.GetParameterValuesResponse:
         msg = models.GetParameterValuesResponse()
         param_val_list = []
@@ -242,13 +242,14 @@ class Tr069MessageBuilder:
                 data='0',
             ),
         )
+
         msg.ParameterList = models.ParameterValueList()
         msg.ParameterList.ParameterValueStruct = param_val_list
         return msg
 
     @classmethod
     def get_read_only_param_values_response(
-        cls,
+            cls,
     ) -> models.GetParameterValuesResponse:
         msg = models.GetParameterValuesResponse()
         param_val_list = []
@@ -307,10 +308,10 @@ class Tr069MessageBuilder:
 
     @classmethod
     def get_cavium_param_values_response(
-        cls,
-        admin_state: bool = False,
-        earfcndl: int = 2405,
-        num_plmns: int = 0,
+            cls,
+            admin_state: bool = False,
+            earfcndl: int = 2405,
+            num_plmns: int = 0,
     ) -> models.GetParameterValuesResponse:
         msg = models.GetParameterValuesResponse()
         param_val_list = []
@@ -479,10 +480,10 @@ class Tr069MessageBuilder:
 
     @classmethod
     def get_regular_param_values_response(
-        cls,
-        admin_state: bool = False,
-        earfcndl: int = 39250,
-        exclude_num_plmns: bool = False,
+            cls,
+            admin_state: bool = False,
+            earfcndl: int = 39250,
+            exclude_num_plmns: bool = False,
     ) -> models.GetParameterValuesResponse:
         msg = models.GetParameterValuesResponse()
         param_val_list = []
@@ -681,9 +682,9 @@ class Tr069MessageBuilder:
 
     @classmethod
     def get_qafb_regular_param_values_response(
-        cls,
-        admin_state: bool = False,
-        earfcndl: int = 39250,
+            cls,
+            admin_state: bool = False,
+            earfcndl: int = 39250,
     ) -> models.GetParameterValuesResponse:
         msg = models.GetParameterValuesResponse()
         param_val_list = []
@@ -991,6 +992,165 @@ class Tr069MessageBuilder:
                 data='true',
             ),
         )
+        msg.ParameterList = models.ParameterValueList()
+        msg.ParameterList.ParameterValueStruct = param_val_list
+        return msg
+
+    @classmethod
+    def get_rts_object_param_values_response(
+            cls,
+    ) -> models.GetParameterValuesResponse:
+        msg = models.GetParameterValuesResponse()
+        param_val_list = []
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.1.IsPrimary',
+                val_type='boolean',
+                data='true',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.1.CellReservedForOperatorUse',
+                val_type='boolean',
+                data='false',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.1.PLMNID',
+                val_type='string',
+                data='00101',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.1.Enable',
+                val_type='boolean',
+                data='true',
+            ),
+        )
+
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.1.CID',
+                val_type='int',
+                data='138777000',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.1.PLMNID',
+                val_type='string',
+                data='00101',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.1.EUTRACarrierARFCN',
+                val_type='int',
+                data='44390',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.1.PhyCellID',
+                val_type='int',
+                data='260',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.1.TAC',
+                val_type='int',
+                data='1',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.1.QOffset',
+                val_type='int',
+                data='-24',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.1.CIO',
+                val_type='int',
+                data='-24',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.NeighborList.1.Enable',
+                val_type='boolean',
+                data='true',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.Enable',
+                val_type='boolean',
+                data='true',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.PMax',
+                val_type='int',
+                data='5',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.ThreshXLow',
+                val_type='int',
+                data='5',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.ThreshXHigh',
+                val_type='int',
+                data='6',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.CellReselectionPriority',
+                val_type='int',
+                data='1',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.TReselectionEUTRA',
+                val_type='int',
+                data='1',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.QOffsetFreq',
+                val_type='int',
+                data='-24',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.EUTRACarrierARFCN',
+                val_type='int',
+                data='44290',
+            ),
+        )
+        param_val_list.append(
+            cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Mobility.IdleMode.InterFreq.Carrier.1.QRxLevMinSIB5',
+                val_type='int',
+                data='-30',
+            ),
+        )
+
         msg.ParameterList = models.ParameterValueList()
         msg.ParameterList.ParameterValueStruct = param_val_list
         return msg

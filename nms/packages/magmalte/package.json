@@ -41,6 +41,7 @@
     "@material-ui/icons": "^4.0.0",
     "@material-ui/pickers": "^3.2.10",
     "@material-ui/styles": "^4.0.0",
+    "@material-ui/data-grid": "^4.0.0-alpha.37",
     "chart.js": "^2.7.3",
     "classnames": "^2.2.5",
     "css-loader": "^1.0.1",
