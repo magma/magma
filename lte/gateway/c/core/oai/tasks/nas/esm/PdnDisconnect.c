@@ -96,8 +96,8 @@ status_code_e esm_proc_pdn_disconnect_request(
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   mme_ue_s1ap_id_t ue_id     = ue_context_p->mme_ue_s1ap_id;
   int nb_active_pdn_contexts = ue_context_p->nb_active_pdn_contexts;
-  OAILOG_INFO(
-      LOG_NAS_ESM,
+  OAILOG_INFO_UE(
+      LOG_NAS_ESM, ue_context_p->emm_context._imsi64,
       "ESM-PROC  - PDN disconnect requested by the UE "
       "(ue_id=" MME_UE_S1AP_ID_FMT ", pti=%d)\n",
       ue_id, pti);
@@ -113,8 +113,8 @@ status_code_e esm_proc_pdn_disconnect_request(
     pid = pdn_disconnect_get_pid(emm_context, pti);
 
     if (pid >= MAX_APN_PER_UE) {
-      OAILOG_ERROR(
-          LOG_NAS_ESM,
+      OAILOG_ERROR_UE(
+          LOG_NAS_ESM, ue_context_p->emm_context._imsi64,
           "ESM-PROC  - No PDN connection found (pti=%d) for ue "
           "id " MME_UE_S1AP_ID_FMT "\n",
           pti, ue_id);
@@ -160,8 +160,8 @@ status_code_e esm_proc_pdn_disconnect_accept(
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
-  OAILOG_INFO(
-      LOG_NAS_ESM,
+  OAILOG_INFO_UE(
+      LOG_NAS_ESM, emm_context->_imsi64,
       "ESM-PROC  - PDN disconnect accepted by the UE "
       "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d)\n",
       ue_id, pid);
@@ -220,8 +220,8 @@ status_code_e esm_proc_pdn_disconnect_reject(
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
 
-  OAILOG_WARNING(
-      LOG_NAS_ESM,
+  OAILOG_WARNING_UE(
+      LOG_NAS_ESM, emm_context->_imsi64,
       "ESM-PROC  - PDN disconnect not accepted by the network "
       "(ue_id=" MME_UE_S1AP_ID_FMT ")\n",
       ue_id);

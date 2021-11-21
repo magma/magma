@@ -267,6 +267,10 @@ typedef struct smf_context_s {
   struct nas5g_timer_s T3592;  // PDU_SESSION_RELEASE command timer
   int retransmission_count;
   protocol_configuration_options_t pco;
+  uint32_t duplicate_pdu_session_est_req_count;
+  std::string dnn;
+  uint8_t sst;
+  uint8_t sd[SD_LENGTH];
 
   // Request to gnb on PDU establisment request
   pdu_session_resource_setup_req_t pdu_resource_setup_req;
@@ -329,6 +333,8 @@ typedef struct amf_context_s {
   tai_t originating_tai;
 
   ambr_t subscribed_ue_ambr;
+  /* apn_config_profile: set by S6A UPDATE LOCATION ANSWER */
+  apn_config_profile_t apn_config_profile;
 } amf_context_t;
 
 typedef struct amf_ue_context_s {
@@ -388,8 +394,7 @@ typedef struct ue_m5gmm_context_s {
 /* Operation on UE context structure
  */
 int amf_insert_ue_context(
-    amf_ue_ngap_id_t ue_id, amf_ue_context_t* amf_ue_context_p,
-    ue_m5gmm_context_s* ue_context_p);
+    amf_ue_ngap_id_t ue_id, ue_m5gmm_context_s* ue_context_p);
 amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
     amf_ue_ngap_id_t* amf_app_ue_ngap_id_generator_p);
 /* Notify NGAP about the mapping between amf_ue_ngap_id and
@@ -788,7 +793,7 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context);
 // PDU session related communication to gNB
 int pdu_session_resource_setup_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    std::shared_ptr<smf_context_t>);
+    std::shared_ptr<smf_context_t> smf_context, bstring nas_msg);
 void amf_app_handle_resource_setup_response(
     itti_ngap_pdusessionresource_setup_rsp_t session_seup_resp);
 int pdu_session_resource_release_request(
@@ -858,6 +863,9 @@ tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id);
 
 int amf_idle_mode_procedure(amf_context_t* amf_ctx);
 void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p);
+int m5g_security_select_algorithms(
+    const int ue_iaP, const int ue_eaP, int* const amf_iaP, int* const amf_eaP);
+
 /************************************************************************
  ** Name:    delete_wrapper()                                         **
  **                                                                   **

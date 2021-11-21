@@ -31,8 +31,8 @@ import (
 )
 
 func TestCertifierBlobstore_GetCertInfo(t *testing.T) {
-	var blobFactMock *mocks.BlobStorageFactory
-	var blobStoreMock *mocks.TransactionalBlobStorage
+	var blobFactMock *mocks.StoreFactory
+	var blobStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	serialNumber := "serial_number"
@@ -48,8 +48,8 @@ func TestCertifierBlobstore_GetCertInfo(t *testing.T) {
 	blobs := blobstore.Blobs{{Type: cstorage.CertInfoType, Key: serialNumber, Value: marshaledInfo}}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store := cstorage.NewCertifierBlobstore(blobFactMock)
 
@@ -59,8 +59,8 @@ func TestCertifierBlobstore_GetCertInfo(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.Get fails with ErrNotFound
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, nil).Once()
@@ -73,8 +73,8 @@ func TestCertifierBlobstore_GetCertInfo(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.Get fails with error other than ErrNotFound
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, someErr).Once()
@@ -87,8 +87,8 @@ func TestCertifierBlobstore_GetCertInfo(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobs, nil).Once()
@@ -103,8 +103,8 @@ func TestCertifierBlobstore_GetCertInfo(t *testing.T) {
 }
 
 func TestCertifierBlobstore_GetManyCertInfo(t *testing.T) {
-	var blobFactMock *mocks.BlobStorageFactory
-	var blobStoreMock *mocks.TransactionalBlobStorage
+	var blobFactMock *mocks.StoreFactory
+	var blobStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	info0 := &protos.CertificateInfo{
@@ -139,8 +139,8 @@ func TestCertifierBlobstore_GetManyCertInfo(t *testing.T) {
 	}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store := cstorage.NewCertifierBlobstore(blobFactMock)
 
@@ -150,8 +150,8 @@ func TestCertifierBlobstore_GetManyCertInfo(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.GetMany fails
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, someErr).Once()
@@ -163,8 +163,8 @@ func TestCertifierBlobstore_GetManyCertInfo(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.GetMany succeeds with empty return
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobstore.Blobs{}, nil).Once()
@@ -178,8 +178,8 @@ func TestCertifierBlobstore_GetManyCertInfo(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("GetMany", mock.Anything, tks).Return(blobs, nil).Once()
@@ -198,8 +198,8 @@ func TestCertifierBlobstore_GetManyCertInfo(t *testing.T) {
 }
 
 func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
-	var blobFactMock *mocks.BlobStorageFactory
-	var blobStoreMock *mocks.TransactionalBlobStorage
+	var blobFactMock *mocks.StoreFactory
+	var blobStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	info0 := &protos.CertificateInfo{
@@ -236,8 +236,8 @@ func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
 	searchResult := map[string]blobstore.Blobs{placeHolderNetwork: blobs}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store := cstorage.NewCertifierBlobstore(blobFactMock)
 
@@ -247,8 +247,8 @@ func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.ListKeys fails
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On(
@@ -264,8 +264,8 @@ func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.ListKeys succeeds with empty return
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On(
@@ -283,8 +283,8 @@ func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.GetMany fails
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On(
@@ -301,8 +301,8 @@ func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On(
@@ -326,8 +326,8 @@ func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
 }
 
 func TestCertifierBlobstore_PutCertInfo(t *testing.T) {
-	var blobFactMock *mocks.BlobStorageFactory
-	var blobStoreMock *mocks.TransactionalBlobStorage
+	var blobFactMock *mocks.StoreFactory
+	var blobStoreMock *mocks.Store
 
 	someErr := errors.New("generic error")
 
@@ -343,8 +343,8 @@ func TestCertifierBlobstore_PutCertInfo(t *testing.T) {
 	blob := blobstore.Blob{Type: cstorage.CertInfoType, Key: serialNumber, Value: marshaledInfos}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store := cstorage.NewCertifierBlobstore(blobFactMock)
 
@@ -354,11 +354,11 @@ func TestCertifierBlobstore_PutCertInfo(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.Put fails
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("CreateOrUpdate", mock.Anything, blobstore.Blobs{blob}).Return(someErr).Once()
+	blobStoreMock.On("Write", mock.Anything, blobstore.Blobs{blob}).Return(someErr).Once()
 	store = cstorage.NewCertifierBlobstore(blobFactMock)
 
 	err = store.PutCertInfo(serialNumber, info)
@@ -366,11 +366,11 @@ func TestCertifierBlobstore_PutCertInfo(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("CreateOrUpdate", mock.Anything, blobstore.Blobs{blob}).
+	blobStoreMock.On("Write", mock.Anything, blobstore.Blobs{blob}).
 		Return(nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 	store = cstorage.NewCertifierBlobstore(blobFactMock)
@@ -382,8 +382,8 @@ func TestCertifierBlobstore_PutCertInfo(t *testing.T) {
 }
 
 func TestCertifierBlobstore_DeleteCertInfo(t *testing.T) {
-	var blobFactMock *mocks.BlobStorageFactory
-	var blobStoreMock *mocks.TransactionalBlobStorage
+	var blobFactMock *mocks.StoreFactory
+	var blobStoreMock *mocks.Store
 
 	someErr := errors.New("generic error")
 
@@ -391,8 +391,8 @@ func TestCertifierBlobstore_DeleteCertInfo(t *testing.T) {
 	tks := storage.TKs{{Type: cstorage.CertInfoType, Key: serialNumber}}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store := cstorage.NewCertifierBlobstore(blobFactMock)
 
@@ -402,8 +402,8 @@ func TestCertifierBlobstore_DeleteCertInfo(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.Delete fails
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("Delete", mock.Anything, tks).Return(someErr).Once()
@@ -415,8 +415,8 @@ func TestCertifierBlobstore_DeleteCertInfo(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On("Delete", mock.Anything, tks).Return(nil).Once()
@@ -430,8 +430,8 @@ func TestCertifierBlobstore_DeleteCertInfo(t *testing.T) {
 }
 
 func TestCertifierBlobstore_ListSerialNumbers(t *testing.T) {
-	var blobFactMock *mocks.BlobStorageFactory
-	var blobStoreMock *mocks.TransactionalBlobStorage
+	var blobFactMock *mocks.StoreFactory
+	var blobStoreMock *mocks.Store
 
 	someErr := errors.New("generic error")
 
@@ -463,8 +463,8 @@ func TestCertifierBlobstore_ListSerialNumbers(t *testing.T) {
 	assert.Equal(t, serialNumbers, []string{"serial_number_0", "serial_number_1"})
 
 	// Fail to start transaction
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
 	store := cstorage.NewCertifierBlobstore(blobFactMock)
 
@@ -474,8 +474,8 @@ func TestCertifierBlobstore_ListSerialNumbers(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// store.ListKeys fails
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On(
@@ -491,8 +491,8 @@ func TestCertifierBlobstore_ListSerialNumbers(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
 	blobStoreMock.On(

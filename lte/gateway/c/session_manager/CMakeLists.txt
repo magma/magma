@@ -52,14 +52,14 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-function")
 endif ()
 
-include_directories("${OUTPUT_DIR}")
 include_directories("${MAGMA_ROOT}/orc8r/gateway/c/common/logging")
-
-include_directories(${MAGMA_LIB_DIR}/service303)
-include_directories(${MAGMA_LIB_DIR}/service_registry)
-include_directories(${MAGMA_LIB_DIR}/async_grpc)
-include_directories(${MAGMA_LIB_DIR}/config)
-include_directories(${MAGMA_LIB_DIR}/eventd)
+include_directories(${MAGMA_ROOT}/orc8r/gateway/c/common/service303)
+include_directories(${MAGMA_ROOT}/orc8r/gateway/c/common/service_registry)
+include_directories(${MAGMA_ROOT}/orc8r/gateway/c/common/async_grpc)
+include_directories(${MAGMA_ROOT}/orc8r/gateway/c/common/async_grpc/includes)
+include_directories(${MAGMA_ROOT}/orc8r/gateway/c/common/config)
+include_directories(${MAGMA_ROOT}/orc8r/gateway/c/common/eventd)
+include_directories("${OUTPUT_DIR}")
 
 # TODO: Temp workaround until packages are imported by these cmakefile
 # Will be removed in subsequent patch
@@ -76,7 +76,7 @@ create_proto_dir("feg/gateway/services/aaa" CWF_CPP_OUT_DIR)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
-set(SMGR_ORC8R_CPP_PROTOS digest directoryd redis)
+set(SMGR_ORC8R_CPP_PROTOS common digest directoryd eventd metricsd redis service303)
 generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
@@ -89,7 +89,7 @@ set(SMGR_CWF_CPP_PROTOS accounting context)
 generate_cwf_cpp_protos("${SMGR_CWF_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${CWF_PROTO_DIR} ${CWF_CPP_OUT_DIR})
 
-set(SMGR_ORC8R_GRPC_PROTOS directoryd)
+set(SMGR_ORC8R_GRPC_PROTOS directoryd eventd service303)
 generate_grpc_protos("${SMGR_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 

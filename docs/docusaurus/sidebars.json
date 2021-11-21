@@ -17,7 +17,8 @@
           "howtos/events_monitoring",
           "howtos/he_api",
           "howtos/inbound_roaming",
-          "howtos/pcap"
+          "howtos/pcap",
+          "howtos/l3_transport"
         ]
       },
       {
@@ -144,6 +145,13 @@
         "label": "Federation Gateway",
         "ids": [
           "feg/configure_federation"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "nms/nms_organizations"
         ]
       }
     ],

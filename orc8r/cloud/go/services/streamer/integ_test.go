@@ -102,7 +102,7 @@ func (cr mockedCloudRegistry) GetCloudConnection(service string) (*grpc.ClientCo
 	return platform_registry.GetConnection(streamer.ServiceName)
 }
 
-func (cr mockedCloudRegistry) GetCloudConnectionFromServiceConfig(serviceConfig *config.ConfigMap, service string) (*grpc.ClientConn, error) {
+func (cr mockedCloudRegistry) GetCloudConnectionFromServiceConfig(serviceConfig *config.Map, service string) (*grpc.ClientConn, error) {
 	return nil, fmt.Errorf("not Implemented")
 
 }

@@ -10,17 +10,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mme_app_test_util.h"
+#include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.h"
 
 #include <chrono>
 #include <gtest/gtest.h>
 #include <thread>
 
 #include "feg/protos/s6a_proxy.pb.h"
-#include "proto_msg_to_itti_msg.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.h"
 
 extern "C" {
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 }
 
 namespace magma {
@@ -59,7 +59,8 @@ void send_activate_message_to_mme_app() {
 }
 
 void send_mme_app_initial_ue_msg(
-    const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn) {
+    const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn,
+    guti_eps_mobile_identity_t& guti) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
   ITTI_MSG_LASTHOP_LATENCY(message_p)               = 0;
@@ -71,6 +72,11 @@ void send_mme_app_initial_ue_msg(
   S1AP_INITIAL_UE_MESSAGE(message_p).tai.tac            = 1;
   S1AP_INITIAL_UE_MESSAGE(message_p).ecgi.plmn          = plmn;
   S1AP_INITIAL_UE_MESSAGE(message_p).ecgi.cell_identity = {0, 0, 0};
+  if (guti.m_tmsi) {
+    S1AP_INITIAL_UE_MESSAGE(message_p).is_s_tmsi_valid     = true;
+    S1AP_INITIAL_UE_MESSAGE(message_p).opt_s_tmsi.m_tmsi   = guti.m_tmsi;
+    S1AP_INITIAL_UE_MESSAGE(message_p).opt_s_tmsi.mme_code = guti.mme_code;
+  }
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }
@@ -164,28 +170,35 @@ void send_s6a_ula(const std::string& imsi, bool success) {
   return;
 }
 
-void send_create_session_resp() {
+void send_create_session_resp(gtpv2c_cause_value_t cause_value) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_SPGW_APP, S11_CREATE_SESSION_RESPONSE);
   itti_s11_create_session_response_t* create_session_response_p =
       &message_p->ittiMsg.s11_create_session_response;
-  create_session_response_p->teid                    = 1;
-  create_session_response_p->cause.cause_value       = REQUEST_ACCEPTED;
-  create_session_response_p->paa.pdn_type            = IPv4;
-  create_session_response_p->paa.ipv4_address.s_addr = 1000;
+
+  create_session_response_p->teid              = 1;
+  create_session_response_p->cause.cause_value = cause_value;
   create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .cause.cause_value = REQUEST_ACCEPTED;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .s1u_sgw_fteid.teid = 1000;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .s1u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .s1u_sgw_fteid.ipv4 = 1;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .s1u_sgw_fteid.ipv4_address.s_addr = 100;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-      .eps_bearer_id                                                    = 5;
+      .cause.cause_value = cause_value;
   create_session_response_p->bearer_contexts_created.num_bearer_context = 1;
+
+  if (cause_value == REQUEST_ACCEPTED) {
+    create_session_response_p->paa.pdn_type            = IPv4;
+    create_session_response_p->paa.ipv4_address.s_addr = 1000;
+    create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+        .s1u_sgw_fteid.teid = 1000;
+    create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+        .s1u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
+    create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+        .s1u_sgw_fteid.ipv4 = 1;
+    create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+        .s1u_sgw_fteid.ipv4_address.s_addr = 100;
+    create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+        .eps_bearer_id = 5;
+    create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+        .s1u_sgw_fteid.ipv6 = 1;
+  }
+
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }
@@ -291,6 +304,24 @@ void sgw_send_release_access_bearer_response(gtpv2c_cause_value_t cause) {
       &message_p->ittiMsg.s11_release_access_bearers_response;
   release_access_bearers_resp_p->cause.cause_value = cause;
   release_access_bearers_resp_p->teid              = 1;
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
+void send_s11_deactivate_bearer_req(
+    uint8_t no_of_bearers_to_be_deact, uint8_t* ebi_to_be_deactivated,
+    bool delete_default_bearer) {
+  MessageDef* message_p = itti_alloc_new_message(
+      TASK_SPGW_APP, S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST);
+  itti_s11_nw_init_deactv_bearer_request_t* s11_bearer_deactv_request =
+      &message_p->ittiMsg.s11_nw_init_deactv_bearer_request;
+
+  s11_bearer_deactv_request->s11_mme_teid          = 1;
+  s11_bearer_deactv_request->delete_default_bearer = delete_default_bearer;
+  s11_bearer_deactv_request->no_of_bearers         = no_of_bearers_to_be_deact;
+  memcpy(
+      s11_bearer_deactv_request->ebi, ebi_to_be_deactivated,
+      (sizeof(ebi_t) * no_of_bearers_to_be_deact));
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }

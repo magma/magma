@@ -10,21 +10,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 
-#include <folly/dynamic.h>
 #include <folly/Format.h>
+#include <folly/dynamic.h>
 #include <folly/json.h>
 #include <orc8r/protos/eventd.pb.h>
-
 #include <memory>
 #include <string>
 #include <utility>
 
+#include "SessionState.h"
 #include "includes/EventdClient.h"
 #include "magma_logging.h"
-#include "SessionState.h"
 
 namespace magma {
+class EventdClient;
+class SessionState;
+struct SessionConfig;
+struct UpdateRequests;
+
 namespace lte {
 
 class EventsReporter {

@@ -15,13 +15,31 @@
 #include <folly/io/async/EventBase.h>
 #include <grpc++/grpc++.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-
+#include <stdint.h>
 #include <functional>
 #include <memory>
 
 #include "includes/GRPCReceiver.h"
+#include "lte/protos/apn.pb.h"
+
+namespace folly {
+class EventBase;
+}  // namespace folly
+namespace grpc {
+class Channel;
+class Status;
+}  // namespace grpc
 
 namespace magma {
+namespace lte {
+class CreateSessionRequest;
+class CreateSessionResponse;
+class SessionTerminateRequest;
+class SessionTerminateResponse;
+class UpdateSessionRequest;
+class UpdateSessionResponse;
+}  // namespace lte
+
 using namespace lte;
 
 /**

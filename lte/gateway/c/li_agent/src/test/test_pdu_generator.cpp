@@ -13,14 +13,15 @@
 
 #include <netinet/ip.h>
 #include <net/ethernet.h>
+#include <gflags/gflags.h>
 #include <gtest/gtest.h>
 
 #include <limits>
 #include <utility>
 
-#include "Consts.h"
-#include "PDUGenerator.h"
-#include "LIAgentdMocks.h"
+#include "lte/gateway/c/li_agent/src/test/Consts.h"
+#include "lte/gateway/c/li_agent/src/PDUGenerator.h"
+#include "lte/gateway/c/li_agent/src/test/LIAgentdMocks.h"
 
 using grpc::Status;
 
@@ -129,8 +130,6 @@ TEST_F(PDUGeneratorTest, test_generator_non_ip_packet) {
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  FLAGS_logtostderr = 1;
-  FLAGS_v           = 10;
   return RUN_ALL_TESTS();
 }
 

@@ -39,7 +39,7 @@ type HealthServer struct {
 	store storage.HealthBlobstore
 }
 
-func NewHealthServer(factory blobstore.BlobStorageFactory) (*HealthServer, error) {
+func NewHealthServer(factory blobstore.StoreFactory) (*HealthServer, error) {
 	if factory == nil {
 		return nil, fmt.Errorf("Storage factory is nil")
 	}

@@ -1,5 +1,15 @@
 #include "AmfServiceClient.h"
+
+#include <glog/logging.h>
+#include <grpcpp/channel.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <functional>
+#include <ostream>
+#include <utility>
+
 #include "includes/ServiceRegistrySingleton.h"
+#include "lte/protos/session_manager.grpc.pb.h"
+#include "lte/protos/session_manager.pb.h"
 #include "magma_logging.h"
 
 using grpc::Status;

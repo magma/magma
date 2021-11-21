@@ -12,38 +12,51 @@
  */
 #pragma once
 
-#include <stdarg.h>           // for va_list
-#include <stddef.h>           // for size_t
-#include <map>                // for map
-#include <memory>             // for shared_ptr
-#include <string>             // for string
-#include "MetricsRegistry.h"  // for MetricsRegistry, Registry
+#include <stdarg.h>  // for va_list
+#include <stddef.h>  // for size_t
+#include <map>       // for map
+#include <memory>    // for shared_ptr
+#include <string>    // for string
+
+#include "orc8r/gateway/c/common/service303/includes/MetricsRegistry.h"  // for MetricsRegistry, Registry
+
 namespace grpc {
 class Server;
 }
+
 namespace prometheus {
 class Counter;
 }
+
 namespace prometheus {
+
 class Gauge;
 }
+
 namespace prometheus {
+
 class Histogram;
 }
+
 namespace prometheus {
 class Registry;
 }
+
 namespace prometheus {
+
 namespace detail {
+
 class CounterBuilder;
 }
 }  // namespace prometheus
 namespace prometheus {
+
 namespace detail {
 class GaugeBuilder;
 }
 }  // namespace prometheus
 namespace prometheus {
+
 namespace detail {
 class HistogramBuilder;
 }
@@ -51,8 +64,10 @@ class HistogramBuilder;
 
 using grpc::Server;
 using magma::service303::MetricsRegistry;
+
 using prometheus::Counter;
 using prometheus::Gauge;
+
 using prometheus::Histogram;
 using prometheus::Registry;
 using prometheus::detail::CounterBuilder;

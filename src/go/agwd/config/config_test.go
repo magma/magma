@@ -24,54 +24,54 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/magma/magma/src/go/log"
-	"github.com/magma/magma/src/go/protos/magma/mconfig"
+	"github.com/magma/magma/src/go/protos/magma/config"
 )
 
 func TestLogLevel(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		mconfigLevel mconfig.AgwD_LogLevel
-		want         log.Level
+		configLevel config.AgwD_LogLevel
+		want        log.Level
 	}{
 		{
-			mconfigLevel: mconfig.AgwD_DEBUG,
-			want:         log.DebugLevel,
+			configLevel: config.AgwD_DEBUG,
+			want:        log.DebugLevel,
 		},
 		{
-			mconfigLevel: mconfig.AgwD_INFO,
-			want:         log.InfoLevel,
+			configLevel: config.AgwD_INFO,
+			want:        log.InfoLevel,
 		},
 		{
-			mconfigLevel: mconfig.AgwD_WARN,
-			want:         log.WarnLevel,
+			configLevel: config.AgwD_WARN,
+			want:        log.WarnLevel,
 		},
 		{
-			mconfigLevel: mconfig.AgwD_ERROR,
-			want:         log.ErrorLevel,
+			configLevel: config.AgwD_ERROR,
+			want:        log.ErrorLevel,
 		},
 		{
-			mconfigLevel: mconfig.AgwD_UNSET,
-			want:         log.InfoLevel,
+			configLevel: config.AgwD_UNSET,
+			want:        log.InfoLevel,
 		},
 		{
-			mconfigLevel: mconfig.AgwD_LogLevel(5),
-			want:         log.InfoLevel,
+			configLevel: config.AgwD_LogLevel(5),
+			want:        log.InfoLevel,
 		},
 		{
-			mconfigLevel: mconfig.AgwD_LogLevel(-1),
-			want:         log.InfoLevel,
+			configLevel: config.AgwD_LogLevel(-1),
+			want:        log.InfoLevel,
 		},
 	}
 
 	for _, test := range tests {
-		got := LogLevel(test.mconfigLevel)
+		got := LogLevel(test.configLevel)
 		assert.Equal(
 			t,
 			test.want,
 			got,
 			"LogLevel(%s) = %s, want %s",
-			test.mconfigLevel,
+			test.configLevel,
 			got,
 			test.want)
 	}
@@ -96,7 +96,7 @@ func TestParseTarget(t *testing.T) {
 		{
 			target: "ipv4:localhost:1234",
 			want: resolver.Target{
-				Scheme:    "ipv4",
+				Scheme:    "tcp4",
 				Authority: "",
 				Endpoint:  "localhost:1234",
 			},
@@ -104,7 +104,7 @@ func TestParseTarget(t *testing.T) {
 		{
 			target: "ipv6:[2607:f8b0:400e:c00::ef]:443",
 			want: resolver.Target{
-				Scheme:    "ipv6",
+				Scheme:    "tcp6",
 				Authority: "",
 				Endpoint:  "[2607:f8b0:400e:c00::ef]:443",
 			},
@@ -112,7 +112,7 @@ func TestParseTarget(t *testing.T) {
 		{
 			target: "ipv6:[::]:1234",
 			want: resolver.Target{
-				Scheme:    "ipv6",
+				Scheme:    "tcp6",
 				Authority: "",
 				Endpoint:  "[::]:1234",
 			},
@@ -182,26 +182,30 @@ func TestNewConfigManager(t *testing.T) {
 	t.Parallel()
 
 	cm := NewConfigManager()
-	assert.Equal(t, mconfig.AgwD_INFO, cm.Config().LogLevel)
+	assert.Equal(t, config.AgwD_INFO, cm.Config().LogLevel)
 	assert.Equal(t, "unix:///tmp/sctpd_downstream.sock", cm.Config().SctpdDownstreamServiceTarget)
 	assert.Equal(t, "unix:///tmp/sctpd_upstream.sock", cm.Config().SctpdUpstreamServiceTarget)
 	assert.Equal(t, "unix:///tmp/mme_sctpd_downstream.sock", cm.Config().MmeSctpdDownstreamServiceTarget)
 	assert.Equal(t, "unix:///tmp/mme_sctpd_upstream.sock", cm.Config().MmeSctpdUpstreamServiceTarget)
 	assert.Equal(t, "", cm.Config().SentryDsn)
+	assert.Equal(t, "tcp4:127.0.0.1:50090", cm.Config().ConfigServiceTarget)
+	assert.Equal(t, "tcp4:0.0.0.0:12345", cm.Config().PipelinedServiceTarget)
 }
 
 func TestLoadConfigFile(t *testing.T) {
 	t.Parallel()
 
 	cm := NewConfigManager()
-	err := LoadConfigFile(cm, filepath.Join("testdata", "accessd_mconfig.json"))
+	err := LoadConfigFile(cm, filepath.Join("testdata", "accessd_config.json"))
 	assert.NoError(t, err)
-	assert.Equal(t, mconfig.AgwD_WARN, cm.Config().LogLevel)
+	assert.Equal(t, config.AgwD_WARN, cm.Config().LogLevel)
 	assert.Equal(t, "a", cm.Config().SctpdDownstreamServiceTarget)
 	assert.Equal(t, "b", cm.Config().SctpdUpstreamServiceTarget)
 	assert.Equal(t, "c", cm.Config().MmeSctpdDownstreamServiceTarget)
 	assert.Equal(t, "d", cm.Config().MmeSctpdUpstreamServiceTarget)
 	assert.Equal(t, "e", cm.Config().SentryDsn)
+	assert.Equal(t, "f", cm.Config().ConfigServiceTarget)
+	assert.Equal(t, "g", cm.Config().PipelinedServiceTarget)
 }
 
 func TestNewConfigManager_DefaultNotFound(t *testing.T) {
@@ -219,7 +223,7 @@ func TestNewConfigManager_OverrideSome(t *testing.T) {
 	cm := NewConfigManager()
 	err := LoadConfigFile(cm, filepath.Join("testdata", "override_some.json"))
 	assert.Nil(t, err)
-	assert.Equal(t, mconfig.AgwD_DEBUG, cm.Config().LogLevel)
+	assert.Equal(t, config.AgwD_DEBUG, cm.Config().LogLevel)
 	assert.Equal(t, "unix:///tmp/sctpd_downstream.sock", cm.Config().SctpdDownstreamServiceTarget)
 	assert.Equal(t, "foo", cm.Config().SctpdUpstreamServiceTarget)
 	assert.Equal(t, "bar", cm.Config().MmeSctpdDownstreamServiceTarget)
@@ -288,13 +292,13 @@ func TestConfigManager_Merge(t *testing.T) {
 	t.Parallel()
 
 	cm := NewConfigManager()
-	update := &mconfig.AgwD{MmeSctpdDownstreamServiceTarget: "a"}
+	update := &config.AgwD{MmeSctpdDownstreamServiceTarget: "a"}
 	cm.Merge(update)
 	assert.Equal(
 		t,
 		update.GetMmeSctpdDownstreamServiceTarget(),
 		cm.Config().GetMmeSctpdDownstreamServiceTarget())
-	update2 := &mconfig.AgwD{SctpdDownstreamServiceTarget: "b"}
+	update2 := &config.AgwD{SctpdDownstreamServiceTarget: "b"}
 	cm.Merge(update2)
 	assert.Equal(
 		t,
@@ -305,6 +309,30 @@ func TestConfigManager_Merge(t *testing.T) {
 	assert.Equal(t, "unix:///tmp/sctpd_upstream.sock", cm.Config().SctpdUpstreamServiceTarget)
 	assert.Equal(t, "a", cm.Config().MmeSctpdDownstreamServiceTarget)
 	assert.Equal(t, "unix:///tmp/mme_sctpd_upstream.sock", cm.Config().MmeSctpdUpstreamServiceTarget)
+}
+
+func TestConfigManager_UpdateConfig(t *testing.T) {
+	t.Parallel()
+
+	cm := NewConfigManager()
+	update := &config.AgwD{MmeSctpdDownstreamServiceTarget: "a"}
+	cm.UpdateConfig(update)
+	assert.Equal(
+		t,
+		update.GetMmeSctpdDownstreamServiceTarget(),
+		cm.Config().GetMmeSctpdDownstreamServiceTarget())
+	update2 := &config.AgwD{SctpdDownstreamServiceTarget: "b"}
+	cm.UpdateConfig(update2)
+	assert.Equal(
+		t,
+		update2.GetSctpdDownstreamServiceTarget(),
+		cm.Config().GetSctpdDownstreamServiceTarget())
+
+	assert.Equal(t, "b", cm.Config().SctpdDownstreamServiceTarget)
+	assert.Equal(t, "unix:///tmp/sctpd_upstream.sock", cm.Config().SctpdUpstreamServiceTarget)
+	assert.Equal(t, "a", cm.Config().MmeSctpdDownstreamServiceTarget)
+	assert.Equal(t, "unix:///tmp/mme_sctpd_upstream.sock", cm.Config().MmeSctpdUpstreamServiceTarget)
+
 }
 
 func TestConfigManager_Race(t *testing.T) {

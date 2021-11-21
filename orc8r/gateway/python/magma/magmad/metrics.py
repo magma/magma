@@ -14,11 +14,14 @@ import asyncio
 import logging
 # pylint: disable=broad-except
 import os
+import subprocess
 from collections import OrderedDict
 
 import psutil
 from magma.common.health.service_state_wrapper import ServiceStateWrapper
+from magma.common.service import MagmaService
 from magma.magmad.check.network_check import ping
+from orc8r.protos.mconfig import mconfigs_pb2
 from prometheus_client import Counter, Gauge
 
 POLL_INTERVAL_SECONDS = 10
@@ -87,6 +90,27 @@ SERVICE_RESTART_STATUS = Counter(
 )
 
 
+SERVICE_CPU_PERCENTAGE = Gauge(
+    'service_cpu_percentage',
+    'Service CPU Percentage',
+    ['service_name'],
+)
+
+
+SERVICE_MEMORY_USAGE = Gauge(
+    'service_memory_usage',
+    'Service Memory Usage',
+    ['service_name'],
+)
+
+
+SERVICE_MEMORY_PERCENTAGE = Gauge(
+    'service_memory_percentage',
+    'Service Memory Percentage',
+    ['service_name'],
+)
+
+
 def _get_ping_params(config):
     ping_params = []
     if 'ping_config' in config and 'hosts' in config['ping_config']:
@@ -126,6 +150,7 @@ def metrics_collection_loop(service_config, loop=None):
             yield from _collect_ping_metrics(ping_params, loop=loop)
         yield from _collect_load_metrics()
         yield from _collect_service_restart_stats()
+        yield from _collect_service_metrics()
         yield from asyncio.sleep(int(config['sampling_period']))
 
 
@@ -243,3 +268,46 @@ def monitor_unattended_upgrade_status():
         logging.debug('Unattended upgrade status is %d', status)
         UNATTENDED_UPGRADE_STATUS.set(status)
         yield from asyncio.sleep(POLL_INTERVAL_SECONDS)
+
+
+@asyncio.coroutine
+def _collect_service_metrics():
+    config = MagmaService('magmad', mconfigs_pb2.MagmaD()).config
+    magma_services = ["magma@" + service for service in config['magma_services']]
+    non_magma_services = ["sctpd", "openvswitch-switch"]
+    for service in magma_services + non_magma_services:
+        cmd = ["systemctl", "show", service, "--property=MainPID,MemoryCurrent,MemoryAccounting,MemoryLimit"]
+        # TODO(@wallyrb): Move away from subprocess and use psystemd
+        output = subprocess.check_output(cmd)
+        output_str = str(output, "utf-8").strip().replace("MainPID=", "").replace("MemoryCurrent=", "").replace("MemoryAccounting=", "").replace("MemoryLimit=", "")
+        properties = output_str.split("\n")
+        pid = int(properties[0])
+        memory = properties[1]
+        memory_accounting = properties[2]
+        memory_limit = properties[3]
+
+        if pid != 0:
+            p = psutil.Process(pid=pid)
+            cpu_percentage = p.cpu_percent(interval=1)
+            _counter_set(
+                SERVICE_CPU_PERCENTAGE.labels(
+                    service_name=service,
+                ), cpu_percentage,
+            )
+
+        if not memory.isnumeric():
+            continue
+
+        if memory_accounting == "yes":
+            _counter_set(
+                SERVICE_MEMORY_USAGE.labels(
+                    service_name=service,
+                ), int(memory),
+            )
+
+        if memory_limit.isnumeric():
+            _counter_set(
+                SERVICE_MEMORY_PERCENTAGE.labels(
+                    service_name=service,
+                ), int(memory) / int(memory_limit),
+            )

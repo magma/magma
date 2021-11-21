@@ -40,7 +40,7 @@ func TestTestControllerStore(t *testing.T) {
 	}
 	defer db.Close()
 
-	factory := blobstore.NewSQLBlobStorageFactory("network_table", db, sqorc.GetSqlBuilder())
+	factory := blobstore.NewSQLStoreFactory("network_table", db, sqorc.GetSqlBuilder())
 	expectCreateTable(mock)
 	err = factory.InitializeFactory()
 	assert.NoError(t, err)

@@ -43,8 +43,8 @@
 #include <sys/types.h>
 #include <libgen.h>
 
-#include "bstrlib.h"
-#include "pid_file.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/pid_file.h"
 
 #define PID_DEC_BUF_SIZE 64 /* should be big enough */
 

@@ -11,12 +11,19 @@
  * limitations under the License.
  */
 
+#include <grpcpp/channel.h>
 #include <memory>
 #include <utility>
 
 #include "DirectorydClient.h"
-#include "magma_logging.h"
 #include "includes/ServiceRegistrySingleton.h"
+#include "orc8r/protos/common.pb.h"
+#include "orc8r/protos/directoryd.grpc.pb.h"
+#include "orc8r/protos/directoryd.pb.h"
+
+namespace grpc {
+class Status;
+}  // namespace grpc
 
 using grpc::Status;
 

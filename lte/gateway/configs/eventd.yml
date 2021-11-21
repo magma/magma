@@ -62,4 +62,5 @@ event_registry:
     filename: mme_events.v1.yml
 
 # [Experimental] Enable Sentry for this service
-sentry_enabled: false
+# Allowed values: send_all_errors, send_selected_errors, disabled
+sentry: disabled

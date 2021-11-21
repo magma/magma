@@ -21,8 +21,8 @@
 extern "C" {
 #endif
 
-#include "mme_config.h"
-#include "mme_app_desc.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_app_desc.h"
 
 /**
  * When the process starts, initialize the in-memory MME+NAS state and, if

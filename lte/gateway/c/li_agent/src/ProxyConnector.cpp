@@ -15,9 +15,10 @@
 #include <arpa/inet.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <unistd.h>
 
-#include "ProxyConnector.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/li_agent/src/ProxyConnector.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {
 namespace lte {

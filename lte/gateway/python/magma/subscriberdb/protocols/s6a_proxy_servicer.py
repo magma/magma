@@ -19,6 +19,7 @@ from magma.common.rpc_utils import print_grpc
 from magma.subscriberdb import metrics
 from magma.subscriberdb.crypto.utils import CryptoError
 from magma.subscriberdb.store.base import SubscriberNotFoundError
+from magma.subscriberdb.subscription.utils import ServiceNotActive
 
 
 class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
@@ -82,6 +83,13 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
                 code=metrics.DIAMETER_ERROR_USER_UNKNOWN,
             ).inc()
             aia.error_code = metrics.DIAMETER_ERROR_USER_UNKNOWN
+            return aia
+        except ServiceNotActive as e:
+            logging.error("Service not active for %s: %s", imsi, e)
+            metrics.M5G_AUTH_FAILURE_TOTAL.labels(
+                code=metrics.DIAMETER_ERROR_UNAUTHORIZED_SERVICE,
+            ).inc()
+            aia.error_code = metrics.DIAMETER_ERROR_UNAUTHORIZED_SERVICE
             return aia
         finally:
             print_grpc(aia, self._print_grpc_payload, "AIA:")

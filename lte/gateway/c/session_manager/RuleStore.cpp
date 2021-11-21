@@ -10,14 +10,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <glog/logging.h>
-
+#include <stddef.h>
+#include <algorithm>
+#include <cstdint>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "RuleStore.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "lte/protos/pipelined.pb.h"
+#include "lte/protos/policydb.pb.h"
 
 namespace magma {
 

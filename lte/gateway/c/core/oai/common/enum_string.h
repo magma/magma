@@ -36,7 +36,7 @@
 #ifndef FILE_ENUM_STRING_SEEN
 #define FILE_ENUM_STRING_SEEN
 
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 
 typedef struct {
   int enum_value;

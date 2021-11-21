@@ -44,6 +44,7 @@ class IPAllocatorStaticWrapper(IPAllocator):
         self, store: MobilityStore,
         subscriberdb_rpc_stub: SubscriberDBStub,
         ip_allocator: IPAllocator,
+        ipv6: bool = False,
     ):
         """ Initializes a static IP allocator
             This is wrapper around other configured Ip allocator. If subscriber
@@ -53,6 +54,10 @@ class IPAllocatorStaticWrapper(IPAllocator):
         self._store = store
         self._subscriber_client = SubscriberDbClient(subscriberdb_rpc_stub)
         self._ip_allocator = ip_allocator
+        if ipv6:
+            self._ip_version = 6
+        else:
+            self._ip_version = 4
 
     def add_ip_block(self, ipblock: ip_network):
         """ Add a block of IP addresses to the free IP list
@@ -99,6 +104,10 @@ class IPAllocatorStaticWrapper(IPAllocator):
                 IPState.FREE,
             )
             ip_block_network = ip_network(ip_desc.ip_block)
+            logging.debug(
+                "assigned blocks: %s remove: %s", self._store.assigned_ip_blocks,
+                ip_block_network,
+            )
             if ip_block_network in self._store.assigned_ip_blocks:
                 self._store.assigned_ip_blocks.remove(ip_block_network)
         else:
@@ -116,6 +125,9 @@ class IPAllocatorStaticWrapper(IPAllocator):
             "Found static IP: sid: %s ip_addr_info: %s",
             sid, str(ip_addr_info),
         )
+        if ip_addr_info.ip.version != self._ip_version:
+            logging.debug("IP version mismatch, expected version: %d", self._ip_version)
+            return None
         # Validate static IP is not in any of IP pool.
         for ip_pool in self._store.assigned_ip_blocks:
             if ip_addr_info.ip in ip_pool:

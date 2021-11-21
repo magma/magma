@@ -78,7 +78,7 @@ func LoadServiceRegistryConfigs() ([]ServiceLocation, error) {
 	return ret, nil
 }
 
-func getRawMap(serviceRegistry *config.ConfigMap) (map[interface{}]interface{}, error) {
+func getRawMap(serviceRegistry *config.Map) (map[interface{}]interface{}, error) {
 	services, ok := serviceRegistry.RawMap["services"]
 	if !ok {
 		return nil, fmt.Errorf("the field services does not exist")
@@ -103,7 +103,7 @@ func convertToServiceLocations(rawMap rawMapType) ([]ServiceLocation, error) {
 		}
 
 		// Get host
-		configMap := &config.ConfigMap{RawMap: rawMap}
+		configMap := &config.Map{RawMap: rawMap}
 		host, err := configMap.GetString("host")
 		if err != nil {
 			// Check old/py format: 'ip_address'

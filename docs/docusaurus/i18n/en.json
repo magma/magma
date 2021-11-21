@@ -108,6 +108,9 @@
       "howtos/inbound_roaming": {
         "title": "Inbound Roaming"
       },
+      "howtos/l3_transport": {
+        "title": "L3 transport for AGW"
+      },
       "howtos/network_probe": {
         "title": "Network Probe"
       },
@@ -284,6 +287,9 @@
       },
       "nms/network": {
         "title": "Network"
+      },
+      "nms/nms_organizations": {
+        "title": "Multitenancy (Organizations)"
       },
       "nms/overview": {
         "title": "Overview"

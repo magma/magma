@@ -13,7 +13,8 @@
 #pragma once
 
 #include <yaml-cpp/node/node.h>  // for Node
-#include <string>                // for string
+#include <yaml-cpp/yaml.h>
+#include <string>  // for string
 
 namespace magma {
 

@@ -69,7 +69,8 @@ RUN echo "Install general purpose packages" && \
         ninja-build \
         perl \
         pkg-config \
-        python2.7 \
+        python3 \
+        python-is-python3 \
         redis-server \
         ruby \
         rubygems \
@@ -119,8 +120,7 @@ RUN echo "Install 3rd party dependencies" && \
     echo "Install ZeroMQ" && \
     apt-get install -y libczmq-dev && \
     echo "Install dependencies for Sentry Native" && \
-    apt-get install -y libcurl4-openssl-dev && \
-    ln -s /usr/bin/python2.7 /usr/local/bin/python
+    apt-get install -y libcurl4-openssl-dev
 
 RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
 
@@ -150,6 +150,9 @@ RUN wget --progress=dot:giga https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz &&
     cd / && \
     rm -rf nettle* && \
     rm -rf gnutls*
+
+##### Useful for logfile modification e.g. pruning all /magma/... prefix from GCC warning logs
+RUN GOBIN="/usr/bin/" go get github.com/ezekg/xo
 
 ##### GRPC and it's dependencies
 RUN git clone --recurse-submodules -b v1.35.0 https://github.com/grpc/grpc && \
@@ -313,6 +316,6 @@ RUN go get -v golang.org/x/tools/gopls
 #### Update shared library configuration
 RUN ldconfig -v
 
-RUN ln -s "$MAGMA_ROOT"/experimental/bazel-base/bazelrcs/devcontainer.bazelrc /etc/bazelrc
+RUN ln -s "$MAGMA_ROOT"/magma/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
 
 WORKDIR $MAGMA_ROOT

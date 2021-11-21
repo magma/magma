@@ -11,8 +11,8 @@
  * limitations under the License.
  */
 
-#include "PDUGenerator.h"
-#include "Utilities.h"
+#include "lte/gateway/c/li_agent/src/PDUGenerator.h"
+#include "lte/gateway/c/li_agent/src/Utilities.h"
 
 #include <uuid/uuid.h>
 #include <netinet/ip.h>

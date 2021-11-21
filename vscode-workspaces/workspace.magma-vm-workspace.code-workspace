@@ -33,14 +33,18 @@
 		"bsv.bzl.lsp.enableCodelensRun": false,
 		"bsv.bzl.remoteCache.enabled": false,
 		"bsv.bzl.starlarkDebugger.enabled": false,
+		"clangd.path": "clangd-12",
 		"clangd.arguments": [
 			"-log=verbose",
 			"-pretty",
 			"--background-index",
 		],
+		// Update this field with any new Bazel targets that need compilation database generation
 		"bsv.cc.compdb.targets": [
 			"//lte/gateway/c/session_manager:sessiond",
-			"//lte/gateway/c/connection_tracker/src:main",
+			"//lte/gateway/c/sctpd/src:sctpd",
+			"//lte/gateway/c/li_agent/src:liagentd",
+			"//lte/gateway/c/connection_tracker/src:connectiond",
 		],
 		"multiCommand.commands": [
 			{

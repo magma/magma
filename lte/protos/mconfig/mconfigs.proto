@@ -20,15 +20,16 @@ option go_package = "magma/lte/cloud/go/protos/mconfig";
 
 // --------------------------------------------------------------------------
 // SentryConfig stores the network-wide Sentry.io configuration
+// TODO(hcgatewood): remove this after 1.7 release, duplicated in the shared_mconfig
 // --------------------------------------------------------------------------
 message SentryConfig {
-    // url_python initializes the Sentry Python SDK and sets the remote URL.
+    // dsn_python initializes the Sentry Python SDK and sets the remote URL.
     // If set to empty string, Sentry Python SDK will not be initialized.
-    string url_python = 1;
-    // url_native initializes the Sentry Native SDK for C/C++ and sets the
+    string dsn_python = 1;
+    // dsn_native initializes the Sentry Native SDK for C/C++ and sets the
     // remote URL. If set to empty string, Sentry Native SDK will not be
     // initialized.
-    string url_native = 2;
+    string dsn_native = 2;
     // upload_mme_log decides whether MME service log file (/var/log/mme.log)
     // is uploaded along with MME crashreports
     bool upload_mme_log = 3;
@@ -387,6 +388,9 @@ message MME {
 
     // AMF pointer
     string amf_pointer = 53;
+
+    // SGW S1U ipv6 endpoint on AGW
+    string ipv6_sgw_s1u_addr = 54;
 }
 
 message FederatedModeMap {

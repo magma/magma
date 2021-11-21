@@ -40,7 +40,7 @@
 #include <syslog.h>
 #include <stdio.h>
 
-#include "gcc_diag.h"
+#include "lte/gateway/c/core/oai/common/gcc_diag.h"
 
 /* asn1c debug */
 extern int asn_debug;
@@ -52,8 +52,8 @@ extern int fd_g_debug_lvl;
 #include <stdbool.h>
 #include <pthread.h>
 
-#include "bstrlib.h"
-#include "glogwrapper/glog_logging.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/glogwrapper/glog_logging.h"
 
 struct shared_log_queue_item_s;
 
@@ -514,7 +514,7 @@ char* bytes_to_hex(char* byte_array, int length, char* hex_array);
   } while (0) /*!< \brief informational */
 #endif
 #endif
-#include "shared_ts_log.h"
+#include "lte/gateway/c/core/oai/common/shared_ts_log.h"
 
 #if !defined(OAILOG_DEBUG)
 #define OAILOG_DEBUG(...) NOP(__VA_ARGS__)

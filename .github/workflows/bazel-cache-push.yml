@@ -12,13 +12,19 @@ on:  # yamllint disable-line rule:truthy
 
 env:
   BAZEL_CACHE: .bazel-cache
-  BAZEL_CACHE_TAR: bazel-cache-magma-vm.tar.gz
+  BAZEL_CACHE_MAGMA_VM_TAR: bazel-cache-magma-vm.tar.gz
+  BAZEL_CACHE_DEVCONTAINER_TAR: bazel-cache-devcontainer.tar.gz
+  
   BAZEL_CACHE_REPO: .bazel-cache-repo
-  BAZEL_CACHE_REPO_TAR: bazel-cache-repo-magma-vm.tar.gz
-  S3_BUCKET_PATH: s3://magma-bazel-cache
+  BAZEL_CACHE_REPO_MAGMA_VM_TAR: bazel-cache-repo-magma-vm.tar.gz
+  BAZEL_CACHE_REPO_DEVCONTAINER_TAR: bazel-cache-repo-devcontainer.tar.gz
+  
+  S3_BUCKET_PATH: s3://magma-cache
+
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-3c02c72"
 
 jobs:
-  bazel-build-and-push-cache:
+  bazel-build-magma-vm-and-push-cache:
     runs-on: macos-10.15
     steps:
       - run: echo "::set-output name=date::$(date +'%m-%d-%Y--%H-%M-%S')"
@@ -42,18 +48,50 @@ jobs:
           pip3 install --upgrade pip
           pip3 install ansible jsonpickle requests PyYAML
           vagrant plugin install vagrant-vbguest vagrant-disksize
+      - name: Open up network interfaces for VM
+        run: |
+          sudo mkdir -p /etc/vbox/
+          sudo touch /etc/vbox/networks.conf
+          sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
       - name: Bring up the Magma VM
         run: |
           cd lte/gateway
           vagrant up magma
-      - name: Build with bazel from scratch
+      - name: Build all with Bazel from scratch `bazel build //...`
         run: |
           cd lte/gateway
-          vagrant ssh -c 'cd ~/magma; bazel build ...' magma
+          vagrant ssh -c 'cd ~/magma; bazel build //...' magma
       - name: Upload .bazel-cache and .bazel-cache-repo to S3
         run: |
-          tar -zcvf ${{ env.BAZEL_CACHE_TAR }} ${{ env.BAZEL_CACHE }}/
-          tar -zcvf ${{ env.BAZEL_CACHE_REPO_TAR }} ${{ env.BAZEL_CACHE_REPO }}/
+          tar -zcvf ${{ env.BAZEL_CACHE_MAGMA_VM_TAR }} ${{ env.BAZEL_CACHE }}/
+          tar -zcvf ${{ env.BAZEL_CACHE_REPO_MAGMA_VM_TAR }} ${{ env.BAZEL_CACHE_REPO }}/
 
-          aws s3 cp ${{ env.BAZEL_CACHE_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_TAR}}
-          aws s3 cp ${{ env.BAZEL_CACHE_REPO_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_REPO_TAR}}
+          aws s3 cp ${{ env.BAZEL_CACHE_MAGMA_VM_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_MAGMA_VM_TAR}}
+          aws s3 cp ${{ env.BAZEL_CACHE_REPO_MAGMA_VM_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_REPO_MAGMA_VM_TAR}}
+
+  bazel-build-devcontainer-and-push-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
+          aws-region: us-east-1
+      - name: Build all with Bazel from scratch `bazel build //...`
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma
+            bazel build //...
+      - name: Upload .bazel-cache and .bazel-cache-repo to S3
+        run: |
+          tar -zcvf ${{ env.BAZEL_CACHE_DEVCONTAINER_TAR }} ${{ env.BAZEL_CACHE }}/
+          tar -zcvf ${{ env.BAZEL_CACHE_REPO_DEVCONTAINER_TAR }} ${{ env.BAZEL_CACHE_REPO }}/
+
+          aws s3 cp ${{ env.BAZEL_CACHE_DEVCONTAINER_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_DEVCONTAINER_TAR}}
+          aws s3 cp ${{ env.BAZEL_CACHE_REPO_DEVCONTAINER_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_REPO_DEVCONTAINER_TAR}}

@@ -122,7 +122,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # General setup rpc
     # --------------------------
 
-    def SetupDefaultControllers(self, request, _) -> SetupFlowsResult:
+    def SetupDefaultControllers(self, request, context) -> SetupFlowsResult:
         """
         Setup default controllers, used on pipelined restarts
         """
@@ -137,6 +137,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("SetupDefaultControllers processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('SetupDefaultControllers processing timed out')
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_default_controllers(self, fut: 'Future(SetupFlowsResult)'):
@@ -173,6 +175,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("SetupPolicyFlows processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('SetupPolicyFlows processing timed out')
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_flows(
@@ -220,6 +224,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("ActivateFlows request processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('ActivateFlows processing timed out')
             deactivate_req = get_deactivate_req(request)
             self._loop.call_soon_threadsafe(
                 self._deactivate_flows,
@@ -540,6 +546,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("GetPolicyUsage processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('GetPolicyUsage processing timed out')
             return RuleRecordTable()
 
     # -------------------------
@@ -563,6 +571,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("UpdateUEState processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('UpdateUEState processing timed out')
             return UESessionContextResponse(
                 operation_type=request.ue_session_state.ue_config_state,
                 cause_info=CauseIE(cause_ie=CauseIE.REQUEST_REJECTED_NO_REASON),
@@ -676,6 +686,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("SetupUEMacFlows processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('SetupUEMacFlows processing timed out')
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_ue_mac(
@@ -720,6 +732,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("AddUEMacFlow processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('AddUEMacFlow processing timed out')
             return FlowResponse()
 
     def _add_ue_mac_flow(self, request, fut: 'Future(FlowResponse)'):
@@ -808,6 +822,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("SetupQuotaFlows processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('SetupQuotaFlows processing timed out')
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_quota(
@@ -907,6 +923,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("SetSMFSessions processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('SetSMFSessions processing timed out')
             return UPFSessionContextState()
 
     def ng_update_session_flows(
@@ -994,6 +1012,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("Get Stats request processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('Get Stats request processing timed out')
             return RuleRecordTable()
 
     def _ng_qer_update(

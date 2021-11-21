@@ -12,10 +12,12 @@
  */
 #pragma once
 
-#include <experimental/optional>
+#include <google/protobuf/timestamp.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/spgw_service.grpc.pb.h>
-
+#include <stdint.h>
+#include <sys/types.h>
+#include <experimental/optional>
 #include <functional>
 #include <memory>
 #include <set>
@@ -29,10 +31,17 @@
 #include "CreditKey.h"
 #include "Monitor.h"
 #include "RuleStore.h"
+#include "ServiceAction.h"
 #include "SessionCredit.h"
 #include "SessionReporter.h"
 #include "StoredState.h"
 #include "Types.h"
+#include "lte/protos/apn.pb.h"
+#include "lte/protos/pipelined.pb.h"
+#include "lte/protos/policydb.pb.h"
+#include "lte/protos/session_manager.pb.h"
+#include "lte/protos/spgw_service.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
 
 namespace magma {
 using std::experimental::optional;

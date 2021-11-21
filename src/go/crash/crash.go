@@ -58,6 +58,7 @@ func Wrap(crash Crash, fn func()) {
 		if err := recover(); err != nil {
 			crash.Recover(err)
 			crash.Flush(time.Second * 5)
+			panic(err)
 		}
 	}()
 	fn()

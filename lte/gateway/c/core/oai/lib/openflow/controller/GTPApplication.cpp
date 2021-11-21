@@ -171,7 +171,7 @@ void GTPApplication::add_uplink_tunnel_flow(
   apply_ul_inst.add_action(set_eth_dst);
 
   of13::SetFieldAction set_tunnel_id(
-      new of13::NXMRegX(TUNNEL_ID_REG, ev.get_in_tei()));
+      new of13::NXMRegX(TUNNEL_ID_REG, ev.get_out_tei()));
   apply_ul_inst.add_action(set_tunnel_id);
 
   int vlan_id = ev.get_ue_info().get_vlan();

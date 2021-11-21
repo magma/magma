@@ -12,12 +12,14 @@
  */
 #pragma once
 
-#include <prometheus/registry.h>
-#include <prometheus/family.h>
+#include <orc8r/protos/common.pb.h>
+#include <orc8r/protos/metricsd.pb.h>
 #include <prometheus/counter.h>
+#include <prometheus/family.h>
 #include <prometheus/gauge.h>
 #include <prometheus/histogram.h>
-
+#include <prometheus/registry.h>
+#include <cstddef>
 #include <map>
 #include <memory>
 #include <numeric>
@@ -25,7 +27,11 @@
 #include <unordered_map>
 #include <utility>
 
-#include "orc8r/protos/metricsd.pb.h"
+namespace prometheus {
+class Registry;
+template<typename T>
+class Family;
+}  // namespace prometheus
 
 using prometheus::Family;
 using prometheus::Registry;

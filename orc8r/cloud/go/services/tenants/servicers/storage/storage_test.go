@@ -29,12 +29,12 @@ var (
 	}
 )
 
-func setupTestStore() (*mocks.TransactionalBlobStorage, Store) {
-	store := &mocks.TransactionalBlobStorage{}
+func setupTestStore() (*mocks.Store, Store) {
+	store := &mocks.Store{}
 	store.On("Rollback").Return(nil)
 	store.On("Commit").Return(nil)
 
-	factory := &mocks.BlobStorageFactory{}
+	factory := &mocks.StoreFactory{}
 	factory.On("StartTransaction", mock.Anything).Return(store, nil)
 
 	return store, NewBlobstoreStore(factory)
@@ -42,12 +42,12 @@ func setupTestStore() (*mocks.TransactionalBlobStorage, Store) {
 
 func TestBlobstoreStore_CreateTenant(t *testing.T) {
 	txStore, s := setupTestStore()
-	txStore.On("CreateOrUpdate", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(nil)
+	txStore.On("Write", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(nil)
 	err := s.CreateTenant(0, sampleTenant0)
 	assert.NoError(t, err)
 
 	txStore, s = setupTestStore()
-	txStore.On("CreateOrUpdate", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(errors.New("error"))
+	txStore.On("Write", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(errors.New("error"))
 	err = s.CreateTenant(0, sampleTenant0)
 	assert.EqualError(t, err, "error")
 }
@@ -140,12 +140,12 @@ func TestBlobstoreStore_GetAllTenants(t *testing.T) {
 
 func TestBlobstoreStore_SetTenant(t *testing.T) {
 	txStore, s := setupTestStore()
-	txStore.On("CreateOrUpdate", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(nil)
+	txStore.On("Write", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(nil)
 	err := s.SetTenant(0, sampleTenant0)
 	assert.NoError(t, err)
 
 	txStore, s = setupTestStore()
-	txStore.On("CreateOrUpdate", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(errors.New("error"))
+	txStore.On("Write", networkWildcard, blobstore.Blobs{sampleTenant0Blob}).Return(errors.New("error"))
 	err = s.SetTenant(0, sampleTenant0)
 	assert.EqualError(t, err, "error")
 }

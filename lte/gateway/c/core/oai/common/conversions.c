@@ -37,8 +37,8 @@
 #include <stdint.h>
 #include <ctype.h>
 
-#include "conversions.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 
 static const char hex_to_ascii_table[16] = {
     '0', '1', '2', '3', '4', '5', '6', '7',
@@ -220,7 +220,13 @@ void clear_imeisv(imeisv_t* const imeisv) {
 //------------------------------------------------------------------------------
 bstring fteid_ip_address_to_bstring(const struct fteid_s* const fteid) {
   bstring bstr = NULL;
-  if (fteid->ipv4) {
+  if (fteid->ipv4 && fteid->ipv6) {
+    bstring ipv6 = NULL;
+    bstr         = blk2bstr(&fteid->ipv4_address.s_addr, 4);
+    ipv6         = blk2bstr(&fteid->ipv6_address, 16);
+    bconcat(bstr, ipv6);
+    bdestroy(ipv6);
+  } else if (fteid->ipv4) {
     bstr = blk2bstr(&fteid->ipv4_address.s_addr, 4);
   } else if (fteid->ipv6) {
     bstr = blk2bstr(&fteid->ipv6_address, 16);

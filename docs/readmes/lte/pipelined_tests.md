@@ -56,9 +56,6 @@ for testing purposes and only runs when invoked in tests.
 
 ## API variations
 
-Initially the testing framework was developed using REST and gRPC. The RyuRPC*,
-RyuRest* classes are still present but are deprecated. No active tests use them
-as they require a running pipelined service to function.
 The primary API is RyuDirect*, all active tests use it. Later gRPC calls
 will work with this framework after some threading fixes.
 

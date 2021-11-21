@@ -24,12 +24,13 @@ import (
 	"crypto/x509"
 	"encoding/binary"
 	"fmt"
-	"log"
 	"math/big"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -49,6 +50,22 @@ const ChallengeLength = 512
 const TimeLength = 8 // length of time encoded in byte array from int64
 const MinKeyLength = 1024
 const GatewayCertificateDuration = time.Hour * 97 // 4 days, lifetime of GW Certificate
+
+const signedChallengeMismatch = "signed challenge doesn't match; ensure gateway challenge key matches the one provisioned at Orc8r"
+
+var (
+	bootstrapAttempts = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "network_bootstrap_attempts",
+			Help: "Number of successful bootstrap attempts for each network",
+		},
+		[]string{"network_id", "hardware_id"},
+	)
+)
+
+func init() {
+	prometheus.MustRegister(bootstrapAttempts)
+}
 
 type BootstrapperServer struct {
 	privKey *rsa.PrivateKey
@@ -142,6 +159,12 @@ func (srv *BootstrapperServer) RequestSign(ctx context.Context, resp *protos.Res
 	if err != nil {
 		return nil, errorLogger(status.Errorf(codes.Aborted, "Failed to sign csr: %s", err))
 	}
+	entity, err := configurator.LoadEntityForPhysicalID(strippedIncomingCtx(ctx), hwId, configurator.EntityLoadCriteria{}, serdes.Entity)
+	if err != nil {
+		return nil, errorLogger(status.Errorf(codes.NotFound, "Gateway with HWID %s is not registered: %+v", hwId, err))
+	}
+	bootstrapAttempts.WithLabelValues(entity.NetworkID, hwId).Inc()
+	glog.Infof("Bootstrapper Info: Successful bootstrap attempt")
 	return cert, nil
 }
 
@@ -231,9 +254,12 @@ func verifySoftwareRSASHA256(resp *protos.Response, key []byte) error {
 	}
 
 	hashed := sha256.Sum256(resp.Challenge)
-	err = rsa.VerifyPKCS1v15(
-		publicKey.(*rsa.PublicKey), crypto.SHA256, hashed[:], response.Signature)
-	return err
+	err = rsa.VerifyPKCS1v15(publicKey.(*rsa.PublicKey), crypto.SHA256, hashed[:], response.Signature)
+	if err != nil {
+		return errors.Wrap(err, signedChallengeMismatch)
+	}
+
+	return nil
 }
 
 // verify response with ecdsa signature ahd sha256 hash
@@ -253,8 +279,9 @@ func verifySoftwareECDSASHA256(resp *protos.Response, key []byte) error {
 	s.SetBytes(response.S)
 	hashed := sha256.Sum256(resp.Challenge)
 	if !ecdsa.Verify(publicKey.(*ecdsa.PublicKey), hashed[:], &r, &s) {
-		return fmt.Errorf("Wrong response")
+		return fmt.Errorf(signedChallengeMismatch)
 	}
+
 	return nil
 }
 
@@ -295,6 +322,6 @@ func strippedIncomingCtx(ctx context.Context) context.Context {
 }
 
 func errorLogger(err error) error {
-	log.Printf("Bootstrapper Error: %v", err)
+	glog.Errorf("Bootstrapper Error: %v", err)
 	return err
 }

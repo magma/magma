@@ -11,14 +11,26 @@
  * limitations under the License.
  */
 #include <glog/logging.h>
-
+#include <grpcpp/channel.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <iostream>
+#include <string>
 #include <utility>
 
 #include "GrpcMagmaUtils.h"
-#include "magma_logging.h"
-#include "includes/ServiceRegistrySingleton.h"
 #include "SessionReporter.h"
+#include "lte/protos/session_manager.grpc.pb.h"
+#include "lte/protos/session_manager.pb.h"
+#include "magma_logging.h"
+
+namespace folly {
+class EventBase;
+}  // namespace folly
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
 
 namespace magma {
 

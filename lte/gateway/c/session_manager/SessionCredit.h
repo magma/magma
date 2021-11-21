@@ -12,11 +12,12 @@
  */
 #pragma once
 #include <lte/protos/session_manager.grpc.pb.h>
-
+#include <stdint.h>
 #include <string>
 
 #include "StoredState.h"
 #include "Types.h"
+#include "lte/protos/session_manager.pb.h"
 
 namespace magma {
 /**

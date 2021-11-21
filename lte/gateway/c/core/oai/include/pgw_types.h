@@ -24,10 +24,10 @@
 
 #pragma once
 
-#include "3gpp_29.274.h"
-#include "3gpp_24.008.h"
-#include "3gpp_24.007.h"
-#include "queue.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 
 // Each service data flow template may contain any number of service data
 // flow filters;

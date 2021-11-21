@@ -13,7 +13,6 @@
 #pragma once
 
 #include <lte/protos/session_manager.grpc.pb.h>
-
 #include <memory>
 #include <set>
 #include <string>
@@ -24,6 +23,9 @@
 #include "StoredState.h"
 
 namespace magma {
+class StaticRuleStore;
+struct StoredSessionState;
+
 namespace lte {
 
 /**

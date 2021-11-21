@@ -168,6 +168,7 @@ message CoreNetworkType {
       NT_EPC = 0;
       NT_5GC = 1;
   }
+  // Network Types to be restricted per subscriber. If not configured, Subscriber will have access to all Network Types by default.
   repeated CoreNetworkTypes forbidden_network_types = 1;
 }
 

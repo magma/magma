@@ -11,13 +11,22 @@
  * limitations under the License.
  */
 
-#include "includes/MConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
+
+#include <bits/exception.h>
 #include <google/protobuf/stubs/status.h>    // for Status
 #include <google/protobuf/util/json_util.h>  // for JsonStringToMessage
-#include <cstdlib>                           // for getenv
-#include <fstream>                           // for operator<<, char_traits
-#include <nlohmann/json.hpp>                 // for basic_json<>::iterator
-#include "magma_logging.h"                   // for MLOG
+#include <nlohmann/json.hpp>
+#include <cstdlib>  // for getenv
+#include <fstream>  // IWYU pragma: keep
+
+#include "orc8r/gateway/c/common/logging/magma_logging.h"  // for MLOG
+
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
 
 namespace {
 static constexpr const char* DYNAMIC_MCONFIG_PATH =

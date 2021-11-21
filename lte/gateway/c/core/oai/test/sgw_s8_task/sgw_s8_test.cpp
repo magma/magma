@@ -13,8 +13,8 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "log.h"
-#include "intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 }
 
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
