@@ -56,7 +56,7 @@ func (b *blobstoreStore) SetTokenInfo(oldNonce string, tokenInfo protos.TokenInf
 	}
 	err = store.Write(networkID, blobstore.Blobs{logicalIDBlob})
 	if err != nil {
-		return errors.Wrap(err, "Error setting token info with logical ID")
+		return err
 	}
 
 	nonceBlob, err := tokenInfoToBlob(bootstrapper.NonceTokenToInfoMap, tokenInfo.Nonce, tokenInfo)
@@ -65,7 +65,7 @@ func (b *blobstoreStore) SetTokenInfo(oldNonce string, tokenInfo protos.TokenInf
 	}
 	err = store.Write(networkWildcard, blobstore.Blobs{nonceBlob})
 	if err != nil {
-		return errors.Wrap(err, "Error setting token info with nonce")
+		return err
 	}
 
 	if oldNonce != "" {
@@ -95,10 +95,9 @@ func (b *blobstoreStore) GetTokenInfoFromLogicalID(networkID string, logicalID s
 		Type: string(bootstrapper.LogicalIDToTokenInfo),
 		Key:  logicalID,
 	}
-
 	logicalIDBlob, err := store.Get(networkID, logicalIDTK)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error getting token info from logical ID")
+		return nil, err
 	}
 
 	tokenInfo, err := tokenInfoFromBlob(logicalIDBlob)
@@ -120,10 +119,9 @@ func (b *blobstoreStore) GetTokenInfoFromNonce(nonce string) (*protos.TokenInfo,
 		Type: string(bootstrapper.NonceTokenToInfoMap),
 		Key:  nonce,
 	}
-
 	nonceBlob, err := store.Get(networkWildcard, nonceTK)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error getting token info from nonce")
+		return nil, err
 	}
 
 	tokenInfo, err := tokenInfoFromBlob(nonceBlob)

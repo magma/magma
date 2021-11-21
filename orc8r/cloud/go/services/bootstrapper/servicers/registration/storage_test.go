@@ -28,18 +28,20 @@ import (
 
 var (
 	unusedNonce = "unusedNonce"
-	gatewayPreregisterInfo1 = protos.GatewayPreregisterInfo{
+
+	gatewayPreregisterInfo = protos.GatewayPreregisterInfo{
 		NetworkId: "networkID1",
 		LogicalId: "logicalID1",
 	}
+
 	tokenInfo1 = protos.TokenInfo{
-		GatewayPreregisterInfo: &gatewayPreregisterInfo1,
+		GatewayPreregisterInfo: &gatewayPreregisterInfo,
 		Nonce:                  "someNonce",
 		Timeout:                nil,
 	}
 
 	tokenInfo2 = protos.TokenInfo{
-		GatewayPreregisterInfo: &gatewayPreregisterInfo1,
+		GatewayPreregisterInfo: &gatewayPreregisterInfo,
 		Nonce:                  "someNonce2",
 		Timeout:                nil,
 	}
@@ -52,7 +54,8 @@ func TestBlobstoreStore(t *testing.T) {
 	assert.NoError(t, factory.InitializeFactory())
 	s := registration.NewBlobstoreStore(factory)
 
-	// assert returns right value when nonce is in store
+	// Asserts store works as expected when nonce is not saved in store
+
 	isUnique, err := s.IsNonceUnique(tokenInfo1.Nonce)
 	assert.NoError(t, err)
 	assert.Equal(t, true, isUnique)
@@ -61,16 +64,16 @@ func TestBlobstoreStore(t *testing.T) {
 	assert.Error(t, errors.NotFound("Not found"), err)
 	assert.Nil(t, tokenInfo)
 
-	tokenInfo, err = s.GetTokenInfoFromLogicalID(gatewayPreregisterInfo1.NetworkId, gatewayPreregisterInfo1.LogicalId)
+	tokenInfo, err = s.GetTokenInfoFromLogicalID(gatewayPreregisterInfo.NetworkId, gatewayPreregisterInfo.LogicalId)
 	assert.Error(t, errors.NotFound("Not found"), err)
 	assert.Nil(t, tokenInfo)
 
-	// set tokenInfo1 and test
+	// Setup tokenInfo1 and test that store works as expected
 
 	err = s.SetTokenInfo("", tokenInfo1)
 	assert.NoError(t, err)
 
-	// try set token info with oldNonce something that isn't used
+	// try SetTokenInfo with an oldNonce that isn't in the store
 	err = s.SetTokenInfo(unusedNonce, tokenInfo1)
 	assert.NoError(t, err)
 
@@ -78,7 +81,7 @@ func TestBlobstoreStore(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, tokenInfo1, *tokenInfo)
 
-	tokenInfo, err = s.GetTokenInfoFromLogicalID(gatewayPreregisterInfo1.NetworkId, gatewayPreregisterInfo1.LogicalId)
+	tokenInfo, err = s.GetTokenInfoFromLogicalID(gatewayPreregisterInfo.NetworkId, gatewayPreregisterInfo.LogicalId)
 	assert.NoError(t, err)
 	assert.Equal(t, tokenInfo1, *tokenInfo)
 
@@ -86,27 +89,26 @@ func TestBlobstoreStore(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, false, isUnique)
 
-	// replace old nonce with new nonce value and see that old nonce was removed
+	// Replace old nonce with new nonce value and see that store works as expected
+
 	err = s.SetTokenInfo(tokenInfo1.Nonce, tokenInfo2)
 	assert.NoError(t, err)
 
 	tokenInfo, err = s.GetTokenInfoFromNonce(tokenInfo1.Nonce)
 	assert.Error(t, errors.NotFound("Not found"), err)
 	assert.Nil(t, tokenInfo)
-
-	tokenInfo, err = s.GetTokenInfoFromNonce(tokenInfo2.Nonce)
-	assert.NoError(t, err)
-	assert.Equal(t, tokenInfo2, *tokenInfo)
-
-	tokenInfo, err = s.GetTokenInfoFromLogicalID(gatewayPreregisterInfo1.NetworkId, gatewayPreregisterInfo1.LogicalId)
-	assert.NoError(t, err)
-	assert.Equal(t, tokenInfo2, *tokenInfo)
-
 	isUnique, err = s.IsNonceUnique(tokenInfo1.Nonce)
 	assert.NoError(t, err)
 	assert.Equal(t, true, isUnique)
 
+	tokenInfo, err = s.GetTokenInfoFromNonce(tokenInfo2.Nonce)
+	assert.NoError(t, err)
+	assert.Equal(t, tokenInfo2, *tokenInfo)
 	isUnique, err = s.IsNonceUnique(tokenInfo2.Nonce)
 	assert.NoError(t, err)
 	assert.Equal(t, false, isUnique)
+
+	tokenInfo, err = s.GetTokenInfoFromLogicalID(gatewayPreregisterInfo.NetworkId, gatewayPreregisterInfo.LogicalId)
+	assert.NoError(t, err)
+	assert.Equal(t, tokenInfo2, *tokenInfo)
 }
