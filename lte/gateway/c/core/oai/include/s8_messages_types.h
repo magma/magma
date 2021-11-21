@@ -42,6 +42,13 @@ typedef struct s8_create_session_response_s {
   fteid_t pgw_s8_cp_teid;
   uint32_t cause;
   protocol_configuration_options_t pco;
+  uint32_t
+      temporary_session_id;  // created per pdn session while sending create
+                             // session request and is temporarily used
+                             // to fetch session, once sgw_s8_teid is
+                             // allocated by orc8r, temporarily session id
+                             // is removed and shall update imsi_ue_context_htbl
+                             // based on received sgw_s8_teid
 } s8_create_session_response_t;
 
 typedef struct s8_delete_session_response_s {

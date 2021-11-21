@@ -98,7 +98,6 @@ pdn_context_t* mme_app_create_pdn_context(
             &pdn_context->subscribed_apn_ambr, &apn_configuration->ambr,
             sizeof(ambr_t));
         // pdn_context->pgw_apn_ambr = ;
-        pdn_context->is_active      = true;
         pdn_context->apn_subscribed = blk2bstr(
             apn_configuration->service_selection,
             apn_configuration->service_selection_length);

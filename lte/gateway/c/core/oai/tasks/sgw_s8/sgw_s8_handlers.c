@@ -66,6 +66,10 @@ static void sgw_s8_populate_mbr_bearer_contexts_modified(
     sgw_eps_bearer_context_information_t* sgw_context_p,
     itti_s11_modify_bearer_response_t* modify_response_p);
 
+static sgw_eps_bearer_context_information_t* update_sgw_context_to_s11_teid_map(
+    sgw_state_t* sgw_state, s8_create_session_response_t* session_rsp_p,
+    imsi64_t imsi64);
+
 void sgw_remove_sgw_bearer_context_information(
     sgw_state_t* sgw_state, teid_t teid, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
@@ -174,8 +178,11 @@ status_code_e sgw_update_teid_in_ue_context(
 }
 
 sgw_eps_bearer_context_information_t*
-sgw_create_bearer_context_information_in_collection(teid_t teid) {
+sgw_create_bearer_context_information_in_collection(
+    sgw_state_t* sgw_state, uint32_t* temporary_session_id_p) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
+
+  *temporary_session_id_p = (uint32_t) rand();
   sgw_eps_bearer_context_information_t* new_sgw_bearer_context_information =
       calloc(1, sizeof(sgw_eps_bearer_context_information_t));
 
@@ -183,23 +190,24 @@ sgw_create_bearer_context_information_in_collection(teid_t teid) {
     OAILOG_ERROR(
         LOG_SGW_S8,
         "Failed to create new sgw bearer context information object for "
-        "sgw_s11_teid " TEID_FMT "\n",
-        teid);
+        "temporary_session_id:%d\n",
+        *temporary_session_id_p);
     return NULL;
   }
-  // Insert the new tunnel with sgw_s11_teid into the hash list.
-  hash_table_ts_t* state_imsi_ht = get_sgw_ue_state();
   hashtable_ts_insert(
-      state_imsi_ht, (const hash_key_t) teid,
-      new_sgw_bearer_context_information);
+      sgw_state->temporary_session_id_htbl,
+      (const hash_key_t) *temporary_session_id_p,
+      (void*) new_sgw_bearer_context_information);
 
   OAILOG_DEBUG(
       LOG_SGW_S8,
-      "Inserted new sgw eps bearer context into hash list,state_imsi_ht with "
-      "key as sgw_s11_teid " TEID_FMT "\n ",
-      teid);
+      "Inserted new sgw eps bearer context into hash "
+      "list,temporary_session_id_htbl with "
+      "key as temporary_session_id :%d \n",
+      *temporary_session_id_p);
   return new_sgw_bearer_context_information;
 }
+
 bool check_empty_apn(char* apn) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
 #define MAX_APN_LEN (ACCESS_POINT_NAME_MAX_LENGTH + 1)
@@ -214,7 +222,6 @@ bool check_empty_apn(char* apn) {
 int sgw_update_bearer_context_information_on_csreq(
     sgw_state_t* sgw_state,
     sgw_eps_bearer_context_information_t* new_sgw_eps_context,
-    mme_sgw_tunnel_t sgw_s11_tunnel,
     itti_s11_create_session_request_t* session_req_pP, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
@@ -225,7 +232,6 @@ int sgw_update_bearer_context_information_on_csreq(
   new_sgw_eps_context->imsi64      = imsi64;
   new_sgw_eps_context->imsi_unauthenticated_indicator = 1;
   new_sgw_eps_context->mme_teid_S11 = session_req_pP->sender_fteid_for_cp.teid;
-  new_sgw_eps_context->s_gw_teid_S11_S4 = sgw_s11_tunnel.local_teid;
   new_sgw_eps_context->trxn             = session_req_pP->trxn;
   // Update PDN details
   if (check_empty_apn(session_req_pP->apn)) {
@@ -234,8 +240,6 @@ int sgw_update_bearer_context_information_on_csreq(
     new_sgw_eps_context->pdn_connection.apn_in_use =
         strdup(session_req_pP->apn);
   }
-  new_sgw_eps_context->pdn_connection.s_gw_teid_S5_S8_cp =
-      sgw_s11_tunnel.local_teid;
   bearer_context_to_be_created_t* csr_bearer_context =
       &session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0];
   new_sgw_eps_context->pdn_connection.default_bearer =
@@ -265,7 +269,7 @@ int sgw_update_bearer_context_information_on_csreq(
   OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNok);
 }
 
-void sgw_s8_handle_s11_create_session_request(
+int sgw_s8_handle_s11_create_session_request(
     sgw_state_t* sgw_state, itti_s11_create_session_request_t* session_req_pP,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
@@ -280,7 +284,7 @@ void sgw_s8_handle_s11_create_session_request(
         LOG_SGW_S8, imsi64,
         "Received session request with RAT != RAT_TYPE_EUTRAN: type %d\n",
         session_req_pP->rat_type);
-    OAILOG_FUNC_OUT(LOG_SGW_S8);
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
   /*
    * As we are abstracting GTP-C transport, FTeid ip address is useless.
@@ -298,31 +302,21 @@ void sgw_s8_handle_s11_create_session_request(
     increment_counter(
         "sgw_s8_create_session", 1, 2, "result", "failure", "cause",
         "sender_fteid_incorrect_parameters");
-    OAILOG_FUNC_OUT(LOG_SGW_S8);
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
 
-  sgw_s11_tunnel.local_teid  = sgw_s8_generate_new_cp_teid();
   sgw_s11_tunnel.remote_teid = session_req_pP->sender_fteid_for_cp.teid;
   OAILOG_DEBUG_UE(
       LOG_SGW_S8, imsi64,
       "Rx CREATE-SESSION-REQUEST MME S11 teid " TEID_FMT
-      " SGW S11 teid " TEID_FMT " APN %s EPS bearer Id %u\n",
-      sgw_s11_tunnel.remote_teid, sgw_s11_tunnel.local_teid,
-      session_req_pP->apn,
+      " APN %s EPS bearer Id %u\n",
+      sgw_s11_tunnel.remote_teid, session_req_pP->apn,
       session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
           .eps_bearer_id);
 
-  if (sgw_update_teid_in_ue_context(
-          sgw_state, imsi64, sgw_s11_tunnel.local_teid) == RETURNerror) {
-    OAILOG_ERROR_UE(
-        LOG_SGW_S8, imsi64,
-        "Failed to update sgw_s11_teid" TEID_FMT " in UE context \n",
-        sgw_s11_tunnel.local_teid);
-    OAILOG_FUNC_OUT(LOG_SGW_S8);
-  }
-
+  uint32_t temporary_session_id = 0;
   new_sgw_eps_context = sgw_create_bearer_context_information_in_collection(
-      sgw_s11_tunnel.local_teid);
+      sgw_state, &temporary_session_id);
   if (!new_sgw_eps_context) {
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64,
@@ -335,20 +329,18 @@ void sgw_s8_handle_s11_create_session_request(
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
   if (sgw_update_bearer_context_information_on_csreq(
-          sgw_state, new_sgw_eps_context, sgw_s11_tunnel, session_req_pP,
-          imsi64) != RETURNok) {
+          sgw_state, new_sgw_eps_context, session_req_pP, imsi64) != RETURNok) {
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64,
         "Failed to update sgw_eps_bearer_context_information for "
         "mme_s11_teid " TEID_FMT "\n",
         session_req_pP->sender_fteid_for_cp.teid);
-    OAILOG_FUNC_OUT(LOG_SGW_S8);
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
 
-  send_s8_create_session_request(
-      sgw_s11_tunnel.local_teid, session_req_pP, imsi64);
+  send_s8_create_session_request(temporary_session_id, session_req_pP, imsi64);
   sgw_display_s11_bearer_context_information(LOG_SGW_S8, new_sgw_eps_context);
-  OAILOG_FUNC_OUT(LOG_SGW_S8);
+  OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNok);
 }
 
 int sgw_update_bearer_context_information_on_csrsp(
@@ -494,7 +486,7 @@ static int sgw_s8_send_create_session_response(
   OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNok);
 }
 
-void sgw_s8_handle_create_session_response(
+int sgw_s8_handle_create_session_response(
     sgw_state_t* sgw_state, s8_create_session_response_t* session_rsp_p,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
@@ -502,24 +494,37 @@ void sgw_s8_handle_create_session_response(
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64,
         "Received null create session response from s8_proxy\n");
-    OAILOG_FUNC_OUT(LOG_SGW_S8);
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
   OAILOG_INFO_UE(
       LOG_SGW_S8, imsi64,
       " Rx S5S8_CREATE_SESSION_RSP for context_teid " TEID_FMT "\n",
       session_rsp_p->context_teid);
 
+#if 0
   sgw_eps_bearer_context_information_t* sgw_context_p =
-      sgw_get_sgw_eps_bearer_context(session_rsp_p->context_teid);
+      sgw_get_eps_session_context_from_session_id(
+          sgw_state, session_rsp_p->temporary_session_id);
+#endif
+  sgw_eps_bearer_context_information_t* sgw_context_p =
+      update_sgw_context_to_s11_teid_map(sgw_state, session_rsp_p, imsi64);
   if (!sgw_context_p) {
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64,
         "Failed to fetch sgw_eps_bearer_context_info from "
-        "context_teid " TEID_FMT " \n",
-        session_rsp_p->context_teid);
-    OAILOG_FUNC_OUT(LOG_SGW_S8);
+        "temporary_session_id:%u \n",
+        session_rsp_p->temporary_session_id);
+    // TODO Rashmi handle failure
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
-
+  if (sgw_update_teid_in_ue_context(
+          sgw_state, imsi64, session_rsp_p->context_teid) == RETURNerror) {
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, imsi64,
+        "Failed to update sgw_s11_teid" TEID_FMT " in UE context \n",
+        session_rsp_p->context_teid);
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
+  }
   if (session_rsp_p->cause == REQUEST_ACCEPTED) {
     // update pdn details received from PGW
     sgw_context_p->pdn_connection.p_gw_teid_S5_S8_cp =
@@ -551,7 +556,7 @@ void sgw_s8_handle_create_session_response(
   } else {
     insert_sgw_c_teid_to_directoryd(sgw_state, imsi64);
   }
-  OAILOG_FUNC_OUT(LOG_SGW_S8);
+  OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNok);
 }
 
 // The function generates comma separated list of sgw's control plane teid of
@@ -1206,22 +1211,6 @@ void sgw_s8_handle_release_access_bearers_request(
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
-/* Generates random control plane teid and is used for both s11 and
- * s8 interface to uniquely identify sgw_s8_context for pdn session
- */
-teid_t sgw_s8_generate_new_cp_teid(void) {
-  OAILOG_FUNC_IN(LOG_SGW_S8);
-  sgw_eps_bearer_context_information_t* sgw_context_p = NULL;
-  teid_t teid                                         = INVALID_TEID;
-  // note srand with seed is initialized at main
-  do {
-    teid          = (teid_t) rand();
-    sgw_context_p = sgw_get_sgw_eps_bearer_context(teid);
-  } while (sgw_context_p);
-
-  OAILOG_FUNC_RETURN(LOG_SGW_S8, teid);
-}
-
 int update_pgw_info_to_temp_dedicated_bearer_context(
     sgw_eps_bearer_context_information_t* sgw_context_p, teid_t s1_u_sgw_fteid,
     s8_bearer_context_t* bc_cbreq, sgw_state_t* sgw_state,
@@ -1808,4 +1797,74 @@ void sgw_s8_send_failed_delete_bearer_response(
       &s11_delete_bearer_rsp, pgw_s8_teid, db_req->sequence_number,
       db_req->pgw_cp_address, imsi);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
+#if 0
+sgw_eps_bearer_context_information_t*
+sgw_get_eps_session_context_from_session_id(
+    sgw_state_t* sgw_state, uint32_t temporary_session_id) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  sgw_eps_bearer_context_information_t* sgw_bearer_context_info = NULL;
+
+  hashtable_ts_get(
+      sgw_state->temporary_session_id_htbl,
+      (const hash_key_t) temporary_session_id,
+      (void**) &sgw_bearer_context_info);
+  OAILOG_FUNC_RETURN(LOG_SGW_S8, sgw_bearer_context_info);
+}
+#endif
+
+sgw_eps_bearer_context_information_t* update_sgw_context_to_s11_teid_map(
+    sgw_state_t* sgw_state, s8_create_session_response_t* session_rsp_p,
+    imsi64_t imsi64) {
+#if 0
+      sgw_get_eps_session_context_from_session_id(
+          sgw_state, session_rsp_p->temporary_session_id);
+  if (!sgw_context_p) {
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, imsi64,
+        "Failed to fetch sgw_eps_bearer_context_info from "
+        "temporary_session_id:%u \n",
+        session_rsp_p->temporary_session_id);
+    // TODO Rashmi handle failure
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
+  }
+#endif
+  /* Once sgw_s8_teid is obtained from orc8r,move sgw_eps_bearer_context
+   * from temporary_session_id hashlist  to sgw_teid hashlist
+   */
+  sgw_eps_bearer_context_information_t* sgw_context_p = NULL;
+  hashtable_ts_remove(
+      sgw_state->temporary_session_id_htbl,
+      (const hash_key_t) session_rsp_p->temporary_session_id,
+      (void**) &sgw_context_p);
+  if (!sgw_context_p) {
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, imsi64,
+        "Failed to fetch sgw_eps_bearer_context_info from "
+        "temporary_session_id:%u \n",
+        session_rsp_p->temporary_session_id);
+    // TODO Rashmi handle failure
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, sgw_context_p);
+  }
+
+  /* Teid shall remain same for both sgw's s11 interface and s8 interface as
+   * teid is allocated per PDN
+   */
+
+  sgw_context_p->s_gw_teid_S11_S4 = session_rsp_p->context_teid;
+  sgw_context_p->pdn_connection.s_gw_teid_S5_S8_cp =
+      session_rsp_p->context_teid;
+  // Insert the new tunnel with sgw_s11_teid into the hash list.
+  hash_table_ts_t* state_imsi_ht = get_sgw_ue_state();
+  hashtable_ts_insert(
+      state_imsi_ht, (const hash_key_t) session_rsp_p->context_teid,
+      sgw_context_p);
+
+  OAILOG_DEBUG(
+      LOG_SGW_S8,
+      "Inserted new sgw eps bearer context into hash list,state_imsi_ht with "
+      "key as sgw_s11_teid " TEID_FMT "\n ",
+      session_rsp_p->context_teid);
+  OAILOG_FUNC_RETURN(LOG_SGW_S8, sgw_context_p);
 }

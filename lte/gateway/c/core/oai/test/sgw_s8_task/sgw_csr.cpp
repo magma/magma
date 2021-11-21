@@ -14,49 +14,33 @@
 #include "lte/gateway/c/core/oai/test/sgw_s8_task/sgw_s8_utility.h"
 
 using ::testing::Test;
+TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req_success) {
+  sgw_state_t* sgw_state = get_sgw_state(false);
+  itti_s11_create_session_request_t session_req = {0};
+  fill_itti_csreq(&session_req, default_eps_bearer_id);
+  memcpy(session_req.apn, "internet", sizeof("internet"));
+  EXPECT_EQ(
+      sgw_s8_handle_s11_create_session_request(sgw_state, &session_req, imsi64),
+      RETURNok);
+}
 
 /* TC validates creation of ue context, pdn context and bearer context
  * on reception of Create Session Req
  */
-TEST_F(SgwS8Config, create_context_on_cs_req) {
-  sgw_state_init(false, config);
-  sgw_state_t* sgw_state = get_sgw_state(false);
+TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req) {
+  sgw_state_t* sgw_state          = get_sgw_state(false);
+  uint32_t temporary_session_id   = 0;
 
-  spgw_ue_context_t* ue_context_p = NULL;
-  mme_sgw_tunnel_t sgw_s11_tunnel = {0};
-  sgw_s11_tunnel.local_teid       = sgw_s8_generate_new_cp_teid();
-
-  // validates creation of UE context on reception of Create Session Req
-  EXPECT_EQ(
-      sgw_update_teid_in_ue_context(
-          sgw_state, imsi64, sgw_s11_tunnel.local_teid),
-      RETURNok);
-  EXPECT_EQ(
-      hashtable_ts_get(
-          sgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
-          reinterpret_cast<void**>(&ue_context_p)),
-      HASH_TABLE_OK);
-
-  sgw_s11_teid_t* s11_teid_p        = NULL;
-  bool sgw_local_teid_present_in_ue = false;
-  LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
-    if ((s11_teid_p) &&
-        (s11_teid_p->sgw_s11_teid == sgw_s11_tunnel.local_teid)) {
-      sgw_local_teid_present_in_ue = true;
-    }
-  }
-  EXPECT_EQ(sgw_local_teid_present_in_ue, true);
-
-  // validates creation of pdn session on reception of Create Session Req
-  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
-      sgw_s11_tunnel.local_teid);
+  // validates creation of pdn session on reception of Create Session Req with
+  // key as temporary session id
+  sgw_eps_bearer_context_information_t* sgw_pdn_session =
+      sgw_create_bearer_context_information_in_collection(
+          sgw_state, &temporary_session_id);
   EXPECT_TRUE(sgw_pdn_session != nullptr);
   sgw_pdn_session                = nullptr;
-  hash_table_ts_t* state_imsi_ht = get_sgw_ue_state();
   EXPECT_EQ(
       hashtable_ts_get(
-          state_imsi_ht, sgw_s11_tunnel.local_teid,
+          sgw_state->temporary_session_id_htbl, temporary_session_id,
           reinterpret_cast<void**>(&sgw_pdn_session)),
       HASH_TABLE_OK);
 
@@ -64,10 +48,9 @@ TEST_F(SgwS8Config, create_context_on_cs_req) {
   itti_s11_create_session_request_t session_req = {0};
   fill_itti_csreq(&session_req, default_eps_bearer_id);
   memcpy(session_req.apn, "internet", sizeof("internet"));
-  sgw_s11_tunnel.remote_teid = session_req.sender_fteid_for_cp.teid;
   EXPECT_EQ(
       sgw_update_bearer_context_information_on_csreq(
-          sgw_state, sgw_pdn_session, sgw_s11_tunnel, &session_req, imsi64),
+          sgw_state, sgw_pdn_session, &session_req, imsi64),
       RETURNok);
 
   // Validates whether MME's control plane teid is set within pdn session
@@ -95,35 +78,35 @@ TEST_F(SgwS8Config, create_context_on_cs_req) {
   // Validates whether userplane teids are created for s1-u and s8-u interfaces
   EXPECT_GT(eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, 0);
   EXPECT_GT(eps_bearer_ctxt_p->s_gw_teid_S5_S8_up, 0);
-  sgw_state_exit();
+  // sgw_state_exit();
 }
 
 // TC validates updation of bearer context on reception of Create Session Rsp
-TEST_F(SgwS8Config, update_pdn_session_on_cs_rsp) {
-  mme_sgw_tunnel_t sgw_s11_tunnel = {0};
-  sgw_state_t* sgw_state          = create_ue_context(&sgw_s11_tunnel);
+TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
+  sgw_state_t* sgw_state = get_sgw_state(false);
+
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  uint32_t temporary_session_id                         = 0;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
-      sgw_s11_tunnel.local_teid);
+      sgw_state, &temporary_session_id);
 
   itti_s11_create_session_request_t session_req = {0};
   fill_itti_csreq(&session_req, default_eps_bearer_id);
 
-  sgw_s11_tunnel.remote_teid = session_req.sender_fteid_for_cp.teid;
   sgw_update_bearer_context_information_on_csreq(
-      sgw_state, sgw_pdn_session, sgw_s11_tunnel, &session_req, imsi64);
+      sgw_state, sgw_pdn_session, &session_req, imsi64);
 
   EXPECT_EQ(strcmp(sgw_pdn_session->pdn_connection.apn_in_use, "NO APN"), 0);
-  EXPECT_TRUE(
-      (sgw_get_sgw_eps_bearer_context(sgw_s11_tunnel.local_teid)) != nullptr);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, sgw_s11_tunnel.local_teid);
+  fill_itti_csrsp(&csresp, temporary_session_id);
 
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
   EXPECT_EQ(
-      sgw_update_bearer_context_information_on_csrsp(sgw_pdn_session, &csresp),
+      sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64),
       RETURNok);
 
+  EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) != nullptr);
   sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
       &sgw_pdn_session->pdn_connection, csresp.eps_bearer_id);
   EXPECT_TRUE(bearer_ctx_p != nullptr);
@@ -137,50 +120,74 @@ TEST_F(SgwS8Config, update_pdn_session_on_cs_rsp) {
   sgw_state_exit();
 }
 
-// TC indicates that SGW_S8 has received incorrect sgw_s8_teid in Create Session
-// Rsp
-TEST_F(SgwS8Config, recv_different_cp_teid_on_cs_rsp) {
-  mme_sgw_tunnel_t sgw_s11_tunnel = {0};
-  sgw_state_t* sgw_state          = create_ue_context(&sgw_s11_tunnel);
+// TC indicates that SGW_S8 has received incorrect temporary session id in
+// Create Session Rsp
+TEST_F(
+    SgwS8ConfigAndCreateMock, recv_different_temporary_session_id_on_cs_rsp) {
+  sgw_state_t* sgw_state = get_sgw_state(false);
 
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  uint32_t temporary_session_id                         = 0;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
-      sgw_s11_tunnel.local_teid);
+      sgw_state, &temporary_session_id);
 
   itti_s11_create_session_request_t session_req = {0};
   fill_itti_csreq(&session_req, default_eps_bearer_id);
 
-  sgw_s11_tunnel.remote_teid = session_req.sender_fteid_for_cp.teid;
   sgw_update_bearer_context_information_on_csreq(
-      sgw_state, sgw_pdn_session, sgw_s11_tunnel, &session_req, imsi64);
+      sgw_state, sgw_pdn_session, &session_req, imsi64);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, sgw_s11_tunnel.local_teid);
-  csresp.context_teid = 7;  // Send wrong context_teid
-  EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) == nullptr);
+  fill_itti_csrsp(&csresp, temporary_session_id + 1);
+  EXPECT_EQ(
+      sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64),
+      RETURNerror);
+  sgw_state_exit();
+}
 
+// TC indicates that SGW_S8 has received incorrect sgw_s8_teid in Create Session
+// Rsp
+TEST_F(SgwS8ConfigAndCreateMock, recv_different_sgw_s8_teid) {
+  sgw_state_t* sgw_state          = get_sgw_state(false);
+
+  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  uint32_t temporary_session_id                         = 0;
+  sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
+      sgw_state, &temporary_session_id);
+
+  itti_s11_create_session_request_t session_req = {0};
+  fill_itti_csreq(&session_req, default_eps_bearer_id);
+
+  sgw_update_bearer_context_information_on_csreq(
+      sgw_state, sgw_pdn_session, &session_req, imsi64);
+
+  s8_create_session_response_t csresp = {0};
+  fill_itti_csrsp(&csresp, temporary_session_id);
+  sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
+  // validate with wrong sgw_s8_teid, fails to get sgw_pdn_session
+  EXPECT_EQ(
+      (sgw_get_sgw_eps_bearer_context((csresp.context_teid + 1))), nullptr);
   sgw_state_exit();
 }
 
 // TC indicates that SGW_S8 has received incorrect eps bearer id in Create
 // Session Rsp
-TEST_F(SgwS8Config, failed_to_get_bearer_context_on_cs_rsp) {
-  mme_sgw_tunnel_t sgw_s11_tunnel = {0};
-  sgw_state_t* sgw_state          = create_ue_context(&sgw_s11_tunnel);
+TEST_F(SgwS8ConfigAndCreateMock, failed_to_get_bearer_context_on_cs_rsp) {
+  uint32_t temporary_session_id = 0;
 
-  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
-      sgw_s11_tunnel.local_teid);
+  sgw_state_t* sgw_state = get_sgw_state(false);
+  sgw_eps_bearer_context_information_t* sgw_pdn_session =
+      sgw_create_bearer_context_information_in_collection(
+          sgw_state, &temporary_session_id);
 
   itti_s11_create_session_request_t session_req = {0};
   fill_itti_csreq(&session_req, default_eps_bearer_id);
 
-  sgw_s11_tunnel.remote_teid = session_req.sender_fteid_for_cp.teid;
   sgw_update_bearer_context_information_on_csreq(
-      sgw_state, sgw_pdn_session, sgw_s11_tunnel, &session_req, imsi64);
+      sgw_state, sgw_pdn_session, &session_req, imsi64);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, sgw_s11_tunnel.local_teid);
+  fill_itti_csrsp(&csresp, temporary_session_id);
   csresp.eps_bearer_id = 7;  // Send wrong eps_bearer_id
   EXPECT_EQ(
       sgw_update_bearer_context_information_on_csrsp(sgw_pdn_session, &csresp),
