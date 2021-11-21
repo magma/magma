@@ -95,7 +95,7 @@ service Registration {
 }
 
 message GetTokenRequest {
-  GatewayPreregisterInfo gateway = 1;
+  GatewayPreregisterInfo gateway_preregister_info = 1;
   // refresh is true if a new token should be generated regardless of old token timeout
   bool refresh = 2;
 }
@@ -110,7 +110,7 @@ message GetInfoForGatewayRegistrationRequest {
 }
 
 message GetInfoForGatewayRegistrationResponse {
-  string rootCA = 1;
+  string root_ca = 1;
   string domain_name = 2;
 }
 
@@ -121,7 +121,7 @@ message GetGatewayPreregisterInfoRequest {
 
 message GetGatewayPreregisterInfoResponse {
   oneof response {
-    string GatewayPreregisterInfo = 1;
+    GatewayPreregisterInfo gateway_preregister_info = 1;
     string error = 2;
   }
 }

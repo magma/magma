@@ -14,13 +14,12 @@ limitations under the License.
 package registration
 
 import (
-	mErrors "magma/orc8r/lib/go/errors"
-
 	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/bootstrapper"
 	"magma/orc8r/cloud/go/storage"
+	mErrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 )
 

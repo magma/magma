@@ -16,14 +16,14 @@ package registration_test
 import (
 	"testing"
 
+	"github.com/go-openapi/errors"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/bootstrapper"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers/registration"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -33,14 +33,14 @@ var (
 	}
 	tokenInfo1 = protos.TokenInfo{
 		GatewayPreregisterInfo: &gatewayPreregisterInfo1,
-		Nonce:   "someNonce",
-		Timeout: nil,
+		Nonce:                  "someNonce",
+		Timeout:                nil,
 	}
 
 	tokenInfo2 = protos.TokenInfo{
 		GatewayPreregisterInfo: &gatewayPreregisterInfo1,
-		Nonce:   "someNonce2",
-		Timeout: nil,
+		Nonce:                  "someNonce2",
+		Timeout:                nil,
 	}
 )
 
