@@ -41,28 +41,29 @@ func NewBlobstoreStore(factory blobstore.StoreFactory) Store {
 }
 
 func (b *blobstoreStore) SetTokenInfo(oldNonce string, tokenInfo protos.TokenInfo) error {
+	networkID := tokenInfo.GatewayPreregisterInfo.NetworkId
+	logicalID := tokenInfo.GatewayPreregisterInfo.LogicalId
+
 	store, err := b.factory.StartTransaction(nil)
 	if err != nil {
 		return err
 	}
 	defer store.Rollback()
 
-	n := tokenInfo.GatewayPreregisterInfo.NetworkId
-
-	lBlob, err := tokenInfoToBlob(bootstrapper.LogicalIDToTokenInfo, tokenInfo.GatewayPreregisterInfo.LogicalId, tokenInfo)
+	logicalIDBlob, err := tokenInfoToBlob(bootstrapper.LogicalIDToTokenInfo, logicalID, tokenInfo)
 	if err != nil {
 		return err
 	}
-	err = store.Write(n, blobstore.Blobs{lBlob})
+	err = store.Write(networkID, blobstore.Blobs{logicalIDBlob})
 	if err != nil {
 		return err
 	}
 
-	nBlob, err := tokenInfoToBlob(bootstrapper.NonceTokenToInfoMap, tokenInfo.Nonce, tokenInfo)
+	nonceBlob, err := tokenInfoToBlob(bootstrapper.NonceTokenToInfoMap, tokenInfo.Nonce, tokenInfo)
 	if err != nil {
 		return err
 	}
-	err = store.Write(networkWildcard, blobstore.Blobs{nBlob})
+	err = store.Write(networkWildcard, blobstore.Blobs{nonceBlob})
 	if err != nil {
 		return err
 	}
@@ -74,7 +75,9 @@ func (b *blobstoreStore) SetTokenInfo(oldNonce string, tokenInfo protos.TokenInf
 		}}
 		err = store.Delete(networkWildcard, oldNonceTK)
 		if err != nil {
-			return err
+			if err != mErrors.ErrNotFound{
+				return err
+			}
 		}
 	}
 
@@ -88,17 +91,17 @@ func (b *blobstoreStore) GetTokenInfoFromLogicalID(networkID string, logicalID s
 	}
 	defer store.Rollback()
 
-	lTK := storage.TK{
+	logicalIDTK := storage.TK{
 		Type: string(bootstrapper.LogicalIDToTokenInfo),
 		Key:  logicalID,
 	}
 
-	lBlob, err := store.Get(networkID, lTK)
+	logicalIDBlob, err := store.Get(networkID, logicalIDTK)
 	if err != nil {
 		return nil, err
 	}
 
-	tokenInfo, err := tokenInfoFromBlob(lBlob)
+	tokenInfo, err := tokenInfoFromBlob(logicalIDBlob)
 	if err != nil {
 		return nil, err
 	}
@@ -113,17 +116,17 @@ func (b *blobstoreStore) GetTokenInfoFromNonce(nonce string) (*protos.TokenInfo,
 	}
 	defer store.Rollback()
 
-	nTK := storage.TK{
+	nonceTK := storage.TK{
 		Type: string(bootstrapper.NonceTokenToInfoMap),
 		Key:  nonce,
 	}
 
-	lBlob, err := store.Get(networkWildcard, nTK)
+	nonceBlob, err := store.Get(networkWildcard, nonceTK)
 	if err != nil {
 		return nil, err
 	}
 
-	tokenInfo, err := tokenInfoFromBlob(lBlob)
+	tokenInfo, err := tokenInfoFromBlob(nonceBlob)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +135,7 @@ func (b *blobstoreStore) GetTokenInfoFromNonce(nonce string) (*protos.TokenInfo,
 }
 
 func (b *blobstoreStore) IsNonceUnique(nonce string) (bool, error) {
-	ti, err := b.GetTokenInfoFromNonce(nonce)
+	tokenInfo, err := b.GetTokenInfoFromNonce(nonce)
 	if err != nil {
 		if err == mErrors.ErrNotFound {
 			return true, nil
@@ -140,12 +143,12 @@ func (b *blobstoreStore) IsNonceUnique(nonce string) (bool, error) {
 		return false, err
 	}
 
-	return ti == nil, nil
+	return tokenInfo == nil, nil
 }
 
 // tokenInfoToBlob turns the input tokenInfo into a blob
-// For blobType bootstrapper.LogicalIDTokenInfoMap, key should be a LogicalID
-// For blobType bootstrapper.NonceTokenInfoMap, key should be a Nonce
+// For blobType bootstrapper.LogicalIDToTokenInfo, key should be a LogicalID
+// For blobType bootstrapper.NonceTokenToInfoMap, key should be a Nonce
 func tokenInfoToBlob(blobType bootstrapper.DBBlobType, key string, tokenInfo protos.TokenInfo) (blobstore.Blob, error) {
 	marshaledTokenInfo, err := protos.Marshal(&tokenInfo)
 	if err != nil {

@@ -27,6 +27,7 @@ import (
 )
 
 var (
+	unusedNonce = "unusedNonce"
 	gatewayPreregisterInfo1 = protos.GatewayPreregisterInfo{
 		NetworkId: "networkID1",
 		LogicalId: "logicalID1",
@@ -65,7 +66,12 @@ func TestBlobstoreStore(t *testing.T) {
 	assert.Nil(t, tokenInfo)
 
 	// set tokenInfo1 and test
+
 	err = s.SetTokenInfo("", tokenInfo1)
+	assert.NoError(t, err)
+
+	// try set token info with oldNonce something that isn't used
+	err = s.SetTokenInfo(unusedNonce, tokenInfo1)
 	assert.NoError(t, err)
 
 	tokenInfo, err = s.GetTokenInfoFromNonce(tokenInfo1.Nonce)
