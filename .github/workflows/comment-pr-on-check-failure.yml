@@ -11,11 +11,12 @@ on:  # yamllint disable-line rule:truthy
       - completed
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{ github.event.workflow.name }}
   cancel-in-progress: true
 
 jobs:
   comment_pr:
+    if: github.event.workflow_run.event == 'pull_request' ||  github.event.workflow_run.event == 'pull_request_target'
     name: Comment on PR for check ${{ github.event.workflow.name }}
     runs-on: ubuntu-latest
     env:

@@ -28,15 +28,15 @@ type Store interface {
 	GetAllIDs() (state_types.IDsByNetwork, error)
 }
 
-type storeImpl struct {
+type store struct {
 	factory blobstore.StoreFactory
 }
 
 func NewStore(factory blobstore.StoreFactory) Store {
-	return &storeImpl{factory: factory}
+	return &store{factory: factory}
 }
 
-func (s *storeImpl) GetAllIDs() (state_types.IDsByNetwork, error) {
+func (s *store) GetAllIDs() (state_types.IDsByNetwork, error) {
 	store, err := s.factory.StartTransaction(nil)
 	if err != nil {
 		return nil, internalErr(err, "GetAllIDs blobstore start transaction")

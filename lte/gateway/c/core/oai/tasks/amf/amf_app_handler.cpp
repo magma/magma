@@ -32,6 +32,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/include/n11_messages_types.h"
@@ -408,9 +409,7 @@ imsi64_t amf_app_handle_initial_ue_message(
             amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
             ue_context_p->amf_teid_n11, &guti);
 
-        amf_insert_ue_context(
-            ue_context_p->amf_ue_ngap_id, &amf_app_desc_p->amf_ue_contexts,
-            ue_context_p);
+        amf_insert_ue_context(ue_context_p->amf_ue_ngap_id, ue_context_p);
         imsi64 = ue_context_p->amf_context.imsi64;
       }
     } else {
@@ -481,9 +480,7 @@ imsi64_t amf_app_handle_initial_ue_message(
     AMF_APP_GNB_NGAP_ID_KEY(
         ue_context_p->gnb_ngap_id_key, initial_pP->gnb_id,
         initial_pP->gnb_ue_ngap_id);
-    amf_insert_ue_context(
-        ue_context_p->amf_ue_ngap_id, &amf_app_desc_p->amf_ue_contexts,
-        ue_context_p);
+    amf_insert_ue_context(ue_context_p->amf_ue_ngap_id, ue_context_p);
   }
   ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
   ue_context_p->gnb_ue_ngap_id    = initial_pP->gnb_ue_ngap_id;
@@ -595,10 +592,9 @@ static void get_ambr_unit(
 /* Received the session created response message from SMF. Populate and Send
  * PDU Session Resource Setup Request message to gNB and  PDU Session
  * Establishment Accept Message to UE*/
-void amf_app_handle_pdu_session_response(
+int amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp) {
   DLNASTransportMsg encode_msg;
-  int amf_rc = RETURNerror;
   ue_m5gmm_context_s* ue_context;
   std::shared_ptr<smf_context_t> smf_ctx;
   amf_smf_t amf_smf_msg;
@@ -617,13 +613,13 @@ void amf_app_handle_pdu_session_response(
       OAILOG_ERROR(
           LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
           pdu_session_resp->pdu_session_id);
-      return;
+      return RETURNerror;
     }
     ue_id = ue_context->amf_ue_ngap_id;
   } else {
     OAILOG_ERROR(
         LOG_AMF_APP, "ue context not found for the imsi=%lu\n", imsi64);
-    return;
+    return RETURNerror;
   }
 
   get_ambr_unit(
@@ -684,7 +680,10 @@ void amf_app_handle_pdu_session_response(
         REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
         // smf_ctx->pdu_session_state, ue_context, amf_smf_msg, NULL,
         CREATING, ue_context, amf_smf_msg, NULL, pdu_session_resp, ue_id);
+    rc = RETURNok;
   }
+
+  return rc;
 }
 
 /****************************************************************************
@@ -836,9 +835,44 @@ int amf_app_handle_pdu_session_accept(
 
   auto pco_len = sm_process_pco_request(&(smf_ctx->pco), msg_accept_pco);
 
+  /* NSSAI
+  --------------------------------------
+  Parameters | IEI | Length | SST | SD |
+  --------------------------------------
+  Size       | 1   | 1      | 1   | 3  |
+  -------------------------------------- */
+  smf_msg->msg.pdu_session_estab_accept.nssai.iei =
+      static_cast<uint8_t>(M5GIei::S_NSSAI);
+  uint32_t buf_len = 0;
+  if (smf_ctx->sst) {
+    if (smf_ctx->sd[0]) {
+      smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH + SD_LENGTH;
+      smf_msg->msg.pdu_session_estab_accept.nssai.sst = smf_ctx->sst;
+      memcpy(smf_msg->msg.pdu_session_estab_accept.nssai.sd, smf_ctx->sd, 3);
+    } else {
+      smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH;
+      smf_msg->msg.pdu_session_estab_accept.nssai.sst = smf_ctx->sst;
+    }
+    buf_len = smf_msg->msg.pdu_session_estab_accept.nssai.len + 2;
+  }
+
+  /* DNN
+  -------------------------------------
+  Parameters | IEI | Length | DNN     |
+  -------------------------------------
+  Size       | 1   | 1      | 1 - 100 |
+  ------------------------------------- */
+  smf_msg->msg.pdu_session_estab_accept.dnn.iei =
+      static_cast<uint8_t>(M5GIei::DNN);
+  smf_msg->msg.pdu_session_estab_accept.dnn.len = smf_ctx->dnn.length() + 1;
+  smf_ctx->dnn.copy(
+      reinterpret_cast<char*>(smf_msg->msg.pdu_session_estab_accept.dnn.dnn),
+      smf_ctx->dnn.length());
+  buf_len += smf_msg->msg.pdu_session_estab_accept.dnn.len + 2;
+
   encode_msg->payload_container.len =
-      PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN + pco_len;
-  len = PDU_ESTAB_ACCEPT_NAS_PDU_LEN + pco_len;
+      PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN + pco_len + buf_len;
+  len = PDU_ESTAB_ACCEPT_NAS_PDU_LEN + pco_len + buf_len;
 
   /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
    * so length is modified such that it will be mode of 4
@@ -862,7 +896,11 @@ int amf_app_handle_pdu_session_accept(
       buffer->data, &msg, len, &ue_context->amf_context._security);
   if (bytes > 0) {
     buffer->slen = bytes;
-    pdu_session_resource_setup_request(ue_context, ue_id, smf_ctx, buffer);
+    if (ue_context->ue_context_request) {
+      pdu_session_resource_setup_request(ue_context, ue_id, smf_ctx, buffer);
+    } else {
+      initial_context_setup_request(ue_id, &ue_context->amf_context, buffer);
+    }
 
   } else {
     OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");
@@ -1323,13 +1361,6 @@ void amf_app_handle_initial_context_setup_rsp(
   // Handle smf_context
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(initial_context_rsp->ue_id);
 
-  // s6a update location request
-  int rc = amf_send_n11_update_location_req(ue_context->amf_ue_ngap_id);
-
-  if (rc == RETURNerror) {
-    OAILOG_INFO(LOG_AMF_APP, "AMF_APP: n11_update_location_req failure\n");
-  }
-
   if (!ue_context) {
     OAILOG_ERROR(
         LOG_AMF_APP, " Ue context not found for the id " AMF_UE_NGAP_ID_FMT,
@@ -1337,7 +1368,6 @@ void amf_app_handle_initial_context_setup_rsp(
     return;
   }
 
-  /* activating pdu sessions when UE is in IDLE state  */
   if (pdu_list->no_of_items) {
     for (uint32_t index = 0; index < pdu_list->no_of_items; index++) {
       smf_context = amf_get_smf_context_by_pdu_session_id(

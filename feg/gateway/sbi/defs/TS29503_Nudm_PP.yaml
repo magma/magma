@@ -1,0 +1,139 @@
+openapi: 3.0.0
+
+info:
+  version: '1.0.1'
+  title: 'Nudm_PP'
+  description: |
+    Nudm Parameter Provision Service.
+    2019, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).
+    All rights reserved.
+
+externalDocs:
+  description: 3GPP TS 29.503 Unified Data Management Services, version 15.4.0
+  url: 'http://www.3gpp.org/ftp/Specs/archive/29_series/29.503/'
+
+servers:
+  - url: '{apiRoot}/nudm-pp/v1'
+    variables:
+      apiRoot:
+        default: https://example.com
+        description: apiRoot as defined in subclause subclause 4.4 of 3GPP TS 29.501.
+
+security:
+  - oAuth2ClientCredentials:
+    - nudm-pp
+  - {}
+
+paths:
+  /{gpsi}/pp-data:
+    patch:
+      summary: provision parameters
+      operationId: Update
+      tags:
+        - Subscription Data Update
+      parameters:
+        - name: gpsi
+          in: path
+          description: Identifier of the UE
+          required: true
+          schema:
+            $ref: 'TS29571_CommonData.yaml#/components/schemas/Gpsi'
+      requestBody:
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/PpData'
+        required: true
+      responses:
+        '204':
+          description: Expected response to a valid request
+        '400':
+          $ref: 'TS29571_CommonData.yaml#/components/responses/400'
+        '403':
+          $ref: 'TS29571_CommonData.yaml#/components/responses/403'
+        '404':
+          $ref: 'TS29571_CommonData.yaml#/components/responses/404'
+        '500':
+          $ref: 'TS29571_CommonData.yaml#/components/responses/500'
+        '503':
+          $ref: 'TS29571_CommonData.yaml#/components/responses/503'
+        default:
+          description: Unexpected error
+
+
+components:
+  securitySchemes:
+    oAuth2ClientCredentials:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: '{nrfApiRoot}/oauth2/token'
+          scopes:
+            nudm-pp: Access to the nudm-pp API
+
+
+  schemas:
+
+# COMPLEX TYPES:
+
+    PpData:
+      type: object
+      properties:
+        communicationCharacteristics:
+          $ref: '#/components/schemas/CommunicationCharacteristics'
+        supportedFeatures:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/SupportedFeatures'
+
+    CommunicationCharacteristics:
+      type: object
+      properties:
+        ppSubsRegTimer:
+          $ref: '#/components/schemas/PpSubsRegTimer'
+        ppActiveTime:
+          $ref: '#/components/schemas/PpActiveTime'
+        ppDlPacketCount:
+          $ref: '#/components/schemas/PpDlPacketCount'
+
+    PpSubsRegTimer:
+      type: object
+      required:
+        - subsRegTimer
+        - afInstanceId
+        - referenceId
+      properties:
+        subsRegTimer:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/DurationSec'
+        afInstanceId:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/NfInstanceId'
+        referenceId:
+          $ref: '#/components/schemas/ReferenceId'
+      nullable: true
+
+    PpActiveTime:
+      type: object
+      required:
+        - activeTime
+        - afInstanceId
+        - referenceId
+      properties:
+        activeTime:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/DurationSec'
+        afInstanceId:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/NfInstanceId'
+        referenceId:
+          $ref: '#/components/schemas/ReferenceId'
+      nullable: true
+
+
+# SIMPLE TYPES:
+
+    ReferenceId:
+      type: integer
+
+    PpDlPacketCount:
+      type: integer
+      nullable: true
+
+
+# ENUMS:
+

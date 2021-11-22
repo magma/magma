@@ -8,8 +8,12 @@ go_library(
     deps = [
         "//src/go/agwd/config",
         "//src/go/log",
+        "//src/go/protos/magma/config",
+        "//src/go/protos/magma/pipelined",
         "//src/go/protos/magma/sctpd",
         "//src/go/service",
+        "//src/go/service/config",
+        "//src/go/service/pipelined",
         "//src/go/service/sctpd",
         "@com_github_pkg_errors//:errors",
         "@org_golang_google_grpc//:go_default_library",

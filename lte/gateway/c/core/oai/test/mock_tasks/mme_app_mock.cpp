@@ -12,6 +12,8 @@
  */
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 
+#include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
+
 task_zmq_ctx_t task_zmq_ctx_mme;
 static std::shared_ptr<MockMmeAppHandler> mme_app_handler_;
 
@@ -41,12 +43,15 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S11_MODIFY_BEARER_RESPONSE: {
+      mme_app_handler_->mme_app_handle_modify_bearer_rsp();
     } break;
 
     case S11_RELEASE_ACCESS_BEARERS_RESPONSE: {
+      mme_app_handler_->mme_app_handle_release_access_bearers_resp();
     } break;
 
     case S11_DELETE_SESSION_RESPONSE: {
+      mme_app_handler_->mme_app_handle_delete_sess_rsp();
     } break;
 
     case S11_SUSPEND_ACKNOWLEDGE: {
@@ -165,6 +170,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case MME_APP_DOWNLINK_DATA_REJ: {
+      mme_app_handler_->nas_proc_dl_transfer_rej();
+      bdestroy_wrapper(&MME_APP_DL_DATA_REJ(received_message_p).nas_msg);
     } break;
 
     case SGSAP_DOWNLINK_UNITDATA: {

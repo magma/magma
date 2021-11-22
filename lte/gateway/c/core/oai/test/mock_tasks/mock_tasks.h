@@ -27,21 +27,25 @@ const task_info_t tasks_info[] = {
     {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
 #define TASK_DEF(tHREADiD)                                                     \
   {THREAD_##tHREADiD, #tHREADiD, "ipc://IPC_" #tHREADiD},
-#include <lte/gateway/c/core/oai/include/tasks_def.h>
+#include "lte/gateway/c/core/oai/include/tasks_def.h"
 #undef TASK_DEF
 };
 
 /* Map message id to message information */
 const message_info_t messages_info[] = {
 #define MESSAGE_DEF(iD, sTRUCT, fIELDnAME) {iD, sizeof(sTRUCT), #iD},
-#include <lte/gateway/c/core/oai/include/messages_def.h>
+#include "lte/gateway/c/core/oai/include/messages_def.h"
 #undef MESSAGE_DEF
 };
 
+#define TEST_GRPCSERVICES_SERVER_ADDRESS "127.0.0.1:50095"
+
 class MockS1apHandler {
  public:
-  MOCK_METHOD0(s1ap_generate_downlink_nas_transport, void());
-  MOCK_METHOD0(s1ap_handle_conn_est_cnf, void());
+  MOCK_METHOD1(
+      s1ap_generate_downlink_nas_transport,
+      void(itti_s1ap_nas_dl_data_req_t cb_req));
+  MOCK_METHOD1(s1ap_handle_conn_est_cnf, void(bstring nas_pdu));
   MOCK_METHOD0(s1ap_handle_ue_context_release_command, void());
 };
 
@@ -56,6 +60,10 @@ class MockMmeAppHandler {
   MOCK_METHOD1(
       mme_app_handle_nw_init_bearer_deactv_req,
       bool(itti_s11_nw_init_deactv_bearer_request_t db_req));
+  MOCK_METHOD0(mme_app_handle_modify_bearer_rsp, void());
+  MOCK_METHOD0(mme_app_handle_delete_sess_rsp, void());
+  MOCK_METHOD0(nas_proc_dl_transfer_rej, void());
+  MOCK_METHOD0(mme_app_handle_release_access_bearers_resp, void());
 };
 
 class MockSctpHandler {

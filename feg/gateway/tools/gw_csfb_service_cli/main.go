@@ -161,6 +161,9 @@ func marshalLocationUpdateReject() (decode.SGsMessageType, *any.Any, error) {
 		if err != nil {
 			return decode.SGsAPLocationUpdateReject, nil, err
 		}
+		if rejectCauseCode < 0 || rejectCauseCode > 255 {
+			return decode.SGsAPLocationUpdateReject, nil, fmt.Errorf("Number %d is outside the bounds of byte type", rejectCauseCode)
+		}
 		rejectCause = []byte{byte(rejectCauseCode)}
 	} else {
 		rejectCause = []byte{byte(0x11)}

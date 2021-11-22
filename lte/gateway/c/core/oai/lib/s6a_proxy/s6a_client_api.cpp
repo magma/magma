@@ -20,7 +20,7 @@
 #include <string.h>
 #include <string>
 #include <iostream>
-#include <lte/gateway/c/core/oai/common/conversions.h>
+#include "lte/gateway/c/core/oai/common/conversions.h"
 
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.h"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.h"

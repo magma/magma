@@ -708,18 +708,6 @@ jobs:
           version_path: versions/feg_version
       - magma_slack_notify
 
-  cwf-integ-test:
-    machine:
-      image: ubuntu-1604:201903-01
-    steps:
-      - build/determinator:
-          <<: *all_gateways_build_verify
-      - magma_integ_test:
-          stack: cwf
-          test: 'True'
-          build: 'False'
-          deploy: 'False'
-
   cwag-deploy:
     parameters:
       tag:
@@ -1080,11 +1068,6 @@ workflows:
           requires:
             - release-hold
             - ami-hold
-
-  cwag:
-    jobs:
-      - cwf-integ-test:
-          <<: *master_and_develop
 
       # GH9026: Disabling test until it is fixed
       # - xwfm-test:

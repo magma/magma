@@ -64,7 +64,9 @@ fi
 echo "Pushing docker images for ${PROJECT}... ${IMAGE}:${IMAGE_ID}"
 echo "Logging into the docker registry..."
 if [[ -z "${USERNAME}" ]]; then
-  docker login "${REGISTRY}"
+  echo ""
+  echo "> Ensure you have run: docker login '${REGISTRY}'"
+  echo ""
 else
   [[ -z "${USERNAME}" ]] || [[ -z "${PASSFILE}" ]] && usage
   docker login "${REGISTRY}" -u "${USERNAME}" --password-stdin < "${PASSFILE}"

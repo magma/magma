@@ -18,8 +18,8 @@
 #include <grpcpp/impl/codegen/status.h>
 #include <cstring>
 #include <string>
-#include <lte/gateway/c/core/oai/common/conversions.h>
-#include <lte/gateway/c/core/oai/common/common_defs.h>
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 #ifdef __cplusplus
 extern "C" {

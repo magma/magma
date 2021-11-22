@@ -53,8 +53,6 @@ sgw_eps_bearer_ctxt_t* sgw_cm_insert_eps_bearer_ctxt_in_collection(
     sgw_eps_bearer_ctxt_t* const sgw_eps_bearer_ctxt);
 sgw_eps_bearer_ctxt_t* sgw_cm_get_eps_bearer_entry(
     sgw_pdn_connection_t* const sgw_pdn_connection, ebi_t ebi);
-int sgw_cm_remove_eps_bearer_entry(
-    sgw_pdn_connection_t* const sgw_pdn_connection, ebi_t eps_bearer_idP);
 // Returns SPGW state pointer for given UE indexed by IMSI
 s_plus_p_gw_eps_bearer_context_information_t* sgw_cm_get_spgw_context(
     teid_t teid);

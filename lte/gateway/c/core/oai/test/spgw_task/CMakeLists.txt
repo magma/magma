@@ -31,12 +31,13 @@ target_link_libraries(SPGW_TASK_TEST_LIB
     TASK_SGW MOCK_TASKS
     gmock_main gtest gtest_main gmock
     pthread rt yaml-cpp
+    TASK_GRPC_SERVICE
     )
 
 set_target_properties(SPGW_TASK_TEST_LIB PROPERTIES LINKER_LANGUAGE CXX)
 
 foreach (sgw_test spgw_state_converter spgw_procedures)
   add_executable(${sgw_test}_test test_${sgw_test}.cpp)
-  target_link_libraries(${sgw_test}_test SPGW_TASK_TEST_LIB)
+  target_link_libraries(${sgw_test}_test SPGW_TASK_TEST_LIB TASK_GRPC_SERVICE)
   add_test(test_${sgw_test} ${sgw_test}_test)
 endforeach (sgw_test)

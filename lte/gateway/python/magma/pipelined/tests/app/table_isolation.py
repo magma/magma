@@ -232,31 +232,6 @@ class RyuForwardFlowArgsBuilder():
         return cls(sub_info.table_id)._set_subscriber_match(sub_info)
 
 
-# REST API is deprecated transition to RyuDirectTableIsolator
-class RyuRestTableIsolator(TableIsolator):
-    """
-    RyuRestTableIsolator uses ryu REST api to isolate tables, sends the
-    generated RyuForwardFlow requests as REST requests.
-    """
-
-    def __init__(self, requests, ovs_ip=LOCALHOST):
-        self._requests = requests
-        self._ovs_ip = ovs_ip
-        self._datapath = get_datapath(ovs_ip)
-
-    def _activate_flow_rules(self):
-        """ Adds the flows to ovs, REST needs a dpid argument """
-        for req in self._requests:
-            req["dpid"] = self._datapath
-            add_flowentry(req, self._ovs_ip)
-
-    def _deactivate_flow_rules(self):
-        """ Removes flows from ovs, REST needs a dpid argument """
-        for req in self._requests:
-            req["dpid"] = self._datapath
-            delete_flowentry(req, self._ovs_ip)
-
-
 class RyuDirectTableIsolator(TableIsolator):
     """
     RyuDirectTableIsolator uses ryu.hub and test_controller to isolate tables,

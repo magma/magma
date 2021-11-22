@@ -30,7 +30,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <netinet/in.h>
-#include <lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h>
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
@@ -562,6 +562,7 @@ static void sgw_add_gtp_tunnel(
           ue_ipv4, ue_ipv6, vlan, enb, enb_ipv6,
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE, apn);
+
       // (@ulaskozat) We only need to update the TEIDs during session creation
       // which triggers rule installments on sessiond. When pipelined needs to
       // use eNB TEID for reporting we need to change this logic into something
@@ -648,8 +649,10 @@ static void sgw_populate_mbr_bearer_contexts_modified(
       // if default bearer
       //#pragma message  "TODO define constant for default eps_bearer id"
 
+#if !MME_UNIT_TEST  // skip tunnel creation for unit tests
       // setup GTPv1-U tunnel
       sgw_add_gtp_tunnel(imsi64, eps_bearer_ctxt_p, new_bearer_ctxt_info_p);
+#endif
       // may be removed
       if (TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX >
           eps_bearer_ctxt_p->num_sdf) {
@@ -769,6 +772,8 @@ status_code_e sgw_handle_sgi_endpoint_deleted(
               "ERROR in resume forwarding data on TUNNEL err=%d\n", rv);
         }
       }
+
+#if !MME_UNIT_TEST  // skip tunnel deletion for unit tests
       // delete GTPv1-U tunnel
       struct in_addr enb        = {.s_addr = 0};
       struct in6_addr* enb_ipv6 = NULL;
@@ -796,6 +801,7 @@ status_code_e sgw_handle_sgi_endpoint_deleted(
       } else {
         OAILOG_DEBUG(LOG_SPGW_APP, "Stopped paging for IP Addr: %s\n", ip_str);
       }
+#endif
 
       imsi = (char*) new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
                  .imsi.digit;
@@ -1127,6 +1133,7 @@ status_code_e sgw_handle_delete_session_request(
               ue_ipv6 = &eps_bearer_ctxt_p->paa.ipv6_address;
             }
 
+#if !MME_UNIT_TEST  // skip tunnel deletion for unit tests
             rv = gtp_tunnel_ops->del_tunnel(
                 enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
                 eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
@@ -1139,6 +1146,7 @@ status_code_e sgw_handle_delete_session_request(
                   eps_bearer_ctxt_p->enb_teid_S1u,
                   eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
             }
+#endif
             eps_bearer_ctxt_p->num_sdf = 0;
           }
         }
@@ -1171,10 +1179,6 @@ status_code_e sgw_handle_delete_session_request(
       /*
        * Remove eps bearer context, S11 bearer context and s11 tunnel
        */
-      sgw_cm_remove_eps_bearer_entry(
-          &ctx_p->sgw_eps_bearer_context_information.pdn_connection,
-          delete_session_req_pP->lbi);
-
       sgw_cm_remove_bearer_context_information(
           delete_session_req_pP->teid, imsi64);
       increment_counter("spgw_delete_session", 1, 1, "result", "success");
@@ -1427,10 +1431,6 @@ void handle_s5_create_session_response(
       "Deleted default bearer context with SGW C-plane TEID = %u "
       "as create session response failure is received\n",
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.mme_teid_S11);
-  sgw_cm_remove_eps_bearer_entry(
-      &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      sgi_create_endpoint_resp.eps_bearer_id);
   sgw_cm_remove_bearer_context_information(
       session_resp.context_teid,
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64);
@@ -1771,9 +1771,6 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
         sizeof(paa_t));
 
     sgw_handle_sgi_endpoint_deleted(&sgi_delete_end_point_request, imsi64);
-
-    sgw_cm_remove_eps_bearer_entry(
-        &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection, ebi);
 
     sgw_cm_remove_bearer_context_information(
         s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4, imsi64);
@@ -2321,6 +2318,7 @@ void sgw_process_release_access_bearer_request(
           eps_bearer_ctxt->p_gw_teid_S5_S8_up,
           eps_bearer_ctxt->s_gw_ip_address_S5_S8_up.address.ipv4_address.s_addr,
           eps_bearer_ctxt->s_gw_teid_S5_S8_up);
+#if !MME_UNIT_TEST  // skip tunnel deletion for unit tests
       if (module == LOG_SPGW_APP) {
         rv = gtp_tunnel_ops->del_tunnel(
             enb, enb_ipv6, eps_bearer_ctxt->paa.ipv4_address, ue_ipv6,
@@ -2354,6 +2352,7 @@ void sgw_process_release_access_bearer_request(
       } else {
         OAILOG_DEBUG(module, "Set the paging rule for IP Addr: %s\n", ip_str);
       }
+#endif
       sgw_release_all_enb_related_information(eps_bearer_ctxt);
     }
   }

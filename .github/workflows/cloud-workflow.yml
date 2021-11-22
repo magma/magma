@@ -30,7 +30,17 @@ jobs:
         with:
           filters: |
             filesChanged:
-              - [".github/workflows/cloud-workflow.yml", "wifi/cloud/**", "lte/proto/**", "cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/cloud/**", "orc8r/lib/**"]
+              - [".github/workflows/cloud-workflow.yml", "wifi/cloud/**", "lte/protos/**", "cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/cloud/**", "orc8r/lib/**"]
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
   # Fail if checked-in generated code doesn't match output from
   # generation command.
   cloud-tests:
@@ -45,46 +55,31 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: '3.7'
-      - name: insync-checkin
-        if: always()
-        id: insync-checkin
-        continue-on-error: true
-        run: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py --generate
-            sudo chown -R $USER $MAGMA_ROOT/*
-            git add .
-            echo GIT_STATUS=$(git status) >> $GITHUB_ENV
-            git status
-            git diff-index --quiet HEAD
       - name: deploy-sync-checkin
         if: always()
         id: deploy-sync-checkin
-        continue-on-error: true
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
           ./run_deployer.bash --deploy-dir /tmp/deploy_dir --build --test check_all
       - name: Lint cloud Go code
         if: always()
-        continue-on-error: true
         id: cloud-lint-lint
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
           python3 build.py --lint
       - name: Generate test coverage
-        continue-on-error: true
+        if: steps.cloud-lint-lint.outcome=='success'
         id: cloud-lint-cov
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
           python3 build.py --coverage
       - uses: codecov/codecov-action@v1
-        continue-on-error: true
+        if: steps.cloud-lint-cov.outcome=='success'
         id: cloud-lint-codecov
         with:
           files: '${{ env.MAGMA_ROOT}}/orc8r/cloud/coverage/all.gocov'
           flags: cloud_lint
       - name: Run tests cloud Go
-        continue-on-error: true
         if: always()
         id: cloud-test
         run: |
@@ -104,17 +99,6 @@ jobs:
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to Slack for insync-checkin
-        if: steps.insync-checkin.outcome=='failure' && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action insync-checkin failed"
-          SLACK_USERNAME: "Cloud workflow"
-          SLACK_MESSAGE: "COMMIT TITLE:\n ${{steps.commit.outputs.title}}\n\n\n GIT STATUS OUTPUT:\n ${{env.GIT_STATUS}}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
       - name: Notify failure to Slack for deploy-sync-checkin
         if: steps.deploy-sync-checkin.outcome=='failure' && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
@@ -122,7 +106,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action insync-checkin failed"
           SLACK_USERNAME: "Cloud workflow"
-          SLACK_MESSAGE: "COMMIT TITLE:\n ${{steps.commit.outputs.title}}\n\n\n GIT STATUS OUTPUT:\n ${{env.GIT_STATUS}}"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '

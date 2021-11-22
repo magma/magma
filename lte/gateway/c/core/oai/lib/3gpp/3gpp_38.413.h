@@ -245,6 +245,9 @@ typedef struct Ngap_initial_context_setup_request_s {
   ran_ue_ngap_id_t
       ran_ue_ngap_id;  // This IE uniquely identifies the UE association over
                        // the NG interface within the NG-RAN node
+  ngap_ue_aggregate_maximum_bit_rate_t
+      ue_aggregate_max_bit_rate;  // UE_AGGREGATED_BITRATE as specified in
+                                  // as specified in 38.413 [9.3.1.58]
   guamfi_t Ngap_guami;
   Ngap_PDUSessionID_t
       Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the

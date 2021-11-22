@@ -12,7 +12,9 @@ limitations under the License.
 """
 
 import json
+import threading
 import time
+from datetime import datetime
 
 import pyrebase
 
@@ -28,20 +30,25 @@ class FirebaseClient:
         self.auth = self.firebase.auth()
         # Log the user in
         self.user = self.auth.sign_in_with_email_and_password(
-            self.config["auth_email"], self.config["auth_password"]
+            self.config["auth_email"], self.config["auth_password"],
         )
         # Get a reference to the database service
         self.db = self.firebase.database()
+        # token refresh timer
+        self.RefreshTokenTime = 1800
+        threading.Timer(self.RefreshTokenTime, self.do_token_refresh).start()
 
     def push_test_report(self, workload, verdict, report):
+        build_id = workload.val().get("build_id")
         data = {
             "timestamp": int(time.time()),
             "verdict": verdict,
             "workload": workload.val(),
             "report": report,
         }
-        self.db.child("workers").child(self.config["agent_id"]).child("reports").push(
-            data, self.user["idToken"]
+        # Use build_id as key for report. Overwrites any existing report
+        self.db.child("workers").child(self.config["agent_id"]).child("reports").child(build_id).set(
+            data, self.user["idToken"],
         )
 
     def update_worker_state(self, num_of_testers, testers_state):
@@ -51,7 +58,7 @@ class FirebaseClient:
             "testers_state": testers_state,
         }
         self.db.child("workers").child(self.config["agent_id"]).child("state").update(
-            data, self.user["idToken"]
+            data, self.user["idToken"],
         )
 
     def print_reports(self):
@@ -96,9 +103,9 @@ class FirebaseClient:
         if bestWorkload:
             # remove from workloads
             self.db.child("workers").child(self.config["agent_id"]).child(
-                "workloads"
+                "workloads",
             ).child(bestWorkload.key()).update(
-                {"state": "in_progress"}, self.user["idToken"]
+                {"state": "in_progress"}, self.user["idToken"],
             )
             print("Best workload: ", bestWorkload.key(), "==>", bestWorkload.val())
             return bestWorkload
@@ -113,7 +120,14 @@ class FirebaseClient:
         else:
             return None
 
+    def do_token_refresh(self):
+        """Run in its own thread and refresh token every 30 min."""
+
+        print("Refreshing Firebase Token:", datetime.now())
+        self.user = self.auth.refresh(self.user["refreshToken"])
+        threading.Timer(self.RefreshTokenTime, self.do_token_refresh).start()
+
     def mark_workload_done(self, workload):
         self.db.child("workers").child(self.config["agent_id"]).child(
-            "workloads"
+            "workloads",
         ).child(workload.key()).update({"state": "done"}, self.user["idToken"])

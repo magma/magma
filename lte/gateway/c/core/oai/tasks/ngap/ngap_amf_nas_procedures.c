@@ -882,6 +882,25 @@ void ngap_handle_conn_est_cnf(
       free(pduSessionResourceSetupRequestTransferIEs);
 
     } /*for loop*/
+
+    ie = CALLOC(1, sizeof(Ngap_InitialContextSetupRequestIEs_t));
+
+    ie->id          = Ngap_ProtocolIE_ID_id_UEAggregateMaximumBitRate;
+    ie->criticality = Ngap_Criticality_reject;
+    ie->value.present =
+        Ngap_InitialContextSetupRequestIEs__value_PR_UEAggregateMaximumBitRate;
+
+    Ngap_UEAggregateMaximumBitRate_t* UEAggregateMaximumBitRate = NULL;
+    UEAggregateMaximumBitRate = &ie->value.choice.UEAggregateMaximumBitRate;
+
+    asn_uint642INTEGER(
+        &UEAggregateMaximumBitRate->uEAggregateMaximumBitRateUL,
+        conn_est_cnf_pP->ue_aggregate_max_bit_rate.ul);
+
+    asn_uint642INTEGER(
+        &UEAggregateMaximumBitRate->uEAggregateMaximumBitRateDL,
+        conn_est_cnf_pP->ue_aggregate_max_bit_rate.dl);
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
   }
 
   if (conn_est_cnf_pP->nas_pdu) {
@@ -1064,8 +1083,8 @@ int ngap_fill_pdu_session_resource_setup_request_transfer(
       session_transfer->up_transport_layer_info.gtp_tnl.endpoint_ip_address
           ->data,
       gtp_tunnel_info->transportLayerAddress.size);
-  bdestroy(
-      session_transfer->up_transport_layer_info.gtp_tnl.endpoint_ip_address);
+  bdestroy_wrapper(
+      &session_transfer->up_transport_layer_info.gtp_tnl.endpoint_ip_address);
 
   /* TEID Information */
   gtp_tunnel_info->gTP_TEID.size = sizeof(uint32_t);
@@ -1218,18 +1237,20 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
 
     ngap_pdusession_setup_item_ies->pDUSessionID = session_item->Pdu_Session_ID;
 
-    ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU =
-        calloc(1, sizeof(Ngap_NAS_PDU_t));
-    ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->size =
-        blength(pdusession_resource_setup_req->nas_pdu);
+    if (pdusession_resource_setup_req->nas_pdu) {
+      ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU =
+          calloc(1, sizeof(Ngap_NAS_PDU_t));
 
-    ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->buf = calloc(
-        blength(pdusession_resource_setup_req->nas_pdu), sizeof(uint8_t));
+      ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->buf = calloc(
+          blength(pdusession_resource_setup_req->nas_pdu), sizeof(uint8_t));
+      ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->size =
+          blength(pdusession_resource_setup_req->nas_pdu);
 
-    memcpy(
-        ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->buf,
-        bdata(pdusession_resource_setup_req->nas_pdu),
-        ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->size);
+      memcpy(
+          ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->buf,
+          pdusession_resource_setup_req->nas_pdu->data,
+          ngap_pdusession_setup_item_ies->pDUSessionNAS_PDU->size);
+    }
 
     /*NSSAI*/
     ngap_pdusession_setup_item_ies->s_NSSAI.sST.size = 1;
@@ -1291,6 +1312,25 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
     free(pduSessionResourceSetupRequestTransferIEs);
 
   } /*for loop*/
+
+  ie = CALLOC(1, sizeof(Ngap_PDUSessionResourceSetupRequestIEs_t));
+
+  ie->id          = Ngap_ProtocolIE_ID_id_UEAggregateMaximumBitRate;
+  ie->criticality = Ngap_Criticality_reject;
+  ie->value.present =
+      Ngap_PDUSessionResourceSetupRequestIEs__value_PR_UEAggregateMaximumBitRate;
+
+  Ngap_UEAggregateMaximumBitRate_t* UEAggregateMaximumBitRate = NULL;
+  UEAggregateMaximumBitRate = &ie->value.choice.UEAggregateMaximumBitRate;
+
+  asn_uint642INTEGER(
+      &UEAggregateMaximumBitRate->uEAggregateMaximumBitRateUL,
+      pdusession_resource_setup_req->ue_aggregate_maximum_bit_rate.ul);
+
+  asn_uint642INTEGER(
+      &UEAggregateMaximumBitRate->uEAggregateMaximumBitRateDL,
+      pdusession_resource_setup_req->ue_aggregate_maximum_bit_rate.dl);
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   if (ngap_amf_encode_pdu(&pdu, &buffer_p, &length) < 0) {
     OAILOG_ERROR(LOG_NGAP, "Encoding of IEs failed \n");

@@ -48,10 +48,11 @@ int amf_handle_registration_complete_response(
 int amf_handle_deregistration_ue_origin_req(
     amf_ue_ngap_id_t ue_id, DeRegistrationRequestUEInitMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t decode_status);
-int amf_smf_send(amf_ue_ngap_id_t ueid, ULNASTransportMsg* msg, int amf_cause);
 int amf_validate_dnn(
     const amf_context_s* amf_ctxt_p, std::string dnn_string, int* index,
     bool ue_sent_dnn);
+int amf_smf_process_pdu_session_packet(
+    amf_ue_ngap_id_t ueid, ULNASTransportMsg* msg, int amf_cause);
 int amf_smf_notification_send(
     amf_ue_ngap_id_t ueid, ue_m5gmm_context_s* ue_context,
     notify_ue_event notify_event_type);

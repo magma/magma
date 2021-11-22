@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h>
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include <inttypes.h>
 #include <netinet/in.h>
 

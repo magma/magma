@@ -14,7 +14,7 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
 
 #include <cstdlib>
-#include <lte/gateway/c/core/oai/common/conversions.h>
+#include "lte/gateway/c/core/oai/common/conversions.h"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/assertions.h"
