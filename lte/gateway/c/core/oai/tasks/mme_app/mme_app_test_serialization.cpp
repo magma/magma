@@ -30,59 +30,73 @@ extern "C" {
 //--C++ includes ---------------------------------------------------------------
 #include <chrono>
 #include <cmath>
+#include <vector>
 //--Other includes -------------------------------------------------------------
 #include "mme_app_state_manager.h"
 extern task_zmq_ctx_t main_zmq_ctx;
 
 using magma::lte::MmeNasStateManager;
 
+uint64_t kFirstImsi = 1010000000000;
 //------------------------------------------------------------------------------
-void mme_app_schedule_test_protobuf_serialization(uint num_loops) {
+std::vector<ue_mm_context_t*> mme_app_allocate_ues(uint num_ues);
+void mme_app_deallocate_ues(
+    mme_app_desc_t* mme_app_desc, std::vector<ue_mm_context_t*>& contexts);
+void mme_app_insert_ues(
+    mme_app_desc_t* mme_app_desc, std::vector<ue_mm_context_t*>& contexts);
+void mme_app_serialize_ues(std::vector<ue_mm_context_t*>& contexts);
+void mme_app_deserialize_ues(void);
+//------------------------------------------------------------------------------
+void mme_app_schedule_test_protobuf_serialization(uint num_ues) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_UNKNOWN, MME_APP_TEST_PROTOBUF_SERIALIZATION);
-  MME_APP_TEST_PROTOBUF_SERIALIZATION(message_p).num_loops = num_loops;
+  MME_APP_TEST_PROTOBUF_SERIALIZATION(message_p).num_ues = num_ues;
   send_msg_to_task(&main_zmq_ctx, TASK_MME_APP, message_p);
   return;
 }
 //------------------------------------------------------------------------------
-void mme_app_test_protobuf_serialization(
-    mme_app_desc_t* mme_app_desc, uint num_loops) {
-
-  srand (time(NULL));
-  ue_mm_context_t* ue_mm_contexts[num_loops][2] = {};
+void mme_app_schedule_test_flatbuffer_serialization(uint num_ues) {
+  MessageDef* message_p = itti_alloc_new_message(
+      TASK_UNKNOWN, MME_APP_TEST_FLATBUFFER_SERIALIZATION);
+  MME_APP_TEST_FLATBUFFER_SERIALIZATION(message_p).num_ues = num_ues;
+  send_msg_to_task(&main_zmq_ctx, TASK_MME_APP, message_p);
+  return;
+}
+//------------------------------------------------------------------------------
+std::vector<ue_mm_context_t*> mme_app_allocate_ues(uint num_ues) {
   enb_s1ap_id_key_t enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
-  enb_ue_s1ap_id_t enb_ue_s1ap_id = rand() & 0X00FFFFFF;
-  mme_ue_s1ap_id_t mme_ue_s1ap_id = rand();
+  enb_ue_s1ap_id_t enb_ue_s1ap_id   = rand() & 0X00FFFFFF;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id   = rand();
+  std::vector<ue_mm_context_t*> contexts;
 
+  contexts.reserve(num_ues);
 
-
-  for (int i = 0; i < num_loops; i++) {
+  for (int i = 0; i < num_ues; i++) {
     ue_mm_context_t* ue_mm_context = mme_create_new_ue_context();
     emm_context_t* emm_ctx         = &ue_mm_context->emm_context;
     esm_context_t* esm_ctx         = &emm_ctx->esm_ctx;
 
-    ue_mm_contexts[i][0] = ue_mm_context;
     enb_ue_s1ap_id++;
     mme_ue_s1ap_id++;
 
-    imsi64_t imsi64       = 1010000000000 + i;
-    imsi_t imsi           = {};
-    imsi.u.num.digit1     = (uint8_t)((imsi64_t)(imsi64/std::pow(10,14))%10);
-    imsi.u.num.digit2     = (uint8_t)((imsi64_t)(imsi64/std::pow(10,13))%10);
-    imsi.u.num.digit3     = (uint8_t)((imsi64_t)(imsi64/std::pow(10,12))%10);
-    imsi.u.num.digit4     = (uint8_t)((imsi64_t)(imsi64/std::pow(10,11))%10);
-    imsi.u.num.digit5     = (uint8_t)((imsi64_t)(imsi64/std::pow(10,10))%10);
-    imsi.u.num.digit6     = (uint8_t)((imsi64_t)(imsi64/std::pow(10,9))%10);
-    imsi.u.num.digit7     = (uint8_t)((imsi64_t)(imsi64/std::pow(10,8))%10);
-    imsi.u.num.digit8     = (uint8_t)((imsi64_t)(imsi64/std::pow(10,7))%10);
-    imsi.u.num.digit9     = (uint8_t)((imsi64_t)(imsi64/std::pow(10,6))%10);
-    imsi.u.num.digit10    = (uint8_t)((imsi64_t)(imsi64/std::pow(10,5))%10);
-    imsi.u.num.digit11    = (uint8_t)((imsi64_t)(imsi64/std::pow(10,4))%10);
-    imsi.u.num.digit12    = (uint8_t)((imsi64_t)(imsi64/std::pow(10,3))%10);
-    imsi.u.num.digit13    = (uint8_t)((imsi64_t)(imsi64/std::pow(10,2))%10);
-    imsi.u.num.digit14    = (uint8_t)((imsi64_t)(imsi64/std::pow(10,1))%10);
-    imsi.u.num.digit15    = (uint8_t)((imsi64_t)(imsi64/std::pow(10,0))%10);
-    imsi.u.num.parity     = 0xF;
+    imsi64_t imsi64   = kFirstImsi + i;
+    imsi_t imsi       = {};
+    imsi.u.num.digit1 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 14)) % 10);
+    imsi.u.num.digit2 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 13)) % 10);
+    imsi.u.num.digit3 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 12)) % 10);
+    imsi.u.num.digit4 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 11)) % 10);
+    imsi.u.num.digit5 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 10)) % 10);
+    imsi.u.num.digit6 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 9)) % 10);
+    imsi.u.num.digit7 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 8)) % 10);
+    imsi.u.num.digit8 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 7)) % 10);
+    imsi.u.num.digit9 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 6)) % 10);
+    imsi.u.num.digit10 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 5)) % 10);
+    imsi.u.num.digit11 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 4)) % 10);
+    imsi.u.num.digit12 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 3)) % 10);
+    imsi.u.num.digit13 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 2)) % 10);
+    imsi.u.num.digit14 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 1)) % 10);
+    imsi.u.num.digit15 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 0)) % 10);
+    imsi.u.num.parity  = 0xF;
     emm_ctx->saved_imsi64 = imsi64;
 
     guti_t guti                     = {};
@@ -128,71 +142,102 @@ void mme_app_test_protobuf_serialization(
     // no bearer_qos.gbr, bearer_qos.mbr
     // no pco
 
-
     MME_APP_ENB_S1AP_ID_KEY(
         ue_mm_context->enb_s1ap_id_key, rand() & 0X0000FFFF, enb_ue_s1ap_id);
     ue_mm_context->enb_ue_s1ap_id = enb_ue_s1ap_id;
     ue_mm_context->mme_ue_s1ap_id = mme_ue_s1ap_id;
 
-    if (mme_insert_ue_context(&mme_app_desc->mme_ue_contexts, ue_mm_context) !=
+    contexts.push_back(ue_mm_context);
+  }
+  return contexts;
+}
+//------------------------------------------------------------------------------
+void mme_app_deallocate_ues(
+    mme_app_desc_t* mme_app_desc, std::vector<ue_mm_context_t*>& contexts) {
+  while (!contexts.empty()) {
+    mme_remove_ue_context(&mme_app_desc->mme_ue_contexts, contexts.back());
+    contexts.pop_back();
+  }
+}
+
+//------------------------------------------------------------------------------
+void mme_app_serialize_ues(
+    mme_app_desc_t* mme_app_desc, std::vector<ue_mm_context_t*>& contexts) {
+  for (std::vector<ue_mm_context_t*>::iterator it = contexts.begin();
+       it != contexts.end(); ++it) {
+    put_mme_ue_state(mme_app_desc, (*it)->emm_context.saved_imsi64, true);
+  }
+}
+//------------------------------------------------------------------------------
+void mme_app_insert_ues(
+    mme_app_desc_t* mme_app_desc, std::vector<ue_mm_context_t*>& contexts) {
+  for (std::vector<ue_mm_context_t*>::iterator it = contexts.begin();
+       it != contexts.end(); ++it) {
+    if (mme_insert_ue_context(&mme_app_desc->mme_ue_contexts, *it) !=
         RETURNok) {
       OAILOG_ERROR_UE(
-          LOG_MME_APP, imsi64,
-          "Failed to insert UE contxt, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
-          ue_mm_context->mme_ue_s1ap_id);
-      //return;
+          LOG_MME_APP, (*it)->emm_context.saved_imsi64,
+          "Failed to insert UE contxt, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT
+          "\n",
+          (*it)->mme_ue_s1ap_id);
+      return;
     }
-
-    auto start_ctxt_to_proto = std::chrono::high_resolution_clock::now();
-    //mtrace();
-
-    put_mme_ue_state(mme_app_desc, imsi64, true);
-
-    auto end_ctxt_to_proto = std::chrono::high_resolution_clock::now();
-    auto duration_ctxt_to_proto =
-        std::chrono::duration_cast<std::chrono::microseconds>(
-            end_ctxt_to_proto - start_ctxt_to_proto);
-    std::cout << "Time taken by context to proto conversion : "
-              << duration_ctxt_to_proto.count() << " microseconds" << std::endl;
-    OAILOG_INFO_UE(
-        LOG_MME_APP, imsi64,
-        "Time taken by context to proto conversion : %ld µs\n",
-        duration_ctxt_to_proto.count());
-
-    ue_mm_contexts[i][1] = mme_create_new_ue_context();
-    emm_context_t* emm_ctx2         = &ue_mm_contexts[i][1]->emm_context;
-
-    auto start_proto_to_ctxt = std::chrono::high_resolution_clock::now();
-
-    mme_app_desc_t* mme_app_desc2 = get_mme_nas_state(true);
-    MmeNasStateManager::getInstance().read_ue_state_from_db();
-    //muntrace();
-
-    auto end_proto_to_ctxt = std::chrono::high_resolution_clock::now();
-    auto duration_proto_to_ctxt =
-        std::chrono::duration_cast<std::chrono::microseconds>(
-            end_proto_to_ctxt - start_proto_to_ctxt);
-    std::cout << "Time taken by proto to context conversion : "
-              << duration_proto_to_ctxt.count() << " microseconds" << std::endl;
-    OAILOG_INFO_UE(
-        LOG_MME_APP, imsi64,
-        "Time taken by proto to context conversion : %ld µs\n",
-        duration_proto_to_ctxt.count());
-    /*auto imsi_str = MmeNasStateManager::getInstance().get_imsi_str(imsi64);
-    MmeNasStateManager::getInstance().write_ue_state_to_db(
-        ue_context, imsi_str);
-    put_mme_ue_state(mme_app_desc_p, imsi64, force_ue_write);
-    put_mme_nas_state(); */
   }
+}
+
+//------------------------------------------------------------------------------
+void mme_app_deserialize_ues(void) {
+  mme_app_desc_t* mme_app_desc2 = get_mme_nas_state(true);
+  MmeNasStateManager::getInstance().read_ue_state_from_db();
+}
+//------------------------------------------------------------------------------
+void mme_app_test_protobuf_serialization(
+    mme_app_desc_t* mme_app_desc, uint num_ues) {
+  srand(time(NULL));
+  ue_mm_context_t* ue_mm_contexts[num_ues][2] = {};
+
+  std::vector<ue_mm_context_t*> contexts = mme_app_allocate_ues(num_ues);
+
+  mme_app_insert_ues(mme_app_desc, contexts);
+
+  auto start_ctxt_to_proto = std::chrono::high_resolution_clock::now();
+  mme_app_serialize_ues(mme_app_desc, contexts);
+  auto end_ctxt_to_proto = std::chrono::high_resolution_clock::now();
+  auto duration_ctxt_to_proto =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          end_ctxt_to_proto - start_ctxt_to_proto);
+  std::cout << "Time taken by context to proto conversion : "
+            << duration_ctxt_to_proto.count() << " microseconds" << std::endl;
+  OAILOG_INFO(
+      LOG_MME_APP, "Time taken by context to proto conversion : %ld µs\n",
+      duration_ctxt_to_proto.count());
+
+  auto start_proto_to_ctxt = std::chrono::high_resolution_clock::now();
+  mme_app_deserialize_ues();
+  auto end_proto_to_ctxt = std::chrono::high_resolution_clock::now();
+  auto duration_proto_to_ctxt =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          end_proto_to_ctxt - start_proto_to_ctxt);
+  std::cout << "Time taken by proto to context conversion : "
+            << duration_proto_to_ctxt.count() << " microseconds" << std::endl;
+  OAILOG_INFO(
+      LOG_MME_APP, "Time taken by proto to context conversion : %ld µs\n",
+      duration_proto_to_ctxt.count());
+  /*auto imsi_str = MmeNasStateManager::getInstance().get_imsi_str(imsi64);
+  MmeNasStateManager::getInstance().write_ue_state_to_db(
+      ue_context, imsi_str);
+  put_mme_ue_state(mme_app_desc_p, imsi64, force_ue_write);
+  put_mme_nas_state(); */
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   if (!mme_app_desc_p) {
     OAILOG_ERROR(LOG_MME_APP, "Failed to fetch mme_app_desc_p \n");
     return;
   }
-  for (int r = 0; r < num_loops; r++) {
-    mme_remove_ue_context(&mme_app_desc_p->mme_ue_contexts, ue_mm_contexts[r][0]);
-  }
+  mme_app_deallocate_ues(mme_app_desc_p, contexts);
 
   send_terminate_message_fatal(&main_zmq_ctx);
   return;
 }
+//------------------------------------------------------------------------------
+void mme_app_test_flatbuffer_serialization(
+    mme_app_desc_t* mme_app_desc, uint num_ues) {}

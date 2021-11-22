@@ -183,7 +183,14 @@ int main(int argc, char* argv[]) {
     send_timer_recovery_message();
   }
 
-  mme_app_schedule_test_protobuf_serialization(10);
+  if (mme_config.run_mode == RUN_MODE_TEST) {
+    if (mme_config.test_type == TEST_SERIALIZATION_PROTOBUF) {
+      mme_app_schedule_test_protobuf_serialization(mme_config.test);
+    }
+    if (mme_config.test_type == TEST_SERIALIZATION_FLATBUFFER) {
+      mme_app_schedule_test_flatbuffer_serialization(mme_config.test);
+    }
+  }
 
   /*
    * Handle signals here

@@ -461,7 +461,15 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case MME_APP_TEST_PROTOBUF_SERIALIZATION: {
       mme_app_test_protobuf_serialization(
           mme_app_desc_p,
-          MME_APP_TEST_PROTOBUF_SERIALIZATION(received_message_p).num_loops);
+          MME_APP_TEST_PROTOBUF_SERIALIZATION(received_message_p).num_ues);
+      force_ue_write     = false;
+      is_task_state_same = true;
+    } break;
+
+    case MME_APP_TEST_FLATBUFFER_SERIALIZATION: {
+      mme_app_test_flatbuffer_serialization(
+          mme_app_desc_p,
+          MME_APP_TEST_FLATBUFFER_SERIALIZATION(received_message_p).num_ues);
       force_ue_write     = false;
       is_task_state_same = true;
     } break;

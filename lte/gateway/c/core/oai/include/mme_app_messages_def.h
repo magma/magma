@@ -70,3 +70,7 @@ MESSAGE_DEF(
     MME_APP_TEST_PROTOBUF_SERIALIZATION,
     itti_mme_app_test_protobuf_serialization_t,
     mme_app_test_protobuf_serialization)
+MESSAGE_DEF(
+    MME_APP_TEST_FLATBUFFER_SERIALIZATION,
+    itti_mme_app_test_flatbuffer_serialization_t,
+    mme_app_test_flatbuffer_serialization)
