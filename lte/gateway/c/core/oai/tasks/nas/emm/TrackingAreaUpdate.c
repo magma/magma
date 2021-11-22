@@ -492,7 +492,7 @@ status_code_e emm_proc_tracking_area_update_request(
                   ue_id);
               OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
             } else {
-              /* If delete_session request is sent i.e if default
+              /* If delete_session request is sent i.e. if default
                * bearer deletion is triggered or dedicated bearer deactivation
                * is triggered in
                * handle_and_fill_eps_bearer_cntxt_status,
