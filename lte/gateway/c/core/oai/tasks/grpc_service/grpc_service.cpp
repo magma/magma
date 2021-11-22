@@ -23,7 +23,6 @@
 #include "lte/gateway/c/core/oai/tasks/grpc_service/CSFBGatewayServiceImpl.h"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/SMSOrc8rGatewayServiceImpl.h"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S1apServiceImpl.h"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/S6aGatewayImpl.h"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S6aServiceImpl.h"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.h"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/AmfServiceImpl.h"

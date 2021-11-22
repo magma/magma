@@ -36,18 +36,20 @@ namespace magma {
 #define S6A_ASYNC_PROXY_SERVICE "s6a_async_service"
 #define S6A_ASYNC_PROXY_VERSION "1.0"
 
-magma::S6aProxyResponderAsyncService s6a_async_service(nullptr, nullptr);
+magma::S6aProxyResponderAsyncService*
+    S6aProxyResponderAsyncService::s6a_async_service = 0;
 
 magma::service303::MagmaService server(
     S6A_ASYNC_PROXY_SERVICE, S6A_ASYNC_PROXY_VERSION);
 
 void stop_async_s6a_grpc_server(void) {
-  s6a_async_service.stop();  // stop queue after server shuts down
+  magma::S6aProxyResponderAsyncService* s6a_proxy_async_instance =
+      magma::S6aProxyResponderAsyncService::getInstance();
+  s6a_proxy_async_instance->stop();  // stop queue after server shuts down
+  free(s6a_proxy_async_instance);
 }
-
 AsyncService::AsyncService(std::unique_ptr<ServerCompletionQueue> cq)
     : cq_(std::move(cq)) {}
-
 void AsyncService::wait_for_requests() {
   init_call_data();
   void* tag;
@@ -78,12 +80,10 @@ void AsyncService::stop() {
   while (cq_->Next(&tag, &ok)) {
   }
 }
-
 S6aProxyResponderAsyncService::S6aProxyResponderAsyncService(
     std::unique_ptr<ServerCompletionQueue> cq,
     std::shared_ptr<S6aProxyAsyncResponderHandler> handler)
     : AsyncService(std::move(cq)), handler_(handler) {}
-
 void S6aProxyResponderAsyncService::init_call_data(void) {
   new CancelLocationCallData(cq_.get(), *this, *handler_);
   new ResetCallData(cq_.get(), *this, *handler_);
@@ -92,8 +92,8 @@ void S6aProxyResponderAsyncService::init_call_data(void) {
 void S6aProxyResponderAsyncService::set_callback(
     std::unique_ptr<ServerCompletionQueue> cq,
     std::shared_ptr<S6aProxyAsyncResponderHandler> handler) {
-  cq_      = std::move(cq);
-  handler_ = handler;
+  this->cq_      = std::move(cq);
+  this->handler_ = handler;
 }
 
 template<class GRPCService, class RequestType, class ResponseType>
@@ -188,18 +188,19 @@ static void* grpc_async_service_thread(__attribute__((unused)) void* args) {
   init_task_context(
       TASK_ASYNC_GRPC_SERVICE, tasks, 2, handle_message,
       &grpc_async_service_task_zmq_ctx);
-
+  magma::S6aProxyResponderAsyncService* s6a_proxy_async_instance =
+      magma::S6aProxyResponderAsyncService::getInstance();
   auto async_service_handler =
       std::make_shared<magma::S6aProxyAsyncResponderHandler>();
-  magma::s6a_async_service.set_callback(
-      magma::server.GetNewCompletionQueue(), async_service_handler);
-  magma::server.AddServiceToServer(&magma::s6a_async_service);
+  s6a_proxy_async_instance->set_callback(
+      std::move(magma::server.GetNewCompletionQueue()), async_service_handler);
+  magma::server.AddServiceToServer(s6a_proxy_async_instance);
 
   magma::server.Start();
   OAILOG_INFO(LOG_S6A, "Started async grpc server for s6a interface \n");
   std::thread proxy_thread([&]() {
-    magma::s6a_async_service
-        .wait_for_requests();  // block here instead of on server
+    s6a_proxy_async_instance
+        ->wait_for_requests();  // block here instead of on server
   });
   zloop_start(grpc_async_service_task_zmq_ctx.event_loop);
   proxy_thread.join();

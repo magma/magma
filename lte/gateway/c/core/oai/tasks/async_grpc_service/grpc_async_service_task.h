@@ -102,10 +102,20 @@ class S6aProxyAsyncResponderHandler {
 class S6aProxyResponderAsyncService final
     : public AsyncService,
       public S6aGatewayService::AsyncService {
- public:
+ private:
+  static S6aProxyResponderAsyncService* s6a_async_service;
+
   S6aProxyResponderAsyncService(
       std::unique_ptr<ServerCompletionQueue> cq,
       std::shared_ptr<S6aProxyAsyncResponderHandler> handler);
+
+ public:
+  static S6aProxyResponderAsyncService* getInstance() {
+    if (!s6a_async_service) {
+      s6a_async_service = new S6aProxyResponderAsyncService(nullptr, nullptr);
+    }
+    return s6a_async_service;
+  }
 
   void set_callback(
       std::unique_ptr<ServerCompletionQueue> cq,
