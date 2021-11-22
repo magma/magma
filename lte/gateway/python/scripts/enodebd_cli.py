@@ -167,8 +167,14 @@ def get_enb_status(client, args):
     _print_str_status_line('GPS Longitude', enb_status.gps_longitude)
     _print_str_status_line('GPS Latitude', enb_status.gps_latitude)
     _print_str_status_line('FSM State', enb_status.fsm_state)
-
-
+    _print_str_status_line('GPS Aititude', enb_status.gps_altitude)
+    _print_str_status_line('Vendor', enb_status.vendor)
+    _print_str_status_line('Model Name', enb_status.model_name)
+    _print_prop_status_line('RF State', enb_status.rf_state)
+    _print_str_status_line('SW Version', enb_status.sw_version)
+    _print_str_status_line('Uptime', enb_status.uptime)
+  
+    
 def _print_prop_status_line(header: str, value: int) -> None:
     """ Argument 'value' should be a StatusProperty enum """
     _print_str_status_line(

@@ -122,6 +122,59 @@ export function EnodebStatus({refresh}: {refresh: boolean}) {
         value: enbInfo?.enb_state.ip_address ?? 'Not Available',
       },
     ],
+    [
+      {
+        category: 'Software Version',
+        value: enbInfo?.enb_state.sw_version ?? 'Not Available',
+      },
+      {
+        category: 'Model Name',
+        value: enbInfo?.enb_state.model_name ?? 'Not Available',
+      },
+      {
+        category: 'RF State',
+        value: enbInfo?.enb_state.rf_state ? 'Connected' : 'Disconnected',
+        statusCircle: true,
+        status: enbInfo?.enb_state.rf_state,
+      },
+    ],
+    [
+      {
+        category: 'GPS Sync Status',
+        value: enbInfo?.enb_state.gps_connected ? 'Connected' : 'Disconnected',
+        statusCircle: true,
+        status: enbInfo?.enb_state.gps_connected,
+      },
+      {
+        category: 'GPS Longitude',
+        value: enbInfo?.enb_state.gps_longitude ?? 'Not Available',
+
+      },
+      {
+        category: 'GPS Latitude',
+        value: enbInfo?.enb_state.gps_latitude ?? 'Not Available',
+      },
+      {
+        category: 'GPS Altitude',
+        value: enbInfo?.enb_state.gps_altitude ?? 'Not Available',
+      },
+    ],
+    [
+      {
+        category: '1588 Sync Status',
+        value: enbInfo?.enb_state.ptp_connected ? 'Connected' : 'Disconnected',
+        statusCircle: true,
+        status: enbInfo?.enb_state.ptp_connected,
+      },
+      {
+        category: 'Vendor',
+        value: enbInfo?.enb_state.vendor ?? 'Not Available',
+      },
+      {
+        category: 'Run Time',
+        value: enbInfo?.enb_state.uptime ?? 'Not Available',
+      },
+    ],
   ];
   return (
     <>

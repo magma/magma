@@ -7987,6 +7987,8 @@ definitions:
         type: boolean
       fsm_state:
         type: string
+      gps_altitude:
+        type: string
       gps_connected:
         type: boolean
       gps_latitude:
@@ -7998,6 +8000,8 @@ definitions:
         type: string
       mme_connected:
         type: boolean
+      model_name:
+        type: string
       opstate_enabled:
         type: boolean
       ptp_connected:
@@ -8005,10 +8009,14 @@ definitions:
       reporting_gateway_id:
         description: Gateway ID from which the enodeb state was reported
         type: string
+      rf_state:
+        type: boolean
       rf_tx_desired:
         type: boolean
       rf_tx_on:
         type: boolean
+      sw_version:
+        type: string
       time_reported:
         description: Time at which the state was reported in ms
         format: uint64
@@ -8016,6 +8024,10 @@ definitions:
       ues_connected:
         format: int32
         type: integer
+      uptime:
+        type: string
+      vendor:
+        type: string
     required:
     - enodeb_configured
     - gps_longitude
