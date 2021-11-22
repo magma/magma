@@ -1222,6 +1222,7 @@ TEST_F(
     AmfUeContextTestServiceRequestProc,
     test_amf_service_request_without_uplinkDataStatus_RainyDay) {
   ServiceRequestMsg service_request;
+  memset(&service_request, 0, sizeof(service_request));
   bool decode_res                               = 0;
   amf_nas_message_decode_status_t decode_status = {0};
   MessageDef* message_p                         = NULL;

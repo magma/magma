@@ -340,16 +340,16 @@ typedef struct amf_context_s {
 
 // Amf-Map Declarations:
 // Map- Key: uint64_t , Data: uint64_t
-typedef magma::map_ts_s<uint64_t, uint64_t> map_uint64_uint64_ts_t;
+typedef magma::map_s<uint64_t, uint64_t> map_uint64_uint64_t;
 // Map Key: guti_m5_t Data: uint64_t;
-typedef magma::map_ts_s<guti_m5_t, uint64_t> map_guti_m5_uint64_ts_t;
+typedef magma::map_s<guti_m5_t, uint64_t> map_guti_m5_uint64_t;
 
 typedef struct amf_ue_context_s {
-  map_uint64_uint64_ts_t imsi_amf_ue_id_htbl;    // data is amf_ue_ngap_id_t
-  map_uint64_uint64_ts_t tun11_ue_context_htbl;  // data is amf_ue_ngap_id_t
-  map_uint64_uint64_ts_t
+  map_uint64_uint64_t imsi_amf_ue_id_htbl;    // data is amf_ue_ngap_id_t
+  map_uint64_uint64_t tun11_ue_context_htbl;  // data is amf_ue_ngap_id_t
+  map_uint64_uint64_t
       gnb_ue_ngap_id_ue_context_htbl;  // data is amf_ue_ngap_id_t
-  map_guti_m5_uint64_ts_t guti_ue_context_htbl;
+  map_guti_m5_uint64_t guti_ue_context_htbl;
 } amf_ue_context_t;
 
 enum m5gcm_state_t {

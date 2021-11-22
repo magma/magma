@@ -16,7 +16,6 @@
 
 #include <iostream>
 #include <unordered_map>
-#include <mutex>
 #include <string>
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
@@ -51,10 +50,10 @@ struct equal_to<guti_m5_t> {
   }
 };
 
-// specialise std::hash function for type guti_m5_t
-// HashFunction for Guti as key and unit64 data
-// Note: This HashFunc in turn calls the def_hashfunc which supports hashing
-// only for unit64
+/*specialise std::hash function for type guti_m5_t
+  HashFunction for Guti as key and unit64 data
+  Note: This HashFunc in turn calls the def_hashfunc which supports hashing
+  only for unit64*/
 template<>
 struct hash<guti_m5_t> {
   size_t operator()(const guti_m5_t& k) const {
@@ -127,7 +126,7 @@ static std::string map_rc_code2string(map_rc_t rc) {
 
 /***************************************************************************
 **                                                                        **
-** Name:    map_ts_s                                                      **
+** Name:    map_s                                                         **
 **                                                                        **
 ** Description: This is a generic structure for maps.It is implemented    **
 **              using template struct definitions.                        **
@@ -147,8 +146,7 @@ static std::string map_rc_code2string(map_rc_t rc) {
 template<
     typename keyT, typename valueT, class Hash = std::hash<keyT>,
     class KeyEqual = std::equal_to<keyT>>
-struct map_ts_s {
-  std::mutex mutex_obj;
+struct map_s {
   std::unordered_map<keyT, valueT, Hash, KeyEqual> umap;
   std::string name;
   bool log_enabled;
@@ -172,7 +170,6 @@ struct map_ts_s {
     if (valueP == nullptr) {
       return MAP_BAD_PARAMETER_VALUE;
     }
-    std::lock_guard<std::mutex> lock(mutex_obj);
     auto search_result = umap.find(key);
     if (search_result != umap.end()) {
       *valueP = search_result->second;
@@ -193,7 +190,6 @@ struct map_ts_s {
   ***************************************************************************/
   map_rc_t insert(const keyT key, const valueT value) {
     typedef typename std::unordered_map<keyT, valueT>::iterator itr;
-    std::lock_guard<std::mutex> lock(mutex_obj);
     std::pair<itr, bool> insert_response =
         umap.insert(std::make_pair(key, value));
     if (insert_response.second) {
@@ -216,7 +212,6 @@ struct map_ts_s {
       return MAP_EMPTY;
     }
 
-    std::lock_guard<std::mutex> lock(mutex_obj);
     if (umap.erase(key)) {
       return MAP_OK;
     } else {
