@@ -127,7 +127,7 @@ jobs:
         env:
           DOCKER_REGISTRY: "orc8r-ci.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
           ISSUE_NUMBER: "${{ steps.save_metadata.outputs.issue_number }}"
         run: |
           docker image load --input goradius.tar
