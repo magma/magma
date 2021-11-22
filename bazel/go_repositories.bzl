@@ -918,6 +918,10 @@ def go_repositories():
         importpath = "google.golang.org/protobuf",
         sum = "h1:SnqbnDw1V7RiZcXPx5MEeqPv2s79L9i7BJUlG/+RurQ=",
         version = "v1.27.1",
+        # Taken from https://github.com/bazelbuild/bazel-gazelle/issues/610#issuecomment-803234610
+        build_extra_args = [
+            "-exclude=**/testdata",
+        ],
     )
     go_repository(
         name = "org_golang_x_crypto",
@@ -981,6 +985,11 @@ def go_repositories():
     )
     go_repository(
         name = "org_golang_x_tools",
+        # Taken from https://github.com/bazelbuild/bazel-gazelle/issues/610#issuecomment-803234610
+        build_extra_args = [
+            "-exclude=**/testdata",
+            "-exclude=go/packages/packagestest",
+        ],
         importpath = "golang.org/x/tools",
         sum = "h1:wGiQel/hW0NnEkJUk8lbzkX2gFJU6PFxf1v5OlCfuOs=",
         version = "v0.1.1",
