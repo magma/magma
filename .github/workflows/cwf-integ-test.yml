@@ -13,6 +13,7 @@ on:  # yamllint disable-line rule:truthy
 jobs:
   docker-build:
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.event == 'push'
     steps:
       - uses: actions/checkout@v2
       - name: Run docker compose
