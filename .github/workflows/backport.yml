@@ -5,16 +5,6 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
-      - v1.*
-  pull_request:
-    branches:
-      - master
-      - v1.*
-    types: [opened, reopened, synchronize]
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: true
 
 jobs:
   backport:
@@ -36,18 +26,18 @@ jobs:
             cd ${MAGMA_ROOT}/circleci/release
             fab find_release_commits
       - name: Extract commit title
-        if: failure() && github.event_name == 'push'
+        if: failure()
         id: commit
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
-        if: failure() && github.event_name == 'push'
+        if: failure()
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action backport"
-          SLACK_USERNAME: "Cloud workflow"
+          SLACK_TITLE: "Failure of backport on master"
+          SLACK_USERNAME: "Back port job"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
