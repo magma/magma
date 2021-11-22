@@ -1632,35 +1632,35 @@ int mme_config_parse_string(
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3422_TIMER, &aint))) {
-        config_pP->nas_config.t3422_msec = (uint32_t)(1000 * aint);
+        config_pP->nas_config.t3422_msec = (uint32_t) (1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3450_TIMER, &aint))) {
-        config_pP->nas_config.t3450_msec = (uint32_t)(1000 * aint);
+        config_pP->nas_config.t3450_msec = (uint32_t) (1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3460_TIMER, &aint))) {
-        config_pP->nas_config.t3460_msec = (uint32_t)(1000 * aint);
+        config_pP->nas_config.t3460_msec = (uint32_t) (1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3470_TIMER, &aint))) {
-        config_pP->nas_config.t3470_msec = (uint32_t)(1000 * aint);
+        config_pP->nas_config.t3470_msec = (uint32_t) (1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3485_TIMER, &aint))) {
-        config_pP->nas_config.t3485_msec = (uint32_t)(1000 * aint);
+        config_pP->nas_config.t3485_msec = (uint32_t) (1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3486_TIMER, &aint))) {
-        config_pP->nas_config.t3486_msec = (uint32_t)(1000 * aint);
+        config_pP->nas_config.t3486_msec = (uint32_t) (1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3489_TIMER, &aint))) {
-        config_pP->nas_config.t3489_msec = (uint32_t)(1000 * aint);
+        config_pP->nas_config.t3489_msec = (uint32_t) (1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3495_TIMER, &aint))) {
-        config_pP->nas_config.t3495_msec = (uint32_t)(1000 * aint);
+        config_pP->nas_config.t3495_msec = (uint32_t) (1000 * aint);
       }
       if ((config_setting_lookup_string(
               setting, MME_CONFIG_STRING_NAS_FORCE_REJECT_TAU,
@@ -1770,23 +1770,23 @@ int mme_config_parse_string(
     if (setting != NULL) {
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_SGS_TS6_1_TIMER, &aint))) {
-        config_pP->sgs_config.ts6_1_msec = (uint8_t)(1000 * aint);
+        config_pP->sgs_config.ts6_1_msec = (uint8_t) (1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_SGS_TS8_TIMER, &aint))) {
-        config_pP->sgs_config.ts8_msec = (uint8_t)(1000 * aint);
+        config_pP->sgs_config.ts8_msec = (uint8_t) (1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_SGS_TS9_TIMER, &aint))) {
-        config_pP->sgs_config.ts9_msec = (uint8_t)(1000 * aint);
+        config_pP->sgs_config.ts9_msec = (uint8_t) (1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_SGS_TS10_TIMER, &aint))) {
-        config_pP->sgs_config.ts10_msec = (uint8_t)(1000 * aint);
+        config_pP->sgs_config.ts10_msec = (uint8_t) (1000 * aint);
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_SGS_TS13_TIMER, &aint))) {
-        config_pP->sgs_config.ts13_msec = (uint8_t)(1000 * aint);
+        config_pP->sgs_config.ts13_msec = (uint8_t) (1000 * aint);
       }
     }
 #if (!EMBEDDED_SGW)
@@ -1911,6 +1911,11 @@ void mme_config_display(mme_config_t* config_pP) {
   OAILOG_INFO(
       LOG_CONFIG, "- Run mode .............................: %s\n",
       (RUN_MODE_TEST == config_pP->run_mode) ? "TEST" : "NORMAL");
+  if (RUN_MODE_TEST == config_pP->run_mode) {
+    OAILOG_INFO(
+        LOG_CONFIG, "- Test param ...........................: %u\n",
+        config_pP->test);
+  }
   OAILOG_INFO(
       LOG_CONFIG, "- Max eNBs .............................: %u\n",
       config_pP->max_enbs);
@@ -2307,7 +2312,7 @@ int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
   /*
    * Parsing command line
    */
-  while ((c = getopt(argc, argv, "c:s:h:v:V")) != -1) {
+  while ((c = getopt(argc, argv, "c:s:t:h:v:V")) != -1) {
     switch (c) {
       case 'c': {
         /*
@@ -2329,6 +2334,22 @@ int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
             "==== EURECOM %s v%s ===="
             "Please report any bug to: %s\n",
             PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT);
+      } break;
+
+      case 'p': {
+        config_pP->test      = atoi(optarg);
+        config_pP->test_type = TEST_SERIALIZATION_PROTOBUF;
+        config_pP->run_mode  = RUN_MODE_TEST;
+        OAI_FPRINTF_INFO(
+            "Test serialization protobuf, parameter %u\n", config_pP->test);
+      } break;
+
+      case 'f': {
+        config_pP->test      = atoi(optarg);
+        config_pP->test_type = TEST_SERIALIZATION_FLATBUFFER;
+        config_pP->run_mode  = RUN_MODE_TEST;
+        OAI_FPRINTF_INFO(
+            "Test serialization flatbuffer, parameter %u\n", config_pP->test);
       } break;
 
       case 's': {
