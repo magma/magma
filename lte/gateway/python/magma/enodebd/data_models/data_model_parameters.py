@@ -27,7 +27,12 @@ class ParameterName():
     GPS_ENABLE = 'GPS enable'
     GPS_LAT = 'GPS lat'
     GPS_LONG = 'GPS long'
+    GPS_AITI = 'GPS aiti'
     SW_VERSION = 'SW version'
+    VENDOR = "VENDOR"
+    MODEL_NAME = "MODEL name"
+    RF_STATE = "RF state"
+    UPTIME = "UPTIME"
 
     SERIAL_NUMBER = 'Serial number'
     CELL_ID = 'Cell ID'

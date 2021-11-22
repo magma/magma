@@ -142,10 +142,18 @@ class BaicellsRTSTrDataModel(DataModel):
             TrParam(DEVICE_PATH + 'DeviceInfo.X_BAICELLS_COM_LTE_LGW_Switch', False, TrParameterType.BOOLEAN, False),
         # Tested Baicells devices were missing this parameter
         ParameterName.GPS_ENABLE: TrParam(DEVICE_PATH + 'X_BAICELLS_COM_GpsSyncEnable', False, TrParameterType.BOOLEAN, True),
-        ParameterName.GPS_LAT: TrParam(DEVICE_PATH + 'FAP.GPS.LockedLatitude', True, TrParameterType.INT, True),
-        ParameterName.GPS_LONG: TrParam(DEVICE_PATH + 'FAP.GPS.LockedLongitude', True, TrParameterType.INT, True),
+        ParameterName.GPS_LAT: TrParam(DEVICE_PATH + 'DeviceInfo.X_BAICELLS_COM_Latitude', True, TrParameterType.INT, True),
+        ParameterName.GPS_LONG: TrParam(DEVICE_PATH + 'DeviceInfo.X_BAICELLS_COM_Longitude', True, TrParameterType.INT, True),
+        ParameterName.GPS_AITI: TrParam(DEVICE_PATH + 'DeviceInfo.X_BAICELLS_COM_Height', True, TrParameterType.STRING, True),
         ParameterName.SW_VERSION: TrParam(DEVICE_PATH + 'DeviceInfo.SoftwareVersion', True, TrParameterType.STRING, False),
         ParameterName.SERIAL_NUMBER: TrParam(DEVICE_PATH + 'DeviceInfo.SerialNumber', True, TrParameterType.STRING, False),
+        ParameterName.VENDOR: TrParam(DEVICE_PATH + 'DeviceInfo.ManufacturerOUI', False, TrParameterType.STRING, True),
+        ParameterName.MODEL_NAME: TrParam(DEVICE_PATH + 'DeviceInfo.ModelName', False, TrParameterType.STRING, True),
+        ParameterName.RF_STATE: TrParam(
+            FAPSERVICE_PATH
+            + 'CellConfig.LTE.RAN.RF.X_BAICELLS_COM_RadioEnable', True, TrParameterType.BOOLEAN, False
+        ),
+        ParameterName.UPTIME: TrParam(DEVICE_PATH + 'DeviceInfo.X_BAICELLS_COM_STATION_RUN_Time', False, TrParameterType.STRING, True),
 
         # Capabilities
         ParameterName.DUPLEX_MODE_CAPABILITY: TrParam(
