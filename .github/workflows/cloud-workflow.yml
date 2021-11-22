@@ -55,7 +55,7 @@ jobs:
           go-version: '1.13'
       - name: Download dependencies
         run: |
-          cwf/gateway
+          cd cwf/gateway
           go mod download
       - name: Gateway go tests
         run: |
