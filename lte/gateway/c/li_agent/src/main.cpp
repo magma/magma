@@ -116,7 +116,7 @@ int main(void) {
     return -1;
   }
 
-  MLOG(MERROR) << "CleanUP " << pcap_dispatch;
+  MLOG(MERROR) << "CleanUP " << reinterpret_cast<void*>(&pcap_dispatch);
   proxy_connector->cleanup();
   return 0;
 }

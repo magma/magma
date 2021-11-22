@@ -49,12 +49,17 @@ static void init_logging(const char* service_name) {
 #include <iostream>
 
 namespace magma {
-static void set_verbosity(__attribute__((unused)) uint32_t verbosity) {}
+static void set_verbosity(__attribute__((unused)) uint32_t verbosity) {
+  (void)set_verbosity;
+}
 // get_verbosity gets the the global logging verbosity
 static uint32_t get_verbosity() {
+  (void)get_verbosity;
   return 0;
 }
-static void init_logging(__attribute__((unused)) const char* service_name) {}
+static void init_logging(__attribute__((unused)) const char* service_name) {
+  (void)init_logging;
+}
 
 }  // namespace magma
 #endif
