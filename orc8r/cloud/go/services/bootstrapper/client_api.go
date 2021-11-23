@@ -26,9 +26,6 @@ import (
 	"magma/orc8r/lib/go/registry"
 )
 
-// =================================================== //
-// CloudRegistration
-
 func GetToken(ctx context.Context, networkID string, logicalID string, refresh bool) (string, error) {
 	client, err := getCloudRegistrationClient()
 	if err != nil {
@@ -96,44 +93,4 @@ func getCloudRegistrationClient() (protos.CloudRegistrationClient, error) {
 		return nil, initErr
 	}
 	return protos.NewCloudRegistrationClient(conn), err
-}
-
-// =================================================== //
-// Registration
-
-func Register(ctx context.Context, token string, hwid *protos.AccessGatewayID, ck *protos.ChallengeKey) (string, error) {
-	client, err := getRegistrationClient()
-	if err != nil {
-		return "", err
-	}
-
-	req := &protos.RegisterRequest{
-		Token:                token,
-		Hwid:                 hwid,
-		ChallengeKey:         ck,
-	}
-
-	res, err := client.Register(ctx, req)
-	if err != nil {
-		return "", err
-	}
-
-	clientErr := res.Response.(*protos.RegisterResponse_Error)
-	if clientErr != nil{
-		// TODO(reginawang3495): Be more precise based on the different errors?
-		return "", status.Error(codes.Unauthenticated, clientErr.Error)
-	}
-
-	controlProxy := res.Response.(*protos.RegisterResponse_ControlProxy).ControlProxy
-
-	return controlProxy, nil
-}
-func getRegistrationClient() (protos.RegistrationClient, error) {
-	conn, err := registry.GetConnection(ServiceName)
-	if err != nil {
-		initErr := merrors.NewInitError(err, ServiceName)
-		glog.Error(initErr)
-		return nil, initErr
-	}
-	return protos.NewRegistrationClient(conn), err
 }
