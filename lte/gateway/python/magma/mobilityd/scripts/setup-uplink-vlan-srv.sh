@@ -16,6 +16,7 @@
 br_name=$1
 tag=$2
 network_id=$3
+host_mac=$4
 
 if [[ -z $network_id ]]; then
         network_id="200"
@@ -29,6 +30,9 @@ router_ipv6="fc00::$network_id:$tag:211/96"
 ip link del "$prefix"_port
 ip link add "$prefix"_port type veth peer name  "$prefix"_port1
 ifconfig "$prefix"_port up
+killall dnsmasq
+rm -rf /var/lib/misc/dnsmasq.leases
+sync
 
 mkdir -p /etc/netns/"$prefix"_dhcp_srv
 touch /etc/netns/"$prefix"_dhcp_srv/resolv.conf
@@ -50,6 +54,11 @@ then
 fi
 
 sed "s/.x./."$network_id.$tag"./g" /home/vagrant/magma/lte/gateway/python/magma/mobilityd/scripts/dnsd.x.conf > /tmp/dns."$tag".conf
+
+if [[ ! -z $host_mac ]]; then
+   sed -i "s/11:22:33:44:55:66/"$host_mac"/g" /tmp/dns."$tag".conf
+fi
+
 sleep 1
 ip netns exec "$prefix"_dhcp_srv  /usr/sbin/dnsmasq -q --conf-file=/tmp/dns."$tag".conf --log-queries --log-facility=/var/log/"$prefix"dnsmasq."$tag".test.log &
 
