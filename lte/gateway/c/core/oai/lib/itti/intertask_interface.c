@@ -52,7 +52,6 @@
 
 #include "lte/gateway/c/core/oai/lib/itti/signals.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 
 /* ITTI DEBUG groups */
 #define ITTI_DEBUG_POLL (1 << 0)
@@ -67,6 +66,7 @@ const int itti_debug = ITTI_DEBUG_ISSUES | ITTI_DEBUG_MP_STATISTICS;
 
 #define ITTI_DEBUG(m, x, args...)                                              \
   do {                                                                         \
+	/* stdout is redirected to syslog when MME is run via systemd */           \
     if ((m) &itti_debug) fprintf(stdout, "[ITTI][D]" x, ##args);               \
   } while (0);
 
@@ -134,7 +134,7 @@ status_code_e send_msg_to_task(
     assert(rc == 0);
     pthread_mutex_unlock(&task_zmq_ctx_p->send_mutex);
   } else {
-    OAI_FPRINTF_ERR(
+	  ITTI_DEBUG(ITTI_DEBUG_SEND,
         "Sending msg using uninitialized context. %s to %s!\n",
         itti_get_message_name(message->ittiMsgHeader.messageId),
         itti_get_task_name(destination_task_id));
@@ -442,7 +442,7 @@ void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx) {
     signal_handle(&end, task_ctx);
   }
 
-  OAILOG_INFO(LOG_ITTI, "Closing all tasks");
+  ITTI_DEBUG(ITTI_DEBUG_EXIT, "Closing all tasks");
   sleep(1);
 
   do {
@@ -481,7 +481,7 @@ void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx) {
     }
   } while ((ready_tasks > 0) && (retries--));
 
-  OAILOG_INFO(LOG_ITTI, "ready_tasks %d", ready_tasks);
+  ITTI_DEBUG(ITTI_DEBUG_EXIT, "ready_tasks %d", ready_tasks);
   itti_desc.running = 0;
 
   free_wrapper((void**) &itti_desc.threads);
