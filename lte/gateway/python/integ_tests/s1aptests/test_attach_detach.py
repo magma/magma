@@ -16,8 +16,6 @@ import unittest
 import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 
-import time
-
 
 class TestAttachDetach(unittest.TestCase):
 
@@ -56,7 +54,6 @@ class TestAttachDetach(unittest.TestCase):
                 "************************* Running UE detach for UE id ",
                 req.ue_id,
             )
-            time.sleep(300)
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
                 req.ue_id, detach_type[i], wait_for_s1[i],
