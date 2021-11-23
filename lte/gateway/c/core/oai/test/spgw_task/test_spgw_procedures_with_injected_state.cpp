@@ -60,7 +60,7 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
     std::cout << "Running setup" << std::endl;
     // initialize the SPGW task
     spgw_app_init(&spgw_config, mme_config.use_stateless);
-    name_of_ue_samples = load_file_into_vector_of_line_content(
+    name_of_ue_samples = load_file_into_vector_of_line_content(DEFAULT_SPGW_CONTEXT_DATA_PATH, 
         "/home/vagrant/magma/lte/gateway/c/core/oai/test/spgw_task/data/"
         "data_list.txt");
     mock_read_spgw_ue_state_db(name_of_ue_samples);

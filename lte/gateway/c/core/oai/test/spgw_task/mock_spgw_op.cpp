@@ -9,7 +9,7 @@
 namespace magma {
 namespace lte {
 
-std::vector<std::string> load_file_into_vector_of_line_content(
+std::vector<std::string> load_file_into_vector_of_line_content(const std::string& data_folder_path,
     const std::string& file_name) {
   std::fstream file_content(file_name.c_str(), std::ios_base::in);
   std::string line;
@@ -17,7 +17,7 @@ std::vector<std::string> load_file_into_vector_of_line_content(
   if (file_content) {
     while (std::getline(file_content, line)) {
       line.erase(std::remove(line.begin(), line.end(), '\n'), line.end());
-      vector_of_lines.push_back(line);
+      vector_of_lines.push_back(data_folder_path + "/" + line);
     }
   } else {
     std::cerr << "couldn't open file: " << file_name << std::endl;
@@ -27,21 +27,21 @@ std::vector<std::string> load_file_into_vector_of_line_content(
   return vector_of_lines;
 }
 
-int mock_read_spgw_ue_state_db(const std::vector<std::string>& ue_samples) {
+status_code_e mock_read_spgw_ue_state_db(const std::vector<std::string>& ue_samples) {
   for (auto name_of_sample : ue_samples) {
     oai::SpgwUeContext ue_proto = oai::SpgwUeContext();
     std::fstream input(name_of_sample.c_str(), std::ios::in | std::ios::binary);
     if (!ue_proto.ParseFromIstream(&input)) {
       std::cerr << "Failed to parse the sample: " << name_of_sample
                 << std::endl;
-      return -1;
+      return RETURNerror;
     }
 
     spgw_ue_context_t* ue_context_p =
         (spgw_ue_context_t*) calloc(1, sizeof(spgw_ue_context_t));
     SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
   }
-  return 0;
+  return RETURNok;
 }
 
 }  // namespace lte
