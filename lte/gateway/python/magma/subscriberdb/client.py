@@ -18,7 +18,6 @@ from typing import List, NamedTuple, Optional
 import grpc
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.s6a_service_pb2_grpc import S6aServiceStub
-from lte.protos import subscriberdb_pb2
 from lte.protos.subscriberdb_pb2 import (
     CheckInSyncRequest,
     ListSubscribersRequest,
@@ -293,7 +292,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
                         ),
                     )
                 logging.info("List of suciprofiles: %s", suciprofiles)
-                res = subscriberdb_pb2.SuciProfileList(sp=suciprofiles)
+                res = SuciProfileList(sp=suciprofiles)
                 return res
 
             except grpc.RpcError as err:
