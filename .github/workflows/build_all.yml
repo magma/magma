@@ -86,7 +86,7 @@ jobs:
           pip install artifactory
           python ci-scripts/helm_repo_rotation.py
   agw-build:
-    if: github.event_name == 'push'
+    # if: github.event_name == 'push'
     runs-on: macos-10.15
     outputs:
       artifacts: ${{ steps.publish_packages.outputs.artifacts }}
@@ -109,6 +109,10 @@ jobs:
           sudo mkdir -p /etc/vbox/
           sudo touch /etc/vbox/networks.conf
           sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
+      - name: Download Magma VM Bazel build cache from S3
+        run: |
+          wget -qO- https://magma-cache.s3.amazonaws.com/bazel-cache-repo-magma-vm.tar.gz | tar xvfz - 
+          wget -qO- https://magma-cache.s3.amazonaws.com/bazel-cache-magma-vm.tar.gz | tar xvfz - 
       - name: Build AGW
         run: |
           cd lte/gateway
