@@ -54,9 +54,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: {
-    } break;
-  }
+    default: { } break; }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -162,14 +160,13 @@ class MmeAppProcedureTest : public ::testing::Test {
   const uint8_t nas_msg_deactivate_ded_bearer_accept[9] = {
       0x27, 0x66, 0x5f, 0x4e, 0x87, 0x03, 0x62, 0x00, 0xce};
 
-  std::string imsi = "001010000000001";
-  plmn_t plmn      = {
-      .mcc_digit2 = 0,
-      .mcc_digit1 = 0,
-      .mnc_digit3 = 0x0f,
-      .mcc_digit3 = 1,
-      .mnc_digit2 = 1,
-      .mnc_digit1 = 0};
+  std::string imsi                = "001010000000001";
+  plmn_t plmn                     = {.mcc_digit2 = 0,
+                 .mcc_digit1 = 0,
+                 .mnc_digit3 = 0x0f,
+                 .mcc_digit3 = 1,
+                 .mnc_digit2 = 1,
+                 .mnc_digit1 = 0};
   guti_eps_mobile_identity_t guti = {0};
 };
 
