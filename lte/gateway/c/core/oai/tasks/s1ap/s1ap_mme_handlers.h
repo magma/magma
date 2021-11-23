@@ -188,7 +188,6 @@ status_code_e s1ap_handle_path_switch_req_ack(
     imsi64_t imsi64);
 
 status_code_e s1ap_handle_path_switch_req_failure(
-    s1ap_state_t* state,
     const itti_s1ap_path_switch_request_failure_t* path_switch_req_failure_p,
     imsi64_t imsi64);
 

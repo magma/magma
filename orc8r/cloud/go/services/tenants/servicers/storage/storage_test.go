@@ -10,6 +10,7 @@ import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
 	"magma/orc8r/cloud/go/services/tenants"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 )
@@ -27,6 +28,11 @@ var (
 		Key:   "word",
 		Value: marshaledTenant0,
 	}
+
+	sampleTenantID      int64 = 0
+	sampleTenantID2     int64 = 3
+	sampleControlProxy        = "{ info }"
+	sampleControlProxy2       = "{ info2 }"
 )
 
 func setupTestStore() (*mocks.Store, Store) {
@@ -160,4 +166,35 @@ func TestBlobstoreStore_DeleteTenant(t *testing.T) {
 	txStore.On("Delete", networkWildcard, storage.TKs{{Type: tenants.TenantInfoType, Key: "0"}}).Return(errors.New("error"))
 	err = s.DeleteTenant(0)
 	assert.EqualError(t, err, "error")
+}
+
+func TestBlobstoreStore_ControlProxy(t *testing.T) {
+	db, err := sqorc.Open("sqlite3", ":memory:")
+	assert.NoError(t, err)
+	factory := blobstore.NewSQLStoreFactory(tenants.DBTableName, db, sqorc.GetSqlBuilder())
+	assert.NoError(t, factory.InitializeFactory())
+	s := NewBlobstoreStore(factory)
+
+	_, err = s.GetControlProxy(sampleTenantID)
+	assert.EqualError(t, err, "Not found")
+
+	_, err = s.GetControlProxy(sampleTenantID2)
+	assert.EqualError(t, err, "Not found")
+
+	err = s.CreateOrUpdateControlProxy(sampleTenantID2, sampleControlProxy)
+	assert.NoError(t, err)
+
+	controlProxy, err := s.GetControlProxy(sampleTenantID2)
+	assert.NoError(t, err)
+	assert.Equal(t, sampleControlProxy, controlProxy)
+
+	_, err = s.GetControlProxy(sampleTenantID)
+	assert.EqualError(t, err, "Not found")
+
+	err = s.CreateOrUpdateControlProxy(sampleTenantID, sampleControlProxy2)
+	assert.NoError(t, err)
+
+	controlProxy, err = s.GetControlProxy(sampleTenantID)
+	assert.NoError(t, err)
+	assert.Equal(t, sampleControlProxy2, controlProxy)
 }

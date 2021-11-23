@@ -16,6 +16,7 @@
  */
 
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.h"
+#include "3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 
 namespace {

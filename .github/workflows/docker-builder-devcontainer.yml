@@ -37,4 +37,3 @@ jobs:
           IMAGE_STREAM: ${{ env.IMAGE_STREAM }}
           IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
           DOCKERFILE: ${{ env.DOCKERFILE }}
-          GITHUB_TOKEN: $${{ secrets.GITHUB_TOKEN }}

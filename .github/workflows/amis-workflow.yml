@@ -35,8 +35,10 @@ jobs:
         run: |
             if ${{ github.event_name == 'workflow_dispatch' }}; then
               echo AWS_ACCOUNT="LF" >> $GITHUB_ENV
+              echo BASE_REFERENCE=${{ github.base_ref }} >> $GITHUB_ENV
             elif ${{ github.event_name == 'schedule' }}; then
               echo AWS_ACCOUNT="FB" >> $GITHUB_ENV
+              echo BASE_REFERENCE="master" >> $GITHUB_ENV
             fi
       - name: Propagate AWS credentials to ansible and create version
         run: |
@@ -116,7 +118,7 @@ jobs:
             sed -i -e '/^packageRepoHost: /s/:.*$/: '"${{ env.PACKAGE_REPO_HOST }}"'/' ${{ env.VARS_DIR }}/build.yaml
             sed -i -e '/^awsAgwAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' ${{ env.VARS_DIR }}/cluster.yaml
             # TODO Overwriting the previous buildAgwVersion to the current branch
-            sed -i -e '/^buildAgwVersion: /s/:.*$/: '"refs\/heads\/${{ github.base_ref }}"'/' ${{ env.VARS_DIR }}/build.yaml
+            sed -i -e '/^buildAgwVersion: /s/:.*$/: '"refs\/heads\/${{ env.BASE_REFERENCE }}"'/' ${{ env.VARS_DIR }}/build.yaml
       - name: Generate AGW AMI
         timeout-minutes: 30
         run: |
