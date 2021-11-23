@@ -21,11 +21,7 @@ const (
 	timeoutDuration = 30 * time.Minute
 
 	// number of characters that the nonce will have
-	// 52^7 chance = 1.0280717e+12
-	nonceLength = 7
-
-	// 1.0280717e+12^5 = a lot
-	maxRetriesToGenerateNonce = 5
+	nonceLength = 30
 )
 
 type cloudRegistrationServicer struct {
@@ -40,8 +36,8 @@ func NewCloudRegistrationServicer(store Store) (protos.CloudRegistrationServer, 
 }
 
 func (crs *cloudRegistrationServicer) GetToken(c context.Context, request *protos.GetTokenRequest) (*protos.GetTokenResponse, error) {
-	networkId := request.GatewayPreregisterInfo.NetworkId
-	logicalId := request.GatewayPreregisterInfo.LogicalId
+	networkId := request.GatewayDeviceInfo.NetworkId
+	logicalId := request.GatewayDeviceInfo.LogicalId
 
 	tokenInfo, err := crs.store.GetTokenInfoFromLogicalID(networkId, logicalId)
 	if err != nil {
@@ -51,7 +47,7 @@ func (crs *cloudRegistrationServicer) GetToken(c context.Context, request *proto
 	refresh := request.Refresh || tokenInfo == nil || isTokenExpired(tokenInfo)
 	if refresh {
 		// TODO(reginawang3495) add a test with tokenInfo = nil to make sure it works
-		tokenInfo, err = crs.generateAndSaveTokenInfo(networkId, logicalId, tokenInfo.Nonce)
+		tokenInfo, err = crs.generateAndSaveTokenInfo(networkId, logicalId)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "Could not generate and save tokenInfo for networkID %v and logicalID %v: %v", networkId, logicalId, err)
 		}
@@ -60,46 +56,43 @@ func (crs *cloudRegistrationServicer) GetToken(c context.Context, request *proto
 	return &protos.GetTokenResponse{Timeout: tokenInfo.Timeout, Token: nonceToToken(tokenInfo.Nonce)}, nil
 }
 
-func (crs *cloudRegistrationServicer) GetInfoForGatewayRegistration(c context.Context, request *protos.GetInfoForGatewayRegistrationRequest) (*protos.GetInfoForGatewayRegistrationResponse, error) {
+func (crs *cloudRegistrationServicer) GetGatewayRegistrationInfo(c context.Context, request *protos.GetGatewayRegistrationInfoRequest) (*protos.GetGatewayRegistrationInfoResponse, error) {
 	rootCA, err := getRootCA()
 	if err != nil {
 		return nil, err
 	}
 	domainName := getDomainName()
 
-	return &protos.GetInfoForGatewayRegistrationResponse{
+	return &protos.GetGatewayRegistrationInfoResponse{
 		RootCa:               rootCA,
 		DomainName:           domainName,
 	}, nil
 }
 
-func (crs *cloudRegistrationServicer) GetGatewayPreregisterInfo(c context.Context, request *protos.GetGatewayPreregisterInfoRequest) (*protos.GetGatewayPreregisterInfoResponse, error) {
+func (crs *cloudRegistrationServicer) GetGatewayDeviceInfo(c context.Context, request *protos.GetGatewayDeviceInfoRequest) (*protos.GetGatewayDeviceInfoResponse, error) {
 	nonce := nonceFromToken(request.Token)
 
 	tokenInfo, err := crs.store.GetTokenInfoFromNonce(nonce)
 	if err != nil {
-		return &protos.GetGatewayPreregisterInfoResponse{
-			Response: &protos.GetGatewayPreregisterInfoResponse_Error{
+		return &protos.GetGatewayDeviceInfoResponse{
+			Response: &protos.GetGatewayDeviceInfoResponse_Error{
 				Error: fmt.Sprintf("Could not get token info from nonce %v: %v", nonce, err),
 			},
 		}, nil
 	}
 
-	return &protos.GetGatewayPreregisterInfoResponse{
-		Response:             &protos.GetGatewayPreregisterInfoResponse_GatewayPreregisterInfo{
-			GatewayPreregisterInfo: &protos.GatewayPreregisterInfo{
-				NetworkId:           tokenInfo.GatewayPreregisterInfo.NetworkId,
-				LogicalId:            tokenInfo.GatewayPreregisterInfo.LogicalId,
+	return &protos.GetGatewayDeviceInfoResponse{
+		Response:             &protos.GetGatewayDeviceInfoResponse_GatewayDeviceInfo{
+			GatewayDeviceInfo: &protos.GatewayDeviceInfo{
+				NetworkId:           tokenInfo.GatewayDeviceInfo.NetworkId,
+				LogicalId:            tokenInfo.GatewayDeviceInfo.LogicalId,
 			},
 		},
 	}, nil
 }
 
-func (crs *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string, logicalID string, oldNonce string) (*protos.TokenInfo, error) {
-	nonce, err := crs.generateUniqueNonce(maxRetriesToGenerateNonce, nonceLength)
-	if err != nil {
-		return nil, err
-	}
+func (crs *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string, logicalID string) (*protos.TokenInfo, error) {
+	nonce := generateSecureNonce(nonceLength)
 
 	t := time.Now().Add(timeoutDuration)
 	timeout :=
@@ -109,7 +102,7 @@ func (crs *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string,
 		}
 
 	tokenInfo := protos.TokenInfo{
-		GatewayPreregisterInfo: &protos.GatewayPreregisterInfo{
+		GatewayDeviceInfo: &protos.GatewayDeviceInfo{
 			NetworkId: networkID,
 			LogicalId: logicalID,
 		},
@@ -117,27 +110,12 @@ func (crs *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string,
 		Timeout: timeout,
 	}
 
-	err = crs.store.SetTokenInfo(oldNonce, tokenInfo)
+	err := crs.store.SetTokenInfo(tokenInfo)
 	if err != nil {
 		return nil, err
 	}
 
 	return &tokenInfo, nil
-}
-
-func (crs *cloudRegistrationServicer) generateUniqueNonce(maxRetries int, length int) (string, error) {
-	for i := 0; i < maxRetries; i++ {
-		nonce := generateSecureNonce(length)
-		isUnique, err := crs.store.IsNonceUnique(nonce)
-		if err != nil {
-			return "", err
-		}
-
-		if isUnique {
-			return nonce, nil
-		}
-	}
-	return "", status.Errorf(codes.Internal, "Failed to create unique nonce %d times", maxRetries)
 }
 
 func getRootCA() (string, error) {
