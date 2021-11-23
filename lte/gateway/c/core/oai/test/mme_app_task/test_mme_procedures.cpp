@@ -1547,7 +1547,9 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
-TEST_F(MmeAppProcedureTest, TestNwInitiatedActivateDeactivateBearerRequest) {
+TEST_F(
+    MmeAppProcedureTest,
+    TestNwInitiatedActivateDeactivateDedicatedBearerRequest) {
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
@@ -1610,7 +1612,7 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedActivateDeactivateBearerRequest) {
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
-  // Send activate dedicated bearer request mimicing S1AP
+  // Send activate dedicated bearer request mimicing SPGW
   send_s11_create_bearer_req();
   EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(1);
 
@@ -1636,7 +1638,7 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedActivateDeactivateBearerRequest) {
 
   uint8_t ebi_to_be_deactivated = 6;
   // Constructing and sending deactivate bearer request
-  // for default bearer that should trigger session termination
+  // for dedicated bearer that should trigger ERAB Release Command
   send_s11_deactivate_bearer_req(1, &ebi_to_be_deactivated, false);
   EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_rel_cmd()).Times(1);
 
