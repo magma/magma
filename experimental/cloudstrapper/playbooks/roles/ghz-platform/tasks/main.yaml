@@ -1,0 +1,3 @@
+---
+- include: setup-tests.yaml
+  tags: setupTests

@@ -1,0 +1,147 @@
+---
+version: "3.7"
+
+# Standard logging for each service
+x-logging: &logging_anchor
+  driver: ${LOG_DRIVER}
+
+# Standard volumes mounted
+x-standard-volumes: &volumes_anchor
+  - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+  - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+  - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
+  - ${CONFIGS_OVERRIDE_TMP_VOLUME}:/var/opt/magma/tmp
+  - /etc/snowflake:/etc/snowflake
+  - /var/opt/magma/fluent-bit:/var/opt/magma/fluent-bit
+  - ../docker:/var/opt/magma/docker
+  - /var/run:/var/run
+  - /tmp:/tmp
+
+x-generic-service: &service
+  volumes: *volumes_anchor
+  logging: *logging_anchor
+  restart: always
+  network_mode: host
+
+# Generic python anchor to avoid repetition for agw python services
+x-ghz-agw-python-service: &pyservice
+  <<: *service
+  image: ${DOCKER_REGISTRY}/ghz_gateway_python:${IMAGE_VERSION}
+
+# Generic anchor for lte c services
+x-ghz-lte-cservice: &ltecservice
+  <<: *service
+  image: ${DOCKER_REGISTRY}/ghz_gateway_c:${IMAGE_VERSION}
+
+services:
+  redis:
+    <<: *pyservice
+    container_name: redis
+    command: >
+      /bin/bash -c "/usr/local/bin/generate_service_config.py --service=redis --template=redis &&
+             /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
+             /usr/bin/redis-cli shutdown"
+
+  directoryd:
+    <<: *pyservice
+    container_name: directoryd
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50067"]
+      timeout: "4s"
+      retries: 3
+    command: /usr/bin/env python3 -m magma.directoryd.main
+
+  subscriberdb:
+    <<: *pyservice
+    container_name: subscriberdb
+    command: /usr/bin/env python3 -m magma.subscriberdb.main
+
+  policydb:
+    <<: *pyservice
+    container_name: policydb
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50068"]
+      timeout: "4s"
+      retries: 3
+    command: /usr/bin/env python3 -m magma.policydb.main
+
+  sctpd:
+    <<: *ltecservice
+    container_name: sctpd
+    privileged: true
+    ulimits:
+      core: -1
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
+    command: /usr/local/bin/sctpd
+
+  oai_config:
+    <<: *pyservice
+    container_name: oai_config
+    command: /usr/bin/env python3 /usr/local/bin/generate_oai_config.py
+    restart: "no"
+
+  oai_mme:
+    <<: *ltecservice
+    container_name: oai_mme
+    ulimits:
+      core: -1
+    security_opt:
+      - seccomp:unconfined
+
+  pipelined:
+    <<: *pyservice
+    container_name: pipelined
+    security_opt:
+      - seccomp:unconfined
+    privileged: true
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50063"]
+      timeout: "4s"
+      retries: 3
+    command: >
+      bash -c "/usr/bin/ovs-vsctl --all destroy Flow_Sample_Collector_Set &&
+        /usr/bin/ovs-vsctl set bridge gtp_br0 protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
+        /usr/bin/ovs-vsctl set-controller gtp_br0 tcp:127.0.0.1:6633 tcp:127.0.0.1:6654 &&
+        /usr/bin/ovsdb-client dump Controller _uuid|tail -n +4 | while read id ; do \
+          /usr/bin/ovs-vsctl set Controller $${id} inactivity_probe=300 ; done &&
+        /usr/bin/ovs-vsctl set-fail-mode gtp_br0 secure &&
+        /usr/bin/ovs-vsctl set-manager ptcp:6640 &&
+        /usr/bin/env python3 -m magma.pipelined.main "
+
+  sessiond:
+    <<: *ltecservice
+    container_name: sessiond
+    ulimits:
+      core: -1
+    security_opt:
+      - seccomp:unconfined
+    privileged: true
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
+    depends_on:
+      - directoryd
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50065"]
+      timeout: "4s"
+      retries: 3
+    command: >
+      sh -c "mkdir -p /var/opt/magma/cores &&
+        sysctl -w kernel.core_pattern=/var/opt/magma/cores/core.%e.%t &&
+        /usr/local/bin/sessiond"
+
+  mobilityd:
+    <<: *pyservice
+    container_name: mobilityd
+    command: /usr/bin/env python3 -m magma.mobilityd.main
