@@ -31,6 +31,7 @@ static void set_verbosity(uint32_t verbosity) {
 
 // get_verbosity gets the the global logging verbosity
 static google::int32 get_verbosity() {
+  (void)get_verbosity;
   return FLAGS_v;
 }
 
