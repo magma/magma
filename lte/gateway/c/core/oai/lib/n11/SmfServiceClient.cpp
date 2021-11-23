@@ -81,10 +81,6 @@ SetSMSessionContext create_sm_pdu_session_v4(
   // Set the Type of Request
   req_rat_specific->set_request_type(magma::lte::RequestType::INITIAL_REQUEST);
 
-  // Set the Address type
-  req_rat_specific->mutable_pdu_address()->set_redirect_address_type(
-      magma::lte::RedirectServer::IPV4);
-
   // Type is IPv4
   req_rat_specific->set_pdu_session_type(magma::lte::PduSessionType::IPV4);
 
