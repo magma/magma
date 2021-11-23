@@ -114,6 +114,5 @@ int main(void) {
     return -1;
   }
 
-  MLOG(MERROR) << "CleanUP " << reinterpret_cast<void*>(&pcap_dispatch);
   return 0;
 }
