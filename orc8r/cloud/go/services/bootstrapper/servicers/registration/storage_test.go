@@ -27,19 +27,19 @@ import (
 
 func TestBlobstoreStore(t *testing.T) {
 	var (
-		gatewayPreregisterInfo = &protos.GatewayPreregisterInfo{
+		gatewayPreregisterInfo = &protos.GatewayDeviceInfo{
 			NetworkId: "networkID1",
 			LogicalId: "logicalID1",
 		}
 
 		tokenInfo1 = &protos.TokenInfo{
-			GatewayPreregisterInfo: gatewayPreregisterInfo,
+			GatewayDeviceInfo: gatewayPreregisterInfo,
 			Nonce:                  "someNonce",
 			Timeout:                nil,
 		}
 
 		tokenInfo2 = &protos.TokenInfo{
-			GatewayPreregisterInfo: gatewayPreregisterInfo,
+			GatewayDeviceInfo: gatewayPreregisterInfo,
 			Nonce:                  "someNonce2",
 			Timeout:                nil,
 		}

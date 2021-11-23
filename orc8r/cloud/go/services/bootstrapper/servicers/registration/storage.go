@@ -48,8 +48,8 @@ func (b *blobstoreStore) SetTokenInfo(tokenInfo protos.TokenInfo) error {
 		return errors.Errorf("token is not unique")
 	}
 
-	networkID := tokenInfo.GatewayPreregisterInfo.NetworkId
-	logicalID := tokenInfo.GatewayPreregisterInfo.LogicalId
+	networkID := tokenInfo.GatewayDeviceInfo.NetworkId
+	logicalID := tokenInfo.GatewayDeviceInfo.LogicalId
 
 	store, err := b.factory.StartTransaction(nil)
 	if err != nil {
