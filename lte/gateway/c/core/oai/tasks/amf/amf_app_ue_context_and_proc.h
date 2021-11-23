@@ -268,6 +268,9 @@ typedef struct smf_context_s {
   int retransmission_count;
   protocol_configuration_options_t pco;
   uint32_t duplicate_pdu_session_est_req_count;
+  std::string dnn;
+  uint8_t sst;
+  uint8_t sd[SD_LENGTH];
 
   // Request to gnb on PDU establisment request
   pdu_session_resource_setup_req_t pdu_resource_setup_req;
@@ -391,8 +394,7 @@ typedef struct ue_m5gmm_context_s {
 /* Operation on UE context structure
  */
 int amf_insert_ue_context(
-    amf_ue_ngap_id_t ue_id, amf_ue_context_t* amf_ue_context_p,
-    ue_m5gmm_context_s* ue_context_p);
+    amf_ue_ngap_id_t ue_id, ue_m5gmm_context_s* ue_context_p);
 amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
     amf_ue_ngap_id_t* amf_app_ue_ngap_id_generator_p);
 /* Notify NGAP about the mapping between amf_ue_ngap_id and

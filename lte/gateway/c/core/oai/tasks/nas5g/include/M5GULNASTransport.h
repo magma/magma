@@ -19,6 +19,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainer.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GRequestType.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GDNN.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNSSAI.h"
 
 namespace magma5g {
 // ULNASTransport Message Class
@@ -34,6 +35,7 @@ class ULNASTransportMsg {
   RequestType request_type;
 #define UL_NAS_TRANSPORT_MINIMUM_LENGTH 7
   DNNMsg dnn;
+  NSSAIMsg nssai;
 
   ULNASTransportMsg();
   ~ULNASTransportMsg();

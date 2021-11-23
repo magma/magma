@@ -13,17 +13,29 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
+config_setting(
+    name = "disable_sentry_native",
+    values = {"define": "disable_sentry_native=1"},
+)
+
+sentry_deps = [
+    "//orc8r/gateway/c/common/config:service_config_loader",
+    "@yaml-cpp//:yaml-cpp",
+]
+
 cc_library(
     name = "sentry_wrapper",
     srcs = ["SentryWrapper.cpp"],
     hdrs = ["includes/SentryWrapper.h"],
     # TODO(@themarwhal): Enable Sentry by default - GH9302
-    copts = ["-DSENTRY_ENABLED"],
+    copts = select({
+        ":disable_sentry_native": [],
+        "//conditions:default": ["-DSENTRY_ENABLED", "-DSENTRY_BUILD_STATIC",],
+    }),
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/sentry",
-    deps = [
-        "//orc8r/gateway/c/common/config:service_config_loader",
-        "@sentry_native//:sentry",
-        "@yaml-cpp//:yaml-cpp",
-    ],
+    deps = select({
+        ":disable_sentry_native": sentry_deps,
+        "//conditions:default": sentry_deps + ["@sentry_native//:sentry"],
+    }),
 )

@@ -191,6 +191,9 @@ export type ci_node = {
 export type config_info = {
     mconfig_created_at ? : number,
 };
+export type control_proxy = {
+    control_proxy: string,
+};
 export type core_network_types = Array < "EPC" | "5GC" >
 ;
 export type csfb = {
@@ -9954,6 +9957,48 @@ export default class MagmaAPIBindings {
 
         if (parameters['tenant'] !== undefined) {
             body = parameters['tenant'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getTenantsByTenantIdControlProxy(
+            parameters: {
+                'tenantId': number,
+            }
+        ): Promise < control_proxy >
+        {
+            let path = '/tenants/{tenant_id}/control_proxy';
+            let body;
+            let query = {};
+            if (parameters['tenantId'] === undefined) {
+                throw new Error('Missing required  parameter: tenantId');
+            }
+
+            path = path.replace('{tenant_id}', `${parameters['tenantId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putTenantsByTenantIdControlProxy(
+        parameters: {
+            'tenantId': number,
+            'controlProxy': control_proxy,
+        }
+    ): Promise < "Ok" > {
+        let path = '/tenants/{tenant_id}/control_proxy';
+        let body;
+        let query = {};
+        if (parameters['tenantId'] === undefined) {
+            throw new Error('Missing required  parameter: tenantId');
+        }
+
+        path = path.replace('{tenant_id}', `${parameters['tenantId']}`);
+
+        if (parameters['controlProxy'] === undefined) {
+            throw new Error('Missing required  parameter: controlProxy');
+        }
+
+        if (parameters['controlProxy'] !== undefined) {
+            body = parameters['controlProxy'];
         }
 
         return await this.request(path, 'PUT', query, body);

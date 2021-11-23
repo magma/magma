@@ -53,7 +53,7 @@ def get_test_count(test_data):
     Returns:
         int: total test count
     """
-    return test_data.get("testsuites").get("testsuite").get("@tests")
+    return int(test_data.get("testsuites").get("testsuite").get("@tests"))
 
 
 def get_test_failures(test_data):
@@ -118,12 +118,13 @@ def header_blocks(test_count, failures):
                 "text": 'Daily Tests - PASSED',
             },
         })
+    successes = test_count - len(failures)
     blocks.append({
         "type": "context",
         "elements": [
             {
                 "type": "mrkdwn",
-                "text": f'Passed *{len(failures)}/{test_count}* tests',
+                "text": f'Passed *{successes}/{test_count}* tests',
             },
         ],
     })

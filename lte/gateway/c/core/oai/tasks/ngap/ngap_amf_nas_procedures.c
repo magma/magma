@@ -1083,8 +1083,8 @@ int ngap_fill_pdu_session_resource_setup_request_transfer(
       session_transfer->up_transport_layer_info.gtp_tnl.endpoint_ip_address
           ->data,
       gtp_tunnel_info->transportLayerAddress.size);
-  bdestroy(
-      session_transfer->up_transport_layer_info.gtp_tnl.endpoint_ip_address);
+  bdestroy_wrapper(
+      &session_transfer->up_transport_layer_info.gtp_tnl.endpoint_ip_address);
 
   /* TEID Information */
   gtp_tunnel_info->gTP_TEID.size = sizeof(uint32_t);

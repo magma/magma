@@ -236,6 +236,7 @@ cc_test(
     name = "proxy_responder_handler_test",
     size = "small",
     srcs = ["test_proxy_responder_handler.cpp"],
+    flaky = True,
     deps = [
         ":matchers",
         ":protobuf_creators",

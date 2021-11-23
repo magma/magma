@@ -10,9 +10,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import threading
-import subprocess
 import pickle
+import subprocess
+import threading
 
 
 class TesterState:
@@ -32,6 +32,7 @@ class Tester:
         # Get test results and prepare report
         verdict, report = self.load_test_results(dbfile="/tmp/test_res_pickle")
         # Callback
+        print("Test ended. Invoking callback function")
         self.callback(self.id, self.current_workload, verdict, report)
         self.current_workload = None
         self.current_build = None
@@ -40,7 +41,7 @@ class Tester:
     def load_test_results(self, dbfile):
         """test run can dump their results (dict) in pickle
         which can be loaded here and used to push back to DB
-        data format = {'verdict' = True/False, 'report': 'html file name with path'}
+        data format = {'verdict' = True/False, 'report': 'html file text'}
         """
         try:
             with open(dbfile, "rb") as dbfile:
@@ -59,26 +60,51 @@ class Tester:
         self.current_build = build
         self.callback = test_done_callback
 
-        # start test on current_workload
-        print("Tester {} Starting test on workload".format(self.id))
-        print(workload.key(), "==>", workload.val())
-
-        # register callback to call_ended()
-        # TODO pass pickle file from here to test run so we have control over it.
-
         def run_hil_thread(call_ended, popen_args):
-            proc = subprocess.Popen(*popen_args, stdout=subprocess.PIPE)
+            proc = subprocess.Popen(*popen_args, stdout=subprocess.PIPE, shell=True)
             proc.wait()
             call_ended()
             return
 
-        thread = threading.Thread(
-            target=run_hil_thread, args=(self.test_ended, ["./run_test.sh"])
-        )
-        thread.start()
+        if self.current_build.val().get("agw", {}).get("valid", False):
+            magma_build = next(
+                (
+                    pkg
+                    for pkg in self.current_build.val().get("agw", {}).get("packages", [])
+                    if "magma_" in pkg
+                ),
+                None,
+            )
+            if magma_build:
+                # start test on current_workload
+                print(f"Tester {self.id} Starting test on workload")
+                print(workload.key(), "==>", workload.val())
 
-        self.state = TesterState.BUSY
-        print("test started on workload".format(self.id))
+                # register callback to call_ended()
+                # TODO pass pickle file from here to test run.
+
+                thread = threading.Thread(
+                    target=run_hil_thread,
+                    args=(self.test_ended, ["./run_test.sh " + magma_build]),
+                )
+                thread.start()
+
+                self.state = TesterState.BUSY
+                print(f"test {self.id} started on workload")
+            else:
+                print("No Magma package found in packages list")
+                self.callback(self.id, self.current_workload, "fail", "NA")
+                self.current_workload = None
+                self.current_build = None
+                self.state = TesterState.READY
+
+        else:
+            print(f"Invalid AGW build {self.id}. Terminate test")
+            self.callback(self.id, self.current_workload, "fail", "NA")
+            self.current_workload = None
+            self.current_build = None
+            self.state = TesterState.READY
+
         return
 
     def is_ready(self):

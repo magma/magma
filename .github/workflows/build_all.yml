@@ -695,7 +695,7 @@ jobs:
       - name: Publish to
         env:
           FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
-          WORKERS: "fb_lab_spirent,fb_lab_tvm"  # all workers for post-merge pipeline. Comma separated
+          WORKERS: "fb_lab_spirent,fb_lab_tvm,wl_lab_5g"  # all workers for post-merge pipeline. Comma separated
           BUILD_ID: "${{ github.sha }}"
           BUILD_METADATA: '{"github:workflow": "${{ github.workflow }}", "github:run_id": "${{ github.run_id }}", "github:actor": "${{ github.actor }}", "github:repository": "${{ github.repository }}", "github:event_name": "${{ github.event_name }}", "github:sha": "${{ github.sha }}", "github:sha:url": "${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}", "github:ref": "${{ github.ref }}"}'
           AGW_ARTIFACTS: ${{ needs.agw-build.outputs.artifacts }}
