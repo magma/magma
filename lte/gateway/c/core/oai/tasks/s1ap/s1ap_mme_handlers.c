@@ -5352,7 +5352,7 @@ status_code_e s1ap_mme_handle_erab_rel_response(
   }
   S1AP_E_RAB_REL_RSP(message_p).mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
   S1AP_E_RAB_REL_RSP(message_p).enb_ue_s1ap_id = ue_ref_p->enb_ue_s1ap_id;
-  S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items           = 1;
+  S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items           = 0;
   S1AP_E_RAB_REL_RSP(message_p).e_rab_failed_to_rel_list.no_of_items = 0;
 
   const S1ap_E_RABList_t* const e_rab_list = &ie->value.choice.E_RABList;

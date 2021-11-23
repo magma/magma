@@ -2863,6 +2863,7 @@ void mme_app_handle_create_dedicated_bearer_rsp(
       "Sending Activate Dedicated Bearer Response to SPGW for "
       "ue-id: " MME_UE_S1AP_ID_FMT "\n",
       ue_context_p->mme_ue_s1ap_id);
+  update_mme_app_stats_s1u_bearer_add();
   send_pcrf_bearer_actv_rsp(ue_context_p, ebi, REQUEST_ACCEPTED);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 #endif
