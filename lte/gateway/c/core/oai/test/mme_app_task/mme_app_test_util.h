@@ -18,6 +18,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.h"
 }
 
 namespace magma {
@@ -32,10 +33,13 @@ namespace lte {
     dlNas, connEstConf, ctxRel, air, ulr, purgeReq, csr, mbr, relBearer, dsr,  \
     setAppHealth)                                                              \
   do {                                                                         \
-    EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport())         \
+    EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport)           \
         .Times(dlNas)                                                          \
-        .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \
-    EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(connEstConf); \
+        .WillRepeatedly(                                                       \
+            DoAll(SaveArg<0>(&msg_nas_dl_data), ReturnFromAsyncTask(&cv)));    \
+    EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf(_))                    \
+        .Times(connEstConf)                                                    \
+        .WillRepeatedly(SaveArg<0>(&nas_msg));                                 \
     EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command())       \
         .Times(ctxRel)                                                         \
         .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \
@@ -63,7 +67,8 @@ void send_sctp_mme_server_initialized();
 void send_activate_message_to_mme_app();
 
 void send_mme_app_initial_ue_msg(
-    const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn);
+    const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn,
+    guti_eps_mobile_identity_t& guti);
 
 void send_mme_app_uplink_data_ind(
     const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn);

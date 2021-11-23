@@ -68,13 +68,13 @@ jobs:
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
           python3 build.py --lint
       - name: Generate test coverage
-        if: steps.cloud-lint-lint.outcome=='success'
+        if: always() && steps.cloud-lint-lint.outcome=='success'
         id: cloud-lint-cov
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
           python3 build.py --coverage
       - uses: codecov/codecov-action@v1
-        if: steps.cloud-lint-cov.outcome=='success'
+        if: always() && steps.cloud-lint-cov.outcome=='success'
         id: cloud-lint-codecov
         with:
           files: '${{ env.MAGMA_ROOT}}/orc8r/cloud/coverage/all.gocov'

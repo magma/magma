@@ -61,6 +61,7 @@ filegroup(
 )
 
 # gazelle:prefix github.com/magma/magma
+# gazelle:exclude .cache/
 # gazelle:exclude orc8r/
 # gazelle:exclude lte/
 # gazelle:exclude feg/

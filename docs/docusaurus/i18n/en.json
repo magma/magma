@@ -288,6 +288,9 @@
       "nms/network": {
         "title": "Network"
       },
+      "nms/nms_organizations": {
+        "title": "Multitenancy (Organizations)"
+      },
       "nms/overview": {
         "title": "Overview"
       },

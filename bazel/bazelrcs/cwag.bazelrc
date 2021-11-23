@@ -1,0 +1,2 @@
+build --define=disable_sentry_native=1
+build --define=folly_so=1

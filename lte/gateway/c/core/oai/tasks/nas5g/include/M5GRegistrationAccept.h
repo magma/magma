@@ -33,7 +33,7 @@ class RegistrationAcceptMsg {
   M5GSMobileIdentityMsg mobile_id;
   UESecurityCapabilityMsg security_capability;
   TAIListMsg tai_list;
-  NSSAIMsg nssai;
+  NSSAIMsgList allowed_nssai;
   GPRSTimer3Msg gprs_timer;
 #define REGISTRATION_ACCEPT_MINIMUM_LENGTH 5
 

@@ -1,0 +1,51 @@
+---
+name: Build Docker image
+description: Build a docker image and push it to a registry on a imagestream with a certain tag
+
+inputs:
+  REGISTRY:
+    required: true
+    default: ghcr.io
+  IMAGE_STREAM:
+    required: true
+  IMAGE_TAGS:
+    required: true
+    default: type=sha
+  DOCKERFILE:
+    required: true
+  GITHUB_TOKEN:
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Check Out Repo
+      uses: actions/checkout@v2
+    - name: Set up Docker meta
+      id: meta
+      uses: docker/metadata-action@v3
+      with:
+        # defines the image stream the image is pushed to
+        images: ${{ inputs.REGISTRY }}/${{ inputs.IMAGE_STREAM }}
+        # defines the image tags added to the image
+        tags: ${{ inputs.IMAGE_TAGS }}
+    - name: Set up Docker Buildx
+      id: buildx
+      uses: docker/setup-buildx-action@v1
+    - name: Login to GHCR
+      uses: docker/login-action@v1
+      with:
+        registry: ${{ inputs.REGISTRY }}
+        username: ${{ github.repository_owner }}
+        password: ${{ inputs.GITHUB_TOKEN }}
+      if: ${{ github.event_name == 'push' && github.ref_name == 'master' && inputs.GITHUB_TOKEN != null }}
+    - name: Build and push Docker image
+      id: docker_build
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: ${{ inputs.DOCKERFILE }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        # without docker/metadata-action will only be accessible by hash
+        push: ${{ github.event_name == 'push' && github.ref_name == 'master' && inputs.GITHUB_TOKEN != null }}

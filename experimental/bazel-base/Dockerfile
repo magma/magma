@@ -104,6 +104,6 @@ RUN git clone https://gitlab.eurecom.fr/oai/asn1c.git && \
 # Update shared library configuration
 RUN ldconfig -v
 
-RUN ln -s /magma/experimental/bazel-base/bazelrcs/docker.bazelrc /etc/bazelrc
+RUN ln -s /magma/bazel/bazelrcs/docker.bazelrc /etc/bazelrc
 
 WORKDIR /magma
