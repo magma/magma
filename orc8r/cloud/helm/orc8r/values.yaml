@@ -21,6 +21,8 @@ nms:
     create: true
   certs:
     enabled: false
+  secret:
+    certs: orc8r-secrets-certs
 
 # Reference to one or more secrets to be used when pulling images
 # ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/

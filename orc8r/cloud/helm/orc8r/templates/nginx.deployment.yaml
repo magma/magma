@@ -56,6 +56,7 @@ spec:
         {{- end }}
         {{- else }}
         - name: certs
+          secret:
             secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
         - name: envdir
           secret:
