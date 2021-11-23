@@ -13,8 +13,6 @@ inputs:
     default: type=sha
   DOCKERFILE:
     required: true
-  GITHUB_TOKEN:
-    required: true
 
 runs:
   using: composite
@@ -37,8 +35,8 @@ runs:
       with:
         registry: ${{ inputs.REGISTRY }}
         username: ${{ github.repository_owner }}
-        password: ${{ inputs.GITHUB_TOKEN }}
-      if: ${{ github.event_name == 'push' && github.ref_name == 'master' && inputs.GITHUB_TOKEN != null }}
+        password: ${{ github.token }}
+      if: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}
     - name: Build and push Docker image
       id: docker_build
       uses: docker/build-push-action@v2
@@ -48,4 +46,4 @@ runs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         # without docker/metadata-action will only be accessible by hash
-        push: ${{ github.event_name == 'push' && github.ref_name == 'master' && inputs.GITHUB_TOKEN != null }}
+        push: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}
