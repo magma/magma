@@ -249,3 +249,15 @@ func GetPolicyDecision(ctx context.Context, getPDReq *certifierprotos.GetPolicyD
 	}
 	return pd, nil
 }
+
+func CreateUser(ctx context.Context, createUserReq *certifierprotos.CreateUserRequest) (*certifierprotos.Operator_TokenList, error) {
+	client, err := getCertifierClient()
+	if err != nil {
+		return nil, err
+	}
+	tokens, err := client.CreateUser(ctx, createUserReq)
+	if err != nil {
+		return nil, err
+	}
+	return tokens, nil
+}

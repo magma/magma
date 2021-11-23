@@ -40,7 +40,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/http_basic_auth'
+            $ref: '#/definitions/user_with_policy'
       responses:
         "201":
           description: Success
@@ -102,7 +102,6 @@ paths:
       summary: List all the tokens given a user
       tags:
         - HTTP Basic Auth
-
 parameters:
   username:
     in: path
@@ -112,6 +111,36 @@ parameters:
     type: string
 
 definitions:
+  user_with_policy:
+    description: an object that associates a user with its policy
+    properties:
+      user:
+        $ref: '#/definitions/http_basic_auth'
+      policy:
+        $ref: '#/definitions/policy'
+  policy:
+    description: an object that defines a user's permissions to access a resource
+    type: object
+    required:
+      - effect
+      - action
+      - resources
+    properties:
+      effect:
+        type: string
+        enum: [UNKNOWN, DENY, ALLOW]
+      action:
+        type: string
+        enum: [NONE, READ, WRITE]
+      resources:
+        type: array
+        items:
+          type: string
+    # TODO(christinewang5): openapi 2.0 doesn't support having multiple examples and this shows up as a list
+    example:
+      effect: ALLOW
+      action: WRITE
+      resources: "*"
   http_basic_auth:
     description: User's authentication info
     type: object

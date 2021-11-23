@@ -56,27 +56,40 @@ func getListHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.HandlerF
 	}
 }
 
-// TODO(christinewang5): should not be able to create users that already exist
+type CreateUserRequest struct {
+	User struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	} `json:"user"`
+	Policy struct {
+		Effect    string   `json:"effect"`
+		Action    string   `json:"action"`
+		Resources []string `json:"resource"`
+	} `json:"policy"`
+}
+
 func getCreateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		data := make(map[string]interface{})
+		var data CreateUserRequest
 		err := json.NewDecoder(c.Request().Body).Decode(&data)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request for HTTP basic auth: %v", err))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request body for creating user: %v", err))
 		}
 
-		username := fmt.Sprintf("%v", data["username"])
-		password := []byte(fmt.Sprintf("%v", data["password"]))
+		// parse user from response body
+		username := fmt.Sprintf("%v", data.User.Username)
+		password := []byte(fmt.Sprintf("%v", data.User.Password))
 		hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error hashing password: %v", err))
 		}
-
+		// generate token for user
 		token, err := certifier.GenerateToken(certifier.Personal)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error generating personal access token for operator: %v", err))
 		}
 
+		// store user and token
 		operator := &certProtos.Operator{
 			Username: username,
 			Password: hashedPassword,
@@ -86,12 +99,32 @@ func getCreateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.Handle
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 
-		// TODO(christinewang5): remove this once bootstrapping is finished...
+		// store token and policy
+		var effect certProtos.Effect
+		switch data.Policy.Effect {
+		case certProtos.Effect_DENY.String():
+			effect = certProtos.Effect_DENY
+		case certProtos.Effect_ALLOW.String():
+			effect = certProtos.Effect_ALLOW
+		default:
+			effect = certProtos.Effect_UNKNOWN
+		}
+		var action certProtos.Action
+		switch data.Policy.Action {
+		case certProtos.Action_READ.String():
+			action = certProtos.Action_READ
+		case certProtos.Action_WRITE.String():
+			action = certProtos.Action_WRITE
+		default:
+			action = certProtos.Action_NONE
+		}
 		policy := &certProtos.Policy{
-			Token:     token,
-			Effect:    certProtos.Effect_ALLOW,
-			Action:    certProtos.Action_WRITE,
-			Resources: &certProtos.Policy_ResourceList{Resource: []string{"*"}},
+			Token:  token,
+			Effect: effect,
+			Action: action,
+			Resources: &certProtos.Policy_ResourceList{
+				Resource: data.Policy.Resources,
+			},
 		}
 		if err = storage.PutPolicy(token, policy); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)

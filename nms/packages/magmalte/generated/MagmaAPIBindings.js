@@ -1198,6 +1198,12 @@ export type plmn_config = {
     mcc: string,
     mnc: string,
 };
+export type policy = {
+    action: "NONE" | "READ" | "WRITE",
+    effect: "UNKNOWN" | "DENY" | "ALLOW",
+    resources: Array < string >
+        ,
+};
 export type policy_id = string;
 export type policy_ids = Array < policy_id >
 ;
@@ -1554,6 +1560,10 @@ export type unmanaged_enodeb_configuration = {
 };
 export type untyped_mme_state = {};
 export type untyped_subscriber_state = {};
+export type user_with_policy = {
+    policy ? : policy,
+    user ? : http_basic_auth,
+};
 export type version_info = {
     container_image_version ? : string,
     helm_chart_version ? : string,
@@ -4198,7 +4208,7 @@ export default class MagmaAPIBindings {
         }
     static async postHttpBasicAuth(
         parameters: {
-            'user': http_basic_auth,
+            'user': user_with_policy,
         }
     ): Promise < "Success" > {
         let path = '/http_basic_auth';

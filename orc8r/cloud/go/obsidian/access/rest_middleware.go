@@ -14,12 +14,14 @@ limitations under the License.
 package access
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/accessd"
@@ -103,18 +105,24 @@ func makeErr(decorate logDecorator, status int, errFmt string, errArgs ...interf
 	return echo.NewHTTPError(status, fmt.Sprintf(errFmt, errArgs...))
 }
 
+// TokenMiddleware parses the <username>:<token> from the header, validates the token,
+// then checks if the request is within the specified permissions granted to the user
 func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := c.Request()
 		header := req.Header.Get(CLIENT_ACCESS_TOKEN_KEY)
 
-		// TODO(christinewang5): remove after bootstrapping admin token
-		// if len(tokens) == 0 {
-		// 	return echo.NewHTTPError(http.StatusUnauthorized, "missing REST client tokens")
-		// }
 		username, token, err := parseAuthHeader(header)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			// TODO(christinewang5): remove after bootstrapping admin token
+			glog.Error("no header found, bootstrapping admin user")
+			adminToken, err := bootstrapAdmin(req.Context())
+			if err != nil {
+				return echo.NewHTTPError(http.StatusInternalServerError, err)
+			}
+			username = RootUsername
+			token = adminToken
+			// return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
 
 		if err := certifier.ValidateToken(token); err != nil {
@@ -152,15 +160,35 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+const RootUsername = "root"
+
+func bootstrapAdmin(ctx context.Context) (string, error) {
+	user := certifierprotos.Operator{
+		Username: RootUsername,
+		Password: []byte("password"),
+	}
+	policy := certifierprotos.Policy{
+		Effect:    certifierprotos.Effect_ALLOW,
+		Action:    certifierprotos.Action_WRITE,
+		Resources: &certifierprotos.Policy_ResourceList{Resource: []string{"*"}},
+	}
+	req := certifierprotos.CreateUserRequest{
+		User:   &user,
+		Policy: &policy,
+	}
+	tokens, err := certifier.CreateUser(ctx, &req)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to create bootstrap admin user")
+	}
+	return tokens.GetToken()[0], nil
+}
+
+// parseAuthHeader parse the <username>:<token> from the auth header and returns them separately
 func parseAuthHeader(header string) (string, string, error) {
 	s := strings.Split(header, ":")
-	// TODO(christinewang5): remove after bootstrapping admin token
 	if len(s) != 2 {
-		return "root", "op_oyBe2SmUx8Gr6o7NcpjXjVP50oNmFNAHKqy1JasH5lHzpNfGA", nil
+		return "", "", echo.NewHTTPError(http.StatusUnauthorized, "missing REST client tokens")
 	}
-	// if len(s) != 2 {
-	// 	return s[0], s[1], echo.NewHTTPError(http.StatusUnauthorized, "missing REST client tokens")
-	// }
 	return s[0], s[1], nil
 }
 

@@ -30,6 +30,7 @@ import (
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/identity"
+	"magma/orc8r/cloud/go/services/certifier"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/lib/go/errors"
@@ -460,7 +461,6 @@ func (srv *CertifierServer) GetOperatorTokens(ctx context.Context, getOpReq *cer
 			codes.Internal, "failed to fetch user %s from database: %v", username, err)
 	}
 	// check if token is registered with user
-	// TODO(christinewang5): ugh why is finding things in list so hard? should i use a map?
 	token := getOpReq.GetToken()
 	flag := false
 	tokens := user.GetTokens()
@@ -470,7 +470,7 @@ func (srv *CertifierServer) GetOperatorTokens(ctx context.Context, getOpReq *cer
 		}
 	}
 	if !flag {
-		return &certprotos.Operator_TokenList{}, status.Errorf(codes.PermissionDenied, "token %s is not registered with user %s", token, user)
+		return &certprotos.Operator_TokenList{}, status.Errorf(codes.PermissionDenied, "token is not registered with user %s", user.Username)
 	}
 	return tokens, nil
 }
@@ -512,17 +512,6 @@ func (srv *CertifierServer) getPolicyDecisionFromToken(token string, resource st
 	return effect, nil
 }
 
-// TODO(christinewang5): lol is this sketchy
-func buildPatternHelper(pattern string, resource string) string {
-	patternComponents := strings.Split(pattern, "/")
-	resourceComponents := strings.Split(resource, "/")
-	lenDiff := len(resourceComponents) - len(patternComponents)
-	if lenDiff != 0 {
-		return pattern + strings.Repeat("/*", lenDiff)
-	}
-	return pattern
-}
-
 // checkResource checks if the requested resource is authorized by the policy
 func checkResource(resource string, policy *certprotos.Policy) (certprotos.Effect, error) {
 	effect := policy.GetEffect()
@@ -547,4 +536,49 @@ func checkAction(action certprotos.Action, policy *certprotos.Policy) certprotos
 		return certprotos.Effect_ALLOW
 	}
 	return certprotos.Effect_DENY
+}
+
+// buildPatternHelper appends additional wildcards so to the specified resource path
+// that the path would match recursively
+func buildPatternHelper(pattern string, resource string) string {
+	patternComponents := strings.Split(pattern, "/")
+	resourceComponents := strings.Split(resource, "/")
+	lenDiff := len(resourceComponents) - len(patternComponents)
+	if lenDiff != 0 {
+		return pattern + strings.Repeat("/*", lenDiff)
+	}
+	return pattern
+}
+
+func (srv *CertifierServer) CreateUser(ctx context.Context, createUserReq *certprotos.CreateUserRequest) (*certprotos.Operator_TokenList, error) {
+	token, err := certifier.GenerateToken(certifier.Personal)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to generate token while creating user")
+	}
+
+	_, err = srv.store.GetHTTPBasicAuth(createUserReq.User.Username)
+	if err == nil {
+		return nil, status.Errorf(codes.AlreadyExists, "user already exists")
+	}
+
+	user := certprotos.Operator{
+		Username: createUserReq.User.Username,
+		Password: createUserReq.User.Password,
+		Tokens:   &certprotos.Operator_TokenList{Token: []string{token}},
+	}
+	err = srv.store.PutHTTPBasicAuth(createUserReq.User.Username, &user)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to store user while creating user")
+	}
+	policy := certprotos.Policy{
+		Token:     token,
+		Effect:    createUserReq.Policy.Effect,
+		Action:    createUserReq.Policy.Action,
+		Resources: createUserReq.Policy.Resources,
+	}
+	err = srv.store.PutPolicy(token, &policy)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to store policy while creating user")
+	}
+	return &certprotos.Operator_TokenList{Token: []string{token}}, nil
 }

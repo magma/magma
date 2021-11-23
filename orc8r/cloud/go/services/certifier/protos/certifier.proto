@@ -85,6 +85,11 @@ message GetOperatorRequest {
   string token = 2;
 }
 
+message CreateUserRequest {
+  Operator user = 1;
+  Policy policy = 2;
+}
+
 message GetPolicyDecisionRequest {
   Operator.TokenList tokenList = 1;
   Action  requestAction = 2;
@@ -135,6 +140,10 @@ service Certifier {
   // Get all operator tokens given a username and token
   rpc GetOperatorTokens (GetOperatorRequest) returns (Operator.TokenList) {}
 
-  // Returns a policy decision given tokens, request action
+  // Returns a policy decision given tokens, action based on the request method
+  // (read/write), and the requested resource
   rpc GetPolicyDecision (GetPolicyDecisionRequest) returns (PolicyDecision) {}
+
+  // Creates a new user
+  rpc CreateUser (CreateUserRequest) returns (Operator.TokenList) {}
 }

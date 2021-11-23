@@ -17,14 +17,13 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
 	certifier_test_service "magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/cloud/go/services/certifier/test_utils"
-
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
-
 	tenantsh "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
 )
 
@@ -55,12 +54,12 @@ func TestAuthMiddleware(t *testing.T) {
 	store := test_utils.GetCertifierBlobstore(t)
 	bob := "bob"
 	root := "root"
-	bobUser, bobToken := test_utils.CreateTestUser(t, bob, "password")
-	rootUser, rootToken := test_utils.CreateTestUser(t, root, "password")
+	bobUser, bobToken := test_utils.CreateTestUser(bob, "password")
+	rootUser, rootToken := test_utils.CreateTestUser(root, "password")
 	err := store.PutHTTPBasicAuth(bob, &bobUser)
 	err = store.PutHTTPBasicAuth(root, &rootUser)
 	bobPolicy := test_utils.CreateUserPolicy(t, bobToken)
-	rootPolicy := test_utils.CreateAdminPolicy(t, rootToken)
+	rootPolicy := test_utils.CreateAdminPolicy(rootToken)
 	err = store.PutPolicy(bobToken, &bobPolicy)
 	err = store.PutPolicy(rootToken, &rootPolicy)
 	assert.NoError(t, err)
@@ -74,10 +73,20 @@ func TestAuthMiddleware(t *testing.T) {
 	}
 	urlPrefix := "http://" + listener.Addr().String()
 	testNetworkURLRoot := urlPrefix + "/magma/v1/networks"
+
+	// Test READ endpoint
 	s, err := SendRequestWithToken("GET", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, root, rootToken)
 	assert.NoError(t, err)
 	assert.Equal(t, 200, s)
 	s, err = SendRequestWithToken("GET", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, bob, bobToken)
+	assert.NoError(t, err)
+	assert.Equal(t, 200, s)
+
+	// Test WRITE endpoint
+	s, err = SendRequestWithToken("PUT", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, root, rootToken)
+	assert.NoError(t, err)
+	assert.Equal(t, 200, s)
+	s, err = SendRequestWithToken("PUT", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, bob, bobToken)
 	assert.NoError(t, err)
 	assert.Equal(t, 403, s)
 }

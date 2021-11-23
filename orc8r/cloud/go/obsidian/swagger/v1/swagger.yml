@@ -1918,7 +1918,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/http_basic_auth'
+          $ref: '#/definitions/user_with_policy'
       responses:
         "201":
           description: Success
@@ -11051,6 +11051,34 @@ definitions:
     - mcc
     - mnc
     type: object
+  policy:
+    description: an object that defines a user's permissions to access a resource
+    example:
+      action: WRITE
+      effect: ALLOW
+      resources: '*'
+    properties:
+      action:
+        enum:
+        - NONE
+        - READ
+        - WRITE
+        type: string
+      effect:
+        enum:
+        - UNKNOWN
+        - DENY
+        - ALLOW
+        type: string
+      resources:
+        items:
+          type: string
+        type: array
+    required:
+    - effect
+    - action
+    - resources
+    type: object
   policy_id:
     example: All ICMP
     minLength: 1
@@ -12217,6 +12245,13 @@ definitions:
     description: Arbitrary untyped JSON object that represents replicated subscriber-related
       state
     type: object
+  user_with_policy:
+    description: an object that associates a user with its policy
+    properties:
+      policy:
+        $ref: '#/definitions/policy'
+      user:
+        $ref: '#/definitions/http_basic_auth'
   version_info:
     properties:
       container_image_version:
