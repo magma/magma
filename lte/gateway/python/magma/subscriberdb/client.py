@@ -16,9 +16,9 @@ import logging
 from typing import List, NamedTuple, Optional
 
 import grpc
-from lte.protos import subscriberdb_pb2
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.s6a_service_pb2_grpc import S6aServiceStub
+from lte.protos import subscriberdb_pb2
 from lte.protos.subscriberdb_pb2 import (
     CheckInSyncRequest,
     ListSubscribersRequest,
@@ -67,6 +67,7 @@ suci_profile_data = NamedTuple(
     ],
 )
 
+
 class SubscriberDBCloudClient(SDWatchdogTask):
     """
     SubscriberDBCloudClient for requesting subscribers from Orchestrator.
@@ -106,8 +107,6 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         self._loop = loop
         self._subscriber_page_size = subscriber_page_size
         self._store = store
-        suciprofile_db = dict()
-        self.suciprofile_db = suciprofile_db
 
         # grpc_client_manager to manage grpc client recycling
         self._grpc_client_manager = grpc_client_manager
@@ -279,15 +278,20 @@ class SubscriberDBCloudClient(SDWatchdogTask):
                     self._loop,
                 )
                 self.suciprofile_db[res.home_net_public_key_id] = suci_profile_data(
-                            res.protection_scheme, res.home_net_public_key,
-                            res.home_net_private_key)
+                    res.protection_scheme, res.home_net_public_key,
+                    res.home_net_private_key,
+                )
 
                 suciprofiles = []
                 for k, v in self.suciprofile_db.items():
-                    suciprofiles.append(SuciProfile(home_network_public_key_identifier = int(k),
-                                protection_scheme = v.protection_scheme,
-                                home_network_public_key = v.home_network_public_key,
-                                home_network_private_key = v.home_network_private_key))
+                    suciprofiles.append(
+                        SuciProfile(
+                            home_network_public_key_identifier=int(k),
+                            protection_scheme=v.protection_scheme,
+                            home_network_public_key=v.home_network_public_key,
+                            home_network_private_key=v.home_network_private_key,
+                        ),
+                    )
                 logging.info("List of suciprofiles: %s", suciprofiles)
                 res = subscriberdb_pb2.SuciProfileList(sp=suciprofiles)
                 return res
@@ -338,7 +342,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         if leaf_digests is None:
             return
         self._store.update_leaf_digests(leaf_digests)
-    
+
     def _process_subscribers(self, subscribers: List[SubscriberData]) -> None:
         active_subscriber_ids = []
         sids = []
@@ -352,8 +356,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         self._detach_deleted_subscribers(old_sub_ids, active_subscriber_ids)
         logging.debug("Resync with subscribers: %s", ','.join(sids))
         self._store.resync(subscribers)
-    
-        
+
     def _detach_deleted_subscribers(self, old_sub_ids, new_sub_ids):
         """
         Detach deleted subscribers from store and network.
