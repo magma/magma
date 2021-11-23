@@ -19,17 +19,16 @@ import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/bootstrapper"
 	"magma/orc8r/cloud/go/storage"
-	mErrors "magma/orc8r/lib/go/errors"
+	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 )
 
 const networkWildcard = "*"
 
 type Store interface {
-	SetTokenInfo(oldNonce string, tokenInfo protos.TokenInfo) error
+	SetTokenInfo(tokenInfo protos.TokenInfo) error
 	GetTokenInfoFromLogicalID(networkID string, logicalID string) (*protos.TokenInfo, error)
 	GetTokenInfoFromNonce(nonce string) (*protos.TokenInfo, error)
-	IsNonceUnique(nonce string) (bool, error)
 }
 
 type blobstoreStore struct {
@@ -40,7 +39,15 @@ func NewBlobstoreStore(factory blobstore.StoreFactory) Store {
 	return &blobstoreStore{factory}
 }
 
-func (b *blobstoreStore) SetTokenInfo(oldNonce string, tokenInfo protos.TokenInfo) error {
+func (b *blobstoreStore) SetTokenInfo(tokenInfo protos.TokenInfo) error {
+	isUnique, err := b.isNonceUnique(tokenInfo.Nonce)
+	if err != nil {
+		return err
+	}
+	if !isUnique {
+		return errors.Errorf("token is not unique")
+	}
+
 	networkID := tokenInfo.GatewayPreregisterInfo.NetworkId
 	logicalID := tokenInfo.GatewayPreregisterInfo.LogicalId
 
@@ -66,19 +73,6 @@ func (b *blobstoreStore) SetTokenInfo(oldNonce string, tokenInfo protos.TokenInf
 	err = store.Write(networkWildcard, blobstore.Blobs{nonceBlob})
 	if err != nil {
 		return err
-	}
-
-	if oldNonce != "" {
-		oldNonceTK := storage.TKs{{
-			Type: string(bootstrapper.NonceTokenToInfoMap),
-			Key:  oldNonce,
-		}}
-		err = store.Delete(networkWildcard, oldNonceTK)
-		if err != nil {
-			if err != mErrors.ErrNotFound{
-				return err
-			}
-		}
 	}
 
 	return store.Commit()
@@ -132,10 +126,10 @@ func (b *blobstoreStore) GetTokenInfoFromNonce(nonce string) (*protos.TokenInfo,
 	return &tokenInfo, store.Commit()
 }
 
-func (b *blobstoreStore) IsNonceUnique(nonce string) (bool, error) {
+func (b *blobstoreStore) isNonceUnique(nonce string) (bool, error) {
 	tokenInfo, err := b.GetTokenInfoFromNonce(nonce)
 	if err != nil {
-		if err == mErrors.ErrNotFound {
+		if err == merrors.ErrNotFound {
 			return true, nil
 		}
 		return false, err
@@ -151,11 +145,12 @@ func tokenInfoToBlob(blobType bootstrapper.DBBlobType, key string, tokenInfo pro
 	if err != nil {
 		return blobstore.Blob{}, errors.Wrap(err, "Error marshaling protobuf")
 	}
-	return blobstore.Blob{
+	blob := blobstore.Blob{
 		Type:  string(blobType),
 		Key:   key,
 		Value: marshaledTokenInfo,
-	}, nil
+	}
+	return blob, nil
 }
 
 func tokenInfoFromBlob(blob blobstore.Blob) (protos.TokenInfo, error) {

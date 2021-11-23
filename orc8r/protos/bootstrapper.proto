@@ -83,19 +83,20 @@ service CloudRegistration {
   rpc GetToken(GetTokenRequest) returns (GetTokenResponse) {}
 
   // GetInfoForGatewayRegistration sends out information needed for gateways to register themselves
-  rpc GetInfoForGatewayRegistration(GetInfoForGatewayRegistrationRequest) returns (GetInfoForGatewayRegistrationResponse) {}
+  rpc GetGatewayRegistrationInfo(GetGatewayRegistrationInfoRequest) returns (GetGatewayRegistrationInfoResponse) {}
 
   // GetGatewayPreregisterInfo sends out information that has been set when the operator preregistered
   // the device with networkID and logicalID
-  rpc GetGatewayPreregisterInfo(GetGatewayPreregisterInfoRequest) returns (GetGatewayPreregisterInfoResponse) {}
+  rpc GetGatewayDeviceInfo(GetGatewayDeviceInfoRequest) returns (GetGatewayDeviceInfoResponse) {}
 }
 
 service Registration {
+  // Register should be called by the gateway device
   rpc Register(RegisterRequest) returns (RegisterResponse) {}
 }
 
 message GetTokenRequest {
-  GatewayPreregisterInfo gateway_preregister_info = 1;
+  GatewayDeviceInfo gateway_device_info = 1;
   // refresh is true if a new token should be generated regardless of old token timeout
   bool refresh = 2;
 }
@@ -106,22 +107,22 @@ message GetTokenResponse {
   google.protobuf.Timestamp timeout = 2;
 }
 
-message GetInfoForGatewayRegistrationRequest {
+message GetGatewayRegistrationInfoRequest {
 }
 
-message GetInfoForGatewayRegistrationResponse {
+message GetGatewayRegistrationInfoResponse {
   string root_ca = 1;
   string domain_name = 2;
 }
 
-message GetGatewayPreregisterInfoRequest {
+message GetGatewayDeviceInfoRequest {
   // token is a nonce prepended by bootstrapper.tokenPrepend
   string token = 1;
 }
 
-message GetGatewayPreregisterInfoResponse {
+message GetGatewayDeviceInfoResponse {
   oneof response {
-    GatewayPreregisterInfo gateway_preregister_info = 1;
+    GatewayDeviceInfo gateway_device_info = 1;
     string error = 2;
   }
 }
@@ -142,13 +143,13 @@ message RegisterResponse {
   }
 }
 
-message GatewayPreregisterInfo {
+message GatewayDeviceInfo {
   string network_id = 1;
   string logical_id = 2;
 }
 
 message TokenInfo {
-  GatewayPreregisterInfo gateway_preregister_info = 1;
+  GatewayDeviceInfo gateway_device_info = 1;
   string nonce = 2;
   google.protobuf.Timestamp timeout = 3;
 }

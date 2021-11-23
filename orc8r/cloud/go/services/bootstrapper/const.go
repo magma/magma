@@ -14,12 +14,13 @@ limitations under the License.
 package bootstrapper
 
 const (
-	ServiceName  = "BOOTSTRAPPER"
-	DBTableName  = "bootstrapper"
-	TokenPrepend = "reg-"
+	ServiceName        = "BOOTSTRAPPER"
+	BlobstoreTableName = "bootstrapper"
+	TokenPrepend       = "reg_"
 )
 
 type DBBlobType string
+
 const (
 	LogicalIDToTokenInfo DBBlobType = "logical_id_to_token_info"
 	NonceTokenToInfoMap  DBBlobType = "nonce_to_token_info"

@@ -19,46 +19,36 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/stretchr/testify/assert"
 
-	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/bootstrapper"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers/registration"
-	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 )
 
-var (
-	unusedNonce = "unusedNonce"
-
-	gatewayPreregisterInfo = protos.GatewayPreregisterInfo{
-		NetworkId: "networkID1",
-		LogicalId: "logicalID1",
-	}
-
-	tokenInfo1 = protos.TokenInfo{
-		GatewayPreregisterInfo: &gatewayPreregisterInfo,
-		Nonce:                  "someNonce",
-		Timeout:                nil,
-	}
-
-	tokenInfo2 = protos.TokenInfo{
-		GatewayPreregisterInfo: &gatewayPreregisterInfo,
-		Nonce:                  "someNonce2",
-		Timeout:                nil,
-	}
-)
-
 func TestBlobstoreStore(t *testing.T) {
-	db, err := sqorc.Open("sqlite3", ":memory:")
-	assert.NoError(t, err)
-	factory := blobstore.NewSQLStoreFactory(bootstrapper.DBTableName, db, sqorc.GetSqlBuilder())
-	assert.NoError(t, factory.InitializeFactory())
+	var (
+		gatewayPreregisterInfo = &protos.GatewayPreregisterInfo{
+			NetworkId: "networkID1",
+			LogicalId: "logicalID1",
+		}
+
+		tokenInfo1 = &protos.TokenInfo{
+			GatewayPreregisterInfo: gatewayPreregisterInfo,
+			Nonce:                  "someNonce",
+			Timeout:                nil,
+		}
+
+		tokenInfo2 = &protos.TokenInfo{
+			GatewayPreregisterInfo: gatewayPreregisterInfo,
+			Nonce:                  "someNonce2",
+			Timeout:                nil,
+		}
+	)
+
+	factory := test_utils.NewSQLBlobstore(t, bootstrapper.BlobstoreTableName)
 	s := registration.NewBlobstoreStore(factory)
 
 	// Asserts store works as expected when nonce is not saved in store
-
-	isUnique, err := s.IsNonceUnique(tokenInfo1.Nonce)
-	assert.NoError(t, err)
-	assert.Equal(t, true, isUnique)
 
 	tokenInfo, err := s.GetTokenInfoFromNonce(tokenInfo1.Nonce)
 	assert.Error(t, errors.NotFound("Not found"), err)
@@ -70,45 +60,36 @@ func TestBlobstoreStore(t *testing.T) {
 
 	// Setup tokenInfo1 and test that store works as expected
 
-	err = s.SetTokenInfo("", tokenInfo1)
-	assert.NoError(t, err)
-
-	// try SetTokenInfo with an oldNonce that isn't in the store
-	err = s.SetTokenInfo(unusedNonce, tokenInfo1)
+	err = s.SetTokenInfo(*tokenInfo1)
 	assert.NoError(t, err)
 
 	tokenInfo, err = s.GetTokenInfoFromNonce(tokenInfo1.Nonce)
 	assert.NoError(t, err)
-	assert.Equal(t, tokenInfo1, *tokenInfo)
+	assert.Equal(t, tokenInfo1, tokenInfo)
 
 	tokenInfo, err = s.GetTokenInfoFromLogicalID(gatewayPreregisterInfo.NetworkId, gatewayPreregisterInfo.LogicalId)
 	assert.NoError(t, err)
-	assert.Equal(t, tokenInfo1, *tokenInfo)
+	assert.Equal(t, tokenInfo1, tokenInfo)
 
-	isUnique, err = s.IsNonceUnique(tokenInfo1.Nonce)
-	assert.NoError(t, err)
-	assert.Equal(t, false, isUnique)
+	// Set new token info and see that store works as expected
 
-	// Replace old nonce with new nonce value and see that store works as expected
-
-	err = s.SetTokenInfo(tokenInfo1.Nonce, tokenInfo2)
+	err = s.SetTokenInfo(*tokenInfo2)
 	assert.NoError(t, err)
 
 	tokenInfo, err = s.GetTokenInfoFromNonce(tokenInfo1.Nonce)
-	assert.Error(t, errors.NotFound("Not found"), err)
-	assert.Nil(t, tokenInfo)
-	isUnique, err = s.IsNonceUnique(tokenInfo1.Nonce)
 	assert.NoError(t, err)
-	assert.Equal(t, true, isUnique)
+	assert.Equal(t, tokenInfo1, tokenInfo)
 
 	tokenInfo, err = s.GetTokenInfoFromNonce(tokenInfo2.Nonce)
 	assert.NoError(t, err)
-	assert.Equal(t, tokenInfo2, *tokenInfo)
-	isUnique, err = s.IsNonceUnique(tokenInfo2.Nonce)
-	assert.NoError(t, err)
-	assert.Equal(t, false, isUnique)
+	assert.Equal(t, tokenInfo2, tokenInfo)
 
 	tokenInfo, err = s.GetTokenInfoFromLogicalID(gatewayPreregisterInfo.NetworkId, gatewayPreregisterInfo.LogicalId)
 	assert.NoError(t, err)
-	assert.Equal(t, tokenInfo2, *tokenInfo)
+	assert.Equal(t, tokenInfo2, tokenInfo)
+
+	// Try setting with old nonce and see that store errors as expected
+
+	err = s.SetTokenInfo(*tokenInfo1)
+	assert.Error(t, errors.NotFound("token is not unique"), err)
 }
