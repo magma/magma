@@ -611,11 +611,10 @@ imsi64_t mme_app_handle_initial_ue_message(
         "INITIAL UE Message: Valid mme_code %u and S-TMSI %u received from "
         "eNB.\n",
         initial_pP->opt_s_tmsi.mme_code, initial_pP->opt_s_tmsi.m_tmsi);
-    guti_t guti = {
-        .gummei.plmn     = {0},
-        .gummei.mme_gid  = 0,
-        .gummei.mme_code = 0,
-        .m_tmsi          = INVALID_M_TMSI};
+    guti_t guti = {.gummei.plmn     = {0},
+                   .gummei.mme_gid  = 0,
+                   .gummei.mme_code = 0,
+                   .m_tmsi          = INVALID_M_TMSI};
     plmn_t plmn;
     COPY_PLMN(plmn, (initial_pP->tai.plmn));
     is_guti_valid =
@@ -1115,7 +1114,7 @@ status_code_e mme_app_handle_create_sess_resp(
         "Create Session Response Cause value = (%d) for ue_id =(%u)\n",
         create_sess_resp_pP->cause.cause_value, ue_context_p->mme_ue_s1ap_id);
     create_session_response_fail.cause =
-        (pdn_conn_rsp_cause_t) (create_sess_resp_pP->cause.cause_value);
+        (pdn_conn_rsp_cause_t)(create_sess_resp_pP->cause.cause_value);
     goto error_handling_csr_failure;
   }
   increment_counter("mme_spgw_create_session_rsp", 1, 1, "result", "success");
