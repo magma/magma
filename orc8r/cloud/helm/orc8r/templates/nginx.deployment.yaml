@@ -48,7 +48,6 @@ spec:
 {{ toYaml . | trimSuffix "\n" | indent 8 }}
       {{- end }}
       volumes:
-
         {{- if .Values.certs.enabled }}
         {{- range tuple "controller" "certifier" }}
         - name: {{ . }}

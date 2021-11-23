@@ -20,7 +20,7 @@ nms:
   nginx:
     create: true
   certs:
-    enabled: true
+    enabled: false
 
 # Reference to one or more secrets to be used when pulling images
 # ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
@@ -56,8 +56,8 @@ secret:
 
 # certs sub-chart configuration.
 certs:
-  create: true
-  enabled: true
+  create: false
+  enabled: false
 
   domainName: ""
 

@@ -15,7 +15,7 @@ imagePullSecrets: []
 # - name: orc8r-secrets-registry
 
 certs:
-  enabled: true
+  enabled: false
 
 # Generic values applied to all orc8r application services
 controller:
