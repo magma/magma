@@ -130,11 +130,11 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		// make sure that token is registered with user
-		getOpReq := certifierprotos.GetOperatorRequest{
+		getOpReq := certifierprotos.GetUserRequest{
 			Username: username,
 			Token:    token,
 		}
-		tokensList, err := certifier.GetOperatorTokens(req.Context(), &getOpReq)
+		tokensList, err := certifier.GetUserTokens(req.Context(), &getOpReq)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
@@ -163,7 +163,7 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 const RootUsername = "root"
 
 func bootstrapAdmin(ctx context.Context) (string, error) {
-	user := certifierprotos.Operator{
+	user := certifierprotos.User{
 		Username: RootUsername,
 		Password: []byte("password"),
 	}

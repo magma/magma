@@ -15,6 +15,7 @@ const (
 	Personal TokenPrefix = "op"
 )
 
+// GenerateToken generates a random 32-byte token with a checksum
 func GenerateToken(prefix TokenPrefix) (string, error) {
 	// generate 32 random bytes
 	bytes := make([]byte, 32)
@@ -32,6 +33,8 @@ func GenerateToken(prefix TokenPrefix) (string, error) {
 	return string(prefix) + "_" + token, nil
 }
 
+// ValidateToken makes sure the token has the appropriate header and
+// that the checksum is correct
 func ValidateToken(token string) error {
 	value, err := stripTokenHeader(token)
 	if err != nil {

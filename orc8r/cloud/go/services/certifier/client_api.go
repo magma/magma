@@ -226,18 +226,20 @@ func VerifyDateRange(certInfo CertDateRange) error {
 	return nil
 }
 
-func GetOperatorTokens(ctx context.Context, getOpReq *certifierprotos.GetOperatorRequest) (*certifierprotos.Operator_TokenList, error) {
+// GetUserTokens fetches the tokens associated with a user
+func GetUserTokens(ctx context.Context, getUserReq *certifierprotos.GetUserRequest) (*certifierprotos.User_TokenList, error) {
 	client, err := getCertifierClient()
 	if err != nil {
 		return nil, err
 	}
-	tokens, err := client.GetOperatorTokens(ctx, getOpReq)
+	tokens, err := client.GetUserTokens(ctx, getUserReq)
 	if err != nil {
 		return nil, err
 	}
 	return tokens, nil
 }
 
+// GetPolicyDecision makes a policy decision when a user attempts to access a resource
 func GetPolicyDecision(ctx context.Context, getPDReq *certifierprotos.GetPolicyDecisionRequest) (*certifierprotos.PolicyDecision, error) {
 	client, err := getCertifierClient()
 	if err != nil {
@@ -250,7 +252,8 @@ func GetPolicyDecision(ctx context.Context, getPDReq *certifierprotos.GetPolicyD
 	return pd, nil
 }
 
-func CreateUser(ctx context.Context, createUserReq *certifierprotos.CreateUserRequest) (*certifierprotos.Operator_TokenList, error) {
+// CreateUser creates a new user with the specified password and policy
+func CreateUser(ctx context.Context, createUserReq *certifierprotos.CreateUserRequest) (*certifierprotos.User_TokenList, error) {
 	client, err := getCertifierClient()
 	if err != nil {
 		return nil, err

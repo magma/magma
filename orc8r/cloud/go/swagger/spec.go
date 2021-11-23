@@ -38,8 +38,6 @@ type Spec struct {
 	Definitions         map[string]interface{}
 }
 
-// TODO(christinewang5): maybe just use the OAI SwaggerProps Go struct directly but would need to do a bunch more work for unmarshalling stuff
-
 type SecurityDefinitions map[string]*SecurityScheme
 
 type SecurityScheme struct {

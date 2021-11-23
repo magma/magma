@@ -39,13 +39,21 @@ type CertifierStorage interface {
 	// Returns success even when nothing is deleted (i.e. serial number not found).
 	DeleteCertInfo(serialNumber string) error
 
-	ListHTTPBasicAuth() ([]string, error)
+	// ListUser lists the usernames of all the current users
+	ListUser() ([]string, error)
 
-	PutHTTPBasicAuth(username string, operator *protos.Operator) error
+	// PutUser updates a user
+	PutUser(username string, operator *protos.User) error
 
-	DeleteHTTPBasicAuth(username string) error
+	// DeleteUser deletes a user based on its username
+	DeleteUser(username string) error
 
-	GetHTTPBasicAuth(username string) (*protos.Operator, error)
+	// GetUser gets a user based on its username
+	GetUser(username string) (*protos.User, error)
+
+	// GetPolicy gets the policy based on the token
 	GetPolicy(token string) (*protos.Policy, error)
+
+	// PutPolicy updates the current policy
 	PutPolicy(token string, policy *protos.Policy) error
 }

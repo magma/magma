@@ -452,12 +452,12 @@ func (srv *CertifierServer) CollectGarbageImpl(ctx context.Context) (int, error)
 	return count, nil
 }
 
-// GetOperatorTokens gets all operator tokens after authentication
-func (srv *CertifierServer) GetOperatorTokens(ctx context.Context, getOpReq *certprotos.GetOperatorRequest) (*certprotos.Operator_TokenList, error) {
+// GetUserTokens fetches the tokens associated with a user
+func (srv *CertifierServer) GetUserTokens(ctx context.Context, getOpReq *certprotos.GetUserRequest) (*certprotos.User_TokenList, error) {
 	username := getOpReq.GetUsername()
-	user, err := srv.store.GetHTTPBasicAuth(username)
+	user, err := srv.store.GetUser(username)
 	if err != nil {
-		return &certprotos.Operator_TokenList{}, status.Errorf(
+		return &certprotos.User_TokenList{}, status.Errorf(
 			codes.Internal, "failed to fetch user %s from database: %v", username, err)
 	}
 	// check if token is registered with user
@@ -470,28 +470,31 @@ func (srv *CertifierServer) GetOperatorTokens(ctx context.Context, getOpReq *cer
 		}
 	}
 	if !flag {
-		return &certprotos.Operator_TokenList{}, status.Errorf(codes.PermissionDenied, "token is not registered with user %s", user.Username)
+		return &certprotos.User_TokenList{}, status.Errorf(codes.PermissionDenied, "token is not registered with user %s", user.Username)
 	}
 	return tokens, nil
 }
 
+// GetPolicyDecision makes a policy decision when a user attempts to access a resource
 func (srv *CertifierServer) GetPolicyDecision(ctx context.Context, getPDReq *certprotos.GetPolicyDecisionRequest) (*certprotos.PolicyDecision, error) {
 	tokens := getPDReq.TokenList
 	resource := getPDReq.Resource
 	action := getPDReq.RequestAction
+	finalEffect := certprotos.Effect_DENY
 	for _, t := range tokens.GetToken() {
 		effect, _ := srv.getPolicyDecisionFromToken(t, resource, action)
-		// return the policy decision once we encounter the first allow or deny
-		// TODO(christinewang5) hmm which one would take precedent if multiple polices for the same resource?
 		switch effect {
-		case certprotos.Effect_ALLOW, certprotos.Effect_DENY:
-			return &certprotos.PolicyDecision{Effect: effect}, nil
+		case certprotos.Effect_DENY:
+			// returns early if there is a deny in any of the permissions
+			return &certprotos.PolicyDecision{Effect: certprotos.Effect_DENY}, nil
+		case certprotos.Effect_ALLOW:
+			finalEffect = certprotos.Effect_ALLOW
 		default:
 			continue
 		}
 	}
-	// default to unknown if no policy permits
-	return &certprotos.PolicyDecision{Effect: certprotos.Effect_DENY}, nil
+	// default to deny the request if the policy unknown
+	return &certprotos.PolicyDecision{Effect: finalEffect}, nil
 }
 
 func (srv *CertifierServer) getPolicyDecisionFromToken(token string, resource string, action certprotos.Action) (certprotos.Effect, error) {
@@ -550,23 +553,24 @@ func buildPatternHelper(pattern string, resource string) string {
 	return pattern
 }
 
-func (srv *CertifierServer) CreateUser(ctx context.Context, createUserReq *certprotos.CreateUserRequest) (*certprotos.Operator_TokenList, error) {
+// CreateUser creates a new user with the specified password and policy
+func (srv *CertifierServer) CreateUser(ctx context.Context, createUserReq *certprotos.CreateUserRequest) (*certprotos.User_TokenList, error) {
 	token, err := certifier.GenerateToken(certifier.Personal)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to generate token while creating user")
 	}
 
-	_, err = srv.store.GetHTTPBasicAuth(createUserReq.User.Username)
+	_, err = srv.store.GetUser(createUserReq.User.Username)
 	if err == nil {
 		return nil, status.Errorf(codes.AlreadyExists, "user already exists")
 	}
 
-	user := certprotos.Operator{
+	user := certprotos.User{
 		Username: createUserReq.User.Username,
 		Password: createUserReq.User.Password,
-		Tokens:   &certprotos.Operator_TokenList{Token: []string{token}},
+		Tokens:   &certprotos.User_TokenList{Token: []string{token}},
 	}
-	err = srv.store.PutHTTPBasicAuth(createUserReq.User.Username, &user)
+	err = srv.store.PutUser(createUserReq.User.Username, &user)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to store user while creating user")
 	}
@@ -580,5 +584,5 @@ func (srv *CertifierServer) CreateUser(ctx context.Context, createUserReq *certp
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to store policy while creating user")
 	}
-	return &certprotos.Operator_TokenList{Token: []string{token}}, nil
+	return &certprotos.User_TokenList{Token: []string{token}}, nil
 }

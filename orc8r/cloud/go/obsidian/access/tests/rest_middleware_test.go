@@ -29,7 +29,7 @@ import (
 
 func TestMiddlewareWithoutCertifier(t *testing.T) {
 	e := startTestMiddlewareServer(t)
-
+	e.Use(access.CertificateMiddleware) // inject obsidian access control middleware
 	listener := WaitForTestServer(t, e)
 
 	if listener == nil {
@@ -56,8 +56,8 @@ func TestAuthMiddleware(t *testing.T) {
 	root := "root"
 	bobUser, bobToken := test_utils.CreateTestUser(bob, "password")
 	rootUser, rootToken := test_utils.CreateTestUser(root, "password")
-	err := store.PutHTTPBasicAuth(bob, &bobUser)
-	err = store.PutHTTPBasicAuth(root, &rootUser)
+	err := store.PutUser(bob, &bobUser)
+	err = store.PutUser(root, &rootUser)
 	bobPolicy := test_utils.CreateUserPolicy(t, bobToken)
 	rootPolicy := test_utils.CreateAdminPolicy(rootToken)
 	err = store.PutPolicy(bobToken, &bobPolicy)
@@ -65,7 +65,6 @@ func TestAuthMiddleware(t *testing.T) {
 	assert.NoError(t, err)
 
 	e := startTestMiddlewareServer(t)
-	// TODO(christinewang5): eventually test with certificate middleware
 	e.Use(access.TokenMiddleware)
 	listener := WaitForTestServer(t, e)
 	if listener == nil {

@@ -20,7 +20,7 @@ type UserWithPolicy struct {
 	Policy *Policy `json:"policy,omitempty"`
 
 	// user
-	User *HTTPBasicAuth `json:"user,omitempty"`
+	User *User `json:"user,omitempty"`
 }
 
 // Validate validates this user with policy

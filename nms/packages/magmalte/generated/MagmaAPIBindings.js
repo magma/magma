@@ -1560,9 +1560,13 @@ export type unmanaged_enodeb_configuration = {
 };
 export type untyped_mme_state = {};
 export type untyped_subscriber_state = {};
+export type user = {
+    password: string,
+    username: string,
+};
 export type user_with_policy = {
     policy ? : policy,
-    user ? : http_basic_auth,
+    user ? : user,
 };
 export type version_info = {
     container_image_version ? : string,
@@ -4195,99 +4199,6 @@ export default class MagmaAPIBindings {
 
             return await this.request(path, 'GET', query, body);
         }
-<<<<<<< HEAD
-=======
-    static async getHttpBasicAuth(): Promise < Array < string >
-        >
-        {
-            let path = '/http_basic_auth';
-            let body;
-            let query = {};
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async postHttpBasicAuth(
-        parameters: {
-            'user': user_with_policy,
-        }
-    ): Promise < "Success" > {
-        let path = '/http_basic_auth';
-        let body;
-        let query = {};
-        if (parameters['user'] === undefined) {
-            throw new Error('Missing required  parameter: user');
-        }
-
-        if (parameters['user'] !== undefined) {
-            body = parameters['user'];
-        }
-
-        return await this.request(path, 'POST', query, body);
-    }
-    static async deleteHttpBasicAuthByUsername(
-        parameters: {
-            'username': string,
-        }
-    ): Promise < "Success" > {
-        let path = '/http_basic_auth/{username}';
-        let body;
-        let query = {};
-        if (parameters['username'] === undefined) {
-            throw new Error('Missing required  parameter: username');
-        }
-
-        path = path.replace('{username}', `${parameters['username']}`);
-
-        return await this.request(path, 'DELETE', query, body);
-    }
-    static async putHttpBasicAuthByUsername(
-        parameters: {
-            'username': string,
-            'password': {
-                password ? : string,
-            },
-        }
-    ): Promise < "Success" > {
-        let path = '/http_basic_auth/{username}';
-        let body;
-        let query = {};
-        if (parameters['username'] === undefined) {
-            throw new Error('Missing required  parameter: username');
-        }
-
-        path = path.replace('{username}', `${parameters['username']}`);
-
-        if (parameters['password'] === undefined) {
-            throw new Error('Missing required  parameter: password');
-        }
-
-        if (parameters['password'] !== undefined) {
-            body = parameters['password'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
-    static async postHttpBasicAuthLogin(
-            parameters: {
-                'user': http_basic_auth,
-            }
-        ): Promise < Array < string >
-        >
-        {
-            let path = '/http_basic_auth/login';
-            let body;
-            let query = {};
-            if (parameters['user'] === undefined) {
-                throw new Error('Missing required  parameter: user');
-            }
-
-            if (parameters['user'] !== undefined) {
-                body = parameters['user'];
-            }
-
-            return await this.request(path, 'POST', query, body);
-        }
->>>>>>> 3e3669176 (added login handlers)
     static async getLte(): Promise < Array < string >
         >
         {
@@ -10656,6 +10567,96 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getUser(): Promise < Array < string >
+        >
+        {
+            let path = '/user';
+            let body;
+            let query = {};
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postUser(
+        parameters: {
+            'user': user_with_policy,
+        }
+    ): Promise < "Success" > {
+        let path = '/user';
+        let body;
+        let query = {};
+        if (parameters['user'] === undefined) {
+            throw new Error('Missing required  parameter: user');
+        }
+
+        if (parameters['user'] !== undefined) {
+            body = parameters['user'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
+    static async deleteUserByUsername(
+        parameters: {
+            'username': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/user/{username}';
+        let body;
+        let query = {};
+        if (parameters['username'] === undefined) {
+            throw new Error('Missing required  parameter: username');
+        }
+
+        path = path.replace('{username}', `${parameters['username']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async putUserByUsername(
+        parameters: {
+            'username': string,
+            'password': {
+                password ? : string,
+            },
+        }
+    ): Promise < "Success" > {
+        let path = '/user/{username}';
+        let body;
+        let query = {};
+        if (parameters['username'] === undefined) {
+            throw new Error('Missing required  parameter: username');
+        }
+
+        path = path.replace('{username}', `${parameters['username']}`);
+
+        if (parameters['password'] === undefined) {
+            throw new Error('Missing required  parameter: password');
+        }
+
+        if (parameters['password'] !== undefined) {
+            body = parameters['password'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async postUserLogin(
+            parameters: {
+                'user': user,
+            }
+        ): Promise < Array < string >
+        >
+        {
+            let path = '/user/login';
+            let body;
+            let query = {};
+            if (parameters['user'] === undefined) {
+                throw new Error('Missing required  parameter: user');
+            }
+
+            if (parameters['user'] !== undefined) {
+                body = parameters['user'];
+            }
+
+            return await this.request(path, 'POST', query, body);
+        }
     static async getWifi(): Promise < Array < string >
         >
         {

@@ -14,12 +14,12 @@ func GetCertifierBlobstore(t *testing.T) storage.CertifierStorage {
 	return storage.NewCertifierBlobstore(fact)
 }
 
-func CreateTestUser(username string, password string) (certProtos.Operator, string) {
+func CreateTestUser(username string, password string) (certProtos.User, string) {
 	token, _ := certifier.GenerateToken(certifier.Personal)
-	user := certProtos.Operator{
+	user := certProtos.User{
 		Username: username,
 		Password: []byte(password),
-		Tokens:   &certProtos.Operator_TokenList{Token: []string{token}},
+		Tokens:   &certProtos.User_TokenList{Token: []string{token}},
 	}
 	return user, token
 }

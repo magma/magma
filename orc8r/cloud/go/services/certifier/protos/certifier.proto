@@ -49,7 +49,7 @@ message GetCARequest {
 }
 
 
-message Operator {
+message User {
   string username = 1;
   bytes password = 2;
   message TokenList {
@@ -80,18 +80,18 @@ message Policy {
   ResourceList resources = 4;
 }
 
-message GetOperatorRequest {
+message GetUserRequest {
   string username = 1;
   string token = 2;
 }
 
 message CreateUserRequest {
-  Operator user = 1;
+  User user = 1;
   Policy policy = 2;
 }
 
 message GetPolicyDecisionRequest {
-  Operator.TokenList tokenList = 1;
+  User.TokenList tokenList = 1;
   Action  requestAction = 2;
   string resource = 3;
 }
@@ -137,13 +137,13 @@ service Certifier {
   // cleanup expired certificates
   rpc CollectGarbage (Void) returns (Void) {}
 
-  // Get all operator tokens given a username and token
-  rpc GetOperatorTokens (GetOperatorRequest) returns (Operator.TokenList) {}
+  // Get all user tokens given a username and token
+  rpc GetUserTokens (GetUserRequest) returns (User.TokenList) {}
 
-  // Returns a policy decision given tokens, action based on the request method
-  // (read/write), and the requested resource
+  // Returns a policy decision given a token, the request method's action
+  // (read/write), and the request resource
   rpc GetPolicyDecision (GetPolicyDecisionRequest) returns (PolicyDecision) {}
 
   // Creates a new user
-  rpc CreateUser (CreateUserRequest) returns (Operator.TokenList) {}
+  rpc CreateUser (CreateUserRequest) returns (User.TokenList) {}
 }

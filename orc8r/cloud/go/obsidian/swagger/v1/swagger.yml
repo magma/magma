@@ -1898,87 +1898,6 @@ paths:
           schema:
             type: integer
       summary: Mock API path so the YAML passes spec
-  /http_basic_auth:
-    get:
-      responses:
-        "200":
-          description: Success
-          schema:
-            items:
-              type: string
-            type: array
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: List all usernames
-      tags:
-      - HTTP Basic Auth
-    post:
-      parameters:
-      - in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/user_with_policy'
-      responses:
-        "201":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Create a user
-      tags:
-      - HTTP Basic Auth
-  /http_basic_auth/{username}:
-    delete:
-      parameters:
-      - $ref: '#/parameters/username'
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Remove a user
-      tags:
-      - HTTP Basic Auth
-    put:
-      parameters:
-      - $ref: '#/parameters/username'
-      - description: New password for user
-        in: body
-        name: password
-        required: true
-        schema:
-          properties:
-            password:
-              type: string
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Update user password
-      tags:
-      - HTTP Basic Auth
-  /http_basic_auth/login:
-    post:
-      parameters:
-      - in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/http_basic_auth'
-      responses:
-        "200":
-          description: Success
-          schema:
-            items:
-              type: string
-            type: array
-        default:
-          $ref: '#/responses/UnexpectedError'
-      security: []
-      summary: List all the tokens given a user
-      tags:
-      - HTTP Basic Auth
   /lte:
     get:
       responses:
@@ -6301,6 +6220,87 @@ paths:
       summary: Update enodebd e2e test case
       tags:
       - e2e
+  /user:
+    get:
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              type: string
+            type: array
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List all usernames
+      tags:
+      - HTTP Basic Auth
+    post:
+      parameters:
+      - in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user_with_policy'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Create a user
+      tags:
+      - HTTP Basic Auth
+  /user/{username}:
+    delete:
+      parameters:
+      - $ref: '#/parameters/username'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Remove a user
+      tags:
+      - HTTP Basic Auth
+    put:
+      parameters:
+      - $ref: '#/parameters/username'
+      - description: New password for user
+        in: body
+        name: password
+        required: true
+        schema:
+          properties:
+            password:
+              type: string
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update user password
+      tags:
+      - HTTP Basic Auth
+  /user/login:
+    post:
+      parameters:
+      - in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user'
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              type: string
+            type: array
+        default:
+          $ref: '#/responses/UnexpectedError'
+      security: []
+      summary: List all the tokens given a user
+      tags:
+      - HTTP Basic Auth
   /wifi:
     get:
       responses:
@@ -9445,17 +9445,6 @@ definitions:
         type: object
     type: object
     x-go-custom-tag: magma_alt_name:"HSS"
-  http_basic_auth:
-    description: User's authentication info
-    properties:
-      password:
-        type: string
-      username:
-        type: string
-    required:
-    - username
-    - password
-    type: object
   http_config:
     properties:
       basic_auth:
@@ -12245,13 +12234,24 @@ definitions:
     description: Arbitrary untyped JSON object that represents replicated subscriber-related
       state
     type: object
+  user:
+    description: User's authentication info
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - username
+    - password
+    type: object
   user_with_policy:
     description: an object that associates a user with its policy
     properties:
       policy:
         $ref: '#/definitions/policy'
       user:
-        $ref: '#/definitions/http_basic_auth'
+        $ref: '#/definitions/user'
   version_info:
     properties:
       container_image_version:

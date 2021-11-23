@@ -13,9 +13,9 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// HTTPBasicAuth User's authentication info
-// swagger:model http_basic_auth
-type HTTPBasicAuth struct {
+// User User's authentication info
+// swagger:model user
+type User struct {
 
 	// password
 	// Required: true
@@ -26,8 +26,8 @@ type HTTPBasicAuth struct {
 	Username *string `json:"username"`
 }
 
-// Validate validates this http basic auth
-func (m *HTTPBasicAuth) Validate(formats strfmt.Registry) error {
+// Validate validates this user
+func (m *User) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validatePassword(formats); err != nil {
@@ -44,7 +44,7 @@ func (m *HTTPBasicAuth) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *HTTPBasicAuth) validatePassword(formats strfmt.Registry) error {
+func (m *User) validatePassword(formats strfmt.Registry) error {
 
 	if err := validate.Required("password", "body", m.Password); err != nil {
 		return err
@@ -53,7 +53,7 @@ func (m *HTTPBasicAuth) validatePassword(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *HTTPBasicAuth) validateUsername(formats strfmt.Registry) error {
+func (m *User) validateUsername(formats strfmt.Registry) error {
 
 	if err := validate.Required("username", "body", m.Username); err != nil {
 		return err
@@ -63,7 +63,7 @@ func (m *HTTPBasicAuth) validateUsername(formats strfmt.Registry) error {
 }
 
 // MarshalBinary interface implementation
-func (m *HTTPBasicAuth) MarshalBinary() ([]byte, error) {
+func (m *User) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -71,8 +71,8 @@ func (m *HTTPBasicAuth) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *HTTPBasicAuth) UnmarshalBinary(b []byte) error {
-	var res HTTPBasicAuth
+func (m *User) UnmarshalBinary(b []byte) error {
+	var res User
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

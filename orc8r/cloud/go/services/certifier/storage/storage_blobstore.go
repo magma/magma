@@ -34,14 +34,8 @@ const (
 	// CertInfoType is the type of CertInfo used in blobstore type fields.
 	CertInfoType = "certificate_info"
 
-	// HTTPBasicAuthTableBlobstore is the service-wide blobstore table for certifier data
-	HTTPBasicAuthTableBlobstore = "http_basic_auth_blobstore"
-
-	// HTTPBasicAuthType is the type of CertInfo used in blobstore type fields.
-	HTTPBasicAuthType = "http_basic_auth"
-
-	// PolicyTableBlobstore is the service-wide blobstore table for policies
-	PolicyTableBlobstore = "policy_blobstore"
+	// UserType is the type of CertInfo used in blobstore type fields.
+	UserType = "user"
 
 	// PolicyType is the type of policy used in blobstore type fileds
 	PolicyType = "policy"
@@ -185,14 +179,14 @@ func (c *certifierBlobstore) DeleteCertInfo(serialNumber string) error {
 	return store.Commit()
 }
 
-func (c *certifierBlobstore) ListHTTPBasicAuth() ([]string, error) {
+func (c *certifierBlobstore) ListUser() ([]string, error) {
 	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to start transaction")
 	}
 	defer store.Rollback()
 
-	users, err := blobstore.ListKeys(store, placeholderNetworkID, HTTPBasicAuthType)
+	users, err := blobstore.ListKeys(store, placeholderNetworkID, UserType)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to list keys")
 	}
@@ -200,36 +194,36 @@ func (c *certifierBlobstore) ListHTTPBasicAuth() ([]string, error) {
 	return users, store.Commit()
 }
 
-func (c *certifierBlobstore) GetHTTPBasicAuth(username string) (*protos.Operator, error) {
+func (c *certifierBlobstore) GetUser(username string) (*protos.User, error) {
 	store, err := c.factory.StartTransaction(nil)
 	if err != nil {
 		return nil, status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
 	}
 	defer store.Rollback()
-	operatorBlob, err := store.Get(placeholderNetworkID, storage.TK{Type: HTTPBasicAuthType, Key: username})
+	userBlob, err := store.Get(placeholderNetworkID, storage.TK{Type: UserType, Key: username})
 	if err != nil {
 		return nil, err
 	}
-	operator, err := operatorFromBlob(operatorBlob)
+	user, err := userFromBlob(userBlob)
 	if err != nil {
 		return nil, err
 	}
-	return &operator, nil
+	return &user, nil
 }
 
-func (c *certifierBlobstore) PutHTTPBasicAuth(username string, operator *protos.Operator) error {
+func (c *certifierBlobstore) PutUser(username string, user *protos.User) error {
 	store, err := c.factory.StartTransaction(nil)
 	if err != nil {
 		return status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
 	}
 	defer store.Rollback()
 
-	operatorBlob, err := operatorToBlob(username, operator)
+	userBlob, err := userToBlob(username, user)
 	if err != nil {
 		return err
 	}
 
-	err = store.Write(placeholderNetworkID, blobstore.Blobs{operatorBlob})
+	err = store.Write(placeholderNetworkID, blobstore.Blobs{userBlob})
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("failed to update password for user %s", username))
 	}
@@ -237,14 +231,14 @@ func (c *certifierBlobstore) PutHTTPBasicAuth(username string, operator *protos.
 	return store.Commit()
 }
 
-func (c *certifierBlobstore) DeleteHTTPBasicAuth(username string) error {
+func (c *certifierBlobstore) DeleteUser(username string) error {
 	store, err := c.factory.StartTransaction(nil)
 	if err != nil {
 		return status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
 	}
 	defer store.Rollback()
 
-	tk := storage.TK{Type: HTTPBasicAuthType, Key: username}
+	tk := storage.TK{Type: UserType, Key: username}
 	err = store.Delete(placeholderNetworkID, storage.TKs{tk})
 
 	if err != nil {
@@ -254,23 +248,22 @@ func (c *certifierBlobstore) DeleteHTTPBasicAuth(username string) error {
 	return store.Commit()
 }
 
-// TODO(christinewang5): extract to entityFromBlob & entityToBlob maybe, i also feel like i'm writing the same functions, are there no generics in go ugh
-func operatorFromBlob(blob blobstore.Blob) (protos.Operator, error) {
-	operator := protos.Operator{}
-	err := proto.Unmarshal(blob.Value, &operator)
+func userFromBlob(blob blobstore.Blob) (protos.User, error) {
+	user := protos.User{}
+	err := proto.Unmarshal(blob.Value, &user)
 	if err != nil {
-		return operator, err
+		return user, err
 	}
-	return operator, nil
+	return user, nil
 }
 
-func operatorToBlob(username string, operator *protos.Operator) (blobstore.Blob, error) {
-	marshalledOperator, err := proto.Marshal(operator)
+func userToBlob(username string, user *protos.User) (blobstore.Blob, error) {
+	marshalledUser, err := proto.Marshal(user)
 	if err != nil {
 		return blobstore.Blob{}, err
 	}
-	operatorBlob := blobstore.Blob{Type: HTTPBasicAuthType, Key: username, Value: marshalledOperator}
-	return operatorBlob, nil
+	userBlob := blobstore.Blob{Type: UserType, Key: username, Value: marshalledUser}
+	return userBlob, nil
 }
 
 func (c *certifierBlobstore) GetPolicy(token string) (*protos.Policy, error) {

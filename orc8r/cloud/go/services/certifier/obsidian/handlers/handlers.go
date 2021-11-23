@@ -28,27 +28,27 @@ import (
 )
 
 const (
-	UserParam           = ":username"
-	HTTPBasicAuth       = "http_basic_auth"
-	ListHTTPBasicAuth   = obsidian.V1Root + HTTPBasicAuth
-	ManageHTTPBasicAuth = ListHTTPBasicAuth + obsidian.UrlSep + UserParam
-	Login               = ListHTTPBasicAuth + obsidian.UrlSep + "login"
+	UserParam  = ":username"
+	User       = "user"
+	ListUser   = obsidian.V1Root + User
+	ManageUser = ListUser + obsidian.UrlSep + UserParam
+	Login      = ListUser + obsidian.UrlSep + "login"
 )
 
 func GetHandlers(storage storage.CertifierStorage) []obsidian.Handler {
 	ret := []obsidian.Handler{
-		{Path: ListHTTPBasicAuth, Methods: obsidian.GET, HandlerFunc: getListHTTPBasicAuthHandler(storage)},
-		{Path: ListHTTPBasicAuth, Methods: obsidian.POST, HandlerFunc: getCreateHTTPBasicAuthHandler(storage)},
-		{Path: ManageHTTPBasicAuth, Methods: obsidian.PUT, HandlerFunc: getUpdateHTTPBasicAuthHandler(storage)},
-		{Path: ManageHTTPBasicAuth, Methods: obsidian.DELETE, HandlerFunc: getDeleteHTTPBasicAuthHandler(storage)},
+		{Path: ListUser, Methods: obsidian.GET, HandlerFunc: getListUserHandler(storage)},
+		{Path: ListUser, Methods: obsidian.POST, HandlerFunc: getCreateUserHandler(storage)},
+		{Path: ManageUser, Methods: obsidian.PUT, HandlerFunc: getUpdateUserHandler(storage)},
+		{Path: ManageUser, Methods: obsidian.DELETE, HandlerFunc: getDeleteUserHandler(storage)},
 		{Path: Login, Methods: obsidian.POST, HandlerFunc: getLoginHandler(storage)},
 	}
 	return ret
 }
 
-func getListHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.HandlerFunc {
+func getListUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		users, err := storage.ListHTTPBasicAuth()
+		users, err := storage.ListUser()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
@@ -68,7 +68,7 @@ type CreateUserRequest struct {
 	} `json:"policy"`
 }
 
-func getCreateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.HandlerFunc {
+func getCreateUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var data CreateUserRequest
 		err := json.NewDecoder(c.Request().Body).Decode(&data)
@@ -86,16 +86,16 @@ func getCreateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.Handle
 		// generate token for user
 		token, err := certifier.GenerateToken(certifier.Personal)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error generating personal access token for operator: %v", err))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error generating personal access token for user: %v", err))
 		}
 
 		// store user and token
-		operator := &certProtos.Operator{
+		user := &certProtos.User{
 			Username: username,
 			Password: hashedPassword,
-			Tokens:   &certProtos.Operator_TokenList{Token: []string{token}},
+			Tokens:   &certProtos.User_TokenList{Token: []string{token}},
 		}
-		if err = storage.PutHTTPBasicAuth(username, operator); err != nil {
+		if err = storage.PutUser(username, user); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 
@@ -134,7 +134,7 @@ func getCreateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.Handle
 	}
 }
 
-func getUpdateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.HandlerFunc {
+func getUpdateUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		username := c.Param("username")
 		data := make(map[string]interface{})
@@ -146,19 +146,19 @@ func getUpdateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.Handle
 		newPassword := []byte(fmt.Sprintf("%v", data["password"]))
 		hashedPassword, err := bcrypt.GenerateFromPassword(newPassword, bcrypt.DefaultCost)
 
-		// get old operator
-		operator, err := storage.GetHTTPBasicAuth(username)
+		// get old user
+		user, err := storage.GetUser(username)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting existing user: %v", err))
 		}
 
-		// update new operator blob
-		newOperator := &certProtos.Operator{
+		// update new user blob
+		newUser := &certProtos.User{
 			Username: username,
 			Password: hashedPassword,
-			Tokens:   operator.Tokens,
+			Tokens:   user.Tokens,
 		}
-		storage.PutHTTPBasicAuth(username, newOperator)
+		storage.PutUser(username, newUser)
 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -167,10 +167,10 @@ func getUpdateHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.Handle
 	}
 }
 
-func getDeleteHTTPBasicAuthHandler(storage storage.CertifierStorage) echo.HandlerFunc {
+func getDeleteUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		username := c.Param("username")
-		err := storage.DeleteHTTPBasicAuth(username)
+		err := storage.DeleteUser(username)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
@@ -189,20 +189,20 @@ func getLoginHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 		username := fmt.Sprintf("%v", data["username"])
 		password := []byte(fmt.Sprintf("%v", data["password"]))
 
-		operator, err := storage.GetHTTPBasicAuth(username)
+		user, err := storage.GetUser(username)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 
 		// check password hash
-		hashedPassword := operator.GetPassword()
+		hashedPassword := user.GetPassword()
 		err = bcrypt.CompareHashAndPassword(hashedPassword, password)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusUnauthorized, "wrong password")
 		}
 
 		// return tokens for access if correct password
-		tokens := operator.GetTokens().GetToken()
+		tokens := user.GetTokens().GetToken()
 		return c.JSON(http.StatusOK, tokens)
 	}
 }
