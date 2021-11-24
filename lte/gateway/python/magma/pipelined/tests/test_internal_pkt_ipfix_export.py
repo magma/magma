@@ -180,6 +180,18 @@ class InternalPktIpfixExportTest(unittest.TestCase):
         with snapshot_verifier:
             pass
 
+        self.ipfix_controller.delete_ue_sample_flow(imsi)
+
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            'after_deletion',
+            include_stats=False,
+        )
+
+        with snapshot_verifier:
+            pass
+
 
 if __name__ == "__main__":
     unittest.main()
