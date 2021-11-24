@@ -180,9 +180,10 @@ build_sctpd:
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
 
 build_session_manager:
-	bazel build //lte/gateway/c/session_manager:sessiond
-	mkdir -p $(C_BUILD)/session_manager
-	sudo cp $(MAGMA_ROOT)/bazel-bin/lte/gateway/c/session_manager/sessiond $(C_BUILD)/session_manager/sessiond
+	# bazel build //lte/gateway/c/session_manager:sessiond
+	# mkdir -p $(C_BUILD)/session_manager
+	# sudo cp $(MAGMA_ROOT)/bazel-bin/lte/gateway/c/session_manager/sessiond $(C_BUILD)/session_manager/sessiond
+	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
 
 build_li_agent: ## Build li agent
 	$(call run_cmake, $(C_BUILD)/li_agent, $(GATEWAY_C_DIR)/li_agent, )
