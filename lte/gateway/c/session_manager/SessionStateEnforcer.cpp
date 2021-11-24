@@ -613,14 +613,6 @@ void SessionStateEnforcer::prepare_response_to_access(
       config.rat_specific_context.m5gsm_session_context()
           .pdu_session_req_always_on());
   rsp->set_m5g_sm_congestion_reattempt_indicator(true);
-  rsp->mutable_pdu_address()->set_redirect_address_type(
-      config.rat_specific_context.m5gsm_session_context()
-          .pdu_address()
-          .redirect_address_type());
-  rsp->mutable_pdu_address()->set_redirect_server_address(
-      config.rat_specific_context.m5gsm_session_context()
-          .pdu_address()
-          .redirect_server_address());
   rsp->set_procedure_trans_identity(
       config.rat_specific_context.m5gsm_session_context()
           .procedure_trans_identity());
@@ -677,6 +669,7 @@ void SessionStateEnforcer::prepare_response_to_access(
           .end_ipv4_addr());
 
   rsp_cmn->mutable_sid()->CopyFrom(config.common_context.sid());  // imsi
+  rsp_cmn->set_ue_ipv4(config.common_context.ue_ipv4());
   rsp_cmn->set_apn(config.common_context.apn());
   rsp_cmn->set_sm_session_state(config.common_context.sm_session_state());
   rsp_cmn->set_sm_session_version(config.common_context.sm_session_version());
@@ -883,21 +876,15 @@ void SessionStateEnforcer::set_pdr_attributes(
     const std::string& imsi, std::unique_ptr<SessionState>& session_state,
     SetGroupPDR* rule) {
   const auto& config = session_state->get_config();
+  auto ue_ipv4       = config.common_context.ue_ipv4();
 
-  rule->mutable_pdi()->set_ue_ip_adr(
-      config.rat_specific_context.m5gsm_session_context()
-          .pdu_address()
-          .redirect_server_address());
+  rule->mutable_pdi()->set_ue_ip_adr(ue_ipv4);
   rule->mutable_activate_flow_req()->mutable_sid()->set_id(imsi);
   rule->mutable_deactivate_flow_req()->mutable_sid()->set_id(imsi);
   rule->mutable_activate_flow_req()->set_ip_addr(
-      config.rat_specific_context.m5gsm_session_context()
-          .pdu_address()
-          .redirect_server_address());
+      config.common_context.ue_ipv4());
   rule->mutable_deactivate_flow_req()->set_ip_addr(
-      config.rat_specific_context.m5gsm_session_context()
-          .pdu_address()
-          .redirect_server_address());
+      config.common_context.ue_ipv4());
 }
 
 std::vector<StaticRuleInstall> SessionStateEnforcer::to_vec(
