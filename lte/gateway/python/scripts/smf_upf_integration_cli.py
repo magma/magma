@@ -22,7 +22,6 @@ from lte.protos.session_manager_pb2 import (
     RatSpecificContext,
     RatSpecificNotification,
     RATType,
-    RedirectServer,
     RequestType,
     SetSmNotificationContext,
     SetSMSessionContext,
@@ -58,6 +57,71 @@ class CreateAmfSession(object):
                         end_ipv4_addr="192.168.60.141",
                     ),
                     pdu_session_type=PduSessionType.Name(0),
+                    ssc_mode=SscMode.Name(2),
+                ),
+            ),
+        )
+
+
+class CreateAmfSessionIPv6(object):
+    """
+    Creates IPv6 PDU session
+    """
+
+    def __init__(self):
+        self._set_session = SetSMSessionContext(
+            common_context=CommonSessionContext(
+                sid=SubscriberID(id="IMSI12345"),
+                apn=bytes("BLR", 'utf-8'),
+                ue_ipv6="2001:db8::1",
+                rat_type=RATType.Name(2),
+                sm_session_state=SMSessionFSMState.Name(0),
+                sm_session_version=0,
+            ),
+            rat_specific_context=RatSpecificContext(
+                m5gsm_session_context=M5GSMSessionContext(
+                    pdu_session_id=1,
+                    request_type=RequestType.Name(
+                        0,
+                    ),
+                    gnode_endpoint=TeidSet(
+                        teid=10000,
+                        end_ipv4_addr="192.168.60.141",
+                    ),
+                    pdu_session_type=PduSessionType.Name(1),
+                    ssc_mode=SscMode.Name(2),
+                ),
+            ),
+        )
+
+
+class CreateAmfSessionIPv4v6(object):
+    """
+    Creates IPv4v6 PDU session
+    """
+
+    def __init__(self):
+        self._set_session = SetSMSessionContext(
+            common_context=CommonSessionContext(
+                sid=SubscriberID(id="IMSI12345"),
+                apn=bytes("BLR", 'utf-8'),
+                ue_ipv4="192.168.128.11",
+                ue_ipv6="2001:db8::1",
+                rat_type=RATType.Name(2),
+                sm_session_state=SMSessionFSMState.Name(0),
+                sm_session_version=0,
+            ),
+            rat_specific_context=RatSpecificContext(
+                m5gsm_session_context=M5GSMSessionContext(
+                    pdu_session_id=1,
+                    request_type=RequestType.Name(
+                        0,
+                    ),
+                    gnode_endpoint=TeidSet(
+                        teid=10000,
+                        end_ipv4_addr="192.168.60.141",
+                    ),
+                    pdu_session_type=PduSessionType.Name(2),
                     ssc_mode=SscMode.Name(2),
                 ),
             ),
@@ -114,6 +178,63 @@ class ReleaseAmfSession(object):
                             1,
                         ),
                         pdu_session_type=PduSessionType.IPV4,
+                    ),
+                ),
+            )
+
+
+class ReleaseAmfSessionIPv6(object):
+    """
+    Releases IPv6 PDU session.
+    """
+
+    def __init__(self):
+        self._set_session =\
+            SetSMSessionContext(
+                common_context=CommonSessionContext(
+                    sid=SubscriberID(id="IMSI12345"),
+                    ue_ipv6="2001:db8::1",
+                    apn=bytes("BLR", 'utf-8'),
+                    rat_type=RATType.Name(2),
+                    sm_session_state=SMSessionFSMState.Name(4),
+                    sm_session_version=6,
+                ),
+                rat_specific_context=RatSpecificContext(
+                    m5gsm_session_context=M5GSMSessionContext(
+                        pdu_session_id=1,
+                        request_type=RequestType.Name(
+                            1,
+                        ),
+                        pdu_session_type=PduSessionType.IPV6,
+                    ),
+                ),
+            )
+
+
+class ReleaseAmfSessionIPv4v6(object):
+    """
+    Releases IPv4v6 PDU session.
+    """
+
+    def __init__(self):
+        self._set_session =\
+            SetSMSessionContext(
+                common_context=CommonSessionContext(
+                    sid=SubscriberID(id="IMSI12345"),
+                    ue_ipv4="192.168.128.11",
+                    ue_ipv6="2001:db8::1",
+                    apn=bytes("BLR", 'utf-8'),
+                    rat_type=RATType.Name(2),
+                    sm_session_state=SMSessionFSMState.Name(4),
+                    sm_session_version=6,
+                ),
+                rat_specific_context=RatSpecificContext(
+                    m5gsm_session_context=M5GSMSessionContext(
+                        pdu_session_id=1,
+                        request_type=RequestType.Name(
+                            1,
+                        ),
+                        pdu_session_type=PduSessionType.IPV4IPV6,
                     ),
                 ),
             )
@@ -430,9 +551,77 @@ def set_amf_session_tc8(client, args):
     print(response)
 
 
+@grpc_wrapper
+def set_amf_session_tc11(client, args):
+    """
+    Create an object for CreateAmfSessionIPv6 and fill CommonSessionContext,
+    RatSpecificContext and call grpc SetAmfSessionContext towards sessiond
+
+    Args:
+        client: self
+        args: command line arguments, sid and apn
+    """
+    print("=========TEST CASE-11 IPv6 PDU SESSION ESTABLISHMENT===========")
+    cls_sess = CreateAmfSessionIPv6()
+    print(cls_sess._set_session)
+    response = client.SetAmfSessionContext(cls_sess._set_session)
+    print(response)
+
+
+@grpc_wrapper
+def set_amf_session_tc12(client, args):
+    """
+    Create an object for ReleaseAmfSessionIPv6 and fill CommonSessionContext,
+    RatSpecificContext and call grpc SetAmfSessionContext towards sessiond
+
+    Args:
+        client: self
+        args: command line arguments, sid and apn
+    """
+    print("=========TEST CASE-12 IPv6 PDU SESSION RELEASE============")
+    cls_sess = ReleaseAmfSessionIPv6()
+    print(cls_sess._set_session)
+    response = client.SetAmfSessionContext(cls_sess._set_session)
+    print(response)
+
+
+@grpc_wrapper
+def set_amf_session_tc13(client, args):
+    """
+    Create an object for CreateAmfSessionIPv4v6 and fill CommonSessionContext,
+    RatSpecificContext and call grpc SetAmfSessionContext towards sessiond
+
+    Args:
+        client: self
+        args: command line arguments, sid and apn
+    """
+    print("=========TEST CASE-13 IPv4IPV6 PDU SESSION ESTABLISHMENT===========")
+    cls_sess = CreateAmfSessionIPv4v6()
+    print(cls_sess._set_session)
+    response = client.SetAmfSessionContext(cls_sess._set_session)
+    print(response)
+
+
+@grpc_wrapper
+def set_amf_session_tc14(client, args):
+    """
+    Create an object for ReleaseAmfSessionIPv4v6 and fill CommonSessionContext,
+    RatSpecificContext and call grpc SetAmfSessionContext towards sessiond
+
+    Args:
+        client: self
+        args: command line arguments, sid and apn
+    """
+    print("=========TEST CASE-14 IPV4IPV6 PDU SESSION RELEASE============")
+    cls_sess = ReleaseAmfSessionIPv4v6()
+    print(cls_sess._set_session)
+    response = client.SetAmfSessionContext(cls_sess._set_session)
+    print(response)
+
+
 def create_amf_parser(apps):
     """
-    Creates the argparse subparser for the ng_services app
+    Create the argparse subparser for the ng_services app
     """
 
     app = apps.add_parser('amf_context')
@@ -569,6 +758,54 @@ def create_amf_parser(apps):
     )
     subcmd.add_argument('--apn', help='APN', default='12345')
     subcmd.set_defaults(func=set_amf_session_tc8)
+
+    subcmd = subparsers.add_parser(
+        'set_amf_session_tc11',
+        help='AMF Set Session for UE IPv6',
+    )
+    subcmd.add_argument(
+        '--sid',
+        help='Subscriber_ID',
+        default="imsi00000000001",
+    )
+    subcmd.add_argument('--apn', help='APN', default='12345')
+    subcmd.set_defaults(func=set_amf_session_tc11)
+
+    subcmd = subparsers.add_parser(
+        'set_amf_session_tc12',
+        help='AMF Release Session for UE IPv6',
+    )
+    subcmd.add_argument(
+        '--sid',
+        help='Subscriber_ID',
+        default="imsi00000000001",
+    )
+    subcmd.add_argument('--apn', help='APN', default='12345')
+    subcmd.set_defaults(func=set_amf_session_tc12)
+
+    subcmd = subparsers.add_parser(
+        'set_amf_session_tc13',
+        help='AMF Set Session for UE IPv4v6',
+    )
+    subcmd.add_argument(
+        '--sid',
+        help='Subscriber_ID',
+        default="imsi00000000001",
+    )
+    subcmd.add_argument('--apn', help='APN', default='12345')
+    subcmd.set_defaults(func=set_amf_session_tc13)
+
+    subcmd = subparsers.add_parser(
+        'set_amf_session_tc14',
+        help='AMF Release Session for UE IPv4v6',
+    )
+    subcmd.add_argument(
+        '--sid',
+        help='Subscriber_ID',
+        default="imsi00000000001",
+    )
+    subcmd.add_argument('--apn', help='APN', default='12345')
+    subcmd.set_defaults(func=set_amf_session_tc14)
 
 
 def create_parser():

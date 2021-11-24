@@ -333,16 +333,25 @@ void SessionState::sess_infocopy(struct SessionInfo* info) {
   // Static SessionInfo vlaue till UPF node value implementation
   // gets stablized.
   // TODO we cud eventually  migrate to SMF-UPF proto enum directly.
+  if (info == nullptr) {
+    return;
+  }
   info->state = get_proto_fsm_state();
   info->subscriber_id.assign(imsi_);
-  info->ver_no              = get_current_version();
-  info->local_f_teid        = get_upf_local_teid();
-  info->nodeId.node_id_type = SessionInfo::IPv4;
-  info->pdr_rules           = get_all_pdr_rules();
+  info->ver_no       = get_current_version();
+  info->local_f_teid = get_upf_local_teid();
+  info->pdr_rules    = get_all_pdr_rules();
   if (!info->pdr_rules.empty()) {
     // Get the UE ip address from first rule
-    auto& rule    = info->pdr_rules.front();
-    info->ip_addr = rule.pdi().ue_ipv4();
+    auto& rule = info->pdr_rules.front();
+    if (!rule.pdi().ue_ipv4().empty()) {
+      info->nodeId.node_id_type = SessionInfo::IPv4;
+      info->ip_addr             = rule.pdi().ue_ipv4();
+    }
+    if (!rule.pdi().ue_ipv6().empty()) {
+      info->nodeId.node_id_type = SessionInfo::IPv6;
+      info->ipv6_addr           = rule.pdi().ue_ipv6();
+    }
   }
 }
 

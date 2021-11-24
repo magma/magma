@@ -688,7 +688,12 @@ void SessionStateEnforcer::prepare_response_to_access(
           .end_ipv4_addr());
 
   rsp_cmn->mutable_sid()->CopyFrom(config.common_context.sid());  // imsi
-  rsp_cmn->set_ue_ipv4(config.common_context.ue_ipv4());
+  if (!config.common_context.ue_ipv4().empty()) {
+    rsp_cmn->set_ue_ipv4(config.common_context.ue_ipv4());
+  }
+  if (!config.common_context.ue_ipv6().empty()) {
+    rsp_cmn->set_ue_ipv6(config.common_context.ue_ipv6());
+  }
   rsp_cmn->set_apn(config.common_context.apn());
   rsp_cmn->set_sm_session_state(config.common_context.sm_session_state());
   rsp_cmn->set_sm_session_version(config.common_context.sm_session_version());
@@ -896,14 +901,20 @@ void SessionStateEnforcer::set_pdr_attributes(
     SetGroupPDR* rule) {
   const auto& config = session_state->get_config();
   auto ue_ipv4       = config.common_context.ue_ipv4();
+  auto ue_ipv6       = config.common_context.ue_ipv6();
 
   rule->mutable_pdi()->set_ue_ipv4(ue_ipv4);
+  rule->mutable_pdi()->set_ue_ipv6(ue_ipv6);
   rule->mutable_activate_flow_req()->mutable_sid()->set_id(imsi);
   rule->mutable_deactivate_flow_req()->mutable_sid()->set_id(imsi);
   rule->mutable_activate_flow_req()->set_ip_addr(
       config.common_context.ue_ipv4());
+  rule->mutable_activate_flow_req()->set_ipv6_addr(
+      config.common_context.ue_ipv6());
   rule->mutable_deactivate_flow_req()->set_ip_addr(
       config.common_context.ue_ipv4());
+  rule->mutable_deactivate_flow_req()->set_ipv6_addr(
+      config.common_context.ue_ipv6());
 }
 
 std::vector<StaticRuleInstall> SessionStateEnforcer::to_vec(
