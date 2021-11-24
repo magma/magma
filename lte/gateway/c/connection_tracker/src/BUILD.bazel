@@ -38,6 +38,7 @@ cc_library(
     hdrs = ["PacketGenerator.h"],
     deps = [
         "//orc8r/gateway/c/common/logging",
-        "@system_libraries//:libtins",
+        #"@system_libraries//:libtins",
+        "@libtins//:libtins",
     ],
 )

@@ -43,7 +43,8 @@ cc_library(
         ":utilities",
         "//lte/protos:mconfigs_cpp_proto",
         "//orc8r/gateway/c/common/config:mconfig_loader",
-        "@system_libraries//:libtins",
+        # "@system_libraries//:libtins",
+        "@libtins//:libtins",
         "@system_libraries//:libuuid",
     ],
 )
