@@ -13,11 +13,14 @@ limitations under the License.
 
 import logging
 import unittest
+from unittest import mock
 
 from magma.common.sentry import (
     _ignore_if_not_marked,
+    get_sentry_dsn_and_sample_rate,
     send_uncaught_errors_to_monitoring,
 )
+from orc8r.protos.mconfig import mconfigs_pb2
 
 
 class SentryTests(unittest.TestCase):
@@ -32,7 +35,7 @@ class SentryTests(unittest.TestCase):
     def test_do_not_ignore_and_remove_tag_if_marked(self):
         """Test marked events that are sent to Sentry"""
         returned_event = _ignore_if_not_marked({"key": "value", "extra": {"send_to_error_monitoring": True}}, {})
-        self.assertEqual(returned_event, {"key": "value", "extra": {}})
+        self.assertEqual({"key": "value", "extra": {}}, returned_event)
 
     def test_uncaught_error_wrapper(self):
         """Test enabled wrapper logs an error"""
@@ -46,7 +49,25 @@ class SentryTests(unittest.TestCase):
             except ValueError:
                 pass
 
-        self.assertEqual(len(captured.records), 1)
+        self.assertEqual(1, len(captured.records))
         log_record = captured.records[0]
-        self.assertEqual(log_record.message, "Uncaught error")
-        self.assertEqual(log_record.levelno, logging.ERROR)
+        self.assertEqual("Uncaught error", log_record.message)
+        self.assertEqual(logging.ERROR, log_record.levelno)
+
+    @mock.patch('magma.common.sentry.get_service_config_value')
+    def test_get_sentry_dsn_and_sample_rate_from_control_proxy(self, get_service_config_value_mock):
+        """Test if control_proxy.yml overrides mconfig.
+        """
+        get_service_config_value_mock.side_effect = ['https://test.me', 0.5]
+        sentry_mconfig = mconfigs_pb2.SharedSentryConfig()
+        self.assertEqual(('https://test.me', 0.5), get_sentry_dsn_and_sample_rate(sentry_mconfig))
+
+    @mock.patch('magma.common.sentry.get_service_config_value')
+    def test_get_sentry_dsn_and_sample_rate_from_mconfig(self, get_service_config_value_mock):
+        """Test if mconfig is used if control_proxy.yml is empty.
+        """
+        get_service_config_value_mock.side_effect = ['', 0.5]
+        sentry_mconfig = mconfigs_pb2.SharedSentryConfig()
+        sentry_mconfig.dsn_python = 'https://test.me'
+        sentry_mconfig.sample_rate = 1
+        self.assertEqual(('https://test.me', 1), get_sentry_dsn_and_sample_rate(sentry_mconfig))

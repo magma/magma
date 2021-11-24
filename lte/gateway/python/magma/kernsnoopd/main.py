@@ -29,7 +29,7 @@ def main():
     service = MagmaService('kernsnoopd', None)
 
     # Optionally pipe errors to Sentry
-    sentry_init(service_name=service.name)
+    sentry_init(service_name=service.name, sentry_mconfig=service.shared_mconfig.sentry_config)
 
     # Initialize and run the Snooper job
     Snooper(

@@ -27,7 +27,7 @@ def main():
     service = MagmaService('state', mconfigs_pb2.State())
 
     # Optionally pipe errors to Sentry
-    sentry_init(service_name=service.name)
+    sentry_init(service_name=service.name, sentry_mconfig=service.shared_mconfig.sentry_config)
 
     # _grpc_client_manager to manage grpc client recycling
     grpc_client_manager = GRPCClientManager(

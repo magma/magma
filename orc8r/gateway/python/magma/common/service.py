@@ -31,6 +31,7 @@ from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfig_managers import get_mconfig_manager
 from magma.configuration.service_configs import load_service_config
 from orc8r.protos.common_pb2 import LogLevel, Void
+from orc8r.protos.mconfig import mconfigs_pb2
 from orc8r.protos.metricsd_pb2 import MetricsContainer
 from orc8r.protos.service303_pb2 import (
     GetOperationalStatesResponse,
@@ -82,6 +83,7 @@ class MagmaService(Service303Servicer):
 
         # Load the managed config if present
         self._mconfig = empty_mconfig
+        self._shared_mconfig = mconfigs_pb2.SharedMconfig()
         self._mconfig_metadata = None
         self._mconfig_manager = get_mconfig_manager()
         self.reload_mconfig()
@@ -185,6 +187,11 @@ class MagmaService(Service303Servicer):
         return self._mconfig
 
     @property
+    def shared_mconfig(self):
+        """Return the shared managed config"""
+        return self._shared_mconfig
+
+    @property
     def mconfig_metadata(self):
         """Return the metadata of the managed config"""
         return self._mconfig_metadata
@@ -204,15 +211,15 @@ class MagmaService(Service303Servicer):
 
     def reload_mconfig(self):
         """Reload the managed config for the service"""
+        # reload mconfig manager in case feature flag for streaming changed
+        self._mconfig_manager = get_mconfig_manager()
         try:
-            # reload mconfig manager in case feature flag for streaming changed
-            self._mconfig_manager = get_mconfig_manager()
+            self._mconfig_metadata = self._mconfig_manager.load_mconfig_metadata()
             self._mconfig = self._mconfig_manager.load_service_mconfig(
                 self._name,
                 self._mconfig,
             )
-            self._mconfig_metadata = \
-                self._mconfig_manager.load_mconfig_metadata()
+            self._shared_mconfig = self._mconfig_manager.load_shared_mconfig(self._shared_mconfig)
         except LoadConfigError as e:
             logging.warning(e)
 
