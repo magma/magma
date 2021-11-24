@@ -45,6 +45,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_E_RAB_SETUP_REQ: {
+      s1ap_handler_->s1ap_generate_s1ap_e_rab_setup_req();
     } break;
 
     case S1AP_E_RAB_MODIFICATION_CNF: {
@@ -72,6 +73,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_E_RAB_REL_CMD: {
+      s1ap_handler_->s1ap_generate_s1ap_e_rab_rel_cmd();
     } break;
 
     case S1AP_PATH_SWITCH_REQUEST_ACK: {
