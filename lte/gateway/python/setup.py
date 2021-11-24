@@ -135,7 +135,6 @@ setup(
             # update it in lte/gateway/python/Makefile
             'grpcio-tools>=1.16.1',
             'nose==1.3.7',
-            'coverage>=6.1.2',
             'iperf3',
         ],
     },

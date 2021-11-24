@@ -27,14 +27,14 @@ define run_sudo_unit_tests
 endef
 
 # unit_tests (UT_PATH=unit_test_path|MAGMA_SERVICE=service_name)[DONT_BUILD_ENV=1]
-unit_tests: $(TESTS)
+unit_tests: $(TESTS) 
 ifndef MAGMA_SERVICE
 ifndef UT_PATH
 	@echo "usage: make unit_tests (UT_PATH=unit_test_path|MAGMA_SERVICE=service_name)[DONT_BUILD_ENV=1]"
 	@exit 1
 endif
 endif
-ifdef MAGMA_SERVICE
+ifdef MAGMA_SERVICE 
 	$(eval TEST_PATH_LTE ?= $(shell grep -oP '[^\s]+(?=$(MAGMA_SERVICE))[^\s]+' $(MAGMA_ROOT)/lte/gateway/python/defs.mk))
 	$(eval TEST_PATH_ORC8R ?= $(shell grep -oP '[^\s]+(?=$(MAGMA_SERVICE))[^\s]+' $(MAGMA_ROOT)/orc8r/gateway/python/defs.mk))
 else ifdef UT_PATH
@@ -53,7 +53,7 @@ endif
 
 	$(if $(strip $(NON_SUDO_TESTS)),$(eval SEL_TEST_PATH_LTE ?= $(filter $(NON_SUDO_TESTS), $(SELECTED_TESTS))))
 	$(if $(strip $(M_SUDO_TESTS)),$(eval SEL_SUDO_TEST_PATH_LTE ?= $(filter $(M_SUDO_TESTS), $(SELECTED_TESTS))))
-
+	
 	$(if $(strip $(SEL_TEST_PATH_LTE)),$(call run_unit_tests,$(SEL_TEST_PATH_LTE), $(MAGMA_ROOT)/lte/gateway/python/))
 	$(if $(strip $(SEL_SUDO_TEST_PATH_LTE)),$(call run_sudo_unit_tests,$(SEL_SUDO_TEST_PATH_LTE), $(MAGMA_ROOT)/lte/gateway/python/))
 	$(if $(strip $(TEST_PATH_ORC8R)), $(call run_unit_tests, $(TEST_PATH_ORC8R), $(MAGMA_ROOT)/orc8r/gateway/python/))
@@ -65,7 +65,7 @@ $(BIN)/nosetests: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) -I nose==1.3.7
 
 $(BIN)/coverage: install_virtualenv
-	$(VIRT_ENV_PIP_INSTALL) "coverage>=6.1.2"
+	$(VIRT_ENV_PIP_INSTALL) "coverage==4.5.1"
 
 $(BIN)/pylint: install_virtualenv
     # https://github.com/PyCQA/pylint/issues/380
