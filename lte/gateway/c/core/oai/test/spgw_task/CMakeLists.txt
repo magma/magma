@@ -22,6 +22,8 @@ add_library(SPGW_TASK_TEST_LIB
     state_creators.cpp
     spgw_test_util.h
     spgw_test_util.cpp
+    mock_spgw_op.h
+    mock_spgw_op.cpp
     spgw_test.cpp
     )
 
@@ -36,7 +38,7 @@ target_link_libraries(SPGW_TASK_TEST_LIB
 
 set_target_properties(SPGW_TASK_TEST_LIB PROPERTIES LINKER_LANGUAGE CXX)
 
-foreach (sgw_test spgw_state_converter spgw_procedures)
+foreach (sgw_test spgw_state_converter spgw_procedures spgw_procedures_with_injected_state)
   add_executable(${sgw_test}_test test_${sgw_test}.cpp)
   target_link_libraries(${sgw_test}_test SPGW_TASK_TEST_LIB TASK_GRPC_SERVICE)
   add_test(test_${sgw_test} ${sgw_test}_test)
