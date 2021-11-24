@@ -1,3 +1,4 @@
+---
 apiVersion: skaffold/v2beta23
 kind: Config
 metadata:
@@ -42,7 +43,7 @@ deploy:
         - host:
             command: ["kubectl", "apply", "-f", "./tools/deployment/vendor/postgresql.yml"]
         - host:
-            command: ["kubectl", "rollout", "status", "--watch", "--timeout=600s","statefulset/postgres-database"]
+            command: ["kubectl", "rollout", "status", "--watch", "--timeout=600s", "statefulset/postgres-database"]
     releases:
       - name: domain-proxy
         createNamespace: true
@@ -51,7 +52,6 @@ deploy:
           - ./cloud/helm/dp/charts/domain-proxy/examples/minikube_values.yaml
         namespace: default
         version: "0.1.0"
-        #wait: true
         artifactOverrides:
           dp.active_mode_controller:
             image: active-mode-controller
@@ -91,7 +91,7 @@ profiles:
             configuration_controller:
               extraEnv:
                 APP_CONFIG: "TestConfig"
-                REQUEST_PROCESSING_INTERVAL_SEC: "'1'" # bug in helm: https://github.com/helm/helm/issues/4775
+                REQUEST_PROCESSING_INTERVAL_SEC: "'1'"  #  bug in helm: https://github.com/helm/helm/issues/4775
             radio_controller:
               extraEnv:
                 APP_CONFIG: "TestConfig"
