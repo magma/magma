@@ -292,7 +292,7 @@ static int pdu_session_resource_release_t3592_handler(
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   int rc = 0;
 
-  if (!amf_pdu_get_timer_arg(timer_id, &uepdu_id)) {
+  if (!amf_pop_pdu_timer_arg(timer_id, &uepdu_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3550: Invalid Timer Id expiration, Timer Id: %u\n",
         timer_id);

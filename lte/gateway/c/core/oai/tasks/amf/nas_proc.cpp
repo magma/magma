@@ -272,7 +272,7 @@ static int identification_t3570_handler(
   amf_context_t* amf_ctx = NULL;
   OAILOG_FUNC_IN(LOG_NAS_AMF);
 
-  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+  if (!amf_pop_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3570: Invalid Timer Id expiration, timer Id: %u\n",
         timer_id);
