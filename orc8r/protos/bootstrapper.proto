@@ -77,6 +77,36 @@ service Bootstrapper {
 // --------------------------------------------------------------------------
 // Protos for CloudRegistration and Registration servicer
 // --------------------------------------------------------------------------
+/**
+// Operator Side Registration
+Operator->REST API:
+  GET_gateway(network_id, logical_id)
+
+  REST API<->CloudRegistration:
+    GetToken(network_id, logical_id, refresh): nonce, timeout
+
+  REST API<->CloudRegistration:
+    GetInfoForGatewayRegistration(): domain_name, root_ca
+
+Operator<-REST API:
+  GatewaySwaggerObject{..., registration_field{nonce, timeout, domain_name, root_ca}}
+
+// AGW Side Registration
+Operator->AGW:
+  passes nonce, domain_name, root_ca
+
+AGW->Registration:
+  Register(nonce, hwid, challenge_key)
+
+  Registration<->CloudRegistration:
+    GetGatewayRegistrationInfo(nonce): network_id, logical_id
+
+  Registration->Device:
+    RegisterDevices(network_id, hwid)
+
+Registration->AGW:control_proxy
+ */
+
 service CloudRegistration {
   // GetToken saves and sends out a token related to input:networkID and input:logicalID
   // It will refresh the token if input:refresh is true or token is expired
@@ -138,6 +168,7 @@ message RegisterRequest {
 message RegisterResponse {
   oneof response {
     // control_proxy is the OK that the gateway has registered properly
+    // EG magma/lte/gateway/configs/control_proxy.yml
     string control_proxy = 1;
     string error = 2;
   }

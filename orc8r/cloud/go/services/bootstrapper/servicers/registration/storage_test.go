@@ -34,14 +34,14 @@ func TestBlobstoreStore(t *testing.T) {
 
 		tokenInfo1 = &protos.TokenInfo{
 			GatewayDeviceInfo: gatewayPreregisterInfo,
-			Nonce:                  "someNonce",
-			Timeout:                nil,
+			Nonce:             "someNonce",
+			Timeout:           nil,
 		}
 
 		tokenInfo2 = &protos.TokenInfo{
 			GatewayDeviceInfo: gatewayPreregisterInfo,
-			Nonce:                  "someNonce2",
-			Timeout:                nil,
+			Nonce:             "someNonce2",
+			Timeout:           nil,
 		}
 	)
 

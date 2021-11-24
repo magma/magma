@@ -36,7 +36,7 @@ type blobstoreStore struct {
 }
 
 func NewBlobstoreStore(factory blobstore.StoreFactory) Store {
-	return &blobstoreStore{factory}
+	return &blobstoreStore{factory: factory}
 }
 
 func (b *blobstoreStore) SetTokenInfo(tokenInfo protos.TokenInfo) error {
@@ -56,6 +56,8 @@ func (b *blobstoreStore) SetTokenInfo(tokenInfo protos.TokenInfo) error {
 		return err
 	}
 	defer store.Rollback()
+
+	// Write to 2 blobstores so that we can key for tokenInfo with both the logicalID and the nonce
 
 	logicalIDBlob, err := tokenInfoToBlob(bootstrapper.LogicalIDToTokenInfo, logicalID, tokenInfo)
 	if err != nil {
@@ -99,7 +101,7 @@ func (b *blobstoreStore) GetTokenInfoFromLogicalID(networkID string, logicalID s
 		return nil, err
 	}
 
-	return &tokenInfo, store.Commit()
+	return tokenInfo, store.Commit()
 }
 
 func (b *blobstoreStore) GetTokenInfoFromNonce(nonce string) (*protos.TokenInfo, error) {
@@ -123,7 +125,7 @@ func (b *blobstoreStore) GetTokenInfoFromNonce(nonce string) (*protos.TokenInfo,
 		return nil, err
 	}
 
-	return &tokenInfo, store.Commit()
+	return tokenInfo, store.Commit()
 }
 
 func (b *blobstoreStore) isNonceUnique(nonce string) (bool, error) {
@@ -140,7 +142,7 @@ func (b *blobstoreStore) isNonceUnique(nonce string) (bool, error) {
 // tokenInfoToBlob turns the input tokenInfo into a blob
 // For blobType bootstrapper.LogicalIDToTokenInfo, key should be a LogicalID
 // For blobType bootstrapper.NonceTokenToInfoMap, key should be a Nonce
-func tokenInfoToBlob(blobType bootstrapper.DBBlobType, key string, tokenInfo protos.TokenInfo) (blobstore.Blob, error) {
+func tokenInfoToBlob(blobType bootstrapper.BlobType, key string, tokenInfo protos.TokenInfo) (blobstore.Blob, error) {
 	marshaledTokenInfo, err := protos.Marshal(&tokenInfo)
 	if err != nil {
 		return blobstore.Blob{}, errors.Wrap(err, "Error marshaling protobuf")
@@ -153,11 +155,11 @@ func tokenInfoToBlob(blobType bootstrapper.DBBlobType, key string, tokenInfo pro
 	return blob, nil
 }
 
-func tokenInfoFromBlob(blob blobstore.Blob) (protos.TokenInfo, error) {
+func tokenInfoFromBlob(blob blobstore.Blob) (*protos.TokenInfo, error) {
 	tokenInfo := protos.TokenInfo{}
 	err := protos.Unmarshal(blob.Value, &tokenInfo)
 	if err != nil {
-		return protos.TokenInfo{}, errors.Wrap(err, "Error unmarshaling protobuf")
+		return &protos.TokenInfo{}, errors.Wrap(err, "Error unmarshaling protobuf")
 	}
-	return tokenInfo, nil
+	return &tokenInfo, nil
 }

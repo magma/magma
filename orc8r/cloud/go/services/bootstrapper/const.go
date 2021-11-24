@@ -19,9 +19,9 @@ const (
 	TokenPrepend       = "reg_"
 )
 
-type DBBlobType string
+type BlobType string
 
 const (
-	LogicalIDToTokenInfo DBBlobType = "logical_id_to_token_info"
-	NonceTokenToInfoMap  DBBlobType = "nonce_to_token_info"
+	LogicalIDToTokenInfo BlobType = "logical_id_to_token_info"
+	NonceTokenToInfoMap  BlobType = "nonce_to_token_info"
 )
