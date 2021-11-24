@@ -75,14 +75,13 @@ func GetGatewayDeviceInfo(ctx context.Context, token string) (*protos.GatewayDev
 		return nil, err
 	}
 
-	clientErr := res.Response.(*protos.GetGatewayDeviceInfoResponse_Error)
-	if clientErr != nil{
-		// TODO(reginawang3495): Be more precise based on the different errors?
-		return nil, status.Error(codes.Unauthenticated, clientErr.Error)
+	switch res.Response.(type) {
+	case *protos.GetGatewayDeviceInfoResponse_GatewayDeviceInfo:
+		gatewayInfo := res.Response.(*protos.GetGatewayDeviceInfoResponse_GatewayDeviceInfo)
+		return gatewayInfo.GatewayDeviceInfo, nil
+	default:
+		return nil, status.Error(codes.Unauthenticated, res.Response.(*protos.GetGatewayDeviceInfoResponse_Error).Error)
 	}
-
-	gatewayInfo := res.Response.(*protos.GetGatewayDeviceInfoResponse_GatewayDeviceInfo)
-	return gatewayInfo.GatewayDeviceInfo, nil
 }
 
 func getCloudRegistrationClient() (protos.CloudRegistrationClient, error) {
