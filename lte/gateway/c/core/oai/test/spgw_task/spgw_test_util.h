@@ -37,7 +37,8 @@ namespace lte {
 #define DEFAULT_EDNS_IP 0x7f000001  // localhost
 #define DEFAULT_SGW_IP 0x7f000001   // localhost
 #define DEFAULT_ENB_IP 0xc0a83c8d   // 192.168.60.141
-#define DEFAULT_SPGW_CONTEXT_DATA_PATH "/home/vagrant/magma/lte/gateway/c/core/oai/test/spgw_task/data/"
+#define DEFAULT_SPGW_CONTEXT_DATA_PATH                                         \
+  "/home/vagrant/magma/lte/gateway/c/core/oai/test/spgw_task/data/"
 
 bool is_num_sessions_valid(
     uint64_t imsi64, int expected_num_ue_contexts, int expected_num_teids);

@@ -9,8 +9,8 @@
 namespace magma {
 namespace lte {
 
-std::vector<std::string> load_file_into_vector_of_line_content(const std::string& data_folder_path,
-    const std::string& file_name) {
+std::vector<std::string> load_file_into_vector_of_line_content(
+    const std::string& data_folder_path, const std::string& file_name) {
   std::fstream file_content(file_name.c_str(), std::ios_base::in);
   std::string line;
   std::vector<std::string> vector_of_lines;
@@ -27,7 +27,8 @@ std::vector<std::string> load_file_into_vector_of_line_content(const std::string
   return vector_of_lines;
 }
 
-status_code_e mock_read_spgw_ue_state_db(const std::vector<std::string>& ue_samples) {
+status_code_e mock_read_spgw_ue_state_db(
+    const std::vector<std::string>& ue_samples) {
   for (auto name_of_sample : ue_samples) {
     oai::SpgwUeContext ue_proto = oai::SpgwUeContext();
     std::fstream input(name_of_sample.c_str(), std::ios::in | std::ios::binary);
