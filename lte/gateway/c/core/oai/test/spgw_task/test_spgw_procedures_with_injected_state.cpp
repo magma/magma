@@ -187,11 +187,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
   return_code               = sgw_handle_delete_session_request(
       &sample_delete_session_request, test_imsi64);
   ASSERT_EQ(return_code, RETURNok);
-
-  // verify the context of testing ue is cleared
-  ASSERT_TRUE(is_num_sessions_valid(
-      spgw_state, test_imsi64, name_of_ue_samples.size() - 1, 0));
-
+  
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
