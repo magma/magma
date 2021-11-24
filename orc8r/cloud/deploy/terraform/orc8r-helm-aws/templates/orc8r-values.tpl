@@ -248,6 +248,7 @@ dp:
       pass: ${orc8r_db_pass}
 
   protocol_controller:
+    enabled: false
     image:
       repository: "${docker_registry}/protocol-controller"
       tag: "${docker_tag}"

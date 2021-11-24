@@ -804,3 +804,52 @@ service:
     Required: false
     ConfigApps:
       - tf
+  dp_enabled:
+    Description: Whether Orchestrator domain proxy module should be enabled.
+    Type: bool
+    Default: false
+    Required: false
+    ConfigApps:
+      - tf
+  dp_orc8r_chart_version:
+    Description: Version of the Orchestrator domain proxy module Helm chart to install.
+    Type: string
+    Default: 0.1.0
+    Required: false
+    ConfigApps:
+      - tf
+  dp_api_prefix:
+    Description: Protocol controller URL API prefix.
+    Type: string
+    Default: /sas/v1
+    Required: false
+    ConfigApps:
+      - tf
+  dp_sas_endpoint_url:
+    Description: Endpoint where sas request should be send.
+    Type: string
+    Default: ''
+    Required: true
+    ConfigApps:
+      - tf
+  dp_sas_crt:
+    Description: SAS certificate filename.
+    Type: string
+    Default: 'tls.crt'
+    Required: true
+    ConfigApps:
+      - tf
+  dp_sas_key:
+    Description: SAS private key filename.
+    Type: string
+    Default: 'tls.key'
+    Required: true
+    ConfigApps:
+      - tf
+  dp_sas_ca:
+    Description: SAS CA filename.
+    Type: string
+    Default: 'ca.crt'
+    Required: true
+    ConfigApps:
+      - tf
