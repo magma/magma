@@ -3,7 +3,6 @@ package registration
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"time"
 
 	"magma/orc8r/lib/go/protos"
@@ -27,24 +26,21 @@ const (
 type cloudRegistrationServicer struct {
 	store Store
 	rootCA string
+	timeoutDurationInMinutes int
 }
 
-func NewCloudRegistrationServicer(store Store) (protos.CloudRegistrationServer, error) {
+func NewCloudRegistrationServicer(store Store, rootCA string, timeoutDurationInMinutes int) (protos.CloudRegistrationServer, error) {
 	if store == nil {
 		return nil, fmt.Errorf("storage store is nil")
 	}
-	rootCA, err := getRootCA()
-	if err != nil {
-		return nil, err
-	}
-	return &cloudRegistrationServicer{store, rootCA}, nil
+	return &cloudRegistrationServicer{store: store, rootCA: rootCA, timeoutDurationInMinutes: timeoutDurationInMinutes}, nil
 }
 
-func (crs *cloudRegistrationServicer) GetToken(c context.Context, request *protos.GetTokenRequest) (*protos.GetTokenResponse, error) {
+func (c *cloudRegistrationServicer) GetToken(ctx context.Context, request *protos.GetTokenRequest) (*protos.GetTokenResponse, error) {
 	networkId := request.GatewayDeviceInfo.NetworkId
 	logicalId := request.GatewayDeviceInfo.LogicalId
 
-	tokenInfo, err := crs.store.GetTokenInfoFromLogicalID(networkId, logicalId)
+	tokenInfo, err := c.store.GetTokenInfoFromLogicalID(networkId, logicalId)
 	if err != nil {
 		// error is not bubbled up since the tokenInfo is only important if the token exists and is expired
 		// if GetTokenInfoFromLogicalID fails, we can just ignore and continue
@@ -54,7 +50,7 @@ func (crs *cloudRegistrationServicer) GetToken(c context.Context, request *proto
 	refresh := request.Refresh || tokenInfo == nil || isTokenExpired(tokenInfo)
 	if refresh {
 		// TODO(reginawang3495) add a test with tokenInfo = nil to make sure it works
-		tokenInfo, err = crs.generateAndSaveTokenInfo(networkId, logicalId)
+		tokenInfo, err = c.generateAndSaveTokenInfo(networkId, logicalId)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "could not generate and save tokenInfo for networkID %v and logicalID %v: %v", networkId, logicalId, err)
 		}
@@ -64,20 +60,20 @@ func (crs *cloudRegistrationServicer) GetToken(c context.Context, request *proto
 	return res, nil
 }
 
-func (crs *cloudRegistrationServicer) GetGatewayRegistrationInfo(c context.Context, request *protos.GetGatewayRegistrationInfoRequest) (*protos.GetGatewayRegistrationInfoResponse, error) {
+func (c *cloudRegistrationServicer) GetGatewayRegistrationInfo(ctx context.Context, request *protos.GetGatewayRegistrationInfoRequest) (*protos.GetGatewayRegistrationInfoResponse, error) {
 	domainName := getDomainName()
 
 	res := &protos.GetGatewayRegistrationInfoResponse{
-		RootCa:               crs.rootCA,
+		RootCa:               c.rootCA,
 		DomainName:           domainName,
 	}
 	return res, nil
 }
 
-func (crs *cloudRegistrationServicer) GetGatewayDeviceInfo(c context.Context, request *protos.GetGatewayDeviceInfoRequest) (*protos.GetGatewayDeviceInfoResponse, error) {
+func (c *cloudRegistrationServicer) GetGatewayDeviceInfo(ctx context.Context, request *protos.GetGatewayDeviceInfoRequest) (*protos.GetGatewayDeviceInfoResponse, error) {
 	nonce := nonceFromToken(request.Token)
 
-	tokenInfo, err := crs.store.GetTokenInfoFromNonce(nonce)
+	tokenInfo, err := c.store.GetTokenInfoFromNonce(nonce)
 	if err != nil {
 		res := &protos.GetGatewayDeviceInfoResponse{
 			Response: &protos.GetGatewayDeviceInfoResponse_Error{
@@ -98,7 +94,7 @@ func (crs *cloudRegistrationServicer) GetGatewayDeviceInfo(c context.Context, re
 	return res, nil
 }
 
-func (crs *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string, logicalID string) (*protos.TokenInfo, error) {
+func (c *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string, logicalID string) (*protos.TokenInfo, error) {
 	nonce := generateNonce(nonceLength)
 
 	t := time.Now().Add(timeoutDuration)
@@ -115,20 +111,12 @@ func (crs *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string,
 		},
 	}
 
-	err := crs.store.SetTokenInfo(*tokenInfo)
+	err := c.store.SetTokenInfo(*tokenInfo)
 	if err != nil {
 		return nil, err
 	}
 
 	return tokenInfo, nil
-}
-
-func getRootCA() (string, error) {
-	body, err := ioutil.ReadFile(rootCAFilePath)
-	if err != nil {
-		return "", err
-	}
-	return string(body), nil
 }
 
 // TODO(#10437)

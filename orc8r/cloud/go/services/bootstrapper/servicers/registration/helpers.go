@@ -1,6 +1,7 @@
 package registration
 
 import (
+	"io/ioutil"
 	"math/rand"
 	"time"
 
@@ -20,11 +21,18 @@ func isTokenExpired(info *protos.TokenInfo) bool {
 	return time.Now().Before(time.Unix(0, int64(info.Timeout.Nanos)))
 }
 
-// ========================================================================= //
-// Sourced from https://stackoverflow.com/a/31832326
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
+func getRootCA() (string, error) {
+	body, err := ioutil.ReadFile(rootCAFilePath)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
+}
+
+// generateNonce is sourced from https://stackoverflow.com/a/31832326
 func generateNonce(n int) string {
+	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	b := make([]byte, n)
 	for i := range b {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
