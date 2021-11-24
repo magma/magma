@@ -1150,7 +1150,7 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
   MessageDef* message_p                          = nullptr;
   itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
 
-  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+  if (!amf_pop_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3513: Invalid Timer Id expiration, Timer Id: %u\n",
         timer_id);
