@@ -45,13 +45,13 @@ using SessionUpdate = std::unordered_map<
     std::string, std::unordered_map<std::string, SessionStateUpdateCriteria>>;
 
 enum SessionSearchCriteriaType {
-  IMSI_AND_APN                     = 0,
-  IMSI_AND_SESSION_ID              = 1,
-  IMSI_AND_UE_IPV4                 = 2,
-  IMSI_AND_UE_IPV4_OR_IPV6         = 3,
-  IMSI_AND_BEARER                  = 4,
-  IMSI_AND_TEID                    = 5,
-  IMSI_AND_PDUID                   = 6,
+  IMSI_AND_APN                         = 0,
+  IMSI_AND_SESSION_ID                  = 1,
+  IMSI_AND_UE_IPV4                     = 2,
+  IMSI_AND_UE_IPV4_OR_IPV6             = 3,
+  IMSI_AND_BEARER                      = 4,
+  IMSI_AND_TEID                        = 5,
+  IMSI_AND_PDUID                       = 6,
   IMSI_AND_UE_IPV4_OR_IPV6_OR_UPF_TEID = 7,
 };
 

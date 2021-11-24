@@ -110,8 +110,7 @@ void SetMessageManagerHandler::SetAmfSessionContext(
   m5g_enforcer_->get_event_base().runInEventBaseThread([this, response_callback,
                                                         request_cpy]() {
     // extract values from proto
-    std::string imsi = request_cpy.common_context().sid().id();
-    std::string dnn  = request_cpy.common_context().apn();
+    std::string imsi    = request_cpy.common_context().sid().id();
     const auto rat_type = request_cpy.common_context().rat_type();
     if (rat_type != TGPP_NR) {
       // We don't support outside of 5G
@@ -119,8 +118,7 @@ void SetMessageManagerHandler::SetAmfSessionContext(
       failure_stream << "Received an invalid RAT type " << rat_type;
       std::string failure_msg = failure_stream.str();
       MLOG(MERROR) << failure_msg;
-      Status status(
-           grpc::FAILED_PRECONDITION, failure_msg);
+      Status status(grpc::FAILED_PRECONDITION, failure_msg);
       response_callback(status, SmContextVoid());
       return;
     }
