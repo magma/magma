@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test-runner-job
+spec:
+  template:
+    metadata:
+      labels:
+        app: test-runner
+        type: integration-tests
+      name: test-runner-pod
+    spec:
+      restartPolicy: Never
+      containers:
+        - image: test_runner_image
+          name: test-runner
+          imagePullPolicy: IfNotPresent
+          args: ["-m", "pytest", "-vvv", "-s", "-o", "log_cli=true", "-o", "log_cli_level=DEBUG", "tests", "--junitxml=/backend/test_runner/test-results/test_report.xml"]
+          volumeMounts:
+            - name: test-results
+              mountPath: /backend/test_runner/test-results
+      volumes:
+        - name: test-results
+          hostPath:
+            path: /tmp/integration-tests-results
+            type: DirectoryOrCreate
+  backoffLimit: 10

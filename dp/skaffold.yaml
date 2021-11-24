@@ -1,0 +1,134 @@
+apiVersion: skaffold/v2beta23
+kind: Config
+metadata:
+  name: domain-proxy
+build:
+  tagPolicy:
+    sha256: {}
+  local:
+    push: false
+    useBuildkit: true
+    concurrency: 0
+  artifacts:
+    - image: active-mode-controller
+      context: ..
+      docker:
+        dockerfile: dp/cloud/docker/go/active_mode_controller/Dockerfile
+    - image: protocol-controller
+      context: ..
+      docker:
+        dockerfile: dp/cloud/docker/python/protocol_controller/Dockerfile
+    - image: configuration-controller
+      context: ..
+      docker:
+        dockerfile: dp/cloud/docker/python/configuration_controller/Dockerfile
+    - image: radio-controller
+      context: ..
+      docker:
+        dockerfile: dp/cloud/docker/python/radio_controller/Dockerfile
+    - image: db-service
+      context: ..
+      docker:
+        dockerfile: dp/cloud/docker/python/db_service/Dockerfile
+    - image: fake_sas
+      context: tools/fake_sas
+      docker:
+        dockerfile: Dockerfile
+deploy:
+  kubeContext: minikube
+  helm:
+    hooks:
+      before:
+        - host:
+            command: ["kubectl", "apply", "-f", "./tools/deployment/vendor/postgresql.yml"]
+        - host:
+            command: ["kubectl", "rollout", "status", "--watch", "--timeout=600s","statefulset/postgres-database"]
+    releases:
+      - name: domain-proxy
+        createNamespace: true
+        chartPath: ./cloud/helm/dp/charts/domain-proxy
+        valuesFiles:
+          - ./cloud/helm/dp/charts/domain-proxy/examples/minikube_values.yaml
+        namespace: default
+        version: "0.1.0"
+        #wait: true
+        artifactOverrides:
+          dp.active_mode_controller:
+            image: active-mode-controller
+          dp.configuration_controller:
+            image: configuration-controller
+          dp.protocol_controller:
+            image: protocol-controller
+          dp.radio_controller:
+            image: radio-controller
+          dp.db_service:
+            image: db-service
+        imageStrategy:
+          helm: {}
+  kubectl:
+    defaultNamespace: default
+    manifests:
+      - "./tools/deployment/vendor/fake_sas.yml"
+profiles:
+  - name: integration-tests
+    patches:
+      - op: add
+        path: /build/artifacts/-
+        value:
+          image: test_runner_image
+          context: ..
+          docker:
+            dockerfile: dp/cloud/docker/python/test_runner/Dockerfile
+      - op: add
+        path: /deploy/helm/releases/0/setValueTemplates
+        value:
+          dp:
+            active_mode_controller:
+              extraEnv:
+                POLLING_INTERVAL_SEC: "'1'"
+                REQUEST_PROCESSING_INTERVAL_SEC: "'1'"
+                CBSD_INACTIVITY_TIMEOUT_SEC: "'3'"
+            configuration_controller:
+              extraEnv:
+                APP_CONFIG: "TestConfig"
+                REQUEST_PROCESSING_INTERVAL_SEC: "'1'" # bug in helm: https://github.com/helm/helm/issues/4775
+            radio_controller:
+              extraEnv:
+                APP_CONFIG: "TestConfig"
+            db_service:
+              enabled: false
+      - op: add
+        path: /deploy/kubectl/flags
+        value:
+          apply:
+            - "--force=true"
+      - op: add
+        path: /deploy/kubectl/manifests/-
+        value: "./tools/deployment/tests/test_runner_*.yml"
+    activation:
+      - env: CI=true
+
+  - name: remote
+    deploy:
+      kubeContext: dp_orc8r
+    activation:
+      - env: "REMOTE_NAMESPACE=orc8r"
+    patches:
+      - op: replace
+        path: /build/local/push
+        value: true
+      - op: replace
+        path: /deploy/helm/releases/0/valuesFiles/0
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/aws_nginx_values.yaml
+      - op: replace
+        path: /deploy/kubectl/defaultNamespace
+        value: "{{.REMOTE_NAMESPACE}}"
+      - op: replace
+        path: /deploy/helm/releases/0/namespace
+        value: "{{.REMOTE_NAMESPACE}}"
+
+  - name: nginx-ingress
+    patches:
+      - op: replace
+        path: /deploy/helm/releases/0/valuesFiles/0
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/minikube_values_nginx.yaml
