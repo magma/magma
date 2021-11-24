@@ -51,6 +51,37 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   return 0;
 }
 
+MATCHER_P2(check_params_in_actv_bearer_req, lbi, tft, "") {
+  auto cb_req_rcvd_at_mme =
+      static_cast<itti_s11_nw_init_actv_bearer_request_t>(arg);
+  if (cb_req_rcvd_at_mme.lbi != lbi) {
+    return false;
+  }
+  if (!(cb_req_rcvd_at_mme.s1_u_sgw_fteid.teid)) {
+    return false;
+  }
+  if ((memcmp(
+          &cb_req_rcvd_at_mme.tft, &tft, sizeof(traffic_flow_template_t)))) {
+    return false;
+  }
+  return true;
+}
+
+MATCHER_P2(
+    check_params_in_deactv_bearer_req, num_bearers, eps_bearer_id_array, "") {
+  auto db_req_rcvd_at_mme =
+      static_cast<itti_s11_nw_init_deactv_bearer_request_t>(arg);
+  if (db_req_rcvd_at_mme.no_of_bearers != num_bearers) {
+    return false;
+  }
+  if (memcmp(
+          db_req_rcvd_at_mme.ebi, eps_bearer_id_array,
+          sizeof(db_req_rcvd_at_mme.ebi))) {
+    return false;
+  }
+  return true;
+}
+
 class SPGWAppProcedureTest : public ::testing::Test {
   virtual void SetUp() {
     // setup mock MME app task
@@ -629,22 +660,6 @@ TEST_F(SPGWAppProcedureTest, TestReleaseBearerError) {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
-MATCHER_P2(check_params_in_actv_bearer_req, lbi, tft, "") {
-  auto cb_req_rcvd_at_mme =
-      static_cast<itti_s11_nw_init_actv_bearer_request_t>(arg);
-  if (cb_req_rcvd_at_mme.lbi != lbi) {
-    return false;
-  }
-  if (!(cb_req_rcvd_at_mme.s1_u_sgw_fteid.teid)) {
-    return false;
-  }
-  if ((memcmp(
-          &cb_req_rcvd_at_mme.tft, &tft, sizeof(traffic_flow_template_t)))) {
-    return false;
-  }
-  return true;
-}
-
 TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivation) {
   spgw_state_t* spgw_state  = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
@@ -780,21 +795,6 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivation) {
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
-}
-
-MATCHER_P2(
-    check_params_in_deactv_bearer_req, num_bearers, eps_bearer_id_array, "") {
-  auto db_req_rcvd_at_mme =
-      static_cast<itti_s11_nw_init_deactv_bearer_request_t>(arg);
-  if (db_req_rcvd_at_mme.no_of_bearers != num_bearers) {
-    return false;
-  }
-  if (memcmp(
-          db_req_rcvd_at_mme.ebi, eps_bearer_id_array,
-          sizeof(db_req_rcvd_at_mme.ebi))) {
-    return false;
-  }
-  return true;
 }
 
 TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivation) {
