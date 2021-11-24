@@ -1222,6 +1222,7 @@ TEST_F(
     AmfUeContextTestServiceRequestProc,
     test_amf_service_request_without_uplinkDataStatus_RainyDay) {
   ServiceRequestMsg service_request;
+  memset(&service_request, 0, sizeof(service_request));
   bool decode_res                               = 0;
   amf_nas_message_decode_status_t decode_status = {0};
   MessageDef* message_p                         = NULL;
@@ -1450,11 +1451,6 @@ TEST(test_optional_pdu, test_pdu_session_accept_optional) {
   sm_free_protocol_configuration_options(&decode_msg_accept_pco);
   // Clean up the PCO contents
   sm_free_protocol_configuration_options(&msg_accept_pco);
-}
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
 
 }  // namespace magma5g

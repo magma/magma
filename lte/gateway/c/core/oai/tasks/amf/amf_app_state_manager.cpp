@@ -94,6 +94,14 @@ int amf_nas_state_init(const amf_config_t* amf_config_p) {
 void AmfNasStateManager::create_state() {
   state_cache_p                               = new (amf_app_desc_t);
   state_cache_p->amf_app_ue_ngap_id_generator = 1;
+  state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.set_name(
+      AMF_IMSI_UE_ID_TABLE_NAME);
+  state_cache_p->amf_ue_contexts.tun11_ue_context_htbl.set_name(
+      AMF_TUN_UE_ID_TABLE_NAME);
+  state_cache_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.set_name(
+      AMF_GNB_UE_ID_AMF_UE_ID_TABLE_NAME);
+  state_cache_p->amf_ue_contexts.guti_ue_context_htbl.set_name(
+      AMF_GUTI_UE_ID_TABLE_NAME);
   create_hashtables();
 
   // Initialize the local timers, which are non-persistent
@@ -108,14 +116,6 @@ void AmfNasStateManager::clear_amf_nas_hashtables() {
   }
 
   hashtable_ts_destroy(state_ue_ht);
-  hashtable_uint64_ts_destroy(
-      state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl);
-  hashtable_uint64_ts_destroy(
-      state_cache_p->amf_ue_contexts.tun11_ue_context_htbl);
-  hashtable_uint64_ts_destroy(
-      state_cache_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl);
-  obj_hashtable_uint64_ts_destroy(
-      state_cache_p->amf_ue_contexts.guti_ue_context_htbl);
 }
 
 // Free the memory allocated to state pointer
@@ -130,27 +130,11 @@ void AmfNasStateManager::free_state() {
 
 // Create the hashtables for AMF and NAS state
 void AmfNasStateManager::create_hashtables() {
-  bstring b          = bfromcstr(AMF_IMSI_UE_ID_TABLE_NAME);
+  bstring b          = bfromcstr(AMF_UE_ID_UE_CTXT_TABLE_NAME);
   max_ue_htbl_lists_ = 2;
-  state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl =
-      hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
-  btrunc(b, 0);
-  bassigncstr(b, AMF_TUN_UE_ID_TABLE_NAME);
-  state_cache_p->amf_ue_contexts.tun11_ue_context_htbl =
-      hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
-  btrunc(b, 0);
-  bassigncstr(b, AMF_UE_ID_UE_CTXT_TABLE_NAME);
-  state_ue_ht = hashtable_ts_create(
+  state_ue_ht        = hashtable_ts_create(
       max_ue_htbl_lists_, nullptr, amf_app_state_free_ue_context, b);
-  btrunc(b, 0);
-  bassigncstr(b, AMF_GNB_UE_ID_AMF_UE_ID_TABLE_NAME);
-  state_cache_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl =
-      hashtable_uint64_ts_create(max_ue_htbl_lists_, amf_def_hashfunc, b);
-  btrunc(b, 0);
-  bassigncstr(b, AMF_GUTI_UE_ID_TABLE_NAME);
-  state_cache_p->amf_ue_contexts.guti_ue_context_htbl =
-      obj_hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, nullptr, b);
-  bdestroy_wrapper(&b);
+  bdestroy(b);
 }
 
 // Initialize state that is non-persistent, e.g. timers
