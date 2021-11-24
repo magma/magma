@@ -18,6 +18,7 @@ jobs:
   skip_check:
     name: Job to check if the workflow ${{ github.event.workflow.name }} can be skipped
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request' ||  github.event.workflow_run.event == 'pull_request_target'
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
@@ -65,10 +66,7 @@ jobs:
     name: Comment on PR for check ${{ github.event.workflow.name }}
     needs: skip_check
     runs-on: ubuntu-latest
-    if: >
-      (github.event.workflow_run.event == 'pull_request' ||
-        github.event.workflow_run.event == 'pull_request_target') &&
-          needs.skip_check.outputs.should_skip == 'false'
+    if: needs.skip_check.outputs.should_skip == 'false'
     env:
       CHECK_GUIDELINE: "[Guide to the different CI checks and resolution guidelines](https://docs.magmacore.org/docs/next/contributing/contribute_ci_checks)"
       WORKFLOW_NAME: "${{ github.event.workflow.name }}"
@@ -184,3 +182,4 @@ jobs:
                             body: msg,
                           });
             }
+            
