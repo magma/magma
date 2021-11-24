@@ -752,7 +752,8 @@ int amf_app_handle_pdu_session_accept(
   smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
       PDU_SESSION_ESTABLISHMENT_ACCEPT;
   smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val = 1;
-  smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val         = 1;
+  smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val =
+      (pdu_session_resp->selected_ssc_mode + 1);
 
   memset(
       &(smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info), 0, 12);
