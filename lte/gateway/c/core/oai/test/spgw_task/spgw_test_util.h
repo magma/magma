@@ -12,12 +12,12 @@
  */
 #include <string>
 
-#include "lte/gateway/c/core/oai/include/spgw_state.h"
-
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
 }
 
 namespace magma {
@@ -46,6 +46,9 @@ bool is_num_sessions_valid(
 
 bool is_num_s1_bearers_valid(
     teid_t context_teid, int expected_num_active_bearers);
+
+int get_num_pending_create_bearer_procedures(
+    sgw_eps_bearer_context_information_t* ctxt_p);
 
 void fill_create_session_request(
     itti_s11_create_session_request_t* session_request_p,
@@ -83,6 +86,16 @@ void fill_nw_initiated_activate_bearer_response(
     teid_t mme_s11_teid, teid_t sgw_s11_cp_teid, teid_t sgw_s11_ded_teid,
     teid_t s1u_enb_ded_teid, ebi_t eps_bearer_id, gtpv2c_cause_value_t cause,
     plmn_t plmn);
+
+void fill_nw_initiated_deactivate_bearer_request(
+    itti_gx_nw_init_deactv_bearer_request_t* gx_nw_init_deactv_req_p,
+    std::string imsi_str, ebi_t lbi, ebi_t eps_bearer_id);
+
+void fill_nw_initiated_deactivate_bearer_response(
+    itti_s11_nw_init_deactv_bearer_rsp_t* nw_deactv_bearer_resp,
+    uint64_t test_imsi64, bool delete_default_bearer,
+    gtpv2c_cause_value_t cause, ebi_t ebi[], unsigned int num_bearer_context,
+    teid_t sgw_s11_context_teid);
 
 }  // namespace lte
 }  // namespace magma
