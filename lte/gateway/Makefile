@@ -70,7 +70,7 @@ OAI_NOTEST_FLAGS = -DMME_UNIT_TEST=False
 
 all: build
 
-build: build_python build_common build_oai build_sctpd build_session_manager build_connection_tracker build_envoy_controller build_li_agent ## Build all
+build: build_python build_oai build_bazel build_sctpd build_session_manager build_connection_tracker build_envoy_controller build_li_agent ## Build all
 
 smf_build: build_session_manager  ## Build only sessionD component make smf_build
 
@@ -176,20 +176,34 @@ clang_warning_oai_upload: build_oai_clang ## Generate and then upload warning st
 		--data-urlencode "entry.599425517=$(shell grep '\[-Wtypedef-redefinition\]' /tmp/clang-build.oai.log | wc -l)" \
 		https://docs.google.com/forms/d/e/1FAIpQLScKB3nLPASxzr4AXW5_yeHCjkEURY0K9OAFPIyNFzkA5CY_kw/formResponse?usp=pp_url
 
+build_bazel:
+	bazel build //lte/gateway/c/sctpd/src:sctpd //lte/gateway/c/session_manager:sessiond //lte/gateway/c/li_agent/src:liagentd //lte/gateway/c/connection_tracker/src:connectiond
+
 build_sctpd:
-	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
+	#bazel build //lte/gateway/c/sctpd/src:sctpd
+	mkdir -p $(C_BUILD)/sctpd/src
+	sudo cp $(MAGMA_ROOT)/bazel-bin/lte/gateway/c/sctpd/src/sctpd $(C_BUILD)/sctpd/src/sctpd
+	
+#$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
 
 build_session_manager:
-	# bazel build //lte/gateway/c/session_manager:sessiond
-	# mkdir -p $(C_BUILD)/session_manager
-	# sudo cp $(MAGMA_ROOT)/bazel-bin/lte/gateway/c/session_manager/sessiond $(C_BUILD)/session_manager/sessiond
-	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
+	#bazel build //lte/gateway/c/session_manager:sessiond
+	mkdir -p $(C_BUILD)/session_manager
+	sudo cp $(MAGMA_ROOT)/bazel-bin/lte/gateway/c/session_manager/sessiond $(C_BUILD)/session_manager/sessiond
+	
+#$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
 
 build_li_agent: ## Build li agent
-	$(call run_cmake, $(C_BUILD)/li_agent, $(GATEWAY_C_DIR)/li_agent, )
+	#bazel build //lte/gateway/c/li_agent/src:liagentd
+	mkdir -p $(C_BUILD)/li_agent/src
+	sudo cp $(MAGMA_ROOT)/bazel-bin/lte/gateway/c/li_agent/src/liagentd $(C_BUILD)/li_agent/src/liagentd
+# $(call run_cmake, $(C_BUILD)/li_agent, $(GATEWAY_C_DIR)/li_agent, )
 
 build_connection_tracker:
-	$(call run_cmake, $(C_BUILD)/connection_tracker, $(GATEWAY_C_DIR)/connection_tracker, )
+	#bazel build //lte/gateway/c/connection_tracker/src:connectiond
+	mkdir -p $(C_BUILD)/connection_tracker/src
+	sudo cp $(MAGMA_ROOT)/bazel-bin/lte/gateway/c/connection_tracker/src/connectiond $(C_BUILD)/connection_tracker/src/connectiond
+# $(call run_cmake, $(C_BUILD)/connection_tracker, $(GATEWAY_C_DIR)/connection_tracker, )
 
 build_envoy_controller: ## Build envoy controller
 	cd $(MAGMA_ROOT)/feg/gateway && $(MAKE) install_envoy_controller
