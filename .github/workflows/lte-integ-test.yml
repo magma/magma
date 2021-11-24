@@ -10,6 +10,11 @@ on:  # yamllint disable-line rule:truthy
     types:
       - completed
 
+env:
+  S3_BUCKET: "magma-cache"
+  CACHE_REPO_TAR: "bazel-cache-repo-magma-vm.tar.gz"
+  CACHE_TAR: "bazel-cache-magma-vm.tar.gz"
+
 jobs:
   lte-integ-test:
     runs-on: macos-10.15
@@ -35,6 +40,10 @@ jobs:
           sudo mkdir -p /etc/vbox/
           sudo touch /etc/vbox/networks.conf
           sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
+      - name: Download Magma VM Bazel build cache from S3
+        run: |
+          wget -qO- https://${{ env.S3_BUCKET }}.s3.amazonaws.com/${{ env.CACHE_REPO_TAR }} | tar xvfz - 
+          wget -qO- https://${{ env.S3_BUCKET }}.s3.amazonaws.com/${{ env.CACHE_TAR }} | tar xvfz - 
       - name: Run the integ test
         run: |
           cd lte/gateway
