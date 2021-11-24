@@ -47,11 +47,6 @@ cc_library(
     }),
 )
 
-# cc_library(
-#     name = "libtins",
-#     linkopts = ["-ltins"],
-# )
-
 cc_library(
     name = "libmnl",
     linkopts = ["-lmnl"],
