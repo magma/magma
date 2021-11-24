@@ -16,8 +16,8 @@ package controller
 import (
 	"time"
 
-	helmcontroller "github.com/operator-framework/operator-sdk/pkg/helm/controller"
-	"github.com/operator-framework/operator-sdk/pkg/helm/release"
+	helmcontroller "github.com/operator-framework/operator-sdk/internal/helm/controller"
+	"github.com/operator-framework/operator-sdk/internal/helm/release"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
