@@ -597,10 +597,11 @@ class S1ApUtil(object):
         print("Using subscriber IMSI %s" % imsi)
         return imsi
 
-    def update_ipv6_address(self, ue_id,ipv6_addr):
+    def update_ipv6_address(self, ue_id, ipv6_addr):
+        """Update the ipv6 address to ue_ip_map"""
         with self._lock:
-             ip6 = ipaddress.ip_address(ipv6_addr)
-             self._ue_ip_map[ue_id] = ip6
+            ip6 = ipaddress.ip_address(ipv6_addr)
+            self._ue_ip_map[ue_id] = ip6
 
 
 class SubscriberUtil(object):
