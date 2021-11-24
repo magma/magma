@@ -21,49 +21,44 @@ from magma.enodebd.devices.device_utils import (
     get_device_name,
 )
 from magma.enodebd.exceptions import UnrecognizedEnodebError
+from parameterized import parameterized
 
 
 class EnodebConfigUtilsTest(TestCase):
-    def test_get_device_name(self) -> None:
-        # Baicells
-        oui = '34ED0B'
-        version = 'BaiStation_V100R001C00B110SPC003'
-        data_model = get_device_name(oui, version)
-        expected = EnodebDeviceName.BAICELLS
-        self.assertEqual(data_model, expected, 'Incorrect data model')
+    @parameterized.expand([
+        ('34ED0B', 'BaiStation_V100R001C00B110SPC003', '', '', EnodebDeviceName.BAICELLS),
+        ('34ED0B', 'BaiStation_V100R001C00B110SPC002', '', '', EnodebDeviceName.BAICELLS_OLD),
+        ('48BF74', 'BaiBS_QAFB_some_version', '', '', EnodebDeviceName.BAICELLS_QAFB),
+        # baicells 436Q
+        ('48BF74', 'BaiBS_QRTB_some_version', 'E01', 'FAP/mBS31001/SC', EnodebDeviceName.BAICELLS_QRTB),
+        # baicells 430
+        ('48BF74', 'BaiBS_QRTB_some_version', 'A01', 'FAP/pBS3101S/SC', EnodebDeviceName.BAICELLS_QRTB),
+        ('000FB7', 'Some version of Cavium', '', '', EnodebDeviceName.CAVIUM),
+        ('000E8F', 'Some version of Sercomm', '', '', EnodebDeviceName.FREEDOMFI_ONE),
+    ])
+    def test_get_device_name(self, oui, sw_version, hw_version, product_class, expected) -> None:
+        oui = oui
+        sw_version = sw_version
+        hw_version = hw_version
+        product_class = product_class
+        device_name = get_device_name(oui, sw_version, hw_version, product_class)
+        self.assertEqual(device_name, expected, 'Incorrect device name')
 
-        # Baicells before bug-fix
-        oui = '34ED0B'
-        version = 'BaiStation_V100R001C00B110SPC002'
-        data_model = get_device_name(oui, version)
-        expected = EnodebDeviceName.BAICELLS_OLD
-        self.assertEqual(data_model, expected, 'Incorrect data model')
-
-        # Baicells QAFB
-        oui = '48BF74'
-        version = 'BaiBS_QAFB_some_version'
-        data_model = get_device_name(oui, version)
-        expected = EnodebDeviceName.BAICELLS_QAFB
-        self.assertEqual(data_model, expected, 'Incorrect data model')
-
-        # Cavium
-        oui = '000FB7'
-        version = 'Some version of Cavium'
-        data_model = get_device_name(oui, version)
-        expected = EnodebDeviceName.CAVIUM
-        self.assertEqual(data_model, expected, 'Incorrect data model')
-
-        # Unsupported device OUI
-        oui = 'beepboopbeep'
-        version = 'boopboopboop'
+    @parameterized.expand([
+        ('foo', 'boopboopboop', '', ''),
+        ('34ED0B', 'blingblangblong', '', ''),
+        # 430's hw_version mixed with 436Q's product_class
+        ('48BF74', 'BaiBS_QRTB_some_version', 'A01', 'FAP/mBS31001/SC'),
+        # 436Q's hw_version mixed with 430's product_class
+        ('48BF74', 'BaiBS_QRTB_some_version', 'E01', 'FAP/pBS3101S/SC'),
+    ])
+    def test_get_device_name_incorrect_data(self, oui, sw_version, hw_version, product_class):
+        oui = oui
+        sw_version = sw_version
+        hw_version = hw_version
+        product_class = product_class
         with self.assertRaises(UnrecognizedEnodebError):
-            get_device_name(oui, version)
-
-        # Unsupported software version for Baicells
-        oui = '34ED0B'
-        version = 'blingblangblong'
-        with self.assertRaises(UnrecognizedEnodebError):
-            get_device_name(oui, version)
+            get_device_name(oui, sw_version, hw_version, product_class)
 
     def test_parse_version(self):
         """ Test that version string is parsed correctly """

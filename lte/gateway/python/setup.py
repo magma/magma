@@ -139,6 +139,7 @@ setup(
             'nose==1.3.7',
             'coverage',
             'iperf3',
+            'parameterized==0.8.1',
         ],
     },
 )
