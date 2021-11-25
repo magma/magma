@@ -168,6 +168,8 @@ void send_s6a_ula(const std::string& imsi, bool success) {
     apnconfig.set_pdn(magma::feg::UpdateLocationAnswer::APNConfiguration::IPV4);
     auto apns = ula.mutable_apn();
     apns->Add()->CopyFrom(apnconfig);
+    apnconfig.set_service_selection("ims");
+    apns->Add()->CopyFrom(apnconfig);
     magma::convert_proto_msg_to_itti_s6a_update_location_ans(ula, itti_msg);
   } else {
     itti_msg->result.choice.base = DIAMETER_UNABLE_TO_COMPLY;

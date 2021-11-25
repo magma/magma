@@ -185,7 +185,7 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
   amf_context_t* amf_ctx = NULL;
   amf_ue_ngap_id_t ue_id = 0;
 
-  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+  if (!amf_pop_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP,
         "T3560: Invalid Timer Id expiration, Timer Id: %d and for UE "

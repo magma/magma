@@ -47,6 +47,11 @@ from lte.protos.pipelined_pb2 import (
     VersionedPolicyID,
 )
 from lte.protos.session_manager_pb2 import RuleRecordTable
+from magma.common.sentry import (
+    SentryStatus,
+    get_sentry_status,
+    send_uncaught_errors_to_monitoring,
+)
 from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.app.classifier import Classifier
 from magma.pipelined.app.dpi import DPIController
@@ -74,6 +79,8 @@ from magma.pipelined.policy_converters import (
 
 grpc_msg_queue = queue.Queue()
 DEFAULT_CALL_TIMEOUT = 5
+
+enable_sentry_wrapper = get_sentry_status("pipelined") == SentryStatus.SEND_SELECTED_ERRORS
 
 
 class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
@@ -122,6 +129,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # General setup rpc
     # --------------------------
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def SetupDefaultControllers(self, request, context) -> SetupFlowsResult:
         """
         Setup default controllers, used on pipelined restarts
@@ -149,6 +157,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # Enforcement App
     # --------------------------
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def SetupPolicyFlows(self, request, context) -> SetupFlowsResult:
         """
         Setup flows for all subscribers, used on pipelined restarts
@@ -197,6 +206,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._enforcement_stats.handle_restart(gx_reqs)
         fut.set_result(enforcement_res)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def ActivateFlows(self, request, context):
         """
         Activate flows for a subscriber based on the pre-defined rules
@@ -442,6 +452,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         # TODO: add metrics
         return gy_res
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def DeactivateFlows(self, request, context):
         """
         Deactivate flows for a subscriber
@@ -526,6 +537,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             rule_ids,
         )
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetPolicyUsage(self, request, context):
         """
         Get policy usage stats
@@ -553,6 +565,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # -------------------------
     # GRPC messages from MME
     # --------------------------
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def UpdateUEState(self, request, context):
 
         self._log_grpc_payload(request)
@@ -586,6 +599,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # IPFIX App
     # --------------------------
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def UpdateIPFIXFlow(self, request, context):
         """
         Update IPFIX sampling record
@@ -606,6 +620,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # DPI App
     # --------------------------
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def CreateFlow(self, request, context):
         """
         Add dpi flow
@@ -625,6 +640,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         )
         return resp
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def RemoveFlow(self, request, context):
         """
         Add dpi flow
@@ -643,6 +659,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         )
         return resp
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def UpdateFlowStats(self, request, context):
         """
         Update stats for a flow
@@ -661,6 +678,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # UE MAC App
     # --------------------------
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def SetupUEMacFlows(self, request, context) -> SetupFlowsResult:
         """
         Activate a list of attached UEs
@@ -707,6 +725,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut.set_result(res)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def AddUEMacFlow(self, request, context):
         """
         Associate UE MAC address to subscriber
@@ -741,6 +760,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut.set_result(res)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def DeleteUEMacFlow(self, request, context):
         """
         Delete UE MAC address to subscriber association
@@ -797,6 +817,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # Check Quota App
     # --------------------------
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def SetupQuotaFlows(self, request, context) -> SetupFlowsResult:
         """
         Activate a list of quota rules
@@ -833,6 +854,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         res = self._check_quota_app.handle_restart(request.requests)
         fut.set_result(res)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def UpdateSubscriberQuotaState(self, request, context):
         """
         Updates the subcsciber quota state
@@ -860,6 +882,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # Debugging
     # --------------------------
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetAllTableAssignments(self, request, context):
         """
         Get the flow table assignment for all apps ordered by main table number
@@ -901,6 +924,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return
         logging.info(log_msg)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def SetSMFSessions(self, request, context):
         """
         Setup the 5G Session flows for the subscriber
@@ -992,6 +1016,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         response = self._enforcement_stats.get_stats(request.cookie, request.cookie_mask)
         fut.set_result(response)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetStats(self, request, context):
         """
         Invokes API that returns a RuleRecordTable filtering records based

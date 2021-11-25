@@ -7,7 +7,6 @@
 /orc8r/tools/packer/ @magma/approvers-ci
 /orc8r/cloud/deploy/bare-metal/ @magma/approvers-ci
 /orc8r/cloud/deploy/bare-metal-ansible/ @magma/approvers-ci
-/lte/gateway/docker @magma/approvers-ci
 /lte/gateway/release @magma/approvers-ci
 /lte/gateway/Vagrantfile @magma/approvers-ci
 /cwf/gateway/Vagrantfile @magma/approvers-ci
@@ -42,6 +41,7 @@
 /lte/gateway/c/sctpd @magma/approvers-agw-mme
 /lte/gateway/c/connection_tracker @koolzz @magma/approvers-agw-c
 /lte/gateway/python/integ_tests @magma/approvers-agw-integtests
+/lte/gateway/docker @magma/approvers-agw-containers @magma/approvers-ci
 
 # approvers-agw-pipelined
 /lte/gateway/python/magma/pipelined @magma/approvers-agw-pipelined

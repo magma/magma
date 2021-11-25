@@ -219,7 +219,10 @@ SessionState::SessionState(
       config_(cfg),
       current_version_(0),
       rtx_counter_(0),
-      static_rules_(rule_store) {}
+      subscriber_quota_state_(SubscriberQuotaUpdate_Type_VALID_QUOTA),
+      static_rules_(rule_store),
+      credit_map_(4, &ccHash, &ccEqual),
+      session_level_key_("") {}
 
 /* get-set methods of new messages  for 5G*/
 uint32_t SessionState::get_current_version() {
@@ -849,10 +852,13 @@ void SessionState::get_updates(
     UpdateSessionRequest* update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
     SessionStateUpdateCriteria* session_uc) {
-  if (curr_state_ != SESSION_ACTIVE) return;
-  get_charging_updates(update_request_out, actions_out, session_uc);
-  get_monitor_updates(update_request_out, session_uc);
-  get_event_trigger_updates(update_request_out, session_uc);
+  if (curr_state_ == SESSION_ACTIVE || curr_state_ == ACTIVE) {
+    get_charging_updates(update_request_out, actions_out, session_uc);
+    get_monitor_updates(update_request_out, session_uc);
+    get_event_trigger_updates(update_request_out, session_uc);
+  } else {
+    return;
+  }
 }
 
 SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const {

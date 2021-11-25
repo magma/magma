@@ -93,14 +93,14 @@ void mme_app_resume_timer(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 //------------------------------------------------------------------------------
-bool mme_app_get_timer_arg(int timer_id, timer_arg_t* arg) {
-  return magma::lte::MmeUeContext::Instance().GetTimerArg(timer_id, arg);
+bool mme_pop_timer_arg(int timer_id, timer_arg_t* arg) {
+  return magma::lte::MmeUeContext::Instance().PopTimerById(timer_id, arg);
 }
 
-bool mme_app_get_timer_arg_ue_id(int timer_id, mme_ue_s1ap_id_t* ue_id) {
+bool mme_pop_timer_arg_ue_id(int timer_id, mme_ue_s1ap_id_t* ue_id) {
   timer_arg_t arg;
   bool result =
-      magma::lte::MmeUeContext::Instance().GetTimerArg(timer_id, &arg);
+      magma::lte::MmeUeContext::Instance().PopTimerById(timer_id, &arg);
   *ue_id = arg.ue_id;
   return result;
 }
@@ -124,9 +124,10 @@ void MmeUeContext::StopTimer(int timer_id) {
   mme_app_timers.erase(timer_id);
 }
 //------------------------------------------------------------------------------
-bool MmeUeContext::GetTimerArg(const int timer_id, TimerArgType* arg) const {
+bool MmeUeContext::PopTimerById(const int timer_id, TimerArgType* arg) {
   try {
     *arg = mme_app_timers.at(timer_id);
+    mme_app_timers.erase(timer_id);
     return true;
   } catch (std::out_of_range& e) {
     return false;
