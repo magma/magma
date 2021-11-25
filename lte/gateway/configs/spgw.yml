@@ -48,3 +48,6 @@ pipelined_managed_tbl0: false
 
 # To enable GTP-U echo response on all GTP tunnels.
 ovs_gtpu_echo_resp: true
+
+# To enable PGW tunnel over wireguard tunneling
+agw_l3_tunnel: false
