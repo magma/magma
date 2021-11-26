@@ -850,6 +850,7 @@ enum SMSessionFSMState {
         ACTIVE_2 = 2;
         INACTIVE_3 =3;
         RELEASED_4 = 4;
+        MODIFICATION_5 = 5;
 }
 
 // PDU session Establishment from AMF to SMF
@@ -899,6 +900,8 @@ message M5GSMSessionContext {
   // Procedure transaction identity
   bytes procedure_trans_identity = 25;
   AggregatedMaximumBitrate default_ambr = 26;
+  // For Modification policy
+  repeated QosPolicy qos_policy = 27;
 }
 
 message SetSMSessionContext {
@@ -968,7 +971,38 @@ message SetSMSessionContextAccess {
   RatSpecificContextAccess   rat_specific_context = 2;
 }
 
+message QosPolicy {
+enum PolicyState {
+	ADD=0;
+	DEL=1;
+	MOD=2;
+ }
+ PolicyState policy_state=1;
+ FlowQos  qos =2;
+}
 
+message M5GSMSessionModContextAccess{
+    // received from UE. For 5G pdu_session_id.
+    uint32 pdu_session_id = 1;
+    // selected PDU session TS-24501 - 9.11.4.11
+    PduSessionType    pdu_session_type = 2;
+    // selected session and service continuty mode TS-24501 - 9.11.4.16
+    SscMode selected_ssc_mode = 3;
+    // TS-24501 - 9.11.4.2
+    M5GSMCause M5gsm_cause = 4;
+    // PDU session is requested to be established as always-on PDU session.
+    bool always_on_pdu_session_indication = 5;
+    TeidSet upf_endpoint = 6;
+    // Procedure transaction identity One byte TS-24501 9.6
+    bytes procedure_trans_identity = 7;
+    repeated QosPolicy  qos_policy = 8;
+}
+
+// Modification Request from SMF
+message SetSMSessionModContextAccess {
+  CommonSessionContext common_context = 1;
+  M5GSMSessionModContextAccess m5g_session_modcontext_rsp = 2;
+}
 
 // Node Level Messages from UPF. Purely Event Based.
 message UPFNodeState {
@@ -1140,5 +1174,6 @@ service AmfPduSessionSmContext {
 service SmfPduSessionSmContext {
  rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}
  rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid);
+ rpc SetSmfSessionModContext(SetSMSessionModContextAccess) returns (SmContextVoid);
 }
 
