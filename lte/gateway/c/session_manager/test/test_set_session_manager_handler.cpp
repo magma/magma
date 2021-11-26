@@ -600,7 +600,7 @@ TEST_F(SessionManagerHandlerTest, test_PDUStateChangeHandling) {
   for (auto itr = itp.first; itr != itp.second; itr++) {
     GlobalRuleList.get_rule(itr->second, &rule);
     // Get the UE ip address
-    rule.mutable_pdi()->set_ue_ip_adr(
+    rule.mutable_pdi()->set_ue_ipv4(
         cfg.rat_specific_context.m5gsm_session_context()
             .pdu_address()
             .redirect_server_address());

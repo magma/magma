@@ -862,7 +862,7 @@ bool SessionStateEnforcer::insert_pdr_from_core(
               << " of imsi: " << session->get_imsi()
               << " fteid: " << session->get_upf_local_teid()
               << " pdu id: " << session->get_pdu_id() << " UE ip address "
-              << rule.pdi().ue_ip_adr();
+              << rule.pdi().ue_ipv4();
   // Insert the PDR along with teid into the session
   session->insert_pdr(&rule, session_uc);
   return true;
@@ -897,7 +897,7 @@ void SessionStateEnforcer::set_pdr_attributes(
   const auto& config = session_state->get_config();
   auto ue_ipv4       = config.common_context.ue_ipv4();
 
-  rule->mutable_pdi()->set_ue_ip_adr(ue_ipv4);
+  rule->mutable_pdi()->set_ue_ipv4(ue_ipv4);
   rule->mutable_activate_flow_req()->mutable_sid()->set_id(imsi);
   rule->mutable_deactivate_flow_req()->mutable_sid()->set_id(imsi);
   rule->mutable_activate_flow_req()->set_ip_addr(

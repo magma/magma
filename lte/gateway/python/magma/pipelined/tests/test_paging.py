@@ -126,8 +126,9 @@ class PagingTest(unittest.TestCase):
 
         ue_ip_addr = "192.168.128.30"
         self.classifier_controller.install_paging_flow(
+            200,
             IPAddress(version=IPAddress.IPV4, address=ue_ip_addr.encode('utf-8')),
-            200, True,
+            True,
         )
 
         snapshot_verifier = SnapshotVerifier(
@@ -161,8 +162,9 @@ class PagingTest(unittest.TestCase):
 
         ue_ip_addr = "192.168.128.30"
         self.classifier_controller.install_paging_flow(
+            200,
             IPAddress(version=IPAddress.IPV4, address=ue_ip_addr.encode('utf-8')),
-            200, True,
+            True,
         )
         # Create a set of packets
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
