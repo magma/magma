@@ -22,6 +22,9 @@ TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req_success) {
   EXPECT_EQ(
       sgw_s8_handle_s11_create_session_request(sgw_state, &session_req, imsi64),
       RETURNok);
+  sgw_state_exit();
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
 
 /* TC validates creation of ue context, pdn context and bearer context
@@ -78,7 +81,9 @@ TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req) {
   // Validates whether userplane teids are created for s1-u and s8-u interfaces
   EXPECT_GT(eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, 0);
   EXPECT_GT(eps_bearer_ctxt_p->s_gw_teid_S5_S8_up, 0);
-  // sgw_state_exit();
+  sgw_state_exit();
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
 
 // TC validates updation of bearer context on reception of Create Session Rsp
@@ -168,6 +173,8 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_different_sgw_s8_teid) {
   EXPECT_EQ(
       (sgw_get_sgw_eps_bearer_context((csresp.context_teid + 1))), nullptr);
   sgw_state_exit();
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
 
 // TC indicates that SGW_S8 has received incorrect eps bearer id in Create
@@ -193,4 +200,105 @@ TEST_F(SgwS8ConfigAndCreateMock, failed_to_get_bearer_context_on_cs_rsp) {
       sgw_update_bearer_context_information_on_csrsp(sgw_pdn_session, &csresp),
       RETURNerror);
   sgw_state_exit();
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
+}
+
+// TC validates deletion of pdn session
+TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling) {
+  sgw_state_t* sgw_state = get_sgw_state(false);
+
+  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  uint32_t temporary_session_id                         = 0;
+  sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
+      sgw_state, &temporary_session_id);
+
+  itti_s11_create_session_request_t session_req = {0};
+  fill_itti_csreq(&session_req, default_eps_bearer_id);
+
+  sgw_update_bearer_context_information_on_csreq(
+      sgw_state, sgw_pdn_session, &session_req, imsi64);
+
+  EXPECT_EQ(strcmp(sgw_pdn_session->pdn_connection.apn_in_use, "NO APN"), 0);
+
+  s8_create_session_response_t csresp = {0};
+  fill_itti_csrsp(&csresp, temporary_session_id);
+
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
+  EXPECT_EQ(
+      sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64),
+      RETURNok);
+
+  EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) != nullptr);
+  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
+      &sgw_pdn_session->pdn_connection, csresp.eps_bearer_id);
+  EXPECT_TRUE(bearer_ctx_p != nullptr);
+
+  EXPECT_TRUE(
+      bearer_ctx_p->paa.ipv4_address.s_addr == csresp.paa.ipv4_address.s_addr);
+  EXPECT_TRUE(
+      bearer_ctx_p->p_gw_teid_S5_S8_up ==
+      csresp.bearer_context[0].pgw_s8_up.teid);
+  itti_s11_delete_session_request_t ds_req = {0};
+  fill_delete_session_request(
+      &ds_req, csresp.context_teid, csresp.eps_bearer_id);
+
+  EXPECT_EQ(
+      sgw_s8_handle_s11_delete_session_request(sgw_state, &ds_req, imsi64),
+      RETURNok);
+
+  s8_delete_session_response_t ds_rsp = {0};
+  fill_delete_session_response(&ds_rsp, csresp.context_teid, REQUEST_ACCEPTED);
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_delete_sess_rsp()).Times(1);
+  EXPECT_EQ(
+      sgw_s8_handle_delete_session_response(sgw_state, &ds_rsp, imsi64),
+      RETURNok);
+  EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) == nullptr);
+  sgw_state_exit();
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
+}
+
+// TC validates that sgw_s8 module fails to find the pdn context based on
+// invalid teid
+TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling_invalid_teid) {
+  sgw_state_t* sgw_state = get_sgw_state(false);
+
+  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  uint32_t temporary_session_id                         = 0;
+  sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
+      sgw_state, &temporary_session_id);
+
+  itti_s11_create_session_request_t session_req = {0};
+  fill_itti_csreq(&session_req, default_eps_bearer_id);
+
+  sgw_update_bearer_context_information_on_csreq(
+      sgw_state, sgw_pdn_session, &session_req, imsi64);
+
+  s8_create_session_response_t csresp = {0};
+  fill_itti_csrsp(&csresp, temporary_session_id);
+  sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
+
+  EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) != nullptr);
+  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
+      &sgw_pdn_session->pdn_connection, csresp.eps_bearer_id);
+  EXPECT_TRUE(bearer_ctx_p != nullptr);
+
+  EXPECT_TRUE(
+      bearer_ctx_p->paa.ipv4_address.s_addr == csresp.paa.ipv4_address.s_addr);
+  EXPECT_TRUE(
+      bearer_ctx_p->p_gw_teid_S5_S8_up ==
+      csresp.bearer_context[0].pgw_s8_up.teid);
+  itti_s11_delete_session_request_t ds_req = {0};
+  fill_delete_session_request(
+      &ds_req, csresp.context_teid + 1, csresp.eps_bearer_id);
+
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_delete_sess_rsp()).Times(1);
+  EXPECT_EQ(
+      sgw_s8_handle_s11_delete_session_request(sgw_state, &ds_req, imsi64),
+      RETURNerror);
+
+  sgw_state_exit();
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }

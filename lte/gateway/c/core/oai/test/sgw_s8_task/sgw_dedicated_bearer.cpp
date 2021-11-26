@@ -83,6 +83,7 @@ TEST_F(SgwS8ConfigAndCreateMock, check_dedicated_bearer_creation_request) {
       cb_req.bearer_context[0].pgw_s8_up.teid);
   free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
 }
+
 TEST_F(SgwS8ConfigAndCreateMock, dedicated_bearer_invalid_lbi) {
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
   uint32_t temporary_session_id                         = 0;
@@ -328,6 +329,7 @@ TEST_F(SgwS8ConfigAndCreateMock, send_create_bearer_req_to_mme) {
   EXPECT_TRUE(is_seq_number_updated == true);
 
   free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
+  sgw_state_exit();
   std::this_thread::sleep_for(
       std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
@@ -403,6 +405,9 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_create_bearer_response) {
   }
   EXPECT_EQ(bearer_id_updated, true);
   free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
+  sgw_state_exit();
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
 
 TEST_F(SgwS8ConfigAndCreateMock, recv_delete_bearer_req) {

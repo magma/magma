@@ -30,7 +30,7 @@ void sgw_s8_handle_modify_bearer_request(
     const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
     imsi64_t imsi64);
 
-void sgw_s8_handle_delete_session_response(
+int sgw_s8_handle_delete_session_response(
     sgw_state_t* sgw_state, s8_delete_session_response_t* session_rsp_p,
     imsi64_t imsi64);
 
@@ -39,7 +39,7 @@ void sgw_s8_handle_release_access_bearers_request(
         release_access_bearers_req_pP,
     imsi64_t imsi64);
 
-void sgw_s8_handle_s11_delete_session_request(
+int sgw_s8_handle_s11_delete_session_request(
     sgw_state_t* sgw_state,
     const itti_s11_delete_session_request_t* const delete_session_req_p,
     imsi64_t imsi64);

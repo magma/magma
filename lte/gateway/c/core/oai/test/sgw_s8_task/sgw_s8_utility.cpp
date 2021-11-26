@@ -171,11 +171,34 @@ void fill_delete_bearer_request(
   db_req->sequence_number = 2;
 }
 
+void fill_delete_session_request(
+    itti_s11_delete_session_request_t* ds_req_p, uint32_t teid, uint8_t lbi) {
+  ds_req_p->lbi  = lbi;
+  ds_req_p->teid = teid;
+
+  ds_req_p->sender_fteid_for_cp.teid                = 1;
+  ds_req_p->sender_fteid_for_cp.ipv4_address.s_addr = 0x8e3ca8c0;
+  ds_req_p->sender_fteid_for_cp.interface_type      = S11_MME_GTP_C;
+  uint8_t idx                                       = 0;
+  ds_req_p->serving_network.mcc[idx++]              = 0;
+  ds_req_p->serving_network.mcc[idx++]              = 0;
+  ds_req_p->serving_network.mcc[idx]                = 0;
+  idx                                               = 0;
+  ds_req_p->serving_network.mnc[idx++]              = 1;
+  ds_req_p->serving_network.mnc[idx++]              = 1;
+  ds_req_p->serving_network.mnc[idx]                = 15;
+}
+
+void fill_delete_session_response(
+    s8_delete_session_response_t* ds_rsp_p, uint32_t teid, uint8_t cause) {
+  ds_rsp_p->context_teid = teid;
+  ds_rsp_p->cause        = cause;
+}
+
 sgw_state_t* SgwS8ConfigAndCreateMock::create_and_get_contexts_on_cs_req(
     uint32_t* temporary_session_id,
     sgw_eps_bearer_context_information_t** sgw_pdn_session) {
   sgw_state_t* sgw_state = get_sgw_state(false);
-
   *sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
       sgw_state, temporary_session_id);
 
@@ -183,19 +206,21 @@ sgw_state_t* SgwS8ConfigAndCreateMock::create_and_get_contexts_on_cs_req(
   fill_itti_csreq(&session_req, default_eps_bearer_id);
   memcpy(session_req.apn, "internet", sizeof("internet"));
 
+  *sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
+      sgw_state, temporary_session_id);
   sgw_update_bearer_context_information_on_csreq(
       sgw_state, *sgw_pdn_session, &session_req, imsi64);
 
   return sgw_state;
 }
-#if 1
+
 sgw_state_t* SgwS8ConfigAndCreateMock::create_ue_context(
     mme_sgw_tunnel_t* sgw_s11_tunnel) {
   sgw_state_t* sgw_state     = get_sgw_state(false);
   sgw_update_teid_in_ue_context(sgw_state, imsi64, sgw_s11_tunnel->local_teid);
   return sgw_state;
 }
-#endif
+
 void SgwS8ConfigAndCreateMock::sgw_s8_config_init() {
   config->itti_config.queue_size     = 0;
   std::string file_string            = "/var/opt/magma/tmp/spgw.conf";

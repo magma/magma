@@ -72,6 +72,7 @@ class MockMmeAppHandler {
   MOCK_METHOD0(mme_app_handle_initial_context_setup_failure, void());
   MOCK_METHOD0(mme_app_handle_enb_reset_req, void());
   MOCK_METHOD0(mme_app_handle_e_rab_setup_rsp, void());
+  MOCK_METHOD0(mme_app_handle_delete_session_rsp, void());
 };
 
 class MockSctpHandler {
@@ -108,6 +109,12 @@ class MockS8Handler {
   MOCK_METHOD1(
       sgw_s8_handle_delete_bearer_request,
       bool(s8_delete_bearer_request_t db_req));
+  MOCK_METHOD1(
+      sgw_s8_handle_create_session_response,
+      bool(s8_create_session_response_t cs_rsp));
+  MOCK_METHOD1(
+      sgw_s8_handle_delete_session_response,
+      bool(s8_delete_session_response_t ds_rsp));
 };
 
 void start_mock_ha_task();

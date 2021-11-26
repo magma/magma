@@ -50,8 +50,15 @@ void fill_delete_bearer_response(
     itti_s11_nw_init_deactv_bearer_rsp_t* db_response,
     uint32_t s_gw_teid_s11_s4, uint8_t eps_bearer_id,
     gtpv2c_cause_value_t cause);
+
 void fill_delete_bearer_request(
     s8_delete_bearer_request_t* db_req, uint32_t teid, uint8_t eps_bearer_id);
+
+void fill_delete_session_request(
+    itti_s11_delete_session_request_t* ds_req_p, uint32_t teid, uint8_t lbi);
+
+void fill_delete_session_response(
+    s8_delete_session_response_t* ds_rsp_p, uint32_t teid, uint8_t cause);
 
 // Initialize config params
 class SgwS8ConfigAndCreateMock : public ::testing::Test {

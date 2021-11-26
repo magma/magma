@@ -178,8 +178,7 @@ static void recv_s8_create_session_response(
   }
   s5_response                   = &message_p->ittiMsg.s8_create_session_rsp;
   message_p->ittiMsgHeader.imsi = imsi64;
-  // TODO Rashmi remove hard coding
-  s5_response->context_teid         = 5;
+  s5_response->context_teid         = response.c_agw_teid();
   s5_response->temporary_session_id = temporary_session_id;
   if (status.ok()) {
     convert_proto_msg_to_itti_csr(response, s5_response, dflt_bearer_qos);
