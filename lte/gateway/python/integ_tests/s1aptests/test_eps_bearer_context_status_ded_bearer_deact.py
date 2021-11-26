@@ -37,7 +37,7 @@ class TestEpsBearerContextStatusDedBearerDeact(unittest.TestCase):
         """Attach a single UE. Create 2 secondary PDNs and add 2
         dedicated bearers to each of the secondary PDNs.
         Send EPS bearer context status
-        IE in TAU request with all default bearer i.e bearer ids
+        IE in TAU request with all default bearer i.e. bearer ids
         5,6 and 9 as active and dedicated bearers 7,8,10 and 11 as inactive.
         Set active flag to false.
         """
