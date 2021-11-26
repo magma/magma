@@ -21,7 +21,7 @@ secret:
   certs: orc8r-certs
 
 certs:
-  enabled: true
+  enabled: false
 
 rbac: false
 
