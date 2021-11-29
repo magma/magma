@@ -77,7 +77,6 @@ RUN apt-get update && apt-get install -y \
   libfolly-dev \
   libsctp-dev \
   libpcap-dev \
-  libtins-dev \
   libmnl-dev \
   uuid-dev \
   libcurl4-openssl-dev \
@@ -138,10 +137,12 @@ COPY lte/gateway/docker/mme/configs/ ${MAGMA_ROOT}/lte/gateway/docker/configs/
 
 ARG BUILD_TYPE=RelWithDebInfo
 ENV BUILD_TYPE=$BUILD_TYPE
-RUN bazel build //lte/gateway/c/session_manager:sessiond --define=folly_so=1
-RUN make -C ${MAGMA_ROOT}/lte/gateway/ build_sctpd BUILD_TYPE="${BUILD_TYPE}"
-RUN make -C ${MAGMA_ROOT}/lte/gateway/ build_connection_tracker BUILD_TYPE="${BUILD_TYPE}"
-RUN make -C ${MAGMA_ROOT}/lte/gateway/ build_li_agent BUILD_TYPE="${BUILD_TYPE}"
+RUN bazel build  \
+  //lte/gateway/c/sctpd/src:sctpd \
+  //lte/gateway/c/connection_tracker/src:connectiond \
+  //lte/gateway/c/li_agent/src:liagentd \
+  //lte/gateway/c/session_manager:sessiond \
+  --define=folly_so=1
 RUN make -C ${MAGMA_ROOT}/lte/gateway/ build_oai BUILD_TYPE="${BUILD_TYPE}"
 
 # Prepare config file
@@ -172,7 +173,6 @@ RUN apt-get update && apt-get install -y \
   libyaml-cpp-dev \
   libgoogle-glog-dev \
   libprotoc-dev \
-  libtins-dev \
   libmnl-dev \
   libsctp-dev \
   psmisc \
@@ -229,9 +229,9 @@ COPY --from=builder /usr/local/lib/libaddress_sorting.so /usr/local/lib/
 
 # Copy the build artifacts.
 COPY --from=builder ${MAGMA_ROOT}/bazel-bin/lte/gateway/c/session_manager/sessiond /usr/local/bin/sessiond
-COPY --from=builder $C_BUILD/li_agent/src/liagentd /usr/local/bin/liagentd
-COPY --from=builder $C_BUILD/sctpd/src/sctpd /usr/local/bin/sctpd
-COPY --from=builder $C_BUILD/connection_tracker/src/connectiond /usr/local/bin/connectiond
+COPY --from=builder ${MAGMA_ROOT}/bazel-bin/lte/gateway/c/sctpd/src/sctpd /usr/local/bin/sctpd
+COPY --from=builder ${MAGMA_ROOT}/bazel-bin/lte/gateway/c/connection_tracker/src/connectiond /usr/local/bin/connectiond
+COPY --from=builder ${MAGMA_ROOT}/bazel-bin/lte/gateway/c/li_agent/src/liagentd /usr/local/bin/liagentd
 COPY --from=builder $C_BUILD/core/oai/oai_mme/mme /usr/local/bin/oai_mme
 
 RUN ldconfig 2> /dev/null
