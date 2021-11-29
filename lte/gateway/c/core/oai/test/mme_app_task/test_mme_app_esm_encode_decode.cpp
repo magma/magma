@@ -233,7 +233,7 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextRequest) {
   original_msg.apnambr.apnambrforuplink_extended    = 11;
   original_msg.apnambr.apnambrfordownlink_extended2 = 11;
   original_msg.apnambr.apnambrforuplink_extended2   = 11;
-  original_msg.apnambr.extensions                   = 4;
+  original_msg.apnambr.extensions                   = 3;
 
   original_msg.esmcause = 102;
 
@@ -250,7 +250,7 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextRequest) {
   EXPECT_EQ(
       original_msg.pdnaddress.pdntypevalue,
       decoded_msg.pdnaddress.pdntypevalue);
-  EXPECT_FALSE(memcmp(
+  EXPECT_TRUE(!memcmp(
       &original_msg.epsqos, &decoded_msg.epsqos, sizeof(original_msg.epsqos)));
   EXPECT_EQ(
       std::string((const char*) original_msg.accesspointname->data),
@@ -261,16 +261,17 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextRequest) {
       std::string(
           (const char*) decoded_msg.pdnaddress.pdnaddressinformation->data));
   EXPECT_EQ(original_msg.presencemask, decoded_msg.presencemask);
-  EXPECT_FALSE(memcmp(
+  EXPECT_TRUE(!memcmp(
       &original_msg.negotiatedqos, &decoded_msg.negotiatedqos,
       sizeof(original_msg.negotiatedqos)));
-  // EXPECT_EQ(original_msg.negotiatedllcsapi, decoded_msg.negotiatedllcsapi);
+  EXPECT_EQ(original_msg.negotiatedllcsapi, decoded_msg.negotiatedllcsapi);
   EXPECT_EQ(original_msg.radiopriority, decoded_msg.radiopriority);
-  // EXPECT_EQ(
-  //    original_msg.packetflowidentifier, decoded_msg.packetflowidentifier);
-  //   EXPECT_FALSE(memcmp(
-  //       &original_msg.apnambr, &decoded_msg.apnambr,
-  //       sizeof(original_msg.apnambr)));
+  EXPECT_EQ(
+      original_msg.packetflowidentifier, decoded_msg.packetflowidentifier);
+  EXPECT_TRUE(!memcmp(
+      &original_msg.apnambr, &decoded_msg.apnambr,
+      sizeof(original_msg.apnambr)));
+
   EXPECT_EQ(original_msg.esmcause, decoded_msg.esmcause);
   EXPECT_EQ(
       std::string((const char*) original_msg.protocolconfigurationoptions
