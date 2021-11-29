@@ -34,6 +34,7 @@ extern "C" {
 #include <unordered_map>
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/redis_utils/redis_client.h"
+#include "lte/gateway/c/core/oai/include/mme_nas_state_generated.h"
 
 namespace {
 constexpr char IMSI_PREFIX[] = "IMSI";
@@ -175,6 +176,36 @@ class StateManager {
       std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
       if (redis_client->write_proto_str(
               key, proto_str, ue_state_version[imsi_str]) != RETURNok) {
+        OAILOG_ERROR(
+            log_task, "Failed to write UE state to db for IMSI %s",
+            imsi_str.c_str());
+        return;
+      }
+
+      this->ue_state_version[imsi_str]++;
+      this->ue_state_hash[imsi_str] = new_hash;
+      OAILOG_DEBUG(
+          log_task, "Finished writing UE state for IMSI %s", imsi_str.c_str());
+    }
+  }
+
+  virtual void write_ue_state_to_db(
+      magma::lte::test_flat_buffer::UeMmContextBuilder* builder,
+      magma::lte::test_flat_buffer::UeMmContext* ue_context,
+      const std::string& imsi_str) {
+    AssertFatal(
+        is_initialized,
+        "StateManager init() function should be called to initialize state");
+    // lack of C++17 (hashing a stringview)
+    uint8_t* buf = builder->fbb_.GetBufferPointer();
+    int size     = builder->fbb_.GetSize();
+    std::string fb_str(reinterpret_cast<const char*>(buf), size);
+    std::size_t new_hash = std::hash<std::string>{}(fb_str);
+
+    if (new_hash != this->ue_state_hash[imsi_str]) {
+      std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
+      if (redis_client->write_proto_str(
+              key, fb_str, ue_state_version[imsi_str]) != RETURNok) {
         OAILOG_ERROR(
             log_task, "Failed to write UE state to db for IMSI %s",
             imsi_str.c_str());

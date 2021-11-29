@@ -1,0 +1,20 @@
+namespace magma.lte.test_flat_buffer;
+
+
+table MsNetworkCapability {
+  bytes:[ubyte];
+}
+
+table PcoProtocolOrContainerId {
+  id:ushort;
+  /// length:ubyte;
+  contents:[ubyte];
+}
+
+table ProtocolConfigurationOptions {
+  ext:bool;
+  configuration_protocol:ubyte;
+  /// num_protocol_or_container_id:ubyte;
+  /// #define PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID 30
+  protocol_or_container_ids:[PcoProtocolOrContainerId];
+}

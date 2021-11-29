@@ -1,0 +1,12 @@
+include "common_types.fbs";
+
+namespace magma.lte.test_flat_buffer;
+
+struct BearerQos {
+  pci:bool;
+  pl:ubyte;
+  pvi:bool;
+  qci:ubyte;
+  gbr:Ambr;
+  mbr:Ambr;
+}
