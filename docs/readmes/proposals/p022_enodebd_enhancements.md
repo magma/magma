@@ -37,20 +37,20 @@ The radio onboarding process for Magma currently follows a pre-provisioning work
 
 1. Add a new radio element to the NMS with the following fields:
 
-- Name
-- Serial number
-- Description
-- Externally managed
-- Device Class
-- Bandwidth
-- Cell ID
-- RAN Config (FDD/TDD)
-- EARFCNDL
-- Special Subframe Pattern
-- Subframe Assignment
-- PCI
-- TAC
-- Transmit Enable
+    - Name
+    - Serial number
+    - Description
+    - Externally managed
+    - Device Class
+    - Bandwidth
+    - Cell ID
+    - RAN Config (FDD/TDD)
+    - EARFCNDL
+    - Special Subframe Pattern
+    - Subframe Assignment
+    - PCI
+    - TAC
+    - Transmit Enable
 
 2. Assign the radio to an AGW
 
@@ -130,13 +130,14 @@ This dataset will be supported via static files in default configuration mode an
 
 #### 3.2.2 Call Flows
 
-**User Configuration**
+User Configuration
 
-<img width="1271" alt="userupdate flow" src="https://user-images.githubusercontent.com/93994458/141433768-50794a54-7db8-49e3-9457-cac5e7ecdb8e.png">
+![userupdate flow](https://user-images.githubusercontent.com/93994458/141433768-50794a54-7db8-49e3-9457-cac5e7ecdb8e.png)
 
-**FW Update Applied to Radio**
+FW Update Applied to Radio
 
-<img width="1275" alt="fwupdate flow" src="https://user-images.githubusercontent.com/93994458/141433791-72954447-00af-4a14-b7a7-79def6f09424.png">
+![fwupdate flow](https://user-images.githubusercontent.com/93994458/141433791-72954447-00af-4a14-b7a7-79def6f09424.png)
+
 
 #### 3.2.3 Firmware Update Scope of Changes
 
