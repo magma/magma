@@ -42,11 +42,12 @@ cc_library(
     deps = [
         ":consts",
         "//lte/gateway/c/session_manager:diameter_codes",
-        "//lte/gateway/c/session_manager:stored_state",
         "//lte/gateway/c/session_manager:session_store",
+        "//lte/gateway/c/session_manager:stored_state",
         "//lte/protos:mconfigs_cpp_proto",
         "//lte/protos:pipelined_cpp_grpc",
         "//lte/protos:session_manager_cpp_grpc",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
