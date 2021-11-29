@@ -49,7 +49,7 @@ tags:
   name: Rating Groups
 - description: Endpoints related to SMS
   name: SMS
-- description: Viewing and Setting Tenant information
+- description: Viewing and setting tenant information
   name: Tenants
 - description: Configuration to manage upgrades
   name: Upgrades
@@ -5724,12 +5724,12 @@ paths:
       - $ref: '#/parameters/tenant_id'
       responses:
         "200":
-          description: Requested Tenant Information
+          description: Requested tenant information
           schema:
             $ref: '#/definitions/tenant'
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Retrieve Tenant Info By Tenant ID
+      summary: Retrieve tenant info by tenant ID
       tags:
       - Tenants
     put:
@@ -5746,7 +5746,38 @@ paths:
           description: Ok
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Set Tenant info
+      summary: Set tenant info
+      tags:
+      - Tenants
+  /tenants/{tenant_id}/control_proxy:
+    get:
+      parameters:
+      - $ref: '#/parameters/tenant_id'
+      responses:
+        "200":
+          description: Requested control proxy content
+          schema:
+            $ref: '#/definitions/control_proxy'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Retrieve control proxy content by tenant ID
+      tags:
+      - Tenants
+    put:
+      parameters:
+      - $ref: '#/parameters/tenant_id'
+      - description: Control proxy content to be updated
+        in: body
+        name: control_proxy
+        required: true
+        schema:
+          $ref: '#/definitions/control_proxy'
+      responses:
+        "204":
+          description: Ok
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Create or update control proxy content
       tags:
       - Tenants
   /tenants/{tenant_id}/metrics/api/v1/label/{label_name}/values:
@@ -7471,6 +7502,23 @@ definitions:
         format: uint64
         type: integer
     type: object
+  control_proxy:
+    properties:
+      control_proxy:
+        description: Contents of a gateway control_proxy.yml
+        type: string
+    required:
+    - control_proxy
+    type: object
+  core_network_types:
+    description: List of core network types.
+    items:
+      enum:
+      - EPC
+      - 5GC
+      type: string
+      x-nullable: false
+    type: array
   csfb:
     description: csfb configuration
     properties:
@@ -8608,7 +8656,7 @@ definitions:
       sgi_management_iface_ipv6_addr:
         description: IPv6 address for management interface on the AGW in CIDR format
         example: 2001:4860:4860:0:0:0:0:8888/64
-        format: ipv6
+        format: cidr
         type: string
       sgi_management_iface_ipv6_gw:
         description: IPv6 address of gateway for management interface on the AGW
@@ -9794,6 +9842,10 @@ definitions:
         $ref: '#/definitions/policy_ids'
       active_policies_by_apn:
         $ref: '#/definitions/policy_ids_by_apn'
+      forbidden_network_types:
+        $ref: '#/definitions/core_network_types'
+        description: List of Network Types to be restricted per subscriber. If not
+          configured, subscriber will have access to all Network Types by default.
       id:
         $ref: '#/definitions/subscriber_id'
       lte:
@@ -11512,6 +11564,8 @@ definitions:
         $ref: '#/definitions/policy_ids_by_apn'
       config:
         $ref: '#/definitions/subscriber_config'
+      forbidden_network_types:
+        $ref: '#/definitions/core_network_types'
       id:
         $ref: '#/definitions/subscriber_id'
       lte:
@@ -11533,6 +11587,8 @@ definitions:
     type: object
   subscriber_config:
     properties:
+      forbidden_network_types:
+        $ref: '#/definitions/core_network_types'
       lte:
         $ref: '#/definitions/lte_subscription'
       static_ips:
@@ -11596,8 +11652,7 @@ definitions:
     type: object
   subscriber_static_ips:
     additionalProperties:
-      example: 192.168.100.1
-      format: ipv4
+      example: 192.168.100.1 or 2020::1
       minLength: 1
       type: string
     description: Mapping of APN ID to static IP address to allocate for the subscriber

@@ -82,6 +82,7 @@ target_link_libraries(LI_AGENT
     )
 
 target_include_directories(LI_AGENT PUBLIC
+    $ENV{MAGMA_ROOT}
     $<TARGET_FILE_DIR:LI_AGENT>)
 
 add_executable(liagentd main.cpp)

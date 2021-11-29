@@ -98,6 +98,7 @@ target_link_libraries(COMMON
 endif()
 
 target_include_directories(COMMON PUBLIC
+    $ENV{MAGMA_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}
     $<TARGET_FILE_DIR:COMMON>
     )

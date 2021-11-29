@@ -21,7 +21,7 @@
 extern "C" {
 #endif
 
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 
 /**
  * Helper function to initiate AsyncEventdClient in its own thread

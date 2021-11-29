@@ -17,11 +17,11 @@
 
 #include <stdio.h>
 
-#include "BaseApplication.h"
-#include "includes/MetricsHelpers.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/BaseApplication.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 
 extern "C" {
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 }
 
 using namespace fluid_msg;

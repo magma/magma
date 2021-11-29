@@ -20,19 +20,29 @@
   Description 	Objects run in main thread context invoked by folly event
 *****************************************************************************/
 
+#include <folly/io/async/EventBase.h>
+#include <glog/logging.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <algorithm>
+#include <cstdint>
+#include <experimental/optional>
+#include <memory>
+#include <ostream>
 #include <string>
-#include <time.h>
 #include <utility>
 #include <vector>
-#include <memory>
 
-#include <google/protobuf/repeated_field.h>
-#include <google/protobuf/timestamp.pb.h>
-#include <google/protobuf/util/time_util.h>
-#include <grpcpp/channel.h>
-#include "magma_logging.h"
+#include "AmfServiceClient.h"
 #include "EnumToString.h"
+#include "PipelinedClient.h"
+#include "SessionState.h"
 #include "SessionStateEnforcer.h"
+#include "StoredState.h"
+#include "lte/protos/apn.pb.h"
+#include "lte/protos/mconfig/mconfigs.pb.h"
+#include "lte/protos/policydb.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+#include "magma_logging.h"
 
 #define DEFAULT_AMBR_UNITS (1024)
 #define DEFAULT_UP_LINK_PDR_ID 1
@@ -62,7 +72,8 @@ SessionStateEnforcer::SessionStateEnforcer(
     std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
     std::unordered_multimap<std::string, uint32_t> pdr_map,
     std::shared_ptr<PipelinedClient> pipelined_client,
-    std::shared_ptr<AmfServiceClient> amf_srv_client,
+    std::shared_ptr<AmfServiceClient> amf_srv_client, SessionReporter* reporter,
+    std::shared_ptr<EventsReporter> events_reporter,
     magma::mconfig::SessionD mconfig, long session_force_termination_timeout_ms,
     uint32_t session_max_rtx_count)
     : rule_store_(rule_store),
@@ -70,6 +81,8 @@ SessionStateEnforcer::SessionStateEnforcer(
       pdr_map_(pdr_map),
       pipelined_client_(pipelined_client),
       amf_srv_client_(amf_srv_client),
+      reporter_(reporter),
+      events_reporter_(events_reporter),
       mconfig_(mconfig),
       session_force_termination_timeout_ms_(
           session_force_termination_timeout_ms),
@@ -161,12 +174,24 @@ bool SessionStateEnforcer::m5g_update_session_context(
       static_rule_installs, dynamic_rule_installs, &pending_activation,
       &pending_deactivation, nullptr, &pending_scheduling, &session_uc);
 
+  std::unordered_set<uint32_t> charging_credits_received;
+  for (const auto& credit : csr.credits()) {
+    if (session->receive_charging_credit(credit, &session_uc)) {
+      charging_credits_received.insert(credit.charging_key());
+    }
+  }
+  for (const auto& monitor : csr.usage_monitors()) {
+    auto uc = get_default_update_criteria();
+    session->receive_monitor(monitor, &session_uc);
+  }
   /* Reset the upf resend retransmission counter counter, send the session
    * creation request to UPF
    */
   session_state->reset_rtx_counter();
   m5g_send_session_request_to_upf(
       session_state, pending_activation, pending_deactivation);
+  events_reporter_->session_created(
+      imsi, session_id, session->get_config(), session);
   return true;
 }
 
@@ -381,6 +406,10 @@ void SessionStateEnforcer::m5g_complete_termination(
   if (!session->can_complete_termination(&session_uc)) {
     return;  // error is logged in SessionState's complete_termination
   }
+  auto termination_req = session->make_termination_request(&session_uc);
+  auto logging_cb = SessionReporter::get_terminate_logging_cb(termination_req);
+  reporter_->report_terminate_session(termination_req, logging_cb);
+  events_reporter_->session_terminated(imsi, session);
   // Now remove all rules
   session->remove_all_rules(&session_uc);
   // Release and maintain TEID trakcing data structure TODO
@@ -603,14 +632,6 @@ void SessionStateEnforcer::prepare_response_to_access(
       config.rat_specific_context.m5gsm_session_context()
           .pdu_session_req_always_on());
   rsp->set_m5g_sm_congestion_reattempt_indicator(true);
-  rsp->mutable_pdu_address()->set_redirect_address_type(
-      config.rat_specific_context.m5gsm_session_context()
-          .pdu_address()
-          .redirect_address_type());
-  rsp->mutable_pdu_address()->set_redirect_server_address(
-      config.rat_specific_context.m5gsm_session_context()
-          .pdu_address()
-          .redirect_server_address());
   rsp->set_procedure_trans_identity(
       config.rat_specific_context.m5gsm_session_context()
           .procedure_trans_identity());
@@ -667,6 +688,7 @@ void SessionStateEnforcer::prepare_response_to_access(
           .end_ipv4_addr());
 
   rsp_cmn->mutable_sid()->CopyFrom(config.common_context.sid());  // imsi
+  rsp_cmn->set_ue_ipv4(config.common_context.ue_ipv4());
   rsp_cmn->set_apn(config.common_context.apn());
   rsp_cmn->set_sm_session_state(config.common_context.sm_session_state());
   rsp_cmn->set_sm_session_version(config.common_context.sm_session_version());
@@ -840,7 +862,7 @@ bool SessionStateEnforcer::insert_pdr_from_core(
               << " of imsi: " << session->get_imsi()
               << " fteid: " << session->get_upf_local_teid()
               << " pdu id: " << session->get_pdu_id() << " UE ip address "
-              << rule.pdi().ue_ip_adr();
+              << rule.pdi().ue_ipv4();
   // Insert the PDR along with teid into the session
   session->insert_pdr(&rule, session_uc);
   return true;
@@ -873,21 +895,15 @@ void SessionStateEnforcer::set_pdr_attributes(
     const std::string& imsi, std::unique_ptr<SessionState>& session_state,
     SetGroupPDR* rule) {
   const auto& config = session_state->get_config();
+  auto ue_ipv4       = config.common_context.ue_ipv4();
 
-  rule->mutable_pdi()->set_ue_ip_adr(
-      config.rat_specific_context.m5gsm_session_context()
-          .pdu_address()
-          .redirect_server_address());
+  rule->mutable_pdi()->set_ue_ipv4(ue_ipv4);
   rule->mutable_activate_flow_req()->mutable_sid()->set_id(imsi);
   rule->mutable_deactivate_flow_req()->mutable_sid()->set_id(imsi);
   rule->mutable_activate_flow_req()->set_ip_addr(
-      config.rat_specific_context.m5gsm_session_context()
-          .pdu_address()
-          .redirect_server_address());
+      config.common_context.ue_ipv4());
   rule->mutable_deactivate_flow_req()->set_ip_addr(
-      config.rat_specific_context.m5gsm_session_context()
-          .pdu_address()
-          .redirect_server_address());
+      config.common_context.ue_ipv4());
 }
 
 std::vector<StaticRuleInstall> SessionStateEnforcer::to_vec(

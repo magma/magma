@@ -20,16 +20,16 @@
 #include <string.h>
 #include <string>
 #include <iostream>
-#include <conversions.h>
+#include "lte/gateway/c/core/oai/common/conversions.h"
 
-#include "s6a_client_api.h"
-#include "S6aClient.h"
-#include "proto_msg_to_itti_msg.h"
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "feg/protos/s6a_proxy.pb.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
 extern "C" {}
 

@@ -11,15 +11,27 @@
  * limitations under the License.
  */
 
+#include <glog/logging.h>
+#include <ostream>
 #include <utility>
+#include <vector>
 
-#include "magma_logging.h"
+#include "CreditKey.h"
+#include "MemoryStoreClient.h"
+#include "MeteringReporter.h"
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "StoredState.h"
+#include "Types.h"
+#include "lte/protos/session_manager.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+#include "magma_logging.h"
 
 namespace magma {
+class StaticRuleStore;
+
 namespace lte {
+class RedisStoreClient;
 
 SessionStore::SessionStore(
     std::shared_ptr<StaticRuleStore> rule_store,
@@ -309,6 +321,31 @@ optional<SessionVector::iterator> SessionStore::find_session(
           return it;
         }
         break;  // break IMSI_AND_PDUID
+
+      case IMSI_AND_UE_IPV4_OR_IPV6_OR_UPF_TEID:
+        switch (context.rat_type()) {
+          case RATType::TGPP_WLAN:
+            return it;
+            break;
+          case RATType::TGPP_LTE:
+            if (context.ue_ipv4() == criteria.secondary_key ||
+                context.ue_ipv6() == criteria.secondary_key) {
+              return it;
+            }
+            break;
+          case RATType::TGPP_NR:
+            if ((*it)->get_upf_local_teid() == criteria.tertiary_key_unit32) {
+              return it;
+            }
+            break;
+          default:
+            MLOG(MERROR)
+                << "Search criteria for IMSI_AND_UE_IPV4_OR_IPV6_OR_UPF_TEID"
+                   " not implemented for this RAT "
+                << context.rat_type();
+            break;
+        }
+        break;  // break  IMSI_AND_UE_IPV4_OR_IPV6_OR_TEID
     }
     continue;
   }

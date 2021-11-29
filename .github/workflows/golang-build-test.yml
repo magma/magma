@@ -14,6 +14,10 @@ on:  # yamllint disable-line rule:truthy
       - reopened
       - synchronize
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   pre_job_src_go_determinator:
     runs-on: ubuntu-latest
@@ -29,6 +33,16 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/golang-build-test.yml", "src/go/**"]
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
 
   build_src_go:
     needs: pre_job_src_go_determinator

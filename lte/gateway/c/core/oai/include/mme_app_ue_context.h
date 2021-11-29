@@ -32,23 +32,23 @@
 #include <inttypes.h> /* For sscanf formats */
 #include <time.h>     /* to provide time_t */
 
-#include "tree.h"
-#include "queue.h"
-#include "hashtable.h"
-#include "obj_hashtable.h"
-#include "bstrlib.h"
-#include "common_types.h"
-#include "common_defs.h"
-#include "mme_app_sgs_fsm.h"
-#include "s1ap_messages_types.h"
-#include "s6a_messages_types.h"
-#include "security_types.h"
-#include "sgw_ie_defs.h"
-#include "intertask_interface_types.h"
-#include "emm_data.h"
-#include "esm_data.h"
-#include "emm_cnDef.h"
-#include "nas_timer.h"
+#include "lte/gateway/c/core/oai/common/tree.h"
+#include "lte/gateway/c/core/oai/common/queue.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/common/security_types.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 
 typedef enum {
   ECM_IDLE = 0,
@@ -580,10 +580,6 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const mme_ue_context_p);
  * hashtable_ts_destroy
  */
 void mme_app_state_free_ue_context(void** ue_context_node);
-
-/** \brief Dump the UE contexts present in the tree
- **/
-void mme_app_dump_ue_contexts(void);
 
 void mme_app_handle_s1ap_ue_context_release_req(
     const itti_s1ap_ue_context_release_req_t* s1ap_ue_context_release_req);

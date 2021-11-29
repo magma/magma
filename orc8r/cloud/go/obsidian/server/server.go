@@ -44,8 +44,8 @@ func Start() {
 	// Metrics middleware is used before all other middlewares
 	e.Use(CollectStats)
 	e.Use(middleware.Recover())
-
 	err := handlers.RegisterSwaggerHandlers(e)
+
 	if err != nil {
 		// Swallow RegisterHandlerError because the obsidian service should
 		// continue to run even if Swagger handlers aren't registered.
@@ -99,8 +99,6 @@ func Start() {
 				tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
 				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, // 4 HTTP2 support
 				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-				//tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-				//tls.TLS_RSA_WITH_AES_256_CBC_SHA,
 			},
 		}
 		s.TLSConfig.Certificates[0], err = tls.LoadX509KeyPair(obsidian.ServerCertPemPath, obsidian.ServerKeyPemPath)

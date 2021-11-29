@@ -13,7 +13,7 @@ limitations under the License.
 
 #pragma once
 
-#include <lte/gateway/c/core/oai/include/state_manager.h>
+#include "lte/gateway/c/core/oai/include/state_manager.h"
 #include "lte/gateway/c/core/oai/include/sgw_s8_state.h"
 #include "lte/protos/oai/sgw_state.pb.h"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_converter.h"
@@ -61,6 +61,7 @@ class SgwStateManager : public StateManager<
   SgwStateManager(SgwStateManager const&) = delete;
   SgwStateManager& operator=(SgwStateManager const&) = delete;
 
+  sgw_state_t* get_state(bool read_from_db) override;
   /**
    * Frees all memory allocated on sgw_state_t.
    */

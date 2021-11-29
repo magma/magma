@@ -13,7 +13,7 @@ limitations under the License.
 
 #pragma once
 #include "feg/protos/s8_proxy.grpc.pb.h"
-#include "s8_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s8_messages_types.h"
 
 void get_pco_from_proto_msg(
     const magma::feg::ProtocolConfigurationOptions& proto_pco,

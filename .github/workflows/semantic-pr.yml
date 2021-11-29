@@ -2,11 +2,16 @@
 name: "Semantic PR"
 
 on:  # yamllint disable-line rule:truthy
+  # Semantic PR module only works with pull_request_target
   pull_request_target:
     types:
       - opened
       - edited
       - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   reverted-pr-check:

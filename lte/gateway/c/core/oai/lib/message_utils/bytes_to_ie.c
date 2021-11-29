@@ -28,7 +28,7 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
-#include "bytes_to_ie.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/bytes_to_ie.h"
 
 void bytes_to_lai(const char* bytes, lai_t* lai) {
   /*plmn_t plmn = {

@@ -628,8 +628,8 @@ nas_emm_tau_proc_t* nas_new_tau_procedure(
   if (!(emm_context->emm_procedures)) {
     emm_context->emm_procedures = nas_new_emm_procedures(emm_context);
   } else if (emm_context->emm_procedures->emm_specific_proc) {
-    OAILOG_ERROR(
-        LOG_NAS_EMM,
+    OAILOG_ERROR_UE(
+        LOG_NAS_EMM, emm_context->_imsi64,
         "UE " MME_UE_S1AP_ID_FMT
         " Attach procedure creation requested but another specific procedure "
         "found\n",
@@ -663,8 +663,8 @@ nas_sr_proc_t* nas_new_service_request_procedure(
   if (!(emm_context->emm_procedures)) {
     emm_context->emm_procedures = nas_new_emm_procedures(emm_context);
   } else if (emm_context->emm_procedures->emm_con_mngt_proc) {
-    OAILOG_ERROR(
-        LOG_NAS_EMM,
+    OAILOG_ERROR_UE(
+        LOG_NAS_EMM, emm_context->_imsi64,
         "UE " MME_UE_S1AP_ID_FMT
         " SR procedure creation requested but another connection management "
         "procedure found\n",

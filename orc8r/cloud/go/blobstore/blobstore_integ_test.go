@@ -25,7 +25,7 @@ import (
 	magmaerrors "magma/orc8r/lib/go/errors"
 )
 
-func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
+func integration(t *testing.T, fact blobstore.StoreFactory) {
 	// Check the contract for an empty data store
 	err := fact.InitializeFactory()
 	assert.NoError(t, err)
@@ -61,7 +61,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 
 	// Create blobs on 2 networks
 	// network1: (t1, t2) X (k1, k2)
-	err = store1.CreateOrUpdate("network1", blobstore.Blobs{
+	err = store1.Write("network1", blobstore.Blobs{
 		{Type: "t1", Key: "k1", Value: []byte("v1")},
 		{Type: "t1", Key: "k2", Value: []byte("v2")},
 		{Type: "t2", Key: "k1", Value: []byte("v3"), Version: 2},
@@ -73,7 +73,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	// network2: (t3) X (k3, k4)
 	store2, err := fact.StartTransaction(nil)
 	assert.NoError(t, err)
-	err = store2.CreateOrUpdate("network2", blobstore.Blobs{
+	err = store2.Write("network2", blobstore.Blobs{
 		{Type: "t3", Key: "k3", Value: []byte("v5")},
 		{Type: "t3", Key: "k4", Value: []byte("v6")},
 	})
@@ -163,7 +163,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	store, err = fact.StartTransaction(nil)
 	assert.NoError(t, err)
 
-	err = store.CreateOrUpdate("network1", blobstore.Blobs{
+	err = store.Write("network1", blobstore.Blobs{
 		{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 20},
 		{Type: "t9", Key: "k9", Value: []byte("world")},
 	})
@@ -291,7 +291,7 @@ type searchTestCase struct {
 	expected map[string]blobstore.Blobs
 }
 
-func runSearchTestCases(t *testing.T, fact blobstore.BlobStorageFactory) {
+func runSearchTestCases(t *testing.T, fact blobstore.StoreFactory) {
 	store, err := fact.StartTransaction(nil)
 	assert.NoError(t, err)
 
@@ -491,7 +491,7 @@ func runSearchTestCases(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, store.Commit())
 }
 
-func runSearchTestCase(t *testing.T, store blobstore.TransactionalBlobStorage, tc searchTestCase) {
+func runSearchTestCase(t *testing.T, store blobstore.Store, tc searchTestCase) {
 	var criteria blobstore.LoadCriteria
 	if tc.criteria != nil {
 		criteria = *tc.criteria

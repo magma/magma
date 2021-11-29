@@ -11,25 +11,27 @@
  * limitations under the License.
  */
 
+#include <ext/alloc_traits.h>
+#include <glog/logging.h>
+#include <google/protobuf/stubs/port.h>
 #include <google/protobuf/timestamp.pb.h>
-#include <google/protobuf/util/time_util.h>
-
+#include <algorithm>
+#include <ctime>
 #include <functional>
+#include <ostream>
 #include <string>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "CreditKey.h"
-#include "DiameterCodes.h"
 #include "EnumToString.h"
-#include "magma_logging.h"
-#include "includes/MetricsHelpers.h"
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "StoredState.h"
 #include "Utilities.h"
-#include "ShardTracker.h"
+#include "includes/MetricsHelpers.h"
+#include "magma_logging.h"
 
 namespace {
 const char* UE_TRAFFIC_COUNTER_NAME = "ue_traffic";
@@ -217,7 +219,10 @@ SessionState::SessionState(
       config_(cfg),
       current_version_(0),
       rtx_counter_(0),
-      static_rules_(rule_store) {}
+      subscriber_quota_state_(SubscriberQuotaUpdate_Type_VALID_QUOTA),
+      static_rules_(rule_store),
+      credit_map_(4, &ccHash, &ccEqual),
+      session_level_key_("") {}
 
 /* get-set methods of new messages  for 5G*/
 uint32_t SessionState::get_current_version() {
@@ -337,7 +342,7 @@ void SessionState::sess_infocopy(struct SessionInfo* info) {
   if (!info->pdr_rules.empty()) {
     // Get the UE ip address from first rule
     auto& rule    = info->pdr_rules.front();
-    info->ip_addr = rule.pdi().ue_ip_adr();
+    info->ip_addr = rule.pdi().ue_ipv4();
   }
 }
 
@@ -847,10 +852,13 @@ void SessionState::get_updates(
     UpdateSessionRequest* update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
     SessionStateUpdateCriteria* session_uc) {
-  if (curr_state_ != SESSION_ACTIVE) return;
-  get_charging_updates(update_request_out, actions_out, session_uc);
-  get_monitor_updates(update_request_out, session_uc);
-  get_event_trigger_updates(update_request_out, session_uc);
+  if (curr_state_ == SESSION_ACTIVE || curr_state_ == ACTIVE) {
+    get_charging_updates(update_request_out, actions_out, session_uc);
+    get_monitor_updates(update_request_out, session_uc);
+    get_event_trigger_updates(update_request_out, session_uc);
+  } else {
+    return;
+  }
 }
 
 SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const {

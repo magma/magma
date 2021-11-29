@@ -15,8 +15,8 @@ limitations under the License.
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "intertask_interface.h"
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 
 void send_s8_create_session_request(
     teid_t sgw_s11_teid, const itti_s11_create_session_request_t* msg,
@@ -27,7 +27,12 @@ void send_s8_delete_session_request(
     const itti_s11_delete_session_request_t* const delete_session_req_p);
 void send_s8_create_bearer_response(
     const itti_s11_nw_init_actv_bearer_rsp_t* itti_msg, teid_t pgw_s8_teid,
-    uint32_t sequence_number, char* pgw_cp_address, Imsi_t imsi);
+    uint32_t sequence_number, STOLEN_REF char* pgw_cp_address, Imsi_t imsi);
+
+void send_s8_delete_bearer_response(
+    const itti_s11_nw_init_deactv_bearer_rsp_t* itti_msg, teid_t pgw_s8_teid,
+    uint32_t sequence_number, STOLEN_REF char* pgw_cp_address, Imsi_t imsi);
+
 #ifdef __cplusplus
 }
 #endif

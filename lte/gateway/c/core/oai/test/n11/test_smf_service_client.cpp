@@ -12,10 +12,10 @@
  */
 #include <gtest/gtest.h>
 #include <glog/logging.h>
-#include "mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 
 #include "lte/protos/session_manager.pb.h"
-#include "SmfServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.h"
 
 using ::testing::Test;
 
@@ -38,8 +38,15 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
   gnb_gtp_teid_ip_addr[1]         = 0x14;
   gnb_gtp_teid_ip_addr[2]         = 0x1E;
   gnb_gtp_teid_ip_addr[3]         = 0x28;
+  std::string gnb_ip_addr;
+  for (int i = 0; i < 4; ++i) {
+    gnb_ip_addr += std::to_string(gnb_gtp_teid_ip_addr[i]);
+    if (i != 3) {
+      gnb_ip_addr += ".";
+    }
+  }
 
-  std::string ipv4_addr("10.20.30.44");
+  std::string ue_ipv4_addr("10.20.30.44");
   uint32_t version = 0;
 
   ambr_t default_ambr;
@@ -47,7 +54,7 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
   request = magma5g::create_sm_pdu_session_v4(
       (char*) imsi.c_str(), (uint8_t*) apn.c_str(), pdu_session_id,
       pdu_session_type, gnb_gtp_teid, pti, gnb_gtp_teid_ip_addr,
-      (char*) ipv4_addr.c_str(), version, default_ambr);
+      (char*) ue_ipv4_addr.c_str(), version, default_ambr);
 
   auto* rat_req =
       request.mutable_rat_specific_context()->mutable_m5gsm_session_context();
@@ -65,18 +72,14 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
   EXPECT_TRUE(pdu_session_id == rat_req->pdu_session_id());
   EXPECT_TRUE(
       magma::lte::RequestType::INITIAL_REQUEST == rat_req->request_type());
-  EXPECT_TRUE(
-      magma::lte::RedirectServer::IPV4 ==
-      rat_req->mutable_pdu_address()->redirect_address_type());
+
   EXPECT_TRUE(magma::lte::PduSessionType::IPV4 == rat_req->pdu_session_type());
   EXPECT_TRUE(1 == rat_req->mutable_gnode_endpoint()->teid());
   EXPECT_TRUE(
-      std::string("10.20.30.40") ==
-      rat_req->mutable_gnode_endpoint()->end_ipv4_addr());
+      gnb_ip_addr == rat_req->mutable_gnode_endpoint()->end_ipv4_addr());
   uint8_t* pti_decoded = (uint8_t*) rat_req->procedure_trans_identity().c_str();
   EXPECT_TRUE(pti == *pti_decoded);
-  EXPECT_TRUE(
-      ipv4_addr == rat_req->mutable_pdu_address()->redirect_server_address());
+  EXPECT_TRUE(ue_ipv4_addr == req_cmn->ue_ipv4());
 }
 
 int main(int argc, char** argv) {

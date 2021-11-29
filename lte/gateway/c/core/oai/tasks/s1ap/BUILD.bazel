@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//tools/build_defs:asn1c.bzl", "cc_asn1_library")
+load("//bazel:asn1c.bzl", "cc_asn1_library")
 
 package(default_visibility = ["//lte/gateway/c/core:__subpackages__"])
 

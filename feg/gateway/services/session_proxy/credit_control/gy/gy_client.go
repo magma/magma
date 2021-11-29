@@ -399,7 +399,7 @@ func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredi
 		avpGroup = append(avpGroup, diam.NewAVP(avp.RequestedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{AVP: usuGrp}))
 	}
 
-	if serviceIdentifier >= 0 {
+	if serviceIdentifier >= 0 && serviceIdentifier <= 4294967295 { //check if is in bounds of Unsigned32 type
 		avpGroup = append(
 			avpGroup,
 			diam.NewAVP(avp.ServiceIdentifier, avp.Mbit, 0, datatype.Unsigned32(serviceIdentifier)))

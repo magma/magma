@@ -15,8 +15,8 @@ limitations under the License.
 #include <thread>  // std::thread
 #include <utility>
 
-#include "S8Client.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "lte/gateway/c/core/oai/lib/s8_proxy/S8Client.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
 #include "feg/protos/s8_proxy.pb.h"
 #include "orc8r/protos/common.pb.h"
 
@@ -94,6 +94,25 @@ void S8Client::s8_create_bearer_response(
       response->get_context(), cbr_rsp, &client.queue_);
   // Set the reader for the local response. This executes the
   // `CreateBearerResponse` response using the response reader. When it is done,
+  // the callback stored in `local_response` will be called
+  response->set_response_reader(std::move(response_reader));
+}
+
+void S8Client::s8_delete_bearer_response(
+    const DeleteBearerResponsePgw& db_rsp,
+    std::function<void(grpc::Status, magma::orc8r::Void)> callback) {
+  S8Client& client = get_instance();
+  // Create a raw response pointer that stores a callback to be called when the
+  // gRPC call is answered
+  auto response = new AsyncLocalResponse<magma::orc8r::Void>(
+      std::move(callback), RESPONSE_TIMEOUT);
+  // Create a response reader for the `DeleteBearerResponse` RPC call. This
+  // reader stores the client context, the request to pass in, and the queue to
+  // add the response to when done
+  auto response_reader = client.stub_->AsyncDeleteBearerResponse(
+      response->get_context(), db_rsp, &client.queue_);
+  // Set the reader for the local response. This executes the
+  // `DeleteBearerResponse` response using the response reader. When it is done,
   // the callback stored in `local_response` will be called
   response->set_response_reader(std::move(response_reader));
 }

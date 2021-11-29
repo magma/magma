@@ -21,7 +21,7 @@
 
 #include <lte/protos/sctpd.grpc.pb.h>
 
-#include "sctp_connection.h"
+#include "lte/gateway/c/sctpd/src/sctp_connection.h"
 
 #define S1AP 18
 #define NGAP 60

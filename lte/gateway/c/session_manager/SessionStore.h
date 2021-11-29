@@ -12,9 +12,9 @@
  */
 #pragma once
 
-#include <experimental/optional>
 #include <lte/protos/session_manager.grpc.pb.h>
-
+#include <stdint.h>
+#include <experimental/optional>
 #include <memory>
 #include <set>
 #include <string>
@@ -25,10 +25,18 @@
 #include "RedisStoreClient.h"
 #include "RuleStore.h"
 #include "SessionState.h"
+#include "StoreClient.h"
 #include "StoredState.h"
 
 namespace magma {
+class StaticRuleStore;
+struct SessionStateUpdateCriteria;
+
 namespace lte {
+class MeteringReporter;
+class RedisStoreClient;
+class UpdateSessionRequest;
+
 using std::experimental::optional;
 
 // Value int represents the request numbers needed for requests to PCRF
@@ -37,13 +45,14 @@ using SessionUpdate = std::unordered_map<
     std::string, std::unordered_map<std::string, SessionStateUpdateCriteria>>;
 
 enum SessionSearchCriteriaType {
-  IMSI_AND_APN             = 0,
-  IMSI_AND_SESSION_ID      = 1,
-  IMSI_AND_UE_IPV4         = 2,
-  IMSI_AND_UE_IPV4_OR_IPV6 = 3,
-  IMSI_AND_BEARER          = 4,
-  IMSI_AND_TEID            = 5,
-  IMSI_AND_PDUID           = 6,
+  IMSI_AND_APN                         = 0,
+  IMSI_AND_SESSION_ID                  = 1,
+  IMSI_AND_UE_IPV4                     = 2,
+  IMSI_AND_UE_IPV4_OR_IPV6             = 3,
+  IMSI_AND_BEARER                      = 4,
+  IMSI_AND_TEID                        = 5,
+  IMSI_AND_PDUID                       = 6,
+  IMSI_AND_UE_IPV4_OR_IPV6_OR_UPF_TEID = 7,
 };
 
 struct SessionSearchCriteria {
@@ -51,6 +60,7 @@ struct SessionSearchCriteria {
   SessionSearchCriteriaType search_type;
   std::string secondary_key;
   uint32_t secondary_key_unit32;
+  uint32_t tertiary_key_unit32;
 
   SessionSearchCriteria(
       const std::string p_imsi, SessionSearchCriteriaType p_type,
@@ -63,6 +73,14 @@ struct SessionSearchCriteria {
       : imsi(p_imsi),
         search_type(p_type),
         secondary_key_unit32(secondary_key_unit32) {}
+
+  SessionSearchCriteria(
+      const std::string p_imsi, SessionSearchCriteriaType p_type,
+      const std::string p_secondary_key, const uint32_t tertiary_key_unit32)
+      : imsi(p_imsi),
+        search_type(p_type),
+        secondary_key(p_secondary_key),
+        tertiary_key_unit32(tertiary_key_unit32) {}
 };
 
 /**

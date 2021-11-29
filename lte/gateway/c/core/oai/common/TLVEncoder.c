@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 
 int errorCodeEncoder = 0;
 

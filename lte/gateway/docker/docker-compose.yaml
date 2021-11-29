@@ -11,6 +11,7 @@ x-standard-volumes: &volumes_anchor
   - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
   - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
   - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
+  - ${CONFIGS_OVERRIDE_TMP_VOLUME}:/var/opt/magma/tmp
   - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
   - /etc/snowflake:/etc/snowflake
   - /var/opt/magma/fluent-bit:/var/opt/magma/fluent-bit
@@ -188,8 +189,14 @@ services:
     security_opt:
       - seccomp:unconfined
     environment:
-      MAGMA_PRINT_GRPC_PAYLOAD: 1
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
     command: /usr/local/bin/sctpd
+
+  oai_config:
+    <<: *pyservice
+    container_name: oai_config
+    command: /usr/bin/env python3 /usr/local/bin/generate_oai_config.py
+    restart: "no"
 
   oai_mme:
     <<: *ltecservice
@@ -204,15 +211,14 @@ services:
       - seccomp:unconfined
     privileged: true
     environment:
-      MAGMA_PRINT_GRPC_PAYLOAD: 1
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
+    depends_on:
+      - oai_config
     cap_add:
       - NET_ADMIN
       - NET_RAW
     command: >
-      sh -c "sed -i \"s~10\.0\.2\.15/24~$SGI_INTERFACE_IP~\" /var/opt/magma/tmp/spgw.conf &&
-        sed -i \"s~192\.168\.60\.142/24~$S1_INTERFACE_IP~\" /var/opt/magma/tmp/spgw.conf &&
-        sed -i \"s~192\.168\.60\.142/24~$S1_INTERFACE_IP~\" /var/opt/magma/tmp/mme.conf &&
-        /usr/local/bin/oai_mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf"
+      sh -c "/usr/local/bin/oai_mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf"
 
   pipelined:
     <<: *pyservice
@@ -221,7 +227,7 @@ services:
       - seccomp:unconfined
     privileged: true
     environment:
-      MAGMA_PRINT_GRPC_PAYLOAD: 1
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -248,7 +254,7 @@ services:
       - seccomp:unconfined
     privileged: true
     environment:
-      MAGMA_PRINT_GRPC_PAYLOAD: 1
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
     depends_on:
       - directoryd
     healthcheck:

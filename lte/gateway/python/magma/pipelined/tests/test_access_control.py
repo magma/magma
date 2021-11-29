@@ -113,6 +113,7 @@ class AccessControlTestLTE(unittest.TestCase):
                             'ip': cls.BOTH_DIR_TEST_IP,
                         },
                     ],
+                    'block_agw_local_ips': False,
                 },
                 'clean_restart': True,
             },
@@ -159,8 +160,8 @@ class AccessControlTestLTE(unittest.TestCase):
         # Set up packets
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
         packets = [
-            self._build_default_ip_packet(self.INBOUND_TEST_IP, sub.ip),
-            self._build_default_ip_packet(self.BOTH_DIR_TEST_IP, sub.ip),
+            _build_default_ip_packet(self.MAC_DEST, self.INBOUND_TEST_IP, sub.ip),
+            _build_default_ip_packet(self.MAC_DEST, self.BOTH_DIR_TEST_IP, sub.ip),
         ]
 
         # Check if these flows were added (queries should return flows)
@@ -233,8 +234,8 @@ class AccessControlTestLTE(unittest.TestCase):
         # Set up packets
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
         packets = [
-            self._build_default_ip_packet(sub.ip, self.OUTBOUND_TEST_IP),
-            self._build_default_ip_packet(sub.ip, self.BOTH_DIR_TEST_IP),
+            _build_default_ip_packet(self.MAC_DEST, sub.ip, self.OUTBOUND_TEST_IP),
+            _build_default_ip_packet(self.MAC_DEST, sub.ip, self.BOTH_DIR_TEST_IP),
         ]
 
         # Check if these flows were added (queries should return flows)
@@ -308,8 +309,8 @@ class AccessControlTestLTE(unittest.TestCase):
         # installed match flow, so there should not matches.
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
         packets = [
-            self._build_default_ip_packet(self.OUTBOUND_TEST_IP, sub.ip),
-            self._build_default_ip_packet(sub.ip, self.INBOUND_TEST_IP),
+            _build_default_ip_packet(self.MAC_DEST, self.OUTBOUND_TEST_IP, sub.ip),
+            _build_default_ip_packet(self.MAC_DEST, sub.ip, self.INBOUND_TEST_IP),
         ]
 
         # Check if these flows were added (queries should return flows)
@@ -358,12 +359,6 @@ class AccessControlTestLTE(unittest.TestCase):
             self.BRIDGE,
             self.service_manager,
         )
-
-    def _build_default_ip_packet(self, dst, src):
-        return IPPacketBuilder() \
-            .set_ip_layer(dst, src) \
-            .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00") \
-            .build()
 
 
 class AccessControlTestCWF(unittest.TestCase):
@@ -431,6 +426,7 @@ class AccessControlTestCWF(unittest.TestCase):
                             'ip': cls.BOTH_DIR_TEST_IP,
                         },
                     ],
+                    'block_agw_local_ips': False,
                 },
             },
             mconfig=PipelineD(
@@ -470,6 +466,131 @@ class AccessControlTestCWF(unittest.TestCase):
             self.BRIDGE,
             self.service_manager,
         )
+
+
+class AccessControlTestLocalIpBlockLTE(unittest.TestCase):
+    BRIDGE = 'testing_br'
+    IFACE = 'testing_br'
+    MAC_DEST = "5e:cc:cc:b1:49:4b"
+    BRIDGE_IP = '192.168.128.1'
+    OUTBOUND_TEST_IP2 = '200.0.0.1'
+    OUTBOUND_TEST_IP1 = '127.1.0.1'
+    BOTH_DIR_TEST_IP = '127.2.0.1'
+
+    @classmethod
+    def setUpClass(cls, *_):
+        """
+        Starts the thread which launches ryu apps
+
+        Create a testing bridge, add a port, setup the port interfaces. Then
+        launch the ryu apps for testing pipelined. Gets the references
+        to apps launched by using futures.
+        """
+        super(AccessControlTestLocalIpBlockLTE, cls).setUpClass()
+        warnings.simplefilter('ignore')
+        cls.service_manager = create_service_manager(
+            [],
+            ['access_control'],
+        )
+        cls._tbl_num = cls.service_manager.get_table_num(
+            AccessControlController.APP_NAME,
+        )
+
+        access_control_controller_reference = Future()
+        testing_controller_reference = Future()
+        test_setup = TestSetup(
+            apps=[
+                PipelinedController.AccessControl,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
+            references={
+                PipelinedController.AccessControl:
+                    access_control_controller_reference,
+                PipelinedController.Testing:
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
+            },
+            config={
+                'setup_type': 'LTE',
+                'allow_unknown_arps': False,
+                'bridge_name': cls.BRIDGE,
+                'bridge_ip_address': cls.BRIDGE_IP,
+                'nat_iface': 'eth2',
+                'enodeb_iface': 'eth1',
+                'qos': {'enable': False},
+                'access_control': {
+                    'ip_blocklist': [],
+                    'block_agw_local_ips': True,
+                },
+                'clean_restart': True,
+                'mtr_interface': 'mtr0',
+            },
+            mconfig=PipelineD(
+                allowed_gre_peers=[{'ip': '1.2.3.4/24', 'key': 123}],
+            ),
+            loop=None,
+            service_manager=cls.service_manager,
+            integ_test=False,
+        )
+
+        BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+
+        cls.thread = start_ryu_app_thread(test_setup)
+        cls.access_control_controller = \
+            access_control_controller_reference.result()
+        cls.testing_controller = testing_controller_reference.result()
+
+    @classmethod
+    def tearDownClass(cls):
+        stop_ryu_app_thread(cls.thread)
+        BridgeTools.destroy_bridge(cls.BRIDGE)
+
+    def test_blocking_ip_match(self):
+        """
+        Inbound ip match test, checks that packets are properly matched when
+        the inbound traffic matches an ip in the blocklist.
+
+        Assert:
+            Both packets are matched
+            Ip match flows are added
+        """
+        # Set up subscribers
+        sub = SubContextConfig(
+            'IMSI001010000000013', '192.168.128.74',
+            default_ambr_config, self._tbl_num,
+        )
+
+        isolator = RyuDirectTableIsolator(
+            RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),
+            self.testing_controller,
+        )
+
+        # Set up packets
+        pkt_sender = ScapyPacketInjector(self.BRIDGE)
+        packets = [
+            _build_default_ip_packet(self.MAC_DEST, self.OUTBOUND_TEST_IP1, sub.ip),
+            _build_default_ip_packet(self.MAC_DEST, self.OUTBOUND_TEST_IP2, sub.ip),
+            _build_default_ip_packet(self.MAC_DEST, self.BOTH_DIR_TEST_IP, sub.ip),
+        ]
+
+        with isolator:
+            for packet in packets:
+                pkt_sender.send(packet)
+
+        assert_bridge_snapshot_match(
+            self,
+            self.BRIDGE,
+            self.service_manager,
+        )
+
+
+def _build_default_ip_packet(mac, dst, src):
+    return IPPacketBuilder() \
+            .set_ip_layer(dst, src) \
+            .set_ether_layer(mac, "00:00:00:00:00:00") \
+            .build()
 
 
 if __name__ == "__main__":

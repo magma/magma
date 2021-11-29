@@ -38,11 +38,11 @@ var (
 )
 
 type stateServicer struct {
-	factory blobstore.BlobStorageFactory
+	factory blobstore.StoreFactory
 }
 
 // NewStateServicer returns a state server backed by storage passed in.
-func NewStateServicer(factory blobstore.BlobStorageFactory) (protos.StateServiceServer, error) {
+func NewStateServicer(factory blobstore.StoreFactory) (protos.StateServiceServer, error) {
 	if factory == nil {
 		return nil, errors.New("storage factory is nil")
 	}
@@ -88,7 +88,7 @@ func (srv *stateServicer) ReportStates(ctx context.Context, req *protos.ReportSt
 	if err != nil {
 		return nil, internalErr(err, "ReportStates blobstore start transaction")
 	}
-	err = store.CreateOrUpdate(networkID, states)
+	err = store.Write(networkID, states)
 	if err != nil {
 		_ = store.Rollback()
 		return nil, internalErr(err, "ReportStates blobstore create or update")

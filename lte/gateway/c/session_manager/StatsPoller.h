@@ -13,8 +13,11 @@
 #include <stdint.h>
 #include <atomic>
 #include <memory>
+
 #include "LocalEnforcer.h"
+
 namespace magma {
+class LocalEnforcer;
 
 class StatsPoller {
  public:

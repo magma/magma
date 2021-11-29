@@ -191,6 +191,11 @@ export type ci_node = {
 export type config_info = {
     mconfig_created_at ? : number,
 };
+export type control_proxy = {
+    control_proxy: string,
+};
+export type core_network_types = Array < "EPC" | "5GC" >
+;
 export type csfb = {
     client ? : sctp_client_configs,
 };
@@ -895,6 +900,7 @@ export type mutable_subscriber = {
     active_base_names ? : base_names,
     active_policies ? : policy_ids,
     active_policies_by_apn ? : policy_ids_by_apn,
+    forbidden_network_types ? : core_network_types,
     id: subscriber_id,
     lte: lte_subscription,
     name ? : string,
@@ -1407,6 +1413,7 @@ export type subscriber = {
     active_policies ? : policy_ids,
     active_policies_by_apn ? : policy_ids_by_apn,
     config: subscriber_config,
+    forbidden_network_types ? : core_network_types,
     id: subscriber_id,
     lte: lte_subscription,
     monitoring ? : subscriber_status,
@@ -1415,6 +1422,7 @@ export type subscriber = {
     state ? : subscriber_state,
 };
 export type subscriber_config = {
+    forbidden_network_types ? : core_network_types,
     lte: lte_subscription,
     static_ips ? : subscriber_static_ips,
 };
@@ -9949,6 +9957,48 @@ export default class MagmaAPIBindings {
 
         if (parameters['tenant'] !== undefined) {
             body = parameters['tenant'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getTenantsByTenantIdControlProxy(
+            parameters: {
+                'tenantId': number,
+            }
+        ): Promise < control_proxy >
+        {
+            let path = '/tenants/{tenant_id}/control_proxy';
+            let body;
+            let query = {};
+            if (parameters['tenantId'] === undefined) {
+                throw new Error('Missing required  parameter: tenantId');
+            }
+
+            path = path.replace('{tenant_id}', `${parameters['tenantId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putTenantsByTenantIdControlProxy(
+        parameters: {
+            'tenantId': number,
+            'controlProxy': control_proxy,
+        }
+    ): Promise < "Ok" > {
+        let path = '/tenants/{tenant_id}/control_proxy';
+        let body;
+        let query = {};
+        if (parameters['tenantId'] === undefined) {
+            throw new Error('Missing required  parameter: tenantId');
+        }
+
+        path = path.replace('{tenant_id}', `${parameters['tenantId']}`);
+
+        if (parameters['controlProxy'] === undefined) {
+            throw new Error('Missing required  parameter: controlProxy');
+        }
+
+        if (parameters['controlProxy'] !== undefined) {
+            body = parameters['controlProxy'];
         }
 
         return await this.request(path, 'PUT', query, body);

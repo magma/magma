@@ -233,7 +233,7 @@ static uint32_t find_gtp_port_no(
   if (!spgw_config.sgw_config.ovs_config.multi_tunnel) {
     return 0;
   }
-  if ((uint32_t) enb_addr.s_addr == 0) {
+  if ((uint32_t) enb_addr.s_addr == 0 && enb_addr_ipv6 == NULL) {
     OAILOG_WARNING(LOG_GTPV1U, "zero enb IP address not supported");
     return 0;
   }
@@ -354,8 +354,8 @@ int openflow_forward_data_on_tunnel(
       ue, ue_ipv6, i_tei, flow_dl, flow_precedence_dl);
 }
 
-int openflow_add_paging_rule(struct in_addr ue) {
-  return openflow_controller_add_paging_rule(ue);
+int openflow_add_paging_rule(Imsi_t imsi, struct in_addr ue) {
+  return openflow_controller_add_paging_rule((const char*) imsi.digit, ue);
 }
 
 int openflow_delete_paging_rule(struct in_addr ue) {

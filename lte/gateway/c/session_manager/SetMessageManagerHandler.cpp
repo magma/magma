@@ -17,15 +17,38 @@
   Author/Editor Sanjay Kumar Ojha
   Description 	Acts as 5G Landing object in SessionD & start 5G related flow
 *****************************************************************************/
-#include <chrono>
-#include <thread>
+#include <folly/io/async/EventBase.h>
+#include <glog/logging.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <grpcpp/impl/codegen/status_code_enum.h>
+#include <experimental/optional>
+#include <ostream>
 #include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include <google/protobuf/util/time_util.h>
-
-#include "SetMessageManagerHandler.h"
-#include "magma_logging.h"
 #include "GrpcMagmaUtils.h"
+#include "SessionReporter.h"
+#include "SessionState.h"
+#include "SessionStateEnforcer.h"
+#include "SessionStore.h"
+#include "SetMessageManagerHandler.h"
+#include "lte/protos/session_manager.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+#include "magma_logging.h"
+
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
+namespace magma {
+struct SessionStateUpdateCriteria;
+}  // namespace magma
 
 using grpc::Status;
 
@@ -40,10 +63,12 @@ namespace magma {
 /*Constructor*/
 SetMessageManagerHandler::SetMessageManagerHandler(
     std::shared_ptr<SessionStateEnforcer> m5genforcer,
-    SessionStore& session_store, SessionReporter* reporter)
+    SessionStore& session_store, SessionReporter* reporter,
+    std::shared_ptr<EventsReporter> events_reporter)
     : session_store_(session_store),
       m5g_enforcer_(m5genforcer),
-      reporter_(reporter) {}
+      reporter_(reporter),
+      events_reporter_(events_reporter) {}
 
 /* Building session config with required parameters
  * TODO Note: this function can be removed by implementing 5G specific
@@ -85,8 +110,18 @@ void SetMessageManagerHandler::SetAmfSessionContext(
   m5g_enforcer_->get_event_base().runInEventBaseThread([this, response_callback,
                                                         request_cpy]() {
     // extract values from proto
-    std::string imsi = request_cpy.common_context().sid().id();
-    std::string dnn  = request_cpy.common_context().apn();
+    std::string imsi    = request_cpy.common_context().sid().id();
+    const auto rat_type = request_cpy.common_context().rat_type();
+    if (rat_type != TGPP_NR) {
+      // We don't support outside of 5G
+      std::ostringstream failure_stream;
+      failure_stream << "Received an invalid RAT type " << rat_type;
+      std::string failure_msg = failure_stream.str();
+      MLOG(MERROR) << failure_msg;
+      Status status(grpc::FAILED_PRECONDITION, failure_msg);
+      response_callback(status, SmContextVoid());
+      return;
+    }
     // Fetch PDU session ID from rat_specific_context and
     // pdu_id is unique to IMSI
     uint32_t pdu_id = request_cpy.rat_specific_context()
@@ -266,8 +301,12 @@ void SetMessageManagerHandler::send_create_session(
   bool success = m5g_enforcer_->m5g_init_session_credit(
       *session_map_ptr, imsi, session_id, new_cfg);
   if (!success) {
-    MLOG(MERROR) << "Failed to initialize SessionStore for 5G session "
-                 << session_id;
+    std::ostringstream failure_stream;
+    failure_stream << "Failed to initialize SessionStore for 5G session "
+                   << session_id;
+    std::string failure_msg = failure_stream.str();
+    MLOG(MERROR) << failure_msg;
+    events_reporter_->session_create_failure(new_cfg, failure_msg);
     return;
   } else {
     /* writing of SessionMap in memory through SessionStore object*/
@@ -290,7 +329,7 @@ void SetMessageManagerHandler::send_create_session(
   auto create_req = make_create_session_request(
       new_cfg, session_id, m5g_enforcer_->get_access_timezone());
   reporter_->report_create_session(
-      create_req, [this, imsi, session_id](
+      create_req, [this, imsi, new_cfg, session_id](
                       Status status, CreateSessionResponse response) mutable {
         if (status.ok()) {
           MLOG(MINFO) << "Processing a CreateSessionResponse for "
@@ -319,6 +358,8 @@ void SetMessageManagerHandler::send_create_session(
                       << " An earlier update may have invalidated it.";
           status = Status(
               grpc::ABORTED, "Failed to write session to SessionD storage");
+          events_reporter_->session_create_failure(
+              new_cfg, "Failed to initialize session in SessionProxy/PolicyDB");
         }
       });
 }

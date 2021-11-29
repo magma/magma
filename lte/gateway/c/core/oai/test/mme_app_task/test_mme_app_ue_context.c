@@ -18,9 +18,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "conversions.h"
-#include "mme_app_ue_context.h"
-#include "3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 
 #define TEST_CASE_COMMON_CONVERT_MAX 10
 

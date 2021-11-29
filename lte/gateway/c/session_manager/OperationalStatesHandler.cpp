@@ -12,17 +12,27 @@
  */
 #include <folly/dynamic.h>
 #include <folly/json.h>
+#include <glog/logging.h>
+#include <google/protobuf/stubs/status.h>
+#include <google/protobuf/stubs/stringpiece.h>
 #include <google/protobuf/util/json_util.h>
-
 #include <list>
 #include <map>
 #include <memory>
+#include <ostream>
 #include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "EnumToString.h"
-#include "magma_logging.h"
 #include "OperationalStatesHandler.h"
-#include "Utilities.h"
+#include "SessionState.h"
+#include "SessionStore.h"
+#include "Types.h"
+#include "lte/protos/policydb.pb.h"
+#include "lte/protos/session_manager.pb.h"
+#include "magma_logging.h"
 
 namespace magma {
 

@@ -53,7 +53,9 @@ PROTO_PATH = PROTO_DIR + '/mobilityd.proto'
 
 def _load_subs(num_subs: int) -> List[SubscriberID]:
     client = SubscriberDBStub(
-        ServiceRegistry.get_rpc_channel(SUBSCRIBERDB_SERVICE_NAME, ServiceRegistry.LOCAL),
+        ServiceRegistry.get_rpc_channel(
+            SUBSCRIBERDB_SERVICE_NAME, ServiceRegistry.LOCAL,
+        ),
     )
     sids = []
 
@@ -70,7 +72,9 @@ def _load_subs(num_subs: int) -> List[SubscriberID]:
 
 def _cleanup_subs():
     client = SubscriberDBStub(
-        ServiceRegistry.get_rpc_channel(SUBSCRIBERDB_SERVICE_NAME, ServiceRegistry.LOCAL),
+        ServiceRegistry.get_rpc_channel(
+            SUBSCRIBERDB_SERVICE_NAME, ServiceRegistry.LOCAL,
+        ),
     )
 
     for sid in client.ListSubscribers(Void()).sids:
@@ -151,7 +155,8 @@ def create_parser():
         parser_allocate,
         parser_release,
     ]:
-        cmd.add_argument("--num", default=2000, help="--num")
+        cmd.add_argument("--num", default=2000, help="Number of requests")
+        cmd.add_argument("--import_path", help="Protobuf dir import path")
 
     # Add function callbacks
     parser_allocate.set_defaults(func=parser_allocate)
@@ -177,6 +182,7 @@ def main():
     )
 
     if args.cmd == 'allocate':
+        _cleanup_subs()
         _setup_ip_block(client)
         input_file = 'allocate_data.json'
         request_type = 'AllocateIPAddress'
@@ -190,6 +196,7 @@ def main():
             output_file=make_output_file_path(request_type),
             num_reqs=args.num,
             address=MOBILITYD_PORT,
+            import_path=args.import_path,
         )
         _cleanup_subs()
 
@@ -206,6 +213,7 @@ def main():
             output_file=make_output_file_path(request_type),
             num_reqs=args.num,
             address=MOBILITYD_PORT,
+            import_path=args.import_path,
         )
 
     print('Done')

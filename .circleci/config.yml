@@ -163,52 +163,6 @@ commands:
           cd << parameters.workdir >>
           retry << parameters.command >>
 
-  yarn-install:
-    steps:
-      - restore_cache:
-          name: Restore Yarn Package Cache
-          keys:
-            - yarn-packages-{{ checksum "nms/yarn.lock" }}
-      - run:
-          name: Install Dependencies
-          <<: *appdir
-          command: |
-            if [ $(node -v) == 'v6.1.0' ]; then
-              source $NVM_DIR/nvm.sh
-              nvm install stable
-            fi
-            yarn install --frozen-lockfile
-      - save_cache:
-          name: Save Yarn Package Cache
-          key: yarn-packages-{{ checksum "nms/yarn.lock" }}
-          paths:
-            - ~/.cache/yarn
-
-  apt-install-yarn:
-    steps:
-      - run:
-          <<: *appdir
-          command: |
-            sudo apt-get install -y apt-transport-https
-            curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-            echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-            sudo apt-get update -y
-            sudo apt-get install -y yarn
-
-  apt-install-chrome:
-    steps:
-      - run:
-          <<: *appdir
-          command: |
-            # Install latest chrome dev package
-            # Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
-            # installs, work.
-            curl -sS https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-            echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google.list
-            sudo apt-get update -y
-            sudo apt-get install -y google-chrome-stable libxss1 --no-install-recommends
-            sudo rm -rf /var/lib/apt/lists/*
-
   apt-focal-install-aioeventlet:
     steps:
       - run:
@@ -362,6 +316,10 @@ commands:
       - sentry-upload:
           executable_name: << parameters.executable_name >>
           project: magma-staging-native
+          org: lf-9c
+      - sentry-upload:
+          executable_name: << parameters.executable_name >>
+          project: si-agw-native
           org: lf-9c
 
   sentry-release:
@@ -612,25 +570,6 @@ commands:
             curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
-  backport:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - python/set_version
-      - run:
-          command: |
-            mkdir ~/.magma
-            echo ${GITHUB_ACCESS_TOKEN} > ~/.magma/github_access_token
-      - run:
-          name: Install python prerequisites
-          command: pip3 install fabric3 jsonpickle requests PyYAML PyGithub
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/circleci/release
-            fab find_release_commits
 
   orc8r-build:
     machine:
@@ -666,28 +605,6 @@ jobs:
       - notify-magma:
           artifact_name: Orchestrator Images
           version_path: versions/orc8r_version
-      - magma_slack_notify
-
-  ### GATEWAY
-
-  orc8r-gateway-test:
-    docker:
-      - image: circleci/golang:1.13-buster-node-browsers-legacy
-    environment:
-      GO111MODULE: 'on'
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *orc8r_build_verify
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run-with-retry:
-          command: go mod download
-          workdir: ${MAGMA_ROOT}/cwf/gateway
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/gateway/go
-            go test ./...
-            go vet ./...
       - magma_slack_notify
 
   feg-build:
@@ -750,18 +667,6 @@ jobs:
           version_path: versions/feg_version
       - magma_slack_notify
 
-  cwf-integ-test:
-    machine:
-      image: ubuntu-1604:201903-01
-    steps:
-      - build/determinator:
-          <<: *all_gateways_build_verify
-      - magma_integ_test:
-          stack: cwf
-          test: 'True'
-          build: 'False'
-          deploy: 'False'
-
   cwag-deploy:
     parameters:
       tag:
@@ -809,230 +714,6 @@ jobs:
       - notify-magma:
           artifact_name: CWAG
           version_path: versions/cwag_version
-      - magma_slack_notify
-
-  mme-clang-tidy:
-    machine:
-      image: ubuntu-2004:202010-01
-      docker_layer_caching: true
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-      BRANCH: << pipeline.git.branch >>
-      REVISION: << pipeline.git.revision >>
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *c_cpp_build_verify
-      - run:
-          command: |
-            cd $MAGMA_ROOT/lte/gateway/docker/mme
-            docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
-            docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v $MAGMA_ROOT:/magma -i -t magma-mme-build:latest /bin/bash -c 'cd /magma/lte/gateway;make clang_tidy_oai_upload'
-          no_output_timeout: 20m
-      - magma_slack_notify
-
-  c-cpp-codecov:
-    machine:
-      image: ubuntu-2004:202010-01
-      docker_layer_caching: true
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *c_cpp_build_verify
-      - run:
-          command: |
-            cd $MAGMA_ROOT/lte/gateway/docker/mme
-            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
-            ci_env=`bash <(curl -s https://codecov.io/env)`
-            docker run $ci_env -e CI=true -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info -F c_cpp"
-          no_output_timeout: 20m
-      - magma_slack_notify
-
-  session_manager_test:
-    machine:
-      image: ubuntu-2004:202010-01
-      docker_layer_caching: true
-    resource_class: large
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *session_manager_build_verify
-      - run:
-          name: Build the base c/c++ container
-          command: |
-            cd $MAGMA_ROOT/lte/gateway/docker/mme
-            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
-      - run:
-          name: Run common tests
-          command: |
-            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
-      - run:
-          name: Run session_manager tests
-          command: |
-            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_session_manager;"
-          no_output_timeout: 5m
-      - magma_slack_notify
-
-  mme_test:
-    machine:
-      image: ubuntu-2004:202010-01
-      docker_layer_caching: true
-    resource_class: large
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *mme_build_verify
-      - run:
-          name: Build the base c/c++ container
-          command: |
-            cd $MAGMA_ROOT/lte/gateway/docker/mme
-            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
-      - run:
-          name: Run common tests
-          command: |
-            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
-      - run:
-          name: Run sctpd tests with Debug build type
-          command: |
-            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd BUILD_TYPE=Debug;"
-      - run:
-          name: Run sctpd tests with RelWithDebInfo build type
-          command: |
-            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd BUILD_TYPE=RelWithDebInfo;"
-      - run:
-          name: Run mme tests with Debug build type
-          command: |
-            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai BUILD_TYPE=Debug;"
-      - run:
-          name: Run mme tests with RelWithDebInfo build type
-          command: |
-            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai BUILD_TYPE=RelWithDebInfo;"
-      - magma_slack_notify
-
-  mme-clang-warnings:
-    machine:
-      image: ubuntu-2004:202010-01
-      docker_layer_caching: true
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-      BRANCH: << pipeline.git.branch >>
-      REVISION: << pipeline.git.revision >>
-    steps:
-      - checkout
-      - run:
-          command: |
-            cd $MAGMA_ROOT/lte/gateway/docker/mme
-            docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
-            docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
-          no_output_timeout: 20m
-      - magma_slack_notify
-
-  li_agent_test:
-    machine:
-      image: ubuntu-2004:202010-01
-      docker_layer_caching: true
-    resource_class: large
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *li_agent_build_verify
-      - run:
-          name: Build the base c/c++ container
-          command: |
-            cd $MAGMA_ROOT/lte/gateway/docker/mme
-            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
-      - run:
-          name: Run common tests
-          command: |
-            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
-      - run:
-          name: Run li agent tests
-          command: |
-            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_li_agent;"
-          no_output_timeout: 5m
-      - magma_slack_notify
-
-  connection-tracker-test:
-    machine:
-      image: ubuntu-2004:202010-01
-      docker_layer_caching: true
-    resource_class: large
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *connection_tracker_build_verify
-      - run:
-          name: Build the base c/c++ container
-          command: |
-            cd $MAGMA_ROOT/lte/gateway/docker/mme
-            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
-      - run:
-          name: Build connection tracker with BUILD_TYPE=Debug
-          command: |
-            # TODO run unit tests once we write some tests
-            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=Debug;"
-          no_output_timeout: 5m
-      - run:
-          name: Build connection tracker with BUILD_TYPE=RelWithDebInfo
-          command: |
-            # TODO run unit tests once we write some tests
-            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=RelWithDebInfo;"
-          no_output_timeout: 5m
-      - magma_slack_notify
-
-  lte-test:
-    machine:
-      image: ubuntu-2004:202104-01
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-      PYTHON_BUILD: ${MAGMA_ROOT}/build
-      PIP_CACHE_HOME: ${MAGMA_ROOT}/.pipcache
-      MAGMA_DEV_MODE: 1
-      SKIP_SUDO_TESTS: 1
-      CODEGEN_ROOT: /home/circleci/project/.codegen
-      SWAGGER_CODEGEN_JAR: /home/circleci/project/.codegen/swagger-codegen-cli.jar
-    steps:
-      - checkout
-      - run: pyenv install 3.8.5
-      - python/set_version:
-          python_version: "3.8.5"
-      - build/determinator:
-          <<: *lte_build_verify
-      - apt-focal-install-aioeventlet
-      - run: mkdir -p /var/tmp/test_results
-      - run: mkdir -p /var/tmp/codecovs
-      - run: sudo apt-get update -y
-      - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip net-tools
-      - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential autogen autoconf libtool python3-apt python3-requests python3-pip python-protobuf
-      - run: pip3 install setuptools==49.6.0
-      - run:
-          command: |
-            sudo curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
-            sudo unzip protoc3.zip -d protoc3
-            sudo mv protoc3/bin/protoc /bin/protoc
-            sudo chmod a+rx /bin/protoc
-            sudo rm -rf protoc3.zip protoc3
-            mkdir ${CODEGEN_ROOT}
-            wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar -O $SWAGGER_CODEGEN_JAR
-            make -C $MAGMA_ROOT/lte/gateway/python test_all
-      - store_test_results:
-          path: /var/tmp/test_results
-      - codecov/upload:
-          file: /var/tmp/codecovs/cover_lte.xml
-          flags: lte-test
-      - codecov/upload:
-          file: /var/tmp/codecovs/cover_orc8r.xml
-          flags: lte-test
       - magma_slack_notify
 
   lte-integ-test:
@@ -1098,76 +779,6 @@ jobs:
       - magma_slack_notify
 
   ### NMS
-
-  nms-flow-test:
-    executor: node
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *nms_build_verify
-      - run:
-          name: install flow
-          <<: *appdir
-          # Extract the specified flow version from the .flowconfig
-          command: yarn add --dev -W flow-bin@$(x=$(grep "\[version\]" .flowconfig -A 1 | tail -n 1); echo ${x:1})
-      - yarn-install
-      - run:
-          name: flow typecheck
-          <<: *appdir
-          command: yarn run flow
-      - magma_slack_notify
-
-  eslint:
-    executor: node
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *nms_build_verify
-      - yarn-install
-      - run:
-          name: eslint
-          <<: *appdir
-          command: yarn run eslint ./
-      - magma_slack_notify
-
-  nms-yarn-test:
-    executor: node
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *nms_build_verify
-      - yarn-install
-      - run:
-          name: yarn test
-          <<: *appdir
-          command: yarn test:ci
-      - magma_slack_notify
-
-  nms-e2e-test:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      NMS_ROOT: ${MAGMA_ROOT}/nms/packages/magmalte
-      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
-      PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome-stable
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *nms_build_verify
-      - docker/install-dc
-      - apt-install-yarn
-      - apt-install-chrome
-      - yarn-install
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run:
-          command: |
-            source $NVM_DIR/nvm.sh
-            nvm install stable
-            cd ${MAGMA_ROOT}/nms/packages/magmalte
-            ./e2e_test_setup.sh
-      - store_artifacts:
-          path: /tmp/nms_artifacts
-      - magma_slack_notify
 
   nms-build:
     machine:
@@ -1364,30 +975,14 @@ jobs:
 workflows:
   version: 2
 
-  lib_gateway:
-    jobs:
-      - orc8r-gateway-test
-
   agw:
     jobs:
-      - lte-test
-      - session_manager_test
-      - li_agent_test
-      - connection-tracker-test
-      - mme_test
-      - mme-clang-tidy:
-          <<: *only_master
-      - mme-clang-warnings:
-          <<: *only_master
       - lte-integ-test:
           <<: *master_and_develop
       - lte-agw-deploy:
           <<: *only_master
           requires:
-            - lte-test
-            - mme_test
             - lte-integ-test
-      - c-cpp-codecov
 
   release:
     jobs:
@@ -1429,11 +1024,6 @@ workflows:
             - release-hold
             - ami-hold
 
-  cwag:
-    jobs:
-      - cwf-integ-test:
-          <<: *master_and_develop
-
       # GH9026: Disabling test until it is fixed
       # - xwfm-test:
       #     <<: *master_and_develop
@@ -1456,26 +1046,3 @@ workflows:
           <<: *only_master
     jobs:
       - publish-amis-to-marketplace
-
-  nms:
-    jobs:
-      - nms-flow-test
-      - eslint
-      - nms-yarn-test:
-          requires:
-            - nms-flow-test
-      - nms-e2e-test:
-          requires:
-            - nms-flow-test
-            - eslint
-            - nms-yarn-test
-      - nms-build:
-          requires:
-            - nms-flow-test
-            - eslint
-            - nms-yarn-test
-
-  github:
-    jobs:
-      - backport:
-          <<: *only_master

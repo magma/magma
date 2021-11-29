@@ -36,7 +36,7 @@ var (
 func TestStateServicer_GetStates(t *testing.T) {
 	// mock setup: expect 1 RPC to result in a search, the other to a concrete
 	// GetMany
-	mockStore := &mocks.TransactionalBlobStorage{}
+	mockStore := &mocks.Store{}
 	mockStore.On("Search",
 		blobstore.CreateSearchFilter(strPtr("network1"), []string{"t1", "t2"}, []string{"k1", "k2"}, nil),
 		blobstore.GetDefaultLoadCriteria(),
@@ -55,7 +55,7 @@ func TestStateServicer_GetStates(t *testing.T) {
 
 	mockStore.On("Commit").Return(nil)
 
-	fact := &mocks.BlobStorageFactory{}
+	fact := &mocks.StoreFactory{}
 	fact.On("StartTransaction", mock.Anything).Return(mockStore, nil)
 
 	srv, err := servicers.NewStateServicer(fact)

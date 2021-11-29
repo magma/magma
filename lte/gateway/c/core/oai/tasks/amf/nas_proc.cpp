@@ -272,7 +272,7 @@ static int identification_t3570_handler(
   amf_context_t* amf_ctx = NULL;
   OAILOG_FUNC_IN(LOG_NAS_AMF);
 
-  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+  if (!amf_pop_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3570: Invalid Timer Id expiration, timer Id: %u\n",
         timer_id);
@@ -472,10 +472,8 @@ int amf_nas_proc_authentication_info_answer(
 int amf_handle_s6a_update_location_ans(
     const s6a_update_location_ans_t* ula_pP) {
   imsi64_t imsi64                   = INVALID_IMSI64;
-  int rc                            = RETURNerror;
   amf_context_t* amf_ctxt_p         = NULL;
   ue_m5gmm_context_s* ue_mm_context = NULL;
-  int amf_cause                     = -1;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
   IMSI_STRING_TO_IMSI64((char*) ula_pP->imsi, &imsi64);
@@ -493,6 +491,12 @@ int amf_handle_s6a_update_location_ans(
 
   amf_ue_ngap_id_t amf_ue_ngap_id = ue_mm_context->amf_ue_ngap_id;
 
+  // Validating whether the apn_config sent from ue and saved in amf_ctx is
+  // present in s6a_update_location_ans_t received from subscriberdb.
+  memcpy(
+      &amf_ctxt_p->apn_config_profile,
+      &ula_pP->subscription_data.apn_config_profile,
+      sizeof(apn_config_profile_t));
   OAILOG_DEBUG(
       LOG_NAS_AMF,
       "Received update location Answer from Subscriberdb for"
@@ -514,10 +518,6 @@ int amf_handle_s6a_update_location_ans(
 
 /* Cleanup all procedures in amf_context */
 void amf_nas_proc_clean_up(ue_m5gmm_context_s* ue_context_p) {
-  // Check if registrion procedure exists
-  nas_amf_registration_proc_t* registration_proc =
-      get_nas_specific_procedure_registration(&(ue_context_p->amf_context));
-
   // Delete registration procedures
   amf_delete_registration_proc(&(ue_context_p->amf_context));
 }

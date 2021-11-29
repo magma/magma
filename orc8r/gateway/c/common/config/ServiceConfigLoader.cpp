@@ -11,14 +11,13 @@
  * limitations under the License.
  */
 
-#include "includes/ServiceConfigLoader.h"
-#include <yaml-cpp/exceptions.h>  // for BadFile
-#include <yaml-cpp/node/impl.h>   // for Node::Node, Node::~Node
-#include <yaml-cpp/node/parse.h>  // for LoadFile
-#include <iostream>               // for operator<<, basic_ostream
-#include <string>                 // for allocator, operator+, char_traits
-#include "YAMLUtils.h"            // for YAMLUtils
-#include "magma_logging.h"        // for MLOG
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.h"
+
+#include <iostream>  // for operator<<, basic_ostream
+#include <string>    // for allocator, operator+, char_traits
+
+#include "orc8r/gateway/c/common/config/YAMLUtils.h"       // for YAMLUtils
+#include "orc8r/gateway/c/common/logging/magma_logging.h"  // for MLOG
 
 namespace magma {
 

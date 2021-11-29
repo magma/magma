@@ -12,10 +12,16 @@
  */
 #pragma once
 
+#include <stdint.h>
+#include <ctime>
+
 #include "DiameterCodes.h"
 #include "ServiceAction.h"
 #include "SessionCredit.h"
 #include "StoredState.h"
+#include "Types.h"
+#include "lte/protos/policydb.pb.h"
+#include "lte/protos/session_manager.pb.h"
 
 namespace magma {
 

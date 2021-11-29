@@ -80,7 +80,7 @@ cover: tools
 	mkdir -p $(COVER_DIR)
 	go-acc ./... --covermode count --output $(COVER_FILE)
 	# skip some unnecessary files for coverage
-	awk '!/\.pb\.go|_swaggergen\.go|\/mocks\/|\/tools\/|\/blobstore\/ent\//' $(COVER_FILE) > $(COVER_FILE).tmp && \
+	awk '!/\.pb\.go|_swaggergen\.go|\/mocks\/|\/tools\/|\/blobstore\//' $(COVER_FILE) > $(COVER_FILE).tmp && \
 		mv $(COVER_FILE).tmp $(COVER_FILE)
 
 docker_build:

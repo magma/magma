@@ -31,9 +31,9 @@
 #include <linux/ip.h>
 #include <memory>
 
-#include "EventTracker.h"
+#include "lte/gateway/c/connection_tracker/src/EventTracker.h"
 
-#include "magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 static int data_cb(const struct nlmsghdr* nlh, void* data);
 

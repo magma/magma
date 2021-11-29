@@ -11,20 +11,21 @@
  * limitations under the License.
  */
 
-#include "includes/SentryWrapper.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
+
+#include <bits/local_lim.h>
+#include <unistd.h>
+#include <string>
 
 #if SENTRY_ENABLED
+#include <yaml-cpp/yaml.h>
 #include <experimental/optional>
-#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
-
 #include <cstdlib>
 #include <fstream>
 #include <cstring>
-#include <limits.h>
-#include <unistd.h>
 
 #include "sentry.h"
-#include "includes/ServiceConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.h"
 
 #define COMMIT_HASH_ENV "COMMIT_HASH"
 #define CONTROL_PROXY_SERVICE_NAME "control_proxy"

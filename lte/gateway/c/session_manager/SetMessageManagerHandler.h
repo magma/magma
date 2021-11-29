@@ -18,17 +18,35 @@
   Description 	Defines Access and Mobility Management Messages
 *****************************************************************************/
 #pragma once
-#include <functional>
-#include <string>
-#include <memory>
-
 #include <grpc++/grpc++.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <stdint.h>
+#include <functional>
+#include <memory>
+#include <string>
 
-#include "SessionStateEnforcer.h"
 #include "SessionID.h"
 #include "SessionReporter.h"
+#include "SessionStateEnforcer.h"
 #include "SessionStore.h"
+#include "StoreClient.h"
+#include "Types.h"
+#include "orc8r/protos/common.pb.h"
+
+namespace grpc {
+class ServerContext;
+class Status;
+}  // namespace grpc
+namespace magma {
+class SessionReporter;
+class SessionStateEnforcer;
+namespace lte {
+class SessionStore;
+class SetSMSessionContext;
+class SetSmNotificationContext;
+class SmContextVoid;
+}  // namespace lte
+}  // namespace magma
 
 using grpc::ServerContext;
 using grpc::Status;
@@ -62,7 +80,8 @@ class SetMessageManagerHandler : public SetMessageManager {
  public:
   SetMessageManagerHandler(
       std::shared_ptr<SessionStateEnforcer> m5genforcer,
-      SessionStore& session_store, SessionReporter* reporter);
+      SessionStore& session_store, SessionReporter* reporter,
+      std::shared_ptr<EventsReporter> events_reporter);
   ~SetMessageManagerHandler() {}
 
   /* Paging, idle state change notifcation receiving */
@@ -110,7 +129,11 @@ class SetMessageManagerHandler : public SetMessageManager {
   SessionStore& session_store_;
   std::shared_ptr<SessionStateEnforcer> m5g_enforcer_;
   SessionReporter* reporter_;
+  std::shared_ptr<EventsReporter> events_reporter_;
   SessionIDGenerator id_gen_;
+
+  bool validate_session_request(const SessionConfig cfg);
+
 };  // end of class SetMessageManagerHandlerImpl
 
 }  // end namespace magma

@@ -470,8 +470,15 @@ void SpgwStateConverter::sgw_eps_bearer_to_proto(
 
   ip_addr_bstr =
       ip_address_to_bstring(&eps_bearer->s_gw_ip_address_S1u_S12_S4_up);
-  BSTRING_TO_STRING(
-      ip_addr_bstr, eps_bearer_proto->mutable_sgw_ip_address_s1u_s12_s4_up());
+  if (eps_bearer->s_gw_ip_address_S1u_S12_S4_up.pdn_type == IPv4 ||
+      eps_bearer->s_gw_ip_address_S1u_S12_S4_up.pdn_type == IPv4_AND_v6) {
+    BSTRING_TO_STRING(
+        ip_addr_bstr, eps_bearer_proto->mutable_sgw_ip_address_s1u_s12_s4_up());
+  } else {
+    BSTRING_TO_STRING(
+        ip_addr_bstr,
+        eps_bearer_proto->mutable_sgw_ipv6_address_s1u_s12_s4_up());
+  }
   bdestroy_wrapper(&ip_addr_bstr);
   eps_bearer_proto->set_sgw_teid_s1u_s12_s4_up(
       eps_bearer->s_gw_teid_S1u_S12_S4_up);
@@ -519,6 +526,14 @@ void SpgwStateConverter::proto_to_sgw_eps_bearer(
   bstring_to_ip_address(
       ip_addr_bstr, &eps_bearer->s_gw_ip_address_S1u_S12_S4_up);
   bdestroy_wrapper(&ip_addr_bstr);
+
+  // if ipv6 addr is present it will overwrite, if not it will skip
+  ip_addr_bstr =
+      bfromcstr(eps_bearer_proto.sgw_ipv6_address_s1u_s12_s4_up().c_str()),
+  bstring_to_ip_address(
+      ip_addr_bstr, &eps_bearer->s_gw_ip_address_S1u_S12_S4_up);
+
+  bdestroy_wrapper(&ip_addr_bstr);
   eps_bearer->s_gw_teid_S1u_S12_S4_up =
       eps_bearer_proto.sgw_teid_s1u_s12_s4_up();
 
@@ -536,6 +551,8 @@ void SpgwStateConverter::proto_to_sgw_eps_bearer(
   proto_to_traffic_flow_template(eps_bearer_proto.tft(), &eps_bearer->tft);
 
   eps_bearer->num_sdf = eps_bearer_proto.num_sdf();
+  eps_bearer->update_teids =
+      true;  // optimization purposes only, safe to set as true
 }
 
 void SpgwStateConverter::traffic_flow_template_to_proto(

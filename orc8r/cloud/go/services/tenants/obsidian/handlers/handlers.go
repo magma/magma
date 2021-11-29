@@ -28,8 +28,9 @@ import (
 )
 
 const (
-	TenantRootPath = obsidian.V1Root + "tenants"
-	TenantInfoURL  = TenantRootPath + obsidian.UrlSep + ":tenant_id"
+	TenantRootPath  = obsidian.V1Root + "tenants"
+	TenantInfoURL   = TenantRootPath + obsidian.UrlSep + ":tenant_id"
+	ControlProxyURL = TenantInfoURL + obsidian.UrlSep + "control_proxy"
 )
 
 func GetObsidianHandlers() []obsidian.Handler {
@@ -59,13 +60,23 @@ func GetObsidianHandlers() []obsidian.Handler {
 			Methods:     obsidian.DELETE,
 			HandlerFunc: DeleteTenantHandler,
 		},
+		{
+			Path:        ControlProxyURL,
+			Methods:     obsidian.GET,
+			HandlerFunc: GetControlProxyHandler,
+		},
+		{
+			Path:        ControlProxyURL,
+			Methods:     obsidian.PUT,
+			HandlerFunc: CreateOrUpdateControlProxyHandler,
+		},
 	}
 }
 
 func GetTenantsHandler(c echo.Context) error {
 	tenants, err := tenants.GetAllTenants(c.Request().Context())
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	tenantsAndIDs := make([]models.Tenant, 0)
 	for _, tenant := range tenants.Tenants {
@@ -81,10 +92,10 @@ func CreateTenantHandler(c echo.Context) error {
 	var tenantInfo = models.Tenant{}
 	err := json.NewDecoder(c.Request().Body).Decode(&tenantInfo)
 	if err != nil {
-		return obsidian.HttpError(fmt.Errorf("error decoding request: %v", err), http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("error decoding request: %v", err))
 	}
 	if tenantInfo.ID == nil {
-		return obsidian.HttpError(fmt.Errorf("Must provide tenant ID"), http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("must provide tenant ID"))
 	}
 
 	_, err = tenants.CreateTenant(c.Request().Context(), *tenantInfo.ID, &protos.Tenant{
@@ -92,7 +103,7 @@ func CreateTenantHandler(c echo.Context) error {
 		Networks: tenantInfo.Networks,
 	})
 	if err != nil {
-		return obsidian.HttpError(fmt.Errorf("Error creating tenant: %v", err), http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error creating tenant: %v", err))
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -102,13 +113,12 @@ func GetTenantHandler(c echo.Context) error {
 	if terr != nil {
 		return terr
 	}
+
 	tenantInfo, err := tenants.GetTenant(c.Request().Context(), tenantID)
-	switch {
-	case err == errors.ErrNotFound:
-		return obsidian.HttpError(fmt.Errorf("Tenant %d does not exist", tenantID), http.StatusNotFound)
-	case err != nil:
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+	if err != nil {
+		return mapErr(err, fmt.Errorf("tenant %d does not exist", tenantID), err)
 	}
+
 	return c.JSON(http.StatusOK, models.Tenant{ID: &tenantID, Name: tenantInfo.Name, Networks: tenantInfo.Networks})
 }
 
@@ -121,16 +131,14 @@ func SetTenantHandler(c echo.Context) error {
 	var tenantInfo = protos.Tenant{}
 	err := json.NewDecoder(c.Request().Body).Decode(&tenantInfo)
 	if err != nil {
-		return obsidian.HttpError(fmt.Errorf("error decoding request: %v", err), http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("error decoding request: %v", err))
 	}
 
 	err = tenants.SetTenant(c.Request().Context(), tenantID, tenantInfo)
-	switch {
-	case err == errors.ErrNotFound:
-		return obsidian.HttpError(fmt.Errorf("Tenant %d does not exist", tenantID), http.StatusNotFound)
-	case err != nil:
-		return obsidian.HttpError(fmt.Errorf("Error setting tenant info: %v", err), http.StatusInternalServerError)
+	if err != nil {
+		return mapErr(err, fmt.Errorf("tenant %d does not exist", tenantID), fmt.Errorf("error setting tenant info: %v", err))
 	}
+
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -139,12 +147,74 @@ func DeleteTenantHandler(c echo.Context) error {
 	if terr != nil {
 		return terr
 	}
+
 	err := tenants.DeleteTenant(c.Request().Context(), tenantID)
+	if err != nil {
+		return mapErr(err, fmt.Errorf("Tenant %d does not exist", tenantID), err)
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func GetControlProxyHandler(c echo.Context) error {
+	tenantID, terr := obsidian.GetTenantID(c)
+	if terr != nil {
+		return terr
+	}
+
+	err := validateTenantExists(c, tenantID)
+	if err != nil {
+		return err
+	}
+
+	controlProxy, err := tenants.GetControlProxy(c.Request().Context(), tenantID)
+	if err != nil {
+		return mapErr(err, fmt.Errorf("control proxy for tenantID %d does not exist", tenantID), err)
+	}
+
+	return c.JSON(http.StatusOK, models.ControlProxy{ControlProxy: &controlProxy.ControlProxy})
+}
+
+func CreateOrUpdateControlProxyHandler(c echo.Context) error {
+	tenantID, terr := obsidian.GetTenantID(c)
+	if terr != nil {
+		return terr
+	}
+
+	err := validateTenantExists(c, tenantID)
+	if err != nil {
+		return err
+	}
+
+	var IDAndControlProxy = protos.CreateOrUpdateControlProxyRequest{}
+	err = json.NewDecoder(c.Request().Body).Decode(&IDAndControlProxy)
+	IDAndControlProxy.Id = tenantID
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("error decoding request: %v", err))
+	}
+
+	err = tenants.CreateOrUpdateControlProxy(c.Request().Context(), IDAndControlProxy)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error setting control_proxy contents: %v", err))
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func mapErr(err error, notFoundErr error, nonNilErr error) error {
 	switch {
 	case err == errors.ErrNotFound:
-		return obsidian.HttpError(fmt.Errorf("Tenant %d does not exist", tenantID), http.StatusNotFound)
+		return echo.NewHTTPError(http.StatusNotFound, notFoundErr)
 	case err != nil:
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, nonNilErr)
 	}
-	return c.NoContent(http.StatusNoContent)
+	return nil
+}
+
+func validateTenantExists(c echo.Context, tenantID int64) error {
+	_, err := tenants.GetTenant(c.Request().Context(), tenantID)
+	if err != nil {
+		return mapErr(err, fmt.Errorf("tenant %d does not exist", tenantID), err)
+	}
+	return nil
 }

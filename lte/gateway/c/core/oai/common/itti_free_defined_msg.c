@@ -24,16 +24,16 @@
 
 #include <stdlib.h>
 
-#include "dynamic_memory_check.h"
-#include "assertions.h"
-#include "3gpp_24.008.h"
-#include "3gpp_36.413.h"
-#include "intertask_interface.h"
-#include "itti_free_defined_msg.h"
-#include "async_system_messages_types.h"
-#include "ip_forward_messages_types.h"
-#include "s11_messages_types.h"
-#include "sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/include/async_system_messages_types.h"
+#include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 
 //------------------------------------------------------------------------------
 void itti_free_msg_content(MessageDef* const message_p) {
@@ -257,6 +257,19 @@ void itti_free_msg_content(MessageDef* const message_p) {
     case AMF_APP_UPLINK_DATA_IND:
       bdestroy_wrapper(&message_p->ittiMsg.amf_app_ul_data_ind.nas_msg);
       break;
+    case NGAP_PDUSESSION_RESOURCE_SETUP_REQ: {
+      itti_ngap_pdusession_resource_setup_req_t* pdusession_resource_setup_req =
+          &NGAP_PDUSESSION_RESOURCE_SETUP_REQ(message_p);
+      Ngap_PDUSession_Resource_Setup_Request_List_t* resource_list =
+          &(pdusession_resource_setup_req->pduSessionResource_setup_list);
+      pdusession_setup_item_t* session_item = &(resource_list->item[0]);
+      pdu_session_resource_setup_request_transfer_t* session_transfer =
+          &(session_item->PDU_Session_Resource_Setup_Request_Transfer);
+      bdestroy_wrapper(&session_transfer->up_transport_layer_info.gtp_tnl
+                            .endpoint_ip_address);
+      bdestroy_wrapper(&pdusession_resource_setup_req->nas_pdu);
+      break;
+    }
 
     default:;
   }

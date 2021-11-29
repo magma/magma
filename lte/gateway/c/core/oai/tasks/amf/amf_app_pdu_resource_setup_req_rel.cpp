@@ -85,8 +85,9 @@ void ambr_calculation_pdu_session(
  */
 int pdu_session_resource_setup_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    std::shared_ptr<smf_context_t> smf_context) {
-  pdu_session_resource_setup_request_transfer_t amf_pdu_ses_setup_transfer_req;
+    std::shared_ptr<smf_context_t> smf_context, bstring nas_msg) {
+  pdu_session_resource_setup_request_transfer_t*
+      amf_pdu_ses_setup_transfer_req                                = nullptr;
   itti_ngap_pdusession_resource_setup_req_t* ngap_pdu_ses_setup_req = nullptr;
   MessageDef* message_p                                             = nullptr;
   uint64_t dl_pdu_ambr;
@@ -110,8 +111,10 @@ int pdu_session_resource_setup_request(
    * leveraged ambr calculation from qos_params_to_eps_qos and 24-501 spec used
    */
   ambr_calculation_pdu_session(smf_context, &dl_pdu_ambr, &ul_pdu_ambr);
-  ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.dl = dl_pdu_ambr;
-  ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.ul = ul_pdu_ambr;
+  ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.dl =
+      ue_context->amf_context.subscribed_ue_ambr.br_dl;
+  ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.ul =
+      ue_context->amf_context.subscribed_ue_ambr.br_ul;
 
   // Hardcoded number of pdu sessions as 1
   ngap_pdu_ses_setup_req->pduSessionResource_setup_list.no_of_items = 1;
@@ -119,34 +122,36 @@ int pdu_session_resource_setup_request(
       (Ngap_PDUSessionID_t)
           smf_context->smf_proc_data.pdu_session_identity.pdu_session_id;
 
+  ngap_pdu_ses_setup_req->pduSessionResource_setup_list.no_of_items = 1;
+  // Adding respective header to amf_pdu_ses_setup_transfer_request
+  amf_pdu_ses_setup_transfer_req =
+      &ngap_pdu_ses_setup_req->pduSessionResource_setup_list.item[0]
+           .PDU_Session_Resource_Setup_Request_Transfer;
+
   /* preparing for PDU_Session_Resource_Setup_Transfer.
    * amf_pdu_ses_setup_transfer_req is the structure to be filled.
    */
-  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.dl =
-      ue_context->amf_context.subscribed_ue_ambr.br_dl;
-  amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.ul =
-      ue_context->amf_context.subscribed_ue_ambr.br_ul;
+  amf_pdu_ses_setup_transfer_req->pdu_aggregate_max_bit_rate.dl = dl_pdu_ambr;
+  amf_pdu_ses_setup_transfer_req->pdu_aggregate_max_bit_rate.ul = ul_pdu_ambr;
 
   // UPF teid 4 octet and respective ip address are from SMF context
   memcpy(
-      &amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.gtp_tied,
+      &amf_pdu_ses_setup_transfer_req->up_transport_layer_info.gtp_tnl.gtp_tied,
       smf_context->gtp_tunnel_id.upf_gtp_teid, GNB_TEID_LEN);
-  amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl
+  amf_pdu_ses_setup_transfer_req->up_transport_layer_info.gtp_tnl
       .endpoint_ip_address = blk2bstr(
       &smf_context->gtp_tunnel_id.upf_gtp_teid_ip_addr, GNB_IPV4_ADDR_LEN);
-  amf_pdu_ses_setup_transfer_req.pdu_ip_type.pdn_type = IPv4;
+  amf_pdu_ses_setup_transfer_req->pdu_ip_type.pdn_type = IPv4;
 
   memcpy(
-      &amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list
+      &amf_pdu_ses_setup_transfer_req->qos_flow_setup_request_list
            .qos_flow_req_item,
       &smf_context->pdu_resource_setup_req
            .pdu_session_resource_setup_request_transfer
            .qos_flow_setup_request_list.qos_flow_req_item,
       sizeof(qos_flow_setup_request_item));
-  // Adding respective header to amf_pdu_ses_setup_transfer_request
-  ngap_pdu_ses_setup_req->pduSessionResource_setup_list.item[0]
-      .PDU_Session_Resource_Setup_Request_Transfer =
-      amf_pdu_ses_setup_transfer_req;
+
+  ngap_pdu_ses_setup_req->nas_pdu = nas_msg;
 
   // Send message to NGAP task
   amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);

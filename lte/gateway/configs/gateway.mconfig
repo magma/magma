@@ -27,7 +27,7 @@
       "csfbMcc": "001",
       "csfbMnc": "01",
       "lac": 1,
-      "amfName": "AMF_1",
+      "amfName": "MAGMAAMF1",
       "amfRegionId": "1",
       "amfSetId": "1",
       "amfPointer": "0",
@@ -40,8 +40,8 @@
       "natEnabled": true,
       "congestionControlEnabled": true,
       "enable5gFeatures": false,
-      "defaultSliceServiceType": "1",
-      "defaultSliceDifferentiator" : "0xffffff"
+      "amfDefaultSliceServiceType": 1,
+      "amfDefaultSliceDifferentiator" : "ffffff"
     },
     "enodebd": {
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",

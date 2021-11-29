@@ -9,5 +9,6 @@ target_link_libraries(LIB_HASHTABLE
     LIB_BSTR
     )
 target_include_directories(LIB_HASHTABLE PUBLIC
+    $ENV{MAGMA_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}
     )

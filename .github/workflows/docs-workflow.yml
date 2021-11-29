@@ -1,5 +1,5 @@
 ---
-name: docs-workflow
+name: Markdown lint check
 
 on:  # yamllint disable-line rule:truthy
   push:
@@ -9,6 +9,10 @@ on:  # yamllint disable-line rule:truthy
     branches:
       - master
     types: [opened, reopened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 jobs:
   path_filter:
@@ -29,7 +33,7 @@ jobs:
   markdown-lint:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    name: markdown lint job
+    name: Markdown lint check
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
@@ -42,3 +46,15 @@ jobs:
         run: |
             cd ${MAGMA_ROOT}/docs
             make precommit
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      - name: Save PR number
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+          echo -n "false" > ./pr/RPR
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/

@@ -19,9 +19,10 @@ namespace magma5g {
 class DNNMsg {
  public:
 #define DNN_MIN_LENGTH 3
+#define MAX_DNN_LENGTH 102
   uint8_t iei;
   uint8_t len;
-  std::string dnn;
+  uint8_t dnn[MAX_DNN_LENGTH];
 
   DNNMsg();
   ~DNNMsg();

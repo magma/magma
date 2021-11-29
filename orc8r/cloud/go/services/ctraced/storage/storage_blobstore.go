@@ -33,12 +33,12 @@ const (
 
 // NewCtracedBlobstore returns a ctraced storage implementation
 // backed by the provided blobstore factory.
-func NewCtracedBlobstore(factory blobstore.BlobStorageFactory) CtracedStorage {
+func NewCtracedBlobstore(factory blobstore.StoreFactory) CtracedStorage {
 	return &ctracedBlobStore{factory: factory}
 }
 
 type ctracedBlobStore struct {
-	factory blobstore.BlobStorageFactory
+	factory blobstore.StoreFactory
 }
 
 // StoreCallTrace
@@ -49,7 +49,7 @@ func (c *ctracedBlobStore) StoreCallTrace(networkID string, callTraceID string, 
 	}
 	defer store.Rollback()
 
-	err = store.CreateOrUpdate(
+	err = store.Write(
 		networkID,
 		blobstore.Blobs{
 			{Type: CtracedBlobType, Key: callTraceID, Value: data, Version: 0},

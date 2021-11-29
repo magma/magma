@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "utility_protobuf.h"
+#include "lte/gateway/c/core/oai/test/pipelined_client/utility_protobuf.h"
 
 using grpc::Status;
 using ::testing::Test;

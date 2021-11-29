@@ -14,10 +14,11 @@
 #include <vector>
 
 extern "C" {
-#include "3gpp_29.274.h"
-#include "mme_config.h"
-#include "intertask_interface_types.h"
-#include "s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.h"
 }
 
 namespace magma {
@@ -32,10 +33,13 @@ namespace lte {
     dlNas, connEstConf, ctxRel, air, ulr, purgeReq, csr, mbr, relBearer, dsr,  \
     setAppHealth)                                                              \
   do {                                                                         \
-    EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport())         \
+    EXPECT_CALL(*s1ap_handler, s1ap_generate_downlink_nas_transport)           \
         .Times(dlNas)                                                          \
-        .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \
-    EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf()).Times(connEstConf); \
+        .WillRepeatedly(                                                       \
+            DoAll(SaveArg<0>(&msg_nas_dl_data), ReturnFromAsyncTask(&cv)));    \
+    EXPECT_CALL(*s1ap_handler, s1ap_handle_conn_est_cnf(_))                    \
+        .Times(connEstConf)                                                    \
+        .WillRepeatedly(SaveArg<0>(&nas_msg));                                 \
     EXPECT_CALL(*s1ap_handler, s1ap_handle_ue_context_release_command())       \
         .Times(ctxRel)                                                         \
         .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \
@@ -63,7 +67,8 @@ void send_sctp_mme_server_initialized();
 void send_activate_message_to_mme_app();
 
 void send_mme_app_initial_ue_msg(
-    const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn);
+    const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn,
+    guti_eps_mobile_identity_t& guti);
 
 void send_mme_app_uplink_data_ind(
     const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn);
@@ -72,7 +77,7 @@ void send_authentication_info_resp(const std::string& imsi, bool success);
 
 void send_s6a_ula(const std::string& imsi, bool success);
 
-void send_create_session_resp();
+void send_create_session_resp(gtpv2c_cause_value_t cause_value);
 
 void send_delete_session_resp();
 
@@ -89,6 +94,16 @@ void send_modify_bearer_resp(
     const std::vector<int>& bearer_to_remove);
 
 void sgw_send_release_access_bearer_response(gtpv2c_cause_value_t cause);
+
+void send_s11_deactivate_bearer_req(
+    uint8_t no_of_bearers_to_be_deact, uint8_t* ebi_to_be_deactivated,
+    bool delete_default_bearer);
+
+void send_s11_create_bearer_req();
+
+void send_erab_setup_rsp();
+
+void send_erab_release_rsp();
 
 }  // namespace lte
 }  // namespace magma

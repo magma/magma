@@ -9,18 +9,38 @@
  * limitations under the License.
  */
 #include "UpfMsgManageHandler.h"
-#include <google/protobuf/util/time_util.h>
-#include <chrono>
-#include <thread>
-#include <memory>
-#include <string>
-#include <sys/socket.h>
-#include <netinet/in.h>
+
 #include <arpa/inet.h>
-#include "magma_logging.h"
-#include "SessionStateEnforcer.h"
+#include <folly/io/async/EventBase.h>
+#include <glog/logging.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <grpcpp/impl/codegen/status_code_enum.h>
+#include <netinet/in.h>
+#include <experimental/optional>
+#include <memory>
+#include <ostream>
+#include <string>
+#include <vector>
+
 #include "GrpcMagmaUtils.h"
+#include "MobilitydClient.h"
+#include "SessionState.h"
+#include "SessionStateEnforcer.h"
+#include "SessionStore.h"
+#include "Types.h"
+#include "lte/protos/mobilityd.pb.h"
 #include "lte/protos/session_manager.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+#include "magma_logging.h"
+
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
 
 using grpc::Status;
 

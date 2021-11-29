@@ -17,7 +17,7 @@ import (
 	"testing"
 	"time"
 
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -32,8 +32,8 @@ const (
 )
 
 func TestStoreNProbeData(t *testing.T) {
-	var blobFactMock *mocks.BlobStorageFactory
-	var blobStoreMock *mocks.TransactionalBlobStorage
+	var blobFactMock *mocks.StoreFactory
+	var blobStoreMock *mocks.Store
 
 	taskID := "task_id1"
 	nprobeData := models.NetworkProbeData{
@@ -46,11 +46,11 @@ func TestStoreNProbeData(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Store nprobe data
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("CreateOrUpdate", placeholderNetworkID, blobstore.Blobs{blob}).
+	blobStoreMock.On("Write", placeholderNetworkID, blobstore.Blobs{blob}).
 		Return(nil).Once()
 	blobStoreMock.On("Commit").Return(nil).Once()
 
@@ -61,8 +61,8 @@ func TestStoreNProbeData(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Get nprobe data
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	tk := storage.TK{Type: NProbeBlobType, Key: taskID}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()
@@ -78,8 +78,8 @@ func TestStoreNProbeData(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 
 	// Delete nprobe data
-	blobFactMock = &mocks.BlobStorageFactory{}
-	blobStoreMock = &mocks.TransactionalBlobStorage{}
+	blobFactMock = &mocks.StoreFactory{}
+	blobStoreMock = &mocks.Store{}
 	tkSet := storage.TKs{tk}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
 	blobStoreMock.On("Rollback").Return(nil).Once()

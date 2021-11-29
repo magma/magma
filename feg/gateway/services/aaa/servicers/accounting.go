@@ -53,12 +53,16 @@ const (
 
 // NewEapAuthenticator returns a new instance of EAP Auth service
 func NewAccountingService(sessions aaa.SessionTable, cfg *mconfig.AAAConfig) (*accountingService, error) {
-	return &accountingService{
+	srv := &accountingService{
 		sessions:    sessions,
 		config:      cfg,
 		sessionTout: GetIdleSessionTimeout(cfg),
 		dae:         dae.NewDAEServicer(cfg.GetRadiusConfig()),
-	}, nil
+	}
+	if cfg != nil && cfg.GetAcctReportingEnabled() {
+		base_acct.StartBaseAccountingHeartbeat()
+	}
+	return srv, nil
 }
 
 // Start implements Radius Acct-Status-Type: Start endpoint

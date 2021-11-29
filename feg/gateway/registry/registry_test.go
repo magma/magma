@@ -71,7 +71,7 @@ func TestCloudConnection(t *testing.T) {
 	<-serverStarted
 	time.Sleep(time.Millisecond * 7)
 
-	configMap := config.NewConfigMap(map[interface{}]interface{}{
+	configMap := config.NewMap(map[interface{}]interface{}{
 		"local_port": localPort, "cloud_address": "controller.magma.test",
 		"cloud_port": 443})
 
@@ -114,7 +114,7 @@ func TestCloudConnection(t *testing.T) {
 	<-serverStarted
 	time.Sleep(time.Millisecond * 7)
 
-	configMap = config.NewConfigMap(map[interface{}]interface{}{
+	configMap = config.NewMap(map[interface{}]interface{}{
 		"local_port": localPort, "cloud_address": "controller.magma.test",
 		"cloud_port": 443})
 	conn, err = reg.GetSharedCloudConnectionFromServiceConfig(configMap, "hello")

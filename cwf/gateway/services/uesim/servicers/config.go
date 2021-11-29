@@ -102,7 +102,7 @@ func getBridgeMac(br string) string {
 	return brInterface.HardwareAddr.String()
 }
 
-func getHexParam(cfg *config.ConfigMap, param string, defaultBytes []byte) []byte {
+func getHexParam(cfg *config.Map, param string, defaultBytes []byte) []byte {
 	param, err := cfg.GetString(param)
 	if err != nil {
 		return defaultBytes

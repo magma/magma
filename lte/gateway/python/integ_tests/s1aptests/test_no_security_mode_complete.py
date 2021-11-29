@@ -104,7 +104,7 @@ class TestNoSecurityModeComplete(unittest.TestCase):
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
-        # Wait for timer expiry 5 times, until context is released
+        # Wait for timer 3460 expiry 5 times, until context is released
         for i in range(5):
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(

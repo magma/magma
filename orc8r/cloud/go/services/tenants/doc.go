@@ -14,7 +14,8 @@
 package tenants
 
 const (
-	ServiceName    = "TENANTS"
-	DBTableName    = "tenants"
-	TenantInfoType = "tenant_info"
+	ServiceName          = "TENANTS"
+	DBTableName          = "tenants"
+	TenantInfoType       = "tenant_info"
+	ControlProxyInfoType = "control_proxy_info"
 )

@@ -13,7 +13,7 @@ limitations under the License.
 import logging
 import os
 
-from bcc import BPF
+from bcc import BPF  # pylint:disable=import-error
 from jinja2 import Template
 from magma.common.job import Job
 from magma.kernsnoopd.handlers import ebpf_handlers
@@ -39,7 +39,7 @@ def _get_ebpf_source(filename, context) -> str:
     Returns:
         Rendered source contents
     """
-    with open(filename, 'r') as src_f:
+    with open(filename, 'r', encoding="utf-8") as src_f:
         src = src_f.read()
     template = Template(src)
     return template.render(context)
@@ -101,9 +101,9 @@ class Snooper(Job):
                 handler = ebpf_handlers[basename](self._service_registry)
                 self._handlers.append(handler)
             except FileNotFoundError:
-                logging.error('Could not open eBPF source file %s' % filename)
+                logging.error('Could not open eBPF source file %s', filename)
             except KeyError:
-                logging.error('Fatal: did not find handler for %s' % basename)
+                logging.error('Fatal: did not find handler for %s', basename)
 
         # found eBPF sources to load into kernel
         if sources:
@@ -114,7 +114,7 @@ class Snooper(Job):
                 self._bpf = BPF(text='\n'.join(sources))
                 logging.info('Loaded sources into kernel')
             except FileNotFoundError:
-                logging.error('Fatal: Could not open header file %s' % header)
+                logging.error('Fatal: Could not open header file %s', header)
         else:
             raise NoSourcesFoundError()
 

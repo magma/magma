@@ -22,19 +22,38 @@ limitations under the License.
 
 #pragma once
 
-#include <unordered_map>
-#include <map>
-#include <unordered_set>
-#include <vector>
-
 #include <folly/io/async/EventBaseManager.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/policydb.pb.h>
+#include <stdint.h>
+#include <chrono>
+#include <map>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
+#include "AmfServiceClient.h"
 #include "PipelinedClient.h"
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "SessionStore.h"
-#include "AmfServiceClient.h"
+#include "StoreClient.h"
+#include "SessionEvents.h"
+#include "Types.h"
+#include "lte/protos/pipelined.pb.h"
+#include "lte/protos/session_manager.pb.h"
+
+namespace folly {
+class EventBase;
+}  // namespace folly
+namespace magma {
+class AmfServiceClient;
+class PipelinedClient;
+class SessionState;
+struct SessionStateUpdateCriteria;
+}  // namespace magma
 
 #define M5G_MIN_TEID (UINT32_MAX / 2)
 #define DEFAULT_PDR_VERSION 1
@@ -52,6 +71,8 @@ class SessionStateEnforcer {
       std::unordered_multimap<std::string, uint32_t> pdr_map,
       std::shared_ptr<PipelinedClient> pipelined_client,
       std::shared_ptr<AmfServiceClient> amf_srv_client,
+      SessionReporter* reporter,
+      std::shared_ptr<EventsReporter> events_reporter,
       magma::mconfig::SessionD mconfig,
       long session_force_termination_timeout_ms,
       uint32_t session_max_rtx_count);
@@ -208,6 +229,8 @@ class SessionStateEnforcer {
   std::unordered_multimap<std::string, uint32_t> pdr_map_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
   std::shared_ptr<AmfServiceClient> amf_srv_client_;
+  SessionReporter* reporter_;
+  std::shared_ptr<EventsReporter> events_reporter_;
   magma::mconfig::SessionD mconfig_;
   // Timer used to forcefully terminate session context on time out
   long session_force_termination_timeout_ms_;

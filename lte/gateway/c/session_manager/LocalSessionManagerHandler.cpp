@@ -10,20 +10,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <google/protobuf/util/time_util.h>
-
+#include <folly/io/async/EventBase.h>
+#include <glog/logging.h>
+#include <grpcpp/impl/codegen/status_code_enum.h>
 #include <chrono>
+#include <exception>
 #include <memory>
+#include <ostream>
 #include <string>
-#include <thread>
+#include <typeinfo>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
+#include "DirectorydClient.h"
 #include "GrpcMagmaUtils.h"
+#include "LocalEnforcer.h"
 #include "LocalSessionManagerHandler.h"
-#include "magma_logging.h"
-#include "includes/SentryWrapper.h"
+#include "ServiceAction.h"
+#include "SessionCredit.h"
+#include "SessionEvents.h"
+#include "SessionReporter.h"
+#include "SessionState.h"
+#include "StoredState.h"
+#include "Types.h"
 #include "Utilities.h"
+#include "includes/SentryWrapper.h"
+#include "lte/protos/pipelined.pb.h"
+#include "lte/protos/session_manager.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+#include "magma_logging.h"
+#include "orc8r/protos/directoryd.pb.h"
+
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
 
 using grpc::Status;
 
