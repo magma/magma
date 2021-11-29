@@ -51,16 +51,13 @@ jobs:
             var fs = require('fs');
             var skipFlag = fs.readFileSync('./skipped');
             var rprFlag = fs.readFileSync('./RPR');
-            if( skipFlag == 'true' ) {
+            if( (skipFlag == 'true') || (rprFlag == 'true') ) {
               core.setOutput('should_skip', 'true');
-              console.log("Skipping because should_skip=" + skipFlag);
-            }
-            else if( rprFlag == 'true' ) {
-              core.setOutput('should_skip', 'true');
+              //console.log("Skipping because should_skip=" + skipFlag);
             }
             else  {
               core.setOutput('should_skip', 'false');
-              console.log("NOT Skipping because should_skip=" + skipFlag);
+              //console.log("NOT Skipping because should_skip=" + skipFlag);
             }
   comment_pr:
     name: Comment on PR for check ${{ github.event.workflow.name }}
@@ -182,4 +179,3 @@ jobs:
                             body: msg,
                           });
             }
-
