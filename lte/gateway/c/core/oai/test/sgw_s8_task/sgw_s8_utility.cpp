@@ -72,7 +72,7 @@ void fill_itti_csrsp(
   csr_resp->pdn_type                = IPv4;
   csr_resp->paa.pdn_type            = IPv4;
   csr_resp->paa.ipv4_address.s_addr = 0xc0a87e1;
-  csr_resp->context_teid            = 16;
+  csr_resp->context_teid = 16;  // This teid would be allocated by orc8r
   csr_resp->eps_bearer_id           = 5;
   csr_resp->temporary_session_id    = temporary_session_id;
 

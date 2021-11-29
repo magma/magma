@@ -14,6 +14,8 @@
 #include "lte/gateway/c/core/oai/test/sgw_s8_task/sgw_s8_utility.h"
 
 using ::testing::Test;
+
+// TC validates successful handling of create session request
 TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req_success) {
   sgw_state_t* sgw_state = get_sgw_state(false);
   itti_s11_create_session_request_t session_req = {0};

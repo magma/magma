@@ -536,9 +536,12 @@ void send_s8_delete_session_request(
   dsr_req.set_bearer_id(bearer_id);
   dsr_req.set_c_pgw_teid(pgw_s5_teid);
   dsr_req.set_c_agw_teid(sgw_s11_teid);
-  convert_uli_to_proto_msg(dsr_req.mutable_uli(), delete_session_req_p->uli);
-  convert_serving_network_to_proto_msg(
-      dsr_req.mutable_serving_network(), delete_session_req_p->serving_network);
+  if (delete_session_req_p) {
+    convert_uli_to_proto_msg(dsr_req.mutable_uli(), delete_session_req_p->uli);
+    convert_serving_network_to_proto_msg(
+        dsr_req.mutable_serving_network(),
+        delete_session_req_p->serving_network);
+  }
   magma::S8Client::s8_delete_session_request(
       dsr_req,
       [imsi64, sgw_s11_teid](
