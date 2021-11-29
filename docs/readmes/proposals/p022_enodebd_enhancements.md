@@ -1,10 +1,10 @@
-#Proposal: eNodeBd Enhancements for Cell PnP Support
+# Proposal: eNodeBd Enhancements for Cell PnP Support
 
 Author(s): [@arsenii-oganov]
 
 Last updated: 11/29/2021
 
-##1. Objectives
+## 1. Objectives
 
 The objective of this work is to add services to address the logistics of scale radio deployments using Magma. **Specifically, plug-n-play onboarding and firmware update via TR-069**.
 
@@ -21,9 +21,9 @@ To demonstrate the developed framework, full support for onboarding, configurati
 - Baicells Neutrino 430
 - Sercomm Englewood
 
-##2. Background
+## 2. Background
 
-###2.1 Terminology
+### 2.1 Terminology
 
 1. **TR-069** refers to an application layer technical specification of the CPE WAN Management Protocol (CWMP) both specified by the Broadband Forum. This application is used for the remote management of configuration, firmware, and metrics in network equipment
 
@@ -31,7 +31,7 @@ To demonstrate the developed framework, full support for onboarding, configurati
 
 3. Magma **managed** eNBs refer to the radio devices that use TR-069 server communication using the enodebd service. **Externally managed** eNBs, in contrast, do not use TR-069 and are expected to be already configured to match the Cell ID and other configuration parameters so they successfully get connected to the AGW.
 
-###2.2 Plug-n-Play
+### 2.2 Plug-n-Play
 The radio onboarding process for Magma currently follows a pre-provisioning workflow. A user with login credentials for the NMS must complete the following steps:
 
 1. Add a new radio element to the NMS with the following fields:
@@ -57,24 +57,24 @@ After this process has been completed the enodebd process in the AGW will now re
 
 If an inform message arrives at enodebd with a serial number that is not known, the TR-069 session is terminated and no further action is taken.
 
-###2.3 Firmware Update
+### 2.3 Firmware Update
 Magma TR-069 ACS functionality in enodebd currently does not support firmware update procedures.
 
-##3. Implementation
+## 3. Implementation
 
-###3.1 Plug-n-Play
+### 3.1 Plug-n-Play
 
-####3.1.1 Block Diagram
+#### 3.1.1 Block Diagram
 
 ![block diagram](https://user-images.githubusercontent.com/93994458/141427317-8e19f9b3-b789-4b8b-9117-c2a4024b9089.png)
 
-####3.1.2 Call Flow
+#### 3.1.2 Call Flow
 
 ![onboarding flow](https://user-images.githubusercontent.com/93994458/141427664-16110fc4-61a4-4bfa-a7b0-b3f379c62150.png)
 
-####3.1.3 PnP Scope of Change
+#### 3.1.3 PnP Scope of Change
 
-#####3.1.3.1 eNodeBD Service (Modified)
+##### 3.1.3.1 eNodeBD Service (Modified)
 The enodebd service will be updated to support 2 modes of operation, auto-discovery enabled/disabled.
 
 _Auto-Discovery Disabled_
@@ -83,10 +83,10 @@ When Auto-Discovery is disabled enodebd will operate as it does today. When a TR
 _Auto-Discovery Enabled_
 When Auto-discovery is enabled, enodebd will receive a new inform, check it’s local configuration to see if the serial number is known, if it is not, it will forward the serial number and device ID field contents to Control Proxy with the endpoint specified as Onboarding Service.
 
-#####3.1.3.2 Control Proxy Service (Modified)
+##### 3.1.3.2 Control Proxy Service (Modified)
 The Control Proxy service will be modified to add Onboarding Service onboardd to the service registry. This new endpoint will be used for transporting messages between enodebd and onboardd.
 
-#####3.1.3.3 Onboardd Service (New)
+##### 3.1.3.3 Onboardd Service (New)
 The Onboarding Service onboardd will be a new service added to support automated radio onboarding. The primary function will be to respond to enodebd new radio messages and using the API, create a new radio element and assign it to the source AGW.
 
 In addition, when the new eNB is a CBRS CBSD, onboardd will also create a new radio element in the Domain Proxy (DP). When the radio is a Cat A indoor with a GPS derived location, the onboardd configuration will be sufficient for the DP to register and obtain a grant for the new eNB.
@@ -117,12 +117,12 @@ The new onboardd service will support a set of CBRS configuration elements suffi
 
 This dataset will be supported via static files in default configuration mode and via the vendor logic API.
 
-###3.2 Firmware Update
-####3.2.1 Block Diagram
+### 3.2 Firmware Update
+#### 3.2.1 Block Diagram
 
 ![firmupdate diagram](https://user-images.githubusercontent.com/93994458/141432926-936ef4c8-c282-4717-851d-dab450377cfe.png)
 
-####3.2.2 Call Flows
+#### 3.2.2 Call Flows
 
 _User Configuration_
 
@@ -132,9 +132,9 @@ _FW Update Applied to Radio_
 
 <img width="1275" alt="fwupdate flow" src="https://user-images.githubusercontent.com/93994458/141433791-72954447-00af-4a14-b7a7-79def6f09424.png">
 
-####3.2.3 Firmware Update Scope of Changes
+#### 3.2.3 Firmware Update Scope of Changes
 
-#####3.2.3.1 NMS Service (Modified)
+##### 3.2.3.1 NMS Service (Modified)
 The NMS will be updated to allow creation of eNB upgrade tiers including the selection of applicable Device Classes. NMS will also be extended to allow configuration of upgrade tier parameters including:
 
 - FW image URL
@@ -150,7 +150,7 @@ The NMS will be updated to allow creation of eNB upgrade tiers including the sel
 In the case of vendor specific configurations, the NMS will allow user selection to include / exclude these elements in the metadata associated with an upgrade tier.
 The NMS will also be updated to display FW version for each managed eNB elements.
 
-#####3.2.3.2 Configurator/lte Service (Modified)
+##### 3.2.3.2 Configurator/lte Service (Modified)
 The orchestrator configurator (and/or lte) service will add support for FW image URL and metadata to be added to the mconfig for LTE AGWs. Metadata will include:
 
 - Username
@@ -161,14 +161,14 @@ The orchestrator configurator (and/or lte) service will add support for FW image
 - Md5
 - RawMode
 
-#####3.2.3.3 enodebd Service (Modified)
+##### 3.2.3.3 enodebd Service (Modified)
 The enodebd service will be extended to support the new mconfig format with the FW image URL and metadata elements. Enodebd will also add support for the TR-069 FW update call flow shown above using the Download() method and metadata as shown. This method is used by all target radios. Moreover, this method is the basic FW update method defined in TR-069 protocol and is likely to be supported broadly across more TR-069 capable radios.
 
 eNodebd will be extended to capture and report eNB firmware version reported via TR-069 to the orchestrator database. This will be used as the source for version displayed in the NMS.
 
 Update logic will be implemented as part of Device Classes in enodebd so that any radio specific variations can be scope limited to that Device Class, similar to the FSM and data model today.
 
-##4. Roadmap & Schedule
+## 4. Roadmap & Schedule
 
 **Scope items:**
 **MS1:** Demonstrate manually triggered firmware update via enodebd TR-069 ACS (Sercomm and 1 Baicells Radio)
@@ -187,5 +187,5 @@ Update logic will be implemented as part of Device Classes in enodebd so that an
 
 **MS8:** Launch Magma integrated PnP in the FreedomFi/Helium network using Vendor Logic extension.
 
-##5.Schedule:
+## 5.Schedule:
 TBD
