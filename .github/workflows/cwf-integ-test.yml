@@ -65,7 +65,7 @@ jobs:
       - name: Install pre requisites
         run: |
           pip3 install --upgrade pip
-          pip3 install ansible fabric3 jsonpickle requests PyYAML
+          pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
           vagrant plugin install vagrant-vbguest vagrant-disksize
       - uses: actions/download-artifact@v2
         with:
@@ -115,3 +115,14 @@ jobs:
         with:
           name: test-logs
           path: cwf/gateway/logs
+      - name: Publish results to Firebase
+        if: always()
+        env:
+          FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
+          REPORT_FILENAME: "cwf_integ_test_${{ github.sha }}.html"
+        run: |
+          npm install -g xunit-viewer
+          [ -f "cwf/gateway/tests.xml" ] && { xunit-viewer -r cwf/gateway/tests.xml -o "$REPORT_FILENAME"; }
+          [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
+          [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
+          python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} cwf --url $URL
