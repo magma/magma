@@ -252,6 +252,10 @@ func (m *GatewayRanConfigs) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
+func (m *GatewayNgcConfigs) ValidateModel(context.Context) error {
+	return m.Validate(strfmt.Default)
+}
+
 func (m *GatewayEpcConfigs) ValidateModel(context.Context) error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
