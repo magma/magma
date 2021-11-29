@@ -138,7 +138,6 @@ FW Update Applied to Radio
 
 ![fwupdate flow](https://user-images.githubusercontent.com/93994458/141433791-72954447-00af-4a14-b7a7-79def6f09424.png)
 
-
 #### 3.2.3 Firmware Update Scope of Changes
 
 ##### 3.2.3.1 NMS Service (Modified)
