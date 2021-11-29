@@ -16,6 +16,7 @@ go 1.17
 require (
 	github.com/getsentry/sentry-go v0.11.0
 	github.com/golang/mock v1.6.0
+	github.com/netrack/openflow v0.1.0
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.19.0

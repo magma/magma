@@ -121,6 +121,23 @@ GoMock superior to mockery.
 
 Considered alternatives: mockery, hand-coded mock implementations
 
+### netrack/openflow
+MIT license.
+
+Openflow 1.3 implementation with well structured, tested and documented code.
+The API closely resembles the Go standard library. There are no
+transitive dependencies. We wrap this in an interface abstraction
+so that we can replace it later if necessary.
+
+Downsides:
+1) The code is written as a framework, and not as a composable
+library, which requires wrapping or rewriting server components.
+2) It has not been actively developed since 2018.
+
+Considered alternatives: superkkt/cherry (GPL), jonstout/ogo (GPL),
+kmotiko/gofc (less featureful and worse test coverage),
+building our own (time consuming).
+
 ## Dependency Injection
 
 TBD -- manual DI or library e.g. Uber dig/fx
