@@ -21,4 +21,5 @@ cc_library(
     ],
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/logging",
+    deps = ["@com_github_google_glog//:glog"],
 )
