@@ -20,7 +20,7 @@ import lte.protos.sms_orc8r_pb2_grpc as sms_orc8r_pb2_grpc
 from lte.protos.mconfig.mconfigs_pb2 import MME
 from magma.common.job import Job
 from magma.common.rpc_utils import grpc_async_wrapper, return_void
-from magma.common.sentry import SEND_TO_MONITORING
+from magma.common.sentry import SEND_TO_ERROR_MONITORING
 from magma.configuration.mconfig_managers import load_service_mconfig
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
@@ -94,7 +94,7 @@ class SmsRelay(Job):
                 self._mme_sms.SMODownlink.future(dl, SMS_TIMEOUT_SECS),
             )
         except grpc.RpcError as err:
-            logging.error("RPC call to MME failed: %s", err, extra=SEND_TO_MONITORING)
+            logging.error("RPC call to MME failed: %s", err, extra=SEND_TO_ERROR_MONITORING)
             return
 
     @return_void
