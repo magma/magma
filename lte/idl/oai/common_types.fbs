@@ -1,0 +1,165 @@
+namespace magma.lte.test_flat_buffer;
+
+enum InterfaceType:ubyte {
+  S1_U_ENODEB_GTP_U  = 0,
+  S1_U_SGW_GTP_U,
+  S12_RNC_GTP_U,
+  S12_SGW_GTP_U,
+  S5_S8_SGW_GTP_U,
+  S5_S8_PGW_GTP_U,
+  S5_S8_SGW_GTP_C,
+  S5_S8_PGW_GTP_C,
+  S5_S8_SGW_PMIPv6,
+  S5_S8_PGW_PMIPv6,
+  S11_MME_GTP_C,
+  S11_SGW_GTP_C,
+  S10_MME_GTP_C,
+  S3_MME_GTP_C,
+  S3_SGSN_GTP_C,
+  S4_SGSN_GTP_U,
+  S4_SGW_GTP_U,
+  S4_SGSN_GTP_C,
+  S16_SGSN_GTP_C,
+  ENODEB_GTP_U_DL_DATA_FORWARDING,
+  ENODEB_GTP_U_UL_DATA_FORWARDING,
+  RNC_GTP_U_DATA_FORWARDING,
+  SGSN_GTP_U_DATA_FORWARDING,
+  SGW_GTP_U_DL_DATA_FORWARDING,
+  SM_MBMS_GW_GTP_C,
+  SN_MBMS_GW_GTP_C,
+  SM_MME_GTP_C,
+  SN_SGSN_GTP_C,
+  SGW_GTP_U_UL_DATA_FORWARDING,
+  SN_SGSN_GTP_U,
+  S2B_EPDG_GTP_C
+}
+
+enum GrantedService:ubyte {
+  GRANTED_SERVICE_EPS_ONLY,
+  GRANTED_SERVICE_SMS_ONLY,
+  GRANTED_SERVICE_CSFB_SMS
+}
+
+enum SubscriberStatus:ubyte{
+  SS_SERVICE_GRANTED             = 0,
+  SS_OPERATOR_DETERMINED_BARRING,
+  SS_MAX
+}
+
+enum PdnTypeValue:ubyte {
+  IPv4        = 0,
+  IPv6        = 1,
+  IPv4_AND_v6 = 2,
+  IPv4_OR_v6  = 3,
+  IP_MAX
+}
+
+struct In6Addr {
+  u6_addr8:[byte:16];
+}
+
+struct Address {
+  ipv4_address_in_addr:uint32;
+  ipv6_address:In6Addr;
+}
+
+struct IpAddress {
+  pdn_type:PdnTypeValue;
+  address:Address;
+}
+
+enum ApnAmbrBitRateUnit:ubyte {
+  BPS  = 0,
+  KBPS = 1
+}
+
+struct Ambr {
+  br_unit:ApnAmbrBitRateUnit;
+  br_ul:ulong;
+  br_dl:ulong;
+}
+
+struct Fteid {
+  ipv4:bool;
+  ipv6:bool;
+  interface_type:InterfaceType;
+  teid:uint32;
+  ip_address:Address;
+}
+
+
+struct Paa {
+  pdn_type:PdnTypeValue;
+  ipv4_address:uint;
+  ipv6_address:In6Addr;
+  /// Note in rel.8 the ipv6 prefix length has a fixed value of /64
+  ipv6_prefix_length:ubyte;
+  vlan:uint;
+}
+
+struct RegionalSubscription {
+  zone_code:[ubyte:2];
+}
+
+enum PreEmptionVulnerability:ubyte {
+  PRE_EMPTION_VULNERABILITY_ENABLED  = 0,
+  PRE_EMPTION_VULNERABILITY_DISABLED = 1,
+  PRE_EMPTION_VULNERABILITY_MAX
+}
+
+enum PreEmptionCapability:ubyte {
+  PRE_EMPTION_CAPABILITY_ENABLED  = 0,
+  PRE_EMPTION_CAPABILITY_DISABLED = 1,
+  PRE_EMPTION_CAPABILITY_MAX
+}
+
+struct AllocationRetentionPriority {
+  priority_level:ubyte;
+  pre_emp_vulnerability:PreEmptionVulnerability;
+  pre_emp_capability:PreEmptionCapability;
+}
+
+struct EpsSubscribedQosProfile {
+  qci:ubyte;
+  allocation_retention_priority:AllocationRetentionPriority;
+}
+
+struct ChargingCharacteristics {
+  /// CHARGING_CHARACTERISTICS_LENGTH + 1
+  value:[ubyte:5];
+  length:ubyte;
+}
+
+struct ApnConfiguration {
+  context_identifier:uint;
+
+  /// Each APN configuration can have 0, 1, or 2 ip address:
+  ///  - 0 means subscribed is dynamically allocated by P-GW depending on the
+  ///  pdn_type
+  ///  - 1 Only one type of IP address is returned by HSS
+  ///  - 2 IPv4 and IPv6 address are returned by HSS and are statically
+  /// allocated
+  nb_ip_address:ubyte;
+  ip_address:[IpAddress:2];
+  pdn_type:PdnTypeValue;
+  service_selection:[byte:100];
+  service_selection_length:byte;
+  subscribed_qos:EpsSubscribedQosProfile;
+  ambr:Ambr;
+  charging_characteristics:ChargingCharacteristics;
+}
+
+enum AllApnConfInd:ubyte {
+  ALL_APN_CONFIGURATIONS_INCLUDED            = 0,
+  MODIFIED_ADDED_APN_CONFIGURATIONS_INCLUDED = 1,
+  ALL_APN_MAX
+}
+
+struct ApnConfigProfile {
+  context_identifier:uint;
+  all_apn_conf_ind:AllApnConfInd;
+  /// Number of APNs provided
+  nb_apns:ubyte;
+  /// List of APNs configuration 1 to n elements // MAX_APN_PER_UE
+  apn_configuration:[ApnConfiguration:10];
+}

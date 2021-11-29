@@ -27,6 +27,8 @@ extern "C" {
 }
 #include "mme_app_test_serialization.h"
 #include <mcheck.h>
+#include <sys/time.h>      // rusage()
+#include <sys/resource.h>  //rusage()
 //--C++ includes ---------------------------------------------------------------
 #include <chrono>
 #include <cmath>
@@ -79,23 +81,23 @@ std::vector<ue_mm_context_t*> mme_app_allocate_ues(uint num_ues) {
     enb_ue_s1ap_id++;
     mme_ue_s1ap_id++;
 
-    imsi64_t imsi64   = kFirstImsi + i;
-    imsi_t imsi       = {};
-    imsi.u.num.digit1 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 14)) % 10);
-    imsi.u.num.digit2 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 13)) % 10);
-    imsi.u.num.digit3 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 12)) % 10);
-    imsi.u.num.digit4 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 11)) % 10);
-    imsi.u.num.digit5 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 10)) % 10);
-    imsi.u.num.digit6 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 9)) % 10);
-    imsi.u.num.digit7 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 8)) % 10);
-    imsi.u.num.digit8 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 7)) % 10);
-    imsi.u.num.digit9 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 6)) % 10);
-    imsi.u.num.digit10 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 5)) % 10);
-    imsi.u.num.digit11 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 4)) % 10);
-    imsi.u.num.digit12 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 3)) % 10);
-    imsi.u.num.digit13 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 2)) % 10);
-    imsi.u.num.digit14 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 1)) % 10);
-    imsi.u.num.digit15 = (uint8_t) ((imsi64_t) (imsi64 / std::pow(10, 0)) % 10);
+    imsi64_t imsi64    = kFirstImsi + i;
+    imsi_t imsi        = {};
+    imsi.u.num.digit1  = (uint8_t)((imsi64_t)(imsi64 / std::pow(10, 14)) % 10);
+    imsi.u.num.digit2  = (uint8_t)((imsi64_t)(imsi64 / std::pow(10, 13)) % 10);
+    imsi.u.num.digit3  = (uint8_t)((imsi64_t)(imsi64 / std::pow(10, 12)) % 10);
+    imsi.u.num.digit4  = (uint8_t)((imsi64_t)(imsi64 / std::pow(10, 11)) % 10);
+    imsi.u.num.digit5  = (uint8_t)((imsi64_t)(imsi64 / std::pow(10, 10)) % 10);
+    imsi.u.num.digit6  = (uint8_t)((imsi64_t)(imsi64 / std::pow(10, 9)) % 10);
+    imsi.u.num.digit7  = (uint8_t)((imsi64_t)(imsi64 / std::pow(10, 8)) % 10);
+    imsi.u.num.digit8  = (uint8_t)((imsi64_t)(imsi64 / std::pow(10, 7)) % 10);
+    imsi.u.num.digit9  = (uint8_t)((imsi64_t)(imsi64 / std::pow(10, 6)) % 10);
+    imsi.u.num.digit10 = (uint8_t)((imsi64_t)(imsi64 / std::pow(10, 5)) % 10);
+    imsi.u.num.digit11 = (uint8_t)((imsi64_t)(imsi64 / std::pow(10, 4)) % 10);
+    imsi.u.num.digit12 = (uint8_t)((imsi64_t)(imsi64 / std::pow(10, 3)) % 10);
+    imsi.u.num.digit13 = (uint8_t)((imsi64_t)(imsi64 / std::pow(10, 2)) % 10);
+    imsi.u.num.digit14 = (uint8_t)((imsi64_t)(imsi64 / std::pow(10, 1)) % 10);
+    imsi.u.num.digit15 = (uint8_t)((imsi64_t)(imsi64 / std::pow(10, 0)) % 10);
     imsi.u.num.parity  = 0xF;
     emm_ctx->saved_imsi64 = imsi64;
 
@@ -191,6 +193,49 @@ void mme_app_deserialize_ues(void) {
   MmeNasStateManager::getInstance().read_ue_state_from_db();
 }
 //------------------------------------------------------------------------------
+void log_rusage(struct rusage& ru, const char* context) {
+  OAILOG_INFO(LOG_MME_APP, "rusage() %s\n", context);
+  OAILOG_INFO(
+      LOG_MME_APP, "\tCpu user/system: %d.%06d / %d.%06d\n",
+      (int) ru.ru_utime.tv_sec, (int) ru.ru_utime.tv_usec,
+      (int) ru.ru_stime.tv_sec, (int) ru.ru_stime.tv_usec);
+  OAILOG_INFO(LOG_MME_APP, "\tMaximum resident set size: %ld\n", ru.ru_maxrss);
+  OAILOG_INFO(
+      LOG_MME_APP, "\tPage reclaims (soft/hard page faults): %ld / %ld\n",
+      ru.ru_minflt, ru.ru_majflt);
+  OAILOG_INFO(
+      LOG_MME_APP, "\tBlock operations (input/output): %ld / %ld\n",
+      ru.ru_inblock, ru.ru_oublock);
+  OAILOG_INFO(
+      LOG_MME_APP, "\tContext switches (voluntary/involuntary): %ld / %ld\n",
+      ru.ru_nvcsw, ru.ru_nivcsw);
+}
+//------------------------------------------------------------------------------
+void log_rusage_diff(struct rusage& ru_first, struct rusage& ru_last, const char* context) {
+
+  std::string str1(context);
+  log_rusage(ru_first, str1.append(" First usage").c_str());
+  std::string str2(context);
+  log_rusage(ru_last, str1.append(" Second usage").c_str());
+  struct rusage ru_diff = {0};
+  ru_diff.ru_utime.tv_sec = ru_last.ru_utime.tv_sec - ru_first.ru_utime.tv_sec;
+  ru_diff.ru_utime.tv_usec =
+      ru_last.ru_utime.tv_usec - ru_first.ru_utime.tv_usec;
+  ru_diff.ru_stime.tv_sec = ru_last.ru_stime.tv_sec - ru_first.ru_stime.tv_sec;
+  ru_diff.ru_stime.tv_usec =
+      ru_last.ru_stime.tv_usec - ru_first.ru_stime.tv_usec;
+
+  ru_diff.ru_maxrss  = ru_last.ru_maxrss - ru_first.ru_maxrss;
+  ru_diff.ru_minflt  = ru_last.ru_minflt - ru_first.ru_minflt;
+  ru_diff.ru_majflt  = ru_last.ru_majflt - ru_first.ru_majflt;
+  ru_diff.ru_inblock = ru_last.ru_inblock - ru_first.ru_inblock;
+  ru_diff.ru_oublock = ru_last.ru_oublock - ru_first.ru_oublock;
+  ru_diff.ru_nvcsw   = ru_last.ru_nvcsw - ru_first.ru_nvcsw;
+  ru_diff.ru_nivcsw  = ru_last.ru_nivcsw - ru_first.ru_nivcsw;
+  std::string str3(context);
+  log_rusage(ru_diff, str3.append(" Diff usages").c_str());
+}
+//------------------------------------------------------------------------------
 void mme_app_test_protobuf_serialization(
     mme_app_desc_t* mme_app_desc, uint num_ues) {
   srand(time(NULL));
@@ -200,9 +245,14 @@ void mme_app_test_protobuf_serialization(
 
   mme_app_insert_ues(mme_app_desc, contexts);
 
+  struct rusage ru_start_ctxt_to_proto, ru_end_ctxt_to_proto;
+
+  getrusage(RUSAGE_SELF, &ru_start_ctxt_to_proto);
   auto start_ctxt_to_proto = std::chrono::high_resolution_clock::now();
   mme_app_serialize_ues(mme_app_desc, contexts);
   auto end_ctxt_to_proto = std::chrono::high_resolution_clock::now();
+  getrusage(RUSAGE_SELF, &ru_end_ctxt_to_proto);
+  log_rusage_diff(ru_start_ctxt_to_proto, ru_end_ctxt_to_proto, " Contexts to protobufs");
   auto duration_ctxt_to_proto =
       std::chrono::duration_cast<std::chrono::microseconds>(
           end_ctxt_to_proto - start_ctxt_to_proto);
@@ -212,9 +262,13 @@ void mme_app_test_protobuf_serialization(
       LOG_MME_APP, "Time taken by context to proto conversion : %ld µs\n",
       duration_ctxt_to_proto.count());
 
+  struct rusage ru_start_proto_to_ctxt, ru_end_proto_to_ctxt;
+  getrusage(RUSAGE_SELF, &ru_start_proto_to_ctxt);
   auto start_proto_to_ctxt = std::chrono::high_resolution_clock::now();
   mme_app_deserialize_ues();
   auto end_proto_to_ctxt = std::chrono::high_resolution_clock::now();
+  getrusage(RUSAGE_SELF, &ru_end_proto_to_ctxt);
+  log_rusage_diff(ru_start_proto_to_ctxt, ru_end_proto_to_ctxt, " Protobufs to contexts");
   auto duration_proto_to_ctxt =
       std::chrono::duration_cast<std::chrono::microseconds>(
           end_proto_to_ctxt - start_proto_to_ctxt);
@@ -238,6 +292,3 @@ void mme_app_test_protobuf_serialization(
   send_terminate_message_fatal(&main_zmq_ctx);
   return;
 }
-//------------------------------------------------------------------------------
-void mme_app_test_flatbuffer_serialization(
-    mme_app_desc_t* mme_app_desc, uint num_ues) {}

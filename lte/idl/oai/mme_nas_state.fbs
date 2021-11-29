@@ -1,3 +1,9 @@
+include "3gpp_29274.fbs";
+include "3gpp_23003.fbs";
+include "3gpp_24008.fbs";
+
+namespace magma.lte.test_flat_buffer;
+
 enum Constants : uint {
   CHARGING_CHARACTERISTICS_LENGTH_P1 = 5,
 }
@@ -31,23 +37,6 @@ enum EcmState : byte {
   ECM_CONNECTED
 }
 
-struct Imsi {
-  value:[ubyte:8];
-  length:ubyte;
-}
-
-struct Imei {
-  value:[ubyte:8];
-}
-
-struct Imeisv {
-  value:[ubyte:8];
-}
-
-struct Plmn {
-  bytes:[byte:3];
-}
-
 struct Tai {
   plmn:Plmn;
   tac:uint16;
@@ -56,132 +45,6 @@ struct Tai {
 struct Lai {
   plmn:Plmn;
   lac:uint16;
-}
-
-struct Ecgi {
-  /// plmn_t
-  plmn:Plmn;
-  ///  eci_t The ECI shall be of fixed length of 28 bits
-  cell_identity:uint;
-}
-
-enum PdnTypeValue:ubyte {
-  IPv4        = 0,
-  IPv6        = 1,
-  IPv4_AND_v6 = 2,
-  IPv4_OR_v6  = 3,
-  IP_MAX
-}
-
-struct In6Addr {
-  u6_addr8:[byte:16];
-}
-
-struct Address {
-  ipv4_address_in_addr:uint32;
-  ipv6_address:In6Addr;
-}
-
-struct IpAddress {
-  pdn_type:PdnTypeValue;
-  address:Address;
-}
-
-enum PreEmptionVulnerability:ubyte {
-  PRE_EMPTION_VULNERABILITY_ENABLED  = 0,
-  PRE_EMPTION_VULNERABILITY_DISABLED = 1,
-  PRE_EMPTION_VULNERABILITY_MAX
-}
-
-enum PreEmptionCapability:ubyte {
-  PRE_EMPTION_CAPABILITY_ENABLED  = 0,
-  PRE_EMPTION_CAPABILITY_DISABLED = 1,
-  PRE_EMPTION_CAPABILITY_MAX
-}
-
-struct AllocationRetentionPriority {
-  priority_level:ubyte;
-  pre_emp_vulnerability:PreEmptionVulnerability;
-  pre_emp_capability:PreEmptionCapability;
-}
-
-struct EpsSubscribedQosProfile {
-  qci:ubyte;
-  allocation_retention_priority:AllocationRetentionPriority;
-}
-
-enum ApnAmbrBitRateUnit:ubyte {
-  BPS  = 0,
-  KBPS = 1
-}
-
-struct Ambr {
-  br_unit:ApnAmbrBitRateUnit;
-  br_ul:ulong;
-  br_dl:ulong;
-}
-
-struct ChargingCharacteristics {
-  /// CHARGING_CHARACTERISTICS_LENGTH + 1
-  value:[ubyte:5];
-  length:ubyte;
-}
-
-struct ApnConfiguration {
-  context_identifier:uint;
-
-  /// Each APN configuration can have 0, 1, or 2 ip address:
-  ///  - 0 means subscribed is dynamically allocated by P-GW depending on the
-  ///  pdn_type
-  ///  - 1 Only one type of IP address is returned by HSS
-  ///  - 2 IPv4 and IPv6 address are returned by HSS and are statically
-  /// allocated
-  nb_ip_address:ubyte;
-  ip_address:[IpAddress:2];
-  pdn_type:PdnTypeValue;
-  service_selection:[byte:100];
-  service_selection_length:byte;
-  subscribed_qos:EpsSubscribedQosProfile;
-  ambr:Ambr;
-  charging_characteristics:ChargingCharacteristics;
-}
-
-enum AllApnConfInd:ubyte {
-  ALL_APN_CONFIGURATIONS_INCLUDED            = 0,
-  MODIFIED_ADDED_APN_CONFIGURATIONS_INCLUDED = 1,
-  ALL_APN_MAX
-}
-
-struct ApnConfigProfile {
-  context_identifier:uint;
-  all_apn_conf_ind:AllApnConfInd;
-  /// Number of APNs provided
-  nb_apns:ubyte;
-  /// List of APNs configuration 1 to n elements // MAX_APN_PER_UE
-  apn_configuration:[ApnConfiguration:10];
-}
-
-struct Paa {
-  pdn_type:PdnTypeValue;
-  ipv4_address:uint;
-  ipv6_address:In6Addr;
-  /// Note in rel.8 the ipv6 prefix length has a fixed value of /64
-  ipv6_prefix_length:ubyte;
-  vlan:uint;
-}
-
-table PcoProtocolOrContainerId {
-  id:ushort;
-  /// length:ubyte;
-  contents:[ubyte];
-}
-
-table ProtocolConfigurationOptions {
-  ext:bool;
-  configuration_protocol:ubyte;
-  /// num_protocol_or_container_id:ubyte;
-  /// #define PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID 30
-  protocol_or_container_ids:[PcoProtocolOrContainerId];
 }
 
 /// ESM procedure transaction states
@@ -245,7 +108,7 @@ enum EmmFsmState:ubyte {
 enum AdditionalUpdateType:ubyte {
   NO_ADDITIONAL_INFORMATION = 0,
   SMS_ONLY                  = 1,
-  MAX                       = 2,
+  MAX_                      = 2,
   SENTINEL_MAX              = 255
 }
 
@@ -272,6 +135,17 @@ struct NasTimer {
   msec:uint32;
 }
 
+table EsmProcData {
+  pti:ubyte;
+  request_type:ubyte;
+  apn:string;
+  pdn_cid:int;
+  pdn_type:PdnTypeValue;
+  pdn_addr:[ubyte];
+  bearer_qos:BearerQos;
+  pco:ProtocolConfigurationOptions;
+}
+
 table EsmContext {
   n_active_ebrs:uint;
   is_emergency:bool;
@@ -279,6 +153,7 @@ table EsmContext {
   t3489_arg:[ubyte];
   pending_standalone:uint32;
   is_pdn_disconnect:bool;
+  esm_proc_data:EsmProcData;
 }
 
 struct AuthVector {
@@ -336,9 +211,6 @@ struct EmmSecurityContext {
   next_hop:[ubyte:32];
   next_hop_chaining_count:ubyte;
 }
-struct Guti {
-  bytes:[ubyte:10];
-}
 
 enum TypeOfTaiList:ubyte {
   TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS = 0,
@@ -373,10 +245,6 @@ table TaiList {
 }
 
 table UeNetworkCapability {
-  bytes:[ubyte];
-}
-
-table MsNetworkCapability {
   bytes:[ubyte];
 }
 
@@ -477,65 +345,11 @@ table EmmContext {
   new_attach_info:EmmAttachRequestIes;
 }
 
-enum GrantedService:ubyte {
-  GRANTED_SERVICE_EPS_ONLY,
-  GRANTED_SERVICE_SMS_ONLY,
-  GRANTED_SERVICE_CSFB_SMS
-}
-
-enum SubscriberStatus:ubyte{
-  SS_SERVICE_GRANTED             = 0,
-  SS_OPERATOR_DETERMINED_BARRING,
-  SS_MAX
-}
-
 enum NetworkAccessMode:ubyte {
   NAM_PACKET_AND_CIRCUIT = 0,
   NAM_RESERVED           = 1,
   NAM_ONLY_PACKET        = 2,
   NAM_MAX
-}
-
-enum InterfaceType:ubyte {
-  S1_U_ENODEB_GTP_U  = 0,
-  S1_U_SGW_GTP_U,
-  S12_RNC_GTP_U,
-  S12_SGW_GTP_U,
-  S5_S8_SGW_GTP_U,
-  S5_S8_PGW_GTP_U,
-  S5_S8_SGW_GTP_C,
-  S5_S8_PGW_GTP_C,
-  S5_S8_SGW_PMIPv6,
-  S5_S8_PGW_PMIPv6,
-  S11_MME_GTP_C,
-  S11_SGW_GTP_C,
-  S10_MME_GTP_C,
-  S3_MME_GTP_C,
-  S3_SGSN_GTP_C,
-  S4_SGSN_GTP_U,
-  S4_SGW_GTP_U,
-  S4_SGSN_GTP_C,
-  S16_SGSN_GTP_C,
-  ENODEB_GTP_U_DL_DATA_FORWARDING,
-  ENODEB_GTP_U_UL_DATA_FORWARDING,
-  RNC_GTP_U_DATA_FORWARDING,
-  SGSN_GTP_U_DATA_FORWARDING,
-  SGW_GTP_U_DL_DATA_FORWARDING,
-  SM_MBMS_GW_GTP_C,
-  SN_MBMS_GW_GTP_C,
-  SM_MME_GTP_C,
-  SN_SGSN_GTP_C,
-  SGW_GTP_U_UL_DATA_FORWARDING,
-  SN_SGSN_GTP_U,
-  S2B_EPDG_GTP_C
-}
-
-struct Fteid {
-  ipv4:bool;
-  ipv6:bool;
-  interface_type:InterfaceType;
-  teid:uint32;
-  ip_address:Address;
 }
 
 enum EsmEbrState:ubyte {
@@ -580,10 +394,6 @@ table BearerContext {
   priority_level:ubyte;
   preemption_vulnerability:PreEmptionVulnerability;
   preemption_capability:PreEmptionCapability;
-}
-
-struct RegionalSubscription {
-  zone_code:[ubyte:2];
 }
 
 enum OngoingProcedure:ubyte {
