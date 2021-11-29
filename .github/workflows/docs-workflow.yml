@@ -60,4 +60,3 @@ jobs:
         run: |
             cd ${MAGMA_ROOT}/docs
             make precommit
-
