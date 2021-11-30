@@ -69,7 +69,7 @@ type Version uint32
 // the required integer size.
 func NewIndexerVersion(version int64) (Version, error) {
 	if version < 0 || version > 4294967295 {
-		return 0, fmt.Errorf("version %d is outside the boundaries of unit32 type", version)
+		return 0, fmt.Errorf("version value %d is outside the boundaries of unit32 type", version)
 	}
 	capped := Version(version)
 	if int64(capped) != version {
