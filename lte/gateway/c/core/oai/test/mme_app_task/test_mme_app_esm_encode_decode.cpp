@@ -15,10 +15,10 @@
 #include <stdbool.h>
 #include <cstring>
 #include <string>
-#include "EpsQualityOfService.h"
-#include "bstrlib.h"
 
 extern "C" {
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
