@@ -86,6 +86,7 @@ TEST_F(SctpdDescTest, test_sctpd_desc) {
   }
 
   EXPECT_TRUE(found_1 && found_2);
+  EXPECT_TRUE(false);
 
   // check deletion of associations
   desc.delAssoc(assoc_1.assoc_id);
