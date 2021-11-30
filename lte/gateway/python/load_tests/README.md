@@ -42,7 +42,7 @@ These can also be triggered from the host (laptop), under
 ### Results
 
 After running the load tests, the results for each of them will be saved under
-`/tmp` on *magma* VM, named as `result_<name_of_grpc_function>` as a JSON file,
+`/var/tmp` on *magma* VM, named as `result_<name_of_grpc_function>` as a JSON file,
 these can be uploaded to different monitoring tools, an example being
 [gHZ-web](https://ghz.sh/docs/web/intro),
 which acts as a web server and contains an API to show results over time.
