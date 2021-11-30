@@ -37,6 +37,7 @@
 #include <string.h>
 #include <malloc.h>
 #include <stdint.h>
+#include <liblfds710.h>
 
 #include "lte/gateway/c/core/oai/common/assertions.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
