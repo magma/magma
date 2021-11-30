@@ -32,7 +32,6 @@ SENTRY_EXCLUDED = 'sentry_excluded_errors'
 SENTRY_SAMPLE_RATE = 'sentry_sample_rate'
 CLOUD_ADDRESS = 'cloud_address'
 ORC8R_CLOUD_ADDRESS = 'orc8r_cloud_address'
-DEFAULT_SAMPLE_RATE = 1.0
 COMMIT_HASH = 'COMMIT_HASH'
 HWID = 'hwid'
 SERVICE_NAME = 'service_name'
