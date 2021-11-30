@@ -23,7 +23,7 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-const networkWildcard = "*"
+const placeholderNetworkID = "placeholder_network"
 
 type Store interface {
 	SetTokenInfo(tokenInfo protos.TokenInfo) error
@@ -40,14 +40,6 @@ func NewBlobstoreStore(factory blobstore.StoreFactory) Store {
 }
 
 func (b *blobstoreStore) SetTokenInfo(tokenInfo protos.TokenInfo) error {
-	isUnique, err := b.isNonceUnique(tokenInfo.Nonce)
-	if err != nil {
-		return err
-	}
-	if !isUnique {
-		return errors.Errorf("token is not unique")
-	}
-
 	networkID := tokenInfo.GatewayDeviceInfo.NetworkId
 	logicalID := tokenInfo.GatewayDeviceInfo.LogicalId
 
@@ -56,6 +48,14 @@ func (b *blobstoreStore) SetTokenInfo(tokenInfo protos.TokenInfo) error {
 		return err
 	}
 	defer store.Rollback()
+
+	isUnique, err := b.isNonceUnique(store, tokenInfo.Nonce)
+	if err != nil {
+		return err
+	}
+	if !isUnique {
+		return errors.Errorf("token is not unique")
+	}
 
 	// Write to 2 blobstores so that we can key for tokenInfo with both the logicalID and the nonce
 
@@ -72,7 +72,7 @@ func (b *blobstoreStore) SetTokenInfo(tokenInfo protos.TokenInfo) error {
 	if err != nil {
 		return err
 	}
-	err = store.Write(networkWildcard, blobstore.Blobs{nonceBlob})
+	err = store.Write(placeholderNetworkID, blobstore.Blobs{nonceBlob})
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func (b *blobstoreStore) GetTokenInfoFromNonce(nonce string) (*protos.TokenInfo,
 		Type: string(bootstrapper.NonceTokenToInfoMap),
 		Key:  nonce,
 	}
-	nonceBlob, err := store.Get(networkWildcard, nonceTK)
+	nonceBlob, err := store.Get(placeholderNetworkID, nonceTK)
 	if err != nil {
 		return nil, err
 	}
@@ -128,15 +128,20 @@ func (b *blobstoreStore) GetTokenInfoFromNonce(nonce string) (*protos.TokenInfo,
 	return tokenInfo, store.Commit()
 }
 
-func (b *blobstoreStore) isNonceUnique(nonce string) (bool, error) {
-	tokenInfo, err := b.GetTokenInfoFromNonce(nonce)
+// isNonceUnique must be run within a transaction
+func (b *blobstoreStore) isNonceUnique(store blobstore.Store, nonce string) (bool, error) {
+	nonceTK := storage.TK{
+		Type: string(bootstrapper.NonceTokenToInfoMap),
+		Key:  nonce,
+	}
+	nonceBlob, err := store.Get(placeholderNetworkID, nonceTK)
 	if err != nil {
 		if err == merrors.ErrNotFound {
 			return true, nil
 		}
 		return false, err
 	}
-	return tokenInfo == nil, nil
+	return nonceBlob.Value == nil, nil
 }
 
 // tokenInfoToBlob turns the input tokenInfo into a blob

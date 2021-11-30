@@ -16,7 +16,7 @@ package bootstrapper
 const (
 	ServiceName        = "BOOTSTRAPPER"
 	BlobstoreTableName = "bootstrapper"
-	TokenPrepend       = "reg_"
+	TokenPrefix        = "reg_"
 )
 
 type BlobType string

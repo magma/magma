@@ -827,6 +827,7 @@ func (*RegisterResponse) XXX_OneofWrappers() []interface{} {
 	}
 }
 
+// Basic info that an AGW needs to register
 type GatewayDeviceInfo struct {
 	NetworkId            string   `protobuf:"bytes,1,opt,name=network_id,json=networkId,proto3" json:"network_id,omitempty"`
 	LogicalId            string   `protobuf:"bytes,2,opt,name=logical_id,json=logicalId,proto3" json:"logical_id,omitempty"`
@@ -874,6 +875,7 @@ func (m *GatewayDeviceInfo) GetLogicalId() string {
 	return ""
 }
 
+// Info saved that is keyed by token. This is what is saved on CloudRegistration's initial register call (GetToken)
 type TokenInfo struct {
 	GatewayDeviceInfo    *GatewayDeviceInfo   `protobuf:"bytes,1,opt,name=gateway_device_info,json=gatewayDeviceInfo,proto3" json:"gateway_device_info,omitempty"`
 	Nonce                string               `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`

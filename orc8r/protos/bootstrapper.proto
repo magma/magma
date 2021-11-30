@@ -77,36 +77,7 @@ service Bootstrapper {
 // --------------------------------------------------------------------------
 // Protos for CloudRegistration and Registration servicer
 // --------------------------------------------------------------------------
-/**
-// Operator Side Registration
-Operator->REST API:
-  GET_gateway(network_id, logical_id)
-
-  REST API<->CloudRegistration:
-    GetToken(network_id, logical_id, refresh): nonce, timeout
-
-  REST API<->CloudRegistration:
-    GetInfoForGatewayRegistration(): domain_name, root_ca
-
-Operator<-REST API:
-  GatewaySwaggerObject{..., registration_field{nonce, timeout, domain_name, root_ca}}
-
-// AGW Side Registration
-Operator->AGW:
-  passes nonce, domain_name, root_ca
-
-AGW->Registration:
-  Register(nonce, hwid, challenge_key)
-
-  Registration<->CloudRegistration:
-    GetGatewayRegistrationInfo(nonce): network_id, logical_id
-
-  Registration->Device:
-    RegisterDevices(network_id, hwid)
-
-Registration->AGW:control_proxy
- */
-
+// CloudRegistration creates tokens for operators to give to AGWs to speed up registration workflow. It also validates tokens
 service CloudRegistration {
   // GetToken saves and sends out a token related to input:networkID and input:logicalID
   // It will refresh the token if input:refresh is true or token is expired
@@ -120,6 +91,8 @@ service CloudRegistration {
   rpc GetGatewayDeviceInfo(GetGatewayDeviceInfoRequest) returns (GetGatewayDeviceInfoResponse) {}
 }
 
+// Registration services a southbound AGW register endpoint that takes in the registration token made by CloudRegistration
+// and the rest of gateway info needed to register an AGW
 service Registration {
   // Register should be called by the gateway device
   rpc Register(RegisterRequest) returns (RegisterResponse) {}
@@ -137,8 +110,7 @@ message GetTokenResponse {
   google.protobuf.Timestamp timeout = 2;
 }
 
-message GetGatewayRegistrationInfoRequest {
-}
+message GetGatewayRegistrationInfoRequest {}
 
 message GetGatewayRegistrationInfoResponse {
   string root_ca = 1;
@@ -174,11 +146,13 @@ message RegisterResponse {
   }
 }
 
+// Basic info that an AGW needs to register
 message GatewayDeviceInfo {
   string network_id = 1;
   string logical_id = 2;
 }
 
+// Info saved that is keyed by token. This is what is saved on CloudRegistration's initial register call (GetToken)
 message TokenInfo {
   GatewayDeviceInfo gateway_device_info = 1;
   string nonce = 2;
