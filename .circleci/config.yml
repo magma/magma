@@ -441,7 +441,6 @@ commands:
             lease_node=$(cat lease_node.out)
             curl -X POST "https://api-staging.magma.etagecom.io/magma/v1/ci/nodes/${lease_node}/release/${lease_id}" -k --key ci_operator.key.pem --cert ci_operator.pem || true
           when: always
-      - magma_slack_notify
 
   magma_slack_notify:
     description: Notify Slack on magma job failure
