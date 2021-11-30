@@ -1,11 +1,11 @@
 ---
 name: Push Bazel Cache To S3
 on:  # yamllint disable-line rule:truthy
-  push:
-    branches:
-      - master
-    paths:
-      - .github/workflows/bazel-cache-push.yml
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
   schedule:
     # Run once a day at midnight
     - cron: '0 0 * * *'
@@ -30,12 +30,12 @@ jobs:
       - run: echo "::set-output name=date::$(date +'%m-%d-%Y--%H-%M-%S')"
         id: date
       - uses: actions/checkout@v2
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
-          aws-region: us-east-1
+      # - name: Configure AWS Credentials
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
+      #     aws-region: us-east-1
       - name: setup pyenv
         uses: "gabrielfalcao/pyenv-action@v8"
         with:
@@ -57,41 +57,77 @@ jobs:
         run: |
           cd lte/gateway
           vagrant up magma
-      - name: Build all with Bazel from scratch `bazel build //...`
+      - name: Build all with Bazel from scratch `bazel build //...` DEBUG
         run: |
           cd lte/gateway
-          vagrant ssh -c 'cd ~/magma; bazel build //...' magma
+          vagrant ssh -c 'cd ~/magma/lte/gateway; make build_c BUILD_TYPE=Debug' magma
       - name: Upload .bazel-cache and .bazel-cache-repo to S3
         run: |
           tar -zcvf ${{ env.BAZEL_CACHE_MAGMA_VM_TAR }} ${{ env.BAZEL_CACHE }}/
           tar -zcvf ${{ env.BAZEL_CACHE_REPO_MAGMA_VM_TAR }} ${{ env.BAZEL_CACHE_REPO }}/
 
-          aws s3 cp ${{ env.BAZEL_CACHE_MAGMA_VM_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_MAGMA_VM_TAR}}
-          aws s3 cp ${{ env.BAZEL_CACHE_REPO_MAGMA_VM_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_REPO_MAGMA_VM_TAR}}
+          du -sh .bazel-cache
+          du -sh .bazel-cache-repo
+
+      - name: Build all with Bazel from scratch `bazel build //...` RELWITHDEBINFO
+        run: |
+          cd lte/gateway
+          vagrant ssh -c 'cd ~/magma/lte/gateway; make build_c BUILD_TYPE=RelWithDebInfo' magma
+      - name: Upload .bazel-cache and .bazel-cache-repo to S3
+        run: |
+          tar -zcvf ${{ env.BAZEL_CACHE_MAGMA_VM_TAR }} ${{ env.BAZEL_CACHE }}/
+          tar -zcvf ${{ env.BAZEL_CACHE_REPO_MAGMA_VM_TAR }} ${{ env.BAZEL_CACHE_REPO }}/
+
+          du -sh .bazel-cache
+          du -sh .bazel-cache-repo
 
   bazel-build-devcontainer-and-push-cache:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
-          aws-region: us-east-1
-      - name: Build all with Bazel from scratch `bazel build //...`
+      # - name: Configure AWS Credentials
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_AMI_BAZEL_CACHE_S3 }}
+      #     aws-region: us-east-1
+      - name: Build all with Bazel from scratch `bazel build //...` DEBUG
         uses: addnab/docker-run-action@v2
         with:
           image: ${{ env.DEVCONTAINER_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
           run: |
-            cd /workspaces/magma
-            bazel build //...
+            cd /workspaces/magma/lte/gateway
+            make build_c BUILD_TYPE=Debug
       - name: Upload .bazel-cache and .bazel-cache-repo to S3
         run: |
           tar -zcvf ${{ env.BAZEL_CACHE_DEVCONTAINER_TAR }} ${{ env.BAZEL_CACHE }}/
           tar -zcvf ${{ env.BAZEL_CACHE_REPO_DEVCONTAINER_TAR }} ${{ env.BAZEL_CACHE_REPO }}/
 
-          aws s3 cp ${{ env.BAZEL_CACHE_DEVCONTAINER_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_DEVCONTAINER_TAR}}
-          aws s3 cp ${{ env.BAZEL_CACHE_REPO_DEVCONTAINER_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_REPO_DEVCONTAINER_TAR}}
+          du -sh .bazel-cache
+          du -sh .bazel-cache-repo
+
+          #aws s3 cp ${{ env.BAZEL_CACHE_DEVCONTAINER_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_DEVCONTAINER_TAR}}
+          #aws s3 cp ${{ env.BAZEL_CACHE_REPO_DEVCONTAINER_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_REPO_DEVCONTAINER_TAR}}
+
+      - name: Build all with Bazel from scratch `bazel build //...` RELWITHDEB
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make build_c BUILD_TYPE=RelWithDebInfo
+      - name: Upload .bazel-cache and .bazel-cache-repo to S3
+        run: |
+          tar -zcvf ${{ env.BAZEL_CACHE_DEVCONTAINER_TAR }} ${{ env.BAZEL_CACHE }}/
+          tar -zcvf ${{ env.BAZEL_CACHE_REPO_DEVCONTAINER_TAR }} ${{ env.BAZEL_CACHE_REPO }}/
+
+          du -sh .bazel-cache
+          du -sh .bazel-cache-repo
+
+          #aws s3 cp ${{ env.BAZEL_CACHE_DEVCONTAINER_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_DEVCONTAINER_TAR}}
+          #aws s3 cp ${{ env.BAZEL_CACHE_REPO_DEVCONTAINER_TAR }} ${{ env.S3_BUCKET_PATH }}/${{ env.BAZEL_CACHE_REPO_DEVCONTAINER_TAR}}
+
