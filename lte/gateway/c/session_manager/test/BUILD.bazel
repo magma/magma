@@ -42,8 +42,8 @@ cc_library(
     deps = [
         ":consts",
         "//lte/gateway/c/session_manager:diameter_codes",
-        "//lte/gateway/c/session_manager:stored_state",
         "//lte/gateway/c/session_manager:session_store",
+        "//lte/gateway/c/session_manager:stored_state",
         "//lte/protos:mconfigs_cpp_proto",
         "//lte/protos:pipelined_cpp_grpc",
         "//lte/protos:session_manager_cpp_grpc",
@@ -178,10 +178,16 @@ cc_test(
     size = "small",
     srcs = ["test_sessiond_integ.cpp"],
     flaky = True,
-    # This test unfortunately brings up a test server that collides with another test (cloud_reporter)
-    # Marking it as exclusive so that the test is not run in parallel with other tests
-    # See https://docs.bazel.build/versions/4.2.1/test-encyclopedia.html#tag-conventions
-    tags = ["exclusive"],
+    tags = [
+        # This test unfortunately brings up a test server that collides with another test (cloud_reporter)
+        # Marking it as exclusive so that the test is not run in parallel with other tests
+        # See https://docs.bazel.build/versions/4.2.1/test-encyclopedia.html#tag-conventions
+        "exclusive",
+        # TODO: GH10582
+        "no_asan",
+        # TODO: GH10582
+        "no_lsan",
+    ],
     deps = [
         ":consts",
         ":matchers",
