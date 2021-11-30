@@ -30,8 +30,8 @@ COMMIT_HASH = 'COMMIT_HASH'
 HWID = 'hwid'
 SERVICE_NAME = 'service_name'
 LOGGING_EXTRA = 'extra'
-SEND_TO_MONITORING_KEY = "send_to_monitoring"
-SEND_TO_MONITORING = {SEND_TO_MONITORING_KEY: True}
+SEND_TO_ERROR_MONITORING_KEY = "send_to_error_monitoring"
+SEND_TO_ERROR_MONITORING = {SEND_TO_ERROR_MONITORING_KEY: True}
 
 
 class SentryStatus(Enum):
@@ -49,7 +49,7 @@ def send_uncaught_errors_to_monitoring(enabled: bool):
             try:
                 return func(*args, **kwargs)
             except Exception as err:
-                logging.error("Uncaught error", exc_info=True, extra=SEND_TO_MONITORING)
+                logging.error("Uncaught error", exc_info=True, extra=SEND_TO_ERROR_MONITORING)
                 raise err
 
         if enabled:
@@ -63,8 +63,8 @@ def _ignore_if_not_marked(
         event: Dict[str, Any],
         hint: Dict[str, Any],  # pylint: disable=unused-argument
 ) -> Optional[Dict[str, Any]]:
-    if event.get(LOGGING_EXTRA) and event.get(LOGGING_EXTRA).get(SEND_TO_MONITORING_KEY):
-        del event[LOGGING_EXTRA][SEND_TO_MONITORING_KEY]
+    if event.get(LOGGING_EXTRA) and event.get(LOGGING_EXTRA).get(SEND_TO_ERROR_MONITORING_KEY):
+        del event[LOGGING_EXTRA][SEND_TO_ERROR_MONITORING_KEY]
         return event
     return None
 
