@@ -7,13 +7,15 @@ on:  # yamllint disable-line rule:truthy
   workflow_run:
     workflows:
       - build-all
+    branches:
+      - master
+      - v1.*
     types:
       - completed
 
 jobs:
   lte-integ-test:
     runs-on: macos-10.15
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.event == 'push'
     steps:
       - run: echo "::set-output name=date::$(date +'%m-%d-%Y--%H-%M-%S')"
         id: date
