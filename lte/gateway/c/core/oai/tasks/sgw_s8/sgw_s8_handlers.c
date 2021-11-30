@@ -232,7 +232,7 @@ int sgw_update_bearer_context_information_on_csreq(
   new_sgw_eps_context->imsi64      = imsi64;
   new_sgw_eps_context->imsi_unauthenticated_indicator = 1;
   new_sgw_eps_context->mme_teid_S11 = session_req_pP->sender_fteid_for_cp.teid;
-  new_sgw_eps_context->trxn             = session_req_pP->trxn;
+  new_sgw_eps_context->trxn         = session_req_pP->trxn;
   // Update PDN details
   if (check_empty_apn(session_req_pP->apn)) {
     new_sgw_eps_context->pdn_connection.apn_in_use = strdup("NO APN");
@@ -269,7 +269,7 @@ int sgw_update_bearer_context_information_on_csreq(
   OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNok);
 }
 
-int sgw_s8_handle_s11_create_session_request(
+status_code_e sgw_s8_handle_s11_create_session_request(
     sgw_state_t* sgw_state, itti_s11_create_session_request_t* session_req_pP,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
@@ -486,7 +486,7 @@ static int sgw_s8_send_create_session_response(
   OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNok);
 }
 
-int sgw_s8_handle_create_session_response(
+status_code_e sgw_s8_handle_create_session_response(
     sgw_state_t* sgw_state, s8_create_session_response_t* session_rsp_p,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
@@ -506,7 +506,7 @@ int sgw_s8_handle_create_session_response(
   if (!sgw_context_p) {
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64,
-        "Failed to fetch sgw_eps_bearer_context_info from "
+        "Failed to fetch sgw_eps_bearer_context_info from hash list for "
         "temporary_session_id:%u \n",
         session_rsp_p->temporary_session_id);
     OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
@@ -907,7 +907,7 @@ static int sgw_s8_add_gtp_up_tunnel(
   OAILOG_FUNC_RETURN(LOG_SGW_S8, rv);
 }
 
-int sgw_s8_handle_s11_delete_session_request(
+status_code_e sgw_s8_handle_s11_delete_session_request(
     sgw_state_t* sgw_state,
     const itti_s11_delete_session_request_t* const delete_session_req_p,
     imsi64_t imsi64) {
@@ -1046,7 +1046,7 @@ static void delete_userplane_tunnels(
 }
 #endif
 
-int sgw_s8_handle_delete_session_response(
+status_code_e sgw_s8_handle_delete_session_response(
     sgw_state_t* sgw_state, s8_delete_session_response_t* session_rsp_p,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);

@@ -65,7 +65,9 @@ class MockMmeAppHandler {
       mme_app_handle_nw_init_bearer_deactv_req,
       bool(itti_s11_nw_init_deactv_bearer_request_t db_req));
   MOCK_METHOD0(mme_app_handle_modify_bearer_rsp, void());
-  MOCK_METHOD0(mme_app_handle_delete_sess_rsp, void());
+  MOCK_METHOD1(
+      mme_app_handle_delete_sess_rsp,
+      bool(itti_s11_delete_session_response_t ds_rsp));
   MOCK_METHOD0(nas_proc_dl_transfer_rej, void());
   MOCK_METHOD0(mme_app_handle_release_access_bearers_resp, void());
   MOCK_METHOD0(mme_app_handle_handover_required, void());

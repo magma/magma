@@ -72,9 +72,9 @@ void fill_itti_csrsp(
   csr_resp->pdn_type                = IPv4;
   csr_resp->paa.pdn_type            = IPv4;
   csr_resp->paa.ipv4_address.s_addr = 0xc0a87e1;
-  csr_resp->context_teid = 16;  // This teid would be allocated by orc8r
-  csr_resp->eps_bearer_id           = 5;
-  csr_resp->temporary_session_id    = temporary_session_id;
+  csr_resp->context_teid         = 16;  // This teid would be allocated by orc8r
+  csr_resp->eps_bearer_id        = 5;
+  csr_resp->temporary_session_id = temporary_session_id;
 
   csr_resp->bearer_context[0].eps_bearer_id                 = 5;
   csr_resp->bearer_context[0].pgw_s8_up.ipv4                = 1;
@@ -199,7 +199,7 @@ sgw_state_t* SgwS8ConfigAndCreateMock::create_and_get_contexts_on_cs_req(
     uint32_t* temporary_session_id,
     sgw_eps_bearer_context_information_t** sgw_pdn_session) {
   sgw_state_t* sgw_state = get_sgw_state(false);
-  *sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
+  *sgw_pdn_session       = sgw_create_bearer_context_information_in_collection(
       sgw_state, temporary_session_id);
 
   itti_s11_create_session_request_t session_req = {0};
@@ -216,7 +216,7 @@ sgw_state_t* SgwS8ConfigAndCreateMock::create_and_get_contexts_on_cs_req(
 
 sgw_state_t* SgwS8ConfigAndCreateMock::create_ue_context(
     mme_sgw_tunnel_t* sgw_s11_tunnel) {
-  sgw_state_t* sgw_state     = get_sgw_state(false);
+  sgw_state_t* sgw_state = get_sgw_state(false);
   sgw_update_teid_in_ue_context(sgw_state, imsi64, sgw_s11_tunnel->local_teid);
   return sgw_state;
 }

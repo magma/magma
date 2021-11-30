@@ -17,11 +17,11 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/include/spgw_types.h"
 
-int sgw_s8_handle_s11_create_session_request(
+status_code_e sgw_s8_handle_s11_create_session_request(
     sgw_state_t* sgw_state, itti_s11_create_session_request_t* session_req_p,
     imsi64_t imsi64);
 
-int sgw_s8_handle_create_session_response(
+status_code_e sgw_s8_handle_create_session_response(
     sgw_state_t* sgw_state, s8_create_session_response_t* session_rsp_p,
     imsi64_t imsi64);
 
@@ -30,7 +30,7 @@ void sgw_s8_handle_modify_bearer_request(
     const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
     imsi64_t imsi64);
 
-int sgw_s8_handle_delete_session_response(
+status_code_e sgw_s8_handle_delete_session_response(
     sgw_state_t* sgw_state, s8_delete_session_response_t* session_rsp_p,
     imsi64_t imsi64);
 
@@ -39,7 +39,7 @@ void sgw_s8_handle_release_access_bearers_request(
         release_access_bearers_req_pP,
     imsi64_t imsi64);
 
-int sgw_s8_handle_s11_delete_session_request(
+status_code_e sgw_s8_handle_s11_delete_session_request(
     sgw_state_t* sgw_state,
     const itti_s11_delete_session_request_t* const delete_session_req_p,
     imsi64_t imsi64);

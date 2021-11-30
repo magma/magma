@@ -830,7 +830,9 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
     }
     // set pdn_context to active after receiving "activate default eps bearer
     // context accept from ue
-    ue_context_p->pdn_contexts[bearer_ctx->pdn_cx_id]->is_active = true;
+    if (ue_context_p->pdn_contexts[bearer_ctx->pdn_cx_id]) {
+      ue_context_p->pdn_contexts[bearer_ctx->pdn_cx_id]->is_active = true;
+    }
     /* Send MBR only after receiving ERAB_SETUP_RSP.
      * bearer_ctx->enb_fteid_s1u.teid gets updated after receiving
      * ERAB_SETUP_RSP.*/

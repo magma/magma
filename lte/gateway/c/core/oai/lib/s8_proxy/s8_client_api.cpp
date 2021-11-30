@@ -172,32 +172,33 @@ static void recv_s8_create_session_response(
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64,
         "Failed to allocate memory for S8_CREATE_SESSION_RSP for "
-        "temporary_session_id:%u\n",
-        temporary_session_id);
+        "temporary_session_id:%u sgw_s8_cp_teid " TEID_FMT "\n",
+        temporary_session_id, response.c_agw_teid());
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
-  s5_response                   = &message_p->ittiMsg.s8_create_session_rsp;
-  message_p->ittiMsgHeader.imsi = imsi64;
+  s5_response                       = &message_p->ittiMsg.s8_create_session_rsp;
+  message_p->ittiMsgHeader.imsi     = imsi64;
   s5_response->context_teid         = response.c_agw_teid();
   s5_response->temporary_session_id = temporary_session_id;
   if (status.ok()) {
     convert_proto_msg_to_itti_csr(response, s5_response, dflt_bearer_qos);
   } else {
-    OAILOG_ERROR(
-        LOG_SGW_S8,
+    OAILOG_ERROR_UE(
+        LOG_SGW_S8, imsi64,
         "Received gRPC error for create session response for "
-        "temporary_session_id:%u \n",
-        temporary_session_id);
+        "temporary_session_id:%u sgw_s8_cp_teid " TEID_FMT "\n",
+        temporary_session_id, s5_response->context_teid);
     s5_response->cause = REMOTE_PEER_NOT_RESPONDING;
   }
-  OAILOG_DEBUG(LOG_UTIL, "Sending create session response to sgw_s8 task");
+  OAILOG_DEBUG_UE(
+      LOG_SGW_S8, imsi64, "Sending create session response to sgw_s8 task");
   if ((send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SGW_S8, message_p)) !=
       RETURNok) {
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64,
         "Failed to send S8 CREATE SESSION RESPONSE message to sgw_s8 task "
-        "for temporary_session_id:%u \n",
-        temporary_session_id);
+        "for temporary_session_id:%u sgw_s8_cp_teid " TEID_FMT "\n",
+        temporary_session_id, response.c_agw_teid());
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
   OAILOG_FUNC_OUT(LOG_SGW_S8);
