@@ -812,10 +812,9 @@ static int decode_traffic_flow_template_packet_filter(
     }
   }
 
-  if (len - decoded != 0) {
+  if (len - decoded < 0) {
     /*
-     * Mismatch between the number of packet filters subfield,
-     * * * * and the number of packet filters in the packet filter list
+     * Decoded more than remaining space in decoding buffer
      */
     return (TLV_VALUE_DOESNT_MATCH);
   }

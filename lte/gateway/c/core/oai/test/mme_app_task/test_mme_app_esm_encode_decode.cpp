@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <cstring>
 #include <string>
+#include "EpsQualityOfService.h"
 #include "bstrlib.h"
 
 extern "C" {
@@ -89,6 +90,82 @@ class ESMEncodeDecodeTest : public ::testing::Test {
     return;
   }
 
+  void fill_epsqos(EpsQualityOfService* epsqos) {
+    epsqos->bitRatesPresent               = 1;
+    epsqos->bitRatesExtPresent            = 1;
+    epsqos->bitRatesExt2Present           = 1;
+    epsqos->bitRates.guarBitRateForDL     = 10;
+    epsqos->bitRates.guarBitRateForUL     = 5;
+    epsqos->bitRates.maxBitRateForDL      = 100;
+    epsqos->bitRates.maxBitRateForUL      = 50;
+    epsqos->bitRatesExt.guarBitRateForDL  = 10;
+    epsqos->bitRatesExt.guarBitRateForUL  = 5;
+    epsqos->bitRatesExt.maxBitRateForDL   = 100;
+    epsqos->bitRatesExt.maxBitRateForUL   = 50;
+    epsqos->bitRatesExt2.guarBitRateForDL = 10;
+    epsqos->bitRatesExt2.guarBitRateForUL = 5;
+    epsqos->bitRatesExt2.maxBitRateForDL  = 100;
+    epsqos->bitRatesExt2.maxBitRateForUL  = 50;
+    epsqos->qci                           = 5;
+    return;
+  }
+
+  void fill_tft(traffic_flow_template_t* tft) {
+    tft->tftoperationcode = TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT;
+    tft->ebit = TRAFFIC_FLOW_TEMPLATE_PARAMETER_LIST_IS_NOT_INCLUDED;
+    tft->numberofpacketfilters = 1;
+    tft->packetfilterlist.createnewtft[0].direction =
+        TRAFFIC_FLOW_TEMPLATE_UPLINK_ONLY;
+    tft->packetfilterlist.createnewtft[0].eval_precedence = 250;
+    tft->packetfilterlist.createnewtft[0].packetfiltercontents.flags |=
+        (TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG |
+         TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG);
+    for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; ++i) {
+      tft->packetfilterlist.createnewtft[0]
+          .packetfiltercontents.ipv4remoteaddr[i]
+          .addr = 8;
+      tft->packetfilterlist.createnewtft[0]
+          .packetfiltercontents.ipv4remoteaddr[i]
+          .mask = 255;
+    }
+    tft->packetfilterlist.createnewtft[0]
+        .packetfiltercontents.singleremoteport = 80;
+    return;
+  }
+
+  void fill_negotiated_qos(quality_of_service_t* negotiated_qos) {
+    negotiated_qos->delayclass                 = 1;
+    negotiated_qos->reliabilityclass           = 2;
+    negotiated_qos->peakthroughput             = 15;
+    negotiated_qos->precedenceclass            = 2;
+    negotiated_qos->meanthroughput             = 16;
+    negotiated_qos->trafficclass               = 7;
+    negotiated_qos->deliveryorder              = 1;
+    negotiated_qos->deliveryoferroneoussdu     = 2;
+    negotiated_qos->maximumsdusize             = 255;
+    negotiated_qos->maximumbitrateuplink       = 99;
+    negotiated_qos->maximumbitratedownlink     = 169;
+    negotiated_qos->residualber                = 4;
+    negotiated_qos->sduratioerror              = 12;
+    negotiated_qos->transferdelay              = 61;
+    negotiated_qos->traffichandlingpriority    = 0;
+    negotiated_qos->guaranteedbitrateuplink    = 10;
+    negotiated_qos->guaranteedbitratedownlink  = 20;
+    negotiated_qos->signalingindication        = 1;
+    negotiated_qos->sourcestatisticsdescriptor = 13;
+    return;
+  }
+
+  void fill_apnambr(ApnAggregateMaximumBitRate* apnambr) {
+    apnambr->apnambrfordownlink           = 11;
+    apnambr->apnambrforuplink             = 11;
+    apnambr->apnambrfordownlink_extended  = 11;
+    apnambr->apnambrforuplink_extended    = 11;
+    apnambr->apnambrfordownlink_extended2 = 11;
+    apnambr->apnambrforuplink_extended2   = 11;
+    apnambr->extensions                   = 3;
+  }
+
   uint8_t buffer[BUFFER_LEN];
 };
 
@@ -106,7 +183,8 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextAccept) {
       &decoded_msg, buffer, encoded);
 
   EXPECT_EQ(encoded, decoded);
-  // Header needs to be decoded separately and then can be compared
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
   // COMPARE_COMMON_MANDATORY_DEFAULTS();
   EXPECT_EQ(original_msg.presencemask, decoded_msg.presencemask);
   EXPECT_EQ(
@@ -142,7 +220,8 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextReject) {
       &decoded_msg, buffer, encoded);
 
   EXPECT_EQ(encoded, decoded);
-  // Header needs to be decoded separately and then can be compared
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
   // COMPARE_COMMON_MANDATORY_DEFAULTS();
   EXPECT_EQ(original_msg.esmcause, decoded_msg.esmcause);
   EXPECT_EQ(original_msg.presencemask, decoded_msg.presencemask);
@@ -169,22 +248,7 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextRequest) {
   activate_default_eps_bearer_context_request_msg decoded_msg  = {0};
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
 
-  original_msg.epsqos.bitRatesPresent               = 1;
-  original_msg.epsqos.bitRatesExtPresent            = 1;
-  original_msg.epsqos.bitRatesExt2Present           = 1;
-  original_msg.epsqos.bitRates.guarBitRateForDL     = 10;
-  original_msg.epsqos.bitRates.guarBitRateForUL     = 5;
-  original_msg.epsqos.bitRates.maxBitRateForDL      = 100;
-  original_msg.epsqos.bitRates.maxBitRateForUL      = 50;
-  original_msg.epsqos.bitRatesExt.guarBitRateForDL  = 10;
-  original_msg.epsqos.bitRatesExt.guarBitRateForUL  = 5;
-  original_msg.epsqos.bitRatesExt.maxBitRateForDL   = 100;
-  original_msg.epsqos.bitRatesExt.maxBitRateForUL   = 50;
-  original_msg.epsqos.bitRatesExt2.guarBitRateForDL = 10;
-  original_msg.epsqos.bitRatesExt2.guarBitRateForUL = 5;
-  original_msg.epsqos.bitRatesExt2.maxBitRateForDL  = 100;
-  original_msg.epsqos.bitRatesExt2.maxBitRateForUL  = 50;
-  original_msg.epsqos.qci                           = 5;
+  fill_epsqos(&original_msg.epsqos);
 
   original_msg.accesspointname = bfromcstr("magma.ipv4");
 
@@ -203,37 +267,13 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextRequest) {
       ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_ESM_CAUSE_PRESENT |
       ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
 
-  original_msg.negotiatedqos.delayclass                 = 1;
-  original_msg.negotiatedqos.reliabilityclass           = 2;
-  original_msg.negotiatedqos.peakthroughput             = 15;
-  original_msg.negotiatedqos.precedenceclass            = 2;
-  original_msg.negotiatedqos.meanthroughput             = 16;
-  original_msg.negotiatedqos.trafficclass               = 7;
-  original_msg.negotiatedqos.deliveryorder              = 1;
-  original_msg.negotiatedqos.deliveryoferroneoussdu     = 2;
-  original_msg.negotiatedqos.maximumsdusize             = 255;
-  original_msg.negotiatedqos.maximumbitrateuplink       = 99;
-  original_msg.negotiatedqos.maximumbitratedownlink     = 169;
-  original_msg.negotiatedqos.residualber                = 4;
-  original_msg.negotiatedqos.sduratioerror              = 12;
-  original_msg.negotiatedqos.transferdelay              = 61;
-  original_msg.negotiatedqos.traffichandlingpriority    = 0;
-  original_msg.negotiatedqos.guaranteedbitrateuplink    = 10;
-  original_msg.negotiatedqos.guaranteedbitratedownlink  = 20;
-  original_msg.negotiatedqos.signalingindication        = 1;
-  original_msg.negotiatedqos.sourcestatisticsdescriptor = 13;
+  fill_negotiated_qos(&original_msg.negotiatedqos);
 
   original_msg.negotiatedllcsapi    = 10;
   original_msg.radiopriority        = 5;
   original_msg.packetflowidentifier = 118;
 
-  original_msg.apnambr.apnambrfordownlink           = 11;
-  original_msg.apnambr.apnambrforuplink             = 11;
-  original_msg.apnambr.apnambrfordownlink_extended  = 11;
-  original_msg.apnambr.apnambrforuplink_extended    = 11;
-  original_msg.apnambr.apnambrfordownlink_extended2 = 11;
-  original_msg.apnambr.apnambrforuplink_extended2   = 11;
-  original_msg.apnambr.extensions                   = 3;
+  fill_apnambr(&original_msg.apnambr);
 
   original_msg.esmcause = 102;
 
@@ -245,7 +285,8 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextRequest) {
       &decoded_msg, buffer, encoded);
 
   EXPECT_EQ(encoded, decoded);
-  // Header needs to be decoded separately and then can be compared
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
   // COMPARE_COMMON_MANDATORY_DEFAULTS();
   EXPECT_EQ(
       original_msg.pdnaddress.pdntypevalue,
@@ -293,6 +334,76 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextRequest) {
   bdestroy_wrapper(&decoded_msg.accesspointname);
   bdestroy_wrapper(&original_msg.pdnaddress.pdnaddressinformation);
   bdestroy_wrapper(&decoded_msg.pdnaddress.pdnaddressinformation);
+}
+
+TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextRequest) {
+  activate_dedicated_eps_bearer_context_request_msg original_msg = {0};
+  activate_dedicated_eps_bearer_context_request_msg decoded_msg  = {0};
+  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
+
+  original_msg.linkedepsbeareridentity = 5;
+
+  fill_epsqos(&original_msg.epsqos);
+
+  fill_tft(&original_msg.tft);
+
+  // TI_IE encoding/decoding is not implemented, hence its flag as well as
+  // entries will be omitted.
+  original_msg.presencemask =
+      ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_QOS_PRESENT |
+      ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_LLC_SAPI_PRESENT |
+      ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_RADIO_PRIORITY_PRESENT |
+      ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_PACKET_FLOW_IDENTIFIER_PRESENT |
+      ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+
+  fill_negotiated_qos(&original_msg.negotiatedqos);
+
+  original_msg.negotiatedllcsapi    = 10;
+  original_msg.radiopriority        = 5;
+  original_msg.packetflowidentifier = 118;
+
+  fill_pco(&original_msg.protocolconfigurationoptions);
+
+  int encoded = encode_activate_dedicated_eps_bearer_context_request(
+      &original_msg, buffer, BUFFER_LEN);
+  int decoded = decode_activate_dedicated_eps_bearer_context_request(
+      &decoded_msg, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
+  // COMPARE_COMMON_MANDATORY_DEFAULTS();
+  EXPECT_EQ(
+      original_msg.linkedepsbeareridentity,
+      decoded_msg.linkedepsbeareridentity);
+  EXPECT_TRUE(!memcmp(
+      &original_msg.epsqos, &decoded_msg.epsqos, sizeof(original_msg.epsqos)));
+  EXPECT_TRUE(
+      !memcmp(&original_msg.tft, &decoded_msg.tft, sizeof(original_msg.tft)));
+  EXPECT_EQ(original_msg.presencemask, decoded_msg.presencemask);
+  EXPECT_TRUE(!memcmp(
+      &original_msg.negotiatedqos, &decoded_msg.negotiatedqos,
+      sizeof(original_msg.negotiatedqos)));
+  EXPECT_EQ(original_msg.negotiatedllcsapi, decoded_msg.negotiatedllcsapi);
+  EXPECT_EQ(original_msg.radiopriority, decoded_msg.radiopriority);
+  EXPECT_EQ(
+      original_msg.packetflowidentifier, decoded_msg.packetflowidentifier);
+  EXPECT_EQ(
+      std::string((const char*) original_msg.protocolconfigurationoptions
+                      .protocol_or_container_ids[0]
+                      .contents->data),
+      std::string((const char*) decoded_msg.protocolconfigurationoptions
+                      .protocol_or_container_ids[0]
+                      .contents->data));
+  EXPECT_EQ(
+      std::string((const char*) original_msg.protocolconfigurationoptions
+                      .protocol_or_container_ids[1]
+                      .contents->data),
+      std::string((const char*) decoded_msg.protocolconfigurationoptions
+                      .protocol_or_container_ids[1]
+                      .contents->data));
+
+  DESTROY_PCO();
 }
 
 }  // namespace lte
