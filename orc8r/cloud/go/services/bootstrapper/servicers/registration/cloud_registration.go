@@ -14,8 +14,6 @@ import (
 )
 
 const (
-	rootCAFilePath = "/var/opt/magma/certs/rootCA.pem"
-
 	// length of timeout for the nonce
 	timeoutDuration = 30 * time.Minute
 
@@ -24,8 +22,8 @@ const (
 )
 
 type cloudRegistrationServicer struct {
-	store Store
-	rootCA string
+	store                    Store
+	rootCA                   string
 	timeoutDurationInMinutes int
 }
 
@@ -47,9 +45,8 @@ func (c *cloudRegistrationServicer) GetToken(ctx context.Context, request *proto
 		glog.V(2).Infof("could not get tokenInfo for networkID %v and logicalID %v: %v", networkId, logicalId, err)
 	}
 
-	refresh := request.Refresh || tokenInfo == nil || isTokenExpired(tokenInfo)
+	refresh := request.Refresh || tokenInfo == nil || tokenInfo.IsExpired()
 	if refresh {
-		// TODO(reginawang3495) add a test with tokenInfo = nil to make sure it works
 		tokenInfo, err = c.generateAndSaveTokenInfo(networkId, logicalId)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "could not generate and save tokenInfo for networkID %v and logicalID %v: %v", networkId, logicalId, err)
@@ -64,8 +61,8 @@ func (c *cloudRegistrationServicer) GetGatewayRegistrationInfo(ctx context.Conte
 	domainName := getDomainName()
 
 	res := &protos.GetGatewayRegistrationInfoResponse{
-		RootCa:               c.rootCA,
-		DomainName:           domainName,
+		RootCa:     c.rootCA,
+		DomainName: domainName,
 	}
 	return res, nil
 }
@@ -84,10 +81,10 @@ func (c *cloudRegistrationServicer) GetGatewayDeviceInfo(ctx context.Context, re
 	}
 
 	res := &protos.GetGatewayDeviceInfoResponse{
-		Response:             &protos.GetGatewayDeviceInfoResponse_GatewayDeviceInfo{
+		Response: &protos.GetGatewayDeviceInfoResponse_GatewayDeviceInfo{
 			GatewayDeviceInfo: &protos.GatewayDeviceInfo{
-				NetworkId:           tokenInfo.GatewayDeviceInfo.NetworkId,
-				LogicalId:            tokenInfo.GatewayDeviceInfo.LogicalId,
+				NetworkId: tokenInfo.GatewayDeviceInfo.NetworkId,
+				LogicalId: tokenInfo.GatewayDeviceInfo.LogicalId,
 			},
 		},
 	}
@@ -104,7 +101,7 @@ func (c *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string, l
 			NetworkId: networkID,
 			LogicalId: logicalID,
 		},
-		Nonce:   nonce,
+		Nonce: nonce,
 		Timeout: &timestamp.Timestamp{
 			Seconds: int64(t.Second()),
 			Nanos:   int32(t.Unix()),
