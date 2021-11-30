@@ -67,7 +67,7 @@ const int itti_debug = ITTI_DEBUG_ISSUES | ITTI_DEBUG_MP_STATISTICS;
 
 #define ITTI_DEBUG(m, x, args...)                                              \
   do {                                                                         \
-	/* stdout is redirected to syslog when MME is run via systemd */           \
+    /* stdout is redirected to syslog when MME is run via systemd */           \
     if ((m) &itti_debug) fprintf(stdout, "[ITTI][D]" x, ##args);               \
   } while (0);
 
@@ -135,8 +135,8 @@ status_code_e send_msg_to_task(
     assert(rc == 0);
     pthread_mutex_unlock(&task_zmq_ctx_p->send_mutex);
   } else {
-	  ITTI_DEBUG(ITTI_DEBUG_SEND,
-        "Sending msg using uninitialized context. %s to %s!\n",
+    ITTI_DEBUG(
+        ITTI_DEBUG_SEND, "Sending msg using uninitialized context. %s to %s!\n",
         itti_get_message_name(message->ittiMsgHeader.messageId),
         itti_get_task_name(destination_task_id));
   }
