@@ -167,7 +167,7 @@ jobs:
           path: lte/gateway/magma-packages/*.deb
       - name: Extract commit title
         # yamllint enable
-        if: failure() && github.event_name == 'push'
+        if: github.event_name == 'push'
         id: commit
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
@@ -228,7 +228,6 @@ jobs:
         if: github.event_name == 'push'
         run: |
           if [ "$GITHUB_REF" = "refs/head/master" ]; then
-            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
             echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
           else
             GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
@@ -246,7 +245,7 @@ jobs:
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/nginx:${TAG}\", \"$DOCKER_REGISTRY/controller:${TAG}\"],\"valid\":true}"
           echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
       - name: Extract commit title
-        if: github.ref == 'refs/heads/master'
+        if: github.event_name == 'push'
         id: commit
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
@@ -293,7 +292,7 @@ jobs:
           swaggerhub api:update MagmaCore/Magma/1.0.0 --file ${MAGMA_ROOT}/orc8r/cloud/go/obsidian/swagger/v1/swagger.yml --published=publish --visibility=public --setdefault
       - name: Extract commit title
         id: commit
-        if: failure() && github.event_name == 'push'
+        if: github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
@@ -400,7 +399,6 @@ jobs:
         if: github.event_name == 'push'
         run: |
           if [ "$GITHUB_REF" = "refs/head/master" ]; then
-            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
             echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
           else
             GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
@@ -507,7 +505,6 @@ jobs:
         if: github.event_name == 'push'
         run: |
           if [ "$GITHUB_REF" = "refs/head/master" ]; then
-            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
             echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
           else
             GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
@@ -523,7 +520,7 @@ jobs:
           ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${TAG}" --tag-latest true --project cwf
       - name: Extract commit title
         id: commit
-        if: github.ref == 'refs/heads/master'
+        if: github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
@@ -605,7 +602,6 @@ jobs:
       - name: Create release Tag
         run: |
           if [ "$GITHUB_REF" = "refs/head/master" ]; then
-            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
             echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
           else
             GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
@@ -687,7 +683,6 @@ jobs:
         if: github.event_name == 'push'
         run: |
           if [ "$GITHUB_REF" = "refs/head/master" ]; then
-            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
             echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
           else
             GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
