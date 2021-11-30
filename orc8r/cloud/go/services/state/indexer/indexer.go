@@ -16,6 +16,7 @@ package indexer
 
 import (
 	"fmt"
+	"math"
 
 	state_types "magma/orc8r/cloud/go/services/state/types"
 )
