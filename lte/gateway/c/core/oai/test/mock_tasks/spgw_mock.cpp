@@ -44,6 +44,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       spgw_handler_->sgw_handle_release_access_bearers_request();
     } break;
 
+    case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {
+      // Handle Dedicated bearer Activation Rsp from MME
+      spgw_handler_->sgw_handle_nw_initiated_actv_bearer_rsp();
+    } break;
+
     default: { } break; }
   itti_free_msg_content(received_message_p);
   free(received_message_p);

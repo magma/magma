@@ -795,7 +795,7 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   bstring buffer;
   amf_nas_message_t msg = {};
 
-  // build uplinknastransport //
+  // build uplinknastransport
   // uplink nas transport(pdu session request)
   uint8_t pdu[44] = {0x7e, 0x00, 0x67, 0x01, 0x00, 0x15, 0x2e, 0x01, 0x01,
                      0xc1, 0xff, 0xff, 0x91, 0xa1, 0x28, 0x01, 0x00, 0x7b,
@@ -812,8 +812,11 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   decode_res = decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len);
 
   EXPECT_EQ(decode_res, true);
-  // build uplinknastransport
-
+  // SSC mode check
+  EXPECT_EQ(
+      pdu_sess_est_req.payload_container.smf_msg.msg.pdu_session_estab_request
+          .ssc_mode.mode_val,
+      1);
   EXPECT_EQ(pdu_sess_est_req.nssai.sst, 1);
   uint8_t dnn[9] = {0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
   EXPECT_EQ(memcmp(pdu_sess_est_req.dnn.dnn, dnn, pdu_sess_est_req.dnn.len), 0);
@@ -825,6 +828,11 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   ULNASTransportMsg decode_pdu_sess_est_req = {};
   decode_res = decode_ul_nas_transport_msg(&decode_pdu_sess_est_req, pdu, len);
   EXPECT_EQ(decode_res, true);
+  // SSC mode Check
+  EXPECT_EQ(
+      decode_pdu_sess_est_req.payload_container.smf_msg.msg
+          .pdu_session_estab_request.ssc_mode.mode_val,
+      1);
   EXPECT_EQ(decode_pdu_sess_est_req.nssai.sst, 1);
   EXPECT_EQ(memcmp(pdu_sess_est_req.dnn.dnn, dnn, pdu_sess_est_req.dnn.len), 0);
 
@@ -1222,6 +1230,7 @@ TEST_F(
     AmfUeContextTestServiceRequestProc,
     test_amf_service_request_without_uplinkDataStatus_RainyDay) {
   ServiceRequestMsg service_request;
+  memset(&service_request, 0, sizeof(service_request));
   bool decode_res                               = 0;
   amf_nas_message_decode_status_t decode_status = {0};
   MessageDef* message_p                         = NULL;
@@ -1405,6 +1414,8 @@ TEST(test_optional_pdu, test_pdu_session_accept_optional) {
 
   // PDU Session type : IPv4 (pdu_address.type_val = 1)
   EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val, 1);
+  // SSC mode check
+  EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val, 1);
   // NSSAI
   EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sst, 3);
   uint8_t sd[3] = {0x03, 0x06, 0x09};
@@ -1432,6 +1443,8 @@ TEST(test_optional_pdu, test_pdu_session_accept_optional) {
   EXPECT_GT(decode_res, 0);
 
   EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val, 1);
+  // SSC mode check
+  EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val, 1);
   EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sst, 3);
   EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sd[0], sd[0]);
   EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sd[1], sd[1]);
@@ -1450,11 +1463,6 @@ TEST(test_optional_pdu, test_pdu_session_accept_optional) {
   sm_free_protocol_configuration_options(&decode_msg_accept_pco);
   // Clean up the PCO contents
   sm_free_protocol_configuration_options(&msg_accept_pco);
-}
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
 
 }  // namespace magma5g

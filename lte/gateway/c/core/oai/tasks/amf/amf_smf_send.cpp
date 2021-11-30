@@ -213,17 +213,7 @@ void clear_amf_smf_context(std::shared_ptr<smf_context_t> smf_ctx) {
 int pdu_session_release_request_process(
     ue_m5gmm_context_s* ue_context, std::shared_ptr<smf_context_t> smf_ctx,
     amf_ue_ngap_id_t amf_ue_ngap_id, bool retransmit) {
-  int rc                = 1;
-  amf_smf_t amf_smf_msg = {};
-  // amf_cause = amf_smf_handle_pdu_release_request(
-  //              msg, &amf_smf_msg);
-
-  int smf_cause             = SMF_CAUSE_SUCCESS;
-  amf_smf_msg.u.release.pti = smf_ctx->smf_proc_data.pti.pti;
-  amf_smf_msg.u.release.pdu_session_id =
-      smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
-  amf_smf_msg.u.release.cause_value = smf_cause;
-
+  int rc = RETURNerror;
   OAILOG_DEBUG(
       LOG_AMF_APP, "sending PDU session resource release request to gNB \n");
 
@@ -292,7 +282,7 @@ static int pdu_session_resource_release_t3592_handler(
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   int rc = 0;
 
-  if (!amf_pdu_get_timer_arg(timer_id, &uepdu_id)) {
+  if (!amf_pop_pdu_timer_arg(timer_id, &uepdu_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3550: Invalid Timer Id expiration, Timer Id: %u\n",
         timer_id);
@@ -396,31 +386,33 @@ int amf_smf_process_pdu_session_packet(
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  M5GSmCause cause = amf_smf_get_smcause(ue_id, msg);
+  if (msg->payload_container.smf_msg.header.message_type ==
+      PDU_SESSION_ESTABLISHMENT_REQUEST) {
+    M5GSmCause cause = amf_smf_get_smcause(ue_id, msg);
 
-  if (M5GSmCause::INVALID_CAUSE != cause) {
-    OAILOG_DEBUG(
-        LOG_AMF_APP,
-        "PDU Session establishment request rejecting with cause %u",
-        static_cast<uint8_t>(cause));
-    rc = amf_pdu_session_establishment_reject(
-        ue_id, msg->payload_container.smf_msg.header.pdu_session_id,
-        msg->payload_container.smf_msg.header.procedure_transaction_id,
-        static_cast<uint8_t>(cause));
-    return rc;
+    if (cause != M5GSmCause::INVALID_CAUSE) {
+      OAILOG_DEBUG(
+          LOG_AMF_APP,
+          "PDU Session establishment request rejecting with cause %u",
+          static_cast<uint8_t>(cause));
+      rc = amf_pdu_session_establishment_reject(
+          ue_id, msg->payload_container.smf_msg.header.pdu_session_id,
+          msg->payload_container.smf_msg.header.procedure_transaction_id,
+          static_cast<uint8_t>(cause));
+      return rc;
+    }
+
+    M5GMmCause mm_cause = amf_smf_validate_context(ue_id, msg);
+    if (mm_cause == M5GMmCause::MAX_PDU_SESSIONS_REACHED) {
+      OAILOG_ERROR(
+          LOG_AMF_APP,
+          "Max pdu session limit reached, Rejecting new session for the "
+          "ue_id :" AMF_UE_NGAP_ID_FMT,
+          ue_id);
+      rc = handle_sm_message_routing_failure(ue_id, msg, mm_cause);
+      return rc;
+    }
   }
-
-  M5GMmCause mm_cause = amf_smf_validate_context(ue_id, msg);
-  if (M5GMmCause::MAX_PDU_SESSIONS_REACHED == mm_cause) {
-    OAILOG_ERROR(
-        LOG_AMF_APP,
-        "Max pdu session limit reached, Rejecting new session for the "
-        "ue_id :" AMF_UE_NGAP_ID_FMT,
-        ue_id);
-    rc = handle_sm_message_routing_failure(ue_id, msg, mm_cause);
-    return rc;
-  }
-
   IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
   if (msg->payload_container.smf_msg.header.message_type ==
       PDU_SESSION_ESTABLISHMENT_REQUEST) {
@@ -593,7 +585,7 @@ M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
   the external DNN because the DNN was not included
   although required or if the DNN could not be resolved.
   */
-  if (msg->dnn.len == 0 &&
+  if (msg->dnn.len <= 1 &&
       (ue_context->amf_context.apn_config_profile.nb_apns == 0)) {
     cause = M5GSmCause::MISSING_OR_UNKNOWN_DNN;
     return cause;
@@ -839,7 +831,6 @@ int amf_smf_handle_ip_address_response(
 int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   ue_m5gmm_context_s* ue_context_p = NULL;
-  MessageDef* message_p            = NULL;
   int rc                           = RETURNok;
 
   OAILOG_INFO(
@@ -897,12 +888,9 @@ int handle_sm_message_routing_failure(
     amf_ue_ngap_id_t ue_id, ULNASTransportMsg* ulmsg, M5GMmCause m5gmmcause) {
   nas5g_error_code_t rc    = M5G_AS_FAILURE;
   DLNASTransportMsg* dlmsg = nullptr;
-  SmfMsg* smf_msg          = nullptr;
   uint32_t bytes           = 0;
   uint32_t len             = 0;
-  uint32_t container_len   = 0;
   bstring buffer;
-  smf_context_t* smf_ctx         = nullptr;
   ue_m5gmm_context_s* ue_context = nullptr;
   amf_nas_message_t msg          = {};
 

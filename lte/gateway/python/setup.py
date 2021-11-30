@@ -102,7 +102,7 @@ setup(
         'spyne>=2.13.15',
         'scapy==2.4.4',
         'flask>=1.0.2',
-        'sentry_sdk>=1.0.0',
+        'sentry_sdk>=1.5.0',
         'aiodns>=1.1.1',
         'pymemoize>=1.0.2',
         'wsgiserver>=1.3',
@@ -135,6 +135,7 @@ setup(
             # update it in lte/gateway/python/Makefile
             'grpcio-tools>=1.16.1',
             'nose==1.3.7',
+            'coverage',
             'iperf3',
         ],
     },

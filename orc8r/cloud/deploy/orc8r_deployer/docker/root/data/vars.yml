@@ -738,3 +738,20 @@ service:
     Required: false
     ConfigApps:
       - tf
+  enable_orc8r_blue_green_deployment:
+    Description: >-
+      Enable the deployment for a blue & green Orc8r instances in the same
+      infrastructure
+    Type: bool
+    Default: false
+    Required: false
+    ConfigApps:
+      - tf
+  blue_green_worker_groups:
+    Description: >-
+      Worker group configuration for EKS. Default value is 1 worker group
+      consisting of 5 t3.medium instances.
+    Type: any
+    Required: false
+    ConfigApps:
+      - tf

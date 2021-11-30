@@ -1728,7 +1728,7 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
               (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
             ue_ipv6 = &eps_bearer_ctxt_p->paa.ipv6_address;
           }
-
+#if !MME_UNIT_TEST
           rc = gtp_tunnel_ops->del_tunnel(
               enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
@@ -1745,6 +1745,8 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
                 LOG_SPGW_APP, imsi64,
                 "Removed dedicated bearer context for (ebi = %d)\n", ebi);
           }
+#endif
+
           sgw_free_eps_bearer_context(
               &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection
                    .sgw_eps_bearers_array[EBI_TO_INDEX(ebi)]);
@@ -1810,6 +1812,7 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
             enb_ipv6 =
                 &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
           }
+#if !MME_UNIT_TEST
           rc = gtp_tunnel_ops->del_tunnel(
               enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
@@ -1822,6 +1825,7 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
                 eps_bearer_ctxt_p->enb_teid_S1u,
                 eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
           }
+#endif
         }
 
         sgw_free_eps_bearer_context(
@@ -2341,7 +2345,8 @@ void sgw_process_release_access_bearer_request(
             eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up);
       }
       // Paging is performed without packet buffering
-      rv = gtp_tunnel_ops->add_paging_rule(eps_bearer_ctxt->paa.ipv4_address);
+      rv = gtp_tunnel_ops->add_paging_rule(
+          sgw_context->imsi, eps_bearer_ctxt->paa.ipv4_address);
       // Convert to string for logging
       char* ip_str = inet_ntoa(eps_bearer_ctxt->paa.ipv4_address);
       if (rv < 0) {

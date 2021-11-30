@@ -54,16 +54,16 @@ TEST_F(SctpdDescTest, test_sctpd_desc) {
 
   // check addition an retreival of associations
   desc.addAssoc(assoc_1);
-  EXPECT_NO_THROW(auto assoc = desc.getAssoc(ASSOC_1_ASSOC_ID));
+  EXPECT_NO_THROW(desc.getAssoc(ASSOC_1_ASSOC_ID));
   check_assoc(ASSOC_1_ASSOC_ID, ASSOC_1_SD, assoc_1);
 
   EXPECT_THROW(desc.getAssoc(ASSOC_2_ASSOC_ID), std::out_of_range);
 
   desc.addAssoc(assoc_2);
-  EXPECT_NO_THROW(auto assoc = desc.getAssoc(ASSOC_1_ASSOC_ID));
+  EXPECT_NO_THROW(desc.getAssoc(ASSOC_1_ASSOC_ID));
   check_assoc(ASSOC_1_ASSOC_ID, ASSOC_1_SD, assoc_1);
 
-  EXPECT_NO_THROW(auto assoc = desc.getAssoc(ASSOC_2_ASSOC_ID));
+  EXPECT_NO_THROW(desc.getAssoc(ASSOC_2_ASSOC_ID));
   check_assoc(ASSOC_2_ASSOC_ID, ASSOC_2_SD, assoc_2);
 
   // check iteration
@@ -91,7 +91,7 @@ TEST_F(SctpdDescTest, test_sctpd_desc) {
   desc.delAssoc(assoc_1.assoc_id);
   EXPECT_THROW(desc.getAssoc(ASSOC_1_ASSOC_ID), std::out_of_range);
 
-  EXPECT_NO_THROW(auto assoc = desc.getAssoc(ASSOC_2_ASSOC_ID));
+  EXPECT_NO_THROW(desc.getAssoc(ASSOC_2_ASSOC_ID));
   check_assoc(ASSOC_2_ASSOC_ID, ASSOC_2_SD, assoc_2);
 
   desc.delAssoc(assoc_2.assoc_id);

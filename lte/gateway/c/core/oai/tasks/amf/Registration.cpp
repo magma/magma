@@ -677,7 +677,7 @@ static int registration_accept_t3550_handler(
   ue_m5gmm_context_s* ue_amf_context             = NULL;
   nas_amf_registration_proc_t* registration_proc = NULL;
   amf_ue_ngap_id_t ue_id                         = 0;
-  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+  if (!amf_pop_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3550: Invalid Timer Id expiration, Timer Id: %u\n",
         timer_id);

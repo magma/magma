@@ -22,6 +22,9 @@ type ConfigClient interface {
 	GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error)
 	// UpdateConfig updates the current config in agwd.
 	UpdateConfig(ctx context.Context, in *UpdateConfigRequest, opts ...grpc.CallOption) (*UpdateConfigResponse, error)
+	// ReplaceConfig overwrites the existing config in agwd.
+	// NOTE: This is susceptible to a race condition.
+	ReplaceConfig(ctx context.Context, in *ReplaceConfigRequest, opts ...grpc.CallOption) (*ReplaceConfigResponse, error)
 }
 
 type configClient struct {
@@ -50,6 +53,15 @@ func (c *configClient) UpdateConfig(ctx context.Context, in *UpdateConfigRequest
 	return out, nil
 }
 
+func (c *configClient) ReplaceConfig(ctx context.Context, in *ReplaceConfigRequest, opts ...grpc.CallOption) (*ReplaceConfigResponse, error) {
+	out := new(ReplaceConfigResponse)
+	err := c.cc.Invoke(ctx, "/magma.config.Config/ReplaceConfig", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ConfigServer is the server API for Config service.
 // All implementations must embed UnimplementedConfigServer
 // for forward compatibility
@@ -58,6 +70,9 @@ type ConfigServer interface {
 	GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error)
 	// UpdateConfig updates the current config in agwd.
 	UpdateConfig(context.Context, *UpdateConfigRequest) (*UpdateConfigResponse, error)
+	// ReplaceConfig overwrites the existing config in agwd.
+	// NOTE: This is susceptible to a race condition.
+	ReplaceConfig(context.Context, *ReplaceConfigRequest) (*ReplaceConfigResponse, error)
 	mustEmbedUnimplementedConfigServer()
 }
 
@@ -70,6 +85,9 @@ func (UnimplementedConfigServer) GetConfig(context.Context, *GetConfigRequest) (
 }
 func (UnimplementedConfigServer) UpdateConfig(context.Context, *UpdateConfigRequest) (*UpdateConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateConfig not implemented")
+}
+func (UnimplementedConfigServer) ReplaceConfig(context.Context, *ReplaceConfigRequest) (*ReplaceConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReplaceConfig not implemented")
 }
 func (UnimplementedConfigServer) mustEmbedUnimplementedConfigServer() {}
 
@@ -120,6 +138,24 @@ func _Config_UpdateConfig_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Config_ReplaceConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReplaceConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServer).ReplaceConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.config.Config/ReplaceConfig",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServer).ReplaceConfig(ctx, req.(*ReplaceConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Config_ServiceDesc is the grpc.ServiceDesc for Config service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -134,6 +170,10 @@ var Config_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateConfig",
 			Handler:    _Config_UpdateConfig_Handler,
+		},
+		{
+			MethodName: "ReplaceConfig",
+			Handler:    _Config_ReplaceConfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

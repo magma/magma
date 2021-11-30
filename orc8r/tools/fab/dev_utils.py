@@ -14,6 +14,8 @@ limitations under the License.
 import json
 import os
 import subprocess
+import sys
+import time
 from typing import Any, Dict, Optional
 
 import jsonpickle
@@ -417,3 +419,42 @@ def cloud_delete(
             'Delete Request failed: \n%s \nReceived a %d response: %s\nFAILED!' %
             (resp.url, resp.status_code, resp.text),
         )
+
+
+def local_command_with_repetition(command, timeout=5):
+    """
+    Run command on local machine using fabric.api.local. Repeats on error
+    Args:
+        command: command to issue
+        timeout: time to execute the command while it fails
+    """
+    _command_with_repetition(local, command, timeout)
+
+
+def run_fab_command_with_repetition(command, timeout=5):
+    """
+    Run command on remote machine using fabric.api.run. Repeats on error
+    Args:
+        command: command to run
+        timeout: time to execute the command while it fails
+    """
+    _command_with_repetition(run, command, timeout)
+
+
+def _command_with_repetition(func, command, timeout=5):
+    timeout = int(timeout)  # in seconds
+    start_time = time.time()
+    with settings(warn_only=True), hide('warnings', 'stdout'):
+        while time.time() - start_time <= timeout:
+            # func will be either
+            result = func(command)
+            if result.return_code == 0:
+                # GOOD execution
+                print(result)
+                return
+            print(
+                " ┗ command failed. Trying again",
+            )
+            time.sleep(1)
+    print(f"\nERROR on {command}\nError message:\n{result}")
+    sys.exit(1)

@@ -43,6 +43,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/include/map.h"
 
 // NAS messages
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.h"
@@ -337,12 +338,18 @@ typedef struct amf_context_s {
   apn_config_profile_t apn_config_profile;
 } amf_context_t;
 
+// Amf-Map Declarations:
+// Map- Key: uint64_t , Data: uint64_t
+typedef magma::map_s<uint64_t, uint64_t> map_uint64_uint64_t;
+// Map Key: guti_m5_t Data: uint64_t;
+typedef magma::map_s<guti_m5_t, uint64_t> map_guti_m5_uint64_t;
+
 typedef struct amf_ue_context_s {
-  hash_table_uint64_ts_t* imsi_amf_ue_id_htbl;    // data is amf_ue_ngap_id_t
-  hash_table_uint64_ts_t* tun11_ue_context_htbl;  // data is amf_ue_ngap_id_t
-  hash_table_uint64_ts_t*
-      gnb_ue_ngap_id_ue_context_htbl;             // data is amf_ue_ngap_id_t
-  obj_hash_table_uint64_t* guti_ue_context_htbl;  // data is amf_ue_ngap_id_t
+  map_uint64_uint64_t imsi_amf_ue_id_htbl;    // data is amf_ue_ngap_id_t
+  map_uint64_uint64_t tun11_ue_context_htbl;  // data is amf_ue_ngap_id_t
+  map_uint64_uint64_t
+      gnb_ue_ngap_id_ue_context_htbl;  // data is amf_ue_ngap_id_t
+  map_guti_m5_uint64_t guti_ue_context_htbl;
 } amf_ue_context_t;
 
 enum m5gcm_state_t {

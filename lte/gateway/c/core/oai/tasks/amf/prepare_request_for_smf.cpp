@@ -199,6 +199,7 @@ int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
   req_rat_specific->set_pdu_session_id(message->pdu_session_id);
   req_rat_specific->set_procedure_trans_identity(
       (const char*) (&(message->pti)));
+  req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
 
   OAILOG_INFO(
       LOG_AMF_APP,

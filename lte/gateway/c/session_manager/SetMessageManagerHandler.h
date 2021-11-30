@@ -80,7 +80,8 @@ class SetMessageManagerHandler : public SetMessageManager {
  public:
   SetMessageManagerHandler(
       std::shared_ptr<SessionStateEnforcer> m5genforcer,
-      SessionStore& session_store, SessionReporter* reporter);
+      SessionStore& session_store, SessionReporter* reporter,
+      std::shared_ptr<EventsReporter> events_reporter);
   ~SetMessageManagerHandler() {}
 
   /* Paging, idle state change notifcation receiving */
@@ -128,7 +129,11 @@ class SetMessageManagerHandler : public SetMessageManager {
   SessionStore& session_store_;
   std::shared_ptr<SessionStateEnforcer> m5g_enforcer_;
   SessionReporter* reporter_;
+  std::shared_ptr<EventsReporter> events_reporter_;
   SessionIDGenerator id_gen_;
+
+  bool validate_session_request(const SessionConfig cfg);
+
 };  // end of class SetMessageManagerHandlerImpl
 
 }  // end namespace magma

@@ -31,7 +31,7 @@ class SentryTests(unittest.TestCase):
 
     def test_do_not_ignore_and_remove_tag_if_marked(self):
         """Test marked events that are sent to Sentry"""
-        returned_event = _ignore_if_not_marked({"key": "value", "extra": {"send_to_monitoring": True}}, {})
+        returned_event = _ignore_if_not_marked({"key": "value", "extra": {"send_to_error_monitoring": True}}, {})
         self.assertEqual(returned_event, {"key": "value", "extra": {}})
 
     def test_uncaught_error_wrapper(self):

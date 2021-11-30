@@ -141,6 +141,15 @@ class GTPApplication : public Application {
       const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
       uint32_t port_number);
 
+  void add_downlink_arp_flow_paging_event(
+      const AddArpFlowEvent& ev, const OpenflowMessenger& messenger,
+      uint32_t ingress_port);
+
+  void add_downlink_arp_flow_(
+      fluid_base::OFConnection* conn, int precedence, const std::string imsi_,
+      const struct in_addr& ue_ip, const OpenflowMessenger& messenger,
+      uint32_t ingress_port);
+
   /**
    * Delete arp flow of the UE.
    * @param ev - AddGTPTunnelEvent containing ue ip
@@ -181,8 +190,8 @@ class GTPApplication : public Application {
   const uint32_t uplink_port_num_;
 
   void add_downlink_arp_flow_action(
-      const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
-      of13::FlowMod downlink_fm);
+      fluid_base::OFConnection* conn, const std::string imsi_,
+      const OpenflowMessenger& messenger, of13::FlowMod downlink_fm);
 
   void add_tunnel_flow_action(
       uint32_t out_tei, uint32_t in_tei, std::string ue_imsi,

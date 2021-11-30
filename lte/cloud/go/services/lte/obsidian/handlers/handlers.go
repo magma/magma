@@ -75,6 +75,7 @@ const (
 	ManageGatewayCellularPath         = ManageGatewayPath + obsidian.UrlSep + "cellular"
 	ManageGatewayCellularEpcPath      = ManageGatewayCellularPath + obsidian.UrlSep + "epc"
 	ManageGatewayCellularRanPath      = ManageGatewayCellularPath + obsidian.UrlSep + "ran"
+	ManageGatewayCellularNgcPath      = ManageGatewayCellularPath + obsidian.UrlSep + "ngc"
 	ManageGatewayCellularNonEpsPath   = ManageGatewayCellularPath + obsidian.UrlSep + "non_eps"
 	ManageGatewayCellularDNSPath      = ManageGatewayCellularPath + obsidian.UrlSep + "dns"
 	ManageGatewayDNSRecordsPath       = ManageGatewayCellularDNSPath + obsidian.UrlSep + "records"
@@ -151,6 +152,7 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularPath, &lte_models.GatewayCellularConfigs{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularEpcPath, &lte_models.GatewayEpcConfigs{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularRanPath, &lte_models.GatewayRanConfigs{}, serdes.Entity)...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularNgcPath, &lte_models.GatewayNgcConfigs{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularNonEpsPath, &lte_models.GatewayNonEpsConfigs{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularDNSPath, &lte_models.GatewayDNSConfigs{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDNSRecordsPath, &lte_models.GatewayDNSRecords{}, serdes.Entity)...)

@@ -47,6 +47,8 @@ class MockS1apHandler {
       void(itti_s1ap_nas_dl_data_req_t cb_req));
   MOCK_METHOD1(s1ap_handle_conn_est_cnf, void(bstring nas_pdu));
   MOCK_METHOD0(s1ap_handle_ue_context_release_command, void());
+  MOCK_METHOD0(s1ap_generate_s1ap_e_rab_setup_req, void());
+  MOCK_METHOD0(s1ap_generate_s1ap_e_rab_rel_cmd, void());
 };
 
 class MockMmeAppHandler {
@@ -64,6 +66,10 @@ class MockMmeAppHandler {
   MOCK_METHOD0(mme_app_handle_delete_sess_rsp, void());
   MOCK_METHOD0(nas_proc_dl_transfer_rej, void());
   MOCK_METHOD0(mme_app_handle_release_access_bearers_resp, void());
+  MOCK_METHOD0(mme_app_handle_handover_required, void());
+  MOCK_METHOD0(mme_app_handle_initial_context_setup_failure, void());
+  MOCK_METHOD0(mme_app_handle_enb_reset_req, void());
+  MOCK_METHOD0(mme_app_handle_e_rab_setup_rsp, void());
 };
 
 class MockSctpHandler {
@@ -84,6 +90,7 @@ class MockSpgwHandler {
   MOCK_METHOD0(sgw_handle_delete_session_request, void());
   MOCK_METHOD0(sgw_handle_modify_bearer_request, void());
   MOCK_METHOD0(sgw_handle_release_access_bearers_request, void());
+  MOCK_METHOD0(sgw_handle_nw_initiated_actv_bearer_rsp, void());
 };
 
 class MockService303Handler {

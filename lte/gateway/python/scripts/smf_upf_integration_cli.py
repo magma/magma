@@ -41,6 +41,7 @@ class CreateAmfSession(object):
         self._set_session = SetSMSessionContext(
             common_context=CommonSessionContext(
                 sid=SubscriberID(id="IMSI12345"),
+                ue_ipv4="192.168.128.11",
                 apn=bytes("BLR", 'utf-8'),
                 rat_type=RATType.Name(2),
                 sm_session_state=SMSessionFSMState.Name(0),
@@ -56,10 +57,6 @@ class CreateAmfSession(object):
                         teid=10000,
                         end_ipv4_addr="192.168.60.141",
                     ),
-                    pdu_address=RedirectServer(
-                        redirect_address_type=RedirectServer.IPV4,
-                        redirect_server_address="192.168.128.11",
-                    ),
                     pdu_session_type=PduSessionType.Name(0),
                     ssc_mode=SscMode.Name(2),
                 ),
@@ -74,6 +71,7 @@ class CreateAmfMultiSession(object):
             SetSMSessionContext(
                 common_context=CommonSessionContext(
                     sid=SubscriberID(id="IMSI12345"),
+                    ue_ipv4="192.168.128.12",
                     apn=bytes("BLR", 'utf-8'),
                     rat_type=RATType.Name(2),
                     sm_session_state=SMSessionFSMState.Name(0),
@@ -89,10 +87,6 @@ class CreateAmfMultiSession(object):
                             teid=10001,
                             end_ipv4_addr="192.168.60.141",
                         ),
-                        pdu_address=RedirectServer(
-                            redirect_address_type=RedirectServer.IPV4,
-                            redirect_server_address="192.168.128.12",
-                        ),
                         pdu_session_type=PduSessionType.Name(0),
                         ssc_mode=SscMode.Name(2),
                     ),
@@ -107,6 +101,7 @@ class ReleaseAmfSession(object):
             SetSMSessionContext(
                 common_context=CommonSessionContext(
                     sid=SubscriberID(id="IMSI12345"),
+                    ue_ipv4="192.168.128.11",
                     apn=bytes("BLR", 'utf-8'),
                     rat_type=RATType.Name(2),
                     sm_session_state=SMSessionFSMState.Name(4),
@@ -117,10 +112,6 @@ class ReleaseAmfSession(object):
                         pdu_session_id=1,
                         request_type=RequestType.Name(
                             1,
-                        ),
-                        pdu_address=RedirectServer(
-                            redirect_address_type=RedirectServer.IPV4,
-                            redirect_server_address="192.168.128.11",
                         ),
                         pdu_session_type=PduSessionType.IPV4,
                     ),
@@ -136,6 +127,7 @@ class CleanAmfSession(object):
                 common_context=CommonSessionContext(
                     sid=SubscriberID(id="IMSI12345"),
                     apn=bytes("BLR", 'utf-8'),
+                    ue_ipv4="192.168.128.12",
                     rat_type=RATType.Name(2),
                     sm_session_state=SMSessionFSMState.Name(4),
                     sm_session_version=6,
@@ -145,10 +137,6 @@ class CleanAmfSession(object):
                         pdu_session_id=1,
                         request_type=RequestType.Name(
                             1,
-                        ),
-                        pdu_address=RedirectServer(
-                            redirect_address_type=RedirectServer.IPV4,
-                            redirect_server_address="192.168.128.12",
                         ),
                         pdu_session_type=PduSessionType.IPV4,
                     ),
@@ -163,6 +151,7 @@ class CreateAmfSecondSubSession(object):
             SetSMSessionContext(
                 common_context=CommonSessionContext(
                     sid=SubscriberID(id="IMSI987654"),
+                    ue_ipv4="192.168.128.110",
                     apn=bytes("BLR", 'utf-8'), rat_type=RATType.Name(2),
                     sm_session_state=SMSessionFSMState.Name(0),
                     sm_session_version=0,
@@ -176,10 +165,6 @@ class CreateAmfSecondSubSession(object):
                         gnode_endpoint=TeidSet(
                             teid=5000,
                             end_ipv4_addr="192.168.60.141",
-                        ),
-                        pdu_address=RedirectServer(
-                            redirect_address_type=RedirectServer.IPV4,
-                            redirect_server_address="192.168.128.110",
                         ),
                         pdu_session_type=PduSessionType.Name(0),
                         ssc_mode=SscMode.Name(2),
@@ -195,6 +180,7 @@ class CreateAmfSecondSubSecondSession(object):
             SetSMSessionContext(
                 common_context=CommonSessionContext(
                     sid=SubscriberID(id="IMSI987654"),
+                    ue_ipv4="192.168.128.111",
                     apn=bytes("BLR", 'utf-8'), rat_type=RATType.Name(2),
                     sm_session_state=SMSessionFSMState.Name(0),
                     sm_session_version=0,
@@ -208,10 +194,6 @@ class CreateAmfSecondSubSecondSession(object):
                         gnode_endpoint=TeidSet(
                             teid=300,
                             end_ipv4_addr="192.168.60.141",
-                        ),
-                        pdu_address=RedirectServer(
-                            redirect_address_type=RedirectServer.IPV4,
-                            redirect_server_address="192.168.128.111",
                         ),
                         pdu_session_type=PduSessionType.Name(0),
                         ssc_mode=SscMode.Name(2),
@@ -227,6 +209,7 @@ class ReleaseAmfSecondSubSession(object):
             SetSMSessionContext(
                 common_context=CommonSessionContext(
                     sid=SubscriberID(id="IMSI987654"),
+                    ue_ipv4="192.168.128.110",
                     apn=bytes("BLR", 'utf-8'), rat_type=RATType.Name(2),
                     sm_session_state=SMSessionFSMState.Name(4),
                     sm_session_version=6,
@@ -236,10 +219,6 @@ class ReleaseAmfSecondSubSession(object):
                         pdu_session_id=2,
                         request_type=RequestType.Name(
                             1,
-                        ),
-                        pdu_address=RedirectServer(
-                            redirect_address_type=RedirectServer.IPV4,
-                            redirect_server_address="192.168.128.110",
                         ),
                         pdu_session_type=PduSessionType.IPV4,
                     ),
@@ -255,6 +234,7 @@ class ReleaseAmfSecondSubSecondSession(object):
                 common_context=CommonSessionContext(
                     sid=SubscriberID(id="IMSI987654"),
                     apn=bytes("BLR", 'utf-8'), rat_type=RATType.Name(2),
+                    ue_ipv4="192.168.128.111",
                     sm_session_state=SMSessionFSMState.Name(4),
                     sm_session_version=6,
                 ),
@@ -263,10 +243,6 @@ class ReleaseAmfSecondSubSecondSession(object):
                         pdu_session_id=2,
                         request_type=RequestType.Name(
                             1,
-                        ),
-                        pdu_address=RedirectServer(
-                            redirect_address_type=RedirectServer.IPV4,
-                            redirect_server_address="192.168.128.111",
                         ),
                         pdu_session_type=PduSessionType.IPV4,
                     ),

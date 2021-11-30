@@ -15,10 +15,55 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  comment_pr:
-    if: github.event.workflow_run.event == 'pull_request' ||  github.event.workflow_run.event == 'pull_request_target'
-    name: Comment on PR for check ${{ github.event.workflow.name }}
+  skip_check:
+    name: Job to check if the workflow ${{ github.event.workflow.name }} can be skipped
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request' ||  github.event.workflow_run.event == 'pull_request_target'
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - name: 'Download artifact'
+        uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            var artifacts = await github.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{github.event.workflow_run.id }},
+            });
+            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "pr"
+            })[0];
+            var download = await github.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            var fs = require('fs');
+            fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
+      - run: unzip pr.zip
+      - name: Check if the workflow is skipped
+        id: skip_check
+        uses: actions/github-script@v3
+        with:
+          script: |
+            var fs = require('fs');
+            var skipFlag = fs.readFileSync('./skipped');
+            var rprFlag = fs.readFileSync('./RPR');
+            if( (skipFlag == 'true') || (rprFlag == 'true') ) {
+              core.setOutput('should_skip', 'true');
+              //console.log("Skipping because should_skip=" + skipFlag);
+            }
+            else  {
+              core.setOutput('should_skip', 'false');
+              //console.log("NOT Skipping because should_skip=" + skipFlag);
+            }
+  comment_pr:
+    name: Comment on PR for check ${{ github.event.workflow.name }}
+    needs: skip_check
+    runs-on: ubuntu-latest
+    if: needs.skip_check.outputs.should_skip == 'false'
     env:
       CHECK_GUIDELINE: "[Guide to the different CI checks and resolution guidelines](https://docs.magmacore.org/docs/next/contributing/contribute_ci_checks)"
       WORKFLOW_NAME: "${{ github.event.workflow.name }}"

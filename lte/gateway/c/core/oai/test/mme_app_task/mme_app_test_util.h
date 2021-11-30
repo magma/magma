@@ -94,9 +94,16 @@ void send_modify_bearer_resp(
     const std::vector<int>& bearer_to_remove);
 
 void sgw_send_release_access_bearer_response(gtpv2c_cause_value_t cause);
+
 void send_s11_deactivate_bearer_req(
     uint8_t no_of_bearers_to_be_deact, uint8_t* ebi_to_be_deactivated,
     bool delete_default_bearer);
+
+void send_s11_create_bearer_req();
+
+void send_erab_setup_rsp();
+
+void send_erab_release_rsp();
 
 }  // namespace lte
 }  // namespace magma

@@ -29,6 +29,20 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/docs-workflow.yml", "docs/**"]
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      - name: Save PR number
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ github.event.number }} > ./pr/NR
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+          echo -n "false" > ./pr/RPR
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
   # Fail if Markdown doesn't pass linter
   markdown-lint:
     needs: path_filter
@@ -46,15 +60,3 @@ jobs:
         run: |
             cd ${MAGMA_ROOT}/docs
             make precommit
-      # Need to save PR number as Github action does not propagate it with workflow_run event
-      - name: Save PR number
-        if: always()
-        run: |
-          mkdir -p ./pr
-          echo ${{ github.event.number }} > ./pr/NR
-          echo -n "false" > ./pr/RPR
-      - uses: actions/upload-artifact@v2
-        if: always()
-        with:
-          name: pr
-          path: pr/

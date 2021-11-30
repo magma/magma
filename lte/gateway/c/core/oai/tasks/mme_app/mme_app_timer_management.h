@@ -50,7 +50,14 @@ class MmeUeContext {
       const TimerArgType& arg);
   void StopTimer(int timer_id);
 
-  bool GetTimerArg(const int timer_id, TimerArgType* arg) const;
+  /**
+   * Pop timer, save arguments and return existence.
+   *
+   * @param timer_id Unique timer id for active timers
+   * @param arg Timer arguments to be stored in this parameter
+   * @return True if timer_id exists, False otherwise.
+   */
+  bool PopTimerById(const int timer_id, TimerArgType* arg);
 };
 
 }  // namespace lte

@@ -95,7 +95,6 @@ s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej.py \
 s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej_ded_bearer_activation.py \
 s1aptests/test_ics_timer_expiry_ue_registered.py \
 s1aptests/test_ics_timer_expiry_ue_unregistered.py \
-s1aptests/test_smc_timer_3460_expiry.py \
 s1aptests/test_identity_timer_3470_expiry.py \
 s1aptests/test_attach_service_with_multi_pdns_and_bearers_multi_ue.py \
 s1aptests/test_attach_service_with_multi_pdns_and_bearers_failure.py \
@@ -145,6 +144,7 @@ s1aptests/test_dedicated_bearer_activation_idle_mode_paging_timer_expiry.py \
 s1aptests/test_multi_enb_multi_ue_diff_plmn.py \
 s1aptests/test_x2_handover.py \
 s1aptests/test_x2_handover_ping_pong.py \
+s1aptests/test_s1_handover.py \
 s1aptests/test_attach_mobile_reachability_timer_expiry.py \
 s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
@@ -249,7 +249,6 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_attach_detach_with_he_policy.py \ GitHubIssue 6439 & PR 6411
 
 # TODO flaky tests we should look at
-# s1aptests/test_s1_handover.py \
 # s1aptests/test_attach_detach_ps_service_not_available.py \
 # s1aptests/test_enb_complete_reset.py \
 # s1aptests/test_attach_detach_multi_ue_looped.py \
