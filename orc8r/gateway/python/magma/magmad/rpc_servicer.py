@@ -24,7 +24,7 @@ from google.protobuf.json_format import MessageToJson
 from google.protobuf.struct_pb2 import Struct
 from magma.common.rpc_utils import return_void, set_grpc_err
 from magma.common.sentry import (
-    SEND_TO_MONITORING,
+    SEND_TO_ERROR_MONITORING,
     SentryStatus,
     get_sentry_status,
     send_uncaught_errors_to_monitoring,
@@ -243,7 +243,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
             logging.error(
                 'Error running command %s! %s: %s',
                 request.command, e.__class__.__name__, e,
-                extra=SEND_TO_MONITORING,
+                extra=SEND_TO_ERROR_MONITORING,
             )
             set_grpc_err(
                 context,

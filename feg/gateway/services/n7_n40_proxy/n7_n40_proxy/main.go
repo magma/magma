@@ -21,6 +21,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/policydb"
 	"magma/feg/gateway/registry"
+	"magma/feg/gateway/services/n7_n40_proxy/n7"
 	"magma/feg/gateway/services/n7_n40_proxy/servicers"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/lib/go/service"
@@ -37,13 +38,20 @@ func main() {
 		glog.Fatalf("Error creating N7_N40 Proxy service: %s", err)
 	}
 
+	n7config, err := n7.GetN7Config()
+	if err != nil {
+		glog.Fatalf("Error fetching config: %s", err)
+	}
 	cloudReg := registry.Get()
 	dbClient, err := policydb.NewRedisPolicyDBClient(cloudReg)
 	if err != nil {
 		glog.Fatalf("Error connecting to redis store from N7_N40 Proxy: %s", err)
 	}
-
-	sessController, err := servicers.NewCentralSessionController(dbClient)
+	policyClient, err := n7.NewN7Client(&n7config.Server)
+	if err != nil {
+		glog.Fatalf("Creating N7 Client failed: %s", err)
+	}
+	sessController, err := servicers.NewCentralSessionController(n7config, dbClient, policyClient)
 	if err != nil {
 		glog.Fatalf("Error creating session controller in N7_N40 Proxy: %s", err)
 	}

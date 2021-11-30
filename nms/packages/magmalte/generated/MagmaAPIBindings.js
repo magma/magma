@@ -485,6 +485,7 @@ export type gateway_cellular_configs = {
     dns ? : gateway_dns_configs,
     epc: gateway_epc_configs,
     he_config ? : gateway_he_config,
+    ngc ? : gateway_ngc_configs,
     non_eps_service ? : gateway_non_eps_configs,
     pooling ? : cellular_gateway_pool_records,
     ran: gateway_ran_configs,
@@ -564,6 +565,14 @@ export type gateway_logging_configs = {
     log_level: "DEBUG" | "INFO" | "WARNING" | "ERROR" | "FATAL",
 };
 export type gateway_name = string;
+export type gateway_ngc_configs = {
+    amf_default_sd ? : string,
+    amf_default_sst ? : number,
+    amf_name ? : string,
+    amf_pointer ? : string,
+    amf_region_id ? : string,
+    amf_set_id ? : string,
+};
 export type gateway_non_eps_configs = {
     arfcn_2g ? : Array < number >
         ,
@@ -5409,6 +5418,62 @@ export default class MagmaAPIBindings {
         }
     ): Promise < "Success" > {
         let path = '/lte/{network_id}/gateways/{gateway_id}/cellular/epc';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        if (parameters['config'] === undefined) {
+            throw new Error('Missing required  parameter: config');
+        }
+
+        if (parameters['config'] !== undefined) {
+            body = parameters['config'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getLteByNetworkIdGatewaysByGatewayIdCellularNgc(
+            parameters: {
+                'networkId': string,
+                'gatewayId': string,
+            }
+        ): Promise < gateway_ngc_configs >
+        {
+            let path = '/lte/{network_id}/gateways/{gateway_id}/cellular/ngc';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['gatewayId'] === undefined) {
+                throw new Error('Missing required  parameter: gatewayId');
+            }
+
+            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putLteByNetworkIdGatewaysByGatewayIdCellularNgc(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+            'config': gateway_ngc_configs,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/gateways/{gateway_id}/cellular/ngc';
         let body;
         let query = {};
         if (parameters['networkId'] === undefined) {

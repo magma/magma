@@ -184,16 +184,13 @@ jobs:
       # Notify ci channel when push succeeds
       - name: Notify success to Slack
         if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "*AGW artifacts have been published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Build workflow"
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
-          SLACK_FOOTER: ' '
+          SLACK_USERNAME: "Github action agw build got published"
+        uses: Ilshidur/action-slack@2.1.0
+        with:
+          args: "AGW  build succeeded on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
   orc8r-build:
     name: orc8r build job
     runs-on: ubuntu-latest

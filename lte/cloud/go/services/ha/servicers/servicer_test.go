@@ -228,6 +228,14 @@ func newDefaultGatewayConfig(mmeCode uint32, mmeRelCap uint32) *lte_models.Gatew
 			NatEnabled: swag.Bool(true),
 			IPBlock:    "192.168.128.0/24",
 		},
+		Ngc: &lte_models.GatewayNgcConfigs{
+			AmfDefaultSd:  "AFAFAF",
+			AmfDefaultSst: 25,
+			AmfName:       "amf.example.org",
+			AmfPointer:    "1F",
+			AmfRegionID:   "C1",
+			AmfSetID:      "2A1",
+		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",
 			CsfbMnc:              "01",

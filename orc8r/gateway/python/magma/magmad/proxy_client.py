@@ -15,7 +15,7 @@ import logging
 
 import aioh2
 import h2.events
-from magma.common.sentry import SEND_TO_MONITORING
+from magma.common.sentry import SEND_TO_ERROR_MONITORING
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos.sync_rpc_service_pb2 import GatewayResponse, SyncRPCResponse
 
@@ -107,7 +107,7 @@ class ControlProxyHttpClient(object):
         except Exception as e:  # pylint: disable=broad-except
             logging.error(
                 "[SyncRPC] Exception in proxy_client: %s", e,
-                extra=SEND_TO_MONITORING,
+                extra=SEND_TO_ERROR_MONITORING,
             )
             sync_rpc_response_queue.put(
                 SyncRPCResponse(

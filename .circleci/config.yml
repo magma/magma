@@ -441,7 +441,6 @@ commands:
             lease_node=$(cat lease_node.out)
             curl -X POST "https://api-staging.magma.etagecom.io/magma/v1/ci/nodes/${lease_node}/release/${lease_id}" -k --key ci_operator.key.pem --cert ci_operator.pem || true
           when: always
-      - magma_slack_notify
 
   magma_slack_notify:
     description: Notify Slack on magma job failure
@@ -570,25 +569,6 @@ commands:
             curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
-  backport:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - python/set_version
-      - run:
-          command: |
-            mkdir ~/.magma
-            echo ${GITHUB_ACCESS_TOKEN} > ~/.magma/github_access_token
-      - run:
-          name: Install python prerequisites
-          command: pip3 install fabric3 jsonpickle requests PyYAML PyGithub
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/circleci/release
-            fab find_release_commits
 
   orc8r-build:
     machine:
@@ -624,28 +604,6 @@ jobs:
       - notify-magma:
           artifact_name: Orchestrator Images
           version_path: versions/orc8r_version
-      - magma_slack_notify
-
-  ### GATEWAY
-
-  orc8r-gateway-test:
-    docker:
-      - image: circleci/golang:1.13-buster-node-browsers-legacy
-    environment:
-      GO111MODULE: 'on'
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *orc8r_build_verify
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run-with-retry:
-          command: go mod download
-          workdir: ${MAGMA_ROOT}/cwf/gateway
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/gateway/go
-            go test ./...
-            go vet ./...
       - magma_slack_notify
 
   feg-build:
@@ -1016,10 +974,6 @@ jobs:
 workflows:
   version: 2
 
-  lib_gateway:
-    jobs:
-      - orc8r-gateway-test
-
   agw:
     jobs:
       - lte-integ-test:
@@ -1091,8 +1045,3 @@ workflows:
           <<: *only_master
     jobs:
       - publish-amis-to-marketplace
-
-  github:
-    jobs:
-      - backport:
-          <<: *only_master

@@ -16,6 +16,9 @@ package(default_visibility = ["//lte/gateway/c/sctpd/src:__subpackages__"])
 cc_binary(
     name = "sctpd",
     srcs = ["sctpd.cpp"],
+    copts = [
+        "-DLOG_WITH_GLOG",
+    ],
     linkstatic = True,
     deps = [
         ":config",

@@ -44,8 +44,18 @@ func (c *ConfigServer) UpdateConfig(ctx context.Context, req *pb.UpdateConfigReq
 	c.Logger.
 		With("config", req.GetConfig()).
 		Debug().Print("UpdateConfig")
-	if err := c.Configer.UpdateConfig(req.Config); err != nil {
+	if err := c.Configer.UpdateConfig(req.GetConfig()); err != nil {
 		return nil, err
 	}
 	return &pb.UpdateConfigResponse{Config: c.Configer.Config()}, nil
+}
+
+func (c *ConfigServer) ReplaceConfig(ctx context.Context, req *pb.ReplaceConfigRequest) (*pb.ReplaceConfigResponse, error) {
+	c.Logger.
+		With("config", req.GetConfig()).
+		Debug().Print("ReplaceConfig")
+	if err := c.Configer.ReplaceConfig(req.GetConfig()); err != nil {
+		return nil, err
+	}
+	return &pb.ReplaceConfigResponse{Config: c.Configer.Config()}, nil
 }
