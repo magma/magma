@@ -83,11 +83,11 @@ OAI_TESTS ?= ".*"
 
 all: build
 
-build: build_python build_common build_oai build_sctpd build_session_manager build_connection_tracker build_envoy_controller build_li_agent ## Build all
+build: build_python build_c build_oai build_envoy_controller ## Build all
 
 smf_build: build_session_manager  ## Build only sessionD component make smf_build
 
-test: test_python test_common test_oai test_sctpd test_session_manager ## Run all tests
+test: test_python test_c test_oai ## Run all tests
 
 clean: clean_python clean_envoy_controller ## Clean all builds
 	rm -rf $(C_BUILD)
@@ -150,9 +150,6 @@ endef
 build_python: stop ## Build Python environment
 	make -C $(MAGMA_ROOT)/lte/gateway/python buildenv
 
-build_common: ## Build shared libraries
-	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(COMMON_FLAGS))
-
 define copy_bazel_c_build ## Copy Bazel build output to C_BUILD/
 # 1 - source directory, 2 - binary name
 mkdir -p $(C_BUILD)/$(1)
@@ -176,24 +173,23 @@ format_all:
 	clang-format --style=file -i {} \;
 
 build_sctpd:
-	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
+	bazel build //lte/gateway/c/sctpd/src:sctpd
+	$(call copy_bazel_c_build,sctpd/src,sctpd)
 
-build_session_manager: build_common ## Build session manager
-	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
+build_session_manager:
+	bazel build //lte/gateway/c/session_manager:sessiond
+	$(call copy_bazel_c_build,session_manager,sessiond)
 
 build_li_agent: ## Build li agent
-	$(call run_cmake, $(C_BUILD)/li_agent, $(GATEWAY_C_DIR)/li_agent, )
+	bazel build //lte/gateway/c/li_agent/src:liagentd
+	$(call copy_bazel_c_build,li_agent/src,liagentd)
 
 build_connection_tracker:
-	$(call run_cmake, $(C_BUILD)/connection_tracker, $(GATEWAY_C_DIR)/connection_tracker, )
+	bazel build //lte/gateway/c/connection_tracker/src:connectiond
+	$(call copy_bazel_c_build,connection_tracker/src,connectiond)
 
 build_envoy_controller: ## Build envoy controller
 	cd $(MAGMA_ROOT)/feg/gateway && $(MAKE) install_envoy_controller
-
-# Catch all for c services that don't have custom flags
-# This works with build_dpi
-build_%:
-	$(call run_cmake, $(C_BUILD)/$*, $(MAGMA_ROOT)/c/$*, $(COMMON_FLAGS))
 
 scan_oai: ## Scan OAI
 	$(call run_scanbuild, $(C_BUILD)/scan/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS))
@@ -216,24 +212,17 @@ test_c: ## Run all Bazel-ified C/C++ tests
 test_oai: ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
 
-test_sctpd: ## Run all tests for sctpd
-	$(call run_ctest, $(C_BUILD)/sctp, $(C_BUILD)/sctp/src, $(GATEWAY_C_DIR)/sctpd, )
-
 test_common: ## Run all tests in magma_common
-	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(TEST_FLAG))
-	# Run the common lib tests that exist
-	cd $(C_BUILD)/magma_common/config && ctest --output-on-failure
-	cd $(C_BUILD)/magma_common/service303 && ctest --output-on-failure
-	cd $(C_BUILD)/magma_common/service_registry && ctest --output-on-failure
+	bazel test //orc8r/gateway/c/...:*
 
-test_li_agent:
-	$(call run_ctest, $(C_BUILD)/li_agent, $(C_BUILD)/li_agent/src, $(GATEWAY_C_DIR)/li_agent, )
+test_sctpd: ## Run sctpd tests
+	bazel test //lte/gateway/c/sctpd/src/test:all
 
+test_li_agent: ## Run li_agent tests
+	bazel test //lte/gateway/c/li_agent/src/test:all
 
-# Catch all for c service tests
-# This works with test_dpi and test_session_manager
-test_%: build_common
-	$(call run_ctest, $(C_BUILD)/$*, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
+test_session_manager: ## Run session_manager tests
+	bazel test //lte/gateway/c/session_manager/test:all
 
 coverage_oai: test_oai
 	lcov --capture --directory $(C_BUILD) --output-file /tmp/coverage_oai.info.raw
