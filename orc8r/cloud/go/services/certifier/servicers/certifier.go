@@ -19,12 +19,14 @@ import (
 	"crypto/x509"
 	"fmt"
 	"math/big"
+	"net/http"
 	"path"
 	"strings"
 	"time"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
+	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -565,9 +567,14 @@ func (srv *CertifierServer) CreateUser(ctx context.Context, createUserReq *certp
 		return nil, status.Errorf(codes.AlreadyExists, "user already exists")
 	}
 
+	hashedPassword, err := bcrypt.GenerateFromPassword(createUserReq.User.Password, bcrypt.DefaultCost)
+	if err != nil {
+		return nil, status.Errorf(http.StatusInternalServerError, "error hashing password: %v", err)
+	}
+
 	user := certprotos.User{
 		Username: createUserReq.User.Username,
-		Password: createUserReq.User.Password,
+		Password: hashedPassword,
 		Tokens:   &certprotos.User_TokenList{Token: []string{token}},
 	}
 	err = srv.store.PutUser(createUserReq.User.Username, &user)

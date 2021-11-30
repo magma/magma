@@ -140,7 +140,7 @@ func getUpdateUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 		data := make(map[string]interface{})
 		err := json.NewDecoder(c.Request().Body).Decode(&data)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request for HTTP basic auth: %v", err))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request for User: %v", err))
 		}
 
 		newPassword := []byte(fmt.Sprintf("%v", data["password"]))
@@ -183,7 +183,7 @@ func getLoginHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 		data := make(map[string]interface{})
 		err := json.NewDecoder(c.Request().Body).Decode(&data)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request for HTTP basic auth: %v", err))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request for User: %v", err))
 		}
 
 		username := fmt.Sprintf("%v", data["username"])

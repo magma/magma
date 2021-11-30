@@ -59,8 +59,6 @@ func Start() {
 	portStr := fmt.Sprintf(":%d", obsidian.Port)
 	log.Printf("Starting %s on %s", obsidian.Product, portStr)
 
-	e.Use(access.TokenMiddleware)
-
 	if obsidian.TLS {
 		var caCerts []byte
 		caCerts, err = ioutil.ReadFile(obsidian.ClientCAPoolPath)

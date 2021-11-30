@@ -14,14 +14,9 @@ limitations under the License.
 package access
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
-
-	"github.com/golang/glog"
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/accessd"
@@ -29,6 +24,9 @@ import (
 	"magma/orc8r/cloud/go/services/certifier"
 	certifierprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	merrors "magma/orc8r/lib/go/errors"
+
+	"github.com/golang/glog"
+	"github.com/labstack/echo"
 )
 
 // Access CertificateMiddleware:
@@ -114,15 +112,7 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		username, token, err := parseAuthHeader(header)
 		if err != nil {
-			// TODO(christinewang5): remove after bootstrapping admin token
-			glog.Error("no header found, bootstrapping admin user")
-			adminToken, err := bootstrapAdmin(req.Context())
-			if err != nil {
-				return echo.NewHTTPError(http.StatusInternalServerError, err)
-			}
-			username = RootUsername
-			token = adminToken
-			// return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
 
 		if err := certifier.ValidateToken(token); err != nil {
@@ -158,29 +148,6 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		return nil
 	}
-}
-
-const RootUsername = "root"
-
-func bootstrapAdmin(ctx context.Context) (string, error) {
-	user := certifierprotos.User{
-		Username: RootUsername,
-		Password: []byte("password"),
-	}
-	policy := certifierprotos.Policy{
-		Effect:    certifierprotos.Effect_ALLOW,
-		Action:    certifierprotos.Action_WRITE,
-		Resources: &certifierprotos.Policy_ResourceList{Resource: []string{"*"}},
-	}
-	req := certifierprotos.CreateUserRequest{
-		User:   &user,
-		Policy: &policy,
-	}
-	tokens, err := certifier.CreateUser(ctx, &req)
-	if err != nil {
-		return "", errors.Wrap(err, "failed to create bootstrap admin user")
-	}
-	return tokens.GetToken()[0], nil
 }
 
 // parseAuthHeader parse the <username>:<token> from the auth header and returns them separately

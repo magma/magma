@@ -6233,7 +6233,7 @@ paths:
           $ref: '#/responses/UnexpectedError'
       summary: List all usernames
       tags:
-      - HTTP Basic Auth
+      - User
     post:
       parameters:
       - in: body
@@ -6248,7 +6248,7 @@ paths:
           $ref: '#/responses/UnexpectedError'
       summary: Create a user
       tags:
-      - HTTP Basic Auth
+      - User
   /user/{username}:
     delete:
       parameters:
@@ -6260,7 +6260,7 @@ paths:
           $ref: '#/responses/UnexpectedError'
       summary: Remove a user
       tags:
-      - HTTP Basic Auth
+      - User
     put:
       parameters:
       - $ref: '#/parameters/username'
@@ -6279,7 +6279,7 @@ paths:
           $ref: '#/responses/UnexpectedError'
       summary: Update user password
       tags:
-      - HTTP Basic Auth
+      - User
   /user/login:
     post:
       parameters:
@@ -6300,7 +6300,7 @@ paths:
       security: []
       summary: List all the tokens given a user
       tags:
-      - HTTP Basic Auth
+      - User
   /wifi:
     get:
       responses:

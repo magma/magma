@@ -33,7 +33,7 @@ paths:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
       summary: List all usernames
       tags:
-        - HTTP Basic Auth
+        - User
     post:
       parameters:
         - name: user
@@ -48,7 +48,7 @@ paths:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
       summary: Create a user
       tags:
-        - HTTP Basic Auth
+        - User
   /user/{username}:
     put:
       parameters:
@@ -68,7 +68,7 @@ paths:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
       summary: Update user password
       tags:
-        - HTTP Basic Auth
+        - User
     delete:
       parameters:
         - $ref: '#/parameters/username'
@@ -79,7 +79,7 @@ paths:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
       summary: Remove a user
       tags:
-        - HTTP Basic Auth
+        - User
 
   /user/login:
     post:
@@ -101,7 +101,7 @@ paths:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
       summary: List all the tokens given a user
       tags:
-        - HTTP Basic Auth
+        - User
 parameters:
   username:
     in: path

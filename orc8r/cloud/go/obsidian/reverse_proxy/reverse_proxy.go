@@ -19,6 +19,8 @@ import (
 	"net/url"
 	"strings"
 
+	"magma/orc8r/cloud/go/obsidian/access"
+
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -74,6 +76,7 @@ func (r *ReverseProxyHandler) AddReverseProxyPaths(server *echo.Echo, pathPrefix
 				},
 			}
 			g := server.Group(prefix)
+			g.Use(access.TokenMiddleware)
 			g.Use(r.activeBackendMiddleware)
 			g.Use(middleware.Proxy(middleware.NewRoundRobinBalancer(target)))
 			r.proxyBackendsByPathPrefix[prefix] = &reverseProxyBackend{
