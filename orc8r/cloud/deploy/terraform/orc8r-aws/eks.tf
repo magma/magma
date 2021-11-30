@@ -11,6 +11,10 @@
 # limitations under the License.
 ################################################################################
 
+locals {
+  orc8r_worker_group = var.enable_orc8r_blue_green_deployment ? var.blue_green_worker_groups : var.eks_worker_groups
+}
+
 resource "tls_private_key" "eks_workers" {
   count = var.eks_worker_group_key == null ? 1 : 0
 
@@ -49,7 +53,7 @@ module "eks" {
   }
   worker_additional_security_group_ids = concat([aws_security_group.default.id], var.eks_worker_additional_sg_ids)
   workers_additional_policies          = var.eks_worker_additional_policy_arns
-  worker_groups                        = var.thanos_enabled ? concat(var.eks_worker_groups, var.thanos_worker_groups) : var.eks_worker_groups
+  worker_groups                        = var.thanos_enabled ? concat(local.orc8r_worker_group, var.thanos_worker_groups) : local.orc8r_worker_group
 
   map_roles = var.eks_map_roles
   map_users = var.eks_map_users
