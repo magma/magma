@@ -42,6 +42,8 @@ void AsyncService::wait_for_requests() {
     if (!ok) {
       MLOG(MINFO)
           << "sessiond server encountered error while processing request";
+      // Free memory for the queued up item even if we couldn't process it
+      delete static_cast<CallData*>(tag);
       continue;
     }
     static_cast<CallData*>(tag)->proceed();
