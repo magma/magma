@@ -157,6 +157,15 @@ void itti_free_msg_content(MessageDef* const message_p) {
       }
     } break;
 
+    case S1AP_PATH_SWITCH_REQUEST: {
+      e_rab_to_be_switched_in_downlink_list_t* e_rab_to_be_switched =
+          &S1AP_PATH_SWITCH_REQUEST(message_p).e_rab_to_be_switched_dl_list;
+      for (int i = 0; i < e_rab_to_be_switched->no_of_items; i++) {
+        bdestroy_wrapper(
+            &e_rab_to_be_switched->item[i].transport_layer_address);
+      }
+      break;
+    }
     case S1AP_ENB_INITIATED_RESET_ACK:
       free_wrapper((void**) &message_p->ittiMsg.s1ap_enb_initiated_reset_ack
                        .ue_to_reset_list);
@@ -191,6 +200,16 @@ void itti_free_msg_content(MessageDef* const message_p) {
                .item[0]
                .nas_pdu);
       break;
+    case S1AP_E_RAB_SETUP_RSP: {
+      itti_s1ap_e_rab_setup_rsp_t* e_rab_setup_rsp_msg =
+          &S1AP_E_RAB_SETUP_RSP(message_p);
+      for (int i = 0; i < e_rab_setup_rsp_msg->e_rab_setup_list.no_of_items;
+           i++) {
+        bdestroy_wrapper(&e_rab_setup_rsp_msg->e_rab_setup_list.item[i]
+                              .transport_layer_address);
+      }
+      break;
+    }
     case S1AP_NAS_DL_DATA_REQ:
       bdestroy_wrapper(&message_p->ittiMsg.s1ap_nas_dl_data_req.nas_msg);
       break;

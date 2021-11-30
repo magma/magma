@@ -32,14 +32,17 @@ status_code_e send_s1ap_close_sctp_association(sctp_assoc_id_t assoc_id);
 status_code_e generate_s1_setup_request_pdu(S1ap_S1AP_PDU_t* pdu_s1);
 
 status_code_e send_s1ap_erab_rel_cmd(
-    mme_ue_s1ap_id_t ue_id, enb_ue_s1ap_id_t enb_ue_id);
+    s1ap_state_t* state, mme_ue_s1ap_id_t ue_id, enb_ue_s1ap_id_t enb_ue_id);
 
+status_code_e send_s1ap_erab_setup_req(
+    s1ap_state_t* state, mme_ue_s1ap_id_t ue_id, enb_ue_s1ap_id_t enb_ue_id,
+    ebi_t ebi);
+
+// TODO: Migrate pending ITTI sending functions to call handlers directly
+// instead
 status_code_e send_conn_establishment_cnf(
     mme_ue_s1ap_id_t ue_id, bool sec_capabilities_present,
     bool ue_radio_capability);
-
-status_code_e send_s1ap_erab_setup_req(
-    mme_ue_s1ap_id_t ue_id, enb_ue_s1ap_id_t enb_ue_id, ebi_t ebi);
 
 status_code_e send_s1ap_erab_reset_req(
     sctp_assoc_id_t assoc_id, sctp_stream_id_t stream_id,
