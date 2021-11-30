@@ -24,6 +24,8 @@ CONTROL_PROXY = 'control_proxy'
 SENTRY_CONFIG = 'sentry'
 SENTRY_URL = 'sentry_url_python'
 SENTRY_SAMPLE_RATE = 'sentry_sample_rate'
+CLOUD_ADDRESS = 'cloud_address'
+ORC8R_CLOUD_ADDRESS = 'orc8r_cloud_address'
 COMMIT_HASH = 'COMMIT_HASH'
 HWID = 'hwid'
 SERVICE_NAME = 'service_name'
@@ -107,5 +109,12 @@ def sentry_init(service_name: str):
         traces_sample_rate=sentry_sample_rate,
         before_send=_ignore_if_not_marked if sentry_status == SentryStatus.SEND_SELECTED_ERRORS else None,
     )
+
+    cloud_address = get_service_config_value(
+        CONTROL_PROXY,
+        CLOUD_ADDRESS,
+        default=None,
+    )
+    sentry_sdk.set_tag(ORC8R_CLOUD_ADDRESS, cloud_address)
     sentry_sdk.set_tag(HWID, snowflake.snowflake())
     sentry_sdk.set_tag(SERVICE_NAME, service_name)
