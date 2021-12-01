@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.workflow_run.head_commit.id || github.sha }}
       - name: Run docker compose
         run: |
           cd cwf/gateway/docker
@@ -44,7 +46,7 @@ jobs:
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
-        if: failure()
+        if: failure() && github.event.workflow_run.event == 'push'
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_USERNAME: "CWF integ test"
@@ -57,6 +59,8 @@ jobs:
     needs: docker-build
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.workflow_run.head_commit.id || github.sha }}
       - name: Setup Python env
         uses: "gabrielfalcao/pyenv-action@v8"
         with:
@@ -118,7 +122,7 @@ jobs:
           name: test-logs
           path: cwf/gateway/logs
       - name: Publish results to Firebase
-        if: always()
+        if: always() && github.event.workflow_run.event == 'push'
         env:
           FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
           REPORT_FILENAME: "cwf_integ_test_${{ github.sha }}.html"
@@ -128,3 +132,12 @@ jobs:
           [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
           [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
           python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} cwf --url $URL
+      - name: Notify failure to slack
+        if: failure() && github.event.workflow_run.event == 'push'
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_USERNAME: "CWF integ test"
+          SLACK_AVATAR: ":boom:"
+        uses: Ilshidur/action-slack@2.1.0
+        with:
+          args: 'CWF integration test: tests failed on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commits/${{github.sha}}): ${{ steps.commit.outputs.title}}'
