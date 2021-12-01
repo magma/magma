@@ -78,10 +78,11 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
     spgw_app_init(&spgw_config, mme_config.use_stateless);
 
     std::string homedir = std::string(getpwuid(getuid())->pw_dir);
-    name_of_ue_samples = load_file_into_vector_of_line_content(
+    name_of_ue_samples  = load_file_into_vector_of_line_content(
         homedir + "/" + DEFAULT_SPGW_CONTEXT_DATA_PATH,
-        homedir + "/" + "magma/lte/gateway/c/core/oai/test/spgw_task/data/"
-        "data_list.txt");
+        homedir + "/" +
+            "magma/lte/gateway/c/core/oai/test/spgw_task/data/"
+            "data_list.txt");
     mock_read_spgw_ue_state_db(name_of_ue_samples);
 
     std::this_thread::sleep_for(
