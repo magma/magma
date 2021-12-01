@@ -20,11 +20,13 @@ include_directories("${AMF_C_DIR}/include")
 include_directories("${PROJECT_SOURCE_DIR}/include/nas")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../orc8r/gateway/c/common/logging)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../common/glogwrapper)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../common)
 
 set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
 link_directories(
         ${MAGMA_LIB_DIR}/async_grpc
         ${MAGMA_LIB_DIR}/eventd
+        ${CMAKE_CURRENT_SOURCE_DIR}/../mme_app
 )
 
 add_library(TASK_AMF_APP
@@ -55,6 +57,8 @@ add_library(TASK_AMF_APP
     amf_app_timer_management.cpp
     amf_session_manager_pco.cpp
     amf_client_servicer.cpp
+    amf_app_state_converter.cpp
+    amf_app_state.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
 )
