@@ -260,8 +260,7 @@ int pdu_session_resource_release_complete(
   if (smf_ctx->pdu_address.pdn_type == IPv4) {
     // Clean up the Mobility IP Address
     AMFClientServicer::getInstance().release_ipv4_address(
-        imsi, reinterpret_cast<const char*>(smf_ctx->apn),
-        &(smf_ctx->pdu_address.ipv4_address));
+        imsi, smf_ctx->dnn.c_str(), &(smf_ctx->pdu_address.ipv4_address));
   }
 
   OAILOG_DEBUG(
@@ -456,8 +455,6 @@ int amf_smf_process_pdu_session_packet(
         return rc;
       }
 
-      smf_ctx->dnn.assign(
-          reinterpret_cast<char*>(msg->dnn.dnn), msg->dnn.len - 1);
       smf_ctx->sst = msg->nssai.sst;
       if (msg->nssai.sd[0]) {
         memcpy(smf_ctx->sd, msg->nssai.sd, SD_LENGTH);
@@ -484,7 +481,7 @@ int amf_smf_process_pdu_session_packet(
       bool ue_sent_dnn = true;
       std::string dnn_string;
 
-      if (msg->dnn.len <= 0) {
+      if (msg->dnn.len <= 1) {
         ue_sent_dnn = false;
         dnn_string  = default_dnn;
       } else {
@@ -497,16 +494,14 @@ int amf_smf_process_pdu_session_packet(
       free(default_dnn);
 
       if (validate == RETURNok) {
-        memcpy(
-            smf_ctx->apn,
-            &ue_context->amf_context.apn_config_profile
-                 .apn_configuration[index_dnn]
-                 .service_selection,
+        smf_ctx->dnn.assign(
+            reinterpret_cast<char*>(ue_context->amf_context.apn_config_profile
+                                        .apn_configuration[index_dnn]
+                                        .service_selection),
             strlen(ue_context->amf_context.apn_config_profile
                        .apn_configuration[index_dnn]
-                       .service_selection) +
-                1);
-        OAILOG_INFO(LOG_AMF_APP, "dnn selected %s\n", smf_ctx->apn);
+                       .service_selection));
+        OAILOG_INFO(LOG_AMF_APP, "dnn selected %s\n", smf_ctx->dnn.c_str());
       } else {
         OAILOG_INFO(
             LOG_AMF_APP,
