@@ -120,7 +120,7 @@ func (c *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string, l
 		Nonce: nonce,
 		Timeout: &timestamp.Timestamp{
 			Seconds: int64(t.Second()),
-			Nanos:   int32(t.Unix()),
+			Nanos:   int32(t.Nanosecond()),
 		},
 	}
 
