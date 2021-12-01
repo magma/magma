@@ -48,21 +48,37 @@ spec:
 {{ toYaml . | trimSuffix "\n" | indent 8 }}
       {{- end }}
       volumes:
+        {{- if .Values.certs.enabled }}
+        {{- range tuple "controller" "certifier" }}
+        - name: {{ . }}
+          secret:
+            secretName: {{ $.Release.Name }}-{{ . }}-tls
+        {{- end }}
+        {{- else }}
         - name: certs
           secret:
             secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
         - name: envdir
           secret:
             secretName: {{ required "secret.envdir must be provided" .Values.secret.envdir }}
+        {{- end }}
       containers:
         - name: {{ $serviceName }}
           image: {{ required "nginx.image.repository must be provided" .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag }}
           imagePullPolicy: {{ .Values.nginx.image.pullPolicy }}
           volumeMounts:
+            {{- if .Values.certs.enabled }}
+            {{- range tuple "controller" "certifier" }}
+            - name: {{ . }}
+              mountPath: /var/opt/magma/certs/{{ . }}
+              readOnly: true
+            {{- end }}
+            {{- else }}
             {{- range tuple "certs" "envdir" }}
             - name: {{ . }}
               mountPath: /var/opt/magma/{{ . }}
               readOnly: true
+            {{- end }}
             {{- end }}
           ports:
             - name: clientcert
@@ -82,6 +98,21 @@ spec:
               value: {{ .Values.nginx.spec.resolver | quote }}
             - name: SERVICE_REGISTRY_MODE
               value: {{ .Values.controller.spec.service_registry.mode }}
+            {{- if .Values.certs.enabled }}
+            - name: SSL_CERTIFICATE
+              value: "/var/opt/magma/certs/controller/tls.crt"
+            - name: SSL_CERTIFICATE_KEY
+              value: "/var/opt/magma/certs/controller/tls.key"
+            - name: SSL_CLIENT_CERTIFICATE
+              value: "/var/opt/magma/certs/certifier/tls.crt"
+            {{- else }}
+            - name: SSL_CERTIFICATE
+              value: "/var/opt/magma/certs/controller.crt"
+            - name: SSL_CERTIFICATE_KEY
+              value: "/var/opt/magma/certs/controller.key"
+            - name: SSL_CLIENT_CERTIFICATE
+              value: "/var/opt/magma/certs/certifier.pem"
+            {{- end }}
           livenessProbe:
             tcpSocket:
               port: health

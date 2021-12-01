@@ -64,10 +64,17 @@ spec:
             - run
             - start:prod
           env:
+            {{- if .Values.certs.enabled }}
+            - name: API_CERT_FILENAME
+              value: /var/opt/magma/certs/admin-operator/tls.crt
+            - name: API_PRIVATE_KEY_FILENAME
+              value: /var/opt/magma/certs/admin-operator/tls.key
+            {{- else }}
             - name: API_CERT_FILENAME
               value: /run/secrets/admin_operator.pem
             - name: API_PRIVATE_KEY_FILENAME
               value: /run/secrets/admin_operator.key.pem
+            {{- end }}
             - name: API_HOST
               value: {{ .Values.magmalte.env.api_host | quote }}
             - name: HOST
@@ -105,15 +112,27 @@ spec:
           ports:
             - containerPort: 8081
           volumeMounts:
+            {{- if .Values.certs.enabled }}
+            - name: admin-operator
+              mountPath: /var/opt/magma/certs/admin-operator/
+              readOnly: true
+            {{- else }}
             - name: orc8r-secrets-certs
               mountPath: /run/secrets/admin_operator.pem
               subPath: {{ .Values.magmalte.deployment.spec.operator_cert_name }}
             - name: orc8r-secrets-certs
               mountPath: /run/secrets/admin_operator.key.pem
               subPath: {{ .Values.magmalte.deployment.spec.operator_key_name }}
+            {{- end }}
       volumes:
+        {{- if .Values.certs.enabled }}
+        - name: admin-operator
+          secret:
+            secretName: {{ .Release.Name }}-admin-operator-tls
+        {{- else }}
         - name: orc8r-secrets-certs
           secret:
             secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
+        {{- end }}
             defaultMode: 0444
 {{- end }}
