@@ -33,6 +33,7 @@ extern "C" {
 #include "lte/protos/session_manager.pb.h"
 #include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "include/amf_client_servicer.h"
 
 #define VERSION_0 0
 
@@ -92,7 +93,10 @@ int create_session_grpc_req_on_gnb_setup_rsp(
   OAILOG_DEBUG(
       LOG_AMF_APP, "Sending PDU session Establishment 2nd Request to SMF");
 
-  AsyncSmfServiceClient::getInstance().set_smf_session(req);
+  OAILOG_INFO(
+      LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s]\n", imsi);
+
+  AMFClientServicer::getInstance().set_smf_session(req);
 
   return rc;
 }
@@ -129,7 +133,7 @@ int amf_smf_create_ipv4_session_grpc_req(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
 
-  return AsyncSmfServiceClient::getInstance().amf_smf_create_pdu_session_ipv4(
+  return AMFClientServicer::getInstance().amf_smf_create_pdu_session_ipv4(
       imsi, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
       gnb_gtp_teid_ip_addr, ipv4_addr, VERSION_0, state_ambr);
 }
@@ -147,13 +151,12 @@ int amf_smf_create_pdu_session(
   imsi64_t imsi64                   = INVALID_IMSI64;
   amf_context_t* amf_ctxt_p         = NULL;
   ue_m5gmm_context_s* ue_mm_context = NULL;
-
-  OAILOG_INFO(
-      LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s] session\n",
-      imsi);
+  std::shared_ptr<smf_context_t> smf_ctx;
 
   IMSI_STRING_TO_IMSI64((char*) imsi, &imsi64);
   ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
+  smf_ctx       = amf_get_smf_context_by_pdu_session_id(
+      ue_mm_context, message->pdu_session_id);
 
   if (ue_mm_context) {
     amf_ctxt_p = &ue_mm_context->amf_context;
@@ -167,10 +170,10 @@ int amf_smf_create_pdu_session(
   OAILOG_INFO(
       LOG_AMF_APP, "Sending msg(grpc) to :[mobilityd] for ue: [%s] ip-addr\n",
       imsi);
-  AsyncM5GMobilityServiceClient::getInstance().allocate_ipv4_address(
-      imsi, "internet", message->pdu_session_id, message->pti, AF_INET,
-      message->gnb_gtp_teid, message->gnb_gtp_teid_ip_addr, 4,
-      amf_ctxt_p->subscribed_ue_ambr);
+  AMFClientServicer::getInstance().allocate_ipv4_address(
+      imsi, reinterpret_cast<char*>(smf_ctx->apn), message->pdu_session_id,
+      message->pti, AF_INET, message->gnb_gtp_teid,
+      message->gnb_gtp_teid_ip_addr, 4, amf_ctxt_p->subscribed_ue_ambr);
 
   return (RETURNok);
 }
@@ -196,8 +199,13 @@ int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
   req_rat_specific->set_pdu_session_id(message->pdu_session_id);
   req_rat_specific->set_procedure_trans_identity(
       (const char*) (&(message->pti)));
+  req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
 
-  AsyncSmfServiceClient::getInstance().set_smf_session(req);
+  OAILOG_INFO(
+      LOG_AMF_APP,
+      "Sending msg(grpc) to :[sessiond] for ue: [%s] release session\n", imsi);
+
+  AMFClientServicer::getInstance().set_smf_session(req);
 
   return RETURNok;
 }

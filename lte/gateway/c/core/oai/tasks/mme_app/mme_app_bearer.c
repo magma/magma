@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h>
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include <inttypes.h>
 #include <netinet/in.h>
 
@@ -1897,7 +1897,7 @@ status_code_e mme_app_handle_mobile_reachability_timer_expiry(
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -1944,7 +1944,7 @@ status_code_e mme_app_handle_implicit_detach_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -1971,7 +1971,7 @@ status_code_e mme_app_handle_initial_context_setup_rsp_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_ERROR(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -2377,7 +2377,7 @@ status_code_e mme_app_handle_paging_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -2453,7 +2453,7 @@ status_code_e mme_app_handle_ulr_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -2766,7 +2766,7 @@ status_code_e mme_app_handle_ue_context_modification_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -2907,6 +2907,7 @@ void mme_app_handle_create_dedicated_bearer_rsp(
       "Sending Activate Dedicated Bearer Response to SPGW for "
       "ue-id: " MME_UE_S1AP_ID_FMT "\n",
       ue_context_p->mme_ue_s1ap_id);
+  update_mme_app_stats_s1u_bearer_add();
   send_pcrf_bearer_actv_rsp(ue_context_p, ebi, REQUEST_ACCEPTED);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 #endif
@@ -2983,15 +2984,6 @@ void mme_app_handle_create_dedicated_bearer_rej(
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
-}
-
-//------------------------------------------------------------------------------
-// See 3GPP TS 23.401 version 10.13.0 Release 10: 5.4.4.2 MME Initiated
-// Dedicated Bearer Deactivation
-void mme_app_trigger_mme_initiated_dedicated_bearer_deactivation_procedure(
-    mme_app_desc_t* mme_app_desc_p, ue_mm_context_t* const ue_context,
-    const pdn_cid_t cid) {
-  OAILOG_DEBUG(LOG_MME_APP, "TODO \n");
 }
 
 /**
@@ -3164,7 +3156,7 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
 void send_delete_dedicated_bearer_rsp(
     struct ue_mm_context_s* ue_context_p, bool delete_default_bearer,
     ebi_t ebi[], uint32_t num_bearer_context, teid_t s_gw_teid_s11_s4,
-    gtpv2c_cause_value_t cause) {
+    gtpv2c_cause_value_t cause, bool route_s11_messages_to_s8_task) {
   itti_s11_nw_init_deactv_bearer_rsp_t* s11_deact_ded_bearer_rsp = NULL;
   MessageDef* message_p                                          = NULL;
   uint32_t i                                                     = 0;
@@ -3190,6 +3182,7 @@ void send_delete_dedicated_bearer_rsp(
       sizeof(itti_s11_nw_init_deactv_bearer_rsp_t));
 
   s11_deact_ded_bearer_rsp->delete_default_bearer = delete_default_bearer;
+  s11_deact_ded_bearer_rsp->cause.cause_value     = cause;
 
   if (delete_default_bearer) {
     s11_deact_ded_bearer_rsp->lbi  = calloc(1, sizeof(ebi_t));
@@ -3213,13 +3206,23 @@ void send_delete_dedicated_bearer_rsp(
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
-  OAILOG_INFO_UE(
-      LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      " Sending nw_initiated_deactv_bearer_rsp to SGW with %d bearers for ue "
-      "id " MME_UE_S1AP_ID_FMT "\n",
-      num_bearer_context, ue_context_p->mme_ue_s1ap_id);
-  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
-
+  if (route_s11_messages_to_s8_task) {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        " Sending nw_initiated_deactv_bearer_rsp to SGW_S8 with %d bearers for "
+        "ue "
+        "id " MME_UE_S1AP_ID_FMT "\n",
+        num_bearer_context, ue_context_p->mme_ue_s1ap_id);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
+  } else {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        " Sending nw_initiated_deactv_bearer_rsp to SPGW with %d bearers for "
+        "ue "
+        "id " MME_UE_S1AP_ID_FMT "\n",
+        num_bearer_context, ue_context_p->mme_ue_s1ap_id);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -3328,7 +3331,8 @@ void mme_app_handle_nw_init_bearer_deactv_req(
       // Send delete_dedicated_bearer_rsp to SPGW
       send_delete_dedicated_bearer_rsp(
           ue_context_p, nw_init_bearer_deactv_req_p->delete_default_bearer, ebi,
-          num_bearers_deleted, pdn_context->s_gw_teid_s11_s4, REQUEST_ACCEPTED);
+          num_bearers_deleted, pdn_context->s_gw_teid_s11_s4, REQUEST_ACCEPTED,
+          pdn_context->route_s11_messages_to_s8_task);
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);

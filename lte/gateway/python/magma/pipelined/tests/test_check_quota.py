@@ -32,7 +32,6 @@ from magma.pipelined.tests.pipelined_test_util import (
 )
 
 
-@unittest.skip("Skip test, currenlty flaky")
 class UEMacAddressTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'

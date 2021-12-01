@@ -317,6 +317,10 @@ commands:
           executable_name: << parameters.executable_name >>
           project: magma-staging-native
           org: lf-9c
+      - sentry-upload:
+          executable_name: << parameters.executable_name >>
+          project: si-agw-native
+          org: lf-9c
 
   sentry-release:
     steps:
@@ -437,7 +441,6 @@ commands:
             lease_node=$(cat lease_node.out)
             curl -X POST "https://api-staging.magma.etagecom.io/magma/v1/ci/nodes/${lease_node}/release/${lease_id}" -k --key ci_operator.key.pem --cert ci_operator.pem || true
           when: always
-      - magma_slack_notify
 
   magma_slack_notify:
     description: Notify Slack on magma job failure
@@ -566,25 +569,6 @@ commands:
             curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
-  backport:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - python/set_version
-      - run:
-          command: |
-            mkdir ~/.magma
-            echo ${GITHUB_ACCESS_TOKEN} > ~/.magma/github_access_token
-      - run:
-          name: Install python prerequisites
-          command: pip3 install fabric3 jsonpickle requests PyYAML PyGithub
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/circleci/release
-            fab find_release_commits
 
   orc8r-build:
     machine:
@@ -620,28 +604,6 @@ jobs:
       - notify-magma:
           artifact_name: Orchestrator Images
           version_path: versions/orc8r_version
-      - magma_slack_notify
-
-  ### GATEWAY
-
-  orc8r-gateway-test:
-    docker:
-      - image: circleci/golang:1.13-buster-node-browsers-legacy
-    environment:
-      GO111MODULE: 'on'
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *orc8r_build_verify
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run-with-retry:
-          command: go mod download
-          workdir: ${MAGMA_ROOT}/cwf/gateway
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/gateway/go
-            go test ./...
-            go vet ./...
       - magma_slack_notify
 
   feg-build:
@@ -703,18 +665,6 @@ jobs:
           artifact_name: FeG
           version_path: versions/feg_version
       - magma_slack_notify
-
-  cwf-integ-test:
-    machine:
-      image: ubuntu-1604:201903-01
-    steps:
-      - build/determinator:
-          <<: *all_gateways_build_verify
-      - magma_integ_test:
-          stack: cwf
-          test: 'True'
-          build: 'False'
-          deploy: 'False'
 
   cwag-deploy:
     parameters:
@@ -903,130 +853,9 @@ jobs:
           steps:
             - magma_slack_notify
 
-  publish-amis-to-marketplace:
-    machine:
-      image: ubuntu-2004:202104-01
-      docker_layer_caching: true
-    parameters:
-      aws_account:
-        description: AWS account to push to
-        type: string
-        default: "FB"
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-      CODE_DIR: /home/circleci/project/experimental/cloudstrapper
-      VARS_DIR: /home/circleci/project/experimental/cloudstrapper/playbooks/roles/vars
-      WORK_DIR: /home/circleci/project/experimental/cloudstrapper/playbooks
-    steps:
-      - checkout
-      - run: sudo apt-get update && sudo apt -y upgrade
-      - run: pyenv install 3.7.0
-      - python/set_version:
-          python_version: "3.7.0"
-      - run:
-          name: Install Dependencies
-          command: |
-              pip install ansible awscli boto3
-              sudo apt-get update
-      - run:
-          name: Propagate AWS credentials to ansible and create version
-          command: |
-            if [ "<<parameters.aws_account>>" = "FB" ]; then
-              sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
-              sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
-              echo export VERSION="1.6.0-${CIRCLE_SHA1:0:8}" >> $BASH_ENV
-              echo export PACKAGE_VERSION="1.6.0" >> $BASH_ENV
-              # When focal-ci is clean we will be able to dynamically fetch latest ci debian packages
-            elif  [ "<<parameters.aws_account>>" = "LF" ]; then
-              sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
-              sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
-              echo export PACKAGE_VERSION="1.7.0" >> $BASH_ENV
-              echo export VERSION="1.7.0" >> $BASH_ENV
-            fi
-            echo export PACKAGE_REPO_HOST="artifactory.magmacore.org\\\/artifactory\\\/debian" >> $BASH_ENV
-            echo export GIT_REF="${CIRCLE_SHA1}" >> $BASH_ENV
-      - run:
-          name: Propagate AWS region information
-          command: |
-            sed -i -e '/^awsAgwRegion: /s/:.*$/: us-east-1/' $VARS_DIR/cluster.yaml
-            sed -i -e '/^awsOrc8rRegion: /s/:.*$/: us-east-1/' $VARS_DIR/cluster.yaml
-            sed -i -e '/^awsAgwAz: /s/:.*$/: us-east-1b/' $VARS_DIR/cluster.yaml
-            sed -i -e '/^buildAwsRegion: /s/:.*$/: us-east-1/' $VARS_DIR/build.yaml
-            sed -i -e '/^buildAwsAz: /s/:.*$/: us-east-1b/' $VARS_DIR/build.yaml
-      - run:
-          name: Propagate names for AWS essential components
-          command: |
-            sed -i -e '/^secgroupDefault: /s/:.*$/: publish-amis-to-marketplace-secgroup/' $VARS_DIR/defaults.yaml
-            sed -i -e '/^bucketDefault: /s/:.*$/: publish-amis-to-marketplace-bucket2/' $VARS_DIR/defaults.yaml
-            sed -i -e '/^stackEssentialsDefault: /s/:.*$/: publish-amis-to-marketplace-stack/' $VARS_DIR/defaults.yaml
-            sed -i -e '/^keyBoot: /s/:.*$/: publish-amis-to-marketplace-keyboot/' $VARS_DIR/defaults.yaml
-            sed -i -e '/^keyHost: /s/:.*$/: publish-amis-to-marketplace-keyhost/' $VARS_DIR/defaults.yaml
-      - run:
-          name: Setup AWS essentials components
-          command: |
-            ansible-playbook $WORK_DIR/aws-prerequisites.yaml -e "dirLocalInventory=$VARS_DIR" --tags keyCreate,essentialsCreate
-      - run:
-          name: Propagate Tags for Cloudstrapper instances
-          command: |
-            sed -i -e '/^devOpsCloudstrapper: /s/:.*$/: publishAmisToMarketplaceDevopsCloudstrapper/' $VARS_DIR/defaults.yaml
-            sed -i -e '/^primaryCloudstrapper: /s/:.*$/: publishAmisToMarketplacePrimaryCloudstrapper/' $VARS_DIR/defaults.yaml
-            sed -i -e '/^stackDevOpsCloudstrapper: /s/:.*$/: publish-amis-to-marketplace-stack-devopscloustrapper/' $VARS_DIR/defaults.yaml
-            sed -i -e '/^stackCloudstrapper: /s/:.*$/: publish-amis-to-marketplace-stack-cloustrapper/' $VARS_DIR/defaults.yaml
-            sed -i -e '/^devOpsAmi: /s/:.*$/: cloudstrapper-'"$VERSION"'/' $VARS_DIR/defaults.yaml
-            sed -i -e '/^buildUbuntuAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' $VARS_DIR/build.yaml
-            sed -i -e '/^buildAgwVersion: /s/:.*$/: '"$GIT_REF"'/' $VARS_DIR/build.yaml
-            sed -i -e '/^buildAgwPackage: /s/:.*$/: '"$PACKAGE_VERSION"'/' $VARS_DIR/build.yaml
-            sed -i -e '/^taggedVersion: /s/:.*$/: '"$VERSION"'/' $VARS_DIR/build.yaml
-      - run:
-          name: Generate Cloudstrapper AMI
-          no_output_timeout: 30m
-          command: |
-            ansible-playbook $WORK_DIR/devops-provision.yaml -e "dirLocalInventory=$VARS_DIR"
-            echo "Waiting one minute for the instance to boot up."
-            sleep 60
-            ansible-playbook $WORK_DIR/devops-configure.yaml -e "devops=tag_Name_publishAmisToMarketplaceDevopsCloudstrapper" -e "dirLocalInventory=$VARS_DIR" -i $VARS_DIR/common_instance_aws_ec2.yaml -u ubuntu --skip-tags usingGitSshKey,buildMagma,pubMagma,helm,pubHelm
-            ansible-playbook $WORK_DIR/devops-init.yaml -e "dirLocalInventory=$VARS_DIR"
-      - notify-magma:
-          artifact_name: Cloudstrapper AWS AMI
-          version_path: $VERSION
-      - run:
-          name: Propagate variables for AGW AMI build
-          command: |
-            sed -i -e '/^buildAgwAmiName: /s/:.*$/: agw-ami-'"$VERSION"'/' $VARS_DIR/build.yaml
-            sed -i -e '/^buildGwTagName: /s/:.*$/: publishAmisToMarketplaceAgw/' $VARS_DIR/build.yaml
-            sed -i -e '/^packageRepoHost: /s/:.*$/: '"$PACKAGE_REPO_HOST"'/' $VARS_DIR/build.yaml
-            sed -i -e '/^awsAgwAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' $VARS_DIR/cluster.yaml
-      - run:
-          name: Generate AGW AMI
-          no_output_timeout: 30m
-          command: |
-            ansible-playbook $WORK_DIR/agw-provision.yaml -e "idSite=DevOps" -e "idGw=publishAmisToMarketplaceAgw" -e "dirLocalInventory=$VARS_DIR" --tags infra,inventory  -e "agwDevops=1" --skip-tags createBridge,cleanupBridge,cleanupNet
-            echo "Waiting one minute for the instance to boot up."
-            sleep 60
-            ansible-playbook $WORK_DIR/ami-configure.yaml -i "$VARS_DIR/common_instance_aws_ec2.yaml" -e "dirLocalInventory=$VARS_DIR" -e "aminode=tag_Name_publishAmisToMarketplaceAgw" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
-            ansible-playbook $WORK_DIR/ami-init.yaml -e "dirLocalInventory=$VARS_DIR"
-      - run:
-          name: Export qcow2 image for fb aws account in s3
-          no_output_timeout: 30m
-          command: |
-            if [ "<<parameters.aws_account>>" = "FB" ]; then
-              ansible-playbook $WORK_DIR/devops-convert-to-qcow2.yaml -e "dirLocalInventory=$VARS_DIR" -e "agwAmiName=agw-ami-$VERSION"
-            fi
-      - run:
-          name: Clean AWS resources
-          when: always
-          command: |
-            ansible-playbook $WORK_DIR/cleanup.yaml -e "dirLocalInventory=$VARS_DIR" --tags agw,subnet,secgroup,vpc,keys --skip-tags orc8r  -e "{"deleteStacks": [stackDevOpspublishAmisToMarketplaceAgw, publish-amis-to-marketplace-stack-devopscloustrapper, publish-amis-to-marketplace-stack, stackDevOpsNetwork]}"
-      - notify-magma:
-          artifact_name: AGW AWS AMI
-          version_path: $VERSION
-      - magma_slack_notify
+
 workflows:
   version: 2
-
-  lib_gateway:
-    jobs:
-      - orc8r-gateway-test
 
   agw:
     jobs:
@@ -1034,13 +863,12 @@ workflows:
           <<: *master_and_develop
       - lte-agw-deploy:
           <<: *only_master
+          requires:
+            - lte-integ-test
 
   release:
     jobs:
       - release-hold:
-          <<: *only_release
-          type: approval
-      - ami-hold:
           <<: *only_release
           type: approval
       - lte-agw-deploy:
@@ -1067,18 +895,6 @@ workflows:
           <<: *only_release
           requires:
             - release-hold
-      # Debian Packages need to be promoted to production repo before releasing to Linux Foundation AWS
-      - publish-amis-to-marketplace:
-          aws_account: "LF"
-          <<: *only_release
-          requires:
-            - release-hold
-            - ami-hold
-
-  cwag:
-    jobs:
-      - cwf-integ-test:
-          <<: *master_and_develop
 
       # GH9026: Disabling test until it is fixed
       # - xwfm-test:
@@ -1095,15 +911,3 @@ workflows:
   #     - xwfm-test:
   #         notify_magma_ci: false
 
-  weekly_ami_push:
-    triggers:
-      - schedule:
-          cron: "0 0 * * 0"
-          <<: *only_master
-    jobs:
-      - publish-amis-to-marketplace
-
-  github:
-    jobs:
-      - backport:
-          <<: *only_master

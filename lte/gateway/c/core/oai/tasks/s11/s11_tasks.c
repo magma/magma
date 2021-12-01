@@ -164,9 +164,6 @@ static nw_rc_t s11_mme_send_udp_msg(
 static nw_rc_t s11_mme_start_timer_wrapper(
     nw_gtpv2c_timer_mgr_handle_t tmrMgrHandle, uint32_t timeoutMilliSec,
     uint32_t tmrType, void* timeoutArg, nw_gtpv2c_timer_handle_t* hTmr) {
-  long timer_id;
-  int ret = 0;
-
   if (tmrType == NW_GTPV2C_TMR_TYPE_REPETITIVE) {
     *hTmr = (nw_gtpv2c_timer_handle_t) start_timer(
         &s11_task_zmq_ctx, timeoutMilliSec, TIMER_REPEAT_FOREVER,

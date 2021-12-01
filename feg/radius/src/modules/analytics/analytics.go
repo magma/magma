@@ -33,6 +33,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const InsecureVerify = true
+
 // Config configuration structure for the EAP module
 type Config struct {
 	AccessToken   string // Access Token to use in GraphQL calls
@@ -78,7 +80,7 @@ func Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, err
 		Endpoint: ctx.cfg.GraphQLURL,
 		HTTPClient: &http.Client{
 			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: InsecureVerify},
 			},
 		},
 	})

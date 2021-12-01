@@ -427,5 +427,22 @@ const struct in_addr& DeletePagingRuleEvent::get_ue_ip() const {
 const struct in6_addr& DeletePagingRuleEvent::get_ue_ipv6() const {
   return ue_info_.get_ipv6();
 }
+  AddArpFlowEvent::AddArpFlowEvent(const char* imsi, const struct in_addr ue_ip)
+    : ue_ipv4(ue_ip),
+      ExternalEvent(EVENT_ADD_DL_ARP),
+      flow_precedence_(DEFAULT_PRECEDENCE),
+      imsi_(imsi) {}
+
+const struct in_addr& AddArpFlowEvent::get_ue_ip() const {
+  return ue_ipv4;
+}
+
+int AddArpFlowEvent::get_flow_precedence() const {
+  return flow_precedence_;
+}
+
+const std::string& AddArpFlowEvent::get_imsi() const {
+  return imsi_;
+}
 
 }  // namespace openflow

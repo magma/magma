@@ -257,6 +257,19 @@ void itti_free_msg_content(MessageDef* const message_p) {
     case AMF_APP_UPLINK_DATA_IND:
       bdestroy_wrapper(&message_p->ittiMsg.amf_app_ul_data_ind.nas_msg);
       break;
+    case NGAP_PDUSESSION_RESOURCE_SETUP_REQ: {
+      itti_ngap_pdusession_resource_setup_req_t* pdusession_resource_setup_req =
+          &NGAP_PDUSESSION_RESOURCE_SETUP_REQ(message_p);
+      Ngap_PDUSession_Resource_Setup_Request_List_t* resource_list =
+          &(pdusession_resource_setup_req->pduSessionResource_setup_list);
+      pdusession_setup_item_t* session_item = &(resource_list->item[0]);
+      pdu_session_resource_setup_request_transfer_t* session_transfer =
+          &(session_item->PDU_Session_Resource_Setup_Request_Transfer);
+      bdestroy_wrapper(&session_transfer->up_transport_layer_info.gtp_tnl
+                            .endpoint_ip_address);
+      bdestroy_wrapper(&pdusession_resource_setup_req->nas_pdu);
+      break;
+    }
 
     default:;
   }

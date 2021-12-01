@@ -273,7 +273,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       is_task_state_same = true;  // the following handler does not modify state
       is_ue_state_same   = true;
       s1ap_handle_path_switch_req_failure(
-          state, &received_message_p->ittiMsg.s1ap_path_switch_request_failure,
+          &received_message_p->ittiMsg.s1ap_path_switch_request_failure,
           imsi64);
     } break;
 

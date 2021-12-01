@@ -18,18 +18,26 @@ Notes:
 2. We eventually want a canonical golang import path of magmacore.org/magma
 
 
-## Generating Bazel build files
+
+## Bazel integration
+
+### Generating Bazel build files
 
 When updating or adding a new dependency, run
 
 ```sh
-bazel run //:gazelle -- update-repos -from_file=src/go/go.mod -to_macro=go_repositories.bzl%go_repositories
+bazel run //:gazelle -- update-repos -from_file=src/go/go.mod -to_macro=bazel/go_repositories.bzl%go_repositories
 ```
 
 To generate BUILD.bazel files, run
 
 ```sh
 bazel run //:gazelle
+```
+### Running tests
+To run all the tests, run
+```sh
+bazel test //src/go/...
 ```
 
 ## Dependencies

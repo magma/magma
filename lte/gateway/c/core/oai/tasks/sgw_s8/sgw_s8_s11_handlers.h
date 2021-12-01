@@ -52,6 +52,15 @@ void sgw_s8_handle_s11_create_bearer_response(
     sgw_state_t* sgw_state,
     itti_s11_nw_init_actv_bearer_rsp_t* s11_actv_bearer_rsp, imsi64_t imsi64);
 
+int sgw_s8_handle_delete_bearer_request(
+    sgw_state_t* sgw_state, const s8_delete_bearer_request_t* const db_req);
+
+status_code_e sgw_s8_handle_s11_delete_bearer_response(
+    sgw_state_t* sgw_state,
+    const itti_s11_nw_init_deactv_bearer_rsp_t* const
+        s11_delete_bearer_response_p,
+    imsi64_t imsi64);
+
 void sgw_s8_send_failed_create_bearer_response(
     sgw_state_t* sgw_state, uint32_t sequence_number, char* pgw_cp_address,
     gtpv2c_cause_value_t cause_value, Imsi_t imsi, teid_t pgw_s8_teid);
@@ -90,3 +99,9 @@ void sgw_s8_proc_s11_create_bearer_rsp(
     bearer_context_within_create_bearer_response_t* bc_cbrsp,
     itti_s11_nw_init_actv_bearer_rsp_t* s11_actv_bearer_rsp, imsi64_t imsi64,
     sgw_state_t* sgw_state);
+
+void print_bearer_ids_helper(const ebi_t* ebi, uint32_t no_of_bearers);
+
+void sgw_s8_send_failed_delete_bearer_response(
+    const s8_delete_bearer_request_t* const db_req,
+    gtpv2c_cause_value_t cause_value, Imsi_t imsi, teid_t pgw_s8_teid);

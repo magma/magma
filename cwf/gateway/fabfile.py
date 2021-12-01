@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import re
 import sys
 import time
 from enum import Enum
@@ -60,9 +61,11 @@ class SubTests(Enum):
 def integ_test(
     gateway_host=None, test_host=None, trf_host=None,
     gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml",
-    transfer_images=False, destroy_vm=False, no_build=False,
+    transfer_images=False, skip_docker_load=False, tar_path="/tmp/cwf-images",
+    destroy_vm=False, no_build=False,
     tests_to_run="all", skip_unit_tests=False, test_re=None,
     test_result_xml=None, run_tests=True, count="1", provision_vm=True,
+    rerun_fails="1",
 ):
     """
     Run the integration tests. This defaults to running on local vagrant
@@ -88,19 +91,28 @@ def integ_test(
     no_build: When set to true, this script will not rebuild all docker images
         in the CWAG VM
 
-    transfer_images: When set to true, the script will transfer all cwf_* docker 
+    transfer_images: When set to true, the script will transfer all cwf_* docker
         images from the host machine to the CWAG VM to use in the test
+
+    skip_docker_load: When set to true, /tmp/cwf_* will copied into the CWAG VM
+        instead of loading the docker images then copying. This option only is
+        valid if transfer_images is set.
+
+    tar_path: The location where the tarred docker images will be copied from.
+        Only valid if transfer_images is set.
 
     skip_unit_tests: When set to true, only integration tests will be run
 
     run_tests: When set to to false, no tests will be run
 
-    test_re: When set to a value, integrations tests that match the expression will be run. 
+    test_re: When set to a value, integrations tests that match the expression will be run.
         (Ex: test_re=TestAuth will run all tests that start with TestAuth)
 
     count: When set to a number, the integrations tests will be run that many times
 
     test_result_xml: When set to a path, a JUnit style test summary in XML will be produced at the path
+
+    rerun_fails: Number of times to re-run a test on failure
     """
     try:
         tests_to_run = SubTests(tests_to_run)
@@ -112,6 +124,7 @@ def integ_test(
         )
         return
     provision_vm = False if provision_vm == "False" else True
+    skip_docker_load = False if skip_docker_load == "False" else True
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
@@ -141,7 +154,7 @@ def integ_test(
 
     # Transfer built images from local machine to CWAG host
     if gateway_host or transfer_images:
-        execute(_transfer_docker_images)
+        execute(_transfer_docker_images, skip_docker_load, tar_path)
     else:
         execute(_stop_gateway)
         if not no_build:
@@ -204,12 +217,12 @@ def integ_test(
         )
         execute(
             _run_integ_tests, gateway_host, trf_host,
-            tests_to_run, test_re, count, test_result_xml,
+            tests_to_run, test_re, count, test_result_xml, rerun_fails,
         )
     else:
         execute(
             _run_integ_tests, test_host, trf_host,
-            tests_to_run, test_re, count, test_result_xml,
+            tests_to_run, test_re, count, test_result_xml, rerun_fails,
         )
 
     # If we got here means everything work well!!
@@ -270,19 +283,31 @@ def _switch_to_vm_no_destroy(addr, host_name, ansible_file):
     _switch_to_vm(addr, host_name, ansible_file, False, False)
 
 
-def _transfer_docker_images():
-    output = local("docker images cwf_*", capture=True)
+def _transfer_docker_images(skip_docker_load, tar_path):
+    if skip_docker_load:
+        print("Skipping docker save step and grabbing whatever is in " + tar_path)
+    else:
+        print("Loading cwf_* docker images into " + tar_path)
+        local("rm -rf " + tar_path)
+        local("mkdir -p " + tar_path)
+        output = local("docker images cwf_*", capture=True)
+        for line in output.splitlines():
+            if not line.startswith('cwf'):
+                continue
+            line = line.rstrip("\n")
+            image = line.split(" ")[0]
+            local("docker save -o %s/%s.tar %s" % (tar_path, image, image))
+
+    output = local("ls %s/cwf_*.tar" % tar_path, capture=True)
     for line in output.splitlines():
-        if not line.startswith('cwf'):
-            continue
-        line = line.rstrip("\n")
-        image = line.split(" ")[0]
-
-        local("docker save -o /tmp/%s.tar %s" % (image, image))
-        put("/tmp/%s.tar" % image, "%s.tar" % image)
-        local("rm -f /tmp/%s.tar" % image)
-
-        run('docker load -i %s.tar' % image)
+        regex = '%s/(.+?).tar' % tar_path
+        match = re.search(regex, line)
+        if match:
+            image = match.group(1)
+            put("%s/%s.tar" % (tar_path, image), "%s.tar" % image)
+            run('docker load -i %s.tar' % image)
+        else:
+            print("We should not be here, but " + line + " does not match regex: " + regex)
 
 
 def _set_cwag_configs(configfile):
@@ -470,7 +495,7 @@ def _add_docker_host_remote_network_envvar():
 
 def _run_integ_tests(
     test_host, trf_host, tests_to_run: SubTests,
-    test_re=None, count="1", test_result_xml=None,
+    test_re, count, test_result_xml, rerun_fails,
 ):
     """ Run the integration tests """
     # add docker host environment as well
@@ -483,8 +508,8 @@ def _run_integ_tests(
 
     # QOS take a while to run. Increasing the timeout to 50m
     go_test_cmd = "gotestsum --format=standard-verbose "
-    # Retry once on failure
-    go_test_cmd += "--rerun-fails=1 --packages='./...' "
+    # Set retry count on failure
+    go_test_cmd += "--rerun-fails=" + rerun_fails + " --packages='./...' "
     if test_result_xml:  # generate test result XML in cwf/gateway directory
         go_test_cmd += "--junitfile ../" + test_result_xml + " "
     go_test_cmd += " -- -test.short -timeout 50m -count " + count  # go test args

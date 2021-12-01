@@ -13,6 +13,8 @@ limitations under the License.
 import asyncio
 import logging
 
+DEFAULT_VERSION = '0.0.0-0'
+
 
 class Upgrader(object):
     """
@@ -81,26 +83,26 @@ def start_upgrade_loop(magmad_service, upgrader):
 
     while True:
         logging.info('Checking for upgrade...')
-        try:
-            target_ver = _get_target_version(magmad_service.mconfig)
-            upgrader.perform_upgrade_if_necessary(target_ver)
-        except Exception:  # pylint: disable=broad-except
-            logging.exception(
-                'Error encountered while upgrading, will try again after delay',
-            )
+        target_ver = _get_target_version(magmad_service.mconfig)
         poll_interval = max(  # No faster than 1/minute
             60,
             magmad_service.mconfig.autoupgrade_poll_interval,
         )
+        if target_ver == DEFAULT_VERSION:
+            logging.warning(
+                'magmad package_version config missing or set to '
+                'default %s, skipping upgrade', DEFAULT_VERSION,
+            )
+        else:
+            try:
+                upgrader.perform_upgrade_if_necessary(target_ver)
+            except Exception:  # pylint: disable=broad-except
+                logging.exception(
+                    'Error encountered while upgrading, '
+                    'will try again after %s seconds', poll_interval,
+                )
         yield from asyncio.sleep(poll_interval)
 
 
 def _get_target_version(magmad_mconfig):
-    if magmad_mconfig.package_version is None:
-        logging.warning(
-            'magmad package_version config not found, '
-            'returning 0.0.0-0 as target package version.',
-        )
-        return '0.0.0-0'
-
-    return magmad_mconfig.package_version
+    return magmad_mconfig.package_version or DEFAULT_VERSION

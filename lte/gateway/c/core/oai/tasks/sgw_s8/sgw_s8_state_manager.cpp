@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 extern "C" {
-#include <lte/gateway/c/core/oai/common/dynamic_memory_check.h>
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/backtrace.h"
 }
 
@@ -118,5 +118,8 @@ status_code_e SgwStateManager::read_ue_state_from_db() {
   return RETURNok;
 }
 
+sgw_state_t* SgwStateManager::get_state(bool read_from_db) {
+  return state_cache_p;
+}
 }  // namespace lte
 }  // namespace magma

@@ -1,0 +1,94 @@
+// Copyright 2021 The Magma Authors.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package magma.config;
+
+// Config is is used for fetching and setting configs in agwd.
+// TODO: When agwd is stable revert to using mconfig to handle configs.
+service Config {
+  // GetConfig returns the current config set in agwd.
+  rpc GetConfig (GetConfigRequest) returns (GetConfigResponse) {};
+  // UpdateConfig updates the current config in agwd.
+  rpc UpdateConfig (UpdateConfigRequest) returns (UpdateConfigResponse) {};
+  // ReplaceConfig overwrites the existing config in agwd.
+  // NOTE: This is susceptible to a race condition.
+  rpc ReplaceConfig (ReplaceConfigRequest) returns (ReplaceConfigResponse) {};
+}
+
+// GetConfigRequest
+message GetConfigRequest {}
+
+// GetConfigResponse
+message GetConfigResponse {
+  AgwD config = 1;
+}
+
+// UpdateConfigRequest
+message UpdateConfigRequest {
+  AgwD config = 1;
+}
+
+// UpdateConfigResponse
+message UpdateConfigResponse {
+  AgwD config = 1;
+}
+
+// ReplaceConfigRequest
+message ReplaceConfigRequest {
+  AgwD config = 1;
+}
+
+// ReplaceConfigResponse
+message ReplaceConfigResponse {
+  AgwD config = 1;
+}
+
+// Copied from lte/protos/mconfig/mconfigs.proto - will merge in the future once we determine path for mconfigs.
+//----------------------------------------------------------------------------
+// AgwD configs
+//----------------------------------------------------------------------------
+message AgwD {
+  enum LogLevel {
+    UNSET = 0;
+    DEBUG = 1;
+    INFO = 2;
+    WARN = 3;
+    ERROR = 4;
+  }
+  LogLevel log_level = 1;
+
+  string sctpd_downstream_service_target = 2;
+  string sctpd_upstream_service_target = 3;
+  string mme_sctpd_downstream_service_target = 4;
+  string mme_sctpd_upstream_service_target = 5;
+
+  // Sentry Client Options.
+  // The DSN to use. If the data source name is not set, the client is effectively
+  // disabled.
+  string sentry_dsn = 6;
+  // location (unix socket, ipv4 or ipv6 address) where service is listening
+  string pipelined_service_target = 7;
+  string vagrant_private_network_ip = 8;
+  string config_service_port = 9;
+  string capture_service_port = 10;
+  CaptureConfig capture_config = 11;
+
+}
+
+message CaptureConfig {
+  message MatchSpec {
+    string service = 1;
+    string method = 2;
+  }
+  repeated MatchSpec match_specs = 1;
+}

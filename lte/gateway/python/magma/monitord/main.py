@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import logging
+from typing import List
 
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.mobilityd_pb2 import IPAddress
@@ -21,14 +22,17 @@ from magma.configuration import load_service_config
 from magma.monitord.cpe_monitoring import CpeMonitoringModule
 from magma.monitord.icmp_job import ICMPJob
 from magma.monitord.icmp_state import serialize_subscriber_states
+from orc8r.protos.service303_pb2 import State
 
 
-def _get_serialized_subscriber_states(cpe_monitor: CpeMonitoringModule):
+def _get_serialized_subscriber_states(
+        cpe_monitor: CpeMonitoringModule,
+) -> List[State]:
     return serialize_subscriber_states(cpe_monitor.get_subscriber_state())
 
 
 def main():
-    """ main() for monitord service"""
+    """Start monitord"""
     manual_ping_targets = {}
     service = MagmaService('monitord', mconfigs_pb2.MonitorD())
 
@@ -42,10 +46,11 @@ def main():
     try:
         targets = load_service_config("monitord")["ping_targets"]
         for target, data in targets.items():
-            if "ip" in data:
+            ip_string = data.get("ip")
+            if ip_string:
                 ip = IPAddress(
                     version=IPAddress.IPV4,
-                    address=str.encode(data["ip"]),
+                    address=str.encode(ip_string),
                 )
                 logging.debug(
                     'Adding %s:%s:%s to ping target', target, ip.version,
@@ -67,7 +72,7 @@ def main():
 
     # Register a callback function for GetOperationalStates
     service.register_operational_states_callback(
-        _get_serialized_subscriber_states(cpe_monitor),
+        lambda: _get_serialized_subscriber_states(cpe_monitor),
     )
 
     # Run the service loop

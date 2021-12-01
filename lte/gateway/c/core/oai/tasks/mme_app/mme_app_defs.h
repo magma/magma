@@ -136,10 +136,6 @@ void mme_app_handle_modify_bearer_rsp_erab_mod_ind(
     itti_s11_modify_bearer_response_t* s11_modify_bearer_response,
     ue_mm_context_t* ue_context_p);
 
-bool mme_app_dump_ue_context(
-    hash_key_t keyP, void* ue_context_pP, void* unused_param_pP,
-    void** unused_result_pP);
-
 int mme_app_handle_nas_dl_req(
     mme_ue_s1ap_id_t ue_id, bstring nas_msg,
     nas_error_code_t transaction_status);
@@ -334,7 +330,7 @@ void mme_app_update_paging_tai_list(
 void send_delete_dedicated_bearer_rsp(
     struct ue_mm_context_s* ue_context_p, bool delete_default_bearer,
     ebi_t ebi[], uint32_t num_bearer_context, teid_t s_gw_teid_s11_s4,
-    gtpv2c_cause_value_t cause);
+    gtpv2c_cause_value_t cause, bool route_s11_messages_to_s8_task);
 
 int mme_app_create_sgs_context(ue_mm_context_t* ue_context_p);
 

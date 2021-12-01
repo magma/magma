@@ -40,7 +40,7 @@ PROTO_PATH = PROTO_DIR + '/session_manager.proto'
 SERVICE_NAME = 'magma.lte.LocalSessionManager'
 
 
-def _handle_create_session_benchmarking(subs: List[SubscriberID]):
+def _handle_create_session_benchmarking(subs: List[SubscriberID], import_path: str = None):
     _build_create_session_data(subs)
     request_type = 'CreateSession'
     benchmark_grpc_request(
@@ -50,6 +50,7 @@ def _handle_create_session_benchmarking(subs: List[SubscriberID]):
         make_output_file_path(request_type),
         len(subs),
         SESSIOND_PORT,
+        import_path=import_path,
     )
 
 
@@ -76,7 +77,7 @@ def _build_create_session_data(subs: List[SubscriberID]):
         json.dump(reqs, file, separators=(',', ':'))
 
 
-def _handle_end_session_benchmarking(subs: List[SubscriberID]):
+def _handle_end_session_benchmarking(subs: List[SubscriberID], import_path: str = None):
     _build_end_session_data(subs)
     request_type = 'EndSession'
     benchmark_grpc_request(
@@ -86,6 +87,7 @@ def _handle_end_session_benchmarking(subs: List[SubscriberID]):
         make_output_file_path(request_type),
         len(subs),
         SESSIOND_PORT,
+        import_path=import_path,
     )
 
 
@@ -127,11 +129,14 @@ def _create_parser() -> argparse.ArgumentParser:
 
     # Add arguments
     for cmd in (parser_create, parser_end):
-        cmd.add_argument("--num", default=5, help="--num")
+        cmd.add_argument("--num", default=5, help="number of requests")
         cmd.add_argument(
             '--service_name',
             default='magma.lte.LocalSessionManager',
             help='proto service name',
+        )
+        cmd.add_argument(
+            '--import_path', default=None, help='Protobuf import path directory',
         )
 
     # Add function callbacks
@@ -153,10 +158,10 @@ def main():
     print('Preparing %s load test...' % args.cmd)
     subs = generate_subs(int(args.num))
     if args.cmd == 'create':
-        _handle_create_session_benchmarking(subs)
+        _handle_create_session_benchmarking(subs, args.import_path)
 
     elif args.cmd == 'end':
-        _handle_end_session_benchmarking(subs)
+        _handle_end_session_benchmarking(subs, args.import_path)
 
     print('Done')
 

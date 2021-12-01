@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
   sentry_config_t sentry_config;
   sentry_config.sample_rate = mconfig.sentry_config().sample_rate();
   strncpy(
-      sentry_config.url_native, mconfig.sentry_config().url_native().c_str(),
+      sentry_config.url_native, mconfig.sentry_config().dsn_native().c_str(),
       MAX_URL_LENGTH);
   initialize_sentry(SENTRY_TAG_SESSIOND, &sentry_config);
 
@@ -443,12 +443,14 @@ int main(int argc, char* argv[]) {
     std::unordered_multimap<std::string, uint32_t> pdr_map;
     conv_session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
         rule_store, *session_store, pdr_map, pipelined_client, amf_srv_client,
-        mconfig, config["session_force_termination_timeout_ms"].as<long>(),
+        reporter.get(), events_reporter, mconfig,
+        config["session_force_termination_timeout_ms"].as<long>(),
         session_max_rtx_count);
     // 5G related async msg handler service framework creation
     auto conv_set_message_handler =
         std::make_unique<magma::SetMessageManagerHandler>(
-            conv_session_enforcer, *session_store, reporter.get());
+            conv_session_enforcer, *session_store, reporter.get(),
+            events_reporter);
     MLOG(MINFO) << "Initialized SetMessageManagerHandler";
     // 5G specific services to handle set messages from AMF and mme
     conv_set_message_service = new magma::AmfPduSessionSmContextAsyncService(

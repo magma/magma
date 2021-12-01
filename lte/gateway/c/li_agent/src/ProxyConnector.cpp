@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <unistd.h>
 
 #include "lte/gateway/c/li_agent/src/ProxyConnector.h"
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
@@ -28,7 +29,10 @@ ProxyConnectorImpl::ProxyConnectorImpl(
     : proxy_addr_(proxy_addr),
       proxy_port_(proxy_port),
       cert_file_(cert_file),
-      key_file_(key_file) {}
+      key_file_(key_file),
+      ssl_(nullptr),
+      ctx_(nullptr),
+      proxy_(-1) {}
 
 int ProxyConnectorImpl::setup_proxy_socket() {
   SSL_library_init();
@@ -116,9 +120,22 @@ int ProxyConnectorImpl::send_data(void* data, uint32_t size) {
 }
 
 void ProxyConnectorImpl::cleanup() {
-  SSL_free(ssl_);
-  close(proxy_);
-  SSL_CTX_free(ctx_);
+  if (ssl_ != nullptr) {
+    SSL_free(ssl_);
+    ssl_ = nullptr;
+  }
+  if (proxy_ != -1) {
+    close(proxy_);
+    proxy_ = -1;
+  }
+  if (ctx_ != nullptr) {
+    SSL_CTX_free(ctx_);
+    ctx_ = nullptr;
+  }
+}
+
+ProxyConnectorImpl::~ProxyConnectorImpl() {
+  cleanup();
 }
 
 }  // namespace lte

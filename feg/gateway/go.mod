@@ -22,6 +22,7 @@ replace (
 )
 
 require (
+	github.com/deepmap/oapi-codegen v1.9.0
 	github.com/emakeev/milenage v1.0.0
 	github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe
 	github.com/envoyproxy/go-control-plane v0.9.4
@@ -31,6 +32,7 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.5.2
 	github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
+	github.com/labstack/echo/v4 v4.2.1
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
@@ -38,12 +40,11 @@ require (
 	github.com/prometheus/common v0.26.0
 	github.com/shirou/gopsutil/v3 v3.21.5
 	github.com/stretchr/objx v0.3.0 // indirect
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/thoas/go-funk v0.7.0
 	github.com/wmnsk/go-gtp v0.8.0
-	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	google.golang.org/grpc v1.33.2
-	google.golang.org/protobuf v1.26.0
+	google.golang.org/protobuf v1.27.1
 	layeh.com/radius v0.0.0-20201203135236-838e26d0c9be
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0

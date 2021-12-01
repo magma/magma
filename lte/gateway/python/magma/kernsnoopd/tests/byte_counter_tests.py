@@ -32,6 +32,7 @@ class MockServiceRegistry:
 
 
 class ByteCounterTests(unittest.TestCase):
+    # pylint: disable=protected-access
     """Tests for ByteCounter eBPF handler class"""
 
     def setUp(self) -> None:

@@ -34,6 +34,9 @@ class NgapFlowTest : public testing::Test {
         NULL);
 
     amf_config_init(&amf_config);
+    amf_config.plmn_support_list.plmn_support_count          = 1;
+    amf_config.plmn_support_list.plmn_support[0].s_nssai.sst = 0x1;
+
     ngap_state_init(2, 2, false);
     state = get_ngap_state(false);
 
@@ -290,7 +293,17 @@ TEST_F(NgapFlowTest, initial_context_setup_request_sunny_day) {
   ue_ref->gnb_ue_ngap_id = gNB_UE_NGAP_ID;
   ue_ref->amf_ue_ngap_id = AMF_UE_NGAP_ID;
 
+  /* Without SSD */
   ngap_handle_conn_est_cnf(state, &NGAP_INITIAL_CONTEXT_SETUP_REQ(message_p));
+
+  /* With SSD */
+  amf_config.plmn_support_list.plmn_support[0].s_nssai.sd.v = 0x1;
+  ngap_handle_conn_est_cnf(state, &NGAP_INITIAL_CONTEXT_SETUP_REQ(message_p));
+
+  /* Reset the SSD */
+  amf_config.plmn_support_list.plmn_support[0].s_nssai.sd.v =
+      AMF_S_NSSAI_SD_INVALID_VALUE;
+
   itti_free_msg_content(message_p);
   free(message_p);
   bdestroy(buffer);
@@ -570,7 +583,8 @@ TEST_F(NgapFlowTest, pdu_sess_resource_setup_req_sunny_day) {
   uint8_t ip_buff[4]           = {0xc0, 0xa8, 0x3c, 0x8e};
   m5g_ue_description_t* ue_ref = NULL;
   itti_ngap_pdusession_resource_setup_req_t* ngap_pdu_ses_setup_req = nullptr;
-  pdu_session_resource_setup_request_transfer_t amf_pdu_ses_setup_transfer_req;
+  pdu_session_resource_setup_request_transfer_t amf_pdu_ses_setup_transfer_req =
+      {};
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &peerInfo), RETURNok);

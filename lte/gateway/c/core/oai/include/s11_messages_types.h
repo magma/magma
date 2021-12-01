@@ -135,6 +135,7 @@ typedef struct itti_s11_nw_init_deactv_bearer_rsp_s {
                         ///< be
   bool delete_default_bearer;
   teid_t s_gw_teid_s11_s4;
+  protocol_configuration_options_t pco;  /// PCO protocol_configuration_options
 } itti_s11_nw_init_deactv_bearer_rsp_t;
 
 //-------------

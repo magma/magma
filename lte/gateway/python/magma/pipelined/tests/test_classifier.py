@@ -145,16 +145,17 @@ class ClassifierTest(unittest.TestCase):
         ip_flow_dl = IPFlowDL(set_params=0)
         self.classifier_controller.add_tunnel_flows(
             65525, 1, 100000,
+            self.EnodeB_IP,
             IPAddress(version=IPAddress.IPV4, address=ue_ip_addr.encode('utf-8')),
-            self.EnodeB_IP, seid1, True, ip_flow_dl=ip_flow_dl,
+            seid1, True, ip_flow_dl=ip_flow_dl,
         )
 
         seid2 = 5001
         ue_ip_addr = "192.168.128.31"
         self.classifier_controller.add_tunnel_flows(
-            65525, 2, 100001,
+            65525, 2, 100001, self.EnodeB_IP,
             IPAddress(version=IPAddress.IPV4, address=ue_ip_addr.encode('utf-8')),
-            self.EnodeB_IP, seid2, True, ip_flow_dl=ip_flow_dl,
+            seid2, True, ip_flow_dl=ip_flow_dl,
         )
 
         snapshot_verifier = SnapshotVerifier(
@@ -202,9 +203,9 @@ class ClassifierTest(unittest.TestCase):
         ue_ip_addr = "192.168.128.30"
         ip_flow_dl = IPFlowDL(set_params=0)
         self.classifier_controller.add_tunnel_flows(
-            65525, 1, 100000,
+            65525, 1, 100000, self.EnodeB_IP,
             IPAddress(version=IPAddress.IPV4, address=ue_ip_addr.encode('utf-8')),
-            self.EnodeB_IP, seid1, True, ip_flow_dl=ip_flow_dl,
+            seid1, True, ip_flow_dl=ip_flow_dl,
         )
 
         ip_no = hex(socket.htonl(int(ipaddress.ip_address(self.EnodeB2_IP))))
@@ -216,16 +217,16 @@ class ClassifierTest(unittest.TestCase):
         seid2 = 5001
         ue_ip_addr = "192.168.128.31"
         self.classifier_controller.add_tunnel_flows(
-            65525, 2, 100001,
+            65525, 2, 100001, self.EnodeB2_IP,
             IPAddress(version=IPAddress.IPV4, address=ue_ip_addr.encode('utf-8')),
-            self.EnodeB2_IP, seid2, True, ip_flow_dl=ip_flow_dl,
+            seid2, True, ip_flow_dl=ip_flow_dl,
         )
 
         ue_ip_addr = "192.168.128.51"
         self.classifier_controller.add_tunnel_flows(
-            65525, 5, 1001,
+            65525, 5, 1001, self.EnodeB2_IP,
             IPAddress(version=IPAddress.IPV4, address=ue_ip_addr.encode('utf-8')),
-            self.EnodeB2_IP, seid2, True, ip_flow_dl=ip_flow_dl,
+            seid2, True, ip_flow_dl=ip_flow_dl,
         )
 
         snapshot_verifier = SnapshotVerifier(
@@ -272,17 +273,19 @@ class ClassifierTest(unittest.TestCase):
         seid1 = 5000
         ue_ip_addr = "2001::1"
         self.classifier_controller.add_tunnel_flows(
-            65525, 1, 10000,
-            IPAddress(version=IPAddress.IPV6, address=ue_ip_addr.encode('utf-8')),
-            self.EnodeB_IP, seid1, True, ip_flow_dl=ip_flow_dl,
+            65525, 1, 10000, self.EnodeB_IP, None,
+            seid1, True,
+            ue_ipv6_address=IPAddress(version=IPAddress.IPV6, address=ue_ip_addr.encode('utf-8')),
+            ip_flow_dl=ip_flow_dl,
         )
 
         seid2 = 5001
         ue_ip_addr = "2001:db8::1"
         self.classifier_controller.add_tunnel_flows(
-            65525, 2, 100001,
-            IPAddress(version=IPAddress.IPV6, address=ue_ip_addr.encode('utf-8')),
-            self.EnodeB_IP, seid2, True, ip_flow_dl=ip_flow_dl,
+            65525, 2, 100001, self.EnodeB_IP, None,
+            seid2, True,
+            ue_ipv6_address=IPAddress(version=IPAddress.IPV6, address=ue_ip_addr.encode('utf-8')),
+            ip_flow_dl=ip_flow_dl,
         )
 
         snapshot_verifier = SnapshotVerifier(
@@ -297,14 +300,15 @@ class ClassifierTest(unittest.TestCase):
         ip_flow_dl = IPFlowDL(set_params=0)
         ue_ip_addr = "2001::1"
         self.classifier_controller.delete_tunnel_flows(
-            1, IPAddress(version=IPAddress.IPV6, address=ue_ip_addr.encode('utf-8')),
+            1, None,
             ip_flow_dl=ip_flow_dl,
+            ue_ipv6_adr=IPAddress(version=IPAddress.IPV6, address=ue_ip_addr.encode('utf-8')),
         )
 
         ue_ip_addr = "2001:db8::1"
         self.classifier_controller.delete_tunnel_flows(
-            2, IPAddress(version=IPAddress.IPV6, address=ue_ip_addr.encode('utf-8')),
-            ip_flow_dl=ip_flow_dl,
+            2, None, ip_flow_dl=ip_flow_dl,
+            ue_ipv6_adr=IPAddress(version=IPAddress.IPV6, address=ue_ip_addr.encode('utf-8')),
         )
 
         snapshot_verifier = SnapshotVerifier(

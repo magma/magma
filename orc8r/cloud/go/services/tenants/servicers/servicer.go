@@ -63,28 +63,24 @@ func (s *tenantsServicer) CreateTenant(c context.Context, request *protos.IDAndT
 
 func (s *tenantsServicer) GetTenant(c context.Context, request *protos.GetTenantRequest) (*protos.Tenant, error) {
 	tenant, err := s.store.GetTenant(request.Id)
-	switch {
-	case err == errors.ErrNotFound:
-		return nil, status.Errorf(codes.NotFound, "Tenant %d not found", request.Id)
-	case err != nil:
-		return nil, status.Errorf(codes.Internal, "Error getting tenant %d: %v", request.Id, err)
+	if err != nil {
+		return nil, mapErrForGet(err, request.Id, "tenant")
 	}
 	return tenant, nil
 
 }
 
 func (s *tenantsServicer) SetTenant(c context.Context, request *protos.IDAndTenant) (*protos.Void, error) {
-	_, err := s.store.GetTenant(request.Id)
-	switch {
-	case err == errors.ErrNotFound:
-		return nil, status.Errorf(codes.NotFound, "Tenant %d not found", request.Id)
-	case err != nil:
-		return nil, status.Errorf(codes.Internal, "Error getting tenant %d: %v", request.Id, err)
+	err := s.validateTenantExists(request.Id)
+	if err != nil {
+		return nil, err
 	}
+
 	err = s.store.SetTenant(request.Id, *request.Tenant)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Error setting tenant %d: %v", request.Id, err)
 	}
+
 	return &protos.Void{}, nil
 }
 
@@ -97,4 +93,51 @@ func (s *tenantsServicer) DeleteTenant(c context.Context, request *protos.GetTen
 		return nil, status.Errorf(codes.Internal, "Error deleting tenant %d: %v", request.Id, err)
 	}
 	return &protos.Void{}, nil
+}
+
+func (s *tenantsServicer) GetControlProxy(c context.Context, request *protos.GetControlProxyRequest) (*protos.GetControlProxyResponse, error) {
+	err := s.validateTenantExists(request.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	controlProxy, err := s.store.GetControlProxy(request.Id)
+	if err != nil {
+		return nil, mapErrForGet(err, request.Id, "controlProxy")
+	}
+
+	return &protos.GetControlProxyResponse{Id: request.Id, ControlProxy: controlProxy}, nil
+}
+
+func (s *tenantsServicer) CreateOrUpdateControlProxy(c context.Context, request *protos.CreateOrUpdateControlProxyRequest) (*protos.CreateOrUpdateControlProxyResponse, error) {
+	err := s.validateTenantExists(request.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.store.CreateOrUpdateControlProxy(request.Id, request.ControlProxy)
+	if err != nil {
+		request.GetControlProxy()
+		return nil, status.Errorf(codes.Internal, "Error setting control proxy %d: %v", request.Id, err)
+	}
+
+	return &protos.CreateOrUpdateControlProxyResponse{}, nil
+}
+
+func mapErrForGet(err error, id int64, getType string) error {
+	switch {
+	case err == errors.ErrNotFound:
+		return status.Errorf(codes.NotFound, "%s %d not found", getType, id)
+	case err != nil:
+		return status.Errorf(codes.Internal, "Error %s getting %d: %v", getType, id, err)
+	}
+	return nil
+}
+
+func (s *tenantsServicer) validateTenantExists(tenantID int64) error {
+	_, err := s.store.GetTenant(tenantID)
+	if err != nil {
+		return mapErrForGet(err, tenantID, "tenant")
+	}
+	return nil
 }

@@ -61,17 +61,13 @@
 #include "lte/gateway/c/core/oai/include/spgw_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 
+extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern spgw_config_t spgw_config;
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 
 static void delete_temporary_dedicated_bearer_context(
     teid_t s1_u_sgw_fteid, ebi_t lbi,
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context_p);
-
-static int32_t spgw_build_and_send_s11_deactivate_bearer_req(
-    imsi64_t imsi64, uint8_t no_of_bearers_to_be_deact,
-    ebi_t* ebi_to_be_deactivated, bool delete_default_bearer,
-    teid_t mme_teid_S11);
 
 static void spgw_handle_s5_response_with_error(
     spgw_state_t* spgw_state,
@@ -332,7 +328,7 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
 }
 
 //------------------------------------------------------------------------------
-int32_t spgw_handle_nw_initiated_bearer_deactv_req(
+status_code_e spgw_handle_nw_initiated_bearer_deactv_req(
     const itti_gx_nw_init_deactv_bearer_request_t* const bearer_req_p,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -406,6 +402,7 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
                 no_of_bearers_rej++;
               }
             }
+            break;  // while (node)
           }
         }
       }
@@ -441,24 +438,25 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
     rc = spgw_build_and_send_s11_deactivate_bearer_req(
         imsi64, no_of_bearers_to_be_deact, ebi_to_be_deactivated,
         delete_default_bearer,
-        spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11);
+        spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11,
+        LOG_SPGW_APP);
   }
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
 
 // Send ITTI message,S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST to mme_app
-static int32_t spgw_build_and_send_s11_deactivate_bearer_req(
+int32_t spgw_build_and_send_s11_deactivate_bearer_req(
     imsi64_t imsi64, uint8_t no_of_bearers_to_be_deact,
     ebi_t* ebi_to_be_deactivated, bool delete_default_bearer,
-    teid_t mme_teid_S11) {
-  OAILOG_FUNC_IN(LOG_SPGW_APP);
+    teid_t mme_teid_S11, log_proto_t module) {
+  OAILOG_FUNC_IN(module);
   MessageDef* message_p = itti_alloc_new_message(
-      TASK_SPGW_APP, S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST);
+      module, S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST);
   if (message_p == NULL) {
     OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64,
+        module, imsi64,
         "itti_alloc_new_message failed for nw_initiated_deactv_bearer_req\n");
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(module, RETURNerror);
   }
   itti_s11_nw_init_deactv_bearer_request_t* s11_bearer_deactv_request =
       &message_p->ittiMsg.s11_nw_init_deactv_bearer_request;
@@ -482,12 +480,19 @@ static int32_t spgw_build_and_send_s11_deactivate_bearer_req(
 
   message_p->ittiMsgHeader.imsi = imsi64;
   OAILOG_INFO_UE(
-      LOG_SPGW_APP, imsi64,
+      module, imsi64,
       "Sending nw_initiated_deactv_bearer_req to mme_app "
       "with delete_default_bearer flag set to %d\n",
       s11_bearer_deactv_request->delete_default_bearer);
-  int rc = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
-  OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+  int rc = RETURNerror;
+  if (module == LOG_SPGW_APP) {
+    rc = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
+  } else if (module == LOG_SGW_S8) {
+    rc = send_msg_to_task(&sgw_s8_task_zmq_ctx, TASK_MME_APP, message_p);
+  } else {
+    OAILOG_ERROR_UE(module, imsi64, "Invalid module \n");
+  }
+  OAILOG_FUNC_RETURN(module, rc);
 }
 
 //------------------------------------------------------------------------------
@@ -599,7 +604,15 @@ int sgw_build_and_send_s11_create_bearer_request(
       module, sgw_eps_bearer_context_information->imsi64,
       "Sending S11 Create Bearer Request to MME_APP for LBI %d \n",
       bearer_req_p->lbi);
-  rc = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
+  if (module == LOG_SPGW_APP) {
+    rc = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
+  } else if (module == LOG_SGW_S8) {
+    rc = send_msg_to_task(&sgw_s8_task_zmq_ctx, TASK_MME_APP, message_p);
+  } else {
+    OAILOG_ERROR_UE(
+        module, sgw_eps_bearer_context_information->imsi64,
+        "Invalid module \n");
+  }
   OAILOG_FUNC_RETURN(module, rc);
 }
 

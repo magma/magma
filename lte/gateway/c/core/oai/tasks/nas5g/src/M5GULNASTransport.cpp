@@ -108,8 +108,25 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
         decoded_result += 1;
         decoded += decoded_result;
         break;
-      case M5GIei::S_NSSA:
       case M5GIei::DNN:
+        if ((decoded_result = ul_nas_transport->dnn.DecodeDNNMsg(
+                 &ul_nas_transport->dnn, static_cast<uint8_t>(M5GIei::DNN),
+                 buffer + decoded, len - decoded)) < 0) {
+          return decoded_result;
+        } else {
+          decoded += decoded_result;
+        }
+        break;
+      case M5GIei::S_NSSAI:
+        if ((decoded_result = ul_nas_transport->nssai.DecodeNSSAIMsg(
+                 &ul_nas_transport->nssai,
+                 static_cast<uint8_t>(M5GIei::S_NSSAI), buffer + decoded,
+                 len - decoded)) < 0) {
+          return decoded_result;
+        } else {
+          decoded += decoded_result;
+        }
+        break;
       case M5GIei::ADDITIONAL_INFORMATION:
         // TLV Types. 1 byte for Type and 1 Byte for size
         type_len   = sizeof(uint8_t);
@@ -199,6 +216,26 @@ int ULNASTransportMsg::EncodeULNASTransportMsg(
              &ul_nas_transport->request_type,
              static_cast<uint8_t>(M5GIei::REQUEST_TYPE), buffer + encoded,
              len - encoded)) < 0) {
+      return encoded_result;
+    } else {
+      encoded += encoded_result;
+    }
+  }
+
+  if ((uint32_t) ul_nas_transport->dnn.len) {
+    if ((encoded_result = ul_nas_transport->dnn.EncodeDNNMsg(
+             &ul_nas_transport->dnn, static_cast<uint8_t>(M5GIei::DNN),
+             buffer + encoded, len - encoded)) < 0) {
+      return encoded_result;
+    } else {
+      encoded += encoded_result;
+    }
+  }
+
+  if ((uint32_t) ul_nas_transport->nssai.len) {
+    if ((encoded_result = ul_nas_transport->nssai.EncodeNSSAIMsg(
+             &ul_nas_transport->nssai, static_cast<uint8_t>(M5GIei::S_NSSAI),
+             buffer + encoded, len - encoded)) < 0) {
       return encoded_result;
     } else {
       encoded += encoded_result;

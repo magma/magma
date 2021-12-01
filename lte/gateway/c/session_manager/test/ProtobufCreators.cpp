@@ -16,7 +16,7 @@
 
 #include "Consts.h"
 #include "ProtobufCreators.h"
-
+#include <gtest/gtest.h>
 namespace magma {
 
 CommonSessionContext build_common_context(
@@ -501,6 +501,44 @@ DynamicRuleInstall create_dynamic_rule_install(const PolicyRule& rule) {
   DynamicRuleInstall rule_install;
   rule_install.mutable_policy_rule()->CopyFrom(rule);
   return rule_install;
+}
+
+void assert_charging_credit(
+    SessionMap& session_map, const std::string& imsi,
+    const std::string& session_id, Bucket bucket,
+    const std::vector<std::pair<uint32_t, uint64_t>>& volumes) {
+  EXPECT_TRUE(session_map.find(imsi) != session_map.end());
+  bool found = false;
+  for (const auto& session : session_map.find(imsi)->second) {
+    if (session->get_session_id() == session_id) {
+      found = true;
+      for (auto& volume_pair : volumes) {
+        EXPECT_EQ(
+            session->get_charging_credit(volume_pair.first, bucket),
+            volume_pair.second);
+      }
+    }
+  }
+  EXPECT_TRUE(found);
+}
+
+void assert_monitor_credit(
+    SessionMap& session_map, const std::string& imsi,
+    const std::string& session_id, Bucket bucket,
+    const std::vector<std::pair<std::string, uint64_t>>& volumes) {
+  EXPECT_TRUE(session_map.find(imsi) != session_map.end());
+  bool found = false;
+  for (const auto& session : session_map.find(imsi)->second) {
+    if (session->get_session_id() == session_id) {
+      found = true;
+      for (auto& volume_pair : volumes) {
+        EXPECT_EQ(
+            session->get_monitor(volume_pair.first, bucket),
+            volume_pair.second);
+      }
+    }
+  }
+  EXPECT_TRUE(found);
 }
 
 }  // namespace magma

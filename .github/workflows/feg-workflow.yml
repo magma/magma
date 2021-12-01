@@ -32,10 +32,21 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/feg-workflow.yml", "orc8r/**", "lte/**", "feg/**"]
-  feg-lint:
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
+  feg-lint-precommit:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    name: feg lint job
+    name: feg lint and precommit
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on  # yamllint disable-line rule:truthy
@@ -51,21 +62,43 @@ jobs:
               ./circleci/golang_before_install.sh
       - name: Run go mod download with retry
         uses: nick-invision/retry@v2
+        if: always()
+        id: feg-lint-init
         with:
           command: cd ${MAGMA_ROOT}/cwf/gateway && go mod download
           timeout_minutes: 10
       - name: Go lint code
+        if: always() && steps.feg-lint-init.outcome=='success'
+        id: feg-lint
         run: |
               cd ${MAGMA_ROOT}/feg/gateway
               make -C ${MAGMA_ROOT}/feg/gateway lint
       - name: Generate test coverage
+        if: always() && steps.feg-lint.outcome=='success'
+        id: feg-lint-cov
         run: |
               cd ${MAGMA_ROOT}/feg/gateway
               make -C ${MAGMA_ROOT}/feg/gateway cover
       - uses: codecov/codecov-action@v1
+        if: always()
+        id: feg-lint-codecov
         with:
           files: '${{ env.MAGMA_ROOT}}/feg/gateway/coverage/feg.gocov'
           flags: feg-lint
+      - name: make feg precommit
+        if: always()
+        id: feg-precommit
+        run: |
+          go get gotest.tools/gotestsum
+          cd ${MAGMA_ROOT}/feg/gateway
+          make -C ${MAGMA_ROOT}/feg/gateway precommit
+      - name: Upload Test Results
+        id: feg-precommit-upload
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results
+          path: "/tmp/test-results"
       - name: Extract commit title
         if: failure() && github.event_name == 'push'
         id: commit
@@ -75,7 +108,7 @@ jobs:
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
+        if: ( steps.feg-lint-init.outcome=='failure' || steps.feg-lint.outcome=='failure' || steps.feg-lint-cov.outcome=='failure' || steps.feg-lint-codecov.outcome=='failure'  ) && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
@@ -85,48 +118,10 @@ jobs:
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
-  feg-precommit:
-    needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    name: feg pre-commit job
-    runs-on: ubuntu-latest
-    env:
-      GO111MODULE: on  # yamllint disable-line rule:truthy
-      MAGMA_ROOT: "${{ github.workspace }}"
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.15.7'
-      - run: go version
-      - name: Run golang_before_install.sh script
-        run: ./circleci/golang_before_install.sh
-      - name: Run go mod download with retry
-        uses: nick-invision/retry@v2
-        with:
-          command: cd ${MAGMA_ROOT}/cwf/gateway && go mod download
-          timeout_minutes: 10
-      - name: make feg precommit
-        run: |
-            go get gotest.tools/gotestsum
-            cd ${MAGMA_ROOT}/feg/gateway
-            make -C ${MAGMA_ROOT}/feg/gateway precommit
-      - name: Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: Unit Test Results
-          path: "/tmp/test-results"
-      - name: Extract commit title
-        id: commit
-        if: failure() && github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
+        if: ( steps.feg-precommit.outcome=='failure' || steps.feg-precommit-upload.outcome=='failure' ) && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}

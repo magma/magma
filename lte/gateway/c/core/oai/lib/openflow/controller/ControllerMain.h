@@ -50,7 +50,7 @@ int openflow_controller_forward_data_on_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
     struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl);
 
-int openflow_controller_add_paging_rule(
+int openflow_controller_add_paging_rule(const char* imsi, 
     struct in_addr ue_ip, struct in6_addr* ue_ipv6);
 
 int openflow_controller_delete_paging_rule(

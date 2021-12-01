@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "service",
@@ -6,4 +6,15 @@ go_library(
     importpath = "github.com/magma/magma/src/go/service",
     visibility = ["//visibility:public"],
     deps = ["//src/go/protos/magma/sctpd"],
+)
+
+go_test(
+    name = "service_test",
+    srcs = ["router_test.go"],
+    embed = [":service"],
+    deps = [
+        "//src/go/protos/magma/sctpd/mock_sctpd",
+        "@com_github_golang_mock//gomock",
+        "@com_github_stretchr_testify//assert",
+    ],
 )
