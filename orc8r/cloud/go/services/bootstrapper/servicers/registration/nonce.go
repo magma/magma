@@ -1,3 +1,16 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package registration
 
 import (
@@ -6,16 +19,16 @@ import (
 	"magma/orc8r/cloud/go/services/bootstrapper"
 )
 
-func nonceToToken(nonce string) string {
+func NonceToToken(nonce string) string {
 	return bootstrapper.TokenPrefix + nonce
 }
 
-func nonceFromToken(token string) string {
+func NonceFromToken(token string) string {
 	return token[len(bootstrapper.TokenPrefix):]
 }
 
-// generateNonce is sourced from https://stackoverflow.com/a/31832326
-func generateNonce(n int) string {
+// GenerateNonce is sourced from https://stackoverflow.com/a/31832326
+func GenerateNonce(n int) string {
 	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, n)
 	for i := range b {

@@ -1,3 +1,16 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package registration
 
 import (
@@ -17,8 +30,11 @@ const (
 	// length of timeout for the nonce
 	timeoutDuration = 30 * time.Minute
 
-	// number of characters that the nonce will have
-	nonceLength = 30
+	// NonceLength is the number of characters that the nonce will have
+	NonceLength = 30
+
+	// NotImplementedWarning is pulled out of getDomainName for ease of testing
+	NotImplementedWarning = "warning: not implemented"
 )
 
 type cloudRegistrationServicer struct {
@@ -53,7 +69,7 @@ func (c *cloudRegistrationServicer) GetToken(ctx context.Context, request *proto
 		}
 	}
 
-	res := &protos.GetTokenResponse{Timeout: tokenInfo.Timeout, Token: nonceToToken(tokenInfo.Nonce)}
+	res := &protos.GetTokenResponse{Timeout: tokenInfo.Timeout, Token: NonceToToken(tokenInfo.Nonce)}
 	return res, nil
 }
 
@@ -68,7 +84,7 @@ func (c *cloudRegistrationServicer) GetGatewayRegistrationInfo(ctx context.Conte
 }
 
 func (c *cloudRegistrationServicer) GetGatewayDeviceInfo(ctx context.Context, request *protos.GetGatewayDeviceInfoRequest) (*protos.GetGatewayDeviceInfoResponse, error) {
-	nonce := nonceFromToken(request.Token)
+	nonce := NonceFromToken(request.Token)
 
 	tokenInfo, err := c.store.GetTokenInfoFromNonce(nonce)
 	if err != nil {
@@ -92,7 +108,7 @@ func (c *cloudRegistrationServicer) GetGatewayDeviceInfo(ctx context.Context, re
 }
 
 func (c *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string, logicalID string) (*protos.TokenInfo, error) {
-	nonce := generateNonce(nonceLength)
+	nonce := GenerateNonce(NonceLength)
 
 	t := time.Now().Add(timeoutDuration)
 
@@ -118,5 +134,5 @@ func (c *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string, l
 
 // TODO(#10437)
 func getDomainName() string {
-	return "warning: not implemented"
+	return NotImplementedWarning
 }
