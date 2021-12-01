@@ -23,6 +23,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextAccept.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextAccept.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextReject.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextRequest.h"
@@ -69,6 +70,24 @@ namespace lte {
     bdestroy_wrapper(                                                          \
         &decoded_msg.protocolconfigurationoptions.protocol_or_container_ids[1] \
              .contents);                                                       \
+  } while (0)
+
+#define EXPECT_EQ_PCO()                                                        \
+  do {                                                                         \
+    EXPECT_EQ(                                                                 \
+        std::string((const char*) original_msg.protocolconfigurationoptions    \
+                        .protocol_or_container_ids[0]                          \
+                        .contents->data),                                      \
+        std::string((const char*) decoded_msg.protocolconfigurationoptions     \
+                        .protocol_or_container_ids[0]                          \
+                        .contents->data));                                     \
+    EXPECT_EQ(                                                                 \
+        std::string((const char*) original_msg.protocolconfigurationoptions    \
+                        .protocol_or_container_ids[1]                          \
+                        .contents->data),                                      \
+        std::string((const char*) decoded_msg.protocolconfigurationoptions     \
+                        .protocol_or_container_ids[1]                          \
+                        .contents->data));                                     \
   } while (0)
 
 class ESMEncodeDecodeTest : public ::testing::Test {
@@ -187,20 +206,7 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextAccept) {
   // line can be uncommented.
   // COMPARE_COMMON_MANDATORY_DEFAULTS();
   EXPECT_EQ(original_msg.presencemask, decoded_msg.presencemask);
-  EXPECT_EQ(
-      std::string((const char*) original_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[0]
-                      .contents->data),
-      std::string((const char*) decoded_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[0]
-                      .contents->data));
-  EXPECT_EQ(
-      std::string((const char*) original_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[1]
-                      .contents->data),
-      std::string((const char*) decoded_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[1]
-                      .contents->data));
+  EXPECT_EQ_PCO();
 
   DESTROY_PCO();
 }
@@ -225,20 +231,7 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextReject) {
   // COMPARE_COMMON_MANDATORY_DEFAULTS();
   EXPECT_EQ(original_msg.esmcause, decoded_msg.esmcause);
   EXPECT_EQ(original_msg.presencemask, decoded_msg.presencemask);
-  EXPECT_EQ(
-      std::string((const char*) original_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[0]
-                      .contents->data),
-      std::string((const char*) decoded_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[0]
-                      .contents->data));
-  EXPECT_EQ(
-      std::string((const char*) original_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[1]
-                      .contents->data),
-      std::string((const char*) decoded_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[1]
-                      .contents->data));
+  EXPECT_EQ_PCO();
 
   DESTROY_PCO();
 }
@@ -314,20 +307,7 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextRequest) {
       sizeof(original_msg.apnambr)));
 
   EXPECT_EQ(original_msg.esmcause, decoded_msg.esmcause);
-  EXPECT_EQ(
-      std::string((const char*) original_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[0]
-                      .contents->data),
-      std::string((const char*) decoded_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[0]
-                      .contents->data));
-  EXPECT_EQ(
-      std::string((const char*) original_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[1]
-                      .contents->data),
-      std::string((const char*) decoded_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[1]
-                      .contents->data));
+  EXPECT_EQ_PCO();
 
   DESTROY_PCO();
   bdestroy_wrapper(&original_msg.accesspointname);
@@ -388,20 +368,30 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextRequest) {
   EXPECT_EQ(original_msg.radiopriority, decoded_msg.radiopriority);
   EXPECT_EQ(
       original_msg.packetflowidentifier, decoded_msg.packetflowidentifier);
-  EXPECT_EQ(
-      std::string((const char*) original_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[0]
-                      .contents->data),
-      std::string((const char*) decoded_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[0]
-                      .contents->data));
-  EXPECT_EQ(
-      std::string((const char*) original_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[1]
-                      .contents->data),
-      std::string((const char*) decoded_msg.protocolconfigurationoptions
-                      .protocol_or_container_ids[1]
-                      .contents->data));
+  EXPECT_EQ_PCO();
+
+  DESTROY_PCO();
+}
+
+TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextAccept) {
+  activate_default_eps_bearer_context_accept_msg original_msg = {0};
+  activate_default_eps_bearer_context_accept_msg decoded_msg  = {0};
+  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
+  original_msg.presencemask =
+      ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+
+  fill_pco(&original_msg.protocolconfigurationoptions);
+
+  int encoded = encode_activate_default_eps_bearer_context_accept(
+      &original_msg, buffer, BUFFER_LEN);
+  int decoded = decode_activate_default_eps_bearer_context_accept(
+      &decoded_msg, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
+  // COMPARE_COMMON_MANDATORY_DEFAULTS();
+  EXPECT_EQ_PCO();
 
   DESTROY_PCO();
 }
