@@ -67,7 +67,7 @@ func TestBlobstoreStore(t *testing.T) {
 
 	// Setup tokenInfo1 and test that store works as expected
 
-	err = s.SetTokenInfo(*tokenInfo1)
+	err = s.SetTokenInfo(tokenInfo1)
 	assert.NoError(t, err)
 
 	tokenInfo, err = s.GetTokenInfoFromNonce(tokenInfo1.Nonce)
@@ -80,7 +80,7 @@ func TestBlobstoreStore(t *testing.T) {
 
 	// Set new token info and see that store works as expected
 
-	err = s.SetTokenInfo(*tokenInfo2)
+	err = s.SetTokenInfo(tokenInfo2)
 	assert.NoError(t, err)
 
 	tokenInfo, err = s.GetTokenInfoFromNonce(tokenInfo1.Nonce)
@@ -97,6 +97,6 @@ func TestBlobstoreStore(t *testing.T) {
 
 	// Try setting with old nonce and see that store errors as expected
 
-	err = s.SetTokenInfo(*tokenInfo1)
+	err = s.SetTokenInfo(tokenInfo1)
 	assert.Error(t, errors.NotFound("token is not unique"), err)
 }
