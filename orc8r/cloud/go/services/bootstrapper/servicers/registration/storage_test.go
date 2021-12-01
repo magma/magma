@@ -39,7 +39,7 @@ func TestBlobstoreStore(t *testing.T) {
 			Nonce:             "someNonce",
 			Timeout: &timestamp.Timestamp{
 				Seconds: time.Now().Unix(),
-				Nanos:   int32(time.Now().UnixNano()),
+				Nanos:   int32(time.Now().Nanosecond()),
 			},
 		}
 
@@ -48,7 +48,7 @@ func TestBlobstoreStore(t *testing.T) {
 			Nonce:             "someNonce2",
 			Timeout: &timestamp.Timestamp{
 				Seconds: time.Now().Unix(),
-				Nanos:   int32(time.Now().UnixNano()),
+				Nanos:   int32(time.Now().Nanosecond()),
 			}}
 	)
 
