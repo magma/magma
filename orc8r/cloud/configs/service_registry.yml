@@ -84,8 +84,6 @@ services:
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/user,
-        /magma/v1/user/:username,
-        /magma/v1//user/login,
   bootstrapper:
     host: "localhost"
     port: 9088

@@ -22,6 +22,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
 	github.com/Microsoft/go-winio v0.4.14 // indirect
+	github.com/bmatcuk/doublestar v1.3.4
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v1.13.1
 	github.com/docker/go-connections v0.4.0 // indirect
@@ -47,6 +48,7 @@ require (
 	github.com/lib/pq v1.2.0
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-sqlite3 v1.14.9
+	github.com/mattn/go-zglob v0.0.3
 	github.com/olivere/elastic/v7 v7.0.6
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/ory/go-acc v0.2.6

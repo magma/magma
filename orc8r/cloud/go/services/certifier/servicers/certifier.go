@@ -20,15 +20,8 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
-	"path"
 	"strings"
 	"time"
-
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"golang.org/x/crypto/bcrypt"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/identity"
@@ -39,6 +32,13 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
 	unarylib "magma/orc8r/lib/go/service/middleware/unary"
+
+	"github.com/bmatcuk/doublestar"
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/ptypes"
+	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var (
@@ -72,139 +72,6 @@ func NewCertifierServer(store storage.CertifierStorage, CAs map[protos.CertType]
 	}
 	srv.CAs = CAs
 	return srv, nil
-}
-
-func generateSerialNumber(store storage.CertifierStorage) (sn *big.Int, err error) {
-	limit := new(big.Int).Lsh(big.NewInt(1), 128)
-
-	for i := 0; i < NumTrialsForSn; i++ {
-		sn, err = rand.Int(rand.Reader, limit)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to generate serial number: %s", err)
-		}
-		_, err := store.GetCertInfo(cert.SerialToString(sn))
-		if err != nil {
-			return sn, nil
-		}
-	}
-	return nil, fmt.Errorf(
-		"Failed to genearte serial number after %d trials.", NumTrialsForSn)
-}
-
-func parseAndCheckCSR(csrDER []byte) (*x509.CertificateRequest, error) {
-	csr, err := x509.ParseCertificateRequest(csrDER)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse certificate request: %s", err)
-	}
-
-	err = csr.CheckSignature()
-	if err != nil {
-		return nil, fmt.Errorf("Failed to check certificate request signature: %s", err)
-	}
-	return csr, err
-}
-
-func (srv *CertifierServer) signCSR(
-	csr *x509.CertificateRequest,
-	sn *big.Int,
-	certType protos.CertType,
-	validTime time.Duration,
-) ([]byte, time.Time, time.Time, error) {
-
-	if srv.CAs == nil {
-		return nil, time.Time{}, time.Time{}, fmt.Errorf("CAInfo not found")
-	}
-	ca, ok := srv.CAs[certType]
-	if !ok {
-		return nil, time.Time{}, time.Time{}, fmt.Errorf("No CA found for given cert type: %s", certType.String())
-	}
-	signingCert := ca.Cert
-	signingKey := ca.PrivKey
-
-	now := clock.Now().UTC()
-	// Provide a cert from an hour ago to account for clock skews
-	notBefore := now.Add(-1 * time.Hour)
-	notAfter := now.Add(validTime)
-	if notAfter.After(signingCert.NotAfter) {
-		glog.Warningln("The requested time is longer than signing certificate valid time.")
-		notAfter = signingCert.NotAfter
-	}
-	template := x509.Certificate{
-		SerialNumber:          sn,
-		Subject:               csr.Subject,
-		NotBefore:             notBefore,
-		NotAfter:              notAfter,
-		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
-		BasicConstraintsValid: true,
-	}
-
-	clientCertDER, err := x509.CreateCertificate(
-		rand.Reader, &template, signingCert, csr.PublicKey, signingKey)
-	if err != nil {
-		return nil, time.Time{}, time.Time{}, fmt.Errorf("Failed to sign csr: %s", err)
-	}
-
-	return clientCertDER, notBefore, notAfter, nil
-}
-
-func checkOrOverwriteCN(csr *x509.CertificateRequest, csrMsg *protos.CSR) error {
-	id := csrMsg.Id
-	idCn := id.ToCommonName()
-	if idCn == nil {
-		return nil
-	}
-	if len(csr.Subject.CommonName) == 0 {
-		csr.Subject.CommonName = *idCn
-		return nil
-	}
-
-	if csr.Subject.CommonName != *idCn {
-		return status.Errorf(
-			codes.Aborted,
-			"CN from CSR (%s) and CN in Identity (%s) do not match", csr.Subject.CommonName, *idCn)
-	}
-
-	if csrMsg.CertType == protos.CertType_VPN && identity.IsGateway(id) {
-		// Use networkID & logicalID to identify the vpn client instead of hwID
-		gw := id.GetGateway()
-		csr.Subject.CommonName = gw.GetLogicalId()
-	}
-
-	return nil
-}
-
-func (srv *CertifierServer) getCertInfo(sn string) (*certprotos.CertificateInfo, error) {
-	certInfo, err := srv.store.GetCertInfo(sn)
-	if err != nil {
-		return &certprotos.CertificateInfo{}, status.Errorf(codes.NotFound, "Failed to load certificate: %s", err)
-	}
-	return certInfo, nil
-}
-
-// Verify that the certificate is signed by our CA
-func (srv *CertifierServer) verifyCert(clientCert *x509.Certificate, certType protos.CertType) error {
-	// Check if CAInfo / cert exists for requested cert type
-	if srv.CAs == nil {
-		return fmt.Errorf("CAInfo not found")
-	}
-	ca, ok := srv.CAs[certType]
-	if !ok {
-		return fmt.Errorf("No CA found for given cert type: %s", certType.String())
-	}
-
-	caPool := x509.NewCertPool()
-	caPool.AddCert(ca.Cert) // Use appropriate cert to check against
-	opts := x509.VerifyOptions{
-		Roots:         caPool,
-		Intermediates: x509.NewCertPool(),
-		// Make sure client cert has ExtKeyUsageClientAuth
-		KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
-	}
-	if _, err := clientCert.Verify(opts); err != nil {
-		return fmt.Errorf("Certificate Verification Failure: %s", err)
-	}
-	return nil
 }
 
 func (srv *CertifierServer) GetCA(ctx context.Context, getCAReqMsg *certprotos.GetCARequest) (*protos.CACert, error) {
@@ -459,10 +326,10 @@ func (srv *CertifierServer) GetUserTokens(ctx context.Context, getOpReq *certpro
 	username := getOpReq.GetUsername()
 	user, err := srv.store.GetUser(username)
 	if err != nil {
-		return &certprotos.User_TokenList{}, status.Errorf(
-			codes.Internal, "failed to fetch user %s from database: %v", username, err)
+		return nil, status.Errorf(codes.Internal, "failed to fetch user %s from database: %v", username, err)
 	}
-	// check if token is registered with user
+
+	// Check if token is registered with user
 	token := getOpReq.GetToken()
 	flag := false
 	tokens := user.GetTokens()
@@ -472,7 +339,7 @@ func (srv *CertifierServer) GetUserTokens(ctx context.Context, getOpReq *certpro
 		}
 	}
 	if !flag {
-		return &certprotos.User_TokenList{}, status.Errorf(codes.PermissionDenied, "token is not registered with user %s", user.Username)
+		return nil, status.Errorf(codes.PermissionDenied, "token is not registered with user %s", user.Username)
 	}
 	return tokens, nil
 }
@@ -487,7 +354,7 @@ func (srv *CertifierServer) GetPolicyDecision(ctx context.Context, getPDReq *cer
 		effect, _ := srv.getPolicyDecisionFromToken(t, resource, action)
 		switch effect {
 		case certprotos.Effect_DENY:
-			// returns early if there is a deny in any of the permissions
+			// Return early if there is a DENY in any of the permissions
 			return &certprotos.PolicyDecision{Effect: certprotos.Effect_DENY}, nil
 		case certprotos.Effect_ALLOW:
 			finalEffect = certprotos.Effect_ALLOW
@@ -495,64 +362,8 @@ func (srv *CertifierServer) GetPolicyDecision(ctx context.Context, getPDReq *cer
 			continue
 		}
 	}
-	// default to deny the request if the policy unknown
+	// Return DENY if the policy unknown
 	return &certprotos.PolicyDecision{Effect: finalEffect}, nil
-}
-
-func (srv *CertifierServer) getPolicyDecisionFromToken(token string, resource string, action certprotos.Action) (certprotos.Effect, error) {
-	policy, err := srv.store.GetPolicy(token)
-	if err != nil {
-		status.Errorf(codes.Internal, "failed to get policy from db: %v", err)
-	}
-	effect, err := checkResource(resource, policy)
-	// return if the policy denies the user or is unknown for the resource
-	if effect == certprotos.Effect_DENY || effect == certprotos.Effect_UNKNOWN {
-		return effect, status.Errorf(codes.PermissionDenied, "not authorized to read/write resource")
-	} else if err != nil {
-		return effect, err
-	}
-	// checks if user can read/write the resource
-	effect = checkAction(action, policy)
-
-	return effect, nil
-}
-
-// checkResource checks if the requested resource is authorized by the policy
-func checkResource(resource string, policy *certprotos.Policy) (certprotos.Effect, error) {
-	effect := policy.GetEffect()
-	// checks if any of policy's resource list allows/denies the requested resource
-	for _, pr := range policy.GetResources().GetResource() {
-		pattern := buildPatternHelper(pr, resource)
-		if ok, err := path.Match(pattern, resource); ok {
-			return effect, nil
-		} else {
-			glog.Errorf("failed to match resource path %v", err)
-		}
-	}
-	// defaults to unknown if resource is not explicitly allowed/denied by policy
-	return effect, nil
-}
-
-// checkAction checks if the requested action is authorized by the policy
-func checkAction(action certprotos.Action, policy *certprotos.Policy) certprotos.Effect {
-	if policy.GetAction() == certprotos.Action_WRITE {
-		return certprotos.Effect_ALLOW
-	} else if policy.GetAction() == certprotos.Action_READ && action == certprotos.Action_READ {
-		return certprotos.Effect_ALLOW
-	}
-	return certprotos.Effect_DENY
-}
-
-// buildPatternHelper appends additional wildcards so to the specified resource path
-// that the path would match recursively
-func buildPatternHelper(pattern string, resource string) string {
-	patternComponents := strings.Split(pattern, "/")
-	resourceComponents := strings.Split(resource, "/")
-	lenDiff := len(resourceComponents) - len(patternComponents)
-	if lenDiff != 0 {
-		return pattern + strings.Repeat("/*", lenDiff)
-	}
-	return pattern
 }
 
 // CreateUser creates a new user with the specified password and policy
@@ -592,4 +403,182 @@ func (srv *CertifierServer) CreateUser(ctx context.Context, createUserReq *certp
 		return nil, status.Errorf(codes.Internal, "failed to store policy while creating user")
 	}
 	return &certprotos.User_TokenList{Token: []string{token}}, nil
+}
+
+func generateSerialNumber(store storage.CertifierStorage) (sn *big.Int, err error) {
+	limit := new(big.Int).Lsh(big.NewInt(1), 128)
+
+	for i := 0; i < NumTrialsForSn; i++ {
+		sn, err = rand.Int(rand.Reader, limit)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to generate serial number: %s", err)
+		}
+		_, err := store.GetCertInfo(cert.SerialToString(sn))
+		if err != nil {
+			return sn, nil
+		}
+	}
+	return nil, fmt.Errorf(
+		"Failed to genearte serial number after %d trials.", NumTrialsForSn)
+}
+
+func parseAndCheckCSR(csrDER []byte) (*x509.CertificateRequest, error) {
+	csr, err := x509.ParseCertificateRequest(csrDER)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse certificate request: %s", err)
+	}
+
+	err = csr.CheckSignature()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to check certificate request signature: %s", err)
+	}
+	return csr, err
+}
+
+func (srv *CertifierServer) signCSR(
+	csr *x509.CertificateRequest,
+	sn *big.Int,
+	certType protos.CertType,
+	validTime time.Duration,
+) ([]byte, time.Time, time.Time, error) {
+
+	if srv.CAs == nil {
+		return nil, time.Time{}, time.Time{}, fmt.Errorf("CAInfo not found")
+	}
+	ca, ok := srv.CAs[certType]
+	if !ok {
+		return nil, time.Time{}, time.Time{}, fmt.Errorf("No CA found for given cert type: %s", certType.String())
+	}
+	signingCert := ca.Cert
+	signingKey := ca.PrivKey
+
+	now := clock.Now().UTC()
+	// Provide a cert from an hour ago to account for clock skews
+	notBefore := now.Add(-1 * time.Hour)
+	notAfter := now.Add(validTime)
+	if notAfter.After(signingCert.NotAfter) {
+		glog.Warningln("The requested time is longer than signing certificate valid time.")
+		notAfter = signingCert.NotAfter
+	}
+	template := x509.Certificate{
+		SerialNumber:          sn,
+		Subject:               csr.Subject,
+		NotBefore:             notBefore,
+		NotAfter:              notAfter,
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		BasicConstraintsValid: true,
+	}
+
+	clientCertDER, err := x509.CreateCertificate(
+		rand.Reader, &template, signingCert, csr.PublicKey, signingKey)
+	if err != nil {
+		return nil, time.Time{}, time.Time{}, fmt.Errorf("Failed to sign csr: %s", err)
+	}
+
+	return clientCertDER, notBefore, notAfter, nil
+}
+
+func checkOrOverwriteCN(csr *x509.CertificateRequest, csrMsg *protos.CSR) error {
+	id := csrMsg.Id
+	idCn := id.ToCommonName()
+	if idCn == nil {
+		return nil
+	}
+	if len(csr.Subject.CommonName) == 0 {
+		csr.Subject.CommonName = *idCn
+		return nil
+	}
+
+	if csr.Subject.CommonName != *idCn {
+		return status.Errorf(
+			codes.Aborted,
+			"CN from CSR (%s) and CN in Identity (%s) do not match", csr.Subject.CommonName, *idCn)
+	}
+
+	if csrMsg.CertType == protos.CertType_VPN && identity.IsGateway(id) {
+		// Use networkID & logicalID to identify the vpn client instead of hwID
+		gw := id.GetGateway()
+		csr.Subject.CommonName = gw.GetLogicalId()
+	}
+
+	return nil
+}
+
+func (srv *CertifierServer) getCertInfo(sn string) (*certprotos.CertificateInfo, error) {
+	certInfo, err := srv.store.GetCertInfo(sn)
+	if err != nil {
+		return &certprotos.CertificateInfo{}, status.Errorf(codes.NotFound, "Failed to load certificate: %s", err)
+	}
+	return certInfo, nil
+}
+
+// Verify that the certificate is signed by our CA
+func (srv *CertifierServer) verifyCert(clientCert *x509.Certificate, certType protos.CertType) error {
+	// Check if CAInfo / cert exists for requested cert type
+	if srv.CAs == nil {
+		return fmt.Errorf("CAInfo not found")
+	}
+	ca, ok := srv.CAs[certType]
+	if !ok {
+		return fmt.Errorf("No CA found for given cert type: %s", certType.String())
+	}
+
+	caPool := x509.NewCertPool()
+	caPool.AddCert(ca.Cert) // Use appropriate cert to check against
+	opts := x509.VerifyOptions{
+		Roots:         caPool,
+		Intermediates: x509.NewCertPool(),
+		// Make sure client cert has ExtKeyUsageClientAuth
+		KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+	}
+	if _, err := clientCert.Verify(opts); err != nil {
+		return fmt.Errorf("Certificate Verification Failure: %s", err)
+	}
+	return nil
+}
+
+func (srv *CertifierServer) getPolicyDecisionFromToken(token string, resource string, action certprotos.Action) (certprotos.Effect, error) {
+	policy, err := srv.store.GetPolicy(token)
+	if err != nil {
+		status.Errorf(codes.Internal, "failed to get policy from db: %v", err)
+	}
+
+	effect, err := checkResource(resource, policy)
+
+	// Return if the policy denies the user or is unknown for the resource
+	if effect == certprotos.Effect_DENY || effect == certprotos.Effect_UNKNOWN {
+		return effect, status.Errorf(codes.PermissionDenied, "not authorized to read/write resource")
+	} else if err != nil {
+		return effect, err
+	}
+
+	effect = checkAction(action, policy)
+	return effect, nil
+}
+
+// checkResource checks if the requested resource is authorized by the policy
+func checkResource(resource string, policy *certprotos.Policy) (certprotos.Effect, error) {
+	effect := policy.Effect
+	// Check if any of policy's resource list allows/denies the requested resource
+	for _, pr := range policy.GetResources().GetResource() {
+		if ok, err := doublestar.Match(pr, resource); ok {
+			return effect, nil
+		} else {
+			glog.Errorf("failed to match resource path: %v", err)
+		}
+	}
+	// Return UNKNOWN if resource is not explicitly allowed/denied by policy
+	return certprotos.Effect_UNKNOWN, nil
+}
+
+// checkAction checks if the requested action is authorized by the policy
+func checkAction(action certprotos.Action, policy *certprotos.Policy) certprotos.Effect {
+	if policy.GetAction() == certprotos.Action_WRITE {
+		return certprotos.Effect_ALLOW
+	}
+	if policy.GetAction() == certprotos.Action_READ && action == certprotos.Action_READ {
+		return certprotos.Effect_ALLOW
+	}
+	return certprotos.Effect_DENY
 }

@@ -14,9 +14,7 @@ schemes:
 - http
 securityDefinitions:
   tokenAuth:
-    type: apiKey
-    name: X-Magma-Client-Access-Token
-    in: header
+    type: basic
 security:
 - tokenAuth: []
 tags:

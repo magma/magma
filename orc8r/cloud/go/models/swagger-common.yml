@@ -45,9 +45,7 @@ schemes:
 
 securityDefinitions:
   tokenAuth:
-    type: apiKey
-    in: header
-    name: X-Magma-Client-Access-Token
+    type: basic
 
 security:
   - tokenAuth: []

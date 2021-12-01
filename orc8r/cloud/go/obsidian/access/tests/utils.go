@@ -16,6 +16,7 @@ package tests
 import (
 	"context"
 	"crypto/x509"
+	"encoding/base64"
 	"io"
 	"io/ioutil"
 	"net"
@@ -191,8 +192,9 @@ func SendRequestWithToken(method, url, username string, token string) (int, erro
 		return 0, err
 	}
 	request.Header.Set("Content-Type", "application/json")
-	header := username + ":" + token
-	request.Header.Set(access.CLIENT_ACCESS_TOKEN_KEY, header)
+	auth := base64.StdEncoding.EncodeToString([]byte(username + ":" + token))
+	header := access.Basic + " " + auth
+	request.Header.Set(echo.HeaderAuthorization, header)
 
 	var client = &http.Client{}
 

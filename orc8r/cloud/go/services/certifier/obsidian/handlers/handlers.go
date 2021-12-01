@@ -23,7 +23,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/certifier"
-	certProtos "magma/orc8r/cloud/go/services/certifier/protos"
+	"magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 )
 
@@ -76,53 +76,50 @@ func getCreateUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request body for creating user: %v", err))
 		}
 
-		// parse user from response body
 		username := fmt.Sprintf("%v", data.User.Username)
 		password := []byte(fmt.Sprintf("%v", data.User.Password))
 		hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error hashing password: %v", err))
 		}
-		// generate token for user
+
 		token, err := certifier.GenerateToken(certifier.Personal)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error generating personal access token for user: %v", err))
 		}
 
-		// store user and token
-		user := &certProtos.User{
+		user := &protos.User{
 			Username: username,
 			Password: hashedPassword,
-			Tokens:   &certProtos.User_TokenList{Token: []string{token}},
+			Tokens:   &protos.User_TokenList{Token: []string{token}},
 		}
 		if err = storage.PutUser(username, user); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 
-		// store token and policy
-		var effect certProtos.Effect
+		var effect protos.Effect
 		switch data.Policy.Effect {
-		case certProtos.Effect_DENY.String():
-			effect = certProtos.Effect_DENY
-		case certProtos.Effect_ALLOW.String():
-			effect = certProtos.Effect_ALLOW
+		case protos.Effect_DENY.String():
+			effect = protos.Effect_DENY
+		case protos.Effect_ALLOW.String():
+			effect = protos.Effect_ALLOW
 		default:
-			effect = certProtos.Effect_UNKNOWN
+			effect = protos.Effect_UNKNOWN
 		}
-		var action certProtos.Action
+		var action protos.Action
 		switch data.Policy.Action {
-		case certProtos.Action_READ.String():
-			action = certProtos.Action_READ
-		case certProtos.Action_WRITE.String():
-			action = certProtos.Action_WRITE
+		case protos.Action_READ.String():
+			action = protos.Action_READ
+		case protos.Action_WRITE.String():
+			action = protos.Action_WRITE
 		default:
-			action = certProtos.Action_NONE
+			action = protos.Action_NONE
 		}
-		policy := &certProtos.Policy{
+		policy := &protos.Policy{
 			Token:  token,
 			Effect: effect,
 			Action: action,
-			Resources: &certProtos.Policy_ResourceList{
+			Resources: &protos.Policy_ResourceList{
 				Resource: data.Policy.Resources,
 			},
 		}
@@ -146,14 +143,12 @@ func getUpdateUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 		newPassword := []byte(fmt.Sprintf("%v", data["password"]))
 		hashedPassword, err := bcrypt.GenerateFromPassword(newPassword, bcrypt.DefaultCost)
 
-		// get old user
 		user, err := storage.GetUser(username)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting existing user: %v", err))
 		}
 
-		// update new user blob
-		newUser := &certProtos.User{
+		newUser := &protos.User{
 			Username: username,
 			Password: hashedPassword,
 			Tokens:   user.Tokens,
@@ -194,14 +189,12 @@ func getLoginHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 
-		// check password hash
 		hashedPassword := user.GetPassword()
 		err = bcrypt.CompareHashAndPassword(hashedPassword, password)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusUnauthorized, "wrong password")
 		}
 
-		// return tokens for access if correct password
 		tokens := user.GetTokens().GetToken()
 		return c.JSON(http.StatusOK, tokens)
 	}

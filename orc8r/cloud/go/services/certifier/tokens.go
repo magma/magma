@@ -3,34 +3,39 @@ package certifier
 import (
 	"crypto/rand"
 	"errors"
+	"fmt"
 	"hash/crc32"
 	"strings"
 
 	"github.com/jxskiss/base62"
 )
 
-type TokenPrefix string
+type TokenType string
 
 const (
-	Personal TokenPrefix = "op"
+	Personal TokenType = "op"
 )
 
+// Length of checksum of token's byte array
+const checksumLength = 4
+
 // GenerateToken generates a random 32-byte token with a checksum
-func GenerateToken(prefix TokenPrefix) (string, error) {
-	// generate 32 random bytes
+func GenerateToken(tokenType TokenType) (string, error) {
+	// Generate 32 random bytes
 	bytes := make([]byte, 32)
 	_, err := rand.Read(bytes)
 	if err != nil {
 		return "", err
 	}
-	// generate checksum bytes
+
+	// Generate checksum bytes
 	checksum := crc32.ChecksumIEEE(bytes)
 	checksumBytes := i32tob(checksum)
-	// combine to form final token
+
+	// Combine to form final token
 	finalBytes := append(bytes, checksumBytes...)
 	token := base62.StdEncoding.EncodeToString(finalBytes)
-
-	return string(prefix) + "_" + token, nil
+	return fmt.Sprintf("%v_%s", tokenType, token), nil
 }
 
 // ValidateToken makes sure the token has the appropriate header and
@@ -48,18 +53,17 @@ func ValidateToken(token string) error {
 
 func stripTokenHeader(token string) (string, error) {
 	s := strings.Split(token, "_")
-	prefix, value := s[0], s[1]
-
 	if len(s) != 2 {
-		return "", errors.New("missing token prefix")
+		return "", errors.New("missing token type")
 	}
+	tokenType, value := s[0], s[1]
 
-	// validate token prefix
-	switch prefix {
+	// Validate token tokenType
+	switch tokenType {
 	case string(Personal):
 		return value, nil
 	}
-	return "", errors.New("invalid token prefix")
+	return "", errors.New("invalid token type")
 }
 
 func validateTokenChecksum(token string) error {
@@ -67,14 +71,19 @@ func validateTokenChecksum(token string) error {
 	if err != nil {
 		return err
 	}
-	orignalChecksum := btoi32(bytes[len(bytes)-4:])
-	newChecksum := crc32.ChecksumIEEE(bytes[:len(bytes)-4])
-	if orignalChecksum != newChecksum {
+	bytesLen := len(bytes)
+	if bytesLen < checksumLength {
+		return errors.New("token not long enough")
+	}
+	claimedChecksum := btoi32(bytes[bytesLen-checksumLength:])
+	calculatedChecksum := crc32.ChecksumIEEE(bytes[:bytesLen-checksumLength])
+	if claimedChecksum != calculatedChecksum {
 		return errors.New("invalid token checksum")
 	}
 	return nil
 }
 
+// Implementation taken from https://gist.github.com/chiro-hiro/2674626cebbcb5a676355b7aaac4972d
 func i32tob(val uint32) []byte {
 	r := make([]byte, 4)
 	for i := uint32(0); i < 4; i++ {
@@ -83,6 +92,7 @@ func i32tob(val uint32) []byte {
 	return r
 }
 
+// Implementation taken from https://gist.github.com/chiro-hiro/2674626cebbcb5a676355b7aaac4972d
 func btoi32(val []byte) uint32 {
 	r := uint32(0)
 	for i := uint32(0); i < 4; i++ {

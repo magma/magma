@@ -19,12 +19,11 @@ import (
 	"net/url"
 	"strings"
 
-	"magma/orc8r/cloud/go/obsidian/access"
-
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 
+	"magma/orc8r/cloud/go/obsidian/access"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/lib/go/registry"
 )

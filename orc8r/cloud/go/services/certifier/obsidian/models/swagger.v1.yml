@@ -23,7 +23,7 @@ paths:
   /user:
     get:
       responses:
-        "200":
+        '200':
           description: Success
           schema:
             type: array
@@ -42,7 +42,7 @@ paths:
           schema:
             $ref: '#/definitions/user_with_policy'
       responses:
-        "201":
+        '201':
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
@@ -62,7 +62,7 @@ paths:
               password:
                 type: string
       responses:
-        "204":
+        '204':
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
@@ -73,7 +73,7 @@ paths:
       parameters:
         - $ref: '#/parameters/username'
       responses:
-        "204":
+        '204':
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
@@ -83,7 +83,8 @@ paths:
 
   /user/login:
     post:
-      security: [ ] # no security
+      # No security, we want to allow users to login without a token auth header
+      security: []
       parameters:
         - name: user
           in: body
@@ -91,7 +92,7 @@ paths:
           schema:
             $ref: '#/definitions/user'
       responses:
-        "200":
+        '200':
           description: Success
           schema:
             type: array
@@ -102,6 +103,7 @@ paths:
       summary: List all the tokens given a user
       tags:
         - User
+
 parameters:
   username:
     in: path
@@ -139,7 +141,7 @@ definitions:
     example:
       effect: ALLOW
       action: WRITE
-      resources: "*"
+      resources: '*'
   user:
     description: User's authentication info
     type: object

@@ -49,20 +49,12 @@ func TestMiddlewareWithoutCertifier(t *testing.T) {
 }
 
 func TestAuthMiddleware(t *testing.T) {
-	// set up auth middleware by creating root user, non-admin user bob, and their respective policies
+	// Set up auth middleware by creating root user, non-admin user bob, and their respective policies
 	certifier_test_service.StartTestService(t)
 	store := test_utils.GetCertifierBlobstore(t)
-	bob := "bob"
-	root := "root"
-	bobUser, bobToken := test_utils.CreateTestUser(bob, "password")
-	rootUser, rootToken := test_utils.CreateTestUser(root, "password")
-	err := store.PutUser(bob, &bobUser)
-	err = store.PutUser(root, &rootUser)
-	bobPolicy := test_utils.CreateUserPolicy(t, bobToken)
-	rootPolicy := test_utils.CreateAdminPolicy(rootToken)
-	err = store.PutPolicy(bobToken, &bobPolicy)
-	err = store.PutPolicy(rootToken, &rootPolicy)
-	assert.NoError(t, err)
+
+	bobToken := test_utils.CreateTestUser(t, store)
+	rootToken := test_utils.CreateTestAdmin(t, store)
 
 	e := startTestMiddlewareServer(t)
 	e.Use(access.TokenMiddleware)
@@ -74,18 +66,18 @@ func TestAuthMiddleware(t *testing.T) {
 	testNetworkURLRoot := urlPrefix + "/magma/v1/networks"
 
 	// Test READ endpoint
-	s, err := SendRequestWithToken("GET", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, root, rootToken)
+	s, err := SendRequestWithToken("GET", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, test_utils.TestRootUsername, rootToken)
 	assert.NoError(t, err)
 	assert.Equal(t, 200, s)
-	s, err = SendRequestWithToken("GET", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, bob, bobToken)
+	s, err = SendRequestWithToken("GET", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, test_utils.TestUsername, bobToken)
 	assert.NoError(t, err)
 	assert.Equal(t, 200, s)
 
 	// Test WRITE endpoint
-	s, err = SendRequestWithToken("PUT", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, root, rootToken)
+	s, err = SendRequestWithToken("PUT", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, test_utils.TestRootUsername, rootToken)
 	assert.NoError(t, err)
 	assert.Equal(t, 200, s)
-	s, err = SendRequestWithToken("PUT", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, bob, bobToken)
+	s, err = SendRequestWithToken("PUT", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, test_utils.TestUsername, bobToken)
 	assert.NoError(t, err)
 	assert.Equal(t, 403, s)
 }
@@ -261,6 +253,7 @@ func TestMiddleware(t *testing.T) {
 
 func startTestMiddlewareServer(t *testing.T) *echo.Echo {
 	e := echo.New()
+	e.HideBanner = true
 	assert.NotNil(t, e)
 
 	dummyHandlerFunc := func(c echo.Context) error {

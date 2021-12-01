@@ -18,15 +18,19 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/golang/glog"
+	"github.com/labstack/echo"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/services/certifier"
 	certifierprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	merrors "magma/orc8r/lib/go/errors"
+)
 
-	"github.com/golang/glog"
-	"github.com/labstack/echo"
+const (
+	Basic = "Basic"
 )
 
 // Access CertificateMiddleware:
@@ -104,59 +108,57 @@ func makeErr(decorate logDecorator, status int, errFmt string, errArgs ...interf
 }
 
 // TokenMiddleware parses the <username>:<token> from the header, validates the token,
-// then checks if the request is within the specified permissions granted to the user
+// then checks if the request is within the specified permissions granted to the user.
 func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := c.Request()
-		header := req.Header.Get(CLIENT_ACCESS_TOKEN_KEY)
 
-		username, token, err := parseAuthHeader(header)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+		// Skip middleware if authorization header is empty, i.e., when there
+		// is no security requirement for an endpoint (e.g. /user/login)
+		if auth := req.Header.Get("Authorization"); auth == "" {
+			return next(c)
+		}
+		username, token, ok := c.Request().BasicAuth()
+		if !ok {
+			return echo.NewHTTPError(http.StatusBadRequest, "failed to parse basic auth header")
 		}
 
 		if err := certifier.ValidateToken(token); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
 
-		// make sure that token is registered with user
-		getOpReq := certifierprotos.GetUserRequest{
+		// Make sure that token is registered with user
+		getOpReq := &certifierprotos.GetUserRequest{
 			Username: username,
 			Token:    token,
 		}
-		tokensList, err := certifier.GetUserTokens(req.Context(), &getOpReq)
+		tokensList, err := certifier.GetUserTokens(req.Context(), getOpReq)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
 
-		// take tokenList, request type, resource and exchange for permission decision
+		// Take tokenList, request type, resource and exchange for permission decision
 		requestType := getRequestAction(req, nil)
 		resource := req.RequestURI
-		getPDReq := certifierprotos.GetPolicyDecisionRequest{
+		getPDReq := &certifierprotos.GetPolicyDecisionRequest{
 			TokenList:     tokensList,
 			RequestAction: requestType,
 			Resource:      resource,
 		}
-		pd, err := certifier.GetPolicyDecision(req.Context(), &getPDReq)
-		if err != nil || pd.Effect == certifierprotos.Effect_DENY {
-			return echo.NewHTTPError(http.StatusForbidden, err)
+		pd, err := certifier.GetPolicyDecision(req.Context(), getPDReq)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+		if pd.Effect == certifierprotos.Effect_DENY {
+			return echo.NewHTTPError(http.StatusForbidden, "not authorized to view resource")
 		}
 		if next != nil {
-			glog.V(4).Info("Access middleware successfully verified permissions. Sending request to the next middleware.")
+			glog.V(4).Info("Token middleware successfully verified permissions. Sending request to the next middleware.")
 			return next(c)
 		}
 
 		return nil
 	}
-}
-
-// parseAuthHeader parse the <username>:<token> from the auth header and returns them separately
-func parseAuthHeader(header string) (string, string, error) {
-	s := strings.Split(header, ":")
-	if len(s) != 2 {
-		return "", "", echo.NewHTTPError(http.StatusUnauthorized, "missing REST client tokens")
-	}
-	return s[0], s[1], nil
 }
 
 // getRequestType returns the required request permission (READ, WRITE
