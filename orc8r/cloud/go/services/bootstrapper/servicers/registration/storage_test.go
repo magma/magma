@@ -38,8 +38,8 @@ func TestBlobstoreStore(t *testing.T) {
 			GatewayDeviceInfo: gatewayPreregisterInfo,
 			Nonce:             "someNonce",
 			Timeout: &timestamp.Timestamp{
-				Seconds: int64(time.Now().Second()),
-				Nanos:   int32(time.Now().Nanosecond()),
+				Seconds: time.Now().Unix(),
+				Nanos:   int32(time.Now().UnixNano()),
 			},
 		}
 
@@ -47,8 +47,8 @@ func TestBlobstoreStore(t *testing.T) {
 			GatewayDeviceInfo: gatewayPreregisterInfo,
 			Nonce:             "someNonce2",
 			Timeout: &timestamp.Timestamp{
-				Seconds: int64(time.Now().Second()),
-				Nanos:   int32(time.Now().Nanosecond()),
+				Seconds: time.Now().Unix(),
+				Nanos:   int32(time.Now().UnixNano()),
 			}}
 	)
 
