@@ -16,6 +16,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <stdio.h>
+#include <openssl/cmac.h>
 
 #include "feg/protos/s6a_proxy.pb.h"
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
@@ -159,9 +160,18 @@ class MmeAppProcedureTest : public ::testing::Test {
       0x27, 0x9f, 0x98, 0x05, 0x82, 0x02, 0x62, 0x00, 0xc6};
   const uint8_t nas_msg_deactivate_ded_bearer_accept[9] = {
       0x27, 0x66, 0x5f, 0x4e, 0x87, 0x03, 0x62, 0x00, 0xce};
-  const uint8_t nas_msg_tau_req_with_actv_flag[4]   = {0x17, 0xd9, 0x46, 0x3b, 0xaf, 0x05, 0x07, 0x48, 0x08,
+  /*const uint8_t nas_msg_tau_req_with_actv_flag[25]   = {0x17, 0xd9, 0x46, 0x3b, 0xaf, 0x05, 0x07, 0x48, 0x08,
                                                        0x0b, 0xf6, 0x00, 0xf1, 0x10, 0x00, 0x01,
-                                                       0x01, 0x26, 0xe6, 0xda, 0xbe, 0x57, 0x02, 0x60, 0x00};
+                                                       0x01, 0x26, 0xe6, 0xda, 0xbe, 0x57, 0x02, 0x60, 0x00};*/
+  /*const uint8_t nas_msg_tau_req_with_actv_flag[25]   = {0x17, 0xcd, 0xca, 0xa1, 0x56, 0x08, 0x07, 0x48,
+                                                        0x08, 0x0b, 0xf6, 0x00, 0xf1, 0x10, 0x00, 0x01,
+                                                        0x01, 0x2d, 0xe2, 0x9a, 0xce, 0x57, 0x02, 0x20, 0x00
+                                                       };*/
+  uint8_t nas_msg_tau_req_with_actv_flag[21]   = {0x17, 0x8f, 0x56, 0x8f, 0x2e,
+                                                        0x02, 0x07, 0x48, 0x0b, 0x0b,
+                                                        0xf6, 0x00, 0xf1, 0x10, 0x00,
+                                                        0x01, 0x01, 0x02, 0x08, 0xf5, 0xb3
+                                                       };
 
   std::string imsi                = "001010000000001";
   plmn_t plmn                     = {.mcc_digit2 = 0,
@@ -172,7 +182,7 @@ class MmeAppProcedureTest : public ::testing::Test {
                  .mnc_digit1 = 0};
   guti_eps_mobile_identity_t guti = {0};
 };
-
+#if 0
 TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
@@ -1396,7 +1406,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
-
+#endif
 TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
@@ -1505,11 +1515,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
   send_mme_app_initial_ue_msg(
       nas_msg_service_req, sizeof(nas_msg_service_req), plmn, guti);
 
-
-  // Constructing and sending TAU Request with active flag
-  /*send_mme_app_initial_ue_msg(
-      nas_msg_tau_req_with_actv_flag, sizeof(nas_msg_tau_req), plmn, guti);*/
-
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
 
@@ -1555,6 +1560,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
+#if 0
 TEST_F(
     MmeAppProcedureTest,
     TestNwInitiatedActivateDeactivateDedicatedBearerRequest) {
@@ -1695,7 +1701,6 @@ TEST_F(
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
-
 TEST_F(
     MmeAppProcedureTest,
     TestNwInitiatedActivateDeactivateDedicatedBearerWithT3485T3495Expirations) {
@@ -1850,15 +1855,17 @@ TEST_F(
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
-
+#endif
 TEST_F(MmeAppProcedureTest, TestAttachIdleTauReqDetach) {
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
+  uint32_t mac = 0;
+  uint8_t seq_num = 0;
 
-  MME_APP_EXPECT_CALLS(3, 2, 2, 1, 1, 1, 1, 2, 1, 1, 4);
+  MME_APP_EXPECT_CALLS(4, 2, 2, 1, 1, 1, 1, 2, 1, 1, 4);
 
   // Construction and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(
@@ -1956,8 +1963,64 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleTauReqDetach) {
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 
   // Constructing and sending TAU Request with active flag
-  /*send_mme_app_initial_ue_msg(
-      nas_msg_tau_req_with_actv_flag, sizeof(nas_msg_tau_req), plmn, guti);*/
+OAILOG_ERROR(
+            LOG_NAS_EMM, " mme code = (%x)\n",
+            guti.mme_code);
+
+OAILOG_ERROR(
+            LOG_NAS_EMM, " mme mme_group_id = (%x)\n",
+            guti.mme_group_id);
+  encode_guti_eps_mobile_identity(&guti, &nas_msg_tau_req_with_actv_flag[10]);
+  //memcpy((void*)&nas_msg_tau_req_with_actv_flag[10], (void*)&guti, sizeof(guti));
+  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(msg_nas_dl_data.mme_ue_s1ap_id);
+  if (ue_mm_context) {
+    if (&ue_mm_context->emm_context) {
+      if (IS_EMM_CTXT_PRESENT_SECURITY(&ue_mm_context->emm_context)) {
+OAILOG_ERROR(
+            LOG_NAS_EMM, " mme_ue_s1ap_id = (%x), mme_teid_s11=%x, imsi64=%llu, .ul_count.seq_num=%d\n",
+            ue_mm_context->mme_ue_s1ap_id, ue_mm_context->mme_teid_s11, ue_mm_context->emm_context._imsi64, ue_mm_context->emm_context._security.ul_count.seq_num);
+    for(int i=0;i<21;i++){
+    OAILOG_ERROR(
+        LOG_NAS,
+        " In ut nas_msg_tau_req_with_actv_flag=%x\n",nas_msg_tau_req_with_actv_flag[i]);
+    }
+    size_t size              = 0;
+    uint8_t mac_tmp[16] = {0};
+    CMAC_CTX *ctx = CMAC_CTX_new();
+    CMAC_Init(ctx, ue_mm_context->emm_context._security.knas_int, 16, EVP_aes_128_cbc(), NULL);
+    CMAC_Update(ctx, &nas_msg_tau_req_with_actv_flag[5], 16);
+    CMAC_Final(ctx, mac_tmp, &size);
+    for(int i=0; i<size; i++) {
+      printf("%02x ", mac_tmp[i]);
+    }
+    memcpy(&mac,mac_tmp,4);
+    CMAC_CTX_free(ctx);
+        
+        /*uint8_t nas_msg_tau_req_with_actv_flag_tmp[21] = {0};
+        memcpy(nas_msg_tau_req_with_actv_flag_tmp, nas_msg_tau_req_with_actv_flag, sizeof(nas_msg_tau_req_with_actv_flag));
+        seq_num = ue_mm_context->emm_context._security.ul_count.seq_num;*/
+        
+        //mac = htonl(nas_message_get_mac(&nas_msg_tau_req_with_actv_flag[6], 16, 0, &ue_mm_context->emm_context._security));
+        OAILOG_ERROR(
+            LOG_NAS_EMM, " coputed mac in ut = (%x)\n",
+            mac);
+      }
+    }
+  } else {
+
+        OAILOG_ERROR(
+            LOG_NAS_EMM, " In ut ue_mm_context not found\n",
+            mac);
+  }
+  memcpy(&nas_msg_tau_req_with_actv_flag[1], &mac,4);
+  /*if (ue_mm_context->emm_context._security.ul_count.seq_num != 0) {
+    ue_mm_context->emm_context._security.ul_count.seq_num -= 1;
+  }
+  if (ue_mm_context->emm_context._security.ul_count.overflow != 0) {
+    ue_mm_context->emm_context._security.ul_count.overflow -= 1;
+  }*/
+  send_mme_app_initial_ue_msg(
+      nas_msg_tau_req_with_actv_flag, sizeof(nas_msg_tau_req_with_actv_flag), plmn, guti);
 
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
