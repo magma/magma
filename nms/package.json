@@ -20,6 +20,7 @@
     "babel-plugin-fbt": "^0.10.4",
     "babel-plugin-fbt-runtime": "^0.9.9",
     "babel-plugin-lodash": "^3.3.4",
+    "pug": "^3.0.1",
     "fbt": "^0.10.6"
   },
   "devDependencies": {
