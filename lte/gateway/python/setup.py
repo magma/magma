@@ -85,6 +85,7 @@ setup(
         'scripts/cpe_monitoring_cli.py',
         'scripts/state_cli.py',
         'scripts/dp_probe_cli.py',
+        'scripts/user_trace_cli.py',
         'load_tests/loadtest_sessiond.py',
         'load_tests/loadtest_pipelined.py',
         'load_tests/loadtest_mobilityd.py',

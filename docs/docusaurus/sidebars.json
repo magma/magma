@@ -209,7 +209,8 @@
         "label": "Access Gateway",
         "ids": [
           "lte/debug_show_tech",
-          "lte/debug_dp_probe"
+          "lte/debug_dp_probe",
+          "lte/debug_user_control_plane"
         ]
       },
       {
