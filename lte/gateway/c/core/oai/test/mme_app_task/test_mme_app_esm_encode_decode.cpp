@@ -32,6 +32,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceAllocationRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceModificationReject.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceModificationRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/DeactivateEpsBearerContextAccept.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/DeactivateEpsBearerContextRequest.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 }
@@ -552,6 +554,57 @@ TEST_F(ESMEncodeDecodeTest, TestBearerResourceModificationReject) {
   // line can be uncommented.
   // COMPARE_COMMON_MANDATORY_DEFAULTS();
   EXPECT_EQ(original_msg.esmcause, decoded_msg.esmcause);
+  EXPECT_EQ_PCO();
+
+  DESTROY_PCO();
+}
+
+TEST_F(ESMEncodeDecodeTest, TestDeactivateEpsBearerContextRequest) {
+  deactivate_eps_bearer_context_request_msg original_msg = {0};
+  deactivate_eps_bearer_context_request_msg decoded_msg  = {0};
+  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
+
+  original_msg.esmcause = 102;
+
+  original_msg.presencemask =
+      DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+
+  fill_pco(&original_msg.protocolconfigurationoptions);
+
+  int encoded = encode_deactivate_eps_bearer_context_request(
+      &original_msg, buffer, BUFFER_LEN);
+  int decoded = decode_deactivate_eps_bearer_context_request(
+      &decoded_msg, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
+  // COMPARE_COMMON_MANDATORY_DEFAULTS();
+  EXPECT_EQ(original_msg.esmcause, decoded_msg.esmcause);
+  EXPECT_EQ_PCO();
+
+  DESTROY_PCO();
+}
+
+TEST_F(ESMEncodeDecodeTest, TestDeactivateEpsBearerContextAccept) {
+  deactivate_eps_bearer_context_accept_msg original_msg = {0};
+  deactivate_eps_bearer_context_accept_msg decoded_msg  = {0};
+  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
+
+  original_msg.presencemask =
+      DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+
+  fill_pco(&original_msg.protocolconfigurationoptions);
+
+  int encoded = encode_deactivate_eps_bearer_context_accept(
+      &original_msg, buffer, BUFFER_LEN);
+  int decoded = decode_deactivate_eps_bearer_context_accept(
+      &decoded_msg, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
+  // COMPARE_COMMON_MANDATORY_DEFAULTS();
   EXPECT_EQ_PCO();
 
   DESTROY_PCO();
