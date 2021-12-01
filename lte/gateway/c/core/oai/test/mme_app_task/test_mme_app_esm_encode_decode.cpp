@@ -25,8 +25,13 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextAccept.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextAccept.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextReject.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceAllocationReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceAllocationRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceModificationReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceModificationRequest.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 }
@@ -188,54 +193,6 @@ class ESMEncodeDecodeTest : public ::testing::Test {
   uint8_t buffer[BUFFER_LEN];
 };
 
-TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextAccept) {
-  activate_dedicated_eps_bearer_context_accept_msg original_msg = {0};
-  activate_dedicated_eps_bearer_context_accept_msg decoded_msg  = {0};
-  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
-  original_msg.presencemask =
-      ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
-  fill_pco(&original_msg.protocolconfigurationoptions);
-
-  int encoded = encode_activate_dedicated_eps_bearer_context_accept(
-      &original_msg, buffer, BUFFER_LEN);
-  int decoded = decode_activate_dedicated_eps_bearer_context_accept(
-      &decoded_msg, buffer, encoded);
-
-  EXPECT_EQ(encoded, decoded);
-  // TODO(@ulaskozat): Header will be decoded separately; then the following
-  // line can be uncommented.
-  // COMPARE_COMMON_MANDATORY_DEFAULTS();
-  EXPECT_EQ(original_msg.presencemask, decoded_msg.presencemask);
-  EXPECT_EQ_PCO();
-
-  DESTROY_PCO();
-}
-
-TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextReject) {
-  activate_dedicated_eps_bearer_context_reject_msg original_msg = {0};
-  activate_dedicated_eps_bearer_context_reject_msg decoded_msg  = {0};
-  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
-  original_msg.esmcause = 255;
-  original_msg.presencemask =
-      ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
-  fill_pco(&original_msg.protocolconfigurationoptions);
-
-  int encoded = encode_activate_dedicated_eps_bearer_context_reject(
-      &original_msg, buffer, BUFFER_LEN);
-  int decoded = decode_activate_dedicated_eps_bearer_context_reject(
-      &decoded_msg, buffer, encoded);
-
-  EXPECT_EQ(encoded, decoded);
-  // TODO(@ulaskozat): Header will be decoded separately; then the following
-  // line can be uncommented.
-  // COMPARE_COMMON_MANDATORY_DEFAULTS();
-  EXPECT_EQ(original_msg.esmcause, decoded_msg.esmcause);
-  EXPECT_EQ(original_msg.presencemask, decoded_msg.presencemask);
-  EXPECT_EQ_PCO();
-
-  DESTROY_PCO();
-}
-
 TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextRequest) {
   activate_default_eps_bearer_context_request_msg original_msg = {0};
   activate_default_eps_bearer_context_request_msg decoded_msg  = {0};
@@ -316,6 +273,52 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextRequest) {
   bdestroy_wrapper(&decoded_msg.pdnaddress.pdnaddressinformation);
 }
 
+TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextAccept) {
+  activate_default_eps_bearer_context_accept_msg original_msg = {0};
+  activate_default_eps_bearer_context_accept_msg decoded_msg  = {0};
+  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
+  original_msg.presencemask =
+      ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+
+  fill_pco(&original_msg.protocolconfigurationoptions);
+
+  int encoded = encode_activate_default_eps_bearer_context_accept(
+      &original_msg, buffer, BUFFER_LEN);
+  int decoded = decode_activate_default_eps_bearer_context_accept(
+      &decoded_msg, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
+  // COMPARE_COMMON_MANDATORY_DEFAULTS();
+  EXPECT_EQ_PCO();
+
+  DESTROY_PCO();
+}
+
+TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextReject) {
+  activate_default_eps_bearer_context_reject_msg original_msg = {0};
+  activate_default_eps_bearer_context_reject_msg decoded_msg  = {0};
+  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
+  original_msg.presencemask =
+      ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+
+  fill_pco(&original_msg.protocolconfigurationoptions);
+
+  int encoded = encode_activate_default_eps_bearer_context_reject(
+      &original_msg, buffer, BUFFER_LEN);
+  int decoded = decode_activate_default_eps_bearer_context_reject(
+      &decoded_msg, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
+  // COMPARE_COMMON_MANDATORY_DEFAULTS();
+  EXPECT_EQ_PCO();
+
+  DESTROY_PCO();
+}
+
 TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextRequest) {
   activate_dedicated_eps_bearer_context_request_msg original_msg = {0};
   activate_dedicated_eps_bearer_context_request_msg decoded_msg  = {0};
@@ -373,24 +376,182 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextRequest) {
   DESTROY_PCO();
 }
 
-TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextAccept) {
-  activate_default_eps_bearer_context_accept_msg original_msg = {0};
-  activate_default_eps_bearer_context_accept_msg decoded_msg  = {0};
+TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextAccept) {
+  activate_dedicated_eps_bearer_context_accept_msg original_msg = {0};
+  activate_dedicated_eps_bearer_context_accept_msg decoded_msg  = {0};
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg.presencemask =
-      ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
-
+      ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
   fill_pco(&original_msg.protocolconfigurationoptions);
 
-  int encoded = encode_activate_default_eps_bearer_context_accept(
+  int encoded = encode_activate_dedicated_eps_bearer_context_accept(
       &original_msg, buffer, BUFFER_LEN);
-  int decoded = decode_activate_default_eps_bearer_context_accept(
+  int decoded = decode_activate_dedicated_eps_bearer_context_accept(
       &decoded_msg, buffer, encoded);
 
   EXPECT_EQ(encoded, decoded);
   // TODO(@ulaskozat): Header will be decoded separately; then the following
   // line can be uncommented.
   // COMPARE_COMMON_MANDATORY_DEFAULTS();
+  EXPECT_EQ(original_msg.presencemask, decoded_msg.presencemask);
+  EXPECT_EQ_PCO();
+
+  DESTROY_PCO();
+}
+
+TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextReject) {
+  activate_dedicated_eps_bearer_context_reject_msg original_msg = {0};
+  activate_dedicated_eps_bearer_context_reject_msg decoded_msg  = {0};
+  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
+  original_msg.esmcause = 255;
+  original_msg.presencemask =
+      ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+  fill_pco(&original_msg.protocolconfigurationoptions);
+
+  int encoded = encode_activate_dedicated_eps_bearer_context_reject(
+      &original_msg, buffer, BUFFER_LEN);
+  int decoded = decode_activate_dedicated_eps_bearer_context_reject(
+      &decoded_msg, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
+  // COMPARE_COMMON_MANDATORY_DEFAULTS();
+  EXPECT_EQ(original_msg.esmcause, decoded_msg.esmcause);
+  EXPECT_EQ(original_msg.presencemask, decoded_msg.presencemask);
+  EXPECT_EQ_PCO();
+
+  DESTROY_PCO();
+}
+
+TEST_F(ESMEncodeDecodeTest, TestBearerResourceAllocationRequest) {
+  bearer_resource_allocation_request_msg original_msg = {0};
+  bearer_resource_allocation_request_msg decoded_msg  = {0};
+  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
+
+  original_msg.linkedepsbeareridentity = 5;
+
+  fill_epsqos(&original_msg.requiredtrafficflowqos);
+
+  fill_tft(&original_msg.trafficflowaggregate);
+
+  original_msg.presencemask =
+      BEARER_RESOURCE_ALLOCATION_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+
+  fill_pco(&original_msg.protocolconfigurationoptions);
+
+  int encoded = encode_bearer_resource_allocation_request(
+      &original_msg, buffer, BUFFER_LEN);
+  int decoded =
+      decode_bearer_resource_allocation_request(&decoded_msg, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
+  // COMPARE_COMMON_MANDATORY_DEFAULTS();
+  EXPECT_EQ(
+      original_msg.linkedepsbeareridentity,
+      decoded_msg.linkedepsbeareridentity);
+  EXPECT_TRUE(!memcmp(
+      &original_msg.requiredtrafficflowqos, &decoded_msg.requiredtrafficflowqos,
+      sizeof(original_msg.requiredtrafficflowqos)));
+  EXPECT_TRUE(!memcmp(
+      &original_msg.trafficflowaggregate, &decoded_msg.trafficflowaggregate,
+      sizeof(original_msg.trafficflowaggregate)));
+  EXPECT_EQ_PCO();
+
+  DESTROY_PCO();
+}
+
+TEST_F(ESMEncodeDecodeTest, TestBearerResourceAllocationReject) {
+  bearer_resource_allocation_reject_msg original_msg = {0};
+  bearer_resource_allocation_reject_msg decoded_msg  = {0};
+  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
+  original_msg.presencemask =
+      BEARER_RESOURCE_ALLOCATION_REJECT_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+
+  fill_pco(&original_msg.protocolconfigurationoptions);
+
+  int encoded = encode_bearer_resource_allocation_reject(
+      &original_msg, buffer, BUFFER_LEN);
+  int decoded =
+      decode_bearer_resource_allocation_reject(&decoded_msg, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
+  // COMPARE_COMMON_MANDATORY_DEFAULTS();
+  EXPECT_EQ_PCO();
+
+  DESTROY_PCO();
+}
+
+TEST_F(ESMEncodeDecodeTest, TestBearerResourceModificationRequest) {
+  bearer_resource_modification_request_msg original_msg = {0};
+  bearer_resource_modification_request_msg decoded_msg  = {0};
+  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
+
+  original_msg.epsbeareridentityforpacketfilter = 8;
+
+  fill_epsqos(&original_msg.requiredtrafficflowqos);
+
+  fill_tft(&original_msg.trafficflowaggregate);
+
+  original_msg.presencemask =
+      BEARER_RESOURCE_MODIFICATION_REQUEST_REQUIRED_TRAFFIC_FLOW_QOS_PRESENT |
+      BEARER_RESOURCE_MODIFICATION_REQUEST_ESM_CAUSE_PRESENT |
+      BEARER_RESOURCE_MODIFICATION_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+
+  original_msg.esmcause = 102;
+
+  fill_pco(&original_msg.protocolconfigurationoptions);
+
+  int encoded = encode_bearer_resource_modification_request(
+      &original_msg, buffer, BUFFER_LEN);
+  int decoded = decode_bearer_resource_modification_request(
+      &decoded_msg, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
+  // COMPARE_COMMON_MANDATORY_DEFAULTS();
+  EXPECT_EQ(
+      original_msg.epsbeareridentityforpacketfilter,
+      decoded_msg.epsbeareridentityforpacketfilter);
+  EXPECT_TRUE(!memcmp(
+      &original_msg.requiredtrafficflowqos, &decoded_msg.requiredtrafficflowqos,
+      sizeof(original_msg.requiredtrafficflowqos)));
+  EXPECT_TRUE(!memcmp(
+      &original_msg.trafficflowaggregate, &decoded_msg.trafficflowaggregate,
+      sizeof(original_msg.trafficflowaggregate)));
+  EXPECT_EQ(original_msg.esmcause, decoded_msg.esmcause);
+  EXPECT_EQ_PCO();
+
+  DESTROY_PCO();
+}
+
+TEST_F(ESMEncodeDecodeTest, TestBearerResourceModificationReject) {
+  bearer_resource_modification_reject_msg original_msg = {0};
+  bearer_resource_modification_reject_msg decoded_msg  = {0};
+  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
+
+  original_msg.esmcause = 102;
+
+  original_msg.presencemask =
+      BEARER_RESOURCE_MODIFICATION_REJECT_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+
+  fill_pco(&original_msg.protocolconfigurationoptions);
+
+  int encoded = encode_bearer_resource_modification_reject(
+      &original_msg, buffer, BUFFER_LEN);
+  int decoded =
+      decode_bearer_resource_modification_reject(&decoded_msg, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
+  // COMPARE_COMMON_MANDATORY_DEFAULTS();
+  EXPECT_EQ(original_msg.esmcause, decoded_msg.esmcause);
   EXPECT_EQ_PCO();
 
   DESTROY_PCO();
