@@ -61,7 +61,7 @@ func TestCloudRegistrationServicer_Registration(t *testing.T) {
 	factory := test_utils.NewSQLBlobstore(t, bootstrapper.BlobstoreTableName)
 	s := registration.NewBlobstoreStore(factory)
 
-	c, err := registration.NewCloudRegistrationServicer(s, exampleRootCA, 30)
+	c, err := registration.NewCloudRegistrationServicer(s, exampleRootCA, time.Minute)
 	assert.NoError(t, err)
 
 	ctx := context.Background()
@@ -107,10 +107,10 @@ func TestCloudRegistrationServicer_Registration(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, &protos.GetGatewayDeviceInfoResponse_GatewayDeviceInfo{GatewayDeviceInfo: gatewayDeviceInfo}, getGatewayDeviceInfoRes.Response)
 
-	// Old token should no longer work
+	// Old token should still work
 	getGatewayDeviceInfoRes, err = c.GetGatewayDeviceInfo(ctx, &protos.GetGatewayDeviceInfoRequest{Token: token})
 	assert.NoError(t, err)
-	assert.Equal(t, &protos.GetGatewayDeviceInfoResponse_Error{
-		Error: fmt.Sprintf("could not get token info from nonce %v: %v", nonce, "Not found"),
-	}, getGatewayDeviceInfoRes.Response)
+	assert.Equal(t, &protos.GetGatewayDeviceInfoResponse_GatewayDeviceInfo{GatewayDeviceInfo: gatewayDeviceInfo}, getGatewayDeviceInfoRes.Response)
+
+
 }

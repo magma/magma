@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"time"
 
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
@@ -27,9 +28,6 @@ import (
 )
 
 const (
-	// length of timeout for the nonce
-	timeoutDuration = 30 * time.Minute
-
 	// NonceLength is the number of characters that the nonce will have
 	NonceLength = 30
 
@@ -38,16 +36,16 @@ const (
 )
 
 type cloudRegistrationServicer struct {
-	store                    Store
-	rootCA                   string
-	timeoutDurationInMinutes int
+	store   Store
+	rootCA  string
+	timeout time.Duration
 }
 
-func NewCloudRegistrationServicer(store Store, rootCA string, timeoutDurationInMinutes int) (protos.CloudRegistrationServer, error) {
+func NewCloudRegistrationServicer(store Store, rootCA string, timeout time.Duration) (protos.CloudRegistrationServer, error) {
 	if store == nil {
 		return nil, fmt.Errorf("storage store is nil")
 	}
-	return &cloudRegistrationServicer{store: store, rootCA: rootCA, timeoutDurationInMinutes: timeoutDurationInMinutes}, nil
+	return &cloudRegistrationServicer{store: store, rootCA: rootCA, timeout: timeout}, nil
 }
 
 func (c *cloudRegistrationServicer) GetToken(ctx context.Context, request *protos.GetTokenRequest) (*protos.GetTokenResponse, error) {
@@ -56,8 +54,8 @@ func (c *cloudRegistrationServicer) GetToken(ctx context.Context, request *proto
 
 	tokenInfo, err := c.store.GetTokenInfoFromLogicalID(networkId, logicalId)
 	if err != nil {
-		// error is not bubbled up since the tokenInfo is only important if the token exists and is expired
-		// if GetTokenInfoFromLogicalID fails, we can just ignore and continue
+		// Error is not bubbled up since the tokenInfo is only important if the token exists and is expired
+		// If GetTokenInfoFromLogicalID fails, we can just ignore and continue
 		glog.V(2).Infof("could not get tokenInfo for networkID %v and logicalID %v: %v", networkId, logicalId, err)
 	}
 
@@ -110,7 +108,7 @@ func (c *cloudRegistrationServicer) GetGatewayDeviceInfo(ctx context.Context, re
 func (c *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string, logicalID string) (*protos.TokenInfo, error) {
 	nonce := GenerateNonce(NonceLength)
 
-	t := time.Now().Add(timeoutDuration)
+	t := clock.Now().Add(c.timeout)
 
 	tokenInfo := &protos.TokenInfo{
 		GatewayDeviceInfo: &protos.GatewayDeviceInfo{
@@ -124,7 +122,7 @@ func (c *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string, l
 		},
 	}
 
-	err := c.store.SetTokenInfo(*tokenInfo)
+	err := c.store.SetTokenInfo(tokenInfo)
 	if err != nil {
 		return nil, err
 	}
