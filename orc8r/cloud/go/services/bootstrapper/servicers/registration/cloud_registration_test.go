@@ -19,6 +19,7 @@ import (
 	"testing"
 	"time"
 
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/bootstrapper"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers/registration"
 	"magma/orc8r/cloud/go/test_utils"
@@ -61,7 +62,7 @@ func TestCloudRegistrationServicer_Registration(t *testing.T) {
 	factory := test_utils.NewSQLBlobstore(t, bootstrapper.BlobstoreTableName)
 	s := registration.NewBlobstoreStore(factory)
 
-	c, err := registration.NewCloudRegistrationServicer(s, exampleRootCA, time.Minute)
+	c, err := registration.NewCloudRegistrationServicer(s, exampleRootCA, 30*time.Minute)
 	assert.NoError(t, err)
 
 	ctx := context.Background()
@@ -84,7 +85,8 @@ func TestCloudRegistrationServicer_Registration(t *testing.T) {
 		Refresh: false,
 	})
 	assert.NoError(t, err)
-	assert.Less(t, time.Now(), getTokenRes.Timeout)
+	x := clock.Now()
+	assert.True(t, x.Before(time.Unix(0, int64(getTokenRes.Timeout.Nanos))))
 	token = getTokenRes.Token
 	timeout := getTokenRes.Timeout
 
@@ -99,7 +101,7 @@ func TestCloudRegistrationServicer_Registration(t *testing.T) {
 		Refresh: true,
 	})
 	assert.NoError(t, err)
-	assert.Less(t, timeout, getTokenRes.Timeout)
+	assert.Less(t, timeout.Nanos, getTokenRes.Timeout.Nanos)
 	assert.NotEqual(t, token, getTokenRes.Token)
 
 	// Get device info with new token
