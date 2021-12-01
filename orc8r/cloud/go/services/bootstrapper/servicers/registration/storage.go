@@ -26,7 +26,7 @@ import (
 const placeholderNetworkID = "placeholder_network"
 
 type Store interface {
-	SetTokenInfo(tokenInfo protos.TokenInfo) error
+	SetTokenInfo(tokenInfo *protos.TokenInfo) error
 	GetTokenInfoFromLogicalID(networkID string, logicalID string) (*protos.TokenInfo, error)
 	GetTokenInfoFromNonce(nonce string) (*protos.TokenInfo, error)
 }
@@ -39,7 +39,7 @@ func NewBlobstoreStore(factory blobstore.StoreFactory) Store {
 	return &blobstoreStore{factory: factory}
 }
 
-func (b *blobstoreStore) SetTokenInfo(tokenInfo protos.TokenInfo) error {
+func (b *blobstoreStore) SetTokenInfo(tokenInfo *protos.TokenInfo) error {
 	networkID := tokenInfo.GatewayDeviceInfo.NetworkId
 	logicalID := tokenInfo.GatewayDeviceInfo.LogicalId
 
@@ -134,21 +134,21 @@ func (b *blobstoreStore) isNonceUnique(store blobstore.Store, nonce string) (boo
 		Type: string(bootstrapper.NonceTokenToInfoMap),
 		Key:  nonce,
 	}
-	nonceBlob, err := store.Get(placeholderNetworkID, nonceTK)
+	_, err := store.Get(placeholderNetworkID, nonceTK)
+	if err == merrors.ErrNotFound {
+		return true, nil
+	}
 	if err != nil {
-		if err == merrors.ErrNotFound {
-			return true, nil
-		}
 		return false, err
 	}
-	return nonceBlob.Value == nil, nil
+	return true, nil
 }
 
 // tokenInfoToBlob turns the input tokenInfo into a blob
 // For blobType bootstrapper.LogicalIDToTokenInfo, key should be a LogicalID
 // For blobType bootstrapper.NonceTokenToInfoMap, key should be a Nonce
-func tokenInfoToBlob(blobType bootstrapper.BlobType, key string, tokenInfo protos.TokenInfo) (blobstore.Blob, error) {
-	marshaledTokenInfo, err := protos.Marshal(&tokenInfo)
+func tokenInfoToBlob(blobType bootstrapper.BlobType, key string, tokenInfo *protos.TokenInfo) (blobstore.Blob, error) {
+	marshaledTokenInfo, err := protos.Marshal(tokenInfo)
 	if err != nil {
 		return blobstore.Blob{}, errors.Wrap(err, "Error marshaling protobuf")
 	}

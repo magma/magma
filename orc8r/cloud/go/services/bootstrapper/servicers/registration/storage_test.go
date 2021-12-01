@@ -37,19 +37,19 @@ func TestBlobstoreStore(t *testing.T) {
 		tokenInfo1 = &protos.TokenInfo{
 			GatewayDeviceInfo: gatewayPreregisterInfo,
 			Nonce:             "someNonce",
-			Timeout:           &timestamp.Timestamp{
-				Seconds:              int64(time.Now().Second()),
-				Nanos:                int32(time.Now().Nanosecond()),
+			Timeout: &timestamp.Timestamp{
+				Seconds: int64(time.Now().Second()),
+				Nanos:   int32(time.Now().Nanosecond()),
 			},
 		}
 
 		tokenInfo2 = &protos.TokenInfo{
 			GatewayDeviceInfo: gatewayPreregisterInfo,
 			Nonce:             "someNonce2",
-			Timeout:           &timestamp.Timestamp{
-				Seconds:              int64(time.Now().Second()),
-				Nanos:                int32(time.Now().Nanosecond()),
-			},		}
+			Timeout: &timestamp.Timestamp{
+				Seconds: int64(time.Now().Second()),
+				Nanos:   int32(time.Now().Nanosecond()),
+			}}
 	)
 
 	factory := test_utils.NewSQLBlobstore(t, bootstrapper.BlobstoreTableName)

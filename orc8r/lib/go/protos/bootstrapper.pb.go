@@ -691,7 +691,7 @@ func (*GetGatewayDeviceInfoResponse) XXX_OneofWrappers() []interface{} {
 }
 
 type RegisterRequest struct {
-	// token is a nonce prepended by bootstrapper.tokenPrepend
+	// token is a nonce prepended by bootstrapper.tokenPrefix
 	Token string           `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 	Hwid  *AccessGatewayID `protobuf:"bytes,2,opt,name=hwid,proto3" json:"hwid,omitempty"`
 	// challenge_key is gateway's long-term public key
@@ -827,7 +827,7 @@ func (*RegisterResponse) XXX_OneofWrappers() []interface{} {
 	}
 }
 
-// Basic info that an AGW needs to register
+// GatewayDeviceInfo contains basic info that an AGW needs to register
 type GatewayDeviceInfo struct {
 	NetworkId            string   `protobuf:"bytes,1,opt,name=network_id,json=networkId,proto3" json:"network_id,omitempty"`
 	LogicalId            string   `protobuf:"bytes,2,opt,name=logical_id,json=logicalId,proto3" json:"logical_id,omitempty"`
@@ -875,9 +875,11 @@ func (m *GatewayDeviceInfo) GetLogicalId() string {
 	return ""
 }
 
-// Info saved that is keyed by token. This is what is saved on CloudRegistration's initial register call (GetToken)
+// TokenInfo is info saved that is keyed by token.
+// This is what is saved on CloudRegistration's initial register call (GetToken)
 type TokenInfo struct {
-	GatewayDeviceInfo    *GatewayDeviceInfo   `protobuf:"bytes,1,opt,name=gateway_device_info,json=gatewayDeviceInfo,proto3" json:"gateway_device_info,omitempty"`
+	GatewayDeviceInfo *GatewayDeviceInfo `protobuf:"bytes,1,opt,name=gateway_device_info,json=gatewayDeviceInfo,proto3" json:"gateway_device_info,omitempty"`
+	// nonce is a token without the bootstrapper.tokenPrefix prefix
 	Nonce                string               `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	Timeout              *timestamp.Timestamp `protobuf:"bytes,3,opt,name=timeout,proto3" json:"timeout,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
