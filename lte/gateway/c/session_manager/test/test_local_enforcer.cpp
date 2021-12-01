@@ -1357,6 +1357,7 @@ TEST_F(LocalEnforcerTest, test_all) {
 TEST_F(LocalEnforcerTest, test_credit_init_with_transient_error_redirect) {
   // insert key rule mapping
   insert_static_rule(1, "", "rule1");
+  insert_static_rule(2, "", "rule2");
 
   // insert initial session credit
   CreateSessionResponse response;
@@ -1365,6 +1366,7 @@ TEST_F(LocalEnforcerTest, test_credit_init_with_transient_error_redirect) {
   create_credit_update_response_with_error(
       IMSI1, SESSION_ID_1, 1, false, DIAMETER_CREDIT_LIMIT_REACHED,
       ChargingCredit_FinalAction_REDIRECT, "12.7.7.4", "", credits->Add());
+  create_credit_update_response(IMSI1, SESSION_ID_1, 2, 2048, credits->Add());
 
   EXPECT_CALL(
       *pipelined_client, deactivate_flows_for_rules(
@@ -1376,7 +1378,7 @@ TEST_F(LocalEnforcerTest, test_credit_init_with_transient_error_redirect) {
       session_map,
       create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
 
-  // Write + Read in/from SessionStore so all paramters during init are saved
+  // Write + Read in/from SessionStore so all parameters during init are saved
   // to the session
   bool write_success =
       session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
@@ -1395,14 +1397,21 @@ TEST_F(LocalEnforcerTest, test_credit_init_with_transient_error_redirect) {
   create_rule_record(
       IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 10, 20,
       record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule2", 222, 333,
+      record_list->Add());
+
   auto uc = get_default_update_criteria();
   session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
+  session_map[IMSI1][0]->increment_rule_stats("rule2", &uc);
   local_enforcer->aggregate_records(session_map, table, update);
 
   assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 10}});
   assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 20}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{2, 222}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{2, 333}});
   EXPECT_EQ(update.size(), 1);
-  EXPECT_EQ(update[IMSI1][SESSION_ID_1].charging_credit_map.size(), 1);
+  EXPECT_EQ(update[IMSI1][SESSION_ID_1].charging_credit_map.size(), 2);
   EXPECT_TRUE(update[IMSI1][SESSION_ID_1]
                   .charging_credit_map.find(1)
                   ->second.suspended);
@@ -1411,6 +1420,15 @@ TEST_F(LocalEnforcerTest, test_credit_init_with_transient_error_redirect) {
           .charging_credit_map.find(1)
           ->second.service_state,
       SERVICE_NEEDS_SUSPENSION);
+
+  EXPECT_FALSE(update[IMSI1][SESSION_ID_1]
+                   .charging_credit_map.find(2)
+                   ->second.suspended);
+  EXPECT_EQ(
+      update[IMSI1][SESSION_ID_1]
+          .charging_credit_map.find(2)
+          ->second.service_state,
+      SERVICE_ENABLED);
 
   // Collect updates for reporting and check Redirect action needs to be done
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -1436,6 +1454,15 @@ TEST_F(LocalEnforcerTest, test_credit_init_with_transient_error_redirect) {
   EXPECT_TRUE(update[IMSI1][SESSION_ID_1]
                   .charging_credit_map.find(1)
                   ->second.suspended);
+
+  EXPECT_EQ(
+      update[IMSI1][SESSION_ID_1]
+          .charging_credit_map.find(2)
+          ->second.service_state,
+      SERVICE_ENABLED);
+  EXPECT_FALSE(update[IMSI1][SESSION_ID_1]
+                   .charging_credit_map.find(2)
+                   ->second.suspended);
 }
 
 TEST_F(LocalEnforcerTest, test_update_with_transient_error) {
@@ -1486,6 +1513,31 @@ TEST_F(LocalEnforcerTest, test_update_with_transient_error) {
   EXPECT_EQ(
       session_uc[IMSI1][SESSION_ID_1].charging_credit_map[2].service_state,
       SESSION_ACTIVE);
+
+  // receive usages from pipeline to make sure the session is still alive with
+  // credit 2
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule3", 10, 20,
+      record_list->Add());
+  auto uc    = get_default_update_criteria();
+  session_uc = SessionStore::get_default_session_update(session_map);
+  session_map[IMSI1][0]->increment_rule_stats("rule3", &uc);
+  local_enforcer->aggregate_records(session_map, table, session_uc);
+
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{2, 10}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{2, 20}});
+  EXPECT_EQ(session_uc.size(), 1);
+  EXPECT_EQ(session_uc[IMSI1][SESSION_ID_1].charging_credit_map.size(), 1);
+  EXPECT_FALSE(session_uc[IMSI1][SESSION_ID_1]
+                   .charging_credit_map.find(2)
+                   ->second.suspended);
+  EXPECT_EQ(
+      session_uc[IMSI1][SESSION_ID_1]
+          .charging_credit_map.find(2)
+          ->second.service_state,
+      SERVICE_ENABLED);
 }
 
 // gy_rar
