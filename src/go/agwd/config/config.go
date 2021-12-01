@@ -12,6 +12,7 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -46,32 +47,49 @@ func LogLevel(l config.AgwD_LogLevel) log.Level {
 
 const (
 	ipv4Scheme = "ipv4"
+	tcp4Scheme = "tcp4"
 	ipv6Scheme = "ipv6"
+	tcp6Scheme = "tcp6"
+	TCP        = "tcp"
 )
 
 // ParseTarget takes a target in string form and returns a resolved Target.
 // Extends functionality in grpc/internal/grpcutil.ParseTarget to support ipv4
-// and ipv6 schemes.
+// and ipv6 schemes. Return tcp4Scheme or tcp6Scheme so the Scheme can be passed
+// directly to net.Listen.
 func ParseTarget(target string) resolver.Target {
 	if strings.HasPrefix(target, ipv4Scheme+":") {
 		return resolver.Target{
-			Scheme:   ipv4Scheme,
+			Scheme:   tcp4Scheme,
 			Endpoint: target[len(ipv4Scheme)+1:],
 		}
 	}
 	if strings.HasPrefix(target, ipv6Scheme+":") {
 		return resolver.Target{
-			Scheme:   ipv6Scheme,
+			Scheme:   tcp6Scheme,
 			Endpoint: target[len(ipv6Scheme)+1:],
 		}
 	}
+	if strings.HasPrefix(target, tcp4Scheme+":") {
+		return resolver.Target{
+			Scheme:   tcp4Scheme,
+			Endpoint: target[len(tcp4Scheme)+1:],
+		}
+	}
 	return grpcutil.ParseTarget(target, false)
+}
+
+// GetVagrantTarget concatenates the vagrant private ip with the port posses it
+// into ParseTarget and returns the result.
+func GetVagrantTarget(vagrantIP, port string) resolver.Target {
+	return ParseTarget(fmt.Sprintf("tcp4:%s:%s", vagrantIP, port))
 }
 
 // Configer returns a parsed config.
 type Configer interface {
 	Config() *config.AgwD
 	UpdateConfig(*config.AgwD) error
+	ReplaceConfig(d *config.AgwD) error
 }
 
 // ConfigManager implements Configer via a loaded config.
@@ -88,9 +106,13 @@ func newDefaultConfig() *config.AgwD {
 		SctpdUpstreamServiceTarget:      "unix:///tmp/sctpd_upstream.sock",
 		MmeSctpdDownstreamServiceTarget: "unix:///tmp/mme_sctpd_downstream.sock",
 		MmeSctpdUpstreamServiceTarget:   "unix:///tmp/mme_sctpd_upstream.sock",
+		PipelinedServiceTarget:          "tcp4:0.0.0.0:12345",
 		// Sentry is disabled if DSN is not set.
-		SentryDsn:           "",
-		ConfigServiceTarget: "127.0.0.1:50090",
+		SentryDsn:               "",
+		VagrantPrivateNetworkIp: "192.168.60.142",
+		ConfigServicePort:       "6000",
+		CaptureServicePort:      "6001",
+		CaptureConfig:           &config.CaptureConfig{MatchSpecs: []*config.CaptureConfig_MatchSpec{}},
 	}
 }
 
@@ -153,9 +175,20 @@ func (c *ConfigManager) Merge(update *config.AgwD) {
 	// clone to prevent data race on proto fields
 	config, ok := proto.Clone(c.config).(*config.AgwD)
 	if !ok {
-		panic("clone of defaultConfig not *config.AgwD")
+		panic("clone of config not *config.AgwD")
 	}
 	proto.Merge(config, update)
+	c.config = config
+}
+
+// Replace overwrites the managed config.
+func (c *ConfigManager) Replace(replace *config.AgwD) {
+	c.Lock()
+	defer c.Unlock()
+	config, ok := proto.Clone(replace).(*config.AgwD)
+	if !ok {
+		panic("clone of config not *config.AgwD")
+	}
 	c.config = config
 }
 
@@ -202,5 +235,13 @@ func LoadConfigFile(cm *ConfigManager, path string) error {
 // TODO: Add validation and error checks on fields being updated.
 func (cm *ConfigManager) UpdateConfig(config *config.AgwD) error {
 	cm.Merge(config)
+	return nil
+}
+
+// ReplaceConfig overwites the CongfigManager with a config file.
+// TODO: Add validation and error checks.
+// Note: this can lead to a race condition.
+func (cm *ConfigManager) ReplaceConfig(config *config.AgwD) error {
+	cm.Replace(config)
 	return nil
 }

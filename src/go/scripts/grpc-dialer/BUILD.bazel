@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "grpc-dialer_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/magma/magma/src/go/scripts/grpc-dialer",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//src/go/agwd/config",
+        "//src/go/protos/magma/pipelined",
+        "@org_golang_google_grpc//:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "grpc-dialer",
+    embed = [":grpc-dialer_lib"],
+    visibility = ["//visibility:public"],
+)

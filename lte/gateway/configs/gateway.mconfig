@@ -40,8 +40,8 @@
       "natEnabled": true,
       "congestionControlEnabled": true,
       "enable5gFeatures": false,
-      "defaultSliceServiceType": "1",
-      "defaultSliceDifferentiator" : "0xffffff"
+      "amfDefaultSliceServiceType": 1,
+      "amfDefaultSliceDifferentiator" : "ffffff"
     },
     "enodebd": {
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",

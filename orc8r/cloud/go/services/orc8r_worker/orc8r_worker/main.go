@@ -17,13 +17,12 @@ import (
 	"context"
 	"database/sql"
 
-	"magma/orc8r/cloud/go/services/orc8r_worker"
-
 	"github.com/golang/glog"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/cloud/go/services/orc8r_worker"
 	"magma/orc8r/cloud/go/services/state"
 	state_config "magma/orc8r/cloud/go/services/state/config"
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"

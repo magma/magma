@@ -29,6 +29,7 @@
 #include <netinet/in.h>
 #include <string.h>
 
+#include "S1ap_ProtocolIE-Field.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/common/log.h"
@@ -1380,23 +1381,43 @@ status_code_e s1ap_mme_generate_ue_context_modification(
   if (ue_ref_p == NULL) {
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
+  pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
+  pdu.choice.initiatingMessage.procedureCode =
+      S1ap_ProcedureCode_id_UEContextModification;
+  pdu.choice.initiatingMessage.criticality = S1ap_Criticality_reject;
+  pdu.choice.initiatingMessage.value.present =
+      S1ap_InitiatingMessage__value_PR_UEContextModificationRequest;
   container =
       &pdu.choice.initiatingMessage.value.choice.UEContextModificationRequest;
-  pdu.choice.successfulOutcome.procedureCode =
-      S1ap_ProcedureCode_id_UEContextModification;
-  pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
+
   /*
    * Fill in ID pair
    */
+  ie = (S1ap_UEContextModificationRequestIEs_t*) calloc(
+      1, sizeof(S1ap_UEContextModificationRequestIEs_t));
+  ie->id          = S1ap_ProtocolIE_ID_id_UE_S1AP_IDs;
+  ie->criticality = S1ap_Criticality_reject;
+  ie->value.present =
+      S1ap_UEContextModificationRequestIEs__value_PR_MME_UE_S1AP_ID;
   ie->value.choice.MME_UE_S1AP_ID = ue_ref_p->mme_ue_s1ap_id;
-  ie->value.choice.ENB_UE_S1AP_ID = ue_ref_p->enb_ue_s1ap_id;
+  ASN_SEQUENCE_ADD(&container->protocolIEs.list, ie);
 
-  S1AP_FIND_PROTOCOLIE_BY_ID(
-      S1ap_UEContextModificationRequestIEs_t, ie, container,
-      S1ap_ProtocolIE_ID_id_RegisteredLAI, true);
+  ie = (S1ap_UEContextModificationRequestIEs_t*) calloc(
+      1, sizeof(S1ap_UEContextModificationRequestIEs_t));
+  ie->id          = S1ap_ProtocolIE_ID_id_UE_S1AP_IDs;
+  ie->criticality = S1ap_Criticality_reject;
+  ie->value.present =
+      S1ap_UEContextModificationRequestIEs__value_PR_ENB_UE_S1AP_ID;
+  ie->value.choice.ENB_UE_S1AP_ID = ue_ref_p->enb_ue_s1ap_id;
+  ASN_SEQUENCE_ADD(&container->protocolIEs.list, ie);
 
   if ((ue_context_mod_req_pP->presencemask & S1AP_UE_CONTEXT_MOD_LAI_PRESENT) ==
       S1AP_UE_CONTEXT_MOD_LAI_PRESENT) {
+    ie = (S1ap_UEContextModificationRequestIEs_t*) calloc(
+        1, sizeof(S1ap_UEContextModificationRequestIEs_t));
+    ie->id            = S1ap_ProtocolIE_ID_id_RegisteredLAI;
+    ie->criticality   = S1ap_Criticality_reject;
+    ie->value.present = S1ap_UEContextModificationRequestIEs__value_PR_LAI;
 #define PLMN_SIZE 3
     S1ap_LAI_t* lai_item        = &ie->value.choice.LAI;
     lai_item->pLMNidentity.size = PLMN_SIZE;
@@ -1409,6 +1430,9 @@ status_code_e s1ap_mme_generate_ue_context_modification(
         ue_context_mod_req_pP->lai.mncdigit2,
         ue_context_mod_req_pP->lai.mncdigit3);
     if (mnc_length != 2 && mnc_length != 3) {
+      free_wrapper((void**) &ie);
+      ASN_STRUCT_FREE_CONTENTS_ONLY(
+          asn_DEF_S1ap_UEContextModificationRequest, container);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
     LAI_T_TO_TBCD(
@@ -1416,29 +1440,39 @@ status_code_e s1ap_mme_generate_ue_context_modification(
 
     TAC_TO_ASN1(ue_context_mod_req_pP->lai.lac, &lai_item->lAC);
     lai_item->iE_Extensions = NULL;
+    ASN_SEQUENCE_ADD(&container->protocolIEs.list, ie);
   }
-  S1AP_FIND_PROTOCOLIE_BY_ID(
-      S1ap_UEContextModificationRequestIEs_t, ie, container,
-      S1ap_ProtocolIE_ID_id_CSFallbackIndicator, true);
 
   if ((ue_context_mod_req_pP->presencemask &
        S1AP_UE_CONTEXT_MOD_CSFB_INDICATOR_PRESENT) ==
       S1AP_UE_CONTEXT_MOD_CSFB_INDICATOR_PRESENT) {
+    ie = (S1ap_UEContextModificationRequestIEs_t*) calloc(
+        1, sizeof(S1ap_UEContextModificationRequestIEs_t));
+    ie->id          = S1ap_ProtocolIE_ID_id_CSFallbackIndicator;
+    ie->criticality = S1ap_Criticality_reject;
+    ie->value.present =
+        S1ap_UEContextModificationRequestIEs__value_PR_CSFallbackIndicator;
     ie->value.choice.CSFallbackIndicator =
         ue_context_mod_req_pP->cs_fallback_indicator;
+    ASN_SEQUENCE_ADD(&container->protocolIEs.list, ie);
   }
 
-  S1AP_FIND_PROTOCOLIE_BY_ID(
-      S1ap_UEContextModificationRequestIEs_t, ie, container,
-      S1ap_ProtocolIE_ID_id_uEaggregateMaximumBitrate, true);
-  if ((S1AP_UE_CONTEXT_MOD_UE_AMBR_INDICATOR_PRESENT) ==
+  if ((ue_context_mod_req_pP->presencemask &
+       S1AP_UE_CONTEXT_MOD_UE_AMBR_INDICATOR_PRESENT) ==
       S1AP_UE_CONTEXT_MOD_UE_AMBR_INDICATOR_PRESENT) {
+    ie = (S1ap_UEContextModificationRequestIEs_t*) calloc(
+        1, sizeof(S1ap_UEContextModificationRequestIEs_t));
+    ie->id          = S1ap_ProtocolIE_ID_id_uEaggregateMaximumBitrate;
+    ie->criticality = S1ap_Criticality_ignore;
+    ie->value.present =
+        S1ap_UEContextModificationRequestIEs__value_PR_UEAggregateMaximumBitrate;
     asn_uint642INTEGER(
         &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateDL,
         ue_context_mod_req_pP->ue_ambr.br_dl);
     asn_uint642INTEGER(
         &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateUL,
         ue_context_mod_req_pP->ue_ambr.br_ul);
+    ASN_SEQUENCE_ADD(&container->protocolIEs.list, ie);
   }
 
   if (s1ap_mme_encode_pdu(&pdu, &buffer, &length) < 0) {
@@ -2470,7 +2504,7 @@ status_code_e s1ap_mme_handle_handover_request(
       S1ap_ProcedureCode_id_HandoverResourceAllocation;
   pdu.choice.initiatingMessage.value.present =
       S1ap_InitiatingMessage__value_PR_HandoverRequest;
-  pdu.choice.initiatingMessage.criticality = S1ap_Criticality_ignore;
+  pdu.choice.initiatingMessage.criticality = S1ap_Criticality_reject;
   out = &pdu.choice.initiatingMessage.value.choice.HandoverRequest;
 
   /* MME-UE-ID: mandatory */
@@ -2883,6 +2917,7 @@ status_code_e s1ap_mme_handle_handover_required(
     free_wrapper((void**) &enb_array->elements);
     free_wrapper((void**) &enb_array);
     if (target_enb_association->enb_id != target_enb_id) {
+      bdestroy_wrapper(&src_tgt_container);
       OAILOG_ERROR(LOG_S1AP, "No eNB for enb_id %d\n", target_enb_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
@@ -3350,8 +3385,7 @@ status_code_e s1ap_mme_handle_path_switch_request(
     path_switch_req_failure.sctp_assoc_id  = assoc_id;
     path_switch_req_failure.mme_ue_s1ap_id = mme_ue_s1ap_id;
     path_switch_req_failure.enb_ue_s1ap_id = enb_ue_s1ap_id;
-    s1ap_handle_path_switch_req_failure(
-        state, &path_switch_req_failure, imsi64);
+    s1ap_handle_path_switch_req_failure(&path_switch_req_failure, imsi64);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
@@ -5157,50 +5191,66 @@ status_code_e s1ap_handle_path_switch_req_ack(
 }
 //------------------------------------------------------------------------------
 status_code_e s1ap_handle_path_switch_req_failure(
-    s1ap_state_t* state,
     const itti_s1ap_path_switch_request_failure_t* path_switch_req_failure_p,
     imsi64_t imsi64) {
   S1ap_PathSwitchRequestFailure_t* container = NULL;
   uint8_t* buffer                            = NULL;
   uint32_t length                            = 0;
   ue_description_t* ue_ref_p                 = NULL;
-  S1ap_S1AP_PDU_t* pdu                       = {0};
+  S1ap_S1AP_PDU_t pdu                        = {0};
   S1ap_PathSwitchRequestFailureIEs_t* ie     = NULL;
   int rc                                     = RETURNok;
   mme_ue_s1ap_id_t mme_ue_s1ap_id            = 0;
   OAILOG_FUNC_IN(LOG_S1AP);
-  container =
-      &pdu->choice.unsuccessfulOutcome.value.choice.PathSwitchRequestFailure;
 
-  S1AP_FIND_PROTOCOLIE_BY_ID(
-      S1ap_PathSwitchRequestFailureIEs_t, ie, container,
-      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
-  mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
-  if ((ie) &&
-      (ue_ref_p = s1ap_state_get_ue_mmeid((uint32_t) mme_ue_s1ap_id)) == NULL) {
+  mme_ue_s1ap_id = path_switch_req_failure_p->mme_ue_s1ap_id;
+  ue_ref_p       = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id);
+  if (ue_ref_p == NULL) {
     OAILOG_DEBUG_UE(
         LOG_S1AP, imsi64,
         "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
-        (uint32_t) path_switch_req_failure_p->mme_ue_s1ap_id);
+        mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-
-  } else {
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
-  pdu->choice.unsuccessfulOutcome.procedureCode =
+
+  memset(&pdu, 0, sizeof(pdu));
+  pdu.choice.unsuccessfulOutcome.procedureCode =
       S1ap_ProcedureCode_id_PathSwitchRequest;
-  pdu->present                    = S1ap_S1AP_PDU_PR_unsuccessfulOutcome;
+  pdu.present = S1ap_S1AP_PDU_PR_unsuccessfulOutcome;
+  pdu.choice.unsuccessfulOutcome.criticality = S1ap_Criticality_reject;
+  pdu.choice.unsuccessfulOutcome.value.present =
+      S1ap_UnsuccessfulOutcome__value_PR_PathSwitchRequestFailure;
+  container =
+      &pdu.choice.unsuccessfulOutcome.value.choice.PathSwitchRequestFailure;
+
+  ie = (S1ap_PathSwitchRequestFailureIEs_t*) calloc(
+      1, sizeof(S1ap_PathSwitchRequestFailureIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID;
+  ie->criticality   = S1ap_Criticality_reject;
+  ie->value.present = S1ap_PathSwitchRequestFailureIEs__value_PR_MME_UE_S1AP_ID;
   ie->value.choice.MME_UE_S1AP_ID = path_switch_req_failure_p->mme_ue_s1ap_id;
+  s1ap_mme_set_cause(
+      &ie->value.choice.Cause, S1ap_Cause_PR_radioNetwork,
+      S1ap_CauseRadioNetwork_ho_failure_in_target_EPC_eNB_or_target_system);
+  ASN_SEQUENCE_ADD(&container->protocolIEs.list, ie);
+
+  ie = (S1ap_PathSwitchRequestFailureIEs_t*) calloc(
+      1, sizeof(S1ap_PathSwitchRequestFailureIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID;
+  ie->criticality   = S1ap_Criticality_reject;
+  ie->value.present = S1ap_PathSwitchRequestFailureIEs__value_PR_ENB_UE_S1AP_ID;
   ie->value.choice.ENB_UE_S1AP_ID = path_switch_req_failure_p->enb_ue_s1ap_id;
   s1ap_mme_set_cause(
       &ie->value.choice.Cause, S1ap_Cause_PR_radioNetwork,
       S1ap_CauseRadioNetwork_ho_failure_in_target_EPC_eNB_or_target_system);
+  ASN_SEQUENCE_ADD(&container->protocolIEs.list, ie);
 
-  if (s1ap_mme_encode_pdu(pdu, &buffer, &length) < 0) {
+  if (s1ap_mme_encode_pdu(&pdu, &buffer, &length) < 0) {
     OAILOG_ERROR(LOG_S1AP, "Path Switch Request Failure encoding failed \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   bstring b = blk2bstr(buffer, length);
+  free_wrapper((void**) &buffer);
   OAILOG_DEBUG_UE(
       LOG_S1AP, imsi64,
       "send PATH_SWITCH_REQUEST_Failure for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
@@ -5302,7 +5352,7 @@ status_code_e s1ap_mme_handle_erab_rel_response(
   }
   S1AP_E_RAB_REL_RSP(message_p).mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
   S1AP_E_RAB_REL_RSP(message_p).enb_ue_s1ap_id = ue_ref_p->enb_ue_s1ap_id;
-  S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items           = 1;
+  S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items           = 0;
   S1AP_E_RAB_REL_RSP(message_p).e_rab_failed_to_rel_list.no_of_items = 0;
 
   const S1ap_E_RABList_t* const e_rab_list = &ie->value.choice.E_RABList;

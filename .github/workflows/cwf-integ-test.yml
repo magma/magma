@@ -7,6 +7,9 @@ on:  # yamllint disable-line rule:truthy
   workflow_run:
     workflows:
       - build-all
+    branches:
+      - master
+      - v1.*
     types:
       - completed
 
@@ -64,7 +67,7 @@ jobs:
       - name: Install pre requisites
         run: |
           pip3 install --upgrade pip
-          pip3 install ansible fabric3 jsonpickle requests PyYAML
+          pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
           vagrant plugin install vagrant-vbguest vagrant-disksize
       - uses: actions/download-artifact@v2
         with:
@@ -90,23 +93,38 @@ jobs:
           cd cwf/gateway
           fab integ_test:destroy_vm=True,transfer_images=True,test_result_xml=tests.xml,rerun_fails=3,skip_docker_load=True,tar_path="/tmp/cwf-images"
       - name: Upload test results
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test-results
           path: cwf/gateway/tests.xml
       - name: Publish Unit Test Results
+        if: always()
         uses: EnricoMi/publish-unit-test-result-action/composite@v1
         with:
           check_run_annotations: all tests
           files: cwf/gateway/tests.xml
       - name: Fetch logs
+        if: always()
         run: |
           cd cwf/gateway
           fab transfer_artifacts:services="sessiond session_proxy pcrf ocs pipelined ingress"
           mkdir -p logs
           cp *.log logs/
       - name: Upload logs
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test-logs
           path: cwf/gateway/logs
+      - name: Publish results to Firebase
+        if: always()
+        env:
+          FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
+          REPORT_FILENAME: "cwf_integ_test_${{ github.sha }}.html"
+        run: |
+          npm install -g xunit-viewer
+          [ -f "cwf/gateway/tests.xml" ] && { xunit-viewer -r cwf/gateway/tests.xml -o "$REPORT_FILENAME"; }
+          [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
+          [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
+          python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} cwf --url $URL

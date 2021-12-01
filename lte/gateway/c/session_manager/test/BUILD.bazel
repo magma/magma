@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
     name = "consts",
@@ -42,10 +42,12 @@ cc_library(
     deps = [
         ":consts",
         "//lte/gateway/c/session_manager:diameter_codes",
+        "//lte/gateway/c/session_manager:session_store",
         "//lte/gateway/c/session_manager:stored_state",
         "//lte/protos:mconfigs_cpp_proto",
         "//lte/protos:pipelined_cpp_grpc",
         "//lte/protos:session_manager_cpp_grpc",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -236,6 +238,7 @@ cc_test(
     name = "proxy_responder_handler_test",
     size = "small",
     srcs = ["test_proxy_responder_handler.cpp"],
+    flaky = True,
     deps = [
         ":matchers",
         ":protobuf_creators",

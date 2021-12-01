@@ -15,7 +15,7 @@
 #include <grpcpp/security/server_credentials.h>
 #include "mock_tasks.h"
 #include "grpc_service.h"
-#include "tasks/grpc_service/S8ServiceImpl.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.h"
 
 task_zmq_ctx_t task_zmq_ctx_grpc;
 grpc_service_data_t grpc_service_config = {0};
@@ -61,8 +61,8 @@ static void start_grpc_s8_service(bstring server_address) {
 }
 
 void start_mock_grpc_task() {
-#define GRPCSERVICES_SERVER_ADDRESS "127.0.0.1:50095"
-  grpc_service_config.server_address = bfromcstr(GRPCSERVICES_SERVER_ADDRESS);
+  grpc_service_config.server_address =
+      bfromcstr(TEST_GRPCSERVICES_SERVER_ADDRESS);
 
   init_task_context(
       TASK_GRPC_SERVICE, nullptr, 0, handle_message, &task_zmq_ctx_grpc);

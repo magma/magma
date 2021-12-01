@@ -328,7 +328,7 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
 }
 
 //------------------------------------------------------------------------------
-int32_t spgw_handle_nw_initiated_bearer_deactv_req(
+status_code_e spgw_handle_nw_initiated_bearer_deactv_req(
     const itti_gx_nw_init_deactv_bearer_request_t* const bearer_req_p,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);

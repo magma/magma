@@ -24,12 +24,14 @@ CONTROL_PROXY = 'control_proxy'
 SENTRY_CONFIG = 'sentry'
 SENTRY_URL = 'sentry_url_python'
 SENTRY_SAMPLE_RATE = 'sentry_sample_rate'
+CLOUD_ADDRESS = 'cloud_address'
+ORC8R_CLOUD_ADDRESS = 'orc8r_cloud_address'
 COMMIT_HASH = 'COMMIT_HASH'
 HWID = 'hwid'
 SERVICE_NAME = 'service_name'
 LOGGING_EXTRA = 'extra'
-SEND_TO_MONITORING_KEY = "send_to_monitoring"
-SEND_TO_MONITORING = {SEND_TO_MONITORING_KEY: True}
+SEND_TO_ERROR_MONITORING_KEY = "send_to_error_monitoring"
+SEND_TO_ERROR_MONITORING = {SEND_TO_ERROR_MONITORING_KEY: True}
 
 
 class SentryStatus(Enum):
@@ -47,7 +49,7 @@ def send_uncaught_errors_to_monitoring(enabled: bool):
             try:
                 return func(*args, **kwargs)
             except Exception as err:
-                logging.error("Uncaught error", exc_info=True, extra=SEND_TO_MONITORING)
+                logging.error("Uncaught error", exc_info=True, extra=SEND_TO_ERROR_MONITORING)
                 raise err
 
         if enabled:
@@ -61,8 +63,8 @@ def _ignore_if_not_marked(
         event: Dict[str, Any],
         hint: Dict[str, Any],  # pylint: disable=unused-argument
 ) -> Optional[Dict[str, Any]]:
-    if event.get(LOGGING_EXTRA) and event.get(LOGGING_EXTRA).get(SEND_TO_MONITORING_KEY):
-        del event[LOGGING_EXTRA][SEND_TO_MONITORING_KEY]
+    if event.get(LOGGING_EXTRA) and event.get(LOGGING_EXTRA).get(SEND_TO_ERROR_MONITORING_KEY):
+        del event[LOGGING_EXTRA][SEND_TO_ERROR_MONITORING_KEY]
         return event
     return None
 
@@ -107,5 +109,12 @@ def sentry_init(service_name: str):
         traces_sample_rate=sentry_sample_rate,
         before_send=_ignore_if_not_marked if sentry_status == SentryStatus.SEND_SELECTED_ERRORS else None,
     )
+
+    cloud_address = get_service_config_value(
+        CONTROL_PROXY,
+        CLOUD_ADDRESS,
+        default=None,
+    )
+    sentry_sdk.set_tag(ORC8R_CLOUD_ADDRESS, cloud_address)
     sentry_sdk.set_tag(HWID, snowflake.snowflake())
     sentry_sdk.set_tag(SERVICE_NAME, service_name)

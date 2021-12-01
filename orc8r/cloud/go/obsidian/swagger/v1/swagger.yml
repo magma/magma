@@ -49,7 +49,7 @@ tags:
   name: Rating Groups
 - description: Endpoints related to SMS
   name: SMS
-- description: Viewing and Setting Tenant information
+- description: Viewing and setting tenant information
   name: Tenants
 - description: Configuration to manage upgrades
   name: Upgrades
@@ -2744,6 +2744,39 @@ paths:
         default:
           $ref: '#/responses/UnexpectedError'
       summary: Update gateway EPC configuration
+      tags:
+      - LTE Gateways
+  /lte/{network_id}/gateways/{gateway_id}/cellular/ngc:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/gateway_id'
+      responses:
+        "204":
+          description: NGC configuration
+          schema:
+            $ref: '#/definitions/gateway_ngc_configs'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Get gateway NGC configuration
+      tags:
+      - LTE Gateways
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/gateway_id'
+      - description: New NGC configuration
+        in: body
+        name: config
+        required: true
+        schema:
+          $ref: '#/definitions/gateway_ngc_configs'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update gateway NGC configuration
       tags:
       - LTE Gateways
   /lte/{network_id}/gateways/{gateway_id}/cellular/non_eps:
@@ -5724,12 +5757,12 @@ paths:
       - $ref: '#/parameters/tenant_id'
       responses:
         "200":
-          description: Requested Tenant Information
+          description: Requested tenant information
           schema:
             $ref: '#/definitions/tenant'
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Retrieve Tenant Info By Tenant ID
+      summary: Retrieve tenant info by tenant ID
       tags:
       - Tenants
     put:
@@ -5746,7 +5779,38 @@ paths:
           description: Ok
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Set Tenant info
+      summary: Set tenant info
+      tags:
+      - Tenants
+  /tenants/{tenant_id}/control_proxy:
+    get:
+      parameters:
+      - $ref: '#/parameters/tenant_id'
+      responses:
+        "200":
+          description: Requested control proxy content
+          schema:
+            $ref: '#/definitions/control_proxy'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Retrieve control proxy content by tenant ID
+      tags:
+      - Tenants
+    put:
+      parameters:
+      - $ref: '#/parameters/tenant_id'
+      - description: Control proxy content to be updated
+        in: body
+        name: control_proxy
+        required: true
+        schema:
+          $ref: '#/definitions/control_proxy'
+      responses:
+        "204":
+          description: Ok
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Create or update control proxy content
       tags:
       - Tenants
   /tenants/{tenant_id}/metrics/api/v1/label/{label_name}/values:
@@ -7471,6 +7535,14 @@ definitions:
         format: uint64
         type: integer
     type: object
+  control_proxy:
+    properties:
+      control_proxy:
+        description: Contents of a gateway control_proxy.yml
+        type: string
+    required:
+    - control_proxy
+    type: object
   core_network_types:
     description: List of core network types.
     items:
@@ -8485,6 +8557,8 @@ definitions:
         $ref: '#/definitions/gateway_epc_configs'
       he_config:
         $ref: '#/definitions/gateway_he_config'
+      ngc:
+        $ref: '#/definitions/gateway_ngc_configs'
       non_eps_service:
         $ref: '#/definitions/gateway_non_eps_configs'
       pooling:
@@ -8789,6 +8863,52 @@ definitions:
     minLength: 1
     type: string
     x-nullable: false
+  gateway_ngc_configs:
+    description: NextGeneration Core configuration for gateway
+    properties:
+      amf_default_sd:
+        description: AMF Default Slice Descriptor. This is an optional parameter that
+          complements the Slice/Service type(s) to allow to differentiate amongst
+          multiple Network Slices of the same Slice/Service type. This IE shall be
+          absent if no SD value is associated with the SST. See clause 28.4.2 of 3GPP
+          TS 23.003.
+        pattern: ^[A-Fa-f0-9]{1,6}$
+        type: string
+        x-nullable: false
+      amf_default_sst:
+        description: AMF Default Slice Service Type. Values 0 to 127 correspond to
+          the standardized SST range. Values 128 to 255 correspond to the Operator-specific
+          range. See clause 28.4.2 of 3GPP TS 23.003. Standardized values are defined
+          in clause 5.15.2.2 of 3GPP TS 23.501.
+        format: uint32
+        maximum: 255
+        minimum: 0
+        type: integer
+        x-nullable: false
+      amf_name:
+        description: FQDN (Fully Qualified Domain Name) of the AMF as defined in clause
+          28.3.2.5 of 3GPP TS 23.003
+        type: string
+        x-nullable: false
+      amf_pointer:
+        description: String identifying the AMF Pointer (6 bits) as specified in clause
+          2.10.1 of 3GPP TS 23.003.
+        pattern: ^[0-3][A-Fa-f0-9]{0,1}$
+        type: string
+        x-nullable: false
+      amf_region_id:
+        description: String identifying the AMF Region ID (8 bits) as specified in
+          clause 2.10.1 of 3GPP TS 23.003.
+        pattern: ^[A-Fa-f0-9]{1,2}$
+        type: string
+        x-nullable: false
+      amf_set_id:
+        description: String identifying the AMF Set ID (10 bits) as specified in clause
+          2.10.1 of 3GPP TS 23.003.
+        pattern: ^[0-3][A-Fa-f0-9]{0,2}$
+        type: string
+        x-nullable: false
+    type: object
   gateway_non_eps_configs:
     description: Non-EPS service configuration for a gateway
     properties:

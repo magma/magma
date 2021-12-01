@@ -47,6 +47,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S11_RELEASE_ACCESS_BEARERS_RESPONSE: {
+      mme_app_handler_->mme_app_handle_release_access_bearers_resp();
     } break;
 
     case S11_DELETE_SESSION_RESPONSE: {
@@ -57,6 +58,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_E_RAB_SETUP_RSP: {
+      mme_app_handler_->mme_app_handle_e_rab_setup_rsp();
+      itti_s1ap_e_rab_setup_rsp_t* rsp =
+          &S1AP_E_RAB_SETUP_RSP(received_message_p);
+      for (int i = 0; i < rsp->e_rab_setup_list.no_of_items; i++) {
+        bdestroy_wrapper(
+            &rsp->e_rab_setup_list.item[i].transport_layer_address);
+      }
     } break;
 
     case S1AP_E_RAB_REL_RSP: {
@@ -74,12 +82,16 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_ENB_INITIATED_RESET_REQ: {
+      mme_app_handler_->mme_app_handle_enb_reset_req();
+      free_wrapper((void**) &S1AP_ENB_INITIATED_RESET_REQ(received_message_p)
+                       .ue_to_reset_list);
     } break;
 
     case S11_PAGING_REQUEST: {
     } break;
 
     case MME_APP_INITIAL_CONTEXT_SETUP_FAILURE: {
+      mme_app_handler_->mme_app_handle_initial_context_setup_failure();
     } break;
 
     case S1AP_UE_CAPABILITIES_IND: {
@@ -154,6 +166,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_HANDOVER_REQUIRED: {
+      mme_app_handler_->mme_app_handle_handover_required();
     } break;
 
     case S1AP_HANDOVER_REQUEST_ACK: {

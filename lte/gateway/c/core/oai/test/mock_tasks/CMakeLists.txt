@@ -12,11 +12,9 @@ cmake_minimum_required(VERSION 3.7.2)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
+ 
 include_directories("/usr/src/googletest/googlemock/include/")
 link_directories(/usr/src/googletest/googlemock/lib/)
-include_directories("${MAGMA_ROOT}/lte/gateway/c/core/oai/")
-include_directories("${PROJECT_BINARY_DIR}/tasks/grpc_service/")
 
 add_library(MOCK_TASKS
     ha_mock.cpp
@@ -35,4 +33,5 @@ add_library(MOCK_TASKS
 
 target_link_libraries(MOCK_TASKS
     LIB_ITTI gmock_main gtest gtest_main gmock
+    TASK_GRPC_SERVICE
 )

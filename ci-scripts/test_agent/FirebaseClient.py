@@ -12,7 +12,9 @@ limitations under the License.
 """
 
 import json
+import threading
 import time
+from datetime import datetime
 
 import pyrebase
 
@@ -32,6 +34,9 @@ class FirebaseClient:
         )
         # Get a reference to the database service
         self.db = self.firebase.database()
+        # token refresh timer
+        self.RefreshTokenTime = 1800
+        threading.Timer(self.RefreshTokenTime, self.do_token_refresh).start()
 
     def push_test_report(self, workload, verdict, report):
         build_id = workload.val().get("build_id")
@@ -114,6 +119,13 @@ class FirebaseClient:
             return build
         else:
             return None
+
+    def do_token_refresh(self):
+        """Run in its own thread and refresh token every 30 min."""
+
+        print("Refreshing Firebase Token:", datetime.now())
+        self.user = self.auth.refresh(self.user["refreshToken"])
+        threading.Timer(self.RefreshTokenTime, self.do_token_refresh).start()
 
     def mark_workload_done(self, workload):
         self.db.child("workers").child(self.config["agent_id"]).child(

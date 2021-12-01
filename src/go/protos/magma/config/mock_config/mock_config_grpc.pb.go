@@ -56,6 +56,26 @@ func (mr *MockConfigClientMockRecorder) GetConfig(ctx, in interface{}, opts ...i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfig", reflect.TypeOf((*MockConfigClient)(nil).GetConfig), varargs...)
 }
 
+// ReplaceConfig mocks base method.
+func (m *MockConfigClient) ReplaceConfig(ctx context.Context, in *config.ReplaceConfigRequest, opts ...grpc.CallOption) (*config.ReplaceConfigResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ReplaceConfig", varargs...)
+	ret0, _ := ret[0].(*config.ReplaceConfigResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReplaceConfig indicates an expected call of ReplaceConfig.
+func (mr *MockConfigClientMockRecorder) ReplaceConfig(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceConfig", reflect.TypeOf((*MockConfigClient)(nil).ReplaceConfig), varargs...)
+}
+
 // UpdateConfig mocks base method.
 func (m *MockConfigClient) UpdateConfig(ctx context.Context, in *config.UpdateConfigRequest, opts ...grpc.CallOption) (*config.UpdateConfigResponse, error) {
 	m.ctrl.T.Helper()
@@ -112,6 +132,21 @@ func (m *MockConfigServer) GetConfig(arg0 context.Context, arg1 *config.GetConfi
 func (mr *MockConfigServerMockRecorder) GetConfig(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfig", reflect.TypeOf((*MockConfigServer)(nil).GetConfig), arg0, arg1)
+}
+
+// ReplaceConfig mocks base method.
+func (m *MockConfigServer) ReplaceConfig(arg0 context.Context, arg1 *config.ReplaceConfigRequest) (*config.ReplaceConfigResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReplaceConfig", arg0, arg1)
+	ret0, _ := ret[0].(*config.ReplaceConfigResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReplaceConfig indicates an expected call of ReplaceConfig.
+func (mr *MockConfigServerMockRecorder) ReplaceConfig(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceConfig", reflect.TypeOf((*MockConfigServer)(nil).ReplaceConfig), arg0, arg1)
 }
 
 // UpdateConfig mocks base method.

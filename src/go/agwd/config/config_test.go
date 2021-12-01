@@ -77,6 +77,46 @@ func TestLogLevel(t *testing.T) {
 	}
 }
 
+func TestGetVagrantTarget(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		port      string
+		vagrantIP string
+		want      resolver.Target
+	}{
+		{
+			want: resolver.Target{
+				Scheme:    "tcp4",
+				Authority: "",
+				Endpoint:  ":",
+			},
+		},
+		{
+			port:      "1234",
+			vagrantIP: "1.2.3.4",
+			want: resolver.Target{
+				Scheme:    "tcp4",
+				Authority: "",
+				Endpoint:  "1.2.3.4:1234",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		got := GetVagrantTarget(test.vagrantIP, test.port)
+		assert.Equal(
+			t,
+			test.want,
+			got,
+			"GetVagrantTarget(%s,%s) = %v, want %v",
+			test.vagrantIP,
+			test.port,
+			got,
+			test.want)
+	}
+}
+
 func TestParseTarget(t *testing.T) {
 	t.Parallel()
 
@@ -96,7 +136,7 @@ func TestParseTarget(t *testing.T) {
 		{
 			target: "ipv4:localhost:1234",
 			want: resolver.Target{
-				Scheme:    "ipv4",
+				Scheme:    "tcp4",
 				Authority: "",
 				Endpoint:  "localhost:1234",
 			},
@@ -104,7 +144,7 @@ func TestParseTarget(t *testing.T) {
 		{
 			target: "ipv6:[2607:f8b0:400e:c00::ef]:443",
 			want: resolver.Target{
-				Scheme:    "ipv6",
+				Scheme:    "tcp6",
 				Authority: "",
 				Endpoint:  "[2607:f8b0:400e:c00::ef]:443",
 			},
@@ -112,7 +152,7 @@ func TestParseTarget(t *testing.T) {
 		{
 			target: "ipv6:[::]:1234",
 			want: resolver.Target{
-				Scheme:    "ipv6",
+				Scheme:    "tcp6",
 				Authority: "",
 				Endpoint:  "[::]:1234",
 			},
@@ -188,7 +228,10 @@ func TestNewConfigManager(t *testing.T) {
 	assert.Equal(t, "unix:///tmp/mme_sctpd_downstream.sock", cm.Config().MmeSctpdDownstreamServiceTarget)
 	assert.Equal(t, "unix:///tmp/mme_sctpd_upstream.sock", cm.Config().MmeSctpdUpstreamServiceTarget)
 	assert.Equal(t, "", cm.Config().SentryDsn)
-	assert.Equal(t, "127.0.0.1:50090", cm.Config().ConfigServiceTarget)
+	assert.Equal(t, "6000", cm.Config().ConfigServicePort)
+	assert.Equal(t, "192.168.60.142", cm.Config().VagrantPrivateNetworkIp)
+	assert.Equal(t, "6001", cm.Config().CaptureServicePort)
+	assert.Equal(t, "tcp4:0.0.0.0:12345", cm.Config().PipelinedServiceTarget)
 }
 
 func TestLoadConfigFile(t *testing.T) {
@@ -203,7 +246,11 @@ func TestLoadConfigFile(t *testing.T) {
 	assert.Equal(t, "c", cm.Config().MmeSctpdDownstreamServiceTarget)
 	assert.Equal(t, "d", cm.Config().MmeSctpdUpstreamServiceTarget)
 	assert.Equal(t, "e", cm.Config().SentryDsn)
-	assert.Equal(t, "f", cm.Config().ConfigServiceTarget)
+	assert.Equal(t, "f", cm.Config().ConfigServicePort)
+	assert.Equal(t, "g", cm.Config().CaptureServicePort)
+	assert.Equal(t, "h", cm.Config().VagrantPrivateNetworkIp)
+	assert.Equal(t, "i", cm.Config().PipelinedServiceTarget)
+
 }
 
 func TestNewConfigManager_DefaultNotFound(t *testing.T) {
@@ -331,6 +378,20 @@ func TestConfigManager_UpdateConfig(t *testing.T) {
 	assert.Equal(t, "a", cm.Config().MmeSctpdDownstreamServiceTarget)
 	assert.Equal(t, "unix:///tmp/mme_sctpd_upstream.sock", cm.Config().MmeSctpdUpstreamServiceTarget)
 
+}
+
+func TestConfigManager_ReplaceConfig(t *testing.T) {
+	t.Parallel()
+
+	cm := NewConfigManager()
+	replace := &config.AgwD{MmeSctpdDownstreamServiceTarget: "a"}
+	cm.ReplaceConfig(replace)
+	assert.Equal(
+		t,
+		replace.GetMmeSctpdDownstreamServiceTarget(),
+		cm.Config().GetMmeSctpdDownstreamServiceTarget())
+	assert.Equal(t, "", cm.Config().SctpdDownstreamServiceTarget)
+	assert.Equal(t, "a", cm.Config().MmeSctpdDownstreamServiceTarget)
 }
 
 func TestConfigManager_Race(t *testing.T) {

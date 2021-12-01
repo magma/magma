@@ -154,7 +154,7 @@ Status AmfServiceImpl::SetSmfSessionContext(
       (redirect_address_type_t) req_m5g.pdu_address().redirect_address_type();
   // PDU IP address coming from SMF in human-readable format has to be packed
   // into 4 raw bytes in hex for NAS5G layer
-  strcpy(ip_str, req_m5g.pdu_address().redirect_server_address().c_str());
+  strcpy(ip_str, req_common.ue_ipv4().c_str());
   inet_pton(AF_INET, ip_str, &(ip_addr.s_addr));
   ip_int = ntohl(ip_addr.s_addr);
   INT32_TO_BUFFER(ip_int, itti_msg.pdu_address.redirect_server_address);

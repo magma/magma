@@ -9,6 +9,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
 package(default_visibility = ["//lte/gateway/c/session_manager/test:__pkg__"])
 
 cc_library(
@@ -327,6 +329,7 @@ cc_library(
         "//lte/protos:session_manager_cpp_grpc",
         "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
         "//orc8r/gateway/c/common/service_registry",
+        "@com_github_google_glog//:glog",
         "@com_github_grpc_grpc//:grpc++",
     ],
 )
@@ -372,6 +375,7 @@ cc_library(
         ":amf_service_client",
         ":pipelined_client",
         ":session_credit",
+        ":session_events",
         ":session_store",
         "//lte/protos:mconfigs_cpp_proto",
         "//orc8r/gateway/c/common/logging",

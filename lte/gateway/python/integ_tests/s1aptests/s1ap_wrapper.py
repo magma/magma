@@ -508,3 +508,9 @@ class TestWrapper(object):
         self.s1_util.issue_cmd(s1ap_types.tfwCmd.UE_PDN_CONN_REQ, req)
 
         print("************* Sending Standalone PDN Connectivity Request\n")
+
+    def flush_arp(self):
+        self._magmad_util.exec_command_output(
+            "sudo ip neigh flush all",
+        )
+        print("magma-dev: ARP flushed")

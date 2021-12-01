@@ -5,4 +5,6 @@
 # Monolithic swagger.yml is generated
 /orc8r/cloud/go/obsidian/swagger/v1/swagger.yml linguist-generated
 # NMS bindings are generated
-nms/packages/magmalte/generated/MagmaAPIBindings.js linguist-generated
+/nms/packages/magmalte/generated/MagmaAPIBindings.js linguist-generated
+# SBI openapi interface generated files
+/feg/gateway/sbi/specs/** linguist-generated

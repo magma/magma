@@ -218,7 +218,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
           decode_status);
       break;
     case ULNASTRANSPORT:
-      rc = amf_smf_send(
+      rc = amf_smf_process_pdu_session_packet(
           msg->ue_id, &amf_msg->msg.uplinknas5gtransport, *amf_cause);
       break;
     default:
@@ -477,13 +477,15 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
       .tac[2] = 0x01;
 
-  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.nssai.iei =
-      0x15;
-  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.nssai.len = 2;
-  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.nssai
-      .nssaival[0] = 0x01;
-  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.nssai
-      .nssaival[1] = 0x01;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.allowed_nssai
+      .iei = ALLOWED_NSSAI;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.allowed_nssai
+      .len = 2;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.allowed_nssai
+      .nssai.len = 1;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.allowed_nssai
+      .nssai.sst = 0x01;
+
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer
       .len = 1;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer

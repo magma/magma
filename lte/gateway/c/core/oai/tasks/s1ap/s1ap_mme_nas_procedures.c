@@ -355,7 +355,7 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
     }
   }
 
-  if (S1AP_UE_CONNECTED != ue_ref->s1_ue_state) {
+  if (ue_ref->s1_ue_state != S1AP_UE_CONNECTED) {
     OAILOG_WARNING(
         LOG_S1AP,
         "Received S1AP UPLINK_NAS_TRANSPORT while UE in state != "

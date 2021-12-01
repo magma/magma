@@ -49,6 +49,7 @@ Merge blocking CI checks are listed below.
 | Python Format Check    | Ensure Python changes are formatted           | themarwhal             | [AGW formatting](../lte/dev_unit_testing#format-agw)|
 | lint-clang-format      | Ensure C++/C changes are formatted            | approvers-agw          | [AGW formatting](../lte/dev_unit_testing#format-agw)|
 | markdown-lint          | Ensure documentation changes are formatted    | approvers-docs         | [Docs precommit](../docs/docs_overview.md#precommit)|
+| C/C++ unit tests with Bazel | Run all C/C++ tests covered with Bazel   | approvers-agw          | [AGW tests](../lte/dev_unit_testing)                |
 
 ## Non-blocking Checks
 
@@ -61,4 +62,4 @@ The CI checks listed below do not block merging on failure.
 | GCC Warnings & Errors / build_oai             | Annotate PRs with any GCC Warnings or Errors for MME             | electronjoe        | N/A                                                  |
 | GCC Warnings & Errors / build_session_manager | Annotate PRs with any GCC Warnings or Errors for session_manager | electronjoe        | N/A                                                  |
 | Jenkins CWAG Libvirt                          | Run CWF integration tests                                        | themarwhal mattymo | TODO                                                 |
-| ci/circleci: c-cpp-codecov                    | Upload AGW C/C++ code coverage                                   | electronjoe        | N/A                                                  |
+| C / C++ code coverage                         | Upload AGW C/C++ code coverage                                   | electronjoe        | N/A                                                  |

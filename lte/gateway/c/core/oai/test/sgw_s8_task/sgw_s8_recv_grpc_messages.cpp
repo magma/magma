@@ -52,7 +52,7 @@ void SgwS8MessagesTest::SetUp() {
 
   std::thread task_sgw_s8(start_mock_sgw_s8_task, sgw_s8_handler);
   task_sgw_s8.detach();
-  grpc_service_init();
+  grpc_service_init(TEST_GRPCSERVICES_SERVER_ADDRESS);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
 

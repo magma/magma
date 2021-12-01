@@ -7,6 +7,9 @@ on:  # yamllint disable-line rule:truthy
   workflow_run:
     workflows:
       - build-all
+    branches:
+      - master
+      - v1.*
     types:
       - completed
 
@@ -27,7 +30,7 @@ jobs:
       - name: Install pre requisites
         run: |
           pip3 install --upgrade pip
-          pip3 install ansible fabric3 jsonpickle requests PyYAML
+          pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
           vagrant plugin install vagrant-vbguest vagrant-disksize
       - name: Open up network interfaces for VM
         run: |
@@ -56,6 +59,17 @@ jobs:
         with:
           files: lte/gateway/test-results/**/*.xml
           check_run_annotations: all tests
+      - name: Publish results to Firebase
+        if: always()
+        env:
+          FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
+          REPORT_FILENAME: "lte_integ_test_${{ github.sha }}.html"
+        run: |
+          npm install -g xunit-viewer
+          [ -d "lte/gateway/test-results/" ] && { xunit-viewer -r lte/gateway/test-results/ -o "$REPORT_FILENAME"; }
+          [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
+          [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
+          python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} lte --url $URL
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
         env:

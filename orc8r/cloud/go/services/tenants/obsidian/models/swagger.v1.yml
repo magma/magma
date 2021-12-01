@@ -15,7 +15,7 @@ info:
 
 tags:
   - name: Tenants
-    description: Viewing and Setting Tenant information
+    description: Viewing and setting tenant information
 
 basePath: /magma/v1
 
@@ -53,20 +53,20 @@ paths:
 
   /tenants/{tenant_id}:
     get:
-      summary: Retrieve Tenant Info By Tenant ID
+      summary: Retrieve tenant info by tenant ID
       tags:
       - Tenants
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
       responses:
         '200':
-          description: Requested Tenant Information
+          description: Requested tenant information
           schema:
             $ref: '#/definitions/tenant'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
-      summary: Set Tenant info
+      summary: Set tenant info
       tags:
         - Tenants
       parameters:
@@ -94,6 +94,38 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /tenants/{tenant_id}/control_proxy:
+    get:
+      summary: Retrieve control proxy content by tenant ID
+      tags:
+        - Tenants
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+      responses:
+        '200':
+          description: Requested control proxy content
+          schema:
+            $ref: '#/definitions/control_proxy'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Create or update control proxy content
+      tags:
+        - Tenants
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+        - in: body
+          name: control_proxy
+          description: Control proxy content to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/control_proxy'
+      responses:
+        '204':
+          description: Ok
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 definitions:
   tenant:
     type: object
@@ -114,3 +146,11 @@ definitions:
         type: array
         items:
           type: string
+  control_proxy:
+    type: object
+    required:
+      - control_proxy
+    properties:
+      control_proxy:
+        description: Contents of a gateway control_proxy.yml
+        type: string

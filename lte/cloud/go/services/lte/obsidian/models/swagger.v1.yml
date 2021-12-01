@@ -32,6 +32,8 @@ magma-gen-meta:
       filename: gateway_dns_records_swaggergen.go
     - go-struct-name: GatewayHEConfig
       filename: gateway_he_config_swaggergen.go
+    - go-struct-name: GatewayNgcConfigs
+      filename: gateway_ngc_configs_swaggergen.go
     - go-struct-name: DNSConfigRecord
       filename: dns_config_record_swaggergen.go
     - go-struct-name: LteGateway
@@ -1066,6 +1068,39 @@ paths:
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+  /lte/{network_id}/gateways/{gateway_id}/cellular/ngc:
+    get:
+      summary: Get gateway NGC configuration
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '204':
+          description: NGC configuration
+          schema:
+            $ref: '#/definitions/gateway_ngc_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update gateway NGC configuration
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: config
+          in: body
+          description: New NGC configuration
+          required: true
+          schema:
+            $ref: '#/definitions/gateway_ngc_configs'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /lte/{network_id}/gateways/{gateway_id}/cellular/non_eps:
     get:
@@ -1926,6 +1961,8 @@ definitions:
         $ref: '#/definitions/gateway_epc_configs'
       ran:
         $ref: '#/definitions/gateway_ran_configs'
+      ngc:
+        $ref: '#/definitions/gateway_ngc_configs'
       non_eps_service:
         $ref: '#/definitions/gateway_non_eps_configs'
       dns:
@@ -2173,6 +2210,42 @@ definitions:
           - 'BASE64'
           - 'HEX2BIN'
         example: 'BASE64'
+
+  gateway_ngc_configs:
+    description: NextGeneration Core configuration for gateway
+    type: object
+    properties:
+      amf_name:
+        type: string
+        x-nullable: false
+        description: FQDN (Fully Qualified Domain Name) of the AMF as defined in clause 28.3.2.5 of 3GPP TS 23.003
+      amf_set_id:
+        type: string
+        pattern: '^[0-3][A-Fa-f0-9]{0,2}$'
+        x-nullable: false
+        description: String identifying the AMF Set ID (10 bits) as specified in clause 2.10.1 of 3GPP TS 23.003.
+      amf_region_id:
+        type: string
+        pattern: '^[A-Fa-f0-9]{1,2}$'
+        x-nullable: false
+        description: String identifying the AMF Region ID (8 bits) as specified in clause 2.10.1 of 3GPP TS 23.003.
+      amf_pointer:
+        type: string
+        pattern: '^[0-3][A-Fa-f0-9]{0,1}$'
+        x-nullable: false
+        description: String identifying the AMF Pointer (6 bits) as specified in clause 2.10.1 of 3GPP TS 23.003.
+      amf_default_sst:
+        type: integer
+        format: uint32
+        minimum: 0
+        maximum: 255
+        x-nullable: false
+        description: AMF Default Slice Service Type. Values 0 to 127 correspond to the standardized SST range. Values 128 to 255 correspond to the Operator-specific range. See clause 28.4.2 of 3GPP TS 23.003. Standardized values are defined in clause 5.15.2.2 of 3GPP TS 23.501.
+      amf_default_sd:
+        type: string
+        pattern: '^[A-Fa-f0-9]{1,6}$'
+        x-nullable: false
+        description: AMF Default Slice Descriptor. This is an optional parameter that complements the Slice/Service type(s) to allow to differentiate amongst multiple Network Slices of the same Slice/Service type. This IE shall be absent if no SD value is associated with the SST. See clause 28.4.2 of 3GPP TS 23.003.
 
   subscriberdb_sync_interval:
     description: Interval in seconds between gateway requests to sync its subscriberdb with the cloud.
