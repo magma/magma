@@ -114,6 +114,7 @@ class InOutController(RestartMixin, MagmaController):
         self._clean_restart = kwargs['config']['clean_restart']
         self._msg_hub = MessageHub(self.logger)
         self._datapath = None
+        self._gw_mac_monitor_on = False
 
     def _get_config(self, config_dict):
         mtr_ip = None
@@ -600,16 +601,14 @@ class InOutController(RestartMixin, MagmaController):
                 return None
 
     def _monitor_and_update(self):
-        while True:
+        while self._gw_mac_monitor_on:
             gw_info_list = get_mobilityd_gw_info()
             for gw_info in gw_info_list:
                 if gw_info and gw_info.ip:
                     latest_mac_addr = self._get_gw_mac_address(gw_info.ip, gw_info.vlan)
-                    if latest_mac_addr is None:
-                        continue
-                    self.logger.debug("mac [%s] for vlan %s", latest_mac_addr, gw_info.vlan)
-                    if latest_mac_addr == "":
+                    if latest_mac_addr is None or latest_mac_addr == "":
                         latest_mac_addr = gw_info.mac
+                    self.logger.debug("mac [%s] for vlan %s", latest_mac_addr, gw_info.vlan)
                     msgs = self._get_default_egress_flow_msgs(
                         self._datapath,
                         latest_mac_addr,
@@ -620,7 +619,7 @@ class InOutController(RestartMixin, MagmaController):
                     chan = self._msg_hub.send(msgs, self._datapath)
                     self._wait_for_responses(chan, len(msgs))
 
-                    if latest_mac_addr != "":
+                    if latest_mac_addr and latest_mac_addr != "":
                         set_mobilityd_gw_info(
                             gw_info.ip,
                             latest_mac_addr,
@@ -653,9 +652,15 @@ class InOutController(RestartMixin, MagmaController):
                 self.config.uplink_port,
             )
 
+        self._gw_mac_monitor_on = True
         self._gw_mac_monitor = hub.spawn(self._monitor_and_update)
 
         threading.Event().wait(1)
+
+    def _stop_gw_mac_monitor(self):
+        if self._gw_mac_monitor:
+            self._gw_mac_monitor_on = False
+            self._gw_mac_monitor.wait()
 
     def _get_proxy_flow_msgs(self, dp):
         """
