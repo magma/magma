@@ -12,6 +12,8 @@
  */
 
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_converter.h"
+#include <vector>
+#include <memory>
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/message_utils/bytes_to_ie.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
@@ -19,8 +21,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 }
-#include <vector>
-#include <memory>
 
 namespace magma5g {
 
@@ -41,7 +41,7 @@ void AmfNasStateConverter::map_uint64_uint64_to_proto(
 std::string AmfNasStateConverter::amf_app_convert_guti_m5_to_string(
     guti_m5_t guti) {
 #define GUTI_STRING_LEN 25
-  char* str = (char*) calloc(1, sizeof(char) * GUTI_STRING_LEN);
+  char* str = reinterpret_cast<char*>(calloc(1, sizeof(char) * GUTI_STRING_LEN));
   snprintf(
       str, GUTI_STRING_LEN, "%x%x%x%x%x%x%02x%04x%04x%08x",
       guti.guamfi.plmn.mcc_digit1, guti.guamfi.plmn.mcc_digit2,
@@ -142,8 +142,6 @@ void AmfNasStateConverter::proto_to_guti_map(
   }
 }
 
-
-
 // /*********************************************************
 //  *                AMF app state<-> Proto                  *
 //  * Functions to serialize/desearialize AMF app state      *
@@ -193,7 +191,7 @@ void AmfNasStateConverter::proto_to_state(
 
   // copy mme_ue_contexts
   magma::lte::oai::MmeUeContext amf_ue_ctxts_proto =
-      state_proto.mme_ue_contexts(); 
+      state_proto.mme_ue_contexts();
 
   amf_ue_context_t* amf_ue_ctxt_state = &amf_nas_state_p->amf_ue_contexts;
 
