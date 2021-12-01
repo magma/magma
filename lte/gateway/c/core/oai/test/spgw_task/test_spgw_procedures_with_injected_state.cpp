@@ -1,6 +1,22 @@
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include <gtest/gtest.h>
 #include <string>
 #include <thread>
+
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 #include "../mock_tasks/mock_tasks.h"
 #include "spgw_test_util.h"
@@ -60,9 +76,11 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
     std::cout << "Running setup" << std::endl;
     // initialize the SPGW task
     spgw_app_init(&spgw_config, mme_config.use_stateless);
+
+    std::string homedir = std::string(getpwuid(getuid())->pw_dir);
     name_of_ue_samples = load_file_into_vector_of_line_content(
-        DEFAULT_SPGW_CONTEXT_DATA_PATH,
-        "/home/vagrant/magma/lte/gateway/c/core/oai/test/spgw_task/data/"
+        homedir + "/" + DEFAULT_SPGW_CONTEXT_DATA_PATH,
+        homedir + "/" + "magma/lte/gateway/c/core/oai/test/spgw_task/data/"
         "data_list.txt");
     mock_read_spgw_ue_state_db(name_of_ue_samples);
 

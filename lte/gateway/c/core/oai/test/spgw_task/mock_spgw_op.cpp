@@ -1,9 +1,20 @@
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include <fstream>
 #include <algorithm>
 
 #include "mock_spgw_op.h"
 #include "spgw_state.h"
-
 #include <google/protobuf/text_format.h>
 
 namespace magma {
@@ -29,7 +40,7 @@ std::vector<std::string> load_file_into_vector_of_line_content(
 
 status_code_e mock_read_spgw_ue_state_db(
     const std::vector<std::string>& ue_samples) {
-  for (auto name_of_sample : ue_samples) {
+  for (const auto& name_of_sample : ue_samples) {
     oai::SpgwUeContext ue_proto = oai::SpgwUeContext();
     std::fstream input(name_of_sample.c_str(), std::ios::in | std::ios::binary);
     if (!ue_proto.ParseFromIstream(&input)) {
