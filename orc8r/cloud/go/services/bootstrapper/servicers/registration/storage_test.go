@@ -15,8 +15,10 @@ package registration_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/go-openapi/errors"
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/services/bootstrapper"
@@ -35,14 +37,19 @@ func TestBlobstoreStore(t *testing.T) {
 		tokenInfo1 = &protos.TokenInfo{
 			GatewayDeviceInfo: gatewayPreregisterInfo,
 			Nonce:             "someNonce",
-			Timeout:           nil,
+			Timeout:           &timestamp.Timestamp{
+				Seconds:              int64(time.Now().Second()),
+				Nanos:                int32(time.Now().Nanosecond()),
+			},
 		}
 
 		tokenInfo2 = &protos.TokenInfo{
 			GatewayDeviceInfo: gatewayPreregisterInfo,
 			Nonce:             "someNonce2",
-			Timeout:           nil,
-		}
+			Timeout:           &timestamp.Timestamp{
+				Seconds:              int64(time.Now().Second()),
+				Nanos:                int32(time.Now().Nanosecond()),
+			},		}
 	)
 
 	factory := test_utils.NewSQLBlobstore(t, bootstrapper.BlobstoreTableName)
