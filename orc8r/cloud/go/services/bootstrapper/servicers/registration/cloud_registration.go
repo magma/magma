@@ -89,7 +89,15 @@ func (c *cloudRegistrationServicer) GetGatewayDeviceInfo(ctx context.Context, re
 	if err != nil {
 		res := &protos.GetGatewayDeviceInfoResponse{
 			Response: &protos.GetGatewayDeviceInfoResponse_Error{
-				Error: fmt.Sprintf("could not get token info from nonce %v: %v", nonce, err),
+				Error: fmt.Sprintf("could not get token info from token %v: %v", request.Token, err),
+			},
+		}
+		return res, nil
+	}
+	if tokenInfo.IsExpired() {
+		res := &protos.GetGatewayDeviceInfoResponse{
+			Response: &protos.GetGatewayDeviceInfoResponse_Error{
+				Error: fmt.Sprintf("token %v has expired", request.Token),
 			},
 		}
 		return res, nil
@@ -121,7 +129,7 @@ func (c *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string, l
 		Nonce: nonce,
 		Timeout: &timestamp.Timestamp{
 			Seconds: t.Unix(),
-			Nanos:   int32(t.UnixNano()),
+			Nanos:   int32(t.Nanosecond()),
 		},
 	}
 

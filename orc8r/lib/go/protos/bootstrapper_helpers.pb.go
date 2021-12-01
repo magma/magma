@@ -1,7 +1,12 @@
 package protos
 
-import "time"
+import (
+	"time"
 
-func (ti *TokenInfo) IsExpired() bool {
-	return time.Now().Before(time.Unix(0, int64(ti.Timeout.Nanos)))
+	"magma/orc8r/cloud/go/clock"
+)
+
+func (t *TokenInfo) IsExpired() bool {
+	expirationTime := time.Unix(t.Timeout.Seconds, int64(t.Timeout.Nanos))
+	return clock.Now().After(expirationTime)
 }
