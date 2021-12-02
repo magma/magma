@@ -48,13 +48,13 @@ message GetCARequest {
   CertType cert_type = 1;
 }
 
+message TokenList {
+  repeated string token = 1;
+}
 
 message User {
   string username = 1;
   bytes password = 2;
-  message TokenList {
-    repeated string token = 1;
-  }
   TokenList tokens = 3;
 }
 
@@ -70,13 +70,14 @@ enum Action {
   WRITE = 2;
 }
 
+message ResourceList {
+  repeated string resource = 4;
+}
+
 message Policy {
   string token = 1;
   Effect effect = 2;
   Action action = 3;
-  message ResourceList {
-    repeated string resource = 4;
-  }
   ResourceList resources = 4;
 }
 
@@ -91,7 +92,7 @@ message CreateUserRequest {
 }
 
 message GetPolicyDecisionRequest {
-  User.TokenList tokenList = 1;
+  TokenList tokenList = 1;
   Action  requestAction = 2;
   string resource = 3;
 }
@@ -138,12 +139,12 @@ service Certifier {
   rpc CollectGarbage (Void) returns (Void) {}
 
   // Get all user tokens given a username and token
-  rpc GetUserTokens (GetUserRequest) returns (User.TokenList) {}
+  rpc GetUserTokens (GetUserRequest) returns (TokenList) {}
 
   // Returns a policy decision given a token, the request method's action
   // (read/write), and the request resource
   rpc GetPolicyDecision (GetPolicyDecisionRequest) returns (PolicyDecision) {}
 
   // Creates a new user
-  rpc CreateUser (CreateUserRequest) returns (User.TokenList) {}
+  rpc CreateUser (CreateUserRequest) returns (TokenList) {}
 }

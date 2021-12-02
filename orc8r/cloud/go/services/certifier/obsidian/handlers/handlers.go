@@ -91,7 +91,7 @@ func getCreateUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 		user := &protos.User{
 			Username: username,
 			Password: hashedPassword,
-			Tokens:   &protos.User_TokenList{Token: []string{token}},
+			Tokens:   &protos.TokenList{Token: []string{token}},
 		}
 		if err = storage.PutUser(username, user); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -119,7 +119,7 @@ func getCreateUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 			Token:  token,
 			Effect: effect,
 			Action: action,
-			Resources: &protos.Policy_ResourceList{
+			Resources: &protos.ResourceList{
 				Resource: data.Policy.Resources,
 			},
 		}

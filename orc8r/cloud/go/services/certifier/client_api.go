@@ -18,6 +18,8 @@ import (
 	"errors"
 	"fmt"
 
+	"magma/orc8r/cloud/go/obsidian"
+
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
@@ -227,14 +229,14 @@ func VerifyDateRange(certInfo CertDateRange) error {
 }
 
 // GetUserTokens fetches the tokens associated with a user
-func GetUserTokens(ctx context.Context, getUserReq *certifierprotos.GetUserRequest) (*certifierprotos.User_TokenList, error) {
+func GetUserTokens(ctx context.Context, getUserReq *certifierprotos.GetUserRequest) (*certifierprotos.TokenList, error) {
 	client, err := getCertifierClient()
 	if err != nil {
 		return nil, err
 	}
 	tokens, err := client.GetUserTokens(ctx, getUserReq)
 	if err != nil {
-		return nil, err
+		return nil, obsidian.MakeHTTPError(err)
 	}
 	return tokens, nil
 }
@@ -247,20 +249,20 @@ func GetPolicyDecision(ctx context.Context, getPDReq *certifierprotos.GetPolicyD
 	}
 	pd, err := client.GetPolicyDecision(ctx, getPDReq)
 	if err != nil {
-		return nil, err
+		return nil, obsidian.MakeHTTPError(err)
 	}
 	return pd, nil
 }
 
 // CreateUser creates a new user with the specified password and policy
-func CreateUser(ctx context.Context, createUserReq *certifierprotos.CreateUserRequest) (*certifierprotos.User_TokenList, error) {
+func CreateUser(ctx context.Context, createUserReq *certifierprotos.CreateUserRequest) (*certifierprotos.TokenList, error) {
 	client, err := getCertifierClient()
 	if err != nil {
 		return nil, err
 	}
 	tokens, err := client.CreateUser(ctx, createUserReq)
 	if err != nil {
-		return nil, err
+		return nil, obsidian.MakeHTTPError(err)
 	}
 	return tokens, nil
 }

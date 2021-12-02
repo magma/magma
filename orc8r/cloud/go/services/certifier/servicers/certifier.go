@@ -322,26 +322,18 @@ func (srv *CertifierServer) CollectGarbageImpl(ctx context.Context) (int, error)
 }
 
 // GetUserTokens fetches the tokens associated with a user
-func (srv *CertifierServer) GetUserTokens(ctx context.Context, getOpReq *certprotos.GetUserRequest) (*certprotos.User_TokenList, error) {
-	username := getOpReq.GetUsername()
+func (srv *CertifierServer) GetUserTokens(ctx context.Context, getOpReq *certprotos.GetUserRequest) (*certprotos.TokenList, error) {
+	username := getOpReq.Username
 	user, err := srv.store.GetUser(username)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to fetch user %s from database: %v", username, err)
 	}
 
-	// Check if token is registered with user
-	token := getOpReq.GetToken()
-	flag := false
-	tokens := user.GetTokens()
-	for _, t := range tokens.GetToken() {
-		if t == token {
-			flag = true
-		}
+	err = isTokenWithUser(getOpReq.Token, user.Tokens)
+	if err != nil {
+		return nil, err
 	}
-	if !flag {
-		return nil, status.Errorf(codes.PermissionDenied, "token is not registered with user %s", user.Username)
-	}
-	return tokens, nil
+	return user.Tokens, nil
 }
 
 // GetPolicyDecision makes a policy decision when a user attempts to access a resource
@@ -367,7 +359,7 @@ func (srv *CertifierServer) GetPolicyDecision(ctx context.Context, getPDReq *cer
 }
 
 // CreateUser creates a new user with the specified password and policy
-func (srv *CertifierServer) CreateUser(ctx context.Context, createUserReq *certprotos.CreateUserRequest) (*certprotos.User_TokenList, error) {
+func (srv *CertifierServer) CreateUser(ctx context.Context, createUserReq *certprotos.CreateUserRequest) (*certprotos.TokenList, error) {
 	token, err := certifier.GenerateToken(certifier.Personal)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to generate token while creating user")
@@ -386,7 +378,7 @@ func (srv *CertifierServer) CreateUser(ctx context.Context, createUserReq *certp
 	user := certprotos.User{
 		Username: createUserReq.User.Username,
 		Password: hashedPassword,
-		Tokens:   &certprotos.User_TokenList{Token: []string{token}},
+		Tokens:   &certprotos.TokenList{Token: []string{token}},
 	}
 	err = srv.store.PutUser(createUserReq.User.Username, &user)
 	if err != nil {
@@ -402,7 +394,7 @@ func (srv *CertifierServer) CreateUser(ctx context.Context, createUserReq *certp
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to store policy while creating user")
 	}
-	return &certprotos.User_TokenList{Token: []string{token}}, nil
+	return &certprotos.TokenList{Token: []string{token}}, nil
 }
 
 func generateSerialNumber(store storage.CertifierStorage) (sn *big.Int, err error) {
@@ -545,12 +537,11 @@ func (srv *CertifierServer) getPolicyDecisionFromToken(token string, resource st
 	}
 
 	effect, err := checkResource(resource, policy)
-
 	// Return if the policy denies the user or is unknown for the resource
 	if effect == certprotos.Effect_DENY || effect == certprotos.Effect_UNKNOWN {
 		return effect, status.Errorf(codes.PermissionDenied, "not authorized to read/write resource")
 	} else if err != nil {
-		return effect, err
+		return certprotos.Effect_DENY, err
 	}
 
 	effect = checkAction(action, policy)
@@ -561,7 +552,7 @@ func (srv *CertifierServer) getPolicyDecisionFromToken(token string, resource st
 func checkResource(resource string, policy *certprotos.Policy) (certprotos.Effect, error) {
 	effect := policy.Effect
 	// Check if any of policy's resource list allows/denies the requested resource
-	for _, pr := range policy.GetResources().GetResource() {
+	for _, pr := range policy.Resources.Resource {
 		if ok, err := doublestar.Match(pr, resource); ok {
 			return effect, nil
 		} else {
@@ -581,4 +572,17 @@ func checkAction(action certprotos.Action, policy *certprotos.Policy) certprotos
 		return certprotos.Effect_ALLOW
 	}
 	return certprotos.Effect_DENY
+}
+
+func isTokenWithUser(token string, tokenList *certprotos.TokenList) error {
+	flag := false
+	for _, t := range tokenList.Token {
+		if t == token {
+			flag = true
+		}
+	}
+	if !flag {
+		return status.Errorf(codes.PermissionDenied, "token is not registered with user")
+	}
+	return nil
 }

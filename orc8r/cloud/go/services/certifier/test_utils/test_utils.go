@@ -45,7 +45,7 @@ func createTestUser(t *testing.T, username string, password string) (certProtos.
 	user := certProtos.User{
 		Username: username,
 		Password: []byte(password),
-		Tokens:   &certProtos.User_TokenList{Token: []string{token}},
+		Tokens:   &certProtos.TokenList{Token: []string{token}},
 	}
 	return user, token
 }
@@ -55,7 +55,7 @@ func createTestUserPolicy(token string) certProtos.Policy {
 		Token:     token,
 		Effect:    certProtos.Effect_ALLOW,
 		Action:    certProtos.Action_READ,
-		Resources: &certProtos.Policy_ResourceList{Resource: []string{"/**"}},
+		Resources: &certProtos.ResourceList{Resource: []string{"/**"}},
 	}
 	return policy
 }
@@ -65,7 +65,7 @@ func createTestAdminPolicy(token string) certProtos.Policy {
 		Token:     token,
 		Effect:    certProtos.Effect_ALLOW,
 		Action:    certProtos.Action_WRITE,
-		Resources: &certProtos.Policy_ResourceList{Resource: []string{"/**"}},
+		Resources: &certProtos.ResourceList{Resource: []string{"/**"}},
 	}
 	return policy
 }

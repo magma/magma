@@ -318,12 +318,12 @@ func (m *GetCARequest) GetCertType() protos.CertType {
 }
 
 type User struct {
-	Username             string          `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
-	Password             []byte          `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
-	Tokens               *User_TokenList `protobuf:"bytes,3,opt,name=tokens,proto3" json:"tokens,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
-	XXX_unrecognized     []byte          `json:"-"`
-	XXX_sizecache        int32           `json:"-"`
+	Username             string     `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Password             []byte     `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	Tokens               *TokenList `protobuf:"bytes,3,opt,name=tokens,proto3" json:"tokens,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
+	XXX_unrecognized     []byte     `json:"-"`
+	XXX_sizecache        int32      `json:"-"`
 }
 
 func (m *User) Reset()         { *m = User{} }
@@ -365,46 +365,46 @@ func (m *User) GetPassword() []byte {
 	return nil
 }
 
-func (m *User) GetTokens() *User_TokenList {
+func (m *User) GetTokens() *TokenList {
 	if m != nil {
 		return m.Tokens
 	}
 	return nil
 }
 
-type User_TokenList struct {
+type TokenList struct {
 	Token                []string `protobuf:"bytes,1,rep,name=token,proto3" json:"token,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *User_TokenList) Reset()         { *m = User_TokenList{} }
-func (m *User_TokenList) String() string { return proto.CompactTextString(m) }
-func (*User_TokenList) ProtoMessage()    {}
-func (*User_TokenList) Descriptor() ([]byte, []int) {
+func (m *TokenList) Reset()         { *m = TokenList{} }
+func (m *TokenList) String() string { return proto.CompactTextString(m) }
+func (*TokenList) ProtoMessage()    {}
+func (*TokenList) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0037205171c15011, []int{5, 0}
 }
 
-func (m *User_TokenList) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_User_TokenList.Unmarshal(m, b)
+func (m *TokenList) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TokenList.Unmarshal(m, b)
 }
-func (m *User_TokenList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_User_TokenList.Marshal(b, m, deterministic)
+func (m *TokenList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TokenList.Marshal(b, m, deterministic)
 }
-func (m *User_TokenList) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_User_TokenList.Merge(m, src)
+func (m *TokenList) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TokenList.Merge(m, src)
 }
-func (m *User_TokenList) XXX_Size() int {
-	return xxx_messageInfo_User_TokenList.Size(m)
+func (m *TokenList) XXX_Size() int {
+	return xxx_messageInfo_TokenList.Size(m)
 }
-func (m *User_TokenList) XXX_DiscardUnknown() {
-	xxx_messageInfo_User_TokenList.DiscardUnknown(m)
+func (m *TokenList) XXX_DiscardUnknown() {
+	xxx_messageInfo_TokenList.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_User_TokenList proto.InternalMessageInfo
+var xxx_messageInfo_TokenList proto.InternalMessageInfo
 
-func (m *User_TokenList) GetToken() []string {
+func (m *TokenList) GetToken() []string {
 	if m != nil {
 		return m.Token
 	}
@@ -412,13 +412,13 @@ func (m *User_TokenList) GetToken() []string {
 }
 
 type Policy struct {
-	Token                string               `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	Effect               Effect               `protobuf:"varint,2,opt,name=effect,proto3,enum=magma.orc8r.certifier.Effect" json:"effect,omitempty"`
-	Action               Action               `protobuf:"varint,3,opt,name=action,proto3,enum=magma.orc8r.certifier.Action" json:"action,omitempty"`
-	Resources            *Policy_ResourceList `protobuf:"bytes,4,opt,name=resources,proto3" json:"resources,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
-	XXX_unrecognized     []byte               `json:"-"`
-	XXX_sizecache        int32                `json:"-"`
+	Token                string        `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	Effect               Effect        `protobuf:"varint,2,opt,name=effect,proto3,enum=magma.orc8r.certifier.Effect" json:"effect,omitempty"`
+	Action               Action        `protobuf:"varint,3,opt,name=action,proto3,enum=magma.orc8r.certifier.Action" json:"action,omitempty"`
+	Resources            *ResourceList `protobuf:"bytes,4,opt,name=resources,proto3" json:"resources,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
 func (m *Policy) Reset()         { *m = Policy{} }
@@ -467,46 +467,46 @@ func (m *Policy) GetAction() Action {
 	return Action_NONE
 }
 
-func (m *Policy) GetResources() *Policy_ResourceList {
+func (m *Policy) GetResources() *ResourceList {
 	if m != nil {
 		return m.Resources
 	}
 	return nil
 }
 
-type Policy_ResourceList struct {
+type ResourceList struct {
 	Resource             []string `protobuf:"bytes,4,rep,name=resource,proto3" json:"resource,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *Policy_ResourceList) Reset()         { *m = Policy_ResourceList{} }
-func (m *Policy_ResourceList) String() string { return proto.CompactTextString(m) }
-func (*Policy_ResourceList) ProtoMessage()    {}
-func (*Policy_ResourceList) Descriptor() ([]byte, []int) {
+func (m *ResourceList) Reset()         { *m = ResourceList{} }
+func (m *ResourceList) String() string { return proto.CompactTextString(m) }
+func (*ResourceList) ProtoMessage()    {}
+func (*ResourceList) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0037205171c15011, []int{6, 0}
 }
 
-func (m *Policy_ResourceList) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Policy_ResourceList.Unmarshal(m, b)
+func (m *ResourceList) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ResourceList.Unmarshal(m, b)
 }
-func (m *Policy_ResourceList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Policy_ResourceList.Marshal(b, m, deterministic)
+func (m *ResourceList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ResourceList.Marshal(b, m, deterministic)
 }
-func (m *Policy_ResourceList) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Policy_ResourceList.Merge(m, src)
+func (m *ResourceList) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ResourceList.Merge(m, src)
 }
-func (m *Policy_ResourceList) XXX_Size() int {
-	return xxx_messageInfo_Policy_ResourceList.Size(m)
+func (m *ResourceList) XXX_Size() int {
+	return xxx_messageInfo_ResourceList.Size(m)
 }
-func (m *Policy_ResourceList) XXX_DiscardUnknown() {
-	xxx_messageInfo_Policy_ResourceList.DiscardUnknown(m)
+func (m *ResourceList) XXX_DiscardUnknown() {
+	xxx_messageInfo_ResourceList.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_Policy_ResourceList proto.InternalMessageInfo
+var xxx_messageInfo_ResourceList proto.InternalMessageInfo
 
-func (m *Policy_ResourceList) GetResource() []string {
+func (m *ResourceList) GetResource() []string {
 	if m != nil {
 		return m.Resource
 	}
@@ -608,12 +608,12 @@ func (m *CreateUserRequest) GetPolicy() *Policy {
 }
 
 type GetPolicyDecisionRequest struct {
-	TokenList            *User_TokenList `protobuf:"bytes,1,opt,name=tokenList,proto3" json:"tokenList,omitempty"`
-	RequestAction        Action          `protobuf:"varint,2,opt,name=requestAction,proto3,enum=magma.orc8r.certifier.Action" json:"requestAction,omitempty"`
-	Resource             string          `protobuf:"bytes,3,opt,name=resource,proto3" json:"resource,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
-	XXX_unrecognized     []byte          `json:"-"`
-	XXX_sizecache        int32           `json:"-"`
+	TokenList            *TokenList `protobuf:"bytes,1,opt,name=tokenList,proto3" json:"tokenList,omitempty"`
+	RequestAction        Action     `protobuf:"varint,2,opt,name=requestAction,proto3,enum=magma.orc8r.certifier.Action" json:"requestAction,omitempty"`
+	Resource             string     `protobuf:"bytes,3,opt,name=resource,proto3" json:"resource,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
+	XXX_unrecognized     []byte     `json:"-"`
+	XXX_sizecache        int32      `json:"-"`
 }
 
 func (m *GetPolicyDecisionRequest) Reset()         { *m = GetPolicyDecisionRequest{} }
@@ -641,7 +641,7 @@ func (m *GetPolicyDecisionRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GetPolicyDecisionRequest proto.InternalMessageInfo
 
-func (m *GetPolicyDecisionRequest) GetTokenList() *User_TokenList {
+func (m *GetPolicyDecisionRequest) GetTokenList() *TokenList {
 	if m != nil {
 		return m.TokenList
 	}
@@ -711,9 +711,9 @@ func init() {
 	proto.RegisterType((*SerialNumbers)(nil), "magma.orc8r.certifier.SerialNumbers")
 	proto.RegisterType((*GetCARequest)(nil), "magma.orc8r.certifier.GetCARequest")
 	proto.RegisterType((*User)(nil), "magma.orc8r.certifier.User")
-	proto.RegisterType((*User_TokenList)(nil), "magma.orc8r.certifier.User.TokenList")
+	proto.RegisterType((*TokenList)(nil), "magma.orc8r.certifier.User.TokenList")
 	proto.RegisterType((*Policy)(nil), "magma.orc8r.certifier.Policy")
-	proto.RegisterType((*Policy_ResourceList)(nil), "magma.orc8r.certifier.Policy.ResourceList")
+	proto.RegisterType((*ResourceList)(nil), "magma.orc8r.certifier.Policy.ResourceList")
 	proto.RegisterType((*GetUserRequest)(nil), "magma.orc8r.certifier.GetUserRequest")
 	proto.RegisterType((*CreateUserRequest)(nil), "magma.orc8r.certifier.CreateUserRequest")
 	proto.RegisterType((*GetPolicyDecisionRequest)(nil), "magma.orc8r.certifier.GetPolicyDecisionRequest")
@@ -829,12 +829,12 @@ type CertifierClient interface {
 	// cleanup expired certificates
 	CollectGarbage(ctx context.Context, in *protos.Void, opts ...grpc.CallOption) (*protos.Void, error)
 	// Get all user tokens given a username and token
-	GetUserTokens(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*User_TokenList, error)
+	GetUserTokens(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*TokenList, error)
 	// Returns a policy decision given a token, the request method's action
 	// (read/write), and the request resource
 	GetPolicyDecision(ctx context.Context, in *GetPolicyDecisionRequest, opts ...grpc.CallOption) (*PolicyDecision, error)
 	// Creates a new user
-	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*User_TokenList, error)
+	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*TokenList, error)
 }
 
 type certifierClient struct {
@@ -926,8 +926,8 @@ func (c *certifierClient) CollectGarbage(ctx context.Context, in *protos.Void, o
 	return out, nil
 }
 
-func (c *certifierClient) GetUserTokens(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*User_TokenList, error) {
-	out := new(User_TokenList)
+func (c *certifierClient) GetUserTokens(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*TokenList, error) {
+	out := new(TokenList)
 	err := c.cc.Invoke(ctx, "/magma.orc8r.certifier.Certifier/GetUserTokens", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -944,8 +944,8 @@ func (c *certifierClient) GetPolicyDecision(ctx context.Context, in *GetPolicyDe
 	return out, nil
 }
 
-func (c *certifierClient) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*User_TokenList, error) {
-	out := new(User_TokenList)
+func (c *certifierClient) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*TokenList, error) {
+	out := new(TokenList)
 	err := c.cc.Invoke(ctx, "/magma.orc8r.certifier.Certifier/CreateUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -982,12 +982,12 @@ type CertifierServer interface {
 	// cleanup expired certificates
 	CollectGarbage(context.Context, *protos.Void) (*protos.Void, error)
 	// Get all user tokens given a username and token
-	GetUserTokens(context.Context, *GetUserRequest) (*User_TokenList, error)
+	GetUserTokens(context.Context, *GetUserRequest) (*TokenList, error)
 	// Returns a policy decision given a token, the request method's action
 	// (read/write), and the request resource
 	GetPolicyDecision(context.Context, *GetPolicyDecisionRequest) (*PolicyDecision, error)
 	// Creates a new user
-	CreateUser(context.Context, *CreateUserRequest) (*User_TokenList, error)
+	CreateUser(context.Context, *CreateUserRequest) (*TokenList, error)
 }
 
 // UnimplementedCertifierServer can be embedded to have forward compatible implementations.
@@ -1021,13 +1021,13 @@ func (*UnimplementedCertifierServer) GetAll(ctx context.Context, req *protos.Voi
 func (*UnimplementedCertifierServer) CollectGarbage(ctx context.Context, req *protos.Void) (*protos.Void, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CollectGarbage not implemented")
 }
-func (*UnimplementedCertifierServer) GetUserTokens(ctx context.Context, req *GetUserRequest) (*User_TokenList, error) {
+func (*UnimplementedCertifierServer) GetUserTokens(ctx context.Context, req *GetUserRequest) (*TokenList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserTokens not implemented")
 }
 func (*UnimplementedCertifierServer) GetPolicyDecision(ctx context.Context, req *GetPolicyDecisionRequest) (*PolicyDecision, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPolicyDecision not implemented")
 }
-func (*UnimplementedCertifierServer) CreateUser(ctx context.Context, req *CreateUserRequest) (*User_TokenList, error) {
+func (*UnimplementedCertifierServer) CreateUser(ctx context.Context, req *CreateUserRequest) (*TokenList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
 

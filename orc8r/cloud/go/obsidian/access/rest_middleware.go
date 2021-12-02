@@ -113,11 +113,15 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := c.Request()
 
-		// Skip middleware if authorization header is empty, i.e., when there
-		// is no security requirement for an endpoint (e.g. /user/login)
-		if auth := req.Header.Get("Authorization"); auth == "" {
-			return next(c)
+		// Skip middleware if request when there is no security requirement
+		// for an endpoint
+		noBasicAuthEndpoints := []string{"/magma/v1/user/login"}
+		for _, endpoint := range noBasicAuthEndpoints {
+			if req.RequestURI == endpoint {
+				return next(c)
+			}
 		}
+
 		username, token, ok := c.Request().BasicAuth()
 		if !ok {
 			return echo.NewHTTPError(http.StatusBadRequest, "failed to parse basic auth header")

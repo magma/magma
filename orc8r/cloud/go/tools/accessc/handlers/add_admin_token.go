@@ -42,7 +42,7 @@ func addAdminToken(cmd *commands.Command, args []string) int {
 	user := &certprotos.User{
 		Username: username,
 		Password: []byte(password),
-		Tokens: &certprotos.User_TokenList{
+		Tokens: &certprotos.TokenList{
 			Token: []string{token},
 		},
 	}
@@ -50,7 +50,7 @@ func addAdminToken(cmd *commands.Command, args []string) int {
 		Token:     token,
 		Effect:    certprotos.Effect_ALLOW,
 		Action:    certprotos.Action_WRITE,
-		Resources: &certprotos.Policy_ResourceList{Resource: []string{"*"}},
+		Resources: &certprotos.ResourceList{Resource: []string{"/**"}},
 	}
 	createUserReq := &certprotos.CreateUserRequest{
 		User:   user,
