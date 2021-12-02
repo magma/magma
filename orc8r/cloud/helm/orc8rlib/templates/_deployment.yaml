@@ -18,18 +18,24 @@ metadata:
   labels:
     app.kubernetes.io/component: orc8r
 {{ include "default-labels" . | indent 4 }}
+{{ include "controller-image-version-label" . | indent 4 }}
+  annotations:
+{{ include "release-name-annotation" . | indent 4 }}
 spec:
   replicas: {{ .Values.controller.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/component: orc8r
 {{ include "default-selector-labels" . | indent 6 }}
+{{ include "controller-image-version-label" . | indent 6 }}
   template:
     metadata:
       labels:
         app.kubernetes.io/component: orc8r
 {{ include "default-selector-labels" . | indent 8 }}
+{{ include "controller-image-version-label" . | indent 8 }}
       annotations:
+{{ include "release-name-annotation" . | indent 8 }}
         {{- with .Values.controller.podAnnotations }}
 {{ toYaml . | indent 8 }}
         {{- end }}
