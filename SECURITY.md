@@ -12,7 +12,7 @@ Instead, please report them via email to security@magmacore.org.
 
 In order to help us understand the scope of the issue and to triage your report more quickly please include the information listed below (as much as you can provide):
 
-  * Type of issue (e.g. buffer overflow, SQL injection, cross-site scripting, etc.)
+  * Type of issue (e.g. buffer overflow, SQL injection, cross-site scripting, a [CWE identifier](https://cwe.mitre.org/data/index.html) etc.)
   * Step-by-step instructions to reproduce the issue
   * Any special configuration required to reproduce the issue
   * Impact of the issue, including how an attacker might exploit the issue
