@@ -34,10 +34,10 @@ func GetToken(ctx context.Context, networkID string, logicalID string, refresh b
 
 	req := &protos.GetTokenRequest{
 		GatewayDeviceInfo: &protos.GatewayDeviceInfo{
-			NetworkId:            networkID,
-			LogicalId:            logicalID,
+			NetworkId: networkID,
+			LogicalId: logicalID,
 		},
-		Refresh:                refresh,
+		Refresh: refresh,
 	}
 
 	res, err := client.GetToken(ctx, req)
@@ -67,7 +67,7 @@ func GetGatewayDeviceInfo(ctx context.Context, token string) (*protos.GatewayDev
 	}
 
 	req := &protos.GetGatewayDeviceInfoRequest{
-		Token:                token,
+		Token: token,
 	}
 
 	res, err := client.GetGatewayDeviceInfo(ctx, req)
