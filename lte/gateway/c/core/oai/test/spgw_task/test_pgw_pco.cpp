@@ -13,7 +13,10 @@
 
 #include <arpa/inet.h>
 #include <gtest/gtest.h>
+#include <netinet/in.h>
 #include <string.h>
+#include <cstdint>
+#include <string>
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/common_defs.h"
@@ -29,6 +32,7 @@ namespace magma {
 namespace lte {
 
 #define PCO_PI_IPCP_LEN 16
+
 #define DEFAULT_DNS_PRIMARY_HEX 0x8080808  // 8.8.8.8
 #define DEFAULT_DNS_PRIMARY_ARRAY                                              \
   { 0x08, 0x08, 0x08, 0x08 }
@@ -36,6 +40,12 @@ namespace lte {
 #define DEFAULT_DNS_SECONDARY_ARRAY                                            \
   { 0x08, 0x08, 0x04, 0x04 }
 #define DEFAULT_DNS_IPV6 "2001:4860:4860:0:0:0:0:8888"
+
+#define DEFAULT_PCSCF_IPV4 0x96171bac  // "172.27.23.150"
+#define DEFAULT_PCSCF_IPV4_ARRAY                                               \
+  { 0xac, 0x1b, 0x17, 0x96 }
+#define DEFAULT_PCSCF_IPV6 "2a12:577:9941:f99c:0002:0001:c731:f114"
+
 #define DEFAULT_MTU 1400
 
 class SPGWPcoTest : public ::testing::Test {
@@ -45,8 +55,10 @@ class SPGWPcoTest : public ::testing::Test {
     spgw_config.pgw_config.ipv4.default_dns_sec.s_addr =
         DEFAULT_DNS_SECONDARY_HEX;
     spgw_config.pgw_config.ue_mtu = DEFAULT_MTU;
-    /*const char dns_ipv6[] = DEFAULT_DNS_IPV6;
-    inet_pton(AF_INET6, dns_ipv6, spgw_config.pgw_config.ipv6.dns_ipv6_addr);*/
+
+    inet_pton(
+        AF_INET6, test_dns_ipv6.c_str(),
+        &spgw_config.pgw_config.ipv6.dns_ipv6_addr);
   }
 
   virtual void TearDown() { free_spgw_config(&spgw_config); }
@@ -54,7 +66,10 @@ class SPGWPcoTest : public ::testing::Test {
  protected:
   const char test_dns_primary[4]   = DEFAULT_DNS_PRIMARY_ARRAY;
   const char test_dns_secondary[4] = DEFAULT_DNS_SECONDARY_ARRAY;
+  const std::string test_dns_ipv6  = DEFAULT_DNS_IPV6;
   const char test_mtu[2]           = {DEFAULT_MTU >> 8, DEFAULT_MTU & 0xFF};
+  const uint8_t test_pcscf_ipv4_addr[4]  = DEFAULT_PCSCF_IPV4_ARRAY;
+  const std::string test_pcscf_ipv6_addr = DEFAULT_PCSCF_IPV6;
 
   void fill_ipcp(
       pco_protocol_or_container_id_t* poc_id, char* primary_dns,
@@ -284,15 +299,94 @@ TEST_F(SPGWPcoTest, TestPcoRequestIpv6DNS) {
   EXPECT_EQ(
       pco_resp.protocol_or_container_ids[0].id, PCO_CI_DNS_SERVER_IPV6_ADDRESS);
 
-  // check that DNS is assigned correctly
-  /*EXPECT_EQ(
+  // check that Ipv6 DNS is assigned correctly
+  EXPECT_EQ(
       memcmp(
           pco_resp.protocol_or_container_ids[0].contents->data,
-          test_dns_primary, sizeof(test_dns_primary)),
-      0);*/
+          spgw_config.pgw_config.ipv6.dns_ipv6_addr.s6_addr,
+          sizeof(struct in6_addr)),
+      0);
 
   clear_pco(&pco_resp);
 }
 
+TEST_F(SPGWPcoTest, TestPcoRequestPcscfIpv4) {
+  status_code_e return_code                    = RETURNerror;
+  protocol_configuration_options_t pco_req     = {};
+  protocol_configuration_options_t pco_resp    = {};
+  protocol_configuration_options_ids_t pco_ids = {};
+
+  pco_req.configuration_protocol =
+      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE;
+  pco_req.num_protocol_or_container_id    = 1;
+  pco_req.protocol_or_container_ids[0].id = PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST;
+
+  // process PCO for PCSCF without initializing SPGW config
+  return_code = pgw_process_pco_request(&pco_req, &pco_resp, &pco_ids);
+
+  EXPECT_EQ(return_code, RETURNok);
+  EXPECT_EQ(pco_resp.num_protocol_or_container_id, 0);
+
+  // Initialize SPGW config
+  spgw_config.pgw_config.pcscf.ipv4_addr.s_addr = DEFAULT_PCSCF_IPV4;
+
+  return_code = pgw_process_pco_request(&pco_req, &pco_resp, &pco_ids);
+
+  EXPECT_EQ(return_code, RETURNok);
+  EXPECT_EQ(pco_resp.num_protocol_or_container_id, 1);
+
+  EXPECT_EQ(
+      pco_resp.protocol_or_container_ids[0].id, PCO_CI_P_CSCF_IPV4_ADDRESS);
+
+  // check that Ipv4 PCSCF is assigned correctly
+  EXPECT_EQ(
+      memcmp(
+          pco_resp.protocol_or_container_ids[0].contents->data,
+          test_pcscf_ipv4_addr, sizeof(test_pcscf_ipv4_addr)),
+      0);
+
+  clear_pco(&pco_resp);
+}
+
+TEST_F(SPGWPcoTest, TestPcoRequestPcscfIpv6) {
+  status_code_e return_code                    = RETURNerror;
+  protocol_configuration_options_t pco_req     = {};
+  protocol_configuration_options_t pco_resp    = {};
+  protocol_configuration_options_ids_t pco_ids = {};
+
+  pco_req.configuration_protocol =
+      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE;
+  pco_req.num_protocol_or_container_id    = 1;
+  pco_req.protocol_or_container_ids[0].id = PCO_CI_P_CSCF_IPV6_ADDRESS_REQUEST;
+
+  // process PCO for PCSCF without initializing SPGW config
+  return_code = pgw_process_pco_request(&pco_req, &pco_resp, &pco_ids);
+
+  EXPECT_EQ(return_code, RETURNok);
+  EXPECT_EQ(pco_resp.num_protocol_or_container_id, 0);
+
+  // Initialize SPGW config
+  inet_pton(
+      AF_INET6, test_pcscf_ipv6_addr.c_str(),
+      &spgw_config.pgw_config.pcscf.ipv6_addr);
+
+  return_code = pgw_process_pco_request(&pco_req, &pco_resp, &pco_ids);
+
+  EXPECT_EQ(return_code, RETURNok);
+  EXPECT_EQ(pco_resp.num_protocol_or_container_id, 1);
+
+  EXPECT_EQ(
+      pco_resp.protocol_or_container_ids[0].id, PCO_CI_P_CSCF_IPV6_ADDRESS);
+
+  // check that Ipv4 PCSCF is assigned correctly
+  EXPECT_EQ(
+      memcmp(
+          pco_resp.protocol_or_container_ids[0].contents->data,
+          spgw_config.pgw_config.pcscf.ipv6_addr.s6_addr,
+          sizeof(struct in6_addr)),
+      0);
+
+  clear_pco(&pco_resp);
+}
 }  // namespace lte
 }  // namespace magma
