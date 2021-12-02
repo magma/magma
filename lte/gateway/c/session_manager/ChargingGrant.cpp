@@ -94,7 +94,8 @@ CreditValidity ChargingGrant::is_valid_credit_response(
       MLOG(MWARNING)
           << "GSU for RG: " << key << " " << session_id
           << " is invalid, but accepting it as it has a final unit action or "
-             "suspended credit ";
+             "suspended credit. Credit_validity is "
+             << credit_validity_to_str(credit_validity);
       return credit_validity;
     }
     MLOG(MERROR) << "Credit update failed RG:" << key
@@ -267,10 +268,12 @@ ServiceActionType ChargingGrant::get_action(
 bool ChargingGrant::should_be_unsuspended() const {
   // transitioning out of FUA-redirect/restrict
   if (service_state == SERVICE_NEEDS_ACTIVATION) {
+      MLOG(MDEBUG) << "Credit should be unsuspended SERVICE_NEEDS_ACTIVATION";
     return true;
   }
   // transitioning out of credit suspension
   if (suspended && !credit.is_quota_exhausted(1)) {
+      MLOG(MDEBUG) << "Credit should be unsuspended because we still have quota";
     return true;
   }
   return false;

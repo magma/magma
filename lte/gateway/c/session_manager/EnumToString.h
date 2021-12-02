@@ -43,6 +43,8 @@ std::string wallet_state_to_str(SubscriberQuotaUpdate_Type state);
 
 std::string service_action_type_to_str(ServiceActionType action);
 
+std::string credit_validity_to_str(CreditValidity validity);
+
 std::string event_trigger_to_str(EventTrigger event_trigger);
 
 std::string request_origin_type_to_str(
