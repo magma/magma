@@ -1199,10 +1199,8 @@ export type plmn_config = {
     mnc: string,
 };
 export type policy = {
-    action: "NONE" | "READ" | "WRITE",
-    effect: "UNKNOWN" | "DENY" | "ALLOW",
-    resources: Array < string >
-        ,
+    resources: resources,
+    token: string,
 };
 export type policy_id = string;
 export type policy_ids = Array < policy_id >
@@ -1354,6 +1352,14 @@ export type release_channel = {
     supported_versions: Array < string >
         ,
 };
+export type resource = {
+    action ? : "READ" | "WRITE",
+    effect ? : "DENY" | "ALLOW",
+    resourceType ? : "NETWORK_ID" | "TENANT_ID" | "URI",
+    resources ? : string,
+};
+export type resources = Array < resource >
+;
 export type route = {
     destination_ip ? : string,
     gateway_ip ? : string,
@@ -10578,7 +10584,7 @@ export default class MagmaAPIBindings {
         }
     static async postUser(
         parameters: {
-            'user': user_with_policy,
+            'user': user,
         }
     ): Promise < "Success" > {
         let path = '/user';
@@ -10610,6 +10616,23 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'DELETE', query, body);
     }
+    static async getUserByUsername(
+            parameters: {
+                'username': string,
+            }
+        ): Promise < string >
+        {
+            let path = '/user/{username}';
+            let body;
+            let query = {};
+            if (parameters['username'] === undefined) {
+                throw new Error('Missing required  parameter: username');
+            }
+
+            path = path.replace('{username}', `${parameters['username']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async putUserByUsername(
         parameters: {
             'username': string,
@@ -10636,6 +10659,72 @@ export default class MagmaAPIBindings {
         }
 
         return await this.request(path, 'PUT', query, body);
+    }
+    static async deleteUserByUsernameByToken(
+        parameters: {
+            'token': string,
+            'username': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/user/{username}/{token}';
+        let body;
+        let query = {};
+        if (parameters['token'] === undefined) {
+            throw new Error('Missing required  parameter: token');
+        }
+
+        path = path.replace('{token}', `${parameters['token']}`);
+
+        if (parameters['username'] === undefined) {
+            throw new Error('Missing required  parameter: username');
+        }
+
+        path = path.replace('{username}', `${parameters['username']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getUserByUsernameTokens(
+            parameters: {
+                'username': string,
+            }
+        ): Promise < Array < policy >
+        >
+        {
+            let path = '/user/{username}/tokens';
+            let body;
+            let query = {};
+            if (parameters['username'] === undefined) {
+                throw new Error('Missing required  parameter: username');
+            }
+
+            path = path.replace('{username}', `${parameters['username']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postUserByUsernameTokens(
+        parameters: {
+            'username': string,
+            'policy': policy,
+        }
+    ): Promise < "Success" > {
+        let path = '/user/{username}/tokens';
+        let body;
+        let query = {};
+        if (parameters['username'] === undefined) {
+            throw new Error('Missing required  parameter: username');
+        }
+
+        path = path.replace('{username}', `${parameters['username']}`);
+
+        if (parameters['policy'] === undefined) {
+            throw new Error('Missing required  parameter: policy');
+        }
+
+        if (parameters['policy'] !== undefined) {
+            body = parameters['policy'];
+        }
+
+        return await this.request(path, 'POST', query, body);
     }
     static async postUserLogin(
             parameters: {

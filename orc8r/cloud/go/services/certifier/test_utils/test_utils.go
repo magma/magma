@@ -55,7 +55,7 @@ func createTestUserPolicy(token string) certprotos.Policy {
 	resource := &certprotos.Resource{
 		Effect:       certprotos.Effect_ALLOW,
 		Action:       certprotos.Action_READ,
-		ResourceType: certprotos.ResourceType_REQUEST_URI,
+		ResourceType: certprotos.ResourceType_URI,
 		Resource:     "/**",
 	}
 	policy := certprotos.Policy{
@@ -69,7 +69,7 @@ func createTestAdminPolicy(token string) certprotos.Policy {
 	resource := &certprotos.Resource{
 		Effect:       certprotos.Effect_ALLOW,
 		Action:       certprotos.Action_WRITE,
-		ResourceType: certprotos.ResourceType_REQUEST_URI,
+		ResourceType: certprotos.ResourceType_URI,
 		Resource:     "/**",
 	}
 	policy := certprotos.Policy{

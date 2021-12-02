@@ -13,7 +13,7 @@ magma-gen-meta:
 
 
 info:
-  title: Certifier's User Management
+  title: Certifier's Auth Management
   description: Certifier REST APIs
   version: 1.0.0
 
@@ -22,6 +22,7 @@ basePath: /magma/v1
 paths:
   /user:
     get:
+      summary: List all usernames
       responses:
         '200':
           description: Success
@@ -31,26 +32,39 @@ paths:
               type: string
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-      summary: List all usernames
       tags:
         - User
     post:
+      summary: Create a user
       parameters:
         - name: user
           in: body
           required: true
           schema:
-            $ref: '#/definitions/user_with_policy'
+            $ref: '#/definitions/user'
       responses:
         '201':
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-      summary: Create a user
       tags:
         - User
   /user/{username}:
+    get:
+      parameters:
+        - $ref: '#/parameters/username'
+      responses:
+        '201':
+          description: Success
+          schema:
+            type: string
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      summary: Get a single user's information
+      tags:
+        - User
     put:
+      summary: Update a user's password
       parameters:
         - $ref: '#/parameters/username'
         - name: password
@@ -61,15 +75,16 @@ paths:
             properties:
               password:
                 type: string
+                format: password
       responses:
         '204':
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-      summary: Update user password
       tags:
         - User
     delete:
+      summary: Remove a user
       parameters:
         - $ref: '#/parameters/username'
       responses:
@@ -77,12 +92,12 @@ paths:
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-      summary: Remove a user
       tags:
         - User
 
   /user/login:
     post:
+      summary: List all the tokens given a user
       # No security, we want to allow users to login without a token auth header
       security: []
       parameters:
@@ -100,10 +115,56 @@ paths:
               type: string
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-      summary: List all the tokens given a user
       tags:
         - User
-
+  /user/{username}/tokens:
+    get:
+      summary: Get a list of a user's tokens and their respective policies
+      parameters:
+        - $ref: '#/parameters/username'
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/policy'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      tags:
+        - User
+    post:
+      summary: Add a token/policy to the user's existing permissions
+      parameters:
+        - $ref: '#/parameters/username'
+        - name: policy
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/policy'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      tags:
+        - User
+  /user/{username}/{token}:
+    delete:
+      summary: Revoke the token and its policy from the user
+      parameters:
+        - name: token
+          in: path
+          required: true
+          type: string
+        - $ref: '#/parameters/username'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      tags:
+        - User
 parameters:
   username:
     in: path
@@ -111,39 +172,36 @@ parameters:
     description: username
     required: true
     type: string
-
 definitions:
   user_with_policy:
-    description: an object that associates a user with its policy
+    description: An object that associates a user with its policy
     properties:
       user:
         $ref: '#/definitions/user'
       policy:
         $ref: '#/definitions/policy'
   policy:
-    description: an object that defines a user's permissions to access a resource
+    description: An object that defines a user's permissions to access resources
     type: object
     required:
-      - effect
-      - action
+      - token
       - resources
     properties:
-      effect:
+      token:
         type: string
-        enum: [UNKNOWN, DENY, ALLOW]
-      action:
-        type: string
-        enum: [NONE, READ, WRITE]
       resources:
-        type: array
-        items:
-          type: string
+        $ref: '#/definitions/resources'
     example:
-      effect: ALLOW
-      action: WRITE
-      resources: '*'
+      token: op_6YHy0uT7DeuWyT3N9nkAOyoeyOI25fletJE69yHGGl4ifjfoq
+      resources:
+        - effect: DENY
+          action: READ
+          resource: test_network1
+        - effect: ALLOW
+          action: WRITE
+          resource: '/**'
   user:
-    description: User's authentication info
+    description: The user's authentication info
     type: object
     required:
       - username
@@ -153,3 +211,36 @@ definitions:
         type: string
       password:
         type: string
+  resources:
+    type: array
+    items:
+      $ref: '#/definitions/resource'
+    example:
+      - effect: DENY
+        action: READ
+        resource: test_network1
+        resourceType: NETWORK_ID
+      - effect: ALLOW
+        action: WRITE
+        resource: '/**'
+        resourceType: URI
+  resource:
+    description: The resource to which the user is either denied or allowed access to read/write
+    type: object
+    properties:
+      effect:
+        type: string
+        enum: [DENY, ALLOW]
+      action:
+        type: string
+        enum: [READ, WRITE]
+      resources:
+        type: string
+      resourceType:
+        type: string
+        enum: [NETWORK_ID, TENANT_ID, URI]
+    example:
+      effect: ALLOW
+      action: WRITE
+      resource: '/**'
+      resourceType: URI

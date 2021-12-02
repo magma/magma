@@ -71,7 +71,8 @@ enum Action {
 }
 
 enum ResourceType {
-  REQUEST_URI = 0;
+  // URI is the relative path to the resource, e.g. "/networks/{network_id}"
+  URI = 0;
   NETWORK_ID = 1;
   TENANT_ID = 2;
 }
@@ -94,7 +95,6 @@ message Policy {
 
 message GetUserRequest {
   string username = 1;
-  string token = 2;
 }
 
 message CreateUserRequest {
@@ -110,6 +110,10 @@ message GetPolicyDecisionRequest {
 
 message PolicyDecision {
   Effect effect = 1;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
 }
 
 service Certifier {
@@ -154,5 +158,12 @@ service Certifier {
   rpc GetPolicyDecision (GetPolicyDecisionRequest) returns (PolicyDecision) {}
 
   // Creates a new user
-  rpc CreateUser (CreateUserRequest) returns (TokenList) {}
+  rpc CreateUser (User) returns (Void) {}
+
+  // ListUsers all users and their information
+  rpc ListUsers(Void) returns (ListUsersResponse) {}
+
+  // Gets a user based on their username
+  rpc GetUser(GetUserRequest) returns (User) {}
+
 }

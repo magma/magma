@@ -6238,7 +6238,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/user_with_policy'
+          $ref: '#/definitions/user'
       responses:
         "201":
           description: Success
@@ -6259,6 +6259,19 @@ paths:
       summary: Remove a user
       tags:
       - User
+    get:
+      parameters:
+      - $ref: '#/parameters/username'
+      responses:
+        "201":
+          description: Success
+          schema:
+            type: string
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Get a single user's information
+      tags:
+      - User
     put:
       parameters:
       - $ref: '#/parameters/username'
@@ -6269,13 +6282,62 @@ paths:
         schema:
           properties:
             password:
+              format: password
               type: string
       responses:
         "204":
           description: Success
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Update user password
+      summary: Update a user's password
+      tags:
+      - User
+  /user/{username}/{token}:
+    delete:
+      parameters:
+      - in: path
+        name: token
+        required: true
+        type: string
+      - $ref: '#/parameters/username'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Revoke the token and its policy from the user
+      tags:
+      - User
+  /user/{username}/tokens:
+    get:
+      parameters:
+      - $ref: '#/parameters/username'
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              $ref: '#/definitions/policy'
+            type: array
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Get a list of a user's tokens and their respective policies
+      tags:
+      - User
+    post:
+      parameters:
+      - $ref: '#/parameters/username'
+      - in: body
+        name: policy
+        required: true
+        schema:
+          $ref: '#/definitions/policy'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Add a token/policy to the user's existing permissions
       tags:
       - User
   /user/login:
@@ -11039,31 +11101,23 @@ definitions:
     - mnc
     type: object
   policy:
-    description: an object that defines a user's permissions to access a resource
+    description: An object that defines a user's permissions to access resources
     example:
-      action: WRITE
-      effect: ALLOW
-      resources: '*'
-    properties:
-      action:
-        enum:
-        - NONE
-        - READ
-        - WRITE
-        type: string
-      effect:
-        enum:
-        - UNKNOWN
-        - DENY
-        - ALLOW
-        type: string
       resources:
-        items:
-          type: string
-        type: array
+      - action: READ
+        effect: DENY
+        resource: test_network1
+      - action: WRITE
+        effect: ALLOW
+        resource: /**
+      token: op_6YHy0uT7DeuWyT3N9nkAOyoeyOI25fletJE69yHGGl4ifjfoq
+    properties:
+      resources:
+        $ref: '#/definitions/resources'
+      token:
+        type: string
     required:
-    - effect
-    - action
+    - token
     - resources
     type: object
   policy_id:
@@ -11609,6 +11663,47 @@ definitions:
     - supported_versions
     type: object
     x-nullable: false
+  resource:
+    description: The resource to which the user is either denied or allowed access
+      to read/write
+    example:
+      action: WRITE
+      effect: ALLOW
+      resource: /**
+      resourceType: URI
+    properties:
+      action:
+        enum:
+        - READ
+        - WRITE
+        type: string
+      effect:
+        enum:
+        - DENY
+        - ALLOW
+        type: string
+      resourceType:
+        enum:
+        - NETWORK_ID
+        - TENANT_ID
+        - URI
+        type: string
+      resources:
+        type: string
+    type: object
+  resources:
+    example:
+    - action: READ
+      effect: DENY
+      resource: test_network1
+      resourceType: NETWORK_ID
+    - action: WRITE
+      effect: ALLOW
+      resource: /**
+      resourceType: URI
+    items:
+      $ref: '#/definitions/resource'
+    type: array
   route:
     properties:
       destination_ip:
@@ -12233,7 +12328,7 @@ definitions:
       state
     type: object
   user:
-    description: User's authentication info
+    description: The user's authentication info
     properties:
       password:
         type: string
@@ -12244,7 +12339,7 @@ definitions:
     - password
     type: object
   user_with_policy:
-    description: an object that associates a user with its policy
+    description: An object that associates a user with its policy
     properties:
       policy:
         $ref: '#/definitions/policy'

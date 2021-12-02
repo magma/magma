@@ -39,11 +39,11 @@ type CertifierStorage interface {
 	// Returns success even when nothing is deleted (i.e. serial number not found).
 	DeleteCertInfo(serialNumber string) error
 
-	// ListUser lists the usernames of all the current users
-	ListUser() ([]string, error)
+	// ListUsers lists the usernames of all the current users
+	ListUsers() ([]*protos.User, error)
 
 	// PutUser updates a user
-	PutUser(username string, operator *protos.User) error
+	PutUser(username string, user *protos.User) error
 
 	// DeleteUser deletes a user based on its username
 	DeleteUser(username string) error

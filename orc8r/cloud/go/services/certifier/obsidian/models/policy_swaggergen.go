@@ -6,8 +6,6 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	"encoding/json"
-
 	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
@@ -15,38 +13,28 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// Policy an object that defines a user's permissions to access a resource
+// Policy An object that defines a user's permissions to access resources
 // swagger:model policy
 type Policy struct {
 
-	// action
-	// Required: true
-	// Enum: [NONE READ WRITE]
-	Action *string `json:"action"`
-
-	// effect
-	// Required: true
-	// Enum: [UNKNOWN DENY ALLOW]
-	Effect *string `json:"effect"`
-
 	// resources
 	// Required: true
-	Resources []string `json:"resources"`
+	Resources Resources `json:"resources"`
+
+	// token
+	// Required: true
+	Token *string `json:"token"`
 }
 
 // Validate validates this policy
 func (m *Policy) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateAction(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateEffect(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateResources(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateToken(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -56,101 +44,25 @@ func (m *Policy) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-var policyTypeActionPropEnum []interface{}
-
-func init() {
-	var res []string
-	if err := json.Unmarshal([]byte(`["NONE","READ","WRITE"]`), &res); err != nil {
-		panic(err)
-	}
-	for _, v := range res {
-		policyTypeActionPropEnum = append(policyTypeActionPropEnum, v)
-	}
-}
-
-const (
-
-	// PolicyActionNONE captures enum value "NONE"
-	PolicyActionNONE string = "NONE"
-
-	// PolicyActionREAD captures enum value "READ"
-	PolicyActionREAD string = "READ"
-
-	// PolicyActionWRITE captures enum value "WRITE"
-	PolicyActionWRITE string = "WRITE"
-)
-
-// prop value enum
-func (m *Policy) validateActionEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, policyTypeActionPropEnum); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m *Policy) validateAction(formats strfmt.Registry) error {
-
-	if err := validate.Required("action", "body", m.Action); err != nil {
-		return err
-	}
-
-	// value enum
-	if err := m.validateActionEnum("action", "body", *m.Action); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-var policyTypeEffectPropEnum []interface{}
-
-func init() {
-	var res []string
-	if err := json.Unmarshal([]byte(`["UNKNOWN","DENY","ALLOW"]`), &res); err != nil {
-		panic(err)
-	}
-	for _, v := range res {
-		policyTypeEffectPropEnum = append(policyTypeEffectPropEnum, v)
-	}
-}
-
-const (
-
-	// PolicyEffectUNKNOWN captures enum value "UNKNOWN"
-	PolicyEffectUNKNOWN string = "UNKNOWN"
-
-	// PolicyEffectDENY captures enum value "DENY"
-	PolicyEffectDENY string = "DENY"
-
-	// PolicyEffectALLOW captures enum value "ALLOW"
-	PolicyEffectALLOW string = "ALLOW"
-)
-
-// prop value enum
-func (m *Policy) validateEffectEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, policyTypeEffectPropEnum); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m *Policy) validateEffect(formats strfmt.Registry) error {
-
-	if err := validate.Required("effect", "body", m.Effect); err != nil {
-		return err
-	}
-
-	// value enum
-	if err := m.validateEffectEnum("effect", "body", *m.Effect); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (m *Policy) validateResources(formats strfmt.Registry) error {
 
 	if err := validate.Required("resources", "body", m.Resources); err != nil {
+		return err
+	}
+
+	if err := m.Resources.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("resources")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Policy) validateToken(formats strfmt.Registry) error {
+
+	if err := validate.Required("token", "body", m.Token); err != nil {
 		return err
 	}
 

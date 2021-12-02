@@ -305,6 +305,29 @@ func (c *certifierBlobstore) PutPolicy(token string, policy *protos.Policy) erro
 	return store.Commit()
 }
 
+// ListUsers lists the usernames of all the current users
+func (c *certifierBlobstore) ListUsers() ([]*protos.User, error) {
+	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
+	if err != nil {
+		return nil, status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
+	}
+	defer store.Rollback()
+	blobs, err := blobstore.GetAllOfType(store, placeholderNetworkID, UserType)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get all users")
+	}
+	users := make([]*protos.User, len(blobs))
+	for i, blob := range blobs {
+		user := &protos.User{}
+		err = proto.Unmarshal(blob.Value, user)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal user")
+		}
+		users[i] = user
+	}
+	return users, store.Commit()
+}
+
 func (c *certifierBlobstore) DeleteToken(token string) error {
 	store, err := c.factory.StartTransaction(nil)
 	if err != nil {

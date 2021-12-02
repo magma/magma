@@ -13,7 +13,7 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// User User's authentication info
+// User The user's authentication info
 // swagger:model user
 type User struct {
 

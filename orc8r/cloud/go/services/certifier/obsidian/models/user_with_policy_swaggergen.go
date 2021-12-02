@@ -12,7 +12,7 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// UserWithPolicy an object that associates a user with its policy
+// UserWithPolicy An object that associates a user with its policy
 // swagger:model user_with_policy
 type UserWithPolicy struct {
 

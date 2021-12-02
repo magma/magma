@@ -127,13 +127,15 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusBadRequest, "failed to parse basic auth header")
 		}
 
+		// Return early without going to the certifier service if token is invalid
 		if err := certifier.ValidateToken(token); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
+
 		// TODO(christinewang5): implement for other req resource types
 		resource := &certprotos.Resource{
 			Action:       getRequestAction(req, nil),
-			ResourceType: certprotos.ResourceType_REQUEST_URI,
+			ResourceType: certprotos.ResourceType_URI,
 			Resource:     req.RequestURI,
 		}
 		getPDReq := &certprotos.GetPolicyDecisionRequest{
@@ -143,7 +145,7 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		pd, err := certifier.GetPolicyDecision(req.Context(), getPDReq)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 		}
 		if pd.Effect == certprotos.Effect_DENY {
 			return echo.NewHTTPError(http.StatusForbidden, "not authorized to view resource")

@@ -46,24 +46,21 @@ func addAdminToken(cmd *commands.Command, args []string) int {
 			Tokens: []string{token},
 		},
 	}
-	resource := &certprotos.Resource{
-		Effect:       certprotos.Effect_ALLOW,
-		Action:       certprotos.Action_WRITE,
-		ResourceType: certprotos.ResourceType_REQUEST_URI,
-		Resource:     "/**",
-	}
-	policy := &certprotos.Policy{
-		Token: token,
-		Resources: &certprotos.ResourceList{
-			Resources: []*certprotos.Resource{resource},
-		},
-	}
-	createUserReq := &certprotos.CreateUserRequest{
-		User:   user,
-		Policy: policy,
-	}
+	// resource := &certprotos.Resource{
+	// 	Effect:       certprotos.Effect_ALLOW,
+	// 	Action:       certprotos.Action_WRITE,
+	// 	ResourceType: certprotos.ResourceType_URI,
+	// 	Resource:     "/**",
+	// }
+	// policy := &certprotos.Policy{
+	// 	Token: token,
+	// 	Resources: &certprotos.ResourceList{
+	// 		Resources: []*certprotos.Resource{resource},
+	// 	},
+	// }
 	ctx := context.Background()
-	_, err := certifier.CreateUser(ctx, createUserReq)
+	err := certifier.CreateUser(ctx, user)
+	// TODO(christinewang5): use handler to register a token for admin
 	if err != nil {
 		panic("Failed to create admin token")
 	}

@@ -32,7 +32,6 @@ import (
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/services/certifier"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/lib/go/errors"
@@ -343,41 +342,56 @@ func (srv *CertifierServer) GetPolicyDecision(ctx context.Context, getPDReq *cer
 }
 
 // CreateUser creates a new user with the specified password and policy
-func (srv *CertifierServer) CreateUser(ctx context.Context, createUserReq *certprotos.CreateUserRequest) (*certprotos.TokenList, error) {
-	token, err := certifier.GenerateToken(certifier.Personal)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to generate token while creating user")
-	}
+func (srv *CertifierServer) CreateUser(ctx context.Context, user *certprotos.User) (*protos.Void, error) {
+	// token, err := certifier.GenerateToken(certifier.Personal)
+	// if err != nil {
+	// 	return status.Errorf(codes.Internal, "failed to generate token while creating user")
+	// }
 
-	_, err = srv.store.GetUser(createUserReq.User.Username)
+	_, err := srv.store.GetUser(user.Username)
 	if err == nil {
 		return nil, status.Errorf(codes.AlreadyExists, "user already exists")
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword(createUserReq.User.Password, bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword(user.Password, bcrypt.DefaultCost)
 	if err != nil {
 		return nil, status.Errorf(http.StatusInternalServerError, "error hashing password: %v", err)
 	}
 
-	user := certprotos.User{
-		Username: createUserReq.User.Username,
+	user = &certprotos.User{
+		Username: user.Username,
 		Password: hashedPassword,
-		Tokens:   &certprotos.TokenList{Tokens: []string{token}},
 	}
-	err = srv.store.PutUser(createUserReq.User.Username, &user)
+	err = srv.store.PutUser(user.Username, user)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to store user while creating user")
 	}
 
-	policy := &certprotos.Policy{
-		Token:     token,
-		Resources: createUserReq.Policy.Resources,
-	}
-	err = srv.store.PutPolicy(token, policy)
+	// policy := &certprotos.Policy{
+	// 	Token:     token,
+	// 	Resources: createUserReq.Policy.Resources,
+	// }
+	// err = srv.store.PutPolicy(token, policy)
+	// if err != nil {
+	// 	return nil, status.Errorf(codes.Internal, "failed to store policy while creating user")
+	// }
+	return &protos.Void{}, nil
+}
+
+func (srv *CertifierServer) ListUsers(ctx context.Context, void *protos.Void) (*certprotos.ListUsersResponse, error) {
+	users, err := srv.store.ListUsers()
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to store policy while creating user")
+		return nil, status.Errorf(codes.Internal, "failed to fetch users from db")
 	}
-	return &certprotos.TokenList{Tokens: []string{token}}, nil
+	return &certprotos.ListUsersResponse{Users: users}, nil
+}
+
+func (srv *CertifierServer) GetUser(ctx context.Context, getUserReq *certprotos.GetUserRequest) (*certprotos.User, error) {
+	user, err := srv.store.GetUser(getUserReq.Username)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get user %s", getUserReq.Username)
+	}
+	return user, nil
 }
 
 func generateSerialNumber(store storage.CertifierStorage) (sn *big.Int, err error) {
@@ -556,7 +570,7 @@ func (srv *CertifierServer) getPolicyDecisionFromToken(token string, reqResource
 
 func checkResource(reqResource, policyResource *certprotos.Resource) certprotos.Effect {
 	switch reqResource.ResourceType {
-	case certprotos.ResourceType_REQUEST_URI:
+	case certprotos.ResourceType_URI:
 		return checkRequestURI(reqResource, policyResource)
 	default:
 		// TODO(christinewang5): implement for other req resource types
@@ -568,7 +582,7 @@ func checkResource(reqResource, policyResource *certprotos.Resource) certprotos.
 // checkRequestURI checks if the requested resource is authorized by the policy
 func checkRequestURI(reqResource *certprotos.Resource, policyResource *certprotos.Resource) certprotos.Effect {
 	// The policy does not handle this case, so return UNKNOWN.
-	if reqResource.ResourceType != certprotos.ResourceType_REQUEST_URI || policyResource.ResourceType != certprotos.ResourceType_REQUEST_URI {
+	if reqResource.ResourceType != certprotos.ResourceType_URI || policyResource.ResourceType != certprotos.ResourceType_URI {
 		return certprotos.Effect_UNKNOWN
 	}
 	reqURI := reqResource.Resource

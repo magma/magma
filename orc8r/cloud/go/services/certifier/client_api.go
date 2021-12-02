@@ -23,8 +23,7 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 
 	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/obsidian"
-	certifierprotos "magma/orc8r/cloud/go/services/certifier/protos"
+	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
@@ -33,17 +32,17 @@ import (
 const ServiceName = "CERTIFIER"
 
 // Utility function to get a RPC connection to the certifier service
-func getCertifierClient() (certifierprotos.CertifierClient, error) {
+func getCertifierClient() (certprotos.CertifierClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		return nil, merrors.NewInitError(err, ServiceName)
 	}
 
-	return certifierprotos.NewCertifierClient(conn), err
+	return certprotos.NewCertifierClient(conn), err
 }
 
 // Get the certificate for the requested CA
-func GetCACert(ctx context.Context, getCAReq *certifierprotos.GetCARequest) (*protos.CACert, error) {
+func GetCACert(ctx context.Context, getCAReq *certprotos.GetCARequest) (*protos.CACert, error) {
 	client, err := getCertifierClient()
 	if err != nil {
 		return nil, err
@@ -79,12 +78,12 @@ func AddCertificate(ctx context.Context, oper *protos.Identity, certDer []byte) 
 	if err != nil {
 		return err
 	}
-	_, err = client.AddCertificate(ctx, &certifierprotos.AddCertRequest{Id: oper, CertDer: certDer})
+	_, err = client.AddCertificate(ctx, &certprotos.AddCertRequest{Id: oper, CertDer: certDer})
 	return err
 }
 
 // Get the CertificateInfo {Identity, NotAfter} of an SN
-func GetIdentity(ctx context.Context, sn *protos.Certificate_SN) (*certifierprotos.CertificateInfo, error) {
+func GetIdentity(ctx context.Context, sn *protos.Certificate_SN) (*certprotos.CertificateInfo, error) {
 	client, err := getCertifierClient()
 	if err != nil {
 		return nil, err
@@ -100,7 +99,7 @@ func GetIdentity(ctx context.Context, sn *protos.Certificate_SN) (*certifierprot
 
 // GetCertificateIdentity returns CertificateInfo of Certificate with the given
 // Serial Number String. It's a simple wrapper for GetIdentity
-func GetCertificateIdentity(ctx context.Context, serialNum string) (*certifierprotos.CertificateInfo, error) {
+func GetCertificateIdentity(ctx context.Context, serialNum string) (*certprotos.CertificateInfo, error) {
 	return GetIdentity(ctx, &protos.Certificate_SN{Sn: serialNum})
 }
 
@@ -160,7 +159,7 @@ func FindCertificates(ctx context.Context, id *protos.Identity) ([]string, error
 }
 
 // GetAll returns all Certificates Records
-func GetAll(ctx context.Context) (map[string]*certifierprotos.CertificateInfo, error) {
+func GetAll(ctx context.Context) (map[string]*certprotos.CertificateInfo, error) {
 	client, err := getCertifierClient()
 	if err != nil {
 		return nil, err
@@ -228,27 +227,43 @@ func VerifyDateRange(certInfo CertDateRange) error {
 }
 
 // GetPolicyDecision makes a policy decision when a user attempts to access a resource
-func GetPolicyDecision(ctx context.Context, getPDReq *certifierprotos.GetPolicyDecisionRequest) (*certifierprotos.PolicyDecision, error) {
+func GetPolicyDecision(ctx context.Context, getPDReq *certprotos.GetPolicyDecisionRequest) (*certprotos.PolicyDecision, error) {
 	client, err := getCertifierClient()
 	if err != nil {
 		return nil, err
 	}
 	pd, err := client.GetPolicyDecision(ctx, getPDReq)
 	if err != nil {
-		return nil, obsidian.MakeHTTPError(err)
+		return nil, err
 	}
 	return pd, nil
 }
 
 // CreateUser creates a new user with the specified password and policy
-func CreateUser(ctx context.Context, createUserReq *certifierprotos.CreateUserRequest) (*certifierprotos.TokenList, error) {
+func CreateUser(ctx context.Context, user *certprotos.User) error {
+	client, err := getCertifierClient()
+	if err != nil {
+		return err
+	}
+	_, err = client.CreateUser(ctx, user)
+	return err
+}
+
+// ListUsers lists all users and their tokens in the database
+func ListUsers(ctx context.Context) ([]*certprotos.User, error) {
 	client, err := getCertifierClient()
 	if err != nil {
 		return nil, err
 	}
-	tokens, err := client.CreateUser(ctx, createUserReq)
+	users, err := client.ListUsers(ctx, &protos.Void{})
+	return users.Users, err
+}
+
+func GetUser(ctx context.Context, username string) (*certprotos.User, error) {
+	client, err := getCertifierClient()
 	if err != nil {
-		return nil, obsidian.MakeHTTPError(err)
+		return nil, err
 	}
-	return tokens, nil
+	user, err := client.GetUser(ctx, &certprotos.GetUserRequest{Username: username})
+	return user, err
 }
