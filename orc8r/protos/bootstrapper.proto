@@ -119,19 +119,24 @@ message GetGatewayRegistrationInfoResponse {
 
 message GetGatewayDeviceInfoRequest {
   // token is a nonce prepended by bootstrapper.tokenPrepend
+  // It keys to a TokenInfo
   string token = 1;
 }
 
 message GetGatewayDeviceInfoResponse {
   oneof response {
+    // gateway_device_info contains basic info that an AGW needs to register
     GatewayDeviceInfo gateway_device_info = 1;
+    // a string describing the client error
     string error = 2;
   }
 }
 
 message RegisterRequest {
   // token is a nonce prepended by bootstrapper.tokenPrefix
+  // It keys to a TokenInfo
   string token = 1;
+  // hwid is the access gateway's (AGW) ID
   AccessGatewayID hwid = 2;
   // challenge_key is gateway's long-term public key
   ChallengeKey challenge_key = 3;
@@ -142,13 +147,16 @@ message RegisterResponse {
     // control_proxy is the OK that the gateway has registered properly
     // EG magma/lte/gateway/configs/control_proxy.yml
     string control_proxy = 1;
+    // a string describing the client error
     string error = 2;
   }
 }
 
 // GatewayDeviceInfo contains basic info that an AGW needs to register
 message GatewayDeviceInfo {
+  // network_id is the network id of the AGW
   string network_id = 1;
+  // logical_id is the logical id of the AGW
   string logical_id = 2;
 }
 
@@ -157,6 +165,8 @@ message GatewayDeviceInfo {
 message TokenInfo {
   GatewayDeviceInfo gateway_device_info = 1;
   // nonce is a token without the bootstrapper.tokenPrefix prefix
+  // It is a randomized string of characters that keys to a TokenInfo
   string nonce = 2;
+  // timeout is the timestamp of when this TokenInfo will expire
   google.protobuf.Timestamp timeout = 3;
 }
