@@ -660,6 +660,62 @@ int amf_app_handle_pdu_session_response(
 
   return rc;
 }
+/****************************************************************************
+ **                                                                        **
+ ** Name:    convert_ambr()                                                **
+ **                                                                        **
+ ** Description: Converts the session ambr format from                     **
+ **  one defined in create_pdu_session_response to one defined in          **
+ **  pdu_session_estab_accept message                                      **
+ **                                                                        **
+ ** Inputs:  pdu_ambr_response_unit, pdu_ambr_response_value               **
+ **          ambr_unit, ambr_value                                         **
+ **                                                                        **
+ **      Return:   void                                                    **
+ **                                                                        **
+ ***************************************************************************/
+void convert_ambr(
+    const uint32_t* pdu_ambr_response_unit,
+    const uint32_t* pdu_ambr_response_value, uint8_t* ambr_unit,
+    uint16_t* ambr_value) {
+  int count                             = 1;
+  uint32_t temp_pdu_ambr_response_value = *pdu_ambr_response_value;
+
+  // minimum rate unit is KBPS
+  if (*pdu_ambr_response_unit == BPS &&
+      temp_pdu_ambr_response_value / 1000 == 0) {
+    // Values less than 1Kbps are defaulted to 1Kbps
+    *ambr_value = static_cast<uint16_t>(1);
+    *ambr_unit  = static_cast<uint8_t>(
+        magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
+    return;
+  }
+
+  if (*pdu_ambr_response_unit == BPS) {
+    temp_pdu_ambr_response_value /= 1000;
+  }
+
+  while (temp_pdu_ambr_response_value >= AMBR_UNIT_CONVERT_THRESHOLD) {
+    temp_pdu_ambr_response_value = (temp_pdu_ambr_response_value / 1000);
+    count++;
+  }
+
+  switch (count) {
+    case 1:
+      *ambr_unit = static_cast<uint8_t>(
+          magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
+      break;
+    case 2:
+      *ambr_unit = static_cast<uint8_t>(
+          magma5g::M5GSessionAmbrUnit::MULTIPLES_1MBPS);  // Mbps
+      break;
+    case 3:
+      *ambr_unit = static_cast<uint8_t>(
+          magma5g::M5GSessionAmbrUnit::MULTIPLES_1GBPS);  // Gbps
+      break;
+  }
+  *ambr_value = static_cast<uint16_t>(temp_pdu_ambr_response_value);
+}
 
 /****************************************************************************
  **                                                                        **
@@ -796,14 +852,17 @@ int amf_app_handle_pdu_session_accept(
   memcpy(
       smf_msg->msg.pdu_session_estab_accept.qos_rules.qos_rule, &qos_rule,
       1 * sizeof(QOSRule));
-  smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_unit =
-      pdu_session_resp->session_ambr.downlink_unit_type;
-  smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit =
-      pdu_session_resp->session_ambr.uplink_unit_type;
-  smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_session_ambr =
-      pdu_session_resp->session_ambr.downlink_units;
-  smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_session_ambr =
-      pdu_session_resp->session_ambr.uplink_units;
+  convert_ambr(
+      &pdu_session_resp->session_ambr.downlink_unit_type,
+      &pdu_session_resp->session_ambr.downlink_units,
+      &smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_unit,
+      &smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_session_ambr);
+
+  convert_ambr(
+      &pdu_session_resp->session_ambr.uplink_unit_type,
+      &pdu_session_resp->session_ambr.uplink_units,
+      &smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit,
+      &smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_session_ambr);
   smf_msg->msg.pdu_session_estab_accept.session_ambr.length = AMBR_LEN;
 
   msg_accept_pco =

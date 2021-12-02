@@ -51,6 +51,9 @@ int amf_handle_deregistration_ue_origin_req(
 int amf_validate_dnn(
     const amf_context_s* amf_ctxt_p, std::string dnn_string, int* index,
     bool ue_sent_dnn);
+void smf_dnn_ambr_select(
+    const std::shared_ptr<smf_context_t>& smf_ctx,
+    ue_m5gmm_context_s* ue_context, int index_dnn);
 int amf_smf_process_pdu_session_packet(
     amf_ue_ngap_id_t ueid, ULNASTransportMsg* msg, int amf_cause);
 int amf_smf_notification_send(

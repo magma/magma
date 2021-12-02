@@ -58,8 +58,7 @@ class AMFClientServicerBase {
   virtual int allocate_ipv4_address(
       const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
       uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
-      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len,
-      const ambr_t& subscribed_ue_ambr);
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len);
 
   virtual int release_ipv4_address(
       const char* subscriber_id, const char* apn, const struct in_addr* addr);
@@ -105,8 +104,7 @@ class AMFClientServicer : public AMFClientServicerBase {
   int allocate_ipv4_address(
       const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
       uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
-      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len,
-      const ambr_t& subscribed_ue_ambr) {
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
     return RETURNok;
   }
 
