@@ -15,9 +15,17 @@ package registration
 
 import (
 	"math/rand"
+	"time"
 
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/bootstrapper"
+	"magma/orc8r/lib/go/protos"
 )
+
+func IsExpired(t *protos.TokenInfo) bool {
+	expirationTime := time.Unix(t.Timeout.Seconds, int64(t.Timeout.Nanos))
+	return clock.Now().After(expirationTime)
+}
 
 func NonceToToken(nonce string) string {
 	return bootstrapper.TokenPrefix + nonce

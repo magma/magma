@@ -59,7 +59,7 @@ func (c *cloudRegistrationServicer) GetToken(ctx context.Context, request *proto
 		glog.V(2).Infof("could not get tokenInfo for networkID %v and logicalID %v: %v", networkId, logicalId, err)
 	}
 
-	refresh := request.Refresh || tokenInfo == nil || tokenInfo.IsExpired()
+	refresh := request.Refresh || tokenInfo == nil || IsExpired(tokenInfo)
 	glog.Infof("BLPEPEP")
 	if refresh {
 		tokenInfo, err = c.generateAndSaveTokenInfo(networkId, logicalId)
@@ -94,7 +94,7 @@ func (c *cloudRegistrationServicer) GetGatewayDeviceInfo(ctx context.Context, re
 		}
 		return res, nil
 	}
-	if tokenInfo.IsExpired() {
+	if IsExpired(tokenInfo) {
 		res := &protos.GetGatewayDeviceInfoResponse{
 			Response: &protos.GetGatewayDeviceInfoResponse_Error{
 				Error: fmt.Sprintf("token %v has expired", request.Token),
