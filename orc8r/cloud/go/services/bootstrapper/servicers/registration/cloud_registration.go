@@ -60,7 +60,6 @@ func (c *cloudRegistrationServicer) GetToken(ctx context.Context, request *proto
 	}
 
 	refresh := request.Refresh || tokenInfo == nil || IsExpired(tokenInfo)
-	glog.Infof("BLPEPEP")
 	if refresh {
 		tokenInfo, err = c.generateAndSaveTokenInfo(networkId, logicalId)
 		if err != nil {
@@ -116,10 +115,7 @@ func (c *cloudRegistrationServicer) GetGatewayDeviceInfo(ctx context.Context, re
 
 func (c *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string, logicalID string) (*protos.TokenInfo, error) {
 	nonce := GenerateNonce(NonceLength)
-
-	glog.Infof("%s",clock.Now())
 	t := clock.Now().Add(c.timeout)
-	glog.Infof("%s",t)
 
 	tokenInfo := &protos.TokenInfo{
 		GatewayDeviceInfo: &protos.GatewayDeviceInfo{
