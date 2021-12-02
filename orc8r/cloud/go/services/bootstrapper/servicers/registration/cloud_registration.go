@@ -22,7 +22,6 @@ import (
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -73,7 +72,6 @@ func (c *cloudRegistrationServicer) GetToken(ctx context.Context, request *proto
 
 func (c *cloudRegistrationServicer) GetGatewayRegistrationInfo(ctx context.Context, request *protos.GetGatewayRegistrationInfoRequest) (*protos.GetGatewayRegistrationInfoResponse, error) {
 	domainName := getDomainName()
-
 	res := &protos.GetGatewayRegistrationInfoResponse{
 		RootCa:     c.rootCA,
 		DomainName: domainName,
@@ -83,7 +81,6 @@ func (c *cloudRegistrationServicer) GetGatewayRegistrationInfo(ctx context.Conte
 
 func (c *cloudRegistrationServicer) GetGatewayDeviceInfo(ctx context.Context, request *protos.GetGatewayDeviceInfoRequest) (*protos.GetGatewayDeviceInfoResponse, error) {
 	nonce := NonceFromToken(request.Token)
-
 	tokenInfo, err := c.store.GetTokenInfoFromNonce(nonce)
 	if err != nil {
 		res := &protos.GetGatewayDeviceInfoResponse{
@@ -115,18 +112,15 @@ func (c *cloudRegistrationServicer) GetGatewayDeviceInfo(ctx context.Context, re
 
 func (c *cloudRegistrationServicer) generateAndSaveTokenInfo(networkID string, logicalID string) (*protos.TokenInfo, error) {
 	nonce := GenerateNonce(NonceLength)
-	t := clock.Now().Add(c.timeout)
+	timeout := clock.Now().Add(c.timeout)
 
 	tokenInfo := &protos.TokenInfo{
 		GatewayDeviceInfo: &protos.GatewayDeviceInfo{
 			NetworkId: networkID,
 			LogicalId: logicalID,
 		},
-		Nonce: nonce,
-		Timeout: &timestamp.Timestamp{
-			Seconds: t.Unix(),
-			Nanos:   int32(t.Nanosecond()),
-		},
+		Nonce:   nonce,
+		Timeout: GetTimestamp(timeout),
 	}
 
 	err := c.store.SetTokenInfo(tokenInfo)
