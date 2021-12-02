@@ -18,7 +18,7 @@ from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import (
     DIRECTION_REG,
-    TUN_PORT_REG,
+    INGRESS_TUN_ID_REG,
     Direction,
 )
 from ryu.controller import dpset, ofp_event
@@ -312,7 +312,7 @@ class IPV6SolicitationController(MagmaController):
         if 'tunnel_id' in ev.msg.match:
             tun_id = ev.msg.match['tunnel_id']
 
-            tun_id_dst = ev.msg.match.get(TUN_PORT_REG, None)
+            tun_id_dst = ev.msg.match.get(INGRESS_TUN_ID_REG, None)
             if not tun_id_dst:
                 self.logger.error("Packet missing tun_id_dst (in-port %d tun-id %s) reg, can't reply", in_port, tun_id)
                 return
