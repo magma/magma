@@ -89,16 +89,171 @@ static void nas5g_delete_auth_info_procedure(
   }
 }
 
+/***********************************************************************
+ ** Name:    amf_delete_child_procedures()                            **
+ **                                                                   **
+ ** Description: deletes the nas registration specific child          **
+ **              child procedures                                     **
+ **                                                                   **
+ ** Inputs:  amf_ctx:   The amf context                               **
+ **          parent_proc: nas 5g base proc                            **
+ **                                                                   **
+ **                                                                   **
+ ** Outputs:     None                                                 **
+ **      Return:    void                                              **
+ **      Others:    None                                              **
+ **                                                                   **
+ ***********************************************************************/
+void amf_delete_child_procedures(
+    amf_context_t* amf_ctx, struct nas5g_base_proc_t* const parent_proc) {
+  if (amf_ctx && amf_ctx->amf_procedures) {
+    nas_amf_common_procedure_t* p1 =
+        LIST_FIRST(&amf_ctx->amf_procedures->amf_common_procs);
+    nas_amf_common_procedure_t* p2 = NULL;
+    while (p1) {
+      p2 = LIST_NEXT(p1, entries);
+      if (((nas5g_base_proc_t*) p1->proc)->parent == parent_proc) {
+        amf_delete_common_procedure(amf_ctx, &p1->proc);
+      }
+      p1 = p2;
+    }
+  }
+}
+
+//---------------------------------------------------------------------------------
+static void delete_common_proc_by_type(nas_amf_common_proc_t* proc) {
+  if (proc) {
+    switch (proc->type) {
+      case AMF_COMM_PROC_AUTH: {
+        delete (reinterpret_cast<nas5g_amf_auth_proc_t*>(proc));
+      } break;
+      case AMF_COMM_PROC_SMC: {
+        delete (reinterpret_cast<nas_amf_smc_proc_t*>(proc));
+      } break;
+      case AMF_COMM_PROC_IDENT: {
+        delete (reinterpret_cast<nas_amf_ident_proc_t*>(proc));
+      } break;
+      default: {}
+    }
+  }
+}
+
+
+/***********************************************************************
+ ** Name:    amf_delete_common_procedure()                            **
+ **                                                                   **
+ ** Description: deletes the nas common  procedures                   **
+ **                                                                   **
+ ** Inputs:  proc: nas amf common proc                                **
+ **                                                                   **
+ **                                                                   **
+ ** Outputs:     None                                                 **
+ **      Return:    void                                              **
+ **      Others:    None                                              **
+ **                                                                   **
+ ***********************************************************************/
+void amf_delete_common_procedure(
+    amf_context_t* amf_ctx, nas_amf_common_proc_t** proc) {
+  if (proc && *proc) {
+    switch ((*proc)->type) {
+      case AMF_COMM_PROC_AUTH: {
+      } break;
+      case AMF_COMM_PROC_SMC: {
+      } break;
+      case AMF_COMM_PROC_IDENT: {
+      } break;
+      default: {}
+    }
+  }
+
+  // remove proc from list
+  if (amf_ctx->amf_procedures) {
+    nas_amf_common_procedure_t* p1 =
+        LIST_FIRST(&amf_ctx->amf_procedures->amf_common_procs);
+    nas_amf_common_procedure_t* p2 = NULL;
+
+    // 2 methods: this one, the other: use parent struct macro and LIST_REMOVE
+    // without searching matching element in the list
+    while (p1) {
+      p2 = LIST_NEXT(p1, entries);
+      if (p1->proc == (nas_amf_common_proc_t*) (*proc)) {
+        LIST_REMOVE(p1, entries);
+        delete_common_proc_by_type(p1->proc);
+        delete (p1);
+        return;
+      }
+      p1 = p2;
+    }
+    nas_amf_procedure_gc(amf_ctx);
+  }
+
+  return;
+}
+
+/***********************************************************************
+ ** Name:    amf_delete_common_procedures()                           **
+ **                                                                   **
+ ** Description: deletes all nas common  procedures                   **
+ **                                                                   **
+ ** Inputs:  amf_context                                              **
+ **                                                                   **
+ **                                                                   **
+ ** Outputs:     None                                                 **
+ **      Return:    void                                              **
+ **      Others:    None                                              **
+ **                                                                   **
+ ***********************************************************************/
+
+static void nas5g_delete_common_procedures(amf_context_t* amf_context) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+  // remove proc from list
+
+  if (amf_context->amf_procedures) {
+    nas_amf_common_procedure_t* p1 =
+        LIST_FIRST(&amf_context->amf_procedures->amf_common_procs);
+    nas_amf_common_procedure_t* p2 = NULL;
+    while (p1) {
+      p2 = LIST_NEXT(p1, entries);
+      LIST_REMOVE(p1, entries);
+
+      switch (p1->proc->type) {
+        case AMF_COMM_PROC_AUTH: {
+          nas5g_amf_auth_proc_t* auth_proc = (nas5g_amf_auth_proc_t*) p1->proc;
+          amf_app_stop_timer(auth_proc->T3560.id);
+        } break;
+        case AMF_COMM_PROC_SMC: {
+          nas_amf_smc_proc_t* smc_proc = (nas_amf_smc_proc_t*) (p1->proc);
+          amf_app_stop_timer(smc_proc->T3560.id);
+        } break;
+        case AMF_COMM_PROC_IDENT: {
+          nas_amf_ident_proc_t* ident_proc = (nas_amf_ident_proc_t*) (p1->proc);
+          amf_app_stop_timer(ident_proc->T3570.id);
+        } break;
+        default:;
+      }
+
+      delete_common_proc_by_type(p1->proc);
+      delete (p1);
+
+      p1 = p2;
+    }
+    nas_amf_procedure_gc(amf_context);
+  }
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
+}
+
+
 /***************************************************************************
 **                                                                        **
 ** Name:    nas5g_delete_cn_procedure()                                   **
 **                                                                        **
-** Description: Generic function for new auth info  Procedure             **
+** Description: Generic function to delete core network procedure         **
+** Input : Specifc cn type to be deleted                                  **
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
 void nas5g_delete_cn_procedure(
-    struct amf_context_s* amf_context, nas5g_cn_proc_t* cn_proc) {
+    amf_context_t* amf_context, nas5g_cn_proc_t* cn_proc) {
   if (amf_context->amf_procedures) {
     nas5g_cn_procedure_t* p1 =
         LIST_FIRST(&amf_context->amf_procedures->cn_procs);
@@ -123,7 +278,56 @@ void nas5g_delete_cn_procedure(
       }
       p1 = p2;
     }
+    nas_amf_procedure_gc(amf_context);
   }
+}
+
+/***************************************************************************
+**                                                                        **
+** Name:    nas5g_delete_cn_procedures()                                  **
+**                                                                        **
+** Description: Generic function to delete all cn procedures              **
+**              at amf_context level                                      **
+**                                                                        **
+**                                                                        **
+***************************************************************************/
+static void nas5g_delete_cn_procedures(struct amf_context_s* amf_context) {
+  if (amf_context->amf_procedures) {
+    nas5g_cn_procedure_t* p1 =
+         LIST_FIRST(&amf_context->amf_procedures->cn_procs);
+    nas5g_cn_procedure_t* p2 = NULL;
+    while (p1) {
+      p2 = LIST_NEXT(p1, entries);
+      switch (p1->proc->type) {
+        case CN5G_PROC_AUTH_INFO:
+          nas5g_delete_auth_info_procedure(
+              amf_context, (nas5g_auth_info_proc_t**) &p1->proc);
+          break;
+      }
+      LIST_REMOVE(p1, entries);
+      delete(p1);
+      p1 = p2;
+    }
+    nas_amf_procedure_gc(amf_context);
+  }
+}
+
+
+//-----------------------------------------------------------------------------
+void nas_delete_all_amf_procedures(amf_context_t* const amf_context) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+
+  if (amf_context->amf_procedures) {
+    nas5g_delete_cn_procedures(amf_context);
+    nas5g_delete_common_procedures(amf_context);
+
+    amf_delete_registration_proc(amf_context);
+
+    if (amf_context->amf_procedures) {
+      delete amf_context->amf_procedures;
+    }
+  }
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 /***************************************************************************
@@ -383,6 +587,25 @@ int amf_proc_identification(
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
+/***************************************************************************
+ **                                                                        **
+ ** Name:    amf_nas_proc_implicit_detach_ue_ind()                         **
+ **                                                                        **
+ ** Description: Nas CN procedure to send implicit delete message          **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+int amf_nas_proc_implicit_detach_ue_ind(amf_ue_ngap_id_t ue_id) {
+  int rc            = RETURNerror;
+  amf_sap_t amf_sap = {};
+
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+  amf_sap.primitive                               = AMFCN_IMPLICIT_DETACH_UE;
+  amf_sap.u.amf_cn.u.amf_cn_implicit_detach.ue_id = ue_id;
+  rc                                              = amf_sap_send(&amf_sap);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
 int amf_nas_proc_auth_param_res(

@@ -336,6 +336,9 @@ typedef struct amf_context_s {
   ambr_t subscribed_ue_ambr;
   /* apn_config_profile: set by S6A UPDATE LOCATION ANSWER */
   apn_config_profile_t apn_config_profile;
+
+  struct new_registration_info_s* new_registration_info;
+
 } amf_context_t;
 
 // Amf-Map Declarations:
@@ -361,27 +364,41 @@ enum m5gcm_state_t {
  * @brief Useful parameters to know in AMF application layer.
  */
 typedef struct ue_m5gmm_context_s {
-  ngap_Cause_t
-      ue_context_rel_cause;  // define require for Ngcause in NGAP module
+  //define require for n2cause in NGAP module
+  enum n2cause ue_context_rel_cause;
+
+  // Mobility Management state
   m5gmm_state_t mm_state;
-  m5gcm_state_t ecm_state;
+
+  // UE Connection Management state
+  m5gcm_state_t cm_state;
+
+  //paging_proceeding_flag (PPF) shall set to true, when UE moves to
+  //connected state.
+  bool ppf;
+
+  //Amf Context
   amf_context_t amf_context;
+
   teid_t amf_teid_n11;
-  // SCTP assoc id
+
+  //SCTP assoc id
   sctp_assoc_id_t sctp_assoc_id_key;
-  // gNB UE NGAP ID,  Unique identity the UE within gNodeB
+
+  //Unique identity the UE within gNodeB
   gnb_ue_ngap_id_t gnb_ue_ngap_id;
+
   gnb_ngap_id_key_t gnb_ngap_id_key;
-  // AMF UE NGAP ID, Unique identity the UE within AMF
+
+  //AMF UE NGAP ID, Unique identity the UE within AMF
   amf_ue_ngap_id_t amf_ue_ngap_id;
-  /* mobile_reachability_timer: Start when UE moves to idle state.
-   *             Stop when UE moves to connected state
-   */
+
+  //mobile_reachability_timer: Start when UE moves to idle state.
+  //Stop when UE moves to connected state
   amf_app_timer_t m5_mobile_reachability_timer;
 
-  /* implicit_detach_timer: Start at the expiry of Mobile Reachability timer.
-   * Stop when UE moves to connected state
-   */
+  //implicit_detach_timer: Start at the expiry of Mobile Reachability timer.
+  //Stop when UE moves to connected state
   amf_app_timer_t m5_implicit_detach_timer;
 
   // Initial Context Setup Procedure Guard timer
@@ -392,6 +409,7 @@ typedef struct ue_m5gmm_context_s {
 
   /* Paging Structure */
   paging_context_t paging_context;
+
   amf_app_timer_t m5_ulr_response_timer;
 
   // UEContextRequest in  INITIAL UE MESSAGE
@@ -418,8 +436,15 @@ std::shared_ptr<smf_context_t> amf_get_smf_context_by_pdu_session_id(
 
 // Retrieve required UE context from the respective hash table
 amf_context_t* amf_context_get(const amf_ue_ngap_id_t ue_id);
+
 ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
     const amf_ue_ngap_id_t amf_ue_ngap_id);
+
+// Retrive UE context based on gnb key
+ue_m5gmm_context_s* amf_ue_context_exists_gnb_ue_ngap_id(
+    amf_ue_context_t* const amf_ue_context_p,
+    const gnb_ngap_id_key_t gnb_key);
+
 ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64);
 int amf_context_upsert_imsi(amf_context_t* elm) __attribute__((nonnull));
 
@@ -452,8 +477,8 @@ typedef struct amf_msg_header_t {
 } amf_msg_header;
 
 // Release Request routine.
-void amf_app_ue_context_release(
-    ue_m5gmm_context_s* ue_context_p, ngap_Cause_t cause);
+void amf_app_itti_ue_context_release(
+    ue_m5gmm_context_s* ue_context_p, enum n2cause n2_cause);
 
 // NAS decode and validaion of IE
 typedef struct amf_nas_message_decode_status_s {
@@ -716,6 +741,8 @@ enum amf_proc_registration_type_t {
 
 typedef struct amf_registration_request_ies_s {
   amf_proc_registration_type_t m5gsregistrationtype;
+  bool is_native_sc;
+  ksi_t ksi;
   guti_m5_t* guti;
   imsi_t* imsi;
   imei_t* imei;
@@ -724,6 +751,14 @@ typedef struct amf_registration_request_ies_s {
   drx_parameter_t* drx_parameter;  // Requested DRX parameters during paging
   amf_nas_message_decode_status_t decode_status;
 } amf_registration_request_ies_t;
+
+
+typedef struct new_registration_info_s {
+  amf_ue_ngap_id_t amf_ue_ngap_id; /* amf_ue_ngap_id for which Registration Request
+                                      is received */
+  bool is_mm_ctx_new;
+  amf_registration_request_ies_t* ies;
+} new_registration_info_t;
 
 struct amf_procedures_t {
   nas_amf_specific_proc_t* amf_specific_proc;
@@ -794,7 +829,9 @@ int amf_send_registration_accept(amf_context_t* amf_context);
 int amf_proc_deregistration_request(
     amf_ue_ngap_id_t ue_id, amf_deregistration_request_ies_t* params);
 int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id);
-void amf_remove_ue_context(ue_m5gmm_context_s* ue_context_p);
+status_code_e amf_app_deregistration_accept(amf_ue_ngap_id_t ue_id);
+
+void amf_ue_context_cleanup_from_map(ue_m5gmm_context_s* ue_context_p);
 void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context);
 
 // PDU session related communication to gNB
@@ -808,12 +845,8 @@ int pdu_session_resource_release_request(
     std::shared_ptr<smf_context_t> smf_ctx, bool retransmit);
 void amf_app_handle_resource_release_response(
     itti_ngap_pdusessionresource_rel_rsp_t session_rel_resp);
-void amf_app_handle_cm_idle_on_ue_context_release(
-    itti_ngap_ue_context_release_req_t cm_idle_req);
-// Handle UE CONTEXT RELEASE COMMAND in DL to NGAP
-void ue_context_release_command(
-    amf_ue_ngap_id_t amf_ue_ngap_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
-    Ngcause ng_cause);
+void amf_app_handle_ngap_ue_context_release_req(
+    const itti_ngap_ue_context_release_req_t* const ngap_ue_context_release_req);
 
 // NAS5G encode and decode routines with security header support
 int nas5g_message_decode(
@@ -849,11 +882,19 @@ void amf_delete_child_procedures(
     amf_context_t* amf_txt, struct nas5g_base_proc_t* const parent_proc);
 void amf_delete_common_procedure(
     amf_context_t* amf_ctx, nas_amf_common_proc_t** proc);
+
+/* Clean up all the procedures */
+void nas_delete_all_amf_procedures(amf_context_t* const amf_context);
+
 void format_plmn(amf_plmn_t* plmn);
 void amf_ue_context_on_new_guti(
     ue_m5gmm_context_t* ue_context_p, const guti_m5_t* const guti_p);
 ue_m5gmm_context_s* amf_ue_context_exists_guti(
     amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p);
+
+ue_m5gmm_context_s* amf_ue_context_exists_imsi(
+    amf_ue_context_t * const amf_ue_context_p, imsi64_t imsi64);
+
 void ambr_calculation_pdu_session(
     std::shared_ptr<smf_context_t> smf_context, uint64_t* dl_pdu_ambr,
     uint64_t* ul_pdu_ambr);
@@ -897,5 +938,34 @@ void delete_wrapper(T** pObj) {
   }
 }
 
+/* Create new registration information
+ * Stored when new registration is received while their is a
+ * ongoing registration.
+ */
+void create_new_registration_info(
+       amf_context_t* amf_context_p, amf_ue_ngap_id_t amf_ue_ngap_id,
+       struct amf_registration_request_ies_s * ies, bool is_mm_ctx_new);
+
 void nas_amf_procedure_gc(amf_context_t* amf_ctx);
+
+void proc_new_registration_req(
+      amf_ue_context_t* const amf_ue_context_p,
+      struct ue_m5gmm_context_s* ue_context_p);
+
+int amf_nas_proc_implicit_detach_ue_ind(amf_ue_ngap_id_t ue_id);
+void amf_ue_context_update_ue_sig_connection_state(
+       amf_ue_context_t* const amf_ue_context_p,
+       struct ue_m5gmm_context_s* ue_context_p, m5gcm_state_t new_cm_state);
+
+//Get the context release cause
+status_code_e amf_get_ue_context_rel_cause(amf_ue_ngap_id_t ue_id,
+                                           enum n2cause *ue_context_rel_cause);
+
+//Get the context mm state
+status_code_e amf_get_ue_context_mm_state(amf_ue_ngap_id_t ue_id,
+                                          m5gmm_state_t *mm_state);
+
+//Get the context cm state
+status_code_e amf_get_ue_context_cm_state(amf_ue_ngap_id_t ue_id,
+                                          m5gcm_state_t *cm_state);
 }  // namespace magma5g

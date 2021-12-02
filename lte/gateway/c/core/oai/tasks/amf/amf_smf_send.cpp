@@ -26,6 +26,7 @@ extern "C" {
 }
 #endif
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
@@ -179,6 +180,7 @@ void set_amf_smf_context(
       smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, '\0',
       sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr));
   smf_ctx->gtp_tunnel_id.gnb_gtp_teid = 0x0;
+  amf_smf_set_pdu_session_state(smf_ctx, INACTIVE);
 }
 
 /***************************************************************************
@@ -208,6 +210,7 @@ void clear_amf_smf_context(std::shared_ptr<smf_context_t> smf_ctx) {
   memset(
       &(smf_ctx->smf_proc_data.ssc_mode), 0,
       sizeof(smf_ctx->smf_proc_data.ssc_mode));
+  amf_smf_set_pdu_session_state(smf_ctx, SESSION_NULL);
 }
 
 int pdu_session_release_request_process(
@@ -630,9 +633,21 @@ M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
   smf_ctx = amf_get_smf_context_by_pdu_session_id(
       ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
 
+  // Its a fresh attempt
+  if (smf_ctx == nullptr) {
+    return cause;
+  }
+
+  //Only for active sessions this will be duplicate comments
+  SMSessionFSMState sess_fsm_state;
+  amf_smf_get_pdu_session_state(smf_ctx, &sess_fsm_state);
+  if (smf_ctx->pdu_session_state != ACTIVE) {
+    return cause;
+  }
+
   if ((msg->payload_container.smf_msg.header.message_type ==
        PDU_SESSION_ESTABLISHMENT_REQUEST) &&
-      (requestType == M5GRequestType::INITIAL_REQUEST) && smf_ctx) {
+      (requestType == M5GRequestType::INITIAL_REQUEST)) {
     if (smf_ctx->duplicate_pdu_session_est_req_count >=
         MAX_UE_INITIAL_PDU_SESSION_ESTABLISHMENT_REQ_ALLOWED - 1) {
       cause = M5GSmCause::INVALID_PDU_SESSION_IDENTITY;
@@ -1180,4 +1195,58 @@ int amf_pdu_session_establishment_reject(
   return rc;
 }
 
+/***************************************************************************
+ **                                                                        **
+ ** Name:    amf_app_free_smf_context()                                    **
+ **                                                                        **
+ ** Description: Clean ups for smf context                                 **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+void amf_app_free_smf_context(struct ue_m5gmm_context_s *ue_context) {
+  for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
+    std::shared_ptr<smf_context_t> smf_context = it.second;
+    sm_clear_protocol_configuration_options(&(smf_context->pco));
+  }
+}
+
+/***************************************************************************
+ **                                                                        **
+ ** Name:    amf_smf_set_pdu_session_state()                               **
+ **                                                                        **
+ ** Description: Set pdu session state for the session                     **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+status_code_e amf_smf_set_pdu_session_state(
+  std::shared_ptr<smf_context_t> &smf_ctx, SMSessionFSMState sess_fsm_state) {
+
+  if (smf_ctx == nullptr) {
+    return RETURNerror;
+  }
+
+  smf_ctx->pdu_session_state = sess_fsm_state;
+
+  return RETURNok;
+}
+
+/***************************************************************************
+ **                                                                        **
+ ** Name:    amf_smf_get_pdu_session_state()                               **
+ **                                                                        **
+ ** Description: Get pdu session state for the session                     **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+status_code_e amf_smf_get_pdu_session_state(
+    std::shared_ptr<smf_context_t> &smf_ctx, SMSessionFSMState *sess_fsm_state) {
+
+  if (smf_ctx == nullptr) {
+    return RETURNerror;
+  }
+
+  *sess_fsm_state = smf_ctx->pdu_session_state;
+
+  return RETURNok;
+}
 }  // namespace magma5g

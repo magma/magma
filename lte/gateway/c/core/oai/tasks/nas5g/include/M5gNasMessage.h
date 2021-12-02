@@ -37,6 +37,7 @@ namespace magma5g {
 #define SEC_MODE_COMMAND 0x5d
 #define SEC_MODE_COMPLETE 0x5e
 #define SEC_MODE_REJECT 0x5f
+#define FIVE_5GMM_STATUS 0x64
 #define NOTIFICATION 0x65
 #define NOTIFICATION_RESPONSE 0x66
 #define ULNASTRANSPORT 0x67

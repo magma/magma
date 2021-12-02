@@ -401,6 +401,20 @@ int send_uplink_nas_ue_deregistration_request(
   return (rc);
 }
 
+int send_ue_context_release_complete_itti(amf_app_desc_t* amf_app_desc_p,
+    amf_ue_ngap_id_t ue_id, gnb_ue_ngap_id_t gnb_ue_ngap_id) {
+  int rc                                          = RETURNok;
+  itti_ngap_ue_context_release_complete_t context_release_complete = {};
+
+  context_release_complete.amf_ue_ngap_id = ue_id;
+  context_release_complete.gnb_ue_ngap_id = gnb_ue_ngap_id;
+
+  amf_app_handle_ngap_ue_context_release_complete(
+        amf_app_desc_p, &context_release_complete);
+
+  return rc;
+}
+
 /* Get the ue id from IMSI */
 bool get_ue_id_from_imsi(
     amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64, amf_ue_ngap_id_t* ue_id) {

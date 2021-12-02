@@ -183,7 +183,7 @@ typedef struct itti_ngap_gnb_initiated_reset_ack_s {
 
 // List of possible causes for AMF generated UE context release command towards
 // gNB
-enum Ngcause {
+enum n2cause {
   NGAP_INVALID_CAUSE = 0,
   NGAP_NAS_NORMAL_RELEASE,
   NGAP_NAS_AUTHENTICATION_FAILURE,
@@ -201,7 +201,7 @@ enum Ngcause {
 typedef struct itti_ngap_ue_context_release_command_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
   gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
-  enum Ngcause cause;
+  enum n2cause cause;
 } itti_ngap_ue_context_release_command_t;
 
 typedef struct ue_context_pduSession_s {
@@ -214,7 +214,7 @@ typedef struct itti_ngap_ue_context_release_req_s {
   gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
   ue_context_pduSession_t pduSession;
   uint32_t gnb_id;
-  enum Ngcause relCause;
+  enum n2cause relCause;
 } itti_ngap_ue_context_release_req_t;
 
 typedef struct itti_ngap_dl_nas_data_req_s {

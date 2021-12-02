@@ -32,6 +32,7 @@ typedef enum {
   STATE_EVENT_SEC_MODE_COMPLETE,
   STATE_EVENT_REG_COMPLETE,
   STATE_EVENT_DEREGISTER,  // Handling Deregister and Deregister init
+  STATE_EVENT_DEREGISTER_ACCEPT,
   STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
   STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
   STATE_PDU_SESSION_RELEASE_COMPLETE,
@@ -54,7 +55,7 @@ typedef enum {
 std::string get_session_state_string(SMSessionFSMState s);
 
 /* UE states */
-enum m5gmm_state_t {
+typedef enum {
   DEREGISTERED = 0,
   REGISTERED_IDLE,
   REGISTERED_CONNECTED,
@@ -63,7 +64,8 @@ enum m5gmm_state_t {
   COMMON_PROCEDURE_INITIATED1,
   COMMON_PROCEDURE_INITIATED2,
   UE_STATE_MAX
-};
+} m5gmm_state_t;
+
 std::string get_ue_state_string(m5gmm_state_t ueState);
 
 typedef struct UE_Handlers_s {

@@ -178,10 +178,14 @@ int nas5g_message_decode(
     bytes =
         _nas5g_message_plain_decode(buffer, &msg->header, &msg->plain, length);
 
-    OAILOG_DEBUG(
-        LOG_AMF_APP, "[%s] Msg plain decode bytes[0-%d]\n%s",
-        get_message_type_str(msg->plain.amf.header.message_type).c_str(), bytes,
-        uint8_to_hex_string(buffer, bytes).c_str());
+    // Dump if decode is successful
+    if (bytes > 0) {
+      OAILOG_DEBUG(
+          LOG_AMF_APP, "[%s] Msg plain decode bytes[0-%d]\n%s",
+          get_message_type_str(msg->plain.amf.header.message_type).c_str(),
+                               bytes,
+                               uint8_to_hex_string(buffer, bytes).c_str());
+    }
   }
 
   if (bytes < 0) {
@@ -1083,6 +1087,8 @@ std::string get_message_type_str(uint8_t type) {
     case DLNASTRANSPORT:
       msgtype_str = "DLNASTRANSPORT";
       break;
+    case FIVE_5GMM_STATUS:
+      msgtype_str = "5GMM STATUS";
     default:
       msgtype_str = "UNKNOWN";
       break;

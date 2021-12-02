@@ -41,6 +41,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
 
 using ::testing::Test;
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
@@ -1365,6 +1366,8 @@ TEST(test_pdu_negative, test_pdu_invalid_pdu_identity) {
       std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
   std::shared_ptr<smf_context_t> smf_ctx =
       amf_insert_smf_context(ue_context, pdu_session_id);
+
+  amf_smf_set_pdu_session_state(smf_ctx, ACTIVE);
 
   for (int req_cnt = 0;
        req_cnt < MAX_UE_INITIAL_PDU_SESSION_ESTABLISHMENT_REQ_ALLOWED;

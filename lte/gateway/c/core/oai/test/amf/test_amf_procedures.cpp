@@ -194,7 +194,7 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcNoTMSI) {
   res = validate_smc_procedure(ue_id, 0);
   EXPECT_TRUE(res == true);
 
-  /* Send uplinkg nas message for security mode complete response from UE */
+  /* Send uplink nas message for security mode complete response from UE */
   rc = send_uplink_nas_message_ue_smc_response(
       amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
       sizeof(ue_smc_response_hexbuf));
@@ -206,7 +206,8 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcNoTMSI) {
       sizeof(ue_registration_complete_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
-  amf_app_handle_deregistration_req(ue_id);
+  rc = amf_app_handle_deregistration_req(ue_id);
+  EXPECT_TRUE(rc == RETURNok);
 }
 
 TEST_F(AMFAppProcedureTest, TestDeRegistration) {
@@ -234,7 +235,7 @@ TEST_F(AMFAppProcedureTest, TestDeRegistration) {
       sizeof(ue_auth_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
-  /* Send uplinkg nas message for security mode complete response from UE */
+  /* Send uplink nas message for security mode complete response from UE */
   rc = send_uplink_nas_message_ue_smc_response(
       amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
       sizeof(ue_smc_response_hexbuf));
@@ -252,7 +253,14 @@ TEST_F(AMFAppProcedureTest, TestDeRegistration) {
   rc = send_uplink_nas_ue_deregistration_request(
       amf_app_desc_p, ue_id, plmn, ue_initiated_dereg_hexbuf,
       sizeof(ue_initiated_dereg_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
 
+  m5gmm_state_t mm_state;
+  rc = amf_get_ue_context_mm_state(ue_id, &mm_state);
+  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_TRUE(mm_state ==  magma5g::DEREGISTERED);
+
+  rc = send_ue_context_release_complete_itti(amf_app_desc_p, ue_id, 1);
   EXPECT_TRUE(rc == RETURNok);
 }
 
@@ -335,7 +343,105 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionSetup) {
   rc = send_uplink_nas_ue_deregistration_request(
       amf_app_desc_p, ue_id, plmn, ue_initiated_dereg_hexbuf,
       sizeof(ue_initiated_dereg_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
 
+  m5gmm_state_t mm_state;
+  rc = amf_get_ue_context_mm_state(ue_id, &mm_state);
+  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_TRUE(mm_state ==  magma5g::DEREGISTERED);
+
+  rc = send_ue_context_release_complete_itti(amf_app_desc_p, ue_id, 1);
+  EXPECT_TRUE(rc == RETURNok);
+}
+
+TEST_F(AMFAppProcedureTest, TestMissingContextResp) {
+  int rc                 = RETURNerror;
+  amf_ue_ngap_id_t ue_id = 0;
+
+  /* Send the second registration message without Initial Context Response */
+
+  /* Send the initial UE message */
+  imsi64_t imsi64 = 0;
+  imsi64          = send_initial_ue_message_no_tmsi(
+      amf_app_desc_p, 36, 1, 8, 0, plmn, initial_ue_message_hexbuf,
+      sizeof(initial_ue_message_hexbuf));
+
+  /* Check if UE Context is created with correct imsi */
+  bool res = false;
+  res      = get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id);
+  EXPECT_TRUE(res == true);
+
+  /* Send the authentication response message from subscriberdb */
+  rc = send_proc_authentication_info_answer(imsi, ue_id, true);
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for auth response from UE */
+  rc = send_uplink_nas_message_ue_auth_response(
+      amf_app_desc_p, ue_id, plmn, ue_auth_response_hexbuf,
+      sizeof(ue_auth_response_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for security mode complete response from UE */
+  rc = send_uplink_nas_message_ue_smc_response(
+      amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
+      sizeof(ue_smc_response_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for registration complete response from UE */
+  rc = send_uplink_nas_registration_complete(
+      amf_app_desc_p, ue_id, plmn, ue_registration_complete_hexbuf,
+      sizeof(ue_registration_complete_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  rc = amf_nas_proc_implicit_detach_ue_ind(ue_id);
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send the second registration message with Initial Context Response */
+  imsi64          = send_initial_ue_message_no_tmsi(
+      amf_app_desc_p, 36, 1, 9, 0, plmn, initial_ue_message_hexbuf,
+      sizeof(initial_ue_message_hexbuf));
+
+  /* Check if UE Context is created with correct imsi */
+  res = false;
+  res = get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id);
+  EXPECT_TRUE(res == true);
+
+  /* Send the authentication response message from subscriberdb */
+  rc = send_proc_authentication_info_answer(imsi, ue_id, true);
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for auth response from UE */
+  rc = send_uplink_nas_message_ue_auth_response(
+      amf_app_desc_p, ue_id, plmn, ue_auth_response_hexbuf,
+      sizeof(ue_auth_response_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for security mode complete response from UE */
+  rc = send_uplink_nas_message_ue_smc_response(
+      amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
+      sizeof(ue_smc_response_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  send_initial_context_response(amf_app_desc_p, ue_id);
+
+  /* Send uplink nas message for registration complete response from UE */
+  rc = send_uplink_nas_registration_complete(
+      amf_app_desc_p, ue_id, plmn, ue_registration_complete_hexbuf,
+      sizeof(ue_registration_complete_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for registration complete response from UE */
+  rc = send_uplink_nas_ue_deregistration_request(
+      amf_app_desc_p, ue_id, plmn, ue_initiated_dereg_hexbuf,
+      sizeof(ue_initiated_dereg_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  m5gmm_state_t mm_state;
+  rc = amf_get_ue_context_mm_state(ue_id, &mm_state);
+  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_TRUE(mm_state ==  magma5g::DEREGISTERED);
+
+  rc = send_ue_context_release_complete_itti(amf_app_desc_p, ue_id, 1);
   EXPECT_TRUE(rc == RETURNok);
 }
 

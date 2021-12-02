@@ -50,8 +50,8 @@ static UE_Handlers_t UE_handlers[] = {
      reinterpret_cast<void (*)(void)>(&amf_proc_registration_complete)},
     {"Deregister_Initiated",
      reinterpret_cast<void (*)(void)>(&amf_app_handle_deregistration_req)},
-    {"Deregister_Completed",
-     reinterpret_cast<void (*)(void)>(&amf_app_handle_deregistration_req)},
+    {"Deregister_Accept",
+     reinterpret_cast<void (*)(void)>(&amf_app_deregistration_accept)},
     {"Idle_mode_procedure",
      reinterpret_cast<void (*)(void)>(&amf_idle_mode_procedure)},
     {"PDU_Creating",
@@ -122,12 +122,8 @@ void create_state_matrix() {
       DEREGISTERED_INITIATED, SESSION_NULL, "Deregister_Initiated");
 
   Update_ue_state_matrix(
-      DEREGISTERED_INITIATED, STATE_EVENT_DEREGISTER, SESSION_NULL,
-      DEREGISTERED, SESSION_NULL, "Deregister_Completed");
-
-  Update_ue_state_matrix(
-      DEREGISTERED, STATE_EVENT_DEREGISTER, SESSION_NULL, DEREGISTERED,
-      SESSION_NULL, "Deregister_Completed");
+      DEREGISTERED_INITIATED, STATE_EVENT_DEREGISTER_ACCEPT, SESSION_NULL,
+      DEREGISTERED, SESSION_NULL, "Deregister_Accept");
 
   Update_ue_state_matrix(
       REGISTERED_CONNECTED, STATE_EVENT_CONTEXT_RELEASE, SESSION_NULL,

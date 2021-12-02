@@ -28,6 +28,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/include/map.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
@@ -200,6 +201,33 @@ ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
     return found_ue_id->second;
   }
 }
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_ue_context_exists_gnb_ue_ngap_id()                        **
+ **                                                                        **
+ ** Description: Checks if UE context exists already or not based on       **
+ **              gnb_key                                                   **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+ue_m5gmm_context_s* amf_ue_context_exists_gnb_ue_ngap_id(
+    amf_ue_context_t* const amf_ue_context_p,
+    const gnb_ngap_id_key_t gnb_key) {
+
+  magma::map_rc_t m_rc = magma::MAP_OK;
+  uint64_t amf_ue_ngap_id64 = 0;
+
+  m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.get(
+             gnb_key, &amf_ue_ngap_id64);
+  if (m_rc == magma::MAP_OK) {
+      return amf_ue_context_exists_amf_ue_ngap_id(
+               amf_ue_ngap_id64);
+  }
+
+  return NULL;
+}
+
 
 /****************************************************************************
  **                                                                        **
@@ -402,7 +430,7 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
   std::shared_ptr<smf_context_t> smf_ctx;
   for (auto& it : ue_context_p->amf_context.smf_ctxt_map) {
     smf_ctx                    = it.second;
-    smf_ctx->pdu_session_state = INACTIVE;
+    amf_smf_set_pdu_session_state(smf_ctx, INACTIVE);
   }
 
   amf_smf_notification_send(ue_id, ue_context_p, UE_IDLE_MODE_NOTIFY);
@@ -418,7 +446,7 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
+void amf_free_ue_context(struct ue_m5gmm_context_s* ue_context_p) {
   hashtable_rc_t h_rc                = HASH_TABLE_OK;
   magma::map_rc_t m_rc               = magma::MAP_OK;
   amf_app_desc_t* amf_app_desc_p     = get_amf_nas_state(false);
@@ -429,11 +457,15 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
     return;
   }
 
-  amf_remove_ue_context(ue_context_p);
+  /* Clean up all the pdu session related memory allocation */
+  amf_app_free_smf_context(ue_context_p);
+
+  amf_ue_context_cleanup_from_map(ue_context_p);
 
   // Clean up the procedures
   amf_nas_proc_clean_up(ue_context_p);
 
+  // Remove gnb_ueid from gnb_ueid and context table mapping
   if (ue_context_p->gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) {
     m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.remove(
         ue_context_p->gnb_ngap_id_key);
@@ -452,16 +484,154 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
     ue_context_p->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
   }
 
+  // Remove IMSI from IMSI-UE table
   amf_ue_context_p->imsi_amf_ue_id_htbl.remove(
       ue_context_p->amf_context.imsi64);
 
-  amf_ue_context_p->tun11_ue_context_htbl.remove(ue_context_p->amf_teid_n11);
+  // Remove teid from teid context table
+  if (ue_context_p->amf_teid_n11) {
+     amf_ue_context_p->tun11_ue_context_htbl.remove(ue_context_p->amf_teid_n11);
+  }
 
-  amf_ue_context_p->guti_ue_context_htbl.remove(
-      ue_context_p->amf_context.m5_guti);
+  // Remove guti from guti context table
+  if (ue_context_p->amf_context.m5_guti.m_tmsi) {
+    amf_ue_context_p->guti_ue_context_htbl.remove(
+        ue_context_p->amf_context.m5_guti);
+  }
 
+  // ue_context cleaned up. proceed with pointer deletion
   delete ue_context_p;
   ue_context_p = NULL;
+}
+
+void amf_ue_context_update_ue_sig_connection_state(
+    amf_ue_context_t* const amf_ue_context_p,
+    struct ue_m5gmm_context_s* ue_context_p, m5gcm_state_t new_cm_state) {
+  // Function is used to update UE's Signaling Connection State
+  hashtable_rc_t hash_rc = HASH_TABLE_OK;
+
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+  if (amf_ue_context_p == NULL) {
+    OAILOG_ERROR(LOG_AMF_APP, "Invalid AMF UE context received\n");
+    OAILOG_FUNC_OUT(LOG_AMF_APP);
+  }
+
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(LOG_AMF_APP, "Invalid UE context received\n");
+    OAILOG_FUNC_OUT(LOG_AMF_APP);
+  }
+
+  if (ue_context_p->cm_state == M5GCM_CONNECTED && new_cm_state == M5GCM_IDLE) {
+    magma::map_rc_t m_rc = magma::MAP_OK;
+    m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.remove(
+           ue_context_p->gnb_ngap_id_key);
+
+    if (m_rc != magma::MAP_OK) {
+      OAILOG_WARNING_UE(
+          LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+          "UE context gnb_ue_ngap_ue_id_key %ld "
+          "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT
+          ", GNB_UE_NGAP_ID_KEY could not be found",
+          ue_context_p->gnb_ngap_id_key, ue_context_p->amf_ue_ngap_id);
+    }
+    ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
+
+    OAILOG_DEBUG_UE(
+        LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+        "AMF_APP: UE Connection State changed to IDLE. amf_ue_ngap_id "
+        "= " AMF_UE_NGAP_ID_FMT "\n",
+        ue_context_p->amf_ue_ngap_id);
+
+    ue_context_p->cm_state = M5GCM_IDLE;
+
+    // Update Stats
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->amf_context.imsi64, "UE STATE - IDLE.\n");
+
+  } else if (
+      (ue_context_p->cm_state == M5GCM_IDLE) &&
+      (new_cm_state == M5GCM_CONNECTED)) {
+    ue_context_p->cm_state = M5GCM_CONNECTED;
+
+    OAILOG_DEBUG_UE(
+        LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+        "AMF_APP: UE Connection State changed to CONNECTED.enb_ue_s1ap_id "
+        "=" GNB_UE_NGAP_ID_FMT ", mme_ue_s1ap_id = " AMF_UE_NGAP_ID_FMT "\n",
+        ue_context_p->gnb_ue_ngap_id, ue_context_p->amf_ue_ngap_id);
+    // Set PPF flag to true whenever UE moves from M5GCM_IDLE to M5GCM_CONNECTED
+    // state
+    ue_context_p->ppf = true;
+
+    OAILOG_INFO_UE(
+        LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+        "UE STATE - CONNECTED.\n");
+  } else if (ue_context_p->cm_state == M5GCM_IDLE && new_cm_state == M5GCM_IDLE) {
+    OAILOG_INFO_UE(
+        LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+        "Old UE CM State (IDLE) is same as the new UE CM state (IDLE)\n");
+    magma::map_rc_t m_rc = magma::MAP_OK;
+    m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.remove(
+           ue_context_p->gnb_ngap_id_key);
+
+    if (m_rc != magma::MAP_OK) {
+      OAILOG_WARNING_UE(
+          LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+          "UE context gnb_ue_ngap_ue_id_key %ld "
+          "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT
+          ", GNB_UE_NGAP_ID_KEY could not be found",
+          ue_context_p->gnb_ngap_id_key, ue_context_p->amf_ue_ngap_id);
+    }
+
+    ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
+  } else {
+    OAILOG_INFO_UE(
+        LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+        "Old UE CM State (CONNECTED) is same as the new UE CM state "
+        "(CONNECTED)\n");
+  }
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
+}
+
+// Get the ue_context release cause
+status_code_e amf_get_ue_context_rel_cause(amf_ue_ngap_id_t ue_id,
+                                           enum n2cause *ue_context_rel_cause) {
+  ue_m5gmm_context_s *ue_context_p =
+       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (ue_context_p == NULL) {
+    return RETURNerror;
+  }
+
+  *ue_context_rel_cause = ue_context_p->ue_context_rel_cause;
+  return RETURNok;
+}
+
+// Get the ue_context mm state
+status_code_e amf_get_ue_context_mm_state(amf_ue_ngap_id_t ue_id,
+                                          m5gmm_state_t *mm_state) {
+  ue_m5gmm_context_s *ue_context_p =
+       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (ue_context_p == NULL) {
+    return RETURNerror;
+  }
+
+  *mm_state = ue_context_p->mm_state;
+  return RETURNok;
+}
+
+// Get the ue_context cm state
+status_code_e amf_get_ue_context_cm_state(amf_ue_ngap_id_t ue_id,
+                                          m5gcm_state_t *cm_state) {
+  ue_m5gmm_context_s *ue_context_p =
+       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (ue_context_p == NULL) {
+    return RETURNerror;
+  }
+
+  *cm_state = ue_context_p->cm_state;
+  return RETURNok;
 }
 
 }  // namespace magma5g

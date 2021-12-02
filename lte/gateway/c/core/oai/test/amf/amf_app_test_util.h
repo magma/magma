@@ -95,4 +95,6 @@ int send_uplink_nas_ue_deregistration_request(
     amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
     uint8_t* nas_msg, uint8_t nas_msg_length);
 
+int send_ue_context_release_complete_itti(amf_app_desc_t* amf_app_desc_p,
+    amf_ue_ngap_id_t ue_id, gnb_ue_ngap_id_t gnb_ue_ngap_id);
 }  // namespace magma5g

@@ -172,7 +172,6 @@ int amf_proc_deregistration_request(
     /* Handle releasing all context related resources
      */
 
-    ue_context->ue_context_rel_cause.ngapCause_u.nas = ngap_CauseNas_deregister;
     rc = ue_state_handle_message_dereg(
         ue_context->mm_state, STATE_EVENT_DEREGISTER, SESSION_NULL, ue_context,
         ue_id);
@@ -191,8 +190,9 @@ int amf_proc_deregistration_request(
 int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc                         = RETURNerror;
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  if (!ue_context) {
+  ue_m5gmm_context_t* ue_context_p =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (!ue_context_p) {
     OAILOG_ERROR(
         LOG_AMF_APP,
         "ue context not found for the "
@@ -200,24 +200,79 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
         ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
-  // TODO: will be taken care later as PDU session related info not stored
-  // but proceeding to release all the resources and notify NGAP
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
-  if (!amf_app_desc_p) {
-    OAILOG_ERROR(LOG_AMF_APP, "Failed to fetch amf_app_desc_p \n");
+
+  if (ue_context_p->amf_context.smf_ctxt_map.size() == 0) {
+    amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+    if (!amf_app_desc_p) {
+      OAILOG_ERROR(LOG_AMF_APP, "Failed to fetch amf_app_desc_p \n");
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+    }
+
+    if (ue_context_p->amf_context.new_registration_info) {
+      nas_delete_all_amf_procedures(&ue_context_p->amf_context);
+      proc_new_registration_req(&amf_app_desc_p->amf_ue_contexts, ue_context_p);
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+    }
+
+    if (M5GCM_IDLE == ue_context_p->cm_state) {
+      ue_context_p->ue_context_rel_cause = NGAP_IMPLICIT_CONTEXT_RELEASE;
+      // Notify NGAP to release NGAP UE context locally.
+      amf_app_itti_ue_context_release(
+          ue_context_p, ue_context_p->ue_context_rel_cause);
+
+      amf_free_ue_context(ue_context_p);
+    } else {
+      if (ue_context_p->ue_context_rel_cause == NGAP_INVALID_CAUSE) {
+        ue_context_p->ue_context_rel_cause = NGAP_NAS_DEREGISTER;
+      }
+      // Notify ngap to send ue context release command to gnb.
+      amf_app_itti_ue_context_release(
+          ue_context_p, ue_context_p->ue_context_rel_cause);
+      if (ue_context_p->ue_context_rel_cause == NGAP_SCTP_SHUTDOWN_OR_RESET) {
+        amf_free_ue_context(ue_context_p);
+      } else {
+        ue_context_p->ue_context_rel_cause = NGAP_INVALID_CAUSE;
+      }
+    }
+  } else {
+    amf_smf_context_cleanup_pdu_session(ue_context_p);
+  }
+
+  // Accept deregistration
+  rc = ue_state_handle_message_dereg(
+        ue_context_p->mm_state, STATE_EVENT_DEREGISTER_ACCEPT,
+        SESSION_NULL, ue_context_p, ue_id);
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+}
+
+/***************************************************************************
+ **                                                                        **
+ ** Name:    amf_app_deregistration_accept()                               **
+ **                                                                        **
+ ** Description: State Tranision to deregistration accept                  **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
+
+status_code_e amf_app_deregistration_accept(amf_ue_ngap_id_t ue_id) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  status_code_e rc                         = RETURNerror;
+  ue_m5gmm_context_t* ue_context_p =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (!ue_context_p) {
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "ue context not found for the "
+        "ue_id = " AMF_UE_NGAP_ID_FMT "\n",
+        ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
-  // UE context release notification to NGAP
-  if (ue_context->ue_context_rel_cause.ngapCause_u.nas ==
-      ngap_CauseNas_normal_release) {
-    ue_context->ue_context_rel_cause.ngapCause_u.nas = ngap_CauseNas_deregister;
+
+  if (ue_context_p->amf_context.smf_ctxt_map.size()) {
+    OAILOG_ERROR(LOG_AMF_APP, "Smf Context should have been cleaned up\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
-  amf_app_ue_context_release(ue_context, ue_context->ue_context_rel_cause);
-
-  // Clean up all the sessions.
-  amf_smf_context_cleanup_pdu_session(ue_context);
-
-  amf_free_ue_context(ue_context);
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
@@ -231,10 +286,8 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
 **                                                                        **
 ***************************************************************************/
 void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
-  amf_smf_release_t smf_message;
+  amf_smf_release_t smf_message = {};
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
-
-  memset(&smf_message, 0, sizeof(amf_smf_release_t));
 
   for (auto& it : ue_context->amf_context.smf_ctxt_map) {
     IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
@@ -252,17 +305,19 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
           imsi, i->dnn.c_str(), &(i->pdu_address.ipv4_address));
     }
   }
+
+  ue_context->amf_context.smf_ctxt_map.clear();
 }
 
 /***************************************************************************
 **                                                                        **
-** Name:    amf_remove_ue_context()                                       **
+** Name:    amf_ue_context_cleanup_from_map()                             **
 **                                                                        **
-** Description: Function to remove UE Context                             **
+** Description: Function to remove UE Context from context map            **
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_remove_ue_context(ue_m5gmm_context_s* ue_context_p) {
+void amf_ue_context_cleanup_from_map(ue_m5gmm_context_s* ue_context_p) {
   std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*>::iterator
       found_ue_id = ue_context_map.find(ue_context_p->amf_ue_ngap_id);
 
