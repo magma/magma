@@ -159,12 +159,17 @@ jobs:
             ARTIFACTS=$(echo $ARTIFACTS | jq '. += {"valid":true}')
           fi
           echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
-
       - uses: actions/upload-artifact@v2
         if: github.event_name == 'pull_request'
         with:
           name: magma-packages
           path: lte/gateway/magma-packages/*.deb
+      - uses: actions/upload-artifact@v2
+        name: Export sentry executables
+        if: github.event_name == 'push'
+        with:
+          name: sentry-exec
+          path: lte/gateway/magma-packages
       - name: Extract commit title
         # yamllint enable
         if: github.event_name == 'push'
@@ -191,6 +196,50 @@ jobs:
         uses: Ilshidur/action-slack@2.1.0
         with:
           args: "AGW  build succeeded on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
+  sentry_release:
+    if: always() && github.event_name == 'push'
+    needs: [agw-build]
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      SENTRY_ENVIRONMENT: "staging"
+      SENTRY_ORG: "lf-9c"
+      PATH_TO_EXEC: "./executables"
+      MAGMA_VERSION: ${{ needs.agw-build.outputs.magma_version }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v2
+        with:
+          name: sentry-exec
+      - uses: geekyeggo/delete-artifact@v1
+        with:
+          name: sentry-exec
+      - run: ls -R
+      - run: curl -sL https://sentry.io/get-cli/ | bash
+      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
+        with:
+          EXECUTABLE_NAME: sessiond
+          SENTRY_ORG: lf-9c
+          PATH_TO_EXEC: "./executables"
+          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
+      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
+        with:
+          EXECUTABLE_NAME: mme
+          SENTRY_ORG: lf-9c
+          PATH_TO_EXEC: "./executables"
+          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
+      - name: Create a release in Sentry.io with the commit hash
+        env:
+          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
+        run: |
+           # The assumption here is that the magma version is copied out
+           # into /home/circleci/project/circleci in the magma_integ_test step
+           COMMIT_HASH_WITH_VERSION="magma@1.7.0.$(git rev-list --count HEAD)-${GITHUB_SHA:0:9}"
+           sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native -p radtonics_lab_native -p magma-staging-native ${COMMIT_HASH_WITH_VERSION}
+           sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${COMMIT_HASH_WITH_VERSION}
+           sentry-cli --log-level=info releases finalize ${COMMIT_HASH_WITH_VERSION}
   orc8r-build:
     name: orc8r build job
     runs-on: ubuntu-latest
