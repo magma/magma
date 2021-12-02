@@ -46,7 +46,7 @@ func (s S8RelayRouter) CreateSession(
 	// Get unique SGW Control Plane TEID and inject it into the request
 	// TODO: change this to use the proper field once supported by MME
 	var err error
-	req.FegRelayGeneratedCAgwTeid, err = getUniqueSgwCTeid(c)
+	req.CAgwTeid, err = getUniqueSgwCTeid(c)
 	if err != nil {
 		err = fmt.Errorf("S8 Create Session couldn't get unite SgwCteid: %v; request: %s", err, req.String())
 		glog.Error(err)
