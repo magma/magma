@@ -22,6 +22,14 @@ EXCLUSIVE_FEATURE_LIST = mme agw_of mme_oai
 AVAILABLE_FEATURE_LIST = s6a_fd mme agw_of mme_oai
 REQUESTED_FEATURE_LIST = $(sort $(FEATURES))
 
+ifeq ($(BUILD_TYPE),Debug)
+	BAZEL_FLAGS = --compilation_mode=fastbuild
+else 
+	## RelWithDebInfo enable LSAN and add debug information
+	BAZEL_FLAGS = --config=lsan --compilation_mode=dbg --strip=never
+endif
+$(info BAZEL_FLAGS $(BAZEL_FLAGS))
+
 ifneq ($(words $(strip $(filter-out $(AVAILABLE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))), 0)
   $(error Non allowed flags: "$(filter-out $(AVAILABLE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST))")
 endif
@@ -140,41 +148,27 @@ build_python: stop ## Build Python environment
 build_common: ## Build shared libraries
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(COMMON_FLAGS))
 
+define copy_bazel_c_build ## Copy Bazel build output to C_BUILD/
+# 1 - source directory, 2 - binary name
+mkdir -p $(C_BUILD)/$(1)
+sudo cp -f $(MAGMA_ROOT)/bazel-bin/lte/gateway/c/$(1)/$(2) $(C_BUILD)/$(1)/$(2)
+endef
+
+build_c:  ## Build C/C++ targets with Bazel
+	bazel build $(BAZEL_FLAGS) //lte/gateway/c/session_manager:sessiond //lte/gateway/c/sctpd/src:sctpd //lte/gateway/c/connection_tracker/src:connectiond //lte/gateway/c/li_agent/src:liagentd
+	$(call copy_bazel_c_build,session_manager,sessiond)
+	$(call copy_bazel_c_build,sctpd/src,sctpd)
+	$(call copy_bazel_c_build,connection_tracker/src,connectiond)
+	$(call copy_bazel_c_build,li_agent/src,liagentd)
+
 build_oai: ## Build OAI
 	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS))
-
-build_oai_clang: ## Build OAI with Clang, store compiler outputs to log
-	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS), CC="clang" CXX="clang++") 2>&1 | tee /tmp/clang-build.oai.log
 
 format_all:
 	find $(MAGMA_ROOT)/orc8r/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
 	clang-format --style=file -i {} \;
 	find $(MAGMA_ROOT)/lte/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
 	clang-format --style=file -i {} \;
-
-# Upload Clang-Warning counts by type to Google Sheet via Google Survey
-#  Graph available at https://docs.google.com/spreadsheets/d/1ndiIKJNI2IJZBwavnu1x_KwwvlQppnoYEOtYdihqiIQ/edit#gid=734064581
-# TODO: Move to a third party service (I could not find) or make a binary that parses + uploads this without missing new warning types.
-clang_warning_oai_upload: build_oai_clang ## Generate and then upload warning statistics to Google Survey for telemetry
-	curl -L -v -G -Ss \
-		--data-urlencode "entry.608561103=$(BRANCH)" \
-		--data-urlencode "entry.1257088109=$(REVISION)" \
-		--data-urlencode "entry.708918097=OAI" \
-		--data-urlencode "entry.1995144005=$(shell grep '\[-Wconstant-conversion\]' /tmp/clang-build.oai.log | wc -l)" \
-		--data-urlencode "entry.889426184=$(shell grep '\[-Wdeprecated-declarations\]' /tmp/clang-build.oai.log | wc -l)" \
-		--data-urlencode "entry.6143542=$(shell grep '\[-Wenum-conversion\]' /tmp/clang-build.oai.log | wc -l)" \
-		--data-urlencode "entry.1953446373=$(shell grep '\[-Wextern-c-compat\]' /tmp/clang-build.oai.log | wc -l)" \
-		--data-urlencode "entry.1508747323=$(shell grep '\[-Winconsistent-missing-override\]' /tmp/clang-build.oai.log | wc -l)" \
-		--data-urlencode "entry.1682903653=$(shell grep '\[-Winitializer-overrides\]' /tmp/clang-build.oai.log | wc -l)" \
-		--data-urlencode "entry.1030484709=$(shell grep '\[-Wnon-c-typedef-for-linkage\]' /tmp/clang-build.oai.log | wc -l)" \
-		--data-urlencode "entry.1885910120=$(shell grep '\[-Wnull-dereference\]' /tmp/clang-build.oai.log | wc -l)" \
-		--data-urlencode "entry.411691731=$(shell grep '\[-Wparentheses-equality\]' /tmp/clang-build.oai.log | wc -l)" \
-		--data-urlencode "entry.872392934=$(shell grep '\[-Wpointer-bool-conversion\]' /tmp/clang-build.oai.log | wc -l)" \
-		--data-urlencode "entry.1058267165=$(shell grep '\[-Wtautological-constant-out-of-range-compare\]' /tmp/clang-build.oai.log | wc -l)" \
-		--data-urlencode "entry.1145616398=$(shell grep '\[-Wtautological-overlap-compare\]' /tmp/clang-build.oai.log | wc -l)" \
-		--data-urlencode "entry.1265654844=$(shell grep '\[-Wtautological-pointer-compare\]' /tmp/clang-build.oai.log | wc -l)" \
-		--data-urlencode "entry.599425517=$(shell grep '\[-Wtypedef-redefinition\]' /tmp/clang-build.oai.log | wc -l)" \
-		https://docs.google.com/forms/d/e/1FAIpQLScKB3nLPASxzr4AXW5_yeHCjkEURY0K9OAFPIyNFzkA5CY_kw/formResponse?usp=pp_url
 
 build_sctpd:
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
@@ -211,6 +205,9 @@ ifdef UT_PATH
 endif
 	make -C $(MAGMA_ROOT)/lte/gateway/python unit_tests MAGMA_SERVICE=$(MAGMA_SERVICE) UT_PATH=$(ut_path) DONT_BUILD_ENV=$(DONT_BUILD_ENV)
 
+test_c: ## Run all Bazel-ified C/C++ tests
+	bazel test $(BAZEL_FLAGS) -- //orc8r/gateway/c/...:* //lte/gateway/c/...:* -//lte/gateway/c/core/...:*
+
 test_oai: ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS))
 
@@ -243,6 +240,33 @@ precommit_sm: format_all test_session_manager
 
 # format and test c/oai
 precommit_oai: format_all test_oai
+
+build_oai_clang: ## Build OAI with Clang, store compiler outputs to log
+	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS), CC="clang" CXX="clang++") 2>&1 | tee /tmp/clang-build.oai.log
+
+# Upload Clang-Warning counts by type to Google Sheet via Google Survey
+#  Graph available at https://docs.google.com/spreadsheets/d/1ndiIKJNI2IJZBwavnu1x_KwwvlQppnoYEOtYdihqiIQ/edit#gid=734064581
+# TODO: Move to a third party service (I could not find) or make a binary that parses + uploads this without missing new warning types.
+clang_warning_oai_upload: build_oai_clang ## Generate and then upload warning statistics to Google Survey for telemetry
+	curl -L -v -G -Ss \
+		--data-urlencode "entry.608561103=$(BRANCH)" \
+		--data-urlencode "entry.1257088109=$(REVISION)" \
+		--data-urlencode "entry.708918097=OAI" \
+		--data-urlencode "entry.1995144005=$(shell grep '\[-Wconstant-conversion\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.889426184=$(shell grep '\[-Wdeprecated-declarations\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.6143542=$(shell grep '\[-Wenum-conversion\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1953446373=$(shell grep '\[-Wextern-c-compat\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1508747323=$(shell grep '\[-Winconsistent-missing-override\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1682903653=$(shell grep '\[-Winitializer-overrides\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1030484709=$(shell grep '\[-Wnon-c-typedef-for-linkage\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1885910120=$(shell grep '\[-Wnull-dereference\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.411691731=$(shell grep '\[-Wparentheses-equality\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.872392934=$(shell grep '\[-Wpointer-bool-conversion\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1058267165=$(shell grep '\[-Wtautological-constant-out-of-range-compare\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1145616398=$(shell grep '\[-Wtautological-overlap-compare\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.1265654844=$(shell grep '\[-Wtautological-pointer-compare\]' /tmp/clang-build.oai.log | wc -l)" \
+		--data-urlencode "entry.599425517=$(shell grep '\[-Wtypedef-redefinition\]' /tmp/clang-build.oai.log | wc -l)" \
+		https://docs.google.com/forms/d/e/1FAIpQLScKB3nLPASxzr4AXW5_yeHCjkEURY0K9OAFPIyNFzkA5CY_kw/formResponse?usp=pp_url
 
 # Run clang-tidy
 # TODO: CMake config issue - compile_commands.json is only generated if you first make_oai, then test_oai (or do either twice).

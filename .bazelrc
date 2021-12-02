@@ -3,8 +3,7 @@ startup --output_base=/tmp/bazel
 build --announce_rc
 build --color=yes
 build --cxxopt=-std=c++14
-build --strip=never
-build --compilation_mode=dbg
+build --cxxopt="-DLOG_WITH_GLOG=1"
 
 # Needed for coverage collection
 build --javacopt="-source 8"
