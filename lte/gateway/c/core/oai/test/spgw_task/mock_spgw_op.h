@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-#include "spgw_state_converter.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.h"
 
 namespace magma {
 namespace lte {

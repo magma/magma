@@ -13,8 +13,8 @@
 #include <fstream>
 #include <algorithm>
 
-#include "mock_spgw_op.h"
-#include "spgw_state.h"
+#include "lte/gateway/c/core/oai/test/spgw_task/mock_spgw_op.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
 #include <google/protobuf/text_format.h>
 
 namespace magma {

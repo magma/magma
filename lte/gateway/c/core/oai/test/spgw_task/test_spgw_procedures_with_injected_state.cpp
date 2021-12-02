@@ -10,6 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include <gtest/gtest.h>
 #include <string>
 #include <thread>
@@ -18,19 +19,19 @@
 #include <sys/types.h>
 #include <pwd.h>
 
-#include "../mock_tasks/mock_tasks.h"
-#include "spgw_test_util.h"
-#include "spgw_state.h"
-#include "spgw_state_converter.h"
-#include "mock_spgw_op.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.h"
+#include "lte/gateway/c/core/oai/test/spgw_task/mock_spgw_op.h"
 
 extern "C" {
-#include "mme_config.h"
-#include "pgw_handlers.h"
-#include "sgw_context_manager.h"
-#include "sgw_defs.h"
-#include "sgw_handlers.h"
-#include "spgw_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
 }
 
 extern bool hss_associated;
