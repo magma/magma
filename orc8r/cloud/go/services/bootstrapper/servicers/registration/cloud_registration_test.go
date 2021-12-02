@@ -30,6 +30,7 @@ import (
 
 var (
 	rootCA = "rootCA"
+	timeoutDuration = 30 * time.Minute
 )
 
 func TestCloudRegistrationServicer_GetGatewayRegistrationInfo(t *testing.T) {
@@ -46,7 +47,6 @@ func TestCloudRegistrationServicer_Registration(t *testing.T) {
 	var (
 		networkID       = "networkID"
 		logicalID       = "logicalID"
-		timeoutDuration = 30 * time.Minute
 
 		gatewayDeviceInfo = &protos.GatewayDeviceInfo{
 			NetworkId: networkID,
@@ -114,9 +114,9 @@ func TestCloudRegistrationServicer_Registration(t *testing.T) {
 
 func cloudRegistrationTestSetup(t *testing.T) (context.Context, protos.CloudRegistrationServer) {
 	factory := test_utils.NewSQLBlobstore(t, bootstrapper.BlobstoreTableName)
-	s := registration.NewBlobstoreStore(factory)
+	store := registration.NewBlobstoreStore(factory)
 
-	cloudRegistration, err := registration.NewCloudRegistrationServicer(s, rootCA, 30)
+	cloudRegistration, err := registration.NewCloudRegistrationServicer(store, rootCA, timeoutDuration)
 	assert.NoError(t, err)
 
 	ctx := context.Background()
