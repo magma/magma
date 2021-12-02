@@ -49,7 +49,7 @@ message GetCARequest {
 }
 
 message TokenList {
-  repeated string token = 1;
+  repeated string tokens = 1;
 }
 
 message User {
@@ -70,14 +70,25 @@ enum Action {
   WRITE = 2;
 }
 
+enum ResourceType {
+  REQUEST_URI = 0;
+  NETWORK_ID = 1;
+  TENANT_ID = 2;
+}
+
+message Resource {
+  Effect effect = 1;
+  Action action = 2;
+  ResourceType resourceType = 3;
+  string resource = 4;
+}
+
 message ResourceList {
-  repeated string resource = 4;
+  repeated Resource resources = 4;
 }
 
 message Policy {
   string token = 1;
-  Effect effect = 2;
-  Action action = 3;
   ResourceList resources = 4;
 }
 
@@ -94,8 +105,7 @@ message CreateUserRequest {
 message GetPolicyDecisionRequest {
   string username = 1;
   string token = 2;
-  Action  requestAction = 3;
-  string resource = 4;
+  Resource resource = 3;
 }
 
 message PolicyDecision {

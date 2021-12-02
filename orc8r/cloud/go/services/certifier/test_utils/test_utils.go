@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/services/certifier"
-	certProtos "magma/orc8r/cloud/go/services/certifier/protos"
+	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/test_utils"
 )
@@ -40,33 +40,41 @@ func CreateTestUser(t *testing.T, store storage.CertifierStorage) string {
 	return token
 }
 
-func createTestUser(t *testing.T, username string, password string) (certProtos.User, string) {
+func createTestUser(t *testing.T, username string, password string) (certprotos.User, string) {
 	token, err := certifier.GenerateToken(certifier.Personal)
 	assert.NoError(t, err)
-	user := certProtos.User{
+	user := certprotos.User{
 		Username: username,
 		Password: []byte(password),
-		Tokens:   &certProtos.TokenList{Token: []string{token}},
+		Tokens:   &certprotos.TokenList{Tokens: []string{token}},
 	}
 	return user, token
 }
 
-func createTestUserPolicy(token string) certProtos.Policy {
-	policy := certProtos.Policy{
+func createTestUserPolicy(token string) certprotos.Policy {
+	resource := &certprotos.Resource{
+		Effect:       certprotos.Effect_ALLOW,
+		Action:       certprotos.Action_READ,
+		ResourceType: certprotos.ResourceType_REQUEST_URI,
+		Resource:     "/**",
+	}
+	policy := certprotos.Policy{
 		Token:     token,
-		Effect:    certProtos.Effect_ALLOW,
-		Action:    certProtos.Action_READ,
-		Resources: &certProtos.ResourceList{Resource: []string{"/**"}},
+		Resources: &certprotos.ResourceList{Resources: []*certprotos.Resource{resource}},
 	}
 	return policy
 }
 
-func createTestAdminPolicy(token string) certProtos.Policy {
-	policy := certProtos.Policy{
+func createTestAdminPolicy(token string) certprotos.Policy {
+	resource := &certprotos.Resource{
+		Effect:       certprotos.Effect_ALLOW,
+		Action:       certprotos.Action_WRITE,
+		ResourceType: certprotos.ResourceType_REQUEST_URI,
+		Resource:     "/**",
+	}
+	policy := certprotos.Policy{
 		Token:     token,
-		Effect:    certProtos.Effect_ALLOW,
-		Action:    certProtos.Action_WRITE,
-		Resources: &certProtos.ResourceList{Resource: []string{"/**"}},
+		Resources: &certprotos.ResourceList{Resources: []*certprotos.Resource{resource}},
 	}
 	return policy
 }

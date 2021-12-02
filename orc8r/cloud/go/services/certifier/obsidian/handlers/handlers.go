@@ -79,19 +79,23 @@ func getCreateUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 		user := &protos.User{
 			Username: username,
 			Password: hashedPassword,
-			Tokens:   &protos.TokenList{Token: []string{token}},
+			Tokens:   &protos.TokenList{Tokens: []string{token}},
 		}
 		if err = storage.PutUser(username, user); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 		effect := matchEffect(data.Policy.Effect)
 		action := matchAction(data.Policy.Action)
+		resource := &protos.Resource{
+			Effect:       effect,
+			Action:       action,
+			ResourceType: protos.ResourceType_REQUEST_URI,
+			Resource:     "/**",
+		}
 		policy := &protos.Policy{
-			Token:  token,
-			Effect: effect,
-			Action: action,
+			Token: token,
 			Resources: &protos.ResourceList{
-				Resource: data.Policy.Resources,
+				Resources: []*protos.Resource{resource},
 			},
 		}
 		if err = storage.PutPolicy(token, policy); err != nil {
@@ -157,16 +161,16 @@ func getLoginHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 
 		user, err := storage.GetUser(username)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 		}
 
-		hashedPassword := user.GetPassword()
+		hashedPassword := user.Password
 		err = bcrypt.CompareHashAndPassword(hashedPassword, password)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusUnauthorized, "wrong password")
 		}
 
-		tokens := user.GetTokens().GetToken()
+		tokens := user.Tokens.Tokens
 		return c.JSON(http.StatusOK, tokens)
 	}
 }

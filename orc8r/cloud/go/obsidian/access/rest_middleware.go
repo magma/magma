@@ -25,7 +25,7 @@ import (
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/services/certifier"
-	certifierprotos "magma/orc8r/cloud/go/services/certifier/protos"
+	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	merrors "magma/orc8r/lib/go/errors"
 )
 
@@ -130,21 +130,22 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if err := certifier.ValidateToken(token); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
-
-		// Take tokenList, request type, resource and exchange for permission decision
-		requestType := getRequestAction(req, nil)
-		resource := req.RequestURI
-		getPDReq := &certifierprotos.GetPolicyDecisionRequest{
-			Username:      username,
-			Token:         token,
-			RequestAction: requestType,
-			Resource:      resource,
+		// TODO(christinewang5): implement for other req resource types
+		resource := &certprotos.Resource{
+			Action:       getRequestAction(req, nil),
+			ResourceType: certprotos.ResourceType_REQUEST_URI,
+			Resource:     req.RequestURI,
+		}
+		getPDReq := &certprotos.GetPolicyDecisionRequest{
+			Username: username,
+			Token:    token,
+			Resource: resource,
 		}
 		pd, err := certifier.GetPolicyDecision(req.Context(), getPDReq)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
-		if pd.Effect == certifierprotos.Effect_DENY {
+		if pd.Effect == certprotos.Effect_DENY {
 			return echo.NewHTTPError(http.StatusForbidden, "not authorized to view resource")
 		}
 		if next != nil {
@@ -158,14 +159,14 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 // getRequestType returns the required request permission (READ, WRITE
 // or READ+WRITE) corresponding to the request method.
-func getRequestAction(req *http.Request, decorate logDecorator) certifierprotos.Action {
+func getRequestAction(req *http.Request, decorate logDecorator) certprotos.Action {
 	switch req.Method {
 	case "GET", "HEAD":
-		return certifierprotos.Action_READ
+		return certprotos.Action_READ
 	case "PUT", "POST", "DELETE":
-		return certifierprotos.Action_WRITE
+		return certprotos.Action_WRITE
 	default:
 		glog.Info(decorate("Unclassified HTTP method '%s', defaulting to read+write requested permissions", req.Method))
-		return certifierprotos.Action_READ | certifierprotos.Action_WRITE
+		return certprotos.Action_READ | certprotos.Action_WRITE
 	}
 }

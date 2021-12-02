@@ -362,23 +362,22 @@ func (srv *CertifierServer) CreateUser(ctx context.Context, createUserReq *certp
 	user := certprotos.User{
 		Username: createUserReq.User.Username,
 		Password: hashedPassword,
-		Tokens:   &certprotos.TokenList{Token: []string{token}},
+		Tokens:   &certprotos.TokenList{Tokens: []string{token}},
 	}
 	err = srv.store.PutUser(createUserReq.User.Username, &user)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to store user while creating user")
 	}
-	policy := certprotos.Policy{
+
+	policy := &certprotos.Policy{
 		Token:     token,
-		Effect:    createUserReq.Policy.Effect,
-		Action:    createUserReq.Policy.Action,
 		Resources: createUserReq.Policy.Resources,
 	}
-	err = srv.store.PutPolicy(token, &policy)
+	err = srv.store.PutPolicy(token, policy)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to store policy while creating user")
 	}
-	return &certprotos.TokenList{Token: []string{token}}, nil
+	return &certprotos.TokenList{Tokens: []string{token}}, nil
 }
 
 func generateSerialNumber(store storage.CertifierStorage) (sn *big.Int, err error) {
@@ -516,11 +515,10 @@ func (srv *CertifierServer) verifyCert(clientCert *x509.Certificate, certType pr
 
 func (srv *CertifierServer) getPolicyDecisionFromTokenMany(tokens *certprotos.TokenList, getPDReq *certprotos.GetPolicyDecisionRequest) (*certprotos.PolicyDecision, error) {
 	resource := getPDReq.Resource
-	action := getPDReq.RequestAction
 
 	finalEffect := certprotos.Effect_DENY
-	for _, t := range tokens.GetToken() {
-		effect, _ := srv.getPolicyDecisionFromToken(t, resource, action)
+	for _, t := range tokens.Tokens {
+		effect, _ := srv.getPolicyDecisionFromToken(t, resource)
 		switch effect {
 		case certprotos.Effect_DENY:
 			// Return early if there is a DENY in any of the permissions
@@ -535,53 +533,66 @@ func (srv *CertifierServer) getPolicyDecisionFromTokenMany(tokens *certprotos.To
 	return &certprotos.PolicyDecision{Effect: finalEffect}, nil
 }
 
-func (srv *CertifierServer) getPolicyDecisionFromToken(token string, resource string, action certprotos.Action) (certprotos.Effect, error) {
+func (srv *CertifierServer) getPolicyDecisionFromToken(token string, reqResource *certprotos.Resource) (certprotos.Effect, error) {
 	policy, err := srv.store.GetPolicy(token)
 	if err != nil {
-		status.Errorf(codes.Internal, "failed to get policy from db: %v", err)
+		return certprotos.Effect_UNKNOWN, status.Errorf(codes.Internal, "failed to get policy from db, checking next policy: %v", err)
+	}
+	effect := certprotos.Effect_UNKNOWN
+	for _, policyResource := range policy.Resources.Resources {
+		effect = checkResource(reqResource, policyResource)
+		if effect == certprotos.Effect_DENY {
+			return certprotos.Effect_DENY, nil
+		}
+
+		effect = checkAction(reqResource, policyResource)
+		if effect == certprotos.Effect_DENY {
+			return certprotos.Effect_DENY, nil
+		}
 	}
 
-	effect, err := checkResource(resource, policy)
-	// Return if the policy denies the user or is unknown for the resource
-	if effect == certprotos.Effect_DENY || effect == certprotos.Effect_UNKNOWN {
-		return effect, status.Errorf(codes.PermissionDenied, "not authorized to read/write resource")
-	} else if err != nil {
-		return certprotos.Effect_DENY, err
-	}
-
-	effect = checkAction(action, policy)
 	return effect, nil
 }
 
-// checkResource checks if the requested resource is authorized by the policy
-func checkResource(resource string, policy *certprotos.Policy) (certprotos.Effect, error) {
-	effect := policy.Effect
-	// Check if any of policy's resource list allows/denies the requested resource
-	for _, pr := range policy.Resources.Resource {
-		if ok, err := doublestar.Match(pr, resource); ok {
-			return effect, nil
-		} else {
-			glog.Errorf("failed to match resource path: %v", err)
-		}
+func checkResource(reqResource, policyResource *certprotos.Resource) certprotos.Effect {
+	switch reqResource.ResourceType {
+	case certprotos.ResourceType_REQUEST_URI:
+		return checkRequestURI(reqResource, policyResource)
+	default:
+		// TODO(christinewang5): implement for other req resource types
+		return certprotos.Effect_UNKNOWN
 	}
-	// Return UNKNOWN if resource is not explicitly allowed/denied by policy
-	return certprotos.Effect_UNKNOWN, nil
+	return certprotos.Effect_UNKNOWN
+}
+
+// checkRequestURI checks if the requested resource is authorized by the policy
+func checkRequestURI(reqResource *certprotos.Resource, policyResource *certprotos.Resource) certprotos.Effect {
+	// The policy does not handle this case, so return UNKNOWN.
+	if reqResource.ResourceType != certprotos.ResourceType_REQUEST_URI || policyResource.ResourceType != certprotos.ResourceType_REQUEST_URI {
+		return certprotos.Effect_UNKNOWN
+	}
+	reqURI := reqResource.Resource
+	policyURI := policyResource.Resource
+	if ok, _ := doublestar.Match(reqURI, policyURI); ok {
+		return policyResource.Effect
+	}
+	return certprotos.Effect_UNKNOWN
 }
 
 // checkAction checks if the requested action is authorized by the policy
-func checkAction(action certprotos.Action, policy *certprotos.Policy) certprotos.Effect {
-	if policy.GetAction() == certprotos.Action_WRITE {
-		return certprotos.Effect_ALLOW
+func checkAction(reqResource *certprotos.Resource, policyResource *certprotos.Resource) certprotos.Effect {
+	if policyResource.Action == certprotos.Action_WRITE {
+		return policyResource.Effect
 	}
-	if policy.GetAction() == certprotos.Action_READ && action == certprotos.Action_READ {
-		return certprotos.Effect_ALLOW
+	if policyResource.Action == certprotos.Action_READ && reqResource.Action == certprotos.Action_READ {
+		return policyResource.Effect
 	}
-	return certprotos.Effect_DENY
+	return certprotos.Effect_UNKNOWN
 }
 
 func isTokenWithUser(token string, tokenList *certprotos.TokenList) error {
 	flag := false
-	for _, t := range tokenList.Token {
+	for _, t := range tokenList.Tokens {
 		if t == token {
 			flag = true
 		}
