@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 
+#include <arpa/inet.h>
 #include <gtest/gtest.h>
 #include <string.h>
 
@@ -34,6 +35,8 @@ namespace lte {
 #define DEFAULT_DNS_SECONDARY_HEX 0x4040808  // 8.8.4.4
 #define DEFAULT_DNS_SECONDARY_ARRAY                                            \
   { 0x08, 0x08, 0x04, 0x04 }
+#define DEFAULT_DNS_IPV6 "2001:4860:4860:0:0:0:0:8888"
+#define DEFAULT_MTU 1400
 
 class SPGWPcoTest : public ::testing::Test {
   virtual void SetUp() {
@@ -41,13 +44,17 @@ class SPGWPcoTest : public ::testing::Test {
     spgw_config.pgw_config.ipv4.default_dns.s_addr = DEFAULT_DNS_PRIMARY_HEX;
     spgw_config.pgw_config.ipv4.default_dns_sec.s_addr =
         DEFAULT_DNS_SECONDARY_HEX;
+    spgw_config.pgw_config.ue_mtu = DEFAULT_MTU;
+    /*const char dns_ipv6[] = DEFAULT_DNS_IPV6;
+    inet_pton(AF_INET6, dns_ipv6, spgw_config.pgw_config.ipv6.dns_ipv6_addr);*/
   }
 
   virtual void TearDown() { free_spgw_config(&spgw_config); }
 
  protected:
-  char test_dns_primary[4]   = DEFAULT_DNS_PRIMARY_ARRAY;
-  char test_dns_secondary[4] = DEFAULT_DNS_SECONDARY_ARRAY;
+  const char test_dns_primary[4]   = DEFAULT_DNS_PRIMARY_ARRAY;
+  const char test_dns_secondary[4] = DEFAULT_DNS_SECONDARY_ARRAY;
+  const char test_mtu[2]           = {DEFAULT_MTU >> 8, DEFAULT_MTU & 0xFF};
 
   void fill_ipcp(
       pco_protocol_or_container_id_t* poc_id, char* primary_dns,
@@ -214,5 +221,78 @@ TEST_F(SPGWPcoTest, TestIPCPWithMatchingDNS) {
   bdestroy_wrapper(&poc_id.contents);
   clear_pco(&pco_resp);
 }
+
+TEST_F(SPGWPcoTest, TestIpv4DnsServerRequest) {
+  status_code_e return_code                 = RETURNerror;
+  protocol_configuration_options_t pco_resp = {};
+
+  return_code = pgw_process_pco_dns_server_request(&pco_resp, NULL);
+
+  EXPECT_EQ(return_code, RETURNok);
+  EXPECT_EQ(pco_resp.num_protocol_or_container_id, 1);
+
+  EXPECT_EQ(
+      pco_resp.protocol_or_container_ids[0].id, PCO_CI_DNS_SERVER_IPV4_ADDRESS);
+
+  // check that DNS is assigned correctly
+  EXPECT_EQ(
+      memcmp(
+          pco_resp.protocol_or_container_ids[0].contents->data,
+          test_dns_primary, sizeof(test_dns_primary)),
+      0);
+
+  clear_pco(&pco_resp);
+}
+
+TEST_F(SPGWPcoTest, TestLinkMtuRequest) {
+  status_code_e return_code = RETURNerror;
+
+  protocol_configuration_options_t pco_resp = {};
+
+  return_code = pgw_process_pco_link_mtu_request(&pco_resp, NULL);
+
+  EXPECT_EQ(return_code, RETURNok);
+  EXPECT_EQ(pco_resp.protocol_or_container_ids[0].id, PCO_CI_IPV4_LINK_MTU);
+
+  // check that MTU was assigned correctly
+  EXPECT_EQ(
+      memcmp(
+          pco_resp.protocol_or_container_ids[0].contents->data, test_mtu,
+          sizeof(test_mtu)),
+      0);
+
+  clear_pco(&pco_resp);
+}
+
+TEST_F(SPGWPcoTest, TestPcoRequestIpv6DNS) {
+  status_code_e return_code                    = RETURNerror;
+  protocol_configuration_options_t pco_req     = {};
+  protocol_configuration_options_t pco_resp    = {};
+  protocol_configuration_options_ids_t pco_ids = {};
+
+  pco_req.configuration_protocol =
+      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE;
+  pco_req.num_protocol_or_container_id = 1;
+  pco_req.protocol_or_container_ids[0].id =
+      PCO_CI_DNS_SERVER_IPV6_ADDRESS_REQUEST;
+
+  return_code = pgw_process_pco_request(&pco_req, &pco_resp, &pco_ids);
+
+  EXPECT_EQ(return_code, RETURNok);
+  EXPECT_EQ(pco_resp.num_protocol_or_container_id, 1);
+
+  EXPECT_EQ(
+      pco_resp.protocol_or_container_ids[0].id, PCO_CI_DNS_SERVER_IPV6_ADDRESS);
+
+  // check that DNS is assigned correctly
+  /*EXPECT_EQ(
+      memcmp(
+          pco_resp.protocol_or_container_ids[0].contents->data,
+          test_dns_primary, sizeof(test_dns_primary)),
+      0);*/
+
+  clear_pco(&pco_resp);
+}
+
 }  // namespace lte
 }  // namespace magma
