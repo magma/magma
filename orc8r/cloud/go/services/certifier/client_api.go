@@ -18,13 +18,12 @@ import (
 	"errors"
 	"fmt"
 
-	"magma/orc8r/cloud/go/obsidian"
-
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 
 	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/obsidian"
 	certifierprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
@@ -226,19 +225,6 @@ func VerifyDateRange(certInfo CertDateRange) error {
 		return errors.New("Not yet valid")
 	}
 	return nil
-}
-
-// GetUserTokens fetches the tokens associated with a user
-func GetUserTokens(ctx context.Context, getUserReq *certifierprotos.GetUserRequest) (*certifierprotos.TokenList, error) {
-	client, err := getCertifierClient()
-	if err != nil {
-		return nil, err
-	}
-	tokens, err := client.GetUserTokens(ctx, getUserReq)
-	if err != nil {
-		return nil, obsidian.MakeHTTPError(err)
-	}
-	return tokens, nil
 }
 
 // GetPolicyDecision makes a policy decision when a user attempts to access a resource

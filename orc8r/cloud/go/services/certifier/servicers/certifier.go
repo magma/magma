@@ -23,6 +23,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bmatcuk/doublestar"
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/ptypes"
+	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/services/certifier"
@@ -32,13 +39,6 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
 	unarylib "magma/orc8r/lib/go/service/middleware/unary"
-
-	"github.com/bmatcuk/doublestar"
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"golang.org/x/crypto/bcrypt"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var (
@@ -321,41 +321,25 @@ func (srv *CertifierServer) CollectGarbageImpl(ctx context.Context) (int, error)
 	return count, nil
 }
 
-// GetUserTokens fetches the tokens associated with a user
-func (srv *CertifierServer) GetUserTokens(ctx context.Context, getOpReq *certprotos.GetUserRequest) (*certprotos.TokenList, error) {
-	username := getOpReq.Username
+// GetPolicyDecision makes a policy decision when a user attempts to access a resource
+func (srv *CertifierServer) GetPolicyDecision(ctx context.Context, getPDReq *certprotos.GetPolicyDecisionRequest) (*certprotos.PolicyDecision, error) {
+	username := getPDReq.Username
 	user, err := srv.store.GetUser(username)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to fetch user %s from database: %v", username, err)
 	}
 
-	err = isTokenWithUser(getOpReq.Token, user.Tokens)
+	err = isTokenWithUser(getPDReq.Token, user.Tokens)
 	if err != nil {
 		return nil, err
 	}
-	return user.Tokens, nil
-}
 
-// GetPolicyDecision makes a policy decision when a user attempts to access a resource
-func (srv *CertifierServer) GetPolicyDecision(ctx context.Context, getPDReq *certprotos.GetPolicyDecisionRequest) (*certprotos.PolicyDecision, error) {
-	tokens := getPDReq.TokenList
-	resource := getPDReq.Resource
-	action := getPDReq.RequestAction
-	finalEffect := certprotos.Effect_DENY
-	for _, t := range tokens.GetToken() {
-		effect, _ := srv.getPolicyDecisionFromToken(t, resource, action)
-		switch effect {
-		case certprotos.Effect_DENY:
-			// Return early if there is a DENY in any of the permissions
-			return &certprotos.PolicyDecision{Effect: certprotos.Effect_DENY}, nil
-		case certprotos.Effect_ALLOW:
-			finalEffect = certprotos.Effect_ALLOW
-		default:
-			continue
-		}
+	decision, err := srv.getPolicyDecisionFromTokenMany(user.Tokens, getPDReq)
+	if err != nil {
+		return nil, err
 	}
-	// Return DENY if the policy unknown
-	return &certprotos.PolicyDecision{Effect: finalEffect}, nil
+
+	return decision, nil
 }
 
 // CreateUser creates a new user with the specified password and policy
@@ -528,6 +512,27 @@ func (srv *CertifierServer) verifyCert(clientCert *x509.Certificate, certType pr
 		return fmt.Errorf("Certificate Verification Failure: %s", err)
 	}
 	return nil
+}
+
+func (srv *CertifierServer) getPolicyDecisionFromTokenMany(tokens *certprotos.TokenList, getPDReq *certprotos.GetPolicyDecisionRequest) (*certprotos.PolicyDecision, error) {
+	resource := getPDReq.Resource
+	action := getPDReq.RequestAction
+
+	finalEffect := certprotos.Effect_DENY
+	for _, t := range tokens.GetToken() {
+		effect, _ := srv.getPolicyDecisionFromToken(t, resource, action)
+		switch effect {
+		case certprotos.Effect_DENY:
+			// Return early if there is a DENY in any of the permissions
+			return &certprotos.PolicyDecision{Effect: certprotos.Effect_DENY}, nil
+		case certprotos.Effect_ALLOW:
+			finalEffect = certprotos.Effect_ALLOW
+		default:
+			continue
+		}
+	}
+	// Return DENY if the policy unknown
+	return &certprotos.PolicyDecision{Effect: finalEffect}, nil
 }
 
 func (srv *CertifierServer) getPolicyDecisionFromToken(token string, resource string, action certprotos.Action) (certprotos.Effect, error) {

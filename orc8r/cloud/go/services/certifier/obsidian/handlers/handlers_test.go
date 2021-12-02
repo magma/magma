@@ -3,13 +3,12 @@ package handlers_test
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/services/certifier/obsidian/models"
-
 	"github.com/labstack/echo"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/services/certifier/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/certifier/obsidian/models"
 	"magma/orc8r/cloud/go/services/certifier/test_utils"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 )

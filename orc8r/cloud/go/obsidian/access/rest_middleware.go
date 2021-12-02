@@ -122,7 +122,7 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 		}
 
-		username, token, ok := c.Request().BasicAuth()
+		username, token, ok := req.BasicAuth()
 		if !ok {
 			return echo.NewHTTPError(http.StatusBadRequest, "failed to parse basic auth header")
 		}
@@ -131,21 +131,12 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
 
-		// Make sure that token is registered with user
-		getOpReq := &certifierprotos.GetUserRequest{
-			Username: username,
-			Token:    token,
-		}
-		tokensList, err := certifier.GetUserTokens(req.Context(), getOpReq)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err)
-		}
-
 		// Take tokenList, request type, resource and exchange for permission decision
 		requestType := getRequestAction(req, nil)
 		resource := req.RequestURI
 		getPDReq := &certifierprotos.GetPolicyDecisionRequest{
-			TokenList:     tokensList,
+			Username:      username,
+			Token:         token,
 			RequestAction: requestType,
 			Resource:      resource,
 		}

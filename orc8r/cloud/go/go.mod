@@ -48,7 +48,6 @@ require (
 	github.com/lib/pq v1.2.0
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-sqlite3 v1.14.9
-	github.com/mattn/go-zglob v0.0.3
 	github.com/olivere/elastic/v7 v7.0.6
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/ory/go-acc v0.2.6

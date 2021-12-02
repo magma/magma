@@ -18,13 +18,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"magma/orc8r/cloud/go/services/certifier/obsidian/models"
-
 	"github.com/labstack/echo"
 	"golang.org/x/crypto/bcrypt"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/certifier"
+	"magma/orc8r/cloud/go/services/certifier/obsidian/models"
 	"magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 )

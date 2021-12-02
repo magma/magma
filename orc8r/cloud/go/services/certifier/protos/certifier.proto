@@ -92,9 +92,10 @@ message CreateUserRequest {
 }
 
 message GetPolicyDecisionRequest {
-  TokenList tokenList = 1;
-  Action  requestAction = 2;
-  string resource = 3;
+  string username = 1;
+  string token = 2;
+  Action  requestAction = 3;
+  string resource = 4;
 }
 
 message PolicyDecision {
@@ -138,13 +139,10 @@ service Certifier {
   // cleanup expired certificates
   rpc CollectGarbage (Void) returns (Void) {}
 
-  // Get all user tokens given a username and token
-  rpc GetUserTokens (GetUserRequest) returns (TokenList) {}
-
   // Returns a policy decision given a token, the request method's action
   // (read/write), and the request resource
   rpc GetPolicyDecision (GetPolicyDecisionRequest) returns (PolicyDecision) {}
 
   // Creates a new user
-  rpc CreateUser (CreateUserRequest) returns (User.TokenList) {}
+  rpc CreateUser (CreateUserRequest) returns (TokenList) {}
 }
