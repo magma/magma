@@ -70,6 +70,7 @@ class MockMmeAppHandler {
   MOCK_METHOD0(mme_app_handle_initial_context_setup_failure, void());
   MOCK_METHOD0(mme_app_handle_enb_reset_req, void());
   MOCK_METHOD0(mme_app_handle_e_rab_setup_rsp, void());
+  MOCK_METHOD0(mme_app_handle_path_switch_request, void());
 };
 
 class MockSctpHandler {
