@@ -224,7 +224,7 @@ jobs:
       - name: Create release Tag
         if: github.event_name == 'push'
         run: |
-          if [ "$GITHUB_REF" = "refs/head/master" ]; then
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
             echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
           else
             GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
@@ -395,7 +395,7 @@ jobs:
       - name: Create release Tag
         if: github.event_name == 'push'
         run: |
-          if [ "$GITHUB_REF" = "refs/head/master" ]; then
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
             echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
           else
             GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
@@ -501,7 +501,7 @@ jobs:
       - name: Create release Tag
         if: github.event_name == 'push'
         run: |
-          if [ "$GITHUB_REF" = "refs/head/master" ]; then
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
             echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
           else
             GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
@@ -598,7 +598,7 @@ jobs:
           path: images
       - name: Create release Tag
         run: |
-          if [ "$GITHUB_REF" = "refs/head/master" ]; then
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
             echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
           else
             GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
@@ -679,7 +679,7 @@ jobs:
       - name: Create release Tag
         if: github.event_name == 'push'
         run: |
-          if [ "$GITHUB_REF" = "refs/head/master" ]; then
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
             echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
           else
             GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
