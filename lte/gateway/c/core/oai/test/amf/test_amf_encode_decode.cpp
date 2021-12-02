@@ -1365,6 +1365,7 @@ TEST(test_pdu_negative, test_pdu_invalid_pdu_identity) {
       std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
   std::shared_ptr<smf_context_t> smf_ctx =
       amf_insert_smf_context(ue_context, pdu_session_id);
+  smf_ctx->pdu_session_state = ACTIVE;
 
   for (int req_cnt = 0;
        req_cnt < MAX_UE_INITIAL_PDU_SESSION_ESTABLISHMENT_REQ_ALLOWED;
