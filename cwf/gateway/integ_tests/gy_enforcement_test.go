@@ -459,6 +459,7 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 		tr.WaitForEnforcementStatsForRule(imsi, "redirect"), time.Minute, 2*time.Second)
 
 	// Send ReAuth Request to update quota
+	fmt.Println("Sending a Gy ReAuth to trigger an update")
 	raa, err := sendChargingReAuthRequest(imsi, 1)
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
@@ -471,6 +472,9 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 
 	// Assert that a CCR-I and CCR-U were sent to the OCS
 	tr.AssertAllGyExpectationsMetNoError()
+
+	fmt.Println("Wait a few seconds for the rules to settle")
+	time.Sleep(2)
 
 	// we need to generate more traffic
 	req = &cwfprotos.GenTrafficRequest{
