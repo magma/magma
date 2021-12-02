@@ -572,6 +572,7 @@ func (m *GetGatewayRegistrationInfoResponse) GetDomainName() string {
 
 type GetGatewayDeviceInfoRequest struct {
 	// token is a nonce prepended by bootstrapper.tokenPrepend
+	// It keys to a TokenInfo
 	Token                string   `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -692,8 +693,10 @@ func (*GetGatewayDeviceInfoResponse) XXX_OneofWrappers() []interface{} {
 
 type RegisterRequest struct {
 	// token is a nonce prepended by bootstrapper.tokenPrefix
-	Token string           `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	Hwid  *AccessGatewayID `protobuf:"bytes,2,opt,name=hwid,proto3" json:"hwid,omitempty"`
+	// It keys to a TokenInfo
+	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	// hwid is the access gateway's (AGW) ID
+	Hwid *AccessGatewayID `protobuf:"bytes,2,opt,name=hwid,proto3" json:"hwid,omitempty"`
 	// challenge_key is gateway's long-term public key
 	ChallengeKey         *ChallengeKey `protobuf:"bytes,3,opt,name=challenge_key,json=challengeKey,proto3" json:"challenge_key,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
@@ -829,7 +832,9 @@ func (*RegisterResponse) XXX_OneofWrappers() []interface{} {
 
 // GatewayDeviceInfo contains basic info that an AGW needs to register
 type GatewayDeviceInfo struct {
-	NetworkId            string   `protobuf:"bytes,1,opt,name=network_id,json=networkId,proto3" json:"network_id,omitempty"`
+	// network_id is the network id of the AGW
+	NetworkId string `protobuf:"bytes,1,opt,name=network_id,json=networkId,proto3" json:"network_id,omitempty"`
+	// logical_id is the logical id of the AGW
 	LogicalId            string   `protobuf:"bytes,2,opt,name=logical_id,json=logicalId,proto3" json:"logical_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -880,7 +885,9 @@ func (m *GatewayDeviceInfo) GetLogicalId() string {
 type TokenInfo struct {
 	GatewayDeviceInfo *GatewayDeviceInfo `protobuf:"bytes,1,opt,name=gateway_device_info,json=gatewayDeviceInfo,proto3" json:"gateway_device_info,omitempty"`
 	// nonce is a token without the bootstrapper.tokenPrefix prefix
-	Nonce                string               `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	// It is a randomized string of characters that keys to a TokenInfo
+	Nonce string `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	// timeout is the timestamp of when this TokenInfo will expire
 	Timeout              *timestamp.Timestamp `protobuf:"bytes,3,opt,name=timeout,proto3" json:"timeout,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
 	XXX_unrecognized     []byte               `json:"-"`
