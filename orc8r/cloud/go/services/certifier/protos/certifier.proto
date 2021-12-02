@@ -146,5 +146,5 @@ service Certifier {
   rpc GetPolicyDecision (GetPolicyDecisionRequest) returns (PolicyDecision) {}
 
   // Creates a new user
-  rpc CreateUser (CreateUserRequest) returns (TokenList) {}
+  rpc CreateUser (CreateUserRequest) returns (User.TokenList) {}
 }

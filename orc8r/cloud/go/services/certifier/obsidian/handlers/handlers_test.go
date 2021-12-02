@@ -3,6 +3,8 @@ package handlers_test
 import (
 	"testing"
 
+	"magma/orc8r/cloud/go/services/certifier/obsidian/models"
+
 	"github.com/labstack/echo"
 
 	"magma/orc8r/cloud/go/obsidian"
@@ -11,23 +13,6 @@ import (
 	"magma/orc8r/cloud/go/services/certifier/test_utils"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 )
-
-const RootUsername = "root"
-
-type User struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-type Policy struct {
-	Effect    string   `json:"effect"`
-	Action    string   `json:"action"`
-	Resources []string `json:"resource"`
-}
-
-type CreateUserRequest struct {
-	User   `json:"user"`
-	Policy `json:"policy"`
-}
 
 func TestUserEndpoints(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
@@ -42,16 +27,20 @@ func TestUserEndpoints(t *testing.T) {
 
 	e := echo.New()
 
-	// create bob user
-	createBobRequest := CreateUserRequest{
-		User: User{
-			Username: "bob",
-			Password: "password",
+	// Create non-admin user request
+	username := test_utils.TestUsername
+	password := test_utils.TestPassword
+	effect := models.PolicyEffectALLOW
+	action := models.PolicyActionREAD
+	createBobRequest := models.UserWithPolicy{
+		User: &models.User{
+			Username: &username,
+			Password: &password,
 		},
-		Policy: Policy{
-			Effect:    "ALLOW",
-			Action:    "READ",
-			Resources: []string{"*"},
+		Policy: &models.Policy{
+			Effect:    &effect,
+			Action:    &action,
+			Resources: []string{"/**"},
 		},
 	}
 	tc := tests.Test{
@@ -63,16 +52,19 @@ func TestUserEndpoints(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// create root user
-	createRootRequest := CreateUserRequest{
-		User: User{
-			Username: RootUsername,
-			Password: "password",
+	// Create root user request
+	username = test_utils.TestRootUsername
+	effect = models.PolicyEffectALLOW
+	action = models.PolicyActionWRITE
+	createRootRequest := models.UserWithPolicy{
+		User: &models.User{
+			Username: &username,
+			Password: &password,
 		},
-		Policy: Policy{
-			Effect:    "ALLOW",
-			Action:    "WRITE",
-			Resources: []string{"*"},
+		Policy: &models.Policy{
+			Effect:    &effect,
+			Action:    &action,
+			Resources: []string{"/**"},
 		},
 	}
 	tc = tests.Test{

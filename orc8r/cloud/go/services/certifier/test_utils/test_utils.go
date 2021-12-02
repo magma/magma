@@ -13,6 +13,7 @@ import (
 
 const TestRootUsername = "root"
 const TestUsername = "bob"
+const TestPassword = "password"
 
 func GetCertifierBlobstore(t *testing.T) storage.CertifierStorage {
 	fact := test_utils.NewSQLBlobstore(t, storage.CertifierTableBlobstore)
@@ -20,7 +21,7 @@ func GetCertifierBlobstore(t *testing.T) storage.CertifierStorage {
 }
 
 func CreateTestAdmin(t *testing.T, store storage.CertifierStorage) string {
-	user, token := createTestUser(t, TestRootUsername, "password")
+	user, token := createTestUser(t, TestRootUsername, TestPassword)
 	err := store.PutUser(TestRootUsername, &user)
 	assert.NoError(t, err)
 	policy := createTestAdminPolicy(token)
@@ -30,7 +31,7 @@ func CreateTestAdmin(t *testing.T, store storage.CertifierStorage) string {
 }
 
 func CreateTestUser(t *testing.T, store storage.CertifierStorage) string {
-	user, token := createTestUser(t, TestUsername, "password")
+	user, token := createTestUser(t, TestUsername, TestPassword)
 	err := store.PutUser(TestUsername, &user)
 	assert.NoError(t, err)
 	policy := createTestUserPolicy(token)

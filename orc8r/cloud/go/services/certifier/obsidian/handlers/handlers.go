@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"magma/orc8r/cloud/go/services/certifier/obsidian/models"
+
 	"github.com/labstack/echo"
 	"golang.org/x/crypto/bcrypt"
 
@@ -56,28 +58,16 @@ func getListUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 	}
 }
 
-type CreateUserRequest struct {
-	User struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	} `json:"user"`
-	Policy struct {
-		Effect    string   `json:"effect"`
-		Action    string   `json:"action"`
-		Resources []string `json:"resource"`
-	} `json:"policy"`
-}
-
 func getCreateUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var data CreateUserRequest
+		var data models.UserWithPolicy
 		err := json.NewDecoder(c.Request().Body).Decode(&data)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request body for creating user: %v", err))
 		}
 
-		username := fmt.Sprintf("%v", data.User.Username)
-		password := []byte(fmt.Sprintf("%v", data.User.Password))
+		username := fmt.Sprintf("%v", *data.User.Username)
+		password := []byte(fmt.Sprintf("%v", *data.User.Password))
 		hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error hashing password: %v", err))
@@ -87,7 +77,6 @@ func getCreateUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error generating personal access token for user: %v", err))
 		}
-
 		user := &protos.User{
 			Username: username,
 			Password: hashedPassword,
@@ -96,25 +85,8 @@ func getCreateUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 		if err = storage.PutUser(username, user); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
-
-		var effect protos.Effect
-		switch data.Policy.Effect {
-		case protos.Effect_DENY.String():
-			effect = protos.Effect_DENY
-		case protos.Effect_ALLOW.String():
-			effect = protos.Effect_ALLOW
-		default:
-			effect = protos.Effect_UNKNOWN
-		}
-		var action protos.Action
-		switch data.Policy.Action {
-		case protos.Action_READ.String():
-			action = protos.Action_READ
-		case protos.Action_WRITE.String():
-			action = protos.Action_WRITE
-		default:
-			action = protos.Action_NONE
-		}
+		effect := matchEffect(data.Policy.Effect)
+		action := matchAction(data.Policy.Action)
 		policy := &protos.Policy{
 			Token:  token,
 			Effect: effect,
@@ -197,5 +169,27 @@ func getLoginHandler(storage storage.CertifierStorage) echo.HandlerFunc {
 
 		tokens := user.GetTokens().GetToken()
 		return c.JSON(http.StatusOK, tokens)
+	}
+}
+
+func matchEffect(rawEffect *string) protos.Effect {
+	switch *rawEffect {
+	case protos.Effect_DENY.String():
+		return protos.Effect_DENY
+	case protos.Effect_ALLOW.String():
+		return protos.Effect_ALLOW
+	default:
+		return protos.Effect_UNKNOWN
+	}
+}
+
+func matchAction(rawAction *string) protos.Action {
+	switch *rawAction {
+	case protos.Action_READ.String():
+		return protos.Action_READ
+	case protos.Action_WRITE.String():
+		return protos.Action_WRITE
+	default:
+		return protos.Action_NONE
 	}
 }
