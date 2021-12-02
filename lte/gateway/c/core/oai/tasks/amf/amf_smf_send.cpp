@@ -189,25 +189,15 @@ void set_amf_smf_context(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void clear_amf_smf_context(std::shared_ptr<smf_context_t> smf_ctx) {
+void clear_amf_smf_context(amf_context_t& amf_context, uint8_t pdu_session_id) {
   OAILOG_DEBUG(
       LOG_AMF_APP, "clearing saved context associated with the pdu session\n");
-  memset(
-      &(smf_ctx->smf_proc_data.pdu_session_identity), 0,
-      sizeof(smf_ctx->smf_proc_data.pdu_session_identity));
-  memset(&(smf_ctx->smf_proc_data.pti), 0, sizeof(smf_ctx->smf_proc_data.pti));
-  memset(
-      &(smf_ctx->smf_proc_data.message_type), 0,
-      sizeof(smf_ctx->smf_proc_data.message_type));
-  memset(
-      &(smf_ctx->smf_proc_data.integrity_prot_max_data_rate), 0,
-      sizeof(smf_ctx->smf_proc_data.integrity_prot_max_data_rate));
-  memset(
-      &(smf_ctx->smf_proc_data.pdu_session_type), 0,
-      sizeof(smf_ctx->smf_proc_data.pdu_session_type));
-  memset(
-      &(smf_ctx->smf_proc_data.ssc_mode), 0,
-      sizeof(smf_ctx->smf_proc_data.ssc_mode));
+  auto it = amf_context.smf_ctxt_map.find(pdu_session_id);
+  if (it != amf_context.smf_ctxt_map.end()) {
+    amf_context.smf_ctxt_map.erase(it);
+  } else {
+    OAILOG_WARNING(LOG_AMF_APP, "PDU Session is not found");
+  }
 }
 
 int pdu_session_release_request_process(
@@ -265,7 +255,7 @@ int pdu_session_resource_release_complete(
 
   OAILOG_DEBUG(
       LOG_AMF_APP, "clear saved context associated with the PDU session\n");
-  clear_amf_smf_context(smf_ctx);
+  clear_amf_smf_context(ue_context->amf_context, amf_smf_msg.pdu_session_id);
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
@@ -632,7 +622,8 @@ M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
 
   if ((msg->payload_container.smf_msg.header.message_type ==
        PDU_SESSION_ESTABLISHMENT_REQUEST) &&
-      (requestType == M5GRequestType::INITIAL_REQUEST) && smf_ctx) {
+      (requestType == M5GRequestType::INITIAL_REQUEST) && smf_ctx &&
+      (smf_ctx->pdu_session_state == ACTIVE)) {
     if (smf_ctx->duplicate_pdu_session_est_req_count >=
         MAX_UE_INITIAL_PDU_SESSION_ESTABLISHMENT_REQ_ALLOWED - 1) {
       cause = M5GSmCause::INVALID_PDU_SESSION_IDENTITY;
