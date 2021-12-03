@@ -36,7 +36,7 @@ func TestBlobstoreStore(t *testing.T) {
 
 		tokenInfo1 = &protos.TokenInfo{
 			GatewayDeviceInfo: gatewayPreregisterInfo,
-			Nonce:             "someNonce",
+			Nonce:             "someNonce1",
 			Timeout: &timestamp.Timestamp{
 				Seconds: time.Now().Unix(),
 				Nanos:   int32(time.Now().Nanosecond()),
