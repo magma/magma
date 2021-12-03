@@ -144,9 +144,7 @@ void send_initial_context_response(
 
   apn_config_profile_t& profile = ue_context_p->amf_context.apn_config_profile;
   profile.nb_apns               = 1;
-  strncpy(
-      profile.apn_configuration[0].service_selection, "internet",
-      SERVICE_SELECTION_MAX_LENGTH - 1);
+  strncpy(profile.apn_configuration[0].service_selection, "internet", 8);
 
   ics_resp.ue_id = ue_id;
 
@@ -362,13 +360,10 @@ int send_uplink_nas_pdu_session_release_message(
   originating_tai.plmn = plmn;
   originating_tai.tac  = 1;
 
-  int rc     = RETURNerror;
-  int status = amf_app_handle_uplink_nas_message(
+  int rc = RETURNerror;
+  rc     = amf_app_handle_uplink_nas_message(
       amf_app_desc_p, pdu_session_req, ue_id, originating_tai);
 
-  if (status > 0) {
-    rc = RETURNok;
-  }
   return (rc);
 }
 
