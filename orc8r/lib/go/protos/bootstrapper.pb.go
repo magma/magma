@@ -397,6 +397,7 @@ func (m *Response_ECDSA) GetS() []byte {
 }
 
 type GetTokenRequest struct {
+	// gateway_device_info contains basic info that an AGW needs to register
 	GatewayDeviceInfo *GatewayDeviceInfo `protobuf:"bytes,1,opt,name=gateway_device_info,json=gatewayDeviceInfo,proto3" json:"gateway_device_info,omitempty"`
 	// refresh is true if a new token should be generated regardless of old token timeout
 	Refresh              bool     `protobuf:"varint,2,opt,name=refresh,proto3" json:"refresh,omitempty"`
@@ -446,7 +447,8 @@ func (m *GetTokenRequest) GetRefresh() bool {
 
 type GetTokenResponse struct {
 	// token is a nonce prepended by bootstrapper.tokenPrepend
-	Token                string               `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	// timeout is the timestamp of when this TokenInfo will expire
 	Timeout              *timestamp.Timestamp `protobuf:"bytes,2,opt,name=timeout,proto3" json:"timeout,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
 	XXX_unrecognized     []byte               `json:"-"`
@@ -524,7 +526,9 @@ func (m *GetGatewayRegistrationInfoRequest) XXX_DiscardUnknown() {
 var xxx_messageInfo_GetGatewayRegistrationInfoRequest proto.InternalMessageInfo
 
 type GetGatewayRegistrationInfoResponse struct {
-	RootCa               string   `protobuf:"bytes,1,opt,name=root_ca,json=rootCa,proto3" json:"root_ca,omitempty"`
+	// root_ca is a certificate that AGWs can use handshake and communicate with this orc8r
+	RootCa string `protobuf:"bytes,1,opt,name=root_ca,json=rootCa,proto3" json:"root_ca,omitempty"`
+	// domain_name is the domain name where this orc8r resides
 	DomainName           string   `protobuf:"bytes,2,opt,name=domain_name,json=domainName,proto3" json:"domain_name,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -883,6 +887,7 @@ func (m *GatewayDeviceInfo) GetLogicalId() string {
 // TokenInfo is info saved that is keyed by token.
 // This is what is saved on CloudRegistration's initial register call (GetToken)
 type TokenInfo struct {
+	// gateway_device_info contains basic info that an AGW needs to register
 	GatewayDeviceInfo *GatewayDeviceInfo `protobuf:"bytes,1,opt,name=gateway_device_info,json=gatewayDeviceInfo,proto3" json:"gateway_device_info,omitempty"`
 	// nonce is a token without the bootstrapper.tokenPrefix prefix
 	// It is a randomized string of characters that keys to a TokenInfo
