@@ -128,7 +128,7 @@ message GetGatewayRegistrationInfoResponse {
 
 message GetGatewayDeviceInfoRequest {
   // token is a nonce prepended by bootstrapper.tokenPrepend
-  // it is a randomized string of characters that keys to a TokenInfo
+  // It is a randomized string of characters that keys to a TokenInfo
   string token = 1;
 }
 

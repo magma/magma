@@ -577,7 +577,7 @@ func (m *GetGatewayRegistrationInfoResponse) GetDomainName() string {
 
 type GetGatewayDeviceInfoRequest struct {
 	// token is a nonce prepended by bootstrapper.tokenPrepend
-	// it is a randomized string of characters that keys to a TokenInfo
+	// It is a randomized string of characters that keys to a TokenInfo
 	Token                string   `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
