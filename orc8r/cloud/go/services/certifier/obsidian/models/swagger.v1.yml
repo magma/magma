@@ -141,7 +141,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/policy'
+            $ref: '#/definitions/resources'
       responses:
         '201':
           description: Success
@@ -234,7 +234,7 @@ definitions:
       action:
         type: string
         enum: [READ, WRITE]
-      resources:
+      resource:
         type: string
       resourceType:
         type: string

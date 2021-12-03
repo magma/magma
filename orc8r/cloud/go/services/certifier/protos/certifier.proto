@@ -113,7 +113,7 @@ message ListUserTokensResponse {
 
 message AddUserTokenRequest{
   string username = 1;
-  ResourceLIst resources = 2;
+  ResourceList resources = 2;
 }
 
 message DeleteUserTokenRequest{

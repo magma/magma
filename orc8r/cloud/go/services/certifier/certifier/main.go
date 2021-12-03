@@ -113,7 +113,7 @@ func main() {
 
 	// Add handlers that manages users to Swagger
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(certifier.ServiceName))
-	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers(store))
+	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 
 	// Start Garbage Collector Ticker
 	go func() {

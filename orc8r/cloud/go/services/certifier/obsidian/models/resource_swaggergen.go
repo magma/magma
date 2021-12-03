@@ -27,12 +27,12 @@ type Resource struct {
 	// Enum: [DENY ALLOW]
 	Effect string `json:"effect,omitempty"`
 
+	// resource
+	Resource string `json:"resource,omitempty"`
+
 	// resource type
 	// Enum: [NETWORK_ID TENANT_ID URI]
 	ResourceType string `json:"resourceType,omitempty"`
-
-	// resources
-	Resources string `json:"resources,omitempty"`
 }
 
 // Validate validates this resource

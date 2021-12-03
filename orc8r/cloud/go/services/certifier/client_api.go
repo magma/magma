@@ -267,3 +267,60 @@ func GetUser(ctx context.Context, username string) (*certprotos.User, error) {
 	user, err := client.GetUser(ctx, &certprotos.User{Username: username})
 	return user, err
 }
+
+func UpdateUser(ctx context.Context, user *certprotos.User) error {
+	client, err := getCertifierClient()
+	if err != nil {
+		return err
+	}
+	_, err = client.UpdateUser(ctx, user)
+	return err
+}
+
+func DeleteUser(ctx context.Context, user *certprotos.User) error {
+	client, err := getCertifierClient()
+	if err != nil {
+		return err
+	}
+	_, err = client.DeleteUser(ctx, user)
+	return err
+}
+
+func Login(ctx context.Context, user *certprotos.User) error {
+	client, err := getCertifierClient()
+	if err != nil {
+		return err
+	}
+	_, err = client.Login(ctx, user)
+	return err
+}
+
+func ListUserTokens(ctx context.Context, user *certprotos.User) (*certprotos.ListUserTokensResponse, error) {
+	client, err := getCertifierClient()
+	if err != nil {
+		return nil, err
+	}
+	tokens, err := client.ListUserTokens(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	return tokens, nil
+}
+
+func AddUserToken(ctx context.Context, req *certprotos.AddUserTokenRequest) error {
+	client, err := getCertifierClient()
+	if err != nil {
+		return err
+	}
+	_, err = client.AddUserToken(ctx, req)
+	return err
+}
+
+func DeleteUserToken(ctx context.Context, req *certprotos.DeleteUserTokenRequest) error {
+	client, err := getCertifierClient()
+	if err != nil {
+		return err
+	}
+	_, err = client.DeleteUserToken(ctx, req)
+	return err
+}

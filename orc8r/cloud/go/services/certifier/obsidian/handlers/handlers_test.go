@@ -1,6 +1,5 @@
 package handlers_test
 
-//
 // import (
 // 	"testing"
 //
@@ -17,14 +16,14 @@ package handlers_test
 // // TODO(christinewang5): fix all these darn tests later ugh
 // func TestUserEndpoints(t *testing.T) {
 // 	configuratorTestInit.StartTestService(t)
-// 	store := test_utils.GetCertifierBlobstore(t)
-// 	handlers := handlers.GetHandlers(store)
-// 	testURLRoot := "/magma/v1/user"
-// 	listUser := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
-// 	createUser := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
-// 	testUpdateDeleteRoot := "/magma/v1/user/:username"
-// 	deleteUser := tests.GetHandlerByPathAndMethod(t, handlers, testUpdateDeleteRoot, obsidian.DELETE).HandlerFunc
-// 	updateUser := tests.GetHandlerByPathAndMethod(t, handlers, testUpdateDeleteRoot, obsidian.PUT).HandlerFunc
+// 	handlers := handlers.GetHandlers()
+// 	testUser := "/magma/v1/user"
+// 	testManageUser := testUser + "/:username"
+// 	testManageUserTokens := testManageUser + "/tokens"
+// 	listUser := tests.GetHandlerByPathAndMethod(t, handlers, testUser, obsidian.GET).HandlerFunc
+// 	createUser := tests.GetHandlerByPathAndMethod(t, handlers, testUser, obsidian.POST).HandlerFunc
+// 	deleteUser := tests.GetHandlerByPathAndMethod(t, handlers, testManageUser, obsidian.DELETE).HandlerFunc
+// 	updateUser := tests.GetHandlerByPathAndMethod(t, handlers, testManageUser, obsidian.PUT).HandlerFunc
 //
 // 	e := echo.New()
 //
@@ -51,7 +50,7 @@ package handlers_test
 // 	}
 // 	tc := tests.Test{
 // 		Method:         "POST",
-// 		URL:            testURLRoot,
+// 		URL:            testUser,
 // 		Payload:        tests.JSONMarshaler(createBobRequest),
 // 		Handler:        createUser,
 // 		ExpectedStatus: 200,
@@ -75,7 +74,7 @@ package handlers_test
 // 	}
 // 	tc = tests.Test{
 // 		Method:         "POST",
-// 		URL:            testURLRoot,
+// 		URL:            testUser,
 // 		Payload:        tests.JSONMarshaler(createRootRequest),
 // 		Handler:        createUser,
 // 		ExpectedStatus: 200,
@@ -84,7 +83,7 @@ package handlers_test
 //
 // 	tc = tests.Test{
 // 		Method:         "GET",
-// 		URL:            testURLRoot,
+// 		URL:            testUser,
 // 		Handler:        listUser,
 // 		ExpectedStatus: 200,
 // 	}
@@ -92,7 +91,7 @@ package handlers_test
 //
 // 	tc = tests.Test{
 // 		Method:      "PUT",
-// 		URL:         testUpdateDeleteRoot,
+// 		URL:         testManageUser,
 // 		Handler:     updateUser,
 // 		ParamNames:  []string{"username"},
 // 		ParamValues: []string{"bob"},
@@ -105,7 +104,7 @@ package handlers_test
 //
 // 	tc = tests.Test{
 // 		Method:         "DELETE",
-// 		URL:            testUpdateDeleteRoot,
+// 		URL:            testManageUser,
 // 		Handler:        deleteUser,
 // 		ParamNames:     []string{"username"},
 // 		ParamValues:    []string{"bob"},

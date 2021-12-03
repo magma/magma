@@ -1005,7 +1005,7 @@ type CertifierClient interface {
 	ListUsers(ctx context.Context, in *protos.Void, opts ...grpc.CallOption) (*ListUsersResponse, error)
 	// Get a user based on their username
 	GetUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*User, error)
-	// Update a user's authentication information, i.e. their password
+	// Update a user's authentication information
 	UpdateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*protos.Void, error)
 	// Delete a user
 	DeleteUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*protos.Void, error)
@@ -1235,7 +1235,7 @@ type CertifierServer interface {
 	ListUsers(context.Context, *protos.Void) (*ListUsersResponse, error)
 	// Get a user based on their username
 	GetUser(context.Context, *User) (*User, error)
-	// Update a user's authentication information, i.e. their password
+	// Update a user's authentication information
 	UpdateUser(context.Context, *User) (*protos.Void, error)
 	// Delete a user
 	DeleteUser(context.Context, *User) (*protos.Void, error)

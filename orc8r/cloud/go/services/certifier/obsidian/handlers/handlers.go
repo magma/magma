@@ -24,7 +24,6 @@ import (
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/services/certifier/obsidian/models"
 	"magma/orc8r/cloud/go/services/certifier/protos"
-	"magma/orc8r/cloud/go/services/certifier/storage"
 )
 
 const (
@@ -37,7 +36,7 @@ const (
 	Login            = ListUser + obsidian.UrlSep + "login"
 )
 
-func GetHandlers(storage storage.CertifierStorage) []obsidian.Handler {
+func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
 		{Path: ListUser, Methods: obsidian.GET, HandlerFunc: listUsersHandler},
 		{Path: ListUser, Methods: obsidian.POST, HandlerFunc: createUserHandler},
@@ -86,167 +85,124 @@ func getUserHandler(c echo.Context) error {
 }
 
 func updateUserHandler(c echo.Context) error {
-	// username := c.Param("username")
-	// var updatedPassword string
-	// err := json.NewDecoder(c.Request().Body).Decode(updatedPassword)
-	// if err != nil {
-	// 	return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request body for updating user"))
-	// }
+	username := c.Param("username")
+	var updatePassword []byte
+	err := json.NewDecoder(c.Request().Body).Decode(&updatePassword)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request body for updating user: %v", err))
+	}
+	newUser := &protos.User{Username: username, Password: updatePassword}
+	certifier.UpdateUser(c.Request().Context(), newUser)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
 	return nil
 }
 
 func deleteUserHandler(c echo.Context) error {
+	username := c.Param("username")
+	deleteUser := &protos.User{Username: username}
+	err := certifier.DeleteUser(c.Request().Context(), deleteUser)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error deleting user: %v", err))
+	}
 	return nil
 }
 
 func loginHandler(c echo.Context) error {
-	return nil
-}
-func getUserTokensHandler(c echo.Context) error {
-	return nil
-}
-func addUserTokenHandler(c echo.Context) error {
-	return nil
-}
-func deleteUserTokenHandler(c echo.Context) error {
+	username := c.Param("username")
+	var password []byte
+	err := json.NewDecoder(c.Request().Body).Decode(&password)
+	user := &protos.User{
+		Username: username,
+		Password: password,
+	}
+	err = certifier.Login(c.Request().Context(), user)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error logging in: %v"), err)
+	}
 	return nil
 }
 
-// func getUpdateUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
-// 	return func(c echo.Context) error {
-// 		username := c.Param("username")
-// 		data := make(map[string]interface{})
-// 		err := json.NewDecoder(c.Request().Body).Decode(&data)
-// 		if err != nil {
-// 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request for User: %v", err))
-// 		}
-//
-// 		newPassword := []byte(fmt.Sprintf("%v", data["password"]))
-// 		hashedPassword, err := bcrypt.GenerateFromPassword(newPassword, bcrypt.DefaultCost)
-//
-// 		user, err := storage.GetUser(username)
-// 		if err != nil {
-// 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting existing user: %v", err))
-// 		}
-//
-// 		newUser := &protos.User{
-// 			Username: username,
-// 			Password: hashedPassword,
-// 			Tokens:   user.Tokens,
-// 		}
-// 		storage.PutUser(username, newUser)
-//
-// 		if err != nil {
-// 			return echo.NewHTTPError(http.StatusInternalServerError, err)
-// 		}
-// 		return nil
-// 	}
-// }
-//
-// func getCreateUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
-// 	return func(c echo.Context) error {
-// 		var data models.UserWithPolicy
-// 		err := json.NewDecoder(c.Request().Body).Decode(&data)
-// 		if err != nil {
-// 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request body for creating user: %v", err))
-// 		}
-//
-// 		username := fmt.Sprintf("%v", *data.User.Username)
-// 		password := []byte(fmt.Sprintf("%v", *data.User.Password))
-// 		hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
-// 		if err != nil {
-// 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error hashing password: %v", err))
-// 		}
-//
-// 		token, err := certifier.GenerateToken(certifier.Personal)
-// 		if err != nil {
-// 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error generating personal access token for user: %v", err))
-// 		}
-// 		user := &protos.User{
-// 			Username: username,
-// 			Password: hashedPassword,
-// 			Tokens:   &protos.TokenList{Tokens: []string{token}},
-// 		}
-// 		if err = storage.PutUser(username, user); err != nil {
-// 			return echo.NewHTTPError(http.StatusInternalServerError, err)
-// 		}
-// 		effect := matchEffect(data.Policy.Effect)
-// 		action := matchAction(data.Policy.Action)
-// 		resource := &protos.Resource{
-// 			Effect:       effect,
-// 			Action:       action,
-// 			ResourceType: protos.ResourceType_URI,
-// 			Resource:     "/**",
-// 		}
-// 		policy := &protos.Policy{
-// 			Token: token,
-// 			Resources: &protos.ResourceList{
-// 				Resources: []*protos.Resource{resource},
-// 			},
-// 		}
-// 		if err = storage.PutPolicy(token, policy); err != nil {
-// 			return echo.NewHTTPError(http.StatusInternalServerError, err)
-// 		}
-//
-// 		return nil
-// 	}
-// }
-//
-// func getDeleteUserHandler(storage storage.CertifierStorage) echo.HandlerFunc {
-// 	return func(c echo.Context) error {
-// 		username := c.Param("username")
-// 		err := storage.DeleteUser(username)
-// 		if err != nil {
-// 			return echo.NewHTTPError(http.StatusInternalServerError, err)
-// 		}
-// 		return nil
-// 	}
-// }
-//
-// func getLoginHandler(storage storage.CertifierStorage) echo.HandlerFunc {
-// 	return func(c echo.Context) error {
-// 		data := make(map[string]interface{})
-// 		err := json.NewDecoder(c.Request().Body).Decode(&data)
-// 		if err != nil {
-// 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request for User: %v", err))
-// 		}
-//
-// 		username := fmt.Sprintf("%v", data["username"])
-// 		password := []byte(fmt.Sprintf("%v", data["password"]))
-// 		user, err := storage.GetUser(username)
-// 		if err != nil {
-// 			return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
-// 		}
-//
-// 		hashedPassword := user.Password
-// 		err = bcrypt.CompareHashAndPassword(hashedPassword, password)
-// 		if err != nil {
-// 			return echo.NewHTTPError(http.StatusUnauthorized, "wrong password")
-// 		}
-//
-// 		tokens := user.Tokens.Tokens
-// 		return c.JSON(http.StatusOK, tokens)
-// 	}
-// }
-//
-// func matchEffect(rawEffect *string) protos.Effect {
-// 	switch *rawEffect {
-// 	case protos.Effect_DENY.String():
-// 		return protos.Effect_DENY
-// 	case protos.Effect_ALLOW.String():
-// 		return protos.Effect_ALLOW
-// 	default:
-// 		return protos.Effect_UNKNOWN
-// 	}
-// }
-//
-// func matchAction(rawAction *string) protos.Action {
-// 	switch *rawAction {
-// 	case protos.Action_READ.String():
-// 		return protos.Action_READ
-// 	case protos.Action_WRITE.String():
-// 		return protos.Action_WRITE
-// 	default:
-// 		return protos.Action_NONE
-// 	}
-// }
+func getUserTokensHandler(c echo.Context) error {
+	username := c.Param("username")
+	res, err := certifier.ListUserTokens(c.Request().Context(), &protos.User{Username: username})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to list user tokens: %v"), err)
+	}
+	return c.JSON(http.StatusOK, res)
+}
+
+func addUserTokenHandler(c echo.Context) error {
+	username := c.Param("username")
+	var resources models.Resources
+	json.NewDecoder(c.Request().Body).Decode(&resources)
+	resourceList := resourcesModelToProto(resources)
+	req := &protos.AddUserTokenRequest{
+		Username:  username,
+		Resources: resourceList,
+	}
+	err := certifier.AddUserToken(c.Request().Context(), req)
+	return err
+}
+
+func deleteUserTokenHandler(c echo.Context) error {
+	username := c.Param("username")
+	token := c.Param("token")
+	req := &protos.DeleteUserTokenRequest{
+		Username: username,
+		Token:    token,
+	}
+	err := certifier.DeleteUserToken(c.Request().Context(), req)
+	return err
+}
+
+func resourcesModelToProto(resources models.Resources) *protos.ResourceList {
+	resourceList := make([]*protos.Resource, len(resources))
+	for i, resource := range resources {
+		effect := matchEffect(resource.Effect)
+		action := matchAction(resource.Action)
+		resourceType := matchResourceType(resource.ResourceType)
+		resourceProto := &protos.Resource{
+			Effect:       effect,
+			Action:       action,
+			ResourceType: resourceType,
+			Resource:     resource.Resource,
+		}
+		resourceList[i] = resourceProto
+	}
+	return &protos.ResourceList{Resources: resourceList}
+}
+
+func matchResourceType(rawType string) protos.ResourceType {
+	switch rawType {
+	case protos.ResourceType_NETWORK_ID.String():
+		return protos.ResourceType_NETWORK_ID
+	case protos.ResourceType_TENANT_ID.String():
+		return protos.ResourceType_TENANT_ID
+	default:
+		return protos.ResourceType_URI
+	}
+}
+
+func matchEffect(rawEffect string) protos.Effect {
+	switch rawEffect {
+	case protos.Effect_DENY.String():
+		return protos.Effect_DENY
+	case protos.Effect_ALLOW.String():
+		return protos.Effect_ALLOW
+	default:
+		return protos.Effect_UNKNOWN
+	}
+}
+
+func matchAction(rawAction string) protos.Action {
+	switch rawAction {
+	case protos.Action_READ.String():
+		return protos.Action_READ
+	case protos.Action_WRITE.String():
+		return protos.Action_WRITE
+	default:
+		return protos.Action_NONE
+	}
+}

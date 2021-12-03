@@ -6331,7 +6331,7 @@ paths:
         name: policy
         required: true
         schema:
-          $ref: '#/definitions/policy'
+          $ref: '#/definitions/resources'
       responses:
         "201":
           description: Success
@@ -11682,13 +11682,13 @@ definitions:
         - DENY
         - ALLOW
         type: string
+      resource:
+        type: string
       resourceType:
         enum:
         - NETWORK_ID
         - TENANT_ID
         - URI
-        type: string
-      resources:
         type: string
     type: object
   resources:

@@ -1355,8 +1355,8 @@ export type release_channel = {
 export type resource = {
     action ? : "READ" | "WRITE",
     effect ? : "DENY" | "ALLOW",
+    resource ? : string,
     resourceType ? : "NETWORK_ID" | "TENANT_ID" | "URI",
-    resources ? : string,
 };
 export type resources = Array < resource >
 ;
@@ -10704,7 +10704,7 @@ export default class MagmaAPIBindings {
     static async postUserByUsernameTokens(
         parameters: {
             'username': string,
-            'policy': policy,
+            'policy': resources,
         }
     ): Promise < "Success" > {
         let path = '/user/{username}/tokens';
