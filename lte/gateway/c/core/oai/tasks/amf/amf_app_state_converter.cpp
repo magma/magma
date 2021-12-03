@@ -41,7 +41,8 @@ void AmfNasStateConverter::map_uint64_uint64_to_proto(
 std::string AmfNasStateConverter::amf_app_convert_guti_m5_to_string(
     guti_m5_t guti) {
 #define GUTI_STRING_LEN 25
-  char* str = reinterpret_cast<char*>(calloc(1, sizeof(char) * GUTI_STRING_LEN));
+  char* str =
+      reinterpret_cast<char*>(calloc(1, sizeof(char) * GUTI_STRING_LEN));
   snprintf(
       str, GUTI_STRING_LEN, "%x%x%x%x%x%x%02x%04x%04x%08x",
       guti.guamfi.plmn.mcc_digit1, guti.guamfi.plmn.mcc_digit2,

@@ -53,7 +53,9 @@ TEST(test_guti_to_string, test_guti_to_string) {
 // Note this UT Has minimal checks and uses hard coded values
 TEST(test_state_to_proto, test_state_to_proto) {
   // Guti setup
-  guti_m5_t guti1, guti2;
+  guti_m5_t guti1;
+  memset(&guti1, 0, sizeof(guti1));
+
   guti1.guamfi.plmn.mcc_digit1 = 2;
   guti1.guamfi.plmn.mcc_digit2 = 2;
   guti1.guamfi.plmn.mcc_digit3 = 2;
@@ -65,7 +67,7 @@ TEST(test_state_to_proto, test_state_to_proto) {
   guti1.guamfi.amf_pointer     = 0;
   guti1.m_tmsi                 = 556683301;
 
-  amf_app_desc_t amf_app_desc1, amf_app_desc2;
+  amf_app_desc_t amf_app_desc1 = {}, amf_app_desc2 = {};
   magma::lte::oai::MmeNasState state_proto = magma::lte::oai::MmeNasState();
   uint64_t data                            = 0;
 
@@ -102,22 +104,8 @@ TEST(test_state_to_proto, test_state_to_proto) {
   EXPECT_EQ(data, 30);
   data = 0;
 
-  // 556683301
-  guti2.guamfi.plmn.mcc_digit1 = 2;
-  guti2.guamfi.plmn.mcc_digit2 = 2;
-  guti2.guamfi.plmn.mcc_digit3 = 2;
-  guti2.guamfi.plmn.mnc_digit1 = 4;
-  guti2.guamfi.plmn.mnc_digit2 = 5;
-  guti2.guamfi.plmn.mnc_digit3 = 6;
-  guti2.guamfi.amf_regionid    = 1;
-  guti2.guamfi.amf_set_id      = 1;
-  guti2.guamfi.amf_pointer     = 0;
-  guti2.m_tmsi                 = 556683301;
-
-  // Guti test has undefined behavior if we check with guti1, need to check
-  // this.
   EXPECT_EQ(
-      amf_app_desc2.amf_ue_contexts.guti_ue_context_htbl.get(guti2, &data),
+      amf_app_desc2.amf_ue_contexts.guti_ue_context_htbl.get(guti1, &data),
       magma::MAP_OK);
   EXPECT_EQ(data, 40);
 }
