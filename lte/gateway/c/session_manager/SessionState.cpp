@@ -1734,8 +1734,11 @@ bool SessionState::receive_charging_credit(
 
   auto& grant                            = it->second;
   SessionCreditUpdateCriteria* credit_uc = get_credit_uc(key, session_uc);
-  auto credit_validity = ChargingGrant::is_valid_credit_response(update);
+  auto credit_validity =
+      ChargingGrant::get_credit_response_validity_type(update);
   if (credit_validity == INVALID_CREDIT) {
+    MLOG(MDEBUG) << "Credit validity error "
+                 << credit_validity_to_str(credit_validity);
     // update unsuccessful, reset credit and return
     grant->credit.mark_failure(update.result_code(), credit_uc);
     if (grant->should_deactivate_service()) {
@@ -1746,6 +1749,8 @@ bool SessionState::receive_charging_credit(
   if (credit_validity == TRANSIENT_ERROR) {
     // for transient errors, try to install the credit
     // but clear the reported credit
+    MLOG(MDEBUG) << "Credit validity warning "
+                 << credit_validity_to_str(credit_validity);
     grant->credit.mark_failure(update.result_code(), credit_uc);
   }
   grant->receive_charging_grant(update, credit_uc);
@@ -1771,7 +1776,8 @@ bool SessionState::init_charging_credit(
     const CreditUpdateResponse& update,
     SessionStateUpdateCriteria* session_uc) {
   const uint32_t key = update.charging_key();
-  if (ChargingGrant::is_valid_credit_response(update) == INVALID_CREDIT) {
+  if (ChargingGrant::get_credit_response_validity_type(update) ==
+      INVALID_CREDIT) {
     // init failed, don't track key
     return false;
   }
