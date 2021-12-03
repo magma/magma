@@ -37,12 +37,16 @@ func TestCloudRegistrationServicer_GetGatewayRegistrationInfo(t *testing.T) {
 	ctx, cloudRegistration := cloudRegistrationTestSetup(t)
 
 	getGatewayRegistrationInfoRes, err := cloudRegistration.GetGatewayRegistrationInfo(ctx, &protos.GetGatewayRegistrationInfoRequest{})
+	expectedRes := &protos.GetGatewayRegistrationInfoResponse{
+		RootCa:               rootCA,
+		DomainName:           registration.NotImplementedWarning,
+	}
 	assert.NoError(t, err)
-	assert.Equal(t, rootCA, getGatewayRegistrationInfoRes.RootCa)
-	assert.Equal(t, registration.NotImplementedWarning, getGatewayRegistrationInfoRes.DomainName)
+	assert.Equal(t, expectedRes, getGatewayRegistrationInfoRes)
 }
 
-// TestCloudRegistrationServicer_Registration tests GetGatewayDeviceInfo and GetToken functionality
+// TestCloudRegistrationServicer_Registration tests GetGatewayDeviceInfo and GetToken
+// Tests that the functions interplay together with expected behavior
 func TestCloudRegistrationServicer_Registration(t *testing.T) {
 	var (
 		networkID = "networkID"
@@ -87,12 +91,13 @@ func TestCloudRegistrationServicer_Registration(t *testing.T) {
 		GatewayDeviceInfo: gatewayDeviceInfo,
 		Refresh:           true,
 	})
+	newToken := getTokenRes.Token
 	assert.NoError(t, err)
 	assert.True(t, registration.GetTime(timeout).Before(registration.GetTime(getTokenRes.Timeout)))
-	assert.NotEqual(t, token, getTokenRes.Token)
+	assert.NotEqual(t, token, newToken)
 
 	// Get device info with new token
-	getGatewayDeviceInfoRes, err = cloudRegistration.GetGatewayDeviceInfo(ctx, &protos.GetGatewayDeviceInfoRequest{Token: getTokenRes.Token})
+	getGatewayDeviceInfoRes, err = cloudRegistration.GetGatewayDeviceInfo(ctx, &protos.GetGatewayDeviceInfoRequest{Token: newToken})
 	assert.NoError(t, err)
 	assert.Equal(t, &protos.GetGatewayDeviceInfoResponse_GatewayDeviceInfo{GatewayDeviceInfo: gatewayDeviceInfo}, getGatewayDeviceInfoRes.Response)
 
@@ -101,16 +106,14 @@ func TestCloudRegistrationServicer_Registration(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, &protos.GetGatewayDeviceInfoResponse_GatewayDeviceInfo{GatewayDeviceInfo: gatewayDeviceInfo}, getGatewayDeviceInfoRes.Response)
 
+	// Test that token expires properly
 	clock.SetAndFreezeClock(t, time.Now().Add(timeoutDuration))
-
-	// Token should be expired
-	getGatewayDeviceInfoRes, err = cloudRegistration.GetGatewayDeviceInfo(ctx, &protos.GetGatewayDeviceInfoRequest{Token: getTokenRes.Token})
+	getGatewayDeviceInfoRes, err = cloudRegistration.GetGatewayDeviceInfo(ctx, &protos.GetGatewayDeviceInfoRequest{Token: token})
 	expectedErrorRes = &protos.GetGatewayDeviceInfoResponse_Error{
-		Error: fmt.Sprintf("token %v has expired", getTokenRes.Token),
+		Error: fmt.Sprintf("token %v has expired", token),
 	}
 	assert.NoError(t, err)
 	assert.Equal(t, expectedErrorRes, getGatewayDeviceInfoRes.Response)
-
 }
 
 func cloudRegistrationTestSetup(t *testing.T) (context.Context, protos.CloudRegistrationServer) {

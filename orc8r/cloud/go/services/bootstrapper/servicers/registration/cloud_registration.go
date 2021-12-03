@@ -26,13 +26,8 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-const (
-	// NonceLength is the number of characters that the nonce will have
-	NonceLength = 30
-
-	// NotImplementedWarning is pulled out of getDomainName for ease of testing
-	NotImplementedWarning = "warning: not implemented"
-)
+// NotImplementedWarning is pulled out of getDomainName for ease of testing
+const NotImplementedWarning = "warning: not implemented"
 
 type cloudRegistrationServicer struct {
 	store   Store
@@ -64,6 +59,7 @@ func (c *cloudRegistrationServicer) GetToken(ctx context.Context, request *proto
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "could not generate and save tokenInfo for networkID %v and logicalID %v: %v", networkId, logicalId, err)
 		}
+		glog.V(2).Infof("generated new token for networkID %v and logicalID %v: %v", networkId, logicalId, err)
 	}
 
 	res := &protos.GetTokenResponse{Timeout: tokenInfo.Timeout, Token: NonceToToken(tokenInfo.Nonce)}

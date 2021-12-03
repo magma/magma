@@ -22,6 +22,9 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
+// NonceLength is the number of characters that the nonce will have
+const NonceLength = 30
+
 func IsExpired(t *protos.TokenInfo) bool {
 	expirationTime := GetTime(t.Timeout)
 	return clock.Now().After(expirationTime)
