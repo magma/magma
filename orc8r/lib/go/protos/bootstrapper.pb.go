@@ -397,7 +397,7 @@ func (m *Response_ECDSA) GetS() []byte {
 }
 
 type GetTokenRequest struct {
-	// gateway_device_info contains basic info that an AGW needs to register
+	// gateway_device_info contains basic info that an access gateway (AGW) needs to register
 	GatewayDeviceInfo *GatewayDeviceInfo `protobuf:"bytes,1,opt,name=gateway_device_info,json=gatewayDeviceInfo,proto3" json:"gateway_device_info,omitempty"`
 	// refresh is true if a new token should be generated regardless of old token timeout
 	Refresh              bool     `protobuf:"varint,2,opt,name=refresh,proto3" json:"refresh,omitempty"`
@@ -447,6 +447,7 @@ func (m *GetTokenRequest) GetRefresh() bool {
 
 type GetTokenResponse struct {
 	// token is a nonce prepended by bootstrapper.tokenPrepend
+	// It is a randomized string of characters that keys to a TokenInfo
 	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 	// timeout is the timestamp of when this TokenInfo will expire
 	Timeout              *timestamp.Timestamp `protobuf:"bytes,2,opt,name=timeout,proto3" json:"timeout,omitempty"`
@@ -526,9 +527,9 @@ func (m *GetGatewayRegistrationInfoRequest) XXX_DiscardUnknown() {
 var xxx_messageInfo_GetGatewayRegistrationInfoRequest proto.InternalMessageInfo
 
 type GetGatewayRegistrationInfoResponse struct {
-	// root_ca is a certificate that AGWs can use handshake and communicate with this orc8r
+	// root_ca is a certificate that access gateways (AGW) can use to handshake and communicate with this orc8r
 	RootCa string `protobuf:"bytes,1,opt,name=root_ca,json=rootCa,proto3" json:"root_ca,omitempty"`
-	// domain_name is the domain name where this orc8r resides
+	// domain_name is the domain name where this orc8r can be accessed
 	DomainName           string   `protobuf:"bytes,2,opt,name=domain_name,json=domainName,proto3" json:"domain_name,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -576,7 +577,7 @@ func (m *GetGatewayRegistrationInfoResponse) GetDomainName() string {
 
 type GetGatewayDeviceInfoRequest struct {
 	// token is a nonce prepended by bootstrapper.tokenPrepend
-	// It keys to a TokenInfo
+	// it is a randomized string of characters that keys to a TokenInfo
 	Token                string   `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -697,11 +698,11 @@ func (*GetGatewayDeviceInfoResponse) XXX_OneofWrappers() []interface{} {
 
 type RegisterRequest struct {
 	// token is a nonce prepended by bootstrapper.tokenPrefix
-	// It keys to a TokenInfo
+	// It is a randomized string of characters that keys to a TokenInfo
 	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	// hwid is the access gateway's (AGW) ID
+	// hwid is the access gateway's (AGW) hardware id
 	Hwid *AccessGatewayID `protobuf:"bytes,2,opt,name=hwid,proto3" json:"hwid,omitempty"`
-	// challenge_key is gateway's long-term public key
+	// challenge_key is the AGW's long-term public key
 	ChallengeKey         *ChallengeKey `protobuf:"bytes,3,opt,name=challenge_key,json=challengeKey,proto3" json:"challenge_key,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
@@ -834,7 +835,7 @@ func (*RegisterResponse) XXX_OneofWrappers() []interface{} {
 	}
 }
 
-// GatewayDeviceInfo contains basic info that an AGW needs to register
+// GatewayDeviceInfo contains basic info that an access gateway (AGW) needs to register
 type GatewayDeviceInfo struct {
 	// network_id is the network id of the AGW
 	NetworkId string `protobuf:"bytes,1,opt,name=network_id,json=networkId,proto3" json:"network_id,omitempty"`
@@ -884,7 +885,7 @@ func (m *GatewayDeviceInfo) GetLogicalId() string {
 	return ""
 }
 
-// TokenInfo is info saved that is keyed by token.
+// TokenInfo is info saved that is keyed by token
 // This is what is saved on CloudRegistration's initial register call (GetToken)
 type TokenInfo struct {
 	// gateway_device_info contains basic info that an AGW needs to register
@@ -1161,10 +1162,10 @@ type CloudRegistrationClient interface {
 	// GetToken saves and sends out a token related to input:networkID and input:logicalID
 	// It will refresh the token if input:refresh is true or token is expired
 	GetToken(ctx context.Context, in *GetTokenRequest, opts ...grpc.CallOption) (*GetTokenResponse, error)
-	// GetInfoForGatewayRegistration sends out information needed for gateways to register themselves
+	// GetGatewayRegistrationInfo sends out info needed for AGWs to register themselves
 	GetGatewayRegistrationInfo(ctx context.Context, in *GetGatewayRegistrationInfoRequest, opts ...grpc.CallOption) (*GetGatewayRegistrationInfoResponse, error)
-	// GetGatewayPreregisterInfo sends out information that has been set when the operator preregistered
-	// the device with networkID and logicalID
+	// GetGatewayDeviceInfo sends out info that was set when the operator registered
+	// the device's networkID and logicalID
 	GetGatewayDeviceInfo(ctx context.Context, in *GetGatewayDeviceInfoRequest, opts ...grpc.CallOption) (*GetGatewayDeviceInfoResponse, error)
 }
 
@@ -1208,10 +1209,10 @@ type CloudRegistrationServer interface {
 	// GetToken saves and sends out a token related to input:networkID and input:logicalID
 	// It will refresh the token if input:refresh is true or token is expired
 	GetToken(context.Context, *GetTokenRequest) (*GetTokenResponse, error)
-	// GetInfoForGatewayRegistration sends out information needed for gateways to register themselves
+	// GetGatewayRegistrationInfo sends out info needed for AGWs to register themselves
 	GetGatewayRegistrationInfo(context.Context, *GetGatewayRegistrationInfoRequest) (*GetGatewayRegistrationInfoResponse, error)
-	// GetGatewayPreregisterInfo sends out information that has been set when the operator preregistered
-	// the device with networkID and logicalID
+	// GetGatewayDeviceInfo sends out info that was set when the operator registered
+	// the device's networkID and logicalID
 	GetGatewayDeviceInfo(context.Context, *GetGatewayDeviceInfoRequest) (*GetGatewayDeviceInfoResponse, error)
 }
 
@@ -1312,7 +1313,7 @@ var _CloudRegistration_serviceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type RegistrationClient interface {
-	// Register should be called by the gateway device
+	// Register should be called by the AGW
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 }
 
@@ -1335,7 +1336,7 @@ func (c *registrationClient) Register(ctx context.Context, in *RegisterRequest, 
 
 // RegistrationServer is the server API for Registration service.
 type RegistrationServer interface {
-	// Register should be called by the gateway device
+	// Register should be called by the AGW
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 }
 
