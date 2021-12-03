@@ -97,5 +97,9 @@ void fill_nw_initiated_deactivate_bearer_response(
     gtpv2c_cause_value_t cause, ebi_t ebi[], unsigned int num_bearer_context,
     teid_t sgw_s11_context_teid);
 
+void fill_s11_suspend_notification(
+    itti_s11_suspend_notification_t* suspend_notif, teid_t sgw_s11_context_teid,
+    std::string imsi_str, ebi_t link_bearer_id);
+
 }  // namespace lte
 }  // namespace magma

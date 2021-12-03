@@ -25,6 +25,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 }
 
 namespace magma {
@@ -365,7 +366,8 @@ void fill_nw_initiated_deactivate_bearer_response(
   nw_deactv_bearer_resp->cause.cause_value     = cause;
 
   if (delete_default_bearer) {
-    nw_deactv_bearer_resp->lbi  = (ebi_t*) calloc(1, sizeof(ebi_t));
+    nw_deactv_bearer_resp->lbi =
+        reinterpret_cast<ebi_t*>(calloc(1, sizeof(ebi_t)));
     *nw_deactv_bearer_resp->lbi = ebi[0];
     nw_deactv_bearer_resp->bearer_contexts.bearer_contexts[0]
         .cause.cause_value = cause;
@@ -381,6 +383,17 @@ void fill_nw_initiated_deactivate_bearer_response(
       num_bearer_context;
   nw_deactv_bearer_resp->imsi             = test_imsi64;
   nw_deactv_bearer_resp->s_gw_teid_s11_s4 = sgw_s11_context_teid;
+}
+
+void fill_s11_suspend_notification(
+    itti_s11_suspend_notification_t* suspend_notif, teid_t sgw_s11_context_teid,
+    std::string imsi_str, ebi_t link_bearer_id) {
+  suspend_notif->teid        = sgw_s11_context_teid;
+  suspend_notif->lbi         = link_bearer_id;
+  suspend_notif->imsi.length = imsi_str.size();
+  strncpy(
+      (char*) suspend_notif->imsi.digit, imsi_str.c_str(),
+      suspend_notif->imsi.length);
 }
 
 }  // namespace lte
