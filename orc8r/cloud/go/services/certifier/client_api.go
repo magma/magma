@@ -264,6 +264,6 @@ func GetUser(ctx context.Context, username string) (*certprotos.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	user, err := client.GetUser(ctx, &certprotos.GetUserRequest{Username: username})
+	user, err := client.GetUser(ctx, &certprotos.User{Username: username})
 	return user, err
 }

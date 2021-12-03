@@ -18,13 +18,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/labstack/echo"
+
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/services/certifier/obsidian/models"
 	"magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
-
-	"github.com/labstack/echo"
 )
 
 const (
@@ -61,13 +61,13 @@ func listUsersHandler(c echo.Context) error {
 }
 
 func createUserHandler(c echo.Context) error {
-	var data models.UserWithPolicy
+	var data models.User
 	err := json.NewDecoder(c.Request().Body).Decode(&data)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request body for creating user: %v", err))
 	}
-	username := fmt.Sprintf("%v", *data.User.Username)
-	password := []byte(fmt.Sprintf("%v", *data.User.Password))
+	username := fmt.Sprintf("%v", *data.Username)
+	password := []byte(fmt.Sprintf("%v", *data.Password))
 	user := &protos.User{
 		Username: username,
 		Password: password,
@@ -86,6 +86,12 @@ func getUserHandler(c echo.Context) error {
 }
 
 func updateUserHandler(c echo.Context) error {
+	// username := c.Param("username")
+	// var updatedPassword string
+	// err := json.NewDecoder(c.Request().Body).Decode(updatedPassword)
+	// if err != nil {
+	// 	return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request body for updating user"))
+	// }
 	return nil
 }
 

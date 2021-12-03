@@ -56,4 +56,7 @@ type CertifierStorage interface {
 
 	// PutPolicy updates the current policy
 	PutPolicy(token string, policy *protos.Policy) error
+
+	// DeleteToken deletes the token's policy form the policy db
+	DeleteToken(token string) error
 }

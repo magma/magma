@@ -32,6 +32,7 @@ import (
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/identity"
+	"magma/orc8r/cloud/go/services/certifier"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/lib/go/errors"
@@ -386,12 +387,118 @@ func (srv *CertifierServer) ListUsers(ctx context.Context, void *protos.Void) (*
 	return &certprotos.ListUsersResponse{Users: users}, nil
 }
 
-func (srv *CertifierServer) GetUser(ctx context.Context, getUserReq *certprotos.GetUserRequest) (*certprotos.User, error) {
+func (srv *CertifierServer) GetUser(ctx context.Context, getUserReq *certprotos.User) (*certprotos.User, error) {
 	user, err := srv.store.GetUser(getUserReq.Username)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get user %s", getUserReq.Username)
 	}
 	return user, nil
+}
+
+func (srv *CertifierServer) UpdateUser(ctx context.Context, updatedUser *certprotos.User) (*protos.Void, error) {
+	user, err := srv.store.GetUser(updatedUser.Username)
+
+	hashedPassword, err := bcrypt.GenerateFromPassword(updatedUser.Password, bcrypt.DefaultCost)
+	if err != nil {
+		return nil, status.Errorf(http.StatusInternalServerError, "error hashing password: %v", err)
+	}
+
+	newUser := &certprotos.User{
+		Username: updatedUser.Username,
+		Password: hashedPassword,
+		Tokens:   updatedUser.Tokens,
+	}
+	err = srv.store.PutUser(user.Username, newUser)
+	if err != nil {
+		return nil, status.Errorf(http.StatusInternalServerError, "error updating user")
+	}
+	return &protos.Void{}, nil
+}
+
+func (srv *CertifierServer) DeleteUser(ctx context.Context, deleteUser *certprotos.User) (*protos.Void, error) {
+	err := srv.store.DeleteUser(deleteUser.Username)
+	if err != nil {
+		return nil, status.Errorf(http.StatusInternalServerError, "error deleting user")
+	}
+	return &protos.Void{}, nil
+}
+
+func (srv *CertifierServer) Login(ctx context.Context, loginUser *certprotos.User) (*certprotos.TokenList, error) {
+	user, err := srv.store.GetUser(loginUser.Username)
+	if err != nil {
+		return nil, status.Errorf(http.StatusInternalServerError, "error getting user for login")
+	}
+	return user.Tokens, nil
+}
+
+func (srv *CertifierServer) ListUserTokens(ctx context.Context, reqUser *certprotos.User) (*certprotos.ListUserTokensResponse, error) {
+	user, err := srv.store.GetUser(reqUser.Username)
+	if err != nil {
+		return nil, status.Errorf(http.StatusInternalServerError, "error getting user for listing user tokens")
+	}
+	policies, err := srv.getPolicyFromTokenMany(user.Tokens)
+	if err != nil {
+		return nil, status.Errorf(http.StatusInternalServerError, "error getting policy from token list")
+	}
+	return policies, nil
+}
+
+func (srv *CertifierServer) AddUserToken(ctx context.Context, req *certprotos.AddUserTokenRequest) (*protos.Void, error) {
+	user, err := srv.store.GetUser(req.Username)
+	if err != nil {
+		return nil, status.Errorf(http.StatusInternalServerError, "error getting user for adding token: %v", err)
+	}
+	token, err := certifier.GenerateToken(certifier.Personal)
+	if err != nil {
+		return nil, status.Errorf(http.StatusInternalServerError, "error generating token: %v", err)
+	}
+	newTokens := append(user.Tokens.Tokens, token)
+	newUser := &certprotos.User{
+		Username: user.Username,
+		Password: user.Password,
+		Tokens:   &certprotos.TokenList{Tokens: newTokens},
+	}
+	err = srv.store.PutUser(user.Username, newUser)
+	if err != nil {
+		return nil, status.Errorf(http.StatusInternalServerError, "error adding token to user: %v", err)
+	}
+	return &protos.Void{}, nil
+}
+
+func (srv *CertifierServer) DeleteUserToken(ctx context.Context, req *certprotos.DeleteUserTokenRequest) (*protos.Void, error) {
+	user, err := srv.store.GetUser(req.Username)
+	if err != nil {
+		return nil, fmt.Errorf("error getting user to delete token: %v")
+	}
+	newTokenList, err := srv.deleteTokenFromUser(user.Tokens, req.Token)
+	if err != nil {
+		return nil, status.Errorf(http.StatusInternalServerError, "error deleting token from user: %v", err)
+	}
+	newUser := &certprotos.User{
+		Username: user.Username,
+		Password: user.Password,
+		Tokens:   newTokenList,
+	}
+	err = srv.store.PutUser(user.Username, newUser)
+	if err != nil {
+		return nil, status.Errorf(http.StatusInternalServerError, "error updating user while deleting token: %v", err)
+	}
+	err = srv.store.DeleteToken(req.Token)
+	if err != nil {
+		return nil, status.Errorf(http.StatusInternalServerError, "error deleting policy: %v", err)
+	}
+	return &protos.Void{}, nil
+}
+
+func (srv *CertifierServer) deleteTokenFromUser(tokenList *certprotos.TokenList, reqToken string) (*certprotos.TokenList, error) {
+	removeIdx := -1
+	for idx, token := range tokenList.Tokens {
+		if token == reqToken {
+			removeIdx = idx
+		}
+	}
+	newTokenList := append(tokenList.Tokens[:removeIdx], tokenList.Tokens[removeIdx+1:]...)
+	return &certprotos.TokenList{Tokens: newTokenList}, nil
 }
 
 func generateSerialNumber(store storage.CertifierStorage) (sn *big.Int, err error) {
@@ -525,6 +632,26 @@ func (srv *CertifierServer) verifyCert(clientCert *x509.Certificate, certType pr
 		return fmt.Errorf("Certificate Verification Failure: %s", err)
 	}
 	return nil
+}
+
+func (srv *CertifierServer) getPolicyFromTokenMany(tokens *certprotos.TokenList) (*certprotos.ListUserTokensResponse, error) {
+	ret := make([]*certprotos.Policy, len(tokens.Tokens))
+	for i, token := range tokens.Tokens {
+		policy, err := srv.getPolicyFromToken(token)
+		if err != nil {
+			return nil, err
+		}
+		ret[i] = policy
+	}
+	return &certprotos.ListUserTokensResponse{Policies: ret}, nil
+}
+
+func (srv *CertifierServer) getPolicyFromToken(token string) (*certprotos.Policy, error) {
+	policy, err := srv.store.GetPolicy(token)
+	if err != nil {
+		return nil, err
+	}
+	return policy, nil
 }
 
 func (srv *CertifierServer) getPolicyDecisionFromTokenMany(tokens *certprotos.TokenList, getPDReq *certprotos.GetPolicyDecisionRequest) (*certprotos.PolicyDecision, error) {

@@ -93,15 +93,6 @@ message Policy {
   ResourceList resources = 4;
 }
 
-message GetUserRequest {
-  string username = 1;
-}
-
-message CreateUserRequest {
-  User user = 1;
-  Policy policy = 2;
-}
-
 message GetPolicyDecisionRequest {
   string username = 1;
   string token = 2;
@@ -114,6 +105,20 @@ message PolicyDecision {
 
 message ListUsersResponse {
   repeated User users = 1;
+}
+
+message ListUserTokensResponse {
+  repeated Policy policies = 1;
+}
+
+message AddUserTokenRequest{
+  string username = 1;
+  ResourceLIst resources = 2;
+}
+
+message DeleteUserTokenRequest{
+  string username = 1;
+  string token = 2;
 }
 
 service Certifier {
@@ -157,13 +162,30 @@ service Certifier {
   // (read/write), and the request resource
   rpc GetPolicyDecision (GetPolicyDecisionRequest) returns (PolicyDecision) {}
 
-  // Creates a new user
+  // Create a new user with their username and password
   rpc CreateUser (User) returns (Void) {}
 
-  // ListUsers all users and their information
+  // List all users and their information
   rpc ListUsers(Void) returns (ListUsersResponse) {}
 
-  // Gets a user based on their username
-  rpc GetUser(GetUserRequest) returns (User) {}
+  // Get a user based on their username
+  rpc GetUser(User) returns (User) {}
 
+  // Update a user's authentication information
+  rpc UpdateUser(User) returns (Void) {}
+
+  // Delete a user
+  rpc DeleteUser(User) returns (Void) {}
+
+  // List a user's tokens, not including its policies
+  rpc Login(User) returns (TokenList) {}
+
+  // List a user's tokens with their policies
+  rpc ListUserTokens(User) returns (ListUserTokensResponse) {}
+
+  // Add a token to user's existing set of tokens
+  rpc AddUserToken(AddUserTokenRequest) returns (Void) {}
+
+  // Revoke a user's token and removes the policy associated with the token
+  rpc DeleteUserToken(DeleteUserTokenRequest) returns (Void) {}
 }

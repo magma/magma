@@ -12,6 +12,7 @@ import (
 
 type TokenType string
 
+// TODO(christinewang5): add different token types and their use cases
 const (
 	Personal TokenType = "op"
 )
