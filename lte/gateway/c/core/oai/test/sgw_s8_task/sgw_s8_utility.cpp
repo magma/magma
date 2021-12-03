@@ -64,7 +64,8 @@ void fill_itti_csreq(
 }
 
 void fill_itti_csrsp(
-    s8_create_session_response_t* csr_resp, uint32_t temporary_session_id) {
+    s8_create_session_response_t* csr_resp,
+    uint32_t temporary_create_session_procedure_id) {
   uint8_t idx = 0;
   fill_imsi((reinterpret_cast<char*>(csr_resp->imsi)));
   csr_resp->imsi_length = 15;
@@ -72,9 +73,10 @@ void fill_itti_csrsp(
   csr_resp->pdn_type                = IPv4;
   csr_resp->paa.pdn_type            = IPv4;
   csr_resp->paa.ipv4_address.s_addr = 0xc0a87e1;
-  csr_resp->context_teid         = 16;  // This teid would be allocated by orc8r
-  csr_resp->eps_bearer_id        = 5;
-  csr_resp->temporary_session_id = temporary_session_id;
+  csr_resp->context_teid  = 16;  // This teid would be allocated by orc8r
+  csr_resp->eps_bearer_id = 5;
+  csr_resp->temporary_create_session_procedure_id =
+      temporary_create_session_procedure_id;
 
   csr_resp->bearer_context[0].eps_bearer_id                 = 5;
   csr_resp->bearer_context[0].pgw_s8_up.ipv4                = 1;
@@ -196,18 +198,18 @@ void fill_delete_session_response(
 }
 
 sgw_state_t* SgwS8ConfigAndCreateMock::create_and_get_contexts_on_cs_req(
-    uint32_t* temporary_session_id,
+    uint32_t* temporary_create_session_procedure_id,
     sgw_eps_bearer_context_information_t** sgw_pdn_session) {
   sgw_state_t* sgw_state = get_sgw_state(false);
   *sgw_pdn_session       = sgw_create_bearer_context_information_in_collection(
-      sgw_state, temporary_session_id);
+      sgw_state, temporary_create_session_procedure_id);
 
   itti_s11_create_session_request_t session_req = {0};
   fill_itti_csreq(&session_req, default_eps_bearer_id);
   memcpy(session_req.apn, "internet", sizeof("internet"));
 
   *sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
-      sgw_state, temporary_session_id);
+      sgw_state, temporary_create_session_procedure_id);
   sgw_update_bearer_context_information_on_csreq(
       sgw_state, *sgw_pdn_session, &session_req, imsi64);
 

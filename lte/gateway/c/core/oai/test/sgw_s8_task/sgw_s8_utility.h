@@ -36,7 +36,8 @@ void fill_itti_csreq(
     itti_s11_create_session_request_t* session_req_pP,
     uint8_t default_eps_bearer_id);
 void fill_itti_csrsp(
-    s8_create_session_response_t* csr_resp, uint32_t temporary_session_id);
+    s8_create_session_response_t* csr_resp,
+    uint32_t temporary_create_session_procedure_id);
 
 void fill_create_bearer_request(
     s8_create_bearer_request_t* cb_req, uint32_t teid,
@@ -65,7 +66,7 @@ class SgwS8ConfigAndCreateMock : public ::testing::Test {
  public:
   sgw_state_t* create_ue_context(mme_sgw_tunnel_t* sgw_s11_tunnel);
   sgw_state_t* create_and_get_contexts_on_cs_req(
-      uint32_t* temporary_session_id,
+      uint32_t* temporary_create_session_procedure_id,
       sgw_eps_bearer_context_information_t** sgw_pdn_session);
 
  protected:

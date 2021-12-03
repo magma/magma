@@ -45,19 +45,20 @@ TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req_success) {
  * on reception of Create Session Req
  */
 TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req) {
-  sgw_state_t* sgw_state        = get_sgw_state(false);
-  uint32_t temporary_session_id = 0;
+  sgw_state_t* sgw_state                         = get_sgw_state(false);
+  uint32_t temporary_create_session_procedure_id = 0;
 
   // validates creation of pdn session on reception of Create Session Req with
   // key as temporary session id
   sgw_eps_bearer_context_information_t* sgw_pdn_session =
       sgw_create_bearer_context_information_in_collection(
-          sgw_state, &temporary_session_id);
+          sgw_state, &temporary_create_session_procedure_id);
   EXPECT_TRUE(sgw_pdn_session != nullptr);
   sgw_pdn_session = nullptr;
   EXPECT_EQ(
       hashtable_ts_get(
-          sgw_state->temporary_session_id_htbl, temporary_session_id,
+          sgw_state->temporary_create_session_procedure_id_htbl,
+          temporary_create_session_procedure_id,
           reinterpret_cast<void**>(&sgw_pdn_session)),
       HASH_TABLE_OK);
 
@@ -105,9 +106,9 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
   sgw_state_t* sgw_state = get_sgw_state(false);
 
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  uint32_t temporary_session_id                         = 0;
+  uint32_t temporary_create_session_procedure_id        = 0;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
-      sgw_state, &temporary_session_id);
+      sgw_state, &temporary_create_session_procedure_id);
 
   itti_s11_create_session_request_t session_req = {0};
   fill_itti_csreq(&session_req, default_eps_bearer_id);
@@ -118,7 +119,7 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
   EXPECT_EQ(strcmp(sgw_pdn_session->pdn_connection.apn_in_use, "NO APN"), 0);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_session_id);
+  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
 
   EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
   EXPECT_EQ(
@@ -142,13 +143,14 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
 // TC indicates that SGW_S8 has received incorrect temporary session id in
 // Create Session Rsp
 TEST_F(
-    SgwS8ConfigAndCreateMock, recv_different_temporary_session_id_on_cs_rsp) {
+    SgwS8ConfigAndCreateMock,
+    recv_different_temporary_create_session_procedure_id_on_cs_rsp) {
   sgw_state_t* sgw_state = get_sgw_state(false);
 
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  uint32_t temporary_session_id                         = 0;
+  uint32_t temporary_create_session_procedure_id        = 0;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
-      sgw_state, &temporary_session_id);
+      sgw_state, &temporary_create_session_procedure_id);
 
   itti_s11_create_session_request_t session_req = {0};
   fill_itti_csreq(&session_req, default_eps_bearer_id);
@@ -157,7 +159,7 @@ TEST_F(
       sgw_state, sgw_pdn_session, &session_req, imsi64);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_session_id + 1);
+  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id + 1);
   EXPECT_EQ(
       sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64),
       RETURNerror);
@@ -170,9 +172,9 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_different_sgw_s8_teid) {
   sgw_state_t* sgw_state = get_sgw_state(false);
 
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  uint32_t temporary_session_id                         = 0;
+  uint32_t temporary_create_session_procedure_id        = 0;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
-      sgw_state, &temporary_session_id);
+      sgw_state, &temporary_create_session_procedure_id);
 
   itti_s11_create_session_request_t session_req = {0};
   fill_itti_csreq(&session_req, default_eps_bearer_id);
@@ -181,7 +183,7 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_different_sgw_s8_teid) {
       sgw_state, sgw_pdn_session, &session_req, imsi64);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_session_id);
+  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
   // validate with wrong sgw_s8_teid, fails to get sgw_pdn_session
   EXPECT_EQ(
@@ -194,12 +196,12 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_different_sgw_s8_teid) {
 // TC indicates that SGW_S8 has received incorrect eps bearer id in Create
 // Session Rsp
 TEST_F(SgwS8ConfigAndCreateMock, failed_to_get_bearer_context_on_cs_rsp) {
-  uint32_t temporary_session_id = 0;
+  uint32_t temporary_create_session_procedure_id = 0;
 
   sgw_state_t* sgw_state = get_sgw_state(false);
   sgw_eps_bearer_context_information_t* sgw_pdn_session =
       sgw_create_bearer_context_information_in_collection(
-          sgw_state, &temporary_session_id);
+          sgw_state, &temporary_create_session_procedure_id);
 
   itti_s11_create_session_request_t session_req = {0};
   fill_itti_csreq(&session_req, default_eps_bearer_id);
@@ -208,7 +210,7 @@ TEST_F(SgwS8ConfigAndCreateMock, failed_to_get_bearer_context_on_cs_rsp) {
       sgw_state, sgw_pdn_session, &session_req, imsi64);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_session_id);
+  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
   csresp.eps_bearer_id = 7;  // Send wrong eps_bearer_id
   // fails to update bearer context
   EXPECT_EQ(
@@ -224,9 +226,9 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling) {
   sgw_state_t* sgw_state = get_sgw_state(false);
 
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  uint32_t temporary_session_id                         = 0;
+  uint32_t temporary_create_session_procedure_id        = 0;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
-      sgw_state, &temporary_session_id);
+      sgw_state, &temporary_create_session_procedure_id);
 
   itti_s11_create_session_request_t session_req = {0};
   fill_itti_csreq(&session_req, default_eps_bearer_id);
@@ -239,7 +241,7 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling) {
   EXPECT_EQ(strcmp(sgw_pdn_session->pdn_connection.apn_in_use, "NO APN"), 0);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_session_id);
+  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
 
   // Below steps validate that successful handling of create session response
   // which eventually sends message to MME
@@ -294,9 +296,9 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling_invalid_teid) {
   sgw_state_t* sgw_state = get_sgw_state(false);
 
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  uint32_t temporary_session_id                         = 0;
+  uint32_t temporary_create_session_procedure_id        = 0;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
-      sgw_state, &temporary_session_id);
+      sgw_state, &temporary_create_session_procedure_id);
 
   itti_s11_create_session_request_t session_req = {0};
   fill_itti_csreq(&session_req, default_eps_bearer_id);
@@ -305,7 +307,7 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling_invalid_teid) {
       sgw_state, sgw_pdn_session, &session_req, imsi64);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_session_id);
+  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
   // Validate that sgw_s8 fails to find the context for in-correct teid received
   // in delete session req

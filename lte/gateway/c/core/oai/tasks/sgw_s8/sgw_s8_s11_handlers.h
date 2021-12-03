@@ -73,7 +73,7 @@ status_code_e sgw_update_teid_in_ue_context(
 
 sgw_eps_bearer_context_information_t*
 sgw_create_bearer_context_information_in_collection(
-    sgw_state_t* sgw_state, uint32_t* temporary_session_id_p);
+    sgw_state_t* sgw_state, uint32_t* temporary_create_session_procedure_id);
 
 sgw_eps_bearer_context_information_t* sgw_get_sgw_eps_bearer_context(
     teid_t teid);

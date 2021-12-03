@@ -40,7 +40,7 @@ const message_info_t messages_info[] = {
 
 #define TEST_GRPCSERVICES_SERVER_ADDRESS "127.0.0.1:50095"
 
-#define END_OF_TESTCASE_SLEEP_MS 500
+#define END_OF_TESTCASE_SLEEP_MS 250
 #define SLEEP_AT_INITIALIZATION_TIME_MS 500
 class MockS1apHandler {
  public:

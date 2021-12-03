@@ -87,13 +87,15 @@ void SgwStateManager::create_state() {
         LOG_SGW_S8, "Failed to create imsi_ue_context_htbl for SGW_S8 task \n");
     return;
   }
-  state_cache_p->temporary_session_id_htbl = hashtable_ts_create(
-      SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-      (void (*)(void**)) sgw_free_s11_bearer_context_information, nullptr);
-  if (!(state_cache_p->temporary_session_id_htbl)) {
+  state_cache_p->temporary_create_session_procedure_id_htbl =
+      hashtable_ts_create(
+          SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
+          (void (*)(void**)) sgw_free_s11_bearer_context_information, nullptr);
+  if (!(state_cache_p->temporary_create_session_procedure_id_htbl)) {
     OAILOG_CRITICAL(
         LOG_SGW_S8,
-        "Failed to create temporary_session_id_htbl for SGW_S8 task \n");
+        "Failed to create temporary_create_session_procedure_id_htbl for "
+        "SGW_S8 task \n");
     return;
   }
 
@@ -117,7 +119,8 @@ void SgwStateManager::free_state() {
         "hashtable");
   }
   hashtable_ts_destroy(state_cache_p->imsi_ue_context_htbl);
-  hashtable_ts_destroy(state_cache_p->temporary_session_id_htbl);
+  hashtable_ts_destroy(
+      state_cache_p->temporary_create_session_procedure_id_htbl);
 
   free_wrapper((void**) &state_cache_p);
 }

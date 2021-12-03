@@ -25,12 +25,12 @@ spgw_config_t spgw_config;
 // TC validates updation of bearer context on reception of Create Session Rsp
 TEST_F(SgwS8ConfigAndCreateMock, check_dedicated_bearer_creation_request) {
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  uint32_t temporary_session_id                         = 0;
+  uint32_t temporary_create_session_procedure_id        = 0;
 
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
-      &temporary_session_id, &sgw_pdn_session);
+      &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_session_id);
+  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
@@ -86,12 +86,12 @@ TEST_F(SgwS8ConfigAndCreateMock, check_dedicated_bearer_creation_request) {
 
 TEST_F(SgwS8ConfigAndCreateMock, dedicated_bearer_invalid_lbi) {
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  uint32_t temporary_session_id                         = 0;
+  uint32_t temporary_create_session_procedure_id        = 0;
 
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
-      &temporary_session_id, &sgw_pdn_session);
+      &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_session_id);
+  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
@@ -109,12 +109,12 @@ TEST_F(SgwS8ConfigAndCreateMock, dedicated_bearer_invalid_lbi) {
 // bearer response
 TEST_F(SgwS8ConfigAndCreateMock, check_failed_to_create_dedicated_bearer) {
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  uint32_t temporary_session_id                         = 0;
+  uint32_t temporary_create_session_procedure_id        = 0;
 
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
-      &temporary_session_id, &sgw_pdn_session);
+      &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_session_id);
+  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
@@ -159,12 +159,12 @@ TEST_F(SgwS8ConfigAndCreateMock, check_failed_to_create_dedicated_bearer) {
 // delete bearer response
 TEST_F(SgwS8ConfigAndCreateMock, delete_bearer_response_invalid_teid) {
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  uint32_t temporary_session_id                         = 0;
+  uint32_t temporary_create_session_procedure_id        = 0;
 
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
-      &temporary_session_id, &sgw_pdn_session);
+      &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_session_id);
+  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
@@ -207,9 +207,9 @@ TEST_F(SgwS8ConfigAndCreateMock, create_bearer_req_fails_to_find_ctxt) {
   mme_sgw_tunnel_t sgw_s11_tunnel = {0};
   sgw_state_t* sgw_state          = create_ue_context(&sgw_s11_tunnel);
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  uint32_t temporary_session_id                         = 0;
+  uint32_t temporary_create_session_procedure_id        = 0;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
-      sgw_state, &temporary_session_id);
+      sgw_state, &temporary_create_session_procedure_id);
   itti_s11_create_session_request_t session_req = {0};
   fill_itti_csreq(&session_req, default_eps_bearer_id);
   memcpy(session_req.apn, "internet", sizeof("internet"));
@@ -288,12 +288,12 @@ MATCHER_P2(check_params_in_cb_req, linked_eps_bearer_id, tft, "") {
 TEST_F(SgwS8ConfigAndCreateMock, send_create_bearer_req_to_mme) {
   ASSERT_EQ(task_zmq_ctx_main_s8.ready, true);
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  uint32_t temporary_session_id                         = 0;
+  uint32_t temporary_create_session_procedure_id        = 0;
 
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
-      &temporary_session_id, &sgw_pdn_session);
+      &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_session_id);
+  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
@@ -337,12 +337,12 @@ TEST_F(SgwS8ConfigAndCreateMock, send_create_bearer_req_to_mme) {
 TEST_F(SgwS8ConfigAndCreateMock, recv_create_bearer_response) {
   ASSERT_EQ(task_zmq_ctx_main_s8.ready, true);
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  uint32_t temporary_session_id                         = 0;
+  uint32_t temporary_create_session_procedure_id        = 0;
 
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
-      &temporary_session_id, &sgw_pdn_session);
+      &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_session_id);
+  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
@@ -413,12 +413,12 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_create_bearer_response) {
 TEST_F(SgwS8ConfigAndCreateMock, recv_delete_bearer_req) {
   ASSERT_EQ(task_zmq_ctx_main_s8.ready, true);
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  uint32_t temporary_session_id                         = 0;
+  uint32_t temporary_create_session_procedure_id        = 0;
 
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
-      &temporary_session_id, &sgw_pdn_session);
+      &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_session_id);
+  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
@@ -477,12 +477,12 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_delete_bearer_req) {
 TEST_F(SgwS8ConfigAndCreateMock, delete_bearer_response) {
   ASSERT_EQ(task_zmq_ctx_main_s8.ready, true);
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
-  uint32_t temporary_session_id                         = 0;
+  uint32_t temporary_create_session_procedure_id        = 0;
 
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
-      &temporary_session_id, &sgw_pdn_session);
+      &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_session_id);
+  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};

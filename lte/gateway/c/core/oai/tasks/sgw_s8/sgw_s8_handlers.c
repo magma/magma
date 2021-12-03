@@ -179,10 +179,10 @@ status_code_e sgw_update_teid_in_ue_context(
 
 sgw_eps_bearer_context_information_t*
 sgw_create_bearer_context_information_in_collection(
-    sgw_state_t* sgw_state, uint32_t* temporary_session_id_p) {
+    sgw_state_t* sgw_state, uint32_t* temporary_create_session_procedure_id_p) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
 
-  *temporary_session_id_p = (uint32_t) rand();
+  *temporary_create_session_procedure_id_p = (uint32_t) rand();
   sgw_eps_bearer_context_information_t* new_sgw_bearer_context_information =
       calloc(1, sizeof(sgw_eps_bearer_context_information_t));
 
@@ -190,21 +190,21 @@ sgw_create_bearer_context_information_in_collection(
     OAILOG_ERROR(
         LOG_SGW_S8,
         "Failed to create new sgw bearer context information object for "
-        "temporary_session_id:%d\n",
-        *temporary_session_id_p);
+        "temporary_create_session_procedure_id_p:%u\n",
+        *temporary_create_session_procedure_id_p);
     return NULL;
   }
   hashtable_ts_insert(
-      sgw_state->temporary_session_id_htbl,
-      (const hash_key_t) *temporary_session_id_p,
+      sgw_state->temporary_create_session_procedure_id_htbl,
+      (const hash_key_t) *temporary_create_session_procedure_id_p,
       (void*) new_sgw_bearer_context_information);
 
   OAILOG_DEBUG(
       LOG_SGW_S8,
       "Inserted new sgw eps bearer context into hash "
-      "list,temporary_session_id_htbl with "
-      "key as temporary_session_id :%d \n",
-      *temporary_session_id_p);
+      "list,temporary_create_session_procedure_id_htbl with "
+      "key as temporary_create_session_procedure_id_p :%u \n",
+      *temporary_create_session_procedure_id_p);
   return new_sgw_bearer_context_information;
 }
 
@@ -314,9 +314,9 @@ status_code_e sgw_s8_handle_s11_create_session_request(
       session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
           .eps_bearer_id);
 
-  uint32_t temporary_session_id = 0;
+  uint32_t temporary_create_session_procedure_id = 0;
   new_sgw_eps_context = sgw_create_bearer_context_information_in_collection(
-      sgw_state, &temporary_session_id);
+      sgw_state, &temporary_create_session_procedure_id);
   if (!new_sgw_eps_context) {
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64,
@@ -338,7 +338,8 @@ status_code_e sgw_s8_handle_s11_create_session_request(
     OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
 
-  send_s8_create_session_request(temporary_session_id, session_req_pP, imsi64);
+  send_s8_create_session_request(
+      temporary_create_session_procedure_id, session_req_pP, imsi64);
   sgw_display_s11_bearer_context_information(LOG_SGW_S8, new_sgw_eps_context);
   OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNok);
 }
@@ -507,8 +508,8 @@ status_code_e sgw_s8_handle_create_session_response(
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64,
         "Failed to fetch sgw_eps_bearer_context_info from hash list for "
-        "temporary_session_id:%u \n",
-        session_rsp_p->temporary_session_id);
+        "temporary_create_session_procedure_id:%u \n",
+        session_rsp_p->temporary_create_session_procedure_id);
     OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
   if (sgw_update_teid_in_ue_context(
@@ -1808,19 +1809,19 @@ sgw_eps_bearer_context_information_t* update_sgw_context_to_s11_teid_map(
     sgw_state_t* sgw_state, s8_create_session_response_t* session_rsp_p,
     imsi64_t imsi64) {
   /* Once sgw_s8_teid is obtained from orc8r, move sgw_eps_bearer_context
-   * from temporary_session_id hashlist  to sgw_teid hashlist
+   * from temporary_create_session_procedure_id hashlist  to sgw_teid hashlist
    */
   sgw_eps_bearer_context_information_t* sgw_context_p = NULL;
   hashtable_ts_remove(
-      sgw_state->temporary_session_id_htbl,
-      (const hash_key_t) session_rsp_p->temporary_session_id,
+      sgw_state->temporary_create_session_procedure_id_htbl,
+      (const hash_key_t) session_rsp_p->temporary_create_session_procedure_id,
       (void**) &sgw_context_p);
   if (!sgw_context_p) {
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64,
         "Failed to fetch sgw_eps_bearer_context_info from "
-        "temporary_session_id:%u \n",
-        session_rsp_p->temporary_session_id);
+        "temporary_create_session_procedure_id:%u \n",
+        session_rsp_p->temporary_create_session_procedure_id);
     OAILOG_FUNC_RETURN(LOG_SGW_S8, sgw_context_p);
   }
 
