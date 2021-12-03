@@ -34,6 +34,10 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceModificationRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/DeactivateEpsBearerContextAccept.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/DeactivateEpsBearerContextRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmInformationRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmInformationResponse.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmStatus.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ModifyEpsBearerContextRequest.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 }
@@ -605,6 +609,130 @@ TEST_F(ESMEncodeDecodeTest, TestDeactivateEpsBearerContextAccept) {
   // TODO(@ulaskozat): Header will be decoded separately; then the following
   // line can be uncommented.
   // COMPARE_COMMON_MANDATORY_DEFAULTS();
+  EXPECT_EQ_PCO();
+
+  DESTROY_PCO();
+}
+
+TEST_F(ESMEncodeDecodeTest, TestEsmInformationRequest) {
+  esm_information_request_msg original_msg = {0};
+  esm_information_request_msg decoded_msg  = {0};
+  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
+
+  int encoded =
+      encode_esm_information_request(&original_msg, buffer, BUFFER_LEN);
+  int decoded = decode_esm_information_request(&decoded_msg, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  // Currently encoding/decoding functions are dummy with no actual
+  // encoding/decoding As they are the same as message header fields.
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
+  // COMPARE_COMMON_MANDATORY_DEFAULTS();
+}
+
+TEST_F(ESMEncodeDecodeTest, TestEsmInformationResponse) {
+  esm_information_response_msg original_msg = {0};
+  esm_information_response_msg decoded_msg  = {0};
+  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
+
+  original_msg.presencemask =
+      ESM_INFORMATION_RESPONSE_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT |
+      ESM_INFORMATION_RESPONSE_ACCESS_POINT_NAME_PRESENT;
+
+  original_msg.accesspointname = bfromcstr("magma.ipv4");
+
+  fill_pco(&original_msg.protocolconfigurationoptions);
+
+  int encoded =
+      encode_esm_information_response(&original_msg, buffer, BUFFER_LEN);
+  int decoded = decode_esm_information_response(&decoded_msg, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
+  // COMPARE_COMMON_MANDATORY_DEFAULTS();
+  EXPECT_EQ(
+      std::string((const char*) original_msg.accesspointname->data),
+      std::string((const char*) decoded_msg.accesspointname->data));
+  EXPECT_EQ_PCO();
+
+  DESTROY_PCO();
+  bdestroy_wrapper(&original_msg.accesspointname);
+  bdestroy_wrapper(&decoded_msg.accesspointname);
+}
+
+TEST_F(ESMEncodeDecodeTest, TestEsmStatus) {
+  esm_status_msg original_msg = {0};
+  esm_status_msg decoded_msg  = {0};
+  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
+
+  original_msg.esmcause = 102;
+
+  int encoded = encode_esm_status(&original_msg, buffer, BUFFER_LEN);
+  int decoded = decode_esm_status(&decoded_msg, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
+  // COMPARE_COMMON_MANDATORY_DEFAULTS();
+  EXPECT_EQ(original_msg.esmcause, decoded_msg.esmcause);
+  EXPECT_EQ(encoded, decoded);
+}
+
+TEST_F(ESMEncodeDecodeTest, TestModifyEpsBearerContextRequest) {
+  modify_eps_bearer_context_request_msg original_msg = {0};
+  modify_eps_bearer_context_request_msg decoded_msg  = {0};
+  FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
+
+  original_msg.presencemask =
+      MODIFY_EPS_BEARER_CONTEXT_REQUEST_NEW_EPS_QOS_PRESENT |
+      MODIFY_EPS_BEARER_CONTEXT_REQUEST_TFT_PRESENT |
+      MODIFY_EPS_BEARER_CONTEXT_REQUEST_NEW_QOS_PRESENT |
+      MODIFY_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_LLC_SAPI_PRESENT |
+      MODIFY_EPS_BEARER_CONTEXT_REQUEST_RADIO_PRIORITY_PRESENT |
+      MODIFY_EPS_BEARER_CONTEXT_REQUEST_PACKET_FLOW_IDENTIFIER_PRESENT |
+      MODIFY_EPS_BEARER_CONTEXT_REQUEST_APNAMBR_PRESENT |
+      MODIFY_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+
+  fill_epsqos(&original_msg.newepsqos);
+
+  fill_tft(&original_msg.tft);
+
+  fill_negotiated_qos(&original_msg.newqos);
+
+  original_msg.negotiatedllcsapi    = 10;
+  original_msg.radiopriority        = 5;
+  original_msg.packetflowidentifier = 118;
+
+  fill_apnambr(&original_msg.apnambr);
+
+  fill_pco(&original_msg.protocolconfigurationoptions);
+
+  int encoded = encode_modify_eps_bearer_context_request(
+      &original_msg, buffer, BUFFER_LEN);
+  int decoded =
+      decode_modify_eps_bearer_context_request(&decoded_msg, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  // TODO(@ulaskozat): Header will be decoded separately; then the following
+  // line can be uncommented.
+  // COMPARE_COMMON_MANDATORY_DEFAULTS();
+  EXPECT_EQ(original_msg.presencemask, decoded_msg.presencemask);
+  EXPECT_TRUE(!memcmp(
+      &original_msg.newepsqos, &decoded_msg.newepsqos,
+      sizeof(original_msg.newepsqos)));
+  EXPECT_TRUE(
+      !memcmp(&original_msg.tft, &decoded_msg.tft, sizeof(original_msg.tft)));
+  EXPECT_TRUE(!memcmp(
+      &original_msg.newqos, &decoded_msg.newqos, sizeof(original_msg.newqos)));
+  EXPECT_EQ(original_msg.negotiatedllcsapi, decoded_msg.negotiatedllcsapi);
+  EXPECT_EQ(original_msg.radiopriority, decoded_msg.radiopriority);
+  EXPECT_EQ(
+      original_msg.packetflowidentifier, decoded_msg.packetflowidentifier);
+  EXPECT_TRUE(!memcmp(
+      &original_msg.apnambr, &decoded_msg.apnambr,
+      sizeof(original_msg.apnambr)));
   EXPECT_EQ_PCO();
 
   DESTROY_PCO();
