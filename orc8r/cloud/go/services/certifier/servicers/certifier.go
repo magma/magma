@@ -321,7 +321,10 @@ func (srv *CertifierServer) CollectGarbageImpl(ctx context.Context) (int, error)
 	return count, nil
 }
 
-// GetPolicyDecision makes a policy decision when a user attempts to access a resource
+// GetPolicyDecision makes a policy decision when a user attempts to access a resource.
+// For conflicting policy decisions from multiple tokens (e.g. one policy is ALLOW and the other DENY), the DENY effect
+// will take precedent.
+// For resources that do not have any policies addressing it, the policy decision defaults to DENY as well.
 func (srv *CertifierServer) GetPolicyDecision(ctx context.Context, getPDReq *certprotos.GetPolicyDecisionRequest) (*certprotos.PolicyDecision, error) {
 	username := getPDReq.Username
 	user, err := srv.store.GetUser(username)
@@ -367,15 +370,6 @@ func (srv *CertifierServer) CreateUser(ctx context.Context, user *certprotos.Use
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to store user while creating user")
 	}
-
-	// policy := &certprotos.Policy{
-	// 	Token:     token,
-	// 	Resources: createUserReq.Policy.Resources,
-	// }
-	// err = srv.store.PutPolicy(token, policy)
-	// if err != nil {
-	// 	return nil, status.Errorf(codes.Internal, "failed to store policy while creating user")
-	// }
 	return &protos.Void{}, nil
 }
 

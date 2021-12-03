@@ -28,6 +28,7 @@ func init() {
 	addInit(f) // see common_add.go
 }
 
+// TODO(christinewang5): change bootstrapping to fit new specs
 func addAdminToken(cmd *commands.Command, args []string) int {
 	f := cmd.Flags()
 	username := strings.TrimSpace(f.Arg(0))

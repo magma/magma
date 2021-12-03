@@ -17,8 +17,14 @@ import (
 	"magma/orc8r/cloud/go/services/certifier/protos"
 )
 
-// CertifierStorage provides storage functionality for mapping serial numbers to certificate information.
 type CertifierStorage interface {
+	CertificateStorage
+	UserStorage
+	PolicyStorage
+}
+
+// CertificateStorage provides storage functionality for mapping serial numbers to certificate information
+type CertificateStorage interface {
 	// ListSerialNumbers returns all tracked serial numbers.
 	ListSerialNumbers() ([]string, error)
 
@@ -38,7 +44,10 @@ type CertifierStorage interface {
 	// DeleteCertInfo removes the serial number and its certificate info.
 	// Returns success even when nothing is deleted (i.e. serial number not found).
 	DeleteCertInfo(serialNumber string) error
+}
 
+// UserStorage provides storage functionality for storing and managing users.
+type UserStorage interface {
 	// ListUsers lists the usernames of all the current users
 	ListUsers() ([]*protos.User, error)
 
@@ -50,7 +59,10 @@ type CertifierStorage interface {
 
 	// GetUser gets a user based on its username
 	GetUser(username string) (*protos.User, error)
+}
 
+// PolicyStorage provides storage functionality for storing and managing tokens and policies.
+type PolicyStorage interface {
 	// GetPolicy gets the policy based on the token
 	GetPolicy(token string) (*protos.Policy, error)
 

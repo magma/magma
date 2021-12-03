@@ -195,7 +195,7 @@ func (c *certifierBlobstore) ListUser() ([]string, error) {
 }
 
 func (c *certifierBlobstore) GetUser(username string) (*protos.User, error) {
-	store, err := c.factory.StartTransaction(nil)
+	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return nil, status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
 	}
@@ -204,7 +204,7 @@ func (c *certifierBlobstore) GetUser(username string) (*protos.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	user, err := userFromBlob(userBlob)
+	user, err := protos.UserFromBlob(userBlob)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +218,7 @@ func (c *certifierBlobstore) PutUser(username string, user *protos.User) error {
 	}
 	defer store.Rollback()
 
-	userBlob, err := userToBlob(username, user)
+	userBlob, err := protos.UserToBlob(username, user)
 	if err != nil {
 		return err
 	}
@@ -248,26 +248,8 @@ func (c *certifierBlobstore) DeleteUser(username string) error {
 	return store.Commit()
 }
 
-func userFromBlob(blob blobstore.Blob) (protos.User, error) {
-	user := protos.User{}
-	err := proto.Unmarshal(blob.Value, &user)
-	if err != nil {
-		return user, err
-	}
-	return user, nil
-}
-
-func userToBlob(username string, user *protos.User) (blobstore.Blob, error) {
-	marshalledUser, err := proto.Marshal(user)
-	if err != nil {
-		return blobstore.Blob{}, err
-	}
-	userBlob := blobstore.Blob{Type: UserType, Key: username, Value: marshalledUser}
-	return userBlob, nil
-}
-
 func (c *certifierBlobstore) GetPolicy(token string) (*protos.Policy, error) {
-	store, err := c.factory.StartTransaction(nil)
+	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return nil, status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
 	}
@@ -277,7 +259,7 @@ func (c *certifierBlobstore) GetPolicy(token string) (*protos.Policy, error) {
 	if err != nil {
 		return nil, err
 	}
-	policy, err := policyFromBlob(policyBlob)
+	policy, err := protos.PolicyFromBlob(policyBlob)
 	if err != nil {
 		return nil, err
 	}
@@ -292,7 +274,7 @@ func (c *certifierBlobstore) PutPolicy(token string, policy *protos.Policy) erro
 	}
 	defer store.Rollback()
 
-	policyBlob, err := policyToBlob(token, policy)
+	policyBlob, err := protos.PolicyToBlob(token, policy)
 	if err != nil {
 		return err
 	}
@@ -342,23 +324,4 @@ func (c *certifierBlobstore) DeleteToken(token string) error {
 	}
 
 	return store.Commit()
-}
-
-func policyFromBlob(blob blobstore.Blob) (protos.Policy, error) {
-	policy := protos.Policy{}
-	err := proto.Unmarshal(blob.Value, &policy)
-	if err != nil {
-		return policy, err
-	}
-	return policy, nil
-
-}
-
-func policyToBlob(username string, policy *protos.Policy) (blobstore.Blob, error) {
-	marshalledPolicy, err := proto.Marshal(policy)
-	if err != nil {
-		return blobstore.Blob{}, err
-	}
-	policyBlob := blobstore.Blob{Type: PolicyType, Key: username, Value: marshalledPolicy}
-	return policyBlob, nil
 }
