@@ -66,7 +66,7 @@ logger "DHCP server started"
 
 existing_br=$(sudo ovs-vsctl iface-to-br vt1_port)
 if [[ ! -z $existing_br ]]; then
-	ovs-vsctl del-port "$existing_br" "$prefix"_port
+	ovs-vsctl --if-exists del-port "$existing_br" "$prefix"_port
 fi
 
 ovs-vsctl --may-exist add-port "$br_name" "$prefix"_port

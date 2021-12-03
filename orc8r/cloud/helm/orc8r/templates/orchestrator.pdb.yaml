@@ -12,6 +12,7 @@ limitations under the License.
 */}}
 {{- include "orc8rlib.pdb" (list . "orchestrator.pdb") -}}
 {{- define "orchestrator.pdb" -}}
+{{- if and .Values.controller.podDisruptionBudget.enabled (gt .Values.controller.replicas 1.0 )}}
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
@@ -22,4 +23,5 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/component: orchestrator
+{{- end }}
 {{- end }}

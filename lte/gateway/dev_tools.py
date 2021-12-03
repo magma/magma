@@ -16,10 +16,12 @@ import sys
 from typing import Any, List, Optional
 
 import urllib3
+from fabric.api import cd
 
 sys.path.append('../../orc8r')
 import tools.fab.dev_utils as dev_utils
 import tools.fab.types as types
+from tools.fab.hosts import vagrant_setup
 
 LTE_NETWORK_TYPE = 'lte'
 FEG_LTE_NETWORK_TYPE = 'feg_lte'
@@ -163,6 +165,28 @@ def deregister_feg_gw():
     subprocess.check_call(
         'fab deregister_feg_gw', shell=True, cwd=FEG_FAB_PATH,
     )
+
+
+def check_agw_cloud_connectivity(timeout=10):
+    """
+    Check connectivity of AGW with the cloud using checkin_cli.py
+    Args:
+        timeout: amount of time the command will retry
+    """
+    vagrant_setup("magma", destroy_vm=False, force_provision=False)
+    with cd("/home/vagrant/build/python/bin/"):
+        dev_utils.run_fab_command_with_repetition("./checkin_cli.py", timeout)
+
+
+def check_agw_feg_connectivity(timeout=10):
+    """
+    Check connectivity of AGW with FEG feg_hello_cli.py
+    Args:
+        timeout: amount of time the command will retry
+    """
+    vagrant_setup("magma", destroy_vm=False, force_provision=False)
+    with cd("/home/vagrant/build/python/bin/"):
+        dev_utils.run_fab_command_with_repetition("./feg_hello_cli.py m 0", timeout)
 
 
 def _register_network(network_type: str, payload: Any):

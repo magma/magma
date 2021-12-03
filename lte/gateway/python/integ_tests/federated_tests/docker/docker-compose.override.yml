@@ -1,27 +1,6 @@
 version: "3.7"
 
 services:
-  test2:
-    container_name: test2
-    image: feg_gateway_go_base
-    build:
-      target: base
-      context: ${BUILD_CONTEXT}
-      dockerfile: feg/gateway/docker/go/Dockerfile
-    network_mode: host
-    volumes:
-      - ../../../:/magma
-      - ../configs:/etc/magma
-      - gwcerts:/var/opt/magma/certs
-      - gwconfigs:/var/opt/magma/configs
-    command:
-      - /bin/bash
-      - -c
-      - |
-         mkdir -p ../../.cache/feg/
-         touch ../../.cache/feg/snowflake
-         tail -f /dev/null
-
   hss:
     container_name: hss
     image: feg_gateway_go
@@ -36,8 +15,6 @@ services:
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/hss -logtostderr=true -v=0
 
   control_proxy:
-    depends_on:
-      - test2
     extra_hosts:
       - controller.magma.test:127.0.0.1
       - bootstrapper-controller.magma.test:127.0.0.1
@@ -56,8 +33,6 @@ services:
       dockerfile: feg/gateway/docker/go/Dockerfile
 
   magmad:
-    depends_on:
-      - test2
     build:
       context: ${BUILD_CONTEXT}
       dockerfile: feg/gateway/docker/python/Dockerfile

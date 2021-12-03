@@ -1199,6 +1199,14 @@ func TestListAndGetGateways(t *testing.T) {
 				Config: &lteModels.GatewayCellularConfigs{
 					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 					Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+					Ngc: &lteModels.GatewayNgcConfigs{
+						AmfDefaultSd:  "AFAFAF",
+						AmfDefaultSst: 25,
+						AmfName:       "amf.example.org",
+						AmfPointer:    "1F",
+						AmfRegionID:   "C1",
+						AmfSetID:      "2A1",
+					},
 				},
 			},
 			{
@@ -1206,6 +1214,14 @@ func TestListAndGetGateways(t *testing.T) {
 				Config: &lteModels.GatewayCellularConfigs{
 					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 					Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+					Ngc: &lteModels.GatewayNgcConfigs{
+						AmfDefaultSd:  "AFAFAF",
+						AmfDefaultSst: 25,
+						AmfName:       "amf.example.org",
+						AmfPointer:    "1F",
+						AmfRegionID:   "C1",
+						AmfSetID:      "2A1",
+					},
 				},
 				Associations: storage.TKs{
 					{Type: lte.CellularEnodebEntityType, Key: "enb1"},
@@ -1270,6 +1286,14 @@ func TestListAndGetGateways(t *testing.T) {
 			Cellular: &lteModels.GatewayCellularConfigs{
 				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+				Ngc: &lteModels.GatewayNgcConfigs{
+					AmfDefaultSd:  "AFAFAF",
+					AmfDefaultSst: 25,
+					AmfName:       "amf.example.org",
+					AmfPointer:    "1F",
+					AmfRegionID:   "C1",
+					AmfSetID:      "2A1",
+				},
 			},
 			Status:                 models.NewDefaultGatewayStatus("hw1"),
 			ConnectedEnodebSerials: lteModels.EnodebSerials{},
@@ -1288,6 +1312,14 @@ func TestListAndGetGateways(t *testing.T) {
 			Cellular: &lteModels.GatewayCellularConfigs{
 				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+				Ngc: &lteModels.GatewayNgcConfigs{
+					AmfDefaultSd:  "AFAFAF",
+					AmfDefaultSst: 25,
+					AmfName:       "amf.example.org",
+					AmfPointer:    "1F",
+					AmfRegionID:   "C1",
+					AmfSetID:      "2A1",
+				},
 			},
 			ConnectedEnodebSerials: []string{"enb1", "enb2"},
 			ApnResources:           lteModels.ApnResources{},
@@ -1323,6 +1355,14 @@ func TestListAndGetGateways(t *testing.T) {
 		Cellular: &lteModels.GatewayCellularConfigs{
 			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 			Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+			Ngc: &lteModels.GatewayNgcConfigs{
+				AmfDefaultSd:  "AFAFAF",
+				AmfDefaultSst: 25,
+				AmfName:       "amf.example.org",
+				AmfPointer:    "1F",
+				AmfRegionID:   "C1",
+				AmfSetID:      "2A1",
+			},
 		},
 		Status:                 models.NewDefaultGatewayStatus("hw1"),
 		ConnectedEnodebSerials: lteModels.EnodebSerials{},
@@ -1353,6 +1393,14 @@ func TestListAndGetGateways(t *testing.T) {
 		Cellular: &lteModels.GatewayCellularConfigs{
 			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 			Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+			Ngc: &lteModels.GatewayNgcConfigs{
+				AmfDefaultSd:  "AFAFAF",
+				AmfDefaultSst: 25,
+				AmfName:       "amf.example.org",
+				AmfPointer:    "1F",
+				AmfRegionID:   "C1",
+				AmfSetID:      "2A1",
+			},
 		},
 		ConnectedEnodebSerials: []string{"enb1", "enb2"},
 		ApnResources:           lteModels.ApnResources{},
@@ -1392,6 +1440,14 @@ func TestUpdateGateway(t *testing.T) {
 			Config: &lteModels.GatewayCellularConfigs{
 				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+				Ngc: &lteModels.GatewayNgcConfigs{
+					AmfDefaultSd:  "AFAFAF",
+					AmfDefaultSst: 25,
+					AmfName:       "amf.example.org",
+					AmfPointer:    "1F",
+					AmfRegionID:   "C1",
+					AmfSetID:      "2A1",
+				},
 			},
 			Associations: storage.TKs{
 				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
@@ -1447,6 +1503,14 @@ func TestUpdateGateway(t *testing.T) {
 		Cellular: &lteModels.GatewayCellularConfigs{
 			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(false), IPBlock: "172.10.10.0/24"},
 			Ran: &lteModels.GatewayRanConfigs{Pci: 123, TransmitEnabled: swag.Bool(false)},
+			Ngc: &lteModels.GatewayNgcConfigs{
+				AmfDefaultSd:  "AFAFAF",
+				AmfDefaultSst: 25,
+				AmfName:       "amf.example.org",
+				AmfPointer:    "1F",
+				AmfRegionID:   "C1",
+				AmfSetID:      "2A1",
+			},
 		},
 		ConnectedEnodebSerials: []string{"enb1", "enb3"},
 		ApnResources:           lteModels.ApnResources{},
@@ -1527,6 +1591,14 @@ func TestDeleteGateway(t *testing.T) {
 			Config: &lteModels.GatewayCellularConfigs{
 				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+				Ngc: &lteModels.GatewayNgcConfigs{
+					AmfDefaultSd:  "AFAFAF",
+					AmfDefaultSst: 25,
+					AmfName:       "amf.example.org",
+					AmfPointer:    "1F",
+					AmfRegionID:   "C1",
+					AmfSetID:      "2A1",
+				},
 			},
 			Associations: storage.TKs{
 				{Type: lte.CellularEnodebEntityType, Key: "enb1"},
@@ -1594,6 +1666,7 @@ func TestGetCellularGatewayConfig(t *testing.T) {
 	getCellular := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular", testURLRoot), obsidian.GET).HandlerFunc
 	getEpc := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/epc", testURLRoot), obsidian.GET).HandlerFunc
 	getRan := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/ran", testURLRoot), obsidian.GET).HandlerFunc
+	getNgc := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/ngc", testURLRoot), obsidian.GET).HandlerFunc
 	getNonEps := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/non_eps", testURLRoot), obsidian.GET).HandlerFunc
 	getEnodebs := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/connected_enodeb_serials", testURLRoot), obsidian.GET).HandlerFunc
 
@@ -1665,6 +1738,17 @@ func TestGetCellularGatewayConfig(t *testing.T) {
 
 	tc = tests.Test{
 		Method:         "GET",
+		URL:            fmt.Sprintf("%s/cellular/ngc", testURLRoot),
+		Handler:        getNgc,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedResult: newDefaultGatewayConfig().Ngc,
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "GET",
 		URL:            fmt.Sprintf("%s/cellular/non_eps", testURLRoot),
 		Handler:        getNonEps,
 		ParamNames:     []string{"network_id", "gateway_id"},
@@ -1698,6 +1782,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	updateCellular := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular", testURLRoot), obsidian.PUT).HandlerFunc
 	updateEpc := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/epc", testURLRoot), obsidian.PUT).HandlerFunc
 	updateRan := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/ran", testURLRoot), obsidian.PUT).HandlerFunc
+	updateNgc := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/ngc", testURLRoot), obsidian.PUT).HandlerFunc
 	updateNonEps := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/non_eps", testURLRoot), obsidian.PUT).HandlerFunc
 	updateEnodebs := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/connected_enodeb_serials", testURLRoot), obsidian.PUT).HandlerFunc
 	postEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/connected_enodeb_serials", testURLRoot), obsidian.POST).HandlerFunc
@@ -1998,6 +2083,43 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			Config:  modifiedCellularConfig,
 			GraphID: "10",
 			Version: 8,
+		},
+	}
+	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, entities.MakeByTK())
+
+	modifiedCellularConfig.Ngc.AmfDefaultSd = "AFAFAF"
+	modifiedCellularConfig.Ngc.AmfDefaultSst = 25
+	modifiedCellularConfig.Ngc.AmfName = "amf.example.org"
+	modifiedCellularConfig.Ngc.AmfPointer = "1F"
+	modifiedCellularConfig.Ngc.AmfRegionID = "C1"
+	modifiedCellularConfig.Ngc.AmfSetID = "2A1"
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/cellular/ngc", testURLRoot),
+		Handler:        updateNgc,
+		Payload:        modifiedCellularConfig.Ngc,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expected = configurator.NetworkEntitiesByTK{
+		storage.TK{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      orc8r.MagmadGatewayType, Key: "g1",
+			Associations: storage.TKs{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
+			GraphID:      "10",
+			Version:      0,
+		},
+		storage.TK{Type: lte.CellularGatewayEntityType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      lte.CellularGatewayEntityType, Key: "g1",
+			Config:  modifiedCellularConfig,
+			GraphID: "10",
+			Version: 9,
 		},
 	}
 	entities, _, err = configurator.LoadEntities(context.Background(), "n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
@@ -4066,6 +4188,14 @@ func newDefaultGatewayConfig() *lteModels.GatewayCellularConfigs {
 		Epc: &lteModels.GatewayEpcConfigs{
 			NatEnabled: swag.Bool(true),
 			IPBlock:    "192.168.128.0/24",
+		},
+		Ngc: &lteModels.GatewayNgcConfigs{
+			AmfDefaultSd:  "AFAFAF",
+			AmfDefaultSst: 25,
+			AmfName:       "amf.example.org",
+			AmfPointer:    "1F",
+			AmfRegionID:   "C1",
+			AmfSetID:      "2A1",
 		},
 		NonEpsService: &lteModels.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",

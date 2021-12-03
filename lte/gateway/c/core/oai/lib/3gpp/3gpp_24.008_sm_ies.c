@@ -525,7 +525,7 @@ int decode_llc_service_access_point_identifier_ie(
         buffer, (LLC_SERVICE_ACCESS_POINT_IDENTIFIER_IE_MAX_LENGTH - 1), len);
   }
 
-  *llc_sap_id = *buffer & 0xf;
+  *llc_sap_id = *(buffer + decoded) & 0xf;
   decoded++;
   return decoded;
 }
@@ -573,7 +573,7 @@ int decode_packet_flow_identifier_ie(
   ielen = *(buffer + decoded);
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
-  *packetflowidentifier = *buffer & 0x7f;
+  *packetflowidentifier = *(buffer + decoded) & 0x7f;
   decoded++;
   return decoded;
 }
@@ -812,10 +812,9 @@ static int decode_traffic_flow_template_packet_filter(
     }
   }
 
-  if (len - decoded != 0) {
+  if (len - decoded < 0) {
     /*
-     * Mismatch between the number of packet filters subfield,
-     * * * * and the number of packet filters in the packet filter list
+     * Decoded more than remaining space in decoding buffer
      */
     return (TLV_VALUE_DOESNT_MATCH);
   }

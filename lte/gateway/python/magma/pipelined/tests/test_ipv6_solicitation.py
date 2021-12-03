@@ -170,6 +170,7 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         snapshot_verifier = SnapshotVerifier(
             self, self.BRIDGE,
             self.service_manager,
+            include_stats=False,
         )
 
         with isolator, snapshot_verifier:

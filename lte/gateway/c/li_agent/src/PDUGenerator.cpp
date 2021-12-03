@@ -84,10 +84,10 @@ PDUGenerator::PDUGenerator(
       pkt_src_mac_(pkt_src_mac),
       sync_interval_(sync_interval),
       inactivity_time_(inactivity_time),
+      prev_sync_time_(0),
       proxy_connector_(std::move(proxy_connector)),
       mobilityd_client_(std::move(mobilityd_client)),
-      mconfig_(mconfig),
-      prev_sync_time_(0) {}
+      mconfig_(mconfig) {}
 
 bool PDUGenerator::process_packet(
     const struct pcap_pkthdr* phdr, const u_char* pdata) {
@@ -99,7 +99,7 @@ bool PDUGenerator::process_packet(
   }
 
   auto diff = time_difference_from_now(prev_sync_time_);
-  if (diff > sync_interval_) {
+  if (diff > static_cast<uint64_t>(sync_interval_)) {
     // load mconfig config to get updated nprobe tasks
     mconfig_        = magma::lte::load_mconfig();
     prev_sync_time_ = get_time_in_sec_since_epoch();
@@ -130,14 +130,14 @@ bool PDUGenerator::process_packet(
 
 void PDUGenerator::delete_inactive_tasks() {
   auto diff = time_difference_from_now(prev_sync_time_);
-  if (diff < sync_interval_) {
+  if (diff < static_cast<uint64_t>(sync_interval_)) {
     return;
   }
 
   auto it = state_map_.begin();
   while (it != state_map_.end()) {
     auto inactive = time_difference_from_now(it->second.last_exported);
-    if (inactive > inactivity_time_) {
+    if (inactive > static_cast<uint64_t>(inactivity_time_)) {
       MLOG(MDEBUG) << "Delete state for task " << it->second.task_id;
       it = state_map_.erase(it);
     } else {
@@ -284,7 +284,7 @@ bool PDUGenerator::create_new_intercept_state(
 
 bool PDUGenerator::is_still_valid_state(const std::string& idx) {
   auto diff = time_difference_from_now(state_map_[idx].last_exported);
-  if (diff < sync_interval_) {
+  if (diff < static_cast<uint64_t>(sync_interval_)) {
     return true;
   }
 

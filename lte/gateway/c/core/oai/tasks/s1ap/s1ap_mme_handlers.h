@@ -144,9 +144,6 @@ status_code_e s1ap_mme_handle_erab_setup_failure(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message);
 
-void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
-    s1ap_state_t* state, ue_description_t* ue_ref_p);
-
 void s1ap_mme_release_ue_context(
     s1ap_state_t* state, ue_description_t* ue_ref_p, imsi64_t imsi64);
 

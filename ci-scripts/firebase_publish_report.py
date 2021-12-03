@@ -67,6 +67,18 @@ def lte_integ_test(args):
     publish_report('lte_integ_test', args.build_id, verdict, report)
 
 
+def cwf_integ_test(args):
+    """Prepare and publish CWF Integ Test report"""
+    report = url_to_html_redirect(args.run_id, args.url)
+    # Possible args.verdict values are success, failure, or canceled
+    verdict = 'inconclusive'
+    if args.verdict.lower() == 'success':
+        verdict = 'pass'
+    elif args.verdict.lower() == 'failure':
+        verdict = 'fail'
+    publish_report('cwf_integ_test', args.build_id, verdict, report)
+
+
 # Create the top-level parser
 parser = argparse.ArgumentParser(
     description='Traffic CLI that generates traffic to an endpoint',
@@ -85,6 +97,11 @@ subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
 parser_lte = subparsers.add_parser('lte')
 parser_lte.add_argument("--url", default="none", help="Report URL", nargs='?')
 parser_lte.set_defaults(func=lte_integ_test)
+
+# Create the parser for the "cwf" command
+parser_cwf = subparsers.add_parser('cwf')
+parser_cwf.add_argument("--url", default="none", help="Report URL", nargs='?')
+parser_cwf.set_defaults(func=cwf_integ_test)
 
 # Read arguments from the command line
 args = parser.parse_args()
