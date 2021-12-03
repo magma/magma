@@ -56,8 +56,9 @@ void decrement_gauge(const char* name, double decrement, size_t n_labels, ...) {
 double get_gauge(const char* name, size_t n_labels, ...) {
   va_list ap;
   va_start(ap, n_labels);
-  return MetricsSingleton::Instance().GetGauge(name, n_labels, ap);
+  double gauge = MetricsSingleton::Instance().GetGauge(name, n_labels, ap);
   va_end(ap);
+  return gauge;
 }
 
 void set_gauge(const char* name, double value, size_t n_labels, ...) {
