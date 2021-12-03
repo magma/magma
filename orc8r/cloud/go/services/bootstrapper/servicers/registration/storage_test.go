@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/go-openapi/errors"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/services/bootstrapper"
@@ -37,19 +36,14 @@ func TestBlobstoreStore(t *testing.T) {
 		tokenInfo1 = &protos.TokenInfo{
 			GatewayDeviceInfo: gatewayPreregisterInfo,
 			Nonce:             "someNonce1",
-			Timeout: &timestamp.Timestamp{
-				Seconds: time.Now().Unix(),
-				Nanos:   int32(time.Now().Nanosecond()),
-			},
+			Timeout:           registration.GetTimestamp(time.Now()),
 		}
 
 		tokenInfo2 = &protos.TokenInfo{
 			GatewayDeviceInfo: gatewayPreregisterInfo,
 			Nonce:             "someNonce2",
-			Timeout: &timestamp.Timestamp{
-				Seconds: time.Now().Unix(),
-				Nanos:   int32(time.Now().Nanosecond()),
-			}}
+			Timeout:           registration.GetTimestamp(time.Now()),
+		}
 	)
 
 	factory := test_utils.NewSQLBlobstore(t, bootstrapper.BlobstoreTableName)

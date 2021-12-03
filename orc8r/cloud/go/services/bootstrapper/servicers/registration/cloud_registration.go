@@ -18,12 +18,12 @@ import (
 	"fmt"
 	"time"
 
-	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/lib/go/protos"
 )
 
 const (

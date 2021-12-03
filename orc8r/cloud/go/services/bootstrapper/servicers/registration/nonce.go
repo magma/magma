@@ -15,13 +15,10 @@ package registration
 
 import (
 	"math/rand"
-	"time"
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/bootstrapper"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/protobuf/ptypes/timestamp"
 )
 
 func IsExpired(t *protos.TokenInfo) bool {
@@ -45,17 +42,4 @@ func GenerateNonce(n int) string {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 	return string(b)
-}
-
-// GetTime turns Timestamp into Time
-func GetTime(timestamp *timestamp.Timestamp) time.Time {
-	return time.Unix(timestamp.Seconds, int64(timestamp.Nanos))
-}
-
-// GetTimestamp turns Time into Timestamp
-func GetTimestamp(time time.Time) *timestamp.Timestamp {
-	return &timestamp.Timestamp{
-		Seconds: time.Unix(),
-		Nanos:   int32(time.Nanosecond()),
-	}
 }
