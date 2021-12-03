@@ -16,7 +16,6 @@
 #include <mutex>
 #include <condition_variable>
 #include <stdio.h>
-#include <openssl/cmac.h>
 
 #include "feg/protos/s6a_proxy.pb.h"
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
@@ -2591,8 +2590,9 @@ TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 1);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 
-  // Constructing and sending TAU Request with with invalid TAC value 2
+  // Constructing and sending TAU Request with invalid TAC value 2
   ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(msg_nas_dl_data.mme_ue_s1ap_id);
+  EXPECT_FALSE(ue_mm_context == nullptr);
   ue_mm_context->num_reg_sub = 1;
   send_mme_app_initial_ue_msg(
       nas_msg_normal_tau_req_with_actv_flag, sizeof(nas_msg_normal_tau_req_with_actv_flag), plmn, guti, 2);
