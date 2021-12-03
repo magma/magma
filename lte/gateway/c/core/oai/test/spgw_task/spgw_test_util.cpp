@@ -278,7 +278,7 @@ void fill_packet_filter_content(packet_filter_contents_t* pf_content) {
 
 void fill_nw_initiated_activate_bearer_request(
     itti_gx_nw_init_actv_bearer_request_t* gx_nw_init_actv_req_p,
-    std::string imsi_str, ebi_t lbi, bearer_qos_t qos) {
+    const std::string& imsi_str, ebi_t lbi, bearer_qos_t qos) {
   gx_nw_init_actv_req_p->imsi_length = imsi_str.size();
   strncpy(gx_nw_init_actv_req_p->imsi, imsi_str.c_str(), imsi_str.size());
   gx_nw_init_actv_req_p->lbi            = lbi;
@@ -349,7 +349,7 @@ void fill_nw_initiated_activate_bearer_response(
 
 void fill_nw_initiated_deactivate_bearer_request(
     itti_gx_nw_init_deactv_bearer_request_t* gx_nw_init_deactv_req_p,
-    std::string imsi_str, ebi_t lbi, ebi_t eps_bearer_id) {
+    const std::string& imsi_str, ebi_t lbi, ebi_t eps_bearer_id) {
   gx_nw_init_deactv_req_p->imsi_length = imsi_str.size();
   strncpy(gx_nw_init_deactv_req_p->imsi, imsi_str.c_str(), imsi_str.size());
   gx_nw_init_deactv_req_p->lbi           = lbi;
@@ -387,7 +387,7 @@ void fill_nw_initiated_deactivate_bearer_response(
 
 void fill_s11_suspend_notification(
     itti_s11_suspend_notification_t* suspend_notif, teid_t sgw_s11_context_teid,
-    std::string imsi_str, ebi_t link_bearer_id) {
+    const std::string& imsi_str, ebi_t link_bearer_id) {
   suspend_notif->teid        = sgw_s11_context_teid;
   suspend_notif->lbi         = link_bearer_id;
   suspend_notif->imsi.length = imsi_str.size();
