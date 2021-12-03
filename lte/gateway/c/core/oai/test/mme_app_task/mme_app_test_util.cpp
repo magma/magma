@@ -66,7 +66,7 @@ void send_activate_message_to_mme_app() {
 
 void send_mme_app_initial_ue_msg(
     const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn,
-    guti_eps_mobile_identity_t& guti) {
+    guti_eps_mobile_identity_t& guti, tac_t tac) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
   ITTI_MSG_LASTHOP_LATENCY(message_p)               = 0;
@@ -75,7 +75,7 @@ void send_mme_app_initial_ue_msg(
   S1AP_INITIAL_UE_MESSAGE(message_p).enb_id         = 0;
   S1AP_INITIAL_UE_MESSAGE(message_p).nas = blk2bstr(nas_msg, nas_msg_length);
   S1AP_INITIAL_UE_MESSAGE(message_p).tai.plmn           = plmn;
-  S1AP_INITIAL_UE_MESSAGE(message_p).tai.tac            = 1;
+  S1AP_INITIAL_UE_MESSAGE(message_p).tai.tac            = tac;
   S1AP_INITIAL_UE_MESSAGE(message_p).ecgi.plmn          = plmn;
   S1AP_INITIAL_UE_MESSAGE(message_p).ecgi.cell_identity = {0, 0, 0};
   if (guti.m_tmsi) {

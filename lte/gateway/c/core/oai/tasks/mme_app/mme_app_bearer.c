@@ -914,6 +914,9 @@ void mme_app_handle_delete_session_rsp(
    */
   update_mme_app_stats_s1u_bearer_sub();
   update_mme_app_stats_default_bearer_sub();
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "decremented nb_default_eps_bearers nb_default_eps_bearers=%d\n", mme_app_desc_p->nb_default_eps_bearers);
   if (ue_context_p->nb_active_pdn_contexts > 0) {
     ue_context_p->nb_active_pdn_contexts -= 1;
   }
