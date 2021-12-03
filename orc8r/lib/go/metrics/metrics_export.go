@@ -69,7 +69,7 @@ const (
 // in Service303 Server's GetMetrics rpc implementation.
 // All servicers register their metrics with the default registry
 // by calling prometheus.MustRegister().
-func GetMetrics() ([]*prometheus_proto.MetricFamily, error) {
+func GetMetrics(prometheus_labels map[string]string) ([]*prometheus_proto.MetricFamily, error) {
 
 	families, err := prometheus.DefaultGatherer.Gather()
 	if err != nil {
@@ -78,9 +78,15 @@ func GetMetrics() ([]*prometheus_proto.MetricFamily, error) {
 	}
 	// timeStamp in milliseconds
 	timeStamp := time.Now().UnixNano() / int64(time.Millisecond)
+	// labels for metrics
+	labels := make([]*prometheus_proto.LabelPair)
+	for label_name, label_value := range prometheus_labels {
+		labels = append(labels, prometheus_proto.LabelPair(label_name, label_value)
+	}
 	for _, metric_family := range families {
 		for _, sample := range metric_family.Metric {
 			sample.TimestampMs = &timeStamp
+			sample.Labels = labels
 		}
 	}
 	return families, nil

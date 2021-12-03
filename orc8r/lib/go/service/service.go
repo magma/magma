@@ -20,7 +20,9 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"os"
 	"sync"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -84,6 +86,9 @@ type Service struct {
 
 	// Config of the service
 	Config *config.Map
+
+	// Prometheus static lables
+	PrometheusLabels map
 }
 
 // NewServiceWithOptions returns a new GRPC orchestrator service implementing
@@ -104,6 +109,16 @@ func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 		configMap = nil
 	}
 
+	// Set Prometheus static lables
+	prometheus_labels := make(map[string]string)
+	if _, ok := os.LookupEnv("PROMETHEUS_LABELS"); ok {
+		prometheus_labels_raw := strings.Split(os.Getenv("PROMETHEUS_LABELS"), ",")
+		for _, label_key_value_pair := range prometheus_labels_raw {
+			key_value_array := strings.Split(label_key_value_pair, "=")
+			prometheus_labels[key_value_array[0]] = key_value_array[1]
+		}
+	}
+
 	// Check if service was started with print-grpc-payload flag or MAGMA_PRINT_GRPC_PAYLOAD env is set
 	if printGrpcPayload || util.IsTruthyEnv(PrintGrpcPayloadEnv) {
 		ls := logCodec{encoding.GetCodec(grpc_proto.Name)}
@@ -120,13 +135,14 @@ func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 
 	grpcServer := grpc.NewServer(opts...)
 	service := &Service{
-		Type:          serviceName,
-		GrpcServer:    grpcServer,
-		Version:       "0.0.0",
-		State:         protos.ServiceInfo_STARTING,
-		Health:        protos.ServiceInfo_APP_UNHEALTHY,
-		StartTimeSecs: uint64(time.Now().Unix()),
-		Config:        configMap,
+		Type:          		serviceName,
+		GrpcServer:    		grpcServer,
+		Version:       		"0.0.0",
+		State:         		protos.ServiceInfo_STARTING,
+		Health:        		protos.ServiceInfo_APP_UNHEALTHY,
+		StartTimeSecs: 		uint64(time.Now().Unix()),
+		Config:        		configMap,
+		PrometheusLabels: 	prometheus_labels,
 	}
 	protos.RegisterService303Server(service.GrpcServer, service)
 
