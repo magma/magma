@@ -31,13 +31,17 @@ ENV C_BUILD /build/c
 ENV OAI_BUILD $C_BUILD/oai
 ENV TZ=Europe/Paris
 
-ENV CCACHE_DIR $MAGMA_ROOT/.cache/gateway/ccache
+ENV CCACHE_DIR ${MAGMA_ROOT}/.cache/gateway/ccache
 ENV MAGMA_DEV_MODE 0
-ENV XDG_CACHE_HOME $MAGMA_ROOT/.cache
+ENV XDG_CACHE_HOME ${MAGMA_ROOT}/.cache
 
-# Add the magma apt repo
 RUN apt-get update && \
-    apt-get install -y apt-utils software-properties-common apt-transport-https gnupg
+    # Setup necessary tools for adding the Magma repository
+    apt-get install -y apt-utils software-properties-common apt-transport-https gnupg wget && \
+    # Download Bazel
+    wget -P /usr/sbin --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
+    chmod +x /usr/sbin/bazelisk-linux-amd64 && \
+    ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
 
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 RUN apt-key add /tmp/jfrog.pub && \
@@ -56,9 +60,6 @@ RUN apt-get update && apt-get install -y \
   libtool \
   pkg-config \
   libgflags-dev \
-  libgtest-dev \
-  clang-11 \
-  #clang-format-11 \
   libc++-dev \
   protobuf-compiler \
   grpc-dev \
@@ -76,7 +77,6 @@ RUN apt-get update && apt-get install -y \
   libfolly-dev \
   libsctp-dev \
   libpcap-dev \
-  libtins-dev \
   libmnl-dev \
   uuid-dev \
   libcurl4-openssl-dev \
@@ -88,9 +88,7 @@ RUN apt-get update && apt-get install -y \
   libboost-filesystem-dev \
   libboost-regex-dev \
   check \
-  libgtest-dev \
   liblfds710 \
-  google-mock \
   libssl-dev \
   libsctp-dev \
   libtspi-dev \
@@ -103,32 +101,52 @@ RUN apt-get update && apt-get install -y \
   libgmp3-dev \
   libczmq-dev
 
+ENV MAGMA_ROOT /magma
+WORKDIR /magma
+
+# Copy Bazel files at root and third_party
+COPY WORKSPACE.bazel BUILD.bazel .bazelignore .bazelrc .bazelversion ${MAGMA_ROOT}/
+COPY bazel/ ${MAGMA_ROOT}/bazel
+
+# Build external dependencies first. This will help not rebuilt all dependencies triggered by Magma changes.
+RUN bazel build \
+  @com_github_grpc_grpc//:grpc++ \
+  @com_github_google_glog//:glog \
+  @protobuf//:protobuf \
+  @prometheus_cpp//:prometheus-cpp \
+  @yaml-cpp//:yaml-cpp \
+  @boost//:iterator \
+  @github_nlohmann_json//:json \
+  @sentry_native//:sentry
+
 # Copy proto files
-COPY feg/protos $MAGMA_ROOT/feg/protos
-COPY feg/gateway/services/aaa/protos $MAGMA_ROOT/feg/gateway/services/aaa/protos
-COPY lte/protos $MAGMA_ROOT/lte/protos
-COPY orc8r/protos $MAGMA_ROOT/orc8r/protos
-COPY protos $MAGMA_ROOT/protos
+COPY feg/protos ${MAGMA_ROOT}/feg/protos
+COPY feg/gateway/services/aaa/protos ${MAGMA_ROOT}/feg/gateway/services/aaa/protos
+COPY lte/protos ${MAGMA_ROOT}/lte/protos
+COPY orc8r/protos ${MAGMA_ROOT}/orc8r/protos
+COPY protos ${MAGMA_ROOT}/protos
 
 # Build session_manager c code
-COPY lte/gateway/Makefile $MAGMA_ROOT/lte/gateway/Makefile
-COPY orc8r/gateway/c/common $MAGMA_ROOT/orc8r/gateway/c/common
-COPY lte/gateway/c $MAGMA_ROOT/lte/gateway/c
+COPY lte/gateway/Makefile ${MAGMA_ROOT}/lte/gateway/Makefile
+COPY orc8r/gateway/c/common ${MAGMA_ROOT}/orc8r/gateway/c/common
+COPY lte/gateway/c ${MAGMA_ROOT}/lte/gateway/c
 
-COPY lte/gateway/python/scripts $MAGMA_ROOT/lte/gateway/python/scripts
-COPY lte/gateway/docker $MAGMA_ROOT/lte/gateway/docker
-COPY lte/gateway/docker/mme/configs/ $MAGMA_ROOT/lte/gateway/docker/configs/
+COPY lte/gateway/python/scripts ${MAGMA_ROOT}/lte/gateway/python/scripts
+COPY lte/gateway/docker ${MAGMA_ROOT}/lte/gateway/docker
+COPY lte/gateway/docker/mme/configs/ ${MAGMA_ROOT}/lte/gateway/docker/configs/
 
 ARG BUILD_TYPE=RelWithDebInfo
 ENV BUILD_TYPE=$BUILD_TYPE
-RUN make -C $MAGMA_ROOT/lte/gateway/ build_session_manager BUILD_TYPE="${BUILD_TYPE}"
-RUN make -C $MAGMA_ROOT/lte/gateway/ build_sctpd BUILD_TYPE="${BUILD_TYPE}"
-RUN make -C $MAGMA_ROOT/lte/gateway/ build_connection_tracker BUILD_TYPE="${BUILD_TYPE}"
-RUN make -C $MAGMA_ROOT/lte/gateway/ build_li_agent BUILD_TYPE="${BUILD_TYPE}"
-RUN make -C $MAGMA_ROOT/lte/gateway/ build_oai BUILD_TYPE="${BUILD_TYPE}"
+RUN bazel build  \
+  //lte/gateway/c/sctpd/src:sctpd \
+  //lte/gateway/c/connection_tracker/src:connectiond \
+  //lte/gateway/c/li_agent/src:liagentd \
+  //lte/gateway/c/session_manager:sessiond \
+  --define=folly_so=1
+RUN make -C ${MAGMA_ROOT}/lte/gateway/ build_oai BUILD_TYPE="${BUILD_TYPE}"
 
 # Prepare config file
-COPY lte/gateway/configs $MAGMA_ROOT/lte/gateway/configs
+COPY lte/gateway/configs ${MAGMA_ROOT}/lte/gateway/configs
 
 # -----------------------------------------------------------------------------
 # Dev/Production image
@@ -155,7 +173,6 @@ RUN apt-get update && apt-get install -y \
   libyaml-cpp-dev \
   libgoogle-glog-dev \
   libprotoc-dev \
-  libtins-dev \
   libmnl-dev \
   libsctp-dev \
   psmisc \
@@ -194,6 +211,9 @@ COPY --from=builder /usr/lib/x86_64-linux-gnu/libgssapi_krb5* /usr/lib/x86_64-li
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libkrb5* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libk5crypto* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libkeyutils* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libcurl.so.* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/librtmp.so.* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libssh.so.* /usr/lib/x86_64-linux-gnu/
 
 
 COPY --from=builder /usr/local/lib/liblfds710.so /usr/local/lib/
@@ -211,10 +231,10 @@ COPY --from=builder /usr/local/lib/libfdcore.so.6 /usr/local/lib/
 COPY --from=builder /usr/local/lib/libaddress_sorting.so /usr/local/lib/
 
 # Copy the build artifacts.
-COPY --from=builder $C_BUILD/session_manager/sessiond /usr/local/bin/sessiond
-COPY --from=builder $C_BUILD/li_agent/src/liagentd /usr/local/bin/liagentd
-COPY --from=builder $C_BUILD/sctpd/src/sctpd /usr/local/bin/sctpd
-COPY --from=builder $C_BUILD/connection_tracker/src/connectiond /usr/local/bin/connectiond
+COPY --from=builder ${MAGMA_ROOT}/bazel-bin/lte/gateway/c/session_manager/sessiond /usr/local/bin/sessiond
+COPY --from=builder ${MAGMA_ROOT}/bazel-bin/lte/gateway/c/sctpd/src/sctpd /usr/local/bin/sctpd
+COPY --from=builder ${MAGMA_ROOT}/bazel-bin/lte/gateway/c/connection_tracker/src/connectiond /usr/local/bin/connectiond
+COPY --from=builder ${MAGMA_ROOT}/bazel-bin/lte/gateway/c/li_agent/src/liagentd /usr/local/bin/liagentd
 COPY --from=builder $C_BUILD/core/oai/oai_mme/mme /usr/local/bin/oai_mme
 
 RUN ldconfig 2> /dev/null
