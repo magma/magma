@@ -52,6 +52,11 @@ class ProxyConnectorImpl : public ProxyConnector {
    */
   void cleanup();
 
+  /**
+   * performs cleanup if cleanup not explicitly called
+   */
+  ~ProxyConnectorImpl() override;
+
  private:
   const std::string& proxy_addr_;
   const int proxy_port_;

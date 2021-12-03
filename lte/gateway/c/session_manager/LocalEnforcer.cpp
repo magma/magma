@@ -408,16 +408,18 @@ void LocalEnforcer::aggregate_records(
 
   for (const RuleRecord& record : records.records()) {
     const std::string &imsi = record.sid(), &ip = record.ue_ipv4();
+    const uint32_t teid = record.teid();
     // TODO IPv6 add ipv6 to search criteria
-    SessionSearchCriteria criteria(imsi, IMSI_AND_UE_IPV4_OR_IPV6, ip);
+    SessionSearchCriteria criteria(
+        imsi, IMSI_AND_UE_IPV4_OR_IPV6_OR_UPF_TEID, ip, teid);
     auto session_it = session_store_.find_session(session_map, criteria);
     if (!session_it) {
-      MLOG(MERROR) << "Could not find an active session for " << imsi << " and "
-                   << ip << " during record aggregation";
+      MLOG(MERROR) << "Could not find an 4G and 5G active session for " << imsi
+                   << " and " << ip << " or " << teid
+                   << " during record aggregation";
       dead_sessions_to_cleanup.insert(record);
       continue;
     }
-
     auto& session                 = **session_it;
     const std::string& session_id = session->get_session_id();
     sessions_with_reporting_flows.insert(ImsiAndSessionID(imsi, session_id));

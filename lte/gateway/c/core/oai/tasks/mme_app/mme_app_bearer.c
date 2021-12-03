@@ -1887,8 +1887,6 @@ void mme_app_handle_e_rab_setup_rsp(
             e_rab_setup_rsp->mme_ue_s1ap_id);
         OAILOG_FUNC_OUT(LOG_MME_APP);
     }
-    bdestroy_wrapper(
-        &e_rab_setup_rsp->e_rab_setup_list.item[i].transport_layer_address);
   }
 
   for (int i = 0; i < e_rab_setup_rsp->e_rab_failed_to_setup_list.no_of_items;
@@ -1911,7 +1909,7 @@ status_code_e mme_app_handle_mobile_reachability_timer_expiry(
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -1958,7 +1956,7 @@ status_code_e mme_app_handle_implicit_detach_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -1985,7 +1983,7 @@ status_code_e mme_app_handle_initial_context_setup_rsp_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_ERROR(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -2360,7 +2358,7 @@ status_code_e mme_app_handle_paging_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -2436,7 +2434,7 @@ status_code_e mme_app_handle_ulr_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -2749,7 +2747,7 @@ status_code_e mme_app_handle_ue_context_modification_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -2890,6 +2888,7 @@ void mme_app_handle_create_dedicated_bearer_rsp(
       "Sending Activate Dedicated Bearer Response to SPGW for "
       "ue-id: " MME_UE_S1AP_ID_FMT "\n",
       ue_context_p->mme_ue_s1ap_id);
+  update_mme_app_stats_s1u_bearer_add();
   send_pcrf_bearer_actv_rsp(ue_context_p, ebi, REQUEST_ACCEPTED);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 #endif
@@ -2966,15 +2965,6 @@ void mme_app_handle_create_dedicated_bearer_rej(
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
-}
-
-//------------------------------------------------------------------------------
-// See 3GPP TS 23.401 version 10.13.0 Release 10: 5.4.4.2 MME Initiated
-// Dedicated Bearer Deactivation
-void mme_app_trigger_mme_initiated_dedicated_bearer_deactivation_procedure(
-    mme_app_desc_t* mme_app_desc_p, ue_mm_context_t* const ue_context,
-    const pdn_cid_t cid) {
-  OAILOG_DEBUG(LOG_MME_APP, "TODO \n");
 }
 
 /**
@@ -3812,12 +3802,8 @@ void mme_app_handle_path_switch_request(
             blength(
                 e_rab_to_be_switched_dl_list.item[idx].transport_layer_address),
             path_switch_req_p->mme_ue_s1ap_id);
-        bdestroy_wrapper(
-            &e_rab_to_be_switched_dl_list.item[idx].transport_layer_address);
         OAILOG_FUNC_OUT(LOG_MME_APP);
       }
-      bdestroy_wrapper(
-          &e_rab_to_be_switched_dl_list.item[idx].transport_layer_address);
       s11_modify_bearer_request->bearer_contexts_to_be_modified
           .num_bearer_context++;
 

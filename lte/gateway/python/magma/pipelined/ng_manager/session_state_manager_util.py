@@ -38,6 +38,7 @@ PDRRuleEntry = NamedTuple(
                     ('del_qos_enforce_rule', DeactivateFlowsRequest),
                     ('add_qos_enforce_rule', ActivateFlowsRequest),
                     ('far_action', FARRuleEntry),
+                    ('ue_ipv6_addr', str),
                 ],
 )
 
@@ -68,14 +69,19 @@ def pdr_create_rule_entry(pdr_entry) -> PDRRuleEntry:
     far_entry = None
     deactivate_flow_req = None
     activate_flow_req = None
+    ue_ipv6_addr = None
 
     # get local teid
     if pdr_entry.pdi.local_f_teid:
         local_f_teid = pdr_entry.pdi.local_f_teid
 
     # Get UE IP address
-    if pdr_entry.pdi.ue_ip_adr:
-        ue_ip_addr = pdr_entry.pdi.ue_ip_adr
+    if pdr_entry.pdi.ue_ipv4:
+        ue_ip_addr = pdr_entry.pdi.ue_ipv4
+
+    # Get UE IP address
+    if pdr_entry.pdi.ue_ipv6:
+        ue_ipv6_addr = pdr_entry.pdi.ue_ipv6
 
     if len(pdr_entry.set_gr_far.ListFields()):
         far_entry = far_create_rule_entry(pdr_entry.set_gr_far)
@@ -91,6 +97,6 @@ def pdr_create_rule_entry(pdr_entry) -> PDRRuleEntry:
         pdr_entry.pdr_state, pdr_entry.precedence,
         local_f_teid, ue_ip_addr,
         deactivate_flow_req, activate_flow_req,
-        far_entry,
+        far_entry, ue_ipv6_addr,
     )
     return pdr_rule

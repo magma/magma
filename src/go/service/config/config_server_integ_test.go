@@ -41,7 +41,20 @@ func TestConfigServer_GetConfig(t *testing.T) {
 		MmeSctpdDownstreamServiceTarget: "mme_down",
 		MmeSctpdUpstreamServiceTarget:   "mme_up",
 		SentryDsn:                       "",
-		ConfigServiceTarget:             "cfg",
+		ConfigServicePort:               "1234",
+		VagrantPrivateNetworkIp:         "0.0.0.0",
+		CaptureServicePort:              "12345",
+		CaptureConfig: &pb.CaptureConfig{
+			MatchSpecs: []*pb.CaptureConfig_MatchSpec{
+				{
+					Service: "service",
+					Method:  "method",
+				},
+				{
+					Service: "service",
+					Method:  "method2",
+				},
+			}},
 	}
 
 	ctx := context.Background()
@@ -78,7 +91,20 @@ func TestConfigServer_UpdateConfig(t *testing.T) {
 		MmeSctpdDownstreamServiceTarget: "mme_down",
 		MmeSctpdUpstreamServiceTarget:   "mme_up",
 		SentryDsn:                       "",
-		ConfigServiceTarget:             "cfg",
+		ConfigServicePort:               "1234",
+		VagrantPrivateNetworkIp:         "0.0.0.0",
+		CaptureServicePort:              "12345",
+		CaptureConfig: &pb.CaptureConfig{
+			MatchSpecs: []*pb.CaptureConfig_MatchSpec{
+				{
+					Service: "service",
+					Method:  "method",
+				},
+				{
+					Service: "service",
+					Method:  "method2",
+				},
+			}},
 	}
 
 	ctx := context.Background()
@@ -98,5 +124,50 @@ func TestConfigServer_UpdateConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, res, got)
+}
 
+func TestConfigServer_ReplaceConfig(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	replacementConfig := &pb.AgwD{
+		LogLevel:                        pb.AgwD_DEBUG,
+		SctpdDownstreamServiceTarget:    "sctpd_down",
+		SctpdUpstreamServiceTarget:      "sctpd_up",
+		MmeSctpdDownstreamServiceTarget: "mme_down",
+		MmeSctpdUpstreamServiceTarget:   "mme_up",
+		SentryDsn:                       "",
+		ConfigServicePort:               "1234",
+		VagrantPrivateNetworkIp:         "0.0.0.0",
+		CaptureServicePort:              "12345",
+		CaptureConfig: &pb.CaptureConfig{
+			MatchSpecs: []*pb.CaptureConfig_MatchSpec{
+				{
+					Service: "service",
+					Method:  "method",
+				},
+				{
+					Service: "service",
+					Method:  "method2",
+				},
+			}},
+	}
+
+	ctx := context.Background()
+	req := &pb.ReplaceConfigRequest{Config: replacementConfig}
+	res := &pb.ReplaceConfigResponse{Config: replacementConfig}
+
+	mockCfgr := config.NewMockConfiger(ctrl)
+	mockCfgr.EXPECT().ReplaceConfig(req.Config)
+	mockCfgr.EXPECT().Config().Return(replacementConfig)
+
+	logger, _ := testutil.NewTestLogger()
+
+	cs := NewConfigServer(logger, mockCfgr)
+
+	got, err := cs.ReplaceConfig(ctx, req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, res, got)
 }

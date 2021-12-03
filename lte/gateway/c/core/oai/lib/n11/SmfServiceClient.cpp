@@ -61,6 +61,8 @@ SetSMSessionContext create_sm_pdu_session_v4(
   // Encode APU, storing apn value
   req_common->set_apn((char*) apn);
 
+  // UE IPv4 address set
+  req_common->set_ue_ipv4((char*) ipv4_addr);
   // Encode RAT TYPE
   req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
 
@@ -79,10 +81,6 @@ SetSMSessionContext create_sm_pdu_session_v4(
   // Set the Type of Request
   req_rat_specific->set_request_type(magma::lte::RequestType::INITIAL_REQUEST);
 
-  // Set the Address type
-  req_rat_specific->mutable_pdu_address()->set_redirect_address_type(
-      magma::lte::RedirectServer::IPV4);
-
   // Type is IPv4
   req_rat_specific->set_pdu_session_type(magma::lte::PduSessionType::IPV4);
 
@@ -97,10 +95,6 @@ SetSMSessionContext create_sm_pdu_session_v4(
 
   // Set the PTI
   req_rat_specific->set_procedure_trans_identity((const char*) (&(pti)));
-
-  // Set the PDU Address
-  req_rat_specific->mutable_pdu_address()->set_redirect_server_address(
-      (char*) ipv4_addr);
 
   // Set the default QoS values
   req_rat_specific->mutable_default_ambr()->set_max_bandwidth_ul(

@@ -58,6 +58,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_E_RAB_SETUP_RSP: {
+      mme_app_handler_->mme_app_handle_e_rab_setup_rsp();
     } break;
 
     case S1AP_E_RAB_REL_RSP: {
@@ -75,12 +76,16 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_ENB_INITIATED_RESET_REQ: {
+      mme_app_handler_->mme_app_handle_enb_reset_req();
+      free_wrapper((void**) &S1AP_ENB_INITIATED_RESET_REQ(received_message_p)
+                       .ue_to_reset_list);
     } break;
 
     case S11_PAGING_REQUEST: {
     } break;
 
     case MME_APP_INITIAL_CONTEXT_SETUP_FAILURE: {
+      mme_app_handler_->mme_app_handle_initial_context_setup_failure();
     } break;
 
     case S1AP_UE_CAPABILITIES_IND: {
@@ -152,9 +157,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_PATH_SWITCH_REQUEST: {
+      mme_app_handler_->mme_app_handle_path_switch_request();
     } break;
 
     case S1AP_HANDOVER_REQUIRED: {
+      mme_app_handler_->mme_app_handle_handover_required();
     } break;
 
     case S1AP_HANDOVER_REQUEST_ACK: {

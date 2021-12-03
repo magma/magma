@@ -328,6 +328,11 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionSetup) {
       sizeof(pdu_sess_release_complete_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
+  ue_m5gmm_context_t* ue_context_p =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ASSERT_NE(ue_context_p, nullptr);
+  EXPECT_EQ(ue_context_p->amf_context.smf_ctxt_map.size(), 0);
+
   rc = send_pdu_notification_response();
   EXPECT_TRUE(rc == RETURNok);
 

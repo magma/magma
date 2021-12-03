@@ -37,6 +37,8 @@
 #define HWID "hwid"
 #define HOSTNAME "hostname"
 #define SERVICE_NAME "service_name"
+#define CLOUD_ADDRESS "cloud_address"
+#define ORC8R_CLOUD_ADDRESS "orc8r_cloud_address"
 #define DEFAULT_SAMPLE_RATE 0.5f
 
 using std::experimental::optional;
@@ -61,6 +63,17 @@ optional<std::string> get_sentry_url(
   const std::string sentry_url(sentry_url_native);
   if (!sentry_url.empty()) {
     return sentry_url;
+  }
+  return {};
+}
+
+optional<std::string> get_cloud_address(YAML::Node control_proxy_config) {
+  if (control_proxy_config[SENTRY_NATIVE_URL].IsDefined()) {
+    const std::string cloud_address =
+        control_proxy_config[CLOUD_ADDRESS].as<std::string>();
+    if (!cloud_address.empty()) {
+      return cloud_address;
+    }
   }
   return {};
 }
@@ -123,6 +136,9 @@ void initialize_sentry(
   char node_name[HOST_NAME_MAX];
   if (gethostname(node_name, HOST_NAME_MAX) == 0) {
     sentry_set_tag(HOSTNAME, node_name);
+  }
+  if (auto cloud_address = get_cloud_address(control_proxy_config)) {
+    sentry_set_tag(ORC8R_CLOUD_ADDRESS, cloud_address->c_str());
   }
   sentry_set_tag(SERVICE_NAME, service_tag);
   sentry_set_tag(HWID, get_snowflake().c_str());
