@@ -160,30 +160,24 @@ class MmeAppProcedureTest : public ::testing::Test {
   const uint8_t nas_msg_deactivate_ded_bearer_accept[9] = {
       0x27, 0x66, 0x5f, 0x4e, 0x87, 0x03, 0x62, 0x00, 0xce};
 
-  const uint8_t nas_msg_periodic_tau_req_with_actv_flag[21]   = {0x17, 0x1F, 0x2C, 0x60, 0x5E, 0x02, 0x07,
-                                                  0x48, 0x0b, 0x0b, 0xf6, 0x00, 0xf1, 0x10,
-                                                  0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01,
-                                                 };
+  const uint8_t nas_msg_periodic_tau_req_with_actv_flag[21] = {
+      0x17, 0x1F, 0x2C, 0x60, 0x5E, 0x02, 0x07, 0x48, 0x0b, 0x0b, 0xf6,
+      0x00, 0xf1, 0x10, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01,
+  };
 
-  const uint8_t nas_msg_periodic_tau_req_without_actv_flag[21]   = {0x17, 0xE6, 0xDE, 0x80, 0xD4, 0x02, 0x07,
-                                                  0x48, 0x03, 0x0b, 0xf6, 0x00, 0xf1, 0x10,
-                                                  0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01,
-                                                 };
-  const uint8_t nas_msg_normal_tau_req_with_actv_flag[21]   = {0x17, 0xA, 0x7D, 0x19, 0x5F, 0x02, 0x07,
-                                                  0x48, 0x08, 0x0b, 0xf6, 0x00, 0xf1, 0x10,
-                                                  0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01,
-                                                 };
+  const uint8_t nas_msg_periodic_tau_req_without_actv_flag[21] = {
+      0x17, 0xE6, 0xDE, 0x80, 0xD4, 0x02, 0x07, 0x48, 0x03, 0x0b, 0xf6,
+      0x00, 0xf1, 0x10, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01,
+  };
+  const uint8_t nas_msg_normal_tau_req_with_actv_flag[21] = {
+      0x17, 0xA,  0x7D, 0x19, 0x5F, 0x02, 0x07, 0x48, 0x08, 0x0b, 0xf6,
+      0x00, 0xf1, 0x10, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01,
+  };
 
-  const uint8_t nas_msg_normal_tau_req_without_actv_flag[21]   = {0x17, 0xEA, 0x57, 0xCB, 0xAD, 0x02, 0x07,
-                                                  0x48, 0x00, 0x0b, 0xf6, 0x00, 0xf1, 0x10,
-                                                  0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01,
-                                                 };
-  const uint8_t nas_msg_combined_tau_req[21]   = {0x17, 0x3E, 0xF8, 0xE9, 0x41, 0x02, 0x07,
-                                                  0x48, 0x09, 0x0b, 0xf6, 0x00, 0xf1, 0x10,
-                                                  0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01,
-                                                 };
-
-
+  const uint8_t nas_msg_normal_tau_req_without_actv_flag[21] = {
+      0x17, 0xEA, 0x57, 0xCB, 0xAD, 0x02, 0x07, 0x48, 0x00, 0x0b, 0xf6,
+      0x00, 0xf1, 0x10, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01,
+  };
 
   std::string imsi                = "001010000000001";
   plmn_t plmn                     = {.mcc_digit2 = 0,
@@ -211,7 +205,7 @@ TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
                                 0x01, 0xd0, 0x11, 0x40, 0x08, 0x04, 0x02, 0x60,
                                 0x04, 0x00, 0x02, 0x1c, 0x00};
   send_mme_app_initial_ue_msg(
-      nas_msg_faulty, sizeof(nas_msg_faulty), plmn, guti,1);
+      nas_msg_faulty, sizeof(nas_msg_faulty), plmn, guti, 1);
 
   // Wait for DL NAS Transport for once
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -1523,7 +1517,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
   EXPECT_EQ(mme_state_p->nb_ue_idle, 1);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 
-  // Constructing and sending service Request
+  // Constructing and sending Service Request
   send_mme_app_initial_ue_msg(
       nas_msg_service_req, sizeof(nas_msg_service_req), plmn, guti, 1);
 
@@ -1874,8 +1868,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithActiveFlag) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
-  uint32_t mac = 0;
-  uint8_t seq_num = 0;
 
   MME_APP_EXPECT_CALLS(3, 2, 2, 1, 1, 1, 1, 2, 1, 1, 4);
 
@@ -1976,7 +1968,8 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithActiveFlag) {
 
   // Constructing and sending periodic TAU Request with active flag
   send_mme_app_initial_ue_msg(
-      nas_msg_periodic_tau_req_with_actv_flag, sizeof(nas_msg_periodic_tau_req_with_actv_flag), plmn, guti, 1);
+      nas_msg_periodic_tau_req_with_actv_flag,
+      sizeof(nas_msg_periodic_tau_req_with_actv_flag), plmn, guti, 1);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -2030,8 +2023,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithoutActiveFlag) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
-  uint32_t mac = 0;
-  uint8_t seq_num = 0;
 
   MME_APP_EXPECT_CALLS(4, 1, 3, 1, 1, 1, 1, 1, 1, 1, 4);
 
@@ -2132,7 +2123,8 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithoutActiveFlag) {
 
   // Constructing and sending periodic TAU Request without active flag
   send_mme_app_initial_ue_msg(
-      nas_msg_periodic_tau_req_without_actv_flag, sizeof(nas_msg_periodic_tau_req_without_actv_flag), plmn, guti, 1);
+      nas_msg_periodic_tau_req_without_actv_flag,
+      sizeof(nas_msg_periodic_tau_req_without_actv_flag), plmn, guti, 1);
 
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -2182,8 +2174,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithActiveFlag) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
-  uint32_t mac = 0;
-  uint8_t seq_num = 0;
 
   MME_APP_EXPECT_CALLS(3, 2, 2, 1, 1, 1, 1, 2, 1, 1, 4);
 
@@ -2284,7 +2274,8 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithActiveFlag) {
 
   // Constructing and sending Normal TAU Request with active flag
   send_mme_app_initial_ue_msg(
-      nas_msg_normal_tau_req_with_actv_flag, sizeof(nas_msg_normal_tau_req_with_actv_flag), plmn, guti, 1);
+      nas_msg_normal_tau_req_with_actv_flag,
+      sizeof(nas_msg_normal_tau_req_with_actv_flag), plmn, guti, 1);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -2338,8 +2329,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithoutActiveFlag) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
-  uint32_t mac = 0;
-  uint8_t seq_num = 0;
 
   MME_APP_EXPECT_CALLS(4, 1, 3, 1, 1, 1, 1, 1, 1, 1, 4);
 
@@ -2440,7 +2429,8 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithoutActiveFlag) {
 
   // Constructing and sending TAU Request without active flag
   send_mme_app_initial_ue_msg(
-      nas_msg_normal_tau_req_without_actv_flag, sizeof(nas_msg_normal_tau_req_without_actv_flag), plmn, guti, 1);
+      nas_msg_normal_tau_req_without_actv_flag,
+      sizeof(nas_msg_normal_tau_req_without_actv_flag), plmn, guti, 1);
 
   // Wait for UE context release cmd
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -2490,8 +2480,6 @@ TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
-  uint32_t mac = 0;
-  uint8_t seq_num = 0;
 
   MME_APP_EXPECT_CALLS(4, 1, 3, 1, 1, 1, 1, 1, 1, 1, 4);
 
@@ -2591,11 +2579,13 @@ TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 
   // Constructing and sending TAU Request with invalid TAC value 2
-  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(msg_nas_dl_data.mme_ue_s1ap_id);
+  ue_mm_context_t* ue_mm_context =
+      mme_ue_context_exists_mme_ue_s1ap_id(msg_nas_dl_data.mme_ue_s1ap_id);
   EXPECT_FALSE(ue_mm_context == nullptr);
   ue_mm_context->num_reg_sub = 1;
   send_mme_app_initial_ue_msg(
-      nas_msg_normal_tau_req_with_actv_flag, sizeof(nas_msg_normal_tau_req_with_actv_flag), plmn, guti, 2);
+      nas_msg_normal_tau_req_with_actv_flag,
+      sizeof(nas_msg_normal_tau_req_with_actv_flag), plmn, guti, 2);
 
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
