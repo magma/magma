@@ -14,6 +14,7 @@ limitations under the License.
 package registration
 
 import (
+	"fmt"
 	"math/rand"
 
 	"magma/orc8r/cloud/go/clock"
@@ -30,8 +31,12 @@ func NonceToToken(nonce string) string {
 	return bootstrapper.TokenPrefix + nonce
 }
 
-func NonceFromToken(token string) string {
-	return token[len(bootstrapper.TokenPrefix):]
+func NonceFromToken(token string) (string, error) {
+	if token[:len(bootstrapper.TokenPrefix)] != bootstrapper.TokenPrefix {
+		return "", fmt.Errorf("token %v does not have tokenPrefix %v", token, bootstrapper.TokenPrefix)
+	}
+
+	return token[len(bootstrapper.TokenPrefix):], nil
 }
 
 // GenerateNonce is sourced from https://stackoverflow.com/a/31832326

@@ -58,7 +58,6 @@ func TestCloudRegistrationServicer_Registration(t *testing.T) {
 	nonce := registration.GenerateNonce(registration.NonceLength)
 	assert.Equal(t, registration.NonceLength, len(nonce))
 	token := registration.NonceToToken(nonce)
-	assert.Equal(t, nonce, registration.NonceFromToken(token))
 
 	// Try getting device info when token is invalid
 	getGatewayDeviceInfoRes, err := cloudRegistration.GetGatewayDeviceInfo(ctx, &protos.GetGatewayDeviceInfoRequest{Token: token})

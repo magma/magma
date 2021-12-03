@@ -80,7 +80,16 @@ func (c *cloudRegistrationServicer) GetGatewayRegistrationInfo(ctx context.Conte
 }
 
 func (c *cloudRegistrationServicer) GetGatewayDeviceInfo(ctx context.Context, request *protos.GetGatewayDeviceInfoRequest) (*protos.GetGatewayDeviceInfoResponse, error) {
-	nonce := NonceFromToken(request.Token)
+	nonce, err := NonceFromToken(request.Token)
+	if err != nil {
+		res := &protos.GetGatewayDeviceInfoResponse{
+			Response: &protos.GetGatewayDeviceInfoResponse_Error{
+				Error: err.Error(),
+			},
+		}
+		return res, nil
+	}
+
 	tokenInfo, err := c.store.GetTokenInfoFromNonce(nonce)
 	if err != nil {
 		res := &protos.GetGatewayDeviceInfoResponse{
