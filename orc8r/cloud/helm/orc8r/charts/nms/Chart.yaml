@@ -12,7 +12,7 @@
 apiVersion: v1
 description: Magma NMS
 name: nms
-version: 0.1.11
+version: 0.1.12
 home: https://github.com/magma/magma
 sources:
   - https://github.com/magma/magma

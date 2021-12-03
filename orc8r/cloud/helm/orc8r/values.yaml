@@ -15,10 +15,14 @@ nms:
   magmalte:
     create: true
     image:
-      repository: <registry>/magmalte
-      tag: latest
+      repository: docker.artifactory.magmacore.org/magmalte
+      tag: 1.6.1
   nginx:
     create: true
+  certs:
+    enabled: false
+  secret:
+    certs: orc8r-secrets-certs
 
 # Reference to one or more secrets to be used when pulling images
 # ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
@@ -55,8 +59,9 @@ secret:
 # certs sub-chart configuration.
 certs:
   create: false
+  enabled: false
 
-  domainName: localhost
+  domainName: ""
 
 nginx:
   create: true
@@ -79,7 +84,7 @@ nginx:
       clientcertLegacy: {}
       proxy: {}
     labels: {}
-    type: ClusterIP
+    type: LoadBalancer
     port:
       clientcert:
         port: 8443
@@ -102,8 +107,8 @@ nginx:
 
   # nginx image
   image:
-    repository: <registry>/nginx
-    tag: latest
+    repository: docker.artifactory.magmacore.org/nginx
+    tag: 1.6.1
     pullPolicy: IfNotPresent
 
   # Settings affecting nginx application
@@ -148,8 +153,8 @@ controller:
 
   # orc8r_base image
   image:
-    repository: <registry>/orc8r_base
-    tag: latest
+    repository: docker.artifactory.magmacore.org/controller
+    tag: 1.6.1
     pullPolicy: IfNotPresent
 
   spec:

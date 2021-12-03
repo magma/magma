@@ -263,7 +263,7 @@ typedef struct smf_context_s {
   QOSRule qos_rules[1];
   teid_upf_gnb_t gtp_tunnel_id;
   paa_t pdu_address;
-  uint8_t apn[ACCESS_POINT_NAME_MAX_LENGTH + 1];
+  ambr_t smf_ctx_ambr;
   smf_proc_data_t smf_proc_data;
   struct nas5g_timer_s T3592;  // PDU_SESSION_RELEASE command timer
   int retransmission_count;

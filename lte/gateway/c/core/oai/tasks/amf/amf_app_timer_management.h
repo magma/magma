@@ -53,8 +53,10 @@ void amf_pdu_stop_timer(int timer_id);
     char* timer_name);
 */
 
-bool amf_app_get_timer_arg(int timer_id, timer_arg_t* arg);
-bool amf_pdu_get_timer_arg(int timer_id, ue_pdu_id_t* arg);
+// The *_pop*timer_* functions also removes the timer_id from the map.
+// These functions are supposed to be used only by expired timers.
+bool amf_pop_timer_arg(int timer_id, timer_arg_t* arg);
+bool amf_pop_pdu_timer_arg(int timer_id, ue_pdu_id_t* arg);
 
 class AmfUeContext {
  private:
@@ -76,14 +78,20 @@ class AmfUeContext {
       timer_arg_t id);
   void StopTimer(int timer_id);
 
-  bool GetTimerArg(const int timer_id, timer_arg_t* arg) const;
-
   int StartPduTimer(
       size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
       ue_pdu_id_t id);
   void StopPduTimer(int timer_id);
 
-  bool GetPduTimerArg(const int timer_id, ue_pdu_id_t* arg) const;
+  /**
+   * Pop timer, save arguments and return existence.
+   *
+   * @param timer_id Unique timer id for active timers
+   * @param arg Timer arguments to be stored in this parameter
+   * @return True if timer_id exists, False otherwise.
+   */
+  bool PopTimerArgById(const int timer_id, timer_arg_t* arg);
+  bool PopPduTimerArgById(const int timer_id, ue_pdu_id_t* arg);
 };
 
 }  // namespace magma5g

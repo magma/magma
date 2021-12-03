@@ -660,6 +660,62 @@ int amf_app_handle_pdu_session_response(
 
   return rc;
 }
+/****************************************************************************
+ **                                                                        **
+ ** Name:    convert_ambr()                                                **
+ **                                                                        **
+ ** Description: Converts the session ambr format from                     **
+ **  one defined in create_pdu_session_response to one defined in          **
+ **  pdu_session_estab_accept message                                      **
+ **                                                                        **
+ ** Inputs:  pdu_ambr_response_unit, pdu_ambr_response_value               **
+ **          ambr_unit, ambr_value                                         **
+ **                                                                        **
+ **      Return:   void                                                    **
+ **                                                                        **
+ ***************************************************************************/
+void convert_ambr(
+    const uint32_t* pdu_ambr_response_unit,
+    const uint32_t* pdu_ambr_response_value, uint8_t* ambr_unit,
+    uint16_t* ambr_value) {
+  int count                             = 1;
+  uint32_t temp_pdu_ambr_response_value = *pdu_ambr_response_value;
+
+  // minimum rate unit is KBPS
+  if (*pdu_ambr_response_unit == BPS &&
+      temp_pdu_ambr_response_value / 1000 == 0) {
+    // Values less than 1Kbps are defaulted to 1Kbps
+    *ambr_value = static_cast<uint16_t>(1);
+    *ambr_unit  = static_cast<uint8_t>(
+        magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
+    return;
+  }
+
+  if (*pdu_ambr_response_unit == BPS) {
+    temp_pdu_ambr_response_value /= 1000;
+  }
+
+  while (temp_pdu_ambr_response_value >= AMBR_UNIT_CONVERT_THRESHOLD) {
+    temp_pdu_ambr_response_value = (temp_pdu_ambr_response_value / 1000);
+    count++;
+  }
+
+  switch (count) {
+    case 1:
+      *ambr_unit = static_cast<uint8_t>(
+          magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
+      break;
+    case 2:
+      *ambr_unit = static_cast<uint8_t>(
+          magma5g::M5GSessionAmbrUnit::MULTIPLES_1MBPS);  // Mbps
+      break;
+    case 3:
+      *ambr_unit = static_cast<uint8_t>(
+          magma5g::M5GSessionAmbrUnit::MULTIPLES_1GBPS);  // Gbps
+      break;
+  }
+  *ambr_value = static_cast<uint16_t>(temp_pdu_ambr_response_value);
+}
 
 /****************************************************************************
  **                                                                        **
@@ -752,7 +808,8 @@ int amf_app_handle_pdu_session_accept(
   smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
       PDU_SESSION_ESTABLISHMENT_ACCEPT;
   smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val = 1;
-  smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val         = 1;
+  smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val =
+      (pdu_session_resp->selected_ssc_mode + 1);
 
   memset(
       &(smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info), 0, 12);
@@ -795,14 +852,17 @@ int amf_app_handle_pdu_session_accept(
   memcpy(
       smf_msg->msg.pdu_session_estab_accept.qos_rules.qos_rule, &qos_rule,
       1 * sizeof(QOSRule));
-  smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_unit =
-      pdu_session_resp->session_ambr.downlink_unit_type;
-  smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit =
-      pdu_session_resp->session_ambr.uplink_unit_type;
-  smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_session_ambr =
-      pdu_session_resp->session_ambr.downlink_units;
-  smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_session_ambr =
-      pdu_session_resp->session_ambr.uplink_units;
+  convert_ambr(
+      &pdu_session_resp->session_ambr.downlink_unit_type,
+      &pdu_session_resp->session_ambr.downlink_units,
+      &smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_unit,
+      &smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_session_ambr);
+
+  convert_ambr(
+      &pdu_session_resp->session_ambr.uplink_unit_type,
+      &pdu_session_resp->session_ambr.uplink_units,
+      &smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit,
+      &smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_session_ambr);
   smf_msg->msg.pdu_session_estab_accept.session_ambr.length = AMBR_LEN;
 
   msg_accept_pco =
@@ -1150,7 +1210,7 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
   MessageDef* message_p                          = nullptr;
   itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
 
-  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+  if (!amf_pop_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3513: Invalid Timer Id expiration, Timer Id: %u\n",
         timer_id);

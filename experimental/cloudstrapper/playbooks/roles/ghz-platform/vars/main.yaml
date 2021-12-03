@@ -1,0 +1,24 @@
+---
+# id of each test has to match the project ID created on the gHZ API
+load_tests:
+  - name: mobilityd
+    test:
+      - name: allocate
+        result: AllocateIPAddress
+        id: 9
+      - name: release
+        result: ReleaseIPAddress
+        id: 4
+  - name: pipelined
+    test:
+      - name: activate_flows
+        result: ActivateFlows
+        id: 5
+      - name: deactivate_flows
+        result: DeactivateFlows
+        id: 6
+
+MAGMA_ROOT: "{{ magmaRepo }}"
+GHZ_PATH: "{{ magmaRepo }}/lte/gateway/docker/ghz"
+GHZ_API_URL: "http://ec2-18-183-107-169.ap-northeast-1.compute.amazonaws.com"
+GHZ_API_PORT: 8000

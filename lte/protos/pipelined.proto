@@ -325,10 +325,11 @@ message PDI {
   uint32 src_interface = 1;
   uint32 local_f_teid = 2;
   string net_instance = 3;
-  string ue_ip_adr = 4;
+  string ue_ipv4 = 4;
   bytes tr_ep_id = 5;                //8.2.92
   SdfFilters sdf_filters = 6;
   string app_id = 7;
+  string ue_ipv6 = 8;
 }
 
 // Group Type messages - Currently Includes -> 1. PDR 2. FAR 3.For QER ActivateFlowRequest

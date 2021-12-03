@@ -137,7 +137,7 @@ jobs:
   c_cpp_unit_tests:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    name: Run C/C++ unit tests with Bazel
+    name: C/C++ unit tests with Bazel
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo

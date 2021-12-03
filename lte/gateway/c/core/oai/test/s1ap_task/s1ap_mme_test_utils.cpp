@@ -20,6 +20,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
@@ -85,7 +86,7 @@ void handle_mme_ue_id_notification(s1ap_state_t* s, sctp_assoc_id_t assoc_id) {
 }
 
 status_code_e send_s1ap_erab_rel_cmd(
-    mme_ue_s1ap_id_t ue_id, enb_ue_s1ap_id_t enb_ue_id) {
+    s1ap_state_t* state, mme_ue_s1ap_id_t ue_id, enb_ue_s1ap_id_t enb_ue_id) {
   MessageDef* message_p;
   message_p = itti_alloc_new_message(TASK_MME_APP, S1AP_E_RAB_REL_CMD);
   itti_s1ap_e_rab_rel_cmd_t* s1ap_e_rab_rel_cmd =
@@ -96,7 +97,12 @@ status_code_e send_s1ap_erab_rel_cmd(
   s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items      = 1;
   s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].e_rab_id = 5;
 
-  return send_msg_to_task(&task_zmq_ctx_main_s1ap, TASK_S1AP, message_p);
+  status_code_e rc =
+      s1ap_generate_s1ap_e_rab_rel_cmd(state, s1ap_e_rab_rel_cmd);
+
+  itti_free_msg_content(message_p);
+  free(message_p);
+  return rc;
 }
 
 status_code_e send_conn_establishment_cnf(
@@ -137,7 +143,8 @@ status_code_e send_conn_establishment_cnf(
 }
 
 status_code_e send_s1ap_erab_setup_req(
-    mme_ue_s1ap_id_t ue_id, enb_ue_s1ap_id_t enb_ue_id, ebi_t ebi) {
+    s1ap_state_t* state, mme_ue_s1ap_id_t ue_id, enb_ue_s1ap_id_t enb_ue_id,
+    ebi_t ebi) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_MME_APP, S1AP_E_RAB_SETUP_REQ);
   itti_s1ap_e_rab_setup_req_t* s1ap_e_rab_setup_req =
@@ -181,7 +188,12 @@ status_code_e send_s1ap_erab_setup_req(
 
   s1ap_e_rab_setup_req->e_rab_to_be_setup_list.item[0].nas_pdu =
       bfromcstr("test");
-  return send_msg_to_task(&task_zmq_ctx_main_s1ap, TASK_S1AP, message_p);
+  status_code_e rc =
+      s1ap_generate_s1ap_e_rab_setup_req(state, s1ap_e_rab_setup_req);
+
+  itti_free_msg_content(message_p);
+  free(message_p);
+  return rc;
 }
 
 status_code_e send_s1ap_erab_reset_req(

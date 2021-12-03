@@ -1,0 +1,38 @@
+---
+- name: add agw containers to inventory
+  add_host:
+    name: "{{ item }}"
+    ansible_connection: docker
+  with_items:
+    - "{{ load_tests | map(attribute='name') | list }}"
+
+- name: run load test script
+  command: "python3 loadtest_{{ item.0.name }}.py {{ item.1.name }}"
+  delegate_to: "{{ item.0.name }}"
+  with_subelements:
+    - "{{ load_tests }}"
+    - test
+
+- name: Check that the load test result file exists
+  command: "cat result_{{ item.1.result }}.json chdir=/var/tmp"
+  register: json_output
+  delegate_to: "{{ item.0.name }}"
+  with_subelements:
+    - "{{ load_tests }}"
+    - test
+
+- name: save the test ids to upload results
+  set_fact:
+    test_ids: "{{ test_ids|default([]) + [item.1.id]}}"
+  with_subelements:
+    - "{{ load_tests }}"
+    - test
+
+- name: push results to gHZ API
+  uri:
+    url: "{{ GHZ_API_URL }}:{{ GHZ_API_PORT}}/api/projects/{{ item[1] }}/ingest"
+    method: POST
+    status_code: 201
+    body_format: json
+    body: "{{ item[0].stdout | from_json }}"
+  loop: "{{ json_output.results | zip(test_ids) | list }}"

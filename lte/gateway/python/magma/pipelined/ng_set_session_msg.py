@@ -158,7 +158,7 @@ class CreateSessionUtil:
                 pdi=PDI(
                                    src_interface=0,\
                                    local_f_teid=local_f_teid,\
-                                   ue_ip_adr=ue_ip_addr,
+                                   ue_ipv4=ue_ip_addr,
                 ), \
                 o_h_remo_desc=0,
             )
@@ -167,7 +167,7 @@ class CreateSessionUtil:
             pdr_id=pdr_id, pdr_version=pdr_version,
             pdr_state=pdr_state,\
             precedence=precedence,\
-            pdi=PDI(src_interface=1, ue_ip_adr=ue_ip_addr),
+            pdi=PDI(src_interface=1, ue_ipv4=ue_ip_addr),
         )
 
     def CreateSessionMsg(

@@ -473,8 +473,6 @@ void emm_ctx_set_valid_imeisv(emm_context_t* const ctxt, imeisv_t* imeisv)
 
 void emm_ctx_clear_lvr_tai(emm_context_t* const ctxt) __attribute__((nonnull))
 __attribute__((flatten));
-void emm_ctx_set_lvr_tai(emm_context_t* const ctxt, tai_t* lvr_tai)
-    __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_set_valid_lvr_tai(emm_context_t* const ctxt, tai_t* lvr_tai)
     __attribute__((nonnull)) __attribute__((flatten));
 
@@ -581,9 +579,6 @@ void emm_context_free_content(struct emm_context_s* const emm_ctx)
     __attribute__((nonnull));
 void emm_context_free_content_except_key_fields(
     struct emm_context_s* const emm_ctx) __attribute__((nonnull));
-void emm_context_dump(
-    const struct emm_context_s* const elm_pP, const uint8_t indent_spaces,
-    bstring bstr_dump) __attribute__((nonnull));
 
 /****************************************************************************/
 /********************  G L O B A L    V A R I A B L E S  ********************/

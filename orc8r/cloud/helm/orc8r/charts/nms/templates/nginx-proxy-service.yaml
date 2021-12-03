@@ -20,9 +20,12 @@ kind: Service
 metadata:
   name: nginx-proxy
   labels:
-{{ tuple $envAll "nms" "nginx" | include "nms.labels" | indent 4 }}
-  {{- if .Values.nginx.service.annotations }}
+{{ include "default-labels" . | indent 4 }}
+{{ include "nginx-image-version-label" . | indent 4 }}
+{{ tuple $envAll "nms" "magmalte" | include "nms.labels" | indent 4 }}
   annotations:
+{{ include "release-name-annotation" . | indent 4 }}
+  {{- if .Values.nginx.service.annotations }}
 {{ with .Values.nginx.service.annotations }}{{ toYaml . | indent 4 }}{{ end }}
   {{- end }}
 spec:

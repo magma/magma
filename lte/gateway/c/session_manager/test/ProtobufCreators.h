@@ -21,6 +21,7 @@
 
 #include "DiameterCodes.h"
 #include "StoredState.h"
+#include "SessionStore.h"
 
 namespace magma {
 using namespace lte;
@@ -191,7 +192,15 @@ PolicyRule create_policy_rule(
 PolicyRule create_policy_rule_with_qos(
     const std::string& rule_id, const std::string& m_key, const uint32_t rg,
     const int qci);
+void assert_charging_credit(
+    SessionMap& session_map, const std::string& imsi,
+    const std::string& session_id, Bucket bucket,
+    const std::vector<std::pair<uint32_t, uint64_t>>& volumes);
 
+void assert_monitor_credit(
+    SessionMap& session_map, const std::string& imsi,
+    const std::string& session_id, Bucket bucket,
+    const std::vector<std::pair<std::string, uint64_t>>& volumes);
 void create_granted_units(
     uint64_t* total, uint64_t* tx, uint64_t* rx, GrantedUnits* gsu);
 

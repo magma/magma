@@ -20,7 +20,11 @@ kind: Service
 metadata:
   name: magmalte
   labels:
+{{ include "default-labels" . | indent 4 }}
+{{ include "magmalte-image-version-label" . | indent 4 }}
 {{ tuple $envAll "nms" "magmalte" | include "nms.labels" | indent 4 }}
+  annotations:
+{{ include "release-name-annotation" . | indent 4 }}
 spec:
   selector:
 {{ tuple $envAll "nms" "magmalte" | include "nms.selector-labels" | indent 4 }}

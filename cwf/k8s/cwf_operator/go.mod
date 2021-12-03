@@ -33,7 +33,7 @@ require (
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-logr/glogr v0.1.0
 	github.com/go-redis/redis v6.15.8+incompatible
-	github.com/gorilla/mux v1.7.4 // indirect
+	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0

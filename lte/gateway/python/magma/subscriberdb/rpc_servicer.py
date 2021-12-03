@@ -16,9 +16,18 @@ import logging
 import grpc
 from lte.protos import subscriberdb_pb2, subscriberdb_pb2_grpc
 from magma.common.rpc_utils import print_grpc, return_void
+from magma.common.sentry import (
+    SentryStatus,
+    get_sentry_status,
+    send_uncaught_errors_to_monitoring,
+)
 from magma.subscriberdb.sid import SIDUtils
+from magma.subscriberdb.store.base import (
+    DuplicateSubscriberError,
+    SubscriberNotFoundError,
+)
 
-from .store.base import DuplicateSubscriberError, SubscriberNotFoundError
+enable_sentry_wrapper = get_sentry_status("subscriberdb") == SentryStatus.SEND_SELECTED_ERRORS
 
 
 class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
@@ -40,9 +49,10 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         subscriberdb_pb2_grpc.add_SubscriberDBServicer_to_server(self, server)
 
     @return_void
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def AddSubscriber(self, request, context):
         """
-        Adds a subscriber to the store
+        Add a subscriber to the store
         """
         print_grpc(request, self._print_grpc_payload, "Add Subscriber Request:")
         sid = SIDUtils.to_str(request.sid)
@@ -54,9 +64,10 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
             context.set_code(grpc.StatusCode.ALREADY_EXISTS)
 
     @return_void
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def DeleteSubscriber(self, request, context):
         """
-        Deletes a subscriber from the store
+        Delete a subscriber from the store
         """
         print_grpc(
             request, self._print_grpc_payload,
@@ -67,9 +78,10 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         self._store.delete_subscriber(sid)
 
     @return_void
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def UpdateSubscriber(self, request, context):
         """
-        Updates the subscription data
+        Update the subscription data
         """
         try:
             print_grpc(
@@ -88,9 +100,10 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
             context.set_details("Subscriber not found: %s" % sid)
             context.set_code(grpc.StatusCode.NOT_FOUND)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetSubscriberData(self, request, context):
         """
-        Returns the subscription data for the subscriber
+        Return the subscription data for the subscriber
         """
         print_grpc(
             request, self._print_grpc_payload,
@@ -109,9 +122,10 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         )
         return response
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def ListSubscribers(self, request, context):  # pylint:disable=unused-argument
         """
-        Returns a list of subscribers from the store
+        Return a list of subscribers from the store
         """
         print_grpc(
             request, self._print_grpc_payload,

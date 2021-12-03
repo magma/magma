@@ -16,6 +16,15 @@ package magma.capture;
 import "google/protobuf/any.proto";
 
 // Capture is used for recording RPC calls for tracing, loggging, and testing purposes.
+service Capture {
+  rpc Flush(FlushRequest) returns (FlushResponse){};
+}
+
+message FlushRequest {}
+
+message FlushResponse {
+  Recording recording = 1;
+}
 
 // UnaryCall represents a single unary rpc call.
 message UnaryCall {
