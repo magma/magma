@@ -23,6 +23,8 @@ LOCAL: n_packets=333, n_bytes=21998
 mtr0: n_packets=0, n_bytes=0
 Running: sudo ovs-appctl ofproto/trace gtp_br0 tcp,in_port=local,ip_dst=192.168.128.15,ip_src=8.8.8.8,tcp_src=80,tcp_dst=3372
 Datapath Actions: set(tunnel(tun_id=0xa000428,dst=192.168.60.141,ttl=64,tp_dst=2152,flags(df|key))),pop_eth,set(skb_mark(0x11)),2
+UE UL Enforcement Flow Found: cookie=0x1, duration=8.485s, table=13, n_packets=0, n_bytes=0, idle_age=8, priority=65533,ip,reg1=0x1,metadata=0x7594587a00d,nw_src=192.168.128.15 actions=note:61.6c.6c.6f.77.6c.69.73.74.5f.73.69.64.2d.49.4d.53.49.30.30.31.30.31.30.30.30.30.30.30.30.30.30.31.2d.6d.61.67.6d.61.2e.69.70.76.34.00.00,load:0x3->NXM_NX_PKT_MARK[],set_field:0x1->reg2,set_field:0x1->reg4,set_field:0->reg11,resubmit(,14),resubmit(,20)
+UE DL Enforcement Flow Found: cookie=0x1, duration=8.485s, table=13, n_packets=4, n_bytes=296, idle_age=1, priority=65533,ip,reg1=0x10,metadata=0x7594587a00d,nw_dst=192.168.128.15 actions=note:61.6c.6c.6f.77.6c.69.73.74.5f.73.69.64.2d.49.4d.53.49.30.30.31.30.31.30.30.30.30.30.30.30.30.30.31.2d.6d.61.67.6d.61.2e.69.70.76.34.00.00,load:0x5->NXM_NX_PKT_MARK[],set_field:0x1->reg2,set_field:0x1->reg4,set_field:0->reg11,resubmit(,14),resubmit(,20)
 Downlink rules: allowlist_sid-IMSI001010000000004-magma.ipv4
 ```
 
@@ -32,10 +34,12 @@ IMSI: 001010000000004, IP: 192.168.128.15
 UL stats: n_packets=1512, n_bytes=942831
 Running: sudo ovs-appctl ofproto/trace gtp_br0 tcp,in_port=3,tun_id=0x5c6,ip_dst=8.8.8.8,ip_src=192.168.128.15,tcp_src=3372,tcp_dst=80
 Datapath Actions: set(eth(src=02:00:00:00:00:01,dst=da:de:f4:73:44:41)),set(skb_mark(0xf)),1
+UE UL Enforcement Flow Found: cookie=0x1, duration=8.485s, table=13, n_packets=0, n_bytes=0, idle_age=8, priority=65533,ip,reg1=0x1,metadata=0x7594587a00d,nw_src=192.168.128.15 actions=note:61.6c.6c.6f.77.6c.69.73.74.5f.73.69.64.2d.49.4d.53.49.30.30.31.30.31.30.30.30.30.30.30.30.30.30.31.2d.6d.61.67.6d.61.2e.69.70.76.34.00.00,load:0x3->NXM_NX_PKT_MARK[],set_field:0x1->reg2,set_field:0x1->reg4,set_field:0->reg11,resubmit(,14),resubmit(,20)
+UE DL Enforcement Flow Found: cookie=0x1, duration=8.485s, table=13, n_packets=4, n_bytes=296, idle_age=1, priority=65533,ip,reg1=0x10,metadata=0x7594587a00d,nw_dst=192.168.128.15 actions=note:61.6c.6c.6f.77.6c.69.73.74.5f.73.69.64.2d.49.4d.53.49.30.30.31.30.31.30.30.30.30.30.30.30.30.30.31.2d.6d.61.67.6d.61.2e.69.70.76.34.00.00,load:0x5->NXM_NX_PKT_MARK[],set_field:0x1->reg2,set_field:0x1->reg4,set_field:0->reg11,resubmit(,14),resubmit(,20)
 Uplink rules: allowlist_sid-IMSI001010000000004-magma.ipv4
 ```
 
-You can also supply the followin options
+You can also supply the following options
 
 ```string
 # list_rules
@@ -52,6 +56,8 @@ IMSI: 001010000000004, IP: 192.168.128.15
 UL stats: n_packets=312, n_bytes=189243
 Running: sudo ovs-appctl ofproto/trace gtp_br0 tcp,in_port=3,tun_id=0x5e6,ip_dst=4.2.2.2,ip_src=192.168.128.15,tcp_src=3172,tcp_dst=8080
 Datapath Actions: set(eth(src=02:00:00:00:00:01,dst=da:de:f4:73:44:41)),set(skb_mark(0xf)),1
+UE UL Enforcement Flow Found: cookie=0x1, duration=8.485s, table=13, n_packets=0, n_bytes=0, idle_age=8, priority=65533,ip,reg1=0x1,metadata=0x7594587a00d,nw_src=192.168.128.15 actions=note:61.6c.6c.6f.77.6c.69.73.74.5f.73.69.64.2d.49.4d.53.49.30.30.31.30.31.30.30.30.30.30.30.30.30.30.31.2d.6d.61.67.6d.61.2e.69.70.76.34.00.00,load:0x3->NXM_NX_PKT_MARK[],set_field:0x1->reg2,set_field:0x1->reg4,set_field:0->reg11,resubmit(,14),resubmit(,20)
+UE DL Enforcement Flow Found: cookie=0x1, duration=8.485s, table=13, n_packets=4, n_bytes=296, idle_age=1, priority=65533,ip,reg1=0x10,metadata=0x7594587a00d,nw_dst=192.168.128.15 actions=note:61.6c.6c.6f.77.6c.69.73.74.5f.73.69.64.2d.49.4d.53.49.30.30.31.30.31.30.30.30.30.30.30.30.30.30.31.2d.6d.61.67.6d.61.2e.69.70.76.34.00.00,load:0x5->NXM_NX_PKT_MARK[],set_field:0x1->reg2,set_field:0x1->reg4,set_field:0->reg11,resubmit(,14),resubmit(,20)
 Uplink rules: allowlist_sid-IMSI001010000000004-magma.ipv4
 ```
 
@@ -78,6 +84,7 @@ Based on the *IMSI* supplied to this command
 
 - If the UE is connected it prints:
     - The *IP Address* of the UE and the Datapath Actions based on the ovs-appctl ofproto/trace
+    - If the Datapath Actions is ***"drop"***, it will also show the table which dropped the packet.
     - Ingress or egress stats obtained from ```ovs-ofctl dump-flows gtp_br0 table=0```
     - The enforced uplink or downlink rules in pipelined obtained from the script ```pipelined_cli.py enforcement display_flows```
     - If the parameter `list_rules` was set, only the enforced rules in pipelined will be shown

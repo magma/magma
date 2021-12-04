@@ -37,6 +37,9 @@ class DpProbe:
         # Get ue network parameters
         self.mtr_port = self.get_mtr0_port()
         self.ue_ip = self.find_ue_ip(self.args.imsi)
+        if not self.ue_ip:
+            print("UE is not connected")
+            exit(1)
 
         service = MagmaService("pipelined", mconfigs_pb2.PipelineD())
         if service.mconfig.nat_enabled:
@@ -45,18 +48,20 @@ class DpProbe:
             self.ingress_in_port = "patch-up"
 
         if self.args.direction == "UL":
-            self.ingress_tun_id = self.get_ingress_tunid(self.ue_ip, self.ingress_in_port)
+            self.ingress_tun_id = self.get_ingress_tunid(
+                self.ue_ip, self.ingress_in_port)
 
             if not self.ingress_tun_id:
                 print("Ingress Tunnel not Found")
                 exit(1)
 
-            data = self.get_egress_tunid_and_port(self.ue_ip, self.ingress_tun_id)
+            data = self.get_egress_tunid_and_port(
+                self.ue_ip, self.ingress_tun_id)
             if data:
                 self.egress_tun_id = data["tun_id"]
                 self.egress_in_port = data["in_port"]
             else:
-                print("Egress Tunnel not Found")
+                print("Egress Tunnel not Found. UE Flows not programmed on Table 0")
                 exit(1)
 
     def create_parser(self):
@@ -65,7 +70,7 @@ class DpProbe:
         """
         parser = argparse.ArgumentParser(
             description="CLI wrapper around ovs-appctl ofproto/trace.\n"
-            "To display the Datapath actions of the supplied IMSI",
+                        "To display the Datapath actions of the supplied IMSI",
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         )
         subparsers = parser.add_subparsers(dest="subcmd")
@@ -128,22 +133,22 @@ class DpProbe:
         cmd = ["mobility_cli.py", "get_subscriber_table"]
         output = subprocess.check_output(cmd)
         output_str = str(output, "utf-8").strip()
-        pattern = "IMSI.*?" + imsi + \
-            ".*?([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})"
+        pattern = r'IMSI.*?" + imsi + \
+                  ".*?([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})'
         match = re.search(pattern, output_str)
         if match:
             return match.group(1)
         return
 
     def output_datapath_actions(
-        self,
-        imsi: str,
-        direction: str,
-        ue_ip: str,
-        external_ip: str,
-        external_port: str,
-        ue_port: str,
-        protocol: str,
+            self,
+            imsi: str,
+            direction: str,
+            ue_ip: str,
+            external_ip: str,
+            external_port: str,
+            ue_port: str,
+            protocol: str,
     ):
         """
         Returns the Output of Datapath Actions based as per the supplied UE IP
@@ -212,10 +217,17 @@ class DpProbe:
         print("Running: " + " ".join(cmd))
         output = subprocess.check_output(cmd)
         output_str = str(output, "utf-8").strip()
-        pattern = "Datapath\sactions:(.*)"
+        pattern = r'Datapath\\sactions:(.*)'
         match = re.search(pattern, output_str)
         if match:
-            return match.group(1).strip()
+            actions = match.group(1).strip()
+            if actions == "drop":
+                table_pattern = r'\n.*?(\\d{1,})\\..*?\n.*?drop\n'
+                table_match = re.search(table_pattern, output_str)
+                if table_match:
+                    actions = actions + " - Table: " + \
+                        table_match.group(1).strip()
+            return actions
         else:
             return
 
@@ -233,7 +245,7 @@ class DpProbe:
         return
 
     def get_egress_tunid_and_port(self, ue_ip: str, ingress_tun: str):
-        pattern = pattern = (
+        pattern = (
             "tun_id=(0x(?:[a-z]|[0-9]){1,}),in_port=([a-z]|[0-9]).*?load:"
             + ingress_tun
             + "->OXM_OF_METADATA.*?\n"
@@ -250,16 +262,16 @@ class DpProbe:
         output = str(output, "utf-8").strip()
 
         if args.direction == "DL":
-            pattern = ".*table=enforcement\(main_table\).*nw_dst=" + \
-                self.ue_ip + " actions=note:b\'(.*)\',load.*"
+            pattern = r'.*table=enforcement\\(main_table\\).*nw_dst=' + \
+                      self.ue_ip + r' actions=note:b\'(.*)\',load.*'
             rules_dl = re.findall(pattern, output)
             if len(rules_dl) > 0:
                 print("Downlink rules: " + '\n'.join(map(str, rules_dl)))
             else:
                 print("No downlink rules found for UE")
         elif args.direction == "UL":
-            pattern = ".*table=enforcement\(main_table\).*nw_src=" + \
-                self.ue_ip + " actions=note:b\'(.*)\',load.*"
+            pattern = r'.*table=enforcement\\(main_table\\).*nw_src=' + \
+                      self.ue_ip + r' actions=note:b\'(.*)\',load.*'
             rules_ul = re.findall(pattern, output)
             if len(rules_ul) > 0:
                 print("Uplink rules: " + '\n'.join(map(str, rules_ul)))
@@ -277,10 +289,12 @@ class DpProbe:
     def get_ingress_stats(self, ue_ip: str):
         """Output ingress Downlink stats using ue_ip obtained from args"""
 
-        pattern_local = "(n_packets=[0-9]{1,}.*n_bytes=[0-9]{1,}).*in_port=LOCAL,nw_dst=" + ue_ip + ".*actions.*"
+        pattern_local = "(n_packets=[0-9]{1,}.*n_bytes=[0-9]{1,}).*in_port=LOCAL,nw_dst=" + \
+            ue_ip + ".*actions.*"
         match_local = re.findall(pattern_local, self.output_flow_table_zero)
 
-        pattern_mtr0 = "(n_packets=[0-9]{1,}.*n_bytes=[0-9]{1,}).*in_port=" + self.mtr_port + ",nw_dst=" + ue_ip + ".*actions.*"
+        pattern_mtr0 = "(n_packets=[0-9]{1,}.*n_bytes=[0-9]{1,}).*in_port=" + \
+            self.mtr_port + ",nw_dst=" + ue_ip + ".*actions.*"
         match_mtr0 = re.findall(pattern_mtr0, self.output_flow_table_zero)
 
         if match_local:
@@ -292,16 +306,17 @@ class DpProbe:
     def get_egress_stats(self, tun_id: str):
         """Output egress Uplink stats using ue_ip obtained from args"""
 
-        pattern = "(n_packets=[0-9]{1,}.*n_bytes=[0-9]{1,}).*tun_id=" + tun_id + ",in_port.*"
+        pattern = "(n_packets=[0-9]{1,}.*n_bytes=[0-9]{1,}).*tun_id=" + \
+            tun_id + ",in_port.*"
         match = re.findall(pattern, self.output_flow_table_zero)
         print("UL stats: " + match[0])
 
     def get_mtr0_port(self):
         """Output mtr0 port number"""
-        cmd = ["ovs-ofctl", "show", "gtp_br0"]
+        cmd = ["sudo", "ovs-ofctl", "show", "gtp_br0"]
         output = subprocess.check_output(cmd)
         output = str(output, "utf-8").strip()
-        pattern = "([0-9]{1,})\(mtr0\)"
+        pattern = r'([0-9]{1,})\\(mtr0\\)'
         match_mtr0 = re.findall(pattern, output)
         if match_mtr0:
             return match_mtr0[0]
@@ -309,16 +324,35 @@ class DpProbe:
     def get_ovs_dump_flow_table_zero(self):
         """Output ovs dump flow table zero"""
         cmd = ["sudo", "ovs-ofctl", "dump-flows", "gtp_br0", "table=0"]
-        output = subprocess.check_output(cmd)
+        output = subprocess.check_output(cmd)  # noqa
         output_str = str(output, "utf-8").strip()
         return output_str
+
+    def get_enforcement_flows(self, ue_ip: str):
+        """Output UE Enforcement flows"""
+        cmd = ["sudo", "ovs-ofctl", "dump-flows", "gtp_br0", "table=13"]
+        output = subprocess.check_output(cmd)  # noqa
+        output_str = str(output, "utf-8").strip()
+        ue_ip_str = ue_ip.replace('.', r'\\.')
+        pattern_ul = r'.*nw_src\\=' + ue_ip_str + ".*\n"
+        match_ul = re.findall(pattern_ul, output_str)
+        if match_ul:
+            enforce_ul_str = "UE UL Enforcement Flow Found: " + \
+                match_ul[0].strip() + "\n"
+        else:
+            enforce_ul_str = "UE UL Enforcement Flow not Found\n"
+        pattern_dl = r'.*nw_dst\\=' + ue_ip_str + ".*\n"
+        match_dl = re.findall(pattern_dl, output_str)
+        if match_dl:
+            enforce_dl_str = "UE DL Enforcement Flow Found: " + \
+                match_dl[0].strip()
+        else:
+            enforce_dl_str = "UE DL Enforcement Flow not Found"
+        print(enforce_ul_str + enforce_dl_str)
 
 
 def main():
     dp_probe = DpProbe()
-    if not dp_probe.ue_ip:
-        print("UE is not connected")
-        exit(1)
     print("IMSI: " + dp_probe.args.imsi + ", IP: " + dp_probe.ue_ip)
 
     # If there are subcomands, execute subcommands only
@@ -339,6 +373,7 @@ def main():
         print("Cannot find Datapath Actions for the UE")
 
     print("Datapath Actions: " + dp_actions)
+    dp_probe.get_enforcement_flows(dp_probe.ue_ip)
     dp_probe.get_enforced_rules(dp_probe.args)
 
 
