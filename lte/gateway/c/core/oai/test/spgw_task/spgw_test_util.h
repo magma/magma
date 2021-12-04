@@ -79,7 +79,7 @@ void fill_release_access_bearer_request(
 
 void fill_nw_initiated_activate_bearer_request(
     itti_gx_nw_init_actv_bearer_request_t* gx_nw_init_actv_req_p,
-    std::string imsi_str, ebi_t lbi, bearer_qos_t qos);
+    const std::string& imsi_str, ebi_t lbi, bearer_qos_t qos);
 
 void fill_nw_initiated_activate_bearer_response(
     itti_s11_nw_init_actv_bearer_rsp_t* nw_actv_bearer_resp,
@@ -89,13 +89,17 @@ void fill_nw_initiated_activate_bearer_response(
 
 void fill_nw_initiated_deactivate_bearer_request(
     itti_gx_nw_init_deactv_bearer_request_t* gx_nw_init_deactv_req_p,
-    std::string imsi_str, ebi_t lbi, ebi_t eps_bearer_id);
+    const std::string& imsi_str, ebi_t lbi, ebi_t eps_bearer_id);
 
 void fill_nw_initiated_deactivate_bearer_response(
     itti_s11_nw_init_deactv_bearer_rsp_t* nw_deactv_bearer_resp,
     uint64_t test_imsi64, bool delete_default_bearer,
     gtpv2c_cause_value_t cause, ebi_t ebi[], unsigned int num_bearer_context,
     teid_t sgw_s11_context_teid);
+
+void fill_s11_suspend_notification(
+    itti_s11_suspend_notification_t* suspend_notif, teid_t sgw_s11_context_teid,
+    const std::string& imsi_str, ebi_t link_bearer_id);
 
 }  // namespace lte
 }  // namespace magma

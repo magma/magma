@@ -82,6 +82,16 @@ MATCHER_P2(
   return true;
 }
 
+MATCHER_P2(check_params_in_suspend_ack, return_val, teid, "") {
+  auto suspend_ack_rcvd_at_mme =
+      static_cast<itti_s11_suspend_acknowledge_t>(arg);
+  if ((suspend_ack_rcvd_at_mme.cause.cause_value == return_val) &&
+      (suspend_ack_rcvd_at_mme.teid == teid)) {
+    return true;
+  }
+  return false;
+}
+
 class SPGWAppProcedureTest : public ::testing::Test {
   virtual void SetUp() {
     // setup mock MME app task
@@ -1151,5 +1161,109 @@ TEST_F(
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
+
+TEST_F(SPGWAppProcedureTest, TestSuspendNotification) {
+  spgw_state_t* spgw_state  = get_spgw_state(false);
+  status_code_e return_code = RETURNerror;
+
+  // expect call to MME create session response
+  itti_s11_create_session_request_t sample_session_req_p = {};
+  fill_create_session_request(
+      &sample_session_req_p, test_imsi_str, DEFAULT_MME_S11_TEID,
+      DEFAULT_BEARER_INDEX, sample_default_bearer_context, test_plmn);
+
+  // trigger create session req to SPGW
+  return_code = sgw_handle_s11_create_session_request(
+      spgw_state, &sample_session_req_p, test_imsi64);
+
+  EXPECT_EQ(return_code, RETURNok);
+
+  // Verify that a UE context exists in SPGW state after CSR is received
+  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
+  EXPECT_TRUE(ue_context_p != nullptr);
+
+  // Verify that teid is created
+  EXPECT_FALSE(LIST_EMPTY(&ue_context_p->sgw_s11_teid_list));
+  teid_t ue_sgw_teid =
+      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
+
+  // Verify that no IP address is allocated for this UE
+  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
+      sgw_cm_get_spgw_context(ue_sgw_teid);
+
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+           .pdn_connection,
+      DEFAULT_EPS_BEARER_ID);
+
+  EXPECT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
+
+  // send an IP alloc response to SPGW
+  itti_ip_allocation_response_t test_ip_alloc_resp = {};
+  fill_ip_allocation_response(
+      &test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
+      DEFAULT_UE_IP, DEFAULT_VLAN);
+  return_code = sgw_handle_ip_allocation_rsp(
+      spgw_state, &test_ip_alloc_resp, test_imsi64);
+
+  EXPECT_EQ(return_code, RETURNok);
+
+  // check if IP address is allocated after this message is done
+  EXPECT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == DEFAULT_UE_IP);
+
+  // send pcef create session response to SPGW
+  itti_pcef_create_session_response_t sample_pcef_csr_resp;
+  fill_pcef_create_session_response(
+      &sample_pcef_csr_resp, PCEF_STATUS_OK, ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
+      SGI_STATUS_OK);
+
+  // check if MME gets a create session response
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
+
+  spgw_handle_pcef_create_session_response(
+      spgw_state, &sample_pcef_csr_resp, test_imsi64);
+
+  // create sample modify default bearer request
+  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
+  fill_modify_bearer_request(
+      &sample_modify_bearer_req, DEFAULT_MME_S11_TEID, ue_sgw_teid,
+      DEFAULT_ENB_GTP_TEID, DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
+
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
+  return_code =
+      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
+
+  EXPECT_EQ(return_code, RETURNok);
+
+  // verify that exactly one session exists in SPGW state
+  EXPECT_TRUE(is_num_sessions_valid(test_imsi64, 1, 1));
+
+  // verify that eNB address information exists
+  EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
+
+  // trigger suspend notification to SPGW task
+  itti_s11_suspend_notification_t sample_suspend_notification = {};
+  fill_s11_suspend_notification(
+      &sample_suspend_notification, ue_sgw_teid, test_imsi_str,
+      DEFAULT_EPS_BEARER_ID);
+
+  // verify that mock MME app task receives an acknowledgement with
+  // REQUEST_ACCEPTED
+  EXPECT_CALL(
+      *mme_app_handler,
+      mme_app_handle_suspend_acknowledge(check_params_in_suspend_ack(
+          REQUEST_ACCEPTED,
+          spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+              .mme_teid_S11)))
+      .Times(1);
+  return_code = sgw_handle_suspend_notification(
+      &sample_suspend_notification, test_imsi64);
+
+  EXPECT_EQ(return_code, RETURNok);
+
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
+}
+
 }  // namespace lte
 }  // namespace magma
