@@ -41,7 +41,8 @@
       "congestionControlEnabled": true,
       "enable5gFeatures": false,
       "amfDefaultSliceServiceType": 1,
-      "amfDefaultSliceDifferentiator" : "ffffff"
+      "amfDefaultSliceDifferentiator" : "ffffff",
+      "amfSessionServiceContinuityMode": 1
     },
     "enodebd": {
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",

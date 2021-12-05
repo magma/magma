@@ -391,6 +391,9 @@ message MME {
 
     // SGW S1U ipv6 endpoint on AGW
     string ipv6_sgw_s1u_addr = 54;
+
+    // AMF ssc mode
+    uint32 amf_session_service_continuity_mode = 55;
 }
 
 message FederatedModeMap {

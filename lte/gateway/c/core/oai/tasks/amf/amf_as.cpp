@@ -34,6 +34,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNetworkFeatureSupport.h"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.h"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/proto_msg_to_itti_msg.h"
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
@@ -41,6 +42,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
+
 using magma5g::AsyncM5GAuthenticationServiceClient;
 
 using namespace magma;
@@ -492,6 +495,16 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
       .unit = 0;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer
       .timervalue = 6;
+
+  // Adding 5G feature set
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.feat_support
+      .iei = NAS5G_NETWORK_FEATURE_IE;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.feat_support
+      .len = NAS5G_FEATURE_SUPPORT_MIN_LENGTH;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.feat_support
+      .feature_list = NAS5G_IMS_VOICE_OVER_PS_SESSION_INDICATOR;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.feat_support
+      .spare = 0x00;
 
   size += MOBILE_IDENTITY_MAX_LENGTH;
   size += 20;
@@ -1211,8 +1224,10 @@ int initial_context_setup_request(
   req->Security_Key = (unsigned char*) &amf_ctx->_security.kgnb;
   memcpy(&req->Ngap_guami, &amf_ctx->m5_guti.guamfi, sizeof(guamfi_t));
 
-  req->ue_aggregate_max_bit_rate.dl = amf_ctx->subscribed_ue_ambr.br_dl;
-  req->ue_aggregate_max_bit_rate.ul = amf_ctx->subscribed_ue_ambr.br_ul;
+  // Get the ambr values
+  amf_smf_context_ue_aggregate_max_bit_rate_get(
+      amf_ctx, &(req->ue_aggregate_max_bit_rate.dl),
+      &(req->ue_aggregate_max_bit_rate.ul));
 
   for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
     pdusession_setup_item_t* item = nullptr;

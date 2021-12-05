@@ -67,7 +67,7 @@ class AMFClientServicerBase {
       char* imsi, uint8_t* apn, uint32_t pdu_session_id,
       uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
       uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
-      const ambr_t& state_ambr);
+      const ambr_t& state_ambr, uint32_t ssc_mode);
 
   virtual bool set_smf_session(SetSMSessionContext& request);
 };
@@ -117,7 +117,7 @@ class AMFClientServicer : public AMFClientServicerBase {
       char* imsi, uint8_t* apn, uint32_t pdu_session_id,
       uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
       uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
-      const ambr_t& state_ambr) {
+      const ambr_t& state_ambr, uint32_t ssc_mode) {
     return RETURNok;
   }
 

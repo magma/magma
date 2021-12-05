@@ -108,7 +108,11 @@ typedef enum pdu_session_type_e {
   UNSTRUCTURED
 } pdu_session_type_t;
 
-typedef enum ssc_mode_e { SSC_MODE_1, SSC_MODE_2, SSC_MODE_3 } ssc_mode_t;
+typedef enum ssc_mode_e {
+  SSC_MODE_1 = 1,
+  SSC_MODE_2 = 2,
+  SSC_MODE_3 = 3
+} ssc_mode_t;
 
 typedef enum m5g_sm_cause_e {
   M5GSM_OPERATOR_DETERMINED_BARRING                       = 0,

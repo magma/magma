@@ -31,6 +31,7 @@
 #define MAX_APN_CORRECTION_MAP_LIST 10
 #define AMF_S_NSSAI_ST_DEFAULT_VALUE 1
 #define AMF_S_NSSAI_SD_INVALID_VALUE 0xffffff
+#define AMF_SSC_MODE_DEFAULT 1
 
 #define AMF_CONFIG_STRING_AMF_CONFIG "AMF"
 #define AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS "DEFAULT_DNS_IPV4_ADDRESS"
@@ -48,6 +49,8 @@
 #define AMF_CONFIG_STRING_AMF_REGION_ID "AMF_REGION_ID"
 #define AMF_CONFIG_STRING_AMF_SET_ID "AMF_SET_ID"
 #define AMF_CONFIG_STRING_AMF_POINTER "AMF_POINTER"
+#define AMF_SESSION_SERVICE_CONTINUITY_MODE                                    \
+  "AMF_SESSION_SERVICE_CONTINUITY_MODE"
 
 typedef struct nas5g_config_s {
   uint8_t preferred_integrity_algorithm[8];
@@ -179,6 +182,7 @@ typedef struct amf_config_s {
   } ipv4;
   bstring amf_name;
   bstring default_dnn;
+  uint8_t amf_ssc_mode;
 } amf_config_t;
 
 int amf_app_init(amf_config_t*);
@@ -197,6 +201,9 @@ void clear_amf_config(amf_config_t*);
 void copy_amf_config_from_mme_config(
     amf_config_t* dest, const mme_config_t* src);
 void copy_served_tai_config_list(amf_config_t* dest, const mme_config_t* src);
+
+// Api for getting the configured mode
+void amf_config_get_ssc_mode(uint8_t* ssc_mode);
 
 void amf_config_exit(void);
 void amf_config_free(amf_config_t* amf_config);

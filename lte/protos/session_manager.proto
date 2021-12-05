@@ -702,9 +702,10 @@ enum PduSessionType {
 
 // SscMode
 enum SscMode {
-   SSC_MODE_1 = 0;
-   SSC_MODE_2 = 1;
-   SSC_MODE_3 = 2;
+   SSC_MODE_INVALID = 0;
+   SSC_MODE_1 = 1;
+   SSC_MODE_2 = 2;
+   SSC_MODE_3 = 3;
 }
 // M5GSMCapability
 message M5GSMCapability {
