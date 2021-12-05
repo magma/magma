@@ -64,13 +64,17 @@ struct EsmPdn {
   esm_cause:int;
 }
 
-table PdnContext {
+struct PdnContext {
   context_identifier:uint;
-  apn_in_use:[ubyte];
-  apn_subscribed:[ubyte];
+  apn_in_use:[ubyte:163];
+  apn_in_use_length:ubyte;
+
+  apn_subscribed:[ubyte:163];
+  apn_subscribed_length:ubyte;
   pdn_type:PdnTypeValue;
   paa:Paa;
-  apn_oi_replacement:[ubyte];
+  apn_oi_replacement:[ubyte:100];
+  apn_oi_replacement_length:ubyte;
   p_gw_address_s5_s8_cp:IpAddress;
   p_gw_teid_s5_s8_cp:uint;
   default_bearer_eps_subscribed_qos_profile:EpsSubscribedQosProfile;
@@ -78,7 +82,8 @@ table PdnContext {
   p_gw_apn_ambr:Ambr;
   default_ebi:ubyte;
   /// BEARERS_PER_UE = 11
-  bearer_contexts:[ubyte];
+  bearer_contexts:[ubyte:11];
+  num_bearer_contexts:ubyte;
   s_gw_address_s11_s4:IpAddress;
   s_gw_teid_s11_s4:uint32;
   esm_data:EsmPdn;
@@ -117,7 +122,7 @@ struct NasProcMessSign {
   //#define NAS_MSG_DIGEST_SIZE 16
   digest:[ubyte:16];
   digest_length:uint32;
-  nas_msg_length:uint32;
+  nas_msg_length:uint16;
 }
 
 //struct EmmProcedures {
@@ -135,22 +140,29 @@ struct NasTimer {
   msec:uint32;
 }
 
-table EsmProcData {
+struct PdnAddr {
+  bytes:[ubyte:16];
+  length:ubyte;
+}
+
+struct EsmProcData {
   pti:ubyte;
   request_type:ubyte;
-  apn:string;
+  apn:Apn;
   pdn_cid:int;
   pdn_type:PdnTypeValue;
-  pdn_addr:[ubyte];
+  pdn_addr:PdnAddr;
   bearer_qos:BearerQos;
   pco:ProtocolConfigurationOptions;
 }
 
-table EsmContext {
+struct EsmContext {
   n_active_ebrs:uint;
   is_emergency:bool;
   t3489:NasTimer;
-  t3489_arg:[ubyte];
+  // TODO check max length of t3489_arg
+  t3489_arg:[ubyte:32];
+  t3489_arg_length:ubyte;
   pending_standalone:uint32;
   is_pdn_disconnect:bool;
   esm_proc_data:EsmProcData;
@@ -218,34 +230,40 @@ enum TypeOfTaiList:ubyte {
   TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS
 }
 
-table OnePlmnConsecutiveTacs {
-  plmn:Plmn;
-  tac:[uint16];
+// Could not use union in struct
+//struct OnePlmnConsecutiveTacs {
+//  plmn:Plmn;
+//  tac:[uint16:16];
+//  num_tacs:ubyte;
+//}
+struct TaiListManyPlmn {
+  tai:[Tai:16];
+   num_tais:ubyte;
 }
+// Could not use union in struct
+//union UTaiList {
+//  tai_many_plmn:TaiListManyPlmn,
+//  tai_one_plmn_consecutive_tacs:Tai,
+//  tai_one_plmn_non_consecutive_tacs:OnePlmnConsecutiveTacs
+//}
 
-table TaiListManyPlmn {
-  tai:[Tai];
-}
 
-union UTaiList {
-  tai_many_plmn:TaiListManyPlmn,
-  tai_one_plmn_consecutive_tacs:Tai,
-  tai_one_plmn_non_consecutive_tacs:OnePlmnConsecutiveTacs
-}
-
-table PartialTaiList {
+struct PartialTaiList {
   typeoflist:TypeOfTaiList;
   numberofelements:ubyte;
-  tai_list:UTaiList;
+  // Could not use union in struct
+  tai_list:TaiListManyPlmn;
 }
 
-table TaiList {
+struct TaiList {
   numberoflists:ubyte;
-  partial_tai_list:[PartialTaiList];
+  partial_tai_list:[PartialTaiList:16];
+  partial_tai_list_length:ubyte;
 }
 
-table UeNetworkCapability {
-  bytes:[ubyte];
+struct UeNetworkCapability {
+  bytes:[ubyte:15];
+  length:ubyte;
 }
 
 struct UeAdditionalSecurityCapability {
@@ -275,7 +293,12 @@ struct NasMessageDecodeStatus {
   emm_cause:uint;
 }
 
-table EmmAttachRequestIes {
+struct EsmMsg {
+  bytes:[ubyte:2048];
+  length:uint16;
+}
+
+struct EmmAttachRequestIes {
   is_initial:bool;
   type:EmmProcAttachType;
   additional_update_type:AdditionalUpdateType;
@@ -291,7 +314,7 @@ table EmmAttachRequestIes {
   ue_network_capability:UeNetworkCapability;
   ms_network_capability:MsNetworkCapability;
   drx_parameter:DrxParameter;
-  esm_msg:string;
+  esm_msg:EsmMsg;
   decode_status:NasMessageDecodeStatus;
   //MobileStationClassmark2*
   //    mob_st_clsMark2;
@@ -300,13 +323,13 @@ table EmmAttachRequestIes {
   ue_additional_security_capability:UeAdditionalSecurityCapability;
 }
 
-table NewAttachInfo {
+struct NewAttachInfo {
   mme_ue_s1ap_id:uint32;
   is_mm_ctx_new:bool;
   ies:EmmAttachRequestIes;
 }
 
-table EmmContext {
+struct EmmContext {
   _imsi64:uint64;
   _imsi:Imsi;
   saved_imsi64:uint64;
@@ -320,7 +343,7 @@ table EmmContext {
   esm_ctx:EsmContext;
   member_present_mask:uint32;
   member_valid_mask:uint32;
-  _vector:[AuthVector];
+  _vector:AuthVector;
   _security:EmmSecurityContext;
   _non_current_security:EmmSecurityContext;
   is_dynamic:bool;
@@ -361,15 +384,15 @@ enum EsmEbrState:ubyte {
   ESM_EBR_STATE_MAX
 }
 
-table EsmEbrTimerData {
+struct EsmEbrTimerData {
   //TODO think: struct emm_context_s* ctx;
   ue_id:uint32;
   ebi:ubyte;
   count:uint;
-  msg:string;
+  msg:EsmMsg;
 }
 
-table EsmEbrContext {
+struct EsmEbrContext {
   status:EsmEbrState;
   gbr_dl:uint64;
   gbr_ul:uint64;
@@ -380,103 +403,3 @@ table EsmEbrContext {
   timer:NasTimer;
   args:EsmEbrTimerData;
 }
-
-table BearerContext {
-  ebi:ubyte;
-  transaction_identifier:ubyte;
-  s_gw_fteid_s1u:Fteid;
-  p_gw_fteid_s5_s8_up:Fteid;
-
-  pdn_cx_id:int;
-  esm_ebr_context:EsmEbrContext;
-  enb_fteid_s1u:Fteid;
-  qci:ubyte;
-  priority_level:ubyte;
-  preemption_vulnerability:PreEmptionVulnerability;
-  preemption_capability:PreEmptionCapability;
-}
-
-enum OngoingProcedure:ubyte {
-  COMBINED_ATTACH,
-  COMBINED_TAU
-}
-
-enum SgsFsmState:ubyte {
-  SGS_INVALID   = 0,
-  SGS_NULL,
-  SGS_LA_UPDATE_REQUESTED,
-  SGS_ASSOCIATED,
-  SGS_STATE_MAX
-}
-
-table SgsContext {
-  sgs_state:SgsFsmState;
-  vlr_reliable:bool;
-  neaf:bool;
-  ts6_1_timer:NasTimer;
-  ts8_timer:NasTimer;
-  ts8_retransmission_count:uint;
-  ts9_timer:NasTimer;
-  ts9_retransmission_count:uint;
-  ts10_timer:NasTimer;
-  ts10_retransmission_count:uint;
-  ts13_timer:NasTimer;
-  ts13_retransmission_count:uint;
-  // MessageDef* message_p;
-  sgsap_msg:string;
-  ongoing_procedure:OngoingProcedure;
-  tau_active_flag:bool;
-  service_indicator:ubyte;
-  //csfb_service_type_t csfb_service_type;
-  call_cancelled:bool;
-  mt_call_in_progress:bool;
-  is_emergency_call:bool;
-}
-
-table UeMmContext {
-  msisdn:string;
-  ue_context_rel_cause:S1Cause;
-  mm_state:MmState;
-  ecm_state:EcmState;
-  emm_context:EmmContext;
-  sctp_assoc_id_key:uint;
-  enb_ue_s1ap_id:uint;
-  enb_s1ap_id_key:uint;
-  mme_ue_s1ap_id:uint;
-  attach_type:ubyte;
-  sgs_detach_type:ubyte;
-  e_utran_cgi:Ecgi;
-  cell_age:ulong;
-  lai:Lai;
-  apn_config_profile:ApnConfigProfile;
-  subscriber_status:SubscriberStatus;
-  network_access_mode:NetworkAccessMode;
-  access_restriction_data:uint;
-  apn_oi_replacement:[ubyte];
-  mme_teid_s11:uint32;
-  subscribed_ue_ambr:Ambr;
-  used_ue_ambr:Ambr;
-  nb_active_pdn_contexts:ubyte;
-  pdn_contexts:[PdnContext];
-  bearer_contexts:[BearerContext];
-  ue_radio_capability:[ubyte];
-  send_ue_purge_request:bool;
-  hss_initiated_detach:bool;
-  location_info_confirmed_in_hss:bool;
-  ppf:bool;
-  subscription_known:bool;
-  path_switch_req:bool;
-  granted_service:GrantedService;
-  num_reg_sub:ubyte;
-  reg_sub:[RegionalSubscription];
-  cs_fallback_indicator:int;
-  sgs_context:SgsContext;
-  rau_tau_timer:uint;
-  time_mobile_reachability_timer_started:uint32;
-  time_implicit_detach_timer_started:uint32;
-  time_paging_response_timer_started:uint32;
-  paging_retx_count:ubyte;
-  time_ics_rsp_timer_started:uint32;
-}
-
-root_type UeMmContext;

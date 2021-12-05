@@ -1,0 +1,121 @@
+include "mme_nas_state.fbs";
+include "3gpp_36413.fbs";
+
+namespace magma.lte.test_flat_buffer;
+
+struct BearerContext {
+  ebi:ubyte;
+  transaction_identifier:ubyte;
+  s_gw_fteid_s1u:Fteid;
+  p_gw_fteid_s5_s8_up:Fteid;
+
+  pdn_cx_id:int;
+  esm_ebr_context:EsmEbrContext;
+  enb_fteid_s1u:Fteid;
+  qci:ubyte;
+  priority_level:ubyte;
+  preemption_vulnerability:PreEmptionVulnerability;
+  preemption_capability:PreEmptionCapability;
+}
+
+enum OngoingProcedure:ubyte {
+  COMBINED_ATTACH,
+  COMBINED_TAU
+}
+
+enum SgsFsmState:ubyte {
+  SGS_INVALID   = 0,
+  SGS_NULL,
+  SGS_LA_UPDATE_REQUESTED,
+  SGS_ASSOCIATED,
+  SGS_STATE_MAX
+}
+
+struct SgsApMsg {
+  bytes:[ubyte:2048];
+  length:uint16;
+}
+
+struct SgsContext {
+  sgs_state:SgsFsmState;
+  vlr_reliable:bool;
+  neaf:bool;
+  ts6_1_timer:NasTimer;
+  ts8_timer:NasTimer;
+  ts8_retransmission_count:uint;
+  ts9_timer:NasTimer;
+  ts9_retransmission_count:uint;
+  ts10_timer:NasTimer;
+  ts10_retransmission_count:uint;
+  ts13_timer:NasTimer;
+  ts13_retransmission_count:uint;
+  // MessageDef* message_p;
+  sgsap_msg:SgsApMsg;
+  ongoing_procedure:OngoingProcedure;
+  tau_active_flag:bool;
+  service_indicator:ubyte;
+  //csfb_service_type_t csfb_service_type;
+  call_cancelled:bool;
+  mt_call_in_progress:bool;
+  is_emergency_call:bool;
+}
+
+struct PdnContextArray {
+  item:[PdnContext:10];
+}
+
+struct BearerContextArray {
+  item:[BearerContext:11];
+}
+
+struct RegionalSubscriptionArray {
+  item:[RegionalSubscription:10];
+}
+
+table UeMmContext {
+  msisdn:Msisdn;
+  ue_context_rel_cause:S1Cause;
+  mm_state:MmState;
+  ecm_state:EcmState;
+  emm_context:EmmContext;
+  sctp_assoc_id_key:uint;
+  enb_ue_s1ap_id:uint32;
+  enb_s1ap_id_key:uint;
+  mme_ue_s1ap_id:uint32;
+  attach_type:ubyte;
+  sgs_detach_type:ubyte;
+  e_utran_cgi:Ecgi;
+  cell_age:ulong;
+  lai:Lai;
+  apn_config_profile:ApnConfigProfile;
+  subscriber_status:SubscriberStatus;
+  network_access_mode:NetworkAccessMode;
+  access_restriction_data:uint;
+  apn_oi_replacement:ApnOi;
+  mme_teid_s11:uint32;
+  subscribed_ue_ambr:Ambr;
+  used_ue_ambr:Ambr;
+  nb_active_pdn_contexts:ubyte;
+  pdn_contexts:PdnContextArray;
+  bearer_contexts:BearerContextArray;
+  ue_radio_capability:UeRadioCapability;
+  send_ue_purge_request:bool;
+  hss_initiated_detach:bool;
+  location_info_confirmed_in_hss:bool;
+  ppf:bool;
+  subscription_known:bool;
+  path_switch_req:bool;
+  granted_service:GrantedService;
+  num_reg_sub:ubyte;
+  reg_sub:RegionalSubscriptionArray;
+  cs_fallback_indicator:int;
+  sgs_context:SgsContext;
+  rau_tau_timer:uint;
+  time_mobile_reachability_timer_started:uint32;
+  time_implicit_detach_timer_started:uint32;
+  time_paging_response_timer_started:uint32;
+  paging_retx_count:ubyte;
+  time_ics_rsp_timer_started:uint32;
+}
+
+root_type UeMmContext;

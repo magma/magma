@@ -13,7 +13,7 @@ struct Plmn {
 }
 
 struct Imsi {
-  value:[ubyte:8];
+  bytes:[ubyte:8];
   length:ubyte;
 }
 
@@ -29,11 +29,11 @@ struct Guti {
 }
 
 struct Imei {
-  value:[ubyte:8];
+  bytes:[ubyte:8];
 }
 
 struct Imeisv {
-  value:[ubyte:8];
+  bytes:[ubyte:8];
 }
 
 struct Ecgi {
@@ -41,4 +41,25 @@ struct Ecgi {
   plmn:Plmn;
   ///  eci_t The ECI shall be of fixed length of 28 bits
   cell_identity:uint;
+}
+
+struct Msisdn {
+  bytes:[ubyte:15];
+  length:ubyte;
+}
+
+struct ApnNi {
+  bytes:[ubyte:63];
+  length:ubyte;
+}
+
+struct ApnOi {
+  // TODO find the max size of an APN OI
+  bytes:[ubyte:100];
+  length:ubyte;
+}
+
+struct Apn {
+  bytes:[ubyte:100];
+  length:ubyte;
 }

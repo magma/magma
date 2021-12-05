@@ -211,13 +211,13 @@ void log_rusage(struct rusage& ru, const char* context) {
       ru.ru_nvcsw, ru.ru_nivcsw);
 }
 //------------------------------------------------------------------------------
-void log_rusage_diff(struct rusage& ru_first, struct rusage& ru_last, const char* context) {
-
+void log_rusage_diff(
+    struct rusage& ru_first, struct rusage& ru_last, const char* context) {
   std::string str1(context);
   log_rusage(ru_first, str1.append(" First usage").c_str());
   std::string str2(context);
   log_rusage(ru_last, str1.append(" Second usage").c_str());
-  struct rusage ru_diff = {0};
+  struct rusage ru_diff   = {0};
   ru_diff.ru_utime.tv_sec = ru_last.ru_utime.tv_sec - ru_first.ru_utime.tv_sec;
   ru_diff.ru_utime.tv_usec =
       ru_last.ru_utime.tv_usec - ru_first.ru_utime.tv_usec;
@@ -252,15 +252,16 @@ void mme_app_test_protobuf_serialization(
   mme_app_serialize_ues(mme_app_desc, contexts);
   auto end_ctxt_to_proto = std::chrono::high_resolution_clock::now();
   getrusage(RUSAGE_SELF, &ru_end_ctxt_to_proto);
-  log_rusage_diff(ru_start_ctxt_to_proto, ru_end_ctxt_to_proto, " Contexts to protobufs");
+  log_rusage_diff(
+      ru_start_ctxt_to_proto, ru_end_ctxt_to_proto, " Contexts to protobufs");
   auto duration_ctxt_to_proto =
       std::chrono::duration_cast<std::chrono::microseconds>(
           end_ctxt_to_proto - start_ctxt_to_proto);
-  std::cout << "Time taken by context to proto conversion : "
+  std::cout << "Time taken by context to proto conversion " << num_ues << " UEs : "
             << duration_ctxt_to_proto.count() << " microseconds" << std::endl;
   OAILOG_INFO(
-      LOG_MME_APP, "Time taken by context to proto conversion : %ld µs\n",
-      duration_ctxt_to_proto.count());
+      LOG_MME_APP, "Time taken by context to proto conversion %d UEs: %ld µs\n",
+      num_ues, duration_ctxt_to_proto.count());
 
   struct rusage ru_start_proto_to_ctxt, ru_end_proto_to_ctxt;
   getrusage(RUSAGE_SELF, &ru_start_proto_to_ctxt);
@@ -268,15 +269,16 @@ void mme_app_test_protobuf_serialization(
   mme_app_deserialize_ues();
   auto end_proto_to_ctxt = std::chrono::high_resolution_clock::now();
   getrusage(RUSAGE_SELF, &ru_end_proto_to_ctxt);
-  log_rusage_diff(ru_start_proto_to_ctxt, ru_end_proto_to_ctxt, " Protobufs to contexts");
+  log_rusage_diff(
+      ru_start_proto_to_ctxt, ru_end_proto_to_ctxt, " Protobufs to contexts");
   auto duration_proto_to_ctxt =
       std::chrono::duration_cast<std::chrono::microseconds>(
           end_proto_to_ctxt - start_proto_to_ctxt);
-  std::cout << "Time taken by proto to context conversion : "
+  std::cout << "Time taken by proto to context conversion " << num_ues << " UEs : "
             << duration_proto_to_ctxt.count() << " microseconds" << std::endl;
   OAILOG_INFO(
-      LOG_MME_APP, "Time taken by proto to context conversion : %ld µs\n",
-      duration_proto_to_ctxt.count());
+      LOG_MME_APP, "Time taken by proto to context conversion %d UEs : %ld µs\n",
+      num_ues, duration_proto_to_ctxt.count());
   /*auto imsi_str = MmeNasStateManager::getInstance().get_imsi_str(imsi64);
   MmeNasStateManager::getInstance().write_ue_state_to_db(
       ue_context, imsi_str);
