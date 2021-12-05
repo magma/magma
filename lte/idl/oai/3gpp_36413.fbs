@@ -1,0 +1,7 @@
+namespace magma.lte.test_flat_buffer;
+
+struct UeRadioCapability {
+  // TODO find reasonable but safe, highest bound of ue radio capabilities
+  bytes:[ubyte:4096];
+  length:uint16;
+}
