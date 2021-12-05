@@ -41,7 +41,8 @@ using magma5g::AsyncM5GMobilityServiceClient;
 
 namespace magma5g {
 amf_as_data_t amf_data_de_reg_sec;
-extern std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
+extern std::unordered_map<amf_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t>>
+    ue_context_map;
 
 /*
  * name : amf_handle_deregistration_ue_origin_req()
@@ -114,7 +115,8 @@ int amf_proc_deregistration_request(
       ue_id, params->de_reg_type);
   int rc = RETURNerror;
 
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  std::shared_ptr<ue_m5gmm_context_t> ue_context =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context == NULL) {
     return -1;
@@ -190,8 +192,9 @@ int amf_proc_deregistration_request(
 ***************************************************************************/
 int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc                         = RETURNerror;
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  int rc = RETURNerror;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (!ue_context) {
     OAILOG_ERROR(
         LOG_AMF_APP,
@@ -230,7 +233,8 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
+void amf_smf_context_cleanup_pdu_session(
+    std::shared_ptr<ue_m5gmm_context_t> ue_context) {
   amf_smf_release_t smf_message;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
 
@@ -262,9 +266,9 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_remove_ue_context(ue_m5gmm_context_s* ue_context_p) {
-  std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*>::iterator
-      found_ue_id = ue_context_map.find(ue_context_p->amf_ue_ngap_id);
+void amf_remove_ue_context(std::shared_ptr<ue_m5gmm_context_t> ue_context_p) {
+  std::unordered_map<amf_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t>>::
+      iterator found_ue_id = ue_context_map.find(ue_context_p->amf_ue_ngap_id);
 
   if (found_ue_id != ue_context_map.end()) {
     OAILOG_DEBUG(

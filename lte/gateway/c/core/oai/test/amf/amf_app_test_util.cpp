@@ -186,6 +186,18 @@ int send_uplink_nas_pdu_session_establishment_request(
   originating_tai.plmn = plmn;
   originating_tai.tac  = 1;
 
+  std::shared_ptr<ue_m5gmm_context_t> ue_context_p =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (!ue_context_p) {
+    return RETURNerror;
+  }
+  apn_config_profile_t& profile = ue_context_p->amf_context.apn_config_profile;
+  profile.nb_apns               = 1;
+  strncpy(
+      profile.apn_configuration[0].service_selection, "internet",
+      SERVICE_SELECTION_MAX_LENGTH - 1);
+
   int rc = RETURNerror;
   rc     = amf_app_handle_uplink_nas_message(
       amf_app_desc_p, pdu_session_est_req, ue_id, originating_tai);

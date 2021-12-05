@@ -284,7 +284,7 @@ static int identification_t3570_handler(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
-  ue_m5gmm_context_s* ue_amf_context =
+  std::shared_ptr<ue_m5gmm_context_t> ue_amf_context =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_amf_context == NULL) {
@@ -414,11 +414,11 @@ int amf_nas_proc_auth_param_res(
 
 int amf_nas_proc_authentication_info_answer(
     itti_amf_subs_auth_info_ans_t* aia) {
-  imsi64_t imsi64                       = INVALID_IMSI64;
-  int rc                                = RETURNerror;
-  amf_context_t* amf_ctxt_p             = NULL;
-  ue_m5gmm_context_s* ue_5gmm_context_p = NULL;
-  int amf_cause                         = -1;
+  imsi64_t imsi64           = INVALID_IMSI64;
+  int rc                    = RETURNerror;
+  amf_context_t* amf_ctxt_p = NULL;
+  std::shared_ptr<ue_m5gmm_context_t> ue_5gmm_context_p;
+  int amf_cause = -1;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
   IMSI_STRING_TO_IMSI64((char*) aia->imsi, &imsi64);
@@ -585,9 +585,9 @@ int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
 
 int amf_handle_s6a_update_location_ans(
     const s6a_update_location_ans_t* ula_pP) {
-  imsi64_t imsi64                   = INVALID_IMSI64;
-  amf_context_t* amf_ctxt_p         = NULL;
-  ue_m5gmm_context_s* ue_mm_context = NULL;
+  imsi64_t imsi64           = INVALID_IMSI64;
+  amf_context_t* amf_ctxt_p = NULL;
+  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
   IMSI_STRING_TO_IMSI64((char*) ula_pP->imsi, &imsi64);
@@ -631,7 +631,7 @@ int amf_handle_s6a_update_location_ans(
 }
 
 /* Cleanup all procedures in amf_context */
-void amf_nas_proc_clean_up(ue_m5gmm_context_s* ue_context_p) {
+void amf_nas_proc_clean_up(std::shared_ptr<ue_m5gmm_context_t> ue_context_p) {
   // Delete registration procedures
   amf_delete_registration_proc(&(ue_context_p->amf_context));
 }

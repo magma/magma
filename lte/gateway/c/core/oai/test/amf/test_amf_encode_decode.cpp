@@ -48,7 +48,8 @@ task_zmq_ctx_t grpc_service_task_zmq_ctx;
 namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
-extern std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
+extern std::unordered_map<amf_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t>>
+    ue_context_map;
 
 uint8_t NAS5GPktSnapShot::reg_req_buffer[38] = {
     0x7e, 0x00, 0x41, 0x79, 0x00, 0x0d, 0x01, 0x09, 0xf1, 0x07,
@@ -538,10 +539,10 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_accept) {
 
 class AmfUeContextTest : public ::testing::Test {
  protected:
-  ue_m5gmm_context_s* ue_context;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context;
 
   virtual void SetUp() { ue_context = amf_create_new_ue_context(); }
-  virtual void TearDown() { delete ue_context; }
+  virtual void TearDown() { ue_context.reset(); }
 };
 
 TEST_F(AmfUeContextTest, test_ue_context_creation) {
@@ -842,7 +843,7 @@ TEST(test_delete_wrapper, test_delete_wrapper) {
 }
 /*Test for delete specific procedure : Registration Procedure*/
 TEST(test_delete_registration_proc, test_delete_registration_proc) {
-  ue_m5gmm_context_s* ue_ctxt = amf_create_new_ue_context();
+  std::shared_ptr<ue_m5gmm_context_t> ue_ctxt = amf_create_new_ue_context();
   EXPECT_TRUE(ue_ctxt != nullptr);
 
   // Specific procedure: Registration Procedure
@@ -875,7 +876,6 @@ TEST(test_delete_registration_proc, test_delete_registration_proc) {
       get_nas_specific_procedure_registration(&ue_ctxt->amf_context), nullptr);
 
   delete_wrapper(&ue_ctxt->amf_context.amf_procedures);
-  delete ue_ctxt;
 }
 
 TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
@@ -930,7 +930,7 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
 
 TEST(test_dnn, test_amf_handle_s6a_update_location_ans) {
   // creating ue_context
-  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
+  std::shared_ptr<ue_m5gmm_context_t> ue_context = amf_create_new_ue_context();
 
   // Building s6a_update_location_ans_t
   std::string imsi = "901700000000001";
@@ -946,8 +946,9 @@ TEST(test_dnn, test_amf_handle_s6a_update_location_ans) {
   // Inserting into amf_supi_guti_map, ue_context_map
   amf_supi_guti_map.insert(
       std::pair<imsi64_t, guti_and_amf_id_t>(imsi_64, guti_amf));
-  ue_context_map.insert(std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(
-      guti_amf.amf_ue_ngap_id, ue_context));
+  ue_context_map.insert(
+      std::pair<amf_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t>>(
+          guti_amf.amf_ue_ngap_id, ue_context));
 
   int rc = amf_handle_s6a_update_location_ans(&ula_ans);
   EXPECT_TRUE(rc == RETURNok);
@@ -955,7 +956,6 @@ TEST(test_dnn, test_amf_handle_s6a_update_location_ans) {
   // Clearing the map and deleting ue_context
   amf_supi_guti_map.clear();
   ue_context_map.clear();
-  delete ue_context;
 }
 
 TEST(test_dnn, test_amf_validate_dnn) {
@@ -1008,7 +1008,7 @@ class AmfUeContextTestServiceRequestProc : public ::testing::Test {
 #define AMF_REGION_ID 1
 #define AMF_TAC 0x03
 
-  ue_m5gmm_context_s* ue_context;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context;
   amf_app_desc_t* amf_app_desc_p;
   guti_m5_t guti;
   tai_t tai;
@@ -1067,7 +1067,8 @@ class AmfUeContextTestServiceRequestProc : public ::testing::Test {
     tai.tac  = AMF_TAC;
   }
   virtual void TearDown() {
-    delete ue_context;
+    ue_context.reset();
+    ue_context_map.clear();
     clear_amf_nas_state();
     itti_free_desc_threads();
     amf_config_free(&amf_config);
@@ -1383,15 +1384,15 @@ TEST(test_pdu_negative, test_unknown_pdu_session_type) {
   amf_ue_ngap_id_t ue_id = 1;
 
   // creating ue_context
-  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
+  std::shared_ptr<ue_m5gmm_context_t> ue_context = amf_create_new_ue_context();
   ue_context_map.insert(
-      std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
+      std::pair<amf_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t>>(
+          ue_id, ue_context));
 
   M5GSmCause cause = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
   EXPECT_EQ(cause, M5GSmCause::UNKNOWN_PDU_SESSION_TYPE);
 
   ue_context_map.clear();
-  delete ue_context;
 }
 
 TEST(test_pdu_negative, test_pdu_unknown_dnn_missing_dnn) {
@@ -1415,14 +1416,14 @@ TEST(test_pdu_negative, test_pdu_unknown_dnn_missing_dnn) {
 
   amf_ue_ngap_id_t ue_id = 1;
 
-  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
+  std::shared_ptr<ue_m5gmm_context_t> ue_context = amf_create_new_ue_context();
   ue_context_map.insert(
-      std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
+      std::pair<amf_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t>>(
+          ue_id, ue_context));
   M5GSmCause cause = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
   EXPECT_EQ(cause, M5GSmCause::MISSING_OR_UNKNOWN_DNN);
 
   ue_context_map.clear();
-  delete ue_context;
 }
 
 TEST(test_pdu_negative, test_pdu_invalid_pdu_identity) {
@@ -1450,9 +1451,10 @@ TEST(test_pdu_negative, test_pdu_invalid_pdu_identity) {
   uint8_t pdu_session_id = 1;
 
   // creating ue_context
-  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
+  std::shared_ptr<ue_m5gmm_context_t> ue_context = amf_create_new_ue_context();
   ue_context_map.insert(
-      std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
+      std::pair<amf_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t>>(
+          ue_id, ue_context));
   std::shared_ptr<smf_context_t> smf_ctx =
       amf_insert_smf_context(ue_context, pdu_session_id);
   smf_ctx->pdu_session_state = ACTIVE;
@@ -1465,8 +1467,9 @@ TEST(test_pdu_negative, test_pdu_invalid_pdu_identity) {
   M5GSmCause cause_dup = amf_smf_get_smcause(ue_id, &pdu_sess_est_req);
   EXPECT_EQ(cause_dup, M5GSmCause::INVALID_PDU_SESSION_IDENTITY);
 
+  ue_context = nullptr;
+  smf_ctx    = nullptr;
   ue_context_map.clear();
-  delete ue_context;
 }
 
 TEST(test_optional_pdu, test_pdu_session_accept_optional) {

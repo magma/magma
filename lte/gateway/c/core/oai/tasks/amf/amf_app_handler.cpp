@@ -47,13 +47,13 @@ extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 
 //------------------------------------------------------------------------------
 void amf_ue_context_update_coll_keys(
-    amf_ue_context_t* const amf_ue_context_p, ue_m5gmm_context_s* ue_context_p,
+    amf_ue_context_t* const amf_ue_context_p,
+    std::shared_ptr<ue_m5gmm_context_t> ue_context_p,
     const gnb_ngap_id_key_t gnb_ngap_id_key,
     const amf_ue_ngap_id_t amf_ue_ngap_id, const imsi64_t imsi,
     const teid_t amf_teid_n11, const guti_m5_t* const guti_p) {
   magma::map_rc_t m_rc = magma::MAP_OK;
 
-  map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
   OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_TRACE(
       LOG_AMF_APP,
@@ -85,17 +85,6 @@ void amf_ue_context_update_coll_keys(
 
   if (amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
     if (ue_context_p->amf_ue_ngap_id != amf_ue_ngap_id) {
-      m_rc = amf_state_ue_id_ht.remove(ue_context_p->amf_ue_ngap_id);
-      m_rc = amf_state_ue_id_ht.insert(amf_ue_ngap_id, ue_context_p);
-
-      if (m_rc != magma::MAP_OK) {
-        OAILOG_ERROR(
-            LOG_AMF_APP,
-            "Insertion of Hash entry failed for  "
-            "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
-            amf_ue_ngap_id);
-      }
-
       ue_context_p->amf_ue_ngap_id = amf_ue_ngap_id;
     }
   } else {
@@ -164,7 +153,8 @@ void amf_ue_context_update_coll_keys(
 
 /* Insert guti into guti_ue_context_table */
 void amf_ue_context_on_new_guti(
-    ue_m5gmm_context_t* const ue_context_p, const guti_m5_t* const guti_p) {
+    std::shared_ptr<ue_m5gmm_context_t> const ue_context_p,
+    const guti_m5_t* const guti_p) {
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
 
   if (ue_context_p) {
@@ -251,11 +241,11 @@ static bool amf_app_construct_guti(
 
 //------------------------------------------------------------------------------
 // Get existing GUTI details
-ue_m5gmm_context_s* amf_ue_context_exists_guti(
+std::shared_ptr<ue_m5gmm_context_t> amf_ue_context_exists_guti(
     amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p) {
-  magma::map_rc_t m_rc           = magma::MAP_OK;
-  uint64_t amf_ue_ngap_id64      = 0;
-  ue_m5gmm_context_t* ue_context = NULL;
+  magma::map_rc_t m_rc      = magma::MAP_OK;
+  uint64_t amf_ue_ngap_id64 = 0;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context;
 
   m_rc = amf_ue_context_p->guti_ue_context_htbl.get(*guti_p, &amf_ue_ngap_id64);
 
@@ -296,7 +286,7 @@ imsi64_t amf_app_handle_initial_ue_message(
     amf_app_desc_t* amf_app_desc_p,
     itti_ngap_initial_ue_message_t* const initial_pP) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  ue_m5gmm_context_s* ue_context_p  = NULL;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context_p;
   bool is_guti_valid                = false;
   bool is_mm_ctx_new                = false;
   gnb_ngap_id_key_t gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
@@ -494,11 +484,7 @@ imsi64_t amf_app_handle_initial_ue_message(
    * Before accessing ue_context_p, we shall validate whether UE context
    * exists or not
    */
-  if (ue_id != INVALID_AMF_UE_NGAP_ID) {
-    map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
-    if (amf_state_ue_id_ht.get(ue_id, &ue_context_p) == magma::MAP_OK) {
-      imsi64 = ue_context_p->amf_context.imsi64;
-    }
+  if (INVALID_AMF_UE_NGAP_ID != ue_id) {
   }
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
@@ -564,7 +550,7 @@ static void get_ambr_unit(
 int amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp) {
   DLNASTransportMsg encode_msg;
-  ue_m5gmm_context_s* ue_context;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context;
   std::shared_ptr<smf_context_t> smf_ctx;
   amf_smf_t amf_smf_msg;
   // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
@@ -735,7 +721,7 @@ int amf_app_handle_pdu_session_accept(
   bstring buffer;
   // smf_ctx declared and set but not used, commented to cleanup warnings
   std::shared_ptr<smf_context_t> smf_ctx;
-  ue_m5gmm_context_s* ue_context                   = nullptr;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context;
   protocol_configuration_options_t* msg_accept_pco = nullptr;
 
   // Handle smf_context
@@ -948,7 +934,7 @@ void amf_app_handle_resource_setup_response(
     itti_ngap_pdusessionresource_setup_rsp_t session_seup_resp) {
   amf_ue_ngap_id_t ue_id;
 
-  ue_m5gmm_context_s* ue_context = nullptr;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context;
   std::shared_ptr<smf_context_t> smf_ctx;
 
   /* Check if failure message is not NULL and if NULL,
@@ -989,7 +975,7 @@ void amf_app_handle_resource_setup_response(
      */
     amf_ue_ngap_id_t ue_id;
     amf_smf_establish_t amf_smf_grpc_ies;
-    ue_m5gmm_context_s* ue_context = nullptr;
+    std::shared_ptr<ue_m5gmm_context_t> ue_context;
     char imsi[IMSI_BCD_DIGITS_MAX + 1];
 
     ue_id = session_seup_resp.amf_ue_ngap_id;
@@ -1117,8 +1103,8 @@ void amf_app_handle_cm_idle_on_ue_context_release(
    * nothing to do.
    */
   amf_ue_ngap_id_t ue_id;
-  ue_m5gmm_context_s* ue_context = nullptr;
-  ue_id                          = cm_idle_req.amf_ue_ngap_id;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context;
+  ue_id = cm_idle_req.amf_ue_ngap_id;
 
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (!ue_context) {
@@ -1197,9 +1183,9 @@ void ue_context_release_command(
 
 static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
   OAILOG_INFO(LOG_AMF_APP, "T3513: In Paging handler\n");
-  int rc                                         = RETURNerror;
-  amf_ue_ngap_id_t ue_id                         = 0;
-  ue_m5gmm_context_s* ue_context                 = nullptr;
+  int rc                 = RETURNerror;
+  amf_ue_ngap_id_t ue_id = 0;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context;
   amf_context_t* amf_ctx                         = nullptr;
   paging_context_t* paging_ctx                   = nullptr;
   MessageDef* message_p                          = nullptr;
@@ -1299,7 +1285,7 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
 // int amf_app_defs::amf_app_handle_notification_received(
 int amf_app_handle_notification_received(
     itti_n11_received_notification_t* notification) {
-  ue_m5gmm_context_s* ue_context                 = nullptr;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context;
   amf_context_t* amf_ctx                         = nullptr;
   paging_context_t* paging_ctx                   = nullptr;
   MessageDef* message_p                          = nullptr;
@@ -1382,7 +1368,7 @@ int amf_app_handle_notification_received(
 void amf_app_handle_initial_context_setup_rsp(
     amf_app_desc_t* amf_app_desc_p,
     itti_amf_app_initial_context_setup_rsp_t* initial_context_rsp) {
-  ue_m5gmm_context_s* ue_context = NULL;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context;
   std::shared_ptr<smf_context_t> smf_context;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   Ngap_PDUSession_Resource_Setup_Response_List_t* pdu_list =

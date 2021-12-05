@@ -126,7 +126,9 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   int rc                               = RETURNerror;
   tai_t originating_tai                = {0};
   amf_nas_message_t nas_msg            = {0};
-  ue_m5gmm_context_s* ue_m5gmm_context = NULL;
+  amf_nas_message_t nas_msg                     = {0};
+  std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context;
+
   ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
   if (ue_m5gmm_context == NULL) {
     OAILOG_ERROR(
@@ -614,7 +616,7 @@ static int amf_de_reg_acceptmsg(
     amf_nas_message_t* nas_msg, DeRegistrationAcceptUEInitMsg* amf_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = AMF_HEADER_LENGTH;
-  ue_m5gmm_context_s* ue_context;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context;
   uint8_t seq_no = 0;
 
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(as_msg->ue_id);
@@ -712,7 +714,7 @@ uint16_t amf_as_data_req(
     int bytes                                    = 0;
     amf_security_context_t* amf_security_context = NULL;
     amf_context_t* amf_ctx                       = NULL;
-    ue_m5gmm_context_s* ue_m5gmm_context =
+    std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context =
         amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
 
     if (ue_m5gmm_context) {
@@ -935,7 +937,7 @@ static int amf_as_security_req(
 
         break;
       case AMF_AS_MSG_TYPE_AUTH: {
-        ue_m5gmm_context_s* ue_context =
+        std::shared_ptr<ue_m5gmm_context_t> ue_context =
             amf_ue_context_exists_amf_ue_ngap_id(as_msg->ue_id);
         amf_context_t* amf_ctx = NULL;
 
@@ -988,7 +990,7 @@ static int amf_as_security_req(
             .spare_half_octet.spare = 0;
         nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
             .message_type.msg_type = 0x5D;
-        ue_m5gmm_context_s* ue_context =
+        std::shared_ptr<ue_m5gmm_context_t> ue_context =
             amf_ue_context_exists_amf_ue_ngap_id(as_msg->ue_id);
         if (ue_context) {
           amf_security_context_t* amf_security_context =
@@ -1033,7 +1035,7 @@ static int amf_as_security_req(
   if (size > 0) {
     amf_context_t* amf_ctx                       = NULL;
     amf_security_context_t* amf_security_context = NULL;
-    ue_m5gmm_context_s* ue_mm_context =
+    std::shared_ptr<ue_m5gmm_context_t> ue_mm_context =
         amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
 
     if (ue_mm_context) {
@@ -1133,7 +1135,7 @@ static int amf_as_security_rej(
   if (size > 0) {
     amf_context_t* amf_ctx                       = NULL;
     amf_security_context_t* amf_security_context = NULL;
-    ue_m5gmm_context_s* ue_mm_context =
+    std::shared_ptr<ue_m5gmm_context_t> ue_mm_context =
         amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
 
     if (ue_mm_context) {
@@ -1176,7 +1178,8 @@ int initial_context_setup_request(
   /*This message is sent by the AMF to NG-RAN node to request the setup of a UE
    * context before Registration Accept is sent to UE*/
 
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  std::shared_ptr<ue_m5gmm_context_t> ue_context =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   Ngap_initial_context_setup_request_t* req = nullptr;
   Ngap_PDUSession_Resource_Setup_Request_List_t* pdu_resource_transfer_ie =
       nullptr;
@@ -1318,7 +1321,7 @@ uint16_t amf_as_establish_cnf(
   amf_context_t* amf_ctx                       = NULL;
   amf_security_context_t* amf_security_context = NULL;
   amf_ctx                                      = amf_context_get(msg->ue_id);
-  ue_m5gmm_context_s* ue_mm_context =
+  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context =
       amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
   if (amf_ctx) {
     if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {

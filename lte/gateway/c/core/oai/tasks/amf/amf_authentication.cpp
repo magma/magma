@@ -230,8 +230,8 @@ static int amf_authentication_abort(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
   if ((base_proc) && (amf_ctx)) {
-    ue_m5gmm_context_s* ue_mm_context =
-        PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context);
+    std::shared_ptr<ue_m5gmm_context_t> ue_mm_context =
+        amf_ctx->ue_context.lock();
     OAILOG_DEBUG(
         LOG_NAS_AMF,
         "AMF-PROC  - Abort authentication procedure invoked "
@@ -499,7 +499,7 @@ int amf_proc_authentication_complete(
       "Authentication  procedures complete for "
       "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
       ue_id);
-  ue_m5gmm_context_s* ue_mm_context = NULL;
+  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
 
   amf_context_t* amf_ctx = NULL;
   ue_mm_context          = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
@@ -615,8 +615,8 @@ void amf_ctx_clear_auth_vectors(amf_context_t* const ctxt) {
 }
 
 int amf_auth_auth_rej(amf_ue_ngap_id_t ue_id) {
-  int rc                               = RETURNerror;
-  ue_m5gmm_context_s* ue_mm_context    = nullptr;
+  int rc = RETURNerror;
+  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
   amf_sap_t amf_sap                    = {};
   amf_sap.primitive                    = AMFAS_SECURITY_REJ;
   amf_sap.u.amf_as.u.security.ue_id    = ue_id;
@@ -660,9 +660,9 @@ int amf_proc_authentication_failure(
       "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
       ue_id);
 
-  int rc                            = RETURNerror;
-  ue_m5gmm_context_s* ue_mm_context = NULL;
-  amf_context_t* amf_ctx            = NULL;
+  int rc = RETURNerror;
+  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
+  amf_context_t* amf_ctx = NULL;
 
   ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (!ue_mm_context) {
@@ -975,7 +975,7 @@ static int authenthication_t3560_handler(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
-  ue_m5gmm_context_s* ue_amf_context =
+  std::shared_ptr<ue_m5gmm_context_t> ue_amf_context =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_amf_context == NULL) {

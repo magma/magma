@@ -32,12 +32,11 @@ extern "C" {
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 // Creating ue_context_map based on key:ue_id and value:ue_context
-std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
-// Creating smf_ctxt_map based on key:pdu_session_id and value:smf_context
-std::unordered_map<uint8_t, std::shared_ptr<smf_context_t>> smf_ctxt_map;
+std::unordered_map<amf_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t>>
+    ue_context_map;
 
 std::shared_ptr<smf_context_t> amf_insert_smf_context(
-    ue_m5gmm_context_s*, uint8_t);
+    std::shared_ptr<ue_m5gmm_context_t>, uint8_t);
 
 amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
     amf_ue_ngap_id_t* amf_app_ue_ngap_id_generator_p) {
@@ -55,7 +54,7 @@ amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
  **                                                                        **
  ***************************************************************************/
 void notify_ngap_new_ue_amf_ngap_id_association(
-    const ue_m5gmm_context_s* ue_context_p) {
+    const std::shared_ptr<ue_m5gmm_context_t> ue_context_p) {
   MessageDef* message_p                                      = NULL;
   itti_amf_app_ngap_amf_ue_id_notification_t* notification_p = NULL;
 
@@ -85,7 +84,7 @@ void notify_ngap_new_ue_amf_ngap_id_association(
  **                                                                        **
  ***************************************************************************/
 int amf_insert_ue_context(
-    amf_ue_ngap_id_t ue_id, ue_m5gmm_context_s* ue_context_p) {
+    amf_ue_ngap_id_t ue_id, std::shared_ptr<ue_m5gmm_context_t> ue_context_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(LOG_AMF_APP, "Invalid UE context received\n");
@@ -95,7 +94,8 @@ int amf_insert_ue_context(
   if (ue_context_map.size() == 0) {
     // first entry.
     ue_context_map.insert(
-        std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context_p));
+        std::pair<amf_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t>>(
+            ue_id, ue_context_p));
   } else {
     /* already elements exist then check if given ue_id already present
      * if it exists, update/overwrite the element. Otherwise add a new element
@@ -103,8 +103,9 @@ int amf_insert_ue_context(
     auto found_ue_id = ue_context_map.find(ue_id);
     if (found_ue_id == ue_context_map.end()) {
       // it is new entry to map
-      ue_context_map.insert(std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(
-          ue_id, ue_context_p));
+      ue_context_map.insert(
+          std::pair<amf_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t>>(
+              ue_id, ue_context_p));
     } else {
       // Overwrite the existing element.
       found_ue_id->second = ue_context_p;
@@ -125,9 +126,10 @@ int amf_insert_ue_context(
  **                                                                        **
  ***************************************************************************/
 // warning: lock the UE context
-ue_m5gmm_context_s* amf_create_new_ue_context(void) {
+std::shared_ptr<ue_m5gmm_context_t> amf_create_new_ue_context(void) {
   // Make ue_context zero initialize
-  ue_m5gmm_context_s* new_p = new ue_m5gmm_context_s();
+  std::shared_ptr<ue_m5gmm_context_t> new_p =
+      std::make_shared<ue_m5gmm_context_t>();
 
   if (!new_p) {
     OAILOG_ERROR(LOG_AMF_APP, "Failed to allocate memory for UE context \n");
@@ -151,6 +153,7 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void) {
 
   new_p->amf_context._security.eksi = KSI_NO_KEY_AVAILABLE;
   new_p->mm_state                   = DEREGISTERED;
+  new_p->amf_context.ue_context     = new_p;
 
   return new_p;
 }
@@ -170,7 +173,7 @@ amf_context_t* amf_context_get(const amf_ue_ngap_id_t ue_id) {
   amf_context_t* amf_context_p = nullptr;
 
   if (INVALID_AMF_UE_NGAP_ID != ue_id) {
-    ue_m5gmm_context_s* ue_mm_context =
+    std::shared_ptr<ue_m5gmm_context_t> ue_mm_context =
         amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
     if (ue_mm_context) {
@@ -189,10 +192,10 @@ amf_context_t* amf_context_get(const amf_ue_ngap_id_t ue_id) {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
+std::shared_ptr<ue_m5gmm_context_t> amf_ue_context_exists_amf_ue_ngap_id(
     const amf_ue_ngap_id_t amf_ue_ngap_id) {
-  std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*>::iterator
-      found_ue_id = ue_context_map.find(amf_ue_ngap_id);
+  std::unordered_map<amf_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t>>::
+      iterator found_ue_id = ue_context_map.find(amf_ue_ngap_id);
 
   if (found_ue_id == ue_context_map.end()) {
     return NULL;
@@ -210,7 +213,7 @@ ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
  **                                                                        **
  ***************************************************************************/
 std::shared_ptr<smf_context_t> amf_insert_smf_context(
-    ue_m5gmm_context_s* ue_context, uint8_t pdu_session_id) {
+    std::shared_ptr<ue_m5gmm_context_t> ue_context, uint8_t pdu_session_id) {
   std::shared_ptr<smf_context_t> smf_context;
   smf_context =
       amf_get_smf_context_by_pdu_session_id(ue_context, pdu_session_id);
@@ -232,7 +235,7 @@ std::shared_ptr<smf_context_t> amf_insert_smf_context(
  **                                                                        **
  ***************************************************************************/
 std::shared_ptr<smf_context_t> amf_get_smf_context_by_pdu_session_id(
-    ue_m5gmm_context_s* ue_context, uint8_t id) {
+    std::shared_ptr<ue_m5gmm_context_t> ue_context, uint8_t id) {
   std::shared_ptr<smf_context_t> smf_context;
   for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
     if (it.first == id) {
@@ -299,9 +302,10 @@ void amf_app_state_free_ue_context(void** ue_context_node) {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-ue_m5gmm_context_s* ue_context_loopkup_by_guti(tmsi_t tmsi_rcv) {
+std::shared_ptr<ue_m5gmm_context_t> ue_context_loopkup_by_guti(
+    tmsi_t tmsi_rcv) {
   tmsi_t tmsi_stored;
-  ue_m5gmm_context_s* ue_context;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context;
 
   for (auto i = ue_context_map.begin(); i != ue_context_map.end(); i++) {
     ue_context = i->second;
@@ -328,7 +332,7 @@ ue_m5gmm_context_s* ue_context_loopkup_by_guti(tmsi_t tmsi_rcv) {
  **                                                                        **
  ***************************************************************************/
 void ue_context_update_ue_id(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t ue_id) {
+    std::shared_ptr<ue_m5gmm_context_t> ue_context, amf_ue_ngap_id_t ue_id) {
   if (ue_id == ue_context->amf_ue_ngap_id) {
     return;
   }
@@ -338,7 +342,8 @@ void ue_context_update_ue_id(
 
   /* Re-Insert with same context but with updated Key */
   ue_context_map.insert(
-      std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
+      std::pair<amf_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t>>(
+          ue_id, ue_context));
 
   return;
 }
@@ -351,9 +356,9 @@ void ue_context_update_ue_id(
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
+std::shared_ptr<ue_m5gmm_context_t> ue_context_lookup_by_gnb_ue_id(
     gnb_ue_ngap_id_t gnb_ue_ngap_id) {
-  ue_m5gmm_context_s* ue_context;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context;
   for (auto i = ue_context_map.begin(); i != ue_context_map.end(); i++) {
     ue_context = i->second;
     if (ue_context == NULL) {
@@ -395,8 +400,7 @@ tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id) {
  ***************************************************************************/
 int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  ue_m5gmm_context_s* ue_context_p =
-      PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context);
+  std::shared_ptr<ue_m5gmm_context_t> ue_context_p = amf_ctx->ue_context.lock();
   amf_ue_ngap_id_t ue_id = ue_context_p->amf_ue_ngap_id;
 
   std::shared_ptr<smf_context_t> smf_ctx;
@@ -418,7 +422,7 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
+void amf_free_ue_context(std::shared_ptr<ue_m5gmm_context_t> ue_context_p) {
   hashtable_rc_t h_rc                = HASH_TABLE_OK;
   magma::map_rc_t m_rc               = magma::MAP_OK;
   amf_app_desc_t* amf_app_desc_p     = get_amf_nas_state(false);
@@ -457,9 +461,7 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
 
   amf_ue_context_p->guti_ue_context_htbl.remove(
       ue_context_p->amf_context.m5_guti);
-
-  delete ue_context_p;
-  ue_context_p = NULL;
+  ue_context_p.reset();
 }
 
 }  // namespace magma5g

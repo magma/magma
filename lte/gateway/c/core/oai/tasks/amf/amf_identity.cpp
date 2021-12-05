@@ -127,7 +127,7 @@ int amf_proc_identification_complete(
       "(ue_id= " AMF_UE_NGAP_ID_FMT ")\n",
       ue_id);
 
-  ue_m5gmm_context_s* ue_mm_context =
+  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_mm_context) {

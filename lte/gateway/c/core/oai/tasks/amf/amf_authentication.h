@@ -92,7 +92,7 @@ int amf_start_registration_proc_authentication(
 int amf_handle_s6a_update_location_ans(const s6a_update_location_ans_t* ula_pP);
 
 nas_amf_registration_proc_t* nas_new_registration_procedure(
-    ue_m5gmm_context_s* ue_ctxt);
+    std::shared_ptr<ue_m5gmm_context_t> ue_ctxt);
 
 nas_amf_ident_proc_t* nas5g_new_identification_procedure(
     amf_context_t* const amf_context);

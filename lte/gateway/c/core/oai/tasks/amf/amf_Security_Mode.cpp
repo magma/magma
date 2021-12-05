@@ -43,9 +43,9 @@ namespace magma5g {
 int amf_handle_security_complete_response(
     amf_ue_ngap_id_t ue_id, amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  ue_m5gmm_context_s* ue_mm_context = NULL;
-  amf_context_t* amf_ctx            = NULL;
-  int rc                            = RETURNok;
+  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
+  amf_context_t* amf_ctx = NULL;
+  int rc                 = RETURNok;
   OAILOG_DEBUG(
       LOG_NAS_AMF,
       "Security mode procedures complete for "

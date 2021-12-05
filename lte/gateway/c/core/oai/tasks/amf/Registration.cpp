@@ -107,7 +107,7 @@ int amf_start_registration_proc_authentication(
 **                                                                        **
 ***************************************************************************/
 nas_amf_registration_proc_t* nas_new_registration_procedure(
-    ue_m5gmm_context_s* ue_ctxt) {
+    std::shared_ptr<ue_m5gmm_context_t> ue_ctxt) {
   amf_context_t* amf_context = &ue_ctxt->amf_context;
 
   if (!(amf_context->amf_procedures)) {
@@ -145,7 +145,8 @@ nas_amf_registration_proc_t* nas_new_registration_procedure(
 **                                                                        **
 ***************************************************************************/
 void amf_proc_create_procedure_registration_request(
-    ue_m5gmm_context_s* ue_ctx, amf_registration_request_ies_t* ies) {
+    std::shared_ptr<ue_m5gmm_context_t> ue_ctx,
+    amf_registration_request_ies_t* ies) {
   nas_amf_registration_proc_t* reg_proc =
       nas_new_registration_procedure(ue_ctx);
   if ((reg_proc)) {
@@ -167,8 +168,8 @@ int amf_proc_registration_request(
     amf_registration_request_ies_t* ies) {
   int rc = RETURNerror;
   ue_m5gmm_context_s ue_ctx;
-  imsi64_t imsi64                      = INVALID_IMSI64;
-  ue_m5gmm_context_s* ue_m5gmm_context = NULL;
+  imsi64_t imsi64 = INVALID_IMSI64;
+  std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context;
   if (ies->imsi) {
     imsi64 = amf_imsi_to_imsi64(ies->imsi);
     OAILOG_DEBUG(
@@ -595,8 +596,8 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
     amf_sap_t amf_sap = {};
     nas_amf_registration_proc_t* registration_proc =
         get_nas_specific_procedure_registration(amf_context);
-    ue_m5gmm_context_s* ue_m5gmm_context_p =
-        PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context);
+    std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context_p =
+        amf_context->ue_context.lock();
     amf_ue_ngap_id_t ue_id = ue_m5gmm_context_p->amf_ue_ngap_id;
 
     if (registration_proc) {
@@ -674,8 +675,8 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
 
 static int registration_accept_t3550_handler(
     zloop_t* loop, int timer_id, void* arg) {
-  amf_context_t* amf_ctx                         = NULL;
-  ue_m5gmm_context_s* ue_amf_context             = NULL;
+  amf_context_t* amf_ctx = NULL;
+  std::shared_ptr<ue_m5gmm_context_t> ue_amf_context;
   nas_amf_registration_proc_t* registration_proc = NULL;
   amf_ue_ngap_id_t ue_id                         = 0;
   if (!amf_pop_timer_arg(timer_id, &ue_id)) {
@@ -826,8 +827,8 @@ int amf_handle_registration_complete_response(
     amf_ue_ngap_id_t ue_id, RegistrationCompleteMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc                               = RETURNerror;
-  ue_m5gmm_context_s* ue_m5gmm_context = NULL;
+  int rc = RETURNerror;
+  std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context;
 
   OAILOG_DEBUG(
       LOG_NAS_AMF,
@@ -864,7 +865,7 @@ int amf_handle_registration_complete_response(
  **                                                                        **
  ***************************************************************************/
 
-int amf_proc_amf_information(ue_m5gmm_context_s* ue_amf_ctx) {
+int amf_proc_amf_information(std::shared_ptr<ue_m5gmm_context_t> ue_amf_ctx) {
   int rc                 = RETURNerror;
   amf_sap_t amf_sap      = {};
   amf_as_data_t* amf_as  = &amf_sap.u.amf_as.u.data;
@@ -911,10 +912,10 @@ int amf_reg_send(amf_sap_t* const msg) {
   int rc = RETURNok;
   // TODO in future it will be implemented based on request of
   // PDU session establishment with initial registration
-  amf_primitive_t primitive          = msg->primitive;
-  amf_reg_t* evt                     = &msg->u.amf_reg;
-  amf_context_t* amf_ctx             = msg->u.amf_reg.ctx;
-  ue_m5gmm_context_s* ue_amf_context = NULL;
+  amf_primitive_t primitive = msg->primitive;
+  amf_reg_t* evt            = &msg->u.amf_reg;
+  amf_context_t* amf_ctx    = msg->u.amf_reg.ctx;
+  std::shared_ptr<ue_m5gmm_context_t> ue_amf_context;
 
   ue_amf_context = amf_ue_context_exists_amf_ue_ngap_id(evt->ue_id);
 
@@ -1132,7 +1133,8 @@ void amf_delete_common_procedure(
 **                                                                        **
 ***************************************************************************/
 int amf_proc_registration_abort(
-    amf_context_t* amf_ctx, struct ue_m5gmm_context_s* ue_amf_context) {
+    amf_context_t* amf_ctx,
+    struct std::shared_ptr<ue_m5gmm_context_t> ue_amf_context) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int rc = RETURNerror;
   if ((ue_amf_context) && (amf_ctx)) {

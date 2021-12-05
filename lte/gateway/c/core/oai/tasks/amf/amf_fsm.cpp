@@ -168,7 +168,8 @@ void create_state_matrix() {
  */
 int ue_state_handle_message_initial(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
-    ue_m5gmm_context_s* ue_m5gmm_context, amf_context_t* amf_context) {
+    std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context,
+    amf_context_t* amf_context) {
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
     OAILOG_INFO(
         LOG_NAS_AMF,
@@ -202,8 +203,8 @@ int ue_state_handle_message_initial(
  */
 int ue_state_handle_message_reg_conn(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
-    ue_m5gmm_context_s* ue_m5gmm_context, amf_ue_ngap_id_t ue_id,
-    bstring smf_msg_pP, int amf_cause,
+    std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context,
+    amf_ue_ngap_id_t ue_id, bstring smf_msg_pP, int amf_cause,
     amf_nas_message_decode_status_t decode_status) {
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
     ue_m5gmm_context->mm_state =
@@ -228,7 +229,8 @@ int ue_state_handle_message_reg_conn(
  */
 int ue_state_handle_message_dereg(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
-    ue_m5gmm_context_s* ue_m5gmm_context, amf_ue_ngap_id_t ue_id) {
+    std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context,
+    amf_ue_ngap_id_t ue_id) {
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
     ue_m5gmm_context->mm_state =
         ue_state_matrix[cur_state][event][session_state].next_state;
@@ -251,8 +253,9 @@ int ue_state_handle_message_dereg(
  */
 int pdu_state_handle_message(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
-    ue_m5gmm_context_s* ue_m5gmm_context, amf_smf_t amf_smf_msg, char* imsi,
-    itti_n11_create_pdu_session_response_t* pdu_session_resp, uint32_t ue_id) {
+    std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context, amf_smf_t amf_smf_msg,
+    char* imsi, itti_n11_create_pdu_session_response_t* pdu_session_resp,
+    uint32_t ue_id) {
   std::shared_ptr<smf_context_t> smf_ctx =
       amf_get_smf_context_by_pdu_session_id(
           ue_m5gmm_context, amf_smf_msg.pdu_session_id);

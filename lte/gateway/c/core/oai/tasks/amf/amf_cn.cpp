@@ -45,7 +45,7 @@ static int amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
   /*
    * We received security vector from HSS. Try to setup security with UE
    */
-  ue_m5gmm_context_s* ue_m5gmm_context =
+  std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context =
       amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
 
   if (ue_m5gmm_context) {

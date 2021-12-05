@@ -47,7 +47,8 @@ int amf_app_handle_nas_dl_req(
         "Downlink NAS transport: Failed to get global amf_app_desc context \n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  std::shared_ptr<ue_m5gmm_context_t> ue_context =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_context) {
     gnb_ue_ngap_id = ue_context->gnb_ue_ngap_id;
   } else {

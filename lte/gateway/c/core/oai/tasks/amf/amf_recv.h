@@ -54,11 +54,11 @@ int amf_validate_dnn(
     bool ue_sent_dnn);
 void smf_dnn_ambr_select(
     const std::shared_ptr<smf_context_t>& smf_ctx,
-    ue_m5gmm_context_s* ue_context, int index_dnn);
+    std::shared_ptr<ue_m5gmm_context_t> ue_context, int index_dnn);
 int amf_smf_process_pdu_session_packet(
     amf_ue_ngap_id_t ueid, ULNASTransportMsg* msg, int amf_cause);
 int amf_smf_notification_send(
-    amf_ue_ngap_id_t ueid, ue_m5gmm_context_s* ue_context,
+    amf_ue_ngap_id_t ueid, std::shared_ptr<ue_m5gmm_context_t> ue_context,
     notify_ue_event notify_event_type);
 int amf_proc_registration_request(
     amf_ue_ngap_id_t ue_id, const bool is_mm_ctx_new,

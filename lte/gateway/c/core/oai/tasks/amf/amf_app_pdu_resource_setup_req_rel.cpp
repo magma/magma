@@ -64,8 +64,9 @@ void ambr_calculation_pdu_session(
  * itti_message is sent to NGAP.
  */
 int pdu_session_resource_setup_request(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    std::shared_ptr<smf_context_t> smf_context, bstring nas_msg) {
+    std::shared_ptr<ue_m5gmm_context_t> ue_context,
+    amf_ue_ngap_id_t amf_ue_ngap_id, std::shared_ptr<smf_context_t> smf_context,
+    bstring nas_msg) {
   pdu_session_resource_setup_request_transfer_t*
       amf_pdu_ses_setup_transfer_req                                = nullptr;
   itti_ngap_pdusession_resource_setup_req_t* ngap_pdu_ses_setup_req = nullptr;
@@ -145,8 +146,9 @@ int pdu_session_resource_setup_request(
 
 /* Resource release request to gNB through NGAP */
 int pdu_session_resource_release_request(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    std::shared_ptr<smf_context_t> smf_ctx, bool retransmit) {
+    std::shared_ptr<ue_m5gmm_context_t> ue_context,
+    amf_ue_ngap_id_t amf_ue_ngap_id, std::shared_ptr<smf_context_t> smf_ctx,
+    bool retransmit) {
   bstring buffer;
   uint32_t bytes                = 0;
   DLNASTransportMsg* encode_msg = NULL;

@@ -122,11 +122,11 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
  ***************************************************************************/
 static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  ue_m5gmm_context_s* ue_mm_context = NULL;
-  amf_context_t* amf_ctx            = NULL;
-  amf_sap_t amf_sap                 = {};
-  int rc                            = RETURNerror;
-  smc_proc->T3560.id                = NAS5G_TIMER_INACTIVE_ID;
+  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
+  amf_context_t* amf_ctx = NULL;
+  amf_sap_t amf_sap      = {};
+  int rc                 = RETURNerror;
+  smc_proc->T3560.id     = NAS5G_TIMER_INACTIVE_ID;
 
   if (smc_proc) {
     /*
@@ -194,7 +194,7 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
-  ue_m5gmm_context_s* ue_amf_context =
+  std::shared_ptr<ue_m5gmm_context_t> ue_amf_context =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_amf_context == NULL) {
@@ -452,9 +452,9 @@ int amf_proc_security_mode_control(
  ***************************************************************************/
 int amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  ue_m5gmm_context_s* ue_mm_context = NULL;
-  amf_context_t* amf_ctx            = NULL;
-  int rc                            = RETURNerror;
+  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
+  amf_context_t* amf_ctx = NULL;
+  int rc                 = RETURNerror;
 
   OAILOG_WARNING(
       LOG_NAS_AMF,

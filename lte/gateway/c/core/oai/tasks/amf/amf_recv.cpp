@@ -39,8 +39,8 @@ extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 int amf_handle_service_request(
     amf_ue_ngap_id_t ue_id, ServiceRequestMsg* msg,
     const amf_nas_message_decode_status_t decode_status) {
-  int rc                         = RETURNok;
-  ue_m5gmm_context_s* ue_context = nullptr;
+  int rc = RETURNok;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context;
   notify_ue_event notify_ue_event_type;
   amf_sap_t amf_sap;
   tmsi_t tmsi_rcv;
@@ -277,7 +277,8 @@ int amf_handle_registration_request(
     params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_INITIAL;
   }
 
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  std::shared_ptr<ue_m5gmm_context_t> ue_context =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_context == NULL) {
     OAILOG_ERROR(
         LOG_AMF_APP, "UE context is null for UE ID: " AMF_UE_NGAP_ID_FMT,
@@ -649,7 +650,7 @@ int amf_handle_identity_response(
       }
     }
 
-    ue_m5gmm_context_s* ue_context =
+    std::shared_ptr<ue_m5gmm_context_t> ue_context =
         amf_ue_context_exists_amf_ue_ngap_id(ue_id);
     if (ue_context) {
       ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
@@ -758,7 +759,7 @@ int amf_handle_authentication_failure(
  ** Outputs: ue_m5gmm_context_s: pointer to ue context                     **
  **                                                                        **
  ***************************************************************************/
-ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
+std::shared_ptr<ue_m5gmm_context_t> lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
   /*Check imsi found
    *
    */

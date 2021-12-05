@@ -345,8 +345,8 @@ typedef struct amf_context_s {
   ambr_t subscribed_ue_ambr;
   /* apn_config_profile: set by S6A UPDATE LOCATION ANSWER */
   apn_config_profile_t apn_config_profile;
-
   amf_nas_message_decode_status_t decode_status;
+  std::weak_ptr<ue_m5gmm_context_s> ue_context;
 } amf_context_t;
 
 // Amf-Map Declarations:
@@ -413,26 +413,26 @@ typedef magma::map_s<uint64_t, ue_m5gmm_context_s*> map_uint64_ue_context_t;
 /* Operation on UE context structure
  */
 int amf_insert_ue_context(
-    amf_ue_ngap_id_t ue_id, ue_m5gmm_context_s* ue_context_p);
+    amf_ue_ngap_id_t ue_id, std::shared_ptr<ue_m5gmm_context_t> ue_context_p);
 amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
     amf_ue_ngap_id_t* amf_app_ue_ngap_id_generator_p);
 /* Notify NGAP about the mapping between amf_ue_ngap_id and
  * sctp assoc id + gnb_ue_ngap_id */
 void notify_ngap_new_ue_amf_ngap_id_association(
-    const ue_m5gmm_context_s* ue_context_p);
+    const std::shared_ptr<ue_m5gmm_context_t> ue_context_p);
 
-ue_m5gmm_context_s* amf_create_new_ue_context(void);
+std::shared_ptr<ue_m5gmm_context_t> amf_create_new_ue_context(void);
 /*Multi PDU Session*/
 std::shared_ptr<smf_context_t> amf_insert_smf_context(
-    ue_m5gmm_context_s* ue_context, uint8_t pdu_session_id);
+    std::shared_ptr<ue_m5gmm_context_t> ue_context, uint8_t pdu_session_id);
 std::shared_ptr<smf_context_t> amf_get_smf_context_by_pdu_session_id(
-    ue_m5gmm_context_s* ue_context, uint8_t id);
+    std::shared_ptr<ue_m5gmm_context_t> ue_context, uint8_t id);
 
 // Retrieve required UE context from the respective hash table
 amf_context_t* amf_context_get(const amf_ue_ngap_id_t ue_id);
-ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
+std::shared_ptr<ue_m5gmm_context_t> amf_ue_context_exists_amf_ue_ngap_id(
     const amf_ue_ngap_id_t amf_ue_ngap_id);
-ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64);
+std::shared_ptr<ue_m5gmm_context_t> lookup_ue_ctxt_by_imsi(imsi64_t imsi64);
 int amf_context_upsert_imsi(amf_context_t* elm) __attribute__((nonnull));
 
 // Set valid imsi
@@ -465,7 +465,7 @@ typedef struct amf_msg_header_t {
 
 // Release Request routine.
 void amf_app_ue_context_release(
-    ue_m5gmm_context_s* ue_context_p, ngap_Cause_t cause);
+    std::shared_ptr<ue_m5gmm_context_t> ue_context_p, ngap_Cause_t cause);
 
 // 5G Mobility Management Messages
 union mobility_msg_u {
@@ -785,30 +785,34 @@ int amf_proc_security_mode_control(
     ksi_t ksi, success_cb_t success, failure_cb_t failure);
 int amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id);
 void amf_proc_create_procedure_registration_request(
-    ue_m5gmm_context_s* ue_ctx, amf_registration_request_ies_t* ies);
+    std::shared_ptr<ue_m5gmm_context_t> ue_ctx,
+    amf_registration_request_ies_t* ies);
 
 amf_procedures_t* nas_new_amf_procedures(amf_context_t* amf_context);
-void amf_nas_proc_clean_up(ue_m5gmm_context_s* ue_context_p);
+void amf_nas_proc_clean_up(std::shared_ptr<ue_m5gmm_context_t> ue_context_p);
 
-int amf_proc_amf_information(ue_m5gmm_context_s* ue_amf_ctx);
+int amf_proc_amf_information(std::shared_ptr<ue_m5gmm_context_t> ue_amf_ctx);
 int amf_send_registration_accept(amf_context_t* amf_context);
 
 // UE originated deregistration procedures
 int amf_proc_deregistration_request(
     amf_ue_ngap_id_t ue_id, amf_deregistration_request_ies_t* params);
 int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id);
-void amf_remove_ue_context(ue_m5gmm_context_s* ue_context_p);
-void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context);
+void amf_remove_ue_context(std::shared_ptr<ue_m5gmm_context_t> ue_context_p);
+void amf_smf_context_cleanup_pdu_session(
+    std::shared_ptr<ue_m5gmm_context_t> ue_context);
 
 // PDU session related communication to gNB
 int pdu_session_resource_setup_request(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    std::shared_ptr<smf_context_t> smf_context, bstring nas_msg);
+    std::shared_ptr<ue_m5gmm_context_t> ue_context,
+    amf_ue_ngap_id_t amf_ue_ngap_id, std::shared_ptr<smf_context_t> smf_context,
+    bstring nas_msg);
 void amf_app_handle_resource_setup_response(
     itti_ngap_pdusessionresource_setup_rsp_t session_seup_resp);
 int pdu_session_resource_release_request(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
-    std::shared_ptr<smf_context_t> smf_ctx, bool retransmit);
+    std::shared_ptr<ue_m5gmm_context_t> ue_context,
+    amf_ue_ngap_id_t amf_ue_ngap_id, std::shared_ptr<smf_context_t> smf_ctx,
+    bool retransmit);
 void amf_app_handle_resource_release_response(
     itti_ngap_pdusessionresource_rel_rsp_t session_rel_resp);
 void amf_app_handle_cm_idle_on_ue_context_release(
@@ -833,16 +837,17 @@ int amf_proc_registration_complete(amf_context_t* amf_context);
 // Finite state machine handlers
 int ue_state_handle_message_initial(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
-    ue_m5gmm_context_s* ue_m5gmm_context, amf_context_t* amf_context);
+    std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context,
+    amf_context_t* amf_context);
 int ue_state_handle_message_reg_conn(
-    m5gmm_state_t, int, SMSessionFSMState, ue_m5gmm_context_s*,
+    m5gmm_state_t, int, SMSessionFSMState, std::shared_ptr<ue_m5gmm_context_t>,
     amf_ue_ngap_id_t, bstring, int, amf_nas_message_decode_status_t);
 int ue_state_handle_message_dereg(
-    m5gmm_state_t, int event, SMSessionFSMState, ue_m5gmm_context_s*,
-    amf_ue_ngap_id_t);
+    m5gmm_state_t, int event, SMSessionFSMState,
+    std::shared_ptr<ue_m5gmm_context_t>, amf_ue_ngap_id_t);
 int pdu_state_handle_message(
     m5gmm_state_t, int event, SMSessionFSMState session_state,
-    ue_m5gmm_context_s*, amf_smf_t, char*,
+    std::shared_ptr<ue_m5gmm_context_t>, amf_smf_t, char*,
     itti_n11_create_pdu_session_response_t*, uint32_t);
 nas_amf_ident_proc_t* get_5g_nas_common_procedure_identification(
     const amf_context_t* ctxt);
@@ -854,25 +859,27 @@ void amf_delete_common_procedure(
     amf_context_t* amf_ctx, nas_amf_common_proc_t** proc);
 void format_plmn(amf_plmn_t* plmn);
 void amf_ue_context_on_new_guti(
-    ue_m5gmm_context_t* ue_context_p, const guti_m5_t* const guti_p);
-ue_m5gmm_context_s* amf_ue_context_exists_guti(
+    std::shared_ptr<ue_m5gmm_context_t> ue_context_p,
+    const guti_m5_t* const guti_p);
+std::shared_ptr<ue_m5gmm_context_t> amf_ue_context_exists_guti(
     amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p);
 void ambr_calculation_pdu_session(
     uint16_t* dl_session_ambr, uint8_t* dl_ambr_unit, uint16_t* ul_session_ambr,
     uint8_t* ul_ambr_unit, uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr);
 int amf_proc_registration_abort(
-    amf_context_t* amf_ctx, struct ue_m5gmm_context_s* ue_amf_context);
-ue_m5gmm_context_s* ue_context_loopkup_by_guti(tmsi_t tmsi_rcv);
+    amf_context_t* amf_ctx,
+    struct std::shared_ptr<ue_m5gmm_context_t> ue_amf_context);
+std::shared_ptr<ue_m5gmm_context_t> ue_context_loopkup_by_guti(tmsi_t tmsi_rcv);
 void ue_context_update_ue_id(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t ue_id);
-ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
+    std::shared_ptr<ue_m5gmm_context_t> ue_context, amf_ue_ngap_id_t ue_id);
+std::shared_ptr<ue_m5gmm_context_t> ue_context_lookup_by_gnb_ue_id(
     gnb_ue_ngap_id_t gnb_ue_ngap_id);
 
 /* Fetch tmsi from ue id */
 tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id);
 
 int amf_idle_mode_procedure(amf_context_t* amf_ctx);
-void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p);
+void amf_free_ue_context(std::shared_ptr<ue_m5gmm_context_t> ue_context_p);
 int m5g_security_select_algorithms(
     const int ue_iaP, const int ue_eaP, int* const amf_iaP, int* const amf_eaP);
 

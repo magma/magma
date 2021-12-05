@@ -138,7 +138,7 @@ class AMFAppProcedureTest : public ::testing::Test {
 
 amf_context_t* get_amf_context_by_ueid(amf_ue_ngap_id_t ue_id) {
   /* Get UE Context */
-  ue_m5gmm_context_s* ue_m5gmm_context =
+  std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_m5gmm_context == NULL) {
     return NULL;
@@ -389,7 +389,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionSetup) {
       sizeof(pdu_sess_release_complete_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
-  ue_m5gmm_context_t* ue_context_p =
+  std::shared_ptr<ue_m5gmm_context_t> ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   ASSERT_NE(ue_context_p, nullptr);
   EXPECT_EQ(ue_context_p->amf_context.smf_ctxt_map.size(), 0);
