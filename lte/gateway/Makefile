@@ -148,7 +148,7 @@ build_oai_clang: ## Build OAI with Clang, store compiler outputs to log
 
 format_all:
 	find $(MAGMA_ROOT)/orc8r/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
-	clang-format --style=file -i {} \;
+	/usr/bin/clang-format-11 --style='{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}' -i {} \;
 	find $(MAGMA_ROOT)/lte/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
 	clang-format --style=file -i {} \;
 

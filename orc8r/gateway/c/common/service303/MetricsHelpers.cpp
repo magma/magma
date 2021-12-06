@@ -24,8 +24,8 @@ void remove_counter(const char* name, size_t n_labels, ...) {
   va_end(ap);
 }
 
-void increment_counter(
-    const char* name, double increment, size_t n_labels, ...) {
+void increment_counter(const char* name, double increment, size_t n_labels,
+                       ...) {
   va_list ap;
   va_start(ap, n_labels);
   MetricsSingleton::Instance().IncrementCounter(name, increment, n_labels, ap);
@@ -67,11 +67,11 @@ void set_gauge(const char* name, double value, size_t n_labels, ...) {
   va_end(ap);
 }
 
-void observe_histogram(
-    const char* name, double observation, size_t n_labels, ...) {
+void observe_histogram(const char* name, double observation, size_t n_labels,
+                       ...) {
   va_list ap;
   va_start(ap, n_labels);
-  MetricsSingleton::Instance().ObserveHistogram(
-      name, observation, n_labels, ap);
+  MetricsSingleton::Instance().ObserveHistogram(name, observation, n_labels,
+                                                ap);
   va_end(ap);
 }
