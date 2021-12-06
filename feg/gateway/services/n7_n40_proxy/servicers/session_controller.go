@@ -31,7 +31,7 @@ const (
 )
 
 type CentralSessionController struct {
-	policyClient  *n7_sbi.ClientWithResponses
+	policyClient  n7_sbi.ClientWithResponsesInterface
 	dbClient      policydb.PolicyDBClient
 	cfg           *SessionControllerConfig
 	healthTracker *metrics.SessionHealthTracker
@@ -43,17 +43,10 @@ type SessionControllerConfig struct {
 }
 
 func NewCentralSessionController(
+	n7config *n7.N7Config,
 	dbClient policydb.PolicyDBClient,
+	policyClient n7_sbi.ClientWithResponsesInterface,
 ) (*CentralSessionController, error) {
-	n7config, err := n7.GetN7Config()
-	if err == nil {
-		return nil, err
-	}
-	policyClient, err := n7.NewN7Client(&n7config.Server)
-	if err != nil {
-		glog.Errorf("Creating N7 Client failed: %s", err)
-		return nil, err
-	}
 	return &CentralSessionController{
 		policyClient: policyClient,
 		dbClient:     dbClient,
@@ -70,8 +63,20 @@ func (srv *CentralSessionController) CreateSession(
 	ctx context.Context,
 	request *protos.CreateSessionRequest,
 ) (*protos.CreateSessionResponse, error) {
+	if err := validateCreateSessionRequest(request); err != nil {
+		return nil, err
+	}
 
-	return (&protos.UnimplementedCentralSessionControllerServer{}).CreateSession(ctx, request)
+	policy, policyId, err := srv.getSmPolicyRules(request)
+	metrics.ReportCreateSmPolicy(err)
+	if err != nil {
+		return nil, err
+	}
+	err = srv.injectOmnipresentRules(policy)
+	if err != nil {
+		glog.Errorf("Failed to inject omnipresent rules %s", err)
+	}
+	return n7.GetCreateSessionResponseProto(request, policy, policyId), nil
 }
 
 // UpdateSession handles periodic updates from gateways that include quota

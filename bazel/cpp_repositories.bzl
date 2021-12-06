@@ -115,3 +115,21 @@ def cpp_repositories():
         remote = "https://github.com/getsentry/sentry-native",
         shallow_since = "1627998929 +0000",
     )
+
+    http_archive(
+        name = "libtins",
+        build_file = "//bazel/external:libtins.BUILD",
+        url = "https://github.com/mfontanini/libtins/archive/refs/tags/v4.2.tar.gz",
+        strip_prefix = "libtins-4.2",
+        sha256 = "a9fed73e13f06b06a4857d342bb30815fa8c359d00bd69547e567eecbbb4c3a1",
+    )
+
+    new_git_repository(
+        name = "liblfds",
+        build_file = "//bazel/external:liblfds.BUILD",
+        commit = "b813a0e546ed54e54b3873bdf180cf885c39bbca",
+        remote = "https://github.com/liblfds/liblfds.git",
+        shallow_since = "1464682027 +0300",
+        patches = ["//third_party/build/patches/liblfds:0001-arm64-support.patch"],
+        patch_args = ["--strip=1"],
+    )

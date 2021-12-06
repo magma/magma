@@ -47,7 +47,7 @@ class UplinkBridgeController(MagmaController):
             'sgi_management_iface_vlan', 'sgi_management_iface_ip_addr',
             'dev_vlan_in', 'dev_vlan_out', 'ovs_vlan_workaround',
             'sgi_management_iface_gw', 'sgi_management_iface_ipv6_addr',
-            'sgi_management_iface_ipv6_gw',
+            'sgi_management_iface_ipv6_gw', 'sgi_ip_monitoring',
         ],
     )
 
@@ -58,6 +58,7 @@ class UplinkBridgeController(MagmaController):
         self.logger.info("uplink bridge app config: %s", self.config)
         self._clean_restart = kwargs['config']['clean_restart']
         self._sgi_ip_mon = None
+        self._datapath = None
 
     def _get_config(self, config_dict) -> namedtuple:
 
@@ -92,6 +93,7 @@ class UplinkBridgeController(MagmaController):
         ovs_vlan_workaround = config_dict.get('ovs_vlan_workaround', True)
         sgi_management_iface_gw = config_dict.get('sgi_management_iface_gw', "")
         sgi_management_iface_ipv6_gw = config_dict.get('sgi_management_iface_ipv6_gw', "")
+        sgi_ip_monitoring = config_dict.get('sgi_ip_monitoring', True)
 
         return self.UplinkConfig(
             enable_nat=enable_nat,
@@ -108,9 +110,11 @@ class UplinkBridgeController(MagmaController):
             ovs_vlan_workaround=ovs_vlan_workaround,
             sgi_management_iface_gw=sgi_management_iface_gw,
             sgi_management_iface_ipv6_gw=sgi_management_iface_ipv6_gw,
+            sgi_ip_monitoring=sgi_ip_monitoring,
         )
 
     def initialize_on_connect(self, datapath):
+        self._datapath = datapath
 
         if self.config.enable_nat is True:
             self._delete_all_flows()
@@ -527,6 +531,8 @@ class UplinkBridgeController(MagmaController):
         setup_dhclient = ["dhclient", if_name]
         try:
             subprocess.check_call(setup_dhclient)
+            # delay to get DHCP address
+            hub.sleep(2)
         except subprocess.CalledProcessError as ex:
             self.logger.info(
                 "could not release dhcp lease: %s, %s",
@@ -539,7 +545,7 @@ class UplinkBridgeController(MagmaController):
         self._start_dhclient_if(if_name, af_inet)
 
         self.logger.info("SGi DHCP: restart for %s done", if_name)
-        while True:
+        while self.config.sgi_ip_monitoring:
             # keep updating flow to handle IP address change.
 
             self._set_sgi_ipv4_and_v6_ingress_flows()

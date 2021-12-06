@@ -362,6 +362,26 @@ func (m *GatewayRanConfigs) ToUpdateCriteria(ctx context.Context, networkID stri
 	return cellularConfig.ToUpdateCriteria(context.Background(), networkID, gatewayID)
 }
 
+func (m *GatewayNgcConfigs) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
+	gatewayConfig := &GatewayCellularConfigs{}
+	err := gatewayConfig.FromBackendModels(context.Background(), networkID, gatewayID)
+	if err != nil {
+		return err
+	}
+	*m = *gatewayConfig.Ngc
+	return nil
+}
+
+func (m *GatewayNgcConfigs) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	cellularConfig := &GatewayCellularConfigs{}
+	err := cellularConfig.FromBackendModels(context.Background(), networkID, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+	cellularConfig.Ngc = m
+	return cellularConfig.ToUpdateCriteria(context.Background(), networkID, gatewayID)
+}
+
 func (m *GatewayNonEpsConfigs) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
 	cellularConfig := &GatewayCellularConfigs{}
 	err := cellularConfig.FromBackendModels(context.Background(), networkID, gatewayID)

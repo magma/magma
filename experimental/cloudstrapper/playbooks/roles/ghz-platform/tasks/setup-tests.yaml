@@ -1,0 +1,21 @@
+---
+- name: install docker-compose pydep
+  pip:
+    name: docker-compose
+  become: true
+
+- name: copy redis conf template
+  copy:
+    src: "{{ MAGMA_ROOT }}/orc8r/gateway/configs/templates/redis.conf.template"
+    dest: "{{ MAGMA_ROOT }}/lte/gateway/configs/templates/"
+
+- name: apply changes to pipelined config
+  replace:
+    path: "{{ MAGMA_ROOT }}/lte/gateway/configs/pipelined.yml"
+    regexp: "^dp_router_enabled: true$"
+    replace: "dp_router_enabled: false"
+
+- name: bring up docker agw services
+  docker_compose:
+    project_src: "{{ GHZ_PATH }}"
+    files: docker-compose.yaml # avoid using .override.yaml

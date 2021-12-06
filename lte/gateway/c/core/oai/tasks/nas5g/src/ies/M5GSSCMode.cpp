@@ -33,7 +33,11 @@ int SSCModeMsg::DecodeSSCModeMsg(
     decoded++;
   }
 
-  ssc_mode->mode_val = (*buffer & 0x07);
+  if (iei > 0) {
+    ssc_mode->mode_val = (*buffer & 0x07);
+  } else {
+    ssc_mode->mode_val = (*buffer >> 4) & 0x07;
+  }
   MLOG(MDEBUG) << "DecodeSSCModeMsg__: mode_val = " << std::hex
                << int(ssc_mode->mode_val);
 
@@ -53,8 +57,11 @@ int SSCModeMsg::EncodeSSCModeMsg(
     MLOG(MDEBUG) << "In EncodeSSCModeMsg: iei" << std::hex << int(*buffer);
     encoded++;
   }
-
-  *buffer = 0x00 | (*buffer & 0xf0) | (ssc_mode->mode_val & 0x07);
+  if (iei > 0) {
+    *buffer = 0x00 | (*buffer & 0xf0) | (ssc_mode->mode_val & 0x07);
+  } else {
+    *buffer = 0x00 | (*buffer & 0x0f) | ((ssc_mode->mode_val & 0x07) << 4);
+  }
   MLOG(MDEBUG) << "EncodeSSCModeMsg__: mode_val = " << std::hex << int(*buffer);
 
   return (encoded);

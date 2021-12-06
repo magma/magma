@@ -632,7 +632,6 @@ class UplinkBridgeWithNonNatUplinkConnect_Static_IP_Test(unittest.TestCase):
 
         check_connectivity(cls.ROUTER_IP, cls.UPLINK_ETH_PORT)
         BridgeTools.add_ovs_port(cls.UPLINK_BRIDGE, cls.UPLINK_ETH_PORT, "200")
-        print("create uplink br: done")
 
         # this is setup after AGW boot up in NATed mode.
         uplink_bridge_controller_reference = Future()
@@ -688,6 +687,7 @@ class UplinkBridgeWithNonNatUplinkConnect_Static_IP_Test(unittest.TestCase):
         BridgeTools.destroy_bridge(cls.BRIDGE)
         BridgeTools.destroy_bridge(cls.UPLINK_BRIDGE)
         BridgeTools.destroy_bridge(cls.NET_SW_BR)
+        subprocess.check_call(["ip", "link", "del", "dev", "testv1_in"])
 
     def testFlowSnapshotMatch(self):
         cls = self.__class__
@@ -819,7 +819,6 @@ class UplinkBridgeTestFlowRestore(unittest.TestCase):
 # DHCP based test
 
 
-@unittest.skip
 class UplinkBridgeWithNonNatUplinkConnect_Test(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
@@ -830,20 +829,20 @@ class UplinkBridgeWithNonNatUplinkConnect_Test(unittest.TestCase):
     UPLINK_DHCP = "tino_dhcp"
     SCRIPT_PATH = "/home/vagrant/magma/lte/gateway/python/magma/mobilityd/"
     UPLINK_ETH_PORT = "upb_ul_0"
-    UPLINK_BRIDGE = 'upt_br0'
+    UPLINK_BRIDGE = 'upt_br1'
     UPLINK_PATCH = 'test_patch_p2'
     ROUTER_IP = "10.55.0.211"
 
     @classmethod
-    def _setup_vlan_network(cls, vlan: str):
+    def _setup_vlan_network(cls, vlan: str, br_mac):
         setup_vlan_switch = cls.SCRIPT_PATH + "scripts/setup-uplink-vlan-sw.sh"
         subprocess.check_call([setup_vlan_switch, cls.NET_SW_BR, "upb"])
-        cls._setup_vlan(vlan)
+        cls._setup_vlan(vlan, br_mac)
 
     @classmethod
-    def _setup_vlan(cls, vlan):
+    def _setup_vlan(cls, vlan, br_mac):
         setup_vlan_switch = cls.SCRIPT_PATH + "scripts/setup-uplink-vlan-srv.sh"
-        subprocess.check_call([setup_vlan_switch, cls.NET_SW_BR, vlan, "55"])
+        subprocess.check_call([setup_vlan_switch, cls.NET_SW_BR, vlan, "55", br_mac])
 
     @classmethod
     def setUpClass(cls):
@@ -858,9 +857,11 @@ class UplinkBridgeWithNonNatUplinkConnect_Test(unittest.TestCase):
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([])
 
-        cls._setup_vlan_network("0")
-
         BridgeTools.create_bridge(cls.UPLINK_BRIDGE, cls.UPLINK_BRIDGE)
+        br_mac = BridgeTools.get_mac_address(cls.UPLINK_BRIDGE)
+
+        cls._setup_vlan_network("0", br_mac)
+
         BridgeTools.create_internal_iface(
             cls.UPLINK_BRIDGE,
             cls.UPLINK_DHCP, None,
@@ -869,6 +870,22 @@ class UplinkBridgeWithNonNatUplinkConnect_Test(unittest.TestCase):
             cls.UPLINK_BRIDGE,
             cls.UPLINK_PATCH, None,
         )
+        flush_ip_cmd = [
+            "ip",
+            "addr", "flush",
+            "dev",
+            cls.UPLINK_BRIDGE,
+        ]
+        subprocess.check_call(flush_ip_cmd)
+
+        set_ip_cmd = [
+            "ip",
+            "addr", "replace",
+            "fe80::b0a6:34ff:fee0:b640",
+            "dev",
+            cls.UPLINK_BRIDGE,
+        ]
+        subprocess.check_call(set_ip_cmd)
 
         check_connectivity(cls.ROUTER_IP, cls.UPLINK_ETH_PORT)
 
@@ -906,6 +923,7 @@ class UplinkBridgeWithNonNatUplinkConnect_Test(unittest.TestCase):
                 'ovs_vlan_workaround': True,
                 'dev_vlan_in': "testv1_in",
                 'dev_vlan_out': "testv1_out",
+                'sgi_ip_monitoring': False,
             },
             mconfig=None,
             loop=None,
@@ -926,6 +944,8 @@ class UplinkBridgeWithNonNatUplinkConnect_Test(unittest.TestCase):
         BridgeTools.destroy_bridge(cls.BRIDGE)
         BridgeTools.destroy_bridge(cls.UPLINK_BRIDGE)
         BridgeTools.destroy_bridge(cls.NET_SW_BR)
+        subprocess.check_call(["ip", "link", "del", "dev", "testv1_in"])
+        subprocess.check_call(["pkill", "-f", "dhclient.*_br"])
 
     def testFlowSnapshotMatch(self):
         cls = self.__class__
@@ -936,7 +956,6 @@ class UplinkBridgeWithNonNatUplinkConnect_Test(unittest.TestCase):
         self.assertEqual(get_ovsdb_port_tag(cls.UPLINK_BRIDGE), '[]')
         # after Non NAT init, router shld be accessible.
         # manually start DHCP client on up-br
-        threading.Event().wait(.5)
         check_connectivity(cls.ROUTER_IP, cls.UPLINK_BRIDGE)
 
 

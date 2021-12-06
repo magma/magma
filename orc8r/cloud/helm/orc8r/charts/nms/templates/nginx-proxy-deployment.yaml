@@ -22,7 +22,12 @@ kind: Deployment
 metadata:
   name: nms-nginx-proxy
   labels:
+{{ include "default-labels" . | indent 4 }}
+{{ include "nginx-image-version-label" . | indent 4 }}
 {{ tuple $envAll "nms" "nginx" | include "nms.labels" | indent 4 }}
+  annotations:
+{{ include "release-name-annotation" . | indent 4 }}
+
 spec:
   replicas: {{ .Values.nginx.replicas }}
   strategy:
@@ -30,10 +35,14 @@ spec:
   selector:
     matchLabels:
 {{ tuple $envAll "nms" "nginx" | include "nms.selector-labels" | indent 6 }}
+{{ include "nginx-image-version-label" . | indent 6 }}
   template:
     metadata:
       labels:
 {{ tuple $envAll "nms" "nginx" | include "nms.selector-labels" | indent 8 }}
+{{ include "nginx-image-version-label" . | indent 8 }}
+      annotations:
+{{ include "release-name-annotation" . | indent 8 }}
     spec:
       {{- if .Values.rbac }}
       serviceAccountName: {{ $serviceAccountName }}
@@ -68,6 +77,10 @@ spec:
             - name: nginx-proxy-etc
               mountPath: /etc/nginx/conf.d/nginx_proxy_ssl.conf
               subPath: nginx_proxy_ssl.conf
+            {{- if .Values.certs.enabled }}
+            - name: nms
+              mountPath: /var/opt/magma/certs/nms/
+            {{- else }}
             - name: orc8r-secrets-certs
               mountPath: /etc/nginx/conf.d/nms_nginx.pem
               subPath: {{ .Values.nginx.deployment.spec.ssl_cert_name }}
@@ -75,14 +88,21 @@ spec:
             - name: orc8r-secrets-certs
               mountPath: /etc/nginx/conf.d/nms_nginx.key.pem
               subPath: {{ .Values.nginx.deployment.spec.ssl_cert_key_name }}
+            {{- end }}
               readOnly: true
       volumes:
         - name: nginx-proxy-etc
           configMap:
             name: nginx-proxy-etc
             defaultMode: 0555
+        {{- if .Values.certs.enabled }}
+        - name: nms
+          secret:
+            secretName: {{ .Release.Name }}-nms-tls
+        {{- else }}
         - name: orc8r-secrets-certs
           secret:
             secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
+        {{- end }}
             defaultMode: 0444
 {{- end }}

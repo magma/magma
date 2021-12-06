@@ -47,11 +47,10 @@ bool AMFClientServicerBase::get_subs_auth_info_resync(
 int AMFClientServicerBase::allocate_ipv4_address(
     const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
     uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
-    uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len,
-    const ambr_t& subscribed_ue_ambr) {
+    uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
   return AsyncM5GMobilityServiceClient::getInstance().allocate_ipv4_address(
       subscriber_id, apn, pdu_session_id, pti, AF_INET, gnb_gtp_teid,
-      gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len, subscribed_ue_ambr);
+      gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len);
 }
 
 int AMFClientServicerBase::release_ipv4_address(

@@ -135,8 +135,8 @@ class NoAttachComplete(unittest.TestCase):
             response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
         )
 
-        # EPC would resend Attach accept 4 times and then would abort attach
-        # procedure
+        # EPC waits for timer 3450 expiry and resends Attach accept 4 times,
+        # then aborts attach procedure
         for i in range(4):
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(

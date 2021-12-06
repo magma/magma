@@ -39,6 +39,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo -n ${{ github.event.number }} > ./pr/NR
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
           echo -n "false" > ./pr/RPR
       - uses: actions/upload-artifact@v2
         if: always()

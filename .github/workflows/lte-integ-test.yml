@@ -7,17 +7,21 @@ on:  # yamllint disable-line rule:truthy
   workflow_run:
     workflows:
       - build-all
+    branches:
+      - master
+      - v1.*
     types:
       - completed
 
 jobs:
   lte-integ-test:
     runs-on: macos-10.15
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.event == 'push'
+    env:
+      SHA: ${{ github.event.workflow_run.head_commit.id || github.sha }}
     steps:
-      - run: echo "::set-output name=date::$(date +'%m-%d-%Y--%H-%M-%S')"
-        id: date
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ env.SHA }}
       - name: setup pyenv
         uses: "gabrielfalcao/pyenv-action@v8"
         with:
@@ -28,7 +32,7 @@ jobs:
       - name: Install pre requisites
         run: |
           pip3 install --upgrade pip
-          pip3 install ansible fabric3 jsonpickle requests PyYAML
+          pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
           vagrant plugin install vagrant-vbguest vagrant-disksize
       - name: Open up network interfaces for VM
         run: |
@@ -57,12 +61,23 @@ jobs:
         with:
           files: lte/gateway/test-results/**/*.xml
           check_run_annotations: all tests
+      - name: Publish results to Firebase
+        if: always() && github.event.workflow_run.event == 'push'
+        env:
+          FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
+          REPORT_FILENAME: "lte_integ_test_${{ env.SHA }}.html"
+        run: |
+          npm install -g xunit-viewer
+          [ -d "lte/gateway/test-results/" ] && { xunit-viewer -r lte/gateway/test-results/ -o "$REPORT_FILENAME"; }
+          [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
+          [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
+          python ci-scripts/firebase_publish_report.py -id ${{ env.SHA }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} lte --url $URL
       - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
+        if: failure() && github.event.workflow_run.event == 'push'
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_USERNAME: "LTE integ test"
           SLACK_AVATAR: ":boom:"
         uses: Ilshidur/action-slack@2.1.0
         with:
-          args: "LTE integration test test failed on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
+          args: "LTE integration test test failed on [${{ env.SHA }}](${{github.event.repository.owner.html_url}}/magma/commit/${{ env.SHA }}): ${{ steps.commit.outputs.title}}"
