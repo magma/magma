@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    io.kompose.service: oai-config
+  name: oai-config
+spec:
+  containers:
+    - args:
+        - /usr/bin/env
+        - python3
+        - /usr/local/bin/generate_oai_config.py
+      image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
+      name: oai-config
+      resources: {}
+      volumeMounts:
+        - mountPath: /etc/magma
+          name: magmad-claim0
+        - mountPath: /var/opt/magma
+          name: magmad-claim1
+        - mountPath: /tmp
+          name: magmad-claim2
+  restartPolicy: Never
+  hostNetwork: true
+  volumes:
+    - name: magmad-claim0
+      hostPath:
+        path: /etc/magma
+        type: Directory
+    - name: magmad-claim1
+      hostPath:
+        path: /var/opt/magma
+        type: Directory
+    - name: magmad-claim2
+      hostPath:
+        path: /tmp
+        type: Directory
+status: {}

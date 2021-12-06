@@ -1,0 +1,55 @@
+{{/*
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: magmad
+  name: magmad
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: magmad
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: magmad
+    spec:
+      containers:
+        - args:
+            - /usr/bin/env
+            - python3
+            - -m
+            - magma.magmad.main
+          image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          name: magmad
+          resources: {}
+          volumeMounts:
+            - mountPath: /etc/magma
+              name: magmad-claim0
+            - mountPath: /var/opt/magma
+              name: magmad-claim1
+      restartPolicy: Always
+      hostNetwork: true
+      volumes:
+        - name: magmad-claim0
+          hostPath:
+            path: /etc/magma
+            type: Directory
+        - name: magmad-claim1
+          hostPath:
+            path: /var/opt/magma
+            type: Directory
