@@ -81,5 +81,3 @@ do
     sentry-cli upload-dif --log-level=info --org="$ORG" --project="$PROJECT" "$EXEC"
 done
 ```
-
-
