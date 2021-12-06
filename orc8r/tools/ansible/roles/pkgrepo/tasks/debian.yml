@@ -29,13 +29,8 @@
   apt: pkg=apt-transport-https state=present update_cache=yes
   #  when: preburn
 
-- name: Add JFrog key
-  apt_key:
-    url: https://facebookconnectivity.jfrog.io/artifactory/api/gpg/key/public
-    state: present
-
 - name: Add JFrog repo
   apt_repository:
-    repo: 'deb https://facebookconnectivity.jfrog.io/artifactory/list/{{ repo }}/ {{ distribution }} main'
+    repo: 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main amd64'
     update_cache: yes
     mode: 0644
