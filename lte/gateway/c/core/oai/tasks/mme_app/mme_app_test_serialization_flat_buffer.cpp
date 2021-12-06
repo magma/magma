@@ -28,6 +28,8 @@ extern "C" {
 #include "mme_app_test_serialization.h"
 #include "mme_nas_state_generated.h"
 #include <mcheck.h>
+#include <sys/time.h>      // rusage()
+#include <sys/resource.h>  //rusage()
 //--C++ includes ---------------------------------------------------------------
 #include <chrono>
 #include <cmath>
@@ -40,6 +42,8 @@ extern task_zmq_ctx_t main_zmq_ctx;
 using magma::lte::MmeNasStateManager;
 using namespace magma::lte::test_flat_buffer;
 
+extern void log_rusage_diff(
+    struct rusage& ru_first, struct rusage& ru_last, const char* context);
 //------------------------------------------------------------------------------
 std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>>
 mme_app_fb_allocate_ues(flatbuffers::FlatBufferBuilder& builder, uint num_ues);
@@ -80,7 +84,7 @@ Guti guti2fb(const guti_t& guti) {
 //------------------------------------------------------------------------------
 std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>
 build_ue_mm_context() {
-  flatbuffers::FlatBufferBuilder builder(sizeof(UeMmContext));
+  flatbuffers::FlatBufferBuilder builder(20000);
   // Force all fields you set to actually be written. This, of course,
   // increases the size of the buffer somewhat, but this may be
   // acceptable for a mutable buffer.
@@ -180,21 +184,24 @@ build_ue_mm_context() {
   ue_mm_context_builder.add_time_ics_rsp_timer_started(
       time_ics_rsp_timer_started);
 
-  std::cout << "Before ue_mm_context_builder.Finish()" << std::endl;
-  std::cout << "builder.GetSize() = " << builder.GetSize() << std::endl;
-
   flatbuffers::Offset<UeMmContext> o_ue_mm_context =
       ue_mm_context_builder.Finish();
+  builder.Finish(o_ue_mm_context);
   uint8_t* buf                = builder.GetBufferPointer();
   flatbuffers::uoffset_t size = builder.GetSize();
-  std::cout << "builder.GetSize() = " << builder.GetSize() << std::endl;
-
-
-  uint8_t* buf_cp            = (uint8_t*) malloc(size);
+  flatbuffers::uoffset_t align = 64;
+  // TODO optimize '+1'
+  flatbuffers::uoffset_t size_aligned = ((size / align)+1)*align;
+  //std::cout << "builder.GetSize() = " << builder.GetSize() << std::endl;
+  // recopy buffer in another buffer we can manage
+  uint8_t* buf_cp            = (uint8_t*) aligned_alloc(align, size_aligned);
   UeMmContext* ue_mm_context = nullptr;
   if (buf_cp) {
+    memcpy((void*)buf_cp, buf, size);
     ue_mm_context = GetMutableUeMmContext(buf_cp);
   }
+  // no need to copy size_aligned
+  // but need to read with size_aligned
   std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*> ret(
       buf_cp, size, ue_mm_context);
   return ret;
@@ -214,12 +221,11 @@ mme_app_fb_allocate_ues(uint num_ues) {
 
   for (int i = 0; i < num_ues; i++) {
     // UeMmContext
-    std::cout << "Will build "<< i << "'th UeMmContext context " << std::endl;
-
     std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*> ue_mm_fb_ctx =
         build_ue_mm_context();
-    std::cout << "Build "<< i << "'th UeMmContext context " << std::endl;
-
+    //std::cout << "Built " << i << "'th UeMmContext context @"
+    //          << (void*) std::get<2>(ue_mm_fb_ctx) << " buffer @"
+    //          << (void*) std::get<0>(ue_mm_fb_ctx) << std::endl;
 
     enb_ue_s1ap_id++;
     std::get<2>(ue_mm_fb_ctx)->mutate_enb_ue_s1ap_id(enb_ue_s1ap_id);
@@ -242,6 +248,7 @@ mme_app_fb_allocate_ues(uint num_ues) {
             ->mutable_emm_context()
             ->mutable_esm_ctx()
             .mutable_esm_proc_data();
+
     esm_proc_data.mutable_bearer_qos().mutate_pci(true);
     esm_proc_data.mutable_bearer_qos().mutate_pl(15);
     esm_proc_data.mutable_bearer_qos().mutate_qci(5);
@@ -301,7 +308,8 @@ mme_app_fb_allocate_ues(uint num_ues) {
 }
 //------------------------------------------------------------------------------
 void mme_app_fb_deallocate_ues(
-    std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>>& contexts) {
+    std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>>&
+        contexts) {
   // TODO
   contexts.clear();
 }
@@ -309,21 +317,24 @@ void mme_app_fb_deallocate_ues(
 //------------------------------------------------------------------------------
 void mme_app_fb_serialize_ues(
     mme_app_desc_t* mme_app_desc,
-    std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>>& contexts) {
-  for (std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>>::iterator it =
-           contexts.begin();
+    std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>>&
+        contexts) {
+  for (std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>>::
+           iterator it = contexts.begin();
        it != contexts.end(); ++it) {
     auto imsi_str = MmeNasStateManager::getInstance().get_imsi_str(
-      std::get<2>(*it)->emm_context()->_imsi64());
+        std::get<2>(*it)->emm_context()->_imsi64());
     MmeNasStateManager::getInstance().write_ue_state_to_db(
-        reinterpret_cast<uint8_t*>(std::get<2>(*it)), std::get<1>(*it), imsi_str);
+        reinterpret_cast<uint8_t*>(std::get<2>(*it)), std::get<1>(*it),
+        imsi_str);
   }
 }
 //------------------------------------------------------------------------------
 void mme_app_fb_insert_ues(
-    std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>>& contexts) {
-  for (std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>>::iterator it =
-           contexts.begin();
+    std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>>&
+        contexts) {
+  for (std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>>::
+           iterator it = contexts.begin();
        it != contexts.end(); ++it) {
     // TODO
   }
@@ -338,18 +349,44 @@ void mme_app_fb_deserialize_ues(void) {
 //------------------------------------------------------------------------------
 void mme_app_fb_test_serialization(mme_app_desc_t* mme_app_desc, uint num_ues) {
 
-  std::cout << "sizeof(UeMmContext) : " << sizeof(struct UeMmContext) << std::endl;
-  std::cout << "sizeof(EmmContext) : " << sizeof(struct EmmContext) << std::endl;
-  std::cout << "sizeof(EsmContext) : " << sizeof(struct EsmContext) << std::endl;
+  struct rusage ru_start_ctxt_to_proto, ru_end_ctxt_to_proto;
 
-  std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>> contexts =
-      mme_app_fb_allocate_ues(num_ues);
+  std::cout << "sizeof(UeMmContext) : " << sizeof(struct UeMmContext)
+            << std::endl;
+  std::cout << "sizeof(EmmContext) : " << sizeof(struct EmmContext)
+            << std::endl;
+  std::cout << "sizeof(EsmContext) : " << sizeof(struct EsmContext)
+            << std::endl;
+
+  std::cout << "sizeof(ApnConfigProfile) : " << sizeof(struct ApnConfigProfile)
+            << std::endl;
+  std::cout << "sizeof(PdnContextArray) : " << sizeof(struct PdnContextArray)
+            << std::endl;
+  std::cout << "sizeof(BearerContextArray) : "
+            << sizeof(struct BearerContextArray) << std::endl;
+  std::cout << "sizeof(BearerContext) : " << sizeof(struct BearerContext)
+            << std::endl;
+  std::cout << "sizeof(EsmEbrContext) : " << sizeof(struct EsmEbrContext)
+            << std::endl;
+  std::cout << "sizeof(UeRadioCapability) : "
+            << sizeof(struct UeRadioCapability) << std::endl;
+  std::cout << "sizeof(RegionalSubscriptionArray) : "
+            << sizeof(struct RegionalSubscriptionArray) << std::endl;
+  std::cout << "sizeof(SgsContext) : " << sizeof(struct SgsContext)
+            << std::endl;
+
+  std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>>
+      contexts = mme_app_fb_allocate_ues(num_ues);
 
   mme_app_fb_insert_ues(contexts);
 
+  getrusage(RUSAGE_SELF, &ru_start_ctxt_to_proto);
   auto start_ctxt_to_proto = std::chrono::high_resolution_clock::now();
   mme_app_fb_serialize_ues(mme_app_desc, contexts);
   auto end_ctxt_to_proto = std::chrono::high_resolution_clock::now();
+  getrusage(RUSAGE_SELF, &ru_end_ctxt_to_proto);
+  log_rusage_diff(
+      ru_start_ctxt_to_proto, ru_end_ctxt_to_proto, " Contexts to serialization");
   auto duration_ctxt_to_proto =
       std::chrono::duration_cast<std::chrono::microseconds>(
           end_ctxt_to_proto - start_ctxt_to_proto);

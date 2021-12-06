@@ -61,7 +61,9 @@ struct SgsContext {
 }
 
 struct PdnContextArray {
-  item:[PdnContext:10];
+  // Was set to 10 initially, moved to 5 due to Flat buffer
+  // UE_MM_CONTEXT bigger than 65536 bytes
+  item:[PdnContext:5];
 }
 
 struct BearerContextArray {

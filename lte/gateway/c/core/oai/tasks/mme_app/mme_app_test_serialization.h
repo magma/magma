@@ -24,7 +24,6 @@ void mme_app_schedule_test_flatbuffer_serialization(uint num_ues);
 void mme_app_test_protobuf_serialization(
     mme_app_desc_t* mme_app_desc, uint num_ues);
 void mme_app_fb_test_serialization(mme_app_desc_t* mme_app_desc, uint num_ues);
-
 #ifdef __cplusplus
 }
 #endif

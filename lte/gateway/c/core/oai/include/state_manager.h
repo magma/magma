@@ -37,7 +37,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_ue_state_generated.h"
 
 namespace {
-constexpr char IMSI_PREFIX[] = "IMSI";
+constexpr char IMSI_PREFIX[]            = "IMSI";
 constexpr char FLATBUFFER_IMSI_PREFIX[] = "FBIMSI";
 }  // namespace
 
@@ -193,8 +193,7 @@ class StateManager {
    * Writes task state to db if persist_state is enabled
    */
   virtual void write_ue_state_to_db(
-      uint8_t* buf, int size,
-      const std::string& imsi_str) {
+      uint8_t* buf, int size, const std::string& imsi_str) {
     AssertFatal(
         is_initialized,
         "StateManager init() function should be called to initialize state");

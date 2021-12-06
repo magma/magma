@@ -257,8 +257,9 @@ void mme_app_test_protobuf_serialization(
   auto duration_ctxt_to_proto =
       std::chrono::duration_cast<std::chrono::microseconds>(
           end_ctxt_to_proto - start_ctxt_to_proto);
-  std::cout << "Time taken by context to proto conversion " << num_ues << " UEs : "
-            << duration_ctxt_to_proto.count() << " microseconds" << std::endl;
+  std::cout << "Time taken by context to proto conversion " << num_ues
+            << " UEs : " << duration_ctxt_to_proto.count() << " microseconds"
+            << std::endl;
   OAILOG_INFO(
       LOG_MME_APP, "Time taken by context to proto conversion %d UEs: %ld µs\n",
       num_ues, duration_ctxt_to_proto.count());
@@ -274,11 +275,13 @@ void mme_app_test_protobuf_serialization(
   auto duration_proto_to_ctxt =
       std::chrono::duration_cast<std::chrono::microseconds>(
           end_proto_to_ctxt - start_proto_to_ctxt);
-  std::cout << "Time taken by proto to context conversion " << num_ues << " UEs : "
-            << duration_proto_to_ctxt.count() << " microseconds" << std::endl;
+  std::cout << "Time taken by proto to context conversion " << num_ues
+            << " UEs : " << duration_proto_to_ctxt.count() << " microseconds"
+            << std::endl;
   OAILOG_INFO(
-      LOG_MME_APP, "Time taken by proto to context conversion %d UEs : %ld µs\n",
-      num_ues, duration_proto_to_ctxt.count());
+      LOG_MME_APP,
+      "Time taken by proto to context conversion %d UEs : %ld µs\n", num_ues,
+      duration_proto_to_ctxt.count());
   /*auto imsi_str = MmeNasStateManager::getInstance().get_imsi_str(imsi64);
   MmeNasStateManager::getInstance().write_ue_state_to_db(
       ue_context, imsi_str);
