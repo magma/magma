@@ -17,7 +17,7 @@ The first step to setting up your account is to request access to Linux Foundati
 
 To configure Sentry, you will need to create a pull request to update the config.yml on the Magma Github page. If you skip this step, all C/C++ will be unreadable for your Sentry instance. This file is located [here](https://github.com/magma/magma/blob/master/.circleci/config.yml). You will need to navigate to the "sentry-create-and-upload-artifacts" section of the file and create a new a new sentry upload in the following format:
 
-```
+```bash
 sentry-upload:
 executable_name: << parameters.executable_name >>
 project: [fill in your project here]
@@ -29,7 +29,7 @@ Reporting for Python services, MME, and SessionD will *only* be enabled if the c
 
 Fill out the following fields in `control_proxy.yml` to enable Sentry reporting.
 
-```
+```bash
 # [Experimental] Sentry related configs
 # If set, the Sentry Python SDK will be initialized for all python services
 sentry_url_python: ""
@@ -55,7 +55,7 @@ In order for the build artifacts to have a debug section, they have to be built 
 
 The following script outlines the necessary steps.
 
-```
+```bash
 #!/bin/bash
 # To install sentry-cli, run `curl -sL https://sentry.io/get-cli/ | bash`
 
