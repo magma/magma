@@ -79,14 +79,14 @@ func GetMetrics(prometheus_labels map[string]string) ([]*prometheus_proto.Metric
 	// timeStamp in milliseconds
 	timeStamp := time.Now().UnixNano() / int64(time.Millisecond)
 	// labels for metrics
-	labels := make([]*prometheus_proto.LabelPair)
+	labels := make([]*prometheus_proto.LabelPair, 0)
 	for label_name, label_value := range prometheus_labels {
-		labels = append(labels, prometheus_proto.LabelPair(label_name, label_value)
+		labels = append(labels, prometheus_proto.LabelPair(label_name, label_value))
 	}
 	for _, metric_family := range families {
 		for _, sample := range metric_family.Metric {
 			sample.TimestampMs = &timeStamp
-			sample.Labels = labels
+			sample.Label = labels
 		}
 	}
 	return families, nil
