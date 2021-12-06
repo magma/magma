@@ -42,11 +42,25 @@ func addAdminToken(cmd *commands.Command, args []string) int {
 		Username: username,
 		Password: []byte(password),
 	}
-	resource := &certprotos.Resource{
-		Effect:       certprotos.Effect_ALLOW,
-		Action:       certprotos.Action_WRITE,
-		ResourceType: certprotos.ResourceType_URI,
-		Resource:     "/**",
+	resources := []*certprotos.Resource{
+		{
+			Effect:       certprotos.Effect_ALLOW,
+			Action:       certprotos.Action_WRITE,
+			ResourceType: certprotos.ResourceType_URI,
+			Resource:     "**",
+		},
+		{
+			Effect:       certprotos.Effect_ALLOW,
+			Action:       certprotos.Action_WRITE,
+			ResourceType: certprotos.ResourceType_NETWORK_ID,
+			Resource:     "**",
+		},
+		{
+			Effect:       certprotos.Effect_ALLOW,
+			Action:       certprotos.Action_WRITE,
+			ResourceType: certprotos.ResourceType_TENANT_ID,
+			Resource:     "**",
+		},
 	}
 	ctx := context.Background()
 
@@ -56,7 +70,7 @@ func addAdminToken(cmd *commands.Command, args []string) int {
 	}
 	req := &certprotos.AddUserTokenRequest{
 		Username:  username,
-		Resources: &certprotos.ResourceList{Resources: []*certprotos.Resource{resource}},
+		Resources: &certprotos.ResourceList{Resources: resources},
 	}
 	err = certifier.AddUserToken(ctx, req)
 

@@ -88,8 +88,8 @@ func TestAuthMiddleware(t *testing.T) {
 		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, test_utils.TestUsername, bobToken, 403},
 		{"GET", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestUsername, bobToken, 200},
 		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestUsername, bobToken, 403},
-		// Note: /magma/v1/networks/** does not match for /magma/v1/networks
-		{"GET", urlPrefix + RegisterNetworkV1, test_utils.TestUsername, bobToken, 403},
+		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestUsername, bobToken, 403},
+		{"GET", urlPrefix + RegisterNetworkV1, test_utils.TestUsername, bobToken, 200},
 		{"POST", urlPrefix + RegisterNetworkV1, test_utils.TestUsername, bobToken, 403},
 		{"POST", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestUsername, bobToken, 403},
 		{"GET", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestUsername, bobToken, 403},

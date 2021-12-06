@@ -173,16 +173,15 @@ func getRequestAction(req *http.Request, decorate logDecorator) certprotos.Actio
 }
 
 func getResource(c echo.Context) (certprotos.ResourceType, string) {
-	// TODO(christinewang5): support different resource types
-	// networkIDStr := strings.ToLower(certprotos.ResourceType_NETWORK_ID.String())
-	// tenantIDStr := strings.ToLower(certprotos.ResourceType_TENANT_ID.String())
-	// for _, p := range c.ParamNames() {
-	// 	switch p {
-	// 	case networkIDStr:
-	// 		return certprotos.ResourceType_NETWORK_ID, c.Param(networkIDStr)
-	// 	case tenantIDStr:
-	// 		return certprotos.ResourceType_TENANT_ID, c.Param(tenantIDStr)
-	// 	}
-	// }
+	networkIDStr := strings.ToLower(certprotos.ResourceType_NETWORK_ID.String())
+	tenantIDStr := strings.ToLower(certprotos.ResourceType_TENANT_ID.String())
+	for _, p := range c.ParamNames() {
+		switch p {
+		case networkIDStr:
+			return certprotos.ResourceType_NETWORK_ID, c.Param(networkIDStr)
+		case tenantIDStr:
+			return certprotos.ResourceType_TENANT_ID, c.Param(tenantIDStr)
+		}
+	}
 	return certprotos.ResourceType_URI, c.Request().RequestURI
 }

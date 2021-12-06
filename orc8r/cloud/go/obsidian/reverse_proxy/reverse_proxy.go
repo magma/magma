@@ -82,9 +82,9 @@ func (r *ReverseProxyHandler) AddReverseProxyPaths(server *echo.Echo, pathPrefix
 			if err != nil {
 				glog.Infof("Failed unmarshalling service config %v", err)
 			}
-			// if serviceConfig.UseToken {
-			g.Use(access.TokenMiddleware)
-			// }
+			if serviceConfig.UseToken {
+				g.Use(access.TokenMiddleware)
+			}
 			g.Use(r.activeBackendMiddleware)
 			g.Use(middleware.Proxy(middleware.NewRoundRobinBalancer(target)))
 			r.proxyBackendsByPathPrefix[prefix] = &reverseProxyBackend{

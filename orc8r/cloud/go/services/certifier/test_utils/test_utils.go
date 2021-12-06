@@ -14,6 +14,7 @@ import (
 const TestRootUsername = "root"
 const TestUsername = "bob"
 const TestPassword = "password"
+const WriteTestNetworkId = "N6789"
 
 func GetCertifierBlobstore(t *testing.T) storage.CertifierStorage {
 	fact := test_utils.NewSQLBlobstore(t, storage.CertifierTableBlobstore)
@@ -52,29 +53,58 @@ func createTestUser(t *testing.T, username string, password string) (certprotos.
 }
 
 func createTestUserPolicy(token string) certprotos.Policy {
-	resource := certprotos.Resource{
-		Effect:       certprotos.Effect_ALLOW,
-		Action:       certprotos.Action_READ,
-		ResourceType: certprotos.ResourceType_URI,
-		Resource:     "/magma/v1/networks/**",
+	resources := []*certprotos.Resource{
+		{
+			Effect:       certprotos.Effect_ALLOW,
+			Action:       certprotos.Action_READ,
+			ResourceType: certprotos.ResourceType_URI,
+			Resource:     "**",
+		},
+		{
+			Effect:       certprotos.Effect_ALLOW,
+			Action:       certprotos.Action_WRITE,
+			ResourceType: certprotos.ResourceType_NETWORK_ID,
+			Resource:     WriteTestNetworkId,
+		},
+		{
+			Effect:       certprotos.Effect_ALLOW,
+			Action:       certprotos.Action_READ,
+			ResourceType: certprotos.ResourceType_NETWORK_ID,
+			Resource:     "**",
+		},
 	}
+
 	policy := certprotos.Policy{
 		Token:     token,
-		Resources: &certprotos.ResourceList{Resources: []*certprotos.Resource{&resource}},
+		Resources: &certprotos.ResourceList{Resources: resources},
 	}
 	return policy
 }
 
 func createTestAdminPolicy(token string) certprotos.Policy {
-	resource := certprotos.Resource{
-		Effect:       certprotos.Effect_ALLOW,
-		Action:       certprotos.Action_WRITE,
-		ResourceType: certprotos.ResourceType_URI,
-		Resource:     "/**",
+	resources := []*certprotos.Resource{
+		{
+			Effect:       certprotos.Effect_ALLOW,
+			Action:       certprotos.Action_WRITE,
+			ResourceType: certprotos.ResourceType_URI,
+			Resource:     "**",
+		},
+		{
+			Effect:       certprotos.Effect_ALLOW,
+			Action:       certprotos.Action_WRITE,
+			ResourceType: certprotos.ResourceType_NETWORK_ID,
+			Resource:     "**",
+		},
+		{
+			Effect:       certprotos.Effect_ALLOW,
+			Action:       certprotos.Action_WRITE,
+			ResourceType: certprotos.ResourceType_TENANT_ID,
+			Resource:     "**",
+		},
 	}
 	policy := certprotos.Policy{
 		Token:     token,
-		Resources: &certprotos.ResourceList{Resources: []*certprotos.Resource{&resource}},
+		Resources: &certprotos.ResourceList{Resources: resources},
 	}
 	return policy
 }

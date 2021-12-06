@@ -710,42 +710,29 @@ func (srv *CertifierServer) getPolicyDecisionFromToken(token string, reqResource
 	}
 	effect := certprotos.Effect_UNKNOWN
 	for _, policyResource := range policy.Resources.Resources {
-		effect = checkAction(reqResource, policyResource)
-		if effect == certprotos.Effect_DENY {
+		actionEffect := checkAction(reqResource, policyResource)
+		if actionEffect == certprotos.Effect_DENY {
 			return certprotos.Effect_DENY, nil
 		}
 
-		effect = checkResource(reqResource, policyResource)
-		if effect == certprotos.Effect_DENY {
-			return certprotos.Effect_DENY, nil
+		resourceEffect := checkResource(reqResource, policyResource)
+		if resourceEffect != certprotos.Effect_UNKNOWN {
+			return resourceEffect, nil
 		}
 	}
 
 	return effect, nil
 }
 
+// checkResource checks if the requested resource is authorized by the policy
 func checkResource(reqResource, policyResource *certprotos.Resource) certprotos.Effect {
-	switch reqResource.ResourceType {
-	case certprotos.ResourceType_URI:
-		return checkRequestURI(reqResource, policyResource)
-	case certprotos.ResourceType_NETWORK_ID:
-	case certprotos.ResourceType_TENANT_ID:
-		return checkID(reqResource, policyResource)
-	default:
-		return certprotos.Effect_UNKNOWN
-	}
-	return certprotos.Effect_UNKNOWN
-}
-
-// checkRequestURI checks if the requested resource is authorized by the policy
-func checkRequestURI(reqResource *certprotos.Resource, policyResource *certprotos.Resource) certprotos.Effect {
 	// The policy does not handle this case, so return UNKNOWN.
-	if reqResource.ResourceType != certprotos.ResourceType_URI || policyResource.ResourceType != certprotos.ResourceType_URI {
+	if reqResource.ResourceType != policyResource.ResourceType {
 		return certprotos.Effect_UNKNOWN
 	}
-	reqURI := reqResource.Resource
-	policyURI := policyResource.Resource
-	if ok, _ := doublestar.Match(policyURI, reqURI); ok {
+	reqPath := reqResource.Resource
+	policyPath := policyResource.Resource
+	if ok, _ := doublestar.Match(policyPath, reqPath); ok {
 		return policyResource.Effect
 	}
 	return certprotos.Effect_UNKNOWN
@@ -773,11 +760,4 @@ func isTokenWithUser(token string, tokenList *certprotos.TokenList) error {
 		return status.Errorf(codes.PermissionDenied, "token is not registered with user")
 	}
 	return nil
-}
-
-func checkID(reqResource, policyResource *certprotos.Resource) certprotos.Effect {
-	if reqResource.Resource == policyResource.Resource {
-		return policyResource.Effect
-	}
-	return certprotos.Effect_UNKNOWN
 }

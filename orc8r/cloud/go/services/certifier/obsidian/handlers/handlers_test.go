@@ -3,6 +3,8 @@ package handlers_test
 import (
 	"testing"
 
+	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
+
 	"github.com/labstack/echo"
 
 	"magma/orc8r/cloud/go/obsidian"
@@ -88,11 +90,25 @@ func TestUserEndpoints(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Test token endpoints
-	writeAllResource := models.Resource{
-		Action:       models.ResourceActionWRITE,
-		Effect:       models.ResourceEffectALLOW,
-		Resource:     "/**",
-		ResourceType: models.ResourceResourceTypeURI,
+	writeAllResource := []*certprotos.Resource{
+		{
+			Effect:       certprotos.Effect_ALLOW,
+			Action:       certprotos.Action_WRITE,
+			ResourceType: certprotos.ResourceType_URI,
+			Resource:     "**",
+		},
+		{
+			Effect:       certprotos.Effect_ALLOW,
+			Action:       certprotos.Action_WRITE,
+			ResourceType: certprotos.ResourceType_NETWORK_ID,
+			Resource:     "**",
+		},
+		{
+			Effect:       certprotos.Effect_ALLOW,
+			Action:       certprotos.Action_WRITE,
+			ResourceType: certprotos.ResourceType_TENANT_ID,
+			Resource:     "**",
+		},
 	}
 	tc = tests.Test{
 		Method:         "POST",
