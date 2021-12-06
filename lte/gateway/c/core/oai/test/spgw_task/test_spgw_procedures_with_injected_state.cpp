@@ -11,18 +11,16 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-#include <string>
-#include <thread>
-
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
 
+#include <gtest/gtest.h>
+#include <string>
+#include <thread>
+
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
-#include "lte/gateway/c/core/oai/include/spgw_state.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.h"
 #include "lte/gateway/c/core/oai/test/spgw_task/mock_spgw_op.h"
 
 extern "C" {
@@ -33,6 +31,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 }
+
+#include "lte/gateway/c/core/oai/include/spgw_state.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.h"
 
 extern bool hss_associated;
 
@@ -78,6 +79,7 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
     // initialize the SPGW task
     spgw_app_init(&spgw_config, mme_config.use_stateless);
 
+    // add injection of state loaded in SPGW state manager
     std::string homedir = std::string(getpwuid(getuid())->pw_dir);
     name_of_ue_samples  = load_file_into_vector_of_line_content(
         homedir + "/" + DEFAULT_SPGW_CONTEXT_DATA_PATH,
