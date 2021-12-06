@@ -69,6 +69,6 @@ type PolicyStorage interface {
 	// PutPolicy updates the current policy
 	PutPolicy(token string, policy *protos.Policy) error
 
-	// DeleteToken deletes the token's policy form the policy db
-	DeleteToken(token string) error
+	// DeletePolicy deletes the token's policy form the policy db
+	DeletePolicy(token string) error
 }

@@ -25,7 +25,9 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/access"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
 )
 
 // ReverseProxyHandler tracks registered paths to their associated proxy
@@ -75,7 +77,14 @@ func (r *ReverseProxyHandler) AddReverseProxyPaths(server *echo.Echo, pathPrefix
 				},
 			}
 			g := server.Group(prefix)
+			var serviceConfig certifier.Config
+			_, _, err := config.GetStructuredServiceConfig(orc8r.ModuleName, certifier.ServiceName, &serviceConfig)
+			if err != nil {
+				glog.Infof("Failed unmarshalling service config %v", err)
+			}
+			// if serviceConfig.UseToken {
 			g.Use(access.TokenMiddleware)
+			// }
 			g.Use(r.activeBackendMiddleware)
 			g.Use(middleware.Proxy(middleware.NewRoundRobinBalancer(target)))
 			r.proxyBackendsByPathPrefix[prefix] = &reverseProxyBackend{

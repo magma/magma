@@ -28,7 +28,6 @@ func init() {
 	addInit(f) // see common_add.go
 }
 
-// TODO(christinewang5): change bootstrapping to fit new specs
 func addAdminToken(cmd *commands.Command, args []string) int {
 	f := cmd.Flags()
 	username := strings.TrimSpace(f.Arg(0))
@@ -39,32 +38,27 @@ func addAdminToken(cmd *commands.Command, args []string) int {
 		log.Fatalf("The admin username and password must be provided.")
 	}
 
-	token, _ := certifier.GenerateToken(certifier.Personal)
 	user := &certprotos.User{
 		Username: username,
 		Password: []byte(password),
-		Tokens: &certprotos.TokenList{
-			Tokens: []string{token},
-		},
 	}
-	// resource := &certprotos.Resource{
-	// 	Effect:       certprotos.Effect_ALLOW,
-	// 	Action:       certprotos.Action_WRITE,
-	// 	ResourceType: certprotos.ResourceType_URI,
-	// 	Resource:     "/**",
-	// }
-	// policy := &certprotos.Policy{
-	// 	Token: token,
-	// 	Resources: &certprotos.ResourceList{
-	// 		Resources: []*certprotos.Resource{resource},
-	// 	},
-	// }
+	resource := &certprotos.Resource{
+		Effect:       certprotos.Effect_ALLOW,
+		Action:       certprotos.Action_WRITE,
+		ResourceType: certprotos.ResourceType_URI,
+		Resource:     "/**",
+	}
 	ctx := context.Background()
+
 	err := certifier.CreateUser(ctx, user)
-	// TODO(christinewang5): use handler to register a token for admin
 	if err != nil {
 		panic("Failed to create admin token")
 	}
+	req := &certprotos.AddUserTokenRequest{
+		Username:  username,
+		Resources: &certprotos.ResourceList{Resources: []*certprotos.Resource{resource}},
+	}
+	err = certifier.AddUserToken(ctx, req)
 
 	return 0
 }

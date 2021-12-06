@@ -413,7 +413,7 @@ func (srv *CertifierServer) DeleteUser(ctx context.Context, deleteUser *certprot
 	userToDelete, err := srv.store.GetUser(deleteUser.Username)
 	if userToDelete != nil && userToDelete.Tokens != nil {
 		for _, token := range userToDelete.Tokens.Tokens {
-			err = srv.store.DeleteToken(token)
+			err = srv.store.DeletePolicy(token)
 			if err != nil {
 				return nil, status.Errorf(http.StatusInternalServerError, "error deleting token")
 			}
@@ -509,7 +509,7 @@ func (srv *CertifierServer) DeleteUserToken(ctx context.Context, req *certprotos
 	if err != nil {
 		return nil, status.Errorf(http.StatusInternalServerError, "error updating user while deleting token: %v", err)
 	}
-	err = srv.store.DeleteToken(req.Token)
+	err = srv.store.DeletePolicy(req.Token)
 	if err != nil {
 		return nil, status.Errorf(http.StatusInternalServerError, "error deleting policy: %v", err)
 	}
@@ -728,8 +728,10 @@ func checkResource(reqResource, policyResource *certprotos.Resource) certprotos.
 	switch reqResource.ResourceType {
 	case certprotos.ResourceType_URI:
 		return checkRequestURI(reqResource, policyResource)
+	case certprotos.ResourceType_NETWORK_ID:
+	case certprotos.ResourceType_TENANT_ID:
+		return checkID(reqResource, policyResource)
 	default:
-		// TODO(christinewang5): implement for other req resource types
 		return certprotos.Effect_UNKNOWN
 	}
 	return certprotos.Effect_UNKNOWN
@@ -743,7 +745,7 @@ func checkRequestURI(reqResource *certprotos.Resource, policyResource *certproto
 	}
 	reqURI := reqResource.Resource
 	policyURI := policyResource.Resource
-	if ok, _ := doublestar.Match(reqURI, policyURI); ok {
+	if ok, _ := doublestar.Match(policyURI, reqURI); ok {
 		return policyResource.Effect
 	}
 	return certprotos.Effect_UNKNOWN
@@ -757,7 +759,7 @@ func checkAction(reqResource *certprotos.Resource, policyResource *certprotos.Re
 	if policyResource.Action == certprotos.Action_READ && reqResource.Action == certprotos.Action_READ {
 		return policyResource.Effect
 	}
-	return certprotos.Effect_UNKNOWN
+	return certprotos.Effect_DENY
 }
 
 func isTokenWithUser(token string, tokenList *certprotos.TokenList) error {
@@ -771,4 +773,11 @@ func isTokenWithUser(token string, tokenList *certprotos.TokenList) error {
 		return status.Errorf(codes.PermissionDenied, "token is not registered with user")
 	}
 	return nil
+}
+
+func checkID(reqResource, policyResource *certprotos.Resource) certprotos.Effect {
+	if reqResource.Resource == policyResource.Resource {
+		return policyResource.Effect
+	}
+	return certprotos.Effect_UNKNOWN
 }

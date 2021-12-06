@@ -184,7 +184,6 @@ func MockAccessControl(t *testing.T) (certSn string, superCertSn string) {
 	return // return (certSn, superCertSn)
 }
 
-// TODO(christinewang5): make unit test enforce middleware
 func SendRequestWithToken(method, url, username string, token string) (int, error) {
 	var body io.Reader = nil
 	request, err := http.NewRequest(method, url, body)

@@ -27,7 +27,7 @@ func TestUserEndpoints(t *testing.T) {
 	loginHandler := tests.GetHandlerByPathAndMethod(t, handlers, testLogin, obsidian.POST).HandlerFunc
 	getUserTokens := tests.GetHandlerByPathAndMethod(t, handlers, testManageUserTokens, obsidian.GET).HandlerFunc
 	addUserTokens := tests.GetHandlerByPathAndMethod(t, handlers, testManageUserTokens, obsidian.POST).HandlerFunc
-	// TODO(christinewang5): is it possible to get the response status
+	// TODO(christinewang5): is it possible to get the response from RunUnitTest?
 	// deleteUserTokens := tests.GetHandlerByPathAndMethod(t, handlers, testManageUserTokens, obsidian.DELETE).HandlerFunc
 
 	e := echo.New()

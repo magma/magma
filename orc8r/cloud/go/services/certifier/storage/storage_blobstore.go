@@ -310,7 +310,7 @@ func (c *certifierBlobstore) ListUsers() ([]*protos.User, error) {
 	return users, store.Commit()
 }
 
-func (c *certifierBlobstore) DeleteToken(token string) error {
+func (c *certifierBlobstore) DeletePolicy(token string) error {
 	store, err := c.factory.StartTransaction(nil)
 	if err != nil {
 		return status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)

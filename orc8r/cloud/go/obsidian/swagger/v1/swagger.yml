@@ -6328,7 +6328,7 @@ paths:
       parameters:
       - $ref: '#/parameters/username'
       - in: body
-        name: policy
+        name: resources
         required: true
         schema:
           $ref: '#/definitions/resources'
@@ -11107,9 +11107,11 @@ definitions:
       - action: READ
         effect: DENY
         resource: test_network1
+        resourceType: NETWORK_ID
       - action: WRITE
         effect: ALLOW
         resource: /**
+        resourceType: URI
       token: op_6YHy0uT7DeuWyT3N9nkAOyoeyOI25fletJE69yHGGl4ifjfoq
     properties:
       resources:
@@ -12338,13 +12340,6 @@ definitions:
     - username
     - password
     type: object
-  user_with_policy:
-    description: An object that associates a user with its policy
-    properties:
-      policy:
-        $ref: '#/definitions/policy'
-      user:
-        $ref: '#/definitions/user'
   version_info:
     properties:
       container_image_version:

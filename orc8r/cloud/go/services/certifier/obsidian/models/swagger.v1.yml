@@ -173,14 +173,6 @@ parameters:
     required: true
     type: string
 definitions:
-  # TODO(christinewang5): remove
-  user_with_policy:
-    description: An object that associates a user with its policy
-    properties:
-      user:
-        $ref: '#/definitions/user'
-      policy:
-        $ref: '#/definitions/policy'
   policy:
     description: An object that defines a user's permissions to access resources
     type: object

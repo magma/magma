@@ -1,9 +1,9 @@
 package protos
 
 import (
-	"magma/orc8r/cloud/go/blobstore"
-
 	"github.com/golang/protobuf/proto"
+
+	"magma/orc8r/cloud/go/blobstore"
 )
 
 const (

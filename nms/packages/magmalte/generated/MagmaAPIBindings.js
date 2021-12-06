@@ -1570,10 +1570,6 @@ export type user = {
     password: string,
     username: string,
 };
-export type user_with_policy = {
-    policy ? : policy,
-    user ? : user,
-};
 export type version_info = {
     container_image_version ? : string,
     helm_chart_version ? : string,
@@ -10704,7 +10700,7 @@ export default class MagmaAPIBindings {
     static async postUserByUsernameTokens(
         parameters: {
             'username': string,
-            'policy': resources,
+            'resources': resources,
         }
     ): Promise < "Success" > {
         let path = '/user/{username}/tokens';
@@ -10716,12 +10712,12 @@ export default class MagmaAPIBindings {
 
         path = path.replace('{username}', `${parameters['username']}`);
 
-        if (parameters['policy'] === undefined) {
-            throw new Error('Missing required  parameter: policy');
+        if (parameters['resources'] === undefined) {
+            throw new Error('Missing required  parameter: resources');
         }
 
-        if (parameters['policy'] !== undefined) {
-            body = parameters['policy'];
+        if (parameters['resources'] !== undefined) {
+            body = parameters['resources'];
         }
 
         return await this.request(path, 'POST', query, body);

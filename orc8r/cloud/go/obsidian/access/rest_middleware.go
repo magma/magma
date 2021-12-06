@@ -131,12 +131,11 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if err := certifier.ValidateToken(token); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
-
-		// TODO(christinewang5): implement for other req resource types
+		resourceType, resourceVal := getResource(c)
 		resource := &certprotos.Resource{
 			Action:       getRequestAction(req, nil),
-			ResourceType: certprotos.ResourceType_URI,
-			Resource:     req.RequestURI,
+			ResourceType: resourceType,
+			Resource:     resourceVal,
 		}
 		getPDReq := &certprotos.GetPolicyDecisionRequest{
 			Username: username,
@@ -171,4 +170,19 @@ func getRequestAction(req *http.Request, decorate logDecorator) certprotos.Actio
 		glog.Info(decorate("Unclassified HTTP method '%s', defaulting to read+write requested permissions", req.Method))
 		return certprotos.Action_READ | certprotos.Action_WRITE
 	}
+}
+
+func getResource(c echo.Context) (certprotos.ResourceType, string) {
+	// TODO(christinewang5): support different resource types
+	// networkIDStr := strings.ToLower(certprotos.ResourceType_NETWORK_ID.String())
+	// tenantIDStr := strings.ToLower(certprotos.ResourceType_TENANT_ID.String())
+	// for _, p := range c.ParamNames() {
+	// 	switch p {
+	// 	case networkIDStr:
+	// 		return certprotos.ResourceType_NETWORK_ID, c.Param(networkIDStr)
+	// 	case tenantIDStr:
+	// 		return certprotos.ResourceType_TENANT_ID, c.Param(tenantIDStr)
+	// 	}
+	// }
+	return certprotos.ResourceType_URI, c.Request().RequestURI
 }
