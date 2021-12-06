@@ -81,7 +81,7 @@ func GetMetrics(prometheus_labels map[string]string) ([]*prometheus_proto.Metric
 	// labels for metrics
 	labels := make([]*prometheus_proto.LabelPair, 0)
 	for label_name, label_value := range prometheus_labels {
-		labels = append(labels, prometheus_proto.LabelPair(label_name, label_value))
+		labels = append(labels, prometheus_proto.LabelPair(name=label_name, value=label_value))
 	}
 	for _, metric_family := range families {
 		for _, sample := range metric_family.Metric {
