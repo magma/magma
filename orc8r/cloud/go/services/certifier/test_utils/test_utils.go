@@ -52,21 +52,21 @@ func createTestUser(t *testing.T, username string, password string) (certprotos.
 }
 
 func createTestUserPolicy(token string) certprotos.Policy {
-	resource := &certprotos.Resource{
+	resource := certprotos.Resource{
 		Effect:       certprotos.Effect_ALLOW,
 		Action:       certprotos.Action_READ,
 		ResourceType: certprotos.ResourceType_URI,
-		Resource:     "/**",
+		Resource:     "/magma/v1/networks/**",
 	}
 	policy := certprotos.Policy{
 		Token:     token,
-		Resources: &certprotos.ResourceList{Resources: []*certprotos.Resource{resource}},
+		Resources: &certprotos.ResourceList{Resources: []*certprotos.Resource{&resource}},
 	}
 	return policy
 }
 
 func createTestAdminPolicy(token string) certprotos.Policy {
-	resource := &certprotos.Resource{
+	resource := certprotos.Resource{
 		Effect:       certprotos.Effect_ALLOW,
 		Action:       certprotos.Action_WRITE,
 		ResourceType: certprotos.ResourceType_URI,
@@ -74,7 +74,7 @@ func createTestAdminPolicy(token string) certprotos.Policy {
 	}
 	policy := certprotos.Policy{
 		Token:     token,
-		Resources: &certprotos.ResourceList{Resources: []*certprotos.Resource{resource}},
+		Resources: &certprotos.ResourceList{Resources: []*certprotos.Resource{&resource}},
 	}
 	return policy
 }

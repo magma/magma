@@ -86,12 +86,12 @@ func getUserHandler(c echo.Context) error {
 
 func updateUserHandler(c echo.Context) error {
 	username := c.Param("username")
-	var updatePassword []byte
+	var updatePassword string
 	err := json.NewDecoder(c.Request().Body).Decode(&updatePassword)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request body for updating user: %v", err))
 	}
-	newUser := &protos.User{Username: username, Password: updatePassword}
+	newUser := &protos.User{Username: username, Password: []byte(updatePassword)}
 	certifier.UpdateUser(c.Request().Context(), newUser)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -110,16 +110,20 @@ func deleteUserHandler(c echo.Context) error {
 }
 
 func loginHandler(c echo.Context) error {
-	username := c.Param("username")
-	var password []byte
-	err := json.NewDecoder(c.Request().Body).Decode(&password)
+	var data models.User
+	err := json.NewDecoder(c.Request().Body).Decode(&data)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request body for creating user: %v", err))
+	}
+	username := fmt.Sprintf("%v", *data.Username)
+	password := []byte(fmt.Sprintf("%v", *data.Password))
 	user := &protos.User{
 		Username: username,
 		Password: password,
 	}
 	err = certifier.Login(c.Request().Context(), user)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error logging in: %v"), err)
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error logging in: %v", err))
 	}
 	return nil
 }
@@ -128,7 +132,7 @@ func getUserTokensHandler(c echo.Context) error {
 	username := c.Param("username")
 	res, err := certifier.ListUserTokens(c.Request().Context(), &protos.User{Username: username})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to list user tokens: %v"), err)
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to list user tokens: %v", err))
 	}
 	return c.JSON(http.StatusOK, res)
 }

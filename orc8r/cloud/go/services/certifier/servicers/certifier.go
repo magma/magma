@@ -410,10 +410,20 @@ func (srv *CertifierServer) UpdateUser(ctx context.Context, updatedUser *certpro
 }
 
 func (srv *CertifierServer) DeleteUser(ctx context.Context, deleteUser *certprotos.User) (*protos.Void, error) {
-	err := srv.store.DeleteUser(deleteUser.Username)
-	if err != nil {
-		return nil, status.Errorf(http.StatusInternalServerError, "error deleting user")
+	userToDelete, err := srv.store.GetUser(deleteUser.Username)
+	if userToDelete != nil && userToDelete.Tokens != nil {
+		for _, token := range userToDelete.Tokens.Tokens {
+			err = srv.store.DeleteToken(token)
+			if err != nil {
+				return nil, status.Errorf(http.StatusInternalServerError, "error deleting token")
+			}
+		}
 	}
+	err = srv.store.DeleteUser(deleteUser.Username)
+	if err != nil {
+		return nil, status.Errorf(http.StatusInternalServerError, "error deleting user: %v", err)
+	}
+
 	return &protos.Void{}, nil
 }
 
@@ -421,6 +431,10 @@ func (srv *CertifierServer) Login(ctx context.Context, loginUser *certprotos.Use
 	user, err := srv.store.GetUser(loginUser.Username)
 	if err != nil {
 		return nil, status.Errorf(http.StatusInternalServerError, "error getting user for login")
+	}
+	// Add empty token list if nil for marshaling purposes
+	if user.Tokens == nil {
+		user.Tokens = &certprotos.TokenList{Tokens: []string{}}
 	}
 	return user.Tokens, nil
 }
@@ -432,7 +446,11 @@ func (srv *CertifierServer) ListUserTokens(ctx context.Context, reqUser *certpro
 	}
 	policies, err := srv.getPolicyFromTokenMany(user.Tokens)
 	if err != nil {
-		return nil, status.Errorf(http.StatusInternalServerError, "error getting policy from token list")
+		return nil, status.Errorf(http.StatusInternalServerError, "error getting policy from token list: %v", err)
+	}
+	// Add empty policy list if nil for marshaling purposes
+	if policies == nil {
+		policies = new(certprotos.ListUserTokensResponse)
 	}
 	return policies, nil
 }
@@ -446,15 +464,29 @@ func (srv *CertifierServer) AddUserToken(ctx context.Context, req *certprotos.Ad
 	if err != nil {
 		return nil, status.Errorf(http.StatusInternalServerError, "error generating token: %v", err)
 	}
-	newTokens := append(user.Tokens.Tokens, token)
+
+	if user.Tokens == nil {
+		user.Tokens = &certprotos.TokenList{Tokens: []string{token}}
+	} else {
+		user.Tokens.Tokens = append(user.Tokens.Tokens, token)
+	}
 	newUser := &certprotos.User{
 		Username: user.Username,
 		Password: user.Password,
-		Tokens:   &certprotos.TokenList{Tokens: newTokens},
+		Tokens:   &certprotos.TokenList{Tokens: user.Tokens.Tokens},
 	}
 	err = srv.store.PutUser(user.Username, newUser)
 	if err != nil {
-		return nil, status.Errorf(http.StatusInternalServerError, "error adding token to user: %v", err)
+		return nil, status.Errorf(http.StatusInternalServerError, "error putting user: %v", err)
+	}
+
+	policy := &certprotos.Policy{
+		Token:     token,
+		Resources: req.Resources,
+	}
+	err = srv.store.PutPolicy(token, policy)
+	if err != nil {
+		return nil, status.Errorf(http.StatusInternalServerError, "error putting policy: %v", err)
 	}
 	return &protos.Void{}, nil
 }
@@ -629,6 +661,9 @@ func (srv *CertifierServer) verifyCert(clientCert *x509.Certificate, certType pr
 }
 
 func (srv *CertifierServer) getPolicyFromTokenMany(tokens *certprotos.TokenList) (*certprotos.ListUserTokensResponse, error) {
+	if tokens == nil {
+		return nil, nil
+	}
 	ret := make([]*certprotos.Policy, len(tokens.Tokens))
 	for i, token := range tokens.Tokens {
 		policy, err := srv.getPolicyFromToken(token)
@@ -675,12 +710,12 @@ func (srv *CertifierServer) getPolicyDecisionFromToken(token string, reqResource
 	}
 	effect := certprotos.Effect_UNKNOWN
 	for _, policyResource := range policy.Resources.Resources {
-		effect = checkResource(reqResource, policyResource)
+		effect = checkAction(reqResource, policyResource)
 		if effect == certprotos.Effect_DENY {
 			return certprotos.Effect_DENY, nil
 		}
 
-		effect = checkAction(reqResource, policyResource)
+		effect = checkResource(reqResource, policyResource)
 		if effect == certprotos.Effect_DENY {
 			return certprotos.Effect_DENY, nil
 		}

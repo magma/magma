@@ -136,7 +136,7 @@ paths:
       summary: Add a token/policy to the user's existing permissions
       parameters:
         - $ref: '#/parameters/username'
-        - name: policy
+        - name: resources
           in: body
           required: true
           schema:
@@ -173,6 +173,7 @@ parameters:
     required: true
     type: string
 definitions:
+  # TODO(christinewang5): remove
   user_with_policy:
     description: An object that associates a user with its policy
     properties:

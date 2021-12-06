@@ -14,13 +14,13 @@ limitations under the License.
 package tests
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
 	certifier_test_service "magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/cloud/go/services/certifier/test_utils"
@@ -62,24 +62,42 @@ func TestAuthMiddleware(t *testing.T) {
 	if listener == nil {
 		return
 	}
-	urlPrefix := "http://" + listener.Addr().String()
-	testNetworkURLRoot := urlPrefix + "/magma/v1/networks"
 
-	// Test READ endpoint
-	s, err := SendRequestWithToken("GET", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, test_utils.TestRootUsername, rootToken)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, s)
-	s, err = SendRequestWithToken("GET", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, test_utils.TestUsername, bobToken)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, s)
+	urlPrefix := fmt.Sprintf("http://%s", listener.Addr().String())
 
-	// Test WRITE endpoint
-	s, err = SendRequestWithToken("PUT", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, test_utils.TestRootUsername, rootToken)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, s)
-	s, err = SendRequestWithToken("PUT", testNetworkURLRoot+obsidian.UrlSep+TEST_NETWORK_ID, test_utils.TestUsername, bobToken)
-	assert.NoError(t, err)
-	assert.Equal(t, 403, s)
+	tests := []struct {
+		method   string
+		url      string
+		user     string
+		token    string
+		expected int
+	}{
+		// Test admin user
+		{"GET", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestRootUsername, rootToken, 200},
+		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, test_utils.TestRootUsername, rootToken, 200},
+		{"GET", urlPrefix + RegisterNetworkV1, test_utils.TestRootUsername, rootToken, 200},
+		{"POST", urlPrefix + RegisterNetworkV1, test_utils.TestRootUsername, rootToken, 200},
+		{"GET", urlPrefix + RegisterNetworkV1, test_utils.TestRootUsername, rootToken, 200},
+		{"GET", urlPrefix + "/malformed/url", test_utils.TestRootUsername, rootToken, 200},
+		{"PUT", urlPrefix + "/malformed/url", test_utils.TestRootUsername, rootToken, 200},
+		{"GET", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestRootUsername, rootToken, 200},
+		{"POST", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestRootUsername, rootToken, 200},
+
+		// Test non-admin user
+		{"GET", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, test_utils.TestUsername, bobToken, 200},
+		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, test_utils.TestUsername, bobToken, 403},
+		{"GET", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestUsername, bobToken, 200},
+		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestUsername, bobToken, 200},
+		{"GET", urlPrefix + RegisterNetworkV1, test_utils.TestUsername, bobToken, 200},
+		{"POST", urlPrefix + RegisterNetworkV1, test_utils.TestUsername, bobToken, 403},
+		{"POST", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestUsername, bobToken, 403},
+		{"GET", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestUsername, bobToken, 403},
+	}
+	for _, tt := range tests {
+		s, err := SendRequestWithToken(tt.method, tt.url, tt.user, tt.token)
+		assert.NoError(t, err)
+		assert.Equal(t, tt.expected, s)
+	}
 }
 
 func TestMiddleware(t *testing.T) {
@@ -93,162 +111,38 @@ func TestMiddleware(t *testing.T) {
 		return // WaitForTestServer should have 'logged' error already
 	}
 
-	urlPrefix := "http://" + listener.Addr().String()
-
-	// Test READ network entity
-	s, err := SendRequest(
-		"GET", // READ
-		urlPrefix+RegisterNetworkV1+"/"+TEST_NETWORK_ID,
-		operCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, s)
-
-	// Test WRITE network entity
-	s, err = SendRequest(
-		"PUT", // WRITE
-		urlPrefix+RegisterNetworkV1+"/"+TEST_NETWORK_ID,
-		operCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 403, s)
-
-	// Test READ network entity
-	s, err = SendRequest(
-		"GET", // READ
-		urlPrefix+RegisterNetworkV1+"/"+WRITE_TEST_NETWORK_ID,
-		operCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 403, s)
-
-	// Test WRITE network entity
-	s, err = SendRequest(
-		"PUT", // WRITE
-		urlPrefix+RegisterNetworkV1+"/"+WRITE_TEST_NETWORK_ID,
-		operCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, s)
-
-	// Test regular operator wildcard failures
-	// Test READ network Wildcard
-	s, err = SendRequest(
-		"GET", // READ
-		urlPrefix+RegisterNetworkV1,
-		operCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 403, s)
-
-	// Test WRITE network Wildcard
-	s, err = SendRequest(
-		"POST", // WRITE
-		urlPrefix+RegisterNetworkV1,
-		operCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 403, s)
-
-	// Test WRITE Tenants URL
-	s, err = SendRequest(
-		"GET",
-		urlPrefix+tenantsh.TenantInfoURL,
-		operCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 403, s)
-
-	// Test WRITE Tenants URL
-	s, err = SendRequest(
-		"POST",
-		urlPrefix+tenantsh.TenantInfoURL,
-		operCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 403, s)
-
-	// Test Supervisor Permissions
-	// Super - Test READ network entity
-	s, err = SendRequest(
-		"GET", // READ
-		urlPrefix+RegisterNetworkV1+"/"+WRITE_TEST_NETWORK_ID,
-		superCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, s)
-
-	// Super - Test WRITE network entity
-	s, err = SendRequest(
-		"PUT", // WRITE
-		urlPrefix+RegisterNetworkV1+"/"+TEST_NETWORK_ID,
-		superCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, s)
-
-	// Super - Test READ network Wildcard
-	s, err = SendRequest(
-		"GET", // READ
-		urlPrefix+RegisterNetworkV1,
-		superCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, s)
-
-	// Super - Test WRITE network Wildcard
-	s, err = SendRequest(
-		"POST", // WRITE
-		urlPrefix+RegisterNetworkV1,
-		superCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, s)
-
-	// Super - Test READ Any URL
-	s, err = SendRequest(
-		"GET", // READ
-		urlPrefix+RegisterNetworkV1,
-		superCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, s)
-
-	// Super - Test WRITE  Any URL
-	s, err = SendRequest(
-		"GET", // READ
-		urlPrefix+"/malformed/url",
-		superCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, s)
-
-	// Super - Test WRITE  Any URL
-	s, err = SendRequest(
-		"PUT", // WRITE
-		urlPrefix+"/malformed/url",
-		superCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, s)
-
-	// Super - Test WRITE Tenants URL
-	s, err = SendRequest(
-		"GET",
-		urlPrefix+tenantsh.TenantInfoURL,
-		superCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, s)
-
-	// Super - Test WRITE Tenants URL
-	s, err = SendRequest(
-		"POST",
-		urlPrefix+tenantsh.TenantInfoURL,
-		superCertSn,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, s)
+	urlPrefix := fmt.Sprintf("http://%s", listener.Addr().String())
+	tests := []struct {
+		method   string
+		url      string
+		certSn   string
+		expected int
+	}{
+		// Test regular operator wildcard failures
+		{"GET", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, operCertSn, 200},
+		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, operCertSn, 403},
+		{"GET", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, operCertSn, 403},
+		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, operCertSn, 200},
+		{"GET", urlPrefix + RegisterNetworkV1, operCertSn, 403},
+		{"POST", urlPrefix + RegisterNetworkV1, operCertSn, 403},
+		{"GET", urlPrefix + tenantsh.TenantInfoURL, operCertSn, 403},
+		{"POST", urlPrefix + tenantsh.TenantInfoURL, operCertSn, 403},
+		// Test Supervisor Permissions
+		{"GET", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, superCertSn, 200},
+		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, superCertSn, 200},
+		{"GET", urlPrefix + RegisterNetworkV1, superCertSn, 200},
+		{"POST", urlPrefix + RegisterNetworkV1, superCertSn, 200},
+		{"GET", urlPrefix + RegisterNetworkV1, superCertSn, 200},
+		{"GET", urlPrefix + "/malformed/url", superCertSn, 200},
+		{"PUT", urlPrefix + "/malformed/url", superCertSn, 200},
+		{"GET", urlPrefix + tenantsh.TenantInfoURL, superCertSn, 200},
+		{"POST", urlPrefix + tenantsh.TenantInfoURL, superCertSn, 200},
+	}
+	for _, tt := range tests {
+		s, err := SendRequest(tt.method, tt.url, tt.certSn)
+		assert.NoError(t, err)
+		assert.Equal(t, tt.expected, s)
+	}
 }
 
 func startTestMiddlewareServer(t *testing.T) *echo.Echo {

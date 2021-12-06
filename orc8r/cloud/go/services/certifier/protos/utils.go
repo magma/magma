@@ -2,9 +2,15 @@ package protos
 
 import (
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/services/certifier/storage"
 
 	"github.com/golang/protobuf/proto"
+)
+
+const (
+	// UserType is the type of CertInfo used in blobstore type fields.
+	UserType = "user"
+	// PolicyType is the type of policy used in blobstore type fileds
+	PolicyType = "policy"
 )
 
 func UserFromBlob(blob blobstore.Blob) (User, error) {
@@ -21,7 +27,7 @@ func UserToBlob(username string, user *User) (blobstore.Blob, error) {
 	if err != nil {
 		return blobstore.Blob{}, err
 	}
-	userBlob := blobstore.Blob{Type: storage.UserType, Key: username, Value: marshalledUser}
+	userBlob := blobstore.Blob{Type: UserType, Key: username, Value: marshalledUser}
 	return userBlob, nil
 }
 
@@ -40,6 +46,6 @@ func PolicyToBlob(username string, policy *Policy) (blobstore.Blob, error) {
 	if err != nil {
 		return blobstore.Blob{}, err
 	}
-	policyBlob := blobstore.Blob{Type: storage.PolicyType, Key: username, Value: marshalledPolicy}
+	policyBlob := blobstore.Blob{Type: PolicyType, Key: username, Value: marshalledPolicy}
 	return policyBlob, nil
 }
