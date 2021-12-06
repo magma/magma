@@ -306,7 +306,11 @@ status_code_e mme_api_new_guti(
     }
 
     // TODO Find another way to generate m_tmsi
+#if MME_UNIT_TEST
+    guti->m_tmsi = ue_context->mme_ue_s1ap_id;
+#else
     guti->m_tmsi = generate_random_TMSI();
+#endif
     if (guti->m_tmsi == INVALID_M_TMSI) {
       OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
     }
