@@ -66,15 +66,12 @@ struct EsmPdn {
 
 struct PdnContext {
   context_identifier:uint;
-  apn_in_use:[ubyte:163];
-  apn_in_use_length:ubyte;
+  apn_in_use:Apn;
 
-  apn_subscribed:[ubyte:163];
-  apn_subscribed_length:ubyte;
+  apn_subscribed:Apn;
   pdn_type:PdnTypeValue;
   paa:Paa;
-  apn_oi_replacement:[ubyte:100];
-  apn_oi_replacement_length:ubyte;
+  apn_oi_replacement:ApnOi;
   p_gw_address_s5_s8_cp:IpAddress;
   p_gw_teid_s5_s8_cp:uint;
   default_bearer_eps_subscribed_qos_profile:EpsSubscribedQosProfile;
@@ -294,7 +291,9 @@ struct NasMessageDecodeStatus {
 }
 
 struct EsmMsg {
-  bytes:[ubyte:2048];
+  // Was set to 2048 initially, moved to 512 due to Flat buffer
+  // UE_MM_CONTEXT bigger than 65536 bytes
+  bytes:[ubyte:512];
   length:uint16;
 }
 

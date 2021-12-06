@@ -5,11 +5,11 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-#include "mme_nas_state_generated.h"
 #include "3gpp_23003_generated.h"
 #include "3gpp_36413_generated.h"
 #include "common_types_generated.h"
 #include "3gpp_29274_generated.h"
+#include "mme_nas_state_generated.h"
 #include "3gpp_24008_generated.h"
 
 namespace magma {
@@ -218,7 +218,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) BearerContext FLATBUFFERS_FINAL_CLASS {
         &preemption_capability_, static_cast<uint8_t>(_preemption_capability));
   }
 };
-FLATBUFFERS_STRUCT_END(BearerContext, 2208);
+FLATBUFFERS_STRUCT_END(BearerContext, 672);
 
 inline bool operator==(const BearerContext& lhs, const BearerContext& rhs) {
   return (lhs.ebi() == rhs.ebi()) &&
@@ -522,25 +522,25 @@ inline bool operator!=(const SgsContext& lhs, const SgsContext& rhs) {
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) PdnContextArray FLATBUFFERS_FINAL_CLASS {
  private:
-  magma::lte::test_flat_buffer::PdnContext item_[10];
+  magma::lte::test_flat_buffer::PdnContext item_[5];
 
  public:
   PdnContextArray() : item_() {}
   PdnContextArray(
-      flatbuffers::span<const magma::lte::test_flat_buffer::PdnContext, 10>
+      flatbuffers::span<const magma::lte::test_flat_buffer::PdnContext, 5>
           _item) {
     flatbuffers::CastToArray(item_).CopyFromSpan(_item);
   }
-  const flatbuffers::Array<magma::lte::test_flat_buffer::PdnContext, 10>* item()
+  const flatbuffers::Array<magma::lte::test_flat_buffer::PdnContext, 5>* item()
       const {
     return &flatbuffers::CastToArray(item_);
   }
-  flatbuffers::Array<magma::lte::test_flat_buffer::PdnContext, 10>*
+  flatbuffers::Array<magma::lte::test_flat_buffer::PdnContext, 5>*
   mutable_item() {
     return &flatbuffers::CastToArray(item_);
   }
 };
-FLATBUFFERS_STRUCT_END(PdnContextArray, 26720);
+FLATBUFFERS_STRUCT_END(PdnContextArray, 12680);
 
 inline bool operator==(const PdnContextArray& lhs, const PdnContextArray& rhs) {
   return (lhs.item() == rhs.item());
@@ -571,7 +571,7 @@ BearerContextArray FLATBUFFERS_FINAL_CLASS {
     return &flatbuffers::CastToArray(item_);
   }
 };
-FLATBUFFERS_STRUCT_END(BearerContextArray, 24288);
+FLATBUFFERS_STRUCT_END(BearerContextArray, 7392);
 
 inline bool operator==(
     const BearerContextArray& lhs, const BearerContextArray& rhs) {

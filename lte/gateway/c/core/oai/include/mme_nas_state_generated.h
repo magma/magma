@@ -643,18 +643,14 @@ inline bool operator!=(const EsmPdn& lhs, const EsmPdn& rhs) {
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) PdnContext FLATBUFFERS_FINAL_CLASS {
  private:
   uint32_t context_identifier_;
-  uint8_t apn_in_use_[163];
-  uint8_t apn_in_use_length_;
-  uint8_t apn_subscribed_[163];
-  uint8_t apn_subscribed_length_;
+  magma::lte::test_flat_buffer::Apn apn_in_use_;
+  magma::lte::test_flat_buffer::Apn apn_subscribed_;
   uint8_t pdn_type_;
   int8_t padding0__;
-  int16_t padding1__;
   magma::lte::test_flat_buffer::Paa paa_;
-  uint8_t apn_oi_replacement_[100];
-  uint8_t apn_oi_replacement_length_;
-  int8_t padding2__;
-  int16_t padding3__;
+  magma::lte::test_flat_buffer::ApnOi apn_oi_replacement_;
+  int8_t padding1__;
+  int16_t padding2__;
   magma::lte::test_flat_buffer::IpAddress p_gw_address_s5_s8_cp_;
   uint32_t p_gw_teid_s5_s8_cp_;
   magma::lte::test_flat_buffer::EpsSubscribedQosProfile
@@ -662,35 +658,30 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) PdnContext FLATBUFFERS_FINAL_CLASS {
   magma::lte::test_flat_buffer::Ambr subscribed_apn_ambr_;
   magma::lte::test_flat_buffer::Ambr p_gw_apn_ambr_;
   uint8_t default_ebi_;
-  uint8_t bearer_contexts_[15];
+  uint8_t bearer_contexts_[11];
   uint8_t num_bearer_contexts_;
-  int8_t padding4__;
-  int16_t padding5__;
+  int8_t padding3__;
+  int16_t padding4__;
   magma::lte::test_flat_buffer::IpAddress s_gw_address_s11_s4_;
   uint32_t s_gw_teid_s11_s4_;
   magma::lte::test_flat_buffer::EsmPdn esm_data_;
   uint8_t is_active_;
-  int8_t padding6__;
+  int8_t padding5__;
   magma::lte::test_flat_buffer::ProtocolConfigurationOptions pco_;
   uint8_t ue_rej_act_def_ber_req_;
   uint8_t route_s11_messages_to_s8_task_;
-  int32_t padding7__;
 
  public:
   PdnContext()
       : context_identifier_(0),
         apn_in_use_(),
-        apn_in_use_length_(0),
         apn_subscribed_(),
-        apn_subscribed_length_(0),
         pdn_type_(0),
         padding0__(0),
-        padding1__(0),
         paa_(),
         apn_oi_replacement_(),
-        apn_oi_replacement_length_(0),
+        padding1__(0),
         padding2__(0),
-        padding3__(0),
         p_gw_address_s5_s8_cp_(),
         p_gw_teid_s5_s8_cp_(0),
         default_bearer_eps_subscribed_qos_profile_(),
@@ -699,32 +690,30 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) PdnContext FLATBUFFERS_FINAL_CLASS {
         default_ebi_(0),
         bearer_contexts_(),
         num_bearer_contexts_(0),
+        padding3__(0),
         padding4__(0),
-        padding5__(0),
         s_gw_address_s11_s4_(),
         s_gw_teid_s11_s4_(0),
         esm_data_(),
         is_active_(0),
-        padding6__(0),
+        padding5__(0),
         pco_(),
         ue_rej_act_def_ber_req_(0),
-        route_s11_messages_to_s8_task_(0),
-        padding7__(0) {
+        route_s11_messages_to_s8_task_(0) {
     (void) padding0__;
     (void) padding1__;
     (void) padding2__;
     (void) padding3__;
     (void) padding4__;
     (void) padding5__;
-    (void) padding6__;
-    (void) padding7__;
   }
   PdnContext(
-      uint32_t _context_identifier, uint8_t _apn_in_use_length,
-      uint8_t _apn_subscribed_length,
+      uint32_t _context_identifier,
+      const magma::lte::test_flat_buffer::Apn& _apn_in_use,
+      const magma::lte::test_flat_buffer::Apn& _apn_subscribed,
       magma::lte::test_flat_buffer::PdnTypeValue _pdn_type,
       const magma::lte::test_flat_buffer::Paa& _paa,
-      uint8_t _apn_oi_replacement_length,
+      const magma::lte::test_flat_buffer::ApnOi& _apn_oi_replacement,
       const magma::lte::test_flat_buffer::IpAddress& _p_gw_address_s5_s8_cp,
       uint32_t _p_gw_teid_s5_s8_cp,
       const magma::lte::test_flat_buffer::EpsSubscribedQosProfile&
@@ -738,20 +727,14 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) PdnContext FLATBUFFERS_FINAL_CLASS {
       const magma::lte::test_flat_buffer::ProtocolConfigurationOptions& _pco,
       bool _ue_rej_act_def_ber_req, bool _route_s11_messages_to_s8_task)
       : context_identifier_(flatbuffers::EndianScalar(_context_identifier)),
-        apn_in_use_(),
-        apn_in_use_length_(flatbuffers::EndianScalar(_apn_in_use_length)),
-        apn_subscribed_(),
-        apn_subscribed_length_(
-            flatbuffers::EndianScalar(_apn_subscribed_length)),
+        apn_in_use_(_apn_in_use),
+        apn_subscribed_(_apn_subscribed),
         pdn_type_(flatbuffers::EndianScalar(static_cast<uint8_t>(_pdn_type))),
         padding0__(0),
-        padding1__(0),
         paa_(_paa),
-        apn_oi_replacement_(),
-        apn_oi_replacement_length_(
-            flatbuffers::EndianScalar(_apn_oi_replacement_length)),
+        apn_oi_replacement_(_apn_oi_replacement),
+        padding1__(0),
         padding2__(0),
-        padding3__(0),
         p_gw_address_s5_s8_cp_(_p_gw_address_s5_s8_cp),
         p_gw_teid_s5_s8_cp_(flatbuffers::EndianScalar(_p_gw_teid_s5_s8_cp)),
         default_bearer_eps_subscribed_qos_profile_(
@@ -761,38 +744,32 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) PdnContext FLATBUFFERS_FINAL_CLASS {
         default_ebi_(flatbuffers::EndianScalar(_default_ebi)),
         bearer_contexts_(),
         num_bearer_contexts_(flatbuffers::EndianScalar(_num_bearer_contexts)),
+        padding3__(0),
         padding4__(0),
-        padding5__(0),
         s_gw_address_s11_s4_(_s_gw_address_s11_s4),
         s_gw_teid_s11_s4_(flatbuffers::EndianScalar(_s_gw_teid_s11_s4)),
         esm_data_(_esm_data),
         is_active_(flatbuffers::EndianScalar(static_cast<uint8_t>(_is_active))),
-        padding6__(0),
+        padding5__(0),
         pco_(_pco),
         ue_rej_act_def_ber_req_(flatbuffers::EndianScalar(
             static_cast<uint8_t>(_ue_rej_act_def_ber_req))),
         route_s11_messages_to_s8_task_(flatbuffers::EndianScalar(
-            static_cast<uint8_t>(_route_s11_messages_to_s8_task))),
-        padding7__(0) {
+            static_cast<uint8_t>(_route_s11_messages_to_s8_task))) {
     (void) padding0__;
     (void) padding1__;
     (void) padding2__;
     (void) padding3__;
     (void) padding4__;
     (void) padding5__;
-    (void) padding6__;
-    (void) padding7__;
   }
   PdnContext(
       uint32_t _context_identifier,
-      flatbuffers::span<const uint8_t, 163> _apn_in_use,
-      uint8_t _apn_in_use_length,
-      flatbuffers::span<const uint8_t, 163> _apn_subscribed,
-      uint8_t _apn_subscribed_length,
+      const magma::lte::test_flat_buffer::Apn& _apn_in_use,
+      const magma::lte::test_flat_buffer::Apn& _apn_subscribed,
       magma::lte::test_flat_buffer::PdnTypeValue _pdn_type,
       const magma::lte::test_flat_buffer::Paa& _paa,
-      flatbuffers::span<const uint8_t, 100> _apn_oi_replacement,
-      uint8_t _apn_oi_replacement_length,
+      const magma::lte::test_flat_buffer::ApnOi& _apn_oi_replacement,
       const magma::lte::test_flat_buffer::IpAddress& _p_gw_address_s5_s8_cp,
       uint32_t _p_gw_teid_s5_s8_cp,
       const magma::lte::test_flat_buffer::EpsSubscribedQosProfile&
@@ -800,7 +777,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) PdnContext FLATBUFFERS_FINAL_CLASS {
       const magma::lte::test_flat_buffer::Ambr& _subscribed_apn_ambr,
       const magma::lte::test_flat_buffer::Ambr& _p_gw_apn_ambr,
       uint8_t _default_ebi,
-      flatbuffers::span<const uint8_t, 15> _bearer_contexts,
+      flatbuffers::span<const uint8_t, 11> _bearer_contexts,
       uint8_t _num_bearer_contexts,
       const magma::lte::test_flat_buffer::IpAddress& _s_gw_address_s11_s4,
       uint32_t _s_gw_teid_s11_s4,
@@ -808,17 +785,14 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) PdnContext FLATBUFFERS_FINAL_CLASS {
       const magma::lte::test_flat_buffer::ProtocolConfigurationOptions& _pco,
       bool _ue_rej_act_def_ber_req, bool _route_s11_messages_to_s8_task)
       : context_identifier_(flatbuffers::EndianScalar(_context_identifier)),
-        apn_in_use_length_(flatbuffers::EndianScalar(_apn_in_use_length)),
-        apn_subscribed_length_(
-            flatbuffers::EndianScalar(_apn_subscribed_length)),
+        apn_in_use_(_apn_in_use),
+        apn_subscribed_(_apn_subscribed),
         pdn_type_(flatbuffers::EndianScalar(static_cast<uint8_t>(_pdn_type))),
         padding0__(0),
-        padding1__(0),
         paa_(_paa),
-        apn_oi_replacement_length_(
-            flatbuffers::EndianScalar(_apn_oi_replacement_length)),
+        apn_oi_replacement_(_apn_oi_replacement),
+        padding1__(0),
         padding2__(0),
-        padding3__(0),
         p_gw_address_s5_s8_cp_(_p_gw_address_s5_s8_cp),
         p_gw_teid_s5_s8_cp_(flatbuffers::EndianScalar(_p_gw_teid_s5_s8_cp)),
         default_bearer_eps_subscribed_qos_profile_(
@@ -827,32 +801,25 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) PdnContext FLATBUFFERS_FINAL_CLASS {
         p_gw_apn_ambr_(_p_gw_apn_ambr),
         default_ebi_(flatbuffers::EndianScalar(_default_ebi)),
         num_bearer_contexts_(flatbuffers::EndianScalar(_num_bearer_contexts)),
+        padding3__(0),
         padding4__(0),
-        padding5__(0),
         s_gw_address_s11_s4_(_s_gw_address_s11_s4),
         s_gw_teid_s11_s4_(flatbuffers::EndianScalar(_s_gw_teid_s11_s4)),
         esm_data_(_esm_data),
         is_active_(flatbuffers::EndianScalar(static_cast<uint8_t>(_is_active))),
-        padding6__(0),
+        padding5__(0),
         pco_(_pco),
         ue_rej_act_def_ber_req_(flatbuffers::EndianScalar(
             static_cast<uint8_t>(_ue_rej_act_def_ber_req))),
         route_s11_messages_to_s8_task_(flatbuffers::EndianScalar(
-            static_cast<uint8_t>(_route_s11_messages_to_s8_task))),
-        padding7__(0) {
-    flatbuffers::CastToArray(apn_in_use_).CopyFromSpan(_apn_in_use);
-    flatbuffers::CastToArray(apn_subscribed_).CopyFromSpan(_apn_subscribed);
+            static_cast<uint8_t>(_route_s11_messages_to_s8_task))) {
     (void) padding0__;
     (void) padding1__;
-    flatbuffers::CastToArray(apn_oi_replacement_)
-        .CopyFromSpan(_apn_oi_replacement);
     (void) padding2__;
-    (void) padding3__;
     flatbuffers::CastToArray(bearer_contexts_).CopyFromSpan(_bearer_contexts);
+    (void) padding3__;
     (void) padding4__;
     (void) padding5__;
-    (void) padding6__;
-    (void) padding7__;
   }
   uint32_t context_identifier() const {
     return flatbuffers::EndianScalar(context_identifier_);
@@ -860,29 +827,17 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) PdnContext FLATBUFFERS_FINAL_CLASS {
   void mutate_context_identifier(uint32_t _context_identifier) {
     flatbuffers::WriteScalar(&context_identifier_, _context_identifier);
   }
-  const flatbuffers::Array<uint8_t, 163>* apn_in_use() const {
-    return &flatbuffers::CastToArray(apn_in_use_);
+  const magma::lte::test_flat_buffer::Apn& apn_in_use() const {
+    return apn_in_use_;
   }
-  flatbuffers::Array<uint8_t, 163>* mutable_apn_in_use() {
-    return &flatbuffers::CastToArray(apn_in_use_);
+  magma::lte::test_flat_buffer::Apn& mutable_apn_in_use() {
+    return apn_in_use_;
   }
-  uint8_t apn_in_use_length() const {
-    return flatbuffers::EndianScalar(apn_in_use_length_);
+  const magma::lte::test_flat_buffer::Apn& apn_subscribed() const {
+    return apn_subscribed_;
   }
-  void mutate_apn_in_use_length(uint8_t _apn_in_use_length) {
-    flatbuffers::WriteScalar(&apn_in_use_length_, _apn_in_use_length);
-  }
-  const flatbuffers::Array<uint8_t, 163>* apn_subscribed() const {
-    return &flatbuffers::CastToArray(apn_subscribed_);
-  }
-  flatbuffers::Array<uint8_t, 163>* mutable_apn_subscribed() {
-    return &flatbuffers::CastToArray(apn_subscribed_);
-  }
-  uint8_t apn_subscribed_length() const {
-    return flatbuffers::EndianScalar(apn_subscribed_length_);
-  }
-  void mutate_apn_subscribed_length(uint8_t _apn_subscribed_length) {
-    flatbuffers::WriteScalar(&apn_subscribed_length_, _apn_subscribed_length);
+  magma::lte::test_flat_buffer::Apn& mutable_apn_subscribed() {
+    return apn_subscribed_;
   }
   magma::lte::test_flat_buffer::PdnTypeValue pdn_type() const {
     return static_cast<magma::lte::test_flat_buffer::PdnTypeValue>(
@@ -893,18 +848,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) PdnContext FLATBUFFERS_FINAL_CLASS {
   }
   const magma::lte::test_flat_buffer::Paa& paa() const { return paa_; }
   magma::lte::test_flat_buffer::Paa& mutable_paa() { return paa_; }
-  const flatbuffers::Array<uint8_t, 100>* apn_oi_replacement() const {
-    return &flatbuffers::CastToArray(apn_oi_replacement_);
+  const magma::lte::test_flat_buffer::ApnOi& apn_oi_replacement() const {
+    return apn_oi_replacement_;
   }
-  flatbuffers::Array<uint8_t, 100>* mutable_apn_oi_replacement() {
-    return &flatbuffers::CastToArray(apn_oi_replacement_);
-  }
-  uint8_t apn_oi_replacement_length() const {
-    return flatbuffers::EndianScalar(apn_oi_replacement_length_);
-  }
-  void mutate_apn_oi_replacement_length(uint8_t _apn_oi_replacement_length) {
-    flatbuffers::WriteScalar(
-        &apn_oi_replacement_length_, _apn_oi_replacement_length);
+  magma::lte::test_flat_buffer::ApnOi& mutable_apn_oi_replacement() {
+    return apn_oi_replacement_;
   }
   const magma::lte::test_flat_buffer::IpAddress& p_gw_address_s5_s8_cp() const {
     return p_gw_address_s5_s8_cp_;
@@ -945,10 +893,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) PdnContext FLATBUFFERS_FINAL_CLASS {
     flatbuffers::WriteScalar(&default_ebi_, _default_ebi);
   }
   /// BEARERS_PER_UE = 11
-  const flatbuffers::Array<uint8_t, 15>* bearer_contexts() const {
+  const flatbuffers::Array<uint8_t, 11>* bearer_contexts() const {
     return &flatbuffers::CastToArray(bearer_contexts_);
   }
-  flatbuffers::Array<uint8_t, 15>* mutable_bearer_contexts() {
+  flatbuffers::Array<uint8_t, 11>* mutable_bearer_contexts() {
     return &flatbuffers::CastToArray(bearer_contexts_);
   }
   uint8_t num_bearer_contexts() const {
@@ -1002,17 +950,14 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) PdnContext FLATBUFFERS_FINAL_CLASS {
         static_cast<uint8_t>(_route_s11_messages_to_s8_task));
   }
 };
-FLATBUFFERS_STRUCT_END(PdnContext, 2672);
+FLATBUFFERS_STRUCT_END(PdnContext, 2536);
 
 inline bool operator==(const PdnContext& lhs, const PdnContext& rhs) {
   return (lhs.context_identifier() == rhs.context_identifier()) &&
          (lhs.apn_in_use() == rhs.apn_in_use()) &&
-         (lhs.apn_in_use_length() == rhs.apn_in_use_length()) &&
          (lhs.apn_subscribed() == rhs.apn_subscribed()) &&
-         (lhs.apn_subscribed_length() == rhs.apn_subscribed_length()) &&
          (lhs.pdn_type() == rhs.pdn_type()) && (lhs.paa() == rhs.paa()) &&
          (lhs.apn_oi_replacement() == rhs.apn_oi_replacement()) &&
-         (lhs.apn_oi_replacement_length() == rhs.apn_oi_replacement_length()) &&
          (lhs.p_gw_address_s5_s8_cp() == rhs.p_gw_address_s5_s8_cp()) &&
          (lhs.p_gw_teid_s5_s8_cp() == rhs.p_gw_teid_s5_s8_cp()) &&
          (lhs.default_bearer_eps_subscribed_qos_profile() ==
@@ -2343,21 +2288,21 @@ inline bool operator!=(
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) EsmMsg FLATBUFFERS_FINAL_CLASS {
  private:
-  uint8_t bytes_[2048];
+  uint8_t bytes_[512];
   uint16_t length_;
 
  public:
   EsmMsg() : bytes_(), length_(0) {}
   EsmMsg(uint16_t _length)
       : bytes_(), length_(flatbuffers::EndianScalar(_length)) {}
-  EsmMsg(flatbuffers::span<const uint8_t, 2048> _bytes, uint16_t _length)
+  EsmMsg(flatbuffers::span<const uint8_t, 512> _bytes, uint16_t _length)
       : length_(flatbuffers::EndianScalar(_length)) {
     flatbuffers::CastToArray(bytes_).CopyFromSpan(_bytes);
   }
-  const flatbuffers::Array<uint8_t, 2048>* bytes() const {
+  const flatbuffers::Array<uint8_t, 512>* bytes() const {
     return &flatbuffers::CastToArray(bytes_);
   }
-  flatbuffers::Array<uint8_t, 2048>* mutable_bytes() {
+  flatbuffers::Array<uint8_t, 512>* mutable_bytes() {
     return &flatbuffers::CastToArray(bytes_);
   }
   uint16_t length() const { return flatbuffers::EndianScalar(length_); }
@@ -2365,7 +2310,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) EsmMsg FLATBUFFERS_FINAL_CLASS {
     flatbuffers::WriteScalar(&length_, _length);
   }
 };
-FLATBUFFERS_STRUCT_END(EsmMsg, 2050);
+FLATBUFFERS_STRUCT_END(EsmMsg, 514);
 
 inline bool operator==(const EsmMsg& lhs, const EsmMsg& rhs) {
   return (lhs.bytes() == rhs.bytes()) && (lhs.length() == rhs.length());
@@ -2596,7 +2541,7 @@ EmmAttachRequestIes FLATBUFFERS_FINAL_CLASS {
     return ue_additional_security_capability_;
   }
 };
-FLATBUFFERS_STRUCT_END(EmmAttachRequestIes, 2168);
+FLATBUFFERS_STRUCT_END(EmmAttachRequestIes, 632);
 
 inline bool operator==(
     const EmmAttachRequestIes& lhs, const EmmAttachRequestIes& rhs) {
@@ -2675,7 +2620,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) NewAttachInfo FLATBUFFERS_FINAL_CLASS {
     return ies_;
   }
 };
-FLATBUFFERS_STRUCT_END(NewAttachInfo, 2176);
+FLATBUFFERS_STRUCT_END(NewAttachInfo, 640);
 
 inline bool operator==(const NewAttachInfo& lhs, const NewAttachInfo& rhs) {
   return (lhs.mme_ue_s1ap_id() == rhs.mme_ue_s1ap_id()) &&
@@ -3094,7 +3039,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) EmmContext FLATBUFFERS_FINAL_CLASS {
     return new_attach_info_;
   }
 };
-FLATBUFFERS_STRUCT_END(EmmContext, 7032);
+FLATBUFFERS_STRUCT_END(EmmContext, 5496);
 
 inline bool operator==(const EmmContext& lhs, const EmmContext& rhs) {
   return (lhs._imsi64() == rhs._imsi64()) && (lhs._imsi() == rhs._imsi()) &&
@@ -3186,7 +3131,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) EsmEbrTimerData FLATBUFFERS_FINAL_CLASS {
   const magma::lte::test_flat_buffer::EsmMsg& msg() const { return msg_; }
   magma::lte::test_flat_buffer::EsmMsg& mutable_msg() { return msg_; }
 };
-FLATBUFFERS_STRUCT_END(EsmEbrTimerData, 2064);
+FLATBUFFERS_STRUCT_END(EsmEbrTimerData, 528);
 
 inline bool operator==(const EsmEbrTimerData& lhs, const EsmEbrTimerData& rhs) {
   return (lhs.ue_id() == rhs.ue_id()) && (lhs.ebi() == rhs.ebi()) &&
@@ -3277,7 +3222,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) EsmEbrContext FLATBUFFERS_FINAL_CLASS {
     return args_;
   }
 };
-FLATBUFFERS_STRUCT_END(EsmEbrContext, 2112);
+FLATBUFFERS_STRUCT_END(EsmEbrContext, 576);
 
 inline bool operator==(const EsmEbrContext& lhs, const EsmEbrContext& rhs) {
   return (lhs.status() == rhs.status()) && (lhs.gbr_dl() == rhs.gbr_dl()) &&
