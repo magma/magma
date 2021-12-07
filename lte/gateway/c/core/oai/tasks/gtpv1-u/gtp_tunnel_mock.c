@@ -64,21 +64,6 @@ int mock_del_tunnel(
   return 0;
 }
 
-int mock_add_s8_tunnel(
-    struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-    struct in6_addr* enb_ipv6, struct in_addr pgw, struct in6_addr* pgw_ipv6,
-    uint32_t i_tei, uint32_t o_tei, uint32_t pgw_in_tei, uint32_t pgw_o_tei,
-    Imsi_t imsi) {
-  return 0;
-}
-
-int mock_del_s8_tunnel(
-    struct in_addr enb, struct in6_addr* enb_ipv6, struct in_addr pgw,
-    struct in6_addr* pgw_ipv6, struct in_addr ue, struct in6_addr* ue_ipv6,
-    uint32_t i_tei, uint32_t pgw_in_tei) {
-  return 0;
-}
-
 int mock_discard_data_on_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
     struct ip_flow_dl* flow_dl) {
