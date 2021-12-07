@@ -88,7 +88,7 @@ type Service struct {
 	Config *config.Map
 
 	// Prometheus static lables
-	PrometheusLabels map
+	PrometheusLabels map[string]string
 }
 
 // NewServiceWithOptions returns a new GRPC orchestrator service implementing
