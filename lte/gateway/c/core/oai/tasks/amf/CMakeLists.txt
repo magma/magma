@@ -57,6 +57,7 @@ add_library(TASK_AMF_APP
     amf_smf_session_context.cpp
     amf_client_servicer.cpp
     amf_app_state_converter.cpp
+    amf_ue_context_storage.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
 )

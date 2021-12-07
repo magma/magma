@@ -181,6 +181,29 @@ struct map_s {
 
   /***************************************************************************
   **                                                                        **
+  ** Name:    get()                                                         **
+  **                                                                        **
+  ** Description: Takes key and valueP as parameters.If the key exists,     **
+  **              corresponding value is returned through the valueP,       **
+  **              else returns error.                                       **
+  **                                                                        **
+  ***************************************************************************/
+  map_rc_t get(const keyT key, valueT& valueP) {
+    if (umap.empty()) {
+      return MAP_EMPTY;
+    }
+    auto search_result = umap.find(key);
+
+    if (search_result != umap.end()) {
+      valueP = search_result->second;
+      return MAP_OK;
+    } else {
+      return MAP_KEY_NOT_EXISTS;
+    }
+  }
+
+  /***************************************************************************
+  **                                                                        **
   ** Name:    insert()                                                      **
   **                                                                        **
   ** Description: Takes key and value as parameters.Inserts the <key,value> **
@@ -197,6 +220,20 @@ struct map_s {
     } else {
       return MAP_KEY_ALREADY_EXISTS;
     }
+  }
+
+  /***************************************************************************
+  **                                                                        **
+  ** Name:    insert_or_update()                                            **
+  **                                                                        **
+  ** Description: Takes key and value as parameters.Inserts the <key,value> **
+  **              pair into the map. update if identical key already exists **
+  **                                                                        **
+  **                                                                        **
+  ***************************************************************************/
+  map_rc_t insert_or_update(const keyT key, const valueT value) {
+    umap[key] = value;
+    return MAP_OK;
   }
 
   /***************************************************************************
