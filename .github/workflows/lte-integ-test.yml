@@ -42,7 +42,7 @@ jobs:
       - name: Run the integ test
         run: |
           cd lte/gateway
-          fab integ_test
+          fab integ_test:build=False
       - name: Get test results
         if: always()
         run: |
