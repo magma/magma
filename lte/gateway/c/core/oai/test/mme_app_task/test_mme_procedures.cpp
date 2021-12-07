@@ -116,10 +116,10 @@ class MmeAppProcedureTest : public ::testing::Test {
   virtual void TearDown() {
     bdestroy_wrapper(&nas_msg);
     send_terminate_message_fatal(&task_zmq_ctx_main);
+    // Sleep to ensure that messages are received and contexts are released
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     destroy_task_context(&task_zmq_ctx_main);
     itti_free_desc_threads();
-    // Sleep to ensure that messages are received and contexts are released
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 
  protected:
@@ -218,9 +218,6 @@ TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
@@ -309,9 +306,6 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
@@ -406,9 +400,6 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirFailure) {
@@ -447,9 +438,6 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirFailure) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirTimeout) {
@@ -485,9 +473,6 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirTimeout) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyUlaFailure) {
@@ -541,9 +526,6 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyUlaFailure) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
@@ -641,9 +623,6 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachRejectAuthRetxFailure) {
@@ -682,9 +661,6 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectAuthRetxFailure) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachRejectSmcRetxFailure) {
@@ -727,9 +703,6 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectSmcRetxFailure) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
@@ -826,9 +799,6 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachRejectIdentRetxFailure) {
@@ -867,9 +837,6 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectIdentRetxFailure) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestIcsRequestTimeout) {
@@ -926,9 +893,6 @@ TEST_F(MmeAppProcedureTest, TestIcsRequestTimeout) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestCreateSessionFailure) {
@@ -994,9 +958,6 @@ TEST_F(MmeAppProcedureTest, TestCreateSessionFailure) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestNwInitiatedDetach) {
@@ -1093,9 +1054,6 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetach) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestNwInitiatedExpiredDetach) {
@@ -1194,9 +1152,6 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedExpiredDetach) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestNwInitiatedDetachRetxFailure) {
@@ -1293,9 +1248,6 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetachRetxFailure) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
@@ -1408,9 +1360,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
@@ -1561,9 +1510,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(MmeAppProcedureTest, TestPagingMaxRetx) {
@@ -1724,9 +1670,6 @@ TEST_F(MmeAppProcedureTest, TestPagingMaxRetx) {
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 TEST_F(
@@ -1865,10 +1808,8 @@ TEST_F(
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
+
 TEST_F(
     MmeAppProcedureTest,
     TestNwInitiatedActivateDeactivateDedicatedBearerWithT3485T3495Expirations) {
@@ -2019,9 +1960,6 @@ TEST_F(
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 // Periodic TAU with active flag set to true
@@ -2174,9 +2112,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithActiveFlag) {
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 // Periodic TAU with active flag set to false
@@ -2325,9 +2260,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithoutActiveFlag) {
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 // Normal TAU sent in idle mode with active flag set to true
@@ -2480,9 +2412,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithActiveFlag) {
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 // Normal TAU sent in idle mode with active flag set to false
@@ -2631,9 +2560,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithoutActiveFlag) {
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
 // TAU reject due to service area restriction
@@ -2787,9 +2713,7 @@ TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
-
-  // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
+
 }  // namespace lte
 }  // namespace magma
