@@ -277,6 +277,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
+      DOCKER_BUILDKIT: 1
     steps:
       - uses: actions/checkout@v2
       - name: Run agw docker compose
@@ -293,7 +294,7 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/lte/gateway/docker
           docker-compose --file docker-compose.yaml --file docker-compose.override.yaml build --parallel
-      - name: Set the job status
+      - name: Set the agw docker build status
         if: always()
         run: |
           if ${{ steps.agw-docker-compose.outcome=='success' || steps.retry-agw-docker-compose.outcome=='success' }}; then
@@ -309,14 +310,14 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/lte/gateway/docker/ghz
           docker-compose --file docker-compose.yaml --file docker-compose.override.yaml build --parallel
-      - name: Retry docker compose on failure
+      - name: Retry ghz docker compose on failure
         id: retry-ghz-docker-compose
         continue-on-error: true
         if: steps.ghz-docker-compose.outcome=='failure'
         run: |
           cd ${MAGMA_ROOT}/lte/gateway/docker/ghz
           docker-compose --file docker-compose.yaml --file docker-compose.override.yaml build --parallel
-      - name: Set the job status
+      - name: Set the ghz docker build status
         if: always()
         run: |
           if ${{ steps.ghz-docker-compose.outcome=='success' || steps.retry-ghz-docker-compose.outcome=='success' }}; then
