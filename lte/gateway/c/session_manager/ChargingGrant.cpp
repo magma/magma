@@ -56,7 +56,7 @@ StoredChargingGrant ChargingGrant::marshal() {
   return marshaled;
 }
 
-CreditValidity ChargingGrant::is_valid_credit_response(
+CreditValidity ChargingGrant::get_credit_response_validity_type(
     const CreditUpdateResponse& update) {
   const uint32_t key             = update.charging_key();
   const std::string session_id   = update.session_id();
