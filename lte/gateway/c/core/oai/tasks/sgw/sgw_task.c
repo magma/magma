@@ -264,9 +264,7 @@ status_code_e spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
 static void spgw_app_exit(void) {
   OAILOG_DEBUG(LOG_SPGW_APP, "Cleaning SGW\n");
   put_spgw_state();
-
   gtpv1u_exit();
-
   spgw_state_exit();
   destroy_task_context(&spgw_app_task_zmq_ctx);
   OAILOG_DEBUG(LOG_SPGW_APP, "Finished cleaning up SGW\n");
