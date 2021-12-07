@@ -276,7 +276,7 @@ variable "orc8r_db_password" {
 variable "orc8r_db_engine_version" {
   description = "Postgres engine version for Orchestrator DB."
   type        = string
-  default     = "12.6"
+  default     = "12.8"
 }
 
 variable "orc8r_db_dialect" {
@@ -301,6 +301,12 @@ variable "orc8r_db_event_subscription" {
   description = "Database event subscription"
   type        = string
   default     = "orc8r-rds-events"
+}
+
+variable "orc8r_db_apply_immediately"{
+  description = "Flag to immediately upgrade RDS without waiting for a maintenance window"
+  type = bool
+  default = false
 }
 
 

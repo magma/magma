@@ -316,6 +316,6 @@ RUN go get -v golang.org/x/tools/gopls
 #### Update shared library configuration
 RUN ldconfig -v
 
-RUN ln -s "$MAGMA_ROOT"/magma/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
+RUN ln -s $MAGMA_ROOT/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
 
 WORKDIR $MAGMA_ROOT

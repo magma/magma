@@ -28,6 +28,7 @@ add_library(SPGW_TASK_TEST_LIB
 link_directories(/usr/src/googletest/googlemock/lib/)
 
 target_link_libraries(SPGW_TASK_TEST_LIB
+    COMMON LIB_BSTR
     TASK_SGW MOCK_TASKS
     gmock_main gtest gtest_main gmock
     pthread rt yaml-cpp
@@ -36,7 +37,7 @@ target_link_libraries(SPGW_TASK_TEST_LIB
 
 set_target_properties(SPGW_TASK_TEST_LIB PROPERTIES LINKER_LANGUAGE CXX)
 
-foreach (sgw_test spgw_state_converter spgw_procedures)
+foreach (sgw_test spgw_state_converter spgw_procedures pgw_pco)
   add_executable(${sgw_test}_test test_${sgw_test}.cpp)
   target_link_libraries(${sgw_test}_test SPGW_TASK_TEST_LIB TASK_GRPC_SERVICE)
   add_test(test_${sgw_test} ${sgw_test}_test)

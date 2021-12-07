@@ -1860,8 +1860,6 @@ void mme_app_handle_e_rab_setup_rsp(
             e_rab_setup_rsp->mme_ue_s1ap_id);
         OAILOG_FUNC_OUT(LOG_MME_APP);
     }
-    bdestroy_wrapper(
-        &e_rab_setup_rsp->e_rab_setup_list.item[i].transport_layer_address);
   }
 
   for (int i = 0; i < e_rab_setup_rsp->e_rab_failed_to_setup_list.no_of_items;
@@ -3765,12 +3763,8 @@ void mme_app_handle_path_switch_request(
             blength(
                 e_rab_to_be_switched_dl_list.item[idx].transport_layer_address),
             path_switch_req_p->mme_ue_s1ap_id);
-        bdestroy_wrapper(
-            &e_rab_to_be_switched_dl_list.item[idx].transport_layer_address);
         OAILOG_FUNC_OUT(LOG_MME_APP);
       }
-      bdestroy_wrapper(
-          &e_rab_to_be_switched_dl_list.item[idx].transport_layer_address);
       s11_modify_bearer_request->bearer_contexts_to_be_modified
           .num_bearer_context++;
 

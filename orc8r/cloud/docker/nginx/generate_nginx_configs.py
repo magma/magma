@@ -54,6 +54,9 @@ def main():
         'backend': os.environ['PROXY_BACKENDS'],
         'resolver': os.environ['RESOLVER'],
         'service_registry_mode': os.environ.get('SERVICE_REGISTRY_MODE', 'yaml'),
+        'ssl_certificate': os.environ['SSL_CERTIFICATE'],
+        'ssl_certificate_key': os.environ['SSL_CERTIFICATE_KEY'],
+        'ssl_client_certificate': os.environ['SSL_CLIENT_CERTIFICATE'],
     }
     _generate_config(context)
 

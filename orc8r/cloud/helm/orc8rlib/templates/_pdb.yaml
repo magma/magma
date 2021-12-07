@@ -19,6 +19,9 @@ metadata:
   labels:
     app.kubernetes.io/component: orc8r
 {{ include "default-labels" . | indent 4 }}
+{{ include "controller-image-version-label" . | indent 4 }}
+  annotations:
+{{ include "release-name-annotation" . | indent 4 }}
 spec:
   {{- with .Values.controller.podDisruptionBudget.minAvailable }}
   minAvailable: {{ . }}

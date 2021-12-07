@@ -106,17 +106,13 @@ int main(void) {
       interface_name, std::move(pkt_generator));
   if (interface_watcher->init_interface_monitor() < 0) {
     MLOG(MERROR) << "Coudn't setup interface sniffing, terminating";
-    proxy_connector->cleanup();
     return -1;
   }
 
   if (interface_watcher->start_capture() < 0) {
     MLOG(MERROR) << "Coudn't start interface sniffing, terminating";
-    proxy_connector->cleanup();
     return -1;
   }
 
-  MLOG(MERROR) << "CleanUP " << pcap_dispatch;
-  proxy_connector->cleanup();
   return 0;
 }

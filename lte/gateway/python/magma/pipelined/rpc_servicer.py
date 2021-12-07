@@ -252,15 +252,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             interface, prefix,
         )
 
-    def _update_tunnel_map_store(
-        self, uplink_tunnel: int,
-        downlink_tunnel: int,
-    ):
-        self._service_manager.tunnel_id_mapper.save_tunnels(
-            uplink_tunnel,
-            downlink_tunnel,
-        )
-
     def _update_version(self, request: ActivateFlowsRequest, ipv4: IPAddress):
         """
         Update version for a given subscriber and rule.
@@ -317,11 +308,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             else:
                 ret_ipv6 = self._install_flows_gy(request, ipv6)
             ret.policy_results.extend(ret_ipv6.policy_results)
-        if request.uplink_tunnel and request.downlink_tunnel:
-            self._update_tunnel_map_store(
-                request.uplink_tunnel,
-                request.downlink_tunnel,
-            )
 
         fut.set_result(ret)
 

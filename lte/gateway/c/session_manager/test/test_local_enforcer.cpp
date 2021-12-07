@@ -1437,9 +1437,11 @@ TEST_F(LocalEnforcerTest, test_credit_init_with_transient_error_redirect) {
                   .charging_credit_map.find(1)
                   ->second.suspended);
 }
-
-TEST_F(LocalEnforcerTest, test_update_with_transient_error) {
-  // insert key rule mapping
+// Creates credit, suspends the credit using transient error,
+// sends transient error (credit should not be un-suspendned
+// and unsuspends the credti sending a valid credit
+TEST_F(
+    LocalEnforcerTest, test_update_with_transient_error_suspendand_unsuspend) {
   insert_static_rule(1, "", "rule1");
   insert_static_rule(1, "", "rule2");
   insert_static_rule(2, "", "rule3");
@@ -1459,33 +1461,65 @@ TEST_F(LocalEnforcerTest, test_update_with_transient_error) {
       session_map,
       create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
 
-  // Add updated credit from cloud
+  // sending two transient error to the same rule. First should trigger
+  // suspension second should not trigger un-suspension
+  for (int i = 0; i < 2; i++) {
+    // Add updated credit from cloud
+    auto session_uc = SessionStore::get_default_session_update(session_map);
+
+    UpdateSessionResponse update_response;
+    create_credit_update_response_with_error(
+        IMSI1, SESSION_ID_1, 1, true, DIAMETER_CREDIT_LIMIT_REACHED,
+        update_response.mutable_responses()->Add());
+    create_credit_update_response(
+        IMSI1, SESSION_ID_1, 2, 1024,
+        update_response.mutable_responses()->Add());
+
+    // we should expect one deactivation and non activations
+    EXPECT_CALL(
+        *pipelined_client, deactivate_flows_for_rules(
+                               testing::_, testing::_, testing::_, testing::_,
+                               CheckRuleCount(2), testing::_))
+        .Times(1);
+    EXPECT_CALL(
+        *pipelined_client, activate_flows_for_rules(
+                               testing::_, testing::_, testing::_, testing::_,
+                               testing::_, testing::_, testing::_, testing::_))
+        .Times(0);
+
+    local_enforcer->update_session_credits_and_rules(
+        session_map, update_response, session_uc);
+    EXPECT_FALSE(session_uc[IMSI1][SESSION_ID_1].updated_fsm_state);
+    EXPECT_TRUE(
+        session_uc[IMSI1][SESSION_ID_1].charging_credit_map[1].suspended);
+    EXPECT_EQ(
+        session_uc[IMSI1][SESSION_ID_1].charging_credit_map[1].service_state,
+        SESSION_ACTIVE);
+    EXPECT_FALSE(
+        session_uc[IMSI1][SESSION_ID_1].charging_credit_map[2].suspended);
+    EXPECT_EQ(
+        session_uc[IMSI1][SESSION_ID_1].charging_credit_map[2].service_state,
+        SESSION_ACTIVE);
+  }
+
+  // un-suspend the rule sending some valid quota
   auto session_uc = SessionStore::get_default_session_update(session_map);
   UpdateSessionResponse update_response;
-  auto updates = update_response.mutable_responses();
-  create_credit_update_response_with_error(
-      IMSI1, SESSION_ID_1, 1, false, DIAMETER_CREDIT_LIMIT_REACHED,
-      updates->Add());
   create_credit_update_response(
-      IMSI1, SESSION_ID_1, 2, 1024, response.mutable_credits()->Add());
+      IMSI1, SESSION_ID_1, 1, 222, update_response.mutable_responses()->Add());
+
+  std::vector<std::string> pending_activation = {"rule1", "rule2"};
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules(
+      *pipelined_client, activate_flows_for_rules(
                              testing::_, testing::_, testing::_, testing::_,
-                             CheckRuleCount(2), testing::_))
+                             default_cfg_1.common_context.msisdn(), testing::_,
+                             CheckRuleNames(pending_activation), testing::_))
       .Times(1);
 
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, session_uc);
-  EXPECT_FALSE(session_uc[IMSI1][SESSION_ID_1].updated_fsm_state);
-  EXPECT_TRUE(session_uc[IMSI1][SESSION_ID_1].charging_credit_map[1].suspended);
-  EXPECT_EQ(
-      session_uc[IMSI1][SESSION_ID_1].charging_credit_map[1].service_state,
-      SESSION_ACTIVE);
   EXPECT_FALSE(
-      session_uc[IMSI1][SESSION_ID_1].charging_credit_map[2].suspended);
-  EXPECT_EQ(
-      session_uc[IMSI1][SESSION_ID_1].charging_credit_map[2].service_state,
-      SESSION_ACTIVE);
+      session_uc[IMSI1][SESSION_ID_1].charging_credit_map[1].suspended);
 }
 
 // gy_rar

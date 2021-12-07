@@ -167,7 +167,7 @@ jobs:
           path: lte/gateway/magma-packages/*.deb
       - name: Extract commit title
         # yamllint enable
-        if: failure() && github.event_name == 'push'
+        if: github.event_name == 'push'
         id: commit
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
@@ -198,9 +198,6 @@ jobs:
       artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
-      DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
-      DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
-      DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
     steps:
       - uses: actions/checkout@v2
       - name: Run apt-get update
@@ -224,11 +221,15 @@ jobs:
         with:
           name: docker-images-orc8r
           path: images
-      - name: Tag and push to Docker Registry
-        if: github.ref == 'refs/heads/master'
-        # yamllint disable rule:line-length
+      - name: Create release Tag
+        if: github.event_name == 'push'
         run: |
-          ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project orc8r
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
+          else
+            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
+          fi
       - name: Tag and push to Jfrog Registry
         id: publish_artifacts
         if: github.event_name == 'push'
@@ -237,11 +238,11 @@ jobs:
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
-          ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project orc8r
-          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/nginx:${GITHUB_SHA:0:8}\", \"$DOCKER_REGISTRY/controller:${GITHUB_SHA:0:8}\"],\"valid\":true}"
+          ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${TAG}" --tag-latest true --project orc8r
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/nginx:${TAG}\", \"$DOCKER_REGISTRY/controller:${TAG}\"],\"valid\":true}"
           echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
       - name: Extract commit title
-        if: github.ref == 'refs/heads/master'
+        if: github.event_name == 'push'
         id: commit
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
@@ -288,7 +289,7 @@ jobs:
           swaggerhub api:update MagmaCore/Magma/1.0.0 --file ${MAGMA_ROOT}/orc8r/cloud/go/obsidian/swagger/v1/swagger.yml --published=publish --visibility=public --setdefault
       - name: Extract commit title
         id: commit
-        if: failure() && github.event_name == 'push'
+        if: github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
@@ -355,7 +356,7 @@ jobs:
       - name: Build xwf go radius
         run: |
           cd ${MAGMA_ROOT}/feg
-          docker build --build-arg BUILD_NUM=${GITHUB_SHA:0:8} --tag goradius -f radius/src/Dockerfile ./
+          docker build --build-arg BUILD_NUM=${TAG} --tag goradius -f radius/src/Dockerfile ./
       - name: Load openvswitch kernel module for xwf integ test
         # yamllint enable
         run: sudo modprobe openvswitch
@@ -391,14 +392,15 @@ jobs:
         with:
           name: pr
           path: pr/
-      - name: Tag and push to Docker Registry
+      - name: Create release Tag
         if: github.event_name == 'push'
-        env:
-          DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
-          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
         run: |
-          ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwf
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
+          else
+            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
+          fi
       - name: Tag and push to Jfrog Registry
         id: publish_artifacts
         if: github.event_name == 'push'
@@ -407,8 +409,8 @@ jobs:
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
-          ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwf
-          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/cwag_go:${GITHUB_SHA:0:8}\", \"$DOCKER_REGISTRY/gateway_go:${GITHUB_SHA:0:8}\", \"$DOCKER_REGISTRY/gateway_python:${GITHUB_SHA:0:8}\", \"$DOCKER_REGISTRY/gateway_sessiond:${GITHUB_SHA:0:8}\",\"$DOCKER_REGISTRY/gateway_pipelined:${GITHUB_SHA:0:8}\"],\"valid\":true}"
+          ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${TAG}" --tag-latest true --project cwf
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/cwag_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\", \"$DOCKER_REGISTRY/gateway_sessiond:${TAG}\",\"$DOCKER_REGISTRY/gateway_pipelined:${TAG}\"],\"valid\":true}"
           echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
       - name: Tag and push to Docker Registry goradius
         if: github.event_name == 'push'
@@ -418,7 +420,7 @@ jobs:
           DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
         # yamllint disable rule:line-length
         run: |
-          ./ci-scripts/tag-push-docker.sh --images 'goradius' --tag "${GITHUB_SHA:0:8}" --tag-latest true
+          ./ci-scripts/tag-push-docker.sh --images 'goradius' --tag "${TAG}" --tag-latest true
       - name: Tag and push to Docker Registry xwfm-integ-tests
         if: github.event_name == 'push'
         env:
@@ -427,7 +429,7 @@ jobs:
           DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
         # yamllint disable rule:line-length
         run: |
-          ./ci-scripts/tag-push-docker.sh --images 'xwfm-integ-tests' --tag "${GITHUB_SHA:0:8}" --tag-latest true
+          ./ci-scripts/tag-push-docker.sh --images 'xwfm-integ-tests' --tag "${TAG}" --tag-latest true
       - name: Extract commit title
         id: commit
         if: github.event_name == 'push'
@@ -496,15 +498,15 @@ jobs:
         with:
           name: pr
           path: pr/
-      - name: Tag and push to Docker Registry
-        if: github.ref == 'refs/heads/master'
-        # yamllint disable rule:line-length
-        env:
-          DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
-          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+      - name: Create release Tag
+        if: github.event_name == 'push'
         run: |
-          ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwf
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
+          else
+            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
+          fi
       - name: Tag and push to Jfrog Registry
         if: github.ref == 'refs/heads/master'
         env:
@@ -512,10 +514,10 @@ jobs:
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
-          ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project cwf
+          ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${TAG}" --tag-latest true --project cwf
       - name: Extract commit title
         id: commit
-        if: github.ref == 'refs/heads/master'
+        if: github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
@@ -594,6 +596,14 @@ jobs:
         with:
           name: docker-images-feg
           path: images
+      - name: Create release Tag
+        run: |
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
+          else
+            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
+          fi
       - name: Tag and push to Jfrog Registry
         id: publish_artifacts
         if: github.event_name == 'push'
@@ -602,8 +612,8 @@ jobs:
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
-          ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project feg
-          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${GITHUB_SHA:0:8}\", \"$DOCKER_REGISTRY/gateway_python:${GITHUB_SHA:0:8}\"],\"valid\":true}"
+          ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\"],\"valid\":true}"
           echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
       - name: Extract commit title
         if: github.event_name == 'push'
@@ -646,9 +656,6 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
       NMS_ROOT: "${{ github.workspace }}/nms/packages/magmalte"
-      DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
-      DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
-      DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
     steps:
       - uses: actions/checkout@v2
       - name: Run docker compose
@@ -657,11 +664,6 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/nms/packages/magmalte
           docker-compose build magmalte
-      - name: Tag and push to Docker Registry
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-        # yamllint disable rule:line-length
-        run: |
-          ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${GITHUB_SHA:0:8}" --tag-latest false --project magmalte
       - name: Export docker images to deploy them on pull_request
         if: github.event_name == 'pull_request'
         run: |
@@ -674,6 +676,15 @@ jobs:
         with:
           name: docker-images-nms
           path: images
+      - name: Create release Tag
+        if: github.event_name == 'push'
+        run: |
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
+          else
+            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
+          fi
       - name: Tag and push to Jfrog Registry
         id: publish_artifacts
         if: github.event_name == 'push'
@@ -682,8 +693,8 @@ jobs:
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
-          ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${GITHUB_SHA:0:8}" --tag-latest true --project magmalte
-          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/magmalte:${GITHUB_SHA:0:8}\"],\"valid\":true}"
+          ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${TAG}" --tag-latest true --project magmalte
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/magmalte:${TAG}\"],\"valid\":true}"
           echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
       - name: Extract commit title
         id: commit

@@ -21,6 +21,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 }
 
 const task_info_t tasks_info[] = {
@@ -74,6 +75,10 @@ class MockMmeAppHandler {
   MOCK_METHOD0(mme_app_handle_initial_context_setup_failure, void());
   MOCK_METHOD0(mme_app_handle_enb_reset_req, void());
   MOCK_METHOD0(mme_app_handle_e_rab_setup_rsp, void());
+  MOCK_METHOD0(mme_app_handle_path_switch_request, void());
+  MOCK_METHOD1(
+      mme_app_handle_suspend_acknowledge,
+      bool(itti_s11_suspend_acknowledge_t suspend_ack));
 };
 
 class MockSctpHandler {

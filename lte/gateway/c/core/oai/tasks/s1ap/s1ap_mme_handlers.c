@@ -3824,54 +3824,6 @@ status_code_e s1ap_handle_new_association(
 }
 
 //------------------------------------------------------------------------------
-void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
-    s1ap_state_t* state, ue_description_t* ue_ref_p) {
-  MessageDef* message_p = NULL;
-  OAILOG_FUNC_IN(LOG_S1AP);
-
-  if (ue_ref_p == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "ue_ref_p is NULL\n");
-    return;
-  }
-
-  ue_ref_p->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
-  imsi64_t imsi64                        = INVALID_IMSI64;
-
-  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(
-      imsi_map->mme_ue_id_imsi_htbl,
-      (const hash_key_t) ue_ref_p->mme_ue_s1ap_id, &imsi64);
-
-  OAILOG_DEBUG_UE(
-      LOG_S1AP, imsi64, "Expired- UE Context Release Timer for UE id  %d \n",
-      ue_ref_p->mme_ue_s1ap_id);
-  /*
-   * Remove UE context and inform MME_APP.
-   */
-  message_p = DEPRECATEDitti_alloc_new_message_fatal(
-      TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
-  memset(
-      (void*) &message_p->ittiMsg.s1ap_ue_context_release_complete, 0,
-      sizeof(itti_s1ap_ue_context_release_complete_t));
-  S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id =
-      ue_ref_p->mme_ue_s1ap_id;
-
-  message_p->ittiMsgHeader.imsi = imsi64;
-  send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
-
-  if (!(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR)) {
-    OAILOG_ERROR(LOG_S1AP, "Incorrect UE state\n");
-  }
-
-  OAILOG_DEBUG_UE(
-      LOG_S1AP, imsi64, "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",
-      (uint32_t) ue_ref_p->mme_ue_s1ap_id);
-  s1ap_remove_ue(state, ue_ref_p);
-
-  OAILOG_FUNC_OUT(LOG_S1AP);
-}
-
-//------------------------------------------------------------------------------
 void s1ap_mme_release_ue_context(
     s1ap_state_t* state, ue_description_t* ue_ref_p, imsi64_t imsi64) {
   MessageDef* message_p = NULL;
