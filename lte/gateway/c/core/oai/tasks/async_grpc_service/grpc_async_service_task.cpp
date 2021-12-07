@@ -133,7 +133,9 @@ void S6aProxyAsyncResponderHandler::CancelLocation(
   Status status;
   status = Status::OK;
   ans.set_error_code(ErrorCode::SUCCESS);
-  response_callback(status, ans);
+  if (response_callback) {
+    response_callback(status, ans);
+  }
   auto imsi              = request->user_name();
   auto cancellation_type = request->cancellation_type();
   OAILOG_INFO(
@@ -154,7 +156,9 @@ void S6aProxyAsyncResponderHandler::Reset(
   Status status;
   status = Status::OK;
   ans.set_error_code(ErrorCode::SUCCESS);
-  response_callback(status, ans);
+  if (response_callback) {
+    response_callback(status, ans);
+  }
   OAILOG_INFO(LOG_S6A, "Received S6a-Reset message \n");
   // Send message to MME_APP for furher processing
   handle_reset_request();

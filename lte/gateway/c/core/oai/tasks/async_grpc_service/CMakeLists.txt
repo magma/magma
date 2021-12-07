@@ -40,6 +40,7 @@ target_link_libraries(TASK_ASYNC_GRPC_SERVICE
     LIB_HASHTABLE
     ${PROTOBUF_LIBRARIES}
     grpc++
+    TASK_S6A
     )
 target_include_directories(TASK_ASYNC_GRPC_SERVICE PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

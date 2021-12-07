@@ -27,6 +27,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S6A_CANCEL_LOCATION_REQ: {
+      mme_app_handler_->mme_app_handle_s6a_cancel_location_req();
     } break;
 
     case MME_APP_UPLINK_DATA_IND: {
@@ -36,6 +37,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S6A_RESET_REQ: {
+      mme_app_handler_->mme_app_handle_s6a_reset_req();
     } break;
 
     case S11_CREATE_SESSION_RESPONSE: {
