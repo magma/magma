@@ -105,5 +105,7 @@ void send_erab_setup_rsp();
 
 void send_erab_release_rsp();
 
+void send_paging_request();
+
 }  // namespace lte
 }  // namespace magma
