@@ -36,6 +36,7 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_mock.h"
 
 const struct gtp_tunnel_ops* gtp_tunnel_ops;
 static struct in_addr current_ue_net;
@@ -117,7 +118,10 @@ int gtpv1u_init(
 
   OAILOG_DEBUG(LOG_GTPV1U, "Initializing GTPV1U interface\n");
 
-  // Init gtp_tunnel_ops
+// Init gtp_tunnel_ops
+#if MME_UNIT_TEST
+  gtp_tunnel_ops = mock_gtp_tunnel_ops_init();
+#else
   // If pipeline config is enabled initialize userplane ops
   if (spgw_config->sgw_config.ovs_config.pipelined_managed_tbl0) {
     OAILOG_INFO(LOG_GTPV1U, "Initializing upf classifier for gtp apps");
@@ -126,6 +130,7 @@ int gtpv1u_init(
     OAILOG_DEBUG(LOG_GTPV1U, "Initializing gtp_tunnel_ops_openflow\n");
     gtp_tunnel_ops = gtp_tunnel_ops_init_openflow();
   }
+#endif
 
   if (gtp_tunnel_ops == NULL) {
     OAILOG_CRITICAL(LOG_GTPV1U, "ERROR in initializing gtp_tunnel_ops\n");
