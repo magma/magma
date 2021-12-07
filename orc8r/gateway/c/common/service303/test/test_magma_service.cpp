@@ -19,10 +19,10 @@ using ::testing::Test;
 namespace magma {
 namespace service303 {
 
-const std::string SERVICE_NAME    = "test_service";
+const std::string SERVICE_NAME = "test_service";
 const std::string SERVICE_VERSION = "0.0.0";
-const std::string META_KEY        = "key";
-const std::string META_VALUE      = "value";
+const std::string META_KEY = "key";
+const std::string META_VALUE = "value";
 
 TEST(test_magma_service, test_GetServiceInfo) {
   MagmaService magma_service(SERVICE_NAME, SERVICE_VERSION);
@@ -77,13 +77,9 @@ TEST(test_magma_service, test_GetServiceInfo_with_callback) {
   EXPECT_TRUE(response.status().meta().empty());
 }
 
-bool reload_succeeded() {
-  return true;
-}
+bool reload_succeeded() { return true; }
 
-bool reload_failed() {
-  return false;
-}
+bool reload_failed() { return false; }
 
 TEST(test_magma_service, test_ReloadServiceConfig) {
   MagmaService magma_service(SERVICE_NAME, SERVICE_VERSION);

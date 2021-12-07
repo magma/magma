@@ -35,7 +35,7 @@
 struct _MLOG_NEWLINE {
   ~_MLOG_NEWLINE() { std::cout << std::endl; }
 };
-#define MLOG(VERBOSITY)                                                        \
+#define MLOG(VERBOSITY) \
   (_MLOG_NEWLINE(), std::cout << "[" << __FILE__ << ":" << __LINE__ << "] ")
 
 #endif

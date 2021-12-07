@@ -65,13 +65,13 @@ ServiceRegistrySingleton::ServiceRegistrySingleton() {
 ip_port_pair_t ServiceRegistrySingleton::GetServiceAddr(
     const std::string& service) {
   YAML::Node registry = *(this->registry_);
-  YAML::Node node     = registry["services"];
+  YAML::Node node = registry["services"];
   assert(node.IsMap());
   if (node[service]) {
     YAML::Node serviceNode = node[service];
     assert(serviceNode.IsMap());
     ip_port_pair_t ip_port_pair;
-    ip_port_pair.ip   = serviceNode["ip_address"].as<std::string>();
+    ip_port_pair.ip = serviceNode["ip_address"].as<std::string>();
     ip_port_pair.port = serviceNode["port"].as<std::string>();
     return ip_port_pair;
   } else {
@@ -131,16 +131,16 @@ ServiceRegistrySingleton::GetCreateGrpcChannelArgs(
   if (destination.compare(ServiceRegistrySingleton::LOCAL) == 0) {
     // connect to local service
     ip_port_pair_t pair = ServiceRegistrySingleton::GetServiceAddr(service);
-    args.ip             = pair.ip;
-    args.port           = pair.port;
+    args.ip = pair.ip;
+    args.port = pair.port;
   } else if (proxyConfig["proxy_cloud_connections"].as<bool>()) {
     // connect to the cloud via local control proxy
-    args.ip   = "127.0.0.1";
+    args.ip = "127.0.0.1";
     args.port = proxyConfig["local_port"].as<std::string>();
   } else {
     // connect to the cloud directly
-    args.ip    = cloud_address;
-    args.port  = proxyConfig["cloud_port"].as<std::string>();
+    args.ip = cloud_address;
+    args.port = proxyConfig["cloud_port"].as<std::string>();
     args.creds = GetSslCredentials();
   }
 
@@ -165,9 +165,9 @@ const std::shared_ptr<Channel> ServiceRegistrySingleton::CreateGrpcChannel(
 const std::shared_ptr<Channel>
 ServiceRegistrySingleton::GetBootstrapperGrpcChannel() {
   YAML::Node proxyConfig = *(this->proxy_config_);
-  auto ip                = proxyConfig["bootstrap_address"].as<std::string>();
-  auto port              = proxyConfig["bootstrap_port"].as<std::string>();
-  auto authority         = ip;
+  auto ip = proxyConfig["bootstrap_address"].as<std::string>();
+  auto port = proxyConfig["bootstrap_port"].as<std::string>();
+  auto authority = ip;
 
   SslCredentialsOptions options;
   options.pem_root_certs =
