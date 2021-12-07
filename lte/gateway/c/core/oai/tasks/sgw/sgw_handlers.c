@@ -651,7 +651,6 @@ static void sgw_populate_mbr_bearer_contexts_modified(
 
       // setup GTPv1-U tunnel
       sgw_add_gtp_tunnel(imsi64, eps_bearer_ctxt_p, new_bearer_ctxt_info_p);
-
       // may be removed
       if (TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX >
           eps_bearer_ctxt_p->num_sdf) {
