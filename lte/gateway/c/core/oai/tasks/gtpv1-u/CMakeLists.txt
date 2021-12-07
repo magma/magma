@@ -3,7 +3,7 @@ set(GTPV1U_SRC
     gtpv1u_task.c
     gtp_tunnel_openflow.c
     gtp_tunnel_upf.c
-    gtp_tunnel_mock.c
+    ${PROJECT_SOURCE_DIR}/test/mock_tasks/gtp_tunnel_mock.c
     )
 
 set(S1AP_C_DIR ${PROJECT_BINARY_DIR}/s1ap/r15)

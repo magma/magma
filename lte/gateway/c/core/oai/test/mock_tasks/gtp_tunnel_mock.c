@@ -15,7 +15,7 @@
  * For sending the flow reuqests to pipeplined
  */
 
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_mock.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/gtp_tunnel_mock.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 
 static const struct gtp_tunnel_ops mock_tunnel_ops = {

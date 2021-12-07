@@ -36,7 +36,7 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_mock.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/gtp_tunnel_mock.h"
 
 const struct gtp_tunnel_ops* gtp_tunnel_ops;
 static struct in_addr current_ue_net;
