@@ -21,7 +21,7 @@
 #include <functional>                              // for function
 #include <memory>                                  // for unique_ptr
 namespace grpc {
-template <class R>
+template<class R>
 class ClientAsyncResponseReader;
 }
 
