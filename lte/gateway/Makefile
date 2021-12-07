@@ -202,7 +202,7 @@ scan_oai: ## Scan OAI
 test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
-test_sudo_python: stop ## Run Python tests that require sudo (datapath, etc.) hello
+test_sudo_python: stop ## Run Python tests that require sudo (datapath, etc.)
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all SKIP_NON_SUDO_TESTS=1
 
 test_python_service: ## Run all Python-specific tests for a given service
