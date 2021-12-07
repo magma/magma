@@ -8,25 +8,29 @@ build:development --compilation_mode=fastbuild
 build:production --config=lsan --compilation_mode=dbg --strip=never --copt=-O3
 
 # C/C++ CONFIGS
-build --cxxopt=-std=c++14
 build --cxxopt=-DLOG_WITH_GLOG=1
 build --experimental_strict_action_env
 
+build:gcc_config --crosstool_top=//bazel/toolchains:gcc_suite
+build:gcc_config --cpu=linux-x86_64
+build:gcc_config --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+
 # MAGMA VM CONFIGS
-build:specify_vm_cc --action_env=CC=/usr/bin/gcc
 build:vm --disk_cache=/home/vagrant/magma/.bazel-cache
 common:vm --repository_cache=/home/vagrant/magma/.bazel-cache-repo
 build:vm --define=folly_so=1
-build:vm --config=specify_vm_cc
+build:vm --config=gcc_config
 
 # MAGMA-BUILDER DOCKER CONTAINER CONFIGS
 build:docker --disk_cache=/magma/.bazel-cache
 common:docker --repository_cache=/magma/.bazel-cache-repo
+build:docker --config=gcc_config
 
 # DEVCONTAINER CONFIGS
 build:devcontainer --disk_cache=/workspaces/magma/.bazel-cache
 common:devcontainer --repository_cache=/workspaces/magma/.bazel-cache-repo
 build:devcontainer --define=folly_so=1
+build:devcontainer --config=gcc_config
 
 # CODE COVERAGE CONFIGS
 build --javacopt="-source 8"

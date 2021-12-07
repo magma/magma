@@ -1,0 +1,28 @@
+load("@rules_cc//cc:defs.bzl", "cc_toolchain", "cc_toolchain_suite")
+load(":cc_toolchain_config.bzl", "cc_toolchain_config")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_toolchain_config(name = "x86_64_cc_toolchain_config")
+
+cc_toolchain_suite(
+    name = "gcc_suite",
+    toolchains = {
+        "linux-x86_64": "gcc-linux-x86_64",
+    },
+)
+
+filegroup(name = "empty")
+
+cc_toolchain(
+    name = "gcc-linux-x86_64",
+    all_files = ":empty",
+    compiler_files = ":empty",
+    dwp_files = ":empty",
+    linker_files = ":empty",
+    objcopy_files = ":empty",
+    strip_files = ":empty",
+    supports_param_files = 0,
+    toolchain_config = "x86_64_cc_toolchain_config",
+    toolchain_identifier = "k8-toolchain",
+)
