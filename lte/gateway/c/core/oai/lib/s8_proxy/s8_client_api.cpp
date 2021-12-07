@@ -119,7 +119,7 @@ static void recv_s8_delete_session_response(
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64,
         "Failed to allocate memory for S8_DELETE_SESSION_RSP for "
-        "context_teid" TEID_FMT "\n",
+        "context_teid" TEID_FMT,
         context_teid);
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
@@ -137,14 +137,14 @@ static void recv_s8_delete_session_response(
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64,
         "Received gRPC error for delete session response for "
-        "context_teid " TEID_FMT "\n",
+        "context_teid " TEID_FMT,
         context_teid);
     s8_delete_session_rsp->cause = REMOTE_PEER_NOT_RESPONDING;
   }
   OAILOG_INFO_UE(
       LOG_UTIL, imsi64,
       "Sending delete session response to sgw_s8 task for "
-      "context_teid " TEID_FMT "\n",
+      "context_teid " TEID_FMT,
       context_teid);
   if ((send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SGW_S8, message_p)) !=
       RETURNok) {
@@ -172,8 +172,7 @@ static void recv_s8_create_session_response(
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64,
         "Failed to allocate memory for S8_CREATE_SESSION_RSP for "
-        "temporary_create_session_procedure_id:%u sgw_s8_cp_teid " TEID_FMT
-        "\n",
+        "temporary_create_session_procedure_id %u sgw_s8_cp_teid " TEID_FMT,
         temporary_create_session_procedure_id, response.c_agw_teid());
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
@@ -188,8 +187,7 @@ static void recv_s8_create_session_response(
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64,
         "Received gRPC error for create session response for "
-        "temporary_create_session_procedure_id:%u sgw_s8_cp_teid " TEID_FMT
-        "\n",
+        "temporary_create_session_procedure_id %u sgw_s8_cp_teid " TEID_FMT,
         temporary_create_session_procedure_id, s5_response->context_teid);
     s5_response->cause = REMOTE_PEER_NOT_RESPONDING;
   }
@@ -200,8 +198,7 @@ static void recv_s8_create_session_response(
     OAILOG_ERROR_UE(
         LOG_SGW_S8, imsi64,
         "Failed to send S8 CREATE SESSION RESPONSE message to sgw_s8 task "
-        "for temporary_create_session_procedure_id:%u sgw_s8_cp_teid " TEID_FMT
-        "\n",
+        "for temporary_create_session_procedure_id %u sgw_s8_cp_teid " TEID_FMT,
         temporary_create_session_procedure_id, response.c_agw_teid());
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
@@ -450,7 +447,7 @@ void send_s8_create_session_request(
   OAILOG_INFO_UE(
       LOG_SGW_S8, imsi64,
       "Sending create session request for "
-      "temporary_create_session_procedure_id %u \n",
+      "temporary_create_session_procedure_id %u ",
       temporary_create_session_procedure_id);
 
   fill_s8_create_session_req(msg, &csr_req);
@@ -533,7 +530,7 @@ void send_s8_delete_session_request(
   OAILOG_FUNC_IN(LOG_SGW_S8);
   OAILOG_INFO_UE(
       LOG_SGW_S8, imsi64,
-      "Sending delete session request for context_teid:" TEID_FMT "\n",
+      "Sending delete session request for context_teid:" TEID_FMT,
       sgw_s11_teid);
 
   magma::feg::DeleteSessionRequestPgw dsr_req;
@@ -612,8 +609,7 @@ void send_s8_create_bearer_response(
   magma::feg::CreateBearerResponsePgw proto_cb_rsp;
 
   OAILOG_INFO(
-      LOG_SGW_S8,
-      "Sending create bearer response for context_tied " TEID_FMT "\n",
+      LOG_SGW_S8, "Sending create bearer response for context_tied " TEID_FMT,
       pgw_s8_teid);
 
   fill_s8_create_bearer_response(
@@ -666,8 +662,7 @@ void send_s8_delete_bearer_response(
   magma::feg::DeleteBearerResponsePgw proto_db_rsp;
 
   OAILOG_INFO(
-      LOG_SGW_S8,
-      "Sending delete bearer response for context_tied " TEID_FMT "\n",
+      LOG_SGW_S8, "Sending delete bearer response for context_tied " TEID_FMT,
       pgw_s8_teid);
 
   fill_s8_delete_bearer_response(

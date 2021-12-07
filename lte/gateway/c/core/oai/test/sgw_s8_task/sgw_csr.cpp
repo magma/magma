@@ -136,6 +136,14 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
   EXPECT_TRUE(
       bearer_ctx_p->p_gw_teid_S5_S8_up ==
       csresp.bearer_context[0].pgw_s8_up.teid);
+  // Check pdn session is removed from
+  // temporary_create_session_procedure_id_htbl
+  EXPECT_EQ(
+      hashtable_ts_get(
+          sgw_state->temporary_create_session_procedure_id_htbl,
+          temporary_create_session_procedure_id,
+          reinterpret_cast<void**>(&sgw_pdn_session)),
+      HASH_TABLE_KEY_NOT_EXISTS);
 
   sgw_state_exit();
 }
