@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/prometheus/client_golang/prometheus"
 	prometheus_proto "github.com/prometheus/client_model/go"
@@ -81,8 +82,10 @@ func GetMetrics(prometheus_labels map[string]string) ([]*prometheus_proto.Metric
 	timeStamp := time.Now().UnixNano() / int64(time.Millisecond)
 	// labels for metrics
 	labels := make([]*prometheus_proto.LabelPair, 0)
+	glog.Warningf("IM INSIDE METRICS_EXPORT.GO")
 	for label_name, label_value := range prometheus_labels {
 		labels = append(labels, &prometheus_proto.LabelPair{Name: proto.String(label_name), Value: proto.String(label_value)})
+		glog.Warningf("THATS MY LABELS: %s", labels)
 	}
 	for _, metric_family := range families {
 		for _, sample := range metric_family.Metric {

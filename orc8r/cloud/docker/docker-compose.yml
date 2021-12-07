@@ -20,6 +20,7 @@ services:
       VERSION_TAG: LOCAL-DEV
       HELM_VERSION_TAG: LOCAL-DEV
       MAGMA_PRINT_GRPC_PAYLOAD: 0
+      PROMETHEUS_LABELS: "test_label=test_label_value"
     links:
       - fluentd
     depends_on:
