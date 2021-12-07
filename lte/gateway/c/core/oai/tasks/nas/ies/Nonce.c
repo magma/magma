@@ -29,7 +29,6 @@ int decode_nonce(nonce_t* nonce, uint8_t iei, uint8_t* buffer, uint32_t len) {
     CHECK_IEI_DECODER(iei, *buffer);
     decoded++;
   }
-  // IES_DECODE_U32(*nonce, *(buffer + decoded));
   IES_DECODE_U32(buffer, decoded, *nonce);
 
   return decoded;
