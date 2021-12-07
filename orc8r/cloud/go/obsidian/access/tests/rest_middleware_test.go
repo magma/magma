@@ -53,7 +53,7 @@ func TestAuthMiddleware(t *testing.T) {
 	certifier_test_service.StartTestService(t)
 	store := test_utils.GetCertifierBlobstore(t)
 
-	bobToken := test_utils.CreateTestUser(t, store)
+	userToken := test_utils.CreateTestUser(t, store)
 	rootToken := test_utils.CreateTestAdmin(t, store)
 
 	e := startTestMiddlewareServer(t)
@@ -73,26 +73,25 @@ func TestAuthMiddleware(t *testing.T) {
 		expected int
 	}{
 		// Test admin user
-		{"GET", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestRootUsername, rootToken, 200},
-		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, test_utils.TestRootUsername, rootToken, 200},
-		{"GET", urlPrefix + RegisterNetworkV1, test_utils.TestRootUsername, rootToken, 200},
-		{"POST", urlPrefix + RegisterNetworkV1, test_utils.TestRootUsername, rootToken, 200},
-		{"GET", urlPrefix + RegisterNetworkV1, test_utils.TestRootUsername, rootToken, 200},
-		{"GET", urlPrefix + "/malformed/url", test_utils.TestRootUsername, rootToken, 200},
-		{"PUT", urlPrefix + "/malformed/url", test_utils.TestRootUsername, rootToken, 200},
-		{"GET", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestRootUsername, rootToken, 200},
-		{"POST", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestRootUsername, rootToken, 200},
+		{"GET", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"GET", urlPrefix + RegisterNetworkV1, test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"POST", urlPrefix + RegisterNetworkV1, test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"GET", urlPrefix + RegisterNetworkV1, test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"GET", urlPrefix + "/malformed/url", test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"PUT", urlPrefix + "/malformed/url", test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"GET", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"POST", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestRootUsername, rootToken, http.StatusOK},
 
-		// Test non-admin user
-		{"GET", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, test_utils.TestUsername, bobToken, 200},
-		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, test_utils.TestUsername, bobToken, 403},
-		{"GET", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestUsername, bobToken, 200},
-		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestUsername, bobToken, 403},
-		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestUsername, bobToken, 403},
-		{"GET", urlPrefix + RegisterNetworkV1, test_utils.TestUsername, bobToken, 200},
-		{"POST", urlPrefix + RegisterNetworkV1, test_utils.TestUsername, bobToken, 403},
-		{"POST", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestUsername, bobToken, 403},
-		{"GET", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestUsername, bobToken, 403},
+		// Test non-admin user who has read access to all URI endpoints and networks, read/write access to WRITE_TEST_NETWORK_ID, and no read/write access to specific tenants
+		{"GET", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, test_utils.TestUsername, userToken, http.StatusOK},
+		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, test_utils.TestUsername, userToken, http.StatusForbidden},
+		{"GET", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestUsername, userToken, http.StatusOK},
+		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestUsername, userToken, http.StatusOK},
+		{"GET", urlPrefix + RegisterNetworkV1, test_utils.TestUsername, userToken, http.StatusOK},
+		{"POST", urlPrefix + RegisterNetworkV1, test_utils.TestUsername, userToken, http.StatusForbidden},
+		{"GET", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestUsername, userToken, http.StatusForbidden},
+		{"POST", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestUsername, userToken, http.StatusForbidden},
 	}
 	for _, tt := range tests {
 		s, err := SendRequestWithToken(tt.method, tt.url, tt.user, tt.token)

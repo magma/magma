@@ -347,11 +347,6 @@ func (srv *CertifierServer) GetPolicyDecision(ctx context.Context, getPDReq *cer
 
 // CreateUser creates a new user with the specified password and policy
 func (srv *CertifierServer) CreateUser(ctx context.Context, user *certprotos.User) (*protos.Void, error) {
-	// token, err := certifier.GenerateToken(certifier.Personal)
-	// if err != nil {
-	// 	return status.Errorf(codes.Internal, "failed to generate token while creating user")
-	// }
-
 	_, err := srv.store.GetUser(user.Username)
 	if err == nil {
 		return nil, status.Errorf(codes.AlreadyExists, "user already exists")
@@ -391,6 +386,9 @@ func (srv *CertifierServer) GetUser(ctx context.Context, getUserReq *certprotos.
 
 func (srv *CertifierServer) UpdateUser(ctx context.Context, updatedUser *certprotos.User) (*protos.Void, error) {
 	user, err := srv.store.GetUser(updatedUser.Username)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get user: %v", err)
+	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword(updatedUser.Password, bcrypt.DefaultCost)
 	if err != nil {
@@ -714,10 +712,16 @@ func (srv *CertifierServer) getPolicyDecisionFromToken(token string, reqResource
 		if actionEffect == certprotos.Effect_DENY {
 			return certprotos.Effect_DENY, nil
 		}
-
 		resourceEffect := checkResource(reqResource, policyResource)
-		if resourceEffect != certprotos.Effect_UNKNOWN {
-			return resourceEffect, nil
+		if resourceEffect == certprotos.Effect_DENY {
+			return certprotos.Effect_DENY, nil
+		}
+		// The effects from both action and resource should match
+		// for the effect of the policy  to apply to the request.
+		if actionEffect != certprotos.Effect_UNKNOWN &&
+			resourceEffect != certprotos.Effect_UNKNOWN &&
+			actionEffect == resourceEffect {
+			effect = actionEffect
 		}
 	}
 
@@ -740,13 +744,17 @@ func checkResource(reqResource, policyResource *certprotos.Resource) certprotos.
 
 // checkAction checks if the requested action is authorized by the policy
 func checkAction(reqResource *certprotos.Resource, policyResource *certprotos.Resource) certprotos.Effect {
+	// The policy does not handle this case, so return UNKNOWN.
+	if reqResource.ResourceType != policyResource.ResourceType {
+		return certprotos.Effect_UNKNOWN
+	}
 	if policyResource.Action == certprotos.Action_WRITE {
 		return policyResource.Effect
 	}
 	if policyResource.Action == certprotos.Action_READ && reqResource.Action == certprotos.Action_READ {
 		return policyResource.Effect
 	}
-	return certprotos.Effect_DENY
+	return certprotos.Effect_UNKNOWN
 }
 
 func isTokenWithUser(token string, tokenList *certprotos.TokenList) error {

@@ -62,15 +62,15 @@ func createTestUserPolicy(token string) certprotos.Policy {
 		},
 		{
 			Effect:       certprotos.Effect_ALLOW,
-			Action:       certprotos.Action_WRITE,
-			ResourceType: certprotos.ResourceType_NETWORK_ID,
-			Resource:     WriteTestNetworkId,
-		},
-		{
-			Effect:       certprotos.Effect_ALLOW,
 			Action:       certprotos.Action_READ,
 			ResourceType: certprotos.ResourceType_NETWORK_ID,
 			Resource:     "**",
+		},
+		{
+			Effect:       certprotos.Effect_ALLOW,
+			Action:       certprotos.Action_WRITE,
+			ResourceType: certprotos.ResourceType_NETWORK_ID,
+			Resource:     WriteTestNetworkId,
 		},
 	}
 
