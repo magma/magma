@@ -77,7 +77,7 @@ jobs:
         run: |
             wget https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public -O /tmp/public
             sudo apt-key add /tmp/public
-            echo "deb https://artifactory.magmacore.org/artifactory/debian ${{ env.OS_VERSION }}-${{ env.DISTRIBUTION}} main" >> /etc/apt/sources.list.d/magma.list
+            sudo echo "deb https://artifactory.magmacore.org/artifactory/debian ${{ env.OS_VERSION }}-${{ env.DISTRIBUTION}} main" >> /etc/apt/sources.list.d/magma.list
             apt update
             apt install magma-libfluid libopenvswitch  openvswitch-switch  openvswitch-common  openvswitch-datapath-dkms
       - name: Install libraries and dependecies
