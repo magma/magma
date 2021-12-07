@@ -67,6 +67,7 @@ FUZZ_FLAGS = $(OAI_FLAGS) -DFUZZ=True
 TEST_FLAG = -DBUILD_TESTS=1
 OAI_TEST_FLAGS = -DMME_UNIT_TEST=True
 OAI_NOTEST_FLAGS = -DMME_UNIT_TEST=False
+OAI_TESTS ?= ".*"
 
 all: build
 
@@ -128,10 +129,10 @@ cp -r $(REPORT_DIR) $(MAGMA_ROOT)
 @echo "Reports in magma/reports/.../index.html"
 endef
 
-# run_ctest BUILD_DIRECTORY, TEST_BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS
+# run_ctest BUILD_DIRECTORY, TEST_BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS, LIST OF TESTS
 define run_ctest
 $(call run_cmake, $(1), $(3), $(4) $(TEST_FLAG))
-cd $(2) && ctest --output-on-failure
+cd $(2) && ctest --output-on-failure -R $(5)
 endef
 
 build_python: stop ## Build Python environment
@@ -212,9 +213,9 @@ endif
 	make -C $(MAGMA_ROOT)/lte/gateway/python unit_tests MAGMA_SERVICE=$(MAGMA_SERVICE) UT_PATH=$(ut_path) DONT_BUILD_ENV=$(DONT_BUILD_ENV)
 
 test_oai: ## Run all OAI-specific tests
-	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS))
+	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
 
-test_sctpd: ## Run all OAI-specific tests
+test_sctpd: ## Run all tests for sctpd
 	$(call run_ctest, $(C_BUILD)/sctp, $(C_BUILD)/sctp/src, $(GATEWAY_C_DIR)/sctpd, )
 
 test_common: ## Run all tests in magma_common
