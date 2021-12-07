@@ -20,7 +20,6 @@ cc_library(
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/config",
     deps = [
-        "@boost//:iterator",
         "@yaml-cpp//:yaml-cpp",
     ],
 )
