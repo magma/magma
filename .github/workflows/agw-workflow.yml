@@ -62,6 +62,8 @@ jobs:
       PIP_CACHE_HOME: "${{ github.workspace }}/.pipcache"
       SWAGGER_CODEGEN_JAR: "${{ github.workspace }}/.codegen/swagger-codegen-cli.jar"
       MAGMA_DEV_MODE: 1
+      OS_VERSION: "focal"
+      DISTRIBUTION: "ci"
     steps:
       - uses: actions/checkout@v2
       - name: setup pyenv
@@ -73,13 +75,11 @@ jobs:
           python-version: '3.8.5'
       - name: Run apt-focal-install-aioeventlet
         run: |
-            cd nms
-            # Install python3-aioeventlet from the magma apt repo
-            cat ${{ env.MAGMA_ROOT }}/orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub | sudo -E apt-key add -
-            echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" | sudo -E tee /etc/apt/sources.list.d/fbc.list
-            sudo apt-get update -y
-            sudo apt-get install -y python3-aioeventlet
-            sudo rm -rf /var/lib/apt/lists/*
+            wget https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public -O /tmp/public
+            apt-key add /tmp/public
+            echo "deb https://artifactory.magmacore.org/artifactory/debian ${{ env.OS_VERSION }}-${{ env.DISTRIBUTION}} main" >> /etc/apt/sources.list.d/magma.list
+            apt update
+            apt install magma-libfluid libopenvswitch  openvswitch-switch  openvswitch-common  openvswitch-datapath-dkms 
       - name: Install libraries and dependecies
         run: |
             mkdir -p /var/tmp/test_results
