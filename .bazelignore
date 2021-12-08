@@ -3,3 +3,5 @@
 .cache
 orc8r/cloud/docker/metrics-configs/alert_rules
 nms/app/node_modules
+nms/node_modules
+orc8r/cloud/node_modules
