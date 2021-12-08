@@ -1,0 +1,35 @@
+---
+name: "Check Rebase"
+
+on:
+  pull_request:
+    branches:
+      - master
+      - v1.*
+
+jobs:
+  checkRebase:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: hmarr/debug-action@v2
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Git checkout
+      uses: actions/checkout@v2
+      with:
+        ref: ${{github.event.pull_request.base.ref}}
+    - run: |
+        git remote -v
+    - run: |
+        BASE_HEAD_HASH=$(git merge-base origin/${{github.event.pull_request.base.ref}} origin/${{github.event.pull_request.head.ref}})
+        if [ "${BASE_HEAD_HASH}" = "${{github.event.pull_request.base.sha}}" ]; then
+          exit 0 
+        else
+          echo "Merge Failed Rebase is not done"
+          exit 1
+        fi
+
+
+    
