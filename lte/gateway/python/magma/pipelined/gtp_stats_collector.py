@@ -47,7 +47,7 @@ interface_group = r"(?P<Interface>\w+)"
 remote_ip_group = r"(?P<remote_ip>.*)"
 rx_bytes_group = r"(?P<rx_bytes>\d+)"
 tx_bytes_group = r"(?P<tx_bytes>\d+)"
-stats_re_str = r'"{}"(.*)(remote_ip="{}")(.*)?rx_bytes={}.+tx_bytes={}'
+stats_re_str = r'{}(.*)(remote_ip="{}")(.*)?rx_bytes={}.+tx_bytes={}'
 
 interface_tx_rx_stats_re = re.compile(
     stats_re_str.format(

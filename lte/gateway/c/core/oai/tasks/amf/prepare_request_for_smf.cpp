@@ -171,9 +171,8 @@ int amf_smf_create_pdu_session(
       LOG_AMF_APP, "Sending msg(grpc) to :[mobilityd] for ue: [%s] ip-addr\n",
       imsi);
   AMFClientServicer::getInstance().allocate_ipv4_address(
-      imsi, reinterpret_cast<char*>(smf_ctx->apn), message->pdu_session_id,
-      message->pti, AF_INET, message->gnb_gtp_teid,
-      message->gnb_gtp_teid_ip_addr, 4, amf_ctxt_p->subscribed_ue_ambr);
+      imsi, smf_ctx->dnn.c_str(), message->pdu_session_id, message->pti,
+      AF_INET, message->gnb_gtp_teid, message->gnb_gtp_teid_ip_addr, 4);
 
   return (RETURNok);
 }

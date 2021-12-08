@@ -30,16 +30,6 @@ def cpp_repositories():
         urls = ["https://github.com/google/glog/archive/v0.4.0.tar.gz"],
     )
 
-    rules_boost_commit = "fb9f3c9a6011f966200027843d894923ebc9cd0b"
-    http_archive(
-        name = "com_github_nelhage_rules_boost",
-        sha256 = "046f774b185436d506efeef8be6979f2c22f1971bfebd0979bafa28088bf28d0",
-        strip_prefix = "rules_boost-{}".format(rules_boost_commit),
-        urls = [
-            "https://github.com/nelhage/rules_boost/archive/{}.tar.gz".format(rules_boost_commit),
-        ],
-    )
-
     http_archive(
         name = "yaml-cpp",
         strip_prefix = "yaml-cpp-yaml-cpp-0.7.0",
@@ -122,4 +112,14 @@ def cpp_repositories():
         url = "https://github.com/mfontanini/libtins/archive/refs/tags/v4.2.tar.gz",
         strip_prefix = "libtins-4.2",
         sha256 = "a9fed73e13f06b06a4857d342bb30815fa8c359d00bd69547e567eecbbb4c3a1",
+    )
+
+    new_git_repository(
+        name = "liblfds",
+        build_file = "//bazel/external:liblfds.BUILD",
+        commit = "b813a0e546ed54e54b3873bdf180cf885c39bbca",
+        remote = "https://github.com/liblfds/liblfds.git",
+        shallow_since = "1464682027 +0300",
+        patches = ["//third_party/build/patches/liblfds:0001-arm64-support.patch"],
+        patch_args = ["--strip=1"],
     )

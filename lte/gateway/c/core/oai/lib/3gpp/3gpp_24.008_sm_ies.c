@@ -930,7 +930,7 @@ int decode_traffic_flow_template_ie(
   if (iei_present) {
     CHECK_PDU_POINTER_AND_LENGTH_DECODER(
         buffer, TRAFFIC_FLOW_TEMPLATE_MINIMUM_LENGTH, len);
-    CHECK_IEI_DECODER(SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI, *buffer);
+    CHECK_IEI_DECODER(SM_TRAFFIC_FLOW_TEMPLATE_IEI, *buffer);
     decoded++;
   } else {
     CHECK_PDU_POINTER_AND_LENGTH_DECODER(

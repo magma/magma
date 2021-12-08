@@ -19,13 +19,13 @@
 namespace magma {
 namespace service303 {
 
-const std::string ProcFileUtils::STATUS_FILE         = "/proc/self/status";
-const std::string ProcFileUtils::VIRTUAL_MEM_PREFIX  = "VmSize:";
+const std::string ProcFileUtils::STATUS_FILE = "/proc/self/status";
+const std::string ProcFileUtils::VIRTUAL_MEM_PREFIX = "VmSize:";
 const std::string ProcFileUtils::PHYSICAL_MEM_PREFIX = "VmRSS:";
 
-double ProcFileUtils::parseForPrefix(
-    std::ifstream& infile, const std::string& to_compare,
-    const std::string& prefix_name) {
+double ProcFileUtils::parseForPrefix(std::ifstream& infile,
+                                     const std::string& to_compare,
+                                     const std::string& prefix_name) {
   if (to_compare.compare(prefix_name) == 0) {
     std::string value_string;
     infile >> value_string;
@@ -43,14 +43,14 @@ const ProcFileUtils::memory_info_t ProcFileUtils::getMemoryInfo() {
   while (infile >> content) {
     double value;
     // look for and set virtual_mem
-    value = ProcFileUtils::parseForPrefix(
-        infile, content, ProcFileUtils::VIRTUAL_MEM_PREFIX);
+    value = ProcFileUtils::parseForPrefix(infile, content,
+                                          ProcFileUtils::VIRTUAL_MEM_PREFIX);
     if (value >= 0) {
       info.virtual_mem = value;
     }
     // look for and set physical_mem
-    value = ProcFileUtils::parseForPrefix(
-        infile, content, ProcFileUtils::PHYSICAL_MEM_PREFIX);
+    value = ProcFileUtils::parseForPrefix(infile, content,
+                                          ProcFileUtils::PHYSICAL_MEM_PREFIX);
     if (value >= 0) {
       info.physical_mem = value;
     }

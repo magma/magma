@@ -264,7 +264,6 @@ class StateReplicator(SDWatchdogTask):
             logging.error(
                 "GRPC call failed for state replication: %s",
                 err,
-                extra=SEND_TO_ERROR_MONITORING,
             )
         else:
             unreplicated_states = set()

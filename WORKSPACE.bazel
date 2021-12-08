@@ -119,10 +119,6 @@ load("//bazel:cpp_repositories.bzl", "cpp_repositories")
 
 cpp_repositories()
 
-load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
-
-boost_deps()
-
 # To get Folly to build reliably, we're going to pull it from the underlying system
 # This assumes that the build is done in the Docker container or VBox VM
 new_local_repository(

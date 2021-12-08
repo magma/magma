@@ -340,7 +340,7 @@ service:
     Required: false
     ConfigApps:
       - tf
-    Default: 0.2.1
+    Default: 0.2.2
   deploy_nms:
     Description: Flag to deploy NMS.
     Type: bool
@@ -430,14 +430,14 @@ service:
     Required: false
     ConfigApps:
       - tf
-    Default: 0.2.1
+    Default: 0.2.2
   feg_orc8r_chart_version:
     Description: Version of the Orchestrator feg module Helm chart to install.
     Type: string
     Required: false
     ConfigApps:
       - tf
-    Default: 0.2.4
+    Default: 0.2.5
   helm_deployment_name:
     Description: Name for the Helm release.
     Type: string
@@ -477,7 +477,7 @@ service:
     Required: false
     ConfigApps:
       - tf
-    Default: 0.2.5
+    Default: 0.2.6
   monitoring_kubernetes_namespace:
     Description: K8s namespace to install Orchestrator monitoring components into.
     Type: string
@@ -490,7 +490,7 @@ service:
     Required: false
     ConfigApps:
       - tf
-    Default: 1.5.23
+    Default: 1.5.24
   orc8r_controller_replicas:
     Description: Replica count for Orchestrator controller pods.
     Type: number
@@ -566,7 +566,7 @@ service:
     Description: Version of the Orchestrator wifi module Helm chart to install.
     Type: string
     Required: false
-    Default: 0.2.1
+    Default: 0.2.2
     ConfigApps:
       - tf
   seed_certs_dir:

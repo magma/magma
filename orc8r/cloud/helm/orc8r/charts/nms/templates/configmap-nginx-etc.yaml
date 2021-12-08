@@ -21,5 +21,9 @@ metadata:
 {{ tuple $envAll "nms" "nginx" | include "nms.labels" | indent 4 }}
 data:
   nginx_proxy_ssl.conf: |
+{{- if .Values.certs.enabled }}
+{{ tuple "etc/_certs_nginx_proxy_ssl.conf.tpl" . | include "nms.template" | indent 4 }}
+{{- else }}
 {{ tuple "etc/_nginx_proxy_ssl.conf.tpl" . | include "nms.template" | indent 4 }}
+{{- end }}
 {{- end }}

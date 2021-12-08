@@ -569,7 +569,8 @@ void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref) {
 static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
   s1ap_state_t* s1ap_state_p = get_s1ap_state(false);
   application_s1ap_stats_msg_t stats_msg;
-  stats_msg.nb_enb_connected = s1ap_state_p->num_enbs;
+  stats_msg.nb_enb_connected         = s1ap_state_p->num_enbs;
+  stats_msg.nb_s1ap_last_msg_latency = s1ap_last_msg_latency;
   return send_s1ap_stats_to_service303(
       &s1ap_task_zmq_ctx, TASK_S1AP, &stats_msg);
 }

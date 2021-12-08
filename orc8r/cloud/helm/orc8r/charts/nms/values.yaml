@@ -20,20 +20,23 @@ imagePullSecrets: []
 secret:
   certs: orc8r-certs
 
+certs:
+  enabled: false
+
 rbac: false
 
 magmalte:
   create: true
   env:
-    api_host: orc8r-nginx-proxy.magma.svc.cluster.local
+    api_host: orc8r-nginx-proxy
     host: 0.0.0.0
     port: 8081
     mapbox_access_token: ""
-    mysql_host: mariadb.magma.svc.cluster.local
+    mysql_host: postgresql
     mysql_port: 5432
     mysql_db: magma
-    mysql_user: magma
-    mysql_pass: password
+    mysql_user: postgres
+    mysql_pass: postgres
     mysql_dialect: postgres
     grafana_address: orc8r-user-grafana:3000
 
@@ -42,7 +45,7 @@ magmalte:
   image:
     repository:
     tag: latest
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
 
   deployment:
     spec:
@@ -88,10 +91,10 @@ nginx:
   image:
     repository: nginx
     tag: latest
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
 
   service:
-    type: ClusterIP
+    type: LoadBalancer
     annotations: {}
     https:
       port: 443

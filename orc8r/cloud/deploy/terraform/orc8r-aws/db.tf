@@ -30,6 +30,8 @@ resource "aws_db_instance" "default" {
   backup_window           = var.orc8r_db_backup_window
 
   allow_major_version_upgrade = true
+  apply_immediately = var.orc8r_db_apply_immediately
+
   skip_final_snapshot = true
   # we only need this as a placeholder value for `terraform destroy` to work,
   # this won't actually create a final snapshot on destroy
