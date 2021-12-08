@@ -17,10 +17,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/services/bootstrapper"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers/registration"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGeneratedNonce(t *testing.T) {

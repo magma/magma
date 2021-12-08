@@ -38,8 +38,8 @@ func TestCloudRegistrationServicer_GetGatewayRegistrationInfo(t *testing.T) {
 
 	getGatewayRegistrationInfoRes, err := cloudRegistration.GetGatewayRegistrationInfo(ctx, &protos.GetGatewayRegistrationInfoRequest{})
 	expectedRes := &protos.GetGatewayRegistrationInfoResponse{
-		RootCa:               rootCA,
-		DomainName:           registration.NotImplementedWarning,
+		RootCa:     rootCA,
+		DomainName: registration.NotImplementedWarning,
 	}
 	assert.NoError(t, err)
 	assert.Equal(t, expectedRes, getGatewayRegistrationInfoRes)

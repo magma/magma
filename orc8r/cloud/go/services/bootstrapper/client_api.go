@@ -16,14 +16,13 @@ package bootstrapper
 import (
 	"context"
 
-	"magma/orc8r/lib/go/protos"
-
-	merrors "magma/orc8r/lib/go/errors"
-	"magma/orc8r/lib/go/registry"
-
 	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 )
 
 func GetToken(ctx context.Context, networkID string, logicalID string, refresh bool) (string, error) {
