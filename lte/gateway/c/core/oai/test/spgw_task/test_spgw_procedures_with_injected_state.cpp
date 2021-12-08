@@ -148,14 +148,6 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestCreateSessionPCEFFailure) {
            .pdn_connection,
       DEFAULT_EPS_BEARER_ID);
 
-  // send an IP alloc response to SPGW
-  itti_ip_allocation_response_t test_ip_alloc_resp = {};
-  fill_ip_allocation_response(
-      &test_ip_alloc_resp, SGI_STATUS_OK, ue_sgw_teid, DEFAULT_EPS_BEARER_ID,
-      test_ue_ip2, DEFAULT_VLAN);
-  status_code_e ip_alloc_rc = sgw_handle_ip_allocation_rsp(
-      spgw_state, &test_ip_alloc_resp, test_imsi64);
-
   // check if IP address is allocated after this message is done
   ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == test_ue_ip2);
 
