@@ -16,12 +16,17 @@ func init() {
 	cmd := CommandRegistry.Add(
 		"add-admin-token",
 		"Add a new admin which has all permissions to read/write all entities and create a new admin token",
-		addAdminToken)
+		addAdminToken,
+	)
 
 	f := cmd.Flags()
 	f.Usage = func() {
-		fmt.Fprintf(os.Stderr, // std Usage() & PrintDefaults() use Stderr
-			"\tUsage: %s %s [OPTIONS] <Admin Username> <Admin Password>\n", os.Args[0], cmd.Name())
+		fmt.Fprintf(
+			os.Stderr,
+			"\tUsage: %s %s [OPTIONS] <Admin Username> <Admin Password>\n",
+			os.Args[0],
+			cmd.Name(),
+		)
 		f.PrintDefaults()
 	}
 
@@ -73,6 +78,8 @@ func addAdminToken(cmd *commands.Command, args []string) int {
 		Resources: &certprotos.ResourceList{Resources: resources},
 	}
 	err = certifier.AddUserToken(ctx, req)
-
+	if err != nil {
+		panic("Failed to create and add user token")
+	}
 	return 0
 }

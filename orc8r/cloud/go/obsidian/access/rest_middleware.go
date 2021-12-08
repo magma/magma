@@ -29,9 +29,10 @@ import (
 	merrors "magma/orc8r/lib/go/errors"
 )
 
-const (
-	Basic = "Basic"
-)
+var unprotectedPaths = map[string]bool{
+	// Users should be able to access their own authentication information
+	"/magma/v1/user/login": true,
+}
 
 // Access CertificateMiddleware:
 // 1) determines request's access type (READ/WRITE)
@@ -115,11 +116,8 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		// Skip middleware if request when there is no security requirement
 		// for an endpoint
-		noBasicAuthEndpoints := []string{"/magma/v1/user/login"}
-		for _, endpoint := range noBasicAuthEndpoints {
-			if req.RequestURI == endpoint {
-				return next(c)
-			}
+		if unprotectedPaths[req.RequestURI] {
+			return next(c)
 		}
 
 		username, token, ok := req.BasicAuth()
@@ -127,20 +125,13 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusBadRequest, "failed to parse basic auth header")
 		}
 
-		// Return early without going to the certifier service if token is invalid
-		if err := certifier.ValidateToken(token); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err)
-		}
-		resourceType, resourceVal := getResource(c)
-		resource := &certprotos.Resource{
-			Action:       getRequestAction(req, nil),
-			ResourceType: resourceType,
-			Resource:     resourceVal,
-		}
 		getPDReq := &certprotos.GetPolicyDecisionRequest{
 			Username: username,
 			Token:    token,
-			Resource: resource,
+			Resource: &certprotos.Resource{
+				Action:   getRequestAction(req, nil),
+				Resource: req.RequestURI,
+			},
 		}
 		pd, err := certifier.GetPolicyDecision(req.Context(), getPDReq)
 		if err != nil {
@@ -168,20 +159,6 @@ func getRequestAction(req *http.Request, decorate logDecorator) certprotos.Actio
 		return certprotos.Action_WRITE
 	default:
 		glog.Info(decorate("Unclassified HTTP method '%s', defaulting to read+write requested permissions", req.Method))
-		return certprotos.Action_READ | certprotos.Action_WRITE
+		return certprotos.Action_WRITE
 	}
-}
-
-func getResource(c echo.Context) (certprotos.ResourceType, string) {
-	networkIDStr := strings.ToLower(certprotos.ResourceType_NETWORK_ID.String())
-	tenantIDStr := strings.ToLower(certprotos.ResourceType_TENANT_ID.String())
-	for _, p := range c.ParamNames() {
-		switch p {
-		case networkIDStr:
-			return certprotos.ResourceType_NETWORK_ID, c.Param(networkIDStr)
-		case tenantIDStr:
-			return certprotos.ResourceType_TENANT_ID, c.Param(tenantIDStr)
-		}
-	}
-	return certprotos.ResourceType_URI, c.Request().RequestURI
 }

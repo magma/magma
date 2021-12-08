@@ -22,8 +22,8 @@ func UserFromBlob(blob blobstore.Blob) (User, error) {
 	return user, nil
 }
 
-func UserToBlob(username string, user *User) (blobstore.Blob, error) {
-	marshalledUser, err := proto.Marshal(user)
+func (u *User) UserToBlob(username string) (blobstore.Blob, error) {
+	marshalledUser, err := proto.Marshal(u)
 	if err != nil {
 		return blobstore.Blob{}, err
 	}
@@ -38,11 +38,10 @@ func PolicyFromBlob(blob blobstore.Blob) (Policy, error) {
 		return policy, err
 	}
 	return policy, nil
-
 }
 
-func PolicyToBlob(username string, policy *Policy) (blobstore.Blob, error) {
-	marshalledPolicy, err := proto.Marshal(policy)
+func (p *Policy) PolicyToBlob(username string) (blobstore.Blob, error) {
+	marshalledPolicy, err := proto.Marshal(p)
 	if err != nil {
 		return blobstore.Blob{}, err
 	}

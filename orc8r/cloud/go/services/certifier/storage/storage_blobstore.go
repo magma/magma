@@ -22,6 +22,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/services/certifier/constants"
 	"magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
@@ -30,15 +31,6 @@ import (
 const (
 	// CertifierTableBlobstore is the service-wide blobstore table for certifier data
 	CertifierTableBlobstore = "certificate_info_blobstore"
-
-	// CertInfoType is the type of CertInfo used in blobstore type fields.
-	CertInfoType = "certificate_info"
-
-	// UserType is the type of CertInfo used in blobstore type fields.
-	UserType = "user"
-
-	// PolicyType is the type of policy used in blobstore type fileds
-	PolicyType = "policy"
 
 	// Blobstore needs a network ID, but certifier is network-agnostic so we
 	// will use a placeholder value.
@@ -61,7 +53,7 @@ func (c *certifierBlobstore) ListSerialNumbers() ([]string, error) {
 	}
 	defer store.Rollback()
 
-	serialNumbers, err := blobstore.ListKeys(store, placeholderNetworkID, CertInfoType)
+	serialNumbers, err := blobstore.ListKeys(store, placeholderNetworkID, constants.CertInfoType)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to list keys")
 	}
@@ -87,7 +79,7 @@ func (c *certifierBlobstore) GetManyCertInfo(serialNumbers []string) (map[string
 	}
 	defer store.Rollback()
 
-	tks := storage.MakeTKs(CertInfoType, serialNumbers)
+	tks := storage.MakeTKs(constants.CertInfoType, serialNumbers)
 	blobs, err := store.GetMany(placeholderNetworkID, tks)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get many certificate info")
@@ -115,7 +107,7 @@ func (c *certifierBlobstore) GetAllCertInfo() (map[string]*protos.CertificateInf
 	}
 	defer store.Rollback()
 
-	serialNumbers, err := blobstore.ListKeys(store, placeholderNetworkID, CertInfoType)
+	serialNumbers, err := blobstore.ListKeys(store, placeholderNetworkID, constants.CertInfoType)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to list keys")
 	}
@@ -124,7 +116,7 @@ func (c *certifierBlobstore) GetAllCertInfo() (map[string]*protos.CertificateInf
 		return infos, store.Commit()
 	}
 
-	tks := storage.MakeTKs(CertInfoType, serialNumbers)
+	tks := storage.MakeTKs(constants.CertInfoType, serialNumbers)
 	blobs, err := store.GetMany(placeholderNetworkID, tks)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get many certificate info")
@@ -154,7 +146,7 @@ func (c *certifierBlobstore) PutCertInfo(serialNumber string, certInfo *protos.C
 		return errors.Wrap(err, "failed to marshal cert info")
 	}
 
-	blob := blobstore.Blob{Type: CertInfoType, Key: serialNumber, Value: marshaledCertInfo}
+	blob := blobstore.Blob{Type: constants.CertInfoType, Key: serialNumber, Value: marshaledCertInfo}
 	err = store.Write(placeholderNetworkID, blobstore.Blobs{blob})
 	if err != nil {
 		return errors.Wrap(err, "failed to put certificate info")
@@ -170,7 +162,7 @@ func (c *certifierBlobstore) DeleteCertInfo(serialNumber string) error {
 	}
 	defer store.Rollback()
 
-	tk := storage.TK{Type: CertInfoType, Key: serialNumber}
+	tk := storage.TK{Type: constants.CertInfoType, Key: serialNumber}
 	err = store.Delete(placeholderNetworkID, storage.TKs{tk})
 	if err != nil {
 		return errors.Wrap(err, "failed to delete certificate info")
@@ -186,7 +178,7 @@ func (c *certifierBlobstore) ListUser() ([]string, error) {
 	}
 	defer store.Rollback()
 
-	users, err := blobstore.ListKeys(store, placeholderNetworkID, UserType)
+	users, err := blobstore.ListKeys(store, placeholderNetworkID, constants.UserType)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to list keys")
 	}
@@ -200,7 +192,7 @@ func (c *certifierBlobstore) GetUser(username string) (*protos.User, error) {
 		return nil, status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
 	}
 	defer store.Rollback()
-	userBlob, err := store.Get(placeholderNetworkID, storage.TK{Type: UserType, Key: username})
+	userBlob, err := store.Get(placeholderNetworkID, storage.TK{Type: constants.UserType, Key: username})
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +210,7 @@ func (c *certifierBlobstore) PutUser(username string, user *protos.User) error {
 	}
 	defer store.Rollback()
 
-	userBlob, err := protos.UserToBlob(username, user)
+	userBlob, err := user.UserToBlob(username)
 	if err != nil {
 		return err
 	}
@@ -238,7 +230,7 @@ func (c *certifierBlobstore) DeleteUser(username string) error {
 	}
 	defer store.Rollback()
 
-	tk := storage.TK{Type: UserType, Key: username}
+	tk := storage.TK{Type: constants.UserType, Key: username}
 	err = store.Delete(placeholderNetworkID, storage.TKs{tk})
 
 	if err != nil {
@@ -255,7 +247,7 @@ func (c *certifierBlobstore) GetPolicy(token string) (*protos.Policy, error) {
 	}
 	defer store.Rollback()
 
-	policyBlob, err := store.Get(placeholderNetworkID, storage.TK{Type: PolicyType, Key: token})
+	policyBlob, err := store.Get(placeholderNetworkID, storage.TK{Type: constants.PolicyType, Key: token})
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +266,7 @@ func (c *certifierBlobstore) PutPolicy(token string, policy *protos.Policy) erro
 	}
 	defer store.Rollback()
 
-	policyBlob, err := protos.PolicyToBlob(token, policy)
+	policyBlob, err := policy.PolicyToBlob(token)
 	if err != nil {
 		return err
 	}
@@ -294,7 +286,7 @@ func (c *certifierBlobstore) ListUsers() ([]*protos.User, error) {
 		return nil, status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
 	}
 	defer store.Rollback()
-	blobs, err := blobstore.GetAllOfType(store, placeholderNetworkID, UserType)
+	blobs, err := blobstore.GetAllOfType(store, placeholderNetworkID, constants.UserType)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get all users")
 	}
@@ -317,7 +309,7 @@ func (c *certifierBlobstore) DeletePolicy(token string) error {
 	}
 	defer store.Rollback()
 
-	tk := storage.TK{Type: PolicyType, Key: token}
+	tk := storage.TK{Type: constants.PolicyType, Key: token}
 	err = store.Delete(placeholderNetworkID, storage.TKs{tk})
 	if err != nil {
 		return status.Errorf(codes.Internal, "failed to delete policy: %s", err)

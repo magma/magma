@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/labstack/echo"
 
 	"magma/orc8r/cloud/go/obsidian"
@@ -27,12 +28,14 @@ import (
 )
 
 const (
-	UserParam        = ":username"
 	User             = "user"
+	UserParam        = ":username"
 	Tokens           = "tokens"
+	TokenParam       = ":token"
 	ListUser         = obsidian.V1Root + User
 	ManageUser       = ListUser + obsidian.UrlSep + UserParam
-	ManageUserTokens = ManageUser + obsidian.UrlSep + Tokens
+	ListUserTokens   = ManageUser + obsidian.UrlSep + Tokens
+	ManageUserTokens = ListUserTokens + obsidian.UrlSep + TokenParam
 	Login            = ListUser + obsidian.UrlSep + "login"
 )
 
@@ -43,10 +46,10 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageUser, Methods: obsidian.GET, HandlerFunc: getUserHandler},
 		{Path: ManageUser, Methods: obsidian.PUT, HandlerFunc: updateUserHandler},
 		{Path: ManageUser, Methods: obsidian.DELETE, HandlerFunc: deleteUserHandler},
-		{Path: Login, Methods: obsidian.POST, HandlerFunc: loginHandler},
-		{Path: ManageUserTokens, Methods: obsidian.GET, HandlerFunc: getUserTokensHandler},
-		{Path: ManageUserTokens, Methods: obsidian.POST, HandlerFunc: addUserTokenHandler},
+		{Path: ListUserTokens, Methods: obsidian.GET, HandlerFunc: getUserTokensHandler},
+		{Path: ListUserTokens, Methods: obsidian.POST, HandlerFunc: addUserTokenHandler},
 		{Path: ManageUserTokens, Methods: obsidian.DELETE, HandlerFunc: deleteUserTokenHandler},
+		{Path: Login, Methods: obsidian.POST, HandlerFunc: loginHandler},
 	}
 	return ret
 }
@@ -60,10 +63,12 @@ func listUsersHandler(c echo.Context) error {
 }
 
 func createUserHandler(c echo.Context) error {
-	var data models.User
-	err := json.NewDecoder(c.Request().Body).Decode(&data)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request body for creating user: %v", err))
+	data := &models.User{}
+	if err := c.Bind(data); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	if err := data.Validate(strfmt.Default); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	username := fmt.Sprintf("%v", *data.Username)
 	password := []byte(fmt.Sprintf("%v", *data.Password))
@@ -71,7 +76,7 @@ func createUserHandler(c echo.Context) error {
 		Username: username,
 		Password: password,
 	}
-	err = certifier.CreateUser(c.Request().Context(), user)
+	err := certifier.CreateUser(c.Request().Context(), user)
 	return err
 }
 
@@ -109,25 +114,6 @@ func deleteUserHandler(c echo.Context) error {
 	return nil
 }
 
-func loginHandler(c echo.Context) error {
-	var data models.User
-	err := json.NewDecoder(c.Request().Body).Decode(&data)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request body for creating user: %v", err))
-	}
-	username := fmt.Sprintf("%v", *data.Username)
-	password := []byte(fmt.Sprintf("%v", *data.Password))
-	user := &protos.User{
-		Username: username,
-		Password: password,
-	}
-	err = certifier.Login(c.Request().Context(), user)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error logging in: %v", err))
-	}
-	return nil
-}
-
 func getUserTokensHandler(c echo.Context) error {
 	username := c.Param("username")
 	res, err := certifier.ListUserTokens(c.Request().Context(), &protos.User{Username: username})
@@ -139,8 +125,15 @@ func getUserTokensHandler(c echo.Context) error {
 
 func addUserTokenHandler(c echo.Context) error {
 	username := c.Param("username")
-	var resources models.Resources
-	json.NewDecoder(c.Request().Body).Decode(&resources)
+
+	resources := &models.Resources{}
+	if err := c.Bind(resources); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	if err := resources.Validate(strfmt.Default); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
 	resourceList := resourcesModelToProto(resources)
 	req := &protos.AddUserTokenRequest{
 		Username:  username,
@@ -161,16 +154,34 @@ func deleteUserTokenHandler(c echo.Context) error {
 	return err
 }
 
-func resourcesModelToProto(resources models.Resources) *protos.ResourceList {
-	resourceList := make([]*protos.Resource, len(resources))
-	for i, resource := range resources {
-		effect := matchEffect(resource.Effect)
-		action := matchAction(resource.Action)
-		resourceType := matchResourceType(resource.ResourceType)
+func loginHandler(c echo.Context) error {
+	data := &models.User{}
+	if err := c.Bind(data); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	if err := data.Validate(strfmt.Default); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	username := fmt.Sprintf("%v", *data.Username)
+	password := []byte(fmt.Sprintf("%v", *data.Password))
+	user := &protos.User{
+		Username: username,
+		Password: password,
+	}
+	res, err := certifier.Login(c.Request().Context(), &protos.LoginRequest{User: user})
+	if err != nil {
+		return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusOK, res.Policies)
+}
+
+func resourcesModelToProto(resources *models.Resources) *protos.ResourceList {
+	resourceList := make([]*protos.Resource, len(*resources))
+	for i, resource := range *resources {
 		resourceProto := &protos.Resource{
-			Effect:       effect,
-			Action:       action,
-			ResourceType: resourceType,
+			Effect:       matchEffect(resource.Effect),
+			Action:       matchAction(resource.Action),
+			ResourceType: matchResourceType(resource.ResourceType),
 			Resource:     resource.Resource,
 		}
 		resourceList[i] = resourceProto

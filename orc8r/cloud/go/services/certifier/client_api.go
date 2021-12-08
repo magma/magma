@@ -227,7 +227,7 @@ func VerifyDateRange(certInfo CertDateRange) error {
 }
 
 // GetPolicyDecision makes a policy decision when a user attempts to access a resource
-func GetPolicyDecision(ctx context.Context, getPDReq *certprotos.GetPolicyDecisionRequest) (*certprotos.PolicyDecision, error) {
+func GetPolicyDecision(ctx context.Context, getPDReq *certprotos.GetPolicyDecisionRequest) (*certprotos.GetPolicyDecisionResponse, error) {
 	client, err := getCertifierClient()
 	if err != nil {
 		return nil, err
@@ -245,7 +245,7 @@ func CreateUser(ctx context.Context, user *certprotos.User) error {
 	if err != nil {
 		return err
 	}
-	_, err = client.CreateUser(ctx, user)
+	_, err = client.CreateUser(ctx, &certprotos.CreateUserRequest{User: user})
 	return err
 }
 
@@ -255,7 +255,7 @@ func ListUsers(ctx context.Context) ([]*certprotos.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	users, err := client.ListUsers(ctx, &protos.Void{})
+	users, err := client.ListUsers(ctx, &certprotos.ListUsersRequest{})
 	return users.Users, err
 }
 
@@ -264,8 +264,8 @@ func GetUser(ctx context.Context, username string) (*certprotos.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	user, err := client.GetUser(ctx, &certprotos.User{Username: username})
-	return user, err
+	user, err := client.GetUser(ctx, &certprotos.GetUserRequest{User: &certprotos.User{Username: username}})
+	return user.User, err
 }
 
 func UpdateUser(ctx context.Context, user *certprotos.User) error {
@@ -273,7 +273,7 @@ func UpdateUser(ctx context.Context, user *certprotos.User) error {
 	if err != nil {
 		return err
 	}
-	_, err = client.UpdateUser(ctx, user)
+	_, err = client.UpdateUser(ctx, &certprotos.UpdateUserRequest{User: user})
 	return err
 }
 
@@ -282,16 +282,7 @@ func DeleteUser(ctx context.Context, user *certprotos.User) error {
 	if err != nil {
 		return err
 	}
-	_, err = client.DeleteUser(ctx, user)
-	return err
-}
-
-func Login(ctx context.Context, user *certprotos.User) error {
-	client, err := getCertifierClient()
-	if err != nil {
-		return err
-	}
-	_, err = client.Login(ctx, user)
+	_, err = client.DeleteUser(ctx, &certprotos.DeleteUserRequest{User: user})
 	return err
 }
 
@@ -300,7 +291,7 @@ func ListUserTokens(ctx context.Context, user *certprotos.User) (*certprotos.Lis
 	if err != nil {
 		return nil, err
 	}
-	tokens, err := client.ListUserTokens(ctx, user)
+	tokens, err := client.ListUserTokens(ctx, &certprotos.ListUserTokensRequest{User: user})
 	if err != nil {
 		return nil, err
 	}
@@ -323,4 +314,16 @@ func DeleteUserToken(ctx context.Context, req *certprotos.DeleteUserTokenRequest
 	}
 	_, err = client.DeleteUserToken(ctx, req)
 	return err
+}
+
+func Login(ctx context.Context, req *certprotos.LoginRequest) (*certprotos.LoginResponse, error) {
+	client, err := getCertifierClient()
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.Login(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }

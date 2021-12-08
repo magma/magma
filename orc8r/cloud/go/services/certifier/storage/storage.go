@@ -17,6 +17,8 @@ import (
 	"magma/orc8r/cloud/go/services/certifier/protos"
 )
 
+// CertifierStorage provides storage functionality for auth information, including
+// managing certificates, users, and tokens/policies
 type CertifierStorage interface {
 	CertificateStorage
 	UserStorage

@@ -27,7 +27,6 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/lib/go/registry"
-	"magma/orc8r/lib/go/service/config"
 )
 
 // ReverseProxyHandler tracks registered paths to their associated proxy
@@ -35,6 +34,7 @@ import (
 // off of the service registry
 type ReverseProxyHandler struct {
 	proxyBackendsByPathPrefix map[string]*reverseProxyBackend
+	certifierServiceConfig    *certifier.Config
 }
 
 type reverseProxyBackend struct {
@@ -43,9 +43,10 @@ type reverseProxyBackend struct {
 }
 
 // NewReverseProxyHandler initializes a ReverseProxyHandler
-func NewReverseProxyHandler() *ReverseProxyHandler {
+func NewReverseProxyHandler(config *certifier.Config) *ReverseProxyHandler {
 	return &ReverseProxyHandler{
 		proxyBackendsByPathPrefix: map[string]*reverseProxyBackend{},
+		certifierServiceConfig:    config,
 	}
 }
 
@@ -77,12 +78,7 @@ func (r *ReverseProxyHandler) AddReverseProxyPaths(server *echo.Echo, pathPrefix
 				},
 			}
 			g := server.Group(prefix)
-			var serviceConfig certifier.Config
-			_, _, err := config.GetStructuredServiceConfig(orc8r.ModuleName, certifier.ServiceName, &serviceConfig)
-			if err != nil {
-				glog.Infof("Failed unmarshalling service config %v", err)
-			}
-			if serviceConfig.UseToken {
+			if r.certifierServiceConfig != nil && r.certifierServiceConfig.UseToken {
 				g.Use(access.TokenMiddleware)
 			}
 			g.Use(r.activeBackendMiddleware)

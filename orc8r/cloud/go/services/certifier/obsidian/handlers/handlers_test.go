@@ -3,8 +3,6 @@ package handlers_test
 import (
 	"testing"
 
-	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
-
 	"github.com/labstack/echo"
 
 	"magma/orc8r/cloud/go/obsidian"
@@ -26,9 +24,10 @@ func TestUserEndpoints(t *testing.T) {
 	createUser := tests.GetHandlerByPathAndMethod(t, handlers, testUser, obsidian.POST).HandlerFunc
 	deleteUser := tests.GetHandlerByPathAndMethod(t, handlers, testManageUser, obsidian.DELETE).HandlerFunc
 	updateUser := tests.GetHandlerByPathAndMethod(t, handlers, testManageUser, obsidian.PUT).HandlerFunc
-	loginHandler := tests.GetHandlerByPathAndMethod(t, handlers, testLogin, obsidian.POST).HandlerFunc
 	getUserTokens := tests.GetHandlerByPathAndMethod(t, handlers, testManageUserTokens, obsidian.GET).HandlerFunc
 	addUserTokens := tests.GetHandlerByPathAndMethod(t, handlers, testManageUserTokens, obsidian.POST).HandlerFunc
+	login := tests.GetHandlerByPathAndMethod(t, handlers, testLogin, obsidian.POST).HandlerFunc
+
 	// TODO(christinewang5): is it possible to get the response from RunUnitTest?
 	// deleteUserTokens := tests.GetHandlerByPathAndMethod(t, handlers, testManageUserTokens, obsidian.DELETE).HandlerFunc
 
@@ -49,6 +48,7 @@ func TestUserEndpoints(t *testing.T) {
 		ExpectedStatus: 200,
 	}
 	tests.RunUnitTest(t, e, tc)
+
 	username = test_utils.TestRootUsername
 	createRootRequest := &models.User{
 		Username: &username,
@@ -62,6 +62,7 @@ func TestUserEndpoints(t *testing.T) {
 		ExpectedStatus: 200,
 	}
 	tests.RunUnitTest(t, e, tc)
+
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testUser,
@@ -69,6 +70,7 @@ func TestUserEndpoints(t *testing.T) {
 		ExpectedStatus: 200,
 	}
 	tests.RunUnitTest(t, e, tc)
+
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            testManageUser,
@@ -79,6 +81,7 @@ func TestUserEndpoints(t *testing.T) {
 		ExpectedStatus: 200,
 	}
 	tests.RunUnitTest(t, e, tc)
+
 	tc = tests.Test{
 		Method:         "DELETE",
 		URL:            testManageUser,
@@ -90,23 +93,23 @@ func TestUserEndpoints(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Test token endpoints
-	writeAllResource := []*certprotos.Resource{
+	writeAllResource := []*models.Resource{
 		{
-			Effect:       certprotos.Effect_ALLOW,
-			Action:       certprotos.Action_WRITE,
-			ResourceType: certprotos.ResourceType_URI,
+			Effect:       models.ResourceEffectALLOW,
+			Action:       models.ResourceActionWRITE,
+			ResourceType: models.ResourceResourceTypeURI,
 			Resource:     "**",
 		},
 		{
-			Effect:       certprotos.Effect_ALLOW,
-			Action:       certprotos.Action_WRITE,
-			ResourceType: certprotos.ResourceType_NETWORK_ID,
+			Effect:       models.ResourceEffectALLOW,
+			Action:       models.ResourceActionWRITE,
+			ResourceType: models.ResourceResourceTypeURI,
 			Resource:     "**",
 		},
 		{
-			Effect:       certprotos.Effect_ALLOW,
-			Action:       certprotos.Action_WRITE,
-			ResourceType: certprotos.ResourceType_TENANT_ID,
+			Effect:       models.ResourceEffectALLOW,
+			Action:       models.ResourceActionWRITE,
+			ResourceType: models.ResourceResourceTypeURI,
 			Resource:     "**",
 		},
 	}
@@ -122,21 +125,36 @@ func TestUserEndpoints(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	tc = tests.Test{
-		Method:         "POST",
-		URL:            testLogin,
-		Payload:        createRootRequest,
-		Handler:        loginHandler,
-		ExpectedStatus: 200,
-	}
-	tests.RunUnitTest(t, e, tc)
-
-	tc = tests.Test{
 		Method:         "GET",
 		URL:            testManageUserTokens,
 		ParamNames:     []string{"username"},
 		ParamValues:    []string{test_utils.TestRootUsername},
 		Handler:        getUserTokens,
 		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Test login endpoints
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            testLogin,
+		Payload:        tests.JSONMarshaler(createBobRequest),
+		Handler:        login,
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+	badPassword := "blah"
+	badPayload := &models.User{
+		Username: &username,
+		Password: &badPassword,
+	}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            testLogin,
+		Payload:        tests.JSONMarshaler(badPayload),
+		Handler:        login,
+		ExpectedStatus: 500,
+		ExpectedError:  "wrong password",
 	}
 	tests.RunUnitTest(t, e, tc)
 }

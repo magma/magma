@@ -21,10 +21,12 @@ import (
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
 	certifier_test_service "magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/cloud/go/services/certifier/test_utils"
 	tenantsh "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
+	tenants_test_init "magma/orc8r/cloud/go/services/tenants/test_init"
 )
 
 func TestMiddlewareWithoutCertifier(t *testing.T) {
@@ -51,10 +53,11 @@ func TestMiddlewareWithoutCertifier(t *testing.T) {
 func TestAuthMiddleware(t *testing.T) {
 	// Set up auth middleware by creating root user, non-admin user bob, and their respective policies
 	certifier_test_service.StartTestService(t)
+	tenants_test_init.StartTestService(t)
 	store := test_utils.GetCertifierBlobstore(t)
 
-	userToken := test_utils.CreateTestUser(t, store)
 	rootToken := test_utils.CreateTestAdmin(t, store)
+	userToken := test_utils.CreateTestUser(t, store)
 
 	e := startTestMiddlewareServer(t)
 	e.Use(access.TokenMiddleware)
@@ -73,25 +76,25 @@ func TestAuthMiddleware(t *testing.T) {
 		expected int
 	}{
 		// Test admin user
-		{"GET", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestRootUsername, rootToken, http.StatusOK},
-		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, test_utils.TestRootUsername, rootToken, http.StatusOK},
-		{"GET", urlPrefix + RegisterNetworkV1, test_utils.TestRootUsername, rootToken, http.StatusOK},
-		{"POST", urlPrefix + RegisterNetworkV1, test_utils.TestRootUsername, rootToken, http.StatusOK},
-		{"GET", urlPrefix + RegisterNetworkV1, test_utils.TestRootUsername, rootToken, http.StatusOK},
-		{"GET", urlPrefix + "/malformed/url", test_utils.TestRootUsername, rootToken, http.StatusOK},
-		{"PUT", urlPrefix + "/malformed/url", test_utils.TestRootUsername, rootToken, http.StatusOK},
-		{"GET", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestRootUsername, rootToken, http.StatusOK},
-		{"POST", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, WRITE_TEST_NETWORK_ID), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, TEST_NETWORK_ID), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"GET", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"POST", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"GET", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"GET", fmt.Sprintf("%s%s", urlPrefix, "/malformed/url"), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"PUT", fmt.Sprintf("%s%s", urlPrefix, "/malformed/url"), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"GET", fmt.Sprintf("%s%s", urlPrefix, tenantsh.TenantInfoURL), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"POST", fmt.Sprintf("%s%s", urlPrefix, tenantsh.TenantInfoURL), test_utils.TestRootUsername, rootToken, http.StatusOK},
 
 		// Test non-admin user who has read access to all URI endpoints and networks, read/write access to WRITE_TEST_NETWORK_ID, and no read/write access to specific tenants
-		{"GET", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, test_utils.TestUsername, userToken, http.StatusOK},
-		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, test_utils.TestUsername, userToken, http.StatusForbidden},
-		{"GET", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestUsername, userToken, http.StatusOK},
-		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, test_utils.TestUsername, userToken, http.StatusOK},
-		{"GET", urlPrefix + RegisterNetworkV1, test_utils.TestUsername, userToken, http.StatusOK},
-		{"POST", urlPrefix + RegisterNetworkV1, test_utils.TestUsername, userToken, http.StatusForbidden},
-		{"GET", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestUsername, userToken, http.StatusForbidden},
-		{"POST", urlPrefix + tenantsh.TenantInfoURL, test_utils.TestUsername, userToken, http.StatusForbidden},
+		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusOK},
+		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusForbidden},
+		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, WRITE_TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusOK},
+		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, WRITE_TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusForbidden},
+		{"GET", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), test_utils.TestUsername, userToken, http.StatusOK},
+		{"POST", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), test_utils.TestUsername, userToken, http.StatusForbidden},
+		{"GET", fmt.Sprintf("%s%s", urlPrefix, tenantsh.TenantInfoURL), test_utils.TestUsername, userToken, http.StatusOK},
+		{"POST", fmt.Sprintf("%s%s", urlPrefix, tenantsh.TenantInfoURL), test_utils.TestUsername, userToken, http.StatusForbidden},
 	}
 	for _, tt := range tests {
 		s, err := SendRequestWithToken(tt.method, tt.url, tt.user, tt.token)
@@ -119,24 +122,24 @@ func TestMiddleware(t *testing.T) {
 		expected int
 	}{
 		// Test regular operator wildcard failures
-		{"GET", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, operCertSn, 200},
-		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, operCertSn, 403},
-		{"GET", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, operCertSn, 403},
-		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, operCertSn, 200},
-		{"GET", urlPrefix + RegisterNetworkV1, operCertSn, 403},
-		{"POST", urlPrefix + RegisterNetworkV1, operCertSn, 403},
-		{"GET", urlPrefix + tenantsh.TenantInfoURL, operCertSn, 403},
-		{"POST", urlPrefix + tenantsh.TenantInfoURL, operCertSn, 403},
+		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, "/", TEST_NETWORK_ID), operCertSn, 200},
+		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, "/", TEST_NETWORK_ID), operCertSn, 403},
+		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, "/", WRITE_TEST_NETWORK_ID), operCertSn, 403},
+		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, "/", WRITE_TEST_NETWORK_ID), operCertSn, 200},
+		{"GET", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), operCertSn, 403},
+		{"POST", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), operCertSn, 403},
+		{"GET", fmt.Sprintf("%s%s", urlPrefix, tenantsh.TenantInfoURL), operCertSn, 403},
+		{"POST", fmt.Sprintf("%s%s", urlPrefix, tenantsh.TenantInfoURL), operCertSn, 403},
 		// Test Supervisor Permissions
-		{"GET", urlPrefix + RegisterNetworkV1 + "/" + WRITE_TEST_NETWORK_ID, superCertSn, 200},
-		{"PUT", urlPrefix + RegisterNetworkV1 + "/" + TEST_NETWORK_ID, superCertSn, 200},
-		{"GET", urlPrefix + RegisterNetworkV1, superCertSn, 200},
-		{"POST", urlPrefix + RegisterNetworkV1, superCertSn, 200},
-		{"GET", urlPrefix + RegisterNetworkV1, superCertSn, 200},
-		{"GET", urlPrefix + "/malformed/url", superCertSn, 200},
-		{"PUT", urlPrefix + "/malformed/url", superCertSn, 200},
-		{"GET", urlPrefix + tenantsh.TenantInfoURL, superCertSn, 200},
-		{"POST", urlPrefix + tenantsh.TenantInfoURL, superCertSn, 200},
+		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, "/", WRITE_TEST_NETWORK_ID), superCertSn, 200},
+		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, "/", TEST_NETWORK_ID), superCertSn, 200},
+		{"GET", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), superCertSn, 200},
+		{"POST", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), superCertSn, 200},
+		{"GET", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), superCertSn, 200},
+		{"GET", fmt.Sprintf("%s%s", urlPrefix, "/malformed/url"), superCertSn, 200},
+		{"PUT", fmt.Sprintf("%s%s", urlPrefix, "/malformed/url"), superCertSn, 200},
+		{"GET", fmt.Sprintf("%s%s", urlPrefix, tenantsh.TenantInfoURL), superCertSn, 200},
+		{"POST", fmt.Sprintf("%s%s", urlPrefix, tenantsh.TenantInfoURL), superCertSn, 200},
 	}
 	for _, tt := range tests {
 		s, err := SendRequest(tt.method, tt.url, tt.certSn)

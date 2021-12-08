@@ -93,29 +93,6 @@ paths:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
       tags:
         - User
-
-  /user/login:
-    post:
-      summary: List all the tokens given a user
-      # No security, we want to allow users to login without a token auth header
-      security: []
-      parameters:
-        - name: user
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/user'
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: array
-            items:
-              type: string
-        default:
-          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-      tags:
-        - User
   /user/{username}/tokens:
     get:
       summary: Get a list of a user's tokens and their respective policies
@@ -148,7 +125,7 @@ paths:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
       tags:
         - User
-  /user/{username}/{token}:
+  /user/{username}/tokens/{token}:
     delete:
       summary: Revoke the token and its policy from the user
       parameters:
@@ -164,6 +141,23 @@ paths:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
       tags:
         - User
+  /user/login:
+    post:
+      parameters:
+        - in: body
+          name: user
+          required: true
+          schema:
+            $ref: '#/definitions/user'
+      security: []
+      summary: List all the tokens given a user
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      tags:
+        - User
 
 parameters:
   username:
@@ -172,6 +166,7 @@ parameters:
     description: username
     required: true
     type: string
+
 definitions:
   policy:
     description: An object that defines a user's permissions to access resources

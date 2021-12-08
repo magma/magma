@@ -6292,22 +6292,6 @@ paths:
       summary: Update a user's password
       tags:
       - User
-  /user/{username}/{token}:
-    delete:
-      parameters:
-      - in: path
-        name: token
-        required: true
-        type: string
-      - $ref: '#/parameters/username'
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Revoke the token and its policy from the user
-      tags:
-      - User
   /user/{username}/tokens:
     get:
       parameters:
@@ -6340,6 +6324,22 @@ paths:
       summary: Add a token/policy to the user's existing permissions
       tags:
       - User
+  /user/{username}/tokens/{token}:
+    delete:
+      parameters:
+      - in: path
+        name: token
+        required: true
+        type: string
+      - $ref: '#/parameters/username'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Revoke the token and its policy from the user
+      tags:
+      - User
   /user/login:
     post:
       parameters:
@@ -6349,12 +6349,8 @@ paths:
         schema:
           $ref: '#/definitions/user'
       responses:
-        "200":
+        "201":
           description: Success
-          schema:
-            items:
-              type: string
-            type: array
         default:
           $ref: '#/responses/UnexpectedError'
       security: []
