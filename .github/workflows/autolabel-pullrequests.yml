@@ -37,14 +37,14 @@ jobs:
   AutoLabelPR:
     runs-on: ubuntu-latest
     env:
-      MAGMA_ROOT: "${{ github.workspace }}"
+      MAGMA_ROOT_DIR: "${{ github.workspace }}"
     steps:
       - uses: actions/github-script@v3
         with:
           script: |
             var fs = require('fs');
-            var codeownersBuf = fs.readFileSync('CODEOWNERS', {encoding: 'utf8'});
-
+            console.log("PWD:" + process.cwd());
+            var codeownersBuf = fs.readFileSync(process.env.MAGMA_ROOT_DIR + 'CODEOWNERS', {encoding: 'utf8'});
             console.log("CODEOWNERS file contents:" + codeownersBuf);
 
             let newCompLbls = new Set(); // Set of new label strings
