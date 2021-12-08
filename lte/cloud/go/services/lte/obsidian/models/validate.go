@@ -68,6 +68,11 @@ func (m *NetworkCellularConfigs) ValidateModel(ctx context.Context) error {
 	if err := m.Ran.ValidateModel(ctx); err != nil {
 		return err
 	}
+	if m.Ngc != nil {
+		if err := m.Ngc.ValidateModel(ctx); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -102,6 +107,25 @@ func (m *NetworkEpcConfigs) ValidateModel(context.Context) error {
 		if name == "" {
 			return errors.New("profile name should be non-empty")
 		}
+	}
+	return nil
+}
+
+func (m *NetworkNgcConfigs) ValidateModel(context.Context) error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	if m.SuciProfiles != nil {
+		if err := m.ValidateSuciProfiles(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *NetworkNgcConfigs) ValidateSuciProfiles() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
 	}
 	return nil
 }
