@@ -20,6 +20,8 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -84,6 +86,9 @@ type Service struct {
 
 	// Config of the service
 	Config *config.Map
+
+	// Prometheus static labels
+	PrometheusLabels map[string]string
 }
 
 // NewServiceWithOptions returns a new GRPC orchestrator service implementing
@@ -104,6 +109,16 @@ func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 		configMap = nil
 	}
 
+	// Set Prometheus static lables
+	PrometheusLabels := make(map[string]string)
+	if _, ok := os.LookupEnv("PROMETHEUS_LABELS"); ok {
+		PrometheusLabelsRaw := strings.Split(os.Getenv("PROMETHEUS_LABELS"), ",")
+		for _, LabelKeyValuePair := range PrometheusLabelsRaw {
+			KeyValueArray := strings.Split(LabelKeyValuePair, "=")
+			PrometheusLabels[KeyValueArray[0]] = KeyValueArray[1]
+		}
+	}
+
 	// Check if service was started with print-grpc-payload flag or MAGMA_PRINT_GRPC_PAYLOAD env is set
 	if printGrpcPayload || util.IsTruthyEnv(PrintGrpcPayloadEnv) {
 		ls := logCodec{encoding.GetCodec(grpc_proto.Name)}
@@ -120,13 +135,14 @@ func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 
 	grpcServer := grpc.NewServer(opts...)
 	service := &Service{
-		Type:          serviceName,
-		GrpcServer:    grpcServer,
-		Version:       "0.0.0",
-		State:         protos.ServiceInfo_STARTING,
-		Health:        protos.ServiceInfo_APP_UNHEALTHY,
-		StartTimeSecs: uint64(time.Now().Unix()),
-		Config:        configMap,
+		Type:             serviceName,
+		GrpcServer:       grpcServer,
+		Version:          "0.0.0",
+		State:            protos.ServiceInfo_STARTING,
+		Health:           protos.ServiceInfo_APP_UNHEALTHY,
+		StartTimeSecs:    uint64(time.Now().Unix()),
+		Config:           configMap,
+		PrometheusLabels: PrometheusLabels,
 	}
 	protos.RegisterService303Server(service.GrpcServer, service)
 
