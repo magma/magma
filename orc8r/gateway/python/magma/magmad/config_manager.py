@@ -118,6 +118,7 @@ class ConfigManager(StreamerClient.Callback):
                 ),
             )
 
+        # TODO adapt service restart logic to include changes in shared_mconfig
         services_to_restart = [
             srv for srv in self._services if did_mconfig_change(srv)
         ]
