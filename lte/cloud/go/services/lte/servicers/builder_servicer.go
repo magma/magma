@@ -25,7 +25,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
-	feg "magma/feg/cloud/go/feg"
+	"magma/feg/cloud/go/feg"
 	feg_serdes "magma/feg/cloud/go/serdes"
 	feg_models "magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/lte/cloud/go/lte"
@@ -107,7 +107,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	gwRan := cellularGwConfig.Ran
 	gwEpc := cellularGwConfig.Epc
-	gwNgc := cellularGwConfig.Ngc
+	gwNgc := getGwConfigNgc(cellularGwConfig)
 	gwNonEpsService := cellularGwConfig.NonEpsService
 	nwRan := cellularNwConfig.Ran
 	nwEpc := cellularNwConfig.Epc
@@ -324,6 +324,16 @@ func getPipelineDServicesConfig(networkServices []string) ([]lte_mconfig.Pipelin
 		apps = append(apps, mc)
 	}
 	return apps, nil
+}
+
+// getGwConfigNgc returns the NGC part of a cellular gateway config, or a
+// default value if none exists.
+func getGwConfigNgc(configs *lte_models.GatewayCellularConfigs) *lte_models.GatewayNgcConfigs {
+	ngc := configs.Ngc
+	if ngc == nil {
+		ngc = &lte_models.GatewayNgcConfigs{}
+	}
+	return ngc
 }
 
 func getFddConfig(fddConfig *lte_models.NetworkRanConfigsFddConfig) *lte_mconfig.EnodebD_FDDConfig {

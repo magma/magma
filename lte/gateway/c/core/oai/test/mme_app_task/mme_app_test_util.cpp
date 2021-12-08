@@ -29,19 +29,25 @@ namespace lte {
 
 extern task_zmq_ctx_t task_zmq_ctx_main;
 
+#define DEFAULT_TEID 1
+#define DEFAULT_MME_S1AP_UE_ID 1
+#define DEFAULT_eNB_S1AP_UE_ID 0
+#define DEFAULT_UE_IPv4 1000
+
 void nas_config_timer_reinit(nas_config_t* nas_conf, uint32_t timeout_msec) {
-  nas_conf->t3402_min  = 1;
-  nas_conf->t3412_min  = 1;
-  nas_conf->t3422_msec = timeout_msec;
-  nas_conf->t3450_msec = timeout_msec;
-  nas_conf->t3460_msec = timeout_msec;
-  nas_conf->t3470_msec = timeout_msec;
-  nas_conf->t3485_msec = 5000;
-  nas_conf->t3486_msec = timeout_msec;
-  nas_conf->t3489_msec = timeout_msec;
-  nas_conf->t3495_msec = timeout_msec;
-  nas_conf->ts6a_msec  = timeout_msec;
-  nas_conf->tics_msec  = timeout_msec;
+  nas_conf->t3402_min    = 1;
+  nas_conf->t3412_min    = 1;
+  nas_conf->t3422_msec   = timeout_msec;
+  nas_conf->t3450_msec   = timeout_msec;
+  nas_conf->t3460_msec   = timeout_msec;
+  nas_conf->t3470_msec   = timeout_msec;
+  nas_conf->t3485_msec   = 5000;
+  nas_conf->t3486_msec   = timeout_msec;
+  nas_conf->t3489_msec   = timeout_msec;
+  nas_conf->t3495_msec   = timeout_msec;
+  nas_conf->ts6a_msec    = timeout_msec;
+  nas_conf->tics_msec    = timeout_msec;
+  nas_conf->tpaging_msec = timeout_msec;
   return;
 }
 
@@ -187,7 +193,7 @@ void send_create_session_resp(gtpv2c_cause_value_t cause_value, ebi_t ebi) {
 
   if (cause_value == REQUEST_ACCEPTED) {
     create_session_response_p->paa.pdn_type            = IPv4;
-    create_session_response_p->paa.ipv4_address.s_addr = 1000;
+    create_session_response_p->paa.ipv4_address.s_addr = DEFAULT_UE_IPv4;
     create_session_response_p->bearer_contexts_created.bearer_contexts[0]
         .s1u_sgw_fteid.teid = 1000;
     create_session_response_p->bearer_contexts_created.bearer_contexts[0]
@@ -408,6 +414,16 @@ void send_erab_release_rsp() {
   S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items           = 1;
   S1AP_E_RAB_REL_RSP(message_p).e_rab_failed_to_rel_list.no_of_items = 0;
   S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.item[0].e_rab_id      = 6;
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
+void send_paging_request() {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_SPGW_APP, S11_PAGING_REQUEST);
+  itti_s11_paging_request_t* paging_request_p =
+      &message_p->ittiMsg.s11_paging_request;
+  paging_request_p->ipv4_addr.s_addr = DEFAULT_UE_IPv4;
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }

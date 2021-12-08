@@ -50,6 +50,7 @@ class MockS1apHandler {
   MOCK_METHOD0(s1ap_handle_ue_context_release_command, void());
   MOCK_METHOD0(s1ap_generate_s1ap_e_rab_setup_req, void());
   MOCK_METHOD0(s1ap_generate_s1ap_e_rab_rel_cmd, void());
+  MOCK_METHOD0(s1ap_handle_paging_request, void());
 };
 
 class MockMmeAppHandler {
