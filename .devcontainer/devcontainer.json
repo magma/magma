@@ -19,7 +19,7 @@
 		"augustocdias.tasks-shell-input",
 		"ryuta46.multi-command",
 	],
-	"image": "ghcr.io/magma/devcontainer:sha-3c02c72",
+	"image": "ghcr.io/magma/magma/devcontainer:sha-2f4586b",
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash",
 		"files.watcherExclude": {
