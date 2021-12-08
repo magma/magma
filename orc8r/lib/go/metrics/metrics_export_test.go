@@ -25,7 +25,10 @@ import (
 	"magma/orc8r/lib/go/metrics"
 )
 
-func GetMetricValue(families []*prometheus_proto.MetricFamily, familyName string) (*prometheus_proto.Metric, error) {
+func GetMetricValue(
+	families []*prometheus_proto.MetricFamily,
+	familyName string,
+) (*prometheus_proto.Metric, error) {
 	for _, fam := range families {
 		if familyName == *fam.Name {
 			return fam.Metric[0], nil
@@ -94,7 +97,12 @@ func TestGetMetrics(t *testing.T) {
 	testCounter1.With(prometheus.Labels{labelKey: labelVal2}).Add(2)
 
 	// test GetMetrics
-	metricFams, err := metrics.GetMetrics()
+	NewPrometheusLabels := map[string]string{
+		"water": "1g",
+		"flour": "1g",
+		"yeast": "0.005g",
+	}
+	metricFams, err := metrics.GetMetrics(NewPrometheusLabels)
 	assert.NoError(t, err)
 	metric, err := GetMetricValue(metricFams, "test_gauge_1")
 	assert.NoError(t, err)
@@ -128,7 +136,12 @@ func TestGetMetricsHistograms(t *testing.T) {
 	prometheus.MustRegister(testHistogram)
 
 	// test GetMetrics
-	metricFams, err := metrics.GetMetrics()
+	prometheus_labels := map[string]string{
+		"flour": "1g",
+		"yeast": "0.005g",
+		"water": "1g",
+	}
+	metricFams, err := metrics.GetMetrics(prometheus_labels)
 	assert.NoError(t, err)
 	metric, err := GetMetricValue(metricFams, "test_histogram")
 	assert.NoError(t, err)
@@ -157,7 +170,12 @@ func TestGetMetricsSummaries(t *testing.T) {
 	prometheus.MustRegister(testSummary)
 
 	// test GetMetrics
-	metricFams, err := metrics.GetMetrics()
+	prometheus_labels := map[string]string{
+		"flour": "1g",
+		"yeast": "0.005g",
+		"water": "1g",
+	}
+	metricFams, err := metrics.GetMetrics(prometheus_labels)
 	assert.NoError(t, err)
 	metric, err := GetMetricValue(metricFams, "test_summary")
 	assert.NoError(t, err)
