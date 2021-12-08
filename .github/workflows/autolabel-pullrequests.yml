@@ -39,13 +39,14 @@ jobs:
     env:
       MAGMA_ROOT_DIR: "${{ github.workspace }}"
     steps:
+      - uses: actions/checkout@v2
       - uses: actions/github-script@v3
         with:
           script: |
             var fs = require('fs');
 
             console.log("PWD:" + process.cwd());
-            var codeownersBuf = fs.readFileSync(process.env.MAGMA_ROOT_DIR + '/CODEOWNERS', {encoding: 'utf8'});
+            var codeownersBuf = fs.readFileSync('./CODEOWNERS', {encoding: 'utf8'});
             console.log("CODEOWNERS file contents:" + codeownersBuf);
 
             let newCompLbls = new Set(); // Set of new label strings
