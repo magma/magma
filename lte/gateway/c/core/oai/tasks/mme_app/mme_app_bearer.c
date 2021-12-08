@@ -1725,6 +1725,9 @@ void mme_app_handle_release_access_bearers_resp(
    */
   update_mme_app_stats_s1u_bearer_sub();
 
+  if (mme_app_desc_p->nb_s1u_bearers != 0) {
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   // Send UE Context Release Command
   mme_app_itti_ue_context_release(
       ue_context_p, ue_context_p->ue_context_rel_cause);
