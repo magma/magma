@@ -74,7 +74,7 @@ class AMFClientServicerBase {
 
 class AMFClientServicer : public AMFClientServicerBase {
  public:
-  std::vector<uint8_t>
+  std::vector<MessagesIds>
       msgtype_stack;  // stack maintains type of msgs sent to ngap
   static AMFClientServicer& getInstance();
 

@@ -1172,7 +1172,7 @@ int amf_pdu_session_establishment_reject(
 
   if (bytes > 0) {
     buffer->slen = bytes;
-    amf_app_handle_nas_dl_req(ue_id, buffer, M5G_AS_SUCCESS);
+    rc           = amf_app_handle_nas_dl_req(ue_id, buffer, M5G_AS_SUCCESS);
 
   } else {
     OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");
