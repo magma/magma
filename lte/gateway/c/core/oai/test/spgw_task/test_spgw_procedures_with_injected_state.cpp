@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <string>
 #include <thread>
+#include <cstdlib>
 
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
@@ -80,11 +81,11 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
     spgw_app_init(&spgw_config, mme_config.use_stateless);
 
     // add injection of state loaded in SPGW state manager
-    std::string homedir = std::string(getpwuid(getuid())->pw_dir);
+    std::string magma_root = std::getenv("MAGMA_ROOT");
     name_of_ue_samples  = load_file_into_vector_of_line_content(
-        homedir + "/" + DEFAULT_SPGW_CONTEXT_DATA_PATH,
-        homedir + "/" +
-            "magma/lte/gateway/c/core/oai/test/spgw_task/data/"
+        magma_root + "/" + DEFAULT_SPGW_CONTEXT_DATA_PATH,
+        magma_root + "/" +
+            DEFAULT_SPGW_CONTEXT_DATA_PATH + 
             "data_list.txt");
     mock_read_spgw_ue_state_db(name_of_ue_samples);
 

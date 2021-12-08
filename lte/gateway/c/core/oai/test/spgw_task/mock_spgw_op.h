@@ -21,7 +21,7 @@ namespace magma {
 namespace lte {
 
 #define DEFAULT_SPGW_CONTEXT_DATA_PATH                                         \
-  "magma/lte/gateway/c/core/oai/test/spgw_task/data/"
+  "lte/gateway/c/core/oai/test/spgw_task/data/"
 
 std::vector<std::string> load_file_into_vector_of_line_content(
     const std::string& data_folder_path, const std::string& file_name);
