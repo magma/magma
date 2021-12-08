@@ -81,7 +81,8 @@ status_code_e mme_config_embedded_spgw_parse_opt_line(
         mme_config_p->test_type = TEST_SERIALIZATION_FLATBUFFER;
         mme_config_p->run_mode  = RUN_MODE_TEST;
         OAI_FPRINTF_INFO(
-            "Test serialization flatbuffer, parameter %u\n", mme_config_p->test);
+            "Test serialization flatbuffer, parameter %u\n",
+            mme_config_p->test);
       } break;
 
       case 'v':

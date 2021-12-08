@@ -187,17 +187,17 @@ build_ue_mm_context() {
   flatbuffers::Offset<UeMmContext> o_ue_mm_context =
       ue_mm_context_builder.Finish();
   builder.Finish(o_ue_mm_context);
-  uint8_t* buf                = builder.GetBufferPointer();
-  flatbuffers::uoffset_t size = builder.GetSize();
+  uint8_t* buf                 = builder.GetBufferPointer();
+  flatbuffers::uoffset_t size  = builder.GetSize();
   flatbuffers::uoffset_t align = 64;
   // TODO optimize '+1'
-  flatbuffers::uoffset_t size_aligned = ((size / align)+1)*align;
-  //std::cout << "builder.GetSize() = " << builder.GetSize() << std::endl;
+  flatbuffers::uoffset_t size_aligned = ((size / align) + 1) * align;
+  // std::cout << "builder.GetSize() = " << builder.GetSize() << std::endl;
   // recopy buffer in another buffer we can manage
   uint8_t* buf_cp            = (uint8_t*) aligned_alloc(align, size_aligned);
   UeMmContext* ue_mm_context = nullptr;
   if (buf_cp) {
-    memcpy((void*)buf_cp, buf, size);
+    memcpy((void*) buf_cp, buf, size);
     ue_mm_context = GetMutableUeMmContext(buf_cp);
   }
   // no need to copy size_aligned
@@ -223,7 +223,7 @@ mme_app_fb_allocate_ues(uint num_ues) {
     // UeMmContext
     std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*> ue_mm_fb_ctx =
         build_ue_mm_context();
-    //std::cout << "Built " << i << "'th UeMmContext context @"
+    // std::cout << "Built " << i << "'th UeMmContext context @"
     //          << (void*) std::get<2>(ue_mm_fb_ctx) << " buffer @"
     //          << (void*) std::get<0>(ue_mm_fb_ctx) << std::endl;
 
@@ -318,15 +318,21 @@ void mme_app_fb_deallocate_ues(
 void mme_app_fb_serialize_ues(
     mme_app_desc_t* mme_app_desc,
     std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>>&
-        contexts) {
+        contexts,
+    std::vector<uint64_t>& durations) {
   for (std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>>::
            iterator it = contexts.begin();
        it != contexts.end(); ++it) {
     auto imsi_str = MmeNasStateManager::getInstance().get_imsi_str(
         std::get<2>(*it)->emm_context()->_imsi64());
+    auto start = std::chrono::high_resolution_clock::now();
     MmeNasStateManager::getInstance().write_ue_state_to_db(
         reinterpret_cast<uint8_t*>(std::get<2>(*it)), std::get<1>(*it),
         imsi_str);
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+    durations.push_back(duration.count());
   }
 }
 //------------------------------------------------------------------------------
@@ -348,7 +354,6 @@ void mme_app_fb_deserialize_ues(void) {
 }
 //------------------------------------------------------------------------------
 void mme_app_fb_test_serialization(mme_app_desc_t* mme_app_desc, uint num_ues) {
-
   struct rusage ru_start_ctxt_to_proto, ru_end_ctxt_to_proto;
 
   std::cout << "sizeof(UeMmContext) : " << sizeof(struct UeMmContext)
@@ -375,6 +380,8 @@ void mme_app_fb_test_serialization(mme_app_desc_t* mme_app_desc, uint num_ues) {
   std::cout << "sizeof(SgsContext) : " << sizeof(struct SgsContext)
             << std::endl;
 
+  std::vector<uint64_t> durations;
+  durations.reserve(num_ues);
   std::vector<std::tuple<uint8_t*, flatbuffers::uoffset_t, UeMmContext*>>
       contexts = mme_app_fb_allocate_ues(num_ues);
 
@@ -382,31 +389,40 @@ void mme_app_fb_test_serialization(mme_app_desc_t* mme_app_desc, uint num_ues) {
 
   getrusage(RUSAGE_SELF, &ru_start_ctxt_to_proto);
   auto start_ctxt_to_proto = std::chrono::high_resolution_clock::now();
-  mme_app_fb_serialize_ues(mme_app_desc, contexts);
+  mme_app_fb_serialize_ues(mme_app_desc, contexts, durations);
   auto end_ctxt_to_proto = std::chrono::high_resolution_clock::now();
   getrusage(RUSAGE_SELF, &ru_end_ctxt_to_proto);
   log_rusage_diff(
-      ru_start_ctxt_to_proto, ru_end_ctxt_to_proto, " Contexts to serialization");
+      ru_start_ctxt_to_proto, ru_end_ctxt_to_proto,
+      " Contexts to serialization");
   auto duration_ctxt_to_proto =
-      std::chrono::duration_cast<std::chrono::microseconds>(
+      std::chrono::duration_cast<std::chrono::nanoseconds>(
           end_ctxt_to_proto - start_ctxt_to_proto);
-  std::cout << "Time taken by context to proto conversion : "
-            << duration_ctxt_to_proto.count() << " microseconds" << std::endl;
+  std::cout << "Time taken to serialize contexts: "
+            << duration_ctxt_to_proto.count() << " nanoseconds" << std::endl;
   OAILOG_INFO(
-      LOG_MME_APP, "Time taken by context to proto conversion : %ld µs\n",
+      LOG_MME_APP, "Time taken to serialize contexts: %ld µs\n",
       duration_ctxt_to_proto.count());
 
   auto start_proto_to_ctxt = std::chrono::high_resolution_clock::now();
   mme_app_fb_deserialize_ues();
   auto end_proto_to_ctxt = std::chrono::high_resolution_clock::now();
   auto duration_proto_to_ctxt =
-      std::chrono::duration_cast<std::chrono::microseconds>(
+      std::chrono::duration_cast<std::chrono::nanoseconds>(
           end_proto_to_ctxt - start_proto_to_ctxt);
-  std::cout << "Time taken by proto to context conversion : "
-            << duration_proto_to_ctxt.count() << " microseconds" << std::endl;
+  std::cout << "Time taken to deserialize contexts: "
+            << duration_proto_to_ctxt.count() << " nanoseconds" << std::endl;
   OAILOG_INFO(
-      LOG_MME_APP, "Time taken by proto to context conversion : %ld µs\n",
+      LOG_MME_APP, "Time taken to deserialize contexts:  %ld ns\n",
       duration_proto_to_ctxt.count());
+
+  // dump context serialization history one by one
+  std::cout << "CONTEXT SERIALIZATION HISTORY ";
+  for (std::vector<uint64_t>::iterator it = durations.begin();
+       it != durations.end(); ++it) {
+    std::cout << (*it) << " ";
+  }
+  std::cout << std::endl;
   /*auto imsi_str = MmeNasStateManager::getInstance().get_imsi_str(imsi64);
   MmeNasStateManager::getInstance().write_ue_state_to_db(
       ue_context, imsi_str);
@@ -420,5 +436,7 @@ void mme_app_fb_test_serialization(mme_app_desc_t* mme_app_desc, uint num_ues) {
   mme_app_fb_deallocate_ues(contexts);
 
   send_terminate_message_fatal(&main_zmq_ctx);
+  sleep(1);
+  exit(0);
   return;
 }
