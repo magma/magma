@@ -2175,6 +2175,7 @@ static void add_tunnel_helper(
               .packetfiltercontents),
         ue_ipv4.s_addr, ue_ipv6, &dlflow);
 
+#if !MME_UNIT_TEST
     rc = gtpv1u_add_tunnel(
         ue_ipv4, ue_ipv6, vlan, enb, enb_ipv6,
         eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up,
@@ -2195,6 +2196,7 @@ static void add_tunnel_helper(
           eps_bearer_ctxt_entry_p->enb_teid_S1u,
           eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up);
     }
+#endif
   }
 }
 bool does_bearer_context_hold_valid_enb_ip(ip_address_t enb_ip_address_S1u) {
