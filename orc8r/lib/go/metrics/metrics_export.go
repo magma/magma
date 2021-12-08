@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/prometheus/client_golang/prometheus"
 	prometheus_proto "github.com/prometheus/client_model/go"
 )
@@ -69,7 +70,7 @@ const (
 // in Service303 Server's GetMetrics rpc implementation.
 // All servicers register their metrics with the default registry
 // by calling prometheus.MustRegister().
-func GetMetrics() ([]*prometheus_proto.MetricFamily, error) {
+func GetMetrics(prometheus_labels map[string]string) ([]*prometheus_proto.MetricFamily, error) {
 
 	families, err := prometheus.DefaultGatherer.Gather()
 	if err != nil {
@@ -78,9 +79,15 @@ func GetMetrics() ([]*prometheus_proto.MetricFamily, error) {
 	}
 	// timeStamp in milliseconds
 	timeStamp := time.Now().UnixNano() / int64(time.Millisecond)
+	// labels for metrics
+	labels := make([]*prometheus_proto.LabelPair, 0)
+	for LabelName, LabelValue := range prometheus_labels {
+		labels = append(labels, &prometheus_proto.LabelPair{Name: proto.String(LabelName), Value: proto.String(LabelValue)})
+	}
 	for _, metric_family := range families {
 		for _, sample := range metric_family.Metric {
-			sample.TimestampMs = &timeStamp
+	  		sample.TimestampMs = &timeStamp
+	  		sample.Label = append(sample.Label, labels...)
 		}
 	}
 	return families, nil
