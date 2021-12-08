@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include <chrono>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -167,14 +168,22 @@ class StateManager {
         is_initialized,
         "StateManager init() function should be called to initialize state");
 
+    auto start = std::chrono::high_resolution_clock::now();
     std::string proto_str;
     ProtoUe ue_proto = ProtoUe();
     StateConverter::ue_to_proto(ue_context, &ue_proto);
     redis_client->serialize(ue_proto, proto_str);
     std::size_t new_hash = std::hash<std::string>{}(proto_str);
-
+    auto stop            = std::chrono::high_resolution_clock::now();
+    std::cout << "TIME PROTOBUF CONVERSION : "
+              << (std::chrono::duration_cast<std::chrono::nanoseconds>(
+                      stop - start))
+                     .count()
+              << std::endl;
     if (new_hash != this->ue_state_hash[imsi_str]) {
       std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
+
+      start = std::chrono::high_resolution_clock::now();
       if (redis_client->write_proto_str(
               key, proto_str, ue_state_version[imsi_str]) != RETURNok) {
         OAILOG_ERROR(
@@ -182,6 +191,12 @@ class StateManager {
             imsi_str.c_str());
         return;
       }
+      stop = std::chrono::high_resolution_clock::now();
+      std::cout << "TIME PROTOBUF REDIS SERIALIZATION : "
+                << std::chrono::duration_cast<std::chrono::nanoseconds>(
+                       stop - start)
+                       .count()
+                << std::endl;
 
       this->ue_state_version[imsi_str]++;
       this->ue_state_hash[imsi_str] = new_hash;
@@ -198,9 +213,17 @@ class StateManager {
         is_initialized,
         "StateManager init() function should be called to initialize state");
     // lack of C++17 (hashing a stringview)
+    auto start = std::chrono::high_resolution_clock::now();
     std::string fb_str(reinterpret_cast<const char*>(buf), size);
     std::size_t new_hash = std::hash<std::string>{}(fb_str);
+    auto stop            = std::chrono::high_resolution_clock::now();
+    std::cout << "TIME FLATBUFFER CONVERSION : "
+              << (std::chrono::duration_cast<std::chrono::nanoseconds>(
+                      stop - start))
+                     .count()
+              << std::endl;
 
+    start = std::chrono::high_resolution_clock::now();
     if (new_hash != this->ue_state_hash[imsi_str]) {
       std::string key = FLATBUFFER_IMSI_PREFIX + imsi_str + ":" + task_name;
       if (redis_client->write_proto_str(
@@ -210,6 +233,12 @@ class StateManager {
             imsi_str.c_str());
         return;
       }
+      stop = std::chrono::high_resolution_clock::now();
+      std::cout << "TIME FLATBUFFER REDIS SERIALIZATION : "
+                << std::chrono::duration_cast<std::chrono::nanoseconds>(
+                       stop - start)
+                       .count()
+                << std::endl;
 
       this->ue_state_version[imsi_str]++;
       this->ue_state_hash[imsi_str] = new_hash;
