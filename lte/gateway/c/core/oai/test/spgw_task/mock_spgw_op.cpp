@@ -20,6 +20,7 @@
 namespace magma {
 namespace lte {
 
+// loads paths of data samples of spgw states (storing in each line) from a file
 std::vector<std::string> load_file_into_vector_of_line_content(
     const std::string& data_folder_path, const std::string& file_name) {
   std::fstream file_content(file_name.c_str(), std::ios_base::in);
@@ -38,6 +39,7 @@ std::vector<std::string> load_file_into_vector_of_line_content(
   return vector_of_lines;
 }
 
+// mocking the reading spgw ue states from redis database by injecting local samples
 status_code_e mock_read_spgw_ue_state_db(
     const std::vector<std::string>& ue_samples) {
   for (const auto& name_of_sample : ue_samples) {
