@@ -36,18 +36,30 @@ concurrency:
 jobs:
   AutoLabelPR:
     runs-on: ubuntu-latest
-    env:
-      MAGMA_ROOT_DIR: "${{ github.workspace }}"
     steps:
       - uses: actions/checkout@v2
       - uses: actions/github-script@v3
         with:
           script: |
-            var fs = require('fs');
+            let fs = require('fs');
 
             console.log("PWD:" + process.cwd());
-            var codeownersBuf = fs.readFileSync('./CODEOWNERS', {encoding: 'utf8'});
+            let codeownersBuf = fs.readFileSync('./CODEOWNERS', {encoding: 'utf8'});
             console.log("CODEOWNERS file contents:" + codeownersBuf);
+            const records = codeOwnersBuf.split(/[\r\n]+/);
+            for( const rec of records ) {
+              if (not rec.startsWith("/")) { continue; }
+              const tokens = rec.split(" ");
+              for( const token of tokens ) {
+                if(token.startsWith("/"))  {
+                  let path = token.substring(1);
+                }
+                if(token.startsWith("@magma/approvers-"))  {
+                  let comp = token.substring(17);
+                }
+                console.log("Path=" + path + " Comp=" + comp);
+              }
+            }
 
             let newCompLbls = new Set(); // Set of new label strings
 
