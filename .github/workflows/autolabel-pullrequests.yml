@@ -41,6 +41,10 @@ jobs:
         with:
           script: |
 
+            var fs = require('fs');
+            var codeownersBuf = fs.readFileSync('./CODEOWNERS', {encoding: 'utf8'});
+            console.log("CODEOWNERS file contents:" + codeownersBuf);
+
             let newCompLbls = new Set(); // Set of new label strings
 
             // Fetch files modified in the PR
