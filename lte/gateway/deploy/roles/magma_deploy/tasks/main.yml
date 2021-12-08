@@ -98,11 +98,22 @@
     - agwc
     - base
 
+- name: Install ifupdown dependency.
+  become: true
+  apt:
+    name: "{{ packages }}"
+    state: latest
+  vars:
+    packages:
+      - ifupdown
+  tags:
+    - agwc
+
 - name: Install runtime dependencies.
   become: true
   apt:
     name: "{{ packages }}"
-    only_upgrade: yes 
+    only_upgrade: yes
   vars:
     packages:
       - graphviz
@@ -112,7 +123,6 @@
       - dkms
       - uuid-runtime
       - ca-certificates
-      - ifupdown
   tags:
     - agwc
     - base
