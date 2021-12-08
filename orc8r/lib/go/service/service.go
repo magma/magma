@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"sync"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/golang/glog"
@@ -87,7 +87,7 @@ type Service struct {
 	// Config of the service
 	Config *config.Map
 
-	// Prometheus static lables
+	// Prometheus static labels
 	PrometheusLabels map[string]string
 }
 
@@ -110,15 +110,12 @@ func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 	}
 
 	// Set Prometheus static lables
-	prometheus_labels := make(map[string]string)
-	glog.Warningf("JUST CREATED PROMETHEUS_LABELS!")
-	glog.Warningf("OUR ENV VAR: %s", os.Getenv("PROMETHEUS_LABELS"))
+	PrometheusLabels := make(map[string]string)
 	if _, ok := os.LookupEnv("PROMETHEUS_LABELS"); ok {
-		prometheus_labels_raw := strings.Split(os.Getenv("PROMETHEUS_LABELS"), ",")
-		for _, label_key_value_pair := range prometheus_labels_raw {
-			glog.Warningf("JUST A DEBUG MSG %s", label_key_value_pair)
-			key_value_array := strings.Split(label_key_value_pair, "=")
-			prometheus_labels[key_value_array[0]] = key_value_array[1]
+		PrometheusLabelsRaw := strings.Split(os.Getenv("PROMETHEUS_LABELS"), ",")
+		for _, LabelKeyValuePair := range PrometheusLabelsRaw {
+			KeyValueArray := strings.Split(LabelKeyValuePair, "=")
+			PrometheusLabels[KeyValueArray[0]] = KeyValueArray[1]
 		}
 	}
 
@@ -138,14 +135,14 @@ func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 
 	grpcServer := grpc.NewServer(opts...)
 	service := &Service{
-		Type:          		serviceName,
-		GrpcServer:    		grpcServer,
-		Version:       		"0.0.0",
-		State:         		protos.ServiceInfo_STARTING,
-		Health:        		protos.ServiceInfo_APP_UNHEALTHY,
-		StartTimeSecs: 		uint64(time.Now().Unix()),
-		Config:        		configMap,
-		PrometheusLabels: 	prometheus_labels,
+		Type:             serviceName,
+		GrpcServer:       grpcServer,
+		Version:          "0.0.0",
+		State:            protos.ServiceInfo_STARTING,
+		Health:           protos.ServiceInfo_APP_UNHEALTHY,
+		StartTimeSecs:    uint64(time.Now().Unix()),
+		Config:           configMap,
+		PrometheusLabels: PrometheusLabels,
 	}
 	protos.RegisterService303Server(service.GrpcServer, service)
 
