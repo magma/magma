@@ -373,21 +373,6 @@ ue_mm_context_t* mme_ue_context_exists_guti(
 }
 
 //------------------------------------------------------------------------------
-void mme_app_move_context(ue_mm_context_t* dst, ue_mm_context_t* src) {
-  OAILOG_FUNC_IN(LOG_MME_APP);
-  if ((dst) && (src)) {
-    enb_s1ap_id_key_t enb_s1ap_id_key = dst->enb_s1ap_id_key;
-    enb_ue_s1ap_id_t enb_ue_s1ap_id   = dst->enb_ue_s1ap_id;
-    mme_ue_s1ap_id_t mme_ue_s1ap_id   = dst->mme_ue_s1ap_id;
-    memcpy(dst, src, sizeof(*dst));
-    dst->enb_s1ap_id_key = enb_s1ap_id_key;
-    dst->enb_ue_s1ap_id  = enb_ue_s1ap_id;
-    dst->mme_ue_s1ap_id  = mme_ue_s1ap_id;
-  }
-  OAILOG_FUNC_OUT(LOG_MME_APP);
-}
-
-//------------------------------------------------------------------------------
 void mme_ue_context_update_coll_keys(
     mme_ue_context_t* const mme_ue_context_p,
     ue_mm_context_t* const ue_context_p,
