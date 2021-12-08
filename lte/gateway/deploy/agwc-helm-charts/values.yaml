@@ -9,15 +9,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# secrets sub-chart configuration.
-secrets:
-  create: false
-
 # Define which secrets should be mounted by pods.
 secret:
-  certs: agwc-secrets-certs
-  configs:
-    agwc: agwc-secrets-configs-agwc
+  certs: agwc-secret-certs
   envdir: agwc-secrets-envdir
 
 image:
@@ -25,3 +19,6 @@ image:
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
+
+config:
+  domainName: iot.magmacore.click 

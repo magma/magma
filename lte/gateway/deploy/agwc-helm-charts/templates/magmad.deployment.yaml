@@ -10,6 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 */}}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -39,17 +40,16 @@ spec:
           resources: {}
           volumeMounts:
             - mountPath: /etc/magma
-              name: magmad-claim0
+              name: magma-config
             - mountPath: /var/opt/magma
-              name: magmad-claim1
+              name: agwc-claim
       restartPolicy: Always
       hostNetwork: true
       volumes:
-        - name: magmad-claim0
+        - name: magma-config
           hostPath:
             path: /etc/magma
             type: Directory
-        - name: magmad-claim1
-          hostPath:
-            path: /var/opt/magma
-            type: Directory
+        - name: agwc-claim
+          persistentVolumeClaim:
+            claimName: agwc-claim

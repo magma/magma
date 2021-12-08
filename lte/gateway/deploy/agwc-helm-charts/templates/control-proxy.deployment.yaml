@@ -1,3 +1,16 @@
+{{/*
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,37 +34,35 @@ spec:
             - sh
             - -c
             - |-
-              /usr/local/bin/generate_nghttpx_config.py && sed -i 's/errorlog-syslog=yes/errorlog-syslog=no/' /var/opt/magma/tmp/nghttpx.conf &&
-                     /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt
+              mkdir -p /var/opt/magma/configs && mkdir -p /var/opt/magma/certs && 
+              cp -f /configs/control_proxy.yml /var/opt/magma/configs/control_proxy.yml &&
+              cp -f /certs/rootCA.pem /var/opt/magma/certs/rootCA.pem && /usr/local/bin/generate_nghttpx_config.py &&
+              /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt
           image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
           name: control-proxy
           resources: {}
           volumeMounts:
             - mountPath: /etc/magma
-              name: magmad-claim0
+              name: magma-config
             - mountPath: /var/opt/magma
-              name: magmad-claim1
-            - mountPath: /tmp
-              name: magmad-claim2
-            - mountPath: /var/run/openvswitch
-              name: magmad-claim3
+              name: agwc-claim
+            - mountPath: /certs
+              name: agwc-secret
+            - mountPath: /configs
+              name: controlproxy-config
       restartPolicy: Always
       hostNetwork: true
       volumes:
-        - name: magmad-claim0
+        - name: magma-config
           hostPath:
             path: /etc/magma
             type: Directory
-        - name: magmad-claim1
-          hostPath:
-            path: /var/opt/magma
-            type: Directory
-        - name: magmad-claim2
-          hostPath:
-            path: /tmp
-            type: Directory
-        - name: magmad-claim3
-          hostPath:
-            path: /var/run/openvswitch
-            type: Directory
-status: {}
+        - name: agwc-claim
+          persistentVolumeClaim:
+            claimName: agwc-claim
+        - name: agwc-secret
+          secret:
+            secretName: {{ .Values.secret.certs }}
+        - name: controlproxy-config
+          configMap:
+            name: controlproxy-config
