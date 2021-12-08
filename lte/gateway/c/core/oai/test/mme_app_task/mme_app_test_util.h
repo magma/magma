@@ -28,9 +28,6 @@ namespace lte {
 #define STATE_MAX_WAIT_MS 1000
 #define NAS_RETX_LIMIT 5
 #define DEFAULT_LBI 5
-#define DEFAULT_TEID 1
-#define DEFAULT_MME_S1AP_UE_ID 1
-#define DEFAULT_eNB_S1AP_UE_ID 0
 
 #define MME_APP_EXPECT_CALLS(                                                  \
     dlNas, connEstConf, ctxRel, air, ulr, purgeReq, csr, mbr, relBearer, dsr,  \
