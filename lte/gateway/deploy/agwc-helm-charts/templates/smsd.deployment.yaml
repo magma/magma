@@ -1,20 +1,33 @@
+{{/*
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    io.agwc.service: smsd
+    app.kubernetes.io/component: smsd
   name: smsd
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.agwc.service: smsd
+      app.kubernetes.io/component: smsd
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        io.agwc.service: smsd
+        app.kubernetes.io/component: smsd
     spec:
       containers:
         - args:
@@ -27,29 +40,15 @@ spec:
           resources: {}
           volumeMounts:
             - mountPath: /etc/magma
-              name: magmad-claim0
+              name: magma-config
             - mountPath: /var/opt/magma
-              name: magmad-claim1
-            - mountPath: /tmp
-              name: magmad-claim2
-            - mountPath: /var/run/openvswitch
-              name: magmad-claim3
+              name: agwc-claim
       restartPolicy: Always
       volumes:
-        - name: magmad-claim0
+        - name: magma-config
           hostPath:
             path: /etc/magma
             type: Directory
-        - name: magmad-claim1
-          hostPath:
-            path: /var/opt/magma
-            type: Directory
-        - name: magmad-claim2
-          hostPath:
-            path: /tmp
-            type: Directory
-        - name: magmad-claim3
-          hostPath:
-            path: /var/run/openvswitch
-            type: Directory
-status: {}
+        - name: agwc-claim
+          persistentVolumeClaim:
+            claimName: agwc-claim

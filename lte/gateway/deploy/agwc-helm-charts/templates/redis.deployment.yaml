@@ -43,6 +43,8 @@ spec:
           volumeMounts:
             - mountPath: /etc/magma
               name: magma-config
+            - mountPath: /var/opt/magma
+              name: agwc-claim
       restartPolicy: Always
       hostNetwork: true
       volumes:
@@ -50,3 +52,6 @@ spec:
           hostPath:
             path: /etc/magma
             type: Directory
+        - name: agwc-claim
+          persistentVolumeClaim:
+            claimName: agwc-claim
