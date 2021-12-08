@@ -36,12 +36,13 @@ concurrency:
 jobs:
   AutoLabelPR:
     runs-on: ubuntu-latest
-    MAGMA_ROOT: "${{ github.workspace }}"
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - uses: actions/github-script@v3
         with:
           script: |
-
+g
             var fs = require('fs');
             var codeownersBuf = fs.readFileSync(process.env.MAGMA_ROOT + '/CODEOWNERS', {encoding: 'utf8'});
 
