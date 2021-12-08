@@ -118,7 +118,7 @@ int amf_as_send(amf_as_t* msg) {
 ***************************************************************************/
 static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   amf_security_context_t* amf_security_context = NULL;
-  amf_nas_message_decode_status_t decode_status;
+  amf_nas_message_decode_status_t decode_status = {0};
   int decoder_rc                       = 1;
   int rc                               = RETURNerror;
   tai_t originating_tai                = {0};
