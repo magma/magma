@@ -156,6 +156,7 @@ int decode_tracking_area_identity_list(
     }
     partial_item++;
   }
+  trackingareaidentitylist->numberoflists = partial_item;
   return decoded;
 }
 
