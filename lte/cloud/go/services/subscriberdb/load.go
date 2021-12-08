@@ -231,3 +231,24 @@ func ConvertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[strin
 
 	return subData, nil
 }
+
+func LoadSuciProtos(ctx context.Context, networkID string) ([]*lte_protos.SuciProfile, error) {
+	network, err := configurator.LoadNetwork(ctx, networkID, true, true, serdes.Network)
+	if err != nil {
+		return nil, errors.Wrapf(err, "network loading failed")
+	}
+
+	ngcModel := &lte_models.NetworkNgcConfigs{}
+	ngcConfig := ngcModel.GetFromNetwork(network)
+	if ngcConfig == nil {
+		return nil, errors.Wrapf(err, "ngcConfig is nil")
+	}
+
+	suciProfiles := ngcConfig.(*lte_models.NetworkNgcConfigs).SuciProfiles
+	suciProtos := []*lte_protos.SuciProfile{}
+	for _, suciProfile := range suciProfiles {
+		suciProtos = append(suciProtos, ngcModel.ConvertSuciEntsToProtos(suciProfile))
+	}
+
+	return suciProtos, nil
+}

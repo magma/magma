@@ -24,6 +24,9 @@ type NetworkCellularConfigs struct {
 	// feg network id
 	FegNetworkID FegNetworkID `json:"feg_network_id,omitempty"`
 
+	// ngc
+	Ngc *NetworkNgcConfigs `json:"ngc,omitempty"`
+
 	// ran
 	// Required: true
 	Ran *NetworkRanConfigs `json:"ran"`
@@ -38,6 +41,10 @@ func (m *NetworkCellularConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateFegNetworkID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateNgc(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -80,6 +87,24 @@ func (m *NetworkCellularConfigs) validateFegNetworkID(formats strfmt.Registry) e
 			return ve.ValidateName("feg_network_id")
 		}
 		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkCellularConfigs) validateNgc(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Ngc) { // not required
+		return nil
+	}
+
+	if m.Ngc != nil {
+		if err := m.Ngc.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("ngc")
+			}
+			return err
+		}
 	}
 
 	return nil

@@ -49,6 +49,7 @@ const (
 	ManageNetworkDNSRecordByDomainPath  = ManageNetworkDNSRecordsPath + obsidian.UrlSep + ":domain"
 	ManageNetworkCellularPath           = ManageNetworkPath + obsidian.UrlSep + "cellular"
 	ManageNetworkCellularEpcPath        = ManageNetworkCellularPath + obsidian.UrlSep + "epc"
+	ManageNetworkCellularNgcPath        = ManageNetworkCellularPath + obsidian.UrlSep + "ngc"
 	ManageNetworkCellularRanPath        = ManageNetworkCellularPath + obsidian.UrlSep + "ran"
 	ManageNetworkCellularFegNetworkID   = ManageNetworkCellularPath + obsidian.UrlSep + "feg_network_id"
 	ManageNetworkSubscriberPath         = ManageNetworkPath + obsidian.UrlSep + "subscriber_config"
@@ -139,6 +140,7 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSRecordsPath, new(orc8r_models.NetworkDNSRecords), "", serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularPath, &lte_models.NetworkCellularConfigs{}, lte.CellularNetworkConfigType, serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularEpcPath, &lte_models.NetworkEpcConfigs{}, "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularNgcPath, &lte_models.NetworkNgcConfigs{}, "", serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularRanPath, &lte_models.NetworkRanConfigs{}, "", serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularFegNetworkID, new(lte_models.FegNetworkID), "", serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkSubscriberPath, &policydb_models.NetworkSubscriberConfig{}, "", serdes.Network)...)

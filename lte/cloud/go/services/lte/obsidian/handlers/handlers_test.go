@@ -78,7 +78,7 @@ func TestListNetworks(t *testing.T) {
 		URL:            "/magma/v1/lte",
 		Handler:        listNetworks,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{"n1", "n3"}),
+		ExpectedResult: tests.JSONMarshaler([]string{"n1", "n3", "n4"}),
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -143,6 +143,71 @@ func TestCreateNetwork(t *testing.T) {
 			lte.CellularNetworkConfigType: lteModels.NewDefaultTDDNetworkConfig(),
 			orc8r.DnsdNetworkType:         models.NewDefaultDNSConfig(),
 			orc8r.NetworkFeaturesConfig:   models.NewDefaultFeaturesConfig(),
+		},
+	}
+	assert.Equal(t, expected, actual)
+}
+
+func TestCreateNetworkWithSuciProfile(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	e := echo.New()
+
+	obsidianHandlers := handlers.GetHandlers()
+	createNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte", obsidian.POST).HandlerFunc
+
+	// happy path
+	payload := &lteModels.LteNetwork{
+		Cellular:    lteModels.NewDefaultTDDNetworkConfig(),
+		Description: "Network creation with Suci Profile",
+		DNS:         models.NewDefaultDNSConfig(),
+		Features:    models.NewDefaultFeaturesConfig(),
+		ID:          "n4",
+		Name:        "foosbar",
+	}
+
+	payload.Cellular.Ngc = &lteModels.NetworkNgcConfigs{
+		SuciProfiles: []*lteModels.SuciProfile{
+			{
+				HomeNetworkPrivateKey:          []byte("xyzzy5461"),
+				HomeNetworkPublicKey:           []byte("xyzzy5461"),
+				HomeNetworkPublicKeyIdentifier: 255,
+				ProtectionScheme:               "ProfileA",
+			},
+		},
+	}
+
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte",
+		Payload:        payload,
+		Handler:        createNetwork,
+		ExpectedStatus: 201,
+	}
+
+	tests.RunUnitTest(t, e, tc)
+	actual, err := configurator.LoadNetwork(context.Background(), "n4", true, true, serdes.Network)
+	assert.NoError(t, err)
+	expected := configurator.Network{
+		ID:          "n4",
+		Type:        lte.NetworkType,
+		Name:        "foosbar",
+		Description: "Network creation with Suci Profile",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkConfigType: &lteModels.NetworkCellularConfigs{
+				Ran: lteModels.NewDefaultTDDNetworkConfig().Ran,
+				Epc: lteModels.NewDefaultTDDNetworkConfig().Epc,
+				Ngc: &lteModels.NetworkNgcConfigs{
+					SuciProfiles: []*lteModels.SuciProfile{
+						{
+							HomeNetworkPublicKey:           []byte("xyzzy5461"),
+							HomeNetworkPrivateKey:          []byte("xyzzy5461"),
+							HomeNetworkPublicKeyIdentifier: 255,
+							ProtectionScheme:               "ProfileA",
+						},
+					}},
+			},
+			orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
+			orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
 		},
 	}
 	assert.Equal(t, expected, actual)
@@ -379,7 +444,7 @@ func TestDeleteNetwork(t *testing.T) {
 
 	actual, err := configurator.ListNetworkIDs(context.Background())
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"n2", "n3"}, actual)
+	assert.Equal(t, []string{"n2", "n3", "n4"}, actual)
 }
 
 func TestCellularPartialGet(t *testing.T) {
@@ -399,6 +464,7 @@ func TestCellularPartialGet(t *testing.T) {
 		fmt.Sprintf("%s/:network_id/cellular/ran", testURLRoot), obsidian.GET).HandlerFunc
 	getFegNetworkID := tests.GetHandlerByPathAndMethod(t, handlers,
 		fmt.Sprintf("%s/:network_id/cellular/feg_network_id", testURLRoot), obsidian.GET).HandlerFunc
+	getNgc := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/:network_id/cellular/ngc", testURLRoot), obsidian.GET).HandlerFunc
 
 	// happy path
 	tc := tests.Test{
@@ -475,6 +541,41 @@ func TestCellularPartialGet(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// happy path
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/cellular/ngc/", testURLRoot, "n4"),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n4"},
+		Handler:        getNgc,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(
+			&lteModels.NetworkNgcConfigs{
+				SuciProfiles: []*lteModels.SuciProfile{
+					{
+						HomeNetworkPublicKey:           []byte("xyzzy5461"),
+						HomeNetworkPrivateKey:          []byte("xyzzy5461"),
+						HomeNetworkPublicKeyIdentifier: 255,
+						ProtectionScheme:               "ProfileA",
+					},
+				},
+			}),
+		ExpectedError: "",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// 404
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/cellular/ngc/", testURLRoot, "n2"),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n2"},
+		Handler:        getNgc,
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
 	// add 'n2' as FegNetworkID to n1
 	cellularConfig := lteModels.NewDefaultTDDNetworkConfig()
 	cellularConfig.FegNetworkID = "n2"
@@ -518,6 +619,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 		fmt.Sprintf("%s/:network_id/cellular/ran", testURLRoot), obsidian.PUT).HandlerFunc
 	updateFegNetworkID := tests.GetHandlerByPathAndMethod(t, handlers,
 		fmt.Sprintf("%s/:network_id/cellular/feg_network_id", testURLRoot), obsidian.PUT).HandlerFunc
+	updateNgc := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/:network_id/cellular/ngc", testURLRoot), obsidian.PUT).HandlerFunc
 
 	// happy path update cellular config
 	tc := tests.Test{
@@ -642,6 +744,46 @@ func TestCellularPartialUpdate(t *testing.T) {
 	assert.NoError(t, err)
 	expected.Configs[lte.CellularNetworkConfigType].(*lteModels.NetworkCellularConfigs).Ran = ranConfig
 	expected.Version = 3
+	assert.Equal(t, expected, actualN2)
+
+	// Fail to put ngc config to a network without cellular network configs
+	ngcConfig := &lteModels.NetworkNgcConfigs{
+		SuciProfiles: []*lteModels.SuciProfile{
+			{
+				HomeNetworkPrivateKey:          []byte("xyzzy5461"),
+				HomeNetworkPublicKey:           []byte("xyzzy5461"),
+				HomeNetworkPublicKeyIdentifier: 255,
+				ProtectionScheme:               "ProfileA",
+			}},
+	}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/cellular/ngc/", testURLRoot, "n3"),
+		Payload:        ngcConfig,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n3"},
+		Handler:        updateNgc,
+		ExpectedStatus: 400,
+		ExpectedError:  "No cellular network config found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy path update ngc config
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/cellular/ngc/", testURLRoot, "n2"),
+		Payload:        ngcConfig,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n2"},
+		Handler:        updateNgc,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actualN2, err = configurator.LoadNetwork(context.Background(), "n2", true, true, serdes.Network)
+	assert.NoError(t, err)
+	expected.Configs[lte.CellularNetworkConfigType].(*lteModels.NetworkCellularConfigs).Ngc = ngcConfig
+	expected.Version = 4
 	assert.Equal(t, expected, actualN2)
 
 	// Validation Error (should not be able to add nonexistent networkID as fegNetworkID)
@@ -4147,6 +4289,29 @@ func seedNetworks(t *testing.T) {
 			Name:        "barfoo",
 			Description: "Bar Foo",
 			Configs:     map[string]interface{}{},
+		},
+		{
+			ID:          "n4",
+			Type:        lte.NetworkType,
+			Name:        "foosbar",
+			Description: "Network creation with Suci Profile",
+			Configs: map[string]interface{}{
+				lte.CellularNetworkConfigType: &lteModels.NetworkCellularConfigs{
+					Ran: lteModels.NewDefaultTDDNetworkConfig().Ran,
+					Epc: lteModels.NewDefaultTDDNetworkConfig().Epc,
+					Ngc: &lteModels.NetworkNgcConfigs{
+						SuciProfiles: []*lteModels.SuciProfile{
+							{
+								HomeNetworkPublicKey:           []byte("xyzzy5461"),
+								HomeNetworkPrivateKey:          []byte("xyzzy5461"),
+								HomeNetworkPublicKeyIdentifier: 255,
+								ProtectionScheme:               "ProfileA",
+							},
+						}},
+				},
+				orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
+				orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
+			},
 		},
 	}, serdes.Network)
 	assert.NoError(t, err)

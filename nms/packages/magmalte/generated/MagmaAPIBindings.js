@@ -949,6 +949,7 @@ export type network_carrier_wifi_configs = {
 export type network_cellular_configs = {
     epc: network_epc_configs,
     feg_network_id ? : feg_network_id,
+    ngc ? : network_ngc_configs,
     ran: network_ran_configs,
 };
 export type network_description = string;
@@ -1039,6 +1040,10 @@ export type network_interface = {
     status ? : "UP" | "DOWN" | "UNKNOWN",
 };
 export type network_name = string;
+export type network_ngc_configs = {
+    suci_profiles ? : Array < suci_profile >
+        ,
+};
 export type network_probe_data = {
     last_exported: string,
     sequence_number: number,
@@ -1463,6 +1468,12 @@ export type subscriberdb_sync_interval = number;
 export type subscription_profile = {
     max_dl_bit_rate ? : number,
     max_ul_bit_rate ? : number,
+};
+export type suci_profile = {
+    home_network_private_key ? : string,
+    home_network_public_key ? : string,
+    home_network_public_key_identifier ? : number,
+    protection_scheme ? : "ProfileA" | "ProfileB",
 };
 export type swx = {
     cache_TTL_seconds ? : number,
@@ -4488,6 +4499,48 @@ export default class MagmaAPIBindings {
 
         if (parameters['fegNetworkId'] !== undefined) {
             body = parameters['fegNetworkId'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getLteByNetworkIdCellularNgc(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < network_ngc_configs >
+        {
+            let path = '/lte/{network_id}/cellular/ngc';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putLteByNetworkIdCellularNgc(
+        parameters: {
+            'networkId': string,
+            'config': network_ngc_configs,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/cellular/ngc';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['config'] === undefined) {
+            throw new Error('Missing required  parameter: config');
+        }
+
+        if (parameters['config'] !== undefined) {
+            body = parameters['config'];
         }
 
         return await this.request(path, 'PUT', query, body);
