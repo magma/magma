@@ -46,7 +46,7 @@ func (service *Service) StopService(ctx context.Context, void *protos.Void) (*pr
 // GetMetrics returns a MetricsContainer with all metrics for the service.
 func (service *Service) GetMetrics(ctx context.Context, void *protos.Void) (*protos.MetricsContainer, error) {
 	met := &protos.MetricsContainer{}
-	metricsFamilies, err := metrics.GetMetrics()
+	metricsFamilies, err := metrics.GetMetrics(service.PrometheusLabels)
 	if err != nil {
 		return met, err
 	}
