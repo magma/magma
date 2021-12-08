@@ -39,6 +39,9 @@ target_link_libraries(TASK_ASYNC_GRPC_SERVICE
     LIB_BSTR protobuf
     LIB_HASHTABLE
     ${PROTOBUF_LIBRARIES}
+    pthread
+    gpr
+    grpc
     grpc++
     TASK_S6A
     )
