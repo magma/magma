@@ -37,7 +37,7 @@ spec:
               /usr/bin/ovs-vsctl set bridge gtp_br0 protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true && 
               /usr/bin/ovs-vsctl set-controller gtp_br0 tcp:127.0.0.1:6633 tcp:127.0.0.1:6654 && 
               /usr/bin/ovsdb-client dump Controller _uuid|tail -n +4 | while read id; do /usr/bin/ovs-vsctl set Controller ${id} inactivity_probe=300; done && 
-              /usr/bin/ovs-vsctl set-fail-mode gtp_br0 secure && /usr/bin/ovs-vsctl set-manager ptcp:6640 && /usr/bin/env python3 -m magma.pipelined.main"
+              /usr/bin/ovs-vsctl set-fail-mode gtp_br0 secure && /usr/bin/ovs-vsctl set-manager ptcp:6640 && /usr/bin/env python3 -m magma.pipelined.main
           env:
             - name: MAGMA_PRINT_GRPC_PAYLOAD
               value: "0"
