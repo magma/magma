@@ -210,7 +210,6 @@ s1aptests/test_no_smc_with_mme_restart_reattach.py \
 s1aptests/test_no_attach_complete_with_mme_restart.py \
 s1aptests/test_attach_ics_failure_with_mme_restart.py \
 s1aptests/test_continuous_random_attach.py \
-s1aptests/test_s1_handover_ping_pong.py \
 s1aptests/test_s1_handover_cancel.py \
 s1aptests/test_s1_handover_failure.py \
 s1aptests/test_s1_handover_timer_expiry.py \
