@@ -182,25 +182,21 @@ class MmeAppProcedureTest : public ::testing::Test {
   };
 
   const uint8_t nas_msg_tau_req_with_eps_bearer_ctx_sts_def_ber[25] = {
-     0x17, 0x4A, 0xE7, 0x23, 0x9E, 0x05, 0x07, 0x48,
-     0x08, 0x0b, 0xf6, 0x00, 0xf1, 0x10, 0x00, 0x01,
-     0x01, 0x67, 0x41, 0x14, 0xf4, 0x57, 0x02, 0x20, 0x00
-  };
+      0x17, 0x4A, 0xE7, 0x23, 0x9E, 0x05, 0x07, 0x48, 0x08,
+      0x0b, 0xf6, 0x00, 0xf1, 0x10, 0x00, 0x01, 0x01, 0x67,
+      0x41, 0x14, 0xf4, 0x57, 0x02, 0x20, 0x00};
 
   const uint8_t nas_msg_tau_req_with_eps_bearer_ctx_sts_ded_ber[25] = {
-     0x17, 0x18, 0xCF, 0x11, 0x4E, 0x05, 0x07, 0x48,
-     0x08, 0x0b, 0xf6, 0x00, 0xf1, 0x10, 0x00, 0x01,
-     0x01, 0x67, 0x41, 0x14, 0xf4, 0x57, 0x02, 0x60, 0x00
-  };
+      0x17, 0x18, 0xCF, 0x11, 0x4E, 0x05, 0x07, 0x48, 0x08,
+      0x0b, 0xf6, 0x00, 0xf1, 0x10, 0x00, 0x01, 0x01, 0x67,
+      0x41, 0x14, 0xf4, 0x57, 0x02, 0x60, 0x00};
 
   const uint8_t nas_msg_pdn_connectivity_req_ims[16] = {
-     0x27, 0x13, 0xd2, 0x79, 0xbe, 0x02, 0x02, 0x01,
-     0xd0, 0x11, 0x28, 0x04, 0x03, 0x69, 0x6d, 0x73
-  };
+      0x27, 0x13, 0xd2, 0x79, 0xbe, 0x02, 0x02, 0x01,
+      0xd0, 0x11, 0x28, 0x04, 0x03, 0x69, 0x6d, 0x73};
 
-  const uint8_t nas_msg_act_def_bearer_acc[9] = {
-     0x27, 0xaa, 0x95, 0x47, 0x92, 0x03, 0x62, 0x00, 0xc2
-  };
+  const uint8_t nas_msg_act_def_bearer_acc[9] = {0x27, 0xaa, 0x95, 0x47, 0x92,
+                                                 0x03, 0x62, 0x00, 0xc2};
 
   std::string imsi                = "001010000000001";
   plmn_t plmn                     = {.mcc_digit2 = 0,
@@ -2657,8 +2653,10 @@ TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
-// Normal TAU sent in idle mode with eps bearer context status IE with inactive default bearer
-TEST_F(MmeAppProcedureTest, TestNormalTauReqWithEpsBearerCtxStsInactiveDefBearer) {
+// Normal TAU sent in idle mode with eps bearer context status IE with inactive
+// default bearer
+TEST_F(
+    MmeAppProcedureTest, TestNormalTauReqWithEpsBearerCtxStsInactiveDefBearer) {
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
@@ -2742,18 +2740,19 @@ TEST_F(MmeAppProcedureTest, TestNormalTauReqWithEpsBearerCtxStsInactiveDefBearer
 
   // Send PDN connectivity request
   send_mme_app_uplink_data_ind(
-      nas_msg_pdn_connectivity_req_ims, sizeof(nas_msg_pdn_connectivity_req_ims), plmn);
+      nas_msg_pdn_connectivity_req_ims,
+      sizeof(nas_msg_pdn_connectivity_req_ims), plmn);
 
-  ebi_idx ++;
+  ebi_idx++;
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI+ebi_idx);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI + ebi_idx);
 
   // Wait for activate default eps bearer req to be sent
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Send ERAB Setup Response mimicing S1AP
-  send_erab_setup_rsp(DEFAULT_LBI+ebi_idx);
+  send_erab_setup_rsp(DEFAULT_LBI + ebi_idx);
 
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Send activate default eps bearer accept
@@ -2766,7 +2765,7 @@ TEST_F(MmeAppProcedureTest, TestNormalTauReqWithEpsBearerCtxStsInactiveDefBearer
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Add dedicated bearer for LBI 6
-  send_s11_create_bearer_req(DEFAULT_LBI+ebi_idx);
+  send_s11_create_bearer_req(DEFAULT_LBI + ebi_idx);
   EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(1);
 
   // Send ERAB Setup Response mimicing S1AP
@@ -2855,8 +2854,10 @@ TEST_F(MmeAppProcedureTest, TestNormalTauReqWithEpsBearerCtxStsInactiveDefBearer
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
-// Normal TAU sent in idle mode with eps bearer context status IE with inactive dedicated bearer
-TEST_F(MmeAppProcedureTest, TestNormalTauReqWithEpsBearerCtxStsInactiveDedBearer) {
+// Normal TAU sent in idle mode with eps bearer context status IE with inactive
+// dedicated bearer
+TEST_F(
+    MmeAppProcedureTest, TestNormalTauReqWithEpsBearerCtxStsInactiveDedBearer) {
   mme_app_desc_t* mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
@@ -2940,17 +2941,18 @@ TEST_F(MmeAppProcedureTest, TestNormalTauReqWithEpsBearerCtxStsInactiveDedBearer
 
   // Send PDN connectivity request
   send_mme_app_uplink_data_ind(
-      nas_msg_pdn_connectivity_req_ims, sizeof(nas_msg_pdn_connectivity_req_ims), plmn);
+      nas_msg_pdn_connectivity_req_ims,
+      sizeof(nas_msg_pdn_connectivity_req_ims), plmn);
 
-  ebi_idx ++;
+  ebi_idx++;
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI+ebi_idx);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI + ebi_idx);
 
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Send ERAB Setup Response mimicing S1AP
-  send_erab_setup_rsp(DEFAULT_LBI+ebi_idx);
+  send_erab_setup_rsp(DEFAULT_LBI + ebi_idx);
 
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Send activate default eps bearer accept
@@ -2963,7 +2965,7 @@ TEST_F(MmeAppProcedureTest, TestNormalTauReqWithEpsBearerCtxStsInactiveDedBearer
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Add dedicated bearer for LBI 6
-  send_s11_create_bearer_req(DEFAULT_LBI+ebi_idx);
+  send_s11_create_bearer_req(DEFAULT_LBI + ebi_idx);
   EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(1);
 
   // Send ERAB Setup Response mimicing S1AP

@@ -33,7 +33,6 @@ namespace lte {
 #define DEFAULT_MME_S1AP_UE_ID 1
 #define DEFAULT_eNB_S1AP_UE_ID 0
 
-
 #define MME_APP_EXPECT_CALLS(                                                  \
     dlNas, connEstConf, ctxRel, air, ulr, purgeReq, csr, mbr, relBearer, dsr,  \
     setAppHealth)                                                              \
