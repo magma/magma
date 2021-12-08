@@ -43,7 +43,7 @@ jobs:
         with:
           script: |
             var fs = require('fs');
-            var codeownersBuf = fs.readFileSync(process.env.MAGMA_ROOT + '/CODEOWNERS', {encoding: 'utf8'});
+            var codeownersBuf = fs.readFileSync('CODEOWNERS', {encoding: 'utf8'});
 
             console.log("CODEOWNERS file contents:" + codeownersBuf);
 
