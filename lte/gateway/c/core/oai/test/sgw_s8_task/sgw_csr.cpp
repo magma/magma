@@ -36,9 +36,6 @@ TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req_success) {
   EXPECT_EQ(
       sgw_s8_handle_s11_create_session_request(sgw_state, &session_req, imsi64),
       RETURNok);
-  sgw_state_exit();
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
 
 /* TC validates creation of ue context, pdn context and bearer context
@@ -96,9 +93,6 @@ TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req) {
   // Validates whether userplane teids are created for s1-u and s8-u interfaces
   EXPECT_GT(eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, 0);
   EXPECT_GT(eps_bearer_ctxt_p->s_gw_teid_S5_S8_up, 0);
-  sgw_state_exit();
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
 
 // TC validates updation of bearer context on reception of Create Session Rsp
@@ -144,8 +138,8 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
           temporary_create_session_procedure_id,
           reinterpret_cast<void**>(&sgw_pdn_session)),
       HASH_TABLE_KEY_NOT_EXISTS);
-
-  sgw_state_exit();
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
 
 // TC indicates that SGW_S8 has received incorrect temporary session id in
@@ -171,7 +165,6 @@ TEST_F(
   EXPECT_EQ(
       sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64),
       RETURNerror);
-  sgw_state_exit();
 }
 
 // TC indicates that SGW_S8 has received incorrect sgw_s8_teid in Create Session
@@ -196,9 +189,6 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_different_sgw_s8_teid) {
   // validate with wrong sgw_s8_teid, fails to get sgw_pdn_session
   EXPECT_EQ(
       (sgw_get_sgw_eps_bearer_context((csresp.context_teid + 1))), nullptr);
-  sgw_state_exit();
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
 
 // TC indicates that SGW_S8 has received incorrect eps bearer id in Create
@@ -224,9 +214,6 @@ TEST_F(SgwS8ConfigAndCreateMock, failed_to_get_bearer_context_on_cs_rsp) {
   EXPECT_EQ(
       sgw_update_bearer_context_information_on_csrsp(sgw_pdn_session, &csresp),
       RETURNerror);
-  sgw_state_exit();
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
 
 // TC validates deletion of pdn session
@@ -293,7 +280,6 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling) {
   // after handling of delete session response, makes sure that pdn context is
   // deleted
   EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) == nullptr);
-  sgw_state_exit();
   std::this_thread::sleep_for(
       std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
@@ -334,7 +320,6 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling_invalid_teid) {
       sgw_s8_handle_s11_delete_session_request(sgw_state, &ds_req, imsi64),
       RETURNerror);
 
-  sgw_state_exit();
   std::this_thread::sleep_for(
       std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }

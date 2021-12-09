@@ -141,7 +141,7 @@ TEST_F(SgwS8MessagesTest, recv_create_bearer_req) {
   EXPECT_TRUE(status.ok());
 }
 
-TEST_F(SgwS8MessagesTest, recv_delete_bearer_req) {
+TEST_F(SgwS8MessagesTest, recv_grcp_delete_bearer_req) {
   magma::feg::DeleteBearerRequestPgw db_req;
   build_grpc_delete_bearer_req(&db_req);
   grpc::ServerContext server_context;

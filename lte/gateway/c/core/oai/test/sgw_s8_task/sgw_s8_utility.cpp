@@ -290,5 +290,5 @@ void SgwS8ConfigAndCreateMock::TearDown() {
   destroy_task_context(&task_zmq_ctx_main_s8);
   itti_free_desc_threads();
   // Sleep to ensure that messages are received and contexts are released
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
