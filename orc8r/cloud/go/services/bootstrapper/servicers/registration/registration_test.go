@@ -22,7 +22,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"magma/orc8r/cloud/go/services/bootstrapper"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers/registration"
 	"magma/orc8r/cloud/go/services/tenants"
 	tenantsTestInit "magma/orc8r/cloud/go/services/tenants/test_init"
@@ -46,8 +45,7 @@ var (
 )
 
 func TestRegistrationServicer_Register(t *testing.T) {
-	reg, testCleanup := setupTestRegistration(t)
-	defer testCleanup()
+	reg := setupTestRegistration(t)
 
 	res, err := reg.Register(nil, registerRequest)
 	assert.NoError(t, err)
@@ -60,9 +58,8 @@ func TestRegistrationServicer_Register(t *testing.T) {
 func TestRegistrationServicer_Register_BadToken(t *testing.T) {
 	rpcErr := status.Error(codes.NotFound, "errMessage")
 
-	reg, testCleanup := setupTestRegistration(t)
-	defer testCleanup()
-	bootstrapper.GetGatewayDeviceInfo = func(ctx context.Context, token string) (*protos.GatewayDeviceInfo, error) {
+	reg := setupTestRegistration(t)
+	reg.GetGatewayDeviceInfo = func(ctx context.Context, token string) (*protos.GatewayDeviceInfo, error) {
 		return nil, rpcErr
 	}
 
@@ -79,9 +76,8 @@ func TestRegistrationServicer_Register_BadToken(t *testing.T) {
 func TestRegistrationServicer_Register_NoControlProxy(t *testing.T) {
 	rpcErr := status.Error(codes.NotFound, "errMessage")
 
-	reg, testCleanup := setupTestRegistration(t)
-	defer testCleanup()
-	registration.GetControlProxy = func(networkID string) (string, error) {
+	reg := setupTestRegistration(t)
+	reg.GetControlProxy = func(networkID string) (string, error) {
 		return "", rpcErr
 	}
 
@@ -137,31 +133,20 @@ func TestGetControlProxy(t *testing.T) {
 	assert.Equal(t, controlProxy, res)
 }
 
-func setupTestRegistration(t *testing.T) (protos.RegistrationServer, func()) {
-	orignalGetGatewayDeviceInfo := bootstrapper.GetGatewayDeviceInfo
-	orignalRegisterDevice := registration.RegisterDevice
-	orignalGetControlProxy := registration.GetControlProxy
-
-	testCleanup := func() {
-		bootstrapper.GetGatewayDeviceInfo = orignalGetGatewayDeviceInfo
-		registration.RegisterDevice = orignalRegisterDevice
-		registration.GetControlProxy = orignalGetControlProxy
+func setupTestRegistration(t *testing.T) *registration.RegistrationService {
+	registrationService := &registration.RegistrationService{
+		GetGatewayDeviceInfo: func(ctx context.Context, token string) (*protos.GatewayDeviceInfo, error) {
+			return gatewayDeviceInfo, nil
+		},
+		RegisterDevice: func(deviceInfo protos.GatewayDeviceInfo, hwid *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) error {
+			return nil
+		},
+		GetControlProxy: func(networkID string) (string, error) {
+			return controlProxy, nil
+		},
 	}
 
-	reg, err := registration.NewRegistrationServicer()
-	assert.NoError(t, err)
-
-	bootstrapper.GetGatewayDeviceInfo = func(ctx context.Context, token string) (*protos.GatewayDeviceInfo, error) {
-		return gatewayDeviceInfo, nil
-	}
-	registration.RegisterDevice = func(deviceInfo protos.GatewayDeviceInfo, hwid *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) error {
-		return nil
-	}
-	registration.GetControlProxy = func(networkID string) (string, error) {
-		return controlProxy, nil
-	}
-
-	return reg, testCleanup
+	return registrationService
 }
 
 func setupAddNetworksToTenantsService(t *testing.T) {

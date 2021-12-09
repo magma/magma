@@ -17,31 +17,41 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-type registrationServicer struct{}
-
-func NewRegistrationServicer() (protos.RegistrationServer, error) {
-	return &registrationServicer{}, nil
+// RegistrationService is public for ease of testing
+type RegistrationService struct{
+	GetGatewayDeviceInfo func(ctx context.Context, token string) (*protos.GatewayDeviceInfo, error)
+	RegisterDevice func(deviceInfo protos.GatewayDeviceInfo, hwid *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) error
+	GetControlProxy func(networkID string) (string, error)
 }
 
-func (r *registrationServicer) Register(c context.Context, request *protos.RegisterRequest) (*protos.RegisterResponse, error) {
+// TODO REMOVE ERROR
+func NewRegistrationServicer() (protos.RegistrationServer, error) {
+	return &RegistrationService{
+		GetGatewayDeviceInfo: bootstrapper.GetGatewayDeviceInfo,
+		RegisterDevice: RegisterDevice,
+		GetControlProxy: GetControlProxy,
+	}, nil
+}
+
+func (r *RegistrationService) Register(c context.Context, request *protos.RegisterRequest) (*protos.RegisterResponse, error) {
 	nonce, err := NonceFromToken(request.Token)
 	if err != nil {
 		return nil, err
 	}
 
-	deviceInfo, err := bootstrapper.GetGatewayDeviceInfo(context.Background(), nonce)
+	deviceInfo, err := r.GetGatewayDeviceInfo(context.Background(), nonce)
 	if err != nil {
 		clientErr := makeErr(fmt.Sprintf("could not get device info from token %v: %v", request.Token, err))
 		return clientErr, nil
 	}
 
-	err = RegisterDevice(*deviceInfo, request.Hwid, request.ChallengeKey)
+	err = r.RegisterDevice(*deviceInfo, request.Hwid, request.ChallengeKey)
 	if err != nil {
 		clientErr := makeErr(fmt.Sprintf("error registering device: %v", err))
 		return clientErr, nil
 	}
 
-	controlProxy, err := GetControlProxy(deviceInfo.NetworkId)
+	controlProxy, err := r.GetControlProxy(deviceInfo.NetworkId)
 	if err != nil {
 		clientErr := makeErr(fmt.Sprintf("error getting control proxy: %v", err))
 		return clientErr, nil
@@ -55,7 +65,7 @@ func (r *registrationServicer) Register(c context.Context, request *protos.Regis
 	return res, nil
 }
 
-var RegisterDevice = func(deviceInfo protos.GatewayDeviceInfo, hwid *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) error {
+func RegisterDevice(deviceInfo protos.GatewayDeviceInfo, hwid *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) error {
 	challengeKeyBase64 := strfmt.Base64(challengeKey.Key)
 	gatewayRecord := &models.GatewayDevice{
 		HardwareID: hwid.Id,
@@ -65,7 +75,7 @@ var RegisterDevice = func(deviceInfo protos.GatewayDeviceInfo, hwid *protos.Acce
 	return err
 }
 
-var GetControlProxy = func(networkID string) (string, error) {
+func GetControlProxy(networkID string) (string, error) {
 	// TODO(#10536) Move functionality to get control_proxy from networkID into tenants service
 	tenantList, err := tenants.GetAllTenants(context.Background())
 	if err != nil {
