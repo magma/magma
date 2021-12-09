@@ -13,11 +13,20 @@ limitations under the License.
 
 import logging
 
-from lte.protos import subscriberauth_pb2, subscriberauth_pb2_grpc
+from lte.protos import (
+    subscriberauth_pb2,
+    subscriberauth_pb2_grpc,
+    subscriberdb_pb2,
+    subscriberdb_pb2_grpc,
+)
 from magma.common.rpc_utils import print_grpc
 from magma.subscriberdb import metrics
+from magma.subscriberdb.crypto.ECIES import ECIES_HN
 from magma.subscriberdb.crypto.utils import CryptoError
-from magma.subscriberdb.store.base import SubscriberNotFoundError
+from magma.subscriberdb.store.base import (
+    SubscriberNotFoundError,
+    SuciProfileNotFoundError,
+)
 from magma.subscriberdb.subscription.utils import ServiceNotActive
 
 
@@ -35,7 +44,9 @@ class M5GAuthRpcServicer(subscriberauth_pb2_grpc.M5GSubscriberAuthenticationServ
         """
         Add the servicer to a gRPC server
         """
-        subscriberauth_pb2_grpc.add_M5GSubscriberAuthenticationServicer_to_server(self, server)
+        subscriberauth_pb2_grpc.add_M5GSubscriberAuthenticationServicer_to_server(
+            self, server,
+        )
 
     def M5GAuthenticationInformation(self, request, context):
         print_grpc(
@@ -100,4 +111,69 @@ class M5GAuthRpcServicer(subscriberauth_pb2_grpc.M5GSubscriberAuthenticationServ
             print_grpc(
                 aia, self._print_grpc_payload,
                 "M5GAuthenticationInformation Response:",
+            )
+
+
+class M5GSUCIRegRpcServicer(subscriberdb_pb2_grpc.M5GSUCIRegistrationServicer):
+    """
+    gRPC based server for the AMF
+    """
+
+    def __init__(
+        self, lte_processor, suciprofile_db: dict,
+        print_grpc_payload: bool = False,
+    ):
+        self.lte_processor = lte_processor
+        self.suciprofile_db = suciprofile_db
+        logging.info("starting M5GSUCIRegRpcServicer servicer")
+        self._print_grpc_payload = print_grpc_payload
+
+    def add_to_server(self, server):
+        """
+        Add the servicer to a gRPC server
+        """
+        subscriberdb_pb2_grpc.add_M5GSUCIRegistrationServicer_to_server(
+            self, server,
+        )
+
+    def M5GDecryptImsiSUCIRegistration(self, request, context):
+        """
+        M5GDecryptImsiSUCIRegistration
+        """
+        print_grpc(
+            request, self._print_grpc_payload,
+            "M5GDecryptImsiSUCIRegistration Request:",
+        )
+        aia = subscriberdb_pb2.M5GSUCIRegistrationAnswer()
+
+        try:
+            suciprofile = self.suciprofile_db[request.ue_pubkey_identifier]
+
+            if suciprofile.protection_scheme == 0:
+                profile = 'A'
+            elif suciprofile.protection_scheme == 1:
+                profile = 'B'
+
+            home_network_info = ECIES_HN(
+                suciprofile.home_net_private_key,
+                profile,
+            )
+
+            msin_recv = home_network_info.unprotect(
+                request.ue_pubkey, request.ue_ciphertext,
+                request.ue_encrypted_mac,
+            )
+
+            aia.ue_msin_recv = msin_recv[:10]
+            logging.info("Deconcealed IMSI: %s", aia.ue_msin_recv)
+            return aia
+
+        except SuciProfileNotFoundError as e:
+            logging.warning("Suciprofile not found: %s", e)
+            return aia
+
+        finally:
+            print_grpc(
+                aia, self._print_grpc_payload,
+                "M5GDecryptImsiSUCIRegistration Response:",
             )

@@ -67,6 +67,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_PAGING_REQUEST: {
+      s1ap_handler_->s1ap_handle_paging_request();
     } break;
 
     case S1AP_UE_CONTEXT_MODIFICATION_REQUEST: {

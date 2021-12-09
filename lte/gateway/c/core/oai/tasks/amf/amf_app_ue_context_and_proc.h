@@ -398,6 +398,9 @@ typedef struct ue_m5gmm_context_s {
   m5g_uecontextrequest_t ue_context_request;
 } ue_m5gmm_context_t;
 
+// Map- Key: uint64_t , Data: ue_m5gmm_context_s*
+typedef magma::map_s<uint64_t, ue_m5gmm_context_s*> map_uint64_ue_context_t;
+
 /* Operation on UE context structure
  */
 int amf_insert_ue_context(

@@ -111,7 +111,7 @@ setup(
         'chardet==3.0.4',
         'docker==4.0.2',
         'urllib3>=1.25.3',
-        'websocket-client==0.56.0',
+        'websocket-client',
         'requests>=2.22.0',
         'certifi>=2019.6.16',
         'idna==2.8',

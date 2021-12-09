@@ -51,10 +51,9 @@ void amf_ue_context_update_coll_keys(
     const gnb_ngap_id_key_t gnb_ngap_id_key,
     const amf_ue_ngap_id_t amf_ue_ngap_id, const imsi64_t imsi,
     const teid_t amf_teid_n11, const guti_m5_t* const guti_p) {
-  hashtable_rc_t h_rc  = HASH_TABLE_OK;
   magma::map_rc_t m_rc = magma::MAP_OK;
-  // TODO: Migrate the amf_state_ue_id_ht to the map implementation.
-  hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
+
+  map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
   OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_TRACE(
       LOG_AMF_APP,
@@ -86,14 +85,10 @@ void amf_ue_context_update_coll_keys(
 
   if (amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
     if (ue_context_p->amf_ue_ngap_id != amf_ue_ngap_id) {
-      h_rc = hashtable_ts_remove(
-          amf_state_ue_id_ht, (const hash_key_t) ue_context_p->amf_ue_ngap_id,
-          reinterpret_cast<void**>(&ue_context_p));
-      h_rc = hashtable_ts_insert(
-          amf_state_ue_id_ht, (const hash_key_t) amf_ue_ngap_id,
-          reinterpret_cast<void*>(ue_context_p));
+      m_rc = amf_state_ue_id_ht.remove(ue_context_p->amf_ue_ngap_id);
+      m_rc = amf_state_ue_id_ht.insert(amf_ue_ngap_id, ue_context_p);
 
-      if (HASH_TABLE_OK != h_rc) {
+      if (m_rc != magma::MAP_OK) {
         OAILOG_ERROR(
             LOG_AMF_APP,
             "Insertion of Hash entry failed for  "
@@ -499,10 +494,9 @@ imsi64_t amf_app_handle_initial_ue_message(
    * Before accessing ue_context_p, we shall validate whether UE context
    * exists or not
    */
-  if (INVALID_AMF_UE_NGAP_ID != ue_id) {
-    hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
-    if (hashtable_ts_is_key_exists(
-            amf_state_ue_id_ht, (const hash_key_t) ue_id) == HASH_TABLE_OK) {
+  if (ue_id != INVALID_AMF_UE_NGAP_ID) {
+    map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
+    if (amf_state_ue_id_ht.get(ue_id, &ue_context_p) == magma::MAP_OK) {
       imsi64 = ue_context_p->amf_context.imsi64;
     }
   }

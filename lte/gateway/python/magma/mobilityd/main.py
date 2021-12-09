@@ -145,12 +145,12 @@ def main():
     """Start mobilityd"""
     service = MagmaService('mobilityd', mconfigs_pb2.MobilityD())
 
-    # Optionally pipe errors to Sentry
-    sentry_init(service_name=service.name)
-
     # Load service configs and mconfig
     config = service.config
     mconfig = service.mconfig
+
+    # Optionally pipe errors to Sentry
+    sentry_init(service_name=service.name, sentry_mconfig=service.shared_mconfig.sentry_config)
 
     multi_apn = config.get('multi_apn', mconfig.multi_apn_ip_alloc)
     static_ip_enabled = config.get('static_ip', mconfig.static_ip_enabled)

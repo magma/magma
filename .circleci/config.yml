@@ -811,48 +811,6 @@ jobs:
           version_path: versions/nms_version
       - magma_slack_notify
 
-  ### XWF
-
-  xwfm-test:
-    parameters:
-      notify_magma_ci:
-        description: "should run magma_slack_notify for #magma_ci channel"
-        type: boolean
-        default: true
-      notify_xwfm_ci:
-        description: "should run magma_slack_notify for #xwfm_ci channel"
-        type: boolean
-        default: true
-    machine:
-      image: ubuntu-1604:201903-01
-      docker_layer_caching: true
-    steps:
-      - checkout
-      - docker/install-dc
-      - run:
-          name: Loading openvswitch kernel module
-          command: sudo modprobe openvswitch
-      - run:
-          name: Setup Environment Variables
-          command: |
-            echo export MAGMA_ROOT=$(pwd) >> $BASH_ENV
-            echo export RUN_UID=$RANDOM >> $BASH_ENV
-      - run:
-          command: |
-            env
-            docker login -u ${XWF_ARTIFACTORY_USER} -p ${XWF_ARTIFACTORY_API_KEY} ${XWF_ARTIFACTORY_LINK}
-            cd ${MAGMA_ROOT}/xwf/docker/
-            docker-compose pull || true
-            docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py
-      - when:
-          condition: <<parameters.notify_magma_ci>>
-          steps:
-            - magma_slack_notify
-      - when:
-          condition: <<parameters.notify_xwfm_ci>>
-          steps:
-            - magma_slack_notify
-
 
 workflows:
   version: 2
@@ -861,10 +819,6 @@ workflows:
     jobs:
       - lte-integ-test:
           <<: *master_and_develop
-      - lte-agw-deploy:
-          <<: *only_master
-          requires:
-            - lte-integ-test
 
   release:
     jobs:
@@ -895,19 +849,4 @@ workflows:
           <<: *only_release
           requires:
             - release-hold
-
-      # GH9026: Disabling test until it is fixed
-      # - xwfm-test:
-      #     <<: *master_and_develop
-
-  # GH9026: Disabling test until it is fixed
-  # hourly_xwfm:
-  #   triggers:
-  #     - schedule:
-  #         cron: "0 * * * *"
-  #         <<: *only_master
-
-  #   jobs:
-  #     - xwfm-test:
-  #         notify_magma_ci: false
 

@@ -22,9 +22,15 @@ from magma.subscriberdb.client import SubscriberDBCloudClient
 from magma.subscriberdb.processor import Processor
 from magma.subscriberdb.protocols.diameter.application import base, s6a
 from magma.subscriberdb.protocols.diameter.server import S6aServer
-from magma.subscriberdb.protocols.m5g_auth_servicer import M5GAuthRpcServicer
+from magma.subscriberdb.protocols.m5g_auth_servicer import (
+    M5GAuthRpcServicer,
+    M5GSUCIRegRpcServicer,
+)
 from magma.subscriberdb.protocols.s6a_proxy_servicer import S6aProxyRpcServicer
-from magma.subscriberdb.rpc_servicer import SubscriberDBRpcServicer
+from magma.subscriberdb.rpc_servicer import (
+    SubscriberDBRpcServicer,
+    SuciProfileDBRpcServicer,
+)
 from magma.subscriberdb.store.sqlite import SqliteStore
 from magma.subscriberdb.subscription_profile import get_default_sub_profile
 
@@ -34,7 +40,9 @@ def main():
     service = MagmaService('subscriberdb', mconfigs_pb2.SubscriberDB())
 
     # Optionally pipe errors to Sentry
-    sentry_init(service_name=service.name)
+    sentry_init(service_name=service.name, sentry_mconfig=service.shared_mconfig.sentry_config)
+
+    suciprofile_db_dict = {}
 
     # Initialize a store to keep all subscriber data.
     store = SqliteStore(
@@ -57,6 +65,13 @@ def main():
         service.config.get('print_grpc_payload', False),
     )
     subscriberdb_servicer.add_to_server(service.rpc_server)
+
+    suciprofilerdb_servicer = SuciProfileDBRpcServicer(
+        store,
+        suciprofile_db_dict,
+        service.config.get('print_grpc_payload', False),
+    )
+    suciprofilerdb_servicer.add_to_server(service.rpc_server)
 
     # Start a background thread to stream updates from the cloud
     if service.config.get('enable_streaming'):
@@ -96,6 +111,15 @@ def main():
                 service.config.get('print_grpc_payload', False),
             )
             m5g_subs_auth_servicer.add_to_server(service.rpc_server)
+
+        if service.config.get('enable5g_features', service.mconfig.enable5g_features):
+            logging.info('Cater to 5G SUPI Registration')
+            m5g_suci_reg_servicer = M5GSUCIRegRpcServicer(
+                processor,
+                suciprofile_db_dict,
+                service.config.get('print_grpc_payload', False),
+            )
+            m5g_suci_reg_servicer.add_to_server(service.rpc_server)
 
         if service.config.get('s6a_over_grpc'):
             logging.info('Running s6a over grpc')

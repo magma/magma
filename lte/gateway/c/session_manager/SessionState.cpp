@@ -333,16 +333,25 @@ void SessionState::sess_infocopy(struct SessionInfo* info) {
   // Static SessionInfo vlaue till UPF node value implementation
   // gets stablized.
   // TODO we cud eventually  migrate to SMF-UPF proto enum directly.
+  if (info == nullptr) {
+    return;
+  }
   info->state = get_proto_fsm_state();
   info->subscriber_id.assign(imsi_);
-  info->ver_no              = get_current_version();
-  info->local_f_teid        = get_upf_local_teid();
-  info->nodeId.node_id_type = SessionInfo::IPv4;
-  info->pdr_rules           = get_all_pdr_rules();
+  info->ver_no       = get_current_version();
+  info->local_f_teid = get_upf_local_teid();
+  info->pdr_rules    = get_all_pdr_rules();
   if (!info->pdr_rules.empty()) {
     // Get the UE ip address from first rule
-    auto& rule    = info->pdr_rules.front();
-    info->ip_addr = rule.pdi().ue_ipv4();
+    auto& rule = info->pdr_rules.front();
+    if (!rule.pdi().ue_ipv4().empty()) {
+      info->nodeId.node_id_type = SessionInfo::IPv4;
+      info->ip_addr             = rule.pdi().ue_ipv4();
+    }
+    if (!rule.pdi().ue_ipv6().empty()) {
+      info->nodeId.node_id_type = SessionInfo::IPv6;
+      info->ipv6_addr           = rule.pdi().ue_ipv6();
+    }
   }
 }
 
@@ -1725,8 +1734,11 @@ bool SessionState::receive_charging_credit(
 
   auto& grant                            = it->second;
   SessionCreditUpdateCriteria* credit_uc = get_credit_uc(key, session_uc);
-  auto credit_validity = ChargingGrant::is_valid_credit_response(update);
+  auto credit_validity =
+      ChargingGrant::get_credit_response_validity_type(update);
   if (credit_validity == INVALID_CREDIT) {
+    MLOG(MDEBUG) << "Credit validity error "
+                 << credit_validity_to_str(credit_validity);
     // update unsuccessful, reset credit and return
     grant->credit.mark_failure(update.result_code(), credit_uc);
     if (grant->should_deactivate_service()) {
@@ -1737,6 +1749,8 @@ bool SessionState::receive_charging_credit(
   if (credit_validity == TRANSIENT_ERROR) {
     // for transient errors, try to install the credit
     // but clear the reported credit
+    MLOG(MDEBUG) << "Credit validity warning "
+                 << credit_validity_to_str(credit_validity);
     grant->credit.mark_failure(update.result_code(), credit_uc);
   }
   grant->receive_charging_grant(update, credit_uc);
@@ -1762,7 +1776,8 @@ bool SessionState::init_charging_credit(
     const CreditUpdateResponse& update,
     SessionStateUpdateCriteria* session_uc) {
   const uint32_t key = update.charging_key();
-  if (ChargingGrant::is_valid_credit_response(update) == INVALID_CREDIT) {
+  if (ChargingGrant::get_credit_response_validity_type(update) ==
+      INVALID_CREDIT) {
     // init failed, don't track key
     return false;
   }

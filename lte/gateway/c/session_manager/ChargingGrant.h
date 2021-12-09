@@ -76,7 +76,7 @@ struct ChargingGrant {
 
   // Returns true if the credit returned from the Policy component is valid and
   // good to be installed.
-  static CreditValidity is_valid_credit_response(
+  static CreditValidity get_credit_response_validity_type(
       const CreditUpdateResponse& update);
 
   // Returns a SessionCreditUpdateCriteria that reflects the current state

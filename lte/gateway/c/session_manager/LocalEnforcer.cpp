@@ -1474,8 +1474,13 @@ void LocalEnforcer::update_charging_credits(
         session->receive_charging_credit(credit_update_resp, &uc);
     session->set_tgpp_context(credit_update_resp.tgpp_ctx(), &uc);
 
-    bool should_activate = session->is_credit_ready_to_be_activated(credit_key);
-    if (!should_activate) {
+    // Here we will decide if credit should be activated/un-suspended
+    bool credit_ready_to_be_activated =
+        session->is_credit_ready_to_be_activated(credit_key);
+    auto credit_validity_type =
+        ChargingGrant::get_credit_response_validity_type(credit_update_resp);
+    if (credit_validity_type == TRANSIENT_ERROR ||
+        !credit_ready_to_be_activated) {
       continue;
     }
     // This credit is now out of quota and need to be acted on

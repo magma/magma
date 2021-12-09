@@ -102,8 +102,8 @@ class Service303Test : public ::testing::Test {
     delete service303_client;
   }
 
-  static const MetricFamily& findFamily(
-      const MetricsContainer& container, const std::string& match) {
+  static const MetricFamily& findFamily(const MetricsContainer& container,
+                                        const std::string& match) {
     for (auto const& fam : container.family()) {
       if (fam.name().compare(match) == 0) {
         return fam;
@@ -112,15 +112,15 @@ class Service303Test : public ::testing::Test {
     assert(false);
   }
 
-  static const double findGauge(
-      const MetricsContainer& container, const std::string& match) {
+  static const double findGauge(const MetricsContainer& container,
+                                const std::string& match) {
     const MetricFamily& fam = findFamily(container, match);
     return fam.metric().Get(0).gauge().value();
   }
 
  protected:
   const std::string service_name = "test_service";
-  const std::string version      = "magma@1.2.3";
+  const std::string version = "magma@1.2.3";
   std::thread magma_server_thread;
   std::shared_ptr<MagmaService> magma_service = nullptr;
   Service303Client* service303_client;
@@ -133,7 +133,7 @@ class Service303Test : public ::testing::Test {
         magma::ServiceRegistrySingleton::Instance()->GetServiceAddrString(
             service_name);
     const std::shared_ptr<Channel> channel = CreateChannel(service_addr, cred);
-    service303_client                      = new Service303Client(channel);
+    service303_client = new Service303Client(channel);
   }
 };
 
@@ -213,9 +213,8 @@ TEST_F(Service303Test, test_histograms) {
   EXPECT_EQ(histogram->sample_sum(), 3);
   EXPECT_EQ(histogram->bucket().size(), 1);
   EXPECT_EQ(histogram->bucket().Get(0).cumulative_count(), 1);
-  EXPECT_EQ(
-      histogram->bucket().Get(0).upper_bound(),
-      std::numeric_limits<double>::infinity());
+  EXPECT_EQ(histogram->bucket().Get(0).upper_bound(),
+            std::numeric_limits<double>::infinity());
 
   // Adding another observation with buckets won't add another metric or
   // more buckets but it will add another observation to the metric
@@ -229,9 +228,8 @@ TEST_F(Service303Test, test_histograms) {
   EXPECT_EQ(histogram->sample_sum(), 10);
   EXPECT_EQ(histogram->bucket().size(), 1);
   EXPECT_EQ(histogram->bucket().Get(0).cumulative_count(), 2);
-  EXPECT_EQ(
-      histogram->bucket().Get(0).upper_bound(),
-      std::numeric_limits<double>::infinity());
+  EXPECT_EQ(histogram->bucket().Get(0).upper_bound(),
+            std::numeric_limits<double>::infinity());
 
   // Since we define a new metric using labels, it should construct with the
   // boundary definitions
@@ -251,9 +249,8 @@ TEST_F(Service303Test, test_histograms) {
   EXPECT_EQ(histogram->bucket().Get(2).cumulative_count(), 1);
   EXPECT_EQ(histogram->bucket().Get(2).upper_bound(), 100);
   EXPECT_EQ(histogram->bucket().Get(3).cumulative_count(), 0);
-  EXPECT_EQ(
-      histogram->bucket().Get(3).upper_bound(),
-      std::numeric_limits<double>::infinity());
+  EXPECT_EQ(histogram->bucket().Get(3).upper_bound(),
+            std::numeric_limits<double>::infinity());
 }
 
 TEST_F(Service303Test, test_timing_metrics) {
@@ -301,8 +298,8 @@ TEST_F(Service303Test, test_memory_metrics) {
 TEST_F(Service303Test, test_enum_conversions) {
   // enum values (from metricsd.proto):
   // s1_setup => 500, result => 0
-  increment_counter(
-      "mme_new_association", 3, 2, "result", "success", "gateway", "1234");
+  increment_counter("mme_new_association", 3, 2, "result", "success", "gateway",
+                    "1234");
 
   MetricsContainer metrics_container;
   EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));

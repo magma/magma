@@ -10,6 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+MODE=$1
 WHOAMI=$(whoami)
 MAGMA_USER="ubuntu"
 MAGMA_VERSION="${MAGMA_VERSION:-master}"
@@ -54,11 +55,15 @@ git clone "${GIT_URL}" /opt/magma
 cd /opt/magma || exit
 git checkout "$MAGMA_VERSION"
 
+
 echo "Generating localhost hostfile for Ansible"
 echo "[agw_docker]
 127.0.0.1 ansible_connection=local" > $DEPLOY_PATH/agw_hosts
 
-# install magma and its dependencies including OVS.
-su - $MAGMA_USER -c "sudo ansible-playbook -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags agwc $DEPLOY_PATH/magma_docker.yml"
-
+if [ "$MODE" == "base" ]; then
+  su - $MAGMA_USER -c "sudo ansible-playbook -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags base $DEPLOY_PATH/magma_docker.yml"
+else
+  # install magma and its dependencies including OVS.
+  su - $MAGMA_USER -c "sudo ansible-playbook -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags agwc $DEPLOY_PATH/magma_docker.yml"
+fi
 cd /root || exit

@@ -48,6 +48,10 @@ services:
   redis:
     <<: *pyservice
     container_name: redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6380", "ping"]
+      timeout: "4s"
+      retries: 3
     command: >
       /bin/bash -c "/usr/local/bin/generate_service_config.py --service=redis --template=redis &&
              /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
@@ -67,16 +71,28 @@ services:
   subscriberdb:
     <<: *pyservice
     container_name: subscriberdb
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50051"]
+      timeout: "4s"
+      retries: 3
     command: /usr/bin/env python3 -m magma.subscriberdb.main
 
   enodebd:
     <<: *pyservice
     container_name: enodebd
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "60055"]
+      timeout: "4s"
+      retries: 3
     command: /usr/bin/env python3 -m magma.enodebd.main
 
   state:
     <<: *pyservice
     container_name: state
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50074"]
+      timeout: "4s"
+      retries: 3
     depends_on:
       - redis
     command: /usr/bin/env python3 -m magma.state.main
@@ -95,11 +111,19 @@ services:
   eventd:
     <<: *pyservice
     container_name: eventd
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50075"]
+      timeout: "4s"
+      retries: 3
     command: /usr/bin/env python3 -m magma.eventd.main
 
   health:
     <<: *pyservice
     container_name: health
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50080"]
+      timeout: "4s"
+      retries: 3
     # Needed in order to enable/disable ICMP
     privileged: true
     command: /usr/bin/env python3 -m magma.health.main
@@ -107,21 +131,37 @@ services:
   monitord:
     <<: *pyservice
     container_name: monitord
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50076"]
+      timeout: "4s"
+      retries: 3
     command: /usr/bin/env python3 -m magma.monitord.main
 
   redirectd:
     <<: *pyservice
     container_name: redirectd
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50071"]
+      timeout: "4s"
+      retries: 3
     command: /usr/bin/env python3 -m magma.redirectd.main
 
   smsd:
     <<: *pyservice
     container_name: smsd
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50078"]
+      timeout: "4s"
+      retries: 3
     command: /usr/bin/env python3 -m magma.smsd.main
 
   control_proxy:
     <<: *pyservice
     container_name: control_proxy
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "8443"]
+      timeout: "4s"
+      retries: 3
     command: >
       sh -c "/usr/local/bin/generate_nghttpx_config.py && sed -i 's/errorlog-syslog=yes/errorlog-syslog=no/' /var/opt/magma/tmp/nghttpx.conf &&\
              /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
@@ -129,11 +169,20 @@ services:
   ctraced:
     <<: *pyservice
     container_name: ctraced
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50079"]
+      timeout: "4s"
+      retries: 3
     command: /usr/bin/env python3 -m magma.ctraced.main
 
   sctpd:
     <<: *ltecservice
     container_name: sctpd
+    # Figure out sctp test
+    # healthcheck:
+    #   test: ["CMD", "nc", "-zv", "localhost", "50067"]
+    #   timeout: "4s"
+    #   retries: 3
     privileged: true
     ulimits:
       core: -1
@@ -152,6 +201,10 @@ services:
   oai_mme:
     <<: *ltecservice
     container_name: oai_mme
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50073"]
+      timeout: "4s"
+      retries: 3
     ulimits:
       core: -1
     security_opt:
@@ -216,17 +269,29 @@ services:
   mobilityd:
     <<: *pyservice
     container_name: mobilityd
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "60051"]
+      timeout: "4s"
+      retries: 3
     command: /usr/bin/env python3 -m magma.mobilityd.main
 
   connectiond:
     <<: *ltecservice
     container_name: connectiond
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50082"]
+      timeout: "4s"
+      retries: 3
     privileged: true
     command: /usr/local/bin/connectiond
 
   liagentd:
     <<: *ltecservice
     container_name: liagentd
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50065"]
+      timeout: "4s"
+      retries: 3
     privileged: true
     command: /usr/local/bin/liagentd
     restart: "no"
@@ -234,6 +299,10 @@ services:
   td-agent-bit:
     <<: *pyservice
     container_name: td-agent-bit
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "5140"]
+      timeout: "4s"
+      retries: 3
     logging:
       driver: "json-file"
     command: >

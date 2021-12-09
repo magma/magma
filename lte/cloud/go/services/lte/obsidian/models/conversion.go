@@ -144,6 +144,33 @@ func (m *NetworkRanConfigs) GetFromNetwork(network configurator.Network) interfa
 	return iCellularConfig.(*NetworkCellularConfigs).Ran
 }
 
+func (m *NetworkNgcConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkConfigType)
+	if iCellularConfig == nil {
+		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No cellular network config found")
+	}
+	iCellularConfig.(*NetworkCellularConfigs).Ngc = m
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkConfigType, iCellularConfig), nil
+}
+
+func (m *NetworkNgcConfigs) GetFromNetwork(network configurator.Network) interface{} {
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkConfigType)
+	if iCellularConfig == nil {
+		return nil
+	}
+	return iCellularConfig.(*NetworkCellularConfigs).Ngc
+}
+
+func (m *NetworkNgcConfigs) ConvertSuciEntsToProtos(ent *SuciProfile) *protos.SuciProfile {
+	suciData := &protos.SuciProfile{
+		HomeNetPublicKeyId: ent.HomeNetworkPublicKeyIdentifier,
+		HomeNetPublicKey:   ent.HomeNetworkPublicKey,
+		HomeNetPrivateKey:  ent.HomeNetworkPrivateKey,
+		ProtectionScheme:   protos.SuciProfile_ECIESProtectionScheme(protos.SuciProfile_ECIESProtectionScheme_value[ent.ProtectionScheme]),
+	}
+	return suciData
+}
+
 func (m *LteGateway) FromBackendModels(
 	magmadGateway, cellularGateway configurator.NetworkEntity,
 	loadedEntsByTK configurator.NetworkEntitiesByTK,

@@ -511,12 +511,6 @@ ue_mm_context_t* mme_ue_context_exists_enb_ue_s1ap_id(
 ue_mm_context_t* mme_ue_context_exists_guti(
     mme_ue_context_t* const mme_ue_context, const guti_t* const guti);
 
-/** \brief Move the content of a context to another context
- * \param dst            The destination context
- * \param src            The source context
- **/
-void mme_app_move_context(ue_mm_context_t* dst, ue_mm_context_t* src);
-
 /** \brief Notify the MME_APP that a duplicated ue_context_t exist (both share
  * the same mme_ue_s1ap_id)
  * \param enb_key The UE id identifier used in S1AP and MME_APP (agregated with
