@@ -1330,7 +1330,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
   // Check MME state after context release request is processed
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  mme_state_p = magma::lte::MmeNasStateManager::getInstance().get_state(false);
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
@@ -1459,7 +1458,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
   // Check MME state after context release request is processed
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  mme_state_p = magma::lte::MmeNasStateManager::getInstance().get_state(false);
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
@@ -1609,7 +1607,6 @@ TEST_F(MmeAppProcedureTest, TestPagingMaxRetx) {
   // Check MME state after context release request is processed
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  mme_state_p = magma::lte::MmeNasStateManager::getInstance().get_state(false);
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
@@ -2060,7 +2057,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithActiveFlag) {
   // Check MME state after context release request is processed
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  mme_state_p = magma::lte::MmeNasStateManager::getInstance().get_state(false);
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
@@ -2212,7 +2208,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithoutActiveFlag) {
   // Check MME state after context release request is processed
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  mme_state_p = magma::lte::MmeNasStateManager::getInstance().get_state(false);
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
@@ -2224,12 +2219,13 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithoutActiveFlag) {
       nas_msg_periodic_tau_req_without_actv_flag,
       sizeof(nas_msg_periodic_tau_req_without_actv_flag), plmn, guti, 1);
 
+  // Wait for UE context release cmd and DL NAS Transport
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
-
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   send_ue_ctx_release_complete();
+
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
@@ -2248,9 +2244,11 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithoutActiveFlag) {
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   send_delete_session_resp();
 
-  // Wait for detach completion
+  // Wait for context release request
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
 
   // Check MME state after detach complete
   send_activate_message_to_mme_app();
@@ -2360,7 +2358,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithActiveFlag) {
   // Check MME state after context release request is processed
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  mme_state_p = magma::lte::MmeNasStateManager::getInstance().get_state(false);
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
@@ -2512,7 +2509,6 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithoutActiveFlag) {
   // Check MME state after context release request is processed
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  mme_state_p = magma::lte::MmeNasStateManager::getInstance().get_state(false);
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
@@ -2524,7 +2520,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithoutActiveFlag) {
       nas_msg_normal_tau_req_without_actv_flag,
       sizeof(nas_msg_normal_tau_req_without_actv_flag), plmn, guti, 1);
 
-  // Wait for UE context release cmd
+  // Wait for UE context release cmd and DL NAS Transport
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
@@ -2548,9 +2544,11 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithoutActiveFlag) {
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   send_delete_session_resp();
 
-  // Wait for detach completion
+  // Wait for context release request
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
 
   // Check MME state after detach complete
   send_activate_message_to_mme_app();
@@ -2660,7 +2658,6 @@ TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
   // Check MME state after context release request is processed
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  mme_state_p = magma::lte::MmeNasStateManager::getInstance().get_state(false);
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
@@ -2676,6 +2673,8 @@ TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
       nas_msg_normal_tau_req_with_actv_flag,
       sizeof(nas_msg_normal_tau_req_with_actv_flag), plmn, guti, 2);
 
+  // Waiting for context release request & DL NAS TRANSPORT
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -2684,8 +2683,6 @@ TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
   // Check MME state after context release request is processed
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  mme_state_p = magma::lte::MmeNasStateManager::getInstance().get_state(false);
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
@@ -2702,12 +2699,15 @@ TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   send_delete_session_resp();
 
-  // Wait for detach completion
+  // Wait for context release request
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check MME state after detach complete
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  // Check MME state after detach complete
   EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
