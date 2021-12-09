@@ -174,10 +174,12 @@ class PipelinedClient {
    * @param ap_name
    * @param pdp_start_time
    */
-  virtual void update_ipfix_flow(
-      const SubscriberID& sid, const std::string& ue_mac_addr,
-      const std::string& msisdn, const std::string& ap_mac_addr,
-      const std::string& ap_name, const uint64_t& pdp_start_time) = 0;
+  virtual void update_ipfix_flow(const SubscriberID& sid,
+                                 const std::string& ue_mac_addr,
+                                 const std::string& msisdn,
+                                 const std::string& ap_mac_addr,
+                                 const std::string& ap_name,
+                                 const uint64_t& pdp_start_time) = 0;
 
   /**
    * @brief Send the MAC address of UE and the subscriberID
@@ -186,8 +188,8 @@ class PipelinedClient {
    * @param sid
    * @param ue_mac_addr
    */
-  virtual void delete_ue_mac_flow(
-      const SubscriberID& sid, const std::string& ue_mac_addr) = 0;
+  virtual void delete_ue_mac_flow(const SubscriberID& sid,
+                                  const std::string& ue_mac_addr) = 0;
 
   /**
    * @brief Propagate whether a subscriber has quota / no quota / or terminated
@@ -207,10 +209,12 @@ class PipelinedClient {
    * @param msisdn
    * @param to_process
    */
-  virtual void add_gy_final_action_flow(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids default_teids,
-      const std::string& msisdn, const RulesToProcess to_process) = 0;
+  virtual void add_gy_final_action_flow(const std::string& imsi,
+                                        const std::string& ip_addr,
+                                        const std::string& ipv6_addr,
+                                        const Teids default_teids,
+                                        const std::string& msisdn,
+                                        const RulesToProcess to_process) = 0;
 
   /**
    * @brief Set up a Session of type SetMessage to be sent to UPF
@@ -224,7 +228,7 @@ class PipelinedClient {
       const magma::RulesToProcess to_deactivate_process,
       std::function<void(Status status, UPFSessionContextState)> callback) = 0;
 
-  virtual uint32_t get_next_teid()    = 0;
+  virtual uint32_t get_next_teid() = 0;
   virtual uint32_t get_current_teid() = 0;
 
   virtual void poll_stats(
@@ -244,21 +248,19 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   explicit AsyncPipelinedClient(
       std::shared_ptr<grpc::Channel> pipelined_channel);
 
-  void setup_cwf(
-      const std::vector<SessionState::SessionInfo>& infos,
-      const std::vector<SubscriberQuotaUpdate>& quota_updates,
-      const std::vector<std::string> ue_mac_addrs,
-      const std::vector<std::string> msisdns,
-      const std::vector<std::string> apn_mac_addrs,
-      const std::vector<std::string> apn_names,
-      const std::vector<std::uint64_t> pdp_start_times,
-      const std::uint64_t& epoch,
-      std::function<void(Status status, SetupFlowsResult)> callback);
+  void setup_cwf(const std::vector<SessionState::SessionInfo>& infos,
+                 const std::vector<SubscriberQuotaUpdate>& quota_updates,
+                 const std::vector<std::string> ue_mac_addrs,
+                 const std::vector<std::string> msisdns,
+                 const std::vector<std::string> apn_mac_addrs,
+                 const std::vector<std::string> apn_names,
+                 const std::vector<std::uint64_t> pdp_start_times,
+                 const std::uint64_t& epoch,
+                 std::function<void(Status status, SetupFlowsResult)> callback);
 
-  void setup_lte(
-      const std::vector<SessionState::SessionInfo>& infos,
-      const std::uint64_t& epoch,
-      std::function<void(Status status, SetupFlowsResult)> callback);
+  void setup_lte(const std::vector<SessionState::SessionInfo>& infos,
+                 const std::uint64_t& epoch,
+                 std::function<void(Status status, SetupFlowsResult)> callback);
 
   void deactivate_flows_for_rules_for_termination(
       const std::string& imsi, const std::string& ip_addr,
@@ -286,21 +288,25 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const std::string& ap_name,
       std::function<void(Status status, FlowResponse)> callback);
 
-  void update_ipfix_flow(
-      const SubscriberID& sid, const std::string& ue_mac_addr,
-      const std::string& msisdn, const std::string& ap_mac_addr,
-      const std::string& ap_name, const uint64_t& pdp_start_time);
+  void update_ipfix_flow(const SubscriberID& sid,
+                         const std::string& ue_mac_addr,
+                         const std::string& msisdn,
+                         const std::string& ap_mac_addr,
+                         const std::string& ap_name,
+                         const uint64_t& pdp_start_time);
 
   void update_subscriber_quota_state(
       const std::vector<SubscriberQuotaUpdate>& updates);
 
-  void delete_ue_mac_flow(
-      const SubscriberID& sid, const std::string& ue_mac_addr);
+  void delete_ue_mac_flow(const SubscriberID& sid,
+                          const std::string& ue_mac_addr);
 
-  void add_gy_final_action_flow(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids default_teids,
-      const std::string& msisdn, const RulesToProcess to_process);
+  void add_gy_final_action_flow(const std::string& imsi,
+                                const std::string& ip_addr,
+                                const std::string& ipv6_addr,
+                                const Teids default_teids,
+                                const std::string& msisdn,
+                                const RulesToProcess to_process);
 
   void set_upf_session(
       const SessionState::SessionInfo info,
@@ -308,9 +314,9 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const magma::RulesToProcess to_deactivate_process,
       std::function<void(Status status, UPFSessionContextState)> callback);
 
-  void handle_add_ue_mac_callback(
-      const magma::UEMacFlowRequest req, const int retries, Status status,
-      FlowResponse resp);
+  void handle_add_ue_mac_callback(const magma::UEMacFlowRequest req,
+                                  const int retries, Status status,
+                                  FlowResponse resp);
 
   /**
    * @brief Retrieves relevant records from Pipelined stats enforcements table
@@ -319,9 +325,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    * @param cookie require matching entries to contain the cookie value
    * @param cookie_mask mask that restricts the cookie bits that must match
    */
-  void poll_stats(
-      int cookie, int cookie_mask,
-      std::function<void(Status, RuleRecordTable)> callback);
+  void poll_stats(int cookie, int cookie_mask,
+                  std::function<void(Status, RuleRecordTable)> callback);
 
   uint32_t get_next_teid();
   uint32_t get_current_teid();
@@ -336,13 +341,11 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const SetupDefaultRequest& request,
       std::function<void(Status, SetupFlowsResult)> callback);
 
-  void setup_policy_rpc(
-      const SetupPolicyRequest& request,
-      std::function<void(Status, SetupFlowsResult)> callback);
+  void setup_policy_rpc(const SetupPolicyRequest& request,
+                        std::function<void(Status, SetupFlowsResult)> callback);
 
-  void setup_ue_mac_rpc(
-      const SetupUEMacRequest& request,
-      std::function<void(Status, SetupFlowsResult)> callback);
+  void setup_ue_mac_rpc(const SetupUEMacRequest& request,
+                        std::function<void(Status, SetupFlowsResult)> callback);
 
   void deactivate_flows_rpc(
       const DeactivateFlowsRequest& request,
@@ -352,9 +355,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const ActivateFlowsRequest& request,
       std::function<void(Status, ActivateFlowsResult)> callback);
 
-  void add_ue_mac_flow_rpc(
-      const UEMacFlowRequest& request,
-      std::function<void(Status, FlowResponse)> callback);
+  void add_ue_mac_flow_rpc(const UEMacFlowRequest& request,
+                           std::function<void(Status, FlowResponse)> callback);
 
   void update_ipfix_flow_rpc(
       const UEMacFlowRequest& request,
@@ -372,9 +374,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const SessionSet& request,
       std::function<void(Status, UPFSessionContextState)> callback);
 
-  void poll_stats_rpc(
-      const GetStatsRequest& request,
-      std::function<void(Status, RuleRecordTable)> callback);
+  void poll_stats_rpc(const GetStatsRequest& request,
+                      std::function<void(Status, RuleRecordTable)> callback);
 };
 
 }  // namespace magma

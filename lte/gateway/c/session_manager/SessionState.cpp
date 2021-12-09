@@ -35,14 +35,14 @@
 
 namespace {
 const char* UE_TRAFFIC_COUNTER_NAME = "ue_traffic";
-const char* UE_DROPPED_GAUGE_NAME   = "ue_dropped_usage";
-const char* UE_USED_COUNTER_NAME    = "ue_reported_usage";
-const char* LABEL_IMSI              = "IMSI";
-const char* LABEL_APN               = "apn";
-const char* LABEL_SESSION_ID        = "session_id";
-const char* LABEL_DIRECTION         = "direction";
-const char* DIRECTION_UP            = "up";
-const char* DIRECTION_DOWN          = "down";
+const char* UE_DROPPED_GAUGE_NAME = "ue_dropped_usage";
+const char* UE_USED_COUNTER_NAME = "ue_reported_usage";
+const char* LABEL_IMSI = "IMSI";
+const char* LABEL_APN = "apn";
+const char* LABEL_SESSION_ID = "session_id";
+const char* LABEL_DIRECTION = "direction";
+const char* DIRECTION_UP = "up";
+const char* DIRECTION_DOWN = "down";
 // TODO(@themarwhal): SessionD should own the naming of the drop all rule so
 // that we never regress here
 const char* DROP_ALL_RULE = "internal_default_drop_flow_rule";
@@ -50,7 +50,7 @@ const char* DROP_ALL_RULE = "internal_default_drop_flow_rule";
 
 namespace magma {
 
-template<class T>
+template <class T>
 void remove_from_vec_by_value(std::vector<T>& vec, T value) {
   vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
 }
@@ -63,37 +63,37 @@ std::unique_ptr<SessionState> SessionState::unmarshal(
 StoredSessionState SessionState::marshal() {
   StoredSessionState marshaled{};
 
-  marshaled.fsm_state  = curr_state_;
-  marshaled.config     = config_;
-  marshaled.imsi       = get_imsi();
-  marshaled.shard_id   = shard_id_;
+  marshaled.fsm_state = curr_state_;
+  marshaled.config = config_;
+  marshaled.imsi = get_imsi();
+  marshaled.shard_id = shard_id_;
   marshaled.session_id = session_id_;
   // 5G session version handling
-  marshaled.current_version         = current_version_;
-  marshaled.subscriber_quota_state  = subscriber_quota_state_;
-  marshaled.tgpp_context            = tgpp_context_;
-  marshaled.request_number          = request_number_;
-  marshaled.pdp_start_time          = pdp_start_time_;
-  marshaled.pdp_end_time            = pdp_end_time_;
-  marshaled.pending_event_triggers  = pending_event_triggers_;
-  marshaled.revalidation_time       = revalidation_time_;
-  marshaled.bearer_id_by_policy     = bearer_id_by_policy_;
+  marshaled.current_version = current_version_;
+  marshaled.subscriber_quota_state = subscriber_quota_state_;
+  marshaled.tgpp_context = tgpp_context_;
+  marshaled.request_number = request_number_;
+  marshaled.pdp_start_time = pdp_start_time_;
+  marshaled.pdp_end_time = pdp_end_time_;
+  marshaled.pending_event_triggers = pending_event_triggers_;
+  marshaled.revalidation_time = revalidation_time_;
+  marshaled.bearer_id_by_policy = bearer_id_by_policy_;
   marshaled.create_session_response = create_session_response_;
 
   marshaled.monitor_map = StoredMonitorMap();
   for (auto& monitor_pair : monitor_map_) {
     StoredMonitor monitor{};
     monitor.credit = monitor_pair.second->credit.marshal();
-    monitor.level  = monitor_pair.second->level;
+    monitor.level = monitor_pair.second->level;
     marshaled.monitor_map[monitor_pair.first] = monitor;
   }
   marshaled.session_level_key = session_level_key_;
 
   marshaled.credit_map = StoredChargingCreditMap(4, &ccHash, &ccEqual);
   for (auto& credit_pair : credit_map_) {
-    auto key                  = CreditKey();
-    key.rating_group          = credit_pair.first.rating_group;
-    key.service_identifier    = credit_pair.first.service_identifier;
+    auto key = CreditKey();
+    key.rating_group = credit_pair.first.rating_group;
+    key.service_identifier = credit_pair.first.service_identifier;
     marshaled.credit_map[key] = credit_pair.second->marshal();
   }
 
@@ -128,8 +128,8 @@ StoredSessionState SessionState::marshal() {
   return marshaled;
 }
 
-SessionState::SessionState(
-    const StoredSessionState& marshaled, StaticRuleStore& rule_store)
+SessionState::SessionState(const StoredSessionState& marshaled,
+                           StaticRuleStore& rule_store)
     : imsi_(marshaled.imsi),
       session_id_(marshaled.session_id),
       request_number_(marshaled.request_number),
@@ -155,7 +155,7 @@ SessionState::SessionState(
   for (auto it : marshaled.monitor_map) {
     Monitor monitor;
     monitor.credit = SessionCredit(it.second.credit);
-    monitor.level  = it.second.level;
+    monitor.level = it.second.level;
 
     monitor_map_[it.first] = std::make_unique<Monitor>(monitor);
   }
@@ -188,9 +188,9 @@ SessionState::SessionState(
   }
 }
 
-SessionState::SessionState(
-    const std::string& session_id, const SessionConfig& cfg,
-    StaticRuleStore& rule_store, uint64_t pdp_start_time)
+SessionState::SessionState(const std::string& session_id,
+                           const SessionConfig& cfg,
+                           StaticRuleStore& rule_store, uint64_t pdp_start_time)
     : imsi_(cfg.get_imsi()),
       session_id_(session_id),
       // Request number set to 1, because request 0 is INIT call
@@ -207,9 +207,10 @@ SessionState::SessionState(
       session_level_key_("") {}
 
 /*For 5G which doesn't have response context*/
-SessionState::SessionState(
-    const std::string& imsi, const std::string& session_ctx_id,
-    const SessionConfig& cfg, StaticRuleStore& rule_store)
+SessionState::SessionState(const std::string& imsi,
+                           const std::string& session_ctx_id,
+                           const SessionConfig& cfg,
+                           StaticRuleStore& rule_store)
     : imsi_(imsi),
       session_id_(session_ctx_id),
       // Request number set to 1, because request 0 is INIT call
@@ -225,23 +226,21 @@ SessionState::SessionState(
       session_level_key_("") {}
 
 /* get-set methods of new messages  for 5G*/
-uint32_t SessionState::get_current_version() {
-  return current_version_;
-}
+uint32_t SessionState::get_current_version() { return current_version_; }
 
-void SessionState::set_current_version(
-    uint32_t new_session_version, SessionStateUpdateCriteria* session_uc) {
+void SessionState::set_current_version(uint32_t new_session_version,
+                                       SessionStateUpdateCriteria* session_uc) {
   current_version_ = new_session_version;
   if (session_uc) {
     session_uc->is_current_version_updated = true;
-    session_uc->updated_current_version    = new_session_version;
+    session_uc->updated_current_version = new_session_version;
     MLOG(MDEBUG) << " Current version is " << get_current_version();
   }
 }
 
 /* Add PDR rule to this rules session list */
-void SessionState::insert_pdr(
-    SetGroupPDR* rule, SessionStateUpdateCriteria* session_uc) {
+void SessionState::insert_pdr(SetGroupPDR* rule,
+                              SessionStateUpdateCriteria* session_uc) {
   // Check if it already exists
   int32_t Pdr_index;
   Pdr_index = get_pdr_index(rule->pdr_id());
@@ -301,9 +300,7 @@ std::vector<SetGroupPDR>& SessionState::get_all_pdr_rules() {
 }
 
 /* method to get current session state */
-SessionFsmState SessionState::get_state() const {
-  return curr_state_;
-}
+SessionFsmState SessionState::get_state() const { return curr_state_; }
 
 magma::lte::Fsm_state_FsmState SessionState::get_proto_fsm_state() {
   SessionFsmState curr_state = get_state();
@@ -338,19 +335,19 @@ void SessionState::sess_infocopy(struct SessionInfo* info) {
   }
   info->state = get_proto_fsm_state();
   info->subscriber_id.assign(imsi_);
-  info->ver_no       = get_current_version();
+  info->ver_no = get_current_version();
   info->local_f_teid = get_upf_local_teid();
-  info->pdr_rules    = get_all_pdr_rules();
+  info->pdr_rules = get_all_pdr_rules();
   if (!info->pdr_rules.empty()) {
     // Get the UE ip address from first rule
     auto& rule = info->pdr_rules.front();
     if (!rule.pdi().ue_ipv4().empty()) {
       info->nodeId.node_id_type = SessionInfo::IPv4;
-      info->ip_addr             = rule.pdi().ue_ipv4();
+      info->ip_addr = rule.pdi().ue_ipv4();
     }
     if (!rule.pdi().ue_ipv6().empty()) {
       info->nodeId.node_id_type = SessionInfo::IPv6;
-      info->ipv6_addr           = rule.pdi().ue_ipv6();
+      info->ipv6_addr = rule.pdi().ue_ipv6();
     }
   }
 }
@@ -512,14 +509,14 @@ bool SessionState::apply_update_criteria(
 
   // Charging credit
   for (const auto& it : session_uc.charging_credit_map) {
-    auto key           = it.first;
+    auto key = it.first;
     auto credit_update = it.second;
     apply_charging_credit_update(key, credit_update);
   }
   for (const auto& it : session_uc.charging_credit_to_install) {
-    auto key           = it.first;
+    auto key = it.first;
     auto stored_credit = it.second;
-    credit_map_[key]   = std::make_unique<ChargingGrant>(stored_credit);
+    credit_map_[key] = std::make_unique<ChargingGrant>(stored_credit);
   }
 
   // Monitoring credit
@@ -527,14 +524,14 @@ bool SessionState::apply_update_criteria(
     session_level_key_ = session_uc.updated_session_level_key;
   }
   for (const auto& it : session_uc.monitor_credit_map) {
-    auto key           = it.first;
+    auto key = it.first;
     auto credit_update = it.second;
     apply_monitor_updates(key, credit_update);
   }
   for (const auto& it : session_uc.monitor_credit_to_install) {
-    auto key            = it.first;
+    auto key = it.first;
     auto stored_monitor = it.second;
-    monitor_map_[key]   = std::make_unique<Monitor>(stored_monitor);
+    monitor_map_[key] = std::make_unique<Monitor>(stored_monitor);
   }
 
   if (session_uc.updated_pdp_end_time > 0) {
@@ -558,7 +555,7 @@ optional<RuleStats> SessionState::get_rule_delta(
     return {};
   }
 
-  RuleStats ret         = RuleStats();
+  RuleStats ret = RuleStats();
   StatsPerPolicy& stats = policy_version_and_stats_[rule_id];
   // Only accept rule reports for current_version or last_reported_version
   // ignore other reports as they shoudn't be sent
@@ -594,9 +591,9 @@ optional<RuleStats> SessionState::get_rule_delta(
       return ret;
     }
 
-    ret = RuleStats(
-        used_tx - prev_usage.tx, used_rx - prev_usage.rx,
-        dropped_tx - prev_usage.dropped_tx, dropped_rx - prev_usage.dropped_rx);
+    ret = RuleStats(used_tx - prev_usage.tx, used_rx - prev_usage.rx,
+                    dropped_tx - prev_usage.dropped_tx,
+                    dropped_rx - prev_usage.dropped_rx);
   } else {
     ret = RuleStats(used_tx, used_rx, dropped_tx, dropped_rx);
   }
@@ -613,10 +610,11 @@ optional<RuleStats> SessionState::get_rule_delta(
   return ret;
 }
 
-void SessionState::add_rule_usage(
-    const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
-    uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
-    SessionStateUpdateCriteria* session_uc) {
+void SessionState::add_rule_usage(const std::string& rule_id,
+                                  uint64_t rule_version, uint64_t used_tx,
+                                  uint64_t used_rx, uint64_t dropped_tx,
+                                  uint64_t dropped_rx,
+                                  SessionStateUpdateCriteria* session_uc) {
   CreditKey charging_key;
 
   if (rule_id.compare(DROP_ALL_RULE) == 0) {
@@ -625,9 +623,8 @@ void SessionState::add_rule_usage(
   }
 
   // TODO: Rework logic to work with flat rate, below is a hacky solution
-  auto rule_delta = get_rule_delta(
-      rule_id, rule_version, used_tx, used_rx, dropped_tx, dropped_rx,
-      session_uc);
+  auto rule_delta = get_rule_delta(rule_id, rule_version, used_tx, used_rx,
+                                   dropped_tx, dropped_rx, session_uc);
   if (!rule_delta) {
     return;
   }
@@ -672,12 +669,12 @@ void SessionState::apply_session_rule_set(
     const RuleSetToApply& rule_set, RulesToProcess* pending_activation,
     RulesToProcess* pending_deactivation, RulesToProcess* pending_bearer_setup,
     SessionStateUpdateCriteria* session_uc) {
-  apply_session_static_rule_set(
-      rule_set.static_rules, pending_activation, pending_deactivation,
-      pending_bearer_setup, session_uc);
-  apply_session_dynamic_rule_set(
-      rule_set.dynamic_rules, pending_activation, pending_deactivation,
-      pending_bearer_setup, session_uc);
+  apply_session_static_rule_set(rule_set.static_rules, pending_activation,
+                                pending_deactivation, pending_bearer_setup,
+                                session_uc);
+  apply_session_dynamic_rule_set(rule_set.dynamic_rules, pending_activation,
+                                 pending_deactivation, pending_bearer_setup,
+                                 session_uc);
 }
 
 void SessionState::apply_session_static_rule_set(
@@ -703,8 +700,8 @@ void SessionState::apply_session_static_rule_set(
                 << session_id_;
     RuleToProcess to_process =
         activate_static_rule(static_rule_id, lifetime, session_uc);
-    classify_policy_activation(
-        to_process, STATIC, pending_activation, pending_bearer_setup);
+    classify_policy_activation(to_process, STATIC, pending_activation,
+                               pending_bearer_setup);
   }
   std::vector<PolicyRule> static_pending_deactivation;
 
@@ -748,8 +745,8 @@ void SessionState::apply_session_dynamic_rule_set(
                 << " for " << session_id_;
     RuleToProcess to_process =
         insert_dynamic_rule(dynamic_rule_pair.second, lifetime, session_uc);
-    classify_policy_activation(
-        to_process, DYNAMIC, pending_activation, pending_bearer_setup);
+    classify_policy_activation(to_process, DYNAMIC, pending_activation,
+                               pending_bearer_setup);
   }
   std::vector<PolicyRule> active_dynamic_rules;
   dynamic_rules_.get_rules(active_dynamic_rules);
@@ -784,17 +781,16 @@ bool SessionState::is_terminating() {
   return false;
 }
 
-void SessionState::get_monitor_updates(
-    UpdateSessionRequest* update_request_out,
-    SessionStateUpdateCriteria* session_uc) {
+void SessionState::get_monitor_updates(UpdateSessionRequest* update_request_out,
+                                       SessionStateUpdateCriteria* session_uc) {
   bool increase_seq_number = false;
   for (auto& monitor_pair : monitor_map_) {
     if (!monitor_pair.second->should_send_update()) {
       continue;  // no update
     }
 
-    auto mkey      = monitor_pair.first;
-    auto& credit   = monitor_pair.second->credit;
+    auto mkey = monitor_pair.first;
+    auto& credit = monitor_pair.second->credit;
     auto credit_uc = get_monitor_uc(mkey, session_uc);
 
     if (curr_state_ == SESSION_RELEASED) {
@@ -810,7 +806,7 @@ void SessionState::get_monitor_updates(
     if (credit.is_report_last_credit()) {
       // in case this is the last report, here we mark the session as to be
       // deleted
-      credit_uc->deleted  = true;
+      credit_uc->deleted = true;
       last_update_message = " (this is the last updcate sent for this monitor)";
     }
 
@@ -925,7 +921,7 @@ SessionTerminateRequest SessionState::make_termination_request(
   }
   // gy credits
   for (auto& credit_pair : credit_map_) {
-    auto credit_uc    = get_credit_uc(credit_pair.first, session_uc);
+    auto credit_uc = get_credit_uc(credit_pair.first, session_uc);
     auto credit_usage = credit_pair.second->get_credit_usage(
         CreditUsage::TERMINATED, credit_uc, true);
     credit_pair.first.set_credit_usage(&credit_usage);
@@ -935,8 +931,8 @@ SessionTerminateRequest SessionState::make_termination_request(
 }
 
 ChargingCreditSummaries SessionState::get_charging_credit_summaries() {
-  ChargingCreditSummaries charging_credit_summaries(
-      credit_map_.size(), &ccHash, &ccEqual);
+  ChargingCreditSummaries charging_credit_summaries(credit_map_.size(), &ccHash,
+                                                    &ccEqual);
   for (auto& credit_pair : credit_map_) {
     auto summary = credit_pair.second->credit.get_credit_summary();
     charging_credit_summaries[credit_pair.first] = summary;
@@ -980,8 +976,8 @@ TotalCreditUsage SessionState::get_total_credit_usage() {
   TotalCreditUsage usage{
       .monitoring_tx = 0,
       .monitoring_rx = 0,
-      .charging_tx   = 0,
-      .charging_rx   = 0,
+      .charging_tx = 0,
+      .charging_rx = 0,
   };
   for (auto monitoring_key : used_monitoring_keys) {
     usage.monitoring_tx += get_monitor(monitoring_key, USED_TX);
@@ -1007,8 +1003,9 @@ uint32_t SessionState::get_upf_local_teid() const {
       .teid_value();
 }
 
-void SessionState::set_upf_teid_endpoint(
-    const std::string ip_addr, uint32_t teid, SessionStateUpdateCriteria* uc) {
+void SessionState::set_upf_teid_endpoint(const std::string ip_addr,
+                                         uint32_t teid,
+                                         SessionStateUpdateCriteria* uc) {
   // Setting the teid to pass to UPF
   config_.rat_specific_context.mutable_m5gsm_session_context()
       ->mutable_upf_endpoint()
@@ -1020,17 +1017,17 @@ void SessionState::set_upf_teid_endpoint(
   config_.rat_specific_context.mutable_m5gsm_session_context()
       ->mutable_upf_endpoint()
       ->set_end_ipv4_addr(ip_addr);
-  uc->updated_config    = config_;
+  uc->updated_config = config_;
   uc->is_config_updated = true;
   return;
 }
 
-void SessionState::set_config(
-    const SessionConfig& config, SessionStateUpdateCriteria* session_uc) {
+void SessionState::set_config(const SessionConfig& config,
+                              SessionStateUpdateCriteria* session_uc) {
   config_ = config;
   if (session_uc) {
     session_uc->is_config_updated = true;
-    session_uc->updated_config    = config;
+    session_uc->updated_config = config;
   }
 }
 
@@ -1044,12 +1041,12 @@ bool SessionState::is_5g_session() const {
 
 SessionState::SessionInfo SessionState::get_session_info_for_setup() {
   SessionState::SessionInfo info;
-  info.imsi      = get_imsi();
-  info.ip_addr   = config_.common_context.ue_ipv4();
+  info.imsi = get_imsi();
+  info.ip_addr = config_.common_context.ue_ipv4();
   info.ipv6_addr = config_.common_context.ue_ipv6();
-  info.teids     = config_.common_context.teids();
-  info.msisdn    = config_.common_context.msisdn();
-  info.ambr      = config_.get_apn_ambr();
+  info.teids = config_.common_context.teids();
+  info.msisdn = config_.common_context.msisdn();
+  info.ambr = config_.get_apn_ambr();
 
   std::vector<PolicyRule> gx_dynamic_rules, gy_dynamic_rules;
   dynamic_rules_.get_rules(gx_dynamic_rules);
@@ -1111,9 +1108,8 @@ void SessionState::remove_all_rules_for_termination(
   }
 }
 
-void SessionState::set_tgpp_context(
-    const magma::lte::TgppContext& tgpp_context,
-    SessionStateUpdateCriteria* session_uc) {
+void SessionState::set_tgpp_context(const magma::lte::TgppContext& tgpp_context,
+                                    SessionStateUpdateCriteria* session_uc) {
   if (session_uc) {
     session_uc->updated_tgpp_context = tgpp_context;
   }
@@ -1125,17 +1121,11 @@ void SessionState::fill_protos_tgpp_context(
   *tgpp_context = tgpp_context_;
 }
 
-uint32_t SessionState::get_request_number() {
-  return request_number_;
-}
+uint32_t SessionState::get_request_number() { return request_number_; }
 
-uint64_t SessionState::get_pdp_start_time() {
-  return pdp_start_time_;
-}
+uint64_t SessionState::get_pdp_start_time() { return pdp_start_time_; }
 
-uint64_t SessionState::get_pdp_end_time() {
-  return pdp_end_time_;
-}
+uint64_t SessionState::get_pdp_end_time() { return pdp_end_time_; }
 
 uint64_t SessionState::get_active_duration_in_seconds() {
   if (pdp_end_time_ > 0) {  // session has ended
@@ -1145,8 +1135,8 @@ uint64_t SessionState::get_active_duration_in_seconds() {
   return magma::get_time_in_sec_since_epoch() - pdp_start_time_;
 }
 
-void SessionState::set_pdp_end_time(
-    uint64_t epoch, SessionStateUpdateCriteria* session_uc) {
+void SessionState::set_pdp_end_time(uint64_t epoch,
+                                    SessionStateUpdateCriteria* session_uc) {
   pdp_end_time_ = epoch;
   if (session_uc) {
     session_uc->updated_pdp_end_time = epoch;
@@ -1174,9 +1164,8 @@ bool SessionState::is_gy_dynamic_rule_installed(const std::string& rule_id) {
 }
 
 bool SessionState::is_static_rule_installed(const std::string& rule_id) {
-  return std::find(
-             active_static_rules_.begin(), active_static_rules_.end(),
-             rule_id) != active_static_rules_.end();
+  return std::find(active_static_rules_.begin(), active_static_rules_.end(),
+                   rule_id) != active_static_rules_.end();
 }
 
 RuleToProcess SessionState::insert_dynamic_rule(
@@ -1277,8 +1266,8 @@ optional<RuleToProcess> SessionState::remove_gy_rule(
 
 optional<RuleToProcess> SessionState::deactivate_static_rule(
     const std::string rule_id, SessionStateUpdateCriteria* session_uc) {
-  auto it = std::find(
-      active_static_rules_.begin(), active_static_rules_.end(), rule_id);
+  auto it = std::find(active_static_rules_.begin(), active_static_rules_.end(),
+                      rule_id);
   if (it == active_static_rules_.end()) {
     return {};
   }
@@ -1299,11 +1288,11 @@ optional<RuleToProcess> SessionState::deactivate_static_rule(
 RuleToProcess SessionState::make_rule_to_process(const PolicyRule& rule) {
   RuleToProcess to_process;
   to_process.version = get_current_rule_version(rule.id());
-  to_process.rule    = rule;
+  to_process.rule = rule;
 
   // At this point, we know the rule exists, so just check if it exists in the
   // static rule store or not
-  bool is_static    = static_rules_.get_rule(rule.id(), nullptr);
+  bool is_static = static_rules_.get_rule(rule.id(), nullptr);
   PolicyType p_type = is_static ? STATIC : DYNAMIC;
 
   if (!is_5g_session()) {
@@ -1346,12 +1335,12 @@ void SessionState::process_rules_to_install(
     RulesToProcess* pending_activation, RulesToProcess* pending_deactivation,
     RulesToProcess* pending_bearer_setup, RulesToSchedule* pending_scheduling,
     SessionStateUpdateCriteria* session_uc) {
-  process_static_rule_installs(
-      static_rule_installs, pending_activation, pending_deactivation,
-      pending_bearer_setup, pending_scheduling, session_uc);
-  process_dynamic_rule_installs(
-      dynamic_rule_installs, pending_activation, pending_deactivation,
-      pending_bearer_setup, pending_scheduling, session_uc);
+  process_static_rule_installs(static_rule_installs, pending_activation,
+                               pending_deactivation, pending_bearer_setup,
+                               pending_scheduling, session_uc);
+  process_dynamic_rule_installs(dynamic_rule_installs, pending_activation,
+                                pending_deactivation, pending_bearer_setup,
+                                pending_scheduling, session_uc);
 }
 
 void SessionState::process_static_rule_installs(
@@ -1395,8 +1384,8 @@ void SessionState::process_static_rule_installs(
       if (is_5g_session()) {
         pending_activation->push_back(to_process);
       } else {
-        classify_policy_activation(
-            to_process, STATIC, pending_activation, pending_bearer_setup);
+        classify_policy_activation(to_process, STATIC, pending_activation,
+                                   pending_bearer_setup);
       }
     }
     // If the rule is for future activation, schedule
@@ -1407,8 +1396,8 @@ void SessionState::process_static_rule_installs(
     }
     // Schedule deactivation time in the future
     if (lifetime.should_schedule_deactivation(current_time)) {
-      pending_scheduling->push_back(RuleToSchedule(
-          STATIC, rule_id, DEACTIVATE, lifetime.deactivation_time));
+      pending_scheduling->push_back(RuleToSchedule(STATIC, rule_id, DEACTIVATE,
+                                                   lifetime.deactivation_time));
     }
   }
 }
@@ -1422,7 +1411,7 @@ void SessionState::process_dynamic_rule_installs(
 
   for (const DynamicRuleInstall& rule_install : rule_installs) {
     const PolicyRule& dynamic_rule = rule_install.policy_rule();
-    const std::string& rule_id     = dynamic_rule.id();
+    const std::string& rule_id = dynamic_rule.id();
     RuleLifetime lifetime(rule_install);
 
     // If the rule should be deactivated already, deactivate just in case and
@@ -1442,8 +1431,8 @@ void SessionState::process_dynamic_rule_installs(
       if (is_5g_session()) {
         pending_activation->push_back(to_process);
       } else {
-        classify_policy_activation(
-            to_process, DYNAMIC, pending_activation, pending_bearer_setup);
+        classify_policy_activation(to_process, DYNAMIC, pending_activation,
+                                   pending_bearer_setup);
       }
     }
     // If the rule is for future activation, schedule
@@ -1454,8 +1443,8 @@ void SessionState::process_dynamic_rule_installs(
     }
     // Schedule deactivation time in the future
     if (lifetime.should_schedule_deactivation(current_time)) {
-      pending_scheduling->push_back(RuleToSchedule(
-          DYNAMIC, rule_id, DEACTIVATE, lifetime.deactivation_time));
+      pending_scheduling->push_back(RuleToSchedule(DYNAMIC, rule_id, DEACTIVATE,
+                                                   lifetime.deactivation_time));
     }
   }
 }
@@ -1496,8 +1485,8 @@ void SessionState::process_rules_to_remove(
   }
 }
 
-void SessionState::sync_rules_to_time(
-    std::time_t current_time, SessionStateUpdateCriteria* session_uc) {
+void SessionState::sync_rules_to_time(std::time_t current_time,
+                                      SessionStateUpdateCriteria* session_uc) {
   // Update active static rules
   for (const std::string& rule_id : active_static_rules_) {
     if (should_rule_be_deactivated(rule_id, current_time)) {
@@ -1545,9 +1534,7 @@ std::set<std::string>& SessionState::get_scheduled_static_rules() {
   return scheduled_static_rules_;
 }
 
-DynamicRuleStore& SessionState::get_dynamic_rules() {
-  return dynamic_rules_;
-}
+DynamicRuleStore& SessionState::get_dynamic_rules() { return dynamic_rules_; }
 
 DynamicRuleStore& SessionState::get_scheduled_dynamic_rules() {
   return scheduled_dynamic_rules_;
@@ -1563,7 +1550,7 @@ DynamicRuleStore& SessionState::get_gy_dynamic_rules() {
 
 uint32_t SessionState::total_monitored_rules_count() {
   uint32_t monitored_dynamic_rules = dynamic_rules_.monitored_rules_count();
-  uint32_t monitored_static_rules  = 0;
+  uint32_t monitored_static_rules = 0;
   for (auto& rule_id : active_static_rules_) {
     if (static_rules_.get_monitoring_key_for_rule_id(rule_id, nullptr)) {
       monitored_static_rules++;
@@ -1594,12 +1581,10 @@ void SessionState::schedule_static_rule(
   scheduled_static_rules_.insert(rule_id);
 }
 
-bool SessionState::is_active() {
-  return curr_state_ == SESSION_ACTIVE;
-}
+bool SessionState::is_active() { return curr_state_ == SESSION_ACTIVE; }
 
-void SessionState::set_fsm_state(
-    SessionFsmState new_state, SessionStateUpdateCriteria* session_uc) {
+void SessionState::set_fsm_state(SessionFsmState new_state,
+                                 SessionStateUpdateCriteria* session_uc) {
   // Only log and reflect change into update criteria if the state is new
   uint32_t local_teid_ = get_upf_local_teid();
   if (curr_state_ != new_state) {
@@ -1613,7 +1598,7 @@ void SessionState::set_fsm_state(
     }
     curr_state_ = new_state;
     if (session_uc) {
-      session_uc->is_fsm_updated    = true;
+      session_uc->is_fsm_updated = true;
       session_uc->updated_fsm_state = new_state;
     }
   }
@@ -1636,18 +1621,18 @@ void SessionState::suspend_service_if_needed_for_credit(
     }
   }
   if (credit_map_.size() > 0 && suspended_count == credit_map_.size()) {
-    it->second->set_service_state(
-        SERVICE_NEEDS_SUSPENSION, get_credit_uc(ckey, session_uc));
+    it->second->set_service_state(SERVICE_NEEDS_SUSPENSION,
+                                  get_credit_uc(ckey, session_uc));
   }
 }
 
-bool SessionState::should_rule_be_active(
-    const std::string& rule_id, std::time_t time) {
+bool SessionState::should_rule_be_active(const std::string& rule_id,
+                                         std::time_t time) {
   return rule_lifetimes_[rule_id].is_within_lifetime(time);
 }
 
-bool SessionState::should_rule_be_deactivated(
-    const std::string& rule_id, std::time_t time) {
+bool SessionState::should_rule_be_deactivated(const std::string& rule_id,
+                                              std::time_t time) {
   return rule_lifetimes_[rule_id].exceeded_lifetime(time);
 }
 
@@ -1732,7 +1717,7 @@ bool SessionState::receive_charging_credit(
     return init_charging_credit(update, session_uc);
   }
 
-  auto& grant                            = it->second;
+  auto& grant = it->second;
   SessionCreditUpdateCriteria* credit_uc = get_credit_uc(key, session_uc);
   auto credit_validity =
       ChargingGrant::get_credit_response_validity_type(update);
@@ -1795,14 +1780,14 @@ bool SessionState::init_charging_credit(
   return true;
 }
 
-void SessionState::set_suspend_credit(
-    const CreditKey& charging_key, bool new_suspended,
-    SessionStateUpdateCriteria* session_uc) {
+void SessionState::set_suspend_credit(const CreditKey& charging_key,
+                                      bool new_suspended,
+                                      SessionStateUpdateCriteria* session_uc) {
   auto it = credit_map_.find(charging_key);
   if (it != credit_map_.end()) {
     auto& grant = it->second;
-    grant->set_suspended(
-        new_suspended, get_credit_uc(charging_key, session_uc));
+    grant->set_suspended(new_suspended,
+                         get_credit_uc(charging_key, session_uc));
   }
 }
 
@@ -1829,8 +1814,8 @@ void SessionState::get_rules_per_credit_key(
     const CreditKey& charging_key, RulesToProcess* to_process,
     SessionStateUpdateCriteria* session_uc) {
   std::vector<PolicyRule> static_rules, dynamic_rules;
-  static_rules_.get_rule_definitions_for_charging_key(
-      charging_key, static_rules);
+  static_rules_.get_rule_definitions_for_charging_key(charging_key,
+                                                      static_rules);
   for (PolicyRule rule : static_rules) {
     // Since the static rule store is shared across sessions, we should check
     // that the rule is activated for the session
@@ -1840,16 +1825,16 @@ void SessionState::get_rules_per_credit_key(
       to_process->push_back(make_rule_to_process(rule));
     }
   }
-  dynamic_rules_.get_rule_definitions_for_charging_key(
-      charging_key, dynamic_rules);
+  dynamic_rules_.get_rule_definitions_for_charging_key(charging_key,
+                                                       dynamic_rules);
   for (PolicyRule rule : dynamic_rules) {
     increment_rule_stats(rule.id(), session_uc);
     to_process->push_back(make_rule_to_process(rule));
   }
 }
 
-uint64_t SessionState::get_charging_credit(
-    const CreditKey& key, Bucket bucket) const {
+uint64_t SessionState::get_charging_credit(const CreditKey& key,
+                                           Bucket bucket) const {
   auto it = credit_map_.find(key);
   if (it == credit_map_.end()) {
     return 0;
@@ -1874,8 +1859,8 @@ bool SessionState::set_credit_reporting(
   return true;
 }
 
-ReAuthResult SessionState::reauth_key(
-    const CreditKey& charging_key, SessionStateUpdateCriteria* session_uc) {
+ReAuthResult SessionState::reauth_key(const CreditKey& charging_key,
+                                      SessionStateUpdateCriteria* session_uc) {
   auto it = credit_map_.find(charging_key);
   if (it != credit_map_.end()) {
     // if credit is already reporting, don't initiate update
@@ -1883,14 +1868,14 @@ ReAuthResult SessionState::reauth_key(
     if (grant->credit.is_reporting()) {
       return ReAuthResult::UPDATE_NOT_NEEDED;
     }
-    grant->set_reauth_state(
-        REAUTH_REQUIRED, get_credit_uc(charging_key, session_uc));
+    grant->set_reauth_state(REAUTH_REQUIRED,
+                            get_credit_uc(charging_key, session_uc));
     return ReAuthResult::UPDATE_INITIATED;
   }
   // charging_key cannot be found, initialize credit and engage reauth
-  auto grant           = std::make_unique<ChargingGrant>();
-  grant->credit        = SessionCredit(SERVICE_DISABLED);
-  grant->reauth_state  = REAUTH_REQUIRED;
+  auto grant = std::make_unique<ChargingGrant>();
+  grant->credit = SessionCredit(SERVICE_DISABLED);
+  grant->reauth_state = REAUTH_REQUIRED;
   grant->service_state = SERVICE_DISABLED;
   if (session_uc) {
     session_uc->charging_credit_to_install[charging_key] = grant->marshal();
@@ -1902,7 +1887,7 @@ ReAuthResult SessionState::reauth_key(
 ReAuthResult SessionState::reauth_all(SessionStateUpdateCriteria* session_uc) {
   auto res = ReAuthResult::UPDATE_NOT_NEEDED;
   for (auto& credit_pair : credit_map_) {
-    auto key    = credit_pair.first;
+    auto key = credit_pair.first;
     auto& grant = credit_pair.second;
     // Only update credits that aren't reporting
     if (!grant->credit.is_reporting()) {
@@ -1927,18 +1912,18 @@ void SessionState::apply_charging_credit_update(
   }
 
   auto& charging_grant = it->second;
-  auto& credit         = charging_grant->credit;
+  auto& credit = charging_grant->credit;
 
   // Credit merging
   credit.apply_update_criteria(credit_uc);
 
   // set charging grant
-  charging_grant->is_final_grant    = credit_uc.is_final;
+  charging_grant->is_final_grant = credit_uc.is_final;
   charging_grant->final_action_info = credit_uc.final_action_info;
-  charging_grant->expiry_time       = credit_uc.expiry_time;
-  charging_grant->reauth_state      = credit_uc.reauth_state;
-  charging_grant->service_state     = credit_uc.service_state;
-  charging_grant->suspended         = credit_uc.suspended;
+  charging_grant->expiry_time = credit_uc.expiry_time;
+  charging_grant->reauth_state = credit_uc.reauth_state;
+  charging_grant->service_state = credit_uc.service_state;
+  charging_grant->suspended = credit_uc.suspended;
 }
 
 CreditUsageUpdate SessionState::make_credit_usage_update_req(
@@ -1973,12 +1958,12 @@ void SessionState::get_charging_updates(
     SessionStateUpdateCriteria* session_uc) {
   bool increase_seq_number = false;
   for (auto& credit_pair : credit_map_) {
-    auto& key                              = credit_pair.first;
-    auto& grant                            = credit_pair.second;
+    auto& key = credit_pair.first;
+    auto& grant = credit_pair.second;
     SessionCreditUpdateCriteria* credit_uc = get_credit_uc(key, session_uc);
 
     auto action_type = grant->get_action(credit_uc);
-    auto action      = std::make_unique<ServiceAction>(action_type);
+    auto action = std::make_unique<ServiceAction>(action_type);
     switch (action_type) {
       case CONTINUE_SERVICE: {
         optional<CreditUsageUpdate> op_update =
@@ -1999,8 +1984,8 @@ void SessionState::get_charging_updates(
 
         PolicyRule redirect_rule = grant->make_redirect_rule();
         if (!is_gy_dynamic_rule_installed(redirect_rule.id())) {
-          fill_service_action_for_redirect(
-              action, key, grant, redirect_rule, session_uc);
+          fill_service_action_for_redirect(action, key, grant, redirect_rule,
+                                           session_uc);
           actions_out->push_back(std::move(action));
         }
 
@@ -2147,9 +2132,8 @@ void SessionState::fill_service_action_with_context(
 }
 
 // Monitors
-bool SessionState::receive_monitor(
-    const UsageMonitoringUpdateResponse& update,
-    SessionStateUpdateCriteria* session_uc) {
+bool SessionState::receive_monitor(const UsageMonitoringUpdateResponse& update,
+                                   SessionStateUpdateCriteria* session_uc) {
   if (!update.has_credit()) {
     // We are overloading UsageMonitoringUpdateResponse/Request with other
     // EventTriggered requests, so we could receive updates that don't affect
@@ -2163,7 +2147,7 @@ bool SessionState::receive_monitor(
     update_session_level_key(update, session_uc);
   }
   auto mkey = update.credit().monitoring_key();
-  auto it   = monitor_map_.find(mkey);
+  auto it = monitor_map_.find(mkey);
 
   if (session_uc &&
       session_uc->monitor_credit_map.find(mkey) !=
@@ -2230,14 +2214,14 @@ void SessionState::apply_monitor_updates(
   }
 
   auto& charging_grant = it->second;
-  auto& credit         = charging_grant->credit;
+  auto& credit = charging_grant->credit;
 
   // Credit merging
   credit.apply_update_criteria(credit_uc);
 }
 
-uint64_t SessionState::get_monitor(
-    const std::string& key, Bucket bucket) const {
+uint64_t SessionState::get_monitor(const std::string& key,
+                                   Bucket bucket) const {
   auto it = monitor_map_.find(key);
   if (it == monitor_map_.end()) {
     return 0;
@@ -2257,15 +2241,15 @@ bool SessionState::set_monitor_reporting(
   it->second->credit.set_reporting(reporting);
 
   if (session_uc != nullptr) {
-    auto mon_credit_uc       = get_monitor_uc(key, session_uc);
+    auto mon_credit_uc = get_monitor_uc(key, session_uc);
     mon_credit_uc->reporting = reporting;
   }
   return true;
 }
 
-bool SessionState::add_to_monitor(
-    const std::string& key, uint64_t used_tx, uint64_t used_rx,
-    SessionStateUpdateCriteria* session_uc) {
+bool SessionState::add_to_monitor(const std::string& key, uint64_t used_tx,
+                                  uint64_t used_rx,
+                                  SessionStateUpdateCriteria* session_uc) {
   auto it = monitor_map_.find(key);
   if (it == monitor_map_.end()) {
     MLOG(MDEBUG) << "Monitoring Key " << key
@@ -2286,18 +2270,16 @@ bool SessionState::add_to_monitor(
   return true;
 }
 
-void SessionState::set_monitor(
-    const std::string& key, Monitor monitor,
-    SessionStateUpdateCriteria* session_uc) {
+void SessionState::set_monitor(const std::string& key, Monitor monitor,
+                               SessionStateUpdateCriteria* session_uc) {
   if (session_uc) {
     session_uc->monitor_credit_to_install[key] = monitor.marshal();
   }
   monitor_map_[key] = std::make_unique<Monitor>(monitor);
 }
 
-bool SessionState::init_new_monitor(
-    const UsageMonitoringUpdateResponse& update,
-    SessionStateUpdateCriteria* session_uc) {
+bool SessionState::init_new_monitor(const UsageMonitoringUpdateResponse& update,
+                                    SessionStateUpdateCriteria* session_uc) {
   if (!update.success()) {
     MLOG(MERROR) << "Monitoring init failed for imsi " << get_imsi()
                  << " and monitoring key " << update.credit().monitoring_key();
@@ -2311,10 +2293,10 @@ bool SessionState::init_new_monitor(
   }
   MLOG(MDEBUG) << session_id_ << " Initialized a monitoring credit for mkey "
                << update.credit().monitoring_key();
-  auto monitor   = std::make_unique<Monitor>();
+  auto monitor = std::make_unique<Monitor>();
   monitor->level = update.credit().level();
   // validity time and final units not used for monitors
-  auto _   = SessionCreditUpdateCriteria{};
+  auto _ = SessionCreditUpdateCriteria{};
   auto gsu = update.credit().granted_units();
   monitor->credit.receive_credit(gsu, nullptr);
 
@@ -2347,7 +2329,7 @@ void SessionState::set_session_level_key(
   session_level_key_ = new_key;
   if (session_uc) {
     session_uc->is_session_level_key_updated = true;
-    session_uc->updated_session_level_key    = session_level_key_;
+    session_uc->updated_session_level_key = session_level_key_;
   }
 }
 
@@ -2386,7 +2368,7 @@ void SessionState::bind_policy_to_bearer(
     const PolicyBearerBindingRequest& request,
     SessionStateUpdateCriteria* session_uc) {
   const std::string& rule_id = request.policy_rule_id();
-  auto policy_type           = get_policy_type(rule_id);
+  auto policy_type = get_policy_type(rule_id);
   if (!policy_type) {
     MLOG(MDEBUG) << "Policy " << rule_id
                  << " not found, when trying to bind to bearerID "
@@ -2396,12 +2378,12 @@ void SessionState::bind_policy_to_bearer(
   MLOG(MINFO) << session_id_ << " now has policy " << rule_id
               << " tied to bearerID " << request.bearer_id();
   BearerIDAndTeid brearer_id_and_teid;
-  brearer_id_and_teid.bearer_id                         = request.bearer_id();
-  brearer_id_and_teid.teids                             = request.teids();
+  brearer_id_and_teid.bearer_id = request.bearer_id();
+  brearer_id_and_teid.teids = request.teids();
   bearer_id_by_policy_[PolicyID(*policy_type, rule_id)] = brearer_id_and_teid;
   if (session_uc) {
     session_uc->is_bearer_mapping_updated = true;
-    session_uc->bearer_id_by_policy       = bearer_id_by_policy_;
+    session_uc->bearer_id_by_policy = bearer_id_by_policy_;
   }
 }
 
@@ -2495,13 +2477,13 @@ void SessionState::remove_event_trigger(
   set_event_trigger(trigger, CLEARED, session_uc);
 }
 
-void SessionState::set_event_trigger(
-    magma::lte::EventTrigger trigger, const EventTriggerState value,
-    SessionStateUpdateCriteria* session_uc) {
+void SessionState::set_event_trigger(magma::lte::EventTrigger trigger,
+                                     const EventTriggerState value,
+                                     SessionStateUpdateCriteria* session_uc) {
   pending_event_triggers_[trigger] = value;
   if (session_uc) {
     session_uc->is_pending_event_triggers_updated = true;
-    session_uc->pending_event_triggers[trigger]   = value;
+    session_uc->pending_event_triggers[trigger] = value;
   }
 }
 
@@ -2558,9 +2540,9 @@ RulesToProcess SessionState::remove_all_final_action_rules(
 }
 
 // QoS/Bearer Management
-bool SessionState::policy_has_qos(
-    const PolicyType policy_type, const std::string& rule_id,
-    PolicyRule* rule_out) {
+bool SessionState::policy_has_qos(const PolicyType policy_type,
+                                  const std::string& rule_id,
+                                  PolicyRule* rule_out) {
   if (policy_type == STATIC) {
     bool exists = static_rules_.get_rule(rule_id, rule_out);
     return exists && rule_out->has_qos();
@@ -2596,9 +2578,9 @@ optional<PolicyRule> SessionState::policy_needs_bearer_creation(
   return policy;
 }
 
-void SessionState::update_bearer_creation_req(
-    const PolicyType policy_type, const std::string& rule_id,
-    BearerUpdate* update) {
+void SessionState::update_bearer_creation_req(const PolicyType policy_type,
+                                              const std::string& rule_id,
+                                              BearerUpdate* update) {
   auto policy = policy_needs_bearer_creation(policy_type, rule_id);
   if (!policy) {
     return;
@@ -2635,13 +2617,13 @@ void SessionState::update_bearer_deletion_req(
 
   if (session_uc) {
     session_uc->is_bearer_mapping_updated = true;
-    session_uc->bearer_id_by_policy       = bearer_id_by_policy_;
+    session_uc->bearer_id_by_policy = bearer_id_by_policy_;
   }
 
   // If it is first time filling in the DeletionReq, fill in other info
   if (!update->needs_deletion) {
     update->needs_deletion = true;
-    auto& req              = update->delete_req;
+    auto& req = update->delete_req;
     req.mutable_sid()->CopyFrom(config_.common_context.sid());
     req.set_ip_addr(config_.common_context.ue_ipv4());
     // TODO ipv6 add to the bearer request or remove ipv4
@@ -2686,7 +2668,7 @@ RuleSetBySubscriber::RuleSetBySubscriber(
     if (rule_set.apply_subscriber_wide()) {
       subscriber_wide_rule_set = RuleSetToApply(rule_set);
     } else {
-      subscriber_wide_rule_set        = {};
+      subscriber_wide_rule_set = {};
       rule_set_by_apn[rule_set.apn()] = RuleSetToApply(rule_set);
     }
   }
@@ -2712,68 +2694,55 @@ optional<RuleSetToApply> RuleSetBySubscriber::get_combined_rule_set_for_apn(
   return {};
 }
 
-void SessionState::set_data_metrics(
-    const char* gauge_name, uint64_t bytes_tx, uint64_t bytes_rx) const {
+void SessionState::set_data_metrics(const char* gauge_name, uint64_t bytes_tx,
+                                    uint64_t bytes_rx) const {
   const char* imsi = config_.common_context.sid().id().c_str();
-  const char* apn  = config_.common_context.apn().c_str();
-  set_gauge(
-      gauge_name, bytes_tx, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
-      LABEL_DIRECTION, DIRECTION_UP);
-  set_gauge(
-      gauge_name, bytes_rx, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
-      LABEL_DIRECTION, DIRECTION_DOWN);
+  const char* apn = config_.common_context.apn().c_str();
+  set_gauge(gauge_name, bytes_tx, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
+            LABEL_DIRECTION, DIRECTION_UP);
+  set_gauge(gauge_name, bytes_rx, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
+            LABEL_DIRECTION, DIRECTION_DOWN);
 }
 
-void SessionState::increment_data_metrics(
-    const char* counter_name, uint64_t delta_tx, uint64_t delta_rx) const {
+void SessionState::increment_data_metrics(const char* counter_name,
+                                          uint64_t delta_tx,
+                                          uint64_t delta_rx) const {
   const char* imsi = config_.common_context.sid().id().c_str();
-  const char* apn  = config_.common_context.apn().c_str();
-  increment_counter(
-      counter_name, delta_tx, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
-      LABEL_DIRECTION, DIRECTION_UP);
-  increment_counter(
-      counter_name, delta_rx, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
-      LABEL_DIRECTION, DIRECTION_DOWN);
+  const char* apn = config_.common_context.apn().c_str();
+  increment_counter(counter_name, delta_tx, size_t(3), LABEL_IMSI, imsi,
+                    LABEL_APN, apn, LABEL_DIRECTION, DIRECTION_UP);
+  increment_counter(counter_name, delta_rx, size_t(3), LABEL_IMSI, imsi,
+                    LABEL_APN, apn, LABEL_DIRECTION, DIRECTION_DOWN);
 }
 
 void SessionState::clear_session_metrics() const {
-  const char* imsi       = config_.common_context.sid().id().c_str();
-  const char* apn        = config_.common_context.apn().c_str();
+  const char* imsi = config_.common_context.sid().id().c_str();
+  const char* apn = config_.common_context.apn().c_str();
   const char* session_id = session_id_.c_str();
-  remove_counter(
-      UE_USED_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
-      LABEL_DIRECTION, DIRECTION_UP);
-  remove_counter(
-      UE_USED_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
-      LABEL_DIRECTION, DIRECTION_DOWN);
+  remove_counter(UE_USED_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_APN,
+                 apn, LABEL_DIRECTION, DIRECTION_UP);
+  remove_counter(UE_USED_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_APN,
+                 apn, LABEL_DIRECTION, DIRECTION_DOWN);
 
-  remove_gauge(
-      UE_DROPPED_GAUGE_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
-      LABEL_DIRECTION, DIRECTION_UP);
-  remove_gauge(
-      UE_DROPPED_GAUGE_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
-      LABEL_DIRECTION, DIRECTION_DOWN);
+  remove_gauge(UE_DROPPED_GAUGE_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_APN,
+               apn, LABEL_DIRECTION, DIRECTION_UP);
+  remove_gauge(UE_DROPPED_GAUGE_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_APN,
+               apn, LABEL_DIRECTION, DIRECTION_DOWN);
 
-  remove_counter(
-      UE_TRAFFIC_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_SESSION_ID,
-      session_id, LABEL_DIRECTION, DIRECTION_UP);
-  remove_counter(
-      UE_TRAFFIC_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_SESSION_ID,
-      session_id, LABEL_DIRECTION, DIRECTION_DOWN);
+  remove_counter(UE_TRAFFIC_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi,
+                 LABEL_SESSION_ID, session_id, LABEL_DIRECTION, DIRECTION_UP);
+  remove_counter(UE_TRAFFIC_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi,
+                 LABEL_SESSION_ID, session_id, LABEL_DIRECTION, DIRECTION_DOWN);
 }
 /*
  * If UPF received session version doesn't match with SMF local
  * session version no, then we continue to resend till SESSION_THROTTLE_CNT
  * reaches
  */
-uint32_t SessionState::get_incremented_rtx_counter() {
-  return rtx_counter_++;
-}
+uint32_t SessionState::get_incremented_rtx_counter() { return rtx_counter_++; }
 
 /* Reset sesison throttle count */
-void SessionState::reset_rtx_counter() {
-  rtx_counter_ = 0;
-}
+void SessionState::reset_rtx_counter() { rtx_counter_ = 0; }
 
 void SessionState::set_create_session_response(
     const CreateSessionResponse response,
@@ -2841,8 +2810,8 @@ void SessionState::process_get_5g_rule_installs(
     RuleToProcess to_process;
     static_rules_.get_rule(rule_id, &rule);
     to_process.version = get_current_rule_version(rule.id());
-    to_process.rule    = rule;
-    to_process.teids   = config_.common_context.teids();
+    to_process.rule = rule;
+    to_process.teids = config_.common_context.teids();
     pending_activation->push_back(to_process);
     pending_deactivation->push_back(to_process);
   }
@@ -2850,8 +2819,8 @@ void SessionState::process_get_5g_rule_installs(
     const PolicyRule& dynamic_rule = rule_install.policy_rule();
     RuleToProcess to_process;
     to_process.version = get_current_rule_version(dynamic_rule.id());
-    to_process.rule    = dynamic_rule;
-    to_process.teids   = config_.common_context.teids();
+    to_process.rule = dynamic_rule;
+    to_process.teids = config_.common_context.teids();
     pending_activation->push_back(to_process);
     pending_deactivation->push_back(to_process);
   }

@@ -31,7 +31,7 @@ std::string bytes_to_hex(const std::string& s) {
   std::ostringstream ret;
   unsigned int c;
   for (std::string::size_type i = 0; i < s.length(); ++i) {
-    c = (unsigned int) (unsigned char) s[i];
+    c = (unsigned int)(unsigned char)s[i];
     ret << " " << std::hex << std::setfill('0') << std::setw(2)
         << (std::nouppercase) << c;
   }
@@ -49,7 +49,7 @@ std::chrono::milliseconds time_difference_from_now(
     const google::protobuf::Timestamp& timestamp) {
   const auto rule_time_sec =
       google::protobuf::util::TimeUtil::TimestampToSeconds(timestamp);
-  const auto now   = time(NULL);
+  const auto now = time(NULL);
   const auto delta = std::max(rule_time_sec - now, 0L);
   std::chrono::seconds sec(delta);
   return std::chrono::duration_cast<std::chrono::milliseconds>(sec);
@@ -57,7 +57,7 @@ std::chrono::milliseconds time_difference_from_now(
 
 std::chrono::milliseconds time_difference_from_now(
     const std::time_t timestamp) {
-  const auto now   = time(nullptr);
+  const auto now = time(nullptr);
   const auto delta = std::max(timestamp - now, 0L);
   std::chrono::seconds sec(delta);
   return std::chrono::duration_cast<std::chrono::milliseconds>(sec);

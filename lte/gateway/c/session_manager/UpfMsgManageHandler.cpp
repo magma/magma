@@ -75,10 +75,10 @@ void UpfMsgManageHandler::SetUPFNodeState(
                                                          request]() {
     switch (request.upf_node_messages_case()) {
       case UPFNodeState::kAssociatonState: {
-        std::string upf_id            = request.upf_id();
+        std::string upf_id = request.upf_id();
         UPFAssociationState Assostate = request.associaton_state();
-        auto recovery_time            = Assostate.recovery_time_stamp();
-        auto feature_set              = Assostate.feature_set();
+        auto recovery_time = Assostate.recovery_time_stamp();
+        auto feature_set = Assostate.feature_set();
         // For now get User Plan IPv4 resource at index '0' only
         std::string ipv4_addr = Assostate.ip_resource_schema(0).ipv4_address();
         // Set the UPF address
@@ -106,16 +106,16 @@ void UpfMsgManageHandler::SetUPFSessionsConfig(
     ServerContext* context, const UPFSessionConfigState* sess_config,
     std::function<void(Status, SmContextVoid)> response_callback) {
   auto& ses_config = *sess_config;
-  int32_t count    = 0;
+  int32_t count = 0;
   conv_enforcer_->get_event_base().runInEventBaseThread([this, &count,
                                                          ses_config]() {
     for (auto& upf_session : ses_config.upf_session_state()) {
       // Deleting the IMSI prefix from imsi
       std::string imsi_upf = upf_session.subscriber_id();
-      std::string imsi     = imsi_upf.substr(4, imsi_upf.length() - 4);
-      uint32_t version     = upf_session.session_version();
-      uint32_t teid        = upf_session.local_f_teid();
-      auto session_map     = session_store_.read_sessions({imsi});
+      std::string imsi = imsi_upf.substr(4, imsi_upf.length() - 4);
+      uint32_t version = upf_session.session_version();
+      uint32_t teid = upf_session.local_f_teid();
+      auto session_map = session_store_.read_sessions({imsi});
       /* Search with session search criteria of IMSI and session_id and
        * find  respective session to operate
        */
@@ -126,7 +126,7 @@ void UpfMsgManageHandler::SetUPFSessionsConfig(
                      << " with teid " << teid;
         continue;
       }
-      auto& session    = **session_it;
+      auto& session = **session_it;
       auto cur_version = session->get_current_version();
       if (version < cur_version) {
         MLOG(MINFO) << "UPF verions of session imsi " << imsi << " of  teid "
@@ -167,7 +167,7 @@ void UpfMsgManageHandler::SendPagingRequest(
     std::function<void(Status, SmContextVoid)> response_callback) {
   auto& pag_req = *page_request;
 
-  uint32_t fte_id     = pag_req.local_f_teid();
+  uint32_t fte_id = pag_req.local_f_teid();
   std::string ip_addr = pag_req.ue_ip_addr();
   struct in_addr ue_ip;
   IPAddress req = IPAddress();
@@ -177,8 +177,8 @@ void UpfMsgManageHandler::SendPagingRequest(
   req.set_address(&ue_ip, sizeof(struct in_addr));
 
   mobilityd_client_->get_subscriberid_from_ipv4(
-      req, [this, fte_id, response_callback](
-               Status status, const SubscriberID& sid) {
+      req, [this, fte_id, response_callback](Status status,
+                                             const SubscriberID& sid) {
         if (!status.ok()) {
           MLOG(MERROR) << "Subscriber could not be found for ip ";
         }
@@ -196,10 +196,9 @@ void UpfMsgManageHandler::get_session_from_imsi(
     if (!imsi.length()) {
       MLOG(MERROR) << "get_subscriberid_from_ipv4 for IP"
                       "returned an empty subscriber ID";
-      Status status(
-          grpc::NOT_FOUND,
-          "Session Not found because"
-          "subscriber ID not found for IP");
+      Status status(grpc::NOT_FOUND,
+                    "Session Not found because"
+                    "subscriber ID not found for IP");
       response_callback(status, SmContextVoid());
       return;
     }
@@ -215,8 +214,8 @@ void UpfMsgManageHandler::get_session_from_imsi(
     if (!session_it) {
       MLOG(MERROR) << "No session found in SessionMap for IMSI " << imsi
                    << " with teid " << te_id;
-      Status status(
-          grpc::NOT_FOUND, "Session was not found for IMSI with teid");
+      Status status(grpc::NOT_FOUND,
+                    "Session was not found for IMSI with teid");
       response_callback(status, SmContextVoid());
       return;
     }

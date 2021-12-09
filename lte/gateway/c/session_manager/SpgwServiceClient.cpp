@@ -116,8 +116,8 @@ bool AsyncSpgwServiceClient::delete_bearer(
     const std::string& imsi, const std::string& apn_ip_addr,
     const uint32_t linked_bearer_id,
     const std::vector<uint32_t>& eps_bearer_ids) {
-  auto req = create_delete_bearer_req(
-      imsi, apn_ip_addr, linked_bearer_id, eps_bearer_ids);
+  auto req = create_delete_bearer_req(imsi, apn_ip_addr, linked_bearer_id,
+                                      eps_bearer_ids);
   delete_bearer_rpc(
       req, [imsi, apn_ip_addr](Status status, DeleteBearerResult resp) {
         if (!status.ok()) {

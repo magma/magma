@@ -26,8 +26,8 @@
 namespace magma {
 
 enum CreditValidity {
-  VALID_CREDIT    = 0,
-  INVALID_CREDIT  = 1,
+  VALID_CREDIT = 0,
+  INVALID_CREDIT = 1,
   TRANSIENT_ERROR = 2,
 };
 
@@ -70,9 +70,8 @@ struct ChargingGrant {
   // ChargingGrant -> StoredChargingGrant
   StoredChargingGrant marshal();
 
-  void receive_charging_grant(
-      const CreditUpdateResponse& update,
-      SessionCreditUpdateCriteria* credit_uc = NULL);
+  void receive_charging_grant(const CreditUpdateResponse& update,
+                              SessionCreditUpdateCriteria* credit_uc = NULL);
 
   // Returns true if the credit returned from the Policy component is valid and
   // good to be installed.
@@ -102,9 +101,9 @@ struct ChargingGrant {
   // If the grant is final or is_terminate is true, we include all unreported
   // usage, otherwise we only include unreported usage up to the allocated
   // amount.
-  CreditUsage get_credit_usage(
-      CreditUsage::UpdateType update_type,
-      SessionCreditUpdateCriteria* credit_uc, bool is_terminate);
+  CreditUsage get_credit_usage(CreditUsage::UpdateType update_type,
+                               SessionCreditUpdateCriteria* credit_uc,
+                               bool is_terminate);
 
   // Return true if the service needs to be deactivated.
   // In order to deactivate, a few things are considered in order.
@@ -125,13 +124,12 @@ struct ChargingGrant {
   void set_suspended(bool suspended, SessionCreditUpdateCriteria* credit_uc);
 
   // Set the object and update criteria's reauth state to new_state.
-  void set_reauth_state(
-      const ReAuthState new_state, SessionCreditUpdateCriteria* credit_uc);
+  void set_reauth_state(const ReAuthState new_state,
+                        SessionCreditUpdateCriteria* credit_uc);
 
   // Set the object and update criteria's service state to new_state.
-  void set_service_state(
-      const ServiceState new_service_state,
-      SessionCreditUpdateCriteria* credit_uc);
+  void set_service_state(const ServiceState new_service_state,
+                         SessionCreditUpdateCriteria* credit_uc);
 
   // Set the flag reporting. Used to signal this credit is waiting to receive
   // a response from the core

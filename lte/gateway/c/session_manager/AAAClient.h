@@ -47,8 +47,8 @@ class AAAClient {
  public:
   virtual ~AAAClient() = default;
 
-  virtual bool terminate_session(
-      const std::string& radius_session_id, const std::string& imsi) = 0;
+  virtual bool terminate_session(const std::string& radius_session_id,
+                                 const std::string& imsi) = 0;
 
   virtual bool add_sessions(const magma::lte::SessionMap& session_map) = 0;
 };
@@ -63,8 +63,8 @@ class AsyncAAAClient : public magma::GRPCReceiver, public AAAClient {
 
   explicit AsyncAAAClient(std::shared_ptr<grpc::Channel> aaa_channel);
 
-  bool terminate_session(
-      const std::string& radius_session_id, const std::string& imsi);
+  bool terminate_session(const std::string& radius_session_id,
+                         const std::string& imsi);
 
   bool add_sessions(const magma::lte::SessionMap& session_map);
 
@@ -73,12 +73,10 @@ class AsyncAAAClient : public magma::GRPCReceiver, public AAAClient {
   std::unique_ptr<accounting::Stub> stub_;
 
  private:
-  void terminate_session_rpc(
-      const terminate_session_request& request,
-      std::function<void(Status, acct_resp)> callback);
-  void add_sessions_rpc(
-      const add_sessions_request& request,
-      std::function<void(Status, acct_resp)> callback);
+  void terminate_session_rpc(const terminate_session_request& request,
+                             std::function<void(Status, acct_resp)> callback);
+  void add_sessions_rpc(const add_sessions_request& request,
+                        std::function<void(Status, acct_resp)> callback);
 };
 
 }  // namespace aaa

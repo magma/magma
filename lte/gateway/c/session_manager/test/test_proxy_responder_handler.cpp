@@ -43,24 +43,23 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     std::thread([&]() {
       std::cout << "Started event loop thread\n";
       folly::EventBaseManager::get()->setEventBase(evb, 0);
-    })
-        .detach();
+    }).detach();
 
     monitoring_key = "mk1";
-    rule_id_1      = "test_rule_1";
-    rule_id_2      = "test_rule_2";
+    rule_id_1 = "test_rule_1";
+    rule_id_2 = "test_rule_2";
 
-    reporter      = std::make_shared<MockSessionReporter>();
-    rule_store    = std::make_shared<StaticRuleStore>();
+    reporter = std::make_shared<MockSessionReporter>();
+    rule_store = std::make_shared<StaticRuleStore>();
     session_store = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
-    pipelined_client     = std::make_shared<MockPipelinedClient>();
-    auto spgw_client     = std::make_shared<MockSpgwServiceClient>();
-    auto aaa_client      = std::make_shared<MockAAAClient>();
+    pipelined_client = std::make_shared<MockPipelinedClient>();
+    auto spgw_client = std::make_shared<MockSpgwServiceClient>();
+    auto aaa_client = std::make_shared<MockAAAClient>();
     auto events_reporter = std::make_shared<MockEventsReporter>();
     auto default_mconfig = get_default_mconfig();
-    auto shard_tracker   = std::make_shared<ShardTracker>();
-    local_enforcer       = std::make_shared<LocalEnforcer>(
+    auto shard_tracker = std::make_shared<ShardTracker>();
+    local_enforcer = std::make_shared<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
         spgw_client, aaa_client, shard_tracker, 0, 0, default_mconfig);
     session_map = SessionMap{};
@@ -83,10 +82,10 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
         build_common_context(IMSI1, IP1, "", teids, APN1, MSISDN, TGPP_WLAN);
     const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
     cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
-    auto tgpp_context   = TgppContext{};
+    auto tgpp_context = TgppContext{};
     auto pdp_start_time = 12345;
-    auto session        = std::make_unique<SessionState>(
-        SESSION_ID_1, cfg, *rule_store, pdp_start_time);
+    auto session = std::make_unique<SessionState>(SESSION_ID_1, cfg,
+                                                  *rule_store, pdp_start_time);
     session->set_tgpp_context(tgpp_context, nullptr);
     session->set_fsm_state(SESSION_ACTIVE, nullptr);
     session->set_create_session_response(CreateSessionResponse(), nullptr);
@@ -105,8 +104,8 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
 
     auto units = monitoring_credit->mutable_granted_units();
     auto total = units->mutable_total();
-    auto tx    = units->mutable_tx();
-    auto rx    = units->mutable_rx();
+    auto tx = units->mutable_tx();
+    auto rx = units->mutable_rx();
 
     total->set_is_valid(true);
     total->set_volume(1000);
@@ -165,7 +164,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   insert_static_rule(rule_id_2);
 
   // 2) Create bare-bones session for IMSI1
-  auto uc      = get_default_update_criteria();
+  auto uc = get_default_update_criteria();
   auto session = get_session(rule_store);
   RuleLifetime lifetime;
   session->activate_static_rule(rule_id_1, lifetime, nullptr);
@@ -177,8 +176,8 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   session->receive_monitor(monitor_update, &uc);
 
   // Add some used credit
-  session->add_to_monitor(
-      monitoring_key, uint64_t(111), uint64_t(333), nullptr);
+  session->add_to_monitor(monitoring_key, uint64_t(111), uint64_t(333),
+                          nullptr);
   EXPECT_EQ(session->get_monitor(monitoring_key, USED_TX), 111);
   EXPECT_EQ(session->get_monitor(monitoring_key, USED_RX), 333);
 
@@ -196,8 +195,8 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   EXPECT_EQ(session_map[IMSI1].front()->get_request_number(), 1);
-  EXPECT_EQ(
-      session_map[IMSI1].front()->is_static_rule_installed(rule_id_2), false);
+  EXPECT_EQ(session_map[IMSI1].front()->is_static_rule_installed(rule_id_2),
+            false);
 
   // 4) Now call PolicyReAuth
   //    This is done with a duplicate install of rule_id_1. This checks that
@@ -207,9 +206,8 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   //    SessionStore properly
   auto request = get_policy_reauth_request();
   grpc::ServerContext create_context;
-  EXPECT_CALL(
-      *pipelined_client,
-      activate_flows_for_rules(IMSI1, _, _, _, _, _, CheckRuleCount(1), _))
+  EXPECT_CALL(*pipelined_client, activate_flows_for_rules(IMSI1, _, _, _, _, _,
+                                                          CheckRuleCount(1), _))
       .Times(1);
   proxy_responder->PolicyReAuth(
       &create_context, &request,
@@ -227,8 +225,8 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   EXPECT_EQ(session_map[IMSI1].front()->get_request_number(), 1);
-  EXPECT_EQ(
-      session_map[IMSI1].front()->is_static_rule_installed(rule_id_2), true);
+  EXPECT_EQ(session_map[IMSI1].front()->is_static_rule_installed(rule_id_2),
+            true);
 }
 
 TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
@@ -237,7 +235,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
   insert_static_rule(rule_id_2);
 
   // 2) Create bare-bones session for IMSI1
-  auto uc      = get_default_update_criteria();
+  auto uc = get_default_update_criteria();
   auto session = get_session(rule_store);
   RuleLifetime lifetime;
   session->activate_static_rule(rule_id_1, lifetime, &uc);
@@ -259,8 +257,8 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   EXPECT_EQ(session_map[IMSI1].front()->get_request_number(), 1);
-  EXPECT_EQ(
-      session_map[IMSI1].front()->is_static_rule_installed(rule_id_2), false);
+  EXPECT_EQ(session_map[IMSI1].front()->is_static_rule_installed(rule_id_2),
+            false);
 
   // 4) Now call AbortSession
   //    We should see a session deletion which would trigger deactivate_flows
@@ -269,9 +267,9 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
   request.set_session_id(SESSION_ID_1);
   grpc::ServerContext create_context;
   // the request should has no rules so PipelineD deletes all rules
-  EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules_for_termination(
-                             IMSI1, _, _, _, RequestOriginType::WILDCARD))
+  EXPECT_CALL(*pipelined_client,
+              deactivate_flows_for_rules_for_termination(
+                  IMSI1, _, _, _, RequestOriginType::WILDCARD))
       .Times(1);
   proxy_responder->AbortSession(
       &create_context, &request,
