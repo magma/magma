@@ -168,6 +168,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           state, &NGAP_PDUSESSION_RESOURCE_SETUP_REQ(received_message_p));
     } break;
 
+    case NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ: {
+      ngap_generate_ngap_pdusession_resource_modify_req(
+          state, &NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ(received_message_p));
+    } break;
+
     case NGAP_PDUSESSIONRESOURCE_REL_REQ: {
       ngap_generate_ngap_pdusession_resource_rel_cmd(
           state, &NGAP_PDUSESSIONRESOURCE_REL_REQ(received_message_p));

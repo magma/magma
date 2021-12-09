@@ -16,12 +16,12 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-NewQOSRulePktFilter::NewQOSRulePktFilter(){};
-NewQOSRulePktFilter::~NewQOSRulePktFilter(){};
-QOSRule::QOSRule(){};
-QOSRule::~QOSRule(){};
-QOSRulesMsg::QOSRulesMsg(){};
-QOSRulesMsg::~QOSRulesMsg(){};
+NewQOSRulePktFilter::NewQOSRulePktFilter() {}
+NewQOSRulePktFilter::~NewQOSRulePktFilter() {}
+QOSRule::QOSRule() {}
+QOSRule::~QOSRule() {}
+QOSRulesMsg::QOSRulesMsg() {}
+QOSRulesMsg::~QOSRulesMsg() {}
 
 // Decode QOSRules IE
 int QOSRulesMsg::DecodeQOSRulesMsg(
@@ -29,6 +29,7 @@ int QOSRulesMsg::DecodeQOSRulesMsg(
   uint8_t decoded = 0;
 
   if (iei > 0) {
+    qos_rules->iei = *buffer;
     CHECK_IEI_DECODER((unsigned char) iei, qos_rules->iei);
     MLOG(MDEBUG) << "In DecodeQOSRulesMsg: iei" << std::hex << int(*buffer);
     decoded++;
@@ -81,7 +82,7 @@ int QOSRulesMsg::DecodeQOSRulesMsg(
     qos_rules->qos_rule[i].qfi         = (data & 0x3f);
   }
   return (decoded);
-};
+}
 
 // Encode QOSRules IE
 int QOSRulesMsg::EncodeQOSRulesMsg(
@@ -155,5 +156,5 @@ int QOSRulesMsg::EncodeQOSRulesMsg(
   }
 
   return (encoded);
-};
+}
 }  // namespace magma5g

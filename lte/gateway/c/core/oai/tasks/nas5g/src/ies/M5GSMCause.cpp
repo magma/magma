@@ -17,8 +17,8 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-M5GSMCauseMsg::M5GSMCauseMsg(){};
-M5GSMCauseMsg::~M5GSMCauseMsg(){};
+M5GSMCauseMsg::M5GSMCauseMsg() {}
+M5GSMCauseMsg::~M5GSMCauseMsg() {}
 
 // Decode M5GSMCause IE
 int M5GSMCauseMsg::DecodeM5GSMCauseMsg(
@@ -29,6 +29,7 @@ int M5GSMCauseMsg::DecodeM5GSMCauseMsg(
   if (iei > 0) {
     m5gsm_cause->iei = *buffer;
     CHECK_IEI_DECODER(iei, (unsigned char) m5gsm_cause->iei);
+    decoded++;
   }
 
   m5gsm_cause->cause_value = *buffer;
@@ -39,7 +40,7 @@ int M5GSMCauseMsg::DecodeM5GSMCauseMsg(
                << int(m5gsm_cause->cause_value) << std::endl;
 
   return (decoded);
-};
+}
 
 // Encode M5GSMCause IE
 int M5GSMCauseMsg::EncodeM5GSMCauseMsg(
@@ -48,7 +49,7 @@ int M5GSMCauseMsg::EncodeM5GSMCauseMsg(
 
   // CHECKING IEI
   if (iei > 0) {
-    m5gsm_cause->iei = *buffer;
+    *buffer = m5gsm_cause->iei;
     CHECK_IEI_DECODER(iei, (unsigned char) m5gsm_cause->iei);
     encoded++;
   }
@@ -59,5 +60,5 @@ int M5GSMCauseMsg::EncodeM5GSMCauseMsg(
                << int(m5gsm_cause->cause_value) << std::endl;
 
   return (encoded);
-};
+}
 }  // namespace magma5g

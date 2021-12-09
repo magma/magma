@@ -91,6 +91,10 @@ typedef uint32_t teid_t;
   (mSGpTR)->ittiMsg.ngap_path_switch_request_ack
 #define NGAP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR)                               \
   (mSGpTR)->ittiMsg.ngap_path_switch_request_failure
+#define NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ(mSGpTR)                           \
+  (mSGpTR)->ittiMsg.ngap_pdu_session_resource_modify_req
+#define NGAP_PDU_SESSION_RESOURCE_MODIFY_RSP(mSGpTR)                           \
+  (mSGpTR)->ittiMsg.ngap_pdu_sessionresource_modify_rsp
 
 // NOT a ITTI message
 typedef struct ngap_initial_ue_message_s {
@@ -332,3 +336,18 @@ typedef struct itti_ngap_path_switch_request_failure_s {
   gnb_ue_ngap_id_t gnb_ue_ngap_id : 24;
   amf_ue_ngap_id_t amf_ue_ngap_id;
 } itti_ngap_path_switch_request_failure_t;
+
+typedef struct itti_ngap_pdu_session_resource_modify_request_s {
+  Ngap_Message_Type_t Ngap_Message_Type;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
+  amf_ue_ngap_id_t amf_ue_ngap_id;
+  Ngap_PDUSession_Resource_Modify_Request_List_t pduSessResourceModReqList;
+} itti_ngap_pdu_session_resource_modify_request_t;
+
+typedef struct itti_ngap_pdu_session_resource_modify_response_s {
+  Ngap_Message_Type_t Ngap_Message_Type;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id;
+  amf_ue_ngap_id_t amf_ue_ngap_id;
+  Ngap_PDUSession_Resource_Modify_Response_List_t pduSessResourceModRespList;
+  Ngap_PDUSession_Resource_Failed_To_Modify_List_t pduSessResourceFailedModList;
+} itti_ngap_pdu_session_resource_modify_response_t;

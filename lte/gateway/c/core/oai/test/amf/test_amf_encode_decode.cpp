@@ -38,9 +38,10 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQosFlowParam.h"
 
 using ::testing::Test;
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
@@ -1451,6 +1452,222 @@ TEST(test_optional_pdu, test_pdu_session_accept_optional) {
   sm_free_protocol_configuration_options(&decode_msg_accept_pco);
   // Clean up the PCO contents
   sm_free_protocol_configuration_options(&msg_accept_pco);
+}
+
+TEST(PDU_SESSION_MODIFICATION, PDU_SESSION_MODFICIATION_COMMAND_MSG) {
+  PDUSessionModificationCommand pdu_sess_mod_cmd;
+  PDUSessionModificationCommand decode_pdu_sess_mod_cmd;
+  uint8_t buffer[1024] = {0};
+  uint8_t len          = 64;
+
+  // extended protocol descriminator
+  pdu_sess_mod_cmd.extended_protocol_discriminator
+      .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
+
+  // pdu session identity
+  pdu_sess_mod_cmd.pdu_session_identity.pdu_session_id = 5;
+  // pti
+  pdu_sess_mod_cmd.pti.pti = 0x01;
+  // message type
+  pdu_sess_mod_cmd.message_type.msg_type = PDU_SESSION_MODIFICATION_COMMAND;
+  // session amr
+  pdu_sess_mod_cmd.sessionambr.iei             = 0x2a;
+  pdu_sess_mod_cmd.sessionambr.length          = 6;
+  pdu_sess_mod_cmd.sessionambr.dl_unit         = 4;
+  pdu_sess_mod_cmd.sessionambr.dl_session_ambr = 64;
+  pdu_sess_mod_cmd.sessionambr.ul_unit         = 4;
+  pdu_sess_mod_cmd.sessionambr.ul_session_ambr = 64;
+
+  // qos rules
+  QOSRulesMsg qosrules;
+  qosrules.iei                           = PDU_SESSION_AUTH_QOS_RULES_IE_TYPE;
+  qosrules.length                        = 20;
+  qosrules.qos_rule[0].qos_rule_id       = 2;
+  qosrules.qos_rule[0].len               = 17;
+  qosrules.qos_rule[0].rule_oper_code    = 2;
+  qosrules.qos_rule[0].dqr_bit           = 0;
+  qosrules.qos_rule[0].no_of_pkt_filters = 1;
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_dir = 3;
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].pkt_filter_id  = 1;
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].len            = 12;
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[0]    = {0x10};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[1]    = {0x0a};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[2]    = {0x0a};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[3]    = {0x02};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[4]    = {0x02};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[5]    = {0xff};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[6]    = {0xff};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[7]    = {0xff};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[8]    = {0xff};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[9]    = {0x50};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[10]   = {0x57};
+  qosrules.qos_rule[0].new_qos_rule_pkt_filter[0].contents[11]   = {0x3e};
+  qosrules.qos_rule[0].qos_rule_precedence = 254;
+  qosrules.qos_rule[0].qfi                 = 3;
+  pdu_sess_mod_cmd.authqosrules.push_back(qosrules);
+
+  //  auth qos flow descriptors
+  M5GQosFlowDescription authqosFlows;
+  authqosFlows.iei                  = PDU_SESSION_AUTH_QOS_FLOW_DESC_IE_TYPE;
+  authqosFlows.length               = 26;
+  authqosFlows.qfi                  = 3;
+  authqosFlows.operationCode        = 0x20;
+  authqosFlows.Ebit                 = 2;
+  authqosFlows.numOfParams          = 0x05;
+  authqosFlows.paramList[0].iei     = M5GQosFlowParam::param_id_5qi;
+  authqosFlows.paramList[0].length  = 1;
+  authqosFlows.paramList[0].element = 3;
+  authqosFlows.paramList[1].iei     = M5GQosFlowParam::param_id_gfbr_uplink;
+  authqosFlows.paramList[1].length  = 1;
+  authqosFlows.paramList[1].units   = 1;
+  authqosFlows.paramList[1].element = 100;
+  authqosFlows.paramList[2].iei     = M5GQosFlowParam::param_id_gfbr_downlink;
+  authqosFlows.paramList[2].length  = 1;
+  authqosFlows.paramList[2].units   = 1;
+  authqosFlows.paramList[2].element = 100;
+  authqosFlows.paramList[3].iei     = M5GQosFlowParam::param_id_mfbr_uplink;
+  authqosFlows.paramList[3].length  = 1;
+  authqosFlows.paramList[3].units   = 1;
+  authqosFlows.paramList[3].element = 100;
+  authqosFlows.paramList[4].iei     = M5GQosFlowParam::param_id_mfbr_downlink;
+  authqosFlows.paramList[4].length  = 1;
+  authqosFlows.paramList[4].units   = 1;
+  authqosFlows.paramList[4].element = 100;
+  pdu_sess_mod_cmd.authqosflowdescriptors.push_back(authqosFlows);
+
+  // verify encoding is successful
+  EXPECT_EQ(
+      64, pdu_sess_mod_cmd.EncodePDUSessionModificationCommand(
+              &pdu_sess_mod_cmd, buffer, len));
+  // verify decoding is succesful
+  EXPECT_EQ(
+      64, pdu_sess_mod_cmd.DecodePDUSessionModificationCommand(
+              &decode_pdu_sess_mod_cmd, buffer, len));
+
+  // verify encoded and decoded IE's having same values are not
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.extended_protocol_discriminator
+          .extended_proto_discriminator,
+      decode_pdu_sess_mod_cmd.extended_protocol_discriminator
+          .extended_proto_discriminator);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.pdu_session_identity.pdu_session_id,
+      decode_pdu_sess_mod_cmd.pdu_session_identity.pdu_session_id);
+  EXPECT_EQ(pdu_sess_mod_cmd.pti.pti, decode_pdu_sess_mod_cmd.pti.pti);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.message_type.msg_type,
+      decode_pdu_sess_mod_cmd.message_type.msg_type);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.sessionambr.iei,
+      decode_pdu_sess_mod_cmd.sessionambr.iei);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.sessionambr.length,
+      decode_pdu_sess_mod_cmd.sessionambr.length);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.sessionambr.dl_unit,
+      decode_pdu_sess_mod_cmd.sessionambr.dl_unit);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.sessionambr.dl_session_ambr,
+      decode_pdu_sess_mod_cmd.sessionambr.dl_session_ambr);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.sessionambr.ul_unit,
+      decode_pdu_sess_mod_cmd.sessionambr.ul_unit);
+  EXPECT_EQ(
+      pdu_sess_mod_cmd.sessionambr.ul_session_ambr,
+      decode_pdu_sess_mod_cmd.sessionambr.ul_session_ambr);
+}
+
+// pdu session mdofication complete
+TEST(PDU_SESSION_MODIFICATION, PDU_SESSION_MODFICIATION_COMPLETE_MSG) {
+  PDUSessionModificationComplete pdu_sess_mod_com_encoded;
+  PDUSessionModificationComplete pdu_sess_mod_com_decoded;
+  uint8_t buffer[1024] = {0};
+  uint32_t len         = 4;
+  pdu_sess_mod_com_encoded.extended_protocol_discriminator
+      .extended_proto_discriminator = 0x2e;
+
+  // pdu session identity
+  pdu_sess_mod_com_encoded.pdu_session_identity.pdu_session_id = 5;
+  // pti
+  pdu_sess_mod_com_encoded.pti.pti = 0x01;
+  // message type
+  pdu_sess_mod_com_encoded.message_type.msg_type =
+      PDU_SESSION_MODIFICATION_COMPLETE;
+
+  // verify pdu session modification complete message is encoded
+  EXPECT_EQ(
+      len, pdu_sess_mod_com_encoded.EncodePDUSessionModificationComplete(
+               &pdu_sess_mod_com_encoded, buffer, len));
+  // verify pdu session modification complete message is decoded
+  EXPECT_EQ(
+      len, pdu_sess_mod_com_decoded.DecodePDUSessionModificationComplete(
+               &pdu_sess_mod_com_decoded, buffer, len));
+
+  // verify IE's
+  EXPECT_EQ(
+      pdu_sess_mod_com_encoded.extended_protocol_discriminator
+          .extended_proto_discriminator,
+      pdu_sess_mod_com_decoded.extended_protocol_discriminator
+          .extended_proto_discriminator);
+  EXPECT_EQ(pdu_sess_mod_com_encoded.pti.pti, pdu_sess_mod_com_decoded.pti.pti);
+  EXPECT_EQ(
+      pdu_sess_mod_com_encoded.pdu_session_identity.pdu_session_id,
+      pdu_sess_mod_com_decoded.pdu_session_identity.pdu_session_id);
+  EXPECT_EQ(
+      pdu_sess_mod_com_encoded.message_type.msg_type,
+      pdu_sess_mod_com_decoded.message_type.msg_type);
+}
+// pdu session mdofication command reject
+TEST(PDU_SESSION_MODIFICATION, PDU_SESSION_MODFICIATION_COMMAND_REJ) {
+  PDUSessionModificationCommandReject pdu_sess_mod_com_rej_encoded;
+  PDUSessionModificationCommandReject pdu_sess_mod_com_rej_decoded;
+  uint8_t buffer[1024] = {0};
+  uint32_t len         = 6;
+  pdu_sess_mod_com_rej_encoded.extended_protocol_discriminator
+      .extended_proto_discriminator = 0x2e;
+
+  // pdu session identity
+  pdu_sess_mod_com_rej_encoded.pdu_session_identity.pdu_session_id = 5;
+  // pti
+  pdu_sess_mod_com_rej_encoded.pti.pti = 0x01;
+  // message type
+  pdu_sess_mod_com_rej_encoded.message_type.msg_type =
+      PDU_SESSION_MODIFICATION_COMMAND_REJECT;
+  pdu_sess_mod_com_rej_encoded.cause.iei         = M5GSM_CAUSE;
+  pdu_sess_mod_com_rej_encoded.cause.cause_value = M5GSM_CAUSE;
+
+  // verify pdu session modification complete message is encoded
+  EXPECT_EQ(
+      len,
+      pdu_sess_mod_com_rej_encoded.EncodePDUSessionModificationCommandReject(
+          &pdu_sess_mod_com_rej_encoded, buffer, len));
+  // verify pdu session modification complete message is decoded
+  EXPECT_EQ(
+      len,
+      pdu_sess_mod_com_rej_decoded.DecodePDUSessionModificationCommandReject(
+          &pdu_sess_mod_com_rej_decoded, buffer, len));
+
+  // verify IE's
+  EXPECT_EQ(
+      pdu_sess_mod_com_rej_encoded.extended_protocol_discriminator
+          .extended_proto_discriminator,
+      pdu_sess_mod_com_rej_decoded.extended_protocol_discriminator
+          .extended_proto_discriminator);
+  EXPECT_EQ(
+      pdu_sess_mod_com_rej_encoded.pti.pti,
+      pdu_sess_mod_com_rej_decoded.pti.pti);
+  EXPECT_EQ(
+      pdu_sess_mod_com_rej_encoded.pdu_session_identity.pdu_session_id,
+      pdu_sess_mod_com_rej_decoded.pdu_session_identity.pdu_session_id);
+  EXPECT_EQ(
+      pdu_sess_mod_com_rej_encoded.message_type.msg_type,
+      pdu_sess_mod_com_rej_decoded.message_type.msg_type);
+  EXPECT_EQ(
+      pdu_sess_mod_com_rej_encoded.cause.iei,
+      pdu_sess_mod_com_rej_decoded.cause.iei);
+  EXPECT_EQ(
+      pdu_sess_mod_com_rej_encoded.cause.cause_value,
+      pdu_sess_mod_com_rej_decoded.cause.cause_value);
 }
 
 }  // namespace magma5g

@@ -81,3 +81,12 @@ MESSAGE_DEF(
 MESSAGE_DEF(
     NGAP_INITIAL_CONTEXT_SETUP_REQ, Ngap_initial_context_setup_request_t,
     ngap_initial_context_setup_req)
+
+MESSAGE_DEF(
+    NGAP_PDU_SESSION_RESOURCE_MODIFY_RSP,
+    itti_ngap_pdu_session_resource_modify_response_t,
+    ngap_pdu_sessionresource_modify_rsp)
+MESSAGE_DEF(
+    NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ,
+    itti_ngap_pdu_session_resource_modify_request_t,
+    ngap_pdu_session_resource_modify_req)
