@@ -131,8 +131,6 @@ resource "aws_db_instance" "default" {
     engine_version_actual                 = "12.8"
 ```
 
-> **_NOTE:_** If running terraform init --upgrade again in the future and the Magma version is 1.6 (Glacier Peak) or older, the `orc8r_db_apply_immediately = "false"` needs to be removed from the main.tf else Terraform will raise errors.
-
 ## Backout
 
 * If for some reason the DB upgrades fail, please [_restore_](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_RestoreFromSnapshot.html) your database from the snapshot created in the prerequisites section.
