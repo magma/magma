@@ -17,20 +17,19 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-// RegistrationService is public for ease of testing
+// RegistrationService is public for ease of testing and mocking out functions
 type RegistrationService struct{
 	GetGatewayDeviceInfo func(ctx context.Context, token string) (*protos.GatewayDeviceInfo, error)
 	RegisterDevice func(deviceInfo protos.GatewayDeviceInfo, hwid *protos.AccessGatewayID, challengeKey *protos.ChallengeKey) error
 	GetControlProxy func(networkID string) (string, error)
 }
 
-// TODO REMOVE ERROR
-func NewRegistrationServicer() (protos.RegistrationServer, error) {
+func NewRegistrationServicer() (protos.RegistrationServer) {
 	return &RegistrationService{
 		GetGatewayDeviceInfo: bootstrapper.GetGatewayDeviceInfo,
 		RegisterDevice: RegisterDevice,
 		GetControlProxy: GetControlProxy,
-	}, nil
+	}
 }
 
 func (r *RegistrationService) Register(c context.Context, request *protos.RegisterRequest) (*protos.RegisterResponse, error) {

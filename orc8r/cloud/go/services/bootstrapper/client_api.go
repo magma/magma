@@ -25,7 +25,7 @@ import (
 	"magma/orc8r/lib/go/registry"
 )
 
-var GetToken = func(ctx context.Context, networkID string, logicalID string, refresh bool) (string, error) {
+func GetToken(ctx context.Context, networkID string, logicalID string, refresh bool) (string, error) {
 	client, err := getCloudRegistrationClient()
 	if err != nil {
 		return "", err
