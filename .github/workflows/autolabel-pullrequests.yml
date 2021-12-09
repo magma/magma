@@ -42,13 +42,12 @@ jobs:
         with:
           script: |
             let fs = require('fs');
-
             console.log("PWD:" + process.cwd());
             let codeownersBuf = fs.readFileSync('./CODEOWNERS', {encoding: 'utf8'});
             console.log("CODEOWNERS file contents:" + codeownersBuf);
             const records = codeOwnersBuf.split(/[\r\n]+/);
             for( const rec of records ) {
-              if (not rec.startsWith("/")) { continue; }
+              if (! rec.startsWith("/")) { continue; }
               const tokens = rec.split(" ");
               for( const token of tokens ) {
                 if(token.startsWith("/"))  {
