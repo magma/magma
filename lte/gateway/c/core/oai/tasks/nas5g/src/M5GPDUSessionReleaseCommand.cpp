@@ -34,7 +34,7 @@ int PDUSessionReleaseCommandMsg::EncodePDUSessionReleaseCommandMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, PDU_SESSION_RELEASE_COMMAND_MIN_LEN, len);
 
-  MLOG(MDEBUG) << "EncodePDUSessionReleaseCommandMsg : \n";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding PDUSessionReleaseCommand Message");
   if ((encoded_result =
            pdu_session_release_command->extended_protocol_discriminator
                .EncodeExtendedProtocolDiscriminatorMsg(

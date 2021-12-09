@@ -23,21 +23,19 @@ GPRSTimer2Msg::~GPRSTimer2Msg(){};
 int GPRSTimer2Msg::DecodeGPRSTimer2Msg(GPRSTimer2Msg* gprstimer, uint8_t iei,
                                        uint8_t* buffer, uint32_t len) {
   int decoded = 0;
-
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding GPRS Timer2");
   if (iei > 0) {
     gprstimer->iei = *buffer;
-    MLOG(MDEBUG) << "DecodeGPRSTimer2Msg: iei = " << std::hex
-                 << int(gprstimer->iei);
+    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(gprstimer->iei));
     decoded++;
 
     gprstimer->len = *(buffer + decoded);
-    MLOG(MDEBUG) << "DecodeGPRSTimer2Msg: len = " << std::hex
-                 << int(gprstimer->len);
+    OAILOG_DEBUG(LOG_NAS5G, "Length : %X", static_cast<int>(gprstimer->len));
     decoded++;
 
     gprstimer->timervalue = *(buffer + decoded);
-    MLOG(MDEBUG) << "DecodeGPRSTimer2Msg: timervalue = " << std::hex
-                 << int(gprstimer->timervalue);
+    OAILOG_DEBUG(
+        LOG_NAS5G, "Timer Value : %X", static_cast<int>(gprstimer->timervalue));
     decoded++;
   }
 

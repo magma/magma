@@ -36,19 +36,19 @@ int ABBAMsg::EncodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer,
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, ABBA_MIN_LEN, len);
 
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding ABBA");
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char)iei, abba->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeABBAMsg: iei" << std::hex << int(*buffer);
+    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", *buffer);
     encoded++;
   }
 
-  MLOG(MDEBUG) << " EncodeABBAMsg : ";
   lenPtr = buffer + encoded;
   encoded++;
   memcpy(buffer + encoded, abba->contents, ABBA_MIN_LEN);
-  MLOG(MDEBUG) << "   ABBA Contents : ";
-  BUFFER_PRINT_LOG(buffer + encoded, ABBA_MIN_LEN);
+  OAILOG_DEBUG(LOG_NAS5G, "ABBA Contents : ");
+  BUFFER_PRINT_OAILOG(buffer + encoded, ABBA_MIN_LEN);
   encoded = encoded + ABBA_MIN_LEN;
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
 

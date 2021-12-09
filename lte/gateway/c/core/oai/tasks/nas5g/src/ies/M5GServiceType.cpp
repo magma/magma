@@ -25,9 +25,11 @@ int ServiceTypeMsg::DecodeServiceTypeMsg(ServiceTypeMsg* svc_type, uint8_t iei,
                                          uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding Service Type");
   svc_type->service_type_value = ((*buffer & 0xf0) >> 4);
-  MLOG(MDEBUG) << "DecodeServiceTypeMsg__: service_type_value = " << std::hex
-               << int(svc_type->service_type_value) << std::endl;
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Service Type Value : %X",
+      static_cast<int>(svc_type->service_type_value));
 
   return (decoded);
 };
@@ -37,9 +39,9 @@ int ServiceTypeMsg::EncodeServiceTypeMsg(ServiceTypeMsg* svc_type, uint8_t iei,
                                          uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding Service Type");
   *buffer = svc_type->service_type_value & 0x0f;
-  MLOG(MDEBUG) << "DecodeServiceTypeMsg__: service_type_value = " << std::hex
-               << int(*buffer) << std::endl;
+  OAILOG_DEBUG(LOG_NAS5G, "Service Type Value : %X", static_cast<int>(*buffer));
   encoded++;
 
   return (encoded);

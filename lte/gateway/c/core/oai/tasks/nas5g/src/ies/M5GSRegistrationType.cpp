@@ -26,6 +26,7 @@ int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(
     uint32_t len) {
   int decoded = 0;
 
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding RegistrationType");
   // CHECKING IEI
   if (iei > 0) {
     CHECK_IEI_DECODER((*buffer & 0xf0), iei);
@@ -33,8 +34,10 @@ int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(
 
   m5gs_reg_type->FOR = (*(buffer + decoded) >> 3) & 0x1;
   m5gs_reg_type->type_val = *(buffer + decoded) & 0x7;
-  MLOG(MDEBUG) << " FOR = 0x" << std::hex << int(m5gs_reg_type->FOR);
-  MLOG(MDEBUG) << " type_val = 0x" << std::hex << int(m5gs_reg_type->type_val);
+  OAILOG_DEBUG(LOG_NAS5G, "FOR : 0x%X", static_cast<int>(m5gs_reg_type->FOR));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Type Value : 0x%X",
+      static_cast<int>(m5gs_reg_type->type_val));
   return decoded;
 };
 

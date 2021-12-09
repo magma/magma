@@ -44,22 +44,24 @@ int M5GUplinkDataStatus::DecodeUplinkDataStatus(
     uint32_t len) {
   int decoded = 0;
 
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding UplinkDataStatus");
   if (iei > 0) {
     uplinkDataStatus->iei = *buffer;
-    MLOG(MDEBUG) << "DecodeUplinkDataStatus: iei = " << std::hex
-                 << int(uplinkDataStatus->iei);
+    OAILOG_DEBUG(
+        LOG_NAS5G, "IEI : %X", static_cast<int>(uplinkDataStatus->iei));
     decoded++;
 
     uplinkDataStatus->len = *(buffer + decoded);
-    MLOG(MDEBUG) << "In DecodeUplinkDataStatus: len = " << std::hex
-                 << int(uplinkDataStatus->len);
+    OAILOG_DEBUG(
+        LOG_NAS5G, "Length : %X", static_cast<int>(uplinkDataStatus->len));
     decoded++;
 
     uplinkDataStatus->uplinkDataStatus = *(buffer + decoded);
     decoded++;
     uplinkDataStatus->uplinkDataStatus |= (*(buffer + decoded) << 8);
-    MLOG(MDEBUG) << "In DecodeUplinkDataStatus: uplinkDataStatus = " << std::hex
-                 << int(uplinkDataStatus->uplinkDataStatus);
+    OAILOG_DEBUG(
+        LOG_NAS5G, "uplinkDataStatus : %X",
+        static_cast<int>(uplinkDataStatus->uplinkDataStatus));
     decoded++;
   }
 

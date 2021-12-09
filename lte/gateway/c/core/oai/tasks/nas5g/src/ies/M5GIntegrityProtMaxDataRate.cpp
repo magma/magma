@@ -24,15 +24,17 @@ int IntegrityProtMaxDataRateMsg::DecodeIntegrityProtMaxDataRateMsg(
     uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
 
-  MLOG(MDEBUG) << "   DecodeIntegrityProtMaxDataRateMsg : ";
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding IntegrityProtMaxDataRateMsg");
   integrity_prot_max_data_rate->max_uplink = *(buffer + decoded);
   decoded++;
   integrity_prot_max_data_rate->max_downlink = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " max_uplink = " << std::dec
-               << int(integrity_prot_max_data_rate->max_uplink);
-  MLOG(MDEBUG) << " max_downlink = " << std::dec
-               << int(integrity_prot_max_data_rate->max_downlink);
+  OAILOG_DEBUG(
+      LOG_NAS5G, "max_uplink : %d ",
+      static_cast<int>(integrity_prot_max_data_rate->max_uplink));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "max_downlink : %d ",
+      static_cast<int>(integrity_prot_max_data_rate->max_downlink));
   return (decoded);
 };
 
@@ -42,14 +44,16 @@ int IntegrityProtMaxDataRateMsg::EncodeIntegrityProtMaxDataRateMsg(
     uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
-  MLOG(MDEBUG) << " EncodeIntegrityProtMaxDataRateMsg : ";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding IntegrityProtMaxDataRateMsg");
   *(buffer + encoded) = integrity_prot_max_data_rate->max_uplink;
-  MLOG(MDEBUG) << " max_uplink =0x" << std::hex
-               << int(integrity_prot_max_data_rate->max_uplink);
+  OAILOG_DEBUG(
+      LOG_NAS5G, "max_uplink =0x%X",
+      static_cast<int>(integrity_prot_max_data_rate->max_uplink));
   encoded++;
   *(buffer + encoded) = integrity_prot_max_data_rate->max_downlink;
-  MLOG(MDEBUG) << " max_downlink =0x" << std::hex
-               << int(integrity_prot_max_data_rate->max_downlink);
+  OAILOG_DEBUG(
+      LOG_NAS5G, "max_downlink =0x%X",
+      static_cast<int>(integrity_prot_max_data_rate->max_downlink));
   encoded++;
   return (encoded);
 };

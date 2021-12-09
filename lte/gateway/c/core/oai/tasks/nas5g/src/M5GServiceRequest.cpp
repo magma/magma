@@ -30,6 +30,7 @@ int ServiceRequestMsg::DecodeServiceRequestMsg(ServiceRequestMsg* svc_req,
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, SERVICE_REQUEST_MINIMUM_LENGTH,
                                        len);
 
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding ServiceRequest message");
   if ((decoded_result = svc_req->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
                                 &svc_req->extended_protocol_discriminator, 0,

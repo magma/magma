@@ -24,13 +24,20 @@ int GPRSTimer3Msg::DecodeGPRSTimer3Msg(GPRSTimer3Msg* gprstimer, uint8_t iei,
                                        uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding GPRSTimer3");
   if (iei > 0) {
     CHECK_IEI_DECODER(iei, *buffer);
+    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(iei));
     decoded++;
   }
 
   gprstimer->unit = (*(buffer + decoded) >> 5) & 0x7;
+  OAILOG_DEBUG(
+      LOG_NAS5G, "GPRSTimer3 UNIT : %d", static_cast<int>(gprstimer->unit));
   gprstimer->timervalue = *(buffer + decoded) & 0x1f;
+  OAILOG_DEBUG(
+      LOG_NAS5G, "GPRSTimer3 Value : %d",
+      static_cast<int>(gprstimer->timervalue));
   decoded++;
   return decoded;
 };
@@ -44,8 +51,10 @@ int GPRSTimer3Msg::EncodeGPRSTimer3Msg(GPRSTimer3Msg* gprstimer, uint8_t iei,
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, GPRS_TIMER3_MINIMUM_LENGTH, len);
 
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding GPRSTimer3");
   if (iei > 0) {
     *buffer = iei;
+    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(*buffer));
     encoded++;
   }
 
@@ -53,6 +62,9 @@ int GPRSTimer3Msg::EncodeGPRSTimer3Msg(GPRSTimer3Msg* gprstimer, uint8_t iei,
   encoded++;
   *(buffer + encoded) =
       0x00 | ((gprstimer->unit & 0x7) << 5) | (gprstimer->timervalue & 0x1f);
+  OAILOG_DEBUG(
+      LOG_NAS5G, "[GPRSTimer3 UNIT, GPRSTimer3 Value] : %X",
+      static_cast<int>(*buffer + encoded));
   encoded++;
   return encoded;
 };

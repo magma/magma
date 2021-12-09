@@ -26,10 +26,12 @@ int PayloadContainerTypeMsg::DecodePayloadContainerTypeMsg(
     uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding PayloadContainerType");
   payload_container_type->type_val = (*buffer & 0x0f);
   decoded++;
-  MLOG(MDEBUG) << "DecodePayloadContainerTypeMsg__: type_val = " << std::hex
-               << int(payload_container_type->type_val) << std::endl;
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Type Value : %X",
+      static_cast<int>(payload_container_type->type_val));
 
   return (decoded);
 };
@@ -40,9 +42,9 @@ int PayloadContainerTypeMsg::EncodePayloadContainerTypeMsg(
     uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding PayloadContainerType");
   *buffer = payload_container_type->type_val & 0x0f;
-  MLOG(MDEBUG) << "DecodePayloadContainerTypeMsg__: type_val = " << std::hex
-               << int(*buffer) << std::endl;
+  OAILOG_DEBUG(LOG_NAS5G, "Type Value : %X", static_cast<int>(*buffer));
   encoded++;
 
   return (encoded);

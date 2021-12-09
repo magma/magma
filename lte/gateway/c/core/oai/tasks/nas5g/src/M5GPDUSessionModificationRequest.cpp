@@ -26,7 +26,7 @@ int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, PDU_SESSION_MODIFICATION_REQ_MIN_LEN, len);
 
-  MLOG(MDEBUG) << "DecodePDUSessionModificationRequestMsg\n";
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding PDUSessionModificationRequest Message");
   if ((decoded_result =
            pdu_session_modif_request->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -64,7 +64,6 @@ int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(
 int PDUSessionModificationRequestMsg::EncodePDUSessionModificationRequestMsg(
     PDUSessionModificationRequestMsg* pdu_session_modif_request,
     uint8_t* buffer, uint32_t len) {
-  MLOG(MDEBUG) << "EncodePDUSessionModificationRequestMsg\n";
   // Not yet implemented, Will be supported POST MVC.
   return 0;
 }

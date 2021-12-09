@@ -25,6 +25,7 @@ int RegistrationRejectMsg::DecodeRegistrationRejectMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
                                        REGISTRATION_REJECT_MINIMUM_LENGTH, len);
 
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding RegistrationReject message");
   if ((decoded_result = reg_reject->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
                                 &reg_reject->extended_protocol_discriminator, 0,
@@ -66,6 +67,7 @@ int RegistrationRejectMsg::EncodeRegistrationRejectMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
                                        REGISTRATION_REJECT_MINIMUM_LENGTH, len);
 
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding RegistrationReject message");
   if ((encoded_result = reg_reject->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(
                                 &reg_reject->extended_protocol_discriminator, 0,

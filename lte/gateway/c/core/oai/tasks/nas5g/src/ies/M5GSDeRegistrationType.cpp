@@ -24,15 +24,15 @@ int M5GSDeRegistrationTypeMsg::DecodeM5GSDeRegistrationTypeMsg(
     uint32_t len) {
   uint8_t decoded = 0;
 
-  de_reg_type->switchoff = (*(buffer + decoded) >> 3) & 0x01;
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding DeRegistrationType");
+  de_reg_type->switchoff       = (*(buffer + decoded) >> 3) & 0x01;
   de_reg_type->re_reg_required = (*(buffer + decoded) >> 2) & 0x01;
-  de_reg_type->access_type = *(buffer + decoded) & 0x03;
-  MLOG(MDEBUG) << "DecodeM5GSDe-RegistrationType : \n   switchoff = "
-               << std::hex << int(de_reg_type->switchoff);
-  MLOG(MDEBUG) << "   re_reg_required = " << std::hex
-               << int(de_reg_type->re_reg_required);
-  MLOG(MDEBUG) << "   access_type = " << std::hex
-               << int(de_reg_type->access_type);
+  de_reg_type->access_type     = *(buffer + decoded) & 0x03;
+  OAILOG_DEBUG(
+      LOG_NAS5G, "SwitchOFF : %X, ReRegistrationRequired : %X, AccessType : %X",
+      static_cast<int>(de_reg_type->switchoff),
+      static_cast<int>(de_reg_type->re_reg_required),
+      static_cast<int>(de_reg_type->access_type));
   return (decoded);
 };
 
@@ -41,12 +41,14 @@ int M5GSDeRegistrationTypeMsg::EncodeM5GSDeRegistrationTypeMsg(
     uint32_t len) {
   uint8_t encoded = 0;
 
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding DeRegistrationType");
   *(buffer + encoded) = 0x00 | ((de_reg_type->switchoff << 3) & 0x08) |
                         ((de_reg_type->re_reg_required << 2) & 0x04) |
                         (de_reg_type->access_type & 0x03);
   encoded++;
-  MLOG(MDEBUG) << "In EncodeM5GSDeRegistrationTypeMsg___: DeRegistrationType= "
-               << std::hex << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "De-RegistrationType : %X",
+      static_cast<int>(*(buffer + encoded)));
   return (encoded);
 };
 }  // namespace magma5g

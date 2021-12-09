@@ -39,12 +39,12 @@ int M5GSMobileIdentityMsg::DecodeGutiMobileIdentityMsg(
   int decoded = 0;
   uint16_t setid;
 
-  MLOG(MDEBUG) << " --- Guti Mobile Identity \n";
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding GUTI Mobile Identity");
   guti->spare = (*(buffer + decoded) >> 4) & 0xf;
 
   // For the GUTI, bits 5 to 8 of octet 3 are coded as "1111"
   if (guti->spare != 0xf) {
-    MLOG(MERROR) << "Error: " << std::dec << TLV_VALUE_DOESNT_MATCH;
+    OAILOG_ERROR(LOG_NAS5G, "Error: %d", TLV_VALUE_DOESNT_MATCH);
     return (TLV_VALUE_DOESNT_MATCH);
   }
 
@@ -52,7 +52,7 @@ int M5GSMobileIdentityMsg::DecodeGutiMobileIdentityMsg(
   guti->type_of_identity = *(buffer + decoded) & 0x7;
 
   if (guti->type_of_identity != M5GSMobileIdentityMsg_GUTI) {
-    MLOG(MERROR) << "Error: " << std::dec << TLV_VALUE_DOESNT_MATCH;
+    OAILOG_ERROR(LOG_NAS5G, "Error: %d", TLV_VALUE_DOESNT_MATCH);
     return (TLV_VALUE_DOESNT_MATCH);
   }
 
@@ -82,24 +82,25 @@ int M5GSMobileIdentityMsg::DecodeGutiMobileIdentityMsg(
   decoded++;
   guti->tmsi4 = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << "   Odd/Even Indication = " << std::dec << int(guti->odd_even)
-               << "\n";
-  MLOG(MDEBUG) << "   Mobile Country Code (MCC) = " << std::dec
-               << int(guti->mcc_digit1) << std::dec << int(guti->mcc_digit2)
-               << std::dec << int(guti->mcc_digit3) << "\n";
-  MLOG(MDEBUG) << "   Mobile Network Code (MNC) = " << std::dec
-               << int(guti->mnc_digit1) << std::dec << int(guti->mnc_digit2)
-               << std::dec << int(guti->mnc_digit3) << "\n";
-  MLOG(MDEBUG) << "   Amf Region ID = " << std::dec << int(guti->amf_regionid)
-               << "\n";
-  MLOG(MDEBUG) << "   Amf Set ID = " << std::dec << int(guti->amf_setid)
-               << "\n";
-  MLOG(MDEBUG) << "   Amf Pointer = " << std::dec << int(guti->amf_pointer)
-               << "\n";
-  MLOG(MDEUBG) << "   M5G-TMSI = "
-               << "0x0" << std::hex << int(guti->tmsi1) << "0" << std::hex
-               << int(guti->tmsi2) << "0" << std::hex << int(guti->tmsi3) << "0"
-               << std::hex << int(guti->tmsi4) << "\n\n";
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Odd/Even Indication : %d", static_cast<int>(guti->odd_even));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Mobile Country Code (MCC) : %d%d%d",
+      static_cast<int>(guti->mcc_digit1), static_cast<int>(guti->mcc_digit2),
+      static_cast<int>(guti->mcc_digit3));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Mobile Network Code (MNC) : %d%d%d",
+      static_cast<int>(guti->mnc_digit1), static_cast<int>(guti->mnc_digit2),
+      static_cast<int>(guti->mnc_digit3));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Amf Region ID : %d", static_cast<int>(guti->amf_regionid));
+  OAILOG_DEBUG(LOG_NAS5G, "Amf Set ID : %d", static_cast<int>(guti->amf_setid));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Amf Pointer : %d", static_cast<int>(guti->amf_pointer));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "M5G-TMSI = 0x%X%X%X%X", static_cast<int>(guti->tmsi1),
+      static_cast<int>(guti->tmsi2), static_cast<int>(guti->tmsi3),
+      static_cast<int>(guti->tmsi4));
   return (decoded);
 }
 
@@ -108,12 +109,11 @@ int M5GSMobileIdentityMsg::DecodeImeiMobileIdentityMsg(
     ImeiM5GSMobileIdentity* imei, uint8_t* buffer, uint8_t ielen) {
   int decoded = 0;
 
-  MLOG(MDEBUG) << "         DecodeImeiMobileIdentityMsg : "
-               << "\n";
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding IMEI MobileIdentity");
   imei->identity_digit1 = (*(buffer + decoded) >> 4) & 0xf;
 
   if (imei->identity_digit1 != 0xf) {
-    MLOG(MERROR) << "Error: " << std::hex << TLV_VALUE_DOESNT_MATCH;
+    OAILOG_ERROR(LOG_NAS5G, "Error : %d", TLV_VALUE_DOESNT_MATCH);
     return (TLV_VALUE_DOESNT_MATCH);
   }
 
@@ -121,7 +121,7 @@ int M5GSMobileIdentityMsg::DecodeImeiMobileIdentityMsg(
   imei->type_of_identity = *(buffer + decoded) & 0x7;
 
   if (imei->type_of_identity != M5GSMobileIdentityMsg_IMEI) {
-    MLOG(MERROR) << "Error: " << std::dec << TLV_VALUE_DOESNT_MATCH;
+    OAILOG_ERROR(LOG_NAS5G, "Error : %d", TLV_VALUE_DOESNT_MATCH);
     return (TLV_VALUE_DOESNT_MATCH);
   }
 
@@ -129,13 +129,13 @@ int M5GSMobileIdentityMsg::DecodeImeiMobileIdentityMsg(
   imei->identity_digit3 = (*(buffer + decoded) >> 4) & 0xf;
   imei->identity_digit2 = *(buffer + decoded) & 0xf;
   decoded++;
-  MLOG(MDEBUG) << "  odd_even = " << std::hex << int(imei->odd_even) << "\n";
-  MLOG(MDEBUG) << "  digit1 = " << std::hex << int(imei->identity_digit1)
-               << "\n";
-  MLOG(MDEBUG) << "  digit2 = " << std::hex << int(imei->identity_digit2)
-               << "\n";
-  MLOG(MDEBUG) << "  digit3 = " << std::hex << int(imei->identity_digit3)
-               << "\n";
+  OAILOG_DEBUG(LOG_NAS5G, "ODD/EVEN : %X", static_cast<int>(imei->odd_even));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Digit1 : %X", static_cast<int>(imei->identity_digit1));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Digit2 : %X", static_cast<int>(imei->identity_digit2));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Digit3 : %X", static_cast<int>(imei->identity_digit3));
 
   return (decoded);
 };
@@ -145,14 +145,14 @@ int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
     ImsiM5GSMobileIdentity* imsi, uint8_t* buffer, uint8_t ielen) {
   int decoded = 0;
 
-  MLOG(MDEBUG) << " DecodeImsiMobileIdentityMsg:";
-  imsi->spare2 = (*(buffer + decoded) >> 7) & 0x1;
-  imsi->supi_format = (*(buffer + decoded) >> 4) & 0x7;
-  imsi->spare1 = (*(buffer + decoded) >> 3) & 0x1;
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding IMSI MobileIdentity");
+  imsi->spare2           = (*(buffer + decoded) >> 7) & 0x1;
+  imsi->supi_format      = (*(buffer + decoded) >> 4) & 0x7;
+  imsi->spare1           = (*(buffer + decoded) >> 3) & 0x1;
   imsi->type_of_identity = *(buffer + decoded) & 0x7;
 
   if (imsi->type_of_identity != M5GSMobileIdentityMsg_SUCI_IMSI) {
-    MLOG(MERROR) << "Error: " << std::hex << TLV_VALUE_DOESNT_MATCH;
+    OAILOG_ERROR(LOG_NAS5G, "Error : %d", TLV_VALUE_DOESNT_MATCH);
     return (TLV_VALUE_DOESNT_MATCH);
   }
 
@@ -192,13 +192,14 @@ int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
   imsi->home_nw_id = *(buffer + decoded);
   decoded++;
 
-  MLOG(MDEBUG) << "Length :  " << int(ielen);
+  OAILOG_DEBUG(LOG_NAS5G, "Length :  %d", static_cast<int>(ielen));
   memcpy(&imsi->scheme_output, buffer + decoded, ielen - decoded);
 
   if ((imsi->type_of_identity == M5GSMobileIdentityMsg_SUCI_IMSI) &&
       (imsi->protect_schm_id != 0)) {
-    MLOG(MDEBUG) << "  SUCI Registration is enabled with protect_schm_id= "
-                 << std::hex << int(imsi->protect_schm_id);
+    OAILOG_DEBUG(
+        LOG_NAS5G, "SUCI Registration is enabled with protect_schm_id : %X",
+        static_cast<int>(imsi->protect_schm_id));
     if (imsi->protect_schm_id == PROFILE_A) {
       memcpy(&imsi->empheral_public_key, buffer + decoded,
              EPHEMERAL_PUBLIC_KEY_LENGTH);
@@ -248,15 +249,14 @@ int M5GSMobileIdentityMsg::DecodeSuciMobileIdentityMsg(
     SuciM5GSMobileIdentity* suci, uint8_t* buffer, uint8_t ielen) {
   int decoded = 0;
 
-  MLOG(MDEBUG) << "         DecodeSuciMobileIdentityMsg:"
-               << "\n";
-  suci->spare2 = (*(buffer + decoded) >> 7) & 0x1;
-  suci->supi_format = (*(buffer + decoded) >> 4) & 0x7;
-  suci->spare1 = (*(buffer + decoded) >> 3) & 0x1;
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding SUCI MobileIdentity");
+  suci->spare2           = (*(buffer + decoded) >> 7) & 0x1;
+  suci->supi_format      = (*(buffer + decoded) >> 4) & 0x7;
+  suci->spare1           = (*(buffer + decoded) >> 3) & 0x1;
   suci->type_of_identity = *(buffer + decoded) & 0x7;
 
   if (suci->type_of_identity != M5GSMobileIdentityMsg_IMEISV) {
-    MLOG(MDEBUG) << "TLV_VALUE_DOESNT_MATCH error";
+    OAILOG_DEBUG(LOG_NAS5G, "TLV_VALUE_DOESNT_MATCH error");
     return (TLV_VALUE_DOESNT_MATCH);
   }
   decoded++;
@@ -274,12 +274,12 @@ int M5GSMobileIdentityMsg::DecodeTmsiMobileIdentityMsg(
     TmsiM5GSMobileIdentity* tmsi, uint8_t* buffer, uint8_t ielen) {
   int decoded = 0;
 
-  MLOG(MDEBUG) << "         DecodeTmsiMobileIdentityMsg:"
-               << "\n";
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding TMSI MobileIdentity");
   tmsi->spare = (*(buffer + decoded) >> 4) & 0xf;
 
   if (tmsi->spare != 0xf) {
-    MLOG(MDEBUG) << "Error: " << int(TLV_VALUE_DOESNT_MATCH);
+    OAILOG_ERROR(
+        LOG_NAS5G, "Error : %d", static_cast<int>(TLV_VALUE_DOESNT_MATCH));
     return (TLV_VALUE_DOESNT_MATCH);
   }
 
@@ -287,7 +287,8 @@ int M5GSMobileIdentityMsg::DecodeTmsiMobileIdentityMsg(
   tmsi->type_of_identity = *(buffer + decoded) & 0x7;
 
   if (tmsi->type_of_identity != M5GSMobileIdentityMsg_TMSI) {
-    MLOG(MDEBUG) << "Error: " << int(TLV_VALUE_DOESNT_MATCH);
+    OAILOG_ERROR(
+        LOG_NAS5G, "Error : %d", static_cast<int>(TLV_VALUE_DOESNT_MATCH));
     return (TLV_VALUE_DOESNT_MATCH);
   }
   decoded++;
@@ -299,32 +300,20 @@ int M5GSMobileIdentityMsg::DecodeTmsiMobileIdentityMsg(
   tmsi->amf_pointer = *(buffer + decoded) & 0x3f;
   decoded++;
   memcpy(&tmsi->m5g_tmsi, buffer + decoded, ielen - decoded);
-#if 0
-  tmsi->m5g_tmsi_1 = *(buffer + decoded);
-  decoded++;
-  tmsi->m5g_tmsi_2 = *(buffer + decoded);
-  decoded++;
-  tmsi->m5g_tmsi_3 = *(buffer + decoded);
-  decoded++;
-  tmsi->m5g_tmsi_4 = *(buffer + decoded);
-  decoded++;
-#endif
+
   int tmp = ielen - decoded;
   decoded = ielen;
-  MLOG(MDEBUG) << "  spare2 = " << std::dec << int(tmsi->spare);
-  MLOG(MDEBUG) << "  odd_even = " << std::dec << int(tmsi->odd_even);
-  MLOG(MDEBUG) << "  type_of_identity = " << std::dec
-               << int(tmsi->type_of_identity);
-  MLOG(MDEBUG) << "  amf_setid = " << std::dec << int(tmsi->amf_setid);
-  MLOG(MDEBUG) << "  amf_pointer = " << std::dec << int(tmsi->amf_pointer);
-  MLOG(MDEBUG) << "  M5G TMSI = ";
-  BUFFER_PRINT_LOG(tmsi->m5g_tmsi, tmp)
-#if 0
-  MLOG(MDEBUG) << "  m5g_tmsi_1 = " << std::dec << int(tmsi->m5g_tmsi_1);
-  MLOG(MDEBUG) << "  m5g_tmsi_2 = " << std::dec << int(tmsi->m5g_tmsi_2);
-  MLOG(MDEBUG) << "  m5g_tmsi_3 = " << std::dec << int(tmsi->m5g_tmsi_3);
-  MLOG(MDEBUG) << "  m5g_tmsi_4 = " << std::dec << int(tmsi->m5g_tmsi_4);
-#endif
+  OAILOG_DEBUG(LOG_NAS5G, "spare2 : %d", static_cast<int>(tmsi->spare));
+  OAILOG_DEBUG(LOG_NAS5G, "odd/even : %d", static_cast<int>(tmsi->odd_even));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Type of identity : %d",
+      static_cast<int>(tmsi->type_of_identity));
+  OAILOG_DEBUG(LOG_NAS5G, "AMF setid : %d", static_cast<int>(tmsi->amf_setid));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "AMF pointer : %d", static_cast<int>(tmsi->amf_pointer));
+  OAILOG_DEBUG(LOG_NAS5G, "M5G TMSI :");
+  BUFFER_PRINT_OAILOG(tmsi->m5g_tmsi, tmp)
+
   return (decoded);
 };
 
@@ -336,7 +325,7 @@ int M5GSMobileIdentityMsg::DecodeM5GSMobileIdentityMsg(
   int decoded = 0;
   uint16_t ielen = 0;
 
-  MLOG(MDEBUG) << "M5GS Mobile Identity : ";
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding M5GS Mobile Identity");
   if (iei > 0) {
     CHECK_IEI_DECODER(iei, (unsigned char)*buffer);
     decoded++;
@@ -345,33 +334,34 @@ int M5GSMobileIdentityMsg::DecodeM5GSMobileIdentityMsg(
   IES_DECODE_U16(buffer, decoded, ielen);
   CHECK_LENGTH_DECODER(len - decoded, ielen);
   unsigned char type_of_identity = *(buffer + decoded) & 0x7;
-  MLOG(MDEBUG) << " Length = " << std::dec << int(ielen)
-               << " Type of Identity = " << std::dec << int(type_of_identity);
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Length : %d, Type of Identity : %d", static_cast<int>(ielen),
+      static_cast<int>(type_of_identity));
 
   if (type_of_identity == M5GSMobileIdentityMsg_IMEISV) {
-    MLOG(MDEBUG) << " Type suci";
+    OAILOG_DEBUG(LOG_NAS5G, "SUCI");
     decoded_rc = DecodeSuciMobileIdentityMsg(
         &mg5smobile_identity->mobile_identity.suci, buffer, ielen);
   } else if (type_of_identity == M5GSMobileIdentityMsg_GUTI) {
-    MLOG(MDEBUG) << " Type guti";
+    OAILOG_DEBUG(LOG_NAS5G, "GUTI");
     decoded_rc = DecodeGutiMobileIdentityMsg(
         &mg5smobile_identity->mobile_identity.guti, buffer + decoded, ielen);
   } else if (type_of_identity == M5GSMobileIdentityMsg_IMEI) {
-    MLOG(MDEBUG) << " Type imei";
+    OAILOG_DEBUG(LOG_NAS5G, "IMEI");
     decoded_rc = DecodeImeiMobileIdentityMsg(
         &mg5smobile_identity->mobile_identity.imei, buffer + decoded, ielen);
   } else if (type_of_identity == M5GSMobileIdentityMsg_TMSI) {
-    MLOG(MDEBUG) << " Type tmsi";
+    OAILOG_DEBUG(LOG_NAS5G, "TMSI");
     decoded_rc = DecodeTmsiMobileIdentityMsg(
         &mg5smobile_identity->mobile_identity.tmsi, buffer + decoded, ielen);
   } else if (type_of_identity == M5GSMobileIdentityMsg_SUCI_IMSI) {
-    MLOG(MDEBUG) << " Type imsi";
+    OAILOG_DEBUG(LOG_NAS5G, "IMSI");
     decoded_rc = DecodeImsiMobileIdentityMsg(
         &mg5smobile_identity->mobile_identity.imsi, buffer + decoded, ielen);
   }
 
   if (decoded_rc < 0) {
-    MLOG(MERROR) << "Decode Error";
+    OAILOG_ERROR(LOG_NAS5G, "Decode Error");
     return decoded_rc;
   }
   return (decoded + decoded_rc);
@@ -382,49 +372,56 @@ int M5GSMobileIdentityMsg::EncodeGutiMobileIdentityMsg(
     GutiM5GSMobileIdentity* guti, uint8_t* buffer) {
   uint32_t encoded = 0;
 
-  MLOG(MDEBUG) << "EncodeGutiMobileIdentityMsg:";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding GUTI MobileIdentity");
   *(buffer + encoded) =
       0xf0 | ((guti->odd_even & 0x01) << 3) | (guti->type_of_identity & 0x7);
-  MLOG(MDEBUG) << "odd_even type_of_identity = " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "[odd/even, TypeOfIdentity] : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((guti->mcc_digit2 & 0x0f) << 4) | (guti->mcc_digit1 & 0x0f);
-  MLOG(MDEBUG) << "mcc_digit2 >mcc_digit1 type_of_identity = " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "[MCCDigit2, MCCDigit1] : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((guti->mnc_digit3 & 0x0f) << 4) | (guti->mcc_digit3 & 0x0f);
-  MLOG(MDEBUG) << "mnc_digit3 >mcc_digit3 type_of_identity = " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "[MNCDigit3, MCCDigit3] : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((guti->mnc_digit2 & 0x0f) << 4) | (guti->mnc_digit1 & 0x0f);
-  MLOG(MDEBUG) << "mnc_digit2 >mcc_digit1 type_of_identity = " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "[MNCDigit2, MNCDigit1] : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) = 0x00 | guti->amf_regionid;
-  MLOG(MDEBUG) << "amf_regionid = " << std::hex << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "AMF Regionid : %X", static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) = 0x00 | ((guti->amf_setid >> 2) & 0xFF);
-  MLOG(MDEBUG) << "amf_setid = " << std::hex << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "AMF SetID : %X", static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((guti->amf_setid & 0xF3) << 6) | (guti->amf_pointer & 0x3f);
-  MLOG(MDEBUG) << "amf_setid amf_pointer = " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "[AMF SetID, AMF Pointer] : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) = 0x00 | guti->tmsi1;
-  MLOG(MDEBUG) << "tmsi1 = " << std::hex << int(*(buffer + encoded));
+  OAILOG_DEBUG(LOG_NAS5G, "TMSI1 : %X", static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) = 0x00 | guti->tmsi2;
-  MLOG(MDEBUG) << "tmsi2 = " << std::hex << int(*(buffer + encoded));
+  OAILOG_DEBUG(LOG_NAS5G, "TMSI2 : %X", static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) = 0x00 | guti->tmsi3;
-  MLOG(MDEBUG) << "tmsi3 = " << std::hex << int(*(buffer + encoded));
+  OAILOG_DEBUG(LOG_NAS5G, "TMSI3 : %X", static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) = 0x00 | guti->tmsi4;
-  MLOG(MDEBUG) << "tmsi4 = " << std::hex << int(*(buffer + encoded));
+  OAILOG_DEBUG(LOG_NAS5G, "TMSI4 : %X", static_cast<int>(*(buffer + encoded)));
   encoded++;
 
   return encoded;
@@ -436,17 +433,19 @@ int M5GSMobileIdentityMsg::EncodeImeiMobileIdentityMsg(
     ImeiM5GSMobileIdentity* imei, uint8_t* buffer) {
   uint32_t encoded = 0;
 
-  MLOG(MDEBUG) << "EncodeImeiMobileIdentityMsg:";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding IMEI MobileIdentity");
   *(buffer + encoded) = 0x00 | ((imei->identity_digit1 & 0xf0) << 4) |
                         ((imei->odd_even & 0x1) << 3) |
                         (imei->type_of_identity & 0x7);
-  MLOG(MDEBUG) << "identity_digit1, odd_even, type_of_identity = " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "[IdentityDigit1, odd/even, TypeOfIdentity] : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) = 0x00 | ((imei->identity_digit2 & 0xf0) << 4) |
                         (imei->identity_digit3 & 0x0f);
-  MLOG(MDEBUG) << "identity_digit2,identity_digit3 = " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "[IdentityDigit2, IdentityDigit3] : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
 
   return encoded;
@@ -457,53 +456,58 @@ int M5GSMobileIdentityMsg::EncodeImeiMobileIdentityMsg(
 int M5GSMobileIdentityMsg::EncodeImsiMobileIdentityMsg(
     ImsiM5GSMobileIdentity* imsi, uint8_t* buffer) {
   uint32_t encoded = 0;
-  MLOG(MDEBUG) << "EncodeImsiMobileIdentityMsg:";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding IMSI MobileIdentity");
   *(buffer + encoded) =
       0x00 | ((imsi->spare2 & 0x80) << 7) | ((imsi->supi_format & 0x07) << 4) |
       ((imsi->spare1 & 0x01) << 3) | (imsi->type_of_identity & 0x7);
-  MLOG(MDEBUG) << "  Spare,supi_format,spare1,type_of_identity = " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "[Spare, SUPIFormat, Spare1, TypeOfIdentity] : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((imsi->mcc_digit2 & 0x0f) << 4) | (imsi->mcc_digit1 & 0x0f);
-  MLOG(MDEBUG) << "  mcc_digit2,mcc_digit1 = " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "[MCCDigit2, MCCDigit1] : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((imsi->mnc_digit3 & 0x0f) << 4) | (imsi->mcc_digit3 & 0x0f);
-  MLOG(MDEBUG) << "  mnc_digit3,mcc_digit3 = " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "MNCDigit3, MCCDigit3] : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((imsi->mnc_digit2 & 0x0f) << 4) | (imsi->mnc_digit1 & 0x0f);
-  MLOG(MDEBUG) << "  mnc_digit2, mnc_digit1 = " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "[MNCDigit2, MNCDigit1] : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((imsi->rout_ind_digit_2) << 4) | (imsi->rout_ind_digit_1);
-  MLOG(MDEBUG) << "  rout_ind_digit_2,rout_ind_digit_1 = " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "[RouterIndicationDegit2, RouterIndicationDegit1] : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((imsi->rout_ind_digit_3) << 4) | (imsi->rout_ind_digit_4);
-  MLOG(MDEBUG) << "  rout_ind_digit_3,rout_ind_digit_4 = " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "[RouterIndicationDegit3, RouterIndicationDegit4] : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((imsi->spare6 & 0x01) << 7) | ((imsi->spare5 & 0x01) << 6) |
       ((imsi->spare4 & 0x01) << 5) | ((imsi->spare3 & 0x01) << 4) |
       (imsi->protect_schm_id & 0x0f);
   *(buffer + encoded) = imsi->home_nw_id;
-  MLOG(MDEBUG) << "  spare,protect_schm_id = " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "[Spare, ProtectSchemeID] : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
-  // Will be supported POST MVC
 
   memcpy(buffer + encoded, &imsi->scheme_output, imsi->scheme_len);
-  MLOG(MDEBUG) << "  Scheme Output = ";
-  BUFFER_PRINT_LOG(imsi->scheme_output, imsi->scheme_len);
+  OAILOG_DEBUG(LOG_NAS5G, "Scheme Output :");
+  BUFFER_PRINT_OAILOG(imsi->scheme_output, imsi->scheme_len);
   encoded = encoded + imsi->scheme_len;
-  MLOG(MDEBUG) << std::endl;
 
   return encoded;
 };
@@ -513,7 +517,7 @@ int M5GSMobileIdentityMsg::EncodeTmsiMobileIdentityMsg(
     TmsiM5GSMobileIdentity* tmsi, uint8_t* buffer) {
   uint32_t encoded = 0;
 
-  MLOG(MDEBUG) << "EncodeTmsiMobileIdentityMsg:";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding TMSI MobileIdentity");
   *(buffer + encoded) = 0x00 | ((tmsi->spare & 0x0f) << 4) |
                         ((tmsi->odd_even & 0x01) << 3) |
                         (tmsi->type_of_identity & 0x7);
@@ -523,16 +527,6 @@ int M5GSMobileIdentityMsg::EncodeTmsiMobileIdentityMsg(
   *(buffer + encoded) = 0x00 | ((tmsi->amf_setid & 0xc0) << 6);
   *(buffer + encoded) = 0x00 | (tmsi->amf_pointer & 0x3f);
   encoded++;
-#if 0
-  *(buffer + encoded) = 0x00 | tmsi->m5g_tmsi_1;
-  encoded++;
-  *(buffer + encoded) = 0x00 | tmsi->m5g_tmsi_2;
-  encoded++;
-  *(buffer + encoded) = 0x00 | tmsi->m5g_tmsi_3;
-  encoded++;
-  *(buffer + encoded) = 0x00 | tmsi->m5g_tmsi_4;
-  encoded++;
-#endif
   return encoded;
 };
 
@@ -541,19 +535,18 @@ int M5GSMobileIdentityMsg::EncodeSuciMobileIdentityMsg(
     SuciM5GSMobileIdentity* suci, uint8_t* buffer) {
   uint32_t encoded = 0;
 
-  MLOG(MDEBUG) << "EncodeSuciMobileIdentityMsg:";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding SUCI MobileIdentity");
   *(buffer + encoded) =
       0x00 | ((suci->spare2 & 0x80) << 7) | ((suci->supi_format & 0x07) << 4) |
       ((suci->spare1 & 0x01) << 3) | (suci->type_of_identity & 0x7);
   encoded++;
-  suci->suci_nai.assign((const char*)(buffer + encoded), suci->suci_nai.size());
-  MLOG(MDEBUG) << "ielen = " << std::hex
-               << (unsigned char)suci->suci_nai.size();
-  MLOG(MDEBUG) << "contents";
+  suci->suci_nai.assign(
+      (const char*) (buffer + encoded), suci->suci_nai.size());
+  OAILOG_DEBUG(LOG_NAS5G, "Length : %X", (unsigned char) suci->suci_nai.size());
+  OAILOG_DEBUG(LOG_NAS5G, "Contents :");
   for (uint32_t i = 0; i < suci->suci_nai.size(); i++) {
-    MLOG(MDEBUG) << std::hex << int(suci->suci_nai[i]);
+    OAILOG_DEBUG(LOG_NAS5G, "%X", static_cast<int>(suci->suci_nai[i]));
   }
-  MLOG(MDEBUG) << std::endl;
 
   return encoded;
 };
@@ -569,11 +562,11 @@ int M5GSMobileIdentityMsg::EncodeM5GSMobileIdentityMsg(
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, MOBILE_IDENTITY_MIN_LENGTH, len);
 
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding M5GS Mobile Identity");
   if (m5gs_mobile_identity->iei > 0) {
-    MLOG(MDEBUG) << "EncodeM5GSMobileIdentityMsg:";
-    CHECK_IEI_ENCODER((unsigned char)iei, m5gs_mobile_identity->iei);
+    CHECK_IEI_ENCODER((unsigned char) iei, m5gs_mobile_identity->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "iei" << std::hex << int(*buffer);
+    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(*buffer));
     encoded++;
   } else
     return 0;
@@ -583,29 +576,29 @@ int M5GSMobileIdentityMsg::EncodeM5GSMobileIdentityMsg(
   m5gs_mobile_identity->toi =
       m5gs_mobile_identity->mobile_identity.guti.type_of_identity;
   if (m5gs_mobile_identity->toi == M5GSMobileIdentityMsg_SUCI_IMSI) {
-    MLOG(MDEBUG) << "Type imsi";
+    OAILOG_DEBUG(LOG_NAS5G, "IMSI");
     encoded_rc = EncodeImsiMobileIdentityMsg(
         &m5gs_mobile_identity->mobile_identity.imsi, buffer + encoded);
   } else if (m5gs_mobile_identity->toi == M5GSMobileIdentityMsg_IMEI) {
-    MLOG(MDEBUG) << "Type imei";
+    OAILOG_DEBUG(LOG_NAS5G, "IMEI");
     encoded_rc = EncodeImeiMobileIdentityMsg(
         &m5gs_mobile_identity->mobile_identity.imei, buffer + encoded);
   } else if (m5gs_mobile_identity->toi == M5GSMobileIdentityMsg_GUTI) {
-    MLOG(MDEBUG) << "Type guti";
+    OAILOG_DEBUG(LOG_NAS5G, "GUTI");
     encoded_rc = EncodeGutiMobileIdentityMsg(
         &m5gs_mobile_identity->mobile_identity.guti, buffer + encoded);
   } else if (m5gs_mobile_identity->toi == M5GSMobileIdentityMsg_TMSI) {
-    MLOG(MDEBUG) << "Type tmsi";
+    OAILOG_DEBUG(LOG_NAS5G, "TMSI");
     encoded_rc = EncodeTmsiMobileIdentityMsg(
         &m5gs_mobile_identity->mobile_identity.tmsi, buffer + encoded);
   } else if (m5gs_mobile_identity->toi == M5GSMobileIdentityMsg_IMEISV) {
-    MLOG(MDEBUG) << "Type suci";
+    OAILOG_DEBUG(LOG_NAS5G, "SUCI");
     encoded_rc = EncodeSuciMobileIdentityMsg(
         &m5gs_mobile_identity->mobile_identity.suci, buffer + encoded);
   }
 
   if (encoded_rc < 0) {
-    MLOG(MDEBUG) << "Encode error" << encoded_rc;
+    OAILOG_ERROR(LOG_NAS5G, "Encode error");
     return encoded_rc;
   }
 

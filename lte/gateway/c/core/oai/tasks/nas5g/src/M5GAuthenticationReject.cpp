@@ -25,6 +25,7 @@ int AuthenticationRejectMsg::DecodeAuthenticationRejectMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, AUTHENTICATION_REJECT_MINIMUM_LENGTH, len);
 
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding AuthenticationReject message");
   if ((decoded_result = auth_reject->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
                                 &auth_reject->extended_protocol_discriminator,
@@ -62,6 +63,7 @@ int AuthenticationRejectMsg::EncodeAuthenticationRejectMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, AUTHENTICATION_REJECT_MINIMUM_LENGTH, len);
 
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding AuthenticationReject message");
   if ((encoded_result = auth_reject->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(
                                 &auth_reject->extended_protocol_discriminator,

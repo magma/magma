@@ -27,7 +27,7 @@ int IdentityRequestMsg::DecodeIdentityRequestMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, IDENTITY_REQUEST_MINIMUM_LENGTH,
                                        len);
 
-  MLOG(MDEBUG) << "DecodeIdentityRequestMsg : \n";
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding IdentityRequest Messsage");
   if ((decoded_result =
            identity_request->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -79,7 +79,7 @@ int IdentityRequestMsg::EncodeIdentityRequestMsg(
     IdentityRequestMsg* identity_request, uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
-  MLOG(MDEBUG) << "EncodeIdentityRequestMsg:";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding IdentityRequest Messsage");
   int encoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length

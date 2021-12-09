@@ -27,8 +27,7 @@ int AuthenticationResultMsg::DecodeAuthenticationResultMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, AUTHENTICATION_RESULT_MINIMUM_LENGTH, len);
 
-  MLOG(MDEBUG) << "\n\n---Decoding Authentication Result Message---\n"
-               << std::endl;
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding Authentication Result Message");
   if ((decoded_result = auth_result->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
                                 &auth_result->extended_protocol_discriminator,
@@ -86,6 +85,7 @@ int AuthenticationResultMsg::EncodeAuthenticationResultMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, AUTHENTICATION_RESULT_MINIMUM_LENGTH, len);
 
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding AuthenticationResult message");
   if ((encoded_result = auth_result->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(
                                 &auth_result->extended_protocol_discriminator,

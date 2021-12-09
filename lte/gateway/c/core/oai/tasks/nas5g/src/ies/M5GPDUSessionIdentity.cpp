@@ -25,19 +25,20 @@ int PDUSessionIdentityMsg::DecodePDUSessionIdentityMsg(
     uint32_t len) {
   uint8_t decoded = 0;
 
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding PDUSessionIdentity");
   if (iei > 0) {
     pdu_session_identity->iei = *(buffer + decoded);
-    CHECK_IEI_DECODER((unsigned char)iei, pdu_session_identity->iei);
-    MLOG(MDEBUG) << "In DecodePDUSessionIdentityMsg iei = " << std::dec
-                 << int(pdu_session_identity->iei) << std::endl;
+    CHECK_IEI_DECODER((unsigned char) iei, pdu_session_identity->iei);
+    OAILOG_DEBUG(
+        LOG_NAS5G, "IEI : %X", static_cast<int>(pdu_session_identity->iei));
     decoded++;
   }
 
-  MLOG(MDEBUG) << "   DecodePDUSessionIdentityMsg : ";
   pdu_session_identity->pdu_session_id = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " PDUSessionIdentity = " << std::hex
-               << int(pdu_session_identity->pdu_session_id);
+  OAILOG_DEBUG(
+      LOG_NAS5G, "PDUSession Identity : %X",
+      static_cast<int>(pdu_session_identity->pdu_session_id));
 
   return (decoded);
 };
@@ -48,19 +49,21 @@ int PDUSessionIdentityMsg::EncodePDUSessionIdentityMsg(
     uint32_t len) {
   int encoded = 0;
 
-  MLOG(MDEBUG) << " EncodePDUSessionIdentityMsg : ";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding PDUSessionIdentity");
 
   // Checking IEI and pointer
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char)iei,
                       static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2));
     *buffer = iei;
+    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(*buffer));
     encoded++;
   }
 
   *(buffer + encoded) = pdu_session_identity->pdu_session_id;
-  MLOG(MDEBUG) << "PDUSessionIdentity = 0x" << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "PDUSession Identity : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
 
   return (encoded);

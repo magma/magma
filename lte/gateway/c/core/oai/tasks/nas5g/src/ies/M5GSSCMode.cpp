@@ -25,11 +25,11 @@ int SSCModeMsg::DecodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei,
                                  uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding SSCMode");
   // Storing the IEI Information
   if (iei > 0) {
     ssc_mode->iei = (*buffer & 0xf0) >> 4;
-    MLOG(MDEBUG) << "In DecodeSSCModeMsg: iei = " << std::hex
-                 << int(ssc_mode->iei);
+    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(ssc_mode->iei));
     decoded++;
   }
 
@@ -38,8 +38,8 @@ int SSCModeMsg::DecodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei,
   } else {
     ssc_mode->mode_val = (*buffer >> 4) & 0x07;
   }
-  MLOG(MDEBUG) << "DecodeSSCModeMsg__: mode_val = " << std::hex
-               << int(ssc_mode->mode_val);
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Mode Value : %X", static_cast<int>(ssc_mode->mode_val));
 
   return decoded;
 };
@@ -49,12 +49,13 @@ int SSCModeMsg::EncodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei,
                                  uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding SSCMode");
   // CHECKING IEI
   if (iei > 0) {
     CHECK_IEI_ENCODER((uint8_t)iei,
                       (uint8_t)(0x00 | (ssc_mode->iei & 0x0f) << 4));
     *buffer = (ssc_mode->iei & 0x0f) << 4;
-    MLOG(MDEBUG) << "In EncodeSSCModeMsg: iei" << std::hex << int(*buffer);
+    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(*buffer));
     encoded++;
   }
   if (iei > 0) {
@@ -62,7 +63,7 @@ int SSCModeMsg::EncodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei,
   } else {
     *buffer = 0x00 | (*buffer & 0x0f) | ((ssc_mode->mode_val & 0x07) << 4);
   }
-  MLOG(MDEBUG) << "EncodeSSCModeMsg__: mode_val = " << std::hex << int(*buffer);
+  OAILOG_DEBUG(LOG_NAS5G, "Mode Value : %X", static_cast<int>(*buffer));
 
   return (encoded);
 };

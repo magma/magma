@@ -22,20 +22,20 @@ int NSSAIMsg::EncodeNSSAIMsg(NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer,
                              uint32_t len) {
   uint8_t encoded = 0;
 
-  MLOG(MDEBUG) << "EncodeNSSAIMsg ";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding NSSAI");
   if (iei > 0) {
     CHECK_IEI_ENCODER(iei, (unsigned char)NSSAI->iei);
     ENCODE_U8(buffer, iei, encoded);
-    MLOG(MDEBUG) << "iei: " << std::hex << static_cast<int>(iei);
+    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(iei));
   }
 
   ENCODE_U8(buffer + encoded, NSSAI->len, encoded);
-  MLOG(MDEBUG) << "len: " << static_cast<int>(NSSAI->len);
+  OAILOG_DEBUG(LOG_NAS5G, "Length : %d", static_cast<int>(NSSAI->len));
 
   switch (NSSAI->len) {
     case 0b00000001:  // SST
       ENCODE_U8(buffer + encoded, NSSAI->sst, encoded);
-      MLOG(MDEBUG) << "sst: " << static_cast<int>(NSSAI->sst);
+      OAILOG_DEBUG(LOG_NAS5G, "SST : %d", static_cast<int>(NSSAI->sst));
       break;
     case 0b00000010:  // SST and mapped HPLMN SST
       ENCODE_U8(buffer + encoded, NSSAI->sst, encoded);
@@ -81,16 +81,16 @@ int NSSAIMsg::DecodeNSSAIMsg(NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer,
                              uint32_t len) {
   int decoded = 0;
 
-  MLOG(MDEBUG) << "DecodeNSSAIMsg ";
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding NSSAI");
   if (iei > 0) {
     CHECK_IEI_DECODER(iei, (unsigned char)*buffer);
     NSSAI->iei = *(buffer + decoded);
-    MLOG(MDEBUG) << "iei: " << std::hex << static_cast<int>(iei);
+    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(iei));
     decoded++;
   }
   DECODE_U8(buffer + decoded, NSSAI->len, decoded);
   CHECK_LENGTH_DECODER(len - decoded, NSSAI->len);
-  MLOG(MDEBUG) << "len: " << static_cast<int>(NSSAI->len);
+  OAILOG_DEBUG(LOG_NAS5G, "Length : %d", static_cast<int>(NSSAI->len));
 
   switch (NSSAI->len) {
     case 0b00000001:  // SST
@@ -133,10 +133,10 @@ int NSSAIMsg::DecodeNSSAIMsg(NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer,
       break;
   }
 
-  MLOG(MDEBUG) << "sst: " << static_cast<int>(NSSAI->sst);
-  MLOG(MDEBUG) << "sd[0]: " << static_cast<int>(NSSAI->sd[0]);
-  MLOG(MDEBUG) << "sd[1]: " << static_cast<int>(NSSAI->sd[1]);
-  MLOG(MDEBUG) << "sd[2]: " << static_cast<int>(NSSAI->sd[2]);
+  OAILOG_DEBUG(LOG_NAS5G, "SST : %d", static_cast<int>(NSSAI->sst));
+  OAILOG_DEBUG(LOG_NAS5G, "SD[0] : %d", static_cast<int>(NSSAI->sd[0]));
+  OAILOG_DEBUG(LOG_NAS5G, "SD[1] : %d", static_cast<int>(NSSAI->sd[1]));
+  OAILOG_DEBUG(LOG_NAS5G, "SD[2] : %d", static_cast<int>(NSSAI->sd[2]));
 
   return decoded;
 }
@@ -149,15 +149,15 @@ int NSSAIMsgList::EncodeNSSAIMsgList(NSSAIMsgList* NSSAI_list, uint8_t iei,
                                      uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
 
-  MLOG(MDEBUG) << "EncodeNSSAIMsgList ";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding NSSAIMsg List");
   if (iei > 0) {
     CHECK_IEI_ENCODER(iei, (unsigned char)NSSAI_list->iei);
     ENCODE_U8(buffer, iei, encoded);
-    MLOG(MDEBUG) << "iei: " << std::hex << static_cast<int>(iei);
+    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(iei));
   }
 
   ENCODE_U8(buffer + encoded, NSSAI_list->len, encoded);
-  MLOG(MDEBUG) << "len: " << static_cast<int>(NSSAI_list->len);
+  OAILOG_DEBUG(LOG_NAS5G, "Length : %d", static_cast<int>(NSSAI_list->len));
 
   encoded +=
       nssai.EncodeNSSAIMsg(&nssai, 0, (buffer + encoded), (len - encoded));

@@ -30,23 +30,22 @@ int AmfMsg::M5gNasMessageDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
   if (len > 0 || buffer != NULL) {
     header_result = msg->AmfMsgDecodeHeaderMsg(&msg->header, buffer, len);
     if (header_result <= 0) {
-      MLOG(MERROR) << "   Error : Header Decoding Failed" << std::dec
-                   << RETURNerror;
+      OAILOG_ERROR(LOG_NAS5G, "Header Decoding Failed");
       return (RETURNerror);
     }
   } else {
-    MLOG(MERROR) << "Error : Buffer is Empty";
+    OAILOG_ERROR(LOG_NAS5G, "Buffer is Empty");
     return (RETURNerror);
   }
-  MLOG(MDEBUG) << "   epd = 0x" << std::hex
-               << int(msg->header.extended_protocol_discriminator) << "\n"
-               << "   security hdr =  0x" << std::hex
-               << int(msg->header.sec_header_type) << "\n"
-               << "   hdr type = 0x" << std::hex
-               << int(msg->header.message_type) << "\n";
+  OAILOG_DEBUG(LOG_NAS5G, "Header Decoded successfully");
+  OAILOG_DEBUG(
+      LOG_NAS5G, "EPD = 0x%X,  SecurityHeader =  0x%X, MessageType = 0x%X",
+      static_cast<int>(msg->header.extended_protocol_discriminator),
+      static_cast<int>(msg->header.sec_header_type),
+      static_cast<int>(msg->header.message_type));
   decode_result = msg->AmfMsgDecodeMsg(msg, buffer, len);
   if (decode_result <= 0) {
-    MLOG(MERROR) << "decode result error ";
+    OAILOG_ERROR(LOG_NAS5G, "Decode result error");
     return (RETURNerror);
   }
   return (header_result + decode_result);
@@ -57,26 +56,23 @@ int AmfMsg::M5gNasMessageEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
   int header_result = 0;
   int encode_result = 0;
 
-  MLOG(MDEBUG) << "M5gNasMessageEncodeMsg:";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding NasMessage");
   if (len > 0 || buffer != NULL) {
     header_result = msg->AmfMsgEncodeHeaderMsg(&msg->header, buffer, len);
     if (header_result <= 0) {
-      MLOG(MERROR)
-          << "In M5gNasMessageEncodeMsg AmfMsgEncodeHeaderMsg ret error: "
-          << std::dec << RETURNerror;
+      OAILOG_ERROR(LOG_NAS5G, "Header encoding error");
       return (RETURNerror);
     }
   } else {
-    MLOG(MERROR) << "Error : Buffer is empty " << std::endl;
+    OAILOG_ERROR(LOG_NAS5G, "Buffer is empty");
     return (RETURNerror);
   }
   encode_result = msg->AmfMsgEncodeMsg(msg, buffer, len);
   if (encode_result <= 0) {
-    MLOG(MERROR) << "Error : Encoding AMF Message Failed" << std::endl;
+    OAILOG_ERROR(LOG_NAS5G, "Encoding AMF Message Failed");
     return (RETURNerror);
   }
 
-  // return (header_result + encode_result);
   return (encode_result);
 }
 
@@ -85,23 +81,24 @@ int AmfMsg::AmfMsgDecodeHeaderMsg(AmfMsgHeader_s* hdr, uint8_t* buffer,
                                   uint32_t len) {
   int size = 0;
 
-  MLOG(MDEBUG) << "AmfMsgDecodeHeaderMsg:" << std::endl;
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding AMF Message Header");
   if (len > 0 || buffer != NULL) {
     DECODE_U8(buffer + size, hdr->extended_protocol_discriminator, size);
     DECODE_U8(buffer + size, hdr->sec_header_type, size);
     DECODE_U8(buffer + size, hdr->message_type, size);
-    MLOG(MDEBUG) << "epd = 0x" << std::hex
-                 << int(hdr->extended_protocol_discriminator)
-                 << "security hdr = 0x" << std::hex << int(hdr->sec_header_type)
-                 << " hdr type = 0x" << std::hex << int(hdr->message_type);
+    OAILOG_DEBUG(
+        LOG_NAS5G, "EPD = 0x%X,  SecurityHeader =  0x%X, MessageType = 0x%X",
+        static_cast<int>(hdr->extended_protocol_discriminator),
+        static_cast<int>(hdr->sec_header_type),
+        static_cast<int>(hdr->message_type));
   } else {
-    MLOG(MERROR) << "Error : Buffer is Empty" << std::endl;
+    OAILOG_ERROR(LOG_NAS5G, "Buffer is Empty");
     return (RETURNerror);
   }
 
   if (hdr->extended_protocol_discriminator !=
       M5G_MOBILITY_MANAGEMENT_MESSAGES) {
-    MLOG(MERROR) << "Error : TLV not supported" << std::endl;
+    OAILOG_ERROR(LOG_NAS5G, "TLV not supported");
     return (TLV_PROTOCOL_NOT_SUPPORTED);
   }
   return (size);
@@ -112,24 +109,24 @@ int AmfMsg::AmfMsgEncodeHeaderMsg(AmfMsgHeader_s* hdr, uint8_t* buffer,
                                   uint32_t len) {
   int size = 0;
 
-  MLOG(MDEBUG) << "AmfMsgEncodeHeaderMsg: ";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding AMF Message Header");
 
   if (len > 0 || buffer != NULL) {
     ENCODE_U8(buffer + size, hdr->extended_protocol_discriminator, size);
     ENCODE_U8(buffer + size, hdr->sec_header_type, size);
     ENCODE_U8(buffer + size, hdr->message_type, size);
-    MLOG(MDEBUG) << "epd = 0x" << std::hex
-                 << int(hdr->extended_protocol_discriminator)
-                 << " security hdr = 0x" << std::hex
-                 << int(hdr->sec_header_type) << " hdr type = 0x" << std::hex
-                 << int(hdr->message_type);
+    OAILOG_DEBUG(
+        LOG_NAS5G, "EPD = 0x%X,  SecurityHeader =  0x%X, MessageType = 0x%X",
+        static_cast<int>(hdr->extended_protocol_discriminator),
+        static_cast<int>(hdr->sec_header_type),
+        static_cast<int>(hdr->message_type));
   } else {
-    MLOG(MERROR) << "Error : Buffer is Empty ";
+    OAILOG_ERROR(LOG_NAS5G, "Buffer is Empty");
     return (RETURNerror);
   }
   if ((unsigned char)hdr->extended_protocol_discriminator !=
       M5G_MOBILITY_MANAGEMENT_MESSAGES) {
-    MLOG(MERROR) << "Error : TLV not supported";
+    OAILOG_ERROR(LOG_NAS5G, "TLV not supported");
     return (TLV_PROTOCOL_NOT_SUPPORTED);
   }
 
@@ -140,12 +137,14 @@ int AmfMsg::AmfMsgEncodeHeaderMsg(AmfMsgHeader_s* hdr, uint8_t* buffer,
 int AmfMsg::AmfMsgDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
   int decode_result = 0;
 
-  MLOG(MDEBUG) << "AmfMsgDecodeMsg:" << std::endl;
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding AMF message");
   if (len <= 0 || buffer == NULL) {
-    MLOG(MERROR) << "Error : Buffer is Empty" << std::endl;
+    OAILOG_ERROR(LOG_NAS5G, "Buffer is Empty");
     return (RETURNerror);
   }
-  MLOG(MDEBUG) << "msg type = 0x" << std::hex << int(msg->header.message_type);
+  OAILOG_DEBUG(
+      LOG_NAS5G, "MessageType = 0x%X",
+      static_cast<int>(msg->header.message_type));
 
   switch (
       static_cast<M5GMessageType>((unsigned char)msg->header.message_type)) {
@@ -233,9 +232,9 @@ int AmfMsg::AmfMsgDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
 int AmfMsg::AmfMsgEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
   int encode_result = 0;
 
-  MLOG(MDEBUG) << " AmfMsgEncodeMsg : " << std::endl;
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding  AMF Message");
   if (len <= 0 || buffer == NULL) {
-    MLOG(MERROR) << "Error : Buffer is Empty";
+    OAILOG_ERROR(LOG_NAS5G, "Buffer is Empty");
     return (RETURNerror);
   }
   switch (

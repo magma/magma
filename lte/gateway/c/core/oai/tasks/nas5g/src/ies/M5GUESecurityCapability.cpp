@@ -28,7 +28,7 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
   uint8_t type_len = sizeof(uint8_t);
   uint8_t length_len = sizeof(uint8_t);
 
-  MLOG(MDEBUG) << " Decoding UE Security Capability : ";
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding UE Security Capability");
 
   // Checking IEI and pointer
   if (iei > 0) {
@@ -41,8 +41,8 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
 
   ue_sec_capability->length = *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG) << " length = " << std::hex << int(ue_sec_capability->length)
-               << std::endl;
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Length : %X", static_cast<int>(ue_sec_capability->length));
 
   // 5GS encryption algorithms
   ea = *(buffer + decoded);
@@ -99,39 +99,24 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
   }
 
   // Decoded 5GS encryption algorithms
-  MLOG(MDEBUG) << " ea0 = " << std::hex << int(ue_sec_capability->ea0)
-               << std::endl;
-  MLOG(MDEBUG) << " ea1 = " << std::hex << int(ue_sec_capability->ea1)
-               << std::endl;
-  MLOG(MDEBUG) << " ea2 = " << std::hex << int(ue_sec_capability->ea2)
-               << std::endl;
-  MLOG(MDEBUG) << " ea3 = " << std::hex << int(ue_sec_capability->ea3)
-               << std::endl;
-  MLOG(MDEBUG) << " ea4 = " << std::hex << int(ue_sec_capability->ea4)
-               << std::endl;
-  MLOG(MDEBUG) << " ea5 = " << std::hex << int(ue_sec_capability->ea5)
-               << std::endl;
-  MLOG(MDEBUG) << " ea6 = " << std::hex << int(ue_sec_capability->ea6)
-               << std::endl;
-  MLOG(MDEBUG) << " ea7 = " << std::hex << int(ue_sec_capability->ea7)
-               << std::endl;
+  OAILOG_DEBUG(LOG_NAS5G, "EA0 : %X", static_cast<int>(ue_sec_capability->ea0));
+  OAILOG_DEBUG(LOG_NAS5G, "EA1 : %X", static_cast<int>(ue_sec_capability->ea1));
+  OAILOG_DEBUG(LOG_NAS5G, "EA2 : %X", static_cast<int>(ue_sec_capability->ea2));
+  OAILOG_DEBUG(LOG_NAS5G, "EA3 : %X", static_cast<int>(ue_sec_capability->ea3));
+  OAILOG_DEBUG(LOG_NAS5G, "EA4 : %X", static_cast<int>(ue_sec_capability->ea4));
+  OAILOG_DEBUG(LOG_NAS5G, "EA5 : %X", static_cast<int>(ue_sec_capability->ea5));
+  OAILOG_DEBUG(LOG_NAS5G, "EA6 : %X", static_cast<int>(ue_sec_capability->ea6));
+  OAILOG_DEBUG(LOG_NAS5G, "EA7 : %X", static_cast<int>(ue_sec_capability->ea7));
+
   // Decoded 5GS integrity algorithm
-  MLOG(MDEBUG) << " ia0 = " << std::hex << int(ue_sec_capability->ia0)
-               << std::endl;
-  MLOG(MDEBUG) << " ia1 = " << std::hex << int(ue_sec_capability->ia1)
-               << std::endl;
-  MLOG(MDEBUG) << " ia2 = " << std::hex << int(ue_sec_capability->ia2)
-               << std::endl;
-  MLOG(MDEBUG) << " ia3 = " << std::hex << int(ue_sec_capability->ia3)
-               << std::endl;
-  MLOG(MDEBUG) << " ia4 = " << std::hex << int(ue_sec_capability->ia4)
-               << std::endl;
-  MLOG(MDEBUG) << " ia5 = " << std::hex << int(ue_sec_capability->ia5)
-               << std::endl;
-  MLOG(MDEBUG) << " ia6 = " << std::hex << int(ue_sec_capability->ia6)
-               << std::endl;
-  MLOG(MDEBUG) << " ia7 = " << std::hex << int(ue_sec_capability->ia7)
-               << std::endl;
+  OAILOG_DEBUG(LOG_NAS5G, "IA0 : %X", static_cast<int>(ue_sec_capability->ia0));
+  OAILOG_DEBUG(LOG_NAS5G, "IA1 : %X", static_cast<int>(ue_sec_capability->ia1));
+  OAILOG_DEBUG(LOG_NAS5G, "IA2 : %X", static_cast<int>(ue_sec_capability->ia2));
+  OAILOG_DEBUG(LOG_NAS5G, "IA3 : %X", static_cast<int>(ue_sec_capability->ia3));
+  OAILOG_DEBUG(LOG_NAS5G, "IA4 : %X", static_cast<int>(ue_sec_capability->ia4));
+  OAILOG_DEBUG(LOG_NAS5G, "IA5 : %X", static_cast<int>(ue_sec_capability->ia5));
+  OAILOG_DEBUG(LOG_NAS5G, "IA6 : %X", static_cast<int>(ue_sec_capability->ia6));
+  OAILOG_DEBUG(LOG_NAS5G, "IA7 : %X", static_cast<int>(ue_sec_capability->ia7));
 
   return (decoded);
 };
@@ -141,7 +126,7 @@ int UESecurityCapabilityMsg::EncodeUESecurityCapabilityMsg(
     UESecurityCapabilityMsg* ue_sec_capability, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
   int encoded = 0;
-  MLOG(DEBUG) << " Encoding UE Security Capability : ";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding UE Security Capability");
 
   // Checking IEI and pointer
   if (iei > 0) {
@@ -154,8 +139,7 @@ int UESecurityCapabilityMsg::EncodeUESecurityCapabilityMsg(
                                        UE_SECURITY_CAPABILITY_MIN_LENGTH, len);
 
   *(buffer + encoded) = ue_sec_capability->length;
-  MLOG(MDEBUG) << "Length : " << std::setfill('0') << std::hex << std::setw(2)
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(LOG_NAS5G, "Length : %X", static_cast<int>(*(buffer + encoded)));
   encoded++;
 
   // 5GS encryption algorithms
@@ -167,8 +151,9 @@ int UESecurityCapabilityMsg::EncodeUESecurityCapabilityMsg(
                         ((ue_sec_capability->ea5 & 0x1) << 2) |
                         ((ue_sec_capability->ea6 & 0x1) << 1) |
                         ((ue_sec_capability->ea7) & 0x1);
-  MLOG(MDEBUG) << " 5GS Encryption Algorithms Supported : " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "M5GS Encryption Algorithms Supported : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
 
   // 5GS integrity algorithms
@@ -180,8 +165,9 @@ int UESecurityCapabilityMsg::EncodeUESecurityCapabilityMsg(
                         ((ue_sec_capability->ia5 & 0x1) << 2) |
                         ((ue_sec_capability->ia6 & 0x1) << 1) |
                         ((ue_sec_capability->ia7) & 0x1);
-  MLOG(MDEBUG) << " 5GS Integrity Algorithms Supported : " << std::hex
-               << int(*(buffer + encoded));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "M5GS Integrity Algorithms Supported : %X",
+      static_cast<int>(*(buffer + encoded)));
   encoded++;
 
   if (ue_sec_capability->length > 2) {
@@ -210,8 +196,6 @@ int UESecurityCapabilityMsg::EncodeUESecurityCapabilityMsg(
     encoded++;
   }
 
-  MLOG(DEBUG) << " Encoding UE Security Capability : encoded  " << encoded
-              << std::endl;
   return encoded;
 };
 }  // namespace magma5g

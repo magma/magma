@@ -25,6 +25,7 @@ int SecurityModeRejectMsg::DecodeSecurityModeRejectMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, SECURITY_MODE_REJECT_MINIMUM_LENGTH, len);
 
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding SecurityModeReject message");
   if ((decoded_result =
            sec_mode_reject->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -71,6 +72,7 @@ int SecurityModeRejectMsg::EncodeSecurityModeRejectMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, SECURITY_MODE_REJECT_MINIMUM_LENGTH, len);
 
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding SecurityModeReject message");
   if ((encoded_result =
            sec_mode_reject->extended_protocol_discriminator
                .EncodeExtendedProtocolDiscriminatorMsg(

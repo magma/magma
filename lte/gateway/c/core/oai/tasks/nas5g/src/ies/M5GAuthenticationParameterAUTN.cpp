@@ -38,18 +38,19 @@ int AuthenticationParameterAUTNMsg::EncodeAuthenticationParameterAUTNMsg(
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, AUTN_MIN_LEN, len);
 
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding AuthenticationParameterAUTN");
   if (iei > 0) {
     CHECK_IEI_ENCODER((unsigned char)iei, autn->iei);
     *buffer = iei;
-    MLOG(MDEBUG) << "In EncodeAuthenticationParameterAUTNMsg: iei" << std::hex
-                 << int(*buffer);
+    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", *buffer);
     encoded++;
   }
 
   lenPtr = (uint8_t*)(buffer + encoded);
   encoded++;
   memcpy(buffer + encoded, autn->AUTN, AUTN_MAX_LEN);
-  BUFFER_PRINT_LOG(buffer + encoded, AUTN_MAX_LEN);
+  OAILOG_DEBUG(LOG_NAS5G, "AuthenticationParameterAUTN :");
+  BUFFER_PRINT_OAILOG(buffer + encoded, AUTN_MAX_LEN);
   encoded = encoded + AUTN_MAX_LEN;
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
 

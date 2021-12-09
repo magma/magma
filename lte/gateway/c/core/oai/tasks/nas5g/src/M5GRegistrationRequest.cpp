@@ -29,7 +29,7 @@ int RegistrationRequestMsg::DecodeRegistrationRequestMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, REGISTRATION_REQUEST_MINIMUM_LENGTH, len);
 
-  MLOG(MDEBUG) << "DecodeRegistrationRequestMsg : \n";
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding RegistrationRequest Message");
   if ((decoded_result = reg_request->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
                                 &reg_request->extended_protocol_discriminator,

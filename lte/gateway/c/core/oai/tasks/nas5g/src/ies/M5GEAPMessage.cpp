@@ -42,17 +42,19 @@ int EAPMessageMsg::EncodeEAPMessageMsg(EAPMessageMsg* eap_message, uint8_t iei,
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, EAP_MIN_LENGTH, len);
 
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding EAPMessage");
   if (iei > 0) {
     CHECK_IEI_ENCODER(iei, (unsigned char)eap_message->iei);
     *buffer = iei;
+    OAILOG_DEBUG(LOG_NAS5G, "IEI : %X", static_cast<int>(*buffer));
     encoded++;
   }
 
-  MLOG(MDEBUG) << "EncodeEAPMessage : ";
   IES_ENCODE_U16(buffer, encoded, eap_message->len);
-  MLOG(MDEBUG) << "Length = " << std::hex << int(eap_message->len);
+  OAILOG_DEBUG(LOG_NAS5G, "Length = %X", static_cast<int>(eap_message->len));
   std::copy(eap_message->eap.begin(), eap_message->eap.end(), buffer + encoded);
-  BUFFER_PRINT_LOG(buffer + encoded, eap_message->eap.length());
+  OAILOG_DEBUG(LOG_NAS5G, "EAP :");
+  BUFFER_PRINT_OAILOG(buffer + encoded, eap_message->eap.length());
   encoded = encoded + eap_message->eap.length();
 
   return encoded;

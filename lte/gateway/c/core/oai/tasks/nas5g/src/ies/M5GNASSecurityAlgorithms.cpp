@@ -30,14 +30,16 @@ int NASSecurityAlgorithmsMsg::DecodeNASSecurityAlgorithmsMsg(
     decoded++;
   }
 
-  MLOG(MDEBUG) << " DecodeNASSecurityAlgorithmsMsg : ";
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding NASSecurityAlgorithms");
   nas_sec_algorithms->tca = (*(buffer + decoded) >> 4) & 0x7;
   nas_sec_algorithms->tia = *(buffer + decoded) & 0x7;
   decoded++;
-  MLOG(MDEBUG) << " Type of ciphering algorithm  = " << std::hex
-               << int(nas_sec_algorithms->tca);
-  MLOG(MDEBUG) << " Type of integrity protection algorithm  = " << std::hex
-               << int(nas_sec_algorithms->tia);
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Type of ciphering algorithm : %X",
+      static_cast<int>(nas_sec_algorithms->tca));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Type of integrity protection algorithm : %X",
+      static_cast<int>(nas_sec_algorithms->tia));
   return (decoded);
 };
 
@@ -56,14 +58,16 @@ int NASSecurityAlgorithmsMsg::EncodeNASSecurityAlgorithmsMsg(
     encoded++;
   }
 
-  MLOG(MDEBUG) << " EncodeNASSecurityAlgorithmsMsg : ";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding NASSecurityAlgorithms");
   *(buffer + encoded) = 0x00 | ((nas_sec_algorithms->tca & 0x7) << 4) |
                         (nas_sec_algorithms->tia & 0x7);
 
-  MLOG(MDEBUG) << " Type of ciphering algorithm  = " << std::hex
-               << int(nas_sec_algorithms->tca);
-  MLOG(MDEBUG) << " Type of integrity protection algorithm  = " << std::hex
-               << int(nas_sec_algorithms->tia);
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Type of ciphering algorithm : %X",
+      static_cast<int>(nas_sec_algorithms->tca));
+  OAILOG_DEBUG(
+      LOG_NAS5G, "Type of integrity protection algorithm : %X",
+      static_cast<int>(nas_sec_algorithms->tia));
   encoded++;
   return (encoded);
 };

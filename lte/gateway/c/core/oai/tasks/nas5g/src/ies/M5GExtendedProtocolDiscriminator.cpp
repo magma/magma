@@ -24,13 +24,14 @@ int ExtendedProtocolDiscriminatorMsg::DecodeExtendedProtocolDiscriminatorMsg(
     uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
 
-  MLOG(MDEBUG) << "   DecodeExtendedProtocolDiscriminatorMsg : ";
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding ExtendedProtocolDiscriminator");
   extended_protocol_discriminator->extended_proto_discriminator =
       *(buffer + decoded);
   decoded++;
-  MLOG(MDEBUG)
-      << " epd = " << std::hex
-      << int(extended_protocol_discriminator->extended_proto_discriminator);
+  OAILOG_DEBUG(
+      LOG_NAS5G, "EPD : %X",
+      static_cast<int>(
+          extended_protocol_discriminator->extended_proto_discriminator));
   return (decoded);
 };
 
@@ -40,10 +41,10 @@ int ExtendedProtocolDiscriminatorMsg::EncodeExtendedProtocolDiscriminatorMsg(
     uint8_t iei, uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
-  MLOG(MDEBUG) << " EncodeExtendedProtocolDiscriminatorMsg : ";
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding ExtendedProtocolDiscriminator");
   *(buffer + encoded) =
       extended_protocol_discriminator->extended_proto_discriminator;
-  MLOG(MDEBUG) << "epd = 0x" << std::hex << int(*(buffer + encoded));
+  OAILOG_DEBUG(LOG_NAS5G, "EPD : %X", static_cast<int>(*(buffer + encoded)));
   encoded++;
   return (encoded);
 };

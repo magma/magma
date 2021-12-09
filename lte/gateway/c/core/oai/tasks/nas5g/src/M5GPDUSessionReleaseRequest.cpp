@@ -26,7 +26,7 @@ int PDUSessionReleaseRequestMsg::DecodePDUSessionReleaseRequestMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, PDU_SESSION_RELEASE_REQ_MIN_LEN,
                                        len);
 
-  MLOG(MDEBUG) << "DecodePDUSessionReleaseRequestMsg\n";
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding PDUSessionReleaseRequest Message");
   if ((decoded_result =
            pdu_session_release_request->extended_protocol_discriminator
                .DecodeExtendedProtocolDiscriminatorMsg(
@@ -65,7 +65,6 @@ int PDUSessionReleaseRequestMsg::DecodePDUSessionReleaseRequestMsg(
 int PDUSessionReleaseRequestMsg::EncodePDUSessionReleaseRequestMsg(
     PDUSessionReleaseRequestMsg* pdu_session_release_request, uint8_t* buffer,
     uint32_t len) {
-  MLOG(MDEBUG) << "EncodePDUSessionReleaseRequestMsg\n";
   return 0;
 }
 }  // namespace magma5g

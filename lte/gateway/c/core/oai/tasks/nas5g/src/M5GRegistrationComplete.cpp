@@ -25,6 +25,7 @@ int RegistrationCompleteMsg::DecodeRegistrationCompleteMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, REGISTRATION_COMPLETE_MINIMUM_LENGTH, len);
 
+  OAILOG_DEBUG(LOG_NAS5G, "Decoding RegistrationComplete message");
   if ((decoded_result = reg_complete->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
                                 &reg_complete->extended_protocol_discriminator,
@@ -63,6 +64,7 @@ int RegistrationCompleteMsg::EncodeRegistrationCompleteMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, REGISTRATION_COMPLETE_MINIMUM_LENGTH, len);
 
+  OAILOG_DEBUG(LOG_NAS5G, "Encoding RegistrationComplete message");
   if ((encoded_result = reg_complete->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(
                                 &reg_complete->extended_protocol_discriminator,
