@@ -43,7 +43,9 @@ jobs:
           script: |
             let fs = require('fs');
             let codeownersBuf = fs.readFileSync('./CODEOWNERS', {encoding: 'utf8'});
-            var codeownersDict = {};
+            let path = "";
+            let comp = "";
+            let codeownersDict = {};
             const records = codeownersBuf.split(/[\r\n]+/);
             for( const rec of records )
             {
@@ -51,9 +53,6 @@ jobs:
               const tokens = rec.split(" ");
               for( const token of tokens )
               {
-                var path = "";
-                var comp = "";
-
                 if(token.startsWith("/")) {
                   path = token.substring(1);
                 }
