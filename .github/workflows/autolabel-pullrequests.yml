@@ -61,13 +61,13 @@ jobs:
                 }
                 console.log("PathX=" + path + " CompX=" + comp);
                 if( path && comp ) {
-                  codeownersDict[path] = comp;
+                  codeownersDict[p] = c;
                 }
               } // End of for loop on tokens on each record of CODEOWNERS file
             } // End of for loop on record of CODEOWNERS file
 
-            for(var path in codeownersDict) {
-              console.log("Path=" + path + " Comp=" + codeownersDict[path]);
+            for(var k in codeownersDict) {
+              console.log("Path=" + k + " Comp=" + codeownersDict[k]);
             }
 
             let newCompLbls = new Set(); // Set of new label strings
@@ -81,6 +81,12 @@ jobs:
 
             // Identify new component labels based on the files modified in the PR
             for (const f of pulledFiles['data']) {
+              var fullPath = f.filename;
+              for(var k in codeownersDict) {
+                if( fullPath.startsWith(k) )  {
+                  console.log("File=" + fullPath + " startsWith=" + k + " component=" + codeownersDict[k]);
+                }
+              }
              switch (true) {
               case /^ci-scripts\/.*/.test(f.filename):
               case /^\.circleci\/.*/.test(f.filename):
