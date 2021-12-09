@@ -228,6 +228,8 @@ service SubscriberDBCloud {
   rpc Sync (SyncRequest) returns (SyncResponse) {}
   // ListSubscribers lists pages of subscribers stored.
   rpc ListSubscribers (ListSubscribersRequest) returns (ListSubscribersResponse) {}
+  // List SuciProfiles per Network
+  rpc ListSuciProfiles (magma.orc8r.Void) returns (SuciProfileList) {}
 }
 
 message CheckInSyncRequest {

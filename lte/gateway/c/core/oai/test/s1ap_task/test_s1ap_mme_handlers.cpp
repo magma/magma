@@ -1053,7 +1053,10 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandover) {
 
   bool is_state_same = true;
 
-  EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(5);
+  sctp_assoc_id_t target_assoc_id = 2;
+  setup_new_association(state, target_assoc_id);
+
+  EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(6);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_s1ap_ue_context_release_req())
       .Times(0);
@@ -1082,7 +1085,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandover) {
                           0x10, 0x00, 0x89, 0x40, 0x01, 0x00};
   ASSERT_EQ(
       simulate_pdu_s1_message(
-          s1_bytes_2, sizeof(s1_bytes_2), state, assoc_id, stream_id),
+          s1_bytes_2, sizeof(s1_bytes_2), state, target_assoc_id, stream_id),
       RETURNok);
 
   // Simulate InitialUEMessage - Attach Request
@@ -1199,7 +1202,8 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandover) {
 
   ASSERT_EQ(
       simulate_pdu_s1_message(
-          handover_bytes, sizeof(handover_bytes), state, assoc_id, stream_id),
+          handover_bytes, sizeof(handover_bytes), state, target_assoc_id,
+          stream_id),
       RETURNok);
 
   // Send S1AP_HANDOVER_COMMAND mimicing MME_APP
@@ -1230,11 +1234,12 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandover) {
 
   ASSERT_EQ(
       simulate_pdu_s1_message(
-          handover_notify, sizeof(handover_notify), state, assoc_id, stream_id),
+          handover_notify, sizeof(handover_notify), state, target_assoc_id,
+          stream_id),
       RETURNok);
 
   // Free up eRAB data on target eNB
-  ue_ref_p = s1ap_state_get_ue_enbid(assoc_id, 2);
+  ue_ref_p = s1ap_state_get_ue_enbid(target_assoc_id, 2);
   ASSERT_EQ(ue_ref_p->s1ap_handover_state.target_enb_id, 2);
   for (int i = 0;
        i < ue_ref_p->s1ap_handover_state.e_rab_admitted_list.no_of_items; i++) {
@@ -1250,6 +1255,9 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverFailure) {
   std::unique_lock<std::mutex> lock(mx);
 
   bool is_state_same = true;
+
+  sctp_assoc_id_t target_assoc_id = 2;
+  setup_new_association(state, target_assoc_id);
 
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(4);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
@@ -1280,7 +1288,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverFailure) {
                           0x10, 0x00, 0x89, 0x40, 0x01, 0x00};
   ASSERT_EQ(
       simulate_pdu_s1_message(
-          s1_bytes_2, sizeof(s1_bytes_2), state, assoc_id, stream_id),
+          s1_bytes_2, sizeof(s1_bytes_2), state, target_assoc_id, stream_id),
       RETURNok);
 
   // Simulate InitialUEMessage - Attach Request
@@ -1390,8 +1398,8 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverFailure) {
 
   ASSERT_EQ(
       simulate_pdu_s1_message(
-          handover_fail_bytes, sizeof(handover_fail_bytes), state, assoc_id,
-          stream_id),
+          handover_fail_bytes, sizeof(handover_fail_bytes), state,
+          target_assoc_id, stream_id),
       RETURNok);
 }
 
@@ -1402,6 +1410,9 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverCancel) {
   std::unique_lock<std::mutex> lock(mx);
 
   bool is_state_same = true;
+
+  sctp_assoc_id_t target_assoc_id = 2;
+  setup_new_association(state, target_assoc_id);
 
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(5);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
@@ -1432,7 +1443,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverCancel) {
                           0x10, 0x00, 0x89, 0x40, 0x01, 0x00};
   ASSERT_EQ(
       simulate_pdu_s1_message(
-          s1_bytes_2, sizeof(s1_bytes_2), state, assoc_id, stream_id),
+          s1_bytes_2, sizeof(s1_bytes_2), state, target_assoc_id, stream_id),
       RETURNok);
 
   // Simulate InitialUEMessage - Attach Request
@@ -1549,7 +1560,8 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverCancel) {
 
   ASSERT_EQ(
       simulate_pdu_s1_message(
-          handover_bytes, sizeof(handover_bytes), state, assoc_id, stream_id),
+          handover_bytes, sizeof(handover_bytes), state, target_assoc_id,
+          stream_id),
       RETURNok);
 
   // Send S1AP_HANDOVER_COMMAND mimicing MME_APP
@@ -2098,7 +2110,7 @@ TEST_F(S1apMmeHandlersTest, HandlePathSwitchRequestSuccess) {
                           0x10, 0x00, 0x89, 0x40, 0x01, 0x00};
   ASSERT_EQ(
       simulate_pdu_s1_message(
-          s1_bytes_2, sizeof(s1_bytes_2), state, 2, stream_id),
+          s1_bytes_2, sizeof(s1_bytes_2), state, switch_assoc_id, stream_id),
       RETURNok);
 
   // Simulate InitialUEMessage - Attach Request
