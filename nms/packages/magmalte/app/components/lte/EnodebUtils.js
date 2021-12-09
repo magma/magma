@@ -22,6 +22,7 @@ export const EnodebDeviceClass: {
 } = Object.freeze({
   BAICELLS_NOVA_233_2_OD_FDD: 'Baicells Nova-233 G2 OD FDD',
   BAICELLS_NOVA_243_OD_TDD: 'Baicells Nova-243 OD TDD',
+  BAICELLS_NOVA_227_OD_TDD: 'Baicells Nova-227 OD TDD',
   BAICELLS_NEUTRINO_224_ID_FDD: 'Baicells Neutrino 224 ID FDD',
   BAICELLS_ID: 'Baicells ID TDD/FDD',
   NURAN_CAVIUM_OC_LTE: 'NuRAN Cavium OC-LTE',

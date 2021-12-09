@@ -30,7 +30,7 @@ type EnodebConfiguration struct {
 
 	// device class
 	// Required: true
-	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells Neutrino 224 ID FDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE FreedomFi One]
+	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells Nova-227 OD TDD Baicells Neutrino 224 ID FDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE FreedomFi One]
 	DeviceClass string `json:"device_class"`
 
 	// earfcndl
@@ -152,7 +152,7 @@ var enodebConfigurationTypeDeviceClassPropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells Neutrino 224 ID FDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE","FreedomFi One"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells Nova-227 OD TDD","Baicells Neutrino 224 ID FDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE","FreedomFi One"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -167,6 +167,9 @@ const (
 
 	// EnodebConfigurationDeviceClassBaicellsNova243ODTDD captures enum value "Baicells Nova-243 OD TDD"
 	EnodebConfigurationDeviceClassBaicellsNova243ODTDD string = "Baicells Nova-243 OD TDD"
+
+	// EnodebConfigurationDeviceClassBaicellsNova227ODTDD captures enum value "Baicells Nova-227 OD TDD"
+	EnodebConfigurationDeviceClassBaicellsNova227ODTDD string = "Baicells Nova-227 OD TDD"
 
 	// EnodebConfigurationDeviceClassBaicellsNeutrino224IDFDD captures enum value "Baicells Neutrino 224 ID FDD"
 	EnodebConfigurationDeviceClassBaicellsNeutrino224IDFDD string = "Baicells Neutrino 224 ID FDD"
