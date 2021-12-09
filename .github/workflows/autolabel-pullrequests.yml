@@ -59,7 +59,6 @@ jobs:
                 if(token.startsWith("@magma/approvers-"))  {
                   comp = token.split('-')[1];
                 }
-                // console.log("PathX=" + path + " CompX=" + comp);
                 if( path && comp ) {
                   codeownersDict[path] = comp;
                 }
