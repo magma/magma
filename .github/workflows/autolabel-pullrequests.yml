@@ -58,14 +58,14 @@ jobs:
                 }
                 if(token.startsWith("@magma/approvers-"))  {
                   comp = token.split('-')[1];
+                  codeownersDict[path] = comp;
                 }
-                console.log("Path=" + path + " Comp=" + comp);
-                codeownersDict[path] = comp;
+                //console.log("Path=" + path + " Comp=" + comp);
               } // End of for loop on tokens on each record of CODEOWNERS file
             } // End of for loop on record of CODEOWNERS file
 
             for(var key in codeownersDict) {
-              console.log("Key=" + key + " Value=" + codeownersDict[key]);
+              console.log("Path=" + key + " Comp=" + codeownersDict[key]);
               // do something with "key" and "value" variables
             }
 
