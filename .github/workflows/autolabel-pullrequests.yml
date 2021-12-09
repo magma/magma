@@ -60,7 +60,7 @@ jobs:
                 if(token.startsWith("@magma/approvers-"))  {
                   comp = token.split('-')[1];
                 }
-                if( (path !== "") && (comp !== "") ) {
+                if( path && comp ) {
                   codeownersDict[path] = comp;
                 }
               } // End of for loop on tokens on each record of CODEOWNERS file
