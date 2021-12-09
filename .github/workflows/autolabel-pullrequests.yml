@@ -45,7 +45,7 @@ jobs:
             console.log("PWD:" + process.cwd());
             let codeownersBuf = fs.readFileSync('./CODEOWNERS', {encoding: 'utf8'});
             console.log("CODEOWNERS file contents:" + codeownersBuf);
-            const records = codeOwnersBuf.split(/[\r\n]+/);
+            const records = codeownersBuf.split(/[\r\n]+/);
             for( const rec of records ) {
               if (! rec.startsWith("/")) { continue; }
               const tokens = rec.split(" ");
