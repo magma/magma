@@ -462,9 +462,6 @@
       "proposals/p021_mme_migrate_to_c++": {
         "title": "C++ Migration"
       },
-      "proposals/p022_enodebd_enhancements": {
-        "title": "proposals/p022_enodebd_enhancements"
-      },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
       },
