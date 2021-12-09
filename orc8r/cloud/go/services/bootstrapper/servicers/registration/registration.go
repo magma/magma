@@ -24,7 +24,7 @@ type RegistrationService struct{
 	GetControlProxy func(networkID string) (string, error)
 }
 
-func NewRegistrationServicer() (protos.RegistrationServer) {
+func NewRegistrationServicer() protos.RegistrationServer {
 	return &RegistrationService{
 		GetGatewayDeviceInfo: bootstrapper.GetGatewayDeviceInfo,
 		RegisterDevice: RegisterDevice,

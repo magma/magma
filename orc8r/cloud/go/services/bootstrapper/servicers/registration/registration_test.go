@@ -39,15 +39,14 @@ var (
 			Key:     []byte("key"),
 		},
 	}
-
 	controlProxy       = "controlProxy"
 	nextTenantID int64 = 0
 )
 
 func TestRegistrationServicer_Register(t *testing.T) {
-	reg := setupTestRegistration(t)
+	registrationServicer := setupMockRegistrationServicer(t)
 
-	res, err := reg.Register(nil, registerRequest)
+	res, err := registrationServicer.Register(nil, registerRequest)
 	assert.NoError(t, err)
 	expectedRes := &protos.RegisterResponse{
 		Response: &protos.RegisterResponse_ControlProxy{ControlProxy: controlProxy},
@@ -58,12 +57,12 @@ func TestRegistrationServicer_Register(t *testing.T) {
 func TestRegistrationServicer_Register_BadToken(t *testing.T) {
 	rpcErr := status.Error(codes.NotFound, "errMessage")
 
-	reg := setupTestRegistration(t)
-	reg.GetGatewayDeviceInfo = func(ctx context.Context, token string) (*protos.GatewayDeviceInfo, error) {
+	registrationServicer := setupMockRegistrationServicer(t)
+	registrationServicer.GetGatewayDeviceInfo = func(ctx context.Context, token string) (*protos.GatewayDeviceInfo, error) {
 		return nil, rpcErr
 	}
 
-	res, err := reg.Register(nil, registerRequest)
+	res, err := registrationServicer.Register(nil, registerRequest)
 	assert.NoError(t, err)
 	expectedRes := &protos.RegisterResponse{
 		Response: &protos.RegisterResponse_Error{
@@ -76,12 +75,12 @@ func TestRegistrationServicer_Register_BadToken(t *testing.T) {
 func TestRegistrationServicer_Register_NoControlProxy(t *testing.T) {
 	rpcErr := status.Error(codes.NotFound, "errMessage")
 
-	reg := setupTestRegistration(t)
-	reg.GetControlProxy = func(networkID string) (string, error) {
+	registrationServicer := setupMockRegistrationServicer(t)
+	registrationServicer.GetControlProxy = func(networkID string) (string, error) {
 		return "", rpcErr
 	}
 
-	res, err := reg.Register(nil, registerRequest)
+	res, err := registrationServicer.Register(nil, registerRequest)
 	assert.NoError(t, err)
 	expectedRes := &protos.RegisterResponse{
 		Response: &protos.RegisterResponse_Error{
@@ -121,8 +120,7 @@ func TestGetControlProxy(t *testing.T) {
 		Networks: []string{networkID},
 	}
 	id := addTenant(t, networkIDTenant)
-	ctx := context.Background()
-	err := tenants.CreateOrUpdateControlProxy(ctx, protos.CreateOrUpdateControlProxyRequest{
+	err := tenants.CreateOrUpdateControlProxy(context.Background(), protos.CreateOrUpdateControlProxyRequest{
 		Id:           id,
 		ControlProxy: controlProxy,
 	})
@@ -133,7 +131,7 @@ func TestGetControlProxy(t *testing.T) {
 	assert.Equal(t, controlProxy, res)
 }
 
-func setupTestRegistration(t *testing.T) *registration.RegistrationService {
+func newMockRegistrationService() *registration.RegistrationService {
 	registrationService := &registration.RegistrationService{
 		GetGatewayDeviceInfo: func(ctx context.Context, token string) (*protos.GatewayDeviceInfo, error) {
 			return gatewayDeviceInfo, nil
@@ -173,6 +171,7 @@ func addTenant(t *testing.T, tenant *protos.Tenant) int64 {
 	assert.NoError(t, err)
 	assert.Equal(t, tenant, tenantRes)
 
+	curTenantID := nextTenantID
 	nextTenantID = nextTenantID + 1
-	return nextTenantID - 1
+	return curTenantID
 }
