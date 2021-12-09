@@ -42,23 +42,27 @@ jobs:
         with:
           script: |
             let fs = require('fs');
+            let path = "";
+            let comp = "";
             console.log("PWD:" + process.cwd());
             let codeownersBuf = fs.readFileSync('./CODEOWNERS', {encoding: 'utf8'});
             console.log("CODEOWNERS file contents:" + codeownersBuf);
             const records = codeownersBuf.split(/[\r\n]+/);
-            for( const rec of records ) {
+            for( const rec of records )
+            {
               if (! rec.startsWith("/")) { continue; }
               const tokens = rec.split(" ");
-              for( const token of tokens ) {
-                if(token.startsWith("/"))  {
-                  let path = token.substring(1);
+              for( const token of tokens )
+              {
+                if(token.startsWith("/")) {
+                  path = token.substring(1);
                 }
                 if(token.startsWith("@magma/approvers-"))  {
-                  let comp = token.substring(17);
+                  comp = token.substring(17);
                 }
                 console.log("Path=" + path + " Comp=" + comp);
-              }
-            }
+              } // End of for loop on tokens on each record of CODEOWNERS file
+            } // End of for loop on record of CODEOWNERS file
 
             let newCompLbls = new Set(); // Set of new label strings
 
