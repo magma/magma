@@ -24,7 +24,7 @@
         "title": "Contributing Conventions"
       },
       "contributing/contribute_id_mappings": {
-        "title": "Magma Codeowners"
+        "title": "Codeowners GitHub to SLack IDs"
       },
       "contributing/contribute_onboarding": {
         "title": "Developer Onboarding"
