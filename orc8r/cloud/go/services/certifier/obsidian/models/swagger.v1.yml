@@ -188,7 +188,7 @@ definitions:
           resourceType: NETWORK_ID
         - effect: ALLOW
           action: WRITE
-          resource: '/**'
+          resource: '**'
           resourceType: URI
   user:
     description: The user's authentication info
@@ -212,7 +212,7 @@ definitions:
         resourceType: NETWORK_ID
       - effect: ALLOW
         action: WRITE
-        resource: '/**'
+        resource: '**'
         resourceType: URI
   resource:
     description: The resource to which the user is either denied or allowed access to read/write
@@ -232,5 +232,5 @@ definitions:
     example:
       effect: ALLOW
       action: WRITE
-      resource: '/**'
+      resource: '**'
       resourceType: URI

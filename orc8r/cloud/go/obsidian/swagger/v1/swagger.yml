@@ -10254,7 +10254,7 @@ definitions:
         resourceType: NETWORK_ID
       - action: WRITE
         effect: ALLOW
-        resource: /**
+        resource: '**'
         resourceType: URI
       token: op_6YHy0uT7DeuWyT3N9nkAOyoeyOI25fletJE69yHGGl4ifjfoq
     properties:
@@ -10815,7 +10815,7 @@ definitions:
     example:
       action: WRITE
       effect: ALLOW
-      resource: /**
+      resource: '**'
       resourceType: URI
     properties:
       action:
@@ -10845,7 +10845,7 @@ definitions:
       resourceType: NETWORK_ID
     - action: WRITE
       effect: ALLOW
-      resource: /**
+      resource: '**'
       resourceType: URI
     items:
       $ref: '#/definitions/resource'

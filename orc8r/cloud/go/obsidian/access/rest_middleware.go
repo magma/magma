@@ -125,7 +125,8 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusBadRequest, "failed to parse basic auth header")
 		}
 
-		getPDReq := &certprotos.GetPolicyDecisionRequest{
+		resourceType, resourceVal := getResource(c)
+		getPDReq := certprotos.GetPolicyDecisionRequest{
 			Username: username,
 			Token:    token,
 			Resource: &certprotos.Resource{
@@ -133,7 +134,14 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 				Resource: req.RequestURI,
 			},
 		}
-		pd, err := certifier.GetPolicyDecision(req.Context(), getPDReq)
+		switch resourceType {
+		case certprotos.ResourceType_NETWORK_ID:
+			getPDReq.Resource.ResourceId = &certprotos.Resource_NetworkId{NetworkId: resourceVal}
+		case certprotos.ResourceType_TENANT_ID:
+			getPDReq.Resource.ResourceId = &certprotos.Resource_TenantId{TenantId: resourceVal}
+		}
+
+		pd, err := certifier.GetPolicyDecision(req.Context(), &getPDReq)
 		if err != nil {
 			return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 		}
@@ -161,4 +169,18 @@ func getRequestAction(req *http.Request, decorate logDecorator) certprotos.Actio
 		glog.Info(decorate("Unclassified HTTP method '%s', defaulting to read+write requested permissions", req.Method))
 		return certprotos.Action_WRITE
 	}
+}
+
+func getResource(c echo.Context) (certprotos.ResourceType, string) {
+	networkIDStr := strings.ToLower(certprotos.ResourceType_NETWORK_ID.String())
+	tenantIDStr := strings.ToLower(certprotos.ResourceType_TENANT_ID.String())
+	for _, p := range c.ParamNames() {
+		switch p {
+		case networkIDStr:
+			return certprotos.ResourceType_NETWORK_ID, c.Param(networkIDStr)
+		case tenantIDStr:
+			return certprotos.ResourceType_TENANT_ID, c.Param(tenantIDStr)
+		}
+	}
+	return certprotos.ResourceType_URI, ""
 }
