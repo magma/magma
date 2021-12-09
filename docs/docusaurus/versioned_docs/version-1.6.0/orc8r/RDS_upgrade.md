@@ -15,11 +15,11 @@ AWS will deprecate all RDS instances that are running on 9.6.X version as of Jan
 
 1. Access to AWS Dashboard (read/write). 
 
-1. Permissions to modify the orc8r deployment via Terraform
+2. Permissions to modify the orc8r deployment via Terraform
 
-1. Access to k8’s cluster and the kubeconfig file. 
+3. Access to k8’s cluster and the kubeconfig file. 
 
-1. A [_new snapshot_](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_CreateSnapshot.html) created in case a database recovery is needed.
+4. A [_new snapshot_](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_CreateSnapshot.html) created in case a database recovery is needed.
 
 ## Downtime:
 
