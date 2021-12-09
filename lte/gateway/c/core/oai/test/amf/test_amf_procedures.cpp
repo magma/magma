@@ -185,11 +185,11 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcNoTMSI) {
   amf_ue_ngap_id_t ue_id = 0;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
-                                            // idication to ngap
+                                            // indication to ngap
       NGAP_NAS_DL_DATA_REQ,                 // Authentication Request to UE
       NGAP_NAS_DL_DATA_REQ,            // Security Command Mode Request to UE
-      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // InitialConext Setup Request to UE &
-                                       // Registaration Accept
+      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // Initial Conext Setup Request to UE &
+                                       // Registration Accept
       NGAP_UE_CONTEXT_RELEASE_COMMAND  // UEContextReleaseCommand
   };
 
@@ -240,11 +240,11 @@ TEST_F(AMFAppProcedureTest, TestDeRegistration) {
   amf_ue_ngap_id_t ue_id = 0;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
-                                            // idication to ngap
+                                            // indication to ngap
       NGAP_NAS_DL_DATA_REQ,                 // Authentication Request to UE
       NGAP_NAS_DL_DATA_REQ,            // Security Command Mode Request to UE
-      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // InitialConext Setup Request to UE &
-                                       // Registaration Accept
+      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // Initial Conext Setup Request to UE &
+                                       // Registration Accept
       NGAP_NAS_DL_DATA_REQ,            // Deregistaration Accept
       NGAP_UE_CONTEXT_RELEASE_COMMAND  // UEContextReleaseCommand
   };
@@ -296,11 +296,11 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionSetup) {
   amf_ue_ngap_id_t ue_id = 0;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
-                                            // idication to ngap
+                                            // indication to ngap
       NGAP_NAS_DL_DATA_REQ,                 // Authentication Request to UE
       NGAP_NAS_DL_DATA_REQ,            // Security Command Mode Request to UE
-      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // InitialConext Setup Request to UE &
-                                       // Registaration Accept
+      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // Initial Conext Setup Request to UE &
+                                       // Registration Accept
       NGAP_PDUSESSION_RESOURCE_SETUP_REQ,  // PDU Resource Setup Request to GNB
                                            // & PDU Session Establishment Accept
       NGAP_PDUSESSIONRESOURCE_REL_REQ,  // PDU Session Resource Release Command
@@ -396,11 +396,11 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionFailure_dnn_not_subscribed) {
   amf_ue_ngap_id_t ue_id = 0;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
-                                            // idication to ngap
+                                            // indication to ngap
       NGAP_NAS_DL_DATA_REQ,                 // Authentication Request to UE
       NGAP_NAS_DL_DATA_REQ,            // Security Command Mode Request to UE
-      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // InitialConext Setup Request to UE &
-                                       // Registaration Accept
+      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // Initial Conext Setup Request to UE &
+                                       // Registration Accept
       NGAP_NAS_DL_DATA_REQ,  // PDU Session Establishment Request with failure
                              // mm cause
       NGAP_NAS_DL_DATA_REQ,  // Deregistaration Accept
@@ -467,11 +467,11 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_missing_dnn) {
   amf_ue_ngap_id_t ue_id = 0;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
-                                            // idication to ngap
+                                            // indication to ngap
       NGAP_NAS_DL_DATA_REQ,                 // Authentication Request to UE
       NGAP_NAS_DL_DATA_REQ,            // Security Command Mode Request to UE
-      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // InitialConext Setup Request to UE &
-                                       // Registaration Accept
+      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // Initial Conext Setup Request to UE &
+                                       // Registration Accept
       NGAP_NAS_DL_DATA_REQ,  // PDU Session Establishment Request with failure
                              // sm cause
       NGAP_NAS_DL_DATA_REQ,  // Deregistaration Accept
@@ -545,11 +545,11 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_unknown_pdu_session_type) {
   amf_ue_ngap_id_t ue_id = 0;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
-                                            // idication to ngap
+                                            // indication to ngap
       NGAP_NAS_DL_DATA_REQ,                 // Authentication Request to UE
       NGAP_NAS_DL_DATA_REQ,            // Security Command Mode Request to UE
-      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // InitialConext Setup Request to UE &
-                                       // Registaration Accept
+      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // Initial Conext Setup Request to UE &
+                                       // Registration Accept
       NGAP_NAS_DL_DATA_REQ,  // PDU Session Establishment Request with failure
                              // sm cause
       NGAP_NAS_DL_DATA_REQ,  // Deregistaration Accept
@@ -617,11 +617,11 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_Invalid_PDUSession_Identity) {
   amf_ue_ngap_id_t ue_id = 0;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
-                                            // idication to ngap
+                                            // indication to ngap
       NGAP_NAS_DL_DATA_REQ,                 // Authentication Request to UE
       NGAP_NAS_DL_DATA_REQ,            // Security Command Mode Request to UE
-      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // InitialConext Setup Request to UE &
-                                       // Registaration Accept
+      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // Initial Conext Setup Request to UE &
+                                       // Registration Accept
       NGAP_PDUSESSION_RESOURCE_SETUP_REQ,  // PDU Resource Setup Request to GNB
                                            // & PDU Session Establishment Accept
       NGAP_NAS_DL_DATA_REQ,  // PDU Session Establishment Request with failure
