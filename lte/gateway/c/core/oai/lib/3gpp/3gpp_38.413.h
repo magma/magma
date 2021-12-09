@@ -20,7 +20,7 @@
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 
 #define MAX_NO_OF_PDUSESSIONS 16
-#define MAX_QosFlow 16
+#define MAX_QosFlow 64
 
 typedef enum Type_of_Message_s {
   initiating_message = 1,
@@ -83,11 +83,29 @@ typedef struct pdusession_setup_item_s {
                                                     // Setup Request
 } pdusession_setup_item_t;
 
+typedef struct pdusession_modify_item_s {
+  bstring nas_pdu;  // 5GC – UE or UE – 5GC message that is transferred without
+                    // interpretation in the NG-RAN node  /*optional*/
+  Ngap_PDUSessionID_t
+      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
+                       // PDU Session ID is specified in TS 23.501 [9].
+  Ngap_SNSSAI_t Ngap_s_nssai;  // S-NSSAI as defined in TS 23.003 [23].
+  pdu_session_resource_modify_request_transfer_t
+      PDU_Session_Resource_Modify_Request_Transfer;  // Containing the PDU
+                                                     // Session Resource
+                                                     // Modify Request
+} pdusession_modify_item_t;
+
 typedef struct Ngap_PDUSession_Resource_Setup_Request_List_s {
   uint16_t no_of_items;
   pdusession_setup_item_t item[MAX_NO_OF_PDUSESSIONS];
 
 } Ngap_PDUSession_Resource_Setup_Request_List_t;
+
+typedef struct Ngap_PDUSession_Resource_Modify_Request_List_s {
+  uint16_t no_of_items;
+  pdusession_modify_item_t item[MAX_NO_OF_PDUSESSIONS];
+} Ngap_PDUSession_Resource_Modify_Request_List_t;
 
 typedef struct response_gtp_tunnel_s {
   char transportLayerAddress[4];
@@ -130,11 +148,53 @@ typedef struct pdusession_resource_failed_To_setup_item_s {
                                                          // Setup Request
 } pdusession_resource_failed_To_setup_item_t;
 
+typedef struct pdusession_resource_failed_To_modify_item_s {
+  Ngap_PDUSessionID_t
+      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
+                       // PDU Session ID is specified in TS 23.501 [9].
+  pdu_session_resource_modify_unsuccessful_transfer_t
+      PDU_Session_Resource_modify_Unsuccessful_Transfer;  // Containing the PDU
+                                                          // Session Resource
+                                                          // Setup Request
+} pdusession_resource_failed_To_modify_item_t;
+
 typedef struct Ngap_PDUSession_Resource_Failed_To_Setup_List_s {
   uint16_t no_of_items;
   pdusession_resource_failed_To_setup_item_t item[MAX_NO_OF_PDUSESSIONS];
 
 } Ngap_PDUSession_Resource_Failed_To_Setup_List_t;
+
+typedef struct Ngap_PDUSession_Resource_Failed_To_Modify_List_s {
+  uint16_t no_of_items;
+  pdusession_resource_failed_To_modify_item_t item[MAX_NO_OF_PDUSESSIONS];
+
+} Ngap_PDUSession_Resource_Failed_To_Modify_List_t;
+
+typedef struct Ngap_PduSession_Resource_Modify_Response_Transfer_s {
+  response_gtp_tunnel_t dl_ng_u_up_tnl_info;
+  response_gtp_tunnel_t ul_ng_u_up_tnl_info;
+  qos_flow_add_or_modify_response_list_t qos_flow_add_or_modify_response_list;
+  qos_flow_request_list_t additional_dl_qos_flow_per_tnl_info;
+  qos_flow_list_cause_t qos_flow_failed_to_add_or_modify_list;
+  qos_flow_request_list_t additional_ng_u_up_tnl_info;
+
+} Ngap_PduSession_Resource_Modify_Response_Transfer_t;
+
+typedef struct pdusession_modify_response_item_s {
+  Ngap_PDUSessionID_t
+      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
+                       // PDU Session ID is specified in TS 23.501 [9].
+  Ngap_PduSession_Resource_Modify_Response_Transfer_t
+      PDU_Session_Resource_Mpdify_Response_Transfer;  // Containing the PDU
+                                                      // Session Resource
+                                                      // Modify Response
+} pdusession_modify_response_item_t;
+
+typedef struct Ngap_PDUSession_Resource_Modify_Response_List_s {
+  uint16_t no_of_items;
+  pdusession_modify_response_item_t item[MAX_NO_OF_PDUSESSIONS];
+
+} Ngap_PDUSession_Resource_Modify_Response_List_t;
 
 typedef struct pdusession_resource_released_item_t_s {
   Ngap_PDUSessionID_t

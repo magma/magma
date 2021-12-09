@@ -13,7 +13,11 @@
 
 #pragma once
 
+#define MAX_QOS_FLOW 64
+#define MAX_NO_OF_MULTI_CONN 4
+
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 //-----------------------------------------------------------------------------
 /** @struct itti_n11_create_pdu_session_response_t
  *  @brief Create PDU Session Response */
@@ -66,6 +70,20 @@ typedef struct qos_flow_request_list_s {
   qos_flow_setup_request_item qos_flow_req_item;
 } qos_flow_request_list_t;
 
+typedef struct qos_flow_add_or_modify_resp_item_s {
+  uint32_t qos_flow_identifier;
+} qos_flow_add_or_mdofiy_resp_item_t;
+
+typedef struct qos_flow_add_or_modify_request_list_s {
+  uint8_t maxNumOfQosFlows;
+  qos_flow_request_list_t item[MAX_QOS_FLOW];
+} qos_flow_add_or_modify_request_list_t;
+
+typedef struct qos_flow_add_or_modify_response_list_s {
+  uint8_t maxNumOfQosFlows;
+  qos_flow_add_or_mdofiy_resp_item_t item[MAX_QOS_FLOW];
+} qos_flow_add_or_modify_response_list_t;
+
 typedef struct amf_pdn_type_value_s {
   pdn_type_value_t pdn_type;
 } amf_pdn_type_value_t;
@@ -79,17 +97,16 @@ typedef struct up_transport_layer_information_s {
   gtp_tunnel gtp_tnl;
 } up_transport_layer_information_t;
 
+typedef struct ul_ng_u_up_tnl_modify_list_s {
+  uint32_t numOfItems;
+  up_transport_layer_information_t
+      ul_ng_u_up_tnl_modfy_item[MAX_NO_OF_MULTI_CONN];
+} ul_ng_u_up_tnl_modify_list_t;
+
 typedef struct amf_ue_aggregate_maximum_bit_rate_s {
   uint64_t dl;
   uint64_t ul;
 } amf_ue_aggregate_maximum_bit_rate_t;
-
-typedef struct pdu_session_resource_setup_request_transfer_s {
-  amf_ue_aggregate_maximum_bit_rate_t pdu_aggregate_max_bit_rate;
-  up_transport_layer_information_t up_transport_layer_info;
-  amf_pdn_type_value_t pdu_ip_type;
-  qos_flow_request_list_t qos_flow_setup_request_list;
-} pdu_session_resource_setup_request_transfer_t;
 
 /***********************pdu_res_set_change ends*************************/
 
@@ -355,7 +372,9 @@ typedef struct pdu_session_resource_release_command_transfer_s {
   cause_t cause;
 } pdu_session_resource_release_command_transfer;
 
-#define N11_NOTIFICATION_RECEIVED(mSGpTR) \
+typedef pdu_session_resource_release_command_transfer
+    pdu_session_resource_modify_unsuccessful_transfer_t;
+#define N11_NOTIFICATION_RECEIVED(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.n11_notification_received
 
 // RequestType
@@ -400,3 +419,29 @@ typedef struct itti_n11_received_notification_s {
   // Idle/paging/periodic_reg events and UE state notification
   notify_ue_event notify_ue_evnt;
 } itti_n11_received_notification_t;
+
+typedef struct qos_flow_item_s {
+  uint32_t qos_flow_identifier;
+  cause_t cause;
+} qos_flow_item_t;
+
+typedef struct qos_flow_list_cause_s {
+  uint8_t numOfItems;
+  qos_flow_item_t item[MAX_QOS_FLOW];
+} qos_flow_list_cause_t;
+
+typedef struct pdu_session_resource_setup_request_transfer_s {
+  amf_ue_aggregate_maximum_bit_rate_t pdu_aggregate_max_bit_rate;
+  up_transport_layer_information_t up_transport_layer_info;
+  amf_pdn_type_value_t pdu_ip_type;
+  qos_flow_request_list_t qos_flow_setup_request_list;
+} pdu_session_resource_setup_request_transfer_t;
+
+typedef struct pdu_session_resource_modify_request_transfer_s {
+  amf_ue_aggregate_maximum_bit_rate_t pdu_sess_aggregate_max_bit_rate;
+  ul_ng_u_up_tnl_modify_list_t ul_ng_u_up_tnl_modify_list;
+  uint32_t network_instance;
+  qos_flow_add_or_modify_request_list_t qos_flow_add_or_mod_request_list;
+  qos_flow_list_cause_t qos_flow_to_release_list;
+  uint32_t common_network_instance;
+} pdu_session_resource_modify_request_transfer_t;
