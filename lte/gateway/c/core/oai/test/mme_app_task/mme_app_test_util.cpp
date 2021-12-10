@@ -245,6 +245,14 @@ void send_ics_response() {
   return;
 }
 
+void send_ics_failure() {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_FAILURE);
+  MME_APP_INITIAL_CONTEXT_SETUP_FAILURE(message_p).mme_ue_s1ap_id = 1;
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
 void send_ue_ctx_release_complete() {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
