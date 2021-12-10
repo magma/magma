@@ -119,7 +119,7 @@ func cloudRegistrationTestSetup(t *testing.T) (context.Context, protos.CloudRegi
 	factory := test_utils.NewSQLBlobstore(t, bootstrapper.BlobstoreTableName)
 	store := registration.NewBlobstoreStore(factory)
 
-	cloudRegistration, err := registration.NewCloudRegistrationServicer(store, rootCA, timeoutDuration)
+	cloudRegistration, err := registration.NewCloudRegistrationServicer(store, rootCA, timeoutDuration, true)
 	assert.NoError(t, err)
 
 	return context.Background(), cloudRegistration
