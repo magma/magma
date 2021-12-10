@@ -12,6 +12,8 @@
  */
 #include <chrono>
 #include <gtest/gtest.h>
+#include <cstdint>
+#include <cstdlib>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -32,6 +34,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.h"
 #include "lte/gateway/c/core/oai/include/mme_app_state.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 }
 
 using ::testing::_;
@@ -59,6 +62,30 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   itti_free_msg_content(received_message_p);
   free(received_message_p);
   return 0;
+}
+
+MATCHER_P2(
+    check_params_in_path_switch_req_ack, new_enb_ue_s1ap_id, new_sctp_assoc_id,
+    "") {
+  auto path_switch_ack_recv =
+      static_cast<itti_s1ap_path_switch_request_ack_t>(arg);
+  if ((path_switch_ack_recv.enb_ue_s1ap_id == new_enb_ue_s1ap_id) &&
+      (path_switch_ack_recv.sctp_assoc_id == new_sctp_assoc_id)) {
+    return true;
+  }
+  return false;
+}
+
+MATCHER_P2(
+    check_params_in_path_switch_req_failure, new_enb_ue_s1ap_id,
+    new_sctp_assoc_id, "") {
+  auto path_switch_ack_recv =
+      static_cast<itti_s1ap_path_switch_request_failure_t>(arg);
+  if ((path_switch_ack_recv.enb_ue_s1ap_id == new_enb_ue_s1ap_id) &&
+      (path_switch_ack_recv.sctp_assoc_id == new_sctp_assoc_id)) {
+    return true;
+  }
+  return false;
 }
 
 class MmeAppProcedureTest : public ::testing::Test {

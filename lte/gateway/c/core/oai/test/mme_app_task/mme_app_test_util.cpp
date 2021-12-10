@@ -15,6 +15,7 @@
 #include <chrono>
 #include <gtest/gtest.h>
 #include <cstdint>
+#include <cstdlib>
 #include <thread>
 
 #include "feg/protos/s6a_proxy.pb.h"
@@ -22,6 +23,8 @@
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 }
 
 namespace magma {
@@ -32,7 +35,7 @@ extern task_zmq_ctx_t task_zmq_ctx_main;
 #define DEFAULT_LBI 5
 #define DEFAULT_TEID 1
 #define DEFAULT_MME_S1AP_UE_ID 1
-#define DEFAULT_eNB_S1AP_UE_ID 0
+
 #define DEFAULT_UE_IPv4 1000
 
 void nas_config_timer_reinit(nas_config_t* nas_conf, uint32_t timeout_msec) {
@@ -74,9 +77,9 @@ void send_mme_app_initial_ue_msg(
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
   ITTI_MSG_LASTHOP_LATENCY(message_p)               = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id  = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).enb_ue_s1ap_id = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).enb_id         = 0;
+  S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id  = DEFAULT_SCTP_ASSOC_ID;
+  S1AP_INITIAL_UE_MESSAGE(message_p).enb_ue_s1ap_id = DEFAULT_eNB_S1AP_UE_ID;
+  S1AP_INITIAL_UE_MESSAGE(message_p).enb_id         = DEFAULT_ENB_ID;
   S1AP_INITIAL_UE_MESSAGE(message_p).nas = blk2bstr(nas_msg, nas_msg_length);
   S1AP_INITIAL_UE_MESSAGE(message_p).tai.plmn           = plmn;
   S1AP_INITIAL_UE_MESSAGE(message_p).tai.tac            = tac;
@@ -280,10 +283,12 @@ void send_ue_capabilities_ind() {
 void send_context_release_req(s1cause rel_cause, task_id_t TASK_ID) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_ID, S1AP_UE_CONTEXT_RELEASE_REQ);
-  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).mme_ue_s1ap_id = 1;
-  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_ue_s1ap_id = 0;
-  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id         = 0;
-  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause       = rel_cause;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).mme_ue_s1ap_id =
+      DEFAULT_MME_S1AP_UE_ID;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_ue_s1ap_id =
+      DEFAULT_eNB_S1AP_UE_ID;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id   = DEFAULT_ENB_ID;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause = rel_cause;
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }
@@ -435,6 +440,43 @@ void send_paging_request() {
   itti_s11_paging_request_t* paging_request_p =
       &message_p->ittiMsg.s11_paging_request;
   paging_request_p->ipv4_addr.s_addr = DEFAULT_UE_IPv4;
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
+void send_s1ap_path_switch_req(
+    const uint32_t sctp_assoc_id, const uint32_t enb_id,
+    const uint32_t enb_ue_s1ap_id, const plmn_t& plmn) {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_S1AP, S1AP_PATH_SWITCH_REQUEST);
+
+  S1AP_PATH_SWITCH_REQUEST(message_p).sctp_assoc_id  = sctp_assoc_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).enb_id         = enb_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).enb_ue_s1ap_id = enb_ue_s1ap_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).mme_ue_s1ap_id = 1;
+
+  S1AP_PATH_SWITCH_REQUEST(message_p).ecgi.plmn                  = plmn;
+  S1AP_PATH_SWITCH_REQUEST(message_p).ecgi.cell_identity.enb_id  = enb_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).ecgi.cell_identity.cell_id = 2;
+  S1AP_PATH_SWITCH_REQUEST(message_p).ecgi.cell_identity.empty   = 0;
+
+  S1AP_PATH_SWITCH_REQUEST(message_p).tai.plmn = plmn;
+  S1AP_PATH_SWITCH_REQUEST(message_p).tai.tac  = 2;
+
+  S1AP_PATH_SWITCH_REQUEST(message_p).encryption_algorithm_capabilities =
+      0xc000;
+  S1AP_PATH_SWITCH_REQUEST(message_p).integrity_algorithm_capabilities = 0xc000;
+
+  e_rab_to_be_switched_in_downlink_list_t* erab_to_switch_dl_list =
+      &S1AP_PATH_SWITCH_REQUEST(message_p).e_rab_to_be_switched_dl_list;
+
+  erab_to_switch_dl_list->no_of_items      = 1;
+  erab_to_switch_dl_list->item[0].e_rab_id = 5;  // default bearer id
+  erab_to_switch_dl_list->item[0].gtp_teid = rand();
+  uint32_t enb_transport_addr              = 0xc0a83c8d;  // 192.168.60.141
+  erab_to_switch_dl_list->item[0].transport_layer_address =
+      blk2bstr(&enb_transport_addr, 4);
+
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }

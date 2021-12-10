@@ -31,6 +31,10 @@ namespace lte {
 #define STATE_MAX_WAIT_MS 2000
 #define NAS_RETX_LIMIT 5
 
+#define DEFAULT_eNB_S1AP_UE_ID 0
+#define DEFAULT_SCTP_ASSOC_ID 0
+#define DEFAULT_ENB_ID 0
+
 #define MME_APP_EXPECT_CALLS(                                                  \
     dlNas, connEstConf, ctxRel, air, ulr, purgeReq, csr, mbr, relBearer, dsr,  \
     setAppHealth)                                                              \
@@ -115,6 +119,10 @@ void send_erab_setup_rsp();
 void send_erab_release_rsp();
 
 void send_paging_request();
+
+void send_s1ap_path_switch_req(
+    const uint32_t sctp_assoc_id, const uint32_t enb_id,
+    const uint32_t enb_ue_s1ap_id, const plmn_t& plmn);
 
 }  // namespace lte
 }  // namespace magma
