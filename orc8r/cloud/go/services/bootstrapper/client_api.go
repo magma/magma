@@ -43,7 +43,7 @@ func GetToken(ctx context.Context, networkID string, logicalID string, refresh b
 	return res.Token, err
 }
 
-func GetGatewayRegistrationInfo(ctx context.Context, token string) (*protos.GetGatewayRegistrationInfoResponse, error) {
+func GetGatewayRegistrationInfo(ctx context.Context) (*protos.GetGatewayRegistrationInfoResponse, error) {
 	client, err := getCloudRegistrationClient()
 	if err != nil {
 		return nil, err

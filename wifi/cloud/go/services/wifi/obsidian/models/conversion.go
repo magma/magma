@@ -86,7 +86,7 @@ func (m *WifiGateway) FromBackendModels(
 	// delegate most of the fillin to magmad gateway struct
 	mdGW := (&orc8r_models.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
 	// TODO: we should change this to a reflection based shallow copy
-	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
+	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status, m.RegistrationInfo = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status, mdGW.RegistrationInfo
 	if wifiGateway.Config != nil {
 		m.Wifi = wifiGateway.Config.(*GatewayWifiConfigs)
 	}
