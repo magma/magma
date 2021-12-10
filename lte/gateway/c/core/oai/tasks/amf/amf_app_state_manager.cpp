@@ -34,10 +34,71 @@ constexpr char AMF_GNB_UE_ID_AMF_UE_ID_TABLE_NAME[] =
 constexpr char AMF_TASK_NAME[]  = "AMF";
 const int NUM_MAX_UE_HTBL_LISTS = 6;
 
-/*hash function similar to default to initialize during hash table
- * initialization*/
-static hash_size_t amf_def_hashfunc(const uint64_t keyP) {
-  return (hash_size_t) keyP;
+/**
+ * When the process starts, initialize the in-memory AMF/NAS state and, if
+ * persist state flag is set, load it from the data store.
+ * This is only done by the amf_app task.
+ */
+int amf_nas_state_init(const amf_config_t* amf_config_p) {
+  return AmfNasStateManager::getInstance().initialize_state(amf_config_p);
+}
+
+/**
+ * Return pointer to the in-memory Amf/NAS state from state manager before
+ * processing any message. This is a thread safe call
+ * If the read_from_db flag is set to true, the state is loaded from data store
+ * before returning the pointer.
+ */
+amf_app_desc_t* get_amf_nas_state(bool read_from_redis) {
+  return AmfNasStateManager::getInstance().get_state(read_from_redis);
+}
+
+/**
+ * Write the AMF/NAS state to data store after processing any message. This is
+ * a thread safe call
+ */
+void put_amf_nas_state() {
+  magma5g::AmfNasStateManager::getInstance().write_state_to_db();
+}
+
+/**
+ * Release the memory allocated for the AMF NAS state, this does not clean the
+ * state persisted in data store
+ */
+void clear_amf_nas_state() {
+  AmfNasStateManager::getInstance().free_state();
+}
+
+map_uint64_ue_context_t get_amf_ue_state() {
+  return AmfNasStateManager::getInstance().get_ue_state_map();
+}
+
+void put_amf_ue_state(
+    magma5g::amf_app_desc_t* amf_app_desc_p, guti_m5_t* guti_p,
+    bool force_ue_write) {
+  if (AmfNasStateManager::getInstance().is_persist_state_enabled()) {
+    if (guti_p != INVALID_IMSI64) {  // need to put appropriate enum
+      magma5g::ue_m5gmm_context_t* amf_ue_context = nullptr;
+      amf_ue_context =
+          amf_ue_context_exists_guti(&amf_app_desc_p->amf_ue_contexts, guti_p);
+      // Only write AMF UE state to redis if force flag is set or UE is in EMM
+      // Registered state
+      if ((amf_ue_context && force_ue_write) ||
+          (amf_ue_context &&
+           amf_ue_context->mm_state == magma5g::REGISTERED_CONNECTED)) {
+        // auto imsi_str =
+        // magma5g::AmfNasStateManager::getInstance().get_imsi_str(guti_p);
+        // magma5g::AmfNasStateManager::getInstance().write_ue_state_to_db(
+        //     amf_ue_context, imsi_str);
+      }
+    }
+  }
+}
+
+void delete_amf_ue_state(imsi64_t imsi64) {
+  auto imsi_str =
+      magma5g::AmfNasStateManager::getInstance().get_imsi_str(imsi64);
+  magma5g::AmfNasStateManager::getInstance().clear_ue_state_db(imsi_str);
 }
 
 /**
@@ -49,44 +110,31 @@ AmfNasStateManager& AmfNasStateManager::getInstance() {
   return instance;
 }
 
-// Constructor for MME NAS state object
+// Constructor for AMF NAS state object
 AmfNasStateManager::AmfNasStateManager()
     : max_ue_htbl_lists_(NUM_MAX_UE_HTBL_LISTS) {}
 
-// Destructor for MME NAS state object
+// Destructor for AMF NAS state object
 AmfNasStateManager::~AmfNasStateManager() {
   free_state();
-}
-
-void clear_amf_nas_state() {
-  AmfNasStateManager::getInstance().free_state();
 }
 
 // Singleton class initializer which calls to create new object of
 // AmfNasStateManager
 int AmfNasStateManager::initialize_state(const amf_config_t* amf_config_p) {
-  uint32_t rc            = RETURNok;
-  persist_state_enabled_ = amf_config_p->use_stateless;
-  max_ue_htbl_lists_     = amf_config_p->max_ues;
-  amf_statistic_timer_   = amf_config_p->amf_statistic_timer;
-  log_task               = LOG_AMF_APP;
-  task_name              = AMF_TASK_NAME;
-  table_key              = AMF_NAS_STATE_KEY;
+  uint32_t rc           = RETURNok;
+  persist_state_enabled = amf_config_p->use_stateless;
+  max_ue_htbl_lists_    = amf_config_p->max_ues;
+  amf_statistic_timer_  = amf_config_p->amf_statistic_timer;
+  log_task              = LOG_AMF_APP;
+  task_name             = AMF_TASK_NAME;
+  table_key             = AMF_NAS_STATE_KEY;
 
   // Allocate the local AMF state and create respective single object
   create_state();
 
   is_initialized = true;
   return rc;
-}
-
-/**
- * When the process starts, initialize the in-memory AMF/NAS state and, if
- * persist state flag is set, load it from the data store.
- * This is only done by the mme_app task.
- */
-int amf_nas_state_init(const amf_config_t* amf_config_p) {
-  return AmfNasStateManager::getInstance().initialize_state(amf_config_p);
 }
 
 // Create an object of AmfNasStateManager and Initialize memory
@@ -102,7 +150,7 @@ void AmfNasStateManager::create_state() {
       AMF_GNB_UE_ID_AMF_UE_ID_TABLE_NAME);
   state_cache_p->amf_ue_contexts.guti_ue_context_htbl.set_name(
       AMF_GUTI_UE_ID_TABLE_NAME);
-  state_ue_ht.set_name(AMF_UE_ID_UE_CTXT_TABLE_NAME);
+  state_ue_map.set_name(AMF_UE_ID_UE_CTXT_TABLE_NAME);
 
   // Initialize the local timers, which are non-persistent
   amf_nas_state_init_local_state();
@@ -137,21 +185,8 @@ amf_app_desc_t* AmfNasStateManager::get_state(bool read_from_redis) {
   return state_cache_p;
 }
 
-map_uint64_ue_context_t AmfNasStateManager::get_ue_state_ht() {
-  return state_ue_ht;
+map_uint64_ue_context_t AmfNasStateManager::get_ue_state_map() {
+  return state_ue_map;
 }
 
-map_uint64_ue_context_t get_amf_ue_state() {
-  return AmfNasStateManager::getInstance().get_ue_state_ht();
-}
-
-/**
- * Return pointer to the in-memory Amf/NAS state from state manager before
- * processing any message. This is a thread safe call
- * If the read_from_db flag is set to true, the state is loaded from data store
- * before returning the pointer.
- */
-amf_app_desc_t* get_amf_nas_state(bool read_from_redis) {
-  return AmfNasStateManager::getInstance().get_state(read_from_redis);
-}
 }  // namespace magma5g

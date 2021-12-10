@@ -54,6 +54,14 @@ class AmfNasStateConverter : public magma::lte::StateConverter {
       const magma::lte::oai::UeContext& ue_ctxt_proto,
       ue_m5gmm_context_t* ue_ctxt);
 
+  static void ue_m5gmm_context_to_proto(
+      const ue_m5gmm_context_t* state_ue_m5gmm_context,
+      magma::lte::oai::UeContext* ue_context_proto);
+
+  static void proto_to_ue_m5gmm_context(
+      const magma::lte::oai::UeContext& ue_context_proto,
+      ue_m5gmm_context_t* state_ue_m5gmm_context);
+
   // Note: declare these helper functions as private after testing
   static std::string amf_app_convert_guti_m5_to_string(guti_m5_t guti);
   static void amf_app_convert_string_to_guti_m5(

@@ -30,6 +30,13 @@ extern "C" {
 
 namespace magma5g {
 /**
+ * When the process starts, initialize the in-memory AMF+NAS state and, if
+ * persist state flag is set, load it from the data store.
+ * This is only done by the amf_app task.
+ */
+int amf_nas_state_init(const amf_config_t* amf_config_p);
+
+/**
  * Return pointer to the in-memory AMF/NAS state from state manager before
  * processing any message. This is a thread safe call
  * If the read_from_db flag is set to true, the state is loaded from data store
@@ -37,11 +44,27 @@ namespace magma5g {
  */
 amf_app_desc_t* get_amf_nas_state(bool read_from_redis);
 
+/**
+ * Write the AMF/NAS state to data store after processing any message. This is a
+ * thread safe call
+ */
+void put_amf_nas_state();
+
+/**
+ * Release the memory allocated for the AMF NAS state, this does not clean the
+ * state persisted in data store
+ */
 void clear_amf_nas_state();
 
 // Retrieving respective global hash table
 map_uint64_ue_context_t get_amf_ue_state();
-int amf_nas_state_init(const amf_config_t* amf_config_p);
+
+// Persists UE AMF state for subscriber into db
+void put_amf_ue_state(
+    magma5g::amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64,
+    bool force_ue_write);
+// Deletes entry for UE AMF state on db
+void delete_amf_ue_state(imsi64_t imsi64);
 
 /**
  * AmfNasStateManager is a singleton (thread-safe, destruction guaranteed) class
@@ -70,7 +93,7 @@ class AmfNasStateManager
   amf_app_desc_t* get_state(bool read_from_redis) override;
 
   // Retriving respective hash table from global data
-  map_uint64_ue_context_t get_ue_state_ht();
+  map_uint64_ue_context_t get_ue_state_map();
 
   /**
    * Copy constructor and assignment operator are marked as deleted functions.
@@ -80,16 +103,10 @@ class AmfNasStateManager
   AmfNasStateManager& operator=(AmfNasStateManager const&) = delete;
 
   // AMF state initializemanager flag
-  bool persist_state_enabled_;
-  bool is_initialized;
-  bool state_dirty;
-  std::string table_key;
-  std::string task_name;
-  log_proto_t log_task;
   uint32_t max_ue_htbl_lists_;
   uint32_t amf_statistic_timer_;
-  map_uint64_ue_context_t state_ue_ht;
-  amf_app_desc_t* state_cache_p;
+  map_uint64_ue_context_t state_ue_map;
+
   void free_state() override;
 
  private:
@@ -108,8 +125,5 @@ class AmfNasStateManager
    * task terminates
    */
   void create_state() override;
-
-  // Clean-up the in-memory hashtables
-  void clear_amf_nas_hashtables();
 };
 }  // namespace magma5g

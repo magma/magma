@@ -18,8 +18,6 @@
 using ::testing::Test;
 
 namespace magma5g {
-// Note this UT Has minimal checks and uses hard coded values
-// TODO: Minimize hardcoding in UT
 TEST(test_guti_to_string, test_guti_to_string) {
   guti_m5_t guti1, guti2;
   guti1.guamfi.plmn.mcc_digit1 = 2;
@@ -50,7 +48,6 @@ TEST(test_guti_to_string, test_guti_to_string) {
   EXPECT_EQ(guti1.m_tmsi, guti2.m_tmsi);
 }
 
-// Note this UT Has minimal checks and uses hard coded values
 TEST(test_state_to_proto, test_state_to_proto) {
   // Guti setup
   guti_m5_t guti1;

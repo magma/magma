@@ -37,7 +37,6 @@ void AmfNasStateConverter::map_uint64_uint64_to_proto(
 }
 
 // HelperFunction: Converts guti_m5_t to std::string
-// TODO: Implement with C++ equivalent of snprintf, get rid of calloc
 std::string AmfNasStateConverter::amf_app_convert_guti_m5_to_string(
     guti_m5_t guti) {
 #define GUTI_STRING_LEN 25
@@ -88,7 +87,7 @@ void AmfNasStateConverter::amf_app_convert_string_to_guti_m5(
   chars_to_read     = 8;
   guti_m5_p->m_tmsi = std::stoul(
       guti_str.substr(idx, chars_to_read), &chars_to_read, HEX_BASE_VAL);
-  // TODO: Logs
+  // Logs
   // OAILOG_DEBUG_GUTI(guti_m5_p);
 }
 
@@ -120,13 +119,12 @@ void AmfNasStateConverter::proto_to_map_uint64_uint64(
   }
 }
 
-// Converts Proto to Map<guti_m5_t,uint64_t> [Needs recheck]
+// Converts Proto to Map<guti_m5_t,uint64_t>
 void AmfNasStateConverter::proto_to_guti_map(
     const google::protobuf::Map<std::string, uint64_t>& proto_map,
     map_guti_m5_uint64_t* guti_map) {
   for (auto const& kv : proto_map) {
     amf_ue_ngap_id_t amf_ue_ngap_id = kv.second;
-    // May remove unique pointer
     std::unique_ptr<guti_m5_t> guti = std::make_unique<guti_m5_t>();
     memset(guti.get(), 0, sizeof(guti_m5_t));
     // Converts guti to string.
@@ -143,11 +141,11 @@ void AmfNasStateConverter::proto_to_guti_map(
   }
 }
 
-// /*********************************************************
-//  *                AMF app state<-> Proto                  *
-//  * Functions to serialize/desearialize AMF app state      *
-//  * The caller is responsible for all memory management    *
-//  **********************************************************/
+/*********************************************************
+ *                AMF app state<-> Proto                  *
+ * Functions to serialize/desearialize AMF app state      *
+ * The caller is responsible for all memory management    *
+ **********************************************************/
 
 void AmfNasStateConverter::state_to_proto(
     const amf_app_desc_t* amf_nas_state_p,
@@ -155,8 +153,6 @@ void AmfNasStateConverter::state_to_proto(
   OAILOG_FUNC_IN(LOG_AMF_APP);
   state_proto->set_mme_app_ue_s1ap_id_generator(
       amf_nas_state_p->amf_app_ue_ngap_id_generator);
-  // COMMENTED NOW:
-  // state_proto->set_statistic_timer_id(amf_nas_state_p->m5_statistic_timer_id);
 
   // maps to proto
   auto amf_ue_ctxts_proto = state_proto->mutable_mme_ue_contexts();
@@ -182,15 +178,12 @@ void AmfNasStateConverter::proto_to_state(
   OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_nas_state_p->amf_app_ue_ngap_id_generator =
       state_proto.mme_app_ue_s1ap_id_generator();
-  // COMMENTED NOW: amf_nas_state_p->m5_statistic_timer_id =
-  // state_proto.statistic_timer_id();
 
   if (amf_nas_state_p->amf_app_ue_ngap_id_generator == 0) {  // uninitialized
     amf_nas_state_p->amf_app_ue_ngap_id_generator = 1;
   }
   OAILOG_INFO(LOG_AMF_APP, "Done reading AMF statistics from data store");
 
-  // copy mme_ue_contexts
   magma::lte::oai::MmeUeContext amf_ue_ctxts_proto =
       state_proto.mme_ue_contexts();
 
@@ -217,12 +210,31 @@ void AmfNasStateConverter::proto_to_state(
 void AmfNasStateConverter::ue_to_proto(
     const ue_m5gmm_context_t* ue_ctxt,
     magma::lte::oai::UeContext* ue_ctxt_proto) {
-  // ue_context_to_proto(ue_ctxt, ue_ctxt_proto);
+  ue_m5gmm_context_to_proto(ue_ctxt, ue_ctxt_proto);
 }
 
 void AmfNasStateConverter::proto_to_ue(
     const magma::lte::oai::UeContext& ue_ctxt_proto,
     ue_m5gmm_context_t* ue_ctxt) {
-  // proto_to_ue_mm_context(ue_ctxt_proto, ue_ctxt);
+  proto_to_ue_m5gmm_context(ue_ctxt_proto, ue_ctxt);
 }
+
+/*********************************************************
+ *                UE Context <-> Proto                    *
+ * Functions to serialize/desearialize UE context         *
+ * The caller needs to acquire a lock on UE context       *
+ **********************************************************/
+
+void AmfNasStateConverter::ue_m5gmm_context_to_proto(
+    const ue_m5gmm_context_t* state_ue_m5gmm_context,
+    magma::lte::oai::UeContext* ue_context_proto) {
+  // Actual implementation logic will be added as part of upcoming pr
+}
+
+void AmfNasStateConverter::proto_to_ue_m5gmm_context(
+    const magma::lte::oai::UeContext& ue_context_proto,
+    ue_m5gmm_context_t* state_ue_m5gmm_context) {
+  // Actual implementation logic will be added as part of upcoming pr
+}
+
 }  // namespace magma5g
