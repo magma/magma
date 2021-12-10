@@ -87,6 +87,19 @@ jobs:
         run: |
           docker image load --input magmalte.tar
           ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${ISSUE_NUMBER}" --tag-latest true --project magmalte
+      - name: Tag and push agw docker images to registry
+        if: always() && steps.extract_images.outcome=='success'
+        env:
+          DOCKER_REGISTRY: "agw-ci.artifactory.magmacore.org"
+          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
+          ISSUE_NUMBER: "${{ steps.save_metadata.outputs.issue_number }}"
+        run: |
+          docker image load --input ghz_gateway_c.tar
+          docker image load --input ghz_gateway_python.tar
+          docker image load --input agw_gateway_c.tar
+          docker image load --input agw_gateway_python.tar
+          ./ci-scripts/tag-push-docker.sh --images 'ghz_gateway_c|ghz_gateway_python|agw_gateway_c|agw_gateway_python' --tag "${ISSUE_NUMBER}" --tag-latest true
       - name: Tag and push orc8r docker images to registry
         if: always() && steps.extract_images.outcome=='success'
         env:

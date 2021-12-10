@@ -175,11 +175,19 @@ func (c *Connection) destroyConnection(conn diam.Conn) {
 	c.mutex.Unlock()
 
 	if glog.V(2) {
+		localAddress := "nil"
+		remoteAddress := "nil"
+		if conn.LocalAddr() != nil {
+			localAddress = conn.LocalAddr().String()
+		}
+		if conn.LocalAddr() != nil {
+			remoteAddress = conn.RemoteAddr().String()
+		}
 		if match {
-			glog.Infof("destroyed %s->%s connection", conn.LocalAddr().String(), conn.RemoteAddr().String())
+			glog.Infof("destroyed %s->%s connection", localAddress, remoteAddress)
 		} else {
 			glog.Infof(
-				"cannot destroy mismatched %s->%s connection", conn.LocalAddr().String(), conn.RemoteAddr().String())
+				"cannot destroy mismatched %s->%s connection", localAddress, remoteAddress)
 		}
 	}
 	conn.Close()

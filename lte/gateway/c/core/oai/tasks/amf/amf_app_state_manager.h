@@ -38,7 +38,7 @@ amf_app_desc_t* get_amf_nas_state(bool read_from_redis);
 void clear_amf_nas_state();
 
 // Retrieving respective global hash table
-hash_table_ts_t* get_amf_ue_state();
+map_uint64_ue_context_t get_amf_ue_state();
 int amf_nas_state_init(const amf_config_t* amf_config_p);
 
 /**
@@ -65,7 +65,7 @@ class AmfNasStateManager {
   amf_app_desc_t* get_state(bool read_from_redis);
 
   // Retriving respective hash table from global data
-  hash_table_ts_t* get_ue_state_ht();
+  map_uint64_ue_context_t get_ue_state_ht();
 
   /**
    * Copy constructor and assignment operator are marked as deleted functions.
@@ -83,7 +83,7 @@ class AmfNasStateManager {
   log_proto_t log_task;
   uint32_t max_ue_htbl_lists_;
   uint32_t amf_statistic_timer_;
-  hash_table_ts_t* state_ue_ht;
+  map_uint64_ue_context_t state_ue_ht;
   amf_app_desc_t* state_cache_p;
   void free_state();
 

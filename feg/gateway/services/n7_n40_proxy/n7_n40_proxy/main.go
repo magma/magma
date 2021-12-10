@@ -51,15 +51,13 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Creating N7 Client failed: %s", err)
 	}
-	sessController, err := servicers.NewCentralSessionController(n7config, dbClient, policyClient)
+	sessController, err := servicers.NewCentralSessionController(n7config, dbClient, policyClient, cloudReg)
 	if err != nil {
 		glog.Fatalf("Error creating session controller in N7_N40 Proxy: %s", err)
 	}
-
 	// Add GRPC handlers to the service
 	lteprotos.RegisterCentralSessionControllerServer(srv.GrpcServer, sessController)
 	protos.RegisterServiceHealthServer(srv.GrpcServer, sessController)
-
 	// Run the service
 	err = srv.Run()
 	if err != nil {

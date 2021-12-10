@@ -77,4 +77,3 @@ In order to receive a nomination, the project requests the following qualities i
 - Demonstrated technical leadership of particular component (example: driving component design/evolution during code review, and/or through writing 1+ design docs)
 
 Please note that this set of qualities is not an exact requirement -- if you're interested in supporting the project as a codeowner, please reach out! We'd love to work with you, and work on a path toward you becoming a Magma codeowner.
-

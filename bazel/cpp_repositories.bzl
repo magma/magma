@@ -95,15 +95,11 @@ def cpp_repositories():
         urls = ["https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip"],
     )
 
-    new_git_repository(
+    http_archive(
         name = "sentry_native",
+        sha256 = "d7fa804995124c914a3abe077a73307960bbcadfbba9021e8ccbd05c7ba45f88",
         build_file = "//bazel/external:sentry_native.BUILD",
-        # 0.4.12 tag
-        commit = "3436a29d839aa7437548be940ab62a85ca699635",
-        # This is important, we pull in get_sentry/breakpad this way
-        init_submodules = True,
-        remote = "https://github.com/getsentry/sentry-native",
-        shallow_since = "1627998929 +0000",
+        url = "https://github.com/getsentry/sentry-native/releases/download/0.4.12/sentry-native.zip",
     )
 
     http_archive(
