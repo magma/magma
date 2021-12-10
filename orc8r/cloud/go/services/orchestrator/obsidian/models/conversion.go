@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
@@ -145,16 +146,9 @@ func (m *MagmadGateway) GetMagmadGateway() *MagmadGateway {
 }
 
 func (m *MagmadGateway) GetAdditionalWritesOnCreate() []configurator.EntityWriteOperation {
-	if m.Device == nil {
-		return []configurator.EntityWriteOperation{
-			configurator.NetworkEntity{
-				Type:        orc8r.MagmadGatewayType,
-				Key:         string(m.ID),
-				Name:        string(m.Name),
-				Description: string(m.Description),
-				Config:      m.Magmad,
-			},
-		}
+	var physicalID string
+	if m.Device != nil {
+		physicalID = m.Device.HardwareID
 	}
 
 	return []configurator.EntityWriteOperation{
@@ -164,7 +158,7 @@ func (m *MagmadGateway) GetAdditionalWritesOnCreate() []configurator.EntityWrite
 			Name:        string(m.Name),
 			Description: string(m.Description),
 			Config:      m.Magmad,
-			PhysicalID:  m.Device.HardwareID,
+			PhysicalID:  physicalID,
 		},
 	}
 }
@@ -252,36 +246,37 @@ func (m *MagmadGateway) FromBackendModels(ent configurator.NetworkEntity, device
 	if err == nil {
 		m.Tier = TierID(tierTK.Key)
 	}
-	PopulateRegistrationInfo(context.Background(), m, ent.NetworkID)
+	err = PopulateRegistrationInfo(context.Background(), m, ent.NetworkID)
+	// ignore err and continue returning the rest of the gateway
+	glog.V(2).Infof("failed to populate registration info because %v+", err)
 
 	return m
 }
 
-func PopulateRegistrationInfos(ctx context.Context, gateways map[string]*MagmadGateway, networkID string) (map[string]*MagmadGateway, error) {
-	for gid, gateway := range gateways {
-		g, err := PopulateRegistrationInfo(ctx, gateway, networkID)
+func PopulateRegistrationInfos(ctx context.Context, gateways map[string]*MagmadGateway, networkID string) error {
+	for _, gateway := range gateways {
+		err := PopulateRegistrationInfo(ctx, gateway, networkID)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		gateways[gid] = g
 	}
-	return gateways, nil
+	return nil
 }
 
 // PopulateRegistrationInfo will populate the given gateway's RegistrationInfo if its device is nil
-func PopulateRegistrationInfo(ctx context.Context, gateway *MagmadGateway, networkID string) (*MagmadGateway, error) {
+func PopulateRegistrationInfo(ctx context.Context, gateway *MagmadGateway, networkID string) error {
 	if gateway.Device != nil {
-		return gateway, nil
+		return nil
 	}
 
 	regToken, err := bootstrapper.GetToken(ctx, networkID, string(gateway.ID), true)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	regInfo, err := bootstrapper.GetGatewayRegistrationInfo(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	gateway.RegistrationInfo = &models.RegistrationInfo{
@@ -289,7 +284,7 @@ func PopulateRegistrationInfo(ctx context.Context, gateway *MagmadGateway, netwo
 		RegistrationToken: &regToken,
 		RootCa:            &regInfo.RootCa,
 	}
-	return gateway, nil
+	return nil
 }
 
 func (m *MagmadGateway) ToEntityUpdateCriteria(existingEnt configurator.NetworkEntity) []configurator.EntityUpdateCriteria {

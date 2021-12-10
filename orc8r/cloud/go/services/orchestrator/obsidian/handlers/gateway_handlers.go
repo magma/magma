@@ -144,7 +144,7 @@ func listGatewaysHandler(c echo.Context) error {
 	}
 	gateways := makeGateways(entsByTK, devicesByID, statusesByID)
 
-	gateways, err = models.PopulateRegistrationInfos(reqCtx, gateways, nid)
+	err = models.PopulateRegistrationInfos(reqCtx, gateways, nid)
 	if err != nil {
 		return err
 	}
@@ -187,7 +187,7 @@ func CreateGateway(c echo.Context, model MagmadEncompassingGateway, entitySerdes
 		return echo.NewHTTPError(http.StatusBadRequest, "requested tier does not exist")
 	}
 
-	// attempt to register device if it exists
+	// attempt to register device
 	httpErr := registerDevice(reqCtx, nid, mdGateway, entitySerdes, deviceSerdes)
 	if httpErr != nil {
 		return httpErr
@@ -217,7 +217,7 @@ func CreateGateway(c echo.Context, model MagmadEncompassingGateway, entitySerdes
 	return nil
 }
 
-// registerDevice performs the following actions depending on device registration state:
+// registerDevice, if gateway.Device exists, performs the following actions depending on device registration state:
 // If the device is already registered, throw an error if it's already
 // assigned to an entity
 // If the device exists but is unassigned, update it to the payload
@@ -301,10 +301,6 @@ func LoadMagmadGateway(ctx context.Context, networkID string, gatewayID string) 
 	}
 
 	gateway := (&models.MagmadGateway{}).FromBackendModels(ent, devCasted, status)
-	gateway, err = models.PopulateRegistrationInfo(ctx, gateway, networkID)
-	if err != nil {
-		return nil, obsidian.MakeHTTPError(err, http.StatusInternalServerError)
-	}
 
 	return gateway, nil
 }

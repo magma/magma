@@ -27,6 +27,7 @@ import (
 )
 
 // StartTestService instantiates a service backed by an in-memory storage
+// DOES NOT start a bootstrapper servicer
 func StartTestService(t *testing.T) {
 	factory := test_utils.NewSQLBlobstore(t, "bootstrapper_test_service_blobstore")
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, bootstrapper.ServiceName)
