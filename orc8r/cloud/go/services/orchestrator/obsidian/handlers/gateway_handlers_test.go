@@ -29,6 +29,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
+	bootstrapperTestInit "magma/orc8r/cloud/go/services/bootstrapper/test_init"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/device"
@@ -45,6 +46,7 @@ func TestListGateways(t *testing.T) {
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
+	bootstrapperTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
@@ -80,6 +82,7 @@ func TestListGateways(t *testing.T) {
 	gateways := map[string]*models.MagmadGateway{
 		"g1": {ID: "g1", Magmad: &models.MagmadGatewayConfigs{}},
 	}
+	models.PopulateRegistrationInfos(context.Background(), gateways, "n1")
 	expectedPageToken := "CgJnMQ=="
 	expectedResult := &models.PaginatedGateways{
 		Gateways:   gateways,
@@ -92,6 +95,7 @@ func TestListGateways(t *testing.T) {
 	gateways = map[string]*models.MagmadGateway{
 		"g2": {ID: "g2", Magmad: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
 	}
+	models.PopulateRegistrationInfos(context.Background(), gateways, "n1")
 	tc.URL = testURLRoot + "?page_size=1&page_token=" + expectedPageToken
 	expectedResult.Gateways = gateways
 	expectedResult.PageToken = "CgJnMg=="
@@ -114,6 +118,7 @@ func TestListGateways(t *testing.T) {
 		"g1": {ID: "g1", Magmad: &models.MagmadGatewayConfigs{}, Device: gatewayRecord, Status: expectedState},
 		"g2": {ID: "g2", Magmad: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
 	}
+	models.PopulateRegistrationInfos(context.Background(), expectedResult.Gateways, "n1")
 	expectedResult.PageToken = "CgJnMg=="
 	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
 	tc.URL = testURLRoot + "?page_size=2&page_token="
@@ -414,6 +419,8 @@ func TestGetGateway(t *testing.T) {
 			CheckinTimeout:          5,
 		},
 	}
+	models.PopulateRegistrationInfo(context.Background(), expected, "n1")
+
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot + "/g2",

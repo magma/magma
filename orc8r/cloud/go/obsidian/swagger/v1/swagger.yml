@@ -1337,7 +1337,7 @@ paths:
             type: object
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: List all federation gateways for a federation network
+      summary: List all gateways for a federation network
       tags:
       - Federation Gateways
     post:
@@ -7604,12 +7604,13 @@ definitions:
         $ref: '#/definitions/magmad_gateway_configs'
       name:
         $ref: '#/definitions/gateway_name'
+      registration_info:
+        $ref: '#/definitions/registration_info'
       status:
         $ref: '#/definitions/gateway_status'
       tier:
         $ref: '#/definitions/tier_id'
     required:
-    - device
     - id
     - name
     - description
@@ -8404,12 +8405,13 @@ definitions:
         $ref: '#/definitions/magmad_gateway_configs'
       name:
         $ref: '#/definitions/gateway_name'
+      registration_info:
+        $ref: '#/definitions/registration_info'
       status:
         $ref: '#/definitions/gateway_status'
       tier:
         $ref: '#/definitions/tier_id'
     required:
-    - device
     - id
     - name
     - description
@@ -9469,12 +9471,13 @@ definitions:
         $ref: '#/definitions/magmad_gateway_configs'
       name:
         $ref: '#/definitions/gateway_name'
+      registration_info:
+        $ref: '#/definitions/registration_info'
       status:
         $ref: '#/definitions/gateway_status'
       tier:
         $ref: '#/definitions/tier_id'
     required:
-    - device
     - id
     - name
     - description
@@ -9583,12 +9586,13 @@ definitions:
         $ref: '#/definitions/magmad_gateway_configs'
       name:
         $ref: '#/definitions/gateway_name'
+      registration_info:
+        $ref: '#/definitions/registration_info'
       status:
         $ref: '#/definitions/gateway_status'
       tier:
         $ref: '#/definitions/tier_id'
     required:
-    - device
     - id
     - name
     - description
@@ -9814,7 +9818,6 @@ definitions:
       tier:
         $ref: '#/definitions/tier_id'
     required:
-    - device
     - id
     - name
     - description
@@ -9875,7 +9878,6 @@ definitions:
       tier:
         $ref: '#/definitions/tier_id'
     required:
-    - device
     - id
     - name
     - description
@@ -9904,7 +9906,6 @@ definitions:
       tier:
         $ref: '#/definitions/tier_id'
     required:
-    - device
     - id
     - name
     - description
@@ -9995,7 +9996,6 @@ definitions:
       wifi:
         $ref: '#/definitions/gateway_wifi_configs'
     required:
-    - device
     - id
     - name
     - description
@@ -11405,6 +11405,29 @@ definitions:
     - address_type
     - server_address
     type: object
+  registration_info:
+    properties:
+      domain_name:
+        description: domain_name is the domain name where the stated orc8r can be
+          accessed
+        example: example.com
+        type: string
+      registration_token:
+        description: registration_token is a token for the operator to give to the
+          AGW; it keys to logical and network ID
+        example: reg_a9vnap30fN0anrfjVneB
+        minLength: 4
+        type: string
+      root_ca:
+        description: root_ca is a certificate that access gateways (AGW) can use to
+          handshake and communicate with the stated orc8r
+        example: =example rootCA.pem=
+        type: string
+    required:
+    - registration_token
+    - root_ca
+    - domain_name
+    type: object
   release_channel:
     properties:
       id:
@@ -12095,6 +12118,8 @@ definitions:
         $ref: '#/definitions/magmad_gateway_configs'
       name:
         $ref: '#/definitions/gateway_name'
+      registration_info:
+        $ref: '#/definitions/registration_info'
       status:
         $ref: '#/definitions/gateway_status'
       tier:
@@ -12102,7 +12127,6 @@ definitions:
       wifi:
         $ref: '#/definitions/gateway_wifi_configs'
     required:
-    - device
     - id
     - name
     - description

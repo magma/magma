@@ -35,8 +35,7 @@ type LteGateway struct {
 	Description models3.GatewayDescription `json:"description"`
 
 	// device
-	// Required: true
-	Device *models4.GatewayDevice `json:"device"`
+	Device *models4.GatewayDevice `json:"device,omitempty"`
 
 	// id
 	// Required: true
@@ -49,6 +48,9 @@ type LteGateway struct {
 	// name
 	// Required: true
 	Name models3.GatewayName `json:"name"`
+
+	// registration info
+	RegistrationInfo *models3.RegistrationInfo `json:"registration_info,omitempty"`
 
 	// status
 	Status *models4.GatewayStatus `json:"status,omitempty"`
@@ -91,6 +93,10 @@ func (m *LteGateway) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateRegistrationInfo(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -172,8 +178,8 @@ func (m *LteGateway) validateDescription(formats strfmt.Registry) error {
 
 func (m *LteGateway) validateDevice(formats strfmt.Registry) error {
 
-	if err := validate.Required("device", "body", m.Device); err != nil {
-		return err
+	if swag.IsZero(m.Device) { // not required
+		return nil
 	}
 
 	if m.Device != nil {
@@ -225,6 +231,24 @@ func (m *LteGateway) validateName(formats strfmt.Registry) error {
 			return ve.ValidateName("name")
 		}
 		return err
+	}
+
+	return nil
+}
+
+func (m *LteGateway) validateRegistrationInfo(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.RegistrationInfo) { // not required
+		return nil
+	}
+
+	if m.RegistrationInfo != nil {
+		if err := m.RegistrationInfo.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("registration_info")
+			}
+			return err
+		}
 	}
 
 	return nil
