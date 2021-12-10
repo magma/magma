@@ -300,9 +300,7 @@ func LoadMagmadGateway(ctx context.Context, networkID string, gatewayID string) 
 		devCasted = dev.(*models.GatewayDevice)
 	}
 
-	gateway := (&models.MagmadGateway{}).FromBackendModels(ent, devCasted, status)
-
-	return gateway, nil
+	return (&models.MagmadGateway{}).FromBackendModels(ent, devCasted, status), nil
 }
 
 func updateGatewayHandler(c echo.Context) error {
