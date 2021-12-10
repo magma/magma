@@ -35,7 +35,7 @@ add_custom_command(TARGET SERVICE_REGISTRY POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${MAGMA_INCLUDE_DIR})
 add_custom_command(TARGET SERVICE_REGISTRY POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-    ${PROJECT_SOURCE_DIR}/includes/*.h ${MAGMA_INCLUDE_DIR})
+    ${PROJECT_SOURCE_DIR}/includes/* ${MAGMA_INCLUDE_DIR})
 
 target_include_directories(SERVICE_REGISTRY PUBLIC
     $ENV{MAGMA_ROOT}
