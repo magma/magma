@@ -20,10 +20,10 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/tenants"
-	"magma/orc8r/cloud/go/services/tenants/servicers"
+	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
+	internal_servicer "magma/orc8r/cloud/go/services/tenants/servicers/internal_servicer"
 	"magma/orc8r/cloud/go/services/tenants/servicers/storage"
 	"magma/orc8r/cloud/go/test_utils"
-	"magma/orc8r/lib/go/protos"
 )
 
 // StartTestService instantiates a service backed by an in-memory storage
@@ -31,8 +31,8 @@ func StartTestService(t *testing.T) {
 	factory := test_utils.NewSQLBlobstore(t, "device_test_service_blobstore")
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, tenants.ServiceName)
 	store := storage.NewBlobstoreStore(factory)
-	server, err := servicers.NewTenantsServicer(store)
+	server, err := internal_servicer.NewTenantsServicer(store)
 	assert.NoError(t, err)
-	protos.RegisterTenantsServiceServer(srv.GrpcServer, server)
+	tenant_protos.RegisterTenantsServiceServer(srv.GrpcServer, server)
 	go srv.RunTest(lis)
 }
