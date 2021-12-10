@@ -20,5 +20,5 @@ load_tests:
 
 MAGMA_ROOT: "{{ magmaRepo }}"
 GHZ_PATH: "{{ magmaRepo }}/lte/gateway/docker/ghz"
-GHZ_API_URL: "http://ec2-18-183-107-169.ap-northeast-1.compute.amazonaws.com"
-GHZ_API_PORT: 8000
+GHZ_API_URL: "http://35.75.138.193"
+GHZ_API_PORT: 80
