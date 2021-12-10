@@ -20,37 +20,30 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/serdes"
-	"magma/orc8r/cloud/go/services/state"
-	"magma/orc8r/cloud/go/services/state/indexer/mocks"
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/serdes"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test "magma/orc8r/cloud/go/services/configurator/test_utils"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	directoryd_types "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
+	"magma/orc8r/cloud/go/services/state/indexer/mocks"
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
+	"magma/orc8r/lib/go/protos"
 )
 
 const (
-	queueTableName   = "reindex_job_queue"
-	versionTableName = "indexer_versions"
-
-	twoAttempts = 2
-
-	defaultJobTimeout  = 5 * time.Minute // copied from queue_sql.go
 	defaultTestTimeout = 5 * time.Second
 	shortTestTimeout   = 1 * time.Second
 
@@ -85,13 +78,9 @@ const (
 	version0  indexer.Version = 10
 	version0a indexer.Version = 100
 	version1  indexer.Version = 20
-	version1a indexer.Version = 200
 	version2  indexer.Version = 30
 	version2a indexer.Version = 300
 	version3  indexer.Version = 40
-	version3a indexer.Version = 400
-	version4  indexer.Version = 50
-	version4a indexer.Version = 500
 	version5  indexer.Version = 60
 )
 

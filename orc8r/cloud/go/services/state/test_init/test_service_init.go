@@ -41,7 +41,7 @@ func StartTestService(t *testing.T) {
 // StartTestServiceInternal instantiates a test DB-backed service, returning
 // the derived reindexer for internal usage.
 // Supported drivers include: postgres.
-func StartTestServiceInternal(t *testing.T) (reindex.Reindexer) {
+func StartTestServiceInternal(t *testing.T) reindex.Reindexer {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
 	return startService(t, db)

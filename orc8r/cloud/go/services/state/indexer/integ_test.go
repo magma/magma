@@ -62,10 +62,6 @@ var (
 	}
 )
 
-func init() {
-	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
-}
-
 func TestStateIndexing(t *testing.T) {
 	const (
 		serviceName                 = "SOME_SERVICE_NAME"
@@ -82,8 +78,7 @@ func TestStateIndexing(t *testing.T) {
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
 
-	dbName := "state___integ_test"
-	r := initTestServices(t, dbName)
+	r := initTestServices(t)
 
 	mocks.NewMockIndexer(t, serviceName, version0, types, prepare0, complete0, index0)
 
@@ -119,7 +114,7 @@ func TestStateIndexing(t *testing.T) {
 	})
 }
 
-func initTestServices(t *testing.T, dbName string) (reindex.Reindexer) {
+func initTestServices(t *testing.T) reindex.Reindexer {
 	indexer.DeregisterAllForTest(t)
 
 	device_test_init.StartTestService(t)

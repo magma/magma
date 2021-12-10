@@ -16,7 +16,6 @@ package reindex
 import (
 	"database/sql"
 	"sort"
-	"time"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
@@ -34,9 +33,6 @@ const (
 	idColVersions      = "indexer_id"
 	actualColVersions  = "version_actual"
 	desiredColVersions = "version_desired"
-
-	// defaultJobTimeout after which reindex jobs are considered failed.
-	defaultJobTimeout = 5 * time.Minute
 )
 
 // Versioner tracks version info for all tracked indexers
