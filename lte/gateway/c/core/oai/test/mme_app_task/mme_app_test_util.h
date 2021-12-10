@@ -90,6 +90,8 @@ void send_delete_session_resp();
 
 void send_ics_response();
 
+void send_ics_failure();
+
 void send_ue_ctx_release_complete();
 
 void send_ue_capabilities_ind();
