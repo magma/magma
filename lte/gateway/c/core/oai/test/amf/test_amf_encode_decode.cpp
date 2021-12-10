@@ -115,7 +115,7 @@ uint8_t NAS5GPktSnapShot::service_req_signaling[13] = {
 
 // service request with service type data and without IE uplink
 // data status
-uint8_t service_request_without_uplink_status[] = {
+uint8_t service_request_without_uplink_status[17] = {
     0x7e, 0x00, 0x4c, 0x1b, 0x00, 0x07, 0xf4, 0x01, 0x00,
     0x17, 0xd7, 0xb7, 0x33, 0x50, 0x02, 0x20, 0x00};
 
@@ -1132,6 +1132,7 @@ TEST_F(
     test_amf_initial_ue_message_connected_mode_sunny_day) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   ServiceRequestMsg service_request;
+  memset(&service_request, 0, sizeof(service_request));
   bool decode_res                               = 0;
   amf_nas_message_decode_status_t decode_status = {0};
   MessageDef* message_p                         = NULL;

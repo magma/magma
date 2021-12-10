@@ -110,6 +110,9 @@ class Service303Test : public ::testing::Test {
       }
     }
     assert(false);
+    // Just return the first family to make the compiler happy (This is test
+    // only code and we should not get here anyways)
+    return container.family()[0];
   }
 
   static const double findGauge(const MetricsContainer& container,

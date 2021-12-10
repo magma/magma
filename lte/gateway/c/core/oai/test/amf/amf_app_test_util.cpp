@@ -136,6 +136,16 @@ void send_initial_context_response(
     amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id) {
   itti_amf_app_initial_context_setup_rsp_t ics_resp = {};
 
+  // apn profile received from subscriberd during location update
+  ue_m5gmm_context_s* ue_context_p =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  ASSERT_NE(nullptr, ue_context_p);
+
+  apn_config_profile_t& profile = ue_context_p->amf_context.apn_config_profile;
+  profile.nb_apns               = 1;
+  strncpy(profile.apn_configuration[0].service_selection, "internet", 8);
+
   ics_resp.ue_id = ue_id;
 
   amf_app_handle_initial_context_setup_rsp(amf_app_desc_p, &ics_resp);
@@ -175,18 +185,6 @@ int send_uplink_nas_pdu_session_establishment_request(
 
   originating_tai.plmn = plmn;
   originating_tai.tac  = 1;
-
-  ue_m5gmm_context_s* ue_context_p =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-
-  if (!ue_context_p) {
-    return RETURNerror;
-  }
-  apn_config_profile_t& profile = ue_context_p->amf_context.apn_config_profile;
-  profile.nb_apns               = 1;
-  strncpy(
-      profile.apn_configuration[0].service_selection, "internet",
-      SERVICE_SELECTION_MAX_LENGTH - 1);
 
   int rc = RETURNerror;
   rc     = amf_app_handle_uplink_nas_message(
@@ -362,13 +360,10 @@ int send_uplink_nas_pdu_session_release_message(
   originating_tai.plmn = plmn;
   originating_tai.tac  = 1;
 
-  int rc     = RETURNerror;
-  int status = amf_app_handle_uplink_nas_message(
+  int rc = RETURNerror;
+  rc     = amf_app_handle_uplink_nas_message(
       amf_app_desc_p, pdu_session_req, ue_id, originating_tai);
 
-  if (status > 0) {
-    rc = RETURNok;
-  }
   return (rc);
 }
 

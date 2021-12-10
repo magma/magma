@@ -41,6 +41,8 @@ const message_info_t messages_info[] = {
 
 #define TEST_GRPCSERVICES_SERVER_ADDRESS "127.0.0.1:50095"
 
+#define END_OF_TESTCASE_SLEEP_MS 100
+#define SLEEP_AT_INITIALIZATION_TIME_MS 500
 class MockS1apHandler {
  public:
   MOCK_METHOD1(
@@ -65,7 +67,9 @@ class MockMmeAppHandler {
       mme_app_handle_nw_init_bearer_deactv_req,
       bool(itti_s11_nw_init_deactv_bearer_request_t db_req));
   MOCK_METHOD0(mme_app_handle_modify_bearer_rsp, void());
-  MOCK_METHOD0(mme_app_handle_delete_sess_rsp, void());
+  MOCK_METHOD1(
+      mme_app_handle_delete_sess_rsp,
+      bool(itti_s11_delete_session_response_t ds_rsp));
   MOCK_METHOD0(nas_proc_dl_transfer_rej, void());
   MOCK_METHOD0(mme_app_handle_release_access_bearers_resp, void());
   MOCK_METHOD0(mme_app_handle_handover_required, void());
@@ -112,6 +116,12 @@ class MockS8Handler {
   MOCK_METHOD1(
       sgw_s8_handle_delete_bearer_request,
       bool(s8_delete_bearer_request_t db_req));
+  MOCK_METHOD1(
+      sgw_s8_handle_create_session_response,
+      bool(s8_create_session_response_t cs_rsp));
+  MOCK_METHOD1(
+      sgw_s8_handle_delete_session_response,
+      bool(s8_delete_session_response_t ds_rsp));
 };
 
 void start_mock_ha_task();

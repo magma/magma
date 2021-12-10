@@ -761,9 +761,9 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
     const activate_default_eps_bearer_context_accept_msg* msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
-  mme_ue_s1ap_id_t ue_id =
-      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
-          ->mme_ue_s1ap_id;
+  ue_mm_context_t* ue_context_p =
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+  mme_ue_s1ap_id_t ue_id = ue_context_p->mme_ue_s1ap_id;
 
   OAILOG_INFO_UE(
       LOG_NAS_ESM, emm_context->_imsi64,
@@ -818,8 +818,8 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
    */
   if (emm_context->esm_ctx.pending_standalone > 0) {
     emm_context->esm_ctx.pending_standalone -= 1;
-    bearer_context_t* bearer_ctx = mme_app_get_bearer_context(
-        PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context), ebi);
+    bearer_context_t* bearer_ctx =
+        mme_app_get_bearer_context(ue_context_p, ebi);
     if (!bearer_ctx) {
       OAILOG_ERROR_UE(
           LOG_NAS_ESM, emm_context->_imsi64,
@@ -827,6 +827,11 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
           "\n",
           ebi, ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
+    }
+    // set pdn_context to active after receiving "activate default eps bearer
+    // context accept from ue
+    if (ue_context_p->pdn_contexts[bearer_ctx->pdn_cx_id]) {
+      ue_context_p->pdn_contexts[bearer_ctx->pdn_cx_id]->is_active = true;
     }
     /* Send MBR only after receiving ERAB_SETUP_RSP.
      * bearer_ctx->enb_fteid_s1u.teid gets updated after receiving

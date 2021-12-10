@@ -135,6 +135,12 @@ message OCSConfig {
     uint32 validity_time = 3;
     bool use_mock_driver = 4;
     FinalUnitIndication final_unit_indication = 5;
+    // defines what field will OCS check. Only Total and TX are implemented
+    GrantType grant_type_procedure = 6;
+    enum GrantType{
+      TotalOnly = 0;
+      TxOnly = 1;       // output Octets
+    }
 }
 
 message CreditInfo {

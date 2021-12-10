@@ -82,6 +82,18 @@ MATCHER_P2(
   return true;
 }
 
+MATCHER_P2(check_cause_in_ds_rsp, cause, teid, "") {
+  auto ds_rsp_rcvd_at_mme =
+      static_cast<itti_s11_delete_session_response_t>(arg);
+  if (ds_rsp_rcvd_at_mme.cause.cause_value == cause) {
+    return true;
+  }
+  if (ds_rsp_rcvd_at_mme.teid == teid) {
+    return true;
+  }
+  return false;
+}
+
 MATCHER_P2(check_params_in_suspend_ack, return_val, teid, "") {
   auto suspend_ack_rcvd_at_mme =
       static_cast<itti_s11_suspend_acknowledge_t>(arg);
@@ -466,7 +478,11 @@ TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
       &sample_delete_session_request, DEFAULT_MME_S11_TEID, ue_sgw_teid,
       DEFAULT_EPS_BEARER_ID, test_plmn);
 
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_delete_sess_rsp()).Times(1);
+  EXPECT_CALL(
+      *mme_app_handler,
+      mme_app_handle_delete_sess_rsp(check_cause_in_ds_rsp(
+          REQUEST_ACCEPTED, sample_session_req_p.sender_fteid_for_cp.teid)))
+      .Times(1);
 
   return_code = sgw_handle_delete_session_request(
       &sample_delete_session_request, test_imsi64);

@@ -45,6 +45,8 @@ var (
 
 func TestTerminateSession(t *testing.T) {
 	srv, _, mockN7 := createCentralSessionControllerForTest(t, false)
+	defer srv.Close()
+
 	expectedArg := n7_sbi.PostSmPoliciesSmPolicyIdDeleteJSONRequestBody{
 		AccuUsageReports: &[]n7_sbi.AccuUsageReport{
 			{
@@ -76,6 +78,8 @@ func TestTerminateSession(t *testing.T) {
 
 func TestTerminateSessionTimeout(t *testing.T) {
 	srv, _, mockN7 := createCentralSessionControllerForTest(t, false)
+	defer srv.Close()
+
 	mockN7.On("PostSmPoliciesSmPolicyIdDeleteWithResponse", mock.Anything, POLICY_ID, mock.Anything).
 		Return(nil, &url.Error{Err: context.DeadlineExceeded}).Once()
 
@@ -88,6 +92,8 @@ func TestTerminateSessionTimeout(t *testing.T) {
 
 func TestTerminateSessionErrResp(t *testing.T) {
 	srv, _, mockN7 := createCentralSessionControllerForTest(t, false)
+	defer srv.Close()
+
 	mockN7.On("PostSmPoliciesSmPolicyIdDeleteWithResponse", mock.Anything, POLICY_ID, mock.Anything).
 		Return(&n7_sbi.PostSmPoliciesSmPolicyIdDeleteResponse{
 			HTTPResponse: &http.Response{StatusCode: 404},

@@ -95,15 +95,11 @@ def cpp_repositories():
         urls = ["https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip"],
     )
 
-    new_git_repository(
+    http_archive(
         name = "sentry_native",
+        sha256 = "d7fa804995124c914a3abe077a73307960bbcadfbba9021e8ccbd05c7ba45f88",
         build_file = "//bazel/external:sentry_native.BUILD",
-        # 0.4.12 tag
-        commit = "3436a29d839aa7437548be940ab62a85ca699635",
-        # This is important, we pull in get_sentry/breakpad this way
-        init_submodules = True,
-        remote = "https://github.com/getsentry/sentry-native",
-        shallow_since = "1627998929 +0000",
+        url = "https://github.com/getsentry/sentry-native/releases/download/0.4.12/sentry-native.zip",
     )
 
     http_archive(
@@ -121,5 +117,33 @@ def cpp_repositories():
         remote = "https://github.com/liblfds/liblfds.git",
         shallow_since = "1464682027 +0300",
         patches = ["//third_party/build/patches/liblfds:0001-arm64-support.patch"],
+        patch_args = ["--strip=1"],
+    )
+
+    new_git_repository(
+        name = "libfluid_base",
+        build_file = "//bazel/external:libfluid_base.BUILD",
+        commit = "56df5e20c49387ab8e6b5cd363c6c10d309f263e",
+        remote = "https://github.com/OpenNetworkingFoundation/libfluid_base",
+        shallow_since = "1448037833 -0200",
+        patches = [
+            "//third_party/build/patches/libfluid/libfluid_base_patches:EVLOOP_NO_EXIT_ON_EMPTY_compat.patch",
+            "//third_party/build/patches/libfluid/libfluid_base_patches:ExternalEventPatch.patch",
+        ],
+        patch_args = ["--strip=1"],
+    )
+
+    new_git_repository(
+        name = "libfluid_msg",
+        build_file = "//bazel/external:libfluid_msg.BUILD",
+        commit = "71a4fccdedfabece730082fbe87ef8ae5f92059f",
+        remote = "https://github.com/OpenNetworkingFoundation/libfluid_msg.git",
+        shallow_since = "1487696730 +0000",
+        patches = [
+            "//third_party/build/patches/libfluid/libfluid_msg_patches:0001-Add-TunnelIPv4Dst-support.patch",
+            "//third_party/build/patches/libfluid/libfluid_msg_patches:0002-Add-support-for-setting-OVS-reg8.patch",
+            "//third_party/build/patches/libfluid/libfluid_msg_patches:0003-Add-Reg-field-match-support.patch",
+            "//third_party/build/patches/libfluid/libfluid_msg_patches:0004-Add-TunnelIPv6Dst-support.patch",
+        ],
         patch_args = ["--strip=1"],
     )

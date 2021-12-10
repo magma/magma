@@ -31,6 +31,14 @@ import (
 var (
 	rootCA          = "rootCA"
 	timeoutDuration = 30 * time.Minute
+
+	networkID = "networkID"
+	logicalID = "logicalID"
+
+	gatewayDeviceInfo = &protos.GatewayDeviceInfo{
+		NetworkId: networkID,
+		LogicalId: logicalID,
+	}
 )
 
 func TestCloudRegistrationServicer_GetGatewayRegistrationInfo(t *testing.T) {
@@ -48,15 +56,6 @@ func TestCloudRegistrationServicer_GetGatewayRegistrationInfo(t *testing.T) {
 // TestCloudRegistrationServicer_Registration tests GetGatewayDeviceInfo and GetToken
 // Tests that the functions interplay together with expected behavior
 func TestCloudRegistrationServicer_Registration(t *testing.T) {
-	var (
-		networkID = "networkID"
-		logicalID = "logicalID"
-
-		gatewayDeviceInfo = &protos.GatewayDeviceInfo{
-			NetworkId: networkID,
-			LogicalId: logicalID,
-		}
-	)
 	ctx, cloudRegistration := cloudRegistrationTestSetup(t)
 
 	nonce := registration.GenerateNonce(registration.NonceLength)
