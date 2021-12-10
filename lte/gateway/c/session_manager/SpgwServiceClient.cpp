@@ -19,10 +19,10 @@
 #include <utility>                       // for move
 
 #include "SpgwServiceClient.h"
-#include "includes/ServiceRegistrySingleton.h"  // for ServiceRegistrySin...
-#include "lte/protos/policydb.pb.h"             // for RepeatedField, Rep...
-#include "lte/protos/spgw_service.grpc.pb.h"    // for SpgwService::Stub
-#include "lte/protos/spgw_service.pb.h"         // for DeleteBearerRequest
+#include "includes/ServiceRegistrySingleton.hpp"  // for ServiceRegistrySin...
+#include "lte/protos/policydb.pb.h"               // for RepeatedField, Rep...
+#include "lte/protos/spgw_service.grpc.pb.h"      // for SpgwService::Stub
+#include "lte/protos/spgw_service.pb.h"           // for DeleteBearerRequest
 #include "lte/protos/subscriberdb.pb.h"
 #include "magma_logging.h"  // for MLOG, MERROR, MINFO
 

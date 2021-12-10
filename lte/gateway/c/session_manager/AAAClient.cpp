@@ -26,7 +26,7 @@
 #include "Types.h"
 #include "feg/gateway/services/aaa/protos/accounting.grpc.pb.h"
 #include "feg/gateway/services/aaa/protos/accounting.pb.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.hpp"
 #include "lte/protos/session_manager.pb.h"
 #include "magma_logging.h"
 

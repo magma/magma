@@ -31,8 +31,8 @@
 
 #include "SessionState.h"  // for SessionState
 #include "StoredState.h"   // for deserialize_stored_session, ser...
-#include "includes/ServiceConfigLoader.h"  // for ServiceConfigLoader
-#include "magma_logging.h"                 // for MERROR, MLOG
+#include "includes/ServiceConfigLoader.hpp"  // for ServiceConfigLoader
+#include "magma_logging.h"                   // for MERROR, MLOG
 
 namespace magma {
 class StaticRuleStore;
