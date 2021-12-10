@@ -2977,7 +2977,7 @@ TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
   // Send activate dedicated bearer request mimicing SPGW
   send_s11_create_bearer_req();
   EXPECT_CALL(*s1ap_handler, s1ap_handle_paging_request())
-      .Times(2)
+      .Times(MAX_PAGING_RETRY_COUNT + 1)
       .WillRepeatedly(ReturnFromAsyncTask(&cv));
   // Force paging failure via ignoring paging requests
   for (int i = 0; i <= MAX_PAGING_RETRY_COUNT; ++i) {
