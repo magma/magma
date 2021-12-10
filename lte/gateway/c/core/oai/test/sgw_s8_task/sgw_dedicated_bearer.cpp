@@ -297,6 +297,9 @@ TEST_F(SgwS8ConfigAndCreateMock, send_create_bearer_req_to_mme) {
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
   s8_create_bearer_request_t cb_req = {0};
+  std::condition_variable cv;
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
   fill_create_bearer_request(
       &cb_req, csresp.context_teid, default_eps_bearer_id);
   gtpv2c_cause_value_t cause_value = REQUEST_REJECTED;
@@ -305,10 +308,13 @@ TEST_F(SgwS8ConfigAndCreateMock, send_create_bearer_req_to_mme) {
       *mme_app_handler,
       mme_app_handle_nw_init_ded_bearer_actv_req(check_params_in_cb_req(
           cb_req.linked_eps_bearer_id, cb_req.bearer_context[0].tft)))
-      .Times(1);
+      .Times(1)
+      .WillOnce(ReturnFromAsyncTask(&cv));
+
   EXPECT_NE(
       sgw_s8_handle_create_bearer_request(sgw_state, &cb_req, &cause_value),
       INVALID_IMSI64);
+  cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 
   // Validates sequence number matches with received create bearer request
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc =
@@ -329,8 +335,6 @@ TEST_F(SgwS8ConfigAndCreateMock, send_create_bearer_req_to_mme) {
   EXPECT_TRUE(is_seq_number_updated == true);
 
   free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
 
 TEST_F(SgwS8ConfigAndCreateMock, recv_create_bearer_response) {
@@ -341,6 +345,9 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_create_bearer_response) {
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
       &temporary_create_session_procedure_id, &sgw_pdn_session);
   s8_create_session_response_t csresp = {0};
+  std::condition_variable cv;
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
   fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
 
@@ -353,10 +360,12 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_create_bearer_response) {
       *mme_app_handler,
       mme_app_handle_nw_init_ded_bearer_actv_req(check_params_in_cb_req(
           cb_req.linked_eps_bearer_id, cb_req.bearer_context[0].tft)))
-      .Times(1);
+      .Times(1)
+      .WillOnce(ReturnFromAsyncTask(&cv));
   EXPECT_NE(
       sgw_s8_handle_create_bearer_request(sgw_state, &cb_req, &cause_value),
       INVALID_IMSI64);
+  cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 
   // Validates sequence number matches with received create bearer request
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc =
@@ -404,14 +413,15 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_create_bearer_response) {
   }
   EXPECT_EQ(bearer_id_updated, true);
   free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
 
 TEST_F(SgwS8ConfigAndCreateMock, recv_delete_bearer_req) {
   ASSERT_EQ(task_zmq_ctx_main_s8.ready, true);
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
   uint32_t temporary_create_session_procedure_id        = 0;
+  std::condition_variable cv;
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
 
   sgw_state_t* sgw_state = create_and_get_contexts_on_cs_req(
       &temporary_create_session_procedure_id, &sgw_pdn_session);
@@ -467,11 +477,11 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_delete_bearer_req) {
       *mme_app_handler,
       mme_app_handle_nw_init_bearer_deactv_req(check_params_in_db_req(
           db_req.num_eps_bearer_id, db_req.eps_bearer_id)))
-      .Times(1);
+      .Times(1)
+      .WillOnce(ReturnFromAsyncTask(&cv));
   EXPECT_EQ(sgw_s8_handle_delete_bearer_request(sgw_state, &db_req), RETURNok);
+  cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
   free_wrapper(reinterpret_cast<void**>(&cb_req.pgw_cp_address));
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
 
 TEST_F(SgwS8ConfigAndCreateMock, delete_bearer_response) {

@@ -98,6 +98,9 @@ TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req) {
 // TC validates updation of bearer context on reception of Create Session Rsp
 TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
   sgw_state_t* sgw_state = get_sgw_state(false);
+  std::condition_variable cv;
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
 
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
   uint32_t temporary_create_session_procedure_id        = 0;
@@ -115,10 +118,13 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
   s8_create_session_response_t csresp = {0};
   fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
 
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp())
+      .Times(1)
+      .WillOnce(ReturnFromAsyncTask(&cv));
   EXPECT_EQ(
       sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64),
       RETURNok);
+  cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 
   EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) != nullptr);
   sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
@@ -138,8 +144,6 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
           temporary_create_session_procedure_id,
           reinterpret_cast<void**>(&sgw_pdn_session)),
       HASH_TABLE_KEY_NOT_EXISTS);
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
 
 // TC indicates that SGW_S8 has received incorrect temporary session id in
@@ -219,6 +223,9 @@ TEST_F(SgwS8ConfigAndCreateMock, failed_to_get_bearer_context_on_cs_rsp) {
 // TC validates deletion of pdn session
 TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling) {
   sgw_state_t* sgw_state = get_sgw_state(false);
+  std::condition_variable cv;
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
 
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
   uint32_t temporary_create_session_procedure_id        = 0;
@@ -240,10 +247,13 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling) {
 
   // Below steps validate that successful handling of create session response
   // which eventually sends message to MME
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp()).Times(1);
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp())
+      .Times(1)
+      .WillOnce(ReturnFromAsyncTask(&cv));
   EXPECT_EQ(
       sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64),
       RETURNok);
+  cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 
   EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) != nullptr);
   sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
@@ -272,22 +282,25 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling) {
       *mme_app_handler,
       mme_app_handle_delete_sess_rsp(check_cause_in_ds_rsp(
           REQUEST_ACCEPTED, session_req.sender_fteid_for_cp.teid)))
-      .Times(1);
+      .Times(1)
+      .WillOnce(ReturnFromAsyncTask(&cv));
   EXPECT_EQ(
       sgw_s8_handle_delete_session_response(sgw_state, &ds_rsp, imsi64),
       RETURNok);
+  cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 
   // after handling of delete session response, makes sure that pdn context is
   // deleted
   EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) == nullptr);
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }
 
 // TC validates that sgw_s8 module fails to find the pdn context based on
 // invalid teid
 TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling_invalid_teid) {
   sgw_state_t* sgw_state = get_sgw_state(false);
+  std::condition_variable cv;
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
 
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
   uint32_t temporary_create_session_procedure_id        = 0;
@@ -315,11 +328,11 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling_invalid_teid) {
       *mme_app_handler,
       mme_app_handle_delete_sess_rsp(check_cause_in_ds_rsp(
           CONTEXT_NOT_FOUND, session_req.sender_fteid_for_cp.teid)))
-      .Times(1);
+      .Times(1)
+      .WillOnce(ReturnFromAsyncTask(&cv));
   EXPECT_EQ(
       sgw_s8_handle_s11_delete_session_request(sgw_state, &ds_req, imsi64),
       RETURNerror);
 
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
+  cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 }

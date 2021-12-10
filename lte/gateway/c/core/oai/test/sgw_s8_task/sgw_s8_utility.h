@@ -61,6 +61,10 @@ void fill_delete_session_request(
 void fill_delete_session_response(
     s8_delete_session_response_t* ds_rsp_p, uint32_t teid, uint8_t cause);
 
+ACTION_P(ReturnFromAsyncTask, cv) {
+  cv->notify_all();
+}
+
 // Initialize config params
 class SgwS8ConfigAndCreateMock : public ::testing::Test {
  public:
