@@ -33,6 +33,7 @@ import (
 	"magma/feg/gateway/services/n7_n40_proxy/n7"
 	mockN7 "magma/feg/gateway/services/n7_n40_proxy/n7/mocks"
 	"magma/feg/gateway/services/n7_n40_proxy/servicers"
+	relay_mocks "magma/feg/gateway/services/session_proxy/relay/mocks"
 	"magma/lte/cloud/go/protos"
 )
 
@@ -72,6 +73,7 @@ var (
 
 func TestCreateSession(t *testing.T) {
 	srv, mockDb, mockN7 := createCentralSessionControllerForTest(t, false)
+	defer srv.Close()
 
 	mockN7.On("PostSmPoliciesWithResponse", mock.Anything,
 		mock.MatchedBy(matchSmPolicyContextData(IMSI1_NOPREFIX)),
@@ -103,6 +105,7 @@ func TestCreateSession(t *testing.T) {
 
 func TestCreateSessionTimeout(t *testing.T) {
 	srv, _, mockN7 := createCentralSessionControllerForTest(t, false)
+	defer srv.Close()
 
 	mockN7.On("PostSmPoliciesWithResponse", mock.Anything,
 		mock.MatchedBy(matchSmPolicyContextData(IMSI1_NOPREFIX)),
@@ -117,6 +120,7 @@ func TestCreateSessionTimeout(t *testing.T) {
 
 func TestCreateSessionErrResp(t *testing.T) {
 	srv, _, mockN7 := createCentralSessionControllerForTest(t, false)
+	defer srv.Close()
 
 	mockN7.On("PostSmPoliciesWithResponse", mock.Anything,
 		mock.MatchedBy(matchSmPolicyContextData(IMSI1_NOPREFIX)),
@@ -131,6 +135,7 @@ func TestCreateSessionErrResp(t *testing.T) {
 
 func TestDisableN7Response(t *testing.T) {
 	srv, mockDb, mockN7 := createCentralSessionControllerForTest(t, true)
+	defer srv.Close()
 
 	mockDb.On("GetOmnipresentRules").Return(
 		[]string{"omni_rule_1", "omni_rule_2"}, []string{"base_10"}).Once()
@@ -155,8 +160,9 @@ func createCentralSessionControllerForTest(t *testing.T, disableN7 bool) (*servi
 	testN7Conf.DisableN7 = disableN7
 	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
 	mockPolicyClient := &mockN7.ClientWithResponsesInterface{}
+	_, cloudRegistry := relay_mocks.StartMockSessionProxyResponder(t)
 
-	srv, err := servicers.NewCentralSessionController(testN7Conf, mockPolicyDBClient, mockPolicyClient)
+	srv, err := servicers.NewCentralSessionController(testN7Conf, mockPolicyDBClient, mockPolicyClient, cloudRegistry)
 	require.NoError(t, err)
 	return srv, mockPolicyDBClient, mockPolicyClient
 }
