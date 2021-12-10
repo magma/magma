@@ -29,6 +29,7 @@ extern "C" {
 #include <string>
 #include "lte/protos/session_manager.grpc.pb.h"
 #include "lte/protos/session_manager.pb.h"
+#include "lte/gateway/c/core/oai/include/map.h"
 
 using grpc::Status;
 using magma::lte::SetSmNotificationContext;
@@ -40,6 +41,7 @@ namespace magma5g {
  * This class is single place holder for all client related services.
  * For instance : subscriberdb, sessiond, mobilityd
  */
+typedef magma::map_s<std::string, std::string> map_string_string_t;
 
 class AMFClientServicerBase {
  public:
@@ -84,6 +86,8 @@ class AMFClientServicer : public AMFClientServicerBase {
 
   AMFClientServicer(AMFClientServicer const&) = delete;
   void operator=(AMFClientServicer const&) = delete;
+
+  map_string_string_t map_tableKey_protoStr;
 
 #if MME_UNIT_TEST
   status_code_e amf_send_msg_to_task(

@@ -149,7 +149,7 @@ template<
 struct map_s {
   std::unordered_map<keyT, valueT, Hash, KeyEqual> umap;
   std::string name;
-  bool log_enabled;
+  bool log_enabled = false;
 
   void set_name(std::string umap_name) { name = umap_name; }
   std::string get_name() { return name; }
@@ -217,6 +217,32 @@ struct map_s {
     } else {
       return MAP_KEY_NOT_EXISTS;
     }
+  }
+
+  /***************************************************************************
+  **                                                                        **
+  ** Name:    isEmpty()                                                     **
+  **                                                                        **
+  ** Description: Returns true if map is empty, else returns false           **
+  **                                                                        **
+  ***************************************************************************/
+  bool isEmpty() {
+    if (umap.empty()) {
+      return true;
+    }
+    return false;
+  }
+
+  /***************************************************************************
+  **                                                                        **
+  ** Name:    clear()                                                       **
+  **                                                                        **
+  ** Description: Clears the contents of the map                            **
+  **                                                                        **
+  ***************************************************************************/
+  void clear() {
+    umap.clear();
+    name.clear();
   }
 };
 
