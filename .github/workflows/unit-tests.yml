@@ -1,0 +1,1456 @@
+---
+name: unit-tests
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+      - v1.*
+  pull_request:
+    branches:
+      - master
+      - v1.*
+    types: [opened, reopened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+env:
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-3c02c72"
+  BAZEL_CACHE: bazel-cache
+  BAZEL_CACHE_REPO: bazel-cache-repo
+[lte-test, c_cpp_unit_tests, li_agent_test, mme_test, mme-clang-tidy-and-warning, c-cpp-codecov, lint-clang-format, session_manager_test, cloud-tests, cwag-precommit, cwf-operator-precommit, markdown-lint, fossa-analyze, feg-lint-precommit, check_helm_chart_dependencies, insync-checkin, nms-flow-test, nms-eslint, nms-yarn-test, nms-e2e-test, build_src_go, test_src_go, test_src_go_qemu, codecov_src_go, run-formatters-and-check-for-errors, build_oai, build_session_manager, codeql-analyze, backport]
+jobs:
+  agw_path_filter:
+    runs-on: ubuntu-latest
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - '.github/workflows/agw-workflow.yml'
+              - 'orc8r/**'
+              - 'lte/**'
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
+  lte-test:
+    needs: agw_path_filter
+    if: ${{ needs.agw_path_filter.outputs.should_not_skip == 'true' }}
+    name: lte test job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      CODEGEN_ROOT: "${{ github.workspace }}/.codegen"
+      PYTHON_BUILD: "${{ github.workspace }}/build"
+      PYTHONPATH: "${{ github.workspace }}"
+      PIP_CACHE_HOME: "${{ github.workspace }}/.pipcache"
+      SWAGGER_CODEGEN_JAR: "${{ github.workspace }}/.codegen/swagger-codegen-cli.jar"
+      MAGMA_DEV_MODE: 1
+      SKIP_SUDO_TESTS: 1
+    steps:
+      - uses: actions/checkout@v2
+      - name: setup pyenv
+        uses: "gabrielfalcao/pyenv-action@v8"
+        with:
+          default: 3.8.5
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.5'
+      - name: Run apt-focal-install-aioeventlet
+        run: |
+          cd nms
+          # Install python3-aioeventlet from the magma apt repo
+          cat ${{ env.MAGMA_ROOT }}/orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub | sudo -E apt-key add -
+          echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" | sudo -E tee /etc/apt/sources.list.d/fbc.list
+          sudo apt-get update -y
+          sudo apt-get install -y python3-aioeventlet
+          sudo rm -rf /var/lib/apt/lists/*
+      - name: Install libraries and dependecies
+        run: |
+          mkdir -p /var/tmp/test_results
+          mkdir -p /var/tmp/codecovs
+          sudo -E apt-get update -y
+          sudo -E apt-get install -y libsystemd-dev pkg-config curl zip unzip net-tools
+          sudo -E apt-get install -y virtualenv python-babel python-dev build-essential autogen autoconf libtool python3-apt python3-requests python3-pip python-protobuf
+      - name: Setup protoc3
+        run: |
+          pip3 install protobuf
+          pip3 install setuptools==49.6.0
+          curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
+          unzip protoc3.zip -d protoc3
+          sudo -E mv protoc3/bin/protoc /bin/protoc
+          sudo -E chmod a+rx /bin/protoc
+          # Workaround: the include files need to be found
+          mv ./protoc3/include/google .
+          sudo -E rm -rf protoc3.zip protoc3
+      - name: Setup Swagger
+        run: |
+          mkdir ${{ env.CODEGEN_ROOT }}
+          wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar -O ${{ env.SWAGGER_CODEGEN_JAR }}
+      - name: Execute test_all
+        run: |
+          make -C ${{ env.MAGMA_ROOT }}/lte/gateway/python test_all
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results
+          path: /var/tmp/test_results
+      - uses: codecov/codecov-action@v1
+        with:
+          files: /var/tmp/codecovs/cover_lte.xml,/var/tmp/codecovs/cover_orc8r.xml
+          flags: lte-test
+
+  c_cpp_unit_tests:
+    needs: agw_path_filter
+    if: ${{ needs.agw_path_filter.outputs.should_not_skip == 'true' }}
+    name: C/C++ unit tests with Bazel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repo
+        # This is necessary for overlays into the Docker container below.
+        uses: actions/checkout@v2
+      - name: Bazel Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+      - name: Bazel Cache Repo
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+      - name: Setup Devcontainer Image
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the devontainer image!"
+      - name: Build C / C++ code with Bazel
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma
+            bazel build //orc8r/gateway/c/...:* //lte/gateway/c/...:*
+      - name: Test C / C++ code with Bazel
+        uses: addnab/docker-run-action@v2
+        with:
+          shell: bash
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma
+            bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* --test_output=errors
+            TEST_RESULT=$?
+            # copy out test results
+            mkdir -p c-cpp-test-results/
+            echo "created c-cpp-test-results/ directory, copying out test result XMLs"
+            find bazel-out/k8-dbg/testlogs/ -name "*.xml" | while IFS= read -r f; do cp "$f" "c-cpp-test-results/${f//\//_}"; done
+            exit $TEST_RESULT
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results
+          path: c-cpp-test-results/
+
+  li_agent_test:
+    needs: agw_path_filter
+    if: ${{ needs.agw_path_filter.outputs.should_not_skip == 'true' }}
+    name: li agent test job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run li agent tests
+        timeout-minutes: 5
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_li_agent
+
+  mme_test:
+    needs: agw_path_filter
+    if: ${{ needs.agw_path_filter.outputs.should_not_skip == 'true' }}
+    name: mme test job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run sctpd tests with Debug build type
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_sctpd BUILD_TYPE=Debug
+      - name: Run sctpd tests with RelWithDebInfo build type
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_sctpd BUILD_TYPE=RelWithDebInfo
+      - name: Run mme tests with Debug build type
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_oai BUILD_TYPE=Debug;
+      - name: Run mme tests with RelWithDebInfo build type
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_oai BUILD_TYPE=RelWithDebInfo;
+
+  mme-clang-tidy-and-warning:
+    needs: agw_path_filter
+    if: ${{ needs.agw_path_filter.outputs.should_not_skip == 'true' }}
+    name: Upload MME clang-tidy and clang-warning outputs
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      BRANCH: "${{ github.base_ref }}"
+      REVISION: "${{ github.sha }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Devcontainer Image
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the devontainer image!"
+      - name: Run mme-clang-tidy
+        if: always()
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --env BRANCH=${{ env.BRANCH}} --env REVISION=${{ env.REVISION }} -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd $MAGMA_ROOT/lte/gateway
+            make clang_tidy_oai_upload
+      - name: Run mme-clang-warnings
+        if: always()
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --env BRANCH=${{ env.BRANCH}} --env REVISION=${{ env.REVISION }} -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd $MAGMA_ROOT/lte/gateway
+            make clang_warning_oai_upload
+
+  c-cpp-codecov:
+    needs: agw_path_filter
+    if: ${{ needs.agw_path_filter.outputs.should_not_skip == 'true' }}
+    name: C / C++ code coverage
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      BRANCH: "${{ github.base_ref }}"
+      REVISION: "${{ github.sha }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Bazel Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+      - name: Bazel Cache Repo
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+      - name: Setup Devcontainer Image
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the devontainer image!"
+            bazel # pull down bazel, if bazel download fails we can fail before we do all the lengthy work below
+      - name: Run codecov with CMake (MME)
+        if: always()
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd $MAGMA_ROOT/lte/gateway
+            make coverage
+            cp $C_BUILD/coverage.info $MAGMA_ROOT
+      - name: Run coverage with Bazel (COMMON / SESSIOND / SCTPD / LIAGENT / CONNECTIOND)
+        if: always()
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd $MAGMA_ROOT
+            # Collecting coverage with Bazel can be slow. We can follow this thread to see if this can be improved: https://github.com/bazelbuild/bazel/issues/8178
+            bazel coverage //orc8r/gateway/c/...:* //lte/gateway/c/...:*
+            # copy out coverage information into magma so that it's accessible from the CI node
+            cp bazel-out/_coverage/_coverage_report.dat $MAGMA_ROOT
+      - name: Upload code coverage
+        if: always()
+        id: c-cpp-codecov-upload
+        uses: codecov/codecov-action@v1
+        with:
+          flags: c_cpp
+
+  lint-clang-format:
+    needs: agw_path_filter
+    if: ${{ needs.agw_path_filter.outputs.should_not_skip == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: DoozyX/clang-format-lint-action@v0.12
+        with:
+          source: 'orc8r/gateway/c'
+          extensions: 'h,hpp,c,cpp'
+          clangFormatVersion: 11
+          style: '{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}'
+      - uses: DoozyX/clang-format-lint-action@v0.12
+        with:
+          source: 'lte/gateway/c'
+          extensions: 'h,hpp,c,cpp'
+          clangFormatVersion: 7
+          style: file
+
+  session_manager_test:
+    needs: agw_path_filter
+    if: ${{ needs.agw_path_filter.outputs.should_not_skip == 'true' }}
+    name: session manager test job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run session_manager tests
+        timeout-minutes: 20
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: --volume ${{ env.MAGMA_ROOT }}:/workspaces/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma/lte/gateway
+            make test_session_manager
+  cloud_path_filter:
+    runs-on: ubuntu-latest
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - [".github/workflows/cloud-workflow.yml", "wifi/cloud/**", "lte/protos/**", "cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/**"]
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
+  cloud-tests:
+    needs: cloud_path_filter
+    if: ${{ needs.cloud_path_filter.outputs.should_not_skip == 'true' }}
+    name: cloud-tests
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      GO111MODULE: 'on'
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - name: deploy-sync-checkin
+        if: always()
+        id: deploy-sync-checkin
+        run: |
+          cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
+          ./run_deployer.bash --deploy-dir /tmp/deploy_dir --build --test check_all
+      - name: Lint cloud Go code
+        if: always()
+        id: cloud-lint-lint
+        run: |
+          cd ${MAGMA_ROOT}/orc8r/cloud/docker
+          python3 build.py --lint
+      - name: Generate test coverage
+        if: always() && steps.cloud-lint-lint.outcome=='success'
+        id: cloud-lint-cov
+        run: |
+          cd ${MAGMA_ROOT}/orc8r/cloud/docker
+          python3 build.py --coverage
+      - uses: codecov/codecov-action@v1
+        if: always() && steps.cloud-lint-cov.outcome=='success'
+        id: cloud-lint-codecov
+        with:
+          files: '${{ env.MAGMA_ROOT}}/orc8r/cloud/coverage/all.gocov'
+          flags: cloud_lint
+      - name: Run tests cloud Go
+        if: always()
+        id: cloud-test
+        run: |
+          cd ${MAGMA_ROOT}/orc8r/cloud/docker
+          python3 build.py --tests --up
+          ls ${MAGMA_ROOT}/orc8r/cloud/test-results
+        timeout-minutes: 15
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results
+          path: "${{ env.MAGMA_ROOT}}/orc8r/cloud/test-results/*"
+      - uses: actions/setup-go@v2
+        if: always()
+        id: gateway_test_init
+        with:
+          go-version: '1.13'
+      - name: Download dependencies
+        if: always() && steps.gateway_test_init.outcome=='success'
+        id: gateway_test_dep
+        run: |
+          cd cwf/gateway
+          go mod download
+      - name: Gateway go tests
+        if: always() && steps.gateway_test_dep.outcome=='success'
+        id: gateway_test
+        run: |
+          cd ${MAGMA_ROOT}/orc8r/gateway/go
+          go test ./...
+          go vet ./...
+      - name: Extract commit title
+        if: failure() && github.event_name == 'push'
+        id: commit
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to Slack for deploy-sync-checkin
+        if: steps.deploy-sync-checkin.outcome=='failure' && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action insync-checkin failed"
+          SLACK_USERNAME: "Cloud workflow"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      - name: Notify failure to Slack for cloud-test
+        if: steps.cloud-test.outcome=='failure' && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action cloud-test failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "Cloud workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      - name: Notify failure to Slack for cloud-lint
+        if: ( steps.cloud-lint.outcome=='failure' || steps.cloud-lint-codecov.outcome=='failure' || steps.cloud-lint-cov.outcome=='failure' ) && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action cloud-test failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "Cloud workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      - name: Notify failure to Slack for orc8r-gateway-test
+        if: ( steps.gateway_test_init.outcome=='failure' || steps.gateway_test_dep.outcome=='failure' || steps.gateway_test.outcome=='failure' ) && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action orc8r-gateway-test failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "Cloud workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+  cwag_path_filter:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - [".github/workflows/cwag-workflow.yml", "orc8r/**", "lte/**", "feg/**", "cwf/**"]
+  cwag-precommit:
+    needs: cwag_path_filter
+    if: ${{ needs.cwag_path_filter.outputs.should_not_skip == 'true' }}
+    name: cwag pre-commit job
+    runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on  # yamllint disable-line rule:truthy
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.15.7'
+      - name: Run golang_before_install.sh script
+        run: ./circleci/golang_before_install.sh
+      - name: Run go mod download with retry
+        uses: nick-invision/retry@v2
+        with:
+          command: cd ${MAGMA_ROOT}/cwf/gateway && go mod download
+          timeout_minutes: 10
+      - name: Run precommit
+        run: |
+          cd ${MAGMA_ROOT}/cwf/gateway
+          make -C ${MAGMA_ROOT}/cwf/gateway precommit
+          cd ${MAGMA_ROOT}/cwf/gateway
+          make -C ${MAGMA_ROOT}/cwf/gateway/integ_tests precommit
+  cwf_operator_path_filter:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - [".github/workflows/cwf-operator.yml", "cwf/**", "k8s/**"]
+  cwf-operator-precommit:
+    needs: cwf_operator_path_filter
+    if: ${{ needs.cwf_operator_path_filter.outputs.should_not_skip == 'true' }}
+    name: cwf operator pre-commit job
+    runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on  # yamllint disable-line rule:truthy
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.15.7'
+      - name: Run golang_before_install.sh script
+        run: ./circleci/golang_before_install.sh
+      - name: Run go mod download with retry
+        uses: nick-invision/retry@v2
+        with:
+          command: cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator && go mod download
+          timeout_minutes: 10
+      - name: Run precommit
+        run: |
+          cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator
+          make -C ${MAGMA_ROOT}/cwf/k8s/cwf_operator precommit
+  markdown_path_filter:
+    runs-on: ubuntu-latest
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - [".github/workflows/docs-workflow.yml", "docs/**"]
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      - name: Save PR number
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ github.event.number }} > ./pr/NR
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+          echo -n "false" > ./pr/RPR
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
+  # Fail if Markdown doesn't pass linter
+  markdown-lint:
+    needs: markdown_path_filter
+    if: ${{ needs.markdown_path_filter.outputs.should_not_skip == 'true' }}
+    name: Markdown lint check
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - name: Run docs precommit
+        run: |
+          cd ${MAGMA_ROOT}/docs
+          make precommit
+  fossa-analyze:
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download fossa analyze script
+        # yamllint disable rule:line-length
+        run: |
+          echo "Downloading CLI"
+          mkdir -p /tmp/magma && cd /tmp/magma
+          wget https://github.com/fossas/fossa-cli/releases/download/v1.0.11/fossa-cli_1.0.11_linux_amd64.tar.gz
+          bash -c 'sha256sum fossa-cli_1.0.11_linux_amd64.tar.gz | grep -q 0e20286630a9bc5a17408c81e6ba9003f91a14fdd680b96ca4def400693e028e'
+          rm -f /tmp/magma/fossa
+          tar xzf fossa-cli_1.0.11_linux_amd64.tar.gz
+          sudo cp /tmp/magma/fossa /usr/local/bin/
+        # yamllint enable
+      - name: Run fossa analyze script
+        run: |
+          echo "Running fossa-analyze-go.sh"
+          sudo ${MAGMA_ROOT}/circleci/fossa-analyze-go.sh
+  feg_path_filter:
+    runs-on: ubuntu-latest
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - [".github/workflows/feg-workflow.yml", "orc8r/**", "lte/**", "feg/**"]
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
+  feg-lint-precommit:
+    needs: feg_path_filter
+    if: ${{ needs.feg_path_filter.outputs.should_not_skip == 'true' }}
+    name: feg lint and precommit
+    runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on  # yamllint disable-line rule:truthy
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.15.7'
+      - run: go version
+      - name: Run golang_before_install.sh script
+        run: |
+          ./circleci/golang_before_install.sh
+      - name: Run go mod download with retry
+        uses: nick-invision/retry@v2
+        if: always()
+        id: feg-lint-init
+        with:
+          command: cd ${MAGMA_ROOT}/cwf/gateway && go mod download
+          timeout_minutes: 10
+      - name: Go lint code
+        if: always() && steps.feg-lint-init.outcome=='success'
+        id: feg-lint
+        run: |
+          cd ${MAGMA_ROOT}/feg/gateway
+          make -C ${MAGMA_ROOT}/feg/gateway lint
+      - name: Generate test coverage
+        if: always() && steps.feg-lint.outcome=='success'
+        id: feg-lint-cov
+        run: |
+          cd ${MAGMA_ROOT}/feg/gateway
+          make -C ${MAGMA_ROOT}/feg/gateway cover
+      - uses: codecov/codecov-action@v1
+        if: always()
+        id: feg-lint-codecov
+        with:
+          files: '${{ env.MAGMA_ROOT}}/feg/gateway/coverage/feg.gocov'
+          flags: feg-lint
+      - name: make feg precommit
+        if: always()
+        id: feg-precommit
+        run: |
+          go get gotest.tools/gotestsum
+          cd ${MAGMA_ROOT}/feg/gateway
+          make -C ${MAGMA_ROOT}/feg/gateway precommit
+      - name: Upload Test Results
+        id: feg-precommit-upload
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results
+          path: "/tmp/test-results"
+      - name: Extract commit title
+        if: failure() && github.event_name == 'push'
+        id: commit
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      - name: Notify failure to slack
+        if: ( steps.feg-lint-init.outcome=='failure' || steps.feg-lint.outcome=='failure' || steps.feg-lint-cov.outcome=='failure' || steps.feg-lint-codecov.outcome=='failure'  ) && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_TITLE: "FeG-lint tests failed"
+          SLACK_USERNAME: "FeG workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      - name: Notify failure to slack
+        if: ( steps.feg-precommit.outcome=='failure' || steps.feg-precommit-upload.outcome=='failure' ) && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "FeG-precommit tests failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "FeG workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+
+  check_helm_chart_dependencies:
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    runs-on: ubuntu-latest
+    name: Check dependency of helm chart ${{ matrix.charts[0] }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check Orc8r
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/orc8r/cloud/helm/orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/orc8r/cloud/helm/orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/orc8r/cloud/helm/orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$NEW_DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi
+      - name: Check cwf-orc8r
+        if: always()
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r//Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r//Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$NEW_DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi
+      - name: Check lte-orc8r
+        if: always()
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/lte/cloud/helm/lte-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/lte/cloud/helm/lte-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$NEW_DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi
+      - name: Check feg-orc8r
+        if: always()
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/feg/cloud/helm/feg-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/feg/cloud/helm/feg-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$NEW_DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi
+      - name: Check fbinternal-orc8r
+        if: always()
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$NEW_DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi
+      - name: Check wifi-orc8r
+        if: always()
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$NEW_DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi
+  insync-checkin:
+    name: insync checkin job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - name: Run build.py
+        run: |
+          cd ${MAGMA_ROOT}/orc8r/cloud/docker
+          python3 build.py --generate
+          sudo chown -R $USER $MAGMA_ROOT/*
+          git add .
+          echo GIT_STATUS=$(git status) >> $GITHUB_ENV
+          git status
+          git diff-index --quiet HEAD
+  nms_path_filter:
+    runs-on: ubuntu-latest
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - [".github/workflows/nms-workflow.yml", "nms/**"]
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
+  nms-flow-test:
+    needs: nms_path_filter
+    if: ${{ needs.nms_path_filter.outputs.should_not_skip == 'true' }}
+    name: nms-flow-test job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: install flow
+        run: |
+          cd ${MAGMA_ROOT}/nms
+          # Extract the specified flow version from the .flowconfig
+          yarn add --dev -W flow-bin@$(x=$(grep "\[version\]" .flowconfig -A 1 | tail -n 1); echo ${x:1})
+      - uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: install  # will run `yarn install` command
+      - name: flow typecheck
+        run: |
+          cd ${MAGMA_ROOT}/nms
+          yarn run flow
+  nms-eslint:
+    needs: nms_path_filter
+    if: ${{ needs.nms_path_filter.outputs.should_not_skip == 'true' }}
+    name: nms-eslint job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16
+      - name: apt install yarn
+        run: |
+          cd ${MAGMA_ROOT}/nms
+          sudo apt-get install -y apt-transport-https
+          curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+          echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+          sudo apt-get update -y
+          sudo apt-get install -y yarn
+      - name: Install dependencies
+        run: |
+          cd ${MAGMA_ROOT}/nms
+          yarn install --frozen-lockfile
+      - name: run eslint
+        run: |
+          cd ${MAGMA_ROOT}/nms
+          yarn run eslint ./
+  nms-yarn-test:
+    needs: nms_path_filter
+    if: ${{ needs.nms_path_filter.outputs.should_not_skip == 'true' }}
+    name: nms-yarn-test job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: install  # will run `yarn install` command
+      - name: run yarn test
+        run: |
+          cd ${MAGMA_ROOT}/nms
+          yarn add jest@^26.4.2 -W --dev
+          yarn test:ci
+  nms-e2e-test:
+    needs: nms_path_filter
+    if: ${{ needs.nms_path_filter.outputs.should_not_skip == 'true' }}
+    name: nms-e2e-test job
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      NMS_ROOT: "${{ github.workspace }}/nms/packages/magmalte"
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
+      PUPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
+    steps:
+      - uses: actions/checkout@v2
+      - name: apt install yarn
+        run: |
+          cd ${MAGMA_ROOT}/nms
+          sudo apt-get install -y apt-transport-https
+          curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+          echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+          sudo apt-get update -y
+          sudo apt-get install -y yarn
+          yarn add jest@^26.4.2 -W --dev
+      - name: apt install chrome
+        run: |
+          cd ${MAGMA_ROOT}/nms
+          # Install latest chrome dev package
+          # Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
+          # installs, work.
+          curl -sS https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google.list
+          sudo apt-get update -y
+          sudo apt-get install -y google-chrome-stable libxss1 --no-install-recommends
+          sudo rm -rf /var/lib/apt/lists/*
+      - uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: install  # will run `yarn install` command
+      - name: run e2e_test_setup.sh
+        run: |
+          source $NVM_DIR/nvm.sh
+          nvm install stable
+          cd ${MAGMA_ROOT}/nms/packages/magmalte
+          ./e2e_test_setup.sh
+      - name: Publish Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: NMS Test Results
+          path: "/tmp/nms_artifacts/*"
+  go_path_filter:
+    runs-on: ubuntu-latest
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - [".github/workflows/golang-build-test.yml", "src/go/**"]
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
+  build_src_go:
+    needs: go_path_filter
+    if: ${{ needs.go_path_filter.outputs.should_not_skip == 'true' }}
+    strategy:
+      matrix:
+        go-version: [1.17.x]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Test
+        run: |
+          cd src/go/
+          go build ./...
+
+  test_src_go:
+    needs: go_path_filter
+    if: ${{ needs.go_path_filter.outputs.should_not_skip == 'true' }}
+    strategy:
+      matrix:
+        go-version: [1.17.x]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Setup gotestsum
+        uses: autero1/action-gotestsum@v1.0.0
+        with:
+          gotestsum_version: 1.7.0
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Test
+        run: |
+          cd src/go/
+          gotestsum --format=testname --junitfile test_src_go.xml -- -race ./...
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results
+          path: "${{ github.workspace }}/src/go/test_src_go.xml"
+
+  test_src_go_qemu:
+    needs: go_path_filter
+    if: ${{ needs.go_path_filter.outputs.should_not_skip == 'true' }}
+    strategy:
+      matrix:
+        go-version: [1.17.x]
+        arch: [386, arm, arm64]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Install QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Setup gotestsum
+        uses: autero1/action-gotestsum@v1.0.0
+        with:
+          gotestsum_version: 1.7.0
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run tests via qemu/binfmt
+        run: |
+          cd src/go/
+          gotestsum --format=testname --junitfile test_src_go.xml -- ./...
+        env:
+          GOARCH: ${{ matrix.arch }}
+        # TODO: Upload this test result as a comment on PR
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results arm64
+          path: "${{ github.workspace }}/src/go/test_src_go.xml"
+
+
+  codecov_src_go:
+    needs: go_path_filter
+    if: ${{ needs.go_path_filter.outputs.should_not_skip == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Test
+        run: |
+          cd src/go/
+          go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+      - name: Codecov.io Upload
+        uses: codecov/codecov-action@v2
+        with:
+          flags: src_go
+          fail_ci_if_error: true
+          verbose: true
+
+  python_path_filter:
+    runs-on: ubuntu-latest
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - [".github/workflows/python-workflow.yml", "**/*.py"]
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      - name: Save PR number
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ github.event.number }} > ./pr/NR
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+          echo -n "false" > ./pr/RPR
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
+  run-formatters-and-check-for-errors:
+    needs: python_path_filter
+    if: ${{ needs.python_path_filter.outputs.should_not_skip == 'true' }}
+    name: Python Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Get changed files
+        id: py-changes
+        # Set outputs.py to be a list of modified python files
+        run: |
+          echo "::set-output name=py::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .py$ | xargs)"
+      - if: ${{ steps.py-changes.outputs.py }}
+        name: Build the python-precommit Docker base image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./lte/gateway/docker/python-precommit/Dockerfile
+          push: false
+          tags: magma/py-lint:latest
+      - if: ${{ steps.py-changes.outputs.py }}
+        name: Format and check for leftover changes
+        uses: addnab/docker-run-action@v3
+        with:
+          image: magma/py-lint:latest
+          options: -u 0 -v ${{ github.workspace }}:/code
+          run: |
+            echo "Running formatting tools. This should be equivalent to running './lte/gateway/python/precommit.py --format --diff' locally."
+            for file in ${{ steps.py-changes.outputs.py }};
+            do
+              set -e
+              echo ""
+              echo "Running isort on $file...";
+              isort --diff --check-only $file;
+              echo "Running autopep8 on $file...";
+              autopep8 --diff --exit-code --select W191,W291,W292,W293,W391,E131,E2,E3 -r $file;
+              echo "Running add-trailing-comma on $file...";
+              add-trailing-comma --py35-plus $file;
+            done;
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      - name: Save PR number
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
+  #######
+  # This pipeline runs various static analysis (e.g. GCC warnings) against the c / c++ pull requests.
+  #
+  # TODO: Move Docker container caching / storage to a repository
+  #
+  # TODO: Reduce workflow description duplication across jobs
+  #   - Option: by use of Workflow Templates per gcc-build-target (need to move docker build to another workflow and requires container repo)
+  #   - Option: by improving our build system and enabling faster build-all-targets
+  #######
+  gcc_problem_path_filter:
+    runs-on: ubuntu-latest
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@v2
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - [".github/workflows/gcc-problems.yml", "orc8r/gateway/c/**", "lte/gateway/c/**", "orc8r/protos/**", "lte/protos/**"]
+  build_oai:
+    needs: gcc_problem_path_filter
+    if: ${{ needs.gcc_problem_path_filter.outputs.should_not_skip == 'true' }}
+    name: build oai job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repo
+        # This is necessary for overlays into the Docker container below.
+        uses: actions/checkout@v2
+      - name: Fetch list of changed files
+        # I am using mmagician fork of get-changed-files (forked from jitterbit/get-changed-files)
+        #   Rationale: our workflow (merge branch into upstream master) is incompatible
+        #   See long list of GH Issues on https://github.com/jitterbit/get-changed-files w.r.t. head ahead of base
+        id: changed_files
+        uses: mmagician/get-changed-files@v2
+        with:
+          format: 'csv'
+      - name: Load problem matcher
+        # If needed https://github.com/microsoft/vscode-cpptools/issues/2266 for path fixups
+        #
+        # Additional GH Issues regarding paths for monorepos without root build.
+        # - https://github.com/actions/runner/issues/659
+        # - https://github.com/actions/runner/issues/765
+        #
+        # Paths emitted on warnings must be relative to the repository (e.g. lte/gateway/...),
+        # Therefore below I use `xo` to fixup our path emissions on gcc warnings.
+        uses: electronjoe/gcc-problem-matcher@v1
+      - name: Build and Apply GCC Problem Matcher
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway/
+            CPPFLAGS="-Wextra -Wshadow -Wimplicit-fallthrough -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wjump-misses-init -Wformat=2 -Wstrict-overflow=4 -Wuninitialized -Wshift-overflow=2" make build_oai 2>&1 > /workspaces/magma/compile.log
+            echo "${{ steps.changed_files.outputs.all }}" | tr , '\n' | while read f
+            do grep "$file" /workspaces/magma/compile.log | xo '/\/magma\/((.*):(\d+):(\d+):\s+(?:fatal\s)?(warning|error):\s+(.*))/$1/' || true;
+            done;
+      - name: Store build_logs_oai Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: build_logs_oai
+          path: ${{ github.workspace }}/compile.log
+
+  build_session_manager:
+    needs: gcc_problem_path_filter
+    if: ${{ needs.gcc_problem_path_filter.outputs.should_not_skip == 'true' }}
+    name: build session manager job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repo
+        # This is necessary for overlays into the Docker container below.
+        uses: actions/checkout@v2
+      - name: Fetch list of changed files
+        # I am using mmagician fork of get-changed-files (forked from jitterbit/get-changed-files)
+        #   Rationale: our workflow (merge branch into upstream master) is incompatible
+        #   See long list of GH Issues on https://github.com/jitterbit/get-changed-files w.r.t. head ahead of base
+        id: changed_files
+        uses: mmagician/get-changed-files@v2
+        with:
+          format: 'csv'
+      - name: Load problem matcher
+        # If needed https://github.com/microsoft/vscode-cpptools/issues/2266 for path fixups
+        #
+        # Additional GH Issues regarding paths for monorepos without root build.
+        # - https://github.com/actions/runner/issues/659
+        # - https://github.com/actions/runner/issues/765
+        #
+        # Paths emitted on warnings must be relative to the repository (e.g. lte/gateway/...),
+        # Therefore below I use `xo` to fixup our path emissions on gcc warnings.
+        uses: electronjoe/gcc-problem-matcher@v1
+      - name: Build and Apply GCC Problem Matcher
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma -e ABC=123
+          run: |
+            cd /workspaces/magma/lte/gateway/
+            CPPFLAGS="-Wextra -Wshadow -Wimplicit-fallthrough -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wjump-misses-init -Wformat=2 -Wstrict-overflow=4 -Wuninitialized -Wshift-overflow=2" make build_session_manager 2>&1 > /workspaces/magma/compile.log
+            echo "${{ steps.changed_files.outputs.all }}" | tr , '\n' | while read f
+            do grep "$file" /workspaces/magma/compile.log | xo '/\/magma\/((.*):(\d+):(\d+):\s+(?:fatal\s)?(warning|error):\s+(.*))/$1/' || true;
+            done;
+      - name: Store build_logs_session_manager Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: build_logs_session_manager
+          path: ${{ github.workspace }}/compile.log
+  codeql-analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # TODO: re-enable cpp once we have build-in-CI possible for our c / c++ via e.g. Docker
+        language: [ 'go', 'javascript', 'python' ]
+        # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python' ]
+        # Learn more:
+        # https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#changing-the-languages-that-are-analyzed
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: ${{ matrix.language }}
+          # If you wish to specify custom queries, you can do so here or in a config file.
+          # By default, queries listed here will override any specified in a config file.
+          # Prefix the list here with "+" to use these queries and those in the config file.
+          # queries: ./path/to/local/query, your-org/your-repo/queries@main
+
+      # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
+      # If this step fails, then you should remove it and run the build manually (see below)
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v1
+
+      # ℹ️ Command-line programs to run using the OS shell.
+      # 📚 https://git.io/JvXDl
+
+      # ✏️ If the Autobuild fails above, remove it and uncomment the following three lines
+      #    and modify them (or add more) to build your code if your project
+      #    uses a compiled language
+
+      #- run: |
+      #   make bootstrap
+      #   make release
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
+        env:
+          NODE_OPTIONS: --max-old-space-size=5120
+  backport:
+    name: backport
+    if: github.event_name == 'push' && github.ref_name == 'master'
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - run: |
+          mkdir ~/.magma
+          echo ${{ secrets.GITHUB_TOKEN }} > ~/.magma/github_access_token
+      - name: Install python prerequisites
+        run: pip3 install fabric3 jsonpickle requests PyYAML PyGithub
+      - run: |
+          cd ${MAGMA_ROOT}/circleci/release
+          fab find_release_commits
+  Notify:
+    name: Publish to Slack
+    if: always() && github.event_name == 'push'
+    needs: [lte-test, c_cpp_unit_tests, li_agent_test, mme_test, mme-clang-tidy-and-warning, c-cpp-codecov, lint-clang-format, session_manager_test, cloud-tests, cwag-precommit, cwf-operator-precommit, markdown-lint, fossa-analyze, feg-lint-precommit, check_helm_chart_dependencies, insync-checkin, nms-flow-test, nms-eslint, nms-yarn-test, nms-e2e-test, build_src_go, test_src_go, test_src_go_qemu, codecov_src_go, run-formatters-and-check-for-errors, build_oai, build_session_manager, codeql-analyze, backport]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse commit info
+        id: commit
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+          echo SHA=${GITHUB_SHA:0:8} >> $GITHUB_ENV
+      - name: Convert markdown to slack markdown for issue
+        uses: LoveToKnow/slackify-markdown-action@v1.0.0
+        id: markdown
+        with:
+          text: |
+            # Job statuses
+               - lte-test ${{( needs.lte-test.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - c_cpp_unit_tests ${{( needs.c_cpp_unit_tests.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - li_agent_test ${{( needs.li_agent_test.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - mme_test ${{( needs.mme_test.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - mme-clang-tidy-and-warning ${{( needs.mme-clang-tidy-and-warning.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - c-cpp-codecov ${{( needs.c-cpp-codecov.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - lint-clang-format ${{( needs.lint-clang-format.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - session_manager_test ${{( needs.session_manager_test.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - cloud-tests ${{( needs.cloud-tests.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - cwag-precommit ${{( needs.cwag-precommit.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - cwf-operator-precommit ${{( needs.cwf-operator-precommit.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - markdown-lint ${{( needs.markdown-lint.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - feg-lint-precommit ${{( needs.feg-lint-precommit.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - check_helm_chart_dependencies ${{( needs.check_helm_chart_dependencies.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - insync-checkin ${{( needs.insync-checkin.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - nms-flow-test ${{( needs.nms-flow-test.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - nms-eslint ${{( needs.nms-eslint.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - nms-yarn-test ${{( needs.nms-yarn-test.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - nms-e2e-test ${{( needs.nms-e2e-test.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - build_src_go ${{( needs.build_src_go.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - test_src_go ${{( needs.test_src_go.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - test_src_go_qemu ${{( needs.test_src_go_qemu.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - codecov_src_go ${{( needs.codecov_src_go.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - run-formatters-and-check-for-errors ${{( needs.run-formatters-and-check-for-errors.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - build_oai ${{( needs.build_oai.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - build_session_manager ${{( needs.build_session_manager.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+               - backport ${{( needs.backport.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
+             # Commit title
+              - [${{env.SHA}}](${{github.event.commits[0].url}}) : ${{ steps.commit.outputs.title}}
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      - name: Notify to slack
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Unit test results"
+          SLACK_MESSAGE: ${{steps.markdown.outputs.text}}
+          SLACK_USERNAME: "Unit tests"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '

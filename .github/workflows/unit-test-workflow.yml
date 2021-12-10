@@ -3,11 +3,7 @@ name: Cloud Unit Test Results
 on:  # yamllint disable-line rule:truthy
   workflow_run:
     workflows:
-      - cloud-workflow
-      - feg-workflow
-      - agw-workflow
-      - golang-build-test
-      - nms-workflow
+      - unit-tests
     types:
       - completed
 
