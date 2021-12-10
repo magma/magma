@@ -111,8 +111,10 @@ func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 
 	// Set Prometheus static lables
 	PrometheusLabels := make(map[string]string)
-	if _, ok := os.LookupEnv("PROMETHEUS_LABELS"); ok {
-		PrometheusLabelsRaw := strings.Split(os.Getenv("PROMETHEUS_LABELS"), ",")
+	// Expected format for PROMETHEUS_LABELS environment variable
+	// PROMETHEUS_LABELS="label1=value1,label2=value2,label3=value3,labelN=valueN"
+	if prometheusLabels, ok := os.LookupEnv("PROMETHEUS_LABELS"); ok {
+		PrometheusLabelsRaw := strings.Split(prometheusLabels, ",")
 		for _, LabelKeyValuePair := range PrometheusLabelsRaw {
 			KeyValueArray := strings.Split(LabelKeyValuePair, "=")
 			PrometheusLabels[KeyValueArray[0]] = KeyValueArray[1]

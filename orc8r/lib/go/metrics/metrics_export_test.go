@@ -25,10 +25,7 @@ import (
 	"magma/orc8r/lib/go/metrics"
 )
 
-func GetMetricValue(
-	families []*prometheus_proto.MetricFamily,
-	familyName string,
-) (*prometheus_proto.Metric, error) {
+func GetMetricValue(families []*prometheus_proto.MetricFamily, familyName string) (*prometheus_proto.Metric, error) {
 	for _, fam := range families {
 		if familyName == *fam.Name {
 			return fam.Metric[0], nil
@@ -37,11 +34,7 @@ func GetMetricValue(
 	return nil, fmt.Errorf("Metric familyName %v not found\n", familyName)
 }
 
-func GetMetricValueByLabels(
-	families []*prometheus_proto.MetricFamily,
-	familyName string,
-	labels []prometheus_proto.LabelPair,
-) (*prometheus_proto.Metric, error) {
+func GetMetricValueByLabels(families []*prometheus_proto.MetricFamily, familyName string, labels []prometheus_proto.LabelPair) (*prometheus_proto.Metric, error) {
 	for _, fam := range families {
 		if familyName != *fam.Name {
 			continue
@@ -98,9 +91,9 @@ func TestGetMetrics(t *testing.T) {
 
 	// test GetMetrics
 	NewPrometheusLabels := map[string]string{
-		"water": "1g",
-		"flour": "1g",
-		"yeast": "0.005g",
+		"apple": "1",
+		"banana": "2",
+		"cherry": "3",
 	}
 	metricFams, err := metrics.GetMetrics(NewPrometheusLabels)
 	assert.NoError(t, err)
@@ -136,12 +129,12 @@ func TestGetMetricsHistograms(t *testing.T) {
 	prometheus.MustRegister(testHistogram)
 
 	// test GetMetrics
-	prometheus_labels := map[string]string{
-		"flour": "1g",
-		"yeast": "0.005g",
-		"water": "1g",
+	prometheusLabels := map[string]string{
+		"apple": "1",
+		"banana": "2",
+		"cherry": "3",
 	}
-	metricFams, err := metrics.GetMetrics(prometheus_labels)
+	metricFams, err := metrics.GetMetrics(prometheusLabels)
 	assert.NoError(t, err)
 	metric, err := GetMetricValue(metricFams, "test_histogram")
 	assert.NoError(t, err)
@@ -170,12 +163,12 @@ func TestGetMetricsSummaries(t *testing.T) {
 	prometheus.MustRegister(testSummary)
 
 	// test GetMetrics
-	prometheus_labels := map[string]string{
-		"flour": "1g",
-		"yeast": "0.005g",
-		"water": "1g",
+	prometheusLabels := map[string]string{
+		"apple": "1",
+		"banana": "2",
+		"cherry": "3",
 	}
-	metricFams, err := metrics.GetMetrics(prometheus_labels)
+	metricFams, err := metrics.GetMetrics(prometheusLabels)
 	assert.NoError(t, err)
 	metric, err := GetMetricValue(metricFams, "test_summary")
 	assert.NoError(t, err)
