@@ -41,6 +41,7 @@ export type SubscriberContextType = {
   sessionState: {[string]: subscriber_state},
   metrics?: {[string]: Metrics},
   gwSubscriberMap: {[gateway_id]: Array<subscriber_id>},
+  subscribersTotal?: number,
   setState?: (
     key: string,
     val?: mutable_subscriber | mutable_subscribers,
