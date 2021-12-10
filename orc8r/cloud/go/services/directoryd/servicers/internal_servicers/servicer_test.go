@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package servicers_test
+package internal_servicers_test
 
 import (
 	"context"
@@ -20,11 +20,11 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/services/directoryd/servicers"
+	"magma/orc8r/cloud/go/services/directoryd/protos"
+	"magma/orc8r/cloud/go/services/directoryd/servicers/internal_servicers"
 	"magma/orc8r/cloud/go/services/directoryd/storage"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/sqorc"
-	"magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -57,7 +57,7 @@ func newTestDirectoryLookupServicer(t *testing.T) protos.DirectoryLookupServer {
 	assert.NoError(t, err)
 
 	store := storage.NewDirectorydBlobstore(fact)
-	srv, err := servicers.NewDirectoryLookupServicer(store)
+	srv, err := internal_servicers.NewDirectoryLookupServicer(store)
 	assert.NoError(t, err)
 
 	return srv

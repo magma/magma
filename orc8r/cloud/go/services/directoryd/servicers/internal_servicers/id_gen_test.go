@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package servicers_test
+package internal_servicers_test
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"magma/orc8r/cloud/go/services/directoryd/servicers"
+	"magma/orc8r/cloud/go/services/directoryd/servicers/internal_servicers"
 	magmaerrors "magma/orc8r/lib/go/errors"
 )
 
@@ -57,7 +57,7 @@ func (m *MockStore) getIDOnDatabaseAlwaysError(networkId string, id string) (str
 }
 
 func TestGetUniqueId_NoExistingId(t *testing.T) {
-	gen := servicers.NewIdGenerator()
+	gen := internal_servicers.NewIdGenerator()
 	mockStore := NewMockStore()
 	id, err := gen.GetUniqueId("any", mockStore.getIDOnDatabaseNotExistingMatch)
 	assert.NoError(t, err)
@@ -66,7 +66,7 @@ func TestGetUniqueId_NoExistingId(t *testing.T) {
 }
 
 func TestGetUniqueId_AlreadyExistingId(t *testing.T) {
-	gen := servicers.NewIdGenerator()
+	gen := internal_servicers.NewIdGenerator()
 	mockStore := NewMockStore()
 	id, err := gen.GetUniqueId("any", mockStore.getIDOnDatabaseWithExistingMatch)
 	assert.NoError(t, err)
@@ -75,7 +75,7 @@ func TestGetUniqueId_AlreadyExistingId(t *testing.T) {
 }
 
 func TestGetUniqueId_AlwaysErrors(t *testing.T) {
-	gen := servicers.NewIdGeneratorWithAttempts(3)
+	gen := internal_servicers.NewIdGeneratorWithAttempts(3)
 	mockStore := NewMockStore()
 	id, err := gen.GetUniqueId("any", mockStore.getIDOnDatabaseAlwaysError)
 	assert.Error(t, err)
@@ -86,10 +86,10 @@ func TestGetUniqueId_AlwaysErrors(t *testing.T) {
 func TestGetRandomInt63(t *testing.T) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < 10; i++ {
-		res := servicers.GetRandomInt63(r, 10, 11)
+		res := internal_servicers.GetRandomInt63(r, 10, 11)
 		assert.Equal(t, int64(10), res)
 	}
 	r = rand.New(rand.NewSource(time.Now().UnixNano()))
-	res := servicers.GetRandomInt63(r, math.MaxUint32-1, math.MaxUint32)
+	res := internal_servicers.GetRandomInt63(r, math.MaxUint32-1, math.MaxUint32)
 	assert.Equal(t, int64(math.MaxUint32-1), res)
 }

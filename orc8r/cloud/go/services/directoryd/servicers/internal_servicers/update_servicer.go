@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package servicers
+package internal_servicers
 
 import (
 	"context"
@@ -24,6 +24,7 @@ import (
 
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/orc8r"
+	directoryd_protos "magma/orc8r/cloud/go/services/directoryd/protos"
 	"magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/state"
 	state_types "magma/orc8r/cloud/go/services/state/types"
@@ -34,13 +35,13 @@ type directoryUpdateServicer struct {
 }
 
 // NewDirectoryUpdateServicer creates & returns GatewayDirectoryServiceServer interface implementation
-func NewDirectoryUpdateServicer() protos.GatewayDirectoryServiceServer {
+func NewDirectoryUpdateServicer() directoryd_protos.GatewayDirectoryServiceServer {
 	return &directoryUpdateServicer{}
 }
 
 // UpdateRecord creates or overwrites an existing directory_record state in the state service DB
 // Current implementation will overwrite Locations instead of extending it, extension is TBD
-func (d *directoryUpdateServicer) UpdateRecord(c context.Context, r *protos.UpdateRecordRequest) (*protos.Void, error) {
+func (d *directoryUpdateServicer) UpdateRecord(c context.Context, r *directoryd_protos.UpdateRecordRequest) (*protos.Void, error) {
 	ret := &protos.Void{}
 	if r == nil || len(r.GetId()) == 0 {
 		return ret, nil
@@ -75,7 +76,7 @@ func (d *directoryUpdateServicer) UpdateRecord(c context.Context, r *protos.Upda
 }
 
 // DeleteRecord deletes directory record of an object from the directory service
-func (d *directoryUpdateServicer) DeleteRecord(c context.Context, r *protos.DeleteRecordRequest) (*protos.Void, error) {
+func (d *directoryUpdateServicer) DeleteRecord(c context.Context, r *directoryd_protos.DeleteRecordRequest) (*protos.Void, error) {
 	ret := &protos.Void{}
 	if r == nil || len(r.GetId()) == 0 {
 		return ret, nil
@@ -94,9 +95,9 @@ func (d *directoryUpdateServicer) DeleteRecord(c context.Context, r *protos.Dele
 
 // GetDirectoryField returns directory field for a given id and key
 func (d *directoryUpdateServicer) GetDirectoryField(
-	c context.Context, r *protos.GetDirectoryFieldRequest) (*protos.DirectoryField, error) {
+	c context.Context, r *directoryd_protos.GetDirectoryFieldRequest) (*directoryd_protos.DirectoryField, error) {
 
-	ret := &protos.DirectoryField{Key: r.GetFieldKey()}
+	ret := &directoryd_protos.DirectoryField{Key: r.GetFieldKey()}
 	networkId, err := identity.GetClientNetworkID(c)
 	if err != nil {
 		return ret, err
@@ -143,9 +144,9 @@ func (d *directoryUpdateServicer) GetDirectoryField(
 
 // GetAllDirectoryRecords returns all directory records
 func (d *directoryUpdateServicer) GetAllDirectoryRecords(
-	c context.Context, r *protos.Void) (*protos.AllDirectoryRecords, error) {
+	c context.Context, r *protos.Void) (*directoryd_protos.AllDirectoryRecords, error) {
 
-	ret := &protos.AllDirectoryRecords{}
+	ret := &directoryd_protos.AllDirectoryRecords{}
 	networkId, err := identity.GetClientNetworkID(c)
 	if err != nil {
 		return ret, err
@@ -163,7 +164,7 @@ func (d *directoryUpdateServicer) GetAllDirectoryRecords(
 	if err != nil {
 		return ret, err
 	}
-	ret.Records = make([]*protos.DirectoryRecord, 0, len(res.GetStates()))
+	ret.Records = make([]*directoryd_protos.DirectoryRecord, 0, len(res.GetStates()))
 	for _, st := range res.GetStates() {
 		if st == nil {
 			continue
@@ -173,7 +174,7 @@ func (d *directoryUpdateServicer) GetAllDirectoryRecords(
 		if err != nil {
 			continue
 		}
-		pdr := &protos.DirectoryRecord{
+		pdr := &directoryd_protos.DirectoryRecord{
 			Id:              st.DeviceID,
 			LocationHistory: dr.LocationHistory,
 			Fields:          map[string]string{},

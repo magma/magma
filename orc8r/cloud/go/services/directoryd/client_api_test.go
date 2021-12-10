@@ -24,6 +24,7 @@ import (
 	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/directoryd"
+	directoryd_protos "magma/orc8r/cloud/go/services/directoryd/protos"
 	directoryd_test_init "magma/orc8r/cloud/go/services/directoryd/test_init"
 	"magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
@@ -264,7 +265,7 @@ func TestDirectorydUpdateMethods(t *testing.T) {
 	assert.Error(t, err)
 
 	// Update
-	_, err = ddUpdaterClient.UpdateRecord(ctx, &protos.UpdateRecordRequest{
+	_, err = ddUpdaterClient.UpdateRecord(ctx, &directoryd_protos.UpdateRecordRequest{
 		Id:       imsi0,
 		Location: hwid0,
 		Fields:   map[string]string{types.RecordKeySessionID: sid0},
@@ -283,7 +284,7 @@ func TestDirectorydUpdateMethods(t *testing.T) {
 
 	// Get Field
 	field, err := ddUpdaterClient.GetDirectoryField(
-		ctx, &protos.GetDirectoryFieldRequest{Id: imsi0, FieldKey: types.RecordKeySessionID})
+		ctx, &directoryd_protos.GetDirectoryFieldRequest{Id: imsi0, FieldKey: types.RecordKeySessionID})
 	assert.NoError(t, err)
 	assert.Equal(t, types.RecordKeySessionID, field.GetKey())
 	assert.Equal(t, sid0, field.GetValue())
@@ -293,7 +294,7 @@ func TestDirectorydUpdateMethods(t *testing.T) {
 	assert.Equal(t, int(1), len(records.GetRecords()))
 
 	// Delete
-	_, err = ddUpdaterClient.DeleteRecord(ctx, &protos.DeleteRecordRequest{Id: imsi0})
+	_, err = ddUpdaterClient.DeleteRecord(ctx, &directoryd_protos.DeleteRecordRequest{Id: imsi0})
 	assert.NoError(t, err)
 
 	// Get imsi0->hwid0, should be gone
@@ -311,8 +312,8 @@ func getStateServiceClient(t *testing.T) (protos.StateServiceClient, error) {
 	return protos.NewStateServiceClient(conn), err
 }
 
-func getDirectorydUpdaterClient(t *testing.T) (protos.GatewayDirectoryServiceClient, error) {
+func getDirectorydUpdaterClient(t *testing.T) (directoryd_protos.GatewayDirectoryServiceClient, error) {
 	conn, err := registry.GetConnection(directoryd.ServiceName)
 	assert.NoError(t, err)
-	return protos.NewGatewayDirectoryServiceClient(conn), err
+	return directoryd_protos.NewGatewayDirectoryServiceClient(conn), err
 }
