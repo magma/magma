@@ -82,7 +82,7 @@ module "orc8r-app" {
   elasticsearch_disk_threshold = tonumber(module.orc8r.es_volume_size * 75 / 100)
 
   orc8r_deployment_type = "fwa"
-  orc8r_tag             = "1.6.0"
+  orc8r_tag             = "1.6.1"
 }
 
 output "nameservers" {
