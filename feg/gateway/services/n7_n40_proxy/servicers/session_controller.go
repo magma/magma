@@ -15,6 +15,7 @@ package servicers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/golang/glog"
@@ -73,17 +74,21 @@ func (srv *CentralSessionController) CreateSession(
 	request *protos.CreateSessionRequest,
 ) (*protos.CreateSessionResponse, error) {
 	if err := validateCreateSessionRequest(request); err != nil {
+		err = fmt.Errorf("CreateSessionRequest failed to validate: %s", err)
+		glog.Error(err)
 		return nil, err
 	}
 
 	policy, policyId, err := srv.getSmPolicyRules(request)
 	metrics.ReportCreateSmPolicy(err)
 	if err != nil {
+		err = fmt.Errorf("CreateSessionRequest failed to get SMPolicyRules: %s", err)
+		glog.Error(err)
 		return nil, err
 	}
 	err = srv.injectOmnipresentRules(policy)
 	if err != nil {
-		glog.Errorf("Failed to inject omnipresent rules %s", err)
+		glog.Errorf("CreateSessionRequest Failed to inject omnipresent rules %s", err)
 	}
 	return n7.GetCreateSessionResponseProto(request, policy, policyId), nil
 }
@@ -103,8 +108,29 @@ func (srv *CentralSessionController) TerminateSession(
 	ctx context.Context,
 	request *protos.SessionTerminateRequest,
 ) (*protos.SessionTerminateResponse, error) {
-
-	return (&protos.UnimplementedCentralSessionControllerServer{}).TerminateSession(ctx, request)
+	if err := validateSessionTerminateRequest(request); err != nil {
+		err = fmt.Errorf("SessionTerminateRequest failed to validate: %s", err)
+		glog.Error(err)
+		return nil, err
+	}
+	smPolicyId, err := n7.GetSmPolicyId(request.GetTgppCtx())
+	if err != nil {
+		err = fmt.Errorf("TerminateSession failed to get policyId: %s", err)
+		glog.Error(err)
+		return nil, err
+	}
+	reqBody := n7.GetSmPolicyDeleteReqBody(request)
+	err = srv.sendSmPolicyDelete(smPolicyId, reqBody)
+	metrics.ReportDeleteSmPolicy(err)
+	if err != nil {
+		err = fmt.Errorf("SessionTerminateRequest failed to send SM Policy Delete: %s", err)
+		glog.Error(err)
+		return nil, err
+	}
+	return &protos.SessionTerminateResponse{
+		Sid:       request.GetCommonContext().GetSid().GetId(),
+		SessionId: request.SessionId,
+	}, nil
 }
 
 // Close gracefully shuts down the CentralSessionController

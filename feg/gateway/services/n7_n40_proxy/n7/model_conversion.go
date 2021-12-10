@@ -16,6 +16,8 @@ package n7
 import (
 	b64 "encoding/base64"
 	"fmt"
+	"net/url"
+	"path"
 	"strconv"
 	"time"
 
@@ -126,6 +128,14 @@ func BuildPartialSuccessReportN7(raa *protos.PolicyReAuthAnswer) *n7_sbi.Partial
 	}
 }
 
+func GetSmPolicyDeleteReqBody(
+	request *protos.SessionTerminateRequest,
+) *n7_sbi.PostSmPoliciesSmPolicyIdDeleteJSONRequestBody {
+	return &n7_sbi.PostSmPoliciesSmPolicyIdDeleteJSONRequestBody{
+		AccuUsageReports: getUmReportN7(request.MonitorUsages),
+	}
+}
+
 func getSbiRatType(ratType protos.RATType) *sbi.RatType {
 	var sbiRatType sbi.RatType
 	switch ratType {
@@ -198,6 +208,30 @@ func getFailureCodeN7(failureCodeProto protos.PolicyReAuthAnswer_FailureCode) *n
 	}
 	retFailCode := FailureCodeProtoToN7Map[failureCodeNum]
 	return &retFailCode
+}
+
+func getUmReportN7(umUpdates []*protos.UsageMonitorUpdate) *[]n7_sbi.AccuUsageReport {
+	reports := []n7_sbi.AccuUsageReport{}
+
+	for _, umUpdate := range umUpdates {
+		reports = append(reports, getAccUsageReportN7(umUpdate))
+	}
+
+	return &reports
+}
+
+func getAccUsageReportN7(umUpdate *protos.UsageMonitorUpdate) n7_sbi.AccuUsageReport {
+	return n7_sbi.AccuUsageReport{
+		RefUmIds:         string(umUpdate.MonitoringKey),
+		VolUsageDownlink: GetSbiVolume(umUpdate.BytesRx), // Output == Rx == Downlink
+		VolUsageUplink:   GetSbiVolume(umUpdate.BytesTx), // Input == Tx == Uplink
+		VolUsage:         GetSbiVolume(umUpdate.BytesRx + umUpdate.BytesTx),
+	}
+}
+
+func GetSbiVolume(bytes uint64) *common5g.Volume {
+	outBytes := common5g.Volume(int64(bytes))
+	return &outBytes
 }
 
 // From SBI types to proto
@@ -650,6 +684,23 @@ func ConvertToProtoTimeStamp(srcTime *time.Time) *timestamp.Timestamp {
 
 func GenNotifyUrl(apiRoot string, sessionId string) sbi.Uri {
 	return sbi.Uri(fmt.Sprintf("%s/%s", apiRoot, b64.URLEncoding.EncodeToString([]byte(sessionId))))
+}
+
+// GetSmPolicyId returns the SmPolicyId from the TgppContext.
+// PolicyUrl is of the form https://{pcf-host}/npcf-smpolicycontrol/v1/sm-policies/{smPolicyId}
+func GetSmPolicyId(tgppCtx *protos.TgppContext) (string, error) {
+	if tgppCtx == nil {
+		return "", fmt.Errorf("couldn't get url from TgppContext: nil TgppCtx")
+	}
+	policyUrl := tgppCtx.GetGxDestHost()
+	if len(policyUrl) == 0 {
+		return "", fmt.Errorf("empty PolicyUrl in TgppCtx")
+	}
+	parsedUrl, err := url.Parse(policyUrl)
+	if err != nil {
+		return "", fmt.Errorf("policyUrl parse error: %s", err)
+	}
+	return path.Base(parsedUrl.Path), nil
 }
 
 func getSbiIpv4(ipv4 string) *sbi.Ipv4Addr {

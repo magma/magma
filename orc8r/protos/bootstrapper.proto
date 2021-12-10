@@ -15,18 +15,20 @@ syntax = "proto3";
 
 import "orc8r/protos/certifier.proto";
 import "orc8r/protos/identity.proto";
+import "google/protobuf/timestamp.proto";
 
 package magma.orc8r;
 option go_package = "magma/orc8r/lib/go/protos";
 
+// --------------------------------------------------------------------------
+// Protos for Bootstrapper servicer
+// --------------------------------------------------------------------------
 message Challenge {
   ChallengeKey.KeyType key_type = 1;
   bytes challenge = 2;
 }
 
-// --------------------------------------------------------------------------
 // Challenge key stores the key used for challenge-response during bootstrap.
-// --------------------------------------------------------------------------
 message ChallengeKey {
   enum KeyType {
     ECHO = 0;
@@ -70,4 +72,118 @@ service Bootstrapper {
   // send back response and csr for signing
   // Returns signed certificate.
   rpc RequestSign (Response) returns (Certificate) {}
+}
+
+// --------------------------------------------------------------------------
+// Protos for CloudRegistration and Registration servicer
+// --------------------------------------------------------------------------
+// CloudRegistration creates tokens for operators to give to access gateways (AGW)
+// to speed up registration workflow. It also validates tokens
+service CloudRegistration {
+  // GetToken saves and sends out a token related to input:networkID and input:logicalID
+  // It will refresh the token if input:refresh is true or token is expired
+  rpc GetToken(GetTokenRequest) returns (GetTokenResponse) {}
+
+  // GetGatewayRegistrationInfo sends out info needed for AGWs to register themselves
+  rpc GetGatewayRegistrationInfo(GetGatewayRegistrationInfoRequest) returns (GetGatewayRegistrationInfoResponse) {}
+
+  // GetGatewayDeviceInfo sends out info that was set when the operator registered
+  // the device's networkID and logicalID
+  rpc GetGatewayDeviceInfo(GetGatewayDeviceInfoRequest) returns (GetGatewayDeviceInfoResponse) {}
+}
+
+// Registration services a southbound access gateway (AGW) register endpoint that takes in the registration token
+// made by CloudRegistration and the rest of gateway info needed to register an AGW
+service Registration {
+  // Register should be called by the AGW
+  rpc Register(RegisterRequest) returns (RegisterResponse) {}
+}
+
+message GetTokenRequest {
+  // gateway_device_info contains basic info that an access gateway (AGW) needs to register
+  GatewayDeviceInfo gateway_device_info = 1;
+
+  // refresh is true if a new token should be generated regardless of old token timeout
+  bool refresh = 2;
+}
+
+message GetTokenResponse {
+  // token is a nonce prepended by bootstrapper.tokenPrepend
+  // It is a randomized string of characters that keys to a TokenInfo
+  string token = 1;
+
+  // timeout is the timestamp of when this TokenInfo will expire
+  google.protobuf.Timestamp timeout = 2;
+}
+
+message GetGatewayRegistrationInfoRequest {}
+
+message GetGatewayRegistrationInfoResponse {
+  // root_ca is a certificate that access gateways (AGW) can use to handshake and communicate with this orc8r
+  string root_ca = 1;
+
+  // domain_name is the domain name where this orc8r can be accessed
+  string domain_name = 2;
+}
+
+message GetGatewayDeviceInfoRequest {
+  // token is a nonce prepended by bootstrapper.tokenPrepend
+  // It is a randomized string of characters that keys to a TokenInfo
+  string token = 1;
+}
+
+message GetGatewayDeviceInfoResponse {
+  oneof response {
+    // gateway_device_info contains basic info that an access gateway (AGW) needs to register
+    GatewayDeviceInfo gateway_device_info = 1;
+
+    // a string describing the client error
+    string error = 2;
+  }
+}
+
+message RegisterRequest {
+  // token is a nonce prepended by bootstrapper.tokenPrefix
+  // It is a randomized string of characters that keys to a TokenInfo
+  string token = 1;
+
+  // hwid is the access gateway's (AGW) hardware id
+  AccessGatewayID hwid = 2;
+
+  // challenge_key is the AGW's long-term public key
+  ChallengeKey challenge_key = 3;
+}
+
+message RegisterResponse {
+  oneof response {
+    // control_proxy is the OK that the access gateway (AGW) has registered properly
+    // EG magma/lte/gateway/configs/control_proxy.yml
+    string control_proxy = 1;
+
+    // a string describing the client error
+    string error = 2;
+  }
+}
+
+// GatewayDeviceInfo contains basic info that an access gateway (AGW) needs to register
+message GatewayDeviceInfo {
+  // network_id is the network id of the AGW
+  string network_id = 1;
+
+  // logical_id is the logical id of the AGW
+  string logical_id = 2;
+}
+
+// TokenInfo is info saved that is keyed by token
+// This is what is saved on CloudRegistration's initial register call (GetToken)
+message TokenInfo {
+  // gateway_device_info contains basic info that an AGW needs to register
+  GatewayDeviceInfo gateway_device_info = 1;
+
+  // nonce is a token without the bootstrapper.tokenPrefix prefix
+  // It is a randomized string of characters that keys to a TokenInfo
+  string nonce = 2;
+
+  // timeout is the timestamp of when this TokenInfo will expire
+  google.protobuf.Timestamp timeout = 3;
 }

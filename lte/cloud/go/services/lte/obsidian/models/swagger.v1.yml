@@ -70,6 +70,8 @@ magma-gen-meta:
       filename: cellular_gateway_pool_record_swaggergen.go
     - go-struct-name: CellularGatewayPoolRecords
       filename: cellular_gateway_pool_records_swaggergen.go
+    - go-struct-name: NetworkNGCConfigs
+      filename: network_ngc_configs_swaggergen.go
 
 info:
   title: LTE Network Management
@@ -354,6 +356,38 @@ paths:
           schema:
             type: string
             example: feg_network
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/cellular/ngc:
+    get:
+      summary: Get NGC configuration of LTE Network
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: NGC configuration of the network
+          schema:
+            $ref: '#/definitions/network_ngc_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update NGC configuration of LTE network
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: config
+          in: body
+          description: New NGC configuration for the network
+          required: true
+          schema:
+            $ref: '#/definitions/network_ngc_configs'
       responses:
         '204':
           description: Success
@@ -1638,6 +1672,48 @@ definitions:
         $ref: '#/definitions/network_epc_configs'
       feg_network_id:
        $ref: '#/definitions/feg_network_id'
+      ngc:
+        $ref: '#/definitions/network_ngc_configs'
+
+  suci_profile:
+    description: SUCI profile for a network. These attributes are defined as per the SUCI encryption/decryption mechanisms specified in the 3GPP TS 33.501.
+    type: object
+    properties:
+      home_network_public_key_identifier:
+        type: integer
+        format: uint32
+        minimum: 0
+        maximum: 255
+        description: HPLMN Public Key Identifier
+        x-nullable: false
+      home_network_public_key:
+        type: string
+        format: byte
+        description: HPLMN Public Key
+        x-nullable: false
+      home_network_private_key:
+        type: string
+        format: byte
+        description: HPLMN Private Key
+        x-nullable: false
+      protection_scheme:
+        type: string
+        description: ECIES Protection scheme
+        x-nullable: false
+        enum:
+          - "ProfileA"
+          - "ProfileB"
+
+  network_ngc_configs:
+    type: object
+    description: NextGeneration Core configuration for network
+    properties:
+      suci_profiles:
+        type: array
+        description: List of SuciProfiles shall be configured only for 5G
+        items:
+          $ref: '#/definitions/suci_profile'
+        minItems: 1
 
   feg_network_id:
     description: Name of the federated network serving this LTE network. Blank for non federated

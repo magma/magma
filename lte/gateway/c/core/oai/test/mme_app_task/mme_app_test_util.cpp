@@ -33,20 +33,22 @@ extern task_zmq_ctx_t task_zmq_ctx_main;
 #define DEFAULT_TEID 1
 #define DEFAULT_MME_S1AP_UE_ID 1
 #define DEFAULT_eNB_S1AP_UE_ID 0
+#define DEFAULT_UE_IPv4 1000
 
 void nas_config_timer_reinit(nas_config_t* nas_conf, uint32_t timeout_msec) {
-  nas_conf->t3402_min  = 1;
-  nas_conf->t3412_min  = 1;
-  nas_conf->t3422_msec = timeout_msec;
-  nas_conf->t3450_msec = timeout_msec;
-  nas_conf->t3460_msec = timeout_msec;
-  nas_conf->t3470_msec = timeout_msec;
-  nas_conf->t3485_msec = timeout_msec;
-  nas_conf->t3486_msec = timeout_msec;
-  nas_conf->t3489_msec = timeout_msec;
-  nas_conf->t3495_msec = timeout_msec;
-  nas_conf->ts6a_msec  = timeout_msec;
-  nas_conf->tics_msec  = timeout_msec;
+  nas_conf->t3402_min    = 1;
+  nas_conf->t3412_min    = 1;
+  nas_conf->t3422_msec   = timeout_msec;
+  nas_conf->t3450_msec   = timeout_msec;
+  nas_conf->t3460_msec   = timeout_msec;
+  nas_conf->t3470_msec   = timeout_msec;
+  nas_conf->t3485_msec   = timeout_msec;
+  nas_conf->t3486_msec   = timeout_msec;
+  nas_conf->t3489_msec   = timeout_msec;
+  nas_conf->t3495_msec   = timeout_msec;
+  nas_conf->ts6a_msec    = timeout_msec;
+  nas_conf->tics_msec    = timeout_msec;
+  nas_conf->tpaging_msec = timeout_msec;
   return;
 }
 
@@ -66,7 +68,7 @@ void send_activate_message_to_mme_app() {
 
 void send_mme_app_initial_ue_msg(
     const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn,
-    guti_eps_mobile_identity_t& guti) {
+    guti_eps_mobile_identity_t& guti, tac_t tac) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
   ITTI_MSG_LASTHOP_LATENCY(message_p)               = 0;
@@ -75,7 +77,7 @@ void send_mme_app_initial_ue_msg(
   S1AP_INITIAL_UE_MESSAGE(message_p).enb_id         = 0;
   S1AP_INITIAL_UE_MESSAGE(message_p).nas = blk2bstr(nas_msg, nas_msg_length);
   S1AP_INITIAL_UE_MESSAGE(message_p).tai.plmn           = plmn;
-  S1AP_INITIAL_UE_MESSAGE(message_p).tai.tac            = 1;
+  S1AP_INITIAL_UE_MESSAGE(message_p).tai.tac            = tac;
   S1AP_INITIAL_UE_MESSAGE(message_p).ecgi.plmn          = plmn;
   S1AP_INITIAL_UE_MESSAGE(message_p).ecgi.cell_identity = {0, 0, 0};
   if (guti.m_tmsi) {
@@ -192,7 +194,7 @@ void send_create_session_resp(gtpv2c_cause_value_t cause_value) {
 
   if (cause_value == REQUEST_ACCEPTED) {
     create_session_response_p->paa.pdn_type            = IPv4;
-    create_session_response_p->paa.ipv4_address.s_addr = 1000;
+    create_session_response_p->paa.ipv4_address.s_addr = DEFAULT_UE_IPv4;
     create_session_response_p->bearer_contexts_created.bearer_contexts[0]
         .s1u_sgw_fteid.teid = 1000;
     create_session_response_p->bearer_contexts_created.bearer_contexts[0]
@@ -413,6 +415,16 @@ void send_erab_release_rsp() {
   S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items           = 1;
   S1AP_E_RAB_REL_RSP(message_p).e_rab_failed_to_rel_list.no_of_items = 0;
   S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.item[0].e_rab_id      = 6;
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
+void send_paging_request() {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_SPGW_APP, S11_PAGING_REQUEST);
+  itti_s11_paging_request_t* paging_request_p =
+      &message_p->ittiMsg.s11_paging_request;
+  paging_request_p->ipv4_addr.s_addr = DEFAULT_UE_IPv4;
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }

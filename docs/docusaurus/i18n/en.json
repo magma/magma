@@ -165,6 +165,9 @@
       "lte/debug_show_tech": {
         "title": "Show Tech"
       },
+      "lte/debug_user_control_plane": {
+        "title": "User Control Plane trace CLI"
+      },
       "lte/deploy_config_agw": {
         "title": "Configure AGW"
       },

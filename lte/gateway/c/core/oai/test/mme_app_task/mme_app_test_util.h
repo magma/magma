@@ -12,6 +12,7 @@
  */
 #include <string>
 #include <vector>
+#include <gmock/gmock-matchers.h>
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
@@ -21,12 +22,13 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.h"
 }
 
+using std::vector;
+
 namespace magma {
 namespace lte {
 
 #define MME_APP_TIMER_TO_MSEC 10
-#define END_OF_TEST_SLEEP_MS 500
-#define STATE_MAX_WAIT_MS 1000
+#define STATE_MAX_WAIT_MS 10000
 #define NAS_RETX_LIMIT 5
 
 #define MME_APP_EXPECT_CALLS(                                                  \
@@ -60,6 +62,11 @@ namespace lte {
         .WillRepeatedly(ReturnFromAsyncTask(&cv));                             \
   } while (0)
 
+#define EXPECT_ARRAY_EQ(orig_array, expected_array, len)                       \
+  ASSERT_THAT(                                                                 \
+      vector<uint8_t>(expected_array, expected_array + len),                   \
+      ::testing::ElementsAreArray(orig_array));
+
 void nas_config_timer_reinit(nas_config_t* nas_conf, uint32_t timeout_msec);
 
 void send_sctp_mme_server_initialized();
@@ -68,7 +75,7 @@ void send_activate_message_to_mme_app();
 
 void send_mme_app_initial_ue_msg(
     const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn,
-    guti_eps_mobile_identity_t& guti);
+    guti_eps_mobile_identity_t& guti, tac_t tac);
 
 void send_mme_app_uplink_data_ind(
     const uint8_t* nas_msg, uint8_t nas_msg_length, const plmn_t& plmn);
@@ -104,6 +111,8 @@ void send_s11_create_bearer_req();
 void send_erab_setup_rsp();
 
 void send_erab_release_rsp();
+
+void send_paging_request();
 
 }  // namespace lte
 }  // namespace magma

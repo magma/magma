@@ -90,11 +90,10 @@ int create_session_grpc_req_on_gnb_setup_rsp(
   inet_ntop(AF_INET, message->gnb_gtp_teid_ip_addr, ipv4_str, INET_ADDRSTRLEN);
   req_rat_specific->mutable_gnode_endpoint()->set_end_ipv4_addr(ipv4_str);
 
-  OAILOG_DEBUG(
-      LOG_AMF_APP, "Sending PDU session Establishment 2nd Request to SMF");
-
   OAILOG_INFO(
-      LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s]\n", imsi);
+      LOG_AMF_APP,
+      "Sending msg(grpc) to :[sessiond] for ue: [%s] pdu session :[%u]\n", imsi,
+      message->pdu_session_id);
 
   AMFClientServicer::getInstance().set_smf_session(req);
 
@@ -118,8 +117,9 @@ int amf_smf_create_ipv4_session_grpc_req(
   amf_context_t* amf_ctxt_p         = NULL;
 
   OAILOG_INFO(
-      LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s] session\n",
-      imsi);
+      LOG_AMF_APP,
+      "Sending msg(grpc) to :[sessiond] for ue: [%s] pdu session: [%u]\n", imsi,
+      pdu_session_id);
 
   IMSI_STRING_TO_IMSI64((char*) imsi, &imsi64);
   ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
@@ -168,12 +168,13 @@ int amf_smf_create_pdu_session(
   }
 
   OAILOG_INFO(
-      LOG_AMF_APP, "Sending msg(grpc) to :[mobilityd] for ue: [%s] ip-addr\n",
-      imsi);
+      LOG_AMF_APP,
+      "Sending msg(grpc) to :[mobilityd] for ue: [%s] ip-addr pdu session: "
+      "[%u]\n",
+      imsi, message->pdu_session_id);
   AMFClientServicer::getInstance().allocate_ipv4_address(
-      imsi, reinterpret_cast<char*>(smf_ctx->apn), message->pdu_session_id,
-      message->pti, AF_INET, message->gnb_gtp_teid,
-      message->gnb_gtp_teid_ip_addr, 4, amf_ctxt_p->subscribed_ue_ambr);
+      imsi, smf_ctx->dnn.c_str(), message->pdu_session_id, message->pti,
+      AF_INET, message->gnb_gtp_teid, message->gnb_gtp_teid_ip_addr, 4);
 
   return (RETURNok);
 }
@@ -199,10 +200,13 @@ int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
   req_rat_specific->set_pdu_session_id(message->pdu_session_id);
   req_rat_specific->set_procedure_trans_identity(
       (const char*) (&(message->pti)));
+  req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
 
   OAILOG_INFO(
       LOG_AMF_APP,
-      "Sending msg(grpc) to :[sessiond] for ue: [%s] release session\n", imsi);
+      "Sending msg(grpc) to :[sessiond] for ue: [%s] release,  pdu session: "
+      "[%d]\n",
+      imsi, message->pdu_session_id);
 
   AMFClientServicer::getInstance().set_smf_session(req);
 

@@ -1497,13 +1497,14 @@ status_code_e sgw_handle_suspend_notification(
           (eps_bearer_entry_p->paa.pdn_type == IPv4_AND_v6)) {
         ue_ipv6 = &eps_bearer_entry_p->paa.ipv6_address;
       }
-
+#if !MME_UNIT_TEST
       rv = gtp_tunnel_ops->discard_data_on_tunnel(
           ue_ipv4, ue_ipv6, eps_bearer_entry_p->s_gw_teid_S1u_S12_S4_up, NULL);
       if (rv < 0) {
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, imsi64, "ERROR in Disabling DL data on TUNNEL\n");
       }
+#endif
     } else {
       OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "Bearer context not found \n");
     }
@@ -2174,6 +2175,7 @@ static void add_tunnel_helper(
               .packetfiltercontents),
         ue_ipv4.s_addr, ue_ipv6, &dlflow);
 
+#if !MME_UNIT_TEST
     rc = gtpv1u_add_tunnel(
         ue_ipv4, ue_ipv6, vlan, enb, enb_ipv6,
         eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up,
@@ -2194,6 +2196,7 @@ static void add_tunnel_helper(
           eps_bearer_ctxt_entry_p->enb_teid_S1u,
           eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up);
     }
+#endif
   }
 }
 bool does_bearer_context_hold_valid_enb_ip(ip_address_t enb_ip_address_S1u) {

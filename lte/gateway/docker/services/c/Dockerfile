@@ -115,7 +115,6 @@ RUN bazel build \
   @protobuf//:protobuf \
   @prometheus_cpp//:prometheus-cpp \
   @yaml-cpp//:yaml-cpp \
-  @boost//:iterator \
   @github_nlohmann_json//:json \
   @sentry_native//:sentry
 
@@ -211,6 +210,9 @@ COPY --from=builder /usr/lib/x86_64-linux-gnu/libgssapi_krb5* /usr/lib/x86_64-li
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libkrb5* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libk5crypto* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libkeyutils* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libcurl.so.* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/librtmp.so.* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libssh.so.* /usr/lib/x86_64-linux-gnu/
 
 
 COPY --from=builder /usr/local/lib/liblfds710.so /usr/local/lib/

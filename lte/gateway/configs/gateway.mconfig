@@ -152,6 +152,15 @@
     "connectiond": {
       "@type": "type.googleapis.com/magma.mconfig.ConnectionD",
       "logLevel": "INFO"
+    },
+    "shared_mconfig": {
+      "@type": "type.googleapis.com/magma.mconfig.SharedMconfig",
+      "sentry_config": {
+        "dsn_python": "",
+        "dsn_native": "",
+        "upload_mme_log": false,
+        "sample_rate": 1.0
+      }
     }
   }
 }

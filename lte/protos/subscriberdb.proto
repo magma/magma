@@ -37,6 +37,10 @@ message SubscriberIDSet {
   repeated SubscriberID sids = 1;
 }
 
+message SuciProfileList {
+  repeated SuciProfile suci_profiles = 1;
+}
+
 // --------------------------------------------------------------------------
 // GSM/LTE subscription info
 // --------------------------------------------------------------------------
@@ -224,6 +228,8 @@ service SubscriberDBCloud {
   rpc Sync (SyncRequest) returns (SyncResponse) {}
   // ListSubscribers lists pages of subscribers stored.
   rpc ListSubscribers (ListSubscribersRequest) returns (ListSubscribersResponse) {}
+  // List SuciProfiles per Network
+  rpc ListSuciProfiles (magma.orc8r.Void) returns (SuciProfileList) {}
 }
 
 message CheckInSyncRequest {
@@ -271,3 +277,51 @@ message ListSubscribersResponse {
   // Deprecated
   reserved 3, 4;
 }
+
+message SuciProfile {
+    enum ECIESProtectionScheme {
+        ProfileA = 0;
+        ProfileB = 1;
+    }
+    // HPLMN Public Key Identifier
+    uint32 home_net_public_key_id = 1;
+    ECIESProtectionScheme protection_scheme =2;
+    // HPLMN Public Key
+    bytes home_net_public_key = 3;
+    // HPLMN Private Key
+    bytes home_net_private_key = 4;
+}
+
+service SuciProfileDB {
+ // Adds a new suciprofile to the store.
+  // Throws ALREADY_EXISTS if the suciprofile already exists.
+  rpc AddSuciProfile (SuciProfile) returns (magma.orc8r.Void) {}
+
+  // Deletes an existing suciprofile.
+  // If the suciprofile is not already present, this request is ignored.
+  rpc DeleteSuciProfile (SuciProfile) returns (magma.orc8r.Void) {}
+
+  // List the suciprofile in the store.
+  rpc ListSuciProfile (magma.orc8r.Void) returns (SuciProfileList) {}
+}
+
+message M5GSUCIRegistrationRequest {
+    //Home network public key identifier
+    uint32 ue_pubkey_identifier = 1;
+    //UE public key
+    bytes ue_pubkey = 2;
+    //UE ciphertext
+    bytes ue_ciphertext = 3;
+    //Protection scheme output
+    bytes ue_encrypted_mac = 4;
+}
+
+message M5GSUCIRegistrationAnswer {
+    //UE de concealed msin
+    bytes ue_msin_recv = 1;
+}
+
+service M5GSUCIRegistration {
+     rpc M5GDecryptImsiSUCIRegistration (M5GSUCIRegistrationRequest ) returns (M5GSUCIRegistrationAnswer ) {}
+}
+

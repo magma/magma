@@ -388,6 +388,8 @@ static int emm_as_recv(
           false, false, emm_cause, decode_status);
       // Free the ESM container
       bdestroy(emm_msg->attach_request.esmmessagecontainer);
+      // Free the supported codec list
+      bdestroy(emm_msg->attach_request.supportedcodecs);
       break;
 
     case IDENTITY_RESPONSE:

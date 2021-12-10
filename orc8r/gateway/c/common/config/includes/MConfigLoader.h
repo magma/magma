@@ -34,12 +34,12 @@ namespace magma {
  *          passed is not the right type
  */
 // TODO(#6151): migrate to an absl::Status return type.
-bool load_service_mconfig_from_file(
-    const std::string& service_name, google::protobuf::Message* message);
+bool load_service_mconfig_from_file(const std::string& service_name,
+                                    google::protobuf::Message* message);
 
-bool load_service_mconfig(
-    const std::string& service_name, std::istream* config_stream,
-    google::protobuf::Message* message);
+bool load_service_mconfig(const std::string& service_name,
+                          std::istream* config_stream,
+                          google::protobuf::Message* message);
 
 void get_mconfig_file(std::ifstream* file);
 }  // namespace magma

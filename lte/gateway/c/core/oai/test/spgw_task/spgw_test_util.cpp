@@ -25,6 +25,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 }
 
 namespace magma {
@@ -277,7 +278,7 @@ void fill_packet_filter_content(packet_filter_contents_t* pf_content) {
 
 void fill_nw_initiated_activate_bearer_request(
     itti_gx_nw_init_actv_bearer_request_t* gx_nw_init_actv_req_p,
-    std::string imsi_str, ebi_t lbi, bearer_qos_t qos) {
+    const std::string& imsi_str, ebi_t lbi, bearer_qos_t qos) {
   gx_nw_init_actv_req_p->imsi_length = imsi_str.size();
   strncpy(gx_nw_init_actv_req_p->imsi, imsi_str.c_str(), imsi_str.size());
   gx_nw_init_actv_req_p->lbi            = lbi;
@@ -300,6 +301,7 @@ void fill_nw_initiated_activate_bearer_request(
   dl_tft->ebit = TRAFFIC_FLOW_TEMPLATE_PARAMETER_LIST_IS_NOT_INCLUDED;
 
   // create one uplink tft
+  ul_tft->numberofpacketfilters = 1;
   ul_tft->packetfilterlist.createnewtft[0].direction =
       TRAFFIC_FLOW_TEMPLATE_UPLINK_ONLY;
   ul_tft->packetfilterlist.createnewtft[0].eval_precedence = qos.pl;
@@ -307,6 +309,7 @@ void fill_nw_initiated_activate_bearer_request(
       &ul_tft->packetfilterlist.createnewtft[0].packetfiltercontents);
 
   // create one downlink tft
+  dl_tft->numberofpacketfilters = 1;
   dl_tft->packetfilterlist.createnewtft[0].direction =
       TRAFFIC_FLOW_TEMPLATE_DOWNLINK_ONLY;
   dl_tft->packetfilterlist.createnewtft[0].eval_precedence = qos.pl;
@@ -348,7 +351,7 @@ void fill_nw_initiated_activate_bearer_response(
 
 void fill_nw_initiated_deactivate_bearer_request(
     itti_gx_nw_init_deactv_bearer_request_t* gx_nw_init_deactv_req_p,
-    std::string imsi_str, ebi_t lbi, ebi_t eps_bearer_id) {
+    const std::string& imsi_str, ebi_t lbi, ebi_t eps_bearer_id) {
   gx_nw_init_deactv_req_p->imsi_length = imsi_str.size();
   strncpy(gx_nw_init_deactv_req_p->imsi, imsi_str.c_str(), imsi_str.size());
   gx_nw_init_deactv_req_p->lbi           = lbi;
@@ -365,7 +368,8 @@ void fill_nw_initiated_deactivate_bearer_response(
   nw_deactv_bearer_resp->cause.cause_value     = cause;
 
   if (delete_default_bearer) {
-    nw_deactv_bearer_resp->lbi  = (ebi_t*) calloc(1, sizeof(ebi_t));
+    nw_deactv_bearer_resp->lbi =
+        reinterpret_cast<ebi_t*>(calloc(1, sizeof(ebi_t)));
     *nw_deactv_bearer_resp->lbi = ebi[0];
     nw_deactv_bearer_resp->bearer_contexts.bearer_contexts[0]
         .cause.cause_value = cause;
@@ -381,6 +385,17 @@ void fill_nw_initiated_deactivate_bearer_response(
       num_bearer_context;
   nw_deactv_bearer_resp->imsi             = test_imsi64;
   nw_deactv_bearer_resp->s_gw_teid_s11_s4 = sgw_s11_context_teid;
+}
+
+void fill_s11_suspend_notification(
+    itti_s11_suspend_notification_t* suspend_notif, teid_t sgw_s11_context_teid,
+    const std::string& imsi_str, ebi_t link_bearer_id) {
+  suspend_notif->teid        = sgw_s11_context_teid;
+  suspend_notif->lbi         = link_bearer_id;
+  suspend_notif->imsi.length = imsi_str.size();
+  strncpy(
+      (char*) suspend_notif->imsi.digit, imsi_str.c_str(),
+      suspend_notif->imsi.length);
 }
 
 }  // namespace lte

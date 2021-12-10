@@ -42,7 +42,7 @@ int decode_extended_service_request(
 
   if ((decoded_result = decode_u8_nas_key_set_identifier(
            &extended_service_request->naskeysetidentifier, 0,
-           *(buffer + decoded) & 0x0f, len - decoded)) < 0)
+           *(buffer + decoded) >> 4, len - decoded)) < 0)
     return decoded_result;
 
   decoded++;
@@ -83,11 +83,11 @@ int encode_extended_service_request(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, EXTENDED_SERVICE_REQUEST_MINIMUM_LENGTH, len);
   *(buffer + encoded) =
-      ((encode_u8_service_type(&extended_service_request->servicetype) & 0x0f)
+      ((encode_u8_nas_key_set_identifier(
+            &extended_service_request->naskeysetidentifier) &
+        0x0f)
        << 4) |
-      (encode_u8_nas_key_set_identifier(
-           &extended_service_request->naskeysetidentifier) &
-       0x0f);
+      (encode_u8_service_type(&extended_service_request->servicetype) & 0x0f);
   encoded++;
 
   if ((encode_result = encode_mobile_identity_ie(

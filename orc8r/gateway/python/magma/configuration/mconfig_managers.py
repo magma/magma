@@ -13,6 +13,7 @@ limitations under the License.
 import abc
 import contextlib
 import json
+import logging
 import os
 from typing import Any, Generic, TypeVar
 
@@ -21,9 +22,11 @@ from google.protobuf import json_format
 from magma.common import serialization_utils
 from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfigs import (
+    SHARED_MCONFIG,
     filter_configs_by_key,
     unpack_mconfig_any,
 )
+from orc8r.protos.mconfig import mconfigs_pb2
 from orc8r.protos.mconfig_pb2 import GatewayConfigs, GatewayConfigsMetadata
 
 T = TypeVar('T')
@@ -98,6 +101,22 @@ class MconfigManager(Generic[T]):
         pass
 
     @abc.abstractmethod
+    def load_shared_mconfig(
+        self,
+        shared_mconfig_struct: mconfigs_pb2.SharedMconfig,
+    ) -> mconfigs_pb2.SharedMconfig:
+        """
+        Load the shared managed configuration.
+
+        Args:
+            shared_mconfig_struct (SharedMconfig): protobuf message struct of
+            the shared managed config
+
+        Returns: Loaded shared config value
+        """
+        pass
+
+    @abc.abstractmethod
     def load_mconfig_metadata(self) -> GatewayConfigsMetadata:
         """
         Load the metadata of the managed configuration.
@@ -142,7 +161,7 @@ class MconfigManager(Generic[T]):
         pass
 
 
-class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
+class MconfigManagerImpl(MconfigManager[GatewayConfigs]):  # pylint: disable=missing-docstring
     """
     Legacy mconfig manager for non-offset mconfigs
     """
@@ -164,6 +183,7 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
         mconfig_struct: Any,
     ) -> Any:
         mconfig = self.load_mconfig()
+
         if service_name not in mconfig.configs_by_key:
             raise LoadConfigError(
                 "Service ({}) missing in mconfig".format(service_name),
@@ -171,6 +191,23 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
 
         service_mconfig = mconfig.configs_by_key[service_name]
         return unpack_mconfig_any(service_mconfig, mconfig_struct)
+
+    def load_shared_mconfig(
+        self, shared_mconfig_struct: mconfigs_pb2.SharedMconfig,
+    ) -> mconfigs_pb2.SharedMconfig:
+        """Documented in base class.
+        """
+        mconfig = self.load_mconfig()
+
+        service_mconfig = mconfig.configs_by_key.get(SHARED_MCONFIG)
+        if service_mconfig is None:
+            logging.warning(
+                "Shared Mconfig is missing in "
+                "mconfig.configs_by_key. Returning configs unchanged.",
+            )
+            return shared_mconfig_struct
+
+        return unpack_mconfig_any(service_mconfig, shared_mconfig_struct)
 
     def load_service_mconfig_as_json(self, service_name) -> Any:
         cfg_file_name = self._get_mconfig_file_path()

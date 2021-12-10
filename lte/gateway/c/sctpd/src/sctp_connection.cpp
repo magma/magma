@@ -200,7 +200,7 @@ SctpStatus SctpConnection::HandleClientSock(int sd) {
     SctpAssoc&& assoc = SctpAssoc();
     try {
       assoc = _sctp_desc.getAssoc(sinfo.sinfo_assoc_id);
-    } catch (std::out_of_range) {
+    } catch (const std::out_of_range&) {
       MLOG(MERROR) << "Received sctp msg for untracked assoc: "
                    << std::to_string(sinfo.sinfo_assoc_id);
       // TODO: handle this case

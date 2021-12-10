@@ -28,12 +28,17 @@ void service303_mme_app_statistics_read(
   set_gauge("ue_connected", stats_msg_p->nb_ue_connected, label);
   set_gauge("default_eps_bearers", stats_msg_p->nb_default_eps_bearers, label);
   set_gauge("s1u_bearers", stats_msg_p->nb_s1u_bearers, label);
+  set_gauge(
+      "mme_app_last_msg_latency", stats_msg_p->nb_mme_app_last_msg_latency,
+      label);
 }
 
 void service303_s1ap_statistics_read(
     application_s1ap_stats_msg_t* stats_msg_p) {
   size_t label = 0;
   set_gauge("enb_connected", stats_msg_p->nb_enb_connected, label);
+  set_gauge(
+      "s1ap_last_msg_latency", stats_msg_p->nb_s1ap_last_msg_latency, label);
 }
 
 void service303_statistics_display(void) {

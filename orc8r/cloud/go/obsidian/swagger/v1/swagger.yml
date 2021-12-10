@@ -2139,6 +2139,37 @@ paths:
       summary: Update the Federation Gateway network ID
       tags:
       - LTE Networks
+  /lte/{network_id}/cellular/ngc:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      responses:
+        "200":
+          description: NGC configuration of the network
+          schema:
+            $ref: '#/definitions/network_ngc_configs'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Get NGC configuration of LTE Network
+      tags:
+      - LTE Networks
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - description: New NGC configuration for the network
+        in: body
+        name: config
+        required: true
+        schema:
+          $ref: '#/definitions/network_ngc_configs'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update NGC configuration of LTE network
+      tags:
+      - LTE Networks
   /lte/{network_id}/cellular/ran:
     get:
       parameters:
@@ -10042,6 +10073,8 @@ definitions:
         $ref: '#/definitions/network_epc_configs'
       feg_network_id:
         $ref: '#/definitions/feg_network_id'
+      ngc:
+        $ref: '#/definitions/network_ngc_configs'
       ran:
         $ref: '#/definitions/network_ran_configs'
     required:
@@ -10350,6 +10383,16 @@ definitions:
     minLength: 1
     type: string
     x-nullable: false
+  network_ngc_configs:
+    description: NextGeneration Core configuration for network
+    properties:
+      suci_profiles:
+        description: List of SuciProfiles shall be configured only for 5G
+        items:
+          $ref: '#/definitions/suci_profile'
+        minItems: 1
+        type: array
+    type: object
   network_probe_data:
     description: Network Probe State
     properties:
@@ -11765,6 +11808,35 @@ definitions:
         example: 100000000
         format: uint64
         type: integer
+        x-nullable: false
+    type: object
+  suci_profile:
+    description: SUCI profile for a network. These attributes are defined as per the
+      SUCI encryption/decryption mechanisms specified in the 3GPP TS 33.501.
+    properties:
+      home_network_private_key:
+        description: HPLMN Private Key
+        format: byte
+        type: string
+        x-nullable: false
+      home_network_public_key:
+        description: HPLMN Public Key
+        format: byte
+        type: string
+        x-nullable: false
+      home_network_public_key_identifier:
+        description: HPLMN Public Key Identifier
+        format: uint32
+        maximum: 255
+        minimum: 0
+        type: integer
+        x-nullable: false
+      protection_scheme:
+        description: ECIES Protection scheme
+        enum:
+        - ProfileA
+        - ProfileB
+        type: string
         x-nullable: false
     type: object
   swx:

@@ -140,7 +140,7 @@ ue_mm_context_t* mme_create_new_ue_context(void) {
   new_p->initial_context_setup_rsp_timer =
       (nas_timer_t){MME_APP_TIMER_INACTIVE_ID, mme_config.nas_config.tics_msec};
   new_p->paging_response_timer = (nas_timer_t){
-      MME_APP_TIMER_INACTIVE_ID, MME_APP_PAGING_RESPONSE_TIMER_VALUE};
+      MME_APP_TIMER_INACTIVE_ID, mme_config.nas_config.tpaging_msec};
   new_p->ulr_response_timer = (nas_timer_t){MME_APP_TIMER_INACTIVE_ID,
                                             MME_APP_ULR_RESPONSE_TIMER_VALUE};
   new_p->ue_context_modification_timer = (nas_timer_t){
@@ -370,21 +370,6 @@ ue_mm_context_t* mme_ue_context_exists_guti(
   }
 
   return NULL;
-}
-
-//------------------------------------------------------------------------------
-void mme_app_move_context(ue_mm_context_t* dst, ue_mm_context_t* src) {
-  OAILOG_FUNC_IN(LOG_MME_APP);
-  if ((dst) && (src)) {
-    enb_s1ap_id_key_t enb_s1ap_id_key = dst->enb_s1ap_id_key;
-    enb_ue_s1ap_id_t enb_ue_s1ap_id   = dst->enb_ue_s1ap_id;
-    mme_ue_s1ap_id_t mme_ue_s1ap_id   = dst->mme_ue_s1ap_id;
-    memcpy(dst, src, sizeof(*dst));
-    dst->enb_s1ap_id_key = enb_s1ap_id_key;
-    dst->enb_ue_s1ap_id  = enb_ue_s1ap_id;
-    dst->mme_ue_s1ap_id  = mme_ue_s1ap_id;
-  }
-  OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
 //------------------------------------------------------------------------------
@@ -745,10 +730,12 @@ void mme_remove_ue_context(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
+#if !MME_UNIT_TEST
   // First, notify directoryd of removal
   directoryd_remove_location_a(
       ue_context_p->emm_context._imsi64,
       ue_context_p->emm_context._imsi.length);
+#endif
 
   // Release emm and esm context
   delete_mme_ue_state(ue_context_p->emm_context._imsi64);
@@ -1226,10 +1213,12 @@ void mme_ue_context_update_ue_emm_state(
       (new_mm_state == UE_REGISTERED)) {
     ue_context_p->mm_state = new_mm_state;
 
+#if !MME_UNIT_TEST
     // Report directoryd UE record
     directoryd_report_location_a(
         ue_context_p->emm_context._imsi64,
         ue_context_p->emm_context._imsi.length);
+#endif
 
     // Update Stats
     update_mme_app_stats_attached_ue_add();

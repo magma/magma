@@ -10,7 +10,12 @@ inputs:
     required: true
   IMAGE_TAGS:
     required: true
-    default: type=sha
+    default: |
+      type=sha
+      type=schedule
+      type=ref,event=branch
+      type=ref,event=tag
+      type=ref,event=pr
   DOCKERFILE:
     required: true
 
@@ -27,6 +32,7 @@ runs:
         images: ${{ inputs.REGISTRY }}/${{ inputs.IMAGE_STREAM }}
         # defines the image tags added to the image
         tags: ${{ inputs.IMAGE_TAGS }}
+        flavor: latest=true
     - name: Set up Docker Buildx
       id: buildx
       uses: docker/setup-buildx-action@v1

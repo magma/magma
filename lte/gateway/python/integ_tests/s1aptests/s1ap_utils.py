@@ -534,6 +534,14 @@ class S1ApUtil(object):
         for ip in ip_list:
             ue_ip_str = str(ip)
             print("Verifying paging flow for ip", ue_ip_str)
+            if ip.version == 6:
+                ue_ip6_str = ipaddress.ip_network(
+                    (ue_ip_str + "/64"), strict=False,
+                ).with_netmask
+            ue_ip_addr = ue_ip6_str if ip.version == 6 else ue_ip_str
+            dst_addr = "nw_dst" if ip.version == 4 else "ipv6_dst"
+            eth_typ = 2048 if ip.version == 4 else 34525
+
             for i in range(self.MAX_NUM_RETRIES):
                 print("Get paging flows: attempt ", i)
                 paging_flows = get_flows(
@@ -541,8 +549,8 @@ class S1ApUtil(object):
                     {
                         "table_id": self.SPGW_TABLE,
                         "match": {
-                            "nw_dst": ue_ip_str,
-                            "eth_type": 2048,
+                            dst_addr: ue_ip_addr,
+                            "eth_type": eth_typ,
                             "priority": 5,
                         },
                     },
@@ -588,6 +596,12 @@ class S1ApUtil(object):
         self._imsi_idx += 1
         print("Using subscriber IMSI %s" % imsi)
         return imsi
+
+    def update_ipv6_address(self, ue_id, ipv6_addr):
+        """Update the ipv6 address to ue_ip_map"""
+        with self._lock:
+            ip6 = ipaddress.ip_address(ipv6_addr)
+            self._ue_ip_map[ue_id] = ip6
 
 
 class SubscriberUtil(object):
