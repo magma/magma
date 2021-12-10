@@ -46,7 +46,7 @@ var (
 func TestRegistrationServicer_Register(t *testing.T) {
 	registrationServicer := setupMockRegistrationServicer()
 
-	res, err := registrationServicer.Register(nil, registerRequest)
+	res, err := registrationServicer.Register(context.Background(), registerRequest)
 	assert.NoError(t, err)
 	expectedRes := &protos.RegisterResponse{
 		Response: &protos.RegisterResponse_ControlProxy{ControlProxy: controlProxy},
@@ -62,7 +62,7 @@ func TestRegistrationServicer_Register_BadToken(t *testing.T) {
 		return nil, rpcErr
 	}
 
-	res, err := registrationServicer.Register(nil, registerRequest)
+	res, err := registrationServicer.Register(context.Background(), registerRequest)
 	assert.NoError(t, err)
 	expectedRes := &protos.RegisterResponse{
 		Response: &protos.RegisterResponse_Error{
@@ -80,7 +80,7 @@ func TestRegistrationServicer_Register_NoControlProxy(t *testing.T) {
 		return "", rpcErr
 	}
 
-	res, err := registrationServicer.Register(nil, registerRequest)
+	res, err := registrationServicer.Register(context.Background(), registerRequest)
 	assert.NoError(t, err)
 	expectedRes := &protos.RegisterResponse{
 		Response: &protos.RegisterResponse_Error{

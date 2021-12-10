@@ -93,7 +93,7 @@ func GetControlProxy(networkID string) (string, error) {
 		}
 	}
 
-	if isTenantFound == false {
+	if !isTenantFound {
 		return "", status.Errorf(codes.NotFound, "tenantID for current NetworkID %v not found", networkID)
 	}
 
