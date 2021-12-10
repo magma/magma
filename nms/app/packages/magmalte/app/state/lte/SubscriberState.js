@@ -51,6 +51,7 @@ type InitSubscriberStateProps = {
   setSubscriberMap: ({[string]: subscriber}) => void,
   setSessionState: ({[string]: subscriber_state}) => void,
   setSubscriberMetrics?: ({[string]: Metrics}) => void,
+  setSubscribersTotal?: number,
   enqueueSnackbar?: (
     msg: string,
     cfg: EnqueueSnackbarOptions,
@@ -157,11 +158,13 @@ export default async function InitSubscriberState(
     setSubscriberMetrics,
     setSessionState,
     enqueueSnackbar,
+    setSubscribersTotal
   } = props;
   const subscriberResponse = await FetchSubscribers({
     networkId,
     enqueueSnackbar,
   });
+  setSubscribersTotal(subscriberResponse.total_count);
   if (subscriberResponse) {
     setSubscriberMap(subscriberResponse.subscribers);
   }

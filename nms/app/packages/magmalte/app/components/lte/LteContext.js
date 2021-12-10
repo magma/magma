@@ -242,6 +242,7 @@ export function SubscriberContextProvider(props: Props) {
   const [subscriberMetrics, setSubscriberMetrics] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
+  const [subscribersTotal, setSubscribersTotal] = useState(0);
   useEffect(() => {
     const fetchLteState = async () => {
       if (networkId == null) {
@@ -253,6 +254,7 @@ export function SubscriberContextProvider(props: Props) {
         setSubscriberMetrics,
         setSessionState,
         enqueueSnackbar,
+        setSubscribersTotal,
       }),
         setIsLoading(false);
     };
@@ -286,6 +288,7 @@ export function SubscriberContextProvider(props: Props) {
             newState,
             newSessionState,
           }),
+        subscribersTotal,
       }}>
       {props.children}
     </SubscriberContext.Provider>
