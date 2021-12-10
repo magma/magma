@@ -272,6 +272,103 @@ jobs:
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '
+  agw-container-build:
+    name: agw container build
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      DOCKER_BUILDKIT: 1
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run agw docker compose
+        id: agw-docker-compose
+        continue-on-error: true
+        # yamllint disable rule:line-length
+        run: |
+          cd ${MAGMA_ROOT}/lte/gateway/docker
+          docker-compose --file docker-compose.yaml --file docker-compose.override.yaml build --parallel
+      - name: Retry docker agw compose on failure
+        id: retry-agw-docker-compose
+        continue-on-error: true
+        if: steps.agw-docker-compose.outcome=='failure'
+        run: |
+          cd ${MAGMA_ROOT}/lte/gateway/docker
+          docker-compose --file docker-compose.yaml --file docker-compose.override.yaml build --parallel
+      - name: Set the agw docker build status
+        if: always()
+        run: |
+          if ${{ steps.agw-docker-compose.outcome=='success' || steps.retry-agw-docker-compose.outcome=='success' }}; then
+             echo "AGW Docker compose completed successfully"
+          else
+             echo "Docker compose failed"
+             exit 1
+          fi
+      - name: Run ghz docker compose
+        id: ghz-docker-compose
+        continue-on-error: true
+        # yamllint disable rule:line-length
+        run: |
+          cd ${MAGMA_ROOT}/lte/gateway/docker/ghz
+          docker-compose --file docker-compose.yaml --file docker-compose.override.yaml build --parallel
+      - name: Retry ghz docker compose on failure
+        id: retry-ghz-docker-compose
+        continue-on-error: true
+        if: steps.ghz-docker-compose.outcome=='failure'
+        run: |
+          cd ${MAGMA_ROOT}/lte/gateway/docker/ghz
+          docker-compose --file docker-compose.yaml --file docker-compose.override.yaml build --parallel
+      - name: Set the ghz docker build status
+        if: always()
+        run: |
+          if ${{ steps.ghz-docker-compose.outcome=='success' || steps.retry-ghz-docker-compose.outcome=='success' }}; then
+             echo "GHZ Docker compose completed successfully"
+          else
+             echo "Docker compose failed"
+             exit 1
+          fi
+      - name: Export docker images to deploy them on pull_request
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir images
+          cd images
+          docker save agw_gateway_c | gzip > agw_gateway_c.tar.gz
+          docker save agw_gateway_python | gzip > agw_gateway_python.tar.gz
+          docker save ghz_gateway_c | gzip > ghz_gateway_c.tar.gz
+          docker save ghz_gateway_python | gzip > ghz_gateway_python.tar.gz
+      - name: Upload docker images as artifacts
+        uses: actions/upload-artifact@v2
+        if: github.event_name == 'pull_request'
+        with:
+          name: docker-images-agw
+          path: images
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      # Used as version for PR builds
+      - name: Save PR number
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+      - uses: actions/upload-artifact@v2
+        with:
+          name: pr
+          path: pr/
+      - name: Create release Tag
+        if: github.event_name == 'push'
+        run: |
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
+          else
+            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
+          fi
+      - name: Tag and push agw containers to Jfrog Registry
+        id: publish_artifacts
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "agw-test.artifactory.magmacore.org"
+          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
+        run: |
+          ./ci-scripts/tag-push-docker.sh --images 'ghz_gateway_c|ghz_gateway_python|agw_gateway_c|agw_gateway_python' --tag "${TAG}" --tag-latest true
   cloud-upload:
     name: cloud upload job
     runs-on: ubuntu-latest
