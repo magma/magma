@@ -41,16 +41,16 @@ class StaticRuleStore;
 namespace magma {
 namespace lte {
 
-RedisStoreClient::RedisStoreClient(
-    std::shared_ptr<cpp_redis::client> client, const std::string& redis_table,
-    std::shared_ptr<StaticRuleStore> rule_store)
+RedisStoreClient::RedisStoreClient(std::shared_ptr<cpp_redis::client> client,
+                                   const std::string& redis_table,
+                                   std::shared_ptr<StaticRuleStore> rule_store)
     : client_(client), redis_table_(redis_table), rule_store_(rule_store) {}
 
 bool RedisStoreClient::try_redis_connect() {
   ServiceConfigLoader loader;
   auto config = loader.load_service_config("redis");
-  auto port   = config["port"].as<uint32_t>();
-  auto addr   = config["bind"].as<std::string>();
+  auto port = config["port"].as<uint32_t>();
+  auto addr = config["bind"].as<std::string>();
   try {
     client_->connect(
         addr, port,
@@ -127,7 +127,7 @@ SessionMap RedisStoreClient::read_all_sessions() {
       MLOG(MERROR) << "Non string key found in sessions from redis";
       continue;
     }
-    auto key         = key_reply.as_string();
+    auto key = key_reply.as_string();
     auto value_reply = array[i + 1];
     if (!value_reply.is_string()) {
       MLOG(MERROR) << "RedisStoreClient: Unable to get value for key " << key;

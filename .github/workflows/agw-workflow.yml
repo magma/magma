@@ -481,6 +481,13 @@ jobs:
       - uses: DoozyX/clang-format-lint-action@v0.12
         with:
           source: 'lte/gateway/c'
+          exclude: 'lte/gateway/c/core'
+          extensions: 'h,hpp,c,cpp'
+          clangFormatVersion: 11
+          style: '{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}'
+      - uses: DoozyX/clang-format-lint-action@v0.12
+        with:
+          source: 'lte/gateway/c/core'
           extensions: 'h,hpp,c,cpp'
           clangFormatVersion: 7
           style: file

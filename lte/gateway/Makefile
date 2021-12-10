@@ -170,9 +170,11 @@ build_oai: ## Build OAI
 	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS))
 
 format_all:
-	find $(MAGMA_ROOT)/orc8r/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+	find $(MAGMA_ROOT)/orc8r/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" \) -exec \
 	/usr/bin/clang-format-11 --style='{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}' -i {} \;
-	find $(MAGMA_ROOT)/lte/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+	find $(MAGMA_ROOT)/lte/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h"  -o -iname "*.hpp" \) -not \( -path "$(MAGMA_ROOT)/lte/gateway/c/core/*" -prune \) -exec \
+	/usr/bin/clang-format-11 --style='{BasedOnStyle: Google, IncludeBlocks: Preserve, SortIncludes: false}' -i {} \;
+	find $(MAGMA_ROOT)/lte/gateway/c/core/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" \) -exec \
 	clang-format --style=file -i {} \;
 
 build_sctpd:
