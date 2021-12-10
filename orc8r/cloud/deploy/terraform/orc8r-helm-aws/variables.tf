@@ -376,6 +376,28 @@ variable "nms_managed_certs_enabled" {
   default     = false
 }
 
+variable "nms_custom_issuer" {
+  description = "Certificate issuer on Route53 for Let's Encrypt."
+  type        = string
+  default     = "orc8r-route53-issuer"
+}
+
+variable "managed_certs_route53_enabled" {
+  description = "Use Route53 as DNS Provider."
+  type        = bool
+  default     = true
+}
+
+variable "managed_certs_route53_access_key" {
+  description = "Access key for Route53."
+  type        = string
+}
+
+variable "managed_certs_route53_secret_key" {
+  description = "Secret key for Route53."
+  type        = string
+}
+
 ##############################################################################
 # Other deployment flags
 ##############################################################################

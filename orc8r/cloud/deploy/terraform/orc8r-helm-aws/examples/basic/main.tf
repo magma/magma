@@ -60,6 +60,9 @@ module "orc8r-app" {
   managed_certs_enabled     = false
   nms_managed_certs_enabled = false
 
+  managed_certs_route53_access_key = ""
+  managed_certs_route53_secret_key = ""
+
   orc8r_db_host    = module.orc8r.orc8r_db_host
   orc8r_db_port    = module.orc8r.orc8r_db_port
   orc8r_db_dialect = module.orc8r.orc8r_db_dialect

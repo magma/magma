@@ -27,6 +27,13 @@ certs:
   create: ${managed_certs_create}
   enabled: ${managed_certs_enabled}
   domainName: ${orc8r_domain_name}
+  nms:
+    customIssuer: ${nms_custom_issuer}
+  route53:
+    enabled: ${managed_certs_route53_enabled}
+    region: "${region}"
+    accessKey: "${managed_certs_route53_access_key}"
+    secretKey: "${managed_certs_route53_secret_key}"
 
 nginx:
   create: true

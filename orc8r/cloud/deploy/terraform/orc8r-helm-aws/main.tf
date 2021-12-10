@@ -148,9 +148,13 @@ data "template_file" "orc8r_values" {
     # orc8r certs secret
     nms_certs_secret = var.deploy_nms ? kubernetes_secret.nms_certs.0.metadata.0.name : kubernetes_secret.orc8r_certs.metadata.0.name
 
-    managed_certs_create      = var.managed_certs_create
-    managed_certs_enabled     = var.managed_certs_enabled
-    nms_managed_certs_enabled = var.nms_managed_certs_enabled
+    managed_certs_create             = var.managed_certs_create
+    managed_certs_enabled            = var.managed_certs_enabled
+    nms_managed_certs_enabled        = var.nms_managed_certs_enabled
+    nms_custom_issuer                = var.nms_custom_issuer
+    managed_certs_route53_enabled    = var.managed_certs_route53_enabled
+    managed_certs_route53_access_key = var.managed_certs_route53_access_key
+    managed_certs_route53_secret_key = var.managed_certs_route53_secret_key
 
     controller_replicas = var.orc8r_controller_replicas
     nginx_replicas      = var.orc8r_proxy_replicas
