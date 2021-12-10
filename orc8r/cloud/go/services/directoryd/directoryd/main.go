@@ -39,7 +39,7 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/directoryd/protos"
-	"magma/orc8r/cloud/go/services/directoryd/servicers/internal_servicers"
+	"magma/orc8r/cloud/go/services/directoryd/servicers"
 	dstorage "magma/orc8r/cloud/go/services/directoryd/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -68,12 +68,12 @@ func main() {
 
 	// Add servicers
 	// Cloud lookup service
-	servicer, err := internal_servicers.NewDirectoryLookupServicer(store)
+	servicer, err := servicers.NewDirectoryLookupServicer(store)
 	if err != nil {
 		glog.Fatalf("Error creating initializing directory servicer: %s", err)
 	}
 	protos.RegisterDirectoryLookupServer(srv.GrpcServer, servicer)
-	protos.RegisterGatewayDirectoryServiceServer(srv.GrpcServer, internal_servicers.NewDirectoryUpdateServicer())
+	protos.RegisterGatewayDirectoryServiceServer(srv.GrpcServer, servicers.NewDirectoryUpdateServicer())
 
 	// Run service
 	err = srv.Run()

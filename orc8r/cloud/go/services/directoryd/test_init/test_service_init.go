@@ -22,7 +22,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/directoryd/protos"
-	"magma/orc8r/cloud/go/services/directoryd/servicers/internal_servicers"
+	"magma/orc8r/cloud/go/services/directoryd/servicers"
 	"magma/orc8r/cloud/go/services/directoryd/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
@@ -41,10 +41,10 @@ func StartTestService(t *testing.T) {
 	store := storage.NewDirectorydBlobstore(fact)
 
 	// Add servicers
-	directoryServicer, err := internal_servicers.NewDirectoryLookupServicer(store)
+	directoryServicer, err := servicers.NewDirectoryLookupServicer(store)
 	assert.NoError(t, err)
 	protos.RegisterDirectoryLookupServer(srv.GrpcServer, directoryServicer)
-	protos.RegisterGatewayDirectoryServiceServer(srv.GrpcServer, internal_servicers.NewDirectoryUpdateServicer())
+	protos.RegisterGatewayDirectoryServiceServer(srv.GrpcServer, servicers.NewDirectoryUpdateServicer())
 
 	// Run service
 	go srv.RunTest(lis)

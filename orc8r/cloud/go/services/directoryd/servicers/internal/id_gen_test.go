@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package internal_servicers_test
+package internal_test
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"magma/orc8r/cloud/go/services/directoryd/servicers/internal_servicers"
+	internal_servicers "magma/orc8r/cloud/go/services/directoryd/servicers/internal"
 	magmaerrors "magma/orc8r/lib/go/errors"
 )
 
