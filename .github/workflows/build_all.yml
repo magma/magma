@@ -55,7 +55,7 @@ jobs:
       - name: Save PR number
         run: |
           mkdir -p ./pr
-          echo ${{ github.event.number }} > ./pr/NR
+          echo ${{ github.event.number }} > ./pr/pr_number
           echo "false" > ./pr/skipped
       - uses: actions/upload-artifact@v2
         with:
@@ -484,7 +484,7 @@ jobs:
       - name: Save PR number
         run: |
           mkdir -p ./pr
-          echo ${{ github.event.number }} > ./pr/NR
+          echo ${{ github.event.number }} > ./pr/pr_number
       - uses: actions/upload-artifact@v2
         with:
           name: pr
@@ -590,7 +590,7 @@ jobs:
       - name: Save PR number
         run: |
           mkdir -p ./pr
-          echo ${{ github.event.number }} > ./pr/NR
+          echo ${{ github.event.number }} > ./pr/pr_number
       - uses: actions/upload-artifact@v2
         with:
           name: pr
