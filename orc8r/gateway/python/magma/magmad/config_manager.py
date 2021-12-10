@@ -35,7 +35,7 @@ class ConfigManager(StreamerClient.Callback):
     are guaranteed to be lossless and in-order. Config is written to file in
     JSON format.
     """
-    
+
     def __init__(
         self, services: List[str], service_manager: ServiceManager,
         magmad_service: MagmaService, mconfig_manager: MconfigManager,
@@ -82,7 +82,7 @@ class ConfigManager(StreamerClient.Callback):
                     since config is contained in one DB element, hence all
                     data is sent in every update.
         """
-        shared_mconfig: str = 'shared_mconfig' 
+        shared_mconfig: str = 'shared_mconfig'
         if len(updates) == 0:
             logging.info('No config update to process')
             return
