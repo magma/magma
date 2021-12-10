@@ -12,7 +12,7 @@ limitations under the License.
 */}}
 {{- include "orc8rlib.pdb" (list . "ctraced.pdb") -}}
 {{- define "ctraced.pdb" -}}
-{{- if and .Values.controller.podDisruptionBudget.enabled (gt .Values.controller.replicas 1.0 )}}
+{{- if and .Values.controller.podDisruptionBudget.enabled (ge .Values.controller.replicas 1.0 )}}
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
