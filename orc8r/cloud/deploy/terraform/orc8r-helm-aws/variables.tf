@@ -355,6 +355,28 @@ variable "helm_pass" {
 }
 
 ##############################################################################
+# Managed Certificates from cert-manager
+##############################################################################
+
+variable "managed_certs_create" {
+  description = "This will generate certificates that will be stored in kubernetes secrets."
+  type        = bool
+  default     = false
+}
+
+variable "managed_certs_enabled" {
+  description = "This will enable controller pods to use managed certificates."
+  type        = bool
+  default     = false
+}
+
+variable "nms_managed_certs_enabled" {
+  description = "This will enable NMS nginx pod to use managed certificate."
+  type        = bool
+  default     = false
+}
+
+##############################################################################
 # Other deployment flags
 ##############################################################################
 
