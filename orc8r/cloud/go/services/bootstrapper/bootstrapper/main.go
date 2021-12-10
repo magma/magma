@@ -26,7 +26,6 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/bootstrapper"
 	bootstrapper_config "magma/orc8r/cloud/go/services/bootstrapper/config"
-
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers/registration"
 	"magma/orc8r/cloud/go/sqorc"
