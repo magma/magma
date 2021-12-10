@@ -24,7 +24,7 @@ import type {
   network_id,
   subscriber,
   subscriber_state,
-  paginated_subscribers
+  paginated_subscribers,
 } from '@fbcnms/magma-api';
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
@@ -52,7 +52,7 @@ type InitSubscriberStateProps = {
   setSubscriberMap: ({[string]: subscriber}) => void,
   setSessionState: ({[string]: subscriber_state}) => void,
   setSubscriberMetrics?: ({[string]: Metrics}) => void,
-  setSubscribersTotal?: number,
+  setSubscribersTotal?: (subscribersTotal: number) => void,
   enqueueSnackbar?: (
     msg: string,
     cfg: EnqueueSnackbarOptions,
@@ -161,7 +161,7 @@ export default async function InitSubscriberState(
     enqueueSnackbar,
     setSubscribersTotal,
   } = props;
-  const subscriberResponse: paginated_subscribers = await FetchSubscribers({
+  const subscriberResponse: Promise<paginated_subscribers> = await FetchSubscribers({
     networkId,
     enqueueSnackbar,
   });

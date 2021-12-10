@@ -288,7 +288,7 @@ export function SubscriberContextProvider(props: Props) {
             newState,
             newSessionState,
           }),
-        subscribersTotal,
+        subscribersTotal: subscribersTotal,
       }}>
       {props.children}
     </SubscriberContext.Provider>
