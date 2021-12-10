@@ -42,7 +42,6 @@ import (
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
 	state_types "magma/orc8r/cloud/go/services/state/types"
-	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/protos"
 )
 
@@ -84,7 +83,7 @@ func TestStateIndexing(t *testing.T) {
 	defer clock.ResumeSleeps(t)
 
 	dbName := "state___integ_test"
-	r, q := initTestServices(t, dbName)
+	r := initTestServices(t, dbName)
 
 	mocks.NewMockIndexer(t, serviceName, version0, types, prepare0, complete0, index0)
 
@@ -97,8 +96,6 @@ func TestStateIndexing(t *testing.T) {
 		assertEqualStatus(t, recv[1], sid0)
 	})
 
-	_, err := q.PopulateJobs()
-	assert.NoError(t, err)
 	ctx, cancel := context.WithCancel(context.Background())
 	go r.Run(ctx)
 	defer cancel()
@@ -122,7 +119,7 @@ func TestStateIndexing(t *testing.T) {
 	})
 }
 
-func initTestServices(t *testing.T, dbName string) (reindex.Reindexer, reindex.JobQueue) {
+func initTestServices(t *testing.T, dbName string) (reindex.Reindexer) {
 	indexer.DeregisterAllForTest(t)
 
 	device_test_init.StartTestService(t)
@@ -130,7 +127,7 @@ func initTestServices(t *testing.T, dbName string) (reindex.Reindexer, reindex.J
 	configurator_test.RegisterNetwork(t, nid0, "Network 0 for indexer integ test")
 	configurator_test.RegisterGateway(t, nid0, hwid0, &models.GatewayDevice{HardwareID: hwid0})
 
-	return state_test_init.StartTestServiceInternal(t, dbName, sqorc.PostgresDriver)
+	return state_test_init.StartTestServiceInternal(t)
 }
 
 func reportGatewayStatusForID(t *testing.T, id state_types.ID) {

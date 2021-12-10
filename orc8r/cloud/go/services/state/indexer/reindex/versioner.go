@@ -16,6 +16,7 @@ package reindex
 import (
 	"database/sql"
 	"sort"
+	"time"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
@@ -24,6 +25,65 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/sqorc"
 )
+
+const (
+	// versionTableName is the name of the SQL table acting as the source of truth for indexer versions.
+	versionTableName = "indexer_versions"
+
+	// Version tracker columns
+	idColVersions      = "indexer_id"
+	actualColVersions  = "version_actual"
+	desiredColVersions = "version_desired"
+
+	// defaultJobTimeout after which reindex jobs are considered failed.
+	defaultJobTimeout = 5 * time.Minute
+)
+
+// Versioner tracks version info for all tracked indexers
+type Versioner interface {
+	// Initialize the current object.
+	// Call before other methods.
+	Initialize() error
+
+	// GetIndexerVersions returns version info for all tracked indexers, keyed by indexer ID.
+	// Intended for use when automatic reindexing is disabled.
+	GetIndexerVersions() ([]*indexer.Versions, error)
+
+	// SetIndexerActualVersion sets the actual version of an indexer, post-reindex.
+	// Intended for use when automatic reindexing is disabled.
+	SetIndexerActualVersion(indexerID string, actual indexer.Version) error
+}
+
+// GetIndexerVersion gets the tracked indexer versions for an indexer ID.
+// Returns nil if not found.
+func GetIndexerVersion(versioner Versioner, indexerID string) (*indexer.Versions, error) {
+	versions, err := versioner.GetIndexerVersions()
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range versions {
+		if v.IndexerID == indexerID {
+			return v, nil
+		}
+	}
+	return nil, nil
+}
+
+// EqualVersions returns true iff the slices are equal.
+// Assumes the slices are already sorted. Any nil elements results in false.
+func EqualVersions(a []*indexer.Versions, b []*indexer.Versions) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] == nil || b[i] == nil || *a[i] != *b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// versioner specific implementation
 
 type versioner struct {
 	db      *sql.DB
@@ -82,10 +142,6 @@ func getIndexerVersions(builder sqorc.StatementBuilder, tx *sql.Tx) ([]*indexer.
 	if EqualVersions(composed, old) {
 		return composed, nil
 	}
-
-	// TODO(reginawang3495) Consider removing this once queue_sql.go is deleted
-	// Test hook after first db call so the tx has "officially" started by acquiring some locks
-	TestHookGet()
 
 	err = overwriteAllVersions(builder, tx, composed)
 	if err != nil {
@@ -163,6 +219,8 @@ func overwriteAllVersions(builder sqorc.StatementBuilder, tx *sql.Tx, versions [
 
 	return nil
 }
+
+// indexer.Version functions
 
 // getComposedVersions writes the composition of tracked (old) and local (new) indexers to store.
 // Determining whether an indexer needs to be reindexed depends on three recorded version infos per indexer:

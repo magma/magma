@@ -35,10 +35,9 @@ type reindexerSingleton struct {
 	store Store
 }
 
-// TODO(reginawang3495): to be setup and used in M2 Part C
 const reindexLoopInterval = time.Minute
 
-func NewReindexerSingleton(store Store, versioner Versioner) Reindexer {
+func NewReindexer(store Store, versioner Versioner) Reindexer {
 	return &reindexerSingleton{store: store, Versioner: versioner}
 }
 

@@ -31,10 +31,6 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-const (
-	singleAttempt = 1
-)
-
 // StartTestService instantiates a service backed by an in-memory storage.
 func StartTestService(t *testing.T) {
 	db, err := sqorc.Open("sqlite3", ":memory:")
@@ -43,42 +39,15 @@ func StartTestService(t *testing.T) {
 }
 
 // StartTestServiceInternal instantiates a test DB-backed service, returning
-// the derived reindexer and job queue for internal usage.
+// the derived reindexer for internal usage.
 // Supported drivers include: postgres.
-func StartTestServiceInternal(t *testing.T, dbName, dbDriver string) (reindex.Reindexer, reindex.JobQueue) {
-	db := sqorc.OpenCleanForTest(t, dbName, dbDriver)
+func StartTestServiceInternal(t *testing.T) (reindex.Reindexer) {
+	db, err := sqorc.Open("sqlite3", ":memory:")
+	assert.NoError(t, err)
 	return startService(t, db)
 }
 
-func startService(t *testing.T, db *sql.DB) (reindex.Reindexer, reindex.JobQueue) {
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
-
-	factory := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
-	require.NoError(t, factory.InitializeFactory())
-	stateServicer, err := servicers.NewStateServicer(factory)
-	require.NoError(t, err)
-	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
-
-	queue := reindex.NewSQLJobQueue(singleAttempt, db, sqorc.GetSqlBuilder())
-	require.NoError(t, queue.Initialize())
-	reindexer := reindex.NewReindexerQueue(queue, reindex.NewStore(factory))
-	indexerServicer := servicers.NewIndexerManagerServicer(reindexer, false)
-	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
-
-	go srv.RunTest(lis)
-	return reindexer, queue
-}
-
-// StartTestSingletonServiceInternal instantiates a test DB-backed singleton service, returning
-// the derived reindexer and job queue for internal usage.
-// Supported drivers include: postgres.
-func StartTestSingletonServiceInternal(t *testing.T) reindex.Reindexer {
-	db, err := sqorc.Open("sqlite3", ":memory:")
-	assert.NoError(t, err)
-	return startSingletonService(t, db)
-}
-
-func startSingletonService(t *testing.T, db *sql.DB) reindex.Reindexer {
+func startService(t *testing.T, db *sql.DB) reindex.Reindexer {
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
 
 	factory := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
@@ -89,7 +58,7 @@ func startSingletonService(t *testing.T, db *sql.DB) reindex.Reindexer {
 
 	versioner := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
 	versioner.Initialize()
-	reindexer := reindex.NewReindexerSingleton(reindex.NewStore(factory), versioner)
+	reindexer := reindex.NewReindexer(reindex.NewStore(factory), versioner)
 	indexerServicer := servicers.NewIndexerManagerServicer(reindexer, false)
 	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
 

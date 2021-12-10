@@ -39,11 +39,7 @@ func main() {
 		glog.Fatalf("Error creating orc8r_worker service %v", err)
 	}
 
-	// TODO(reginawang3495): rename function name when jobQueue reindexer is removed
-	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
-	if singletonReindex {
-		startSingletonReindexer(srv)
-	}
+	startReindexer(srv)
 
 	err = srv.Run()
 	if err != nil {
@@ -51,8 +47,8 @@ func main() {
 	}
 }
 
-func startSingletonReindexer(srv *service.OrchestratorService) {
-	glog.Info("Running singleton reindexer")
+func startReindexer(srv *service.OrchestratorService) {
+	glog.Info("Running reindexer")
 
 	db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
 	if err != nil {
@@ -64,11 +60,11 @@ func startSingletonReindexer(srv *service.OrchestratorService) {
 		glog.Fatalf("Error initializing state database: %v", err)
 	}
 
-	indexerManagerServer := newSingletonIndexerManagerServicer(srv.Config, db, store)
+	indexerManagerServer := newIndexerManagerServicer(srv.Config, db, store)
 	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
 }
 
-func newSingletonIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
+func newIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
 	versioner := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
 	err := versioner.Initialize()
 	if err != nil {
@@ -76,7 +72,7 @@ func newSingletonIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobs
 	}
 
 	autoReindex := cfg.MustGetBool(state_config.EnableAutomaticReindexing)
-	reindexer := reindex.NewReindexerSingleton(reindex.NewStore(store), versioner)
+	reindexer := reindex.NewReindexer(reindex.NewStore(store), versioner)
 	servicer := servicers.NewIndexerManagerServicer(reindexer, autoReindex)
 
 	if autoReindex {

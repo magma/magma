@@ -15,9 +15,20 @@ package reindex_test
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"testing"
+	"time"
 
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/serdes"
+	"magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/cloud/go/services/state/indexer/mocks"
+	"magma/orc8r/lib/go/protos"
+
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -32,6 +43,73 @@ import (
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
 )
+
+const (
+	queueTableName   = "reindex_job_queue"
+	versionTableName = "indexer_versions"
+
+	twoAttempts = 2
+
+	defaultJobTimeout  = 5 * time.Minute // copied from queue_sql.go
+	defaultTestTimeout = 5 * time.Second
+	shortTestTimeout   = 1 * time.Second
+
+	// Cause 3 batches per network
+	// 200 directory records + 1 gw status => ceil(201 / 100) = 3 batches per network
+	nStatesToReindexPerCall    = 100 // copied from reindex.go
+	directoryRecordsPerNetwork = 2 * nStatesToReindexPerCall
+	nNetworks                  = 3
+	// 3 networks and 3 batches per network = 3 * 3 = 9
+	nBatches = 9
+	// 4 networks and 3 batches per network = 4 * 3 = 12
+	newNBatches = 12
+
+	nid0 = "some_networkid_0"
+	nid1 = "some_networkid_1"
+	nid2 = "some_networkid_2"
+	nid3 = "some_networkid_3"
+
+	hwid0 = "some_hwid_0"
+	hwid1 = "some_hwid_1"
+	hwid2 = "some_hwid_2"
+	hwid3 = "some_hwid_3"
+
+	id0 = "some_indexerid_0"
+	id1 = "some_indexerid_1"
+	id2 = "some_indexerid_2"
+	id3 = "some_indexerid_3"
+	id4 = "some_indexerid_4"
+	id5 = "some_indexerid_5"
+
+	zero      indexer.Version = 0
+	version0  indexer.Version = 10
+	version0a indexer.Version = 100
+	version1  indexer.Version = 20
+	version1a indexer.Version = 200
+	version2  indexer.Version = 30
+	version2a indexer.Version = 300
+	version3  indexer.Version = 40
+	version3a indexer.Version = 400
+	version4  indexer.Version = 50
+	version4a indexer.Version = 500
+	version5  indexer.Version = 60
+)
+
+var (
+	someErr  = errors.New("some_error")
+	someErr1 = errors.New("some_error_1")
+	someErr2 = errors.New("some_error_2")
+	someErr3 = errors.New("some_error_3")
+
+	allTypes    = []string{orc8r.DirectoryRecordType, orc8r.GatewayStateType}
+	gwStateType = []string{orc8r.GatewayStateType}
+	noTypes     []string
+)
+
+func init() {
+	// TODO(hcgatewood) after resolving racy CI issue, revert most changes from #6329
+	_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+}
 
 func TestSingletonRun(t *testing.T) {
 	// Make nullimpotent calls to handle code coverage indeterminacy
@@ -162,7 +240,7 @@ func initSingletonReindexTest(t *testing.T) reindex.Reindexer {
 	configurator_test.RegisterGateway(t, nid1, hwid1, &models.GatewayDevice{HardwareID: hwid1})
 	configurator_test.RegisterGateway(t, nid2, hwid2, &models.GatewayDevice{HardwareID: hwid2})
 
-	reindexer := state_test_init.StartTestSingletonServiceInternal(t)
+	reindexer := state_test_init.StartTestServiceInternal(t)
 	ctxByNetwork := map[string]context.Context{
 		nid0: state_test.GetContextWithCertificate(t, hwid0),
 		nid1: state_test.GetContextWithCertificate(t, hwid1),
@@ -218,5 +296,88 @@ func reportMoreState(t *testing.T) {
 	gwStatus := &models.GatewayStatus{Meta: map[string]string{"foo": "bar"}}
 	for _, nid := range []string{nid3} {
 		reportGatewayStatus(t, ctxByNetwork[nid], gwStatus)
+	}
+}
+
+func reportDirectoryRecord(t *testing.T, ctx context.Context, deviceIDs []string, records []*directoryd_types.DirectoryRecord) {
+	client, err := state.GetStateClient()
+	assert.NoError(t, err)
+
+	var states []*protos.State
+	for i, st := range records {
+		serialized, err := serde.Serialize(st, orc8r.DirectoryRecordType, serdes.State)
+		assert.NoError(t, err)
+		pState := &protos.State{Type: orc8r.DirectoryRecordType, DeviceID: deviceIDs[i], Value: serialized}
+		states = append(states, pState)
+	}
+	_, err = client.ReportStates(ctx, &protos.ReportStatesRequest{States: states})
+	assert.NoError(t, err)
+}
+
+func reportGatewayStatus(t *testing.T, ctx context.Context, gwStatus *models.GatewayStatus) {
+	client, err := state.GetStateClient()
+	assert.NoError(t, err)
+
+	serialized, err := serde.Serialize(gwStatus, orc8r.GatewayStateType, serdes.State)
+	assert.NoError(t, err)
+	states := []*protos.State{
+		{
+			Type:     orc8r.GatewayStateType,
+			DeviceID: hwid0,
+			Value:    serialized,
+		},
+	}
+	_, err = client.ReportStates(ctx, &protos.ReportStatesRequest{States: states})
+	assert.NoError(t, err)
+}
+
+func getBasicIndexer(id string, v indexer.Version) *mocks.Indexer {
+	idx := &mocks.Indexer{}
+	idx.On("GetID").Return(id)
+	idx.On("GetVersion").Return(v)
+	return idx
+}
+
+func getIndexerNoIndex(id string, from, to indexer.Version, isFirstReindex bool) *mocks.Indexer {
+	idx := &mocks.Indexer{}
+	idx.On("GetID").Return(id)
+	idx.On("GetVersion").Return(to)
+	idx.On("PrepareReindex", from, to, isFirstReindex).Return(nil).Once()
+	idx.On("CompleteReindex", from, to).Return(nil).Once()
+	return idx
+}
+
+func getIndexer(id string, from, to indexer.Version, isFirstReindex bool) *mocks.Indexer {
+	idx := &mocks.Indexer{}
+	idx.On("GetID").Return(id)
+	idx.On("GetVersion").Return(to)
+	idx.On("PrepareReindex", from, to, isFirstReindex).Return(nil).Once()
+	idx.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nBatches)
+	idx.On("CompleteReindex", from, to).Return(nil).Once()
+	return idx
+}
+
+func register(t *testing.T, indexers ...indexer.Indexer) {
+	indexer.DeregisterAllForTest(t)
+	for _, x := range indexers {
+		state_test_init.StartNewTestIndexer(t, x)
+	}
+}
+
+func recvCh(t *testing.T, ch chan interface{}) {
+	select {
+	case <-ch:
+		return
+	case <-time.After(defaultTestTimeout):
+		t.Fatal("receive on hook channel timed out")
+	}
+}
+
+func recvNoCh(t *testing.T, ch chan interface{}) {
+	select {
+	case <-ch:
+		t.Fatal("should not receive anything from hook channel")
+	case <-time.After(shortTestTimeout):
+		return
 	}
 }
