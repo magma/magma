@@ -24,6 +24,7 @@ import type {
   network_id,
   subscriber,
   subscriber_state,
+  paginated_subscribers
 } from '@fbcnms/magma-api';
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
@@ -158,9 +159,9 @@ export default async function InitSubscriberState(
     setSubscriberMetrics,
     setSessionState,
     enqueueSnackbar,
-    setSubscribersTotal
+    setSubscribersTotal,
   } = props;
-  const subscriberResponse = await FetchSubscribers({
+  const subscriberResponse: paginated_subscribers = await FetchSubscribers({
     networkId,
     enqueueSnackbar,
   });
