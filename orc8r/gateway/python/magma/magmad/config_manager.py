@@ -35,7 +35,7 @@ class ConfigManager(StreamerClient.Callback):
     are guaranteed to be lossless and in-order. Config is written to file in
     JSON format.
     """
-
+    
     def __init__(
         self, services: List[str], service_manager: ServiceManager,
         magmad_service: MagmaService, mconfig_manager: MconfigManager,
@@ -82,6 +82,7 @@ class ConfigManager(StreamerClient.Callback):
                     since config is contained in one DB element, hence all
                     data is sent in every update.
         """
+        shared_mconfig: str = 'shared_mconfig' 
         if len(updates) == 0:
             logging.info('No config update to process')
             return
@@ -109,8 +110,7 @@ class ConfigManager(StreamerClient.Callback):
             return mconfig.configs_by_key.get(serv_name) != \
                 self._mconfig.configs_by_key.get(serv_name)
 
-        # Reload magmad configs locally
-        if did_mconfig_change('magmad'):
+        def restart_magmad():
             self._loop.create_task(
                 self._service_manager.update_dynamic_services(
                     load_service_mconfig('magmad', mconfigs_pb2.MagmaD())
@@ -118,10 +118,15 @@ class ConfigManager(StreamerClient.Callback):
                 ),
             )
 
+        # Reload magmad configs locally
+        if did_mconfig_change('magmad'):
+            restart_magmad()
+
         services_to_restart = []
-        if 'shared_mconfig' in mconfig.configs_by_key and did_mconfig_change('shared_mconfig'):
-            logging.info("shared config changed. Restarting all services.")
+        if shared_mconfig in mconfig.configs_by_key and did_mconfig_change(shared_mconfig):
+            logging.info("Shared config changed. Restarting all services.")
             services_to_restart = self._services
+            restart_magmad()
         else:
             services_to_restart = [
                 srv for srv in self._services if did_mconfig_change(srv)
