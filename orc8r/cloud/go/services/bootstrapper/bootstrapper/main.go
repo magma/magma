@@ -100,10 +100,7 @@ func createRegistrationServicers(srv *service.OrchestratorService) (protos.Cloud
 		glog.Fatalf("error creating cloud registration servicer: %+v", err)
 	}
 
-	registrationServicer, err := registration.NewRegistrationServicer()
-	if err != nil {
-		glog.Fatalf("error creating registration servicer: %+v", err)
-	}
+	registrationServicer := registration.NewRegistrationServicer()
 
 	return cloudRegistrationServicer, registrationServicer
 }
