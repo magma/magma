@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.hpp"
 
 #include <algorithm>
 #include <vector>

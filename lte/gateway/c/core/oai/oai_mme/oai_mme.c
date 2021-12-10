@@ -33,7 +33,7 @@
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/include/amf_config.h"
 #include "lte/gateway/c/core/oai/common/shared_ts_log.h"
-#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"

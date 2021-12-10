@@ -23,7 +23,7 @@
 #include <memory>
 
 #include "lte/protos/session_manager.grpc.pb.h"
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 
 namespace grpc {
 class Status;

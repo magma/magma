@@ -35,7 +35,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 using magma5g::AsyncM5GMobilityServiceClient;
 

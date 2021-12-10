@@ -32,7 +32,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 #define M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH 1
 #define INVALID_IMSI64 (imsi64_t) 0

@@ -18,7 +18,7 @@
 #include <unordered_map>
 #include <string>
 
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include "orc8r/gateway/c/common/logging/magma_logging.h"
 #include "lte/gateway/c/li_agent/src/ProxyConnector.h"

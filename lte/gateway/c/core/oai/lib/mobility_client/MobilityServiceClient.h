@@ -24,7 +24,7 @@
 #include <memory>
 #include <string>
 
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 #include "lte/protos/mobilityd.grpc.pb.h"
 
 namespace grpc {

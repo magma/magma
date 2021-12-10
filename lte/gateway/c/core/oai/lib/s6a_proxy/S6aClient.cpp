@@ -20,9 +20,9 @@
 #include <utility>
 
 #include "lte/protos/mconfig/mconfigs.pb.h"
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/itti_msg_to_proto_msg.h"
 #include "feg/protos/s6a_proxy.pb.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"

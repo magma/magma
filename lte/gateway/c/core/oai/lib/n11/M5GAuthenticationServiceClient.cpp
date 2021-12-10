@@ -29,7 +29,7 @@
 
 #include "lte/protos/subscriberauth.grpc.pb.h"
 #include "lte/protos/subscriberauth.pb.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 #include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.h"
 
 using grpc::Channel;

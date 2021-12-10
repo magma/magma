@@ -51,7 +51,7 @@
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
 #include "lte/gateway/c/core/oai/include/service303.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 #include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"

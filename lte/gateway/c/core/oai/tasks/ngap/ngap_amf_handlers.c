@@ -72,7 +72,7 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.h"
 
 struct Ngap_IE;

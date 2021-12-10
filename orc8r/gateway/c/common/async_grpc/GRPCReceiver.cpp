@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 #include <ostream>  // for operator<<, char_traits
 #include "orc8r/gateway/c/common/logging/magma_logging.h"  // for MLOG
 

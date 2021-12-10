@@ -16,7 +16,7 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/session_manager.pb.h>
 #include <lte/protos/subscriberdb.pb.h>
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 #include <stdint.h>
 #include <functional>
 #include <memory>

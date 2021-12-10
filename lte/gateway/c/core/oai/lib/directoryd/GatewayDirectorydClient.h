@@ -24,7 +24,7 @@
 #include <string>
 
 #include "orc8r/protos/directoryd.grpc.pb.h"
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 #include "orc8r/protos/directoryd.pb.h"
 
 namespace grpc {

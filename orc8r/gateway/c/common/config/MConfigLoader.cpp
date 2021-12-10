@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
 
 #include <bits/exception.h>
 #include <google/protobuf/stubs/status.h>    // for Status

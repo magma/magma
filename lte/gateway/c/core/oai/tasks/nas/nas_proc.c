@@ -57,7 +57,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 #include "lte/gateway/c/core/oai/include/mme_app_state.h"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 #include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 
 /****************************************************************************/

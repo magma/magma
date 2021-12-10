@@ -27,7 +27,7 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
 #include "lte/gateway/c/core/oai/lib/directoryd/directoryd.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;

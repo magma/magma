@@ -32,7 +32,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"

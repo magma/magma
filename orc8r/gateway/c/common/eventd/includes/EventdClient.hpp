@@ -16,7 +16,7 @@
 #include <stdint.h>                       // for uint32_t
 #include <functional>                     // for function
 #include <memory>                         // for unique_ptr
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"  // for GRPCReceiver
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"  // for GRPCReceiver
 namespace grpc {
 class Status;
 }

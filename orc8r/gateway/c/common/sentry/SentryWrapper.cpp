@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.hpp"
 
 #include <bits/local_lim.h>
 #include <unistd.h>
@@ -25,7 +25,7 @@
 #include <cstring>
 
 #include "sentry.h"
-#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
 
 #define COMMIT_HASH_ENV "COMMIT_HASH"
 #define CONTROL_PROXY_SERVICE_NAME "control_proxy"

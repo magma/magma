@@ -16,7 +16,7 @@
 #include <memory>  // for shared_ptr, unique_ptr
 #include <string>  // for string
 
-#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.h"  // for ServiceConfigLoader
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"  // for ServiceConfigLoader
 
 namespace grpc {
 

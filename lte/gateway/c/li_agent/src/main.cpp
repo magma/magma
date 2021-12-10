@@ -15,9 +15,9 @@
 #include <stdlib.h>
 #include <thread>
 
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 
 #include "lte/gateway/c/li_agent/src/InterfaceMonitor.h"
 #include "lte/gateway/c/li_agent/src/PDUGenerator.h"

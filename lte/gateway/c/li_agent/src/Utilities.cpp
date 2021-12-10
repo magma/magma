@@ -14,8 +14,8 @@
 #include <chrono>
 
 #include "lte/gateway/c/li_agent/src/Utilities.h"
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging_init.h"
 
 namespace magma {

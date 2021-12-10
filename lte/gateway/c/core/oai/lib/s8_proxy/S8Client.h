@@ -20,7 +20,7 @@ limitations under the License.
 #include <functional>
 #include <memory>
 
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 #include "feg/protos/s8_proxy.grpc.pb.h"
 
 extern "C" {

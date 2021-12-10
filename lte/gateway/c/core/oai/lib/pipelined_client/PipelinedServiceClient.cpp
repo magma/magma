@@ -31,7 +31,7 @@
 #include "lte/protos/mobilityd.pb.h"
 #include "orc8r/protos/common.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/pipelined_client/proto_converters.h"
 

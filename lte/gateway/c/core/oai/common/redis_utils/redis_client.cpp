@@ -27,7 +27,7 @@ extern "C" {
 }
 #endif
 
-#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.hpp"
 #include <yaml-cpp/yaml.h>  // IWYU pragma: keep
 
 using google::protobuf::Message;

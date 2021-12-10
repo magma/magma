@@ -12,7 +12,7 @@
  */
 #include <gtest/gtest.h>
 
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
 
 using ::testing::Test;
 

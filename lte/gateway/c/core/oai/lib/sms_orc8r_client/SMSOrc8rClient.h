@@ -24,7 +24,7 @@
 #include <functional>
 #include <memory>
 
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 #include "lte/protos/sms_orc8r.grpc.pb.h"
 #include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 

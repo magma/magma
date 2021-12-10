@@ -28,7 +28,7 @@
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_ta.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_nas_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_itti_messaging.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"

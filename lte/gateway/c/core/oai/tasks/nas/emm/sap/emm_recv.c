@@ -31,7 +31,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
 #include "lte/gateway/c/core/oai/include/3gpp_requirements_24.301.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"

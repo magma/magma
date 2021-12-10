@@ -24,7 +24,7 @@
 #include <memory>
 
 #include "feg/protos/s6a_proxy.grpc.pb.h"
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
 
 extern "C" {

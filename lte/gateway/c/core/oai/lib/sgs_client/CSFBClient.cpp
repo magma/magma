@@ -21,7 +21,7 @@
 
 #include "lte/gateway/c/core/oai/lib/sgs_client/CSFBClient.h"
 #include "lte/gateway/c/core/oai/lib/sgs_client/itti_msg_to_proto_msg.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 #include "feg/protos/csfb.pb.h"
 #include "orc8r/protos/common.pb.h"
 

@@ -19,7 +19,7 @@
 #include <stddef.h>
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/service303.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 
 void service303_mme_app_statistics_read(
     application_mme_app_stats_msg_t* stats_msg_p) {

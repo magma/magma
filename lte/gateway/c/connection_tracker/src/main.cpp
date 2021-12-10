@@ -15,9 +15,9 @@
 #include <stdlib.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
 
-#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.hpp"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
 
 #include "lte/gateway/c/connection_tracker/src/EventTracker.h"
 #include "lte/gateway/c/connection_tracker/src/PacketGenerator.h"

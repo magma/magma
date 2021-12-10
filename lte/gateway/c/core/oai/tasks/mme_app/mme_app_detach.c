@@ -49,7 +49,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 
 #if EMBEDDED_SGW

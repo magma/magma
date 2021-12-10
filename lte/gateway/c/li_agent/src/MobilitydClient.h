@@ -19,7 +19,7 @@
 
 #include "lte/protos/mobilityd.pb.h"
 #include "lte/protos/mobilityd.grpc.pb.h"
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
 
 using grpc::Status;
 
