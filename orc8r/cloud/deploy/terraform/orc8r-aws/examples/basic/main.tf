@@ -23,5 +23,5 @@ module orc8r {
 
   vpc_name        = "magma-orc8r-test"
   cluster_name    = "orc8r-test"
-  cluster_version = "1.17"
+  cluster_version = "1.21"
 }
