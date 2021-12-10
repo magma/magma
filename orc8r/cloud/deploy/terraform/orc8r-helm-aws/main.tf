@@ -150,6 +150,7 @@ data "template_file" "orc8r_values" {
 
     managed_certs_create             = var.managed_certs_create
     managed_certs_enabled            = var.managed_certs_enabled
+    managed_certs_domain_name        = var.orc8r_domain_name
     nms_managed_certs_enabled        = var.nms_managed_certs_enabled
     nms_custom_issuer                = var.nms_custom_issuer
     managed_certs_route53_enabled    = var.managed_certs_route53_enabled

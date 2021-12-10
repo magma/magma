@@ -26,7 +26,7 @@ secret:
 certs:
   create: ${managed_certs_create}
   enabled: ${managed_certs_enabled}
-  domainName: ${orc8r_domain_name}
+  domainName: ${managed_certs_domain_name}
   nms:
     customIssuer: ${nms_custom_issuer}
   route53:
