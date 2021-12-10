@@ -56,7 +56,9 @@
             });
         </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="summary"></a><a href="#summary" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Summary</h1>
 <p>AWS will deprecate all RDS instances that are running on 9.6.X version as of January 2022. In preparation for that, the following instructions will allow a network administrator to upgrade the RDS version to Version 12.8.</p>
-<p><strong>NOTE:</strong> <em>This upgrade procedure is mandatory for all RDS versions running Postgres 9.6.X version. Versions 10 and above are not mandatory at this time.</em></p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> This upgrade procedure is mandatory for all RDS versions running Postgres 9.6.X version. Versions 10 and above are not mandatory at this time.*</p>
+</blockquote>
 <h2><a class="anchor" aria-hidden="true" id="pre-requisites"></a><a href="#pre-requisites" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Pre-Requisites</h2>
 <ol>
 <li><p>Access to AWS Dashboard (read/write).</p></li>
@@ -72,7 +74,7 @@
 <p>Please note that these changes need to be made to the local copy of the modules downloaded.</p>
 <p><strong>Change 1:</strong>
 In <code>.terraform/modules/orc8r/orc8r/cloud/deploy/terraform/orc8r-aws/db.tf</code> add the following snippet:</p>
-<p><code>apply_immediately`` = var.orc8r_db_apply_immediately</code></p>
+<p><code>apply_immediately = var.orc8r_db_apply_immediately</code></p>
 <p><strong>Change 2:</strong>
 In <code>.terraform/modules/orc8r/orc8r/cloud/deploy/terraform/orc8r-aws/variables.tf</code> add the following snippet:</p>
 <pre><code class="hljs">variable <span class="hljs-string">"orc8r_db_apply_immediately"</span>{
@@ -83,8 +85,8 @@ In <code>.terraform/modules/orc8r/orc8r/cloud/deploy/terraform/orc8r-aws/variabl
 </code></pre>
 <p><strong>Change 3:</strong>
 In <code>main.tf</code> set the following variables in <code>module &quot;orc8r&quot; {...}</code> stanza:</p>
-<p><code>orc8r_db_engine_version = ``&quot;12.8&quot;</code>
-<code>orc8r_db_apply_immediately = ``&quot;true&quot;</code></p>
+<p><code>orc8r_db_engine_version = &quot;12.8&quot;</code>
+<code>orc8r_db_apply_immediately = &quot;true&quot;</code></p>
 <blockquote>
 <p><strong><em>NOTE:</em></strong> If the current version of the <code>orc8r_db_engine_version</code> is <em>not</em> <code>9.6.23</code> (i.e. a minor version <em>older</em> than 9.6.23), the RDS has to be first upgraded to this version (using the same process) and then a second time to <code>12.8</code></p>
 </blockquote>
@@ -93,8 +95,8 @@ In <code>main.tf</code> set the following variables in <code>module &quot;orc8r&
 </blockquote>
 <p>After confirming the notes above, run the following commands:</p>
 <ul>
-<li><code>terraform`` plan</code></li>
-<li><code>terraform`` apply</code></li>
+<li><code>terraform plan</code></li>
+<li><code>terraform apply</code></li>
 </ul>
 <h2><a class="anchor" aria-hidden="true" id="logs-and-validation"></a><a href="#logs-and-validation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Logs and Validation</h2>
 <ul>
@@ -108,7 +110,7 @@ In <code>main.tf</code> set the following variables in <code>module &quot;orc8r&
 <ul>
 <li>Modify main.tf as follows:</li>
 </ul>
-<p><code>orc8r_db_apply_immediately`` = ``&quot;false&quot;</code></p>
+<p><code>orc8r_db_apply_immediately = &quot;false&quot;</code></p>
 <ul>
 <li>Run <code>terraform plan</code> and <code>terraform apply</code>. These are not expected to have any impact other than to disable immediate major upgrades of the RDS instance.</li>
 </ul>
