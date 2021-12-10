@@ -25,14 +25,11 @@ import (
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/encoding"
-	grpc_proto "google.golang.org/grpc/encoding/proto"
 	"google.golang.org/grpc/keepalive"
 
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
-	"magma/orc8r/lib/go/util"
 )
 
 const (
@@ -41,7 +38,7 @@ const (
 )
 
 var (
-	printGrpcPayload           bool
+	printGrpcPayload           int
 	currentlyRunningServices   = make(map[string]*Service)
 	currentlyRunningServicesMu sync.RWMutex
 )
@@ -59,7 +56,8 @@ var defaultKeepaliveParams = keepalive.ServerParameters{
 }
 
 func init() {
-	flag.BoolVar(&printGrpcPayload, PrintGrpcPayloadFlag, false, "Enable GRPC Payload Printout")
+	flag.IntVar(&printGrpcPayload, PrintGrpcPayloadFlag, int(GRPCLOG_DISABLED),
+		"Enable GRPC Payload Printout (0: disabled 1: enabled 2: hide verbose")
 }
 
 type Service struct {
@@ -104,14 +102,8 @@ func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 		configMap = nil
 	}
 
-	// Check if service was started with print-grpc-payload flag or MAGMA_PRINT_GRPC_PAYLOAD env is set
-	if printGrpcPayload || util.IsTruthyEnv(PrintGrpcPayloadEnv) {
-		ls := logCodec{encoding.GetCodec(grpc_proto.Name)}
-		if ls.protoCodec != nil {
-			glog.Errorf("Adding Debug Codec for service %s", serviceName)
-			encoding.RegisterCodec(ls)
-		}
-	}
+	// Registers new logger in case print-grpc-payload flag or MAGMA_PRINT_GRPC_PAYLOAD env is set
+	registerPrintGrpcPayloadLogCodecIfRequired()
 
 	// Use keepalive options to proactively reinit http2 connections and
 	// mitigate flow control issues
