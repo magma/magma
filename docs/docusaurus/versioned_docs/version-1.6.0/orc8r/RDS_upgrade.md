@@ -9,7 +9,7 @@ original_id: RDS_upgrade
 
 AWS will deprecate all RDS instances that are running on 9.6.X version as of January 2022. In preparation for that, the following instructions will allow a network administrator to upgrade the RDS version to Version 12.8. 
 
-**NOTE:** *This upgrade procedure is mandatory for all RDS versions running Postgres 9.6.X version. Versions 10 and above are not mandatory at this time.*
+> **_NOTE:_** This upgrade procedure is mandatory for all RDS versions running Postgres 9.6.X version. Versions 10 and above are not mandatory at this time.*
 
 ## Pre-Requisites 
 
@@ -37,7 +37,7 @@ Please note that these changes need to be made to the local copy of the modules 
 **Change 1:** 
 In `.terraform/modules/orc8r/orc8r/cloud/deploy/terraform/orc8r-aws/db.tf` add the following snippet: 
 
-`apply_immediately`` = var.orc8r_db_apply_immediately`
+`apply_immediately = var.orc8r_db_apply_immediately`
 
 **Change 2:**
 In `.terraform/modules/orc8r/orc8r/cloud/deploy/terraform/orc8r-aws/variables.tf` add the following snippet:
@@ -53,8 +53,8 @@ variable "orc8r_db_apply_immediately"{
 **Change 3:**
 In `main.tf` set the following variables in `module "orc8r" {...}` stanza:
 
-`orc8r_db_engine_version = ``"12.8"`
-`orc8r_db_apply_immediately = ``"true"`
+`orc8r_db_engine_version = "12.8"`
+`orc8r_db_apply_immediately = "true"`
 
 
 > **_NOTE:_** If the current version of the `orc8r_db_engine_version` is _not_ `9.6.23` (i.e. a minor version *older* than 9.6.23), the RDS has to be first upgraded to this version (using the same process) and then a second time to `12.8`
@@ -66,8 +66,8 @@ In `main.tf` set the following variables in `module "orc8r" {...}` stanza:
 
 After confirming the notes above, run the following commands:
 
-* `terraform`` plan`
-* `terraform`` apply`
+* `terraform plan`
+* `terraform apply`
 
 ## Logs and Validation 
 
@@ -81,7 +81,7 @@ After confirming the notes above, run the following commands:
 
 * Modify main.tf as follows:
 
-`orc8r_db_apply_immediately`` = ``"false"`
+`orc8r_db_apply_immediately = "false"`
 
 * Run `terraform plan` and `terraform apply`. These are not expected to have any impact other than to disable immediate major upgrades of the RDS instance.
 
