@@ -52,7 +52,7 @@ export default function NetworkKPI() {
       {
         icon: PeopleIcon,
         category: 'Subscribers',
-        value: Object.keys(subscriberCtx.state).length,
+        value: subscriberCtx.subscribersTotal||0,
       },
       {
         icon: LibraryBooksIcon,
