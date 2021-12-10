@@ -118,19 +118,3 @@ class ConfigManagerTest(TestCase):
                 'metricsd': updated_mconfig.configs_by_key['metricsd'],
             }
             processed_updates.assert_called_once_with(configs_by_service)
-
-            # Verify that shared config update restarts all services
-            updated_mconfig.configs_by_key['shared_mconfig'].CopyFrom(some_any)
-            update_str = MessageToJson(updated_mconfig)
-            updates = [
-                DataUpdate(
-                    value=update_str.encode('utf-8'),
-                    key='last key',
-                ),
-            ]
-            config_manager.process_update(CONFIG_STREAM_NAME, updates, False)
-
-            # Only metricsd config was updated, hence should be restarted
-            loader.assert_called_once_with()
-            restarter.assert_called_once_with(['metricsd', 'magmad'])
-            updater.assert_called_once_with(update_str)
