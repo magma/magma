@@ -74,6 +74,8 @@ class AMFClientServicerBase {
 
 class AMFClientServicer : public AMFClientServicerBase {
  public:
+  std::vector<MessagesIds>
+      msgtype_stack;  // stack maintains type of msgs sent to ngap
   static AMFClientServicer& getInstance();
 
   AMFClientServicer(AMFClientServicer const&) = delete;
@@ -84,6 +86,7 @@ class AMFClientServicer : public AMFClientServicerBase {
       task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
       MessageDef* message_p) override {
     OAILOG_DEBUG(LOG_AMF_APP, " Mock is Enabled \n");
+    msgtype_stack.push_back(ITTI_MSG_ID(message_p));
     itti_free_msg_content(message_p);
     free(message_p);
     return RETURNok;
