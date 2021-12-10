@@ -44,7 +44,7 @@ var (
 )
 
 func TestRegistrationServicer_Register(t *testing.T) {
-	registrationServicer := setupMockRegistrationServicer(t)
+	registrationServicer := setupMockRegistrationServicer()
 
 	res, err := registrationServicer.Register(nil, registerRequest)
 	assert.NoError(t, err)
@@ -57,7 +57,7 @@ func TestRegistrationServicer_Register(t *testing.T) {
 func TestRegistrationServicer_Register_BadToken(t *testing.T) {
 	rpcErr := status.Error(codes.NotFound, "errMessage")
 
-	registrationServicer := setupMockRegistrationServicer(t)
+	registrationServicer := setupMockRegistrationServicer()
 	registrationServicer.GetGatewayDeviceInfo = func(ctx context.Context, token string) (*protos.GatewayDeviceInfo, error) {
 		return nil, rpcErr
 	}
@@ -75,7 +75,7 @@ func TestRegistrationServicer_Register_BadToken(t *testing.T) {
 func TestRegistrationServicer_Register_NoControlProxy(t *testing.T) {
 	rpcErr := status.Error(codes.NotFound, "errMessage")
 
-	registrationServicer := setupMockRegistrationServicer(t)
+	registrationServicer := setupMockRegistrationServicer()
 	registrationServicer.GetControlProxy = func(networkID string) (string, error) {
 		return "", rpcErr
 	}
@@ -131,7 +131,7 @@ func TestGetControlProxy(t *testing.T) {
 	assert.Equal(t, controlProxy, res)
 }
 
-func newMockRegistrationService() *registration.RegistrationService {
+func setupMockRegistrationServicer() *registration.RegistrationService {
 	registrationService := &registration.RegistrationService{
 		GetGatewayDeviceInfo: func(ctx context.Context, token string) (*protos.GatewayDeviceInfo, error) {
 			return gatewayDeviceInfo, nil
