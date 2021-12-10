@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package servicers
+package internal_servicer
 
 import (
 	"context"
@@ -20,6 +20,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
 	"magma/orc8r/cloud/go/services/tenants/servicers/storage"
 	"magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
@@ -30,14 +31,14 @@ type tenantsServicer struct {
 }
 
 // NewTenantsServicer returns a state server backed by storage passed in
-func NewTenantsServicer(store storage.Store) (protos.TenantsServiceServer, error) {
+func NewTenantsServicer(store storage.Store) (tenant_protos.TenantsServiceServer, error) {
 	if store == nil {
 		return nil, fmt.Errorf("Storage store is nil")
 	}
 	return &tenantsServicer{store}, nil
 }
 
-func (s *tenantsServicer) GetAllTenants(c context.Context, _ *protos.Void) (*protos.TenantList, error) {
+func (s *tenantsServicer) GetAllTenants(c context.Context, _ *protos.Void) (*tenant_protos.TenantList, error) {
 	tenants, err := s.store.GetAllTenants()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Error getting tenants: %v", err)
@@ -45,7 +46,7 @@ func (s *tenantsServicer) GetAllTenants(c context.Context, _ *protos.Void) (*pro
 	return tenants, nil
 }
 
-func (s *tenantsServicer) CreateTenant(c context.Context, request *protos.IDAndTenant) (*protos.Void, error) {
+func (s *tenantsServicer) CreateTenant(c context.Context, request *tenant_protos.IDAndTenant) (*protos.Void, error) {
 	_, err := s.store.GetTenant(request.Id)
 	switch {
 	case err == nil:
@@ -61,7 +62,7 @@ func (s *tenantsServicer) CreateTenant(c context.Context, request *protos.IDAndT
 	return &protos.Void{}, nil
 }
 
-func (s *tenantsServicer) GetTenant(c context.Context, request *protos.GetTenantRequest) (*protos.Tenant, error) {
+func (s *tenantsServicer) GetTenant(c context.Context, request *tenant_protos.GetTenantRequest) (*tenant_protos.Tenant, error) {
 	tenant, err := s.store.GetTenant(request.Id)
 	if err != nil {
 		return nil, mapErrForGet(err, request.Id, "tenant")
@@ -70,7 +71,7 @@ func (s *tenantsServicer) GetTenant(c context.Context, request *protos.GetTenant
 
 }
 
-func (s *tenantsServicer) SetTenant(c context.Context, request *protos.IDAndTenant) (*protos.Void, error) {
+func (s *tenantsServicer) SetTenant(c context.Context, request *tenant_protos.IDAndTenant) (*protos.Void, error) {
 	err := s.validateTenantExists(request.Id)
 	if err != nil {
 		return nil, err
@@ -84,7 +85,7 @@ func (s *tenantsServicer) SetTenant(c context.Context, request *protos.IDAndTena
 	return &protos.Void{}, nil
 }
 
-func (s *tenantsServicer) DeleteTenant(c context.Context, request *protos.GetTenantRequest) (*protos.Void, error) {
+func (s *tenantsServicer) DeleteTenant(c context.Context, request *tenant_protos.GetTenantRequest) (*protos.Void, error) {
 	err := s.store.DeleteTenant(request.Id)
 	switch {
 	case err == errors.ErrNotFound:
@@ -95,7 +96,7 @@ func (s *tenantsServicer) DeleteTenant(c context.Context, request *protos.GetTen
 	return &protos.Void{}, nil
 }
 
-func (s *tenantsServicer) GetControlProxy(c context.Context, request *protos.GetControlProxyRequest) (*protos.GetControlProxyResponse, error) {
+func (s *tenantsServicer) GetControlProxy(c context.Context, request *tenant_protos.GetControlProxyRequest) (*tenant_protos.GetControlProxyResponse, error) {
 	err := s.validateTenantExists(request.Id)
 	if err != nil {
 		return nil, err
@@ -106,10 +107,10 @@ func (s *tenantsServicer) GetControlProxy(c context.Context, request *protos.Get
 		return nil, mapErrForGet(err, request.Id, "controlProxy")
 	}
 
-	return &protos.GetControlProxyResponse{Id: request.Id, ControlProxy: controlProxy}, nil
+	return &tenant_protos.GetControlProxyResponse{Id: request.Id, ControlProxy: controlProxy}, nil
 }
 
-func (s *tenantsServicer) CreateOrUpdateControlProxy(c context.Context, request *protos.CreateOrUpdateControlProxyRequest) (*protos.CreateOrUpdateControlProxyResponse, error) {
+func (s *tenantsServicer) CreateOrUpdateControlProxy(c context.Context, request *tenant_protos.CreateOrUpdateControlProxyRequest) (*tenant_protos.CreateOrUpdateControlProxyResponse, error) {
 	err := s.validateTenantExists(request.Id)
 	if err != nil {
 		return nil, err
@@ -121,7 +122,7 @@ func (s *tenantsServicer) CreateOrUpdateControlProxy(c context.Context, request 
 		return nil, status.Errorf(codes.Internal, "Error setting control proxy %d: %v", request.Id, err)
 	}
 
-	return &protos.CreateOrUpdateControlProxyResponse{}, nil
+	return &tenant_protos.CreateOrUpdateControlProxyResponse{}, nil
 }
 
 func mapErrForGet(err error, id int64, getType string) error {

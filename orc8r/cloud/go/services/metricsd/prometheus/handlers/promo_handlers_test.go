@@ -31,8 +31,8 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/handlers/mocks"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
 	"magma/orc8r/cloud/go/services/tenants"
+	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
 	tenants_test_init "magma/orc8r/cloud/go/services/tenants/test_init"
-	"magma/orc8r/lib/go/protos"
 )
 
 type prometheusAPITestCase struct {
@@ -132,7 +132,7 @@ func TestGetPrometheusQueryHandler(t *testing.T) {
 
 func TestGetTenantQueryHandler(t *testing.T) {
 	tenants_test_init.StartTestService(t)
-	tenants.CreateTenant(context.Background(), 0, &protos.Tenant{
+	tenants.CreateTenant(context.Background(), 0, &tenant_protos.Tenant{
 		Name:     "0",
 		Networks: []string{"test"},
 	})
@@ -227,7 +227,7 @@ func TestGetPrometheusQueryRangeHandler(t *testing.T) {
 
 func TestGetTenantQueryRangeHandler(t *testing.T) {
 	tenants_test_init.StartTestService(t)
-	tenants.CreateTenant(context.Background(), 0, &protos.Tenant{
+	tenants.CreateTenant(context.Background(), 0, &tenant_protos.Tenant{
 		Name:     "0",
 		Networks: []string{"test"},
 	})
@@ -317,7 +317,7 @@ func TestGetPrometheusSeriesHandler(t *testing.T) {
 
 func TestGetTenantPromSeriesHandler(t *testing.T) {
 	tenants_test_init.StartTestService(t)
-	tenants.CreateTenant(context.Background(), 0, &protos.Tenant{
+	tenants.CreateTenant(context.Background(), 0, &tenant_protos.Tenant{
 		Name:     "0",
 		Networks: []string{"test"},
 	})
@@ -396,7 +396,7 @@ func TestGetTenantPromSeriesHandler(t *testing.T) {
 
 func TestGetTenantPromValuesHandler(t *testing.T) {
 	tenants_test_init.StartTestService(t)
-	tenants.CreateTenant(context.Background(), 0, &protos.Tenant{
+	tenants.CreateTenant(context.Background(), 0, &tenant_protos.Tenant{
 		Name:     "0",
 		Networks: []string{"test"},
 	})
@@ -535,7 +535,7 @@ func TestGetSeriesMatches(t *testing.T) {
 
 func TestTenantSeriesHandlerProvider(t *testing.T) {
 	tenants_test_init.StartTestService(t)
-	tenants.CreateTenant(context.Background(), 0, &protos.Tenant{
+	tenants.CreateTenant(context.Background(), 0, &tenant_protos.Tenant{
 		Name:     "0",
 		Networks: []string{"test"},
 	})
