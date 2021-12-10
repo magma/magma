@@ -28,7 +28,7 @@ namespace magma {
 namespace lte {
 
 #define MME_APP_TIMER_TO_MSEC 10
-#define STATE_MAX_WAIT_MS 10000
+#define STATE_MAX_WAIT_MS 2000
 #define NAS_RETX_LIMIT 5
 
 #define MME_APP_EXPECT_CALLS(                                                  \
