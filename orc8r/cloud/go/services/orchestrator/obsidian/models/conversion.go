@@ -247,8 +247,10 @@ func (m *MagmadGateway) FromBackendModels(ent configurator.NetworkEntity, device
 		m.Tier = TierID(tierTK.Key)
 	}
 	err = PopulateRegistrationInfo(context.Background(), m, ent.NetworkID)
-	// ignore err and continue returning the rest of the gateway
-	glog.V(2).Infof("failed to populate registration info because %v+", err)
+	if err != nil {
+		// ignore err and continue returning the rest of the gateway
+		glog.V(2).Infof("failed to populate registration info because %v+", err)
+	}
 
 	return m
 }
