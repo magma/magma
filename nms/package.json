@@ -18,8 +18,8 @@
     "@fbcnms/util": "^0.1.0",
     "axios": "^0.21.2",
     "babel-plugin-lodash": "^3.3.4",
-    "pug": "^3.0.1",
-    "fbt": "^0.16.6"
+    "fbt": "^0.9.0",
+    "pug": "^3.0.1"
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",
