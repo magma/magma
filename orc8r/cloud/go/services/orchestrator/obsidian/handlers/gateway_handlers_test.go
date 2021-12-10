@@ -42,7 +42,7 @@ import (
 	"magma/orc8r/lib/go/security/key"
 )
 
-var(
+var (
 	networkID = "n1"
 )
 
