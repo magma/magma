@@ -118,10 +118,15 @@ class ConfigManager(StreamerClient.Callback):
                 ),
             )
 
-        # TODO adapt service restart logic to include changes in shared_mconfig
-        services_to_restart = [
-            srv for srv in self._services if did_mconfig_change(srv)
-        ]
+        services_to_restart = []
+        if 'shared_mconfig' in mconfig.configs_by_key and did_mconfig_change('shared_mconfig'):
+            logging.info("shared config changed. Restarting all services.")
+            services_to_restart = [ srv for srv in self._services ]
+        else:
+            services_to_restart = [ \
+	        srv for srv in self._services if did_mconfig_change(srv) \
+            ]
+
         if services_to_restart:
             self._loop.create_task(
                 self._service_manager.restart_services(services_to_restart),
