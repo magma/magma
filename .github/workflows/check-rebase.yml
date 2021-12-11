@@ -1,7 +1,7 @@
 ---
 name: "Check Rebase"
 
-on:
+on:  # yamllint disable-line rule:truthy
   pull_request:
     branches:
       - master
@@ -10,25 +10,29 @@ on:
 jobs:
   checkRebase:
     runs-on: ubuntu-latest
+    env:
+      HEAD_FULL_NAME: "${{github.event.pull_request.head.repo.full_name}}"
+      BASE_FULL_NAME: "${{github.event.pull_request.base.repo.full_name}}"
+      HEAD_SHA: "${{ github.event.pull_request.head.sha }}"
+      BASE_SHA: "${{ github.event.pull_request.base.sha }}"
     steps:
-    - uses: hmarr/debug-action@v2
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: Git checkout
-      uses: actions/checkout@v2
-      with:
-        ref: ${{github.event.pull_request.base.ref}}
-    - run: |
-        git remote -v
-    - run: |
-        BASE_HEAD_HASH=$(git merge-base origin/${{github.event.pull_request.base.ref}} origin/${{github.event.pull_request.head.ref}})
-        if [ "${BASE_HEAD_HASH}" = "${{github.event.pull_request.base.sha}}" ]; then
-          exit 0 
-        else
-          echo "Merge Failed Rebase is not done"
-          exit 1
-        fi
-
-
-    
+      - name: Checkout Head
+        uses: actions/checkout@v2
+        with:
+          repository: "${{env.HEAD_FULL_NAME}}"
+          fetch-depth: 0
+      - name: Checkout Base
+        uses: actions/checkout@v2
+        with:
+          repository: "${{env.BASE_FULL_NAME}}"
+          fetch-depth: 0
+      - name: Check Commits Hash
+        run: |
+          COMMON_SHA="$(git merge-base $BASE_SHA $HEAD_SHA)"
+          if [ "${COMMON_SHA}" = "$BASE_SHA" ]; then
+            echo "Merge Succeeded : It is rebased"
+            exit 0
+          else
+            echo "Merge Failed : It is not rebased"
+            exit 1
+          fi
