@@ -29,7 +29,7 @@ module "eks" {
   version = "~> 8.0"
 
   cluster_name = var.cluster_name
-  cluster_version = "1.21"
+  cluster_version = "1.17"
   vpc_id       = module.vpc.vpc_id
   subnets      = length(module.vpc.private_subnets) > 0 ? module.vpc.private_subnets : module.vpc.public_subnets
 
