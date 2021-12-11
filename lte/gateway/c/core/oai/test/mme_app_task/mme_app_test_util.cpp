@@ -15,7 +15,6 @@
 #include <chrono>
 #include <gtest/gtest.h>
 #include <cstdint>
-#include <cstdlib>
 #include <thread>
 
 #include "feg/protos/s6a_proxy.pb.h"
@@ -472,7 +471,7 @@ void send_s1ap_path_switch_req(
 
   erab_to_switch_dl_list->no_of_items      = 1;
   erab_to_switch_dl_list->item[0].e_rab_id = 5;  // default bearer id
-  erab_to_switch_dl_list->item[0].gtp_teid = rand();
+  erab_to_switch_dl_list->item[0].gtp_teid = 2;
   uint32_t enb_transport_addr              = 0xc0a83c8d;  // 192.168.60.141
   erab_to_switch_dl_list->item[0].transport_layer_address =
       blk2bstr(&enb_transport_addr, 4);
