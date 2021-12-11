@@ -36,8 +36,10 @@ extern task_zmq_ctx_t task_zmq_ctx_main;
 #define DEFAULT_UE_IPv4 1000
 
 void nas_config_timer_reinit(nas_config_t* nas_conf, uint32_t timeout_msec) {
-  nas_conf->t3402_min    = 1;
-  nas_conf->t3412_min    = 1;
+  nas_conf->t3402_min = 1;
+  nas_conf->t3412_min = 1;
+  nas_conf->t3412_msec =
+      50 * timeout_msec;  // implicit detach after 2x of this value
   nas_conf->t3422_msec   = timeout_msec;
   nas_conf->t3450_msec   = timeout_msec;
   nas_conf->t3460_msec   = timeout_msec;
