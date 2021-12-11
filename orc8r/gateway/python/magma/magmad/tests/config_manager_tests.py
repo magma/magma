@@ -59,6 +59,9 @@ class ConfigManagerTest(TestCase):
         @asyncio.coroutine
         def _mock_restart_services(): return "blah"
 
+        @asyncio.coroutine
+        def _mock_update_dynamic_services(): return "mockResponse"
+
         service_manager_mock = MagicMock()
         magmad_service_mock = MagicMock()
         mconfig_manager_mock = MconfigManagerImpl()
@@ -75,11 +78,16 @@ class ConfigManagerTest(TestCase):
             service_manager_mock,
             'restart_services', MagicMock(wraps=_mock_restart_services),
         )
+        update_dynamic_services_mock = patch.object(
+            service_manager_mock,
+            'update_dynamic_services', MagicMock(wraps=_mock_update_dynamic_services),
+        )
         processed_updates_mock = patch('magma.magmad.events.processed_updates')
 
         with load_mock as loader,\
                 update_mock as updater, \
                 restart_service_mock as restarter,\
+                update_dynamic_services_mock as dynamicServices,\
                 processed_updates_mock as processed_updates:
             loop = asyncio.new_event_loop()
             config_manager = ConfigManager(
@@ -112,6 +120,31 @@ class ConfigManagerTest(TestCase):
             loader.assert_called_once_with()
             restarter.assert_called_once_with(['metricsd'])
             updater.assert_called_once_with(update_str)
+
+            configs_by_service = {
+                'magmad': updated_mconfig.configs_by_key['magmad'],
+                'metricsd': updated_mconfig.configs_by_key['metricsd'],
+            }
+            processed_updates.assert_called_once_with(configs_by_service)
+            restarter.reset_mock()
+            updater.reset_mock()
+            loader.reset_mock()
+            processed_updates.reset_mock()
+
+            # Verify that shared config update restarts all services
+            updated_mconfig.configs_by_key['shared_mconfig'].CopyFrom(some_any) 
+            update_str = MessageToJson(updated_mconfig)
+            updates = [
+                DataUpdate(
+                    value=update_str.encode('utf-8'),
+                    key='last key',
+                ),
+            ]
+            config_manager.process_update(CONFIG_STREAM_NAME, updates, False)
+
+            restarter.assert_called_once_with(['magmad', 'metricsd'])
+            updater.assert_called_once_with(update_str)
+            dynamicServices.assert_called_once_with([])
 
             configs_by_service = {
                 'magmad': updated_mconfig.configs_by_key['magmad'],

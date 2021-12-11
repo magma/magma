@@ -118,15 +118,18 @@ class ConfigManager(StreamerClient.Callback):
                 ),
             )
 
+        magmad_restarted = False
         # Reload magmad configs locally
         if did_mconfig_change('magmad'):
             restart_magmad()
+            magmad_restarted = True
 
         services_to_restart = []
         if shared_mconfig in mconfig.configs_by_key and did_mconfig_change(shared_mconfig):
             logging.info("Shared config changed. Restarting all services.")
             services_to_restart = self._services
-            restart_magmad()
+            if not magmad_restarted:
+                restart_magmad()
         else:
             services_to_restart = [
                 srv for srv in self._services if did_mconfig_change(srv)
