@@ -132,7 +132,7 @@ class ConfigManagerTest(TestCase):
             processed_updates.reset_mock()
 
             # Verify that shared config update restarts all services
-            updated_mconfig.configs_by_key['shared_mconfig'].CopyFrom(some_any) 
+            updated_mconfig.configs_by_key['shared_mconfig'].CopyFrom(some_any)
             update_str = MessageToJson(updated_mconfig)
             updates = [
                 DataUpdate(
