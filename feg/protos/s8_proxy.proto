@@ -64,8 +64,6 @@ message CreateSessionRequestPgw {
     bytes indication_flag = 16;
     string charging_characteristics = 17;
     TimeZone time_zone = 18;
-
-    uint32 feg_relay_generated_c_agw_teid = 99;
 }
 
 enum PDNType {
