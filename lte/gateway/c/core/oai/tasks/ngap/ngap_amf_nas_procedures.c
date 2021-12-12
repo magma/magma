@@ -625,7 +625,7 @@ void ngap_handle_conn_est_cnf(
       Ngap_ProcedureCode_id_InitialContextSetup;
   pdu.choice.initiatingMessage.value.present =
       Ngap_InitiatingMessage__value_PR_InitialContextSetupRequest;
-  pdu.choice.initiatingMessage.criticality = Ngap_Criticality_ignore;
+  pdu.choice.initiatingMessage.criticality = Ngap_Criticality_reject;
   out = &pdu.choice.initiatingMessage.value.choice.InitialContextSetupRequest;
 
   /* mandatory */
@@ -886,7 +886,7 @@ void ngap_handle_conn_est_cnf(
     ie = CALLOC(1, sizeof(Ngap_InitialContextSetupRequestIEs_t));
 
     ie->id          = Ngap_ProtocolIE_ID_id_UEAggregateMaximumBitRate;
-    ie->criticality = Ngap_Criticality_reject;
+    ie->criticality = Ngap_Criticality_ignore;
     ie->value.present =
         Ngap_InitialContextSetupRequestIEs__value_PR_UEAggregateMaximumBitRate;
 
@@ -908,7 +908,7 @@ void ngap_handle_conn_est_cnf(
     ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(
         1, sizeof(Ngap_InitialContextSetupRequestIEs_t));
     ie->id            = Ngap_ProtocolIE_ID_id_NAS_PDU;
-    ie->criticality   = Ngap_Criticality_reject;
+    ie->criticality   = Ngap_Criticality_ignore;
     ie->value.present = Ngap_InitialContextSetupRequestIEs__value_PR_NAS_PDU;
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
@@ -1315,7 +1315,7 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
   ie = CALLOC(1, sizeof(Ngap_PDUSessionResourceSetupRequestIEs_t));
 
   ie->id          = Ngap_ProtocolIE_ID_id_UEAggregateMaximumBitRate;
-  ie->criticality = Ngap_Criticality_reject;
+  ie->criticality = Ngap_Criticality_ignore;
   ie->value.present =
       Ngap_PDUSessionResourceSetupRequestIEs__value_PR_UEAggregateMaximumBitRate;
 
