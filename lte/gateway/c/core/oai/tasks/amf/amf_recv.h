@@ -51,6 +51,7 @@ int amf_handle_deregistration_ue_origin_req(
 int amf_validate_dnn(
     const amf_context_s* amf_ctxt_p, std::string dnn_string, int* index,
     bool ue_sent_dnn);
+void amf_get_default_sst_config(uint8_t* sst);
 void smf_dnn_ambr_select(
     const std::shared_ptr<smf_context_t>& smf_ctx,
     ue_m5gmm_context_s* ue_context, int index_dnn);

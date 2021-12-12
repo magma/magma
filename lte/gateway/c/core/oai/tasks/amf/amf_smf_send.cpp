@@ -453,7 +453,12 @@ int amf_smf_process_pdu_session_packet(
         return rc;
       }
 
-      smf_ctx->sst = msg->nssai.sst;
+      // NSSAI
+      if (msg->nssai.sst) {
+        smf_ctx->sst = msg->nssai.sst;
+      } else {
+        amf_get_default_sst_config(&(smf_ctx->sst));
+      }
       if (msg->nssai.sd[0]) {
         memcpy(smf_ctx->sd, msg->nssai.sd, SD_LENGTH);
       }
@@ -551,6 +556,20 @@ int amf_smf_process_pdu_session_packet(
       break;
   }
   return rc;
+}
+/***************************************************************************
+**                                                                        **
+** Name:    amf_get_default_sst_config()                                  **
+**                                                                        **
+** Description: Get default sst value from amf config                     **
+**                                                                        **
+**                                                                        **
+***************************************************************************/
+void amf_get_default_sst_config(uint8_t* sst) {
+  amf_config_read_lock(&amf_config);
+  *sst = static_cast<uint8_t>(
+      amf_config.plmn_support_list.plmn_support[0].s_nssai.sst);
+  amf_config_unlock(&amf_config);
 }
 /***************************************************************************
 **                                                                        **
