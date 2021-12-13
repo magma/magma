@@ -72,10 +72,8 @@ extern int btrunc(bstring b, int n);
 /* Scan/search functions */
 extern int biseqcaselessblk(const_bstring b, const void* blk, int len);
 extern int biseqcstrcaseless(const_bstring b, const char* s);
-extern int binstr(const_bstring s1, int pos, const_bstring s2);
 extern int bstrchrp(const_bstring b, int c, int pos);
 #define bstrchr(b, c) bstrchrp((b), (c), 0)
-extern int binchr(const_bstring b0, int pos, const_bstring b1);
 
 /* List of string container functions */
 struct bstrList {

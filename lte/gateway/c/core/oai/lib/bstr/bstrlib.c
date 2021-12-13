@@ -703,95 +703,6 @@ int bdestroy(bstring b) {
   return BSTR_OK;
 }
 
-/*  int binstr (const_bstring b1, int pos, const_bstring b2)
- *
- *  Search for the bstring b2 in b1 starting from position pos, and searching
- *  forward.  If it is found then return with the first position where it is
- *  found, otherwise return BSTR_ERR.  Note that this is just a brute force
- *  string searcher that does not attempt clever things like the Boyer-Moore
- *  search algorithm.  Because of this there are many degenerate cases where
- *  this can take much longer than it needs to.
- */
-int binstr(const_bstring b1, int pos, const_bstring b2) {
-  int j, ii, ll, lf;
-  unsigned char* d0;
-  unsigned char c0;
-  register unsigned char* d1;
-  register unsigned char c1;
-  register int i;
-
-  if (b1 == NULL || b1->data == NULL || b1->slen < 0 || b2 == NULL ||
-      b2->data == NULL || b2->slen < 0)
-    return BSTR_ERR;
-  if (b1->slen == pos) return (b2->slen == 0) ? pos : BSTR_ERR;
-  if (b1->slen < pos || pos < 0) return BSTR_ERR;
-  if (b2->slen == 0) return pos;
-
-  /* No space to find such a string? */
-  if ((lf = b1->slen - b2->slen + 1) <= pos) return BSTR_ERR;
-
-  /* An obvious alias case */
-  if (b1->data == b2->data && pos == 0) return 0;
-
-  i = pos;
-
-  d0 = b2->data;
-  d1 = b1->data;
-  ll = b2->slen;
-
-  /* Peel off the b2->slen == 1 case */
-  c0 = d0[0];
-  if (1 == ll) {
-    for (; i < lf; i++)
-      if (c0 == d1[i]) return i;
-    return BSTR_ERR;
-  }
-
-  c1 = c0;
-  j  = 0;
-  lf = b1->slen - 1;
-
-  ii = -1;
-  if (i < lf) do {
-      /* Unrolled current character test */
-      if (c1 != d1[i]) {
-        if (c1 != d1[1 + i]) {
-          i += 2;
-          continue;
-        }
-        i++;
-      }
-
-      /* Take note if this is the start of a potential match */
-      if (0 == j) ii = i;
-
-      /* Shift the test character down by one */
-      j++;
-      i++;
-
-      /* If this isn't past the last character continue */
-      if (j < ll) {
-        c1 = d0[j];
-        continue;
-      }
-
-    N0:;
-
-      /* If no characters mismatched, then we matched */
-      if (i == ii + j) return ii;
-
-      /* Shift back to the beginning */
-      i -= j;
-      j  = 0;
-      c1 = c0;
-    } while (i < lf);
-
-  /* Deal with last case if unrolling caused a misalignment */
-  if (i == lf && ll == j + 1 && c1 == d1[i]) goto N0;
-
-  return BSTR_ERR;
-}
-
 /*  int bstrchrp (const_bstring b, int c, int pos)
  *
  *  Search for the character c in b forwards from the position pos
@@ -837,43 +748,6 @@ struct charField {
 #define setInCharField(cf, idx) (cf)->content[(unsigned int) (idx)] = ~0
 
 #endif
-
-/* Convert a bstring to charField */
-static int buildCharField(struct charField* cf, const_bstring b) {
-  int i;
-  if (b == NULL || b->data == NULL || b->slen <= 0) return BSTR_ERR;
-  memset((void*) cf->content, 0, sizeof(struct charField));
-  for (i = 0; i < b->slen; i++) {
-    setInCharField(cf, b->data[i]);
-  }
-  return BSTR_OK;
-}
-
-/* Inner engine for binchr */
-static int binchrCF(
-    const unsigned char* data, int len, int pos, const struct charField* cf) {
-  int i;
-  for (i = pos; i < len; i++) {
-    unsigned char c = (unsigned char) data[i];
-    if (testInCharField(cf, c)) return i;
-  }
-  return BSTR_ERR;
-}
-
-/*  int binchr (const_bstring b0, int pos, const_bstring b1);
- *
- *  Search for the first position in b0 starting from pos or after, in which
- *  one of the characters in b1 is found and return it.  If such a position
- *  does not exist in b0, then BSTR_ERR is returned.
- */
-int binchr(const_bstring b0, int pos, const_bstring b1) {
-  struct charField chrs;
-  if (pos < 0 || b0 == NULL || b0->data == NULL || b0->slen <= pos)
-    return BSTR_ERR;
-  if (1 == b1->slen) return bstrchrp(b0, b1->data[0], pos);
-  if (0 > buildCharField(&chrs, b1)) return BSTR_ERR;
-  return binchrCF(b0->data, b0->slen, pos, &chrs);
-}
 
 /*  int binsertblk (bstring b, int pos, const void * blk, int len,
  *                  unsigned char fill)
