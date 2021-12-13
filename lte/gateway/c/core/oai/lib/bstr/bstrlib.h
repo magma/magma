@@ -66,10 +66,7 @@ extern int bcatblk(bstring b, const void* s, int len);
 extern int binsert(bstring s1, int pos, const_bstring s2, unsigned char fill);
 extern int binsertblk(
     bstring s1, int pos, const void* s2, int len, unsigned char fill);
-extern int breplace(
-    bstring b1, int pos, int len, const_bstring b2, unsigned char fill);
 extern int bdelete(bstring s1, int pos, int len);
-extern int bsetstr(bstring b0, int pos, const_bstring b1, unsigned char fill);
 extern int btrunc(bstring b, int n);
 
 /* Scan/search functions */

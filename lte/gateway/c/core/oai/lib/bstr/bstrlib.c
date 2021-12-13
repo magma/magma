@@ -875,63 +875,6 @@ int binchr(const_bstring b0, int pos, const_bstring b1) {
   return binchrCF(b0->data, b0->slen, pos, &chrs);
 }
 
-/*  int bsetstr (bstring b0, int pos, bstring b1, unsigned char fill)
- *
- *  Overwrite the string b0 starting at position pos with the string b1. If
- *  the position pos is past the end of b0, then the character "fill" is
- *  appended as necessary to make up the gap between the end of b0 and pos.
- *  If b1 is NULL, it behaves as if it were a 0-length string.
- */
-int bsetstr(bstring b0, int pos, const_bstring b1, unsigned char fill) {
-  int d, newlen;
-  ptrdiff_t pd;
-  bstring aux = (bstring) b1;
-
-  if (pos < 0 || b0 == NULL || b0->slen < 0 || NULL == b0->data ||
-      b0->mlen < b0->slen || b0->mlen <= 0)
-    return BSTR_ERR;
-  if (b1 != NULL && (b1->slen < 0 || b1->data == NULL)) return BSTR_ERR;
-
-  d = pos;
-
-  /* Aliasing case */
-  if (NULL != aux) {
-    if ((pd = (ptrdiff_t)(b1->data - b0->data)) >= 0 &&
-        pd < (ptrdiff_t) b0->mlen) {
-      if (NULL == (aux = bstrcpy(b1))) return BSTR_ERR;
-    }
-    d += aux->slen;
-  }
-
-  /* Increase memory size if necessary */
-  if (balloc(b0, d + 1) != BSTR_OK) {
-    if (aux != b1) bdestroy(aux);
-    return BSTR_ERR;
-  }
-
-  newlen = b0->slen;
-
-  /* Fill in "fill" character as necessary */
-  if (pos > newlen) {
-    bstr__memset(b0->data + b0->slen, (int) fill, (size_t)(pos - b0->slen));
-    newlen = pos;
-  }
-
-  /* Copy b1 to position pos in b0. */
-  if (aux != NULL) {
-    bBlockCopy((char*) (b0->data + pos), (char*) aux->data, aux->slen);
-    if (aux != b1) bdestroy(aux);
-  }
-
-  /* Indicate the potentially increased size of b0 */
-  if (d > newlen) newlen = d;
-
-  b0->slen         = newlen;
-  b0->data[newlen] = (unsigned char) '\0';
-
-  return BSTR_OK;
-}
-
 /*  int binsertblk (bstring b, int pos, const void * blk, int len,
  *                  unsigned char fill)
  *
@@ -994,59 +937,6 @@ int binsertblk(
 int binsert(bstring b1, int pos, const_bstring b2, unsigned char fill) {
   if (NULL == b2 || (b2->mlen > 0 && b2->slen > b2->mlen)) return BSTR_ERR;
   return binsertblk(b1, pos, b2->data, b2->slen, fill);
-}
-
-/*  int breplace (bstring b1, int pos, int len, bstring b2,
- *                unsigned char fill)
- *
- *  Replace a section of a string from pos for a length len with the string
- *  b2. fill is used is pos > b1->slen.
- */
-int breplace(
-    bstring b1, int pos, int len, const_bstring b2, unsigned char fill) {
-  int pl, ret;
-  ptrdiff_t pd;
-  bstring aux = (bstring) b2;
-
-  if (pos < 0 || len < 0) return BSTR_ERR;
-  if (pos > INT_MAX - len) return BSTR_ERR; /* Overflow */
-  pl = pos + len;
-  if (b1 == NULL || b2 == NULL || b1->data == NULL || b2->data == NULL ||
-      b1->slen < 0 || b2->slen < 0 || b1->mlen < b1->slen || b1->mlen <= 0)
-    return BSTR_ERR;
-
-  /* Straddles the end? */
-  if (pl >= b1->slen) {
-    if ((ret = bsetstr(b1, pos, b2, fill)) < 0) return ret;
-    if (pos + b2->slen < b1->slen) {
-      b1->slen           = pos + b2->slen;
-      b1->data[b1->slen] = (unsigned char) '\0';
-    }
-    return ret;
-  }
-
-  /* Aliasing case */
-  if ((pd = (ptrdiff_t)(b2->data - b1->data)) >= 0 &&
-      pd < (ptrdiff_t) b1->slen) {
-    if (NULL == (aux = bstrcpy(b2))) return BSTR_ERR;
-  }
-
-  if (aux->slen > len) {
-    if (balloc(b1, b1->slen + aux->slen - len) != BSTR_OK) {
-      if (aux != b2) bdestroy(aux);
-      return BSTR_ERR;
-    }
-  }
-
-  if (aux->slen != len)
-    bstr__memmove(
-        b1->data + pos + aux->slen, b1->data + pos + len,
-        b1->slen - (pos + len));
-  bstr__memcpy(b1->data + pos, aux->data, aux->slen);
-  b1->slen += aux->slen - len;
-  b1->data[b1->slen] = (unsigned char) '\0';
-  if (aux != b2) bdestroy(aux);
-  return BSTR_OK;
 }
 
 /*
