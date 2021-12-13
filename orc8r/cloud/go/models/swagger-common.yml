@@ -43,6 +43,13 @@ schemes:
   - https
   - http
 
+securityDefinitions:
+  tokenAuth:
+    type: basic
+
+security:
+  - tokenAuth: []
+
 paths:
   /foo:
     get:

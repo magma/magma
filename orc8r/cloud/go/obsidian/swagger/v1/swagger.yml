@@ -12,6 +12,11 @@ produces:
 schemes:
 - https
 - http
+securityDefinitions:
+  tokenAuth:
+    type: basic
+security:
+- tokenAuth: []
 tags:
 - description: Access point name
   name: APNs
@@ -6213,6 +6218,145 @@ paths:
       summary: Update enodebd e2e test case
       tags:
       - e2e
+  /user:
+    get:
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              type: string
+            type: array
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List all usernames
+      tags:
+      - User
+    post:
+      parameters:
+      - in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Create a user
+      tags:
+      - User
+  /user/{username}:
+    delete:
+      parameters:
+      - $ref: '#/parameters/username'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Remove a user
+      tags:
+      - User
+    get:
+      parameters:
+      - $ref: '#/parameters/username'
+      responses:
+        "201":
+          description: Success
+          schema:
+            type: string
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Get a single user's information
+      tags:
+      - User
+    put:
+      parameters:
+      - $ref: '#/parameters/username'
+      - description: New password for user
+        in: body
+        name: password
+        required: true
+        schema:
+          properties:
+            password:
+              format: password
+              type: string
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update a user's password
+      tags:
+      - User
+  /user/{username}/tokens:
+    get:
+      parameters:
+      - $ref: '#/parameters/username'
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              $ref: '#/definitions/policy'
+            type: array
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Get a list of a user's tokens and their respective policies
+      tags:
+      - User
+    post:
+      parameters:
+      - $ref: '#/parameters/username'
+      - in: body
+        name: resources
+        required: true
+        schema:
+          $ref: '#/definitions/resources'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Add a token/policy to the user's existing permissions
+      tags:
+      - User
+  /user/{username}/tokens/{token}:
+    delete:
+      parameters:
+      - in: path
+        name: token
+        required: true
+        type: string
+      - $ref: '#/parameters/username'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Revoke the token and its policy from the user
+      tags:
+      - User
+  /user/login:
+    post:
+      parameters:
+      - in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      security: []
+      summary: List all the tokens given a user
+      tags:
+      - User
   /wifi:
     get:
       responses:
@@ -7026,6 +7170,12 @@ parameters:
     description: Unique ID of call trace
     in: path
     name: trace_id
+    required: true
+    type: string
+  username:
+    description: username
+    in: path
+    name: username
     required: true
     type: string
 definitions:
@@ -10946,6 +11096,28 @@ definitions:
     - mcc
     - mnc
     type: object
+  policy:
+    description: An object that defines a user's permissions to access resources
+    example:
+      resources:
+      - action: READ
+        effect: DENY
+        resource: test_network1
+        resourceType: NETWORK_ID
+      - action: WRITE
+        effect: ALLOW
+        resource: /**
+        resourceType: URI
+      token: op_6YHy0uT7DeuWyT3N9nkAOyoeyOI25fletJE69yHGGl4ifjfoq
+    properties:
+      resources:
+        $ref: '#/definitions/resources'
+      token:
+        type: string
+    required:
+    - token
+    - resources
+    type: object
   policy_id:
     example: All ICMP
     minLength: 1
@@ -11489,6 +11661,47 @@ definitions:
     - supported_versions
     type: object
     x-nullable: false
+  resource:
+    description: The resource to which the user is either denied or allowed access
+      to read/write
+    example:
+      action: WRITE
+      effect: ALLOW
+      resource: /**
+      resourceType: URI
+    properties:
+      action:
+        enum:
+        - READ
+        - WRITE
+        type: string
+      effect:
+        enum:
+        - DENY
+        - ALLOW
+        type: string
+      resource:
+        type: string
+      resourceType:
+        enum:
+        - NETWORK_ID
+        - TENANT_ID
+        - URI
+        type: string
+    type: object
+  resources:
+    example:
+    - action: READ
+      effect: DENY
+      resource: test_network1
+      resourceType: NETWORK_ID
+    - action: WRITE
+      effect: ALLOW
+      resource: /**
+      resourceType: URI
+    items:
+      $ref: '#/definitions/resource'
+    type: array
   route:
     properties:
       destination_ip:
@@ -12111,6 +12324,17 @@ definitions:
   untyped_subscriber_state:
     description: Arbitrary untyped JSON object that represents replicated subscriber-related
       state
+    type: object
+  user:
+    description: The user's authentication info
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - username
+    - password
     type: object
   version_info:
     properties:
