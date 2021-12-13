@@ -99,13 +99,6 @@ class ConfigManagerTest(TestCase):
                 loop=loop,
             )
 
-            config_manager_metricsd = ConfigManager(
-                ['metricsd'], service_manager_mock,
-                magmad_service_mock, mconfig_manager_mock,
-                allow_unknown_fields=False,
-                loop=loop,
-            )
-
             # Process an empty set of updates
             updates = []
             config_manager.process_update(CONFIG_STREAM_NAME, updates, False)
@@ -126,7 +119,7 @@ class ConfigManagerTest(TestCase):
             config_manager.process_update(CONFIG_STREAM_NAME, updates, False)
 
             # Only metricsd config was updated, hence should be restarted
-            self.assertEqual(loader.call_count, 2)
+            self.assertEqual(loader.call_count, 1)
             restarter.assert_called_once_with(['metricsd'])
             updater.assert_called_once_with(update_str)
 

@@ -106,7 +106,8 @@ jobs:
       - name: Execute test_all
         run: |
             sudo mkdir /etc/magma
-            cp ${{ env.MAGMA_ROOT }}/lte/gateway/configs/gateway.mconfig /etc/magma/
+            sudo -E chmod a+rx /etc/magma
+            sudo cp ${{ env.MAGMA_ROOT }}/lte/gateway/configs/gateway.mconfig /etc/magma/
             make -C ${{ env.MAGMA_ROOT }}/lte/gateway/python test_all
       - name: Upload Test Results
         if: always()
