@@ -82,7 +82,7 @@ class ConfigManager(StreamerClient.Callback):
                     since config is contained in one DB element, hence all
                     data is sent in every update.
         """
-        shared_mconfig: str = 'shared_mconfig'
+        shared_mconfig = 'shared_mconfig'
         if len(updates) == 0:
             logging.info('No config update to process')
             return

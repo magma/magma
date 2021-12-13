@@ -57,10 +57,12 @@ class ConfigManagerTest(TestCase):
         }
 
         @asyncio.coroutine
-        def _mock_restart_services(): return "blah"
+        def _mock_restart_services():
+            return "blah"
 
         @asyncio.coroutine
-        def _mock_update_dynamic_services(): return "mockResponse"
+        def _mock_update_dynamic_services():
+            return "mockResponse"
 
         service_manager_mock = MagicMock()
         magmad_service_mock = MagicMock()
@@ -87,7 +89,7 @@ class ConfigManagerTest(TestCase):
         with load_mock as loader,\
                 update_mock as updater, \
                 restart_service_mock as restarter,\
-                update_dynamic_services_mock as dynamicServices,\
+                update_dynamic_services_mock as dynamic_services,\
                 processed_updates_mock as processed_updates:
             loop = asyncio.new_event_loop()
             config_manager = ConfigManager(
@@ -126,12 +128,11 @@ class ConfigManagerTest(TestCase):
                 'metricsd': updated_mconfig.configs_by_key['metricsd'],
             }
             processed_updates.assert_called_once_with(configs_by_service)
+
             restarter.reset_mock()
             updater.reset_mock()
-            loader.reset_mock()
             processed_updates.reset_mock()
 
-            # Verify that shared config update restarts all services
             updated_mconfig.configs_by_key['shared_mconfig'].CopyFrom(some_any)
             update_str = MessageToJson(updated_mconfig)
             updates = [
@@ -142,12 +143,13 @@ class ConfigManagerTest(TestCase):
             ]
             config_manager.process_update(CONFIG_STREAM_NAME, updates, False)
 
+            # shared config update should restart all services
             restarter.assert_called_once_with(['magmad', 'metricsd'])
             updater.assert_called_once_with(update_str)
-            dynamicServices.assert_called_once_with([])
+            dynamic_services.assert_called_once_with([])
 
-            configs_by_service = {
-                'magmad': updated_mconfig.configs_by_key['magmad'],
-                'metricsd': updated_mconfig.configs_by_key['metricsd'],
-            }
             processed_updates.assert_called_once_with(configs_by_service)
+
+            restarter.reset_mock()
+            updater.reset_mock()
+            processed_updates.reset_mock()
