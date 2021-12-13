@@ -73,28 +73,6 @@ map_uint64_ue_context_t get_amf_ue_state() {
   return AmfNasStateManager::getInstance().get_ue_state_map();
 }
 
-void put_amf_ue_state(
-    magma5g::amf_app_desc_t* amf_app_desc_p, guti_m5_t* guti_p,
-    bool force_ue_write) {
-  if (AmfNasStateManager::getInstance().is_persist_state_enabled()) {
-    if (guti_p != INVALID_IMSI64) {  // need to put appropriate enum
-      magma5g::ue_m5gmm_context_t* amf_ue_context = nullptr;
-      amf_ue_context =
-          amf_ue_context_exists_guti(&amf_app_desc_p->amf_ue_contexts, guti_p);
-      // Only write AMF UE state to redis if force flag is set or UE is in EMM
-      // Registered state
-      if ((amf_ue_context && force_ue_write) ||
-          (amf_ue_context &&
-           amf_ue_context->mm_state == magma5g::REGISTERED_CONNECTED)) {
-        // auto imsi_str =
-        // magma5g::AmfNasStateManager::getInstance().get_imsi_str(guti_p);
-        // magma5g::AmfNasStateManager::getInstance().write_ue_state_to_db(
-        //     amf_ue_context, imsi_str);
-      }
-    }
-  }
-}
-
 void delete_amf_ue_state(imsi64_t imsi64) {
   auto imsi_str =
       magma5g::AmfNasStateManager::getInstance().get_imsi_str(imsi64);

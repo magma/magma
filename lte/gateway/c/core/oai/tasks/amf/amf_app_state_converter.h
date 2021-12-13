@@ -27,6 +27,8 @@
  * the caller class AmfNasStateManager
  ******************************************************************************/
 
+using magma::lte::oai::MmeNasState;
+using magma::lte::oai::UeContext;
 namespace magma5g {
 class AmfNasStateConverter : public magma::lte::StateConverter {
  public:
@@ -38,36 +40,29 @@ class AmfNasStateConverter : public magma::lte::StateConverter {
 
   // Serialize amf_app_desc_t to oai::MmeNasState proto
   static void state_to_proto(
-      const amf_app_desc_t* amf_nas_state_p,
-      magma::lte::oai::MmeNasState* state_proto);
+      const amf_app_desc_t* amf_nas_state_p, MmeNasState* state_proto);
 
   // Deserialize amf_app_desc_t from oai::MmeNasState proto
   static void proto_to_state(
-      const magma::lte::oai::MmeNasState& state_proto,
-      amf_app_desc_t* amf_nas_state_p);
+      const MmeNasState& state_proto, amf_app_desc_t* amf_nas_state_p);
 
   static void ue_to_proto(
-      const ue_m5gmm_context_t* ue_ctxt,
-      magma::lte::oai::UeContext* ue_ctxt_proto);
+      const ue_m5gmm_context_t* ue_ctxt, UeContext* ue_ctxt_proto);
 
   static void proto_to_ue(
-      const magma::lte::oai::UeContext& ue_ctxt_proto,
-      ue_m5gmm_context_t* ue_ctxt);
+      const UeContext& ue_ctxt_proto, ue_m5gmm_context_t* ue_ctxt);
 
   static void ue_m5gmm_context_to_proto(
       const ue_m5gmm_context_t* state_ue_m5gmm_context,
-      magma::lte::oai::UeContext* ue_context_proto);
+      UeContext* ue_context_proto);
 
   static void proto_to_ue_m5gmm_context(
-      const magma::lte::oai::UeContext& ue_context_proto,
+      const UeContext& ue_context_proto,
       ue_m5gmm_context_t* state_ue_m5gmm_context);
 
-  // Note: declare these helper functions as private after testing
-  static std::string amf_app_convert_guti_m5_to_string(guti_m5_t guti);
+  static std::string amf_app_convert_guti_m5_to_string(const guti_m5_t& guti);
   static void amf_app_convert_string_to_guti_m5(
-      guti_m5_t* guti_m5_p, const std::string& guti_str);
-
- private:
+      const std::string& guti_str, guti_m5_t* guti_m5_p);
   /***********************************************************
    *                 Map <-> Proto
    * Functions to serialize/deserialize in-memory maps
@@ -78,16 +73,8 @@ class AmfNasStateConverter : public magma::lte::StateConverter {
    * the proto field is also empty
    ***********************************************************/
 
-  static void map_uint64_uint64_to_proto(
-      map_uint64_uint64_t map,
-      google::protobuf::Map<uint64_t, uint64_t>* proto_map);
-
-  static void proto_to_map_uint64_uint64(
-      const google::protobuf::Map<uint64_t, uint64_t>& proto_map,
-      map_uint64_uint64_t* map);
-
   static void map_guti_uint64_to_proto(
-      map_guti_m5_uint64_t guti_map,
+      const map_guti_m5_uint64_t guti_map,
       google::protobuf::Map<std::string, uint64_t>* proto_map);
 
   static void proto_to_guti_map(

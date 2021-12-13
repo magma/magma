@@ -34,7 +34,7 @@ TEST(test_guti_to_string, test_guti_to_string) {
   std::string guti1_str =
       AmfNasStateConverter::amf_app_convert_guti_m5_to_string(guti1);
 
-  AmfNasStateConverter::amf_app_convert_string_to_guti_m5(&guti2, guti1_str);
+  AmfNasStateConverter::amf_app_convert_string_to_guti_m5(guti1_str, &guti2);
 
   EXPECT_EQ(guti1.guamfi.plmn.mcc_digit1, guti2.guamfi.plmn.mcc_digit1);
   EXPECT_EQ(guti1.guamfi.plmn.mcc_digit2, guti2.guamfi.plmn.mcc_digit2);
