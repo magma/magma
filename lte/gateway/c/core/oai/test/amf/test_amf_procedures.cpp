@@ -234,7 +234,7 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcNoTMSI) {
   /* Check whether security mode procedure is initiated */
   EXPECT_TRUE(validate_smc_procedure(ue_id, 0));
 
-  /* Send uplinkg nas message for security mode complete response from UE */
+  /* Send uplink nas message for security mode complete response from UE */
   rc = send_uplink_nas_message_ue_smc_response(
       amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
       sizeof(ue_smc_response_hexbuf));
@@ -283,7 +283,7 @@ TEST_F(AMFAppProcedureTest, TestDeRegistration) {
       sizeof(ue_auth_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
-  /* Send uplinkg nas message for security mode complete response from UE */
+  /* Send uplink nas message for security mode complete response from UE */
   rc = send_uplink_nas_message_ue_smc_response(
       amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
       sizeof(ue_smc_response_hexbuf));
@@ -805,7 +805,7 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
   res = validate_smc_procedure(ue_id, 0);
   EXPECT_TRUE(res == true);
 
-  // Send uplinkg nas message for security mode complete response from UE
+  // Send uplink nas message for security mode complete response from UE
   rc = send_uplink_nas_message_ue_smc_response(
       amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
       sizeof(ue_smc_response_hexbuf));
