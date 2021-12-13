@@ -87,6 +87,7 @@ def main():
             store,
             subscriber_page_size,
             sync_interval,
+            suciprofile_db_dict,
             grpc_client_manager,
         )
 
