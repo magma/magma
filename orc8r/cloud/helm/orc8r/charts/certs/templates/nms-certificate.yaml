@@ -16,7 +16,7 @@ metadata:
   name: {{ .Release.Name }}-nms-certificate
 spec:
   secretName: {{ .Release.Name }}-nms-tls
-  commonName: "*.{{ required "domainName must be provided" .Values.domainName }}"
+  commonName: "*.nms.{{ required "domainName must be provided" .Values.domainName }}"
   subject:
     countries:
       - US
@@ -28,7 +28,4 @@ spec:
 {{- else }}
     name: {{ .Release.Name }}-root-issuer
 {{- end }}
-  dnsNames:
-  - "*.{{ required "domainName must be provided" .Values.domainName }}"
-  - "*.nms.{{ required "domainName must be provided" .Values.domainName }}"
 {{- end }}
