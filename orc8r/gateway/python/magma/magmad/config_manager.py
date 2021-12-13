@@ -128,8 +128,6 @@ class ConfigManager(StreamerClient.Callback):
         if SHARED_MCONFIG in mconfig.configs_by_key and did_mconfig_change(SHARED_MCONFIG):
             logging.info("Shared config changed. Restarting all services.")
             services_to_restart = self._services
-            if MAGMAD not in services_to_restart:
-                services_to_restart.append(MAGMAD)
         else:
             services_to_restart = [
                 srv for srv in self._services if did_mconfig_change(srv)

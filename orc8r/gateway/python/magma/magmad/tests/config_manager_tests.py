@@ -160,25 +160,3 @@ class ConfigManagerTest(TestCase):
             updater.reset_mock()
             processed_updates.reset_mock()
             dynamic_services.reset_mock()
-
-            # restart all service on shared config change, magmad not part of initial service list
-            updated_mconfig.configs_by_key['shared_mconfig'].CopyFrom(some_any)
-            update_str = MessageToJson(updated_mconfig)
-            updates = [
-                DataUpdate(
-                    value=update_str.encode('utf-8'),
-                    key='last key',
-                ),
-            ]
-            config_manager_metricsd.process_update(CONFIG_STREAM_NAME, updates, False)
-
-            # shared config update should restart all services
-            restarter.assert_called_once_with(['metricsd', 'magmad'])
-            updater.assert_called_once_with(update_str)
-            dynamic_services.assert_called_once_with([])
-            processed_updates.assert_called_once_with(configs_by_service)
-
-            restarter.reset_mock()
-            updater.reset_mock()
-            processed_updates.reset_mock()
-            dynamic_services.reset_mock()
