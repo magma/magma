@@ -13,7 +13,7 @@ limitations under the License.
 import asyncio
 import datetime
 import logging
-from typing import List, NamedTuple, Optional
+from typing import Dict, List, NamedTuple, Optional
 
 import grpc
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
@@ -85,7 +85,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         store: SqliteStore,
         subscriber_page_size: int,
         sync_interval: int,
-        suciprofile_db_dict: dict,
+        suciprofile_db_dict: Dict,
         grpc_client_manager: GRPCClientManager,
     ):
         """
