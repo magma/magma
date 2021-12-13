@@ -105,6 +105,7 @@ jobs:
             wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar -O ${{ env.SWAGGER_CODEGEN_JAR }}
       - name: Execute test_all
         run: |
+            cp ${{ env.MAGMA_ROOT }}/lte/gateway/configs/gateway.mconfig /etc/magma/
             make -C ${{ env.MAGMA_ROOT }}/lte/gateway/python test_all
       - name: Upload Test Results
         if: always()
