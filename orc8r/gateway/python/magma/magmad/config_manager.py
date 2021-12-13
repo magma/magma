@@ -112,8 +112,10 @@ class ConfigManager(StreamerClient.Callback):
                 self._mconfig.configs_by_key.get(serv_name)
 
         # Reload magmad configs locally
-        if did_mconfig_change(MAGMAD) or (SHARED_MCONFIG in mconfig.configs_by_key 
-                and did_mconfig_change(SHARED_MCONFIG)):
+        if did_mconfig_change(MAGMAD) or (
+            SHARED_MCONFIG in mconfig.configs_by_key
+            and did_mconfig_change(SHARED_MCONFIG)
+        ):
             logging.info("Restarting dynamic Services.")
             self._loop.create_task(
                 self._service_manager.update_dynamic_services(

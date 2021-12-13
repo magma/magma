@@ -27,9 +27,8 @@ class ConfigManagerTest(TestCase):
     """
     Tests for the config manager class
     """
-    @patch("magma.configuration.mconfig_managers.load_service_mconfig")
     @patch('magma.configuration.service_configs.load_service_config')
-    def test_update(self, config_mock, load_mconfig_mock):
+    def test_update(self, config_mock):
         """
         Test that mconfig updates are handled correctly
         """
@@ -56,7 +55,6 @@ class ConfigManagerTest(TestCase):
         config_mock.return_value = {
             'magma_services': ['magmad', 'metricsd'],
         }
-        load_mconfig_mock.return_value = {"dynamic_services" : ""}
 
         @asyncio.coroutine
         def _mock_restart_services():
