@@ -38,7 +38,6 @@ module "orc8r" {
 
   vpc_name     = "{{ orc8rTfVpc }}"
   cluster_name = "{{ orc8rTfCluster }}"
-  cluster_version = "1.17"
 
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "{{ orc8rTfEs }}"
