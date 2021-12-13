@@ -116,7 +116,7 @@ class ConfigManager(StreamerClient.Callback):
             SHARED_MCONFIG in mconfig.configs_by_key
             and did_mconfig_change(SHARED_MCONFIG)
         ):
-            logging.info("Restarting dynamic Services.")
+            logging.info("Restarting dynamic services due to config change")
             self._loop.create_task(
                 self._service_manager.update_dynamic_services(
                     load_service_mconfig(MAGMAD, mconfigs_pb2.MagmaD())
