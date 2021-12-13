@@ -27,6 +27,8 @@ from orc8r.protos.mconfig import mconfigs_pb2
 from orc8r.protos.mconfig_pb2 import GatewayConfigsDigest
 
 CONFIG_STREAM_NAME = 'configs'
+SHARED_MCONFIG = 'shared_mconfig'
+MAGMAD = 'magmad'
 
 
 class ConfigManager(StreamerClient.Callback):
@@ -98,7 +100,7 @@ class ConfigManager(StreamerClient.Callback):
             self._allow_unknown_fields,
         )
 
-        if 'magmad' not in mconfig.configs_by_key:
+        if MAGMAD not in mconfig.configs_by_key:
             logging.error('Invalid config! Magmad service config missing')
             return
 
@@ -110,18 +112,27 @@ class ConfigManager(StreamerClient.Callback):
                 self._mconfig.configs_by_key.get(serv_name)
 
         # Reload magmad configs locally
-        if did_mconfig_change('magmad'):
+        if did_mconfig_change(MAGMAD) or (
+            SHARED_MCONFIG in mconfig.configs_by_key
+            and did_mconfig_change(SHARED_MCONFIG)
+        ):
+            logging.info("Restarting dynamic services due to config change")
             self._loop.create_task(
                 self._service_manager.update_dynamic_services(
-                    load_service_mconfig('magmad', mconfigs_pb2.MagmaD())
+                    load_service_mconfig(MAGMAD, mconfigs_pb2.MagmaD())
                     .dynamic_services,
                 ),
             )
 
-        # TODO adapt service restart logic to include changes in shared_mconfig
-        services_to_restart = [
-            srv for srv in self._services if did_mconfig_change(srv)
-        ]
+        services_to_restart = []
+        if SHARED_MCONFIG in mconfig.configs_by_key and did_mconfig_change(SHARED_MCONFIG):
+            logging.info("Shared config changed. Restarting all services.")
+            services_to_restart = self._services
+        else:
+            services_to_restart = [
+                srv for srv in self._services if did_mconfig_change(srv)
+            ]
+
         if services_to_restart:
             self._loop.create_task(
                 self._service_manager.restart_services(services_to_restart),
