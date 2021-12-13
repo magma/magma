@@ -63,9 +63,6 @@ extern int bconcat(bstring b0, const_bstring b1);
 extern int bconchar(bstring b0, char c);
 extern int bcatcstr(bstring b, const char* s);
 extern int bcatblk(bstring b, const void* s, int len);
-extern int binsert(bstring s1, int pos, const_bstring s2, unsigned char fill);
-extern int binsertblk(
-    bstring s1, int pos, const void* s2, int len, unsigned char fill);
 extern int bdelete(bstring s1, int pos, int len);
 extern int btrunc(bstring b, int n);
 
