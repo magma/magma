@@ -110,7 +110,7 @@ This section lists some of the commonly asked questions related to Magma operati
 
 ### How to change MME IP address?
 
-- Edit the IP address of eth1: `sudo vim /etc/network/interfaces.d/eth1`
+- Edit the IP address of eth1 interface: `sudo vim /etc/network/interfaces.d/eth1`
 - Then restart network manager: `sudo systemctl restart networking`
 - And check IP again: `ip a s eth1`
 
