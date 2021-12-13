@@ -14,14 +14,14 @@ env:
   BAZEL_CACHE: .bazel-cache
   BAZEL_CACHE_MAGMA_VM_TAR: bazel-cache-magma-vm.tar.gz
   BAZEL_CACHE_DEVCONTAINER_TAR: bazel-cache-devcontainer.tar.gz
-  
+
   BAZEL_CACHE_REPO: .bazel-cache-repo
   BAZEL_CACHE_REPO_MAGMA_VM_TAR: bazel-cache-repo-magma-vm.tar.gz
   BAZEL_CACHE_REPO_DEVCONTAINER_TAR: bazel-cache-repo-devcontainer.tar.gz
-  
+
   S3_BUCKET_PATH: s3://magma-cache
 
-  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-3c02c72"
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:sha-2f4586b"
 
 jobs:
   bazel-build-magma-vm-and-push-cache:

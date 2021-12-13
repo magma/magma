@@ -22,7 +22,7 @@ on:
       - reopened
       - synchronize
 env:
-  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-3c02c72"
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:sha-2f4586b"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}

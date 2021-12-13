@@ -15,7 +15,7 @@ on:  # yamllint disable-line rule:truthy
     # Run four times a day to build bazel cache
     - cron: '0 0,6,12,18 * * *'
 env:
-  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-3c02c72"
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:sha-2f4586b"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
 
