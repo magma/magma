@@ -63,22 +63,14 @@ extern int bconcat(bstring b0, const_bstring b1);
 extern int bconchar(bstring b0, char c);
 extern int bcatcstr(bstring b, const char* s);
 extern int bcatblk(bstring b, const void* s, int len);
-extern int binsert(bstring s1, int pos, const_bstring s2, unsigned char fill);
-extern int binsertblk(
-    bstring s1, int pos, const void* s2, int len, unsigned char fill);
-extern int breplace(
-    bstring b1, int pos, int len, const_bstring b2, unsigned char fill);
 extern int bdelete(bstring s1, int pos, int len);
-extern int bsetstr(bstring b0, int pos, const_bstring b1, unsigned char fill);
 extern int btrunc(bstring b, int n);
 
 /* Scan/search functions */
 extern int biseqcaselessblk(const_bstring b, const void* blk, int len);
 extern int biseqcstrcaseless(const_bstring b, const char* s);
-extern int binstr(const_bstring s1, int pos, const_bstring s2);
 extern int bstrchrp(const_bstring b, int c, int pos);
 #define bstrchr(b, c) bstrchrp((b), (c), 0)
-extern int binchr(const_bstring b0, int pos, const_bstring b1);
 
 /* List of string container functions */
 struct bstrList {
