@@ -19,6 +19,7 @@
 extern "C" {
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
 }
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
@@ -65,6 +66,20 @@ class AMFAppProcedureTest : public ::testing::Test {
                  .mcc_digit3 = 1,
                  .mnc_digit2 = 1,
                  .mnc_digit1 = 0};
+
+  itti_amf_decrypted_imsi_info_ans_t decrypted_imsi = {
+      .imsi        = "222456000000001",
+      .imsi_length = 15,
+      .result      = 1,
+      .ue_id       = 1};
+
+  const uint8_t intital_ue_message_suci_ext_hexbuf[65] = {
+      0x7e, 0x00, 0x41, 0x79, 0x00, 0x35, 0x01, 0x09, 0xf1, 0x07, 0x00,
+      0x00, 0x01, 0x04, 0xc8, 0xfc, 0x0c, 0xe5, 0x47, 0x9a, 0x51, 0x5d,
+      0xab, 0xf2, 0xf3, 0x45, 0xae, 0xb4, 0x66, 0x92, 0xd6, 0xff, 0x7a,
+      0x5f, 0x4f, 0x57, 0x2a, 0x47, 0x99, 0xf2, 0x33, 0x69, 0x35, 0x16,
+      0x40, 0x31, 0xbd, 0x3f, 0x84, 0x41, 0x26, 0xdf, 0x5b, 0x47, 0x06,
+      0x41, 0xe2, 0xa9, 0x57, 0x2e, 0x04, 0xf0, 0xf0, 0xf0, 0xf0};
 
   const uint8_t initial_ue_message_hexbuf[25] = {
       0x7e, 0x00, 0x41, 0x79, 0x00, 0x0d, 0x01, 0x22, 0x62,
@@ -219,7 +234,7 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcNoTMSI) {
   /* Check whether security mode procedure is initiated */
   EXPECT_TRUE(validate_smc_procedure(ue_id, 0));
 
-  /* Send uplinkg nas message for security mode complete response from UE */
+  /* Send uplink nas message for security mode complete response from UE */
   rc = send_uplink_nas_message_ue_smc_response(
       amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
       sizeof(ue_smc_response_hexbuf));
@@ -268,7 +283,7 @@ TEST_F(AMFAppProcedureTest, TestDeRegistration) {
       sizeof(ue_auth_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
-  /* Send uplinkg nas message for security mode complete response from UE */
+  /* Send uplink nas message for security mode complete response from UE */
   rc = send_uplink_nas_message_ue_smc_response(
       amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
       sizeof(ue_smc_response_hexbuf));
@@ -752,6 +767,57 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_Invalid_PDUSession_Identity) {
 
   EXPECT_TRUE(rc == RETURNok);
   EXPECT_TRUE(expected_Ids == AMFClientServicer::getInstance().msgtype_stack);
+}
+
+TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
+  amf_ue_ngap_id_t ue_id = 0;
+
+  // Send the initial UE message
+  imsi64_t imsi64 = 0;
+  int rc          = RETURNok;
+  imsi64          = send_initial_ue_message_no_tmsi(
+      amf_app_desc_p, 36, 1, 1, 0, plmn, intital_ue_message_suci_ext_hexbuf,
+      sizeof(intital_ue_message_suci_ext_hexbuf));
+
+  rc = amf_decrypt_imsi_info_answer(&decrypted_imsi);
+  EXPECT_TRUE(rc == RETURNok);
+
+  // Check if UE Context is created with correct imsi
+  bool res = false;
+  res      = get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id);
+  EXPECT_TRUE(res == true);
+
+  // Send the authentication response message from subscriberdb
+  rc = send_proc_authentication_info_answer(imsi, ue_id, true);
+  EXPECT_TRUE(rc == RETURNok);
+
+  // Validate if authentication procedure is initialized as expected
+  res = validate_auth_procedure(ue_id, 0);
+  EXPECT_TRUE(res == true);
+
+  // Send uplink nas message for auth response from UE
+  rc = send_uplink_nas_message_ue_auth_response(
+      amf_app_desc_p, ue_id, plmn, ue_auth_response_hexbuf,
+      sizeof(ue_auth_response_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  // Check whether security mode procedure is initiated
+  res = validate_smc_procedure(ue_id, 0);
+  EXPECT_TRUE(res == true);
+
+  // Send uplink nas message for security mode complete response from UE
+  rc = send_uplink_nas_message_ue_smc_response(
+      amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
+      sizeof(ue_smc_response_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  // Send uplink nas message for registration complete response from UE
+  rc = send_uplink_nas_registration_complete(
+      amf_app_desc_p, ue_id, plmn, ue_registration_complete_hexbuf,
+      sizeof(ue_registration_complete_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  amf_app_handle_deregistration_req(ue_id);
 }
 
 }  // namespace magma5g

@@ -123,6 +123,25 @@ uint8_t NAS5GPktSnapShot::registration_reject[4] = {0x00, 0x00, 0x00, 0x00};
 
 uint8_t NAS5GPktSnapShot::security_mode_reject[4] = {0x7e, 0x00, 0x5f, 0x24};
 
+uint8_t NAS5GPktSnapShot::suci_ext_reg_req_buffer[65] = {
+    0x7e, 0x00, 0x41, 0x79, 0x00, 0x35, 0x01, 0x22, 0x62, 0x54, 0xf0,
+    0xff, 0x01, 0x00, 0x18, 0x23, 0x93, 0xb0, 0xcc, 0x25, 0xc5, 0x59,
+    0x11, 0xea, 0x6e, 0x7d, 0x2a, 0x09, 0xd5, 0xf2, 0x10, 0x1d, 0x8c,
+    0x92, 0x6c, 0xf0, 0xac, 0x4c, 0x5a, 0x87, 0x3e, 0x5f, 0xc7, 0x62,
+    0xa0, 0x4f, 0x95, 0xbc, 0xde, 0xc1, 0x1d, 0x0b, 0xfd, 0x9e, 0xed,
+    0x41, 0xe2, 0x02, 0xe6, 0x2e, 0x04, 0x80, 0xe0, 0x80, 0xe0};
+
+uint8_t empheral_public_key[] = {
+    0x18, 0x23, 0x93, 0xb0, 0xcc, 0x25, 0xc5, 0x59, 0x11, 0xea, 0x6e,
+    0x7d, 0x2a, 0x09, 0xd5, 0xf2, 0x10, 0x1d, 0x8c, 0x92, 0x6c, 0xf0,
+    0xac, 0x4c, 0x5a, 0x87, 0x3e, 0x5f, 0xc7, 0x62, 0xa0, 0x4f, 0x0};
+
+uint8_t ciphertext[] = {0x95, 0xbc, 0xde, 0xc1, 0x1d, 0x0};
+
+uint8_t mac_tag[] = {0x0b, 0xfd, 0x9e, 0xed, 0x41, 0xe2, 0x02, 0xe6, 0x0};
+
+ImsiM5GSMobileIdentity plmn;
+
 class AmfNas5GTest : public ::testing::Test {
  protected:
   NAS5GPktSnapShot nas5g_pkt_snap;
@@ -170,6 +189,56 @@ TEST_F(AmfNas5GTest, test_amf_ue_register_req_msg) {
 
   EXPECT_EQ(
       reg_request.m5gs_mobile_identity.mobile_identity.imsi.mcc_digit2, 0x0);
+}
+
+TEST_F(AmfNas5GTest, test_amf_ue_suci_ext_register_req_msg) {
+  uint32_t len = nas5g_pkt_snap.get_suci_ext_reg_req_buffer_len();
+
+  decode_res = decode_registration_request_msg(
+      &reg_request, nas5g_pkt_snap.suci_ext_reg_req_buffer, len);
+
+  EXPECT_EQ(decode_res, true);
+
+  EXPECT_EQ(
+      reg_request.extended_protocol_discriminator.extended_proto_discriminator,
+      M5G_MOBILITY_MANAGEMENT_MESSAGES);
+
+  //  Type is registration Request
+  EXPECT_EQ(reg_request.message_type.msg_type, REG_REQUEST);
+
+  //  Registration Type is Initial Registration
+  EXPECT_EQ(reg_request.m5gs_reg_type.type_val, 1);
+
+  //  5GS Mobile Identity SUCI FORMAT
+  EXPECT_EQ(
+      reg_request.m5gs_mobile_identity.mobile_identity.imsi.type_of_identity,
+      M5GSMobileIdentityMsg_SUCI_IMSI);
+
+  //  5GS Mobile SUCI extenstions
+
+  for (int i = 0; i < EPHEMERAL_PUBLIC_KEY_LENGTH; ++i) {
+    EXPECT_EQ(
+        reg_request.m5gs_mobile_identity.mobile_identity.imsi
+            .empheral_public_key[i],
+        empheral_public_key[i])
+        << "Vectors x and y differ at index " << i;
+  }
+
+  for (int i = 0; i < CIPHERTEXT_LENGTH; ++i) {
+    EXPECT_EQ(
+        reg_request.m5gs_mobile_identity.mobile_identity.imsi.ciphertext[i],
+        ciphertext[i]);
+  }
+
+  for (int i = 0; i < MAC_TAG_LENGTH; ++i) {
+    EXPECT_EQ(
+        reg_request.m5gs_mobile_identity.mobile_identity.imsi.mac_tag[i],
+        mac_tag[i]);
+  }
+
+  EXPECT_EQ(
+      reg_request.m5gs_mobile_identity.mobile_identity.imsi.protect_schm_id,
+      0x1);
 }
 
 TEST_F(AmfNas5GTest, test_amf_ue_guti_register_req_msg) {
@@ -487,6 +556,26 @@ TEST_F(AmfUeContextTest, test_smf_context_creation) {
   smf_context            = amf_insert_smf_context(ue_context, pdu_session_id);
   EXPECT_TRUE(0 == smf_context->n_active_pdus);
   EXPECT_TRUE(0 == smf_context->pdu_session_version);
+}
+
+TEST_F(AmfUeContextTest, test_amf_plmn) {
+  plmn.mcc_digit2 = 0;
+  plmn.mcc_digit1 = 0;
+  plmn.mnc_digit3 = 0x0f;
+  plmn.mcc_digit3 = 1;
+  plmn.mnc_digit2 = 1;
+  plmn.mnc_digit1 = 0;
+
+  supi_as_imsi_t supi_imsi;
+  amf_copy_plmn_to_supi(plmn, supi_imsi);
+  amf_copy_plmn_to_context(plmn, ue_context);
+  EXPECT_EQ(
+      memcmp(
+          reinterpret_cast<const void*>(
+              &ue_context->amf_context.m5_guti.guamfi.plmn),
+          reinterpret_cast<const void*>(&supi_imsi.plmn),
+          sizeof(ue_context->amf_context.m5_guti.guamfi.plmn)),
+      0);
 }
 
 /* Test for registration reject */
