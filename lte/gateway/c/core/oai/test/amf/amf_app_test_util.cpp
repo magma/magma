@@ -194,7 +194,7 @@ int send_uplink_nas_pdu_session_establishment_request(
 }
 
 void create_ip_address_response_itti(
-    itti_amf_ip_allocation_response_t* response) {
+    pdn_type_value_t type, itti_amf_ip_allocation_response_t* response) {
   if (!response) return;
   std::string apn = "internet";
   std::copy(apn.begin(), apn.end(), std::begin(response->apn));
@@ -208,29 +208,47 @@ void create_ip_address_response_itti(
   response->gnb_gtp_teid_ip_addr[3] = 0x96;
   std::string imsi                  = "222456000000001";
   std::copy(imsi.begin(), imsi.end(), std::begin(response->imsi));
-  response->imsi_length  = 15;
-  response->paa.pdn_type = IPv4;
-  inet_pton(AF_INET, "192.168.128.254", &(response->paa.ipv4_address));
-  response->paa.vlan         = 1;
-  response->pdu_session_id   = 1;
-  response->pdu_session_type = IPv4;
-  response->pti              = 0x01;
-  response->result           = 0;
+  response->imsi_length = 15;
+
+  if (type == IPv4) {
+    response->pdu_session_type = IPV4;
+  } else if (type == IPv6) {
+    response->pdu_session_type = IPV6;
+  } else {
+    response->pdu_session_type = IPV4IPV6;
+  }
+
+  response->paa.pdn_type = type;
+  if ((type == IPv4) || (type == IPv4_AND_v6)) {
+    inet_pton(AF_INET, "192.168.128.20", &(response->paa.ipv4_address));
+  }
+
+  if ((type == IPv6) || (type == IPv4_AND_v6)) {
+    inet_pton(
+        AF_INET6, "2001:db8:3a:dd2:0253:a1ff:fe2c:831f",
+        &(response->paa.ipv6_address));
+    response->paa.ipv6_prefix_length = IPV6_PREFIX_LEN;
+  }
+
+  response->paa.vlan       = 1;
+  response->pdu_session_id = 1;
+  response->pti            = 0x01;
+  response->result         = SGI_STATUS_OK;
 }
 
-int send_ip_address_response_itti() {
+int send_ip_address_response_itti(pdn_type_value_t type) {
   int rc = RETURNerror;
 
   itti_amf_ip_allocation_response_t response = {};
-  create_ip_address_response_itti(&response);
+  create_ip_address_response_itti(type, &response);
 
   rc = amf_smf_handle_ip_address_response(&response);
 
   return rc;
 }
 
-void create_pdu_session_response_ipv4_itti(
-    itti_n11_create_pdu_session_response_t* response) {
+void create_pdu_session_response_itti(
+    pdn_type_value_t type, itti_n11_create_pdu_session_response_t* response) {
   if (!response) return;
   std::string imsi = "222456000000001";
   std::copy(imsi.begin(), imsi.end(), std::begin(response->imsi));
@@ -238,7 +256,6 @@ void create_pdu_session_response_ipv4_itti(
   response->sm_session_fsm_state = sm_session_fsm_state_t::CREATING;
   response->sm_session_version   = 0;
   response->pdu_session_id       = 1;
-  response->pdu_session_type     = IPV4;
   response->selected_ssc_mode    = SSC_MODE_3;
   response->m5gsm_cause          = M5GSM_OPERATION_SUCCESS;
 
@@ -265,16 +282,25 @@ void create_pdu_session_response_ipv4_itti(
   response->always_on_pdu_session_indication     = false;
   response->allowed_ssc_mode                     = SSC_MODE_3;
   response->m5gsm_congetion_re_attempt_indicator = true;
-  response->pdu_address.redirect_address_type    = IPV4_1;
-  inet_pton(
-      AF_INET, "192.168.128.200",
-      response->pdu_address.redirect_server_address);
+
+  response->pdu_address.pdn_type = type;
+  // response->pdu_session_type     = type;
+  if ((type == IPv4) || (type == IPv4_AND_v6)) {
+    std::string ue_ipv4("192.168.128.20");
+    inet_pton(AF_INET, ue_ipv4.c_str(), &(response->pdu_address.ipv4_address));
+  }
+
+  if ((type == IPv6) || (type == IPv4_AND_v6)) {
+    std::string ue_ipv6("2001:db8:3a:dd2:0253:a1ff:fe2c:831f");
+    inet_pton(AF_INET6, ue_ipv6.c_str(), &(response->pdu_address.ipv6_address));
+    response->pdu_address.ipv6_prefix_length = IPV6_PREFIX_LEN;
+  }
 }
 
-int send_pdu_session_response_itti() {
+int send_pdu_session_response_itti(pdn_type_value_t type) {
   int rc                                          = RETURNerror;
   itti_n11_create_pdu_session_response_t response = {};
-  create_pdu_session_response_ipv4_itti(&response);
+  create_pdu_session_response_itti(type, &response);
 
   rc = amf_app_handle_pdu_session_response(&response);
 

@@ -64,11 +64,28 @@ class AMFClientServicerBase {
   virtual int release_ipv4_address(
       const char* subscriber_id, const char* apn, const struct in_addr* addr);
 
-  virtual int amf_smf_create_pdu_session_ipv4(
+  virtual int allocate_ipv6_address(
+      const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len);
+
+  virtual int release_ipv6_address(
+      const char* subscriber_id, const char* apn, const struct in6_addr* addr);
+
+  virtual int allocate_ipv4v6_address(
+      const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len);
+
+  virtual int release_ipv4v6_address(
+      const char* subscriber_id, const char* apn,
+      const struct in_addr* ipv4_addr, const struct in6_addr* ipv6_addr);
+
+  virtual int amf_smf_create_pdu_session(
       char* imsi, uint8_t* apn, uint32_t pdu_session_id,
       uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-      uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
-      const ambr_t& state_ambr);
+      uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
+      const ambr_t& state_ambr, uint32_t version);
 
   virtual bool set_smf_session(SetSMSessionContext& request);
   virtual bool get_decrypt_imsi_info(
@@ -123,11 +140,36 @@ class AMFClientServicer : public AMFClientServicerBase {
     return RETURNok;
   }
 
-  int amf_smf_create_pdu_session_ipv4(
+  int allocate_ipv6_address(
+      const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
+    return RETURNok;
+  }
+
+  int release_ipv6_address(
+      const char* subscriber_id, const char* apn, const struct in6_addr* addr) {
+    return RETURNok;
+  }
+
+  int allocate_ipv4v6_address(
+      const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
+    return RETURNok;
+  }
+
+  int release_ipv4v6_address(
+      const char* subscriber_id, const char* apn,
+      const struct in_addr* ipv4_addr, const struct in6_addr* ipv6_addr) {
+    return RETURNok;
+  }
+
+  int amf_smf_create_pdu_session(
       char* imsi, uint8_t* apn, uint32_t pdu_session_id,
       uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-      uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
-      const ambr_t& state_ambr) {
+      uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
+      const ambr_t& state_ambr, uint32_t version) {
     return RETURNok;
   }
 

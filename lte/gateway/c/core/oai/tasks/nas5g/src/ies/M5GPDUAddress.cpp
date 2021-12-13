@@ -15,6 +15,13 @@
 #include <cstring>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUAddress.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/include/nas/networkDef.h"
+#ifdef __cplusplus
+}
+#endif
 
 namespace magma5g {
 PDUAddressMsg::PDUAddressMsg(){};
@@ -55,14 +62,12 @@ int PDUAddressMsg::EncodePDUAddressMsg(
     encoded++;
   }
 
-  if (pdu_address->type_val == TYPE_VAL_IPV4) {
-    *(buffer + encoded) = 0x5;
-    encoded++;
-    *(buffer + encoded) = 0x00 | (pdu_address->type_val & 0x07);
-    encoded++;
-    memcpy(buffer + encoded, pdu_address->address_info, IPV4_ADDRESS_LENGTH);
-    encoded = encoded + IPV4_ADDRESS_LENGTH;
-  }
+  // Sizeof type_val + address length
+  IES_ENCODE_U8(buffer, encoded, sizeof(uint8_t) + pdu_address->length);
+  IES_ENCODE_U8(buffer, encoded, (0x00 | (pdu_address->type_val & 0x07)));
+  memcpy(buffer + encoded, pdu_address->address_info, pdu_address->length);
+  encoded = encoded + pdu_address->length;
+
   return (encoded);
 };
 }  // namespace magma5g

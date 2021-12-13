@@ -14,15 +14,19 @@
 #include <cstdint>
 
 namespace magma5g {
-#define TYPE_VAL_IPV4 1
-#define IPV4_ADDRESS_LENGTH 4
+#define PDU_SESSION_TYPE_LENGTH 1
+#define PDN_SESSION_TYPE_IPV4 0b001
+#define PDN_SESSION_TYPE_IPV6 0b010
+#define PDN_SESSION_TYPE_IPV4V6 0b011
+
+#define PDU_ADDRESS_CONTENT_MAX_LENGTH 12
 // PDUAddress IE Class
 class PDUAddressMsg {
  public:
   uint8_t iei;
   uint8_t length;
   uint8_t type_val : 3;
-  uint8_t address_info[12];
+  uint8_t address_info[PDU_ADDRESS_CONTENT_MAX_LENGTH];
 
   PDUAddressMsg();
   ~PDUAddressMsg();

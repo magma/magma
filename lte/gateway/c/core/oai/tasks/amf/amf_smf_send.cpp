@@ -18,6 +18,7 @@ extern "C" {
 #include <string.h>
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/include/nas/networkDef.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
 #include "lte/gateway/c/core/oai/include/amf_config.h"
@@ -94,15 +95,15 @@ int amf_smf_handle_pdu_establishment_request(
 
   // Get the value of the PDN type indicator
   if (msg->msg.pdu_session_estab_request.pdu_session_type.type_val ==
-      PDN_TYPE_IPV4) {
+      NET_PDN_TYPE_IPV4) {
     amf_smf_msg->u.establish.pdu_session_type = NET_PDN_TYPE_IPV4;
   } else if (
       msg->msg.pdu_session_estab_request.pdu_session_type.type_val ==
-      PDN_TYPE_IPV6) {
+      NET_PDN_TYPE_IPV6) {
     amf_smf_msg->u.establish.pdu_session_type = NET_PDN_TYPE_IPV6;
   } else if (
       msg->msg.pdu_session_estab_request.pdu_session_type.type_val ==
-      PDN_TYPE_IPV4V6) {
+      NET_PDN_TYPE_IPV4V6) {
     amf_smf_msg->u.establish.pdu_session_type = NET_PDN_TYPE_IPV4V6;
   } else {
     // Unknown PDN type
@@ -252,10 +253,18 @@ int pdu_session_resource_release_complete(
       LOG_AMF_APP, "notifying SMF about PDU session release n_active_pdus=%d\n",
       smf_ctx->n_active_pdus);
 
-  if (smf_ctx->pdu_address.pdn_type == IPv4) {
+  if ((smf_ctx->pdu_address.pdn_type == IPv4) ||
+      (smf_ctx->pdu_address.pdn_type == IPv4_AND_v6)) {
     // Clean up the Mobility IP Address
     AMFClientServicer::getInstance().release_ipv4_address(
         imsi, smf_ctx->dnn.c_str(), &(smf_ctx->pdu_address.ipv4_address));
+  }
+
+  if ((smf_ctx->pdu_address.pdn_type == IPv6) ||
+      (smf_ctx->pdu_address.pdn_type == IPv4_AND_v6)) {
+    // Clean up the Mobility IP Address
+    AsyncM5GMobilityServiceClient::getInstance().release_ipv6_address(
+        imsi, smf_ctx->dnn.c_str(), &(smf_ctx->pdu_address.ipv6_address));
   }
 
   OAILOG_DEBUG(
@@ -850,20 +859,60 @@ int amf_smf_handle_ip_address_response(
     return rc;
   }
 
-  if (response_p->paa.pdn_type == IPv4) {
-    char ip_str[INET_ADDRSTRLEN];
+  if (response_p->result == SGI_STATUS_OK) {
+    if (response_p->paa.pdn_type == IPv4) {
+      char ip_v4_str[INET_ADDRSTRLEN] = {};
 
-    inet_ntop(
-        AF_INET, &(response_p->paa.ipv4_address.s_addr), ip_str,
-        INET_ADDRSTRLEN);
+      inet_ntop(
+          AF_INET, &(response_p->paa.ipv4_address.s_addr), ip_v4_str,
+          INET_ADDRSTRLEN);
+      rc = amf_smf_create_session_req(
+          response_p->imsi, response_p->apn, response_p->pdu_session_id,
+          response_p->pdu_session_type, response_p->gnb_gtp_teid,
+          response_p->pti, response_p->gnb_gtp_teid_ip_addr, ip_v4_str, NULL,
+          smf_ctx->smf_ctx_ambr);
 
-    rc = amf_smf_create_ipv4_session_grpc_req(
-        response_p->imsi, response_p->apn, response_p->pdu_session_id,
-        response_p->pdu_session_type, response_p->gnb_gtp_teid, response_p->pti,
-        response_p->gnb_gtp_teid_ip_addr, ip_str, smf_ctx->apn_ambr);
+      if (rc < 0) {
+        OAILOG_ERROR(LOG_AMF_APP, "Create IPV4 Session \n");
+      }
+    }
 
-    if (rc < 0) {
-      OAILOG_ERROR(LOG_AMF_APP, "Create IPV4 Session \n");
+    if (response_p->paa.pdn_type == IPv6) {
+      char ip_v6_str[INET6_ADDRSTRLEN];
+      inet_ntop(
+          AF_INET6, &(response_p->paa.ipv6_address.s6_addr), ip_v6_str,
+          INET6_ADDRSTRLEN);
+      rc = amf_smf_create_session_req(
+          response_p->imsi, response_p->apn, response_p->pdu_session_id,
+          response_p->pdu_session_type, response_p->gnb_gtp_teid,
+          response_p->pti, response_p->gnb_gtp_teid_ip_addr, NULL, ip_v6_str,
+          smf_ctx->smf_ctx_ambr);
+      if (rc < 0) {
+        OAILOG_ERROR(LOG_AMF_APP, "Create IPV6 Session \n");
+      }
+    }
+
+    if (response_p->paa.pdn_type == IPv4_AND_v6) {
+      char ip_v4_str[INET_ADDRSTRLEN];
+      char ip_v6_str[INET6_ADDRSTRLEN];
+
+      inet_ntop(
+          AF_INET, &(response_p->paa.ipv4_address.s_addr), ip_v4_str,
+          INET_ADDRSTRLEN);
+
+      inet_ntop(
+          AF_INET6, &(response_p->paa.ipv6_address.s6_addr), ip_v6_str,
+          INET6_ADDRSTRLEN);
+
+      rc = amf_smf_create_session_req(
+          response_p->imsi, response_p->apn, response_p->pdu_session_id,
+          response_p->pdu_session_type, response_p->gnb_gtp_teid,
+          response_p->pti, response_p->gnb_gtp_teid_ip_addr, ip_v4_str,
+          ip_v6_str, smf_ctx->smf_ctx_ambr);
+
+      if (rc < 0) {
+        OAILOG_ERROR(LOG_AMF_APP, "Create IPV4V6 Session \n");
+      }
     }
   }
 
