@@ -202,10 +202,11 @@ export type csfb = {
 export type cwf_gateway = {
     carrier_wifi: gateway_cwf_configs,
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
+    registration_info ? : registration_info,
     status ? : gateway_status,
     tier: tier_id,
 };
@@ -424,11 +425,12 @@ export type federated_network_configs = {
 };
 export type federation_gateway = {
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     federation: gateway_federation_configs,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
+    registration_info ? : registration_info,
     status ? : gateway_status,
     tier: tier_id,
 };
@@ -751,10 +753,11 @@ export type lte_gateway = {
     cellular: gateway_cellular_configs,
     connected_enodeb_serials: enodeb_serials,
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
+    registration_info ? : registration_info,
     status ? : gateway_status,
     tier: tier_id,
 };
@@ -790,10 +793,11 @@ export type machine_info = {
 };
 export type magmad_gateway = {
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
+    registration_info ? : registration_info,
     status ? : gateway_status,
     tier: tier_id,
 };
@@ -860,7 +864,7 @@ export type mutable_ci_node = {
 export type mutable_cwf_gateway = {
     carrier_wifi: gateway_cwf_configs,
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
@@ -878,7 +882,7 @@ export type mutable_enodebd_e2e_test = {
 };
 export type mutable_federation_gateway = {
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     federation ? : gateway_federation_configs,
     id: gateway_id,
     magmad: magmad_gateway_configs,
@@ -890,7 +894,7 @@ export type mutable_lte_gateway = {
     cellular: gateway_cellular_configs,
     connected_enodeb_serials: enodeb_serials,
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
@@ -919,7 +923,7 @@ export type mutable_subscribers = Array < mutable_subscriber >
 ;
 export type mutable_wifi_gateway = {
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
@@ -1151,6 +1155,12 @@ export type paginated_gateways = {
     page_token: page_token,
     total_count: number,
 };
+export type paginated_subscriber_ids = {
+    next_page_token: page_token,
+    subscribers: Array < string >
+        ,
+    total_count: number,
+};
 export type paginated_subscribers = {
     next_page_token: page_token,
     subscribers: {
@@ -1326,6 +1336,11 @@ export type redirect_information = {
     address_type: "IPv4" | "IPv6" | "URL" | "SIP_URI",
     server_address: string,
     support: "DISABLED" | "ENABLED",
+};
+export type registration_info = {
+    domain_name: string,
+    registration_token: string,
+    root_ca: string,
 };
 export type release_channel = {
     id: channel_id,
@@ -1555,10 +1570,11 @@ export type webhook_receiver = {
 };
 export type wifi_gateway = {
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
+    registration_info ? : registration_info,
     status ? : gateway_status,
     tier: tier_id,
     wifi: gateway_wifi_configs,
@@ -7270,6 +7286,43 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getLteByNetworkIdSubscribersVerboseFalse(
+            parameters: {
+                'networkId': string,
+                'msisdn' ? : string,
+                'ip' ? : string,
+                'pageSize' ? : number,
+                'pageToken' ? : string,
+            }
+        ): Promise < paginated_subscriber_ids >
+        {
+            let path = '/lte/{network_id}/subscribers?verbose=false';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['msisdn'] !== undefined) {
+                query['msisdn'] = parameters['msisdn'];
+            }
+
+            if (parameters['ip'] !== undefined) {
+                query['ip'] = parameters['ip'];
+            }
+
+            if (parameters['pageSize'] !== undefined) {
+                query['page_size'] = parameters['pageSize'];
+            }
+
+            if (parameters['pageToken'] !== undefined) {
+                query['page_token'] = parameters['pageToken'];
+            }
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getNetworks(): Promise < Array < string >
         >
         {

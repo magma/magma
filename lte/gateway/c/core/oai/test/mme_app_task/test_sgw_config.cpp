@@ -81,5 +81,12 @@ TEST(SGWConfigTest, TestParseHealthyConfig) {
   free_sgw_config(&sgw_config);
 }
 
+TEST(SGWConfigTest, TestParseHealthyConfigDisplay) {
+  sgw_config_t sgw_config = {0};
+  EXPECT_EQ(sgw_config_parse_string(sHealthyConfig, &sgw_config), 0);
+  sgw_config_display(&sgw_config);
+  free_sgw_config(&sgw_config);
+}
+
 }  // namespace lte
 }  // namespace magma

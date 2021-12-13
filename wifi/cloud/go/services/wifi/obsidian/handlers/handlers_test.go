@@ -624,7 +624,7 @@ func TestCreateGateway(t *testing.T) {
 		ParamValues:    []string{nID},
 		Handler:        createGateway,
 		ExpectedStatus: 400,
-		ExpectedError:  "validation failure list:\ndescription in body should be at least 1 chars long\ndevice in body is required\nid in body should be at least 1 chars long\nmagmad in body is required\nname in body should be at least 1 chars long\ntier in body should match '^[a-z][\\da-z_]+$'\nwifi in body is required",
+		ExpectedError:  "validation failure list:\ndescription in body should be at least 1 chars long\nid in body should be at least 1 chars long\nmagmad in body is required\nname in body should be at least 1 chars long\ntier in body should match '^[a-z][\\da-z_]+$'\nwifi in body is required",
 	}
 	tests.RunUnitTest(t, e, tc)
 

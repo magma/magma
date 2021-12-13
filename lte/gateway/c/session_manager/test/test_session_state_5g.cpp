@@ -74,20 +74,18 @@ TEST_F(SessionStateTest5G, test_get_session_rules) {
 
   // Check the RulesToProcess is properly filled out
   EXPECT_EQ(pending_activation.size(), 4);
-  const std::string activate_rule1   = pending_activation[0].rule.id();
-  const std::string activate_rule2   = pending_activation[1].rule.id();
+  const std::string activate_rule1 = pending_activation[0].rule.id();
+  const std::string activate_rule2 = pending_activation[1].rule.id();
   const std::string deactivate_rule1 = pending_deactivation[0].rule.id();
   const std::string deactivate_rule2 = pending_deactivation[1].rule.id();
-  EXPECT_TRUE(
-      activate_rule1 == "rule-static-2" || activate_rule1 == "rule-dynamic-2");
-  EXPECT_TRUE(
-      activate_rule2 == "rule-static-3" || activate_rule2 == "rule-dynamic-3");
-  EXPECT_TRUE(
-      deactivate_rule1 == "rule-static-2" ||
-      deactivate_rule1 == "rule-dynamic-2");
-  EXPECT_TRUE(
-      deactivate_rule2 == "rule-static-3" ||
-      deactivate_rule2 == "rule-dynamic-3");
+  EXPECT_TRUE(activate_rule1 == "rule-static-2" ||
+              activate_rule1 == "rule-dynamic-2");
+  EXPECT_TRUE(activate_rule2 == "rule-static-3" ||
+              activate_rule2 == "rule-dynamic-3");
+  EXPECT_TRUE(deactivate_rule1 == "rule-static-2" ||
+              deactivate_rule1 == "rule-dynamic-2");
+  EXPECT_TRUE(deactivate_rule2 == "rule-static-3" ||
+              deactivate_rule2 == "rule-dynamic-3");
 }
 
 TEST_F(SessionStateTest5G, test_process_static_rule_installs) {
@@ -306,7 +304,7 @@ TEST_F(SessionStateTest5G, test_marshal_unmarshal) {
   EXPECT_EQ(update_criteria.static_rules_to_install.size(), 1);
 
   session_state->increment_rule_stats("rule1", nullptr);
-  auto marshaled   = session_state->marshal();
+  auto marshaled = session_state->marshal();
   auto unmarshaled = SessionState::unmarshal(marshaled, *rule_store);
   EXPECT_EQ(unmarshaled->is_static_rule_installed("rule1"), true);
   EXPECT_EQ(unmarshaled->is_dynamic_rule_installed("rule2"), false);
@@ -315,7 +313,7 @@ TEST_F(SessionStateTest5G, test_marshal_unmarshal) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   FLAGS_logtostderr = 1;
-  FLAGS_v           = 10;
+  FLAGS_v = 10;
   return RUN_ALL_TESTS();
 }
 

@@ -52,26 +52,25 @@ class SessionManagerHandlerTest : public ::testing::Test {
   virtual void SetUp() {
     monitoring_key = "mk1";
 
-    reporter      = std::make_shared<MockSessionReporter>();
-    rule_store    = std::make_shared<StaticRuleStore>();
+    reporter = std::make_shared<MockSessionReporter>();
+    rule_store = std::make_shared<StaticRuleStore>();
     session_store = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
-    pipelined_client       = std::make_shared<MockPipelinedClient>();
+    pipelined_client = std::make_shared<MockPipelinedClient>();
     auto directoryd_client = std::make_shared<MockDirectorydClient>();
-    auto spgw_client       = std::make_shared<MockSpgwServiceClient>();
-    auto aaa_client        = std::make_shared<MockAAAClient>();
-    events_reporter        = std::make_shared<MockEventsReporter>();
-    auto default_mconfig   = get_default_mconfig();
-    auto shard_tracker     = std::make_shared<ShardTracker>();
-    local_enforcer         = std::make_shared<LocalEnforcer>(
+    auto spgw_client = std::make_shared<MockSpgwServiceClient>();
+    auto aaa_client = std::make_shared<MockAAAClient>();
+    events_reporter = std::make_shared<MockEventsReporter>();
+    auto default_mconfig = get_default_mconfig();
+    auto shard_tracker = std::make_shared<ShardTracker>();
+    local_enforcer = std::make_shared<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
         spgw_client, aaa_client, shard_tracker, 0, 0, default_mconfig);
     evb = new folly::EventBase();
     std::thread([&]() {
       std::cout << "Started event loop thread\n";
       folly::EventBaseManager::get()->setEventBase(evb, 0);
-    })
-        .detach();
+    }).detach();
 
     local_enforcer->attachEventBase(evb);
     session_map_ = SessionMap{};
@@ -91,9 +90,9 @@ class SessionManagerHandlerTest : public ::testing::Test {
     delete evb;
   }
 
-  void insert_static_rule(
-      std::shared_ptr<StaticRuleStore> rule_store, const std::string& m_key,
-      uint32_t charging_key, const std::string& rule_id) {
+  void insert_static_rule(std::shared_ptr<StaticRuleStore> rule_store,
+                          const std::string& m_key, uint32_t charging_key,
+                          const std::string& rule_id) {
     PolicyRule rule;
     rule.set_id(rule_id);
     rule.set_rating_group(charging_key);
@@ -116,21 +115,22 @@ class SessionManagerHandlerTest : public ::testing::Test {
   // prevent unexpected SessionD <-> PipelineD syncing logic mid-test.
   void send_empty_table_and_wait_for_successful_setup() {
     send_empty_table();
-    EXPECT_CALL(
-        *pipelined_client, setup_lte(testing::_, testing::_, testing::_))
+    EXPECT_CALL(*pipelined_client,
+                setup_lte(testing::_, testing::_, testing::_))
         .Times(1)
         .WillOnce(CallSetupCallback(SetupFlowsResult_Result_SUCCESS));
     evb->loopOnce();
     evb->loopOnce();
   }
 
-  void initialize_session(
-      SessionMap& session_map, const std::string& session_id,
-      const SessionConfig& cfg, const CreateSessionResponse& response) {
+  void initialize_session(SessionMap& session_map,
+                          const std::string& session_id,
+                          const SessionConfig& cfg,
+                          const CreateSessionResponse& response) {
     const std::string imsi = cfg.get_imsi();
     auto session = local_enforcer->create_initializing_session(session_id, cfg);
-    local_enforcer->update_session_with_policy_response(
-        session, response, nullptr);
+    local_enforcer->update_session_with_policy_response(session, response,
+                                                        nullptr);
     session_map[imsi].push_back(std::move(session));
   }
 
@@ -169,11 +169,11 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
   // Only the active sessions are not recycled, to ensure that
   // this session is not automatically scheduled for termination
   // when RAT Type is WLAN, it needs monitoring keys...
-  create_session_create_response(
-      IMSI1, SESSION_ID_1, monitoring_key, static_rules, &response);
+  create_session_create_response(IMSI1, SESSION_ID_1, monitoring_key,
+                                 static_rules, &response);
   response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
-  create_credit_update_response(
-      IMSI1, SESSION_ID_1, 1, 1536, response.mutable_credits()->Add());
+  create_credit_update_response(IMSI1, SESSION_ID_1, 1, 1536,
+                                response.mutable_credits()->Add());
 
   auto session_map = session_store->read_sessions({IMSI1});
   initialize_session(session_map, SESSION_ID_1, cfg, response);
@@ -185,7 +185,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
       session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
   EXPECT_TRUE(write_success);
   session_map = session_store->read_sessions({IMSI1});
-  auto it     = session_map.find(IMSI1);
+  auto it = session_map.find(IMSI1);
   EXPECT_FALSE(it == session_map.end());
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   auto& session = session_map[IMSI1][0];
@@ -214,7 +214,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
 
   // Assert the internal session config is updated to the new one
   session_map = session_store->read_sessions({IMSI1});
-  it          = session_map.find(IMSI1);
+  it = session_map.find(IMSI1);
   EXPECT_FALSE(it == session_map.end());
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   auto& session_apn2 = session_map[IMSI1][0];
@@ -233,17 +233,17 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   SessionConfig cfg;
   cfg.common_context =
       build_common_context(IMSI1, IP1, IPv6_1, teids1, APN1, MSISDN, TGPP_LTE);
-  auto lte_context = build_lte_context(
-      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", BEARER_ID_1,
-      nullptr);
+  auto lte_context =
+      build_lte_context("spgw_ip", "imei", "plmn_id", "imsi_plmn_id",
+                        "user_loc", BEARER_ID_1, nullptr);
   cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
 
   response.set_session_id(sid);
-  create_session_create_response(
-      IMSI1, sid, monitoring_key, static_rules, &response);
+  create_session_create_response(IMSI1, sid, monitoring_key, static_rules,
+                                 &response);
   response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
-  create_credit_update_response(
-      IMSI1, sid, 1, 1536, response.mutable_credits()->Add());
+  create_credit_update_response(IMSI1, sid, 1, 1536,
+                                response.mutable_credits()->Add());
 
   auto session_map = session_store->read_sessions({IMSI1});
 
@@ -256,7 +256,7 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
       session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
   EXPECT_TRUE(write_success);
   session_map = session_store->read_sessions({IMSI1});
-  auto it     = session_map.find(IMSI1);
+  auto it = session_map.find(IMSI1);
   EXPECT_FALSE(it == session_map.end());
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   auto& session = session_map[IMSI1][0];
@@ -270,9 +270,8 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   auto common =
       build_common_context(IMSI1, IP1, IPv6_1, teids1, APN1, MSISDN, TGPP_LTE);
   request.mutable_common_context()->CopyFrom(common);
-  lte_context = build_lte_context(
-      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", BEARER_ID_1,
-      nullptr);
+  lte_context = build_lte_context("spgw_ip", "imei", "plmn_id", "imsi_plmn_id",
+                                  "user_loc", BEARER_ID_1, nullptr);
   request.mutable_rat_specific_context()->mutable_lte_context()->CopyFrom(
       lte_context);
 
@@ -285,7 +284,7 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
 
   // Assert the internal session config is updated to the new one
   session_map = session_store->read_sessions({IMSI1});
-  it          = session_map.find(IMSI1);
+  it = session_map.find(IMSI1);
   EXPECT_FALSE(it == session_map.end());
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   auto& session_apn2 = session_map[IMSI1][0];
@@ -298,12 +297,11 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   teids2.set_agw_teid(TEID_2_DL);
   LocalCreateSessionRequest request2;
   grpc::ServerContext create_context2;
-  common = build_common_context(
-      IMSI1, "", "", teids2, APN1, "different msisdn", TGPP_LTE);
+  common = build_common_context(IMSI1, "", "", teids2, APN1, "different msisdn",
+                                TGPP_LTE);
   request2.mutable_common_context()->CopyFrom(common);
-  lte_context = build_lte_context(
-      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", BEARER_ID_1,
-      nullptr);
+  lte_context = build_lte_context("spgw_ip", "imei", "plmn_id", "imsi_plmn_id",
+                                  "user_loc", BEARER_ID_1, nullptr);
   request2.mutable_rat_specific_context()->mutable_lte_context()->CopyFrom(
       lte_context);
 
@@ -340,10 +338,10 @@ TEST_F(SessionManagerHandlerTest, test_create_session) {
       "rule2");
   create_response.mutable_static_rules()->Add()->mutable_rule_id()->assign(
       "rule3");
-  create_credit_update_response(
-      IMSI1, SESSION_ID_1, 1, 1536, create_response.mutable_credits()->Add());
-  create_credit_update_response(
-      IMSI1, SESSION_ID_1, 2, 1024, create_response.mutable_credits()->Add());
+  create_credit_update_response(IMSI1, SESSION_ID_1, 1, 1536,
+                                create_response.mutable_credits()->Add());
+  create_credit_update_response(IMSI1, SESSION_ID_1, 2, 1024,
+                                create_response.mutable_credits()->Add());
 
   // create expected request for report_create_session call
   RequestedUnits expected_requestedUnits;
@@ -356,8 +354,8 @@ TEST_F(SessionManagerHandlerTest, test_create_session) {
   expected_request.mutable_rat_specific_context()->CopyFrom(
       request.rat_specific_context());
 
-  EXPECT_CALL(
-      *reporter, report_create_session(CheckCoreRequest(expected_request), _))
+  EXPECT_CALL(*reporter,
+              report_create_session(CheckCoreRequest(expected_request), _))
       .Times(1);
 
   // create session and expect one call
@@ -407,19 +405,18 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
   teids.set_agw_teid(TEID_1_DL);
   CreateSessionResponse response;
   response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
-  create_credit_update_response(
-      IMSI1, SESSION_ID_1, 1, 1025, response.mutable_credits()->Add());
+  create_credit_update_response(IMSI1, SESSION_ID_1, 1, 1025,
+                                response.mutable_credits()->Add());
   SessionConfig cfg = {};
   cfg.common_context =
       build_common_context(IMSI1, IP1, IPv6_1, teids, "APN", MSISDN, TGPP_LTE);
-  const auto& lte_context = build_lte_context(
-      "127.0.0.1", "imei", "plmn_id", "imsi_plmn_id", "user_loc", BEARER_ID_1,
-      nullptr);
+  const auto& lte_context =
+      build_lte_context("127.0.0.1", "imei", "plmn_id", "imsi_plmn_id",
+                        "user_loc", BEARER_ID_1, nullptr);
   cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
   auto session_map = session_store->read_sessions({IMSI1});
-  EXPECT_CALL(
-      *events_reporter,
-      session_created(IMSI1, SESSION_ID_1, testing::_, testing::_))
+  EXPECT_CALL(*events_reporter,
+              session_created(IMSI1, SESSION_ID_1, testing::_, testing::_))
       .Times(1);
 
   initialize_session(session_map, SESSION_ID_1, cfg, response);
@@ -440,8 +437,8 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
   auto record_list = table.mutable_records();
   create_rule_record(IMSI1, IP1, "rule1", 512, 512, record_list->Add());
 
-  EXPECT_CALL(
-      *reporter, report_updates(CheckUpdateRequestNumber(1), testing::_))
+  EXPECT_CALL(*reporter,
+              report_updates(CheckUpdateRequestNumber(1), testing::_))
       .Times(1);
   session_manager->ReportRuleStats(
       &server_context, &table,
@@ -461,10 +458,10 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
   Teids teids;
   CreateSessionResponse response;
   response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
-  create_credit_update_response(
-      IMSI1, SESSION_ID_1, 1, 1025, response.mutable_credits()->Add());
+  create_credit_update_response(IMSI1, SESSION_ID_1, 1, 1025,
+                                response.mutable_credits()->Add());
   const std::string& hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
-  const std::string& apn                 = "apn1";
+  const std::string& apn = "apn1";
   SessionConfig cfg;
   cfg.common_context =
       build_common_context(IMSI1, "", "", teids, apn, MSISDN, TGPP_WLAN);

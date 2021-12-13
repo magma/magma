@@ -53,9 +53,8 @@ class SessionCredit {
    * add_used_credit increments USED_TX and USED_RX
    * as being recently updated
    */
-  void add_used_credit(
-      uint64_t used_tx, uint64_t used_rx,
-      SessionCreditUpdateCriteria* credit_uc);
+  void add_used_credit(uint64_t used_tx, uint64_t used_rx,
+                       SessionCreditUpdateCriteria* credit_uc);
 
   /**
    * reset_reporting_credit resets the REPORTING_* to 0
@@ -72,8 +71,8 @@ class SessionCredit {
    * receive_credit increments ALLOWED* and moves the REPORTING_* credit to
    * the REPORTED_* credit
    */
-  void receive_credit(
-      const GrantedUnits& gsu, SessionCreditUpdateCriteria* credit_uc);
+  void receive_credit(const GrantedUnits& gsu,
+                      SessionCreditUpdateCriteria* credit_uc);
 
   /**
    * get_update returns a filled-in CreditUsage if an update exists, and a blank
@@ -112,8 +111,8 @@ class SessionCredit {
    */
   uint64_t get_credit(Bucket bucket) const;
 
-  void set_report_last_credit(
-      bool report_last_credit, SessionCreditUpdateCriteria* credit_uc);
+  void set_report_last_credit(bool report_last_credit,
+                              SessionCreditUpdateCriteria* credit_uc);
 
   void set_reporting(bool reporting);
 
@@ -186,8 +185,8 @@ class SessionCredit {
  private:
   void log_quota_and_usage() const;
 
-  std::string get_percentage_usage(
-      uint64_t allowed, uint64_t floor, uint64_t used) const;
+  std::string get_percentage_usage(uint64_t allowed, uint64_t floor,
+                                   uint64_t used) const;
 
   bool is_received_grented_unit_zero(const CreditUnit& cu) const;
 
@@ -198,18 +197,19 @@ class SessionCredit {
   GrantTrackingType determine_grant_tracking_type(
       const GrantedUnits& grant) const;
 
-  uint64_t calculate_requested_unit(
-      CreditUnit cu, Bucket allowed, Bucket allowed_floor, uint64_t used) const;
+  uint64_t calculate_requested_unit(CreditUnit cu, Bucket allowed,
+                                    Bucket allowed_floor, uint64_t used) const;
 
-  bool compute_quota_exhausted(
-      const uint64_t allowed, const uint64_t used, float threshold_ratio,
-      const uint64_t grantedUnits) const;
+  bool compute_quota_exhausted(const uint64_t allowed, const uint64_t used,
+                               float threshold_ratio,
+                               const uint64_t grantedUnits) const;
 
-  uint64_t calculate_delta_allowed_floor(
-      CreditUnit cu, Bucket allowed, Bucket floor, uint64_t volume_used) const;
+  uint64_t calculate_delta_allowed_floor(CreditUnit cu, Bucket allowed,
+                                         Bucket floor,
+                                         uint64_t volume_used) const;
 
-  uint64_t calculate_delta_allowed(
-      uint64_t gsu_volume, Bucket allowed, uint64_t volume_used) const;
+  uint64_t calculate_delta_allowed(uint64_t gsu_volume, Bucket allowed,
+                                   uint64_t volume_used) const;
 
   void update_usage_timestamps(SessionCreditUpdateCriteria* credit_uc);
 };

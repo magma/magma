@@ -120,7 +120,7 @@ void AbortSessionResponderAsyncService::init_call_data() {
   new AbortSessionCallData(cq_.get(), *this, *handler_);
 }
 
-template<class GRPCService, class RequestType, class ResponseType>
+template <class GRPCService, class RequestType, class ResponseType>
 AsyncGRPCRequest<GRPCService, RequestType, ResponseType>::AsyncGRPCRequest(
     ServerCompletionQueue* cq, GRPCService& service)
     : cq_(cq), status_(PROCESS), responder_(&ctx_), service_(service) {}
@@ -129,7 +129,7 @@ AsyncGRPCRequest<GRPCService, RequestType, ResponseType>::AsyncGRPCRequest(
 // Once a request has started processing, create a new AsyncGRPCRequest to
 // standby for new requests. After a request has finished processing, delete the
 // object.
-template<class GRPCService, class RequestType, class ResponseType>
+template <class GRPCService, class RequestType, class ResponseType>
 void AsyncGRPCRequest<GRPCService, RequestType, ResponseType>::proceed() {
   if (status_ == PROCESS) {
     clone();  // Create another stand by CallData
@@ -141,11 +141,11 @@ void AsyncGRPCRequest<GRPCService, RequestType, ResponseType>::proceed() {
   }
 }
 
-template<class GRPCService, class RequestType, class ResponseType>
+template <class GRPCService, class RequestType, class ResponseType>
 std::function<void(Status, ResponseType)> AsyncGRPCRequest<
     GRPCService, RequestType, ResponseType>::get_finish_callback() {
   return [this](Status status, ResponseType response) {
-    responder_.Finish(response, status, (void*) this);
+    responder_.Finish(response, status, (void*)this);
   };
 }
 

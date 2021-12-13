@@ -24,8 +24,7 @@ type WifiGateway struct {
 	Description models1.GatewayDescription `json:"description"`
 
 	// device
-	// Required: true
-	Device *models2.GatewayDevice `json:"device"`
+	Device *models2.GatewayDevice `json:"device,omitempty"`
 
 	// id
 	// Required: true
@@ -38,6 +37,9 @@ type WifiGateway struct {
 	// name
 	// Required: true
 	Name models1.GatewayName `json:"name"`
+
+	// registration info
+	RegistrationInfo *models1.RegistrationInfo `json:"registration_info,omitempty"`
 
 	// status
 	Status *models2.GatewayStatus `json:"status,omitempty"`
@@ -75,6 +77,10 @@ func (m *WifiGateway) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateRegistrationInfo(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateStatus(formats); err != nil {
 		res = append(res, err)
 	}
@@ -107,8 +113,8 @@ func (m *WifiGateway) validateDescription(formats strfmt.Registry) error {
 
 func (m *WifiGateway) validateDevice(formats strfmt.Registry) error {
 
-	if err := validate.Required("device", "body", m.Device); err != nil {
-		return err
+	if swag.IsZero(m.Device) { // not required
+		return nil
 	}
 
 	if m.Device != nil {
@@ -160,6 +166,24 @@ func (m *WifiGateway) validateName(formats strfmt.Registry) error {
 			return ve.ValidateName("name")
 		}
 		return err
+	}
+
+	return nil
+}
+
+func (m *WifiGateway) validateRegistrationInfo(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.RegistrationInfo) { // not required
+		return nil
+	}
+
+	if m.RegistrationInfo != nil {
+		if err := m.RegistrationInfo.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("registration_info")
+			}
+			return err
+		}
 	}
 
 	return nil

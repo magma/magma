@@ -73,8 +73,8 @@ class SessionProxyResponderHandler {
  */
 class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
  public:
-  SessionProxyResponderHandlerImpl(
-      std::shared_ptr<LocalEnforcer> monitor, SessionStore& session_store);
+  SessionProxyResponderHandlerImpl(std::shared_ptr<LocalEnforcer> monitor,
+                                   SessionStore& session_store);
 
   ~SessionProxyResponderHandlerImpl() {}
 

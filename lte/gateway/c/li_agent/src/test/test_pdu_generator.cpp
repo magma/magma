@@ -36,16 +36,16 @@ class PDUGeneratorTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
     std::string target_id = "IMSI12345";
-    std::string task_id   = "29f28e1c-f230-486a-a860-f5a784ab9177";
-    auto mconfig          = create_liagentd_mconfig(task_id, target_id);
+    std::string task_id = "29f28e1c-f230-486a-a860-f5a784ab9177";
+    auto mconfig = create_liagentd_mconfig(task_id, target_id);
 
     int sync_time = std::numeric_limits<int>::max();  // Prevent sync
 
     auto proxy_connector_p = std::make_unique<MockProxyConnector>();
-    proxy_connector        = proxy_connector_p.get();
+    proxy_connector = proxy_connector_p.get();
 
     auto mobilityd_client_p = std::make_unique<MockMobilitydClient>();
-    mobilityd_client        = mobilityd_client_p.get();
+    mobilityd_client = mobilityd_client_p.get();
 
     pkt_generator = std::make_unique<PDUGenerator>(
         PKT_DST_MAC, PKT_SRC_MAC, sync_time, sync_time,
@@ -59,15 +59,15 @@ class PDUGeneratorTest : public ::testing::Test {
 
 TEST_F(PDUGeneratorTest, test_pdu_generator) {
   struct pcap_pkthdr* phdr =
-      (struct pcap_pkthdr*) malloc(sizeof(struct pcap_pkthdr));
-  phdr->len       = sizeof(struct ether_header) + sizeof(struct ip);
+      (struct pcap_pkthdr*)malloc(sizeof(struct pcap_pkthdr));
+  phdr->len = sizeof(struct ether_header) + sizeof(struct ip);
   phdr->ts.tv_sec = 56;
-  u_char* pdata   = reinterpret_cast<u_char*>(
+  u_char* pdata = reinterpret_cast<u_char*>(
       malloc(sizeof(struct ether_header) + sizeof(struct ip)));
-  struct ether_header* ethernetHeader = (struct ether_header*) pdata;
-  ethernetHeader->ether_type          = htons(ETHERTYPE_IP);
+  struct ether_header* ethernetHeader = (struct ether_header*)pdata;
+  ethernetHeader->ether_type = htons(ETHERTYPE_IP);
 
-  struct ip* ipHeader     = (struct ip*) (pdata + sizeof(struct ether_header));
+  struct ip* ipHeader = (struct ip*)(pdata + sizeof(struct ether_header));
   ipHeader->ip_src.s_addr = 3232235522;
   ipHeader->ip_dst.s_addr = 3232235521;
 
@@ -77,8 +77,8 @@ TEST_F(PDUGeneratorTest, test_pdu_generator) {
 
   SubscriberID response;
   response.set_id("12345");
-  EXPECT_CALL(
-      *mobilityd_client, get_subscriber_id_from_ip(testing::_, testing::_))
+  EXPECT_CALL(*mobilityd_client,
+              get_subscriber_id_from_ip(testing::_, testing::_))
       .WillRepeatedly(testing::InvokeArgument<1>(Status::OK, response));
 
   auto succeeded = pkt_generator->process_packet(phdr, pdata);
@@ -89,20 +89,20 @@ TEST_F(PDUGeneratorTest, test_pdu_generator) {
 
 TEST_F(PDUGeneratorTest, test_generator_unknown_subscriber) {
   struct pcap_pkthdr* phdr =
-      (struct pcap_pkthdr*) malloc(sizeof(struct pcap_pkthdr));
-  phdr->len       = sizeof(struct ether_header) + sizeof(struct ip);
+      (struct pcap_pkthdr*)malloc(sizeof(struct pcap_pkthdr));
+  phdr->len = sizeof(struct ether_header) + sizeof(struct ip);
   phdr->ts.tv_sec = 56;
-  u_char* pdata   = reinterpret_cast<u_char*>(
+  u_char* pdata = reinterpret_cast<u_char*>(
       malloc(sizeof(struct ether_header) + sizeof(struct ip)));
-  struct ether_header* ethernetHeader = (struct ether_header*) pdata;
-  ethernetHeader->ether_type          = htons(ETHERTYPE_IP);
+  struct ether_header* ethernetHeader = (struct ether_header*)pdata;
+  ethernetHeader->ether_type = htons(ETHERTYPE_IP);
 
-  struct ip* ipHeader     = (struct ip*) (pdata + sizeof(struct ether_header));
+  struct ip* ipHeader = (struct ip*)(pdata + sizeof(struct ether_header));
   ipHeader->ip_src.s_addr = 3232235522;
 
   SubscriberID response;
-  EXPECT_CALL(
-      *mobilityd_client, get_subscriber_id_from_ip(testing::_, testing::_))
+  EXPECT_CALL(*mobilityd_client,
+              get_subscriber_id_from_ip(testing::_, testing::_))
       .WillRepeatedly(testing::InvokeArgument<1>(
           Status(grpc::DEADLINE_EXCEEDED, "timeout"), response));
 
@@ -114,12 +114,12 @@ TEST_F(PDUGeneratorTest, test_generator_unknown_subscriber) {
 
 TEST_F(PDUGeneratorTest, test_generator_non_ip_packet) {
   struct pcap_pkthdr* phdr =
-      (struct pcap_pkthdr*) malloc(sizeof(struct pcap_pkthdr));
+      (struct pcap_pkthdr*)malloc(sizeof(struct pcap_pkthdr));
   phdr->len = sizeof(struct ether_header);
   u_char* pdata =
       reinterpret_cast<u_char*>(malloc(sizeof(struct ether_header)));
-  struct ether_header* ethernetHeader = (struct ether_header*) pdata;
-  ethernetHeader->ether_type          = htons(ETHERTYPE_ARP);
+  struct ether_header* ethernetHeader = (struct ether_header*)pdata;
+  ethernetHeader->ether_type = htons(ETHERTYPE_ARP);
 
   auto succeeded = pkt_generator->process_packet(phdr, pdata);
   EXPECT_FALSE(succeeded);

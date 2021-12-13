@@ -94,7 +94,7 @@ func createRegistrationServicers(srv *service.OrchestratorService) (protos.Cloud
 
 	timeoutDurationInMinutes := srv.Config.MustGetInt(bootstrapper_config.TokenTimeoutDurationInMinutes)
 	timeout := time.Duration(timeoutDurationInMinutes) * time.Minute
-	cloudRegistrationServicer, err := registration.NewCloudRegistrationServicer(store, rootCA, timeout)
+	cloudRegistrationServicer, err := registration.NewCloudRegistrationServicer(store, rootCA, timeout, true)
 	if err != nil {
 		glog.Fatalf("error creating cloud registration servicer: %+v", err)
 	}

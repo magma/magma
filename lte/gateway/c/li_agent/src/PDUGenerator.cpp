@@ -38,11 +38,11 @@ namespace lte {
 #define SEQNBR_ATTRID 8
 #define TIMESTAMP_ATTRID 9
 
-#define SET_INT64_TLV(tlv, id, value)                                          \
-  do {                                                                         \
-    (tlv)->type = htons(id);                                                   \
-    (tlv)->data = htobe64(value);                                              \
-    (tlv)->size = htons(sizeof(uint64_t));                                     \
+#define SET_INT64_TLV(tlv, id, value)      \
+  do {                                     \
+    (tlv)->type = htons(id);               \
+    (tlv)->data = htobe64(value);          \
+    (tlv)->size = htons(sizeof(uint64_t)); \
   } while (0)
 
 FlowInformation extract_flow_information(const u_char* packet) {
@@ -51,12 +51,12 @@ FlowInformation extract_flow_information(const u_char* packet) {
   char dst[INET_ADDRSTRLEN];
 
   const struct ip* iphdr;
-  ret.successful                    = false;
-  const struct ether_header* ethhdr = (struct ether_header*) packet;
+  ret.successful = false;
+  const struct ether_header* ethhdr = (struct ether_header*)packet;
   if (ntohs(ethhdr->ether_type) == ETHERTYPE_IP) {
-    iphdr          = (struct ip*) (packet + sizeof(struct ether_header));
-    ret.src_ip     = inet_ntop(AF_INET, &(iphdr->ip_src), src, INET_ADDRSTRLEN);
-    ret.dst_ip     = inet_ntop(AF_INET, &(iphdr->ip_dst), dst, INET_ADDRSTRLEN);
+    iphdr = (struct ip*)(packet + sizeof(struct ether_header));
+    ret.src_ip = inet_ntop(AF_INET, &(iphdr->ip_src), src, INET_ADDRSTRLEN);
+    ret.dst_ip = inet_ntop(AF_INET, &(iphdr->ip_dst), dst, INET_ADDRSTRLEN);
     ret.successful = true;
   }
   return ret;
@@ -66,20 +66,20 @@ static InterceptState build_new_intercept_state(
     std::string subid, const magma::mconfig::NProbeTask& task) {
   MLOG(MDEBUG) << "Create new intercept state for task " << task.task_id();
   InterceptState state;
-  state.target_id       = subid;
-  state.task_id         = task.task_id();
-  state.domain_id       = task.domain_id();
-  state.correlation_id  = task.correlation_id();
+  state.target_id = subid;
+  state.task_id = task.task_id();
+  state.domain_id = task.domain_id();
+  state.correlation_id = task.correlation_id();
   state.sequence_number = 0;
   return state;
 }
 
-PDUGenerator::PDUGenerator(
-    const std::string& pkt_dst_mac, const std::string& pkt_src_mac,
-    int sync_interval, int inactivity_time,
-    std::unique_ptr<ProxyConnector> proxy_connector,
-    std::unique_ptr<MobilitydClient> mobilityd_client,
-    magma::mconfig::LIAgentD mconfig)
+PDUGenerator::PDUGenerator(const std::string& pkt_dst_mac,
+                           const std::string& pkt_src_mac, int sync_interval,
+                           int inactivity_time,
+                           std::unique_ptr<ProxyConnector> proxy_connector,
+                           std::unique_ptr<MobilitydClient> mobilityd_client,
+                           magma::mconfig::LIAgentD mconfig)
     : pkt_dst_mac_(pkt_dst_mac),
       pkt_src_mac_(pkt_src_mac),
       sync_interval_(sync_interval),
@@ -89,8 +89,8 @@ PDUGenerator::PDUGenerator(
       mobilityd_client_(std::move(mobilityd_client)),
       mconfig_(mconfig) {}
 
-bool PDUGenerator::process_packet(
-    const struct pcap_pkthdr* phdr, const u_char* pdata) {
+bool PDUGenerator::process_packet(const struct pcap_pkthdr* phdr,
+                                  const u_char* pdata) {
   FlowInformation flow = extract_flow_information(pdata);
   if (!flow.successful) {
     MLOG(MERROR)
@@ -101,7 +101,7 @@ bool PDUGenerator::process_packet(
   auto diff = time_difference_from_now(prev_sync_time_);
   if (diff > static_cast<uint64_t>(sync_interval_)) {
     // load mconfig config to get updated nprobe tasks
-    mconfig_        = magma::lte::load_mconfig();
+    mconfig_ = magma::lte::load_mconfig();
     prev_sync_time_ = get_time_in_sec_since_epoch();
   }
 
@@ -147,16 +147,16 @@ void PDUGenerator::delete_inactive_tasks() {
   return;
 }
 
-void* PDUGenerator::generate_record(
-    const struct pcap_pkthdr* phdr, const u_char* pdata, std::string idx,
-    uint16_t direction, uint32_t* record_len) {
-  auto& state      = state_map_[idx];
+void* PDUGenerator::generate_record(const struct pcap_pkthdr* phdr,
+                                    const u_char* pdata, std::string idx,
+                                    uint16_t direction, uint32_t* record_len) {
+  auto& state = state_map_[idx];
   uint32_t hdr_len = sizeof(X3Header);
   uint32_t pld_len =
       phdr->len -
       ETHERNET_HDR_LEN;  // Skip eth layer as defined in ETSI 103 221-2.
 
-  *record_len     = hdr_len + pld_len;
+  *record_len = hdr_len + pld_len;
   uint8_t* record = static_cast<uint8_t*>(calloc(1, *record_len));
   if (record == nullptr) {
     MLOG(MERROR) << "Failed to allocate memory " << *record_len;
@@ -164,20 +164,20 @@ void* PDUGenerator::generate_record(
     return nullptr;
   }
 
-  X3Header* pdu          = reinterpret_cast<X3Header*>(record);
-  pdu->version           = htons(PDU_VERSION);
-  pdu->pdu_type          = htons(PDU_TYPE);
-  pdu->header_length     = htonl(hdr_len);
-  pdu->payload_length    = htonl(pld_len);
-  pdu->payload_format    = htons(IP_PAYLOAD_FORMAT);
-  pdu->correlation_id    = htobe64(state.correlation_id);
+  X3Header* pdu = reinterpret_cast<X3Header*>(record);
+  pdu->version = htons(PDU_VERSION);
+  pdu->pdu_type = htons(PDU_TYPE);
+  pdu->header_length = htonl(hdr_len);
+  pdu->payload_length = htonl(pld_len);
+  pdu->payload_format = htons(IP_PAYLOAD_FORMAT);
+  pdu->correlation_id = htobe64(state.correlation_id);
   pdu->payload_direction = htons(direction);
 
-  uint64_t tm = (uint64_t) phdr->ts.tv_sec << 32 | phdr->ts.tv_usec;
+  uint64_t tm = (uint64_t)phdr->ts.tv_sec << 32 | phdr->ts.tv_usec;
   SET_INT64_TLV(&pdu->attrs.timestamp, TIMESTAMP_ATTRID, tm);
 
-  SET_INT64_TLV(
-      &pdu->attrs.sequence_number, SEQNBR_ATTRID, state.sequence_number);
+  SET_INT64_TLV(&pdu->attrs.sequence_number, SEQNBR_ATTRID,
+                state.sequence_number);
 
   auto ret = uuid_parse(state.task_id.c_str(), pdu->xid);
   if (ret != 0) {
@@ -209,8 +209,8 @@ bool PDUGenerator::export_record(void* record, uint32_t size, int retries) {
   return true;
 }
 
-bool PDUGenerator::get_subscriber_id_from_ip(
-    const char* ip_addr, std::string* subid) {
+bool PDUGenerator::get_subscriber_id_from_ip(const char* ip_addr,
+                                             std::string* subid) {
   struct in_addr addr;
   if (inet_aton(ip_addr, &addr) <= 0) {
     MLOG(MERROR) << "Bad IPv4 address format " << ip_addr;
@@ -244,8 +244,8 @@ bool PDUGenerator::get_subscriber_id_from_ip(
   return true;
 }
 
-bool PDUGenerator::get_intercept_state_idx(
-    const FlowInformation& flow, std::string* idx) {
+bool PDUGenerator::get_intercept_state_idx(const FlowInformation& flow,
+                                           std::string* idx) {
   if (state_map_.find(flow.src_ip) != state_map_.end()) {
     *idx = flow.src_ip;
   } else if (state_map_.find(flow.dst_ip) != state_map_.end()) {
@@ -262,8 +262,8 @@ bool PDUGenerator::get_intercept_state_idx(
   return create_new_intercept_state(flow, idx);
 }
 
-bool PDUGenerator::create_new_intercept_state(
-    const FlowInformation& flow, std::string* idx) {
+bool PDUGenerator::create_new_intercept_state(const FlowInformation& flow,
+                                              std::string* idx) {
   std::string subid;
   if (get_subscriber_id_from_ip(flow.src_ip.c_str(), &subid)) {
     *idx = flow.src_ip;
@@ -293,7 +293,7 @@ bool PDUGenerator::is_still_valid_state(const std::string& idx) {
     if (state.task_id == task.task_id()) {
       MLOG(MDEBUG) << "Found task - " << state.task_id;
       state.correlation_id = task.correlation_id();
-      state.domain_id      = task.domain_id();
+      state.domain_id = task.domain_id();
       return true;
     }
   }
