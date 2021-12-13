@@ -16,7 +16,7 @@ if [[ ! -d $MAGMA_ROOT ]]; then
   exit 1
 fi
 
-rm *.txt
+rm -f *.txt
 # FOR NUM UE CONTEXTS
 for N in 50 200 400; do
   # Protobuf benchmarking
@@ -37,6 +37,11 @@ for N in 50 200 400; do
   cat stdout.all.txt | grep 'TIME PROTOBUF REDIS SERIALIZATION' | cut -d ':' -f2 >> protobuf_redis$N.txt
   cat stdout.all.txt | grep 'Time taken to deserialize contexts' | cut -d ':' -f2 >> protobuf_deserialize_contexts$N.txt
   cat stdout.all.txt | grep 'Time taken to serialize contexts' | cut -d ':' -f2 >> protobuf_serialize_contexts$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization'  | grep 'Cpu' | cut -d ':' -f2 >> protobuf_rusage_cpu$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization'  | grep 'Maximum resident' | cut -d ':' -f2 >> protobuf_rusage_mrss$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization'  | grep 'Page reclaims' | cut -d ':' -f2 >> protobuf_rusage_reclaims$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization'  | grep 'Block operations' | cut -d ':' -f2 >> protobuf_rusage_block$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization'  | grep 'Context switches ' | cut -d ':' -f2 >> protobuf_rusage_switches$N.txt
 
 
   # Flatbuffers benchmarking
@@ -56,4 +61,9 @@ for N in 50 200 400; do
   cat stdout.all.txt | grep 'TIME FLATBUFFER CONVERSION' | cut -d ':' -f2 >> flatbuffer_conv$N.txt
   cat stdout.all.txt | grep 'TIME FLATBUFFER REDIS SERIALIZATION' | cut -d ':' -f2 >> flatbuffer_redis$N.txt
   cat stdout.all.txt | grep 'Time taken to serialize contexts' | cut -d ':' -f2 >> flatbuffer_serialize_contexts$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization' | grep 'Cpu' | cut -d ':' -f2 >> flatbuffer_rusage_cpu$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization' | grep 'Maximum resident' | cut -d ':' -f2 >> flatbuffer_rusage_mrss$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization' | grep 'Page reclaims' | cut -d ':' -f2 >> flatbuffer_rusage_reclaims$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization' | grep 'Block operations' | cut -d ':' -f2 >> flatbuffer_rusage_block$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization' | grep 'Context switches ' | cut -d ':' -f2 >> flatbuffer_rusage_switches$N.txt
 done

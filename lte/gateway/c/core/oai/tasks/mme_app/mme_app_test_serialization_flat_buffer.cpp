@@ -394,7 +394,7 @@ void mme_app_fb_test_serialization(mme_app_desc_t* mme_app_desc, uint num_ues) {
   getrusage(RUSAGE_SELF, &ru_end_ctxt_to_proto);
   log_rusage_diff(
       ru_start_ctxt_to_proto, ru_end_ctxt_to_proto,
-      " Contexts to serialization");
+      "RUSAGE Contexts serialization");
   auto duration_ctxt_to_proto =
       std::chrono::duration_cast<std::chrono::nanoseconds>(
           end_ctxt_to_proto - start_ctxt_to_proto);
