@@ -83,6 +83,7 @@ class ConfigManager(StreamerClient.Callback):
                     data is sent in every update.
         """
         shared_mconfig = 'shared_mconfig'
+        magmad = 'magmad'
         if len(updates) == 0:
             logging.info('No config update to process')
             return
@@ -99,7 +100,7 @@ class ConfigManager(StreamerClient.Callback):
             self._allow_unknown_fields,
         )
 
-        if 'magmad' not in mconfig.configs_by_key:
+        if magmad not in mconfig.configs_by_key:
             logging.error('Invalid config! Magmad service config missing')
             return
 
@@ -110,26 +111,23 @@ class ConfigManager(StreamerClient.Callback):
             return mconfig.configs_by_key.get(serv_name) != \
                 self._mconfig.configs_by_key.get(serv_name)
 
-        def restart_magmad():
+        # Reload magmad configs locally
+        if did_mconfig_change(magmad) or (shared_mconfig in mconfig.configs_by_key 
+                and did_mconfig_change(shared_mconfig)):
+            logging.info("Restarting dynamic Services.")
             self._loop.create_task(
                 self._service_manager.update_dynamic_services(
-                    load_service_mconfig('magmad', mconfigs_pb2.MagmaD())
+                    load_service_mconfig(magmad, mconfigs_pb2.MagmaD())
                     .dynamic_services,
                 ),
             )
-
-        magmad_restarted = False
-        # Reload magmad configs locally
-        if did_mconfig_change('magmad'):
-            restart_magmad()
-            magmad_restarted = True
 
         services_to_restart = []
         if shared_mconfig in mconfig.configs_by_key and did_mconfig_change(shared_mconfig):
             logging.info("Shared config changed. Restarting all services.")
             services_to_restart = self._services
-            if not magmad_restarted:
-                restart_magmad()
+            if magmad not in services_to_restart:
+                services_to_restart.append(magmad)
         else:
             services_to_restart = [
                 srv for srv in self._services if did_mconfig_change(srv)
