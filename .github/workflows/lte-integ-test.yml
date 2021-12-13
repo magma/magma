@@ -12,6 +12,11 @@ on:  # yamllint disable-line rule:truthy
       - v1.*
     types:
       - completed
+  pull_request:
+    branches:
+      - master
+      - v1.*
+    types: [opened, reopened, synchronize]
 
 jobs:
   lte-integ-test:
