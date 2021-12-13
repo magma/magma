@@ -36,8 +36,10 @@ extern task_zmq_ctx_t task_zmq_ctx_main;
 #define DEFAULT_UE_IPv4 1000
 
 void nas_config_timer_reinit(nas_config_t* nas_conf, uint32_t timeout_msec) {
-  nas_conf->t3402_min    = 1;
-  nas_conf->t3412_min    = 1;
+  nas_conf->t3402_min = 1;
+  nas_conf->t3412_min = 1;
+  nas_conf->t3412_msec =
+      50 * timeout_msec;  // implicit detach after 2x of this value
   nas_conf->t3422_msec   = timeout_msec;
   nas_conf->t3450_msec   = timeout_msec;
   nas_conf->t3460_msec   = timeout_msec;
@@ -241,6 +243,14 @@ void send_ics_response() {
   MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
       .e_rab_setup_list.item[0]
       .transport_layer_address = blk2bstr(transport_address_buff, 4);
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
+void send_ics_failure() {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_FAILURE);
+  MME_APP_INITIAL_CONTEXT_SETUP_FAILURE(message_p).mme_ue_s1ap_id = 1;
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }

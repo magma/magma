@@ -190,6 +190,7 @@ void apn_map_config_init(apn_map_config_t* apn_map_config) {
 void nas_config_init(nas_config_t* nas_conf) {
   nas_conf->t3402_min    = T3402_DEFAULT_VALUE;
   nas_conf->t3412_min    = T3412_DEFAULT_VALUE;
+  nas_conf->t3412_msec   = 60000 * T3412_DEFAULT_VALUE;
   nas_conf->t3422_msec   = 1000 * T3422_DEFAULT_VALUE;
   nas_conf->t3450_msec   = 1000 * T3450_DEFAULT_VALUE;
   nas_conf->t3460_msec   = 1000 * T3460_DEFAULT_VALUE;
@@ -1630,6 +1631,8 @@ int mme_config_parse_string(
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3412_TIMER, &aint))) {
         config_pP->nas_config.t3412_min = (uint32_t) aint;
+        config_pP->nas_config.t3412_msec =
+            60000 * config_pP->nas_config.t3412_min;
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3422_TIMER, &aint))) {

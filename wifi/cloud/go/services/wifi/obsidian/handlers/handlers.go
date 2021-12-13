@@ -161,13 +161,14 @@ func getGateway(c echo.Context) error {
 	}
 
 	ret := &wifimodels.WifiGateway{
-		ID:          magmadModel.ID,
-		Name:        magmadModel.Name,
-		Description: magmadModel.Description,
-		Device:      magmadModel.Device,
-		Status:      magmadModel.Status,
-		Tier:        magmadModel.Tier,
-		Magmad:      magmadModel.Magmad,
+		ID:               magmadModel.ID,
+		Name:             magmadModel.Name,
+		Description:      magmadModel.Description,
+		Device:           magmadModel.Device,
+		RegistrationInfo: magmadModel.RegistrationInfo,
+		Status:           magmadModel.Status,
+		Tier:             magmadModel.Tier,
+		Magmad:           magmadModel.Magmad,
 	}
 	if ent.Config != nil {
 		ret.Wifi = ent.Config.(*wifimodels.GatewayWifiConfigs)

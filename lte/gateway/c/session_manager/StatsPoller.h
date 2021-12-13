@@ -26,8 +26,7 @@ class StatsPoller {
    * on the given loop interval length, this function will poll stats from
    * Pipelined every loop_interval_seconds
    */
-  void start_loop(
-      std::shared_ptr<LocalEnforcer> local_enforcer,
-      uint32_t loop_interval_seconds);
+  void start_loop(std::shared_ptr<LocalEnforcer> local_enforcer,
+                  uint32_t loop_interval_seconds);
 };
 }  // namespace magma

@@ -35,8 +35,7 @@ type MutableLteGateway struct {
 	Description models3.GatewayDescription `json:"description"`
 
 	// device
-	// Required: true
-	Device *models4.GatewayDevice `json:"device"`
+	Device *models4.GatewayDevice `json:"device,omitempty"`
 
 	// id
 	// Required: true
@@ -165,8 +164,8 @@ func (m *MutableLteGateway) validateDescription(formats strfmt.Registry) error {
 
 func (m *MutableLteGateway) validateDevice(formats strfmt.Registry) error {
 
-	if err := validate.Required("device", "body", m.Device); err != nil {
-		return err
+	if swag.IsZero(m.Device) { // not required
+		return nil
 	}
 
 	if m.Device != nil {

@@ -66,6 +66,7 @@ type OCSConfig struct {
 	GyInitMethod        gy.InitMethod
 	UseMockDriver       bool
 	FinalUnitIndication FinalUnitIndication
+	grantTypeProcedure  protos.OCSConfig_GrantType
 }
 
 // OCSDiamServer wraps an OCS storing subscriber accounts and their credit

@@ -28,8 +28,7 @@ type MutableCwfGateway struct {
 	Description models5.GatewayDescription `json:"description"`
 
 	// device
-	// Required: true
-	Device *models6.GatewayDevice `json:"device"`
+	Device *models6.GatewayDevice `json:"device,omitempty"`
 
 	// id
 	// Required: true
@@ -118,8 +117,8 @@ func (m *MutableCwfGateway) validateDescription(formats strfmt.Registry) error {
 
 func (m *MutableCwfGateway) validateDevice(formats strfmt.Registry) error {
 
-	if err := validate.Required("device", "body", m.Device); err != nil {
-		return err
+	if swag.IsZero(m.Device) { // not required
+		return nil
 	}
 
 	if m.Device != nil {

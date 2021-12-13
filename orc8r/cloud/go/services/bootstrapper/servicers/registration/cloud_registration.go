@@ -33,13 +33,16 @@ type cloudRegistrationServicer struct {
 	store   Store
 	rootCA  string
 	timeout time.Duration
+	// refreshOnRequest is whether we will refresh while token is valid regardless of the request's refresh
+	// This should only be false while testing code
+	refreshOnRequest bool
 }
 
-func NewCloudRegistrationServicer(store Store, rootCA string, timeout time.Duration) (protos.CloudRegistrationServer, error) {
+func NewCloudRegistrationServicer(store Store, rootCA string, timeout time.Duration, refreshOnRequest bool) (protos.CloudRegistrationServer, error) {
 	if store == nil {
 		return nil, fmt.Errorf("storage store is nil")
 	}
-	return &cloudRegistrationServicer{store: store, rootCA: rootCA, timeout: timeout}, nil
+	return &cloudRegistrationServicer{store: store, rootCA: rootCA, timeout: timeout, refreshOnRequest: refreshOnRequest}, nil
 }
 
 func (c *cloudRegistrationServicer) GetToken(ctx context.Context, request *protos.GetTokenRequest) (*protos.GetTokenResponse, error) {
@@ -53,7 +56,7 @@ func (c *cloudRegistrationServicer) GetToken(ctx context.Context, request *proto
 		glog.V(2).Infof("could not get tokenInfo for networkID %v and logicalID %v: %v", networkId, logicalId, err)
 	}
 
-	refresh := request.Refresh || tokenInfo == nil || IsExpired(tokenInfo)
+	refresh := (c.refreshOnRequest && request.Refresh) || tokenInfo == nil || IsExpired(tokenInfo)
 	if refresh {
 		tokenInfo, err = c.generateAndSaveTokenInfo(networkId, logicalId)
 		if err != nil {

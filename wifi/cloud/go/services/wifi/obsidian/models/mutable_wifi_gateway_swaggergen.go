@@ -24,8 +24,7 @@ type MutableWifiGateway struct {
 	Description models1.GatewayDescription `json:"description"`
 
 	// device
-	// Required: true
-	Device *models2.GatewayDevice `json:"device"`
+	Device *models2.GatewayDevice `json:"device,omitempty"`
 
 	// id
 	// Required: true
@@ -100,8 +99,8 @@ func (m *MutableWifiGateway) validateDescription(formats strfmt.Registry) error 
 
 func (m *MutableWifiGateway) validateDevice(formats strfmt.Registry) error {
 
-	if err := validate.Required("device", "body", m.Device); err != nil {
-		return err
+	if swag.IsZero(m.Device) { // not required
+		return nil
 	}
 
 	if m.Device != nil {

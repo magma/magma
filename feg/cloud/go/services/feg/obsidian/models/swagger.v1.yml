@@ -345,7 +345,7 @@ paths:
 
   /feg/{network_id}/gateways:
     get:
-      summary: List all federation gateways for a federation network
+      summary: List all gateways for a federation network
       tags:
       - Federation Gateways
       parameters:
@@ -1436,7 +1436,6 @@ definitions:
     type: object
     description: Full description of a federation gateway
     required:
-    - device
     - id
     - name
     - description
@@ -1446,6 +1445,8 @@ definitions:
     properties:
       device:
         $ref: './orc8r-swagger.yml#/definitions/gateway_device'
+      registration_info:
+        $ref: './orc8r-swagger-common.yml#/definitions/registration_info'
       id:
         $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
       name:
@@ -1465,7 +1466,6 @@ definitions:
     type: object
     description: Federation gateway object with read-only fields omitted
     required:
-    - device
     - id
     - name
     - description

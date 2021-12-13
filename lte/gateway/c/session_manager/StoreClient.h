@@ -26,7 +26,7 @@ namespace magma {
 namespace lte {
 
 using SessionVector = std::vector<std::unique_ptr<SessionState>>;
-using SessionMap    = std::unordered_map<std::string, SessionVector>;
+using SessionMap = std::unordered_map<std::string, SessionVector>;
 
 /**
  * StoreClient is responsible for reading/writing sessions to/from storage.

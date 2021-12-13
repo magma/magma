@@ -28,8 +28,8 @@ namespace lte {
 
 class InterfaceMonitor {
  public:
-  InterfaceMonitor(
-      const std::string& iface_name, std::unique_ptr<PDUGenerator> pkt_gen);
+  InterfaceMonitor(const std::string& iface_name,
+                   std::unique_ptr<PDUGenerator> pkt_gen);
 
   /**
    * init_iface_pcap_monitor starts a live pcap sniffing for an interface

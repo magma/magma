@@ -50,7 +50,7 @@ jobs:
           script: |
             var fs = require('fs');
             var skipFlag = fs.readFileSync('./skipped');
-            var rprFlag = fs.readFileSync('./RPR');
+            var rprFlag = fs.readFileSync('./is_reverted_pr');
             if( (skipFlag == 'true') || (rprFlag == 'true') ) {
               core.setOutput('should_skip', 'true');
               //console.log("Skipping because should_skip=" + skipFlag);
@@ -128,12 +128,12 @@ jobs:
         with:
           script: |
             var fs = require('fs');
-            var isRevertedPR = fs.readFileSync('./RPR');
+            var isRevertedPR = fs.readFileSync('./is_reverted_pr');
             if( isRevertedPR == 'true' ) {
               console.log("PR is a reverted PR. So exiting gracefully...");
               process.exit(0);
             }
-            var issue_number = Number(fs.readFileSync('./NR'));
+            var issue_number = Number(fs.readFileSync('./pr_number'));
             const msg = fs.readFileSync('./msg',{encoding: 'utf8'})
 
             var commentId = 0;

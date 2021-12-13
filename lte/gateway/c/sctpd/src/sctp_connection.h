@@ -39,18 +39,17 @@ enum class SctpStatus {
 class SctpEventHandler {
  public:
   // Specification for NewAssoc handler function
-  virtual int HandleNewAssoc(
-      uint32_t ppid, uint32_t assoc_id, uint32_t instreams, uint32_t outstreams,
-      std::string& ran_cp_ipaddr) = 0;
+  virtual int HandleNewAssoc(uint32_t ppid, uint32_t assoc_id,
+                             uint32_t instreams, uint32_t outstreams,
+                             std::string& ran_cp_ipaddr) = 0;
 
   // Specification for CloseAssoc handler function
-  virtual void HandleCloseAssoc(
-      uint32_t ppid, uint32_t assoc_id, bool reset) = 0;
+  virtual void HandleCloseAssoc(uint32_t ppid, uint32_t assoc_id,
+                                bool reset) = 0;
 
   // Specification for Recv handler function
-  virtual void HandleRecv(
-      uint32_t ppid, uint32_t assoc_id, uint32_t stream,
-      const std::string& payload) = 0;
+  virtual void HandleRecv(uint32_t ppid, uint32_t assoc_id, uint32_t stream,
+                          const std::string& payload) = 0;
 };
 
 // Manages Sctp connection including setup/teardown and send/recv

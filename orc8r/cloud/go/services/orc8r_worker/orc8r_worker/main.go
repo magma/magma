@@ -39,7 +39,6 @@ func main() {
 		glog.Fatalf("Error creating orc8r_worker service %v", err)
 	}
 
-	// TODO(reginawang3495): rename function name when jobQueue reindexer is removed
 	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
 	if singletonReindex {
 		startSingletonReindexer(srv)

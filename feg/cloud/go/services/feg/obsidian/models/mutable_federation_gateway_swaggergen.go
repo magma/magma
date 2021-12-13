@@ -24,8 +24,7 @@ type MutableFederationGateway struct {
 	Description models4.GatewayDescription `json:"description"`
 
 	// device
-	// Required: true
-	Device *models5.GatewayDevice `json:"device"`
+	Device *models5.GatewayDevice `json:"device,omitempty"`
 
 	// federation
 	Federation *GatewayFederationConfigs `json:"federation,omitempty"`
@@ -99,8 +98,8 @@ func (m *MutableFederationGateway) validateDescription(formats strfmt.Registry) 
 
 func (m *MutableFederationGateway) validateDevice(formats strfmt.Registry) error {
 
-	if err := validate.Required("device", "body", m.Device); err != nil {
-		return err
+	if swag.IsZero(m.Device) { // not required
+		return nil
 	}
 
 	if m.Device != nil {

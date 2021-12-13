@@ -201,6 +201,7 @@ func getGateway(c echo.Context) error {
 		Name:                   magmadModel.Name,
 		Description:            magmadModel.Description,
 		Device:                 magmadModel.Device,
+		RegistrationInfo:       magmadModel.RegistrationInfo,
 		Status:                 magmadModel.Status,
 		Tier:                   magmadModel.Tier,
 		Magmad:                 magmadModel.Magmad,

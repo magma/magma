@@ -34,9 +34,9 @@ jobs:
         if: always()
         run: |
           mkdir -p ./pr
-          echo -n ${{ github.event.number }} > ./pr/NR
+          echo -n ${{ github.event.number }} > ./pr/pr_number
           echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
-          echo -n "false" > ./pr/RPR
+          echo -n "false" > ./pr/is_reverted_pr
       - uses: actions/upload-artifact@v2
         if: always()
         with:

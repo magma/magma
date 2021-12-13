@@ -119,3 +119,31 @@ def cpp_repositories():
         patches = ["//third_party/build/patches/liblfds:0001-arm64-support.patch"],
         patch_args = ["--strip=1"],
     )
+
+    new_git_repository(
+        name = "libfluid_base",
+        build_file = "//bazel/external:libfluid_base.BUILD",
+        commit = "56df5e20c49387ab8e6b5cd363c6c10d309f263e",
+        remote = "https://github.com/OpenNetworkingFoundation/libfluid_base",
+        shallow_since = "1448037833 -0200",
+        patches = [
+            "//third_party/build/patches/libfluid/libfluid_base_patches:EVLOOP_NO_EXIT_ON_EMPTY_compat.patch",
+            "//third_party/build/patches/libfluid/libfluid_base_patches:ExternalEventPatch.patch",
+        ],
+        patch_args = ["--strip=1"],
+    )
+
+    new_git_repository(
+        name = "libfluid_msg",
+        build_file = "//bazel/external:libfluid_msg.BUILD",
+        commit = "71a4fccdedfabece730082fbe87ef8ae5f92059f",
+        remote = "https://github.com/OpenNetworkingFoundation/libfluid_msg.git",
+        shallow_since = "1487696730 +0000",
+        patches = [
+            "//third_party/build/patches/libfluid/libfluid_msg_patches:0001-Add-TunnelIPv4Dst-support.patch",
+            "//third_party/build/patches/libfluid/libfluid_msg_patches:0002-Add-support-for-setting-OVS-reg8.patch",
+            "//third_party/build/patches/libfluid/libfluid_msg_patches:0003-Add-Reg-field-match-support.patch",
+            "//third_party/build/patches/libfluid/libfluid_msg_patches:0004-Add-TunnelIPv6Dst-support.patch",
+        ],
+        patch_args = ["--strip=1"],
+    )

@@ -28,7 +28,7 @@ namespace magma {
 namespace lte {
 
 #define MME_APP_TIMER_TO_MSEC 10
-#define STATE_MAX_WAIT_MS 10000
+#define STATE_MAX_WAIT_MS 2000
 #define NAS_RETX_LIMIT 5
 
 #define MME_APP_EXPECT_CALLS(                                                  \
@@ -89,6 +89,8 @@ void send_create_session_resp(gtpv2c_cause_value_t cause_value);
 void send_delete_session_resp();
 
 void send_ics_response();
+
+void send_ics_failure();
 
 void send_ue_ctx_release_complete();
 
