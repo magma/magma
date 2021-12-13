@@ -201,3 +201,115 @@ axs[2, 2].set_title('400 UEs Cumulative serialization (ns)')
 axs[2, 2].plot(np.arange(400),pbc400, 'b')
 axs[2, 2].plot(np.arange(400),fbc400, 'r')
 plt.show()
+
+# PROTOBUF
+p_cpu_user = []
+p_cpu_system = []
+p_mrss = []
+p_soft_reclaims = []
+p_hard_reclaims = []
+p_block_input = []
+p_block_output = []
+p_switches_voluntary = []
+p_switches_involuntary = []
+# FlatBuffers
+f_cpu_user = []
+f_cpu_system = []
+f_mrss = []
+f_soft_reclaims = []
+f_hard_reclaims = []
+f_block_input = []
+f_block_output = []
+f_switches_voluntary = []
+f_switches_involuntary = []
+
+for i in ('50', '200', '400'):
+    f =  open('protobuf_rusage_cpu'+i+'.txt')
+    x = f.read().splitlines()
+    p_cpu_user += [float(s.split('/')[0]) for s in x]
+    p_cpu_system += [float(s.split('/')[1]) for s in x]
+    f.close()
+
+    f =  open('protobuf_rusage_mrss'+i+'.txt')
+    x = f.read().splitlines()
+    p_mrss += [int(s) for s in x]
+    f.close()
+
+    f =  open('protobuf_rusage_reclaims'+i+'.txt')
+    x = f.read().splitlines()
+    p_soft_reclaims += [int(s.split('/')[0]) for s in x]
+    p_hard_reclaims += [int(s.split('/')[1]) for s in x]
+    f.close()
+
+    f =  open('protobuf_rusage_block'+i+'.txt')
+    x = f.read().splitlines()
+    p_block_input += [int(s.split('/')[0]) for s in x]
+    p_block_output += [int(s.split('/')[1]) for s in x]
+    f.close()
+
+    f =  open('protobuf_rusage_switches'+i+'.txt')
+    x = f.read().splitlines()
+    p_switches_voluntary += [int(s.split('/')[0]) for s in x]
+    p_switches_involuntary += [int(s.split('/')[1]) for s in x]
+    f.close()
+
+    f =  open('flatbuffer_rusage_cpu'+i+'.txt')
+    x = f.read().splitlines()
+    f_cpu_user += [float(s.split('/')[0]) for s in x]
+    f_cpu_system += [float(s.split('/')[1]) for s in x]
+    f.close()
+
+    f =  open('flatbuffer_rusage_mrss'+i+'.txt')
+    x = f.read().splitlines()
+    f_mrss += [int(s) for s in x]
+    f.close()
+
+    f =  open('flatbuffer_rusage_reclaims'+i+'.txt')
+    x = f.read().splitlines()
+    f_soft_reclaims += [int(s.split('/')[0]) for s in x]
+    f_hard_reclaims += [int(s.split('/')[1]) for s in x]
+    f.close()
+
+    f =  open('flatbuffer_rusage_block'+i+'.txt')
+    x = f.read().splitlines()
+    f_block_input += [int(s.split('/')[0]) for s in x]
+    f_block_output += [int(s.split('/')[1]) for s in x]
+    f.close()
+
+    f =  open('flatbuffer_rusage_switches'+i+'.txt')
+    x = f.read().splitlines()
+    f_switches_voluntary += [int(s.split('/')[0]) for s in x]
+    f_switches_involuntary += [int(s.split('/')[1]) for s in x]
+    f.close()
+
+print(p_cpu_user)
+print(f_cpu_user)
+fig3, axs3 = plt.subplots(3, 3, sharex=True)
+axs3[0, 0].set_title('CPU user (seconds)')
+axs3[0, 0].plot(np.array([50, 200, 400]),p_cpu_user, 'b')
+axs3[0, 0].plot(np.array([50, 200, 400]),f_cpu_user, 'r')
+axs3[0, 1].set_title('CPU system (seconds)')
+axs3[0, 1].plot(np.array([50, 200, 400]),p_cpu_system, 'b')
+axs3[0, 1].plot(np.array([50, 200, 400]),f_cpu_system, 'r')
+axs3[0, 2].set_title('Maximum resident set size: (kilobytes)')
+axs3[0, 2].plot(np.array([50, 200, 400]),p_mrss, 'b')
+axs3[0, 2].plot(np.array([50, 200, 400]),f_mrss, 'r')
+axs3[1, 0].set_title('Page reclaims soft faults')
+axs3[1, 0].plot(np.array([50, 200, 400]),p_soft_reclaims, 'b')
+axs3[1, 0].plot(np.array([50, 200, 400]),f_soft_reclaims, 'r')
+axs3[1, 1].set_title('Page reclaims hard faults')
+axs3[1, 1].plot(np.array([50, 200, 400]),p_hard_reclaims, 'b')
+axs3[1, 1].plot(np.array([50, 200, 400]),f_hard_reclaims, 'r')
+axs3[1, 2].set_title('Block operations fs inputs (occur.)')
+axs3[1, 2].plot(np.array([50, 200, 400]),p_block_input, 'b')
+axs3[1, 2].plot(np.array([50, 200, 400]),f_block_input, 'r')
+axs3[2, 0].set_title('Block operations fs outputs (occur.)')
+axs3[2, 0].plot(np.array([50, 200, 400]),p_block_output, 'b')
+axs3[2, 0].plot(np.array([50, 200, 400]),f_block_output, 'r')
+axs3[2, 1].set_title('Context switches voluntary (occur.)')
+axs3[2, 1].plot(np.array([50, 200, 400]),p_switches_voluntary, 'b')
+axs3[2, 1].plot(np.array([50, 200, 400]),f_switches_voluntary, 'r')
+axs3[2, 2].set_title('Context switches involuntary (occur.)')
+axs3[2, 2].plot(np.array([50, 200, 400]),p_switches_involuntary, 'b')
+axs3[2, 2].plot(np.array([50, 200, 400]),f_switches_involuntary, 'r')
+plt.show()

@@ -249,7 +249,7 @@ void mme_app_test_protobuf_serialization(
   getrusage(RUSAGE_SELF, &ru_end_ctxt_to_proto);
   log_rusage_diff(
       ru_start_ctxt_to_proto, ru_end_ctxt_to_proto,
-      "RUSAGE Contexts to protobufs");
+      "RUSAGE Contexts serialization");
   auto duration_ctxt_to_proto =
       std::chrono::duration_cast<std::chrono::nanoseconds>(
           end_ctxt_to_proto - start_ctxt_to_proto);
@@ -268,7 +268,7 @@ void mme_app_test_protobuf_serialization(
   getrusage(RUSAGE_SELF, &ru_end_proto_to_ctxt);
   log_rusage_diff(
       ru_start_proto_to_ctxt, ru_end_proto_to_ctxt,
-      "RUSAGE Protobufs to contexts");
+      "RUSAGE Contexts deserialization");
   auto duration_proto_to_ctxt =
       std::chrono::duration_cast<std::chrono::nanoseconds>(
           end_proto_to_ctxt - start_proto_to_ctxt);
