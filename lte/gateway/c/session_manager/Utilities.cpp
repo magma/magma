@@ -63,4 +63,10 @@ std::chrono::milliseconds time_difference_from_now(
   return std::chrono::duration_cast<std::chrono::milliseconds>(sec);
 }
 
+std::string prepend_imsi_with_prefix(const std::string& imsi) {
+  if (imsi.find(IMSI_PREFIX) == std::string::npos) {
+    return IMSI_PREFIX + imsi;
+  }
+  return imsi;
+}
 }  // namespace magma

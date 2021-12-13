@@ -32,6 +32,7 @@
 #include "lte/protos/session_manager.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
 #include "magma_logging.h"
+#include "Utilities.h"
 
 namespace google {
 namespace protobuf {
@@ -111,8 +112,7 @@ void UpfMsgManageHandler::SetUPFSessionsConfig(
                                                          ses_config]() {
     for (auto& upf_session : ses_config.upf_session_state()) {
       // Deleting the IMSI prefix from imsi
-      std::string imsi_upf = upf_session.subscriber_id();
-      std::string imsi = imsi_upf.substr(4, imsi_upf.length() - 4);
+      const std::string imsi = upf_session.subscriber_id();
       uint32_t version = upf_session.session_version();
       uint32_t teid = upf_session.local_f_teid();
       auto session_map = session_store_.read_sessions({imsi});
@@ -182,7 +182,7 @@ void UpfMsgManageHandler::SendPagingRequest(
         if (!status.ok()) {
           MLOG(MERROR) << "Subscriber could not be found for ip ";
         }
-        const std::string& imsi = sid.id();
+        std::string imsi = prepend_imsi_with_prefix(sid.id());
         get_session_from_imsi(imsi, fte_id, response_callback);
         return;
       });

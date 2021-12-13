@@ -43,6 +43,7 @@
 #include "lte/protos/policydb.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
 #include "magma_logging.h"
+#include "Utilities.h"
 
 #define DEFAULT_AMBR_UNITS (1024)
 #define DEFAULT_UP_LINK_PDR_ID 1
@@ -53,7 +54,8 @@ std::shared_ptr<magma::SessionStateEnforcer> conv_session_enforcer;
 namespace magma {
 
 void call_back_upf(grpc::Status, magma::UPFSessionContextState response) {
-  std::string imsi = response.session_snapshot().subscriber_id();
+  std::string imsi =
+      prepend_imsi_with_prefix(response.session_snapshot().subscriber_id());
   uint32_t version = response.session_snapshot().session_version();
   uint32_t fteid = response.session_snapshot().local_f_teid();
   const std::string session_id = response.session_snapshot().subscriber_id();
@@ -196,8 +198,7 @@ uint32_t SessionStateEnforcer::update_session_rules(
     bool get_upf_teid, SessionStateUpdateCriteria* session_uc) {
   uint32_t upf_teid = 0;
   SetGroupPDR rule;
-  const std::string& imsi = session->get_imsi();
-
+  std::string imsi = prepend_imsi_with_prefix(session->get_imsi());
   // Get the latest config
   const auto& config = session->get_config();
   auto itp = pdr_map_.equal_range(imsi);
@@ -302,7 +303,7 @@ void SessionStateEnforcer::m5g_start_session_termination(
     SessionMap& session_map, const std::unique_ptr<SessionState>& session,
     const uint32_t& pdu_id, SessionStateUpdateCriteria* session_uc) {
   const auto session_id = session->get_session_id();
-  const std::string& imsi = session->get_imsi();
+  std::string imsi = prepend_imsi_with_prefix(session->get_imsi());
   const auto previous_state = session->get_state();
 
   /* update respective session's state and return from here before timeout

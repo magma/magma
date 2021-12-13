@@ -40,7 +40,7 @@ class CreateAmfSession(object):
         self._set_session = SetSMSessionContext(
             common_context=CommonSessionContext(
                 sid=SubscriberID(id="IMSI12345"),
-                ue_ipv4="192.168.128.11",
+                ue_ipv4="192.168.128.12",
                 apn=bytes("BLR", 'utf-8'),
                 rat_type=RATType.Name(2),
                 sm_session_state=SMSessionFSMState.Name(0),
@@ -165,7 +165,7 @@ class ReleaseAmfSession(object):
             SetSMSessionContext(
                 common_context=CommonSessionContext(
                     sid=SubscriberID(id="IMSI12345"),
-                    ue_ipv4="192.168.128.11",
+                    ue_ipv4="192.168.128.12",
                     apn=bytes("BLR", 'utf-8'),
                     rat_type=RATType.Name(2),
                     sm_session_state=SMSessionFSMState.Name(4),

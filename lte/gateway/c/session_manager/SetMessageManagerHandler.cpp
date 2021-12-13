@@ -37,6 +37,7 @@
 #include "lte/protos/session_manager.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
 #include "magma_logging.h"
+#include "Utilities.h"
 
 namespace google {
 namespace protobuf {
@@ -107,7 +108,8 @@ void SetMessageManagerHandler::SetAmfSessionContext(
   m5g_enforcer_->get_event_base().runInEventBaseThread([this, response_callback,
                                                         request_cpy]() {
     // extract values from proto
-    std::string imsi = request_cpy.common_context().sid().id();
+    std::string imsi =
+        prepend_imsi_with_prefix(request_cpy.common_context().sid().id());
     const auto rat_type = request_cpy.common_context().rat_type();
     if (rat_type != TGPP_NR) {
       // We don't support outside of 5G
@@ -398,7 +400,8 @@ void SetMessageManagerHandler::pdu_session_inactive(
     std::function<void(Status, SmContextVoid)> response_callback) {
   // extract values from proto
   uint32_t pdu_id = notif.rat_specific_notification().pdu_session_id();
-  std::string imsi = notif.common_context().sid().id();
+  std::string imsi =
+      prepend_imsi_with_prefix(notif.common_context().sid().id());
   /* Read the SessionMap from global session_store */
   SessionSearchCriteria criteria(imsi, IMSI_AND_PDUID, pdu_id);
   auto session_map = session_store_.read_sessions({imsi});
@@ -455,7 +458,8 @@ void SetMessageManagerHandler::idle_mode_change_sessions_handle(
     const SetSmNotificationContext& notif,
     std::function<void(Status, SmContextVoid)> response_callback) {
   // extract IMSI value from proto
-  auto imsi = notif.common_context().sid().id();
+  std::string imsi =
+      prepend_imsi_with_prefix(notif.common_context().sid().id());
   auto session_map = session_store_.read_sessions({imsi});
   int count = 0;
   auto session_update = SessionStore::get_default_session_update(session_map);
@@ -503,7 +507,8 @@ void SetMessageManagerHandler::service_handle_request_on_paging(
     const SetSmNotificationContext& notif,
     std::function<void(Status, SmContextVoid)> response_callback) {
   // extract IMSI value from proto
-  auto imsi = notif.common_context().sid().id();
+  std::string imsi =
+      prepend_imsi_with_prefix(notif.common_context().sid().id());
   auto session_map = session_store_.read_sessions({imsi});
   int count = 0;
   auto session_update = SessionStore::get_default_session_update(session_map);
