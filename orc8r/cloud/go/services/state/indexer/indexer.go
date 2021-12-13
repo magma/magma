@@ -73,9 +73,7 @@ func NewIndexerVersion(version int64) (Version, error) {
 		return 0, fmt.Errorf("version value %d is outside the boundaries of uint32 type", version)
 	}
 	capped := Version(version)
-	if int64(capped) != version {
-		return 0, fmt.Errorf("indexer version %v too large for %T", version, Version(0))
-	}
+
 	return capped, nil
 }
 
