@@ -12,6 +12,7 @@
  */
 #include <chrono>
 #include <gtest/gtest.h>
+#include <cstdint>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -32,6 +33,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.h"
 #include "lte/gateway/c/core/oai/include/mme_app_state.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 }
 
 using ::testing::_;
@@ -59,6 +61,30 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   itti_free_msg_content(received_message_p);
   free(received_message_p);
   return 0;
+}
+
+MATCHER_P2(
+    check_params_in_path_switch_req_ack, new_enb_ue_s1ap_id, new_sctp_assoc_id,
+    "") {
+  auto path_switch_ack_recv =
+      static_cast<itti_s1ap_path_switch_request_ack_t>(arg);
+  if ((path_switch_ack_recv.enb_ue_s1ap_id == new_enb_ue_s1ap_id) &&
+      (path_switch_ack_recv.sctp_assoc_id == new_sctp_assoc_id)) {
+    return true;
+  }
+  return false;
+}
+
+MATCHER_P2(
+    check_params_in_path_switch_req_failure, new_enb_ue_s1ap_id,
+    new_sctp_assoc_id, "") {
+  auto path_switch_ack_recv =
+      static_cast<itti_s1ap_path_switch_request_failure_t>(arg);
+  if ((path_switch_ack_recv.enb_ue_s1ap_id == new_enb_ue_s1ap_id) &&
+      (path_switch_ack_recv.sctp_assoc_id == new_sctp_assoc_id)) {
+    return true;
+  }
+  return false;
 }
 
 class MmeAppProcedureTest : public ::testing::Test {
@@ -3118,6 +3144,243 @@ TEST_F(MmeAppProcedureTest, TestMobileReachabilityTimer) {
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Check MME state after implicit detach complete
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+}
+
+TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchSuccess) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+
+  MME_APP_EXPECT_CALLS(3, 1, 1, 1, 1, 1, 1, 2, 0, 1, 3);
+
+  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(
+      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
+
+  // Sending AIA to mme_app mimicing successful S6A response for AIR
+  send_authentication_info_resp(imsi, true);
+
+  // Wait for DL NAS Transport for once
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending Authentication Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+
+  // Wait for DL NAS Transport for once
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending SMC Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+
+  // Sending ULA to mme_app mimicing successful S6A response for ULR
+  send_s6a_ula(imsi, true);
+
+  // Constructing and sending Create Session Response to mme_app mimicing SPGW
+  send_create_session_resp(REQUEST_ACCEPTED);
+
+  // Constructing and sending ICS Response to mme_app mimicing S1AP
+  send_ics_response();
+
+  // Constructing UE Capability Indication message to mme_app
+  // mimicing S1AP with dummy radio capabilities
+  send_ue_capabilities_ind();
+
+  // Constructing and sending Attach Complete to mme_app
+  // mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+
+  // Wait for DL NAS Transport for EMM Information
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+
+  // Constructing and sending Modify Bearer Response to mme_app
+  // mimicing SPGW
+  std::vector<int> b_modify = {5};
+  std::vector<int> b_rm     = {};
+  send_modify_bearer_resp(b_modify, b_rm);
+
+  // Check MME state after Modify Bearer Response
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+
+  // Send path switch request to mme_app mimicing S1AP, use 1 for all new ids,
+  // since Initial UE message is using 0
+  uint32_t new_enb_ue_s1ap_id = DEFAULT_eNB_S1AP_UE_ID + 1;
+  uint32_t new_sctp_assoc_id  = DEFAULT_SCTP_ASSOC_ID + 1;
+  uint32_t new_enb_id         = DEFAULT_ENB_ID + 1;
+  send_s1ap_path_switch_req(
+      new_sctp_assoc_id, new_enb_id, new_enb_ue_s1ap_id, plmn);
+
+  // Expect that Path Switch ACK is sent to S1AP from mme_app after modify
+  // bearer response is received
+  EXPECT_CALL(
+      *s1ap_handler,
+      s1ap_handle_path_switch_req_ack(check_params_in_path_switch_req_ack(
+          new_enb_ue_s1ap_id, new_sctp_assoc_id)))
+      .Times(1);
+
+  // Constructing and sending Modify Bearer Response to mme_app
+  // mimicing SPGW, with same parameters as last one
+  send_modify_bearer_resp(b_modify, b_rm);
+
+  // Check MME state after Modify Bearer Response
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
+
+  // Constructing and sending Detach Request to mme_app
+  // mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_detach_req, sizeof(nas_msg_detach_req), plmn);
+
+  // Constructing and sending Delete Session Response to mme_app
+  // mimicing SPGW task
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  send_delete_session_resp();
+
+  // Wait for context release request
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check MME state after detach complete
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+}
+
+TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchFailure) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+
+  MME_APP_EXPECT_CALLS(3, 1, 1, 1, 1, 1, 1, 2, 0, 1, 3);
+
+  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(
+      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
+
+  // Sending AIA to mme_app mimicing successful S6A response for AIR
+  send_authentication_info_resp(imsi, true);
+
+  // Wait for DL NAS Transport for once
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending Authentication Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+
+  // Wait for DL NAS Transport for once
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending SMC Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+
+  // Sending ULA to mme_app mimicing successful S6A response for ULR
+  send_s6a_ula(imsi, true);
+
+  // Constructing and sending Create Session Response to mme_app mimicing SPGW
+  send_create_session_resp(REQUEST_ACCEPTED);
+
+  // Constructing and sending ICS Response to mme_app mimicing S1AP
+  send_ics_response();
+
+  // Constructing UE Capability Indication message to mme_app
+  // mimicing S1AP with dummy radio capabilities
+  send_ue_capabilities_ind();
+
+  // Constructing and sending Attach Complete to mme_app
+  // mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+
+  // Wait for DL NAS Transport for EMM Information
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+
+  // Constructing and sending Modify Bearer Response to mme_app
+  // mimicing SPGW
+  std::vector<int> b_modify = {5};
+  std::vector<int> b_rm     = {};
+  send_modify_bearer_resp(b_modify, b_rm);
+
+  // Check MME state after Modify Bearer Response
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
+
+  // Send path switch request to mme_app mimicing S1AP, use 1 for all new ids,
+  // since Initial UE message is using 0
+  uint32_t new_enb_ue_s1ap_id = DEFAULT_eNB_S1AP_UE_ID + 1;
+  uint32_t new_sctp_assoc_id  = DEFAULT_SCTP_ASSOC_ID + 1;
+  uint32_t new_enb_id         = DEFAULT_ENB_ID + 1;
+  send_s1ap_path_switch_req(
+      new_sctp_assoc_id, new_enb_id, new_enb_ue_s1ap_id, plmn);
+
+  // Expect that Path Switch Failure is sent to S1AP from mme_app after modify
+  // bearer response is received
+  EXPECT_CALL(
+      *s1ap_handler, s1ap_handle_path_switch_req_failure(
+                         check_params_in_path_switch_req_failure(
+                             new_enb_ue_s1ap_id, new_sctp_assoc_id)))
+      .Times(1);
+
+  // Constructing and sending Modify Bearer Response to mme_app
+  // mimicing SPGW, with empty modify bearer list to trigger failure
+  b_modify = {};
+  send_modify_bearer_resp(b_modify, b_rm);
+
+  // Check MME state after Modify Bearer Response
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
+
+  // Constructing and sending Detach Request to mme_app
+  // mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_detach_req, sizeof(nas_msg_detach_req), plmn);
+
+  // Constructing and sending Delete Session Response to mme_app
+  // mimicing SPGW task
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  send_delete_session_resp();
+
+  // Wait for context release request
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check MME state after detach complete
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
