@@ -67,6 +67,7 @@ suci_profile_data = NamedTuple(
     ],
 )
 
+
 class SubscriberDBCloudClient(SDWatchdogTask):
     """
     SubscriberDBCloudClient for requesting subscribers from Orchestrator.
