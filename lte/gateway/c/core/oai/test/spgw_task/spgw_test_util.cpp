@@ -248,10 +248,10 @@ void fill_release_access_bearer_request(
     teid_t mme_s11_teid, teid_t sgw_s11_context_teid) {
   release_access_bearers_req->local_teid = mme_s11_teid;
   release_access_bearers_req->teid       = sgw_s11_context_teid;
-  /*release_access_bearers_req->edns_peer_ip.addr_v4.sin_addr.s_addr =
+  release_access_bearers_req->edns_peer_ip.addr_v4.sin_addr.s_addr =
       DEFAULT_EDNS_IP;
-  release_access_bearers_req->edns_peer_ip.addr_v4.sin_family = AF_INET;*/
-  release_access_bearers_req->originating_node = NODE_TYPE_MME;
+  release_access_bearers_req->edns_peer_ip.addr_v4.sin_family = AF_INET;
+  release_access_bearers_req->originating_node                = NODE_TYPE_MME;
 }
 
 void fill_packet_filter_content(packet_filter_contents_t* pf_content) {

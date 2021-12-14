@@ -3544,7 +3544,6 @@ TEST_F(
   // Check MME state after context release request is processed
   send_activate_message_to_mme_app();
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  mme_state_p = magma::lte::MmeNasStateManager::getInstance().get_state(false);
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 2);
