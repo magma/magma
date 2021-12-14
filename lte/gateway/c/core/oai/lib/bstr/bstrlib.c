@@ -207,7 +207,7 @@ bstring bfromcstr_with_str_len(const char* str, int len) {
   int i;
   int j;
 
-  if (str == NULL) return NULL;
+  if ((str == NULL) || (len == 0)) return NULL;
   j = len;
   i = snapUpSize((int) (j + (2 - (j != 0))));
   if (i <= (int) j) return NULL;
