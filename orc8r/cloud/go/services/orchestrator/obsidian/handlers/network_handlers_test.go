@@ -364,6 +364,23 @@ func Test_PostNetworkHandlers(t *testing.T) {
 	}
 	assert.Equal(t, expectedNetwork1, actualNetwork1)
 
+	actualTier1, err := configurator.LoadEntity(
+		context.Background(), "n1",
+		orc8r.UpgradeTierEntityType, "default",
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: false},
+		serdes.Entity,
+	)
+	expectedTier1 := &models.Tier{
+		ID:       "default",
+		Gateways: models.TierGateways{},
+		Images:   models.TierImages{},
+		Version:  models.TierVersion("1.0"),
+	}
+	assert.NoError(t, err)
+	assert.Equal(t, "n1", actualTier1.NetworkID)
+	assert.Equal(t, "upgrade_tier", actualTier1.Type)
+	assert.Equal(t, expectedTier1, actualTier1.Config.(*models.Tier))
+
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/", testURLRoot, "n1"),

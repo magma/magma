@@ -53,6 +53,22 @@ func registerNetwork(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
+
+	// Creating default tier for each created network
+	for _, s := range createdNetworks {
+		defaultTier := &models.Tier{
+			ID:       "default",
+			Gateways: models.TierGateways{},
+			Images:   models.TierImages{},
+			Version:  models.TierVersion("1.0"),
+		}
+		entity := defaultTier.ToNetworkEntity()
+		_, err := configurator.CreateEntity(c.Request().Context(), s.ID, entity, serdes.Entity)
+		if err != nil {
+			// Handling error: this may not block the register workflow, instead it prints error logs
+		}
+	}
+
 	return c.JSON(http.StatusCreated, createdNetworks[0].ID)
 }
 
