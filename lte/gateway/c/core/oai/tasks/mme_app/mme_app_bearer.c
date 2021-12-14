@@ -1722,12 +1722,12 @@ void mme_app_handle_release_access_bearers_resp(
   }
 
   // Updating statistics for all the active bearers
-  for (uint8_t itr=0; itr < BEARERS_PER_UE; itr++) {
+  for (uint8_t itr = 0; itr < BEARERS_PER_UE; itr++) {
     if (ue_context_p->bearer_contexts[itr])
       update_mme_app_stats_s1u_bearer_sub();
   }
 
-  if (mme_app_desc_p->nb_s1u_bearers != 0)  {
+  if (mme_app_desc_p->nb_s1u_bearers != 0) {
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   // Send UE Context Release Command

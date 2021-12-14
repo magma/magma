@@ -156,7 +156,7 @@ status_code_e mme_app_send_s11_release_access_bearers_req(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  //release_access_bearers_request_p->teid = pdn_connection->s_gw_teid_s11_s4;
+  // release_access_bearers_request_p->teid = pdn_connection->s_gw_teid_s11_s4;
   /*release_access_bearers_request_p->edns_peer_ip.addr_v4.sin_addr =
       pdn_connection->s_gw_address_s11_s4.address.ipv4_address;
   release_access_bearers_request_p->edns_peer_ip.addr_v4.sin_family = AF_INET;*/

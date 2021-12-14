@@ -1085,7 +1085,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachIcsFailure) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Send ICS failure to mme_app mimicing S1AP
   send_ics_failure();
@@ -1094,7 +1094,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachIcsFailure) {
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
   // Wait for context release request
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -2964,7 +2964,7 @@ TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -3020,7 +3020,7 @@ TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
 
   // Trigger paging via bearer request in control plane
   // Send activate dedicated bearer request mimicing SPGW
-  send_s11_create_bearer_req();
+  send_s11_create_bearer_req(DEFAULT_LBI);
   EXPECT_CALL(*s1ap_handler, s1ap_handle_paging_request())
       .Times(MAX_PAGING_RETRY_COUNT + 1)
       .WillRepeatedly(ReturnFromAsyncTask(&cv));
@@ -3050,7 +3050,7 @@ TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
   // Wait for context release request
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -3099,7 +3099,7 @@ TEST_F(MmeAppProcedureTest, TestMobileReachabilityTimer) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -3157,7 +3157,7 @@ TEST_F(MmeAppProcedureTest, TestMobileReachabilityTimer) {
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
   // Wait for context release request
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -3204,7 +3204,7 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchSuccess) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -3272,7 +3272,7 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchSuccess) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
   // Wait for context release request
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -3321,7 +3321,7 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchFailure) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -3391,7 +3391,7 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchFailure) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
   // Wait for context release request
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -3543,7 +3543,6 @@ TEST_F(
 
   // Check MME state after context release request is processed
   send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   mme_state_p = magma::lte::MmeNasStateManager::getInstance().get_state(false);
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);

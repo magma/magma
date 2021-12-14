@@ -1247,7 +1247,7 @@ typedef struct itti_s11_release_access_bearers_request_s {
   // Private Extension Private Extension ///< optional
   /* GTPv2-C specific parameters */
   void* trxn;
-  //edns_peer_ip_t edns_peer_ip;
+  // edns_peer_ip_t edns_peer_ip;
 } itti_s11_release_access_bearers_request_t;
 
 //-----------------------------------------------------------------------------
