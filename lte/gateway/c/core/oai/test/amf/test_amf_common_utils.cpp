@@ -68,4 +68,31 @@ TEST(test_ambr, test_ambr_convert) {
   EXPECT_EQ(ambr_value, 536);  // 536 Mbps
 }
 
+TEST(test_ambr, test_ambr_convert_pdu_aggregrate) {
+  uint64_t dl_pdu_ambr;
+  uint64_t ul_pdu_ambr;
+
+  uint16_t dl_session_ambr = 5000;
+  uint16_t ul_session_ambr = 6000;
+  uint8_t dl_ambr_unit     = 1;
+  uint8_t ul_ambr_unit     = 1;
+
+  ambr_calculation_pdu_session(
+      &dl_session_ambr, &dl_ambr_unit, &ul_session_ambr, &ul_ambr_unit,
+      &dl_pdu_ambr, &ul_pdu_ambr);
+  EXPECT_EQ(dl_pdu_ambr, 5000000);
+  EXPECT_EQ(ul_pdu_ambr, 6000000);
+
+  dl_session_ambr = 5000;
+  ul_session_ambr = 6000;
+  dl_ambr_unit    = 6;
+  ul_ambr_unit    = 6;
+
+  ambr_calculation_pdu_session(
+      &dl_session_ambr, &dl_ambr_unit, &ul_session_ambr, &ul_ambr_unit,
+      &dl_pdu_ambr, &ul_pdu_ambr);
+  EXPECT_EQ(dl_pdu_ambr, 5000000000);
+  EXPECT_EQ(ul_pdu_ambr, 6000000000);
+}
+
 }  // namespace magma5g
