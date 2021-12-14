@@ -167,13 +167,16 @@ int amf_send_pdusession_reject(
 void set_amf_smf_context(
     PDUSessionEstablishmentRequestMsg* message,
     std::shared_ptr<smf_context_t> smf_ctx) {
-  smf_ctx->smf_proc_data.pdu_session_identity = message->pdu_session_identity;
-  smf_ctx->smf_proc_data.pti                  = message->pti;
-  smf_ctx->smf_proc_data.message_type         = message->message_type;
-  smf_ctx->smf_proc_data.integrity_prot_max_data_rate =
-      message->integrity_prot_max_data_rate;
-  smf_ctx->smf_proc_data.pdu_session_type = message->pdu_session_type;
-  smf_ctx->smf_proc_data.ssc_mode         = message->ssc_mode;
+  smf_ctx->smf_proc_data.pdu_session_id =
+      message->pdu_session_identity.pdu_session_id;
+  smf_ctx->smf_proc_data.pti          = message->pti.pti;
+  smf_ctx->smf_proc_data.message_type = message->message_type.msg_type;
+  smf_ctx->smf_proc_data.max_uplink =
+      message->integrity_prot_max_data_rate.max_uplink;
+  smf_ctx->smf_proc_data.max_downlink =
+      message->integrity_prot_max_data_rate.max_downlink;
+  smf_ctx->smf_proc_data.pdu_session_type = message->pdu_session_type.type_val;
+  smf_ctx->smf_proc_data.ssc_mode         = message->ssc_mode.mode_val;
   smf_ctx->pdu_session_version            = 0;  // Initializing pdu version to 0
   memset(
       smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, '\0',
@@ -216,9 +219,7 @@ int pdu_session_release_request_process(
         "PDU session resource release request to gNB failed"
         "\n");
   } else {
-    ue_pdu_id_t id = {
-        amf_ue_ngap_id,
-        smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id};
+    ue_pdu_id_t id = {amf_ue_ngap_id, smf_ctx->smf_proc_data.pdu_session_id};
 
     smf_ctx->T3592.id = amf_pdu_start_timer(
         PDUE_SESSION_RELEASE_TIMER_MSECS, TIMER_REPEAT_ONCE,
@@ -265,7 +266,7 @@ int t3592_abort_handler(
   int rc                               = RETURNerror;
   amf_smf_t amf_smf_msg                = {};
   amf_smf_msg.pdu_session_id           = pdu_session_id;
-  amf_smf_msg.u.release.pti            = smf_ctx->smf_proc_data.pti.pti;
+  amf_smf_msg.u.release.pti            = smf_ctx->smf_proc_data.pti;
   amf_smf_msg.u.release.pdu_session_id = pdu_session_id;
   amf_smf_msg.u.release.cause_value    = SMF_CAUSE_SUCCESS;
   rc = pdu_session_resource_release_complete(ue_context, amf_smf_msg, smf_ctx);
@@ -465,9 +466,9 @@ int amf_smf_process_pdu_session_packet(
         return rc;
       }
 
-      smf_ctx->sst = msg->nssai.sst;
+      smf_ctx->requested_nssai.sst = msg->nssai.sst;
       if (msg->nssai.sd[0]) {
-        memcpy(smf_ctx->sd, msg->nssai.sd, SD_LENGTH);
+        memcpy(smf_ctx->requested_nssai.sd, msg->nssai.sd, SD_LENGTH);
       }
       set_amf_smf_context(
           &(msg->payload_container.smf_msg.msg.pdu_session_estab_request),
@@ -518,7 +519,7 @@ int amf_smf_process_pdu_session_packet(
         return rc;
       }
 
-      smf_ctx->smf_proc_data.pti.pti =
+      smf_ctx->smf_proc_data.pti =
           msg->payload_container.smf_msg.msg.pdu_session_estab_request.pti.pti;
       // send request to SMF over grpc
       /*
@@ -532,8 +533,8 @@ int amf_smf_process_pdu_session_packet(
           SESSION_NULL, ue_context, amf_smf_msg, imsi, NULL, 0);
     } break;
     case PDU_SESSION_RELEASE_REQUEST: {
-      smf_ctx->smf_proc_data.pti.pti = msg->payload_container.smf_msg.msg
-                                           .pdu_session_release_request.pti.pti;
+      smf_ctx->smf_proc_data.pti = msg->payload_container.smf_msg.msg
+                                       .pdu_session_release_request.pti.pti;
       smf_ctx->retransmission_count = 0;
       if (RETURNok == pdu_session_release_request_process(
                           ue_context, smf_ctx, ue_id, false)) {
@@ -585,7 +586,7 @@ void smf_dnn_ambr_select(
   OAILOG_INFO(LOG_AMF_APP, "dnn selected %s\n", smf_ctx->dnn.c_str());
 
   memcpy(
-      &smf_ctx->smf_ctx_ambr,
+      &smf_ctx->apn_ambr,
       &ue_context->amf_context.apn_config_profile.apn_configuration[index_dnn]
            .ambr,
       sizeof(ambr_t));
@@ -849,7 +850,7 @@ int amf_smf_handle_ip_address_response(
     rc = amf_smf_create_ipv4_session_grpc_req(
         response_p->imsi, response_p->apn, response_p->pdu_session_id,
         response_p->pdu_session_type, response_p->gnb_gtp_teid, response_p->pti,
-        response_p->gnb_gtp_teid_ip_addr, ip_str, smf_ctx->smf_ctx_ambr);
+        response_p->gnb_gtp_teid_ip_addr, ip_str, smf_ctx->apn_ambr);
 
     if (rc < 0) {
       OAILOG_ERROR(LOG_AMF_APP, "Create IPV4 Session \n");
