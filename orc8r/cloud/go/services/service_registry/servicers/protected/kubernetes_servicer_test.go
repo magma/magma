@@ -27,7 +27,7 @@ import (
 	corev1Interface "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/services/service_registry/servicers"
+	servicers "magma/orc8r/cloud/go/services/service_registry/servicers/protected"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
