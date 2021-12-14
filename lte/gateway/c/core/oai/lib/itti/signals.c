@@ -45,11 +45,6 @@
 #include "lte/gateway/c/core/oai/lib/itti/signals.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 
-#if defined(LOG_D) && defined(LOG_E)
-#define SIG_DEBUG(x, args...) OAILOG_D(EMU, x, ##args)
-#define SIG_ERROR(x, args...) OAILOG_E(EMU, x, ##args)
-#endif
-
 #ifndef SIG_DEBUG
 #define SIG_DEBUG(x, args...)                                                  \
   do {                                                                         \
