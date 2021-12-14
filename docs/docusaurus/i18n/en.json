@@ -32,6 +32,9 @@
       "contributing/contribute_proposals": {
         "title": "Proposals Process"
       },
+      "contributing/contribute_tsc_norms": {
+        "title": "TSC Processes"
+      },
       "contributing/contribute_vscode": {
         "title": "Develop Magma With VSCode"
       },
