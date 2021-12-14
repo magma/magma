@@ -1,6 +1,7 @@
 package test_utils
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,10 +12,14 @@ import (
 	"magma/orc8r/cloud/go/test_utils"
 )
 
-const TestRootUsername = "root"
-const TestUsername = "bob"
-const TestPassword = "password"
-const WriteTestNetworkId = "N6789"
+const (
+	TestRootUsername    = "root"
+	TestUsername        = "bob"
+	TestPassword        = "password"
+	WriteTestNetworkId  = "N6789"
+	TestTenantId        = 0
+	TestTenantNetworkId = "N6780"
+)
 
 func GetCertifierBlobstore(t *testing.T) storage.CertifierStorage {
 	fact := test_utils.NewSQLBlobstore(t, storage.CertifierTableBlobstore)
@@ -72,6 +77,12 @@ func createTestUserPolicy(token string) certprotos.Policy {
 			ResourceType: certprotos.ResourceType_NETWORK_ID,
 			Resource:     WriteTestNetworkId,
 		},
+		{
+			Effect:       certprotos.Effect_ALLOW,
+			Action:       certprotos.Action_WRITE,
+			ResourceType: certprotos.ResourceType_TENANT_ID,
+			Resource:     strconv.Itoa(TestTenantId),
+		},
 	}
 
 	policy := certprotos.Policy{
@@ -87,18 +98,6 @@ func createTestAdminPolicy(token string) certprotos.Policy {
 			Effect:       certprotos.Effect_ALLOW,
 			Action:       certprotos.Action_WRITE,
 			ResourceType: certprotos.ResourceType_URI,
-			Resource:     "**",
-		},
-		{
-			Effect:       certprotos.Effect_ALLOW,
-			Action:       certprotos.Action_WRITE,
-			ResourceType: certprotos.ResourceType_NETWORK_ID,
-			Resource:     "**",
-		},
-		{
-			Effect:       certprotos.Effect_ALLOW,
-			Action:       certprotos.Action_WRITE,
-			ResourceType: certprotos.ResourceType_TENANT_ID,
 			Resource:     "**",
 		},
 	}

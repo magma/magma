@@ -130,8 +130,9 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			Username: username,
 			Token:    token,
 			Resource: &certprotos.Resource{
-				Action:   getRequestAction(req, nil),
-				Resource: req.RequestURI,
+				Action:       getRequestAction(req, nil),
+				ResourceType: resourceType,
+				Resource:     req.RequestURI,
 			},
 		}
 		switch resourceType {

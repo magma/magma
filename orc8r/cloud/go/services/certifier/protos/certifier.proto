@@ -76,9 +76,7 @@ message Resource {
   Effect effect = 1;
   Action action = 2;
   ResourceType resourceType = 3;
-  // Resource is the path of the resource
   string resource = 4;
-  // Resource ID is an optional field for tenant and network resources
   oneof resource_id {
     string tenant_id = 5;
     string network_id = 6;

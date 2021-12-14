@@ -54,18 +54,6 @@ func addAdminToken(cmd *commands.Command, args []string) int {
 			ResourceType: certprotos.ResourceType_URI,
 			Resource:     "**",
 		},
-		{
-			Effect:       certprotos.Effect_ALLOW,
-			Action:       certprotos.Action_WRITE,
-			ResourceType: certprotos.ResourceType_NETWORK_ID,
-			Resource:     "**",
-		},
-		{
-			Effect:       certprotos.Effect_ALLOW,
-			Action:       certprotos.Action_WRITE,
-			ResourceType: certprotos.ResourceType_TENANT_ID,
-			Resource:     "**",
-		},
 	}
 	ctx := context.Background()
 
