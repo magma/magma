@@ -26,7 +26,6 @@ on:  # yamllint disable-line rule:truthy
       - 'secrets/**'
       - 'show-tech/**'
       - 'third_party/**'
-      - 'wifi/**'
       - 'xwf/**'
 
 concurrency:
