@@ -139,9 +139,9 @@ class StateConverter {
       hash_table_uint64_ts_t* state_htbl);
 
   static void guti_to_proto(const guti_t& guti_state, oai::Guti* guti_proto);
+  static void proto_to_guti(const oai::Guti& guti_proto, guti_t* state_guti);
 
   static void ecgi_to_proto(const ecgi_t& state_ecgi, oai::Ecgi* ecgi_proto);
-
   static void proto_to_ecgi(const oai::Ecgi& ecgi_proto, ecgi_t* state_ecgi);
 
   static void eps_subscribed_qos_profile_to_proto(
@@ -168,6 +168,7 @@ class StateConverter {
 
  private:
   static void plmn_to_chars(const plmn_t& state_plmn, char* plmn_array);
+  static void chars_to_plmn(const char* plmn_array, plmn_t& state_plmn);
 };
 
 }  // namespace lte
