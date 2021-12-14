@@ -1,37 +1,3 @@
-Skip to content
-Search or jump to…
-Pull requests
-Issues
-Marketplace
-Explore
- 
-@Rajeshs23 
-magma
-/
-magma
-Public
-Code
-Issues
-1.5k
-Pull requests
-205
-Discussions
-Actions
-Projects
-Wiki
-Security
-26
-Insights
-magma/lte/gateway/c/core/oai/test/amf/test_amf_procedures.cpp
-@Rajeshs23
-Rajeshs23 Internal review changes
-…
-Latest commit cf2cdde 22 days ago
- History
- 5 contributors
-@ganeshg87@Rajeshs23@Kaleem-Wavelabs@electronjoe@panyogesh
- 1033 lines (846 sloc)  41.5 KB
-   
 /**
  * Copyright 2020 The Magma Authors.
  *
@@ -65,6 +31,7 @@ using ::testing::Test;
 namespace magma5g {
 
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
+extern std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
 
 class AMFAppProcedureTest : public ::testing::Test {
   virtual void SetUp() {
@@ -932,7 +899,6 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
   amf_app_handle_deregistration_req(ue_id);
 }
 
-
 TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDb) {
   amf_ue_ngap_id_t ue_id                = 0;
   ue_m5gmm_context_s* ue_5gmm_context_p = NULL;
@@ -981,7 +947,6 @@ TEST(test_t3592abort, test_pdu_session_release_notify_smf) {
   ue_context_map.clear();
   delete ue_context;
 }
-
 TEST_F(AMFAppProcedureTest, TestPDUv6SessionSetup) {
   int rc                 = RETURNerror;
   amf_ue_ngap_id_t ue_id = 0;

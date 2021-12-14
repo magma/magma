@@ -122,7 +122,6 @@ int AsyncSmfServiceClient::amf_smf_create_pdu_session(
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
     const ambr_t& state_ambr, uint32_t version) {
-
   std::string ip4_str, ip6_str;
 
   if (ue_ipv4_addr) {

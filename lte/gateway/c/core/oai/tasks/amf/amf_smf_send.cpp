@@ -878,7 +878,8 @@ int amf_smf_handle_ip_address_response(
     }
 
     if (response_p->paa.pdn_type == IPv6) {
-      char ip_v6_str[INET6_ADDRSTRLEN];
+      char ip_v6_str[INET6_ADDRSTRLEN] = {};
+
       inet_ntop(
           AF_INET6, &(response_p->paa.ipv6_address.s6_addr), ip_v6_str,
           INET6_ADDRSTRLEN);
@@ -893,8 +894,8 @@ int amf_smf_handle_ip_address_response(
     }
 
     if (response_p->paa.pdn_type == IPv4_AND_v6) {
-      char ip_v4_str[INET_ADDRSTRLEN];
-      char ip_v6_str[INET6_ADDRSTRLEN];
+      char ip_v4_str[INET_ADDRSTRLEN]  = {};
+      char ip_v6_str[INET6_ADDRSTRLEN] = {};
 
       inet_ntop(
           AF_INET, &(response_p->paa.ipv4_address.s_addr), ip_v4_str,

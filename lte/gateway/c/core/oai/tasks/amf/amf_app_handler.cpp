@@ -35,6 +35,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 #include "lte/gateway/c/core/oai/include/n11_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
@@ -711,48 +712,51 @@ break;
 
 // Utility function to convert address to buffer
 static int paa_to_address_info(
-const paa_t* paa, uint8_t* pdu_address_info, uint8_t* pdu_address_length) {
-uint32_t ip_int = 0;
+    const paa_t* paa, uint8_t* pdu_address_info, uint8_t* pdu_address_length) {
+  uint32_t ip_int = 0;
+  if ((paa == nullptr) || (pdu_address_info == nullptr) ||
+      (pdu_address_length == nullptr)) {
+    return RETURNerror;
+  }
+  switch (paa->pdn_type) {
+    case IPv4:
+      ip_int = ntohl(paa->ipv4_address.s_addr);
+      INT32_TO_BUFFER(ip_int, pdu_address_info);
+      *pdu_address_length = sizeof(ip_int);
+      break;
 
-switch (paa->pdn_type) {
-case IPv4:
-ip_int = ntohl(paa->ipv4_address.s_addr);
-INT32_TO_BUFFER(ip_int, pdu_address_info);
-*pdu_address_length = sizeof(ip_int);
-break;
-
-case IPv6:
-if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
-memcpy(
-    pdu_address_info, &paa->ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
-    paa->ipv6_prefix_length / 8);
-*pdu_address_length = IPV6_INTERFACE_ID_LEN;
-} else {
-OAILOG_ERROR(
-    LOG_AMF_APP, "Invalid ipv6_prefix_length : %u\n",
-    paa->ipv6_prefix_length);
-return RETURNerror;
-}
-break;
-case IPv4_AND_v6:
-if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
-memcpy(
-    pdu_address_info, &paa->ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
-    paa->ipv6_prefix_length / 8);
-ip_int = ntohl(paa->ipv4_address.s_addr);
-INT32_TO_BUFFER(ip_int, pdu_address_info + IPV6_INTERFACE_ID_LEN);
-*pdu_address_length = IPV6_INTERFACE_ID_LEN + sizeof(ip_int);
-} else {
-OAILOG_ERROR(
-    LOG_AMF_APP, "Invalid ipv6_prefix_length : %u\n",
-    paa->ipv6_prefix_length);
-return RETURNerror;
-}
-break;
-default:
-break;
-}
-return RETURNok;
+    case IPv6:
+      if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
+        memcpy(
+            pdu_address_info, &paa->ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
+            paa->ipv6_prefix_length / 8);
+        *pdu_address_length = IPV6_INTERFACE_ID_LEN;
+      } else {
+        OAILOG_ERROR(
+            LOG_AMF_APP, "Invalid ipv6_prefix_length : %u\n",
+            paa->ipv6_prefix_length);
+        return RETURNerror;
+      }
+      break;
+    case IPv4_AND_v6:
+      if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
+        memcpy(
+            pdu_address_info, &paa->ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
+            paa->ipv6_prefix_length / 8);
+        ip_int = ntohl(paa->ipv4_address.s_addr);
+        INT32_TO_BUFFER(ip_int, pdu_address_info + IPV6_INTERFACE_ID_LEN);
+        *pdu_address_length = IPV6_INTERFACE_ID_LEN + sizeof(ip_int);
+      } else {
+        OAILOG_ERROR(
+            LOG_AMF_APP, "Invalid ipv6_prefix_length : %u\n",
+            paa->ipv6_prefix_length);
+        return RETURNerror;
+      }
+      break;
+    default:
+      break;
+  }
+  return RETURNok;
 }
 
 /****************************************************************************
@@ -860,9 +864,9 @@ smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
   // encode v4 type address
   if (pdu_session_resp->pdu_address.pdn_type == IPv4) {
     smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val =
-        PDN_SESSION_TYPE_IPV4;
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV4);
     smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val =
-        PDN_SESSION_TYPE_IPV4;
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV4);
 
     paa_to_address_info(
         &(pdu_session_resp->pdu_address),
@@ -871,10 +875,10 @@ smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
 
   } else if (pdu_session_resp->pdu_address.pdn_type == IPv6) {
     smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val =
-        PDN_SESSION_TYPE_IPV6;
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV6);
 
     smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val =
-        PDN_SESSION_TYPE_IPV6;
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV6);
 
     paa_to_address_info(
         &(pdu_session_resp->pdu_address),
@@ -883,10 +887,10 @@ smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
 
   } else if (pdu_session_resp->pdu_address.pdn_type == IPv4_AND_v6) {
     smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val =
-        PDN_SESSION_TYPE_IPV4V6;
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV4V6);
 
     smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val =
-        PDN_SESSION_TYPE_IPV4V6;
+        static_cast<uint32_t>(magma5g::M5GPduSessionType::IPV4V6);
 
     paa_to_address_info(
         &(pdu_session_resp->pdu_address),
