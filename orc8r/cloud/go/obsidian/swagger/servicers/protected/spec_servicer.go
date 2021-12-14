@@ -11,7 +11,7 @@
  limitations under the License.
 */
 
-package swagger
+package servicers
 
 import (
 	"context"

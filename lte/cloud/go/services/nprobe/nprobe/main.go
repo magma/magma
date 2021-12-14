@@ -26,8 +26,8 @@ import (
 	np_storage "magma/lte/cloud/go/services/nprobe/storage"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/obsidian/swagger/protos"
+	internal_swagger "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -58,7 +58,7 @@ func main() {
 
 	// Attach handlers
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers(nprobeBlobstore))
-	protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(nprobe.ServiceName))
+	protos.RegisterSwaggerSpecServer(srv.GrpcServer, internal_swagger.NewSpecServicerFromFile(nprobe.ServiceName))
 
 	serviceConfig := nprobe.GetServiceConfig()
 	nProbeManager, err := manager.NewNProbeManager(serviceConfig, nprobeBlobstore)

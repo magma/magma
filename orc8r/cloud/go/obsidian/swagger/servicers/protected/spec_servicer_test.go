@@ -11,7 +11,7 @@
  limitations under the License.
 */
 
-package swagger_test
+package servicers_test
 
 import (
 	"context"
@@ -23,15 +23,15 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/obsidian/swagger/protos"
+	servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/obsidian/swagger/spec/mocks"
 )
 
 func TestSpecServicer_NewSpecServicerFromFile(t *testing.T) {
 	// Missing default dir / spec files should not panic.
-	servicer := swagger.NewSpecServicerFromFile("foo")
+	servicer := servicers.NewSpecServicerFromFile("foo")
 	assert.NotNil(t, servicer)
 }
 
@@ -60,7 +60,7 @@ func TestSpecServicer_NewSpecServicerFromSpecs(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Success
-	servicer := swagger.NewSpecServicerWithLoader(spec.NewFSLoader(d), "test_spec_servicer")
+	servicer := servicers.NewSpecServicerWithLoader(spec.NewFSLoader(d), "test_spec_servicer")
 
 	partialReq := &protos.PartialSpecRequest{}
 	partialRes, err := servicer.GetPartialSpec(context.Background(), partialReq)
@@ -83,7 +83,7 @@ func TestSpecServicer_NewSpecServicerFromSpecsPartialErr(t *testing.T) {
 	standaloneSpec := "standalone spec"
 	partialErrMock.On("GetStandaloneSpec", service).Return(standaloneSpec, nil)
 
-	servicer := swagger.NewSpecServicerWithLoader(partialErrMock, service)
+	servicer := servicers.NewSpecServicerWithLoader(partialErrMock, service)
 	assert.NotNil(t, servicer)
 
 	partialRes, err := servicer.GetPartialSpec(context.Background(), &protos.PartialSpecRequest{})
@@ -103,7 +103,7 @@ func TestSpecServicer_NewSpecServicerFromSpecsStandaloneErr(t *testing.T) {
 	standaloneErrMock.On("GetPartialSpec", service).Return(partialSpec, errors.New("partial err"))
 	standaloneErrMock.On("GetStandaloneSpec", service).Return("", nil)
 
-	servicer := swagger.NewSpecServicerWithLoader(standaloneErrMock, service)
+	servicer := servicers.NewSpecServicerWithLoader(standaloneErrMock, service)
 	assert.NotNil(t, servicer)
 
 	partialRes, err := servicer.GetPartialSpec(context.Background(), &protos.PartialSpecRequest{})
@@ -119,7 +119,7 @@ func TestSpecServicer_GetPartialSpec(t *testing.T) {
 	testFileContents := "test partial yaml spec"
 
 	// Success
-	servicer := swagger.NewSpecServicer(testFileContents, "")
+	servicer := servicers.NewSpecServicer(testFileContents, "")
 
 	req := &protos.PartialSpecRequest{}
 	res, err := servicer.GetPartialSpec(context.Background(), req)
@@ -132,7 +132,7 @@ func TestSpecServicer_GetStandaloneSpec(t *testing.T) {
 	testFileContents := "test standalone yaml spec"
 
 	// Success
-	servicer := swagger.NewSpecServicer("", testFileContents)
+	servicer := servicers.NewSpecServicer("", testFileContents)
 
 	req := &protos.StandaloneSpecRequest{}
 	res, err := servicer.GetStandaloneSpec(context.Background(), req)
