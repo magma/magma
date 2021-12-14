@@ -240,9 +240,10 @@ CONNECTIOND_BUILD="${C_BUILD}/connection_tracker"
 SCTPD_BUILD="${C_BUILD}/sctpd/src"
 
 make build_oai BUILD_TYPE="${BUILD_TYPE}"
-make build_session_manager BUILD_TYPE="${BUILD_TYPE}"
-make build_sctpd BUILD_TYPE="${BUILD_TYPE}"
-make build_connection_tracker BUILD_TYPE="${BUILD_TYPE}"
+make build_c BUILD_TYPE="${BUILD_TYPE}"
+# make build_session_manager BUILD_TYPE="${BUILD_TYPE}"
+# make build_sctpd BUILD_TYPE="${BUILD_TYPE}"
+# make build_connection_tracker BUILD_TYPE="${BUILD_TYPE}"
 
 # Build Magma Envoy Controller service
 cd "${MAGMA_ROOT}/feg/gateway"
