@@ -253,7 +253,8 @@
         "label": "Maintain",
         "ids": [
           "contributing/contribute_proposals",
-          "contributing/contribute_codeowners"
+          "contributing/contribute_codeowners",
+          "contributing/contribute_tsc_norms"
         ]
       }
     ],
