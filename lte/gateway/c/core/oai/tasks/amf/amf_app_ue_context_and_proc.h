@@ -286,6 +286,15 @@ typedef struct paging_context_s {
   uint8_t paging_retx_count;
 } paging_context_t;
 
+// NAS decode and validaion of IE
+typedef struct amf_nas_message_decode_status_s {
+  uint8_t integrity_protected_message : 1;
+  uint8_t ciphered_message : 1;
+  uint8_t mac_matched : 1;
+  uint8_t security_context_available : 1;
+  int amf_cause;
+} amf_nas_message_decode_status_t;
+
 /*
  * Structure of the AMF context established by core for a particular UE
  * --------------------------------------------------------------------
@@ -336,6 +345,8 @@ typedef struct amf_context_s {
   ambr_t subscribed_ue_ambr;
   /* apn_config_profile: set by S6A UPDATE LOCATION ANSWER */
   apn_config_profile_t apn_config_profile;
+
+  amf_nas_message_decode_status_t decode_status;
 } amf_context_t;
 
 // Amf-Map Declarations:
@@ -457,15 +468,6 @@ typedef struct amf_msg_header_t {
 // Release Request routine.
 void amf_app_ue_context_release(
     ue_m5gmm_context_s* ue_context_p, ngap_Cause_t cause);
-
-// NAS decode and validaion of IE
-typedef struct amf_nas_message_decode_status_s {
-  uint8_t integrity_protected_message : 1;
-  uint8_t ciphered_message : 1;
-  uint8_t mac_matched : 1;
-  uint8_t security_context_available : 1;
-  int amf_cause;
-} amf_nas_message_decode_status_t;
 
 // 5G Mobility Management Messages
 union mobility_msg_u {

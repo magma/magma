@@ -16,10 +16,13 @@
 #include <grpcpp/impl/codegen/status.h>
 #include "lte/protos/subscriberauth.pb.h"
 #include "lte/protos/subscriberauth.grpc.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+#include "lte/protos/subscriberdb.grpc.pb.h"
 
 #include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.h"
 #include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/n11/M5GAuthenticationServiceClient.h"
+#include "lte/gateway/c/core/oai/lib/n11/M5GSUCIRegistrationServiceClient.h"
 
 using ::testing::Test;
 
@@ -97,6 +100,43 @@ TEST(test_get_subs_auth_info, get_subs_auth_info) {
 
   EXPECT_TRUE(imsi == req.user_name());
   EXPECT_TRUE(snni == req.serving_network_name());
+}
+
+TEST(
+    test_convert_proto_msg_to_itti_m5g_auth_info_ans,
+    convert_proto_msg_to_itti_amf_decrypted_imsi_info_ans) {
+  magma::lte::M5GSUCIRegistrationAnswer response;
+  itti_amf_decrypted_imsi_info_ans_t amf_decrypt_imsi_info_resp;
+
+  std::string imsi("1032547698");
+
+  response.set_ue_msin_recv(imsi);
+
+  magma5g::convert_proto_msg_to_itti_amf_decrypted_imsi_info_ans(
+      response, &amf_decrypt_imsi_info_resp);
+
+  EXPECT_EQ(
+      memcmp(
+          amf_decrypt_imsi_info_resp.imsi, response.ue_msin_recv().c_str(),
+          imsi.length()),
+      0);
+}
+
+TEST(test_get_decrypt_imsi_info, get_decrypt_imsi_info) {
+  uint8_t ue_pubkey_identifier = 1;
+  std::string ue_pubkey =
+      "0\xc9q\xf4q\xeb\xf9\xa2o\x17\t\xd6qT\xcd;\xf6`\x8d%\xb0^"
+      "\xc0\x9c\x13\xc6\xabRw\xbdK\n";
+  std::string ciphertext = "\xfc\xf0b\xfc\xad";
+  std::string mac_tag    = "\xa2;\xef\x01\xad\xe1\xd7e";
+
+  M5GSUCIRegistrationRequest req = magma5g::create_decrypt_imsi_request(
+      ue_pubkey_identifier, ue_pubkey, ciphertext, mac_tag);
+
+  EXPECT_TRUE(ue_pubkey_identifier == req.ue_pubkey_identifier());
+  EXPECT_TRUE(ue_pubkey == req.ue_pubkey());
+  EXPECT_TRUE(ciphertext == req.ue_ciphertext());
+  EXPECT_TRUE(mac_tag == req.ue_encrypted_mac());
 }
 
 int main(int argc, char** argv) {

@@ -356,25 +356,25 @@ variable "analytics_metrics_prefix" {
 
 variable "analytics_app_secret" {
   description = "App secret for which the metrics is to be exported to"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 
 variable "analytics_app_id" {
   description = "App ID for which the metrics is to be exported to"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "analytics_metric_export_url" {
   description = "Metric Export URL"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "analytics_category_name" {
   description = "Category under which the exported metrics will be placed under"
-  type = string
-  default = "magma"
+  type        = string
+  default     = "magma"
 }

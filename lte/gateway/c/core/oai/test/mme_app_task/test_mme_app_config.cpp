@@ -859,6 +859,13 @@ TEST(MMEConfigTest, TestParseHealthyConfig) {
   free_mme_config(&mme_config);
 }
 
+TEST(MMEConfigTest, TestParseHealthyConfigDisplay) {
+  mme_config_t mme_config = {0};
+  EXPECT_EQ(mme_config_parse_string(kHealthyConfig, &mme_config), 0);
+  mme_config_display(&mme_config);
+  free_mme_config(&mme_config);
+}
+
 TEST(MMEConfigTest, TestMissingSctpdConfig) {
   mme_config_t mme_config = {0};
   EXPECT_EQ(mme_config_parse_string(kEmptyConfig, &mme_config), 0);

@@ -307,6 +307,8 @@ typedef struct nas_config_s {
   uint8_t prefered_ciphering_algorithm[8];
   uint32_t t3402_min;
   uint32_t t3412_min;
+  uint32_t t3412_msec;  // keeping t3412_min as it is used to communicate to UE
+                        // and to prevent back and forth conversions
   uint32_t t3422_msec;
   uint32_t t3450_msec;
   uint32_t t3460_msec;

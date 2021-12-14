@@ -132,14 +132,15 @@ func getGateway(c echo.Context) error {
 	}
 
 	ret := &fegModels.FederationGateway{
-		ID:          magmadModel.ID,
-		Name:        magmadModel.Name,
-		Description: magmadModel.Description,
-		Device:      magmadModel.Device,
-		Status:      magmadModel.Status,
-		Tier:        magmadModel.Tier,
-		Magmad:      magmadModel.Magmad,
-		Federation:  ent.Config.(*fegModels.GatewayFederationConfigs),
+		ID:               magmadModel.ID,
+		Name:             magmadModel.Name,
+		Description:      magmadModel.Description,
+		Device:           magmadModel.Device,
+		RegistrationInfo: magmadModel.RegistrationInfo,
+		Status:           magmadModel.Status,
+		Tier:             magmadModel.Tier,
+		Magmad:           magmadModel.Magmad,
+		Federation:       ent.Config.(*fegModels.GatewayFederationConfigs),
 	}
 	return c.JSON(http.StatusOK, ret)
 }

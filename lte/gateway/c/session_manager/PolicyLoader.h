@@ -36,9 +36,8 @@ class PolicyLoader {
    * the given loop interval length, this function will load the policies from
    * redis, and call the processor callback.
    */
-  void start_loop(
-      std::function<void(std::vector<PolicyRule>)> processor,
-      uint32_t loop_interval_seconds);
+  void start_loop(std::function<void(std::vector<PolicyRule>)> processor,
+                  uint32_t loop_interval_seconds);
 
   /**
    * Stop the config loop on the next loop

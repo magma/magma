@@ -730,10 +730,12 @@ void mme_remove_ue_context(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
+#if !MME_UNIT_TEST
   // First, notify directoryd of removal
   directoryd_remove_location_a(
       ue_context_p->emm_context._imsi64,
       ue_context_p->emm_context._imsi.length);
+#endif
 
   // Release emm and esm context
   delete_mme_ue_state(ue_context_p->emm_context._imsi64);
@@ -865,7 +867,7 @@ void mme_ue_context_update_ue_sig_connection_state(
         ue_context_p->mme_ue_s1ap_id);
 
     if (mme_config.nas_config.t3412_min > 0) {
-      // Start Mobile reachability timer only if peroidic TAU timer is not
+      // Start Mobile reachability timer only if periodic TAU timer is not
       // disabled
       if (ue_context_p->mobile_reachability_timer.id ==
           MME_APP_TIMER_INACTIVE_ID) {
@@ -1211,10 +1213,12 @@ void mme_ue_context_update_ue_emm_state(
       (new_mm_state == UE_REGISTERED)) {
     ue_context_p->mm_state = new_mm_state;
 
+#if !MME_UNIT_TEST
     // Report directoryd UE record
     directoryd_report_location_a(
         ue_context_p->emm_context._imsi64,
         ue_context_p->emm_context._imsi.length);
+#endif
 
     // Update Stats
     update_mme_app_stats_attached_ue_add();

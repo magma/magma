@@ -71,12 +71,11 @@ typedef std::unordered_map<std::string, InterceptState> InterceptStateMap;
 
 class PDUGenerator {
  public:
-  PDUGenerator(
-      const std::string& pkt_dst_mac, const std::string& pkt_src_mac,
-      int sync_interval, int inactivity_time,
-      std::unique_ptr<ProxyConnector> proxy_connector,
-      std::unique_ptr<MobilitydClient> mobilityd_client,
-      magma::mconfig::LIAgentD mconfig);
+  PDUGenerator(const std::string& pkt_dst_mac, const std::string& pkt_src_mac,
+               int sync_interval, int inactivity_time,
+               std::unique_ptr<ProxyConnector> proxy_connector,
+               std::unique_ptr<MobilitydClient> mobilityd_client,
+               magma::mconfig::LIAgentD mconfig);
 
   /**
    * process_packet retrieves the state of the current interception for
@@ -119,9 +118,9 @@ class PDUGenerator {
    * @param record_len - output record length
    * @return true if the operation was successful
    */
-  void* generate_record(
-      const struct pcap_pkthdr* phdr, const u_char* pdata, std::string idx,
-      uint16_t direction, uint32_t* record_len);
+  void* generate_record(const struct pcap_pkthdr* phdr, const u_char* pdata,
+                        std::string idx, uint16_t direction,
+                        uint32_t* record_len);
 
   /**
    * export_record exports the x3 record over tls to a remote server.
@@ -158,8 +157,8 @@ class PDUGenerator {
    * @param idx - the newly created state index
    * @return true if a new state is created, false otherwise
    */
-  bool create_new_intercept_state(
-      const FlowInformation& flow, std::string* idx);
+  bool create_new_intercept_state(const FlowInformation& flow,
+                                  std::string* idx);
 
   /**
    * is_still_valid_state validates that the current state belongs to non

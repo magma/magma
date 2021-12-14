@@ -202,10 +202,11 @@ export type csfb = {
 export type cwf_gateway = {
     carrier_wifi: gateway_cwf_configs,
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
+    registration_info ? : registration_info,
     status ? : gateway_status,
     tier: tier_id,
 };
@@ -424,11 +425,12 @@ export type federated_network_configs = {
 };
 export type federation_gateway = {
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     federation: gateway_federation_configs,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
+    registration_info ? : registration_info,
     status ? : gateway_status,
     tier: tier_id,
 };
@@ -606,33 +608,6 @@ export type gateway_status = {
 export type gateway_vpn_configs = {
     enable_shell: boolean,
 };
-export type gateway_wifi_configs = {
-    additional_props ? : {
-        [string]: string,
-    },
-    client_channel ? : string,
-    info ? : string,
-    is_production ? : boolean,
-    latitude ? : number,
-    longitude ? : number,
-    mesh_id ? : mesh_id,
-    mesh_rssi_threshold ? : number,
-    override_password ? : string,
-    override_ssid ? : string,
-    override_xwf_config ? : string,
-    override_xwf_dhcp_dns1 ? : string,
-    override_xwf_dhcp_dns2 ? : string,
-    override_xwf_enabled ? : boolean,
-    override_xwf_partner_name ? : string,
-    override_xwf_radius_acct_port ? : number,
-    override_xwf_radius_auth_port ? : number,
-    override_xwf_radius_server ? : string,
-    override_xwf_radius_shared_secret ? : string,
-    override_xwf_uam_secret ? : string,
-    use_override_ssid ? : boolean,
-    use_override_xwf ? : boolean,
-    wifi_disabled ? : boolean,
-};
 export type gbr = {
     downlink: number,
     uplink: number,
@@ -751,10 +726,11 @@ export type lte_gateway = {
     cellular: gateway_cellular_configs,
     connected_enodeb_serials: enodeb_serials,
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
+    registration_info ? : registration_info,
     status ? : gateway_status,
     tier: tier_id,
 };
@@ -790,10 +766,11 @@ export type machine_info = {
 };
 export type magmad_gateway = {
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
+    registration_info ? : registration_info,
     status ? : gateway_status,
     tier: tier_id,
 };
@@ -814,20 +791,6 @@ export type matcher = {
     isRegex: boolean,
     name: string,
     value: string,
-};
-export type mesh_id = string;
-export type mesh_name = string;
-export type mesh_wifi_configs = {
-    additional_props ? : {
-        [string]: string,
-    },
-    mesh_channel_type ? : string,
-    mesh_frequency ? : number,
-    mesh_ssid ? : string,
-    password ? : string,
-    ssid ? : string,
-    vl_ssid ? : string,
-    xwf_enabled ? : boolean,
 };
 export type metric_datapoint = Array < string >
 ;
@@ -860,7 +823,7 @@ export type mutable_ci_node = {
 export type mutable_cwf_gateway = {
     carrier_wifi: gateway_cwf_configs,
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
@@ -878,7 +841,7 @@ export type mutable_enodebd_e2e_test = {
 };
 export type mutable_federation_gateway = {
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     federation ? : gateway_federation_configs,
     id: gateway_id,
     magmad: magmad_gateway_configs,
@@ -890,7 +853,7 @@ export type mutable_lte_gateway = {
     cellular: gateway_cellular_configs,
     connected_enodeb_serials: enodeb_serials,
     description: gateway_description,
-    device: gateway_device,
+    device ? : gateway_device,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
@@ -917,15 +880,6 @@ export type mutable_subscriber = {
 };
 export type mutable_subscribers = Array < mutable_subscriber >
 ;
-export type mutable_wifi_gateway = {
-    description: gateway_description,
-    device: gateway_device,
-    id: gateway_id,
-    magmad: magmad_gateway_configs,
-    name: gateway_name,
-    tier: tier_id,
-    wifi: gateway_wifi_configs,
-};
 export type network = {
     description: network_description,
     dns: network_dns_config,
@@ -1099,31 +1053,6 @@ export type network_subscriber_config = {
     network_wide_rule_names ? : rule_names,
 };
 export type network_type = string;
-export type network_wifi_configs = {
-    additional_props ? : {
-        [string]: string,
-    },
-    mgmt_vpn_enabled ? : boolean,
-    mgmt_vpn_proto ? : string,
-    mgmt_vpn_remote ? : string,
-    openr_enabled ? : boolean,
-    ping_host_list ? : Array < string >
-        ,
-    ping_num_packets ? : number,
-    ping_timeout_secs ? : number,
-    vl_auth_server_addr ? : string,
-    vl_auth_server_port ? : number,
-    vl_auth_server_shared_secret ? : string,
-    xwf_config ? : string,
-    xwf_dhcp_dns1 ? : string,
-    xwf_dhcp_dns2 ? : string,
-    xwf_partner_name ? : string,
-    xwf_radius_acct_port ? : number,
-    xwf_radius_auth_port ? : number,
-    xwf_radius_server ? : string,
-    xwf_radius_shared_secret ? : string,
-    xwf_uam_secret ? : string,
-};
 export type nh_routes = {
     [string]: string,
 };
@@ -1149,6 +1078,12 @@ export type paginated_gateways = {
         [string]: magmad_gateway,
     },
     page_token: page_token,
+    total_count: number,
+};
+export type paginated_subscriber_ids = {
+    next_page_token: page_token,
+    subscribers: Array < string >
+        ,
     total_count: number,
 };
 export type paginated_subscribers = {
@@ -1187,6 +1122,10 @@ export type platform_info = {
 export type plmn_config = {
     mcc: string,
     mnc: string,
+};
+export type policy = {
+    resources: resources,
+    token: string,
 };
 export type policy_id = string;
 export type policy_ids = Array < policy_id >
@@ -1327,12 +1266,25 @@ export type redirect_information = {
     server_address: string,
     support: "DISABLED" | "ENABLED",
 };
+export type registration_info = {
+    domain_name: string,
+    registration_token: string,
+    root_ca: string,
+};
 export type release_channel = {
     id: channel_id,
     name ? : string,
     supported_versions: Array < string >
         ,
 };
+export type resource = {
+    action ? : "READ" | "WRITE",
+    effect ? : "DENY" | "ALLOW",
+    resource ? : string,
+    resourceType ? : "NETWORK_ID" | "TENANT_ID" | "URI",
+};
+export type resources = Array < resource >
+;
 export type route = {
     destination_ip ? : string,
     gateway_ip ? : string,
@@ -1539,6 +1491,10 @@ export type unmanaged_enodeb_configuration = {
 };
 export type untyped_mme_state = {};
 export type untyped_subscriber_state = {};
+export type user = {
+    password: string,
+    username: string,
+};
 export type version_info = {
     container_image_version ? : string,
     helm_chart_version ? : string,
@@ -1552,30 +1508,6 @@ export type webhook_receiver = {
     http_config ? : http_config,
     send_resolved ? : boolean,
     url: string,
-};
-export type wifi_gateway = {
-    description: gateway_description,
-    device: gateway_device,
-    id: gateway_id,
-    magmad: magmad_gateway_configs,
-    name: gateway_name,
-    status ? : gateway_status,
-    tier: tier_id,
-    wifi: gateway_wifi_configs,
-};
-export type wifi_mesh = {
-    config: mesh_wifi_configs,
-    gateway_ids: Array < gateway_id >
-        ,
-    id: mesh_id,
-    name: mesh_name,
-};
-export type wifi_network = {
-    description: network_description,
-    features ? : network_features,
-    id: network_id,
-    name: network_name,
-    wifi: network_wifi_configs,
 };
 
 export default class MagmaAPIBindings {
@@ -7270,6 +7202,43 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getLteByNetworkIdSubscribersVerboseFalse(
+            parameters: {
+                'networkId': string,
+                'msisdn' ? : string,
+                'ip' ? : string,
+                'pageSize' ? : number,
+                'pageToken' ? : string,
+            }
+        ): Promise < paginated_subscriber_ids >
+        {
+            let path = '/lte/{network_id}/subscribers?verbose=false';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['msisdn'] !== undefined) {
+                query['msisdn'] = parameters['msisdn'];
+            }
+
+            if (parameters['ip'] !== undefined) {
+                query['ip'] = parameters['ip'];
+            }
+
+            if (parameters['pageSize'] !== undefined) {
+                query['page_size'] = parameters['pageSize'];
+            }
+
+            if (parameters['pageToken'] !== undefined) {
+                query['page_token'] = parameters['pageToken'];
+            }
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getNetworks(): Promise < Array < string >
         >
         {
@@ -10500,976 +10469,175 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
-    static async getWifi(): Promise < Array < string >
+    static async getUser(): Promise < Array < string >
         >
         {
-            let path = '/wifi';
+            let path = '/user';
             let body;
             let query = {};
 
             return await this.request(path, 'GET', query, body);
         }
-    static async postWifi(
+    static async postUser(
         parameters: {
-            'wifiNetwork': wifi_network,
+            'user': user,
         }
     ): Promise < "Success" > {
-        let path = '/wifi';
+        let path = '/user';
         let body;
         let query = {};
-        if (parameters['wifiNetwork'] === undefined) {
-            throw new Error('Missing required  parameter: wifiNetwork');
+        if (parameters['user'] === undefined) {
+            throw new Error('Missing required  parameter: user');
         }
 
-        if (parameters['wifiNetwork'] !== undefined) {
-            body = parameters['wifiNetwork'];
+        if (parameters['user'] !== undefined) {
+            body = parameters['user'];
         }
 
         return await this.request(path, 'POST', query, body);
     }
-    static async deleteWifiByNetworkId(
+    static async deleteUserByUsername(
         parameters: {
-            'networkId': string,
+            'username': string,
         }
     ): Promise < "Success" > {
-        let path = '/wifi/{network_id}';
+        let path = '/user/{username}';
         let body;
         let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
+        if (parameters['username'] === undefined) {
+            throw new Error('Missing required  parameter: username');
         }
 
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
+        path = path.replace('{username}', `${parameters['username']}`);
 
         return await this.request(path, 'DELETE', query, body);
     }
-    static async getWifiByNetworkId(
+    static async getUserByUsername(
             parameters: {
-                'networkId': string,
+                'username': string,
             }
-        ): Promise < wifi_network >
+        ): Promise < string >
         {
-            let path = '/wifi/{network_id}';
+            let path = '/user/{username}';
             let body;
             let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
+            if (parameters['username'] === undefined) {
+                throw new Error('Missing required  parameter: username');
             }
 
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
+            path = path.replace('{username}', `${parameters['username']}`);
 
             return await this.request(path, 'GET', query, body);
         }
-    static async putWifiByNetworkId(
+    static async putUserByUsername(
         parameters: {
-            'networkId': string,
-            'wifiNetwork': wifi_network,
+            'username': string,
+            'password': {
+                password ? : string,
+            },
         }
     ): Promise < "Success" > {
-        let path = '/wifi/{network_id}';
+        let path = '/user/{username}';
         let body;
         let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
+        if (parameters['username'] === undefined) {
+            throw new Error('Missing required  parameter: username');
         }
 
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
+        path = path.replace('{username}', `${parameters['username']}`);
 
-        if (parameters['wifiNetwork'] === undefined) {
-            throw new Error('Missing required  parameter: wifiNetwork');
+        if (parameters['password'] === undefined) {
+            throw new Error('Missing required  parameter: password');
         }
 
-        if (parameters['wifiNetwork'] !== undefined) {
-            body = parameters['wifiNetwork'];
+        if (parameters['password'] !== undefined) {
+            body = parameters['password'];
         }
 
         return await this.request(path, 'PUT', query, body);
     }
-    static async getWifiByNetworkIdDescription(
+    static async getUserByUsernameTokens(
             parameters: {
-                'networkId': string,
+                'username': string,
             }
-        ): Promise < network_description >
+        ): Promise < Array < policy >
+        >
         {
-            let path = '/wifi/{network_id}/description';
+            let path = '/user/{username}/tokens';
             let body;
             let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
+            if (parameters['username'] === undefined) {
+                throw new Error('Missing required  parameter: username');
             }
 
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
+            path = path.replace('{username}', `${parameters['username']}`);
 
             return await this.request(path, 'GET', query, body);
         }
-    static async putWifiByNetworkIdDescription(
+    static async postUserByUsernameTokens(
         parameters: {
-            'networkId': string,
-            'description': network_description,
+            'username': string,
+            'resources': resources,
         }
     ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/description';
+        let path = '/user/{username}/tokens';
         let body;
         let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
+        if (parameters['username'] === undefined) {
+            throw new Error('Missing required  parameter: username');
         }
 
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
+        path = path.replace('{username}', `${parameters['username']}`);
 
-        if (parameters['description'] === undefined) {
-            throw new Error('Missing required  parameter: description');
+        if (parameters['resources'] === undefined) {
+            throw new Error('Missing required  parameter: resources');
         }
 
-        if (parameters['description'] !== undefined) {
-            body = parameters['description'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
-    static async getWifiByNetworkIdFeatures(
-            parameters: {
-                'networkId': string,
-            }
-        ): Promise < network_features >
-        {
-            let path = '/wifi/{network_id}/features';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async putWifiByNetworkIdFeatures(
-        parameters: {
-            'networkId': string,
-            'config': network_features,
-        }
-    ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/features';
-        let body;
-        let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
-        }
-
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['config'] === undefined) {
-            throw new Error('Missing required  parameter: config');
-        }
-
-        if (parameters['config'] !== undefined) {
-            body = parameters['config'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
-    static async getWifiByNetworkIdGateways(
-            parameters: {
-                'networkId': string,
-            }
-        ): Promise < {
-            [string]: wifi_gateway,
-        } >
-        {
-            let path = '/wifi/{network_id}/gateways';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async postWifiByNetworkIdGateways(
-        parameters: {
-            'networkId': string,
-            'gateway': mutable_wifi_gateway,
-        }
-    ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/gateways';
-        let body;
-        let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
-        }
-
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['gateway'] === undefined) {
-            throw new Error('Missing required  parameter: gateway');
-        }
-
-        if (parameters['gateway'] !== undefined) {
-            body = parameters['gateway'];
+        if (parameters['resources'] !== undefined) {
+            body = parameters['resources'];
         }
 
         return await this.request(path, 'POST', query, body);
     }
-    static async deleteWifiByNetworkIdGatewaysByGatewayId(
+    static async deleteUserByUsernameTokensByToken(
         parameters: {
-            'networkId': string,
-            'gatewayId': string,
+            'token': string,
+            'username': string,
         }
     ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/gateways/{gateway_id}';
+        let path = '/user/{username}/tokens/{token}';
         let body;
         let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
+        if (parameters['token'] === undefined) {
+            throw new Error('Missing required  parameter: token');
         }
 
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
+        path = path.replace('{token}', `${parameters['token']}`);
 
-        if (parameters['gatewayId'] === undefined) {
-            throw new Error('Missing required  parameter: gatewayId');
+        if (parameters['username'] === undefined) {
+            throw new Error('Missing required  parameter: username');
         }
 
-        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+        path = path.replace('{username}', `${parameters['username']}`);
 
         return await this.request(path, 'DELETE', query, body);
     }
-    static async getWifiByNetworkIdGatewaysByGatewayId(
-            parameters: {
-                'networkId': string,
-                'gatewayId': string,
-            }
-        ): Promise < wifi_gateway >
-        {
-            let path = '/wifi/{network_id}/gateways/{gateway_id}';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            if (parameters['gatewayId'] === undefined) {
-                throw new Error('Missing required  parameter: gatewayId');
-            }
-
-            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async putWifiByNetworkIdGatewaysByGatewayId(
+    static async postUserLogin(
         parameters: {
-            'networkId': string,
-            'gatewayId': string,
-            'gateway': mutable_wifi_gateway,
+            'user': user,
         }
     ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/gateways/{gateway_id}';
+        let path = '/user/login';
         let body;
         let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
+        if (parameters['user'] === undefined) {
+            throw new Error('Missing required  parameter: user');
         }
 
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['gatewayId'] === undefined) {
-            throw new Error('Missing required  parameter: gatewayId');
-        }
-
-        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-        if (parameters['gateway'] === undefined) {
-            throw new Error('Missing required  parameter: gateway');
-        }
-
-        if (parameters['gateway'] !== undefined) {
-            body = parameters['gateway'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
-    static async getWifiByNetworkIdGatewaysByGatewayIdDescription(
-            parameters: {
-                'networkId': string,
-                'gatewayId': string,
-            }
-        ): Promise < gateway_description >
-        {
-            let path = '/wifi/{network_id}/gateways/{gateway_id}/description';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            if (parameters['gatewayId'] === undefined) {
-                throw new Error('Missing required  parameter: gatewayId');
-            }
-
-            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async putWifiByNetworkIdGatewaysByGatewayIdDescription(
-        parameters: {
-            'networkId': string,
-            'gatewayId': string,
-            'description': gateway_description,
-        }
-    ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/gateways/{gateway_id}/description';
-        let body;
-        let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
-        }
-
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['gatewayId'] === undefined) {
-            throw new Error('Missing required  parameter: gatewayId');
-        }
-
-        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-        if (parameters['description'] === undefined) {
-            throw new Error('Missing required  parameter: description');
-        }
-
-        if (parameters['description'] !== undefined) {
-            body = parameters['description'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
-    static async getWifiByNetworkIdGatewaysByGatewayIdDevice(
-            parameters: {
-                'networkId': string,
-                'gatewayId': string,
-            }
-        ): Promise < gateway_device >
-        {
-            let path = '/wifi/{network_id}/gateways/{gateway_id}/device';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            if (parameters['gatewayId'] === undefined) {
-                throw new Error('Missing required  parameter: gatewayId');
-            }
-
-            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async putWifiByNetworkIdGatewaysByGatewayIdDevice(
-        parameters: {
-            'networkId': string,
-            'gatewayId': string,
-            'device': gateway_device,
-        }
-    ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/gateways/{gateway_id}/device';
-        let body;
-        let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
-        }
-
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['gatewayId'] === undefined) {
-            throw new Error('Missing required  parameter: gatewayId');
-        }
-
-        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-        if (parameters['device'] === undefined) {
-            throw new Error('Missing required  parameter: device');
-        }
-
-        if (parameters['device'] !== undefined) {
-            body = parameters['device'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
-    static async getWifiByNetworkIdGatewaysByGatewayIdMagmad(
-            parameters: {
-                'networkId': string,
-                'gatewayId': string,
-            }
-        ): Promise < magmad_gateway_configs >
-        {
-            let path = '/wifi/{network_id}/gateways/{gateway_id}/magmad';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            if (parameters['gatewayId'] === undefined) {
-                throw new Error('Missing required  parameter: gatewayId');
-            }
-
-            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async putWifiByNetworkIdGatewaysByGatewayIdMagmad(
-        parameters: {
-            'networkId': string,
-            'gatewayId': string,
-            'magmad': magmad_gateway_configs,
-        }
-    ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/gateways/{gateway_id}/magmad';
-        let body;
-        let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
-        }
-
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['gatewayId'] === undefined) {
-            throw new Error('Missing required  parameter: gatewayId');
-        }
-
-        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-        if (parameters['magmad'] === undefined) {
-            throw new Error('Missing required  parameter: magmad');
-        }
-
-        if (parameters['magmad'] !== undefined) {
-            body = parameters['magmad'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
-    static async getWifiByNetworkIdGatewaysByGatewayIdName(
-            parameters: {
-                'networkId': string,
-                'gatewayId': string,
-            }
-        ): Promise < gateway_name >
-        {
-            let path = '/wifi/{network_id}/gateways/{gateway_id}/name';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            if (parameters['gatewayId'] === undefined) {
-                throw new Error('Missing required  parameter: gatewayId');
-            }
-
-            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async putWifiByNetworkIdGatewaysByGatewayIdName(
-        parameters: {
-            'networkId': string,
-            'gatewayId': string,
-            'name': gateway_name,
-        }
-    ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/gateways/{gateway_id}/name';
-        let body;
-        let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
-        }
-
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['gatewayId'] === undefined) {
-            throw new Error('Missing required  parameter: gatewayId');
-        }
-
-        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-        if (parameters['name'] === undefined) {
-            throw new Error('Missing required  parameter: name');
-        }
-
-        if (parameters['name'] !== undefined) {
-            body = parameters['name'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
-    static async getWifiByNetworkIdGatewaysByGatewayIdStatus(
-            parameters: {
-                'networkId': string,
-                'gatewayId': string,
-            }
-        ): Promise < gateway_status >
-        {
-            let path = '/wifi/{network_id}/gateways/{gateway_id}/status';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            if (parameters['gatewayId'] === undefined) {
-                throw new Error('Missing required  parameter: gatewayId');
-            }
-
-            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async getWifiByNetworkIdGatewaysByGatewayIdTier(
-            parameters: {
-                'networkId': string,
-                'gatewayId': string,
-            }
-        ): Promise < tier_id >
-        {
-            let path = '/wifi/{network_id}/gateways/{gateway_id}/tier';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            if (parameters['gatewayId'] === undefined) {
-                throw new Error('Missing required  parameter: gatewayId');
-            }
-
-            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async putWifiByNetworkIdGatewaysByGatewayIdTier(
-        parameters: {
-            'networkId': string,
-            'gatewayId': string,
-            'tierId': tier_id,
-        }
-    ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/gateways/{gateway_id}/tier';
-        let body;
-        let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
-        }
-
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['gatewayId'] === undefined) {
-            throw new Error('Missing required  parameter: gatewayId');
-        }
-
-        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-        if (parameters['tierId'] === undefined) {
-            throw new Error('Missing required  parameter: tierId');
-        }
-
-        if (parameters['tierId'] !== undefined) {
-            body = parameters['tierId'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
-    static async getWifiByNetworkIdGatewaysByGatewayIdWifi(
-            parameters: {
-                'networkId': string,
-                'gatewayId': string,
-            }
-        ): Promise < gateway_wifi_configs >
-        {
-            let path = '/wifi/{network_id}/gateways/{gateway_id}/wifi';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            if (parameters['gatewayId'] === undefined) {
-                throw new Error('Missing required  parameter: gatewayId');
-            }
-
-            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async putWifiByNetworkIdGatewaysByGatewayIdWifi(
-        parameters: {
-            'networkId': string,
-            'gatewayId': string,
-            'config': gateway_wifi_configs,
-        }
-    ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/gateways/{gateway_id}/wifi';
-        let body;
-        let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
-        }
-
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['gatewayId'] === undefined) {
-            throw new Error('Missing required  parameter: gatewayId');
-        }
-
-        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-        if (parameters['config'] === undefined) {
-            throw new Error('Missing required  parameter: config');
-        }
-
-        if (parameters['config'] !== undefined) {
-            body = parameters['config'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
-    static async getWifiByNetworkIdMeshes(
-            parameters: {
-                'networkId': string,
-            }
-        ): Promise < Array < mesh_id >
-        >
-        {
-            let path = '/wifi/{network_id}/meshes';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async postWifiByNetworkIdMeshes(
-            parameters: {
-                'networkId': string,
-                'wifiMesh': wifi_mesh,
-            }
-        ): Promise < mesh_id >
-        {
-            let path = '/wifi/{network_id}/meshes';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            if (parameters['wifiMesh'] === undefined) {
-                throw new Error('Missing required  parameter: wifiMesh');
-            }
-
-            if (parameters['wifiMesh'] !== undefined) {
-                body = parameters['wifiMesh'];
-            }
-
-            return await this.request(path, 'POST', query, body);
-        }
-    static async deleteWifiByNetworkIdMeshesByMeshId(
-        parameters: {
-            'networkId': string,
-            'meshId': string,
-        }
-    ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/meshes/{mesh_id}';
-        let body;
-        let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
-        }
-
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['meshId'] === undefined) {
-            throw new Error('Missing required  parameter: meshId');
-        }
-
-        path = path.replace('{mesh_id}', `${parameters['meshId']}`);
-
-        return await this.request(path, 'DELETE', query, body);
-    }
-    static async getWifiByNetworkIdMeshesByMeshId(
-            parameters: {
-                'networkId': string,
-                'meshId': string,
-            }
-        ): Promise < wifi_mesh >
-        {
-            let path = '/wifi/{network_id}/meshes/{mesh_id}';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            if (parameters['meshId'] === undefined) {
-                throw new Error('Missing required  parameter: meshId');
-            }
-
-            path = path.replace('{mesh_id}', `${parameters['meshId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async putWifiByNetworkIdMeshesByMeshId(
-            parameters: {
-                'networkId': string,
-                'meshId': string,
-                'wifiMesh': wifi_mesh,
-            }
-        ): Promise < mesh_id >
-        {
-            let path = '/wifi/{network_id}/meshes/{mesh_id}';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            if (parameters['meshId'] === undefined) {
-                throw new Error('Missing required  parameter: meshId');
-            }
-
-            path = path.replace('{mesh_id}', `${parameters['meshId']}`);
-
-            if (parameters['wifiMesh'] === undefined) {
-                throw new Error('Missing required  parameter: wifiMesh');
-            }
-
-            if (parameters['wifiMesh'] !== undefined) {
-                body = parameters['wifiMesh'];
-            }
-
-            return await this.request(path, 'PUT', query, body);
-        }
-    static async getWifiByNetworkIdMeshesByMeshIdConfig(
-            parameters: {
-                'networkId': string,
-                'meshId': string,
-            }
-        ): Promise < mesh_wifi_configs >
-        {
-            let path = '/wifi/{network_id}/meshes/{mesh_id}/config';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            if (parameters['meshId'] === undefined) {
-                throw new Error('Missing required  parameter: meshId');
-            }
-
-            path = path.replace('{mesh_id}', `${parameters['meshId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async putWifiByNetworkIdMeshesByMeshIdConfig(
-        parameters: {
-            'networkId': string,
-            'meshId': string,
-            'meshWifiConfigs': mesh_wifi_configs,
-        }
-    ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/meshes/{mesh_id}/config';
-        let body;
-        let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
-        }
-
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['meshId'] === undefined) {
-            throw new Error('Missing required  parameter: meshId');
-        }
-
-        path = path.replace('{mesh_id}', `${parameters['meshId']}`);
-
-        if (parameters['meshWifiConfigs'] === undefined) {
-            throw new Error('Missing required  parameter: meshWifiConfigs');
-        }
-
-        if (parameters['meshWifiConfigs'] !== undefined) {
-            body = parameters['meshWifiConfigs'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
-    static async getWifiByNetworkIdMeshesByMeshIdName(
-            parameters: {
-                'networkId': string,
-                'meshId': string,
-            }
-        ): Promise < mesh_name >
-        {
-            let path = '/wifi/{network_id}/meshes/{mesh_id}/name';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            if (parameters['meshId'] === undefined) {
-                throw new Error('Missing required  parameter: meshId');
-            }
-
-            path = path.replace('{mesh_id}', `${parameters['meshId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async putWifiByNetworkIdMeshesByMeshIdName(
-        parameters: {
-            'networkId': string,
-            'meshId': string,
-            'meshName': mesh_name,
-        }
-    ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/meshes/{mesh_id}/name';
-        let body;
-        let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
-        }
-
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['meshId'] === undefined) {
-            throw new Error('Missing required  parameter: meshId');
-        }
-
-        path = path.replace('{mesh_id}', `${parameters['meshId']}`);
-
-        if (parameters['meshName'] === undefined) {
-            throw new Error('Missing required  parameter: meshName');
-        }
-
-        if (parameters['meshName'] !== undefined) {
-            body = parameters['meshName'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
-    static async getWifiByNetworkIdName(
-            parameters: {
-                'networkId': string,
-            }
-        ): Promise < network_name >
-        {
-            let path = '/wifi/{network_id}/name';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async putWifiByNetworkIdName(
-        parameters: {
-            'networkId': string,
-            'name': network_name,
-        }
-    ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/name';
-        let body;
-        let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
-        }
-
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['name'] === undefined) {
-            throw new Error('Missing required  parameter: name');
-        }
-
-        if (parameters['name'] !== undefined) {
-            body = parameters['name'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
-    static async getWifiByNetworkIdWifi(
-            parameters: {
-                'networkId': string,
-            }
-        ): Promise < network_wifi_configs >
-        {
-            let path = '/wifi/{network_id}/wifi';
-            let body;
-            let query = {};
-            if (parameters['networkId'] === undefined) {
-                throw new Error('Missing required  parameter: networkId');
-            }
-
-            path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-            return await this.request(path, 'GET', query, body);
-        }
-    static async putWifiByNetworkIdWifi(
-        parameters: {
-            'networkId': string,
-            'config': network_wifi_configs,
-        }
-    ): Promise < "Success" > {
-        let path = '/wifi/{network_id}/wifi';
-        let body;
-        let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
-        }
-
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['config'] === undefined) {
-            throw new Error('Missing required  parameter: config');
-        }
-
-        if (parameters['config'] !== undefined) {
-            body = parameters['config'];
+        if (parameters['user'] !== undefined) {
+            body = parameters['user'];
         }
 
-        return await this.request(path, 'PUT', query, body);
+        return await this.request(path, 'POST', query, body);
     }
 }

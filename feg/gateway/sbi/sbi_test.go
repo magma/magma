@@ -15,7 +15,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 	"time"
 
@@ -23,26 +22,36 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"magma/feg/gateway/sbi"
 	n7_client "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
 	n7 "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControlServer"
-	sbi "magma/feg/gateway/sbi/specs/TS29571CommonData"
+	sbi_common "magma/feg/gateway/sbi/specs/TS29571CommonData"
 )
 
 const (
-	POLICY_ID1 = "1234"
-	IMSI1      = "12345678901234"
-	IP_ADDR1   = "10.1.2.3"
+	POLICY_ID1      = "1234"
+	IMSI1           = "12345678901234"
+	IP_ADDR1        = "10.1.2.3"
+	LISTEN_ADDR     = "localhost:0"
+	ShutdownTimeout = 10 * time.Second
 )
 
 type MockPcf struct {
-	ListenAddr string
-	Policies   map[string]n7.SmPolicyControl
+	sbiServer *sbi.SbiServer
+	policies  map[string]n7.SmPolicyControl
 }
 
-func NewMockPcf() *MockPcf {
-	return &MockPcf{
-		Policies: make(map[string]n7.SmPolicyControl),
+func NewMockPcf() (*MockPcf, error) {
+	mockPcf := &MockPcf{
+		sbiServer: sbi.NewSbiServer(LISTEN_ADDR),
+		policies:  make(map[string]n7.SmPolicyControl),
 	}
+	n7.RegisterHandlers(mockPcf.sbiServer.Server, mockPcf)
+	err := mockPcf.sbiServer.Start()
+	if err != nil {
+		return nil, err
+	}
+	return mockPcf, nil
 }
 
 func (pcf *MockPcf) PostSmPolicies(ctx echo.Context) error {
@@ -55,14 +64,14 @@ func (pcf *MockPcf) PostSmPolicies(ctx echo.Context) error {
 	var policy n7.SmPolicyControl
 	policy.Context = newPolicy
 
-	pcf.Policies[POLICY_ID1] = policy
+	pcf.policies[POLICY_ID1] = policy
 
 	return ctx.NoContent(http.StatusOK)
 }
 
 // GetSmPoliciesSmPolicyId handles GET /sm-policies/{smPolicyId}
 func (pcf *MockPcf) GetSmPoliciesSmPolicyId(ctx echo.Context, smPolicyId string) error {
-	policy, found := pcf.Policies[smPolicyId]
+	policy, found := pcf.policies[smPolicyId]
 	if !found {
 		return ctx.NoContent(http.StatusNotFound)
 	}
@@ -83,16 +92,18 @@ func (pcf *MockPcf) PostSmPoliciesSmPolicyIdUpdate(ctx echo.Context, smPolicyId 
 
 func TestCreateSMPolicy(t *testing.T) {
 	// Start the server and wait till the server is started
-	mockPcf := startServer(t)
+	mockPcf, err := NewMockPcf()
+	require.NoError(t, err, "Error starting mock server")
+	defer mockPcf.sbiServer.Shutdown(ShutdownTimeout)
 
 	// Create new N7 client object
-	client, err := n7_client.NewClientWithResponses(fmt.Sprintf("http://%s", mockPcf.ListenAddr))
+	client, err := n7_client.NewClientWithResponses(fmt.Sprintf("http://%s", mockPcf.sbiServer.ListenAddr))
 
 	require.NoError(t, err, "Client creation failed")
 
 	// Create a new SM Policy
-	ipAddr := sbi.Ipv4Addr(IP_ADDR1)
-	imsi := sbi.Supi(IMSI1)
+	ipAddr := sbi_common.Ipv4Addr(IP_ADDR1)
+	imsi := sbi_common.Supi(IMSI1)
 	body := n7_client.PostSmPoliciesJSONRequestBody{
 		Ipv4Address:  &ipAddr,
 		PduSessionId: 10,
@@ -106,53 +117,6 @@ func TestCreateSMPolicy(t *testing.T) {
 	policyResp, err := client.GetSmPoliciesSmPolicyIdWithResponse(context.Background(), POLICY_ID1)
 	require.NoError(t, err, "Failed to get SM Policies")
 	assert.Equal(t, http.StatusOK, policyResp.StatusCode())
-	assert.Equal(t, sbi.Ipv4Addr(IP_ADDR1), *(policyResp.JSON200.Context.Ipv4Address))
-	assert.Equal(t, sbi.Supi(IMSI1), policyResp.JSON200.Context.Supi)
-}
-
-func startServer(t *testing.T) *MockPcf {
-	errChan := make(chan error)
-	eserver := echo.New()
-
-	mockPcf := NewMockPcf()
-	go func() {
-		n7.RegisterHandlers(eserver, mockPcf)
-
-		err := eserver.Start("localhost:0")
-		if err != nil {
-			errChan <- err
-		}
-	}()
-
-	var err error
-	mockPcf.ListenAddr, err = waitForTestServerAndGetAddr(eserver, errChan)
-	require.NoError(t, err)
-	return mockPcf
-}
-
-// waitForTestServer waits for the Echo server to be launched and returns the Listener Address.
-func waitForTestServerAndGetAddr(e *echo.Echo, errChan <-chan error) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
-	defer cancel()
-
-	ticker := time.NewTicker(5 * time.Millisecond)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return "", ctx.Err()
-		case <-ticker.C:
-			addr := e.ListenerAddr()
-			if addr != nil && strings.Contains(addr.String(), ":") {
-				// server started
-				return addr.String(), nil
-			}
-		case err := <-errChan:
-			if err == http.ErrServerClosed {
-				return "", nil
-			}
-			return "", err
-		}
-	}
+	assert.Equal(t, sbi_common.Ipv4Addr(IP_ADDR1), *(policyResp.JSON200.Context.Ipv4Address))
+	assert.Equal(t, sbi_common.Supi(IMSI1), policyResp.JSON200.Context.Supi)
 }

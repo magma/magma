@@ -11,53 +11,78 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29571CommonData/TS29571CommonData.gen.go defs/TS29571_CommonData.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29551NnefPFDmanagement/TS29551NnefPFDmanagement.gen.go --import-mapping TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29551_Nnef_PFDmanagement.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29572NlmfLocation/TS29572NlmfLocation.gen.go --import-mapping TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29572_Nlmf_Location.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29122CommonData/TS29122CommonData.gen.go --import-mapping TS29572_Nlmf_Location.yaml:magma/feg/gateway/sbi/specs/TS29572NlmfLocation,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29122_CommonData.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29122ECRControl/TS29122ECRControl.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29122_ECRControl.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29122CpProvisioning/TS29122CpProvisioning.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29122_CpProvisioning.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29507NpcfAMPolicyControl/TS29507NpcfAMPolicyControl.gen.go --import-mapping TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29507_Npcf_AMPolicyControl.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29514NpcfPolicyAuthorization/TS29514NpcfPolicyAuthorization.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29514_Npcf_PolicyAuthorization.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29522TrafficInfluence/TS29522TrafficInfluence.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29514_Npcf_PolicyAuthorization.yaml:magma/feg/gateway/sbi/specs/TS29514NpcfPolicyAuthorization,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29522_TrafficInfluence.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29503NudmPP/TS29503NudmPP.gen.go --import-mapping TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29503_Nudm_PP.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29510NnrfNFManagement/TS29510NnrfNFManagement.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29510_Nnrf_NFManagement.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29554NpcfBDTPolicyControl/TS29554NpcfBDTPolicyControl.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29554_Npcf_BDTPolicyControl.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29509NausfSoRProtection/TS29509NausfSoRProtection.gen.go --import-mapping TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29509_Nausf_SoRProtection.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29509NausfUPUProtection/TS29509NausfUPUProtection.gen.go --import-mapping TS29509_Nausf_SoRProtection.yaml:magma/feg/gateway/sbi/specs/TS29509NausfSoRProtection,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29509_Nausf_UPUProtection.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29503NudmSDM/TS29503NudmSDM.gen.go --import-mapping TS29510_Nnrf_NFManagement.yaml:magma/feg/gateway/sbi/specs/TS29510NnrfNFManagement,TS29509_Nausf_UPUProtection.yaml:magma/feg/gateway/sbi/specs/TS29509NausfUPUProtection,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData,TS29509_Nausf_SoRProtection.yaml:magma/feg/gateway/sbi/specs/TS29509NausfSoRProtection defs/TS29503_Nudm_SDM.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29503NudmUECM/TS29503NudmUECM.gen.go --import-mapping TS29510_Nnrf_NFManagement.yaml:magma/feg/gateway/sbi/specs/TS29510NnrfNFManagement,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29503_Nudm_UECM.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29503NudmEE/TS29503NudmEE.gen.go --import-mapping TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29503_Nudm_EE.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29503NudmUEAU/TS29503NudmUEAU.gen.go --import-mapping TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29503_Nudm_UEAU.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29505SubscriptionData/TS29505SubscriptionData.gen.go --import-mapping TS29503_Nudm_SDM.yaml:magma/feg/gateway/sbi/specs/TS29503NudmSDM,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData,TS29503_Nudm_PP.yaml:magma/feg/gateway/sbi/specs/TS29503NudmPP,TS29503_Nudm_UECM.yaml:magma/feg/gateway/sbi/specs/TS29503NudmUECM,TS29509_Nausf_UPUProtection.yaml:magma/feg/gateway/sbi/specs/TS29509NausfUPUProtection,TS29509_Nausf_SoRProtection.yaml:magma/feg/gateway/sbi/specs/TS29509NausfSoRProtection,TS29503_Nudm_EE.yaml:magma/feg/gateway/sbi/specs/TS29503NudmEE,TS29503_Nudm_UEAU.yaml:magma/feg/gateway/sbi/specs/TS29503NudmUEAU defs/TS29505_Subscription_Data.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29519PolicyData/TS29519PolicyData.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29554_Npcf_BDTPolicyControl.yaml:magma/feg/gateway/sbi/specs/TS29554NpcfBDTPolicyControl,TS29505_Subscription_Data.yaml:magma/feg/gateway/sbi/specs/TS29505SubscriptionData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29519_Policy_Data.yaml
-//go:generate oapi-codegen -generate types,skip-prune,client -o specs/TS29512NpcfSMPolicyControl/TS29512NpcfSMPolicyControl.gen.go --import-mapping TS29507_Npcf_AMPolicyControl.yaml:magma/feg/gateway/sbi/specs/TS29507NpcfAMPolicyControl,TS29519_Policy_Data.yaml:magma/feg/gateway/sbi/specs/TS29519PolicyData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData,TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29514_Npcf_PolicyAuthorization.yaml:magma/feg/gateway/sbi/specs/TS29514NpcfPolicyAuthorization defs/TS29512_Npcf_SMPolicyControl.yaml
-//go:generate oapi-codegen -generate types,skip-prune,server -o specs/TS29512NpcfSMPolicyControlServer/TS29512NpcfSMPolicyControlServer.gen.go --import-mapping TS29507_Npcf_AMPolicyControl.yaml:magma/feg/gateway/sbi/specs/TS29507NpcfAMPolicyControl,TS29519_Policy_Data.yaml:magma/feg/gateway/sbi/specs/TS29519PolicyData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData,TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29514_Npcf_PolicyAuthorization.yaml:magma/feg/gateway/sbi/specs/TS29514NpcfPolicyAuthorization -package=TS29512NpcfSMPolicyControlServer defs/TS29512_Npcf_SMPolicyControl.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS32291NchfConvergedCharging/TS32291NchfConvergedCharging.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData,TS29512_Npcf_SMPolicyControl.yaml:magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl defs/TS32291_Nchf_ConvergedCharging.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29502NsmfPDUSession/TS29502NsmfPDUSession.gen.go --import-mapping TS29510_Nnrf_NFManagement.yaml:magma/feg/gateway/sbi/specs/TS29510NnrfNFManagement,TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS32291_Nchf_ConvergedCharging.yaml:magma/feg/gateway/sbi/specs/TS32291NchfConvergedCharging,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29502_Nsmf_PDUSession.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29508NsmfEventExposure/TS29508NsmfEventExposure.gen.go --import-mapping TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29508_Nsmf_EventExposure.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29122PfdManagement/TS29122PfdManagement.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29122_PfdManagement.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29122AsSessionWithQoS/TS29122AsSessionWithQoS.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29514_Npcf_PolicyAuthorization.yaml:magma/feg/gateway/sbi/specs/TS29514NpcfPolicyAuthorization,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29122_AsSessionWithQoS.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29531NnssfNSSAIAvailability/TS29531NnssfNSSAIAvailability.gen.go --import-mapping TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29531_Nnssf_NSSAIAvailability.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29509NausfUEAuthentication/TS29509NausfUEAuthentication.gen.go --import-mapping TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData,TS29503_Nudm_UEAU.yaml:magma/feg/gateway/sbi/specs/TS29503NudmUEAU defs/TS29509_Nausf_UEAuthentication.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29518NamfEventExposure/TS29518NamfEventExposure.gen.go --import-mapping TS29503_Nudm_EE.yaml:magma/feg/gateway/sbi/specs/TS29503NudmEE,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29518_Namf_EventExposure.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29531NnssfNSSelection/TS29531NnssfNSSelection.gen.go --import-mapping TS29510_Nnrf_NFManagement.yaml:magma/feg/gateway/sbi/specs/TS29510NnrfNFManagement,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29531_Nnssf_NSSelection.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29518NamfCommunication/TS29518NamfCommunication.gen.go --import-mapping TS29572_Nlmf_Location.yaml:magma/feg/gateway/sbi/specs/TS29572NlmfLocation,TS29502_Nsmf_PDUSession.yaml:magma/feg/gateway/sbi/specs/TS29502NsmfPDUSession,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData,TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29518_Namf_EventExposure.yaml:magma/feg/gateway/sbi/specs/TS29518NamfEventExposure,TS29531_Nnssf_NSSelection.yaml:magma/feg/gateway/sbi/specs/TS29531NnssfNSSelection defs/TS29518_Namf_Communication.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29122MonitoringEvent/TS29122MonitoringEvent.gen.go --import-mapping TS29572_Nlmf_Location.yaml:magma/feg/gateway/sbi/specs/TS29572NlmfLocation,TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29122_MonitoringEvent.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29518NamfLocation/TS29518NamfLocation.gen.go --import-mapping TS29572_Nlmf_Location.yaml:magma/feg/gateway/sbi/specs/TS29572NlmfLocation,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29518_Namf_Location.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29122MsisdnLessMoSms/TS29122MsisdnLessMoSms.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29122_MsisdnLessMoSms.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29122GMDviaMBMSbyMB2/TS29122GMDviaMBMSbyMB2.gen.go --import-mapping TS29572_Nlmf_Location.yaml:magma/feg/gateway/sbi/specs/TS29572NlmfLocation,TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29122_GMDviaMBMSbyMB2.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29510NnrfAccessToken/TS29510NnrfAccessToken.gen.go --import-mapping TS29510_Nnrf_NFManagement.yaml:magma/feg/gateway/sbi/specs/TS29510NnrfNFManagement,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29510_Nnrf_AccessToken.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29122ChargeableParty/TS29122ChargeableParty.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29514_Npcf_PolicyAuthorization.yaml:magma/feg/gateway/sbi/specs/TS29514NpcfPolicyAuthorization,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29122_ChargeableParty.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29122DeviceTriggering/TS29122DeviceTriggering.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29122_DeviceTriggering.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29122ResourceManagementOfBdt/TS29122ResourceManagementOfBdt.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29122_ResourceManagementOfBdt.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29122NpConfiguration/TS29122NpConfiguration.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29122_NpConfiguration.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29519ExposureData/TS29519ExposureData.gen.go --import-mapping TS29518_Namf_Communication.yaml:magma/feg/gateway/sbi/specs/TS29518NamfCommunication,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData,TS29518_Namf_EventExposure.yaml:magma/feg/gateway/sbi/specs/TS29518NamfEventExposure defs/TS29519_Exposure_Data.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29519ApplicationData/TS29519ApplicationData.gen.go --import-mapping TS29551_Nnef_PFDmanagement.yaml:magma/feg/gateway/sbi/specs/TS29551NnefPFDmanagement,TS29522_TrafficInfluence.yaml:magma/feg/gateway/sbi/specs/TS29522TrafficInfluence,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData,TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29514_Npcf_PolicyAuthorization.yaml:magma/feg/gateway/sbi/specs/TS29514NpcfPolicyAuthorization defs/TS29519_Application_Data.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29518NamfMT/TS29518NamfMT.gen.go --import-mapping TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData,TS29518_Namf_EventExposure.yaml:magma/feg/gateway/sbi/specs/TS29518NamfEventExposure defs/TS29518_Namf_MT.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29122NIDD/TS29122NIDD.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29122_NIDD.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29122ReportingNetworkStatus/TS29122ReportingNetworkStatus.gen.go --import-mapping TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29122_ReportingNetworkStatus.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29122GMDviaMBMSbyxMB/TS29122GMDviaMBMSbyxMB.gen.go --import-mapping TS29572_Nlmf_Location.yaml:magma/feg/gateway/sbi/specs/TS29572NlmfLocation,TS29122_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29122CommonData,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29122_GMDviaMBMSbyxMB.yaml
-//go:generate oapi-codegen -generate types,skip-prune -o specs/TS29510NnrfNFDiscovery/TS29510NnrfNFDiscovery.gen.go --import-mapping TS29510_Nnrf_NFManagement.yaml:magma/feg/gateway/sbi/specs/TS29510NnrfNFManagement,TS29503_Nudm_SDM.yaml:magma/feg/gateway/sbi/specs/TS29503NudmSDM,TS29571_CommonData.yaml:magma/feg/gateway/sbi/specs/TS29571CommonData defs/TS29510_Nnrf_NFDiscovery.yaml
-
 package sbi
+
+import (
+	"context"
+	"net"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/labstack/echo/v4"
+)
+
+type SbiServer struct {
+	Server     *echo.Echo
+	ListenAddr string
+}
+
+func NewSbiServer(listenAddr string) *SbiServer {
+	return &SbiServer{
+		Server:     echo.New(),
+		ListenAddr: listenAddr,
+	}
+}
+
+func (sbiServer *SbiServer) Start() error {
+	errChan := make(chan error)
+	addr, err := net.ResolveTCPAddr("tcp", sbiServer.ListenAddr)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		err = sbiServer.Server.Start(addr.String())
+		if err != nil {
+			errChan <- err
+		}
+	}()
+
+	return sbiServer.waitForServer(errChan)
+}
+
+func (sbiServer *SbiServer) Shutdown(timeout time.Duration) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	sbiServer.Server.Shutdown(ctx)
+}
+
+// waitForServer waits for the Echo server to be launched.
+func (sbiServer *SbiServer) waitForServer(errChan <-chan error) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	ticker := time.NewTicker(5 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+			addr := sbiServer.Server.ListenerAddr()
+			if addr != nil && strings.Contains(addr.String(), ":") {
+				// server started
+				sbiServer.ListenAddr = addr.String()
+				return nil
+			}
+		case err := <-errChan:
+			if err == http.ErrServerClosed {
+				// not actually an error. Happens when the server is gracefully shutdown
+				return nil
+			}
+			return err
+		}
+	}
+}

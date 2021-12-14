@@ -12,6 +12,11 @@ produces:
 schemes:
 - https
 - http
+securityDefinitions:
+  tokenAuth:
+    type: basic
+security:
+- tokenAuth: []
 tags:
 - description: Access point name
   name: APNs
@@ -53,12 +58,6 @@ tags:
   name: Tenants
 - description: Configuration to manage upgrades
   name: Upgrades
-- description: Wifi gateways
-  name: Wifi Gateways
-- description: Wifi meshes
-  name: Wifi Meshes
-- description: Wifi networks
-  name: Wifi Networks
 - description: Baremetal CI executors and workloads
   name: baremetal
 - description: End to end testing
@@ -1337,7 +1336,7 @@ paths:
             type: object
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: List all federation gateways for a federation network
+      summary: List all gateways for a federation network
       tags:
       - Federation Gateways
     post:
@@ -3882,6 +3881,32 @@ paths:
       summary: Change a subscriber's data profile
       tags:
       - Subscribers
+  /lte/{network_id}/subscribers?verbose=false:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - description: Filter to subscribers with the passed MSISDN
+        in: query
+        name: msisdn
+        required: false
+        type: string
+      - description: Filter to subscribers assigned the passed IP address
+        in: query
+        name: ip
+        required: false
+        type: string
+      - $ref: '#/parameters/page_size'
+      - $ref: '#/parameters/page_token'
+      responses:
+        "200":
+          description: List of subscribers in the network
+          schema:
+            $ref: '#/definitions/paginated_subscriber_ids'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List subscribers in the network with pagination support
+      tags:
+      - Subscribers
   /networks:
     get:
       responses:
@@ -6187,644 +6212,145 @@ paths:
       summary: Update enodebd e2e test case
       tags:
       - e2e
-  /wifi:
+  /user:
     get:
       responses:
         "200":
-          description: List of Wifi network IDs
+          description: Success
           schema:
-            example:
-            - wifi_network_1
-            - wifi_network_1
             items:
               type: string
             type: array
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: List all Wifi network IDs
+      summary: List all usernames
       tags:
-      - Wifi Networks
+      - User
     post:
       parameters:
-      - description: Configuration of the Wifi network to create
-        in: body
-        name: wifi_network
+      - in: body
+        name: user
         required: true
         schema:
-          $ref: '#/definitions/wifi_network'
+          $ref: '#/definitions/user'
       responses:
         "201":
           description: Success
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Create a new Wifi network
+      summary: Create a user
       tags:
-      - Wifi Networks
-  /wifi/{network_id}:
+      - User
+  /user/{username}:
     delete:
       parameters:
-      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/username'
       responses:
         "204":
           description: Success
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Delete a Wifi network
+      summary: Remove a user
       tags:
-      - Wifi Networks
+      - User
     get:
       parameters:
-      - $ref: '#/parameters/network_id'
-      responses:
-        "200":
-          description: Full description of a Wifi network
-          schema:
-            $ref: '#/definitions/wifi_network'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Describe a Wifi network
-      tags:
-      - Wifi Networks
-    put:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - description: Full desired configuration of the network
-        in: body
-        name: wifi_network
-        required: true
-        schema:
-          $ref: '#/definitions/wifi_network'
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Update an entire Wifi network
-      tags:
-      - Wifi Networks
-  /wifi/{network_id}/description:
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      responses:
-        "200":
-          description: Description of the network
-          schema:
-            $ref: '#/definitions/network_description'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get description of a Wifi network
-      tags:
-      - Wifi Networks
-    put:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - description: New name for the network
-        in: body
-        name: description
-        required: true
-        schema:
-          $ref: '#/definitions/network_description'
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Update the description of a Wifi network
-      tags:
-      - Wifi Networks
-  /wifi/{network_id}/features:
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      responses:
-        "200":
-          description: Feature flags of the network
-          schema:
-            $ref: '#/definitions/network_features'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get feature flags for a Wifi network
-      tags:
-      - Wifi Networks
-    put:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - description: New feature flags for the network
-        in: body
-        name: config
-        required: true
-        schema:
-          $ref: '#/definitions/network_features'
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Update feature flags for a Wifi network
-      tags:
-      - Wifi Networks
-  /wifi/{network_id}/gateways:
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      responses:
-        "200":
-          description: Map of all Wifi gateways inside the network by gatewayID
-          schema:
-            additionalProperties:
-              $ref: '#/definitions/wifi_gateway'
-            type: object
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: List all gateways for a Wifi network
-      tags:
-      - Wifi Gateways
-    post:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - description: Full desired configuration of the gateway
-        in: body
-        name: gateway
-        required: true
-        schema:
-          $ref: '#/definitions/mutable_wifi_gateway'
+      - $ref: '#/parameters/username'
       responses:
         "201":
           description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Register a new Wifi gateway
-      tags:
-      - Wifi Gateways
-  /wifi/{network_id}/gateways/{gateway_id}:
-    delete:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Delete a Wifi gateway
-      tags:
-      - Wifi Gateways
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
-      responses:
-        "200":
-          description: The requested Wifi gateway
           schema:
-            $ref: '#/definitions/wifi_gateway'
+            type: string
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Get a specific Wifi gateway
+      summary: Get a single user's information
       tags:
-      - Wifi Gateways
+      - User
     put:
       parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
-      - description: Full desired configuration of the gateway
+      - $ref: '#/parameters/username'
+      - description: New password for user
         in: body
-        name: gateway
+        name: password
         required: true
         schema:
-          $ref: '#/definitions/mutable_wifi_gateway'
+          properties:
+            password:
+              format: password
+              type: string
       responses:
         "204":
           description: Success
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Update an entire Wifi gateway record
+      summary: Update a user's password
       tags:
-      - Wifi Gateways
-  /wifi/{network_id}/gateways/{gateway_id}/description:
+      - User
+  /user/{username}/tokens:
     get:
       parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
+      - $ref: '#/parameters/username'
       responses:
         "200":
-          description: The description of the gateway
-          schema:
-            $ref: '#/definitions/gateway_description'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get the description of a Wifi gateway
-      tags:
-      - Wifi Gateways
-    put:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
-      - in: body
-        name: description
-        required: true
-        schema:
-          $ref: '#/definitions/gateway_description'
-      responses:
-        "204":
           description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Update the description of a Wifi gateway
-      tags:
-      - Wifi Gateways
-  /wifi/{network_id}/gateways/{gateway_id}/device:
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
-      responses:
-        "200":
-          description: The physical device for the gateway
           schema:
-            $ref: '#/definitions/gateway_device'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get the physical device for a Wifi gateway
-      tags:
-      - Wifi Gateways
-    put:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
-      - description: New device for the Wifi gateway
-        in: body
-        name: device
-        required: true
-        schema:
-          $ref: '#/definitions/gateway_device'
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Update the physical device for a Wifi gateway
-      tags:
-      - Wifi Gateways
-  /wifi/{network_id}/gateways/{gateway_id}/magmad:
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
-      responses:
-        "200":
-          description: Magmad agent configuration
-          schema:
-            $ref: '#/definitions/magmad_gateway_configs'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get the magmad agent configuration for a Wifi gateway
-      tags:
-      - Wifi Gateways
-    put:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
-      - description: New magmad configuration
-        in: body
-        name: magmad
-        required: true
-        schema:
-          $ref: '#/definitions/magmad_gateway_configs'
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Reconfigure the magmad agent of a Wifi gateway
-      tags:
-      - Wifi Gateways
-  /wifi/{network_id}/gateways/{gateway_id}/name:
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
-      responses:
-        "200":
-          description: The name of the gateway
-          schema:
-            $ref: '#/definitions/gateway_name'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get the name of a Wifi gateway
-      tags:
-      - Wifi Gateways
-    put:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
-      - in: body
-        name: name
-        required: true
-        schema:
-          $ref: '#/definitions/gateway_name'
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Update the name of a Wifi gateway
-      tags:
-      - Wifi Gateways
-  /wifi/{network_id}/gateways/{gateway_id}/status:
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
-      responses:
-        "200":
-          description: The status of the gateway
-          schema:
-            $ref: '#/definitions/gateway_status'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get the status of a Wifi gateway
-      tags:
-      - Wifi Gateways
-  /wifi/{network_id}/gateways/{gateway_id}/tier:
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
-      responses:
-        "200":
-          description: The ID of the upgrade tier
-          schema:
-            $ref: '#/definitions/tier_id'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get the ID of the upgrade tier a Wifi gateway belongs to
-      tags:
-      - Wifi Gateways
-    put:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
-      - in: body
-        name: tier_id
-        required: true
-        schema:
-          $ref: '#/definitions/tier_id'
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Update the ID of the upgrade tier a Wifi gateway belongs to
-      tags:
-      - Wifi Gateways
-  /wifi/{network_id}/gateways/{gateway_id}/wifi:
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
-      responses:
-        "204":
-          description: Wifi configuration
-          schema:
-            $ref: '#/definitions/gateway_wifi_configs'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get the gateway wifi configuration
-      tags:
-      - Wifi Gateways
-    put:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/gateway_id'
-      - description: New wifi configuration
-        in: body
-        name: config
-        required: true
-        schema:
-          $ref: '#/definitions/gateway_wifi_configs'
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Update the gateway wifi configuration
-      tags:
-      - Wifi Gateways
-  /wifi/{network_id}/meshes:
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      responses:
-        "200":
-          description: List of meshes in the network
-          schema:
-            example:
-            - mesh_1
-            - mesh_2
             items:
-              $ref: '#/definitions/mesh_id'
+              $ref: '#/definitions/policy'
             type: array
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: List meshes in the network
+      summary: Get a list of a user's tokens and their respective policies
       tags:
-      - Wifi Meshes
+      - User
     post:
       parameters:
-      - $ref: '#/parameters/network_id'
-      - description: Mesh to add to the network
-        in: body
-        name: wifi_mesh
+      - $ref: '#/parameters/username'
+      - in: body
+        name: resources
         required: true
         schema:
-          $ref: '#/definitions/wifi_mesh'
+          $ref: '#/definitions/resources'
       responses:
         "201":
-          description: New mesh ID
-          schema:
-            $ref: '#/definitions/mesh_id'
+          description: Success
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Add a new mesh to the network
+      summary: Add a token/policy to the user's existing permissions
       tags:
-      - Wifi Meshes
-  /wifi/{network_id}/meshes/{mesh_id}:
+      - User
+  /user/{username}/tokens/{token}:
     delete:
       parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/mesh_id'
+      - in: path
+        name: token
+        required: true
+        type: string
+      - $ref: '#/parameters/username'
       responses:
         "204":
           description: Success
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Delete a Wifi mesh
+      summary: Revoke the token and its policy from the user
       tags:
-      - Wifi Meshes
-    get:
+      - User
+  /user/login:
+    post:
       parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/mesh_id'
-      responses:
-        "200":
-          description: List of meshes in the network
-          schema:
-            $ref: '#/definitions/wifi_mesh'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get a specific Wifi mesh
-      tags:
-      - Wifi Meshes
-    put:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/mesh_id'
-      - description: Mesh to add to the network
-        in: body
-        name: wifi_mesh
+      - in: body
+        name: user
         required: true
         schema:
-          $ref: '#/definitions/wifi_mesh'
+          $ref: '#/definitions/user'
       responses:
         "201":
-          description: New mesh ID
-          schema:
-            $ref: '#/definitions/mesh_id'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Update a mesh in the network
-      tags:
-      - Wifi Meshes
-  /wifi/{network_id}/meshes/{mesh_id}/config:
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/mesh_id'
-      responses:
-        "200":
-          description: List of meshes in the network
-          schema:
-            $ref: '#/definitions/mesh_wifi_configs'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get the config of a specific Wifi mesh
-      tags:
-      - Wifi Meshes
-    put:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/mesh_id'
-      - description: The updated wifi configs of the mesh
-        in: body
-        name: mesh_wifi_configs
-        required: true
-        schema:
-          $ref: '#/definitions/mesh_wifi_configs'
-      responses:
-        "204":
           description: Success
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Update the wifi config of a mesh in the network
+      security: []
+      summary: List all the tokens given a user
       tags:
-      - Wifi Meshes
-  /wifi/{network_id}/meshes/{mesh_id}/name:
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/mesh_id'
-      responses:
-        "200":
-          description: The name of the mesh
-          schema:
-            $ref: '#/definitions/mesh_name'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get the name of a specific Wifi mesh
-      tags:
-      - Wifi Meshes
-    put:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - $ref: '#/parameters/mesh_id'
-      - description: The updated name of the mesh
-        in: body
-        name: mesh_name
-        required: true
-        schema:
-          $ref: '#/definitions/mesh_name'
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Update the name of a mesh in the network
-      tags:
-      - Wifi Meshes
-  /wifi/{network_id}/name:
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      responses:
-        "200":
-          description: Name of the network
-          schema:
-            $ref: '#/definitions/network_name'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get the name of a Wifi network
-      tags:
-      - Wifi Networks
-    put:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - description: New name for the network
-        in: body
-        name: name
-        required: true
-        schema:
-          $ref: '#/definitions/network_name'
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Update the name of a Wifi network
-      tags:
-      - Wifi Networks
-  /wifi/{network_id}/wifi:
-    get:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      responses:
-        "200":
-          description: Wifi configuration of the network
-          schema:
-            $ref: '#/definitions/network_wifi_configs'
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Get wifi configuration of a Wifi network
-      tags:
-      - Wifi Networks
-    put:
-      parameters:
-      - $ref: '#/parameters/network_id'
-      - description: New wifi configuration for the network
-        in: body
-        name: config
-        required: true
-        schema:
-          $ref: '#/definitions/network_wifi_configs'
-      responses:
-        "204":
-          description: Success
-        default:
-          $ref: '#/responses/UnexpectedError'
-      summary: Update the wifi configuration of a Wifi network
-      tags:
-      - Wifi Networks
+      - User
 responses:
   UnexpectedError:
     description: Unexpected Error
@@ -6891,12 +6417,6 @@ parameters:
     in: path
     minLength: 1
     name: image_name
-    required: true
-    type: string
-  mesh_id:
-    description: Mesh ID
-    in: path
-    name: mesh_id
     required: true
     type: string
   msisdn:
@@ -7000,6 +6520,12 @@ parameters:
     description: Unique ID of call trace
     in: path
     name: trace_id
+    required: true
+    type: string
+  username:
+    description: username
+    in: path
+    name: username
     required: true
     type: string
 definitions:
@@ -7604,12 +7130,13 @@ definitions:
         $ref: '#/definitions/magmad_gateway_configs'
       name:
         $ref: '#/definitions/gateway_name'
+      registration_info:
+        $ref: '#/definitions/registration_info'
       status:
         $ref: '#/definitions/gateway_status'
       tier:
         $ref: '#/definitions/tier_id'
     required:
-    - device
     - id
     - name
     - description
@@ -8404,12 +7931,13 @@ definitions:
         $ref: '#/definitions/magmad_gateway_configs'
       name:
         $ref: '#/definitions/gateway_name'
+      registration_info:
+        $ref: '#/definitions/registration_info'
       status:
         $ref: '#/definitions/gateway_status'
       tier:
         $ref: '#/definitions/tier_id'
     required:
-    - device
     - id
     - name
     - description
@@ -9057,88 +8585,6 @@ definitions:
     required:
     - enable_shell
     type: object
-  gateway_wifi_configs:
-    description: Wifi configuration for a gateway
-    minLength: 1
-    properties:
-      additional_props:
-        additionalProperties:
-          type: string
-        example:
-          gwprop1: gwvalue1
-          gwprop2: gwvalue2
-        type: object
-      client_channel:
-        example: "11"
-        type: string
-      info:
-        example: GatewayInfo
-        type: string
-      is_production:
-        example: false
-        type: boolean
-      latitude:
-        example: 37.48497
-        format: double
-        type: number
-      longitude:
-        example: -122.148284
-        format: double
-        type: number
-      mesh_id:
-        $ref: '#/definitions/mesh_id'
-      mesh_rssi_threshold:
-        example: -80
-        format: int32
-        type: integer
-      override_password:
-        example: password
-        type: string
-      override_ssid:
-        example: SuperFastWifiNetwork
-        type: string
-      override_xwf_config:
-        example: xwf config
-        type: string
-      override_xwf_dhcp_dns1:
-        example: 8.8.8.8
-        type: string
-      override_xwf_dhcp_dns2:
-        example: 8.8.4.4
-        type: string
-      override_xwf_enabled:
-        example: false
-        type: boolean
-      override_xwf_partner_name:
-        example: xwfcfull
-        type: string
-      override_xwf_radius_acct_port:
-        example: 1813
-        format: int32
-        type: integer
-      override_xwf_radius_auth_port:
-        example: 1812
-        format: int32
-        type: integer
-      override_xwf_radius_server:
-        example: gradius.example.com
-        type: string
-      override_xwf_radius_shared_secret:
-        example: xwfisgood
-        type: string
-      override_xwf_uam_secret:
-        example: theuamsecret
-        type: string
-      use_override_ssid:
-        example: false
-        type: boolean
-      use_override_xwf:
-        example: false
-        type: boolean
-      wifi_disabled:
-        example: false
-        type: boolean
-    type: object
   gbr:
     description: Guaranteed bit rate
     properties:
@@ -9469,12 +8915,13 @@ definitions:
         $ref: '#/definitions/magmad_gateway_configs'
       name:
         $ref: '#/definitions/gateway_name'
+      registration_info:
+        $ref: '#/definitions/registration_info'
       status:
         $ref: '#/definitions/gateway_status'
       tier:
         $ref: '#/definitions/tier_id'
     required:
-    - device
     - id
     - name
     - description
@@ -9583,12 +9030,13 @@ definitions:
         $ref: '#/definitions/magmad_gateway_configs'
       name:
         $ref: '#/definitions/gateway_name'
+      registration_info:
+        $ref: '#/definitions/registration_info'
       status:
         $ref: '#/definitions/gateway_status'
       tier:
         $ref: '#/definitions/tier_id'
     required:
-    - device
     - id
     - name
     - description
@@ -9655,50 +9103,6 @@ definitions:
     - isRegex
     - name
     - value
-    type: object
-  mesh_id:
-    example: default
-    minLength: 1
-    pattern: ^[a-zA-Z_][\da-zA-Z_]+$
-    type: string
-  mesh_name:
-    description: The name of a mesh
-    example: SuperAwesomeMesh
-    minLength: 1
-    type: string
-    x-nullable: false
-  mesh_wifi_configs:
-    description: Wifi configurations for a mesh network
-    properties:
-      additional_props:
-        additionalProperties:
-          type: string
-        example:
-          meshprop1: meshvalue1
-          meshprop2: meshvalue2
-        type: object
-      mesh_channel_type:
-        example: HT20
-        type: string
-      mesh_frequency:
-        example: 5825
-        format: int32
-        type: integer
-      mesh_ssid:
-        example: bazooka
-        type: string
-      password:
-        example: password
-        type: string
-      ssid:
-        example: SuperFastWifiNetwork
-        type: string
-      vl_ssid:
-        example: VirtualLighthouseNetwork
-        type: string
-      xwf_enabled:
-        example: false
-        type: boolean
     type: object
   metric_datapoint:
     example:
@@ -9814,7 +9218,6 @@ definitions:
       tier:
         $ref: '#/definitions/tier_id'
     required:
-    - device
     - id
     - name
     - description
@@ -9875,7 +9278,6 @@ definitions:
       tier:
         $ref: '#/definitions/tier_id'
     required:
-    - device
     - id
     - name
     - description
@@ -9904,7 +9306,6 @@ definitions:
       tier:
         $ref: '#/definitions/tier_id'
     required:
-    - device
     - id
     - name
     - description
@@ -9977,32 +9378,6 @@ definitions:
     items:
       $ref: '#/definitions/mutable_subscriber'
     type: array
-  mutable_wifi_gateway:
-    description: Wifi gateway object with read-only fields omitted
-    properties:
-      description:
-        $ref: '#/definitions/gateway_description'
-      device:
-        $ref: '#/definitions/gateway_device'
-      id:
-        $ref: '#/definitions/gateway_id'
-      magmad:
-        $ref: '#/definitions/magmad_gateway_configs'
-      name:
-        $ref: '#/definitions/gateway_name'
-      tier:
-        $ref: '#/definitions/tier_id'
-      wifi:
-        $ref: '#/definitions/gateway_wifi_configs'
-    required:
-    - device
-    - id
-    - name
-    - description
-    - magmad
-    - tier
-    - wifi
-    type: object
   network:
     description: Orchestrator network spec
     properties:
@@ -10624,85 +9999,6 @@ definitions:
     description: The type of the network
     example: LTE
     type: string
-  network_wifi_configs:
-    description: Wifi configuration for a network
-    minLength: 1
-    properties:
-      additional_props:
-        additionalProperties:
-          type: string
-        example:
-          netprop1: netvalue1
-          netprop2: netvalue2
-        type: object
-      mgmt_vpn_enabled:
-        example: false
-        type: boolean
-      mgmt_vpn_proto:
-        example: impossible
-        type: string
-      mgmt_vpn_remote:
-        example: server
-        type: string
-      openr_enabled:
-        example: false
-        type: boolean
-      ping_host_list:
-        items:
-          example: www.facebook.com
-          minLength: 1
-          type: string
-          x-nullable: false
-        type: array
-        uniqueItems: true
-      ping_num_packets:
-        example: 5
-        format: int32
-        type: integer
-      ping_timeout_secs:
-        example: 6
-        format: int32
-        type: integer
-      vl_auth_server_addr:
-        example: 192.168.1.1
-        type: string
-      vl_auth_server_port:
-        example: 1234
-        format: int32
-        type: integer
-      vl_auth_server_shared_secret:
-        example: ssssh
-        type: string
-      xwf_config:
-        example: xwf config
-        type: string
-      xwf_dhcp_dns1:
-        example: 8.8.8.8
-        type: string
-      xwf_dhcp_dns2:
-        example: 8.8.4.4
-        type: string
-      xwf_partner_name:
-        example: xwfcfull
-        type: string
-      xwf_radius_acct_port:
-        example: 1813
-        format: int32
-        type: integer
-      xwf_radius_auth_port:
-        example: 1812
-        format: int32
-        type: integer
-      xwf_radius_server:
-        example: gradius.example.com
-        type: string
-      xwf_radius_shared_secret:
-        example: xwfisgood
-        type: string
-      xwf_uam_secret:
-        example: theuamsecret
-        type: string
-    type: object
   nh_routes:
     additionalProperties:
       type: string
@@ -10780,6 +10076,26 @@ definitions:
     required:
     - page_token
     - gateways
+    - total_count
+    type: object
+  paginated_subscriber_ids:
+    description: Page of subscriber IDs
+    properties:
+      next_page_token:
+        $ref: '#/definitions/page_token'
+      subscribers:
+        items:
+          type: string
+        type: array
+      total_count:
+        description: Estimated total number of subscriber entries
+        example: 10
+        format: int64
+        type: integer
+        x-nullable: false
+    required:
+    - next_page_token
+    - subscribers
     - total_count
     type: object
   paginated_subscribers:
@@ -10899,6 +10215,28 @@ definitions:
     required:
     - mcc
     - mnc
+    type: object
+  policy:
+    description: An object that defines a user's permissions to access resources
+    example:
+      resources:
+      - action: READ
+        effect: DENY
+        resource: test_network1
+        resourceType: NETWORK_ID
+      - action: WRITE
+        effect: ALLOW
+        resource: /**
+        resourceType: URI
+      token: op_6YHy0uT7DeuWyT3N9nkAOyoeyOI25fletJE69yHGGl4ifjfoq
+    properties:
+      resources:
+        $ref: '#/definitions/resources'
+      token:
+        type: string
+    required:
+    - token
+    - resources
     type: object
   policy_id:
     example: All ICMP
@@ -11405,6 +10743,29 @@ definitions:
     - address_type
     - server_address
     type: object
+  registration_info:
+    properties:
+      domain_name:
+        description: domain_name is the domain name where the stated orc8r can be
+          accessed
+        example: example.com
+        type: string
+      registration_token:
+        description: registration_token is a token for the operator to give to the
+          AGW; it keys to logical and network ID
+        example: reg_a9vnap30fN0anrfjVneB
+        minLength: 4
+        type: string
+      root_ca:
+        description: root_ca is a certificate that access gateways (AGW) can use to
+          handshake and communicate with the stated orc8r
+        example: =example rootCA.pem=
+        type: string
+    required:
+    - registration_token
+    - root_ca
+    - domain_name
+    type: object
   release_channel:
     properties:
       id:
@@ -11420,6 +10781,47 @@ definitions:
     - supported_versions
     type: object
     x-nullable: false
+  resource:
+    description: The resource to which the user is either denied or allowed access
+      to read/write
+    example:
+      action: WRITE
+      effect: ALLOW
+      resource: /**
+      resourceType: URI
+    properties:
+      action:
+        enum:
+        - READ
+        - WRITE
+        type: string
+      effect:
+        enum:
+        - DENY
+        - ALLOW
+        type: string
+      resource:
+        type: string
+      resourceType:
+        enum:
+        - NETWORK_ID
+        - TENANT_ID
+        - URI
+        type: string
+    type: object
+  resources:
+    example:
+    - action: READ
+      effect: DENY
+      resource: test_network1
+      resourceType: NETWORK_ID
+    - action: WRITE
+      effect: ALLOW
+      resource: /**
+      resourceType: URI
+    items:
+      $ref: '#/definitions/resource'
+    type: array
   route:
     properties:
       destination_ip:
@@ -12043,6 +11445,17 @@ definitions:
     description: Arbitrary untyped JSON object that represents replicated subscriber-related
       state
     type: object
+  user:
+    description: The user's authentication info
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - username
+    - password
+    type: object
   version_info:
     properties:
       container_image_version:
@@ -12081,70 +11494,4 @@ definitions:
         type: string
     required:
     - url
-    type: object
-  wifi_gateway:
-    description: Full description of a Wifi gateway
-    properties:
-      description:
-        $ref: '#/definitions/gateway_description'
-      device:
-        $ref: '#/definitions/gateway_device'
-      id:
-        $ref: '#/definitions/gateway_id'
-      magmad:
-        $ref: '#/definitions/magmad_gateway_configs'
-      name:
-        $ref: '#/definitions/gateway_name'
-      status:
-        $ref: '#/definitions/gateway_status'
-      tier:
-        $ref: '#/definitions/tier_id'
-      wifi:
-        $ref: '#/definitions/gateway_wifi_configs'
-    required:
-    - device
-    - id
-    - name
-    - description
-    - magmad
-    - tier
-    - wifi
-    type: object
-  wifi_mesh:
-    description: Nodes in a mesh network
-    properties:
-      config:
-        $ref: '#/definitions/mesh_wifi_configs'
-      gateway_ids:
-        items:
-          $ref: '#/definitions/gateway_id'
-        type: array
-      id:
-        $ref: '#/definitions/mesh_id'
-      name:
-        $ref: '#/definitions/mesh_name'
-    required:
-    - id
-    - name
-    - gateway_ids
-    - config
-    type: object
-  wifi_network:
-    description: Wifi Network spec
-    properties:
-      description:
-        $ref: '#/definitions/network_description'
-      features:
-        $ref: '#/definitions/network_features'
-      id:
-        $ref: '#/definitions/network_id'
-      name:
-        $ref: '#/definitions/network_name'
-      wifi:
-        $ref: '#/definitions/network_wifi_configs'
-    required:
-    - id
-    - name
-    - description
-    - wifi
     type: object

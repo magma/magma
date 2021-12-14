@@ -22,6 +22,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 }
 
 const task_info_t tasks_info[] = {
@@ -41,6 +42,8 @@ const message_info_t messages_info[] = {
 
 #define TEST_GRPCSERVICES_SERVER_ADDRESS "127.0.0.1:50095"
 
+#define END_OF_TESTCASE_SLEEP_MS 100
+#define SLEEP_AT_INITIALIZATION_TIME_MS 500
 class MockS1apHandler {
  public:
   MOCK_METHOD1(
@@ -51,6 +54,12 @@ class MockS1apHandler {
   MOCK_METHOD0(s1ap_generate_s1ap_e_rab_setup_req, void());
   MOCK_METHOD0(s1ap_generate_s1ap_e_rab_rel_cmd, void());
   MOCK_METHOD0(s1ap_handle_paging_request, void());
+  MOCK_METHOD1(
+      s1ap_handle_path_switch_req_ack,
+      bool(itti_s1ap_path_switch_request_ack_t path_switch_ack));
+  MOCK_METHOD1(
+      s1ap_handle_path_switch_req_failure,
+      bool(itti_s1ap_path_switch_request_failure_t path_switch_fail));
 };
 
 class MockMmeAppHandler {
@@ -65,7 +74,9 @@ class MockMmeAppHandler {
       mme_app_handle_nw_init_bearer_deactv_req,
       bool(itti_s11_nw_init_deactv_bearer_request_t db_req));
   MOCK_METHOD0(mme_app_handle_modify_bearer_rsp, void());
-  MOCK_METHOD0(mme_app_handle_delete_sess_rsp, void());
+  MOCK_METHOD1(
+      mme_app_handle_delete_sess_rsp,
+      bool(itti_s11_delete_session_response_t ds_rsp));
   MOCK_METHOD0(nas_proc_dl_transfer_rej, void());
   MOCK_METHOD0(mme_app_handle_release_access_bearers_resp, void());
   MOCK_METHOD0(mme_app_handle_handover_required, void());
@@ -112,6 +123,12 @@ class MockS8Handler {
   MOCK_METHOD1(
       sgw_s8_handle_delete_bearer_request,
       bool(s8_delete_bearer_request_t db_req));
+  MOCK_METHOD1(
+      sgw_s8_handle_create_session_response,
+      bool(s8_create_session_response_t cs_rsp));
+  MOCK_METHOD1(
+      sgw_s8_handle_delete_session_response,
+      bool(s8_delete_session_response_t ds_rsp));
 };
 
 void start_mock_ha_task();

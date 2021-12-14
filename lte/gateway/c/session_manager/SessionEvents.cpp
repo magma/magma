@@ -39,47 +39,47 @@ using magma::orc8r::Void;
 
 namespace {  // anonymous
 
-const std::string SESSIOND_SERVICE_EV       = "sessiond";
-const std::string SESSION_CREATED_EV        = "session_created";
+const std::string SESSIOND_SERVICE_EV = "sessiond";
+const std::string SESSION_CREATED_EV = "session_created";
 const std::string SESSION_CREATE_FAILURE_EV = "session_create_failure";
-const std::string SESSION_UPDATED_EV        = "session_updated";
+const std::string SESSION_UPDATED_EV = "session_updated";
 const std::string SESSION_UPDATE_FAILURE_EV = "session_update_failure";
-const std::string SESSION_TERMINATED_EV     = "session_terminated";
+const std::string SESSION_TERMINATED_EV = "session_terminated";
 
-const std::string SESSION_ID               = "session_id";
-const std::string IMSI                     = "imsi";
-const std::string IMEI                     = "imei";
-const std::string USER_LOCATION            = "user_location";
-const std::string IP_ADDR                  = "ip_addr";
-const std::string IPV6_ADDR                = "ipv6_addr";
-const std::string MAC_ADDR                 = "mac_addr";
-const std::string MSISDN                   = "msisdn";
-const std::string SPGW_IP                  = "spgw_ip";
-const std::string APN                      = "apn";
-const std::string PDP_START_TIME           = "pdp_start_time";
-const std::string PDP_END_TIME             = "pdp_end_time";
-const std::string DURATION                 = "duration";
-const std::string FAILURE_REASON           = "failure_reason";
-const std::string RECORD_SEQUENCE_NUMBER   = "record_sequence_number";
+const std::string SESSION_ID = "session_id";
+const std::string IMSI = "imsi";
+const std::string IMEI = "imei";
+const std::string USER_LOCATION = "user_location";
+const std::string IP_ADDR = "ip_addr";
+const std::string IPV6_ADDR = "ipv6_addr";
+const std::string MAC_ADDR = "mac_addr";
+const std::string MSISDN = "msisdn";
+const std::string SPGW_IP = "spgw_ip";
+const std::string APN = "apn";
+const std::string PDP_START_TIME = "pdp_start_time";
+const std::string PDP_END_TIME = "pdp_end_time";
+const std::string DURATION = "duration";
+const std::string FAILURE_REASON = "failure_reason";
+const std::string RECORD_SEQUENCE_NUMBER = "record_sequence_number";
 const std::string CAUSE_FOR_RECORD_CLOSING = "cause_for_rec_closing";
 const std::string CHARGING_CHARACTERISTICS = "charging_characteristics";
 
-const std::string SERVICE_DATA             = "list_of_service_data";
-const std::string RATING_GROUP             = "rating_group";
-const std::string SERVICE_IDENTIFIER       = "service_identifier";
-const std::string DATA_UPLINK              = "data_volume_downlink";
-const std::string DATA_DOWNLINK            = "data_volume_uplink";
-const std::string TIME_OF_FIRST_USAGE      = "time_of_first_usage";
-const std::string TIME_OF_LAST_USAGE       = "time_of_last_usage";
+const std::string SERVICE_DATA = "list_of_service_data";
+const std::string RATING_GROUP = "rating_group";
+const std::string SERVICE_IDENTIFIER = "service_identifier";
+const std::string DATA_UPLINK = "data_volume_downlink";
+const std::string DATA_DOWNLINK = "data_volume_uplink";
+const std::string TIME_OF_FIRST_USAGE = "time_of_first_usage";
+const std::string TIME_OF_LAST_USAGE = "time_of_last_usage";
 const std::string SERVICE_CONDITION_CHANGE = "service_condition_change";
-const std::string SERVICE_UPDATES          = "list_of_updates";
-const std::string UPDATE_REASON            = "update_reason";
-const std::string MONITORING_KEY           = "monitoring_key";
+const std::string SERVICE_UPDATES = "list_of_updates";
+const std::string UPDATE_REASON = "update_reason";
+const std::string MONITORING_KEY = "monitoring_key";
 
-const std::string TOTAL_TX      = "total_tx";
-const std::string TOTAL_RX      = "total_rx";
-const std::string CHARGING_TX   = "charging_tx";
-const std::string CHARGING_RX   = "charging_rx";
+const std::string TOTAL_TX = "total_tx";
+const std::string TOTAL_RX = "total_rx";
+const std::string CHARGING_TX = "charging_tx";
+const std::string CHARGING_RX = "charging_rx";
 const std::string MONITORING_TX = "monitoring_tx";
 const std::string MONITORING_RX = "monitoring_rx";
 
@@ -106,17 +106,17 @@ void EventsReporterImpl::session_created(
   event.set_event_type(SESSION_CREATED_EV);
   event.set_tag(imsi);
 
-  folly::dynamic event_value  = folly::dynamic::object;
-  event_value[IMSI]           = imsi;
-  event_value[IP_ADDR]        = session_context.common_context.ue_ipv4();
-  event_value[IPV6_ADDR]      = session_context.common_context.ue_ipv6();
-  event_value[MSISDN]         = session_context.common_context.msisdn();
-  event_value[APN]            = session_context.common_context.apn();
-  event_value[SESSION_ID]     = session_id;
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value[IMSI] = imsi;
+  event_value[IP_ADDR] = session_context.common_context.ue_ipv4();
+  event_value[IPV6_ADDR] = session_context.common_context.ue_ipv6();
+  event_value[MSISDN] = session_context.common_context.msisdn();
+  event_value[APN] = session_context.common_context.apn();
+  event_value[SESSION_ID] = session_id;
   event_value[PDP_START_TIME] = session->get_pdp_start_time();
   // LTE specific
-  event_value[IMEI]          = get_imei(session_context);
-  event_value[SPGW_IP]       = get_spgw_ipv4(session_context);
+  event_value[IMEI] = get_imei(session_context);
+  event_value[SPGW_IP] = get_spgw_ipv4(session_context);
   event_value[USER_LOCATION] = get_user_location(session_context);
   event_value[CHARGING_CHARACTERISTICS] =
       get_charging_characteristics(session_context);
@@ -137,17 +137,17 @@ void EventsReporterImpl::session_created(
 
 void EventsReporterImpl::session_create_failure(
     const SessionConfig& session_context, const std::string& failure_reason) {
-  auto event             = magma::orc8r::Event();
+  auto event = magma::orc8r::Event();
   const std::string imsi = session_context.get_imsi();
   event.set_stream_name(SESSIOND_SERVICE_EV);
   event.set_event_type(SESSION_CREATE_FAILURE_EV);
   event.set_tag(imsi);
 
-  folly::dynamic event_value  = folly::dynamic::object;
-  event_value[IMSI]           = imsi;
-  event_value[APN]            = session_context.common_context.apn();
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value[IMSI] = imsi;
+  event_value[APN] = session_context.common_context.apn();
   event_value[FAILURE_REASON] = failure_reason;
-  event_value[MAC_ADDR]       = get_mac_addr(session_context);
+  event_value[MAC_ADDR] = get_mac_addr(session_context);
 
   std::string event_value_string = folly::toJson(event_value);
   event.set_value(event_value_string);
@@ -161,23 +161,23 @@ void EventsReporterImpl::session_create_failure(
   });
 }
 
-void EventsReporterImpl::session_updated(
-    const std::string& session_id, const SessionConfig& session_context,
-    const UpdateRequests& update_request) {
-  auto event             = magma::orc8r::Event();
+void EventsReporterImpl::session_updated(const std::string& session_id,
+                                         const SessionConfig& session_context,
+                                         const UpdateRequests& update_request) {
+  auto event = magma::orc8r::Event();
   const std::string imsi = session_context.get_imsi();
 
   event.set_stream_name(SESSIOND_SERVICE_EV);
   event.set_event_type(SESSION_UPDATED_EV);
   event.set_tag(imsi);
 
-  folly::dynamic event_value   = folly::dynamic::object;
-  event_value[IMSI]            = imsi;
-  event_value[SESSION_ID]      = session_id;
-  event_value[IP_ADDR]         = session_context.common_context.ue_ipv4();
-  event_value[IPV6_ADDR]       = session_context.common_context.ue_ipv6();
-  event_value[APN]             = session_context.common_context.apn();
-  event_value[MAC_ADDR]        = get_mac_addr(session_context);
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value[IMSI] = imsi;
+  event_value[SESSION_ID] = session_id;
+  event_value[IP_ADDR] = session_context.common_context.ue_ipv4();
+  event_value[IPV6_ADDR] = session_context.common_context.ue_ipv6();
+  event_value[APN] = session_context.common_context.apn();
+  event_value[MAC_ADDR] = get_mac_addr(session_context);
   event_value[SERVICE_UPDATES] = get_update_summary(update_request);
 
   std::string event_value_string = folly::toJson(event_value);
@@ -195,20 +195,20 @@ void EventsReporterImpl::session_updated(
 void EventsReporterImpl::session_update_failure(
     const std::string& session_id, const SessionConfig& session_context,
     const UpdateRequests& failed_request, const std::string& failure_reason) {
-  auto event             = magma::orc8r::Event();
+  auto event = magma::orc8r::Event();
   const std::string imsi = session_context.get_imsi();
 
   event.set_stream_name(SESSIOND_SERVICE_EV);
   event.set_event_type(SESSION_UPDATE_FAILURE_EV);
 
-  folly::dynamic event_value   = folly::dynamic::object;
-  event_value[IMSI]            = imsi;
-  event_value[SESSION_ID]      = session_id;
-  event_value[IP_ADDR]         = session_context.common_context.ue_ipv4();
-  event_value[IPV6_ADDR]       = session_context.common_context.ue_ipv6();
-  event_value[MAC_ADDR]        = get_mac_addr(session_context);
-  event_value[APN]             = session_context.common_context.apn();
-  event_value[FAILURE_REASON]  = failure_reason;
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value[IMSI] = imsi;
+  event_value[SESSION_ID] = session_id;
+  event_value[IP_ADDR] = session_context.common_context.ue_ipv4();
+  event_value[IPV6_ADDR] = session_context.common_context.ue_ipv6();
+  event_value[MAC_ADDR] = get_mac_addr(session_context);
+  event_value[APN] = session_context.common_context.apn();
+  event_value[FAILURE_REASON] = failure_reason;
   event_value[SERVICE_UPDATES] = get_update_summary(failed_request);
 
   std::string event_value_string = folly::toJson(event_value);
@@ -225,7 +225,7 @@ void EventsReporterImpl::session_update_failure(
 
 void EventsReporterImpl::session_terminated(
     const std::string& imsi, const std::unique_ptr<SessionState>& session) {
-  auto event       = magma::orc8r::Event();
+  auto event = magma::orc8r::Event();
   auto session_cfg = session->get_config();
 
   event.set_stream_name(SESSIOND_SERVICE_EV);
@@ -233,31 +233,31 @@ void EventsReporterImpl::session_terminated(
   event.set_tag(imsi);
 
   folly::dynamic event_value = folly::dynamic::object;
-  event_value[IMSI]          = imsi;
-  event_value[IP_ADDR]       = session_cfg.common_context.ue_ipv4();
-  event_value[IPV6_ADDR]     = session_cfg.common_context.ue_ipv6();
-  event_value[MSISDN]        = session_cfg.common_context.msisdn();
-  event_value[APN]           = session_cfg.common_context.apn();
-  event_value[SESSION_ID]    = session->get_session_id();
+  event_value[IMSI] = imsi;
+  event_value[IP_ADDR] = session_cfg.common_context.ue_ipv4();
+  event_value[IPV6_ADDR] = session_cfg.common_context.ue_ipv6();
+  event_value[MSISDN] = session_cfg.common_context.msisdn();
+  event_value[APN] = session_cfg.common_context.apn();
+  event_value[SESSION_ID] = session->get_session_id();
 
-  TotalCreditUsage usage      = session->get_total_credit_usage();
-  event_value[TOTAL_TX]       = usage.charging_tx + usage.monitoring_tx;
-  event_value[TOTAL_RX]       = usage.charging_rx + usage.monitoring_rx;
-  event_value[CHARGING_TX]    = usage.charging_tx;
-  event_value[CHARGING_RX]    = usage.charging_rx;
-  event_value[MONITORING_TX]  = usage.monitoring_tx;
-  event_value[MONITORING_RX]  = usage.monitoring_rx;
-  const auto start_time       = session->get_pdp_start_time();
-  const auto end_time         = session->get_pdp_end_time();
+  TotalCreditUsage usage = session->get_total_credit_usage();
+  event_value[TOTAL_TX] = usage.charging_tx + usage.monitoring_tx;
+  event_value[TOTAL_RX] = usage.charging_rx + usage.monitoring_rx;
+  event_value[CHARGING_TX] = usage.charging_tx;
+  event_value[CHARGING_RX] = usage.charging_rx;
+  event_value[MONITORING_TX] = usage.monitoring_tx;
+  event_value[MONITORING_RX] = usage.monitoring_rx;
+  const auto start_time = session->get_pdp_start_time();
+  const auto end_time = session->get_pdp_end_time();
   event_value[PDP_START_TIME] = start_time;
-  event_value[PDP_END_TIME]   = end_time;
+  event_value[PDP_END_TIME] = end_time;
   // TODO these fields below should be handled by a CDR processor script
-  event_value[DURATION]                 = end_time - start_time;
+  event_value[DURATION] = end_time - start_time;
   event_value[CAUSE_FOR_RECORD_CLOSING] = int(NORMAL_RELEASE);
-  event_value[RECORD_SEQUENCE_NUMBER]   = 1;
+  event_value[RECORD_SEQUENCE_NUMBER] = 1;
   // LTE specific
-  event_value[IMEI]          = get_imei(session_cfg);
-  event_value[SPGW_IP]       = get_spgw_ipv4(session_cfg);
+  event_value[IMEI] = get_imei(session_cfg);
+  event_value[SPGW_IP] = get_spgw_ipv4(session_cfg);
   event_value[USER_LOCATION] = get_user_location(session_cfg);
   event_value[CHARGING_CHARACTERISTICS] =
       get_charging_characteristics(session_cfg);
@@ -265,19 +265,19 @@ void EventsReporterImpl::session_terminated(
   event_value[MAC_ADDR] = get_mac_addr(session_cfg);
 
   // Add Gy tracked credits
-  auto credit_summaries            = session->get_charging_credit_summaries();
+  auto credit_summaries = session->get_charging_credit_summaries();
   folly::dynamic service_data_list = folly::dynamic::array;
   for (auto summary_pair : credit_summaries) {
     folly::dynamic service_data = folly::dynamic::object;
-    auto summary                = summary_pair.second;
-    service_data[RATING_GROUP]  = summary_pair.first.rating_group;
+    auto summary = summary_pair.second;
+    service_data[RATING_GROUP] = summary_pair.first.rating_group;
     if (summary_pair.first.service_identifier) {
       service_data[SERVICE_IDENTIFIER] = summary_pair.first.service_identifier;
     }
-    service_data[DATA_UPLINK]              = summary.usage.bytes_tx;
-    service_data[DATA_DOWNLINK]            = summary.usage.bytes_rx;
-    service_data[TIME_OF_FIRST_USAGE]      = summary.time_of_first_usage;
-    service_data[TIME_OF_LAST_USAGE]       = summary.time_of_last_usage;
+    service_data[DATA_UPLINK] = summary.usage.bytes_tx;
+    service_data[DATA_DOWNLINK] = summary.usage.bytes_rx;
+    service_data[TIME_OF_FIRST_USAGE] = summary.time_of_first_usage;
+    service_data[TIME_OF_LAST_USAGE] = summary.time_of_last_usage;
     service_data[SERVICE_CONDITION_CHANGE] = int(SERVICE_STOP);
     service_data_list.push_back(service_data);
   }
@@ -300,7 +300,7 @@ folly::dynamic EventsReporterImpl::get_update_summary(
   folly::dynamic update_array = folly::dynamic::array;
   for (const auto& charging : updates.charging_requests) {
     folly::dynamic data = folly::dynamic::object;
-    data[RATING_GROUP]  = charging.usage().charging_key();
+    data[RATING_GROUP] = charging.usage().charging_key();
     if (charging.usage().has_service_identifier()) {
       data[SERVICE_IDENTIFIER] = charging.usage().service_identifier().value();
     }
@@ -321,7 +321,7 @@ folly::dynamic EventsReporterImpl::get_update_summary(
 std::string EventsReporterImpl::get_mac_addr(const SessionConfig& config) {
   // MacAddr is only relevant for WLAN
   const auto& rat_specific = config.rat_specific_context;
-  std::string mac_addr     = "";
+  std::string mac_addr = "";
   if (rat_specific.has_wlan_context()) {
     mac_addr = rat_specific.wlan_context().mac_addr();
   }
@@ -331,7 +331,7 @@ std::string EventsReporterImpl::get_mac_addr(const SessionConfig& config) {
 std::string EventsReporterImpl::get_imei(const SessionConfig& config) {
   // IMEI is only relevant for LTE
   const auto& rat_specific = config.rat_specific_context;
-  std::string imei         = "";
+  std::string imei = "";
   if (rat_specific.has_lte_context()) {
     imei = rat_specific.lte_context().imei();
   }
@@ -341,7 +341,7 @@ std::string EventsReporterImpl::get_imei(const SessionConfig& config) {
 std::string EventsReporterImpl::get_spgw_ipv4(const SessionConfig& config) {
   // SPGW_IPV4 is only relevant for LTE
   const auto& rat_specific = config.rat_specific_context;
-  std::string spgw_ipv4    = "";
+  std::string spgw_ipv4 = "";
   if (rat_specific.has_lte_context()) {
     spgw_ipv4 = rat_specific.lte_context().spgw_ipv4();
   }
@@ -350,7 +350,7 @@ std::string EventsReporterImpl::get_spgw_ipv4(const SessionConfig& config) {
 
 std::string EventsReporterImpl::get_user_location(const SessionConfig& config) {
   // UserLocation is only relevant for LTE
-  const auto& rat_specific  = config.rat_specific_context;
+  const auto& rat_specific = config.rat_specific_context;
   std::string user_location = "";
   if (rat_specific.has_lte_context()) {
     user_location = rat_specific.lte_context().user_location();
@@ -362,7 +362,7 @@ std::string EventsReporterImpl::get_user_location(const SessionConfig& config) {
 std::string EventsReporterImpl::get_charging_characteristics(
     const SessionConfig& config) {
   // Charging Characteristics is only relevant for LTE
-  const auto& rat_specific             = config.rat_specific_context;
+  const auto& rat_specific = config.rat_specific_context;
   std::string charging_characteristics = "";
   if (rat_specific.has_lte_context()) {
     charging_characteristics =

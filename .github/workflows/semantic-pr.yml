@@ -38,7 +38,7 @@ jobs:
         if: always()
         run: |
           mkdir -p ./pr
-          echo -n ${{ steps.reverted_pr_check.outputs.is_reverted_pr }} > ./pr/RPR
+          echo -n ${{ steps.reverted_pr_check.outputs.is_reverted_pr }} > ./pr/is_reverted_pr
           echo -n "false" > ./pr/skipped
       - uses: actions/upload-artifact@v2
         if: always()
@@ -138,7 +138,7 @@ jobs:
         if: always()
         run: |
           mkdir -p ./pr
-          echo -n ${{ github.event.number }} > ./pr/NR
+          echo -n ${{ github.event.number }} > ./pr/pr_number
       - uses: actions/upload-artifact@v2
         if: always()
         with:

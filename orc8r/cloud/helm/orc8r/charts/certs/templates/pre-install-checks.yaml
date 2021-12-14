@@ -22,7 +22,7 @@ data:
 {{- if .Capabilities.APIVersions.Has "cert-manager.io/v1" }}
   cert_manager: "cert-manager is installed"
 {{- else }}
-  cert_manager: {{ required "Please install cert-manager from https://cert-manager.io/docs/installation/kubernetes/" .Values.certManager }}
+  cert_manager: {{ required "Please install cert-manager from https://cert-manager.io/docs/installation/kubernetes/" .Values.preInstallChecks.test }}
 {{- end }}
 {{- end }}
 {{- end }}

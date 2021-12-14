@@ -28,9 +28,13 @@ namespace magma {
 namespace lte {
 
 #define MME_APP_TIMER_TO_MSEC 10
-#define STATE_MAX_WAIT_MS 10000
+#define STATE_MAX_WAIT_MS 2000
 #define NAS_RETX_LIMIT 5
 #define DEFAULT_LBI 5
+
+#define DEFAULT_eNB_S1AP_UE_ID 0
+#define DEFAULT_SCTP_ASSOC_ID 0
+#define DEFAULT_ENB_ID 0
 
 #define MME_APP_EXPECT_CALLS(                                                  \
     dlNas, connEstConf, ctxRel, air, ulr, purgeReq, csr, mbr, relBearer, dsr,  \
@@ -91,6 +95,8 @@ void send_delete_session_resp(ebi_t lbi);
 
 void send_ics_response();
 
+void send_ics_failure();
+
 void send_ue_ctx_release_complete();
 
 void send_ue_capabilities_ind();
@@ -114,6 +120,10 @@ void send_erab_setup_rsp(ebi_t ebi);
 void send_erab_release_rsp();
 
 void send_paging_request();
+
+void send_s1ap_path_switch_req(
+    const uint32_t sctp_assoc_id, const uint32_t enb_id,
+    const uint32_t enb_ue_s1ap_id, const plmn_t& plmn);
 
 }  // namespace lte
 }  // namespace magma

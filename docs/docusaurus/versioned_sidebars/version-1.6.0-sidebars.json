@@ -256,7 +256,7 @@
           "version-1.6.0-orc8r/dev_security",
           "version-1.6.0-orc8r/dev_indexers",
           "version-1.6.0-orc8r/dev_dependencies",
-          "version-1.6.0-orc8r/dev_aws_stack"
+          "version-1.6.0-orc8r/RDS_upgrade"
         ]
       },
       {

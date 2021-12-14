@@ -106,14 +106,8 @@ class StateReporterErrorHandler:
         not_valid = await \
             cert_is_invalid(host, port, cert_file, key_file, self._loop)
         if not_valid:
-            logging.error('Bootstrapping due to invalid cert')
+            logging.info('Bootstrapping due to invalid certificate')
             await self._bootstrap_manager.schedule_bootstrap_now()
-            return
-        else:
-            logging.error(
-                'StateReporting failure likely '
-                'not due to invalid cert',
-            )
 
 
 class StateReporter(SDWatchdogTask):

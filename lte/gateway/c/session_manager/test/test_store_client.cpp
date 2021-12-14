@@ -60,39 +60,39 @@ TEST_F(StoreClientTest, test_read_and_write) {
   cfg3.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   CreateSessionResponse response1, response2, response3;
-  create_credit_update_response(
-      IMSI1, SESSION_ID_1, 1, 1000, response1.mutable_credits()->Add());
-  create_credit_update_response(
-      IMSI2, SESSION_ID_2, 2, 2000, response2.mutable_credits()->Add());
-  create_credit_update_response(
-      IMSI3, SESSION_ID_3, 3, 3000, response3.mutable_credits()->Add());
+  create_credit_update_response(IMSI1, SESSION_ID_1, 1, 1000,
+                                response1.mutable_credits()->Add());
+  create_credit_update_response(IMSI2, SESSION_ID_2, 2, 2000,
+                                response2.mutable_credits()->Add());
+  create_credit_update_response(IMSI3, SESSION_ID_3, 3, 3000,
+                                response3.mutable_credits()->Add());
 
   // Emulate CreateSession, which needs to create a new session for a
   // subscriber
   std::set<std::string> requested_ids{IMSI1, IMSI2};
-  auto rule_store     = std::make_shared<StaticRuleStore>();
-  auto tgpp_context   = TgppContext{};
+  auto rule_store = std::make_shared<StaticRuleStore>();
+  auto tgpp_context = TgppContext{};
   auto pdp_start_time = 12345;
 
   auto store_client = MemoryStoreClient(rule_store);
-  auto session_map  = store_client.read_sessions(requested_ids);
+  auto session_map = store_client.read_sessions(requested_ids);
 
   auto uc = get_default_update_criteria();
 
-  auto session1 = std::make_unique<SessionState>(
-      SESSION_ID_1, cfg1, *rule_store, pdp_start_time);
+  auto session1 = std::make_unique<SessionState>(SESSION_ID_1, cfg1,
+                                                 *rule_store, pdp_start_time);
   session1->set_tgpp_context(tgpp_context, nullptr);
   session1->set_fsm_state(SESSION_ACTIVE, nullptr);
   session1->set_create_session_response(response1, nullptr);
 
-  auto session2 = std::make_unique<SessionState>(
-      SESSION_ID_2, cfg2, *rule_store, pdp_start_time);
+  auto session2 = std::make_unique<SessionState>(SESSION_ID_2, cfg2,
+                                                 *rule_store, pdp_start_time);
   session2->set_tgpp_context(tgpp_context, nullptr);
   session2->set_fsm_state(SESSION_ACTIVE, nullptr);
   session2->set_create_session_response(response2, nullptr);
 
-  auto session3 = std::make_unique<SessionState>(
-      SESSION_ID_3, cfg3, *rule_store, pdp_start_time);
+  auto session3 = std::make_unique<SessionState>(SESSION_ID_3, cfg3,
+                                                 *rule_store, pdp_start_time);
   session3->set_tgpp_context(tgpp_context, nullptr);
   session3->set_fsm_state(SESSION_ACTIVE, nullptr);
   session3->set_create_session_response(response3, nullptr);
@@ -124,8 +124,8 @@ TEST_F(StoreClientTest, test_read_and_write) {
   EXPECT_EQ(session_map_2.size(), 2);
   EXPECT_EQ(session_map_2[IMSI1].size(), 1);
   EXPECT_EQ(session_map_2[IMSI1].front()->get_session_id(), SESSION_ID_1);
-  EXPECT_EQ(
-      session_map_2[IMSI1].front()->is_static_rule_installed("rule1"), true);
+  EXPECT_EQ(session_map_2[IMSI1].front()->is_static_rule_installed("rule1"),
+            true);
   EXPECT_EQ(session_map_2[IMSI1].front()->get_config(), cfg1);
   EXPECT_EQ(
       session_map_2[IMSI1].front()->get_create_session_response().DebugString(),

@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(reginawang3495): remove enable_automatic_reindexing and enable_singleton_reindex when jobQueue reindexing is removed
+# TODO(#10294): remove enable_automatic_reindexing and enable_singleton_reindex when jobQueue reindexing is removed
 
 # When true, state service handles automatically reindex state indexers.
 # When false, reindexing must be handled by the provided CLI.
