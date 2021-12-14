@@ -388,16 +388,6 @@ variable "managed_certs_route53_enabled" {
   default     = true
 }
 
-variable "managed_certs_route53_access_key" {
-  description = "Access key for Route53."
-  type        = string
-}
-
-variable "managed_certs_route53_secret_key" {
-  description = "Secret key for Route53."
-  type        = string
-}
-
 ##############################################################################
 # Other deployment flags
 ##############################################################################

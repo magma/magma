@@ -154,8 +154,8 @@ data "template_file" "orc8r_values" {
     nms_managed_certs_enabled        = var.nms_managed_certs_enabled
     nms_custom_issuer                = var.nms_custom_issuer
     managed_certs_route53_enabled    = var.managed_certs_route53_enabled
-    managed_certs_route53_access_key = var.managed_certs_route53_access_key
-    managed_certs_route53_secret_key = var.managed_certs_route53_secret_key
+    managed_certs_route53_access_key = resource.aws_iam_access_key.cert_manager_iam_access_key.id
+    managed_certs_route53_secret_key = resource.aws_iam_access_key.cert_manager_iam_access_key.secret
 
     controller_replicas = var.orc8r_controller_replicas
     nginx_replicas      = var.orc8r_proxy_replicas

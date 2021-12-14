@@ -46,17 +46,3 @@ resource "helm_release" "external_dns" {
   VALUES
   ]
 }
-
-resource "helm_release" "cert-manager" {
-  version          = "1.6.1"
-  name             = "cert-manager"
-  chart            = "cert-manager"
-  namespace        = "cert-manager"
-  repository       = "https://charts.jetstack.io"
-  create_namespace = true
-
-  set {
-    name  = "installCRDs"
-    value = "true"
-  }
-}
