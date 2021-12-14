@@ -564,14 +564,16 @@ static void get_ambr_unit(
 int amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp) {
   DLNASTransportMsg encode_msg;
-  ue_m5gmm_context_s* ue_context;
+  memset(&encode_msg, 0, sizeof(encode_msg));
+  ue_m5gmm_context_s* ue_context = nullptr;
   std::shared_ptr<smf_context_t> smf_ctx;
   amf_smf_t amf_smf_msg;
+  memset(&amf_smf_msg, 0, sizeof(amf_smf_msg));
   // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
   uint64_t ue_id = 0;
   int rc         = RETURNerror;
 
-  imsi64_t imsi64;
+  imsi64_t imsi64 = 0;
   IMSI_STRING_TO_IMSI64(pdu_session_resp->imsi, &imsi64);
   // Handle smf_context
   ue_context = lookup_ue_ctxt_by_imsi(imsi64);
@@ -593,19 +595,19 @@ int amf_app_handle_pdu_session_response(
 
   convert_ambr(
       &pdu_session_resp->session_ambr.downlink_unit_type,
-      &pdu_session_resp->session_ambr.downlink_units, &smf_ctx->dl_ambr_unit,
-      &smf_ctx->dl_session_ambr);
+      &pdu_session_resp->session_ambr.downlink_units,
+      &smf_ctx->selected_ambr.dl_ambr_unit,
+      &smf_ctx->selected_ambr.dl_session_ambr);
 
   convert_ambr(
       &pdu_session_resp->session_ambr.uplink_unit_type,
-      &pdu_session_resp->session_ambr.uplink_units, &smf_ctx->ul_ambr_unit,
-      &smf_ctx->ul_session_ambr);
+      &pdu_session_resp->session_ambr.uplink_units,
+      &smf_ctx->selected_ambr.ul_ambr_unit,
+      &smf_ctx->selected_ambr.ul_session_ambr);
 
   memcpy(
-      &(smf_ctx->pdu_resource_setup_req
-            .pdu_session_resource_setup_request_transfer
-            .qos_flow_setup_request_list),
-      &(pdu_session_resp->qos_list), sizeof(qos_flow_request_list_t));
+      &smf_ctx->subscribebed_qos_profile, &(pdu_session_resp->qos_list),
+      sizeof(smf_ctx->subscribebed_qos_profile));
   memcpy(
       smf_ctx->gtp_tunnel_id.upf_gtp_teid_ip_addr,
       pdu_session_resp->upf_endpoint.end_ipv4_addr,
@@ -627,9 +629,9 @@ int amf_app_handle_pdu_session_response(
     amf_sap.u.amf_as.u.establish.pdu_session_status_ie =
         (AMF_AS_PDU_SESSION_STATUS | AMF_AS_PDU_SESSION_REACTIVATION_STATUS);
     amf_sap.u.amf_as.u.establish.pdu_session_status =
-        (1 << smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id);
+        (1 << smf_ctx->smf_proc_data.pdu_session_id);
     amf_sap.u.amf_as.u.establish.pdu_session_reactivation_status =
-        (1 << smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id);
+        (1 << smf_ctx->smf_proc_data.pdu_session_id);
     amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
     rc                                = amf_sap_send(&amf_sap);
     if (RETURNok == rc) {
@@ -792,13 +794,12 @@ int amf_app_handle_pdu_session_accept(
       M5G_SESSION_MANAGEMENT_MESSAGES;
   smf_msg->header.pdu_session_id           = pdu_session_resp->pdu_session_id;
   smf_msg->header.message_type             = PDU_SESSION_ESTABLISHMENT_ACCEPT;
-  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti;
   smf_msg->msg.pdu_session_estab_accept.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
   smf_msg->msg.pdu_session_estab_accept.pdu_session_identity.pdu_session_id =
       pdu_session_resp->pdu_session_id;
-  smf_msg->msg.pdu_session_estab_accept.pti.pti =
-      smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->msg.pdu_session_estab_accept.pti.pti = smf_ctx->smf_proc_data.pti;
   smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
       PDU_SESSION_ESTABLISHMENT_ACCEPT;
   smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val = 1;
@@ -829,9 +830,7 @@ int amf_app_handle_pdu_session_accept(
   qos_rule.spare               = 0x0;
   qos_rule.segregation         = 0x0;
   qos_rule.qfi =
-      smf_ctx->pdu_resource_setup_req
-          .pdu_session_resource_setup_request_transfer
-          .qos_flow_setup_request_list.qos_flow_req_item.qos_flow_identifier;
+      smf_ctx->subscribebed_qos_profile.qos_flow_req_item.qos_flow_identifier;
   NewQOSRulePktFilter new_qos_rule_pkt_filter;
   new_qos_rule_pkt_filter.spare          = 0x0;
   new_qos_rule_pkt_filter.pkt_filter_dir = 0x3;
@@ -849,14 +848,14 @@ int amf_app_handle_pdu_session_accept(
 
   // Set session ambr
   smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_unit =
-      smf_ctx->dl_ambr_unit;
+      smf_ctx->selected_ambr.dl_ambr_unit;
   smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_session_ambr =
-      smf_ctx->dl_session_ambr;
+      smf_ctx->selected_ambr.dl_session_ambr;
 
   smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit =
-      smf_ctx->ul_ambr_unit;
+      smf_ctx->selected_ambr.ul_ambr_unit;
   smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_session_ambr =
-      smf_ctx->ul_session_ambr;
+      smf_ctx->selected_ambr.ul_session_ambr;
 
   smf_msg->msg.pdu_session_estab_accept.session_ambr.length = AMBR_LEN;
 
@@ -874,14 +873,18 @@ int amf_app_handle_pdu_session_accept(
   smf_msg->msg.pdu_session_estab_accept.nssai.iei =
       static_cast<uint8_t>(M5GIei::S_NSSAI);
   uint32_t buf_len = 0;
-  if (smf_ctx->sst) {
-    if (smf_ctx->sd[0]) {
+  if (smf_ctx->requested_nssai.sst) {
+    if (smf_ctx->requested_nssai.sd[0]) {
       smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH + SD_LENGTH;
-      smf_msg->msg.pdu_session_estab_accept.nssai.sst = smf_ctx->sst;
-      memcpy(smf_msg->msg.pdu_session_estab_accept.nssai.sd, smf_ctx->sd, 3);
+      smf_msg->msg.pdu_session_estab_accept.nssai.sst =
+          smf_ctx->requested_nssai.sst;
+      memcpy(
+          smf_msg->msg.pdu_session_estab_accept.nssai.sd,
+          smf_ctx->requested_nssai.sd, 3);
     } else {
       smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH;
-      smf_msg->msg.pdu_session_estab_accept.nssai.sst = smf_ctx->sst;
+      smf_msg->msg.pdu_session_estab_accept.nssai.sst =
+          smf_ctx->requested_nssai.sst;
     }
     buf_len = smf_msg->msg.pdu_session_estab_accept.nssai.len + 2;
   }

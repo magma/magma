@@ -242,13 +242,26 @@ typedef struct teid_upf_gnb_s {
 
 // Data get communicated with SMF and stored for reference
 typedef struct smf_proc_data_s {
-  PDUSessionIdentityMsg pdu_session_identity;
-  PTIMsg pti;
-  MessageTypeMsg message_type;
-  IntegrityProtMaxDataRateMsg integrity_prot_max_data_rate;
-  PDUSessionTypeMsg pdu_session_type;
-  SSCModeMsg ssc_mode;
+  uint8_t pdu_session_id;
+  uint8_t pti;
+  uint8_t message_type;
+  uint8_t max_uplink;
+  uint8_t max_downlink;
+  uint32_t pdu_session_type;
+  uint32_t ssc_mode;
 } smf_proc_data_t;
+
+typedef struct session_ambr_s {
+  uint8_t dl_ambr_unit;
+  uint16_t dl_session_ambr;
+  uint8_t ul_ambr_unit;
+  uint16_t ul_session_ambr;
+} session_ambr_t;
+
+typedef struct s_nssai_s {
+  uint8_t sst;
+  uint8_t sd[SD_LENGTH];
+} s_nssai_t;
 
 // PDU session context part of AMFContext
 typedef struct smf_context_s {
@@ -256,28 +269,19 @@ typedef struct smf_context_s {
   uint32_t pdu_session_version;
   uint32_t n_active_pdus;
   bool is_emergency;
-  uint8_t dl_ambr_unit;
-  uint16_t dl_session_ambr;
-  uint8_t ul_ambr_unit;
-  uint16_t ul_session_ambr;
-  QOSRule qos_rules[1];
+  session_ambr_t selected_ambr;
   teid_upf_gnb_t gtp_tunnel_id;
   paa_t pdu_address;
-  ambr_t smf_ctx_ambr;
+  ambr_t apn_ambr;
   smf_proc_data_t smf_proc_data;
   struct nas5g_timer_s T3592;  // PDU_SESSION_RELEASE command timer
   int retransmission_count;
   protocol_configuration_options_t pco;
   uint32_t duplicate_pdu_session_est_req_count;
   std::string dnn;
-  uint8_t sst;
-  uint8_t sd[SD_LENGTH];
+  s_nssai_t requested_nssai;
 
-  // Request to gnb on PDU establisment request
-  pdu_session_resource_setup_req_t pdu_resource_setup_req;
-  pdu_session_resource_setup_rsp_t pdu_resource_setup_rsp;
-  pdu_session_resource_to_release_list pdu_resource_release_req;
-  pdu_session_resource_to_release_list pdu_resource_release_rsp;
+  qos_flow_request_list_t subscribebed_qos_profile;
 } smf_context_t;
 
 typedef struct paging_context_s {
