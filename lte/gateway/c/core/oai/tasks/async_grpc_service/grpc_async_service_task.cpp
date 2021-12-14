@@ -48,6 +48,7 @@ void stop_async_s6a_grpc_server(void) {
   s6a_proxy_async_instance->stop();  // stop queue after server shuts down
   free(s6a_proxy_async_instance);
 }
+
 AsyncService::AsyncService(std::unique_ptr<ServerCompletionQueue> cq)
     : cq_(std::move(cq)) {}
 void AsyncService::wait_for_requests() {
@@ -80,6 +81,7 @@ void AsyncService::stop() {
   while (cq_->Next(&tag, &ok)) {
   }
 }
+
 S6aProxyResponderAsyncService::S6aProxyResponderAsyncService(
     std::unique_ptr<ServerCompletionQueue> cq,
     std::shared_ptr<S6aProxyAsyncResponderHandler> handler)
@@ -209,7 +211,9 @@ static void* grpc_async_service_thread(__attribute__((unused)) void* args) {
   zloop_start(grpc_async_service_task_zmq_ctx.event_loop);
   proxy_thread.join();
   AssertFatal(
-      0, "Asserting as grpc_service_thread should not be exiting on its own!");
+      0,
+      "Asserting as async grpc_service_thread should not be exiting on its "
+      "own!");
   return NULL;
 }
 

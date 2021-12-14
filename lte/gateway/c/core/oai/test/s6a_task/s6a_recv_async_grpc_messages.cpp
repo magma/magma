@@ -95,7 +95,8 @@ TEST_F(S6aMessagesTest, recv_cancel_location_req) {
   magma::feg::CancelLocationRequest clr;
   build_grpc_cancel_location_req(&clr);
   grpc::ServerContext server_context;
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_s6a_cancel_location_req()).Times(1);
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_s6a_cancel_location_req())
+      .Times(1);
   async_service_handler->CancelLocation(&server_context, &clr, nullptr);
 }
 

@@ -94,6 +94,7 @@ class MockS6aHandler {
   MOCK_METHOD0(s6a_viface_authentication_info_req, void());
   MOCK_METHOD0(s6a_viface_update_location_req, void());
   MOCK_METHOD0(s6a_viface_purge_ue, void());
+  MOCK_METHOD0(s6a_cancel_location_ans, void());
 };
 
 class MockSpgwHandler {

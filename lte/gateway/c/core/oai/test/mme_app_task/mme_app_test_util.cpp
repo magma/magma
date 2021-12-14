@@ -439,5 +439,26 @@ void send_paging_request() {
   return;
 }
 
+void send_s6a_clr(const std::string& imsi) {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_S6A, S6A_CANCEL_LOCATION_REQ);
+  s6a_cancel_location_req_t* itti_msg =
+      &message_p->ittiMsg.s6a_cancel_location_req;
+  strncpy(itti_msg->imsi, imsi.c_str(), imsi.size());
+  itti_msg->imsi_length       = imsi.size();
+  itti_msg->cancellation_type = SUBSCRIPTION_WITHDRAWL;
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
+// The s6a-reset message doesn't contain any data
+void send_s6a_reset(void) {
+  MessageDef* message_p = itti_alloc_new_message(TASK_S6A, S6A_RESET_REQ);
+  if (message_p) {
+    send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  }
+  return;
+}
+
 }  // namespace lte
 }  // namespace magma

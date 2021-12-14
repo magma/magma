@@ -116,5 +116,8 @@ void send_erab_release_rsp();
 
 void send_paging_request();
 
+void send_s6a_clr(const std::string& imsi);
+
+void send_s6a_reset(void);
 }  // namespace lte
 }  // namespace magma
