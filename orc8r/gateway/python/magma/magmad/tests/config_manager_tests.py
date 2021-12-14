@@ -86,10 +86,17 @@ class ConfigManagerTest(TestCase):
         )
         processed_updates_mock = patch('magma.magmad.events.processed_updates')
 
+        class service_mconfig_mock:
+            def __init__(self, service, mconfig_struct):
+                pass
+            dynamic_services = []
+        mock_mcfg = patch('magma.magmad.config_manager.load_service_mconfig', MagicMock(wraps=service_mconfig_mock))
+
         with load_mock as loader,\
                 update_mock as updater, \
                 restart_service_mock as restarter,\
                 update_dynamic_services_mock as dynamic_services,\
+                mock_mcfg as mock_c,\
                 processed_updates_mock as processed_updates:
             loop = asyncio.new_event_loop()
             config_manager = ConfigManager(
@@ -148,6 +155,7 @@ class ConfigManagerTest(TestCase):
             updater.assert_called_once_with(update_str)
             dynamic_services.assert_called_once_with([])
             processed_updates.assert_called_once_with(configs_by_service)
+            self.assertEqual(mock_c.call_count, 1)
 
             restarter.reset_mock()
             updater.reset_mock()
