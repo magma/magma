@@ -12,54 +12,31 @@
 # limitations under the License.
 */}}
 ---
-apiVersion: apps/v1
-kind: Deployment
+{{- include "agwc.deployment" (list . "policydb.deployment") -}}
+{{- define "policydb.deployment" -}}
 metadata:
   labels:
     app.kubernetes.io/component: policydb
   name: policydb
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/component: policydb
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app.kubernetes.io/component: policydb
     spec:
       containers:
-        - args:
-            - /usr/bin/env
-            - python3
-            - -m
-            - magma.policydb.main
-          image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          livenessProbe:
-            exec:
-              command:
-                - nc
-                - -zv
-                - localhost
-                - "50068"
-            failureThreshold: 3
-            timeoutSeconds: 4
-          name: policydb
-          resources: {}
-          volumeMounts:
-            - mountPath: /etc/magma
-              name: magma-config
-            - mountPath: /var/opt/magma
-              name: agwc-claim
-      restartPolicy: Always
-      hostNetwork: true
-      volumes:
-        - name: magma-config
-          hostPath:
-            path: /etc/magma
-            type: Directory
-        - name: agwc-claim
-          persistentVolumeClaim:
-            claimName: agwc-claim
+      -
+{{ include "agwc.container" (list . "policydb.container")}}
+{{- end -}}
+{{- define "policydb.container" -}}
+name: policydb
+args:
+  - /usr/bin/env
+  - python3
+  - -m
+  - magma.policydb.main
+image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
+{{- end -}}

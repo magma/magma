@@ -22,3 +22,8 @@ image:
 
 config:
   domainName: iot.magmacore.click 
+
+persistant:
+  name: agwc-claim
+
+ressources:

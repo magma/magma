@@ -15,19 +15,19 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    io.agwc.service: control-proxy
+    app.kubernetes.io/component: control-proxy
   name: control-proxy
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.agwc.service: control-proxy
+      app.kubernetes.io/component: control-proxy
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        io.agwc.service: control-proxy
+        app.kubernetes.io/component: control-proxy
     spec:
       containers:
         - args:

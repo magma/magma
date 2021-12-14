@@ -11,45 +11,31 @@
 # limitations under the License.
 */}}
 ---
-apiVersion: apps/v1
-kind: Deployment
+{{- include "agwc.deployment" (list . "ctraced.deployment") -}}
+{{- define "ctraced.deployment" -}}
 metadata:
   labels:
     app.kubernetes.io/component: ctraced
   name: ctraced
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/component: ctraced
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app.kubernetes.io/component: ctraced
     spec:
       containers:
-        - args:
-            - /usr/bin/env
-            - python3
-            - -m
-            - magma.ctraced.main
-          image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          name: ctraced
-          resources: {}
-          volumeMounts:
-            - mountPath: /etc/magma
-              name: magma-config
-            - mountPath: /var/opt/magma
-              name: agwc-claim
-      restartPolicy: Always
-      hostNetwork: true
-      volumes:
-        - name: magma-config
-          hostPath:
-            path: /etc/magma
-            type: Directory
-        - name: agwc-claim
-          persistentVolumeClaim:
-            claimName: agwc-claim
+      -
+{{ include "agwc.container" (list . "ctraced.container")}}
+{{- end -}}
+{{- define "ctraced.container" -}}
+name: ctraced
+args:
+  - /usr/bin/env
+  - python3
+  - -m
+  - magma.ctraced.main
+image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
+{{- end -}}

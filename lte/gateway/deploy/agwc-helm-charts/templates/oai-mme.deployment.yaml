@@ -11,52 +11,21 @@
 # limitations under the License.
 */}}
 ---
-apiVersion: apps/v1
-kind: Deployment
+{{- include "agwc.deployment" (list . "oai-mme.deployment") -}}
+{{- define "oai-mme.deployment" -}}
 metadata:
   labels:
     app.kubernetes.io/component: oai-mme
   name: oai-mme
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/component: oai-mme
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app.kubernetes.io/component: oai-mme
     spec:
-      containers:
-        - args:
-            - sh
-            - -c
-            - /usr/local/bin/oai_mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf
-          env:
-            - name: MAGMA_PRINT_GRPC_PAYLOAD
-              value: "0"
-          image: "{{ .Values.image.repository }}/agw_gateway_c:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          name: oai-mme
-          resources: {}
-          securityContext:
-            capabilities:
-              add:
-                - NET_ADMIN
-                - NET_RAW
-            privileged: true
-          volumeMounts:
-            - mountPath: /etc/magma
-              name: magma-config
-            - mountPath: /var/opt/magma
-              name: agwc-claim
-            - mountPath: /tmp
-              name: tmp-volume
-            - mountPath: /var/run/openvswitch
-              name: ovs-volume
-      restartPolicy: Always
-      hostNetwork: true
       volumes:
         - name: magma-config
           hostPath:
@@ -73,3 +42,29 @@ spec:
           hostPath:
             path: /var/run/openvswitch
             type: Directory
+      containers:
+      -
+{{ include "agwc.container" (list . "oai-mme.container")}}
+{{- end -}}
+{{- define "oai-mme.container" -}}
+name: oai-mme
+args:
+  - sh
+  - -c
+  - /usr/local/bin/oai_mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf
+image: "{{ .Values.image.repository }}/agw_gateway_c:{{ .Values.image.tag | default .Chart.AppVersion }}"
+securityContext:
+  capabilities:
+    add:
+      - NET_ADMIN
+      - NET_RAW
+volumeMounts:
+  - mountPath: /etc/magma
+    name: magma-config
+  - mountPath: /var/opt/magma
+    name: agwc-claim
+  - mountPath: /tmp
+    name: tmp-volume
+  - mountPath: /var/run/openvswitch
+    name: ovs-volume
+{{- end -}}

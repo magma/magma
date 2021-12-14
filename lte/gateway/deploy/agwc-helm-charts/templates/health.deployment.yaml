@@ -11,47 +11,31 @@
 # limitations under the License.
 */}}
 ---
-apiVersion: apps/v1
-kind: Deployment
+{{- include "agwc.deployment" (list . "health.deployment") -}}
+{{- define "health.deployment" -}}
 metadata:
   labels:
     app.kubernetes.io/component: health
   name: health
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/component: health
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app.kubernetes.io/component: health
     spec:
       containers:
-        - args:
-            - /usr/bin/env
-            - python3
-            - -m
-            - magma.health.main
-          image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          name: health
-          resources: {}
-          securityContext:
-            privileged: true
-          volumeMounts:
-            - mountPath: /etc/magma
-              name: magma-config
-            - mountPath: /var/opt/magma
-              name: agwc-claim
-      restartPolicy: Always
-      hostNetwork: true
-      volumes:
-        - name: magma-config
-          hostPath:
-            path: /etc/magma
-            type: Directory
-        - name: agwc-claim
-          persistentVolumeClaim:
-            claimName: agwc-claim
+      -
+{{ include "agwc.container" (list . "health.container")}}
+{{- end -}}
+{{- define "health.container" -}}
+name: health
+args:
+  - /usr/bin/env
+  - python3
+  - -m
+  - magma.health.main
+image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
+{{- end -}}

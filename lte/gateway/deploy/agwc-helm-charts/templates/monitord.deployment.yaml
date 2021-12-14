@@ -12,45 +12,31 @@
 # limitations under the License.
 */}}
 ---
-apiVersion: apps/v1
-kind: Deployment
+{{- include "agwc.deployment" (list . "monitord.deployment") -}}
+{{- define "monitord.deployment" -}}
 metadata:
   labels:
     app.kubernetes.io/component: monitord
   name: monitord
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/component: monitord
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app.kubernetes.io/component: monitord
     spec:
       containers:
-        - args:
-            - /usr/bin/env
-            - python3
-            - -m
-            - magma.monitord.main
-          image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          name: monitord
-          resources: {}
-          volumeMounts:
-            - mountPath: /etc/magma
-              name: magma-config
-            - mountPath: /var/opt/magma
-              name: agwc-claim
-      restartPolicy: Always
-      hostNetwork: true
-      volumes:
-        - name: magma-config
-          hostPath:
-            path: /etc/magma
-            type: Directory
-        - name: agwc-claim
-          persistentVolumeClaim:
-            claimName: agwc-claim
+      -
+{{ include "agwc.container" (list . "monitord.container")}}
+{{- end -}}
+{{- define "monitord.container" -}}
+name: monitord
+args:
+  - /usr/bin/env
+  - python3
+  - -m
+  - magma.monitord.main
+image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
+{{- end -}}

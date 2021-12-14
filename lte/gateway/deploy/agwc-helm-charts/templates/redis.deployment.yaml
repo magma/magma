@@ -11,47 +11,33 @@
 # limitations under the License.
 */}}
 ---
-apiVersion: apps/v1
-kind: Deployment
+{{- include "agwc.deployment" (list . "redis.deployment") -}}
+{{- define "redis.deployment" -}}
 metadata:
   labels:
     app.kubernetes.io/component: redis
   name: redis
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/component: redis
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app.kubernetes.io/component: redis
     spec:
       containers:
-        - args:
-            - /bin/bash
-            - -c
-            - |-
-              /usr/local/bin/generate_service_config.py --service=redis --template=redis &&
-              /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
-              /usr/bin/redis-cli shutdown
-          image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          name: redis
-          resources: {}
-          volumeMounts:
-            - mountPath: /etc/magma
-              name: magma-config
-            - mountPath: /var/opt/magma
-              name: agwc-claim
-      restartPolicy: Always
-      hostNetwork: true
-      volumes:
-        - name: magma-config
-          hostPath:
-            path: /etc/magma
-            type: Directory
-        - name: agwc-claim
-          persistentVolumeClaim:
-            claimName: agwc-claim
+      -
+{{ include "agwc.container" (list . "redis.container")}}
+{{- end -}}
+{{- define "redis.container" -}}
+name: redis
+args:
+  - /bin/bash
+  - -c
+  - |-
+    /usr/local/bin/generate_service_config.py --service=redis --template=redis &&
+    /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
+    /usr/bin/redis-cli shutdown
+image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
+{{- end -}}

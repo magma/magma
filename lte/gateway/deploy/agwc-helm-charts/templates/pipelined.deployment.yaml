@@ -11,65 +11,21 @@
 # limitations under the License.
 */}}
 ---
-apiVersion: apps/v1
-kind: Deployment
+{{- include "agwc.deployment" (list . "pipelined.deployment") -}}
+{{- define "pipelined.deployment" -}}
 metadata:
   labels:
     app.kubernetes.io/component: pipelined
   name: pipelined
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/component: pipelined
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app.kubernetes.io/component: pipelined
     spec:
-      containers:
-        - args:
-            - bash
-            - -c
-            - /usr/bin/ovs-vsctl --all destroy Flow_Sample_Collector_Set && 
-              /usr/bin/ovs-vsctl set bridge gtp_br0 protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true && 
-              /usr/bin/ovs-vsctl set-controller gtp_br0 tcp:127.0.0.1:6633 tcp:127.0.0.1:6654 && 
-              /usr/bin/ovsdb-client dump Controller _uuid|tail -n +4 | while read id; do /usr/bin/ovs-vsctl set Controller ${id} inactivity_probe=300; done && 
-              /usr/bin/ovs-vsctl set-fail-mode gtp_br0 secure && /usr/bin/ovs-vsctl set-manager ptcp:6640 && /usr/bin/env python3 -m magma.pipelined.main
-          env:
-            - name: MAGMA_PRINT_GRPC_PAYLOAD
-              value: "0"
-          image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          livenessProbe:
-            exec:
-              command:
-                - nc
-                - -zv
-                - localhost
-                - "50063"
-            failureThreshold: 3
-            timeoutSeconds: 4
-          name: pipelined
-          resources: {}
-          securityContext:
-            capabilities:
-              add:
-                - NET_ADMIN
-                - NET_RAW
-            privileged: true
-          volumeMounts:
-            - mountPath: /etc/magma
-              name: magma-config
-            - mountPath: /var/opt/magma
-              name: agwc-claim
-            - mountPath: /tmp
-              name: tmp-volume
-            - mountPath: /var/run/openvswitch
-              name: ovs-volume
-      restartPolicy: Always
-      hostNetwork: true
       volumes:
         - name: magma-config
           hostPath:
@@ -86,3 +42,33 @@ spec:
           hostPath:
             path: /var/run/openvswitch
             type: Directory
+      containers:
+      -
+{{ include "agwc.container" (list . "pipelined.container")}}
+{{- end -}}
+{{- define "pipelined.container" -}}
+name: pipelined
+args:
+  - /bin/bash
+  - -c
+  - /usr/bin/ovs-vsctl --all destroy Flow_Sample_Collector_Set && 
+    /usr/bin/ovs-vsctl set bridge gtp_br0 protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true && 
+    /usr/bin/ovs-vsctl set-controller gtp_br0 tcp:127.0.0.1:6633 tcp:127.0.0.1:6654 && 
+    /usr/bin/ovsdb-client dump Controller _uuid|tail -n +4 | while read id; do /usr/bin/ovs-vsctl set Controller ${id} inactivity_probe=300; done && 
+    /usr/bin/ovs-vsctl set-fail-mode gtp_br0 secure && /usr/bin/ovs-vsctl set-manager ptcp:6640 && /usr/bin/env python3 -m magma.pipelined.main
+image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
+securityContext:
+  capabilities:
+    add:
+      - NET_ADMIN
+      - NET_RAW
+volumeMounts:
+  - mountPath: /etc/magma
+    name: magma-config
+  - mountPath: /var/opt/magma
+    name: agwc-claim
+  - mountPath: /tmp
+    name: tmp-volume
+  - mountPath: /var/run/openvswitch
+    name: ovs-volume
+{{- end -}}

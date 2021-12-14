@@ -11,44 +11,28 @@
 # limitations under the License.
 */}}
 ---
-apiVersion: apps/v1
-kind: Deployment
+{{- include "agwc.deployment" (list . "connectiond.deployment") -}}
+{{- define "connectiond.deployment" -}}
 metadata:
   labels:
     app.kubernetes.io/component: connectiond
   name: connectiond
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/component: connectiond
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app.kubernetes.io/component: connectiond
     spec:
       containers:
-        - args:
-            - /usr/local/bin/connectiond
-          image: "{{ .Values.image.repository }}/agw_gateway_c:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          name: connectiond
-          resources: {}
-          securityContext:
-            privileged: true
-          volumeMounts:
-            - mountPath: /etc/magma
-              name: magma-config
-            - mountPath: /var/opt/magma
-              name: agwc-claim
-      restartPolicy: Always
-      hostNetwork: true
-      volumes:
-        - name: magma-config
-          hostPath:
-            path: /etc/magma
-            type: Directory
-        - name: agwc-claim
-          persistentVolumeClaim:
-            claimName: agwc-claim
+      -
+{{ include "agwc.container" (list . "connectiond.container")}}
+{{- end -}}
+{{- define "connectiond.container" -}}
+name: connectiond
+args:
+  - /usr/local/bin/connectiond
+image: "{{ .Values.image.repository }}/agw_gateway_c:{{ .Values.image.tag | default .Chart.AppVersion }}"
+{{- end -}}

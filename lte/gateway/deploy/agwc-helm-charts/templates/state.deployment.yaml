@@ -11,43 +11,29 @@
 # limitations under the License.
 */}}
 ---
-apiVersion: apps/v1
-kind: Deployment
+{{- include "agwc.deployment" (list . "state.deployment") -}}
+{{- define "state.deployment" -}}
 metadata:
   name: state
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/component: state
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app.kubernetes.io/component: state
     spec:
       containers:
-        - args:
-            - /usr/bin/env
-            - python3
-            - -m
-            - magma.state.main
-          image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          name: state
-          resources: {}
-          volumeMounts:
-            - mountPath: /etc/magma
-              name: magma-config
-            - mountPath: /var/opt/magma
-              name: agwc-claim
-      restartPolicy: Always
-      hostNetwork: true
-      volumes:
-        - name: magma-config
-          hostPath:
-            path: /etc/magma
-            type: Directory
-        - name: agwc-claim
-          persistentVolumeClaim:
-            claimName: agwc-claim
+      -
+{{ include "agwc.container" (list . "state.container")}}
+{{- end -}}
+{{- define "state.container" -}}
+name: state
+args:
+  - /usr/bin/env
+  - python3
+  - -m
+  - magma.state.main
+image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
+{{- end -}}

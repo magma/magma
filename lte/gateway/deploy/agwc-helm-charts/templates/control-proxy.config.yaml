@@ -14,9 +14,8 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: {{ .Release.Namespace }}
   labels:
-    io.agwc.service: control-proxy
+    app.kubernetes.io/component: control-proxy
   name: controlproxy-config
 data:
   # Configuration is in Json format. No matter what configure change you make,
