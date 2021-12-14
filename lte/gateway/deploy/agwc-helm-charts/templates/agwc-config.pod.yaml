@@ -15,22 +15,33 @@ apiVersion: v1
 kind: Pod
 metadata:
   labels:
-    app.kubernetes.io/component: oai-config
-  name: oai-config
+    app.kubernetes.io/component: agwc-config
+  name: agwc-config
+  annotations:
+    "helm.sh/hook": "pre-install"
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": "hook-succeeded"
 spec:
   containers:
     - args:
-        - /usr/bin/env
-        - python3
-        - /usr/local/bin/generate_oai_config.py
+      - sh
+      - -c
+      - mkdir -p /var/opt/magma/configs && mkdir -p /var/opt/magma/certs &&
+        cp -f /configs/control_proxy.yml /var/opt/magma/configs/control_proxy.yml &&
+        cp -f /certs/rootCA.pem /var/opt/magma/certs/rootCA.pem && /usr/local/bin/generate_nghttpx_config.py &&
+        /usr/bin/env python3 /usr/local/bin/generate_oai_config.py
       image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
-      name: oai-config
+      name: agwc-config
       resources: {}
       volumeMounts:
         - mountPath: /etc/magma
           name: magma-config
         - mountPath: /var/opt/magma
           name: agwc-claim
+        - mountPath: /certs
+          name: agwc-secret
+        - mountPath: /configs
+          name: controlproxy-config
   restartPolicy: Never
   hostNetwork: true
   volumes:
@@ -41,3 +52,9 @@ spec:
     - name: agwc-claim
       persistentVolumeClaim:
         claimName: agwc-claim
+    - name: agwc-secret
+      secret:
+        secretName: {{ .Values.secret.certs }}
+    - name: controlproxy-config
+      configMap:
+        name: controlproxy-config

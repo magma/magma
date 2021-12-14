@@ -26,6 +26,18 @@ spec:
       labels:
         app.kubernetes.io/component: magmad
     spec:
+      volumes:
+        - name: magma-config
+          hostPath:
+            path: /etc/magma
+            type: Directory
+        - name: agwc-claim
+          persistentVolumeClaim:
+            claimName: agwc-claim
+        - name: snowflake-file
+          hostPath:
+            path: /etc/snowflake
+            type: File
       containers:
       -
 {{ include "agwc.container" (list . "magmad.container")}}
@@ -38,4 +50,11 @@ args:
   - -m
   - magma.magmad.main
 image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
+volumeMounts:
+  - mountPath: /etc/magma
+    name: magma-config
+  - mountPath: /var/opt/magma
+    name: agwc-claim
+  - mountPath: /etc/snowflake
+    name: snowflake-file
 {{- end -}}

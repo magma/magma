@@ -11,58 +11,31 @@
 # limitations under the License.
 */}}
 ---
-apiVersion: apps/v1
-kind: Deployment
+{{- include "agwc.deployment" (list . "control-proxy.deployment") -}}
+{{- define "control-proxy.deployment" -}}
 metadata:
   labels:
     app.kubernetes.io/component: control-proxy
   name: control-proxy
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/component: control-proxy
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app.kubernetes.io/component: control-proxy
     spec:
       containers:
-        - args:
-            - sh
-            - -c
-            - |-
-              mkdir -p /var/opt/magma/configs && mkdir -p /var/opt/magma/certs && 
-              cp -f /configs/control_proxy.yml /var/opt/magma/configs/control_proxy.yml &&
-              cp -f /certs/rootCA.pem /var/opt/magma/certs/rootCA.pem && /usr/local/bin/generate_nghttpx_config.py &&
-              /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt
-          image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          name: control-proxy
-          resources: {}
-          volumeMounts:
-            - mountPath: /etc/magma
-              name: magma-config
-            - mountPath: /var/opt/magma
-              name: agwc-claim
-            - mountPath: /certs
-              name: agwc-secret
-            - mountPath: /configs
-              name: controlproxy-config
-      restartPolicy: Always
-      hostNetwork: true
-      volumes:
-        - name: magma-config
-          hostPath:
-            path: /etc/magma
-            type: Directory
-        - name: agwc-claim
-          persistentVolumeClaim:
-            claimName: agwc-claim
-        - name: agwc-secret
-          secret:
-            secretName: {{ .Values.secret.certs }}
-        - name: controlproxy-config
-          configMap:
-            name: controlproxy-config
+      -
+{{ include "agwc.container" (list . "control-proxy.container")}}
+{{- end -}}
+{{- define "control-proxy.container" -}}
+name: control-proxy
+args:
+  - sh
+  - -c
+  - /usr/local/bin/generate_nghttpx_config.py &&
+    /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt
+image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
+{{- end -}}

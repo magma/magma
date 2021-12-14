@@ -17,6 +17,9 @@ metadata:
   labels:
     app.kubernetes.io/component: control-proxy
   name: controlproxy-config
+  annotations:
+    "helm.sh/hook": "pre-install"
+    "helm.sh/hook-weight": "-5"
 data:
   # Configuration is in Json format. No matter what configure change you make,
   # please keep the Json blob valid.
