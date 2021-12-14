@@ -86,11 +86,11 @@ class ConfigManagerTest(TestCase):
         )
         processed_updates_mock = patch('magma.magmad.events.processed_updates')
 
-        class service_mconfig_mock:
+        class ServiceMconfigMock:
             def __init__(self, service, mconfig_struct):
                 pass
             dynamic_services = []
-        mock_mcfg = patch('magma.magmad.config_manager.load_service_mconfig', MagicMock(wraps=service_mconfig_mock))
+        mock_mcfg = patch('magma.magmad.config_manager.load_service_mconfig', MagicMock(wraps=ServiceMconfigMock))
 
         with load_mock as loader,\
                 update_mock as updater, \
