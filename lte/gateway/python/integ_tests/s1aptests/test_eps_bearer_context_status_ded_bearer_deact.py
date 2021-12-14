@@ -215,6 +215,7 @@ class TestEpsBearerContextStatusDedBearerDeact(unittest.TestCase):
         # Set default bearers 5,6 and 9 as active and
         # dedicated bearers 7,8,10 and 11 as inactive
         # epsBearerCtxSts IE is 16 bits
+        # Ref: 3gpp 24.301 sec-9.9.2.1
         tau_req.epsBearerCtxSts = 0x260
         tau_req.ueMtmsi.pres = False
         self._s1ap_wrapper.s1_util.issue_cmd(

@@ -34,8 +34,8 @@ class TestEpsBearerContextStatusDefBearerDeact(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_eps_bearer_context_status_def_bearer_deact(self):
-        """Attach a single UE. Create 2 secondary PDNs and add 2
-        dedicated bearers to the secondary PDNs.Send EPS bearer context status
+        """Attach a single UE. Create 2 secondary PDNs and add 1
+        dedicated bearer to each secondary PDN.Send EPS bearer context status
         IE in TAU request with only default bearer i.e bearer id 5 as active
         """
         num_ue = 1
@@ -184,6 +184,7 @@ class TestEpsBearerContextStatusDefBearerDeact(unittest.TestCase):
         tau_req.Actv_flag = True
         # Set bearer 5 as active in UE
         # epsBearerCtxSts IE is 16 bits
+        # Ref: 3gpp 24.301 sec-9.9.2.1
         tau_req.epsBearerCtxSts = 0x20
         tau_req.ueMtmsi.pres = False
         self._s1ap_wrapper.s1_util.issue_cmd(
