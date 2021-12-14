@@ -51,13 +51,11 @@ uint64_t get_bit_rate(uint8_t ambr_unit) {
  * AMBR calculation based on 9.11.4.14 of 24-501
  */
 void ambr_calculation_pdu_session(
-    std::shared_ptr<smf_context_t> smf_context, uint64_t* dl_pdu_ambr,
-    uint64_t* ul_pdu_ambr) {
-  *dl_pdu_ambr =
-      smf_context->dl_session_ambr * get_bit_rate(smf_context->dl_ambr_unit);
+    uint16_t* dl_session_ambr, uint8_t* dl_ambr_unit, uint16_t* ul_session_ambr,
+    uint8_t* ul_ambr_unit, uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr) {
+  *dl_pdu_ambr = (*dl_session_ambr) * get_bit_rate(*dl_ambr_unit);
 
-  *ul_pdu_ambr =
-      smf_context->ul_session_ambr * get_bit_rate(smf_context->ul_ambr_unit);
+  *ul_pdu_ambr = (*ul_session_ambr) * get_bit_rate(*ul_ambr_unit);
 }
 
 /*
@@ -92,7 +90,10 @@ int pdu_session_resource_setup_request(
    * considering default or max bit rate.
    * leveraged ambr calculation from qos_params_to_eps_qos and 24-501 spec used
    */
-  ambr_calculation_pdu_session(smf_context, &dl_pdu_ambr, &ul_pdu_ambr);
+  ambr_calculation_pdu_session(
+      &(smf_context->dl_session_ambr), &(smf_context->dl_ambr_unit),
+      &(smf_context->ul_session_ambr), &(smf_context->ul_ambr_unit),
+      &dl_pdu_ambr, &ul_pdu_ambr);
 
   amf_smf_context_ue_aggregate_max_bit_rate_get(
       &(ue_context->amf_context),

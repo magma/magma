@@ -1231,7 +1231,10 @@ int initial_context_setup_request(
       pdu_resource_transfer_ie->no_of_items += 1;
       item_num = pdu_resource_transfer_ie->no_of_items - 1;
       item     = &pdu_resource_transfer_ie->item[item_num];
-      ambr_calculation_pdu_session(smf_context, &dl_pdu_ambr, &ul_pdu_ambr);
+      ambr_calculation_pdu_session(
+          &(smf_context->dl_session_ambr), &(smf_context->dl_ambr_unit),
+          &(smf_context->ul_session_ambr), &(smf_context->ul_ambr_unit),
+          &dl_pdu_ambr, &ul_pdu_ambr);
 
       // pdu session id
       item->Pdu_Session_ID =
