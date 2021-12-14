@@ -38,7 +38,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/directoryd"
-	"magma/orc8r/cloud/go/services/directoryd/servicers"
+	servicers "magma/orc8r/cloud/go/services/directoryd/servicers/protected"
 	dstorage "magma/orc8r/cloud/go/services/directoryd/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
