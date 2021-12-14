@@ -47,7 +47,7 @@ module "orc8r-app" {
   # source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.6"
   source = "../.."
 
-  region = "us-west-2"
+  region = module.orc8r.region
 
   orc8r_domain_name     = module.orc8r.orc8r_domain_name
   orc8r_route53_zone_id = module.orc8r.route53_zone_id
