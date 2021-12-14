@@ -23,7 +23,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"magma/orc8r/cloud/go/tools/swaggergen/generate"
+	"magma/orc8r/cloud/go/tools/swaggergen/swaggergen/generate"
 )
 
 func TestRewriteGeneratedRefs(t *testing.T) {

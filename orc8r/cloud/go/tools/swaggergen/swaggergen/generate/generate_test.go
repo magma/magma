@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 
-	"magma/orc8r/cloud/go/tools/swaggergen/generate"
+	"magma/orc8r/cloud/go/tools/swaggergen/swaggergen/generate"
 )
 
 func TestParseSwaggerDependencyTree(t *testing.T) {
