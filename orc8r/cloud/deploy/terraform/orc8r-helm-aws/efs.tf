@@ -13,6 +13,8 @@
 
 # k8s requires provisioner to treat efs as a persistent volume
 resource "helm_release" "efs_provisioner" {
+  count = var.orc8r_is_staging_deployment == true ? 0 : 1
+
   name       = var.efs_provisioner_name
   repository = local.stable_helm_repo
   chart      = "efs-provisioner"

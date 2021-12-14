@@ -755,3 +755,12 @@ service:
     Required: false
     ConfigApps:
       - tf
+  orc8r_is_staging_deployment:
+    Description: >-
+      Indicates if the orc8r-app being deploy is a staging environment.
+      Staging environment does not deploy Logging, Metrics and Alerts
+    Type: bool
+    Default: false
+    Required: false
+    ConfigApps:
+      - tf
