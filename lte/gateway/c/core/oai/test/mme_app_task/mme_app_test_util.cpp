@@ -41,7 +41,7 @@ void nas_config_timer_reinit(nas_config_t* nas_conf, uint32_t timeout_msec) {
   nas_conf->t3450_msec   = timeout_msec;
   nas_conf->t3460_msec   = timeout_msec;
   nas_conf->t3470_msec   = timeout_msec;
-  nas_conf->t3485_msec   = 5000;
+  nas_conf->t3485_msec   = timeout_msec;
   nas_conf->t3486_msec   = timeout_msec;
   nas_conf->t3489_msec   = timeout_msec;
   nas_conf->t3495_msec   = timeout_msec;

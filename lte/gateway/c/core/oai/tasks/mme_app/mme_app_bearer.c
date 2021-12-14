@@ -1715,17 +1715,19 @@ void mme_app_handle_release_access_bearers_resp(
       &mme_app_desc_p->mme_ue_contexts, rel_access_bearers_rsp_pP->teid);
 
   if (ue_context_p == NULL) {
-    OAILOG_DEBUG(
+    OAILOG_ERROR(
         LOG_MME_APP, "We didn't find this teid in list of UE: " TEID_FMT "\n",
         rel_access_bearers_rsp_pP->teid);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  /*
-   * Updating statistics
-   */
-  update_mme_app_stats_s1u_bearer_sub();
 
-  if (mme_app_desc_p->nb_s1u_bearers != 0) {
+  // Updating statistics for all the active bearers
+  for (uint8_t itr=0; itr < BEARERS_PER_UE; itr++) {
+    if (ue_context_p->bearer_contexts[itr])
+      update_mme_app_stats_s1u_bearer_sub();
+  }
+
+  if (mme_app_desc_p->nb_s1u_bearers != 0)  {
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   // Send UE Context Release Command
@@ -4704,6 +4706,7 @@ void mme_app_handle_mme_init_local_deactivation(
           LOG_MME_APP, ue_context_p->emm_context._imsi64,
           "Deleted ebi=%u for S11 teid" TEID_FMT "," MME_UE_S1AP_ID_FMT "\n",
           ebi, bearer_deactv_req_p->s11_mme_teid, ue_context_p->mme_ue_s1ap_id);
+      update_mme_app_stats_s1u_bearer_sub();
     }
   }
   // Send rsp back to spgw

@@ -140,6 +140,7 @@ class SPGWAppProcedureTest : public ::testing::Test {
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
   std::string test_imsi_str = "001010000000001";
   uint64_t test_imsi64      = 1010000000001;
+  uint64_t test_imsi64_test = 1010000000002;
   plmn_t test_plmn          = {.mcc_digit2 = 0,
                       .mcc_digit1 = 0,
                       .mnc_digit3 = 0x0f,
@@ -661,7 +662,7 @@ TEST_F(SPGWAppProcedureTest, TestReleaseBearerError) {
       .Times(1);
 
   sgw_handle_release_access_bearers_request(
-      &sample_release_bearer_req, test_imsi64);
+      &sample_release_bearer_req, test_imsi64_test);
 
   // verify that eNB information has not been cleared
   ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));

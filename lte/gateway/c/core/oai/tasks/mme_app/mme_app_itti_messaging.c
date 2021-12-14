@@ -117,7 +117,7 @@ void mme_app_itti_ue_context_release(
  **                                                                        **
  ***************************************************************************/
 status_code_e mme_app_send_s11_release_access_bearers_req(
-    struct ue_mm_context_s* const ue_mm_context, const pdn_cid_t pdn_index) {
+    struct ue_mm_context_s* const ue_mm_context, imsi64_t imsi_64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   /*
    * Keep the identifier to the default APN
@@ -143,11 +143,23 @@ status_code_e mme_app_send_s11_release_access_bearers_req(
   release_access_bearers_request_p =
       &message_p->ittiMsg.s11_release_access_bearers_request;
   release_access_bearers_request_p->local_teid = ue_mm_context->mme_teid_s11;
-  pdn_context_t* pdn_connection = ue_mm_context->pdn_contexts[pdn_index];
-  release_access_bearers_request_p->teid = pdn_connection->s_gw_teid_s11_s4;
-  release_access_bearers_request_p->edns_peer_ip.addr_v4.sin_addr =
+  /* Fetch the 1st PDN context to check if the message should be sent
+   * to spgw/sgw_s8 task
+   */
+  pdn_context_t* pdn_connection = ue_mm_context->pdn_contexts[0];
+  if (!pdn_connection) {
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+        "PDN context is NULL for "
+        "ue id " MME_UE_S1AP_ID_FMT "\n",
+        ue_mm_context->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+
+  //release_access_bearers_request_p->teid = pdn_connection->s_gw_teid_s11_s4;
+  /*release_access_bearers_request_p->edns_peer_ip.addr_v4.sin_addr =
       pdn_connection->s_gw_address_s11_s4.address.ipv4_address;
-  release_access_bearers_request_p->edns_peer_ip.addr_v4.sin_family = AF_INET;
+  release_access_bearers_request_p->edns_peer_ip.addr_v4.sin_family = AF_INET;*/
   release_access_bearers_request_p->originating_node = NODE_TYPE_MME;
 
   message_p->ittiMsgHeader.imsi = ue_mm_context->emm_context._imsi64;

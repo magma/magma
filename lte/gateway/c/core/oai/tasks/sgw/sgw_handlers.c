@@ -1256,19 +1256,29 @@ void sgw_handle_release_access_bearers_request(
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP, imsi64, "Release Access Bearer Request Received in SGW\n");
 
-  s_plus_p_gw_eps_bearer_context_information_t* ctx_p =
-      sgw_cm_get_spgw_context(release_access_bearers_req_pP->teid);
-  if (ctx_p) {
-    sgw_send_release_access_bearer_response(
-        LOG_SPGW_APP, imsi64, REQUEST_ACCEPTED, release_access_bearers_req_pP,
-        ctx_p->sgw_eps_bearer_context_information.mme_teid_S11);
-    sgw_process_release_access_bearer_request(
-        LOG_SPGW_APP, imsi64, &(ctx_p->sgw_eps_bearer_context_information));
-  } else {
-    sgw_send_release_access_bearer_response(
-        LOG_SPGW_APP, imsi64, CONTEXT_NOT_FOUND, release_access_bearers_req_pP,
-        0);
+  spgw_ue_context_t* ue_context_p = NULL;
+  gtpv2c_cause_value_t cause = CONTEXT_NOT_FOUND;
+  hash_table_ts_t* state_ue_ht    = get_spgw_ue_state();
+  s_plus_p_gw_eps_bearer_context_information_t* ctx_p = NULL;
+  hashtable_ts_get(
+      state_ue_ht, (const hash_key_t) imsi64, (void**) &ue_context_p);
+
+  if (ue_context_p) {
+    sgw_s11_teid_t* s11_teid_p = NULL;
+    LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
+      if (s11_teid_p) {
+        ctx_p = sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid);
+        if (ctx_p) {
+          sgw_process_release_access_bearer_request(
+          LOG_SPGW_APP, imsi64, &(ctx_p->sgw_eps_bearer_context_information));
+          cause = REQUEST_ACCEPTED;
+        }
+      }
+    }
   }
+  sgw_send_release_access_bearer_response(
+      LOG_SPGW_APP, imsi64, cause, release_access_bearers_req_pP,
+      ctx_p?ctx_p->sgw_eps_bearer_context_information.mme_teid_S11:0);
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
 
