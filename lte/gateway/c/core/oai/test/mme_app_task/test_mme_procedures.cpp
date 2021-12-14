@@ -1828,7 +1828,7 @@ TEST_F(
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 }
-#if 0
+
 TEST_F(
     MmeAppProcedureTest,
     TestNwInitiatedActivateDeactivateDedicatedBearerWithT3485T3495Expirations) {
@@ -1980,7 +1980,6 @@ TEST_F(
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 }
-#endif
 
 // Periodic TAU with active flag set to true
 TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithActiveFlag) {
@@ -2829,9 +2828,6 @@ TEST_F(
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
   send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI + ebi_idx);
 
-  // Wait for activate default eps bearer req to be sent
-  //EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(1);
-  //cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Send ERAB Setup Response mimicing S1AP
   send_erab_setup_rsp(DEFAULT_LBI + ebi_idx);
 
@@ -2839,14 +2835,15 @@ TEST_F(
   send_mme_app_uplink_data_ind(
       nas_msg_act_def_bearer_acc, sizeof(nas_msg_act_def_bearer_acc), plmn);
 
-  //cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Send modify bearer response for secondary PDN
   b_modify = {6};
   send_modify_bearer_resp(b_modify, b_rm);
 
   // Add dedicated bearer for LBI 6
   send_s11_create_bearer_req(DEFAULT_LBI + ebi_idx);
-  //EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(1);
+  // s1ap_generate_s1ap_e_rab_setup_req is called twice. Once for default
+  // bearer and once for dedicated bearer
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(2);
 
   // Send ERAB Setup Response mimicing S1AP
   send_erab_setup_rsp(7);
@@ -2859,7 +2856,7 @@ TEST_F(
   // Send context release request mimicing S1AP
   send_context_release_req(S1AP_RADIO_EUTRAN_GENERATED_REASON, TASK_S1AP);
 
-  // Constructing and sending Release Access Bearer Response for each session
+  // Constructing and sending Release Access Bearer Response
   // to mme_app mimicing SPGW
   sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
 
@@ -3024,18 +3021,13 @@ TEST_F(
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
   send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI + ebi_idx);
 
-  //EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(1);
-  //cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  //cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Send ERAB Setup Response mimicing S1AP
   send_erab_setup_rsp(DEFAULT_LBI + ebi_idx);
 
-  //cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Send activate default eps bearer accept
   send_mme_app_uplink_data_ind(
       nas_msg_act_def_bearer_acc, sizeof(nas_msg_act_def_bearer_acc), plmn);
 
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Modify Bearer Response to mme_app
   // mimicing SPGW
   b_modify = {6};
@@ -3043,7 +3035,9 @@ TEST_F(
 
   // Add dedicated bearer for LBI 6
   send_s11_create_bearer_req(DEFAULT_LBI + ebi_idx);
-  EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(1);
+  // s1ap_generate_s1ap_e_rab_setup_req is called twice. Once for default
+  // bearer and once for dedicated bearer
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(2);
 
   // Send ERAB Setup Response mimicing S1AP
   send_erab_setup_rsp(7);
@@ -3056,7 +3050,7 @@ TEST_F(
   // Send context release request mimicing S1AP
   send_context_release_req(S1AP_RADIO_EUTRAN_GENERATED_REASON, TASK_S1AP);
 
-  // Constructing and sending Release Access Bearer Response for each session
+  // Constructing and sending Release Access Bearer Response
   // to mme_app mimicing SPGW
   sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
 
@@ -3068,7 +3062,6 @@ TEST_F(
 
   // Check MME state after context release request is processed
   send_activate_message_to_mme_app();
-  //cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   mme_state_p = magma::lte::MmeNasStateManager::getInstance().get_state(false);
   EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
@@ -3082,7 +3075,8 @@ TEST_F(
       nas_msg_tau_req_with_eps_bearer_ctx_sts_ded_ber,
       sizeof(nas_msg_tau_req_with_eps_bearer_ctx_sts_ded_ber), plmn, guti, 1);
 
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Wait for MME to send delete bearer cmd to spgw
+  // cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Constructing and sending deactivate bearer request
   uint8_t ebi_to_be_deactivated = 7;
@@ -3127,6 +3121,7 @@ TEST_F(
 
   // Check MME state after detach complete
   send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
