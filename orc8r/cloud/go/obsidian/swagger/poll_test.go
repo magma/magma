@@ -20,7 +20,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	"magma/orc8r/cloud/go/obsidian/swagger/protos"
-	internal_swagger "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
+	servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/orc8r"
 	spec "magma/orc8r/cloud/go/swagger"
 	"magma/orc8r/cloud/go/test_utils"
@@ -121,7 +121,7 @@ func registerServicer(
 
 	partialYamlSpec := marshalToYAML(t, partialSpec)
 	standaloneYamlSpec := marshalToYAML(t, standaloneSpec)
-	protos.RegisterSwaggerSpecServer(srv.GrpcServer, internal_swagger.NewSpecServicer(partialYamlSpec, standaloneYamlSpec))
+	protos.RegisterSwaggerSpecServer(srv.GrpcServer, servicers.NewSpecServicer(partialYamlSpec, standaloneYamlSpec))
 
 	go srv.RunTest(lis)
 }

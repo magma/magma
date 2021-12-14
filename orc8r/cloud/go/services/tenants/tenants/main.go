@@ -19,7 +19,7 @@ import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/obsidian"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
-	internal_swagger "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
+	swagger "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/tenants"
@@ -53,7 +53,7 @@ func main() {
 	}
 	protos.RegisterTenantsServiceServer(srv.GrpcServer, server)
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, internal_swagger.NewSpecServicerFromFile(tenants.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(tenants.ServiceName))
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers())
 

@@ -24,7 +24,7 @@ import (
 	"magma/lte/cloud/go/sms_ll"
 	"magma/orc8r/cloud/go/obsidian"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
-	internal_swagger "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
+	swagger "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -51,7 +51,7 @@ func main() {
 	obsidian.AttachHandlers(srv.EchoServer, restServicer.GetHandlers())
 	protos.RegisterSmsDServer(srv.GrpcServer, servicers.NewSMSDServicer(store, &sms_ll.DefaultSMSSerde{}))
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, internal_swagger.NewSpecServicerFromFile(smsd.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(smsd.ServiceName))
 
 	err = srv.Run()
 	if err != nil {

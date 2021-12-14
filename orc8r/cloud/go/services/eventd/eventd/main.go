@@ -18,7 +18,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
-	internal_swagger "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
+	swagger "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/eventd"
@@ -33,7 +33,7 @@ func main() {
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers())
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, internal_swagger.NewSpecServicerFromFile(eventd.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(eventd.ServiceName))
 
 	err = srv.Run()
 	if err != nil {
