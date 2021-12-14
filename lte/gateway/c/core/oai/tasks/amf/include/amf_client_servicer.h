@@ -24,8 +24,16 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
 #include <memory>
 #include <string>
+#include "lte/protos/session_manager.grpc.pb.h"
+#include "lte/protos/session_manager.pb.h"
+
+using grpc::Status;
+using magma::lte::SetSmNotificationContext;
+using magma::lte::SetSMSessionContext;
+using magma::lte::SmContextVoid;
 
 namespace magma5g {
 /**
@@ -46,10 +54,32 @@ class AMFClientServicerBase {
   virtual bool get_subs_auth_info_resync(
       const std::string& imsi, uint8_t imsi_length, const char* snni,
       const void* resync_info, uint8_t resync_info_len, amf_ue_ngap_id_t ue_id);
+
+  virtual int allocate_ipv4_address(
+      const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len);
+
+  virtual int release_ipv4_address(
+      const char* subscriber_id, const char* apn, const struct in_addr* addr);
+
+  virtual int amf_smf_create_pdu_session_ipv4(
+      char* imsi, uint8_t* apn, uint32_t pdu_session_id,
+      uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
+      uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
+      const ambr_t& state_ambr);
+
+  virtual bool set_smf_session(SetSMSessionContext& request);
+  virtual bool get_decrypt_imsi_info(
+      const uint8_t ue_pubkey_identifier, const std::string& ue_pubkey,
+      const std::string& ciphertext, const std::string& mac_tag,
+      amf_ue_ngap_id_t ue_id);
 };
 
 class AMFClientServicer : public AMFClientServicerBase {
  public:
+  std::vector<MessagesIds>
+      msgtype_stack;  // stack maintains type of msgs sent to ngap
   static AMFClientServicer& getInstance();
 
   AMFClientServicer(AMFClientServicer const&) = delete;
@@ -60,12 +90,11 @@ class AMFClientServicer : public AMFClientServicerBase {
       task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
       MessageDef* message_p) override {
     OAILOG_DEBUG(LOG_AMF_APP, " Mock is Enabled \n");
-
+    msgtype_stack.push_back(ITTI_MSG_ID(message_p));
     itti_free_msg_content(message_p);
     free(message_p);
     return RETURNok;
   }
-
   bool get_subs_auth_info(
       const std::string& imsi, uint8_t imsi_length, const char* snni,
       amf_ue_ngap_id_t ue_id) override {
@@ -75,6 +104,34 @@ class AMFClientServicer : public AMFClientServicerBase {
   bool get_subs_auth_info_resync(
       const std::string& imsi, uint8_t imsi_length, const char* snni,
       const void* resync_info, uint8_t resync_info_len,
+      amf_ue_ngap_id_t ue_id) override {
+    return true;
+  }
+
+  int allocate_ipv4_address(
+      const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+      uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+      uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
+    return RETURNok;
+  }
+
+  int release_ipv4_address(
+      const char* subscriber_id, const char* apn, const struct in_addr* addr) {
+    return RETURNok;
+  }
+
+  int amf_smf_create_pdu_session_ipv4(
+      char* imsi, uint8_t* apn, uint32_t pdu_session_id,
+      uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
+      uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
+      const ambr_t& state_ambr) {
+    return RETURNok;
+  }
+
+  bool set_smf_session(SetSMSessionContext& request) { return true; }
+  bool get_decrypt_imsi_info(
+      const uint8_t ue_pubkey_identifier, const std::string& ue_pubkey,
+      const std::string& ciphertext, const std::string& mac_tag,
       amf_ue_ngap_id_t ue_id) override {
     return true;
   }

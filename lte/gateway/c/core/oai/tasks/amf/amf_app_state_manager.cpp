@@ -94,28 +94,18 @@ int amf_nas_state_init(const amf_config_t* amf_config_p) {
 void AmfNasStateManager::create_state() {
   state_cache_p                               = new (amf_app_desc_t);
   state_cache_p->amf_app_ue_ngap_id_generator = 1;
-  create_hashtables();
+  state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.set_name(
+      AMF_IMSI_UE_ID_TABLE_NAME);
+  state_cache_p->amf_ue_contexts.tun11_ue_context_htbl.set_name(
+      AMF_TUN_UE_ID_TABLE_NAME);
+  state_cache_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.set_name(
+      AMF_GNB_UE_ID_AMF_UE_ID_TABLE_NAME);
+  state_cache_p->amf_ue_contexts.guti_ue_context_htbl.set_name(
+      AMF_GUTI_UE_ID_TABLE_NAME);
+  state_ue_ht.set_name(AMF_UE_ID_UE_CTXT_TABLE_NAME);
 
   // Initialize the local timers, which are non-persistent
   amf_nas_state_init_local_state();
-}
-
-// Delete the hashtables for amf NAS state
-// TODO in future PR, Hash table is replaced by MAP & hash table is depricated
-void AmfNasStateManager::clear_amf_nas_hashtables() {
-  if (!state_cache_p) {
-    return;
-  }
-
-  hashtable_ts_destroy(state_ue_ht);
-  hashtable_uint64_ts_destroy(
-      state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl);
-  hashtable_uint64_ts_destroy(
-      state_cache_p->amf_ue_contexts.tun11_ue_context_htbl);
-  hashtable_uint64_ts_destroy(
-      state_cache_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl);
-  obj_hashtable_uint64_ts_destroy(
-      state_cache_p->amf_ue_contexts.guti_ue_context_htbl);
 }
 
 // Free the memory allocated to state pointer
@@ -123,34 +113,8 @@ void AmfNasStateManager::free_state() {
   if (!state_cache_p) {
     return;
   }
-  clear_amf_nas_hashtables();
   delete state_cache_p;
   state_cache_p = nullptr;
-}
-
-// Create the hashtables for AMF and NAS state
-void AmfNasStateManager::create_hashtables() {
-  bstring b          = bfromcstr(AMF_IMSI_UE_ID_TABLE_NAME);
-  max_ue_htbl_lists_ = 2;
-  state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl =
-      hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
-  btrunc(b, 0);
-  bassigncstr(b, AMF_TUN_UE_ID_TABLE_NAME);
-  state_cache_p->amf_ue_contexts.tun11_ue_context_htbl =
-      hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
-  btrunc(b, 0);
-  bassigncstr(b, AMF_UE_ID_UE_CTXT_TABLE_NAME);
-  state_ue_ht = hashtable_ts_create(
-      max_ue_htbl_lists_, nullptr, amf_app_state_free_ue_context, b);
-  btrunc(b, 0);
-  bassigncstr(b, AMF_GNB_UE_ID_AMF_UE_ID_TABLE_NAME);
-  state_cache_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl =
-      hashtable_uint64_ts_create(max_ue_htbl_lists_, amf_def_hashfunc, b);
-  btrunc(b, 0);
-  bassigncstr(b, AMF_GUTI_UE_ID_TABLE_NAME);
-  state_cache_p->amf_ue_contexts.guti_ue_context_htbl =
-      obj_hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, nullptr, b);
-  bdestroy_wrapper(&b);
 }
 
 // Initialize state that is non-persistent, e.g. timers
@@ -170,19 +134,14 @@ void AmfNasStateManager::amf_nas_state_init_local_state() {
 amf_app_desc_t* AmfNasStateManager::get_state(bool read_from_redis) {
   state_dirty = true;
 
-  // if read_from_redis is false, no need to clear and create ht.
-  if (persist_state_enabled_ && read_from_redis) {
-    clear_amf_nas_hashtables();
-    create_hashtables();
-  }
   return state_cache_p;
 }
 
-hash_table_ts_t* AmfNasStateManager::get_ue_state_ht() {
+map_uint64_ue_context_t AmfNasStateManager::get_ue_state_ht() {
   return state_ue_ht;
 }
 
-hash_table_ts_t* get_amf_ue_state() {
+map_uint64_ue_context_t get_amf_ue_state() {
   return AmfNasStateManager::getInstance().get_ue_state_ht();
 }
 

@@ -12,6 +12,8 @@ produces:
 schemes:
 - https
 - http
+securityDefinitions: {}
+security: []
 tags:
 - description: Tag apple
   name: AppleTag

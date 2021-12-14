@@ -25,7 +25,7 @@ def main():
     service = MagmaService('health', None)
 
     # Optionally pipe errors to Sentry
-    sentry_init(service_name=service.name)
+    sentry_init(service_name=service.name, sentry_mconfig=service.shared_mconfig.sentry_config)
 
     # Service state wrapper obj
     service_state = ServiceStateWrapper()

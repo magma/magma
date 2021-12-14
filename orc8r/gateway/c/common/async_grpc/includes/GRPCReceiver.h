@@ -21,7 +21,7 @@
 #include <functional>                              // for function
 #include <memory>                                  // for unique_ptr
 namespace grpc {
-template<class R>
+template <class R>
 class ClientAsyncResponseReader;
 }
 
@@ -73,15 +73,14 @@ class AsyncResponse {
  * This class is implemented here because non-specialized templates
  * must be visible to a translation unit
  */
-template<typename ResponseType>
+template <typename ResponseType>
 class AsyncGRPCResponse : public AsyncResponse {
  public:
-  AsyncGRPCResponse(
-      std::function<void(grpc::Status, ResponseType)> callback,
-      uint32_t timeout_sec)
+  AsyncGRPCResponse(std::function<void(grpc::Status, ResponseType)> callback,
+                    uint32_t timeout_sec)
       : callback_(callback) {
-    context_.set_deadline(
-        std::chrono::system_clock::now() + std::chrono::seconds(timeout_sec));
+    context_.set_deadline(std::chrono::system_clock::now() +
+                          std::chrono::seconds(timeout_sec));
   }
   virtual ~AsyncGRPCResponse() = default;
 
@@ -124,12 +123,11 @@ class AsyncGRPCResponse : public AsyncResponse {
  *   local_response->get_context(), request_val, &completion_queue);
  * local_response->set_response_reader(std::move(response_reader));
  */
-template<typename ResponseType>
+template <typename ResponseType>
 class AsyncLocalResponse : public AsyncGRPCResponse<ResponseType> {
  public:
-  AsyncLocalResponse(
-      std::function<void(grpc::Status, ResponseType)> callback,
-      uint32_t timeout_sec)
+  AsyncLocalResponse(std::function<void(grpc::Status, ResponseType)> callback,
+                     uint32_t timeout_sec)
       : AsyncGRPCResponse<ResponseType>(callback, timeout_sec) {}
 
   void handle_response() {

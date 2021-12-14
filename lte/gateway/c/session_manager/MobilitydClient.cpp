@@ -44,8 +44,8 @@ AsyncMobilitydClient::AsyncMobilitydClient()
 void AsyncMobilitydClient::get_subscriberid_from_ipv4(
     const IPAddress& ue_ip_addr,
     std::function<void(Status status, SubscriberID)> callback) {
-  auto local_resp = new AsyncLocalResponse<SubscriberID>(
-      std::move(callback), RESPONSE_TIMEOUT);
+  auto local_resp = new AsyncLocalResponse<SubscriberID>(std::move(callback),
+                                                         RESPONSE_TIMEOUT);
   local_resp->set_response_reader(stub_->AsyncGetSubscriberIDFromIP(
       local_resp->get_context(), ue_ip_addr, &queue_));
 }

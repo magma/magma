@@ -35,6 +35,7 @@ ENV MAGMA_ROOT=/workspaces/magma
 ENV BUILD_TYPE=Debug
 ENV C_BUILD=/workspaces/magma/build/c
 ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONPATH=$MAGMA_ROOT/lte/gateway/python/:$MAGMA_ROOT/orc8r/gateway/python/
 
 RUN echo "Install general purpose packages" && \
     apt-get update && \
@@ -69,7 +70,8 @@ RUN echo "Install general purpose packages" && \
         ninja-build \
         perl \
         pkg-config \
-        python2.7 \
+        python3 \
+        python-is-python3 \
         redis-server \
         ruby \
         rubygems \
@@ -119,8 +121,7 @@ RUN echo "Install 3rd party dependencies" && \
     echo "Install ZeroMQ" && \
     apt-get install -y libczmq-dev && \
     echo "Install dependencies for Sentry Native" && \
-    apt-get install -y libcurl4-openssl-dev && \
-    ln -s /usr/bin/python2.7 /usr/local/bin/python
+    apt-get install -y libcurl4-openssl-dev
 
 RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
 
@@ -316,6 +317,6 @@ RUN go get -v golang.org/x/tools/gopls
 #### Update shared library configuration
 RUN ldconfig -v
 
-RUN ln -s "$MAGMA_ROOT"/experimental/bazel-base/bazelrcs/devcontainer.bazelrc /etc/bazelrc
+RUN ln -s $MAGMA_ROOT/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
 
 WORKDIR $MAGMA_ROOT

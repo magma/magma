@@ -21,7 +21,6 @@
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/assertions.h"
 
-static bool parse_bool(const char* str);
 void served_tai_config_init(served_tai_t* served_tai);
 void clear_served_tai_config(served_tai_t* served_tai);
 
@@ -397,16 +396,6 @@ int amf_config_parse_file(
   return 0;
 }
 
-static bool parse_bool(const char* str) {
-  if (strcasecmp(str, "yes") == 0) return true;
-  if (strcasecmp(str, "true") == 0) return true;
-  if (strcasecmp(str, "no") == 0) return false;
-  if (strcasecmp(str, "false") == 0) return false;
-  if (strcasecmp(str, "") == 0) return false;
-
-  Fatal("Error in config file: got \"%s\" but expected bool\n", str);
-}
-
 /***************************************************************************
 **                                                                        **
 ** Name:   amf_config_free()                                              **
@@ -447,6 +436,7 @@ void clear_amf_config(amf_config_t* amf_config) {
   bdestroy_wrapper(&amf_config->short_network_name);
   bdestroy_wrapper(&amf_config->ip_capability);
   bdestroy_wrapper(&amf_config->amf_name);
+  bdestroy_wrapper(&amf_config->default_dnn);
   clear_served_tai_config(&amf_config->served_tai);
   free_partial_lists(amf_config->partial_list, amf_config->num_par_lists);
   amf_config->num_par_lists = 0;

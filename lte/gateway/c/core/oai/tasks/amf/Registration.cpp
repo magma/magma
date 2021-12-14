@@ -33,6 +33,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
+#include "include/amf_client_servicer.h"
 
 #define M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH 1
 #define INVALID_IMSI64 (imsi64_t) 0
@@ -660,6 +661,13 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
           "Started for ue id: " AMF_UE_NGAP_ID_FMT,
           registration_proc->T3550.id, registration_proc->ue_id);
     }
+
+    // s6a update location request
+    int rc =
+        amf_send_n11_update_location_req(ue_m5gmm_context_p->amf_ue_ngap_id);
+    if (rc == RETURNerror) {
+      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: n11_update_location_req failure\n");
+    }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -670,7 +678,7 @@ static int registration_accept_t3550_handler(
   ue_m5gmm_context_s* ue_amf_context             = NULL;
   nas_amf_registration_proc_t* registration_proc = NULL;
   amf_ue_ngap_id_t ue_id                         = 0;
-  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+  if (!amf_pop_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3550: Invalid Timer Id expiration, Timer Id: %u\n",
         timer_id);
@@ -1153,6 +1161,37 @@ int amf_proc_registration_abort(
     rc = RETURNok;
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+}
+/***************************************************************************
+**                                                                        **
+** Name:    get_decrypt_imsi_suci_extension()                             **
+**                                                                        **
+** Description: Invokes .get_decrypt_imsi_info                            **
+**              to fetch decrypted imsi                                   **
+**                                                                        **
+**                                                                        **
+***************************************************************************/
+int get_decrypt_imsi_suci_extension(
+    amf_context_t* amf_context, uint8_t ue_pubkey_identifier,
+    const std::string& ue_pubkey, const std::string& ciphertext,
+    const std::string& mac_tag) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+
+  int rc = RETURNerror;
+  amf_ue_ngap_id_t ue_id =
+      PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context)
+          ->amf_ue_ngap_id;
+
+  OAILOG_INFO(
+      LOG_AMF_APP,
+      "Sending msg(grpc) to :[subscriberdb] for ue: [" AMF_UE_NGAP_ID_FMT
+      "] decrypt-imsi\n",
+      ue_id);
+
+  AMFClientServicer::getInstance().get_decrypt_imsi_info(
+      ue_pubkey_identifier, ue_pubkey, ciphertext, mac_tag, ue_id);
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
 }  // namespace magma5g

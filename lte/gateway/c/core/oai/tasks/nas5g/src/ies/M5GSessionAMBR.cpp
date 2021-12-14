@@ -22,7 +22,21 @@ SessionAMBRMsg::~SessionAMBRMsg(){};
 int SessionAMBRMsg::DecodeSessionAMBRMsg(
     SessionAMBRMsg* session_ambr, uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
-  // Not yet Implemented, will be supported POST MVC
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, AMBR_MIN_LEN, len);
+
+  if (iei > 0) {
+    CHECK_IEI_DECODER((unsigned char) iei, session_ambr->iei);
+    MLOG(MDEBUG) << "In DecodeSessionAMBRMsg: iei" << std::hex << int(*buffer);
+    decoded++;
+  }
+
+  IES_DECODE_U8(buffer, decoded, session_ambr->length);
+
+  IES_DECODE_U8(buffer, decoded, session_ambr->dl_unit);
+  IES_DECODE_U16(buffer, decoded, session_ambr->dl_session_ambr);
+
+  IES_DECODE_U8(buffer, decoded, session_ambr->ul_unit);
+  IES_DECODE_U16(buffer, decoded, session_ambr->ul_session_ambr);
   return (decoded);
 };
 

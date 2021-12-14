@@ -321,6 +321,9 @@ func getPlmnID(imsi string, mncLen int) ([3]byte, error) {
 		if err != nil {
 			return [3]byte{}, fmt.Errorf("Invalid Digit '%s' in IMSI '%s': %v", imsi[i:i+1], imsi, err)
 		}
+		if v < 0 || v > 255 {
+			return [3]byte{}, fmt.Errorf("Number %d is outside the boundaries of byte type", v)
+		}
 		imsiBytes[i] = byte(v)
 	}
 	// see https://www.arib.or.jp/english/html/overview/doc/STD-T63v10_70/5_Appendix/Rel11/29/29272-bb0.pdf#page=73

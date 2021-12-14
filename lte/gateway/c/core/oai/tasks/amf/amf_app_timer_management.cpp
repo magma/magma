@@ -41,8 +41,8 @@ void amf_app_stop_timer(int timer_id) {
 }
 
 //------------------------------------------------------------------------------
-bool amf_app_get_timer_arg(int timer_id, timer_arg_t* arg) {
-  return magma5g::AmfUeContext::Instance().GetTimerArg(timer_id, arg);
+bool amf_pop_timer_arg(int timer_id, timer_arg_t* arg) {
+  return magma5g::AmfUeContext::Instance().PopTimerArgById(timer_id, arg);
 }
 
 //------------------------------------------------------------------------------
@@ -62,9 +62,10 @@ void AmfUeContext::StopTimer(int timer_id) {
   amf_app_timers.erase(timer_id);
 }
 //------------------------------------------------------------------------------
-bool AmfUeContext::GetTimerArg(const int timer_id, timer_arg_t* arg) const {
+bool AmfUeContext::PopTimerArgById(const int timer_id, timer_arg_t* arg) {
   try {
     *arg = amf_app_timers.at(timer_id);
+    amf_app_timers.erase(timer_id);
     return true;
   } catch (std::out_of_range& e) {
     return false;
@@ -85,8 +86,8 @@ void amf_pdu_stop_timer(int timer_id) {
 }
 
 //------------------------------------------------------------------------------
-bool amf_pdu_get_timer_arg(int timer_id, ue_pdu_id_t* arg) {
-  return magma5g::AmfUeContext::Instance().GetPduTimerArg(timer_id, arg);
+bool amf_pop_pdu_timer_arg(int timer_id, ue_pdu_id_t* arg) {
+  return magma5g::AmfUeContext::Instance().PopPduTimerArgById(timer_id, arg);
 }
 
 //------------------------------------------------------------------------------
@@ -107,9 +108,10 @@ void AmfUeContext::StopPduTimer(int timer_id) {
   amf_pdu_timers.erase(it);
 }
 //------------------------------------------------------------------------------
-bool AmfUeContext::GetPduTimerArg(const int timer_id, ue_pdu_id_t* arg) const {
+bool AmfUeContext::PopPduTimerArgById(const int timer_id, ue_pdu_id_t* arg) {
   try {
     *arg = amf_pdu_timers.at(timer_id);
+    amf_pdu_timers.erase(timer_id);
     return true;
   } catch (std::out_of_range& e) {
     return false;

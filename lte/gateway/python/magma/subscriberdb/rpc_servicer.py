@@ -12,13 +12,30 @@ limitations under the License.
 """
 
 import logging
+from typing import NamedTuple
 
 import grpc
 from lte.protos import subscriberdb_pb2, subscriberdb_pb2_grpc
 from magma.common.rpc_utils import print_grpc, return_void
+from magma.common.sentry import (
+    SentryStatus,
+    get_sentry_status,
+    send_uncaught_errors_to_monitoring,
+)
 from magma.subscriberdb.sid import SIDUtils
+from magma.subscriberdb.store.base import (
+    DuplicateSubscriberError,
+    SubscriberNotFoundError,
+)
 
-from .store.base import DuplicateSubscriberError, SubscriberNotFoundError
+enable_sentry_wrapper = get_sentry_status("subscriberdb") == SentryStatus.SEND_SELECTED_ERRORS
+suci_profile_data = NamedTuple(
+    'suci_profile_data', [
+        ('protection_scheme', int),
+        ('home_net_public_key', bytes),
+        ('home_net_private_key', bytes),
+    ],
+)
 
 
 class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
@@ -40,11 +57,15 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         subscriberdb_pb2_grpc.add_SubscriberDBServicer_to_server(self, server)
 
     @return_void
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def AddSubscriber(self, request, context):
         """
-        Adds a subscriber to the store
+        Add a subscriber to the store
         """
-        print_grpc(request, self._print_grpc_payload, "Add Subscriber Request:")
+        print_grpc(
+            request, self._print_grpc_payload,
+            "Add Subscriber Request:",
+        )
         sid = SIDUtils.to_str(request.sid)
         logging.debug("Add subscriber rpc for sid: %s", sid)
         try:
@@ -54,9 +75,10 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
             context.set_code(grpc.StatusCode.ALREADY_EXISTS)
 
     @return_void
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def DeleteSubscriber(self, request, context):
         """
-        Deletes a subscriber from the store
+        Delete a subscriber from the store
         """
         print_grpc(
             request, self._print_grpc_payload,
@@ -67,9 +89,10 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         self._store.delete_subscriber(sid)
 
     @return_void
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def UpdateSubscriber(self, request, context):
         """
-        Updates the subscription data
+        Update the subscription data
         """
         try:
             print_grpc(
@@ -88,9 +111,10 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
             context.set_details("Subscriber not found: %s" % sid)
             context.set_code(grpc.StatusCode.NOT_FOUND)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetSubscriberData(self, request, context):
         """
-        Returns the subscription data for the subscriber
+        Return the subscription data for the subscriber
         """
         print_grpc(
             request, self._print_grpc_payload,
@@ -109,9 +133,10 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         )
         return response
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def ListSubscribers(self, request, context):  # pylint:disable=unused-argument
         """
-        Returns a list of subscribers from the store
+        Return a list of subscribers from the store
         """
         print_grpc(
             request, self._print_grpc_payload,
@@ -123,5 +148,125 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         print_grpc(
             response, self._print_grpc_payload,
             "List Subscribers Response:",
+        )
+        return response
+
+
+class SuciProfileDBRpcServicer(subscriberdb_pb2_grpc.SuciProfileDBServicer):
+    """
+    gRPC based server for the SubscriberDB.
+    """
+
+    def __init__(
+        self, store, suciprofile_db_dict: dict,
+        print_grpc_payload: bool = False,
+    ):
+        """
+        Store should be thread-safe since we use a thread pool for requests.
+        """
+        self._store = store
+        self.suciprofile_db_dict = suciprofile_db_dict
+        self._print_grpc_payload = print_grpc_payload
+
+    def add_to_server(self, server):
+        """
+        Add the servicer to a gRPC server
+        """
+        subscriberdb_pb2_grpc.add_SuciProfileDBServicer_to_server(self, server)
+
+    @return_void
+    def AddSuciProfile(self, request, context):
+        """
+        AddSuciProfile - Adds a suciprofile to the store        # noqa: D403
+
+        Args:
+            request: SuciProfile
+            context: context
+
+        Returns: None
+
+        Raises:
+            RpcError: Key already exists
+        """
+        print_grpc(
+            request, self._print_grpc_payload,
+            "Add SuciProfile Request:",
+        )
+
+        if request.home_net_public_key_id in self.suciprofile_db_dict.keys():
+            logging.warning(
+                "home_net_public_key_id:%d already exist",
+                request.home_net_public_key_id,
+            )
+            context.set_details("Duplicate suciprofile")
+            context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+            raise grpc.RpcError("Key already exists")
+
+        self.suciprofile_db_dict[request.home_net_public_key_id] = suci_profile_data(
+            request.protection_scheme, request.home_net_public_key,
+            request.home_net_private_key,
+        )
+
+    @return_void
+    def DeleteSuciProfile(self, request, context):
+        """
+        DeleteSuciProfile - Deletes suciprofile from the store      # noqa: D403
+
+        Args:
+            request: SuciProfile
+            context: context
+
+        Returns: None
+
+        Raises:
+            RpcError: Key is invalid
+
+        """
+        print_grpc(
+            request, self._print_grpc_payload,
+            "Delete SuciProfile Request:",
+        )
+
+        if request.home_net_public_key_id not in self.suciprofile_db_dict.keys():
+            logging.warning(
+                "The home_net_public_key_id:%d is not a valid key,"
+                "try again", request.home_net_public_key_id,
+            )
+            context.set_details("Suciprofile not found")
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            raise grpc.RpcError("Key is invalid")
+        else:
+            del self.suciprofile_db_dict[request.home_net_public_key_id]
+
+    def ListSuciProfile(self, request, context):
+        """
+        ListSuciProfile - Returns SuciProfile list      # noqa: D403
+
+        Args:
+            request: SuciProfile
+            context: context
+
+        Returns:
+            response: SuciProfileList
+        """
+        print_grpc(
+            request, self._print_grpc_payload,
+            "List Suciprofile Request:",
+        )
+        suciprofiles = []
+        for k, v in self.suciprofile_db_dict.items():
+            suciprofiles.append(
+                subscriberdb_pb2.SuciProfile(
+                    home_net_public_key_id=int(k),
+                    protection_scheme=v.protection_scheme,
+                    home_net_public_key=v.home_net_public_key,
+                    home_net_private_key=v.home_net_private_key,
+                ),
+            )
+
+        response = subscriberdb_pb2.SuciProfileList(suci_profiles=suciprofiles)
+        print_grpc(
+            response, self._print_grpc_payload,
+            "List SuciProfile Response:",
         )
         return response

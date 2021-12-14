@@ -23,7 +23,6 @@ module "orc8r" {
 
   vpc_name     = "{{ orc8rTfVpc }}"
   cluster_name = "{{ orc8rTfCluster }}"
-  cluster_version = "1.17"
 
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "{{ orc8rTfEs }}"
@@ -63,7 +62,7 @@ module "orc8r-app" {
   docker_pass = ""
 
   # Note that this can be any Helm chart repo provider
-  helm_repo = "https://docker.artifactory.magmacore.org/artifactory/helm"
+  helm_repo = "https://artifactory.magmacore.org/artifactory/helm"
   helm_user = ""
   helm_pass = ""
   eks_cluster_id = module.orc8r.eks_cluster_id

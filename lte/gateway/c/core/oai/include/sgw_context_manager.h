@@ -30,7 +30,7 @@ extern "C" {
 #include <stdint.h>
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
-
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/spgw_state.h"
 
 #define INITIAL_SGW_S8_S1U_TEID 0x7FFFFFFF
@@ -53,15 +53,13 @@ sgw_eps_bearer_ctxt_t* sgw_cm_insert_eps_bearer_ctxt_in_collection(
     sgw_eps_bearer_ctxt_t* const sgw_eps_bearer_ctxt);
 sgw_eps_bearer_ctxt_t* sgw_cm_get_eps_bearer_entry(
     sgw_pdn_connection_t* const sgw_pdn_connection, ebi_t ebi);
-int sgw_cm_remove_eps_bearer_entry(
-    sgw_pdn_connection_t* const sgw_pdn_connection, ebi_t eps_bearer_idP);
 // Returns SPGW state pointer for given UE indexed by IMSI
 s_plus_p_gw_eps_bearer_context_information_t* sgw_cm_get_spgw_context(
     teid_t teid);
 spgw_ue_context_t* spgw_get_ue_context(imsi64_t imsi64);
 spgw_ue_context_t* spgw_create_or_get_ue_context(imsi64_t imsi64);
 
-int spgw_update_teid_in_ue_context(imsi64_t imsi64, teid_t teid);
+status_code_e spgw_update_teid_in_ue_context(imsi64_t imsi64, teid_t teid);
 
 #ifdef __cplusplus
 }

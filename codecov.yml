@@ -1,4 +1,6 @@
 comment: false
+github_checks:
+    annotations: false
 coverage:
   status:
     project:
@@ -25,8 +27,3 @@ coverage:
         threshold: 0%
         flags:
           - c_cpp
-      c_cpp_bazel:
-        target: auto
-        threshold: 0%
-        flags:
-          - c_cpp_bazel

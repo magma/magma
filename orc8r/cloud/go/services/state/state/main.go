@@ -59,6 +59,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating state service %v", err)
 	}
+
 	db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
 	if err != nil {
 		glog.Fatalf("Error connecting to database: %v", err)
@@ -71,8 +72,13 @@ func main() {
 
 	stateServicer := newStateServicer(store)
 	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
-	indexerManagerServer := newIndexerManagerServicer(srv.Config, db, store)
-	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
+
+	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
+	if !singletonReindex {
+		glog.Info("Running reindexer")
+		indexerManagerServer := newIndexerManagerServicer(srv.Config, db, store)
+		indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
+	}
 
 	go metrics.PeriodicallyReportGatewayStatus(gatewayStatusReportInterval)
 

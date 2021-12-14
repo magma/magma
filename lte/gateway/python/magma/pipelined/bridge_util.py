@@ -96,6 +96,22 @@ class BridgeTools:
         return int(port_num)
 
     @staticmethod
+    def get_mac_address(interface_name):
+        """
+        Gets L2 mac address of interface
+        """
+        try:
+            fl = "/sys/class/net/%s/address" % interface_name
+            mac = subprocess.check_output(["cat", fl])
+        except subprocess.CalledProcessError as e:
+            raise DatapathLookupError(
+                'Error: reading mac address of interface({}) : {}'.format(
+                    interface_name, e,
+                ),
+            )
+        return mac.strip()
+
+    @staticmethod
     def create_internal_iface(bridge_name, iface_name, ip):
         """
         Creates a simple bridge, sets up an interface.
@@ -116,6 +132,10 @@ class BridgeTools:
         """
             Add interface to ovs bridge
         """
+        if ofp_port:
+            set_port_no = "ofport_request=" + ofp_port
+        else:
+            set_port_no = ""
         try:
             add_port_cmd = [
                 "ovs-vsctl", "--may-exist",
@@ -124,7 +144,7 @@ class BridgeTools:
                 iface_name,
                 "--", "set", "interface",
                 iface_name,
-                "ofport_request=" + ofp_port,
+                set_port_no,
             ]
             subprocess.check_call(add_port_cmd)
             logging.debug("add_port_cmd %s", add_port_cmd)

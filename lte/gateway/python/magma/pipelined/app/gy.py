@@ -137,8 +137,9 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
             self._datapath,
             imsi,
         )
-        self._qos_mgr.remove_subscriber_qos(imsi)
-        self._remove_he_flows(ip_addr, None)
+        if self._qos_mgr:
+            self._qos_mgr.remove_subscriber_qos(imsi)
+        self._remove_he_flows(ip_addr, "")
 
     def _deactivate_flow_for_rule(self, imsi, ip_addr, rule_id):
         """
@@ -163,7 +164,8 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
             self._datapath, imsi,
             num,
         )
-        self._qos_mgr.remove_subscriber_qos(imsi, num)
+        if self._qos_mgr:
+            self._qos_mgr.remove_subscriber_qos(imsi, num)
         self._remove_he_flows(ip_addr, rule_id)
 
     def _install_flow_for_rule(

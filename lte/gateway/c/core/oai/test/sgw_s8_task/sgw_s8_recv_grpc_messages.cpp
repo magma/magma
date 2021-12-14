@@ -22,11 +22,9 @@ extern "C" {
 
 using grpc::ServerContext;
 using ::testing::Test;
-#define END_OF_TESTCASE_SLEEP_MS 500
 task_zmq_ctx_t task_zmq_ctx_main_grpc;
 static int handle_message_test_s8_grpc(
     zloop_t* loop, zsock_t* reader, void* arg);
-
 class SgwS8MessagesTest : public ::testing::Test {
  protected:
   virtual void SetUp();
@@ -52,7 +50,7 @@ void SgwS8MessagesTest::SetUp() {
 
   std::thread task_sgw_s8(start_mock_sgw_s8_task, sgw_s8_handler);
   task_sgw_s8.detach();
-  grpc_service_init();
+  grpc_service_init(TEST_GRPCSERVICES_SERVER_ADDRESS);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
 
@@ -143,7 +141,7 @@ TEST_F(SgwS8MessagesTest, recv_create_bearer_req) {
   EXPECT_TRUE(status.ok());
 }
 
-TEST_F(SgwS8MessagesTest, recv_delete_bearer_req) {
+TEST_F(SgwS8MessagesTest, recv_grcp_delete_bearer_req) {
   magma::feg::DeleteBearerRequestPgw db_req;
   build_grpc_delete_bearer_req(&db_req);
   grpc::ServerContext server_context;

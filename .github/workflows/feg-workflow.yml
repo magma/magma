@@ -32,6 +32,17 @@ jobs:
           filters: |
             filesChanged:
               - [".github/workflows/feg-workflow.yml", "orc8r/**", "lte/**", "feg/**"]
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
   feg-lint-precommit:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
@@ -51,33 +62,31 @@ jobs:
               ./circleci/golang_before_install.sh
       - name: Run go mod download with retry
         uses: nick-invision/retry@v2
-        continue-on-error: true
         if: always()
         id: feg-lint-init
         with:
           command: cd ${MAGMA_ROOT}/cwf/gateway && go mod download
           timeout_minutes: 10
       - name: Go lint code
-        continue-on-error: true
+        if: always() && steps.feg-lint-init.outcome=='success'
         id: feg-lint
         run: |
               cd ${MAGMA_ROOT}/feg/gateway
               make -C ${MAGMA_ROOT}/feg/gateway lint
       - name: Generate test coverage
-        continue-on-error: true
+        if: always() && steps.feg-lint.outcome=='success'
         id: feg-lint-cov
         run: |
               cd ${MAGMA_ROOT}/feg/gateway
               make -C ${MAGMA_ROOT}/feg/gateway cover
       - uses: codecov/codecov-action@v1
-        continue-on-error: true
+        if: always()
         id: feg-lint-codecov
         with:
           files: '${{ env.MAGMA_ROOT}}/feg/gateway/coverage/feg.gocov'
           flags: feg-lint
       - name: make feg precommit
         if: always()
-        continue-on-error: true
         id: feg-precommit
         run: |
           go get gotest.tools/gotestsum

@@ -171,37 +171,37 @@ variable "orc8r_deployment_type" {
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.8"
+  default     = "1.5.24"
 }
 
 variable "cwf_orc8r_chart_version" {
   description = "Version of the orchestrator cwf module Helm chart to install."
   type        = string
-  default     = "0.2.0"
+  default     = "0.2.2"
 }
 
 variable "fbinternal_orc8r_chart_version" {
   description = "Version of the orchestrator fbinternal module Helm chart to install."
   type        = string
-  default     = "0.2.0"
+  default     = "0.2.2"
 }
 
 variable "feg_orc8r_chart_version" {
   description = "Version of the orchestrator feg module Helm chart to install."
   type        = string
-  default     = "0.2.1"
+  default     = "0.2.5"
 }
 
 variable "lte_orc8r_chart_version" {
   description = "Version of the orchestrator lte module Helm chart to install."
   type        = string
-  default     = "0.2.1"
+  default     = "0.2.6"
 }
 
 variable "wifi_orc8r_chart_version" {
   description = "Version of the orchestrator wifi module Helm chart to install."
   type        = string
-  default     = "0.2.0"
+  default     = "0.2.2"
 }
 
 variable "orc8r_tag" {
@@ -356,25 +356,25 @@ variable "analytics_metrics_prefix" {
 
 variable "analytics_app_secret" {
   description = "App secret for which the metrics is to be exported to"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 
 variable "analytics_app_id" {
   description = "App ID for which the metrics is to be exported to"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "analytics_metric_export_url" {
   description = "Metric Export URL"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "analytics_category_name" {
   description = "Category under which the exported metrics will be placed under"
-  type = string
-  default = "magma"
+  type        = string
+  default     = "magma"
 }

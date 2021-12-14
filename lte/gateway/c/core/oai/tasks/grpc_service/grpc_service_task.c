@@ -66,10 +66,10 @@ static void* grpc_service_thread(__attribute__((unused)) void* args) {
   return NULL;
 }
 
-status_code_e grpc_service_init(void) {
+status_code_e grpc_service_init(const char* grpc_server_ip) {
   OAILOG_DEBUG(LOG_UTIL, "Initializing grpc_service task interface\n");
   grpc_service_config                 = calloc(1, sizeof(grpc_service_data_t));
-  grpc_service_config->server_address = bfromcstr(GRPCSERVICES_SERVER_ADDRESS);
+  grpc_service_config->server_address = bfromcstr(grpc_server_ip);
 
   if (itti_create_task(TASK_GRPC_SERVICE, &grpc_service_thread, NULL) < 0) {
     OAILOG_ALERT(LOG_UTIL, "Initializing grpc_service: ERROR\n");

@@ -1,0 +1,87 @@
+---
+
+- name: Check if rootCA exists and is not empty
+  stat:
+    path: "{{ agwCertsPath }}/rootCA.pem"
+  become: true
+  register: has_rootca
+  failed_when:
+    - (not has_rootca.stat.exists) or (has_rootca.stat.size == 0)
+
+- name: Check if control_proxy.yml exists and is not empty
+  stat:
+    path: "{{ agwConfigPath }}/control_proxy.yml"
+  become: true
+  register: has_control_proxy
+  failed_when:
+    - (not has_control_proxy.stat.exists) or (has_control_proxy.stat.size == 0)
+
+# Reference: https://docs.ansible.com/ansible/latest/collections/ansible/builtin/lineinfile_module.html
+- name: Check if cloud_address is correctly configured in control_proxy
+  lineinfile:
+    state: absent
+    path: "{{ agwConfigPath }}/control_proxy.yml"
+    regex: '^cloud_address:[ ]{1,}controller.{{ orc8rStagingDomainName }}'
+  check_mode: true
+  become: true
+  register: check_cloud_address
+  changed_when: false   # Do not count this as a change, it is just a check
+
+- name: Configure cloud_address in control_proxy
+  lineinfile:
+    path: "{{ agwConfigPath }}/control_proxy.yml"
+    regex: '^cloud_address:.*$'
+    line: "cloud_address: controller.{{ orc8rStagingDomainName }}"
+  become: true
+  diff: true
+  when: check_cloud_address.found == 0
+
+- name: Check if boostrap_address is correctly configured in control_proxy
+  lineinfile:
+    state: absent
+    path: "{{ agwConfigPath }}/control_proxy.yml"
+    regex: '^bootstrap_address:[ ]{1,}bootstrapper-controller.{{ orc8rStagingDomainName }}'
+  check_mode: true
+  become: true
+  register: check_bootstrap_address
+  changed_when: false   # Do not count this as a change, it is just a check
+
+- name: Configure boostrap_address in control_proxy
+  lineinfile:
+    path: "{{ agwConfigPath }}/control_proxy.yml"
+    regex: '^bootstrap_address:.*$'
+    line: "bootstrap_address: bootstrapper-controller.{{ orc8rStagingDomainName }}"
+  become: true
+  diff: true
+  when: check_bootstrap_address.found == 0
+
+- name: Check if fluentd_address is correctly configured in control_proxy
+  lineinfile:
+    state: absent
+    path: "{{ agwConfigPath }}/control_proxy.yml"
+    regex: '^fluentd_address:.[ ]{1,}fluentd.{{ orc8rStagingDomainName }}'
+  check_mode: true
+  become: true
+  register: check_fluentd_address
+  changed_when: false   # Do not count this as a change, it is just a check
+
+- name: Configure fluentd_address in control_proxy
+  lineinfile:
+    path: "{{ agwConfigPath }}/control_proxy.yml"
+    regex: '^fluentd_address:.*$'
+    line: "fluentd_address: fluentd.{{ orc8rStagingDomainName }}"
+  become: true
+  diff: true
+  when: updateFluentD and check_fluentd_address.found == 0
+
+- name: restart magma services
+  systemd:
+    state: restarted
+    name: "{{ item }}"
+  become: true
+  with_items:
+    - "{{ servicesMagma }}"
+  when: (check_cloud_address.found == 0) or
+    (check_bootstrap_address.found == 0) or
+    (updateFluentD and check_fluentd_address.found == 0 )
+

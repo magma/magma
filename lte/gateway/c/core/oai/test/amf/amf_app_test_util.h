@@ -20,6 +20,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
+#include "lte/gateway/c/core/oai/include/map.h"
 
 using ::testing::_;
 using ::testing::Return;
@@ -57,6 +58,36 @@ void send_initial_context_response(
 
 /* API for creating uplink nas message for registration complete response */
 int send_uplink_nas_registration_complete(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
+    const uint8_t* nas_msg, uint8_t nas_msg_length);
+
+/* Create pdu session establishment  request from ue */
+int send_uplink_nas_pdu_session_establishment_request(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
+    const uint8_t* nas_msg, uint8_t nas_msg_length);
+
+void create_ip_address_response_itti(
+    itti_amf_ip_allocation_response_t* response);
+
+int send_ip_address_response_itti();
+
+void create_pdu_session_response_ipv4_itti(
+    itti_n11_create_pdu_session_response_t* response);
+
+int send_pdu_session_response_itti();
+
+void create_pdu_resource_setup_response_itti(
+    itti_ngap_pdusessionresource_setup_rsp_t* response, amf_ue_ngap_id_t ue_id);
+
+int send_pdu_resource_setup_response(amf_ue_ngap_id_t ue_id);
+
+void create_pdu_notification_response_itti(
+    itti_n11_received_notification_t* response);
+
+int send_pdu_notification_response();
+
+/* Create pdu session  release from ue */
+int send_uplink_nas_pdu_session_release_message(
     amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
     const uint8_t* nas_msg, uint8_t nas_msg_length);
 

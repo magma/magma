@@ -34,7 +34,9 @@ func (tr *TestRunner) AuthenticateAndAssertSuccess(imsi string) {
 
 	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
 	assert.NotNil(tr.t, eapMessage, "EAP Message from authentication is nil")
-	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), "UE Authentication did not return success")
+	if eapMessage != nil {
+		assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), "UE Authentication did not return success")
+	}
 }
 
 // Trigger a UE Authentication with the IMSI and called station ID.
@@ -45,7 +47,9 @@ func (tr *TestRunner) AuthenticateWithCalledIDAndAssertSuccess(imsi, calledStati
 
 	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
 	assert.NotNil(tr.t, eapMessage, "EAP Message from authentication is nil")
-	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), "UE Authentication did not return success")
+	if eapMessage != nil {
+		assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), "UE Authentication did not return success")
+	}
 }
 
 // AuthenticateAndAssertSuccessWithRetries triggers a UE Authentication with the IMSI. Assert that the authentication
@@ -81,7 +85,9 @@ func (tr *TestRunner) AuthenticateAndAssertSuccessWithRetries(imsi string, maxRe
 	}
 	assert.NoError(tr.t, err)
 	assert.NotNil(tr.t, eapMessage, "EAP Message from authentication is nil")
-	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), "UE Authentication did not return success")
+	if eapMessage != nil {
+		assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), "UE Authentication did not return success")
+	}
 
 }
 
@@ -93,7 +99,9 @@ func (tr *TestRunner) AuthenticateAndAssertFail(imsi string) {
 
 	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
 	assert.NotNil(tr.t, eapMessage)
-	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.FailureCode))
+	if eapMessage != nil {
+		assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.FailureCode))
+	}
 }
 
 // Trigger a UE Disconnect and assert it succeeds.
@@ -114,7 +122,7 @@ func (tr *TestRunner) AssertPolicyEnforcementRecordIsNil(imsi string) {
 
 func (tr *TestRunner) AssertEventuallyAllRulesRemovedAfterDisconnect(imsi string) {
 	checkFn := func() bool {
-		fmt.Printf("Waiting until all rules are removed in enforcement stats for %s...\n", imsi)
+		fmt.Printf("\tWaiting until all rules are removed in enforcement stats for %s...\n", imsi)
 		records, err := tr.GetPolicyUsage()
 		if err != nil {
 			return false
@@ -140,7 +148,7 @@ func (tr *TestRunner) AssertAllGxExpectationsMetNoError() {
 // Query assertion result from MockOCS and assert all expectations were met.
 // Only applicable when MockDriver is used.
 func (tr *TestRunner) AssertAllGyExpectationsMetNoError() {
-	fmt.Println("Asserting all Gy expectations were met...")
+	fmt.Print("Asserting all Gy expectations were met... ")
 	resultByIndex, errByIndex, err := getOCSAssertExpectationsResult()
 	tr.assertAllExpectationsMetNoError(resultByIndex, errByIndex, err)
 	fmt.Println("Passed!")

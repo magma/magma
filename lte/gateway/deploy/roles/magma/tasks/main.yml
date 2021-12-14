@@ -438,9 +438,17 @@
     pkg:
       - clangd-12
 
+# TODO: preburn this
+- name: Install clang-format-11 c/c++ formatting tooling
+  retries: 5
+  apt:
+    state: latest
+    pkg:
+      - clang-format-11
+
 - name: Symlink system wide bazelrc into the VM
   file:
-    src: '/home/vagrant/magma/experimental/bazel-base/bazelrcs/vm.bazelrc'
+    src: '/home/vagrant/magma/bazel/bazelrcs/vm.bazelrc'
     path: '/etc/bazelrc'
     state: link
     force: yes

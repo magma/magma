@@ -43,6 +43,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/include/map.h"
 
 // NAS messages
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.h"
@@ -262,11 +263,15 @@ typedef struct smf_context_s {
   QOSRule qos_rules[1];
   teid_upf_gnb_t gtp_tunnel_id;
   paa_t pdu_address;
-  uint8_t apn[ACCESS_POINT_NAME_MAX_LENGTH + 1];
+  ambr_t smf_ctx_ambr;
   smf_proc_data_t smf_proc_data;
   struct nas5g_timer_s T3592;  // PDU_SESSION_RELEASE command timer
   int retransmission_count;
   protocol_configuration_options_t pco;
+  uint32_t duplicate_pdu_session_est_req_count;
+  std::string dnn;
+  uint8_t sst;
+  uint8_t sd[SD_LENGTH];
 
   // Request to gnb on PDU establisment request
   pdu_session_resource_setup_req_t pdu_resource_setup_req;
@@ -280,6 +285,15 @@ typedef struct paging_context_s {
   amf_app_timer_t m5_paging_response_timer;
   uint8_t paging_retx_count;
 } paging_context_t;
+
+// NAS decode and validaion of IE
+typedef struct amf_nas_message_decode_status_s {
+  uint8_t integrity_protected_message : 1;
+  uint8_t ciphered_message : 1;
+  uint8_t mac_matched : 1;
+  uint8_t security_context_available : 1;
+  int amf_cause;
+} amf_nas_message_decode_status_t;
 
 /*
  * Structure of the AMF context established by core for a particular UE
@@ -331,14 +345,22 @@ typedef struct amf_context_s {
   ambr_t subscribed_ue_ambr;
   /* apn_config_profile: set by S6A UPDATE LOCATION ANSWER */
   apn_config_profile_t apn_config_profile;
+
+  amf_nas_message_decode_status_t decode_status;
 } amf_context_t;
 
+// Amf-Map Declarations:
+// Map- Key: uint64_t , Data: uint64_t
+typedef magma::map_s<uint64_t, uint64_t> map_uint64_uint64_t;
+// Map Key: guti_m5_t Data: uint64_t;
+typedef magma::map_s<guti_m5_t, uint64_t> map_guti_m5_uint64_t;
+
 typedef struct amf_ue_context_s {
-  hash_table_uint64_ts_t* imsi_amf_ue_id_htbl;    // data is amf_ue_ngap_id_t
-  hash_table_uint64_ts_t* tun11_ue_context_htbl;  // data is amf_ue_ngap_id_t
-  hash_table_uint64_ts_t*
-      gnb_ue_ngap_id_ue_context_htbl;             // data is amf_ue_ngap_id_t
-  obj_hash_table_uint64_t* guti_ue_context_htbl;  // data is amf_ue_ngap_id_t
+  map_uint64_uint64_t imsi_amf_ue_id_htbl;    // data is amf_ue_ngap_id_t
+  map_uint64_uint64_t tun11_ue_context_htbl;  // data is amf_ue_ngap_id_t
+  map_uint64_uint64_t
+      gnb_ue_ngap_id_ue_context_htbl;  // data is amf_ue_ngap_id_t
+  map_guti_m5_uint64_t guti_ue_context_htbl;
 } amf_ue_context_t;
 
 enum m5gcm_state_t {
@@ -387,11 +409,13 @@ typedef struct ue_m5gmm_context_s {
   m5g_uecontextrequest_t ue_context_request;
 } ue_m5gmm_context_t;
 
+// Map- Key: uint64_t , Data: ue_m5gmm_context_s*
+typedef magma::map_s<uint64_t, ue_m5gmm_context_s*> map_uint64_ue_context_t;
+
 /* Operation on UE context structure
  */
 int amf_insert_ue_context(
-    amf_ue_ngap_id_t ue_id, amf_ue_context_t* amf_ue_context_p,
-    ue_m5gmm_context_s* ue_context_p);
+    amf_ue_ngap_id_t ue_id, ue_m5gmm_context_s* ue_context_p);
 amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
     amf_ue_ngap_id_t* amf_app_ue_ngap_id_generator_p);
 /* Notify NGAP about the mapping between amf_ue_ngap_id and
@@ -444,15 +468,6 @@ typedef struct amf_msg_header_t {
 // Release Request routine.
 void amf_app_ue_context_release(
     ue_m5gmm_context_s* ue_context_p, ngap_Cause_t cause);
-
-// NAS decode and validaion of IE
-typedef struct amf_nas_message_decode_status_s {
-  uint8_t integrity_protected_message : 1;
-  uint8_t ciphered_message : 1;
-  uint8_t mac_matched : 1;
-  uint8_t security_context_available : 1;
-  int amf_cause;
-} amf_nas_message_decode_status_t;
 
 // 5G Mobility Management Messages
 union mobility_msg_u {

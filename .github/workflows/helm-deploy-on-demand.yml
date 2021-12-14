@@ -1,0 +1,22 @@
+---
+name: helm-build-on-demand
+
+# Temporary on demand Job until we refactor helm build job in build-all
+on:  # yamllint disable-line rule:truthy
+  workflow_dispatch:
+jobs:
+  build_publish_helm_charts_on_demand:
+    env:
+      HELM_CHART_ARTIFACTORY_URL: "https://artifactory.magmacore.org:443/artifactory/"
+      HELM_CHART_MUSEUM_REPO: helm-test
+      HELM_CHART_MUSEUM_USERNAME: "${{ secrets.HELM_CHART_MUSEUM_USERNAME }}"
+      HELM_CHART_MUSEUM_TOKEN: "${{ secrets.HELM_CHART_MUSEUM_TOKEN }}"
+      MAGMA_ROOT: "${{ github.workspace }}"
+      EVENT_NAME: "${{ github.event_name }}"
+      ISSUE_NUMBER: "${{ github.event.number }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Launch build and publish script
+        run: |
+            orc8r/tools/helm/package.sh --deployment-type all

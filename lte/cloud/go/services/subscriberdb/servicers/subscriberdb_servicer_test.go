@@ -38,11 +38,84 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_storage "magma/orc8r/cloud/go/services/configurator/storage"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	orc8r_models "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/cloud/go/syncstore"
 	"magma/orc8r/lib/go/protos"
 )
+
+func TestListSuciProfiles(t *testing.T) {
+	lte_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	storeReader, _ := initializeStore(t)
+
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{DigestsEnabled: false}, storeReader)
+
+	err := configurator.CreateNetwork(context.Background(), configurator.Network{
+		ID:          "nt1",
+		Type:        lte.NetworkType,
+		Name:        "foobar",
+		Description: "Foo Bar",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkConfigType: &lte_models.NetworkCellularConfigs{
+				Ran: &lte_models.NetworkRanConfigs{
+					BandwidthMhz: 20,
+					TddConfig: &lte_models.NetworkRanConfigsTddConfig{
+						Earfcndl:               44590,
+						SubframeAssignment:     2,
+						SpecialSubframePattern: 7,
+					},
+				},
+				Epc: &lte_models.NetworkEpcConfigs{
+					Mcc: "001",
+					Mnc: "01",
+					Tac: 1,
+					// 16 bytes of \x11
+					LteAuthOp:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					LteAuthAmf: []byte("\x80\x00"),
+
+					HssRelayEnabled:          swag.Bool(false),
+					GxGyRelayEnabled:         swag.Bool(false),
+					CloudSubscriberdbEnabled: false,
+					CongestionControlEnabled: swag.Bool(true),
+					Enable5gFeatures:         swag.Bool(false),
+					NodeIdentifier:           "",
+					DefaultRuleID:            "",
+					SubscriberdbSyncInterval: lte_models.SubscriberdbSyncInterval(300),
+				},
+				Ngc: &lte_models.NetworkNgcConfigs{SuciProfiles: []*lte_models.SuciProfile{
+					{
+						HomeNetworkPublicKey:           []byte("\x12\x12\x12\x12"),
+						HomeNetworkPrivateKey:          []byte("\x12\x12\x12\x12"),
+						HomeNetworkPublicKeyIdentifier: 255,
+						ProtectionScheme:               "ProfileA",
+					},
+				}},
+			},
+			orc8r.NetworkFeaturesConfig: orc8r_models.NewDefaultFeaturesConfig(),
+			orc8r.DnsdNetworkType:       orc8r_models.NewDefaultDNSConfig(),
+		},
+	}, serdes.Network)
+	assert.NoError(t, err)
+
+	id := protos.NewGatewayIdentity("hw1", "nt1", "g1")
+	ctx := id.NewContextWithIdentity(context.Background())
+
+	expectedProtos := []*lte_protos.SuciProfile{
+		{
+			HomeNetPublicKeyId: 255,
+			HomeNetPublicKey:   []byte("\x12\x12\x12\x12"),
+			HomeNetPrivateKey:  []byte("\x12\x12\x12\x12"),
+			ProtectionScheme:   lte_protos.SuciProfile_ProfileA,
+		},
+	}
+
+	req := &protos.Void{}
+	res, err := servicer.ListSuciProfiles(ctx, req)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedProtos, res.SuciProfiles)
+}
 
 func TestListSubscribers(t *testing.T) {
 	lte_test_init.StartTestService(t)

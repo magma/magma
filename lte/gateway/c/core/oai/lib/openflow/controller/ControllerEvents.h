@@ -41,6 +41,7 @@ enum ControllerEventType {
   EVENT_DELETE_PAGING_RULE,
   EVENT_ADD_GTP_S8_TUNNEL,
   EVENT_DELETE_GTP_S8_TUNNEL,
+  EVENT_ADD_DL_ARP,
 };
 
 /**
@@ -331,6 +332,24 @@ class DeletePagingRuleEvent : public ExternalEvent {
 
  private:
   const UeNetworkInfo ue_info_;
+};
+
+/*
+ * Event triggered by SPGW to add UE address ARP
+ * handling flow
+ */
+class AddArpFlowEvent : public ExternalEvent {
+ public:
+  AddArpFlowEvent(const char* imsi, const struct in_addr ue_ip);
+
+  const struct in_addr& get_ue_ip() const;
+  int get_flow_precedence() const;
+  const std::string& get_imsi() const;
+
+ private:
+  const struct in_addr ue_ipv4;
+  int flow_precedence_;
+  const std::string imsi_;
 };
 
 }  // namespace openflow

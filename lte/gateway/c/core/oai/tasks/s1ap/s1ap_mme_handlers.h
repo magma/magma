@@ -144,9 +144,6 @@ status_code_e s1ap_mme_handle_erab_setup_failure(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message);
 
-void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
-    s1ap_state_t* state, ue_description_t* ue_ref_p);
-
 void s1ap_mme_release_ue_context(
     s1ap_state_t* state, ue_description_t* ue_ref_p, imsi64_t imsi64);
 
@@ -188,7 +185,6 @@ status_code_e s1ap_handle_path_switch_req_ack(
     imsi64_t imsi64);
 
 status_code_e s1ap_handle_path_switch_req_failure(
-    s1ap_state_t* state,
     const itti_s1ap_path_switch_request_failure_t* path_switch_req_failure_p,
     imsi64_t imsi64);
 
@@ -203,6 +199,11 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
     s1ap_state_t* state, ue_description_t* ue_ref_p, enum s1cause,
     imsi64_t imsi64, sctp_assoc_id_t assoc_id, sctp_stream_id_t stream,
     mme_ue_s1ap_id_t mme_ue_s1ap_id, enb_ue_s1ap_id_t enb_ue_s1ap_id);
+
+status_code_e s1ap_mme_generate_ue_context_modification(
+    ue_description_t* ue_ref_p,
+    const itti_s1ap_ue_context_mod_req_t* const ue_context_mod_req_pP,
+    imsi64_t imsi64);
 
 status_code_e s1ap_mme_remove_stale_ue_context(
     enb_ue_s1ap_id_t enb_ue_s1ap_id, uint32_t enb_id);

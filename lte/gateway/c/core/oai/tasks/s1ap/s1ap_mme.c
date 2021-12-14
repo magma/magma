@@ -273,7 +273,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       is_task_state_same = true;  // the following handler does not modify state
       is_ue_state_same   = true;
       s1ap_handle_path_switch_req_failure(
-          state, &received_message_p->ittiMsg.s1ap_path_switch_request_failure,
+          &received_message_p->ittiMsg.s1ap_path_switch_request_failure,
           imsi64);
     } break;
 
@@ -569,7 +569,8 @@ void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref) {
 static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
   s1ap_state_t* s1ap_state_p = get_s1ap_state(false);
   application_s1ap_stats_msg_t stats_msg;
-  stats_msg.nb_enb_connected = s1ap_state_p->num_enbs;
+  stats_msg.nb_enb_connected         = s1ap_state_p->num_enbs;
+  stats_msg.nb_s1ap_last_msg_latency = s1ap_last_msg_latency;
   return send_s1ap_stats_to_service303(
       &s1ap_task_zmq_ctx, TASK_S1AP, &stats_msg);
 }

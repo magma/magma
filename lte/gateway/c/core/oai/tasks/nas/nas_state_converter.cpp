@@ -32,40 +32,6 @@ NasStateConverter::~NasStateConverter() = default;
 /*        Common Types <-> Proto                 */
 /*************************************************/
 
-void NasStateConverter::proto_to_guti(
-    const oai::Guti& guti_proto, guti_t* state_guti) {
-  state_guti->gummei.plmn.mcc_digit1 =
-      ((int) guti_proto.plmn()[0]) - ASCII_ZERO;
-  state_guti->gummei.plmn.mcc_digit2 =
-      ((int) guti_proto.plmn()[1]) - ASCII_ZERO;
-  state_guti->gummei.plmn.mcc_digit3 =
-      ((int) guti_proto.plmn()[2]) - ASCII_ZERO;
-  state_guti->gummei.plmn.mnc_digit1 =
-      ((int) guti_proto.plmn()[3]) - ASCII_ZERO;
-  state_guti->gummei.plmn.mnc_digit2 =
-      ((int) guti_proto.plmn()[4]) - ASCII_ZERO;
-  state_guti->gummei.plmn.mnc_digit3 =
-      ((int) guti_proto.plmn()[5]) - ASCII_ZERO;
-
-  state_guti->gummei.mme_gid  = guti_proto.mme_gid();
-  state_guti->gummei.mme_code = guti_proto.mme_code();
-  state_guti->m_tmsi          = (tmsi_t) guti_proto.m_tmsi();
-}
-
-void NasStateConverter::proto_to_ecgi(
-    const oai::Ecgi& ecgi_proto, ecgi_t* state_ecgi) {
-  state_ecgi->plmn.mcc_digit1 = (int) (ecgi_proto.plmn()[0]) - ASCII_ZERO;
-  state_ecgi->plmn.mcc_digit2 = (int) (ecgi_proto.plmn()[1]) - ASCII_ZERO;
-  state_ecgi->plmn.mcc_digit3 = (int) (ecgi_proto.plmn()[2]) - ASCII_ZERO;
-  state_ecgi->plmn.mnc_digit1 = (int) (ecgi_proto.plmn()[3]) - ASCII_ZERO;
-  state_ecgi->plmn.mnc_digit2 = (int) (ecgi_proto.plmn()[4]) - ASCII_ZERO;
-  state_ecgi->plmn.mnc_digit3 = (int) (ecgi_proto.plmn()[5]) - ASCII_ZERO;
-
-  state_ecgi->cell_identity.enb_id  = ecgi_proto.enb_id();
-  state_ecgi->cell_identity.cell_id = ecgi_proto.cell_id();
-  state_ecgi->cell_identity.empty   = ecgi_proto.empty();
-}
-
 void NasStateConverter::partial_tai_list_to_proto(
     const partial_tai_list_t* state_partial_tai_list,
     oai::PartialTaiList* partial_tai_list_proto) {
@@ -737,7 +703,7 @@ void NasStateConverter::proto_to_emm_attach_request_ies(
       attach_request_ies_proto.is_native_guti();
   if (attach_request_ies_proto.has_guti()) {
     state_emm_attach_request_ies->guti = (guti_t*) calloc(1, sizeof(guti_t));
-    proto_to_guti(
+    StateConverter::proto_to_guti(
         attach_request_ies_proto.guti(), state_emm_attach_request_ies->guti);
   }
   if (attach_request_ies_proto.has_imsi()) {
@@ -769,7 +735,7 @@ void NasStateConverter::proto_to_emm_attach_request_ies(
   if (attach_request_ies_proto.has_origin_ecgi()) {
     state_emm_attach_request_ies->originating_ecgi =
         (ecgi_t*) calloc(1, sizeof(ecgi_t));
-    proto_to_ecgi(
+    StateConverter::proto_to_ecgi(
         attach_request_ies_proto.origin_ecgi(),
         state_emm_attach_request_ies->originating_ecgi);
   }
@@ -843,7 +809,8 @@ void NasStateConverter::proto_to_nas_emm_attach_proc(
       attach_proc_proto.attach_reject_sent();
   state_nas_emm_attach_proc->attach_complete_received =
       attach_proc_proto.attach_complete_received();
-  proto_to_guti(attach_proc_proto.guti(), &state_nas_emm_attach_proc->guti);
+  StateConverter::proto_to_guti(
+      attach_proc_proto.guti(), &state_nas_emm_attach_proc->guti);
   if (attach_proc_proto.esm_msg_out().length() > 0) {
     state_nas_emm_attach_proc->esm_msg_out = bfromcstr_with_str_len(
         attach_proc_proto.esm_msg_out().c_str(),
@@ -896,7 +863,7 @@ void NasStateConverter::proto_to_emm_detach_request_ies(
   state_emm_detach_request_ies->is_native_sc =
       detach_request_ies_proto.is_native_sc();
   state_emm_detach_request_ies->ksi = detach_request_ies_proto.ksi();
-  proto_to_guti(
+  StateConverter::proto_to_guti(
       detach_request_ies_proto.guti(), state_emm_detach_request_ies->guti);
 
   state_emm_detach_request_ies->imsi = (imsi_t*) calloc(1, sizeof(imsi_t));
@@ -1822,8 +1789,10 @@ void NasStateConverter::proto_to_emm_context(
   state_emm_context->tau_updt_type = emm_context_proto.tau_updt_type();
   state_emm_context->num_attach_request =
       emm_context_proto.num_attach_request();
-  proto_to_guti(emm_context_proto.guti(), &state_emm_context->_guti);
-  proto_to_guti(emm_context_proto.old_guti(), &state_emm_context->_old_guti);
+  StateConverter::proto_to_guti(
+      emm_context_proto.guti(), &state_emm_context->_guti);
+  StateConverter::proto_to_guti(
+      emm_context_proto.old_guti(), &state_emm_context->_old_guti);
   proto_to_tai_list(
       emm_context_proto.tai_list(), &state_emm_context->_tai_list);
   proto_to_tai(emm_context_proto.lvr_tai(), &state_emm_context->_lvr_tai);

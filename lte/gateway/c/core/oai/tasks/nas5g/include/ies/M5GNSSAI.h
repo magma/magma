@@ -11,19 +11,37 @@ limitations under the License.
 #pragma once
 #include <sstream>
 #include <cstdint>
+#define SST_LENGTH 1
+#define SD_LENGTH 3
 namespace magma5g {
 class NSSAIMsg {
  public:
-  uint8_t iei;
-  uint8_t len;
   const int NSSAI_VAL_MAX    = 74;
   const int NSSAI_MIN_LENGTH = 4;
-  uint8_t nssaival[2];
+  uint8_t iei;
+  uint8_t len;
+  uint8_t sst;
+  uint8_t sd[SD_LENGTH];
+  uint8_t hplmn_sst;
+  uint8_t hplmn_sd[SD_LENGTH];
+
   NSSAIMsg();
   ~NSSAIMsg();
   int EncodeNSSAIMsg(
       NSSAIMsg* nssai, uint8_t iei, uint8_t* buffer, uint32_t len);
   int DecodeNSSAIMsg(
       NSSAIMsg* nssai, uint8_t iei, uint8_t* buffer, uint32_t len);
+};
+
+class NSSAIMsgList {
+ public:
+  uint8_t iei;
+  uint8_t len;
+  NSSAIMsg nssai;
+
+  NSSAIMsgList();
+  ~NSSAIMsgList();
+  int EncodeNSSAIMsgList(
+      NSSAIMsgList* allowed_nssai, uint8_t iei, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

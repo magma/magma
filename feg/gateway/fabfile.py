@@ -14,11 +14,11 @@ import sys
 from typing import Dict, List
 
 import urllib3
-from fabric.api import hide, lcd, local
 
 sys.path.append('../../orc8r')
 import tools.fab.dev_utils as dev_utils  # NOQA
 import tools.fab.types as types
+from fabric.api import local
 
 SNOWFLAKE_FEG_FILE = '../../.cache/feg/snowflake'
 NETWORK_ID = 'feg_test'
@@ -47,6 +47,19 @@ def deregister_feg_gw(location_docker_compose: str = FEG_DOCKER_LOCATION):
     """
     _deregister_feg_gw(location_docker_compose)
     dev_utils.delete_gateway_certs_from_docker(location_docker_compose)
+
+
+def check_feg_cloud_connectivity(timeout=5):
+    """
+    Check connectivity of FEG with the cloud using checkin_cli.py
+    Args:
+        timeout: amount of time the command will retry
+    """
+    local("cd docker")
+    local("pwd")
+    dev_utils.local_command_with_repetition(
+            "cd docker; docker-compose exec magmad checkin_cli.py", timeout,
+    )
 
 
 class RadiusConfig:

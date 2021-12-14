@@ -42,6 +42,27 @@ The list of services to test are configured in the following files.
 - `orc8r/gateway/python/defs.mk`
 - `lte/gateway/python/defs.mk`
 
+To run unit tests for a single Python service, select a name of the list of services and run
+
+```bash
+[VM] cd magma/lte/gateway
+[VM] make test_python_service MAGMA_SERVICE=<service_name>
+```
+
+In the case that unit tests for a single Python service are started multiple times, it is preferable to avoid the upstream installation process of the virtual environment by adding `DONT_BUILD_ENV=1` to the command, run
+
+```bash
+[VM] cd magma/lte/gateway
+[VM] make test_python_service MAGMA_SERVICE=<service_name> DONT_BUILD_ENV=1
+```
+
+To run unit tests of an arbitrary directory, run
+
+```bash
+[VM] cd magma/lte/gateway
+[VM] make test_python_service UT_PATH=<path_of_the_test_folder>
+```
+
 ### Test C/C++ AGW services
 
 We have several C/C++ services that live in `lte/gateway/c/`.
@@ -50,6 +71,15 @@ To run tests for those services, run
 ```bash
 [VM] cd magma/lte/gateway
 [VM] make test_<service_directory_name> # Ex: make test_session_manager
+```
+
+A subset of the AGW C/C++ directories are in progress of migrating to use Bazel as the default build system. We will list out some of the useful commands here, but please refer to the [Bazel user guide](https://docs.bazel.build/versions/main/guide.html) for a complete overview.
+
+```bash
+[VM] cd magma # or any subdirectory inside magma
+[VM] bazel test //... # to test all targets
+[VM] bazel test //lte/gateway/c/session_manager/...:* # to test all targets under lte/gateway/c/session_manager 
+[VM] bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* # to test all C/C++ targets
 ```
 
 ### Test Go AGW services
@@ -95,4 +125,13 @@ To run formatting for each C/C++ services, run
 ```bash
 [VM] cd magma/lte/gateway
 [VM] make format_all
+```
+
+### Format Bazel BUILD files
+
+To format all Bazel related files, run
+
+```bash
+[VM] cd magma # or any subdirectory inside magma
+[VM] bazel run //:buildifier
 ```

@@ -40,6 +40,15 @@ void StateConverter::plmn_to_chars(const plmn_t& state_plmn, char* plmn_array) {
   plmn_array[5] = (char) (state_plmn.mnc_digit3 + ASCII_ZERO);
 }
 
+void StateConverter::chars_to_plmn(const char* plmn_array, plmn_t& state_plmn) {
+  state_plmn.mcc_digit1 = (int) (plmn_array[0]) - ASCII_ZERO;
+  state_plmn.mcc_digit2 = (int) (plmn_array[1]) - ASCII_ZERO;
+  state_plmn.mcc_digit3 = (int) (plmn_array[2]) - ASCII_ZERO;
+  state_plmn.mnc_digit1 = (int) (plmn_array[3]) - ASCII_ZERO;
+  state_plmn.mnc_digit2 = (int) (plmn_array[4]) - ASCII_ZERO;
+  state_plmn.mnc_digit3 = (int) (plmn_array[5]) - ASCII_ZERO;
+}
+
 void StateConverter::guti_to_proto(
     const guti_t& state_guti, oai::Guti* guti_proto) {
   guti_proto->Clear();
@@ -50,6 +59,15 @@ void StateConverter::guti_to_proto(
   guti_proto->set_mme_gid(state_guti.gummei.mme_gid);
   guti_proto->set_mme_code(state_guti.gummei.mme_code);
   guti_proto->set_m_tmsi(state_guti.m_tmsi);
+}
+
+void StateConverter::proto_to_guti(
+    const oai::Guti& guti_proto, guti_t* state_guti) {
+  chars_to_plmn(guti_proto.plmn().c_str(), state_guti->gummei.plmn);
+
+  state_guti->gummei.mme_gid  = guti_proto.mme_gid();
+  state_guti->gummei.mme_code = guti_proto.mme_code();
+  state_guti->m_tmsi          = (tmsi_t) guti_proto.m_tmsi();
 }
 
 void StateConverter::ecgi_to_proto(
@@ -66,6 +84,7 @@ void StateConverter::ecgi_to_proto(
 
 void StateConverter::proto_to_ecgi(
     const oai::Ecgi& ecgi_proto, ecgi_t* state_ecgi) {
+  chars_to_plmn(ecgi_proto.plmn().c_str(), state_ecgi->plmn);
   strncpy((char*) &state_ecgi->plmn, ecgi_proto.plmn().c_str(), PLMN_BYTES);
 
   state_ecgi->cell_identity.enb_id  = ecgi_proto.enb_id();

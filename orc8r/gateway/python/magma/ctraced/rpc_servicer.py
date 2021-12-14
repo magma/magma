@@ -11,6 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from magma.common.sentry import (
+    SentryStatus,
+    get_sentry_status,
+    send_uncaught_errors_to_monitoring,
+)
 from magma.ctraced.trace_manager import TraceManager
 from orc8r.protos.ctraced_pb2 import (
     EndTraceRequest,
@@ -22,6 +27,8 @@ from orc8r.protos.ctraced_pb2_grpc import (
     CallTraceServiceServicer,
     add_CallTraceServiceServicer_to_server,
 )
+
+enable_sentry_wrapper = get_sentry_status("ctraced") == SentryStatus.SEND_SELECTED_ERRORS
 
 
 class CtraceDRpcServicer(CallTraceServiceServicer):
@@ -39,6 +46,7 @@ class CtraceDRpcServicer(CallTraceServiceServicer):
         """
         add_CallTraceServiceServicer_to_server(self, server)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def StartCallTrace(
         self,
         request: StartTraceRequest,
@@ -53,6 +61,7 @@ class CtraceDRpcServicer(CallTraceServiceServicer):
         response = StartTraceResponse(success=success)
         return response
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def EndCallTrace(
         self,
         _request: EndTraceRequest,

@@ -15,13 +15,13 @@ limitations under the License.
 package registry
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
 	"sync"
 	"time"
 
-	"context"
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -247,7 +247,7 @@ func (r *ServiceRegistry) GetHttpServerAddress(service string) (string, error) {
 			return "", fmt.Errorf("service %s not registered", service)
 		}
 		if location.EchoPort == 0 {
-			return "", fmt.Errorf("service %s is not available", service)
+			return "", fmt.Errorf("service %s does not have an echo port configured", service)
 		}
 		return fmt.Sprintf("%s:%d", location.Host, location.EchoPort), nil
 	}

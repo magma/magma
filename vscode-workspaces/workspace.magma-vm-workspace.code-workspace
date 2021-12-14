@@ -39,9 +39,12 @@
 			"-pretty",
 			"--background-index",
 		],
+		// Update this field with any new Bazel targets that need compilation database generation
 		"bsv.cc.compdb.targets": [
 			"//lte/gateway/c/session_manager:sessiond",
-			"//lte/gateway/c/connection_tracker/src:main",
+			"//lte/gateway/c/sctpd/src:sctpd",
+			"//lte/gateway/c/li_agent/src:liagentd",
+			"//lte/gateway/c/connection_tracker/src:connectiond",
 		],
 		"multiCommand.commands": [
 			{

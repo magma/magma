@@ -23,7 +23,7 @@
 */
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
 
-#include <lte/gateway/c/core/oai/include/mme_app_ue_context.h>
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/log.h"

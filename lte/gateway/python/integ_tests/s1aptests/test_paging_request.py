@@ -56,9 +56,13 @@ class TestPagingRequest(unittest.TestCase):
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
+        # flush arp to trigger ARP request for UE IP
+        self._s1ap_wrapper.flush_arp()
+
         # Delay to ensure S1APTester sends attach complete before sending UE
         # context release
-        time.sleep(0.5)
+
+        time.sleep(2)
 
         print(
             "************************* Sending UE context release request ",

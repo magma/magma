@@ -143,6 +143,12 @@ func listGatewaysHandler(c echo.Context) error {
 		return obsidian.MakeHTTPError(errors.Wrap(err, "failed to load statuses"), http.StatusInternalServerError)
 	}
 	gateways := makeGateways(entsByTK, devicesByID, statusesByID)
+
+	err = models.PopulateRegistrationInfos(reqCtx, gateways, nid)
+	if err != nil {
+		return err
+	}
+
 	paginatedGateways := models.PaginatedGateways{
 		Gateways:   gateways,
 		PageToken:  models.PageToken(nextPageToken),
@@ -181,32 +187,10 @@ func CreateGateway(c echo.Context, model MagmadEncompassingGateway, entitySerdes
 		return echo.NewHTTPError(http.StatusBadRequest, "requested tier does not exist")
 	}
 
-	// If the device is already registered, throw an error if it's already
-	// assigned to an entity
-	// If the device exists but is unassigned, update it to the payload
-	// If the device doesn't exist, create it and move on
-	deviceID := mdGateway.Device.HardwareID
-	_, err = device.GetDevice(reqCtx, nid, orc8r.AccessGatewayRecordType, deviceID, deviceSerdes)
-	switch {
-	case err == merrors.ErrNotFound:
-		err = device.RegisterDevice(reqCtx, nid, orc8r.AccessGatewayRecordType, deviceID, mdGateway.Device, deviceSerdes)
-		if err != nil {
-			return obsidian.MakeHTTPError(errors.Wrap(err, "failed to register physical device"), http.StatusInternalServerError)
-		}
-	case err != nil:
-		return obsidian.MakeHTTPError(errors.Wrap(err, "failed to check if physical device is already registered"), http.StatusConflict)
-	default: // err == nil
-		assignedEnt, err := configurator.LoadEntityForPhysicalID(reqCtx, deviceID, configurator.EntityLoadCriteria{}, entitySerdes)
-		switch {
-		case err == nil:
-			return obsidian.MakeHTTPError(errors.Errorf("device %s is already mapped to gateway %s", deviceID, assignedEnt.Key), http.StatusBadRequest)
-		case err != merrors.ErrNotFound:
-			return obsidian.MakeHTTPError(errors.Wrap(err, "failed to check for existing device assignment"), http.StatusInternalServerError)
-		}
-
-		if err := device.UpdateDevice(reqCtx, nid, orc8r.AccessGatewayRecordType, deviceID, mdGateway.Device, deviceSerdes); err != nil {
-			return obsidian.MakeHTTPError(errors.Wrap(err, "failed to update device record"), http.StatusInternalServerError)
-		}
+	// attempt to register device
+	httpErr := registerDevice(reqCtx, nid, mdGateway, entitySerdes, deviceSerdes)
+	if httpErr != nil {
+		return httpErr
 	}
 
 	// Create the magmad gateway, update the tier, perform additional writes
@@ -218,6 +202,7 @@ func CreateGateway(c echo.Context, model MagmadEncompassingGateway, entitySerdes
 		Key:               string(mdGateway.Tier),
 		AssociationsToAdd: storage.TKs{{Type: orc8r.MagmadGatewayType, Key: string(mdGateway.ID)}},
 	})
+
 	// These type switches aren't great but it's the best I could think of
 	switch payload.(type) {
 	case *models.MagmadGateway:
@@ -228,6 +213,42 @@ func CreateGateway(c echo.Context, model MagmadEncompassingGateway, entitySerdes
 
 	if err = configurator.WriteEntities(reqCtx, nid, writes, entitySerdes); err != nil {
 		return obsidian.MakeHTTPError(errors.Wrap(err, "error creating gateway"), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+// registerDevice, if gateway.Device exists, performs the following actions depending on device registration state:
+// If the device is already registered, throw an error if it's already
+// assigned to an entity
+// If the device exists but is unassigned, update it to the payload
+// If the device doesn't exist, create it and move on
+func registerDevice(ctx context.Context, networkID string, gateway *models.MagmadGateway, entitySerdes, deviceSerdes serde.Registry) *echo.HTTPError {
+	if gateway.Device == nil {
+		return nil
+	}
+
+	deviceID := gateway.Device.HardwareID
+	_, err := device.GetDevice(ctx, networkID, orc8r.AccessGatewayRecordType, deviceID, deviceSerdes)
+	switch {
+	case err == merrors.ErrNotFound:
+		err = device.RegisterDevice(ctx, networkID, orc8r.AccessGatewayRecordType, deviceID, gateway.Device, deviceSerdes)
+		if err != nil {
+			return obsidian.MakeHTTPError(errors.Wrap(err, "failed to register physical device"), http.StatusInternalServerError)
+		}
+	case err != nil:
+		return obsidian.MakeHTTPError(errors.Wrap(err, "failed to check if physical device is already registered"), http.StatusConflict)
+	default: // err == nil
+		assignedEnt, err := configurator.LoadEntityForPhysicalID(ctx, deviceID, configurator.EntityLoadCriteria{}, entitySerdes)
+		switch {
+		case err == nil:
+			return obsidian.MakeHTTPError(errors.Errorf("device %s is already mapped to gateway %s", deviceID, assignedEnt.Key), http.StatusBadRequest)
+		case err != merrors.ErrNotFound:
+			return obsidian.MakeHTTPError(errors.Wrap(err, "failed to check for existing device assignment"), http.StatusInternalServerError)
+		}
+
+		if err := device.UpdateDevice(ctx, networkID, orc8r.AccessGatewayRecordType, deviceID, gateway.Device, deviceSerdes); err != nil {
+			return obsidian.MakeHTTPError(errors.Wrap(err, "failed to update device record"), http.StatusInternalServerError)
+		}
 	}
 	return nil
 }
@@ -278,6 +299,7 @@ func LoadMagmadGateway(ctx context.Context, networkID string, gatewayID string) 
 	if dev != nil {
 		devCasted = dev.(*models.GatewayDevice)
 	}
+
 	return (&models.MagmadGateway{}).FromBackendModels(ent, devCasted, status), nil
 }
 
