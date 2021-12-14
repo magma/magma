@@ -100,6 +100,10 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
       msg.total_ambr().max_bandwidth_ul();
   itti_msg->subscription_data.subscribed_ambr.br_dl =
       msg.total_ambr().max_bandwidth_dl();
+  itti_msg->subscription_data.subscribed_ambr.extended_br_ul =
+      msg.total_ambr().max_bandwidth_ul();
+  itti_msg->subscription_data.subscribed_ambr.extended_br_dl =
+      msg.total_ambr().max_bandwidth_dl();
   if (msg.all_apns_included()) {
     itti_msg->subscription_data.apn_config_profile.all_apn_conf_ind =
         MODIFIED_ADDED_APN_CONFIGURATIONS_INCLUDED;
