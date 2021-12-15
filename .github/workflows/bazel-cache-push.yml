@@ -57,10 +57,14 @@ jobs:
         run: |
           cd lte/gateway
           vagrant up magma
-      - name: Build all with Bazel from scratch `bazel build //...`
+      - name: Build all with Bazel from scratch `bazel build //... --config=production`
         run: |
           cd lte/gateway
-          vagrant ssh -c 'cd ~/magma; bazel build //...' magma
+          vagrant ssh -c 'cd ~/magma; bazel build //... --config=production' magma
+      - name: Build all with Bazel from scratch `bazel build //... --config=development`
+        run: |
+          cd lte/gateway
+          vagrant ssh -c 'cd ~/magma; bazel build //... --config=development' magma
       - name: Upload .bazel-cache and .bazel-cache-repo to S3
         run: |
           tar -zcvf ${{ env.BAZEL_CACHE_MAGMA_VM_TAR }} ${{ env.BAZEL_CACHE }}/

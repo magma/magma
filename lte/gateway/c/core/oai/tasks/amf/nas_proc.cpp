@@ -34,6 +34,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
 
 extern amf_config_t amf_config;
 namespace magma5g {
@@ -615,9 +616,9 @@ int amf_handle_s6a_update_location_ans(
       "Received update location Answer from Subscriberdb for"
       " ue_id = " AMF_UE_NGAP_ID_FMT,
       amf_ue_ngap_id);
-  memcpy(
-      &amf_ctxt_p->subscribed_ue_ambr,
-      &ula_pP->subscription_data.subscribed_ambr, sizeof(ambr_t));
+
+  amf_smf_context_ue_aggregate_max_bit_rate_set(
+      amf_ctxt_p, ula_pP->subscription_data.subscribed_ambr);
 
   OAILOG_DEBUG(
       LOG_NAS_AMF,

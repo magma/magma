@@ -26,7 +26,7 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_pdu_session_configs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
@@ -591,14 +591,14 @@ int amf_app_handle_pdu_session_response(
     return RETURNerror;
   }
 
-  get_ambr_unit(
-      pdu_session_resp->session_ambr.downlink_unit_type,
-      pdu_session_resp->session_ambr.downlink_units, &smf_ctx->dl_ambr_unit,
+  convert_ambr(
+      &pdu_session_resp->session_ambr.downlink_unit_type,
+      &pdu_session_resp->session_ambr.downlink_units, &smf_ctx->dl_ambr_unit,
       &smf_ctx->dl_session_ambr);
 
-  get_ambr_unit(
-      pdu_session_resp->session_ambr.uplink_unit_type,
-      pdu_session_resp->session_ambr.uplink_units, &smf_ctx->ul_ambr_unit,
+  convert_ambr(
+      &pdu_session_resp->session_ambr.uplink_unit_type,
+      &pdu_session_resp->session_ambr.uplink_units, &smf_ctx->ul_ambr_unit,
       &smf_ctx->ul_session_ambr);
 
   memcpy(
@@ -846,17 +846,18 @@ int amf_app_handle_pdu_session_accept(
   memcpy(
       smf_msg->msg.pdu_session_estab_accept.qos_rules.qos_rule, &qos_rule,
       1 * sizeof(QOSRule));
-  convert_ambr(
-      &pdu_session_resp->session_ambr.downlink_unit_type,
-      &pdu_session_resp->session_ambr.downlink_units,
-      &smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_unit,
-      &smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_session_ambr);
 
-  convert_ambr(
-      &pdu_session_resp->session_ambr.uplink_unit_type,
-      &pdu_session_resp->session_ambr.uplink_units,
-      &smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit,
-      &smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_session_ambr);
+  // Set session ambr
+  smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_unit =
+      smf_ctx->dl_ambr_unit;
+  smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_session_ambr =
+      smf_ctx->dl_session_ambr;
+
+  smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit =
+      smf_ctx->ul_ambr_unit;
+  smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_session_ambr =
+      smf_ctx->ul_session_ambr;
+
   smf_msg->msg.pdu_session_estab_accept.session_ambr.length = AMBR_LEN;
 
   msg_accept_pco =

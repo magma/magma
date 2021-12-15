@@ -253,5 +253,31 @@ void StateConverter::proto_to_hashtable_uint64_ts(
   }
 }
 
+// Converts Map<uint64_t,uint64_t> to Proto (replaces hashtable to proto)
+void StateConverter::map_uint64_uint64_to_proto(
+    map_uint64_uint64_t map,
+    google::protobuf::Map<uint64_t, uint64_t>* proto_map) {
+  for (auto& elm : map.umap) {
+    (*proto_map)[elm.first] = elm.second;
+  }
+}
+
+// Converts Proto to Map<uint64_t,uint64_t>
+void StateConverter::proto_to_map_uint64_uint64(
+    const google::protobuf::Map<uint64_t, uint64_t>& proto_map,
+    map_uint64_uint64_t* map) {
+  for (auto const& kv : proto_map) {
+    uint64_t id          = kv.first;
+    uint64_t val         = kv.second;
+    magma::map_rc_t m_rc = map->insert(kv.first, kv.second);
+
+    if (m_rc != magma::MAP_OK) {
+      OAILOG_ERROR(
+          LOG_UTIL, "Failed to insert value %lu in table %s: error: %s\n", val,
+          map->name.c_str(), map_rc_code2string(m_rc).c_str());
+    }
+  }
+}
+
 }  // namespace lte
 }  // namespace magma
