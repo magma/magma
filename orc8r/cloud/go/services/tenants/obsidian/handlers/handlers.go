@@ -23,7 +23,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/tenants"
 	"magma/orc8r/cloud/go/services/tenants/obsidian/models"
-	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
+	"magma/orc8r/cloud/go/services/tenants/protos"
 	"magma/orc8r/lib/go/errors"
 )
 
@@ -98,7 +98,7 @@ func CreateTenantHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("must provide tenant ID"))
 	}
 
-	_, err = tenants.CreateTenant(c.Request().Context(), *tenantInfo.ID, &tenant_protos.Tenant{
+	_, err = tenants.CreateTenant(c.Request().Context(), *tenantInfo.ID, &protos.Tenant{
 		Name:     tenantInfo.Name,
 		Networks: tenantInfo.Networks,
 	})
@@ -128,7 +128,7 @@ func SetTenantHandler(c echo.Context) error {
 		return terr
 	}
 
-	var tenantInfo = tenant_protos.Tenant{}
+	var tenantInfo = protos.Tenant{}
 	err := json.NewDecoder(c.Request().Body).Decode(&tenantInfo)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("error decoding request: %v", err))
@@ -186,7 +186,7 @@ func CreateOrUpdateControlProxyHandler(c echo.Context) error {
 		return err
 	}
 
-	var IDAndControlProxy = tenant_protos.CreateOrUpdateControlProxyRequest{}
+	var IDAndControlProxy = protos.CreateOrUpdateControlProxyRequest{}
 	err = json.NewDecoder(c.Request().Body).Decode(&IDAndControlProxy)
 	IDAndControlProxy.Id = tenantID
 	if err != nil {
