@@ -474,6 +474,8 @@ typedef struct ue_mm_context_s {
   uint8_t nb_delete_bearer_cmd;
   // Flag to indicate MME has initiated dedicated bearer deactivation
   bool mme_initiated_ded_bearer_deactivation;
+  // Counter to track number of RAB requests sent/responses received
+  uint8_t nb_rabs;
   LIST_HEAD(s11_procedures_s, mme_app_s11_proc_s) * s11_procedures;
 } ue_mm_context_t;
 

@@ -3555,6 +3555,7 @@ TEST_F(
       nas_msg_tau_req_with_eps_bearer_ctx_sts_def_ber,
       sizeof(nas_msg_tau_req_with_eps_bearer_ctx_sts_def_ber), plmn, guti, 1);
 
+  // Wait for spgw to send delete session request
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   send_delete_session_resp(DEFAULT_LBI + ebi_idx);
 
@@ -3748,9 +3749,6 @@ TEST_F(
       nas_msg_tau_req_with_eps_bearer_ctx_sts_ded_ber,
       sizeof(nas_msg_tau_req_with_eps_bearer_ctx_sts_ded_ber), plmn, guti, 1);
 
-  // Wait for MME to send delete bearer cmd to spgw
-  // cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-
   // Constructing and sending deactivate bearer request
   uint8_t ebi_to_be_deactivated = 7;
   send_s11_deactivate_bearer_req(1, &ebi_to_be_deactivated, false);
@@ -3782,6 +3780,8 @@ TEST_F(
 
   // Constructing and sending Delete Session Response for each session
   // to mme_app mimicing SPGW task
+  // Wait for 2 delete session requests
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   send_delete_session_resp(DEFAULT_LBI);
   send_delete_session_resp(6);
@@ -3794,7 +3794,6 @@ TEST_F(
 
   // Check MME state after detach complete
   send_activate_message_to_mme_app();
-  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);

@@ -612,6 +612,7 @@ void MmeNasStateConverter::ue_context_to_proto(
       state_ue_context->nb_delete_bearer_cmd);
   ue_context_proto->set_mme_initiated_ded_bearer_deactivation(
       state_ue_context->mme_initiated_ded_bearer_deactivation);
+  ue_context_proto->set_nb_rabs(state_ue_context->nb_rabs);
   ue_context_proto->set_rau_tau_timer(state_ue_context->rau_tau_timer);
   ue_context_proto->mutable_time_mobile_reachability_timer_started()
       ->set_seconds(state_ue_context->time_mobile_reachability_timer_started);
@@ -708,6 +709,7 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
       ue_context_proto.nb_delete_bearer_cmd();
   state_ue_mm_context->mme_initiated_ded_bearer_deactivation =
       ue_context_proto.mme_initiated_ded_bearer_deactivation();
+  state_ue_mm_context->nb_rabs = ue_context_proto.nb_rabs();
 
   // Initialize timers to INVALID IDs
   state_ue_mm_context->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;

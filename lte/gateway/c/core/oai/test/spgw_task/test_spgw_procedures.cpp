@@ -677,6 +677,8 @@ TEST_F(SPGWAppProcedureTest, TestReleaseBearerError) {
   EXPECT_CALL(*mme_app_handler, mme_app_handle_release_access_bearers_resp())
       .Times(1);
 
+  // Send wrong IMSI so that spgw will not be able to fetch and delete
+  // the context
   sgw_handle_release_access_bearers_request(
       &sample_release_bearer_req, test_imsi64_test);
 
