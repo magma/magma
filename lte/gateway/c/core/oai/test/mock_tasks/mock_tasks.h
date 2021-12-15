@@ -60,6 +60,12 @@ class MockS1apHandler {
   MOCK_METHOD1(
       s1ap_handle_path_switch_req_failure,
       bool(itti_s1ap_path_switch_request_failure_t path_switch_fail));
+  MOCK_METHOD1(
+      s1ap_mme_handle_handover_request,
+      bool(itti_mme_app_handover_request_t mme_handover_request));
+  MOCK_METHOD1(
+      s1ap_mme_handle_handover_command,
+      bool(itti_mme_app_handover_command_t mme_handover_request));
 };
 
 class MockMmeAppHandler {

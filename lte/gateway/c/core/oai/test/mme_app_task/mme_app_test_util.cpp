@@ -23,6 +23,7 @@
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 }
 
@@ -475,6 +476,75 @@ void send_s1ap_path_switch_req(
   uint32_t enb_transport_addr              = 0xc0a83c8d;  // 192.168.60.141
   erab_to_switch_dl_list->item[0].transport_layer_address =
       blk2bstr(&enb_transport_addr, 4);
+
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
+void send_s1ap_handover_required(
+    const uint32_t src_sctp_assoc_id, const uint32_t enb_id,
+    const uint32_t enb_ue_s1ap_id, const uint32_t mme_ue_s1ap_id) {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_REQUIRED);
+  S1ap_Cause_t cause;
+  cause.present = S1ap_Cause_PR_radioNetwork;
+
+  S1AP_HANDOVER_REQUIRED(message_p).sctp_assoc_id  = src_sctp_assoc_id;
+  S1AP_HANDOVER_REQUIRED(message_p).enb_id         = enb_id;
+  S1AP_HANDOVER_REQUIRED(message_p).cause          = cause;
+  S1AP_HANDOVER_REQUIRED(message_p).handover_type  = 0;  // intralte
+  S1AP_HANDOVER_REQUIRED(message_p).mme_ue_s1ap_id = mme_ue_s1ap_id;
+  S1AP_HANDOVER_REQUIRED(message_p).src_tgt_container =
+      bfromcstr("TEST_CONTAINER");
+
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
+void send_s1ap_handover_request_ack(
+    const uint32_t src_sctp_assoc_id, const uint32_t enb_id,
+    const uint32_t tgt_enb_id, const uint32_t enb_ue_s1ap_id,
+    const uint32_t tgt_enb_ue_s1ap_id, const uint32_t mme_ue_s1ap_id) {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_REQUEST_ACK);
+
+  S1AP_HANDOVER_REQUEST_ACK(message_p).mme_ue_s1ap_id     = mme_ue_s1ap_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).src_enb_ue_s1ap_id = enb_ue_s1ap_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).tgt_enb_ue_s1ap_id = tgt_enb_ue_s1ap_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).source_assoc_id    = src_sctp_assoc_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).source_enb_id      = enb_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).target_enb_id      = tgt_enb_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).handover_type      = 0;  // intralte
+  S1AP_HANDOVER_REQUEST_ACK(message_p).tgt_src_container =
+      bfromcstr("TEST_CONTAINER");
+
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
+void send_s1ap_handover_notify(
+    const uint32_t tgt_sctp_assoc_id, const uint32_t enb_id,
+    const uint32_t tgt_enb_id, const uint32_t enb_ue_s1ap_id,
+    const uint32_t tgt_enb_ue_s1ap_id, const uint32_t mme_ue_s1ap_id) {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_NOTIFY);
+
+  ecgi_t ecgi                = {0};
+  ecgi.cell_identity.cell_id = 1;
+  ecgi.cell_identity.enb_id  = tgt_enb_id;
+
+  e_rab_admitted_list_t e_rab_list           = {0};
+  e_rab_list.no_of_items                     = 1;
+  e_rab_list.item[0].e_rab_id                = 5;
+  e_rab_list.item[0].gtp_teid                = 1;
+  e_rab_list.item[0].transport_layer_address = bfromcstr("TEST");
+
+  S1AP_HANDOVER_NOTIFY(message_p).mme_ue_s1ap_id        = mme_ue_s1ap_id;
+  S1AP_HANDOVER_NOTIFY(message_p).target_enb_id         = tgt_enb_id;
+  S1AP_HANDOVER_NOTIFY(message_p).target_sctp_assoc_id  = tgt_sctp_assoc_id;
+  S1AP_HANDOVER_NOTIFY(message_p).ecgi                  = ecgi;
+  S1AP_HANDOVER_NOTIFY(message_p).target_enb_ue_s1ap_id = tgt_enb_ue_s1ap_id;
+  S1AP_HANDOVER_NOTIFY(message_p).e_rab_admitted_list   = e_rab_list;
 
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
