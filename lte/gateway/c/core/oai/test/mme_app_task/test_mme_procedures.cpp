@@ -3858,7 +3858,7 @@ TEST_F(MmeAppProcedureTest, TestS1HandoverSuccess) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -3945,7 +3945,7 @@ TEST_F(MmeAppProcedureTest, TestS1HandoverSuccess) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
   // Wait for context release request
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
