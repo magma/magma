@@ -30,6 +30,7 @@ import (
 	"magma/orc8r/cloud/go/services/analytics"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
+	protected_analytics "magma/orc8r/cloud/go/services/analytics/servicers/protected"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	provider_protos "magma/orc8r/cloud/go/services/streamer/protos"
@@ -71,7 +72,7 @@ func main() {
 	promQLClient := analytics.GetPrometheusClient()
 	userStateManager := calculations.NewUserStateManager(promQLClient, "ue_connected")
 	calcs := lte_analytics.GetAnalyticsCalculations(&serviceConfig.Analytics)
-	collectorServicer := analytics.NewCollectorServicer(&serviceConfig.Analytics, promQLClient, calcs, userStateManager)
+	collectorServicer := protected_analytics.NewCollectorServicer(&serviceConfig.Analytics, promQLClient, calcs, userStateManager)
 	protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
 
 	err = srv.Run()
