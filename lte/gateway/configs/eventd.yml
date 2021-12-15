@@ -54,6 +54,9 @@ event_registry:
   attach_success:
     module: lte
     filename: mme_events.v1.yml
+  attach_reject:
+    module: lte
+    filename: mme_events.v1.yml
   detach_success:
     module: lte
     filename: mme_events.v1.yml

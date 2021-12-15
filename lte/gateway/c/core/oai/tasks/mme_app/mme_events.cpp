@@ -27,10 +27,13 @@
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "orc8r/protos/common.pb.h"
 #include "orc8r/protos/eventd.pb.h"
 
 #include "lte/gateway/c/core/oai/lib/event_client/EventClientAPI.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.h"
 
 using grpc::Status;
 using magma::lte::init_eventd_client;
@@ -43,6 +46,8 @@ constexpr char MME_STREAM_NAME[]  = "mme";
 constexpr char ATTACH_SUCCESS[]   = "attach_success";
 constexpr char DETACH_SUCCESS[]   = "detach_success";
 constexpr char S1_SETUP_SUCCESS[] = "s1_setup_success";
+constexpr char ATTACH_REJECT[]   = "attach_reject";
+
 }  // namespace
 
 void event_client_init(void) {
@@ -70,14 +75,27 @@ static int report_event(
   return log_event(event_request);
 }
 
-int attach_success_event(imsi64_t imsi64) {
+int attach_success_event(imsi64_t imsi64, mme_ue_s1ap_id_t ue_id) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
 
   folly::dynamic event_value = folly::dynamic::object;
   event_value["imsi"]        = imsi_str;
+  event_value["ue_id"]       = ue_id;
 
   return report_event(event_value, ATTACH_SUCCESS, MME_STREAM_NAME, imsi_str);
+}
+
+int attach_reject_event(mme_ue_s1ap_id_t ue_id, emm_cause_t cause, imsi64_t imsi64) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+  folly::dynamic event_value = folly::dynamic::object;
+
+  event_value["ue_id"]       = ue_id;
+  event_value["cause"]       = cause;
+  event_value["imsi"]        = imsi_str;
+
+  return report_event(event_value, ATTACH_REJECT, MME_STREAM_NAME, imsi_str);
 }
 
 int detach_success_event(imsi64_t imsi64, const char* action) {

@@ -818,7 +818,7 @@ status_code_e emm_proc_attach_complete(
           ue_id);
       emm_proc_emm_information(ue_mm_context);
       increment_counter("ue_attach", 1, 1, "result", "attach_proc_successful");
-      attach_success_event(ue_mm_context->emm_context._imsi64);
+      attach_success_event(ue_mm_context->emm_context._imsi64, ue_id);
     }
   } else if (esm_sap.err != ESM_SAP_DISCARDED) {
     /*
@@ -1068,6 +1068,7 @@ status_code_e _emm_attach_reject(
     emm_as_set_security_data(
         &emm_sap.u.emm_as.u.establish.sctx, &emm_context->_security, false,
         false);
+    attach_reject_event(attach_proc->ue_id, attach_proc->emm_cause, emm_context->_imsi64);
   } else {
     emm_as_set_security_data(
         &emm_sap.u.emm_as.u.establish.sctx, NULL, false, false);

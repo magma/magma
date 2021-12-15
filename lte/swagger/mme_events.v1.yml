@@ -14,6 +14,18 @@ definitions:
     properties:
       imsi:
         type: string
+      ue_id:
+        type: integer
+  attach_reject:
+    type: object
+    description: Used to track when UE does not attach successfully
+    properties:
+      ue_id:
+        type: integer
+      cause:
+        type: integer
+      imsi:
+        type: string
   detach_success:
     type: object
     description: Used to track when UE detaches successfully

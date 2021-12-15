@@ -22,7 +22,8 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/oai/common/common_types.h"
-
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.h"
 /**
  * Helper function to initiate AsyncEventdClient in its own thread
  */
@@ -31,9 +32,19 @@ void event_client_init(void);
 /**
  * Logs Attach successful event
  * @param imsi
+ * @param ue_id
  * @return response code
  */
-int attach_success_event(imsi64_t imsi64);
+int attach_success_event(imsi64_t imsi64, mme_ue_s1ap_id_t ue_id);
+
+/**
+ * Logs Attach reject event
+ * @param ue_id
+ * @param cause
+ * @param imsi
+ * @return response code
+ */
+int attach_reject_event(mme_ue_s1ap_id_t ue_id, emm_cause_t cause, imsi64_t imsi64);
 
 /**
  * Logs Detach successful event
