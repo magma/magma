@@ -294,4 +294,65 @@ TEST_F(AMFAppStatelessTest, TestStateless) {
   EXPECT_TRUE(
       AMFClientServicer::getInstance().map_table_key_proto_str.isEmpty());
 }
+
+TEST(ue_m5gmm_context_to_proto, ue_m5gmm_context_to_proto) {
+  ue_m5gmm_context_t ue_m5gmm_context1 = {}, ue_m5gmm_context2 = {};
+  magma::lte::oai::UeContext ue_context_proto = magma::lte::oai::UeContext();
+
+  ue_m5gmm_context1.ue_context_rel_cause.present = ngap_Cause_PR_NOTHING;
+  ue_m5gmm_context1.ecm_state                    = M5GCM_CONNECTED;
+  ue_m5gmm_context1.mm_state                     = REGISTERED_IDLE;
+
+  ue_m5gmm_context1.sctp_assoc_id_key = 1;
+  ue_m5gmm_context1.gnb_ue_ngap_id    = 0x09;
+  ue_m5gmm_context1.gnb_ngap_id_key   = INVALID_GNB_UE_NGAP_ID_KEY;
+
+  ue_m5gmm_context1.amf_context.apn_config_profile.nb_apns = 1;
+
+  ue_m5gmm_context1.amf_teid_n11 = 0;
+
+  ue_m5gmm_context1.amf_context.subscribed_ue_ambr.br_unit = KBPS;
+  ue_m5gmm_context1.amf_context.subscribed_ue_ambr.br_ul   = 1000;
+  ue_m5gmm_context1.amf_context.subscribed_ue_ambr.br_dl   = 10000;
+
+  ue_m5gmm_context1.paging_context.paging_retx_count = 0;
+
+  AmfNasStateConverter::ue_m5gmm_context_to_proto(
+      &ue_m5gmm_context1, &ue_context_proto);
+
+  AmfNasStateConverter::proto_to_ue_m5gmm_context(
+      ue_context_proto, &ue_m5gmm_context2);
+
+  EXPECT_EQ(
+      ue_m5gmm_context1.ue_context_rel_cause.present,
+      ue_m5gmm_context2.ue_context_rel_cause.present);
+  EXPECT_EQ(ue_m5gmm_context1.ecm_state, ue_m5gmm_context2.ecm_state);
+  EXPECT_EQ(ue_m5gmm_context1.mm_state, ue_m5gmm_context2.mm_state);
+
+  EXPECT_EQ(
+      ue_m5gmm_context1.sctp_assoc_id_key, ue_m5gmm_context2.sctp_assoc_id_key);
+  EXPECT_EQ(ue_m5gmm_context1.gnb_ue_ngap_id, ue_m5gmm_context2.gnb_ue_ngap_id);
+  EXPECT_EQ(
+      ue_m5gmm_context1.gnb_ngap_id_key, ue_m5gmm_context2.gnb_ngap_id_key);
+
+  EXPECT_EQ(
+      ue_m5gmm_context1.amf_context.apn_config_profile.nb_apns,
+      ue_m5gmm_context2.amf_context.apn_config_profile.nb_apns);
+
+  EXPECT_EQ(ue_m5gmm_context1.amf_teid_n11, ue_m5gmm_context2.amf_teid_n11);
+
+  EXPECT_EQ(
+      ue_m5gmm_context1.amf_context.subscribed_ue_ambr.br_unit,
+      ue_m5gmm_context2.amf_context.subscribed_ue_ambr.br_unit);
+  EXPECT_EQ(
+      ue_m5gmm_context1.amf_context.subscribed_ue_ambr.br_ul,
+      ue_m5gmm_context2.amf_context.subscribed_ue_ambr.br_ul);
+  EXPECT_EQ(
+      ue_m5gmm_context1.amf_context.subscribed_ue_ambr.br_dl,
+      ue_m5gmm_context2.amf_context.subscribed_ue_ambr.br_dl);
+
+  EXPECT_EQ(
+      ue_m5gmm_context1.paging_context.paging_retx_count,
+      ue_m5gmm_context2.paging_context.paging_retx_count);
+}
 }  // namespace magma5g

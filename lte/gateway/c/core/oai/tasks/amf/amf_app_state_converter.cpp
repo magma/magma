@@ -199,13 +199,70 @@ void AmfNasStateConverter::proto_to_ue(
 void AmfNasStateConverter::ue_m5gmm_context_to_proto(
     const ue_m5gmm_context_t* state_ue_m5gmm_context,
     magma::lte::oai::UeContext* ue_context_proto) {
-  // Actual implementation logic will be added as part of upcoming pr
+  ue_context_proto->set_rel_cause(
+      state_ue_m5gmm_context->ue_context_rel_cause.present);
+  ue_context_proto->set_mm_state(state_ue_m5gmm_context->mm_state);
+  ue_context_proto->set_ecm_state(state_ue_m5gmm_context->ecm_state);
+
+  ue_context_proto->set_sctp_assoc_id_key(
+      state_ue_m5gmm_context->sctp_assoc_id_key);
+  ue_context_proto->set_enb_ue_s1ap_id(state_ue_m5gmm_context->gnb_ue_ngap_id);
+  ue_context_proto->set_enb_s1ap_id_key(
+      state_ue_m5gmm_context->gnb_ngap_id_key);
+
+  StateConverter::apn_config_profile_to_proto(
+      state_ue_m5gmm_context->amf_context.apn_config_profile,
+      ue_context_proto->mutable_apn_config());
+
+  ue_context_proto->set_mme_teid_s11(state_ue_m5gmm_context->amf_teid_n11);
+  StateConverter::ambr_to_proto(
+      state_ue_m5gmm_context->amf_context.subscribed_ue_ambr,
+      ue_context_proto->mutable_subscribed_ue_ambr());
+  ue_context_proto->set_paging_retx_count(
+      state_ue_m5gmm_context->paging_context.paging_retx_count);
 }
 
 void AmfNasStateConverter::proto_to_ue_m5gmm_context(
     const magma::lte::oai::UeContext& ue_context_proto,
     ue_m5gmm_context_t* state_ue_m5gmm_context) {
-  // Actual implementation logic will be added as part of upcoming pr
+  state_ue_m5gmm_context->ue_context_rel_cause.present =
+      static_cast<ngap_Cause_PR>(ue_context_proto.rel_cause());
+  state_ue_m5gmm_context->mm_state =
+      static_cast<m5gmm_state_t>(ue_context_proto.mm_state());
+  state_ue_m5gmm_context->ecm_state =
+      static_cast<m5gcm_state_t>(ue_context_proto.ecm_state());
+
+  state_ue_m5gmm_context->sctp_assoc_id_key =
+      ue_context_proto.sctp_assoc_id_key();
+  state_ue_m5gmm_context->gnb_ue_ngap_id  = ue_context_proto.enb_ue_s1ap_id();
+  state_ue_m5gmm_context->gnb_ngap_id_key = ue_context_proto.enb_s1ap_id_key();
+
+  StateConverter::proto_to_apn_config_profile(
+      ue_context_proto.apn_config(),
+      &state_ue_m5gmm_context->amf_context.apn_config_profile);
+  state_ue_m5gmm_context->amf_teid_n11 = ue_context_proto.mme_teid_s11();
+  StateConverter::proto_to_ambr(
+      ue_context_proto.subscribed_ue_ambr(),
+      &state_ue_m5gmm_context->amf_context.subscribed_ue_ambr);
+
+  // Initialize timers to INVALID IDs
+  state_ue_m5gmm_context->m5_mobile_reachability_timer.id =
+      AMF_APP_TIMER_INACTIVE_ID;
+  state_ue_m5gmm_context->m5_implicit_detach_timer.id =
+      AMF_APP_TIMER_INACTIVE_ID;
+  state_ue_m5gmm_context->m5_initial_context_setup_rsp_timer =
+      (amf_app_timer_t){AMF_APP_TIMER_INACTIVE_ID,
+                        AMF_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE};
+  state_ue_m5gmm_context->paging_context.m5_paging_response_timer =
+      (amf_app_timer_t){AMF_APP_TIMER_INACTIVE_ID,
+                        AMF_APP_PAGING_RESPONSE_TIMER_VALUE};
+  state_ue_m5gmm_context->m5_ulr_response_timer = (amf_app_timer_t){
+      AMF_APP_TIMER_INACTIVE_ID, AMF_APP_ULR_RESPONSE_TIMER_VALUE};
+  state_ue_m5gmm_context->m5_ue_context_modification_timer = (amf_app_timer_t){
+      AMF_APP_TIMER_INACTIVE_ID, AMF_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE};
+
+  state_ue_m5gmm_context->paging_context.paging_retx_count =
+      ue_context_proto.paging_retx_count();
 }
 
 }  // namespace magma5g
