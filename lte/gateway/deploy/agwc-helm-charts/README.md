@@ -6,8 +6,28 @@ The following table list the configurable parameters of the agw chart and their 
 
 | Parameter        | Description     | Default   |
 | ---              | ---             | ---       |
-| `imagePullSecrets` | Reference to one or more secrets to be used when pulling images. | `[]` |
-| `secrets.create` | Create agwc secrets. See charts/secrets subchart. | `false` |
 | `secret.certs` | Secret name containing agwc certs. | `agwc-secrets-certs` |
-| `secret.configs` | Secret name containing agwc configs. | `agwc-secrets-configs` |
-| `secret.envdir` | Secret name containing agwc envdir. | `agwc-secrets-envdir` |
+| `image.repository` | Repository for agwc images. | `` |
+| `image.pullPolicy` | Pull policy for agwc images. | `` |
+| `image.tag` | Tag for agwc image. | `latest` |
+| `config.domainName` | Orchestrator domain name. | `` |
+| `persistant.name` | Secret name containing agwc certs. | `agwc-claim` |
+
+## Installation
+
+# Create magma namespace
+
+~ kubectl create namespace magma
+
+# Create rootca certificate secret needed to communicate with orc8r
+
+~ kubectl create secret generic agwc-secret-certs --from-file=rootCA.pem=rootCA.pem --namespace magma
+
+# Deploy an AGW after updating values.yaml
+
+~ cd lte/gateway/deploy/agwc-helm-charts
+~ helm --debug install agwc --namespace magma . --values=values.yaml
+
+# Delete the AGW if needed using,
+
+~ helm uninstall agwc --namespace magma

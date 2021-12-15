@@ -8,11 +8,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# Define which secrets should be mounted by pods.
-
+---
 namespace: magma
 
+# Define which secrets should be mounted by pods.
 secret:
   certs: agwc-secret-certs
 
@@ -23,9 +22,9 @@ image:
   tag: "latest"
 
 config:
-  domainName: iot.magmacore.click 
+  domainName: iot.magmacore.click
 
-persistant:
+persistent:
   name: agwc-claim
 
 ressources:

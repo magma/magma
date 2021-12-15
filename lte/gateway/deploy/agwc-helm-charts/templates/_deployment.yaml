@@ -45,7 +45,7 @@ spec:
             type: Directory
         - name: agwc-claim
           persistentVolumeClaim:
-            claimName: {{ .Values.persistant.name }}
+            claimName: {{ .Values.persistent.name }}
       containers:
       -
 {{ include "agwc.container.tpl" . | indent 8 }}

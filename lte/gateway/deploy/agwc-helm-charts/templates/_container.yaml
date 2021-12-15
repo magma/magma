@@ -19,7 +19,7 @@ volumeMounts:
   - name: "magma-config"
     mountPath: /etc/magma/
     readOnly: true
-  - name: {{ .Values.persistant.name }}
+  - name: {{ .Values.persistent.name }}
     mountPath: /var/opt/magma
     readOnly: false
 resources:
