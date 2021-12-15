@@ -12,7 +12,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/tenants"
 	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
-	internal_servicer "magma/orc8r/cloud/go/services/tenants/servicers/internal_servicer"
+	servicers "magma/orc8r/cloud/go/services/tenants/servicers/protected"
 	"magma/orc8r/cloud/go/services/tenants/servicers/storage"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
@@ -171,7 +171,7 @@ func newTestService(t *testing.T) (tenant_protos.TenantsServiceServer, error) {
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, tenants.ServiceName)
 	factory := test_utils.NewSQLBlobstore(t, "tenants_servicer_test_blobstore")
 	store := storage.NewBlobstoreStore(factory)
-	servicer, err := internal_servicer.NewTenantsServicer(store)
+	servicer, err := servicers.NewTenantsServicer(store)
 	assert.NoError(t, err)
 	tenant_protos.RegisterTenantsServiceServer(srv.GrpcServer, servicer)
 	go srv.RunTest(lis)
