@@ -153,7 +153,7 @@ std::shared_ptr<ue_m5gmm_context_t> amf_create_new_ue_context(void) {
 
   new_p->amf_context._security.eksi = KSI_NO_KEY_AVAILABLE;
   new_p->mm_state                   = DEREGISTERED;
-  new_p->amf_context.ue_context     = new_p;
+  new_p->amf_context.ue_context_p   = new_p;
 
   return new_p;
 }
@@ -400,7 +400,7 @@ tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id) {
  ***************************************************************************/
 int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  std::shared_ptr<ue_m5gmm_context_t> ue_context_p = amf_ctx->ue_context.lock();
+  auto ue_context_p      = amf_ctx->ue_context_p.lock();
   amf_ue_ngap_id_t ue_id = ue_context_p->amf_ue_ngap_id;
 
   std::shared_ptr<smf_context_t> smf_ctx;
@@ -418,7 +418,7 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
  **                                                                        **
  ** Name:    amf_free_ue_context()                                         **
  **                                                                        **
- ** Description: Deletes the ue context                                    **
+ ** Description: Deletes the ue context information from all maps          **
  **                                                                        **
  **                                                                        **
  ***************************************************************************/

@@ -147,6 +147,7 @@ template<
     typename keyT, typename valueT, class Hash = std::hash<keyT>,
     class KeyEqual = std::equal_to<keyT>>
 struct map_s {
+  // TODO std::unordered_map will be changed to google::protobuf::Map interface
   std::unordered_map<keyT, valueT, Hash, KeyEqual> umap;
   std::string name;
   bool log_enabled;

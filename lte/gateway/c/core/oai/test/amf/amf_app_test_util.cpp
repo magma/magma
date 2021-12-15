@@ -137,7 +137,7 @@ void send_initial_context_response(
   itti_amf_app_initial_context_setup_rsp_t ics_resp = {};
 
   // apn profile received from subscriberd during location update
-  ue_m5gmm_context_s* ue_context_p =
+  std::shared_ptr<ue_m5gmm_context_t> ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   ASSERT_NE(nullptr, ue_context_p);
@@ -188,15 +188,6 @@ int send_uplink_nas_pdu_session_establishment_request(
 
   std::shared_ptr<ue_m5gmm_context_t> ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-
-  if (!ue_context_p) {
-    return RETURNerror;
-  }
-  apn_config_profile_t& profile = ue_context_p->amf_context.apn_config_profile;
-  profile.nb_apns               = 1;
-  strncpy(
-      profile.apn_configuration[0].service_selection, "internet",
-      SERVICE_SELECTION_MAX_LENGTH - 1);
 
   int rc = RETURNerror;
   rc     = amf_app_handle_uplink_nas_message(

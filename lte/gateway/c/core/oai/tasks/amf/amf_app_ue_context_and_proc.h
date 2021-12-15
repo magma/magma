@@ -295,6 +295,8 @@ typedef struct amf_nas_message_decode_status_s {
   int amf_cause;
 } amf_nas_message_decode_status_t;
 
+struct ue_m5gmm_context_s;
+
 /*
  * Structure of the AMF context established by core for a particular UE
  * --------------------------------------------------------------------
@@ -346,7 +348,7 @@ typedef struct amf_context_s {
   /* apn_config_profile: set by S6A UPDATE LOCATION ANSWER */
   apn_config_profile_t apn_config_profile;
   amf_nas_message_decode_status_t decode_status;
-  std::weak_ptr<ue_m5gmm_context_s> ue_context;
+  std::weak_ptr<ue_m5gmm_context_s> ue_context_p;
 } amf_context_t;
 
 // Amf-Map Declarations:
@@ -407,8 +409,9 @@ typedef struct ue_m5gmm_context_s {
   m5g_uecontextrequest_t ue_context_request;
 } ue_m5gmm_context_t;
 
-// Map- Key: uint64_t , Data: ue_m5gmm_context_s*
-typedef magma::map_s<uint64_t, ue_m5gmm_context_s*> map_uint64_ue_context_t;
+// Map- Key: uint64_t , Data: std::shared_ptr<ue_m5gmm_context_t>
+typedef magma::map_s<uint64_t, std::shared_ptr<ue_m5gmm_context_t>>
+    map_uint64_ue_context_t;
 
 /* Operation on UE context structure
  */

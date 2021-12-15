@@ -105,8 +105,8 @@ TEST(test_map, test_map) {
 
 TEST(test_map, test_amf_state_ue_ht) {
   // Initializations for Map: Key-uint64_t Data-void*
-  amf_ue_ngap_id_t ue_id         = 1;
-  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
+  amf_ue_ngap_id_t ue_id                         = 1;
+  std::shared_ptr<ue_m5gmm_context_t> ue_context = amf_create_new_ue_context();
   map_uint64_ue_context_t state_ue_ht;
 
   EXPECT_EQ(state_ue_ht.get(2, &ue_context), magma::MAP_EMPTY);
@@ -116,7 +116,5 @@ TEST(test_map, test_amf_state_ue_ht) {
   EXPECT_EQ(state_ue_ht.get(ue_id, &ue_context), magma::MAP_OK);
 
   EXPECT_EQ(state_ue_ht.remove(ue_id), magma::MAP_OK);
-
-  delete ue_context;
 }
 }  // namespace magma5g

@@ -475,11 +475,11 @@ int amf_nas_proc_authentication_info_answer(
 }
 
 int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
-  imsi64_t imsi64                = INVALID_IMSI64;
-  int rc                         = RETURNerror;
-  amf_context_t* amf_ctxt_p      = NULL;
-  ue_m5gmm_context_s* ue_context = NULL;
-  int amf_cause                  = -1;
+  imsi64_t imsi64           = INVALID_IMSI64;
+  int rc                    = RETURNerror;
+  amf_context_t* amf_ctxt_p = NULL;
+  std::shared_ptr<ue_m5gmm_context_s> ue_context;
+  int amf_cause = -1;
 
   // Local imsi to be put in imsi defined in 3gpp_23.003.h
   supi_as_imsi_t supi_imsi;

@@ -123,7 +123,7 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
 static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
-  amf_context_t* amf_ctx = NULL;
+  amf_context_t* amf_ctx = nullptr;
   amf_sap_t amf_sap      = {};
   int rc                 = RETURNerror;
   smc_proc->T3560.id     = NAS5G_TIMER_INACTIVE_ID;
@@ -182,7 +182,7 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
 /* Timer Expiry Handler for SECURITY COMMAND MODE Timer 3560 */
 static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  amf_context_t* amf_ctx = NULL;
+  amf_context_t* amf_ctx = nullptr;
   amf_ue_ngap_id_t ue_id = 0;
 
   if (!amf_pop_timer_arg(timer_id, &ue_id)) {
@@ -197,7 +197,7 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
   std::shared_ptr<ue_m5gmm_context_t> ue_amf_context =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
-  if (ue_amf_context == NULL) {
+  if (ue_amf_context == nullptr) {
     OAILOG_DEBUG(
         LOG_AMF_APP,
         "T3560: ue_amf_context is NULL for UE ID: " AMF_UE_NGAP_ID_FMT, ue_id);
@@ -395,11 +395,11 @@ int amf_proc_security_mode_control(
     // Setup ongoing AMF procedure callback functions
     ((nas5g_base_proc_t*) smc_proc)->parent =
         (nas5g_base_proc_t*) amf_specific_proc;
-    smc_proc->amf_com_proc.amf_proc.delivered               = NULL;
+    smc_proc->amf_com_proc.amf_proc.delivered               = nullptr;
     smc_proc->amf_com_proc.amf_proc.base_proc.success_notif = success;
     smc_proc->amf_com_proc.amf_proc.base_proc.failure_notif = failure;
-    smc_proc->amf_com_proc.amf_proc.base_proc.fail_in       = NULL;
-    smc_proc->amf_com_proc.amf_proc.base_proc.fail_out      = NULL;
+    smc_proc->amf_com_proc.amf_proc.base_proc.fail_in       = nullptr;
+    smc_proc->amf_com_proc.amf_proc.base_proc.fail_out      = nullptr;
     smc_proc->ue_id                                         = ue_id;
     smc_proc->retransmission_count                          = 0;
     smc_proc->ksi          = amf_ctx->_security.eksi;
@@ -453,7 +453,7 @@ int amf_proc_security_mode_control(
 int amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
-  amf_context_t* amf_ctx = NULL;
+  amf_context_t* amf_ctx = nullptr;
   int rc                 = RETURNerror;
 
   OAILOG_WARNING(

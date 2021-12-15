@@ -187,7 +187,7 @@ int amf_proc_registration_request(
   }
 
   ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  if (ue_m5gmm_context == NULL) {
+  if (ue_m5gmm_context == nullptr) {
     OAILOG_ERROR(
         LOG_AMF_APP,
         "ue context not found for the"
@@ -196,7 +196,7 @@ int amf_proc_registration_request(
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  ue_m5gmm_context->amf_context.amf_procedures = NULL;
+  ue_m5gmm_context->amf_context.amf_procedures = nullptr;
   ue_m5gmm_context->amf_context.is_dynamic     = false;
   ue_m5gmm_context->amf_ue_ngap_id             = ue_id;
 
@@ -263,7 +263,7 @@ int amf_proc_registration_reject(
       nas_amf_registration_proc_t no_registration_proc = {0};
       no_registration_proc.ue_id                       = ue_id;
       no_registration_proc.amf_cause                   = amf_cause;
-      no_registration_proc.amf_msg_out                 = NULL;
+      no_registration_proc.amf_msg_out                 = nullptr;
       rc = amf_registration_reject(amf_ctx, &no_registration_proc);
     }
   }
@@ -297,7 +297,7 @@ static int amf_registration_reject(
   amf_sap.u.amf_as.u.establish.nas_info  = AMF_AS_NAS_INFO_REGISTERED;
 
   if (registration_proc->amf_cause != AMF_CAUSE_SMF_FAILURE) {
-    amf_sap.u.amf_as.u.establish.nas_msg = NULL;
+    amf_sap.u.amf_as.u.establish.nas_msg = nullptr;
   } else if (registration_proc->amf_msg_out) {
     amf_sap.u.amf_as.u.establish.nas_msg = registration_proc->amf_msg_out;
   } else {
@@ -334,7 +334,7 @@ int amf_registration_run_procedure(amf_context_t* amf_context) {
   int rc = RETURNerror;
   nas_amf_registration_proc_t* registration_proc =
       get_nas_specific_procedure_registration(amf_context);
-  if (registration_proc == NULL) {
+  if (registration_proc == nullptr) {
     OAILOG_WARNING(
         LOG_AMF_APP, " Registration_proc null, from %s\n", __FUNCTION__);
   }
@@ -597,7 +597,7 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
     nas_amf_registration_proc_t* registration_proc =
         get_nas_specific_procedure_registration(amf_context);
     std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context_p =
-        amf_context->ue_context.lock();
+        amf_context->ue_context_p.lock();
     amf_ue_ngap_id_t ue_id = ue_m5gmm_context_p->amf_ue_ngap_id;
 
     if (registration_proc) {
@@ -675,9 +675,9 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
 
 static int registration_accept_t3550_handler(
     zloop_t* loop, int timer_id, void* arg) {
-  amf_context_t* amf_ctx = NULL;
+  amf_context_t* amf_ctx = nullptr;
   std::shared_ptr<ue_m5gmm_context_t> ue_amf_context;
-  nas_amf_registration_proc_t* registration_proc = NULL;
+  nas_amf_registration_proc_t* registration_proc = nullptr;
   amf_ue_ngap_id_t ue_id                         = 0;
   if (!amf_pop_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
@@ -690,7 +690,7 @@ static int registration_accept_t3550_handler(
    */
   ue_amf_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
-  if (ue_amf_context == NULL) {
+  if (ue_amf_context == nullptr) {
     OAILOG_DEBUG(
         LOG_AMF_APP,
         "ue context not found for the ue_id=" AMF_UE_NGAP_ID_FMT "\n", ue_id);
@@ -748,7 +748,7 @@ static int registration_accept_t3550_handler(
  ***************************************************************************/
 int amf_proc_registration_complete(amf_context_t* amf_ctx) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  nas_amf_registration_proc_t* registration_proc = NULL;
+  nas_amf_registration_proc_t* registration_proc = nullptr;
   int rc                                         = RETURNerror;
   amf_sap_t amf_sap                              = {};
   amf_ue_ngap_id_t ue_id =
@@ -837,7 +837,7 @@ int amf_handle_registration_complete_response(
       ue_id);
 
   ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  if (ue_m5gmm_context == NULL) {
+  if (ue_m5gmm_context == nullptr) {
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
 
@@ -1036,7 +1036,7 @@ void amf_delete_child_procedures(
   if (amf_ctx && amf_ctx->amf_procedures) {
     nas_amf_common_procedure_t* p1 =
         LIST_FIRST(&amf_ctx->amf_procedures->amf_common_procs);
-    nas_amf_common_procedure_t* p2 = NULL;
+    nas_amf_common_procedure_t* p2 = nullptr;
     while (p1) {
       p2 = LIST_NEXT(p1, entries);
       if (((nas5g_base_proc_t*) p1->proc)->parent == parent_proc) {
@@ -1096,7 +1096,7 @@ void amf_delete_common_procedure(
   if (amf_ctx->amf_procedures) {
     nas_amf_common_procedure_t* p1 =
         LIST_FIRST(&amf_ctx->amf_procedures->amf_common_procs);
-    nas_amf_common_procedure_t* p2 = NULL;
+    nas_amf_common_procedure_t* p2 = nullptr;
 
     // 2 methods: this one, the other: use parent struct macro and LIST_REMOVE
     // without searching matching element in the list
@@ -1142,7 +1142,7 @@ int amf_proc_registration_abort(
     message_p =
         itti_alloc_new_message(TASK_AMF_APP, NGAP_UE_CONTEXT_RELEASE_COMMAND);
 
-    if (message_p == NULL) {
+    if (message_p == nullptr) {
       OAILOG_ERROR(LOG_AMF_APP, "message is NULL");
       OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
     }

@@ -29,7 +29,7 @@ AmfUeContextStorage::amf_create_new_ue_context(void) {
 
   if (!new_p) {
     OAILOG_ERROR(LOG_AMF_APP, "Failed to allocate memory for UE context \n");
-    return NULL;
+    return nullptr;
   }
 
   new_p->amf_ue_ngap_id  = generate_amf_ue_ngap_id();
@@ -49,18 +49,18 @@ AmfUeContextStorage::amf_create_new_ue_context(void) {
 
   new_p->amf_context._security.eksi = KSI_NO_KEY_AVAILABLE;
   new_p->mm_state                   = DEREGISTERED;
-  new_p->amf_context.ue_context     = new_p;
+  new_p->amf_context.ue_context_p   = new_p;
 
   return new_p;
 }
 
 // id-AMF-UE-NGAP-ID <--> ue_m5gmm_context_t map
 bool AmfUeContextStorage::amf_insert_into_amfid_ue_context_map(
-    std::shared_ptr<ue_m5gmm_context_t> pContext) {
-  if (!pContext && (INVALID_AMF_UE_NGAP_ID == pContext->amf_ue_ngap_id)) {
+    std::shared_ptr<ue_m5gmm_context_t> ue_ctxt_p) {
+  if (!ue_ctxt_p && (INVALID_AMF_UE_NGAP_ID == ue_ctxt_p->amf_ue_ngap_id)) {
     return false;
   }
-  amfid_ue_context_map.insert_or_update(pContext->amf_ue_ngap_id, pContext);
+  amfid_ue_context_map.insert_or_update(ue_ctxt_p->amf_ue_ngap_id, ue_ctxt_p);
   return true;
 }
 bool AmfUeContextStorage::amf_remove_from_amfid_ue_context_map(
@@ -83,11 +83,12 @@ AmfUeContextStorage::amf_get_from_amfid_ue_context_map(
 
 // id-GNB-UE-NGAP-ID <---> ue_m5gmm_context_t map
 bool AmfUeContextStorage::amf_insert_into_gnbid_ue_context_map(
-    std::shared_ptr<ue_m5gmm_context_t> pContext) {
-  if (!pContext && (INVALID_GNB_UE_NGAP_ID_KEY == pContext->gnb_ngap_id_key)) {
+    std::shared_ptr<ue_m5gmm_context_t> ue_ctxt_p) {
+  if (!ue_ctxt_p &&
+      (INVALID_GNB_UE_NGAP_ID_KEY == ue_ctxt_p->gnb_ngap_id_key)) {
     return false;
   }
-  gnbid_ue_context_map.insert_or_update(pContext->gnb_ngap_id_key, pContext);
+  gnbid_ue_context_map.insert_or_update(ue_ctxt_p->gnb_ngap_id_key, ue_ctxt_p);
   return true;
 }
 bool AmfUeContextStorage::amf_remove_from_gnbid_ue_context_map(
@@ -109,11 +110,12 @@ AmfUeContextStorage::amf_get_from_gnbid_ue_context_map(
 
 // GUTI <---> ue_m5gmm_context_t map
 bool AmfUeContextStorage::amf_insert_into_guti_ue_context_map(
-    std::shared_ptr<ue_m5gmm_context_t> pContext) {
-  if (!pContext) {
+    std::shared_ptr<ue_m5gmm_context_t> ue_ctxt_p) {
+  if (!ue_ctxt_p) {
     return false;
   }
-  guti_ue_context_map.insert_or_update(pContext->amf_context.m5_guti, pContext);
+  guti_ue_context_map.insert_or_update(
+      ue_ctxt_p->amf_context.m5_guti, ue_ctxt_p);
   return true;
 }
 bool AmfUeContextStorage::amf_remove_from_guti_ue_context_map(guti_m5_t guti) {
@@ -132,11 +134,12 @@ AmfUeContextStorage::amf_get_from_guti_ue_context_map(guti_m5_t guti) {
 
 // SUPI  <---> ue_m5gmm_context_t map
 bool AmfUeContextStorage::amf_insert_into_supi_ue_context_map(
-    std::shared_ptr<ue_m5gmm_context_t> pContext) {
-  if (!pContext) {
+    std::shared_ptr<ue_m5gmm_context_t> ue_ctxt_p) {
+  if (!ue_ctxt_p) {
     return false;
   }
-  supi_ue_context_map.insert_or_update(pContext->amf_context.imsi64, pContext);
+  supi_ue_context_map.insert_or_update(
+      ue_ctxt_p->amf_context.imsi64, ue_ctxt_p);
   return true;
 }
 bool AmfUeContextStorage::amf_remove_from_supi_ue_context_map(imsi64_t supi) {
@@ -168,15 +171,15 @@ bool AmfUeContextStorage::amf_remove_ue_context_from_cache(
 }
 
 bool AmfUeContextStorage::amf_add_ue_context_in_cache(
-    std::shared_ptr<ue_m5gmm_context_t> pContext) {
-    if(!pContext) {
-        return false;
-    }
-    amf_insert_into_amfid_ue_context_map(pContext->amf_ue_ngap_id);
-    amf_insert_into_gnbid_ue_context_map(pContext->gnb_ngap_id_key);
-    amf_insert_into_guti_ue_context_map(pContext->amf_context.m5_guti);
-    amf_insert_into_supi_ue_context_map(pContext->amf_context.imsi64);
-    return true;
+    std::shared_ptr<ue_m5gmm_context_t> ue_ctxt_p) {
+  if (!ue_ctxt_p) {
+    return false;
+  }
+  amf_insert_into_amfid_ue_context_map(ue_ctxt_p);
+  amf_insert_into_gnbid_ue_context_map(ue_ctxt_p);
+  amf_insert_into_guti_ue_context_map(ue_ctxt_p);
+  amf_insert_into_supi_ue_context_map(ue_ctxt_p);
+  return true;
 }
 
 }  // namespace magma5g

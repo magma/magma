@@ -83,5 +83,6 @@ int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia);
 void amf_copy_plmn_to_supi(
     const ImsiM5GSMobileIdentity& imsi, supi_as_imsi_t& supi_imsi);
 int amf_copy_plmn_to_context(
-    const ImsiM5GSMobileIdentity& imsi, ue_m5gmm_context_s* ue_context);
+    const ImsiM5GSMobileIdentity& imsi,
+    std::shared_ptr<ue_m5gmm_context_t> ue_context);
 }  // namespace magma5g

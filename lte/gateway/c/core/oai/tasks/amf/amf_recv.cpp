@@ -218,7 +218,8 @@ void amf_copy_plmn_to_supi(
 }
 
 int amf_copy_plmn_to_context(
-    const ImsiM5GSMobileIdentity& imsi, ue_m5gmm_context_s* ue_context) {
+    const ImsiM5GSMobileIdentity& imsi,
+    std::shared_ptr<ue_m5gmm_context_t> ue_context) {
   if (ue_context == NULL) {
     OAILOG_ERROR(LOG_AMF_APP, "UE context is null");
     return RETURNerror;

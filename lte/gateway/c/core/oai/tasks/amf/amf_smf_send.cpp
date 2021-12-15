@@ -282,8 +282,7 @@ static int pdu_session_resource_release_t3592_handler(
   amf_ue_ngap_id = uepdu_id.ue_id;
   pdu_session_id = uepdu_id.pdu_id;
 
-  std::shared_ptr<ue_m5gmm_context_t> ue_context =
-      amf_ue_context_exists_amf_ue_ngap_id(amf_ue_ngap_id);
+  auto ue_context = amf_ue_context_exists_amf_ue_ngap_id(amf_ue_ngap_id);
 
   if (ue_context) {
     IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
@@ -366,8 +365,7 @@ int amf_smf_process_pdu_session_packet(
     return rc;
   }
 
-  std::shared_ptr<ue_m5gmm_context_t> ue_context =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (!ue_context) {
     OAILOG_ERROR(
@@ -483,7 +481,9 @@ int amf_smf_process_pdu_session_packet(
 
       if (msg->dnn.len <= 1) {
         ue_sent_dnn = false;
-        dnn_string  = default_dnn;
+        if (default_dnn) {
+          dnn_string = default_dnn;
+        }
       } else {
         dnn_string.assign(
             reinterpret_cast<char*>(msg->dnn.dnn), msg->dnn.len - 1);
@@ -592,8 +592,7 @@ M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
   std::shared_ptr<smf_context_t> smf_ctx;
   M5GSmCause cause = M5GSmCause::INVALID_CAUSE;
 
-  std::shared_ptr<ue_m5gmm_context_t> ue_context =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (!ue_context) {
     return cause;
   }
@@ -661,8 +660,7 @@ M5GMmCause amf_smf_validate_context(
     amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
   M5GMmCause mm_cause = M5GMmCause::UNKNOWN_CAUSE;
 
-  std::shared_ptr<ue_m5gmm_context_t> ue_context =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   M5GRequestType requestType =
       static_cast<M5GRequestType>(msg->request_type.type_val);
   /*

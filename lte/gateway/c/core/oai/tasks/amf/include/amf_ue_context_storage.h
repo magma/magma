@@ -81,6 +81,8 @@ class AmfUeContextStorage {
       imsi64_t supi);
 
   bool amf_remove_ue_context_from_cache(amf_ue_ngap_id_t ue_amf_id);
+  bool amf_add_ue_context_in_cache(
+      std::shared_ptr<ue_m5gmm_context_t> ue_ctxt_p);
 };
 
 }  // namespace magma5g

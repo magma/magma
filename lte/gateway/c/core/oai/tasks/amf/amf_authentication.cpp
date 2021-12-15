@@ -231,7 +231,7 @@ static int amf_authentication_abort(
   int rc = RETURNerror;
   if ((base_proc) && (amf_ctx)) {
     std::shared_ptr<ue_m5gmm_context_t> ue_mm_context =
-        amf_ctx->ue_context.lock();
+        amf_ctx->ue_context_p.lock();
     OAILOG_DEBUG(
         LOG_NAS_AMF,
         "AMF-PROC  - Abort authentication procedure invoked "

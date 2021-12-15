@@ -122,11 +122,10 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   amf_security_context_t* amf_security_context = NULL;
   amf_nas_message_decode_status_t decode_status;
   memset(&decode_status, 0, sizeof(decode_status));
-  int decoder_rc                       = 1;
-  int rc                               = RETURNerror;
-  tai_t originating_tai                = {0};
-  amf_nas_message_t nas_msg            = {0};
-  amf_nas_message_t nas_msg                     = {0};
+  int decoder_rc            = 1;
+  int rc                    = RETURNerror;
+  tai_t originating_tai     = {0};
+  amf_nas_message_t nas_msg = {0};
   std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context;
 
   ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);

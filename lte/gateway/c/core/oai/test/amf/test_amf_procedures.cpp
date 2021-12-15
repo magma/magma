@@ -461,7 +461,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionFailure_dnn_not_subscribed) {
       ue_pdu_session_est_req_dnn_not_subscried_hexbuf,
       sizeof(ue_pdu_session_est_req_dnn_not_subscried_hexbuf));
   EXPECT_EQ(rc, RETURNok);
-  ue_m5gmm_context_t* ue_context_p =
+  std::shared_ptr<ue_m5gmm_context_t> ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   // ue context should exist
   ASSERT_NE(ue_context_p, nullptr);
@@ -526,7 +526,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_missing_dnn) {
       sizeof(ue_registration_complete_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
-  ue_m5gmm_context_t* ue_context_p =
+  std::shared_ptr<ue_m5gmm_context_t> ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   // ue context should exist
   ASSERT_NE(ue_context_p, nullptr);
@@ -611,7 +611,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_unknown_pdu_session_type) {
       sizeof(ue_pdu_session_est_req_unknown_session_type_hexbuf));
   EXPECT_EQ(rc, RETURNok);
 
-  ue_m5gmm_context_t* ue_context_p =
+  std::shared_ptr<ue_m5gmm_context_t> ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   // ue context should exist
   ASSERT_NE(ue_context_p, nullptr);
@@ -655,7 +655,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_Invalid_PDUSession_Identity) {
   /* Check if UE Context is created with correct imsi */
   EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
 
-  ue_m5gmm_context_t* ue_context_p =
+  std::shared_ptr<ue_m5gmm_context_t> ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   // ue context should exist
   ASSERT_NE(ue_context_p, nullptr);
