@@ -10,9 +10,11 @@
 # limitations under the License.
 
 # Define which secrets should be mounted by pods.
+
+namespace: magma
+
 secret:
   certs: agwc-secret-certs
-  envdir: agwc-secrets-envdir
 
 image:
   repository: public.ecr.aws/z2g3r6f7

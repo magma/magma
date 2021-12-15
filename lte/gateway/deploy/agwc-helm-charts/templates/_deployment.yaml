@@ -15,6 +15,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: agwc
+  namespace: {{ .Values.namespace }}
   labels:
     app.kubernetes.io/component: agwc
 {{ include "default-labels" . | indent 4 }}
