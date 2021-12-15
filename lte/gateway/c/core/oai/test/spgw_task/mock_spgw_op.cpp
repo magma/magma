@@ -39,7 +39,8 @@ std::vector<std::string> load_file_into_vector_of_line_content(
   return vector_of_lines;
 }
 
-// mocking the reading spgw ue states from redis database by injecting local samples
+// mocking the reading spgw ue states from redis database by injecting local
+// samples
 status_code_e mock_read_spgw_ue_state_db(
     const std::vector<std::string>& ue_samples) {
   for (const auto& name_of_sample : ue_samples) {

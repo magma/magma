@@ -48,13 +48,13 @@ bool is_num_sessions_valid(
   spgw_ue_context_t* ue_context_p = spgw_get_ue_context(imsi64);
   int num_teids                   = 0;
   sgw_s11_teid_t* s11_teid_p      = nullptr;
-  if(ue_context_p){
-  LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
-    if (s11_teid_p &&
-        (sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid) != nullptr)) {
-      num_teids++;
+  if (ue_context_p) {
+    LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
+      if (s11_teid_p &&
+          (sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid) != nullptr)) {
+        num_teids++;
+      }
     }
-  }
   }
   if (num_teids != expected_num_teids) {
     return false;
