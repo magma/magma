@@ -240,33 +240,34 @@ def upgrade_teravm_feg(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
     the remote host. IIf empty file name is passed, password-based ssh will
     work instead. This can be used if the script is run manually.
     """
-    fastprint("\nUpgrade teraVM FEG to %s\n" % hash)
-    _setup_env("magma", VM_IP_MAP[setup]["feg"], key_filename)
+    for feg_ip in VM_IP_MAP[setup]["feg"]:
+        fastprint("\nUpgrade teraVM FEG (%s) to %s\n" % (feg_ip, hash))
+        _setup_env("magma", feg_ip, key_filename)
 
-    with cd("/var/opt/magma/docker"), settings(abort_exception=FabricException):
-        sudo("docker-compose down")
-        sudo("cp docker-compose.yml docker-compose.yml.backup")
-        sudo("cp .env .env.backup")
-        sudo('sed -i "s/IMAGE_VERSION=.*/IMAGE_VERSION=%s/g" .env' % hash)
-        if len(_check_disk_space()) != 0:
-            fastprint("Disk space alert: cleaning docker images\n")
-            sudo("docker system prune --all  --force")
-        try:
-            # TODO: obtain .yml file from jfrog artifact instead of git master
-            sudo("wget -O docker-compose.yml %s" % FEG_DOCKER_COMPOSE_GIT)
-            sudo("docker-compose up -d")
-        except Exception:
-            err = (
-                "Error during install of version {}. Maybe the image "
-                "doesn't exist. Reverting to the original "
-                "config\n".format(hash)
-            )
-            fastprint(err)
-            with hide("running", "stdout"):
-                sudo("mv docker-compose.yml.backup docker-compose.yml")
-                sudo("mv .env.backup .env")
+        with cd("/var/opt/magma/docker"), settings(abort_exception=FabricException):
+            sudo("docker-compose down")
+            sudo("cp docker-compose.yml docker-compose.yml.backup")
+            sudo("cp .env .env.backup")
+            sudo('sed -i "s/IMAGE_VERSION=.*/IMAGE_VERSION=%s/g" .env' % hash)
+            if len(_check_disk_space()) != 0:
+                fastprint("Disk space alert: cleaning docker images\n")
+                sudo("docker system prune --all  --force")
+            try:
+                # TODO: obtain .yml file from jfrog artifact instead of git master
+                sudo("wget -O docker-compose.yml %s" % FEG_DOCKER_COMPOSE_GIT)
                 sudo("docker-compose up -d")
-            sys.exit(1)
+            except Exception:
+                err = (
+                    "Error during install of version {}. Maybe the image "
+                    "doesn't exist. Reverting to the original "
+                    "config\n".format(hash)
+                )
+                fastprint(err)
+                with hide("running", "stdout"):
+                    sudo("mv docker-compose.yml.backup docker-compose.yml")
+                    sudo("mv .env.backup .env")
+                    sudo("docker-compose up -d")
+                sys.exit(1)
 
 
 def run_3gpp_tests(
