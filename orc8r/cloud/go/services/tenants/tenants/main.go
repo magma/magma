@@ -24,8 +24,8 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/tenants"
 	"magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
-	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
-	internal_servicer "magma/orc8r/cloud/go/services/tenants/servicers/internal_servicer"
+	"magma/orc8r/cloud/go/services/tenants/protos"
+	"magma/orc8r/cloud/go/services/tenants/servicers/protected"
 	"magma/orc8r/cloud/go/services/tenants/servicers/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"
@@ -47,11 +47,11 @@ func main() {
 	}
 	store := storage.NewBlobstoreStore(factory)
 
-	server, err := internal_servicer.NewTenantsServicer(store)
+	server, err := servicers.NewTenantsServicer(store)
 	if err != nil {
 		glog.Fatalf("Error creating tenants server: %s", err)
 	}
-	tenant_protos.RegisterTenantsServiceServer(srv.GrpcServer, server)
+	protos.RegisterTenantsServiceServer(srv.GrpcServer, server)
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(tenants.ServiceName))
 
