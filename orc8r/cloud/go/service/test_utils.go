@@ -18,12 +18,13 @@ import (
 
 	"magma/orc8r/cloud/go/service/middleware/unary"
 	platform_service "magma/orc8r/lib/go/service"
+	platform_service_servicers "magma/orc8r/lib/go/service/servicers/protected"
 )
 
 // NewTestService returns a new gRPC orchestrator service without
 // loading Orchestrator plugins from disk. This should only be used in test
 // contexts, where plugins are registered manually.
-func NewTestService(t *testing.T, moduleName string, serviceType string) (*platform_service.Service, error) {
+func NewTestService(t *testing.T, moduleName string, serviceType string) (*platform_service_servicers.Service, error) {
 	if t == nil {
 		panic("for tests only")
 	}

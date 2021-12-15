@@ -11,18 +11,52 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package service
+package servicers
 
 import (
 	"flag"
 	"fmt"
 	"strconv"
+	"net"
 
 	"context"
 
+	"github.com/golang/glog"
+	"google.golang.org/grpc"
+
 	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/service/config"
+	"magma/orc8r/lib/go/registry"
 )
+
+type Service struct {
+        // Type identifies the service
+        Type string
+
+        // GrpcServer runs on the port specified in the registry.
+        // Services can attach different servicers to the GrpcServer.
+        GrpcServer *grpc.Server
+
+        // Version of the service
+        Version string
+
+        // State of the service
+        State protos.ServiceInfo_ServiceState
+
+        // Health of the service
+        Health protos.ServiceInfo_ApplicationHealth
+
+        // Start time of the service
+        StartTimeSecs uint64
+
+        // Config of the service
+        Config *config.Map
+}
+
+func NewService() *Service {
+	return &Service{}
+}
 
 // GetServiceInfo returns service-level info (name, version, status, etc...)
 func (service *Service) GetServiceInfo(ctx context.Context, void *protos.Void) (*protos.ServiceInfo, error) {
@@ -76,4 +110,33 @@ func (service *Service) ReloadServiceConfig(ctx context.Context, void *protos.Vo
 func (service *Service) GetOperationalStates(ctx context.Context, void *protos.Void) (*protos.GetOperationalStatesResponse, error) {
 	res := protos.GetOperationalStatesResponse{}
 	return &res, nil
+}
+
+// Run the service. This function blocks until its interrupted
+// by a signal or until the gRPC server is stopped.
+func (service *Service) Run() error {
+        port, err := registry.GetServicePort(service.Type)
+        if err != nil {
+                return fmt.Errorf("get service port: %v", err)
+        }
+
+        // Create the server socket for gRPC
+        lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+        if err != nil {
+                return fmt.Errorf("listen on port %d: %v", port, err)
+        }
+        service.State = protos.ServiceInfo_ALIVE
+        service.Health = protos.ServiceInfo_APP_HEALTHY
+        return service.GrpcServer.Serve(lis)
+}
+
+// RunTest runs the test service on a given Listener. This function blocks
+// by a signal or until the gRPC server is stopped.
+func (service *Service) RunTest(lis net.Listener) {
+        service.State = protos.ServiceInfo_ALIVE
+        service.Health = protos.ServiceInfo_APP_HEALTHY
+        err := service.GrpcServer.Serve(lis)
+        if err != nil {
+                glog.Fatal("Failed to run test service")
+        }
 }

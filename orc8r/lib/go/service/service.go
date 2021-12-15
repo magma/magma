@@ -18,8 +18,6 @@ package service
 
 import (
 	"flag"
-	"fmt"
-	"net"
 	"sync"
 	"time"
 
@@ -30,9 +28,9 @@ import (
 	"google.golang.org/grpc/keepalive"
 
 	"magma/orc8r/lib/go/protos"
-	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
 	"magma/orc8r/lib/go/util"
+	"magma/orc8r/lib/go/service/servicers/protected"
 )
 
 const (
@@ -42,7 +40,7 @@ const (
 
 var (
 	printGrpcPayload           bool
-	currentlyRunningServices   = make(map[string]*Service)
+	currentlyRunningServices   = make(map[string]*servicers.Service)
 	currentlyRunningServicesMu sync.RWMutex
 )
 
@@ -62,41 +60,17 @@ func init() {
 	flag.BoolVar(&printGrpcPayload, PrintGrpcPayloadFlag, false, "Enable GRPC Payload Printout")
 }
 
-type Service struct {
-	// Type identifies the service
-	Type string
-
-	// GrpcServer runs on the port specified in the registry.
-	// Services can attach different servicers to the GrpcServer.
-	GrpcServer *grpc.Server
-
-	// Version of the service
-	Version string
-
-	// State of the service
-	State protos.ServiceInfo_ServiceState
-
-	// Health of the service
-	Health protos.ServiceInfo_ApplicationHealth
-
-	// Start time of the service
-	StartTimeSecs uint64
-
-	// Config of the service
-	Config *config.Map
-}
-
 // NewServiceWithOptions returns a new GRPC orchestrator service implementing
 // service303 with the specified grpc server options.
 // It will not instantiate the service with the identity checking middleware.
-func NewServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
+func NewServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*servicers.Service, error) {
 	return NewServiceWithOptionsImpl(moduleName, serviceName, serverOptions...)
 }
 
 // NewServiceWithOptionsImpl returns a new GRPC service implementing
 // service303 with the specified grpc server options. This will not instantiate
 // the service with the identity checking middleware.
-func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
+func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*servicers.Service, error) {
 	// Load config, in case it does not exist, log
 	configMap, err := config.GetServiceConfig(moduleName, serviceName)
 	if err != nil {
@@ -119,7 +93,7 @@ func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 	opts = append(opts, serverOptions...) // keepalive is prepended so serverOptions can override if requested
 
 	grpcServer := grpc.NewServer(opts...)
-	service := &Service{
+	service := &servicers.Service{
 		Type:          serviceName,
 		GrpcServer:    grpcServer,
 		Version:       "0.0.0",
@@ -128,6 +102,7 @@ func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 		StartTimeSecs: uint64(time.Now().Unix()),
 		Config:        configMap,
 	}
+
 	protos.RegisterService303Server(service.GrpcServer, service)
 
 	// Store into global for future access
@@ -136,35 +111,6 @@ func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 	currentlyRunningServicesMu.Unlock()
 
 	return service, nil
-}
-
-// Run the service. This function blocks until its interrupted
-// by a signal or until the gRPC server is stopped.
-func (service *Service) Run() error {
-	port, err := registry.GetServicePort(service.Type)
-	if err != nil {
-		return fmt.Errorf("get service port: %v", err)
-	}
-
-	// Create the server socket for gRPC
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-	if err != nil {
-		return fmt.Errorf("listen on port %d: %v", port, err)
-	}
-	service.State = protos.ServiceInfo_ALIVE
-	service.Health = protos.ServiceInfo_APP_HEALTHY
-	return service.GrpcServer.Serve(lis)
-}
-
-// RunTest runs the test service on a given Listener. This function blocks
-// by a signal or until the gRPC server is stopped.
-func (service *Service) RunTest(lis net.Listener) {
-	service.State = protos.ServiceInfo_ALIVE
-	service.Health = protos.ServiceInfo_APP_HEALTHY
-	err := service.GrpcServer.Serve(lis)
-	if err != nil {
-		glog.Fatal("Failed to run test service")
-	}
 }
 
 // GetDefaultKeepaliveParameters returns the default keepalive server parameters.

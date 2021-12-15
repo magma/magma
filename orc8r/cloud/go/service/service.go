@@ -33,6 +33,7 @@ import (
 	"magma/orc8r/cloud/go/service/middleware/unary"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
+	platform_service_servicers "magma/orc8r/lib/go/service/servicers/protected"
 	platform_service "magma/orc8r/lib/go/service"
 	"magma/orc8r/lib/go/service/config"
 )
@@ -52,7 +53,7 @@ func init() {
 // OrchestratorService defines a service which extends the generic platform
 // service with an optional HTTP server.
 type OrchestratorService struct {
-	*platform_service.Service
+	*platform_service_servicers.Service
 
 	// EchoServer runs on the echo_port specified in the registry.
 	// This field will be nil for services that don't specify the

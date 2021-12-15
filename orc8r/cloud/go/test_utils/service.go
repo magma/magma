@@ -25,7 +25,7 @@ import (
 	"magma/gateway/config"
 	cloud_service "magma/orc8r/cloud/go/service"
 	"magma/orc8r/lib/go/registry"
-	platform_service "magma/orc8r/lib/go/service"
+	platform_service_servicers "magma/orc8r/lib/go/service/servicers/protected"
 	platform_cfg "magma/orc8r/lib/go/service/config"
 )
 
@@ -49,7 +49,7 @@ allow_http_proxy: True`
 // NewTestService creates and registers a basic test Magma service on a
 // dynamically selected available local port.
 // Returns the newly created service and listener it was registered with.
-func NewTestService(t *testing.T, moduleName string, serviceType string) (*platform_service.Service, net.Listener) {
+func NewTestService(t *testing.T, moduleName string, serviceType string) (*platform_service_servicers.Service, net.Listener) {
 	srvPort, lis, err := getOpenPort()
 	if err != nil {
 		t.Fatal(err)
