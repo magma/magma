@@ -289,6 +289,10 @@ message EmmSecurityContext {
   uint32 direction_decode = 13;
   bytes next_hop = 14;
   uint32 next_hop_chaining_count = 15;
+
+  // 5G protos
+  bytes kamf = 21;
+  bytes kgnb = 22;
 }
 
 // auth_vector_t
@@ -475,4 +479,68 @@ message EmmContext {
   NewAttachInfo new_attach_info = 67;
   UeAdditionalSecurityCapability ue_additional_security_capability = 68;
   // TODO: add remaining emm_context elements
+
+  // 5G Guti
+  Guti_m5 m5_guti = 91;
+  Guti_m5 m5_old_guti = 92;
+  // 5G proto
+  map<uint32,SmfContext> smf_context_m =93;
+
+  }
+
+  // guti_m5_t
+  message Guti_m5 {
+    bytes plmn = 1;
+    uint32 amf_regionid = 2;
+    uint32 amf_set_id = 3;
+    uint32 amf_pointer = 4;
+    uint32 m_tmsi = 5;
+  }
+
+  message Smf_Proc_Data {
+    uint32 pdu_session_id = 1;
+    uint32 pti = 2;
+    uint32 message_type = 3;
+    uint32 max_uplink = 4;
+    uint32 max_downlink = 5;
+    uint32 pdu_session_type = 6;
+    uint32 ssc_mode = 7;
+  }
+  
+  message SNssai {
+    uint32 sst = 1;
+    uint32 sd = 2;
+  }
+  
+  message QosFlowParameters {
+    uint32 fiveQI = 1;
+    uint32 priority_level = 2; 
+    uint32 preemption_vulnerability = 3;
+    uint32 preemption_capability = 4;
+  }
+  
+  message M5GQosFlowItem {
+    uint32 qfi = 1;
+    QosFlowParameters qos_flow_param = 2;
+  }
+  
+  // smf_context_t of amfcontext
+  message SmfContext {
+    uint32 sm_session_state = 1;
+    uint32 pdu_session_version = 2;
+    uint32 active_pdu_sessions = 3;
+    bool   is_emergency = 4;
+    Ambr   selected_ambr = 5;
+    uint32 gnb_gtp_teid = 6; 
+    string gnb_gtp_teid_ip_addr= 7;
+    uint32 upf_gtp_teid = 8; 
+    string upf_gtp_teid_ip_addr= 9;
+    bytes  paa = 10;
+    Ambr   apn_ambr = 11;
+    Smf_Proc_Data smf_proc_data = 12;
+    uint32 retransmission_count = 13;
+    ProtocolConfigurationOptions pco = 14;
+    string dnn_in_use = 15;   
+    SNssai requested_nssai = 16;
+    M5GQosFlowItem qos_flow_list = 17;
   }
