@@ -22,6 +22,7 @@ import (
 	"magma/lte/cloud/go/services/lte/obsidian/handlers"
 	lte_protos "magma/lte/cloud/go/services/lte/protos"
 	"magma/lte/cloud/go/services/lte/servicers"
+	builder_servicers "magma/lte/cloud/go/services/lte/servicers/protected"
 	lte_storage "magma/lte/cloud/go/services/lte/storage"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/swagger"
@@ -49,7 +50,7 @@ func main() {
 	var serviceConfig lte_service.Config
 	config.MustGetStructuredServiceConfig(lte.ModuleName, lte_service.ServiceName, &serviceConfig)
 
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer(serviceConfig))
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder_servicers.NewBuilderServicer(serviceConfig))
 	provider_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
 

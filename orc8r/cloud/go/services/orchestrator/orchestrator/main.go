@@ -30,6 +30,7 @@ import (
 	analytics_service "magma/orc8r/cloud/go/services/orchestrator/analytics"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/orchestrator/servicers"
+	builder_servicers "magma/orc8r/cloud/go/services/orchestrator/servicers/protected"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
 	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
 	"magma/orc8r/lib/go/service/config"
@@ -68,7 +69,7 @@ func main() {
 		exporterServicer = servicers.NewPushExporterServicer(serviceConfig.PrometheusPushAddresses)
 	}
 
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder_servicers.NewBuilderServicer())
 	exporter_protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
 	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
 	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())

@@ -23,6 +23,7 @@ import (
 	lte_service "magma/lte/cloud/go/services/lte"
 	lte_protos "magma/lte/cloud/go/services/lte/protos"
 	"magma/lte/cloud/go/services/lte/servicers"
+	builder_servicers "magma/lte/cloud/go/services/lte/servicers/protected"
 	"magma/lte/cloud/go/services/lte/storage"
 	"magma/orc8r/cloud/go/orc8r"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
@@ -54,7 +55,7 @@ func StartTestServiceWithConfig(t *testing.T, serviceConfig lte_service.Config) 
 	}
 
 	srv, lis := test_utils.NewTestOrchestratorService(t, lte.ModuleName, lte_service.ServiceName, labels, annotations)
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer(serviceConfig))
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder_servicers.NewBuilderServicer(serviceConfig))
 	provider_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
 
 	// Init storage

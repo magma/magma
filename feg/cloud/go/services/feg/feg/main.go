@@ -19,7 +19,7 @@ import (
 	"magma/feg/cloud/go/feg"
 	feg_service "magma/feg/cloud/go/services/feg"
 	"magma/feg/cloud/go/services/feg/obsidian/handlers"
-	"magma/feg/cloud/go/services/feg/servicers"
+	builder_servicers "magma/feg/cloud/go/services/feg/servicers/protected"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/swagger"
 	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
@@ -35,7 +35,7 @@ func main() {
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder_servicers.NewBuilderServicer())
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(feg_service.ServiceName))
 
