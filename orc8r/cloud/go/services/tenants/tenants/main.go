@@ -24,11 +24,11 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/tenants"
 	"magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
-	"magma/orc8r/cloud/go/services/tenants/servicers"
+	"magma/orc8r/cloud/go/services/tenants/protos"
+	servicers "magma/orc8r/cloud/go/services/tenants/servicers/protected"
 	"magma/orc8r/cloud/go/services/tenants/servicers/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"
-	"magma/orc8r/lib/go/protos"
 )
 
 func main() {
