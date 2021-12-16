@@ -14,6 +14,7 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
   check_if:
+    runs-on: ubuntu-latest
     steps:
       - name: cancelling
         uses: andymckay/cancel-action@0.2
