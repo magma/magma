@@ -7,9 +7,10 @@ ARG FEATURES=mme_oai
 ENV MAGMA_ROOT=/magma
 ENV BUILD_TYPE=Debug
 ENV C_BUILD=/build/c
+ENV BAZEL_BIN=/magma/bazel-bin
 
 # Remove any old CI artifact
-RUN rm -Rf $MAGMA_ROOT $C_BUILD && mkdir -p $C_BUILD
+RUN rm -Rf $MAGMA_ROOT $C_BUILD /tmp/bazel && mkdir -p $C_BUILD
 
 # Copy Code to Test
 COPY ./ $MAGMA_ROOT
@@ -19,7 +20,7 @@ RUN export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig/ && \
     cd $MAGMA_ROOT/lte/gateway && \
     echo $FEATURES && \
     make build_oai && \
-    make build_sctpd
+    bazel build //lte/gateway/c/sctpd/src:sctpd --config=production --define=disable_sentry_native=1
 
 # Prepare config file
 RUN cd $MAGMA_ROOT/lte/gateway/docker/mme/configs/ && \
@@ -54,6 +55,7 @@ RUN cd $MAGMA_ROOT/lte/gateway/docker/mme/configs/ && \
 FROM registry.access.redhat.com/ubi8/ubi:latest as magma-mme
 ENV MAGMA_ROOT=/magma
 ENV C_BUILD=/build/c
+ENV BAZEL_BIN=/magma/bazel-bin
 
 # Install a few tools (may not be necessary later on)
 ENV TZ=Europe/Paris
@@ -118,7 +120,7 @@ RUN ldconfig
 # Copy pre-built binaries for MME and SCTPD
 WORKDIR /magma-mme/bin
 COPY --from=magma-mme-builder $C_BUILD/core/oai/oai_mme/mme oai_mme
-COPY --from=magma-mme-builder $C_BUILD/sctpd/src/sctpd .
+COPY --from=magma-mme-builder $BAZEL_BIN/lte/gateway/c/sctpd/src/sctpd .
 
 # Create running dirs
 WORKDIR /var/opt/magma/configs

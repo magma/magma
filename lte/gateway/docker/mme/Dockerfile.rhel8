@@ -8,6 +8,7 @@ ARG FEATURES=mme_oai
 ENV MAGMA_ROOT=/magma
 ENV BUILD_TYPE=Debug
 ENV C_BUILD=/build/c
+ENV BAZEL_BIN=/magma/bazel-bin
 ENV TZ=Europe/Paris
 # Copy RHEL certificates for builder image
 COPY tmp/entitlement/*.pem /etc/pki/entitlement
@@ -104,6 +105,10 @@ RUN yum install -y \
     xz \
     # Install czmq requirements
     uuid-devel \
+# Install Bazel
+  && wget -P /usr/local/bin --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 \
+  && chmod +x /usr/local/bin/bazelisk-linux-amd64 \
+  && ln -s /usr/local/bin/bazelisk-linux-amd64 /usr/local/bin/bazel \
   && ln -s /usr/bin/python2.7 /usr/local/bin/python
 
 RUN yum install -y \
@@ -282,7 +287,7 @@ RUN echo "Install fmtlib required by Folly" && \
     # Moved git clone https://github.com/fmtlib/fmt.git && \
     cd fmt && \
     mkdir _build && cd _build && \
-    cmake3 .. && \
+    cmake3 .. -DFMT_TEST=0 && \
     make -j`nproc` && \
     make install && \
     ldconfig && \
@@ -381,7 +386,7 @@ RUN ldconfig --verbose && \
     cd $MAGMA_ROOT/lte/gateway && \
     echo $FEATURES && \
     make build_oai && \
-    make build_sctpd
+    bazel build //lte/gateway/c/sctpd/src:sctpd --config=production --define=disable_sentry_native=1
 
 # Prepare config file
 RUN yum install -y python3-pip && \
@@ -416,7 +421,7 @@ RUN yum install -y python3-pip && \
 # Copy the configuration file templates and mean to modify/generate certificates
 WORKDIR /magma-mme/bin
 RUN cp $C_BUILD/core/oai/oai_mme/mme oai_mme
-RUN cp $C_BUILD/sctpd/src/sctpd .
+RUN cp $BAZEL_BIN/lte/gateway/c/sctpd/src/sctpd .
 WORKDIR /magma-mme/etc
 RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme.conf .
 RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
@@ -448,6 +453,7 @@ RUN openssl rand -out /root/.rnd 128
 FROM registry.access.redhat.com/ubi8/ubi:latest as magma-mme
 ENV MAGMA_ROOT=/magma
 ENV C_BUILD=/build/c
+ENV BAZEL_BIN=/magma/bazel-bin
 
 # Install a few tools (may not be necessary later on)
 ENV TZ=Europe/Paris
@@ -512,7 +518,7 @@ RUN ldconfig
 # Copy pre-built binaries for MME and SCTPD
 WORKDIR /magma-mme/bin
 COPY --from=magma-mme-builder $C_BUILD/core/oai/oai_mme/mme oai_mme
-COPY --from=magma-mme-builder $C_BUILD/sctpd/src/sctpd .
+COPY --from=magma-mme-builder $BAZEL_BIN/lte/gateway/c/sctpd/src/sctpd .
 
 # Copy the configuration file templates and mean to modify/generate certificates
 WORKDIR /magma-mme/etc
