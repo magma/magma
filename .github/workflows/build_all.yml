@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cancelling
-        uses: hmarr/debug-action@v2
+        uses: andymckay/cancel-action@0.2
         if: ${{ github.event.repository.full_name != "magma/magma" }}
   build_publish_helm_charts:
     env:
