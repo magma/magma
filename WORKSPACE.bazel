@@ -92,14 +92,6 @@ load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies")
 
 rules_cc_dependencies()
 
-# Use the system ssl / crypto libraries. We call it boringssl as that is the name expected by GRPC
-# It is important that this is pulled in before GRPC is pulled in
-new_local_repository(
-    name = "boringssl",
-    build_file = "//bazel/external:boringssl.BUILD",
-    path = "/",
-)
-
 ### PROTO / GRPC DEPENDENCIES ###
 protobuf()
 
