@@ -85,6 +85,18 @@ MATCHER_P2(
   return true;
 }
 
+MATCHER_P2(check_cause_in_ds_rsp, cause, teid, "") {
+  auto ds_rsp_rcvd_at_mme =
+      static_cast<itti_s11_delete_session_response_t>(arg);
+  if (ds_rsp_rcvd_at_mme.cause.cause_value == cause) {
+    return true;
+  }
+  if (ds_rsp_rcvd_at_mme.teid == teid) {
+    return true;
+  }
+  return false;
+}
+
 class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
   virtual void SetUp() {
     // setup mock MME app task
@@ -138,9 +150,11 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
 
  protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
-  std::string test_imsi_str          = "001010000000002";
-  unsigned long long int test_imsi64 = 1010000000002;
-  plmn_t test_plmn                   = {.mcc_digit2 = 0,
+  std::string test_imsi_str = "001010000000002";
+  uint64_t test_imsi64      = 1010000000002;
+  uint64_t test_imsi64_test = 1010000000001;
+
+  plmn_t test_plmn = {.mcc_digit2 = 0,
                       .mcc_digit1 = 0,
                       .mnc_digit3 = 0x00,
                       .mcc_digit3 = 0,
@@ -184,21 +198,42 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
 
   ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == test_ue_ip2);
 
-  // verify that exactly one session exists in SPGW state for the testing ue
+  // create sample modify default bearer request
+  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
+  fill_modify_bearer_request(
+      &sample_modify_bearer_req, DEFAULT_MME_S11_TEID, ue_sgw_teid,
+      DEFAULT_ENB_GTP_TEID, DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
+
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
+  status_code_e return_code =
+      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
+
+  ASSERT_EQ(return_code, RETURNok);
+
+  // verify that exactly one session exists in SPGW state
   ASSERT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
 
+  // verify that eNB address information exists
+  ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
+
+  // create sample delete session request
   itti_s11_delete_session_request_t sample_delete_session_request = {};
   fill_delete_session_request(
       &sample_delete_session_request, test_mme_s11_teid, ue_sgw_teid,
       DEFAULT_EPS_BEARER_ID, test_plmn);
 
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_delete_sess_rsp()).Times(1);
+  EXPECT_CALL(
+      *mme_app_handler, mme_app_handle_delete_sess_rsp(check_cause_in_ds_rsp(
+                            REQUEST_ACCEPTED, test_mme_s11_teid)))
+      .Times(1);
 
-  status_code_e return_code = RETURNerror;
-  return_code               = sgw_handle_delete_session_request(
+  return_code = sgw_handle_delete_session_request(
       &sample_delete_session_request, test_imsi64);
   ASSERT_EQ(return_code, RETURNok);
 
+  // verify SPGW state is cleared
+  ASSERT_TRUE(
+      is_num_sessions_valid(test_imsi64, name_of_ue_samples.size() - 1, 0));
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
@@ -271,13 +306,12 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerSuccess) {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
-TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerError) {
-  status_code_e return_code = RETURNerror;
-
+TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerWithInvalidImsi64) {
+  spgw_state_t* spgw_state        = get_spgw_state(false);
+  status_code_e return_code       = RETURNerror;
   spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
-
   s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
@@ -290,7 +324,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerError) {
   itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
   fill_modify_bearer_request(
       &sample_modify_bearer_req, test_mme_s11_teid, ue_sgw_teid,
-      DEFAULT_ENB_GTP_TEID, test_bearer_index, DEFAULT_EPS_BEARER_ID);
+      DEFAULT_ENB_GTP_TEID, DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
 
   EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
   return_code =
@@ -307,13 +341,15 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerError) {
   // send release access bearer request
   itti_s11_release_access_bearers_request_t sample_release_bearer_req = {};
   fill_release_access_bearer_request(
-      &sample_release_bearer_req, DEFAULT_MME_S11_TEID, ERROR_SGW_S11_TEID);
+      &sample_release_bearer_req, test_mme_s11_teid, ERROR_SGW_S11_TEID);
 
   EXPECT_CALL(*mme_app_handler, mme_app_handle_release_access_bearers_resp())
       .Times(1);
 
+  // Send wrong IMSI so that spgw will not be able to fetch and delete
+  // the context
   sgw_handle_release_access_bearers_request(
-      &sample_release_bearer_req, test_imsi64);
+      &sample_release_bearer_req, test_imsi64_test);
 
   // verify that eNB information has not been cleared
   ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
