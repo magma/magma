@@ -133,4 +133,7 @@ int32_t spgw_build_and_send_s11_deactivate_bearer_req(
     ebi_t* ebi_to_be_deactivated, bool delete_default_bearer,
     teid_t mme_teid_S11, log_proto_t module);
 
+void sgw_handle_delete_bearer_cmd(
+    itti_s11_delete_bearer_command_t* s11_delete_bearer_command,
+    imsi64_t imsi64);
 #endif /* FILE_SGW_HANDLERS_SEEN */

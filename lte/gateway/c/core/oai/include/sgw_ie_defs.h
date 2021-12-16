@@ -499,8 +499,8 @@ typedef struct bearer_contexts_to_be_removed_s {
 
 typedef struct ebi_list_s {
   uint32_t num_ebi;
-#define RELEASE_ACCESS_BEARER_MAX_BEARERS 8
-  ebi_t ebis[RELEASE_ACCESS_BEARER_MAX_BEARERS];
+#define MAX_BEARERS 11
+  ebi_t ebis[MAX_BEARERS];
 } ebi_list_t;
 
 //-------------------------------------
