@@ -47,6 +47,12 @@ const (
 	teid1   = "5, 6"
 	teid1_0 = "5"
 	teid1_1 = "6"
+	teid2   = "9, 10"
+	teid2_0 = "9"
+	teid2_1 = "10"
+	teid3   = "33, 45"
+	teid3_0 = "33"
+	teid3_1 = "45"
 	hwid0   = "hwid0"
 	hwid1   = "hwid1"
 )
@@ -155,7 +161,8 @@ func TestTEIDIndexer(t *testing.T) {
 
 	record := &directoryd_types.DirectoryRecord{
 		Identifiers: map[string]interface{}{
-			directoryd_types.RecordKeySpgCTeid: teid0,
+			directoryd_types.RecordKeySgwCTeid: teid0,
+			directoryd_types.RecordKeySgwUTeid: teid2,
 		},
 		LocationHistory: []string{hwid0, "apple"},
 	}
@@ -172,28 +179,45 @@ func TestTEIDIndexer(t *testing.T) {
 		DeviceID: imsi0,
 	}
 
-	// Index the imsi0->teid0 state, result is teid0->hwid0 reverse mapping
+	//Index the imsi0->teid0 state, result is teid0->hwid0 reverse mapping
 	errs, err := idx.Index(nid0, state_types.SerializedStatesByID{stateID: serialize(t, recordState, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
+	// Control Plane
 	hwid, err := directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid0_0)
 	assert.NoError(t, err)
 	assert.Equal(t, hwid0, hwid)
 	hwid, err = directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid0_1)
 	assert.NoError(t, err)
 	assert.Equal(t, hwid0, hwid)
+	// User Plane:
+	hwid, err = directoryd.GetHWIDForSgwUTeid(context.Background(), nid0, teid2_0)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid0, hwid)
+	hwid, err = directoryd.GetHWIDForSgwUTeid(context.Background(), nid0, teid2_1)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid0, hwid)
 
 	// Update teid -- index imsi0->teid1, result is teid1->hwud0 reverse mapping
-	recordState.ReportedState.(*directoryd_types.DirectoryRecord).Identifiers[directoryd_types.RecordKeySpgCTeid] = teid1
+	recordState.ReportedState.(*directoryd_types.DirectoryRecord).Identifiers[directoryd_types.RecordKeySgwCTeid] = teid1
+	recordState.ReportedState.(*directoryd_types.DirectoryRecord).Identifiers[directoryd_types.RecordKeySgwUTeid] = teid3
 	recordState.ReportedState.(*directoryd_types.DirectoryRecord).LocationHistory = []string{hwid1, "apple"}
 
 	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{stateID: serialize(t, recordState, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
+	// control plane
 	hwid, err = directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid1_0)
 	assert.NoError(t, err)
 	assert.Equal(t, hwid1, hwid)
 	hwid, err = directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid1_1)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid1, hwid)
+	// user plane
+	hwid, err = directoryd.GetHWIDForSgwUTeid(context.Background(), nid0, teid3_0)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid1, hwid)
+	hwid, err = directoryd.GetHWIDForSgwUTeid(context.Background(), nid0, teid3_1)
 	assert.NoError(t, err)
 	assert.Equal(t, hwid1, hwid)
 
@@ -208,12 +232,17 @@ func TestTEIDIndexer(t *testing.T) {
 	assert.Equal(t, hwid1, hwid)
 
 	// deIndex teid
-	recordState.ReportedState.(*directoryd_types.DirectoryRecord).Identifiers[directoryd_types.RecordKeySpgCTeid] = teid1
+	recordState.ReportedState.(*directoryd_types.DirectoryRecord).Identifiers[directoryd_types.RecordKeySgwCTeid] = teid1
+	recordState.ReportedState.(*directoryd_types.DirectoryRecord).Identifiers[directoryd_types.RecordKeySgwCTeid] = teid3
 	recordState.ReportedState.(*directoryd_types.DirectoryRecord).LocationHistory = []string{hwid1, "apple"}
 	errs, err = idx.DeIndex(nid0, state_types.SerializedStatesByID{stateID: serialize(t, recordState, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
+	// control plane
 	_, err = directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid1)
+	assert.Error(t, err)
+	// user plane
+	_, err = directoryd.GetHWIDForSgwUTeid(context.Background(), nid0, teid3)
 	assert.Error(t, err)
 }
 
