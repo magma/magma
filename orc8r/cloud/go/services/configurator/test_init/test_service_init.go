@@ -23,7 +23,7 @@ import (
 	certifier_test_init "magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/protos"
-	"magma/orc8r/cloud/go/services/configurator/servicers"
+	servicers "magma/orc8r/cloud/go/services/configurator/servicers/protected"
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
