@@ -28,4 +28,6 @@ spec:
 {{- else }}
     name: {{ .Release.Name }}-root-issuer
 {{- end }}
+  dnsNames:
+  - "*.nms.{{ required "domainName must be provided" .Values.domainName }}"
 {{- end }}

@@ -22,6 +22,19 @@ secret:
     orc8r: ${configs_secret}
   envdir: ${envdir_secret}
 
+# certs sub-chart configuration.
+certs:
+  create: ${managed_certs_create}
+  enabled: ${managed_certs_enabled}
+  domainName: ${managed_certs_domain_name}
+  nms:
+    customIssuer: ${nms_custom_issuer}
+  route53:
+    enabled: ${managed_certs_route53_enabled}
+    region: "${region}"
+    accessKey: "${managed_certs_route53_access_key}"
+    secretKey: "${managed_certs_route53_secret_key}"
+
 nginx:
   create: true
 
@@ -178,6 +191,9 @@ nms:
 
   secret:
     certs: ${nms_certs_secret}
+
+  certs:
+    enabled: ${nms_managed_certs_enabled}
 
   magmalte:
     create: true
