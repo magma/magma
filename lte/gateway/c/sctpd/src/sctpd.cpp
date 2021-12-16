@@ -13,6 +13,9 @@
 
 #include "lte/gateway/c/sctpd/src/sctpd.h"
 
+#include <lte/protos/mconfig/mconfigs.pb.h>
+#include <orc8r/protos/mconfig/mconfigs.pb.h>
+
 #include <memory>
 #include <grpcpp/grpcpp.h>
 #include <signal.h>
@@ -21,7 +24,12 @@
 #include "lte/gateway/c/sctpd/src/sctpd_event_handler.h"
 #include "lte/gateway/c/sctpd/src/sctpd_uplink_client.h"
 #include "lte/gateway/c/sctpd/src/util.h"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
 #include "orc8r/gateway/c/common/logging/magma_logging_init.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
+
+#define SCTPD_SERVICE "sctpd"
+#define SHARED_MCONFIG "shared_mconfig"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -75,11 +83,35 @@ int signalHandler(int* end, std::unique_ptr<Server>& server,
   return 0;
 }
 
+static magma::mconfig::SctpD load_sctpd_mconfig() {
+  magma::mconfig::SctpD mconfig;
+  if (!magma::load_service_mconfig_from_file(SCTPD_SERVICE, &mconfig)) {
+    mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
+  }
+  return mconfig;
+}
+
+static magma::mconfig::SharedMconfig load_shared_mconfig() {
+  magma::mconfig::SharedMconfig mconfig;
+  magma::load_service_mconfig_from_file(SHARED_MCONFIG, &mconfig);
+  return mconfig;
+}
+
 int main() {
   signalMask();
 
-  magma::init_logging("sctpd");
-  magma::set_verbosity(MDEBUG);
+  auto sctpd_mconfig = load_sctpd_mconfig();
+  magma::init_logging(SCTPD_SERVICE);
+  magma::set_verbosity(
+      magma::get_log_verbosity_from_mconfig(sctpd_mconfig.log_level()));
+
+  auto sentry_mconfig = load_shared_mconfig().sentry_config();
+  sentry_config_t sentry_config;
+  sentry_config.sample_rate = sentry_mconfig.sample_rate();
+  strncpy(sentry_config.url_native, sentry_mconfig.dsn_native().c_str(),
+          MAX_URL_LENGTH - 1);
+  sentry_config.url_native[MAX_URL_LENGTH - 1] = '\0';
+  initialize_sentry(SENTRY_TAG_SCTPD, &sentry_config);
 
   auto channel =
       grpc::CreateChannel(UPSTREAM_SOCK, grpc::InsecureChannelCredentials());

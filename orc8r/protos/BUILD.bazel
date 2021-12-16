@@ -69,10 +69,15 @@ proto_library(
     srcs = ["redis.proto"],
 )
 
+cpp_proto_library(
+    name = "mconfigs_cpp_proto",
+    protos = [":mconfigs_proto"],
+    deps = [":common_cpp_proto"],
+)
+
 proto_library(
     name = "mconfigs_proto",
     srcs = ["mconfig/mconfigs.proto"],
-    strip_import_prefix = "mconfig/",
     deps = [":common_proto"],
 )
 

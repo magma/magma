@@ -233,6 +233,9 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			LogLevel:    protos.LogLevel_INFO,
 			NprobeTasks: npTasks,
 		},
+		"sctpd": &lte_mconfig.SctpD{
+			LogLevel: protos.LogLevel_INFO,
+		},
 	}
 
 	ret.ConfigsByKey, err = mconfig.MarshalConfigs(vals)
