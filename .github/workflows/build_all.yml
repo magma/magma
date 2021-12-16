@@ -16,7 +16,7 @@ jobs:
   check_if:
     runs-on: ubuntu-latest
     steps:
-      - name: cancelling
+      - name: Cancelling
         uses: andymckay/cancel-action@0.2
         if: "${{ github.event.repository.full_name != "magma/magma" }}"
   build_publish_helm_charts:
