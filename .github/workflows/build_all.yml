@@ -24,6 +24,8 @@ jobs:
       ISSUE_NUMBER: "${{ github.event.number }}"
     runs-on: ubuntu-latest
     steps:
+      - name: Debug Infos
+        uses: hmarr/debug-action@v2
       - uses: actions/checkout@v2
       # Version is github job run number when running on master
       # Or is branch name when on release branch
