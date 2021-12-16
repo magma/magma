@@ -32,7 +32,6 @@ namespace lte {
 
 extern task_zmq_ctx_t task_zmq_ctx_main;
 
-#define DEFAULT_LBI 5
 #define DEFAULT_TEID 1
 #define DEFAULT_MME_S1AP_UE_ID 1
 
@@ -185,7 +184,7 @@ void send_s6a_ula(const std::string& imsi, bool success) {
   return;
 }
 
-void send_create_session_resp(gtpv2c_cause_value_t cause_value) {
+void send_create_session_resp(gtpv2c_cause_value_t cause_value, ebi_t ebi) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_SPGW_APP, S11_CREATE_SESSION_RESPONSE);
   itti_s11_create_session_response_t* create_session_response_p =
@@ -209,7 +208,7 @@ void send_create_session_resp(gtpv2c_cause_value_t cause_value) {
     create_session_response_p->bearer_contexts_created.bearer_contexts[0]
         .s1u_sgw_fteid.ipv4_address.s_addr = 100;
     create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-        .eps_bearer_id = 5;
+        .eps_bearer_id = ebi;
     create_session_response_p->bearer_contexts_created.bearer_contexts[0]
         .s1u_sgw_fteid.ipv6 = 1;
   }
@@ -218,7 +217,7 @@ void send_create_session_resp(gtpv2c_cause_value_t cause_value) {
   return;
 }
 
-void send_delete_session_resp() {
+void send_delete_session_resp(ebi_t lbi) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_SPGW_APP, S11_DELETE_SESSION_RESPONSE);
   itti_s11_delete_session_response_t* delete_session_resp_p =
@@ -226,7 +225,7 @@ void send_delete_session_resp() {
   delete_session_resp_p->cause.cause_value = REQUEST_ACCEPTED;
   delete_session_resp_p->teid              = 1;
   delete_session_resp_p->peer_ip.s_addr    = 100;
-  delete_session_resp_p->lbi               = 5;
+  delete_session_resp_p->lbi               = lbi;
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }
@@ -351,13 +350,13 @@ void send_s11_deactivate_bearer_req(
   return;
 }
 
-void send_s11_create_bearer_req() {
+void send_s11_create_bearer_req(ebi_t lbi) {
   MessageDef* message_p = itti_alloc_new_message(
       TASK_SPGW_APP, S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST);
   itti_s11_nw_init_actv_bearer_request_t* s11_actv_bearer_request =
       &message_p->ittiMsg.s11_nw_init_actv_bearer_request;
   s11_actv_bearer_request->s11_mme_teid = DEFAULT_TEID;
-  s11_actv_bearer_request->lbi          = DEFAULT_LBI;
+  s11_actv_bearer_request->lbi          = lbi;
   s11_actv_bearer_request->eps_bearer_qos.gbr.br_dl =
       10000;  // arbitrary number
   s11_actv_bearer_request->eps_bearer_qos.gbr.br_ul =
@@ -403,7 +402,7 @@ void send_s11_create_bearer_req() {
   return;
 }
 
-void send_erab_setup_rsp() {
+void send_erab_setup_rsp(ebi_t ebi) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S1AP, S1AP_E_RAB_SETUP_RSP);
 
@@ -411,7 +410,7 @@ void send_erab_setup_rsp() {
   S1AP_E_RAB_SETUP_RSP(message_p).enb_ue_s1ap_id = DEFAULT_eNB_S1AP_UE_ID;
   S1AP_E_RAB_SETUP_RSP(message_p).e_rab_setup_list.no_of_items           = 0;
   S1AP_E_RAB_SETUP_RSP(message_p).e_rab_failed_to_setup_list.no_of_items = 0;
-  S1AP_E_RAB_SETUP_RSP(message_p).e_rab_setup_list.item[0].e_rab_id      = 6;
+  S1AP_E_RAB_SETUP_RSP(message_p).e_rab_setup_list.item[0].e_rab_id      = ebi;
   uint8_t transport_address_buff[4] = {192, 168, 60, 141};
   S1AP_E_RAB_SETUP_RSP(message_p)
       .e_rab_setup_list.item[0]

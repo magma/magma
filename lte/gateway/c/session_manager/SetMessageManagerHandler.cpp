@@ -81,11 +81,8 @@ SessionConfig SetMessageManagerHandler::m5g_build_session_config(
   cfg.common_context = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
 
-  /* As we dont have 5G polices defined yet, for now
-   * for all new connection we set SSC  mode as SSC_MODE_3
-   */
   cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
+      request.rat_specific_context().m5gsm_session_context().ssc_mode());
 
   return cfg;
 }
