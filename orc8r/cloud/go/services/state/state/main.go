@@ -28,7 +28,7 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	"magma/orc8r/cloud/go/services/state/metrics"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
-	"magma/orc8r/cloud/go/services/state/servicers"
+	servicers "magma/orc8r/cloud/go/services/state/servicers/protected"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
