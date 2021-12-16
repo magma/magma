@@ -300,6 +300,9 @@ TEST_F(SessionManagerHandlerTest, test_SetSmfNotification) {
 TEST_F(SessionManagerHandlerTest, test_InitSessionContext) {
   magma::SetSMSessionContext request;
   set_sm_session_context_ipv4(&request);
+  request.mutable_rat_specific_context()
+      ->mutable_m5gsm_session_context()
+      ->set_ssc_mode(magma::SscMode::SSC_MODE_3);
 
   grpc::ServerContext server_context;
 
@@ -312,19 +315,25 @@ TEST_F(SessionManagerHandlerTest, test_InitSessionContext) {
   SessionConfig cfg;
   cfg.common_context = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
-  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
 
   auto session_map = session_store->read_sessions({IMSI1});
   std::string session_id = id_gen_.gen_session_id(IMSI1);
   session_enforcer->m5g_init_session_credit(session_map, IMSI1, session_id,
                                             cfg);
   EXPECT_EQ(request.mutable_common_context()->ue_ipv4(), IPv4_1);
+  EXPECT_EQ(session_map[IMSI1][0]
+                ->get_config()
+                .rat_specific_context.m5gsm_session_context()
+                .ssc_mode(),
+            magma::SscMode::SSC_MODE_3);
 }
 
 TEST_F(SessionManagerHandlerTest, test_UpdateSessionContext) {
   magma::SetSMSessionContext request;
   set_sm_session_context_ipv4(&request);
+  request.mutable_rat_specific_context()
+      ->mutable_m5gsm_session_context()
+      ->set_ssc_mode(magma::SscMode::SSC_MODE_2);
 
   grpc::ServerContext server_context;
 
@@ -337,8 +346,6 @@ TEST_F(SessionManagerHandlerTest, test_UpdateSessionContext) {
   SessionConfig cfg;
   cfg.common_context = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
-  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
 
   auto session_map = session_store->read_sessions({IMSI1});
   std::string session_id = id_gen_.gen_session_id(IMSI1);
@@ -352,6 +359,11 @@ TEST_F(SessionManagerHandlerTest, test_UpdateSessionContext) {
   session_enforcer->m5g_update_session_context(session_map, IMSI1, session,
                                                update);
   EXPECT_EQ(request.mutable_common_context()->ue_ipv4(), IPv4_1);
+  EXPECT_EQ(session_map[IMSI1][0]
+                ->get_config()
+                .rat_specific_context.m5gsm_session_context()
+                .ssc_mode(),
+            magma::SscMode::SSC_MODE_2);
 }
 
 TEST_F(SessionManagerHandlerTest, test_SetPduSessionReleaseContext) {
@@ -414,6 +426,7 @@ TEST_F(SessionManagerHandlerTest, test_LocalReleaseSessionContext) {
   req->set_imei("123456789012345");
   req->set_gpsi("9876543210");
   req->set_pcf_id("1357924680123456");
+  req->set_ssc_mode(magma::SscMode::SSC_MODE_2);
 
   reqcmn->mutable_sid()->set_id("IMSI000000000000001");
   reqcmn->set_sm_session_state(magma::SMSessionFSMState::CREATING_0);
@@ -438,8 +451,6 @@ TEST_F(SessionManagerHandlerTest, test_LocalReleaseSessionContext) {
   SessionConfig cfg;
   cfg.common_context = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
-  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
 
   SessionUpdate session_update =
       SessionStore::get_default_session_update(session_map);
@@ -451,6 +462,10 @@ TEST_F(SessionManagerHandlerTest, test_LocalReleaseSessionContext) {
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   auto& session_temp = session_map[IMSI1][0];
   EXPECT_EQ(session_temp->get_config().common_context.sid().id(), IMSI1);
+  EXPECT_EQ(session_temp->get_config()
+                .rat_specific_context.m5gsm_session_context()
+                .ssc_mode(),
+            magma::SscMode::SSC_MODE_2);
 }
 
 TEST_F(SessionManagerHandlerTest, test_LocalSessionTerminationContext) {
@@ -465,6 +480,7 @@ TEST_F(SessionManagerHandlerTest, test_LocalSessionTerminationContext) {
   req->set_imei("123456789012345");
   req->set_gpsi("9876543210");
   req->set_pcf_id("1357924680123456");
+  req->set_ssc_mode(magma::SscMode::SSC_MODE_2);
 
   reqcmn->mutable_sid()->set_id("IMSI000000000000002");
   reqcmn->set_sm_session_state(magma::SMSessionFSMState::CREATING_0);
@@ -489,8 +505,6 @@ TEST_F(SessionManagerHandlerTest, test_LocalSessionTerminationContext) {
   SessionConfig cfg;
   cfg.common_context = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
-  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
 
   SessionUpdate session_update =
       SessionStore::get_default_session_update(session_map);
@@ -508,6 +522,10 @@ TEST_F(SessionManagerHandlerTest, test_LocalSessionTerminationContext) {
   EXPECT_EQ(session_map[IMSI2].size(), 1);
   auto& session_temp = session_map[IMSI2][0];
   EXPECT_EQ(session_temp->get_config().common_context.sid().id(), IMSI2);
+  EXPECT_EQ(session_temp->get_config()
+                .rat_specific_context.m5gsm_session_context()
+                .ssc_mode(),
+            magma::SscMode::SSC_MODE_2);
 }
 
 TEST_F(SessionManagerHandlerTest, test_SessionCompleteTerminationContext) {
@@ -522,6 +540,7 @@ TEST_F(SessionManagerHandlerTest, test_SessionCompleteTerminationContext) {
   req->set_imei("123456789012345");
   req->set_gpsi("9876543210");
   req->set_pcf_id("1357924680123456");
+  req->set_ssc_mode(magma::SscMode::SSC_MODE_1);
 
   reqcmn->mutable_sid()->set_id("IMSI000000000000002");
   reqcmn->set_sm_session_state(magma::SMSessionFSMState::CREATING_0);
@@ -541,12 +560,15 @@ TEST_F(SessionManagerHandlerTest, test_SessionCompleteTerminationContext) {
   auto it = session_map.find(IMSI2);
   EXPECT_FALSE(it == session_map.end());
   EXPECT_EQ(session_map[IMSI2].size(), 1);
+  EXPECT_EQ(session_map[IMSI2][0]
+                ->get_config()
+                .rat_specific_context.m5gsm_session_context()
+                .ssc_mode(),
+            magma::SscMode::SSC_MODE_1);
 
   SessionConfig cfg;
   cfg.common_context = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
-  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
 
   SessionUpdate session_update =
       SessionStore::get_default_session_update(session_map);
@@ -565,6 +587,9 @@ TEST_F(SessionManagerHandlerTest, test_SessionCompleteTerminationContext) {
 TEST_F(SessionManagerHandlerTest, test_IPv6PDUSessionEstablishmentContext) {
   magma::SetSMSessionContext request;
   set_sm_session_context_ipv6(&request);
+  request.mutable_rat_specific_context()
+      ->mutable_m5gsm_session_context()
+      ->set_ssc_mode(magma::SscMode::SSC_MODE_3);
 
   grpc::ServerContext server_context;
 
@@ -591,8 +616,6 @@ TEST_F(SessionManagerHandlerTest, test_IPv6PDUSessionEstablishmentContext) {
   SessionConfig cfg;
   cfg.common_context = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
-  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
 
   auto session_map = session_store->read_sessions({IMSI1});
   uint32_t pdu_id = request.mutable_rat_specific_context()
@@ -615,6 +638,10 @@ TEST_F(SessionManagerHandlerTest, test_IPv6PDUSessionEstablishmentContext) {
             TEID_1_DL);
   EXPECT_EQ(session_temp->get_config().common_context.rat_type(),
             magma::RATType::TGPP_NR);
+  EXPECT_EQ(session_temp->get_config()
+                .rat_specific_context.m5gsm_session_context()
+                .ssc_mode(),
+            magma::SscMode::SSC_MODE_3);
 
   std::string session_id = id_gen_.gen_session_id(IMSI1);
   auto credits = response.mutable_credits();
@@ -629,6 +656,9 @@ TEST_F(SessionManagerHandlerTest, test_PDUStateChangeHandling) {
   set_sm_session_context_ipv4(&request);
   request.mutable_common_context()->mutable_sid()->set_id(
       "IMSI000000000000002");
+  request.mutable_rat_specific_context()
+      ->mutable_m5gsm_session_context()
+      ->set_ssc_mode(magma::SscMode::SSC_MODE_1);
 
   grpc::ServerContext server_context;
 
@@ -647,8 +677,6 @@ TEST_F(SessionManagerHandlerTest, test_PDUStateChangeHandling) {
   SessionConfig cfg;
   cfg.common_context = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
-  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
 
   SessionUpdate session_update =
       SessionStore::get_default_session_update(session_map);
@@ -716,6 +744,10 @@ TEST_F(SessionManagerHandlerTest, test_PDUStateChangeHandling) {
   auto& session_temp = session_map[IMSI2][0];
   EXPECT_EQ(session_temp->get_config().common_context.sid().id(), IMSI2);
   EXPECT_EQ(session_temp->get_config().common_context.ue_ipv4(), IPv4_1);
+  EXPECT_EQ(session_temp->get_config()
+                .rat_specific_context.m5gsm_session_context()
+                .ssc_mode(),
+            magma::SscMode::SSC_MODE_1);
 
   session_enforcer->m5g_release_session(session_map, imsi, pdu_id,
                                         session_update);
@@ -732,6 +764,9 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
   set_sm_session_context_ipv4(&request);
   request.mutable_common_context()->mutable_sid()->set_id(
       "IMSI000000000000002");
+  request.mutable_rat_specific_context()
+      ->mutable_m5gsm_session_context()
+      ->set_ssc_mode(magma::SscMode::SSC_MODE_3);
 
   grpc::ServerContext server_context;
 
@@ -750,8 +785,6 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
   SessionConfig cfg;
   cfg.common_context = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
-  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
 
   cfg.rat_specific_context.mutable_m5gsm_session_context()
       ->mutable_default_ambr()
@@ -790,11 +823,19 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
 
   session_enforcer->m5g_move_to_active_state(session, notif, &session_uc);
   EXPECT_EQ(request.mutable_common_context()->ue_ipv4(), IPv4_1);
+  EXPECT_EQ(session_map[IMSI2][0]
+                ->get_config()
+                .rat_specific_context.m5gsm_session_context()
+                .ssc_mode(),
+            magma::SscMode::SSC_MODE_3);
 }
 
 TEST_F(SessionManagerHandlerTest, test_create_session_policy_report) {
   magma::SetSMSessionContext request;
   set_sm_session_context_ipv4(&request);
+  request.mutable_rat_specific_context()
+      ->mutable_m5gsm_session_context()
+      ->set_ssc_mode(magma::SscMode::SSC_MODE_3);
 
   grpc::ServerContext server_context;
 
@@ -822,8 +863,6 @@ TEST_F(SessionManagerHandlerTest, test_create_session_policy_report) {
   SessionConfig cfg;
   cfg.common_context = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
-  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
 
   auto session_map = session_store->read_sessions({IMSI1});
   auto it = session_map.find(IMSI1);
@@ -878,11 +917,19 @@ TEST_F(SessionManagerHandlerTest, test_create_session_policy_report) {
   EXPECT_TRUE(write_success);
   auto session_map_2 = session_store->read_sessions(SessionRead{IMSI1});
   EXPECT_EQ(session_map_2[IMSI1].front()->get_request_number(), 1);
+  EXPECT_EQ(session_map_2[IMSI1][0]
+                ->get_config()
+                .rat_specific_context.m5gsm_session_context()
+                .ssc_mode(),
+            magma::SscMode::SSC_MODE_3);
 }
 
 TEST_F(SessionManagerHandlerTest, test_terminate_session_policy_report) {
   magma::SetSMSessionContext request;
   set_sm_session_context_ipv4(&request);
+  request.mutable_rat_specific_context()
+      ->mutable_m5gsm_session_context()
+      ->set_ssc_mode(magma::SscMode::SSC_MODE_2);
 
   grpc::ServerContext server_context;
   // create session and expect one call
@@ -897,8 +944,6 @@ TEST_F(SessionManagerHandlerTest, test_terminate_session_policy_report) {
   SessionConfig cfg;
   cfg.common_context = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
-  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
 
   auto session_map = session_store->read_sessions({IMSI1});
   auto it = session_map.find(IMSI1);
@@ -906,6 +951,10 @@ TEST_F(SessionManagerHandlerTest, test_terminate_session_policy_report) {
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   auto& session_temp = session_map[IMSI1][0];
   EXPECT_EQ(session_temp->get_config().common_context.sid().id(), IMSI1);
+  EXPECT_EQ(session_temp->get_config()
+                .rat_specific_context.m5gsm_session_context()
+                .ssc_mode(),
+            magma::SscMode::SSC_MODE_2);
   // create session state
   SessionUpdate update = SessionStore::get_default_session_update(session_map);
   uint32_t pdu_id = 5;
@@ -931,6 +980,9 @@ TEST_F(SessionManagerHandlerTest, test_terminate_session_policy_report) {
 TEST_F(SessionManagerHandlerTest, test_single_record_5g) {
   magma::SetSMSessionContext request;
   set_sm_session_context_ipv4(&request);
+  request.mutable_rat_specific_context()
+      ->mutable_m5gsm_session_context()
+      ->set_ssc_mode(magma::SscMode::SSC_MODE_1);
   // Add static rule
   insert_static_rule(1, "", "rule1");
 
@@ -952,8 +1004,6 @@ TEST_F(SessionManagerHandlerTest, test_single_record_5g) {
   SessionConfig cfg;
   cfg.common_context = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
-  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
 
   grpc::ServerContext server_context;
   // create session and expect one call
@@ -983,11 +1033,19 @@ TEST_F(SessionManagerHandlerTest, test_single_record_5g) {
   local_enforcer->aggregate_records(session_map, table, update);
   assert_charging_credit(session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL,
                          {{1, 1024}});
+  EXPECT_EQ(session_map[IMSI1][0]
+                ->get_config()
+                .rat_specific_context.m5gsm_session_context()
+                .ssc_mode(),
+            magma::SscMode::SSC_MODE_1);
 }
 
 TEST_F(SessionManagerHandlerTest, test_update_session_credits_and_rules_5g) {
   magma::SetSMSessionContext request;
   set_sm_session_context_ipv4(&request);
+  request.mutable_rat_specific_context()
+      ->mutable_m5gsm_session_context()
+      ->set_ssc_mode(magma::SscMode::SSC_MODE_2);
   // Add static rule
   insert_static_rule(1, "", "rule1");
   // Make Session Response from polcydb
@@ -998,8 +1056,6 @@ TEST_F(SessionManagerHandlerTest, test_update_session_credits_and_rules_5g) {
   SessionConfig cfg;
   cfg.common_context = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
-  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
 
   grpc::ServerContext server_context;
   // create session and expect one call
@@ -1066,6 +1122,11 @@ TEST_F(SessionManagerHandlerTest, test_update_session_credits_and_rules_5g) {
                          {{1, 4120}});
   assert_monitor_credit(session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL,
                         {{"1", 2048}});
+  EXPECT_EQ(session_map[IMSI1][0]
+                ->get_config()
+                .rat_specific_context.m5gsm_session_context()
+                .ssc_mode(),
+            magma::SscMode::SSC_MODE_2);
 }
 
 int main(int argc, char** argv) {
