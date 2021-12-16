@@ -13,12 +13,6 @@ on:  # yamllint disable-line rule:truthy
     types: [opened, reopened, synchronize]
 
 jobs:
-  check_if:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cancelling
-        uses: andymckay/cancel-action@0.2
-        if: ${{ github.event.repository.full_name != "magma/magma" }}
   build_publish_helm_charts:
     env:
       HELM_CHART_ARTIFACTORY_URL: "https://artifactory.magmacore.org:443/artifactory/"
@@ -30,6 +24,9 @@ jobs:
       ISSUE_NUMBER: "${{ github.event.number }}"
     runs-on: ubuntu-latest
     steps:
+      - name: Cancelling
+        uses: andymckay/cancel-action@0.2
+        if: ${{ github.event.repository.full_name != "magma/magma" }}
       - uses: actions/checkout@v2
       # Version is github job run number when running on master
       # Or is branch name when on release branch
