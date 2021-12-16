@@ -591,7 +591,7 @@ TEST_F(SPGWAppProcedureTest, TestReleaseBearerSuccess) {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
-TEST_F(SPGWAppProcedureTest, TestReleaseBearerError) {
+TEST_F(SPGWAppProcedureTest, TestReleaseBearerWithInvalidImsi64) {
   spgw_state_t* spgw_state  = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
   // expect call to MME create session response
