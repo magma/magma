@@ -23,6 +23,8 @@ on:
       - synchronize
 env:
   DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latest"
+  BAZEL_CACHE: bazel-cache
+  BAZEL_CACHE_REPO: bazel-cache-repo
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -89,23 +91,6 @@ jobs:
         with:
           name: build_logs_oai
           path: ${{ github.workspace }}/compile.log
-      - name: Extract commit title
-        id: commit
-        if: failure() && github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "build_oai failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Feg workflow"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
 
   build_session_manager:
     needs:
@@ -152,20 +137,74 @@ jobs:
         with:
           name: build_logs_session_manager
           path: ${{ github.workspace }}/compile.log
-      - name: Extract commit title
-        id: commit
-        if: failure() && github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "build_session_manager failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Feg workflow"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
+
+  build_c:
+    needs:
+      - path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: Build all Bazelified C/C++ targets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repo
+        # This is necessary for overlays into the Docker container below.
+        uses: actions/checkout@v2
+      - name: Bazel Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+      - name: Bazel Cache Repo
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
+          key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+      - name: Setup Devcontainer Image
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the devontainer image!"
+      - name: Fetch list of changed files
+        # I am using mmagician fork of get-changed-files (forked from jitterbit/get-changed-files)
+        #   Rationale: our workflow (merge branch into upstream master) is incompatible
+        #   See long list of GH Issues on https://github.com/jitterbit/get-changed-files w.r.t. head ahead of base
+        id: changed_files
+        uses: mmagician/get-changed-files@v2
+        with:
+          format: 'csv'
+      - name: Load problem matcher
+        # If needed https://github.com/microsoft/vscode-cpptools/issues/2266 for path fixups
+        #
+        # Additional GH Issues regarding paths for monorepos without root build.
+        # - https://github.com/actions/runner/issues/659
+        # - https://github.com/actions/runner/issues/765
+        #
+        # Paths emitted on warnings must be relative to the repository (e.g. lte/gateway/...),
+        # Therefore below I use `xo` to fixup our path emissions on gcc warnings.
+        uses: electronjoe/gcc-problem-matcher@v1
+      - name: Build and Apply GCC Problem Matcher
+        uses: addnab/docker-run-action@v2
+        with:
+          image: ${{ env.DEVCONTAINER_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma
+          run: |
+            cd /workspaces/magma
+            C_CPP_FLAGS="-Wno-error -Wextra -Wshadow -Wimplicit-fallthrough -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wformat=2 -Wstrict-overflow=4 -Wuninitialized -Wshift-overflow=2"
+            C_ONLY_FLAGS="-Wjump-misses-init"
+            COPTS=`echo $C_CPP_FLAGS | sed 's/-W/--copt=-W/g'`
+            CONLY_OPTS=`echo $C_ONLY_FLAGS | sed 's/-W/--conlyopt=-W/g'`
+            bazel build //orc8r/gateway/c/...:* //lte/gateway/c/...:* $COPTS $CONLY_OPTS 2>&1 > /workspaces/magma/compile.log
+            echo "${{ steps.changed_files.outputs.all }}" | tr , '\n' | while read f
+            do grep "$file" /workspaces/magma/compile.log | xo '/\/magma\/((.*):(\d+):(\d+):\s+(?:fatal\s)?(warning|error):\s+(.*))/$1/' || true;
+            done;
+      - name: Store build_logs_c Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: build_logs_c
+          path: ${{ github.workspace }}/compile.log
