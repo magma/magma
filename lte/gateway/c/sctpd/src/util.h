@@ -26,20 +26,20 @@
 namespace magma {
 namespace sctpd {
 
-#define MLOG_perror(fname)                                                     \
-  do {                                                                         \
-    MLOG(MERROR) << fname << " error (" << std::to_string(errno)               \
-                 << "): " << strerror(errno);                                  \
+#define MLOG_perror(fname)                                       \
+  do {                                                           \
+    MLOG(MERROR) << fname << " error (" << std::to_string(errno) \
+                 << "): " << strerror(errno);                    \
   } while (0)
-#define MLOG_grpcerr(status)                                                   \
-  do {                                                                         \
-    MLOG(MERROR) << "grpc error (" << std::to_string(status.error_code())      \
-                 << "): " << status.error_message();                           \
+#define MLOG_grpcerr(status)                                              \
+  do {                                                                    \
+    MLOG(MERROR) << "grpc error (" << std::to_string(status.error_code()) \
+                 << "): " << status.error_message();                      \
   } while (0)
 
 int create_sctp_sock(const InitReq& req);
-int pull_peer_ipaddr(
-    const int sd, const uint32_t assoc_id, std::string& ran_cp_ipaddr);
+int pull_peer_ipaddr(const int sd, const uint32_t assoc_id,
+                     std::string& ran_cp_ipaddr);
 
 }  // namespace sctpd
 }  // namespace magma

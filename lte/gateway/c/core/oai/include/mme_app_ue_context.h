@@ -236,6 +236,12 @@ typedef struct pdn_context_s {
   protocol_configuration_options_t* pco;
   bool ue_rej_act_def_ber_req;
   bool route_s11_messages_to_s8_task;
+  // Indicates bearer deletion is triggered for the default bearer
+  bool session_deletion_triggered;
+  // Number of dedicated bearers to be deleted
+  uint8_t num_ebi_to_be_del;
+  // List of dedicated bearers to be deleted
+  ebi_t ebi_to_be_del[BEARERS_PER_UE];
 } pdn_context_t;
 
 typedef enum {
@@ -460,6 +466,16 @@ typedef struct ue_mm_context_s {
   /* Storing activate_dedicated_bearer_req messages received
    * when UE is in ECM_IDLE state*/
   emm_cn_activate_dedicated_bearer_req_t* pending_ded_ber_req[BEARERS_PER_UE];
+  // EPS bearer context status IE to be sent in TAU accept msg
+  eps_bearer_context_status_t tau_accept_eps_ber_cntx_status;
+  // Keeps track of num of delete session requests/responses sent/received
+  uint8_t nb_delete_sessions;
+  // Keeps track of num of delete bearer cmds/responses sent/received
+  uint8_t nb_delete_bearer_cmd;
+  // Flag to indicate MME has initiated dedicated bearer deactivation
+  bool mme_initiated_ded_bearer_deactivation;
+  // Counter to track number of RAB requests sent/responses received
+  uint8_t nb_rabs;
   LIST_HEAD(s11_procedures_s, mme_app_s11_proc_s) * s11_procedures;
 } ue_mm_context_t;
 
@@ -510,12 +526,6 @@ ue_mm_context_t* mme_ue_context_exists_enb_ue_s1ap_id(
  **/
 ue_mm_context_t* mme_ue_context_exists_guti(
     mme_ue_context_t* const mme_ue_context, const guti_t* const guti);
-
-/** \brief Move the content of a context to another context
- * \param dst            The destination context
- * \param src            The source context
- **/
-void mme_app_move_context(ue_mm_context_t* dst, ue_mm_context_t* src);
 
 /** \brief Notify the MME_APP that a duplicated ue_context_t exist (both share
  * the same mme_ue_s1ap_id)
@@ -617,6 +627,9 @@ void proc_new_attach_req(
 
 int eps_bearer_release(
     emm_context_t* emm_context_p, ebi_t ebi, pdn_cid_t* pid, int* bidx);
+
+status_code_e send_tau_accept_with_eps_bearer_ctx_status(
+    ue_mm_context_t* ue_context);
 #endif /* FILE_MME_APP_UE_CONTEXT_SEEN */
 
 /* @} */

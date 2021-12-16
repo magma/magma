@@ -72,13 +72,72 @@ Use **Command+Shift+X** to open the extensions tab and install the **[Remote SSH
 
 Inside the newly created VSCode window, go to **File → Open Workspace** and select  `/home/vagrant/magma/vscode-workspaces/workspace.magma-vm-workspace.code-workspace`.
 
-### Open a Devcontainer workspace with GitHub Codespaces
+## Using DevContainer for development
 
-**Prerequisite**: Have access to [GitHub Codespaces](https://github.com/features/codespaces). If you do not have access, follow the instructions at `.devcontainer/README.md` to open it using Docker.
+### Using DevContainer with Github Codespaces
 
-If you open a GitHub Codespaces from a Magma repo Pull Request, the devcontainer configuration should be loaded up automatically. You can also open a workspace by going to `https://github.com/codespaces` and selecting `New Codespaces`. If you intend to make changes and submit a Pull Request, always select your fork of Magma.
+**Prerequisites**:
 
-Any local changes made inside the devcontainer will be wiped when it is upgraded. This should not happen often and you will always be given a prompt before the devcontainer upgrades. To have persisting personal configs, refer to the GitHub's doc on [Personalizing Codespaces for your account](https://docs.github.com/en/codespaces/customizing-your-codespace/personalizing-codespaces-for-your-account).
+- Membership of Magma organization in order to use [GitHub Codespaces](https://github.com/features/codespaces)
+
+To open a GitHub codespace from any branch or pull request, you can use the `<Code>`-button usually situated somewhere on the top right of the page (depending on the view). The currently selected git reference will automatically be opened in the configured DevContainer.
+![Open Github codespace](../assets/contributing/github-codespace-open.png)
+If you intend to make changes and submit a pull request, always select your fork of Magma.
+
+Any changes made inside the DevContainer will be wiped when it is upgraded. This should not happen often and you will always be given a prompt before the DevContainer upgrades. To have persisting personal configs, refer to the GitHub's documentation on [Personalizing Codespaces for your account](https://docs.github.com/en/codespaces/customizing-your-codespace/personalizing-codespaces-for-your-account).
+
+### Using DevContainer with VSCode locally
+
+**Prerequisites**:
+
+- Docker installed
+- VS code installed
+- VS Code [Remote - Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension installed
+- VS Code [Docker](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker) extension installed
+
+Using the DevContainer with VS Code, you have two options:
+
+1. Checkout the repository inside the running container.
+2. Mounting a local copy of the repository inside the running container.
+
+With option 1 the state of your work would always be deleted when you terminate the DevContainer. In addition, it will increase the resource requirements for your running container. While such an ephemeral setup can be desirable at times, it is safer to use option 2.
+With option 2 you use a previously cloned version of the repository already cloned on your hard-drive. This copy will than be reopened (i.e. mounted) to your running DevContainer. Changes to the code made outside the DevContainer will also be available inside, and vice versa. Be aware that the IDE might need some time or refresh to become aware of changes. With option 2 it is in principle possible to use other IDEs to code (e.g. IntelliJ), while still using DevContainer to build and test changes.
+
+To start a remote container in VS Code, press `F1` and search for `Remote - Containers`. An overview of options will be presented.
+![Remote containers options](../assets/contributing/remote-containers.png)
+
+To follow the above-mentioned option 1, choose `Clone {Repository|Github Pull Request} in Container Volume...`.
+To follow the above-mentioned option 2 (recommended), choose `Rebuild and Reopen in Container`.
+
+Your VS Code title bar should than include `[Dev Container]` and the terminal (Menu Terminal - New Terminal) prompt similar to
+
+```raw
+vscode ➜ /workspaces/magma (your/branch ✗) $
+```
+
+also shows that you are inside the container.
+
+You can than proceed with your build of the component as usual.
+
+#### MacOS specific settings
+
+In some operating systems (e.g. MAC) docker runs in a VM and you must allocate system resources (e.g. memory, CPU).
+Detailed explanation on how to change the system resources can be found in the [Getting Started guide](../basics/prerequisites.md).
+Different build targets in Magma require different resources, e.g.
+
+- 7 GB RAM are required for `make test_oai` and `make build_oai` within `lte/gateway/`, while
+- 12 GB RAM are required from `make test_connection_manager` within `lte/gateway/`.
+
+#### Troubleshooting
+
+- Running out of disk space
+  Docker uses a lot of disc space. You can prune unused images with [`docker image prune`](https://docs.docker.com/engine/reference/commandline/image_prune/). Use the `--all` option, if you want to get rid of everything.
+- `apt-get` or `apt` failure seemingly without reason
+  This can also happen, when you run out of disk space. Check the point above.
+
+### Developing DevContainer
+
+Documentation on how to develop the DevContainer itself, including local build option, can be found within the respective [ReadMe](https://github.com/magma/magma/blob/master/.devcontainer/README.md).
 
 ## Language and tool specific feature guide
 

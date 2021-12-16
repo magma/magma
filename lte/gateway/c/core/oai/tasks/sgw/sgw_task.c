@@ -179,6 +179,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       }
     } break;
 
+    case S11_DELETE_BEARER_COMMAND: {
+      // Handle delete bearer cmd from MME
+      sgw_handle_delete_bearer_cmd(
+          &received_message_p->ittiMsg.s11_delete_bearer_command, imsi64);
+      is_state_same = true;  // task state is not changed
+    } break;
+
     case IP_ALLOCATION_RESPONSE: {
       int32_t rc = sgw_handle_ip_allocation_rsp(
           spgw_state, &received_message_p->ittiMsg.ip_allocation_response,

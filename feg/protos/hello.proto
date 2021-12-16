@@ -13,6 +13,8 @@ limitations under the License.
 
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 package magma.feg;
 option go_package = "magma/feg/cloud/go/protos";
 
@@ -40,13 +42,24 @@ message HelloRequest {
   // See https://github.com/grpc/grpc-go/blob/master/codes/codes.go for details
   // This field lets user request for a grpc err code, and expect server to
   // successfully send back this err code. If something goes wrong in the path,
-  // the error code will likely come back different. 
+  // the error code will likely come back different.
   uint32 grpc_err_code = 2;
-
+  // timestamp that will be injected by the feg_relay
+  google.protobuf.Timestamp agw_to_feg_relay_timestamp = 3;
 }
 
 message HelloReply {
   string greeting = 1;
+  ResponseTimestamps timestamps = 2;
+}
+
+message ResponseTimestamps {
+  // timestamp coming from HelloRequest
+  google.protobuf.Timestamp agw_to_feg_relay_timestamp = 1;
+  // timestamp of the reception at feg
+  google.protobuf.Timestamp feg_timestamp = 2;
+  // timestamp injected by feg_relay
+  google.protobuf.Timestamp feg_relay_to_agw_timestamp = 3;
 }
 
 // --------------------------------------------------------------------------

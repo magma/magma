@@ -18,6 +18,15 @@ import unittest
 import s1ap_types
 import s1ap_wrapper
 
+# TODO: Current S1APTester logic is broken. Fix as follows
+# 1- Dont send messages automatically on behalf of eNBs
+# 2- Handover Notify Msg from target ENB should only be sent after
+# successfully receiving the MME Status Transfer Msg
+# 3- Source eNB will receive a UE Context Release Command once MME
+# receives a Handover Notify Msg from Target eNB
+
+# Once S1APTester logic is fixed, add this back to integ tests
+
 
 class TestS1HandoverPingPong(unittest.TestCase):
     """Unittest: TestS1HandoverPingPong"""

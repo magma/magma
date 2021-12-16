@@ -30,6 +30,9 @@ import (
 	"magma/orc8r/cloud/go/obsidian/access"
 	"magma/orc8r/cloud/go/obsidian/reverse_proxy"
 	"magma/orc8r/cloud/go/obsidian/swagger/handlers"
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/certifier"
+	"magma/orc8r/lib/go/service/config"
 )
 
 const (
@@ -114,10 +117,14 @@ func Start() {
 			s.TLSConfig.NextProtos = append(s.TLSConfig.NextProtos, "h2")
 		}
 	} else {
-		e.Use(access.Middleware)
+		e.Use(access.CertificateMiddleware)
 	}
-
-	reverseProxyHandler := reverse_proxy.NewReverseProxyHandler()
+	var serviceConfig certifier.Config
+	_, _, err = config.GetStructuredServiceConfig(orc8r.ModuleName, certifier.ServiceName, &serviceConfig)
+	if err != nil {
+		glog.Infof("Failed unmarshalling service config %v", err)
+	}
+	reverseProxyHandler := reverse_proxy.NewReverseProxyHandler(&serviceConfig)
 	pathPrefixesByAddr, err := reverse_proxy.GetEchoServerAddressToPathPrefixes()
 	if err != nil {
 		log.Fatalf("Error querying service registry for reverse proxy paths: %s", err)

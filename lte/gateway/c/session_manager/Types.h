@@ -49,7 +49,7 @@ struct FinalActionInfo {
 
 enum EventTriggerState {
   PENDING = 0,  // trigger installed
-  READY   = 1,  // ready to be reported on
+  READY = 1,    // ready to be reported on
   CLEARED = 2,  // successfully reported
 };
 typedef std::unordered_map<magma::lte::EventTrigger, EventTriggerState>
@@ -79,8 +79,8 @@ enum Bucket {
   USED_RX = 1,
   // ALLOWED: the granted units received
   ALLOWED_TOTAL = 2,
-  ALLOWED_TX    = 3,
-  ALLOWED_RX    = 4,
+  ALLOWED_TX = 3,
+  ALLOWED_RX = 4,
   // REPORTING: quota that is in transit to be acknowledged by OCS/PCRF
   REPORTING_TX = 5,
   REPORTING_RX = 6,
@@ -91,8 +91,8 @@ enum Bucket {
   // received
   // last_valid_nonzero_received_grant = ALLOWED - ALLOWED_FLOOR
   ALLOWED_FLOOR_TOTAL = 9,
-  ALLOWED_FLOOR_TX    = 10,
-  ALLOWED_FLOOR_RX    = 11,
+  ALLOWED_FLOOR_TX = 10,
+  ALLOWED_FLOOR_RX = 11,
 
   // delimiter to iterate enum
   BUCKET_ENUM_MAX_VALUE = 12,
@@ -100,26 +100,26 @@ enum Bucket {
 
 enum ReAuthState {
   REAUTH_NOT_NEEDED = 0,
-  REAUTH_REQUIRED   = 1,
+  REAUTH_REQUIRED = 1,
   REAUTH_PROCESSING = 2,
 };
 
 enum ServiceState {
-  SERVICE_ENABLED            = 0,
+  SERVICE_ENABLED = 0,
   SERVICE_NEEDS_DEACTIVATION = 1,
-  SERVICE_NEEDS_SUSPENSION   = 2,
-  SERVICE_DISABLED           = 3,
-  SERVICE_NEEDS_ACTIVATION   = 4,
-  SERVICE_REDIRECTED         = 5,
-  SERVICE_RESTRICTED         = 6,
+  SERVICE_NEEDS_SUSPENSION = 2,
+  SERVICE_DISABLED = 3,
+  SERVICE_NEEDS_ACTIVATION = 4,
+  SERVICE_REDIRECTED = 5,
+  SERVICE_RESTRICTED = 6,
 };
 
 enum GrantTrackingType {
-  TRACKING_UNSET  = -1,
-  TOTAL_ONLY      = 0,
-  TX_ONLY         = 1,
-  RX_ONLY         = 2,
-  TX_AND_RX       = 3,
+  TRACKING_UNSET = -1,
+  TOTAL_ONLY = 0,
+  TX_ONLY = 1,
+  RX_ONLY = 2,
+  TX_AND_RX = 3,
   ALL_TOTAL_TX_RX = 4,
 };
 
@@ -138,15 +138,15 @@ enum GrantTrackingType {
  * SESSION_TERMINATED
  */
 enum SessionFsmState {
-  SESSION_ACTIVE                = 0,
-  SESSION_TERMINATED            = 4,
+  SESSION_ACTIVE = 0,
+  SESSION_TERMINATED = 4,
   SESSION_TERMINATION_SCHEDULED = 5,
-  SESSION_RELEASED              = 6,
-  CREATING                      = 7,
-  CREATED                       = 8,
-  ACTIVE                        = 9,
-  INACTIVE                      = 10,
-  RELEASE                       = 11,
+  SESSION_RELEASED = 6,
+  CREATING = 7,
+  CREATED = 8,
+  ACTIVE = 9,
+  INACTIVE = 10,
+  RELEASE = 11,
 };
 
 struct RuleLifetime {
@@ -165,7 +165,7 @@ struct RuleLifetime {
 
 // QoS Management
 enum PolicyType {
-  STATIC  = 1,
+  STATIC = 1,
   DYNAMIC = 2,
 };
 
@@ -175,7 +175,7 @@ struct PolicyID {
 
   PolicyID(PolicyType p_type, std::string r_id) {
     policy_type = p_type;
-    rule_id     = r_id;
+    rule_id = r_id;
   }
 
   bool operator==(const PolicyID& id) const {
@@ -225,7 +225,7 @@ struct RuleStats {
 typedef std::vector<RuleToProcess> RulesToProcess;
 
 enum PolicyAction {
-  ACTIVATE   = 0,
+  ACTIVATE = 0,
   DEACTIVATE = 1,
 };
 
@@ -235,9 +235,8 @@ struct RuleToSchedule {
   PolicyAction p_action;
   std::time_t scheduled_time;
   RuleToSchedule() {}
-  RuleToSchedule(
-      PolicyType _p_type, std::string _rule_id, PolicyAction _p_action,
-      std::time_t _time)
+  RuleToSchedule(PolicyType _p_type, std::string _rule_id,
+                 PolicyAction _p_action, std::time_t _time)
       : p_type(_p_type),
         rule_id(_rule_id),
         p_action(_p_action),
@@ -254,10 +253,10 @@ struct StatsPerPolicy {
 
   std::unordered_map<int, RuleStats> stats_map;
   StatsPerPolicy() {
-    current_version       = 0;
+    current_version = 0;
     last_reported_version = 0;
-    RuleStats s           = {0, 0, 0, 0};
-    stats_map             = {{0, s}};
+    RuleStats s = {0, 0, 0, 0};
+    stats_map = {{0, s}};
   }
 };
 typedef std::unordered_map<std::string, StatsPerPolicy> PolicyStatsMap;

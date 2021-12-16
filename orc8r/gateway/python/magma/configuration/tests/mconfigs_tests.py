@@ -70,6 +70,19 @@ class MconfigsTest(unittest.TestCase):
         }
         self.assertEqual(expected, actual)
 
+        # Including 'shared_mconfig'
+        configs_by_key['shared_mconfig'] = {
+            '@type': 'type.googleapis.com/magma.mconfig.SharedMconfig',
+            'value': 'shared'.encode(),
+        }
+        actual = mconfigs.filter_configs_by_key(configs_by_key)
+        expected = {
+            'magmad': configs_by_key['magmad'],
+            'directoryd': configs_by_key['directoryd'],
+            'shared_mconfig': configs_by_key['shared_mconfig'],
+        }
+        self.assertEqual(expected, actual)
+
     def test_unpack_mconfig_any(self):
         magmad_mconfig = mconfigs_pb2.MagmaD(
             checkin_interval=10,

@@ -1310,6 +1310,10 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
       cause_type  = S1ap_Cause_PR_nas;
       cause_value = S1ap_CauseNas_unspecified;
       break;
+    case S1AP_SUCCESSFUL_HANDOVER:
+      cause_type  = S1ap_Cause_PR_radioNetwork;
+      cause_value = S1ap_CauseRadioNetwork_successful_handover;
+      break;
     case S1AP_RADIO_EUTRAN_GENERATED_REASON:
       cause_type = S1ap_Cause_PR_radioNetwork;
       cause_value =
@@ -1355,6 +1359,8 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
   bstring b = blk2bstr(buffer, length);
   free(buffer);
   rc = s1ap_mme_itti_send_sctp_request(&b, assoc_id, stream, mme_ue_s1ap_id);
+
+  // Dont remove UE context if UE handed over to another eNB
   if (ue_ref_p != NULL && ue_ref_p->sctp_assoc_id == assoc_id) {
     ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
     // We can safely remove UE context now, no need for timer
@@ -3179,6 +3185,14 @@ status_code_e s1ap_mme_handle_handover_notify(
     s1ap_mme_itti_s1ap_handover_notify(
         mme_ue_s1ap_id, src_ue_ref_p->s1ap_handover_state, tgt_enb_ue_s1ap_id,
         assoc_id, ecgi, imsi64);
+
+    // Send context release command to source eNB
+    s1ap_mme_generate_ue_context_release_command(
+        state, new_ue_ref_p, S1AP_SUCCESSFUL_HANDOVER, imsi64,
+        src_ue_ref_p->sctp_assoc_id,
+        src_ue_ref_p->s1ap_handover_state.source_sctp_stream_send,
+        mme_ue_s1ap_id,
+        src_ue_ref_p->s1ap_handover_state.source_enb_ue_s1ap_id);
 
     /* Remove ue description from source eNB */
     s1ap_remove_ue(state, src_ue_ref_p);

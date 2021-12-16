@@ -82,36 +82,36 @@ metrics:
             claimName: ${metrics_pvc_promcfg}
 
   prometheus:
-    create: true
+    create: ${enable_metrics}
     includeOrc8rAlerts: true
     prometheusCacheHostname: ${prometheus_cache_hostname}
     alertmanagerHostname: ${alertmanager_hostname}
 
   alertmanager:
-    create: true
+    create: ${enable_metrics}
 
   prometheusConfigurer:
-    create: true
+    create: ${enable_metrics}
     image:
       repository: docker.io/facebookincubator/prometheus-configurer
       tag: ${prometheus_configurer_version}
     prometheusURL: ${prometheus_url}
 
   alertmanagerConfigurer:
-    create: true
+    create: ${enable_metrics}
     image:
       repository: docker.io/facebookincubator/alertmanager-configurer
       tag: ${alertmanager_configurer_version}
     alertmanagerURL: ${alertmanager_url}
 
   prometheusCache:
-    create: true
+    create: ${enable_metrics}
     image:
       repository: docker.io/facebookincubator/prometheus-edge-hub
       tag: 1.1.0
     limit: 500000
   grafana:
-    create: false
+    create: ${enable_metrics}
 
   userGrafana:
     image:
@@ -212,4 +212,4 @@ nms:
         ssl_cert_key_name: controller.key
 
 logging:
-  enabled: false
+  enabled: ${enable_logging}

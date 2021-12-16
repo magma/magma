@@ -28,7 +28,7 @@ def main():
     service = MagmaService('redirectd', mconfigs_pb2.RedirectD())
 
     # Optionally pipe errors to Sentry
-    sentry_init(service_name=service.name)
+    sentry_init(service_name=service.name, sentry_mconfig=service.shared_mconfig.sentry_config)
 
     redirect_ip = get_service_config_value(
         'pipelined',

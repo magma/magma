@@ -562,10 +562,10 @@ typedef enum call_control_ie_e {
 
 typedef bstring supported_codec_list_t;
 
-int encode_supported_codec_list(
+int encode_supported_codec_list_ie(
     supported_codec_list_t* supportedcodeclist, const bool iei_present,
     uint8_t* buffer, const uint32_t len);
-int decode_supported_codec_list(
+int decode_supported_codec_list_ie(
     supported_codec_list_t* supportedcodeclist, const bool iei_present,
     uint8_t* buffer, const uint32_t len);
 

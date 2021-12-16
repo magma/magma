@@ -4,14 +4,16 @@ startup --output_base=/tmp/bazel
 build --announce_rc
 build --color=yes
 
+build:development --compilation_mode=fastbuild
+build:production --config=lsan --compilation_mode=dbg --strip=never --copt=-O3
+
 # C/C++ CONFIGS
 build --cxxopt=-std=c++14
-build --strip=never
-build --compilation_mode=dbg
+build --cxxopt=-DLOG_WITH_GLOG=1
+build --experimental_strict_action_env
 
 # MAGMA VM CONFIGS
 build:specify_vm_cc --action_env=CC=/usr/bin/gcc
-build:specify_vm_cc --action_env=CXX=/usr/bin/g++
 build:vm --disk_cache=/home/vagrant/magma/.bazel-cache
 common:vm --repository_cache=/home/vagrant/magma/.bazel-cache-repo
 build:vm --define=folly_so=1

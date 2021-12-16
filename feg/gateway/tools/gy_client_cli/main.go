@@ -24,6 +24,7 @@ import (
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
+	"magma/lte/cloud/go/protos"
 )
 
 const (
@@ -33,34 +34,40 @@ const (
 )
 
 var (
-	imsi              string
-	sid               string
-	ueIP              string
-	spgwIP            string
-	ratingGroupString string
-	usedCredit        uint64
-	commands          string
-	wait              bool
-	help              bool
-	msisdn            string
-	apn               string
-	plmn              string
-	serverid          int
+	imsi                string
+	sid                 string
+	ueIP                string
+	spgwIP              string
+	ratingGroupString   string
+	usedCredit          uint64
+	commands            string
+	wait                bool
+	help                bool
+	msisdn              string
+	apn                 string
+	plmn                string
+	serverid            int
+	requestedUnitsTotal uint64
+	requestedUnitsTx    uint64
+	requestedUnitsRx    uint64
 )
 
 type cliConfig struct {
-	serverCfg    *diameter.DiameterServerConfig
-	gyClient     *gy.GyClient
-	imsi         string
-	sessionID    string
-	ueIP         string
-	spgwIP       string
-	ratingGroups []uint32
-	rg2ServiceId map[uint32]uint32
-	usedCredit   uint64
-	msisdn       string
-	apn          string
-	plmn         string
+	serverCfg           *diameter.DiameterServerConfig
+	gyClient            *gy.GyClient
+	imsi                string
+	sessionID           string
+	ueIP                string
+	spgwIP              string
+	ratingGroups        []uint32
+	rg2ServiceId        map[uint32]uint32
+	usedCredit          uint64
+	msisdn              string
+	apn                 string
+	plmn                string
+	requestedUnitsTotal uint64
+	requestedUnitsTx    uint64
+	requestedUnitsRx    uint64
 }
 
 func init() {
@@ -82,6 +89,9 @@ func init() {
 	flag.StringVar(&apn, "apn", "TestMagma", "apn")
 	flag.StringVar(&plmn, "plmn", "72207", "PLMN ID")
 	flag.IntVar(&serverid, "serverid", 0, "Index of one of the configured servers")
+	flag.Uint64Var(&requestedUnitsTotal, "requestedUnitsTotal", 0, "Total Requested Units per request")
+	flag.Uint64Var(&requestedUnitsTx, "requestedUnitsTx", 0, "Tx Requested Units per request")
+	flag.Uint64Var(&requestedUnitsRx, "requestedUnitsRx", 0, "Rx Requested Units per request")
 
 	// Flag help
 	allFlags := []string{"help", "imsi", "sid", "rating_groups", "used_credit", "ue_ip", "spgw_ip",
@@ -123,18 +133,21 @@ func main() {
 	rgs, rg2sid := parseRatingGroups(ratingGroupString)
 
 	config := &cliConfig{
-		serverCfg:    serverCfg,
-		gyClient:     gy.NewGyClient(clientCfg, serverCfg, handleReAuth, nil, gyGobalCfg),
-		imsi:         imsi,
-		sessionID:    fmt.Sprintf("%s-%s", imsi, sid),
-		ueIP:         ueIP,
-		spgwIP:       spgwIP,
-		ratingGroups: rgs,
-		rg2ServiceId: rg2sid,
-		usedCredit:   usedCredit,
-		msisdn:       msisdn,
-		apn:          apn,
-		plmn:         plmn,
+		serverCfg:           serverCfg,
+		gyClient:            gy.NewGyClient(clientCfg, serverCfg, handleReAuth, nil, gyGobalCfg),
+		imsi:                imsi,
+		sessionID:           fmt.Sprintf("%s-%s", imsi, sid),
+		ueIP:                ueIP,
+		spgwIP:              spgwIP,
+		ratingGroups:        rgs,
+		rg2ServiceId:        rg2sid,
+		usedCredit:          usedCredit,
+		msisdn:              msisdn,
+		apn:                 apn,
+		plmn:                plmn,
+		requestedUnitsTotal: requestedUnitsTotal,
+		requestedUnitsTx:    requestedUnitsTx,
+		requestedUnitsRx:    requestedUnitsRx,
 	}
 
 	if len(commands) == 0 {
@@ -182,6 +195,8 @@ func sendCreditCall(config *cliConfig, requestType credit_control.CreditRequestT
 				InputOctets:       0, // make all used credit output for simplicity
 				OutputOctets:      config.usedCredit,
 				TotalOctets:       config.usedCredit,
+				RequestedUnits: getRequestedUnits(
+					config.requestedUnitsTotal, config.requestedUnitsTx, config.requestedUnitsRx),
 			})
 		}
 	}
@@ -242,4 +257,15 @@ func parseRatingGroups(ratingGroupString string) (ratingGroups []uint32, ratingG
 		ratingGroups = append(ratingGroups, uint32(rg))
 	}
 	return ratingGroups, ratingGrpToServiceId
+}
+
+func getRequestedUnits(requestedUnitsTotal uint64, requestedUnitsRx uint64, requestedUnitsTx uint64) *protos.RequestedUnits {
+	if requestedUnitsTotal == 0 && requestedUnitsTx == 0 && requestedUnitsRx == 0 {
+		return nil
+	}
+	return &protos.RequestedUnits{
+		Total: requestedUnitsTotal,
+		Tx:    requestedUnitsTx,
+		Rx:    requestedUnitsRx,
+	}
 }

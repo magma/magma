@@ -31,9 +31,8 @@ class MeteringReporter {
    * Report all unreported traffic usage for a session.
    * All charging and monitoring keys are aggregated.
    */
-  void report_usage(
-      const std::string& imsi, const std::string& session_id,
-      SessionStateUpdateCriteria& update_criteria);
+  void report_usage(const std::string& imsi, const std::string& session_id,
+                    SessionStateUpdateCriteria& update_criteria);
 
   /**
    * Reports the usage as described in TotalCreditUsage
@@ -41,17 +40,16 @@ class MeteringReporter {
    * counter value. TotalCreditUsage contains the cumulative usage since the
    * start, not a delta value.
    */
-  void initialize_usage(
-      const std::string& imsi, const std::string& session_id,
-      TotalCreditUsage usage);
+  void initialize_usage(const std::string& imsi, const std::string& session_id,
+                        TotalCreditUsage usage);
 
  private:
   /**
    * Report traffic usage for a session
    */
-  void report_traffic(
-      const std::string& imsi, const std::string& session_id,
-      const std::string& traffic_direction, double unreported_usage_bytes);
+  void report_traffic(const std::string& imsi, const std::string& session_id,
+                      const std::string& traffic_direction,
+                      double unreported_usage_bytes);
 };
 
 }  // namespace lte

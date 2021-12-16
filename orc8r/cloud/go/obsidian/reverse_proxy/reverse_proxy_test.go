@@ -67,7 +67,7 @@ func TestReverseProxy(t *testing.T) {
 	startTestService(t, srv1, lis1)
 	startTestService(t, srv2, lis2)
 
-	handler := NewReverseProxyHandler()
+	handler := NewReverseProxyHandler(nil)
 	e, err := startTestServer(handler)
 	assert.NoError(t, err)
 
@@ -180,7 +180,7 @@ func TestReverseProxyPathCollision(t *testing.T) {
 	startTestService(t, srv1, lis1)
 	startTestService(t, srv2, lis2)
 
-	handler := NewReverseProxyHandler()
+	handler := NewReverseProxyHandler(nil)
 	e, err := startTestServer(handler)
 	assert.NoError(t, err)
 

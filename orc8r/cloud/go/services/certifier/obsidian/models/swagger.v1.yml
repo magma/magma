@@ -1,0 +1,236 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/services/certifier/obsidian/models
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+  temp-gen-filename: certifier-swagger.yml
+  output-dir: orc8r/cloud/go/services/certifier/obsidian
+  types:
+    - go-struct-name: User
+      filename: user_swaggergen.go
+
+info:
+  title: Certifier's Auth Management
+  description: Certifier REST APIs
+  version: 1.0.0
+
+basePath: /magma/v1
+
+paths:
+  /user:
+    get:
+      summary: List all usernames
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              type: string
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      tags:
+        - User
+    post:
+      summary: Create a user
+      parameters:
+        - name: user
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/user'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      tags:
+        - User
+  /user/{username}:
+    get:
+      parameters:
+        - $ref: '#/parameters/username'
+      responses:
+        '201':
+          description: Success
+          schema:
+            type: string
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      summary: Get a single user's information
+      tags:
+        - User
+    put:
+      summary: Update a user's password
+      parameters:
+        - $ref: '#/parameters/username'
+        - name: password
+          description: New password for user
+          in: body
+          required: true
+          schema:
+            properties:
+              password:
+                type: string
+                format: password
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      tags:
+        - User
+    delete:
+      summary: Remove a user
+      parameters:
+        - $ref: '#/parameters/username'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      tags:
+        - User
+  /user/{username}/tokens:
+    get:
+      summary: Get a list of a user's tokens and their respective policies
+      parameters:
+        - $ref: '#/parameters/username'
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/policy'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      tags:
+        - User
+    post:
+      summary: Add a token/policy to the user's existing permissions
+      parameters:
+        - $ref: '#/parameters/username'
+        - name: resources
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/resources'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      tags:
+        - User
+  /user/{username}/tokens/{token}:
+    delete:
+      summary: Revoke the token and its policy from the user
+      parameters:
+        - name: token
+          in: path
+          required: true
+          type: string
+        - $ref: '#/parameters/username'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      tags:
+        - User
+  /user/login:
+    post:
+      parameters:
+        - in: body
+          name: user
+          required: true
+          schema:
+            $ref: '#/definitions/user'
+      security: []
+      summary: List all the tokens given a user
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+      tags:
+        - User
+
+parameters:
+  username:
+    in: path
+    name: username
+    description: username
+    required: true
+    type: string
+
+definitions:
+  policy:
+    description: An object that defines a user's permissions to access resources
+    type: object
+    required:
+      - token
+      - resources
+    properties:
+      token:
+        type: string
+      resources:
+        $ref: '#/definitions/resources'
+    example:
+      token: op_6YHy0uT7DeuWyT3N9nkAOyoeyOI25fletJE69yHGGl4ifjfoq
+      resources:
+        - effect: DENY
+          action: READ
+          resource: test_network1
+          resourceType: NETWORK_ID
+        - effect: ALLOW
+          action: WRITE
+          resource: '/**'
+          resourceType: URI
+  user:
+    description: The user's authentication info
+    type: object
+    required:
+      - username
+      - password
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+  resources:
+    type: array
+    items:
+      $ref: '#/definitions/resource'
+    example:
+      - effect: DENY
+        action: READ
+        resource: test_network1
+        resourceType: NETWORK_ID
+      - effect: ALLOW
+        action: WRITE
+        resource: '/**'
+        resourceType: URI
+  resource:
+    description: The resource to which the user is either denied or allowed access to read/write
+    type: object
+    properties:
+      effect:
+        type: string
+        enum: [DENY, ALLOW]
+      action:
+        type: string
+        enum: [READ, WRITE]
+      resource:
+        type: string
+      resourceType:
+        type: string
+        enum: [NETWORK_ID, TENANT_ID, URI]
+    example:
+      effect: ALLOW
+      action: WRITE
+      resource: '/**'
+      resourceType: URI

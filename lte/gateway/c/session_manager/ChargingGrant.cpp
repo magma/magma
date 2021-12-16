@@ -34,32 +34,32 @@ ChargingGrant::ChargingGrant(const StoredChargingGrant& marshaled) {
       marshaled.final_action_info.redirect_server;
   final_action_info.restrict_rules = marshaled.final_action_info.restrict_rules;
 
-  reauth_state   = marshaled.reauth_state;
-  service_state  = marshaled.service_state;
-  expiry_time    = marshaled.expiry_time;
+  reauth_state = marshaled.reauth_state;
+  service_state = marshaled.service_state;
+  expiry_time = marshaled.expiry_time;
   is_final_grant = marshaled.is_final;
-  suspended      = marshaled.suspended;
+  suspended = marshaled.suspended;
 }
 
 StoredChargingGrant ChargingGrant::marshal() {
   StoredChargingGrant marshaled{};
-  marshaled.is_final                       = is_final_grant;
+  marshaled.is_final = is_final_grant;
   marshaled.final_action_info.final_action = final_action_info.final_action;
   marshaled.final_action_info.redirect_server =
       final_action_info.redirect_server;
   marshaled.final_action_info.restrict_rules = final_action_info.restrict_rules;
-  marshaled.reauth_state                     = reauth_state;
-  marshaled.service_state                    = service_state;
-  marshaled.expiry_time                      = expiry_time;
-  marshaled.credit                           = credit.marshal();
-  marshaled.suspended                        = suspended;
+  marshaled.reauth_state = reauth_state;
+  marshaled.service_state = service_state;
+  marshaled.expiry_time = expiry_time;
+  marshaled.credit = credit.marshal();
+  marshaled.suspended = suspended;
   return marshaled;
 }
 
 CreditValidity ChargingGrant::get_credit_response_validity_type(
     const CreditUpdateResponse& update) {
-  const uint32_t key             = update.charging_key();
-  const std::string session_id   = update.session_id();
+  const uint32_t key = update.charging_key();
+  const std::string session_id = update.session_id();
   CreditValidity credit_validity = VALID_CREDIT;
   if (!update.success()) {
     if (DiameterCodeHandler::is_permanent_failure(update.result_code())) {
@@ -141,21 +141,21 @@ void ChargingGrant::receive_charging_grant(
 
   // Update the UpdateCriteria if not nullptr
   if (credit_uc) {
-    credit_uc->is_final          = is_final_grant;
+    credit_uc->is_final = is_final_grant;
     credit_uc->final_action_info = final_action_info;
-    credit_uc->expiry_time       = expiry_time;
-    credit_uc->suspended         = suspended;
+    credit_uc->expiry_time = expiry_time;
+    credit_uc->suspended = suspended;
   }
 }
 
 SessionCreditUpdateCriteria ChargingGrant::get_update_criteria() {
   SessionCreditUpdateCriteria credit_uc = credit.get_update_criteria();
-  credit_uc.is_final                    = is_final_grant;
-  credit_uc.final_action_info           = final_action_info;
-  credit_uc.expiry_time                 = expiry_time;
-  credit_uc.reauth_state                = reauth_state;
-  credit_uc.service_state               = service_state;
-  credit_uc.suspended                   = suspended;
+  credit_uc.is_final = is_final_grant;
+  credit_uc.final_action_info = final_action_info;
+  credit_uc.expiry_time = expiry_time;
+  credit_uc.reauth_state = reauth_state;
+  credit_uc.service_state = service_state;
+  credit_uc.suspended = suspended;
   return credit_uc;
 }
 
@@ -302,8 +302,8 @@ ServiceActionType ChargingGrant::final_action_to_action_on_suspension(
   }
 }
 
-void ChargingGrant::set_reauth_state(
-    const ReAuthState new_state, SessionCreditUpdateCriteria* credit_uc) {
+void ChargingGrant::set_reauth_state(const ReAuthState new_state,
+                                     SessionCreditUpdateCriteria* credit_uc) {
   if (reauth_state != new_state) {
     MLOG(MDEBUG) << "ReAuth state change from "
                  << reauth_state_to_str(reauth_state) << " to "
@@ -315,9 +315,8 @@ void ChargingGrant::set_reauth_state(
   }
 }
 
-void ChargingGrant::set_service_state(
-    const ServiceState new_service_state,
-    SessionCreditUpdateCriteria* credit_uc) {
+void ChargingGrant::set_service_state(const ServiceState new_service_state,
+                                      SessionCreditUpdateCriteria* credit_uc) {
   if (service_state != new_service_state) {
     MLOG(MDEBUG) << "Service state change from "
                  << service_state_to_str(service_state) << " to "
@@ -329,8 +328,8 @@ void ChargingGrant::set_service_state(
   }
 }
 
-void ChargingGrant::set_suspended(
-    bool new_suspended, SessionCreditUpdateCriteria* credit_uc) {
+void ChargingGrant::set_suspended(bool new_suspended,
+                                  SessionCreditUpdateCriteria* credit_uc) {
   if (suspended != new_suspended) {
     MLOG(MDEBUG) << "Credit suspension set to: " << new_suspended;
   }

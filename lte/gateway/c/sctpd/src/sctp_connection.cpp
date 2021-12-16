@@ -66,17 +66,17 @@ void SctpConnection::Close() {
   close(_sctp_desc.sd());
 }
 
-void SctpConnection::Send(
-    uint32_t assoc_id, uint32_t stream, const std::string& msg) {
+void SctpConnection::Send(uint32_t assoc_id, uint32_t stream,
+                          const std::string& msg) {
   assert(_thread != nullptr);
 
   auto assoc = _sctp_desc.getAssoc(assoc_id);
   assert(assoc.sd >= 0);
 
   auto buf = msg.c_str();
-  auto n   = msg.size();
-  auto rc  = sctp_sendmsg(
-      assoc.sd, buf, n, NULL, 0, htonl(assoc.ppid), 0, stream, 0, 0);
+  auto n = msg.size();
+  auto rc = sctp_sendmsg(assoc.sd, buf, n, NULL, 0, htonl(assoc.ppid), 0,
+                         stream, 0, 0);
 
   if (rc < 0) {
     MLOG_perror("sctp_sendmsg");
@@ -96,7 +96,7 @@ void SctpConnection::Listen() {
   }
 
   struct epoll_event event;
-  event.events  = EPOLLIN;
+  event.events = EPOLLIN;
   event.data.fd = server_fd;
 
   if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_fd, &event) < 0) {
@@ -107,7 +107,7 @@ void SctpConnection::Listen() {
   struct epoll_event events[NUM_EPOLL_EVENTS];
 
   while (!_done) {
-    int timeout    = 100;  // milliseconds = .1s
+    int timeout = 100;  // milliseconds = .1s
     int num_events = epoll_wait(epoll_fd, events, NUM_EPOLL_EVENTS, timeout);
 
     switch (num_events) {
@@ -119,7 +119,9 @@ void SctpConnection::Listen() {
       case 0: {  // timed out
         continue;
       }
-      default: { break; }
+      default: {
+        break;
+      }
     }
 
     for (int i = 0; i < num_events; i++) {
@@ -133,7 +135,7 @@ void SctpConnection::Listen() {
         }
 
         struct epoll_event event;
-        event.events  = EPOLLIN;
+        event.events = EPOLLIN;
         event.data.fd = client_sd;
 
         if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_sd, &event) < 0) {
@@ -178,7 +180,7 @@ SctpStatus SctpConnection::HandleClientSock(int sd) {
   }
 
   if (flags & MSG_NOTIFICATION) {
-    auto notif = (union sctp_notification*) msg;
+    auto notif = (union sctp_notification*)msg;
 
     switch (notif->sn_header.sn_type) {
       case SCTP_SHUTDOWN_EVENT: {
@@ -222,16 +224,15 @@ SctpStatus SctpConnection::HandleClientSock(int sd) {
                  << std::to_string(sinfo.sinfo_assoc_id) << ":"
                  << std::to_string(sinfo.sinfo_stream);
 
-    _handler.HandleRecv(
-        ntohl(sinfo.sinfo_ppid), sinfo.sinfo_assoc_id, sinfo.sinfo_stream,
-        std::string(msg, n));
+    _handler.HandleRecv(ntohl(sinfo.sinfo_ppid), sinfo.sinfo_assoc_id,
+                        sinfo.sinfo_stream, std::string(msg, n));
 
     return SctpStatus::OK;
   }
 }
 
-SctpStatus SctpConnection::HandleAssocChange(
-    int sd, struct sctp_assoc_change* change) {
+SctpStatus SctpConnection::HandleAssocChange(int sd,
+                                             struct sctp_assoc_change* change) {
   switch (change->sac_state) {
     case SCTP_COMM_UP: {
       return HandleComUp(sd, change);
@@ -251,14 +252,14 @@ SctpStatus SctpConnection::HandleAssocChange(
   }
 }
 
-SctpStatus SctpConnection::HandleComUp(
-    int sd, struct sctp_assoc_change* change) {
+SctpStatus SctpConnection::HandleComUp(int sd,
+                                       struct sctp_assoc_change* change) {
   SctpAssoc assoc;
 
-  assoc.sd         = sd;
-  assoc.ppid       = _ppid;
-  assoc.assoc_id   = change->sac_assoc_id;
-  assoc.instreams  = change->sac_inbound_streams;
+  assoc.sd = sd;
+  assoc.ppid = _ppid;
+  assoc.assoc_id = change->sac_assoc_id;
+  assoc.instreams = change->sac_inbound_streams;
   assoc.outstreams = change->sac_outbound_streams;
 
   _sctp_desc.addAssoc(assoc);

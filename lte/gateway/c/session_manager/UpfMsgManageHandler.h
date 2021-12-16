@@ -87,10 +87,9 @@ class UpfMsgHandler {
  */
 class UpfMsgManageHandler : public UpfMsgHandler {
  public:
-  UpfMsgManageHandler(
-      std::shared_ptr<SessionStateEnforcer> enf,
-      std::shared_ptr<MobilitydClient> mobilityd_client,
-      SessionStore& session_store);
+  UpfMsgManageHandler(std::shared_ptr<SessionStateEnforcer> enf,
+                      std::shared_ptr<MobilitydClient> mobilityd_client,
+                      SessionStore& session_store);
 
   ~UpfMsgManageHandler() {}
   /**

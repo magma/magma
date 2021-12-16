@@ -22,4 +22,5 @@ type Config struct {
 	Analytics      calculations.AnalyticsConfig `yaml:"analytics"`
 	CertsDirectory string                       `yaml:"certsDirectory"`
 	Certs          []string                     `yaml:"orchestratorCerts"`
+	UseToken       bool                         `yaml:"useToken"`
 }

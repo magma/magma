@@ -91,6 +91,7 @@ typedef struct sgw_state_s {
   struct in6_addr sgw_ipv6_address_S1u_S12_S4_up;
   struct in_addr sgw_ip_address_S5S8_up;
   hash_table_ts_t* imsi_ue_context_htbl;
+  hash_table_ts_t* temporary_create_session_procedure_id_htbl;
 } sgw_state_t;
 
 // AGW-wide state for SPGW task

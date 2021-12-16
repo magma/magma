@@ -301,6 +301,7 @@ void fill_nw_initiated_activate_bearer_request(
   dl_tft->ebit = TRAFFIC_FLOW_TEMPLATE_PARAMETER_LIST_IS_NOT_INCLUDED;
 
   // create one uplink tft
+  ul_tft->numberofpacketfilters = 1;
   ul_tft->packetfilterlist.createnewtft[0].direction =
       TRAFFIC_FLOW_TEMPLATE_UPLINK_ONLY;
   ul_tft->packetfilterlist.createnewtft[0].eval_precedence = qos.pl;
@@ -308,6 +309,7 @@ void fill_nw_initiated_activate_bearer_request(
       &ul_tft->packetfilterlist.createnewtft[0].packetfiltercontents);
 
   // create one downlink tft
+  dl_tft->numberofpacketfilters = 1;
   dl_tft->packetfilterlist.createnewtft[0].direction =
       TRAFFIC_FLOW_TEMPLATE_DOWNLINK_ONLY;
   dl_tft->packetfilterlist.createnewtft[0].eval_precedence = qos.pl;

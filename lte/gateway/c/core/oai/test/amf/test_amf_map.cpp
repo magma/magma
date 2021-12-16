@@ -13,6 +13,7 @@
 #include <gtest/gtest.h>
 #include "lte/gateway/c/core/oai/include/map.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 
 using ::testing::Test;
 
@@ -100,5 +101,22 @@ TEST(test_map, test_map) {
       magma::MAP_KEY_NOT_EXISTS);
 
   delete state_cache_p;
+}
+
+TEST(test_map, test_amf_state_ue_ht) {
+  // Initializations for Map: Key-uint64_t Data-void*
+  amf_ue_ngap_id_t ue_id         = 1;
+  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
+  map_uint64_ue_context_t state_ue_ht;
+
+  EXPECT_EQ(state_ue_ht.get(2, &ue_context), magma::MAP_EMPTY);
+
+  EXPECT_EQ(state_ue_ht.insert(ue_id, ue_context), magma::MAP_OK);
+
+  EXPECT_EQ(state_ue_ht.get(ue_id, &ue_context), magma::MAP_OK);
+
+  EXPECT_EQ(state_ue_ht.remove(ue_id), magma::MAP_OK);
+
+  delete ue_context;
 }
 }  // namespace magma5g

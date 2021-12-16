@@ -37,7 +37,7 @@ extern "C" {
 
 #include <google/protobuf/map.h>
 #include <functional>
-
+#include "lte/gateway/c/core/oai/include/map.h"
 #include "lte/protos/oai/common_types.pb.h"
 
 namespace magma {
@@ -139,9 +139,9 @@ class StateConverter {
       hash_table_uint64_ts_t* state_htbl);
 
   static void guti_to_proto(const guti_t& guti_state, oai::Guti* guti_proto);
+  static void proto_to_guti(const oai::Guti& guti_proto, guti_t* state_guti);
 
   static void ecgi_to_proto(const ecgi_t& state_ecgi, oai::Ecgi* ecgi_proto);
-
   static void proto_to_ecgi(const oai::Ecgi& ecgi_proto, ecgi_t* state_ecgi);
 
   static void eps_subscribed_qos_profile_to_proto(
@@ -166,8 +166,27 @@ class StateConverter {
       const oai::ApnConfigProfile& apn_config_profile_proto,
       apn_config_profile_t* state_apn_config_profile);
 
+  /***********************************************************
+   *                 Map <-> Proto
+   * Functions to serialize/deserialize in-memory maps
+   * for AMF task. Only AMF task inserts/removes elements in
+   * the maps, so these calls are thread-safe.
+   * We only need to lock the UE context structure as it can
+   * also be accessed by the NAS task. If map is empty
+   * the proto field is also empty
+   ***********************************************************/
+
+  static void map_uint64_uint64_to_proto(
+      map_uint64_uint64_t map,
+      google::protobuf::Map<uint64_t, uint64_t>* proto_map);
+
+  static void proto_to_map_uint64_uint64(
+      const google::protobuf::Map<uint64_t, uint64_t>& proto_map,
+      map_uint64_uint64_t* map);
+
  private:
   static void plmn_to_chars(const plmn_t& state_plmn, char* plmn_array);
+  static void chars_to_plmn(const char* plmn_array, plmn_t& state_plmn);
 };
 
 }  // namespace lte

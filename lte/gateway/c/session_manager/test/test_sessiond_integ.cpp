@@ -48,31 +48,29 @@ ACTION_P2(SetEndPromise, promise_p, status) {
   return status;
 }
 
-ACTION_P(SetPromise, promise_p) {
-  promise_p->set_value();
-}
+ACTION_P(SetPromise, promise_p) { promise_p->set_value(); }
 
 // Take the SessionID from the request as it is generated internally
 ACTION_P2(SetCreateSessionResponse, first_quota, second_quota) {
-  auto req  = static_cast<const CreateSessionRequest*>(arg1);
-  auto res  = static_cast<CreateSessionResponse*>(arg2);
+  auto req = static_cast<const CreateSessionRequest*>(arg1);
+  auto res = static_cast<CreateSessionResponse*>(arg2);
   auto imsi = req->common_context().sid().id();
   res->mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
   res->mutable_static_rules()->Add()->mutable_rule_id()->assign("rule2");
   res->mutable_static_rules()->Add()->mutable_rule_id()->assign("rule3");
-  create_credit_update_response(
-      imsi, req->session_id(), 1, first_quota, res->mutable_credits()->Add());
-  create_credit_update_response(
-      imsi, req->session_id(), 2, second_quota, res->mutable_credits()->Add());
+  create_credit_update_response(imsi, req->session_id(), 1, first_quota,
+                                res->mutable_credits()->Add());
+  create_credit_update_response(imsi, req->session_id(), 2, second_quota,
+                                res->mutable_credits()->Add());
 }
 // Take the SessionID from the request as it is generated internally
 ACTION_P(SetUpdateSessionResponse, quota) {
-  auto req        = static_cast<const UpdateSessionRequest*>(arg1)->updates(0);
-  auto res        = static_cast<UpdateSessionResponse*>(arg2);
-  auto imsi       = req.common_context().sid().id();
+  auto req = static_cast<const UpdateSessionRequest*>(arg1)->updates(0);
+  auto res = static_cast<UpdateSessionResponse*>(arg2);
+  auto imsi = req.common_context().sid().id();
   auto session_id = req.session_id();
-  create_credit_update_response(
-      imsi, session_id, 1, quota, res->mutable_responses()->Add());
+  create_credit_update_response(imsi, session_id, 1, quota,
+                                res->mutable_responses()->Add());
 }
 
 ACTION(SetSessionTerminateResponse) {
@@ -90,14 +88,14 @@ class SessiondTest : public ::testing::Test {
     evb = new folly::EventBase();
 
     controller_mock = std::make_shared<MockCentralController>();
-    pipelined_mock  = std::make_shared<MockPipelined>();
+    pipelined_mock = std::make_shared<MockPipelined>();
 
-    pipelined_client  = std::make_shared<AsyncPipelinedClient>(test_channel);
-    spgw_client       = std::make_shared<MockSpgwServiceClient>();
+    pipelined_client = std::make_shared<AsyncPipelinedClient>(test_channel);
+    spgw_client = std::make_shared<MockSpgwServiceClient>();
     directoryd_client = std::make_shared<MockDirectorydClient>();
-    events_reporter   = std::make_shared<MockEventsReporter>();
-    rule_store        = std::make_shared<StaticRuleStore>();
-    session_store     = std::make_shared<SessionStore>(
+    events_reporter = std::make_shared<MockEventsReporter>();
+    rule_store = std::make_shared<StaticRuleStore>();
+    session_store = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
     insert_static_rule(1, "rule1");
     insert_static_rule(1, "rule2");
@@ -105,8 +103,8 @@ class SessiondTest : public ::testing::Test {
 
     session_reporter = std::make_shared<SessionReporterImpl>(evb, test_channel);
     auto default_mconfig = get_default_mconfig();
-    auto shard_tracker   = std::make_shared<ShardTracker>();
-    enforcer             = std::make_shared<LocalEnforcer>(
+    auto shard_tracker = std::make_shared<ShardTracker>();
+    enforcer = std::make_shared<LocalEnforcer>(
         session_reporter, rule_store, *session_store, pipelined_client,
         events_reporter, spgw_client, nullptr, shard_tracker,
         SESSION_TERMINATION_TIMEOUT_MS, 0, default_mconfig);
@@ -122,8 +120,8 @@ class SessiondTest : public ::testing::Test {
 
     proxy_responder = std::make_shared<SessionProxyResponderAsyncService>(
         local_service->GetNewCompletionQueue(),
-        std::make_unique<SessionProxyResponderHandlerImpl>(
-            enforcer, *session_store));
+        std::make_unique<SessionProxyResponderHandlerImpl>(enforcer,
+                                                           *session_store));
 
     local_service->AddServiceToServer(session_manager.get());
     local_service->AddServiceToServer(proxy_responder.get());
@@ -135,22 +133,22 @@ class SessiondTest : public ::testing::Test {
 
     local_service->Start();
 
-    test_service_thread           = std::thread([&]() {
+    test_service_thread = std::thread([&]() {
       std::cout << "Started test_service thread\n";
       test_service->Start();
       test_service->WaitForShutdown();
     });
-    pipelined_client_thread       = std::thread([&]() {
+    pipelined_client_thread = std::thread([&]() {
       std::cout << "Started pipelined client response thread\n";
       pipelined_client->rpc_response_loop();
     });
-    main_evb_thread               = std::thread([&]() {
+    main_evb_thread = std::thread([&]() {
       std::cout << "Started main event base thread\n";
       folly::EventBaseManager::get()->setEventBase(evb, 0);
       enforcer->attachEventBase(evb);
       enforcer->start();
     });
-    session_reporter_thread       = std::thread([&]() {
+    session_reporter_thread = std::thread([&]() {
       std::cout << "Started session_reporter thread\n";
       session_reporter->rpc_response_loop();
     });
@@ -158,7 +156,7 @@ class SessiondTest : public ::testing::Test {
       std::cout << "Started local grpc thread\n";
       session_manager->wait_for_requests();
     });
-    proxy_server_thread           = std::thread([&]() {
+    proxy_server_thread = std::thread([&]() {
       std::cout << "Started local grpc thread\n";
       proxy_responder->wait_for_requests();
     });
@@ -214,8 +212,8 @@ class SessiondTest : public ::testing::Test {
   }
 
   // Timeout to not block test
-  void set_timeout(
-      uint32_t ms, std::shared_ptr<std::promise<void>> call_promise) {
+  void set_timeout(uint32_t ms,
+                   std::shared_ptr<std::promise<void>> call_promise) {
     std::thread([ms, call_promise]() {
       std::this_thread::sleep_for(std::chrono::milliseconds(ms));
       EXPECT_TRUE(false);
@@ -225,8 +223,7 @@ class SessiondTest : public ::testing::Test {
         std::cout << "Exception caught when trying to set promise value: "
                   << e.what();
       }
-    })
-        .detach();
+    }).detach();
   }
 
   // This function should always be called at the beginning of the test to
@@ -243,15 +240,14 @@ class SessiondTest : public ::testing::Test {
 
   void wait_for_setup_calls() {
     std::promise<void> setup_promise1, setup_promise2;
-    EXPECT_CALL(
-        *pipelined_mock,
-        SetupDefaultControllers(testing::_, testing::_, testing::_))
-        .WillOnce(testing::DoAll(
-            SetPromise(&setup_promise2), testing::Return(grpc::Status::OK)));
-    EXPECT_CALL(
-        *pipelined_mock, SetupPolicyFlows(testing::_, testing::_, testing::_))
-        .WillOnce(testing::DoAll(
-            SetPromise(&setup_promise1), testing::Return(grpc::Status::OK)));
+    EXPECT_CALL(*pipelined_mock,
+                SetupDefaultControllers(testing::_, testing::_, testing::_))
+        .WillOnce(testing::DoAll(SetPromise(&setup_promise2),
+                                 testing::Return(grpc::Status::OK)));
+    EXPECT_CALL(*pipelined_mock,
+                SetupPolicyFlows(testing::_, testing::_, testing::_))
+        .WillOnce(testing::DoAll(SetPromise(&setup_promise1),
+                                 testing::Return(grpc::Status::OK)));
     setup_promise1.get_future().get();
     setup_promise2.get_future().get();
   }
@@ -315,11 +311,11 @@ TEST_F(SessiondTest, end_to_end_success) {
   std::promise<void> create_promise, tunnel_promise, update_promise;
   auto terminate_promise = std::make_shared<std::promise<void>>();
   std::promise<std::string> session_id_promise;
-  std::string ipv4_addrs  = "192.168.0.1";
-  std::string ipv6_addrs  = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
+  std::string ipv4_addrs = "192.168.0.1";
+  std::string ipv6_addrs = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
   uint32_t default_bearer = 5;
-  uint32_t enb_teid       = TEID_1_DL;
-  uint32_t agw_teid       = TEID_1_UL;
+  uint32_t enb_teid = TEID_1_DL;
+  uint32_t agw_teid = TEID_1_UL;
 
   auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       "sessiond", ServiceRegistrySingleton::LOCAL);
@@ -334,15 +330,14 @@ TEST_F(SessiondTest, end_to_end_success) {
     // 1- CreateSession Expectations
     // Expect create session with IMSI1
 
-    EXPECT_CALL(
-        *controller_mock,
-        CreateSession(
-            testing::_, CheckCreateSession(IMSI1, &session_id_promise),
-            testing::_))
+    EXPECT_CALL(*controller_mock,
+                CreateSession(testing::_,
+                              CheckCreateSession(IMSI1, &session_id_promise),
+                              testing::_))
         .Times(1)
-        .WillOnce(testing::DoAll(
-            SetCreateSessionResponse(1536, 1024), SetPromise(&create_promise),
-            testing::Return(grpc::Status::OK)));
+        .WillOnce(testing::DoAll(SetCreateSessionResponse(1536, 1024),
+                                 SetPromise(&create_promise),
+                                 testing::Return(grpc::Status::OK)));
   }
 
   // 1- CreateSession Trigger
@@ -374,9 +369,8 @@ TEST_F(SessiondTest, end_to_end_success) {
   {
     // 2- UpdateTunnelIds Expectations
     // Expect rules to be installed and pipelined to be configured
-    EXPECT_CALL(
-        *events_reporter,
-        session_created(IMSI1, testing::_, testing::_, testing::_))
+    EXPECT_CALL(*events_reporter,
+                session_created(IMSI1, testing::_, testing::_, testing::_))
         .Times(1);
 
     // Temporary fix for PipelineD client in SessionD introduces separate
@@ -384,13 +378,12 @@ TEST_F(SessiondTest, end_to_end_success) {
     // rules.
     EXPECT_CALL(
         *pipelined_mock,
-        ActivateFlows(
-            testing::_,
-            CheckActivateFlowsForTunnIds(
-                IMSI1, ipv4_addrs, ipv6_addrs, enb_teid, agw_teid, 3),
-            testing::_))
-        .WillOnce(testing::DoAll(
-            SetPromise(&tunnel_promise), testing::Return(grpc::Status::OK)));
+        ActivateFlows(testing::_,
+                      CheckActivateFlowsForTunnIds(
+                          IMSI1, ipv4_addrs, ipv6_addrs, enb_teid, agw_teid, 3),
+                      testing::_))
+        .WillOnce(testing::DoAll(SetPromise(&tunnel_promise),
+                                 testing::Return(grpc::Status::OK)));
   }
 
   // 2- UpdateTunnelIds Trigger
@@ -401,8 +394,8 @@ TEST_F(SessiondTest, end_to_end_success) {
   tun_update_request.set_bearer_id(default_bearer);
   tun_update_request.set_enb_teid(enb_teid);
   tun_update_request.set_agw_teid(agw_teid);
-  stub->UpdateTunnelIds(
-      &tun_update_context, tun_update_request, &tun_update_response);
+  stub->UpdateTunnelIds(&tun_update_context, tun_update_request,
+                        &tun_update_response);
 
   // Wait until the ActivateFlows call from UpdateTunnelIds has completed
   tunnel_promise.get_future().get();
@@ -410,21 +403,20 @@ TEST_F(SessiondTest, end_to_end_success) {
     InSequence s;
     // 3 - PipelineD update + UpdateSession Expectations
     CreditUsageUpdate expected_update;
-    create_usage_update(
-        IMSI1, 1, 1024, 512, CreditUsage::QUOTA_EXHAUSTED, &expected_update);
+    create_usage_update(IMSI1, 1, 1024, 512, CreditUsage::QUOTA_EXHAUSTED,
+                        &expected_update);
 
     // Expect update with IMSI1, charging key 1
-    EXPECT_CALL(
-        *controller_mock,
-        UpdateSession(
-            testing::_, CheckSingleUpdate(expected_update), testing::_))
+    EXPECT_CALL(*controller_mock,
+                UpdateSession(testing::_, CheckSingleUpdate(expected_update),
+                              testing::_))
         .Times(1)
-        .WillOnce(testing::DoAll(
-            SetUpdateSessionResponse(1024), SetPromise(&update_promise),
-            testing::Return(grpc::Status::OK)));
+        .WillOnce(testing::DoAll(SetUpdateSessionResponse(1024),
+                                 SetPromise(&update_promise),
+                                 testing::Return(grpc::Status::OK)));
 
-    EXPECT_CALL(
-        *events_reporter, session_updated(session_id, testing::_, testing::_))
+    EXPECT_CALL(*events_reporter,
+                session_updated(session_id, testing::_, testing::_))
         .Times(1);
   }
 
@@ -454,13 +446,12 @@ TEST_F(SessiondTest, end_to_end_success) {
     EXPECT_CALL(*events_reporter, session_terminated(IMSI1, testing::_))
         .Times(1);
 
-    EXPECT_CALL(
-        *controller_mock,
-        TerminateSession(testing::_, CheckTerminate(IMSI1), testing::_))
+    EXPECT_CALL(*controller_mock,
+                TerminateSession(testing::_, CheckTerminate(IMSI1), testing::_))
         .Times(1)
-        .WillOnce(testing::DoAll(
-            SetSessionTerminateResponse(), SetPromise(terminate_promise),
-            testing::Return(grpc::Status::OK)));
+        .WillOnce(testing::DoAll(SetSessionTerminateResponse(),
+                                 SetPromise(terminate_promise),
+                                 testing::Return(grpc::Status::OK)));
   }
 
   // 4- EndSession Trigger
@@ -493,8 +484,8 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
   auto end_promise = std::make_shared<std::promise<void>>();
 
   uint32_t default_bearer = 5;
-  uint32_t enb_teid       = TEID_1_DL;
-  uint32_t agw_teid       = TEID_1_UL;
+  uint32_t enb_teid = TEID_1_DL;
+  uint32_t agw_teid = TEID_1_UL;
   auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       "sessiond", ServiceRegistrySingleton::LOCAL);
   auto stub = LocalSessionManager::NewStub(channel);
@@ -505,15 +496,13 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
 
   {
     // Expect create session with IMSI1
-    EXPECT_CALL(
-        *controller_mock,
-        CreateSession(
-            testing::_, CheckCreateSession(IMSI1, &session_id_promise),
-            testing::_))
+    EXPECT_CALL(*controller_mock,
+                CreateSession(testing::_,
+                              CheckCreateSession(IMSI1, &session_id_promise),
+                              testing::_))
         .Times(1)
-        .WillOnce(testing::DoAll(
-            SetCreateSessionResponse(1025, 1024),
-            testing::Return(grpc::Status::OK)));
+        .WillOnce(testing::DoAll(SetCreateSessionResponse(1025, 1024),
+                                 testing::Return(grpc::Status::OK)));
   }
   // 1- Create session
   grpc::ClientContext create_context;
@@ -533,19 +522,18 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
   tun_update_request.set_bearer_id(default_bearer);
   tun_update_request.set_enb_teid(enb_teid);
   tun_update_request.set_agw_teid(agw_teid);
-  stub->UpdateTunnelIds(
-      &tun_update_context, tun_update_request, &tun_update_response);
+  stub->UpdateTunnelIds(&tun_update_context, tun_update_request,
+                        &tun_update_response);
 
   {
     CreditUsageUpdate expected_update_fail;
-    create_usage_update(
-        IMSI1, 1, 512, 512, CreditUsage::QUOTA_EXHAUSTED,
-        &expected_update_fail);
+    create_usage_update(IMSI1, 1, 512, 512, CreditUsage::QUOTA_EXHAUSTED,
+                        &expected_update_fail);
     // Expect update with IMSI1, charging key 1, return timeout from cloud
     EXPECT_CALL(
         *controller_mock,
-        UpdateSession(
-            testing::_, CheckSingleUpdate(expected_update_fail), testing::_))
+        UpdateSession(testing::_, CheckSingleUpdate(expected_update_fail),
+                      testing::_))
         .Times(1)
         .WillOnce(
             testing::Return(grpc::Status(grpc::DEADLINE_EXCEEDED, "timeout")));
@@ -563,15 +551,14 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
 
   {
     CreditUsageUpdate expected_update_success;
-    create_usage_update(
-        IMSI1, 1, 1024, 1024, CreditUsage::QUOTA_EXHAUSTED,
-        &expected_update_success);
+    create_usage_update(IMSI1, 1, 1024, 1024, CreditUsage::QUOTA_EXHAUSTED,
+                        &expected_update_success);
     // second update should contain the original usage report + new usage
     // report since the first update failed
     EXPECT_CALL(
         *controller_mock,
-        UpdateSession(
-            testing::_, CheckSingleUpdate(expected_update_success), testing::_))
+        UpdateSession(testing::_, CheckSingleUpdate(expected_update_success),
+                      testing::_))
         .Times(1)
         .WillOnce(SetEndPromise(end_promise, Status::OK));
   }
@@ -588,7 +575,7 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   FLAGS_logtostderr = 1;
-  FLAGS_v           = 10;
+  FLAGS_v = 10;
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
