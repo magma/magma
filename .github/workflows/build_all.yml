@@ -13,6 +13,11 @@ on:  # yamllint disable-line rule:truthy
     types: [opened, reopened, synchronize]
 
 jobs:
+  checkIf:
+    steps:
+      - name: cancelling
+        uses: andymckay/cancel-action@0.2
+        if: "${{ github.event.pull_request.base.repo.full_name !="magma/magma" }}"
   build_publish_helm_charts:
     env:
       HELM_CHART_ARTIFACTORY_URL: "https://artifactory.magmacore.org:443/artifactory/"
