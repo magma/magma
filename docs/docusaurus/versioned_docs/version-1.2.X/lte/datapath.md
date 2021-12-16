@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-openvswitch
+id: version-1.2.X-openvswitch
 title: Magma Datapath
 hide_title: true
 original_id: openvswitch

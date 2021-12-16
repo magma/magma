@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-configure_federation
+id: version-1.6.X-configure_federation
 title: Configure FeG
 hide_title: true
 original_id: configure_federation

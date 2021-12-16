@@ -1,5 +1,5 @@
 ---
-id: version-1.1.0-dev_notes
+id: version-1.1.X-dev_notes
 title: Developer Notes for Access Gateway
 hide_title: true
 original_id: dev_notes

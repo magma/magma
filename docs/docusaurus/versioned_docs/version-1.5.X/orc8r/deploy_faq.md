@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-deploy_faq
+id: version-1.5.X-deploy_faq
 title: FAQs
 hide_title: true
 original_id: deploy_faq

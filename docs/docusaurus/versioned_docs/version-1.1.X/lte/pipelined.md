@@ -1,5 +1,5 @@
 ---
-id: version-1.1.0-pipelined
+id: version-1.1.X-pipelined
 title: Pipelined
 hide_title: true
 original_id: pipelined
@@ -157,14 +157,14 @@ Table numbers are dynamically assigned to these services and depenedent on the o
 
 [Nicira extension](https://ryu.readthedocs.io/en/latest/nicira_ext_ref.html#module-ryu.ofproto.nicira_ext) for OpenFlow provides additional registers (0 - 15) that can be set and matched. The table below lists the registers used in Pipelined.
 
-Register |    Type    |         Use          |           Set by            
+Register |    Type    |         Use          |           Set by
 ---------|------------|----------------------|-----------------------------
-metadata | Write-once | Stores IMSI          | Table 0 (GTP application)   
-reg0     | Scratch    | Temporary Arithmetic | Any                         
+metadata | Write-once | Stores IMSI          | Table 0 (GTP application)
+reg0     | Scratch    | Temporary Arithmetic | Any
 reg1     | Global     | Direction bit        | Table 1 (inout application)
-reg2     | Local      | Policy number        | Enforcement app             
+reg2     | Local      | Policy number        | Enforcement app
 reg3     | Local      | App ID               | DPI app
-reg4     | Local      | Policy version number| Enforcement app                     
+reg4     | Local      | Policy version number| Enforcement app
 
 ### Resilience
 

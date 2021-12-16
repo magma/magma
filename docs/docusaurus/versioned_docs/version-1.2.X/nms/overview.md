@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-nms_overview
+id: version-1.2.X-nms_overview
 title: NMS Overview
 hide_title: true
 original_id: nms_overview

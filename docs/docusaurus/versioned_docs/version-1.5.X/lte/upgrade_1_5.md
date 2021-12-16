@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-upgrade_1_5
+id: version-1.5.X-upgrade_1_5
 title: Upgrade to v1.5
 hide_title: true
 original_id: upgrade_1_5
@@ -24,4 +24,4 @@ wget https://raw.githubusercontent.com/magma/magma/master/lte/gateway/release/up
 
 ### Image Version
 
-`1.5.0-1619628161-f023455f`
+`1.5.X-1619628161-f023455f`

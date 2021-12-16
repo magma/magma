@@ -1,5 +1,5 @@
 ---
-id: version-1.0.1-readme_package
+id: version-1.0.X-readme_package
 title: Packaging
 hide_title: true
 original_id: readme_package
@@ -33,7 +33,7 @@ packages.
 1. Build the release like you normally would.
 2. Spin up a fresh prod VM or gateway machine and copy the magma_<version>.deb
 generated above.
-3. Run `sudo apt-get install gdebi; sudo gdebi magma_<version>.deb' 
+3. Run `sudo apt-get install gdebi; sudo gdebi magma_<version>.deb'
 4. A VM reload or gateway reboot will likely be required due to kernel upgrade.
 
 This will simulate the exact steps that apt-get performs in production.

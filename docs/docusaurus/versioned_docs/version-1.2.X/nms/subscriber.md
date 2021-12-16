@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-nms_subscriber
+id: version-1.2.X-nms_subscriber
 title: NMS Subscriber
 hide_title: true
 original_id: nms_subscriber

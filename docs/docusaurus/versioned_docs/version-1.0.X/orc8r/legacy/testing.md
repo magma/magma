@@ -1,5 +1,5 @@
 ---
-id: version-1.0.1-testing
+id: version-1.0.X-testing
 sidebar_label: Testing
 title: Testing in Orchestrator
 hide_title: true
@@ -13,7 +13,7 @@ HOST [magma/orc8r/cloud/docker]$ ./build.py --tests
 ```
 
 ### Run the services and check their health
-Unit tests are great for checking small logic chunks, 
+Unit tests are great for checking small logic chunks,
 but another way to test is to run the services and check their status.
 The services can be built and started by running
 ```

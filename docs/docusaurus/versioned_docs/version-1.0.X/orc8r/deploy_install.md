@@ -1,5 +1,5 @@
 ---
-id: version-v1.0.1-deploy_install
+id: version-v1.0.X-deploy_install
 title: Installing Orchestrator
 hide_title: true
 original_id: deploy_install
@@ -220,7 +220,7 @@ secrets:
     registry: YOUR-DOCKER-REGISTRY
     username: YOUR-DOCKER-USERNAME
     password: YOUR-DOCKER-PASSWORD
-  
+
 
 proxy:
   image:
@@ -283,7 +283,7 @@ metrics:
     nodeSelector:
       worker-type: metrics
 
-  alertmanager: 
+  alertmanager:
     create: true
     nodeSelector:
       worker-type: metrics

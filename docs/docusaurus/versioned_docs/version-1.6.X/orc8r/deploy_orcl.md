@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-deploy_orcl
+id: version-1.6.X-deploy_orcl
 title: Install Orchestrator (Managed)
 hide_title: true
 original_id: deploy_orcl

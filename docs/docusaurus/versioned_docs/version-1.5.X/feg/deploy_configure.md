@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-deploy_configure
+id: version-1.5.X-deploy_configure
 title: Configure FeG
 hide_title: true
 original_id: deploy_configure

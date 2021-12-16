@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-architecture_overview
+id: version-1.4.X-architecture_overview
 title: Overview
 hide_title: true
 original_id: architecture_overview

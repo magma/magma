@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-contribute_ci_checks
+id: version-1.5.X-contribute_ci_checks
 title: Continuous Integration Checks
 hide_title: true
 original_id: contribute_ci_checks

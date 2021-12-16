@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-dev_minikube
+id: version-1.5.X-dev_minikube
 title: Deploy on Minikube
 hide_title: true
 original_id: dev_minikube

@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-access_service_restrictions
+id: version-1.5.X-access_service_restrictions
 title: Restricting Network Access
 hide_title: true
 original_id: access_service_restrictions

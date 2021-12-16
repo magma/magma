@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-config_agw_bridged
+id: version-1.6.X-config_agw_bridged
 title: AGW Non-NAT Mode
 hide_title: true
 original_id: config_agw_bridged

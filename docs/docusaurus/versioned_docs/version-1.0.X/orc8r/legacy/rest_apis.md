@@ -1,5 +1,5 @@
 ---
-id: version-1.0.1-rest_apis
+id: version-1.0.X-rest_apis
 title: Swagger UI for REST APIs
 hide_title: true
 original_id: rest_apis

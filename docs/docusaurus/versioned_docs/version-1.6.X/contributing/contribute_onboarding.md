@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-contribute_onboarding
+id: version-1.6.X-contribute_onboarding
 title: Developer Onboarding
 hide_title: true
 original_id: contribute_onboarding
@@ -147,4 +147,3 @@ As you get acquainted with the codebase, consider the following sources of docum
 - Magma Docusaurus. This site! First stop for documentation.
 - `doc.go` files. Many Go packages have a `doc.go` file with a summary of the package's functionality.
 - Tests. Tests provide both testing and documentation of expected functionality.
-

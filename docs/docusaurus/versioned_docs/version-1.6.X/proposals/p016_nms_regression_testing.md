@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-p016_nms_regression_test
+id: version-1.6.X-p016_nms_regression_test
 title: NMS Regression Testing
 hide_title: true
 original_id: p016_nms_regression_test
@@ -21,7 +21,7 @@ The Magma NMS currently lacks many end-to-end tests for critical worksflows.
 Given the current velocity of contributions to the Magma NMS, a tool such as
 [Testim](https://www.testim.io/) will be used and integrated with Magma's
 CI framework to cover the gap in testing, with limited time investment from
-involved developers. 
+involved developers.
 
 ## Background
 

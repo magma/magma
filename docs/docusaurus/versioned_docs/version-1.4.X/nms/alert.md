@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-alerts
+id: version-1.4.X-alerts
 title: Alerts
 hide_title: true
 original_id: alerts
@@ -221,5 +221,3 @@ kubectl logs -n orc8r -l app.kubernetes.io/component=prometheus-configurer -c pr
 kubectl logs -n orc8r -l app.kubernetes.io/component=prometheus -c prometheus
 kubectl logs -n orc8r -l app.kubernetes.io/component=metricsd
 ```
-
-

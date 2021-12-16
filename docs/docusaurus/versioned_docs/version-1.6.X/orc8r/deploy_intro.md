@@ -127,4 +127,3 @@ Terraform module source
 - `1.4.21` Helm chart version
 - Additional notes
     - `9.6` PostgreSQL target release, newer versions will likely work as well
-

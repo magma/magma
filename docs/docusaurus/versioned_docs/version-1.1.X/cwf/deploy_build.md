@@ -1,5 +1,5 @@
 ---
-id: version-1.1.0-deploy_build
+id: version-1.1.X-deploy_build
 title: Building Carrier Wifi Gateway
 hide_title: true
 original_id: deploy_build

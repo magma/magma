@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-debug_show_tech
+id: version-1.5.X-debug_show_tech
 title: Show Tech
 hide_title: true
 original_id: debug_show_tech

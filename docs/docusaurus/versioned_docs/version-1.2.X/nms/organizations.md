@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-nms_organizations
+id: version-1.2.X-nms_organizations
 title: Multitenancy (Organizations)
 hide_title: true
 original_id: nms_organizations
@@ -30,14 +30,14 @@ has access to the master organization. Run the command
     export NMS_POD=$(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}')
     kubectl exec -it ${NMS_POD} -- yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
     ```
-          
+
 You can then log in to the master organization at `master.nms.yourdomain.com`
 to create additional organizations and users.
 
 When creating a new organization, only enable the `NMS` tab. Also, note that
 only users with the `Super User` role can create new networks within each
 organization.
-          
+
 ## DNS Resolution
 
 We use [ExternalDNS](https://github.com/kubernetes-sigs/external-dns) to

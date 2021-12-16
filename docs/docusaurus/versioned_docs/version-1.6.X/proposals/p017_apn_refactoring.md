@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-p017_apn_refactoring
+id: version-1.6.X-p017_apn_refactoring
 title: APN Refactoring Proposal
 hide_title: true
 original_id: p017_apn_refactoring
@@ -155,4 +155,3 @@ We have two options to implement this, we will choose it depending on time in 1.
 
 * https://gist.github.com/karthiksubraveti/0daee7f5446cc72460497e247d427ee6
 * _https://raw.githubusercontent.com/magma/magma/d691319dd40e0a7d2822a993f819beca7490e65d/docs/readmes/lte/Attach_call_flow_in_Magma.txt_
-

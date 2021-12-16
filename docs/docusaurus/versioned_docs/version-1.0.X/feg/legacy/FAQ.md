@@ -1,5 +1,5 @@
 ---
-id: version-1.0.1-faq
+id: version-1.0.X-faq
 title: FAQ
 hide_title: true
 original_id: faq

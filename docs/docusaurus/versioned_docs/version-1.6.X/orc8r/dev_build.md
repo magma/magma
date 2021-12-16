@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-dev_build
+id: version-1.6.X-dev_build
 title: Build Orchestrator
 hide_title: true
 original_id: dev_build

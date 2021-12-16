@@ -1,5 +1,5 @@
 ---
-id: version-1.1.0-nms_grafana
+id: version-1.1.X-nms_grafana
 title: Custom Grafana Dashboards
 hide_title: true
 original_id: nms_grafana

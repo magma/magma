@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-user_unable_to_attach
+id: version-1.5.X-user_unable_to_attach
 title: User is unable to attach to Magma
 hide_title: true
 original_id: user_unable_to_attach

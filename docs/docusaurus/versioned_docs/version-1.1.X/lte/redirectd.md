@@ -1,5 +1,5 @@
 ---
-id: version-1.1.0-redirectd
+id: version-1.1.X-redirectd
 title: Redirection
 hide_title: true
 original_id: redirectd

@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-equipment
+id: version-1.4.X-equipment
 title: Equipment
 hide_title: true
 original_id: equipment

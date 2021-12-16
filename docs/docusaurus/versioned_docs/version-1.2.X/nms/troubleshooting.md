@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-nms_how_to_guide
+id: version-1.2.X-nms_how_to_guide
 title: NMS How To Guide
 hide_title: true
 original_id: nms_how_to_guide

@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-setup_deb
+id: version-1.4.X-setup_deb
 title: AGW Setup (Bare Metal)
 sidebar_label: Setup (Bare Metal)
 hide_title: true

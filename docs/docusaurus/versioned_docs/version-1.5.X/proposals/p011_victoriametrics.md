@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-p011_victoriametrics
+id: version-1.5.X-p011_victoriametrics
 title: VictoriaMetrics as Magma's TSDB
 hide_title: true
 original_id: p011_victoriametrics
@@ -193,4 +193,3 @@ Migrating data for existing deployments is also simple.
 * https://medium.com/@romanhavronenko/victoriametrics-how-to-migrate-data-from-prometheus-d44a6728f043
 * Write a simple script to take a snapshot of the prometheus data, and use an
   init-container to load this data into the new VM server before the upgrade.
-

@@ -1,5 +1,5 @@
 ---
-id: version-1.0.1-nms_setup
+id: version-1.0.X-nms_setup
 title: Setting up the NMS
 hide_title: true
 original_id: nms_setup
@@ -13,7 +13,7 @@ By default, the NMS looks for API certs in `magma/.cache/test_certs`, and uses `
 API_HOST=example.com
 API_CERT_FILENAME=/path/to/api_operator_cert.pem
 API_PRIVATE_KEY_FILENAME=/path/to/operator_pk.pem
-``` 
+```
 
 ## Running the NMS
 In the `magmalte` directory, start docker containers and create a test user:

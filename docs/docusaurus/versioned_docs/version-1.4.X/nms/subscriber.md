@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-subscriber
+id: version-1.4.X-subscriber
 title: Subscriber
 hide_title: true
 original_id: subscriber

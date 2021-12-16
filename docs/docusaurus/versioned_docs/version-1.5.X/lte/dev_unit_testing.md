@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-dev_unit_testing
+id: version-1.5.X-dev_unit_testing
 title: Unit Testing
 hide_title: true
 original_id: dev_unit_testing
@@ -11,7 +11,7 @@ This guide covers tips for quickly validating AGW changes.
 
 ## Run all unit tests on the dev VM
 
-In general, all unit testing for AGW is done on the magma dev VM. 
+In general, all unit testing for AGW is done on the magma dev VM.
 To SSH into the VM, run
 ```bash
 [HOST] cd $MAGMA_ROOT/lte/gateway
@@ -34,13 +34,13 @@ To run only the Python unit tests, run
 [VM] cd magma/lte/gateway
 [VM] make test_python
 ```
-The list of services to test are configured in the following files. 
+The list of services to test are configured in the following files.
 * `orc8r/gateway/python/defs.mk`
 * `lte/gateway/python/defs.mk`
 
 ### Run C/C++ unit tests on the dev VM
 
-We have several C/C++ services that live in `lte/gateway/c/`. 
+We have several C/C++ services that live in `lte/gateway/c/`.
 To run tests for those services, run
 
 ```bash

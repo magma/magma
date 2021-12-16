@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-deploy_config_enodebd
+id: version-1.5.X-deploy_config_enodebd
 title: Configure eNodeB
 hide_title: true
 original_id: deploy_config_enodebd

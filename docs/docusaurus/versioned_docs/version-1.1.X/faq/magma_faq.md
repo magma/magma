@@ -1,5 +1,5 @@
 ---
-id: version-1.1.0-magma_faq
+id: version-1.1.X-magma_faq
 title: Frequently Asked Questions
 hide_title: true
 original_id: magma_faq

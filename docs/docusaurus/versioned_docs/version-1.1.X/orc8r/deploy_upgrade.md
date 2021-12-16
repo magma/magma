@@ -1,5 +1,5 @@
 ---
-id: version-1.1.0-deploy_upgrade
+id: version-1.1.X-deploy_upgrade
 title: Upgrading from 1.0
 hide_title: true
 original_id: deploy_upgrade

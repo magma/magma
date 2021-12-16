@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-deploy_config
+id: version-1.6.X-deploy_config
 title: Set Up NMS
 hide_title: true
 original_id: deploy_config

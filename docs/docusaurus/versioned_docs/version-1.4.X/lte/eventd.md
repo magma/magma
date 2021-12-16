@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-eventd
+id: version-1.4.X-eventd
 title: Eventd
 hide_title: true
 original_id: eventd
@@ -14,7 +14,7 @@ Events are placed into `streams`, which are like logical buckets for events. The
 
 ### Infrastructure
 
-![Magma events architecture diagram](assets/lte/events_architecture.png?raw=true "Magma Events Architecture") 
+![Magma events architecture diagram](assets/lte/events_architecture.png?raw=true "Magma Events Architecture")
 The events pipeline is set up with functional pieces across the access gateway, orc8r, and NMS.
 
 First, on the gateway, events are aggregated by the `eventd` service.
@@ -76,4 +76,3 @@ An event must be defined before they can be send to `eventd` service.
 - Register the `event_type` and the location of the swagger file under `eventd.yml`'s event registry.
 - Make an RPC call to eventd's `log_event` from your service, using the appropriate client API.
   - (Python-only) Use `make build` under `lte/gateway` to generate swagger models into the `$PYTHON_BUILD` directory. e.g. Use model `ue_added` with the import `<plugin_name>.swagger.models.ue_added`
-

@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-proposal_template
+id: version-1.4.X-proposal_template
 title: Title of Design Doc
 hide_title: true
 original_id: proposal_template

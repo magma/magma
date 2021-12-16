@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-debug_dp_probe
+id: version-1.5.X-debug_dp_probe
 title: Datapath Probe CLI
 hide_title: true
 original_id: debug_dp_probe

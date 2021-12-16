@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-dev_notes
+id: version-1.2.X-dev_notes
 title: Developer Notes for Access Gateway
 hide_title: true
 original_id: dev_notes
@@ -162,7 +162,7 @@ can list all the keys with `KEYS *`. The keys for state follow the pattern
 gateway wide state for a particular task in the MME process
 - Mobilityd stores state with the key `mobilityd:sid_to_descriptors`
 
-For tracing the state values, there's a specific CLI for debugging 
+For tracing the state values, there's a specific CLI for debugging
 different Magma services' data written into Redis. You can access it through
 the `state_cli.py` command.
 

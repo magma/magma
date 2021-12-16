@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-p008_apn_correction
+id: version-1.4.X-p008_apn_correction
 title: MME APN Correction
 hide_title: true
 original_id: p008_apn_correction
@@ -64,7 +64,7 @@ The configuration will be limited to a maximum of 10 imsi prefix filters.
 
 **MME Change**
 
-Two structures will be added to contain the mme apn correction configuration    
+Two structures will be added to contain the mme apn correction configuration
 
 typedef struct apn_map_s {
   bstring imsi_prefix;
@@ -93,4 +93,3 @@ Exposing MME configuration to swagger will be supported in a later phase.
 **NMS Change**
 
 Exposing APN correction configuration to NMS will be supported in a later phase.
-

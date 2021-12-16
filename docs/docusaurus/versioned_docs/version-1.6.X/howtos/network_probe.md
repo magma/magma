@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-network_probe
+id: version-1.6.X-network_probe
 title: Network Probe
 hide_title: true
 original_id: network_probe

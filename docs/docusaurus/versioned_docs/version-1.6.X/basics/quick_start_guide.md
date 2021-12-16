@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-quick_start_guide
+id: version-1.6.X-quick_start_guide
 title: Quick Start Guide
 hide_title: true
 original_id: quick_start_guide

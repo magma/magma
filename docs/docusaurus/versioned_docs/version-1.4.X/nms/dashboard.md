@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-dashboard
+id: version-1.4.X-dashboard
 title: Dashboard
 hide_title: true
 original_id: dashboard

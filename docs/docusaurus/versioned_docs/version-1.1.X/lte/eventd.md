@@ -1,5 +1,5 @@
 ---
-id: version-1.1.0-eventd
+id: version-1.1.X-eventd
 title: Eventd
 hide_title: true
 original_id: eventd
@@ -28,4 +28,3 @@ Eventd runs on the gateway under magmad. The files for eventd are under `orc8r/g
 - Register the `event_type` and the location of the swagger file under `eventd.yml`'s event registry.
 - Make an RPC call to eventd's `log_event` from your service, using the appropriate client API.
   - (Python-only) Use `make build` under `lte/gateway` to generate swagger models into the `$PYTHON_BUILD` directory. e.g. Use model `ue_added` with the import `<plugin_name>.swagger.models.ue_added`
-

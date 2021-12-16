@@ -1,5 +1,5 @@
 ---
-id: version-1.0.1-generic_commands
+id: version-1.0.X-generic_commands
 sidebar_label: Generic commands framework
 title: Using the generic command framework
 hide_title: true
@@ -132,7 +132,7 @@ class CustomCommandExecutor(CommandExecutor):
 
     def get_command_dispatch(self) -> Dict[str, ExecutorFuncT]:
         return self._dispatch_table
-        
+
     async def _handle_hello_world(
             self,
             params: Dict[str, ParamValueT]
@@ -141,5 +141,3 @@ class CustomCommandExecutor(CommandExecutor):
             "hello": "world!"
         }
 ```
-
-

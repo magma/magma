@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-thanos
+id: version-1.5.X-thanos
 title: Thanos
 hide_title: true
 original_id: thanos

@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-contribute_id_mappings
+id: version-1.6.X-contribute_id_mappings
 title: Codeowners GitHub to Slack IDs
 hide_title: true
 original_id: contribute_id_mappings

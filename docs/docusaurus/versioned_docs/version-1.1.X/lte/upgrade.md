@@ -1,5 +1,5 @@
 ---
-id: version-1.1.0-agw_110_upgrade
+id: version-1.1.X-agw_110_upgrade
 title: Upgrade to  v1.1
 sidebar_label: Upgrade to v1.1
 hide_title: true
@@ -11,7 +11,7 @@ You can upgrade your access gateways remotely from the NMS or SSH directly
 into them and run an `apt-get install`.
 
 The Access Gateway version needs to be equal to or less than the version
- of your Orc8r. We recommend you update your Orc8r first. 
+ of your Orc8r. We recommend you update your Orc8r first.
 
 ## NMS Autoupgrade
 

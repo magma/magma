@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-federated_FWA_setup_guide
+id: version-1.4.X-federated_FWA_setup_guide
 title: Federated-FWA Setup Guide
 hide_title: true
 original_id: federated_FWA_setup_guide

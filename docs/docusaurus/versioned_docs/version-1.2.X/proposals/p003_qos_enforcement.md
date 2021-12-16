@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-p003_qos_enforcement
+id: version-1.2.X-p003_qos_enforcement
 title: QoS Policy Configuration
 hide_title: true
 original_id: p003_qos_enforcement
@@ -14,10 +14,10 @@ original_id: p003_qos_enforcement
 This document concerns:
 
 1. The addition of configurable QoS for policies
-2. The addition of more comprehensive associations between subscribers, QoS, 
+2. The addition of more comprehensive associations between subscribers, QoS,
 policies, and APN
 3. The enforcement of the above with an eventually consistent model
-4. Details concerning implementing these changes in both 
+4. Details concerning implementing these changes in both
 federated/un-federated environments
 
 
@@ -27,26 +27,26 @@ We would like to enable QoS enforcement across the APN and bearer level.
 
 **Private LTE**
 
-As an example use case for QoS enforcement, a service provider may wish to 
-segment users into tiers denoting their service quality, eg. bronze, silver, 
-and gold. A service provider should then be able configure a QoS profiles for 
+As an example use case for QoS enforcement, a service provider may wish to
+segment users into tiers denoting their service quality, eg. bronze, silver,
+and gold. A service provider should then be able configure a QoS profiles for
 each of the three service levels.
 
 Policy rules will each be assigned one of these QoS profiles. The same QoS
 profile may be assigned to multiple rules.
 
 Beyond segmenting subscribers into QoS levels, as our support for multi-APN
-matures, we wish to enable QoS enforcement for multiple sessions 
-of a single subscriber, one for each APN. Across these different sessions, each 
-APN will have a different QoS for its default bearer. To enable this behavior, 
-there should be the capability to assign a QoS profile to an APN for the 
+matures, we wish to enable QoS enforcement for multiple sessions
+of a single subscriber, one for each APN. Across these different sessions, each
+APN will have a different QoS for its default bearer. To enable this behavior,
+there should be the capability to assign a QoS profile to an APN for the
 default bearer.
 
 It is also possible that a network operator would desire to have SGi
-specified differently for each APN even when served from the same gateway. 
+specified differently for each APN even when served from the same gateway.
 
-We will define the `ApnResource` as a configuration specifying how SGi 
-interfaces are set up for an APN in a gateway. 
+We will define the `ApnResource` as a configuration specifying how SGi
+interfaces are set up for an APN in a gateway.
 
 To enable the above, we have the following list of new API requirements for
 Magma:
@@ -60,12 +60,12 @@ subscriber has access to)
 
 **Federated LTE**
 
-In federated use cases, we have slightly different requirements. APN entities 
+In federated use cases, we have slightly different requirements. APN entities
 may not need to be configured as they are provided by the federation network.
 `ApnResource` entities will still need to be configured for the AGW.
 
-We also wish to support cases where an HSS is not provided, and our 
-`subscriberdb` service is used, but where the PCRF is federated, 
+We also wish to support cases where an HSS is not provided, and our
+`subscriberdb` service is used, but where the PCRF is federated,
 and so our `policydb` service is disabled.
 
 Due to different federation requirements between operators who federate HSS,
@@ -78,7 +78,7 @@ flags, `hss_relay_enabled`, and `gx_gy_relay_enabled`
 
 ### API Endpoints
 
-To enable configuration of QoS profiles and APNs, we will support the 
+To enable configuration of QoS profiles and APNs, we will support the
 following REST endpoints:
 
 ```
@@ -139,7 +139,7 @@ DELETE  /feg_lte/{network_id}/gateways/{gateway_id}/resource_labels/{resource_la
 
 ### API Entity Definitions
 
-Entity definitions for QoS, APN, and subscribers will change. 
+Entity definitions for QoS, APN, and subscribers will change.
 The final state is summarized here:
 
 ```
@@ -239,7 +239,7 @@ subscriber:
   active_policies: array[string]
   # Keyed by APN IDs, and values list out the policy IDs
   # Keys present define the APNs that the subscriber has access to
-  # policy IDs define what policies will be installed for the subscriber for 
+  # policy IDs define what policies will be installed for the subscriber for
   # each APN
   active_policies_by_apn: dict[string, array[string]]
   ...
@@ -292,18 +292,18 @@ At a high level, changes in `pipelined` are required to support the following:
 subscriber level, as UE_AMBR is enforced on RAN side)
 * (P1) Enforce VLAN specification in `apn_resource` definition supplied to the
 gateway for each APN
-* (P2) Load/KPI reporting (to be used for admission control and session 
+* (P2) Load/KPI reporting (to be used for admission control and session
 lifecycle management by sessiond)
 * (P3) GBR enforcement
 
 
 ### Policydb Changes with Streaming
 
-The `policydb` service across the orc8r and gateway requires changes to support 
+The `policydb` service across the orc8r and gateway requires changes to support
 QoS enforcement:
 * (P1) Rename `relay_enabled` flag to `gx_gy_relay_enabled`
-* (P1) Orc8r `policydb` service should be updated to stream to the gateway 
-all the mappings between basenames, policies, QoS profiles, APNs, data plans 
+* (P1) Orc8r `policydb` service should be updated to stream to the gateway
+all the mappings between basenames, policies, QoS profiles, APNs, data plans
 and subscribers
 * (P1) Gateway `policydb` service should interface with `sessiond` to trigger
 rule activations/deactivations when there are updates to subscribers'
@@ -317,10 +317,10 @@ The session manager will be changed to support the following:
 * (P1) Provide gRPC methods for `policydb` to set the policies installed for
 each subscriber
 * (P1) Accept the default QoS profile with APN that is received from MME
-* (P1) Dedicated bearer Life Cycle Management (LCM): Associations of policies 
-(with QoS fields) with the subscribers will define the lifecycle of 
+* (P1) Dedicated bearer Life Cycle Management (LCM): Associations of policies
+(with QoS fields) with the subscribers will define the lifecycle of
 dedicated bearers
-* (P2) Admission control and pre-emption. This is enforcing the AMBR fields 
+* (P2) Admission control and pre-emption. This is enforcing the AMBR fields
 specified in the current `apn_configuration`
 
 
@@ -351,7 +351,7 @@ message SubscriberPolicyUpdates {
 
 service SessionUpdateResponder {
   // Update the specified subscribers with the currently active rules
-  // 
+  //
   rpc UpdateActiveRules (SubscriberPolicyUpdates) returns (magma.orc8r.Void) {}
 }
 ```
@@ -379,7 +379,7 @@ QoS policy and `apn_resource`
 ### Mobilityd Changes
 
 * (P1) Accept the updated `ApnConfiguration` protobuf with included QoS policy,
-and `apn_resource` 
+and `apn_resource`
 
 
 ### NMS Changes
@@ -402,4 +402,3 @@ per APN
 
 * (P1) Split support of `relay_enabled` into `hss_relay_enabled` and
 `gx_gy_relay_enabled`
-

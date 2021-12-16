@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-debug_cli
+id: version-1.6.X-debug_cli
 title: FeG CLI
 hide_title: true
 original_id: debug_cli

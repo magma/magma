@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-show_tech
+id: version-1.4.X-show_tech
 title: Show Tech
 hide_title: true
 original_id: show_tech

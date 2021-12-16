@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-config_agw
+id: version-1.4.X-config_agw
 title: AGW Configuration
 sidebar_label: AGW Configuration
 hide_title: true

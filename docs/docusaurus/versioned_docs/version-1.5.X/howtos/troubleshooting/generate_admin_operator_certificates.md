@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-generate_admin_operator_certificates
+id: version-1.5.X-generate_admin_operator_certificates
 title: Generate and update admin_operator certificates
 hide_title: true
 original_id: generate_admin_operator_certificates

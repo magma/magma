@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-tips_and_tricks
+id: version-1.4.X-tips_and_tricks
 title: Tips and Tricks
 hide_title: true
 original_id: tips_and_tricks

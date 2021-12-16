@@ -1,5 +1,5 @@
 ---
-id: version-1.0.1-docusaurus
+id: version-1.0.X-docusaurus
 title: Docusaurus
 hide_title: true
 original_id: docusaurus

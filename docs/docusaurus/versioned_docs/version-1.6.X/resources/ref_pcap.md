@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-ref_pcap
+id: version-1.6.X-ref_pcap
 title: PCAP Collection
 hide_title: true
 original_id: ref_pcap

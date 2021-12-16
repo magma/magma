@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-deploy_install_ubuntu
+id: version-1.5.X-deploy_install_ubuntu
 title: Install AGW on Ubuntu 20.04
 hide_title: true
 original_id: deploy_install_ubuntu

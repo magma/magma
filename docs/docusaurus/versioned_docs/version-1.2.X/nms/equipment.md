@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-nms_equipment
+id: version-1.2.X-nms_equipment
 title: NMS Equipment
 hide_title: true
 original_id: nms_equipment

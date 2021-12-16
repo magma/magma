@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-update_certificates
+id: version-1.5.X-update_certificates
 title: Update rootCA and controller SSL certificates
 hide_title: true
 original_id: update_certificates

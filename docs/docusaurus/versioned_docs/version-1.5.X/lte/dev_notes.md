@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-dev_notes
+id: version-1.5.X-dev_notes
 title: Developer Notes
 hide_title: true
 original_id: dev_notes

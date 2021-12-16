@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-nms_arch_overview
+id: version-1.5.X-nms_arch_overview
 title: Overview
 hide_title: true
 original_id: nms_arch_overview
@@ -159,5 +159,3 @@ Additionally the DB also contains session table to hold current set of sessions.
     "createdAt" timestamp with time zone NOT NULL,
     "updatedAt" timestamp with time zone NOT NULL
 ```
-
-

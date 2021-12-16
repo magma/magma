@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-he_api
+id: version-1.6.X-he_api
 title: Header Enrichment
 hide_title: true
 original_id: he_api

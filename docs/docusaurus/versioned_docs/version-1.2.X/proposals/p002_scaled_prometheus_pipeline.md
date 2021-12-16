@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-p002_scaled_prometheus_pipeline
+id: version-1.2.X-p002_scaled_prometheus_pipeline
 title: Scaled Prometheus Pipeline
 hide_title: true
 original_id: p002_scaled_prometheus_pipeline
@@ -27,7 +27,7 @@ The current magma metrics deployment involves only a single Prometheus server, w
 
 On prod we currently have ~347 active gateways, and ~105k metric series
 
-Query times for PromQL query `count({__name__=~".+"})` 
+Query times for PromQL query `count({__name__=~".+"})`
 
 |Time Range	|Query Time	|
 |---	|---	|
@@ -47,7 +47,7 @@ Even the smallest query range takes over 3 seconds, and over any significant per
 
 The main problem with long query times is less responsive dashboards.
 
-Time to load grafana dashboard on prod NMS: **>15s **from click until all graphs are populated. Most of this time is spent looking at all series in order to determine the set of available `networkID`s and `gatewayID`s. 
+Time to load grafana dashboard on prod NMS: **>15s **from click until all graphs are populated. Most of this time is spent looking at all series in order to determine the set of available `networkID`s and `gatewayID`s.
 
 # Proposed Solution
 
@@ -79,7 +79,7 @@ Proposed pipeline:
 
 ### Improving query times with Object Storage
 
-All metrics go through the controller (which is already scalable and placed behind a load balancer), where they are pushed to the `prometheus-edge-hub` (or pushgateway). The single prometheus server then scrapes from this pushgateway. 
+All metrics go through the controller (which is already scalable and placed behind a load balancer), where they are pushed to the `prometheus-edge-hub` (or pushgateway). The single prometheus server then scrapes from this pushgateway.
 
 All metrics are stored for 30 days in the Prometheus TSDB storage. This means that all queries have to go through the prometheus server itself, which is the main cause of slow queries.
 
@@ -120,5 +120,3 @@ In the end if we can't get enough performance out of a single edge-hub, we will 
 |Investigate performance improvements in prometheus-edge-hub | 2 wk |
 |Configure helm chart |2 wk	|
 |Deploy to staging/prod	|1 wk	|
-
-

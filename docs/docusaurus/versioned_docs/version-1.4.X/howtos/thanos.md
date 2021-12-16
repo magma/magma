@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-thanos
+id: version-1.4.X-thanos
 title: Thanos
 hide_title: true
 original_id: thanos
@@ -14,8 +14,8 @@ with Thanos in order to have a more robust metrics pipeline.
 
 ## Deploying Orc8r with Thanos
 
-The terraform module makes deploying Thanos very easy. In your `main.tf` you 
-just need to set the following values: 
+The terraform module makes deploying Thanos very easy. In your `main.tf` you
+just need to set the following values:
 
 ```
 module orc8r {
@@ -28,10 +28,10 @@ module orc8r-app {
 }
 ```
 
-Choose a value for `thanos_object_store_bucket_name` that will be globally 
+Choose a value for `thanos_object_store_bucket_name` that will be globally
 (across all of AWS) unique, but other than that the value doesn't matter.
 
-That's all you need to do to deploy with Thanos! All interacting components 
+That's all you need to do to deploy with Thanos! All interacting components
 will be adjusted accordingly, so the NMS/Grafana will work the same as before.
 If you don't care about the internals you can stop reading here.
 
@@ -65,9 +65,9 @@ that run independently: compact, query, and store.
 ## Advanced configuration options
 
 The default infrastructure setup deploys an additional node for Thanos, since
-there is one component that requires significant on-node ephemeral storage. 
+there is one component that requires significant on-node ephemeral storage.
 However, you may want to deploy more nodes if you want to make sure thanos
-components run on different nodes than the rest of orc8r. To do that you can 
+components run on different nodes than the rest of orc8r. To do that you can
 override the default value for `thanos_worker_groups` in the `orc8r` module.
 The default value is:
 ```
@@ -85,7 +85,7 @@ The default value is:
 ```
 
 To add more workers, either adjust the `asg_...` values in that object, or add
-another entry to that array of worker groups. To specify thanos components to 
+another entry to that array of worker groups. To specify thanos components to
 run on specific nodes, just set the following variables in the `orc8r-app` module:
 ```
 thanos_query_node_selector = "thanos"

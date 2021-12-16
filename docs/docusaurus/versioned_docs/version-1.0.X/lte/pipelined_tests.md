@@ -1,5 +1,5 @@
 ---
-id: version-1.0.1-pipelined_tests
+id: version-1.0.X-pipelined_tests
 title: Pipelined testing framework
 hide_title: true
 original_id: pipelined_tests

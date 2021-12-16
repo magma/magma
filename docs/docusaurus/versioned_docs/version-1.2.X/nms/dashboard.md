@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-nms_dashboard
+id: version-1.2.X-nms_dashboard
 title: NMS Dashboard
 hide_title: true
 original_id: nms_dashboard

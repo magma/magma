@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-agw_140_upgrade
+id: version-1.4.X-agw_140_upgrade
 title: Upgrading from 1.3
 hide_title: true
 original_id: agw_140_upgrade

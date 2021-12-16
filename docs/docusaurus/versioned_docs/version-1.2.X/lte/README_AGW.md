@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-readme_agw
+id: version-1.2.X-readme_agw
 title: AGW Services/Sub-Components
 sidebar_label: Services/Sub-Components
 hide_title: true

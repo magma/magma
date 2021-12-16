@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-contribute_conventions
+id: version-1.4.X-contribute_conventions
 title: Contributing Conventions
 hide_title: true
 original_id: contribute_conventions
@@ -241,4 +241,3 @@ The [Google Protocol Buffer style guide](https://developers.google.com/protocol-
 ### CLIs
 
 - Consolidate related functionality into a single CLI
-

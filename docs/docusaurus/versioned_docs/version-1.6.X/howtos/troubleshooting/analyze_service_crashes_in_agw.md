@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-analyze_service_crashes_in_agw
+id: version-1.6.X-analyze_service_crashes_in_agw
 title: Analyze Service crashes in AGW
 hide_title: true
 original_id: analyze_service_crashes_in_agw

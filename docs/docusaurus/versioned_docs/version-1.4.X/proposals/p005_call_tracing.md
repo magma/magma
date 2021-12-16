@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-p005_call_tracing
+id: version-1.4.X-p005_call_tracing
 title: Call Tracing for Troubleshooting
 hide_title: true
 original_id: p005_call_tracing
@@ -43,7 +43,7 @@ integrations.
 - Allow network operators to trace the control plane messaging for a subscriber
 - Allow network operators to trace control plane messaging for a specific
 protocol or interface
-- Allow call trace captures to started and stopped from the NMS 
+- Allow call trace captures to started and stopped from the NMS
 - Allow call trace captures to be filtered by subscriber/protocol/interface
 control plane messaging
 
@@ -284,7 +284,7 @@ information filtered by the specified subscriber.
 
 #### Gateway - ctraced
 
-The ctraced service will need to be modified to filter messages. For protocols 
+The ctraced service will need to be modified to filter messages. For protocols
 including S1-AP or interfaces like Gx, tshark will be used to filter for the
 relevant subscriber, protocol, or interface.
 
@@ -305,7 +305,3 @@ Or for the following protocols:
 - S1-AP
 - Diameter Credit-Control Application
 - TR-069
-
-
-
-

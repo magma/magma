@@ -1,5 +1,5 @@
 ---
-id: version-1.0.1-deploy_terraform
+id: version-1.0.X-deploy_terraform
 title: Terraforming Orchestrator on AWS
 hide_title: true
 original_id: deploy_terraform

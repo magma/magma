@@ -1,5 +1,5 @@
 ---
-id: version-1.0.1-setup
+id: version-1.0.X-setup
 title: CWAG Setup (With Vagrant)
 sidebar_label: Setup (With Vagrant)
 hide_title: true
@@ -31,5 +31,5 @@ Vagrant will bring up the VM, then Ansible will provision the VM.
 ``AGW:~/magma/cwf/gateway/docker USER$ docker-compose build --parallel``
 ``AGW:~/magma/cwf/gateway/docker USER$ docker-compose up -d``
 
-After this, all the CWAG docker containers should have been brought up 
+After this, all the CWAG docker containers should have been brought up
 successfully.

@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-events_monitoring
+id: version-1.4.X-events_monitoring
 title: Events Monitoring
 hide_title: true
 original_id: events_monitoring
@@ -90,7 +90,7 @@ Properties
 *established_sync_rpc_stream*: SyncRPC connection was established
 
 *disconnected_sync_rpc_stream*: SyncRPC stream was disconnected
-    
+
 #### Federation Gateway Events
 
 `health_events.v1.yml`
@@ -110,7 +110,7 @@ Properties
 Properties
 - failure reason
 ```
-        
+
 #### AAA Events
 
 `aaa_server_events.v1.yml`

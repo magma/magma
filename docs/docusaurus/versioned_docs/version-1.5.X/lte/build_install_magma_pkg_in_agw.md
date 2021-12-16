@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-build_install_magma_pkg_in_agw
+id: version-1.5.X-build_install_magma_pkg_in_agw
 title: Build and install a magma package in AGW
 hide_title: true
 original_id: build_install_magma_pkg_in_agw

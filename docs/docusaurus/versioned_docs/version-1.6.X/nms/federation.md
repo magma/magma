@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-federation
+id: version-1.6.X-federation
 title: Federation
 hide_title: true
 original_id: federation

@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-equipment
+id: version-1.5.X-equipment
 title: Equipment
 hide_title: true
 original_id: equipment
@@ -197,7 +197,7 @@ Deleting an eNodeB will issue a warning. If the user chooses to override the war
 ![enodeb_config7](assets/nms/userguide/equipment/enode_config7.png)
 
 ## Gateway Pool Configuration
-The same gateway pool configuration dialog is used for 'add' as well as 'edit'. 
+The same gateway pool configuration dialog is used for 'add' as well as 'edit'.
 The dialog has 3 main tabs
 * Gateway Pool Information -
     to configure gateway pool specific details including name, ID, and MME Group ID.

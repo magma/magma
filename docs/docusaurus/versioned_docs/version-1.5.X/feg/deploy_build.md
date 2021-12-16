@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-deploy_build
+id: version-1.5.X-deploy_build
 title: Build FeG
 hide_title: true
 original_id: deploy_build
@@ -57,4 +57,3 @@ In case you built Magma CWF (Carrier Wi-FI), you also need to upload `gateway_ra
 ```bash
 ../../../orc8r/tools/docker/publish.sh -r <REGISTRY> -i gateway_radius
 ```
-

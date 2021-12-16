@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-dev_dependencies
+id: version-1.5.X-dev_dependencies
 title: Module Dependencies
 hide_title: true
 original_id: dev_dependencies

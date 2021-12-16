@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-p013_Ubuntu_upgrade
+id: version-1.5.X-p013_Ubuntu_upgrade
 title: AGW Ubuntu upgrade
 hide_title: true
 original_id: p013_Ubuntu_upgrade

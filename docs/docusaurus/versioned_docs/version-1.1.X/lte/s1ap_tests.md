@@ -1,5 +1,5 @@
 ---
-id: version-1.1.0-s1ap_tests
+id: version-1.1.X-s1ap_tests
 title: S1AP Integration Tests
 hide_title: true
 original_id: s1ap_tests

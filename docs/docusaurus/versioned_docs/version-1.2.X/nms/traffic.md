@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-nms_traffic
+id: version-1.2.X-nms_traffic
 title: NMS Traffic
 hide_title: true
 original_id: nms_traffic

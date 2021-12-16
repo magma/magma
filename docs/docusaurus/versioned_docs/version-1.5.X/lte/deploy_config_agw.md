@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-deploy_config_agw
+id: version-1.5.X-deploy_config_agw
 title: Configure AGW
 hide_title: true
 original_id: deploy_config_agw

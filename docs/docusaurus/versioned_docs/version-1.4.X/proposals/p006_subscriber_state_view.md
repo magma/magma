@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-p006_subscriber_state_view
+id: version-1.4.X-p006_subscriber_state_view
 title: Displaying Run-time Subscriber State in NMS
 hide_title: true
 original_id: p006_subscriber_state_view
@@ -31,9 +31,9 @@ For federated deployments where the subscriber configurations are federated to H
 
 ## General Goal
 
-The goal here is to export consolidated session state owned by SessionD to the Orc8r so that we can 
+The goal here is to export consolidated session state owned by SessionD to the Orc8r so that we can
 
-1. View all existing session states, uniquely identified by IMSI+APN 
+1. View all existing session states, uniquely identified by IMSI+APN
 2. View runtime state of active policies + QoS
 
 
@@ -82,7 +82,7 @@ Here is the blob value:
           type: string
         session_start_time:
           type: uint32
-        lifecycle_state: 
+        lifecycle_state:
           type: string
         active_duration_sec:
           type: uint32
@@ -95,10 +95,10 @@ Here is the blob value:
 ### Notes on the subscriber_state fields
 
 * IMSI+APN uniquely identifies each active session
-    * In SessionD there could be situations where we multiple sessions for the 
-    same IMSI+APN at the same time, but there is only one ACTIVE session at a time. 
-    Additionally, we do not keep around non-ACTIVE sessions for longer than 5 seconds typically. 
-* MSISDN value is propagated from MME to SessionD on session creation. The value is fetched from HSS/SubscriberDB. 
+    * In SessionD there could be situations where we multiple sessions for the
+    same IMSI+APN at the same time, but there is only one ACTIVE session at a time.
+    Additionally, we do not keep around non-ACTIVE sessions for longer than 5 seconds typically.
+* MSISDN value is propagated from MME to SessionD on session creation. The value is fetched from HSS/SubscriberDB.
 * This is the first round of fields suggested, but the following fields could be useful for debugging as well
     * Attach time & session duration in seconds (Update: Included now)
 
@@ -106,9 +106,9 @@ Here is the blob value:
 
 ## Proposed Orc8r API Endpoints
 
-**[P1]** Define read-only `lte` subscriber state endpoints that dumps the most recently reported subscriber state. 
+**[P1]** Define read-only `lte` subscriber state endpoints that dumps the most recently reported subscriber state.
 
-**[P2]** We can expose a similar endpoint for other access network types, `cwf`. 
+**[P2]** We can expose a similar endpoint for other access network types, `cwf`.
 
 ```
 /lte/{network_id}/subscriber_state/:

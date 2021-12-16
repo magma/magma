@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-alerts
+id: version-1.5.X-alerts
 title: Alerts
 hide_title: true
 original_id: alerts

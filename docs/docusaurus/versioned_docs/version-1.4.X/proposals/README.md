@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-proposal_process
+id: version-1.4.X-proposal_process
 title: Magma Proposals
 hide_title: true
 original_id: proposal_process

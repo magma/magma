@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-nms_network
+id: version-1.2.X-nms_network
 title: NMS Network
 hide_title: true
 original_id: nms_network

@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-overview
+id: version-1.6.X-overview
 title: Overview
 hide_title: true
 original_id: overview

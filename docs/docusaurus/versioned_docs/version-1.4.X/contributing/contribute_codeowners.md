@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-contribute_codeowners
+id: version-1.4.X-contribute_codeowners
 title: Codeowners Workflow
 hide_title: true
 original_id: contribute_codeowners

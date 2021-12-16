@@ -1,5 +1,5 @@
 ---
-id: version-1.0.1-deploy_dns
+id: version-1.0.X-deploy_dns
 title: DNS Resolution
 hide_title: true
 original_id: deploy_dns

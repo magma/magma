@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-metrics
+id: version-1.6.X-metrics
 title: Metrics
 hide_title: true
 original_id: metrics

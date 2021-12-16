@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-grafana
+id: version-1.4.X-grafana
 title: Custom Grafana Dashboards
 hide_title: true
 original_id: grafana

@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-dev_aws_stack
+id: version-1.6.X-dev_aws_stack
 title: AWS Stack
 hide_title: true
 original_id: dev_aws_stack
@@ -97,5 +97,3 @@ Orc8r Helm chart is composed of 5 other charts:
 Orc8r needs certificates to assure messages traveling over the internet are encrypted and secure. Certificates are created in pairs with a public certificate (`.crt` or `.pem`) and a private key (`.key`). The former needs to be safely stored and kept secret, while the latter can be distributed to clients. Please read the [certificates section on Orchestrator architecture](https://magma.github.io/magma/docs/next/orc8r/dev_security#certificates).
 
 > ***Note.*** All the certificates are created with validity time period, so make sure you know when your certificates expire and schedule a maintenance to update them.
-
-

@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-upgrade_1_3
+id: version-1.5.X-upgrade_1_3
 title: Upgrade to v1.3
 hide_title: true
 original_id: upgrade_1_3

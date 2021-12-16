@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-readme_package
+id: version-1.4.X-readme_package
 title: Packaging
 hide_title: true
 original_id: readme_package
@@ -14,22 +14,22 @@ gateway VM
 Creating a production release package.
 ---------------------------
 Run `fab test package:git` under lte/gateway/ on the host to create a Magma
-release. This runs the `build-magma.sh` script with the latest commit id with 
-production compiler flags (`RelWithDebInfo`). 
+release. This runs the `build-magma.sh` script with the latest commit id with
+production compiler flags (`RelWithDebInfo`).
 It builds everything, identifies dependencies (assuming they're specified in the
-setup.py properly), and creates a Debian package in the magma-packages/ 
+setup.py properly), and creates a Debian package in the magma-packages/
 directory on dev VM.
 
 If you want to bump the package version, this can be done inside build-magma.sh.
-The version number should be bumped when there is a minor or major feature or 
-bug fix release. 
-If you're just making a minor tweak (e.g., mistake in building the package), 
+The version number should be bumped when there is a minor or major feature or
+bug fix release.
+If you're just making a minor tweak (e.g., mistake in building the package),
 you can also increment the iteration number.
 
 Creating a development package.
 ---------------------------
-To create an AGW package with debug compiler flags (`Debug`), 
-run `fab dev package:git`. 
+To create an AGW package with debug compiler flags (`Debug`),
+run `fab dev package:git`.
 
 Testing a release package before you push it.
 ---------------------------------------------
@@ -39,7 +39,7 @@ packages.
 1. Build the release like you normally would.
 2. Spin up a fresh prod VM or gateway machine and copy the magma_<version>.deb
 generated above.
-3. Run `sudo apt-get install gdebi; sudo gdebi magma_<version>.deb' 
+3. Run `sudo apt-get install gdebi; sudo gdebi magma_<version>.deb'
 4. A VM reload or gateway reboot will likely be required due to kernel upgrade.
 
 This will simulate the exact steps that apt-get performs in production.

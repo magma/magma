@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-config_agw_bridged
+id: version-1.4.X-config_agw_bridged
 title: AGW Bridged Mode
 hide_title: true
 original_id: config_agw_bridged

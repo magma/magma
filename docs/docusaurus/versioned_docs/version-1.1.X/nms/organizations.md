@@ -1,5 +1,5 @@
 ---
-id: version-1.1.0-nms_organizations
+id: version-1.1.X-nms_organizations
 title: Multi-Tenancy (Organizations)
 hide_title: true
 original_id: nms_organizations
@@ -27,7 +27,7 @@ has access to the master organization. Run the command
     * `kubectl exec -it \
           $(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- \
           yarn setAdminPassword master <admin user email> <admin user password>`
-          
+
 ## DNS Resolution
 
 We use `external-dns` to automatically set up an AWS Route53 DNS record that

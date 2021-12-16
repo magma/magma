@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-prerequisites
+id: version-1.5.X-prerequisites
 title: Prerequisites
 hide_title: true
 original_id: prerequisites

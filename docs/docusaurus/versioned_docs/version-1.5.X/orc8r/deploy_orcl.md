@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-deploy_orcl
+id: version-1.5.X-deploy_orcl
 title: Experimental Orc8r Deployer
 hide_title: true
 original_id: deploy_orcl

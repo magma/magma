@@ -1,5 +1,5 @@
 ---
-id: version-1.0.1-remote_cli
+id: version-1.0.X-remote_cli
 title: Orchestrator Remote CLI - Creating commands guide
 sidebar_label: Orchestrator Remote CLI
 hide_title: true
@@ -98,7 +98,7 @@ paths:
 
 ### Handler implementation
 
-Each cloud service should have an `obsidian` folder, which contains handlers in `obsidian/handlers` and generated models in `obsidian/models`. 
+Each cloud service should have an `obsidian` folder, which contains handlers in `obsidian/handlers` and generated models in `obsidian/models`.
 
 Create your handler function:
 

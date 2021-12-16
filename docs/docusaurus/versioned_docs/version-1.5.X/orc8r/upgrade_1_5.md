@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-upgrade_1_5
+id: version-1.5.X-upgrade_1_5
 title: Upgrade to v1.5
 hide_title: true
 original_id: upgrade_1_5
@@ -184,4 +184,4 @@ In order to start receiving these alarms, it is necessary to click on the
 “Sync Pre-Defined alerts” in the NMS window for _*every*_ network defined in
 the Orc8r. For more details on this process, see the [NMS alerts guide](../nms/alerts#predefined-alerts)
 Syncing the alerts once on the NMS does not replicate the behavior to other
-networks managed by the same NMS. 
+networks managed by the same NMS.

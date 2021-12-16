@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-dev_components
+id: version-1.5.X-dev_components
 title: Components
 hide_title: true
 original_id: dev_components
@@ -246,4 +246,3 @@ const data: DataRows[] = [
 return <DataGrid data={data} />;
 ```
 ![image](https://user-images.githubusercontent.com/8878152/89435098-627d8d80-d712-11ea-98c5-e4899fc2eb88.png)
-

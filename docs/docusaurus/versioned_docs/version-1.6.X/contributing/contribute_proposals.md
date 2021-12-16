@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-contribute_proposals
+id: version-1.6.X-contribute_proposals
 title: Proposals Process
 hide_title: true
 original_id: contribute_proposals

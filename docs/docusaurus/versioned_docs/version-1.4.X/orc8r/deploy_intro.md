@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-deploy_intro
+id: version-1.4.X-deploy_intro
 title: Introduction
 hide_title: true
 original_id: deploy_intro
@@ -99,4 +99,3 @@ manage Magma gateways. It supports following deployment types.
   of *AGWs and FEGs*
 - `all` for all-encompasing deployments, enables management of *AGWs, FEGs,
   and CWAGs*
-

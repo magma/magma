@@ -1,5 +1,5 @@
 ---
-id: version-1.0.1-packer
+id: version-1.0.X-packer
 title: Packer Build
 hide_title: true
 original_id: packer

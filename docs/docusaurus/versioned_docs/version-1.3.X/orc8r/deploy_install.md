@@ -1,5 +1,5 @@
 ---
-id: version-1.3.0-deploy_install
+id: version-1.3.X-deploy_install
 title: Install Orchestrator
 hide_title: true
 original_id: deploy_install

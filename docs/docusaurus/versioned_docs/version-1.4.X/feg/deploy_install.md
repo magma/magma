@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-deploy_install
+id: version-1.4.X-deploy_install
 title: Installing Federation Gateway
 hide_title: true
 original_id: deploy_install

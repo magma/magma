@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-debug_logs
+id: version-1.5.X-debug_logs
 title: View Logs
 hide_title: true
 original_id: debug_logs
@@ -54,4 +54,3 @@ stern --namespace orc8r --selector app.kubernetes.io/name=nms --exclude-containe
 ## Kibana
 
 Orc8r can also forward its own logs, and aggregated gateway logs, to a configured [Elasticsearch](https://www.elastic.co/what-is/elasticsearch) endpoint. The logs can then be made available for consumption via [Kibana](https://www.elastic.co/what-is/kibana).
-

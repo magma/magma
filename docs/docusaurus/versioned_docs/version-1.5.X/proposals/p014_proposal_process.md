@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-p014_proposal_process
+id: version-1.5.X-p014_proposal_process
 title: Magma Proposals
 hide_title: true
 original_id: p014_proposal_process

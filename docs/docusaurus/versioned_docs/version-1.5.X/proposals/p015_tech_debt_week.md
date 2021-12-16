@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-p015_tech_debt_week
+id: version-1.5.X-p015_tech_debt_week
 title: Tech Debt Week Processes
 hide_title: true
 original_id: p015_tech_debt_week

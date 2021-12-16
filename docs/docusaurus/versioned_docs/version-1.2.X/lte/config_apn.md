@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-config_apn
+id: version-1.2.X-config_apn
 title: APN Configuration
 hide_title: true
 original_id: config_apn

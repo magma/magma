@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-upgrade_debian_to_ubuntu
+id: version-1.6.X-upgrade_debian_to_ubuntu
 title: Migrate AGWs to Ubuntu
 hide_title: true
 original_id: upgrade_debian_to_ubuntu

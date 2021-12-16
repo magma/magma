@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-readme_package
+id: version-1.5.X-readme_package
 title: Packaging
 hide_title: true
 original_id: readme_package

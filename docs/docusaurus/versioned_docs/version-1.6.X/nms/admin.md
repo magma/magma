@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-admin
+id: version-1.6.X-admin
 title: Admin
 hide_title: true
 original_id: admin

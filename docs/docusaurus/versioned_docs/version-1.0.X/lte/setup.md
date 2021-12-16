@@ -1,5 +1,5 @@
 ---
-id: version-1.0.1-setup
+id: version-1.0.X-setup
 title: AGW Setup (With Vagrant)
 sidebar_label: Setup (With Vagrant)
 hide_title: true

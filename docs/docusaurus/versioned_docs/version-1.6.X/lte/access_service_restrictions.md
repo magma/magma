@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-access_service_restrictions
+id: version-1.6.X-access_service_restrictions
 title: Restricting Network Access
 hide_title: true
 original_id: access_service_restrictions
@@ -122,12 +122,12 @@ IMEI restrictions can be added, updated, or removed via NMS using the JSON edito
 ## Service Area/Tracking Area Restriction
 
 Magma also supports a zone code based service area restriction in federated LTE deployments. To utilize this service restriction, network operators need to configure the following:
-	
+
 - HSS side: Up to 10 Regional Restriction Zone Codes for each subscriber.
 - Magma side: Mapping between zone codes and lists of tracking area codes (TACs).
-	
+
 If the HSS does not provide any zone code in Update Location Answer for a subscriber, then no tracking area restriction is applied for the subscriber as the default behavior. On the other hand, if HSS provides a list of zone codes in Update Location Answer, then a subscriber can attain service only when it is currently located in a cell with TAC included in one of the HSS provided zone codes for the subscriber.
-	
+
 Zone codes in Magma are configured at the network level utilizing the API endpoint `/lte/{network_id}/cellular/epc`. An example configuration is shown below.
 
 ```json

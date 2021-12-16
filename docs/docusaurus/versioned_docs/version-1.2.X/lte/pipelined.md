@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-pipelined
+id: version-1.2.X-pipelined
 title: Pipelined
 hide_title: true
 original_id: pipelined

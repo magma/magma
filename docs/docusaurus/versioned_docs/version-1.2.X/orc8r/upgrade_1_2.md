@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-upgrade_1_2
+id: version-1.2.X-upgrade_1_2
 title: Upgrade to v1.2
 hide_title: true
 original_id: upgrade_1_2
@@ -30,7 +30,7 @@ once you perform the Orchestrator data migrations, v1.1 deployments will lose
 access to a subset of the migrated data.
 
 If you are using local Terraform state (the default), ensure all Terraform state files (i.e. [`terraform.tfstate`](https://www.terraform.io/docs/state/index.html)) are located in your working directory before proceeding. This means `terraform show` should list existing state (rather than outputting `No state`).
- 
+
 ## Helm 3 Upgrade
 
 Orchestrator v1.2 requires an upgrade from Helm 2 to Helm 3. Helm provides a

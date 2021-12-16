@@ -15,7 +15,7 @@
           "version-1.6.X-howtos/config_agw_bridged",
           "version-1.6.X-howtos/call_tracing",
           "version-1.6.X-howtos/events_monitoring",
-          "version-1.6.X-howtos/he_api",
+          "version-1.6.X-he_api",
           "version-1.6.X-howtos/inbound_roaming",
           "version-1.6.X-howtos/pcap"
         ]

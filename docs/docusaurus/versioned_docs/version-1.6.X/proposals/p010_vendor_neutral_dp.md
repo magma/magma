@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-p010_vendor_neutral_dp
+id: version-1.6.X-p010_vendor_neutral_dp
 title: Vendor Neutral CBSD Domain Proxy
 hide_title: true
 original_id: p010_vendor_neutral_dp
@@ -511,7 +511,7 @@ generic application resource use (CPU, RAM, etc.)
 Domain Proxy will consist of a number of components in a microservice architecture.
 
 * **API Gateway**
-  
+
   API Gateway will act as a central API router of the Domain Proxy.
   It will be responsible for receiving incoming CBSD requests
   and routing them to the appropriate Protocol Controllers
@@ -726,7 +726,7 @@ those requirements are divided among the number of containers):
 Assuming DP will handle 10000 CBSD devices simultaneously, with 1 min heartbeat interval
 we estimate the following Database traffic:
 
-* DB `select` - up to 20000 select queries per minute (check request states and responses, request polling) 
+* DB `select` - up to 20000 select queries per minute (check request states and responses, request polling)
 * DB `insert` - up to 70000 insert queries per minute (each request, each response, cbsd and grant)
 * DB `update` - up to 35000 update queries per minute (update request state, update grant state, update cbsd state)
 

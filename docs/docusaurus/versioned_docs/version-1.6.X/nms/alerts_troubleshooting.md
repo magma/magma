@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-alerts_troubleshooting
+id: version-1.6.X-alerts_troubleshooting
 title: Alerts
 hide_title: true
 original_id: alerts_troubleshooting

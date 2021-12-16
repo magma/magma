@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-contribute_workflow
+id: version-1.6.X-contribute_workflow
 title: Development Workflow
 hide_title: true
 original_id: contribute_workflow

@@ -1,5 +1,5 @@
 ---
-id: version-1.3.0-p004_fua_restrict_feature
+id: version-1.3.X-p004_fua_restrict_feature
 title: Service Restriction Feature
 hide_title: true
 original_id: p004_fua_restrict_feature
@@ -11,15 +11,15 @@ original_id: p004_fua_restrict_feature
 *Author: @ymasmoudi*\
 *Last Updated: 08/27*
 
-## Overview 
+## Overview
 
 Currently, upon exhaustion of subscriber quota, we support two final unit
-actions : 
+actions :
 1/ session termination
-2/ redirection to a predifined IP/URL address. 
+2/ redirection to a predifined IP/URL address.
 
 A third option called service restriction would allow us to restrict traffic
-to a list of IP filter rules with specified QoS. 
+to a list of IP filter rules with specified QoS.
 
 FUA-Restrict indicates to SessionD that the user's access MUST be restricted
 according to IP filters definitions or IDs provided in AVPs. This is enabled
@@ -50,9 +50,9 @@ It is important to note that QoS can be enabled only when using Filter-Id AVP.
 Restriction-Filter-Rule AVP would only provide allowed traffic filters.
 
 This implementation will not provide Restriction-Filter-Rule as Filter-id
-provides support of all the required use-cases. Nevertheless, 
+provides support of all the required use-cases. Nevertheless,
 Restriction-Filter-Rule could be translated to restriction dynamic rules with
-lower priority and apply them similar to static rules. 
+lower priority and apply them similar to static rules.
 LocalEnforcer will ensure priority in this case.
 
 As we would like to use any static rule when restriction is enabled, there will

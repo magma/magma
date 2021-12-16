@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-developer
+id: version-1.4.X-developer
 title: Developer
 hide_title: true
 original_id: developer
@@ -299,4 +299,3 @@ const data: DataRows[] = [
 return <DataGrid data={data} />;
 ```
 ![image](https://user-images.githubusercontent.com/8878152/89435098-627d8d80-d712-11ea-98c5-e4899fc2eb88.png)
-

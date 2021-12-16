@@ -1,5 +1,5 @@
 ---
-id: version-1.3.0-upgrade_1_3
+id: version-1.3.X-upgrade_1_3
 title: Upgrade to v1.3
 hide_title: true
 original_id: upgrade_1_3
@@ -27,7 +27,7 @@ Build and publish the application containers on the head of the release branch
 by following the documentation, and package and upload version `1.4.36` of the
 orc8r Helm chart as well.
 
-If you are using local Terraform state (the default), ensure all Terraform state files (i.e. [`terraform.tfstate`](https://www.terraform.io/docs/state/index.html)) are located in your working directory before proceeding. This means `terraform show` should list existing state (rather than outputting `No state`). 
+If you are using local Terraform state (the default), ensure all Terraform state files (i.e. [`terraform.tfstate`](https://www.terraform.io/docs/state/index.html)) are located in your working directory before proceeding. This means `terraform show` should list existing state (rather than outputting `No state`).
 
 ## Upgrade Terraform Modules
 

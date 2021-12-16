@@ -1,5 +1,5 @@
 ---
-id: version-1.3.0-quick_start_guide
+id: version-1.3.X-quick_start_guide
 title: Quick Start Guide
 hide_title: true
 original_id: quick_start_guide

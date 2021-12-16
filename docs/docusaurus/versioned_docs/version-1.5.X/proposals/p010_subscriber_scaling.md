@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-p010_subscriber_scaling
+id: version-1.5.X-p010_subscriber_scaling
 title: Subscriber Scaling
 hide_title: true
 original_id: p010_subscriber_scaling

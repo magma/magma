@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-enodebd
+id: version-1.2.X-enodebd
 title: eNodeB Configuration
 hide_title: true
 original_id: enodebd

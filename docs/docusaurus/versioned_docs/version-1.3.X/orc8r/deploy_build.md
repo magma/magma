@@ -1,5 +1,5 @@
 ---
-id: version-1.3.0-deploy_build
+id: version-1.3.X-deploy_build
 title: Build Orchestrator
 hide_title: true
 original_id: deploy_build
@@ -36,7 +36,7 @@ $ docker login
 
 Login with your Docker ID to push and pull images from Docker Hub. If you don't have a Docker ID, head over to https://hub.docker.com to create one.
 Username: REGISTRY_USERNAME
-Password: 
+Password:
 Login Succeeded
 ```
 

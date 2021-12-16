@@ -1,5 +1,5 @@
 ---
-id: version-1.0.1-healthchecker
+id: version-1.0.X-healthchecker
 title: Health Checker
 sidebar_label: Health Checker
 hide_title: true

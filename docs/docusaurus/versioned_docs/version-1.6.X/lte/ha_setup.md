@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-configure_agw_ha
+id: version-1.6.X-configure_agw_ha
 title: Configure AGW for HA
 hide_title: true
 original_id: configure_agw_ha
@@ -178,4 +178,3 @@ the management interface for the eNB vendor. The primary and secondary AGW’s
 routable ip addresses assigned for eth1 must be used in this configuration.
 Make sure that eNB simultaneously connects to each MME ip address in its pool
 and there are sctp heartbeat requests and responses on each AGW.
-

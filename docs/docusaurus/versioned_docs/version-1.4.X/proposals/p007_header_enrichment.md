@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-p007_header_enrichment
+id: version-1.4.X-p007_header_enrichment
 title: Header enrichment
 hide_title: true
 original_id: p007_header_enrichment

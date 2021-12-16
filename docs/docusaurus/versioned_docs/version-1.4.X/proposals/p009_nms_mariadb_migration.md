@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-p009_nms_mariadb_migration
+id: version-1.4.X-p009_nms_mariadb_migration
 title: NMS MariaDB Migration
 hide_title: true
 original_id: p009_nms_mariadb_migration
@@ -28,7 +28,7 @@ There are no particular benefits for NMS to use MariaDB over Postgres
 for network operators.
 Particularly, for network operators using Magma on AWS, there are operating
 costs to running both MariaDB and Postgres, over using just one or the other.
-The goal of this migration is to have both NMS and orc8r use the same DB 
+The goal of this migration is to have both NMS and orc8r use the same DB
 technology to reduce operating expenses of running a network on Magma.
 
 While orc8r does also use other technologies such as Prometheus and
@@ -37,14 +37,14 @@ technologies.
 
 ## Success Criteria
 
-Several success criteria 
+Several success criteria
 
 - Migration script only required to run once after upgrade to 1.5
 - Networks running on 1.5 do not have expenses related to running MariaDB
 - Migration process works in the three scenarios:
     - with bare Docker only
     - with Terraform and Kubernetes
-    
+
 ## Current Setup
 
 #### NMS Storage
@@ -91,7 +91,7 @@ This section is split up between the process that operators must follow to
 successfully migrate NMS off MariaDB, and the technical details to achieve
 this migration.
 
-#### Developer Process - Docker 
+#### Developer Process - Docker
 
 Migration will not be supported for developers.
 
@@ -142,7 +142,7 @@ will be optional, based on the specified meta-argument.
 
 Additionally, to eliminate namespace collisions between orc8r table names and
 NMS-specific table names in Postgres, the same `db_instance` will be used, but
-two logical databases will be used. 
+two logical databases will be used.
 
 MariaDB is required to run for the migration to proceed, but afterwards can be
 turned down. To achieve this with Terraform, meta-arguments will be used.

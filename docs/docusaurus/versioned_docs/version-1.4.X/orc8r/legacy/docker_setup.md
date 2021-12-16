@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-docker_setup
+id: version-1.4.X-docker_setup
 title: Docker Setup
 original_id: docker_setup
 ---
@@ -18,7 +18,7 @@ one container per microservice model which is more appropriate.
 For development, we use a postgresql container as the datastore. For
 production, it is advisable to use a hosted solution like AWS RDS.
 
-NOTE: This guide assumes that you are running the commands inside 
+NOTE: This guide assumes that you are running the commands inside
 the `magma/orc8r/cloud/docker` directory in your host.
 
 ## How to build the images
@@ -38,7 +38,7 @@ MAGMA_MODULES_FILE=../../../modules.yml ./build.py
 ```
 
 NOTE: If you are running on Mac, you may need to increase the memory
-limit of the docker daemon to build the images. Otherwise, you may see an error 
+limit of the docker daemon to build the images. Otherwise, you may see an error
 message similar to this:
 `/usr/local/go/pkg/tool/linux_amd64/link: signal: killed`.
 
@@ -78,7 +78,7 @@ The `--mount` option in `build.py` can be used to spin a test container
 with the code from individual modules mounted, so that we can individual
 unit tests.
 
-*NOTE: make sure to run `precommit` using mount before submitting a patch* 
+*NOTE: make sure to run `precommit` using mount before submitting a patch*
 
 ```
 ./build.py --mount

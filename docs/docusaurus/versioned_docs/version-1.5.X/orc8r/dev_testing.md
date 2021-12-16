@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-dev_testing
+id: version-1.5.X-dev_testing
 title: Testing Tips
 hide_title: true
 original_id: dev_testing

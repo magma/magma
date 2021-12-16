@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-nms_developer
+id: version-1.2.X-nms_developer
 title: Quick-Start Guide to NMS Development
 hide_title: true
 original_id: nms_developer
@@ -42,7 +42,7 @@ We've adapted the Symphony styles to better reflect the typography found in the 
 * h1
 * h2
 * h3
-* h4 
+* h4
 * h5
 * subtitle1
 * subtitle2
@@ -129,7 +129,7 @@ The Data Grid component allows developers to quickly display information, whethe
 `DataRows` which make up `DataGrid` take in the following properties to determine how each data entry should render and operate based on the specifics of the content you are making.
 <br />
 
-#### category `string` **(Optional)** 
+#### category `string` **(Optional)**
 Passes a category label for this specific data entry.
 <br />
 
@@ -162,7 +162,7 @@ Passes the state of the `statusCircle`. **True** renders a green status indicato
 <br />
 
 #### statusInactive `boolean` **(Optional)**
-Passes the state of inactive to `statusCircle` rendering a gray status indicator. 
+Passes the state of inactive to `statusCircle` rendering a gray status indicator.
 <br />
 
 #### tooltip `string` **(Optional)**
@@ -299,4 +299,3 @@ const data: DataRows[] = [
 return <DataGrid data={data} />;
 ```
 ![image](https://user-images.githubusercontent.com/8878152/89435098-627d8d80-d712-11ea-98c5-e4899fc2eb88.png)
-

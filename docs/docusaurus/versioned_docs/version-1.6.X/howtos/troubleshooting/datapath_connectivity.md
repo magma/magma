@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-datapath_connectivity
+id: version-1.6.X-datapath_connectivity
 title: Debugging AGW datapath issues
 hide_title: true
 original_id: datapath_connectivity

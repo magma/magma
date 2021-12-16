@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-p011_intra_agw_mobility
+id: version-1.5.X-p011_intra_agw_mobility
 title: Intra-AGW Mobility (S1 Mobility)
 hide_title: true
 original_id: p011_intra_agw_mobility
@@ -23,7 +23,7 @@ Add S1 mobility support for intra-AGW mobility in situations where X2 handover i
 
 Currently, mobility in Magma is limited to RAN a single AGW where RAN elements support the X2 interface. This isn't always feasible; S1 mobility is the "fallback" method for mobility in LTE networks when X2 isn't avaialble. The scope of this proposal is enhancing intra-AGW mobility (that is, mobility that does not cross an AGW boundary) using S1 handover. Although *inter-AGW* mobility is not within scope of this proposal, the signalling mechanisms necessary for S1 handover will be useful for future mobility proposals.
 
-The intended use case for this proposal is single cell tower (or small cluster of cell sites) connected to a single AGW, potentially using a mix of eNB equipment, where the network operator wishes to support seamless mobility anchored at the AGW. UEs should maintain 
+The intended use case for this proposal is single cell tower (or small cluster of cell sites) connected to a single AGW, potentially using a mix of eNB equipment, where the network operator wishes to support seamless mobility anchored at the AGW. UEs should maintain
 
 ## Proposal
 
@@ -69,4 +69,3 @@ Ideally, we'd have `s1aptester` tests for this feature; however, `s1aptester` do
   - (Negative Test Cases) - eNB rejects the HO
 
 - Local test bed: 2x Baicells + Pixel 3 as UE
-

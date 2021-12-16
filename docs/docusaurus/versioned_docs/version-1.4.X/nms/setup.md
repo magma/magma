@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-setup
+id: version-1.4.X-setup
 title: Setup
 hide_title: true
 original_id: setup

@@ -1,5 +1,5 @@
 ---
-id: version-1.4.0-architecture_security
+id: version-1.4.X-architecture_security
 title: Security
 hide_title: true
 original_id: architecture_security

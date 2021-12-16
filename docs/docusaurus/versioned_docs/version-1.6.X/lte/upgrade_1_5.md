@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-upgrade_1_5
+id: version-1.6.X-upgrade_1_5
 title: Upgrade to v1.5
 hide_title: true
 original_id: upgrade_1_5
@@ -11,7 +11,7 @@ original_id: upgrade_1_5
 
 ### Repo Change
 
-In Magma Fuji (v1.5), Magma artifacts are now hosted on the new Magmacore repositories at 
+In Magma Fuji (v1.5), Magma artifacts are now hosted on the new Magmacore repositories at
 [artifactory.magmacore.org](https://artifactory.magmacore.org/).
 Gateways migrating from older Magma releases can run the migration script to update the sources accordingly.
 

@@ -1,5 +1,5 @@
 ---
-id: version-1.5.0-dev_themes
+id: version-1.5.X-dev_themes
 title: Themes
 hide_title: true
 original_id: dev_themes
@@ -36,4 +36,3 @@ We've adapted the Symphony styles to better reflect the typography found in the 
 
 ## Shadows
 We've generated a few different elevations to leverage depending on the context in which you are designing for. In most cases, we tend to keep content within the page flat, reserving shadows for content like dialogs and modals.
-

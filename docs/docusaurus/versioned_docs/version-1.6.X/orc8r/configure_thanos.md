@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-configure_thanos
+id: version-1.6.X-configure_thanos
 title: Thanos
 hide_title: true
 original_id: configure_thanos

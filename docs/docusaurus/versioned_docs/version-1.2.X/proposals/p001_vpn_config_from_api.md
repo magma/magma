@@ -1,5 +1,5 @@
 ---
-id: version-1.2.0-p001_vpn_config_from_api
+id: version-1.2.X-p001_vpn_config_from_api
 title: Configurable VPN from Orchestrator API
 hide_title: true
 original_id: p001_vpn_config_from_api
@@ -12,7 +12,7 @@ original_id: p001_vpn_config_from_api
 
 ## Summary
 
-Currently, the only option to gain remote access to any Access Gateway involves some manual steps to be able to introduce an OpenVPN connection to it. This proposal involves some updates to the process to allow a configurable VPN connection through the Orchestrator REST API. 
+Currently, the only option to gain remote access to any Access Gateway involves some manual steps to be able to introduce an OpenVPN connection to it. This proposal involves some updates to the process to allow a configurable VPN connection through the Orchestrator REST API.
 
 ## Motivation
 
@@ -35,7 +35,7 @@ The goals of automating VPN setup and making it configurable are:
 
 ## Proposal
 
-```                                                                                         
+```
 |-------------------------------|                        +-------------------------------+
 |                               |      VPN Credentials   |                               |
 |                               |------------------------|                               |
@@ -46,23 +46,23 @@ The goals of automating VPN setup and making it configurable are:
 |                               |                        |                               |
 |                               |                        |                               |
 |--------------------------------                        +-------------------------------+
-                                                                          |               
-                                                                          |               
-                                                                          /               
-                                                                         |                
-                                                                         |                
-                     +----------------------+                    +--------------------+   
-                     |                      |                    |                    |   
-                     |                      |                    |     UDP/TCP        |   
-                     |    OpenVPN Server    |--------------------|  OpenVPN Client    |   
-                     | module of Terraform  |                    |                    |   
-                     |                      |                    |                    |   
-                     |                      |                    +--------------------+   
-                     +----------------------+                                          
+                                                                          |
+                                                                          |
+                                                                          /
+                                                                         |
+                                                                         |
+                     +----------------------+                    +--------------------+
+                     |                      |                    |                    |
+                     |                      |                    |     UDP/TCP        |
+                     |    OpenVPN Server    |--------------------|  OpenVPN Client    |
+                     | module of Terraform  |                    |                    |
+                     |                      |                    |                    |
+                     |                      |                    +--------------------+
+                     +----------------------+
 ```
 
-For setting this up, we can take advantage of our terraform module configuration, to deploy and expose an OpenVPN server. 
-We can deploy an OpenVPN server on kubernetes by using helm openvpn module on: https://hub.helm.sh/charts/stable/openvpn. This server should use persistent volume in k8s to store all the client keys mapping information. 
+For setting this up, we can take advantage of our terraform module configuration, to deploy and expose an OpenVPN server.
+We can deploy an OpenVPN server on kubernetes by using helm openvpn module on: https://hub.helm.sh/charts/stable/openvpn. This server should use persistent volume in k8s to store all the client keys mapping information.
 
 ### Bootstrapper Updates
 
@@ -88,7 +88,7 @@ From here, the AGW can spin off and enable an OpenVPN UDP client, we can wrap th
 ### VPN Usage
 
 For usage of the VPN, we will define as owner to the operator (e.g. support team member, maintainer) of the entire system as of now. In the future we can look into defining certificates with principal validity for a particular network, and the server to only accept certification who have that network registered as principal.
-Current VPN server setup has `client-to-client` option enabled, which eases the SSH connection for gateways, but opens up vulnerabilities as other AGWs connected to VPN become open. If we disable this option, the `fab ssh` command should be extended with a step to first connect to the kube pod running openvpn, and then sshing into the client / gateway. 
+Current VPN server setup has `client-to-client` option enabled, which eases the SSH connection for gateways, but opens up vulnerabilities as other AGWs connected to VPN become open. If we disable this option, the `fab ssh` command should be extended with a step to first connect to the kube pod running openvpn, and then sshing into the client / gateway.
 
 ## Timeline of Work
 
@@ -96,4 +96,4 @@ Current VPN server setup has `client-to-client` option enabled, which eases the 
 - Implement interface for bootstrapper RPC VPN client certificate management
 - Update bootstrapper process to include provision / maintenance of VPN creds for enabled VPN gateways
 - Add UDP/TPC OpenVPN client wrapper to AGWs
-- Add cloud endpoints for VPN configuration / management 
+- Add cloud endpoints for VPN configuration / management

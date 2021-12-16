@@ -1,5 +1,5 @@
 ---
-id: version-1.6.0-deploy_terraform_options
+id: version-1.6.X-deploy_terraform_options
 title: Terraform Options
 hide_title: true
 original_id: deploy_terraform_options
