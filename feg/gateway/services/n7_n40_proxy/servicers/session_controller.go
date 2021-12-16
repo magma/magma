@@ -99,8 +99,11 @@ func (srv *CentralSessionController) UpdateSession(
 	ctx context.Context,
 	request *protos.UpdateSessionRequest,
 ) (*protos.UpdateSessionResponse, error) {
-
-	return (&protos.UnimplementedCentralSessionControllerServer{}).UpdateSession(ctx, request)
+	reqCtxts := n7.GetSmPolicyUpdateRequestsN7(request.UsageMonitors)
+	responses := srv.sendMutlipleSmPolicyUpdateRequests(reqCtxts)
+	return &protos.UpdateSessionResponse{
+		UsageMonitorResponses: responses,
+	}, nil
 }
 
 // TerminateSession handles a session termination
