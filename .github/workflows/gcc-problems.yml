@@ -195,8 +195,9 @@ jobs:
           options: -v ${{ github.workspace }}:/workspaces/magma
           run: |
             cd /workspaces/magma
-            C_CPP_FLAGS="-Wno-error -Wextra -Wshadow -Wimplicit-fallthrough -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wformat=2 -Wstrict-overflow=4 -Wuninitialized -Wshift-overflow=2"
+            C_CPP_FLAGS="-Wextra -Wshadow -Wimplicit-fallthrough -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wformat=2 -Wstrict-overflow=4 -Wuninitialized -Wshift-overflow=2"
             C_ONLY_FLAGS="-Wjump-misses-init"
+
             COPTS=`echo $C_CPP_FLAGS | sed 's/-W/--copt=-W/g'`
             CONLY_OPTS=`echo $C_ONLY_FLAGS | sed 's/-W/--conlyopt=-W/g'`
             bazel build //orc8r/gateway/c/...:* //lte/gateway/c/...:* $COPTS $CONLY_OPTS 2>&1 > /workspaces/magma/compile.log
