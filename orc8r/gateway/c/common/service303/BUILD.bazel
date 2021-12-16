@@ -29,6 +29,7 @@ cc_library(
         "includes/MetricsRegistry.h",
         "includes/MetricsSingleton.h",
     ],
+    linkstatic = True,
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/service303",
     deps = [

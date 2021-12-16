@@ -35,6 +35,7 @@ cc_library(
             "-DSENTRY_BUILD_STATIC",
         ],
     }),
+    linkstatic = True,
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/sentry",
     deps = select({

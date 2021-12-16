@@ -18,6 +18,7 @@ cc_library(
     name = "async_grpc_receiver",
     srcs = ["GRPCReceiver.cpp"],
     hdrs = ["includes/GRPCReceiver.h"],
+    linkstatic = True,
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/async_grpc",
     deps = [

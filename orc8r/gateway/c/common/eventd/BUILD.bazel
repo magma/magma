@@ -18,6 +18,7 @@ cc_library(
     srcs = ["EventdClient.cpp"],
     # TODO(@themarwhal): Remove includes/ project directories - GH8446
     hdrs = ["includes/EventdClient.h"],
+    linkstatic = True,
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/eventd",
     deps = [

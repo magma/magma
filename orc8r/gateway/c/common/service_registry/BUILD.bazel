@@ -17,6 +17,7 @@ cc_library(
     name = "service_registry",
     srcs = ["ServiceRegistrySingleton.cpp"],
     hdrs = ["includes/ServiceRegistrySingleton.h"],
+    linkstatic = True,
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/service_registry",
     deps = [

@@ -17,6 +17,7 @@ cc_library(
     name = "yaml_utils",
     srcs = ["YAMLUtils.cpp"],
     hdrs = ["YAMLUtils.h"],
+    linkstatic = True,
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/config",
     deps = [
@@ -28,6 +29,7 @@ cc_library(
     name = "mconfig_loader",
     srcs = ["MConfigLoader.cpp"],
     hdrs = ["includes/MConfigLoader.h"],
+    linkstatic = True,
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/config",
     deps = [
@@ -42,6 +44,7 @@ cc_library(
     srcs = ["ServiceConfigLoader.cpp"],
     # TODO(@themarwhal): Remove includes/ project directories - GH8446
     hdrs = ["includes/ServiceConfigLoader.h"],
+    linkstatic = True,
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/config",
     deps = [
