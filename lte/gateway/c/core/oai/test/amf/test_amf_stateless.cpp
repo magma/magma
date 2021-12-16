@@ -24,6 +24,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
+#include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 
 using ::testing::Test;
 
@@ -118,6 +119,68 @@ TEST(TestAMFStateConverter, TestStateToProto) {
       amf_app_desc2.amf_ue_contexts.guti_ue_context_htbl.get(guti1, &data),
       magma::MAP_OK);
   EXPECT_EQ(data, 40);
+}
+
+TEST(test_amf_security_context_to_proto, test_amf_security_context_to_proto) {
+  amf_security_context_t state_amf_security_context_1 = {};
+  amf_security_context_t state_amf_security_context_2 = {};
+  // EmmSecurityProto
+  magma::lte::oai::EmmSecurityContext emm_security_context_proto =
+      magma::lte::oai::EmmSecurityContext();
+  // amf_security_context setup
+  state_amf_security_context_1.sc_type      = SECURITY_CTX_TYPE_NOT_AVAILABLE;
+  state_amf_security_context_1.eksi         = 1;
+  state_amf_security_context_1.vector_index = 1;
+  state_amf_security_context_1.dl_count.overflow      = 2;
+  state_amf_security_context_1.dl_count.seq_num       = 1;
+  state_amf_security_context_1.ul_count.overflow      = 1;
+  state_amf_security_context_1.ul_count.seq_num       = 2;
+  state_amf_security_context_1.kenb_ul_count.overflow = 1;
+  state_amf_security_context_1.kenb_ul_count.seq_num  = 1;
+  state_amf_security_context_1.direction_decode       = SECU_DIRECTION_UPLINK;
+  state_amf_security_context_1.direction_encode       = SECU_DIRECTION_DOWNLINK;
+
+  AmfNasStateConverter::amf_security_context_to_proto(
+      &state_amf_security_context_1, &emm_security_context_proto);
+  AmfNasStateConverter::proto_to_amf_security_context(
+      emm_security_context_proto, &state_amf_security_context_2);
+
+  EXPECT_EQ(
+      state_amf_security_context_1.sc_type,
+      state_amf_security_context_2.sc_type);
+  EXPECT_EQ(
+      state_amf_security_context_1.eksi, state_amf_security_context_2.eksi);
+  EXPECT_EQ(
+      state_amf_security_context_1.vector_index,
+      state_amf_security_context_2.vector_index);
+
+  // Count values
+  EXPECT_EQ(
+      state_amf_security_context_1.dl_count.overflow,
+      state_amf_security_context_2.dl_count.overflow);
+  EXPECT_EQ(
+      state_amf_security_context_1.dl_count.seq_num,
+      state_amf_security_context_2.dl_count.seq_num);
+  EXPECT_EQ(
+      state_amf_security_context_1.ul_count.overflow,
+      state_amf_security_context_2.ul_count.overflow);
+  EXPECT_EQ(
+      state_amf_security_context_1.ul_count.seq_num,
+      state_amf_security_context_2.ul_count.seq_num);
+  EXPECT_EQ(
+      state_amf_security_context_1.kenb_ul_count.overflow,
+      state_amf_security_context_2.kenb_ul_count.overflow);
+  EXPECT_EQ(
+      state_amf_security_context_1.kenb_ul_count.seq_num,
+      state_amf_security_context_2.kenb_ul_count.seq_num);
+
+  // Security algorithm
+  EXPECT_EQ(
+      state_amf_security_context_1.direction_decode,
+      state_amf_security_context_2.direction_decode);
+  EXPECT_EQ(
+      state_amf_security_context_1.direction_encode,
+      state_amf_security_context_2.direction_encode);
 }
 
 class AMFAppStatelessTest : public ::testing::Test {
