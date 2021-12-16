@@ -3417,7 +3417,7 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchFailure) {
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -3559,7 +3559,7 @@ TEST_F(
   // to mme_app mimicing SPGW
   sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -3609,7 +3609,7 @@ TEST_F(
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -3752,7 +3752,7 @@ TEST_F(
   // to mme_app mimicing SPGW
   sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
