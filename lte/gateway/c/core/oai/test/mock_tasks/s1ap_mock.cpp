@@ -67,6 +67,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_PAGING_REQUEST: {
+      s1ap_handler_->s1ap_handle_paging_request();
     } break;
 
     case S1AP_UE_CONTEXT_MODIFICATION_REQUEST: {
@@ -77,15 +78,23 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_PATH_SWITCH_REQUEST_ACK: {
+      s1ap_handler_->s1ap_handle_path_switch_req_ack(
+          received_message_p->ittiMsg.s1ap_path_switch_request_ack);
     } break;
 
     case S1AP_PATH_SWITCH_REQUEST_FAILURE: {
+      s1ap_handler_->s1ap_handle_path_switch_req_failure(
+          received_message_p->ittiMsg.s1ap_path_switch_request_failure);
     } break;
 
     case MME_APP_HANDOVER_REQUEST: {
+      s1ap_handler_->s1ap_mme_handle_handover_request(
+          received_message_p->ittiMsg.mme_app_handover_request);
     } break;
 
     case MME_APP_HANDOVER_COMMAND: {
+      s1ap_handler_->s1ap_mme_handle_handover_command(
+          received_message_p->ittiMsg.mme_app_handover_command);
     } break;
 
     case TERMINATE_MESSAGE: {

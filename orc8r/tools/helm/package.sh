@@ -155,10 +155,6 @@ if [[ $ONLY_PACKAGE = false && -z $HELM_CHART_ARTIFACTORY_URL ]]; then
     helm dependency update "$MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/"
     # shellcheck disable=SC2086
     helm package "$MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/" $VERSION && helm repo index .
-
-    helm dependency update "$MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/"
-    # shellcheck disable=SC2086
-    helm package "$MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/" $VERSION && helm repo index .
   fi
 
   # Push charts
@@ -225,7 +221,6 @@ else
     update_and_send_to_artifactory "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
     update_and_send_to_artifactory "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
     update_and_send_to_artifactory "$MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/"
-    update_and_send_to_artifactory "$MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/"
   fi
 
   if [[ $ONLY_PACKAGE = false ]]; then

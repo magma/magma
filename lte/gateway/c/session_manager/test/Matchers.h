@@ -93,7 +93,7 @@ MATCHER_P(CheckTeidVector, expected, "") {
   }
   for (uint32_t i = 0; i < req_teids.size(); i++) {
     const Teids& expected_teids = expected[i];
-    const Teids& actual_teids   = req_teids[i];
+    const Teids& actual_teids = req_teids[i];
     if ((expected_teids.agw_teid() != actual_teids.agw_teid()) ||
         (expected_teids.enb_teid() != actual_teids.enb_teid())) {
       return false;
@@ -119,7 +119,7 @@ MATCHER_P(CheckUpdateRequestNumber, request_number, "") {
 }
 
 MATCHER_P(CheckCoreRequest, expected_request, "") {
-  auto req    = static_cast<const CreateSessionRequest&>(arg);
+  auto req = static_cast<const CreateSessionRequest&>(arg);
   auto ex_req = static_cast<const CreateSessionRequest&>(expected_request);
   if (!google::protobuf::util::MessageDifferencer::Equals(
           ex_req.requested_units(), req.requested_units())) {
@@ -137,9 +137,8 @@ MATCHER_P3(CheckTerminateRequestCount, imsi, monitorCount, chargingCount, "") {
          req.monitor_usages().size() == monitorCount;
 }
 
-MATCHER_P6(
-    CheckSessionInfos, imsi_list, ip_address_list, ipv6_address_list, cfg,
-    rule_ids_lists, versions_lists, "") {
+MATCHER_P6(CheckSessionInfos, imsi_list, ip_address_list, ipv6_address_list,
+           cfg, rule_ids_lists, versions_lists, "") {
   auto infos = static_cast<const std::vector<SessionState::SessionInfo>>(arg);
 
   if (infos.size() != imsi_list.size()) {
@@ -183,9 +182,8 @@ MATCHER_P6(
         return false;
       } else if (info.ambr->max_bandwidth_dl() != qos_info.apn_ambr_dl()) {
         return false;
-      } else if (
-          static_cast<int>(info.ambr->br_unit()) !=
-          static_cast<int>(qos_info.br_unit())) {
+      } else if (static_cast<int>(info.ambr->br_unit()) !=
+                 static_cast<int>(qos_info.br_unit())) {
         return false;
       }
     }
@@ -234,7 +232,7 @@ MATCHER_P(CheckPolicyID, id, "") {
 
 MATCHER_P2(CheckPolicyIDs, count, ids, "") {
   auto request = static_cast<const RulesToProcess>(arg);
-  if (request.size() != (unsigned int) count) {
+  if (request.size() != (unsigned int)count) {
     return false;
   }
   for (size_t i = 0; i < request.size(); i++) {
@@ -283,9 +281,8 @@ MATCHER_P(CheckTerminate, imsi, "") {
   return request->common_context().sid().id() == imsi;
 }
 
-MATCHER_P6(
-    CheckActivateFlowsForTunnIds, imsi, ipv4, ipv6, enb_teid, agw_teid,
-    rule_count, "") {
+MATCHER_P6(CheckActivateFlowsForTunnIds, imsi, ipv4, ipv6, enb_teid, agw_teid,
+           rule_count, "") {
   auto request = static_cast<const ActivateFlowsRequest*>(arg);
   std::cerr << "Got " << request->policies_size() << " rules" << std::endl;
   auto res = request->sid().id() == imsi && request->ip_addr() == ipv4 &&
@@ -315,27 +312,25 @@ MATCHER_P(CheckSrvResponse, expected_response, "") {
   auto unit_res =
       (expected_session_ambr->br_unit() == actual_response_ambr->br_unit());
 
-  auto ul_ambr_res =
-      (expected_session_ambr->max_bandwidth_ul() ==
-       actual_response_ambr->max_bandwidth_ul());
+  auto ul_ambr_res = (expected_session_ambr->max_bandwidth_ul() ==
+                      actual_response_ambr->max_bandwidth_ul());
 
-  auto dl_ambr_res =
-      (expected_session_ambr->max_bandwidth_dl() ==
-       actual_response_ambr->max_bandwidth_dl());
+  auto dl_ambr_res = (expected_session_ambr->max_bandwidth_dl() ==
+                      actual_response_ambr->max_bandwidth_dl());
 
   return (unit_res && ul_ambr_res && dl_ambr_res);
 }
 
 MATCHER_P(CheckSendRequest, expected_request, "") {
-  auto req  = static_cast<const CreateSessionRequest>(arg);
+  auto req = static_cast<const CreateSessionRequest>(arg);
   auto imsi = req.common_context().sid().id();
 
-  auto apn      = req.common_context().apn();
+  auto apn = req.common_context().apn();
   auto rat_type = req.common_context().rat_type();
 
   auto imsi_exp = expected_request.common_context().sid().id();
 
-  auto apn_exp      = expected_request.common_context().apn();
+  auto apn_exp = expected_request.common_context().apn();
   auto rat_type_exp = expected_request.common_context().rat_type();
 
   return (imsi == imsi_exp && apn == apn_exp && rat_type == rat_type_exp);

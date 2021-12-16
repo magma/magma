@@ -12,6 +12,7 @@
 ################################################################################
 
 resource "kubernetes_persistent_volume_claim" "storage" {
+
   for_each = {
     promcfg = {
       access_mode = "ReadWriteMany"

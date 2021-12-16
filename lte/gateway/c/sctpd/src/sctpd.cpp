@@ -42,8 +42,8 @@ int signalMask(void) {
   return 0;
 }
 
-int signalHandler(
-    int* end, std::unique_ptr<Server>& server, SctpdDownlinkImpl& downLink) {
+int signalHandler(int* end, std::unique_ptr<Server>& server,
+                  SctpdDownlinkImpl& downLink) {
   int ret;
   siginfo_t info;
   sigset_t set;

@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"magma/feg/cloud/go/protos"
 )
@@ -26,8 +27,6 @@ import (
 // should match "... @NH-FEG-FOR: IMSI123456", "... @NH-FeG-FOR IMSI123456", @nh-Feg-for Imsi 123456", etc.
 var nHTargetSuffixRe = regexp.MustCompile(`(?i)(?:\s|^)@NH-FEG-FOR:?\s*(?:IMSI:?\s*)?(\d{5,15})\s*$`)
 
-// FeG Hello implementation
-//
 // SayHello sends HelloRequest to default FeG if the greeting doesn not end with '@NH-FeG-FOR <IMSI>' (see RegEx above)
 // If the greeting ends with '@NH-FeG-FOR <IMSI>', SayHello will try to route the request to Neutral Host's FeG network
 // matching the given IMSI
@@ -39,11 +38,14 @@ func (s *RelayRouter) SayHello(ctx context.Context, req *protos.HelloRequest) (*
 		glog.V(1).Infof("SayHello with NH IMSI '%s': %s", imsi, req.GetGreeting())
 		req.Greeting = strings.TrimSuffix(req.Greeting, match[0])
 	}
+	req.AgwToFegRelayTimestamp = timestamppb.Now()
 	conn, ctx, cancel, err := s.GetFegServiceConnection(ctx, imsi, FegHello)
 	if err != nil {
 		glog.Errorf("SayHello error for NH IMSI '%s', greeting '%s': %v", imsi, req.GetGreeting(), err)
 		return nil, err
 	}
 	defer cancel()
-	return protos.NewHelloClient(conn).SayHello(ctx, req)
+	res, err := protos.NewHelloClient(conn).SayHello(ctx, req)
+	res.Timestamps.FegRelayToAgwTimestamp = timestamppb.Now()
+	return res, err
 }

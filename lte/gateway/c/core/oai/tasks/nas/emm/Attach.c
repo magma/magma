@@ -1072,8 +1072,8 @@ status_code_e _emm_attach_reject(
     emm_as_set_security_data(
         &emm_sap.u.emm_as.u.establish.sctx, NULL, false, false);
   }
-  rc = emm_sap_send(&emm_sap);
-  attach_proc->attach_reject_sent++;
+  rc                              = emm_sap_send(&emm_sap);
+  attach_proc->attach_reject_sent = true;
   increment_counter("ue_attach", 1, 1, "action", "attach_reject_sent");
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

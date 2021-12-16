@@ -122,7 +122,7 @@ func (tr *TestRunner) AssertPolicyEnforcementRecordIsNil(imsi string) {
 
 func (tr *TestRunner) AssertEventuallyAllRulesRemovedAfterDisconnect(imsi string) {
 	checkFn := func() bool {
-		fmt.Printf("Waiting until all rules are removed in enforcement stats for %s...\n", imsi)
+		fmt.Printf("\tWaiting until all rules are removed in enforcement stats for %s...\n", imsi)
 		records, err := tr.GetPolicyUsage()
 		if err != nil {
 			return false
@@ -148,7 +148,7 @@ func (tr *TestRunner) AssertAllGxExpectationsMetNoError() {
 // Query assertion result from MockOCS and assert all expectations were met.
 // Only applicable when MockDriver is used.
 func (tr *TestRunner) AssertAllGyExpectationsMetNoError() {
-	fmt.Println("Asserting all Gy expectations were met...")
+	fmt.Print("Asserting all Gy expectations were met... ")
 	resultByIndex, errByIndex, err := getOCSAssertExpectationsResult()
 	tr.assertAllExpectationsMetNoError(resultByIndex, errByIndex, err)
 	fmt.Println("Passed!")

@@ -28,7 +28,7 @@ class ProcFileUtils final {
    */
   typedef struct memory_info_s {
     double physical_mem = -1;
-    double virtual_mem  = -1;
+    double virtual_mem = -1;
   } memory_info_t;
 
  public:
@@ -47,9 +47,9 @@ class ProcFileUtils final {
    * @return -1 if the string isn't the prefix we're looking for, otherwise
    *    return the actual value
    */
-  static double parseForPrefix(
-      std::ifstream& infile, const std::string& to_compare,
-      const std::string& prefix_name);
+  static double parseForPrefix(std::ifstream& infile,
+                               const std::string& to_compare,
+                               const std::string& prefix_name);
 
  private:
   static const std::string STATUS_FILE;

@@ -43,16 +43,16 @@
 
 using std::experimental::optional;
 
-bool should_upload_mme_log(
-    bool sentry_upload_mme_log, YAML::Node control_proxy_config) {
+bool should_upload_mme_log(bool sentry_upload_mme_log,
+                           YAML::Node control_proxy_config) {
   if (control_proxy_config[SHOULD_UPLOAD_MME_LOG].IsDefined()) {
     return control_proxy_config[SHOULD_UPLOAD_MME_LOG].as<bool>();
   }
   return sentry_upload_mme_log;
 }
 
-optional<std::string> get_sentry_url(
-    const char* sentry_url_native, YAML::Node control_proxy_config) {
+optional<std::string> get_sentry_url(const char* sentry_url_native,
+                                     YAML::Node control_proxy_config) {
   if (control_proxy_config[SENTRY_NATIVE_URL].IsDefined()) {
     const std::string dns_override =
         control_proxy_config[SENTRY_NATIVE_URL].as<std::string>();
@@ -78,8 +78,8 @@ optional<std::string> get_cloud_address(YAML::Node control_proxy_config) {
   return {};
 }
 
-float get_sentry_sample_rate(
-    float sentry_sample_rate, YAML::Node control_proxy_config) {
+float get_sentry_sample_rate(float sentry_sample_rate,
+                             YAML::Node control_proxy_config) {
   if (control_proxy_config[SENTRY_SAMPLE_RATE].IsDefined()) {
     const auto sample_rate_override =
         control_proxy_config[SENTRY_SAMPLE_RATE].as<float>();
@@ -100,8 +100,8 @@ std::string get_snowflake() {
   return buffer.str();
 }
 
-void initialize_sentry(
-    const char* service_tag, const sentry_config_t* sentry_config) {
+void initialize_sentry(const char* service_tag,
+                       const sentry_config_t* sentry_config) {
   auto control_proxy_config = magma::ServiceConfigLoader{}.load_service_config(
       CONTROL_PROXY_SERVICE_NAME);
   auto op_sentry_url =
@@ -119,8 +119,8 @@ void initialize_sentry(
     sentry_options_set_release(options, commit_hash_p);
   }
   if (strncmp(service_tag, SENTRY_TAG_MME, SENTRY_TAG_LEN) == 0 &&
-      should_upload_mme_log(
-          sentry_config->upload_mme_log, control_proxy_config)) {
+      should_upload_mme_log(sentry_config->upload_mme_log,
+                            control_proxy_config)) {
     sentry_options_add_attachment(options, MME_LOG_PATH);
   }
   if (sentry_config->add_debug_logging) {
@@ -144,13 +144,9 @@ void initialize_sentry(
   sentry_set_tag(HWID, get_snowflake().c_str());
 }
 
-void shutdown_sentry(void) {
-  sentry_shutdown();
-}
+void shutdown_sentry(void) { sentry_shutdown(); }
 
-void set_sentry_transaction(const char* name) {
-  sentry_set_transaction(name);
-}
+void set_sentry_transaction(const char* name) { sentry_set_transaction(name); }
 
 void sentry_log_error(const char* message) {
   sentry_value_t event =
@@ -161,9 +157,9 @@ void sentry_log_error(const char* message) {
 
 #else
 
-void initialize_sentry(
-    __attribute__((unused)) const char* service_tag,
-    __attribute__((unused)) const sentry_config_t* sentry_config) {}
+void initialize_sentry(__attribute__((unused)) const char* service_tag,
+                       __attribute__((unused))
+                       const sentry_config_t* sentry_config) {}
 
 void shutdown_sentry(void) {}
 

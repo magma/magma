@@ -82,6 +82,18 @@ MATCHER_P2(
   return true;
 }
 
+MATCHER_P2(check_cause_in_ds_rsp, cause, teid, "") {
+  auto ds_rsp_rcvd_at_mme =
+      static_cast<itti_s11_delete_session_response_t>(arg);
+  if (ds_rsp_rcvd_at_mme.cause.cause_value == cause) {
+    return true;
+  }
+  if (ds_rsp_rcvd_at_mme.teid == teid) {
+    return true;
+  }
+  return false;
+}
+
 MATCHER_P2(check_params_in_suspend_ack, return_val, teid, "") {
   auto suspend_ack_rcvd_at_mme =
       static_cast<itti_s11_suspend_acknowledge_t>(arg);
@@ -140,6 +152,7 @@ class SPGWAppProcedureTest : public ::testing::Test {
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
   std::string test_imsi_str = "001010000000001";
   uint64_t test_imsi64      = 1010000000001;
+  uint64_t test_imsi64_test = 1010000000002;
   plmn_t test_plmn          = {.mcc_digit2 = 0,
                       .mcc_digit1 = 0,
                       .mnc_digit3 = 0x0f,
@@ -466,7 +479,11 @@ TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
       &sample_delete_session_request, DEFAULT_MME_S11_TEID, ue_sgw_teid,
       DEFAULT_EPS_BEARER_ID, test_plmn);
 
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_delete_sess_rsp()).Times(1);
+  EXPECT_CALL(
+      *mme_app_handler,
+      mme_app_handle_delete_sess_rsp(check_cause_in_ds_rsp(
+          REQUEST_ACCEPTED, sample_session_req_p.sender_fteid_for_cp.teid)))
+      .Times(1);
 
   return_code = sgw_handle_delete_session_request(
       &sample_delete_session_request, test_imsi64);
@@ -574,7 +591,7 @@ TEST_F(SPGWAppProcedureTest, TestReleaseBearerSuccess) {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
-TEST_F(SPGWAppProcedureTest, TestReleaseBearerError) {
+TEST_F(SPGWAppProcedureTest, TestReleaseBearerWithInvalidImsi64) {
   spgw_state_t* spgw_state  = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
   // expect call to MME create session response
@@ -660,8 +677,10 @@ TEST_F(SPGWAppProcedureTest, TestReleaseBearerError) {
   EXPECT_CALL(*mme_app_handler, mme_app_handle_release_access_bearers_resp())
       .Times(1);
 
+  // Send wrong IMSI so that spgw will not be able to fetch and delete
+  // the context
   sgw_handle_release_access_bearers_request(
-      &sample_release_bearer_req, test_imsi64);
+      &sample_release_bearer_req, test_imsi64_test);
 
   // verify that eNB information has not been cleared
   ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));

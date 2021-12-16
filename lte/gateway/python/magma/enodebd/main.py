@@ -48,7 +48,7 @@ def main():
     logger.init()
 
     # Optionally pipe errors to Sentry
-    sentry_init(service_name=service.name)
+    sentry_init(service_name=service.name, sentry_mconfig=service.shared_mconfig.sentry_config)
 
     # State machine manager for tracking multiple connected eNB devices.
     state_machine_manager = StateMachineManager(service)

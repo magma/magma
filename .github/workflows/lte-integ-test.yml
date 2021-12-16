@@ -49,12 +49,23 @@ jobs:
           cd lte/gateway
           fab get_test_summaries:dst_path="test-results"
           ls -R
-      - name: upload test results
+      - name: Upload test results
         uses: actions/upload-artifact@v2
         if: always()
         with:
           name: test-results
           path: lte/gateway/test-results/**/*.xml
+      - name: Get test logs
+        if: failure()
+        run: |
+          cd lte/gateway
+          fab get_test_logs:dst_path=./logs.tar.gz
+      - name: Upload test logs
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: test-logs
+          path: lte/gateway/logs.tar.gz
       - name: Publish Unit Test Results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action/composite@v1

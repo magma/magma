@@ -19,8 +19,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/common_types.h"
 
 void send_s8_create_session_request(
-    teid_t sgw_s11_teid, const itti_s11_create_session_request_t* msg,
-    imsi64_t imsi64);
+    uint32_t temporary_create_session_procedure_id,
+    const itti_s11_create_session_request_t* msg, imsi64_t imsi64);
 void send_s8_delete_session_request(
     imsi64_t imsi64, Imsi_t imsi, teid_t sgw_s11_teid, teid_t pgw_s5_teid,
     ebi_t bearer_id,

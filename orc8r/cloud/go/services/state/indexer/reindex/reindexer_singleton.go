@@ -27,7 +27,7 @@ import (
 	"magma/orc8r/lib/go/util"
 )
 
-// TODO(reginawang3495): Remove "Desired" from Indexer.Versions once reindexer_queue and queue are removed
+// TODO(#10295): Remove "Desired" from Indexer.Versions once reindexer_queue and queue are removed
 
 // reindexerSingleton runs as though it is a singleton
 type reindexerSingleton struct {
@@ -35,7 +35,6 @@ type reindexerSingleton struct {
 	store Store
 }
 
-// TODO(reginawang3495): to be setup and used in M2 Part C
 const reindexLoopInterval = time.Minute
 
 func NewReindexerSingleton(store Store, versioner Versioner) Reindexer {
@@ -45,7 +44,7 @@ func NewReindexerSingleton(store Store, versioner Versioner) Reindexer {
 func (r *reindexerSingleton) Run(ctx context.Context) {
 	// indexerID being "" means that we are reindexing all indexers
 	const indexerID = ""
-	// TODO(reginawang3495) will support non-nil sendUpdate from Run after removing queue impl
+	// TODO(#10293) will support non-nil sendUpdate from Run after removing queue impl
 	var sendUpdate func(string) = nil
 
 	for {
@@ -64,7 +63,7 @@ func (r *reindexerSingleton) Run(ctx context.Context) {
 	}
 }
 
-// TODO(reginawang3495): remove RunUnsafe when jobQueue reindexer is removed
+// TODO(#10293): remove RunUnsafe when jobQueue reindexer is removed
 func (r *reindexerSingleton) RunUnsafe(ctx context.Context, indexerID string, sendUpdate func(string)) error {
 	jobs, err := r.getJobs(indexerID)
 	if err != nil {
@@ -153,7 +152,7 @@ func (r *reindexerSingleton) reindexJob(job *Job, ctx context.Context, batches [
 	glog.Infof("Attempt at state reindex job %+v took %f seconds", job, duration)
 
 	if jobErr == nil {
-		// TODO(reginawang3495): refactor out at the end of milestone by using sendUpdate instead of this test hook
+		// TODO(#10293): consider refactoring out by using sendUpdate instead of this test hook
 		TestHookReindexSuccess()
 	}
 	if sendUpdate != nil {

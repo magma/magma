@@ -40,18 +40,18 @@ class UpdateSessionRequest;
 using std::experimental::optional;
 
 // Value int represents the request numbers needed for requests to PCRF
-using SessionRead   = std::set<std::string>;
+using SessionRead = std::set<std::string>;
 using SessionUpdate = std::unordered_map<
     std::string, std::unordered_map<std::string, SessionStateUpdateCriteria>>;
 
 enum SessionSearchCriteriaType {
-  IMSI_AND_APN                         = 0,
-  IMSI_AND_SESSION_ID                  = 1,
-  IMSI_AND_UE_IPV4                     = 2,
-  IMSI_AND_UE_IPV4_OR_IPV6             = 3,
-  IMSI_AND_BEARER                      = 4,
-  IMSI_AND_TEID                        = 5,
-  IMSI_AND_PDUID                       = 6,
+  IMSI_AND_APN = 0,
+  IMSI_AND_SESSION_ID = 1,
+  IMSI_AND_UE_IPV4 = 2,
+  IMSI_AND_UE_IPV4_OR_IPV6 = 3,
+  IMSI_AND_BEARER = 4,
+  IMSI_AND_TEID = 5,
+  IMSI_AND_PDUID = 6,
   IMSI_AND_UE_IPV4_OR_IPV6_OR_UPF_TEID = 7,
 };
 
@@ -62,21 +62,22 @@ struct SessionSearchCriteria {
   uint32_t secondary_key_unit32;
   uint32_t tertiary_key_unit32;
 
-  SessionSearchCriteria(
-      const std::string p_imsi, SessionSearchCriteriaType p_type,
-      const std::string p_secondary_key)
+  SessionSearchCriteria(const std::string p_imsi,
+                        SessionSearchCriteriaType p_type,
+                        const std::string p_secondary_key)
       : imsi(p_imsi), search_type(p_type), secondary_key(p_secondary_key) {}
 
-  SessionSearchCriteria(
-      const std::string p_imsi, SessionSearchCriteriaType p_type,
-      const uint32_t secondary_key_unit32)
+  SessionSearchCriteria(const std::string p_imsi,
+                        SessionSearchCriteriaType p_type,
+                        const uint32_t secondary_key_unit32)
       : imsi(p_imsi),
         search_type(p_type),
         secondary_key_unit32(secondary_key_unit32) {}
 
-  SessionSearchCriteria(
-      const std::string p_imsi, SessionSearchCriteriaType p_type,
-      const std::string p_secondary_key, const uint32_t tertiary_key_unit32)
+  SessionSearchCriteria(const std::string p_imsi,
+                        SessionSearchCriteriaType p_type,
+                        const std::string p_secondary_key,
+                        const uint32_t tertiary_key_unit32)
       : imsi(p_imsi),
         search_type(p_type),
         secondary_key(p_secondary_key),
@@ -100,14 +101,12 @@ class SessionStore {
  public:
   static SessionUpdate get_default_session_update(SessionMap& session_map);
 
-  SessionStore(
-      std::shared_ptr<StaticRuleStore> rule_store,
-      std::shared_ptr<magma::MeteringReporter> metering_reporter);
+  SessionStore(std::shared_ptr<StaticRuleStore> rule_store,
+               std::shared_ptr<magma::MeteringReporter> metering_reporter);
 
-  SessionStore(
-      std::shared_ptr<StaticRuleStore> rule_store,
-      std::shared_ptr<magma::MeteringReporter> metering_reporter,
-      std::shared_ptr<RedisStoreClient> store_client);
+  SessionStore(std::shared_ptr<StaticRuleStore> rule_store,
+               std::shared_ptr<magma::MeteringReporter> metering_reporter,
+               std::shared_ptr<RedisStoreClient> store_client);
 
   /**
    * @brief Return a boolean to indicate whether the storage client is ready to
@@ -186,8 +185,8 @@ class SessionStore {
    * @param sessions
    * @return true if successful, otherwise the update to storage is discarded.
    */
-  bool create_sessions(
-      const std::string& subscriber_id, SessionVector sessions);
+  bool create_sessions(const std::string& subscriber_id,
+                       SessionVector sessions);
 
   /**
    * Attempt to update sessions with update criteria. If any update to any of

@@ -39,7 +39,7 @@ args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/certifier", "-cac=/var/opt/m
 args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/certifier", "-cac=/var/opt/magma/certs/certifier.pem",
        "-cak=/var/opt/magma/certs/certifier.key", "-vpnc=/var/opt/magma/certs/vpn_ca.crt", "-vpnk=/var/opt/magma/certs/vpn_ca.key",
 {{- end }}
-       "-logtostderr=true", "-v=0"]
+       "-run_echo_server=true", "-logtostderr=true", "-v=0"]
 ports:
   - name: grpc
     containerPort: 9086

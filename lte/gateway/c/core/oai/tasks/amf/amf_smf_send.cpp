@@ -347,15 +347,14 @@ static int pdu_session_resource_release_t3592_handler(
 ***************************************************************************/
 int amf_smf_process_pdu_session_packet(
     amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg, int amf_cause) {
-  int rc = M5G_AS_SUCCESS;
-  SmfMsg reject_req;
+  int rc                = RETURNok;
   amf_smf_t amf_smf_msg = {};
   std::shared_ptr<smf_context_t> smf_ctx;
-  char imsi[IMSI_BCD_DIGITS_MAX + 1];
-  protocol_configuration_options_t* msg_pco;
+  char imsi[IMSI_BCD_DIGITS_MAX + 1]        = {0};
+  protocol_configuration_options_t* msg_pco = nullptr;
 
   if (!msg) {
-    return rc;
+    return RETURNerror;
   }
 
   if (amf_cause != AMF_CAUSE_SUCCESS) {
@@ -372,7 +371,7 @@ int amf_smf_process_pdu_session_packet(
     OAILOG_ERROR(
         LOG_AMF_APP, "ue context not found for the ue_id :" AMF_UE_NGAP_ID_FMT,
         ue_id);
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   if (msg->payload_container.smf_msg.header.message_type ==
@@ -401,6 +400,14 @@ int amf_smf_process_pdu_session_packet(
       rc = handle_sm_message_routing_failure(ue_id, msg, mm_cause);
       return rc;
     }
+    smf_ctx = amf_get_smf_context_by_pdu_session_id(
+        ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
+
+    if (smf_ctx && smf_ctx->duplicate_pdu_session_est_req_count > 0) {
+      OAILOG_DEBUG(
+          LOG_AMF_APP, "Duplicate PDU Session Establishment Request, Dropped");
+      return rc;
+    }
   }
   IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
   if (msg->payload_container.smf_msg.header.message_type ==
@@ -416,7 +423,7 @@ int amf_smf_process_pdu_session_packet(
     OAILOG_ERROR(
         LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
         msg->payload_container.smf_msg.header.pdu_session_id);
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   amf_smf_msg.pdu_session_id =
@@ -438,10 +445,11 @@ int amf_smf_process_pdu_session_packet(
       sm_free_protocol_configuration_options(&msg_pco);
 
       if (amf_cause != SMF_CAUSE_SUCCESS) {
-        rc = amf_send_pdusession_reject(
-            &reject_req, msg->payload_container.smf_msg.header.pdu_session_id,
+        rc = amf_pdu_session_establishment_reject(
+            ue_id, msg->payload_container.smf_msg.header.pdu_session_id,
             msg->payload_container.smf_msg.header.procedure_transaction_id,
-            amf_cause);
+            static_cast<uint8_t>(amf_cause));
+
         return rc;
       }
 
@@ -493,6 +501,8 @@ int amf_smf_process_pdu_session_packet(
         M5GMmCause cause_dnn_reject =
             M5GMmCause::DNN_NOT_SUPPORTED_OR_NOT_SUBSCRIBED;
         rc = handle_sm_message_routing_failure(ue_id, msg, cause_dnn_reject);
+        ue_context->amf_context.smf_ctxt_map.erase(
+            msg->payload_container.smf_msg.header.pdu_session_id);
         return rc;
       }
 
@@ -895,7 +905,7 @@ int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
  ***************************************************************************/
 int handle_sm_message_routing_failure(
     amf_ue_ngap_id_t ue_id, ULNASTransportMsg* ulmsg, M5GMmCause m5gmmcause) {
-  nas5g_error_code_t rc    = M5G_AS_FAILURE;
+  int rc                   = RETURNok;
   DLNASTransportMsg* dlmsg = nullptr;
   uint32_t bytes           = 0;
   uint32_t len             = 0;
@@ -916,7 +926,7 @@ int handle_sm_message_routing_failure(
     OAILOG_ERROR(
         LOG_AMF_APP, "UE Context not found for UE ID: " AMF_UE_NGAP_ID_FMT,
         ue_id);
-    return rc;
+    return RETURNerror;
   }
 
   // Message construction for PDU Establishment Reject
@@ -986,11 +996,12 @@ int handle_sm_message_routing_failure(
       buffer->data, &msg, len, &ue_context->amf_context._security);
   if (bytes > 0) {
     buffer->slen = bytes;
-    amf_app_handle_nas_dl_req(ue_id, buffer, rc);
+    rc           = amf_app_handle_nas_dl_req(ue_id, buffer, M5G_AS_SUCCESS);
 
   } else {
     OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");
     bdestroy_wrapper(&buffer);
+    return RETURNerror;
   }
   return rc;
 }
@@ -1131,9 +1142,9 @@ int construct_pdu_session_reject_dl_req(
  ***************************************************************************/
 int amf_pdu_session_establishment_reject(
     amf_ue_ngap_id_t ue_id, uint8_t session_id, uint8_t pti, uint8_t cause) {
-  nas5g_error_code_t rc = M5G_AS_SUCCESS;
-  uint32_t bytes        = 0;
-  uint32_t len          = 0;
+  int rc         = RETURNok;
+  uint32_t bytes = 0;
+  uint32_t len   = 0;
   bstring buffer;
   ue_m5gmm_context_s* ue_context = nullptr;
   amf_nas_message_t msg          = {};
@@ -1144,7 +1155,7 @@ int amf_pdu_session_establishment_reject(
     OAILOG_ERROR(
         LOG_AMF_APP, "UE Context not found for UE ID: " AMF_UE_NGAP_ID_FMT,
         ue_id);
-    return M5G_AS_FAILURE;
+    return RETURNerror;
   }
 
   len = construct_pdu_session_reject_dl_req(
@@ -1153,7 +1164,7 @@ int amf_pdu_session_establishment_reject(
 
   if (len <= 0) {
     OAILOG_WARNING(LOG_AMF_APP, "PDU Construction is failed \n");
-    return M5G_AS_FAILURE;
+    return RETURNerror;
   }
   buffer = bfromcstralloc(len, "\0");
   bytes  = nas5g_message_encode(
@@ -1161,12 +1172,12 @@ int amf_pdu_session_establishment_reject(
 
   if (bytes > 0) {
     buffer->slen = bytes;
-    amf_app_handle_nas_dl_req(ue_id, buffer, rc);
+    rc           = amf_app_handle_nas_dl_req(ue_id, buffer, M5G_AS_SUCCESS);
 
   } else {
     OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");
     bdestroy_wrapper(&buffer);
-    rc = M5G_AS_FAILURE;
+    rc = RETURNerror;
   }
   return rc;
 }

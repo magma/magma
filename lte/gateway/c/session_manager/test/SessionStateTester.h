@@ -34,37 +34,38 @@ class SessionStateTest : public ::testing::Test {
     Teids teids;
     cfg.common_context =
         build_common_context(IMSI1, IP1, IPv6_1, teids, APN1, MSISDN, TGPP_LTE);
-    auto tgpp_ctx       = TgppContext();
+    auto tgpp_ctx = TgppContext();
     auto pdp_start_time = 12345;
     create_tgpp_context("gx.dest.com", "gy.dest.com", &tgpp_ctx);
-    rule_store    = std::make_shared<StaticRuleStore>();
-    session_state = std::make_shared<SessionState>(
-        SESSION_ID_1, cfg, *rule_store, pdp_start_time);
+    rule_store = std::make_shared<StaticRuleStore>();
+    session_state = std::make_shared<SessionState>(SESSION_ID_1, cfg,
+                                                   *rule_store, pdp_start_time);
     session_state->set_tgpp_context(tgpp_ctx, nullptr);
     session_state->set_fsm_state(SESSION_ACTIVE, nullptr);
-    session_state->set_create_session_response(
-        CreateSessionResponse(), nullptr);
+    session_state->set_create_session_response(CreateSessionResponse(),
+                                               nullptr);
     update_criteria = get_default_update_criteria();
   }
 
-  void insert_static_rule_into_store(
-      uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id) {
+  void insert_static_rule_into_store(uint32_t rating_group,
+                                     const std::string& m_key,
+                                     const std::string& rule_id) {
     rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
   }
 
-  void insert_static_rule_with_qos_into_store(
-      uint32_t rating_group, const std::string& m_key, const int qci,
-      const std::string& rule_id) {
+  void insert_static_rule_with_qos_into_store(uint32_t rating_group,
+                                              const std::string& m_key,
+                                              const int qci,
+                                              const std::string& rule_id) {
     PolicyRule rule =
         create_policy_rule_with_qos(rule_id, m_key, rating_group, qci);
     rule_store->insert_rule(rule);
   }
 
-  uint32_t insert_rule(
-      uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id, PolicyType rule_type,
-      std::time_t activation_time, std::time_t deactivation_time) {
+  uint32_t insert_rule(uint32_t rating_group, const std::string& m_key,
+                       const std::string& rule_id, PolicyType rule_type,
+                       std::time_t activation_time,
+                       std::time_t deactivation_time) {
     PolicyRule rule = create_policy_rule(rule_id, m_key, rating_group);
     RuleLifetime lifetime(activation_time, deactivation_time);
     switch (rule_type) {
@@ -84,10 +85,10 @@ class SessionStateTest : public ::testing::Test {
     return 0;
   }
 
-  void schedule_rule(
-      uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id, PolicyType rule_type,
-      std::time_t activation_time, std::time_t deactivation_time) {
+  void schedule_rule(uint32_t rating_group, const std::string& m_key,
+                     const std::string& rule_id, PolicyType rule_type,
+                     std::time_t activation_time,
+                     std::time_t deactivation_time) {
     PolicyRule rule = create_policy_rule(rule_id, m_key, rating_group);
     RuleLifetime lifetime(activation_time, deactivation_time);
     switch (rule_type) {
@@ -95,8 +96,8 @@ class SessionStateTest : public ::testing::Test {
         // insert into list of existing rules
         rule_store->insert_rule(rule);
         // mark the rule as scheduled in the session
-        session_state->schedule_static_rule(
-            rule_id, lifetime, &update_criteria);
+        session_state->schedule_static_rule(rule_id, lifetime,
+                                            &update_criteria);
         break;
       case DYNAMIC:
         session_state->schedule_dynamic_rule(rule, lifetime, &update_criteria);
@@ -160,41 +161,41 @@ class SessionStateTest : public ::testing::Test {
 
   void receive_credit_from_ocs(uint32_t rating_group, uint64_t volume) {
     CreditUpdateResponse charge_resp;
-    create_credit_update_response(
-        IMSI1, SESSION_ID_1, rating_group, volume, &charge_resp);
+    create_credit_update_response(IMSI1, SESSION_ID_1, rating_group, volume,
+                                  &charge_resp);
     session_state->receive_charging_credit(charge_resp, &update_criteria);
   }
 
-  void receive_credit_from_ocs(
-      uint32_t rating_group, uint64_t total_volume, uint64_t tx_volume,
-      uint64_t rx_volume, bool is_final) {
+  void receive_credit_from_ocs(uint32_t rating_group, uint64_t total_volume,
+                               uint64_t tx_volume, uint64_t rx_volume,
+                               bool is_final) {
     CreditUpdateResponse charge_resp;
-    create_credit_update_response(
-        IMSI1, SESSION_ID_1, rating_group, total_volume, tx_volume, rx_volume,
-        is_final, &charge_resp);
+    create_credit_update_response(IMSI1, SESSION_ID_1, rating_group,
+                                  total_volume, tx_volume, rx_volume, is_final,
+                                  &charge_resp);
     session_state->receive_charging_credit(charge_resp, &update_criteria);
   }
 
-  void receive_credit_from_pcrf(
-      const std::string& mkey, uint64_t volume, MonitoringLevel level) {
+  void receive_credit_from_pcrf(const std::string& mkey, uint64_t volume,
+                                MonitoringLevel level) {
     UsageMonitoringUpdateResponse monitor_resp;
     receive_credit_from_pcrf(mkey, volume, 0, 0, level);
   }
 
-  void receive_credit_from_pcrf(
-      const std::string& mkey, uint64_t total_volume, uint64_t tx_volume,
-      uint64_t rx_volume, MonitoringLevel level) {
+  void receive_credit_from_pcrf(const std::string& mkey, uint64_t total_volume,
+                                uint64_t tx_volume, uint64_t rx_volume,
+                                MonitoringLevel level) {
     UsageMonitoringUpdateResponse monitor_resp;
-    create_monitor_update_response(
-        IMSI1, SESSION_ID_1, mkey, level, total_volume, tx_volume, rx_volume,
-        &monitor_resp);
+    create_monitor_update_response(IMSI1, SESSION_ID_1, mkey, level,
+                                   total_volume, tx_volume, rx_volume,
+                                   &monitor_resp);
     session_state->receive_monitor(monitor_resp, &update_criteria);
   }
 
-  uint32_t activate_rule(
-      uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id, PolicyType rule_type,
-      std::time_t activation_time, std::time_t deactivation_time) {
+  uint32_t activate_rule(uint32_t rating_group, const std::string& m_key,
+                         const std::string& rule_id, PolicyType rule_type,
+                         std::time_t activation_time,
+                         std::time_t deactivation_time) {
     PolicyRule rule = create_policy_rule(rule_id, m_key, rating_group);
     RuleLifetime lifetime(activation_time, deactivation_time);
     switch (rule_type) {

@@ -13,18 +13,24 @@
 
 #include "include/amf_client_servicer.h"
 #include "M5GAuthenticationServiceClient.h"
+#include "M5GSUCIRegistrationServiceClient.h"
 #include "amf_common.h"
 #include <memory>
 #include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
 #include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.h"
 
 using magma5g::AsyncM5GAuthenticationServiceClient;
+using magma5g::AsyncM5GSUCIRegistrationServiceClient;
 
 namespace magma5g {
 
 status_code_e AMFClientServicerBase::amf_send_msg_to_task(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
     MessageDef* message) {
+  OAILOG_INFO(
+      LOG_AMF_APP, "Sending msg to :[%s] id: [%d]-[%s]\n",
+      itti_get_task_name(destination_task_id), ITTI_MSG_ID(message),
+      ITTI_MSG_NAME(message));
   return (send_msg_to_task(task_zmq_ctx_p, destination_task_id, message));
 }
 
@@ -71,6 +77,15 @@ int AMFClientServicerBase::amf_smf_create_pdu_session_ipv4(
 
 bool AMFClientServicerBase::set_smf_session(SetSMSessionContext& request) {
   return AsyncSmfServiceClient::getInstance().set_smf_session(request);
+}
+
+bool AMFClientServicerBase::get_decrypt_imsi_info(
+    const uint8_t ue_pubkey_identifier, const std::string& ue_pubkey,
+    const std::string& ciphertext, const std::string& mac_tag,
+    amf_ue_ngap_id_t ue_id) {
+  return (AsyncM5GSUCIRegistrationServiceClient::getInstance()
+              .get_decrypt_imsi_info(
+                  ue_pubkey_identifier, ue_pubkey, ciphertext, mac_tag, ue_id));
 }
 
 AMFClientServicer& AMFClientServicer::getInstance() {

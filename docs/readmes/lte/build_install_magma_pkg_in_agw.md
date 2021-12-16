@@ -27,13 +27,13 @@ hide_title: true
     To create a package for production, run
 
     ```bash
-    fab release package:vcs=git
+    fab release package
     ```
 
     To create a package for development or testing, run
 
     ```bash
-    fab dev package:vcs=git
+    fab dev package
     ```
 
     The `dev` flag will compile all C++ services with `Debug` compiler flags and enable ASAN. This is recommended for testing only as it will impact performance. In contrast, the production package has C++ services built with `RelWithDebInfo` compiler flags.

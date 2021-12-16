@@ -216,7 +216,11 @@ certifier:
   service:
     labels:
       orc8r.io/analytics_collector: "true"
-    annotations: {}
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/user,
 
 configurator:
   service:

@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "AttachRequest.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_recv.h"
@@ -210,6 +211,8 @@ status_code_e emm_recv_attach_request(
     *emm_cause = EMM_CAUSE_SUCCESS;
     // Free the ESM container
     bdestroy_wrapper(&(msg->esmmessagecontainer));
+    // Free supported codec list
+    bdestroy_wrapper(&(msg->supportedcodecs));
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
@@ -231,6 +234,8 @@ status_code_e emm_recv_attach_request(
     *emm_cause = EMM_CAUSE_SUCCESS;
     // Free the ESM container
     bdestroy_wrapper(&(msg->esmmessagecontainer));
+    // Free supported codec list
+    bdestroy_wrapper(&(msg->supportedcodecs));
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
@@ -324,6 +329,8 @@ status_code_e emm_recv_attach_request(
           (emm_attach_request_ies_t * * const) & params);
       // Free the ESM container
       bdestroy_wrapper(&(msg->esmmessagecontainer));
+      // Free supported codec list
+      bdestroy_wrapper(&(msg->supportedcodecs));
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
 
@@ -405,6 +412,12 @@ status_code_e emm_recv_attach_request(
   if (msg->presencemask & ATTACH_REQUEST_ADDITIONAL_UPDATE_TYPE_PRESENT) {
     params->additional_update_type = msg->additionalupdatetype;
   }
+
+  if (msg->presencemask & ATTACH_REQUEST_SUPPORTED_CODECS_PRESENT) {
+    // TODO: Parse supported codecs on emm_attach_request_ies_t
+    bdestroy_wrapper(&msg->supportedcodecs);
+  }
+
   params->esm_msg          = msg->esmmessagecontainer;
   msg->esmmessagecontainer = NULL;
 

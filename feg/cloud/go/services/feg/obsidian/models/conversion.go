@@ -174,7 +174,7 @@ func (m *FederationGateway) FromBackendModels(
 	// delegate most of the fillin to magmad gateway struct
 	mdGW := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
 	// TODO: we should change this to a reflection based shallow copy
-	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
+	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status, m.RegistrationInfo = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status, mdGW.RegistrationInfo
 	m.Federation = federationGateway.Config.(*GatewayFederationConfigs)
 	return m
 }

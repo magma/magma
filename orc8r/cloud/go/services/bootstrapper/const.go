@@ -13,4 +13,15 @@ limitations under the License.
 
 package bootstrapper
 
-const ServiceName = "BOOTSTRAPPER"
+const (
+	ServiceName        = "BOOTSTRAPPER"
+	BlobstoreTableName = "bootstrapper"
+	TokenPrefix        = "reg_"
+)
+
+type BlobType string
+
+const (
+	LogicalIDToTokenInfo BlobType = "logical_id_to_token_info"
+	NonceTokenToInfoMap  BlobType = "nonce_to_token_info"
+)

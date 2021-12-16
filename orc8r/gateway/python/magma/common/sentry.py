@@ -14,11 +14,12 @@ import logging
 import os
 from enum import Enum
 from functools import wraps
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import sentry_sdk
 import snowflake
 from magma.configuration.service_configs import get_service_config_value
+from orc8r.protos.mconfig import mconfigs_pb2
 
 CONTROL_PROXY = 'control_proxy'
 SENTRY_CONFIG = 'sentry'
@@ -26,6 +27,7 @@ SENTRY_URL = 'sentry_url_python'
 SENTRY_SAMPLE_RATE = 'sentry_sample_rate'
 CLOUD_ADDRESS = 'cloud_address'
 ORC8R_CLOUD_ADDRESS = 'orc8r_cloud_address'
+DEFAULT_SAMPLE_RATE = 1.0
 COMMIT_HASH = 'COMMIT_HASH'
 HWID = 'hwid'
 SERVICE_NAME = 'service_name'
@@ -83,30 +85,60 @@ def get_sentry_status(service_name: str) -> SentryStatus:
         return SentryStatus.DISABLED
 
 
-def sentry_init(service_name: str):
+# TODO when control_proxy.yml is outdated move to shared mconfig entirely
+def get_sentry_dsn_and_sample_rate(sentry_mconfig: mconfigs_pb2.SharedSentryConfig) -> Tuple[str, float]:
+    """Get Sentry configs with the following priority
+
+    1) control_proxy.yml (if sentry_python_url is present)
+    2) shared mconfig (i.e. first streamed mconfig from orc8r,
+    if not present default mconfig in /etc/magma)
+
+    Args:
+        sentry_mconfig (SharedSentryConfig): proto message of shared mconfig
+
+    Returns:
+        (str, float): sentry url, sentry sample rate
+    """
+    dsn_python = get_service_config_value(
+        CONTROL_PROXY,
+        SENTRY_URL,
+        default='',
+    )
+
+    if not dsn_python:
+        dsn_python = sentry_mconfig.dsn_python
+        sample_rate = sentry_mconfig.sample_rate
+        return dsn_python, sample_rate
+
+    sample_rate = get_service_config_value(
+        CONTROL_PROXY,
+        SENTRY_SAMPLE_RATE,
+        default=DEFAULT_SAMPLE_RATE,
+    )
+    return dsn_python, sample_rate
+
+
+def sentry_init(service_name: str, sentry_mconfig: mconfigs_pb2.SharedSentryConfig) -> None:
     """Initialize connection and start piping errors to sentry.io."""
 
     sentry_status = get_sentry_status(service_name)
     if sentry_status == SentryStatus.DISABLED:
         return
 
-    sentry_url = get_service_config_value(
-        CONTROL_PROXY,
-        SENTRY_URL,
-        default='',
-    )
-    if not sentry_url:
+    dsn_python, sample_rate = get_sentry_dsn_and_sample_rate(sentry_mconfig)
+
+    if not dsn_python:
+        logging.info(
+            'Sentry disabled because of missing dsn_python. '
+            'See documentation (Configure > AGW) on how to configure '
+            'Sentry dsn.',
+        )
         return
 
-    sentry_sample_rate = get_service_config_value(
-        CONTROL_PROXY,
-        SENTRY_SAMPLE_RATE,
-        default=1.0,
-    )
     sentry_sdk.init(
-        dsn=sentry_url,
+        dsn=dsn_python,
         release=os.getenv(COMMIT_HASH),
-        traces_sample_rate=sentry_sample_rate,
+        traces_sample_rate=sample_rate,
         before_send=_ignore_if_not_marked if sentry_status == SentryStatus.SEND_SELECTED_ERRORS else None,
     )
 

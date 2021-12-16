@@ -24,13 +24,16 @@
         "title": "Contributing Conventions"
       },
       "contributing/contribute_id_mappings": {
-        "title": "Codeowners GitHub to Slack IDs"
+        "title": "Magma Codeowners"
       },
       "contributing/contribute_onboarding": {
         "title": "Developer Onboarding"
       },
       "contributing/contribute_proposals": {
         "title": "Proposals Process"
+      },
+      "contributing/contribute_tsc_norms": {
+        "title": "TSC Processes"
       },
       "contributing/contribute_vscode": {
         "title": "Develop Magma With VSCode"
@@ -153,7 +156,7 @@
       "lte/build_install_magma_pkg_in_agw": {
         "title": "Build and install a magma package in AGW"
       },
-      "lte/configure_sentry": {
+      "lte/version-1.6.0-configure_sentry": {
         "title": "Sentry Integration"
       },
       "lte/openvswitch": {
@@ -461,6 +464,9 @@
       },
       "proposals/p021_mme_migrate_to_c++": {
         "title": "C++ Migration"
+      },
+      "proposals/p022_enodebd_enhancements": {
+        "title": "proposals/p022_enodebd_enhancements"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
@@ -1453,6 +1459,9 @@
       },
       "version-1.6.0/orc8r/version-1.6.0-dev_minikube": {
         "title": "Deploy on Minikube"
+      },
+      "version-1.6.0/orc8r/version-1.6.0-RDS_upgrade": {
+        "title": "Orchestrator DB Upgrade"
       },
       "version-1.6.0/orc8r/version-1.6.0-upgrade_1_5": {
         "title": "Upgrade to v1.5"

@@ -25,11 +25,11 @@ using namespace lte;
 using std::experimental::optional;
 
 enum ServiceActionType {
-  CONTINUE_SERVICE  = 0,
+  CONTINUE_SERVICE = 0,
   TERMINATE_SERVICE = 1,
-  ACTIVATE_SERVICE  = 2,
-  REDIRECT          = 3,
-  RESTRICT_ACCESS   = 4,
+  ACTIVATE_SERVICE = 2,
+  REDIRECT = 3,
+  RESTRICT_ACCESS = 4,
 };
 
 /**
