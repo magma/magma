@@ -579,6 +579,7 @@ class S1ApUtil(object):
         flows = get_flows(
             dpath, {"table_id": self.SPGW_TABLE},
         )
+        #print("len(flows",len(flows))
         assert(
             len(flows) == 2
         ), "There should only be 2 default table 0 flows"
@@ -602,6 +603,14 @@ class S1ApUtil(object):
         with self._lock:
             ip6 = ipaddress.ip_address(ipv6_addr)
             self._ue_ip_map[ue_id] = ip6
+
+    def run_ipv6(self, ipv6_addr):
+        self.magma_utils = MagmadUtil(None)
+        print("ipv6_addr", ipv6_addr)
+        print("str of ipv6_addr", str(ipv6_addr))
+        ret = self.magma_utils.exec_command_output(
+            "ping6 -I 2001::2 " + str(ipv6_addr),
+        )
 
 
 class SubscriberUtil(object):
@@ -754,6 +763,7 @@ class MagmadUtil(object):
             e.g. 'sed -i \'s/config1/config2/g\' /etc/magma/mme.yml'
 
         """
+        #print(command)
         data = self._data
         data["command"] = '"' + command + '"'
         param_list = shlex.split(self._command.format(**data))
