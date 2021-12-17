@@ -1,0 +1,111 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>proposals/p023_magma_gtp_gateway · Magma Documentation</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Proposal: Magma GTP Gateway"/><meta name="docsearch:version" content="next"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="proposals/p023_magma_gtp_gateway · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Proposal: Magma GTP Gateway"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>next</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">proposals/p023_magma_gtp_gateway</h1></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="proposal-magma-gtp-gateway"></a><a href="#proposal-magma-gtp-gateway" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Proposal: Magma GTP Gateway</h1>
+<p>Author(s): [@arsenii-oganov]</p>
+<p>Last updated: 12/16/2021</p>
+<h2><a class="anchor" aria-hidden="true" id="1-objectives"></a><a href="#1-objectives" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>1. Objectives</h2>
+<p>The objective of this work is to add a GTP aggregation gateway to the Magma system. This Gateway will aid in scale deployments where S8 inbound roaming is supported by reducing the number of integration points for roaming partners.</p>
+<p>Software built to accomplish this will be open source under BSD-3-Clause license and will be committed to the Magma software repository under the governance of the Linux foundation, such that it can be effectively maintained in the future releases.</p>
+<h2><a class="anchor" aria-hidden="true" id="2-background"></a><a href="#2-background" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>2. Background</h2>
+<p>In traditional telecom deployments using a centralized (or non-distributed) core, roaming interfaces are limited in number. These interfaces often connect to an IPX/GRX network provider to aggregate roaming traffic into a small set of interfaces, regardless of the number of roaming partners an operator may have.</p>
+<p>In the case of S8 roaming interconnections, the connection supports GTP-C and GTP-U traffic between the SGW in the visited network and the PGW in the home network. The SGW IP for the GTP-U endpoint must be routable from the home network. When using an IPX/GRX provider, this means having a globally routable IP address dedicated to the IPX/GRX network interface of an SGW.</p>
+<p>Magma has a distributed core architecture. Each cell site, where the Access Gateway (AGW) element usually resides, has an SGW. The requirement that each site have a globally routable IP dedicated to the IPX/GRX connection (i.e. not a general traffic WAN port ISP provided address) is a challenge for operators using Magma core for roaming. Furthermore, IPX/GRX vendors are reluctant to support large numbers of VPN terminations coming from each AGW.</p>
+<h2><a class="anchor" aria-hidden="true" id="3-implementation"></a><a href="#3-implementation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3. Implementation</h2>
+<h3><a class="anchor" aria-hidden="true" id="31-block-diagram"></a><a href="#31-block-diagram" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.1 Block Diagram</h3>
+<p><img src="https://user-images.githubusercontent.com/93994458/146327309-6ab4ce9b-3bee-4cae-91c8-699d35c7ae9a.png" alt="Block Diagram"></p>
+<h3><a class="anchor" aria-hidden="true" id="32-gtp-gateway-scope-of-change"></a><a href="#32-gtp-gateway-scope-of-change" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2 GTP Gateway Scope of Change</h3>
+<p>Below are system requirements for the GTP Gateway. These requirements assume the presence of Magma support for:</p>
+<h4><a class="anchor" aria-hidden="true" id="321-wireguardipsec-support-in-agw-for-s8-gtp-traffic"></a><a href="#321-wireguardipsec-support-in-agw-for-s8-gtp-traffic" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2.1 Wireguard/IPsec support in AGW for S8 GTP traffic</h4>
+<p>Random TEID assignment for S8 tunnels across AGWs
+Wireguard / IPsec Connection Termination
+Pipelined supports configuration of Wireguard tunnels which connect automatically when the service is started. These tunnels will be used for connecting AGWs to the GTP Gateway.</p>
+<p>The GTP Gateway will need to support termination of 10k wireguard connections per instance. Instances will be horizontally scalable. This will produce a reduction in IP address usage of 1/10,000.</p>
+<h4><a class="anchor" aria-hidden="true" id="322--gtp-traffic-flow-learning"></a><a href="#322--gtp-traffic-flow-learning" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2.2  GTP Traffic Flow Learning</h4>
+<p>GTP traffic needs to be routed to the correct tunnel in the downlink direction. The GTP Gateway will use OVS rules (or potentially another mapping / CGNAT solution) to keep track of GTP tunnel to Wireguard tunnel mapping.</p>
+<p>The initial implementation will use OVS to learn flows based on UE APN IP Address. Learning will occur by seeing uplink traffic originating from a tunnel, learning the UE source IP address, and creating a flow mapping for return traffic.</p>
+<p>Alternate solutions may use @mark attribute of the sk_buff struct or other native linux networking stack functions/attributes for flow mapping. Such solutions will be explored for scale performance and evaluated against the OVS solution.</p>
+<h4><a class="anchor" aria-hidden="true" id="323-orc8r-integration"></a><a href="#323-orc8r-integration" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2.3 Orc8r Integration</h4>
+<p>The GTP Gateway will be integrated in the Magma ecosystem. Integration will have the following components:</p>
+<ul>
+<li><p>GTP Gateway will be deployable via a script prepared for bare metal host deployment similar to AGW.</p></li>
+<li><p>GTP Gateway will have a connection to orc8r for configuration, health and performance metrics similar to FeG.</p></li>
+<li><p>GTP Gateway will include control proxy to allow for gRPC between GTP Gateway and other services in the Magma deployment.</p></li>
+<li><p>GTP Gateway specific API endpoints will be created to support configuration and health monitoring:</p>
+<ul>
+<li>List all GTP Gateways</li>
+<li>Register a new GTP Gateway</li>
+<li>Delete a GTP Gateway</li>
+<li>Get a specific GTP Gateway</li>
+</ul></li>
+</ul>
+<h4><a class="anchor" aria-hidden="true" id="324-gateway_health-service"></a><a href="#324-gateway_health-service" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2.4 Gateway_Health Service</h4>
+<p>Gateway health service for GTP Gateway will report on the following metrics:</p>
+<ul>
+<li><p>GTP Gateway specific health which includes:</p>
+<ul>
+<li>Number of active VPN connections</li>
+<li>Number of active GTP connections</li>
+<li>Status of PGW VPN (if present)</li>
+<li>Total Ingress throughput per NIC</li>
+<li>Total Egress throughput per NIC</li>
+</ul></li>
+<li><p>Generic Health status which includes:</p>
+<ul>
+<li>Gateway - Controller connectivity</li>
+<li>Status for all the running services</li>
+<li>Number of restarts per each service</li>
+<li>Number of errors per each service</li>
+<li>Internet and DNS status</li>
+<li>Kernel version</li>
+<li>Magma version</li>
+</ul></li>
+</ul>
+<h4><a class="anchor" aria-hidden="true" id="325-ha-active-active"></a><a href="#325-ha-active-active" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2.5 HA Active Active</h4>
+<p>GTP Gateway will be deployed in HA Active Active configuration. GTP Gateway instances do not need to be colocated. Session loading will be balanced between the available instances.</p>
+<h4><a class="anchor" aria-hidden="true" id="326-infrastructure"></a><a href="#326-infrastructure" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2.6 Infrastructure</h4>
+<p>GTP Gateway will be deployed on Equinix Metal hosts, or other bare metal hosts. Equinix metal C3.Small will be used to start. These hosts support:</p>
+<ul>
+<li>PROC1 x Xeon E 2278G 8-Core Processor @ 3.4Ghz</li>
+<li>RAM 32GB</li>
+<li>2 x 480GB SSD</li>
+<li>NIC2 x 10Gbps Bonded Ports</li>
+</ul>
+<p>This specification will be considered the base supported specification until further performance data is collected.</p>
+<p>NOTE: Equinix Metal chosen for it’s access to IPX/GRX network connections.</p>
+<h4><a class="anchor" aria-hidden="true" id="327-nms-gtp-gateway"></a><a href="#327-nms-gtp-gateway" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2.7 NMS GTP Gateway</h4>
+<p>NMS Elements will be created for display of key configuration and health elements including:</p>
+<ul>
+<li>View configuration</li>
+<li>SW Version</li>
+<li>Gateway - Controller connectivity</li>
+<li>Interface IP addresses</li>
+<li>View health metrics</li>
+<li>Number of active VPN connections</li>
+<li>Number of active GTP connections</li>
+<li>Status of PGW VPN (if present)</li>
+<li>Total Ingress throughput per NIC</li>
+<li>Total Egress throughput per NIC</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="4-roadmap--schedule"></a><a href="#4-roadmap--schedule" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>4. Roadmap &amp; Schedule</h2>
+<p><strong>MS1:</strong> PoC Implementation via Equinix Dallas DC connected to GigSky PGW using Test eSIM</p>
+<p><strong>MS2:</strong> Integration with Magma Orc8r including health metrics.</p>
+<p><strong>MS3:</strong> HA Active Active Support Complete</p>
+<p><strong>MS4:</strong> NMS Integration Complete</p>
+<p>Schedule: TBD</p>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#1-objectives">1. Objectives</a></li><li><a href="#2-background">2. Background</a></li><li><a href="#3-implementation">3. Implementation</a><ul class="toc-headings"><li><a href="#31-block-diagram">3.1 Block Diagram</a></li><li><a href="#32-gtp-gateway-scope-of-change">3.2 GTP Gateway Scope of Change</a></li></ul></li><li><a href="#4-roadmap--schedule">4. Roadmap &amp; Schedule</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>
