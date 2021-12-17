@@ -353,4 +353,6 @@ AMF :
     GUAMFI_LIST = (
      { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; AMF_REGION_ID="{{ amf_region_id }}" ; AMF_SET_ID="{{ amf_set_id }}"; AMF_POINTER="{{ amf_pointer }}"}
     );
+
+    AMF_SESSION_SERVICE_CONTINUITY_MODE = "{{ amf_session_service_continuity_mode }}";
 };

@@ -138,6 +138,7 @@ void amf_config_init(amf_config_t* config) {
   config->relative_capacity              = RELATIVE_CAPACITY;
   config->amf_statistic_timer            = AMF_STATISTIC_TIMER_S;
   config->use_stateless                  = false;
+  config->amf_ssc_mode                   = AMF_SSC_MODE_DEFAULT;
   ngap_config_init(&config->ngap_config);
   nas5g_config_init(&config->nas_config);
   guamfi_config_init(&config->guamfi);
@@ -391,7 +392,14 @@ int amf_config_parse_file(
         }
       }
     }
-  }  // NGP Setting is not NULL
+
+    int aint = 0;
+    if ((config_setting_lookup_int(
+            setting, AMF_SESSION_SERVICE_CONTINUITY_MODE, &aint))) {
+      config_pP->amf_ssc_mode = (uint8_t) aint;
+    }
+
+  }  // AMF Setting is not NULL
   config_destroy(&cfg);
   return 0;
 }
@@ -548,6 +556,18 @@ void copy_amf_config_from_mme_config(
   copy_served_tai_config_list(dest, src);
 }
 
+void amf_config_get_ssc_mode(uint8_t* ssc_mode) {
+  if (ssc_mode == NULL) {
+    return;
+  }
+
+  amf_config_read_lock(&amf_config);
+
+  *ssc_mode = amf_config.amf_ssc_mode;
+
+  amf_config_unlock(&amf_config);
+}
+
 void amf_config_display(amf_config_t* config_pP) {
   if (!config_pP) return;
 
@@ -678,6 +698,9 @@ void amf_config_display(amf_config_t* config_pP) {
   OAILOG_INFO(
       LOG_CONFIG, "    UTIL log level.......: %s\n",
       OAILOG_LEVEL_INT2STR(config_pP->log_config.util_log_level));
+  OAILOG_INFO(
+      LOG_CONFIG, "    AMF SSC mode.........: %s\n",
+      OAILOG_LEVEL_INT2STR(config_pP->amf_ssc_mode));
   OAILOG_INFO(
       LOG_CONFIG, "    ITTI log level.......: %s (InTer-Task Interface)\n",
       OAILOG_LEVEL_INT2STR(config_pP->log_config.itti_log_level));

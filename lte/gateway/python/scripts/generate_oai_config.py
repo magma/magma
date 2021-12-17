@@ -47,7 +47,7 @@ DEFAULT_NGAP_AMF_REGION_ID = "1"
 DEFAULT_NGAP_SET_ID = "1"
 DEFAULT_NGAP_AMF_POINTER = "0"
 DEFAULT_DEFAULT_DNN = ""
-
+DEFAULT_AMF_SSC_MODE = 1
 
 def _get_iface_ip(service, iface_config):
     """
@@ -406,6 +406,23 @@ def _get_amf_pointer(service_mconfig: object) -> str:
 
     return service_mconfig.amf_pointer or DEFAULT_NGAP_AMF_POINTER
 
+def _get_amf_session_service_continuity_mode_config(service_mconfig: object) -> int:
+    """Retrieve amf_session_service_continuity_mode config value. If not exist, defaults to DEFAULT_AMF_SSC_MODE.
+
+    Args:
+        service_mconfig: This is a configuration placeholder for mme.
+
+    Returns:
+        session service continuity mode value.
+    """
+    enable_amf_session_service_continuity_mode = get_service_config_value(
+        'mme', 'amf_session_service_continuity_mode', None,
+    )
+
+    if enable_amf_session_service_continuity_mode is not None:
+        return enable_amf_session_service_continuity_mode
+
+    return service_mconfig.amf_session_service_continuity_mode or DEFAULT_AMF_SSC_MODE
 
 def _get_context():
     """
@@ -469,6 +486,7 @@ def _get_context():
         "amf_set_id": _get_amf_set_id(mme_service_config),
         "amf_pointer": _get_amf_pointer(mme_service_config),
         "default_dnn": _get_default_dnn_config(mme_service_config),
+        "amf_session_service_continuity_mode": _get_amf_session_service_continuity_mode_config(mme_service_config),
     }
 
     context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or _get_iface_ip(

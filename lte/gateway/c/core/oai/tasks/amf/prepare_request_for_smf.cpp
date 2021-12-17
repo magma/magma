@@ -111,7 +111,8 @@ int create_session_grpc_req_on_gnb_setup_rsp(
 int amf_smf_create_ipv4_session_grpc_req(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, const ambr_t& state_ambr) {
+    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, const ambr_t& state_ambr,
+    uint32_t ssc_mode) {
   imsi64_t imsi64                   = INVALID_IMSI64;
   ue_m5gmm_context_s* ue_mm_context = NULL;
   amf_context_t* amf_ctxt_p         = NULL;
@@ -135,7 +136,7 @@ int amf_smf_create_ipv4_session_grpc_req(
 
   return AMFClientServicer::getInstance().amf_smf_create_pdu_session_ipv4(
       imsi, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
-      gnb_gtp_teid_ip_addr, ipv4_addr, VERSION_0, state_ambr);
+      gnb_gtp_teid_ip_addr, ipv4_addr, VERSION_0, state_ambr, ssc_mode);
 }
 
 /***************************************************************************

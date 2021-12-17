@@ -619,6 +619,18 @@ M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
   }
 
   /*
+  Cause #68 – Unsupported SSC Mode type
+  the requested SSC Mode is not supported .
+  */
+  uint8_t ssc_mode = 0;
+  amf_config_get_ssc_mode(&ssc_mode);
+  if (msg->payload_container.smf_msg.msg.pdu_session_estab_request.ssc_mode
+          .mode_val != ssc_mode) {
+    cause = M5GSmCause::NOT_SUPPORTED_SSC_MODE;
+    return cause;
+  }
+
+  /*
   Cause #43 – Invalid PDU session identity
   Usecase: If AMF receives a new PDU Session Establishment Request and
   AMF has already another active PDU Session in progress with the Same PDU
@@ -837,7 +849,8 @@ int amf_smf_handle_ip_address_response(
     rc = amf_smf_create_ipv4_session_grpc_req(
         response_p->imsi, response_p->apn, response_p->pdu_session_id,
         response_p->pdu_session_type, response_p->gnb_gtp_teid, response_p->pti,
-        response_p->gnb_gtp_teid_ip_addr, ip_str, smf_ctx->smf_ctx_ambr);
+        response_p->gnb_gtp_teid_ip_addr, ip_str, smf_ctx->smf_ctx_ambr,
+        smf_ctx->smf_proc_data.ssc_mode.mode_val);
 
     if (rc < 0) {
       OAILOG_ERROR(LOG_AMF_APP, "Create IPV4 Session \n");
