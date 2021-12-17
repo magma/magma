@@ -66,7 +66,7 @@ func StartTestServiceWithConfig(t *testing.T, serviceConfig lte_service.Config) 
 
 	// Add servicers
 	lte_protos.RegisterEnodebStateLookupServer(srv.GrpcServer, protected_servicers.NewLookupServicer(enbStateStore))
-	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
+	state_protos.RegisterIndexerServer(srv.GrpcServer, protected_servicers.NewIndexerServicer())
 
 	go srv.RunTest(lis)
 }
