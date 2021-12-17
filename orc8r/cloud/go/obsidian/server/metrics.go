@@ -64,12 +64,9 @@ func CollectStats(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 func sanitizeString(strString string) string {
-	//escape special charatchters in HTML text
-	strSanitizedString := html.EscapeString(strString)
-	//remove line breaks
-	strSanitizedString = strings.Replace(strSanitizedString, "\r", "", -1)
+	strSanitizedString := html.EscapeString(strString)                     //escape special charatchters in HTML text
+	strSanitizedString = strings.Replace(strSanitizedString, "\r", "", -1) //remove line breaks
 	strSanitizedString = strings.Replace(strSanitizedString, "\n", "", -1)
-	//remove extra whitespace
-	strSanitizedString = strings.Join(strings.Fields(strSanitizedString), " ")
+	strSanitizedString = strings.Join(strings.Fields(strSanitizedString), " ") //remove extra whitespace
 	return strSanitizedString
 }
