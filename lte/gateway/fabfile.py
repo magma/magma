@@ -271,8 +271,8 @@ def integ_test(
         `magma_trfserver` vagrant box.
     """
 
-    destroy_vm = bool(strtobool(destroy_vm))
-    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = False
+    provision_vm = False
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
@@ -290,10 +290,10 @@ def integ_test(
     if not build:
         execute(_dist_upgrade)
         execute(_build_magma)
+        execute(_run_sudo_python_unit_tests)
         execute(_start_gateway)
     else:
         execute(_from_registry)
-    execute(_run_sudo_python_unit_tests)
 
 
     # Run suite of integ tests that are required to be run on the access gateway
@@ -577,7 +577,7 @@ def _from_registry():
     """
     Install magma from dev registry
     """
-    hash = pkg.get_commit_hash('git')
+    hash = pkg.get_commit_hash()
     with cd("%s/deploy" % AGW_ROOT):
         run('sudo bash agw_install_specific.sh %s' % hash)
 
