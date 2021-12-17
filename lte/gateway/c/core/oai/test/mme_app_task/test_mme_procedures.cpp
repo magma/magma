@@ -206,7 +206,9 @@ class MmeAppProcedureTest : public ::testing::Test {
                                             0xd3, 0x02, 0x07, 0x46};
   const uint8_t nas_msg_service_req[4]   = {0xc7, 0x02, 0x79, 0xe0};
   const uint8_t nas_msg_activate_ded_bearer_accept[9] = {
-      0x27, 0x9f, 0x98, 0x05, 0x82, 0x02, 0x62, 0x00, 0xc6};
+      0x27, 0xAA, 0x95, 0x47, 0x92, 0x02, 0x62, 0x00, 0xc6};
+  const uint8_t nas_msg_activate_ded_bearer_accept_ebi_7[9] = {
+      0x27, 0xe2, 0xbc, 0xb5, 0x3f, 0x04, 0x72, 0x00, 0xc6};
   const uint8_t nas_msg_deactivate_ded_bearer_accept[9] = {
       0x27, 0x66, 0x5f, 0x4e, 0x87, 0x03, 0x62, 0x00, 0xce};
 
@@ -228,6 +230,23 @@ class MmeAppProcedureTest : public ::testing::Test {
       0x17, 0xEA, 0x57, 0xCB, 0xAD, 0x02, 0x07, 0x48, 0x00, 0x0b, 0xf6,
       0x00, 0xf1, 0x10, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01,
   };
+
+  const uint8_t nas_msg_tau_req_with_eps_bearer_ctx_sts_def_ber[25] = {
+      0x17, 0x4A, 0xE7, 0x23, 0x9E, 0x05, 0x07, 0x48, 0x08,
+      0x0b, 0xf6, 0x00, 0xf1, 0x10, 0x00, 0x01, 0x01, 0x67,
+      0x41, 0x14, 0xf4, 0x57, 0x02, 0x20, 0x00};
+
+  const uint8_t nas_msg_tau_req_with_eps_bearer_ctx_sts_ded_ber[25] = {
+      0x17, 0x18, 0xCF, 0x11, 0x4E, 0x05, 0x07, 0x48, 0x08,
+      0x0b, 0xf6, 0x00, 0xf1, 0x10, 0x00, 0x01, 0x01, 0x67,
+      0x41, 0x14, 0xf4, 0x57, 0x02, 0x60, 0x00};
+
+  const uint8_t nas_msg_pdn_connectivity_req_ims[16] = {
+      0x27, 0x13, 0xd2, 0x79, 0xbe, 0x02, 0x02, 0x01,
+      0xd0, 0x11, 0x28, 0x04, 0x03, 0x69, 0x6d, 0x73};
+
+  const uint8_t nas_msg_act_def_bearer_acc[9] = {0x27, 0xaa, 0x95, 0x47, 0x92,
+                                                 0x03, 0x62, 0x00, 0xc2};
 
   std::string imsi                = "001010000000001";
   plmn_t plmn                     = {.mcc_digit2 = 0,
@@ -302,7 +321,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -341,9 +360,9 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -396,7 +415,7 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -435,9 +454,9 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -468,7 +487,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirFailure) {
   // Sending AIA to mme_app mimicing negative S6A response for AIR
   send_authentication_info_resp(imsi, false);
 
-  // Wait for context release request; MME should be sending attach reject
+  // Wait for context release command; MME should be sending attach reject
   // as well as context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -503,7 +522,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirTimeout) {
   send_mme_app_initial_ue_msg(
       nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
 
-  // Wait for context release request; MME should be sending attach reject
+  // Wait for context release command; MME should be sending attach reject
   // as well as context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -558,13 +577,13 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAuthMacFailure) {
   // Wait for DL NAS Transport for Auth Reject
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Wait for DL NAS Transport for Attach Reject
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
@@ -616,13 +635,13 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAuthSynchFailure) {
   // Wait for DL NAS Transport for Auth Reject
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Wait for DL NAS Transport for Attach Reject
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
@@ -669,7 +688,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyUlaFailure) {
   // Sending ULA to mme_app mimicing negative S6A response for ULR
   send_s6a_ula(imsi, false);
 
-  // Wait for context release request; MME should be sending attach reject
+  // Wait for context release command; MME should be sending attach reject
   // as well as context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -727,7 +746,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -771,9 +790,9 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachExpiredNasTimers) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -809,7 +828,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectAuthRetxFailure) {
     cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   }
 
-  // Wait for context release request; MME should be sending attach reject
+  // Wait for context release command; MME should be sending attach reject
   // as well as context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -852,7 +871,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectSmcRetxFailure) {
     cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   }
 
-  // Wait for context release request; MME should be performing
+  // Wait for context release command; MME should be performing
   // implicit detach
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
@@ -908,7 +927,7 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -947,9 +966,9 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -985,7 +1004,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectIdentRetxFailure) {
     cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   }
 
-  // Wait for context release request; MME should be sending attach reject
+  // Wait for context release command; MME should be sending attach reject
   // as well as context release command.
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
@@ -1034,16 +1053,16 @@ TEST_F(MmeAppProcedureTest, TestIcsRequestTimeout) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Wait for ICS Request timeout
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -1090,7 +1109,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachIcsFailure) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Send ICS failure to mme_app mimicing S1AP
   send_ics_failure();
@@ -1099,9 +1118,9 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachIcsFailure) {
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -1150,9 +1169,9 @@ TEST_F(MmeAppProcedureTest, TestCreateSessionFailure) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(M_PDN_APN_NOT_ALLOWED);
+  send_create_session_resp(M_PDN_APN_NOT_ALLOWED, DEFAULT_LBI);
 
-  // Wait for context release request; MME should be sending attach reject
+  // Wait for context release command; MME should be sending attach reject
   // as well as context release command.
   // This should be unnecessary but a delete session request is also
   // triggered in the current code and need to wait for that event at
@@ -1166,7 +1185,7 @@ TEST_F(MmeAppProcedureTest, TestCreateSessionFailure) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
   // Waiting for the receptiopn of the second context release request
   // which is triggered after receiving delete session response.
@@ -1213,7 +1232,7 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetach) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -1260,9 +1279,9 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetach) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -1309,7 +1328,7 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedExpiredDetach) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -1358,9 +1377,9 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedExpiredDetach) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -1407,7 +1426,7 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetachRetxFailure) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -1454,9 +1473,9 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetachRetxFailure) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -1503,7 +1522,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -1542,7 +1561,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
   // mimicing SPGW
   sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -1565,9 +1584,9 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -1616,7 +1635,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -1671,7 +1690,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
   // mimicing SPGW
   sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -1714,9 +1733,9 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -1765,7 +1784,7 @@ TEST_F(MmeAppProcedureTest, TestPagingMaxRetx) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -1820,7 +1839,7 @@ TEST_F(MmeAppProcedureTest, TestPagingMaxRetx) {
   // mimicing SPGW
   sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -1873,9 +1892,9 @@ TEST_F(MmeAppProcedureTest, TestPagingMaxRetx) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -1925,7 +1944,7 @@ TEST_F(
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -1956,12 +1975,12 @@ TEST_F(
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
-  // Send activate dedicated bearer request mimicing SPGW
-  send_s11_create_bearer_req();
+  // Send activate dedicated bearer request for lbi 5 mimicing SPGW
+  send_s11_create_bearer_req(5);
   EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(1);
 
   // Send ERAB Setup Response mimicing S1AP
-  send_erab_setup_rsp();
+  send_erab_setup_rsp(6);
 
   // Constructing and sending Activate Dedicated Bearer Accept to mme_app
   // mimicing S1AP
@@ -2012,9 +2031,9 @@ TEST_F(
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -2063,7 +2082,7 @@ TEST_F(
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -2094,12 +2113,12 @@ TEST_F(
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 
-  // Send activate dedicated bearer request mimicing SPGW
-  send_s11_create_bearer_req();
+  // Send activate dedicated bearer request for lbi 5 mimicing SPGW
+  send_s11_create_bearer_req(5);
   EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(1);
 
   // Send ERAB Setup Response mimicing S1AP
-  send_erab_setup_rsp();
+  send_erab_setup_rsp(6);
 
   // Wait for DL NAS Transport up to retransmission limit.
   // The first transmission was piggybacked on ERAB Setup Request
@@ -2164,9 +2183,9 @@ TEST_F(
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -2215,7 +2234,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithActiveFlag) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -2270,7 +2289,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithActiveFlag) {
   // mimicing SPGW
   sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -2314,9 +2333,9 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithActiveFlag) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -2366,7 +2385,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithoutActiveFlag) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -2421,7 +2440,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithoutActiveFlag) {
   // mimicing SPGW
   sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -2464,9 +2483,9 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithoutActiveFlag) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -2516,7 +2535,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithActiveFlag) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -2571,7 +2590,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithActiveFlag) {
   // mimicing SPGW
   sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -2615,9 +2634,9 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithActiveFlag) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -2667,7 +2686,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithoutActiveFlag) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -2722,7 +2741,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithoutActiveFlag) {
   // mimicing SPGW
   sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -2764,9 +2783,9 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithoutActiveFlag) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -2816,7 +2835,7 @@ TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -2871,7 +2890,7 @@ TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
   // mimicing SPGW
   sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -2919,9 +2938,9 @@ TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -2969,7 +2988,7 @@ TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -3008,7 +3027,7 @@ TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
   // mimicing SPGW
   sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -3025,7 +3044,7 @@ TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
 
   // Trigger paging via bearer request in control plane
   // Send activate dedicated bearer request mimicing SPGW
-  send_s11_create_bearer_req();
+  send_s11_create_bearer_req(DEFAULT_LBI);
   EXPECT_CALL(*s1ap_handler, s1ap_handle_paging_request())
       .Times(MAX_PAGING_RETRY_COUNT + 1)
       .WillRepeatedly(ReturnFromAsyncTask(&cv));
@@ -3055,9 +3074,9 @@ TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -3104,7 +3123,7 @@ TEST_F(MmeAppProcedureTest, TestMobileReachabilityTimer) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -3143,7 +3162,7 @@ TEST_F(MmeAppProcedureTest, TestMobileReachabilityTimer) {
   // mimicing SPGW
   sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -3162,9 +3181,9 @@ TEST_F(MmeAppProcedureTest, TestMobileReachabilityTimer) {
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
 
   // Check MME state after implicit detach complete
@@ -3209,7 +3228,7 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchSuccess) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -3277,9 +3296,9 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchSuccess) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -3326,7 +3345,7 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchFailure) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -3396,9 +3415,402 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchFailure) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check MME state after detach complete
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+}
+
+// Normal TAU sent in idle mode with eps bearer context status IE with inactive
+// default bearer
+TEST_F(
+    MmeAppProcedureTest, TestNormalTauReqWithEpsBearerCtxStsInactiveDefBearer) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+  uint8_t ebi_idx = 0;
+
+  MME_APP_EXPECT_CALLS(3, 2, 2, 1, 1, 1, 2, 3, 1, 2, 4);
+
+  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(
+      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
+
+  // Sending AIA to mme_app mimicing successful S6A response for AIR
+  send_authentication_info_resp(imsi, true);
+
+  // Wait for DL NAS Transport for once
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(msg_nas_dl_data.mme_ue_s1ap_id, 1);
+  // Constructing and sending Authentication Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+
+  // Wait for DL NAS Transport for once
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending SMC Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+
+  // Sending ULA to mme_app mimicing successful S6A response for ULR
+  send_s6a_ula(imsi, true);
+
+  // Constructing and sending Create Session Response to mme_app mimicing SPGW
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
+
+  // Constructing and sending ICS Response to mme_app mimicing S1AP
+  send_ics_response();
+
+  // Constructing UE Capability Indication message to mme_app
+  // mimicing S1AP with dummy radio capabilities
+  send_ue_capabilities_ind();
+
+  // Constructing and sending Attach Complete to mme_app
+  // mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+
+  // Wait for DL NAS Transport for EMM Information
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+
+  nas_message_t nas_msg_decoded = {0};
+  emm_security_context_t emm_security_context;
+  nas_message_decode_status_t decode_status;
+  status_code_e decoder_rc;
+  decoder_rc = nas_message_decode(
+      nas_msg->data, &nas_msg_decoded, nas_msg->slen,
+      (void*) &emm_security_context, &decode_status);
+  EXPECT_EQ(nas_msg->slen, 67);
+  EXPECT_EQ(decoder_rc, nas_msg->slen);
+  guti = nas_msg_decoded.plain.emm.attach_accept.guti.guti;
+  bdestroy_wrapper(
+      &nas_msg_decoded.plain.emm.attach_accept.esmmessagecontainer);
+  // Destruction at tear down is not sufficient as ICS occurs
+  // twice in this test case.
+  bdestroy_wrapper(&nas_msg);
+
+  // Constructing and sending Modify Bearer Response to mme_app
+  // mimicing SPGW
+  std::vector<int> b_modify = {5};
+  std::vector<int> b_rm     = {};
+  send_modify_bearer_resp(b_modify, b_rm);
+
+  // Check MME state after Modify Bearer Response
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
+
+  // Send PDN connectivity request
+  send_mme_app_uplink_data_ind(
+      nas_msg_pdn_connectivity_req_ims,
+      sizeof(nas_msg_pdn_connectivity_req_ims), plmn);
+
+  ebi_idx++;
+  // Constructing and sending Create Session Response to mme_app mimicing SPGW
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI + ebi_idx);
+
+  // Send ERAB Setup Response mimicing S1AP
+  send_erab_setup_rsp(DEFAULT_LBI + ebi_idx);
+
+  // Send activate default eps bearer accept
+  send_mme_app_uplink_data_ind(
+      nas_msg_act_def_bearer_acc, sizeof(nas_msg_act_def_bearer_acc), plmn);
+
+  // Send modify bearer response for secondary PDN
+  b_modify = {6};
+  send_modify_bearer_resp(b_modify, b_rm);
+
+  // Add dedicated bearer for LBI 6
+  send_s11_create_bearer_req(DEFAULT_LBI + ebi_idx);
+  // s1ap_generate_s1ap_e_rab_setup_req is called twice. Once for default
+  // bearer and once for dedicated bearer
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(2);
+
+  // Send ERAB Setup Response mimicing S1AP
+  send_erab_setup_rsp(7);
+
+  // Send activate dedicated bearer accept mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_activate_ded_bearer_accept_ebi_7,
+      sizeof(nas_msg_activate_ded_bearer_accept_ebi_7), plmn);
+
+  // Send context release request mimicing S1AP
+  send_context_release_req(S1AP_RADIO_EUTRAN_GENERATED_REASON, TASK_S1AP);
+
+  // Constructing and sending Release Access Bearer Response
+  // to mme_app mimicing SPGW
+  sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
+
+  // Wait for context release command
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check MME state after context release request is processed
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 2);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 1);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+
+  // Constructing and sending Normal TAU Request with EPS bearer context status
+  send_mme_app_initial_ue_msg(
+      nas_msg_tau_req_with_eps_bearer_ctx_sts_def_ber,
+      sizeof(nas_msg_tau_req_with_eps_bearer_ctx_sts_def_ber), plmn, guti, 1);
+
+  // Wait for spgw to send delete session request
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  send_delete_session_resp(DEFAULT_LBI + ebi_idx);
+
+  // Constructing and sending ICS Response to mme_app mimicing S1AP
+  send_ics_response();
+
+  // Constructing and sending Modify Bearer Response to mme_app
+  // mimicing SPGW
+  send_modify_bearer_resp(b_modify, b_rm);
+
+  // Check MME state after Modify Bearer Response
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
+
+  // Constructing and sending Detach Request to mme_app
+  // mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_detach_req, sizeof(nas_msg_detach_req), plmn);
+
+  // Constructing and sending Delete Session Response to mme_app
+  // mimicing SPGW task
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  send_delete_session_resp(DEFAULT_LBI);
+
+  // Wait for context release command
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check MME state after detach complete
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+}
+
+// Normal TAU sent in idle mode with eps bearer context status IE with inactive
+// dedicated bearer
+TEST_F(
+    MmeAppProcedureTest, TestNormalTauReqWithEpsBearerCtxStsInactiveDedBearer) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+  uint8_t ebi_idx = 0;
+
+  MME_APP_EXPECT_CALLS(3, 2, 2, 1, 1, 1, 2, 4, 1, 2, 4);
+
+  // Construction and sending Initial Attach Request to mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(
+      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
+
+  // Sending AIA to mme_app mimicing successful S6A response for AIR
+  send_authentication_info_resp(imsi, true);
+
+  // Wait for DL NAS Transport for once
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(msg_nas_dl_data.mme_ue_s1ap_id, 1);
+  // Constructing and sending Authentication Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+
+  // Wait for DL NAS Transport for once
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending SMC Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+
+  // Sending ULA to mme_app mimicing successful S6A response for ULR
+  send_s6a_ula(imsi, true);
+
+  // Constructing and sending Create Session Response to mme_app mimicing SPGW
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
+
+  // Constructing and sending ICS Response to mme_app mimicing S1AP
+  send_ics_response();
+
+  // Constructing UE Capability Indication message to mme_app
+  // mimicing S1AP with dummy radio capabilities
+  send_ue_capabilities_ind();
+
+  // Constructing and sending Attach Complete to mme_app
+  // mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+
+  // Wait for DL NAS Transport for EMM Information
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+
+  nas_message_t nas_msg_decoded = {0};
+  emm_security_context_t emm_security_context;
+  nas_message_decode_status_t decode_status;
+  status_code_e decoder_rc;
+  decoder_rc = nas_message_decode(
+      nas_msg->data, &nas_msg_decoded, nas_msg->slen,
+      (void*) &emm_security_context, &decode_status);
+  EXPECT_EQ(nas_msg->slen, 67);
+  EXPECT_EQ(decoder_rc, nas_msg->slen);
+  guti = nas_msg_decoded.plain.emm.attach_accept.guti.guti;
+  bdestroy_wrapper(
+      &nas_msg_decoded.plain.emm.attach_accept.esmmessagecontainer);
+  // Destruction at tear down is not sufficient as ICS occurs
+  // twice in this test case.
+  bdestroy_wrapper(&nas_msg);
+
+  // Constructing and sending Modify Bearer Response to mme_app
+  // mimicing SPGW
+  std::vector<int> b_modify = {5};
+  std::vector<int> b_rm     = {};
+  send_modify_bearer_resp(b_modify, b_rm);
+
+  // Check MME state after Modify Bearer Response
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
+
+  // Send PDN connectivity request
+  send_mme_app_uplink_data_ind(
+      nas_msg_pdn_connectivity_req_ims,
+      sizeof(nas_msg_pdn_connectivity_req_ims), plmn);
+
+  ebi_idx++;
+  // Constructing and sending Create Session Response to mme_app mimicing SPGW
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI + ebi_idx);
+
+  // Send ERAB Setup Response mimicing S1AP
+  send_erab_setup_rsp(DEFAULT_LBI + ebi_idx);
+
+  // Send activate default eps bearer accept
+  send_mme_app_uplink_data_ind(
+      nas_msg_act_def_bearer_acc, sizeof(nas_msg_act_def_bearer_acc), plmn);
+
+  // Constructing and sending Modify Bearer Response to mme_app
+  // mimicing SPGW
+  b_modify = {6};
+  send_modify_bearer_resp(b_modify, b_rm);
+
+  // Add dedicated bearer for LBI 6
+  send_s11_create_bearer_req(DEFAULT_LBI + ebi_idx);
+  // s1ap_generate_s1ap_e_rab_setup_req is called twice. Once for default
+  // bearer and once for dedicated bearer
+  EXPECT_CALL(*s1ap_handler, s1ap_generate_s1ap_e_rab_setup_req()).Times(2);
+
+  // Send ERAB Setup Response mimicing S1AP
+  send_erab_setup_rsp(7);
+
+  // Send activate dedicated eps bearer accept
+  send_mme_app_uplink_data_ind(
+      nas_msg_activate_ded_bearer_accept_ebi_7,
+      sizeof(nas_msg_activate_ded_bearer_accept_ebi_7), plmn);
+
+  // Send context release request mimicing S1AP
+  send_context_release_req(S1AP_RADIO_EUTRAN_GENERATED_REASON, TASK_S1AP);
+
+  // Constructing and sending Release Access Bearer Response
+  // to mme_app mimicing SPGW
+  sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
+
+  // Wait for context release command
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check MME state after context release request is processed
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  mme_state_p = magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 2);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 1);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+
+  // Constructing and sending Normal TAU Request with EPS bearer context status
+  send_mme_app_initial_ue_msg(
+      nas_msg_tau_req_with_eps_bearer_ctx_sts_ded_ber,
+      sizeof(nas_msg_tau_req_with_eps_bearer_ctx_sts_ded_ber), plmn, guti, 1);
+
+  // Constructing and sending deactivate bearer request
+  uint8_t ebi_to_be_deactivated = 7;
+  send_s11_deactivate_bearer_req(1, &ebi_to_be_deactivated, false);
+
+  // Constructing and sending ICS Response to mme_app mimicing S1AP
+  send_ics_response();
+
+  // Constructing and sending Modify Bearer Response to mme_app
+  // mimicing SPGW
+  send_modify_bearer_resp(b_modify, b_rm);
+  // Constructing and sending Modify Bearer Response to mme_app
+  // mimicing SPGW
+  b_modify = {6};
+  send_modify_bearer_resp(b_modify, b_rm);
+
+  // Check MME state after Modify Bearer Response
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 2);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 2);
+
+  // Constructing and sending Detach Request to mme_app
+  // mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_detach_req, sizeof(nas_msg_detach_req), plmn);
+
+  // Constructing and sending Delete Session Response for each session
+  // to mme_app mimicing SPGW task
+  // Wait for 2 delete session requests
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  send_delete_session_resp(DEFAULT_LBI);
+  send_delete_session_resp(6);
+
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -3446,7 +3858,7 @@ TEST_F(MmeAppProcedureTest, TestS1HandoverSuccess) {
   send_s6a_ula(imsi, true);
 
   // Constructing and sending Create Session Response to mme_app mimicing SPGW
-  send_create_session_resp(REQUEST_ACCEPTED);
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
 
   // Constructing and sending ICS Response to mme_app mimicing S1AP
   send_ics_response();
@@ -3533,9 +3945,9 @@ TEST_F(MmeAppProcedureTest, TestS1HandoverSuccess) {
   // Constructing and sending Delete Session Response to mme_app
   // mimicing SPGW task
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
-  send_delete_session_resp();
+  send_delete_session_resp(DEFAULT_LBI);
 
-  // Wait for context release request
+  // Wait for context release command
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
   // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
   // mimicing S1AP task
@@ -3548,6 +3960,184 @@ TEST_F(MmeAppProcedureTest, TestS1HandoverSuccess) {
   EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+}
+
+TEST_F(MmeAppProcedureTest, TestDuplicateAttach) {
+  mme_app_desc_t* mme_state_p =
+      magma::lte::MmeNasStateManager::getInstance().get_state(false);
+  std::condition_variable cv;
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+
+  MME_APP_EXPECT_CALLS(6, 2, 2, 2, 2, 1, 2, 2, 1, 2, 4);
+
+  // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
+  send_mme_app_initial_ue_msg(
+      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn, guti, 1);
+
+  // Sending AIA to mme_app mimicing successful S6A response for AIR
+  send_authentication_info_resp(imsi, true);
+
+  // Wait for DL NAS Transport for once
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending Authentication Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+
+  // Wait for DL NAS Transport for once
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending SMC Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+
+  // Sending ULA to mme_app mimicing successful S6A response for ULR
+  send_s6a_ula(imsi, true);
+
+  // Constructing and sending Create Session Response to mme_app mimicing SPGW
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
+
+  // Constructing and sending ICS Response to mme_app mimicing S1AP
+  send_ics_response();
+
+  // Constructing UE Capability Indication message to mme_app
+  // mimicing S1AP with dummy radio capabilities
+  send_ue_capabilities_ind();
+
+  // Constructing and sending Attach Complete to mme_app
+  // mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+
+  // Wait for DL NAS Transport for EMM Information
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+
+  // Destruction at tear down is not sufficient as ICS occurs
+  // twice in this test case.
+  bdestroy_wrapper(&nas_msg);
+
+  // Constructing and sending Modify Bearer Response to mme_app
+  // mimicing SPGW
+  std::vector<int> b_modify = {5};
+  std::vector<int> b_rm     = {};
+  send_modify_bearer_resp(b_modify, b_rm);
+
+  // Check MME state after Modify Bearer Response
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
+
+  /* Move UE to ECM_IDLE mode */
+  // Send context release request mimicing S1AP
+  send_context_release_req(S1AP_RADIO_EUTRAN_GENERATED_REASON, TASK_S1AP);
+
+  // Constructing and sending Release Access Bearer Response to mme_app
+  // mimicing SPGW
+  sgw_send_release_access_bearer_response(REQUEST_ACCEPTED);
+
+  // Wait for context release command
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check MME state after context release request is processed
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 1);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
+
+  /* Duplicate Attach Request */
+  // Constructing and sending Duplicate Attach Request to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_imsi_attach_req, sizeof(nas_msg_imsi_attach_req), plmn);
+
+  // An implicit detach event should occur leading to Delete Session Request
+  // Constructing and sending Delete Session Response to mme_app
+  // mimicing SPGW task
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  send_delete_session_resp(DEFAULT_LBI);
+
+  // Now the new attach request should proceed
+  // Sending AIA to mme_app mimicing successful S6A response for AIR
+  send_authentication_info_resp(imsi, true);
+
+  // Wait for DL NAS Transport for once
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending Authentication Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_auth_resp, sizeof(nas_msg_auth_resp), plmn);
+
+  // Wait for DL NAS Transport for once
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending SMC Response to mme_app mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_smc_resp, sizeof(nas_msg_smc_resp), plmn);
+
+  // Sending ULA to mme_app mimicing successful S6A response for ULR
+  send_s6a_ula(imsi, true);
+
+  // Constructing and sending Create Session Response to mme_app mimicing SPGW
+  send_create_session_resp(REQUEST_ACCEPTED, DEFAULT_LBI);
+
+  // Constructing and sending ICS Response to mme_app mimicing S1AP
+  send_ics_response();
+
+  // Constructing UE Capability Indication message to mme_app
+  // mimicing S1AP with dummy radio capabilities
+  send_ue_capabilities_ind();
+
+  // Constructing and sending Attach Complete to mme_app
+  // mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_attach_comp, sizeof(nas_msg_attach_comp), plmn);
+
+  // Wait for DL NAS Transport for EMM Information
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+
+  // Constructing and sending Modify Bearer Response to mme_app
+  // mimicing SPGW
+  send_modify_bearer_resp(b_modify, b_rm);
+
+  // Check MME state after Modify Bearer Response
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
+
+  // Constructing and sending Detach Request to mme_app
+  // mimicing S1AP
+  send_mme_app_uplink_data_ind(
+      nas_msg_detach_req, sizeof(nas_msg_detach_req), plmn);
+
+  // Constructing and sending Delete Session Response to mme_app
+  // mimicing SPGW task
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  send_delete_session_resp(DEFAULT_LBI);
+
+  // Wait for context release command
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  // Constructing and sending CONTEXT RELEASE COMPLETE to mme_app
+  // mimicing S1AP task
+  send_ue_ctx_release_complete();
+
+  // Check MME state after detach complete
+  send_activate_message_to_mme_app();
+  cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 0);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 }
 
 }  // namespace lte

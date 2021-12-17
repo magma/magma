@@ -1187,6 +1187,9 @@
       "version-1.5.0/lte/version-1.5.0-build_install_magma_pkg_in_agw": {
         "title": "Build and install a magma package in AGW"
       },
+      "version-1.5.0/lte/version-1.5.0-configure_sentry": {
+        "title": "Sentry Integration"
+      },
       "version-1.5.0/lte/version-1.5.0-debug_dp_probe": {
         "title": "Datapath Probe CLI"
       },
@@ -1219,9 +1222,6 @@
       },
       "version-1.5.0/lte/version-1.5.0-deploy_config_agw_ha": {
         "title": "Configure AGW for HA"
-      },
-      "version-1.5.0/lte/version-1.5.0-integrate_sentry": {
-        "title": "Sentry Integration"
       },
       "version-1.5.0/lte/version-1.5.0-tr069": {
         "title": "Add eNB TR-069 Support"

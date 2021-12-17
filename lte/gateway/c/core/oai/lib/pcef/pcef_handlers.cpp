@@ -423,3 +423,11 @@ void get_session_req_data(
   data->pvi = qos->pvi;
   data->qci = qos->qci;
 }
+
+bool pcef_delete_dedicated_bearer(const char* imsi, const ebi_list_t ebi_list) {
+  auto imsi_str = std::string(imsi);
+
+  // TODO(pruthvihebbani) : Send grpc message to session manager to delete
+  // dedicated bearer
+  return true;
+}

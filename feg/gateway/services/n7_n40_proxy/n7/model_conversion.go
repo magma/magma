@@ -61,6 +61,16 @@ var FailureCodeProtoToN7Map = []n7_sbi.FailureCode{
 	"UNKNOWN",                // 26
 }
 
+type SmPolicyUpdateReqCtx struct {
+	SmPolicyId    string
+	SessionId     string
+	IMSI          string
+	MonitoringKey []byte
+	Level         protos.MonitoringLevel
+	TgppCtx       *protos.TgppContext
+	ReqBody       *n7_sbi.PostSmPoliciesSmPolicyIdUpdateJSONRequestBody
+}
+
 //
 // From Proto to SBI types
 //
@@ -134,6 +144,49 @@ func GetSmPolicyDeleteReqBody(
 	return &n7_sbi.PostSmPoliciesSmPolicyIdDeleteJSONRequestBody{
 		AccuUsageReports: getUmReportN7(request.MonitorUsages),
 	}
+}
+
+func GetSmPolicyUpdateRequestsN7(
+	updates []*protos.UsageMonitoringUpdateRequest,
+) []*SmPolicyUpdateReqCtx {
+	updatesPerSession := make(map[string][]*protos.UsageMonitoringUpdateRequest)
+	// Sort updates per session
+	for _, update := range updates {
+		updatesPerSession[update.SessionId] = append(updatesPerSession[update.SessionId], update)
+	}
+
+	// Merge the updates for the same session into a single request
+	reqCtxs := []*SmPolicyUpdateReqCtx{}
+	for _, updatesList := range updatesPerSession {
+		firstUpdate := updatesList[0]
+		smPolicyId, err := GetSmPolicyId(firstUpdate.TgppCtx)
+		if err != nil {
+			// No 3gpp context. Cannot get the PolicyId
+			glog.Errorf("SmPolicyUpdate: Session %s does not have SmPolicyId: %s", firstUpdate.SessionId, err)
+			continue
+		}
+		accUsageReport := []n7_sbi.AccuUsageReport{}
+		for _, umUpdate := range updatesList {
+			if umUpdate.EventTrigger == protos.EventTrigger_USAGE_REPORT {
+				accUsageReport = append(accUsageReport, getAccUsageReportN7(umUpdate.Update))
+			}
+		}
+		reqCtxs = append(reqCtxs, &SmPolicyUpdateReqCtx{
+			SmPolicyId:    smPolicyId,
+			SessionId:     firstUpdate.SessionId,
+			IMSI:          firstUpdate.Sid,
+			MonitoringKey: firstUpdate.Update.MonitoringKey,
+			Level:         firstUpdate.Update.Level,
+			TgppCtx:       firstUpdate.TgppCtx,
+			ReqBody: &n7_sbi.PostSmPoliciesSmPolicyIdUpdateJSONRequestBody{
+				Ipv4Address:      getSbiIpv4(firstUpdate.UeIpv4),
+				RatType:          getSbiRatType(firstUpdate.RatType),
+				AccessType:       getSbiAccessType(firstUpdate.RatType),
+				AccuUsageReports: &accUsageReport,
+			},
+		})
+	}
+	return reqCtxs
 }
 
 func getSbiRatType(ratType protos.RATType) *sbi.RatType {
@@ -284,6 +337,48 @@ func GetPolicyReauthRequestProto(
 		EventTriggers:          eventTriggers,
 		RevalidationTime:       revalidationTime,
 		UsageMonitoringCredits: umCredits,
+	}
+}
+
+// GetUsageMonitoringResponsesProto converts smPolicyDecision received from PCF to UsageMonitoringUpdatreResponse proto.
+// For the conversion it uses the updateCtx that was built before sending the request to PCF.
+func GetUsageMonitoringResponsesProto(
+	updateCtx *SmPolicyUpdateReqCtx,
+	smPolicyDecision *n7_sbi.SmPolicyDecision,
+) []*protos.UsageMonitoringUpdateResponse {
+	staticRules, dynamicRules, rulesToRemove := getPccRules(smPolicyDecision)
+	responses := getUsageMonitorsProtoForUpdate(updateCtx, smPolicyDecision)
+	if len(responses) == 0 {
+		responses = append(responses, GetUsageMonitoringUpdateResponseProto(updateCtx, true))
+	}
+
+	eventTriggers, revalidationTime := getEventTriggersInfoProto(
+		smPolicyDecision.PolicyCtrlReqTriggers, smPolicyDecision.RevalidationTime)
+	firstResponse := responses[0]
+	firstResponse.StaticRulesToInstall = staticRules
+	firstResponse.DynamicRulesToInstall = dynamicRules
+	firstResponse.RulesToRemove = rulesToRemove
+	firstResponse.EventTriggers = eventTriggers
+	firstResponse.RevalidationTime = revalidationTime
+
+	return responses
+}
+
+// GetUsageMonitoringUpdateResponseProto builds a default UsageMonitoringUpdateResponse proto from
+// updateCtx that was built before sending SmPolicyUpdate request to PCF.
+func GetUsageMonitoringUpdateResponseProto(
+	updateCtx *SmPolicyUpdateReqCtx,
+	success bool,
+) *protos.UsageMonitoringUpdateResponse {
+	return &protos.UsageMonitoringUpdateResponse{
+		Success:   success,
+		SessionId: updateCtx.SessionId,
+		Sid:       updateCtx.IMSI,
+		TgppCtx:   updateCtx.TgppCtx,
+		Credit: &protos.UsageMonitoringCredit{
+			MonitoringKey: updateCtx.MonitoringKey,
+			Level:         updateCtx.Level,
+		},
 	}
 }
 
@@ -594,6 +689,65 @@ func newUsageMonitoringUpdateResponse(
 		Success:          true,
 		EventTriggers:    eventTriggers,
 		RevalidationTime: revalidationTime,
+	}
+}
+
+// getUsageMonitorsProtoForUpdate converts smPolicyDecision received from PCF to UsageMonitoringUpdateResponse proto list.
+// Uses updateCtx built before sending the request to PCF for the conversion.
+func getUsageMonitorsProtoForUpdate(
+	updateCtx *SmPolicyUpdateReqCtx,
+	smPolicyDecision *n7_sbi.SmPolicyDecision,
+) []*protos.UsageMonitoringUpdateResponse {
+	monitors := []*protos.UsageMonitoringUpdateResponse{}
+	// Usage monitorting at pcc rule level
+	if smPolicyDecision.PccRules != nil {
+		for _, pccRule := range smPolicyDecision.PccRules.AdditionalProperties {
+			if pccRule.RefUmData == nil || len((*pccRule.RefUmData)[0]) == 0 {
+				continue
+			}
+			umResp := getUsageMonitoringUpdateResponseFromUpdateCtx(
+				updateCtx, smPolicyDecision, (*pccRule.RefUmData)[0], protos.MonitoringLevel_PCC_RULE_LEVEL)
+			if umResp == nil {
+				continue
+			}
+			monitors = append(monitors, umResp)
+		}
+	}
+	// Usage monitoring at session level
+	if smPolicyDecision.SessRules != nil {
+		for _, sessRule := range smPolicyDecision.SessRules.AdditionalProperties {
+			if sessRule.RefUmData == nil || len(*sessRule.RefUmData) == 0 {
+				continue
+			}
+			umResp := getUsageMonitoringUpdateResponseFromUpdateCtx(
+				updateCtx, smPolicyDecision, *sessRule.RefUmData, protos.MonitoringLevel_SESSION_LEVEL)
+			if umResp == nil {
+				continue
+			}
+			monitors = append(monitors, umResp)
+		}
+	}
+	return monitors
+}
+
+// getUsageMonitoringUpdateResponseFromUpdateCtx converts a Usage Monitoring Decision received from PCF to UsageMonitoringUpdateResponse proto.
+// Uses updateCtx built before sending the request to PCF for the conversion.
+func getUsageMonitoringUpdateResponseFromUpdateCtx(
+	updateCtx *SmPolicyUpdateReqCtx,
+	smPolicyDecision *n7_sbi.SmPolicyDecision,
+	umId string,
+	monLevel protos.MonitoringLevel,
+) *protos.UsageMonitoringUpdateResponse {
+	umEntry, found := smPolicyDecision.UmDecs.Get(umId)
+	if !found {
+		return nil
+	}
+	return &protos.UsageMonitoringUpdateResponse{
+		Credit:    getUsageMonitoringCreditsProto(umId, &umEntry, monLevel),
+		SessionId: updateCtx.SessionId,
+		TgppCtx:   updateCtx.TgppCtx,
+		Sid:       updateCtx.IMSI,
+		Success:   true,
 	}
 }
 
