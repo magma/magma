@@ -16,6 +16,7 @@ package servicers
 import (
 	"context"
 
+	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -78,4 +79,9 @@ func (srv *indexerServicer) validateReindexReq(req *indexer_protos.StartReindexR
 		return status.Error(codes.FailedPrecondition, "automatic reindexing is enabled and request didn't override")
 	}
 	return nil
+}
+
+func internalErr(err error, wrap string) error {
+	e := errors.Wrap(err, wrap)
+	return status.Error(codes.Internal, e.Error())
 }

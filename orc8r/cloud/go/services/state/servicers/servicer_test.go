@@ -22,7 +22,7 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
-	servicers "magma/orc8r/cloud/go/services/state/servicers/protected"
+	"magma/orc8r/cloud/go/services/state/servicers"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 )
