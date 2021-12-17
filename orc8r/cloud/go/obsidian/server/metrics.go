@@ -50,12 +50,19 @@ func CollectStats(next echo.HandlerFunc) echo.HandlerFunc {
 		requestCount.Inc()
 		status := strconv.Itoa(c.Response().Status)
 		respStatuses.WithLabelValues(status, c.Request().Method).Inc()
+		url := sanitizeString(c.Request().URL.String())
 		glog.V(2).Infof(
 			"REST API code: %v, method: %v, url: %v\n",
 			status,
 			c.Request().Method,
-			c.Request().URL,
+			url,
 		)
 		return nil
 	}
+}
+
+func sanitizeString(strString string) string {
+	strSanitizedString := html.EscapeString(strString) //escape special charatchters in HTML text
+	strSanitizedString = strings.Join(strings.Fields(strSanitizedString), " ") //remove extra whitespace
+	return strSanitizedString
 }
