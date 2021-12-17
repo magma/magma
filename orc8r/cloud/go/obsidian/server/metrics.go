@@ -19,6 +19,9 @@ import (
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"html"
+	"strings"
 )
 
 var (
@@ -54,8 +57,19 @@ func CollectStats(next echo.HandlerFunc) echo.HandlerFunc {
 			"REST API code: %v, method: %v, url: %v\n",
 			status,
 			c.Request().Method,
-			c.Request().URL,
+			sanitizeString(c.Request().URL.String()),
 		)
 		return nil
 	}
+}
+
+func sanitizeString(strString string) string {
+	//escape special charatchters in HTML text
+	strSanitizedString := html.EscapeString(strString)
+	//remove line breaks
+	strSanitizedString = strings.Replace(strSanitizedString, "\r", "", -1)
+	strSanitizedString = strings.Replace(strSanitizedString, "\n", "", -1)
+	//remove extra whitespace
+	strSanitizedString = strings.Join(strings.Fields(strSanitizedString), " ")
+	return strSanitizedString
 }
