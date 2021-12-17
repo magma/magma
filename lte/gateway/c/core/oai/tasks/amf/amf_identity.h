@@ -46,12 +46,14 @@ typedef struct amf_guamfi_s {
   uint16_t amf_set_id : 10;
   uint16_t amf_pointer : 6;
 } amf_guamfi_t;
-
+/*
 // 5G-GUTI
 typedef struct amf_guti_m5g_s {
   guamfi_t guamfi;
   uint32_t m_tmsi;
 } amf_guti_m5g_t;
+*/
+typedef guti_m5_t amf_guti_m5g_t;
 
 typedef struct supi_as_imsi_s {
   // 12 bits for MCC and 12 bits for MNC

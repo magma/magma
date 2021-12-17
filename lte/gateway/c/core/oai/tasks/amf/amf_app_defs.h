@@ -20,8 +20,6 @@
 
 namespace magma5g {
 typedef struct amf_app_desc_s {
-  // UE contexts
-  amf_ue_context_t amf_ue_contexts;
   amf_ue_ngap_id_t amf_app_ue_ngap_id_generator;
   long m5_statistic_timer_id;
   uint32_t m5_statistic_timer_period;

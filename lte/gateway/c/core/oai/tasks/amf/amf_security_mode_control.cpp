@@ -33,6 +33,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_ue_context_storage.h"
 
 namespace magma5g {
 
@@ -144,7 +145,7 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
     amf_sap.u.amf_as.u.security.selected_eea   = smc_proc->selected_eea;
     amf_sap.u.amf_as.u.security.selected_eia   = smc_proc->selected_eia;
     amf_sap.u.amf_as.u.security.imeisv_request = smc_proc->imeisv_request;
-    ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(smc_proc->ue_id);
+    ue_mm_context = amf_get_ue_context(smc_proc->ue_id);
 
     if (ue_mm_context) {
       amf_ctx = &ue_mm_context->amf_context;
@@ -194,8 +195,8 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
-  std::shared_ptr<ue_m5gmm_context_t> ue_amf_context =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_amf_context = 
+      amf_get_ue_context(ue_id);
 
   if (ue_amf_context == nullptr) {
     OAILOG_DEBUG(
@@ -452,7 +453,6 @@ int amf_proc_security_mode_control(
  ***************************************************************************/
 int amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
   amf_context_t* amf_ctx = nullptr;
   int rc                 = RETURNerror;
 
@@ -464,7 +464,7 @@ int amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id) {
   /*
    *     Get the UE context
    */
-  ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_mm_context = amf_get_ue_context(ue_id);
   if (ue_mm_context) {
     amf_ctx = &ue_mm_context->amf_context;
   } else {

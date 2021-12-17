@@ -25,6 +25,7 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_ue_context_storage.h"
 
 namespace magma5g {
 
@@ -47,8 +48,7 @@ int amf_app_handle_nas_dl_req(
         "Downlink NAS transport: Failed to get global amf_app_desc context \n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
-  std::shared_ptr<ue_m5gmm_context_t> ue_context =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context = amf_get_ue_context(ue_id);
   if (ue_context) {
     gnb_ue_ngap_id = ue_context->gnb_ue_ngap_id;
   } else {

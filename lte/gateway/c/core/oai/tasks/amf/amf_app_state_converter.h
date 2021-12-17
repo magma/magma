@@ -50,7 +50,7 @@ class AmfNasStateConverter : public magma::lte::StateConverter {
       const ue_m5gmm_context_t* ue_ctxt, UeContext* ue_ctxt_proto);
 
   static void proto_to_ue(
-      const UeContext& ue_ctxt_proto, ue_m5gmm_context_t* ue_ctxt);
+      const UeContext& ue_ctxt_proto, ue_m5gmm_context_t* ue_ctxt_p);
 
   static void ue_m5gmm_context_to_proto(
       const ue_m5gmm_context_t* state_ue_m5gmm_context,
@@ -72,13 +72,5 @@ class AmfNasStateConverter : public magma::lte::StateConverter {
    * also be accessed by the NAS task. If map is empty
    * the proto field is also empty
    ***********************************************************/
-
-  static void map_guti_uint64_to_proto(
-      const map_guti_m5_uint64_t guti_map,
-      google::protobuf::Map<std::string, uint64_t>* proto_map);
-
-  static void proto_to_guti_map(
-      const google::protobuf::Map<std::string, uint64_t>& proto_map,
-      map_guti_m5_uint64_t* guti_map);
 };
 }  // namespace magma5g

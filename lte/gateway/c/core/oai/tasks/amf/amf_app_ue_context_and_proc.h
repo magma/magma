@@ -351,18 +351,6 @@ typedef struct amf_context_s {
   std::weak_ptr<ue_m5gmm_context_s> ue_context_p;
 } amf_context_t;
 
-// Amf-Map Declarations:
-// Map Key: guti_m5_t Data: uint64_t;
-typedef magma::map_s<guti_m5_t, uint64_t> map_guti_m5_uint64_t;
-
-typedef struct amf_ue_context_s {
-  magma::map_uint64_uint64_t imsi_amf_ue_id_htbl;    // data is amf_ue_ngap_id_t
-  magma::map_uint64_uint64_t tun11_ue_context_htbl;  // data is amf_ue_ngap_id_t
-  magma::map_uint64_uint64_t
-      gnb_ue_ngap_id_ue_context_htbl;  // data is amf_ue_ngap_id_t
-  map_guti_m5_uint64_t guti_ue_context_htbl;
-} amf_ue_context_t;
-
 enum m5gcm_state_t {
   M5GCM_IDLE = 0,
   M5GCM_CONNECTED,
@@ -409,14 +397,8 @@ typedef struct ue_m5gmm_context_s {
   m5g_uecontextrequest_t ue_context_request;
 } ue_m5gmm_context_t;
 
-// Map- Key: uint64_t , Data: std::shared_ptr<ue_m5gmm_context_t>
-typedef magma::map_s<uint64_t, std::shared_ptr<ue_m5gmm_context_t>>
-    map_uint64_ue_context_t;
-
 /* Operation on UE context structure
  */
-int amf_insert_ue_context(
-    amf_ue_ngap_id_t ue_id, std::shared_ptr<ue_m5gmm_context_t> ue_context_p);
 amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
     amf_ue_ngap_id_t* amf_app_ue_ngap_id_generator_p);
 /* Notify NGAP about the mapping between amf_ue_ngap_id and
@@ -424,19 +406,11 @@ amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
 void notify_ngap_new_ue_amf_ngap_id_association(
     const std::shared_ptr<ue_m5gmm_context_t> ue_context_p);
 
-std::shared_ptr<ue_m5gmm_context_t> amf_create_new_ue_context(void);
 /*Multi PDU Session*/
 std::shared_ptr<smf_context_t> amf_insert_smf_context(
     std::shared_ptr<ue_m5gmm_context_t> ue_context, uint8_t pdu_session_id);
 std::shared_ptr<smf_context_t> amf_get_smf_context_by_pdu_session_id(
     std::shared_ptr<ue_m5gmm_context_t> ue_context, uint8_t id);
-
-// Retrieve required UE context from the respective hash table
-amf_context_t* amf_context_get(const amf_ue_ngap_id_t ue_id);
-std::shared_ptr<ue_m5gmm_context_t> amf_ue_context_exists_amf_ue_ngap_id(
-    const amf_ue_ngap_id_t amf_ue_ngap_id);
-std::shared_ptr<ue_m5gmm_context_t> lookup_ue_ctxt_by_imsi(imsi64_t imsi64);
-int amf_context_upsert_imsi(amf_context_t* elm) __attribute__((nonnull));
 
 // Set valid imsi
 void amf_ctx_set_valid_imsi(
@@ -801,7 +775,6 @@ int amf_send_registration_accept(amf_context_t* amf_context);
 int amf_proc_deregistration_request(
     amf_ue_ngap_id_t ue_id, amf_deregistration_request_ies_t* params);
 int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id);
-void amf_remove_ue_context(std::shared_ptr<ue_m5gmm_context_t> ue_context_p);
 void amf_smf_context_cleanup_pdu_session(
     std::shared_ptr<ue_m5gmm_context_t> ue_context);
 
@@ -861,11 +834,6 @@ void amf_delete_child_procedures(
 void amf_delete_common_procedure(
     amf_context_t* amf_ctx, nas_amf_common_proc_t** proc);
 void format_plmn(amf_plmn_t* plmn);
-void amf_ue_context_on_new_guti(
-    std::shared_ptr<ue_m5gmm_context_t> ue_context_p,
-    const guti_m5_t* const guti_p);
-std::shared_ptr<ue_m5gmm_context_t> amf_ue_context_exists_guti(
-    amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p);
 void ambr_calculation_pdu_session(
     uint16_t* dl_session_ambr, uint8_t* dl_ambr_unit, uint16_t* ul_session_ambr,
     uint8_t* ul_ambr_unit, uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr);

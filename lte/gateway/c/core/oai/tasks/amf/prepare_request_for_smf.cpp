@@ -34,6 +34,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "include/amf_client_servicer.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_ue_context_storage.h"
 
 #define VERSION_0 0
 
@@ -122,8 +123,7 @@ int amf_smf_create_ipv4_session_grpc_req(
       pdu_session_id);
 
   IMSI_STRING_TO_IMSI64((char*) imsi, &imsi64);
-  ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
-
+  ue_mm_context = AmfUeContextStorage::getUeContextStorage().amf_get_from_supi_ue_context_map(imsi64);
   if (ue_mm_context) {
     amf_ctxt_p = &ue_mm_context->amf_context;
   }
@@ -150,12 +150,13 @@ int amf_smf_create_pdu_session(
     amf_smf_establish_t* message, char* imsi, uint32_t version) {
   imsi64_t imsi64           = INVALID_IMSI64;
   amf_context_t* amf_ctxt_p = NULL;
-  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
+
   std::shared_ptr<smf_context_t> smf_ctx;
 
   IMSI_STRING_TO_IMSI64((char*) imsi, &imsi64);
-  ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
-  smf_ctx       = amf_get_smf_context_by_pdu_session_id(
+  auto ue_mm_context = AmfUeContextStorage::getUeContextStorage()
+                           .amf_get_from_supi_ue_context_map(imsi64);
+  smf_ctx = amf_get_smf_context_by_pdu_session_id(
       ue_mm_context, message->pdu_session_id);
 
   if (ue_mm_context) {

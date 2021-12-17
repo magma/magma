@@ -56,9 +56,6 @@ void put_amf_nas_state();
  */
 void clear_amf_nas_state();
 
-// Retrieving respective global hash table
-map_uint64_ue_context_t get_amf_ue_state();
-
 // Persists UE AMF state for subscriber into db
 void put_amf_ue_state(
     magma5g::amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64,
@@ -92,9 +89,6 @@ class AmfNasStateManager
    */
   amf_app_desc_t* get_state(bool read_from_redis) override;
 
-  // Retriving respective hash table from global data
-  map_uint64_ue_context_t get_ue_state_map();
-
   /**
    * Copy constructor and assignment operator are marked as deleted functions.
    * Making them public for better debugging/logging.
@@ -105,7 +99,6 @@ class AmfNasStateManager
   // AMF state initializemanager flag
   uint32_t max_ue_htbl_lists_;
   uint32_t amf_statistic_timer_;
-  map_uint64_ue_context_t state_ue_map;
 
   void free_state() override;
 

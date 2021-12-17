@@ -34,6 +34,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 #include "include/amf_client_servicer.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_ue_context_storage.h"
 
 #define M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH 1
 #define INVALID_IMSI64 (imsi64_t) 0
@@ -186,7 +187,7 @@ int amf_proc_registration_request(
         ue_id, imei_str);
   }
 
-  ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_m5gmm_context = amf_get_ue_context(ue_id);
   if (ue_m5gmm_context == nullptr) {
     OAILOG_ERROR(
         LOG_AMF_APP,
@@ -242,7 +243,11 @@ int amf_proc_registration_reject(
     amf_ue_ngap_id_t ue_id, amf_cause_t amf_cause) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc                 = RETURNerror;
-  amf_context_t* amf_ctx = amf_context_get(ue_id);
+  amf_context_t* amf_ctx = nullptr;
+  auto ue_context        = amf_get_ue_context(ue_id);
+  if (ue_context) {
+    amf_ctx = &ue_context->amf_context;
+  }
 
   if (amf_ctx) {
     if (is_nas_specific_procedure_registration_running(amf_ctx)) {
@@ -596,7 +601,7 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
     amf_sap_t amf_sap = {};
     nas_amf_registration_proc_t* registration_proc =
         get_nas_specific_procedure_registration(amf_context);
-    std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context_p =
+    auto ue_m5gmm_context_p = 
         amf_context->ue_context_p.lock();
     amf_ue_ngap_id_t ue_id = ue_m5gmm_context_p->amf_ue_ngap_id;
 
@@ -688,7 +693,7 @@ static int registration_accept_t3550_handler(
   /*
    * Get the UE context
    */
-  ue_amf_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_amf_context = amf_get_ue_context(ue_id);
 
   if (ue_amf_context == nullptr) {
     OAILOG_DEBUG(
@@ -836,7 +841,7 @@ int amf_handle_registration_complete_response(
       "=" AMF_UE_NGAP_ID_FMT "\n",
       ue_id);
 
-  ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_m5gmm_context = amf_get_ue_context(ue_id);
   if (ue_m5gmm_context == nullptr) {
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
@@ -917,7 +922,7 @@ int amf_reg_send(amf_sap_t* const msg) {
   amf_context_t* amf_ctx    = msg->u.amf_reg.ctx;
   std::shared_ptr<ue_m5gmm_context_t> ue_amf_context;
 
-  ue_amf_context = amf_ue_context_exists_amf_ue_ngap_id(evt->ue_id);
+  ue_amf_context = amf_get_ue_context(evt->ue_id);
 
   if (!ue_amf_context) {
     OAILOG_ERROR(

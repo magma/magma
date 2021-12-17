@@ -33,6 +33,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_as.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_ue_context_storage.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
@@ -41,8 +42,6 @@ using magma5g::AsyncM5GMobilityServiceClient;
 
 namespace magma5g {
 amf_as_data_t amf_data_de_reg_sec;
-extern std::unordered_map<amf_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t>>
-    ue_context_map;
 
 /*
  * name : amf_handle_deregistration_ue_origin_req()
@@ -115,14 +114,13 @@ int amf_proc_deregistration_request(
       ue_id, params->de_reg_type);
   int rc = RETURNerror;
 
-  std::shared_ptr<ue_m5gmm_context_t> ue_context =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context = amf_get_ue_context(ue_id);
 
   if (ue_context == NULL) {
     return -1;
   }
 
-  amf_context_t* amf_ctx = amf_context_get(ue_id);
+  amf_context_t* amf_ctx = &ue_context->amf_context;
   if (!amf_ctx) {
     OAILOG_DEBUG(
         LOG_NAS_AMF,
@@ -192,9 +190,8 @@ int amf_proc_deregistration_request(
 ***************************************************************************/
 int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
-  std::shared_ptr<ue_m5gmm_context_t> ue_context =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  int rc                                         = RETURNerror;
+  auto ue_context =  amf_get_ue_context(ue_id);
   if (!ue_context) {
     OAILOG_ERROR(
         LOG_AMF_APP,
@@ -255,28 +252,6 @@ void amf_smf_context_cleanup_pdu_session(
       AsyncM5GMobilityServiceClient::getInstance().release_ipv4_address(
           imsi, i->dnn.c_str(), &(i->pdu_address.ipv4_address));
     }
-  }
-}
-
-/***************************************************************************
-**                                                                        **
-** Name:    amf_remove_ue_context()                                       **
-**                                                                        **
-** Description: Function to remove UE Context                             **
-**                                                                        **
-**                                                                        **
-***************************************************************************/
-void amf_remove_ue_context(std::shared_ptr<ue_m5gmm_context_t> ue_context_p) {
-  std::unordered_map<amf_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t>>::
-      iterator found_ue_id = ue_context_map.find(ue_context_p->amf_ue_ngap_id);
-
-  if (found_ue_id != ue_context_map.end()) {
-    OAILOG_DEBUG(
-        LOG_AMF_APP,
-        "Removed ue id = " AMF_UE_NGAP_ID_FMT
-        " entry from the ue context map\n",
-        ue_context_p->amf_ue_ngap_id);
-    ue_context_map.erase(found_ue_id);
   }
 }
 }  // end  namespace magma5g

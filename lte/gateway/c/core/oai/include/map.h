@@ -256,6 +256,16 @@ struct map_s {
       return MAP_KEY_NOT_EXISTS;
     }
   }
+
+  /***************************************************************************
+  **                                                                        **
+  ** Name:    clear()                                                      **
+  **                                                                        **
+  ** Description: Takes key parameter.Removes the corresponding entry from  **
+  **              the map. If key does not exists returns error             **
+  **                                                                        **
+  ***************************************************************************/
+  void clear() { umap.clear(); }
 };
 
 // Amf-Map Declarations:

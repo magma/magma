@@ -30,6 +30,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_ue_context_storage.h"
 
 extern amf_config_t amf_config;
 namespace magma5g {
@@ -127,8 +128,7 @@ int amf_proc_identification_complete(
       "(ue_id= " AMF_UE_NGAP_ID_FMT ")\n",
       ue_id);
 
-  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_mm_context = amf_get_ue_context(ue_id);
 
   if (ue_mm_context) {
     amf_ctx = &ue_mm_context->amf_context;
@@ -150,9 +150,12 @@ int amf_proc_identification_complete(
       /*
        * Update the IMSI
        */
-      imsi64_t imsi64 = amf_imsi_to_imsi64(imsi);
+      auto& context_store = AmfUeContextStorage::getUeContextStorage();
+      imsi64_t imsi64     = amf_imsi_to_imsi64(imsi);
+      context_store.amf_remove_from_supi_ue_context_map(amf_ctx->imsi64);
       amf_ctx_set_valid_imsi(amf_ctx, imsi, imsi64);
-      amf_context_upsert_imsi(amf_ctx);
+      context_store.amf_insert_into_supi_ue_context_map(ue_mm_context);
+
       amf_ctx->imsi64      = imsi64;
       amf_ctx->imsi.length = 8;
       amf_ctx->m5_guti     = *amf_ctx_guti;

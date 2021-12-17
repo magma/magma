@@ -30,6 +30,9 @@ class AmfUeContextStorage {
   // id-AMF-UE-NGAP-ID <--> ue_m5gmm_context_t map
   magma::map_s<amf_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t> >
       amfid_ue_context_map;
+  // GNB-NGAP-ID_key <---> ue_m5gmm_context_t map
+  magma::map_s<gnb_ngap_id_key_t, std::shared_ptr<ue_m5gmm_context_t> >
+      gnbkey_ue_context_map;
   // id-GNB-UE-NGAP-ID <---> ue_m5gmm_context_t map
   magma::map_s<gnb_ue_ngap_id_t, std::shared_ptr<ue_m5gmm_context_t> >
       gnbid_ue_context_map;
@@ -40,14 +43,16 @@ class AmfUeContextStorage {
   magma::map_s<imsi64_t, std::shared_ptr<ue_m5gmm_context_t> >
       supi_ue_context_map;
 
-  amf_ue_ngap_id_t generate_amf_ue_ngap_id() {
-    return amf_app_ue_ngap_id_generator + 1;
-  }
+
 
  public:
   std::shared_ptr<ue_m5gmm_context_t> amf_create_new_ue_context();
-
-  AmfUeContextStorage& getUeContextStorage() {
+  
+  amf_ue_ngap_id_t generate_amf_ue_ngap_id() {
+    return amf_app_ue_ngap_id_generator + 1;
+  }
+  
+  static AmfUeContextStorage& getUeContextStorage() {
     static AmfUeContextStorage ue_context_storage;
     return ue_context_storage;
   }
@@ -59,6 +64,13 @@ class AmfUeContextStorage {
   std::shared_ptr<ue_m5gmm_context_t> amf_get_from_amfid_ue_context_map(
       amf_ue_ngap_id_t ue_amf_id);
 
+  // GNB-UE-NGAP-key <---> ue_m5gmm_context_t map
+  bool amf_insert_into_gnbkey_ue_context_map(
+      std::shared_ptr<ue_m5gmm_context_t> pContext);
+  bool amf_remove_from_gnbkey_ue_context_map(gnb_ngap_id_key_t ue_gnb_key);
+  std::shared_ptr<ue_m5gmm_context_t> amf_get_from_gnbkey_ue_context_map(
+      gnb_ngap_id_key_t ue_gnb_key);
+
   // id-GNB-UE-NGAP-ID <---> ue_m5gmm_context_t map
   bool amf_insert_into_gnbid_ue_context_map(
       std::shared_ptr<ue_m5gmm_context_t> pContext);
@@ -69,9 +81,11 @@ class AmfUeContextStorage {
   // GUTI <---> ue_m5gmm_context_t map
   bool amf_insert_into_guti_ue_context_map(
       std::shared_ptr<ue_m5gmm_context_t> pContext);
+  bool amf_update_into_guti_ue_context_map(
+      std::shared_ptr<ue_m5gmm_context_t> pContext, guti_m5_t guti);
   bool amf_remove_from_guti_ue_context_map(guti_m5_t guti);
   std::shared_ptr<ue_m5gmm_context_t> amf_get_from_guti_ue_context_map(
-      guti_m5_t guti);
+      guti_m5_t& guti);
 
   // SUPI  <---> ue_m5gmm_context_t map
   bool amf_insert_into_supi_ue_context_map(
@@ -81,8 +95,15 @@ class AmfUeContextStorage {
       imsi64_t supi);
 
   bool amf_remove_ue_context_from_cache(amf_ue_ngap_id_t ue_amf_id);
+  bool amf_remove_ue_context_from_cache(
+      std::shared_ptr<ue_m5gmm_context_t> ue_ctxt_p);
+
   bool amf_add_ue_context_in_cache(
       std::shared_ptr<ue_m5gmm_context_t> ue_ctxt_p);
+
+  void amf_clear_ue_context_cache();
 };
 
+std::shared_ptr<ue_m5gmm_context_t> amf_get_ue_context(
+    amf_ue_ngap_id_t amf_ue_id);
 }  // namespace magma5g

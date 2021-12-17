@@ -24,11 +24,11 @@ namespace magma5g {
  ***************************************************************************/
 std::shared_ptr<ue_m5gmm_context_t>
 AmfUeContextStorage::amf_create_new_ue_context(void) {
-  std::shared_ptr<ue_m5gmm_context_t> new_p =
+  auto new_p = 
       std::make_shared<ue_m5gmm_context_t>();
 
   if (!new_p) {
-    OAILOG_ERROR(LOG_AMF_APP, "Failed to allocate memory for UE context \n");
+    // OAILOG_ERROR(LOG_AMF_APP, "Failed to allocate memory for UE context \n");
     return nullptr;
   }
 
@@ -57,7 +57,7 @@ AmfUeContextStorage::amf_create_new_ue_context(void) {
 // id-AMF-UE-NGAP-ID <--> ue_m5gmm_context_t map
 bool AmfUeContextStorage::amf_insert_into_amfid_ue_context_map(
     std::shared_ptr<ue_m5gmm_context_t> ue_ctxt_p) {
-  if (!ue_ctxt_p && (INVALID_AMF_UE_NGAP_ID == ue_ctxt_p->amf_ue_ngap_id)) {
+  if ( (!ue_ctxt_p) || (INVALID_AMF_UE_NGAP_ID == ue_ctxt_p->amf_ue_ngap_id)) {
     return false;
   }
   amfid_ue_context_map.insert_or_update(ue_ctxt_p->amf_ue_ngap_id, ue_ctxt_p);
@@ -81,14 +81,41 @@ AmfUeContextStorage::amf_get_from_amfid_ue_context_map(
   return ctx;
 }
 
-// id-GNB-UE-NGAP-ID <---> ue_m5gmm_context_t map
-bool AmfUeContextStorage::amf_insert_into_gnbid_ue_context_map(
+// GNB-UE-NGAP-key <---> ue_m5gmm_context_t map
+bool AmfUeContextStorage::amf_insert_into_gnbkey_ue_context_map(
     std::shared_ptr<ue_m5gmm_context_t> ue_ctxt_p) {
-  if (!ue_ctxt_p &&
+  if ((!ue_ctxt_p) ||
       (INVALID_GNB_UE_NGAP_ID_KEY == ue_ctxt_p->gnb_ngap_id_key)) {
     return false;
   }
-  gnbid_ue_context_map.insert_or_update(ue_ctxt_p->gnb_ngap_id_key, ue_ctxt_p);
+  gnbkey_ue_context_map.insert_or_update(ue_ctxt_p->gnb_ngap_id_key, ue_ctxt_p);
+  return true;
+}
+bool AmfUeContextStorage::amf_remove_from_gnbkey_ue_context_map(
+    gnb_ngap_id_key_t ue_gnb_key) {
+  magma::map_rc_t status = gnbkey_ue_context_map.remove(ue_gnb_key);
+
+  if (magma::MAP_OK != status) {
+    return false;
+  }
+  return true;
+}
+std::shared_ptr<ue_m5gmm_context_t>
+AmfUeContextStorage::amf_get_from_gnbkey_ue_context_map(
+    gnb_ngap_id_key_t ue_gnb_key) {
+  std::shared_ptr<ue_m5gmm_context_t> ctx;
+  magma::map_rc_t status = gnbkey_ue_context_map.get(ue_gnb_key, ctx);
+  return ctx;
+}
+
+// id-GNB-UE-NGAP-id <---> ue_m5gmm_context_t map
+bool AmfUeContextStorage::amf_insert_into_gnbid_ue_context_map(
+    std::shared_ptr<ue_m5gmm_context_t> ue_ctxt_p) {
+  if ((!ue_ctxt_p) ||
+      (INVALID_GNB_UE_NGAP_ID == ue_ctxt_p->gnb_ue_ngap_id)) {
+    return false;
+  }
+  gnbid_ue_context_map.insert_or_update(ue_ctxt_p->gnb_ue_ngap_id, ue_ctxt_p);
   return true;
 }
 bool AmfUeContextStorage::amf_remove_from_gnbid_ue_context_map(
@@ -111,13 +138,28 @@ AmfUeContextStorage::amf_get_from_gnbid_ue_context_map(
 // GUTI <---> ue_m5gmm_context_t map
 bool AmfUeContextStorage::amf_insert_into_guti_ue_context_map(
     std::shared_ptr<ue_m5gmm_context_t> ue_ctxt_p) {
-  if (!ue_ctxt_p) {
+  if ((!ue_ctxt_p) || 
+      (INVALID_AMF_UE_NGAP_ID == ue_ctxt_p->amf_ue_ngap_id) || 
+      (!ue_ctxt_p->amf_context.m5_guti.m_tmsi)) {
     return false;
   }
   guti_ue_context_map.insert_or_update(
       ue_ctxt_p->amf_context.m5_guti, ue_ctxt_p);
   return true;
 }
+
+bool AmfUeContextStorage::amf_update_into_guti_ue_context_map(
+      std::shared_ptr<ue_m5gmm_context_t> ue_ctxt_p, guti_m5_t guti) {
+  if ((!ue_ctxt_p) || 
+      (INVALID_AMF_UE_NGAP_ID == ue_ctxt_p->amf_ue_ngap_id) || 
+      (!guti.m_tmsi)) {
+    return false;
+  }
+  amf_remove_from_guti_ue_context_map(ue_ctxt_p->amf_context.m5_guti);
+  ue_ctxt_p->amf_context.m5_guti = guti;
+  return amf_insert_into_guti_ue_context_map(ue_ctxt_p);
+}
+
 bool AmfUeContextStorage::amf_remove_from_guti_ue_context_map(guti_m5_t guti) {
   magma::map_rc_t status = guti_ue_context_map.remove(guti);
   if (magma::MAP_OK != status) {
@@ -126,7 +168,7 @@ bool AmfUeContextStorage::amf_remove_from_guti_ue_context_map(guti_m5_t guti) {
   return true;
 }
 std::shared_ptr<ue_m5gmm_context_t>
-AmfUeContextStorage::amf_get_from_guti_ue_context_map(guti_m5_t guti) {
+AmfUeContextStorage::amf_get_from_guti_ue_context_map(guti_m5_t& guti) {
   std::shared_ptr<ue_m5gmm_context_t> ctx;
   magma::map_rc_t status = guti_ue_context_map.get(guti, ctx);
   return ctx;
@@ -135,7 +177,9 @@ AmfUeContextStorage::amf_get_from_guti_ue_context_map(guti_m5_t guti) {
 // SUPI  <---> ue_m5gmm_context_t map
 bool AmfUeContextStorage::amf_insert_into_supi_ue_context_map(
     std::shared_ptr<ue_m5gmm_context_t> ue_ctxt_p) {
-  if (!ue_ctxt_p) {
+  if ( (!ue_ctxt_p) || 
+       (INVALID_AMF_UE_NGAP_ID == ue_ctxt_p->amf_ue_ngap_id) || 
+       (!ue_ctxt_p->amf_context.imsi64) ) {
     return false;
   }
   supi_ue_context_map.insert_or_update(
@@ -158,16 +202,27 @@ AmfUeContextStorage::amf_get_from_supi_ue_context_map(imsi64_t supi) {
 
 bool AmfUeContextStorage::amf_remove_ue_context_from_cache(
     amf_ue_ngap_id_t ue_amf_id) {
-  std::shared_ptr<ue_m5gmm_context_t> ctx =
+  auto ctx = 
       amf_get_from_amfid_ue_context_map(ue_amf_id);
-  if (ctx) {
-    amf_remove_from_amfid_ue_context_map(ue_amf_id);
-    amf_remove_from_gnbid_ue_context_map(ctx->gnb_ngap_id_key);
-    amf_remove_from_guti_ue_context_map(ctx->amf_context.m5_guti);
-    amf_remove_from_supi_ue_context_map(ctx->amf_context.imsi64);
-    return true;
+  if (!ctx) {
+    return false;
   }
-  return false;
+  return amf_remove_ue_context_from_cache(ctx);
+}
+
+bool AmfUeContextStorage::amf_remove_ue_context_from_cache(
+    std::shared_ptr<ue_m5gmm_context_t> ue_context_p) {
+  if (!ue_context_p) {
+    return false;
+  }
+
+  amf_remove_from_amfid_ue_context_map(ue_context_p->amf_ue_ngap_id);
+  amf_remove_from_gnbid_ue_context_map(ue_context_p->gnb_ue_ngap_id);
+  amf_remove_from_gnbkey_ue_context_map(ue_context_p->gnb_ngap_id_key);
+  amf_remove_from_guti_ue_context_map(ue_context_p->amf_context.m5_guti);
+  amf_remove_from_supi_ue_context_map(ue_context_p->amf_context.imsi64);
+
+  return true;
 }
 
 bool AmfUeContextStorage::amf_add_ue_context_in_cache(
@@ -177,9 +232,24 @@ bool AmfUeContextStorage::amf_add_ue_context_in_cache(
   }
   amf_insert_into_amfid_ue_context_map(ue_ctxt_p);
   amf_insert_into_gnbid_ue_context_map(ue_ctxt_p);
+  amf_insert_into_gnbkey_ue_context_map(ue_ctxt_p);
   amf_insert_into_guti_ue_context_map(ue_ctxt_p);
   amf_insert_into_supi_ue_context_map(ue_ctxt_p);
   return true;
+}
+
+void AmfUeContextStorage::amf_clear_ue_context_cache() {
+  amfid_ue_context_map.clear();
+  gnbid_ue_context_map.clear();
+  gnbkey_ue_context_map.clear();
+  guti_ue_context_map.clear();
+  supi_ue_context_map.clear();
+}
+
+std::shared_ptr<ue_m5gmm_context_t> amf_get_ue_context(
+    amf_ue_ngap_id_t amf_ue_id) {
+  auto& context_store = AmfUeContextStorage::getUeContextStorage();
+  return context_store.amf_get_from_amfid_ue_context_map(amf_ue_id);
 }
 
 }  // namespace magma5g

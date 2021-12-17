@@ -33,6 +33,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_ue_context_storage.h"
 
 namespace magma5g {
 
@@ -45,8 +46,8 @@ static int amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
   /*
    * We received security vector from HSS. Try to setup security with UE
    */
-  std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context =
-      amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
+  auto ue_m5gmm_context = 
+      amf_get_ue_context(msg->ue_id);
 
   if (ue_m5gmm_context) {
     amf_ctx = &ue_m5gmm_context->amf_context;

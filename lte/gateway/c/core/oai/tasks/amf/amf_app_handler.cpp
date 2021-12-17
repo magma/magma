@@ -39,133 +39,15 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/include/map.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_ue_context_storage.h"
 
 extern amf_config_t amf_config;
 extern amf_config_t amf_config;
 namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 
-//------------------------------------------------------------------------------
-void amf_ue_context_update_coll_keys(
-    amf_ue_context_t* const amf_ue_context_p,
-    std::shared_ptr<ue_m5gmm_context_t> ue_context_p,
-    const gnb_ngap_id_key_t gnb_ngap_id_key,
-    const amf_ue_ngap_id_t amf_ue_ngap_id, const imsi64_t imsi,
-    const teid_t amf_teid_n11, const guti_m5_t* const guti_p) {
-  magma::map_rc_t m_rc = magma::MAP_OK;
-
-  OAILOG_FUNC_IN(LOG_AMF_APP);
-  OAILOG_TRACE(
-      LOG_AMF_APP,
-      "Existing ue context, old_gnb_ue_ngap_id_key %ld "
-      "old_amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT "old_IMSI " IMSI_64_FMT
-      "old_GUTI " GUTI_FMT "\n",
-      ue_context_p->gnb_ngap_id_key, ue_context_p->amf_ue_ngap_id,
-      ue_context_p->amf_context.imsi64,
-      GUTI_ARG_M5G(&ue_context_p->amf_context._guti));
-
-  if ((gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) &&
-      (ue_context_p->gnb_ngap_id_key != gnb_ngap_id_key)) {
-    m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.remove(
-        ue_context_p->gnb_ngap_id_key);
-    m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.insert(
-        gnb_ngap_id_key, amf_ue_ngap_id);
-
-    if (m_rc != magma::MAP_OK) {
-      OAILOG_ERROR_UE(
-          LOG_AMF_APP, imsi,
-          "Error could not update this ue context %p "
-          "gnb_ue_ngap_ue_id " GNB_UE_NGAP_ID_FMT
-          "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT " %s\n",
-          ue_context_p, ue_context_p->gnb_ue_ngap_id,
-          ue_context_p->amf_ue_ngap_id, map_rc_code2string(m_rc).c_str());
-    }
-    ue_context_p->gnb_ngap_id_key = gnb_ngap_id_key;
-  }
-
-  if (amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
-    if (ue_context_p->amf_ue_ngap_id != amf_ue_ngap_id) {
-      ue_context_p->amf_ue_ngap_id = amf_ue_ngap_id;
-    }
-  } else {
-    OAILOG_ERROR(
-        LOG_AMF_APP, "Invalid  amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
-        amf_ue_ngap_id);
-  }
-
-  m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.remove(
-      ue_context_p->amf_context.imsi64);
-
-  if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
-    m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.insert(imsi, amf_ue_ngap_id);
-  } else {
-    OAILOG_ERROR(
-        LOG_AMF_APP,
-        "Insertion of Hash entry failed for  "
-        "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
-        amf_ue_ngap_id);
-  }
-
-  m_rc = amf_ue_context_p->tun11_ue_context_htbl.remove(
-      ue_context_p->amf_teid_n11);
-
-  if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
-    m_rc = amf_ue_context_p->tun11_ue_context_htbl.insert(
-        amf_teid_n11, amf_ue_ngap_id);
-  } else {
-    OAILOG_ERROR(
-        LOG_AMF_APP,
-        "Insertion of Hash entry failed for  "
-        "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
-        amf_ue_ngap_id);
-  }
-
-  ue_context_p->amf_teid_n11 = amf_teid_n11;
-
-  if (guti_p) {
-    if ((guti_p->guamfi.amf_set_id !=
-         ue_context_p->amf_context.m5_guti.guamfi.amf_set_id) ||
-        (guti_p->guamfi.amf_regionid !=
-         ue_context_p->amf_context.m5_guti.guamfi.amf_regionid) ||
-        (guti_p->m_tmsi != ue_context_p->amf_context.m5_guti.m_tmsi) ||
-        (guti_p->guamfi.plmn.mcc_digit1 !=
-         ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit1) ||
-        (guti_p->guamfi.plmn.mcc_digit2 !=
-         ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
-        (guti_p->guamfi.plmn.mcc_digit3 !=
-         ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3) ||
-        (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID)) {
-      m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(*guti_p);
-      if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
-        m_rc = amf_ue_context_p->guti_ue_context_htbl.insert(
-            *guti_p, amf_ue_ngap_id);
-      } else {
-        OAILOG_ERROR(
-            LOG_AMF_APP,
-            "Insertion of Hash entry failed for  "
-            "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
-            amf_ue_ngap_id);
-      }
-      ue_context_p->amf_context.m5_guti = *guti_p;
-    }
-  }
-}
-
-/* Insert guti into guti_ue_context_table */
-void amf_ue_context_on_new_guti(
-    std::shared_ptr<ue_m5gmm_context_t> const ue_context_p,
-    const guti_m5_t* const guti_p) {
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
-
-  if (ue_context_p) {
-    amf_ue_context_update_coll_keys(
-        &amf_app_desc_p->amf_ue_contexts, ue_context_p,
-        ue_context_p->gnb_ngap_id_key, ue_context_p->amf_ue_ngap_id,
-        ue_context_p->amf_context.imsi64, ue_context_p->amf_teid_n11, guti_p);
-  }
-
-  OAILOG_FUNC_OUT(LOG_AMF_APP);
-}
+AmfUeContextStorage& context_storage =
+    AmfUeContextStorage::getUeContextStorage();
 
 //----------------------------------------------------------------------------------------------
 /* This is deprecated function and removed in upcoming PRs related to
@@ -239,36 +121,6 @@ static bool amf_app_construct_guti(
   return is_guti_valid;
 }
 
-//------------------------------------------------------------------------------
-// Get existing GUTI details
-std::shared_ptr<ue_m5gmm_context_t> amf_ue_context_exists_guti(
-    amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p) {
-  magma::map_rc_t m_rc      = magma::MAP_OK;
-  uint64_t amf_ue_ngap_id64 = 0;
-  std::shared_ptr<ue_m5gmm_context_t> ue_context;
-
-  m_rc = amf_ue_context_p->guti_ue_context_htbl.get(*guti_p, &amf_ue_ngap_id64);
-
-  if (m_rc == magma::MAP_OK) {
-    ue_context = amf_ue_context_exists_amf_ue_ngap_id(
-        (amf_ue_ngap_id_t) amf_ue_ngap_id64);
-    if (ue_context) {
-      return ue_context;
-    }
-  }
-
-  if (!ue_context) {
-    OAILOG_WARNING(
-        LOG_AMF_APP, "No GUTI hashtable for GUTI Hash %x", guti_p->m_tmsi);
-    ue_context = ue_context_loopkup_by_guti(guti_p->m_tmsi);
-    if (ue_context) {
-      return ue_context;
-    }
-  }
-
-  return NULL;
-}
-
 //-----------------------------------------------------------------------------------------
 /****************************************************************************
  **                                                                        **
@@ -326,8 +178,7 @@ imsi64_t amf_app_handle_initial_ue_message(
         amf_app_construct_guti(&plmn, &(initial_pP->opt_s_tmsi), &guti);
     // create a new ue context if nothing is found
     if (is_guti_valid) {
-      ue_context_p =
-          amf_ue_context_exists_guti(&amf_app_desc_p->amf_ue_contexts, &guti);
+      ue_context_p = context_storage.amf_get_from_guti_ue_context_map(guti);
       if (ue_context_p) {
         initial_pP->amf_ue_ngap_id = ue_context_p->amf_ue_ngap_id;
         if (ue_context_p->gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) {
@@ -346,30 +197,19 @@ imsi64_t amf_app_handle_initial_ue_message(
           ue_context_release_command(
               ue_context_p->amf_ue_ngap_id, ue_context_p->gnb_ue_ngap_id,
               NGAP_NAS_NORMAL_RELEASE);
-          amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.remove(
-              ue_context_p->gnb_ngap_id_key);
-          ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
         }
 
         /* remove amf_ngap_ud_id entry from ue context */
-        amf_remove_ue_context(ue_context_p);
-
+        context_storage.amf_remove_ue_context_from_cache(ue_context_p);
         // Update AMF UE context with new gnb_ue_ngap_id
         ue_context_p->gnb_ue_ngap_id = initial_pP->gnb_ue_ngap_id;
 
         AMF_APP_GNB_NGAP_ID_KEY(
             gnb_ngap_id_key, initial_pP->gnb_id, initial_pP->gnb_ue_ngap_id);
+        ue_context_p->gnb_ngap_id_key = gnb_ngap_id_key;
+        ue_context_p->amf_ue_ngap_id = context_storage.generate_amf_ue_ngap_id();
+        context_storage.amf_add_ue_context_in_cache(ue_context_p);
 
-        // generate new amf_ngap_ue_id
-        amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
-            &amf_app_desc_p->amf_app_ue_ngap_id_generator);
-
-        amf_ue_context_update_coll_keys(
-            &amf_app_desc_p->amf_ue_contexts, ue_context_p, gnb_ngap_id_key,
-            amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
-            ue_context_p->amf_teid_n11, &guti);
-
-        amf_insert_ue_context(ue_context_p->amf_ue_ngap_id, ue_context_p);
         imsi64 = ue_context_p->amf_context.imsi64;
       }
     } else {
@@ -382,14 +222,15 @@ imsi64_t amf_app_handle_initial_ue_message(
   }
 
   /* Five_G_TMSI not configured */
-  if (ue_context_p == NULL) {
+  if (!ue_context_p) {
     /* Check if Context can be found by GNB UE ID */
-    ue_context_p = ue_context_lookup_by_gnb_ue_id(initial_pP->gnb_ue_ngap_id);
+    ue_context_p = 
+        context_storage.amf_get_from_gnbid_ue_context_map(initial_pP->gnb_ue_ngap_id);
 
     /* Make sure its with same connection */
     if (ue_context_p &&
         (initial_pP->sctp_assoc_id != ue_context_p->sctp_assoc_id_key)) {
-      ue_context_p = NULL;
+      ue_context_p = nullptr;
     }
   }
 
@@ -416,18 +257,8 @@ imsi64_t amf_app_handle_initial_ue_message(
 
   // create a new ue context if nothing is found
   if (ue_context_p == NULL) {
-    if (!(ue_context_p = amf_create_new_ue_context())) {
+    if (!(ue_context_p = context_storage.amf_create_new_ue_context())) {
       OAILOG_ERROR(LOG_AMF_APP, "Failed to create ue_m5gmm_context for ue \n");
-      OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
-    }
-
-    // Allocate new amf_ue_ngap_id
-    ue_context_p->amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
-        &amf_app_desc_p->amf_app_ue_ngap_id_generator);
-
-    if (ue_context_p->amf_ue_ngap_id == INVALID_AMF_UE_NGAP_ID) {
-      OAILOG_ERROR(LOG_AMF_APP, "amf_ue_ngap_id allocation failed.\n");
-      amf_remove_ue_context(ue_context_p);
       OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
     }
 
@@ -440,7 +271,6 @@ imsi64_t amf_app_handle_initial_ue_message(
     AMF_APP_GNB_NGAP_ID_KEY(
         ue_context_p->gnb_ngap_id_key, initial_pP->gnb_id,
         initial_pP->gnb_ue_ngap_id);
-    amf_insert_ue_context(ue_context_p->amf_ue_ngap_id, ue_context_p);
   }
   ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
   ue_context_p->gnb_ue_ngap_id    = initial_pP->gnb_ue_ngap_id;
@@ -450,6 +280,7 @@ imsi64_t amf_app_handle_initial_ue_message(
   OAILOG_DEBUG(
       LOG_AMF_APP, "UE context request received: %d\n ",
       ue_context_p->ue_context_request);
+  context_storage.amf_add_ue_context_in_cache(ue_context_p);
 
   notify_ngap_new_ue_amf_ngap_id_association(ue_context_p);
   if (initial_pP->is_s_tmsi_valid) {
@@ -485,6 +316,10 @@ imsi64_t amf_app_handle_initial_ue_message(
    * exists or not
    */
   if (INVALID_AMF_UE_NGAP_ID != ue_id) {
+      ue_context_p = amf_get_ue_context(ue_id);
+      if(ue_context_p) {
+          imsi64 = ue_context_p->amf_context.imsi64;
+      }
   }
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
@@ -557,10 +392,11 @@ int amf_app_handle_pdu_session_response(
   uint64_t ue_id = 0;
   int rc         = RETURNerror;
 
-  imsi64_t imsi64;
+  imsi64_t imsi64 = 0;
   IMSI_STRING_TO_IMSI64(pdu_session_resp->imsi, &imsi64);
+  ue_context = context_storage.amf_get_from_supi_ue_context_map(imsi64);
+
   // Handle smf_context
-  ue_context = lookup_ue_ctxt_by_imsi(imsi64);
   if (ue_context) {
     smf_ctx = amf_get_smf_context_by_pdu_session_id(
         ue_context, pdu_session_resp->pdu_session_id);
@@ -725,7 +561,7 @@ int amf_app_handle_pdu_session_accept(
   protocol_configuration_options_t* msg_accept_pco = nullptr;
 
   // Handle smf_context
-  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_context = amf_get_ue_context(ue_id);
   if (!ue_context) {
     OAILOG_ERROR(
         LOG_AMF_APP, "ue context not found for the ue_id:" AMF_UE_NGAP_ID_FMT,
@@ -951,7 +787,7 @@ void amf_app_handle_resource_setup_response(
   if (session_seup_resp.pduSessionResource_setup_list.no_of_items > 0) {
     ue_id = session_seup_resp.amf_ue_ngap_id;
 
-    ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+    ue_context = amf_get_ue_context(ue_id);
     if (ue_context == NULL) {
       OAILOG_ERROR(
           LOG_AMF_APP,
@@ -980,7 +816,7 @@ void amf_app_handle_resource_setup_response(
 
     ue_id = session_seup_resp.amf_ue_ngap_id;
 
-    ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+    ue_context = amf_get_ue_context(ue_id);
     // Handling of ue context
     if (!ue_context) {
       OAILOG_ERROR(
@@ -1106,7 +942,7 @@ void amf_app_handle_cm_idle_on_ue_context_release(
   std::shared_ptr<ue_m5gmm_context_t> ue_context;
   ue_id = cm_idle_req.amf_ue_ngap_id;
 
-  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_context = amf_get_ue_context(ue_id);
   if (!ue_context) {
     return;
   }
@@ -1198,7 +1034,7 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
-  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_context = amf_get_ue_context(ue_id);
 
   if (ue_context == NULL) {
     OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
@@ -1292,12 +1128,12 @@ int amf_app_handle_notification_received(
   itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
   int rc                                         = RETURNok;
 
-  imsi64_t imsi64;
+  imsi64_t imsi64 = 0;
   IMSI_STRING_TO_IMSI64(notification->imsi, &imsi64);
+  ue_context = context_storage.amf_get_from_supi_ue_context_map(imsi64);
 
   OAILOG_DEBUG(LOG_AMF_APP, "IMSI is %s %lu\n", notification->imsi, imsi64);
   // Handle smf_context
-  ue_context = lookup_ue_ctxt_by_imsi(imsi64);
 
   if (!ue_context) {
     OAILOG_ERROR(LOG_AMF_APP, "UE context is null\n");
@@ -1375,7 +1211,7 @@ void amf_app_handle_initial_context_setup_rsp(
       &initial_context_rsp->PDU_Session_Resource_Setup_Response_Transfer;
 
   // Handle smf_context
-  ue_context = amf_ue_context_exists_amf_ue_ngap_id(initial_context_rsp->ue_id);
+  ue_context = amf_get_ue_context(initial_context_rsp->ue_id);
 
   if (!ue_context) {
     OAILOG_ERROR(

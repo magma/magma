@@ -80,38 +80,6 @@ void AmfNasStateConverter::amf_app_convert_string_to_guti_m5(
   guti_m5_p->m_tmsi = std::stoul(
       guti_str.substr(idx, chars_to_read), &chars_to_read, HEX_BASE_VAL);
 }
-// Converts Map<guti_m5_t,uint64_t> to proto
-void AmfNasStateConverter::map_guti_uint64_to_proto(
-    const map_guti_m5_uint64_t guti_map,
-    google::protobuf::Map<std::string, uint64_t>* proto_map) {
-  std::string guti_str;
-  for (const auto& elm : guti_map.umap) {
-    guti_str               = amf_app_convert_guti_m5_to_string(elm.first);
-    (*proto_map)[guti_str] = elm.second;
-  }
-}
-
-// Converts Proto to Map<guti_m5_t,uint64_t>
-void AmfNasStateConverter::proto_to_guti_map(
-    const google::protobuf::Map<std::string, uint64_t>& proto_map,
-    map_guti_m5_uint64_t* guti_map) {
-  for (auto const& kv : proto_map) {
-    amf_ue_ngap_id_t amf_ue_ngap_id = kv.second;
-    std::unique_ptr<guti_m5_t> guti = std::make_unique<guti_m5_t>();
-    memset(guti.get(), 0, sizeof(guti_m5_t));
-    // Converts guti to string.
-    amf_app_convert_string_to_guti_m5(kv.first, guti.get());
-
-    guti_m5_t guti_received = *guti.get();
-    magma::map_rc_t m_rc    = guti_map->insert(guti_received, amf_ue_ngap_id);
-    if (m_rc != magma::MAP_OK) {
-      OAILOG_ERROR(
-          LOG_AMF_APP,
-          "Failed to insert amf_ue_ngap_id %lu in GUTI table, error: %s\n",
-          amf_ue_ngap_id, map_rc_code2string(m_rc).c_str());
-    }
-  }
-}
 
 /*********************************************************
  *                AMF app state<-> Proto                  *
@@ -129,18 +97,6 @@ void AmfNasStateConverter::state_to_proto(
   // maps to proto
   auto amf_ue_ctxts_proto = state_proto->mutable_mme_ue_contexts();
   OAILOG_DEBUG(LOG_AMF_APP, "IMSI table to proto");
-  magma::lte::StateConverter::map_uint64_uint64_to_proto(
-      amf_nas_state_p->amf_ue_contexts.imsi_amf_ue_id_htbl,
-      amf_ue_ctxts_proto->mutable_imsi_ue_id_htbl());
-  magma::lte::StateConverter::map_uint64_uint64_to_proto(
-      amf_nas_state_p->amf_ue_contexts.tun11_ue_context_htbl,
-      amf_ue_ctxts_proto->mutable_tun11_ue_id_htbl());
-  magma::lte::StateConverter::map_uint64_uint64_to_proto(
-      amf_nas_state_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl,
-      amf_ue_ctxts_proto->mutable_enb_ue_id_ue_id_htbl());
-  map_guti_uint64_to_proto(
-      amf_nas_state_p->amf_ue_contexts.guti_ue_context_htbl,
-      amf_ue_ctxts_proto->mutable_guti_ue_id_htbl());
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
@@ -158,23 +114,6 @@ void AmfNasStateConverter::proto_to_state(
   magma::lte::oai::MmeUeContext amf_ue_ctxts_proto =
       state_proto.mme_ue_contexts();
 
-  amf_ue_context_t* amf_ue_ctxt_state = &amf_nas_state_p->amf_ue_contexts;
-
-  // proto to maps
-  OAILOG_INFO(LOG_AMF_APP, "Hashtable AMF UE ID => IMSI");
-  proto_to_map_uint64_uint64(
-      amf_ue_ctxts_proto.imsi_ue_id_htbl(),
-      &amf_ue_ctxt_state->imsi_amf_ue_id_htbl);
-  proto_to_map_uint64_uint64(
-      amf_ue_ctxts_proto.tun11_ue_id_htbl(),
-      &amf_ue_ctxt_state->tun11_ue_context_htbl);
-  proto_to_map_uint64_uint64(
-      amf_ue_ctxts_proto.enb_ue_id_ue_id_htbl(),
-      &amf_ue_ctxt_state->gnb_ue_ngap_id_ue_context_htbl);
-
-  proto_to_guti_map(
-      amf_ue_ctxts_proto.guti_ue_id_htbl(),
-      &amf_ue_ctxt_state->guti_ue_context_htbl);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 

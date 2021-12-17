@@ -32,6 +32,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_ue_context_storage.h"
 
 #define AMF_CAUSE_SUCCESS (1)
 #define MAX_5G_AUTH_VECTORS 1
@@ -230,8 +231,7 @@ static int amf_authentication_abort(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
   if ((base_proc) && (amf_ctx)) {
-    std::shared_ptr<ue_m5gmm_context_t> ue_mm_context =
-        amf_ctx->ue_context_p.lock();
+    auto ue_mm_context = amf_ctx->ue_context_p.lock();
     OAILOG_DEBUG(
         LOG_NAS_AMF,
         "AMF-PROC  - Abort authentication procedure invoked "
@@ -499,10 +499,9 @@ int amf_proc_authentication_complete(
       "Authentication  procedures complete for "
       "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
       ue_id);
-  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
 
   amf_context_t* amf_ctx = NULL;
-  ue_mm_context          = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_mm_context     = amf_get_ue_context(ue_id);
 
   if (!ue_mm_context) {
     OAILOG_WARNING(
@@ -615,14 +614,13 @@ void amf_ctx_clear_auth_vectors(amf_context_t* const ctxt) {
 }
 
 int amf_auth_auth_rej(amf_ue_ngap_id_t ue_id) {
-  int rc = RETURNerror;
-  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
+  int rc                               = RETURNerror;
   amf_sap_t amf_sap                    = {};
   amf_sap.primitive                    = AMFAS_SECURITY_REJ;
   amf_sap.u.amf_as.u.security.ue_id    = ue_id;
   amf_sap.u.amf_as.u.security.msg_type = AMF_AS_MSG_TYPE_AUTH;
   rc                                   = amf_sap_send(&amf_sap);
-  ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_mm_context                   = amf_get_ue_context(ue_id);
   amf_free_ue_context(ue_mm_context);
   return rc;
 }
@@ -661,10 +659,10 @@ int amf_proc_authentication_failure(
       ue_id);
 
   int rc = RETURNerror;
-  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
+
   amf_context_t* amf_ctx = NULL;
 
-  ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_mm_context = amf_get_ue_context(ue_id);
   if (!ue_mm_context) {
     OAILOG_WARNING(
         LOG_NAS_AMF, "Sending Auth Reject as UE MM Context is not found\n");
@@ -975,10 +973,10 @@ static int authenthication_t3560_handler(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
-  std::shared_ptr<ue_m5gmm_context_t> ue_amf_context =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context = 
+      amf_get_ue_context(ue_id);
 
-  if (ue_amf_context == NULL) {
+  if (!ue_context) {
     OAILOG_DEBUG(
         LOG_NAS_AMF,
         "T3560: ue_amf_context is NULL for "
@@ -987,7 +985,7 @@ static int authenthication_t3560_handler(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
-  amf_ctx = &ue_amf_context->amf_context;
+  amf_ctx = &ue_context->amf_context;
 
   if (!(amf_ctx)) {
     OAILOG_ERROR(
@@ -1025,7 +1023,7 @@ static int authenthication_t3560_handler(
           LOG_AMF_APP,
           "T3560: Maximum retires done hence Abort the authentication "
           "procedure\n");
-      amf_proc_registration_abort(amf_ctx, ue_amf_context);
+      amf_proc_registration_abort(amf_ctx, ue_context);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);

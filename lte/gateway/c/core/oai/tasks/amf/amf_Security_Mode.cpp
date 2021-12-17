@@ -29,6 +29,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_ue_context_storage.h"
 
 namespace magma5g {
 
@@ -43,7 +44,6 @@ namespace magma5g {
 int amf_handle_security_complete_response(
     amf_ue_ngap_id_t ue_id, amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
   amf_context_t* amf_ctx = nullptr;
   int rc                 = RETURNok;
   OAILOG_DEBUG(
@@ -54,7 +54,7 @@ int amf_handle_security_complete_response(
   /*
    * Get the UE context
    */
-  ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_mm_context = amf_get_ue_context(ue_id);
 
   if (ue_mm_context) {
     amf_ctx = &ue_mm_context->amf_context;

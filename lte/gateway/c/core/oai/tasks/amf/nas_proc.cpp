@@ -35,12 +35,12 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_ue_context_storage.h"
 
 extern amf_config_t amf_config;
 namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 AmfMsg amf_msg_obj;
-extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 static int identification_t3570_handler(zloop_t* loop, int timer_id, void* arg);
 int nas_proc_establish_ind(
     const amf_ue_ngap_id_t ue_id, const bool is_mm_ctx_new,
@@ -284,8 +284,8 @@ static int identification_t3570_handler(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
-  std::shared_ptr<ue_m5gmm_context_t> ue_amf_context =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_amf_context = 
+      amf_get_ue_context(ue_id);
 
   if (ue_amf_context == NULL) {
     OAILOG_DEBUG(
@@ -424,8 +424,7 @@ int amf_nas_proc_authentication_info_answer(
   IMSI_STRING_TO_IMSI64((char*) aia->imsi, &imsi64);
 
   OAILOG_DEBUG(LOG_AMF_APP, "Handling imsi " IMSI_64_FMT "\n", imsi64);
-
-  ue_5gmm_context_p = lookup_ue_ctxt_by_imsi(imsi64);
+  ue_5gmm_context_p = AmfUeContextStorage::getUeContextStorage().amf_get_from_supi_ue_context_map(imsi64);
 
   if (ue_5gmm_context_p) {
     amf_ctxt_p = &ue_5gmm_context_p->amf_context;
@@ -488,7 +487,7 @@ int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
   const bool is_amf_ctx_new = true;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
-  ue_context = amf_ue_context_exists_amf_ue_ngap_id(aia->ue_id);
+  ue_context = amf_get_ue_context(aia->ue_id);
 
   IMSI_STRING_TO_IMSI64((char*) aia->imsi, &imsi64);
 
@@ -511,7 +510,7 @@ int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
       "Received decrypted imsi Information Answer from Subscriberdb for"
       " UE ID = " AMF_UE_NGAP_ID_FMT,
       amf_ue_ngap_id);
-
+  ue_context->amf_context.imsi64 = imsi64;
   amf_registration_request_ies_t* params =
       new (amf_registration_request_ies_t)();
 
@@ -545,34 +544,12 @@ int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
   }
 
   amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
-  amf_ue_context_on_new_guti(
-      ue_context, reinterpret_cast<guti_m5_t*>(&amf_guti));
-
+  AmfUeContextStorage::getUeContextStorage().amf_update_into_guti_ue_context_map(ue_context, amf_guti);
   ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
   ue_context->amf_context.m5_guti.guamfi = amf_guti.guamfi;
   imsi64                                 = amf_imsi_to_imsi64(params->imsi);
-  guti_and_amf_id.amf_guti               = amf_guti;
-  guti_and_amf_id.amf_ue_ngap_id         = aia->ue_id;
-
-  if (amf_supi_guti_map.size() == 0) {
-    // first entry.
-    amf_supi_guti_map.insert(
-        std::pair<imsi64_t, guti_and_amf_id_t>(imsi64, guti_and_amf_id));
-  } else {
-    /* already elements exist then check if same imsi already present
-     * if same imsi then update/overwrite the element
-     */
-    std::unordered_map<imsi64_t, guti_and_amf_id_t>::iterator found_imsi =
-        amf_supi_guti_map.find(imsi64);
-    if (found_imsi == amf_supi_guti_map.end()) {
-      // it is new entry to map
-      amf_supi_guti_map.insert(
-          std::pair<imsi64_t, guti_and_amf_id_t>(imsi64, guti_and_amf_id));
-    } else {
-      // Overwrite the second element.
-      found_imsi->second = guti_and_amf_id;
-    }
-  }
+  
+  AmfUeContextStorage::getUeContextStorage().amf_insert_into_supi_ue_context_map(ue_context);
 
   params->decode_status = ue_context->amf_context.decode_status;
   /*
@@ -587,13 +564,12 @@ int amf_handle_s6a_update_location_ans(
     const s6a_update_location_ans_t* ula_pP) {
   imsi64_t imsi64           = INVALID_IMSI64;
   amf_context_t* amf_ctxt_p = NULL;
-  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
   IMSI_STRING_TO_IMSI64((char*) ula_pP->imsi, &imsi64);
-
-  ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
-
+  std::shared_ptr<ue_m5gmm_context_t> ue_mm_context;
+  
+  ue_mm_context = AmfUeContextStorage::getUeContextStorage().amf_get_from_supi_ue_context_map(imsi64);
   if (ue_mm_context) {
     amf_ctxt_p = &ue_mm_context->amf_context;
   }

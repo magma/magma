@@ -24,6 +24,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_ue_context_storage.h"
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 
 using ::testing::Test;
@@ -47,6 +48,7 @@ class AMFAppProcedureTest : public ::testing::Test {
 
     amf_app_desc_p = get_amf_nas_state(false);
     AMFClientServicer::getInstance().msgtype_stack.clear();
+    AmfUeContextStorage::getUeContextStorage().amf_clear_ue_context_cache();
   }
 
   virtual void TearDown() {
@@ -138,8 +140,7 @@ class AMFAppProcedureTest : public ::testing::Test {
 
 amf_context_t* get_amf_context_by_ueid(amf_ue_ngap_id_t ue_id) {
   /* Get UE Context */
-  std::shared_ptr<ue_m5gmm_context_t> ue_m5gmm_context =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_m5gmm_context = amf_get_ue_context(ue_id);
   if (ue_m5gmm_context == NULL) {
     return NULL;
   }
@@ -389,8 +390,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionSetup) {
       sizeof(pdu_sess_release_complete_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
-  std::shared_ptr<ue_m5gmm_context_t> ue_context_p =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context_p = amf_get_ue_context(ue_id);
   ASSERT_NE(ue_context_p, nullptr);
   EXPECT_EQ(ue_context_p->amf_context.smf_ctxt_map.size(), 0);
 
@@ -461,8 +461,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionFailure_dnn_not_subscribed) {
       ue_pdu_session_est_req_dnn_not_subscried_hexbuf,
       sizeof(ue_pdu_session_est_req_dnn_not_subscried_hexbuf));
   EXPECT_EQ(rc, RETURNok);
-  std::shared_ptr<ue_m5gmm_context_t> ue_context_p =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context_p = amf_get_ue_context(ue_id);
   // ue context should exist
   ASSERT_NE(ue_context_p, nullptr);
   // smf context should not be present
@@ -526,8 +525,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_missing_dnn) {
       sizeof(ue_registration_complete_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
-  std::shared_ptr<ue_m5gmm_context_t> ue_context_p =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context_p = amf_get_ue_context(ue_id);
   // ue context should exist
   ASSERT_NE(ue_context_p, nullptr);
   memset(
@@ -540,7 +538,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_missing_dnn) {
       sizeof(ue_pdu_session_est_req_missing_dnn_hexbuf));
   EXPECT_EQ(rc, RETURNok);
 
-  ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_context_p = amf_get_ue_context(ue_id);
   // ue context should exist
   ASSERT_NE(ue_context_p, nullptr);
   // smf context should be present
@@ -611,8 +609,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_unknown_pdu_session_type) {
       sizeof(ue_pdu_session_est_req_unknown_session_type_hexbuf));
   EXPECT_EQ(rc, RETURNok);
 
-  std::shared_ptr<ue_m5gmm_context_t> ue_context_p =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context_p = amf_get_ue_context(ue_id);
   // ue context should exist
   ASSERT_NE(ue_context_p, nullptr);
   // smf context should be present
@@ -655,8 +652,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_Invalid_PDUSession_Identity) {
   /* Check if UE Context is created with correct imsi */
   EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
 
-  std::shared_ptr<ue_m5gmm_context_t> ue_context_p =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context_p = amf_get_ue_context(ue_id);
   // ue context should exist
   ASSERT_NE(ue_context_p, nullptr);
   nas5g_auth_info_proc_t* auth_info_proc =
@@ -709,7 +705,7 @@ TEST_F(AMFAppProcedureTest, TestPDUSession_Invalid_PDUSession_Identity) {
   rc = send_pdu_notification_response();
   EXPECT_TRUE(rc == RETURNok);
 
-  ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_context_p = amf_get_ue_context(ue_id);
   // ue context should exist
   ASSERT_NE(ue_context_p, nullptr);
   // smf context should be present
@@ -782,6 +778,7 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
   rc = amf_decrypt_imsi_info_answer(&decrypted_imsi);
   EXPECT_TRUE(rc == RETURNok);
 
+  IMSI_STRING_TO_IMSI64((char*) decrypted_imsi.imsi, &imsi64);
   // Check if UE Context is created with correct imsi
   bool res = false;
   res      = get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id);

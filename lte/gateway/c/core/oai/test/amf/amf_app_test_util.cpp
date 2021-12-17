@@ -12,6 +12,7 @@
  */
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_ue_context_storage.h"
 #include <gtest/gtest.h>
 
 namespace magma5g {
@@ -137,8 +138,7 @@ void send_initial_context_response(
   itti_amf_app_initial_context_setup_rsp_t ics_resp = {};
 
   // apn profile received from subscriberd during location update
-  std::shared_ptr<ue_m5gmm_context_t> ue_context_p =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context_p = amf_get_ue_context(ue_id);
 
   ASSERT_NE(nullptr, ue_context_p);
 
@@ -186,8 +186,7 @@ int send_uplink_nas_pdu_session_establishment_request(
   originating_tai.plmn = plmn;
   originating_tai.tac  = 1;
 
-  std::shared_ptr<ue_m5gmm_context_t> ue_context_p =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context_p = amf_get_ue_context(ue_id);
 
   int rc = RETURNerror;
   rc     = amf_app_handle_uplink_nas_message(
@@ -402,12 +401,11 @@ int send_uplink_nas_ue_deregistration_request(
 /* Get the ue id from IMSI */
 bool get_ue_id_from_imsi(
     amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64, amf_ue_ngap_id_t* ue_id) {
-  amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
-  magma::map_rc_t rc_map             = magma::MAP_OK;
-  rc_map = amf_ue_context_p->imsi_amf_ue_id_htbl.get(imsi64, ue_id);
-  if (rc_map != magma::MAP_OK) {
+  auto ctx = AmfUeContextStorage::getUeContextStorage().amf_get_from_supi_ue_context_map(imsi64);
+  if (!ctx) {
     return (false);
   }
+  *ue_id =  ctx->amf_ue_ngap_id;
   return true;
 }
 

@@ -69,11 +69,6 @@ TEST(test_state_to_proto, test_state_to_proto) {
   uint64_t data                            = 0;
 
   amf_app_desc1.amf_app_ue_ngap_id_generator = 0x05;
-  amf_app_desc1.amf_ue_contexts.imsi_amf_ue_id_htbl.insert(1, 10);
-  amf_app_desc1.amf_ue_contexts.tun11_ue_context_htbl.insert(2, 20);
-  amf_app_desc1.amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.insert(3, 30);
-  amf_app_desc1.amf_ue_contexts.guti_ue_context_htbl.insert(guti1, 40);
-
   AmfNasStateConverter::state_to_proto(&amf_app_desc1, &state_proto);
 
   AmfNasStateConverter::proto_to_state(state_proto, &amf_app_desc2);
@@ -81,29 +76,5 @@ TEST(test_state_to_proto, test_state_to_proto) {
   EXPECT_EQ(
       amf_app_desc1.amf_app_ue_ngap_id_generator,
       amf_app_desc2.amf_app_ue_ngap_id_generator);
-
-  EXPECT_EQ(
-      amf_app_desc2.amf_ue_contexts.imsi_amf_ue_id_htbl.get(1, &data),
-      magma::MAP_OK);
-  EXPECT_EQ(data, 10);
-  data = 0;
-
-  EXPECT_EQ(
-      amf_app_desc2.amf_ue_contexts.tun11_ue_context_htbl.get(2, &data),
-      magma::MAP_OK);
-  EXPECT_EQ(data, 20);
-  data = 0;
-
-  EXPECT_EQ(
-      amf_app_desc2.amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.get(
-          3, &data),
-      magma::MAP_OK);
-  EXPECT_EQ(data, 30);
-  data = 0;
-
-  EXPECT_EQ(
-      amf_app_desc2.amf_ue_contexts.guti_ue_context_htbl.get(guti1, &data),
-      magma::MAP_OK);
-  EXPECT_EQ(data, 40);
 }
 }  // namespace magma5g

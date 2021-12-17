@@ -39,6 +39,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_ue_context_storage.h"
 
 using magma5g::AsyncM5GMobilityServiceClient;
 using magma5g::AsyncSmfServiceClient;
@@ -282,7 +283,7 @@ static int pdu_session_resource_release_t3592_handler(
   amf_ue_ngap_id = uepdu_id.ue_id;
   pdu_session_id = uepdu_id.pdu_id;
 
-  auto ue_context = amf_ue_context_exists_amf_ue_ngap_id(amf_ue_ngap_id);
+  auto ue_context = amf_get_ue_context(amf_ue_ngap_id);
 
   if (ue_context) {
     IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
@@ -365,7 +366,7 @@ int amf_smf_process_pdu_session_packet(
     return rc;
   }
 
-  auto ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context = amf_get_ue_context(ue_id);
 
   if (!ue_context) {
     OAILOG_ERROR(
@@ -592,7 +593,7 @@ M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
   std::shared_ptr<smf_context_t> smf_ctx;
   M5GSmCause cause = M5GSmCause::INVALID_CAUSE;
 
-  auto ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context = amf_get_ue_context(ue_id);
   if (!ue_context) {
     return cause;
   }
@@ -660,7 +661,7 @@ M5GMmCause amf_smf_validate_context(
     amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
   M5GMmCause mm_cause = M5GMmCause::UNKNOWN_CAUSE;
 
-  auto ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  auto ue_context = amf_get_ue_context(ue_id);
   M5GRequestType requestType =
       static_cast<M5GRequestType>(msg->request_type.type_val);
   /*
@@ -801,8 +802,7 @@ int amf_smf_handle_ip_address_response(
   int rc = RETURNerror;
 
   IMSI_STRING_TO_IMSI64(response_p->imsi, &imsi64);
-  ue_context = lookup_ue_ctxt_by_imsi(imsi64);
-
+  ue_context = AmfUeContextStorage::getUeContextStorage().amf_get_from_supi_ue_context_map(imsi64);
   if (ue_context == NULL) {
     OAILOG_ERROR(
         LOG_AMF_APP, "UE Context for [%s] not found \n",
@@ -859,7 +859,7 @@ int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
       "Sending UPDATE LOCATION REQ to subscriberd, ue_id = " AMF_UE_NGAP_ID_FMT,
       ue_id);
 
-  ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_context_p = amf_get_ue_context(ue_id);
 
   if (ue_context_p) {
     OAILOG_INFO(
@@ -922,7 +922,7 @@ int handle_sm_message_routing_failure(
         c) set the Payload container IE to the 5GSM message which was not
      forwarded; and d) set the specific 5GMM cause IE.
   */
-  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_context = amf_get_ue_context(ue_id);
 
   if (!ue_context) {
     OAILOG_ERROR(
@@ -1151,7 +1151,7 @@ int amf_pdu_session_establishment_reject(
   std::shared_ptr<ue_m5gmm_context_t> ue_context;
   amf_nas_message_t msg = {};
 
-  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_context = amf_get_ue_context(ue_id);
 
   if (!ue_context) {
     OAILOG_ERROR(

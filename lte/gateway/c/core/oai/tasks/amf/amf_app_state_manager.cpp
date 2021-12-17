@@ -24,15 +24,8 @@ extern "C" {
 
 namespace magma5g {
 constexpr char AMF_NAS_STATE_KEY[] = "amf_nas_state";
-constexpr char AMF_UE_ID_UE_CTXT_TABLE_NAME[] =
-    "amf_app_amf_ue_ngap_id_ue_context_htbl";
-constexpr char AMF_IMSI_UE_ID_TABLE_NAME[] = "amf_app_imsi_ue_context_htbl";
-constexpr char AMF_TUN_UE_ID_TABLE_NAME[]  = "amf_app_tun11_ue_context_htbl";
-constexpr char AMF_GUTI_UE_ID_TABLE_NAME[] = "amf_app_tun11_ue_context_htbl";
-constexpr char AMF_GNB_UE_ID_AMF_UE_ID_TABLE_NAME[] =
-    "anf_app_gnb_ue_ngap_id_ue_context_htbl";
-constexpr char AMF_TASK_NAME[]  = "AMF";
-const int NUM_MAX_UE_HTBL_LISTS = 6;
+constexpr char AMF_TASK_NAME[]     = "AMF";
+const int NUM_MAX_UE_HTBL_LISTS    = 6;
 
 /**
  * When the process starts, initialize the in-memory AMF/NAS state and, if
@@ -67,10 +60,6 @@ void put_amf_nas_state() {
  */
 void clear_amf_nas_state() {
   AmfNasStateManager::getInstance().free_state();
-}
-
-map_uint64_ue_context_t get_amf_ue_state() {
-  return AmfNasStateManager::getInstance().get_ue_state_map();
 }
 
 void delete_amf_ue_state(imsi64_t imsi64) {
@@ -120,15 +109,6 @@ int AmfNasStateManager::initialize_state(const amf_config_t* amf_config_p) {
 void AmfNasStateManager::create_state() {
   state_cache_p                               = new (amf_app_desc_t);
   state_cache_p->amf_app_ue_ngap_id_generator = 1;
-  state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.set_name(
-      AMF_IMSI_UE_ID_TABLE_NAME);
-  state_cache_p->amf_ue_contexts.tun11_ue_context_htbl.set_name(
-      AMF_TUN_UE_ID_TABLE_NAME);
-  state_cache_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.set_name(
-      AMF_GNB_UE_ID_AMF_UE_ID_TABLE_NAME);
-  state_cache_p->amf_ue_contexts.guti_ue_context_htbl.set_name(
-      AMF_GUTI_UE_ID_TABLE_NAME);
-  state_ue_map.set_name(AMF_UE_ID_UE_CTXT_TABLE_NAME);
 
   // Initialize the local timers, which are non-persistent
   amf_nas_state_init_local_state();
@@ -161,10 +141,6 @@ amf_app_desc_t* AmfNasStateManager::get_state(bool read_from_redis) {
   state_dirty = true;
 
   return state_cache_p;
-}
-
-map_uint64_ue_context_t AmfNasStateManager::get_ue_state_map() {
-  return state_ue_map;
 }
 
 }  // namespace magma5g
