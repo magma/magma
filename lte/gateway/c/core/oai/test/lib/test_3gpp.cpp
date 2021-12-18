@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include <cstring>
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -105,8 +106,53 @@ class m3GppTest : public ::testing::Test {
     EXPECT_EQ(tmgi1->mncdigit3, tmgi2->mncdigit3);
   }
 
+  void initialize_imsi() {
+    imsi.typeofidentity       = MOBILE_IDENTITY_IMSI;
+    imsi.digit1               = 3;
+    imsi.digit2               = 5;
+    imsi.digit3               = 6;
+    imsi.digit4               = 8;
+    imsi.digit5               = 8;
+    imsi.digit6               = 5;
+    imsi.digit7               = 1;
+    imsi.digit8               = 9;
+    imsi.digit9               = 7;
+    imsi.digit10              = 2;
+    imsi.digit11              = 1;
+    imsi.digit12              = 4;
+    imsi.digit13              = 0;
+    imsi.digit14              = 3;
+    imsi.digit15              = 5;
+    imsi.numOfValidImsiDigits = 15;
+    imsi.oddeven              = MOBILE_IDENTITY_ODD;
+  }
+
+  void cmp_imsi(
+      const imsi_mobile_identity_t* imsi1,
+      const imsi_mobile_identity_t* imsi2) {
+    EXPECT_EQ(imsi1->typeofidentity, imsi2->typeofidentity);
+    EXPECT_EQ(imsi1->digit1, imsi2->digit1);
+    EXPECT_EQ(imsi1->digit2, imsi2->digit2);
+    EXPECT_EQ(imsi1->digit3, imsi2->digit3);
+    EXPECT_EQ(imsi1->digit4, imsi2->digit4);
+    EXPECT_EQ(imsi1->digit5, imsi2->digit5);
+    EXPECT_EQ(imsi1->digit6, imsi2->digit6);
+    EXPECT_EQ(imsi1->digit7, imsi2->digit7);
+    EXPECT_EQ(imsi1->digit8, imsi2->digit8);
+    EXPECT_EQ(imsi1->digit9, imsi2->digit9);
+    EXPECT_EQ(imsi1->digit10, imsi2->digit10);
+    EXPECT_EQ(imsi1->digit11, imsi2->digit11);
+    EXPECT_EQ(imsi1->digit12, imsi2->digit12);
+    EXPECT_EQ(imsi1->digit13, imsi2->digit13);
+    EXPECT_EQ(imsi1->digit14, imsi2->digit14);
+    EXPECT_EQ(imsi1->digit15, imsi2->digit15);
+    EXPECT_EQ(imsi1->numOfValidImsiDigits, imsi2->numOfValidImsiDigits);
+    EXPECT_EQ(imsi1->oddeven, imsi2->oddeven);
+  }
+
   imei_mobile_identity_t imei;
   tmgi_mobile_identity_t tmgi;
+  imsi_mobile_identity_t imsi;
   uint8_t buffer[BUFFER_LEN];
 };
 
@@ -177,7 +223,70 @@ TEST_F(m3GppTest, TestNoMobileIdentity) {
   EXPECT_EQ(no_id.typeofidentity, no_id_decoded.typeofidentity);
   EXPECT_EQ(no_id.oddeven, no_id_decoded.oddeven);
   EXPECT_EQ(no_id.digit1, no_id_decoded.digit1);
+  EXPECT_EQ(no_id.digit2, no_id_decoded.digit2);
+  EXPECT_EQ(no_id.digit3, no_id_decoded.digit3);
+  EXPECT_EQ(no_id.digit4, no_id_decoded.digit4);
+  EXPECT_EQ(no_id.digit5, no_id_decoded.digit5);
   EXPECT_TRUE(!memcmp(&no_id, &no_id_decoded, sizeof(no_mobile_identity_t)));
+}
+
+TEST_F(m3GppTest, TestImsiMobileIdentity) {
+  imsi_mobile_identity_t imsi_decoded = {0};
+  initialize_imsi();
+
+  int encoded = encode_imsi_mobile_identity(&imsi, buffer, BUFFER_LEN);
+  int decoded = decode_imsi_mobile_identity(&imsi_decoded, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  cmp_imsi(&imsi, &imsi_decoded);
+
+  imsi.oddeven = MOBILE_IDENTITY_EVEN;
+  imsi.digit15 = 0x0f;
+  encoded      = encode_imsi_mobile_identity(&imsi, buffer, BUFFER_LEN);
+  decoded      = decode_imsi_mobile_identity(&imsi_decoded, buffer, encoded);
+  EXPECT_EQ(encoded, decoded);
+  cmp_imsi(&imsi, &imsi_decoded);
+}
+
+TEST_F(m3GppTest, TestMobileStationClassmark2) {
+  mobile_station_classmark2_t msclassmark2         = {0};
+  mobile_station_classmark2_t msclassmark2_decoded = {0};
+
+  msclassmark2.revisionlevel     = 3;
+  msclassmark2.esind             = 1;
+  msclassmark2.a51               = 1;
+  msclassmark2.rfpowercapability = 6;
+  msclassmark2.pscapability      = 1;
+  msclassmark2.ssscreenindicator = 2;
+  msclassmark2.smcapability      = 1;
+  msclassmark2.vbs               = 1;
+  msclassmark2.vgcs              = 1;
+  msclassmark2.fc                = 1;
+  msclassmark2.cm3               = 1;
+  msclassmark2.lcsvacap          = 1;
+  msclassmark2.ucs2              = 1;
+  msclassmark2.solsa             = 1;
+  msclassmark2.cmsp              = 1;
+  msclassmark2.a52               = 1;
+  msclassmark2.a53               = 1;
+  // With iei present
+  int encoded = encode_mobile_station_classmark_2_ie(
+      &msclassmark2, true, buffer, BUFFER_LEN);
+  int decoded = decode_mobile_station_classmark_2_ie(
+      &msclassmark2_decoded, true, buffer, encoded);
+  EXPECT_EQ(encoded, decoded);
+  EXPECT_TRUE(!(memcmp(
+      (const void*) &msclassmark2, (const void*) &msclassmark2_decoded,
+      sizeof(mobile_station_classmark2_t))));
+  // Without iei present
+  encoded = encode_mobile_station_classmark_2_ie(
+      &msclassmark2, false, buffer, BUFFER_LEN);
+  decoded = decode_mobile_station_classmark_2_ie(
+      &msclassmark2_decoded, false, buffer, encoded);
+  EXPECT_EQ(encoded, decoded);
+  EXPECT_TRUE(!(memcmp(
+      (const void*) &msclassmark2, (const void*) &msclassmark2_decoded,
+      sizeof(mobile_station_classmark2_t))));
 }
 
 }  // namespace lte

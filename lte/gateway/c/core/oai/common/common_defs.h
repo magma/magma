@@ -130,7 +130,7 @@ typedef enum {
   vALUE = ntohs(vALUE);                                                        \
   sIZE += sizeof(uint16_t)
 
-// vALUE is uint32_t and most significant byte will be zero
+// vALUE is uint32_t; the most significant byte after decoding will be zero
 #define DECODE_U24(bUFFER, vALUE, sIZE)                                        \
   vALUE = 0;                                                                   \
   memcpy((unsigned char*) &vALUE, bUFFER, 3);                                  \
@@ -168,7 +168,7 @@ typedef enum {
     size += sizeof(uint16_t);                                                  \
   } while (0)
 
-// value is 24bits, so most significant 8 bits should be discarded.
+// value is 24bits, so the most significant byte should be discarded.
 #define ENCODE_U24(buffer, value, size)                                        \
   do {                                                                         \
     uint32_t n_value = value << 8;                                             \
