@@ -4,11 +4,11 @@ name: build-all
 on:  # yamllint disable-line rule:truthy
   push:
     branches:
-      - magma/magma:master
+      - magma:master
       - v1.*
   pull_request:
     branches:
-      - magma/magma:master
+      - magma:master
       - v1.*
     types: [opened, reopened, synchronize]
 
