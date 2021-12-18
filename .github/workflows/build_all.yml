@@ -13,6 +13,7 @@ on:  # yamllint disable-line rule:truthy
     types: [opened, reopened, synchronize]
 
 jobs:
+  if : "${{github.event.repository.full_name}}" != "magma/magma" 
   build_publish_helm_charts:
     env:
       HELM_CHART_ARTIFACTORY_URL: "https://artifactory.magmacore.org:443/artifactory/"
@@ -24,25 +25,6 @@ jobs:
       ISSUE_NUMBER: "${{ github.event.number }}"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/github-script@v2
-        id: check
-        with:
-          script: |
-            const { owner, repo } = context.repo
-            if ("${{github.event.repository.full_name}}" != "magma/magma") {
-              console.log('Cancelling ...');
-              const run_id = "${{ github.run_id }}";
-              await github.actions.cancelWorkflowRun({ owner, repo, run_id });
-              return 'stop'
-            } else {
-              return 'build'
-            }
-          result-encoding: string
-      - name: Waiting for cancellation
-        run: sleep 60
-        if: steps.check.outputs.result == 'stop'
-      - name: Should build?
-        run: test "${{ steps.check.outputs.result }}" = "build"
       - uses: actions/checkout@v2
       # Version is github job run number when running on master
       # Or is branch name when on release branch
