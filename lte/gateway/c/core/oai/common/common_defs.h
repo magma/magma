@@ -130,10 +130,13 @@ typedef enum {
   vALUE = ntohs(vALUE);                                                        \
   sIZE += sizeof(uint16_t)
 
+// vALUE is uint32_t and most significant byte will be zero
 #define DECODE_U24(bUFFER, vALUE, sIZE)                                        \
-  memcpy((unsigned char*) &vALUE, bUFFER, sizeof(uint32_t));                   \
-  vALUE = ntohl(vALUE) >> 8;                                                   \
-  sIZE += sizeof(uint8_t) + sizeof(uint16_t)
+  vALUE = 0;                                                                   \
+  memcpy((unsigned char*) &vALUE, bUFFER, 3);                                  \
+  vALUE = ntohl(vALUE);                                                        \
+  vALUE = vALUE >> 8;                                                          \
+  sIZE += 3
 
 #define DECODE_U32(bUFFER, vALUE, sIZE)                                        \
   memcpy((unsigned char*) &vALUE, bUFFER, sizeof(uint32_t));                   \
@@ -165,11 +168,13 @@ typedef enum {
     size += sizeof(uint16_t);                                                  \
   } while (0)
 
+// value is 24bits, so most significant 8 bits are all zeros.
 #define ENCODE_U24(buffer, value, size)                                        \
   do {                                                                         \
     uint32_t n_value = htonl(value);                                           \
-    memcpy(buffer, (unsigned char*) &n_value, sizeof(uint32_t));               \
-    size += sizeof(uint8_t) + sizeof(uint16_t);                                \
+    n_value          = n_value >> 8;                                           \
+    memcpy(buffer, (unsigned char*) &n_value, 3);                              \
+    size += 3;                                                                 \
   } while (0)
 
 #define ENCODE_U32(buffer, value, size)                                        \

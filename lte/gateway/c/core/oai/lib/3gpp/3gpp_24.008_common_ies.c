@@ -156,34 +156,6 @@ int encode_location_area_identification_ie(
 }
 
 //------------------------------------------------------------------------------
-// 10.5.1.4 Mobile Identity
-//------------------------------------------------------------------------------
-static int decode_imsi_mobile_identity(
-    imsi_mobile_identity_t* imsi, uint8_t* buffer, const uint32_t len);
-static int decode_imei_mobile_identity(
-    imei_mobile_identity_t* imei, uint8_t* buffer, const uint32_t len);
-static int decode_imeisv_mobile_identity(
-    imeisv_mobile_identity_t* imeisv, uint8_t* buffer, const uint32_t len);
-static int decode_tmsi_mobile_identity(
-    tmsi_mobile_identity_t* tmsi, uint8_t* buffer, const uint32_t len);
-static int decode_tmgi_mobile_identity(
-    tmgi_mobile_identity_t* tmgi, uint8_t* buffer, const uint32_t len);
-static int decode_no_mobile_identity(
-    no_mobile_identity_t* no_id, uint8_t* buffer, const uint32_t len);
-static int encode_imsi_mobile_identity(
-    imsi_mobile_identity_t* imsi, uint8_t* buffer, const uint32_t len);
-static int encode_imei_mobile_identity(
-    imei_mobile_identity_t* imei, uint8_t* buffer, const uint32_t len);
-static int encode_imeisv_mobile_identity(
-    imeisv_mobile_identity_t* imeisv, uint8_t* buffer, const uint32_t len);
-static int encode_tmsi_mobile_identity(
-    tmsi_mobile_identity_t* tmsi, uint8_t* buffer, const uint32_t len);
-static int encode_tmgi_mobile_identity(
-    tmgi_mobile_identity_t* tmgi, uint8_t* buffer, const uint32_t len);
-static int encode_no_mobile_identity(
-    no_mobile_identity_t* no_id, uint8_t* buffer, const uint32_t len);
-
-//------------------------------------------------------------------------------
 int decode_mobile_identity_ie(
     mobile_identity_t* mobileidentity, const bool iei_present, uint8_t* buffer,
     const uint32_t len) {
@@ -295,7 +267,7 @@ int encode_mobile_identity_ie(
 }
 
 //------------------------------------------------------------------------------
-static int decode_imsi_mobile_identity(
+int decode_imsi_mobile_identity(
     imsi_mobile_identity_t* imsi, uint8_t* buffer, const uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int decoded   = 0;
@@ -391,7 +363,7 @@ static int decode_imsi_mobile_identity(
 }
 
 //------------------------------------------------------------------------------
-static int decode_imei_mobile_identity(
+int decode_imei_mobile_identity(
     imei_mobile_identity_t* imei, uint8_t* buffer, const uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int decoded = 0;
@@ -442,7 +414,7 @@ static int decode_imei_mobile_identity(
 }
 
 //------------------------------------------------------------------------------
-static int decode_imeisv_mobile_identity(
+int decode_imeisv_mobile_identity(
     imeisv_mobile_identity_t* imeisv, uint8_t* buffer, const uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int decoded = 0;
@@ -496,7 +468,7 @@ static int decode_imeisv_mobile_identity(
 }
 
 //------------------------------------------------------------------------------
-static int decode_tmsi_mobile_identity(
+int decode_tmsi_mobile_identity(
     tmsi_mobile_identity_t* tmsi, uint8_t* buffer, const uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int decoded = 0;
@@ -533,12 +505,12 @@ static int decode_tmsi_mobile_identity(
 }
 
 //------------------------------------------------------------------------------
-static int decode_tmgi_mobile_identity(
+int decode_tmgi_mobile_identity(
     tmgi_mobile_identity_t* tmgi, uint8_t* buffer, const uint32_t len) {
   int decoded = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, MOBILE_IDENTITY_IE_TMGI_LENGTH, len);
+      buffer, MOBILE_IDENTITY_IE_TMGI_LENGTH - 1, len);
   tmgi->spare = (*(buffer + decoded) >> 6) & 0x2;
 
   /*
@@ -558,24 +530,28 @@ static int decode_tmgi_mobile_identity(
   }
 
   decoded++;
-  // IES_DECODE_U24(tmgi->mbmsserviceid, *(buffer + decoded));
+
   IES_DECODE_U24(buffer, decoded, tmgi->mbmsserviceid);
-  tmgi->mccdigit2 = (*(buffer + decoded) >> 4) & 0xf;
-  tmgi->mccdigit1 = *(buffer + decoded) & 0xf;
-  decoded++;
-  tmgi->mncdigit3 = (*(buffer + decoded) >> 4) & 0xf;
-  tmgi->mccdigit3 = *(buffer + decoded) & 0xf;
-  decoded++;
-  tmgi->mncdigit2 = (*(buffer + decoded) >> 4) & 0xf;
-  tmgi->mncdigit1 = *(buffer + decoded) & 0xf;
-  decoded++;
-  tmgi->mbmssessionid = *(buffer + decoded);
-  decoded++;
+  if (tmgi->mccmncindication) {
+    tmgi->mccdigit2 = (*(buffer + decoded) >> 4) & 0xf;
+    tmgi->mccdigit1 = *(buffer + decoded) & 0xf;
+    decoded++;
+    tmgi->mncdigit3 = (*(buffer + decoded) >> 4) & 0xf;
+    tmgi->mccdigit3 = *(buffer + decoded) & 0xf;
+    decoded++;
+    tmgi->mncdigit2 = (*(buffer + decoded) >> 4) & 0xf;
+    tmgi->mncdigit1 = *(buffer + decoded) & 0xf;
+    decoded++;
+  }
+  if (tmgi->mbmssessionidindication) {
+    tmgi->mbmssessionid = *(buffer + decoded);
+    decoded++;
+  }
   return decoded;
 }
 
 //------------------------------------------------------------------------------
-static int decode_no_mobile_identity(
+int decode_no_mobile_identity(
     no_mobile_identity_t* no_id, uint8_t* buffer, const uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int decoded = 0;
@@ -604,7 +580,7 @@ static int decode_no_mobile_identity(
 }
 
 //------------------------------------------------------------------------------
-static int encode_imsi_mobile_identity(
+int encode_imsi_mobile_identity(
     imsi_mobile_identity_t* imsi, uint8_t* buffer, const uint32_t len) {
   uint32_t encoded = 0;
 
@@ -664,7 +640,7 @@ static int encode_imsi_mobile_identity(
 }
 
 //------------------------------------------------------------------------------
-static int encode_imei_mobile_identity(
+int encode_imei_mobile_identity(
     imei_mobile_identity_t* imei, uint8_t* buffer, const uint32_t len) {
   uint32_t encoded = 0;
 
@@ -697,7 +673,7 @@ static int encode_imei_mobile_identity(
 }
 
 //------------------------------------------------------------------------------
-static int encode_imeisv_mobile_identity(
+int encode_imeisv_mobile_identity(
     imeisv_mobile_identity_t* imeisv, uint8_t* buffer, const uint32_t len) {
   uint32_t encoded = 0;
 
@@ -732,7 +708,7 @@ static int encode_imeisv_mobile_identity(
 }
 
 //------------------------------------------------------------------------------
-static int encode_tmsi_mobile_identity(
+int encode_tmsi_mobile_identity(
     tmsi_mobile_identity_t* tmsi, uint8_t* buffer, const uint32_t len) {
   uint32_t encoded = 0;
 
@@ -752,7 +728,7 @@ static int encode_tmsi_mobile_identity(
 }
 
 //------------------------------------------------------------------------------
-static int encode_tmgi_mobile_identity(
+int encode_tmgi_mobile_identity(
     tmgi_mobile_identity_t* tmgi, uint8_t* buffer, const uint32_t len) {
   uint32_t encoded = 0;
 
@@ -764,28 +740,43 @@ static int encode_tmgi_mobile_identity(
                         (tmgi->typeofidentity & 0x7);
   encoded++;
   IES_ENCODE_U24(buffer, encoded, tmgi->mbmsserviceid);
-  *(buffer + encoded) =
-      ((tmgi->mccdigit2 & 0xf) << 4) | (tmgi->mccdigit1 & 0xf);
-  encoded++;
-  *(buffer + encoded) =
-      ((tmgi->mncdigit3 & 0xf) << 4) | (tmgi->mccdigit3 & 0xf);
-  encoded++;
-  *(buffer + encoded) =
-      ((tmgi->mncdigit2 & 0xf) << 4) | (tmgi->mncdigit1 & 0xf);
-  encoded++;
-  *(buffer + encoded) = tmgi->mbmssessionid;
-  encoded++;
+  if (tmgi->mccmncindication) {
+    *(buffer + encoded) =
+        ((tmgi->mccdigit2 & 0xf) << 4) | (tmgi->mccdigit1 & 0xf);
+    encoded++;
+    *(buffer + encoded) =
+        ((tmgi->mncdigit3 & 0xf) << 4) | (tmgi->mccdigit3 & 0xf);
+    encoded++;
+    *(buffer + encoded) =
+        ((tmgi->mncdigit2 & 0xf) << 4) | (tmgi->mncdigit1 & 0xf);
+    encoded++;
+  }
+  if (tmgi->mbmssessionidindication) {
+    *(buffer + encoded) = tmgi->mbmssessionid;
+    encoded++;
+  }
   return encoded;
 }
 
 //------------------------------------------------------------------------------
-static int encode_no_mobile_identity(
+int encode_no_mobile_identity(
     no_mobile_identity_t* no_id, uint8_t* buffer, const uint32_t len) {
   uint32_t encoded = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, 1, len);
-  *(buffer + encoded) = no_id->typeofidentity;
+  *(buffer + encoded) = (no_id->typeofidentity & 0x07) |
+                        ((no_id->oddeven << 3) & 0x0f) |
+                        ((no_id->digit1 << 4) & 0xf0);
   encoded++;
+  if (len > 1) {
+    *(buffer + encoded) = (no_id->digit2 & 0xf) | ((no_id->digit3 << 4) & 0xf0);
+    encoded++;
+    if (len > 2) {
+      *(buffer + encoded) =
+          (no_id->digit4 & 0xf) | ((no_id->digit5 << 4) & 0xf0);
+      encoded++;
+    }
+  }
   return encoded;
 }
 
@@ -906,8 +897,7 @@ int decode_mobile_station_classmark_3_ie(
 int encode_mobile_station_classmark_3_ie(
     mobile_station_classmark3_t* mobilestationclassmark3,
     const bool iei_present, uint8_t* buffer, const uint32_t len) {
-  Fatal("TODO encode_mobile_station_classmark_3_ie");
-  return -1;
+  return TLV_PROTOCOL_NOT_SUPPORTED;
 }
 
 //------------------------------------------------------------------------------
@@ -1051,6 +1041,5 @@ int decode_network_resource_identifier_container_ie(
 int encode_network_resource_identifier_container_ie(
     network_resource_identifier_container_t* networkresourceidentifiercontainer,
     const bool iei_present, uint8_t* buffer, const uint32_t len) {
-  Fatal("TODO encode_network_resource_identifier_container_ie");
-  return -1;
+  return TLV_PROTOCOL_NOT_SUPPORTED;
 }
