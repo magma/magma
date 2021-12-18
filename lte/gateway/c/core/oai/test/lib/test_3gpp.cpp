@@ -84,7 +84,7 @@ class m3GppTest : public ::testing::Test {
     tmgi.mncdigit1               = 4;
     tmgi.mncdigit2               = 8;
     tmgi.mncdigit3               = 7;
-    tmgi.mbmsserviceid           = 657;
+    tmgi.mbmsserviceid           = 0xCADB85;
     tmgi.mbmssessionid           = 12;
   }
 
