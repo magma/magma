@@ -864,20 +864,15 @@ int decode_plmn_list_ie(
   uint8_t i     = 0;
 
   if (iei_present) {
-    CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-        buffer, (plmnlist->num_plmn * 3 + 2), len);
     CHECK_IEI_DECODER(C_PLMN_LIST_IEI, *buffer);
     decoded++;
-  } else {
-    CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-        buffer, (plmnlist->num_plmn * 3 + 1), len);
   }
 
   ielen = *(buffer + decoded);
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
   plmnlist->num_plmn = 0;
-  while (decoded < len) {
+  while (decoded < ielen) {
     plmnlist->plmn[i].mcc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
     plmnlist->plmn[i].mcc_digit1 = *(buffer + decoded) & 0xf;
     decoded++;

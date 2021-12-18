@@ -157,7 +157,7 @@ class m3GppTest : public ::testing::Test {
 };
 
 TEST_F(m3GppTest, TestImeiMobileIdentity) {
-  imei_mobile_identity_t imei_decoded = {0};
+  imei_mobile_identity_t imei_decoded;
   initialize_imei();
 
   int encoded = encode_imei_mobile_identity(&imei, buffer, BUFFER_LEN);
@@ -205,15 +205,15 @@ TEST_F(m3GppTest, TestTmgiMobileIdentity) {
 }
 
 TEST_F(m3GppTest, TestNoMobileIdentity) {
-  no_mobile_identity_t no_id         = {0};
-  no_mobile_identity_t no_id_decoded = {0};
-  no_id.typeofidentity               = MOBILE_IDENTITY_NOT_AVAILABLE;
-  no_id.oddeven                      = 1;
-  no_id.digit1                       = 9;
-  no_id.digit2                       = 0;
-  no_id.digit3                       = 0;
-  no_id.digit4                       = 0;
-  no_id.digit5                       = 0;
+  no_mobile_identity_t no_id = {0};
+  no_mobile_identity_t no_id_decoded;
+  no_id.typeofidentity = MOBILE_IDENTITY_NOT_AVAILABLE;
+  no_id.oddeven        = 1;
+  no_id.digit1         = 9;
+  no_id.digit2         = 0;
+  no_id.digit3         = 0;
+  no_id.digit4         = 0;
+  no_id.digit5         = 0;
 
   int encoded = encode_no_mobile_identity(
       &no_id, buffer, MOBILE_IDENTITY_NOT_AVAILABLE_LTE_LENGTH);
@@ -231,7 +231,7 @@ TEST_F(m3GppTest, TestNoMobileIdentity) {
 }
 
 TEST_F(m3GppTest, TestImsiMobileIdentity) {
-  imsi_mobile_identity_t imsi_decoded = {0};
+  imsi_mobile_identity_t imsi_decoded;
   initialize_imsi();
 
   int encoded = encode_imsi_mobile_identity(&imsi, buffer, BUFFER_LEN);
@@ -249,8 +249,8 @@ TEST_F(m3GppTest, TestImsiMobileIdentity) {
 }
 
 TEST_F(m3GppTest, TestMobileStationClassmark2) {
-  mobile_station_classmark2_t msclassmark2         = {0};
-  mobile_station_classmark2_t msclassmark2_decoded = {0};
+  mobile_station_classmark2_t msclassmark2 = {0};
+  mobile_station_classmark2_t msclassmark2_decoded;
 
   msclassmark2.revisionlevel     = 3;
   msclassmark2.esind             = 1;
@@ -269,6 +269,7 @@ TEST_F(m3GppTest, TestMobileStationClassmark2) {
   msclassmark2.cmsp              = 1;
   msclassmark2.a52               = 1;
   msclassmark2.a53               = 1;
+
   // With iei present
   int encoded = encode_mobile_station_classmark_2_ie(
       &msclassmark2, true, buffer, BUFFER_LEN);
@@ -287,6 +288,41 @@ TEST_F(m3GppTest, TestMobileStationClassmark2) {
   EXPECT_TRUE(!(memcmp(
       (const void*) &msclassmark2, (const void*) &msclassmark2_decoded,
       sizeof(mobile_station_classmark2_t))));
+}
+
+TEST_F(m3GppTest, TestPlmnList) {
+  plmn_list_t plmn_list;
+  plmn_list_t plmn_list_decoded;
+
+  plmn_list.num_plmn = PLMN_LIST_IE_MAX_PLMN;
+  for (int i = 0; i < PLMN_LIST_IE_MAX_PLMN; ++i) {
+    plmn_list.plmn[i].mcc_digit1 = 7;
+    plmn_list.plmn[i].mcc_digit2 = 4;
+    plmn_list.plmn[i].mcc_digit3 = 3;
+    plmn_list.plmn[i].mnc_digit1 = 8;
+    plmn_list.plmn[i].mnc_digit2 = 1;
+    plmn_list.plmn[i].mnc_digit3 = 6;
+  }
+
+  // With iei present
+  int encoded = encode_plmn_list_ie(&plmn_list, true, buffer, BUFFER_LEN);
+  int decoded = decode_plmn_list_ie(&plmn_list_decoded, true, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  EXPECT_EQ(plmn_list.num_plmn, plmn_list_decoded.num_plmn);
+  EXPECT_TRUE(!(memcmp(
+      (const void*) &plmn_list, (const void*) &plmn_list_decoded,
+      sizeof(plmn_list_t))));
+
+  // Without iei present
+  encoded = encode_plmn_list_ie(&plmn_list, false, buffer, BUFFER_LEN);
+  decoded = decode_plmn_list_ie(&plmn_list_decoded, false, buffer, encoded);
+
+  EXPECT_EQ(encoded, decoded);
+  EXPECT_EQ(plmn_list.num_plmn, plmn_list_decoded.num_plmn);
+  EXPECT_TRUE(!(memcmp(
+      (const void*) &plmn_list, (const void*) &plmn_list_decoded,
+      sizeof(plmn_list_t))));
 }
 
 }  // namespace lte
