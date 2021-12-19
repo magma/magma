@@ -20,6 +20,7 @@
 *****************************************************************************/
 #pragma once
 
+#include "Ngap_TAC.h"
 #include "Ngap_SupportedTAList.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
@@ -49,3 +50,4 @@ int ngap_amf_compare_ta_lists(Ngap_SupportedTAList_t* ta_list);
 int ngap_paging_compare_ta_lists(
     m5g_supported_ta_list_t* enb_ta_list, const paging_tai_list_t* p_tai_list,
     uint8_t p_tai_list_count);
+extern int ngap_amf_compare_tac(const Ngap_TAC_t* tac);

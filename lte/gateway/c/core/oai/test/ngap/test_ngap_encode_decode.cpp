@@ -86,6 +86,197 @@ TEST(test_ngap_pkt_tests, test_ngap_unsuccess_outcome_pdu) {
   bdestroy(stream_setup_failure);
 }
 
+TEST(test_ngap_pkt_tests, test_set_ng_setup_failure_cause) {
+  Ngap_Cause_t cause_p;
+  const long cause_value = 20;
+  status_code_e ret = RETURNok;
+
+  ret = ngap_amf_set_cause(&cause_p, Ngap_Cause_PR_radioNetwork, cause_value);
+  EXPECT_TRUE(ret == 0);
+
+  ret = ngap_amf_set_cause(&cause_p, Ngap_Cause_PR_transport, cause_value);
+  EXPECT_TRUE(ret == 0);
+
+  ret = ngap_amf_set_cause(&cause_p, Ngap_Cause_PR_nas, cause_value);
+  EXPECT_TRUE(ret == 0);
+
+  ret = ngap_amf_set_cause(&cause_p, Ngap_Cause_PR_protocol, cause_value);
+  EXPECT_TRUE(ret == 0);
+
+  ret = ngap_amf_set_cause(&cause_p, Ngap_Cause_PR_misc, cause_value);
+  EXPECT_TRUE(ret == 0);
+
+  ret = ngap_amf_set_cause(&cause_p, Ngap_Cause_PR_NOTHING, cause_value);
+  EXPECT_TRUE(ret == RETURNerror);
+}
+
+TEST(test_ngap_pkt_tests, test_ngap_amf_encode_initiating) {
+  Ngap_NGAP_PDU_t encode_pdu;
+  uint8_t* buffer_p        = NULL;
+  uint32_t length          = 0;
+  int unknown_procedure_id = -1;
+  int ret                  = -1;
+
+  memset(&encode_pdu, 0, sizeof(encode_pdu));
+
+  encode_pdu.present = Ngap_NGAP_PDU_PR_initiatingMessage;
+  encode_pdu.choice.initiatingMessage.procedureCode =
+	  Ngap_ProcedureCode_id_DownlinkNASTransport;
+
+  ret = ngap_amf_encode_pdu(&encode_pdu, &buffer_p, &length);
+  EXPECT_TRUE(ret == 0);
+
+  free(buffer_p);
+
+  memset(&encode_pdu, 0, sizeof(encode_pdu));
+
+  encode_pdu.present = Ngap_NGAP_PDU_PR_initiatingMessage;
+  encode_pdu.choice.initiatingMessage.procedureCode = unknown_procedure_id;
+
+  ret = ngap_amf_encode_pdu(&encode_pdu, &buffer_p, &length);
+  EXPECT_TRUE(ret == -1);
+
+  free(buffer_p);
+}
+
+TEST(test_ngap_pkt_tests, test_ngap_amf_encode_successful_outcome) {
+  Ngap_NGAP_PDU_t encode_pdu;
+  uint8_t* buffer_p        = NULL;
+  uint32_t length          = 0;
+  int unknown_procedure_id = -1;
+  int ret                  = -1;
+
+  memset(&encode_pdu, 0, sizeof(encode_pdu));
+
+  encode_pdu.present = Ngap_NGAP_PDU_PR_successfulOutcome;
+  encode_pdu.choice.initiatingMessage.procedureCode = Ngap_ProcedureCode_id_NGSetup;
+
+  ret = ngap_amf_encode_pdu(&encode_pdu, &buffer_p, &length);
+  EXPECT_TRUE(ret == 0);
+
+  free(buffer_p);
+
+  memset(&encode_pdu, 0, sizeof(encode_pdu));
+
+  encode_pdu.present = Ngap_NGAP_PDU_PR_successfulOutcome;
+  encode_pdu.choice.initiatingMessage.procedureCode = unknown_procedure_id;
+
+  ret = ngap_amf_encode_pdu(&encode_pdu, &buffer_p, &length);
+  EXPECT_TRUE(ret == -1);
+
+  free(buffer_p);
+}
+
+TEST(test_ngap_pkt_tests, test_ngap_amf_encode_unsuccessful_outcome) {
+  Ngap_NGAP_PDU_t encode_pdu;
+  uint8_t* buffer_p        = NULL;
+  uint32_t length          = 0;
+  int unknown_procedure_id = -1;
+  int ret                  = -1;
+
+  memset(&encode_pdu, 0, sizeof(encode_pdu));
+
+  encode_pdu.present = Ngap_NGAP_PDU_PR_unsuccessfulOutcome;
+  encode_pdu.choice.initiatingMessage.procedureCode = Ngap_ProcedureCode_id_NGSetup;
+
+  ret = ngap_amf_encode_pdu(&encode_pdu, &buffer_p, &length);
+  EXPECT_TRUE(ret == 0);
+
+  free(buffer_p);
+
+  memset(&encode_pdu, 0, sizeof(encode_pdu));
+
+  encode_pdu.present = Ngap_NGAP_PDU_PR_unsuccessfulOutcome;
+  encode_pdu.choice.initiatingMessage.procedureCode = unknown_procedure_id;
+
+  ret = ngap_amf_encode_pdu(&encode_pdu, &buffer_p, &length);
+  EXPECT_TRUE(ret == -1);
+
+  free(buffer_p);
+}
+
+TEST(test_ngap_pkt_tests, test_ngap_amf_encode_unknown_msg_outcome) {
+  Ngap_NGAP_PDU_t encode_pdu;
+  uint8_t* buffer_p = NULL;
+  uint32_t length   = 0;
+  int ret           = 0;
+
+  memset(&encode_pdu, 0, sizeof(encode_pdu));
+
+  encode_pdu.present = Ngap_NGAP_PDU_PR_NOTHING;
+
+  ret = ngap_amf_encode_pdu(&encode_pdu, &buffer_p, &length);
+  EXPECT_TRUE(ret == -1);
+
+  free(buffer_p);
+}
+
+TEST(test_ngap_pkt_tests, test_ng_gnb_state2str) {
+  const char* state_to_string = NULL;
+
+  state_to_string = ng_gnb_state2str(NGAP_INIT);
+  EXPECT_STREQ("NGAP_INIT", state_to_string);
+
+  state_to_string = ng_gnb_state2str(NGAP_RESETING);
+  EXPECT_STREQ("NGAP_RESETING", state_to_string);
+
+  state_to_string = ng_gnb_state2str(NGAP_READY);
+  EXPECT_STREQ("NGAP_READY", state_to_string);
+
+  state_to_string = ng_gnb_state2str(NGAP_SHUTDOWN);
+  EXPECT_STREQ("NGAP_SHUTDOWN", state_to_string);
+}
+
+TEST(test_ngap_pkt_tests, test_ngap_direction2str) {
+  const char* dir_to_string = NULL;
+  uint8_t invalid_case      = 20;
+
+  dir_to_string = ngap_direction2str(Ngap_NGAP_PDU_PR_NOTHING);
+  EXPECT_STREQ("<nothing>", dir_to_string);
+
+  dir_to_string = ngap_direction2str(Ngap_NGAP_PDU_PR_initiatingMessage);
+  EXPECT_STREQ("originating message", dir_to_string);
+
+  dir_to_string = ngap_direction2str(Ngap_NGAP_PDU_PR_successfulOutcome);
+  EXPECT_STREQ("successful outcome", dir_to_string);
+
+  dir_to_string = ngap_direction2str(Ngap_NGAP_PDU_PR_unsuccessfulOutcome);
+  EXPECT_STREQ("unsuccessful outcome", dir_to_string);
+
+  dir_to_string = ngap_direction2str(invalid_case);
+  EXPECT_STRNE("invalid case", dir_to_string);
+}
+
+TEST(test_ngap_pkt_tests, test_ngap_amf_handle_error_ind_message) {
+  Ngap_NGAP_PDU_t message;
+  ngap_state_t* state            = NULL;
+  const sctp_assoc_id_t assoc_id = 1;
+  const sctp_stream_id_t stream  = 1;
+  int ret = -1;
+
+  memset(&message, 0, sizeof(message));
+
+  ret = ngap_amf_handle_error_ind_message(state, assoc_id, stream, &message);
+  EXPECT_TRUE(ret == RETURNok);
+}
+
+TEST(test_ngap_pkt_tests, test_ngap_amf_compare_tac) {
+  Ngap_TAC_t tac;
+  int ret            = -1;
+  uint8_t tac_buf[3] = {0x01, 0x02, 0x03};
+
+  memset(&tac, 0, sizeof(Ngap_TAC_t));
+
+  tac.buf = tac_buf;
+  tac.size = sizeof(tac_buf);
+
+  ret = ngap_amf_compare_tac(&tac);
+  EXPECT_TRUE(ret == TA_LIST_AT_LEAST_ONE_MATCH);
+
+  // TODO: Add UT case for TA_LIST_NO_MATCH once mme config
+  //       parsing issue is fixed
+}
+
 TEST(test_ngap_pkt_tests, test_ngap_initiate_ue_message) {
   bool output    = false;
   int decode_ops = -1;

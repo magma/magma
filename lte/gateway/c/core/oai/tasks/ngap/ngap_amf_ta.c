@@ -154,7 +154,7 @@ static int ngap_amf_compare_plmns(Ngap_BroadcastPLMNList_t* b_plmns) {
 
 /* @brief compare a TAC
  */
-static int ngap_amf_compare_tac(const Ngap_TAC_t* tac) {
+int ngap_amf_compare_tac(const Ngap_TAC_t* tac) {
   int i              = 0;
   uint16_t tac_value = 0;
 
