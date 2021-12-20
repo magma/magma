@@ -16,8 +16,10 @@ package obsidian
 import (
 	"crypto/x509"
 	"fmt"
+	"html"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -227,7 +229,16 @@ func GetNetworkId(c echo.Context) (string, *echo.HTTPError) {
 	if nid == "" {
 		return nid, NetworkIdHttpErr()
 	}
-	return nid, CheckNetworkAccess(c, nid)
+	sanNid := sanitizeString(nid)
+	return sanNid, CheckNetworkAccess(c, sanNid)
+}
+
+func sanitizeString(strString string) string {
+	strSanitizedString := html.EscapeString(strString)                    //escape special charatchters in HTML text
+	strSanitizedString = strings.ReplaceAll(strSanitizedString, "\r", "") //remove line breaks
+	strSanitizedString = strings.ReplaceAll(strSanitizedString, "\n", "")
+	strSanitizedString = strings.Join(strings.Fields(strSanitizedString), " ") //remove extra whitespace
+	return strSanitizedString
 }
 
 func GetTenantID(c echo.Context) (int64, *echo.HTTPError) {
