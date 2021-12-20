@@ -18,7 +18,7 @@
 
 #include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.h"
 #include "lte/gateway/c/core/oai/test/spgw_task/state_creators.h"
-#include "tasks/ha/lte/protos/oai/mme_nas_state.pb.h"
+#include "lte/protos/oai/mme_nas_state.pb.h"
 
 extern "C" {
 #include "ie_to_bytes.h"
