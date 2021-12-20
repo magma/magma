@@ -50,7 +50,7 @@ using namespace feg;
  *
  * Every request is represented by a CallData, with one implementation per
  * RPC call. The CallData has a state machine of the life cycle of the request.
- * A request appears on the queue when it needs to be *processed* for the first
+ * A request appears on the queue when it needs to be processed for the first
  * time and then when it needs to be finished (i.e. sent back as an answer).
  *
  * When the AsyncServer is first initialized, the CallData for each RPC must

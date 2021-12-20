@@ -39,9 +39,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S6A_CANCEL_LOCATION_ANS: {
       s6a_handler_->s6a_cancel_location_ans();
     } break;
-    default: {
-    } break;
-  }
+    default: { } break; }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
 
