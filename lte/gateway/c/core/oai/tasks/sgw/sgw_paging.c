@@ -42,8 +42,7 @@ void sgw_send_paging_request(
   paging_request_p = &message_p->ittiMsg.s11_paging_request;
   memset((void*) paging_request_p, 0, sizeof(itti_s11_paging_request_t));
 
-  // put NULL for either ipv4 or ipv6
-  if ((dest_ipv6)) {
+  if (dest_ipv6) {
     OAILOG_DEBUG(
         TASK_SPGW_APP, "Paging procedure initiated for ue_ipv6: %x\n",
         dest_ipv6->__in6_u);
@@ -56,8 +55,11 @@ void sgw_send_paging_request(
         dest_ipv4->s_addr);
     paging_request_p->address.ipv4_addr.sin_addr = *dest_ipv4;
     paging_request_p->ip_addr_type = IPV4_ADDR_TYPE;
+  } else {
+    OAILOG_ERROR(
+        TASK_SPGW_APP, "Both ipv4 and ipv6 addresses are NULL\n");
+    return;
   }
-
   send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
   return;
 }

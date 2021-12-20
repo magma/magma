@@ -1338,7 +1338,7 @@ typedef struct itti_s11_delete_bearer_command_s {
  */
 typedef struct itti_s11_paging_request_s {
   const char* imsi;
-  struct sockaddr local_addr;
+  //struct sockaddr local_addr;
 #define IPV4_ADDR_TYPE 1
 #define IPV6_ADDR_TYPE 2
   uint8_t ip_addr_type;

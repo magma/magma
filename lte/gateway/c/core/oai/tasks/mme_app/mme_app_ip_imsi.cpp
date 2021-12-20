@@ -143,7 +143,7 @@ int mme_app_get_imsi_from_ipv6(
   inet_ntop(AF_INET6, (void*) &ipv6_addr, ipv6, INET6_ADDRSTRLEN);
 
   if (inet_ntop(AF_INET6, (void*) &ipv6_addr, ipv6, INET6_ADDRSTRLEN) == NULL) {
-    OAILOG_ERROR(LOG_MME_APP, "IPV6 address conversion IS NULL:%x \n", ipv6);
+    OAILOG_ERROR(LOG_MME_APP, "IPV6 address conversion IS NULL:%s \n", ipv6);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 

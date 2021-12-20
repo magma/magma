@@ -793,7 +793,6 @@ status_code_e sgw_handle_sgi_endpoint_deleted(
       }
       // delete paging rule
       char* ip_str = inet_ntoa(ue_ipv4);
-      // char* ip_str = inet_ntoa(ue_ipv6);
       rv = gtp_tunnel_ops->delete_paging_rule(ue_ipv4, ue_ipv6);
       if (rv < 0) {
         OAILOG_ERROR_UE(

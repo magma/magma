@@ -52,13 +52,13 @@ void PagingApplication::event_callback(
         ev.get_connection(), static_cast<uint8_t*>(ofpi.data()), messenger);
   } else if (ev.get_type() == EVENT_ADD_PAGING_RULE) {
     auto add_paging_rule_event = static_cast<const AddPagingRuleEvent&>(ev);
-    // Call both for ipv4 and ipv6
+    // Add paging rule for ipv4 and ipv6
     add_paging_flow(add_paging_rule_event, messenger);
     add_paging_flow_ipv6(add_paging_rule_event, messenger);
   } else if (ev.get_type() == EVENT_DELETE_PAGING_RULE) {
     auto delete_paging_rule_event =
         static_cast<const DeletePagingRuleEvent&>(ev);
-
+    // Delete paging rule for ipv4 and ipv6
     delete_paging_flow_ipv6(delete_paging_rule_event, messenger);
     delete_paging_flow(delete_paging_rule_event, messenger);
   }
@@ -69,21 +69,18 @@ void PagingApplication::handle_paging_message(
     const OpenflowMessenger& messenger) {
   // send paging request to MME
   struct ip* ip_header = (struct ip*) (data + ETH_HEADER_LENGTH);
-  struct in_addr *dest_ip = NULL;
-  struct in6_addr *dest_ipv6 = NULL;
+  struct in_addr *dest_ipv4 = NULL;
 
-  // check ip version, can pass address also
   if ((ip_header->ip_v == 6)) {
     handle_paging_ipv6_message(ofconn, data, messenger);
 
   } else {
-    dest_ip = &ip_header->ip_dst;
-    //memcpy(&dest_ip, &ip_header->ip_dst, sizeof(struct in_addr));
-    char* dest_ip_str = inet_ntoa(*dest_ip);
+    dest_ipv4 = &ip_header->ip_dst;
+    char* dest_ip_str = inet_ntoa(*dest_ipv4);
 
     OAILOG_DEBUG(
         LOG_GTPV1U, "Initiating paging procedure for IP %s\n", dest_ip_str);
-    sgw_send_paging_request(dest_ip, dest_ipv6);
+    sgw_send_paging_request(dest_ipv4, NULL);
 
     /*
      * Clamp on this ip for configured amount of time
@@ -98,7 +95,7 @@ void PagingApplication::handle_paging_message(
     of13::EthType type_match(IP_ETH_TYPE);
     fm.add_oxm_field(type_match);
 
-    of13::IPv4Dst ip_match(dest_ip->s_addr);
+    of13::IPv4Dst ip_match(dest_ipv4->s_addr);
     fm.add_oxm_field(ip_match);
 
     // No actions mean packet is dropped
@@ -117,22 +114,20 @@ static void mask_ipv6_address(
 void PagingApplication::handle_paging_ipv6_message(
     fluid_base::OFConnection* ofconn, uint8_t* data,
     const OpenflowMessenger& messenger) {
-  // send paging request to MME
 
+  // send paging request to MME
   struct ip6_hdr* ipv6_header = (struct ip6_hdr*) (data + ETH_HEADER_LENGTH);
   struct in6_addr *dest_ipv6 = NULL;
-  struct in_addr *dest_ip = NULL;
   char ip6_str[INET6_ADDRSTRLEN];
 
   dest_ipv6 = &ipv6_header->ip6_dst;
-  //memcpy(&dest_ipv6, &ipv6_header->ip6_dst, sizeof(struct in6_addr));
 
   inet_ntop(AF_INET6, dest_ipv6, ip6_str, INET6_ADDRSTRLEN);
 
-  OAILOG_INFO(
+  OAILOG_DEBUG(
       LOG_GTPV1U, "Initiating paging procedure for IPv6 %s\n", ip6_str);
 
-  sgw_send_paging_request(dest_ip, dest_ipv6);
+  sgw_send_paging_request(NULL, dest_ipv6);
 
   /*
    * Clamp on this ip for configured amount of time
