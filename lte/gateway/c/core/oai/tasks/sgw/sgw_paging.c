@@ -32,7 +32,7 @@
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 
 void sgw_send_paging_request(
-    const struct in_addr* dest_ip, const struct in6_addr* dest_ipv6) {
+    const struct in_addr* dest_ipv4, const struct in6_addr* dest_ipv6) {
   MessageDef* message_p                       = NULL;
   itti_s11_paging_request_t* paging_request_p = NULL;
   uint8_t* data;
@@ -43,17 +43,19 @@ void sgw_send_paging_request(
   memset((void*) paging_request_p, 0, sizeof(itti_s11_paging_request_t));
 
   // put NULL for either ipv4 or ipv6
-  if ((dest_ip->s_addr == 0)) {
+  if ((dest_ipv6)) {
     OAILOG_DEBUG(
         TASK_SPGW_APP, "Paging procedure initiated for ue_ipv6: %x\n",
         dest_ipv6->__in6_u);
     paging_request_p->address.ipv6_addr.sin6_addr = *dest_ipv6;
-  } else {
-    char* ip_str = inet_ntoa(*dest_ip);
+    paging_request_p->ip_addr_type = IPV6_ADDR_TYPE;
+  } else if (dest_ipv4){
+    char* ip_str = inet_ntoa(*dest_ipv4);
     OAILOG_DEBUG(
         TASK_SPGW_APP, "Paging procedure initiated for ue_ipv4: %x\n",
-        dest_ip->s_addr);
-    paging_request_p->address.ipv4_addr.sin_addr = *dest_ip;
+        dest_ipv4->s_addr);
+    paging_request_p->address.ipv4_addr.sin_addr = *dest_ipv4;
+    paging_request_p->ip_addr_type = IPV4_ADDR_TYPE;
   }
 
   send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);

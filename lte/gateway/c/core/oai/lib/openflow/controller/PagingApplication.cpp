@@ -69,20 +69,21 @@ void PagingApplication::handle_paging_message(
     const OpenflowMessenger& messenger) {
   // send paging request to MME
   struct ip* ip_header = (struct ip*) (data + ETH_HEADER_LENGTH);
-  struct in_addr dest_ip;
-  struct in6_addr dest_ipv6;
+  struct in_addr *dest_ip = NULL;
+  struct in6_addr *dest_ipv6 = NULL;
 
   // check ip version, can pass address also
   if ((ip_header->ip_v == 6)) {
     handle_paging_ipv6_message(ofconn, data, messenger);
 
   } else {
-    memcpy(&dest_ip, &ip_header->ip_dst, sizeof(struct in_addr));
-    char* dest_ip_str = inet_ntoa(dest_ip);
+    dest_ip = &ip_header->ip_dst;
+    //memcpy(&dest_ip, &ip_header->ip_dst, sizeof(struct in_addr));
+    char* dest_ip_str = inet_ntoa(*dest_ip);
 
     OAILOG_DEBUG(
         LOG_GTPV1U, "Initiating paging procedure for IP %s\n", dest_ip_str);
-    sgw_send_paging_request(&dest_ip, &dest_ipv6);
+    sgw_send_paging_request(dest_ip, dest_ipv6);
 
     /*
      * Clamp on this ip for configured amount of time
@@ -97,7 +98,7 @@ void PagingApplication::handle_paging_message(
     of13::EthType type_match(IP_ETH_TYPE);
     fm.add_oxm_field(type_match);
 
-    of13::IPv4Dst ip_match(dest_ip.s_addr);
+    of13::IPv4Dst ip_match(dest_ip->s_addr);
     fm.add_oxm_field(ip_match);
 
     // No actions mean packet is dropped
@@ -119,19 +120,19 @@ void PagingApplication::handle_paging_ipv6_message(
   // send paging request to MME
 
   struct ip6_hdr* ipv6_header = (struct ip6_hdr*) (data + ETH_HEADER_LENGTH);
-  struct in6_addr dest_ipv6;
-  struct in_addr dest_ip;
+  struct in6_addr *dest_ipv6 = NULL;
+  struct in_addr *dest_ip = NULL;
   char ip6_str[INET6_ADDRSTRLEN];
 
-  memcpy(&dest_ipv6, &ipv6_header->ip6_dst, sizeof(struct in6_addr));
+  dest_ipv6 = &ipv6_header->ip6_dst;
+  //memcpy(&dest_ipv6, &ipv6_header->ip6_dst, sizeof(struct in6_addr));
 
-  inet_ntop(AF_INET6, &dest_ipv6, ip6_str, INET6_ADDRSTRLEN);
+  inet_ntop(AF_INET6, dest_ipv6, ip6_str, INET6_ADDRSTRLEN);
 
   OAILOG_INFO(
       LOG_GTPV1U, "Initiating paging procedure for IPv6 %s\n", ip6_str);
 
-  dest_ip.s_addr = 0;
-  sgw_send_paging_request(&dest_ip, &dest_ipv6);
+  sgw_send_paging_request(dest_ip, dest_ipv6);
 
   /*
    * Clamp on this ip for configured amount of time
@@ -151,7 +152,7 @@ void PagingApplication::handle_paging_ipv6_message(
   // Match UE IP destination
   struct in6_addr ue_ip6_masked;
   mask_ipv6_address(
-      (uint8_t*) &ue_ip6_masked, (const uint8_t*) &dest_ipv6, mask.getIPv6());
+      (uint8_t*) &ue_ip6_masked, (const uint8_t*) dest_ipv6, mask.getIPv6());
   of13::IPv6Dst ipv6_match(IPAddress(ue_ip6_masked), mask);
   fm.add_oxm_field(ipv6_match);
 
