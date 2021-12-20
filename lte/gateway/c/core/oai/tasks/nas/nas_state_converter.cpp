@@ -811,16 +811,18 @@ void NasStateConverter::proto_to_nas_emm_attach_proc(
       attach_proc_proto.attach_complete_received();
   StateConverter::proto_to_guti(
       attach_proc_proto.guti(), &state_nas_emm_attach_proc->guti);
-  if (attach_proc_proto.esm_msg_out().length() > 0) {
-    state_nas_emm_attach_proc->esm_msg_out = bfromcstr_with_str_len(
-        attach_proc_proto.esm_msg_out().c_str(),
-        attach_proc_proto.esm_msg_out().length());
-  }
+
+  state_nas_emm_attach_proc->esm_msg_out = bfromcstr_with_str_len(
+      attach_proc_proto.esm_msg_out().c_str(),
+      attach_proc_proto.esm_msg_out().length());
+
   if (attach_proc_proto.has_ies()) {
     state_nas_emm_attach_proc->ies = (emm_attach_request_ies_t*) calloc(
         1, sizeof(*(state_nas_emm_attach_proc->ies)));
     proto_to_emm_attach_request_ies(
         attach_proc_proto.ies(), state_nas_emm_attach_proc->ies);
+  } else {
+    state_nas_emm_attach_proc->ies = nullptr;
   }
   state_nas_emm_attach_proc->ue_id      = attach_proc_proto.ue_id();
   state_nas_emm_attach_proc->ksi        = attach_proc_proto.ksi();
