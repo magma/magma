@@ -104,9 +104,8 @@ RUN apt-get update && apt-get install -y \
 ENV MAGMA_ROOT /magma
 WORKDIR /magma
 
-# Copy Bazel files at root and third_party
-COPY WORKSPACE.bazel BUILD.bazel .bazelignore .bazelrc .bazelversion ${MAGMA_ROOT}/
-COPY bazel/ ${MAGMA_ROOT}/bazel
+COPY . ${MAGMA_ROOT}
+COPY lte/gateway/docker/mme/configs/ ${MAGMA_ROOT}/lte/gateway/docker/configs/
 
 # Build external dependencies first. This will help not rebuilt all dependencies triggered by Magma changes.
 RUN bazel build \
@@ -118,22 +117,6 @@ RUN bazel build \
   @github_nlohmann_json//:json \
   @sentry_native//:sentry
 
-# Copy proto files
-COPY feg/protos ${MAGMA_ROOT}/feg/protos
-COPY feg/gateway/services/aaa/protos ${MAGMA_ROOT}/feg/gateway/services/aaa/protos
-COPY lte/protos ${MAGMA_ROOT}/lte/protos
-COPY orc8r/protos ${MAGMA_ROOT}/orc8r/protos
-COPY protos ${MAGMA_ROOT}/protos
-
-# Build session_manager c code
-COPY lte/gateway/Makefile ${MAGMA_ROOT}/lte/gateway/Makefile
-COPY orc8r/gateway/c/common ${MAGMA_ROOT}/orc8r/gateway/c/common
-COPY lte/gateway/c ${MAGMA_ROOT}/lte/gateway/c
-
-COPY lte/gateway/python/scripts ${MAGMA_ROOT}/lte/gateway/python/scripts
-COPY lte/gateway/docker ${MAGMA_ROOT}/lte/gateway/docker
-COPY lte/gateway/docker/mme/configs/ ${MAGMA_ROOT}/lte/gateway/docker/configs/
-
 ARG BUILD_TYPE=RelWithDebInfo
 ENV BUILD_TYPE=$BUILD_TYPE
 RUN bazel build  \
@@ -143,9 +126,6 @@ RUN bazel build  \
   //lte/gateway/c/session_manager:sessiond \
   --define=folly_so=1
 RUN make -C ${MAGMA_ROOT}/lte/gateway/ build_oai BUILD_TYPE="${BUILD_TYPE}"
-
-# Prepare config file
-COPY lte/gateway/configs ${MAGMA_ROOT}/lte/gateway/configs
 
 # -----------------------------------------------------------------------------
 # Dev/Production image

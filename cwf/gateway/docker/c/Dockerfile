@@ -62,9 +62,7 @@ RUN apt-get -y update && apt-get -y install \
 ENV MAGMA_ROOT /magma
 WORKDIR /magma
 
-# Copy Bazel files at root and third_party
-COPY WORKSPACE.bazel BUILD.bazel .bazelignore .bazelrc .bazelversion ${MAGMA_ROOT}/
-COPY bazel/ ${MAGMA_ROOT}/bazel
+COPY . ${MAGMA_ROOT}
 
 # Build external dependencies first. This will help not rebuilt all dependencies triggered by Magma changes.
 RUN bazel build \
@@ -74,17 +72,6 @@ RUN bazel build \
   @prometheus_cpp//:prometheus-cpp \
   @yaml-cpp//:yaml-cpp \
   @github_nlohmann_json//:json
-
-# Copy proto files
-COPY feg/protos ${MAGMA_ROOT}/feg/protos
-COPY feg/gateway/services/aaa/protos ${MAGMA_ROOT}/feg/gateway/services/aaa/protos
-COPY lte/protos ${MAGMA_ROOT}/lte/protos
-COPY orc8r/protos ${MAGMA_ROOT}/orc8r/protos
-COPY protos ${MAGMA_ROOT}/protos
-
-# Build session_manager c code
-COPY orc8r/gateway/c/common ${MAGMA_ROOT}/orc8r/gateway/c/common
-COPY lte/gateway/c/session_manager ${MAGMA_ROOT}/lte/gateway/c/session_manager
 
 RUN bazel --bazelrc=${MAGMA_ROOT}/bazel/bazelrcs/cwag.bazelrc build //lte/gateway/c/session_manager:sessiond
 
