@@ -220,4 +220,8 @@ struct map_s {
   }
 };
 
+// Amf-Map Declarations:
+// Map- Key: uint64_t , Data: uint64_t
+typedef magma::map_s<uint64_t, uint64_t> map_uint64_uint64_t;
+
 }  // namespace magma

@@ -1368,13 +1368,11 @@ static void mme_app_handle_s1ap_ue_context_release(
         }
       }
     } else {
-      // release S1-U tunnel mapping in S_GW for all the active bearers for the
-      // UE
-      for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
-        if (ue_mm_context->pdn_contexts[i]) {
-          mme_app_send_s11_release_access_bearers_req(ue_mm_context, i);
-        }
-      }
+      /* Release S1-U tunnel mapping in S_GW for all the active bearers for the
+       * UE
+       */
+      mme_app_send_s11_release_access_bearers_req(
+          ue_mm_context, ue_mm_context->emm_context._imsi64);
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);

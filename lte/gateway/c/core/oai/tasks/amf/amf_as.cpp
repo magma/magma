@@ -41,6 +41,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
+
 using magma5g::AsyncM5GAuthenticationServiceClient;
 
 using namespace magma;
@@ -1212,8 +1214,10 @@ int initial_context_setup_request(
   req->Security_Key = (unsigned char*) &amf_ctx->_security.kgnb;
   memcpy(&req->Ngap_guami, &amf_ctx->m5_guti.guamfi, sizeof(guamfi_t));
 
-  req->ue_aggregate_max_bit_rate.dl = amf_ctx->subscribed_ue_ambr.br_dl;
-  req->ue_aggregate_max_bit_rate.ul = amf_ctx->subscribed_ue_ambr.br_ul;
+  // Get the ambr values
+  amf_smf_context_ue_aggregate_max_bit_rate_get(
+      amf_ctx, &(req->ue_aggregate_max_bit_rate.dl),
+      &(req->ue_aggregate_max_bit_rate.ul));
 
   for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
     pdusession_setup_item_t* item = nullptr;
@@ -1227,7 +1231,10 @@ int initial_context_setup_request(
       pdu_resource_transfer_ie->no_of_items += 1;
       item_num = pdu_resource_transfer_ie->no_of_items - 1;
       item     = &pdu_resource_transfer_ie->item[item_num];
-      ambr_calculation_pdu_session(smf_context, &dl_pdu_ambr, &ul_pdu_ambr);
+      ambr_calculation_pdu_session(
+          &(smf_context->dl_session_ambr), &(smf_context->dl_ambr_unit),
+          &(smf_context->ul_session_ambr), &(smf_context->ul_ambr_unit),
+          &dl_pdu_ambr, &ul_pdu_ambr);
 
       // pdu session id
       item->Pdu_Session_ID =

@@ -194,6 +194,35 @@ int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
 
   MLOG(MDEBUG) << "Length :  " << int(ielen);
   memcpy(&imsi->scheme_output, buffer + decoded, ielen - decoded);
+
+  if ((imsi->type_of_identity == M5GSMobileIdentityMsg_SUCI_IMSI) &&
+      (imsi->protect_schm_id != 0)) {
+    MLOG(MDEBUG) << "  SUCI Registration is enabled with protect_schm_id= "
+                 << std::hex << int(imsi->protect_schm_id);
+    if (imsi->protect_schm_id == PROFILE_A) {
+      memcpy(
+          &imsi->empheral_public_key, buffer + decoded,
+          EPHEMERAL_PUBLIC_KEY_LENGTH);
+      decoded += EPHEMERAL_PUBLIC_KEY_LENGTH;
+      imsi->empheral_public_key[EPHEMERAL_PUBLIC_KEY_LENGTH] = '\0';
+    } else {
+      memcpy(
+          &imsi->empheral_public_key, buffer + decoded,
+          EPHEMERAL_PUBLIC_KEY_LENGTH + PROFILE_B_LEN);
+      decoded += (EPHEMERAL_PUBLIC_KEY_LENGTH + PROFILE_B_LEN);
+      imsi->empheral_public_key[EPHEMERAL_PUBLIC_KEY_LENGTH + PROFILE_B_LEN] =
+          '\0';
+    }
+
+    memcpy(&imsi->ciphertext, buffer + decoded, CIPHERTEXT_LENGTH);
+    decoded += CIPHERTEXT_LENGTH;
+    imsi->ciphertext[CIPHERTEXT_LENGTH] = '\0';
+
+    memcpy(&imsi->mac_tag, buffer + decoded, MAC_TAG_LENGTH);
+    decoded += MAC_TAG_LENGTH;
+    imsi->mac_tag[MAC_TAG_LENGTH] = '\0';
+  }
+
   // AMF_TEST scheme output  nibbles needs to be reversed
   REV_NIBBLE(imsi->scheme_output, 5);
 
@@ -212,27 +241,6 @@ int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
 
   int tmp = ielen - decoded;
   decoded = ielen;
-
-  MLOG(MDEBUG) << "  Spare = " << std::hex << int(imsi->spare2);
-  MLOG(MDEBUG) << "  Supi Format = " << std::hex << int(imsi->supi_format);
-  MLOG(MDEBUG) << "  Spare = " << std::hex << int(imsi->spare1);
-  MLOG(MDEBUG) << "  Type of Identity = " << std::hex
-               << int(imsi->type_of_identity);
-  MLOG(MDEBUG) << "  Mobile Country Code (MCC) = " << std::dec
-               << int(imsi->mcc_digit1) << std::dec << int(imsi->mcc_digit2)
-               << std::dec << int(imsi->mcc_digit3);
-  MLOG(MDEBUG) << "  Mobile Network Code (MNC) = " << std::dec
-               << int(imsi->mnc_digit1) << std::dec << int(imsi->mnc_digit2)
-               << std::dec << int(imsi->mnc_digit3);
-  MLOG(MDEBUG) << "  Routing Indicator = " << std::hex
-               << int(imsi->rout_ind_digit_1);
-  MLOG(MDEBUG) << "  Protection Scheme ID = " << std::hex
-               << int(imsi->protect_schm_id);
-  MLOG(MDEBUG) << "  Home Network Public Key Identifier = " << std::hex
-               << int(imsi->home_nw_id);
-  MLOG(MDEBUG) << "  Scheme Output = ";
-  BUFFER_PRINT_LOG(imsi->scheme_output, tmp)
-
   return (decoded);
 };
 

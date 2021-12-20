@@ -755,3 +755,52 @@ service:
     Required: false
     ConfigApps:
       - tf
+  orc8r_is_staging_deployment:
+    Description: >-
+      Indicates if the orc8r-app being deploy is a staging environment.
+      Staging environment does not deploy Logging, Metrics and Alerts
+    Type: bool
+    Default: false
+    Required: false
+    ConfigApps:
+      - tf
+  managed_certs_create:
+    Description: >-
+      This will generate certificates that will be stored in kubernetes secrets.
+    Type: bool
+    Default: false
+    Required: false
+    ConfigApps:
+      - tf
+  managed_certs_enabled:
+    Description: >-
+      This will enable controller pods to use managed certificates.
+    Type: bool
+    Default: false
+    Required: false
+    ConfigApps:
+      - tf
+  nms_managed_certs_enabled:
+    Description: >-
+      This will enable NMS nginx pod to use managed certificate.
+    Type: bool
+    Default: false
+    Required: false
+    ConfigApps:
+      - tf
+  nms_custom_issuer:
+    Description: >-
+      Certificate issuer on Route53 for Let's Encrypt.
+    Type: string
+    Default: 'orc8r-route53-issuer'
+    Required: false
+    ConfigApps:
+      - tf
+  managed_certs_route53_enabled:
+    Description: >-
+      Use Route53 as DNS Provider.
+    Type: bool
+    Default: true
+    Required: false
+    ConfigApps:
+      - tf

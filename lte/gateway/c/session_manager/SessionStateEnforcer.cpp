@@ -648,7 +648,7 @@ void SessionStateEnforcer::prepare_response_to_access(
   rsp->mutable_session_ambr()->set_max_bandwidth_dl(
       config.rat_specific_context.m5gsm_session_context()
           .default_ambr()
-          .max_bandwidth_ul());
+          .max_bandwidth_dl());
   /* This flag is used for sending defult qos value or getting from policy
    *  value to AMF.
    */
@@ -906,6 +906,14 @@ void SessionStateEnforcer::set_pdr_attributes(
       config.common_context.ue_ipv4());
   rule->mutable_activate_flow_req()->set_ipv6_addr(
       config.common_context.ue_ipv6());
+  rule->mutable_activate_flow_req()->mutable_apn_ambr()->set_max_bandwidth_ul(
+      config.rat_specific_context.m5gsm_session_context()
+          .default_ambr()
+          .max_bandwidth_ul());
+  rule->mutable_activate_flow_req()->mutable_apn_ambr()->set_max_bandwidth_dl(
+      config.rat_specific_context.m5gsm_session_context()
+          .default_ambr()
+          .max_bandwidth_dl());
   rule->mutable_deactivate_flow_req()->set_ip_addr(
       config.common_context.ue_ipv4());
   rule->mutable_deactivate_flow_req()->set_ipv6_addr(

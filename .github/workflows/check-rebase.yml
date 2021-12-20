@@ -1,0 +1,38 @@
+---
+name: "Check Rebase"
+
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    branches:
+      - master
+      - v1.*
+
+jobs:
+  checkRebase:
+    runs-on: ubuntu-latest
+    env:
+      HEAD_FULL_NAME: "${{github.event.pull_request.head.repo.full_name}}"
+      BASE_FULL_NAME: "${{github.event.pull_request.base.repo.full_name}}"
+      HEAD_SHA: "${{ github.event.pull_request.head.sha }}"
+      BASE_SHA: "${{ github.event.pull_request.base.sha }}"
+    steps:
+      - name: Checkout Head
+        uses: actions/checkout@v2
+        with:
+          repository: "${{env.HEAD_FULL_NAME}}"
+          fetch-depth: 0
+      - name: Checkout Base
+        uses: actions/checkout@v2
+        with:
+          repository: "${{env.BASE_FULL_NAME}}"
+          fetch-depth: 0
+      - name: Check Commits Hash
+        run: |
+          COMMON_SHA="$(git merge-base $BASE_SHA $HEAD_SHA)"
+          if [ "${COMMON_SHA}" = "$BASE_SHA" ]; then
+            echo "Merge Succeeded : It is rebased"
+            exit 0
+          else
+            echo "Merge Failed : It is not rebased"
+            exit 1
+          fi

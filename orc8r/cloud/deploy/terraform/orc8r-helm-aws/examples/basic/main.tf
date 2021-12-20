@@ -30,7 +30,6 @@ module "orc8r" {
 
   vpc_name        = "orc8r"
   cluster_name    = "orc8r"
-  cluster_version = "1.17"
 
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "orc8r-es"
@@ -56,6 +55,10 @@ module "orc8r-app" {
 
   secretsmanager_orc8r_name = module.orc8r.secretsmanager_secret_name
   seed_certs_dir            = "~/secrets/certs"
+
+  managed_certs_create      = false
+  managed_certs_enabled     = false
+  nms_managed_certs_enabled = false
 
   orc8r_db_host    = module.orc8r.orc8r_db_host
   orc8r_db_port    = module.orc8r.orc8r_db_port

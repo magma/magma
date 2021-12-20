@@ -101,4 +101,6 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context);
 nas5g_amf_auth_proc_t* nas5g_new_authentication_procedure(
     amf_context_t* const amf_context);
 
+int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia);
+
 }  // namespace magma5g

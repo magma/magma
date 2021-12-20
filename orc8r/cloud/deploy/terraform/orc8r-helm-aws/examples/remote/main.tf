@@ -74,7 +74,6 @@ module "orc8r" {
 
   vpc_name        = "orc8r"
   cluster_name    = "orc8r"
-  cluster_version = "1.17"
 
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "orc8r-es"

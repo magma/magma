@@ -22,6 +22,9 @@
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 }
 
 namespace magma {
@@ -29,10 +32,9 @@ namespace lte {
 
 extern task_zmq_ctx_t task_zmq_ctx_main;
 
-#define DEFAULT_LBI 5
 #define DEFAULT_TEID 1
 #define DEFAULT_MME_S1AP_UE_ID 1
-#define DEFAULT_eNB_S1AP_UE_ID 0
+
 #define DEFAULT_UE_IPv4 1000
 
 void nas_config_timer_reinit(nas_config_t* nas_conf, uint32_t timeout_msec) {
@@ -74,9 +76,9 @@ void send_mme_app_initial_ue_msg(
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
   ITTI_MSG_LASTHOP_LATENCY(message_p)               = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id  = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).enb_ue_s1ap_id = 0;
-  S1AP_INITIAL_UE_MESSAGE(message_p).enb_id         = 0;
+  S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id  = DEFAULT_SCTP_ASSOC_ID;
+  S1AP_INITIAL_UE_MESSAGE(message_p).enb_ue_s1ap_id = DEFAULT_eNB_S1AP_UE_ID;
+  S1AP_INITIAL_UE_MESSAGE(message_p).enb_id         = DEFAULT_ENB_ID;
   S1AP_INITIAL_UE_MESSAGE(message_p).nas = blk2bstr(nas_msg, nas_msg_length);
   S1AP_INITIAL_UE_MESSAGE(message_p).tai.plmn           = plmn;
   S1AP_INITIAL_UE_MESSAGE(message_p).tai.tac            = tac;
@@ -182,7 +184,7 @@ void send_s6a_ula(const std::string& imsi, bool success) {
   return;
 }
 
-void send_create_session_resp(gtpv2c_cause_value_t cause_value) {
+void send_create_session_resp(gtpv2c_cause_value_t cause_value, ebi_t ebi) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_SPGW_APP, S11_CREATE_SESSION_RESPONSE);
   itti_s11_create_session_response_t* create_session_response_p =
@@ -206,7 +208,7 @@ void send_create_session_resp(gtpv2c_cause_value_t cause_value) {
     create_session_response_p->bearer_contexts_created.bearer_contexts[0]
         .s1u_sgw_fteid.ipv4_address.s_addr = 100;
     create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-        .eps_bearer_id = 5;
+        .eps_bearer_id = ebi;
     create_session_response_p->bearer_contexts_created.bearer_contexts[0]
         .s1u_sgw_fteid.ipv6 = 1;
   }
@@ -215,7 +217,7 @@ void send_create_session_resp(gtpv2c_cause_value_t cause_value) {
   return;
 }
 
-void send_delete_session_resp() {
+void send_delete_session_resp(ebi_t lbi) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_SPGW_APP, S11_DELETE_SESSION_RESPONSE);
   itti_s11_delete_session_response_t* delete_session_resp_p =
@@ -223,7 +225,7 @@ void send_delete_session_resp() {
   delete_session_resp_p->cause.cause_value = REQUEST_ACCEPTED;
   delete_session_resp_p->teid              = 1;
   delete_session_resp_p->peer_ip.s_addr    = 100;
-  delete_session_resp_p->lbi               = 5;
+  delete_session_resp_p->lbi               = lbi;
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }
@@ -280,10 +282,12 @@ void send_ue_capabilities_ind() {
 void send_context_release_req(s1cause rel_cause, task_id_t TASK_ID) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_ID, S1AP_UE_CONTEXT_RELEASE_REQ);
-  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).mme_ue_s1ap_id = 1;
-  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_ue_s1ap_id = 0;
-  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id         = 0;
-  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause       = rel_cause;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).mme_ue_s1ap_id =
+      DEFAULT_MME_S1AP_UE_ID;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_ue_s1ap_id =
+      DEFAULT_eNB_S1AP_UE_ID;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id   = DEFAULT_ENB_ID;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause = rel_cause;
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }
@@ -346,13 +350,13 @@ void send_s11_deactivate_bearer_req(
   return;
 }
 
-void send_s11_create_bearer_req() {
+void send_s11_create_bearer_req(ebi_t lbi) {
   MessageDef* message_p = itti_alloc_new_message(
       TASK_SPGW_APP, S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST);
   itti_s11_nw_init_actv_bearer_request_t* s11_actv_bearer_request =
       &message_p->ittiMsg.s11_nw_init_actv_bearer_request;
   s11_actv_bearer_request->s11_mme_teid = DEFAULT_TEID;
-  s11_actv_bearer_request->lbi          = DEFAULT_LBI;
+  s11_actv_bearer_request->lbi          = lbi;
   s11_actv_bearer_request->eps_bearer_qos.gbr.br_dl =
       10000;  // arbitrary number
   s11_actv_bearer_request->eps_bearer_qos.gbr.br_ul =
@@ -398,7 +402,7 @@ void send_s11_create_bearer_req() {
   return;
 }
 
-void send_erab_setup_rsp() {
+void send_erab_setup_rsp(ebi_t ebi) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S1AP, S1AP_E_RAB_SETUP_RSP);
 
@@ -406,7 +410,7 @@ void send_erab_setup_rsp() {
   S1AP_E_RAB_SETUP_RSP(message_p).enb_ue_s1ap_id = DEFAULT_eNB_S1AP_UE_ID;
   S1AP_E_RAB_SETUP_RSP(message_p).e_rab_setup_list.no_of_items           = 0;
   S1AP_E_RAB_SETUP_RSP(message_p).e_rab_failed_to_setup_list.no_of_items = 0;
-  S1AP_E_RAB_SETUP_RSP(message_p).e_rab_setup_list.item[0].e_rab_id      = 6;
+  S1AP_E_RAB_SETUP_RSP(message_p).e_rab_setup_list.item[0].e_rab_id      = ebi;
   uint8_t transport_address_buff[4] = {192, 168, 60, 141};
   S1AP_E_RAB_SETUP_RSP(message_p)
       .e_rab_setup_list.item[0]
@@ -439,6 +443,112 @@ void send_paging_request() {
   return;
 }
 
+void send_s1ap_path_switch_req(
+    const uint32_t sctp_assoc_id, const uint32_t enb_id,
+    const uint32_t enb_ue_s1ap_id, const plmn_t& plmn) {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_S1AP, S1AP_PATH_SWITCH_REQUEST);
+
+  S1AP_PATH_SWITCH_REQUEST(message_p).sctp_assoc_id  = sctp_assoc_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).enb_id         = enb_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).enb_ue_s1ap_id = enb_ue_s1ap_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).mme_ue_s1ap_id = 1;
+
+  S1AP_PATH_SWITCH_REQUEST(message_p).ecgi.plmn                  = plmn;
+  S1AP_PATH_SWITCH_REQUEST(message_p).ecgi.cell_identity.enb_id  = enb_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).ecgi.cell_identity.cell_id = 2;
+  S1AP_PATH_SWITCH_REQUEST(message_p).ecgi.cell_identity.empty   = 0;
+
+  S1AP_PATH_SWITCH_REQUEST(message_p).tai.plmn = plmn;
+  S1AP_PATH_SWITCH_REQUEST(message_p).tai.tac  = 2;
+
+  S1AP_PATH_SWITCH_REQUEST(message_p).encryption_algorithm_capabilities =
+      0xc000;
+  S1AP_PATH_SWITCH_REQUEST(message_p).integrity_algorithm_capabilities = 0xc000;
+
+  e_rab_to_be_switched_in_downlink_list_t* erab_to_switch_dl_list =
+      &S1AP_PATH_SWITCH_REQUEST(message_p).e_rab_to_be_switched_dl_list;
+
+  erab_to_switch_dl_list->no_of_items      = 1;
+  erab_to_switch_dl_list->item[0].e_rab_id = 5;  // default bearer id
+  erab_to_switch_dl_list->item[0].gtp_teid = 2;
+  uint32_t enb_transport_addr              = 0xc0a83c8d;  // 192.168.60.141
+  erab_to_switch_dl_list->item[0].transport_layer_address =
+      blk2bstr(&enb_transport_addr, 4);
+
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
+void send_s1ap_handover_required(
+    const uint32_t src_sctp_assoc_id, const uint32_t enb_id,
+    const uint32_t enb_ue_s1ap_id, const uint32_t mme_ue_s1ap_id) {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_REQUIRED);
+  S1ap_Cause_t cause;
+  cause.present = S1ap_Cause_PR_radioNetwork;
+
+  S1AP_HANDOVER_REQUIRED(message_p).sctp_assoc_id  = src_sctp_assoc_id;
+  S1AP_HANDOVER_REQUIRED(message_p).enb_id         = enb_id;
+  S1AP_HANDOVER_REQUIRED(message_p).cause          = cause;
+  S1AP_HANDOVER_REQUIRED(message_p).handover_type  = 0;  // intralte
+  S1AP_HANDOVER_REQUIRED(message_p).mme_ue_s1ap_id = mme_ue_s1ap_id;
+  S1AP_HANDOVER_REQUIRED(message_p).src_tgt_container =
+      bfromcstr("TEST_CONTAINER");
+
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
+void send_s1ap_handover_request_ack(
+    const uint32_t src_sctp_assoc_id, const uint32_t enb_id,
+    const uint32_t tgt_enb_id, const uint32_t enb_ue_s1ap_id,
+    const uint32_t tgt_enb_ue_s1ap_id, const uint32_t mme_ue_s1ap_id) {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_REQUEST_ACK);
+
+  S1AP_HANDOVER_REQUEST_ACK(message_p).mme_ue_s1ap_id     = mme_ue_s1ap_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).src_enb_ue_s1ap_id = enb_ue_s1ap_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).tgt_enb_ue_s1ap_id = tgt_enb_ue_s1ap_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).source_assoc_id    = src_sctp_assoc_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).source_enb_id      = enb_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).target_enb_id      = tgt_enb_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).handover_type      = 0;  // intralte
+  S1AP_HANDOVER_REQUEST_ACK(message_p).tgt_src_container =
+      bfromcstr("TEST_CONTAINER");
+
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
+void send_s1ap_handover_notify(
+    const uint32_t tgt_sctp_assoc_id, const uint32_t enb_id,
+    const uint32_t tgt_enb_id, const uint32_t enb_ue_s1ap_id,
+    const uint32_t tgt_enb_ue_s1ap_id, const uint32_t mme_ue_s1ap_id) {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_NOTIFY);
+
+  ecgi_t ecgi                = {0};
+  ecgi.cell_identity.cell_id = 1;
+  ecgi.cell_identity.enb_id  = tgt_enb_id;
+
+  e_rab_admitted_list_t e_rab_list           = {0};
+  e_rab_list.no_of_items                     = 1;
+  e_rab_list.item[0].e_rab_id                = 5;
+  e_rab_list.item[0].gtp_teid                = 1;
+  e_rab_list.item[0].transport_layer_address = bfromcstr("TEST");
+
+  S1AP_HANDOVER_NOTIFY(message_p).mme_ue_s1ap_id        = mme_ue_s1ap_id;
+  S1AP_HANDOVER_NOTIFY(message_p).target_enb_id         = tgt_enb_id;
+  S1AP_HANDOVER_NOTIFY(message_p).target_sctp_assoc_id  = tgt_sctp_assoc_id;
+  S1AP_HANDOVER_NOTIFY(message_p).ecgi                  = ecgi;
+  S1AP_HANDOVER_NOTIFY(message_p).target_enb_ue_s1ap_id = tgt_enb_ue_s1ap_id;
+  S1AP_HANDOVER_NOTIFY(message_p).e_rab_admitted_list   = e_rab_list;
+
+  send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
+  return;
+}
+
 void send_s6a_clr(const std::string& imsi) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_S6A, S6A_CANCEL_LOCATION_REQ);
@@ -447,6 +557,7 @@ void send_s6a_clr(const std::string& imsi) {
   strncpy(itti_msg->imsi, imsi.c_str(), imsi.size());
   itti_msg->imsi_length       = imsi.size();
   itti_msg->cancellation_type = SUBSCRIPTION_WITHDRAWL;
+
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }

@@ -22,6 +22,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 }
 
 const task_info_t tasks_info[] = {
@@ -53,6 +54,18 @@ class MockS1apHandler {
   MOCK_METHOD0(s1ap_generate_s1ap_e_rab_setup_req, void());
   MOCK_METHOD0(s1ap_generate_s1ap_e_rab_rel_cmd, void());
   MOCK_METHOD0(s1ap_handle_paging_request, void());
+  MOCK_METHOD1(
+      s1ap_handle_path_switch_req_ack,
+      bool(itti_s1ap_path_switch_request_ack_t path_switch_ack));
+  MOCK_METHOD1(
+      s1ap_handle_path_switch_req_failure,
+      bool(itti_s1ap_path_switch_request_failure_t path_switch_fail));
+  MOCK_METHOD1(
+      s1ap_mme_handle_handover_request,
+      bool(itti_mme_app_handover_request_t mme_handover_request));
+  MOCK_METHOD1(
+      s1ap_mme_handle_handover_command,
+      bool(itti_mme_app_handover_command_t mme_handover_request));
 };
 
 class MockMmeAppHandler {

@@ -72,15 +72,6 @@ jobs:
           if [ "$NEW_DIGEST" != "$NEW_DIGEST" ]; then
             exit 1
           fi
-      - name: Check wifi-orc8r
-        if: always()
-        run: |
-          echo "DIGEST=$(cat $MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
-          helm dependency update "$MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/"
-          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
-          if [ "$NEW_DIGEST" != "$NEW_DIGEST" ]; then
-            exit 1
-          fi
       - name: Extract commit title
         id: commit
         if: failure() && github.event_name == 'push'

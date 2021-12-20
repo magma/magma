@@ -40,6 +40,15 @@ void StateConverter::plmn_to_chars(const plmn_t& state_plmn, char* plmn_array) {
   plmn_array[5] = (char) (state_plmn.mnc_digit3 + ASCII_ZERO);
 }
 
+void StateConverter::chars_to_plmn(const char* plmn_array, plmn_t* state_plmn) {
+  state_plmn->mcc_digit1 = static_cast<int>(plmn_array[0]) - ASCII_ZERO;
+  state_plmn->mcc_digit2 = static_cast<int>(plmn_array[1]) - ASCII_ZERO;
+  state_plmn->mcc_digit3 = static_cast<int>(plmn_array[2]) - ASCII_ZERO;
+  state_plmn->mnc_digit1 = static_cast<int>(plmn_array[3]) - ASCII_ZERO;
+  state_plmn->mnc_digit2 = static_cast<int>(plmn_array[4]) - ASCII_ZERO;
+  state_plmn->mnc_digit3 = static_cast<int>(plmn_array[5]) - ASCII_ZERO;
+}
+
 void StateConverter::guti_to_proto(
     const guti_t& state_guti, oai::Guti* guti_proto) {
   guti_proto->Clear();
@@ -50,6 +59,15 @@ void StateConverter::guti_to_proto(
   guti_proto->set_mme_gid(state_guti.gummei.mme_gid);
   guti_proto->set_mme_code(state_guti.gummei.mme_code);
   guti_proto->set_m_tmsi(state_guti.m_tmsi);
+}
+
+void StateConverter::proto_to_guti(
+    const oai::Guti& guti_proto, guti_t* state_guti) {
+  chars_to_plmn(guti_proto.plmn().c_str(), &state_guti->gummei.plmn);
+
+  state_guti->gummei.mme_gid  = guti_proto.mme_gid();
+  state_guti->gummei.mme_code = guti_proto.mme_code();
+  state_guti->m_tmsi          = (tmsi_t) guti_proto.m_tmsi();
 }
 
 void StateConverter::ecgi_to_proto(
@@ -66,6 +84,7 @@ void StateConverter::ecgi_to_proto(
 
 void StateConverter::proto_to_ecgi(
     const oai::Ecgi& ecgi_proto, ecgi_t* state_ecgi) {
+  chars_to_plmn(ecgi_proto.plmn().c_str(), &state_ecgi->plmn);
   strncpy((char*) &state_ecgi->plmn, ecgi_proto.plmn().c_str(), PLMN_BYTES);
 
   state_ecgi->cell_identity.enb_id  = ecgi_proto.enb_id();
@@ -230,6 +249,32 @@ void StateConverter::proto_to_hashtable_uint64_ts(
       OAILOG_ERROR(
           LOG_UTIL, "Failed to insert value %lu in table %s: error: %s\n", val,
           state_htbl->name->data, hashtable_rc_code2string(ht_rc));
+    }
+  }
+}
+
+// Converts Map<uint64_t,uint64_t> to Proto (replaces hashtable to proto)
+void StateConverter::map_uint64_uint64_to_proto(
+    map_uint64_uint64_t map,
+    google::protobuf::Map<uint64_t, uint64_t>* proto_map) {
+  for (auto& elm : map.umap) {
+    (*proto_map)[elm.first] = elm.second;
+  }
+}
+
+// Converts Proto to Map<uint64_t,uint64_t>
+void StateConverter::proto_to_map_uint64_uint64(
+    const google::protobuf::Map<uint64_t, uint64_t>& proto_map,
+    map_uint64_uint64_t* map) {
+  for (auto const& kv : proto_map) {
+    uint64_t id          = kv.first;
+    uint64_t val         = kv.second;
+    magma::map_rc_t m_rc = map->insert(kv.first, kv.second);
+
+    if (m_rc != magma::MAP_OK) {
+      OAILOG_ERROR(
+          LOG_UTIL, "Failed to insert value %lu in table %s: error: %s\n", val,
+          map->name.c_str(), map_rc_code2string(m_rc).c_str());
     }
   }
 }

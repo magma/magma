@@ -136,6 +136,8 @@ typedef struct itti_s11_nw_init_deactv_bearer_rsp_s {
   bool delete_default_bearer;
   teid_t s_gw_teid_s11_s4;
   protocol_configuration_options_t pco;  /// PCO protocol_configuration_options
+  bool mme_initiated_local_deact;        ///< Indicates MME initiated bearer
+                                         ///< deactivation
 } itti_s11_nw_init_deactv_bearer_rsp_t;
 
 //-------------
@@ -1231,6 +1233,7 @@ typedef struct itti_s11_delete_session_response_s {
  * -    READY to STANDBY transition within the network
  */
 typedef struct itti_s11_release_access_bearers_request_s {
+#define RELEASE_ACCESS_BEARER_MAX_BEARERS 8
   teid_t local_teid;        ///< not in specs for inner MME use
   teid_t teid;              ///< Tunnel Endpoint Identifier
   ebi_list_t list_of_rabs;  ///< Shall be present on S4 interface when this

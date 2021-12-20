@@ -15,9 +15,13 @@
 extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachAccept.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationResponse.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/CsServiceNotification.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmInformation.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ExtendedServiceRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateReject.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateAccept.h"
@@ -65,7 +69,7 @@ class EMMEncodeDecodeTest : public ::testing::Test {
   uint8_t temp_buffer[BUFFER_LEN];
 };
 
-TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeAttachRequest) {
+TEST_F(EMMEncodeDecodeTest, TestDecodeEncodeAttachRequest) {
   //   Combined attach, NAS message generated from s1ap tester
   uint8_t buffer[] = {0x72, 0x08, 0x09, 0x10, 0x10, 0x00, 0x00, 0x00,
                       0x00, 0x10, 0x02, 0xe0, 0xe0, 0x00, 0x04, 0x02,
@@ -84,6 +88,88 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeAttachRequest) {
 
   bdestroy_wrapper(&attach_request.esmmessagecontainer);
   bdestroy_wrapper(&attach_request.supportedcodecs);
+}
+
+TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeAttachRequest2) {
+  attach_request_msg original_msg = {0};
+  attach_request_msg decoded_msg  = {0};
+
+  FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
+
+  // Set mandatory IEs
+  original_msg.epsattachtype = EPS_ATTACH_TYPE_EPS;
+  original_msg.naskeysetidentifier.naskeysetidentifier =
+      NAS_KEY_SET_IDENTIFIER_NATIVE;
+  original_msg.naskeysetidentifier.tsc = 0;
+
+  FILL_EMM_GUTI(original_msg.oldgutiorimsi);
+
+  original_msg.uenetworkcapability.eea = UE_NETWORK_CAPABILITY_EEA2;
+  original_msg.uenetworkcapability.eia = UE_NETWORK_CAPABILITY_EIA2;
+  original_msg.uenetworkcapability.uea = UE_NETWORK_CAPABILITY_UEA2;
+  original_msg.uenetworkcapability.uia = UE_NETWORK_CAPABILITY_UIA2;
+  original_msg.uenetworkcapability.ucs2 =
+      UE_NETWORK_CAPABILITY_DEFAULT_ALPHABET;
+  original_msg.uenetworkcapability.umts_present = true;
+  original_msg.uenetworkcapability.length       = 5;
+
+  original_msg.esmmessagecontainer = bfromcstr("TEST_CONTAINER");
+
+  // Set optional IEs
+  original_msg.oldptmsisignature = 1;
+
+  FILL_EMM_GUTI(original_msg.additionalguti);
+
+  original_msg.drxparameter.nondrxtimer = 1;
+  original_msg.drxparameter
+      .cnspecificdrxcyclelengthcoefficientanddrxvaluefors1mode = 1;
+
+  original_msg.oldlocationareaidentification.mccdigit1 = 0;
+  original_msg.oldlocationareaidentification.mccdigit2 = 1;
+  original_msg.oldlocationareaidentification.mccdigit3 = 1;
+  original_msg.oldlocationareaidentification.mncdigit1 = 0;
+  original_msg.oldlocationareaidentification.mncdigit2 = 0;
+  original_msg.oldlocationareaidentification.mncdigit3 = 1;
+  original_msg.oldlocationareaidentification.lac       = 1;
+
+  original_msg.oldgutitype = 1;
+
+  original_msg.tmsistatus = 1;
+
+  original_msg.presencemask =
+      ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_PRESENT |
+      ATTACH_REQUEST_ADDITIONAL_GUTI_PRESENT |
+      ATTACH_REQUEST_DRX_PARAMETER_PRESENT |
+      ATTACH_REQUEST_OLD_LOCATION_AREA_IDENTIFICATION_PRESENT |
+      ATTACH_REQUEST_OLD_GUTI_TYPE_PRESENT | ATTACH_REQUEST_TMSI_STATUS_PRESENT;
+
+  // Encode and decode back message
+  int encoded = encode_attach_request(&original_msg, temp_buffer, BUFFER_LEN);
+  int decoded = decode_attach_request(&decoded_msg, temp_buffer, encoded);
+
+  ASSERT_EQ(encoded, decoded);
+
+  ASSERT_EQ(original_msg.epsattachtype, decoded_msg.epsattachtype);
+  ASSERT_EQ(original_msg.oldgutitype, decoded_msg.oldgutitype);
+  ASSERT_EQ(original_msg.oldptmsisignature, decoded_msg.oldptmsisignature);
+  ASSERT_EQ(original_msg.tmsistatus, decoded_msg.tmsistatus);
+  ASSERT_EQ(
+      original_msg.naskeysetidentifier.naskeysetidentifier,
+      decoded_msg.naskeysetidentifier.naskeysetidentifier);
+  ASSERT_EQ(
+      original_msg.naskeysetidentifier.tsc,
+      decoded_msg.naskeysetidentifier.tsc);
+
+  ASSERT_TRUE(!memcmp(
+      &original_msg.drxparameter, &decoded_msg.drxparameter,
+      sizeof(original_msg.drxparameter)));
+  ASSERT_TRUE(!memcmp(
+      &original_msg.oldlocationareaidentification,
+      &decoded_msg.oldlocationareaidentification,
+      sizeof(original_msg.oldlocationareaidentification)));
+
+  bdestroy_wrapper(&original_msg.esmmessagecontainer);
+  bdestroy_wrapper(&decoded_msg.esmmessagecontainer);
 }
 
 TEST_F(EMMEncodeDecodeTest, TestDecodeAttachRequestPixel) {
@@ -646,6 +732,60 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeExtendedServiceRequest) {
       decoded_msg.naskeysetidentifier.tsc);
   ASSERT_TRUE(!memcmp(
       &original_msg.mtmsi, &decoded_msg.mtmsi, sizeof(original_msg.mtmsi)));
+}
+
+TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeServiceRequest) {
+  service_request_msg original_msg = {0};
+  service_request_msg decoded_msg  = {0};
+
+  FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
+
+  // Set mandatory IEs
+  original_msg.ksiandsequencenumber.ksi            = 0b111;
+  original_msg.ksiandsequencenumber.sequencenumber = 1;
+
+  original_msg.messageauthenticationcode = 1;
+
+  // Encode and decode back message
+  int encoded = encode_service_request(&original_msg, temp_buffer, BUFFER_LEN);
+  int decoded = decode_service_request(&decoded_msg, temp_buffer, encoded);
+
+  ASSERT_EQ(encoded, decoded);
+
+  ASSERT_EQ(
+      original_msg.ksiandsequencenumber.ksi,
+      decoded_msg.ksiandsequencenumber.ksi);
+  ASSERT_EQ(
+      original_msg.ksiandsequencenumber.sequencenumber,
+      decoded_msg.ksiandsequencenumber.sequencenumber);
+  ASSERT_EQ(
+      original_msg.messageauthenticationcode,
+      decoded_msg.messageauthenticationcode);
+}
+
+TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeAuthenticationResponse) {
+  authentication_response_msg original_msg = {0};
+  authentication_response_msg decoded_msg  = {0};
+
+  FILL_EMM_COMMON_MANDATORY_DEFAULTS(original_msg);
+
+  // Set mandatory IEs
+  original_msg.authenticationresponseparameter = bfromcstr("TEST");
+
+  // Encode and decode back message
+  int encoded =
+      encode_authentication_response(&original_msg, temp_buffer, BUFFER_LEN);
+  int decoded =
+      decode_authentication_response(&decoded_msg, temp_buffer, encoded);
+
+  ASSERT_EQ(encoded, decoded);
+
+  ASSERT_EQ(
+      std::string(bdata(original_msg.authenticationresponseparameter)),
+      std::string(bdata(decoded_msg.authenticationresponseparameter)));
+
+  bdestroy_wrapper(&original_msg.authenticationresponseparameter);
+  bdestroy_wrapper(&decoded_msg.authenticationresponseparameter);
 }
 
 }  // namespace lte
