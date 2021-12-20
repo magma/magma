@@ -45,6 +45,7 @@ RUN apt-get -y update && apt-get -y install \
   gcc \
   g++ \
   build-essential \
+  libssl-dev \
   # folly deps
   libfolly-dev \
   libgoogle-glog-dev \

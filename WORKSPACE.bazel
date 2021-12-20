@@ -92,6 +92,15 @@ load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies")
 rules_cc_dependencies()
 
 ### PROTO / GRPC DEPENDENCIES ###
+# boringssl is pulled in as GRPC's SSL library if we don't specify it here manually
+# we want to opt to use the system SSL library for now. This will make it easier to make sure
+# all SSL references across our multiple external dependencies are consistent. (GRPC and Sentry, for example)
+new_local_repository(
+    name = "boringssl",
+    build_file = "//bazel/external:system_ssl.BUILD",
+    path = "/",
+)
+
 protobuf()
 
 load("@protobuf//:protobuf_deps.bzl", "protobuf_deps")
