@@ -28,6 +28,7 @@ on:  # yamllint disable-line rule:truthy
       - 'third_party/**'
       - 'wifi/**'
       - 'xwf/**'
+      - 'CODEOWNERS'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
