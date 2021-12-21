@@ -2,7 +2,7 @@
 import sys
 import time
 
-from scapy.all import *
+from scapy.all import Ether, ICMPv6EchoRequest, IPv6, sendp
 
 dst = sys.argv[1]
 
