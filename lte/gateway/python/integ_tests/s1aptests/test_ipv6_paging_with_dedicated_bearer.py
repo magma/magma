@@ -210,11 +210,6 @@ class TestIpv6PagingWithDedicatedBearer(unittest.TestCase):
             ue_ctxt_rel,
         )
 
-        # Delay to ensure rules are deleted
-        print("********** Sleeping for 5 seconds")
-        time.sleep(5)
-        self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -213,10 +213,6 @@ class TestIpv4v6PagingWithDedicatedBearer(unittest.TestCase):
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
             ue_ctxt_rel,
         )
-        # Delay to ensure rules are deleted
-        print("********** Sleeping for 10 seconds")
-        time.sleep(10)
-        self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
 
 
 if __name__ == "__main__":
