@@ -35,6 +35,14 @@ const (
 	indexerVersion indexer.Version = 1
 )
 
+type teidType int
+
+const (
+	// types of TEIDs
+	controlPlaneTeid teidType = iota
+	userPlaneTeid
+)
+
 var (
 	indexerTypes = []string{orc8r.DirectoryRecordType}
 )
@@ -42,7 +50,8 @@ var (
 type directorydRecordParameters struct {
 	imsi      string
 	sessionId string
-	teids     []string
+	cTeids    []string
+	uTeids    []string
 	hwid      string
 }
 
@@ -104,8 +113,8 @@ func (i *indexerServicer) CompleteReindex(ctx context.Context, req *protos.Compl
 // setSecondaryStates maps {sessionID -> IMSI} and {TEID -> HWID}
 // Will attempt to update all secondary states, but will return error if any fails
 func setSecondaryStates(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
-	sessionIDToIMSI, teidoHwId, stateErrors := getMappings(states)
-	if len(sessionIDToIMSI) == 0 && len(teidoHwId) == 0 {
+	sessionIDToIMSI, cTeidToHwId, uTeidToHwId, stateErrors := getMappings(states)
+	if len(sessionIDToIMSI) == 0 && len(cTeidToHwId) == 0 {
 		return stateErrors, nil
 	}
 	multiError := multierrors.NewMulti()
@@ -113,20 +122,28 @@ func setSecondaryStates(ctx context.Context, networkID string, states state_type
 		err := directoryd.MapSessionIDsToIMSIs(ctx, networkID, sessionIDToIMSI)
 		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of session IDs to IMSIs %+v", sessionIDToIMSI)
 	}
-	if len(teidoHwId) != 0 {
-		err := directoryd.MapSgwCTeidToHWID(ctx, networkID, teidoHwId)
-		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of teid To HwID %+v", sessionIDToIMSI)
+	if len(cTeidToHwId) != 0 {
+		err := directoryd.MapSgwCTeidToHWID(ctx, networkID, cTeidToHwId)
+		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of control plane teid To HwID %+v", sessionIDToIMSI)
 	}
+	if len(uTeidToHwId) != 0 {
+		err := directoryd.MapSgwUTeidToHWID(ctx, networkID, uTeidToHwId)
+		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of user plane teid To HwID %+v", sessionIDToIMSI)
+	}
+
 	// multiError will only be nil if both updates succeeded
 	return stateErrors, multiError.AsError()
 }
 
 // unsetSecondaryStates removes {sessionID -> IMSI} and {TEID -> HWID} mappings
 func unsetSecondaryStates(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
-	sessionIDToIMSI, teidoHwId, stateErrors := getMappings(states)
+	sessionIDToIMSI, cTeidToHwId, uTeidToHwId, stateErrors := getMappings(states)
 	multiError := multierrors.NewMulti()
 
-	err := unsetTeids(ctx, networkID, teidoHwId)
+	err := unsetTeids(ctx, controlPlaneTeid, networkID, cTeidToHwId)
+	multiError = multiError.Add(err)
+
+	err = unsetTeids(ctx, userPlaneTeid, networkID, uTeidToHwId)
 	multiError = multiError.Add(err)
 
 	err = unsetSessionIDs(ctx, networkID, sessionIDToIMSI)
@@ -135,17 +152,22 @@ func unsetSecondaryStates(ctx context.Context, networkID string, states state_ty
 	return stateErrors, multiError.AsError()
 }
 
-// unsetTeids removes {TEID -> TEID} mappings
-func unsetTeids(ctx context.Context, networkID string, teidoHwId map[string]string) error {
+// unsetTeids removes teidType {TEID -> TEID} mappings
+func unsetTeids(ctx context.Context, tType teidType, networkID string, cTeidToHwId map[string]string) error {
 	var teids []string
-	for teid := range teidoHwId {
+	for teid := range cTeidToHwId {
 		teids = append(teids, teid)
 	}
 	var err error
 	if len(teids) != 0 {
-		err = directoryd.UnmapSgwCTeidToHWID(ctx, networkID, teids)
+		switch tType {
+		case controlPlaneTeid:
+			err = directoryd.UnmapSgwCTeidToHWID(ctx, networkID, teids)
+		case userPlaneTeid:
+			err = directoryd.UnmapSgwUTeidToHWID(ctx, networkID, teids)
+		}
 		if err != nil {
-			err = fmt.Errorf("UnmapSgwCTeidToHWID failed: %s", err)
+			err = fmt.Errorf("Unmap TeidToHWID failed (teidType: %d): %s", tType, err)
 			glog.Error(err)
 		}
 	}
@@ -172,11 +194,13 @@ func unsetSessionIDs(ctx context.Context, networkID string, sessionIDToIMSI map[
 // getMappings builds SessionID to IMSI and TEIDs to HWID maps from state
 func getMappings(states state_types.StatesByID) (
 	sessionIDToIMSI map[string]string,
-	teidoHwId map[string]string,
+	cTeidToHwId map[string]string,
+	uTeidToHwId map[string]string,
 	stateErrors state_types.StateErrors,
 ) {
 	sessionIDToIMSI = map[string]string{}
-	teidoHwId = map[string]string{}
+	cTeidToHwId = map[string]string{}
+	uTeidToHwId = map[string]string{}
 	stateErrors = state_types.StateErrors{}
 	for id, st := range states {
 		params, err := extractRecordParameters(id, st)
@@ -188,8 +212,11 @@ func getMappings(states state_types.StatesByID) (
 			sessionIDToIMSI[params.sessionId] = params.imsi
 		}
 
-		for _, teid := range params.teids {
-			teidoHwId[teid] = params.hwid
+		for _, cTeid := range params.cTeids {
+			cTeidToHwId[cTeid] = params.hwid
+		}
+		for _, uTeid := range params.uTeids {
+			uTeidToHwId[uTeid] = params.hwid
 		}
 	}
 	return
@@ -210,37 +237,41 @@ func extractRecordParameters(id state_types.ID, st state_types.State) (*director
 	if err != nil {
 		return nil, err
 	}
-	teids, hwid, err := getTeidToHwIdPair(record)
+	cTeids, hwid, err := getTeidToHwIdPair(controlPlaneTeid, record)
+	if err != nil {
+		return nil, err
+	}
+	uTeids, _, err := getTeidToHwIdPair(userPlaneTeid, record)
 	if err != nil {
 		return nil, err
 	}
 	// log an error in case blank sessionId and no TEID
-	if sessionID == "" && len(teids) == 0 {
+	if sessionID == "" && len(cTeids) == 0 {
 		glog.V(2).Infof("Session ID not found for IMSI %s in record %v", imsi, record)
 	}
-
 	return &directorydRecordParameters{
 		imsi:      imsi,
 		sessionId: sessionID,
-		teids:     teids,
+		cTeids:    cTeids,
+		uTeids:    uTeids,
 		hwid:      hwid,
 	}, nil
 }
 
-// getTeidToHwIdPair will return all the TEIDs for that IMSI and its current location (HWID)
-func getTeidToHwIdPair(record *directoryd_types.DirectoryRecord) ([]string, string, error) {
-	teids, err := record.GetSgwCTeids()
-	if err != nil {
-		return nil, "", err
-	}
-	if len(teids) == 0 {
-		return nil, "", nil
-	}
-
+// getTeidToHwIdPair will return all TEIDs of a type for that IMSI and its current location (HWID)
+func getTeidToHwIdPair(tType teidType, record *directoryd_types.DirectoryRecord) ([]string, string, error) {
 	// GetLocationHistory will always return
 	hwid, err := record.GetCurrentLocation()
 	if err != nil {
 		return nil, "", err
 	}
-	return teids, hwid, nil
+	// get either cTeid or uTeid
+	var teids []string
+	switch tType {
+	case controlPlaneTeid:
+		teids, err = record.GetSgwCTeids()
+	case userPlaneTeid:
+		teids, err = record.GetSgwUTeids()
+	}
+	return teids, hwid, err
 }

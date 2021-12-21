@@ -88,7 +88,7 @@ func TestGetHWIDForSgwCTeid(t *testing.T) {
 	record := &types.DirectoryRecord{
 		LocationHistory: []string{hwid0},
 		Identifiers: map[string]interface{}{
-			types.RecordKeySpgCTeid: teids0,
+			types.RecordKeySgwCTeid: teids0,
 		},
 	}
 
@@ -98,13 +98,38 @@ func TestGetHWIDForSgwCTeid(t *testing.T) {
 	assert.Equal(t, teid0Slice, teids)
 
 	// Err on non-string teid
-	record.Identifiers[types.RecordKeySpgCTeid] = 10
+	record.Identifiers[types.RecordKeySgwCTeid] = 10
 	_, err = record.GetSgwCTeids()
 	assert.Error(t, err)
 
 	// Error on empty teid
 	record.Identifiers = map[string]interface{}{}
 	teids, err = record.GetSgwCTeids()
+	assert.NoError(t, err)
+	assert.Exactly(t, []string{}, teids)
+}
+
+func TestGetHWIDForSgwUTeid(t *testing.T) {
+	record := &types.DirectoryRecord{
+		LocationHistory: []string{hwid0},
+		Identifiers: map[string]interface{}{
+			types.RecordKeySgwUTeid: teids0,
+		},
+	}
+
+	// Default path
+	teids, err := record.GetSgwUTeids()
+	assert.NoError(t, err)
+	assert.Equal(t, teid0Slice, teids)
+
+	// Err on non-string teid
+	record.Identifiers[types.RecordKeySgwUTeid] = 10
+	_, err = record.GetSgwUTeids()
+	assert.Error(t, err)
+
+	// Error on empty teid
+	record.Identifiers = map[string]interface{}{}
+	teids, err = record.GetSgwUTeids()
 	assert.NoError(t, err)
 	assert.Exactly(t, []string{}, teids)
 }
@@ -118,6 +143,8 @@ func TestDirectorydMethods(t *testing.T) {
 	_, err = directoryd.GetHostnameForHWID(context.Background(), hwid0)
 	assert.Error(t, err)
 	_, err = directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid0)
+	assert.Error(t, err)
+	_, err = directoryd.GetHWIDForSgwUTeid(context.Background(), nid0, teid0)
 	assert.Error(t, err)
 
 	// Put sid0->imsi0
@@ -147,14 +174,23 @@ func TestDirectorydMethods(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, hn1, hn)
 
-	// Put teid->hwid
+	// Put Control teid->hwid
 	err = directoryd.MapSgwCTeidToHWID(context.Background(), nid0, map[string]string{teid0: hwid0})
 	assert.NoError(t, err)
 
-	// Get teid->hwid
-	hwid, err := directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid0)
+	// Get Control teid->hwid
+	hwidC, err := directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid0)
 	assert.NoError(t, err)
-	assert.Equal(t, hwid0, hwid)
+	assert.Equal(t, hwid0, hwidC)
+
+	// Put User teid->hwid
+	err = directoryd.MapSgwUTeidToHWID(context.Background(), nid0, map[string]string{teid0: hwid0})
+	assert.NoError(t, err)
+
+	// Get User teid->hwid
+	hwidU, err := directoryd.GetHWIDForSgwUTeid(context.Background(), nid0, teid0)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid0, hwidU)
 
 	// Remove sid0->imsi0 mapping
 	err = directoryd.UnmapSessionIDsToIMSIs(context.Background(), nid0, []string{sid0})
@@ -168,10 +204,16 @@ func TestDirectorydMethods(t *testing.T) {
 	_, err = directoryd.GetHostnameForHWID(context.Background(), hwid1)
 	assert.Error(t, err)
 
-	// Remove teid->hwid mapping
+	// Remove Control teid->hwid mapping
 	err = directoryd.UnmapSgwCTeidToHWID(context.Background(), nid0, []string{teid0})
 	assert.NoError(t, err)
 	_, err = directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid0)
+	assert.Error(t, err)
+
+	// Remove User teid->hwid mapping
+	err = directoryd.UnmapSgwUTeidToHWID(context.Background(), nid0, []string{teid0})
+	assert.NoError(t, err)
+	_, err = directoryd.GetHWIDForSgwUTeid(context.Background(), nid0, teid0)
 	assert.Error(t, err)
 }
 
