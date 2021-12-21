@@ -35,7 +35,6 @@ void sgw_send_paging_request(
     const struct in_addr* dest_ipv4, const struct in6_addr* dest_ipv6) {
   MessageDef* message_p                       = NULL;
   itti_s11_paging_request_t* paging_request_p = NULL;
-  uint8_t* data;
 
   message_p =
       DEPRECATEDitti_alloc_new_message_fatal(TASK_SPGW_APP, S11_PAGING_REQUEST);
@@ -43,13 +42,14 @@ void sgw_send_paging_request(
   memset((void*) paging_request_p, 0, sizeof(itti_s11_paging_request_t));
 
   if (dest_ipv6) {
+    char ip6_str[INET6_ADDRSTRLEN];
+    inet_ntop(AF_INET6, dest_ipv6, ip6_str, INET6_ADDRSTRLEN);
     OAILOG_DEBUG(
-        TASK_SPGW_APP, "Paging procedure initiated for ue_ipv6: %x\n",
-        dest_ipv6->__in6_u);
+        TASK_SPGW_APP, "Paging procedure initiated for ue_ipv6: %s\n",
+        ip6_str);
     paging_request_p->address.ipv6_addr.sin6_addr = *dest_ipv6;
     paging_request_p->ip_addr_type = IPV6_ADDR_TYPE;
   } else if (dest_ipv4){
-    char* ip_str = inet_ntoa(*dest_ipv4);
     OAILOG_DEBUG(
         TASK_SPGW_APP, "Paging procedure initiated for ue_ipv4: %x\n",
         dest_ipv4->s_addr);
