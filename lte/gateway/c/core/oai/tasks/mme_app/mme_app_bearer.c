@@ -924,37 +924,35 @@ void mme_app_handle_delete_session_rsp(
   pdn_context_t* pdn_context = ue_context_p->pdn_contexts[pid];
   if (!pdn_context) {
     OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "PDN context is NULL for delete session rsp received"
+        " from SGW\n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  switch (pdn_context->pdn_type) {
+    case IPv4:
+      mme_app_remove_ue_ipv4_addr(
+          (pdn_context)->paa.ipv4_address.s_addr,
+          ue_context_p->emm_context._imsi64);
+      break;
+    case IPv6:
+      mme_app_remove_ue_ipv6_addr(
+          (pdn_context)->paa.ipv6_address, ue_context_p->emm_context._imsi64);
+      break;
+    case IPv4_AND_v6:
+      mme_app_remove_ue_ipv6_addr(
+          (pdn_context)->paa.ipv6_address, ue_context_p->emm_context._imsi64);
+      mme_app_remove_ue_ipv4_addr(
+          (pdn_context)->paa.ipv4_address.s_addr,
+          ue_context_p->emm_context._imsi64);
+      break;
+    default:
+      OAILOG_ERROR_UE(
           LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "PDN context is NULL for delete session rsp received"
-          " from SGW\n");
+          "Invalid pdn_type received from spgw"
+          " from SGW is NULL \n");
       OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-    switch(pdn_context->pdn_type) {
-      case IPv4:
-        mme_app_remove_ue_ipv4_addr(
-          (pdn_context)->paa.ipv4_address.s_addr,
-          ue_context_p->emm_context._imsi64);
-      break;
-      case IPv6:
-        mme_app_remove_ue_ipv6_addr(
-          (pdn_context)->paa.ipv6_address,
-          ue_context_p->emm_context._imsi64);
-      break;
-      case IPv4_AND_v6:
-        mme_app_remove_ue_ipv6_addr(
-          (pdn_context)->paa.ipv6_address,
-          ue_context_p->emm_context._imsi64);
-        mme_app_remove_ue_ipv4_addr(
-          (pdn_context)->paa.ipv4_address.s_addr,
-          ue_context_p->emm_context._imsi64);
-      break;
-      default:
-        OAILOG_ERROR_UE(
-            LOG_MME_APP, ue_context_p->emm_context._imsi64,
-            "Invalid pdn_type received from spgw"
-            " from SGW is NULL \n");
-        OAILOG_FUNC_OUT(LOG_MME_APP);
-    }
   if (ue_context_p->emm_context.new_attach_info) {
     int bearer_idx = EBI_TO_INDEX(delete_sess_resp_pP->lbi);
     eps_bearer_release(
@@ -1242,7 +1240,7 @@ status_code_e mme_app_handle_create_sess_resp(
             mme_app_insert_ue_ipv4_addr(
                 create_sess_resp_pP->paa.ipv4_address.s_addr,
                 ue_context_p->emm_context._imsi64);
-          break;
+            break;
           case IPv6:
             OAILOG_DEBUG_UE(
                 LOG_MME_APP, ue_context_p->emm_context._imsi64,
@@ -1251,11 +1249,12 @@ status_code_e mme_app_handle_create_sess_resp(
             mme_app_insert_ue_ipv6_addr(
                 create_sess_resp_pP->paa.ipv6_address,
                 ue_context_p->emm_context._imsi64);
-          break;
+            break;
           case IPv4_AND_v6:
             OAILOG_DEBUG_UE(
                 LOG_MME_APP, ue_context_p->emm_context._imsi64,
-                " ipv4v6 address received in create session response is ipv4:%x, ipv6:%x \n",
+                " ipv4v6 address received in create session response is "
+                "ipv4:%x, ipv6:%x \n",
                 create_sess_resp_pP->paa.ipv4_address.s_addr,
                 create_sess_resp_pP->paa.ipv6_address.__in6_u);
             mme_app_insert_ue_ipv4_addr(
@@ -1265,11 +1264,13 @@ status_code_e mme_app_handle_create_sess_resp(
             mme_app_insert_ue_ipv6_addr(
                 create_sess_resp_pP->paa.ipv6_address,
                 ue_context_p->emm_context._imsi64);
-          break;
+            break;
           default:
             OAILOG_ERROR_UE(
                 LOG_MME_APP, ue_context_p->emm_context._imsi64,
-                " Unknown PDN type(%d) received in create session response\n",create_sess_resp_pP->paa.pdn_type);
+                " Unknown PDN type(%d) received in create session response\n",
+                create_sess_resp_pP->paa.pdn_type);
+            OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
         }
       }
       transaction_identifier = current_bearer_p->transaction_identifier;
@@ -2331,7 +2332,7 @@ imsi64_t mme_app_handle_initial_paging_request(
 
   if (paging_req->ip_addr_type == IPV4_ADDR_TYPE) {
     OAILOG_DEBUG_UE(
-        LOG_MME_APP,imsi64, "paging is requested for ue_ipv4:%x \n",
+        LOG_MME_APP, imsi64, "paging is requested for ue_ipv4:%x \n",
         paging_req->address.ipv4_addr.sin_addr);
     int num_imsis = mme_app_get_imsi_from_ipv4(
         paging_req->address.ipv4_addr.sin_addr.s_addr, &imsi_list);

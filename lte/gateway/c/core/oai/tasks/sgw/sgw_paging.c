@@ -45,19 +45,17 @@ void sgw_send_paging_request(
     char ip6_str[INET6_ADDRSTRLEN];
     inet_ntop(AF_INET6, dest_ipv6, ip6_str, INET6_ADDRSTRLEN);
     OAILOG_DEBUG(
-        TASK_SPGW_APP, "Paging procedure initiated for ue_ipv6: %s\n",
-        ip6_str);
+        TASK_SPGW_APP, "Paging procedure initiated for ue_ipv6: %s\n", ip6_str);
     paging_request_p->address.ipv6_addr.sin6_addr = *dest_ipv6;
-    paging_request_p->ip_addr_type = IPV6_ADDR_TYPE;
-  } else if (dest_ipv4){
+    paging_request_p->ip_addr_type                = IPV6_ADDR_TYPE;
+  } else if (dest_ipv4) {
     OAILOG_DEBUG(
         TASK_SPGW_APP, "Paging procedure initiated for ue_ipv4: %x\n",
         dest_ipv4->s_addr);
     paging_request_p->address.ipv4_addr.sin_addr = *dest_ipv4;
-    paging_request_p->ip_addr_type = IPV4_ADDR_TYPE;
+    paging_request_p->ip_addr_type               = IPV4_ADDR_TYPE;
   } else {
-    OAILOG_ERROR(
-        TASK_SPGW_APP, "Both ipv4 and ipv6 addresses are NULL\n");
+    OAILOG_ERROR(TASK_SPGW_APP, "Both ipv4 and ipv6 addresses are NULL\n");
     return;
   }
   send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);

@@ -216,8 +216,7 @@ void mme_app_remove_ue_ipv6_addr(struct in6_addr ipv6_addr, imsi64_t imsi64) {
   inet_ntop(AF_INET6, (void*) &ipv6_addr, ipv6, INET6_ADDRSTRLEN);
   auto itr_map = ueip_imsi_map.find(ipv6);
   if (itr_map == ueip_imsi_map.end()) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, imsi64, "No imsi found for ip:%s \n", ipv6);
+    OAILOG_ERROR_UE(LOG_MME_APP, imsi64, "No imsi found for ip:%s \n", ipv6);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   } else {
     auto vec_it = itr_map->second.begin();

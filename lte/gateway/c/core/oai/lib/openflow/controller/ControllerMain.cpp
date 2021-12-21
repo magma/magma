@@ -180,10 +180,11 @@ int openflow_controller_forward_data_on_tunnel(
 }
 
 int openflow_controller_add_paging_rule(
-  const char* imsi,  struct in_addr ue_ip, struct in6_addr* ue_ipv6) {
+    const char* imsi, struct in_addr ue_ip, struct in6_addr* ue_ipv6) {
   auto add_arp_event = std::make_shared<openflow::AddArpFlowEvent>(imsi, ue_ip);
   ctrl.inject_external_event(add_arp_event, external_event_callback);
-  auto paging_event = std::make_shared<openflow::AddPagingRuleEvent>(ue_ip, ue_ipv6);
+  auto paging_event =
+      std::make_shared<openflow::AddPagingRuleEvent>(ue_ip, ue_ipv6);
   ctrl.inject_external_event(paging_event, external_event_callback);
 
   OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
