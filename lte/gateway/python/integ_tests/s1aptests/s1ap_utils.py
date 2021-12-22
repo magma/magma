@@ -604,9 +604,10 @@ class S1ApUtil(object):
             self._ue_ip_map[ue_id] = ip6
 
     def run_ipv6_data(self, ipv6_addr):
+        """Run ipv6 data"""
         self.magma_utils = MagmadUtil(None)
         print("Running data for ipv6 address", ipv6_addr)
-        ret = self.magma_utils.exec_command_output(
+        self.magma_utils.exec_command_output(
             " sudo python3 /home/vagrant/magma/lte/gateway/python/icmpv6.py " + str(ipv6_addr),
         )
 
