@@ -144,10 +144,7 @@ void PagingApplication::handle_paging_ipv6_message(
   static IPAddress mask("ffff:ffff:ffff:ffff::");
 
   // Match UE IP destination
-  struct in6_addr ue_ip6_masked;
-  mask_ipv6_address(
-      (uint8_t*) &ue_ip6_masked, (const uint8_t*) dest_ipv6, mask.getIPv6());
-  of13::IPv6Dst ipv6_match(IPAddress(ue_ip6_masked), mask);
+  of13::IPv6Dst ipv6_match(IPAddress((const uint8_t*) dest_ipv6), mask);
   fm.add_oxm_field(ipv6_match);
 
   // No actions mean packet is dropped
