@@ -462,6 +462,7 @@ static int emm_as_recv(
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoder_rc);
       }
 
+      // TODO(andreilee): Probably don't want to fire AttachComplete event here
       rc = emm_recv_attach_complete(
           ue_id, &emm_msg->attach_complete, emm_cause, decode_status);
       bdestroy((bstring)(emm_msg->attach_complete.esmmessagecontainer));

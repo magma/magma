@@ -219,11 +219,13 @@ status_code_e emm_proc_attach_request(
         "ATTACH REQ (ue_id = " MME_UE_S1AP_ID_FMT ") (IMSI = " IMSI_64_FMT
         ") \n",
         ue_id, imsi64);
+    attach_request_event(imsi64, (guti_t){}, "", "", "", "", "");
   } else if (ies->guti) {
     OAILOG_INFO(
         LOG_NAS_EMM,
         "ATTACH REQ (ue_id = " MME_UE_S1AP_ID_FMT ") (GUTI = " GUTI_FMT ") \n",
         ue_id, GUTI_ARG(ies->guti));
+    attach_request_event(0ull, *ies->guti, "", "", "", "", "");
   } else if (ies->imei) {
     char imei_str[16];
     IMEI_TO_STRING(ies->imei, imei_str, 16);
@@ -231,6 +233,7 @@ status_code_e emm_proc_attach_request(
         LOG_NAS_EMM,
         "ATTACH REQ (ue_id = " MME_UE_S1AP_ID_FMT ") (IMEI = %s ) \n", ue_id,
         imei_str);
+    attach_request_event(0ull, (guti_t){}, imei_str, "", "", "", "");
   }
 
   OAILOG_INFO(
@@ -278,6 +281,9 @@ status_code_e emm_proc_attach_request(
         &ue_ctx.emm_context, (struct nas_base_proc_s*) &no_attach_proc);
     increment_counter(
         "ue_attach", 1, 2, "result", "failure", "cause", "emergency_attach");
+    attach_reject_event(
+        imsi64, (guti_t){}, "", "", "", "",
+        "MME not configure to support attach for emergency bearer services");
     if (ies) {
       free_emm_attach_request_ies((emm_attach_request_ies_t * * const) & ies);
     }
@@ -303,6 +309,9 @@ status_code_e emm_proc_attach_request(
     increment_counter(
         "ue_attach", 1, 2, "result", "failure", "cause",
         "ue_context_not_found");
+    attach_reject_event(
+        imsi64, ue_ctx.emm_context._guti, "", "", "", "",
+        "UE context not found");
     if (ies) {
       free_emm_attach_request_ies((emm_attach_request_ies_t * * const) & ies);
     }
@@ -339,6 +348,7 @@ status_code_e emm_proc_attach_request(
         "EMM-PROC - Received Attach Request with unknown GUTI for ue_id "
         "= " MME_UE_S1AP_ID_FMT "\n",
         ue_id);
+    // TODO(andreilee): Do we want to fire attach event here for unknown UE?
   }
   if (ies->imsi) {
     imsi_ue_mm_ctx =
@@ -441,6 +451,7 @@ status_code_e emm_proc_attach_request(
               STOLEN_REF ies, is_mm_ctx_new);
 
           nas_proc_implicit_detach_ue_ind(old_ue_id);
+          // TODO(andreilee): Do we want a detach request event?
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         } else {
           imsi_ue_mm_ctx->emm_context.num_attach_request++;
@@ -455,6 +466,7 @@ status_code_e emm_proc_attach_request(
           increment_counter(
               "duplicate_attach_request", 1, 1, "action",
               "ignored_duplicate_req_retx_attach_accept");
+          // TODO(andreilee): Do we want an attach request event?
           if (imsi_ue_mm_ctx->mme_ue_s1ap_id != ue_mm_context->mme_ue_s1ap_id) {
             /* Re-transmitted attach request will be sent in UL nas message
              * and it will have same mme_ue_s1ap_id, so there will not be new
@@ -474,6 +486,7 @@ status_code_e emm_proc_attach_request(
             free_emm_attach_request_ies(
                 (emm_attach_request_ies_t * * const) & ies);
           }
+          // TODO(andreilee): Do we want a detach request event?
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
       } else if (
@@ -510,6 +523,7 @@ status_code_e emm_proc_attach_request(
               LOG_NAS_EMM,
               "Sent implicit detach for ue_id " MME_UE_S1AP_ID_FMT "\n",
               ue_mm_context->mme_ue_s1ap_id);
+          // TODO(andreilee): Do we want to fire an attach rejection event?
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         } else {
           REQUIREMENT_3GPP_24_301(R10_5_5_1_2_7_e__2);
@@ -543,6 +557,7 @@ status_code_e emm_proc_attach_request(
             free_emm_attach_request_ies(
                 (emm_attach_request_ies_t * * const) & ies);
           }
+          // TODO(andreilee): Do we want to fire an attach rejection event?
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
       }
@@ -632,6 +647,8 @@ status_code_e emm_proc_attach_reject(
       // TODO could be in callback of attach procedure triggered by
       // EMMREG_ATTACH_REJ
       rc = _emm_attach_reject(emm_ctx, (struct nas_base_proc_s*) attach_proc);
+      attach_reject_event(
+          emm_ctx->_imsi64, emm_ctx->_guti, "", "", "", "", "protocol_error");
       emm_sap_t emm_sap               = {0};
       emm_sap.primitive               = EMMREG_ATTACH_REJ;
       emm_sap.u.emm_reg.ue_id         = ue_id;
@@ -647,7 +664,12 @@ status_code_e emm_proc_attach_reject(
       no_attach_proc.esm_msg_out           = NULL;
       rc                                   = _emm_attach_reject(
           emm_ctx, (struct nas_base_proc_s*) &no_attach_proc);
+      attach_reject_event(
+          emm_ctx->_imsi64, emm_ctx->_guti, "", "", "", "", "protocol_error");
     }
+  } else {
+    attach_failure_event(
+        emm_ctx->_imsi64, emm_ctx->_guti, "", "", "", "", "protocol_error");
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -818,7 +840,9 @@ status_code_e emm_proc_attach_complete(
           ue_id);
       emm_proc_emm_information(ue_mm_context);
       increment_counter("ue_attach", 1, 1, "result", "attach_proc_successful");
-      attach_success_event(ue_mm_context->emm_context._imsi64);
+      attach_success_event(
+          ue_mm_context->emm_context._imsi64,
+          ue_mm_context->emm_context._guti, "", "", "", "");
     }
   } else if (esm_sap.err != ESM_SAP_DISCARDED) {
     /*
@@ -831,6 +855,10 @@ status_code_e emm_proc_attach_complete(
     emm_sap.u.emm_reg.free_proc     = true;
     emm_sap.u.emm_reg.u.attach.proc = attach_proc;
     rc                              = emm_sap_send(&emm_sap);
+    attach_reject_event(
+        ue_mm_context->emm_context._imsi64,
+        ue_mm_context->emm_context._guti, "", "", "", "",
+        "Attach procedure failed");
   } else {
     /*
      * ESM procedure failed and, received message has been discarded or
@@ -844,6 +872,8 @@ status_code_e emm_proc_attach_complete(
     rc = RETURNok;
   }
 
+  // TODO(andreilee): Should we be firing an event here to note that
+  // AttachComplete was ignored?
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -1019,6 +1049,9 @@ static int emm_attach_release(emm_context_t* emm_context) {
  *      the MME shall send an ATTACH REJECT message to the UE in-
  *      including an appropriate EMM cause value.
  *
+ * Notes:
+ *      - Caller is responsible for firing attach rejection events
+ *
  * Inputs:  args:      UE context data
  *      Others:    None
  *
@@ -1184,6 +1217,9 @@ static int emm_attach_run_procedure(emm_context_t* emm_context) {
           emm_attach_failure_identification_cb);
     } else if (attach_proc->ies->imei) {
       // Emergency attach is not supported
+      attach_failure_event(
+          emm_context->_imsi64, emm_context->_guti, "", "", "", "",
+          "Emergency attach is not supported");
       OAILOG_ERROR(LOG_NAS_EMM, "Emergency attach is not supported");
     }
   }
@@ -1579,6 +1615,9 @@ static int emm_attach_security_a(emm_context_t* emm_context) {
  *      send an ATTACH ACCEPT message to the UE and start timer
  *      T3450.
  *
+ * Notes:
+ *      - Handles firing of Attach events
+ *
  * Inputs:  args:      attach argument parameters
  *      Others:    None
  *
@@ -1632,6 +1671,19 @@ static int emm_attach(emm_context_t* emm_context) {
             ue_id, attach_proc->emm_cause);
         rc = _emm_attach_reject(
             emm_context, &attach_proc->emm_spec_proc.emm_proc.base_proc);
+        char *reject_cause = (char*)malloc(17 * sizeof(char));
+        int fmt_rc = sprintf(
+            reject_cause, "emm_cause = (%d)", attach_proc->emm_cause);
+        if (fmt_rc < 0) {
+          attach_reject_event(
+              emm_context->_imsi64, emm_context->_guti, "", "", "", "",
+              "emm_cause = (%d)");
+        } else {
+          attach_reject_event(
+              emm_context->_imsi64, emm_context->_guti, "", "", "", "",
+              "Unknown emm_cause");
+        }
+        free(reject_cause);
       } else {
         /*
          * ESM procedure failed and, received message has been discarded or
@@ -1647,6 +1699,8 @@ static int emm_attach(emm_context_t* emm_context) {
       }
     } else {
       rc = emm_send_attach_accept(emm_context);
+      attach_accept_event(
+          emm_context->_imsi64, emm_context->_guti, "", "", "", "");
     }
   }
 
@@ -1672,6 +1726,9 @@ static int emm_attach(emm_context_t* emm_context) {
         emm_context, &attach_proc->emm_spec_proc.emm_proc.base_proc);
     increment_counter(
         "ue_attach", 1, 2, "result", "failure", "cause", "protocol_error");
+    attach_reject_event(
+        emm_context->_imsi64, emm_context->_guti, "", "", "", "",
+        "protocol_error");
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);

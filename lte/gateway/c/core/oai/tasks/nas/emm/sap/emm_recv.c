@@ -30,6 +30,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
 #include "lte/gateway/c/core/oai/include/3gpp_requirements_24.301.h"
+//#include "lte/gateway/c/core/oai/include/mme_events.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
@@ -510,6 +511,15 @@ status_code_e emm_recv_attach_complete(
       "EMMAS-SAP - Received Attach Complete message for ue_id "
       "= " MME_UE_S1AP_ID_FMT "\n",
       ue_id);
+  //  // Fire event when receiving AttachComplete
+  //  ue_mm_context_t* ue_mm_context = NULL;
+  //  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  //  if (ue_mm_context) {
+  //    imsi64_t imsi64 = ue_mm_context->emm_context._imsi64;
+  //    guti_t guti = ue_mm_context->emm_context._guti;
+  //    attach_complete_event(imsi64, guti, "", "", "", "");
+  //  }
+
   /*
    * Execute the attach procedure completion
    */
@@ -537,6 +547,8 @@ status_code_e emm_recv_detach_request(
     mme_ue_s1ap_id_t ue_id, const detach_request_msg* msg,
     const bool is_initial, int* emm_cause,
     const nas_message_decode_status_t* status) {
+  //  ue_mm_context_t* ue_mm_context = NULL;
+  //  struct emm_context_s* ctx    = NULL;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 
@@ -579,6 +591,14 @@ status_code_e emm_recv_detach_request(
    * Execute the UE initiated detach procedure completion by the network
    */
   increment_counter("ue_detach", 1, 1, "cause", "ue_initiated");
+  //  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  //  if (ue_mm_context) {
+  //    ctx = &ue_mm_context->emm_context;
+  //    if (ctx) {
+  //      detach_request_event(ctx->_imsi64, ctx->_guti, "", "", "", "", "UE");
+  //    }
+  //  }
+
   // Send the SGS Detach indication towards MME App
   rc = emm_proc_sgs_detach_request(ue_id, params.type);
   if (rc != RETURNerror) {
@@ -1266,9 +1286,23 @@ status_code_e emm_recv_security_mode_reject(
 status_code_e emm_recv_detach_accept(mme_ue_s1ap_id_t ue_id, int* emm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
+  //  ue_mm_context_t* ue_mm_context = NULL;
+  //  struct emm_context_s* ctx    = NULL;
 
   OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received Detach Accept  message\n");
-  rc         = emm_proc_detach_accept(ue_id);
+  //  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  //  if (ue_mm_context) {
+  //    ctx = &ue_mm_context->emm_context;
+  //    if (ctx) {
+  //      detach_accept_event(ctx->_imsi64, ctx->_guti, "", "", "", "", "UE");
+  //    }
+  //  }
+  rc = emm_proc_detach_accept(ue_id);
+  //  if (ctx) {
+  //      detach_success_event(
+  //          ctx->_imsi64, ctx->_guti, "", "", "", "",
+  //          "detach_accept_not_sent");
+  //  }
   *emm_cause = RETURNok == rc ? EMM_CAUSE_SUCCESS : EMM_CAUSE_PROTOCOL_ERROR;
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

@@ -40,8 +40,17 @@ using magma::orc8r::Void;
 
 namespace {
 constexpr char MME_STREAM_NAME[]  = "mme";
+constexpr char ATTACH_REQUEST[]   = "attach_request";
+constexpr char ATTACH_ACCEPT[]    = "attach_accept";
+constexpr char ATTACH_REJECT[]    = "attach_reject";
+constexpr char ATTACH_COMPLETE[]  = "attach_complete";
 constexpr char ATTACH_SUCCESS[]   = "attach_success";
+constexpr char ATTACH_FAILURE[]   = "attach_failure";
+constexpr char DETACH_REQUEST[]   = "detach_request";
+constexpr char DETACH_ACCEPT[]    = "detach_accept";
+constexpr char DETACH_IMPLICIT[]  = "detach_implicit";
 constexpr char DETACH_SUCCESS[]   = "detach_success";
+constexpr char DETACH_FAILURE[]   = "detach_failure";
 constexpr char S1_SETUP_SUCCESS[] = "s1_setup_success";
 }  // namespace
 
@@ -70,25 +79,197 @@ static int report_event(
   return log_event(event_request);
 }
 
-int attach_success_event(imsi64_t imsi64) {
+int attach_request_event(
+    imsi64_t imsi64, const guti_t guti, const char* imei, const char* mme_id,
+    const char* enb_id, const char* enb_ip, const char* apn) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
 
   folly::dynamic event_value = folly::dynamic::object;
   event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";  // TODO(andreilee): Fix this
+  event_value["imei"]        = imei;
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+
+  return report_event(event_value, ATTACH_REQUEST, MME_STREAM_NAME, imsi_str);
+}
+
+int attach_accept_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+
+  return report_event(event_value, ATTACH_ACCEPT, MME_STREAM_NAME, imsi_str);
+}
+
+int attach_reject_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn, const char* cause) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+  event_value["cause"]       = cause;
+
+  return report_event(event_value, ATTACH_REJECT, MME_STREAM_NAME, imsi_str);
+}
+
+int attach_complete_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+
+  return report_event(event_value, ATTACH_COMPLETE, MME_STREAM_NAME, imsi_str);
+}
+
+int attach_success_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
 
   return report_event(event_value, ATTACH_SUCCESS, MME_STREAM_NAME, imsi_str);
 }
 
-int detach_success_event(imsi64_t imsi64, const char* action) {
+int attach_failure_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* cause, const char* apn) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
 
   folly::dynamic event_value = folly::dynamic::object;
   event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+
+  return report_event(event_value, ATTACH_FAILURE, MME_STREAM_NAME, imsi_str);
+}
+
+int detach_request_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn, const char* source) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+  event_value["source"]      = source;
+
+  return report_event(event_value, DETACH_REQUEST, MME_STREAM_NAME, imsi_str);
+}
+
+int detach_accept_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn, const char* source) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+  event_value["source"]      = source;
+
+  return report_event(event_value, DETACH_ACCEPT, MME_STREAM_NAME, imsi_str);
+}
+
+int detach_implicit_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+
+  return report_event(event_value, DETACH_IMPLICIT, MME_STREAM_NAME, imsi_str);
+}
+
+int detach_success_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn, const char* action) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
   event_value["action"]      = action;
 
   return report_event(event_value, DETACH_SUCCESS, MME_STREAM_NAME, imsi_str);
+}
+
+int detach_failure_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn, const char* cause) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+  event_value["cause"]       = cause;
+
+  return report_event(event_value, DETACH_FAILURE, MME_STREAM_NAME, imsi_str);
 }
 
 int s1_setup_success_event(const char* enb_name, uint32_t enb_id) {

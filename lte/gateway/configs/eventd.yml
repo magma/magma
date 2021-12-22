@@ -51,7 +51,34 @@ event_registry:
   disconnected_sync_rpc_stream:
     module: orc8r
     filename: magmad_events.v1.yml
+  attach_request:
+    module: lte
+    filename: mme_events.v1.yml
+  attach_accept:
+    module: lte
+    filename: mme_events.v1.yml
+  attach_reject:
+    module: lte
+    filename: mme_events.v1.yml
+  attach_complete:
+    module: lte
+    filename: mme_events.v1.yml
   attach_success:
+    module: lte
+    filename: mme_events.v1.yml
+  attach_failure:
+    module: lte
+    filename: mme_events.v1.yml
+  detach_request:
+    module: lte
+    filename: mme_events.v1.yml
+  detach_accept:
+    module: lte
+    filename: mme_events.v1.yml
+  detach_implicit:
+    module: lte
+    filename: mme_events.v1.yml
+  detach_failure:
     module: lte
     filename: mme_events.v1.yml
   detach_success:

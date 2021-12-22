@@ -142,6 +142,8 @@ status_code_e mme_app_handle_detach_t3422_expiry(
   if (data->retransmission_count < DETACH_REQ_COUNTER_MAX) {
     // Resend detach request message to the UE
     emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id, data->detach_type);
+    detach_request_event(
+        emm_ctx->_imsi64, emm_ctx->_guti, "", "", "", "", "MME");
   } else {
     // Abort the detach procedure and perform implicit detach
     if (data->detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
@@ -153,6 +155,7 @@ status_code_e mme_app_handle_detach_t3422_expiry(
       emm_detach_request_params.switch_off = 1;
       emm_detach_request_params.type       = 0;
       emm_proc_detach_request(mme_ue_s1ap_id, &emm_detach_request_params);
+      detach_implicit_event(emm_ctx->_imsi64, emm_ctx->_guti, "", "", "", "");
     }
     if (data) {
       // Free timer argument
@@ -276,38 +279,45 @@ status_code_e emm_proc_sgs_detach_request(
 }
 /****************************************************************************
  **                                                                        **
- ** Name:    emm_proc_detach_request()                                 **
+ ** Name:    emm_proc_detach_request()                                     **
  **                                                                        **
- ** Description: Performs the UE initiated detach procedure for EPS servi- **
- **      ces only When the DETACH REQUEST message is received by   **
- **      the network.                                              **
+ ** Description: Performs the UE initiated detach procedure for EPS        **
+ **      services when the DETACH REQUEST message is received by           **
+ **      the network.                                                      **
+ **                                                                        **
+ **      Also used for implicit detach.                                    **
  **                                                                        **
  **              3GPP TS 24.301, section 5.5.2.2.2                         **
- **      Upon receiving the DETACH REQUEST message the network     **
- **      shall send a DETACH ACCEPT message to the UE and store    **
- **      the current EPS security context, if the detach type IE   **
- **      does not indicate "switch off". Otherwise, the procedure  **
- **      is completed when the network receives the DETACH REQUEST **
- **      message.                                                  **
- **      The network shall deactivate the EPS bearer context(s)    **
- **      for this UE locally without peer-to-peer signalling and   **
- **      shall enter state EMM-DEREGISTERED.                       **
+ **      Upon receiving the DETACH REQUEST message the network             **
+ **      shall send a DETACH ACCEPT message to the UE and store            **
+ **      the current EPS security context, if the detach type IE           **
+ **      does not indicate "switch off". Otherwise, the procedure          **
+ **      is completed when the network receives the DETACH REQUEST         **
+ **      message.                                                          **
+ **      The network shall deactivate the EPS bearer context(s)            **
+ **      for this UE locally without peer-to-peer signaling and            **
+ **      shall enter state EMM-DEREGISTERED.                               **
  **                                                                        **
- ** Inputs:  ue_id:      UE lower layer identifier                  **
- **      type:      Type of the requested detach               **
- **      switch_off:    Indicates whether the detach is required   **
- **             because the UE is switched off or not      **
- **      native_ksi:    true if the security context is of type    **
- **             native                                     **
- **      ksi:       The NAS ket sey identifier                 **
- **      guti:      The GUTI if provided by the UE             **
- **      imsi:      The IMSI if provided by the UE             **
- **      imei:      The IMEI if provided by the UE             **
- **      Others:    _emm_data                                  **
+ ** Notes:                                                                 **
+ **      - Does not sent detach_request event                              **
+ **      - Does not sent detach_implicit event                             **
+ **      - May send events for subsequent detach steps                     **
+ **                                                                        **
+ ** Inputs:  ue_id:      UE lower layer identifier                         **
+ **      type:      Type of the requested detach                           **
+ **      switch_off:    Indicates whether the detach is required           **
+ **                     because the UE is switched off or not              **
+ **      native_ksi:    true if the security context is of type            **
+ **             native                                                     **
+ **      ksi:       The NAS ket sey identifier                             **
+ **      guti:      The GUTI if provided by the UE                         **
+ **      imsi:      The IMSI if provided by the UE                         **
+ **      imei:      The IMEI if provided by the UE                         **
+ **      Others:    _emm_data                                              **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    None                                       **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
 status_code_e emm_proc_detach_request(
@@ -347,7 +357,9 @@ status_code_e emm_proc_detach_request(
   if (params->switch_off) {
     increment_counter("ue_detach", 1, 1, "result", "success");
     increment_counter("ue_detach", 1, 1, "action", "detach_accept_not_sent");
-    detach_success_event(emm_ctx->_imsi64, "detach_accept_not_sent");
+    detach_success_event(
+        emm_ctx->_imsi64, emm_ctx->_guti, "", "", "", "",
+        "detach_accept_not_sent");
     if (ue_context_p->ecm_state == ECM_CONNECTED) {
       update_mme_app_stats_connected_ue_sub();
     }
@@ -380,7 +392,11 @@ status_code_e emm_proc_detach_request(
     rc                = emm_sap_send(&emm_sap);
     increment_counter("ue_detach", 1, 1, "result", "success");
     increment_counter("ue_detach", 1, 1, "action", "detach_accept_sent");
-    detach_success_event(emm_ctx->_imsi64, "detach_accept_sent");
+
+    detach_accept_event(
+        emm_ctx->_imsi64, emm_ctx->_guti, "", "", "", "", "MME");
+    detach_success_event(
+        emm_ctx->_imsi64, emm_ctx->_guti, "", "", "", "", "detach_accept_sent");
     /*
      * If Detach request is recieved for IMSI only then don't trigger session
      * release and don't clear emm context return from here
@@ -418,6 +434,9 @@ status_code_e emm_proc_detach_request(
  **                                                                        **
  ** Description: Trigger clean up of UE context in ESM/EMM,MME_APP,SGPW    **
  **      and S1AP                                                          **
+ **                                                                        **
+ ** Notes:                                                                 **
+ **      - Caller responsible for sending Detach-related events            **
  **                                                                        **
  ***************************************************************************/
 status_code_e emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id) {
@@ -478,6 +497,9 @@ status_code_e emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id) {
  ** Description: Performs NW initiated detach procedure by sending         **
  **      DETACH REQUEST message to UE                                      **
  **                                                                        **
+ ** Notes:                                                                 **
+ **      - Will handle Detach related eventing                             **
+ **                                                                        **
  ***************************************************************************/
 status_code_e emm_proc_nw_initiated_detach_request(
     mme_ue_s1ap_id_t ue_id, uint8_t detach_type) {
@@ -530,6 +552,7 @@ status_code_e emm_proc_nw_initiated_detach_request(
    */
   emm_sap.primitive = EMMAS_DATA_REQ;
   rc                = emm_sap_send(&emm_sap);
+  detach_request_event(emm_ctx->_imsi64, emm_ctx->_guti, "", "", "", "", "MME");
   if (rc != RETURNerror) {
     if (emm_ctx->T3422.id != NAS_TIMER_INACTIVE_ID) {
       /*
@@ -554,6 +577,9 @@ status_code_e emm_proc_nw_initiated_detach_request(
               "Failed to allocate memory for 3422 timer argument. Didn't start "
               "the 3422 timer for ue id " MME_UE_S1AP_ID_FMT "\n",
               ue_id);
+          detach_failure_event(
+              emm_ctx->_imsi64, emm_ctx->_guti, "", "", "", "",
+              "Failed to allocate memory for 3422 timer argument");
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
         }
         data->ue_id                = ue_id;

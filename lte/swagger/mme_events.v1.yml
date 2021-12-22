@@ -8,20 +8,378 @@ info:
   version: 1.0.0
 
 definitions:
+  attach_request:
+    type: object
+    description: |
+     Indicates that an AttachRequest message has been received
+    properties:
+      imsi:
+        type: string
+      guti:
+        type: string
+      imei:
+        type string
+      mme_id:
+        type: string
+      enb_id:
+        type: string
+      enb_ip:
+        type: string
+      apn:
+        type: string
+  attach_accept:
+    type: object
+    description: |
+      Indicates that the MME has sent an AttachAccept message
+    properties:
+      imsi:
+        type: string
+      guti:
+        type: string
+      mme_id:
+        type: string
+      enb_id:
+        type: string
+      enb_ip:
+        type: string
+      apn:
+        type: string
+  attach_complete:
+    type: object
+    description: |
+      Indicates that an AttachComplete message has been received by the MME.
+      Whether or not the MME has successfully handled the AttachComplete
+      does not affect whether this event fires.
+    properties:
+      imsi:
+        type: string
+      guti:
+        type: string
+      mme_id:
+        type: string
+      enb_id:
+        type: string
+      enb_ip:
+        type: string
+      apn:
+        type: string
   attach_success:
     type: object
-    description: Used to track when UE attaches successfully
+    description: |
+      Indicates that a UE has attached successfully.
+      Fires when the AttachComplete message sent by the UE has been
+      successfully handled by the Magma MME service.
     properties:
       imsi:
         type: string
+      guti:
+        type: string
+      mme_id:
+        type: string
+      enb_id:
+        type: string
+      enb_ip:
+        type: string
+      apn:
+        type: string
+  attach_reject:
+    type: object
+    description: |
+      Indicates that a UE AttachRequest was rejected.
+      Fires when Magma MME service sends an AttachReject message to the UE.
+    properties:
+      imsi:
+        description: |
+          International Mobile Subscriber Identity
+          This is used to identify the UE for which the attach rejection belongs to.
+          If the IMSI is not present, a GUTI will be provided.
+        type: string
+        x-nullable: true
+      guti:
+        description: |
+          Globally Unique Temporary Identifier
+          This is used to identify the UE for which the attach rejection belongs to.
+          If the GUTI is not present, the IMSI will be provided.
+        type: string
+        x-nullable: true
+      mme_id:
+        type: string
+        x-nullable: true
+      enb_id:
+        description: ID of eNodeB through which the Attach request was received
+        type: integer
+        x-nullable: false
+      enb_ip:
+        description: IP of eNodeB through which the Attach request was received
+        type: string
+        x-nullable: true
+      apn:
+        description: Access Point Name
+        type: string
+        x-nullable: true
+        example: "inet"
+      cause:
+        description: Cause of attach rejection
+        type: string
+        x-nullable: false
+  attach_failure:
+    type: object
+    description: |
+      Indicates that the Attach procedure failed within the Magma MME.
+      Fires when Magma MME service failed to handle an AttachRequest.
+    properties:
+      imsi:
+        description: |
+          International Mobile Subscriber Identity
+          This is used to identify the UE for which the attach failure belongs to.
+          If the IMSI is not present, a GUTI will be provided.
+        type: string
+        x-nullable: true
+      guti:
+        description: |
+          Globally Unique Temporary Identifier
+          This is used to identify the UE for which the attach failure belongs to.
+          If the GUTI is not present, the IMSI will be provided.
+        type: string
+        x-nullable: true
+      mme_id:
+        type: string
+        x-nullable: true
+      enb_id:
+        description: ID of eNodeB through which the Attach request was received
+        type: integer
+        x-nullable: false
+      enb_ip:
+        description: IP of eNodeB through which the Attach request was received
+        type: string
+        x-nullable: true
+      apn:
+        description: Access Point Name
+        type: string
+        x-nullable: true
+        example: "inet"
+      cause:
+        description: Cause of attach failure
+        type: string
+        x-nullable: false
+  detach_request:
+    type: object
+    description: |
+      Indicates that a DetachRequest message was either sent or received.
+      This can be for a UE, MME, or HSS initiated DetachRequest.
+      See the property named source.
+    properties:
+      imsi:
+        description: |
+          International Mobile Subscriber Identity
+          This is used to identify the UE for which the attach rejection belongs to.
+          If the IMSI is not present, a GUTI will be provided.
+        type: string
+        x-nullable: true
+      guti:
+        description: |
+          Globally Unique Temporary Identifier
+          This is used to identify the UE for which the attach rejection belongs to.
+          If the GUTI is not present, the IMSI will be provided.
+        type: string
+        x-nullable: true
+      mme_id:
+        type: string
+        x-nullable: true
+      enb_id:
+        description: ID of eNodeB through which the Attach request was received
+        type: integer
+        x-nullable: false
+      enb_ip:
+        description: IP of eNodeB through which the Attach request was received
+        type: string
+        x-nullable: true
+      apn:
+        description: Access Point Name
+        type: string
+        x-nullable: true
+        example: "inet"
+      source:
+        description: >
+          DetachAccept Message Source:
+           * UE  - This event records when the DetachAccept has been received
+                   by the MME. This does not guarantee that the detach will
+                   succeed, or that it has already succeeded.
+           * MME - This event records when the DetachAccept has been sent by
+                   the MME. This does not guarantee that the UE has received
+                   the DetachAccept.
+        type: string
+        x-nullable: true
+        enum:
+          - UE
+          - MME
+  detach_accept:
+    type: object
+    description: |
+      Indicates that a DetachAccept message was either sent or received.
+      This can be for either a UE or MME initiated DetachRequest.
+      See the property named source.
+    properties:
+      imsi:
+        description: |
+          International Mobile Subscriber Identity
+          This is used to identify the UE for which the attach rejection belongs to.
+          If the IMSI is not present, a GUTI will be provided.
+        type: string
+        x-nullable: true
+      guti:
+        description: |
+          Globally Unique Temporary Identifier
+          This is used to identify the UE for which the attach rejection belongs to.
+          If the GUTI is not present, the IMSI will be provided.
+        type: string
+        x-nullable: true
+      mme_id:
+        type: string
+        x-nullable: true
+      enb_id:
+        description: ID of eNodeB through which the Attach request was received
+        type: integer
+        x-nullable: false
+      enb_ip:
+        description: IP of eNodeB through which the Attach request was received
+        type: string
+        x-nullable: true
+      apn:
+        description: Access Point Name
+        type: string
+        x-nullable: true
+        example: "inet"
+      source:
+        description: >
+          DetachAccept Message Source:
+           * UE  - This event records when the DetachAccept has been received
+                   by the MME. This does not guarantee that the detach will
+                   succeed, or that it has already succeeded.
+           * MME - This event records when the DetachAccept has been sent by
+                   the MME. This does not guarantee that the UE has received
+                   the DetachAccept.
+        type: string
+        x-nullable: true
+        enum:
+          - UE
+          - MME
+  detach_implicit:
+    type: object
+    description: |
+      Indicates that an implicit detach has occurred for a UE
+    properties:
+      imsi:
+        description: |
+          International Mobile Subscriber Identity
+          This is used to identify the UE for which the attach rejection belongs to.
+          If the IMSI is not present, a GUTI will be provided.
+        type: string
+        x-nullable: true
+      guti:
+        description: |
+          Globally Unique Temporary Identifier
+          This is used to identify the UE for which the attach rejection belongs to.
+          If the GUTI is not present, the IMSI will be provided.
+        type: string
+        x-nullable: true
+      mme_id:
+        type: string
+        x-nullable: true
+      enb_id:
+        description: ID of eNodeB through which the Attach request was received
+        type: integer
+        x-nullable: false
+      enb_ip:
+        description: IP of eNodeB through which the Attach request was received
+        type: string
+        x-nullable: true
+      apn:
+        description: Access Point Name
+        type: string
+        x-nullable: true
+        example: "inet"
+      cause:
+        description: Cause of attach rejection
+        type: string
+        x-nullable: false
   detach_success:
     type: object
-    description: Used to track when UE detaches successfully
+    description: |
+      Indicates that a UE detach has completed successfully
     properties:
       imsi:
+        description: |
+          International Mobile Subscriber Identity
+          This is used to identify the UE for which the attach rejection belongs to.
+          If the IMSI is not present, a GUTI will be provided.
         type: string
+        x-nullable: true
+      guti:
+        description: |
+          Globally Unique Temporary Identifier
+          This is used to identify the UE for which the attach rejection belongs to.
+          If the GUTI is not present, the IMSI will be provided.
+        type: string
+        x-nullable: true
+      mme_id:
+        type: string
+        x-nullable: true
+      enb_id:
+        description: ID of eNodeB through which the Attach request was received
+        type: integer
+        x-nullable: false
+      enb_ip:
+        description: IP of eNodeB through which the Attach request was received
+        type: string
+        x-nullable: true
+      apn:
+        description: Access Point Name
+        type: string
+        x-nullable: true
+        example: "inet"
       action:
+        description: Indicates whether a DetachAccept message was sent or not
         type: string
+  detach_failure:
+    type: object
+    description: |
+      Indicates that a UE detach has failed
+    properties:
+      imsi:
+        description: |
+          International Mobile Subscriber Identity
+          This is used to identify the UE for which the attach rejection belongs to.
+          If the IMSI is not present, a GUTI will be provided.
+        type: string
+        x-nullable: true
+      guti:
+        description: |
+          Globally Unique Temporary Identifier
+          This is used to identify the UE for which the attach rejection belongs to.
+          If the GUTI is not present, the IMSI will be provided.
+        type: string
+        x-nullable: true
+      mme_id:
+        type: string
+        x-nullable: true
+      enb_id:
+        description: ID of eNodeB through which the Attach request was received
+        type: integer
+        x-nullable: false
+      enb_ip:
+        description: IP of eNodeB through which the Attach request was received
+        type: string
+        x-nullable: true
+      apn:
+        description: Access Point Name
+        type: string
+        x-nullable: true
+        example: "inet"
+      cause:
+        description: Cause of detach failure
+        type: string
+        x-nullable: false
   s1_setup_success:
     type: object
     description: Used to track establishment of S1 connection
