@@ -439,6 +439,7 @@ void send_paging_request() {
   itti_s11_paging_request_t* paging_request_p =
       &message_p->ittiMsg.s11_paging_request;
   paging_request_p->address.ipv4_addr.sin_addr.s_addr = DEFAULT_UE_IPv4;
+  paging_request_p->ip_addr_type                      = IPV4_ADDR_TYPE;
   send_msg_to_task(&task_zmq_ctx_main, TASK_MME_APP, message_p);
   return;
 }

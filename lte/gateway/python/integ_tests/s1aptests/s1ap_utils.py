@@ -606,9 +606,14 @@ class S1ApUtil(object):
     def run_ipv6_data(self, ipv6_addr):
         """Run ipv6 data"""
         self.magma_utils = MagmadUtil(None)
+        install_scapy_cmd = "sudo pip3 install scapy"
+        execute_icmpv6_cmd = (
+            "sudo python3 /home/vagrant/magma/lte/gateway/python/icmpv6.py "
+            + str(ipv6_addr)
+        )
         print("Running data for ipv6 address", ipv6_addr)
         self.magma_utils.exec_command_output(
-            " sudo python3 /home/vagrant/magma/lte/gateway/python/icmpv6.py " + str(ipv6_addr),
+            install_scapy_cmd + " && " + execute_icmpv6_cmd,
         )
 
 
