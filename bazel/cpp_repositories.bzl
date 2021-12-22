@@ -97,9 +97,9 @@ def cpp_repositories():
 
     http_archive(
         name = "sentry_native",
-        sha256 = "d7fa804995124c914a3abe077a73307960bbcadfbba9021e8ccbd05c7ba45f88",
         build_file = "//bazel/external:sentry_native.BUILD",
-        url = "https://github.com/getsentry/sentry-native/releases/download/0.4.12/sentry-native.zip",
+        sha256 = "85e0e15d7fb51388d967ab09e7ee1b95f82330a469a93c65d964ea1afd5e6127",
+        url = "https://github.com/getsentry/sentry-native/releases/download/0.4.13/sentry-native.zip",
     )
 
     http_archive(
