@@ -42,4 +42,6 @@ bool load_service_mconfig(const std::string& service_name,
                           google::protobuf::Message* message);
 
 void get_mconfig_file(std::ifstream* file);
+
+uint32_t get_log_verbosity_from_mconfig(uint32_t mconfig_log_level);
 }  // namespace magma
