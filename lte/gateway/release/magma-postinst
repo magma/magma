@@ -17,11 +17,11 @@ sed -i "s/.*OVS_CTL_OPTS.*/OVS_CTL_OPTS='--delete-bridges'/" /etc/default/openvs
 mkdir -p /var/core
 
 value=`cat /usr/local/share/magma/commit_hash`
-if sudo grep -q "COMMIT_HASH" /etc/environment
+if grep -q "COMMIT_HASH" /etc/environment
 then
     sudo sed -i -e "s/^COMMIT_HASH.*/$value/" /etc/environment
 else
-    sudo echo "$value" >> /etc/environment
+    echo "$value" | sudo tee -a /etc/environment
 fi
 
 # Set magmad service to start on boot
