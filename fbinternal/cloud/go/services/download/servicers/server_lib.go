@@ -2,6 +2,7 @@ package servicers
 
 import (
 	"fmt"
+	"html"
 	"io"
 	"net"
 	"net/http"
@@ -23,9 +24,17 @@ const (
 	s3PrefixLen = len(s3Prefix)
 )
 
+func sanitizeString(strString string) string {
+	strSanitizedString := html.EscapeString(strString)                    //escape special charatchters in HTML text
+	strSanitizedString = strings.ReplaceAll(strSanitizedString, "\r", "") //remove line breaks
+	strSanitizedString = strings.ReplaceAll(strSanitizedString, "\n", "")
+	strSanitizedString = strings.Join(strings.Fields(strSanitizedString), " ") //remove extra whitespace
+	return strSanitizedString
+}
+
 func RootHandler(config DownloadServiceConfig) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		glog.V(2).Infof("Download svc called with '%s'", r.URL.Path)
+		glog.V(2).Infof("Download svc called with '%s'", sanitizeString(r.URL.Path))
 
 		if !(strings.HasPrefix(r.URL.Path, s3Prefix)) {
 			// Return 400 since the download path is unknown
@@ -74,7 +83,8 @@ func s3Handler(
 	if reqRange != "" {
 		s3Req.SetRange(reqRange)
 	}
-	glog.V(2).Infof("Fetching s3 object %s from bucket %s", key, bucket)
+	glog.V(2).Infof("Fetching s3 object %s from bucket %s", sanitizeString(key), bucket)
+
 	result, err := s3svc.GetObject(&s3Req)
 	if err != nil {
 		glog.Errorf("Error with s3 GetObj: %s", err.Error())
