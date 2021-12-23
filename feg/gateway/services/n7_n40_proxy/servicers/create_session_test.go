@@ -23,10 +23,10 @@ import (
 	"testing"
 	"time"
 
-	"magma/feg/gateway/sbi"
 	mockPolicyDB "magma/feg/gateway/policydb/mocks"
-	sbiNpcfSMPolicyControl "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
-	sbiCommonData "magma/feg/gateway/sbi/specs/TS29571CommonData"
+	"magma/feg/gateway/sbi"
+	sbi_NpcfSMPolicyControl "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
+	sbi_CommonData "magma/feg/gateway/sbi/specs/TS29571CommonData"
 	"magma/feg/gateway/services/n7_n40_proxy/n7"
 	mockN7 "magma/feg/gateway/services/n7_n40_proxy/n7/mocks"
 	"magma/feg/gateway/services/n7_n40_proxy/servicers"
@@ -60,13 +60,13 @@ const (
 )
 
 var (
-	AccessType3gpp     = sbiCommonData.AccessType("3GPP_ACCESS")
-	DnnMagma           = sbiCommonData.Dnn(APN1)
-	Gpsi1              = sbiCommonData.Gpsi(GPSI1)
-	UeIpv4             = sbiCommonData.Ipv4Addr(UE_IPV4)
-	PduSessionTypeIpv4 = sbiCommonData.PduSessionType("IPV4")
-	RatTypeNR          = sbiCommonData.RatType("NR")
-	UeTzIST            = sbiCommonData.TimeZone("+05:30")
+	AccessType3gpp     = sbi_CommonData.AccessType("3GPP_ACCESS")
+	DnnMagma           = sbi_CommonData.Dnn(APN1)
+	Gpsi1              = sbi_CommonData.Gpsi(GPSI1)
+	UeIpv4             = sbi_CommonData.Ipv4Addr(UE_IPV4)
+	PduSessionTypeIpv4 = sbi_CommonData.PduSessionType("IPV4")
+	RatTypeNR          = sbi_CommonData.RatType("NR")
+	UeTzIST            = sbi_CommonData.TimeZone("+05:30")
 	SmPolicyUrl        = "https://example.com//npcf-smpolicycontrol/v1/sm-policies/12345"
 	ActTime            = time.Unix(1634906551, 0)
 	DeactTime          = time.Unix(1634913751, 0)
@@ -125,7 +125,7 @@ func TestCreateSessionErrResp(t *testing.T) {
 
 	mockN7.On("PostSmPoliciesWithResponse", mock.Anything,
 		mock.MatchedBy(matchSmPolicyContextData(IMSI1_NOPREFIX)),
-	).Return(&sbiNpcfSMPolicyControl.PostSmPoliciesResponse{HTTPResponse: &http.Response{StatusCode: 400}}, nil).Once()
+	).Return(&sbi_NpcfSMPolicyControl.PostSmPoliciesResponse{HTTPResponse: &http.Response{StatusCode: 400}}, nil).Once()
 
 	csr := defaultCreateSessionRequest()
 	response, err := srv.CreateSession(context.Background(), csr)
@@ -160,12 +160,14 @@ func createCentralSessionControllerForTest(t *testing.T, disableN7 bool) (*servi
 	testN7Conf := getTestN7Config(t)
 	testN7Conf.DisableN7 = disableN7
 	mockPolicyDBClient := &mockPolicyDB.PolicyDBClient{}
-	mockPolicyClient := &mockN7.ClientWithResponsesInterface{}
-	_, cloudRegistry := relay_mocks.StartMockSessionProxyResponder(t)
+	mockN7ClientWithResponsesInterface := &mockN7.ClientWithResponsesInterface{}
+	_, mockCloudRegistry := relay_mocks.StartMockSessionProxyResponder(t)
 
-	srv, err := servicers.NewCentralSessionController(testN7Conf, mockPolicyDBClient, mockPolicyClient, cloudRegistry)
+	mockN7Cli := n7.NewN7Client(testN7Conf, mockN7ClientWithResponsesInterface, mockCloudRegistry)
+
+	srv, err := servicers.NewCentralSessionController(testN7Conf, mockPolicyDBClient, mockN7Cli)
 	require.NoError(t, err)
-	return srv, mockPolicyDBClient, mockPolicyClient
+	return srv, mockPolicyDBClient, mockN7ClientWithResponsesInterface
 }
 
 func getTestN7Config(t *testing.T) *n7.N7Config {
@@ -173,13 +175,13 @@ func getTestN7Config(t *testing.T) *n7.N7Config {
 	require.NoError(t, err)
 	return &n7.N7Config{
 		DisableN7: false,
-		ServerConfig: sbi.ServerConfig{
+		ServerConfig: sbi.RemoteConfig{
 			ApiRoot:      *apiRoot,
 			TokenUrl:     TOKEN_URL,
 			ClientId:     CLIENT_ID,
 			ClientSecret: CLIENT_SECRET,
 		},
-		ClientConfig: sbi.ClientConfig{
+		ClientConfig: sbi.NotifierConfig{
 			LocalAddr:     LOCAL_ADDR,
 			NotifyApiRoot: NOTIFY_API_ROOT,
 		},
@@ -209,25 +211,25 @@ func defaultCreateSessionRequest() *protos.CreateSessionRequest {
 }
 
 func matchSmPolicyContextData(imsi string) interface{} {
-	expected := &sbiNpcfSMPolicyControl.PostSmPoliciesJSONRequestBody{
+	expected := &sbi_NpcfSMPolicyControl.PostSmPoliciesJSONRequestBody{
 		AccessType:      &AccessType3gpp,
 		Dnn:             DnnMagma,
 		Gpsi:            &Gpsi1,
 		Ipv4Address:     &UeIpv4,
-		PduSessionId:    sbiCommonData.PduSessionId(PDU_SESSION_ID),
+		PduSessionId:    sbi_CommonData.PduSessionId(PDU_SESSION_ID),
 		PduSessionType:  PduSessionTypeIpv4,
 		RatType:         &RatTypeNR,
-		Supi:            sbiCommonData.Supi(imsi),
+		Supi:            sbi_CommonData.Supi(imsi),
 		UeTimeZone:      &UeTzIST,
 		NotificationUri: n7.GenNotifyUrl(NOTIFY_API_ROOT, SESS_ID1),
 	}
 
-	return func(reqBody sbiNpcfSMPolicyControl.PostSmPoliciesJSONRequestBody) bool {
+	return func(reqBody sbi_NpcfSMPolicyControl.PostSmPoliciesJSONRequestBody) bool {
 		return reflect.DeepEqual(expected, &reqBody)
 	}
 }
 
-func createSmPolicyResponse(t *testing.T) *sbiNpcfSMPolicyControl.PostSmPoliciesResponse {
+func createSmPolicyResponse(t *testing.T) *sbi_NpcfSMPolicyControl.PostSmPoliciesResponse {
 	policyDecisionStr := `{
 		"pccRules": {
 			"rule1": {
@@ -296,11 +298,11 @@ func createSmPolicyResponse(t *testing.T) *sbiNpcfSMPolicyControl.PostSmPolicies
 	}`
 	policyDecisionStr = fmt.Sprintf(policyDecisionStr, RULE_ID1, UM_DATA1, UM_DATA1, UM_DATA1)
 	// Unmarshal json to openapi struct
-	var policyDecision sbiNpcfSMPolicyControl.SmPolicyDecision
+	var policyDecision sbi_NpcfSMPolicyControl.SmPolicyDecision
 	err := json.Unmarshal([]byte(policyDecisionStr), &policyDecision)
 	require.NoError(t, err)
 
-	return &sbiNpcfSMPolicyControl.PostSmPoliciesResponse{
+	return &sbi_NpcfSMPolicyControl.PostSmPoliciesResponse{
 		JSON201: &policyDecision,
 		HTTPResponse: &http.Response{
 			StatusCode: 201,

@@ -47,11 +47,11 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error connecting to redis store from N7_N40 Proxy: %s", err)
 	}
-	policyClient, err := n7.NewN7Client(n7config)
+	policyClient, err := n7.NewN7ClientWithHandlers(n7config, cloudReg)
 	if err != nil {
-		glog.Fatalf("Creating N7 Client failed: %s", err)
+		glog.Fatalf("Creating N7 BaseClientWithNotifier failed: %s", err)
 	}
-	sessController, err := servicers.NewCentralSessionController(n7config, dbClient, policyClient, cloudReg)
+	sessController, err := servicers.NewCentralSessionController(n7config, dbClient, policyClient)
 	if err != nil {
 		glog.Fatalf("Error creating session controller in N7_N40 Proxy: %s", err)
 	}

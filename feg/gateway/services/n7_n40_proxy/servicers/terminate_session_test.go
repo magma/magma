@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	n7_sbi "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
+	sbi_NpcfSMPolicyControl "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
 	"magma/feg/gateway/services/n7_n40_proxy/n7"
 	"magma/lte/cloud/go/protos"
 )
@@ -47,8 +47,8 @@ func TestTerminateSession(t *testing.T) {
 	srv, _, mockN7 := createCentralSessionControllerForTest(t, false)
 	defer srv.Close()
 
-	expectedArg := n7_sbi.PostSmPoliciesSmPolicyIdDeleteJSONRequestBody{
-		AccuUsageReports: &[]n7_sbi.AccuUsageReport{
+	expectedArg := sbi_NpcfSMPolicyControl.PostSmPoliciesSmPolicyIdDeleteJSONRequestBody{
+		AccuUsageReports: &[]sbi_NpcfSMPolicyControl.AccuUsageReport{
 			{
 				RefUmIds:         MON_KEY1,
 				VolUsageUplink:   n7.GetSbiVolume(UsageTx1),
@@ -65,7 +65,7 @@ func TestTerminateSession(t *testing.T) {
 	}
 
 	mockN7.On("PostSmPoliciesSmPolicyIdDeleteWithResponse", mock.Anything, POLICY_ID, expectedArg).
-		Return(&n7_sbi.PostSmPoliciesSmPolicyIdDeleteResponse{
+		Return(&sbi_NpcfSMPolicyControl.PostSmPoliciesSmPolicyIdDeleteResponse{
 			HTTPResponse: &http.Response{StatusCode: 204},
 		}, nil).Once()
 
@@ -95,7 +95,7 @@ func TestTerminateSessionErrResp(t *testing.T) {
 	defer srv.Close()
 
 	mockN7.On("PostSmPoliciesSmPolicyIdDeleteWithResponse", mock.Anything, POLICY_ID, mock.Anything).
-		Return(&n7_sbi.PostSmPoliciesSmPolicyIdDeleteResponse{
+		Return(&sbi_NpcfSMPolicyControl.PostSmPoliciesSmPolicyIdDeleteResponse{
 			HTTPResponse: &http.Response{StatusCode: 404},
 		}, nil).Once()
 

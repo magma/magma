@@ -21,11 +21,8 @@ import (
 	"github.com/golang/glog"
 
 	"magma/feg/gateway/policydb"
-	n7_sbi "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
 	"magma/feg/gateway/services/n7_n40_proxy/metrics"
 	"magma/feg/gateway/services/n7_n40_proxy/n7"
-	"magma/feg/gateway/services/n7_n40_proxy/notify"
-	"magma/gateway/service_registry"
 	"magma/lte/cloud/go/protos"
 )
 
@@ -34,37 +31,32 @@ const (
 )
 
 type CentralSessionController struct {
-	policyClient  n7_sbi.ClientWithResponsesInterface
+	policyClient  *n7.N7Client
 	dbClient      policydb.PolicyDBClient
-	cfg           *SessionControllerConfig
+	config        *SessionControllerConfig
 	healthTracker *metrics.SessionHealthTracker
-	notifHandler  *notify.NotificationHandler
 }
 
 type SessionControllerConfig struct {
-	N7Config       *n7.N7Config
+	DisableN7      bool
 	RequestTimeout time.Duration
 }
 
 func NewCentralSessionController(
 	n7config *n7.N7Config,
 	dbClient policydb.PolicyDBClient,
-	policyClient n7_sbi.ClientWithResponsesInterface,
-	cloudReg service_registry.GatewayRegistry,
+	policyClient *n7.N7Client,
 ) (*CentralSessionController, error) {
-	notifHandler, err := notify.NewStartedNotificationHandlerWithHandlers(n7config, cloudReg)
-	if err != nil {
-		return nil, err
+
+	cfg := &SessionControllerConfig{
+		DisableN7:      n7config.DisableN7,
+		RequestTimeout: DefaultN7Timeout,
 	}
 	return &CentralSessionController{
-		policyClient: policyClient,
-		dbClient:     dbClient,
-		cfg: &SessionControllerConfig{
-			N7Config:       n7config,
-			RequestTimeout: DefaultN7Timeout,
-		},
+		policyClient:  policyClient,
+		dbClient:      dbClient,
+		config:        cfg,
 		healthTracker: metrics.NewSessionHealthTracker(),
-		notifHandler:  notifHandler,
 	}, nil
 }
 
@@ -138,5 +130,5 @@ func (srv *CentralSessionController) TerminateSession(
 
 // Close gracefully shuts down the CentralSessionController
 func (srv *CentralSessionController) Close() {
-	srv.notifHandler.Shutdown()
+	srv.policyClient.NotifyServer.Server.Close()
 }
