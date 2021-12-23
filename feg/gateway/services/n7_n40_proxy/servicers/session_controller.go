@@ -52,7 +52,7 @@ func NewCentralSessionController(
 	policyClient n7_sbi.ClientWithResponsesInterface,
 	cloudReg service_registry.GatewayRegistry,
 ) (*CentralSessionController, error) {
-	notifHandler, err := notify.NewStartedNotificationHandlerWithHandlers(&n7config.Client, cloudReg)
+	notifHandler, err := notify.NewStartedNotificationHandlerWithHandlers(n7config, cloudReg)
 	if err != nil {
 		return nil, err
 	}

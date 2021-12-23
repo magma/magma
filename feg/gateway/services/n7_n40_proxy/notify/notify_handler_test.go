@@ -21,6 +21,8 @@ import (
 	"testing"
 	"time"
 
+	"magma/feg/gateway/sbi"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -101,10 +103,15 @@ func TestUpdateNotify(t *testing.T) {
 	assert.ElementsMatch(t, expectedReports, *report.RuleReports)
 }
 
-func getClientConfig() *n7.N7ClientConfig {
-	return &n7.N7ClientConfig{
+func getClientConfig() *n7.N7Config {
+	sbiClientConf := sbi.ClientConfig{
 		LocalAddr:     LOCAL_ADDR,
 		NotifyApiRoot: API_ROOT,
+	}
+	return &n7.N7Config{
+		DisableN7:    false,
+		ServerConfig: sbi.ServerConfig{},
+		ClientConfig: sbiClientConf,
 	}
 }
 

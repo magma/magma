@@ -37,7 +37,7 @@ const (
 )
 
 type MockPcf struct {
-	sbiServer *sbi.SbiServer
+	sbiServer *sbi.Server
 	policies  map[string]n7.SmPolicyControl
 }
 

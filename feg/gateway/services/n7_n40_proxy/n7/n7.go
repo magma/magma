@@ -14,31 +14,16 @@ limitations under the License.
 package n7
 
 import (
-	"context"
-	"fmt"
-	"net/http"
 	"strings"
-
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/clientcredentials"
 
 	n7_sbi "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
 )
 
 // NewN7Client creates a N7 oapi client and sets the OAuth2 client credentiatls for authorizing requests
-func NewN7Client(cfg *PCFConfig) (*n7_sbi.ClientWithResponses, error) {
-	tokenConfig := clientcredentials.Config{
-		ClientID:     cfg.ClientId,
-		ClientSecret: cfg.ClientSecret,
-		TokenURL:     cfg.TokenUrl,
-	}
-	tokenCtxt := context.WithValue(context.Background(), oauth2.HTTPClient, &http.Client{})
-	// Create new N7 client object and assosiate it with oAuth2 HTTP client
-	client, err := n7_sbi.NewClientWithResponses(
-		fmt.Sprintf("%s://%s", cfg.ApiRoot.Scheme, cfg.ApiRoot.Host),
-		n7_sbi.WithHTTPClient(tokenConfig.Client(tokenCtxt)),
-	)
-	return client, err
+func NewN7Client(cfg *N7Config) (*n7_sbi.ClientWithResponses, error) {
+	n7Options := n7_sbi.WithHTTPClient(cfg.ServerConfig.BuildHttpClient())
+	serverString := cfg.ServerConfig.BuildServerString()
+	return n7_sbi.NewClientWithResponses(serverString, n7Options)
 }
 
 func removeIMSIPrefix(imsi string) string {

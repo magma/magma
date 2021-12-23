@@ -47,7 +47,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error connecting to redis store from N7_N40 Proxy: %s", err)
 	}
-	policyClient, err := n7.NewN7Client(&n7config.Server)
+	policyClient, err := n7.NewN7Client(n7config)
 	if err != nil {
 		glog.Fatalf("Creating N7 Client failed: %s", err)
 	}

@@ -38,7 +38,7 @@ func (srv *CentralSessionController) getSmPolicyRules(
 		}, "", nil
 	}
 	// Convert and send the request to PCF
-	reqBody := n7.GetSmPolicyContextDataN7(request, srv.cfg.N7Config.Client.NotifyApiRoot)
+	reqBody := n7.GetSmPolicyContextDataN7(request, srv.cfg.N7Config.ClientConfig.NotifyApiRoot)
 	reqCtx, cancel := context.WithTimeout(context.Background(), srv.cfg.RequestTimeout)
 	defer cancel()
 	resp, err := srv.policyClient.PostSmPoliciesWithResponse(reqCtx, *reqBody)

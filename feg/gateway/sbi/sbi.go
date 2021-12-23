@@ -15,51 +15,67 @@ package sbi
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
 )
 
-type SbiServer struct {
+type Server struct {
 	Server     *echo.Echo
 	ListenAddr string
 }
 
-func NewSbiServer(listenAddr string) *SbiServer {
-	return &SbiServer{
+type ServerConfig struct {
+	ApiRoot      url.URL
+	TokenUrl     string
+	ClientId     string
+	ClientSecret string
+}
+
+type ClientConfig struct {
+	LocalAddr     string // ip:port or :port
+	NotifyApiRoot string
+}
+
+func NewSbiServer(listenAddr string) *Server {
+	return &Server{
 		Server:     echo.New(),
 		ListenAddr: listenAddr,
 	}
 }
 
-func (sbiServer *SbiServer) Start() error {
+func (s *Server) Start() error {
 	errChan := make(chan error)
-	addr, err := net.ResolveTCPAddr("tcp", sbiServer.ListenAddr)
+	addr, err := net.ResolveTCPAddr("tcp", s.ListenAddr)
 	if err != nil {
 		return err
 	}
 
 	go func() {
-		err = sbiServer.Server.Start(addr.String())
+		err = s.Server.Start(addr.String())
 		if err != nil {
 			errChan <- err
 		}
 	}()
 
-	return sbiServer.waitForServer(errChan)
+	return s.waitForServer(errChan)
 }
 
-func (sbiServer *SbiServer) Shutdown(timeout time.Duration) {
+func (s *Server) Shutdown(timeout time.Duration) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	sbiServer.Server.Shutdown(ctx)
+	s.Server.Shutdown(ctx)
 }
 
 // waitForServer waits for the Echo server to be launched.
-func (sbiServer *SbiServer) waitForServer(errChan <-chan error) error {
+func (s *Server) waitForServer(errChan <-chan error) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
@@ -71,10 +87,10 @@ func (sbiServer *SbiServer) waitForServer(errChan <-chan error) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			addr := sbiServer.Server.ListenerAddr()
+			addr := s.Server.ListenerAddr()
 			if addr != nil && strings.Contains(addr.String(), ":") {
 				// server started
-				sbiServer.ListenAddr = addr.String()
+				s.ListenAddr = addr.String()
 				return nil
 			}
 		case err := <-errChan:
@@ -85,4 +101,19 @@ func (sbiServer *SbiServer) waitForServer(errChan <-chan error) error {
 			return err
 		}
 	}
+}
+
+func (s ServerConfig) BuildServerString() string {
+	return fmt.Sprintf("%s://%s", s.ApiRoot.Scheme, s.ApiRoot.Host)
+}
+
+// BuildHttpClient returns an HTTP client to use with any sbi client
+func (s ServerConfig) BuildHttpClient() *http.Client {
+	tokenConfig := clientcredentials.Config{
+		ClientID:     s.ClientId,
+		ClientSecret: s.ClientSecret,
+		TokenURL:     s.TokenUrl,
+	}
+	tokenCtxt := context.WithValue(context.Background(), oauth2.HTTPClient, &http.Client{})
+	return tokenConfig.Client(tokenCtxt)
 }

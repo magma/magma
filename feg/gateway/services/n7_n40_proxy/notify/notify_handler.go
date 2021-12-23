@@ -47,18 +47,18 @@ const (
 )
 
 type NotificationHandler struct {
-	config        *n7.N7ClientConfig
-	NotifyServer  *sbi.SbiServer
+	config        *n7.N7Config
+	NotifyServer  *sbi.Server
 	cloudRegistry service_registry.GatewayRegistry
 }
 
 func NewStartedNotificationHandlerWithHandlers(
-	config *n7.N7ClientConfig,
+	n7config *n7.N7Config,
 	cloudReg service_registry.GatewayRegistry,
 ) (*NotificationHandler, error) {
 	handler := &NotificationHandler{
-		config:        config,
-		NotifyServer:  sbi.NewSbiServer(config.LocalAddr),
+		config:        n7config,
+		NotifyServer:  sbi.NewSbiServer(n7config.ClientConfig.LocalAddr),
 		cloudRegistry: cloudReg,
 	}
 	err := handler.registerHandlers()
@@ -83,7 +83,7 @@ func NewStartedNotificationHandlerWithHandlers(
 //      operation = update
 // This notification url is send to PCF in the SmPolicyCreate request
 func (handler *NotificationHandler) registerHandlers() error {
-	urlDef, err := url.ParseRequestURI(handler.config.NotifyApiRoot)
+	urlDef, err := url.ParseRequestURI(handler.config.ClientConfig.NotifyApiRoot)
 	if err != nil {
 		return fmt.Errorf("error parsing notify api root - %s", err)
 	}
