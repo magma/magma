@@ -11,6 +11,7 @@ build:production --config=lsan --compilation_mode=dbg --strip=never --copt=-O3
 build --cxxopt=-std=c++14
 build --cxxopt=-DLOG_WITH_GLOG=1
 build --experimental_strict_action_env
+build --linkopt=-fuse-ld=lld
 
 # MAGMA VM CONFIGS
 build:specify_vm_cc --action_env=CC=/usr/bin/gcc
