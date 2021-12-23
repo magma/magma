@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load(":python_toolchain.bzl", "configure_python_toolchain")
+exports_files(["python_bin"])
 
-configure_python_toolchain()
+filegroup(
+    name = "files",
+    srcs = glob(["bazel_install/**"], exclude = ["**/* *"]),
+    visibility = ["//visibility:public"],
+)
