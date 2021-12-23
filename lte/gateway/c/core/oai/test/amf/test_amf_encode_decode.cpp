@@ -1655,7 +1655,7 @@ TEST(PDU_SESSION_MODIFICATION, PDU_SESSION_MODFICIATION_COMMAND_MSG) {
   EXPECT_EQ(
       64, pdu_sess_mod_cmd.EncodePDUSessionModificationCommand(
               &pdu_sess_mod_cmd, buffer, len));
-  // verify decoding is succesful
+  // verify decoding is successful
   EXPECT_EQ(
       64, pdu_sess_mod_cmd.DecodePDUSessionModificationCommand(
               &decode_pdu_sess_mod_cmd, buffer, len));

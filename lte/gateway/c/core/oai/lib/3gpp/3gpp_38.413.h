@@ -167,7 +167,6 @@ typedef struct Ngap_PDUSession_Resource_Failed_To_Setup_List_s {
 typedef struct Ngap_PDUSession_Resource_Failed_To_Modify_List_s {
   uint16_t no_of_items;
   pdusession_resource_failed_To_modify_item_t item[MAX_NO_OF_PDUSESSIONS];
-
 } Ngap_PDUSession_Resource_Failed_To_Modify_List_t;
 
 typedef struct Ngap_PduSession_Resource_Modify_Response_Transfer_s {
@@ -177,7 +176,6 @@ typedef struct Ngap_PduSession_Resource_Modify_Response_Transfer_s {
   qos_flow_request_list_t additional_dl_qos_flow_per_tnl_info;
   qos_flow_list_cause_t qos_flow_failed_to_add_or_modify_list;
   qos_flow_request_list_t additional_ng_u_up_tnl_info;
-
 } Ngap_PduSession_Resource_Modify_Response_Transfer_t;
 
 typedef struct pdusession_modify_response_item_s {
@@ -193,7 +191,6 @@ typedef struct pdusession_modify_response_item_s {
 typedef struct Ngap_PDUSession_Resource_Modify_Response_List_s {
   uint16_t no_of_items;
   pdusession_modify_response_item_t item[MAX_NO_OF_PDUSESSIONS];
-
 } Ngap_PDUSession_Resource_Modify_Response_List_t;
 
 typedef struct pdusession_resource_released_item_t_s {

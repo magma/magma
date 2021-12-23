@@ -92,6 +92,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           &N11_CREATE_PDU_SESSION_RESPONSE(received_message_p));
       is_task_state_same = true;
       break;
+    case N11_PDU_SESSION_MODIFICATION_REQUEST:
+      break;
     case AMF_APP_SUBS_AUTH_INFO_RESP:
       amf_nas_proc_authentication_info_answer(
           &AMF_APP_AUTH_RESPONSE_DATA(received_message_p));
