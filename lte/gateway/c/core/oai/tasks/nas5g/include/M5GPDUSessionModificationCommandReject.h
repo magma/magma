@@ -27,7 +27,6 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GProtocolConfigurationOptions.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMCause.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQOSRules.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQosFlowDescriptor.h"
 
 namespace magma5g {

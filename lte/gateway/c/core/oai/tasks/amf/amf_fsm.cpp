@@ -59,7 +59,13 @@ static UE_Handlers_t UE_handlers[] = {
     {"PDU_Created",
      reinterpret_cast<void (*)(void)>(&amf_app_handle_pdu_session_accept)},
     {"PDU_Release",
-     reinterpret_cast<void (*)(void)>(&release_session_gprc_req)}};
+     reinterpret_cast<void (*)(void)>(&release_session_gprc_req)},
+    {"Pdu_Session_Modification_Request",
+     reinterpret_cast<void (*)(void)>(&amf_app_pdu_session_modification_request)},
+    {"Pdu_Session_Modification_Complete",
+     reinterpret_cast<void (*)(void)>(&amf_app_pdu_session_modification_Complete)},
+    {"Pdu_Session_Modification_Reject",
+     reinterpret_cast<void (*)(void)>(&amf_app_pdu_session_modification_Reject)}};
 
 /*
  * Update ue_state_matrix
@@ -157,6 +163,18 @@ void create_state_matrix() {
   Update_ue_state_matrix(
       DEREGISTERED, STATE_PDU_SESSION_RELEASE_COMPLETE, SESSION_NULL,
       DEREGISTERED, SESSION_NULL, "PDU_Release");
+
+  Update_state_matrix(
+      REGISTERED_CONNECTED, STATE_PDU_SESSION_MODIFICATION_REQUEST, SESSION_ACTIVE,
+      REGISTERED_CONNECTED, SESSION_MODIFICATION, "PDU_Session_Modification_Request");
+
+  Update_state_matrix(
+      REGISTERED_CONNECTED, STATE_PDU_SESSION_MODIFICATION_COMPLETE, SESSION_MODIFICATION,
+      REGISTERED_CONNECTED, ACTIVE, "PDU_Session_Modification_Complete");
+
+  Update_state_matrix(
+      REGISTERED_CONNECTED, STATE_PDU_SESSION_MODIFICATION_REJECT, SESSION_MODIFICATION,
+      REGISTERED_CONNECTED, ACTIVE, "PDU_Session_Modification_Reject");
 }
 
 /*
@@ -327,6 +345,15 @@ std::string get_state_event_string(state_events event) {
       break;
     case STATE_EVENT_CONTEXT_RELEASE:
       eventStr = "STATE_EVENT_CONTEXT_RELEASE";
+      break;
+    case STATE_PDU_SESSION_MODIFICATION_REQUEST:
+      eventStr = "STATE_PDU_SESSION_MODIFICATION_REQUEST";
+      break;
+    case STATE_PDU_SESSION_MODIFICATION_COMPLETE:
+      eventStr = "STATE_PDU_SESSION_MODIFICATION_COMPLETE";
+      break;
+    case STATE_PDU_SESSION_MODIFICATION_REJECT:
+      eventStr = "STATE_PDU_SESSION_MODIFICATION_REJECT;
       break;
     default:
       eventStr = "UNKNOWN_EVENT";
