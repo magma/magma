@@ -372,3 +372,7 @@ class IPAllocatorTests(unittest.TestCase):
         self.assertTrue(
             ip1 in self._allocator.list_allocated_ips(self._block),
         )
+
+
+if __name__ == '__main__':
+    unittest.main()

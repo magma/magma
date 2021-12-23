@@ -95,3 +95,7 @@ class TestIPV6Allocator(unittest.TestCase):
             {},
             self._allocator._store.sid_session_prefix_allocated,
         )
+
+
+if __name__ == '__main__':
+    unittest.main()

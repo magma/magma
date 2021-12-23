@@ -535,3 +535,7 @@ class StaticIPAllocationTests(unittest.TestCase):
 
         with self.assertRaises(DuplicateIPAssignmentError):
             ip0, _ = self._allocator.alloc_ip_address(sid)
+
+
+if __name__ == '__main__':
+    unittest.main()

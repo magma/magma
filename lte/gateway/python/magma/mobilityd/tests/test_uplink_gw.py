@@ -265,3 +265,7 @@ class DefGwTestIpv6(unittest.TestCase):
 
         expected = gw_list_to_set([gw4, gw6])
         self.assertEqual(gw_list_to_set(gw_list), expected)
+
+
+if __name__ == '__main__':
+    unittest.main()

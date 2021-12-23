@@ -160,3 +160,7 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
             self.assertEqual("should not", "reach here")
         except MappingNotFoundError:
             pass
+
+
+if __name__ == '__main__':
+    unittest.main()

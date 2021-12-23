@@ -439,3 +439,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         self.check_type(sid, IPType.IP_POOL)
         self.check_vlan(sid, 0)
         self.check_gw_info(vlan, None, None)
+
+
+if __name__ == '__main__':
+    unittest.main()

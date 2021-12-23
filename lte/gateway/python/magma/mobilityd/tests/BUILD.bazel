@@ -1,0 +1,129 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_python//python:defs.bzl", "py_test")
+load("@python_deps//:requirements.bzl", "requirement")
+
+DEPS = [
+    "//lte/gateway/python/magma/mobilityd",
+    requirement("fakeredis"),
+    requirement("freezegun"),
+]
+
+# 2021/12/21  TEST NEED TO BE REFACTORED FOR BAZEL
+# py_test(
+#     name = "test_dhcp_client",
+#     size = "small",
+#     srcs = ["test_dhcp_client.py"],
+#     legacy_create_init = False,
+#     tags = [
+#         "mobilityd",
+#         "unittest",
+#     ],
+#     deps = DEPS,
+# )
+
+# 2021/12/21  TEST NEED TO BE REFACTORED FOR BAZEL
+# py_test(
+#     name = "ip_alloc_dhcp_test",
+#     size = "small",
+#     srcs = ["ip_alloc_dhcp_test.py"],
+#     legacy_create_init = False,
+#     tags = [
+#         "mobilityd",
+#         "unittest",
+#     ],
+#     deps = DEPS,
+# )
+
+py_test(
+    name = "ip_allocator_dhcp_mac_addr_test",
+    size = "small",
+    srcs = ["ip_allocator_dhcp_mac_addr_test.py"],
+    legacy_create_init = False,
+    tags = [
+        "mobilityd",
+        "unittest",
+    ],
+    deps = DEPS,
+)
+
+py_test(
+    name = "test_ipv6_allocator",
+    size = "small",
+    srcs = ["test_ipv6_allocator.py"],
+    legacy_create_init = False,
+    tags = [
+        "mobilityd",
+        "unittest",
+    ],
+    deps = DEPS,
+)
+
+py_test(
+    name = "test_multi_apn_ip_alloc",
+    size = "small",
+    srcs = ["test_multi_apn_ip_alloc.py"],
+    legacy_create_init = False,
+    tags = [
+        "mobilityd",
+        "unittest",
+    ],
+    deps = DEPS,
+)
+
+py_test(
+    name = "test_static_ip_alloc",
+    size = "small",
+    srcs = ["test_static_ip_alloc.py"],
+    legacy_create_init = False,
+    tags = [
+        "mobilityd",
+        "unittest",
+    ],
+    deps = DEPS,
+)
+
+py_test(
+    name = "test_static_ipv6_alloc",
+    size = "small",
+    srcs = ["test_static_ipv6_alloc.py"],
+    legacy_create_init = False,
+    tags = [
+        "mobilityd",
+        "unittest",
+    ],
+    deps = DEPS,
+)
+
+py_test(
+    name = "test_uplink_gw",
+    size = "small",
+    srcs = ["test_uplink_gw.py"],
+    legacy_create_init = False,
+    tags = [
+        "mobilityd",
+        "unittest",
+    ],
+    deps = DEPS,
+)
+
+py_test(
+    name = "ip_allocator_tests",
+    size = "small",
+    srcs = ["ip_allocator_tests.py"],
+    legacy_create_init = False,
+    tags = [
+        "mobilityd",
+        "unittest",
+    ],
+    deps = DEPS,
+)

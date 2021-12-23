@@ -331,3 +331,7 @@ class DhcpClient(unittest.TestCase):
                 self._last_xid,
                 self._get_state_xid(mac, vlan),
             )
+
+
+if __name__ == '__main__':
+    unittest.main()

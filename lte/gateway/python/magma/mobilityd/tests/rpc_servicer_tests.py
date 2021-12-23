@@ -809,3 +809,7 @@ class RpcTests(unittest.TestCase):
             apn=self._apn0,
         )
         self._stub.ReleaseIPAddress(release_request)
+
+
+if __name__ == '__main__':
+    unittest.main()
