@@ -15,20 +15,25 @@
 #include <arpa/inet.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <unistd.h>
 
-#include "ProxyConnector.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/li_agent/src/ProxyConnector.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 namespace magma {
 namespace lte {
 
-ProxyConnectorImpl::ProxyConnectorImpl(
-    const std::string& proxy_addr, const int proxy_port,
-    const std::string& cert_file, const std::string& key_file)
+ProxyConnectorImpl::ProxyConnectorImpl(const std::string& proxy_addr,
+                                       const int proxy_port,
+                                       const std::string& cert_file,
+                                       const std::string& key_file)
     : proxy_addr_(proxy_addr),
       proxy_port_(proxy_port),
       cert_file_(cert_file),
-      key_file_(key_file) {}
+      key_file_(key_file),
+      ssl_(nullptr),
+      ctx_(nullptr),
+      proxy_(-1) {}
 
 int ProxyConnectorImpl::setup_proxy_socket() {
   SSL_library_init();
@@ -93,16 +98,16 @@ int ProxyConnectorImpl::open_connection() {
   int sd;
   struct sockaddr_in serv_addr;
 
-  sd                        = socket(AF_INET, SOCK_STREAM, 0);
-  serv_addr.sin_family      = AF_INET;
+  sd = socket(AF_INET, SOCK_STREAM, 0);
+  serv_addr.sin_family = AF_INET;
   serv_addr.sin_addr.s_addr = INADDR_ANY;
-  serv_addr.sin_port        = htons(proxy_port_);
+  serv_addr.sin_port = htons(proxy_port_);
 
   if (inet_pton(AF_INET, proxy_addr_.c_str(), &serv_addr.sin_addr) <= 0) {
     MLOG(MERROR) << "Invalid address/ Address not supported";
     return -1;
   }
-  if (connect(sd, (struct sockaddr*) &serv_addr, sizeof(struct sockaddr_in)) !=
+  if (connect(sd, (struct sockaddr*)&serv_addr, sizeof(struct sockaddr_in)) !=
       0) {
     MLOG(MERROR) << "Can't connect to the proxy, exiting";
     close(sd);
@@ -116,10 +121,21 @@ int ProxyConnectorImpl::send_data(void* data, uint32_t size) {
 }
 
 void ProxyConnectorImpl::cleanup() {
-  SSL_free(ssl_);
-  close(proxy_);
-  SSL_CTX_free(ctx_);
+  if (ssl_ != nullptr) {
+    SSL_free(ssl_);
+    ssl_ = nullptr;
+  }
+  if (proxy_ != -1) {
+    close(proxy_);
+    proxy_ = -1;
+  }
+  if (ctx_ != nullptr) {
+    SSL_CTX_free(ctx_);
+    ctx_ = nullptr;
+  }
 }
+
+ProxyConnectorImpl::~ProxyConnectorImpl() { cleanup(); }
 
 }  // namespace lte
 }  // namespace magma

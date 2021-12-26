@@ -16,7 +16,7 @@
 #include <stdint.h>                       // for uint32_t
 #include <functional>                     // for function
 #include <memory>                         // for unique_ptr
-#include "includes/GRPCReceiver.h"        // for GRPCReceiver
+#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.h"  // for GRPCReceiver
 namespace grpc {
 class Status;
 }
@@ -57,9 +57,8 @@ class AsyncEventdClient : public GRPCReceiver, public EventdClient {
 
   static AsyncEventdClient& getInstance();
 
-  void log_event(
-      const orc8r::Event& request,
-      std::function<void(Status status, orc8r::Void)> callback);
+  void log_event(const orc8r::Event& request,
+                 std::function<void(Status status, orc8r::Void)> callback);
 
  private:
   AsyncEventdClient();

@@ -32,9 +32,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "queue.h"
-#include "bstrlib.h"
-#include "pgw_types.h"
+#include "lte/gateway/c/core/oai/common/queue.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/include/pgw_types.h"
 
 #define PGW_CONFIG_STRING_PGW_CONFIG "P-GW"
 #define PGW_CONFIG_STRING_NETWORK_INTERFACES_CONFIG "NETWORK_INTERFACES"

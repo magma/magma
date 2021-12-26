@@ -9,9 +9,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
 cc_binary(
-    name = "main",
+    name = "connectiond",
     srcs = ["main.cpp"],
+    copts = [
+        "-DLOG_WITH_GLOG",
+    ],
     deps = [
         ":event_tracker",
         "//lte/protos:mconfigs_cpp_proto",
@@ -36,6 +41,6 @@ cc_library(
     hdrs = ["PacketGenerator.h"],
     deps = [
         "//orc8r/gateway/c/common/logging",
-        "@system_libraries//:libtins",
+        "@libtins",
     ],
 )

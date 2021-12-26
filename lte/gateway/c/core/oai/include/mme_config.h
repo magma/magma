@@ -41,15 +41,15 @@
 #include <stdint.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
-#include "mme_default_values.h"
-#include "common_types.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "log.h"
-#include "service303.h"
-#include "hashtable.h"
-#include "obj_hashtable.h"
-#include "includes/SentryWrapper.h"
+#include "lte/gateway/c/core/oai/common/mme_default_values.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
 
 /* Currently supporting max 5 GUMMEI's in the mme configuration */
 #define MIN_GUMMEI 1
@@ -307,6 +307,8 @@ typedef struct nas_config_s {
   uint8_t prefered_ciphering_algorithm[8];
   uint32_t t3402_min;
   uint32_t t3412_min;
+  uint32_t t3412_msec;  // keeping t3412_min as it is used to communicate to UE
+                        // and to prevent back and forth conversions
   uint32_t t3422_msec;
   uint32_t t3450_msec;
   uint32_t t3460_msec;
@@ -317,6 +319,7 @@ typedef struct nas_config_s {
   uint32_t t3495_msec;
   uint32_t ts6a_msec;
   uint32_t tics_msec;
+  uint32_t tpaging_msec;
   // non standard features
   bool force_reject_tau;
   bool force_reject_sr;
@@ -460,7 +463,7 @@ void mme_config_exit(void);
 void free_mme_config(mme_config_t* mme_config);
 void clear_served_tai_config(served_tai_t* served_tai);
 
-void free_partial_lists(partial_list_t** partialList, uint8_t num_par_lists);
+void free_partial_lists(partial_list_t* partialList, uint8_t num_par_lists);
 
 #define mme_config_read_lock(mMEcONFIG)                                        \
   pthread_rwlock_rdlock(&(mMEcONFIG)->rw_lock)

@@ -10,15 +10,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <chrono>
+#include <folly/io/async/EventBase.h>
+#include <glog/logging.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <grpcpp/impl/codegen/status_code_enum.h>
+#include <ostream>
 #include <string>
-#include <thread>
 
 #include "EnumToString.h"
 #include "GrpcMagmaUtils.h"
-#include "magma_logging.h"
-#include "includes/SentryWrapper.h"
+#include "LocalEnforcer.h"
 #include "SessionProxyResponderHandler.h"
+#include "SessionStore.h"
+#include "includes/SentryWrapper.h"
+#include "lte/protos/abort_session.pb.h"
+#include "lte/protos/session_manager.pb.h"
+#include "magma_logging.h"
+
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
 
 using grpc::Status;
 
@@ -56,10 +72,10 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
     } else {
       // Todo If update fails, we should rollback changes from the request
       MLOG(MERROR) << "Failed to update Gy (Charging) ReAuthRequest changes...";
-      auto status = Status(
-          grpc::ABORTED,
-          "ChargingReAuth no longer valid due to another update that "
-          "updated the session first.");
+      auto status =
+          Status(grpc::ABORTED,
+                 "ChargingReAuth no longer valid due to another update that "
+                 "updated the session first.");
       PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
     }
     response_callback(status, ans);
@@ -95,10 +111,10 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
     } else {
       // Todo If update fails, we should rollback changes from the request
       MLOG(MERROR) << "Failed to update Gx (Policy) ReAuthRequest changes...";
-      auto status = Status(
-          grpc::ABORTED,
-          "PolicyReAuth no longer valid due to another update that "
-          "updated the session first.");
+      auto status =
+          Status(grpc::ABORTED,
+                 "PolicyReAuth no longer valid due to another update that "
+                 "updated the session first.");
       PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
       response_callback(status, ans);
     }

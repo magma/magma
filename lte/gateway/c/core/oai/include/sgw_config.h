@@ -29,9 +29,9 @@
 #include <netinet/in.h>
 #include <pthread.h>
 
-#include "log.h"
-#include "bstrlib.h"
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 
 #define SGW_CONFIG_STRING_SGW_CONFIG "S-GW"
 #define SGW_CONFIG_STRING_NETWORK_INTERFACES_CONFIG "NETWORK_INTERFACES"
@@ -42,6 +42,10 @@
   "SGW_IPV4_ADDRESS_FOR_S1U_S12_S4_UP"
 #define SGW_CONFIG_STRING_SGW_PORT_FOR_S1U_S12_S4_UP                           \
   "SGW_IPV4_PORT_FOR_S1U_S12_S4_UP"
+#define SGW_CONFIG_STRING_SGW_IPV6_ADDRESS_FOR_S1U_S12_S4_UP                   \
+  "SGW_IPV6_ADDRESS_FOR_S1U_S12_S4_UP"
+#define SGW_CONFIG_STRING_SGW_V6_PORT_FOR_S1U_S12_S4_UP                        \
+  "SGW_IPV6_PORT_FOR_S1U_S12_S4_UP"
 #define SGW_CONFIG_STRING_SGW_INTERFACE_NAME_FOR_S5_S8_UP                      \
   "SGW_INTERFACE_NAME_FOR_S5_S8_UP"
 #define SGW_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S5_S8_UP                        \
@@ -107,9 +111,13 @@ typedef struct sgw_config_s {
   } ipv4;
 
   struct {
+    bstring if_name_S1u_S12_S4_up;
+    struct in6_addr S1u_S12_S4_up;
+
     bool s1_ipv6_enabled;
   } ipv6;
   uint16_t udp_port_S1u_S12_S4_up;
+  uint16_t udp_port_S1u_S12_S4_up_v6;
 
   bool local_to_eNB;
 #if (!EMBEDDED_SGW)

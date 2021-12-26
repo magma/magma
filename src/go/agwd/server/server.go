@@ -18,19 +18,25 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/magma/magma/src/go/capture"
+	capturepb "github.com/magma/magma/src/go/protos/magma/capture"
+	configpb "github.com/magma/magma/src/go/protos/magma/config"
+	service_capture "github.com/magma/magma/src/go/service/capture"
+	service_config "github.com/magma/magma/src/go/service/config"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
 	"github.com/magma/magma/src/go/agwd/config"
 	"github.com/magma/magma/src/go/log"
+	pipelinedpb "github.com/magma/magma/src/go/protos/magma/pipelined"
 	sctpdpb "github.com/magma/magma/src/go/protos/magma/sctpd"
 	"github.com/magma/magma/src/go/service"
+	"github.com/magma/magma/src/go/service/pipelined"
 	"github.com/magma/magma/src/go/service/sctpd"
 )
 
 func newServiceRouter(cfgr config.Configer) service.Router {
-	sctpdDownstreamConn, err := grpc.Dial(
-		cfgr.Config().GetSctpdDownstreamServiceTarget(), grpc.WithInsecure())
+	sctpdDownstreamConn, err := grpc.Dial(cfgr.Config().GetSctpdDownstreamServiceTarget(), grpc.WithInsecure())
 	if err != nil {
 		panic(err)
 	}
@@ -39,6 +45,7 @@ func newServiceRouter(cfgr config.Configer) service.Router {
 	if err != nil {
 		panic(err)
 	}
+
 	return service.NewRouter(
 		sctpdpb.NewSctpdDownlinkClient(sctpdDownstreamConn),
 		sctpdpb.NewSctpdUplinkClient(mmeGrpcConn),
@@ -85,7 +92,7 @@ func cleanupUnixSocketOrDie(logger log.Logger, path string) {
 }
 
 func startSctpdDownlinkServer(
-	cfgr config.Configer, logger log.Logger, sr service.Router,
+	cfgr config.Configer, logger log.Logger, sr service.Router, so ...grpc.ServerOption,
 ) {
 	target := config.ParseTarget(cfgr.Config().GetMmeSctpdDownstreamServiceTarget())
 	if target.Scheme == "unix" {
@@ -102,16 +109,28 @@ func startSctpdDownlinkServer(
 			target.Endpoint))
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(so...)
 	sctpdDownlinkServer := sctpd.NewProxyDownlinkServer(logger, sr)
 	sctpdpb.RegisterSctpdDownlinkServer(grpcServer, sctpdDownlinkServer)
-	go grpcServer.Serve(listener)
+	go func() {
+		if err := grpcServer.Serve(listener); err != nil {
+			panic(errors.Wrapf(
+				err,
+				"startSctpdDownlinkServer(network=%s, address=%s)",
+				target.Scheme,
+				target.Endpoint))
+		}
+	}()
 }
 
 func startSctpdUplinkServer(
-	cfgr config.Configer, logger log.Logger, sr service.Router,
+	cfgr config.Configer, logger log.Logger, sr service.Router, so ...grpc.ServerOption,
 ) {
 	target := config.ParseTarget(cfgr.Config().GetSctpdUpstreamServiceTarget())
+	if target.Scheme == "unix" {
+		cleanupUnixSocketOrDie(logger, target.Endpoint)
+	}
+
 	listener, err := net.Listen(target.Scheme, target.Endpoint)
 	if err != nil {
 		panic(errors.Wrapf(
@@ -121,14 +140,92 @@ func startSctpdUplinkServer(
 			target.Endpoint))
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(so...)
 	sctpdUplinkServer := sctpd.NewProxyUplinkServer(logger, sr)
 	sctpdpb.RegisterSctpdUplinkServer(grpcServer, sctpdUplinkServer)
+	go func() {
+		if err := grpcServer.Serve(listener); err != nil {
+			panic(errors.Wrapf(
+				err,
+				"startSctpdUplinkServer(network=%s, address=%s)",
+				target.Scheme,
+				target.Endpoint))
+		}
+	}()
+}
+
+func startPipelinedServer(cfgr config.Configer, logger log.Logger) {
+	target := config.ParseTarget(cfgr.Config().GetPipelinedServiceTarget())
+	listener, err := net.Listen(target.Scheme, target.Endpoint)
+
+	if err != nil {
+		panic(errors.Wrapf(
+			err,
+			"net.Listen(network=%s, address=%s)",
+			target.Scheme,
+			target.Endpoint))
+	}
+	grpcServer := grpc.NewServer()
+	pipelinedServer := pipelined.NewPipelinedServer(logger)
+	pipelinedpb.RegisterPipelinedServer(grpcServer, pipelinedServer)
+	go func() {
+		if err := grpcServer.Serve(listener); err != nil {
+			panic(errors.Wrapf(
+				err,
+				"startPipelinedServer(network=%s, address=%s)",
+				target.Scheme,
+				target.Endpoint))
+		}
+	}()
+}
+
+func startCaptureServer(
+	cfgr config.Configer, logger log.Logger, buf *capture.Buffer,
+) {
+	address := fmt.Sprintf(":%s", cfgr.Config().GetCaptureServicePort())
+	listener, err := net.Listen(config.TCP, address)
+	if err != nil {
+		panic(errors.Wrapf(
+			err,
+			"net.Listen(network=%s, address=%s)",
+			config.TCP,
+			address))
+	}
+
+	grpcServer := grpc.NewServer()
+	captureServer := service_capture.NewCaptureServer(logger, buf)
+	capturepb.RegisterCaptureServer(grpcServer, captureServer)
+	go grpcServer.Serve(listener)
+}
+
+func startConfigServer(
+	cfgr config.Configer, logger log.Logger,
+) {
+	address := fmt.Sprintf(":%s", cfgr.Config().GetConfigServicePort())
+
+	listener, err := net.Listen(config.TCP, address)
+	if err != nil {
+		panic(errors.Wrapf(
+			err,
+			"net.Listen(network=%s, address=%s)",
+			config.TCP,
+			address))
+	}
+
+	grpcServer := grpc.NewServer()
+	configServer := service_config.NewConfigServer(logger, cfgr)
+	configpb.RegisterConfigServer(grpcServer, configServer)
 	go grpcServer.Serve(listener)
 }
 
 func Start(cfgr config.Configer, logger log.Logger) {
+	buf := capture.NewBuffer()
+	mw := capture.NewMiddleware(cfgr, buf)
+	serverOptions := mw.GetServerOptions()
 	sr := newServiceRouter(cfgr)
-	startSctpdDownlinkServer(cfgr, logger, sr)
-	startSctpdUplinkServer(cfgr, logger, sr)
+	startConfigServer(cfgr, logger)
+	startCaptureServer(cfgr, logger, buf)
+	startSctpdDownlinkServer(cfgr, logger, sr, serverOptions...)
+	startSctpdUplinkServer(cfgr, logger, sr, serverOptions...)
+	startPipelinedServer(cfgr, logger)
 }

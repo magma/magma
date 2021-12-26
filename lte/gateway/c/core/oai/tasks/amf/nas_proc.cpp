@@ -18,6 +18,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+
 #ifdef __cplusplus
 }
 #endif
@@ -31,11 +33,14 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
 
 extern amf_config_t amf_config;
 namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 AmfMsg amf_msg_obj;
+extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 static int identification_t3570_handler(zloop_t* loop, int timer_id, void* arg);
 int nas_proc_establish_ind(
     const amf_ue_ngap_id_t ue_id, const bool is_mm_ctx_new,
@@ -272,7 +277,7 @@ static int identification_t3570_handler(
   amf_context_t* amf_ctx = NULL;
   OAILOG_FUNC_IN(LOG_NAS_AMF);
 
-  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+  if (!amf_pop_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3570: Invalid Timer Id expiration, timer Id: %u\n",
         timer_id);
@@ -469,13 +474,120 @@ int amf_nas_proc_authentication_info_answer(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
+int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
+  imsi64_t imsi64                = INVALID_IMSI64;
+  int rc                         = RETURNerror;
+  amf_context_t* amf_ctxt_p      = NULL;
+  ue_m5gmm_context_s* ue_context = NULL;
+  int amf_cause                  = -1;
+
+  // Local imsi to be put in imsi defined in 3gpp_23.003.h
+  supi_as_imsi_t supi_imsi;
+  amf_guti_m5g_t amf_guti;
+  guti_and_amf_id_t guti_and_amf_id;
+  const bool is_amf_ctx_new = true;
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+
+  ue_context = amf_ue_context_exists_amf_ue_ngap_id(aia->ue_id);
+
+  IMSI_STRING_TO_IMSI64((char*) aia->imsi, &imsi64);
+
+  OAILOG_DEBUG(LOG_AMF_APP, "Handling imsi " IMSI_64_FMT "\n", imsi64);
+
+  if (ue_context) {
+    amf_ctxt_p = &ue_context->amf_context;
+  }
+
+  if (!(amf_ctxt_p)) {
+    OAILOG_ERROR(
+        LOG_NAS_AMF, "That's embarrassing as we don't know this IMSI\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
+
+  amf_ue_ngap_id_t amf_ue_ngap_id = ue_context->amf_ue_ngap_id;
+
+  OAILOG_DEBUG(
+      LOG_NAS_AMF,
+      "Received decrypted imsi Information Answer from Subscriberdb for"
+      " UE ID = " AMF_UE_NGAP_ID_FMT,
+      amf_ue_ngap_id);
+
+  amf_registration_request_ies_t* params =
+      new (amf_registration_request_ies_t)();
+
+  params->imsi = new imsi_t();
+
+  supi_imsi.plmn.mcc_digit1 =
+      ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit1;
+  supi_imsi.plmn.mcc_digit2 =
+      ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit2;
+  supi_imsi.plmn.mcc_digit3 =
+      ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit3;
+  supi_imsi.plmn.mnc_digit1 =
+      ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit1;
+  supi_imsi.plmn.mnc_digit2 =
+      ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit2;
+  supi_imsi.plmn.mnc_digit3 =
+      ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit3;
+
+  memcpy(&supi_imsi.msin, aia->imsi, MSIN_MAX_LENGTH);
+
+  // Copy entire supi_imsi to param->imsi->u.value
+  memcpy(&params->imsi->u.value, &supi_imsi, IMSI_BCD8_SIZE);
+
+  if (supi_imsi.plmn.mnc_digit3 != 0xf) {
+    params->imsi->u.value[0] = ((supi_imsi.plmn.mcc_digit1 << 4) & 0xf0) |
+                               (supi_imsi.plmn.mcc_digit2 & 0xf);
+    params->imsi->u.value[1] = ((supi_imsi.plmn.mcc_digit3 << 4) & 0xf0) |
+                               (supi_imsi.plmn.mnc_digit1 & 0xf);
+    params->imsi->u.value[2] = ((supi_imsi.plmn.mnc_digit2 << 4) & 0xf0) |
+                               (supi_imsi.plmn.mnc_digit3 & 0xf);
+  }
+
+  amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
+  amf_ue_context_on_new_guti(
+      ue_context, reinterpret_cast<guti_m5_t*>(&amf_guti));
+
+  ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
+  ue_context->amf_context.m5_guti.guamfi = amf_guti.guamfi;
+  imsi64                                 = amf_imsi_to_imsi64(params->imsi);
+  guti_and_amf_id.amf_guti               = amf_guti;
+  guti_and_amf_id.amf_ue_ngap_id         = aia->ue_id;
+
+  if (amf_supi_guti_map.size() == 0) {
+    // first entry.
+    amf_supi_guti_map.insert(
+        std::pair<imsi64_t, guti_and_amf_id_t>(imsi64, guti_and_amf_id));
+  } else {
+    /* already elements exist then check if same imsi already present
+     * if same imsi then update/overwrite the element
+     */
+    std::unordered_map<imsi64_t, guti_and_amf_id_t>::iterator found_imsi =
+        amf_supi_guti_map.find(imsi64);
+    if (found_imsi == amf_supi_guti_map.end()) {
+      // it is new entry to map
+      amf_supi_guti_map.insert(
+          std::pair<imsi64_t, guti_and_amf_id_t>(imsi64, guti_and_amf_id));
+    } else {
+      // Overwrite the second element.
+      found_imsi->second = guti_and_amf_id;
+    }
+  }
+
+  params->decode_status = ue_context->amf_context.decode_status;
+  /*
+   * Execute the requested new UE registration procedure
+   * This will initiate identity req in DL.
+   */
+  rc = amf_proc_registration_request(aia->ue_id, is_amf_ctx_new, params);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
 int amf_handle_s6a_update_location_ans(
     const s6a_update_location_ans_t* ula_pP) {
   imsi64_t imsi64                   = INVALID_IMSI64;
-  int rc                            = RETURNerror;
   amf_context_t* amf_ctxt_p         = NULL;
   ue_m5gmm_context_s* ue_mm_context = NULL;
-  int amf_cause                     = -1;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
   IMSI_STRING_TO_IMSI64((char*) ula_pP->imsi, &imsi64);
@@ -493,14 +605,20 @@ int amf_handle_s6a_update_location_ans(
 
   amf_ue_ngap_id_t amf_ue_ngap_id = ue_mm_context->amf_ue_ngap_id;
 
+  // Validating whether the apn_config sent from ue and saved in amf_ctx is
+  // present in s6a_update_location_ans_t received from subscriberdb.
+  memcpy(
+      &amf_ctxt_p->apn_config_profile,
+      &ula_pP->subscription_data.apn_config_profile,
+      sizeof(apn_config_profile_t));
   OAILOG_DEBUG(
       LOG_NAS_AMF,
       "Received update location Answer from Subscriberdb for"
       " ue_id = " AMF_UE_NGAP_ID_FMT,
       amf_ue_ngap_id);
-  memcpy(
-      &amf_ctxt_p->subscribed_ue_ambr,
-      &ula_pP->subscription_data.subscribed_ambr, sizeof(ambr_t));
+
+  amf_smf_context_ue_aggregate_max_bit_rate_set(
+      amf_ctxt_p, ula_pP->subscription_data.subscribed_ambr);
 
   OAILOG_DEBUG(
       LOG_NAS_AMF,
@@ -514,10 +632,6 @@ int amf_handle_s6a_update_location_ans(
 
 /* Cleanup all procedures in amf_context */
 void amf_nas_proc_clean_up(ue_m5gmm_context_s* ue_context_p) {
-  // Check if registrion procedure exists
-  nas_amf_registration_proc_t* registration_proc =
-      get_nas_specific_procedure_registration(&(ue_context_p->amf_context));
-
   // Delete registration procedures
   amf_delete_registration_proc(&(ue_context_p->amf_context));
 }

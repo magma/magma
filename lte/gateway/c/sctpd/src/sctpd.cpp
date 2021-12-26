@@ -11,17 +11,17 @@
  * limitations under the License.
  */
 
-#include "sctpd.h"
+#include "lte/gateway/c/sctpd/src/sctpd.h"
 
 #include <memory>
 #include <grpcpp/grpcpp.h>
 #include <signal.h>
 
-#include "sctpd_downlink_impl.h"
-#include "sctpd_event_handler.h"
-#include "sctpd_uplink_client.h"
-#include "util.h"
-#include "magma_logging_init.h"
+#include "lte/gateway/c/sctpd/src/sctpd_downlink_impl.h"
+#include "lte/gateway/c/sctpd/src/sctpd_event_handler.h"
+#include "lte/gateway/c/sctpd/src/sctpd_uplink_client.h"
+#include "lte/gateway/c/sctpd/src/util.h"
+#include "orc8r/gateway/c/common/logging/magma_logging_init.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -42,8 +42,8 @@ int signalMask(void) {
   return 0;
 }
 
-int signalHandler(
-    int* end, std::unique_ptr<Server>& server, SctpdDownlinkImpl& downLink) {
+int signalHandler(int* end, std::unique_ptr<Server>& server,
+                  SctpdDownlinkImpl& downLink) {
   int ret;
   siginfo_t info;
   sigset_t set;

@@ -303,15 +303,16 @@ func (AgwD_LogLevel) EnumDescriptor() ([]byte, []int) {
 
 // --------------------------------------------------------------------------
 // SentryConfig stores the network-wide Sentry.io configuration
+// TODO(hcgatewood): remove this after 1.7 release, duplicated in the shared_mconfig
 // --------------------------------------------------------------------------
 type SentryConfig struct {
-	// url_python initializes the Sentry Python SDK and sets the remote URL.
+	// dsn_python initializes the Sentry Python SDK and sets the remote URL.
 	// If set to empty string, Sentry Python SDK will not be initialized.
-	UrlPython string `protobuf:"bytes,1,opt,name=url_python,json=urlPython,proto3" json:"url_python,omitempty"`
-	// url_native initializes the Sentry Native SDK for C/C++ and sets the
+	DsnPython string `protobuf:"bytes,1,opt,name=dsn_python,json=dsnPython,proto3" json:"dsn_python,omitempty"`
+	// dsn_native initializes the Sentry Native SDK for C/C++ and sets the
 	// remote URL. If set to empty string, Sentry Native SDK will not be
 	// initialized.
-	UrlNative string `protobuf:"bytes,2,opt,name=url_native,json=urlNative,proto3" json:"url_native,omitempty"`
+	DsnNative string `protobuf:"bytes,2,opt,name=dsn_native,json=dsnNative,proto3" json:"dsn_native,omitempty"`
 	// upload_mme_log decides whether MME service log file (/var/log/mme.log)
 	// is uploaded along with MME crashreports
 	UploadMmeLog bool `protobuf:"varint,3,opt,name=upload_mme_log,json=uploadMmeLog,proto3" json:"upload_mme_log,omitempty"`
@@ -349,16 +350,16 @@ func (m *SentryConfig) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SentryConfig proto.InternalMessageInfo
 
-func (m *SentryConfig) GetUrlPython() string {
+func (m *SentryConfig) GetDsnPython() string {
 	if m != nil {
-		return m.UrlPython
+		return m.DsnPython
 	}
 	return ""
 }
 
-func (m *SentryConfig) GetUrlNative() string {
+func (m *SentryConfig) GetDsnNative() string {
 	if m != nil {
-		return m.UrlNative
+		return m.DsnNative
 	}
 	return ""
 }
@@ -1832,9 +1833,9 @@ type MME struct {
 	// Enables 5G Standalone (SA) at a network level
 	Enable5GFeatures bool `protobuf:"varint,46,opt,name=enable5g_features,json=enable5gFeatures,proto3" json:"enable5g_features,omitempty"`
 	// AMF Slice Service Type (SST)
-	DefaultSliceServiceType string `protobuf:"bytes,47,opt,name=default_slice_service_type,json=defaultSliceServiceType,proto3" json:"default_slice_service_type,omitempty"`
+	AmfDefaultSliceServiceType uint32 `protobuf:"varint,47,opt,name=amf_default_slice_service_type,json=amfDefaultSliceServiceType,proto3" json:"amf_default_slice_service_type,omitempty"`
 	// AMF Slice Descriptor (SD)
-	DefaultSliceDifferentiator string `protobuf:"bytes,48,opt,name=default_slice_differentiator,json=defaultSliceDifferentiator,proto3" json:"default_slice_differentiator,omitempty"`
+	AmfDefaultSliceDifferentiator string `protobuf:"bytes,48,opt,name=amf_default_slice_differentiator,json=amfDefaultSliceDifferentiator,proto3" json:"amf_default_slice_differentiator,omitempty"`
 	// AMF Name
 	AmfName string `protobuf:"bytes,50,opt,name=amf_name,json=amfName,proto3" json:"amf_name,omitempty"`
 	// AMF Region ID
@@ -1842,7 +1843,9 @@ type MME struct {
 	// AMF Set ID
 	AmfSetId string `protobuf:"bytes,52,opt,name=amf_set_id,json=amfSetId,proto3" json:"amf_set_id,omitempty"`
 	// AMF pointer
-	AmfPointer           string   `protobuf:"bytes,53,opt,name=amf_pointer,json=amfPointer,proto3" json:"amf_pointer,omitempty"`
+	AmfPointer string `protobuf:"bytes,53,opt,name=amf_pointer,json=amfPointer,proto3" json:"amf_pointer,omitempty"`
+	// SGW S1U ipv6 endpoint on AGW
+	Ipv6SgwS1UAddr       string   `protobuf:"bytes,54,opt,name=ipv6_sgw_s1u_addr,json=ipv6SgwS1uAddr,proto3" json:"ipv6_sgw_s1u_addr,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -2097,16 +2100,16 @@ func (m *MME) GetEnable5GFeatures() bool {
 	return false
 }
 
-func (m *MME) GetDefaultSliceServiceType() string {
+func (m *MME) GetAmfDefaultSliceServiceType() uint32 {
 	if m != nil {
-		return m.DefaultSliceServiceType
+		return m.AmfDefaultSliceServiceType
 	}
-	return ""
+	return 0
 }
 
-func (m *MME) GetDefaultSliceDifferentiator() string {
+func (m *MME) GetAmfDefaultSliceDifferentiator() string {
 	if m != nil {
-		return m.DefaultSliceDifferentiator
+		return m.AmfDefaultSliceDifferentiator
 	}
 	return ""
 }
@@ -2135,6 +2138,13 @@ func (m *MME) GetAmfSetId() string {
 func (m *MME) GetAmfPointer() string {
 	if m != nil {
 		return m.AmfPointer
+	}
+	return ""
+}
+
+func (m *MME) GetIpv6SgwS1UAddr() string {
+	if m != nil {
+		return m.Ipv6SgwS1UAddr
 	}
 	return ""
 }
@@ -3434,4 +3444,5 @@ var fileDescriptor_cb46bfd77f2ecf71 = []byte{
 	0x2c, 0xeb, 0xc2, 0x32, 0x56, 0x8e, 0x9e, 0xff, 0xf4, 0x4c, 0x1e, 0xd5, 0x0b, 0x2f, 0xa6, 0x2f,
 	0xe4, 0xb8, 0xe2, 0x45, 0x3f, 0x98, 0xfa, 0x8f, 0x68, 0x77, 0x4d, 0xae, 0x5f, 0xfe, 0x6f, 0x00,
 	0x00, 0x00, 0xff, 0xff, 0x95, 0xff, 0x6d, 0x78, 0x40, 0x2a, 0x00, 0x00,
+
 }

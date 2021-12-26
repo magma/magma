@@ -18,26 +18,26 @@
 #include <grpcpp/impl/codegen/status.h>
 #include <cstring>
 #include <string>
-#include <conversions.h>
-#include <common_defs.h>
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "common_defs.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "pcef_handlers.h"
-#include "PCEFClient.h"
-#include "MobilityClientAPI.h"
-#include "itti_types.h"
+#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.h"
+#include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/protos/session_manager.pb.h"
-#include "spgw_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.h"
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
@@ -101,6 +101,9 @@ static void pcef_fill_create_session_req(
 status_code_e send_itti_pcef_create_session_response(
     const std::string& imsi, s5_create_session_request_t session_request,
     const grpc::Status& status) {
+#if MME_UNIT_TEST
+  return RETURNok;
+#endif
   MessageDef* message_p = nullptr;
 
   message_p =
@@ -193,6 +196,9 @@ void pcef_send_policy2bearer_binding(
 void pcef_update_teids(
     const char* imsi, uint8_t default_bearer_id, uint32_t enb_teid,
     uint32_t agw_teid) {
+#if MME_UNIT_TEST
+  return;
+#endif
   magma::UpdateTunnelIdsRequest request;
   request.mutable_sid()->set_id("IMSI" + std::string(imsi));
   request.set_bearer_id(default_bearer_id);
@@ -200,8 +206,36 @@ void pcef_update_teids(
   request.set_agw_teid(agw_teid);
 
   magma::PCEFClient::update_teids(
-      request, [&](grpc::Status status,
-                   magma::UpdateTunnelIdsResponse response) { return; });
+      request,
+      [request](grpc::Status status, magma::UpdateTunnelIdsResponse response) {
+        if (status.error_code() == grpc::ABORTED) {
+#if MME_UNIT_TEST
+          return;
+#endif
+          MessageDef* message_p = DEPRECATEDitti_alloc_new_message_fatal(
+              TASK_GRPC_SERVICE, GX_NW_INITIATED_DEACTIVATE_BEARER_REQ);
+          itti_gx_nw_init_deactv_bearer_request_t* itti_msg =
+              &message_p->ittiMsg.gx_nw_init_deactv_bearer_request;
+          std::string imsi = request.sid().id();
+          OAILOG_INFO(
+              LOG_UTIL,
+              "Received grpc::ABORTED for update_teids RPC for %s with error "
+              "msg: %s. Deactivating bearer %u.",
+              imsi.c_str(), status.error_message().c_str(),
+              request.bearer_id());
+          // strip off "IMSI" prefix
+          imsi                  = imsi.substr(4, std::string::npos);
+          itti_msg->imsi_length = imsi.size();
+          strcpy(itti_msg->imsi, imsi.c_str());
+          itti_msg->lbi           = request.bearer_id();
+          itti_msg->no_of_bearers = 1;
+          itti_msg->ebi[0]        = request.bearer_id();
+          send_msg_to_task(
+              &grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
+        }
+
+        return;
+      });
 }
 
 /*
@@ -316,28 +350,38 @@ int get_msisdn_from_session_req(
   return len;
 }
 
+void convert_imeisv_to_string(char* imeisv) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  uint8_t idx = 0;
+  for (; idx < IMEISV_DIGITS_MAX; idx++) {
+    imeisv[idx] = convert_digit_to_char(imeisv[idx]);
+  }
+  imeisv[idx] = '\0';
+
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
 int get_imeisv_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* imeisv) {
   if (saved_req->mei.present & MEI_IMEISV) {
     // IMEISV as defined in 3GPP TS 23.003 MEI_IMEISV
-    imeisv[0]                 = saved_req->mei.choice.imeisv.u.num.tac8;
-    imeisv[1]                 = saved_req->mei.choice.imeisv.u.num.tac7;
-    imeisv[2]                 = saved_req->mei.choice.imeisv.u.num.tac6;
-    imeisv[3]                 = saved_req->mei.choice.imeisv.u.num.tac5;
-    imeisv[4]                 = saved_req->mei.choice.imeisv.u.num.tac4;
-    imeisv[5]                 = saved_req->mei.choice.imeisv.u.num.tac3;
-    imeisv[6]                 = saved_req->mei.choice.imeisv.u.num.tac2;
-    imeisv[7]                 = saved_req->mei.choice.imeisv.u.num.tac1;
-    imeisv[8]                 = saved_req->mei.choice.imeisv.u.num.snr6;
-    imeisv[9]                 = saved_req->mei.choice.imeisv.u.num.snr5;
-    imeisv[10]                = saved_req->mei.choice.imeisv.u.num.snr4;
-    imeisv[11]                = saved_req->mei.choice.imeisv.u.num.snr3;
-    imeisv[12]                = saved_req->mei.choice.imeisv.u.num.snr2;
-    imeisv[13]                = saved_req->mei.choice.imeisv.u.num.snr1;
-    imeisv[14]                = saved_req->mei.choice.imeisv.u.num.svn2;
-    imeisv[15]                = saved_req->mei.choice.imeisv.u.num.svn1;
+    imeisv[0]                 = saved_req->mei.choice.imeisv.u.num.tac1;
+    imeisv[1]                 = saved_req->mei.choice.imeisv.u.num.tac2;
+    imeisv[2]                 = saved_req->mei.choice.imeisv.u.num.tac3;
+    imeisv[3]                 = saved_req->mei.choice.imeisv.u.num.tac4;
+    imeisv[4]                 = saved_req->mei.choice.imeisv.u.num.tac5;
+    imeisv[5]                 = saved_req->mei.choice.imeisv.u.num.tac6;
+    imeisv[6]                 = saved_req->mei.choice.imeisv.u.num.tac7;
+    imeisv[7]                 = saved_req->mei.choice.imeisv.u.num.tac8;
+    imeisv[8]                 = saved_req->mei.choice.imeisv.u.num.snr1;
+    imeisv[9]                 = saved_req->mei.choice.imeisv.u.num.snr2;
+    imeisv[10]                = saved_req->mei.choice.imeisv.u.num.snr3;
+    imeisv[11]                = saved_req->mei.choice.imeisv.u.num.snr4;
+    imeisv[12]                = saved_req->mei.choice.imeisv.u.num.snr5;
+    imeisv[13]                = saved_req->mei.choice.imeisv.u.num.snr6;
+    imeisv[14]                = saved_req->mei.choice.imeisv.u.num.svn1;
+    imeisv[15]                = saved_req->mei.choice.imeisv.u.num.svn2;
     imeisv[IMEISV_DIGITS_MAX] = '\0';
-
     return 1;
   }
   return 0;
@@ -352,7 +396,10 @@ void get_session_req_data(
   data->msisdn_len = get_msisdn_from_session_req(saved_req, data->msisdn);
 
   data->imeisv_exists = get_imeisv_from_session_req(saved_req, data->imeisv);
-  data->uli_exists    = get_uli_from_session_req(saved_req, data->uli);
+  if (data->imeisv_exists) {
+    convert_imeisv_to_string(data->imeisv);
+  }
+  data->uli_exists = get_uli_from_session_req(saved_req, data->uli);
   get_plmn_from_session_req(saved_req, data);
   get_imsi_plmn_from_session_req(saved_req, data);
   memcpy(
@@ -375,4 +422,12 @@ void get_session_req_data(
   data->pci = qos->pci;
   data->pvi = qos->pvi;
   data->qci = qos->qci;
+}
+
+bool pcef_delete_dedicated_bearer(const char* imsi, const ebi_list_t ebi_list) {
+  auto imsi_str = std::string(imsi);
+
+  // TODO(pruthvihebbani) : Send grpc message to session manager to delete
+  // dedicated bearer
+  return true;
 }

@@ -10,20 +10,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cxxabi.h>
+#include <glog/logging.h>
+#include <google/protobuf/stubs/common.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <chrono>
 #include <future>
 #include <memory>
+#include <ostream>
 #include <string>
+#include <system_error>
+#include <thread>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
-#include "magma_logging.h"
+#include "AAAClient.h"
+#include "DirectorydClient.h"
 #include "RestartHandler.h"
+#include "SessionReporter.h"
+#include "SessionStore.h"
+#include "lte/protos/session_manager.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+#include "magma_logging.h"
+#include "orc8r/protos/directoryd.pb.h"
 
 namespace magma {
+class LocalEnforcer;
+namespace orc8r {
+class Void;
+}  // namespace orc8r
+
 namespace sessiond {
 
-const uint RestartHandler::max_cleanup_retries_  = 3;
+const uint RestartHandler::max_cleanup_retries_ = 3;
 const uint RestartHandler::rpc_retry_interval_s_ = 5;
 
 RestartHandler::RestartHandler(
@@ -107,15 +127,15 @@ bool RestartHandler::launch_threads_to_terminate_with_retries() {
 // This function is executed in the main thread before multiple terminate
 // threads are launched. So no locking is necessary here.
 bool RestartHandler::populate_sessions_to_terminate_with_retries() {
-  uint rpc_try  = 0;
+  uint rpc_try = 0;
   bool finished = false;
   std::promise<bool> directoryd_res;
 
   while (rpc_try < max_cleanup_retries_) {
     std::future<bool> directoryd_future = directoryd_res.get_future();
     directoryd_client_->get_all_directoryd_records(
-        [this, &directoryd_res](
-            Status status, const AllDirectoryRecords& response) {
+        [this, &directoryd_res](Status status,
+                                const AllDirectoryRecords& response) {
           if (!status.ok()) {
             directoryd_res.set_value(false);
             return;
@@ -144,8 +164,8 @@ bool RestartHandler::populate_sessions_to_terminate_with_retries() {
   return finished;
 }
 
-void RestartHandler::terminate_previous_session(
-    const std::string& sid, const std::string& session_id) {
+void RestartHandler::terminate_previous_session(const std::string& sid,
+                                                const std::string& session_id) {
   SessionTerminateRequest term_req;
   term_req.mutable_common_context()->mutable_sid()->set_id(sid);
   term_req.set_session_id(session_id);

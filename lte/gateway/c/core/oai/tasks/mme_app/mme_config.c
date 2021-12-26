@@ -188,18 +188,20 @@ void apn_map_config_init(apn_map_config_t* apn_map_config) {
 }
 
 void nas_config_init(nas_config_t* nas_conf) {
-  nas_conf->t3402_min  = T3402_DEFAULT_VALUE;
-  nas_conf->t3412_min  = T3412_DEFAULT_VALUE;
-  nas_conf->t3422_msec = 1000 * T3422_DEFAULT_VALUE;
-  nas_conf->t3450_msec = 1000 * T3450_DEFAULT_VALUE;
-  nas_conf->t3460_msec = 1000 * T3460_DEFAULT_VALUE;
-  nas_conf->t3470_msec = 1000 * T3470_DEFAULT_VALUE;
-  nas_conf->t3485_msec = 1000 * T3485_DEFAULT_VALUE;
-  nas_conf->t3486_msec = 1000 * T3486_DEFAULT_VALUE;
-  nas_conf->t3489_msec = 1000 * T3489_DEFAULT_VALUE;
-  nas_conf->t3495_msec = 1000 * T3495_DEFAULT_VALUE;
-  nas_conf->ts6a_msec  = 1000 * TS6A_DEFAULT_VALUE;
-  nas_conf->tics_msec  = 1000 * MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE;
+  nas_conf->t3402_min    = T3402_DEFAULT_VALUE;
+  nas_conf->t3412_min    = T3412_DEFAULT_VALUE;
+  nas_conf->t3412_msec   = 60000 * T3412_DEFAULT_VALUE;
+  nas_conf->t3422_msec   = 1000 * T3422_DEFAULT_VALUE;
+  nas_conf->t3450_msec   = 1000 * T3450_DEFAULT_VALUE;
+  nas_conf->t3460_msec   = 1000 * T3460_DEFAULT_VALUE;
+  nas_conf->t3470_msec   = 1000 * T3470_DEFAULT_VALUE;
+  nas_conf->t3485_msec   = 1000 * T3485_DEFAULT_VALUE;
+  nas_conf->t3486_msec   = 1000 * T3486_DEFAULT_VALUE;
+  nas_conf->t3489_msec   = 1000 * T3489_DEFAULT_VALUE;
+  nas_conf->t3495_msec   = 1000 * T3495_DEFAULT_VALUE;
+  nas_conf->ts6a_msec    = 1000 * TS6A_DEFAULT_VALUE;
+  nas_conf->tics_msec    = 1000 * MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE;
+  nas_conf->tpaging_msec = MME_APP_PAGING_RESPONSE_TIMER_VALUE;
   nas_conf->force_reject_tau        = true;
   nas_conf->force_reject_sr         = true;
   nas_conf->disable_esm_information = false;
@@ -280,14 +282,14 @@ void mme_config_init(mme_config_t* config) {
   sac_to_tacs_map_config_init(&config->sac_to_tacs_map);
 }
 
-void free_partial_lists(partial_list_t** partial_list, uint8_t num_par_lists) {
+void free_partial_lists(partial_list_t* partial_list, uint8_t num_par_lists) {
   if ((!partial_list) || (!num_par_lists)) return;
 
   for (uint8_t itr = 0; itr < num_par_lists; itr++) {
-    free_wrapper((void**) &(partial_list[itr]->plmn));
-    free_wrapper((void**) &(partial_list[itr]->tac));
+    free_wrapper((void**) &(partial_list[itr].plmn));
+    free_wrapper((void**) &(partial_list[itr].tac));
   }
-  free_wrapper((void**) partial_list);
+  free_wrapper((void**) &partial_list);
 }
 
 void free_mme_config(mme_config_t* mme_config) {
@@ -314,7 +316,7 @@ void free_mme_config(mme_config_t* mme_config) {
   free_wrapper((void**) &mme_config->served_tai.tac);
 
   clear_served_tai_config(&mme_config->served_tai);
-  free_partial_lists(&mme_config->partial_list, mme_config->num_par_lists);
+  free_partial_lists(mme_config->partial_list, mme_config->num_par_lists);
   mme_config->num_par_lists = 0;
 
   bdestroy_wrapper(&mme_config->service303_config.name);
@@ -496,77 +498,6 @@ void create_partial_lists(mme_config_t* config_pP) {
     }
   }
   return;
-}
-
-/***************************************************************************
-**                                                                        **
-** Name:   copy_served_tai_config_list()                                  **
-**                                                                        **
-** Description: copy tai list from mme_config to amf_config               **
-**                                                                        **
-**                                                                        **
-***************************************************************************/
-void copy_served_tai_config_list(amf_config_t* dest, const mme_config_t* src) {
-  if (!dest || !src) return;
-
-  // served_tai
-  if (dest->served_tai.nb_tai != src->served_tai.nb_tai) {
-    if (NULL != dest->served_tai.plmn_mcc)
-      free_wrapper((void**) &dest->served_tai.plmn_mcc);
-
-    if (NULL != dest->served_tai.plmn_mnc)
-      free_wrapper((void**) &dest->served_tai.plmn_mnc);
-
-    if (NULL != dest->served_tai.plmn_mnc_len)
-      free_wrapper((void**) &dest->served_tai.plmn_mnc_len);
-
-    if (NULL != dest->served_tai.tac)
-      free_wrapper((void**) &dest->served_tai.tac);
-
-    dest->served_tai.nb_tai = src->served_tai.nb_tai;
-    dest->served_tai.plmn_mcc =
-        calloc(dest->served_tai.nb_tai, sizeof(uint16_t));
-    dest->served_tai.plmn_mnc =
-        calloc(dest->served_tai.nb_tai, sizeof(uint16_t));
-    dest->served_tai.plmn_mnc_len =
-        calloc(dest->served_tai.nb_tai, sizeof(uint16_t));
-    dest->served_tai.tac = calloc(dest->served_tai.nb_tai, sizeof(uint16_t));
-  }
-  memcpy(
-      dest->served_tai.plmn_mcc, src->served_tai.plmn_mcc,
-      (dest->served_tai.nb_tai) * sizeof(uint16_t));
-  memcpy(
-      dest->served_tai.plmn_mnc, src->served_tai.plmn_mnc,
-      (dest->served_tai.nb_tai) * sizeof(uint16_t));
-  memcpy(
-      dest->served_tai.plmn_mnc_len, src->served_tai.plmn_mnc_len,
-      (dest->served_tai.nb_tai) * sizeof(uint16_t));
-  memcpy(
-      dest->served_tai.tac, src->served_tai.tac,
-      (dest->served_tai.nb_tai) * sizeof(uint16_t));
-
-  // num_par_lists
-  dest->num_par_lists = src->num_par_lists;
-
-  // partial_list
-  dest->partial_list = calloc(dest->num_par_lists, sizeof(partial_list_t));
-
-  for (uint8_t itr = 0; itr < src->num_par_lists && dest->partial_list; ++itr) {
-    dest->partial_list[itr].list_type = src->partial_list[itr].list_type;
-    dest->partial_list[itr].nb_elem   = src->partial_list[itr].nb_elem;
-
-    dest->partial_list[itr].plmn =
-        calloc(dest->partial_list[itr].nb_elem, sizeof(plmn_t));
-    memcpy(
-        dest->partial_list[itr].plmn, src->partial_list[itr].plmn,
-        (dest->partial_list[itr].nb_elem) * sizeof(plmn_t));
-
-    dest->partial_list[itr].tac =
-        calloc(dest->partial_list[itr].nb_elem, sizeof(tac_t));
-    memcpy(
-        dest->partial_list[itr].tac, src->partial_list[itr].tac,
-        (dest->partial_list[itr].nb_elem) * sizeof(tac_t));
-  }
 }
 
 /****************************************************************************
@@ -1700,6 +1631,8 @@ int mme_config_parse_string(
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3412_TIMER, &aint))) {
         config_pP->nas_config.t3412_min = (uint32_t) aint;
+        config_pP->nas_config.t3412_msec =
+            60000 * config_pP->nas_config.t3412_min;
       }
       if ((config_setting_lookup_int(
               setting, MME_CONFIG_STRING_NAS_T3422_TIMER, &aint))) {

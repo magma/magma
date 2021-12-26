@@ -37,13 +37,13 @@
 #ifndef FILE_S1AP_MESSAGES_TYPES_SEEN
 #define FILE_S1AP_MESSAGES_TYPES_SEEN
 
-#include "3gpp_24.008.h"
-#include "3gpp_36.401.h"
-#include "3gpp_36.413.h"
-#include "3gpp_36.331.h"
-#include "3gpp_23.003.h"
-#include "TrackingAreaIdentity.h"
-#include "nas/securityDef.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.331.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
 
 #include "S1ap_Source-ToTarget-TransparentContainer.h"
 #include "S1ap_HandoverType.h"
@@ -194,6 +194,7 @@ enum s1cause {
   S1AP_INVALID_CAUSE = 0,
   S1AP_NAS_NORMAL_RELEASE,
   S1AP_NAS_DETACH,
+  S1AP_SUCCESSFUL_HANDOVER,
   S1AP_RADIO_EUTRAN_GENERATED_REASON,
   S1AP_RADIO_UNKNOWN_E_RAB_ID,
   S1AP_IMPLICIT_CONTEXT_RELEASE,

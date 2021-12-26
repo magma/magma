@@ -23,6 +23,8 @@ magma-gen-meta:
       filename: gateway_description_swaggergen.go
     - go-struct-name: Error
       filename: error_swaggergen.go
+    - go-struct-name: RegistrationInfo
+      filename: registration_info_swaggergen.go
 
 info:
   title: Magma
@@ -40,6 +42,13 @@ produces:
 schemes:
   - https
   - http
+
+securityDefinitions:
+  tokenAuth:
+    type: basic
+
+security:
+  - tokenAuth: []
 
 paths:
   /foo:
@@ -151,3 +160,23 @@ definitions:
       message:
         type: string
         example: Error string
+  registration_info:
+    type: object
+    required:
+      - registration_token
+      - root_ca
+      - domain_name
+    properties:
+      registration_token:
+        description: registration_token is a token for the operator to give to the AGW; it keys to logical and network ID
+        type: string
+        minLength: 4
+        example: reg_a9vnap30fN0anrfjVneB
+      root_ca:
+        description: root_ca is a certificate that access gateways (AGW) can use to handshake and communicate with the stated orc8r
+        type: string
+        example: =example rootCA.pem=
+      domain_name:
+        description: domain_name is the domain name where the stated orc8r can be accessed
+        type: string
+        example: example.com

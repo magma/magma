@@ -10,6 +10,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO(#10294): remove enable_automatic_reindexing and enable_singleton_reindex when jobQueue reindexing is removed
+
 # When true, state service handles automatically reindex state indexers.
 # When false, reindexing must be handled by the provided CLI.
 enable_automatic_reindexing: True
+
+# When true, use a singleton service to reindex states.
+# When false, use service(s) and a JobQueue to reindex states.
+enable_singleton_reindex: True

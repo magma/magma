@@ -13,12 +13,16 @@
 
 #pragma once
 
+#include <bits/exception.h>
+#include <cpp_redis/core/client.hpp>
 #include <cpp_redis/cpp_redis>
-#include <exception>      // IWYU pragma: keep
-#include <memory>         // for shared_ptr
-#include <set>            // for set
-#include <string>         // for string
+#include <exception>  // IWYU pragma: keep
+#include <memory>     // for shared_ptr
+#include <set>        // for set
+#include <string>     // for string
+
 #include "StoreClient.h"  // for SessionMap, SessionVector, StoreClient
+
 namespace magma {
 class StaticRuleStore;
 }
@@ -41,13 +45,13 @@ class RedisWriteFailed : public std::exception {
  */
 class RedisStoreClient final : public StoreClient {
  public:
-  RedisStoreClient(
-      std::shared_ptr<cpp_redis::client> client, const std::string& redis_table,
-      std::shared_ptr<StaticRuleStore> rule_store);
+  RedisStoreClient(std::shared_ptr<cpp_redis::client> client,
+                   const std::string& redis_table,
+                   std::shared_ptr<StaticRuleStore> rule_store);
 
   RedisStoreClient(RedisStoreClient const&) = delete;
-  RedisStoreClient(RedisStoreClient&&)      = default;
-  ~RedisStoreClient()                       = default;
+  RedisStoreClient(RedisStoreClient&&) = default;
+  ~RedisStoreClient() = default;
 
   bool try_redis_connect();
 

@@ -15,13 +15,13 @@
 #include <stdlib.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
 
-#include "includes/MagmaService.h"
-#include "includes/MConfigLoader.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
 
-#include "EventTracker.h"
-#include "PacketGenerator.h"
-#include "magma_logging_init.h"
+#include "lte/gateway/c/connection_tracker/src/EventTracker.h"
+#include "lte/gateway/c/connection_tracker/src/PacketGenerator.h"
+#include "orc8r/gateway/c/common/logging/magma_logging_init.h"
 
 #define CONNECTION_SERVICE "connectiond"
 #define CONNECTIOND_VERSION "1.0"
@@ -41,13 +41,10 @@ static magma::mconfig::ConnectionD load_mconfig() {
   return mconfig;
 }
 
-static uint32_t get_log_verbosity(
-    const YAML::Node& config, magma::mconfig::ConnectionD mconfig) {
+static uint32_t get_log_verbosity(const YAML::Node& config,
+                                  magma::mconfig::ConnectionD mconfig) {
   if (!config["log_level"].IsDefined()) {
-    if (mconfig.log_level() < 0 || mconfig.log_level() > 4) {
-      return MINFO;
-    }
-    return mconfig.log_level();
+    return magma::get_log_verbosity_from_mconfig(mconfig.log_level());
   }
   std::string log_level = config["log_level"].as<std::string>();
   if (log_level == "DEBUG") {
@@ -77,12 +74,12 @@ int main(void) {
   MLOG(MINFO) << "Starting Connection Tracker";
 
   std::string interface_name = config["interface_name"].as<std::string>();
-  std::string pkt_dst_mac    = config["pkt_dst_mac"].as<std::string>();
-  std::string pkt_src_mac    = config["pkt_src_mac"].as<std::string>();
-  int zone                   = config["zone"].as<int>();
+  std::string pkt_dst_mac = config["pkt_dst_mac"].as<std::string>();
+  std::string pkt_src_mac = config["pkt_src_mac"].as<std::string>();
+  int zone = config["zone"].as<int>();
 
-  magma::service303::MagmaService server(
-      CONNECTION_SERVICE, CONNECTIOND_VERSION);
+  magma::service303::MagmaService server(CONNECTION_SERVICE,
+                                         CONNECTIOND_VERSION);
   server.Start();
 
   auto pkt_generator = std::make_shared<magma::lte::PacketGenerator>(

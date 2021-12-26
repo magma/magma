@@ -38,7 +38,6 @@ MODULES = [
     'lte',
     'feg',
     'cwf',
-    'wifi',
     'fbinternal',
 ]
 
@@ -52,8 +51,6 @@ DEPLOYMENT_TO_MODULES = {
     'ffwa-f': ['orc8r', 'lte', 'feg', 'fbinternal'],
     'cwf': ['orc8r', 'lte', 'feg', 'cwf'],
     'cwf-f': ['orc8r', 'lte', 'feg', 'cwf', 'fbinternal'],
-    'wifi': ['orc8r', 'wifi'],
-    'wifi-f': ['orc8r', 'wifi', 'fbinternal'],
 }
 
 DEPLOYMENTS = DEPLOYMENT_TO_MODULES.keys()
@@ -90,6 +87,10 @@ def main() -> None:
     elif args.lint:
         _run(['build', 'test'])
         _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make lint'])
+        _down(args)
+    elif args.tidy:
+        _run(['build', 'test'])
+        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make tidy'])
         _down(args)
     elif args.precommit:
         _run(['build', 'test'])
@@ -321,6 +322,11 @@ def _parse_args() -> argparse.Namespace:
         '--lint', '-l',
         action='store_true',
         help='Mount the source code and run the linter',
+    )
+    parser.add_argument(
+        '--tidy', '-i',
+        action='store_true',
+        help='Mount the source code and run go mod tidy',
     )
     parser.add_argument(
         '--coverage', '-o',

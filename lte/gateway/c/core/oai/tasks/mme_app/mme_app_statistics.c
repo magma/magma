@@ -23,7 +23,7 @@
  * Statistics**************************************/
 
 /*****************************************************/
-static inline get_max(int num1, int num2) {
+static inline int get_max(int num1, int num2) {
   return (num1 > num2 ? num1 : num2);
 }
 // Number of Connected UEs

@@ -10,21 +10,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 
-#include <folly/dynamic.h>
 #include <folly/Format.h>
+#include <folly/dynamic.h>
 #include <folly/json.h>
 #include <orc8r/protos/eventd.pb.h>
-
 #include <memory>
 #include <string>
 #include <utility>
 
+#include "SessionState.h"
 #include "includes/EventdClient.h"
 #include "magma_logging.h"
-#include "SessionState.h"
 
 namespace magma {
+class EventdClient;
+class SessionState;
+struct SessionConfig;
+struct UpdateRequests;
+
 namespace lte {
 
 class EventsReporter {
@@ -36,18 +41,17 @@ class EventsReporter {
       const SessionConfig& session_context,
       const std::unique_ptr<SessionState>& session) = 0;
 
-  virtual void session_create_failure(
-      const SessionConfig& session_context,
-      const std::string& failure_reason) = 0;
+  virtual void session_create_failure(const SessionConfig& session_context,
+                                      const std::string& failure_reason) = 0;
 
-  virtual void session_updated(
-      const std::string& session_id, const SessionConfig& session_context,
-      const UpdateRequests& update_request) = 0;
+  virtual void session_updated(const std::string& session_id,
+                               const SessionConfig& session_context,
+                               const UpdateRequests& update_request) = 0;
 
-  virtual void session_update_failure(
-      const std::string& session_id, const SessionConfig& session_context,
-      const UpdateRequests& failed_request,
-      const std::string& failure_reason) = 0;
+  virtual void session_update_failure(const std::string& session_id,
+                                      const SessionConfig& session_context,
+                                      const UpdateRequests& failed_request,
+                                      const std::string& failure_reason) = 0;
 
   virtual void session_terminated(
       const std::string& imsi,
@@ -61,24 +65,24 @@ class EventsReporterImpl : public EventsReporter {
  public:
   explicit EventsReporterImpl(EventdClient& eventd_client);
 
-  void session_created(
-      const std::string& imsi, const std::string& session_id,
-      const SessionConfig& session_context,
-      const std::unique_ptr<SessionState>& session);
+  void session_created(const std::string& imsi, const std::string& session_id,
+                       const SessionConfig& session_context,
+                       const std::unique_ptr<SessionState>& session);
 
-  void session_create_failure(
-      const SessionConfig& session_context, const std::string& failure_reason);
+  void session_create_failure(const SessionConfig& session_context,
+                              const std::string& failure_reason);
 
-  void session_updated(
-      const std::string& session_id, const SessionConfig& session_context,
-      const UpdateRequests& update_request);
+  void session_updated(const std::string& session_id,
+                       const SessionConfig& session_context,
+                       const UpdateRequests& update_request);
 
-  void session_update_failure(
-      const std::string& session_id, const SessionConfig& session_context,
-      const UpdateRequests& failed_request, const std::string& failure_reason);
+  void session_update_failure(const std::string& session_id,
+                              const SessionConfig& session_context,
+                              const UpdateRequests& failed_request,
+                              const std::string& failure_reason);
 
-  void session_terminated(
-      const std::string& imsi, const std::unique_ptr<SessionState>& session);
+  void session_terminated(const std::string& imsi,
+                          const std::unique_ptr<SessionState>& session);
 
  private:
   std::string get_mac_addr(const SessionConfig& config);

@@ -39,6 +39,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {CoreNetworkTypes} from '../views/subscriber/SubscriberUtils';
 import {Route} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {map} from 'lodash';
@@ -63,6 +64,10 @@ const useStyles = makeStyles(theme => ({
     marginRight: '8px',
   },
 }));
+
+const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
+  key => CoreNetworkTypes[key],
+);
 
 function Subscribers() {
   const classes = useStyles();
@@ -185,6 +190,7 @@ function Subscribers() {
             onClose={() => history.push(relativeUrl(''))}
             onSave={onSave}
             onSaveError={onError}
+            forbiddenNetworkTypes={forbiddenNetworkTypes}
             subProfiles={Array.from(subProfiles)}
             apns={Array.from(apns)}
           />
@@ -254,6 +260,7 @@ function SubscriberTableRowComponent(props: Props) {
             onSaveError={reason => {
               enqueueSnackbar(reason, {variant: 'error'});
             }}
+            forbiddenNetworkTypes={forbiddenNetworkTypes}
             subProfiles={Array.from(props.subProfiles)}
             apns={Array.from(props.apns)}
           />

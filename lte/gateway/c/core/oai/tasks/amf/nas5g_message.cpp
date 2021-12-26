@@ -177,17 +177,16 @@ int nas5g_message_decode(
      */
     bytes =
         _nas5g_message_plain_decode(buffer, &msg->header, &msg->plain, length);
-
-    OAILOG_DEBUG(
-        LOG_AMF_APP, "[%s] Msg plain decode bytes[0-%d]\n%s",
-        get_message_type_str(msg->plain.amf.header.message_type).c_str(), bytes,
-        uint8_to_hex_string(buffer, bytes).c_str());
   }
 
   if (bytes < 0) {
     OAILOG_ERROR(LOG_AMF_APP, "NAS Decode failed");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, bytes);
   }
+  OAILOG_DEBUG(
+      LOG_AMF_APP, "[%s] Msg plain decode bytes[0-%d]\n%s",
+      get_message_type_str(msg->plain.amf.header.message_type).c_str(), bytes,
+      uint8_to_hex_string(buffer, bytes).c_str());
 
   OAILOG_INFO(
       LOG_AMF_APP, "Decoded msg(nas5g) id: [%x]-name [%s]",
@@ -913,6 +912,54 @@ static uint32_t _nas5g_message_get_mac(
   }
 
   switch (amf_security_context->selected_algorithms.integrity) {
+    case M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA1: {
+      uint8_t mac[4];
+      nas_stream_cipher_t stream_cipher;
+      uint32_t count;
+      uint32_t* mac32;
+
+      if (direction == SECU_DIRECTION_UPLINK) {
+        count = 0x00000000 |
+                ((amf_security_context->ul_count.overflow & 0x0000FFFF) << 8) |
+                (amf_security_context->ul_count.seq_num & 0x000000FF);
+      } else {
+        count = 0x00000000 |
+                ((amf_security_context->dl_count.overflow & 0x0000FFFF) << 8) |
+                (amf_security_context->dl_count.seq_num & 0x000000FF);
+      }
+
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA1 %s count.seq_num %u count "
+          "%u\n",
+          (direction == SECU_DIRECTION_UPLINK) ? "UPLINK" : "DOWNLINK",
+          (direction == SECU_DIRECTION_UPLINK) ?
+              amf_security_context->ul_count.seq_num :
+              amf_security_context->dl_count.seq_num,
+          count);
+      stream_cipher.key        = amf_security_context->knas_int;
+      stream_cipher.key_length = AUTH_KNAS_INT_SIZE;
+      stream_cipher.count      = count;
+      stream_cipher.bearer     = 0x01;  // 33.401 section 8.1.1
+      stream_cipher.direction  = direction;
+      stream_cipher.message    = const_cast<uint8_t*>(buffer);
+      /*
+       *        * length in bits
+       *               */
+      stream_cipher.blength = length << 3;
+      nas_stream_encrypt_eia1(&stream_cipher, mac);
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA1 returned MAC %x.%x.%x.%x(%u) "
+          "for "
+          "length "
+          "%" PRIu32 ", direction %d, count %d\n",
+          mac[0], mac[1], mac[2], mac[3], *(reinterpret_cast<uint32_t*>(&mac)),
+          length, direction, count);
+      mac32 = reinterpret_cast<uint32_t*>(&mac);
+      OAILOG_FUNC_RETURN(LOG_NAS, ntohl(*mac32));
+    } break;
+
     case M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA2: {
       uint8_t mac[4];
       nas_stream_cipher_t stream_cipher;

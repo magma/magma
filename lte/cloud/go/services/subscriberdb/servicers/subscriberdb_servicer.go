@@ -207,6 +207,28 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	return listRes, nil
 }
 
+func (s *subscriberdbServicer) ListSuciProfiles(ctx context.Context, req *protos.Void) (*lte_protos.SuciProfileList, error) {
+	gateway := protos.GetClientGateway(ctx)
+	if gateway == nil {
+		return nil, status.Errorf(codes.PermissionDenied, "missing gateway identity")
+	}
+	if !gateway.Registered() {
+		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
+	}
+	networkID := gateway.NetworkId
+
+	var suciProtos []*lte_protos.SuciProfile
+	suciProtos, err := subscriberdb.LoadSuciProtos(ctx, networkID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "loading suciProfiles in network failed %s", networkID)
+	}
+
+	res := &lte_protos.SuciProfileList{
+		SuciProfiles: suciProtos,
+	}
+	return res, nil
+}
+
 // getSubscribersChangeset compares the cloud and AGW digests and returns
 // 1. Whether a resync is required for this AGW.
 // 2. If no resync, the list of subscriber configs to be renewed.

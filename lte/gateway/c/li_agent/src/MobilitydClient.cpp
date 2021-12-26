@@ -14,9 +14,9 @@
 #include <netinet/in.h>
 #include <thread>
 
-#include "MobilitydClient.h"
-#include "includes/ServiceRegistrySingleton.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/li_agent/src/MobilitydClient.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 using grpc::Status;
 

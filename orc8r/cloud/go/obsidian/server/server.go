@@ -30,6 +30,9 @@ import (
 	"magma/orc8r/cloud/go/obsidian/access"
 	"magma/orc8r/cloud/go/obsidian/reverse_proxy"
 	"magma/orc8r/cloud/go/obsidian/swagger/handlers"
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/certifier"
+	"magma/orc8r/lib/go/service/config"
 )
 
 const (
@@ -44,8 +47,8 @@ func Start() {
 	// Metrics middleware is used before all other middlewares
 	e.Use(CollectStats)
 	e.Use(middleware.Recover())
-
 	err := handlers.RegisterSwaggerHandlers(e)
+
 	if err != nil {
 		// Swallow RegisterHandlerError because the obsidian service should
 		// continue to run even if Swagger handlers aren't registered.
@@ -99,8 +102,6 @@ func Start() {
 				tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
 				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, // 4 HTTP2 support
 				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-				//tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-				//tls.TLS_RSA_WITH_AES_256_CBC_SHA,
 			},
 		}
 		s.TLSConfig.Certificates[0], err = tls.LoadX509KeyPair(obsidian.ServerCertPemPath, obsidian.ServerKeyPemPath)
@@ -116,10 +117,14 @@ func Start() {
 			s.TLSConfig.NextProtos = append(s.TLSConfig.NextProtos, "h2")
 		}
 	} else {
-		e.Use(access.Middleware)
+		e.Use(access.CertificateMiddleware)
 	}
-
-	reverseProxyHandler := reverse_proxy.NewReverseProxyHandler()
+	var serviceConfig certifier.Config
+	_, _, err = config.GetStructuredServiceConfig(orc8r.ModuleName, certifier.ServiceName, &serviceConfig)
+	if err != nil {
+		glog.Infof("Failed unmarshalling service config %v", err)
+	}
+	reverseProxyHandler := reverse_proxy.NewReverseProxyHandler(&serviceConfig)
 	pathPrefixesByAddr, err := reverse_proxy.GetEchoServerAddressToPathPrefixes()
 	if err != nil {
 		log.Fatalf("Error querying service registry for reverse proxy paths: %s", err)

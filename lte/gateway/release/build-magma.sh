@@ -27,7 +27,8 @@ SCTPD_MIN_VERSION=1.6.0 # earliest version of sctpd with which this version is c
 BUILD_TYPE=RelWithDebInfo
 
 # Cmdline options that overwrite the version configs above
-COMMIT_HASH=""  # hash of top magma commit (hg log $MAGMA_PATH)
+COMMIT_HASH=""  # hash of top magma commit
+COMMIT_COUNT="" # count of commits on git main
 CERT_FILE="$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 CONTROL_PROXY_FILE="$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
 OS="ubuntu"
@@ -42,6 +43,10 @@ case $key in
     ;;
     -h|--hash)
     COMMIT_HASH="$2"
+    shift
+    ;;
+    --commit-count)
+    COMMIT_COUNT="$2"
     shift
     ;;
     -t|--type)
@@ -260,7 +265,7 @@ if [ -d ${PY_TMP_BUILD} ]; then
 fi
 
 FULL_VERSION=${VERSION}-$(date +%s)-${COMMIT_HASH}
-COMMIT_HASH_WITH_VERSION=${VERSION}-${COMMIT_HASH}
+COMMIT_HASH_WITH_VERSION="magma@${VERSION}.${COMMIT_COUNT}-${COMMIT_HASH}"
 
 # first do python protos and then build the python packages.
 # library will be dropped in $PY_TMP_BUILD/usr/lib/python3/dist-packages

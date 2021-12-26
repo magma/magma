@@ -26,6 +26,11 @@ from magma.common.redis.serializers import (
     get_json_serializer,
 )
 from magma.common.rpc_utils import return_void
+from magma.common.sentry import (
+    SentryStatus,
+    get_sentry_status,
+    send_uncaught_errors_to_monitoring,
+)
 from orc8r.protos.directoryd_pb2 import AllDirectoryRecords, DirectoryField
 from orc8r.protos.directoryd_pb2_grpc import (
     GatewayDirectoryServiceServicer,
@@ -35,6 +40,8 @@ from redis.exceptions import LockError, RedisError
 
 DIRECTORYD_REDIS_TYPE = "directory_record"
 LOCATION_MAX_LEN = 5
+
+enable_sentry_wrapper = get_sentry_status("directoryd") == SentryStatus.SEND_SELECTED_ERRORS
 
 
 class DirectoryRecord:
@@ -72,6 +79,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
         add_GatewayDirectoryServiceServicer_to_server(self, server)
 
     @return_void
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def UpdateRecord(self, request, context):
         """ Update the directory record of an object
 
@@ -114,6 +122,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
             context.set_details("Could not connect to redis: %s" % e)
 
     @return_void
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def DeleteRecord(self, request, context):
         """ Delete the directory record for an ID
 
@@ -146,6 +155,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details("Could not connect to redis: %s" % e)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetDirectoryField(self, request, context):
         """ Get the directory record field for an ID and key
 
@@ -205,6 +215,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
         self._print_grpc(response)
         return response
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetAllDirectoryRecords(self, request, context):
         """ Get all directory records
 

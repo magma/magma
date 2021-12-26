@@ -15,14 +15,14 @@
  *      contact@openairinterface.org
  */
 
-#include "service303_message_utils.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
 
 #include <stddef.h>
 
-#include "assertions.h"
-#include "intertask_interface.h"
-#include "itti_types.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 
 int send_app_health_to_service303(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id, bool healthy) {
@@ -54,6 +54,8 @@ int send_mme_app_stats_to_service303(
       stats_msg->nb_default_eps_bearers;
   message_p->ittiMsg.application_mme_app_stats_msg.nb_s1u_bearers =
       stats_msg->nb_s1u_bearers;
+  message_p->ittiMsg.application_mme_app_stats_msg.nb_mme_app_last_msg_latency =
+      stats_msg->nb_mme_app_last_msg_latency;
   return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
 }
 
@@ -68,5 +70,7 @@ int send_s1ap_stats_to_service303(
   }
   message_p->ittiMsg.application_s1ap_stats_msg.nb_enb_connected =
       stats_msg->nb_enb_connected;
+  message_p->ittiMsg.application_s1ap_stats_msg.nb_s1ap_last_msg_latency =
+      stats_msg->nb_s1ap_last_msg_latency;
   return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
 }

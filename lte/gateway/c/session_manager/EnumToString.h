@@ -14,12 +14,13 @@
 
 #include <lte/protos/abort_session.pb.h>
 #include <lte/protos/session_manager.pb.h>
-
 #include <string>
 
 #include "ChargingGrant.h"
 #include "ServiceAction.h"
 #include "StoredState.h"
+#include "Types.h"
+#include "lte/protos/pipelined.pb.h"
 
 namespace magma {
 std::string reauth_state_to_str(ReAuthState state);
@@ -41,6 +42,8 @@ std::string asr_result_to_str(AbortSessionResult_Code res);
 std::string wallet_state_to_str(SubscriberQuotaUpdate_Type state);
 
 std::string service_action_type_to_str(ServiceActionType action);
+
+std::string credit_validity_to_str(CreditValidity validity);
 
 std::string event_trigger_to_str(EventTrigger event_trigger);
 

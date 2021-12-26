@@ -11,14 +11,24 @@
  * limitations under the License.
  */
 
+#include <glog/logging.h>
+#include <grpcpp/channel.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <memory>
+#include <ostream>
 #include <string>
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include "AAAClient.h"
-#include "magma_logging.h"
-#include "includes/ServiceRegistrySingleton.h"
 #include "SessionState.h"
+#include "Types.h"
+#include "feg/gateway/services/aaa/protos/accounting.grpc.pb.h"
+#include "feg/gateway/services/aaa/protos/accounting.pb.h"
+#include "includes/ServiceRegistrySingleton.h"
+#include "lte/protos/session_manager.pb.h"
+#include "magma_logging.h"
 
 using grpc::Status;
 
@@ -72,20 +82,20 @@ AsyncAAAClient::AsyncAAAClient()
           magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
               "aaa_server", magma::ServiceRegistrySingleton::LOCAL)) {}
 
-bool AsyncAAAClient::terminate_session(
-    const std::string& radius_session_id, const std::string& imsi) {
+bool AsyncAAAClient::terminate_session(const std::string& radius_session_id,
+                                       const std::string& imsi) {
   auto req = create_deactivate_req(radius_session_id, imsi);
-  terminate_session_rpc(
-      req, [radius_session_id, imsi](Status status, acct_resp resp) {
-        if (status.ok()) {
-          MLOG(MDEBUG) << "Terminated session for Radius ID:"
-                       << radius_session_id << ", IMSI: " << imsi;
-        } else {
-          MLOG(MERROR) << "Could not add terminate session. Radius ID:"
-                       << radius_session_id << ", IMSI: " << imsi
-                       << ", Error: " << status.error_message();
-        }
-      });
+  terminate_session_rpc(req, [radius_session_id, imsi](Status status,
+                                                       acct_resp resp) {
+    if (status.ok()) {
+      MLOG(MDEBUG) << "Terminated session for Radius ID:" << radius_session_id
+                   << ", IMSI: " << imsi;
+    } else {
+      MLOG(MERROR) << "Could not add terminate session. Radius ID:"
+                   << radius_session_id << ", IMSI: " << imsi
+                   << ", Error: " << status.error_message();
+    }
+  });
   return true;
 }
 

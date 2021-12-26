@@ -12,8 +12,8 @@
  */
 #include <chrono>
 
-#include "sctpd_uplink_client.h"
-#include "util.h"
+#include "lte/gateway/c/sctpd/src/sctpd_uplink_client.h"
+#include "lte/gateway/c/sctpd/src/util.h"
 
 namespace magma {
 namespace sctpd {
@@ -60,8 +60,8 @@ int SctpdUplinkClient::newAssoc(const NewAssocReq& req, NewAssocRes* res) {
   return status.ok() ? 0 : -1;
 }
 
-int SctpdUplinkClient::closeAssoc(
-    const CloseAssocReq& req, CloseAssocRes* res) {
+int SctpdUplinkClient::closeAssoc(const CloseAssocReq& req,
+                                  CloseAssocRes* res) {
   assert(res != nullptr);
 
   ClientContext context;

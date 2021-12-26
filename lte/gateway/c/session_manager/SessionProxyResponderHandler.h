@@ -15,12 +15,28 @@
 #include <grpc++/grpc++.h>
 #include <lte/protos/abort_session.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-
 #include <functional>
 #include <memory>
 
 #include "LocalEnforcer.h"
 #include "SessionStore.h"
+
+namespace grpc {
+class ServerContext;
+class Status;
+}  // namespace grpc
+namespace magma {
+class LocalEnforcer;
+namespace lte {
+class AbortSessionRequest;
+class AbortSessionResult;
+class ChargingReAuthAnswer;
+class ChargingReAuthRequest;
+class PolicyReAuthAnswer;
+class PolicyReAuthRequest;
+class SessionStore;
+}  // namespace lte
+}  // namespace magma
 
 using grpc::ServerContext;
 using grpc::Status;
@@ -57,8 +73,8 @@ class SessionProxyResponderHandler {
  */
 class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
  public:
-  SessionProxyResponderHandlerImpl(
-      std::shared_ptr<LocalEnforcer> monitor, SessionStore& session_store);
+  SessionProxyResponderHandlerImpl(std::shared_ptr<LocalEnforcer> monitor,
+                                   SessionStore& session_store);
 
   ~SessionProxyResponderHandlerImpl() {}
 

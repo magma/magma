@@ -36,7 +36,7 @@
 */
 #ifndef FILE_DYNAMIC_MEMORY_CHECK_SEEN
 #define FILE_DYNAMIC_MEMORY_CHECK_SEEN
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 void free_wrapper(void** ptr) __attribute__((hot));
 void bdestroy_wrapper(bstring* b);

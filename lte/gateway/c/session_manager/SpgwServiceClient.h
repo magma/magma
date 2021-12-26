@@ -14,13 +14,13 @@
 
 #include <lte/protos/spgw_service.grpc.pb.h>  // for SpgwService::Stub, Spgw...
 #include <stdint.h>                           // for uint32_t
+#include <functional>                         // for function
+#include <memory>                             // for shared_ptr, unique_ptr
+#include <string>                             // for string
+#include <vector>                             // for vector
 
-#include <functional>  // for function
-#include <memory>      // for shared_ptr, unique_ptr
-#include <string>      // for string
-#include <vector>      // for vector
-
-#include "includes/GRPCReceiver.h"       // for GRPCReceiver
+#include "includes/GRPCReceiver.h"  // for GRPCReceiver
+#include "lte/protos/apn.pb.h"
 #include "lte/protos/subscriberdb.pb.h"  // for lte
 
 namespace grpc {
@@ -73,9 +73,9 @@ class SpgwServiceClient {
    * @param linked_bearer_id - identifier for link bearer
    * @return true if the operation was successful
    */
-  virtual bool delete_default_bearer(
-      const std::string& imsi, const std::string& apn_ip_addr,
-      const uint32_t linked_bearer_id) = 0;
+  virtual bool delete_default_bearer(const std::string& imsi,
+                                     const std::string& apn_ip_addr,
+                                     const uint32_t linked_bearer_id) = 0;
 
   /**
    * Delete a dedicated bearer
@@ -110,9 +110,9 @@ class AsyncSpgwServiceClient : public GRPCReceiver, public SpgwServiceClient {
    * @param linked_bearer_id - identifier for link bearer
    * @return true if the operation was successful
    */
-  bool delete_default_bearer(
-      const std::string& imsi, const std::string& apn_ip_addr,
-      const uint32_t linked_bearer_id);
+  bool delete_default_bearer(const std::string& imsi,
+                             const std::string& apn_ip_addr,
+                             const uint32_t linked_bearer_id);
 
   /**
    * Delete a dedicated bearer
@@ -133,10 +133,9 @@ class AsyncSpgwServiceClient : public GRPCReceiver, public SpgwServiceClient {
   std::unique_ptr<SpgwService::Stub> stub_;
 
  private:
-  bool delete_bearer(
-      const std::string& imsi, const std::string& apn_ip_addr,
-      const uint32_t linked_bearer_id,
-      const std::vector<uint32_t>& eps_bearer_ids);
+  bool delete_bearer(const std::string& imsi, const std::string& apn_ip_addr,
+                     const uint32_t linked_bearer_id,
+                     const std::vector<uint32_t>& eps_bearer_ids);
 
   void delete_bearer_rpc(
       const DeleteBearerRequest& request,

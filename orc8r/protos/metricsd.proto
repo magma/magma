@@ -114,6 +114,9 @@ enum MetricName {
   unexpected_service_restarts    = 322;
   unattended_upgrade_status      = 323;
   service_restart_status         = 324;
+  service_cpu_percentage         = 325;
+  service_memory_usage           = 326;
+  service_memory_percentage      = 327;
 
   // Pipelined metrics
   dp_send_msg_error              = 350;

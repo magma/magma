@@ -20,32 +20,20 @@ type Store interface {
 	GetAllTenants() (*protos.TenantList, error)
 	SetTenant(tenantID int64, tenant protos.Tenant) error
 	DeleteTenant(tenantID int64) error
+	GetControlProxy(tenantID int64) (string, error)
+	CreateOrUpdateControlProxy(tenantID int64, controlProxy string) error
 }
 
 type blobstoreStore struct {
-	factory blobstore.BlobStorageFactory
+	factory blobstore.StoreFactory
 }
 
-func NewBlobstoreStore(factory blobstore.BlobStorageFactory) Store {
+func NewBlobstoreStore(factory blobstore.StoreFactory) Store {
 	return &blobstoreStore{factory}
 }
 
 func (b *blobstoreStore) CreateTenant(tenantID int64, tenant protos.Tenant) error {
-	store, err := b.factory.StartTransaction(nil)
-	if err != nil {
-		return err
-	}
-	defer store.Rollback()
-
-	tenantBlob, err := tenantToBlob(tenantID, tenant)
-	if err != nil {
-		return err
-	}
-	err = store.CreateOrUpdate(networkWildcard, blobstore.Blobs{tenantBlob})
-	if err != nil {
-		return err
-	}
-	return store.Commit()
+	return b.SetTenant(tenantID, tenant)
 }
 
 func (b *blobstoreStore) GetTenant(tenantID int64) (*protos.Tenant, error) {
@@ -122,7 +110,7 @@ func (b *blobstoreStore) SetTenant(tenantID int64, tenant protos.Tenant) error {
 	if err != nil {
 		return err
 	}
-	err = store.CreateOrUpdate(networkWildcard, blobstore.Blobs{tenantBlob})
+	err = store.Write(networkWildcard, blobstore.Blobs{tenantBlob})
 	if err != nil {
 		return err
 	}
@@ -144,6 +132,46 @@ func (b *blobstoreStore) DeleteTenant(tenantID int64) error {
 	if err != nil {
 		return err
 	}
+	return store.Commit()
+}
+
+func (b *blobstoreStore) GetControlProxy(tenantID int64) (string, error) {
+	store, err := b.factory.StartTransaction(nil)
+	if err != nil {
+		return "", err
+	}
+	defer store.Rollback()
+
+	controlProxyTK := storage.TK{
+		Type: tenants.ControlProxyInfoType,
+		Key:  strconv.FormatInt(tenantID, 10),
+	}
+	controlProxyBlob, err := store.Get(networkWildcard, controlProxyTK)
+	if err != nil {
+		return "", err
+	}
+
+	return string(controlProxyBlob.Value), store.Commit()
+}
+
+func (b *blobstoreStore) CreateOrUpdateControlProxy(tenantID int64, controlProxy string) error {
+	store, err := b.factory.StartTransaction(nil)
+	if err != nil {
+		return err
+	}
+	defer store.Rollback()
+
+	controlProxyBlob := blobstore.Blob{
+		Type:  tenants.ControlProxyInfoType,
+		Key:   strconv.FormatInt(tenantID, 10),
+		Value: []byte(controlProxy),
+	}
+
+	err = store.Write(networkWildcard, blobstore.Blobs{controlProxyBlob})
+	if err != nil {
+		return err
+	}
+
 	return store.Commit()
 }
 

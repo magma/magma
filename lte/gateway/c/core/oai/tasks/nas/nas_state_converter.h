@@ -85,11 +85,6 @@ class NasStateConverter : StateConverter {
     state_identity->length = identity_proto.num_digits();
   }
 
-  // TODO: To be moved to base state converter class
-  static void proto_to_guti(const oai::Guti& guti_proto, guti_t* state_guti);
-
-  static void proto_to_ecgi(const oai::Ecgi& ecgi_proto, ecgi_t* state_ecgi);
-
   static void tai_list_to_proto(
       const tai_list_t* state_tai_list, oai::TaiList* tai_list_proto);
 

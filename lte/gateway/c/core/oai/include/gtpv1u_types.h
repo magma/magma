@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "common_types.h"
-#include "hashtable.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
 #define GTPV1U_UDP_PORT (2152)
 #define MAX_BEARERS_PER_UE (11)
@@ -43,6 +43,7 @@ typedef struct {
   // RB_HEAD(gtpv1u_ue_map, gtpv1u_ue_data_s) gtpv1u_ue_map_head;
   /* Local IP address to use */
   struct in_addr sgw_ip_address_for_S1u_S12_S4_up;
+  struct in6_addr* sgw_ipv6_address_for_S1u_S12_S4_up;
   hash_table_t* S1U_mapping;
 
   // GTP-U kernel interface

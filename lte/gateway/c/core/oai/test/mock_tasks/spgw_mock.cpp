@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
 
 task_zmq_ctx_t task_zmq_ctx_spgw;
 static std::shared_ptr<MockSpgwHandler> spgw_handler_;
@@ -42,6 +42,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S11_RELEASE_ACCESS_BEARERS_REQUEST: {
       spgw_handler_->sgw_handle_release_access_bearers_request();
+    } break;
+
+    case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {
+      // Handle Dedicated bearer Activation Rsp from MME
+      spgw_handler_->sgw_handle_nw_initiated_actv_bearer_rsp();
     } break;
 
     default: { } break; }

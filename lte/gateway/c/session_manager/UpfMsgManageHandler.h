@@ -14,15 +14,34 @@
 
 #include <grpc++/grpc++.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-
+#include <stdint.h>
 #include <functional>
 #include <memory>
+#include <string>
 
-#include "SessionStateEnforcer.h"
+#include "MobilitydClient.h"
 #include "SessionID.h"
 #include "SessionReporter.h"
+#include "SessionStateEnforcer.h"
 #include "SessionStore.h"
-#include "MobilitydClient.h"
+#include "orc8r/protos/common.pb.h"
+
+namespace grpc {
+class Server;
+class ServerContext;
+class Status;
+}  // namespace grpc
+namespace magma {
+class MobilitydClient;
+class SessionStateEnforcer;
+namespace lte {
+class SessionStore;
+class SmContextVoid;
+class UPFNodeState;
+class UPFPagingInfo;
+class UPFSessionConfigState;
+}  // namespace lte
+}  // namespace magma
 
 using grpc::Server;
 using grpc::ServerContext;
@@ -68,10 +87,9 @@ class UpfMsgHandler {
  */
 class UpfMsgManageHandler : public UpfMsgHandler {
  public:
-  UpfMsgManageHandler(
-      std::shared_ptr<SessionStateEnforcer> enf,
-      std::shared_ptr<MobilitydClient> mobilityd_client,
-      SessionStore& session_store);
+  UpfMsgManageHandler(std::shared_ptr<SessionStateEnforcer> enf,
+                      std::shared_ptr<MobilitydClient> mobilityd_client,
+                      SessionStore& session_store);
 
   ~UpfMsgManageHandler() {}
   /**

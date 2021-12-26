@@ -13,8 +13,11 @@
 #pragma once
 
 #include <grpc++/grpc++.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-
+#include <stdint.h>
+#include <chrono>
+#include <experimental/optional>
 #include <functional>
 #include <memory>
 #include <string>
@@ -23,6 +26,34 @@
 #include "SessionID.h"
 #include "SessionReporter.h"
 #include "SessionStore.h"
+#include "StoreClient.h"
+#include "orc8r/protos/common.pb.h"
+
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
+namespace magma {
+class DirectorydClient;
+class LocalEnforcer;
+class SessionReporter;
+class SessionState;
+namespace lte {
+class EventsReporter;
+class LocalCreateSessionRequest;
+class LocalCreateSessionResponse;
+class LocalEndSessionRequest;
+class LocalEndSessionResponse;
+class PolicyBearerBindingRequest;
+class PolicyBearerBindingResponse;
+class RuleRecordTable;
+class SessionRules;
+class SetupFlowsResult;
+class SubscriberID;
+class UpdateTunnelIdsRequest;
+class UpdateTunnelIdsResponse;
+}  // namespace lte
+struct SessionConfig;
+}  // namespace magma
 
 using grpc::ServerContext;
 using grpc::Status;
@@ -49,7 +80,7 @@ struct SessionActionOrStatus {
   static SessionActionOrStatus create_new_session_action(
       const std::string session_id) {
     SessionActionOrStatus action;
-    action.create_new_session      = true;
+    action.create_new_session = true;
     action.session_id_to_send_back = session_id;
     return action;
   }
@@ -60,12 +91,12 @@ struct SessionActionOrStatus {
   }
   static SessionActionOrStatus OK(const std::string session_id) {
     SessionActionOrStatus action;
-    action.status_back_to_access   = grpc::Status::OK;
+    action.status_back_to_access = grpc::Status::OK;
     action.session_id_to_send_back = session_id;
     return action;
   }
   void set_create_new_session(const std::string session_id) {
-    create_new_session      = true;
+    create_new_session = true;
     session_id_to_send_back = session_id;
   }
   void set_end_existing_session() { create_new_session = true; }
@@ -104,10 +135,10 @@ class LocalSessionManagerHandler {
   /**
    * Terminate a session, untracking credit and terminating in the cloud
    */
-  virtual void EndSession(
-      ServerContext* context, const LocalEndSessionRequest* request,
-      std::function<void(Status, LocalEndSessionResponse)>
-          response_callback) = 0;
+  virtual void EndSession(ServerContext* context,
+                          const LocalEndSessionRequest* request,
+                          std::function<void(Status, LocalEndSessionResponse)>
+                              response_callback) = 0;
 
   /**
    * Bind the returned bearer id to the policy for which it is created
@@ -149,18 +180,17 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   /**
    * Report flow stats from pipelined and track the usage per rule
    */
-  void ReportRuleStats(
-      ServerContext* context, const RuleRecordTable* request,
-      std::function<void(Status, Void)> response_callback);
+  void ReportRuleStats(ServerContext* context, const RuleRecordTable* request,
+                       std::function<void(Status, Void)> response_callback);
 
   /**
    * Create a new session, initializing credit monitoring and requesting credit
    * from the cloud
    */
-  void CreateSession(
-      ServerContext* context, const LocalCreateSessionRequest* request,
-      std::function<void(Status, LocalCreateSessionResponse)>
-          response_callback);
+  void CreateSession(ServerContext* context,
+                     const LocalCreateSessionRequest* request,
+                     std::function<void(Status, LocalCreateSessionResponse)>
+                         response_callback);
 
   /**
    * Terminate a session, untracking credit and terminating in the cloud
@@ -190,9 +220,8 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * Get the SessionMap for the updates, apply the set rules and update the
    * store. The rule updates should be also propagated to PipelineD
    */
-  void SetSessionRules(
-      ServerContext* context, const SessionRules* request,
-      std::function<void(Status, Void)> response_callback);
+  void SetSessionRules(ServerContext* context, const SessionRules* request,
+                       std::function<void(Status, Void)> response_callback);
 
  private:
   SessionStore& session_store_;
@@ -208,19 +237,19 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   static const std::string hex_digit_;
 
  private:
-  void check_usage_for_reporting(
-      SessionMap session_map, SessionUpdate& session_uc);
+  void check_usage_for_reporting(SessionMap session_map,
+                                 SessionUpdate& session_uc);
   bool is_pipelined_restarted();
-  void call_setup_pipelined(
-      const std::uint64_t& epoch, const bool update_rule_versions);
+  void call_setup_pipelined(const std::uint64_t& epoch,
+                            const bool update_rule_versions);
 
   void end_session(
       SessionMap& session_map, const SubscriberID& sid, const std::string& apn,
       std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
-  void add_session_to_directory_record(
-      const std::string& imsi, const std::string& session_id,
-      const std::string& msisdn);
+  void add_session_to_directory_record(const std::string& imsi,
+                                       const std::string& session_id,
+                                       const std::string& msisdn);
 
   /**
    * handle_create_session_cwf handles a sequence of actions needed for the
@@ -270,9 +299,9 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * grpc::Status set. otherwise, it'll return a struct with fields set to
    * indicate what actions need to be taken.
    */
-  SessionActionOrStatus handle_create_session_lte(
-      SessionMap& session_map, const std::string& session_id,
-      const SessionConfig& cfg);
+  SessionActionOrStatus handle_create_session_lte(SessionMap& session_map,
+                                                  const std::string& session_id,
+                                                  const SessionConfig& cfg);
 
   /**
    * Send session creation request to the CentralSessionController.
@@ -284,8 +313,8 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
       const SessionConfig& cfg,
       std::function<void(grpc::Status, LocalCreateSessionResponse)> cb);
 
-  void handle_setup_callback(
-      const std::uint64_t& epoch, Status status, SetupFlowsResult resp);
+  void handle_setup_callback(const std::uint64_t& epoch, Status status,
+                             SetupFlowsResult resp);
 
   void send_local_create_session_response(
       Status status, const std::string& sid,
@@ -310,9 +339,9 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    */
   grpc::Status check_sessiond_is_ready();
 
-  bool initialize_session(
-      SessionMap& session_map, const std::string& session_id,
-      const SessionConfig& cfg);
+  bool initialize_session(SessionMap& session_map,
+                          const std::string& session_id,
+                          const SessionConfig& cfg);
 };
 
 }  // namespace magma

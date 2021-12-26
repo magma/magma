@@ -21,7 +21,7 @@
 
 #include <lte/protos/sctpd.grpc.pb.h>
 
-#include "sctp_connection.h"
+#include "lte/gateway/c/sctpd/src/sctp_connection.h"
 
 #define S1AP 18
 #define NGAP 60
@@ -39,14 +39,13 @@ class SctpdDownlinkImpl final : public SctpdDownlink::Service {
   SctpdDownlinkImpl(SctpEventHandler& uplink_handler);
 
   // Implementation of SctpdDownlink.Init method (see sctpd.proto for more info)
-  Status Init(ServerContext* context, const InitReq* request, InitRes* response)
-      override;
+  Status Init(ServerContext* context, const InitReq* request,
+              InitRes* response) override;
 
   // Implementation of SctpdDownlink.SendDl method (see sctpd.proto for more
   // info)
-  Status SendDl(
-      ServerContext* context, const SendDlReq* request,
-      SendDlRes* response) override;
+  Status SendDl(ServerContext* context, const SendDlReq* request,
+                SendDlRes* response) override;
 
   // Implementation of SctpdDownlink.create_sctp_connection method
   //(creates 4G/5G sctp connection)

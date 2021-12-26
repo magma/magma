@@ -11,20 +11,21 @@
  * limitations under the License.
  */
 
-#include "includes/SentryWrapper.h"
+#include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
+
+#include <bits/local_lim.h>
+#include <unistd.h>
+#include <string>
 
 #if SENTRY_ENABLED
+#include <yaml-cpp/yaml.h>
 #include <experimental/optional>
-#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
-
 #include <cstdlib>
 #include <fstream>
 #include <cstring>
-#include <limits.h>
-#include <unistd.h>
 
 #include "sentry.h"
-#include "includes/ServiceConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.h"
 
 #define COMMIT_HASH_ENV "COMMIT_HASH"
 #define CONTROL_PROXY_SERVICE_NAME "control_proxy"
@@ -36,20 +37,22 @@
 #define HWID "hwid"
 #define HOSTNAME "hostname"
 #define SERVICE_NAME "service_name"
+#define CLOUD_ADDRESS "cloud_address"
+#define ORC8R_CLOUD_ADDRESS "orc8r_cloud_address"
 #define DEFAULT_SAMPLE_RATE 0.5f
 
 using std::experimental::optional;
 
-bool should_upload_mme_log(
-    bool sentry_upload_mme_log, YAML::Node control_proxy_config) {
+bool should_upload_mme_log(bool sentry_upload_mme_log,
+                           YAML::Node control_proxy_config) {
   if (control_proxy_config[SHOULD_UPLOAD_MME_LOG].IsDefined()) {
     return control_proxy_config[SHOULD_UPLOAD_MME_LOG].as<bool>();
   }
   return sentry_upload_mme_log;
 }
 
-optional<std::string> get_sentry_url(
-    const char* sentry_url_native, YAML::Node control_proxy_config) {
+optional<std::string> get_sentry_url(const char* sentry_url_native,
+                                     YAML::Node control_proxy_config) {
   if (control_proxy_config[SENTRY_NATIVE_URL].IsDefined()) {
     const std::string dns_override =
         control_proxy_config[SENTRY_NATIVE_URL].as<std::string>();
@@ -64,8 +67,19 @@ optional<std::string> get_sentry_url(
   return {};
 }
 
-float get_sentry_sample_rate(
-    float sentry_sample_rate, YAML::Node control_proxy_config) {
+optional<std::string> get_cloud_address(YAML::Node control_proxy_config) {
+  if (control_proxy_config[SENTRY_NATIVE_URL].IsDefined()) {
+    const std::string cloud_address =
+        control_proxy_config[CLOUD_ADDRESS].as<std::string>();
+    if (!cloud_address.empty()) {
+      return cloud_address;
+    }
+  }
+  return {};
+}
+
+float get_sentry_sample_rate(float sentry_sample_rate,
+                             YAML::Node control_proxy_config) {
   if (control_proxy_config[SENTRY_SAMPLE_RATE].IsDefined()) {
     const auto sample_rate_override =
         control_proxy_config[SENTRY_SAMPLE_RATE].as<float>();
@@ -86,8 +100,8 @@ std::string get_snowflake() {
   return buffer.str();
 }
 
-void initialize_sentry(
-    const char* service_tag, const sentry_config_t* sentry_config) {
+void initialize_sentry(const char* service_tag,
+                       const sentry_config_t* sentry_config) {
   auto control_proxy_config = magma::ServiceConfigLoader{}.load_service_config(
       CONTROL_PROXY_SERVICE_NAME);
   auto op_sentry_url =
@@ -105,8 +119,8 @@ void initialize_sentry(
     sentry_options_set_release(options, commit_hash_p);
   }
   if (strncmp(service_tag, SENTRY_TAG_MME, SENTRY_TAG_LEN) == 0 &&
-      should_upload_mme_log(
-          sentry_config->upload_mme_log, control_proxy_config)) {
+      should_upload_mme_log(sentry_config->upload_mme_log,
+                            control_proxy_config)) {
     sentry_options_add_attachment(options, MME_LOG_PATH);
   }
   if (sentry_config->add_debug_logging) {
@@ -123,17 +137,16 @@ void initialize_sentry(
   if (gethostname(node_name, HOST_NAME_MAX) == 0) {
     sentry_set_tag(HOSTNAME, node_name);
   }
+  if (auto cloud_address = get_cloud_address(control_proxy_config)) {
+    sentry_set_tag(ORC8R_CLOUD_ADDRESS, cloud_address->c_str());
+  }
   sentry_set_tag(SERVICE_NAME, service_tag);
   sentry_set_tag(HWID, get_snowflake().c_str());
 }
 
-void shutdown_sentry(void) {
-  sentry_shutdown();
-}
+void shutdown_sentry(void) { sentry_shutdown(); }
 
-void set_sentry_transaction(const char* name) {
-  sentry_set_transaction(name);
-}
+void set_sentry_transaction(const char* name) { sentry_set_transaction(name); }
 
 void sentry_log_error(const char* message) {
   sentry_value_t event =
@@ -144,9 +157,9 @@ void sentry_log_error(const char* message) {
 
 #else
 
-void initialize_sentry(
-    __attribute__((unused)) const char* service_tag,
-    __attribute__((unused)) const sentry_config_t* sentry_config) {}
+void initialize_sentry(__attribute__((unused)) const char* service_tag,
+                       __attribute__((unused))
+                       const sentry_config_t* sentry_config) {}
 
 void shutdown_sentry(void) {}
 

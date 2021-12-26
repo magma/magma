@@ -33,7 +33,7 @@
 
 #include <stdint.h>
 
-#include "3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 
 #define TMSI_SIZE 4
 #define MAX_IMEISV_SIZE 16

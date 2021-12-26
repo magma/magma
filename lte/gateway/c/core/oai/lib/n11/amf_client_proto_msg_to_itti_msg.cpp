@@ -11,18 +11,18 @@
  * limitations under the License.
  */
 
-#include "amf_client_proto_msg_to_itti_msg.h"
+#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.h"
 
 #include <stdint.h>
 #include <string.h>
 #include <iostream>
 #include <string>
 
-#include "3gpp_33.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 
-#include "amf_app_messages_types.h"
-#include "common_types.h"
-#include "security_types.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/security_types.h"
 
 extern "C" {}
 
@@ -83,6 +83,21 @@ void convert_proto_msg_to_itti_m5g_auth_info_ans(
     ++idx;
   }
   return;
+}
+
+void convert_proto_msg_to_itti_amf_decrypted_imsi_info_ans(
+    M5GSUCIRegistrationAnswer response,
+    itti_amf_decrypted_imsi_info_ans_t* amf_app_decrypted_imsi_info_resp) {
+  if (response.ue_msin_recv().length() <= 0) {
+    std::cout << "[ERROR] Decrypted IMSI response is invalid:"
+              << response.ue_msin_recv().length() << std::endl;
+    return;
+  }
+  amf_app_decrypted_imsi_info_resp->imsi_length =
+      response.ue_msin_recv().length();
+  memcpy(
+      amf_app_decrypted_imsi_info_resp->imsi, response.ue_msin_recv().c_str(),
+      amf_app_decrypted_imsi_info_resp->imsi_length);
 }
 
 }  // namespace magma5g

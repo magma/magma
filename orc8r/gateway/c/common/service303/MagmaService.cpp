@@ -11,28 +11,31 @@
  * limitations under the License.
  */
 
-#include "includes/MagmaService.h"
-#include <google/protobuf/map.h>                   // for Map
+#include "orc8r/gateway/c/common/service303/includes/MagmaService.h"
+
 #include <grpcpp/impl/codegen/completion_queue.h>  // for ServerCompletionQueue
 #include <grpcpp/security/server_credentials.h>    // for InsecureServerCred...
 #include <orc8r/protos/common.pb.h>                // for FATAL, LogLevel
+#include <orc8r/protos/metricsd.pb.h>              // for MetricsContainer
 #include <orc8r/protos/service303.pb.h>            // for ServiceInfo, Reloa...
 #include <prometheus/registry.h>                   // for Registry
 #include <stdarg.h>                                // for va_list
-#include <chrono>                                  // for seconds, duration
-#include <csignal>                                 // for raise, SIGTERM
-#include <ctime>                                   // for time
-#include <string>                                  // for string, stoi
-#include <type_traits>                             // for enable_if<>::type
-#include <unordered_map>                           // for operator==
-#include <utility>                                 // for move
-#include <vector>                                  // for vector
-#include "includes/MetricsRegistry.h"              // for Registry
-#include "includes/MetricsSingleton.h"             // for MetricsSingleton
-#include "ProcFileUtils.h"                         // for ProcFileUtils::mem...
-#include "includes/ServiceRegistrySingleton.h"     // for ServiceRegistrySin...
-#include "magma_logging_init.h"                    // for set_verbosity
-#include "orc8r/protos/metricsd.pb.h"              // for MetricsContainer
+#include <google/protobuf/stubs/common.h>
+#include <metrics.pb.h>
+#include <chrono>       // for seconds, duration
+#include <csignal>      // for raise, SIGTERM
+#include <ctime>        // for time
+#include <string>       // for string, stoi
+#include <type_traits>  // for enable_if<>::type
+#include <utility>      // for move
+#include <vector>       // for vector
+#include <algorithm>
+
+#include "orc8r/gateway/c/common/service303/includes/MetricsSingleton.h"  // for MetricsSingleton
+#include "orc8r/gateway/c/common/service303/ProcFileUtils.h"  // for ProcFileUtils::mem...
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"  // for ServiceRegistrySin...
+#include "orc8r/gateway/c/common/logging/magma_logging_init.h"  // for set_verbosity
+
 namespace grpc {
 class ServerContext;
 }
@@ -85,9 +88,7 @@ void MagmaService::WaitForShutdown() {
   server_->Wait();  // Blocking call
 }
 
-void MagmaService::Stop() {
-  server_->Shutdown();
-}
+void MagmaService::Stop() { server_->Shutdown(); }
 
 void MagmaService::SetServiceInfoCallback(ServiceInfoCallback callback) {
   service_info_callback_ = callback;
@@ -114,15 +115,16 @@ void MagmaService::ClearOperationalStatesCallback() {
   operational_states_callback_ = nullptr;
 }
 
-Status MagmaService::GetServiceInfo(
-    __attribute__((unused)) ServerContext* context,
-    __attribute__((unused)) const Void* request, ServiceInfo* response) {
+Status MagmaService::GetServiceInfo(__attribute__((unused))
+                                    ServerContext* context,
+                                    __attribute__((unused)) const Void* request,
+                                    ServiceInfo* response) {
   auto start_time_secs =
       time_point_cast<seconds>(wall_start_time_).time_since_epoch().count();
 
-  auto meta = (service_info_callback_ != nullptr) ?
-                  service_info_callback_() :
-                  std::map<std::string, std::string>();
+  auto meta = (service_info_callback_ != nullptr)
+                  ? service_info_callback_()
+                  : std::map<std::string, std::string>();
 
   response->set_name(name_);
   response->set_version(version_);
@@ -134,21 +136,20 @@ Status MagmaService::GetServiceInfo(
   return Status::OK;
 }
 
-Status MagmaService::StopService(
-    __attribute__((unused)) ServerContext* context,
-    __attribute__((unused)) const Void* request,
-    __attribute__((unused)) Void* response) {
+Status MagmaService::StopService(__attribute__((unused)) ServerContext* context,
+                                 __attribute__((unused)) const Void* request,
+                                 __attribute__((unused)) Void* response) {
   std::raise(SIGTERM);
   return Status::OK;
 }
 
-Status MagmaService::GetMetrics(
-    __attribute__((unused)) ServerContext* context,
-    __attribute__((unused)) const Void* request, MetricsContainer* response) {
+Status MagmaService::GetMetrics(__attribute__((unused)) ServerContext* context,
+                                __attribute__((unused)) const Void* request,
+                                MetricsContainer* response) {
   // Set all common metrics
   setSharedMetrics();
 
-  MetricsSingleton& instance                 = MetricsSingleton::Instance();
+  MetricsSingleton& instance = MetricsSingleton::Instance();
   const std::vector<MetricFamily>& collected = instance.registry_->Collect();
   for (auto it = collected.begin(); it != collected.end(); it++) {
     MetricFamily* family = response->add_family();
@@ -157,19 +158,20 @@ Status MagmaService::GetMetrics(
   return Status::OK;
 }
 
-Status MagmaService::SetLogLevel(
-    __attribute__((unused)) ServerContext* context,
-    const LogLevelMessage* request, __attribute__((unused)) Void* response) {
+Status MagmaService::SetLogLevel(__attribute__((unused)) ServerContext* context,
+                                 const LogLevelMessage* request,
+                                 __attribute__((unused)) Void* response) {
   // log level FATAL is minimum verbosity and maximum level
   auto verbosity = LogLevel::FATAL - request->level();
   set_verbosity(verbosity);
   return Status::OK;
 }
 
-Status MagmaService::ReloadServiceConfig(
-    __attribute__((unused)) ServerContext* context,
-    __attribute__((unused)) const Void* request,
-    ReloadConfigResponse* response) {
+Status MagmaService::ReloadServiceConfig(__attribute__((unused))
+                                         ServerContext* context,
+                                         __attribute__((unused))
+                                         const Void* request,
+                                         ReloadConfigResponse* response) {
   if (config_reload_callback_ != nullptr) {
     if (config_reload_callback_()) {
       response->set_result(ReloadConfigResponse::RELOAD_SUCCESS);
@@ -187,9 +189,9 @@ Status MagmaService::GetOperationalStates(
     __attribute__((unused)) ServerContext* context,
     __attribute__((unused)) const Void* request,
     GetOperationalStatesResponse* response) {
-  auto op_states = (operational_states_callback_ != nullptr) ?
-                       operational_states_callback_() :
-                       std::list<std::map<std::string, std::string>>();
+  auto op_states = (operational_states_callback_ != nullptr)
+                       ? operational_states_callback_()
+                       : std::list<std::map<std::string, std::string>>();
 
   for (auto op_state : op_states) {
     State* state = response->add_states();
@@ -215,8 +217,8 @@ void MagmaService::setApplicationHealth(
 void MagmaService::setMetricsStartTime() {
   va_list ap;
   // Use standard time to get start time
-  MetricsSingleton::Instance().SetGauge(
-      "process_start_time_seconds", (double) std::time(nullptr), 0, ap);
+  MetricsSingleton::Instance().SetGauge("process_start_time_seconds",
+                                        (double)std::time(nullptr), 0, ap);
 }
 
 void MagmaService::setMetricsUptime() {
@@ -226,15 +228,15 @@ void MagmaService::setMetricsUptime() {
   duration<double> time_span =
       duration_cast<duration<double>>(t2 - start_time_);
   double uptime = time_span.count();
-  MetricsSingleton::Instance().SetGauge(
-      "process_cpu_seconds_total", uptime, 0, ap);
+  MetricsSingleton::Instance().SetGauge("process_cpu_seconds_total", uptime, 0,
+                                        ap);
 }
 
 void MagmaService::setMemoryUsage() {
   va_list ap;
   const ProcFileUtils::memory_info_t mem_info = ProcFileUtils::getMemoryInfo();
-  MetricsSingleton::Instance().SetGauge(
-      "process_virtual_memory_bytes", mem_info.virtual_mem, 0, ap);
-  MetricsSingleton::Instance().SetGauge(
-      "process_resident_memory_bytes", mem_info.physical_mem, 0, ap);
+  MetricsSingleton::Instance().SetGauge("process_virtual_memory_bytes",
+                                        mem_info.virtual_mem, 0, ap);
+  MetricsSingleton::Instance().SetGauge("process_resident_memory_bytes",
+                                        mem_info.physical_mem, 0, ap);
 }

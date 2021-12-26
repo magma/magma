@@ -179,6 +179,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       }
     } break;
 
+    case S11_DELETE_BEARER_COMMAND: {
+      // Handle delete bearer cmd from MME
+      sgw_handle_delete_bearer_cmd(
+          &received_message_p->ittiMsg.s11_delete_bearer_command, imsi64);
+      is_state_same = true;  // task state is not changed
+    } break;
+
     case IP_ALLOCATION_RESPONSE: {
       int32_t rc = sgw_handle_ip_allocation_rsp(
           spgw_state, &received_message_p->ittiMsg.ip_allocation_response,
@@ -240,10 +247,12 @@ status_code_e spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
   // Read SPGW state for subscribers from db
   read_spgw_ue_state_db();
 
+#if !MME_UNIT_TEST  // No need to initialize OVS data path for unit tests
   if (gtpv1u_init(spgw_state_p, spgw_config_pP, persist_state) < 0) {
     OAILOG_ALERT(LOG_SPGW_APP, "Initializing GTPv1-U ERROR\n");
     return RETURNerror;
   }
+#endif
 
   if (RETURNerror ==
       pgw_pcef_emulation_init(spgw_state_p, &spgw_config_pP->pgw_config)) {
@@ -264,7 +273,9 @@ status_code_e spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
 static void spgw_app_exit(void) {
   OAILOG_DEBUG(LOG_SPGW_APP, "Cleaning SGW\n");
   put_spgw_state();
+#if !MME_UNIT_TEST  // No need to initialize OVS data path for unit tests
   gtpv1u_exit();
+#endif
   spgw_state_exit();
   destroy_task_context(&spgw_app_task_zmq_ctx);
   OAILOG_DEBUG(LOG_SPGW_APP, "Finished cleaning up SGW\n");

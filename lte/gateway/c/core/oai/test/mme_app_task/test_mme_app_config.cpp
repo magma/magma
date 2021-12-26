@@ -11,11 +11,11 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
-#include "bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 extern "C" {
-#include "include/mme_config.h"
-#include "include/amf_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/amf_config.h"
 }
 
 namespace magma {
@@ -156,7 +156,7 @@ const char* kHealthyConfig =
     {
       # outcome drop timer value (seconds)
       #  S1AP_OUTCOME_TIMER = 10;
-      AMF_NAME = "AMF_1"
+      AMF_NAME = "MAGMAAMF1"
     };
     # AMF served GUAMFIs
     # AMF code DEFAULT  size = 8 bits
@@ -856,6 +856,13 @@ TEST(MMEConfigTest, TestMixedParTaiLists) {
 TEST(MMEConfigTest, TestParseHealthyConfig) {
   mme_config_t mme_config = {0};
   EXPECT_EQ(mme_config_parse_string(kHealthyConfig, &mme_config), 0);
+  free_mme_config(&mme_config);
+}
+
+TEST(MMEConfigTest, TestParseHealthyConfigDisplay) {
+  mme_config_t mme_config = {0};
+  EXPECT_EQ(mme_config_parse_string(kHealthyConfig, &mme_config), 0);
+  mme_config_display(&mme_config);
   free_mme_config(&mme_config);
 }
 

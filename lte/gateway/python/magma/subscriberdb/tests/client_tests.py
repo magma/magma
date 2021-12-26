@@ -28,6 +28,8 @@ from lte.protos.subscriberdb_pb2 import (
     ListSubscribersResponse,
     SubscriberData,
     SubscriberID,
+    SuciProfile,
+    SuciProfileList,
     SyncRequest,
     SyncResponse,
 )
@@ -188,6 +190,15 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
             ),
         )
 
+    def ListSuciProfiles(self, request, context) -> SuciProfileList:
+        suci_profiles = SuciProfile()
+        if request.home_network_public_key_identifier < 0 or request.home_network_public_key_identifier > 255:
+            raise grpc.RpcError("Invalid home network key identifier value ")
+        else:
+            return SuciProfileList(
+                suci_profiles=suci_profiles,
+            )
+
 
 class SubscriberDBCloudClientTests(unittest.TestCase):
     """Tests for the SubscriberDBCloudClient"""
@@ -198,6 +209,7 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
         self._tmpfile = tempfile.TemporaryDirectory()
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
+        suciprofile_db_dict = {},
         store = SqliteStore(
             '{filename}{slash}'.format(
                 filename=self._tmpfile.name,
@@ -247,6 +259,7 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
         self.subscriberdb_cloud_client = SubscriberDBCloudClient(
             loop=self.service.loop,
             store=store,
+            suciprofile_db_dict=suciprofile_db_dict,
             subscriber_page_size=2,
             sync_interval=10,
             grpc_client_manager=grpc_client_manager,

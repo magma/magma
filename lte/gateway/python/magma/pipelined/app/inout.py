@@ -34,6 +34,7 @@ from magma.pipelined.openflow.registers import (
     Direction,
     load_direction,
 )
+from magma.pipelined.utils import get_virtual_iface_mac
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
@@ -72,6 +73,7 @@ class InOutController(RestartMixin, MagmaController):
             'gtp_port', 'uplink_port', 'mtr_ip', 'mtr_port', 'li_port_name',
             'enable_nat', 'non_nat_gw_probe_frequency', 'non_nat_arp_egress_port',
             'setup_type', 'uplink_gw_mac', 'he_proxy_port', 'he_proxy_eth_mac',
+            'mtr_mac', 'virtual_mac',
         ],
     )
     ARP_PROBE_FREQUENCY = 300
@@ -81,6 +83,8 @@ class InOutController(RestartMixin, MagmaController):
     def __init__(self, *args, **kwargs):
         super(InOutController, self).__init__(*args, **kwargs)
         self.config = self._get_config(kwargs['config'])
+        self.logger.info("inout config: %s", self.config)
+
         self._li_port = None
         # TODO Alex do we want this to be cofigurable from swagger?
         if self.config.mtr_ip:
@@ -110,6 +114,7 @@ class InOutController(RestartMixin, MagmaController):
         self._clean_restart = kwargs['config']['clean_restart']
         self._msg_hub = MessageHub(self.logger)
         self._datapath = None
+        self._gw_mac_monitor_on = False
 
     def _get_config(self, config_dict):
         mtr_ip = None
@@ -128,10 +133,16 @@ class InOutController(RestartMixin, MagmaController):
             # ignore it
             self.logger.debug("could not parse proxy port config")
 
-        if 'mtr_ip' in config_dict:
+        if 'mtr_ip' in config_dict and 'mtr_interface' in config_dict and 'ovs_mtr_port_number' in config_dict:
             self._mtr_service_enabled = True
             mtr_ip = config_dict['mtr_ip']
             mtr_port = config_dict['ovs_mtr_port_number']
+            mtr_mac = get_virtual_iface_mac(config_dict['mtr_interface'])
+        else:
+            mtr_ip = None
+            mtr_mac = None
+            mtr_port = None
+
         if 'li_local_iface' in config_dict:
             li_port_name = config_dict['li_local_iface']
 
@@ -152,6 +163,16 @@ class InOutController(RestartMixin, MagmaController):
                 'non_nat_arp_egress_port',
                 self.NON_NAT_ARP_EGRESS_PORT,
             )
+        virtual_iface = config_dict.get('virtual_interface', None)
+        if enable_nat is True or setup_type != 'LTE':
+            if virtual_iface is not None:
+                virtual_mac = get_virtual_iface_mac(virtual_iface)
+            else:
+                virtual_mac = ""
+        else:
+            # override virtual mac from config file.
+            virtual_mac = config_dict.get('virtual_mac', "")
+
         uplink_gw_mac = config_dict.get(
             'uplink_gw_mac',
             "ff:ff:ff:ff:ff:ff",
@@ -169,6 +190,8 @@ class InOutController(RestartMixin, MagmaController):
             uplink_gw_mac=uplink_gw_mac,
             he_proxy_port=he_proxy_port,
             he_proxy_eth_mac=he_proxy_eth_mac,
+            mtr_mac=mtr_mac,
+            virtual_mac=virtual_mac,
         )
 
     def initialize_on_connect(self, datapath):
@@ -191,7 +214,7 @@ class InOutController(RestartMixin, MagmaController):
         return {
             self._ingress_tbl_num: self._get_default_ingress_flow_msgs(datapath),
             self._midle_tbl_num: self._get_default_middle_flow_msgs(datapath),
-            self._egress_tbl_num: self._get_default_egress_flow_msgs(datapath),
+            self._egress_tbl_num: self._get_default_egress_flow_msgs(datapath, mac_addr=self.config.virtual_mac),
         }
 
     def _install_default_flows(self, datapath):
@@ -253,6 +276,7 @@ class InOutController(RestartMixin, MagmaController):
                     self.config.mtr_port,
                     priority=flows.UE_FLOW_PRIORITY,
                     direction=Direction.OUT,
+                    dst_mac=self.config.mtr_mac,
                 ),
             )
         return msgs
@@ -272,7 +296,6 @@ class InOutController(RestartMixin, MagmaController):
             MagmaOFError if any of the default flows fail to install.
         """
         msgs = []
-
         if self.config.setup_type == 'LTE':
             msgs.extend(
                 _get_vlan_egress_flow_msgs(
@@ -578,16 +601,14 @@ class InOutController(RestartMixin, MagmaController):
                 return None
 
     def _monitor_and_update(self):
-        while True:
+        while self._gw_mac_monitor_on:
             gw_info_list = get_mobilityd_gw_info()
             for gw_info in gw_info_list:
                 if gw_info and gw_info.ip:
                     latest_mac_addr = self._get_gw_mac_address(gw_info.ip, gw_info.vlan)
-                    if latest_mac_addr is None:
-                        continue
-                    self.logger.debug("mac [%s] for vlan %s", latest_mac_addr, gw_info.vlan)
-                    if latest_mac_addr == "":
+                    if latest_mac_addr is None or latest_mac_addr == "":
                         latest_mac_addr = gw_info.mac
+                    self.logger.debug("mac [%s] for vlan %s", latest_mac_addr, gw_info.vlan)
                     msgs = self._get_default_egress_flow_msgs(
                         self._datapath,
                         latest_mac_addr,
@@ -598,7 +619,7 @@ class InOutController(RestartMixin, MagmaController):
                     chan = self._msg_hub.send(msgs, self._datapath)
                     self._wait_for_responses(chan, len(msgs))
 
-                    if latest_mac_addr != "":
+                    if latest_mac_addr and latest_mac_addr != "":
                         set_mobilityd_gw_info(
                             gw_info.ip,
                             latest_mac_addr,
@@ -631,9 +652,15 @@ class InOutController(RestartMixin, MagmaController):
                 self.config.uplink_port,
             )
 
+        self._gw_mac_monitor_on = True
         self._gw_mac_monitor = hub.spawn(self._monitor_and_update)
 
         threading.Event().wait(1)
+
+    def _stop_gw_mac_monitor(self):
+        if self._gw_mac_monitor:
+            self._gw_mac_monitor_on = False
+            self._gw_mac_monitor.wait()
 
     def _get_proxy_flow_msgs(self, dp):
         """
@@ -696,7 +723,7 @@ class InOutController(RestartMixin, MagmaController):
 
 def _get_vlan_egress_flow_msgs(
     dp, table_no, eth_type, ip, out_port=None,
-    priority=0, direction=Direction.IN,
+    priority=0, direction=Direction.IN, dst_mac=None,
 ):
     """
     Install egress flows
@@ -728,9 +755,13 @@ def _get_vlan_egress_flow_msgs(
             eth_type=eth_type,
             vlan_vid=(0x0000, 0x1000),
         )
+    actions = []
+    if dst_mac:
+        actions.append(dp.ofproto_parser.NXActionRegLoad2(dst='eth_dst', value=dst_mac))
+
     msgs.append(
         flows.get_add_output_flow_msg(
-            dp, table_no, match, [],
+            dp, table_no, match, actions,
             priority=priority, output_reg=output_reg, output_port=out_port,
         ),
     )
@@ -749,10 +780,13 @@ def _get_vlan_egress_flow_msgs(
             eth_type=eth_type,
             vlan_vid=(0x1000, 0x1000),
         )
-    actions_vlan_pop = [dp.ofproto_parser.OFPActionPopVlan()]
+    actions = [dp.ofproto_parser.OFPActionPopVlan()]
+    if dst_mac:
+        actions.append(dp.ofproto_parser.NXActionRegLoad2(dst='eth_dst', value=dst_mac))
+
     msgs.append(
         flows.get_add_output_flow_msg(
-            dp, table_no, match, actions_vlan_pop,
+            dp, table_no, match, actions,
             priority=priority, output_reg=output_reg, output_port=out_port,
         ),
     )

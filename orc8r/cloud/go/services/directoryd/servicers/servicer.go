@@ -27,12 +27,14 @@ import (
 type directoryLookupServicer struct {
 	store       storage.DirectorydStorage
 	sgwCteidGen *IdGenerator
+	sgwUteidGen *IdGenerator
 }
 
 func NewDirectoryLookupServicer(store storage.DirectorydStorage) (protos.DirectoryLookupServer, error) {
 	srv := &directoryLookupServicer{
 		store:       store,
 		sgwCteidGen: NewIdGenerator(),
+		sgwUteidGen: NewIdGenerator(),
 	}
 	return srv, nil
 }
@@ -159,4 +161,55 @@ func (d *directoryLookupServicer) GetNewSgwCTeid(ctx context.Context, req *proto
 		return nil, err
 	}
 	return &protos.GetNewSgwCTeidResponse{Teid: fmt.Sprint(sgwCTeid)}, nil
+}
+
+func (d *directoryLookupServicer) MapSgwUTeidToHWID(ctx context.Context, req *protos.MapSgwUTeidToHWIDRequest) (*protos.Void, error) {
+	err := req.Validate()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate MapSgwUTeidToHWIDRequest")
+	}
+
+	err = d.store.MapSgwUTeidToHWID(req.NetworkID, req.TeidToHwid)
+
+	return &protos.Void{}, err
+}
+
+func (d *directoryLookupServicer) UnmapSgwUTeidToHWID(ctx context.Context, req *protos.UnmapSgwUTeidToHWIDRequest) (*protos.Void, error) {
+	err := req.Validate()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate UnmapSgwUTeidToHWIDRequest")
+	}
+
+	err = d.store.UnmapSgwUTeidToHWID(req.NetworkID, req.Teids)
+
+	return &protos.Void{}, err
+}
+
+func (d *directoryLookupServicer) GetHWIDForSgwUTeid(
+	ctx context.Context, req *protos.GetHWIDForSgwUTeidRequest,
+) (*protos.GetHWIDForSgwUTeidResponse, error) {
+	err := req.Validate()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate GetHWIDForSgwUTeidRequest")
+	}
+
+	hwid, err := d.store.GetHWIDForSgwUTeid(req.NetworkID, req.Teid)
+	res := &protos.GetHWIDForSgwUTeidResponse{Hwid: hwid}
+
+	return res, err
+}
+
+func (d *directoryLookupServicer) GetNewSgwUTeid(ctx context.Context, req *protos.GetNewSgwUTeidRequest) (*protos.GetNewSgwUTeidResponse, error) {
+	err := req.Validate()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate GetNewSgwUTeid")
+	}
+
+	SgwUTeid, err := d.sgwUteidGen.GetUniqueId(req.NetworkID, d.store.GetHWIDForSgwUTeid)
+	if err != nil {
+		err = fmt.Errorf("GetNewSgwUTeid could not get unique TEID: %s", err)
+		glog.Error(err)
+		return nil, err
+	}
+	return &protos.GetNewSgwUTeidResponse{Teid: fmt.Sprint(SgwUTeid)}, nil
 }

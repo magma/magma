@@ -10,7 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mock_tasks.h"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.h"
+
+#include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
 
 task_zmq_ctx_t task_zmq_ctx_mme;
 static std::shared_ptr<MockMmeAppHandler> mme_app_handler_;
@@ -37,21 +39,29 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S11_CREATE_SESSION_RESPONSE: {
+      mme_app_handler_->mme_app_handle_create_sess_resp();
     } break;
 
     case S11_MODIFY_BEARER_RESPONSE: {
+      mme_app_handler_->mme_app_handle_modify_bearer_rsp();
     } break;
 
     case S11_RELEASE_ACCESS_BEARERS_RESPONSE: {
+      mme_app_handler_->mme_app_handle_release_access_bearers_resp();
     } break;
 
     case S11_DELETE_SESSION_RESPONSE: {
+      mme_app_handler_->mme_app_handle_delete_sess_rsp(
+          received_message_p->ittiMsg.s11_delete_session_response);
     } break;
 
     case S11_SUSPEND_ACKNOWLEDGE: {
+      mme_app_handler_->mme_app_handle_suspend_acknowledge(
+          received_message_p->ittiMsg.s11_suspend_acknowledge);
     } break;
 
     case S1AP_E_RAB_SETUP_RSP: {
+      mme_app_handler_->mme_app_handle_e_rab_setup_rsp();
     } break;
 
     case S1AP_E_RAB_REL_RSP: {
@@ -69,12 +79,16 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_ENB_INITIATED_RESET_REQ: {
+      mme_app_handler_->mme_app_handle_enb_reset_req();
+      free_wrapper((void**) &S1AP_ENB_INITIATED_RESET_REQ(received_message_p)
+                       .ue_to_reset_list);
     } break;
 
     case S11_PAGING_REQUEST: {
     } break;
 
     case MME_APP_INITIAL_CONTEXT_SETUP_FAILURE: {
+      mme_app_handler_->mme_app_handle_initial_context_setup_failure();
     } break;
 
     case S1AP_UE_CAPABILITIES_IND: {
@@ -133,18 +147,24 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST: {
+      mme_app_handler_->mme_app_handle_nw_init_ded_bearer_actv_req(
+          received_message_p->ittiMsg.s11_nw_init_actv_bearer_request);
     } break;
 
     case SGSAP_STATUS: {
     } break;
 
     case S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST: {
+      mme_app_handler_->mme_app_handle_nw_init_bearer_deactv_req(
+          received_message_p->ittiMsg.s11_nw_init_deactv_bearer_request);
     } break;
 
     case S1AP_PATH_SWITCH_REQUEST: {
+      mme_app_handler_->mme_app_handle_path_switch_request();
     } break;
 
     case S1AP_HANDOVER_REQUIRED: {
+      mme_app_handler_->mme_app_handle_handover_required();
     } break;
 
     case S1AP_HANDOVER_REQUEST_ACK: {
@@ -160,6 +180,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case MME_APP_DOWNLINK_DATA_REJ: {
+      mme_app_handler_->nas_proc_dl_transfer_rej();
+      bdestroy_wrapper(&MME_APP_DL_DATA_REJ(received_message_p).nas_msg);
     } break;
 
     case SGSAP_DOWNLINK_UNITDATA: {

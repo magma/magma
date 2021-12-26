@@ -6,38 +6,54 @@ on:  # yamllint disable-line rule:truthy
       - opened
       - reopened
       - synchronize
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/bazel.yml
   schedule:
-    # Run once a day to build bazel cache at 0200 hours
-    - cron: '0 2 * * *'
+    # Run four times a day to build bazel cache
+    - cron: '0 0,6,12,18 * * *'
 env:
-  DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-007ddb9"
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:sha-206a67a"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 jobs:
   path_filter:
     runs-on: ubuntu-latest
     outputs:
-      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+      files_changed: ${{ steps.changes.outputs.files_changed }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@v2
-        if: github.event_name == 'push'
       - uses: dorny/paths-filter@v2
+        if: github.event_name == 'pull_request'
         id: changes
         with:
           filters: |
-            filesChanged:
-              - [".github/workflows/bazel.yml", "lte/gateway/c/**", "orc8r/gateway/c/**", "orc8r/protos/**", "lte/protos/**", "src/go/**"]
+            files_changed:
+              - '.github/workflows/bazel.yml'
+              - 'orc8r/gateway/c/**'
+              - 'orc8r/protos/**'
+              - 'lte/gateway/c/**'
+              - 'lte/protos/**'
+              - 'src/go/**'
+              - '**/BUILD'
+              - '**/*.BUILD'
+              - '**/*.bazel'
+              - '**/*.bzl'
 
   bazel_build_and_test:
-    needs:
-      - path_filter
+    needs: path_filter
     # Only run workflow if this is a scheduled run on master branch,
     # or a pull_request that skip-duplicate-action wants to run again.
     if: |
       (github.event_name == `schedule` && github.ref == 'refs/heads/master')
-        || ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+        || ${{ needs.path_filter.outputs.files_changed == 'true' }}
     name: Bazel Build and Test Job
     runs-on: ubuntu-latest
     steps:
@@ -48,28 +64,63 @@ jobs:
           uses: actions/cache@v2
           with:
             path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-            key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}
+            key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
+            restore-keys: |
+              ${{ runner.os }}-${{ env.BAZEL_CACHE }}-
+
         - name: Bazel Cache Repo
           uses: actions/cache@v2
           with:
             path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
-            key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}
-        - name: Bazel Build
+            key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
+            restore-keys: |
+              ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
+
+        # This check is needed to ensure that Bazel's unbounded cache growth doesn't result in a
+        # situation where the cache never updates (e.g. due to exceeding GitHub's cache size limit)
+        # thereby only ever using the last successful cache version. This solution will result in a
+        # few slower CI actions around the time cache is detected to be too large, but it should
+        # incrementally improve thereafter.
+        - name: Ensure cache size
+          env:
+            BAZEL_CACHE_DIR: .${{ env.BAZEL_CACHE }}
+            BAZEL_CACHE_REPO_DIR: .${{ env.BAZEL_CACHE_REPO }}
+          run: |
+            # See https://stackoverflow.com/a/27485157 for reference.
+            EXPANDED_BAZEL_CACHE_PATH="${BAZEL_CACHE_DIR/#\~/$HOME}"
+            EXPANDED_BAZEL_CACHE_REPO_PATH="${BAZEL_CACHE_REPO_DIR/#\~/$HOME}"
+
+            CACHE_SIZE_MB=$(du -smc $EXPANDED_BAZEL_CACHE_PATH $EXPANDED_BAZEL_CACHE_REPO_PATH | grep total | cut -f1)
+            echo "Total size of Bazel cache (rounded up to MBs): $CACHE_SIZE_MB"
+            # Use a 4.5GB threshold since actions/cache compresses the results, and Bazel caches seem
+            # to only increase by a few hundred megabytes across changes for unrelated branches.
+            if [[ "$CACHE_SIZE_MB" -gt 4500 ]]; then
+              echo "Cache exceeds cut-off; resetting it (will result in a slow build)"
+              rm -rf $EXPANDED_BAZEL_CACHE_PATH $EXPANDED_BAZEL_CACHE_REPO_PATH
+            fi
+        - name: Setup Devcontainer Image
+          uses: addnab/docker-run-action@v2
+          with:
+            image: ${{ env.DEVCONTAINER_IMAGE }}
+            # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+            run: |
+              echo "Pulled the devontainer image!"
+        - name: Run `bazel build //...`
           uses: addnab/docker-run-action@v2
           with:
             image: ${{ env.DEVCONTAINER_IMAGE }}
             # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-            options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
+            options: -v ${{ github.workspace }}:/workspaces/magma/
             run: |
               cd /workspaces/magma
-              bazel build ... --config=devcontainer
-        - name: Bazel Test
+              bazel build //...
+        - name: Run `bazel test //...`
           if: github.event_name == 'pull_request'
           uses: addnab/docker-run-action@v2
           with:
             image: ${{ env.DEVCONTAINER_IMAGE }}
             # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-            options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma -e ABC=123
+            options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
             run: |
               cd /workspaces/magma
-              bazel test ... --test_output=errors --config=devcontainer
+              bazel test //... --test_output=errors --cache_test_results=no

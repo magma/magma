@@ -17,15 +17,38 @@
   Author/Editor Sanjay Kumar Ojha
   Description 	Acts as 5G Landing object in SessionD & start 5G related flow
 *****************************************************************************/
-#include <chrono>
-#include <thread>
+#include <folly/io/async/EventBase.h>
+#include <glog/logging.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <grpcpp/impl/codegen/status_code_enum.h>
+#include <experimental/optional>
+#include <ostream>
 #include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include <google/protobuf/util/time_util.h>
-
-#include "SetMessageManagerHandler.h"
-#include "magma_logging.h"
 #include "GrpcMagmaUtils.h"
+#include "SessionReporter.h"
+#include "SessionState.h"
+#include "SessionStateEnforcer.h"
+#include "SessionStore.h"
+#include "SetMessageManagerHandler.h"
+#include "lte/protos/session_manager.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+#include "magma_logging.h"
+
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
+namespace magma {
+struct SessionStateUpdateCriteria;
+}  // namespace magma
 
 using grpc::Status;
 
@@ -40,10 +63,12 @@ namespace magma {
 /*Constructor*/
 SetMessageManagerHandler::SetMessageManagerHandler(
     std::shared_ptr<SessionStateEnforcer> m5genforcer,
-    SessionStore& session_store, SessionReporter* reporter)
+    SessionStore& session_store, SessionReporter* reporter,
+    std::shared_ptr<EventsReporter> events_reporter)
     : session_store_(session_store),
       m5g_enforcer_(m5genforcer),
-      reporter_(reporter) {}
+      reporter_(reporter),
+      events_reporter_(events_reporter) {}
 
 /* Building session config with required parameters
  * TODO Note: this function can be removed by implementing 5G specific
@@ -53,14 +78,11 @@ SessionConfig SetMessageManagerHandler::m5g_build_session_config(
     const SetSMSessionContext& request) {
   SessionConfig cfg;
   /*copying only 5G specific data to respective elements*/
-  cfg.common_context       = request.common_context();
+  cfg.common_context = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
 
-  /* As we dont have 5G polices defined yet, for now
-   * for all new connection we set SSC  mode as SSC_MODE_3
-   */
   cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
-      SSC_MODE_3);
+      request.rat_specific_context().m5gsm_session_context().ssc_mode());
 
   return cfg;
 }
@@ -86,7 +108,17 @@ void SetMessageManagerHandler::SetAmfSessionContext(
                                                         request_cpy]() {
     // extract values from proto
     std::string imsi = request_cpy.common_context().sid().id();
-    std::string dnn  = request_cpy.common_context().apn();
+    const auto rat_type = request_cpy.common_context().rat_type();
+    if (rat_type != TGPP_NR) {
+      // We don't support outside of 5G
+      std::ostringstream failure_stream;
+      failure_stream << "Received an invalid RAT type " << rat_type;
+      std::string failure_msg = failure_stream.str();
+      MLOG(MERROR) << failure_msg;
+      Status status(grpc::FAILED_PRECONDITION, failure_msg);
+      response_callback(status, SmContextVoid());
+      return;
+    }
     // Fetch PDU session ID from rat_specific_context and
     // pdu_id is unique to IMSI
     uint32_t pdu_id = request_cpy.rat_specific_context()
@@ -198,9 +230,10 @@ static CreateSessionRequest make_create_session_request(
 }
 
 /* Creeate respective SessionState and context*/
-void SetMessageManagerHandler::send_create_session(
-    SessionMap& session_map, const std::string& imsi, SessionConfig& new_cfg,
-    uint32_t& pdu_id) {
+void SetMessageManagerHandler::send_create_session(SessionMap& session_map,
+                                                   const std::string& imsi,
+                                                   SessionConfig& new_cfg,
+                                                   uint32_t& pdu_id) {
   /* If it is new session to be created, check for same PDU_ID exists
    * for same IMSI, i.e if IMSI found and respective PDU_ID found in
    * SessionStore, then return from here and nothing to do
@@ -263,16 +296,20 @@ void SetMessageManagerHandler::send_create_session(
 
   auto session_map_ptr = std::make_shared<SessionMap>(std::move(session_map));
   /* initialization of SessionState for IMSI by SessionStateEnforcer*/
-  bool success = m5g_enforcer_->m5g_init_session_credit(
-      *session_map_ptr, imsi, session_id, new_cfg);
+  bool success = m5g_enforcer_->m5g_init_session_credit(*session_map_ptr, imsi,
+                                                        session_id, new_cfg);
   if (!success) {
-    MLOG(MERROR) << "Failed to initialize SessionStore for 5G session "
-                 << session_id;
+    std::ostringstream failure_stream;
+    failure_stream << "Failed to initialize SessionStore for 5G session "
+                   << session_id;
+    std::string failure_msg = failure_stream.str();
+    MLOG(MERROR) << failure_msg;
+    events_reporter_->session_create_failure(new_cfg, failure_msg);
     return;
   } else {
     /* writing of SessionMap in memory through SessionStore object*/
-    if (session_store_.create_sessions(
-            imsi, std::move((*session_map_ptr)[imsi]))) {
+    if (session_store_.create_sessions(imsi,
+                                       std::move((*session_map_ptr)[imsi]))) {
       MLOG(MDEBUG) << "Successfully initialized 5G session for subscriber "
                    << new_cfg.common_context.sid().id()
                    << " with PDU session ID "
@@ -290,7 +327,7 @@ void SetMessageManagerHandler::send_create_session(
   auto create_req = make_create_session_request(
       new_cfg, session_id, m5g_enforcer_->get_access_timezone());
   reporter_->report_create_session(
-      create_req, [this, imsi, session_id](
+      create_req, [this, imsi, new_cfg, session_id](
                       Status status, CreateSessionResponse response) mutable {
         if (status.ok()) {
           MLOG(MINFO) << "Processing a CreateSessionResponse for "
@@ -307,18 +344,20 @@ void SetMessageManagerHandler::send_create_session(
             status = Status(grpc::ABORTED, "Session not found");
             return;
           }
-          auto& session                          = **session_it;
+          auto& session = **session_it;
           SessionStateUpdateCriteria* session_uc = &update[imsi][session_id];
-          m5g_enforcer_->update_session_with_policy(
-              session, response, session_uc);
+          m5g_enforcer_->update_session_with_policy(session, response,
+                                                    session_uc);
           session_store_.update_sessions(update);
         } else {
           MLOG(MINFO) << "Failed to initialize new session " << session_id
                       << " in SessionD for subscriber " << imsi
                       << " due to failure writing to SessionStore."
                       << " An earlier update may have invalidated it.";
-          status = Status(
-              grpc::ABORTED, "Failed to write session to SessionD storage");
+          status = Status(grpc::ABORTED,
+                          "Failed to write session to SessionD storage");
+          events_reporter_->session_create_failure(
+              new_cfg, "Failed to initialize session in SessionProxy/PolicyDB");
         }
       });
 }
@@ -358,13 +397,13 @@ void SetMessageManagerHandler::pdu_session_inactive(
     const SetSmNotificationContext& notif,
     std::function<void(Status, SmContextVoid)> response_callback) {
   // extract values from proto
-  uint32_t pdu_id  = notif.rat_specific_notification().pdu_session_id();
+  uint32_t pdu_id = notif.rat_specific_notification().pdu_session_id();
   std::string imsi = notif.common_context().sid().id();
   /* Read the SessionMap from global session_store */
   SessionSearchCriteria criteria(imsi, IMSI_AND_PDUID, pdu_id);
   auto session_map = session_store_.read_sessions({imsi});
-  auto session_it  = session_store_.find_session(session_map, criteria);
-  auto& session    = **session_it;
+  auto session_it = session_store_.find_session(session_map, criteria);
+  auto& session = **session_it;
   if (!session_it) {
     MLOG(MINFO) << " No session found for IMSI: " << imsi << " pdu id "
                 << pdu_id;
@@ -394,10 +433,10 @@ void SetMessageManagerHandler::pdu_session_inactive(
     return;
   }
   auto session_update = SessionStore::get_default_session_update(session_map);
-  auto session_id     = session->get_session_id();
+  auto session_id = session->get_session_id();
   SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
-  m5g_enforcer_->m5g_move_to_inactive_state(
-      imsi, **session_it, notif, &session_uc);
+  m5g_enforcer_->m5g_move_to_inactive_state(imsi, **session_it, notif,
+                                            &session_uc);
   bool update_success = session_store_.update_sessions(session_update);
   if (update_success) {
     MLOG(MDEBUG) << "Successfully updated SessionStore "
@@ -416,16 +455,16 @@ void SetMessageManagerHandler::idle_mode_change_sessions_handle(
     const SetSmNotificationContext& notif,
     std::function<void(Status, SmContextVoid)> response_callback) {
   // extract IMSI value from proto
-  auto imsi           = notif.common_context().sid().id();
-  auto session_map    = session_store_.read_sessions({imsi});
-  int count           = 0;
+  auto imsi = notif.common_context().sid().id();
+  auto session_map = session_store_.read_sessions({imsi});
+  int count = 0;
   auto session_update = SessionStore::get_default_session_update(session_map);
   for (auto& session : session_map[imsi]) {
     if (session->get_state() != RELEASE) {
-      auto session_id                        = session->get_session_id();
+      auto session_id = session->get_session_id();
       SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
-      m5g_enforcer_->m5g_move_to_inactive_state(
-          imsi, session, notif, &session_uc);
+      m5g_enforcer_->m5g_move_to_inactive_state(imsi, session, notif,
+                                                &session_uc);
       bool update_success = session_store_.update_sessions(session_update);
       if (!update_success) {
         MLOG(MINFO) << "Operation aborted in  middle"
@@ -464,13 +503,13 @@ void SetMessageManagerHandler::service_handle_request_on_paging(
     const SetSmNotificationContext& notif,
     std::function<void(Status, SmContextVoid)> response_callback) {
   // extract IMSI value from proto
-  auto imsi           = notif.common_context().sid().id();
-  auto session_map    = session_store_.read_sessions({imsi});
-  int count           = 0;
+  auto imsi = notif.common_context().sid().id();
+  auto session_map = session_store_.read_sessions({imsi});
+  int count = 0;
   auto session_update = SessionStore::get_default_session_update(session_map);
   for (auto& session : session_map[imsi]) {
     if (session->get_state() == INACTIVE) {
-      auto session_id                        = session->get_session_id();
+      auto session_id = session->get_session_id();
       SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
       m5g_enforcer_->m5g_move_to_active_state(session, notif, &session_uc);
       bool update_success = session_store_.update_sessions(session_update);

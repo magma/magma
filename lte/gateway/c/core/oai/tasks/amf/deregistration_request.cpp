@@ -249,8 +249,7 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
 
     if (i->pdu_address.pdn_type == IPv4) {
       AsyncM5GMobilityServiceClient::getInstance().release_ipv4_address(
-          imsi, reinterpret_cast<const char*>(i->apn),
-          &(i->pdu_address.ipv4_address));
+          imsi, i->dnn.c_str(), &(i->pdu_address.ipv4_address));
     }
   }
 }

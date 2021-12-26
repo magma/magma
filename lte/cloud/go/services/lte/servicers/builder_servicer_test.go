@@ -148,8 +148,8 @@ func TestBuilder_Build(t *testing.T) {
 			SentryConfig: &lte_mconfig.SentryConfig{
 				SampleRate:   0.75,
 				UploadMmeLog: true,
-				UrlPython:    "https://www.example.com/v1/api",
-				UrlNative:    "https://www.example.com/v1/api",
+				DsnPython:    "https://www.example.com/v1/api",
+				DsnNative:    "https://www.example.com/v1/api",
 			},
 			Enable5GFeatures: false,
 		},
@@ -188,8 +188,8 @@ func TestBuilder_Build(t *testing.T) {
 			SentryConfig: &lte_mconfig.SentryConfig{
 				SampleRate:   0.75,
 				UploadMmeLog: true,
-				UrlPython:    "https://www.example.com/v1/api",
-				UrlNative:    "https://www.example.com/v1/api",
+				DsnPython:    "https://www.example.com/v1/api",
+				DsnNative:    "https://www.example.com/v1/api",
 			},
 			Enable5GFeatures: false,
 		},
@@ -642,6 +642,128 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	}
 
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+func TestBuilder_Build_NgcConfig(t *testing.T) {
+	lte_test_init.StartTestService(t)
+
+	nw := configurator.Network{
+		ID: "n1",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkConfigType: lte_models.NewDefaultTDDNetworkConfig(),
+		},
+	}
+	gw := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType, Key: "gw1",
+		Associations: storage.TKs{
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
+		},
+	}
+	gatewayConfig := newGatewayConfigWithNGC()
+	lteGW := configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config:             gatewayConfig,
+		ParentAssociations: storage.TKs{gw.GetTK()},
+	}
+
+	graph := configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTK(), To: lteGW.GetTK()},
+		},
+	}
+
+	expected := map[string]proto.Message{
+		"enodebd": &lte_mconfig.EnodebD{
+			LogLevel: protos.LogLevel_INFO,
+			Pci:      260,
+			TddConfig: &lte_mconfig.EnodebD_TDDConfig{
+				Earfcndl:               44590,
+				SubframeAssignment:     2,
+				SpecialSubframePattern: 7,
+			},
+			BandwidthMhz:        20,
+			AllowEnodebTransmit: true,
+			Tac:                 1,
+			PlmnidList:          "00101",
+			CsfbRat:             lte_mconfig.EnodebD_CSFBRAT_2G,
+			Arfcn_2G:            nil,
+			EnbConfigsBySerial:  nil,
+		},
+		"mobilityd": &lte_mconfig.MobilityD{
+			LogLevel: protos.LogLevel_INFO,
+			IpBlock:  "192.168.128.0/24",
+		},
+		"mme": &lte_mconfig.MME{
+			LogLevel:                      protos.LogLevel_INFO,
+			Mcc:                           "001",
+			Mnc:                           "01",
+			Tac:                           1,
+			MmeCode:                       1,
+			MmeGid:                        1,
+			MmeRelativeCapacity:           10,
+			NonEpsServiceControl:          lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
+			CsfbMcc:                       "001",
+			CsfbMnc:                       "01",
+			Lac:                           1,
+			HssRelayEnabled:               false,
+			CloudSubscriberdbEnabled:      false,
+			AttachedEnodebTacs:            nil,
+			NatEnabled:                    true,
+			CongestionControlEnabled:      true,
+			Enable5GFeatures:              false,
+			AmfName:                       "amf.example.org",
+			AmfSetId:                      "2A1",
+			AmfRegionId:                   "C1",
+			AmfPointer:                    "1F",
+			AmfDefaultSliceServiceType:    25,
+			AmfDefaultSliceDifferentiator: "AFAFAF",
+		},
+		"pipelined": &lte_mconfig.PipelineD{
+			LogLevel:      protos.LogLevel_INFO,
+			UeIpBlock:     "192.168.128.0/24",
+			NatEnabled:    true,
+			DefaultRuleId: "",
+			Services: []lte_mconfig.PipelineD_NetworkServices{
+				lte_mconfig.PipelineD_ENFORCEMENT,
+			},
+			HeConfig:          &lte_mconfig.PipelineD_HEConfig{},
+			LiUes:             &lte_mconfig.PipelineD_LiUes{},
+			Enable5GFeatures:  false,
+			UpfNodeIdentifier: "",
+		},
+		"subscriberdb": &lte_mconfig.SubscriberDB{
+			LogLevel:         protos.LogLevel_INFO,
+			LteAuthOp:        []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:       []byte("\x80\x00"),
+			SubProfiles:      nil,
+			HssRelayEnabled:  false,
+			SyncInterval:     randomizedInterval300,
+			Enable5GFeatures: false,
+		},
+		"policydb": &lte_mconfig.PolicyDB{
+			LogLevel: protos.LogLevel_INFO,
+		},
+		"sessiond": &lte_mconfig.SessionD{
+			LogLevel:         protos.LogLevel_INFO,
+			GxGyRelayEnabled: false,
+			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
+				TerminateOnExhaust: false,
+			},
+			Enable5GFeatures: false,
+		},
+		"dnsd": &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
+		},
+		"liagentd": &lte_mconfig.LIAgentD{
+			LogLevel: protos.LogLevel_INFO,
+		},
+	}
+
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -1652,7 +1774,7 @@ func newGatewayConfigNonNat(vlan string, sgi_ip string, sgi_gw string, sgi_ipv6 
 			SgiManagementIfaceVlan:     vlan,
 			SgiManagementIfaceStaticIP: sgi_ip,
 			SgiManagementIfaceGw:       sgi_gw,
-			SgiManagementIfaceIPV6Addr: strfmt.IPv6(sgi_ipv6),
+			SgiManagementIfaceIPV6Addr: sgi_ipv6,
 			SgiManagementIfaceIPV6Gw:   strfmt.IPv6(sgi_ipv6_gw),
 		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{
@@ -1669,6 +1791,43 @@ func newGatewayConfigNonNat(vlan string, sgi_ip string, sgi_gw string, sgi_ipv6 
 			LocalTTL:          swag.Int32(0),
 		},
 		HeConfig: &lte_models.GatewayHeConfig{},
+	}
+}
+
+func newGatewayConfigWithNGC() *lte_models.GatewayCellularConfigs {
+	return &lte_models.GatewayCellularConfigs{
+		Ran: &lte_models.GatewayRanConfigs{
+			Pci:             260,
+			TransmitEnabled: swag.Bool(true),
+		},
+		Epc: &lte_models.GatewayEpcConfigs{
+			NatEnabled:               swag.Bool(true),
+			IPBlock:                  "192.168.128.0/24",
+			CongestionControlEnabled: swag.Bool(true),
+		},
+		Ngc: &lte_models.GatewayNgcConfigs{
+			AmfDefaultSd:  "AFAFAF",
+			AmfDefaultSst: 25,
+			AmfName:       "amf.example.org",
+			AmfPointer:    "1F",
+			AmfRegionID:   "C1",
+			AmfSetID:      "2A1",
+		},
+		NonEpsService: &lte_models.GatewayNonEpsConfigs{
+			CsfbMcc:              "001",
+			CsfbMnc:              "01",
+			Lac:                  swag.Uint32(1),
+			CsfbRat:              swag.Uint32(0),
+			Arfcn2g:              nil,
+			NonEpsServiceControl: swag.Uint32(0),
+		},
+		DNS: &lte_models.GatewayDNSConfigs{
+			DhcpServerEnabled: swag.Bool(true),
+			EnableCaching:     swag.Bool(false),
+			LocalTTL:          swag.Int32(0),
+		},
+		HeConfig: &lte_models.GatewayHeConfig{},
+		Pooling:  lte_models.CellularGatewayPoolRecords{},
 	}
 }
 

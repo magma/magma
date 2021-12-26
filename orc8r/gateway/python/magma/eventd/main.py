@@ -23,7 +23,7 @@ def main():
     service = MagmaService('eventd', EventD())
 
     # Optionally pipe errors to Sentry
-    sentry_init(service_name=service.name)
+    sentry_init(service_name=service.name, sentry_mconfig=service.shared_mconfig.sentry_config)
 
     event_validator = EventValidator(service.config)
     eventd_servicer = EventDRpcServicer(service.config, event_validator)

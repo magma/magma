@@ -59,11 +59,12 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating state service %v", err)
 	}
+
 	db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
 	if err != nil {
 		glog.Fatalf("Error connecting to database: %v", err)
 	}
-	store := blobstore.NewSQLBlobStorageFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
+	store := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	err = store.InitializeFactory()
 	if err != nil {
 		glog.Fatalf("Error initializing state database: %v", err)
@@ -71,8 +72,13 @@ func main() {
 
 	stateServicer := newStateServicer(store)
 	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
-	indexerManagerServer := newIndexerManagerServicer(srv.Config, db, store)
-	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
+
+	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
+	if !singletonReindex {
+		glog.Info("Running reindexer")
+		indexerManagerServer := newIndexerManagerServicer(srv.Config, db, store)
+		indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
+	}
 
 	go metrics.PeriodicallyReportGatewayStatus(gatewayStatusReportInterval)
 
@@ -82,7 +88,7 @@ func main() {
 	}
 }
 
-func newStateServicer(store blobstore.BlobStorageFactory) protos.StateServiceServer {
+func newStateServicer(store blobstore.StoreFactory) protos.StateServiceServer {
 	servicer, err := servicers.NewStateServicer(store)
 	if err != nil {
 		glog.Fatalf("Error creating state servicer: %v", err)
@@ -90,7 +96,7 @@ func newStateServicer(store blobstore.BlobStorageFactory) protos.StateServiceSer
 	return servicer
 }
 
-func newIndexerManagerServicer(cfg *config.ConfigMap, db *sql.DB, store blobstore.BlobStorageFactory) indexer_protos.IndexerManagerServer {
+func newIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
 	queue := reindex.NewSQLJobQueue(reindex.DefaultMaxAttempts, db, sqorc.GetSqlBuilder())
 	err := queue.Initialize()
 	if err != nil {
@@ -102,7 +108,7 @@ func newIndexerManagerServicer(cfg *config.ConfigMap, db *sql.DB, store blobstor
 	}
 
 	autoReindex := cfg.MustGetBool(state_config.EnableAutomaticReindexing)
-	reindexer := reindex.NewReindexer(queue, reindex.NewStore(store))
+	reindexer := reindex.NewReindexerQueue(queue, reindex.NewStore(store))
 	servicer := servicers.NewIndexerManagerServicer(reindexer, autoReindex)
 
 	if autoReindex && storage.GetSQLDriver() != sqorc.PostgresDriver {

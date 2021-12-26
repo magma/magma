@@ -42,11 +42,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "3gpp_33.401.h"
-#include "security_types.h"
-#include "common_dim.h"
-#include "TrackingAreaIdentity.h"
-#include "common_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
+#include "lte/gateway/c/core/oai/common/security_types.h"
+#include "lte/gateway/c/core/oai/common/common_dim.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 //------------------------------------------------------------------------------
 typedef uint16_t sctp_stream_id_t;
@@ -234,6 +234,8 @@ typedef enum {
   BPS  = 0,
   KBPS = 1,
 } apn_ambr_bitrate_unit_t;
+
+#define AMBR_UNIT_CONVERT_THRESHOLD 65535
 
 typedef struct {
   apn_ambr_bitrate_unit_t br_unit;
@@ -448,7 +450,7 @@ typedef enum {
   INITIAL_ATTACH_PROCEDURE
 } s6a_cancellation_type_t;
 
-#include "nas/commonDef.h"
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 
 struct fteid_s;
 

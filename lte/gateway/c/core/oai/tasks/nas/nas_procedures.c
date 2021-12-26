@@ -316,8 +316,7 @@ static void nas_delete_child_procedures(
 
 //-----------------------------------------------------------------------------
 static void nas_delete_con_mngt_procedure(nas_emm_con_mngt_proc_t** proc) {
-  if (*proc) {
-    Fatal("TODO Implement nas_delete_con_mngt_procedure");
+  if (proc) {
     free_wrapper((void**) proc);
   }
 }
@@ -563,7 +562,12 @@ void nas_delete_all_emm_procedures(struct emm_context_s* const emm_context) {
   if (emm_context->emm_procedures) {
     nas_delete_cn_procedures(emm_context);
     nas_delete_common_procedures(emm_context);
-    // TODO nas_delete_con_mngt_procedure(emm_context);
+    // Check if emm_procedures are non-null after previous delete procedures
+    if (emm_context->emm_procedures &&
+        emm_context->emm_procedures->emm_con_mngt_proc) {
+      nas_delete_con_mngt_procedure(
+          &emm_context->emm_procedures->emm_con_mngt_proc);
+    }
     nas_delete_attach_procedure(emm_context);
     nas_delete_detach_procedure(emm_context);
     nas_delete_tau_procedure(emm_context);
@@ -628,8 +632,8 @@ nas_emm_tau_proc_t* nas_new_tau_procedure(
   if (!(emm_context->emm_procedures)) {
     emm_context->emm_procedures = nas_new_emm_procedures(emm_context);
   } else if (emm_context->emm_procedures->emm_specific_proc) {
-    OAILOG_ERROR(
-        LOG_NAS_EMM,
+    OAILOG_ERROR_UE(
+        LOG_NAS_EMM, emm_context->_imsi64,
         "UE " MME_UE_S1AP_ID_FMT
         " Attach procedure creation requested but another specific procedure "
         "found\n",
@@ -663,8 +667,8 @@ nas_sr_proc_t* nas_new_service_request_procedure(
   if (!(emm_context->emm_procedures)) {
     emm_context->emm_procedures = nas_new_emm_procedures(emm_context);
   } else if (emm_context->emm_procedures->emm_con_mngt_proc) {
-    OAILOG_ERROR(
-        LOG_NAS_EMM,
+    OAILOG_ERROR_UE(
+        LOG_NAS_EMM, emm_context->_imsi64,
         "UE " MME_UE_S1AP_ID_FMT
         " SR procedure creation requested but another connection management "
         "procedure found\n",

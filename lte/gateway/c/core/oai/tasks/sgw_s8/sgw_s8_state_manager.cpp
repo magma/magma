@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 extern "C" {
-#include <lte/gateway/c/core/oai/common/dynamic_memory_check.h>
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/backtrace.h"
 }
 
@@ -72,6 +72,11 @@ void SgwStateManager::create_state() {
   state_cache_p->sgw_ip_address_S1u_S12_S4_up.s_addr =
       config_->ipv4.S1u_S12_S4_up.s_addr;
 
+  memcpy(
+      &state_cache_p->sgw_ipv6_address_S1u_S12_S4_up,
+      &config_->ipv4.S1u_S12_S4_up.s_addr,
+      sizeof(state_cache_p->sgw_ipv6_address_S1u_S12_S4_up));
+
   state_cache_p->sgw_ip_address_S5S8_up.s_addr = config_->ipv4.S5_S8_up.s_addr;
 
   state_cache_p->imsi_ue_context_htbl = hashtable_ts_create(
@@ -80,6 +85,17 @@ void SgwStateManager::create_state() {
   if (!(state_cache_p->imsi_ue_context_htbl)) {
     OAILOG_CRITICAL(
         LOG_SGW_S8, "Failed to create imsi_ue_context_htbl for SGW_S8 task \n");
+    return;
+  }
+  state_cache_p->temporary_create_session_procedure_id_htbl =
+      hashtable_ts_create(
+          SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
+          (void (*)(void**)) sgw_free_s11_bearer_context_information, nullptr);
+  if (!(state_cache_p->temporary_create_session_procedure_id_htbl)) {
+    OAILOG_CRITICAL(
+        LOG_SGW_S8,
+        "Failed to create temporary_create_session_procedure_id_htbl for "
+        "SGW_S8 task \n");
     return;
   }
 
@@ -102,8 +118,9 @@ void SgwStateManager::free_state() {
         "An error occurred while destroying SGW s11_bearer_context_information "
         "hashtable");
   }
-
   hashtable_ts_destroy(state_cache_p->imsi_ue_context_htbl);
+  hashtable_ts_destroy(
+      state_cache_p->temporary_create_session_procedure_id_htbl);
 
   free_wrapper((void**) &state_cache_p);
 }
@@ -113,5 +130,8 @@ status_code_e SgwStateManager::read_ue_state_from_db() {
   return RETURNok;
 }
 
+sgw_state_t* SgwStateManager::get_state(bool read_from_db) {
+  return state_cache_p;
+}
 }  // namespace lte
 }  // namespace magma

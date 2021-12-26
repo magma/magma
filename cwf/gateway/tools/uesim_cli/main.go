@@ -27,6 +27,7 @@ import (
 
 	"fbc/lib/go/radius"
 	"fbc/lib/go/radius/rfc2869"
+
 	"magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim"
@@ -275,7 +276,7 @@ func getConfiguredSubscribers(params ...string) ([]*protos.UEConfig, error) {
 			if !ok {
 				continue
 			}
-			configMap := &config.ConfigMap{RawMap: subscriberCfg}
+			configMap := &config.Map{RawMap: subscriberCfg}
 
 			ue, err := createUeConfig(imsi, 0, configMap)
 			if err != nil {
@@ -289,7 +290,7 @@ func getConfiguredSubscribers(params ...string) ([]*protos.UEConfig, error) {
 	return ues, nil
 }
 
-func createUeConfig(imsi string, seq_num uint64, configMap *config.ConfigMap) (*protos.UEConfig, error) {
+func createUeConfig(imsi string, seq_num uint64, configMap *config.Map) (*protos.UEConfig, error) {
 	var op string
 	var msisdn, apn string = DefaultMsisdn, DefaultApn
 	var rat int = DefaultRatType

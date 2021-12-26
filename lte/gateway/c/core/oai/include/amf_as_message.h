@@ -12,13 +12,13 @@
  */
 
 #pragma once
-#include "TrackingAreaIdentity.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.007.h"
-#include "3gpp_38.331.h"
-#include "3gpp_38.413.h"
-#include "3gpp_36.331.h"
-#include "common_types.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.331.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.331.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 
 /*
  * --------------------------------------

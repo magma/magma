@@ -1,0 +1,5 @@
+---
+- include: setup-tests.yaml
+  tags: setupTests
+- include: run-tests.yaml
+  tags: runTests

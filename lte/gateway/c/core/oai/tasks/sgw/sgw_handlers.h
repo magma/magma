@@ -107,13 +107,15 @@ void sgw_process_release_access_bearer_request(
 int sgw_build_and_send_s11_create_bearer_request(
     sgw_eps_bearer_context_information_t* sgw_eps_bearer_context_information,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
-    uint32_t sgw_ip_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
+    pdn_type_t pdn_type, uint32_t sgw_ip_address_S1u_S12_S4_up,
+    struct in6_addr* sgw_ipv6_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
     log_proto_t module);
 
 int create_temporary_dedicated_bearer_context(
     sgw_eps_bearer_context_information_t* sgw_ctxt_p,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
-    uint32_t sgw_ip_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
+    pdn_type_t pdn_type, uint32_t sgw_ip_address_S1u_S12_S4_up,
+    struct in6_addr* sgw_ipv6_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
     uint32_t sequence_number, log_proto_t module);
 
 void handle_failed_create_bearer_response(
@@ -126,4 +128,12 @@ void generate_dl_flow(
     packet_filter_contents_t* packet_filter, in_addr_t ipv4_s_addr,
     struct in6_addr* ue_ipv6, struct ip_flow_dl* dlflow);
 
+int32_t spgw_build_and_send_s11_deactivate_bearer_req(
+    imsi64_t imsi64, uint8_t no_of_bearers_to_be_deact,
+    ebi_t* ebi_to_be_deactivated, bool delete_default_bearer,
+    teid_t mme_teid_S11, log_proto_t module);
+
+void sgw_handle_delete_bearer_cmd(
+    itti_s11_delete_bearer_command_t* s11_delete_bearer_command,
+    imsi64_t imsi64);
 #endif /* FILE_SGW_HANDLERS_SEEN */

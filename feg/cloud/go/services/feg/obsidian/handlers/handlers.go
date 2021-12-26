@@ -128,18 +128,19 @@ func getGateway(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return obsidian.HttpError(errors.Wrap(err, "failed to load federation gateway"), http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to load federation gateway"))
 	}
 
 	ret := &fegModels.FederationGateway{
-		ID:          magmadModel.ID,
-		Name:        magmadModel.Name,
-		Description: magmadModel.Description,
-		Device:      magmadModel.Device,
-		Status:      magmadModel.Status,
-		Tier:        magmadModel.Tier,
-		Magmad:      magmadModel.Magmad,
-		Federation:  ent.Config.(*fegModels.GatewayFederationConfigs),
+		ID:               magmadModel.ID,
+		Name:             magmadModel.Name,
+		Description:      magmadModel.Description,
+		Device:           magmadModel.Device,
+		RegistrationInfo: magmadModel.RegistrationInfo,
+		Status:           magmadModel.Status,
+		Tier:             magmadModel.Tier,
+		Magmad:           magmadModel.Magmad,
+		Federation:       ent.Config.(*fegModels.GatewayFederationConfigs),
 	}
 	return c.JSON(http.StatusOK, ret)
 }
@@ -217,14 +218,14 @@ func getClusterStatusHandler(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	if network.Type != feg.FederationNetworkType {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, feg.FederationNetworkType))
 	}
 	activeGw, err := health.GetActiveGateway(reqCtx, nid)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	ret := &fegModels.FederationNetworkClusterStatus{
 		ActiveGateway: activeGw,
@@ -244,11 +245,11 @@ func getHealthStatusHandler(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	res, err := health.GetHealth(reqCtx, nid, gid)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, fegModels.ToFederationGatewayHealthStatusModel(res))
 }
@@ -257,5 +258,5 @@ func makeErr(err error) *echo.HTTPError {
 	if err == merrors.ErrNotFound {
 		return echo.ErrNotFound
 	}
-	return obsidian.HttpError(err, http.StatusInternalServerError)
+	return echo.NewHTTPError(http.StatusInternalServerError, err)
 }

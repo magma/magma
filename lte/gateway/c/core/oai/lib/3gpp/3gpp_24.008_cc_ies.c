@@ -38,9 +38,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "3gpp_24.008.h"
-#include "TLVDecoder.h"
-#include "TLVEncoder.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 
 //******************************************************************************
 // 10.5.4 Call control information elements.
@@ -49,7 +49,7 @@
 //------------------------------------------------------------------------------
 // 10.5.4.32 Supported codec list
 //------------------------------------------------------------------------------
-int decode_supported_codec_list(
+int decode_supported_codec_list_ie(
     supported_codec_list_t* supportedcodeclist, const bool iei_present,
     uint8_t* buffer, const uint32_t len) {
   int decode_result = 0;
@@ -74,7 +74,7 @@ int decode_supported_codec_list(
 }
 
 //------------------------------------------------------------------------------
-int encode_supported_codec_list(
+int encode_supported_codec_list_ie(
     supported_codec_list_t* supportedcodeclist, const bool iei_present,
     uint8_t* buffer, const uint32_t len) {
   uint8_t* lenPtr;

@@ -11,28 +11,67 @@
  * limitations under the License.
  */
 
+#include <cpp_redis/core/client.hpp>
+#include <folly/io/async/EventBase.h>
+#include <folly/io/async/EventBaseManager.h>
+#include <glog/logging.h>
+#include <grpcpp/impl/codegen/completion_queue.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
-
+#include <stdint.h>
+#include <string.h>
+#include <time.h>
+#include <yaml-cpp/yaml.h>
+#include <chrono>
 #include <cstdlib>
+#include <future>
 #include <iostream>
+#include <memory>
+#include <string>
+#include <thread>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
+#include "AAAClient.h"
+#include "AmfServiceClient.h"
+#include "DirectorydClient.h"
 #include "GrpcMagmaUtils.h"
-#include "UpfMsgManageHandler.h"
 #include "LocalEnforcer.h"
-#include "magma_logging_init.h"
-#include "includes/MagmaService.h"
-#include "includes/MConfigLoader.h"
+#include "LocalSessionManagerHandler.h"
+#include "MeteringReporter.h"
+#include "MobilitydClient.h"
 #include "OperationalStatesHandler.h"
+#include "PipelinedClient.h"
 #include "PolicyLoader.h"
 #include "RedisStoreClient.h"
 #include "RestartHandler.h"
-#include "includes/SentryWrapper.h"
-#include "includes/ServiceRegistrySingleton.h"
+#include "RuleStore.h"
 #include "SessionCredit.h"
+#include "SessionEvents.h"
 #include "SessionManagerServer.h"
+#include "SessionProxyResponderHandler.h"
 #include "SessionReporter.h"
+#include "SessionStateEnforcer.h"
 #include "SessionStore.h"
+#include "SetMessageManagerHandler.h"
+#include "ShardTracker.h"
+#include "SpgwServiceClient.h"
 #include "StatsPoller.h"
+#include "UpfMsgManageHandler.h"
+#include "includes/EventdClient.h"
+#include "includes/MConfigLoader.h"
+#include "includes/MagmaService.h"
+#include "includes/SentryWrapper.h"
+#include "includes/ServiceConfigLoader.h"
+#include "includes/ServiceRegistrySingleton.h"
+#include "lte/protos/policydb.pb.h"
+#include "magma_logging.h"
+#include "magma_logging_init.h"
+#include "orc8r/protos/common.pb.h"
+
+namespace grpc {
+class Channel;
+}  // namespace grpc
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
@@ -80,13 +119,10 @@ static const std::shared_ptr<grpc::Channel> get_controller_channel(
   }
 }
 
-static uint32_t get_log_verbosity(
-    const YAML::Node& config, magma::mconfig::SessionD mconfig) {
+static uint32_t get_log_verbosity(const YAML::Node& config,
+                                  magma::mconfig::SessionD mconfig) {
   if (!config["log_level"].IsDefined()) {
-    if (mconfig.log_level() < 0 || mconfig.log_level() > 4) {
-      return MINFO;
-    }
-    return mconfig.log_level();
+    return magma::get_log_verbosity_from_mconfig(mconfig.log_level());
   }
   std::string log_level = config["log_level"].as<std::string>();
   if (log_level == "DEBUG") {
@@ -209,12 +245,11 @@ int main(int argc, char* argv[]) {
 
   sentry_config_t sentry_config;
   sentry_config.sample_rate = mconfig.sentry_config().sample_rate();
-  strncpy(
-      sentry_config.url_native, mconfig.sentry_config().url_native().c_str(),
-      MAX_URL_LENGTH);
+  strncpy(sentry_config.url_native,
+          mconfig.sentry_config().dsn_native().c_str(), MAX_URL_LENGTH);
   initialize_sentry(SENTRY_TAG_SESSIOND, &sentry_config);
 
-  bool enable_5g_features        = false;
+  bool enable_5g_features = false;
   uint32_t session_max_rtx_count = 0;
   // Check converged sessiond is enabled or not
   if (config["enable5g_features"].IsDefined() &&
@@ -281,32 +316,32 @@ int main(int argc, char* argv[]) {
   if (enable_5g_features) {
     // AMF service client to handle response message
     amf_srv_client = std::make_shared<magma::AsyncAmfServiceClient>();
-    spgw_client    = nullptr;
-    aaa_client     = nullptr;
+    spgw_client = nullptr;
+    aaa_client = nullptr;
   }
   // Case on config, setup the appropriate client for the access component
   std::thread access_response_handling_thread;
   if (config["support_carrier_wifi"].as<bool>()) {
-    aaa_client                      = std::make_shared<aaa::AsyncAAAClient>();
+    aaa_client = std::make_shared<aaa::AsyncAAAClient>();
     access_response_handling_thread = std::thread([&]() {
       MLOG(MINFO) << "Started AAA Client response thread";
       aaa_client->rpc_response_loop();
     });
-    spgw_client                     = nullptr;
-    amf_srv_client                  = nullptr;
+    spgw_client = nullptr;
+    amf_srv_client = nullptr;
   } else {
     spgw_client = std::make_shared<magma::AsyncSpgwServiceClient>();
     access_response_handling_thread = std::thread([&]() {
       MLOG(MINFO) << "Started SPGW response thread";
       spgw_client->rpc_response_loop();
     });
-    aaa_client                      = nullptr;
+    aaa_client = nullptr;
   }
 
   // Setup SessionReporter which talks to the policy component
   // (FeG+PCRF/PolicyDB).
   bool gx_gy_relay_enabled = mconfig.gx_gy_relay_enabled();
-  auto reporter            = std::make_shared<magma::SessionReporterImpl>(
+  auto reporter = std::make_shared<magma::SessionReporterImpl>(
       evb, get_controller_channel(config, gx_gy_relay_enabled));
   std::thread policy_response_handler([&]() {
     MLOG(MINFO) << "Started reporter thread";
@@ -353,7 +388,7 @@ int main(int argc, char* argv[]) {
   uint32_t interval;
   if (config["enable_pull_stats"].IsDefined() &&
       config["enable_pull_stats"].as<bool>()) {
-    auto periodic_stats_requester   = std::make_shared<magma::StatsPoller>();
+    auto periodic_stats_requester = std::make_shared<magma::StatsPoller>();
     periodic_stats_requester_thread = std::thread([&]() {
       // random value assigned for interval period, the value will be loaded
       // from a config field later
@@ -371,8 +406,8 @@ int main(int argc, char* argv[]) {
       local_enforcer, reporter.get(), directoryd_client, events_reporter,
       *session_store);
   auto proxy_handler =
-      std::make_shared<magma::SessionProxyResponderHandlerImpl>(
-          local_enforcer, *session_store);
+      std::make_shared<magma::SessionProxyResponderHandlerImpl>(local_enforcer,
+                                                                *session_store);
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   magma::LocalSessionManagerAsyncService local_service(
       server.GetNewCompletionQueue(), std::move(local_handler));
@@ -404,12 +439,14 @@ int main(int argc, char* argv[]) {
     std::unordered_multimap<std::string, uint32_t> pdr_map;
     conv_session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
         rule_store, *session_store, pdr_map, pipelined_client, amf_srv_client,
-        mconfig, config["session_force_termination_timeout_ms"].as<long>(),
+        reporter.get(), events_reporter, mconfig,
+        config["session_force_termination_timeout_ms"].as<long>(),
         session_max_rtx_count);
     // 5G related async msg handler service framework creation
     auto conv_set_message_handler =
         std::make_unique<magma::SetMessageManagerHandler>(
-            conv_session_enforcer, *session_store, reporter.get());
+            conv_session_enforcer, *session_store, reporter.get(),
+            events_reporter);
     MLOG(MINFO) << "Initialized SetMessageManagerHandler";
     // 5G specific services to handle set messages from AMF and mme
     conv_set_message_service = new magma::AmfPduSessionSmContextAsyncService(

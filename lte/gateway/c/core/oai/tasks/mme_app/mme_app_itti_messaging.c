@@ -117,7 +117,7 @@ void mme_app_itti_ue_context_release(
  **                                                                        **
  ***************************************************************************/
 status_code_e mme_app_send_s11_release_access_bearers_req(
-    struct ue_mm_context_s* const ue_mm_context, const pdn_cid_t pdn_index) {
+    struct ue_mm_context_s* const ue_mm_context, imsi64_t imsi_64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   /*
    * Keep the identifier to the default APN
@@ -143,27 +143,43 @@ status_code_e mme_app_send_s11_release_access_bearers_req(
   release_access_bearers_request_p =
       &message_p->ittiMsg.s11_release_access_bearers_request;
   release_access_bearers_request_p->local_teid = ue_mm_context->mme_teid_s11;
-  pdn_context_t* pdn_connection = ue_mm_context->pdn_contexts[pdn_index];
-  release_access_bearers_request_p->teid = pdn_connection->s_gw_teid_s11_s4;
+  /* TODO(pruthvihebbani) : Remove edns_peer_ip if not used on s11 interface.
+   * For now, get sgw_ip_addr from mme_config as the same address gets
+   * updated for all the PDNs in mme_app_build_modify_bearer_request_message()
+   */
   release_access_bearers_request_p->edns_peer_ip.addr_v4.sin_addr =
-      pdn_connection->s_gw_address_s11_s4.address.ipv4_address;
+      mme_config.e_dns_emulation.sgw_ip_addr[0];
   release_access_bearers_request_p->edns_peer_ip.addr_v4.sin_family = AF_INET;
   release_access_bearers_request_p->originating_node = NODE_TYPE_MME;
 
   message_p->ittiMsgHeader.imsi = ue_mm_context->emm_context._imsi64;
-  if (pdn_connection->route_s11_messages_to_s8_task) {
+
+  bool route_s11_messages_to_s8_task  = false;
+  bool route_s11_messages_to_sgw_task = false;
+  for (uint8_t itr = 0; itr < MAX_APN_PER_UE; itr++) {
+    if (ue_mm_context->pdn_contexts[itr] &&
+        ue_mm_context->pdn_contexts[itr]->route_s11_messages_to_s8_task) {
+      route_s11_messages_to_s8_task = true;
+    } else {
+      route_s11_messages_to_sgw_task = true;
+    }
+  }
+  if (route_s11_messages_to_s8_task) {
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_mm_context->emm_context._imsi64,
         "Send Release Access Bearer Req for teid to sgw_s8 task " TEID_FMT
         " for ue id " MME_UE_S1AP_ID_FMT "\n",
         ue_mm_context->mme_teid_s11, ue_mm_context->mme_ue_s1ap_id);
+    ue_mm_context->nb_rabs++;
     send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
-  } else {
+  }
+  if (route_s11_messages_to_sgw_task) {
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_mm_context->emm_context._imsi64,
         "Send Release Access Bearer Req for teid to spgw task " TEID_FMT
         " for ue id " MME_UE_S1AP_ID_FMT "\n",
         ue_mm_context->mme_teid_s11, ue_mm_context->mme_ue_s1ap_id);
+    ue_mm_context->nb_rabs++;
     send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -299,10 +315,20 @@ status_code_e mme_app_send_s11_create_session_req(
       (teid_t) ue_mm_context->mme_ue_s1ap_id;
   session_request_p->sender_fteid_for_cp.interface_type = S11_MME_GTP_C;
   mme_config_read_lock(&mme_config);
-  session_request_p->sender_fteid_for_cp.ipv4_address.s_addr =
-      mme_config.ip.s11_mme_v4.s_addr;
+  if (session_request_p->pdn_type == IPv4 ||
+      session_request_p->pdn_type == IPv4_AND_v6) {
+    session_request_p->sender_fteid_for_cp.ipv4_address.s_addr =
+        mme_config.ip.s11_mme_v4.s_addr;
+    session_request_p->sender_fteid_for_cp.ipv4 = 1;
+  } else {
+    memcpy(
+        &session_request_p->sender_fteid_for_cp.ipv6_address,
+        &mme_config.ip.s11_mme_v6,
+        sizeof(session_request_p->sender_fteid_for_cp.ipv6_address));
+
+    session_request_p->sender_fteid_for_cp.ipv6 = 1;
+  }
   mme_config_unlock(&mme_config);
-  session_request_p->sender_fteid_for_cp.ipv4 = 1;
 
   // ue_mm_context->mme_teid_s11 = session_request_p->sender_fteid_for_cp.teid;
   ue_mm_context->pdn_contexts[pdn_cid]->s_gw_teid_s11_s4 = 0;

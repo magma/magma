@@ -796,7 +796,7 @@ status_code_e ngap_amf_handle_initial_context_setup_response(
       // Info: need to update 38413 for this
 
       pduSessionSetupListCtxRes =
-          (Ngap_PDUSessionResourceSetupItemSURes_t*) ie->value.choice
+          (Ngap_PDUSessionResourceSetupItemCxtRes_t*) ie->value.choice
               .PDUSessionResourceSetupListCxtRes.list.array[item];
       AMF_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
           .PDU_Session_Resource_Setup_Response_Transfer.item[item]

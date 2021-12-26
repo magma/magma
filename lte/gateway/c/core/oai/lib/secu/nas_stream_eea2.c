@@ -22,10 +22,10 @@
 #include <nettle/nettle-meta.h>
 #include <nettle/ctr.h>
 
-#include "assertions.h"
-#include "conversions.h"
-#include "secu_defs.h"
-#include "dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 
 int nas_stream_encrypt_eea2(
     nas_stream_cipher_t* const stream_cipher, uint8_t* const out) {

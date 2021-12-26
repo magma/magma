@@ -67,21 +67,21 @@ func combine(common swagger.Spec, specs []swagger.Spec) (swagger.Spec, error) {
 
 	errs := &multierror.Error{}
 
-	combined := swagger.Spec{
-		Swagger:  common.Swagger,
-		Info:     common.Info,
-		BasePath: common.BasePath,
-		Consumes: common.Consumes,
-		Produces: common.Produces,
-		Schemes:  common.Schemes,
-
-		Tags:        combineTags(common.Tags, tags, errs),
-		Paths:       combineSubSpec(common.Paths, paths, "paths", errs),
-		Responses:   combineSubSpec(common.Responses, responses, "responses", errs),
-		Parameters:  combineSubSpec(common.Parameters, parameters, "parameters", errs),
-		Definitions: combineSubSpec(common.Definitions, definitions, "definitions", errs),
+	var combined = swagger.Spec{
+		Swagger:             common.Swagger,
+		Info:                common.Info,
+		BasePath:            common.BasePath,
+		Consumes:            common.Consumes,
+		Produces:            common.Produces,
+		Schemes:             common.Schemes,
+		SecurityDefinitions: common.SecurityDefinitions,
+		Security:            common.Security,
+		Tags:                combineTags(common.Tags, tags, errs),
+		Paths:               combineSubSpec(common.Paths, paths, "paths", errs),
+		Responses:           combineSubSpec(common.Responses, responses, "responses", errs),
+		Parameters:          combineSubSpec(common.Parameters, parameters, "parameters", errs),
+		Definitions:         combineSubSpec(common.Definitions, definitions, "definitions", errs),
 	}
-
 	return combined, errs.ErrorOrNil()
 }
 

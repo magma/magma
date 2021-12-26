@@ -11,25 +11,37 @@
  * limitations under the License.
  */
 #include <glog/logging.h>
-
+#include <grpcpp/channel.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <iostream>
+#include <string>
 #include <utility>
 
 #include "GrpcMagmaUtils.h"
-#include "magma_logging.h"
-#include "includes/ServiceRegistrySingleton.h"
 #include "SessionReporter.h"
+#include "lte/protos/session_manager.grpc.pb.h"
+#include "lte/protos/session_manager.pb.h"
+#include "magma_logging.h"
+
+namespace folly {
+class EventBase;
+}  // namespace folly
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
 
 namespace magma {
 
-template<class ResponseType>
+template <class ResponseType>
 AsyncEvbResponse<ResponseType>::AsyncEvbResponse(
     folly::EventBase* base,
     std::function<void(grpc::Status, ResponseType)> callback,
     uint32_t timeout_sec)
     : AsyncGRPCResponse<ResponseType>(callback, timeout_sec), base_(base) {}
 
-template<class ResponseType>
+template <class ResponseType>
 void AsyncEvbResponse<ResponseType>::handle_response() {
   base_->runInEventBaseThread([this]() {
     this->callback_(this->status_, this->response_);
@@ -51,8 +63,8 @@ SessionReporter::get_terminate_logging_cb(
   };
 }
 
-SessionReporterImpl::SessionReporterImpl(
-    folly::EventBase* base, std::shared_ptr<grpc::Channel> channel)
+SessionReporterImpl::SessionReporterImpl(folly::EventBase* base,
+                                         std::shared_ptr<grpc::Channel> channel)
     : base_(base), stub_(CentralSessionController::NewStub(channel)) {}
 
 void SessionReporterImpl::report_updates(
@@ -83,8 +95,8 @@ void SessionReporterImpl::report_terminate_session(
   auto controller_response = new AsyncEvbResponse<SessionTerminateResponse>(
       base_, callback, RESPONSE_TIMEOUT);
   controller_response->set_response_reader(
-      std::move(stub_->AsyncTerminateSession(
-          controller_response->get_context(), request, &queue_)));
+      std::move(stub_->AsyncTerminateSession(controller_response->get_context(),
+                                             request, &queue_)));
 }
 
 }  // namespace magma

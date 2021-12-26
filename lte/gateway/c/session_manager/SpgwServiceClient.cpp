@@ -11,26 +11,20 @@
  * limitations under the License.
  */
 
-#include <glog/logging.h>                          // for COMPACT_GOOGLE_LOG...
-#include <grpcpp/channel.h>                        // for Channel
-#include <grpcpp/impl/codegen/async_unary_call.h>  // for default_delete
-#include <grpcpp/impl/codegen/status.h>            // for Status
+#include <glog/logging.h>                // for COMPACT_GOOGLE_LOG...
+#include <grpcpp/channel.h>              // for Channel
+#include <grpcpp/impl/codegen/status.h>  // for Status
+#include <cstdint>                       // for uint32_t
+#include <ostream>                       // for operator<<, basic_...
+#include <utility>                       // for move
 
-#include <algorithm>  // for copy
-#include <cstdint>    // for uint32_t
-#include <ostream>    // for operator<<, basic_...
-#include <utility>    // for move
-
+#include "SpgwServiceClient.h"
+#include "includes/ServiceRegistrySingleton.h"  // for ServiceRegistrySin...
 #include "lte/protos/policydb.pb.h"             // for RepeatedField, Rep...
 #include "lte/protos/spgw_service.grpc.pb.h"    // for SpgwService::Stub
 #include "lte/protos/spgw_service.pb.h"         // for DeleteBearerRequest
-#include "magma_logging.h"                      // for MLOG, MERROR, MINFO
-#include "includes/ServiceRegistrySingleton.h"  // for ServiceRegistrySin...
-#include "SpgwServiceClient.h"
-
-namespace grpc {
-class Channel;
-}
+#include "lte/protos/subscriberdb.pb.h"
+#include "magma_logging.h"  // for MLOG, MERROR, MINFO
 
 using grpc::Status;
 
@@ -122,8 +116,8 @@ bool AsyncSpgwServiceClient::delete_bearer(
     const std::string& imsi, const std::string& apn_ip_addr,
     const uint32_t linked_bearer_id,
     const std::vector<uint32_t>& eps_bearer_ids) {
-  auto req = create_delete_bearer_req(
-      imsi, apn_ip_addr, linked_bearer_id, eps_bearer_ids);
+  auto req = create_delete_bearer_req(imsi, apn_ip_addr, linked_bearer_id,
+                                      eps_bearer_ids);
   delete_bearer_rpc(
       req, [imsi, apn_ip_addr](Status status, DeleteBearerResult resp) {
         if (!status.ok()) {

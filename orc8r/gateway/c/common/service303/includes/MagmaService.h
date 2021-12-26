@@ -15,35 +15,27 @@
 #include <grpcpp/grpcpp.h>                    // for Server, ServerBuilder
 #include <grpcpp/impl/codegen/status.h>       // for Status
 #include <orc8r/protos/service303.grpc.pb.h>  // for Service303, Service303:...
+#include <orc8r/protos/service303.pb.h>       // for ServiceInfo, ServiceInf...
 #include <chrono>                             // for steady_clock, steady_cl...
 #include <functional>                         // for function
 #include <list>                               // for list
 #include <map>                                // for map
 #include <memory>                             // for unique_ptr
 #include <string>                             // for string
-#include "orc8r/protos/service303.pb.h"       // for ServiceInfo, ServiceInf...
-namespace grpc {
-class ServerCompletionQueue;
-}
-namespace grpc {
-class ServerContext;
-}
-namespace grpc {
-class ServerContext;
-}
+
 namespace grpc {
 class Service;
-}
+class ServerContext;
+class ServerCompletionQueue;
+}  // namespace grpc
+
 namespace magma {
 namespace orc8r {
 class MetricsContainer;
-}
-}  // namespace magma
-namespace magma {
-namespace orc8r {
 class Void;
-}
+}  // namespace orc8r
 }  // namespace magma
+
 namespace magma {
 namespace service303 {
 class MetricsSingleton;
@@ -66,10 +58,10 @@ using magma::service303::MetricsSingleton;
 namespace magma {
 namespace service303 {
 
-using ServiceInfoMeta           = std::map<std::string, std::string>;
-using States                    = std::list<std::map<std::string, std::string>>;
-using ServiceInfoCallback       = std::function<ServiceInfoMeta()>;
-using ConfigReloadCallback      = std::function<bool()>;
+using ServiceInfoMeta = std::map<std::string, std::string>;
+using States = std::list<std::map<std::string, std::string>>;
+using ServiceInfoCallback = std::function<ServiceInfoMeta()>;
+using ConfigReloadCallback = std::function<bool()>;
 using OperationalStatesCallback = std::function<States()>;
 
 /**
@@ -146,9 +138,8 @@ class MagmaService final : public Service303::Service {
    * @param response (out): the ServiceInfo response
    * @return grpc Status instance
    */
-  Status GetServiceInfo(
-      ServerContext* context, const Void* request,
-      ServiceInfo* response) override;
+  Status GetServiceInfo(ServerContext* context, const Void* request,
+                        ServiceInfo* response) override;
 
   /*
    * Handles request to stop the service
@@ -158,8 +149,8 @@ class MagmaService final : public Service303::Service {
    * @param response (out): void response param
    * @return grpc Status instance
    */
-  Status StopService(
-      ServerContext* context, const Void* request, Void* response) override;
+  Status StopService(ServerContext* context, const Void* request,
+                     Void* response) override;
 
   /*
    * Collects timeseries samples from prometheus client interface on this
@@ -170,9 +161,8 @@ class MagmaService final : public Service303::Service {
    * @param response (out): container of all collected metrics
    * @return grpc Status instance
    */
-  Status GetMetrics(
-      ServerContext* context, const Void* request,
-      MetricsContainer* response) override;
+  Status GetMetrics(ServerContext* context, const Void* request,
+                    MetricsContainer* response) override;
 
   /*
    * Sets the log verbosity to print to syslog at runtime
@@ -182,9 +172,8 @@ class MagmaService final : public Service303::Service {
    * @param response (out): Void
    * @return grpc Status instance
    */
-  Status SetLogLevel(
-      ServerContext* context, const LogLevelMessage* request,
-      Void* response) override;
+  Status SetLogLevel(ServerContext* context, const LogLevelMessage* request,
+                     Void* response) override;
 
   /*
    * Handles request to reload the service config file
@@ -194,9 +183,8 @@ class MagmaService final : public Service303::Service {
    * @param response (out): reload config result (SUCCESS/FAILURE/UNSUPPORTED)
    * @return grpc Status instance
    */
-  Status ReloadServiceConfig(
-      ServerContext* context, const Void* request,
-      ReloadConfigResponse* response) override;
+  Status ReloadServiceConfig(ServerContext* context, const Void* request,
+                             ReloadConfigResponse* response) override;
 
   /*
    * Returns the  operational states of devices managed by this service.
@@ -206,9 +194,8 @@ class MagmaService final : public Service303::Service {
    * @param response (out): a list of states
    * @return grpc Status instance
    */
-  Status GetOperationalStates(
-      ServerContext* context, const Void* request,
-      GetOperationalStatesResponse* response) override;
+  Status GetOperationalStates(ServerContext* context, const Void* request,
+                              GetOperationalStatesResponse* response) override;
 
   /*
    * Simple setter function to set the new application health

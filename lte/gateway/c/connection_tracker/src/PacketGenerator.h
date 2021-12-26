@@ -14,7 +14,7 @@
 
 #include <tins/tins.h>
 
-#include "magma_logging.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 
 struct flow_information {
   uint32_t saddr;    /* Source address */
@@ -29,9 +29,8 @@ namespace lte {
 
 class PacketGenerator {
  public:
-  PacketGenerator(
-      const std::string& iface_name, const std::string& pkt_dst_mac,
-      const std::string& pkt_src_mac);
+  PacketGenerator(const std::string& iface_name, const std::string& pkt_dst_mac,
+                  const std::string& pkt_src_mac);
   /**
    * Send packet based on provided flow information
    * @param flow_information - flow_information

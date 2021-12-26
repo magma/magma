@@ -17,14 +17,14 @@
 #include <stdint.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
-#include "amf_default_values.h"
-#include "common_types.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "log.h"
-#include "service303.h"
-#include "hashtable.h"
-#include "mme_config.h"
+#include "lte/gateway/c/core/oai/common/amf_default_values.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/service303.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 
 #define MIN_GUAMI 1
 #define MAX_GUAMI 5
@@ -38,8 +38,9 @@
   "DEFAULT_DNS_SEC_IPV4_ADDRESS"
 #define AMF_CONFIG_PLMN_SUPPORT_MCC "mcc"
 #define AMF_CONFIG_PLMN_SUPPORT_MNC "mnc"
-#define AMF_CONFIG_PLMN_SUPPORT_SST "DEFAULT_SLICE_SERVICE_TYPE"
-#define AMF_CONFIG_PLMN_SUPPORT_SD "DEFAULT_SLICE_DIFFERENTIATOR"
+#define AMF_CONFIG_PLMN_SUPPORT_SST "AMF_DEFAULT_SLICE_SERVICE_TYPE"
+#define AMF_CONFIG_PLMN_SUPPORT_SD "AMF_DEFAULT_SLICE_DIFFERENTIATOR"
+#define CONFIG_DEFAULT_DNN "DEFAULT_DNN"
 #define AMF_CONFIG_AMF_PLMN_SUPPORT_LIST "PLMN_SUPPORT_LIST"
 #define AMF_CONFIG_AMF_NAME "AMF_NAME"
 
@@ -98,6 +99,7 @@ typedef struct m5g_nas_config_s {
   bool enable_apn_correction;
   m5g_apn_map_config_t m5g_apn_map_config;
 } m5g_nas_config_t;
+
 typedef uint64_t imsi64_t;
 
 typedef struct ngap_config_s {
@@ -176,6 +178,7 @@ typedef struct amf_config_s {
     struct in_addr default_dns_sec;
   } ipv4;
   bstring amf_name;
+  bstring default_dnn;
 } amf_config_t;
 
 int amf_app_init(amf_config_t*);
@@ -193,6 +196,7 @@ void amf_config_display(amf_config_t*);
 void clear_amf_config(amf_config_t*);
 void copy_amf_config_from_mme_config(
     amf_config_t* dest, const mme_config_t* src);
+void copy_served_tai_config_list(amf_config_t* dest, const mme_config_t* src);
 
 void amf_config_exit(void);
 void amf_config_free(amf_config_t* amf_config);

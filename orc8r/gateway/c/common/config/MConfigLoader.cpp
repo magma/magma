@@ -11,18 +11,27 @@
  * limitations under the License.
  */
 
-#include "includes/MConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
+
+#include <bits/exception.h>
 #include <google/protobuf/stubs/status.h>    // for Status
 #include <google/protobuf/util/json_util.h>  // for JsonStringToMessage
-#include <cstdlib>                           // for getenv
-#include <fstream>                           // for operator<<, char_traits
-#include <nlohmann/json.hpp>                 // for basic_json<>::iterator
-#include "magma_logging.h"                   // for MLOG
+#include <nlohmann/json.hpp>
+#include <cstdlib>  // for getenv
+#include <fstream>  // IWYU pragma: keep
+
+#include "orc8r/gateway/c/common/logging/magma_logging.h"  // for MLOG
+
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
 
 namespace {
 static constexpr const char* DYNAMIC_MCONFIG_PATH =
     "/var/opt/magma/configs/gateway.mconfig";
-static constexpr const char* CONFIG_DIR        = "/etc/magma";
+static constexpr const char* CONFIG_DIR = "/etc/magma";
 static constexpr const char* MCONFIG_FILE_NAME = "gateway.mconfig";
 
 bool check_file_exists(const std::string filename) {
@@ -51,8 +60,8 @@ namespace magma {
 
 using json = nlohmann::json;
 
-bool load_service_mconfig_from_file(
-    const std::string& service_name, google::protobuf::Message* message) {
+bool load_service_mconfig_from_file(const std::string& service_name,
+                                    google::protobuf::Message* message) {
   // TODO(smoeller): Should use deffered file.close() here, e.g. absl::Cleanup
   std::ifstream file;
   open_mconfig_file(&file);
@@ -65,9 +74,9 @@ bool load_service_mconfig_from_file(
   return success;
 }
 
-bool load_service_mconfig(
-    const std::string& service_name, std::istream* config_stream,
-    google::protobuf::Message* message) {
+bool load_service_mconfig(const std::string& service_name,
+                          std::istream* config_stream,
+                          google::protobuf::Message* message) {
   json mconfig_json;
   try {
     *config_stream >> mconfig_json;
@@ -102,6 +111,13 @@ bool load_service_mconfig(
                  << " config, error: " << status.ToString();
   }
   return status.ok();
+}
+
+uint32_t get_log_verbosity_from_mconfig(const uint32_t mconfig_log_level) {
+  if (mconfig_log_level < 0 || mconfig_log_level > 4) {
+    return MINFO;
+  }
+  return 4 - mconfig_log_level;
 }
 
 }  // namespace magma

@@ -11,11 +11,23 @@
  * limitations under the License.
  */
 
+#include <grpcpp/channel.h>
 #include <memory>
 #include <utility>
+
 #include "MobilitydClient.h"
 #include "includes/ServiceRegistrySingleton.h"
-#include "magma_logging.h"
+#include "lte/protos/mobilityd.grpc.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+
+namespace grpc {
+class Status;
+}  // namespace grpc
+namespace magma {
+namespace lte {
+class IPAddress;
+}  // namespace lte
+}  // namespace magma
 
 using grpc::Status;
 
@@ -32,8 +44,8 @@ AsyncMobilitydClient::AsyncMobilitydClient()
 void AsyncMobilitydClient::get_subscriberid_from_ipv4(
     const IPAddress& ue_ip_addr,
     std::function<void(Status status, SubscriberID)> callback) {
-  auto local_resp = new AsyncLocalResponse<SubscriberID>(
-      std::move(callback), RESPONSE_TIMEOUT);
+  auto local_resp = new AsyncLocalResponse<SubscriberID>(std::move(callback),
+                                                         RESPONSE_TIMEOUT);
   local_resp->set_response_reader(stub_->AsyncGetSubscriberIDFromIP(
       local_resp->get_context(), ue_ip_addr, &queue_));
 }

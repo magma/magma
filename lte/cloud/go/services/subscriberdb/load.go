@@ -15,6 +15,7 @@ package subscriberdb
 
 import (
 	"context"
+	"fmt"
 	"sort"
 
 	"github.com/go-openapi/swag"
@@ -169,6 +170,14 @@ func ConvertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[strin
 		AuthOpc:  cfg.Lte.AuthOpc,
 	}
 
+	const coreNwTypePrefix = "NT_"
+	subNetwork := &lte_protos.CoreNetworkType{}
+	subNetwork.ForbiddenNetworkTypes = make([]lte_protos.CoreNetworkType_CoreNetworkTypes, len(cfg.ForbiddenNetworkTypes))
+	for i, nwType := range cfg.ForbiddenNetworkTypes {
+		subNetwork.ForbiddenNetworkTypes[i] = lte_protos.CoreNetworkType_CoreNetworkTypes(lte_protos.CoreNetworkType_CoreNetworkTypes_value[fmt.Sprintf("%v%v", coreNwTypePrefix, nwType)])
+	}
+	subData.SubNetwork = subNetwork
+
 	if cfg.Lte.SubProfile != "" {
 		subData.SubProfile = string(cfg.Lte.SubProfile)
 	} else {
@@ -211,7 +220,7 @@ func ConvertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[strin
 			Resource: apnResource,
 		}
 		if staticIP, found := cfg.StaticIps[assoc.Key]; found {
-			apnProto.AssignedStaticIp = string(staticIP)
+			apnProto.AssignedStaticIp = staticIP
 		}
 		non3gpp.ApnConfig = append(non3gpp.ApnConfig, apnProto)
 	}
@@ -221,4 +230,25 @@ func ConvertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[strin
 	subData.Non_3Gpp = non3gpp
 
 	return subData, nil
+}
+
+func LoadSuciProtos(ctx context.Context, networkID string) ([]*lte_protos.SuciProfile, error) {
+	network, err := configurator.LoadNetwork(ctx, networkID, true, true, serdes.Network)
+	if err != nil {
+		return nil, errors.Wrapf(err, "network loading failed")
+	}
+
+	ngcModel := &lte_models.NetworkNgcConfigs{}
+	ngcConfig := ngcModel.GetFromNetwork(network)
+	if ngcConfig == nil {
+		return nil, errors.Wrapf(err, "ngcConfig is nil")
+	}
+
+	suciProfiles := ngcConfig.(*lte_models.NetworkNgcConfigs).SuciProfiles
+	suciProtos := []*lte_protos.SuciProfile{}
+	for _, suciProfile := range suciProfiles {
+		suciProtos = append(suciProtos, ngcModel.ConvertSuciEntsToProtos(suciProfile))
+	}
+
+	return suciProtos, nil
 }

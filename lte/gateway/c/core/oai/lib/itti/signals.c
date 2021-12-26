@@ -39,16 +39,11 @@
 #include <signal.h>
 #include <ctype.h>
 
-#include "intertask_interface.h"
-#include "backtrace.h"
-#include "assertions.h"
-#include "signals.h"
-#include "intertask_interface_types.h"
-
-#if defined(LOG_D) && defined(LOG_E)
-#define SIG_DEBUG(x, args...) OAILOG_D(EMU, x, ##args)
-#define SIG_ERROR(x, args...) OAILOG_E(EMU, x, ##args)
-#endif
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/backtrace.h"
+#include "lte/gateway/c/core/oai/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/itti/signals.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 
 #ifndef SIG_DEBUG
 #define SIG_DEBUG(x, args...)                                                  \

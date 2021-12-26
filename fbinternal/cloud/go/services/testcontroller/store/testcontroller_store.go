@@ -32,8 +32,8 @@ const (
 )
 
 type TestControllerStore struct {
-	factory blobstore.BlobStorageFactory
-	store   blobstore.TransactionalBlobStorage
+	factory blobstore.StoreFactory
+	store   blobstore.Store
 	clock   clock
 }
 
@@ -47,7 +47,7 @@ func (realClock) Now() time.Time {
 	return time.Now()
 }
 
-func NewTestControllerStore(factory blobstore.BlobStorageFactory) (*TestControllerStore, error) {
+func NewTestControllerStore(factory blobstore.StoreFactory) (*TestControllerStore, error) {
 	s := &TestControllerStore{
 		factory: factory,
 		store:   nil,
@@ -185,7 +185,7 @@ func (s *TestControllerStore) put(networkID string, version string, timestamp in
 	if err != nil {
 		return err
 	}
-	err = s.store.CreateOrUpdate(networkID, blobstore.Blobs{blob})
+	err = s.store.Write(networkID, blobstore.Blobs{blob})
 	if err != nil {
 		return err
 	}

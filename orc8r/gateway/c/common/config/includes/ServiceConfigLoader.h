@@ -13,7 +13,8 @@
 #pragma once
 
 #include <yaml-cpp/node/node.h>  // for Node
-#include <string>                // for string
+#include <yaml-cpp/yaml.h>
+#include <string>  // for string
 
 namespace magma {
 
@@ -31,7 +32,7 @@ class ServiceConfigLoader final {
   YAML::Node load_service_config(const std::string& service_name);
 
  private:
-  static constexpr const char* CONFIG_DIR   = "/etc/magma/";
+  static constexpr const char* CONFIG_DIR = "/etc/magma/";
   static constexpr const char* OVERRIDE_DIR = "/var/opt/magma/configs/";
 };
 

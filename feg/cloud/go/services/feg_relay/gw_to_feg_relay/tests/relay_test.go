@@ -85,7 +85,10 @@ type testHelloServer struct {
 }
 
 func (tp *testHelloServer) SayHello(c context.Context, req *feg_protos.HelloRequest) (*feg_protos.HelloReply, error) {
-	return &feg_protos.HelloReply{Greeting: "testHelloService reply to: " + req.GetGreeting()}, nil
+	return &feg_protos.HelloReply{
+		Greeting:   "testHelloService reply to: " + req.GetGreeting(),
+		Timestamps: &feg_protos.ResponseTimestamps{},
+	}, nil
 }
 
 func TestNHRouting(t *testing.T) {

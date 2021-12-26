@@ -13,6 +13,8 @@ magma-gen-meta:
       filename: subscriber_swaggergen.go
     - go-struct-name: PaginatedSubscribers
       filename: paginated_subscribers_swaggergen.go
+    - go-struct-name: PaginatedSubscribersAbbreviated
+      filename: paginated_subscriber_ids_swaggergen.go
     - go-struct-name: LteSubscription
       filename: lte_subscription_swaggergen.go
     - go-struct-name: SubscriberStatus
@@ -31,6 +33,8 @@ magma-gen-meta:
       filename: subscriber_directory_record_swaggergen.go
     - go-struct-name: UntypedSubscriberState
       filename: untyped_subscriber_state_swaggergen.go
+    - go-struct-name: CoreNetworkType
+      filename: core_network_types_swaggergen.go
 
 info:
   title: LTE Subscriber Management
@@ -81,6 +85,33 @@ paths:
       responses:
         '201':
           description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscribers?verbose=false:
+    get:
+      summary: List subscribers in the network with pagination support
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: msisdn
+          type: string
+          description: Filter to subscribers with the passed MSISDN
+          required: false
+        - in: query
+          name: ip
+          type: string
+          description: Filter to subscribers assigned the passed IP address
+          required: false
+        - $ref: './orc8r-swagger-common.yml#/parameters/page_size'
+        - $ref: './orc8r-swagger-common.yml#/parameters/page_token'
+      responses:
+        '200':
+          description: List of subscribers in the network
+          schema:
+            $ref: '#/definitions/paginated_subscriber_ids'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -313,6 +344,8 @@ definitions:
         $ref: '#/definitions/subscriber_state'
       msisdn:
         $ref: '#/definitions/msisdn'
+      forbidden_network_types:
+        $ref: '#/definitions/core_network_types'
 
   mutable_subscriber:
     description: Subset of subscriber field which are mutable
@@ -339,6 +372,19 @@ definitions:
         $ref: './lte-policydb-swagger.yml#/definitions/policy_ids_by_apn'
       active_apns:
         $ref: '#/definitions/apn_list'
+      forbidden_network_types:
+        description: List of Network Types to be restricted per subscriber. If not configured, subscriber will have access to all Network Types by default.
+        $ref: '#/definitions/core_network_types'
+
+  core_network_types:
+    description: List of core network types.
+    type: array
+    items:
+      type: string
+      x-nullable: false
+      enum:
+        - EPC
+        - 5GC
 
   mutable_subscribers:
     type: array
@@ -369,6 +415,27 @@ definitions:
           x-nullable: true
           $ref: '#/definitions/subscriber'
 
+  paginated_subscriber_ids:
+    description: Page of subscriber IDs
+    type: object
+    required:
+      - next_page_token
+      - subscribers
+      - total_count
+    properties:
+      total_count:
+        type: integer
+        format: int64
+        description: Estimated total number of subscriber entries
+        example: 10
+        x-nullable: false
+      next_page_token:
+        $ref: './orc8r-swagger-common.yml#/definitions/page_token'
+      subscribers:
+        type: array
+        items:
+          type: string
+
   subscriber_config:
     type: object
     required:
@@ -378,6 +445,8 @@ definitions:
         $ref: '#/definitions/lte_subscription'
       static_ips:
         $ref: '#/definitions/subscriber_static_ips'
+      forbidden_network_types:
+        $ref: '#/definitions/core_network_types'
 
   msisdn:
     type: string
@@ -402,9 +471,8 @@ definitions:
     description: Mapping of APN ID to static IP address to allocate for the subscriber at the edge
     additionalProperties:
       type: string
-      format: ipv4
       minLength: 1
-      example: '192.168.100.1'
+      example: '192.168.100.1 or 2020::1'
 
   lte_subscription:
     type: object

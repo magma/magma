@@ -13,7 +13,7 @@
 
 # helm tiller service account
 resource "kubernetes_service_account" "tiller" {
-  count = var.existing_tiller_service_account_name == null ? 1 : 0
+  count = var.install_tiller == true ? 1 : 0
 
   metadata {
     name      = "tiller"
@@ -25,7 +25,7 @@ resource "kubernetes_service_account" "tiller" {
 
 # helm tiller cluster role
 resource "kubernetes_cluster_role_binding" "tiller" {
-  count = var.existing_tiller_service_account_name == null ? 1 : 0
+  count = var.install_tiller == true ? 1 : 0
 
   metadata {
     name = "tiller"

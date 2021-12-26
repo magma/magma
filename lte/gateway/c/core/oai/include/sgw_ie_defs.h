@@ -24,12 +24,12 @@
 
 #ifndef FILE_SGW_IE_DEFS_SEEN
 #define FILE_SGW_IE_DEFS_SEEN
-#include "common_types.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
-#include "TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 
 typedef uint8_t DelayValue_t;
 typedef uint32_t SequenceNumber_t;
@@ -499,8 +499,8 @@ typedef struct bearer_contexts_to_be_removed_s {
 
 typedef struct ebi_list_s {
   uint32_t num_ebi;
-#define RELEASE_ACCESS_BEARER_MAX_BEARERS 8
-  ebi_t ebis[RELEASE_ACCESS_BEARER_MAX_BEARERS];
+#define MAX_BEARERS 11
+  ebi_t ebis[MAX_BEARERS];
 } ebi_list_t;
 
 //-------------------------------------

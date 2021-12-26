@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-#define SHORT_MAC_MINIMUM_LENGTH 3
+#define SHORT_MAC_MINIMUM_LENGTH 1
 #define SHORT_MAC_MAXIMUM_LENGTH 3
 
 typedef uint16_t short_mac_t;

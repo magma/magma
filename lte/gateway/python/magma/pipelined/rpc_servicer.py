@@ -47,6 +47,11 @@ from lte.protos.pipelined_pb2 import (
     VersionedPolicyID,
 )
 from lte.protos.session_manager_pb2 import RuleRecordTable
+from magma.common.sentry import (
+    SentryStatus,
+    get_sentry_status,
+    send_uncaught_errors_to_monitoring,
+)
 from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.app.classifier import Classifier
 from magma.pipelined.app.dpi import DPIController
@@ -68,12 +73,15 @@ from magma.pipelined.metrics import (
 )
 from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
 from magma.pipelined.policy_converters import (
+    convert_ip_str_to_ip_proto,
     convert_ipv4_str_to_ip_proto,
     convert_ipv6_bytes_to_ip_proto,
 )
 
 grpc_msg_queue = queue.Queue()
 DEFAULT_CALL_TIMEOUT = 5
+
+enable_sentry_wrapper = get_sentry_status("pipelined") == SentryStatus.SEND_SELECTED_ERRORS
 
 
 class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
@@ -122,7 +130,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # General setup rpc
     # --------------------------
 
-    def SetupDefaultControllers(self, request, _) -> SetupFlowsResult:
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
+    def SetupDefaultControllers(self, request, context) -> SetupFlowsResult:
         """
         Setup default controllers, used on pipelined restarts
         """
@@ -137,6 +146,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("SetupDefaultControllers processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('SetupDefaultControllers processing timed out')
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_default_controllers(self, fut: 'Future(SetupFlowsResult)'):
@@ -147,6 +158,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # Enforcement App
     # --------------------------
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def SetupPolicyFlows(self, request, context) -> SetupFlowsResult:
         """
         Setup flows for all subscribers, used on pipelined restarts
@@ -173,6 +185,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("SetupPolicyFlows processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('SetupPolicyFlows processing timed out')
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_flows(
@@ -193,6 +207,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._enforcement_stats.handle_restart(gx_reqs)
         fut.set_result(enforcement_res)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def ActivateFlows(self, request, context):
         """
         Activate flows for a subscriber based on the pre-defined rules
@@ -220,6 +235,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("ActivateFlows request processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('ActivateFlows processing timed out')
             deactivate_req = get_deactivate_req(request)
             self._loop.call_soon_threadsafe(
                 self._deactivate_flows,
@@ -233,15 +250,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         prefix = get_ipv6_prefix(ipv6_str)
         self._service_manager.interface_to_prefix_mapper.save_prefix(
             interface, prefix,
-        )
-
-    def _update_tunnel_map_store(
-        self, uplink_tunnel: int,
-        downlink_tunnel: int,
-    ):
-        self._service_manager.tunnel_id_mapper.save_tunnels(
-            uplink_tunnel,
-            downlink_tunnel,
         )
 
     def _update_version(self, request: ActivateFlowsRequest, ipv4: IPAddress):
@@ -300,11 +308,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             else:
                 ret_ipv6 = self._install_flows_gy(request, ipv6)
             ret.policy_results.extend(ret_ipv6.policy_results)
-        if request.uplink_tunnel and request.downlink_tunnel:
-            self._update_tunnel_map_store(
-                request.uplink_tunnel,
-                request.downlink_tunnel,
-            )
 
         fut.set_result(ret)
 
@@ -436,6 +439,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         # TODO: add metrics
         return gy_res
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def DeactivateFlows(self, request, context):
         """
         Deactivate flows for a subscriber
@@ -520,6 +524,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             rule_ids,
         )
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetPolicyUsage(self, request, context):
         """
         Get policy usage stats
@@ -540,11 +545,14 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("GetPolicyUsage processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('GetPolicyUsage processing timed out')
             return RuleRecordTable()
 
     # -------------------------
     # GRPC messages from MME
     # --------------------------
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def UpdateUEState(self, request, context):
 
         self._log_grpc_payload(request)
@@ -563,6 +571,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("UpdateUEState processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('UpdateUEState processing timed out')
             return UESessionContextResponse(
                 operation_type=request.ue_session_state.ue_config_state,
                 cause_info=CauseIE(cause_ie=CauseIE.REQUEST_REJECTED_NO_REASON),
@@ -576,6 +586,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # IPFIX App
     # --------------------------
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def UpdateIPFIXFlow(self, request, context):
         """
         Update IPFIX sampling record
@@ -596,6 +607,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # DPI App
     # --------------------------
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def CreateFlow(self, request, context):
         """
         Add dpi flow
@@ -615,6 +627,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         )
         return resp
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def RemoveFlow(self, request, context):
         """
         Add dpi flow
@@ -633,6 +646,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         )
         return resp
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def UpdateFlowStats(self, request, context):
         """
         Update stats for a flow
@@ -651,6 +665,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # UE MAC App
     # --------------------------
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def SetupUEMacFlows(self, request, context) -> SetupFlowsResult:
         """
         Activate a list of attached UEs
@@ -676,6 +691,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("SetupUEMacFlows processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('SetupUEMacFlows processing timed out')
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_ue_mac(
@@ -695,6 +712,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut.set_result(res)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def AddUEMacFlow(self, request, context):
         """
         Associate UE MAC address to subscriber
@@ -720,6 +738,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("AddUEMacFlow processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('AddUEMacFlow processing timed out')
             return FlowResponse()
 
     def _add_ue_mac_flow(self, request, fut: 'Future(FlowResponse)'):
@@ -727,6 +747,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut.set_result(res)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def DeleteUEMacFlow(self, request, context):
         """
         Delete UE MAC address to subscriber association
@@ -783,6 +804,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # Check Quota App
     # --------------------------
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def SetupQuotaFlows(self, request, context) -> SetupFlowsResult:
         """
         Activate a list of quota rules
@@ -808,6 +830,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("SetupQuotaFlows processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('SetupQuotaFlows processing timed out')
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
     def _setup_quota(
@@ -817,6 +841,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         res = self._check_quota_app.handle_restart(request.requests)
         fut.set_result(res)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def UpdateSubscriberQuotaState(self, request, context):
         """
         Updates the subcsciber quota state
@@ -844,6 +869,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # Debugging
     # --------------------------
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetAllTableAssignments(self, request, context):
         """
         Get the flow table assignment for all apps ordered by main table number
@@ -885,6 +911,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return
         logging.info(log_msg)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def SetSMFSessions(self, request, context):
         """
         Setup the 5G Session flows for the subscriber
@@ -907,6 +934,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("SetSMFSessions processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('SetSMFSessions processing timed out')
             return UPFSessionContextState()
 
     def ng_update_session_flows(
@@ -962,10 +991,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             pdr_entry.precedence,
             pdr_entry.local_f_teid,
             pdr_entry.far_action.o_teid,
-            convert_ipv4_str_to_ip_proto(pdr_entry.ue_ip_addr),
             pdr_entry.far_action.gnb_ip_addr,
+            pdr_entry.ue_ip_addr,
             encode_imsi(subscriber_id),
             True,
+            pdr_entry.ue_ipv6_addr,
         )
 
         return ret
@@ -974,6 +1004,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         response = self._enforcement_stats.get_stats(request.cookie, request.cookie_mask)
         fut.set_result(response)
 
+    @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetStats(self, request, context):
         """
         Invokes API that returns a RuleRecordTable filtering records based
@@ -994,6 +1025,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("Get Stats request processing timed out")
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('Get Stats request processing timed out')
             return RuleRecordTable()
 
     def _ng_qer_update(
@@ -1008,7 +1041,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if pdr_entry.pdr_state == PdrState.Value('REMOVE'):
             qos_enforce_rule = pdr_entry.del_qos_enforce_rule
             if qos_enforce_rule.ip_addr:
-                ipv4 = convert_ipv4_str_to_ip_proto(qos_enforce_rule.ip_addr)
+                ipv4 = convert_ip_str_to_ip_proto(qos_enforce_rule.ip_addr)
                 self._ng_deactivate_qer_flows(
                     ipv4, local_f_teid_ng,
                     qos_enforce_rule,
@@ -1033,7 +1066,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         elif pdr_entry.pdr_state == PdrState.Value('INSTALL'):
             qos_enforce_rule = pdr_entry.add_qos_enforce_rule
             if qos_enforce_rule.ip_addr:
-                ipv4 = convert_ipv4_str_to_ip_proto(qos_enforce_rule.ip_addr)
+                ipv4 = convert_ip_str_to_ip_proto(qos_enforce_rule.ip_addr)
 
                 enforcement_res = \
                       self._ng_activate_qer_flow(

@@ -10,11 +10,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdint.h>                  // for uint32_t
-#include <atomic>                    // for atomic
-#include <functional>                // for function
-#include <vector>                    // for vector
+#include <stdint.h>    // for uint32_t
+#include <atomic>      // for atomic
+#include <functional>  // for function
+#include <vector>      // for vector
+
+#include "lte/protos/apn.pb.h"
 #include "lte/protos/policydb.pb.h"  // for lte
+
 namespace magma {
 namespace lte {
 class PolicyRule;
@@ -33,9 +36,8 @@ class PolicyLoader {
    * the given loop interval length, this function will load the policies from
    * redis, and call the processor callback.
    */
-  void start_loop(
-      std::function<void(std::vector<PolicyRule>)> processor,
-      uint32_t loop_interval_seconds);
+  void start_loop(std::function<void(std::vector<PolicyRule>)> processor,
+                  uint32_t loop_interval_seconds);
 
   /**
    * Stop the config loop on the next loop

@@ -930,7 +930,7 @@ status_code_e mme_app_handle_emm_attach_t3450_expiry(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  if (!mme_app_get_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
+  if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(
         LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
@@ -1072,8 +1072,8 @@ status_code_e _emm_attach_reject(
     emm_as_set_security_data(
         &emm_sap.u.emm_as.u.establish.sctx, NULL, false, false);
   }
-  rc = emm_sap_send(&emm_sap);
-  attach_proc->attach_reject_sent++;
+  rc                              = emm_sap_send(&emm_sap);
+  attach_proc->attach_reject_sent = true;
   increment_counter("ue_attach", 1, 1, "action", "attach_reject_sent");
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

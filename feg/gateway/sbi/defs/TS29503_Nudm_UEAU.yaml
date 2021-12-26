@@ -1,0 +1,302 @@
+openapi: 3.0.0
+info:
+  version: '1.0.2'
+  title: 'NudmUEAU'
+  description: |
+    UDM UE Authentication Service.
+    2019, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TSDSI, TTA, TTC).
+    All rights reserved.
+
+externalDocs:
+  description: 3GPP TS 29.503 Unified Data Management Services, version 15.6.0
+  url: 'http://www.3gpp.org/ftp/Specs/archive/29_series/29.503/'
+
+servers:
+  - url: '{apiRoot}/nudm-ueau/v1'
+    variables:
+      apiRoot:
+        default: https://example.com
+        description: apiRoot as defined in clause clause 4.4 of 3GPP TS 29.501.
+
+security:
+  - oAuth2ClientCredentials:
+    - nudm-ueau
+  - {}
+
+paths:
+  /{supiOrSuci}/security-information/generate-auth-data:
+    post:
+      summary: Generate authentication data for the UE
+      operationId: GenerateAuthData
+      tags:
+        - Generate Auth Data
+      parameters:
+        - name: supiOrSuci
+          in: path
+          description: SUPI or SUCI of the user
+          required: true
+          schema:
+            $ref: '#/components/schemas/SupiOrSuci'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationInfoRequest'
+        required: true
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationInfoResult'
+        '400':
+          $ref: 'TS29571_CommonData.yaml#/components/responses/400'
+        '403':
+          $ref: 'TS29571_CommonData.yaml#/components/responses/403'
+        '404':
+          $ref: 'TS29571_CommonData.yaml#/components/responses/404'
+        '500':
+          $ref: 'TS29571_CommonData.yaml#/components/responses/500'
+        '501':
+          $ref: 'TS29571_CommonData.yaml#/components/responses/501'
+        '503':
+          $ref: 'TS29571_CommonData.yaml#/components/responses/503'
+        default:
+          description: Unexpected error
+
+  /{supi}/auth-events:
+    post:
+      summary: Create a new confirmation event
+      operationId: ConfirmAuth
+      tags:
+        - Confirm Auth
+      parameters:
+        - name: supi
+          in: path
+          description: SUPI of the user
+          required: true
+          schema:
+            $ref: 'TS29571_CommonData.yaml#/components/schemas/Supi'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthEvent'
+        required: true
+      responses:
+        '201':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthEvent'
+          headers:
+            Location:
+              description: 'Contains the URI of the newly created resource, according to the structure: {apiRoot}/nudm-ueau/v1/{supi}/auth-events/{authEventId}'
+              required: true
+              schema:
+                type: string
+        '400':
+          $ref: 'TS29571_CommonData.yaml#/components/responses/400'
+        '404':
+          $ref: 'TS29571_CommonData.yaml#/components/responses/404'
+        '500':
+          $ref: 'TS29571_CommonData.yaml#/components/responses/500'
+        '503':
+          $ref: 'TS29571_CommonData.yaml#/components/responses/503'
+        default:
+          description: Unexpected error
+
+components:
+  securitySchemes:
+    oAuth2ClientCredentials:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: '{nrfApiRoot}/oauth2/token'
+          scopes:
+            nudm-ueau: Access to the nudm-ueau API
+
+
+  schemas:
+
+# COMPLEX TYPES:
+
+    AuthenticationInfoRequest:
+      type: object
+      required:
+        - servingNetworkName
+        - ausfInstanceId
+      properties:
+        supportedFeatures:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/SupportedFeatures'
+        servingNetworkName:
+          $ref: '#/components/schemas/ServingNetworkName'
+        resynchronizationInfo:
+          $ref: '#/components/schemas/ResynchronizationInfo'
+        ausfInstanceId:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/NfInstanceId'
+
+    AuthenticationInfoResult:
+      type: object
+      required:
+        - authType
+      properties:
+        authType:
+          $ref: '#/components/schemas/AuthType'
+        supportedFeatures:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/SupportedFeatures'
+        authenticationVector:
+          $ref: '#/components/schemas/AuthenticationVector'
+        supi:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/Supi'
+
+    AuthenticationVector:
+      oneOf:
+        - $ref: '#/components/schemas/AvEapAkaPrime'
+        - $ref: '#/components/schemas/Av5GHeAka'
+      discriminator:
+        propertyName: avType
+        mapping:
+          5G_HE_AKA: '#/components/schemas/Av5GHeAka'
+          EAP_AKA_PRIME: '#/components/schemas/AvEapAkaPrime'
+
+    AvEapAkaPrime:
+      type: object
+      required:
+        - avType
+        - rand
+        - xres
+        - autn
+        - ckPrime
+        - ikPrime
+      properties:
+        avType:
+          $ref: '#/components/schemas/AvType'
+        rand:
+          $ref: '#/components/schemas/Rand'
+        xres:
+          $ref: '#/components/schemas/Xres'
+        autn:
+          $ref: '#/components/schemas/Autn'
+        ckPrime:
+          $ref: '#/components/schemas/CkPrime'
+        ikPrime:
+          $ref: '#/components/schemas/IkPrime'
+
+    Av5GHeAka:
+      type: object
+      required:
+        - avType
+        - rand
+        - xresStar
+        - autn
+        - kausf
+      properties:
+        avType:
+          $ref: '#/components/schemas/AvType'
+        rand:
+          $ref: '#/components/schemas/Rand'
+        xresStar:
+          $ref: '#/components/schemas/XresStar'
+        autn:
+          $ref: '#/components/schemas/Autn'
+        kausf:
+          $ref: '#/components/schemas/Kausf'
+
+    ResynchronizationInfo:
+      type: object
+      required:
+        - rand
+        - auts
+      properties:
+        rand:
+          $ref: '#/components/schemas/Rand'
+        auts:
+          $ref: '#/components/schemas/Auts'
+
+    AuthEvent:
+      type: object
+      required:
+        - nfInstanceId
+        - success
+        - timeStamp
+        - authType
+        - servingNetworkName
+      properties:
+        nfInstanceId:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/NfInstanceId'
+        success:
+          $ref: '#/components/schemas/Success'
+        timeStamp:
+          $ref: 'TS29571_CommonData.yaml#/components/schemas/DateTime'
+        authType:
+          $ref: '#/components/schemas/AuthType'
+        servingNetworkName:
+          $ref: '#/components/schemas/ServingNetworkName'
+
+# SIMPLE TYPES:
+
+    Autn:
+      type: string
+      pattern: '^[A-Fa-f0-9]{32}$'
+
+    Auts:
+      type: string
+      pattern: '^[A-Fa-f0-9]{28}$'
+
+    CkPrime:
+      type: string
+      pattern: '^[A-Fa-f0-9]{32}$'
+
+    IkPrime:
+      type: string
+      pattern: '^[A-Fa-f0-9]{32}$'
+
+    Kausf:
+      type: string
+      pattern: '^[A-Fa-f0-9]{64}$'
+
+    Rand:
+      type: string
+      pattern: '^[A-Fa-f0-9]{32}$'
+
+    Xres:
+      type: string
+      pattern: '^[A-Fa-f0-9]{8,32}$'
+
+    XresStar:
+      type: string
+      pattern: '^[A-Fa-f0-9]{32}$'
+
+    SupiOrSuci:
+      type: string
+      pattern: '^(imsi-[0-9]{5,15}|nai-.+|suci-(0-[0-9]{3}-[0-9]{2,3}|[1-7]-.+)-[0-9]{1,4}-(0-0-.+|[a-fA-F1-9]-([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])-[a-fA-F0-9]+)|.+)$'
+
+    ServingNetworkName:
+      type: string
+      pattern: '^5G:mnc[0-9]{3}[.]mcc[0-9]{3}[.]3gppnetwork[.]org$'
+
+    Success:
+      type: boolean
+
+# ENUMS:
+
+    AuthType:
+      anyOf:
+        - type: string
+          enum:
+          - 5G_AKA
+          - EAP_AKA_PRIME
+          - EAP_TLS
+        - type: string
+
+    AvType:
+      anyOf:
+        - type: string
+          enum:
+          - 5G_HE_AKA
+          - EAP_AKA_PRIME
+        - type: string
+

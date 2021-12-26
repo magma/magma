@@ -27,7 +27,7 @@
       "csfbMcc": "001",
       "csfbMnc": "01",
       "lac": 1,
-      "amfName": "AMF_1",
+      "amfName": "MAGMAAMF1",
       "amfRegionId": "1",
       "amfSetId": "1",
       "amfPointer": "0",
@@ -40,8 +40,8 @@
       "natEnabled": true,
       "congestionControlEnabled": true,
       "enable5gFeatures": false,
-      "defaultSliceServiceType": "1",
-      "defaultSliceDifferentiator" : "0xffffff"
+      "amfDefaultSliceServiceType": 1,
+      "amfDefaultSliceDifferentiator" : "ffffff"
     },
     "enodebd": {
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",
@@ -152,6 +152,15 @@
     "connectiond": {
       "@type": "type.googleapis.com/magma.mconfig.ConnectionD",
       "logLevel": "INFO"
+    },
+    "shared_mconfig": {
+      "@type": "type.googleapis.com/magma.mconfig.SharedMconfig",
+      "sentry_config": {
+        "dsn_python": "",
+        "dsn_native": "",
+        "upload_mme_log": false,
+        "sample_rate": 1.0
+      }
     }
   }
 }

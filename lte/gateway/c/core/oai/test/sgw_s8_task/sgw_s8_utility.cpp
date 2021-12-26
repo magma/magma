@@ -11,9 +11,11 @@
  * limitations under the License.
  */
 
-#include "sgw_s8_utility.h"
-#include "ControllerMain.h"
+#include <memory>
+#include "lte/gateway/c/core/oai/test/sgw_s8_task/sgw_s8_utility.h"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.h"
 
+task_zmq_ctx_t task_zmq_ctx_main_s8;
 const struct gtp_tunnel_ops* gtp_tunnel_ops;
 void fill_imsi(char* imsi) {
   uint8_t idx = 0;
@@ -61,7 +63,9 @@ void fill_itti_csreq(
   bc_to_be_created->bearer_contexts[0].eps_bearer_id = 5;
 }
 
-void fill_itti_csrsp(s8_create_session_response_t* csr_resp, uint32_t teid) {
+void fill_itti_csrsp(
+    s8_create_session_response_t* csr_resp,
+    uint32_t temporary_create_session_procedure_id) {
   uint8_t idx = 0;
   fill_imsi((reinterpret_cast<char*>(csr_resp->imsi)));
   csr_resp->imsi_length = 15;
@@ -69,8 +73,10 @@ void fill_itti_csrsp(s8_create_session_response_t* csr_resp, uint32_t teid) {
   csr_resp->pdn_type                = IPv4;
   csr_resp->paa.pdn_type            = IPv4;
   csr_resp->paa.ipv4_address.s_addr = 0xc0a87e1;
-  csr_resp->context_teid            = teid;
-  csr_resp->eps_bearer_id           = 5;
+  csr_resp->context_teid  = 16;  // This teid would be allocated by orc8r
+  csr_resp->eps_bearer_id = 5;
+  csr_resp->temporary_create_session_procedure_id =
+      temporary_create_session_procedure_id;
 
   csr_resp->bearer_context[0].eps_bearer_id                 = 5;
   csr_resp->bearer_context[0].pgw_s8_up.ipv4                = 1;
@@ -132,7 +138,7 @@ void fill_create_bearer_response(
   cb_response->bearer_contexts.num_bearer_context = 1;
   bearer_context_within_create_bearer_response_t* bc_context =
       &(cb_response->bearer_contexts.bearer_contexts[0]);
-  bc_context->eps_bearer_id                     = 6;
+  bc_context->eps_bearer_id                     = eps_bearer_id;
   bc_context->cause.cause_value                 = cause;
   bc_context->s1u_enb_fteid.ipv4                = 1;
   bc_context->s1u_enb_fteid.interface_type      = S1_U_ENODEB_GTP_U;
@@ -142,10 +148,147 @@ void fill_create_bearer_response(
   bc_context->s1u_sgw_fteid.teid = s1_u_sgw_fteid;
 }
 
-sgw_state_t* SgwS8Config::create_ue_context(mme_sgw_tunnel_t* sgw_s11_tunnel) {
-  sgw_state_init(false, config);
-  sgw_state_t* sgw_state     = get_sgw_state(false);
-  sgw_s11_tunnel->local_teid = sgw_s8_generate_new_cp_teid();
+void fill_delete_bearer_response(
+    itti_s11_nw_init_deactv_bearer_rsp_t* db_response,
+    uint32_t s_gw_teid_s11_s4, uint8_t eps_bearer_id,
+    gtpv2c_cause_value_t cause) {
+  db_response->delete_default_bearer              = false;
+  db_response->s_gw_teid_s11_s4                   = s_gw_teid_s11_s4;
+  db_response->bearer_contexts.num_bearer_context = 1;
+  for (uint8_t idx = 0; idx < db_response->bearer_contexts.num_bearer_context;
+       idx++) {
+    db_response->bearer_contexts.bearer_contexts[idx].eps_bearer_id =
+        eps_bearer_id;
+    db_response->bearer_contexts.bearer_contexts[idx].cause.cause_value = cause;
+  }
+}
+
+void fill_delete_bearer_request(
+    s8_delete_bearer_request_t* db_req, uint32_t teid, uint8_t eps_bearer_id) {
+  db_req->context_teid      = teid;
+  db_req->num_eps_bearer_id = 1;
+  for (uint8_t idx = 0; idx < db_req->num_eps_bearer_id; idx++) {
+    db_req->eps_bearer_id[idx] = eps_bearer_id;
+  }
+  db_req->sequence_number = 2;
+}
+
+void fill_delete_session_request(
+    itti_s11_delete_session_request_t* ds_req_p, uint32_t teid, uint8_t lbi) {
+  ds_req_p->lbi  = lbi;
+  ds_req_p->teid = teid;
+
+  ds_req_p->sender_fteid_for_cp.teid                = 1;
+  ds_req_p->sender_fteid_for_cp.ipv4_address.s_addr = 0x8e3ca8c0;
+  ds_req_p->sender_fteid_for_cp.interface_type      = S11_MME_GTP_C;
+  uint8_t idx                                       = 0;
+  ds_req_p->serving_network.mcc[idx++]              = 0;
+  ds_req_p->serving_network.mcc[idx++]              = 0;
+  ds_req_p->serving_network.mcc[idx]                = 0;
+  idx                                               = 0;
+  ds_req_p->serving_network.mnc[idx++]              = 1;
+  ds_req_p->serving_network.mnc[idx++]              = 1;
+  ds_req_p->serving_network.mnc[idx]                = 15;
+}
+
+void fill_delete_session_response(
+    s8_delete_session_response_t* ds_rsp_p, uint32_t teid, uint8_t cause) {
+  ds_rsp_p->context_teid = teid;
+  ds_rsp_p->cause        = cause;
+}
+
+sgw_state_t* SgwS8ConfigAndCreateMock::create_and_get_contexts_on_cs_req(
+    uint32_t* temporary_create_session_procedure_id,
+    sgw_eps_bearer_context_information_t** sgw_pdn_session) {
+  sgw_state_t* sgw_state = get_sgw_state(false);
+  *sgw_pdn_session       = sgw_create_bearer_context_information_in_collection(
+      sgw_state, temporary_create_session_procedure_id);
+
+  itti_s11_create_session_request_t session_req = {0};
+  fill_itti_csreq(&session_req, default_eps_bearer_id);
+  memcpy(session_req.apn, "internet", sizeof("internet"));
+
+  *sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
+      sgw_state, temporary_create_session_procedure_id);
+  sgw_update_bearer_context_information_on_csreq(
+      sgw_state, *sgw_pdn_session, &session_req, imsi64);
+
+  return sgw_state;
+}
+
+sgw_state_t* SgwS8ConfigAndCreateMock::create_ue_context(
+    mme_sgw_tunnel_t* sgw_s11_tunnel) {
+  sgw_state_t* sgw_state = get_sgw_state(false);
   sgw_update_teid_in_ue_context(sgw_state, imsi64, sgw_s11_tunnel->local_teid);
   return sgw_state;
+}
+
+void SgwS8ConfigAndCreateMock::sgw_s8_config_init() {
+  config->itti_config.queue_size     = 0;
+  std::string file_string            = "/var/opt/magma/tmp/spgw.conf";
+  config->itti_config.log_file       = bfromcstr(file_string.c_str());
+  std::string s1u_if_name            = "eth1";
+  config->ipv4.if_name_S1u_S12_S4_up = bfromcstr(s1u_if_name.c_str());
+  config->ipv4.S1u_S12_S4_up.s_addr  = 0x8e3ca8c0;
+  config->ipv4.netmask_S1u_S12_S4_up = 24;
+  std::string s5s8u_if_name          = "eth0";
+  config->ipv4.if_name_S5_S8_up      = bfromcstr(s5s8u_if_name.c_str());
+  config->ipv4.S5_S8_up.s_addr       = 0xf02000a;
+  config->ipv4.netmask_S5_S8_up      = 24;
+  std::string s11                    = "lo";
+  config->ipv4.if_name_S11           = bfromcstr(s11.c_str());
+  config->ipv4.S11.s_addr            = 0x100007f;
+  config->ipv4.netmask_S11           = 8;
+  config->udp_port_S1u_S12_S4_up     = 2152;
+  config->config_file                = bfromcstr(file_string.c_str());
+}
+
+static int handle_message_test_sgw_s8(
+    zloop_t* loop, zsock_t* reader, void* arg) {
+  MessageDef* received_message_p = receive_msg(reader);
+
+  switch (ITTI_MSG_ID(received_message_p)) {
+    default: { } break; }
+
+  itti_free_msg_content(received_message_p);
+  free(received_message_p);
+  return 0;
+}
+
+void SgwS8ConfigAndCreateMock::SetUp() {
+  mme_app_handler = std::make_shared<MockMmeAppHandler>();
+
+  itti_init(
+      TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
+      NULL);
+  sgw_s8_config_init();
+  task_id_t task_id_list[3] = {TASK_SGW_S8, TASK_MME_APP, TASK_GRPC_SERVICE};
+  init_task_context(
+      TASK_MAIN, task_id_list, 3, handle_message_test_sgw_s8,
+      &task_zmq_ctx_main_s8);
+
+  std::thread task_grpc(start_mock_grpc_task);
+  std::thread task_mme_app(start_mock_mme_app_task, mme_app_handler);
+  task_grpc.detach();
+  task_mme_app.detach();
+
+  sgw_s8_init(config);
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(SLEEP_AT_INITIALIZATION_TIME_MS));
+}
+
+void SgwS8ConfigAndCreateMock::TearDown() {
+  sgw_state_exit();
+  bdestroy_wrapper(&config->itti_config.log_file);
+  bdestroy_wrapper(&config->ipv4.if_name_S1u_S12_S4_up);
+  bdestroy_wrapper(&config->ipv4.if_name_S5_S8_up);
+  bdestroy_wrapper(&config->ipv4.if_name_S11);
+  bdestroy_wrapper(&config->config_file);
+  free(config);
+
+  send_terminate_message_fatal(&task_zmq_ctx_main_s8);
+  // Sleep to ensure that messages are received and contexts are released
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  destroy_task_context(&task_zmq_ctx_main_s8);
+  itti_free_desc_threads();
 }

@@ -22,6 +22,7 @@ import SubscriberContext from '../../../components/context/SubscriberContext';
 import SubscriberDashboard from '../SubscriberOverview';
 import defaultTheme from '../../../theme/default.js';
 
+import {CoreNetworkTypes} from '../SubscriberUtils';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
@@ -31,6 +32,9 @@ jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 afterEach(cleanup);
 const enqueueSnackbarMock = jest.fn();
+const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
+  key => CoreNetworkTypes[key],
+);
 jest
   .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
@@ -38,6 +42,7 @@ const subscribers = {
   IMSI0000000000: {
     name: 'subscriber0',
     active_apns: ['oai.ipv4'],
+    forbidden_network_types: forbiddenNetworkTypes,
     id: 'IMSI0000000000',
     lte: {
       auth_algo: 'MILENAGE',
@@ -47,6 +52,7 @@ const subscribers = {
       sub_profile: 'default',
     },
     config: {
+      forbidden_network_types: forbiddenNetworkTypes,
       lte: {
         auth_algo: 'MILENAGE',
         auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
@@ -59,6 +65,7 @@ const subscribers = {
   IMSI0000000001: {
     name: 'subscriber1',
     active_apns: ['oai.ipv4'],
+    forbidden_network_types: forbiddenNetworkTypes,
     id: 'IMSI0000000001',
     lte: {
       auth_algo: 'MILENAGE',
@@ -68,6 +75,7 @@ const subscribers = {
       sub_profile: 'default',
     },
     config: {
+      forbidden_network_types: forbiddenNetworkTypes,
       lte: {
         auth_algo: 'MILENAGE',
         auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
@@ -90,6 +98,7 @@ describe('<SubscriberDashboard />', () => {
   const Wrapper = () => {
     const subscriberCtx = {
       state: subscribers,
+      forbiddenNetworkTypes: {},
       gwSubscriberMap: {},
       sessionState: {},
     };

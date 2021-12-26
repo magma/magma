@@ -7,16 +7,9 @@
             "name": "(Bazel) Run SessionD test with GDB",
             "program": "${workspaceFolder}/bazel-bin/lte/gateway/c/session_manager/test/${input:pickSessionDUnitTest}",
             "cwd": "${workspaceRoot}",
-            "preLaunchTask": "(Bazel) Build SessionD Unit Tests",
-            "commandsBeforeExec": ["enable pretty-printer"],
-        },
-        {
-            "type": "by-gdb",
-            "request": "launch",
-            "name": "(Bazel) Run SessionD test with GDB - Skip build",
-            "program": "${workspaceFolder}/bazel-bin/lte/gateway/c/session_manager/test/${input:pickSessionDUnitTest}",
-            "cwd": "${workspaceRoot}",
-            "commandsBeforeExec": ["enable pretty-printer"],
+            "commandsBeforeExec": [
+                "enable pretty-printer"
+            ],
         }
     ],
     "inputs": [

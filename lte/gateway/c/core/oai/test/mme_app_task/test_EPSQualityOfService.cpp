@@ -18,10 +18,10 @@
 #include <glog/logging.h>
 
 extern "C" {
-#include "EpsQualityOfService.h"
-#include "conversions.h"
-#include "common_defs.h"
-#include "log.h"
+#include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 }
 
 TEST(

@@ -175,7 +175,11 @@ class IpAllocatorPool(IPAllocator):
         Return:
              copy of the list of assigned IP blocks
         """
-        return list(deepcopy(self._store.assigned_ip_blocks))
+        ret = []
+        for ipblock in self._store.assigned_ip_blocks:
+            if ipblock.version == 4:
+                ret.append(ipblock)
+        return list(deepcopy(ret))
 
     def list_allocated_ips(self, ipblock: ip_network) -> List[ip_address]:
         """ List IP addresses allocated from a given IP block

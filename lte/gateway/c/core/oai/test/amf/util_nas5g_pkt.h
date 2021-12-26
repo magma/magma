@@ -11,18 +11,18 @@
 
 #pragma once
 
-#include "M5GRegistrationRequest.h"
-#include "M5GRegistrationReject.h"
-#include "M5GAuthenticationFailure.h"
-#include "M5gNasMessage.h"
-#include "M5GULNASTransport.h"
-#include "M5GDeRegistrationRequestUEInit.h"
-#include "M5GServiceRequest.h"
-#include "M5GServiceAccept.h"
-#include "amf_app_ue_context_and_proc.h"
-#include "amf_asDefs.h"
-#include "3gpp_24.008.h"
-#include "M5GSecurityModeReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationReject.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationFailure.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GULNASTransport.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationRequestUEInit.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceAccept.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeReject.h"
 
 namespace magma5g {
 
@@ -39,9 +39,15 @@ class NAS5GPktSnapShot {
   static uint8_t service_request[37];
   static uint8_t registration_reject[4];
   static uint8_t security_mode_reject[4];
+  static uint8_t service_req_signaling[13];
+  static uint8_t suci_ext_reg_req_buffer[65];
 
   uint32_t get_reg_req_buffer_len() {
     return sizeof(reg_req_buffer) / sizeof(unsigned char);
+  }
+
+  uint32_t get_suci_ext_reg_req_buffer_len() {
+    return sizeof(suci_ext_reg_req_buffer) / sizeof(unsigned char);
   }
 
   uint32_t get_reg_resync_buffer_len() {
@@ -80,6 +86,9 @@ class NAS5GPktSnapShot {
     return sizeof(security_mode_reject) / sizeof(unsigned char);
   }
 
+  uint32_t get_service_request_signaling_len() {
+    return sizeof(service_req_signaling) / sizeof(uint8_t);
+  }
   NAS5GPktSnapShot() {}
 };
 

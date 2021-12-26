@@ -15,19 +15,19 @@
  *      contact@openairinterface.org
  */
 
-#include "redis_client.h"
+#include "lte/gateway/c/core/oai/common/redis_utils/redis_client.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <common_defs.h>
+#include "lte/gateway/c/core/oai/common/common_defs.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "includes/ServiceConfigLoader.h"
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.h"
 #include <yaml-cpp/yaml.h>  // IWYU pragma: keep
 
 using google::protobuf::Message;

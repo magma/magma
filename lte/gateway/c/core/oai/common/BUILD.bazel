@@ -9,36 +9,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 package(default_visibility = ["//lte/gateway/c/core:__subpackages__"])
 
 cc_library(
     name = "common_defs",
     hdrs = ["common_defs.h"],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
-    strip_include_prefix = "/lte/gateway/c/core/oai/common",
 )
 
 cc_library(
     name = "assertions",
     hdrs = ["assertions.h"],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
-    strip_include_prefix = "/lte/gateway/c/core/oai/common",
+    deps = ["backtrace"],
 )
 
 cc_library(
     name = "backtrace",
     srcs = ["backtrace.c"],
     hdrs = ["backtrace.h"],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
-    strip_include_prefix = "/lte/gateway/c/core/oai/common",
 )
 
 cc_library(
     name = "dynamic_memory_check",
     srcs = ["dynamic_memory_check.c"],
     hdrs = ["dynamic_memory_check.h"],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
-    strip_include_prefix = "/lte/gateway/c/core/oai/common",
     deps = [
         "assertions",
         "//lte/gateway/c/core/oai/lib/bstr:bstrlib",
@@ -48,6 +43,4 @@ cc_library(
 cc_library(
     name = "intertask_interface_conf",
     hdrs = ["intertask_interface_conf.h"],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
-    strip_include_prefix = "/lte/gateway/c/core/oai/common",
 )

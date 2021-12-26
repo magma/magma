@@ -297,7 +297,7 @@ int decode_tracking_area_update_request(
         break;
 
       case TRACKING_AREA_UPDATE_REQUEST_SUPPORTED_CODECS_IEI:
-        if ((decoded_result = decode_supported_codec_list(
+        if ((decoded_result = decode_supported_codec_list_ie(
                  &tracking_area_update_request->supportedcodecs,
                  TRACKING_AREA_UPDATE_REQUEST_SUPPORTED_CODECS_IEI,
                  buffer + decoded, len - decoded)) <= 0)
@@ -411,21 +411,21 @@ int encode_tracking_area_update_request(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, TRACKING_AREA_UPDATE_REQUEST_MINIMUM_LENGTH, len);
   *(buffer + encoded) =
-      ((encode_u8_eps_update_type(
-            &tracking_area_update_request->epsupdatetype) &
+      ((encode_u8_nas_key_set_identifier(
+            &tracking_area_update_request->naskeysetidentifier) &
         0x0f)
        << 4) |
-      (encode_u8_nas_key_set_identifier(
-           &tracking_area_update_request->naskeysetidentifier) &
+      (encode_u8_eps_update_type(&tracking_area_update_request->epsupdatetype) &
        0x0f);
   encoded++;
 
   if ((encode_result = encode_eps_mobile_identity(
            &tracking_area_update_request->oldguti, 0, buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+           len - encoded)) < 0) {  // Return in case of error
     return encode_result;
-  else
+  } else {
     encoded += encode_result;
+  }
 
   if ((tracking_area_update_request->presencemask &
        TRACKING_AREA_UPDATE_REQUEST_NONCURRENT_NATIVE_NAS_KEY_SET_IDENTIFIER_PRESENT) ==
@@ -433,11 +433,12 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_nas_key_set_identifier(
              &tracking_area_update_request->noncurrentnativenaskeysetidentifier,
              TRACKING_AREA_UPDATE_REQUEST_NONCURRENT_NATIVE_NAS_KEY_SET_IDENTIFIER_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -446,11 +447,12 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_ciphering_key_sequence_number_ie(
              &tracking_area_update_request->gprscipheringkeysequencenumber,
              TRACKING_AREA_UPDATE_REQUEST_GPRS_CIPHERING_KEY_SEQUENCE_NUMBER_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -459,11 +461,12 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_p_tmsi_signature_ie(
              tracking_area_update_request->oldptmsisignature,
              TRACKING_AREA_UPDATE_REQUEST_OLD_PTMSI_SIGNATURE_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -472,11 +475,12 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_eps_mobile_identity(
              &tracking_area_update_request->additionalguti,
              TRACKING_AREA_UPDATE_REQUEST_ADDITIONAL_GUTI_IEI, buffer + encoded,
-             len - encoded)) < 0)
+             len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -485,11 +489,12 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_nonce(
              &tracking_area_update_request->nonceue,
              TRACKING_AREA_UPDATE_REQUEST_NONCEUE_IEI, buffer + encoded,
-             len - encoded)) < 0)
+             len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -498,11 +503,12 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_ue_network_capability(
              &tracking_area_update_request->uenetworkcapability,
              TRACKING_AREA_UPDATE_REQUEST_UE_NETWORK_CAPABILITY_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -511,11 +517,12 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_tracking_area_identity(
              &tracking_area_update_request->lastvisitedregisteredtai,
              TRACKING_AREA_UPDATE_REQUEST_LAST_VISITED_REGISTERED_TAI_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -524,11 +531,12 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_drx_parameter_ie(
              &tracking_area_update_request->drxparameter,
              TRACKING_AREA_UPDATE_REQUEST_DRX_PARAMETER_IEI, buffer + encoded,
-             len - encoded)) < 0)
+             len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -538,11 +546,12 @@ int encode_tracking_area_update_request(
              &tracking_area_update_request
                   ->ueradiocapabilityinformationupdateneeded,
              TRACKING_AREA_UPDATE_REQUEST_UE_RADIO_CAPABILITY_INFORMATION_UPDATE_NEEDED_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -551,11 +560,12 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_eps_bearer_context_status(
              &tracking_area_update_request->epsbearercontextstatus,
              TRACKING_AREA_UPDATE_REQUEST_EPS_BEARER_CONTEXT_STATUS_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -564,11 +574,12 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_ms_network_capability_ie(
              &tracking_area_update_request->msnetworkcapability,
              TRACKING_AREA_UPDATE_REQUEST_MS_NETWORK_CAPABILITY_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -577,11 +588,12 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_location_area_identification_ie(
              &tracking_area_update_request->oldlocationareaidentification,
              TRACKING_AREA_UPDATE_REQUEST_OLD_LOCATION_AREA_IDENTIFICATION_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -590,11 +602,12 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_tmsi_status(
              &tracking_area_update_request->tmsistatus,
              TRACKING_AREA_UPDATE_REQUEST_TMSI_STATUS_IEI, buffer + encoded,
-             len - encoded)) < 0)
+             len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -603,11 +616,12 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_mobile_station_classmark_2_ie(
              &tracking_area_update_request->mobilestationclassmark2,
              TRACKING_AREA_UPDATE_REQUEST_MOBILE_STATION_CLASSMARK_2_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -616,24 +630,26 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_mobile_station_classmark_3_ie(
              &tracking_area_update_request->mobilestationclassmark3,
              TRACKING_AREA_UPDATE_REQUEST_MOBILE_STATION_CLASSMARK_3_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
        TRACKING_AREA_UPDATE_REQUEST_SUPPORTED_CODECS_PRESENT) ==
       TRACKING_AREA_UPDATE_REQUEST_SUPPORTED_CODECS_PRESENT) {
-    if ((encode_result = encode_supported_codec_list(
+    if ((encode_result = encode_supported_codec_list_ie(
              &tracking_area_update_request->supportedcodecs,
              TRACKING_AREA_UPDATE_REQUEST_SUPPORTED_CODECS_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -642,11 +658,12 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_additional_update_type(
              &tracking_area_update_request->additionalupdatetype,
              TRACKING_AREA_UPDATE_REQUEST_ADDITIONAL_UPDATE_TYPE_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((tracking_area_update_request->presencemask &
@@ -655,11 +672,12 @@ int encode_tracking_area_update_request(
     if ((encode_result = encode_guti_type(
              &tracking_area_update_request->oldgutitype,
              TRACKING_AREA_UPDATE_REQUEST_OLD_GUTI_TYPE_IEI, buffer + encoded,
-             len - encoded)) < 0)
+             len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   return encoded;

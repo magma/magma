@@ -30,10 +30,10 @@
 #ifndef FILE_SPGW_TYPES_SEEN
 #define FILE_SPGW_TYPES_SEEN
 
-#include "3gpp_23.401.h"
-#include "ip_forward_messages_types.h"
-#include "sgw_ie_defs.h"
-#include "gtpv1u_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
+#include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/include/gtpv1u_types.h"
 
 typedef struct s5_create_session_request_s {
   teid_t context_teid;  ///< local SGW S11 Tunnel Endpoint Identifier
@@ -88,8 +88,10 @@ typedef struct sgw_state_s {
   teid_t s1u_teid;
   teid_t s5s8u_teid;
   struct in_addr sgw_ip_address_S1u_S12_S4_up;
+  struct in6_addr sgw_ipv6_address_S1u_S12_S4_up;
   struct in_addr sgw_ip_address_S5S8_up;
   hash_table_ts_t* imsi_ue_context_htbl;
+  hash_table_ts_t* temporary_create_session_procedure_id_htbl;
 } sgw_state_t;
 
 // AGW-wide state for SPGW task
@@ -100,6 +102,7 @@ typedef struct spgw_state_s {
   gtpv1u_data_t gtpv1u_data;
   uint32_t gtpv1u_teid;
   struct in_addr sgw_ip_address_S1u_S12_S4_up;
+  struct in6_addr sgw_ipv6_address_S1u_S12_S4_up;
 } spgw_state_t;
 
 void handle_s5_create_session_response(

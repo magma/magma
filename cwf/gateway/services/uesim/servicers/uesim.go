@@ -15,6 +15,7 @@ package servicers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os/exec"
@@ -23,12 +24,12 @@ import (
 	"time"
 
 	"fbc/lib/go/radius"
+
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
-	"context"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
@@ -47,7 +48,7 @@ const (
 
 // UESimServer tracks all the UEs being simulated.
 type UESimServer struct {
-	store blobstore.BlobStorageFactory
+	store blobstore.StoreFactory
 	cfg   *UESimConfig
 }
 
@@ -126,7 +127,7 @@ func (summary *TrafficSummary) ToProto() *cwfprotos.TrafficSummary {
 
 // NewUESimServer initializes a UESimServer with an empty store map.
 // Output: a new UESimServer
-func NewUESimServer(factory blobstore.BlobStorageFactory) (*UESimServer, error) {
+func NewUESimServer(factory blobstore.StoreFactory) (*UESimServer, error) {
 	config, err := GetUESimConfig()
 	if err != nil {
 		return nil, err
@@ -259,7 +260,7 @@ func blobToUE(blob blobstore.Blob) (*cwfprotos.UEConfig, error) {
 }
 
 // getUE gets the UE with the specified IMSI from the blobstore.
-func getUE(blobStoreFactory blobstore.BlobStorageFactory, imsi string) (ue *cwfprotos.UEConfig, err error) {
+func getUE(blobStoreFactory blobstore.StoreFactory, imsi string) (ue *cwfprotos.UEConfig, err error) {
 	store, err := blobStoreFactory.StartTransaction(nil)
 	if err != nil {
 		err = errors.Wrap(err, "Error while starting transaction")
@@ -380,10 +381,11 @@ func executeCommandWithRetries(command string, argList []string) (*IperfResponse
 		if !isIperfErrorDueToControlMessage(err) {
 			break
 		}
-		err_msg := "Retried IPERF command due to unable to receive control message"
-		glog.Warning(err_msg)
-		err = errors.Wrap(err, err_msg)
+		glog.Warning( "Retried IPERF command due to an specific error")
 		time.Sleep(300 * time.Millisecond)
+	}
+	if err != nil {
+		err = fmt.Errorf("executeCommandWithRetries had error but didn't retry: %s", err)
 	}
 	return res, err
 }
@@ -410,6 +412,8 @@ func isIperfErrorDueToControlMessage(iperf_err error) bool {
 		return false
 	}
 	return strings.Contains(iperf_err.Error(), "unable to receive control message")
+	//|
+	//	strings.Contains(iperf_err.Error(), "the server is busy")
 }
 
 // TODO: create a new file and structs to to parse and dump iperf message
