@@ -7736,7 +7736,7 @@ definitions:
         type: boolean
       fsm_state:
         type: string
-      gps_aititude:
+      gps_altitude:
         type: string
       gps_connected:
         type: boolean
@@ -7789,12 +7789,6 @@ definitions:
     - ptp_connected
     - mme_connected
     - fsm_state
-    - gps_aititude
-    - vendor
-    - model_name
-    - rf_state
-    - sw_version
-    - uptime
     type: object
   enodebd_e2e_test:
     description: Enodebd e2e test

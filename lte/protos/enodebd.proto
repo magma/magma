@@ -93,7 +93,7 @@ message SingleEnodebStatus {
   string gps_latitude = 11;
   string fsm_state = 12;
   StatusProperty rf_tx_desired = 13;
-  string gps_aititude = 14;
+  string gps_altitude = 14;
   string vendor = 15;
   string model_name = 16;
   StatusProperty rf_state = 17;

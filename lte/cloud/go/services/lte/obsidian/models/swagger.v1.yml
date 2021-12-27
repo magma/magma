@@ -2501,12 +2501,6 @@ definitions:
       - ptp_connected
       - mme_connected
       - fsm_state
-      - gps_aititude
-      - vendor
-      - model_name
-      - rf_state
-      - sw_version
-      - uptime
     properties:
       time_reported:
         type: integer
@@ -2543,7 +2537,7 @@ definitions:
       ues_connected:
         type: integer
         format: int32
-      gps_aititude:
+      gps_altitude:
         type: string
       vendor:
         type: string

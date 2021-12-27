@@ -144,7 +144,7 @@ class BaicellsRTSTrDataModel(DataModel):
         ParameterName.GPS_ENABLE: TrParam(DEVICE_PATH + 'X_BAICELLS_COM_GpsSyncEnable', False, TrParameterType.BOOLEAN, True),
         ParameterName.GPS_LAT: TrParam(DEVICE_PATH + 'DeviceInfo.X_BAICELLS_COM_Latitude', True, TrParameterType.INT, True),
         ParameterName.GPS_LONG: TrParam(DEVICE_PATH + 'DeviceInfo.X_BAICELLS_COM_Longitude', True, TrParameterType.INT, True),
-        ParameterName.GPS_AITI: TrParam(DEVICE_PATH + 'DeviceInfo.X_BAICELLS_COM_Height', True, TrParameterType.STRING, True),
+        ParameterName.GPS_ALTI: TrParam(DEVICE_PATH + 'DeviceInfo.X_BAICELLS_COM_Height', True, TrParameterType.STRING, True),
         ParameterName.SW_VERSION: TrParam(DEVICE_PATH + 'DeviceInfo.SoftwareVersion', True, TrParameterType.STRING, False),
         ParameterName.SERIAL_NUMBER: TrParam(DEVICE_PATH + 'DeviceInfo.SerialNumber', True, TrParameterType.STRING, False),
         ParameterName.VENDOR: TrParam(DEVICE_PATH + 'DeviceInfo.ManufacturerOUI', False, TrParameterType.STRING, True),

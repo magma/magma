@@ -124,15 +124,15 @@ export function EnodebStatus({refresh}: {refresh: boolean}) {
     ],
     [
       {
-        category: 'SOFTWARE Version',
+        category: 'Software Version',
         value: enbInfo?.enb_state.sw_version ?? 'Not Available',
       },
       {
         category: 'Model Name',
-        value: enbInfo?.enb_state.model_name ?? 'Not Available', 
+        value: enbInfo?.enb_state.model_name ?? 'Not Available',
       },
       {
-        category: 'RF state',
+        category: 'RF State',
         value: enbInfo?.enb_state.rf_state ? 'Connected' : 'Disconnected',
         statusCircle: true,
         status: enbInfo?.enb_state.rf_state,
@@ -140,28 +140,28 @@ export function EnodebStatus({refresh}: {refresh: boolean}) {
     ],
     [
       {
-        category: 'GPS Sync status',
+        category: 'GPS Sync Status',
         value: enbInfo?.enb_state.gps_connected ? 'Connected' : 'Disconnected',
         statusCircle: true,
         status: enbInfo?.enb_state.gps_connected,
       },
       {
-        category: 'GPS longitude',
+        category: 'GPS Longitude',
         value: enbInfo?.enb_state.gps_longitude ?? 'Not Available',
-         
+
       },
       {
-        category: 'GPS latitude',
+        category: 'GPS Latitude',
         value: enbInfo?.enb_state.gps_latitude ?? 'Not Available',
       },
       {
-        category: 'GPS aititude',
-        value: enbInfo?.enb_state.gps_aititude ?? 'Not Available',
+        category: 'GPS Altitude',
+        value: enbInfo?.enb_state.gps_altitude ?? 'Not Available',
       },
     ],
     [
       {
-        category: '1588 Sync status',
+        category: '1588 Sync Status',
         value: enbInfo?.enb_state.ptp_connected ? 'Connected' : 'Disconnected',
         statusCircle: true,
         status: enbInfo?.enb_state.ptp_connected,
@@ -171,9 +171,9 @@ export function EnodebStatus({refresh}: {refresh: boolean}) {
         value: enbInfo?.enb_state.vendor ?? 'Not Available',
       },
       {
-        category: 'Run time',
+        category: 'Run Time',
         value: enbInfo?.enb_state.uptime ?? 'Not Available',
-      },  
+      },
     ],
   ];
   return (

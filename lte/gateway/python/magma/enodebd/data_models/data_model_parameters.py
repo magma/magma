@@ -27,7 +27,7 @@ class ParameterName():
     GPS_ENABLE = 'GPS enable'
     GPS_LAT = 'GPS lat'
     GPS_LONG = 'GPS long'
-    GPS_AITI = 'GPS aiti'
+    GPS_ALTI = 'GPS alti'
     SW_VERSION = 'SW version'
     VENDOR = "VENDOR"
     MODEL_NAME = "MODEL name"

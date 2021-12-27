@@ -29,9 +29,8 @@ type EnodebState struct {
 	// Required: true
 	FsmState *string `json:"fsm_state"`
 
-	// gps aititude
-	// Required: true
-	GpsAititude *string `json:"gps_aititude"`
+	// gps altitude
+	GpsAltitude string `json:"gps_altitude,omitempty"`
 
 	// gps connected
 	// Required: true
@@ -54,8 +53,7 @@ type EnodebState struct {
 	MmeConnected *bool `json:"mme_connected"`
 
 	// model name
-	// Required: true
-	ModelName *string `json:"model_name"`
+	ModelName string `json:"model_name,omitempty"`
 
 	// opstate enabled
 	// Required: true
@@ -69,8 +67,7 @@ type EnodebState struct {
 	ReportingGatewayID string `json:"reporting_gateway_id,omitempty"`
 
 	// rf state
-	// Required: true
-	RfState *bool `json:"rf_state"`
+	RfState bool `json:"rf_state,omitempty"`
 
 	// rf tx desired
 	// Required: true
@@ -81,8 +78,7 @@ type EnodebState struct {
 	RfTxOn *bool `json:"rf_tx_on"`
 
 	// sw version
-	// Required: true
-	SwVersion *string `json:"sw_version"`
+	SwVersion string `json:"sw_version,omitempty"`
 
 	// Time at which the state was reported in ms
 	TimeReported uint64 `json:"time_reported,omitempty"`
@@ -91,12 +87,10 @@ type EnodebState struct {
 	UesConnected int32 `json:"ues_connected,omitempty"`
 
 	// uptime
-	// Required: true
-	Uptime *string `json:"uptime"`
+	Uptime string `json:"uptime,omitempty"`
 
 	// vendor
-	// Required: true
-	Vendor *string `json:"vendor"`
+	Vendor string `json:"vendor,omitempty"`
 }
 
 // Validate validates this enodeb state
@@ -112,10 +106,6 @@ func (m *EnodebState) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateFsmState(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateGpsAititude(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -139,10 +129,6 @@ func (m *EnodebState) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateModelName(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateOpstateEnabled(formats); err != nil {
 		res = append(res, err)
 	}
@@ -151,27 +137,11 @@ func (m *EnodebState) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateRfState(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateRfTxDesired(formats); err != nil {
 		res = append(res, err)
 	}
 
 	if err := m.validateRfTxOn(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateSwVersion(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateUptime(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateVendor(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -202,15 +172,6 @@ func (m *EnodebState) validateEnodebConnected(formats strfmt.Registry) error {
 func (m *EnodebState) validateFsmState(formats strfmt.Registry) error {
 
 	if err := validate.Required("fsm_state", "body", m.FsmState); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *EnodebState) validateGpsAititude(formats strfmt.Registry) error {
-
-	if err := validate.Required("gps_aititude", "body", m.GpsAititude); err != nil {
 		return err
 	}
 
@@ -266,15 +227,6 @@ func (m *EnodebState) validateMmeConnected(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *EnodebState) validateModelName(formats strfmt.Registry) error {
-
-	if err := validate.Required("model_name", "body", m.ModelName); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (m *EnodebState) validateOpstateEnabled(formats strfmt.Registry) error {
 
 	if err := validate.Required("opstate_enabled", "body", m.OpstateEnabled); err != nil {
@@ -293,15 +245,6 @@ func (m *EnodebState) validatePtpConnected(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *EnodebState) validateRfState(formats strfmt.Registry) error {
-
-	if err := validate.Required("rf_state", "body", m.RfState); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (m *EnodebState) validateRfTxDesired(formats strfmt.Registry) error {
 
 	if err := validate.Required("rf_tx_desired", "body", m.RfTxDesired); err != nil {
@@ -314,33 +257,6 @@ func (m *EnodebState) validateRfTxDesired(formats strfmt.Registry) error {
 func (m *EnodebState) validateRfTxOn(formats strfmt.Registry) error {
 
 	if err := validate.Required("rf_tx_on", "body", m.RfTxOn); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *EnodebState) validateSwVersion(formats strfmt.Registry) error {
-
-	if err := validate.Required("sw_version", "body", m.SwVersion); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *EnodebState) validateUptime(formats strfmt.Registry) error {
-
-	if err := validate.Required("uptime", "body", m.Uptime); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *EnodebState) validateVendor(formats strfmt.Registry) error {
-
-	if err := validate.Required("vendor", "body", m.Vendor); err != nil {
 		return err
 	}
 

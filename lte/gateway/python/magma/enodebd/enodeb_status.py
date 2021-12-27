@@ -48,7 +48,7 @@ CACHED_GPS_COORD_FILE_PATH = os.path.join(
 # file cache when the enodeB goes down unless these are unintialized.
 _gps_lat_cached = None
 _gps_lon_cached = None
-_gps_ait_cached = None
+_gps_alt_cached = None
 
 EnodebStatus = NamedTuple(
     'EnodebStatus',
@@ -65,7 +65,7 @@ EnodebStatus = NamedTuple(
         ('mme_connected', bool),
         ('fsm_state', str),
         ('cell_id', int),
-        ('gps_aititude', str),
+        ('gps_altitude', str),
         ('vendor', str),
         ('model_name', str),
         ('rf_state', bool),
@@ -108,6 +108,14 @@ MagmaEnodebdStatus = NamedTuple(
     ],
 )
 
+GPSTuple = namedtuple(
+    'GPSTuple',
+    [
+        'gps_lat',
+        'gps_lon',
+        'gps_alt',
+    ],
+)
 
 def update_status_metrics(status: EnodebStatus) -> None:
     """ Update metrics for eNodeB status """
@@ -275,7 +283,7 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
         - gps_longitude
         - ip_address
         - cell_id
-        - gps_aititude
+        - gps_altitude
         - vendor
         - model_name
         - rf_state
@@ -292,13 +300,13 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
 
     # We cache GPS coordinates so try to read them before the early return
     # if the enB is not connected
-    gps_lat, gps_lon, gps_ait = _get_and_cache_gps_coords(enodeb)
+    gps_tuple = _get_and_cache_gps_coords(enodeb)
     model_name = ""
     sw_version = ""
     uptime = ""
     vendor = ""
-    rf_state = ''
-    
+    rf_state = ""
+
     enodeb_connected = enodeb.is_enodeb_connected()
     opstate_enabled = _parse_param_as_bool(enodeb, ParameterName.OP_STATE)
     rf_tx_on = _parse_param_as_bool(enodeb, ParameterName.RF_TX_STATUS)
@@ -333,9 +341,9 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
 
     return EnodebStatus(
         enodeb_configured=enodeb_configured,
-        gps_latitude=gps_lat,
-        gps_longitude=gps_lon,
-        gps_aititude=gps_ait,
+        gps_latitude=gps_tuple.gps_lat,
+        gps_longitude=gps_tuple.gps_lon,
+        gps_altitude=gps_tuple.gps_alt,
         enodeb_connected=enodeb_connected,
         opstate_enabled=opstate_enabled,
         rf_tx_on=rf_tx_on,
@@ -388,7 +396,7 @@ def get_single_enb_status(
     enb_status.gps_longitude = status.gps_longitude
     enb_status.gps_latitude = status.gps_latitude
     enb_status.fsm_state = status.fsm_state
-    enb_status.gps_aititude = status.gps_aititude
+    enb_status.gps_altitude = status.gps_altitude
     enb_status.vendor = status.vendor
     enb_status.model_name = status.model_name
     enb_status.rf_state = get_status_property(status.rf_state)
@@ -552,46 +560,58 @@ def _get_gps_status_as_bool(enodeb: EnodebAcsStateMachine) -> bool:
         return False
 
 
-def _get_and_cache_gps_coords(enodeb: EnodebAcsStateMachine) -> Tuple[
-    str, str, str,
-]:
+def _get_and_cache_gps_coords(enodeb: EnodebAcsStateMachine) -> GPSTuple:
     """
     Read the GPS coordinates of the enB from its configuration or the
     cached coordinate file if the preceding read fails. If reading from
     enB configuration succeeds, this method will cache the new coordinates.
 
     Returns:
-        (str, str, str): GPS latitude, GPS longitude
+        (str, str, str): GPS latitude, GPS longitude, GPS altitude
     """
-    lat, lon, ait = '', '', ''
+    lat, lon, alt = '', '', ''
     try:
         lat = enodeb.get_parameter(ParameterName.GPS_LAT)
         lon = enodeb.get_parameter(ParameterName.GPS_LONG)
-        ait = enodeb.get_parameter(ParameterName.GPS_AITI)
+        alt = enodeb.get_parameter(ParameterName.GPS_ALTI)
 
-        if lat != _gps_lat_cached or lon != _gps_lon_cached or lon != _gps_ait_cached:
-            _cache_new_gps_coords(lat, lon, ait)
-        return lat, lon, ait
+        if lat != _gps_lat_cached or lon != _gps_lon_cached or lon != _gps_alt_cached:
+            _cache_new_gps_coords(lat, lon, alt)
+        gps_tuple = GPSTuple(
+            gps_lat=lat,
+            gps_lon=lon,
+            gps_alt=alt,
+        )
+        return gps_tuple
     except (KeyError, ConfigurationError):
         return _get_cached_gps_coords()
     except ValueError:
-        logger.warning('GPS lat/long/ait not understood (%s/%s/%s)', lat, lon, ait)
-        return '0', '0', '0'
+        logger.warning('GPS lat/long/alt not understood (%s/%s/%s)', lat, lon, alt)
+        return GPSTuple(
+                gps_lat='0',
+                gps_lon='0',
+                gps_alt='0',
+            )
 
 
-def _get_cached_gps_coords() -> Tuple[str, str, str]:
+def _get_cached_gps_coords() -> GPSTuple:
     """
     Returns cached GPS coordinates if enB is disconnected or otherwise not
     reporting coordinates.
 
     Returns:
-        (str, str, str): (GPS lat, GPS lon, GPS ait)
+        (str, str, str): (GPS lat, GPS lon, GPS alt)
     """
     # pylint: disable=global-statement
-    global _gps_lat_cached, _gps_lon_cached, _gps_ait_cached
-    if _gps_lat_cached is None or _gps_lon_cached is None or _gps_ait_cached is None:
-        _gps_lat_cached, _gps_lon_cached, _gps_ait_cached = _read_gps_coords_from_file()
-    return _gps_lat_cached, _gps_lon_cached, _gps_ait_cached
+    global _gps_lat_cached, _gps_lon_cached, _gps_alt_cached
+    if _gps_lat_cached is None or _gps_lon_cached is None or _gps_alt_cached is None:
+        _gps_lat_cached, _gps_lon_cached, _gps_alt_cached = _read_gps_coords_from_file()
+    gps_cache_tuple = GPSTuple(
+        gps_lat=_gps_lat_cached,
+        gps_lon=_gps_lon_cached,
+        gps_alt=_gps_alt_cached,
+    )
+    return gps_cache_tuple
 
 
 def _read_gps_coords_from_file():
@@ -611,7 +631,7 @@ def _read_gps_coords_from_file():
         return '0', '0', '0'
 
 
-def _cache_new_gps_coords(gps_lat, gps_lon, gps_ait):
+def _cache_new_gps_coords(gps_lat: str, gps_lon: str, gps_alt: str):
     """
     Cache GPS coordinates in the module-level variables here and write them
     to a managed file on disk.
@@ -619,16 +639,16 @@ def _cache_new_gps_coords(gps_lat, gps_lon, gps_ait):
     Args:
         gps_lat (str): latitude as a string
         gps_lon (str): longitude as a string
-        gps_ait (str): aititude as a string
+        gps_alt (str): altitude as a string
     """
     # pylint: disable=global-statement
-    global _gps_lat_cached, _gps_lon_cached, _gps_ait_cached
-    _gps_lat_cached, _gps_lon_cached, _gps_ait_cached = gps_lat, gps_lon, gps_ait
-    _write_gps_coords_to_file(gps_lat, gps_lon, gps_ait)
+    global _gps_lat_cached, _gps_lon_cached, _gps_alt_cached
+    _gps_lat_cached, _gps_lon_cached, _gps_alt_cached = gps_lat, gps_lon, gps_alt
+    _write_gps_coords_to_file(gps_lat, gps_lon, gps_alt)
 
 
-def _write_gps_coords_to_file(gps_lat, gps_lon, gps_ait):
-    lines = '{lat}\n{lon}\n{ait}'.format(lat=gps_lat, lon=gps_lon, ait=gps_ait)
+def _write_gps_coords_to_file(gps_lat: str, gps_lon: str, gps_alt: str):
+    lines = '{lat}\n{lon}\n{alt}'.format(lat=gps_lat, lon=gps_lon, alt=gps_alt)
     try:
         serialization_utils.write_to_file_atomically(
             CACHED_GPS_COORD_FILE_PATH,
