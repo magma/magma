@@ -260,16 +260,19 @@ int amf_context_upsert_imsi(amf_context_t* elm) {
 
   m_rc =
       amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.remove(elm->imsi64);
-
-  if (ue_id != INVALID_AMF_UE_NGAP_ID) {
-    m_rc = amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.insert(
-        elm->imsi64, ue_id);
+  if (m_rc == magma::MAP_OK) {
+    if (ue_id != INVALID_AMF_UE_NGAP_ID) {
+      m_rc = amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.insert(
+          elm->imsi64, ue_id);
+    } else {
+      OAILOG_TRACE(
+          LOG_AMF_APP,
+          "Error could not update this ue context "
+          "amf_ue_s1ap_id " AMF_UE_S1AP_ID_FMT " imsi " IMSI_64_FMT ": %s\n",
+          ue_id, elm->imsi64, map_rc_code2string(m_rc).c_str());
+      return RETURNerror;
+    }
   } else {
-    OAILOG_TRACE(
-        LOG_AMF_APP,
-        "Error could not update this ue context "
-        "amf_ue_s1ap_id " AMF_UE_S1AP_ID_FMT " imsi " IMSI_64_FMT ": %s\n",
-        ue_id, elm->imsi64, map_rc_code2string(m_rc).c_str());
     return RETURNerror;
   }
   return RETURNok;
@@ -419,7 +422,6 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
  **                                                                        **
  ***************************************************************************/
 void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
-  hashtable_rc_t h_rc                = HASH_TABLE_OK;
   magma::map_rc_t m_rc               = magma::MAP_OK;
   amf_app_desc_t* amf_app_desc_p     = get_amf_nas_state(false);
   amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
