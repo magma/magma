@@ -62,8 +62,8 @@ void free_ngap_state(ngap_state_t* state_cache_p);
  */
 class NgapStateManager
     : public StateManager<
-          ngap_state_t, m5g_ue_description_t, oai::NgapState,
-          magma::lte::oai::Ngap_UeDescription, NgapStateConverter> {
+          ngap_state_t, m5g_ue_description_t, oai::S1apState,
+          magma::lte::oai::UeDescription, NgapStateConverter> {
  public:
   /**
    * Returns an instance of NGapStateManager, guaranteed to be thread safe and

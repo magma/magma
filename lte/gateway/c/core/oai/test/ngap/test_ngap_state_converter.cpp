@@ -78,7 +78,7 @@ TEST_F(NGAPStateConverterTest, NgapStateConversionSuccess) {
       &init_state->amfid2associd, (const hash_key_t) 1,
       reinterpret_cast<void**>(&assoc_id));
 
-  oai::NgapState state_proto;
+  oai::S1apState state_proto;
   NgapStateConverter::state_to_proto(init_state, &state_proto);
   NgapStateConverter::proto_to_state(state_proto, final_state);
 
@@ -136,5 +136,114 @@ TEST_F(NGAPStateConverterTest, NgapStateConversionSuccess) {
 
   free_ngap_state(init_state);
   free_ngap_state(final_state);
+}
+
+TEST_F(NGAPStateConverterTest, NgapStateConversionUeContext) {
+  m5g_ue_description_t* ue = reinterpret_cast<m5g_ue_description_t*>(
+      calloc(1, sizeof(m5g_ue_description_t)));
+  m5g_ue_description_t* final_ue = reinterpret_cast<m5g_ue_description_t*>(
+      calloc(1, sizeof(m5g_ue_description_t)));
+
+  // filling with test values
+  ue->ng_ue_state    = NGAP_UE_CONNECTED;
+  ue->gnb_ue_ngap_id = 7;
+  ue->amf_ue_ngap_id = 4;
+  ue->sctp_assoc_id  = 3;
+  ue->comp_ngap_id =
+      ngap_get_comp_ngap_id(ue->sctp_assoc_id, ue->gnb_ue_ngap_id);
+  ue->sctp_stream_recv               = 5;
+  ue->sctp_stream_send               = 5;
+  ue->ngap_ue_context_rel_timer.id   = 1;
+  ue->ngap_ue_context_rel_timer.msec = 1000;
+
+  oai::UeDescription ue_proto;
+  NgapStateConverter::ue_to_proto(ue, &ue_proto);
+  NgapStateConverter::proto_to_ue(ue_proto, final_ue);
+
+  EXPECT_EQ(ue->ng_ue_state, final_ue->ng_ue_state);
+  EXPECT_EQ(ue->gnb_ue_ngap_id, final_ue->gnb_ue_ngap_id);
+  EXPECT_EQ(ue->amf_ue_ngap_id, final_ue->amf_ue_ngap_id);
+  EXPECT_EQ(ue->sctp_assoc_id, final_ue->sctp_assoc_id);
+  EXPECT_EQ(ue->comp_ngap_id, final_ue->comp_ngap_id);
+  EXPECT_EQ(ue->sctp_stream_recv, final_ue->sctp_stream_recv);
+  EXPECT_EQ(ue->sctp_stream_send, final_ue->sctp_stream_send);
+
+  EXPECT_EQ(
+      ue->ngap_ue_context_rel_timer.id, final_ue->ngap_ue_context_rel_timer.id);
+  EXPECT_EQ(
+      ue->ngap_ue_context_rel_timer.msec,
+      final_ue->ngap_ue_context_rel_timer.msec);
+
+  free_wrapper(reinterpret_cast<void**>(&ue));
+  free_wrapper(reinterpret_cast<void**>(&final_ue));
+}
+
+TEST_F(NGAPStateConverterTest, NgapStateConversionNgapImsimap) {
+  ngap_imsi_map_t* ngap_imsi_map =
+      reinterpret_cast<ngap_imsi_map_t*>(calloc(1, sizeof(ngap_imsi_map_t)));
+  ngap_imsi_map_t* final_ngap_imsi_map =
+      reinterpret_cast<ngap_imsi_map_t*>(calloc(1, sizeof(ngap_imsi_map_t)));
+  amf_ue_ngap_id_t ue_id = 1;
+  imsi64_t imsi64        = 1010000000001;
+  imsi64_t final_imsi64;
+  uint32_t max_ues_ = 3;
+
+  ngap_imsi_map->amf_ue_id_imsi_htbl =
+      hashtable_uint64_ts_create(max_ues_, nullptr, nullptr);
+  final_ngap_imsi_map->amf_ue_id_imsi_htbl =
+      hashtable_uint64_ts_create(max_ues_, nullptr, nullptr);
+
+  EXPECT_EQ(
+      hashtable_uint64_ts_get(
+          ngap_imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) ue_id,
+          &imsi64),
+      HASH_TABLE_KEY_NOT_EXISTS);
+
+  EXPECT_EQ(
+      hashtable_uint64_ts_insert(
+          ngap_imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) ue_id, imsi64),
+      HASH_TABLE_OK);
+
+  EXPECT_EQ(
+      hashtable_uint64_ts_insert(
+          ngap_imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) ue_id, imsi64),
+      HASH_TABLE_SAME_KEY_VALUE_EXISTS);
+
+  oai::S1apImsiMap ngap_imsi_proto;
+  NgapStateConverter::ngap_imsi_map_to_proto(ngap_imsi_map, &ngap_imsi_proto);
+  NgapStateConverter::proto_to_ngap_imsi_map(
+      ngap_imsi_proto, final_ngap_imsi_map);
+
+  EXPECT_EQ(
+      hashtable_uint64_ts_get(
+          final_ngap_imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) 2,
+          &imsi64),
+      HASH_TABLE_KEY_NOT_EXISTS);
+
+  hashtable_uint64_ts_get(
+      final_ngap_imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) ue_id,
+      &final_imsi64);
+  EXPECT_EQ(imsi64, final_imsi64);
+
+  EXPECT_EQ(
+      hashtable_uint64_ts_remove(
+          final_ngap_imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) 2),
+      HASH_TABLE_KEY_NOT_EXISTS);
+
+  EXPECT_EQ(
+      hashtable_uint64_ts_remove(
+          final_ngap_imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) ue_id),
+      HASH_TABLE_OK);
+
+  EXPECT_EQ(
+      hashtable_uint64_ts_get(
+          final_ngap_imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) ue_id,
+          &imsi64),
+      HASH_TABLE_KEY_NOT_EXISTS);
+
+  hashtable_uint64_ts_destroy(ngap_imsi_map->amf_ue_id_imsi_htbl);
+  hashtable_uint64_ts_destroy(final_ngap_imsi_map->amf_ue_id_imsi_htbl);
+  free_wrapper(reinterpret_cast<void**>(&ngap_imsi_map));
+  free_wrapper(reinterpret_cast<void**>(&final_ngap_imsi_map));
 }
 }  // namespace magma5g
