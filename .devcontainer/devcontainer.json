@@ -18,10 +18,19 @@
 		"stackbuild.bazel-stack-vscode-cc",
 		"augustocdias.tasks-shell-input",
 		"ryuta46.multi-command",
+		"zxh404.vscode-proto3",
+		"ms-python.python",
+		"ms-python.vscode-pylance",
+		"njpwerner.autodocstring",
 	],
-	"image": "ghcr.io/magma/magma/devcontainer:sha-206a67a",
+	// "image": "ghcr.io/magma/devcontainer:sha-3c02c72",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": ".."
+	},
 	"settings": {
-		"terminal.integrated.shell.linux": "/bin/bash",
+      // das hier ist extra commit - mit erlaeuterung und link, dass deprecated. new setting: "terminal.integrated.defaultProfile.linux": "bash",
+	    "terminal.integrated.shell.linux": "/bin/bash",
 		"files.watcherExclude": {
 			"**/.bazel-cache/**": true,
 			"**/.bazel-cache-repo/**": true,
@@ -59,7 +68,22 @@
 					"clangd.restart",
 				],
 			}
-		]
+		],
+		"python.analysis.extraPaths": [
+			"/workspaces/magma/orc8r/gateway/python/",
+			"/workspaces/magma/lte/gateway/python/",
+		],
+      // woher kommen diese Zeilen? Pytest enablen, waere gut
+		"python.defaultInterpreterPath": "/usr/bin/python",
+		"python.linting.pylintEnabled": true,
+		"python.linting.pylintPath": "pylint",
+		"python.testing.pytestEnabled": false,  // if both frameworks (pytest and unittest) are enabled, then the Python extension will only run pytest.
+		"python.testing.unittestEnabled": true,
+		"editor.formatOnSave": false,
+		"python.formatting.autopep8Args": [
+			// This should be the same set of flags as ones specified in `lte/gateway/precommit.py`
+			"--select=W191,W291,W292,W293,W391,E131,E2,E3",
+		],
 	},
 	"mounts": [
 		"source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind"

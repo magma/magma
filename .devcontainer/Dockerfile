@@ -1,4 +1,4 @@
-# Note: You can use any Debian/Ubuntu based image you want. 
+# Note: You can use any Debian/Ubuntu based image you want.
 FROM ubuntu:focal as magma-mme-builder
 
 # [Option] Install zsh
@@ -23,8 +23,8 @@ RUN apt-get update \
     # Clean up
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/library-scripts/
 
-# Setting the ENTRYPOINT to docker-init.sh will configure non-root access to 
-# the Docker socket if "overrideCommand": false is set in devcontainer.json. 
+# Setting the ENTRYPOINT to docker-init.sh will configure non-root access to
+# the Docker socket if "overrideCommand": false is set in devcontainer.json.
 # The script will also execute CMD if you need to alter startup behaviors.
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 CMD [ "sleep", "infinity" ]
@@ -35,7 +35,6 @@ ENV MAGMA_ROOT=/workspaces/magma
 ENV BUILD_TYPE=Debug
 ENV C_BUILD=/workspaces/magma/build/c
 ENV DEBIAN_FRONTEND=noninteractive
-ENV PYTHONPATH=$MAGMA_ROOT/lte/gateway/python/:$MAGMA_ROOT/orc8r/gateway/python/
 
 RUN echo "Install general purpose packages" && \
     apt-get update && \
@@ -69,9 +68,11 @@ RUN echo "Install general purpose packages" && \
         lld \
         make \
         ninja-build \
+        openjdk-8-jdk \
         perl \
         pkg-config \
         python3 \
+        python3-pip \
         python-is-python3 \
         redis-server \
         ruby \
@@ -88,6 +89,7 @@ RUN echo "Install general purpose packages" && \
         update-alternatives --install /usr/bin/clang-format clang-format /usr/lib/llvm-7/bin/clang-format 10 && \
         update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/lib/llvm-11/bin/clang-tidy 10 && \
         update-alternatives --install /usr/bin/clang-apply-replacements clang-apply-replacements /usr/lib/llvm-11/bin/clang-apply-replacements 10
+
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y clangd-12
 
@@ -253,7 +255,7 @@ RUN git clone https://github.com/facebook/folly && cd folly && \
     make install && \
     cd / && \
     rm -rf folly
-    
+
 ##### Build and install libgtest and gmock
 RUN cd /usr/src/googletest && \
     mkdir build && \
@@ -296,8 +298,8 @@ RUN git clone https://github.com/include-what-you-use/include-what-you-use && \
 #### libfluid is requird to build MME with OVS support
 COPY third_party /tmp/third_party/
 RUN /tmp/third_party/build/bin/libfluid_build.sh && \
-     find . -name magma-libfluid_0.1* -exec dpkg -i {} \; && \
-     rm -rf /tmp/*
+    find . -name magma-libfluid_0.1* -exec dpkg -i {} \; && \
+    rm -rf /tmp/*
 
 ##### FreeDiameter
 COPY lte/gateway/c/core/oai/patches/ /tmp/
@@ -310,13 +312,84 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     make -j"$(nproc)" && \
     make install && \
     cd / && \
-    rm -rf freediameter
+    rm -rf freediameter \
+    rm -rf /tmp/*
 
 ##### Go language server support for vscode
 RUN go get -v golang.org/x/tools/gopls
 
 #### Update shared library configuration
 RUN ldconfig -v
+
+
+##### Install Python requirements
+
+RUN pip3 install --quiet --upgrade --no-cache-dir "setuptools==49.6.0"
+
+### install egg-links
+COPY / ${MAGMA_ROOT}
+# need to include entire magma repo to replicate make file command that generates proto files, but there is a helpful .dockignore
+
+WORKDIR ${MAGMA_ROOT}/lte/gateway/python/
+RUN pip3 install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev]
+
+WORKDIR ${MAGMA_ROOT}/orc8r/gateway/python/
+RUN pip3 install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev]
+
+# chown -R ${USER_UID}:${USER_GID} ${PIPX_HOME}  # muss ich permissions anpassen fuer non-root user?
+
+#### protos
+WORKDIR $MAGMA_ROOT
+
+ARG PYTHON_LIB=/usr/local/lib/python3.8
+
+RUN mkdir $PYTHON_LIB/gen \
+    && for PROTO_SRC in orc8r lte feg; \
+    do \
+    python protos/gen_protos.py ${PROTO_SRC}/protos ${MAGMA_ROOT},orc8r/protos/prometheus ${MAGMA_ROOT} $PYTHON_LIB/gen \
+    && python protos/gen_prometheus_proto.py ${MAGMA_ROOT} $PYTHON_LIB/gen; \
+    done \
+    && echo "$PYTHON_LIB/gen" > $PYTHON_LIB/dist-packages/magma_gen.pth \
+    && find $PYTHON_LIB/gen -type d | tail -n +2 | sed '/__pycache__/d' | xargs -I % touch "%/__init__.py"
+    # fuegt allen directories, bis auf gen, init dateien hinzu
+
+### swagger
+ENV SWAGGER_CODEGEN_JAR=/var/tmp/codegen/modules/swagger-codegen-cli/target/swagger-codegen-cli.jar
+ARG MVN_VERSION=3.5.4
+ARG CODEGEN_VERSION=v2.2.3
+
+WORKDIR /var/tmp/
+
+RUN wget http://mirrors.ibiblio.org/apache/maven/maven-3/$MVN_VERSION/binaries/apache-maven-$MVN_VERSION-bin.tar.gz \
+    && tar --extract --verbose --file apache-maven-$MVN_VERSION-bin.tar.gz
+
+RUN git clone --branch $CODEGEN_VERSION https://github.com/swagger-api/swagger-codegen /var/tmp/codegen
+
+WORKDIR /var/tmp/codegen
+RUN ../apache-maven-$MVN_VERSION/bin/mvn clean package -DskipTests
+
+RUN for SWAGGER_SRC in lte orc8r; \
+     do \
+     mkdir -p $PYTHON_LIB/gen/$SWAGGER_SRC/swagger/specs \
+     && touch $PYTHON_LIB/gen/$SWAGGER_SRC/swagger/__init__.py \
+     && touch $PYTHON_LIB/gen/$SWAGGER_SRC/swagger/specs/__init__.py \
+     # Copy swagger specs over to the build directory,
+     # so that eventd can access them at runtime
+     && cp $MAGMA_ROOT/$SWAGGER_SRC/swagger/*.yml $PYTHON_LIB/gen/$SWAGGER_SRC/swagger/specs \
+     # Generate the files
+     && ls $PYTHON_LIB/gen/$SWAGGER_SRC/swagger/specs \
+     | grep -e ".*\.yml" \
+     | xargs -t -I% /usr/bin/java -jar $SWAGGER_CODEGEN_JAR generate \
+     -i $PYTHON_LIB/gen/$SWAGGER_SRC/swagger/specs/% \
+     -o $PYTHON_LIB/gen/$SWAGGER_SRC/swagger \
+     -l python \
+     -Dmodels \
+     # Flatten and clean up directory
+     && mv $PYTHON_LIB/gen/$SWAGGER_SRC/swagger/swagger_client/* $PYTHON_LIB/gen/$SWAGGER_SRC/swagger/ \
+     && rmdir $PYTHON_LIB/gen/$SWAGGER_SRC/swagger/swagger_client \
+     && rm -r $PYTHON_LIB/gen/$SWAGGER_SRC/swagger/test; \
+     done
+
 
 RUN ln -s $MAGMA_ROOT/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
 
