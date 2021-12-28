@@ -39,15 +39,29 @@ int DNNMsg::DecodeDNNMsg(
   dnn_message->len = ielen;
   MLOG(MDEBUG) << "len : " << static_cast<int>(dnn_message->len);
 
-  uint8_t dnn_len = 0;
+  uint8_t dnn_length = 0;
+  uint8_t dnn_len    = 0;
   DECODE_U8(buffer + decoded, dnn_len, decoded);
   MLOG(MDEBUG) << "dnn_len : " << static_cast<int>(dnn_len);
 
   memcpy(dnn_message->dnn, buffer + decoded, dnn_len);
-
+  dnn_length += dnn_len;
   decoded = decoded + dnn_len;
-  MLOG(MDEBUG) << "dnn str : " << dnn_message->dnn;
 
+  while (dnn_length + 1 < ielen) {
+    uint8_t dnn_len = 0;
+    memcpy(dnn_message->dnn + dnn_length, ".", 1);
+    DECODE_U8(buffer + decoded, dnn_len, decoded);
+    dnn_length = dnn_length + 1;
+    MLOG(MDEBUG) << "dnn_len : " << static_cast<int>(dnn_len);
+
+    memcpy(dnn_message->dnn + dnn_length, buffer + decoded, dnn_len);
+
+    decoded = decoded + dnn_len;
+    dnn_length += dnn_len;
+    MLOG(MDEBUG) << "dnn: " << dnn_message->dnn;
+  }
+  MLOG(MDEBUG) << "dnn str : " << dnn_message->dnn;
   return decoded;
 }
 
@@ -68,15 +82,28 @@ int DNNMsg::EncodeDNNMsg(
 
   ENCODE_U8(buffer + encoded, dnn_message->len, encoded);
   MLOG(MDEBUG) << "len : " << static_cast<int>(dnn_message->len);
+  uint8_t dnn_length = 0;
+  while (dnn_length < dnn_message->len - 1) {
+    uint8_t dnn_len = 0;
+    for (int i = dnn_length; (memcmp(dnn_message->dnn + i, ".", 1) != 0) &&
+                             i < dnn_message->len - 1;
+         i++) {
+      ++dnn_len;
+    }
+    ENCODE_U8(buffer + encoded, dnn_len, encoded);
+    MLOG(MDEBUG) << "dnn len : " << dnn_len;
 
-  ENCODE_U8(buffer + encoded, dnn_message->len - 1, encoded);
-  MLOG(MDEBUG) << "dnn len : " << dnn_message->len - 1;
+    memcpy(buffer + encoded, dnn_message->dnn + dnn_length, dnn_len);
+    if (dnn_len + dnn_length < dnn_message->len - 1) {
+      if (memcmp(dnn_message->dnn + dnn_length + dnn_len, ".", 1) == 0)
+        dnn_length = dnn_length + 1;
+    }
+    dnn_length = dnn_length + dnn_len;
 
-  memcpy(buffer + encoded, dnn_message->dnn, dnn_message->len - 1);
-  BUFFER_PRINT_LOG(buffer + encoded, dnn_message->len - 1);
-  MLOG(MDEBUG) << "dnn str : " << dnn_message->dnn;
-  encoded = encoded + dnn_message->len - 1;
-
+    BUFFER_PRINT_LOG(buffer + encoded, dnn_len);
+    MLOG(MDEBUG) << "dnn str : " << dnn_message->dnn;
+    encoded = encoded + dnn_len;
+  }
   return encoded;
 };
 
