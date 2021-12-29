@@ -12,8 +12,9 @@ rm -rf ~/$DIR
 mkdir ~/$DIR
 cd ~/$DIR
 
-git clone --depth 1 --branch "branch-$OVS_VER"  https://github.com/openvswitch/ovs
+git clone  https://github.com/openvswitch/ovs
 cd ovs/
+git checkout v2.15.2
 git apply "$MAGMA_ROOT/third_party/gtp_ovs/ovs-gtp-patches/$OVS_VER"/00*
 DEB_BUILD_OPTIONS='parallel=8 nocheck' fakeroot debian/rules binary
 cd ..
