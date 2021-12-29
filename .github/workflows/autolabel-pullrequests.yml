@@ -26,7 +26,6 @@ on:  # yamllint disable-line rule:truthy
       - 'secrets/**'
       - 'show-tech/**'
       - 'third_party/**'
-      - 'wifi/**'
       - 'xwf/**'
 
 concurrency:
@@ -37,34 +36,9 @@ jobs:
   AutoLabelPR:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
       - uses: actions/github-script@v3
         with:
           script: |
-            let fs = require('fs');
-            let codeownersBuf = fs.readFileSync('./CODEOWNERS', {encoding: 'utf8'});
-            let path = "";
-            let comp = "";
-            let codeownersDict = {};
-            const records = codeownersBuf.split(/[\r\n]+/);
-            for( const rec of records )
-            {
-              if (! rec.startsWith("/")) { continue; }
-              const tokens = rec.split(" ");
-              for( const token of tokens )
-              {
-                if(token.startsWith("/")) {
-                  path = token.substring(1);
-                }
-                if(token.startsWith("@magma/approvers-"))  {
-                  comp = token.split('-')[1];
-                }
-                // console.log("PathX=" + path + " CompX=" + comp);
-                if( path && comp ) {
-                  codeownersDict[path] = comp;
-                }
-              } // End of for loop on tokens on each record of CODEOWNERS file
-            } // End of for loop on record of CODEOWNERS file
 
             let newCompLbls = new Set(); // Set of new label strings
 
@@ -77,14 +51,67 @@ jobs:
 
             // Identify new component labels based on the files modified in the PR
             for (const f of pulledFiles['data']) {
-              var fullPath = f.filename;
-              for(var k in codeownersDict) {
-                if( fullPath.startsWith(k) )  {
-                  console.log("File=" + fullPath + " startsWith=" + k + " component=" + codeownersDict[k]);
-                  newCompLbls.add("component: " + codeownersDict[k]);
-                }
-              } //end of for loop on codeowners dictionary object
-            } // end of for loop on PR files
+             switch (true) {
+              case /^ci-scripts\/.*/.test(f.filename):
+              case /^\.circleci\/.*/.test(f.filename):
+              case /^circleci\/.*/.test(f.filename):
+              case /^\.github\/workflows\/.*/.test(f.filename):
+              case /^third_party\/build\/.*/.test(f.filename):
+              case /^orc8r\/tools\/packer\/.*/.test(f.filename):
+              case /^orc8r\/cloud\/deploy\/bare-metal\/.*/.test(f.filename):
+              case /^orc8r\/cloud\/deploy\/bare-metal-ansible\/.*/.test(f.filename):
+              case /^lte\/gateway\/docker\/.*/.test(f.filename):
+              case /^lte\/gateway\/release\/.*/.test(f.filename):
+              case /^lte\/gateway\/Vagrantfile/.test(f.filename):
+              case /^cwf\/gateway\/Vagrantfile/.test(f.filename):
+                console.log("file changed under CI component : " + f['filename']);
+                newCompLbls.add("component: ci");
+                break;
+              case /^nms\/.*/.test(f.filename):
+                console.log("file changed under NMS component : " + f['filename']);
+                newCompLbls.add("component: nms");
+                break;
+              case /^cwf\/.*/.test(f.filename):
+              case /^feg\/radius\/.*/.test(f.filename):
+                console.log("file changed under CWF component : " + f['filename']);
+                newCompLbls.add("component: cwf");
+                break;
+              case /^feg\/.*/.test(f.filename):
+                console.log("file changed under FEG component : " + f['filename']);
+                newCompLbls.add("component: feg");
+                break;
+              case /^openwrt\/.*/.test(f.filename):
+                console.log("file changed under OPENWRT component : " + f['filename']);
+                newCompLbls.add("component: openwrt");
+                break;
+              case /^lte\/gateway\/.*/.test(f.filename):
+              case /^lte\/protos\/.*/.test(f.filename):
+              case /^orc8r\/gateway\/c\/.*/.test(f.filename):
+              case /^third_party\/gtp_ovs\/.*/.test(f.filename):
+                console.log("file changed under AGW component : " + f['filename']);
+                newCompLbls.add("component: agw");
+                break;
+              case /.*\/cloud\/.*/.test(f.filename):
+              case /^\.golangci\.yml/.test(f.filename):
+              case /^orc8r\/.*/.test(f.filename):
+                console.log("file changed under ORC8R component : " + f['filename']);
+                newCompLbls.add("component: orc8r");
+                break;
+              case /^xwf\/.*/.test(f.filename):
+                console.log("file changed under XWF component : " + f['filename']);
+                newCompLbls.add("component: xwf");
+                break;
+              case /^show-tech\/.*/.test(f.filename):
+                console.log("file changed under SHOW-TECH component : " + f['filename']);
+                newCompLbls.add("component: show-tech");
+                break;
+              case /^docs\/.*/.test(f.filename):
+                console.log("file changed under DOCS: " + f['filename']);
+                newCompLbls.add("component: docs");
+                break;
+             } // end of switch case
+            } // end of for loop
+
 
             const curLblObjs = await github.issues.listLabelsOnIssue({
               issue_number: context.issue.number,
