@@ -2858,7 +2858,7 @@ TEST_F(MmeAppProcedureTest, TestAttachNormalTauReqInConnectedState) {
   status_code_e decoder_rc;
   decoder_rc = nas_message_decode(
       nas_msg->data, &nas_msg_decoded, nas_msg->slen,
-      (void*) &emm_security_context, &decode_status);
+      reinterpret_cast<void*>(&emm_security_context), &decode_status);
   EXPECT_EQ(nas_msg->slen, 67);
   EXPECT_EQ(decoder_rc, nas_msg->slen);
   guti = nas_msg_decoded.plain.emm.attach_accept.guti.guti;
