@@ -2889,6 +2889,12 @@ TEST_F(MmeAppProcedureTest, TestAttachNormalTauReqInConnectedState) {
       sizeof(nas_msg_normal_tau_req_without_actv_flag), plmn);
   // Wait for MME to send TAU accept
   cv.wait_for(lock, std::chrono::milliseconds(STATE_MAX_WAIT_MS));
+  EXPECT_EQ(mme_state_p->nb_ue_attached, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_connected, 1);
+  EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 1);
+  EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
+  EXPECT_EQ(mme_state_p->nb_s1u_bearers, 1);
+
   // Constructing and sending Detach Request to mme_app
   // mimicing S1AP
   send_mme_app_uplink_data_ind(
