@@ -75,8 +75,7 @@ jobs:
              unzip -d "$name" "$name.zip"
            done
       - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1
+        uses: actions/upload-artifact@v2
         with:
-          check_name: ${{ github.event.workflow.name }}
-          commit: ${{ github.event.workflow_run.head_sha }}
-          files: "artifacts/**/*.xml"
+          name: ${{ github.event.workflow.name }}
+          path: "artifacts/**/*.xml"
