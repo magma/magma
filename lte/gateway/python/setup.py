@@ -39,6 +39,7 @@ setup(
         'magma.pipelined.ng_manager',
         'magma.pipelined.openflow',
         'magma.pipelined.qos',
+        'magma.pipelined.ebpf',
         'magma.pkt_tester',
         'magma.policydb',
         'magma.policydb.servicers',
