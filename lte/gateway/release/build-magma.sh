@@ -142,7 +142,9 @@ MAGMA_DEPS=(
     "nlohmann-json3-dev"
     "sentry-native"   # sessiond
     "td-agent-bit >= 1.7.8"
-    "bpfcc-tools" # required for kernsnoopd
+    # eBPF compile and load tools for kernsnoopd and AGW datapath
+    # Ubuntu bcc lib (bpfcc-tools) is pretty old, use magma repo package
+    "bcc-tools"
     "wireguard"
     )
 
