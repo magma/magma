@@ -50,9 +50,12 @@ void NgapStateManager::init(
   log_task              = LOG_NGAP;
   table_key             = NGAP_STATE_TABLE;
   task_name             = NGAP_TASK_NAME;
-  persist_state_enabled = false;
+  persist_state_enabled = use_stateless;
   max_ues_              = max_ues;
   max_gnbs_             = max_gnbs;
+#if !MME_UNIT_TEST
+  redis_client = std::make_unique<RedisClient>(persist_state_enabled);
+#endif
   create_state();
   if (read_state_from_db() != RETURNok) {
     OAILOG_ERROR(LOG_NGAP, "Failed to read state from redis");
@@ -91,6 +94,56 @@ void NgapStateManager::create_state() {
   bdestroy(ht_name);
 
   create_ngap_imsi_map();
+}
+
+status_code_e NgapStateManager::read_state_from_db() {
+#if !MME_UNIT_TEST
+  StateManager::read_state_from_db();
+#else
+  if (persist_state_enabled) {
+    magma::lte::oai::NgapState state_proto = magma::lte::oai::NgapState();
+    std::string proto_str;
+    // Reads from the AmfClientServicer DataStore Map(map_tableKey_protoStr)
+    if (NgapStateManager::getInstance().map_ngapState_tableKey_protoStr.get(
+            table_key, &proto_str) != magma::MAP_OK) {
+      OAILOG_DEBUG(LOG_MME_APP, "Failed to read proto from db \n");
+      return RETURNerror;
+    }
+    // Deserialization Step
+    if (!state_proto.ParseFromString(proto_str)) {
+      return RETURNerror;
+    }
+    NgapStateConverter::proto_to_state(state_proto, state_cache_p);
+  }
+#endif
+  return RETURNok;
+}
+
+void NgapStateManager::write_state_to_db() {
+#if !MME_UNIT_TEST
+  StateManager::write_state_to_db();
+#else
+  if (persist_state_enabled) {
+    magma::lte::oai::NgapState state_proto = magma::lte::oai::NgapState();
+    NgapStateConverter::state_to_proto(state_cache_p, &state_proto);
+    std::string proto_str;
+    redis_client->serialize(state_proto, proto_str);
+    std::size_t new_hash = std::hash<std::string>{}(proto_str);
+    if (new_hash != this->task_state_hash) {
+      // Writes to the NGAP State Manager DataStore Map(map_tableKey_protoStr)
+      if (NgapStateManager::getInstance()
+              .map_ngapState_tableKey_protoStr.insert(table_key, proto_str) !=
+          magma::MAP_OK) {
+        OAILOG_ERROR(log_task, "Failed to write state to db");
+        return;
+      }
+      OAILOG_DEBUG(log_task, "Finished writing state");
+      this->task_state_version++;
+      this->state_dirty     = false;
+      this->task_state_hash = new_hash;
+    }
+  }
+#endif
 }
 
 void free_ngap_state(ngap_state_t* state_cache_p) {
@@ -152,6 +205,7 @@ status_code_e NgapStateManager::read_ue_state_from_db() {
   if (!persist_state_enabled) {
     return RETURNok;
   }
+#if !MME_UNIT_TEST
   auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
 
   for (const auto& key : keys) {
@@ -168,7 +222,68 @@ status_code_e NgapStateManager::read_ue_state_from_db() {
         state_ue_ht, ue_context->comp_ngap_id, (void*) ue_context);
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
   }
+#else
+  for (const auto& kv :
+       NgapStateManager::getInstance().map_ngapUeState_tableKey_protoStr.umap) {
+    magma::lte::oai::Ngap_UeDescription ue_proto =
+        magma::lte::oai::Ngap_UeDescription();
+    std::string ue_proto_str;
+    m5g_ue_description_t* ue_context = reinterpret_cast<m5g_ue_description_t*>(
+        calloc(1, sizeof(m5g_ue_description_t)));
+    if (NgapStateManager::getInstance().map_ngapUeState_tableKey_protoStr.get(
+            kv.first, &ue_proto_str) != magma::MAP_OK) {
+      OAILOG_DEBUG(LOG_MME_APP, "Failed to read UE proto from db \n");
+      return RETURNerror;
+    }
+    // Deserialization Step
+    if (!ue_proto.ParseFromString(ue_proto_str)) {
+      return RETURNerror;
+    }
+
+    NgapStateConverter::proto_to_ue(ue_proto, ue_context);
+
+    hashtable_ts_insert(
+        state_ue_ht, ue_context->comp_ngap_id,
+        reinterpret_cast<void*>(ue_context));
+    OAILOG_DEBUG(log_task, "Reading UE state from db for");
+  }
+#endif
   return RETURNok;
+}
+
+void NgapStateManager::write_ue_state_to_db(
+    const m5g_ue_description_t* ue_context, const std::string& imsi_str) {
+#if !MME_UNIT_TEST
+  StateManager::write_ue_state_to_db(ue_context, imsi_str);
+#else
+  // AssertFatal(
+  //     is_initialized,
+  //     "StateManager init() function should be called to initialize state");
+
+  std::string proto_ue_str;
+  magma::lte::oai::Ngap_UeDescription ue_proto =
+      magma::lte::oai::Ngap_UeDescription();
+  NgapStateConverter::ue_to_proto(ue_context, &ue_proto);
+  redis_client->serialize(ue_proto, proto_ue_str);
+  std::size_t new_hash = std::hash<std::string>{}(proto_ue_str);
+
+  if (new_hash != this->ue_state_hash[imsi_str]) {
+    std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
+    if (NgapStateManager::getInstance()
+            .map_ngapUeState_tableKey_protoStr.insert(key, proto_ue_str) !=
+        magma::MAP_OK) {
+      OAILOG_ERROR(
+          log_task, "Failed to write UE state to db for IMSI %s",
+          imsi_str.c_str());
+      return;
+    }
+
+    this->ue_state_version[imsi_str]++;
+    this->ue_state_hash[imsi_str] = new_hash;
+    OAILOG_DEBUG(
+        log_task, "Finished writing UE state for IMSI %s", imsi_str.c_str());
+  }
+#endif
 }
 
 void NgapStateManager::create_ngap_imsi_map() {
@@ -180,7 +295,15 @@ void NgapStateManager::create_ngap_imsi_map() {
     return;
   }
   NgapImsiMap imsi_proto = NgapImsiMap();
+#if !MME_UNIT_TEST
   redis_client->read_proto(NGAP_IMSI_MAP_TABLE_NAME, imsi_proto);
+#else
+  if (NgapStateManager::getInstance().map_imsiTable_tableKey_protoStr.get(
+          NGAP_IMSI_MAP_TABLE_NAME, &imsi_proto) != magma::MAP_OK) {
+    OAILOG_DEBUG(LOG_MME_APP, "Failed to read ngap_imsi_map proto from db \n");
+    return;
+  }
+#endif
 
   NgapStateConverter::proto_to_ngap_imsi_map(imsi_proto, ngap_imsi_map_);
 }
@@ -208,7 +331,15 @@ void NgapStateManager::put_ngap_imsi_map() {
   redis_client->serialize(imsi_proto, proto_msg);
   std::size_t new_hash = std::hash<std::string>{}(proto_msg);
   if (new_hash != this->ngap_imsi_map_hash_) {
+#if !MME_UNIT_TEST
     redis_client->write_proto_str(NGAP_IMSI_MAP_TABLE_NAME, proto_msg, 0);
+#else
+    if (NgapStateManager::getInstance().map_imsiTable_tableKey_protoStr.insert(
+            NGAP_IMSI_MAP_TABLE_NAME, imsi_proto) != magma::MAP_OK) {
+      OAILOG_ERROR(log_task, "Failed to write ngap_imsi_map state to db \n");
+      return;
+    }
+#endif
     this->ngap_imsi_map_hash_ = new_hash;
   }
 }

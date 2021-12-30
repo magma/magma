@@ -35,16 +35,19 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/state_manager.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_converter.h"
+#include "lte/gateway/c/core/oai/include/map.h"
 using namespace magma::lte;
 using namespace magma::lte::oai;
 
 namespace magma5g {
 constexpr char NGAP_STATE_TABLE[] = "ngap_state";
 constexpr char NGAP_TASK_NAME[]   = "NGAP";
+typedef magma::map_s<std::string, std::string> map_string_string_t;
+typedef magma::map_s<std::string, magma::lte::oai::NgapImsiMap>
+    map_string_map_t;
 }  // namespace magma5g
 
 namespace magma5g {
-
 /**
  * create_ngap_state allocates a new ngap_state_t struct and initializes
  * its properties.
@@ -72,6 +75,9 @@ class NgapStateManager
    */
   static NgapStateManager& getInstance();
 
+  map_string_string_t map_ngapState_tableKey_protoStr;
+  map_string_string_t map_ngapUeState_tableKey_protoStr;
+  map_string_map_t map_imsiTable_tableKey_protoStr;
   /**
    * Function to initialize member variables
    * @param amf_config amf_config_t struct
@@ -82,6 +88,8 @@ class NgapStateManager
   NgapStateManager(NgapStateManager const&) = delete;
   NgapStateManager& operator=(NgapStateManager const&) = delete;
 
+  status_code_e read_state_from_db() override;
+  void write_state_to_db() override;
   /**
    * Frees all memory allocated on ngap_state cache struct
    */
@@ -92,7 +100,9 @@ class NgapStateManager
    * @return operation response code
    */
   status_code_e read_ue_state_from_db() override;
-
+  void write_ue_state_to_db(
+      const m5g_ue_description_t* ue_context,
+      const std::string& imsi_str) override;
   /**
    * Serializes ngap_imsi_map to proto and saves it into data store
    */
