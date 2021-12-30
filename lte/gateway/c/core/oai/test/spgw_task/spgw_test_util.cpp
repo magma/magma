@@ -399,11 +399,10 @@ void fill_s11_suspend_notification(
 }
 
 void fill_s11_delete_bearer_command(
-    itti_s11_delete_bearer_command_t* delete_bearer_cmd, teid_t mme_teid_s11,
-    teid_t sgw_s11_context_teid,
-    ebi_t ebi) {
-  delete_bearer_cmd->teid        = sgw_s11_context_teid;
-  delete_bearer_cmd->local_teid  = mme_teid_s11;
+    itti_s11_delete_bearer_command_t* delete_bearer_cmd,
+    teid_t sgw_s11_context_teid, teid_t mme_teid_s11, ebi_t ebi) {
+  delete_bearer_cmd->teid             = sgw_s11_context_teid;
+  delete_bearer_cmd->local_teid       = mme_teid_s11;
   delete_bearer_cmd->ebi_list.num_ebi = 1;
   delete_bearer_cmd->ebi_list.ebis[0] = ebi;
 }

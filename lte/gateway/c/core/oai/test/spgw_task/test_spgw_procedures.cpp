@@ -1426,16 +1426,25 @@ TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
 
   // check that MME gets a bearer deactivation request
   EXPECT_CALL(
-      *mme_app_handler,
-      mme_app_handle_nw_init_bearer_deactv_req(
-          check_params_in_deactv_bearer_req(
-              1,
-              s11_delete_bearer_command,ebi_list.ebis[0])))
+      *mme_app_handler, mme_app_handle_nw_init_bearer_deactv_req(
+                            check_params_in_deactv_bearer_req(
+                                1, s11_delete_bearer_command.ebi_list.ebis)))
       .Times(1);
 
-  return_code = sgw_handle_delete_bearer_cmd(
-      &s11_delete_bearer_command, test_imsi64);
+  sgw_handle_delete_bearer_cmd(&s11_delete_bearer_command, test_imsi64);
 
+  // send a delete dedicated bearer response from MME
+  itti_s11_nw_init_deactv_bearer_rsp_t sample_nw_init_ded_bearer_deactv_resp =
+      {};
+  int num_bearers_to_delete   = 1;
+  ebi_t eps_bearer_id_array[] = {ded_eps_bearer_id};
+
+  fill_nw_initiated_deactivate_bearer_response(
+      &sample_nw_init_ded_bearer_deactv_resp, test_imsi64, false,
+      REQUEST_ACCEPTED, eps_bearer_id_array, num_bearers_to_delete,
+      ue_sgw_teid);
+  return_code = sgw_handle_nw_initiated_deactv_bearer_rsp(
+      spgw_state, &sample_nw_init_ded_bearer_deactv_resp, test_imsi64);
   EXPECT_EQ(return_code, RETURNok);
 
   // check that bearer is deleted
