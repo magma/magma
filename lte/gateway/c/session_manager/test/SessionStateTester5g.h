@@ -33,12 +33,12 @@ class SessionStateTest5G : public ::testing::Test {
   virtual void SetUp() {
     Teids teids;
     rule_store = std::make_shared<StaticRuleStore>();
-    cfg        = build_sm_context(IMSI1, "10.20.30.40", 5);
+    cfg = build_sm_context(IMSI1, "10.20.30.40", 5);
     session_state =
         std::make_shared<SessionState>(IMSI1, SESSION_ID_1, cfg, *rule_store);
     session_state->set_fsm_state(SESSION_ACTIVE, nullptr);
-    session_state->set_create_session_response(
-        CreateSessionResponse(), nullptr);
+    session_state->set_create_session_response(CreateSessionResponse(),
+                                               nullptr);
     update_criteria = get_default_update_criteria();
   }
 
@@ -67,31 +67,32 @@ class SessionStateTest5G : public ::testing::Test {
     reqcmn->set_sm_session_state(magma::SMSessionFSMState::CREATING_0);
 
     SessionConfig cfg;
-    cfg.common_context       = request.common_context();
+    cfg.common_context = request.common_context();
     cfg.rat_specific_context = request.rat_specific_context();
     cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
         SSC_MODE_3);
     return cfg;
   }
 
-  void insert_static_rule_into_store(
-      uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id) {
+  void insert_static_rule_into_store(uint32_t rating_group,
+                                     const std::string& m_key,
+                                     const std::string& rule_id) {
     rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
   }
 
-  void insert_static_rule_with_qos_into_store(
-      uint32_t rating_group, const std::string& m_key, const int qci,
-      const std::string& rule_id) {
+  void insert_static_rule_with_qos_into_store(uint32_t rating_group,
+                                              const std::string& m_key,
+                                              const int qci,
+                                              const std::string& rule_id) {
     PolicyRule rule =
         create_policy_rule_with_qos(rule_id, m_key, rating_group, qci);
     rule_store->insert_rule(rule);
   }
 
-  uint32_t activate_rule(
-      uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id, PolicyType rule_type,
-      std::time_t activation_time, std::time_t deactivation_time) {
+  uint32_t activate_rule(uint32_t rating_group, const std::string& m_key,
+                         const std::string& rule_id, PolicyType rule_type,
+                         std::time_t activation_time,
+                         std::time_t deactivation_time) {
     PolicyRule rule = create_policy_rule(rule_id, m_key, rating_group);
     RuleLifetime lifetime(activation_time, deactivation_time);
     switch (rule_type) {
@@ -124,10 +125,10 @@ class SessionStateTest5G : public ::testing::Test {
     return count;
   }
 
-  void schedule_rule(
-      uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id, PolicyType rule_type,
-      std::time_t activation_time, std::time_t deactivation_time) {
+  void schedule_rule(uint32_t rating_group, const std::string& m_key,
+                     const std::string& rule_id, PolicyType rule_type,
+                     std::time_t activation_time,
+                     std::time_t deactivation_time) {
     PolicyRule rule = create_policy_rule(rule_id, m_key, rating_group);
     RuleLifetime lifetime(activation_time, deactivation_time);
     switch (rule_type) {
@@ -135,8 +136,8 @@ class SessionStateTest5G : public ::testing::Test {
         // insert into list of existing rules
         rule_store->insert_rule(rule);
         // mark the rule as scheduled in the session
-        session_state->schedule_static_rule(
-            rule_id, lifetime, &update_criteria);
+        session_state->schedule_static_rule(rule_id, lifetime,
+                                            &update_criteria);
         break;
       case DYNAMIC:
         session_state->schedule_dynamic_rule(rule, lifetime, &update_criteria);

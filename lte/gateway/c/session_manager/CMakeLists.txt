@@ -20,12 +20,19 @@ include(FindClangFormat)
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
-if (NOT BUILD_TESTS)
-  # Add AddressSanitizer (asan) support for debug builds of SessionD
+# Add AddressSanitizer (asan) support for debug builds of SessionD. Disable adding
+# DISABLE_ASAN flag
+if (DISABLE_ASAN)
+  message("-- ASAN DISABLED")
+else()
+  message("++ ASAN ENABLED")
   set (CMAKE_CXX_FLAGS_DEBUG
-      "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+          "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
   set (CMAKE_LINKER_FLAGS_DEBUG
-      "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+          "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+endif ()
+
+if (NOT BUILD_TESTS)
   # Add LeakSanitizer (lsan) support to the release build of SessionD so that
   # we can find memory leaks in production.
   # Disabling LSAN on Prod until we figure out how to get gcore to work

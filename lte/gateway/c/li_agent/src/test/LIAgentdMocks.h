@@ -33,8 +33,8 @@ using ::testing::Return;
 namespace magma {
 namespace lte {
 
-magma::mconfig::LIAgentD create_liagentd_mconfig(
-    const std::string& task_id, const std::string& target_id) {
+magma::mconfig::LIAgentD create_liagentd_mconfig(const std::string& task_id,
+                                                 const std::string& target_id) {
   auto mconfig = get_default_mconfig();
   magma::mconfig::NProbeTask np_task;
   np_task.set_task_id(task_id);
@@ -60,9 +60,8 @@ class MockMobilitydClient : public MobilitydClient {
 
   MOCK_METHOD2(
       get_subscriber_id_from_ip,
-      void(
-          const struct in_addr& addr,
-          std::function<void(Status, magma::lte::SubscriberID)> callback));
+      void(const struct in_addr& addr,
+           std::function<void(Status, magma::lte::SubscriberID)> callback));
 };
 
 }  // namespace lte

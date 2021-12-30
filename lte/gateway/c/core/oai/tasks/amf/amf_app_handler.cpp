@@ -26,7 +26,7 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_pdu_session_configs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
@@ -38,6 +38,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/n11_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
+#include "lte/gateway/c/core/oai/include/map.h"
 
 extern amf_config_t amf_config;
 extern amf_config_t amf_config;
@@ -50,8 +51,9 @@ void amf_ue_context_update_coll_keys(
     const gnb_ngap_id_key_t gnb_ngap_id_key,
     const amf_ue_ngap_id_t amf_ue_ngap_id, const imsi64_t imsi,
     const teid_t amf_teid_n11, const guti_m5_t* const guti_p) {
-  hashtable_rc_t h_rc                 = HASH_TABLE_OK;
-  hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
+  magma::map_rc_t m_rc = magma::MAP_OK;
+
+  map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
   OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_TRACE(
       LOG_AMF_APP,
@@ -64,35 +66,29 @@ void amf_ue_context_update_coll_keys(
 
   if ((gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) &&
       (ue_context_p->gnb_ngap_id_key != gnb_ngap_id_key)) {
-    h_rc = hashtable_uint64_ts_remove(
-        amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
-        (const hash_key_t) ue_context_p->gnb_ngap_id_key);
-    h_rc = hashtable_uint64_ts_insert(
-        amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
-        (const hash_key_t) gnb_ngap_id_key, amf_ue_ngap_id);
+    m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.remove(
+        ue_context_p->gnb_ngap_id_key);
+    m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.insert(
+        gnb_ngap_id_key, amf_ue_ngap_id);
 
-    if (HASH_TABLE_OK != h_rc) {
+    if (m_rc != magma::MAP_OK) {
       OAILOG_ERROR_UE(
           LOG_AMF_APP, imsi,
           "Error could not update this ue context %p "
           "gnb_ue_ngap_ue_id " GNB_UE_NGAP_ID_FMT
           "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT " %s\n",
           ue_context_p, ue_context_p->gnb_ue_ngap_id,
-          ue_context_p->amf_ue_ngap_id, hashtable_rc_code2string(h_rc));
+          ue_context_p->amf_ue_ngap_id, map_rc_code2string(m_rc).c_str());
     }
     ue_context_p->gnb_ngap_id_key = gnb_ngap_id_key;
   }
 
   if (amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
     if (ue_context_p->amf_ue_ngap_id != amf_ue_ngap_id) {
-      h_rc = hashtable_ts_remove(
-          amf_state_ue_id_ht, (const hash_key_t) ue_context_p->amf_ue_ngap_id,
-          reinterpret_cast<void**>(&ue_context_p));
-      h_rc = hashtable_ts_insert(
-          amf_state_ue_id_ht, (const hash_key_t) amf_ue_ngap_id,
-          reinterpret_cast<void*>(ue_context_p));
+      m_rc = amf_state_ue_id_ht.remove(ue_context_p->amf_ue_ngap_id);
+      m_rc = amf_state_ue_id_ht.insert(amf_ue_ngap_id, ue_context_p);
 
-      if (HASH_TABLE_OK != h_rc) {
+      if (m_rc != magma::MAP_OK) {
         OAILOG_ERROR(
             LOG_AMF_APP,
             "Insertion of Hash entry failed for  "
@@ -108,19 +104,12 @@ void amf_ue_context_update_coll_keys(
         amf_ue_ngap_id);
   }
 
-  h_rc = hashtable_uint64_ts_remove(
-      amf_ue_context_p->imsi_amf_ue_id_htbl,
-      (const hash_key_t) ue_context_p->amf_context.imsi64);
+  m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.remove(
+      ue_context_p->amf_context.imsi64);
 
   if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
-    h_rc = hashtable_uint64_ts_insert(
-        amf_ue_context_p->imsi_amf_ue_id_htbl, (const hash_key_t) imsi,
-        amf_ue_ngap_id);
+    m_rc = amf_ue_context_p->imsi_amf_ue_id_htbl.insert(imsi, amf_ue_ngap_id);
   } else {
-    h_rc = HASH_TABLE_KEY_NOT_EXISTS;
-  }
-
-  if (HASH_TABLE_OK != h_rc) {
     OAILOG_ERROR(
         LOG_AMF_APP,
         "Insertion of Hash entry failed for  "
@@ -128,21 +117,13 @@ void amf_ue_context_update_coll_keys(
         amf_ue_ngap_id);
   }
 
-  h_rc = hashtable_uint64_ts_remove(
-      amf_ue_context_p->tun11_ue_context_htbl,
-      (const hash_key_t) ue_context_p->amf_teid_n11);
+  m_rc = amf_ue_context_p->tun11_ue_context_htbl.remove(
+      ue_context_p->amf_teid_n11);
 
   if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
-    h_rc = hashtable_uint64_ts_insert(
-        amf_ue_context_p->tun11_ue_context_htbl,
-        (const hash_key_t) amf_teid_n11, (uint64_t) amf_ue_ngap_id);
+    m_rc = amf_ue_context_p->tun11_ue_context_htbl.insert(
+        amf_teid_n11, amf_ue_ngap_id);
   } else {
-    h_rc = HASH_TABLE_KEY_NOT_EXISTS;
-  }
-
-  if (HASH_TABLE_OK != h_rc) {
-    // TODO: this method is deprecated and will be removed once the AMF's
-    // context is migrated to map in the upcoming multi-UE PR
     OAILOG_ERROR(
         LOG_AMF_APP,
         "Insertion of Hash entry failed for  "
@@ -165,19 +146,11 @@ void amf_ue_context_update_coll_keys(
         (guti_p->guamfi.plmn.mcc_digit3 !=
          ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3) ||
         (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID)) {
-      h_rc = obj_hashtable_uint64_ts_remove(
-          amf_ue_context_p->guti_ue_context_htbl,
-          &ue_context_p->amf_context.m5_guti, sizeof(*guti_p));
+      m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(*guti_p);
       if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
-        h_rc = obj_hashtable_uint64_ts_insert(
-            amf_ue_context_p->guti_ue_context_htbl, (const void* const) guti_p,
-            sizeof(*guti_p), (uint64_t) amf_ue_ngap_id);
+        m_rc = amf_ue_context_p->guti_ue_context_htbl.insert(
+            *guti_p, amf_ue_ngap_id);
       } else {
-        h_rc = HASH_TABLE_KEY_NOT_EXISTS;
-      }
-      if (HASH_TABLE_OK != h_rc) {
-        // TODO: this method is deprecated and will be removed once the AMF's
-        // context is migrated to map in the upcoming multi-UE PR
         OAILOG_ERROR(
             LOG_AMF_APP,
             "Insertion of Hash entry failed for  "
@@ -280,15 +253,13 @@ static bool amf_app_construct_guti(
 // Get existing GUTI details
 ue_m5gmm_context_s* amf_ue_context_exists_guti(
     amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p) {
-  hashtable_rc_t h_rc            = HASH_TABLE_OK;
+  magma::map_rc_t m_rc           = magma::MAP_OK;
   uint64_t amf_ue_ngap_id64      = 0;
   ue_m5gmm_context_t* ue_context = NULL;
 
-  h_rc = obj_hashtable_uint64_ts_get(
-      amf_ue_context_p->guti_ue_context_htbl, (const void*) guti_p,
-      sizeof(*guti_p), &amf_ue_ngap_id64);
+  m_rc = amf_ue_context_p->guti_ue_context_htbl.get(*guti_p, &amf_ue_ngap_id64);
 
-  if (HASH_TABLE_OK == h_rc) {
+  if (m_rc == magma::MAP_OK) {
     ue_context = amf_ue_context_exists_amf_ue_ngap_id(
         (amf_ue_ngap_id_t) amf_ue_ngap_id64);
     if (ue_context) {
@@ -385,9 +356,8 @@ imsi64_t amf_app_handle_initial_ue_message(
           ue_context_release_command(
               ue_context_p->amf_ue_ngap_id, ue_context_p->gnb_ue_ngap_id,
               NGAP_NAS_NORMAL_RELEASE);
-          hashtable_uint64_ts_remove(
-              amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl,
-              (const hash_key_t) ue_context_p->gnb_ngap_id_key);
+          amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.remove(
+              ue_context_p->gnb_ngap_id_key);
           ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
         }
 
@@ -524,10 +494,9 @@ imsi64_t amf_app_handle_initial_ue_message(
    * Before accessing ue_context_p, we shall validate whether UE context
    * exists or not
    */
-  if (INVALID_AMF_UE_NGAP_ID != ue_id) {
-    hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
-    if (hashtable_ts_is_key_exists(
-            amf_state_ue_id_ht, (const hash_key_t) ue_id) == HASH_TABLE_OK) {
+  if (ue_id != INVALID_AMF_UE_NGAP_ID) {
+    map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
+    if (amf_state_ue_id_ht.get(ue_id, &ue_context_p) == magma::MAP_OK) {
       imsi64 = ue_context_p->amf_context.imsi64;
     }
   }
@@ -622,14 +591,14 @@ int amf_app_handle_pdu_session_response(
     return RETURNerror;
   }
 
-  get_ambr_unit(
-      pdu_session_resp->session_ambr.downlink_unit_type,
-      pdu_session_resp->session_ambr.downlink_units, &smf_ctx->dl_ambr_unit,
+  convert_ambr(
+      &pdu_session_resp->session_ambr.downlink_unit_type,
+      &pdu_session_resp->session_ambr.downlink_units, &smf_ctx->dl_ambr_unit,
       &smf_ctx->dl_session_ambr);
 
-  get_ambr_unit(
-      pdu_session_resp->session_ambr.uplink_unit_type,
-      pdu_session_resp->session_ambr.uplink_units, &smf_ctx->ul_ambr_unit,
+  convert_ambr(
+      &pdu_session_resp->session_ambr.uplink_unit_type,
+      &pdu_session_resp->session_ambr.uplink_units, &smf_ctx->ul_ambr_unit,
       &smf_ctx->ul_session_ambr);
 
   memcpy(
@@ -684,6 +653,62 @@ int amf_app_handle_pdu_session_response(
   }
 
   return rc;
+}
+/****************************************************************************
+ **                                                                        **
+ ** Name:    convert_ambr()                                                **
+ **                                                                        **
+ ** Description: Converts the session ambr format from                     **
+ **  one defined in create_pdu_session_response to one defined in          **
+ **  pdu_session_estab_accept message                                      **
+ **                                                                        **
+ ** Inputs:  pdu_ambr_response_unit, pdu_ambr_response_value               **
+ **          ambr_unit, ambr_value                                         **
+ **                                                                        **
+ **      Return:   void                                                    **
+ **                                                                        **
+ ***************************************************************************/
+void convert_ambr(
+    const uint32_t* pdu_ambr_response_unit,
+    const uint32_t* pdu_ambr_response_value, uint8_t* ambr_unit,
+    uint16_t* ambr_value) {
+  int count                             = 1;
+  uint32_t temp_pdu_ambr_response_value = *pdu_ambr_response_value;
+
+  // minimum rate unit is KBPS
+  if (*pdu_ambr_response_unit == BPS &&
+      temp_pdu_ambr_response_value / 1000 == 0) {
+    // Values less than 1Kbps are defaulted to 1Kbps
+    *ambr_value = static_cast<uint16_t>(1);
+    *ambr_unit  = static_cast<uint8_t>(
+        magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
+    return;
+  }
+
+  if (*pdu_ambr_response_unit == BPS) {
+    temp_pdu_ambr_response_value /= 1000;
+  }
+
+  while (temp_pdu_ambr_response_value >= AMBR_UNIT_CONVERT_THRESHOLD) {
+    temp_pdu_ambr_response_value = (temp_pdu_ambr_response_value / 1000);
+    count++;
+  }
+
+  switch (count) {
+    case 1:
+      *ambr_unit = static_cast<uint8_t>(
+          magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
+      break;
+    case 2:
+      *ambr_unit = static_cast<uint8_t>(
+          magma5g::M5GSessionAmbrUnit::MULTIPLES_1MBPS);  // Mbps
+      break;
+    case 3:
+      *ambr_unit = static_cast<uint8_t>(
+          magma5g::M5GSessionAmbrUnit::MULTIPLES_1GBPS);  // Gbps
+      break;
+  }
+  *ambr_value = static_cast<uint16_t>(temp_pdu_ambr_response_value);
 }
 
 /****************************************************************************
@@ -777,7 +802,8 @@ int amf_app_handle_pdu_session_accept(
   smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
       PDU_SESSION_ESTABLISHMENT_ACCEPT;
   smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val = 1;
-  smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val         = 1;
+  smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val =
+      (pdu_session_resp->selected_ssc_mode + 1);
 
   memset(
       &(smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info), 0, 12);
@@ -820,14 +846,18 @@ int amf_app_handle_pdu_session_accept(
   memcpy(
       smf_msg->msg.pdu_session_estab_accept.qos_rules.qos_rule, &qos_rule,
       1 * sizeof(QOSRule));
+
+  // Set session ambr
   smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_unit =
-      pdu_session_resp->session_ambr.downlink_unit_type;
-  smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit =
-      pdu_session_resp->session_ambr.uplink_unit_type;
+      smf_ctx->dl_ambr_unit;
   smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_session_ambr =
-      pdu_session_resp->session_ambr.downlink_units;
+      smf_ctx->dl_session_ambr;
+
+  smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit =
+      smf_ctx->ul_ambr_unit;
   smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_session_ambr =
-      pdu_session_resp->session_ambr.uplink_units;
+      smf_ctx->ul_session_ambr;
+
   smf_msg->msg.pdu_session_estab_accept.session_ambr.length = AMBR_LEN;
 
   msg_accept_pco =
@@ -835,9 +865,44 @@ int amf_app_handle_pdu_session_accept(
 
   auto pco_len = sm_process_pco_request(&(smf_ctx->pco), msg_accept_pco);
 
+  /* NSSAI
+  --------------------------------------
+  Parameters | IEI | Length | SST | SD |
+  --------------------------------------
+  Size       | 1   | 1      | 1   | 3  |
+  -------------------------------------- */
+  smf_msg->msg.pdu_session_estab_accept.nssai.iei =
+      static_cast<uint8_t>(M5GIei::S_NSSAI);
+  uint32_t buf_len = 0;
+  if (smf_ctx->sst) {
+    if (smf_ctx->sd[0]) {
+      smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH + SD_LENGTH;
+      smf_msg->msg.pdu_session_estab_accept.nssai.sst = smf_ctx->sst;
+      memcpy(smf_msg->msg.pdu_session_estab_accept.nssai.sd, smf_ctx->sd, 3);
+    } else {
+      smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH;
+      smf_msg->msg.pdu_session_estab_accept.nssai.sst = smf_ctx->sst;
+    }
+    buf_len = smf_msg->msg.pdu_session_estab_accept.nssai.len + 2;
+  }
+
+  /* DNN
+  -------------------------------------
+  Parameters | IEI | Length | DNN     |
+  -------------------------------------
+  Size       | 1   | 1      | 1 - 100 |
+  ------------------------------------- */
+  smf_msg->msg.pdu_session_estab_accept.dnn.iei =
+      static_cast<uint8_t>(M5GIei::DNN);
+  smf_msg->msg.pdu_session_estab_accept.dnn.len = smf_ctx->dnn.length() + 1;
+  smf_ctx->dnn.copy(
+      reinterpret_cast<char*>(smf_msg->msg.pdu_session_estab_accept.dnn.dnn),
+      smf_ctx->dnn.length());
+  buf_len += smf_msg->msg.pdu_session_estab_accept.dnn.len + 2;
+
   encode_msg->payload_container.len =
-      PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN + pco_len;
-  len = PDU_ESTAB_ACCEPT_NAS_PDU_LEN + pco_len;
+      PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN + pco_len + buf_len;
+  len = PDU_ESTAB_ACCEPT_NAS_PDU_LEN + pco_len + buf_len;
 
   /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
    * so length is modified such that it will be mode of 4
@@ -1140,7 +1205,7 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
   MessageDef* message_p                          = nullptr;
   itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
 
-  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+  if (!amf_pop_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3513: Invalid Timer Id expiration, Timer Id: %u\n",
         timer_id);

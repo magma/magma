@@ -146,6 +146,13 @@
         "ids": [
           "feg/configure_federation"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "nms/nms_organizations"
+        ]
       }
     ],
     "Upgrade": [
@@ -202,7 +209,8 @@
         "label": "Access Gateway",
         "ids": [
           "lte/debug_show_tech",
-          "lte/debug_dp_probe"
+          "lte/debug_dp_probe",
+          "lte/debug_user_control_plane"
         ]
       },
       {
@@ -245,7 +253,8 @@
         "label": "Maintain",
         "ids": [
           "contributing/contribute_proposals",
-          "contributing/contribute_codeowners"
+          "contributing/contribute_codeowners",
+          "contributing/contribute_tsc_norms"
         ]
       }
     ],

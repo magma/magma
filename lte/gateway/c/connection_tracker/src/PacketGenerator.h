@@ -29,9 +29,8 @@ namespace lte {
 
 class PacketGenerator {
  public:
-  PacketGenerator(
-      const std::string& iface_name, const std::string& pkt_dst_mac,
-      const std::string& pkt_src_mac);
+  PacketGenerator(const std::string& iface_name, const std::string& pkt_dst_mac,
+                  const std::string& pkt_src_mac);
   /**
    * Send packet based on provided flow information
    * @param flow_information - flow_information

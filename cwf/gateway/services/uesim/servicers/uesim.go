@@ -15,6 +15,7 @@ package servicers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os/exec"
@@ -28,8 +29,6 @@ import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-
-	"context"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
@@ -382,10 +381,11 @@ func executeCommandWithRetries(command string, argList []string) (*IperfResponse
 		if !isIperfErrorDueToControlMessage(err) {
 			break
 		}
-		err_msg := "Retried IPERF command due to unable to receive control message"
-		glog.Warning(err_msg)
-		err = errors.Wrap(err, err_msg)
+		glog.Warning( "Retried IPERF command due to an specific error")
 		time.Sleep(300 * time.Millisecond)
+	}
+	if err != nil {
+		err = fmt.Errorf("executeCommandWithRetries had error but didn't retry: %s", err)
 	}
 	return res, err
 }
@@ -412,6 +412,8 @@ func isIperfErrorDueToControlMessage(iperf_err error) bool {
 		return false
 	}
 	return strings.Contains(iperf_err.Error(), "unable to receive control message")
+	//|
+	//	strings.Contains(iperf_err.Error(), "the server is busy")
 }
 
 // TODO: create a new file and structs to to parse and dump iperf message

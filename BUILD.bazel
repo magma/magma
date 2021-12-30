@@ -61,11 +61,11 @@ filegroup(
 )
 
 # gazelle:prefix github.com/magma/magma
+# gazelle:exclude .cache/
 # gazelle:exclude orc8r/
 # gazelle:exclude lte/
 # gazelle:exclude feg/
 # gazelle:exclude cwf/
-# gazelle:exclude wifi/
 # gazelle:exclude fbinternal/
 # TODO: Remove when we move proto generation to bazel - this prevents gazelle from causing import issues in the meantime.
 # gazelle:exclude **/*.proto/

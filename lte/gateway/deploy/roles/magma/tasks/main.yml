@@ -448,7 +448,7 @@
 
 - name: Symlink system wide bazelrc into the VM
   file:
-    src: '/home/vagrant/magma/experimental/bazel-base/bazelrcs/vm.bazelrc'
+    src: '/home/vagrant/magma/bazel/bazelrcs/vm.bazelrc'
     path: '/etc/bazelrc'
     state: link
     force: yes
@@ -460,3 +460,21 @@
     state: latest
     pkg:
       - magma-libfluid
+
+- name: Create eBPF code dir
+  command: 'mkdir /var/opt/magma/ebpf/ -p'
+  when: full_provision
+
+- name: Prepare AGW for eBPF
+  command: 'apt-get -y install bcc-tools linux-headers-5.4.0-74-generic'
+  when: full_provision
+
+- name: Copy eBPF code
+  copy:
+    src: '{{ magma_root }}/lte/gateway/python/magma/pipelined/ebpf/{{ item }}'
+    dest: /var/opt/magma/ebpf/{{ item }}
+    force: yes
+    remote_src: yes
+  with_items:
+    - ebpf_ul_handler.c
+  when: full_provision

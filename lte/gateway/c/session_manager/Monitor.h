@@ -33,14 +33,14 @@ struct Monitor {
 
   explicit Monitor(const StoredMonitor& marshaled) {
     credit = SessionCredit(marshaled.credit);
-    level  = marshaled.level;
+    level = marshaled.level;
   }
 
   // Marshal into StoredMonitor structure used in SessionStore
   StoredMonitor marshal() {
     StoredMonitor marshaled{};
     marshaled.credit = credit.marshal();
-    marshaled.level  = level;
+    marshaled.level = level;
     return marshaled;
   }
 

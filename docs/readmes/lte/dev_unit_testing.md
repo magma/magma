@@ -73,6 +73,15 @@ To run tests for those services, run
 [VM] make test_<service_directory_name> # Ex: make test_session_manager
 ```
 
+A subset of the AGW C/C++ directories are in progress of migrating to use Bazel as the default build system. We will list out some of the useful commands here, but please refer to the [Bazel user guide](https://docs.bazel.build/versions/main/guide.html) for a complete overview.
+
+```bash
+[VM] cd magma # or any subdirectory inside magma
+[VM] bazel test //... # to test all targets
+[VM] bazel test //lte/gateway/c/session_manager/...:* # to test all targets under lte/gateway/c/session_manager 
+[VM] bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* # to test all C/C++ targets
+```
+
 ### Test Go AGW services
 
 We have several Go implementations of AGW services that live in `orc8r/gateway/go`.
@@ -116,4 +125,13 @@ To run formatting for each C/C++ services, run
 ```bash
 [VM] cd magma/lte/gateway
 [VM] make format_all
+```
+
+### Format Bazel BUILD files
+
+To format all Bazel related files, run
+
+```bash
+[VM] cd magma # or any subdirectory inside magma
+[VM] bazel run //:buildifier
 ```

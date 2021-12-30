@@ -10,7 +10,7 @@ This document covers the development workflow for codeowners (maintainers) of th
 
 ## Shepherds not gatekeepers
 
-The intent is for Magma Codeowerns to behave as shepherds of contributions, not gatekeepers.  This outlook asks more of the codeowner, but aims to maximally leverage community involvement and goodwill.  The following are some guidelines we hope Magma Codeowners will integrate into their reviews.
+The intent is for Magma Codeowners to behave as shepherds of contributions, not gatekeepers.  This outlook asks more of the codeowner, but aims to maximally leverage community involvement and goodwill.  The following are some guidelines we hope Magma Codeowners will integrate into their reviews.
 
 ### Show instead of tell
 
@@ -18,7 +18,7 @@ For nuanced or unclear asks by the code reviewer, it is drastically more efficie
 
 - Direct code suggestion in GH Review comment
 - Create a quick GitHub Gist that is shared in the review comment
-- Suggesting a direct edit to the PR via Gihub UI
+- Suggesting a direct edit to the PR via GitHub UI
 - Cherry-picking the PR in a reviewer branch and prototyping the suggestion, sharing branch
 
 The benefits of this include.
@@ -31,7 +31,7 @@ In net these result in fewer abandoned PRs, fewer merge conflicts due to delays,
 
 ### Avoid moving goalposts
 
-It is a common phenomenon to see new changes that are precipitated by an in-progress or in-review PR.  Magma Codeowners should resist the urge to move goalposts to include new refactoring or substantial changes in asks of the contributor.  Instead, follow-up work should be immediately described in a GH Issue and assigned either to the codeowner, the PR contributor (if they are game), or some other Magma contributor.  The rationale is that moving goalposts results in many stalled PRs - and our objective is not to stall PRs. Further, the best PR is a small PR - and movement of goalposts almost always results in larger PRs (one could use this metric to determine whether it's reaonsable to ask for a change in direction - does it enlarge the PR?).
+It is a common phenomenon to see new changes that are precipitated by an in-progress or in-review PR.  Magma Codeowners should resist the urge to move goalposts to include new refactoring or substantial changes in asks of the contributor.  Instead, follow-up work should be immediately described in a GH Issue and assigned either to the codeowner, the PR contributor (if they are game), or some other Magma contributor.  The rationale is that moving goalposts results in many stalled PRs - and our objective is not to stall PRs. Further, the best PR is a small PR - and movement of goalposts almost always results in larger PRs (one could use this metric to determine whether it's reasonable to ask for a change in direction - does it enlarge the PR?).
 
 ### PRs with limited unit / integration tests
 

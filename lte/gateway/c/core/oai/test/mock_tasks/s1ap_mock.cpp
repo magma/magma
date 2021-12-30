@@ -40,10 +40,12 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_NAS_DL_DATA_REQ: {
-      s1ap_handler_->s1ap_generate_downlink_nas_transport();
+      s1ap_handler_->s1ap_generate_downlink_nas_transport(
+          S1AP_NAS_DL_DATA_REQ(received_message_p));
     } break;
 
     case S1AP_E_RAB_SETUP_REQ: {
+      s1ap_handler_->s1ap_generate_s1ap_e_rab_setup_req();
     } break;
 
     case S1AP_E_RAB_MODIFICATION_CNF: {
@@ -54,7 +56,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case MME_APP_CONNECTION_ESTABLISHMENT_CNF: {
-      s1ap_handler_->s1ap_handle_conn_est_cnf();
+      s1ap_handler_->s1ap_handle_conn_est_cnf(bstrcpy(
+          MME_APP_CONNECTION_ESTABLISHMENT_CNF(received_message_p).nas_pdu[0]));
     } break;
 
     case MME_APP_S1AP_MME_UE_ID_NOTIFICATION: {
@@ -64,24 +67,34 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_PAGING_REQUEST: {
+      s1ap_handler_->s1ap_handle_paging_request();
     } break;
 
     case S1AP_UE_CONTEXT_MODIFICATION_REQUEST: {
     } break;
 
     case S1AP_E_RAB_REL_CMD: {
+      s1ap_handler_->s1ap_generate_s1ap_e_rab_rel_cmd();
     } break;
 
     case S1AP_PATH_SWITCH_REQUEST_ACK: {
+      s1ap_handler_->s1ap_handle_path_switch_req_ack(
+          received_message_p->ittiMsg.s1ap_path_switch_request_ack);
     } break;
 
     case S1AP_PATH_SWITCH_REQUEST_FAILURE: {
+      s1ap_handler_->s1ap_handle_path_switch_req_failure(
+          received_message_p->ittiMsg.s1ap_path_switch_request_failure);
     } break;
 
     case MME_APP_HANDOVER_REQUEST: {
+      s1ap_handler_->s1ap_mme_handle_handover_request(
+          received_message_p->ittiMsg.mme_app_handover_request);
     } break;
 
     case MME_APP_HANDOVER_COMMAND: {
+      s1ap_handler_->s1ap_mme_handle_handover_command(
+          received_message_p->ittiMsg.mme_app_handover_command);
     } break;
 
     case TERMINATE_MESSAGE: {

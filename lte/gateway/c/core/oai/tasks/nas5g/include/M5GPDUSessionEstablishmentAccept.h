@@ -22,6 +22,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSessionAMBR.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUAddress.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GDNN.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNSSAI.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GProtocolConfigurationOptions.h"
 
 namespace magma5g {
@@ -40,6 +41,7 @@ class PDUSessionEstablishmentAcceptMsg {
   PDUAddressMsg pdu_address;
   ProtocolConfigurationOptions protocolconfigurationoptions;
   DNNMsg dnn;
+  NSSAIMsg nssai;
 
   PDUSessionEstablishmentAcceptMsg();
   ~PDUSessionEstablishmentAcceptMsg();

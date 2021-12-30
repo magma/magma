@@ -74,10 +74,10 @@ http {
     error_log /var/log/nginx/error.log info;
     access_log /var/log/nginx/access.log json_custom;
 
-    ssl_certificate /var/opt/magma/certs/controller.crt;
-    ssl_certificate_key /var/opt/magma/certs/controller.key;
+    ssl_certificate {{ ssl_certificate }};
+    ssl_certificate_key {{ ssl_certificate_key }};
     ssl_verify_client on;
-    ssl_client_certificate /var/opt/magma/certs/certifier.pem;
+    ssl_client_certificate {{ ssl_client_certificate }};
 
     # Max allowed size for client requests body
     client_max_body_size 50M;
@@ -120,8 +120,8 @@ http {
     error_log /var/log/nginx/error.log info;
     access_log /var/log/nginx/access.log json_custom;
 
-    ssl_certificate /var/opt/magma/certs/controller.crt;
-    ssl_certificate_key /var/opt/magma/certs/controller.key;
+    ssl_certificate {{ ssl_certificate }};
+    ssl_certificate_key {{ ssl_certificate_key }};
 
     location / {
       {%- if resolver %}
@@ -152,10 +152,10 @@ http {
     error_log /var/log/nginx/error.log info;
     access_log /var/log/nginx/access.log json_custom;
 
-    ssl_certificate /var/opt/magma/certs/controller.crt;
-    ssl_certificate_key /var/opt/magma/certs/controller.key;
+    ssl_certificate {{ ssl_certificate }};
+    ssl_certificate_key {{ ssl_certificate_key }};
     ssl_verify_client on;
-    ssl_client_certificate /var/opt/magma/certs/certifier.pem;
+    ssl_client_certificate {{ ssl_client_certificate }};
 
     # Max allowed size for client requests body
     client_max_body_size 50M;

@@ -23,7 +23,9 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 
+	"magma/orc8r/cloud/go/obsidian/access"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -32,6 +34,7 @@ import (
 // off of the service registry
 type ReverseProxyHandler struct {
 	proxyBackendsByPathPrefix map[string]*reverseProxyBackend
+	certifierServiceConfig    *certifier.Config
 }
 
 type reverseProxyBackend struct {
@@ -40,9 +43,10 @@ type reverseProxyBackend struct {
 }
 
 // NewReverseProxyHandler initializes a ReverseProxyHandler
-func NewReverseProxyHandler() *ReverseProxyHandler {
+func NewReverseProxyHandler(config *certifier.Config) *ReverseProxyHandler {
 	return &ReverseProxyHandler{
 		proxyBackendsByPathPrefix: map[string]*reverseProxyBackend{},
+		certifierServiceConfig:    config,
 	}
 }
 
@@ -74,6 +78,9 @@ func (r *ReverseProxyHandler) AddReverseProxyPaths(server *echo.Echo, pathPrefix
 				},
 			}
 			g := server.Group(prefix)
+			if r.certifierServiceConfig != nil && r.certifierServiceConfig.UseToken {
+				g.Use(access.TokenMiddleware)
+			}
 			g.Use(r.activeBackendMiddleware)
 			g.Use(middleware.Proxy(middleware.NewRoundRobinBalancer(target)))
 			r.proxyBackendsByPathPrefix[prefix] = &reverseProxyBackend{

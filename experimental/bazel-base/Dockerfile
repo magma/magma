@@ -23,6 +23,7 @@ RUN apt-get update && \
         # dependency of sctpd
         libsctp-dev \
         libssl-dev \
+        lld \
         python3 \
         python-is-python3 \
         unzip \
@@ -71,23 +72,11 @@ RUN git clone https://github.com/facebook/folly && cd folly && \
     cd / && \
     rm -rf folly
 
-# libtins is required to build the connection_tracker
 RUN apt-get install -y --no-install-recommends \
+    # used by libtins and connection tracker
     libpcap-dev=1.9.1-3 \
+    # used by connection tracker
     libmnl-dev=1.0.4-2
-
-# TODO(@themarwhal): this might not be hard to bazelify if we can generate the config
-RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
-    cd libtins && \
-    mkdir build && \
-    cd build && \
-    cmake ../ -DLIBTINS_ENABLE_CXX11=1 && \
-    make -j"$(nproc)" && \
-    make install && \
-    cd / && \
-    rm -rf libtins && \
-    # symlink to /usr/lib to match Magma VM
-    ln -s /usr/local/lib/libtins.so /usr/lib/libtins.so
 
 RUN apt-get -y install --no-install-recommends \
     libtool=2.4.6-14
@@ -104,6 +93,6 @@ RUN git clone https://gitlab.eurecom.fr/oai/asn1c.git && \
 # Update shared library configuration
 RUN ldconfig -v
 
-RUN ln -s /magma/experimental/bazel-base/bazelrcs/docker.bazelrc /etc/bazelrc
+RUN ln -s /magma/bazel/bazelrcs/docker.bazelrc /etc/bazelrc
 
 WORKDIR /magma

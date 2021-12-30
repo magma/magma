@@ -41,6 +41,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
+
 using magma5g::AsyncM5GAuthenticationServiceClient;
 
 using namespace magma;
@@ -119,6 +121,7 @@ int amf_as_send(amf_as_t* msg) {
 static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   amf_security_context_t* amf_security_context = NULL;
   amf_nas_message_decode_status_t decode_status;
+  memset(&decode_status, 0, sizeof(decode_status));
   int decoder_rc                       = 1;
   int rc                               = RETURNerror;
   tai_t originating_tai                = {0};
@@ -477,13 +480,15 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
       .tac[2] = 0x01;
 
-  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.nssai.iei =
-      0x15;
-  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.nssai.len = 2;
-  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.nssai
-      .nssaival[0] = 0x01;
-  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.nssai
-      .nssaival[1] = 0x01;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.allowed_nssai
+      .iei = ALLOWED_NSSAI;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.allowed_nssai
+      .len = 2;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.allowed_nssai
+      .nssai.len = 1;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.allowed_nssai
+      .nssai.sst = 0x01;
+
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer
       .len = 1;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer
@@ -1209,8 +1214,10 @@ int initial_context_setup_request(
   req->Security_Key = (unsigned char*) &amf_ctx->_security.kgnb;
   memcpy(&req->Ngap_guami, &amf_ctx->m5_guti.guamfi, sizeof(guamfi_t));
 
-  req->ue_aggregate_max_bit_rate.dl = amf_ctx->subscribed_ue_ambr.br_dl;
-  req->ue_aggregate_max_bit_rate.ul = amf_ctx->subscribed_ue_ambr.br_ul;
+  // Get the ambr values
+  amf_smf_context_ue_aggregate_max_bit_rate_get(
+      amf_ctx, &(req->ue_aggregate_max_bit_rate.dl),
+      &(req->ue_aggregate_max_bit_rate.ul));
 
   for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
     pdusession_setup_item_t* item = nullptr;
@@ -1224,7 +1231,10 @@ int initial_context_setup_request(
       pdu_resource_transfer_ie->no_of_items += 1;
       item_num = pdu_resource_transfer_ie->no_of_items - 1;
       item     = &pdu_resource_transfer_ie->item[item_num];
-      ambr_calculation_pdu_session(smf_context, &dl_pdu_ambr, &ul_pdu_ambr);
+      ambr_calculation_pdu_session(
+          &(smf_context->dl_session_ambr), &(smf_context->dl_ambr_unit),
+          &(smf_context->ul_session_ambr), &(smf_context->ul_ambr_unit),
+          &dl_pdu_ambr, &ul_pdu_ambr);
 
       // pdu session id
       item->Pdu_Session_ID =

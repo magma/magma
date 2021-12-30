@@ -49,6 +49,7 @@ const (
 	ManageNetworkDNSRecordByDomainPath  = ManageNetworkDNSRecordsPath + obsidian.UrlSep + ":domain"
 	ManageNetworkCellularPath           = ManageNetworkPath + obsidian.UrlSep + "cellular"
 	ManageNetworkCellularEpcPath        = ManageNetworkCellularPath + obsidian.UrlSep + "epc"
+	ManageNetworkCellularNgcPath        = ManageNetworkCellularPath + obsidian.UrlSep + "ngc"
 	ManageNetworkCellularRanPath        = ManageNetworkCellularPath + obsidian.UrlSep + "ran"
 	ManageNetworkCellularFegNetworkID   = ManageNetworkCellularPath + obsidian.UrlSep + "feg_network_id"
 	ManageNetworkSubscriberPath         = ManageNetworkPath + obsidian.UrlSep + "subscriber_config"
@@ -75,6 +76,7 @@ const (
 	ManageGatewayCellularPath         = ManageGatewayPath + obsidian.UrlSep + "cellular"
 	ManageGatewayCellularEpcPath      = ManageGatewayCellularPath + obsidian.UrlSep + "epc"
 	ManageGatewayCellularRanPath      = ManageGatewayCellularPath + obsidian.UrlSep + "ran"
+	ManageGatewayCellularNgcPath      = ManageGatewayCellularPath + obsidian.UrlSep + "ngc"
 	ManageGatewayCellularNonEpsPath   = ManageGatewayCellularPath + obsidian.UrlSep + "non_eps"
 	ManageGatewayCellularDNSPath      = ManageGatewayCellularPath + obsidian.UrlSep + "dns"
 	ManageGatewayDNSRecordsPath       = ManageGatewayCellularDNSPath + obsidian.UrlSep + "records"
@@ -138,6 +140,7 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSRecordsPath, new(orc8r_models.NetworkDNSRecords), "", serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularPath, &lte_models.NetworkCellularConfigs{}, lte.CellularNetworkConfigType, serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularEpcPath, &lte_models.NetworkEpcConfigs{}, "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularNgcPath, &lte_models.NetworkNgcConfigs{}, "", serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularRanPath, &lte_models.NetworkRanConfigs{}, "", serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularFegNetworkID, new(lte_models.FegNetworkID), "", serdes.Network)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkSubscriberPath, &policydb_models.NetworkSubscriberConfig{}, "", serdes.Network)...)
@@ -151,6 +154,7 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularPath, &lte_models.GatewayCellularConfigs{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularEpcPath, &lte_models.GatewayEpcConfigs{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularRanPath, &lte_models.GatewayRanConfigs{}, serdes.Entity)...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularNgcPath, &lte_models.GatewayNgcConfigs{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularNonEpsPath, &lte_models.GatewayNonEpsConfigs{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularDNSPath, &lte_models.GatewayDNSConfigs{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDNSRecordsPath, &lte_models.GatewayDNSRecords{}, serdes.Entity)...)
@@ -197,6 +201,7 @@ func getGateway(c echo.Context) error {
 		Name:                   magmadModel.Name,
 		Description:            magmadModel.Description,
 		Device:                 magmadModel.Device,
+		RegistrationInfo:       magmadModel.RegistrationInfo,
 		Status:                 magmadModel.Status,
 		Tier:                   magmadModel.Tier,
 		Magmad:                 magmadModel.Magmad,

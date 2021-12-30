@@ -30,7 +30,7 @@ jobs:
         with:
           filters: |
             filesChanged:
-              - [".github/workflows/cloud-workflow.yml", "wifi/cloud/**", "lte/protos/**", "cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/cloud/**", "orc8r/lib/**"]
+              - [".github/workflows/cloud-workflow.yml", "lte/protos/**", "cwf/cloud/**", "fbinternal/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/**"]
       - name: Save should_not_skip output
         if: always()
         run: |
@@ -50,6 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
+      GO111MODULE: 'on'
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -68,13 +69,13 @@ jobs:
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
           python3 build.py --lint
       - name: Generate test coverage
-        if: steps.cloud-lint-lint.outcome=='success'
+        if: always() && steps.cloud-lint-lint.outcome=='success'
         id: cloud-lint-cov
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
           python3 build.py --coverage
       - uses: codecov/codecov-action@v1
-        if: steps.cloud-lint-cov.outcome=='success'
+        if: always() && steps.cloud-lint-cov.outcome=='success'
         id: cloud-lint-codecov
         with:
           files: '${{ env.MAGMA_ROOT}}/orc8r/cloud/coverage/all.gocov'
@@ -93,6 +94,24 @@ jobs:
         with:
           name: Unit Test Results
           path: "${{ env.MAGMA_ROOT}}/orc8r/cloud/test-results/*"
+      - uses: actions/setup-go@v2
+        if: always()
+        id: gateway_test_init
+        with:
+          go-version: '1.13'
+      - name: Download dependencies
+        if: always() && steps.gateway_test_init.outcome=='success'
+        id: gateway_test_dep
+        run: |
+          cd cwf/gateway
+          go mod download
+      - name: Gateway go tests
+        if: always() && steps.gateway_test_dep.outcome=='success'
+        id: gateway_test
+        run: |
+          cd ${MAGMA_ROOT}/orc8r/gateway/go
+          go test ./...
+          go vet ./...
       - name: Extract commit title
         if: failure() && github.event_name == 'push'
         id: commit
@@ -127,6 +146,17 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action cloud-test failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "Cloud workflow"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      - name: Notify failure to Slack for orc8r-gateway-test
+        if: ( steps.gateway_test_init.outcome=='failure' || steps.gateway_test_dep.outcome=='failure' || steps.gateway_test.outcome=='failure' ) && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action orc8r-gateway-test failed"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "Cloud workflow"
           SLACK_ICON_EMOJI: ":boom:"

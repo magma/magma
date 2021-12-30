@@ -66,7 +66,7 @@ jobs:
         with:
           script: |
             var fs = require('fs');
-            var issue_number = Number(fs.readFileSync('./NR'));
+            var issue_number = Number(fs.readFileSync('./pr_number'));
             console.log(String(issue_number))
             core.setOutput('issue_number',issue_number );
       - name: extract images
@@ -78,7 +78,7 @@ jobs:
           done
           ls -R
       - name: Tag and push nms docker images to registry
-        if: steps.extract_images.outcome=='success'
+        if: always() && steps.extract_images.outcome=='success'
         env:
           DOCKER_REGISTRY: "orc8r-ci.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -87,8 +87,21 @@ jobs:
         run: |
           docker image load --input magmalte.tar
           ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${ISSUE_NUMBER}" --tag-latest true --project magmalte
+      - name: Tag and push agw docker images to registry
+        if: always() && steps.extract_images.outcome=='success'
+        env:
+          DOCKER_REGISTRY: "agw-ci.artifactory.magmacore.org"
+          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
+          ISSUE_NUMBER: "${{ steps.save_metadata.outputs.issue_number }}"
+        run: |
+          docker image load --input ghz_gateway_c.tar
+          docker image load --input ghz_gateway_python.tar
+          docker image load --input agw_gateway_c.tar
+          docker image load --input agw_gateway_python.tar
+          ./ci-scripts/tag-push-docker.sh --images 'ghz_gateway_c|ghz_gateway_python|agw_gateway_c|agw_gateway_python' --tag "${ISSUE_NUMBER}" --tag-latest true
       - name: Tag and push orc8r docker images to registry
-        if: steps.extract_images.outcome=='success'
+        if: always() && steps.extract_images.outcome=='success'
         env:
           DOCKER_REGISTRY: "orc8r-ci.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -99,7 +112,7 @@ jobs:
           docker image load --input controller.tar
           ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${ISSUE_NUMBER}" --tag-latest true --project orc8r
       - name: Tag and push cwf operator image
-        if: steps.extract_images.outcome=='success'
+        if: always() && steps.extract_images.outcome=='success'
         env:
           DOCKER_REGISTRY: "orc8r-ci.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -109,7 +122,7 @@ jobs:
           docker image load --input operator.tar
           ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${ISSUE_NUMBER}" --tag-latest true --project cwf
       - name: Tag and push cwag docker images to Regitry
-        if: steps.extract_images.outcome=='success'
+        if: always() && steps.extract_images.outcome=='success'
         env:
           DOCKER_REGISTRY: "cwf-ci.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -123,18 +136,18 @@ jobs:
           docker image load --input gateway_pipelined.tar
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${ISSUE_NUMBER}" --tag-latest true --project cwf
       - name: Tag and push xwfm docker images
-        if: steps.extract_images.outcome=='success'
+        if: always() && steps.extract_images.outcome=='success'
         env:
           DOCKER_REGISTRY: "orc8r-ci.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
           ISSUE_NUMBER: "${{ steps.save_metadata.outputs.issue_number }}"
         run: |
           docker image load --input goradius.tar
           docker image load --input xwfm-integ-tests.tar
           ./ci-scripts/tag-push-docker.sh --images 'goradius|xwfm-integ-tests' --tag "${ISSUE_NUMBER}" --tag-latest true
       - name: Tag and push feg docker images
-        if: steps.extract_images.outcome=='success'
+        if: always() && steps.extract_images.outcome=='success'
         env:
           DOCKER_REGISTRY: "feg-ci.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -145,7 +158,7 @@ jobs:
           docker image load --input feg_gateway_python.tar
           ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${ISSUE_NUMBER}" --tag-latest true --project feg
       - name: Push Helm charts and verify the push
-        if: steps.save_metadata.outcome=='success'
+        if: always() && steps.save_metadata.outcome=='success'
         env:
           HELM_CHART_MUSEUM_API_URL: "https://artifactory.magmacore.org:443/artifactory/api"
           HELM_CHART_MUSEUM_URL: "https://artifactory.magmacore.org:443/artifactory/helm-ci"

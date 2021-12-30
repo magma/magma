@@ -39,8 +39,8 @@ typedef struct sentry_config {
  * @brief Initialize sentry if SENTRY_ENABLED flag is set and project slug is
  * configured in control_proxy.yml
  */
-void initialize_sentry(
-    const char* service_tag, const sentry_config_t* sentry_config);
+void initialize_sentry(const char* service_tag,
+                       const sentry_config_t* sentry_config);
 
 /**
  * @brief Shutdown sentry if SENTRY_ENABLED flag is set

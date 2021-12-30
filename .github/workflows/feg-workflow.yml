@@ -68,13 +68,13 @@ jobs:
           command: cd ${MAGMA_ROOT}/cwf/gateway && go mod download
           timeout_minutes: 10
       - name: Go lint code
-        if: steps.feg-lint-init.outcome=='success'
+        if: always() && steps.feg-lint-init.outcome=='success'
         id: feg-lint
         run: |
               cd ${MAGMA_ROOT}/feg/gateway
               make -C ${MAGMA_ROOT}/feg/gateway lint
       - name: Generate test coverage
-        if: steps.feg-lint.outcome=='success'
+        if: always() && steps.feg-lint.outcome=='success'
         id: feg-lint-cov
         run: |
               cd ${MAGMA_ROOT}/feg/gateway

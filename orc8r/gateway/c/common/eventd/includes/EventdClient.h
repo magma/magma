@@ -57,9 +57,8 @@ class AsyncEventdClient : public GRPCReceiver, public EventdClient {
 
   static AsyncEventdClient& getInstance();
 
-  void log_event(
-      const orc8r::Event& request,
-      std::function<void(Status status, orc8r::Void)> callback);
+  void log_event(const orc8r::Event& request,
+                 std::function<void(Status status, orc8r::Void)> callback);
 
  private:
   AsyncEventdClient();

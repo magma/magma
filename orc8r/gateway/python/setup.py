@@ -65,8 +65,8 @@ setup(
         'fire>=0.2.0',
         'glob2>=0.7',
         'aioh2>=0.2.2',
-        'redis>=2.10.5',  # redis-py (Python bindings to redis)
-        'redis-collections>=0.4.2',
+        'redis==3.5.3',  # redis-py (Python bindings to redis)
+        'redis-collections==0.9.1',
         'python-redis-lock>=3.7.0',
         'aiohttp>=0.17.2',
         'grpcio>=1.16.1',
@@ -77,7 +77,7 @@ setup(
         'PyYAML>=3.12',
         'pytz>=2014.4',
         'prometheus_client==0.3.1',
-        'sentry_sdk>=1.0.0',
+        'sentry_sdk>=1.5.0',
         'snowflake>=0.0.3',
         'psutil==5.8.0',
         'cryptography>=1.9',

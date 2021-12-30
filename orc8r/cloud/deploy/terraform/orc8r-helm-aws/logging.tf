@@ -16,7 +16,7 @@ locals {
 }
 
 resource "helm_release" "fluentd" {
-  count = var.elasticsearch_endpoint == null ? 0 : 1
+  count = var.elasticsearch_endpoint == null || var.orc8r_is_staging_deployment == true ? 0 : 1
 
   name       = var.fluentd_deployment_name
   namespace  = kubernetes_namespace.orc8r.metadata[0].name
@@ -129,12 +129,12 @@ resource "helm_release" "fluentd" {
 
 # helm chart for cleaning old indices.
 resource "helm_release" "elasticsearch_curator" {
-  count = var.elasticsearch_endpoint == null ? 0 : 1
+  count = var.elasticsearch_endpoint == null || var.orc8r_is_staging_deployment == true ? 0 : 1
 
   name       = var.elasticsearch_curator_name
   repository = local.stable_helm_repo
   chart      = "elasticsearch-curator"
-  namespace  = kubernetes_namespace.monitoring.metadata[0].name
+  namespace  = kubernetes_namespace.monitoring[0].metadata[0].name
   version    = "2.2.3"
   keyring    = ""
 

@@ -16,6 +16,8 @@ package tests
 import (
 	"context"
 	"crypto/x509"
+	"encoding/base64"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
@@ -181,4 +183,27 @@ func MockAccessControl(t *testing.T) (certSn string, superCertSn string) {
 		"Test Operator Cert SN: %s, Test Supervisor Cert SN: %s",
 		certSn, superCertSn)
 	return // return (certSn, superCertSn)
+}
+
+func SendRequestWithToken(method, url, username string, token string) (int, error) {
+	var body io.Reader = nil
+	request, err := http.NewRequest(method, url, body)
+	if err != nil {
+		return 0, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	auth := base64.StdEncoding.EncodeToString([]byte(username + ":" + token))
+	header := fmt.Sprintf("Basic %s", auth)
+	request.Header.Set(echo.HeaderAuthorization, header)
+
+	var client = &http.Client{}
+
+	response, err := client.Do(request)
+	if err != nil {
+		return 0, err
+	}
+
+	defer response.Body.Close()
+	_, err = ioutil.ReadAll(response.Body)
+	return response.StatusCode, err
 }

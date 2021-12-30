@@ -106,6 +106,10 @@ void GTPApplication::event_callback(
     install_internal_pkt_fwd_flow(
         ev.get_connection(), messenger, internal_sampling_port_num_,
         internal_sampling_fwd_tbl_num_);
+  } else if (ev.get_type() == EVENT_ADD_DL_ARP) {
+    auto add_arp_event = static_cast<const AddArpFlowEvent&>(ev);
+    add_downlink_arp_flow_paging_event(
+        add_arp_event, messenger, uplink_port_num_);
   }
 }
 
@@ -526,9 +530,9 @@ void GTPApplication::add_downlink_tunnel_flow(
  * Helper function to add ARP actions
  */
 void GTPApplication::add_downlink_arp_flow_action(
-    const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
-    of13::FlowMod downlink_fm) {
-  auto imsi = IMSIEncoder::compact_imsi(ev.get_imsi());
+    fluid_base::OFConnection* conn, const std::string imsi_,
+    const OpenflowMessenger& messenger, of13::FlowMod downlink_fm) {
+  auto imsi = IMSIEncoder::compact_imsi(imsi_);
   of13::ApplyActions apply_dl_inst;
 
   // add imsi to packet metadata to pass to other tables
@@ -541,21 +545,37 @@ void GTPApplication::add_downlink_arp_flow_action(
   downlink_fm.add_instruction(goto_inst);
 
   // Finally, send flow mod
-  messenger.send_of_msg(downlink_fm, ev.get_connection());
+  messenger.send_of_msg(downlink_fm, conn);
   OAILOG_DEBUG_UE(LOG_GTPV1U, imsi, "ARP flow added\n");
+}
+
+void GTPApplication::add_downlink_arp_flow_(
+    fluid_base::OFConnection* conn, int precedence, const std::string imsi_,
+    const struct in_addr& ue_ip, const OpenflowMessenger& messenger,
+    uint32_t ingress_port) {
+  uint32_t flow_priority = convert_precedence_to_priority(precedence);
+  of13::FlowMod downlink_fm =
+      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
+
+  add_downlink_arp_match(downlink_fm, ue_ip, ingress_port);
+
+  add_downlink_arp_flow_action(conn, imsi_, messenger, downlink_fm);
 }
 
 void GTPApplication::add_downlink_arp_flow(
     const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
     uint32_t ingress_port) {
-  uint32_t flow_priority =
-      convert_precedence_to_priority(ev.get_dl_flow_precedence());
-  of13::FlowMod downlink_fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
+  add_downlink_arp_flow_(
+      ev.get_connection(), ev.get_dl_flow_precedence(), ev.get_imsi(),
+      ev.get_ue_ip(), messenger, ingress_port);
+}
 
-  add_downlink_arp_match(downlink_fm, ev.get_ue_ip(), ingress_port);
-
-  add_downlink_arp_flow_action(ev, messenger, downlink_fm);
+void GTPApplication::add_downlink_arp_flow_paging_event(
+    const AddArpFlowEvent& ev, const OpenflowMessenger& messenger,
+    uint32_t ingress_port) {
+  add_downlink_arp_flow_(
+      ev.get_connection(), ev.get_flow_precedence(), ev.get_imsi(),
+      ev.get_ue_ip(), messenger, ingress_port);
 }
 
 void GTPApplication::delete_downlink_tunnel_flow_ipv4(

@@ -153,8 +153,8 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
       [this, request, session_uc,
        session_map_ptr = std::make_shared<SessionMap>(std::move(session_map))](
           Status status, UpdateSessionResponse response) mutable {
-        enforcer_->handle_session_update_response(
-            request, session_map_ptr, session_uc, status, response);
+        enforcer_->handle_session_update_response(request, session_map_ptr,
+                                                  session_uc, status, response);
       });
 }
 
@@ -224,9 +224,8 @@ void LocalSessionManagerHandlerImpl::call_setup_pipelined(
   MLOG(MINFO) << "Sending a setup call to PipelineD with epoch: " << epoch;
   enforcer_->setup(
       session_map, epoch,
-      std::bind(
-          &LocalSessionManagerHandlerImpl::handle_setup_callback, this, epoch,
-          _1, _2));
+      std::bind(&LocalSessionManagerHandlerImpl::handle_setup_callback, this,
+                epoch, _1, _2));
   return;
 }
 
@@ -265,7 +264,7 @@ grpc::Status LocalSessionManagerHandlerImpl::check_sessiond_is_ready() {
 
 grpc::Status LocalSessionManagerHandlerImpl::validate_create_session_request(
     const SessionConfig cfg) {
-  const auto rat_type               = cfg.common_context.rat_type();
+  const auto rat_type = cfg.common_context.rat_type();
   const CommonSessionContext common = cfg.common_context;
   if (rat_type != TGPP_WLAN && rat_type != TGPP_LTE) {
     // We don't support outside of WLAN / LTE
@@ -288,7 +287,7 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   enforcer_->get_event_base().runInEventBaseThread([this, response_callback,
                                                     request_cpy]() {
     SessionConfig cfg(request_cpy);
-    const std::string& imsi           = cfg.get_imsi();
+    const std::string& imsi = cfg.get_imsi();
     const CommonSessionContext common = cfg.common_context;
 
     log_create_session(cfg);
@@ -299,7 +298,7 @@ void LocalSessionManagerHandlerImpl::CreateSession(
     }
 
     const auto& session_id = id_gen_.gen_session_id(imsi);
-    auto session_map       = session_store_.read_sessions({imsi});
+    auto session_map = session_store_.read_sessions({imsi});
     SessionActionOrStatus action;
     switch (common.rat_type()) {
       case TGPP_WLAN:
@@ -323,9 +322,8 @@ void LocalSessionManagerHandlerImpl::CreateSession(
       bool success =
           initialize_session(session_map, action.session_id_to_send_back, cfg);
       if (success) {
-        send_create_session(
-            session_map, action.session_id_to_send_back, cfg,
-            response_callback);
+        send_create_session(session_map, action.session_id_to_send_back, cfg,
+                            response_callback);
       } else {
         // abort and send back a failure response to access
         action.set_status(
@@ -333,9 +331,9 @@ void LocalSessionManagerHandlerImpl::CreateSession(
       }
     }
     if (action.status_back_to_access) {
-      send_local_create_session_response(
-          *(action.status_back_to_access), action.session_id_to_send_back,
-          response_callback);
+      send_local_create_session_response(*(action.status_back_to_access),
+                                         action.session_id_to_send_back,
+                                         response_callback);
     }
   });
 }
@@ -385,12 +383,12 @@ void LocalSessionManagerHandlerImpl::send_create_session(
           return;
         }
 
-        auto& session                          = **session_it;
+        auto& session = **session_it;
         SessionStateUpdateCriteria* session_uc = &update[imsi][session_id];
 
         if (status.ok()) {
-          enforcer_->update_session_with_policy_response(
-              session, response, session_uc);
+          enforcer_->update_session_with_policy_response(session, response,
+                                                         session_uc);
         } else {
           std::ostringstream failure_stream;
           MLOG(MERROR)
@@ -406,15 +404,15 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         if (write_success) {
           MLOG(MINFO) << "Successfully initialized " << session_id
                       << " in SessionD after talking to PolicyDB/SessionProxy";
-          add_session_to_directory_record(
-              imsi, session_id, cfg.common_context.msisdn());
+          add_session_to_directory_record(imsi, session_id,
+                                          cfg.common_context.msisdn());
         } else {
           MLOG(MINFO) << "Failed to initialize new session " << session_id
                       << " in SessionD for subscriber " << imsi
                       << " due to failure writing to SessionStore."
                       << " An earlier update may have invalidated it.";
-          status = Status(
-              grpc::ABORTED, "Failed to write session to SessionD storage");
+          status = Status(grpc::ABORTED,
+                          "Failed to write session to SessionD storage");
         }
         send_local_create_session_response(status, session_id, cb);
       });
@@ -437,7 +435,7 @@ SessionActionOrStatus LocalSessionManagerHandlerImpl::handle_create_session_cwf(
 SessionActionOrStatus LocalSessionManagerHandlerImpl::recycle_cwf_session(
     std::unique_ptr<SessionState>& session, const SessionConfig& cfg,
     SessionMap& session_map) const {
-  const std::string imsi       = cfg.get_imsi();
+  const std::string imsi = cfg.get_imsi();
   const std::string session_id = session->get_session_id();
   // To recycle the session, it has to be active (i.e., not in
   // transition for termination).
@@ -465,8 +463,8 @@ SessionActionOrStatus LocalSessionManagerHandlerImpl::handle_create_session_lte(
     SessionMap& session_map, const std::string& session_id,
     const SessionConfig& cfg) {
   SessionActionOrStatus action;
-  const std::string imsi   = cfg.get_imsi();
-  const std::string apn    = cfg.common_context.apn();
+  const std::string imsi = cfg.get_imsi();
+  const std::string apn = cfg.common_context.apn();
   const std::string msisdn = cfg.common_context.msisdn();
 
   // If there are no existing sessions for the IMSI+APN, just create a new one
@@ -475,7 +473,7 @@ SessionActionOrStatus LocalSessionManagerHandlerImpl::handle_create_session_lte(
   if (!session_it) {
     return SessionActionOrStatus::create_new_session_action(session_id);
   }
-  auto& session                         = **session_it;
+  auto& session = **session_it;
   const std::string existing_session_id = session->get_session_id();
 
   if (cfg == session->get_config() && session->is_active()) {
@@ -524,7 +522,7 @@ void LocalSessionManagerHandlerImpl::add_session_to_directory_record(
     const std::string& msisdn) {
   UpdateRecordRequest request;
   request.set_id(imsi);
-  auto update_fields         = request.mutable_fields();
+  auto update_fields = request.mutable_fields();
   std::string session_id_key = "session_id";
   update_fields->insert({session_id_key, session_id});
   std::string msisdn_id_key = "msisdn";
@@ -557,8 +555,8 @@ void LocalSessionManagerHandlerImpl::EndSession(
     std::function<void(Status, LocalEndSessionResponse)> response_callback) {
   set_sentry_transaction("EndSession");
   auto& request_cpy = *request;
-  auto& sid         = request->sid();
-  auto& apn         = request->apn();
+  auto& sid = request->sid();
+  auto& apn = request->apn();
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   enforcer_->get_event_base().runInEventBaseThread(
       [this, sid, apn, response_callback]() {
@@ -573,8 +571,8 @@ void LocalSessionManagerHandlerImpl::end_session(
     SessionMap& session_map, const SubscriberID& sid, const std::string& apn,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) {
   auto update = SessionStore::get_default_session_update(session_map);
-  auto found  = enforcer_->handle_termination_from_access(
-      session_map, sid.id(), apn, update);
+  auto found = enforcer_->handle_termination_from_access(session_map, sid.id(),
+                                                         apn, update);
   if (!found) {
     MLOG(MERROR) << "Failed to find session to terminate for subscriber "
                  << sid.id() << " apn " << apn;
@@ -584,10 +582,10 @@ void LocalSessionManagerHandlerImpl::end_session(
   }
   bool update_success = session_store_.update_sessions(update);
   if (!update_success) {
-    auto status = Status(
-        grpc::ABORTED,
-        "EndSession no longer valid due to another update that "
-        "occurred to the session first.");
+    auto status =
+        Status(grpc::ABORTED,
+               "EndSession no longer valid due to another update that "
+               "occurred to the session first.");
     response_callback(status, LocalEndSessionResponse());
     return;
   }
@@ -636,7 +634,7 @@ void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
     std::function<void(Status, UpdateTunnelIdsResponse)> response_callback) {
   set_sentry_transaction("UpdateTunnelIds");
   auto& request_cpy = *request;
-  auto imsi         = request->sid().id();
+  auto imsi = request->sid().id();
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   MLOG(MINFO) << "Received a UpdateTunnelIds request for " << imsi
               << " with default bearer id: " << request->bearer_id()
@@ -645,7 +643,7 @@ void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy, imsi,
                                                     response_callback]() {
     auto session_map = session_store_.read_sessions({imsi});
-    auto success     = enforcer_->update_tunnel_ids(session_map, request_cpy);
+    auto success = enforcer_->update_tunnel_ids(session_map, request_cpy);
     if (!success) {
       MLOG(MDEBUG) << "Failed to UpdateTunnelIds for imsi " << imsi
                    << " and bearer " << request_cpy.bearer_id();
@@ -698,7 +696,7 @@ void LocalSessionManagerHandlerImpl::SetSessionRules(
 void LocalSessionManagerHandlerImpl::log_create_session(
     const SessionConfig& cfg) {
   const std::string& imsi = cfg.get_imsi();
-  const auto& apn         = cfg.common_context.apn();
+  const auto& apn = cfg.common_context.apn();
   std::string create_message =
       "Received a LocalCreateSessionRequest for " + imsi + " with APN:" + apn;
   if (cfg.rat_specific_context.has_lte_context()) {

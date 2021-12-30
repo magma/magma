@@ -43,6 +43,7 @@
 #include "lte/gateway/c/core/oai/include/mme_app_state.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/include/mme_app_statistics.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -342,6 +343,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
       free_wrapper((void**) &ue_context_p->pdn_contexts[pid]);
       // Free bearer context entry
       if (ue_context_p->bearer_contexts[bid]) {
+        update_mme_app_stats_s1u_bearer_sub();
         free_wrapper((void**) &ue_context_p->bearer_contexts[bid]);
       }
     }
@@ -352,6 +354,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
         "for UE (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
         ue_context_p->mme_ue_s1ap_id, ebi);
     // Remove dedicated bearer context
+    update_mme_app_stats_s1u_bearer_sub();
     free_wrapper((void**) &ue_context_p->bearer_contexts[bid]);
   }
   /* In case of PDN disconnect, no need to inform MME/SPGW as the session would
@@ -361,7 +364,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     // Send delete dedicated bearer response to SPGW
     send_delete_dedicated_bearer_rsp(
         ue_context_p, delete_default_bearer, &ebi, 1, s_gw_teid_s11_s4,
-        REQUEST_ACCEPTED, route_s11_messages_to_s8_task);
+        REQUEST_ACCEPTED, route_s11_messages_to_s8_task, false);
   }
 
   // Reset is_pdn_disconnect flag
@@ -409,7 +412,7 @@ status_code_e eps_bearer_deactivate_t3495_handler(
   timer_arg_t timer_args;
   if (args) {
     timer_args = *((timer_arg_t*) args);
-  } else if (!mme_app_get_timer_arg(timer_id, &timer_args)) {
+  } else if (!mme_pop_timer_arg(timer_id, &timer_args)) {
     OAILOG_WARNING(
         LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
@@ -506,7 +509,7 @@ status_code_e eps_bearer_deactivate_t3495_handler(
         // Send delete_dedicated_bearer_rsp to SPGW
         send_delete_dedicated_bearer_rsp(
             ue_mm_context, delete_default_bearer, &ebi, 1, s_gw_teid_s11_s4,
-            UE_NOT_RESPONDING, route_s11_messages_to_s8_task);
+            UE_NOT_RESPONDING, route_s11_messages_to_s8_task, false);
       }
       // Reset is_pdn_disconnect flag
       if (ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) {
