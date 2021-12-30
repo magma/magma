@@ -55,11 +55,11 @@ class MeterManager(object):
         LOG.debug("get_action_instruction for %d", meter_id)
         if meter_id < self._start_idx or meter_id > (self._max_idx - 1):
             LOG.error("invalid meter_id %d, no action/inst returned", meter_id)
-            return
+            return None, None, None
 
         parser = self._datapath.ofproto_parser
         ofproto = self._datapath.ofproto
-        return None, parser.OFPInstructionMeter(meter_id, ofproto.OFPIT_METER)
+        return None, parser.OFPInstructionMeter(meter_id, ofproto.OFPIT_METER), meter_id
 
     # pylint:disable=unused-argument
     def add_qos(

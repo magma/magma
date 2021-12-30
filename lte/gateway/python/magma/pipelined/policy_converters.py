@@ -62,6 +62,20 @@ def get_ipv6_match_value(ip_addr) -> str:
     return get_ipv6_prefix(str(ip_addr.address.decode('utf-8'))) + "/" + IPV6_PREFIX_LEN
 
 
+def is_flow_match_set(match):
+
+    attributes = [
+        'ip_dst', 'ip_src',
+        'ip_proto', 'tcp_src', 'tcp_dst',
+        'udp_src', 'udp_dst', 'app_name',
+    ]
+    for attrib in attributes:
+        value = getattr(match, attrib, None)
+        if value:
+            return True
+    return False
+
+
 def flow_match_to_magma_match(match, ip_addr=None):
     '''
     Convert a FlowMatch to a MagmaMatch object
