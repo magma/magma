@@ -1,4 +1,4 @@
-From 866f50fe33880d98640f7891aacfaded4a9a667d Mon Sep 17 00:00:00 2001
+From cff75ea91db26d7db4ea04fb6384a550a60660b5 Mon Sep 17 00:00:00 2001
 From: Nick Yurchenko <koolzz@fb.com>
 Date: Mon, 1 Feb 2021 21:46:32 -0500
 Subject: [PATCH 11/22] Add pdp_start_epoch custom field to IPFIX export
@@ -193,10 +193,10 @@ index dda89f409..1639bf683 100644
      }
      ovs_mutex_unlock(&mutex);
 diff --git a/ofproto/ofproto-dpif-xlate.c b/ofproto/ofproto-dpif-xlate.c
-index 7bfcccc93..ff9225304 100644
+index f9699439b..063d1c429 100644
 --- a/ofproto/ofproto-dpif-xlate.c
 +++ b/ofproto/ofproto-dpif-xlate.c
-@@ -5645,6 +5645,7 @@ xlate_sample_action(struct xlate_ctx *ctx,
+@@ -5659,6 +5659,7 @@ xlate_sample_action(struct xlate_ctx *ctx,
      cookie.flow_sample.direction = os->direction;
      cookie.flow_sample.flow_metadata = ctx->xin->flow.metadata;
      cookie.flow_sample.app_name = ctx->xin->flow.regs[10];

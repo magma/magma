@@ -1,4 +1,4 @@
-From 97a9156a46b26d55fc0b9215f220fe032c230122 Mon Sep 17 00:00:00 2001
+From 71e80cf136045a3d58aa3a9d05ac97f7488dc8b3 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 24 Feb 2020 04:29:56 +0000
 Subject: [PATCH 02/22] userspace: IPFIX: Add tunnel type GTP
@@ -181,7 +181,7 @@ index 864c136b5..4bb8f0b59 100644
          ipproto = IPPROTO_UDP;
  
 diff --git a/tests/tunnel-push-pop.at b/tests/tunnel-push-pop.at
-index f297a0222..4883807d1 100644
+index d628ce6ac..ef8784cfa 100644
 --- a/tests/tunnel-push-pop.at
 +++ b/tests/tunnel-push-pop.at
 @@ -442,7 +442,7 @@ AT_CHECK([ovs-ofctl add-flow int-br "actions=9"])
