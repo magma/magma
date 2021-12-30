@@ -36,6 +36,7 @@ s1aptests/test_no_auth_response.py \
 s1aptests/test_no_security_mode_complete.py \
 s1aptests/test_tau_periodic_inactive.py \
 s1aptests/test_tau_periodic_active.py \
+s1aptests/test_tau_ta_updating_connected_mode.py \
 s1aptests/test_attach_service.py \
 s1aptests/test_attach_detach_service.py \
 s1aptests/test_attach_service_ue_radio_capability.py \
