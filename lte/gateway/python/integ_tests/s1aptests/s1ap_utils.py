@@ -1174,6 +1174,45 @@ class MagmadUtil(object):
             mme_ueip_imsi_map_entries,
         )
 
+    def enable_nat(self):
+        self._set_agw_nat(True)
+        self._validate_nated_datapath()
+        self.exec_command("sudo ip route del default via 192.168.129.42")
+        self.exec_command("sudo ip route add default via 10.0.2.2 dev eth0")
+
+    def disable_nat(self):
+        self.exec_command("sudo ip route del default via 10.0.2.2 dev eth0")
+        self.exec_command("sudo ip addr replace 192.168.129.1/24 dev uplink_br0")
+        self.exec_command("sudo ip route add default via 192.168.129.42 dev uplink_br0")
+        self._set_agw_nat(False)
+        self._validate_non_nat_datapath()
+
+    def _set_agw_nat(self, enable: bool):
+        mconfig_conf = "/home/vagrant/magma/lte/gateway/configs/gateway.mconfig"
+        with open(mconfig_conf, "r") as jsonFile:
+            data = json.load(jsonFile)
+
+        data['configs_by_key']['mme']['natEnabled'] = enable
+        data['configs_by_key']['pipelined']['natEnabled'] = enable
+
+        with open(mconfig_conf, "w") as jsonFile:
+            json.dump(data, jsonFile, sort_keys=True, indent=2)
+
+        self.restart_sctpd()
+        self.restart_all_services()
+
+    def _validate_non_nat_datapath(self):
+        # validate SGi interface is part of uplink-bridge.
+        out1 = self.exec_command_output("sudo ovs-vsctl list-ports uplink_br0")
+        assert("eth2" in str(out1))
+        print("NAT is disabled")
+
+    def _validate_nated_datapath(self):
+        # validate SGi interface is not part of uplink-bridge.
+        out1 = self.exec_command_output("sudo ovs-vsctl list-ports uplink_br0")
+        assert("eth2" not in str(out1))
+        print("NAT is enabled")
+
 
 class MobilityUtil(object):
     """ Utility wrapper for interacting with mobilityd """
