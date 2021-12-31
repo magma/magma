@@ -33,6 +33,7 @@ LOG = logging.getLogger("pipelined.ebpf")
 
 BASE_MAP_FS = "/sys/fs/bpf/"
 BPF_UL_FILE = "/var/opt/magma/ebpf/ebpf_ul_handler.c"
+BPF_DL_FILE = "/var/opt/magma/ebpf/ebpf_dl_handler.c"
 UL_MAP_NAME = "ul_map"
 
 """
@@ -72,11 +73,13 @@ def get_ebpf_manager(config):
 
 
 class ebpf_manager:
-    def __init__(self, sgi_if_name: str, s1_if_name: str, gw_ip: str, enabled=True, bpf_file: str = BPF_UL_FILE):
+    def __init__(self, sgi_if_name: str, s1_if_name: str, gw_ip: str, enabled=True, bpf_ul_file: str = BPF_UL_FILE, bpf_dl_file: str = BPF_DL_FILE):
 
-        self.b = BPF(src_file=bpf_file, cflags=[''])
-        self.s1_fn = self.b.load_func("gtpu_ingress_handler", BPF.SCHED_CLS)
-        self.ul_map = self.b.get_table(UL_MAP_NAME)
+        self.b_ul = BPF(src_file=bpf_ul_file, cflags=[''])
+        self.b_dl = BPF(src_file=bpf_dl_file, cflags=[''])
+        self.s1_fn = self.b_ul.load_func("gtpu_ingress_handler", BPF.SCHED_CLS)
+        self.sgi_fn = self.b_dl.load_func("gtpu_egress_handler", BPF.SCHED_ACT)
+        self.ul_map = self.b_ul.get_table(UL_MAP_NAME)
         self.sgi_if_name = sgi_if_name
         self.s1_if_name = s1_if_name
         self.ul_src_mac = self._get_mac_address(sgi_if_name)
@@ -106,6 +109,28 @@ class ebpf_manager:
 
         LOG.debug("Attach done")
 
+
+    def attach_dl_ebpf(self):
+        """
+        Attach eBPF downlink traffic handler
+        """
+
+        ipr = IPRoute()
+        try:
+            ipr.tc("add", "clsact", self.sgi_if_index)
+        except NetlinkError as ex:
+            LOG.error("error adding ingress ")
+
+        try:
+            ipr.tc(
+                "add-filter", "bpf", s1_if_index, ":1", fd=self.sgi_fn.fd, name=self.sgi_fn.name,
+                parent="ffff:fff2", classid=1, direct_action=True,
+            )
+        except NetlinkError as ex:
+            LOG.error("error adding ingress ")
+
+        LOG.debug("Attach done")
+
     """Remove the Uplink eBPF handler and associated maps.
     """
 
@@ -121,6 +146,22 @@ class ebpf_manager:
         out1 = subprocess.run(["unlink", sys_file], capture_output=True)
         LOG.debug(out1)
 
+
+
+    def detach_dl_ebpf(self):
+        """
+        Remove the Downlink eBPF handler and associated maps.
+        """
+
+        ipr = IPRoute()
+        try:
+            ipr.tc("del", "ingress", self.sgi_if_index, "ffff:")
+        except NetlinkError as ex:
+            pass
+        sys_file = BASE_MAP_FS + DL_MAP_NAME
+        out1 = subprocess.run(["unlink", sys_file], capture_output=True)
+        LOG.debug(out1)
+
     """Add uplink session entry
     """
 
@@ -128,7 +169,7 @@ class ebpf_manager:
         if not self.enabled:
             return
         sz = len(self.ul_map)
-        ip_addr = self._pack_ip(ue_ip);
+        ip_addr = self._pack_ip(ue_ip)
         LOG.debug(
             "Add entry: ip: %x mac src %s mac dst: %s" %
             (ip_addr, self._unpack_mac_addr(self.ul_src_mac), self._unpack_mac_addr(self.ul_gw_mac)),
@@ -142,7 +183,7 @@ class ebpf_manager:
     """
 
     def del_ul_entry(self, ue_ip: str):
-        ip_addr = self._pack_ip(ue_ip);
+        ip_addr = self._pack_ip(ue_ip)
         key = self.ul_map.Key(ip_addr)
 
         self.ul_map.pop(key, None)
@@ -179,12 +220,12 @@ class ebpf_manager:
 
     def _get_mac_address(self, if_name: str):
         addr_str = netifaces.ifaddresses(self.sgi_if_name)[netifaces.AF_LINK][0]['addr']
-        LOG.debug("if-name: %s, mac: %s" % (if_name, addr_str));
+        LOG.debug("if-name: %s, mac: %s" % (if_name, addr_str))
         return self._pack_mac_addr(addr_str)
 
     def _get_mac_address_of_ip(self, ip_addr: str):
         addr_str = getmacbyip(ip_addr)
-        LOG.debug("IP: %s, mac: %s" % (ip_addr, addr_str));
+        LOG.debug("IP: %s, mac: %s" % (ip_addr, addr_str))
         return self._pack_mac_addr(addr_str)
 
     def _pack_ip(self, ip_str: str):
@@ -217,3 +258,6 @@ if __name__ == "__main__":
     bm.print_ul_map()
     bm.del_ul_entry('192.168.128.12')
     bm.print_ul_map()
+
+    bm.detach_dl_ebpf()
+    bm.attach_dl_ebpf()
