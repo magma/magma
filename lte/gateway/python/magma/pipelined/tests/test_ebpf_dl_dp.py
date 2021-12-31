@@ -23,13 +23,14 @@ from magma.pipelined.ebpf.ebpf_manager import ebpf_manager
 from scapy.all import AsyncSniffer
 from scapy.layers.inet import IP, UDP
 
-GTP_SCRIPT = "/home/vagrant/magma/lte/gateway/python/magma/pipelined/tests/script/gtp-packet.py"
+PKT_SCRIPT = "/home/vagrant/magma/lte/gateway/python/magma/pipelined/tests/script/ip-packet.py"
 PY_PATH = "/home/vagrant/build/python/bin/python"
 UL_HANDLER = "/home/vagrant/magma/lte/gateway/python/magma/pipelined/ebpf/ebpf_ul_handler.c"
+DL_HANDLER = "/home/vagrant/magma/lte/gateway/python/magma/pipelined/ebpf/ebpf_dl_handler.c"
 
 
 # This test works when ran separately.
-@unittest.skip("AsyncSniffer is not working")
+#@unittest.skip("AsyncSniffer is not working")
 class eBpfDatapathULTest(unittest.TestCase):
     NS_NAME = 'ens1'
     gtp_veth = "enb0"
@@ -44,6 +45,8 @@ class eBpfDatapathULTest(unittest.TestCase):
 
     gtp_pkt_dst = '11.1.1.1'
     gtp_pkt_src = '11.1.1.2'
+
+    gtp_tunnel_id = 101
 
     packet_cap1 = []
     sniffer = None
@@ -61,33 +64,36 @@ class eBpfDatapathULTest(unittest.TestCase):
         BridgeTools.ifup_netdev(cls.gtp_veth, cls.gtp_pkt_dst + "/24")
 
         BridgeTools.create_veth_pair(cls.sgi_veth, cls.sgi_veth1)
+        time.sleep(2)
 
-        BridgeTools.create_ns_and_move_veth(cls.NS_NAME, cls.gtp_veth_ns, cls.gtp_pkt_src + "/24")
+        #BridgeTools.create_ns_and_move_veth(cls.NS_NAME, cls.gtp_veth_ns, cls.gtp_pkt_src + "/24")
+        BridgeTools.create_ns_and_move_veth(cls.NS_NAME, cls.sgi_veth1, cls.inner_src_ip + "/24")
 
-        BridgeTools.ifup_netdev(cls.sgi_veth, cls.sgi_veth_ip + "/24")
-        BridgeTools.ifup_netdev(cls.sgi_veth1)
+        BridgeTools.ifup_netdev(cls.sgi_veth, cls.inner_dst_ip + "/24")
+        #BridgeTools.ifup_netdev(cls.sgi_veth1)
+        BridgeTools.ifup_netdev(cls.gtp_veth_ns, cls.gtp_pkt_src + "/24")
 
-        cls.ebpf_man = ebpf_manager(cls.sgi_veth, cls.gtp_veth, cls.sgi_veth_ip, True, UL_HANDLER)
-        cls.ebpf_man.detach_ul_ebpf()
-        cls.ebpf_man.attach_ul_ebpf()
+        time.sleep(2)
+        cls.ebpf_man = ebpf_manager(cls.sgi_veth, cls.gtp_veth, cls.sgi_veth_ip, enabled=True, bpf_ul_file=UL_HANDLER, bpf_dl_file=DL_HANDLER)
+        cls.ebpf_man.attach_dl_ebpf()
+        cls.ebpf_man.attach_dl_ebpf()
         time.sleep(2)
         cls.sniffer = AsyncSniffer(
-            iface=cls.sgi_veth1,
+            iface=cls.gtp_veth_ns,
             store=False,
             prn=cls.pkt_cap_fun,
         )
         cls.sniffer.start()
 
     @classmethod
-    def sendPacket(cls, gtp_src, gtp_dst, udp_src, udp_dst):
+    def sendPacket(cls, gtp_src, gtp_dst):
         try:
             xmit_cmd = [
                 "ip", "netns", "exec", cls.NS_NAME,
                 PY_PATH,
-                GTP_SCRIPT,
+                PKT_SCRIPT,
                 gtp_src, gtp_dst,
-                udp_src, udp_dst,
-                cls.gtp_veth_ns,
+                cls.sgi_veth1,
             ]
             subprocess.check_call(xmit_cmd)
             logging.debug("del ns %s", xmit_cmd)
@@ -104,15 +110,26 @@ class eBpfDatapathULTest(unittest.TestCase):
         BridgeTools.delete_veth(cls.sgi_veth)
 
     @classmethod
+    def tearDownClass(cls):
+        pass
+        # for testing
+#         cls.ebpf_man.detach_ul_ebpf()
+#         cls.sniffer.stop()
+#         BridgeTools.delete_ns_all()
+#         BridgeTools.delete_veth(cls.gtp_veth)
+#         BridgeTools.delete_veth(cls.sgi_veth)
+
+    @classmethod
     def pkt_cap_fun(cls, packet):
-        # print("got packet: %s", packet)
+        print("got packet: %s", packet)
+        print(packet.show(dump=True))
         cls.packet_cap1.append(packet)
 
     @classmethod
     def count_udp_packet(cls):
         cnt = 0
         for pkt in cls.packet_cap1:
-            # print(pkt.show(dump=True))
+            print(pkt.show(dump=True))
             if IP in pkt:
                 if pkt[IP].src == cls.inner_src_ip and pkt[IP].dst == cls.inner_dst_ip:
                     cnt = cnt + 1
@@ -121,19 +138,25 @@ class eBpfDatapathULTest(unittest.TestCase):
     def testEbpfUlFrw1(self):
         cls = self.__class__
         cls.setUpClassDevices()
-        cls.sendPacket(cls.gtp_pkt_src, cls.gtp_pkt_dst, cls.inner_src_ip, cls.inner_dst_ip)
-        self.assertEqual(len(cls.packet_cap1), 0)
+        cls.sendPacket(cls.inner_src_ip, cls.inner_dst_ip)
+        #self.assertEqual(len(cls.packet_cap1), 0)
 
-        cls.ebpf_man.add_ul_entry(100, cls.inner_src_ip)
-        cls.sendPacket(cls.gtp_pkt_src, cls.gtp_pkt_dst, cls.inner_src_ip, cls.inner_dst_ip)
+        cls.ebpf_man.add_dl_entry(cls.inner_dst_ip, cls.gtp_pkt_dst, cls.gtp_tunnel_id)
+        time.sleep(2)
+        cls.ebpf_man.print_dl_map()
+        time.sleep(1)
+        cls.sendPacket(cls.inner_src_ip, cls.inner_dst_ip)
 
         self.assertEqual(cls.count_udp_packet(), 1)
-        cls.sendPacket(cls.gtp_pkt_src, cls.gtp_pkt_dst, cls.inner_src_ip, cls.inner_dst_ip)
+        cls.sendPacket(cls.inner_src_ip, cls.inner_dst_ip)
 
         self.assertEqual(cls.count_udp_packet(), 2)
 
         cls.ebpf_man.del_ul_entry(cls.inner_src_ip)
-        cls.sendPacket(cls.gtp_pkt_src, cls.gtp_pkt_dst, cls.inner_src_ip, cls.inner_dst_ip)
+        cls.sendPacket(cls.inner_src_ip, cls.inner_dst_ip)
 
         self.assertEqual(cls.count_udp_packet(), 2)
         cls.tearDownClassDevices()
+
+if __name__ == "__main__":
+    unittest.main()

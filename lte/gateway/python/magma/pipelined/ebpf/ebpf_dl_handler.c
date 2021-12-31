@@ -1,11 +1,16 @@
-// SPDX-License-Identifier: GPL-2.0
-/*
+/**
  * Copyright 2021 The Magma Authors.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU General Public
- * License as published by the Free Software Foundation.
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 #include <bcc/proto.h>
 #include <linux/in.h>
 #include <linux/ip.h>
@@ -28,6 +33,13 @@ struct dl_map_info {
 BPF_TABLE_PINNED(
     "hash", struct dl_map_key, struct dl_map_info, dl_map, 1024 * 512,
     "/sys/fs/bpf/dl_map");
+
+struct cfg_array_info {
+  u32 if_idx;
+};
+
+BPF_TABLE_PINNED(
+    "array", u32, struct cfg_array_info, cfg_array, 1, "/sys/fs/bpf/cfg_array");
 
 // Ingress handler for Uplink traffic.
 int gtpu_egress_handler(struct __sk_buff* skb) {
@@ -63,19 +75,21 @@ int gtpu_egress_handler(struct __sk_buff* skb) {
   __builtin_memset(&key, 0x0, sizeof(tun_key));
   tun_key.remote_ipv4 = fwd->remote_ipv4;
   tun_key.tunnel_id = fwd->tunnel_id;
-  tun_key.tunnel_tos = 0;
   tun_key.tunnel_ttl = 64;
 
-  ret = bpf_skb_set_tunnel_key(skb, &key, sizeof(key),
-                               BPF_F_ZERO_CSUM_TX | BPF_F_SEQ_NUMBER);
+  ret = bpf_skb_set_tunnel_key(skb, &key, sizeof(key), BPF_F_ZERO_CSUM_TX);
   if (ret < 0) {
       bpf_trace_printk("ERR: bpf_skb_set_tunnel_key failed with %d", ret);
       return TC_ACT_SHOT;
   }
-  bpf_trace_printk("INFO: set: key %d remote ip 0x%x ret = %d\n", key.tunnel_id, key.remote_ipv4, ret)
+  bpf_trace_printk("INFO: set: key %d remote ip 0x%x ret = %d\n", tun_key.tunnel_id, tun_key.remote_ipv4, ret);
 
-  //TODO save in map
-  int if_idx = 51;
+  u32  cfg_key   = 0;
+  struct cfg_array_info* cfg = cfg_array.lookup(&cfg_key);
+  if (!cfg) {
+    bpf_trace_printk("ERR: Config array lookup failed\n");
+    return TC_ACT_OK;
+  }
 
-  return bpf_redirect(if_idx, 0);
+  return bpf_redirect(cfg->if_idx, 0);
 }
