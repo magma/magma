@@ -183,6 +183,12 @@ variable "eks_map_users" {
   default = []
 }
 
+variable "eks_enable_irsa"{
+  description = "Enable IAM Roles for Service Accounts (IRSA) on the EKS cluster."
+  type = bool
+  default = true
+}
+
 ##############################################################################
 # EFS configuration
 ##############################################################################
@@ -317,6 +323,16 @@ variable "orc8r_db_apply_immediately"{
 variable "secretsmanager_orc8r_secret" {
   description = "AWS Secret Manager secret to store Orchestrator secrets."
   type        = string
+}
+
+##############################################################################
+# Setup IAM Role for cert-manager
+##############################################################################
+
+variable "setup_cert_manager" {
+  description = "Create IAM role and policy for cert-manager."
+  type        = bool
+  default     = false
 }
 
 ##############################################################################

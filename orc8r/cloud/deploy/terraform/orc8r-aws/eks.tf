@@ -59,6 +59,8 @@ module "eks" {
   map_users = var.eks_map_users
 
   tags = var.global_tags
+
+  enable_irsa = var.eks_enable_irsa
 }
 
 # role assume policy for eks workers
