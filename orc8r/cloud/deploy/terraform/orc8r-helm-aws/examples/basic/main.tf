@@ -22,7 +22,7 @@ module "orc8r" {
   # orc8r_db_engine_version     = "12.6"
   orc8r_db_password = "mypassword" # must be at least 8 characters
 
-  setup_cert_manager = true
+  setup_cert_manager = false
 
   secretsmanager_orc8r_secret = "orc8r-secrets"
   orc8r_domain_name           = "orc8r.example.com"
