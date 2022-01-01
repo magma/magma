@@ -183,7 +183,7 @@ variable "eks_map_users" {
   default = []
 }
 
-variable "eks_enable_irsa"{
+variable "eks_enable_irsa" {
   description = "Enable IAM Roles for Service Accounts (IRSA) on the EKS cluster."
   type = bool
   default = true
