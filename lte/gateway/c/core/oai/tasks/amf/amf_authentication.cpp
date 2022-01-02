@@ -259,7 +259,9 @@ nas5g_amf_auth_proc_t* nas5g_new_authentication_procedure(
   auth_proc->amf_com_proc.amf_proc.type = NAS_AMF_PROC_TYPE_COMMON;
   auth_proc->amf_com_proc.type = AMF_COMM_PROC_AUTH;
   auth_proc->retry_sync_failure = 0;
+  auth_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
   nas_amf_common_procedure_t* wrapper = new nas_amf_common_procedure_t();
+
   if (wrapper) {
     wrapper->proc = &auth_proc->amf_com_proc;
     LIST_INSERT_HEAD(&amf_context->amf_procedures->amf_common_procs, wrapper,
@@ -616,7 +618,9 @@ int amf_auth_auth_rej(amf_ue_ngap_id_t ue_id) {
   amf_sap.u.amf_as.u.security.msg_type = AMF_AS_MSG_TYPE_AUTH;
   rc = amf_sap_send(&amf_sap);
   ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
   amf_free_ue_context(ue_mm_context);
+
   return rc;
 }
 

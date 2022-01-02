@@ -470,7 +470,7 @@ int send_uplink_nas_pdu_session_release_message(amf_app_desc_t* amf_app_desc_p,
   return (rc);
 }
 
-/* Create security mode complete response from ue */
+/* Create ue deregistration request */
 int send_uplink_nas_ue_deregistration_request(amf_app_desc_t* amf_app_desc_p,
                                               amf_ue_ngap_id_t ue_id,
                                               const plmn_t& plmn,
@@ -524,7 +524,21 @@ void send_ue_context_release_request_message(amf_app_desc_t* amf_app_desc_p,
   ue_context_release_request.amf_ue_ngap_id = amf_ue_ngap_id;
   ue_context_release_request.relCause = NGAP_RADIO_NR_GENERATED_REASON;
 
-  amf_app_handle_cm_idle_on_ue_context_release(ue_context_release_request);
+  amf_app_handle_ngap_ue_context_release_req(&ue_context_release_request);
+}
+
+/* Create context release request */
+void send_ue_context_release_complete_message(
+    amf_app_desc_t* amf_app_desc_p, uint32_t gnb_id,
+    gnb_ue_ngap_id_t gnb_ue_ngap_id, amf_ue_ngap_id_t amf_ue_ngap_id) {
+  itti_ngap_ue_context_release_complete_t ue_context_release_complete = {};
+
+  ue_context_release_complete.gnb_id         = gnb_id;
+  ue_context_release_complete.gnb_ue_ngap_id = gnb_ue_ngap_id;
+  ue_context_release_complete.amf_ue_ngap_id = amf_ue_ngap_id;
+
+  amf_app_handle_ngap_ue_context_release_complete(
+      amf_app_desc_p, &ue_context_release_complete);
 }
 
 imsi64_t send_initial_ue_message_service_request(
@@ -595,4 +609,45 @@ int send_uplink_nas_message_service_request_with_pdu(
                                          amf_ue_ngap_id, originating_tai);
   return (rc);
 }
+
+// Check the ue context state
+bool check_ue_context_state(
+    amf_ue_ngap_id_t ue_id, m5gmm_state_t expected_mm_state,
+    m5gcm_state_t expected_cm_state,
+    enum n2cause expected_ue_context_rel_cause) {
+  m5gmm_state_t mm_state;
+  int rc = RETURNerror;
+
+  rc = amf_get_ue_context_mm_state(ue_id, &mm_state);
+  if (rc != RETURNok) {
+    return false;
+  }
+
+  if (mm_state != expected_mm_state) {
+    return false;
+  }
+
+  m5gcm_state_t cm_state;
+  rc = amf_get_ue_context_cm_state(ue_id, &cm_state);
+  if (rc != RETURNok) {
+    return false;
+  }
+
+  if (cm_state != expected_cm_state) {
+    return false;
+  }
+
+  enum n2cause ue_context_rel_cause;
+  rc = amf_get_ue_context_rel_cause(ue_id, &ue_context_rel_cause);
+  if (rc != RETURNok) {
+    return false;
+  }
+
+  if (ue_context_rel_cause != expected_ue_context_rel_cause) {
+    return false;
+  }
+
+  return (true);
+}
+
 }  // namespace magma5g

@@ -809,9 +809,13 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionEstReq) {
 
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
+
   imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
                                            initial_ue_message_hexbuf,
                                            sizeof(initial_ue_message_hexbuf));
+
+  send_ue_context_release_complete_message(amf_app_desc_p, 1, 1, ue_id);
+
   AMFClientServicer::getInstance().map_table_key_proto_str.clear();
   EXPECT_TRUE(
       AMFClientServicer::getInstance().map_table_key_proto_str.isEmpty());
