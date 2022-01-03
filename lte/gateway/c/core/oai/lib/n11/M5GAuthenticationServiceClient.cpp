@@ -62,10 +62,7 @@ static void handle_subs_authentication_info_ans(
   if (!status.ok()) {
     std::cout << "get_subs_auth_info fails with code " << status.error_code()
               << ", msg: " << status.error_message() << std::endl;
-
-  }
-  else {
-
+  } else {
      strncpy(amf_app_subs_auth_info_resp_p->imsi, imsi.c_str(), imsi_length);
      amf_app_subs_auth_info_resp_p->imsi_length = imsi_length;
      amf_app_subs_auth_info_resp_p->ue_id       = ue_id;
