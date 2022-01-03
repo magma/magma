@@ -260,8 +260,8 @@ int pdu_session_resource_release_complete(
 }
 
 int t3592_abort_handler(
-     ue_m5gmm_context_t*  ue_context,
-    std::shared_ptr<smf_context_t> smf_ctx,  uint8_t pdu_session_id) {
+    ue_m5gmm_context_t* ue_context, std::shared_ptr<smf_context_t> smf_ctx,
+    uint8_t pdu_session_id) {
   int rc                               = RETURNerror;
   amf_smf_t amf_smf_msg                = {};
   amf_smf_msg.pdu_session_id           = pdu_session_id;

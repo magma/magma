@@ -866,10 +866,10 @@ ue_m5gmm_context_s* ue_context_loopkup_by_guti(tmsi_t tmsi_rcv);
 void ue_context_update_ue_id(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t ue_id);
 ue_m5gmm_context_s* ue_context_lookup_by_gnb_ue_id(
-    gnb_ue_ngap_id_t gnb_ue_ngap_id);    
+    gnb_ue_ngap_id_t gnb_ue_ngap_id);
 int t3592_abort_handler(
-     ue_m5gmm_context_t*  ue_context,
-    std::shared_ptr<smf_context_t> smf_ctx,  uint8_t pdu_session_id);
+    ue_m5gmm_context_t* ue_context, std::shared_ptr<smf_context_t> smf_ctx,
+    uint8_t pdu_session_id);
 
 /* Fetch tmsi from ue id */
 tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id);
