@@ -1914,7 +1914,7 @@ void mme_config_display(mme_config_t* config_pP) {
   if (RUN_MODE_TEST == config_pP->run_mode) {
     OAILOG_INFO(
         LOG_CONFIG, "- Test param ...........................: %u\n",
-        config_pP->test);
+        config_pP->test_param);
   }
   OAILOG_INFO(
       LOG_CONFIG, "- Max eNBs .............................: %u\n",
@@ -2337,19 +2337,19 @@ int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
       } break;
 
       case 'p': {
-        config_pP->test      = atoi(optarg);
+        config_pP->test_param      = atoi(optarg);
         config_pP->test_type = TEST_SERIALIZATION_PROTOBUF;
         config_pP->run_mode  = RUN_MODE_TEST;
         OAI_FPRINTF_INFO(
-            "Test serialization protobuf, parameter %u\n", config_pP->test);
+            "Test serialization protobuf, parameter %u\n", config_pP->test_param);
       } break;
 
       case 'f': {
-        config_pP->test      = atoi(optarg);
+        config_pP->test_param      = atoi(optarg);
         config_pP->test_type = TEST_SERIALIZATION_FLATBUFFER;
         config_pP->run_mode  = RUN_MODE_TEST;
         OAI_FPRINTF_INFO(
-            "Test serialization flatbuffer, parameter %u\n", config_pP->test);
+            "Test serialization flatbuffer, parameter %u\n", config_pP->test_param);
       } break;
 
       case 's': {

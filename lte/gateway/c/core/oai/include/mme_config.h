@@ -394,7 +394,7 @@ typedef struct mme_config_s {
   run_mode_t run_mode;
   // Integer value for testing serialization
   test_type_t test_type;
-  uint32_t test;
+  uint32_t test_param;
 
   uint32_t max_enbs;
   uint32_t max_ues;
