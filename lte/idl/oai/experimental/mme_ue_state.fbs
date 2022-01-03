@@ -55,7 +55,7 @@ struct SgsContext {
   tau_active_flag:bool;
   service_indicator:ubyte;
   //csfb_service_type_t csfb_service_type;
-  call_cancelled:bool;
+  call_canceled:bool;
   mt_call_in_progress:bool;
   is_emergency_call:bool;
 }
