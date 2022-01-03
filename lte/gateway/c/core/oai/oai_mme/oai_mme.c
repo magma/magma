@@ -64,7 +64,7 @@
 #include "lte/gateway/c/core/oai/include/service303.h"
 #include "lte/gateway/c/core/oai/common/shared_ts_log.h"
 #include "lte/gateway/c/core/oai/include/grpc_service.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_test_serialization.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.h"
 
 static void send_timer_recovery_message(void);
 

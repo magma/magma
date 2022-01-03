@@ -45,4 +45,5 @@ target_link_libraries(TASK_SGW
 target_include_directories(TASK_SGW PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${S1AP_C_DIR}
+    ${FLATBUFFER_H_DIR}
     )

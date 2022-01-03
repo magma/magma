@@ -50,7 +50,7 @@
 #include "lte/gateway/c/core/oai/include/mme_app_state.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_test_serialization.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.h"
 
 static void check_mme_healthy_and_notify_service(void);
 static bool is_mme_app_healthy(void);

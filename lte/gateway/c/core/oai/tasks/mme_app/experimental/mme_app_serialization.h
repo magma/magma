@@ -17,7 +17,7 @@ extern "C" {
 #endif
 
 // C includes --------------------------------------------------------------
-#include "mme_app_desc.h"
+#include "lte/gateway/c/core/oai/include/mme_app_desc.h"
 
 void mme_app_schedule_test_protobuf_serialization(uint num_ues);
 void mme_app_schedule_test_flatbuffer_serialization(uint num_ues);

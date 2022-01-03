@@ -12,20 +12,20 @@
  */
 //--C includes -----------------------------------------------------------------
 extern "C" {
-#include "emm_data.h"
-#include "emm_proc.h"
-#include "esm_proc.h"
-#include "nas_procedures.h"
-#include "log.h"
-#include "dynamic_memory_check.h"
-#include "intertask_interface.h"
-#include "common_types.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
-#include "mme_app_state.h"
-#include "3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/include/mme_app_state.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 }
-#include "mme_app_test_serialization.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.h"
 #include <mcheck.h>
 #include <sys/time.h>      // rusage()
 #include <sys/resource.h>  //rusage()
@@ -34,7 +34,7 @@ extern "C" {
 #include <cmath>
 #include <vector>
 //--Other includes -------------------------------------------------------------
-#include "mme_app_state_manager.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.h"
 extern task_zmq_ctx_t main_zmq_ctx;
 
 using magma::lte::MmeNasStateManager;
