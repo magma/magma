@@ -180,14 +180,14 @@ enum EmmScType:ubyte {
   SECURITY_CTX_TYPE_MAPPED
 }
 
-// Be carefull, was bitfield
+// Be careful, was bitfield
 struct Count {
   spare:ubyte;
   overflow:uint16;
   seq_num:ubyte;
 }
 
-// Be carefull, was bitfield with quartets
+// Be careful, was bitfield with quartets
 struct SelectedAlgorithms {
   encryption:ubyte;
   integrity:ubyte;
