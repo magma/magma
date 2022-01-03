@@ -250,7 +250,7 @@ def federated_integ_test(
 
 def integ_test(
     gateway_host=None, test_host=None, trf_host=None,
-    destroy_vm='True', provision_vm='True',
+    destroy_vm='True', provision_vm='True', use_trf_ns='False',
 ):
     """
     Run the integration tests. This defaults to running on local vagrant
@@ -272,6 +272,7 @@ def integ_test(
 
     destroy_vm = bool(strtobool(destroy_vm))
     provision_vm = bool(strtobool(provision_vm))
+    use_trf_ns = bool(strtobool(use_trf_ns))
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
@@ -297,13 +298,17 @@ def integ_test(
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
-    if not trf_host:
+    if use_trf_ns:
+        trf_host = vagrant_setup(
+            'magma_test', destroy_vm, force_provision=provision_vm,
+        )
+    elif not trf_host:
         trf_host = vagrant_setup(
             'magma_trfserver', destroy_vm, force_provision=provision_vm,
         )
     else:
         ansible_setup(trf_host, "trfserver", "magma_trfserver.yml")
-    execute(_start_trfserver)
+    execute(_start_trfserver, use_trf_ns)
 
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
@@ -370,6 +375,7 @@ def get_test_logs(
     test_host=None,
     trf_host=None,
     dst_path="/tmp/build_logs.tar.gz",
+    use_trf_ns='False',
 ):
     """
     Download the relevant magma logs from the given gateway and test machines.
@@ -387,6 +393,7 @@ def get_test_logs(
          defaults to the `magma_trfserver` vagrant box.
         dst_path: The path where the tarred logs will be placed on the host
     """
+    use_trf_ns = bool(strtobool(use_trf_ns))
 
     # Grab the build logs from the machines and bring them to the host
     local('rm -rf /tmp/build_logs')
@@ -419,19 +426,20 @@ def get_test_logs(
             )
 
     # Set up to enter the trfserver host
-    env.host_string = trf_host
-    if not trf_host:
-        setup_env_vagrant("magma_trfserver")
-        trf_host = env.hosts[0]
-    (env.user, _, _) = split_hoststring(trf_host)
+    if not use_trf_ns:
+        env.host_string = trf_host
+        if not trf_host:
+            setup_env_vagrant("magma_trfserver")
+            trf_host = env.hosts[0]
+        (env.user, _, _) = split_hoststring(trf_host)
 
-    # Don't fail if the logs don't exists
-    for p in trf_files:
-        with settings(warn_only=True):
-            get(
-                remote_path=p, local_path='/tmp/build_logs/trfserver/',
-                use_sudo=True,
-            )
+        # Don't fail if the logs don't exists
+        for p in trf_files:
+            with settings(warn_only=True):
+                get(
+                    remote_path=p, local_path='/tmp/build_logs/trfserver/',
+                    use_sudo=True,
+                )
 
     # Set up to enter the test host
     env.host_string = test_host
@@ -526,14 +534,19 @@ def make_integ_tests(test_host=None, destroy_vm='False', provision_vm='False'):
     execute(_make_integ_tests)
 
 
-def build_and_start_magma_trf(test_host=None, destroy_vm='False', provision_vm='False'):
+def build_and_start_magma_trf(test_host=None, destroy_vm='False', provision_vm='False', use_trf_ns='False'):
     destroy_vm = bool(strtobool(destroy_vm))
     provision_vm = bool(strtobool(provision_vm))
-    if not test_host:
+    use_trf_ns = bool(strtobool(use_trf_ns))
+
+    if use_trf_ns:
+        # do not start trf VM.
+        pass
+    elif not test_host:
         vagrant_setup('magma_trfserver', destroy_vm, force_provision=provision_vm)
     else:
         ansible_setup(test_host, "test", "magma_test.yml")
-    execute(_start_trfserver)
+    execute(_start_trfserver, use_trf_ns)
 
 
 def start_magma(test_host=None, destroy_vm='False', provision_vm='False'):
@@ -606,14 +619,23 @@ def _set_service_config_var(service, var_name, value):
     )
 
 
-def _start_trfserver():
+def _start_trfserver(use_trf_ns=False):
     """ Starts the traffic gen server"""
     # disable-tcp-checksumming
     # trfgen-server non daemon
+
     host = env.hosts[0].split(':')[0]
     port = env.hosts[0].split(':')[1]
     key = env.key_filename
     # set tty on cbreak mode as background ssh process breaks indentation
+    if use_trf_ns:
+        local(
+        'ssh -f -i %s -o UserKnownHostsFile=/dev/null'
+        ' -o StrictHostKeyChecking=no -tt %s -p %s'
+        ' nohup sudo bash -x /home/vagrant/magma/lte/gateway/python/integ_tests/script/setup-trf-ns.sh reset; '
+        % (key, host, port),
+        )
+        return
     local(
         'ssh -f -i %s -o UserKnownHostsFile=/dev/null'
         ' -o StrictHostKeyChecking=no -tt %s -p %s'

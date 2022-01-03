@@ -522,8 +522,15 @@ class TrafficTestDriver(object):
     def _get_macs(self):
         ''' Retrieves the MAC addresses of the associated test servers, based
         on the information of the instances '''
+        dev = 'eth2'
         ip = pyroute2.IPRoute()
-        mac = ip.link('get', index=ip.link_lookup(ifname='eth2')[0])[0] \
+        # In case of trf-server in namespace, the namespace only has eth3
+        # Therefore if eth2 is missing,  use eth3.
+        # This check is done for compatibility for namespace based trf-serve
+        res = ip.link_lookup(ifname=dev)
+        if len(res) == 0:
+            dev = 'eth3'
+        mac = ip.link('get', index=ip.link_lookup(ifname=dev)[0])[0] \
             .get_attr('IFLA_ADDRESS')
 
         return (mac,) * len(self._instances)

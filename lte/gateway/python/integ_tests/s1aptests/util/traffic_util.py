@@ -125,9 +125,13 @@ class TrafficUtil(object):
 
     def update_dl_route(self, ue_ip_block):
         """ Update downlink route in TRF server """
+        dev = "eth2"
+        ip = pyroute2.IPRoute()
+        if ip.link_lookup(ifname='trf1'):
+            dev = "eth3"
         ret_code = self.exec_command(
             "sudo ip route flush via 192.168.129.1 && sudo ip route "
-            "replace " + ue_ip_block + " via 192.168.129.1 dev eth2",
+            "replace " + ue_ip_block + " via 192.168.129.1 dev " + dev,
         )
         if ret_code != 0:
             return False
