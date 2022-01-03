@@ -48,14 +48,6 @@ static void handle_subs_authentication_info_ans(
     magma::lte::M5GAuthenticationInformationAnswer response,
     const std::string& imsi, uint8_t imsi_length, amf_ue_ngap_id_t ue_id) {
   MessageDef* message_p;
-
-  if (!status.ok()) {
-    std::cout << "get_subs_auth_info fails with code " << status.error_code()
-              << ", msg: " << status.error_message() << std::endl;
-
-    return;
-  }
-
   message_p =
       itti_alloc_new_message(TASK_GRPC_SERVICE, AMF_APP_SUBS_AUTH_INFO_RESP);
 
@@ -65,12 +57,22 @@ static void handle_subs_authentication_info_ans(
   memset(
       amf_app_subs_auth_info_resp_p, 0, sizeof(itti_amf_subs_auth_info_ans_t));
 
-  strncpy(amf_app_subs_auth_info_resp_p->imsi, imsi.c_str(), imsi_length);
-  amf_app_subs_auth_info_resp_p->imsi_length = imsi_length;
-  amf_app_subs_auth_info_resp_p->ue_id       = ue_id;
+  amf_app_subs_auth_info_resp_p->result = status.ok();
 
-  magma5g::convert_proto_msg_to_itti_m5g_auth_info_ans(
-      response, amf_app_subs_auth_info_resp_p);
+  if (!status.ok()) {
+    std::cout << "get_subs_auth_info fails with code " << status.error_code()
+              << ", msg: " << status.error_message() << std::endl;
+
+  }
+  else {
+
+     strncpy(amf_app_subs_auth_info_resp_p->imsi, imsi.c_str(), imsi_length);
+     amf_app_subs_auth_info_resp_p->imsi_length = imsi_length;
+     amf_app_subs_auth_info_resp_p->ue_id       = ue_id;
+
+     magma5g::convert_proto_msg_to_itti_m5g_auth_info_ans(
+        response, amf_app_subs_auth_info_resp_p);
+  }
 
   send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
 }

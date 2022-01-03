@@ -468,7 +468,7 @@ int amf_nas_proc_authentication_info_answer(
         LOG_NAS_AMF, "nb_of_vectors received is zero from subscriberdb");
     amf_cause = AMF_UE_ILLEGAL;
     rc        = amf_proc_registration_reject(amf_ue_ngap_id, amf_cause);
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+    amf_free_ue_context(ue_5gmm_context_p);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
