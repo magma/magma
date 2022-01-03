@@ -10,6 +10,19 @@ set(LTE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/protos/oai")
 generate_cpp_protos("${MMEAPP_STATE_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${STATE_PROTO_DIR} ${LTE_OUT_DIR})
 
+# compile the needed FlatBuffers
+set(MMEAPP_STATE_CPP_FLATS 3gpp_23003 3gpp_24008 3gpp_29274 3gpp_36413
+    common_types mme_nas_state mme_ue_state)
+
+list(APPEND FLAT_HDRS "")
+
+set(FLATBUFFER_H_DIR "${PROJECT_BINARY_DIR}/lte/flat/oai/experimental")
+message("FLATBUFFER_H_DIR ${FLATBUFFER_H_DIR}")
+file(MAKE_DIRECTORY ${FLATBUFFER_H_DIR})
+generate_cpp_flats("${MMEAPP_STATE_CPP_FLATS}"
+    "${FLAT_HDRS}" ${STATE_FLAT_DIR} ${FLATBUFFER_H_DIR})
+message("FLAT_HDRS ${FLAT_HDRS}")
+
 if (EMBEDDED_SGW)
   set(S11_RELATED_SRCS mme_app_embedded_spgw.c)
 endif (EMBEDDED_SGW)
@@ -56,10 +69,12 @@ add_library(TASK_MME_APP
     mme_app_ha.cpp
     mme_app_timer_management.cpp
     mme_app_ip_imsi.cpp
-    mme_app_test_serialization.cpp
-    mme_app_test_serialization_flat_buffer.cpp
+    experimental/mme_app_serialization.cpp
+    experimental/mme_app_serialization.h
+    experimental/mme_app_serialization_flat_buffer.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
+    ${FLAT_HDRS}
     ${S11_RELATED_SRCS}
     )
 
@@ -85,5 +100,6 @@ endif (EMBEDDED_SGW)
 target_include_directories(TASK_MME_APP PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${S1AP_C_DIR}
+    ${FLATBUFFER_H_DIR}
     $<TARGET_FILE_DIR:TASK_MME_APP>
     )
