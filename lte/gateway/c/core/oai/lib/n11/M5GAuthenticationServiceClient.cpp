@@ -63,11 +63,11 @@ static void handle_subs_authentication_info_ans(
     std::cout << "get_subs_auth_info fails with code " << status.error_code()
               << ", msg: " << status.error_message() << std::endl;
   } else {
-     strncpy(amf_app_subs_auth_info_resp_p->imsi, imsi.c_str(), imsi_length);
-     amf_app_subs_auth_info_resp_p->imsi_length = imsi_length;
-     amf_app_subs_auth_info_resp_p->ue_id       = ue_id;
+    strncpy(amf_app_subs_auth_info_resp_p->imsi, imsi.c_str(), imsi_length);
+    amf_app_subs_auth_info_resp_p->imsi_length = imsi_length;
+    amf_app_subs_auth_info_resp_p->ue_id       = ue_id;
 
-     magma5g::convert_proto_msg_to_itti_m5g_auth_info_ans(
+    magma5g::convert_proto_msg_to_itti_m5g_auth_info_ans(
         response, amf_app_subs_auth_info_resp_p);
   }
 
