@@ -1418,7 +1418,7 @@ TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
           &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
       0);
 
-  // send delete bearer command to SPGW task
+  // create and send delete bearer command to SPGW task
   itti_s11_delete_bearer_command_t s11_delete_bearer_command = {};
   fill_s11_delete_bearer_command(
       &s11_delete_bearer_command, ue_sgw_teid, DEFAULT_MME_S11_TEID,
@@ -1447,7 +1447,7 @@ TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
       spgw_state, &sample_nw_init_ded_bearer_deactv_resp, test_imsi64);
   EXPECT_EQ(return_code, RETURNok);
 
-  // check that bearer is deleted
+  // check that the dedicated bearer is deleted
   EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
 
   // Sleep to ensure that messages are received and contexts are released
