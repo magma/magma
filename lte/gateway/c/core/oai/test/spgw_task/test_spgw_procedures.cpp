@@ -1431,6 +1431,7 @@ TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
                                 1, s11_delete_bearer_command.ebi_list.ebis)))
       .Times(1);
 
+  // Trigger delete bearer command
   sgw_handle_delete_bearer_cmd(&s11_delete_bearer_command, test_imsi64);
 
   // send a delete dedicated bearer response from MME
