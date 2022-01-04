@@ -281,7 +281,7 @@ class TCManager(object):
             return None, None
 
         parser = self._datapath.ofproto_parser
-        return parser.OFPActionSetField(pkt_mark=qid), None
+        return parser.OFPActionSetField(pkt_mark=qid), None, qid
 
     def create_class_async(
         self, d: FlowMatch.Direction, qos_info: QosInfo,

@@ -14,7 +14,7 @@ cd ~/$DIR
 
 git clone  https://github.com/openvswitch/ovs
 cd ovs/
-git checkout v2.15.2
+git checkout 31288dc725be6bc8eaa4e8641ee28895c9d0fd7a
 git apply "$MAGMA_ROOT/third_party/gtp_ovs/ovs-gtp-patches/$OVS_VER"/00*
 DEB_BUILD_OPTIONS='parallel=8 nocheck' fakeroot debian/rules binary
 cd ..
