@@ -57,6 +57,7 @@ message UnmapSessionIDToIMSIRequest {
   repeated string sessionIDs = 2;
 }
 
+// CTeid
 message GetHWIDForSgwCTeidRequest {
   string networkID = 1;
   string teid = 2;
@@ -77,16 +78,45 @@ message UnmapSgwCTeidToHWIDRequest {
 }
 
 message GetNewSgwCTeidRequest {
-   string networkID = 1;
+  string networkID = 1;
 }
 
 message GetNewSgwCTeidResponse{
-   string teid = 1;
+  string teid = 1;
+}
+
+// UTeid
+message GetHWIDForSgwUTeidRequest {
+  string networkID = 1;
+  string teid = 2;
+}
+
+message GetHWIDForSgwUTeidResponse {
+  string hwid = 1;
+}
+
+message MapSgwUTeidToHWIDRequest {
+  string networkID = 1;
+  map<string, string>  teidToHwid = 2;
+}
+
+message UnmapSgwUTeidToHWIDRequest {
+  string networkID = 1;
+  repeated string teids= 2;
+}
+
+message GetNewSgwUTeidRequest {
+  string networkID = 1;
+}
+
+message GetNewSgwUTeidResponse{
+  string teid = 1;
 }
 
 // DirectoryLookup service associates various identities and locations.
 // This service runs in the controller, generating and consuming mostly derived state.
 service DirectoryLookup {
+  // HWIDsToHostname
   // GetHostnameForHWID returns the hostname mapped to by hardware ID.
   rpc GetHostnameForHWID(GetHostnameForHWIDRequest) returns (GetHostnameForHWIDResponse) {};
 
@@ -96,6 +126,7 @@ service DirectoryLookup {
   // UnmapHWIDsToHostnames removes {hwid -> hostname} for an specific hwid.
   rpc UnmapHWIDsToHostnames(UnmapHWIDToHostnameRequest) returns (Void) {};
 
+  // IDsToIMSI
   // GetIMSIForSessionID returns the IMSI mapped to by session ID.
   rpc GetIMSIForSessionID(GetIMSIForSessionIDRequest) returns (GetIMSIForSessionIDResponse) {};
 
@@ -105,6 +136,7 @@ service DirectoryLookup {
   // UnmapSessionIDsToIMSIs removes {session ID -> IMSI} for an specific session ID.
   rpc UnmapSessionIDsToIMSIs(UnmapSessionIDToIMSIRequest) returns (Void) {};
 
+  // CTeid
   // GetHWIDForSgwCTeid returns the HwId mapped to by sgw control plane Sgw Teid
   rpc GetHWIDForSgwCTeid(GetHWIDForSgwCTeidRequest) returns (GetHWIDForSgwCTeidResponse) {};
 
@@ -117,6 +149,18 @@ service DirectoryLookup {
   // GetNewSgwCTeid get an available teid
   rpc GetNewSgwCTeid(GetNewSgwCTeidRequest) returns (GetNewSgwCTeidResponse) {};
 
+  // UTeid
+  // GetHWIDForSgwUTeid returns the HwId mapped to by sgw control plane Sgw Teid
+  rpc GetHWIDForSgwUTeid(GetHWIDForSgwUTeidRequest) returns (GetHWIDForSgwUTeidResponse) {};
+
+  // MapSgwUTeidToHWID maps {teid -> HwId}.
+  rpc MapSgwUTeidToHWID(MapSgwUTeidToHWIDRequest) returns (Void) {};
+
+  // UnmapSgwUTeidToHWID removes {teid -> HwId} for an specific Teid.
+  rpc UnmapSgwUTeidToHWID(UnmapSgwUTeidToHWIDRequest) returns (Void) {};
+
+  // GetNewSgwUTeid get an available teid
+  rpc GetNewSgwUTeid(GetNewSgwUTeidRequest) returns (GetNewSgwUTeidResponse) {};
 }
 
 // --------------------------------------------------------------------------

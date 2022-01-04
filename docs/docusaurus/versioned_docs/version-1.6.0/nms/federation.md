@@ -38,7 +38,7 @@ In the **Federated LTE** **Network**’s NMS page, the Federation config should 
 Federation network can be managed like any other network in NMS. We can navigate to the newly created federation network by clicking on the appropriate network name in the network selector. Following image shows the top level view of a federation network. Here we display the currently configured federation gateways.
 
 ![feg](assets/nms/userguide/federation/feg_overview1.png)
-Federation Gateway configuration page enables the operator to configure the server addresses for Gx, Gy, Swx, S6A and CSFB as shown below.
+Federation Gateway configuration page enables the operator to configure the server addresses for Gx, Gy, Swx, and S6A as shown below.
 ![feg](assets/nms/userguide/federation/feg_configure1.png)
 
 ### Configuring Omnipresent/Network-Wide Policies on Federated LTE network

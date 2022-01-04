@@ -106,6 +106,8 @@ jobs:
       artifacts: ${{ steps.publish_packages.outputs.artifacts }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: setup pyenv
         uses: "gabrielfalcao/pyenv-action@v8"
         with:
