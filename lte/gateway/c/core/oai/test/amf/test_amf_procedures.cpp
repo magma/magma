@@ -205,14 +205,6 @@ bool validate_smc_procedure(
 
 TEST_F(AMFAppProcedureTest, TestRegistrationAuthSecurityModeReject) {
   amf_ue_ngap_id_t ue_id = 0;
-  std::vector<MessagesIds> expected_Ids{
-      AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
-                                            // indication to ngap
-      NGAP_NAS_DL_DATA_REQ,                 // Authentication Request to UE
-      NGAP_NAS_DL_DATA_REQ,            // Security Command Mode Request to UE
-      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // Initial Conext Setup Request to UE &
-      NGAP_UE_CONTEXT_RELEASE_COMMAND  // UEContextReleaseCommand
-  };
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
   imsi64          = send_initial_ue_message_no_tmsi(
@@ -235,19 +227,15 @@ TEST_F(AMFAppProcedureTest, TestRegistrationAuthSecurityModeReject) {
       amf_app_desc_p, ue_id, plmn, ue_auth_response_security_mode_reject_hexbuf,
       sizeof(ue_auth_response_security_mode_reject_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
+
+  ue_m5gmm_context_t* ue_context_p =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  // ue context should not exist
+  EXPECT_TRUE(ue_context_p == nullptr);
 }
 
 TEST_F(AMFAppProcedureTest, TestRegistrationAuthSecurityCapabilityMismatch) {
   amf_ue_ngap_id_t ue_id = 0;
-  std::vector<MessagesIds> expected_Ids{
-      AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
-                                            // indication to ngap
-      NGAP_NAS_DL_DATA_REQ,                 // Authentication Request to UE
-      NGAP_NAS_DL_DATA_REQ,                 // Security Command Mode Request to
-      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // Initial Conext Setup Request to UE &
-                                       // Registration Accept
-      NGAP_UE_CONTEXT_RELEASE_COMMAND  // UEContextReleaseCommand
-  };
   /* Send the initial UE message */
   imsi64_t imsi64 = 0;
   imsi64          = send_initial_ue_message_no_tmsi(
@@ -268,6 +256,11 @@ TEST_F(AMFAppProcedureTest, TestRegistrationAuthSecurityCapabilityMismatch) {
       ue_auth_response_security_capability_mismatch_hexbuf,
       sizeof(ue_auth_response_security_capability_mismatch_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
+
+  ue_m5gmm_context_t* ue_context_p =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  // ue context should not exist
+  EXPECT_TRUE(ue_context_p == nullptr);
 }
 
 TEST_F(AMFAppProcedureTest, TestRegistrationProcNoTMSI) {
