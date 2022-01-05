@@ -20,7 +20,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
-	"magma/feg/gateway/services/feg_hello/servicers"
+	hello_servicers"magma/feg/gateway/services/feg_hello/servicers/southbound"
 	"magma/orc8r/lib/go/service"
 )
 
@@ -34,7 +34,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating FEG_HELLO service: %s", err)
 	}
-	servicer := servicers.NewFegHelloServer()
+	servicer := hello_servicers.NewFegHelloServer()
 	protos.RegisterHelloServer(srv.GrpcServer, servicer)
 
 	// Run the service
