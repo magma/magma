@@ -14,21 +14,17 @@ const (
 )
 
 type MockPcf struct {
-	*sbi.NotifierServer
+	*sbi.EchoServer
 	policies map[string]sbi_NpcfSMPolicyControlServer.SmPolicyControl
 }
 
 func NewMockPcf(localAddr string) (*MockPcf, error) {
-	notifierConfig := sbi.NotifierConfig{
-		LocalAddr:     localAddr,
-		NotifyApiRoot: "",
-	}
 	mockPcf := &MockPcf{
-		NotifierServer: sbi.NewNotifierServer(notifierConfig),
-		policies:       make(map[string]sbi_NpcfSMPolicyControlServer.SmPolicyControl),
+		EchoServer: sbi.NewEchoServer(),
+		policies:   make(map[string]sbi_NpcfSMPolicyControlServer.SmPolicyControl),
 	}
-	sbi_NpcfSMPolicyControlServer.RegisterHandlers(mockPcf.Server, mockPcf)
-	err := mockPcf.Start()
+	sbi_NpcfSMPolicyControlServer.RegisterHandlers(mockPcf, mockPcf)
+	err := mockPcf.StartWithhWait(localAddr)
 	if err != nil {
 		return nil, err
 	}

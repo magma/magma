@@ -20,7 +20,6 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"time"
 
 	n7_client "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
 	"magma/feg/gateway/services/session_proxy/relay"
@@ -38,10 +37,7 @@ import (
 //   AbortSession to feg_relay.
 
 const (
-	UnableToDeliver  = 3002
 	EncodedSessionId = "encodedSessionId"
-	// Shutdown timeout is used as a timeout to exit the Echo Server Shutdown
-	ShutdownTimeout = 10 * time.Second
 )
 
 // RegisterHandlers registers the UpdateNotification and TerminateNotification handlers.
@@ -64,10 +60,6 @@ func (c *N7Client) registerHandlers() error {
 	c.NotifyServer.Server.POST(path.Join(basePath, "update"), c.postSmPolicyUpdateNotification)
 	c.NotifyServer.Server.POST(path.Join(basePath, "terminate"), c.postSmPolicyTerminateNotification)
 	return nil
-}
-
-func (c *N7Client) Shutdown() {
-	c.NotifyServer.Shutdown(ShutdownTimeout)
 }
 
 // postSmPolicyUpdateNotification handles SM policy update notification request from PCF.

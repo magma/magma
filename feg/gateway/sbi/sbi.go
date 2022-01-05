@@ -27,8 +27,20 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 )
 
+const (
+	// ShutdownTimeout is used as a timeout to exit the Echo Server Shutdown
+	ShutdownTimeout = 10 * time.Second
+)
+
+// EchoServer is a wrapper of echo which includes some extra functions like StartWithWait
+// can be used as a sbi server
+type EchoServer struct {
+	*echo.Echo
+}
+
+// NotifierServer is the server handling notifications on a sbi client
 type NotifierServer struct {
-	Server      *echo.Echo
+	Server      *EchoServer
 	NotifierCfg NotifierConfig
 }
 
@@ -46,9 +58,15 @@ type NotifierConfig struct {
 	NotifyApiRoot string
 }
 
+// BaseClientWithNotifier is a struct representing a generic sbi client. We can use this generic
+// client with any sbi specific clients (like N7 or N40)
 type BaseClientWithNotifier struct {
 	RemoteCfg    RemoteConfig
 	NotifyServer *NotifierServer // NotifyServer
+}
+
+func NewEchoServer() *EchoServer {
+	return &EchoServer{echo.New()}
 }
 
 func NewBaseClientWithNotifyServer(notifierConfig NotifierConfig, remoteConfig RemoteConfig) *BaseClientWithNotifier {
@@ -60,20 +78,19 @@ func NewBaseClientWithNotifyServer(notifierConfig NotifierConfig, remoteConfig R
 
 func NewNotifierServer(notifierConfig NotifierConfig) *NotifierServer {
 	return &NotifierServer{
-		Server:      echo.New(),
+		Server:      NewEchoServer(),
 		NotifierCfg: notifierConfig,
 	}
 }
 
-func (s *NotifierServer) Start() error {
-	errChan := make(chan error)
-	addr, err := net.ResolveTCPAddr("tcp", s.NotifierCfg.LocalAddr)
+func (s *EchoServer) StartWithhWait(addrs string) error {
+	addr, err := net.ResolveTCPAddr("tcp", addrs)
 	if err != nil {
 		return err
 	}
-
+	errChan := make(chan error)
 	go func() {
-		err = s.Server.Start(addr.String())
+		err := s.Start(addr.String())
 		if err != nil {
 			errChan <- err
 		}
@@ -82,7 +99,7 @@ func (s *NotifierServer) Start() error {
 	return s.waitForServer(errChan)
 }
 
-func (s *NotifierServer) Shutdown(timeout time.Duration) {
+func (s *EchoServer) Shutdown(timeout time.Duration) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	s.Server.Shutdown(ctx)
@@ -90,8 +107,8 @@ func (s *NotifierServer) Shutdown(timeout time.Duration) {
 
 // GetListenerAddr returns the actual address running. Use this function instead of checking
 // NotifierConfig.LocalAddr
-func (s *NotifierServer) GetListenerAddr() (net.Addr, error) {
-	addr := s.Server.ListenerAddr()
+func (s *EchoServer) GetListenerAddr() (net.Addr, error) {
+	addr := s.ListenerAddr()
 	if addr != nil && strings.Contains(addr.String(), ":") {
 		return addr, nil
 	}
@@ -99,7 +116,7 @@ func (s *NotifierServer) GetListenerAddr() (net.Addr, error) {
 }
 
 // waitForServer waits for the Echo server to be launched.
-func (s *NotifierServer) waitForServer(errChan <-chan error) error {
+func (s *EchoServer) waitForServer(errChan <-chan error) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
@@ -111,13 +128,11 @@ func (s *NotifierServer) waitForServer(errChan <-chan error) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			addr, err := s.GetListenerAddr()
+			_, err := s.GetListenerAddr()
 			if err != nil {
 				// server is not started yet. Try again
 				continue
 			}
-			// update configured address
-			s.NotifierCfg.LocalAddr = addr.String()
 			return nil
 		case err := <-errChan:
 			if err == http.ErrServerClosed {
@@ -142,4 +157,22 @@ func (rc RemoteConfig) BuildHttpClient() *http.Client {
 	}
 	tokenCtxt := context.WithValue(context.Background(), oauth2.HTTPClient, &http.Client{})
 	return tokenConfig.Client(tokenCtxt)
+}
+
+func (s *NotifierServer) Start() error {
+	err := s.Server.StartWithhWait(s.NotifierCfg.LocalAddr)
+	if err != nil {
+		return fmt.Errorf("NotifierServer could not Start: %s", err)
+	}
+	addr, err := s.Server.GetListenerAddr()
+	if err != nil {
+		return fmt.Errorf("NotifierServer could not get address after Start: %s", err)
+	}
+	// update/rewrite the address (just in case we used port 0)
+	s.NotifierCfg.LocalAddr = addr.String()
+	return nil
+}
+
+func (s *NotifierServer) Stop() {
+	s.Server.Shutdown(ShutdownTimeout)
 }

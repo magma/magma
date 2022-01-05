@@ -53,13 +53,13 @@ func TestUpdateNotify(t *testing.T) {
 	n7Cli, err := NewN7ClientWithHandlers(getClientConfig(), cloudRegistry)
 	require.NoError(t, err)
 	require.NoError(t, err)
-	defer n7Cli.Shutdown()
+	defer n7Cli.NotifyServer.Stop()
 
 	// happy path
 	sm.On("PolicyReAuth", mock.Anything, expectedPolicyReauth()).
 		Return(&protos.PolicyReAuthAnswer{SessionId: SESS_ID}, nil).Once()
 
-	notifyAddr, err := n7Cli.NotifyServer.GetListenerAddr()
+	notifyAddr, err := n7Cli.NotifyServer.Server.GetListenerAddr()
 	require.NoError(t, err)
 	resp, err := postUpdateNotify(notifyAddr.String(), genUpdateNotifyStr())
 	require.NoError(t, err)
