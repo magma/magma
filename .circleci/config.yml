@@ -1639,6 +1639,7 @@ jobs:
             sed -i -e '/^buildAgwAmiName: /s/:.*$/: agw-ami-'"$VERSION"'/' $VARS_DIR/build.yaml
             sed -i -e '/^buildGwTagName: /s/:.*$/: publishAmisToMarketplaceAgw/' $VARS_DIR/build.yaml
             sed -i -e '/^awsAgwAmi: /s/:.*$/: ami-04505e74c0741db8d/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^buildAgwVersion: /s/:.*$/: v1.6.1/' $VARS_DIR/build.yaml
       - run:
           name: Generate AGW AMI
           no_output_timeout: 50m
