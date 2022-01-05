@@ -185,7 +185,7 @@ class CallData {
    * the queue
    */
   virtual void proceed() = 0;
-  virtual ~CallData()    = default;
+  virtual ~CallData() = default;
 };
 
 /**
@@ -194,7 +194,7 @@ class CallData {
  * created. When a request is made, the call data moves to processing. When
  * finished, the call data destroys itself
  */
-template<class GRPCService, class RequestType, class ResponseType>
+template <class GRPCService, class RequestType, class ResponseType>
 class AsyncGRPCRequest : public CallData {
  public:
   AsyncGRPCRequest(ServerCompletionQueue* cq, GRPCService& service);
@@ -240,19 +240,19 @@ class AsyncGRPCRequest : public CallData {
  * Class to handle ReportRuleStats requests
  */
 class ReportRuleStatsCallData
-    : public AsyncGRPCRequest<
-          LocalSessionManager::AsyncService, RuleRecordTable, Void> {
+    : public AsyncGRPCRequest<LocalSessionManager::AsyncService,
+                              RuleRecordTable, Void> {
  public:
-  ReportRuleStatsCallData(
-      ServerCompletionQueue* cq, LocalSessionManager::AsyncService& service,
-      LocalSessionManagerHandler& handler)
+  ReportRuleStatsCallData(ServerCompletionQueue* cq,
+                          LocalSessionManager::AsyncService& service,
+                          LocalSessionManagerHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     // By calling RequestReportRuleStats, any RPC to ReportRuleStats will get
     // added to the request queue cq_ with the tag being the memory address
     // of this instance. When the request is completed, it will be added to
     // cq_ again to be finished
-    service_.RequestReportRuleStats(
-        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+    service_.RequestReportRuleStats(&ctx_, &request_, &responder_, cq_, cq_,
+                                    (void*)this);
   }
 
  protected:
@@ -272,16 +272,16 @@ class ReportRuleStatsCallData
 };
 /*Set RPC calldata to invoke first first function of landing object for 5G */
 // AmfPduSessionSmContextToSmf
-class SetAmfSessionContextCallData : public AsyncGRPCRequest<
-                                         AmfPduSessionSmContext::AsyncService,
-                                         SetSMSessionContext, SmContextVoid> {
+class SetAmfSessionContextCallData
+    : public AsyncGRPCRequest<AmfPduSessionSmContext::AsyncService,
+                              SetSMSessionContext, SmContextVoid> {
  public:
-  SetAmfSessionContextCallData(
-      ServerCompletionQueue* cq, AmfPduSessionSmContext::AsyncService& service,
-      SetMessageManager& handler)
+  SetAmfSessionContextCallData(ServerCompletionQueue* cq,
+                               AmfPduSessionSmContext::AsyncService& service,
+                               SetMessageManager& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestSetAmfSessionContext(
-        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+    service_.RequestSetAmfSessionContext(&ctx_, &request_, &responder_, cq_,
+                                         cq_, (void*)this);
   }
 
  protected:
@@ -301,16 +301,15 @@ class SetAmfSessionContextCallData : public AsyncGRPCRequest<
  *  Class to handle SetUPFNodeStateCallData
  */
 class SetUPFNodeStateCallData
-    : public AsyncGRPCRequest<
-          SetInterfaceForUserPlane::AsyncService, UPFNodeState, SmContextVoid> {
+    : public AsyncGRPCRequest<SetInterfaceForUserPlane::AsyncService,
+                              UPFNodeState, SmContextVoid> {
  public:
-  SetUPFNodeStateCallData(
-      ServerCompletionQueue* cq,
-      SetInterfaceForUserPlane::AsyncService& service,
-      UpfMsgManageHandler& handler)
+  SetUPFNodeStateCallData(ServerCompletionQueue* cq,
+                          SetInterfaceForUserPlane::AsyncService& service,
+                          UpfMsgManageHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestSetUPFNodeState(
-        &ctx_, &request_, &responder_, cq_, cq_, reinterpret_cast<void*>(this));
+    service_.RequestSetUPFNodeState(&ctx_, &request_, &responder_, cq_, cq_,
+                                    reinterpret_cast<void*>(this));
   }
 
  protected:
@@ -329,17 +328,16 @@ class SetUPFNodeStateCallData
 /*
  *  Class to handle SetUPFSessionConfig
  */
-class SetUPFSessionsConfigCallData : public AsyncGRPCRequest<
-                                         SetInterfaceForUserPlane::AsyncService,
-                                         UPFSessionConfigState, SmContextVoid> {
+class SetUPFSessionsConfigCallData
+    : public AsyncGRPCRequest<SetInterfaceForUserPlane::AsyncService,
+                              UPFSessionConfigState, SmContextVoid> {
  public:
-  SetUPFSessionsConfigCallData(
-      ServerCompletionQueue* cq,
-      SetInterfaceForUserPlane::AsyncService& service,
-      UpfMsgManageHandler& handler)
+  SetUPFSessionsConfigCallData(ServerCompletionQueue* cq,
+                               SetInterfaceForUserPlane::AsyncService& service,
+                               UpfMsgManageHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestSetUPFSessionsConfig(
-        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+    service_.RequestSetUPFSessionsConfig(&ctx_, &request_, &responder_, cq_,
+                                         cq_, (void*)this);
   }
 
  protected:
@@ -359,16 +357,16 @@ class SetUPFSessionsConfigCallData : public AsyncGRPCRequest<
  * Class to handle CreateSession requests
  */
 class CreateSessionCallData
-    : public AsyncGRPCRequest<
-          LocalSessionManager::AsyncService, LocalCreateSessionRequest,
-          LocalCreateSessionResponse> {
+    : public AsyncGRPCRequest<LocalSessionManager::AsyncService,
+                              LocalCreateSessionRequest,
+                              LocalCreateSessionResponse> {
  public:
-  CreateSessionCallData(
-      ServerCompletionQueue* cq, LocalSessionManager::AsyncService& service,
-      LocalSessionManagerHandler& handler)
+  CreateSessionCallData(ServerCompletionQueue* cq,
+                        LocalSessionManager::AsyncService& service,
+                        LocalSessionManagerHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestCreateSession(
-        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+    service_.RequestCreateSession(&ctx_, &request_, &responder_, cq_, cq_,
+                                  (void*)this);
   }
 
  protected:
@@ -386,16 +384,15 @@ class CreateSessionCallData
  * Class to handle EndSession requests
  */
 class EndSessionCallData
-    : public AsyncGRPCRequest<
-          LocalSessionManager::AsyncService, LocalEndSessionRequest,
-          LocalEndSessionResponse> {
+    : public AsyncGRPCRequest<LocalSessionManager::AsyncService,
+                              LocalEndSessionRequest, LocalEndSessionResponse> {
  public:
-  EndSessionCallData(
-      ServerCompletionQueue* cq, LocalSessionManager::AsyncService& service,
-      LocalSessionManagerHandler& handler)
+  EndSessionCallData(ServerCompletionQueue* cq,
+                     LocalSessionManager::AsyncService& service,
+                     LocalSessionManagerHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestEndSession(
-        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+    service_.RequestEndSession(&ctx_, &request_, &responder_, cq_, cq_,
+                               (void*)this);
   }
 
  protected:
@@ -413,16 +410,16 @@ class EndSessionCallData
  * Class to handle BindPolicy2Bearer requests
  */
 class BindPolicy2BearerCallData
-    : public AsyncGRPCRequest<
-          LocalSessionManager::AsyncService, PolicyBearerBindingRequest,
-          PolicyBearerBindingResponse> {
+    : public AsyncGRPCRequest<LocalSessionManager::AsyncService,
+                              PolicyBearerBindingRequest,
+                              PolicyBearerBindingResponse> {
  public:
-  BindPolicy2BearerCallData(
-      ServerCompletionQueue* cq, LocalSessionManager::AsyncService& service,
-      LocalSessionManagerHandler& handler)
+  BindPolicy2BearerCallData(ServerCompletionQueue* cq,
+                            LocalSessionManager::AsyncService& service,
+                            LocalSessionManagerHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestBindPolicy2Bearer(
-        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+    service_.RequestBindPolicy2Bearer(&ctx_, &request_, &responder_, cq_, cq_,
+                                      (void*)this);
   }
 
  protected:
@@ -443,16 +440,15 @@ class BindPolicy2BearerCallData
  */
 
 class UpdateTunnelIdsCallData
-    : public AsyncGRPCRequest<
-          LocalSessionManager::AsyncService, UpdateTunnelIdsRequest,
-          UpdateTunnelIdsResponse> {
+    : public AsyncGRPCRequest<LocalSessionManager::AsyncService,
+                              UpdateTunnelIdsRequest, UpdateTunnelIdsResponse> {
  public:
-  UpdateTunnelIdsCallData(
-      ServerCompletionQueue* cq, LocalSessionManager::AsyncService& service,
-      LocalSessionManagerHandler& handler)
+  UpdateTunnelIdsCallData(ServerCompletionQueue* cq,
+                          LocalSessionManager::AsyncService& service,
+                          LocalSessionManagerHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestUpdateTunnelIds(
-        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+    service_.RequestUpdateTunnelIds(&ctx_, &request_, &responder_, cq_, cq_,
+                                    (void*)this);
   }
 
  protected:
@@ -472,15 +468,15 @@ class UpdateTunnelIdsCallData
  * Class to handle SetSessionRules requests
  */
 class SetSessionRulesCallData
-    : public AsyncGRPCRequest<
-          LocalSessionManager::AsyncService, SessionRules, Void> {
+    : public AsyncGRPCRequest<LocalSessionManager::AsyncService, SessionRules,
+                              Void> {
  public:
-  SetSessionRulesCallData(
-      ServerCompletionQueue* cq, LocalSessionManager::AsyncService& service,
-      LocalSessionManagerHandler& handler)
+  SetSessionRulesCallData(ServerCompletionQueue* cq,
+                          LocalSessionManager::AsyncService& service,
+                          LocalSessionManagerHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestSetSessionRules(
-        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+    service_.RequestSetSessionRules(&ctx_, &request_, &responder_, cq_, cq_,
+                                    (void*)this);
   }
 
  protected:
@@ -499,16 +495,16 @@ class SetSessionRulesCallData
 /**
  * Class to handle AbortSessionRequest requests
  */
-class AbortSessionCallData : public AsyncGRPCRequest<
-                                 AbortSessionResponder::AsyncService,
-                                 AbortSessionRequest, AbortSessionResult> {
+class AbortSessionCallData
+    : public AsyncGRPCRequest<AbortSessionResponder::AsyncService,
+                              AbortSessionRequest, AbortSessionResult> {
  public:
-  AbortSessionCallData(
-      ServerCompletionQueue* cq, AbortSessionResponder::AsyncService& service,
-      SessionProxyResponderHandler& handler)
+  AbortSessionCallData(ServerCompletionQueue* cq,
+                       AbortSessionResponder::AsyncService& service,
+                       SessionProxyResponderHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestAbortSession(
-        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+    service_.RequestAbortSession(&ctx_, &request_, &responder_, cq_, cq_,
+                                 (void*)this);
   }
 
  protected:
@@ -526,16 +522,15 @@ class AbortSessionCallData : public AsyncGRPCRequest<
  * Class to handle ChargingReauth requests
  */
 class ChargingReAuthCallData
-    : public AsyncGRPCRequest<
-          SessionProxyResponder::AsyncService, ChargingReAuthRequest,
-          ChargingReAuthAnswer> {
+    : public AsyncGRPCRequest<SessionProxyResponder::AsyncService,
+                              ChargingReAuthRequest, ChargingReAuthAnswer> {
  public:
-  ChargingReAuthCallData(
-      ServerCompletionQueue* cq, SessionProxyResponder::AsyncService& service,
-      SessionProxyResponderHandler& handler)
+  ChargingReAuthCallData(ServerCompletionQueue* cq,
+                         SessionProxyResponder::AsyncService& service,
+                         SessionProxyResponderHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestChargingReAuth(
-        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+    service_.RequestChargingReAuth(&ctx_, &request_, &responder_, cq_, cq_,
+                                   (void*)this);
   }
 
  protected:
@@ -552,16 +547,16 @@ class ChargingReAuthCallData
 /**
  * Class to handle PolicyReauth requests
  */
-class PolicyReAuthCallData : public AsyncGRPCRequest<
-                                 SessionProxyResponder::AsyncService,
-                                 PolicyReAuthRequest, PolicyReAuthAnswer> {
+class PolicyReAuthCallData
+    : public AsyncGRPCRequest<SessionProxyResponder::AsyncService,
+                              PolicyReAuthRequest, PolicyReAuthAnswer> {
  public:
-  PolicyReAuthCallData(
-      ServerCompletionQueue* cq, SessionProxyResponder::AsyncService& service,
-      SessionProxyResponderHandler& handler)
+  PolicyReAuthCallData(ServerCompletionQueue* cq,
+                       SessionProxyResponder::AsyncService& service,
+                       SessionProxyResponderHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestPolicyReAuth(
-        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+    service_.RequestPolicyReAuth(&ctx_, &request_, &responder_, cq_, cq_,
+                                 (void*)this);
   }
 
  protected:
@@ -578,17 +573,16 @@ class PolicyReAuthCallData : public AsyncGRPCRequest<
 /*
  *  Class to handle SendPagingReqestCallData
  */
-class SendPagingRequestCallData : public AsyncGRPCRequest<
-                                      SetInterfaceForUserPlane::AsyncService,
-                                      UPFPagingInfo, SmContextVoid> {
+class SendPagingRequestCallData
+    : public AsyncGRPCRequest<SetInterfaceForUserPlane::AsyncService,
+                              UPFPagingInfo, SmContextVoid> {
  public:
-  SendPagingRequestCallData(
-      ServerCompletionQueue* cq,
-      SetInterfaceForUserPlane::AsyncService& service,
-      UpfMsgManageHandler& handler)
+  SendPagingRequestCallData(ServerCompletionQueue* cq,
+                            SetInterfaceForUserPlane::AsyncService& service,
+                            UpfMsgManageHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestSendPagingRequest(
-        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+    service_.RequestSendPagingRequest(&ctx_, &request_, &responder_, cq_, cq_,
+                                      (void*)this);
   }
 
  protected:
@@ -607,16 +601,15 @@ class SendPagingRequestCallData : public AsyncGRPCRequest<
  *  Class to handle SetSmfNofificationCallData
  */
 class SetSmfNotificationCallData
-    : public AsyncGRPCRequest<
-          AmfPduSessionSmContext::AsyncService, SetSmNotificationContext,
-          SmContextVoid> {
+    : public AsyncGRPCRequest<AmfPduSessionSmContext::AsyncService,
+                              SetSmNotificationContext, SmContextVoid> {
  public:
-  SetSmfNotificationCallData(
-      ServerCompletionQueue* cq, AmfPduSessionSmContext::AsyncService& service,
-      SetMessageManager& handler)
+  SetSmfNotificationCallData(ServerCompletionQueue* cq,
+                             AmfPduSessionSmContext::AsyncService& service,
+                             SetMessageManager& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
-    service_.RequestSetSmfNotification(
-        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+    service_.RequestSetSmfNotification(&ctx_, &request_, &responder_, cq_, cq_,
+                                       (void*)this);
   }
 
  protected:

@@ -54,6 +54,7 @@
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
 #include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_msisdn_ie_get(

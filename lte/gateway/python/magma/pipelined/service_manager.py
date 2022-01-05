@@ -77,6 +77,7 @@ from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.uplink_bridge import UplinkBridgeController
 from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.app.xwf_passthru import XWFPassthruController
+from magma.pipelined.ebpf.ebpf_manager import get_ebpf_manager
 from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from magma.pipelined.ipv6_prefix_store import InterfaceIDToPrefixMapper
 from magma.pipelined.rule_mappers import (
@@ -84,7 +85,6 @@ from magma.pipelined.rule_mappers import (
     RuleIDToNumMapper,
     SessionRuleToVersionMapper,
 )
-from magma.pipelined.tunnel_id_store import TunnelToTunnelMapper
 from ryu.base.app_manager import AppManager
 
 # Type is either Physical or Logical, highest order_priority is at zero
@@ -530,8 +530,8 @@ class ServiceManager:
         self.rule_id_mapper = RuleIDToNumMapper()
         self.session_rule_version_mapper = SessionRuleToVersionMapper()
         self.interface_to_prefix_mapper = InterfaceIDToPrefixMapper()
-        self.tunnel_id_mapper = TunnelToTunnelMapper()
         self.restart_info_store = RestartInfoStore()
+        self.ebpf = get_ebpf_manager(magma_service.config)
 
         apps = self._get_static_apps()
         apps.extend(self._get_dynamic_apps())
@@ -614,7 +614,6 @@ class ServiceManager:
                 time.sleep(1)
             self.rule_id_mapper.setup_redis()
             self.interface_to_prefix_mapper.setup_redis()
-            self.tunnel_id_mapper.setup_redis()
 
         manager = AppManager.get_instance()
         manager.load_apps([app.module for app in self._apps])
@@ -623,8 +622,8 @@ class ServiceManager:
         contexts[
             'session_rule_version_mapper'
         ] = self.session_rule_version_mapper
+        contexts['ebpf_manager'] = self.ebpf
         contexts['interface_to_prefix_mapper'] = self.interface_to_prefix_mapper
-        contexts['tunnel_id_mapper'] = self.tunnel_id_mapper
         contexts['restart_info_store'] = self.restart_info_store
         contexts['app_futures'] = {app.name: Future() for app in self._apps}
         contexts['internal_ip_allocator'] = \

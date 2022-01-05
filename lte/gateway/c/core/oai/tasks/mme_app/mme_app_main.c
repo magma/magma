@@ -555,6 +555,8 @@ static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
   stats_msg.nb_ue_connected        = mme_app_desc_p->nb_ue_connected;
   stats_msg.nb_default_eps_bearers = mme_app_desc_p->nb_default_eps_bearers;
   stats_msg.nb_s1u_bearers         = mme_app_desc_p->nb_s1u_bearers;
+  stats_msg.nb_mme_app_last_msg_latency = mme_app_last_msg_latency;
+
   return send_mme_app_stats_to_service303(
       &mme_app_task_zmq_ctx, TASK_MME_APP, &stats_msg);
 }

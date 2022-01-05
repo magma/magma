@@ -162,63 +162,19 @@ class TestS1Handover(unittest.TestCase):
             + ")",
         )
 
-        # After receiving S1 Handover Command, S1APTester stack sends ENB
-        # Status Transfer from source ENB to MME and Handover Notify from
-        # target ENB to MME. MME then sends MME Status Transfer to Target ENB.
-        # Wait for MME Status Transfer Indication
+        # TODO: Current S1APTester logic is broken. Fix as follows
+        # 1- Dont send messages automatically on behalf of eNBs
+        # 2- Handover Notify Msg from target ENB should only be sent after
+        # successfully receiving the MME Status Transfer Msg
+        # 3- Source eNB will receive a UE Context Release Command once MME
+        # receives a Handover Notify Msg from Target eNB
+
+        # Wait for UE Context Release command
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_MME_STATUS_TRSFR_IND.value,
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
-        mme_status_trf_ind = response.cast(s1ap_types.FwNbMmeStatusTrnsfrInd_t)
-        print(
-            "************************* Received MME Status Transfer "
-            "Indication (UeId: "
-            + str(mme_status_trf_ind.ueId)
-            + ", Connected EnbId: "
-            + str(mme_status_trf_ind.currEnbId)
-            + ") (HO SrcEnbId: "
-            + str(mme_status_trf_ind.hoSrcEnbId)
-            + ", HO TgtEnbId: "
-            + str(mme_status_trf_ind.hoTgtEnbId)
-            + ")",
-        )
-
-        print("Waiting for 3 seconds for the flow rules creation")
-        time.sleep(3)
-        # Verify if flow rules are created
-        # 1 UL flow for default bearer
-        num_ul_flows = 1
-        dl_flow_rules = {default_ip: []}
-        self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows,
-            dl_flow_rules,
-        )
-
-        # After S1 Overall Reloc Timer expiry, source ENB sends UE context
-        # release request to MME with cause tS1relocoverall-expiry.
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
-        print("Received UE Context Release complete indication")
-
-        print(
-            "************************* Running UE detach for UE Id:",
-            req.ue_id,
-        )
-        # Now detach the UE
-        self._s1ap_wrapper.s1_util.detach(
-            req.ue_id,
-            s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
-        )
-
-        print("Waiting for 5 seconds for the flow rules deletion")
-        time.sleep(5)
-        # Verify that all UL/DL flows are deleted
-        self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
+        print("************************* Received UE Context Release Command")
 
 
 if __name__ == "__main__":

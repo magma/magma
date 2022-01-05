@@ -41,8 +41,8 @@ OpState get_operational_states(magma::SessionStore* session_store) {
   auto session_map = session_store->read_all_sessions();
   for (auto& it : session_map) {
     std::map<std::string, std::string> state;
-    state[TYPE]                    = SUBSCRIBER_STATE_TYPE;
-    state[DEVICE_ID]               = it.first;
+    state[TYPE] = SUBSCRIBER_STATE_TYPE;
+    state[DEVICE_ID] = it.first;
     folly::dynamic sessions_by_apn = folly::dynamic::object;
 
     for (auto& session : it.second) {
@@ -60,16 +60,16 @@ OpState get_operational_states(magma::SessionStore* session_store) {
 
 folly::dynamic get_dynamic_session_state(
     const std::unique_ptr<SessionState>& session) {
-  folly::dynamic state      = folly::dynamic::object;
-  const auto config         = session->get_config().common_context;
-  state[SESSION_ID]         = session->get_session_id();
-  state[MSISDN]             = config.msisdn();
-  state[magma::IPV4]        = config.ue_ipv4();
-  state[APN]                = config.apn();
+  folly::dynamic state = folly::dynamic::object;
+  const auto config = session->get_config().common_context;
+  state[SESSION_ID] = session->get_session_id();
+  state[MSISDN] = config.msisdn();
+  state[magma::IPV4] = config.ue_ipv4();
+  state[APN] = config.apn();
   state[SESSION_START_TIME] = session->get_pdp_start_time();
-  state[LIFECYCLE_STATE]    = session_fsm_state_to_str(session->get_state());
+  state[LIFECYCLE_STATE] = session_fsm_state_to_str(session->get_state());
   state[ACTIVE_DURATION_SECOND] = session->get_active_duration_in_seconds();
-  state[ACTIVE_POLICY_RULES]    = get_dynamic_active_policies(session);
+  state[ACTIVE_POLICY_RULES] = get_dynamic_active_policies(session);
   return state;
 }
 
@@ -79,7 +79,7 @@ folly::dynamic get_dynamic_active_policies(
   options.add_whitespace = false;
 
   folly::dynamic policies = folly::dynamic::array;
-  auto active_policies    = session->get_all_active_policies();
+  auto active_policies = session->get_all_active_policies();
   for (auto& policy : active_policies) {
     std::string json_policy;
     auto status = google::protobuf::util::MessageToJsonString(

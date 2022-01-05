@@ -210,8 +210,6 @@ class StartThread(object):
             self._test_setup.service_manager.session_rule_version_mapper
         contexts['interface_to_prefix_mapper'] = \
             self._test_setup.service_manager.interface_to_prefix_mapper
-        contexts['tunnel_id_mapper'] = \
-            self._test_setup.service_manager.tunnel_id_mapper
         contexts['restart_info_store'] = \
             self._test_setup.service_manager.restart_info_store
         contexts['app_futures'] = app_futures
@@ -220,6 +218,7 @@ class StartThread(object):
         contexts['loop'] = self._test_setup.loop
         contexts['rpc_stubs'] = self._test_setup.rpc_stubs
         contexts['service_manager'] = self._test_setup.service_manager
+        contexts['ebpf_manager'] = None
 
         logging.basicConfig(
             level=logging.INFO,

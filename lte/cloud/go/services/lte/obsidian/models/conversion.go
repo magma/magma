@@ -144,6 +144,33 @@ func (m *NetworkRanConfigs) GetFromNetwork(network configurator.Network) interfa
 	return iCellularConfig.(*NetworkCellularConfigs).Ran
 }
 
+func (m *NetworkNgcConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkConfigType)
+	if iCellularConfig == nil {
+		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No cellular network config found")
+	}
+	iCellularConfig.(*NetworkCellularConfigs).Ngc = m
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkConfigType, iCellularConfig), nil
+}
+
+func (m *NetworkNgcConfigs) GetFromNetwork(network configurator.Network) interface{} {
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkConfigType)
+	if iCellularConfig == nil {
+		return nil
+	}
+	return iCellularConfig.(*NetworkCellularConfigs).Ngc
+}
+
+func (m *NetworkNgcConfigs) ConvertSuciEntsToProtos(ent *SuciProfile) *protos.SuciProfile {
+	suciData := &protos.SuciProfile{
+		HomeNetPublicKeyId: ent.HomeNetworkPublicKeyIdentifier,
+		HomeNetPublicKey:   ent.HomeNetworkPublicKey,
+		HomeNetPrivateKey:  ent.HomeNetworkPrivateKey,
+		ProtectionScheme:   protos.SuciProfile_ECIESProtectionScheme(protos.SuciProfile_ECIESProtectionScheme_value[ent.ProtectionScheme]),
+	}
+	return suciData
+}
+
 func (m *LteGateway) FromBackendModels(
 	magmadGateway, cellularGateway configurator.NetworkEntity,
 	loadedEntsByTK configurator.NetworkEntitiesByTK,
@@ -156,7 +183,7 @@ func (m *LteGateway) FromBackendModels(
 	// delegate most of the fillin to magmad gateway struct
 	mdGW := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
 	// TODO: we should change this to a reflection based shallow copy
-	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
+	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status, m.RegistrationInfo = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status, mdGW.RegistrationInfo
 	if cellularGateway.Config != nil {
 		m.Cellular = cellularGateway.Config.(*GatewayCellularConfigs)
 	}
@@ -359,6 +386,26 @@ func (m *GatewayRanConfigs) ToUpdateCriteria(ctx context.Context, networkID stri
 		return nil, err
 	}
 	cellularConfig.Ran = m
+	return cellularConfig.ToUpdateCriteria(context.Background(), networkID, gatewayID)
+}
+
+func (m *GatewayNgcConfigs) FromBackendModels(ctx context.Context, networkID string, gatewayID string) error {
+	gatewayConfig := &GatewayCellularConfigs{}
+	err := gatewayConfig.FromBackendModels(context.Background(), networkID, gatewayID)
+	if err != nil {
+		return err
+	}
+	*m = *gatewayConfig.Ngc
+	return nil
+}
+
+func (m *GatewayNgcConfigs) ToUpdateCriteria(ctx context.Context, networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	cellularConfig := &GatewayCellularConfigs{}
+	err := cellularConfig.FromBackendModels(context.Background(), networkID, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+	cellularConfig.Ngc = m
 	return cellularConfig.ToUpdateCriteria(context.Background(), networkID, gatewayID)
 }
 

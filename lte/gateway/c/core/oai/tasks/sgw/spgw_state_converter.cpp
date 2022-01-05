@@ -137,7 +137,7 @@ void SpgwStateConverter::proto_to_spgw_bearer_context(
       sgw_eps_bearer_context_proto.msisdn().length());
   sgw_eps_bearer_context_state->imsi_unauthenticated_indicator =
       sgw_eps_bearer_context_proto.imsi_unauth_indicator();
-  proto_to_ecgi(
+  StateConverter::proto_to_ecgi(
       sgw_eps_bearer_context_proto.last_known_cell_id(),
       &sgw_eps_bearer_context_state->last_known_cell_Id);
 

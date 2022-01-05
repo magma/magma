@@ -35,6 +35,7 @@ ENV MAGMA_ROOT=/workspaces/magma
 ENV BUILD_TYPE=Debug
 ENV C_BUILD=/workspaces/magma/build/c
 ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONPATH=$MAGMA_ROOT/lte/gateway/python/:$MAGMA_ROOT/orc8r/gateway/python/
 
 RUN echo "Install general purpose packages" && \
     apt-get update && \
@@ -65,6 +66,7 @@ RUN echo "Install general purpose packages" && \
         libpcap-dev \
         libssl-dev \
         libtool \
+        lld \
         make \
         ninja-build \
         perl \
@@ -316,6 +318,6 @@ RUN go get -v golang.org/x/tools/gopls
 #### Update shared library configuration
 RUN ldconfig -v
 
-RUN ln -s "$MAGMA_ROOT"/magma/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
+RUN ln -s $MAGMA_ROOT/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
 
 WORKDIR $MAGMA_ROOT

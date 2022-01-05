@@ -417,7 +417,7 @@ status_code_e dedicated_eps_bearer_activate_t3485_handler(
   timer_arg_t timer_args;
   if (args) {
     timer_args = *((timer_arg_t*) args);
-  } else if (!mme_app_get_timer_arg(timer_id, &timer_args)) {
+  } else if (!mme_pop_timer_arg(timer_id, &timer_args)) {
     OAILOG_WARNING(
         LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
@@ -603,7 +603,7 @@ status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
   timer_arg_t timer_args;
-  if (!mme_app_get_timer_arg(timer_id, &timer_args)) {
+  if (!mme_pop_timer_arg(timer_id, &timer_args)) {
     OAILOG_WARNING(
         LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);

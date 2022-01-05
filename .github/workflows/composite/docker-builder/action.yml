@@ -10,10 +10,13 @@ inputs:
     required: true
   IMAGE_TAGS:
     required: true
-    default: type=sha
+    default: |
+      type=sha
+      type=schedule
+      type=ref,event=branch
+      type=ref,event=tag
+      type=ref,event=pr
   DOCKERFILE:
-    required: true
-  GITHUB_TOKEN:
     required: true
 
 runs:
@@ -29,6 +32,7 @@ runs:
         images: ${{ inputs.REGISTRY }}/${{ inputs.IMAGE_STREAM }}
         # defines the image tags added to the image
         tags: ${{ inputs.IMAGE_TAGS }}
+        flavor: latest=true
     - name: Set up Docker Buildx
       id: buildx
       uses: docker/setup-buildx-action@v1
@@ -37,8 +41,8 @@ runs:
       with:
         registry: ${{ inputs.REGISTRY }}
         username: ${{ github.repository_owner }}
-        password: ${{ inputs.GITHUB_TOKEN }}
-      if: ${{ github.event_name == 'push' && github.ref_name == 'master' && inputs.GITHUB_TOKEN != null }}
+        password: ${{ github.token }}
+      if: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}
     - name: Build and push Docker image
       id: docker_build
       uses: docker/build-push-action@v2
@@ -48,4 +52,4 @@ runs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         # without docker/metadata-action will only be accessible by hash
-        push: ${{ github.event_name == 'push' && github.ref_name == 'master' && inputs.GITHUB_TOKEN != null }}
+        push: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}

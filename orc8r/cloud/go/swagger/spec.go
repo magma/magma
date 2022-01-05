@@ -13,7 +13,9 @@
 
 package swagger
 
-import "gopkg.in/yaml.v2"
+import (
+	"gopkg.in/yaml.v2"
+)
 
 // Spec is the Go struct version of a OAI/Swagger 2.0 YAML spec file.
 type Spec struct {
@@ -23,16 +25,32 @@ type Spec struct {
 		Description string
 		Version     string
 	}
-	BasePath    string `yaml:"basePath"`
-	Consumes    []string
-	Produces    []string
-	Schemes     []string
-	Tags        []TagDefinition
-	Paths       map[string]interface{}
-	Responses   map[string]interface{}
-	Parameters  map[string]interface{}
-	Definitions map[string]interface{}
+	BasePath            string `yaml:"basePath"`
+	Consumes            []string
+	Produces            []string
+	Schemes             []string
+	SecurityDefinitions SecurityDefinitions `yaml:"securityDefinitions"`
+	Security            []map[string][]string
+	Tags                []TagDefinition
+	Paths               map[string]interface{}
+	Responses           map[string]interface{}
+	Parameters          map[string]interface{}
+	Definitions         map[string]interface{}
 }
+
+type SecurityDefinitions map[string]*SecurityScheme
+
+type SecurityScheme struct {
+	Description      string            `yaml:"description,omitempty"`
+	Type             string            `yaml:"type"`
+	Name             string            `yaml:"name,omitempty"`
+	In               string            `yaml:"in,omitempty"`
+	AuthorizationURL string            `yaml:"authorizationUrl,omitempty"`
+	TokenURL         string            `yaml:"tokenUrl,omitempty"`
+	Scopes           map[string]string `yaml:"scopes,omitempty"`
+	Flow             string            `yaml:"flow,omitempty"`
+}
+
 type TagDefinition struct {
 	Description string
 	Name        string

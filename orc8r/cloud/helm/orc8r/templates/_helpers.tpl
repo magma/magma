@@ -33,3 +33,9 @@ app.kubernetes.io/part-of: orc8r-app
 app.kubernetes.io/name: {{ .Chart.Name }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
+
+{{/* Generate selector labels */}}
+{{- define "nginx-image-version-label" -}}
+image-version: {{ .Values.nginx.image.tag}}
+chart-version: {{ .Chart.Version }}
+{{- end -}}

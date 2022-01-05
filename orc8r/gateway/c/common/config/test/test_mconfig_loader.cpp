@@ -17,6 +17,7 @@
 #include <sstream>
 
 #include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 #include "lte/protos/mconfig/mconfigs.pb.h"
 
 namespace {
@@ -71,15 +72,24 @@ TEST(MConfigLoader, HealthyConfigLoads) {
   EXPECT_TRUE(
       magma::load_service_mconfig(SERVICE_NAME_MME, &config_stream, &mconfig));
   EXPECT_EQ(mconfig.tac(), 1);
-  EXPECT_EQ(
-      mconfig.ipv6_p_cscf_address(), "2a12:577:9941:f99c:0002:0001:c731:f114");
+  EXPECT_EQ(mconfig.ipv6_p_cscf_address(),
+            "2a12:577:9941:f99c:0002:0001:c731:f114");
 }
 
 TEST(MConfigLoader, MissingServiceNameFails) {
   magma::mconfig::MME mconfig;
   std::istringstream config_stream(healthy_mconfig);
-  EXPECT_FALSE(magma::load_service_mconfig(
-      "MISSING_SERVICE_NAME", &config_stream, &mconfig));
+  EXPECT_FALSE(magma::load_service_mconfig("MISSING_SERVICE_NAME",
+                                           &config_stream, &mconfig));
+}
+
+TEST(MConfigLoader, ConvertingLogLevelsCorrectly) {
+  EXPECT_EQ(magma::get_log_verbosity_from_mconfig(0), MDEBUG);
+  EXPECT_EQ(magma::get_log_verbosity_from_mconfig(1), MINFO);
+  EXPECT_EQ(magma::get_log_verbosity_from_mconfig(2), MWARNING);
+  EXPECT_EQ(magma::get_log_verbosity_from_mconfig(3), MERROR);
+  EXPECT_EQ(magma::get_log_verbosity_from_mconfig(4), MFATAL);
+  EXPECT_EQ(magma::get_log_verbosity_from_mconfig(10), MINFO);
 }
 
 }  // namespace

@@ -45,8 +45,8 @@ jobs:
             if [ "${{ env.AWS_ACCOUNT }}" = "FB" ]; then
               sed -i -e "s@awsAccessKey:@& ${{ secrets.FB_AWS_ACCESS_KEY }}@1"  ${{ env.VARS_DIR }}/secrets.yaml
               sed -i -e "s@awsSecretKey:@& ${{ secrets.FB_AWS_SECRET_ACCESS_KEY }}@1"  ${{ env.VARS_DIR }}/secrets.yaml
-              echo VERSION="1.7.0-${{ github.sha }}" >> $GITHUB_ENV
-              echo PACKAGE_VERSION="1.7.0" >> $GITHUB_ENV
+              echo VERSION="1.6.1-${{ github.sha }}" >> $GITHUB_ENV
+              echo PACKAGE_VERSION="1.6.1" >> $GITHUB_ENV
               # When focal-ci is clean we will be able to dynamically fetch latest ci debian packages
             elif  [ "${{ env.AWS_ACCOUNT }}" = "LF" ]; then
               sed -i -e "s@awsAccessKey:@& ${{ secrets.LF_AWS_ACCESS_KEY }}@1"  ${{ env.VARS_DIR }}/secrets.yaml

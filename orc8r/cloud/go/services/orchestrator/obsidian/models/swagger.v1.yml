@@ -1473,7 +1473,6 @@ definitions:
     type: object
     description: Full representation of a generic gateway
     required:
-      - device
       - id
       - name
       - description
@@ -1482,6 +1481,8 @@ definitions:
     properties:
       device:
         $ref: '#/definitions/gateway_device'
+      registration_info:
+        $ref: './orc8r-swagger-common.yml#/definitions/registration_info'
       id:
         $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
       name:

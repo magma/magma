@@ -131,7 +131,7 @@ func TestSqlTestControllerStorage_GetTestCases(t *testing.T) {
 		},
 
 		expectedResult: map[int64]*storage.TestCase{},
-		expectedError:  errors.New("could not validate next scheduled time for test 1: timestamp: seconds:-9223372036854775808  before 0001-01-01"),
+		expectedError:  errors.New("could not validate next scheduled time for test 1: timestamp: seconds:-9223372036854775808 before 0001-01-01"),
 	}
 
 	runCase(t, happyPath)

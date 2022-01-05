@@ -7,6 +7,8 @@ basePath: ""
 consumes: []
 produces: []
 schemes: []
+securityDefinitions: {}
+security: []
 tags:
 - description: Tag foobar
   name: Tag

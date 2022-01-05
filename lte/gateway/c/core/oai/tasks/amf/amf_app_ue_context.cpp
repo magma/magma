@@ -27,6 +27,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
+#include "lte/gateway/c/core/oai/include/map.h"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
@@ -252,27 +253,23 @@ std::shared_ptr<smf_context_t> amf_get_smf_context_by_pdu_session_id(
  ***************************************************************************/
 // in upcoming PR with MAP implementation, this routine will be depricated
 int amf_context_upsert_imsi(amf_context_t* elm) {
-  hashtable_rc_t h_rc = HASH_TABLE_OK;
+  magma::map_rc_t m_rc = magma::MAP_OK;
   amf_ue_ngap_id_t ue_id =
       (PARENT_STRUCT(elm, ue_m5gmm_context_s, amf_context))->amf_ue_ngap_id;
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
-  h_rc                           = hashtable_uint64_ts_remove(
-      amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl,
-      (const hash_key_t) elm->imsi64);
+
+  m_rc =
+      amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.remove(elm->imsi64);
 
   if (ue_id != INVALID_AMF_UE_NGAP_ID) {
-    h_rc = hashtable_uint64_ts_insert(
-        amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl,
-        (const hash_key_t) elm->imsi64, ue_id);
+    m_rc = amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.insert(
+        elm->imsi64, ue_id);
   } else {
-    h_rc = HASH_TABLE_KEY_NOT_EXISTS;
-  }
-  if (h_rc != HASH_TABLE_OK) {
     OAILOG_TRACE(
         LOG_AMF_APP,
         "Error could not update this ue context "
         "amf_ue_s1ap_id " AMF_UE_S1AP_ID_FMT " imsi " IMSI_64_FMT ": %s\n",
-        ue_id, elm->imsi64, hashtable_rc_code2string(h_rc));
+        ue_id, elm->imsi64, map_rc_code2string(m_rc).c_str());
     return RETURNerror;
   }
   return RETURNok;
@@ -423,10 +420,11 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
  ***************************************************************************/
 void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   hashtable_rc_t h_rc                = HASH_TABLE_OK;
+  magma::map_rc_t m_rc               = magma::MAP_OK;
   amf_app_desc_t* amf_app_desc_p     = get_amf_nas_state(false);
   amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
   OAILOG_DEBUG(LOG_NAS_AMF, "amf_free_ue_context \n");
-  hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
+  map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
   if (!ue_context_p || !amf_ue_context_p) {
     return;
   }
@@ -437,35 +435,28 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   amf_nas_proc_clean_up(ue_context_p);
 
   if (ue_context_p->gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) {
-    h_rc = hashtable_uint64_ts_remove(
-        amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl,
-        (const hash_key_t) ue_context_p->gnb_ngap_id_key);
-    if (h_rc != HASH_TABLE_OK)
+    m_rc = amf_ue_context_p->gnb_ue_ngap_id_ue_context_htbl.remove(
+        ue_context_p->gnb_ngap_id_key);
+
+    if (m_rc != magma::MAP_OK)
       OAILOG_TRACE(LOG_AMF_APP, "Error Could not remove this ue context \n");
     ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
   }
 
   if (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
-    h_rc = hashtable_ts_remove(
-        amf_state_ue_id_ht, (const hash_key_t) ue_context_p->amf_ue_ngap_id,
-        reinterpret_cast<void**>(&ue_context_p));
-    if (h_rc != HASH_TABLE_OK)
+    m_rc = amf_state_ue_id_ht.remove(ue_context_p->amf_ue_ngap_id);
+    if (m_rc != magma::MAP_OK)
       OAILOG_TRACE(LOG_AMF_APP, "Error Could not remove this ue context \n");
     ue_context_p->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
   }
 
-  hashtable_uint64_ts_remove(
-      amf_ue_context_p->imsi_amf_ue_id_htbl,
-      (const hash_key_t) ue_context_p->amf_context.imsi64);
+  amf_ue_context_p->imsi_amf_ue_id_htbl.remove(
+      ue_context_p->amf_context.imsi64);
 
-  hashtable_uint64_ts_remove(
-      amf_ue_context_p->tun11_ue_context_htbl,
-      (const hash_key_t) ue_context_p->amf_teid_n11);
+  amf_ue_context_p->tun11_ue_context_htbl.remove(ue_context_p->amf_teid_n11);
 
-  obj_hashtable_uint64_ts_remove(
-      amf_ue_context_p->guti_ue_context_htbl,
-      &ue_context_p->amf_context.m5_guti,
-      sizeof(ue_context_p->amf_context.m5_guti));
+  amf_ue_context_p->guti_ue_context_htbl.remove(
+      ue_context_p->amf_context.m5_guti);
 
   delete ue_context_p;
   ue_context_p = NULL;

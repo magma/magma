@@ -18,12 +18,16 @@ from google.protobuf.internal.well_known_types import Any
 from magma.configuration import service_configs
 from magma.configuration.exceptions import LoadConfigError
 
+SHARED_MCONFIG = 'shared_mconfig'
+
 
 def filter_configs_by_key(configs_by_key: Dict[str, TAny]) -> Dict[str, TAny]:
     """
     Given a JSON-deserialized map of mconfig protobuf Any's keyed by service
-    name, filter out any entires without a corresponding service or which have
+    name, filter out any entries without a corresponding service or which have
     values that aren't registered in the protobuf symbol database yet.
+    In addition to the service mconfigs there is also a shared mconfig with
+    key `SHARED_MCONFIG`.
 
     Args:
         configs_by_key:
@@ -36,11 +40,11 @@ def filter_configs_by_key(configs_by_key: Dict[str, TAny]) -> Dict[str, TAny]:
     services = magmad_cfg.get('magma_services', [])
     services.append('magmad')
     services += magmad_cfg.get('registered_dynamic_services', [])
-    services = set(services)
+    expected_keys = set(services + [SHARED_MCONFIG])
 
     filtered_configs_by_key = {}
     for srv, cfg in configs_by_key.items():
-        if srv not in services:
+        if srv not in expected_keys:
             continue
         filtered_configs_by_key[srv] = cfg
     return filtered_configs_by_key

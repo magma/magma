@@ -22,6 +22,8 @@ orchestratorCerts:
   - "certifier.pem"
   - "fluentd.pem"
 
+useToken: false
+
 analytics:
   # Metrics in this certifier configuration should strictly be generic in
   # nature independent of the type of deployment. It is to be also free of any

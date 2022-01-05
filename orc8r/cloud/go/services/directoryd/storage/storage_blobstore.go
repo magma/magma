@@ -34,8 +34,11 @@ const (
 	// DirectorydTypeSessionIDToIMSI is the blobstore type field for the session ID to IMSI mapping.
 	DirectorydTypeSessionIDToIMSI = "sessionid_to_imsi"
 
-	// DirectorydTypeSgwCteidToHwid is the blobstore type field for the session ID to IMSI mapping.
+	// DirectorydTypeSgwCteidToHwid is the blobstore type field for the C TEID to HWID SI mapping.
 	DirectorydTypeSgwCteidToHwid = "sgwCteid_to_hwid"
+
+	// DirectorydTypeSgwUteidToHwid is the blobstore type field for U TEID to HWID mapping.
+	DirectorydTypeSgwUteidToHwid = "sgwUteid_to_hwid"
 
 	// Blobstore needs a network ID, so for network-agnostic types we use a placeholder value.
 	placeholderNetworkID = "placeholder_network"
@@ -69,6 +72,12 @@ func (d *directorydBlobstore) GetHWIDForSgwCTeid(networkID, teid string) (string
 	return res, err
 }
 
+func (d *directorydBlobstore) GetHWIDForSgwUTeid(networkID, teid string) (string, error) {
+	res, err := d.getFromStore(networkID, DirectorydTypeSgwUteidToHwid, teid)
+	printIfError(err, "Error GetHWIDForSgwUTeid: %+v", err)
+	return res, err
+}
+
 func (d *directorydBlobstore) MapHWIDsToHostnames(hwidToHostname map[string]string) error {
 	err := d.mapToStore(placeholderNetworkID, DirectorydTypeHWIDToHostname, hwidToHostname)
 	printIfError(err, "Error MapHWIDsToHostnames: %+v", err)
@@ -87,6 +96,12 @@ func (d *directorydBlobstore) MapSgwCTeidToHWID(networkID string, sgwCTeidToHwid
 	return err
 }
 
+func (d *directorydBlobstore) MapSgwUTeidToHWID(networkID string, sgwUTeidToHwid map[string]string) error {
+	err := d.mapToStore(networkID, DirectorydTypeSgwUteidToHwid, sgwUTeidToHwid)
+	printIfError(err, "Error MapSgwUTeidToHWID: %+v", err)
+	return err
+}
+
 func (d *directorydBlobstore) UnmapHWIDsToHostnames(hwids []string) error {
 	err := d.unmapFromStore(placeholderNetworkID, DirectorydTypeHWIDToHostname, hwids)
 	printIfError(err, "Error UnmapHWIDsToHostnames: %+v", err)
@@ -101,7 +116,13 @@ func (d *directorydBlobstore) UnmapSessionIDsToIMSIs(networkID string, sessionID
 
 func (d *directorydBlobstore) UnmapSgwCTeidToHWID(networkID string, teids []string) error {
 	err := d.unmapFromStore(networkID, DirectorydTypeSgwCteidToHwid, teids)
-	printIfError(err, "Error UnmapSessionIDsToIMSIs: %+v", err)
+	printIfError(err, "Error UnmapSgwCTeidToHWID: %+v", err)
+	return err
+}
+
+func (d *directorydBlobstore) UnmapSgwUTeidToHWID(networkID string, teids []string) error {
+	err := d.unmapFromStore(networkID, DirectorydTypeSgwUteidToHwid, teids)
+	printIfError(err, "Error UnmapSgwUTeidToHWID: %+v", err)
 	return err
 }
 

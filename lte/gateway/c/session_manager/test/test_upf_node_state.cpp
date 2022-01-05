@@ -41,12 +41,14 @@ namespace magma {
 class SetUPFNodeState : public ::testing::Test {
  public:
   virtual void SetUp() {
-    rule_store    = std::make_shared<StaticRuleStore>();
+    rule_store = std::make_shared<StaticRuleStore>();
+    reporter = std::make_shared<MockSessionReporter>();
     session_store = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
     std::unordered_multimap<std::string, uint32_t> pdr_map;
     auto pipelined_client = std::make_shared<magma::AsyncPipelinedClient>();
-    amf_srv_client        = std::make_shared<magma::AsyncAmfServiceClient>();
+    amf_srv_client = std::make_shared<magma::AsyncAmfServiceClient>();
+    events_reporter = std::make_shared<MockEventsReporter>();
 
     magma::mconfig::SessionD mconfig;
     mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
@@ -56,7 +58,8 @@ class SetUPFNodeState : public ::testing::Test {
 
     session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
         rule_store, *session_store, pdr_map, pipelined_client, amf_srv_client,
-        mconfig, config["session_force_termination_timeout_ms"].as<int32_t>(),
+        reporter.get(), events_reporter, mconfig,
+        config["session_force_termination_timeout_ms"].as<int32_t>(),
         session_max_rtx_count);
 
     set_interface_for_up_mock =
@@ -73,6 +76,8 @@ class SetUPFNodeState : public ::testing::Test {
   std::shared_ptr<AsyncAmfServiceClient> amf_srv_client;
   std::shared_ptr<MockSetInterfaceForUserPlane> set_interface_for_up_mock;
   std::shared_ptr<UPFSessionConfigState> sess_config;
+  std::shared_ptr<MockSessionReporter> reporter;
+  std::shared_ptr<MockEventsReporter> events_reporter;
 };  // End of class
 
 // Testing the functionality of SetUPFNodeState
@@ -85,7 +90,7 @@ TEST_F(SetUPFNodeState, test_upf_node_state) {
   std::string upf_n3_addr = "192.168.60.112";
 
   session_enforcer->set_upf_node(upf_node_id, upf_n3_addr);
-  std::string upf_id    = session_enforcer->get_upf_node_id();
+  std::string upf_id = session_enforcer->get_upf_node_id();
   std::string ipv4_addr = session_enforcer->get_upf_n3_addr();
 
   // Validate the functionality of UPF Node ID
@@ -102,14 +107,14 @@ TEST_F(SetUPFNodeState, test_upf_session_config) {
       .WillByDefault(Return(Status::OK));
 
   auto& ses_config = *sess_config;
-  int32_t count    = 0;
+  int32_t count = 0;
   for (auto& upf_session : ses_config.upf_session_state()) {
     // Deleting the IMSI prefix from imsi
     std::string imsi_upf = upf_session.subscriber_id();
-    std::string imsi     = imsi_upf.substr(4, imsi_upf.length() - 4);
-    uint32_t version     = upf_session.session_version();
-    uint32_t teid        = upf_session.local_f_teid();
-    auto session_map     = session_store->read_sessions({imsi});
+    std::string imsi = imsi_upf.substr(4, imsi_upf.length() - 4);
+    uint32_t version = upf_session.session_version();
+    uint32_t teid = upf_session.local_f_teid();
+    auto session_map = session_store->read_sessions({imsi});
     /* Search with session search criteria of IMSI and session_id and
      * find  respective sesion to operate
      */
@@ -121,7 +126,7 @@ TEST_F(SetUPFNodeState, test_upf_session_config) {
       EXPECT_FALSE(session_it);
       continue;
     }
-    auto& session    = **session_it;
+    auto& session = **session_it;
     auto cur_version = session->get_current_version();
 
     /* Validating UPF verions of session imsi of teid received version

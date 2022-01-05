@@ -14,6 +14,8 @@ limitations under the License.
 package metrics
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -209,6 +211,9 @@ func ReportCreateSmPolicy(err error) {
 	UpdateN7RecentRequestMetrics(err)
 	if err != nil {
 		PcfSmPolicyCreateFailures.Inc()
+		if errors.Is(err, context.DeadlineExceeded) {
+			N7Timeouts.Inc()
+		}
 	}
 	PcfSmPolicyCreateRequests.Inc()
 }
@@ -217,6 +222,9 @@ func ReportUpdateSmPolicy(err error) {
 	UpdateN7RecentRequestMetrics(err)
 	if err != nil {
 		PcfSmPolicyUpdateFailures.Inc()
+		if errors.Is(err, context.DeadlineExceeded) {
+			N7Timeouts.Inc()
+		}
 	}
 	PcfSmPolicyUpdateRequests.Inc()
 }
@@ -225,6 +233,9 @@ func ReportDeleteSmPolicy(err error) {
 	UpdateN7RecentRequestMetrics(err)
 	if err != nil {
 		PcfSmPolicyDeleteFailures.Inc()
+		if errors.Is(err, context.DeadlineExceeded) {
+			N7Timeouts.Inc()
+		}
 	}
 	PcfSmPolicyDeleteRequests.Inc()
 }

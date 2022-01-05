@@ -35,8 +35,8 @@ class MemoryStoreClient final : public StoreClient {
  public:
   MemoryStoreClient(std::shared_ptr<StaticRuleStore> rule_store);
   MemoryStoreClient(MemoryStoreClient const&) = delete;
-  MemoryStoreClient(MemoryStoreClient&&)      = default;
-  ~MemoryStoreClient()                        = default;
+  MemoryStoreClient(MemoryStoreClient&&) = default;
+  ~MemoryStoreClient() = default;
 
   bool is_ready() { return true; }
 

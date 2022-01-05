@@ -152,7 +152,7 @@ class ServicePoller(Job):
         Make RPC calls to 'GetServiceInfo' functions of other services, to
         get current status.
         """
-        for service in self._service_info:
+        for service in list(self._service_info):
             # Check whether service provides service303 interface
             if service in self._config['non_service303_services']:
                 continue

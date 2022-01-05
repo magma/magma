@@ -70,7 +70,30 @@ func (m *GetHWIDForSgwCTeidRequest) Validate() error {
 	return nil
 }
 
+func (m *GetHWIDForSgwUTeidRequest) Validate() error {
+	if m == nil {
+		return errors.New("request cannot be nil")
+	}
+	if m.Teid == "" {
+		return errors.New("request teid cannot be empty")
+	}
+	return nil
+}
+
 func (m *MapSgwCTeidToHWIDRequest) Validate() error {
+	if m == nil {
+		return errors.New("request cannot be nil")
+	}
+	if m.NetworkID == "" {
+		return errors.New("network ID cannot be empty")
+	}
+	if m.TeidToHwid == nil {
+		return errors.New("request TeidToHwid cannot be empty")
+	}
+	return nil
+}
+
+func (m *MapSgwUTeidToHWIDRequest) Validate() error {
 	if m == nil {
 		return errors.New("request cannot be nil")
 	}
@@ -118,6 +141,26 @@ func (m *UnmapSgwCTeidToHWIDRequest) Validate() error {
 }
 
 func (m *GetNewSgwCTeidRequest) Validate() error {
+	if m == nil {
+		return errors.New("request cannot be nil")
+	}
+	if m.NetworkID == "" {
+		return errors.New("network ID cannot be empty")
+	}
+	return nil
+}
+
+func (m *UnmapSgwUTeidToHWIDRequest) Validate() error {
+	if m == nil {
+		return errors.New("request cannot be nil")
+	}
+	if m.NetworkID == "" {
+		return errors.New("network ID cannot be empty")
+	}
+	return nil
+}
+
+func (m *GetNewSgwUTeidRequest) Validate() error {
 	if m == nil {
 		return errors.New("request cannot be nil")
 	}
