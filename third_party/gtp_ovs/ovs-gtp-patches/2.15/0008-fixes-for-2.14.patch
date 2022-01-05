@@ -1,4 +1,4 @@
-From 6a33542d33955b9c9b7debf61ff68ac6e3456b3b Mon Sep 17 00:00:00 2001
+From 6c08bfbaaa63eef1239e6993759ee2e07406e5e5 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sat, 28 Nov 2020 23:09:50 -0800
 Subject: [PATCH 08/22] fixes for 2.14
@@ -148,7 +148,7 @@ index 08d576913..4cfaa50c8 100644
  #define TUNNEL_GTPU_OPT          __cpu_to_be16(0x8000)
  #endif
 diff --git a/lib/odp-util.c b/lib/odp-util.c
-index 43f81876d..cce43d9a4 100644
+index 9264c85b1..f773f106d 100644
 --- a/lib/odp-util.c
 +++ b/lib/odp-util.c
 @@ -5223,10 +5223,24 @@ scan_gtpu_metadata(const char *s,

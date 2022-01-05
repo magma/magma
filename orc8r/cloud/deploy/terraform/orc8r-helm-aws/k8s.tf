@@ -18,6 +18,8 @@ resource "kubernetes_namespace" "orc8r" {
 }
 
 resource "kubernetes_namespace" "monitoring" {
+  count = var.orc8r_is_staging_deployment == true ? 0 : 1
+
   metadata {
     name = var.monitoring_kubernetes_namespace
   }
@@ -25,6 +27,8 @@ resource "kubernetes_namespace" "monitoring" {
 
 # external dns maps route53 to ingress resources
 resource "helm_release" "external_dns" {
+  count = var.orc8r_is_staging_deployment == true ? 0 : 1
+
   name       = var.external_dns_deployment_name
   repository = local.stable_helm_repo
   chart      = "external-dns"

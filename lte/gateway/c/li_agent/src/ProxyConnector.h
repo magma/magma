@@ -21,16 +21,15 @@ namespace lte {
 class ProxyConnector {
  public:
   virtual int send_data(void* data, uint32_t size) = 0;
-  virtual int setup_proxy_socket()                 = 0;
-  virtual void cleanup()                           = 0;
-  virtual ~ProxyConnector()                        = default;
+  virtual int setup_proxy_socket() = 0;
+  virtual void cleanup() = 0;
+  virtual ~ProxyConnector() = default;
 };
 
 class ProxyConnectorImpl : public ProxyConnector {
  public:
-  ProxyConnectorImpl(
-      const std::string& proxy_addr, const int port,
-      const std::string& cert_file, const std::string& key_file);
+  ProxyConnectorImpl(const std::string& proxy_addr, const int port,
+                     const std::string& cert_file, const std::string& key_file);
 
   /**
    * setup_proxy_socket instantiate ssl library and opens a tls connection
@@ -51,6 +50,11 @@ class ProxyConnectorImpl : public ProxyConnector {
    * @return void
    */
   void cleanup();
+
+  /**
+   * performs cleanup if cleanup not explicitly called
+   */
+  ~ProxyConnectorImpl() override;
 
  private:
   const std::string& proxy_addr_;

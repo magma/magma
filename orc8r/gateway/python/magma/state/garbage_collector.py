@@ -16,7 +16,7 @@ import grpc
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.redis.containers import RedisFlatDict
 from magma.common.rpc_utils import grpc_async_wrapper, print_grpc
-from magma.common.sentry import SEND_TO_MONITORING
+from magma.common.sentry import SEND_TO_ERROR_MONITORING
 from magma.common.service import MagmaService
 from magma.state.keys import make_scoped_device_id
 from magma.state.redis_dicts import get_json_redis_dicts, get_proto_redis_dicts
@@ -86,7 +86,7 @@ class GarbageCollector:
             logging.error(
                 "GRPC call failed for state deletion: %s",
                 err,
-                extra=SEND_TO_MONITORING,
+                extra=SEND_TO_ERROR_MONITORING,
             )
         else:
             for redis_dict in self._redis_dicts:

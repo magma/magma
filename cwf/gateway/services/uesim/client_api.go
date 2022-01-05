@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"
@@ -37,6 +38,7 @@ type ueSimClient struct {
 // getUESimClient is a utility function to get a RPC connection to the
 // UESim service
 func getUESimClient() (*ueSimClient, error) {
+	//conn, err := registry.GetConnectionWithTimeout(registry.UeSim, 60*time.Second)
 	conn, err := registry.GetConnection(registry.UeSim)
 	if err != nil {
 		errMsg := fmt.Sprintf("UESim client initialization error: %s", err)
@@ -84,11 +86,32 @@ func Disconnect(id *cwfprotos.DisconnectRequest) (*cwfprotos.DisconnectResponse,
 
 // GenTraffic triggers traffic generation for the UE with the specified IMSI.
 // Input: The IMSI of the UE to simulate traffic for
+// It reattempts to send the request if connection was refused by the UEsim server
+func GenTrafficWithReatempts(req *cwfprotos.GenTrafficRequest) (*cwfprotos.GenTrafficResponse, error) {
+	var resp *cwfprotos.GenTrafficResponse
+	var err error
+	for i := 0; i < 5; i++ {
+		resp, err = GenTraffic(req)
+		if err != nil &&
+			(strings.Contains(strings.ToLower(err.Error()), "connection refused") ||
+				strings.Contains(err.Error(),"DeadlineExceeded")) {
+			// try again due to connection error
+			fmt.Printf("genTrafficSingleAttempt failed, retrying: %s\n", err)
+			continue
+		}
+		if err != nil {
+			err = fmt.Errorf("GenTraffic error from cli.GenTraffic: %s", err)
+		}
+		return resp, err
+	}
+	return nil, fmt.Errorf("GenTraffic client failed to send request after some reatempts: %s", err)
+}
+
 func GenTraffic(req *cwfprotos.GenTrafficRequest) (*cwfprotos.GenTrafficResponse, error) {
 	cli, err := getUESimClient()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GenTraffic failed to get the client: %s", err)
 	}
-	resp, err := cli.GenTraffic(context.Background(), req)
-	return resp, err
+	return cli.GenTraffic(context.Background(), req)
+
 }

@@ -53,7 +53,7 @@ services:
     # Ref: https://stackoverflow.com/questions/30210362/how-to-increase-the-size-of-the-dev-shm-in-docker-container
     shm_size: '256mb'
     ports:
-      - 5432:5432/tcp
+      - "5432:5432/tcp"
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:
@@ -83,9 +83,9 @@ services:
 
   nginx:
     ports:
-      - 7443:8443/tcp   # controller gRPC port
-      - 7444:8444/tcp   # bootstrapper port
-      - 9443:9443/tcp   # API port
+      - "7443:8443/tcp"   # controller gRPC port
+      - "7444:8444/tcp"   # bootstrapper port
+      - "9443:9443/tcp"   # API port
     volumes:
       - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
     environment:
@@ -94,6 +94,9 @@ services:
       TEST_MODE: "1"
       RESOLVER: 127.0.0.11
       SERVICE_REGISTRY_MODE: yaml
+      SSL_CERTIFICATE: "/var/opt/magma/certs/controller.crt"
+      SSL_CERTIFICATE_KEY: "/var/opt/magma/certs/controller.key"
+      SSL_CLIENT_CERTIFICATE: "/var/opt/magma/certs/certifier.pem"
     depends_on:
       - controller
     restart: always
@@ -111,8 +114,8 @@ services:
     environment:
       - discovery.type=single-node
     ports:
-      - 9200:9200
-      - 9300:9300
+      - "9200:9200"
+      - "9300:9300"
     volumes:
       - elasticsearch:/usr/share/elasticsearch/data
     restart: always
@@ -120,7 +123,7 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:7.3.1
     ports:
-      - 5601:5601
+      - "5601:5601"
     links:
       - elasticsearch
 
@@ -131,10 +134,10 @@ services:
       - elasticsearch
     # 24224 for TLS secure forwarding, 24225 for unsecured docker logging
     ports:
-      - 24224:24224
-      - 24224:24224/udp
-      - 24225:24225
-      - 24225:24225/udp
+      - "24224:24224"
+      - "24224:24224/udp"
+      - "24225:24225"
+      - "24225:24225/udp"
     volumes:
       - ./fluentd/conf:/fluentd/etc
       - $PWD/../../../.cache/test_certs:/var/opt/magma/certs

@@ -48,8 +48,8 @@ typedef struct {
  */
 class ServiceRegistrySingleton {
  public:
-  static constexpr char* CLOUD = (char*) "cloud";
-  static constexpr char* LOCAL = (char*) "local";
+  static constexpr char* CLOUD = (char*)"cloud";
+  static constexpr char* LOCAL = (char*)"local";
 
  public:
   static ServiceRegistrySingleton* Instance();
@@ -95,8 +95,8 @@ class ServiceRegistrySingleton {
    * @return grpc::Channel to the given service. If a connection to cloud
    * service is requested, a connection to the control_proxy will be returned.
    */
-  const std::shared_ptr<Channel> GetGrpcChannel(
-      const std::string& service, const std::string& destination);
+  const std::shared_ptr<Channel> GetGrpcChannel(const std::string& service,
+                                                const std::string& destination);
 
   /*
    * Returns a grpc connection to the bootstrapper service

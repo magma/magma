@@ -26,7 +26,7 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_pdu_session_configs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
@@ -51,10 +51,9 @@ void amf_ue_context_update_coll_keys(
     const gnb_ngap_id_key_t gnb_ngap_id_key,
     const amf_ue_ngap_id_t amf_ue_ngap_id, const imsi64_t imsi,
     const teid_t amf_teid_n11, const guti_m5_t* const guti_p) {
-  hashtable_rc_t h_rc  = HASH_TABLE_OK;
   magma::map_rc_t m_rc = magma::MAP_OK;
-  // TODO: Migrate the amf_state_ue_id_ht to the map implementation.
-  hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
+
+  map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
   OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_TRACE(
       LOG_AMF_APP,
@@ -86,14 +85,10 @@ void amf_ue_context_update_coll_keys(
 
   if (amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
     if (ue_context_p->amf_ue_ngap_id != amf_ue_ngap_id) {
-      h_rc = hashtable_ts_remove(
-          amf_state_ue_id_ht, (const hash_key_t) ue_context_p->amf_ue_ngap_id,
-          reinterpret_cast<void**>(&ue_context_p));
-      h_rc = hashtable_ts_insert(
-          amf_state_ue_id_ht, (const hash_key_t) amf_ue_ngap_id,
-          reinterpret_cast<void*>(ue_context_p));
+      m_rc = amf_state_ue_id_ht.remove(ue_context_p->amf_ue_ngap_id);
+      m_rc = amf_state_ue_id_ht.insert(amf_ue_ngap_id, ue_context_p);
 
-      if (HASH_TABLE_OK != h_rc) {
+      if (m_rc != magma::MAP_OK) {
         OAILOG_ERROR(
             LOG_AMF_APP,
             "Insertion of Hash entry failed for  "
@@ -499,10 +494,9 @@ imsi64_t amf_app_handle_initial_ue_message(
    * Before accessing ue_context_p, we shall validate whether UE context
    * exists or not
    */
-  if (INVALID_AMF_UE_NGAP_ID != ue_id) {
-    hash_table_ts_t* amf_state_ue_id_ht = get_amf_ue_state();
-    if (hashtable_ts_is_key_exists(
-            amf_state_ue_id_ht, (const hash_key_t) ue_id) == HASH_TABLE_OK) {
+  if (ue_id != INVALID_AMF_UE_NGAP_ID) {
+    map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
+    if (amf_state_ue_id_ht.get(ue_id, &ue_context_p) == magma::MAP_OK) {
       imsi64 = ue_context_p->amf_context.imsi64;
     }
   }
@@ -597,14 +591,14 @@ int amf_app_handle_pdu_session_response(
     return RETURNerror;
   }
 
-  get_ambr_unit(
-      pdu_session_resp->session_ambr.downlink_unit_type,
-      pdu_session_resp->session_ambr.downlink_units, &smf_ctx->dl_ambr_unit,
+  convert_ambr(
+      &pdu_session_resp->session_ambr.downlink_unit_type,
+      &pdu_session_resp->session_ambr.downlink_units, &smf_ctx->dl_ambr_unit,
       &smf_ctx->dl_session_ambr);
 
-  get_ambr_unit(
-      pdu_session_resp->session_ambr.uplink_unit_type,
-      pdu_session_resp->session_ambr.uplink_units, &smf_ctx->ul_ambr_unit,
+  convert_ambr(
+      &pdu_session_resp->session_ambr.uplink_unit_type,
+      &pdu_session_resp->session_ambr.uplink_units, &smf_ctx->ul_ambr_unit,
       &smf_ctx->ul_session_ambr);
 
   memcpy(
@@ -659,6 +653,62 @@ int amf_app_handle_pdu_session_response(
   }
 
   return rc;
+}
+/****************************************************************************
+ **                                                                        **
+ ** Name:    convert_ambr()                                                **
+ **                                                                        **
+ ** Description: Converts the session ambr format from                     **
+ **  one defined in create_pdu_session_response to one defined in          **
+ **  pdu_session_estab_accept message                                      **
+ **                                                                        **
+ ** Inputs:  pdu_ambr_response_unit, pdu_ambr_response_value               **
+ **          ambr_unit, ambr_value                                         **
+ **                                                                        **
+ **      Return:   void                                                    **
+ **                                                                        **
+ ***************************************************************************/
+void convert_ambr(
+    const uint32_t* pdu_ambr_response_unit,
+    const uint32_t* pdu_ambr_response_value, uint8_t* ambr_unit,
+    uint16_t* ambr_value) {
+  int count                             = 1;
+  uint32_t temp_pdu_ambr_response_value = *pdu_ambr_response_value;
+
+  // minimum rate unit is KBPS
+  if (*pdu_ambr_response_unit == BPS &&
+      temp_pdu_ambr_response_value / 1000 == 0) {
+    // Values less than 1Kbps are defaulted to 1Kbps
+    *ambr_value = static_cast<uint16_t>(1);
+    *ambr_unit  = static_cast<uint8_t>(
+        magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
+    return;
+  }
+
+  if (*pdu_ambr_response_unit == BPS) {
+    temp_pdu_ambr_response_value /= 1000;
+  }
+
+  while (temp_pdu_ambr_response_value >= AMBR_UNIT_CONVERT_THRESHOLD) {
+    temp_pdu_ambr_response_value = (temp_pdu_ambr_response_value / 1000);
+    count++;
+  }
+
+  switch (count) {
+    case 1:
+      *ambr_unit = static_cast<uint8_t>(
+          magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
+      break;
+    case 2:
+      *ambr_unit = static_cast<uint8_t>(
+          magma5g::M5GSessionAmbrUnit::MULTIPLES_1MBPS);  // Mbps
+      break;
+    case 3:
+      *ambr_unit = static_cast<uint8_t>(
+          magma5g::M5GSessionAmbrUnit::MULTIPLES_1GBPS);  // Gbps
+      break;
+  }
+  *ambr_value = static_cast<uint16_t>(temp_pdu_ambr_response_value);
 }
 
 /****************************************************************************
@@ -752,7 +802,8 @@ int amf_app_handle_pdu_session_accept(
   smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
       PDU_SESSION_ESTABLISHMENT_ACCEPT;
   smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val = 1;
-  smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val         = 1;
+  smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val =
+      (pdu_session_resp->selected_ssc_mode + 1);
 
   memset(
       &(smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info), 0, 12);
@@ -795,14 +846,18 @@ int amf_app_handle_pdu_session_accept(
   memcpy(
       smf_msg->msg.pdu_session_estab_accept.qos_rules.qos_rule, &qos_rule,
       1 * sizeof(QOSRule));
+
+  // Set session ambr
   smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_unit =
-      pdu_session_resp->session_ambr.downlink_unit_type;
-  smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit =
-      pdu_session_resp->session_ambr.uplink_unit_type;
+      smf_ctx->dl_ambr_unit;
   smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_session_ambr =
-      pdu_session_resp->session_ambr.downlink_units;
+      smf_ctx->dl_session_ambr;
+
+  smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit =
+      smf_ctx->ul_ambr_unit;
   smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_session_ambr =
-      pdu_session_resp->session_ambr.uplink_units;
+      smf_ctx->ul_session_ambr;
+
   smf_msg->msg.pdu_session_estab_accept.session_ambr.length = AMBR_LEN;
 
   msg_accept_pco =
@@ -1150,7 +1205,7 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
   MessageDef* message_p                          = nullptr;
   itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
 
-  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+  if (!amf_pop_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3513: Invalid Timer Id expiration, Timer Id: %u\n",
         timer_id);

@@ -15,6 +15,7 @@ package servicers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/golang/glog"
@@ -23,6 +24,8 @@ import (
 	n7_sbi "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
 	"magma/feg/gateway/services/n7_n40_proxy/metrics"
 	"magma/feg/gateway/services/n7_n40_proxy/n7"
+	"magma/feg/gateway/services/n7_n40_proxy/notify"
+	"magma/gateway/service_registry"
 	"magma/lte/cloud/go/protos"
 )
 
@@ -31,10 +34,11 @@ const (
 )
 
 type CentralSessionController struct {
-	policyClient  *n7_sbi.ClientWithResponses
+	policyClient  n7_sbi.ClientWithResponsesInterface
 	dbClient      policydb.PolicyDBClient
 	cfg           *SessionControllerConfig
 	healthTracker *metrics.SessionHealthTracker
+	notifHandler  *notify.NotificationHandler
 }
 
 type SessionControllerConfig struct {
@@ -43,15 +47,13 @@ type SessionControllerConfig struct {
 }
 
 func NewCentralSessionController(
+	n7config *n7.N7Config,
 	dbClient policydb.PolicyDBClient,
+	policyClient n7_sbi.ClientWithResponsesInterface,
+	cloudReg service_registry.GatewayRegistry,
 ) (*CentralSessionController, error) {
-	n7config, err := n7.GetN7Config()
-	if err == nil {
-		return nil, err
-	}
-	policyClient, err := n7.NewN7Client(&n7config.Server)
+	notifHandler, err := notify.NewStartedNotificationHandlerWithHandlers(&n7config.Client, cloudReg)
 	if err != nil {
-		glog.Errorf("Creating N7 Client failed: %s", err)
 		return nil, err
 	}
 	return &CentralSessionController{
@@ -62,6 +64,7 @@ func NewCentralSessionController(
 			RequestTimeout: DefaultN7Timeout,
 		},
 		healthTracker: metrics.NewSessionHealthTracker(),
+		notifHandler:  notifHandler,
 	}, nil
 }
 
@@ -70,8 +73,24 @@ func (srv *CentralSessionController) CreateSession(
 	ctx context.Context,
 	request *protos.CreateSessionRequest,
 ) (*protos.CreateSessionResponse, error) {
+	if err := validateCreateSessionRequest(request); err != nil {
+		err = fmt.Errorf("CreateSessionRequest failed to validate: %s", err)
+		glog.Error(err)
+		return nil, err
+	}
 
-	return (&protos.UnimplementedCentralSessionControllerServer{}).CreateSession(ctx, request)
+	policy, policyId, err := srv.getSmPolicyRules(request)
+	metrics.ReportCreateSmPolicy(err)
+	if err != nil {
+		err = fmt.Errorf("CreateSessionRequest failed to get SMPolicyRules: %s", err)
+		glog.Error(err)
+		return nil, err
+	}
+	err = srv.injectOmnipresentRules(policy)
+	if err != nil {
+		glog.Errorf("CreateSessionRequest Failed to inject omnipresent rules %s", err)
+	}
+	return n7.GetCreateSessionResponseProto(request, policy, policyId), nil
 }
 
 // UpdateSession handles periodic updates from gateways that include quota
@@ -80,8 +99,11 @@ func (srv *CentralSessionController) UpdateSession(
 	ctx context.Context,
 	request *protos.UpdateSessionRequest,
 ) (*protos.UpdateSessionResponse, error) {
-
-	return (&protos.UnimplementedCentralSessionControllerServer{}).UpdateSession(ctx, request)
+	reqCtxts := n7.GetSmPolicyUpdateRequestsN7(request.UsageMonitors)
+	responses := srv.sendMutlipleSmPolicyUpdateRequests(reqCtxts)
+	return &protos.UpdateSessionResponse{
+		UsageMonitorResponses: responses,
+	}, nil
 }
 
 // TerminateSession handles a session termination
@@ -89,6 +111,32 @@ func (srv *CentralSessionController) TerminateSession(
 	ctx context.Context,
 	request *protos.SessionTerminateRequest,
 ) (*protos.SessionTerminateResponse, error) {
+	if err := validateSessionTerminateRequest(request); err != nil {
+		err = fmt.Errorf("SessionTerminateRequest failed to validate: %s", err)
+		glog.Error(err)
+		return nil, err
+	}
+	smPolicyId, err := n7.GetSmPolicyId(request.GetTgppCtx())
+	if err != nil {
+		err = fmt.Errorf("TerminateSession failed to get policyId: %s", err)
+		glog.Error(err)
+		return nil, err
+	}
+	reqBody := n7.GetSmPolicyDeleteReqBody(request)
+	err = srv.sendSmPolicyDelete(smPolicyId, reqBody)
+	metrics.ReportDeleteSmPolicy(err)
+	if err != nil {
+		err = fmt.Errorf("SessionTerminateRequest failed to send SM Policy Delete: %s", err)
+		glog.Error(err)
+		return nil, err
+	}
+	return &protos.SessionTerminateResponse{
+		Sid:       request.GetCommonContext().GetSid().GetId(),
+		SessionId: request.SessionId,
+	}, nil
+}
 
-	return (&protos.UnimplementedCentralSessionControllerServer{}).TerminateSession(ctx, request)
+// Close gracefully shuts down the CentralSessionController
+func (srv *CentralSessionController) Close() {
+	srv.notifHandler.Shutdown()
 }

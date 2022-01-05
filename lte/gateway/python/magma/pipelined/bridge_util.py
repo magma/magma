@@ -96,6 +96,22 @@ class BridgeTools:
         return int(port_num)
 
     @staticmethod
+    def get_mac_address(interface_name):
+        """
+        Gets L2 mac address of interface
+        """
+        try:
+            fl = "/sys/class/net/%s/address" % interface_name
+            mac = subprocess.check_output(["cat", fl])
+        except subprocess.CalledProcessError as e:
+            raise DatapathLookupError(
+                'Error: reading mac address of interface({}) : {}'.format(
+                    interface_name, e,
+                ),
+            )
+        return mac.strip()
+
+    @staticmethod
     def create_internal_iface(bridge_name, iface_name, ip):
         """
         Creates a simple bridge, sets up an interface.
@@ -147,6 +163,7 @@ class BridgeTools:
 
     @staticmethod
     def create_veth_pair(port1: str, port2: str):
+        BridgeTools.delete_veth(port1)
         try:
             create_veth = [
                 "ip", "link", "add",
@@ -155,9 +172,79 @@ class BridgeTools:
                 "peer", "name", port2,
             ]
             subprocess.check_call(create_veth)
-            logging.debug("if_up_cmd %s", create_veth)
+            logging.debug("ip veth create %s", create_veth)
         except subprocess.CalledProcessError as e:
             logging.debug("Error while creating veth pair: %s", e)
+
+    @staticmethod
+    def ifup_netdev(port1: str, ip_addr=None):
+        try:
+            ifup_cmd = [
+                "ifconfig",
+                port1,
+                "up",
+            ]
+            if ip_addr:
+                ifup_cmd.append(ip_addr)
+            subprocess.check_call(ifup_cmd)
+            logging.debug("if_up_cmd %s", ifup_cmd)
+        except subprocess.CalledProcessError as e:
+            logging.debug("Error while creating veth pair: %s", e)
+
+    @staticmethod
+    def create_ns_and_move_veth(ns: str, port1: str, ip_addr):
+        try:
+            ns_cmd = [
+                "ip", "netns", "add", ns,
+            ]
+            subprocess.check_call(ns_cmd)
+            logging.debug("ns create %s", ns_cmd)
+
+        except subprocess.CalledProcessError as e:
+            logging.debug("Error while creating ns: %s", e)
+        try:
+            move_cmd = [
+                "ip", "link", "set", "dev", port1, "netns", ns,
+            ]
+            subprocess.check_call(move_cmd)
+            logging.debug("dev move %s", move_cmd)
+
+        except subprocess.CalledProcessError as e:
+            logging.debug("Error while move dev: %s", e)
+
+        try:
+            up_cmd = [
+                "ip", "netns", "exec", ns, "ifconfig", port1, ip_addr, "up",
+            ]
+            subprocess.check_call(up_cmd)
+            logging.debug("dev move %s", up_cmd)
+
+        except subprocess.CalledProcessError as e:
+            logging.debug("Error while dev up: %s", e)
+
+    @staticmethod
+    def delete_veth(port: str):
+        try:
+            del_cmd = [
+                "ip", "link", "del", port,
+            ]
+            subprocess.check_call(del_cmd)
+            logging.debug("dev move %s", del_cmd)
+
+        except subprocess.CalledProcessError as e:
+            logging.debug("Error while del dev: %s", e)
+
+    @staticmethod
+    def delete_ns_all():
+        try:
+            del_cmd = [
+                "ip", "-all", "netns", "delete",
+            ]
+            subprocess.check_call(del_cmd)
+            logging.debug("del ns %s", del_cmd)
+
+        except subprocess.CalledProcessError as e:
+            logging.debug("Error while del all ns: %s", e)
 
     @staticmethod
     def create_bridge(bridge_name, iface_name):

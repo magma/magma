@@ -54,6 +54,8 @@ int send_mme_app_stats_to_service303(
       stats_msg->nb_default_eps_bearers;
   message_p->ittiMsg.application_mme_app_stats_msg.nb_s1u_bearers =
       stats_msg->nb_s1u_bearers;
+  message_p->ittiMsg.application_mme_app_stats_msg.nb_mme_app_last_msg_latency =
+      stats_msg->nb_mme_app_last_msg_latency;
   return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
 }
 
@@ -68,5 +70,7 @@ int send_s1ap_stats_to_service303(
   }
   message_p->ittiMsg.application_s1ap_stats_msg.nb_enb_connected =
       stats_msg->nb_enb_connected;
+  message_p->ittiMsg.application_s1ap_stats_msg.nb_s1ap_last_msg_latency =
+      stats_msg->nb_s1ap_last_msg_latency;
   return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
 }

@@ -1,38 +1,46 @@
-# VS Code Container Dev Environment
+# VS Code DevContainer Environment
 
-For a comprehensive developer environnment supporting AGW c / c++ workflows (extensible with ~effort to other Magma uses) - see the instructions below.
+Documentation on the usage of DevContainer can also be found in the [contributor documentation](https://docs.magmacore.org/docs/next/contributing/contribute_vscode#using-devcontainer-for-development).
 
-## Setup
 
-- Install Docker
-- Configure Docker
-  - In some operating systems (e.g. MAC) docker runs in a VM and you must allocate memory / CPU / etc
-  - Some targets in Magma can be built with e.g. 7 Gigs of VM RAM
-    - e.g. `make test_oai` and `make build_oai` within `lte/gateway/`
-  - Others require 12 Gigs of VM RAM
-    - e.g. `make test_connection_manager` within `lte/gateway/`
-- Install VS Code
-  - Install Microsoft's VS Code [Remote - Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) Extension
-- `F1` For command search
-  - Type `Remote-Containers: Clone Repository in Containers Volume...`
-  - In dialog box that pops up, paste `https://github.com/electronjoe/magma/tree/experimental-vscode-dockerized`
-    - Once this PR is committed, you could instead point at any Magma Github {branch or PR}
-  - When prompted, select `Create a Unique Volume`
-    - As our goal is to only work on this one Git target
-  - Sit back and relax for awhile (10-15 min)
-    - VS Code will build Dockerfile
-    - Checkout Repo
-    - Install plugins within Docker instance
-  - Test your setup by opening a terminal and testing OAI
-    - `Terminal->New Terminal`
-    - `cd lte/gateway`
-    - `make test_oai`
+For a comprehensive developer environment supporting AGW c / c++ workflows see the [instructions below](#using-clang-tidy-in-vs-code).
+With some effort this might be extensible to other Magma users.
+
+## Prerequisites and Restrictions
+
+DevContainer is a technology developed by Microsoft. Thus, it is only available for [_VS Code_](https://code.visualstudio.com/docs/remote/containers), but **not** for _IntelliJ_. However, as Github is also currently owned by Microsoft, Github provides a DevContainer integration named ["Codespaces"](https://docs.github.com/en/codespaces).
+In order to use the Github codespaces, you must be member of the Magma Github organization.
+In any case you will need a working Docker installation, as DevContainer is a docker based technology.
+
+For detailed instructions see the [contributor documentation](https://docs.magmacore.org/docs/next/contributing/contribute_vscode#using-devcontainer-for-development).
+
+## Developing DevContainer
+
+The DevContainer is a docker image built from the docker file by convention situated at [`.devcontainer/Dockerfile`](Dockerfile).
+The configuration how a DevContainer environment should be started can be found in the [`.devcontainer/devcontainer.json`](devcontainer.json).
+
+Amongst others you have two options to start a DevContainer,
+* either from a prebuilt docker image, e.g. pulled from a container registry with the following configuration node,
+```json
+	"image": "ghcr.io/magma/magma/devcontainer:latest",
+```
+  where you will need to have read access to the respective Docker registry, or
+* you can build the docker image anew, when starting the container using the following configuration node instead,
+```json
+	"build": {
+        "dockerfile": "Dockerfile",
+        "context": "..",
+    },
+```
+  which requires a connection to the internet to download the respective dependencies. It is important to note that the default context for the `build:` block in the `devcontainer.json` is the `.devcontainer` folder below the repository root. Hence, you must set the context next to the dockerfile to be able to resolve all dependency imports properly.
+
+If you would want to build the dockerfile manually from the console, you would start the command `docker build -f .devcontainer/Dockerfile .` in the repository root.
 
 ## Using Clang-Tidy in VS Code
 
 While we could commit / build a compilation database (compile_commands.json), at this time we are not doing so. Instead we will explicitly call out the Include paths for VS Code / Clang-Tidy as follows (open to ammending this if a clean mechanism of generating compile commands is found):
 
-You should not have to ask for Clang-Tidy to run on the open file, it should do so automatically. But if not try `F1` and type `Clang-Tidy: Lint File`. You can monitor behavior by `View->Output` tab in VS code -> select `Clang-Tidy` from the Drop down menu top right. 
+You should not have to ask for Clang-Tidy to run on the open file, it should do so automatically. But if not try `F1` and type `Clang-Tidy: Lint File`. You can monitor behavior by `View->Output` tab in VS code -> select `Clang-Tidy` from the Drop down menu top right.
 
 For any header include that is undiscovered by Clang-Tidy (e.g. `error: 'bstrlib.h' file not found [clang-diagnostic-error]`):
 
@@ -89,7 +97,7 @@ cmake --build .
 
 ```shell
 root@ecee08edef4b:/build/c/oai# cat clang.findings | egrep "android|bugprone|cert|clang|concurrency|misc" | awk -F'[][]' '{print $2}' | sort | uniq -c
-   1315 
+   1315
       3 android-cloexec-fopen
       1 android-cloexec-open
      34 bugprone-branch-clone
@@ -125,22 +133,3 @@ root@ecee08edef4b:/build/c/oai# cat clang.findings | egrep "android|bugprone|cer
       5 misc-redundant-expression
      15 misc-unused-using-decls
 ```
-
-
-
-## Sharp Edges
-
-- Your Docker Container Volume contains your work!
-  - Be careful not to delete the container until outstanding work is pushed to your personal Github Fork
-  - Note cleanup for disk space below - and the danger here
-  - TODO: How to re-attach a Volume if you close VS Code?
-- Docker running out of disk on Mac VM
-  - Docker just leaks resources like mad
-  - Eventually you'll get a "out of space" error
-  - Or an error about apt-get failure
-  - TODO: find good docker command to wipe everything
-
-## TODOs
-
-- Get the Docker image up to DockerHub?
-  - Want easy way to build from Dockerfile locally though..

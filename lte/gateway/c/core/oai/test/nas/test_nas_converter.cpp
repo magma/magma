@@ -58,7 +58,18 @@ TEST_F(NasStateConverterTest, TestEmmContextConversion) {
   emm_context._imsi.u.num.digit15 = 9;
   emm_context.saved_imsi64        = 310150123456789;
 
-  nas_new_identification_procedure(&emm_context);
+  // Initialize EMM procedures
+  nas_emm_attach_proc_t* attach_proc = nas_new_attach_procedure(&emm_context);
+  nas_emm_auth_proc_t* auth_proc =
+      nas_new_authentication_procedure(&emm_context);
+  nas_emm_smc_proc_t* smc_proc = nas_new_smc_procedure(&emm_context);
+  nas_emm_ident_proc_t* ident_proc =
+      nas_new_identification_procedure(&emm_context);
+  // TODO (ssanadhya): Add state for auth_info_proc
+
+  // Initialize authentication vectors
+  emm_context.remaining_vectors = 0;
+  memset(emm_context._vector, sizeof(auth_vector_t), 1);
 
   emm_context.esm_ctx.esm_proc_data =
       (esm_proc_data_t*) calloc(1, sizeof(*emm_context.esm_ctx.esm_proc_data));
@@ -101,17 +112,22 @@ TEST_F(NasStateConverterTest, TestEmmContextConversion) {
 
   EXPECT_EQ(final_state.T3422.id, NAS_TIMER_INACTIVE_ID);
 
-  clear_emm_ctxt(&emm_context);
+  // check that all procedures from initial state are in the final state
+  EXPECT_TRUE(is_nas_specific_procedure_attach_running(&final_state));
+  EXPECT_TRUE(is_nas_common_procedure_authentication_running(&final_state));
+  EXPECT_TRUE(is_nas_common_procedure_smc_running(&final_state));
+  // TODO (ssanadhya): Add check for Identification procedure, once state
+  // conversion is implemented for it
+
   free_wrapper((void**) &emm_context.new_attach_info->ies);
   free_wrapper((void**) &emm_context.new_attach_info);
+  clear_emm_ctxt(&emm_context);
   bdestroy_wrapper(&bstr);
 
   bdestroy_wrapper(&final_state.esm_ctx.esm_proc_data->pdn_addr);
   bdestroy_wrapper(&final_state.esm_ctx.esm_proc_data->apn);
   free_wrapper((void**) &final_state.new_attach_info->ies);
   free_wrapper((void**) &final_state.new_attach_info);
-  free_wrapper((void**) &final_state.emm_procedures->emm_con_mngt_proc);
-  free_wrapper((void**) &final_state.emm_procedures);
   free_wrapper((void**) &final_state.esm_ctx.esm_proc_data);
   free_wrapper((void**) &final_state.t3422_arg);
   clear_emm_ctxt(&final_state);

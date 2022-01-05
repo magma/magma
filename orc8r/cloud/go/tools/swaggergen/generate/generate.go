@@ -40,30 +40,34 @@ type MagmaSwaggerSpec struct {
 		Description string
 		Version     string
 	}
-	BasePath    string `yaml:"basePath"`
-	Consumes    []string
-	Produces    []string
-	Schemes     []string
-	Tags        []swagger.TagDefinition
-	Paths       map[string]interface{}
-	Responses   map[string]interface{}
-	Parameters  map[string]interface{}
-	Definitions map[string]interface{}
+	BasePath            string `yaml:"basePath"`
+	Consumes            []string
+	Produces            []string
+	Schemes             []string
+	SecurityDefinitions swagger.SecurityDefinitions `yaml:"securityDefinitions"`
+	Security            []map[string][]string
+	Tags                []swagger.TagDefinition
+	Paths               map[string]interface{}
+	Responses           map[string]interface{}
+	Parameters          map[string]interface{}
+	Definitions         map[string]interface{}
 }
 
 func (m MagmaSwaggerSpec) ToSwaggerSpec() swagger.Spec {
 	s := swagger.Spec{
-		Swagger:     m.Swagger,
-		Info:        m.Info,
-		BasePath:    m.BasePath,
-		Consumes:    m.Consumes,
-		Produces:    m.Produces,
-		Schemes:     m.Schemes,
-		Tags:        m.Tags,
-		Paths:       m.Paths,
-		Responses:   m.Responses,
-		Parameters:  m.Parameters,
-		Definitions: m.Definitions,
+		Swagger:             m.Swagger,
+		Info:                m.Info,
+		BasePath:            m.BasePath,
+		Consumes:            m.Consumes,
+		Produces:            m.Produces,
+		Schemes:             m.Schemes,
+		SecurityDefinitions: m.SecurityDefinitions,
+		Security:            m.Security,
+		Tags:                m.Tags,
+		Paths:               m.Paths,
+		Responses:           m.Responses,
+		Parameters:          m.Parameters,
+		Definitions:         m.Definitions,
 	}
 	return s
 }

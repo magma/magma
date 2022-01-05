@@ -27,7 +27,8 @@ SCTPD_MIN_VERSION=1.6.0 # earliest version of sctpd with which this version is c
 BUILD_TYPE=RelWithDebInfo
 
 # Cmdline options that overwrite the version configs above
-COMMIT_HASH=""  # hash of top magma commit (hg log $MAGMA_PATH)
+COMMIT_HASH=""  # hash of top magma commit
+COMMIT_COUNT="" # count of commits on git main
 CERT_FILE="$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 CONTROL_PROXY_FILE="$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
 OS="ubuntu"
@@ -42,6 +43,10 @@ case $key in
     ;;
     -h|--hash)
     COMMIT_HASH="$2"
+    shift
+    ;;
+    --commit-count)
+    COMMIT_COUNT="$2"
     shift
     ;;
     -t|--type)
@@ -137,7 +142,9 @@ MAGMA_DEPS=(
     "nlohmann-json3-dev"
     "sentry-native"   # sessiond
     "td-agent-bit >= 1.7.8"
-    "bpfcc-tools" # required for kernsnoopd
+    # eBPF compile and load tools for kernsnoopd and AGW datapath
+    # Ubuntu bcc lib (bpfcc-tools) is pretty old, use magma repo package
+    "bcc-tools"
     "wireguard"
     )
 
@@ -260,7 +267,7 @@ if [ -d ${PY_TMP_BUILD} ]; then
 fi
 
 FULL_VERSION=${VERSION}-$(date +%s)-${COMMIT_HASH}
-COMMIT_HASH_WITH_VERSION=${VERSION}-${COMMIT_HASH}
+COMMIT_HASH_WITH_VERSION="magma@${VERSION}.${COMMIT_COUNT}-${COMMIT_HASH}"
 
 # first do python protos and then build the python packages.
 # library will be dropped in $PY_TMP_BUILD/usr/lib/python3/dist-packages
@@ -375,7 +382,8 @@ $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/pipelined.yml_prod" /etc/magma/p
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/sessiond.yml_prod" /etc/magma/sessiond.yml) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/templates/*" /etc/magma/templates/) \
 $(glob_files "${MAGMA_ROOT}/orc8r/gateway/configs/templates/*" /etc/magma/templates/) \
-$(glob_files "${MAGMA_ROOT}/lte/gateway/python/magma/kernsnoopd/ebpf/*" /etc/magma/ebpf/) \
+$(glob_files "${MAGMA_ROOT}/lte/gateway/python/magma/kernsnoopd/ebpf/*" /var/opt/magma/ebpf/kernsnoopd/) \
+$(glob_files "${MAGMA_ROOT}/lte/gateway/python/magma/pipelined/ebpf/*" /var/opt/magma/ebpf/) \
 ${CONTROL_PROXY_FILE}=/etc/magma/ \
 $(glob_files "${ANSIBLE_FILES}/magma_modules_load" /etc/modules-load.d/magma.conf) \
 $(glob_files "${ANSIBLE_FILES}/configure_envoy_namespace.sh" /usr/local/bin/ ) \

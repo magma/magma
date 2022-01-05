@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */}}
 {{- define "orc8rlib.pdb.tpl" -}}
-{{- if and .Values.controller.podDisruptionBudget.enabled (gt .Values.controller.replicas 1.0 )}}
+{{- if and .Values.controller.podDisruptionBudget.enabled (ge .Values.controller.replicas 1.0 )}}
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
@@ -19,6 +19,9 @@ metadata:
   labels:
     app.kubernetes.io/component: orc8r
 {{ include "default-labels" . | indent 4 }}
+{{ include "controller-image-version-label" . | indent 4 }}
+  annotations:
+{{ include "release-name-annotation" . | indent 4 }}
 spec:
   {{- with .Values.controller.podDisruptionBudget.minAvailable }}
   minAvailable: {{ . }}

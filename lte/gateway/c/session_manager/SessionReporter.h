@@ -46,7 +46,7 @@ using namespace lte;
  * ReporterCallbackFn is a function type alias for the callback called when a
    response is received.
  */
-template<typename ResponseType>
+template <typename ResponseType>
 using ReporterCallbackFn = std::function<void(grpc::Status, ResponseType)>;
 
 /**
@@ -54,12 +54,12 @@ using ReporterCallbackFn = std::function<void(grpc::Status, ResponseType)>;
  * a response is received. This is defined here to limit the dependency on folly
  * in the common library.
  */
-template<typename ResponseType>
+template <typename ResponseType>
 class AsyncEvbResponse : public AsyncGRPCResponse<ResponseType> {
  public:
-  AsyncEvbResponse(
-      folly::EventBase* base, ReporterCallbackFn<ResponseType> callback,
-      uint32_t timeout_sec);
+  AsyncEvbResponse(folly::EventBase* base,
+                   ReporterCallbackFn<ResponseType> callback,
+                   uint32_t timeout_sec);
 
   void handle_response() override;
 
@@ -105,8 +105,8 @@ class SessionReporter : public GRPCReceiver {
 
 class SessionReporterImpl : public SessionReporter {
  public:
-  SessionReporterImpl(
-      folly::EventBase* base, std::shared_ptr<grpc::Channel> channel);
+  SessionReporterImpl(folly::EventBase* base,
+                      std::shared_ptr<grpc::Channel> channel);
 
   void report_updates(
       const UpdateSessionRequest& request,

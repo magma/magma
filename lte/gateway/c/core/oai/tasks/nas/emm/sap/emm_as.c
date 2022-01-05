@@ -388,6 +388,8 @@ static int emm_as_recv(
           false, false, emm_cause, decode_status);
       // Free the ESM container
       bdestroy(emm_msg->attach_request.esmmessagecontainer);
+      // Free the supported codec list
+      bdestroy(emm_msg->attach_request.supportedcodecs);
       break;
 
     case IDENTITY_RESPONSE:
@@ -1498,6 +1500,7 @@ static int emm_as_data_req(
        * release
        */
       if ((msg->nas_info == EMM_AS_NAS_DATA_TAU) &&
+          (ue_mm_context->ecm_state != ECM_CONNECTED) &&
           !(emm_ctx->csfbparams.newTmsiAllocated) &&
           !(emm_ctx->csfbparams.tau_active_flag)) {
         as_msg->err_code = AS_TERMINATED_NAS;

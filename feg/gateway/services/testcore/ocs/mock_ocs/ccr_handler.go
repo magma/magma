@@ -152,8 +152,9 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 					return
 				}
 
-				returnOctets, final := getQuotaGrant(srv, account.ChargingCredit[mscc.RatingGroup])
-				if returnOctets.GetTotalOctets() <= 0 {
+				returnOctets, final, creditLimitReached :=
+					getQuotaGrant(srv, account.ChargingCredit[mscc.RatingGroup])
+				if creditLimitReached {
 					sendAnswer(ccr, c, m, DiameterCreditLimitReached)
 					return
 				}
@@ -275,29 +276,75 @@ func findAVP(elem reflect.Value, tag, AVPtoFind string) (interface{}, error) {
 
 // getQuotaGrant gets how much credit to return in a CCA-update, which is the
 // minimum between the max usage and how much credit is in the account
-// Returns credits to return and true if these are the final bytes
-func getQuotaGrant(srv *OCSDiamServer, bucket *CreditBucket) (*protos.Octets, bool) {
+// Returns credits to return, true if these are the final bytes, true if we have exceeded the quota
+// Depending on OCS configuration grantTypeProcedure it will use TOTAl bytes or TX bytes for calculations
+func getQuotaGrant(srv *OCSDiamServer, bucket *CreditBucket) (*protos.Octets, bool, bool) {
+	switch srv.ocsConfig.grantTypeProcedure {
+	case protos.OCSConfig_TotalOnly:
+		return getQuotaGrantOnlyTotal(srv, bucket)
+	case protos.OCSConfig_TxOnly:
+		return getQuotaGrantOnlyTX(srv, bucket)
+	default:
+		panic("getQuotaGrant type not implemented")
+	}
+}
+
+// getQuotaGrantOnlyTotal gets how much credit to return in a CCA-update, which is the
+// minimum between the max usage and how much credit is in the account
+// Returns credits to return, true if these are the final bytes, true if we have exceeded the quota
+func getQuotaGrantOnlyTotal(srv *OCSDiamServer, bucket *CreditBucket) (*protos.Octets, bool, bool) {
 	var grant *protos.Octets
-	var maxTotalUsage uint64
+	var selectedMaxGrant uint64
 
 	switch bucket.Unit {
 	case protos.CreditInfo_Bytes:
-		maxUsage := srv.ocsConfig.MaxUsageOctets
-		maxTotalUsage = maxUsage.GetTotalOctets()
+		maxGrantedServiceUnits := srv.ocsConfig.MaxUsageOctets
+		selectedMaxGrant = maxGrantedServiceUnits.GetTotalOctets()
 		perRequest := bucket.Volume
 		grant = &protos.Octets{
-			TotalOctets:  getMin(maxUsage.GetTotalOctets(), perRequest.GetTotalOctets()),
-			InputOctets:  getMin(maxUsage.GetInputOctets(), perRequest.GetInputOctets()),
-			OutputOctets: getMin(maxUsage.GetOutputOctets(), perRequest.GetOutputOctets())}
+			TotalOctets:  getMin(maxGrantedServiceUnits.GetTotalOctets(), perRequest.GetTotalOctets()),
+			InputOctets:  getMin(maxGrantedServiceUnits.GetInputOctets(), perRequest.GetInputOctets()),
+			OutputOctets: getMin(maxGrantedServiceUnits.GetOutputOctets(), perRequest.GetOutputOctets())}
 
 	case protos.CreditInfo_Time:
-		maxTotalUsage = uint64(srv.ocsConfig.MaxUsageTime)
+		selectedMaxGrant = uint64(srv.ocsConfig.MaxUsageTime)
 		grant = &protos.Octets{TotalOctets: getMin(uint64(srv.ocsConfig.MaxUsageTime), bucket.Volume.GetTotalOctets())}
 	}
-	if grant.GetTotalOctets() <= maxTotalUsage {
-		return grant, true
+	if grant.GetTotalOctets() <= selectedMaxGrant {
+		return grant, true, false
 	}
-	return grant, false
+	if grant.GetTotalOctets() <= 0 {
+		return grant, true, true
+	}
+	return grant, false, false
+}
+
+// getQuotaGrantOnlyTX does the same getQuotaGrantOnlyTotal but only check TX bytes (output Octets)
+func getQuotaGrantOnlyTX(srv *OCSDiamServer, bucket *CreditBucket) (*protos.Octets, bool, bool) {
+	var grant *protos.Octets
+	var selectedMaxGrant uint64
+
+	switch bucket.Unit {
+	case protos.CreditInfo_Bytes:
+		maxGrantedServiceUnits := srv.ocsConfig.MaxUsageOctets
+		selectedMaxGrant = maxGrantedServiceUnits.GetOutputOctets()
+		perRequest := bucket.Volume
+		grant = &protos.Octets{
+			TotalOctets:  getMin(maxGrantedServiceUnits.GetTotalOctets(), perRequest.GetTotalOctets()),
+			InputOctets:  getMin(maxGrantedServiceUnits.GetInputOctets(), perRequest.GetInputOctets()),
+			OutputOctets: getMin(maxGrantedServiceUnits.GetOutputOctets(), perRequest.GetOutputOctets())}
+
+	case protos.CreditInfo_Time:
+		selectedMaxGrant = uint64(srv.ocsConfig.MaxUsageTime)
+		grant = &protos.Octets{TotalOctets: getMin(uint64(srv.ocsConfig.MaxUsageTime), bucket.Volume.GetOutputOctets())}
+	}
+	if grant.GetOutputOctets() <= selectedMaxGrant {
+		return grant, true, false
+	}
+	if grant.GetOutputOctets() <= 0 {
+		return grant, true, true
+	}
+	return grant, false, false
 }
 
 func getMin(first, second uint64) uint64 {

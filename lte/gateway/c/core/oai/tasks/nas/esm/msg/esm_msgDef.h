@@ -34,7 +34,7 @@ Description Defines identifiers of the EPS Session Management messages
 #define __ESM_MSGDEF_H__
 
 #include <asm/byteorder.h>
-
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/

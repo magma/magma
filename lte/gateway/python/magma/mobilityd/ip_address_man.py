@@ -417,7 +417,7 @@ class IPAddressManager:
                 sid in self._store.sid_ips_map and ip
                 == self._store.sid_ips_map[sid].ip
             ):
-                logging.error(
+                logging.warning(
                     "Releasing unknown <SID, IP> pair: <%s, %s> "
                     "sid_ips_map[%s]: %s",
                     sid, ip, sid, self._store.sid_ips_map.get(sid),
@@ -426,7 +426,7 @@ class IPAddressManager:
                     "(%s, %s) pair is not found" % (sid, ip),
                 )
             if not self.is_ip_in_state(ip, IPState.ALLOCATED):
-                logging.error(
+                logging.warning(
                     "IP not found in used list, check if IP is "
                     "already released: <%s, %s>", sid, ip,
                 )

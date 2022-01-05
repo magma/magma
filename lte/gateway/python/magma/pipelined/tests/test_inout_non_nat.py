@@ -14,9 +14,11 @@ import ipaddress
 import logging
 import subprocess
 import threading
+import time
 import unittest
 import warnings
 from concurrent.futures import Future
+from os import pipe
 from typing import List
 
 from lte.protos.mobilityd_pb2 import GWInfo, IPAddress, IPBlock
@@ -57,7 +59,32 @@ def mocked_set_mobilityd_gw_info(ip: IPAddress, mac: str, vlan: str):
         gw_info_map[vlan] = gw_info
 
 
-@unittest.skip("needs more investigation.")
+def clear_gw_info_map():
+    global gw_info_map
+    global gw_info_lock
+
+    with gw_info_lock:
+        gw_info_map = {}
+
+
+def check_GW_rec(vlan):
+    global gw_info_map
+    global gw_info_lock
+
+    with gw_info_lock:
+        while gw_info_map[vlan].mac is None or gw_info_map[vlan].mac == '':
+            threading.Event().wait(.5)
+            print("waiting for mac on vlan [%s]" % vlan)
+
+
+def assert_GW_mac(tc, vlan, mac):
+    global gw_info_map
+    global gw_info_lock
+
+    with gw_info_lock:
+        tc.assertEqual(gw_info_map[vlan].mac, mac)
+
+
 class InOutNonNatTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
@@ -115,9 +142,6 @@ class InOutNonNatTest(unittest.TestCase):
         launch the ryu apps for testing pipelined. Gets the references
         to apps launched by using futures.
         """
-        global gw_info_map
-        gw_info_map.clear()
-        hub.sleep(2)
 
         cls = self.__class__
         super(InOutNonNatTest, cls).setUpClass()
@@ -180,19 +204,25 @@ class InOutNonNatTest(unittest.TestCase):
 
     def tearDown(self):
         cls = self.__class__
+        cls.inout_controller._stop_gw_mac_monitor()
         stop_ryu_app_thread(cls.thread)
-        subprocess.Popen(["ovs-ofctl", "del-flows", cls.BRIDGE]).wait()
-        subprocess.Popen(["ovs-vsctl", "del-br", cls.UPLINK_BR]).wait()
+        BridgeTools.destroy_bridge(cls.BRIDGE)
+        BridgeTools.destroy_bridge(cls.UPLINK_BR)
+        BridgeTools.destroy_bridge(cls.UPLINK_VLAN_SW)
 
-        hub.sleep(1)
+        time.sleep(1)
+        clear_gw_info_map()
+
+    def setUp(self):
+        clear_gw_info_map()
 
     def testFlowSnapshotMatch(self):
-        fake_inout_setup(self.inout_controller)
         cls = self.__class__
         self.setUpNetworkAndController(
             non_nat_arp_egress_port=cls.UPLINK_BR,
             gw_mac_addr="33:44:55:ff:ff:ff",
         )
+        fake_inout_setup(cls.inout_controller)
         # wait for atleast one iteration of the ARP probe.
 
         ip_addr = ipaddress.ip_address("192.168.128.211")
@@ -202,29 +232,26 @@ class InOutNonNatTest(unittest.TestCase):
                 address=ip_addr.packed,
                 version=IPBlock.IPV4,
             ),
-            "", vlan,
+            "b2:a0:cc:85:80:7a", vlan,
         )
-        hub.sleep(2)
-        while gw_info_map[vlan].mac is None or gw_info_map[vlan].mac == '':
-            threading.Event().wait(.5)
+        check_GW_rec(vlan)
 
         snapshot_verifier = SnapshotVerifier(
             self, self.BRIDGE,
             self.service_manager,
             max_sleep_time=40,
             datapath=cls.inout_controller._datapath,
-            try_snapshot=True,
         )
         with snapshot_verifier:
             pass
-        self.assertEqual(gw_info_map[vlan].mac, 'b2:a0:cc:85:80:7a')
+        assert_GW_mac(self, vlan, 'b2:a0:cc:85:80:7a')
 
     def testFlowVlanSnapshotMatch(self):
-        fake_inout_setup(self.inout_controller)
         cls = self.__class__
         vlan = "11"
         self.setUpNetworkAndController(vlan)
         # wait for atleast one iteration of the ARP probe.
+        fake_inout_setup(cls.inout_controller)
 
         ip_addr = ipaddress.ip_address("10.200.11.211")
         mocked_set_mobilityd_gw_info(
@@ -232,11 +259,11 @@ class InOutNonNatTest(unittest.TestCase):
                 address=ip_addr.packed,
                 version=IPBlock.IPV4,
             ),
-            "", vlan,
+            'b2:a0:cc:85:80:11', vlan,
         )
         hub.sleep(2)
-        while gw_info_map[vlan].mac is None or gw_info_map[vlan].mac == '':
-            threading.Event().wait(.5)
+
+        check_GW_rec(vlan)
 
         logging.info("done waiting for vlan: %s", vlan)
         snapshot_verifier = SnapshotVerifier(
@@ -244,20 +271,19 @@ class InOutNonNatTest(unittest.TestCase):
             self.service_manager,
             max_sleep_time=40,
             datapath=cls.inout_controller._datapath,
-            try_snapshot=True,
         )
 
         with snapshot_verifier:
             pass
-        self.assertEqual(gw_info_map[vlan].mac, 'b2:a0:cc:85:80:11')
+        assert_GW_mac(self, vlan, 'b2:a0:cc:85:80:11')
 
     def testFlowVlanSnapshotMatch2(self):
-        fake_inout_setup(self.inout_controller)
         cls = self.__class__
         vlan1 = "21"
         self.setUpNetworkAndController(vlan1)
         vlan2 = "22"
         cls._setup_vlan(vlan2)
+        fake_inout_setup(cls.inout_controller)
 
         ip_addr = ipaddress.ip_address("10.200.21.211")
         mocked_set_mobilityd_gw_info(
@@ -265,7 +291,7 @@ class InOutNonNatTest(unittest.TestCase):
                 address=ip_addr.packed,
                 version=IPBlock.IPV4,
             ),
-            "", vlan1,
+            "b2:a0:cc:85:80:21", vlan1,
         )
 
         ip_addr = ipaddress.ip_address("10.200.22.211")
@@ -274,12 +300,10 @@ class InOutNonNatTest(unittest.TestCase):
                 address=ip_addr.packed,
                 version=IPBlock.IPV4,
             ),
-            "", vlan2,
+            "b2:a0:cc:85:80:22", vlan2,
         )
-
-        hub.sleep(2)
-        while gw_info_map[vlan2].mac is None or gw_info_map[vlan2].mac == '':
-            threading.Event().wait(.5)
+        check_GW_rec(vlan1)
+        check_GW_rec(vlan2)
 
         logging.info("done waiting for vlan: %s", vlan1)
         snapshot_verifier = SnapshotVerifier(
@@ -287,22 +311,19 @@ class InOutNonNatTest(unittest.TestCase):
             self.service_manager,
             max_sleep_time=40,
             datapath=cls.inout_controller._datapath,
-            try_snapshot=True,
         )
 
         with snapshot_verifier:
             pass
-        self.assertEqual(gw_info_map[vlan1].mac, 'b2:a0:cc:85:80:21')
-        self.assertEqual(gw_info_map[vlan2].mac, 'b2:a0:cc:85:80:22')
 
     def testFlowVlanSnapshotMatch_static1(self):
-        fake_inout_setup(self.inout_controller)
         cls = self.__class__
         # setup network on unused vlan.
         vlan1 = "21"
         self.setUpNetworkAndController(vlan1)
         # statically configured config
         vlan2 = "22"
+        fake_inout_setup(cls.inout_controller)
 
         ip_addr = ipaddress.ip_address("10.200.21.211")
         mocked_set_mobilityd_gw_info(
@@ -323,8 +344,7 @@ class InOutNonNatTest(unittest.TestCase):
         )
 
         hub.sleep(2)
-        while gw_info_map[vlan2].mac is None or gw_info_map[vlan2].mac == '':
-            threading.Event().wait(.5)
+        check_GW_rec(vlan2)
 
         logging.info("done waiting for vlan: %s", vlan1)
         snapshot_verifier = SnapshotVerifier(
@@ -332,20 +352,19 @@ class InOutNonNatTest(unittest.TestCase):
             self.service_manager,
             max_sleep_time=20,
             datapath=cls.inout_controller._datapath,
-            try_snapshot=True,
         )
 
         with snapshot_verifier:
             pass
-        self.assertEqual(gw_info_map[vlan1].mac, 'b2:a0:cc:85:80:21')
-        self.assertEqual(gw_info_map[vlan2].mac, '22:33:44:55:66:77')
+        assert_GW_mac(self, vlan1, 'b2:a0:cc:85:80:21')
+        assert_GW_mac(self, vlan2, '22:33:44:55:66:77')
 
     def testFlowVlanSnapshotMatch_static2(self):
-        fake_inout_setup(self.inout_controller)
         cls = self.__class__
         # setup network on unused vlan.
         self.setUpNetworkAndController("34")
         # statically configured config
+        fake_inout_setup(cls.inout_controller)
 
         vlan1 = "31"
         ip_addr = ipaddress.ip_address("10.200.21.100")
@@ -376,23 +395,25 @@ class InOutNonNatTest(unittest.TestCase):
             "00:33:44:55:66:77", "",
         )
 
-        hub.sleep(2)
-        while gw_info_map[vlan2].mac is None or gw_info_map[vlan2].mac == '':
-            threading.Event().wait(.5)
+        check_GW_rec(vlan1)
+        check_GW_rec(vlan2)
+        check_GW_rec("")
 
-        logging.info("done waiting for vlan: %s", vlan1)
+        assert_GW_mac(self, vlan1, '11:33:44:55:66:77')
+        assert_GW_mac(self, vlan2, '22:33:44:55:66:77')
+        assert_GW_mac(self, "", '00:33:44:55:66:77')
+
+        hub.sleep(2)
         snapshot_verifier = SnapshotVerifier(
             self, self.BRIDGE,
             self.service_manager,
             max_sleep_time=20,
             datapath=cls.inout_controller._datapath,
+            try_snapshot=True,
         )
 
         with snapshot_verifier:
             pass
-        self.assertEqual(gw_info_map[vlan1].mac, '11:33:44:55:66:77')
-        self.assertEqual(gw_info_map[vlan2].mac, '22:33:44:55:66:77')
-        self.assertEqual(gw_info_map[""].mac, '00:33:44:55:66:77')
 
 
 class InOutTestNonNATBasicFlows(unittest.TestCase):
@@ -453,8 +474,12 @@ class InOutTestNonNATBasicFlows(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        cls.inout_controller._stop_gw_mac_monitor()
         stop_ryu_app_thread(cls.thread)
         BridgeTools.destroy_bridge(cls.BRIDGE)
+
+        time.sleep(1)
+        clear_gw_info_map()
 
     def testFlowSnapshotMatch(self):
         fake_inout_setup(self.inout_controller)
@@ -549,12 +574,13 @@ class InOutTestNonNATBasicFlowsIPv6(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        cls.inout_controller._stop_gw_mac_monitor()
         stop_ryu_app_thread(cls.thread)
         BridgeTools.destroy_bridge(cls.BRIDGE)
+        time.sleep(1)
+        clear_gw_info_map()
 
     def testFlowSnapshotMatch(self):
-        global gw_info_map
-
         ipv6_addr1 = "2002::22"
         mac_addr1 = "11:22:33:44:55:88"
         mocked_setmacbyip6(ipv6_addr1, mac_addr1)
@@ -570,9 +596,6 @@ class InOutTestNonNATBasicFlowsIPv6(unittest.TestCase):
         )
         fake_inout_setup(self.inout_controller)
 
-        while gw_info_map[vlan].mac is None or gw_info_map[vlan].mac == '':
-            threading.Event().wait(.5)
-
         snapshot_verifier = SnapshotVerifier(
             self,
             self.BRIDGE,
@@ -583,7 +606,7 @@ class InOutTestNonNATBasicFlowsIPv6(unittest.TestCase):
 
         with snapshot_verifier:
             pass
-        self.assertEqual(gw_info_map[vlan].mac, mac_addr1)
+        assert_GW_mac(self, vlan, mac_addr1)
 
 
 if __name__ == "__main__":

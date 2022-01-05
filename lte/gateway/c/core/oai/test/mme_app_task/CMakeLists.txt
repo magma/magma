@@ -49,7 +49,8 @@ set(NAS_APN_AMBR
 set(MME_APP_TEST_SRC
     mme_app_test.cpp
     mme_app_test_util.cpp
-    test_mme_app_emm_decode.cpp
+    test_mme_app_emm_encode_decode.cpp
+    test_mme_app_esm_encode_decode.cpp
     test_mme_app_config.cpp
     test_mme_procedures.cpp
     test_sgw_config.cpp

@@ -115,13 +115,32 @@ uint8_t NAS5GPktSnapShot::service_req_signaling[13] = {
 
 // service request with service type data and without IE uplink
 // data status
-uint8_t service_request_without_uplink_status[] = {
+uint8_t service_request_without_uplink_status[17] = {
     0x7e, 0x00, 0x4c, 0x1b, 0x00, 0x07, 0xf4, 0x01, 0x00,
     0x17, 0xd7, 0xb7, 0x33, 0x50, 0x02, 0x20, 0x00};
 
 uint8_t NAS5GPktSnapShot::registration_reject[4] = {0x00, 0x00, 0x00, 0x00};
 
 uint8_t NAS5GPktSnapShot::security_mode_reject[4] = {0x7e, 0x00, 0x5f, 0x24};
+
+uint8_t NAS5GPktSnapShot::suci_ext_reg_req_buffer[65] = {
+    0x7e, 0x00, 0x41, 0x79, 0x00, 0x35, 0x01, 0x22, 0x62, 0x54, 0xf0,
+    0xff, 0x01, 0x00, 0x18, 0x23, 0x93, 0xb0, 0xcc, 0x25, 0xc5, 0x59,
+    0x11, 0xea, 0x6e, 0x7d, 0x2a, 0x09, 0xd5, 0xf2, 0x10, 0x1d, 0x8c,
+    0x92, 0x6c, 0xf0, 0xac, 0x4c, 0x5a, 0x87, 0x3e, 0x5f, 0xc7, 0x62,
+    0xa0, 0x4f, 0x95, 0xbc, 0xde, 0xc1, 0x1d, 0x0b, 0xfd, 0x9e, 0xed,
+    0x41, 0xe2, 0x02, 0xe6, 0x2e, 0x04, 0x80, 0xe0, 0x80, 0xe0};
+
+uint8_t empheral_public_key[] = {
+    0x18, 0x23, 0x93, 0xb0, 0xcc, 0x25, 0xc5, 0x59, 0x11, 0xea, 0x6e,
+    0x7d, 0x2a, 0x09, 0xd5, 0xf2, 0x10, 0x1d, 0x8c, 0x92, 0x6c, 0xf0,
+    0xac, 0x4c, 0x5a, 0x87, 0x3e, 0x5f, 0xc7, 0x62, 0xa0, 0x4f, 0x0};
+
+uint8_t ciphertext[] = {0x95, 0xbc, 0xde, 0xc1, 0x1d, 0x0};
+
+uint8_t mac_tag[] = {0x0b, 0xfd, 0x9e, 0xed, 0x41, 0xe2, 0x02, 0xe6, 0x0};
+
+ImsiM5GSMobileIdentity plmn;
 
 class AmfNas5GTest : public ::testing::Test {
  protected:
@@ -170,6 +189,56 @@ TEST_F(AmfNas5GTest, test_amf_ue_register_req_msg) {
 
   EXPECT_EQ(
       reg_request.m5gs_mobile_identity.mobile_identity.imsi.mcc_digit2, 0x0);
+}
+
+TEST_F(AmfNas5GTest, test_amf_ue_suci_ext_register_req_msg) {
+  uint32_t len = nas5g_pkt_snap.get_suci_ext_reg_req_buffer_len();
+
+  decode_res = decode_registration_request_msg(
+      &reg_request, nas5g_pkt_snap.suci_ext_reg_req_buffer, len);
+
+  EXPECT_EQ(decode_res, true);
+
+  EXPECT_EQ(
+      reg_request.extended_protocol_discriminator.extended_proto_discriminator,
+      M5G_MOBILITY_MANAGEMENT_MESSAGES);
+
+  //  Type is registration Request
+  EXPECT_EQ(reg_request.message_type.msg_type, REG_REQUEST);
+
+  //  Registration Type is Initial Registration
+  EXPECT_EQ(reg_request.m5gs_reg_type.type_val, 1);
+
+  //  5GS Mobile Identity SUCI FORMAT
+  EXPECT_EQ(
+      reg_request.m5gs_mobile_identity.mobile_identity.imsi.type_of_identity,
+      M5GSMobileIdentityMsg_SUCI_IMSI);
+
+  //  5GS Mobile SUCI extenstions
+
+  for (int i = 0; i < EPHEMERAL_PUBLIC_KEY_LENGTH; ++i) {
+    EXPECT_EQ(
+        reg_request.m5gs_mobile_identity.mobile_identity.imsi
+            .empheral_public_key[i],
+        empheral_public_key[i])
+        << "Vectors x and y differ at index " << i;
+  }
+
+  for (int i = 0; i < CIPHERTEXT_LENGTH; ++i) {
+    EXPECT_EQ(
+        reg_request.m5gs_mobile_identity.mobile_identity.imsi.ciphertext[i],
+        ciphertext[i]);
+  }
+
+  for (int i = 0; i < MAC_TAG_LENGTH; ++i) {
+    EXPECT_EQ(
+        reg_request.m5gs_mobile_identity.mobile_identity.imsi.mac_tag[i],
+        mac_tag[i]);
+  }
+
+  EXPECT_EQ(
+      reg_request.m5gs_mobile_identity.mobile_identity.imsi.protect_schm_id,
+      0x1);
 }
 
 TEST_F(AmfNas5GTest, test_amf_ue_guti_register_req_msg) {
@@ -489,6 +558,26 @@ TEST_F(AmfUeContextTest, test_smf_context_creation) {
   EXPECT_TRUE(0 == smf_context->pdu_session_version);
 }
 
+TEST_F(AmfUeContextTest, test_amf_plmn) {
+  plmn.mcc_digit2 = 0;
+  plmn.mcc_digit1 = 0;
+  plmn.mnc_digit3 = 0x0f;
+  plmn.mcc_digit3 = 1;
+  plmn.mnc_digit2 = 1;
+  plmn.mnc_digit1 = 0;
+
+  supi_as_imsi_t supi_imsi;
+  amf_copy_plmn_to_supi(plmn, supi_imsi);
+  amf_copy_plmn_to_context(plmn, ue_context);
+  EXPECT_EQ(
+      memcmp(
+          reinterpret_cast<const void*>(
+              &ue_context->amf_context.m5_guti.guamfi.plmn),
+          reinterpret_cast<const void*>(&supi_imsi.plmn),
+          sizeof(ue_context->amf_context.m5_guti.guamfi.plmn)),
+      0);
+}
+
 /* Test for registration reject */
 TEST(test_amf_nas5g_pkt_process, test_amf_registration_reject_msg) {
   uint8_t buffer[4] = {0};
@@ -795,7 +884,7 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   bstring buffer;
   amf_nas_message_t msg = {};
 
-  // build uplinknastransport //
+  // build uplinknastransport
   // uplink nas transport(pdu session request)
   uint8_t pdu[44] = {0x7e, 0x00, 0x67, 0x01, 0x00, 0x15, 0x2e, 0x01, 0x01,
                      0xc1, 0xff, 0xff, 0x91, 0xa1, 0x28, 0x01, 0x00, 0x7b,
@@ -812,8 +901,11 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   decode_res = decode_ul_nas_transport_msg(&pdu_sess_est_req, pdu, len);
 
   EXPECT_EQ(decode_res, true);
-  // build uplinknastransport
-
+  // SSC mode check
+  EXPECT_EQ(
+      pdu_sess_est_req.payload_container.smf_msg.msg.pdu_session_estab_request
+          .ssc_mode.mode_val,
+      1);
   EXPECT_EQ(pdu_sess_est_req.nssai.sst, 1);
   uint8_t dnn[9] = {0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
   EXPECT_EQ(memcmp(pdu_sess_est_req.dnn.dnn, dnn, pdu_sess_est_req.dnn.len), 0);
@@ -825,6 +917,11 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   ULNASTransportMsg decode_pdu_sess_est_req = {};
   decode_res = decode_ul_nas_transport_msg(&decode_pdu_sess_est_req, pdu, len);
   EXPECT_EQ(decode_res, true);
+  // SSC mode Check
+  EXPECT_EQ(
+      decode_pdu_sess_est_req.payload_container.smf_msg.msg
+          .pdu_session_estab_request.ssc_mode.mode_val,
+      1);
   EXPECT_EQ(decode_pdu_sess_est_req.nssai.sst, 1);
   EXPECT_EQ(memcmp(pdu_sess_est_req.dnn.dnn, dnn, pdu_sess_est_req.dnn.len), 0);
 
@@ -1124,6 +1221,7 @@ TEST_F(
     test_amf_initial_ue_message_connected_mode_sunny_day) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   ServiceRequestMsg service_request;
+  memset(&service_request, 0, sizeof(service_request));
   bool decode_res                               = 0;
   amf_nas_message_decode_status_t decode_status = {0};
   MessageDef* message_p                         = NULL;
@@ -1357,6 +1455,7 @@ TEST(test_pdu_negative, test_pdu_invalid_pdu_identity) {
       std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
   std::shared_ptr<smf_context_t> smf_ctx =
       amf_insert_smf_context(ue_context, pdu_session_id);
+  smf_ctx->pdu_session_state = ACTIVE;
 
   for (int req_cnt = 0;
        req_cnt < MAX_UE_INITIAL_PDU_SESSION_ESTABLISHMENT_REQ_ALLOWED;
@@ -1406,6 +1505,8 @@ TEST(test_optional_pdu, test_pdu_session_accept_optional) {
 
   // PDU Session type : IPv4 (pdu_address.type_val = 1)
   EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val, 1);
+  // SSC mode check
+  EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val, 1);
   // NSSAI
   EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sst, 3);
   uint8_t sd[3] = {0x03, 0x06, 0x09};
@@ -1433,6 +1534,8 @@ TEST(test_optional_pdu, test_pdu_session_accept_optional) {
   EXPECT_GT(decode_res, 0);
 
   EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val, 1);
+  // SSC mode check
+  EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val, 1);
   EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sst, 3);
   EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sd[0], sd[0]);
   EXPECT_EQ(smf_msg->msg.pdu_session_estab_accept.nssai.sd[1], sd[1]);

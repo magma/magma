@@ -28,10 +28,12 @@
 #define IP3 "127.0.0.3"
 #define IP4 "127.0.0.4"
 #define APN1 "03-21-00-02-00-20:Magma"
+#define IPv4_1 "10.20.30.40"
 #define IPv6_1 "2001:0db8:0a0b:12f0:0000:0000:0000:0001"
 #define IPv6_2 "2001:0db8:0a0b:12f0:0000:0000:0000:0002"
 #define IPv6_3 "2001:0db8:0a0b:12f0:0000:0000:0000:0003"
 #define IPv6_4 "2001:0db8:0a0b:12f0:0000:0000:0000:0004"
+#define IPv6_5 "2001:0db8:0000:0000:0000:0000:0000:0001"
 #define TEID_1_UL 11
 #define TEID_1_DL 12
 #define TEID_2_UL 21

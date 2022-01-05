@@ -62,19 +62,12 @@ def check_commit_changes():
             return False
 
 
-def get_commit_hash(vcs='hg'):
-    with hide('running', 'warnings', 'output'), settings(warn_only=True):
-        if vcs == 'hg':
-            local_commit_hash = local(
-                'hg identify -i',
-                capture=True,
-            ).replace('+', '').split()[0]
-        elif vcs == 'git':
-            local_commit_hash = local('git rev-parse HEAD', capture=True)
-        else:
-            print('Unknown vcs: %s' % vcs)
-            exit(1)
-    return local_commit_hash[0:8]
+def get_commit_hash():
+    return local('git rev-parse HEAD', capture=True)[0:8]
+
+
+def get_commit_count():
+    return local('git rev-list --count HEAD', capture=True)
 
 
 def download_all_pkgs():
@@ -148,11 +141,10 @@ def upload_pkgs_to_aws():
 
 def get_magma_version():
     return run(
-        'ls ~/magma-packages'
-        ' | grep "^magma_[0-9].*"'
-        ' | xargs -I "%" dpkg -I ~/magma-packages/%'
-        ' | grep "Version"'
-        ' | awk \'{print $2}\'',
+        'directory=$(mktemp -d) &&'
+        'dpkg-deb --extract ~/magma-packages/magma_[0-9]*.deb $directory &&'
+        'source $directory/usr/local/share/magma/commit_hash &&'
+        'echo $COMMIT_HASH',
     )
 
 

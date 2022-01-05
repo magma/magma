@@ -30,16 +30,6 @@ def cpp_repositories():
         urls = ["https://github.com/google/glog/archive/v0.4.0.tar.gz"],
     )
 
-    rules_boost_commit = "fb9f3c9a6011f966200027843d894923ebc9cd0b"
-    http_archive(
-        name = "com_github_nelhage_rules_boost",
-        sha256 = "046f774b185436d506efeef8be6979f2c22f1971bfebd0979bafa28088bf28d0",
-        strip_prefix = "rules_boost-{}".format(rules_boost_commit),
-        urls = [
-            "https://github.com/nelhage/rules_boost/archive/{}.tar.gz".format(rules_boost_commit),
-        ],
-    )
-
     http_archive(
         name = "yaml-cpp",
         strip_prefix = "yaml-cpp-yaml-cpp-0.7.0",
@@ -105,13 +95,55 @@ def cpp_repositories():
         urls = ["https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip"],
     )
 
-    new_git_repository(
+    http_archive(
         name = "sentry_native",
         build_file = "//bazel/external:sentry_native.BUILD",
-        # 0.4.12 tag
-        commit = "3436a29d839aa7437548be940ab62a85ca699635",
-        # This is important, we pull in get_sentry/breakpad this way
-        init_submodules = True,
-        remote = "https://github.com/getsentry/sentry-native",
-        shallow_since = "1627998929 +0000",
+        sha256 = "85e0e15d7fb51388d967ab09e7ee1b95f82330a469a93c65d964ea1afd5e6127",
+        url = "https://github.com/getsentry/sentry-native/releases/download/0.4.13/sentry-native.zip",
+    )
+
+    http_archive(
+        name = "libtins",
+        build_file = "//bazel/external:libtins.BUILD",
+        url = "https://github.com/mfontanini/libtins/archive/refs/tags/v4.2.tar.gz",
+        strip_prefix = "libtins-4.2",
+        sha256 = "a9fed73e13f06b06a4857d342bb30815fa8c359d00bd69547e567eecbbb4c3a1",
+    )
+
+    new_git_repository(
+        name = "liblfds",
+        build_file = "//bazel/external:liblfds.BUILD",
+        commit = "b813a0e546ed54e54b3873bdf180cf885c39bbca",
+        remote = "https://github.com/liblfds/liblfds.git",
+        shallow_since = "1464682027 +0300",
+        patches = ["//third_party/build/patches/liblfds:0001-arm64-support.patch"],
+        patch_args = ["--strip=1"],
+    )
+
+    new_git_repository(
+        name = "libfluid_base",
+        build_file = "//bazel/external:libfluid_base.BUILD",
+        commit = "56df5e20c49387ab8e6b5cd363c6c10d309f263e",
+        remote = "https://github.com/OpenNetworkingFoundation/libfluid_base",
+        shallow_since = "1448037833 -0200",
+        patches = [
+            "//third_party/build/patches/libfluid/libfluid_base_patches:EVLOOP_NO_EXIT_ON_EMPTY_compat.patch",
+            "//third_party/build/patches/libfluid/libfluid_base_patches:ExternalEventPatch.patch",
+        ],
+        patch_args = ["--strip=1"],
+    )
+
+    new_git_repository(
+        name = "libfluid_msg",
+        build_file = "//bazel/external:libfluid_msg.BUILD",
+        commit = "71a4fccdedfabece730082fbe87ef8ae5f92059f",
+        remote = "https://github.com/OpenNetworkingFoundation/libfluid_msg.git",
+        shallow_since = "1487696730 +0000",
+        patches = [
+            "//third_party/build/patches/libfluid/libfluid_msg_patches:0001-Add-TunnelIPv4Dst-support.patch",
+            "//third_party/build/patches/libfluid/libfluid_msg_patches:0002-Add-support-for-setting-OVS-reg8.patch",
+            "//third_party/build/patches/libfluid/libfluid_msg_patches:0003-Add-Reg-field-match-support.patch",
+            "//third_party/build/patches/libfluid/libfluid_msg_patches:0004-Add-TunnelIPv6Dst-support.patch",
+        ],
+        patch_args = ["--strip=1"],
     )

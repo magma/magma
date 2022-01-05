@@ -12,8 +12,9 @@ limitations under the License.
 """
 import asyncio
 import datetime
+import inspect
 import logging
-from typing import List, NamedTuple, Optional
+from typing import Dict, List, NamedTuple, Optional
 
 import grpc
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
@@ -23,6 +24,8 @@ from lte.protos.subscriberdb_pb2 import (
     ListSubscribersRequest,
     LTESubscription,
     SubscriberData,
+    SuciProfile,
+    SuciProfileList,
     SyncRequest,
 )
 from magma.common.grpc_client_manager import GRPCClientManager
@@ -51,6 +54,20 @@ ProcessedChangeset = NamedTuple(
     ],
 )
 
+CloudSuciProfilesInfo = NamedTuple(
+    'CloudSuciProfilesInfo', [
+        ('suci_profiles', List[SuciProfile]),
+    ],
+)
+
+suci_profile_data = NamedTuple(
+    'suci_profile_data', [
+        ('protection_scheme', int),
+        ('home_network_public_key', bytes),
+        ('home_network_private_key', bytes),
+    ],
+)
+
 
 class SubscriberDBCloudClient(SDWatchdogTask):
     """
@@ -69,6 +86,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         store: SqliteStore,
         subscriber_page_size: int,
         sync_interval: int,
+        suciprofile_db_dict: Dict,
         grpc_client_manager: GRPCClientManager,
     ):
         """
@@ -90,11 +108,17 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         self._loop = loop
         self._subscriber_page_size = subscriber_page_size
         self._store = store
+        self.suciprofile_db_dict = suciprofile_db_dict
 
         # grpc_client_manager to manage grpc client recycling
         self._grpc_client_manager = grpc_client_manager
 
     async def _run(self) -> None:
+
+        suciprofiles_info = await self._list_suciprofiles()
+        if suciprofiles_info is None:
+            return
+
         in_sync = await self._check_subscribers_in_sync()
         if in_sync:
             return
@@ -107,7 +131,6 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         if subscribers_info is None:
             return
 
-        # Process subscriber data before digest data, in case there's a gateway
         # failure between the calls
         self._process_subscribers(subscribers_info.subscribers)
         self._update_root_digest(subscribers_info.root_digest)
@@ -136,10 +159,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
                 self._loop,
             )
         except grpc.RpcError as err:
-            logging.error(
-                "Check subscribers in sync request error! [%s] %s", err.code(),
-                err.details(),
-            )
+            _log_grpc_error(err)
             return False
         return res.in_sync
 
@@ -164,10 +184,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
                 self._loop,
             )
         except grpc.RpcError as err:
-            logging.error(
-                "Sync subscribers request error! [%s] %s", err.code(),
-                err.details(),
-            )
+            _log_grpc_error(err)
             return True
 
         if not res.resync:
@@ -243,6 +260,51 @@ class SubscriberDBCloudClient(SDWatchdogTask):
             leaf_digests=leaf_digests,
         )
         return subscribers_info
+
+    async def _list_suciprofiles(self) -> Optional[CloudSuciProfilesInfo]:
+        subscriberdb_cloud_client = self._grpc_client_manager.get_client()
+        suci_profiles = SuciProfile()
+        while not suci_profiles:
+            try:
+                res = await grpc_async_wrapper(
+                    subscriberdb_cloud_client.ListSuciProfiles.future(
+                        self.SUBSCRIBERDB_REQUEST_TIMEOUT,
+                    ),
+                    self._loop,
+                )
+                if res.home_net_public_key_id not in self.suciprofile_db_dict.keys():
+                    self.suciprofile_db_dict[res.home_net_public_key_id] = suci_profile_data(
+                        res.protection_scheme, res.home_net_public_key,
+                        res.home_net_private_key,
+                    )
+                suciprofiles = []
+                for k, v in self.suciprofile_db_dict.items():
+                    suciprofiles.append(
+                        SuciProfile(
+                            home_network_public_key_identifier=int(k),
+                            protection_scheme=v.protection_scheme,
+                            home_network_public_key=v.home_network_public_key,
+                            home_network_private_key=v.home_network_private_key,
+                        ),
+                    )
+                logging.info("List of suciprofiles: %s", suciprofiles)
+                res = SuciProfileList(suci_profiles=suciprofiles)
+                return res
+
+            except grpc.RpcError as err:
+                logging.error(
+                    "Fetch suci profiles error! [%s] %s", err.code(),
+                    err.details(),
+                )
+                return None
+            logging.info(
+                "Successfully fetched all suciprofiles "
+                "pages from the cloud!",
+            )
+        suciprofiles_info = CloudSuciProfilesInfo(
+            suci_profiles=suci_profiles,
+        )
+        return suciprofiles_info
 
     def _process_changeset(self, changeset: Optional[Changeset]) -> ProcessedChangeset:
         if changeset is None:
@@ -374,3 +436,18 @@ class SubscriberDBCloudClient(SDWatchdogTask):
                 "Detach Deleted Subscribers Error! [%s] %s",
                 err.code(), err.details(),
             )
+
+
+def _log_grpc_error(err: grpc.RpcError) -> None:
+    if err.code() == grpc.StatusCode.INTERNAL or err.code() == grpc.StatusCode.UNIMPLEMENTED:
+        logging.error(
+            'Internal Error in subscriberdb-Orc8r communication. '
+            'If AGW and Orc8r are deployed at a commit hash, '
+            'upgrade AGW and Orc8r to latest commit hash.',
+        )
+    else:
+        logging.error(
+            # inspect.stack() indices: [1] -> frame record of penultimate caller; [3] -> function name
+            "%s request error! [%s] %s", inspect.stack(context=0)[1][3], err.code(),
+            err.details(),
+        )

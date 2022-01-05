@@ -316,7 +316,7 @@ func scanNodes(rows *sql.Rows) (map[string]*CINode, error) {
 
 		lastLeasedTs, err := ptypes.TimestampProto(time.Unix(lastLeased, 0))
 		if err != nil {
-			return nil, errors.Wrapf(err, "could not validate last leased time %d", lastLeasedTs)
+			return nil, errors.Wrapf(err, "could not validate last leased time %v", lastLeasedTs)
 		}
 		ret[id] = &CINode{
 			Id:            id,

@@ -25,3 +25,14 @@ helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 app.kubernetes.io/name: {{ .Chart.Name }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
+
+{{/* Generate selector labels */}}
+{{- define "controller-image-version-label" -}}
+image-version: {{ .Values.controller.image.tag}}
+{{- end -}}
+
+{{/* Generate image version tag labels */}}
+{{- define "release-name-annotation" -}}
+release-name: {{ .Release.Name }}
+chart-version: {{ .Chart.Version}}
+{{- end -}}

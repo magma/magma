@@ -30,7 +30,6 @@ module "orc8r" {
 
   vpc_name        = "orc8r"
   cluster_name    = "orc8r"
-  cluster_version = "1.17"
 
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "orc8r-es"
@@ -57,6 +56,10 @@ module "orc8r-app" {
   secretsmanager_orc8r_name = module.orc8r.secretsmanager_secret_name
   seed_certs_dir            = "~/secrets/certs"
 
+  managed_certs_create      = false
+  managed_certs_enabled     = false
+  nms_managed_certs_enabled = false
+
   orc8r_db_host    = module.orc8r.orc8r_db_host
   orc8r_db_port    = module.orc8r.orc8r_db_port
   orc8r_db_dialect = module.orc8r.orc8r_db_dialect
@@ -70,7 +73,7 @@ module "orc8r-app" {
   docker_pass     = ""
 
   # Note that this can be any Helm chart repo provider
-  helm_repo       = "https://docker.artifactory.magmacore.org/artifactory/helm"
+  helm_repo       = "https://artifactory.magmacore.org/artifactory/helm"
   helm_user       = ""
   helm_pass       = ""
   eks_cluster_id = module.orc8r.eks_cluster_id
@@ -82,7 +85,7 @@ module "orc8r-app" {
   elasticsearch_disk_threshold = tonumber(module.orc8r.es_volume_size * 75 / 100)
 
   orc8r_deployment_type = "fwa"
-  orc8r_tag             = "1.6.0"
+  orc8r_tag             = "1.6.1"
 }
 
 output "nameservers" {

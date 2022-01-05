@@ -380,7 +380,7 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         for composite_sid, ip in csid_ip_pairs:
             # handle composite sid to sid and apn mapping
             sid, _, apn_part = composite_sid.partition('.')
-            apn, _ = apn_part.split(',')
+            apn, *_ = apn_part.split(',')
             sid_pb = SIDUtils.to_pb(sid)
             version = IPAddress.IPV4 if ip.version == 4 else IPAddress.IPV6
             ip_msg = IPAddress(version=version, address=ip.packed)

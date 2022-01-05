@@ -24,14 +24,21 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
+	"magma/orc8r/cloud/go/services/certifier"
+	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	merrors "magma/orc8r/lib/go/errors"
 )
 
-// Access Middleware:
+var unprotectedPaths = map[string]bool{
+	// Users should be able to access their own authentication information
+	"/magma/v1/user/login": true,
+}
+
+// Access CertificateMiddleware:
 // 1) determines request's access type (READ/WRITE)
 // 2) finds Operator & Entities of the request
 // 3) verifies Operator's access permissions for the entities
-func Middleware(next echo.HandlerFunc) echo.HandlerFunc {
+func CertificateMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		decorate := getDecorator(c.Request())
 		req := c.Request()
@@ -99,4 +106,59 @@ func transformErr(decorate logDecorator, err error, status int, errFmt string, e
 func makeErr(decorate logDecorator, status int, errFmt string, errArgs ...interface{}) error {
 	glog.V(1).Infof("REST middleware (obsidian) rejected request: %s", decorate(errFmt, errArgs...))
 	return echo.NewHTTPError(status, fmt.Sprintf(errFmt, errArgs...))
+}
+
+// TokenMiddleware parses the <username>:<token> from the header, validates the token,
+// then checks if the request is within the specified permissions granted to the user.
+func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req := c.Request()
+
+		// Skip middleware if request when there is no security requirement
+		// for an endpoint
+		if unprotectedPaths[req.RequestURI] {
+			return next(c)
+		}
+
+		username, token, ok := req.BasicAuth()
+		if !ok {
+			return echo.NewHTTPError(http.StatusBadRequest, "failed to parse basic auth header")
+		}
+
+		getPDReq := &certprotos.GetPolicyDecisionRequest{
+			Username: username,
+			Token:    token,
+			Resource: &certprotos.Resource{
+				Action:   getRequestAction(req, nil),
+				Resource: req.RequestURI,
+			},
+		}
+		pd, err := certifier.GetPolicyDecision(req.Context(), getPDReq)
+		if err != nil {
+			return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
+		}
+		if pd.Effect == certprotos.Effect_DENY {
+			return echo.NewHTTPError(http.StatusForbidden, "not authorized to view resource")
+		}
+		if next != nil {
+			glog.V(4).Info("Token middleware successfully verified permissions. Sending request to the next middleware.")
+			return next(c)
+		}
+
+		return nil
+	}
+}
+
+// getRequestType returns the required request permission (READ, WRITE
+// or READ+WRITE) corresponding to the request method.
+func getRequestAction(req *http.Request, decorate logDecorator) certprotos.Action {
+	switch req.Method {
+	case "GET", "HEAD":
+		return certprotos.Action_READ
+	case "PUT", "POST", "DELETE":
+		return certprotos.Action_WRITE
+	default:
+		glog.Info(decorate("Unclassified HTTP method '%s', defaulting to read+write requested permissions", req.Method))
+		return certprotos.Action_WRITE
+	}
 }

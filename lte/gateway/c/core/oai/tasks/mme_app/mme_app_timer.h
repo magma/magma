@@ -40,8 +40,10 @@ void mme_app_resume_timer(
     struct ue_mm_context_s* const ue_mm_context_pP, time_t start_time,
     nas_timer_t* timer, zloop_timer_fn timer_expiry_handler, char* timer_name);
 
-bool mme_app_get_timer_arg(int timer_id, timer_arg_t* arg);
-bool mme_app_get_timer_arg_ue_id(int timer_id, mme_ue_s1ap_id_t* ue_id);
+// The *_pop_timer_* functions also removes the timer_id from the map.
+// These functions are supposed to be used only by expired timers.
+bool mme_pop_timer_arg(int timer_id, timer_arg_t* arg);
+bool mme_pop_timer_arg_ue_id(int timer_id, mme_ue_s1ap_id_t* ue_id);
 
 #ifdef __cplusplus
 }
