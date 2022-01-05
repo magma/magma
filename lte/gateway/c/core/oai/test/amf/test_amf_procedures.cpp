@@ -31,6 +31,7 @@ using ::testing::Test;
 namespace magma5g {
 
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
+extern std::unordered_map<amf_ue_ngap_id_t, ue_m5gmm_context_s*> ue_context_map;
 
 class AMFAppProcedureTest : public ::testing::Test {
   virtual void SetUp() {
@@ -845,4 +846,25 @@ TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDb) {
   EXPECT_TRUE(rc == RETURNok);
 }
 
+TEST(test_t3592abort, test_pdu_session_release_notify_smf) {
+  amf_ue_ngap_id_t ue_id = 1;
+  uint8_t pdu_session_id = 1;
+  int rc                 = RETURNerror;
+  // creating ue_context
+  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
+  ue_context_map.insert(
+      std::pair<amf_ue_ngap_id_t, ue_m5gmm_context_s*>(ue_id, ue_context));
+  std::shared_ptr<smf_context_t> smf_ctx =
+      amf_insert_smf_context(ue_context, pdu_session_id);
+  smf_ctx->pdu_session_state = ACTIVE;
+  ue_context->mm_state       = REGISTERED_CONNECTED;
+  smf_ctx->n_active_pdus     = 1;
+  EXPECT_NE(ue_context, nullptr);
+  EXPECT_NE(ue_context->amf_context.smf_ctxt_map.size(), 0);
+  rc = t3592_abort_handler(ue_context, smf_ctx, pdu_session_id);
+  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(ue_context->amf_context.smf_ctxt_map.size(), 0);
+  ue_context_map.clear();
+  delete ue_context;
+}
 }  // namespace magma5g

@@ -388,7 +388,7 @@ class QosManager(object):
         with QosManager.lock:
             if not self._qos_enabled or not self._initialized:
                 LOG.debug("add_subscriber_qos: not enabled or initialized")
-                return None, None
+                return None, None, None
 
             LOG.debug(
                 "adding qos for imsi %s rule_num %d direction %d apn_ambr %d, %s",
@@ -432,7 +432,7 @@ class QosManager(object):
                             'Failed adding root ambr qos mbr %u direction %d',
                             apn_ambr, direction,
                         )
-                        return None, None
+                        return None, None, None
                     else:
                         LOG.debug(
                             'Added root ambr qos mbr %u direction %d qos_handle %d ',
@@ -461,7 +461,7 @@ class QosManager(object):
                             apn_ambr, direction,
                         )
                         self.impl.remove_qos(ambr_qos_handle_root, direction, skip_filter=True)
-                        return None, None
+                        return None, None, None
                 qos_handle = ambr_qos_handle_leaf
 
             if qos_info:
@@ -477,7 +477,7 @@ class QosManager(object):
                     )
                 else:
                     LOG.error('Failed adding qos %s direction %d', qos_info, direction)
-                    return None, None
+                    return None, None, None
 
             if qos_handle:
                 subscriber_state.update_rule(
@@ -485,7 +485,7 @@ class QosManager(object):
                     qos_handle, ambr_qos_handle_root, ambr_qos_handle_leaf,
                 )
                 return self.impl.get_action_instruction(qos_handle)
-            return None, None
+            return None, None, None
 
     def remove_subscriber_qos(self, imsi: str = "", del_rule_num: int = -1):
         with QosManager.lock:
