@@ -822,13 +822,13 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
 }
 
 TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDb) {
-  amf_ue_ngap_id_t ue_id = 0;
+  amf_ue_ngap_id_t ue_id                = 0;
   ue_m5gmm_context_s* ue_5gmm_context_p = NULL;
   std::vector<MessagesIds> expected_Ids{
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
                                             // indication to ngap
-      NGAP_NAS_DL_DATA_REQ,            // Registration Reject
-      NGAP_UE_CONTEXT_RELEASE_COMMAND  // UEContextReleaseCommand
+      NGAP_NAS_DL_DATA_REQ,                 // Registration Reject
+      NGAP_UE_CONTEXT_RELEASE_COMMAND       // UEContextReleaseCommand
   };
 
   /* Send the initial UE message */
