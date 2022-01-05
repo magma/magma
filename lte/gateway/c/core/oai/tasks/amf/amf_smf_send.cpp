@@ -259,6 +259,18 @@ int pdu_session_resource_release_complete(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
+int t3592_abort_handler(
+    ue_m5gmm_context_t* ue_context, std::shared_ptr<smf_context_t> smf_ctx,
+    uint8_t pdu_session_id) {
+  int rc                               = RETURNerror;
+  amf_smf_t amf_smf_msg                = {};
+  amf_smf_msg.pdu_session_id           = pdu_session_id;
+  amf_smf_msg.u.release.pti            = smf_ctx->smf_proc_data.pti.pti;
+  amf_smf_msg.u.release.pdu_session_id = pdu_session_id;
+  amf_smf_msg.u.release.cause_value    = SMF_CAUSE_SUCCESS;
+  rc = pdu_session_resource_release_complete(ue_context, amf_smf_msg, smf_ctx);
+  return rc;
+}
 static int pdu_session_resource_release_t3592_handler(
     zloop_t* loop, int timer_id, void* arg) {
   OAILOG_INFO(
@@ -270,7 +282,6 @@ static int pdu_session_resource_release_t3592_handler(
   std::shared_ptr<smf_context_t> smf_ctx;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   int rc = 0;
-
   if (!amf_pop_pdu_timer_arg(timer_id, &uepdu_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3550: Invalid Timer Id expiration, Timer Id: %u\n",
@@ -325,7 +336,7 @@ static int pdu_session_resource_release_t3592_handler(
         pdu_session_resource_release_t3592_handler, id);
 
   } else {
-    /* Abort the registration procedure */
+    /* Abort the pdu session procedure */
     OAILOG_ERROR(
         LOG_AMF_APP,
         "T3592: Maximum retires:%d, for PDU_SESSION_RELEASE_COMPELETE done "
@@ -333,6 +344,7 @@ static int pdu_session_resource_release_t3592_handler(
         "the pdu sesssion release "
         "procedure\n",
         smf_ctx->retransmission_count);
+    t3592_abort_handler(ue_context, smf_ctx, pdu_session_id);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
