@@ -46,6 +46,20 @@ using namespace lte;
 
 AmfServiceImpl::AmfServiceImpl() {}
 
+// Remove the Leading IMSI string if present
+inline void get_subscriber_id(const std::string& subscriber_id, char* imsi) {
+  // No parameter check as these should always be filled up
+  uint8_t imsi_len = 0;
+
+  // Check if the subscriber information received contains IMSI
+  if (subscriber_id.compare(0, 4, "IMSI") == 0) {
+    // If yes then remove the same
+    imsi_len = strlen("IMSI");
+  }
+
+  strcpy(imsi, subscriber_id.c_str() + imsi_len);
+}
+
 Status AmfServiceImpl::SetAmfNotification(
     ServerContext* context, const SetSmNotificationContext* notif,
     SmContextVoid* response) {
@@ -57,7 +71,8 @@ Status AmfServiceImpl::SetAmfNotification(
   auto& req_m5g       = notif->rat_specific_notification();
 
   // CommonSessionContext
-  strcpy(itti_msg.imsi, notify_common.sid().id().c_str());
+  get_subscriber_id(notify_common.sid().id(), itti_msg.imsi);
+
   itti_msg.sm_session_fsm_state =
       (SMSessionFSMState_response) notify_common.sm_session_state();
   itti_msg.sm_session_version = notify_common.sm_session_version();
@@ -93,7 +108,8 @@ Status AmfServiceImpl::SetSmfSessionContext(
   auto& req_m5g    = request->rat_specific_context().m5g_session_context_rsp();
 
   // CommonSessionContext
-  strcpy(itti_msg.imsi, req_common.sid().id().c_str());
+  get_subscriber_id(req_common.sid().id(), itti_msg.imsi);
+
   itti_msg.sm_session_fsm_state =
       (sm_session_fsm_state_t) req_common.sm_session_state();
   itti_msg.sm_session_version = req_common.sm_session_version();
