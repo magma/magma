@@ -93,6 +93,7 @@
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.h"
 
@@ -947,6 +948,8 @@ status_code_e s1ap_mme_handle_initial_context_setup_response(
       s1ap_imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
       &imsi64);
 
+  initial_context_setup_response_event(imsi64, (guti_t){}, "", "", "", "");
+
   S1AP_FIND_PROTOCOLIE_BY_ID(
       S1ap_InitialContextSetupResponseIEs_t, ie, container,
       S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
@@ -1073,6 +1076,7 @@ status_code_e s1ap_mme_handle_ue_context_release_request(
     s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     S1ap_S1AP_PDU_t* pdu) {
+  // TODO(andreilee): Fire event for UE context release request
   S1ap_UEContextReleaseRequest_t* container;
   S1ap_UEContextReleaseRequest_IEs_t* ie = NULL;
   ue_description_t* ue_ref_p             = NULL;
@@ -1124,11 +1128,12 @@ status_code_e s1ap_mme_handle_ue_context_release_request(
   } else {
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
+  char *request_cause = "";
   switch (cause_type) {
     case S1ap_Cause_PR_radioNetwork:
       cause_value = ie->value.choice.Cause.choice.radioNetwork;
-      OAILOG_INFO(
-          LOG_S1AP,
+      sprintf(
+          request_cause,
           "UE CONTEXT RELEASE REQUEST with Cause_Type = Radio Network and "
           "Cause_Value = %ld\n",
           cause_value);
@@ -1155,8 +1160,8 @@ status_code_e s1ap_mme_handle_ue_context_release_request(
 
     case S1ap_Cause_PR_transport:
       cause_value = ie->value.choice.Cause.choice.transport;
-      OAILOG_INFO(
-          LOG_S1AP,
+      sprintf(
+          request_cause,
           "UE CONTEXT RELEASE REQUEST with Cause_Type = Transport and "
           "Cause_Value = %ld\n",
           cause_value);
@@ -1164,8 +1169,8 @@ status_code_e s1ap_mme_handle_ue_context_release_request(
 
     case S1ap_Cause_PR_nas:
       cause_value = ie->value.choice.Cause.choice.nas;
-      OAILOG_INFO(
-          LOG_S1AP,
+      sprintf(
+          request_cause,
           "UE CONTEXT RELEASE REQUEST with Cause_Type = NAS and Cause_Value = "
           "%ld\n",
           cause_value);
@@ -1173,8 +1178,8 @@ status_code_e s1ap_mme_handle_ue_context_release_request(
 
     case S1ap_Cause_PR_protocol:
       cause_value = ie->value.choice.Cause.choice.protocol;
-      OAILOG_INFO(
-          LOG_S1AP,
+      sprintf(
+          request_cause,
           "UE CONTEXT RELEASE REQUEST with Cause_Type = Transport and "
           "Cause_Value = %ld\n",
           cause_value);
@@ -1182,8 +1187,8 @@ status_code_e s1ap_mme_handle_ue_context_release_request(
 
     case S1ap_Cause_PR_misc:
       cause_value = ie->value.choice.Cause.choice.misc;
-      OAILOG_INFO(
-          LOG_S1AP,
+      sprintf(
+          request_cause,
           "UE CONTEXT RELEASE REQUEST with Cause_Type = MISC and Cause_Value = "
           "%ld\n",
           cause_value);
@@ -1195,6 +1200,7 @@ status_code_e s1ap_mme_handle_ue_context_release_request(
           cause_type);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
+  OAILOG_INFO(LOG_S1AP, request_cause);
 
   /* Fix - MME shall handle UE Context Release received from the eNB
   irrespective of the cause. And MME should release the S1-U bearers for the UE
@@ -1220,6 +1226,8 @@ status_code_e s1ap_mme_handle_ue_context_release_request(
     hashtable_uint64_ts_get(
         imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
         &imsi64);
+    ue_context_release_request_event(
+        imsi64, (guti_t){}, "", "", "", "", request_cause);
     if (ue_ref_p->sctp_assoc_id == assoc_id &&
         ue_ref_p->enb_ue_s1ap_id == enb_ue_s1ap_id) {
       /*
@@ -1359,6 +1367,7 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
   bstring b = blk2bstr(buffer, length);
   free(buffer);
   rc = s1ap_mme_itti_send_sctp_request(&b, assoc_id, stream, mme_ue_s1ap_id);
+  ue_context_release_command_event(imsi64, (guti_t){}, "", "", "", "");
 
   // Dont remove UE context if UE handed over to another eNB
   if (ue_ref_p != NULL && ue_ref_p->sctp_assoc_id == assoc_id) {
@@ -1517,6 +1526,7 @@ status_code_e s1ap_handle_ue_context_release_command(
      * Check the cause. If it is implicit detach or sctp reset/shutdown no need
      * to send UE context release command to eNB. Free UE context locally.
      */
+     // andreilee: Don't need to fire an event here, though why are we receiving and sending a command?
 
     if (ue_context_release_command_pP->cause == S1AP_IMPLICIT_CONTEXT_RELEASE ||
         ue_context_release_command_pP->cause == S1AP_SCTP_SHUTDOWN_OR_RESET ||
@@ -1573,6 +1583,7 @@ status_code_e s1ap_mme_handle_ue_context_release_complete(
   S1ap_UEContextReleaseComplete_IEs_t* ie = NULL;
   ue_description_t* ue_ref_p              = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id         = 0;
+  emm_context_t* emm_ctx = NULL;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   container =
@@ -1587,6 +1598,10 @@ status_code_e s1ap_mme_handle_ue_context_release_complete(
   } else {
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
+  //  mme_ue_s1ap_id_t ue_id
+  emm_ctx = emm_context_get(&_emm_data, mme_ue_s1ap_id);
+  ue_context_release_complete_event(
+      emm_ctx->_imsi64, emm_ctx->_guti, "", "", "", "");
 
   if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
     /*
@@ -1703,11 +1718,12 @@ status_code_e s1ap_mme_handle_initial_context_setup_failure(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
+  char *reject_cause = (char*)malloc(100 * sizeof(char));
   switch (cause_type) {
     case S1ap_Cause_PR_radioNetwork:
       cause_value = ie->value.choice.Cause.choice.radioNetwork;
-      OAILOG_DEBUG_UE(
-          LOG_S1AP, imsi64,
+      sprintf(
+          reject_cause,
           "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = Radio Network and "
           "Cause_Value = %ld\n",
           cause_value);
@@ -1715,8 +1731,8 @@ status_code_e s1ap_mme_handle_initial_context_setup_failure(
 
     case S1ap_Cause_PR_transport:
       cause_value = ie->value.choice.Cause.choice.transport;
-      OAILOG_DEBUG_UE(
-          LOG_S1AP, imsi64,
+      sprintf(
+          reject_cause,
           "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = Transport and "
           "Cause_Value = %ld\n",
           cause_value);
@@ -1724,18 +1740,17 @@ status_code_e s1ap_mme_handle_initial_context_setup_failure(
 
     case S1ap_Cause_PR_nas:
       cause_value = ie->value.choice.Cause.choice.nas;
-      OAILOG_DEBUG_UE(
-          LOG_S1AP, imsi64,
-          "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = NAS and Cause_Value "
-          "= "
-          "%ld\n",
+      sprintf(
+          reject_cause,
+          "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = NAS and "
+          "Cause_Value = %ld\n",
           cause_value);
       break;
 
     case S1ap_Cause_PR_protocol:
       cause_value = ie->value.choice.Cause.choice.protocol;
-      OAILOG_DEBUG_UE(
-          LOG_S1AP, imsi64,
+      sprintf(
+          reject_cause,
           "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = Protocol and "
           "Cause_Value = %ld\n",
           cause_value);
@@ -1743,11 +1758,10 @@ status_code_e s1ap_mme_handle_initial_context_setup_failure(
 
     case S1ap_Cause_PR_misc:
       cause_value = ie->value.choice.Cause.choice.misc;
-      OAILOG_DEBUG_UE(
-          LOG_S1AP, imsi64,
+      sprintf(
+          reject_cause,
           "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = MISC and "
-          "Cause_Value "
-          "= %ld\n",
+          "Cause_Value = %ld\n",
           cause_value);
       break;
 
@@ -1758,6 +1772,9 @@ status_code_e s1ap_mme_handle_initial_context_setup_failure(
           cause_type);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
+  initial_context_setup_failure_event(
+      imsi64, (guti_t){}, "", "", "", "", reject_cause);
+  OAILOG_DEBUG_UE(LOG_S1AP, imsi64, reject_cause);
   message_p = DEPRECATEDitti_alloc_new_message_fatal(
       TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_FAILURE);
   memset(

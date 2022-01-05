@@ -1147,6 +1147,7 @@ void s1ap_handle_conn_est_cnf(
   s1ap_mme_itti_send_sctp_request(
       &b, ue_ref->sctp_assoc_id, ue_ref->sctp_stream_send,
       ue_ref->mme_ue_s1ap_id);
+  initial_context_setup_request_event(imsi64, (guti_t){}, "", "", "", "");
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 //------------------------------------------------------------------------------

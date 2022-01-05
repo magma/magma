@@ -380,6 +380,225 @@ definitions:
         description: Cause of detach failure
         type: string
         x-nullable: false
+  initial_context_setup_request:
+    type: object
+    description: |
+      Indicates that the MME has sent an Initial Context Setup Request to the eNB.
+    properties:
+      imsi:
+        description: |
+          International Mobile Subscriber Identity
+          This is used to identify the UE for which context is being established.
+          If the IMSI is not present, a GUTI will be provided.
+        type: string
+        x-nullable: true
+      guti:
+        description: |
+          Globally Unique Temporary Identifier
+          This is used to identify the UE for which context is being established.
+          If the GUTI is not present, the IMSI will be provided.
+        type: string
+        x-nullable: true
+      mme_id:
+        type: string
+        x-nullable: true
+      enb_id:
+        description: ID of eNodeB which the Request is being sent to
+        type: integer
+        x-nullable: false
+      enb_ip:
+        description: IP of eNodeB which the Request is being sent to
+        type: string
+        x-nullable: true
+      apn:
+        description: Access Point Name
+        type: string
+        x-nullable: true
+        example: "inet"
+  initial_context_setup_response:
+    type: object
+    description: |
+      Indicates that the MME has received an Initial Context Setup Response.
+    properties:
+      imsi:
+        description: |
+          International Mobile Subscriber Identity
+          This is used to identify the UE for which context is being established.
+          If the IMSI is not present, a GUTI will be provided.
+        type: string
+        x-nullable: true
+      guti:
+        description: |
+          Globally Unique Temporary Identifier
+          This is used to identify the UE for which context is being established.
+          If the GUTI is not present, the IMSI will be provided.
+        type: string
+        x-nullable: true
+      mme_id:
+        type: string
+        x-nullable: true
+      enb_id:
+        description: ID of eNodeB which the Response has been received from
+        type: integer
+        x-nullable: false
+      enb_ip:
+        description: ID of eNodeB which the Response has been received from
+        type: string
+        x-nullable: true
+      apn:
+        description: Access Point Name
+        type: string
+        x-nullable: true
+        example: "inet"
+  initial_context_setup_failure:
+    type: object
+    description: |
+      Indicates that the MME has received an Initial Context Setup Failure.
+    properties:
+      imsi:
+        description: |
+          International Mobile Subscriber Identity
+          This is used to identify the UE for which context is being established.
+          If the IMSI is not present, a GUTI will be provided.
+        type: string
+        x-nullable: true
+      guti:
+        description: |
+          Globally Unique Temporary Identifier
+          This is used to identify the UE for which context is being established.
+          If the GUTI is not present, the IMSI will be provided.
+        type: string
+        x-nullable: true
+      mme_id:
+        type: string
+        x-nullable: true
+      enb_id:
+        description: ID of eNodeB which the Failure has been received from
+        type: integer
+        x-nullable: false
+      enb_ip:
+        description: ID of eNodeB which the Failure has been received from
+        type: string
+        x-nullable: true
+      apn:
+        description: Access Point Name
+        type: string
+        x-nullable: true
+        example: "inet"
+      cause:
+        description: Cause of context setup failure
+        type: string
+        x-nullable: false
+  ue_context_release_request:
+    type: object
+    description: |
+      Indicates that the MME has received a UE Context Release Request from an eNB.
+    properties:
+      imsi:
+        description: |
+          International Mobile Subscriber Identity
+          This is used to identify the UE for which context is being released.
+          If the IMSI is not present, a GUTI will be provided.
+        type: string
+        x-nullable: true
+      guti:
+        description: |
+          Globally Unique Temporary Identifier
+          This is used to identify the UE for which context is being released.
+          If the GUTI is not present, the IMSI will be provided.
+        type: string
+        x-nullable: true
+      mme_id:
+        type: string
+        x-nullable: true
+      enb_id:
+        description: ID of eNodeB which the Request has been received from
+        type: integer
+        x-nullable: false
+      enb_ip:
+        description: ID of eNodeB which the Request has been received from
+        type: string
+        x-nullable: true
+      apn:
+        description: Access Point Name
+        type: string
+        x-nullable: true
+        example: "inet"
+      cause:
+        description: Cause for context release
+        type: string
+        x-nullable: false
+        example: "user inactivity"
+  ue_context_release_command:
+    type: object
+    description: |
+      Indicates that the MME has sent a UE Context Release Command to an eNB.
+    properties:
+      imsi:
+        description: |
+          International Mobile Subscriber Identity
+          This is used to identify the UE for which context is being released.
+          If the IMSI is not present, a GUTI will be provided.
+        type: string
+        x-nullable: true
+      guti:
+        description: |
+          Globally Unique Temporary Identifier
+          This is used to identify the UE for which context is being released.
+          If the GUTI is not present, the IMSI will be provided.
+        type: string
+        x-nullable: true
+      mme_id:
+        type: string
+        x-nullable: true
+      enb_id:
+        description: ID of eNodeB which the Command is being sent to
+        type: integer
+        x-nullable: false
+      enb_ip:
+        description: ID of eNodeB which the Command is being sent to
+        type: string
+        x-nullable: true
+      apn:
+        description: Access Point Name
+        type: string
+        x-nullable: true
+        example: "inet"
+  ue_context_release_complete:
+    type: object
+    description: |
+      Indicates that the MME has received a UE Context Release Complete from an eNB.
+    properties:
+      imsi:
+        description: |
+          International Mobile Subscriber Identity
+          This is used to identify the UE for which context is being released.
+          If the IMSI is not present, a GUTI will be provided.
+        type: string
+        x-nullable: true
+      guti:
+        description: |
+          Globally Unique Temporary Identifier
+          This is used to identify the UE for which context is being released.
+          If the GUTI is not present, the IMSI will be provided.
+        type: string
+        x-nullable: true
+      mme_id:
+        type: string
+        x-nullable: true
+      enb_id:
+        description: ID of eNodeB which sent the message
+        type: integer
+        x-nullable: false
+      enb_ip:
+        description: ID of eNodeB which sent the message
+        type: string
+        x-nullable: true
+      apn:
+        description: Access Point Name
+        type: string
+        x-nullable: true
+        example: "inet"
   s1_setup_success:
     type: object
     description: Used to track establishment of S1 connection

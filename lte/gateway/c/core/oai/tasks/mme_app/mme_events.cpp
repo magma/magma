@@ -39,19 +39,28 @@ using magma::orc8r::Event;
 using magma::orc8r::Void;
 
 namespace {
-constexpr char MME_STREAM_NAME[]  = "mme";
-constexpr char ATTACH_REQUEST[]   = "attach_request";
-constexpr char ATTACH_ACCEPT[]    = "attach_accept";
-constexpr char ATTACH_REJECT[]    = "attach_reject";
-constexpr char ATTACH_COMPLETE[]  = "attach_complete";
-constexpr char ATTACH_SUCCESS[]   = "attach_success";
-constexpr char ATTACH_FAILURE[]   = "attach_failure";
-constexpr char DETACH_REQUEST[]   = "detach_request";
-constexpr char DETACH_ACCEPT[]    = "detach_accept";
-constexpr char DETACH_IMPLICIT[]  = "detach_implicit";
-constexpr char DETACH_SUCCESS[]   = "detach_success";
-constexpr char DETACH_FAILURE[]   = "detach_failure";
-constexpr char S1_SETUP_SUCCESS[] = "s1_setup_success";
+constexpr char MME_STREAM_NAME[] = "mme";
+constexpr char ATTACH_REQUEST[]  = "attach_request";
+constexpr char ATTACH_ACCEPT[]   = "attach_accept";
+constexpr char ATTACH_REJECT[]   = "attach_reject";
+constexpr char ATTACH_COMPLETE[] = "attach_complete";
+constexpr char ATTACH_SUCCESS[]  = "attach_success";
+constexpr char ATTACH_FAILURE[]  = "attach_failure";
+constexpr char DETACH_REQUEST[]  = "detach_request";
+constexpr char DETACH_ACCEPT[]   = "detach_accept";
+constexpr char DETACH_IMPLICIT[] = "detach_implicit";
+constexpr char DETACH_SUCCESS[]  = "detach_success";
+constexpr char DETACH_FAILURE[]  = "detach_failure";
+constexpr char INITIAL_CONTEXT_SETUP_REQUEST[] =
+    "initial_context_setup_request";
+constexpr char INITIAL_CONTEXT_SETUP_RESPONSE[] =
+    "initial_context_setup_response";
+constexpr char INITIAL_CONTEXT_SETUP_FAILURE[] =
+    "initial_context_setup_failure";
+constexpr char UE_CONTEXT_RELEASE_REQUEST[]  = "ue_context_release_request";
+constexpr char UE_CONTEXT_RELEASE_COMMAND[]  = "ue_context_release_command";
+constexpr char UE_CONTEXT_RELEASE_COMPLETE[] = "ue_context_release_complete";
+constexpr char S1_SETUP_SUCCESS[]            = "s1_setup_success";
 }  // namespace
 
 void event_client_init(void) {
@@ -270,6 +279,114 @@ int detach_failure_event(
   event_value["cause"]       = cause;
 
   return report_event(event_value, DETACH_FAILURE, MME_STREAM_NAME, imsi_str);
+}
+
+int initial_context_setup_request_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+
+  return report_event(
+      event_value, INITIAL_CONTEXT_SETUP_REQUEST, MME_STREAM_NAME, imsi_str);
+}
+
+int initial_context_setup_response_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+
+  return report_event(
+      event_value, INITIAL_CONTEXT_SETUP_RESPONSE, MME_STREAM_NAME, imsi_str);
+}
+
+int initial_context_setup_failure_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn, const char* cause) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+  event_value["cause"]         = cause;
+
+  return report_event(
+      event_value, INITIAL_CONTEXT_SETUP_FAILURE, MME_STREAM_NAME, imsi_str);
+}
+
+int ue_context_release_request_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn, const char* cause) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+  event_value["cause"]       = cause;
+
+  return report_event(
+      event_value, UE_CONTEXT_RELEASE_REQUEST, MME_STREAM_NAME, imsi_str);
+}
+int ue_context_release_command_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+
+  return report_event(
+      event_value, UE_CONTEXT_RELEASE_COMMAND, MME_STREAM_NAME, imsi_str);
+}
+int ue_context_release_complete_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+
+  return report_event(
+      event_value, UE_CONTEXT_RELEASE_COMPLETE, MME_STREAM_NAME, imsi_str);
 }
 
 int s1_setup_success_event(const char* enb_name, uint32_t enb_id) {

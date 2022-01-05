@@ -204,6 +204,100 @@ int detach_failure_event(
     const char* enb_ip, const char* apn, const char* cause);
 
 /**
+ * Fire event to record having sent an Initial Context Setup Request
+ *
+ * @param imsi
+ * @param guti
+ * @param mme_id
+ * @param enb_id
+ * @param enb_ip
+ * @param apn
+ * @param cause
+ * @return response code
+ */
+int initial_context_setup_request_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn);
+
+/**
+ * Fire event to record receiving an Initial Context Setup Response
+ *
+ * @param imsi
+ * @param guti
+ * @param mme_id
+ * @param enb_id
+ * @param enb_ip
+ * @param apn
+ * @param cause
+ * @return response code
+ */
+int initial_context_setup_response_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn);
+
+/**
+ * Fire event to record receiving an Initial Context Setup Failure
+ *
+ * @param imsi
+ * @param guti
+ * @param mme_id
+ * @param enb_id
+ * @param enb_ip
+ * @param apn
+ * @param cause
+ * @return response code
+ */
+int initial_context_setup_failure_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn, const char* cause);
+
+/**
+ * Fire event to record having received a UE Context Release Request
+ *
+ * @param imsi
+ * @param guti
+ * @param mme_id
+ * @param enb_id
+ * @param enb_ip
+ * @param apn
+ * @param cause
+ * @return response code
+ */
+int ue_context_release_request_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn, const char* cause);
+
+/**
+ * Fire event to record having sent a UE Context Release Command
+ *
+ * @param imsi
+ * @param guti
+ * @param mme_id
+ * @param enb_id
+ * @param enb_ip
+ * @param apn
+ * @return response code
+ */
+int ue_context_release_command_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn);
+
+/**
+ * Fire event to record having received a UE Context Release Complete message
+ *
+ * @param imsi
+ * @param guti
+ * @param mme_id
+ * @param enb_id
+ * @param enb_ip
+ * @param apn
+ * @return response code
+ */
+int ue_context_release_complete_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn);
+
+/**
  * Logs s1 setup success event
  * @param enb_name name assigned to eNodeb
  * @param enb_id unique identifier of eNodeb
