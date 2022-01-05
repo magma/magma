@@ -1620,8 +1620,9 @@ jobs:
             sed -i -e '/^stackCloudstrapper: /s/:.*$/: publish-amis-to-marketplace-stack-cloustrapper/' $VARS_DIR/defaults.yaml
             sed -i -e '/^devOpsAmi: /s/:.*$/: cloudstrapper-'"$VERSION"'/' $VARS_DIR/defaults.yaml
             sed -i -e '/^buildUbuntuAmi: /s/:.*$/: ami-04505e74c0741db8d/' $VARS_DIR/build.yaml
-            sed -i -e '/^buildAgwVersion: /s/:.*$/: v1.6/' $VARS_DIR/build.yaml
+            sed -i -e '/^buildAgwVersion: /s/:.*$/: v1.6.1/' $VARS_DIR/build.yaml
       - run:
+          no_output_timeout: 50m
           name: Generate Cloudstrapper AMI
           command: |
             ansible-playbook $WORK_DIR/devops-provision.yaml -e "dirLocalInventory=$VARS_DIR"
@@ -1640,6 +1641,7 @@ jobs:
             sed -i -e '/^awsAgwAmi: /s/:.*$/: ami-04505e74c0741db8d/' $VARS_DIR/cluster.yaml
       - run:
           name: Generate AGW AMI
+          no_output_timeout: 50m
           command: |
             ansible-playbook $WORK_DIR/agw-provision.yaml -e "idSite=DevOps" -e "idGw=publishAmisToMarketplaceAgw" -e "dirLocalInventory=$VARS_DIR" --tags infra,inventory  -e "agwDevops=1" --skip-tags createBridge,cleanupBridge,cleanupNet
             echo "Waiting one minute for the instance to boot up."
