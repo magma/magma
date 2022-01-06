@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# sudo /home/vagrant/build/python/bin/python gtp-cmd.py 192.168.60.141 192.168.60.142 192.168.128.12 192.168.129.42 eth1
+# sudo /home/vagrant/build/python/bin/python gtp-cmd.py 192.168.128.12 192.168.129.42 eth1
 
 import sys
 import time

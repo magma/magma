@@ -29,6 +29,7 @@ UL_HANDLER = "/home/vagrant/magma/lte/gateway/python/magma/pipelined/ebpf/ebpf_u
 
 
 # This test works when ran separately.
+@unittest.skip("AsyncSniffer is not working")
 class eBpfDatapathULTest(unittest.TestCase):
     NS_NAME = 'ens1'
     gtp_veth = "enb0"
@@ -111,7 +112,7 @@ class eBpfDatapathULTest(unittest.TestCase):
     def count_udp_packet(cls):
         cnt = 0
         for pkt in cls.packet_cap1:
-            print(pkt.show(dump=True))
+            # print(pkt.show(dump=True))
             if IP in pkt:
                 if pkt[IP].src == cls.inner_src_ip and pkt[IP].dst == cls.inner_dst_ip:
                     cnt = cnt + 1
@@ -136,7 +137,3 @@ class eBpfDatapathULTest(unittest.TestCase):
 
         self.assertEqual(cls.count_udp_packet(), 2)
         cls.tearDownClassDevices()
-
-
-if __name__ == "__main__":
-    unittest.main()

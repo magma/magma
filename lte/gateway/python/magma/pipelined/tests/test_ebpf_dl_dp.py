@@ -12,16 +12,12 @@ limitations under the License.
 """
 import logging
 import subprocess
-import threading
-import time
 import unittest
-import warnings
-from concurrent.futures import Future
 
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.ebpf.ebpf_manager import ebpf_manager
 from scapy.all import AsyncSniffer
-from scapy.layers.inet import IP, UDP
+from scapy.layers.inet import IP
 
 PKT_SCRIPT = "/home/vagrant/magma/lte/gateway/python/magma/pipelined/tests/script/ip-packet.py"
 PY_PATH = "/home/vagrant/build/python/bin/python"
@@ -30,8 +26,8 @@ DL_HANDLER = "/home/vagrant/magma/lte/gateway/python/magma/pipelined/ebpf/ebpf_d
 
 
 # This test works when ran separately.
-#@unittest.skip("AsyncSniffer is not working")
-class eBpfDatapathULTest(unittest.TestCase):
+@unittest.skip("AsyncSniffer is not working")
+class eBpfDatapathDLTest(unittest.TestCase):
     NS_NAME = 'ens1'
     gtp_veth = "enb0"
     gtp_veth_ns = "enb1"
@@ -64,22 +60,18 @@ class eBpfDatapathULTest(unittest.TestCase):
         BridgeTools.ifup_netdev(cls.gtp_veth, cls.gtp_pkt_dst + "/24")
 
         BridgeTools.create_veth_pair(cls.sgi_veth, cls.sgi_veth1)
-        time.sleep(2)
 
-        #BridgeTools.create_ns_and_move_veth(cls.NS_NAME, cls.gtp_veth_ns, cls.gtp_pkt_src + "/24")
         BridgeTools.create_ns_and_move_veth(cls.NS_NAME, cls.sgi_veth1, cls.inner_src_ip + "/24")
 
         BridgeTools.ifup_netdev(cls.sgi_veth, cls.inner_dst_ip + "/24")
-        #BridgeTools.ifup_netdev(cls.sgi_veth1)
         BridgeTools.ifup_netdev(cls.gtp_veth_ns, cls.gtp_pkt_src + "/24")
 
-        time.sleep(2)
         cls.ebpf_man = ebpf_manager(cls.sgi_veth, cls.gtp_veth, cls.sgi_veth_ip, enabled=True, bpf_ul_file=UL_HANDLER, bpf_dl_file=DL_HANDLER)
+        cls.ebpf_man.detach_dl_ebpf()
         cls.ebpf_man.attach_dl_ebpf()
-        cls.ebpf_man.attach_dl_ebpf()
-        time.sleep(2)
+
         cls.sniffer = AsyncSniffer(
-            iface=cls.gtp_veth_ns,
+            iface='gtpu_sys_2152',
             store=False,
             prn=cls.pkt_cap_fun,
         )
@@ -111,13 +103,11 @@ class eBpfDatapathULTest(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        pass
-        # for testing
-#         cls.ebpf_man.detach_ul_ebpf()
-#         cls.sniffer.stop()
-#         BridgeTools.delete_ns_all()
-#         BridgeTools.delete_veth(cls.gtp_veth)
-#         BridgeTools.delete_veth(cls.sgi_veth)
+        cls.ebpf_man.detach_ul_ebpf()
+        cls.sniffer.stop()
+        BridgeTools.delete_ns_all()
+        BridgeTools.delete_veth(cls.gtp_veth)
+        BridgeTools.delete_veth(cls.sgi_veth)
 
     @classmethod
     def pkt_cap_fun(cls, packet):
@@ -129,22 +119,19 @@ class eBpfDatapathULTest(unittest.TestCase):
     def count_udp_packet(cls):
         cnt = 0
         for pkt in cls.packet_cap1:
-            print(pkt.show(dump=True))
+            #print(pkt.show(dump=True))
             if IP in pkt:
                 if pkt[IP].src == cls.inner_src_ip and pkt[IP].dst == cls.inner_dst_ip:
                     cnt = cnt + 1
         return cnt
 
-    def testEbpfUlFrw1(self):
+    def testEbpfDlFrw1(self):
         cls = self.__class__
         cls.setUpClassDevices()
         cls.sendPacket(cls.inner_src_ip, cls.inner_dst_ip)
-        #self.assertEqual(len(cls.packet_cap1), 0)
+        self.assertEqual(len(cls.packet_cap1), 0)
 
         cls.ebpf_man.add_dl_entry(cls.inner_dst_ip, cls.gtp_pkt_dst, cls.gtp_tunnel_id)
-        time.sleep(2)
-        cls.ebpf_man.print_dl_map()
-        time.sleep(1)
         cls.sendPacket(cls.inner_src_ip, cls.inner_dst_ip)
 
         self.assertEqual(cls.count_udp_packet(), 1)
@@ -152,11 +139,7 @@ class eBpfDatapathULTest(unittest.TestCase):
 
         self.assertEqual(cls.count_udp_packet(), 2)
 
-        cls.ebpf_man.del_ul_entry(cls.inner_src_ip)
+        cls.ebpf_man.del_dl_entry(cls.inner_dst_ip)
+        cls.ebpf_man.print_dl_map()
         cls.sendPacket(cls.inner_src_ip, cls.inner_dst_ip)
-
         self.assertEqual(cls.count_udp_packet(), 2)
-        cls.tearDownClassDevices()
-
-if __name__ == "__main__":
-    unittest.main()

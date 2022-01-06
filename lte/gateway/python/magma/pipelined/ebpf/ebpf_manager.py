@@ -25,7 +25,7 @@ from threading import Thread
 import netifaces
 from bcc import BPF
 from magma.pipelined.mobilityd_client import get_mobilityd_gw_info
-from pyroute2 import IPDB, IPRoute, NetlinkError, NetNS, NSPopen, protocols
+from pyroute2 import IPDB, IPRoute, NetlinkError, NetNS, NSPopen
 from scapy.layers.l2 import getmacbyip
 
 LOG = logging.getLogger("pipelined.ebpf")
@@ -80,7 +80,7 @@ class ebpf_manager:
         self.b_ul = BPF(src_file=bpf_ul_file, cflags=[''])
         self.b_dl = BPF(src_file=bpf_dl_file, cflags=[''])
         self.s1_fn = self.b_ul.load_func("gtpu_ingress_handler", BPF.SCHED_CLS)
-        self.sgi_fn = self.b_dl.load_func("gtpu_egress_handler", BPF.SCHED_ACT)
+        self.sgi_fn = self.b_dl.load_func("gtpu_egress_handler", BPF.SCHED_CLS)
         self.ul_map = self.b_ul.get_table(UL_MAP_NAME)
         self.dl_map = self.b_dl.get_table(DL_MAP_NAME)
         self.cfg_array = self.b_dl.get_table(DL_CFG_ARRAY_NAME)
@@ -113,7 +113,6 @@ class ebpf_manager:
 
         LOG.debug("Attach done")
 
-
     def attach_dl_ebpf(self):
         """
         Attach eBPF downlink traffic handler
@@ -126,20 +125,10 @@ class ebpf_manager:
             LOG.error("error adding ingress clasct for dl %s", ex)
 
         try:
-
-            action = {"kind": "bpf", "fd": self.sgi_fn.fd, "name": self.sgi_fn.name, "action": "ok"}
-            ipr.tc(
-                "add-filter", "u32", self.sgi_if_index, ":1", parent="ffff:fff2", action=[action],
-                protocol=protocols.ETH_P_ALL, classid=1, target=0x10002, keys=['0x0/0x0+0'],
-            )
-            '''
-            This failes for some reason, using above as a workaround
-            TODO figure out why
             ipr.tc(
                 "add-filter", "bpf", self.sgi_if_index, ":1", fd=self.sgi_fn.fd, name=self.sgi_fn.name,
                 parent="ffff:fff2", classid=1, direct_action=True,
             )
-            '''
         except NetlinkError as ex:
             LOG.error("error adding ingress filter for dl %s", ex)
 
@@ -166,8 +155,6 @@ class ebpf_manager:
         out1 = subprocess.run(["unlink", sys_file], capture_output=True)
         LOG.debug(out1)
 
-
-
     def detach_dl_ebpf(self):
         """
         Remove the Downlink eBPF handler and associated maps.
@@ -177,6 +164,7 @@ class ebpf_manager:
         try:
             ipr.tc("del", "clsact", self.sgi_if_index)
         except NetlinkError as ex:
+            LOG.error("error detaching dl clasct %s", ex)
             pass
         sys_file = BASE_MAP_FS + DL_MAP_NAME
         out1 = subprocess.run(["unlink", sys_file], capture_output=True)
@@ -228,7 +216,6 @@ class ebpf_manager:
 
         self.ul_map.pop(key, None)
 
-
     def del_dl_entry(self, ue_ip: str):
         """
         Delete downlink session entry
@@ -260,6 +247,7 @@ class ebpf_manager:
         """
         Dump entire downlink session eBPF map
         """
+        print("DL MAP:")
         for k, v in self.dl_map.items():
             ue_ip = self._unpack_ip(k.ue_ip)
             remote_ipv4 = self._unpack_ip(v.remote_ipv4)
@@ -274,7 +262,7 @@ class ebpf_manager:
         """
         Dump entire cfg array session eBPF map
         """
-        for k, v in self.cfg_array.items():
+        for _, v in self.cfg_array.items():
             ifindex = v.if_idx
 
             print(
@@ -320,7 +308,6 @@ class ebpf_manager:
         mac_bytes = bytearray(mac_addr)
         return mac_bytes.hex(":")
 
-import time
 # for debugging
 if __name__ == "__main__":
     bm = ebpf_manager("sgi0", "enb0", "10.0.2.2", bpf_ul_file=BPF_UL_FILE, bpf_dl_file=BPF_DL_FILE, enabled=True)

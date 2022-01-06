@@ -72,12 +72,12 @@ int gtpu_egress_handler(struct __sk_buff* skb) {
 
   // 2. set tunnel info
   struct bpf_tunnel_key tun_key;
-  __builtin_memset(&key, 0x0, sizeof(tun_key));
+  __builtin_memset(&tun_key, 0x0, sizeof(tun_key));
   tun_key.remote_ipv4 = fwd->remote_ipv4;
   tun_key.tunnel_id = fwd->tunnel_id;
   tun_key.tunnel_ttl = 64;
 
-  ret = bpf_skb_set_tunnel_key(skb, &key, sizeof(key), BPF_F_ZERO_CSUM_TX);
+  ret = bpf_skb_set_tunnel_key(skb, &tun_key, sizeof(tun_key), BPF_F_ZERO_CSUM_TX);
   if (ret < 0) {
       bpf_trace_printk("ERR: bpf_skb_set_tunnel_key failed with %d", ret);
       return TC_ACT_SHOT;
