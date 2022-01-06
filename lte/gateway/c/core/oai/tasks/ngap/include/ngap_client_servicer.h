@@ -24,8 +24,13 @@ extern "C" {
 #endif
 #include <memory.h>
 #include <string.h>
+#include "lte/protos/oai/s1ap_state.pb.h"
+#include "lte/gateway/c/core/oai/include/map.h"
 
 namespace magma5g {
+typedef magma::map_s<std::string, std::string> map_string_string_t;
+typedef magma::map_s<std::string, magma::lte::oai::S1apImsiMap>
+    map_string_map_t;
 
 class NGAPClientServicerBase {
  public:
@@ -43,6 +48,10 @@ class NGAPClientServicer : public NGAPClientServicerBase {
 
   NGAPClientServicer(NGAPClientServicer const&) = delete;
   void operator=(NGAPClientServicer const&) = delete;
+
+  map_string_string_t map_ngapState_tableKey_protoStr;
+  map_string_string_t map_ngapUeState_tableKey_protoStr;
+  map_string_map_t map_imsiTable_tableKey_protoStr;
 
   status_code_e send_message_to_amf(
       task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,

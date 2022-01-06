@@ -82,7 +82,7 @@ TEST_F(NGAPStateConverterTest, NgapStateConversionSuccess) {
       &init_state->amfid2associd, (const hash_key_t) 1,
       reinterpret_cast<void**>(&assoc_id));
 
-  oai::NgapState state_proto;
+  oai::S1apState state_proto;
   NgapStateConverter::state_to_proto(init_state, &state_proto);
   NgapStateConverter::proto_to_state(state_proto, final_state);
 
@@ -258,11 +258,11 @@ class NgapStateConverterTest : public testing::Test {
         NULL);
 
     amf_config_init(&amf_config);
-    amf_config.plmn_support_list.plmn_support_count          = 1;
-    amf_config.plmn_support_list.plmn_support[0].s_nssai.sst = 0x1;
+    amf_config.use_stateless = true;
+    ngap_state_init(
+        amf_config.max_ues, amf_config.max_gnbs, amf_config.use_stateless);
 
-    ngap_state_init(2, 2, true);
-    state    = get_ngap_state(true);
+    state    = get_ngap_state(false);
     imsi_map = get_ngap_imsi_map();
   }
 
@@ -278,6 +278,8 @@ class NgapStateConverterTest : public testing::Test {
   ngap_imsi_map_t* imsi_map         = NULL;
   const unsigned int AMF_UE_NGAP_ID = 0x05;
   const unsigned int gNB_UE_NGAP_ID = 0x09;
+  bool is_task_state_same           = false;
+  bool is_ue_state_same             = false;
   imsi64_t imsi64;
 };
 
@@ -296,6 +298,201 @@ unsigned char dl_nas_auth_req_msg[] = {
     0x67, 0x6c, 0x20, 0x10, 0xa4, 0x9b, 0x6b, 0x3d, 0x65, 0x6d, 0x80,
     0x00, 0x41, 0xc5, 0x72, 0x9e, 0xd9, 0xe1, 0xf0, 0xd6};
 
+// 1.Stateless triggered after SCTP ASSOCIATION
+TEST_F(NgapStateConverterTest, TestAfterSctpAssociation) {
+  bstring ran_cp_ipaddr;
+  sctp_new_peer_t peerInfo;
+  ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
+  peerInfo      = {
+      .instreams     = 1,
+      .outstreams    = 2,
+      .assoc_id      = 3,
+      .ran_cp_ipaddr = ran_cp_ipaddr,
+  };
+  // Verify sctp association is successful
+  EXPECT_EQ(ngap_handle_new_association(state, &peerInfo), RETURNok);
+  // This flag is triggered to check stateless after SCTP ASSOCIATION.
+  is_ue_state_same = true;
+  // Verify number of connected gNB's is 1
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  // Initial UE message
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint16_t length_initial_ue_message_hexbuf =
+      sizeof(initial_ue_message_hexbuf) / sizeof(unsigned char);
+
+  bstring ngap_initial_ue_msg =
+      blk2bstr(initial_ue_message_hexbuf, length_initial_ue_message_hexbuf);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(ngap_amf_decode_pdu(&decoded_pdu, ngap_initial_ue_msg), RETURNok);
+
+  // Check if initial UE message is handled successfully
+  EXPECT_EQ(
+      ngap_amf_handle_message(
+          state, peerInfo.assoc_id, peerInfo.instreams, &decoded_pdu),
+      RETURNok);
+
+  Ngap_InitialUEMessage_t* container;
+  gnb_description_t* gNB_ref   = NULL;
+  m5g_ue_description_t* ue_ref = NULL;
+
+  container =
+      &(decoded_pdu.choice.initiatingMessage.value.choice.InitialUEMessage);
+  Ngap_InitialUEMessage_IEs_t* ie = NULL;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialUEMessage_IEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
+
+  // Check if Ran_UE_NGAP_ID is present in initial message
+  ASSERT_TRUE(ie != NULL);
+
+  // Check if gNB exists
+  gNB_ref = ngap_state_get_gnb(state, peerInfo.assoc_id);
+  ASSERT_TRUE(gNB_ref != NULL);
+
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
+  uint64_t comp_ngap_id;
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
+
+  // Check for UE associated with gNB
+  ue_ref = ngap_state_get_ue_gnbid(gNB_ref->sctp_assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+
+  // Check if UE is pointing to invalid ID if it is initial ue message
+  EXPECT_EQ(ue_ref->amf_ue_ngap_id, INVALID_AMF_UE_NGAP_ID);
+
+  MessageDef* message_p = NULL;
+  bstring buffer;
+  unsigned int len = sizeof(dl_nas_auth_req_msg) / sizeof(unsigned char);
+
+  message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_NAS_DL_DATA_REQ);
+
+  NGAP_NAS_DL_DATA_REQ(message_p).gnb_ue_ngap_id = gnb_ue_ngap_id;
+  NGAP_NAS_DL_DATA_REQ(message_p).amf_ue_ngap_id = ue_ref->amf_ue_ngap_id;
+  message_p->ittiMsgHeader.imsi                  = 0x311480000000001;
+  buffer                                         = bfromcstralloc(len, "\0");
+  memcpy(buffer->data, dl_nas_auth_req_msg, len);
+  buffer->slen                            = len;
+  NGAP_NAS_DL_DATA_REQ(message_p).nas_msg = bstrcpy(buffer);
+
+  EXPECT_EQ(
+      ngap_generate_downlink_nas_transport(
+          state, gnb_ue_ngap_id, ue_ref->amf_ue_ngap_id,
+          &NGAP_NAS_DL_DATA_REQ(message_p).nas_msg,
+          message_p->ittiMsgHeader.imsi),
+      RETURNok);
+
+  itti_amf_app_ngap_amf_ue_id_notification_t notification_p;
+  memset(
+      &notification_p, 0, sizeof(itti_amf_app_ngap_amf_ue_id_notification_t));
+  notification_p.gnb_ue_ngap_id = gnb_ue_ngap_id;
+  notification_p.amf_ue_ngap_id = ue_ref->amf_ue_ngap_id;
+  notification_p.sctp_assoc_id  = gNB_ref->sctp_assoc_id;
+  comp_ngap_id                  = ngap_get_comp_ngap_id(
+      notification_p.sctp_assoc_id, notification_p.gnb_ue_ngap_id);
+
+  ngap_handle_amf_ue_id_notification(state, &notification_p);
+
+  NGAPClientServicer::getInstance().map_ngapState_tableKey_protoStr.clear();
+  NGAPClientServicer::getInstance().map_ngapUeState_tableKey_protoStr.clear();
+  NGAPClientServicer::getInstance().map_imsiTable_tableKey_protoStr.clear();
+
+  EXPECT_EQ(
+      hashtable_uint64_ts_get(
+          imsi_map->amf_ue_id_imsi_htbl,
+          (const hash_key_t) ue_ref->amf_ue_ngap_id, &imsi64),
+      HASH_TABLE_OK);
+  EXPECT_EQ(
+      hashtable_ts_get(
+          &state->gnbs, (const hash_key_t) gNB_ref->sctp_assoc_id,
+          reinterpret_cast<void**>(gNB_ref)),
+      HASH_TABLE_OK);
+  EXPECT_EQ(
+      hashtable_ts_get(
+          &state->amfid2associd, (const hash_key_t) ue_ref->amf_ue_ngap_id,
+          reinterpret_cast<void**>(&gNB_ref->sctp_assoc_id)),
+      HASH_TABLE_OK);
+  EXPECT_EQ(
+      hashtable_uint64_ts_get(
+          &gNB_ref->ue_id_coll, (const hash_key_t) ue_ref->amf_ue_ngap_id,
+          &comp_ngap_id),
+      HASH_TABLE_OK);
+
+  if (!is_task_state_same) {
+    put_ngap_state();
+  }
+  if (!is_ue_state_same) {
+    put_ngap_imsi_map();
+    put_ngap_ue_state(imsi64);
+  }
+
+  EXPECT_EQ(
+      NGAPClientServicer::getInstance()
+          .map_ngapState_tableKey_protoStr.isEmpty(),
+      false);
+  EXPECT_EQ(
+      NGAPClientServicer::getInstance()
+          .map_ngapUeState_tableKey_protoStr.isEmpty(),
+      true);
+  EXPECT_EQ(
+      NGAPClientServicer::getInstance()
+          .map_imsiTable_tableKey_protoStr.isEmpty(),
+      true);
+
+  EXPECT_EQ(
+      NGAPClientServicer::getInstance().map_ngapState_tableKey_protoStr.size(),
+      1);
+  EXPECT_EQ(
+      NGAPClientServicer::getInstance()
+          .map_ngapUeState_tableKey_protoStr.size(),
+      0);
+  EXPECT_EQ(
+      NGAPClientServicer::getInstance().map_imsiTable_tableKey_protoStr.size(),
+      0);
+
+  NgapStateConverterTest::TearDown();
+
+  EXPECT_EQ(state, nullptr);
+  EXPECT_EQ(imsi_map, nullptr);
+
+  NgapStateConverterTest::SetUp();
+
+  gnb_description_t* get_gNB_ref = NULL;
+  // Check if gNB exists
+  get_gNB_ref = ngap_state_get_gnb(state, peerInfo.assoc_id);
+  ASSERT_TRUE(get_gNB_ref != NULL);
+
+  EXPECT_NE(state, nullptr);
+  EXPECT_NE(imsi_map, nullptr);
+  EXPECT_EQ(
+      hashtable_ts_is_key_exists(
+          &state->gnbs, (const hash_key_t) gNB_ref->sctp_assoc_id),
+      HASH_TABLE_OK);
+  EXPECT_EQ(
+      hashtable_ts_is_key_exists(
+          &state->amfid2associd, (const hash_key_t) ue_ref->amf_ue_ngap_id),
+      HASH_TABLE_OK);
+  EXPECT_EQ(
+      hashtable_uint64_ts_is_key_exists(
+          &get_gNB_ref->ue_id_coll, (const hash_key_t) ue_ref->amf_ue_ngap_id),
+      HASH_TABLE_OK);
+  EXPECT_EQ(
+      hashtable_uint64_ts_is_key_exists(
+          imsi_map->amf_ue_id_imsi_htbl,
+          (const hash_key_t) ue_ref->amf_ue_ngap_id),
+      HASH_TABLE_KEY_NOT_EXISTS);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  itti_free_msg_content(message_p);
+  free(message_p);
+  bdestroy_wrapper(&ran_cp_ipaddr);
+  bdestroy(buffer);
+  bdestroy(ngap_initial_ue_msg);
+}
+
+// 2. Stateless feature Unit Test for NGAP
 TEST_F(NgapStateConverterTest, test_ngap_stateless) {
   bstring ran_cp_ipaddr;
   sctp_new_peer_t peerInfo;
@@ -390,9 +587,9 @@ TEST_F(NgapStateConverterTest, test_ngap_stateless) {
 
   ngap_handle_amf_ue_id_notification(state, &notification_p);
 
-  NgapStateManager::getInstance().map_ngapState_tableKey_protoStr.clear();
-  NgapStateManager::getInstance().map_ngapUeState_tableKey_protoStr.clear();
-  NgapStateManager::getInstance().map_imsiTable_tableKey_protoStr.clear();
+  NGAPClientServicer::getInstance().map_ngapState_tableKey_protoStr.clear();
+  NGAPClientServicer::getInstance().map_ngapUeState_tableKey_protoStr.clear();
+  NGAPClientServicer::getInstance().map_imsiTable_tableKey_protoStr.clear();
 
   EXPECT_EQ(
       hashtable_uint64_ts_get(
@@ -415,29 +612,36 @@ TEST_F(NgapStateConverterTest, test_ngap_stateless) {
           &comp_ngap_id),
       HASH_TABLE_OK);
 
-  put_ngap_imsi_map();
-  put_ngap_state();
-  put_ngap_ue_state(imsi64);
+  if (!is_task_state_same) {
+    put_ngap_state();
+  }
+  if (!is_ue_state_same) {
+    put_ngap_imsi_map();
+    put_ngap_ue_state(imsi64);
+  }
 
   EXPECT_EQ(
-      NgapStateManager::getInstance().map_ngapState_tableKey_protoStr.isEmpty(),
+      NGAPClientServicer::getInstance()
+          .map_ngapState_tableKey_protoStr.isEmpty(),
       false);
   EXPECT_EQ(
-      NgapStateManager::getInstance()
+      NGAPClientServicer::getInstance()
           .map_ngapUeState_tableKey_protoStr.isEmpty(),
       false);
   EXPECT_EQ(
-      NgapStateManager::getInstance().map_imsiTable_tableKey_protoStr.isEmpty(),
+      NGAPClientServicer::getInstance()
+          .map_imsiTable_tableKey_protoStr.isEmpty(),
       false);
 
   EXPECT_EQ(
-      NgapStateManager::getInstance().map_ngapState_tableKey_protoStr.size(),
+      NGAPClientServicer::getInstance().map_ngapState_tableKey_protoStr.size(),
       1);
   EXPECT_EQ(
-      NgapStateManager::getInstance().map_ngapUeState_tableKey_protoStr.size(),
+      NGAPClientServicer::getInstance()
+          .map_ngapUeState_tableKey_protoStr.size(),
       1);
   EXPECT_EQ(
-      NgapStateManager::getInstance().map_imsiTable_tableKey_protoStr.size(),
+      NGAPClientServicer::getInstance().map_imsiTable_tableKey_protoStr.size(),
       1);
 
   NgapStateConverterTest::TearDown();
@@ -479,5 +683,4 @@ TEST_F(NgapStateConverterTest, test_ngap_stateless) {
   bdestroy(buffer);
   bdestroy(ngap_initial_ue_msg);
 }
-
 }  // namespace magma5g
