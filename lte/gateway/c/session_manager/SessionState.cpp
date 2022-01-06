@@ -311,10 +311,10 @@ magma::lte::Fsm_state_FsmState SessionState::get_proto_fsm_state() {
     case CREATED:
       return magma::lte::Fsm_state_FsmState_CREATED;
       break;
-    case ACTIVE:
+    case SESSION_ACTIVE:
       return magma::lte::Fsm_state_FsmState_ACTIVE;
       break;
-    case RELEASE:
+    case SESSION_RELEASED:
       return magma::lte::Fsm_state_FsmState_RELEASE;
       break;
     case INACTIVE:
@@ -774,8 +774,7 @@ bool SessionState::active_monitored_rules_exist() {
 }
 
 bool SessionState::is_terminating() {
-  if (curr_state_ == SESSION_RELEASED || curr_state_ == SESSION_TERMINATED ||
-      curr_state_ == RELEASE) {
+  if (curr_state_ == SESSION_RELEASED || curr_state_ == SESSION_TERMINATED) {
     return true;
   }
   return false;
@@ -857,7 +856,7 @@ void SessionState::get_updates(
     UpdateSessionRequest* update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
     SessionStateUpdateCriteria* session_uc) {
-  if (curr_state_ == SESSION_ACTIVE || curr_state_ == ACTIVE) {
+  if (curr_state_ == SESSION_ACTIVE) {
     get_charging_updates(update_request_out, actions_out, session_uc);
     get_monitor_updates(update_request_out, session_uc);
     get_event_trigger_updates(update_request_out, session_uc);
