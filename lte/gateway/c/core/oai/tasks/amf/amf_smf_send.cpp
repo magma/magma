@@ -744,8 +744,12 @@ int amf_smf_notification_send(
   auto* req_rat_specific = notify_req.mutable_rat_specific_notification();
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
+  auto imsi_str = std::string(imsi);
 
-  req_common->mutable_sid()->mutable_id()->assign(imsi);
+  req_common->mutable_sid()->set_id("IMSI" + imsi_str);
+  req_common->mutable_sid()->set_type(
+      magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
+
   if (notify_event_type == UE_IDLE_MODE_NOTIFY) {
     req_rat_specific->set_notify_ue_event(
         magma::lte::NotifyUeEvents::UE_IDLE_MODE_NOTIFY);

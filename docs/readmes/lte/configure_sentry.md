@@ -17,13 +17,12 @@ The first step to setting up your account is to request access to Linux Foundati
 
 ## Configuration
 
-To configure Sentry, you will need to create a pull request to update the config.yml on the Magma Github page. If you skip this step, all C/C++ will be unreadable for your Sentry instance. This file is located [here](https://github.com/magma/magma/blob/master/.circleci/config.yml). You will need to navigate to the "sentry-create-and-upload-artifacts" section of the file and create a new a new sentry upload in the following format:
+To configure Sentry, you will need to create a pull request to update the config.yml on the Magma Github page. If you skip this step, all C/C++ will be unreadable for your Sentry instance. This file is located [here](https://github.com/magma/magma/blob/master/.github/workflows/composite/sentry-create-and-upload-artifacts/action.yml#L19). You will need to navigate to the "PROJECTS:" section of the file and add your project name in the following format:
 
-```bash
-sentry-upload:
-executable_name: << parameters.executable_name >>
-project: [fill in your project here]
-org: lf-9c
+```yaml
+  PROJECTS:
+    required: false
+    default: ('lab-agws-native' 'magma-staging-native' 'NEW_PROJECT_NAME')
 ```
 
 ## Enabling error reporting on an AGW
