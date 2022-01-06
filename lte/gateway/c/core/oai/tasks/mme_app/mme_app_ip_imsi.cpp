@@ -65,7 +65,7 @@ int mme_app_insert_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
   if (itr_map == ueip_imsi_map.end()) {
     std::vector<uint64_t> vec = {imsi64};
     ueip_imsi_map[ipv4]       = vec;
-    OAILOG_DEBUG_UE(LOG_MME_APP, imsi64, "Inserting ue_ip4:%x \n", ipv4_addr);
+    OAILOG_DEBUG_UE(LOG_MME_APP, imsi64, "Inserting ue_ipv4:%x \n", ipv4_addr);
   } else {
     OAILOG_DEBUG_UE(
         LOG_MME_APP, imsi64, "Inserting imsi for existing ue_ip:%x \n",
