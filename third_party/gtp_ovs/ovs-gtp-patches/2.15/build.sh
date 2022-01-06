@@ -3,6 +3,7 @@
 set -ex
 OVS_VER='2.15'
 DIR="ovs-build"
+DEST=$1
 
 sudo apt install -y build-essential linux-headers-generic
 sudo apt install -y dh-make debhelper dh-python devscripts python3-dev
@@ -19,3 +20,7 @@ git apply "$MAGMA_ROOT/third_party/gtp_ovs/ovs-gtp-patches/$OVS_VER"/00*
 DEB_BUILD_OPTIONS='parallel=8 nocheck' fakeroot debian/rules binary
 cd ..
 ls ./*.deb
+if [[ -n "$DEST" ]] && [[ -d "$DEST" ]];
+then
+        mv ./*.deb "$DEST"
+fi
