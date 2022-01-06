@@ -1,0 +1,28 @@
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set(FLATBUFFERS_FLATC_EXECUTABLE /usr/local/bin/flatc CACHE STRING "Compiler for Flatbuffer IDL files")
+set(MAGMA_ROOT $ENV{MAGMA_ROOT})
+
+macro(generate_cpp_flats FLAT_NAME_LIST FLAT_HDRS IN_DIR OUT_DIR)
+  message("FLAT OUT_DIR: ${OUT_DIR}")
+  message("FLAT IN_DIR: ${IN_DIR}")
+  foreach(FLAT_NAME ${FLAT_NAME_LIST})
+    list(APPEND FLAT_HDRS "${OUT_DIR}/${FLAT_NAME}_generated.h")
+    if (${IN_DIR}/${FLAT_NAME}.fbs IS_NEWER_THAN ${OUT_DIR}/${FLAT_NAME}_generate_code_done_flag)
+      execute_process(COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE} --cpp --gen-mutable --gen-compare -o ${OUT_DIR} ${IN_DIR}/${FLAT_NAME}.fbs RESULT_VARIABLE ret)
+      if (NOT ${ret} STREQUAL 0)
+        message(FATAL_ERROR "${ret}")
+      endif (NOT ${ret} STREQUAL 0)
+    endif ()
+    file(TOUCH ${OUT_DIR}/${FLAT_NAME}_generate_code_done_flag)
+  endforeach()
+endmacro()

@@ -35,7 +35,7 @@ extern "C" {
 #include <unordered_map>
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/redis_utils/redis_client.h"
-#include "lte/gateway/c/core/oai/include/mme_ue_state_generated.h"
+#include "lte/flat/oai/experimental/mme_ue_state_generated.h"
 
 namespace {
 constexpr char IMSI_PREFIX[]            = "IMSI";
