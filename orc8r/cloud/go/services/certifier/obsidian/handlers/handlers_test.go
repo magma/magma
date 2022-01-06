@@ -95,19 +95,7 @@ func TestUserEndpoints(t *testing.T) {
 			Effect:       models.ResourceEffectALLOW,
 			Action:       models.ResourceActionWRITE,
 			ResourceType: models.ResourceResourceTypeURI,
-			Resource:     "**",
-		},
-		{
-			Effect:       models.ResourceEffectALLOW,
-			Action:       models.ResourceActionWRITE,
-			ResourceType: models.ResourceResourceTypeURI,
-			Resource:     "**",
-		},
-		{
-			Effect:       models.ResourceEffectALLOW,
-			Action:       models.ResourceActionWRITE,
-			ResourceType: models.ResourceResourceTypeURI,
-			Resource:     "**",
+			Path:         "**",
 		},
 	}
 	tc = tests.Test{

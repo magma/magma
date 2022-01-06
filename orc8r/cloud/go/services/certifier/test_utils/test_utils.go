@@ -1,7 +1,6 @@
 package test_utils
 
 import (
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -58,30 +57,21 @@ func createTestUser(t *testing.T, username string, password string) (certprotos.
 }
 
 func createTestUserPolicy(token string) certprotos.Policy {
-	resources := []*certprotos.Resource{
+	resources := []*certprotos.PolicyResource{
 		{
-			Effect:       certprotos.Effect_ALLOW,
-			Action:       certprotos.Action_READ,
-			ResourceType: certprotos.ResourceType_URI,
-			Resource:     "**",
+			Effect:   certprotos.Effect_ALLOW,
+			Action:   certprotos.Action_READ,
+			Resource: &certprotos.PolicyResource_Path{Path: &certprotos.PathResource{Path: "**"}},
 		},
 		{
-			Effect:       certprotos.Effect_ALLOW,
-			Action:       certprotos.Action_READ,
-			ResourceType: certprotos.ResourceType_NETWORK_ID,
-			Resource:     "**",
+			Effect:   certprotos.Effect_DENY,
+			Action:   certprotos.Action_WRITE,
+			Resource: &certprotos.PolicyResource_Network{Network: &certprotos.NetworkResource{Networks: []string{WriteTestNetworkId}}},
 		},
 		{
-			Effect:       certprotos.Effect_ALLOW,
-			Action:       certprotos.Action_WRITE,
-			ResourceType: certprotos.ResourceType_NETWORK_ID,
-			Resource:     WriteTestNetworkId,
-		},
-		{
-			Effect:       certprotos.Effect_ALLOW,
-			Action:       certprotos.Action_WRITE,
-			ResourceType: certprotos.ResourceType_TENANT_ID,
-			Resource:     strconv.Itoa(TestTenantId),
+			Effect:   certprotos.Effect_ALLOW,
+			Action:   certprotos.Action_WRITE,
+			Resource: &certprotos.PolicyResource_Tenant{Tenant: &certprotos.TenantResource{Tenants: []int64{int64(TestTenantId)}}},
 		},
 	}
 
@@ -93,12 +83,11 @@ func createTestUserPolicy(token string) certprotos.Policy {
 }
 
 func createTestAdminPolicy(token string) certprotos.Policy {
-	resources := []*certprotos.Resource{
+	resources := []*certprotos.PolicyResource{
 		{
-			Effect:       certprotos.Effect_ALLOW,
-			Action:       certprotos.Action_WRITE,
-			ResourceType: certprotos.ResourceType_URI,
-			Resource:     "**",
+			Effect:   certprotos.Effect_ALLOW,
+			Action:   certprotos.Action_WRITE,
+			Resource: &certprotos.PolicyResource_Path{Path: &certprotos.PathResource{Path: "**"}},
 		},
 	}
 	policy := certprotos.Policy{

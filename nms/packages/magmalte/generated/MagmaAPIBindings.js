@@ -1282,7 +1282,9 @@ export type release_channel = {
 export type resource = {
     action ? : "READ" | "WRITE",
     effect ? : "DENY" | "ALLOW",
-    resource ? : string,
+    path ? : string,
+    resourceIDs ? : Array < string >
+        ,
     resourceType ? : "NETWORK_ID" | "TENANT_ID" | "URI",
 };
 export type resources = Array < resource >

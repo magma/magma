@@ -65,26 +65,46 @@ enum Action {
   WRITE = 2;
 }
 
-enum ResourceType {
-  // URI is the relative path to the resource, e.g. "/networks/{network_id}"
-  URI = 0;
-  NETWORK_ID = 1;
-  TENANT_ID = 2;
-}
-
-message Resource {
-  Effect effect = 1;
-  Action action = 2;
-  ResourceType resourceType = 3;
-  string resource = 4;
+// RequestResource is the resource as specified by the request
+message RequestResource {
+  // action is the action requested on the resource, either READ or WRITE.
+  Action action = 1;
+  // resource contains the path of the requested resource
+  string resource = 2;
+  // resource_id is the network/tenant to which the request is scoped, if applicable
   oneof resource_id {
-    string tenant_id = 5;
-    string network_id = 6;
+    string network_id = 3;
+    int64 tenant_id = 4;
   }
 }
 
+// PolicyResource is the resource that is used in the policy
+message PolicyResource {
+  // effect is the effect to take on the requested resource, i.e. ALLOW or DENY
+  Effect effect = 1;
+  // action is the action allowed for a given resource, either READ or WRITE.
+  Action action = 2;
+  oneof resource {
+    PathResource path = 3;
+    NetworkResource network = 4;
+    TenantResource tenant = 5;
+  }
+}
+
+message PathResource {
+  string path = 1;
+}
+
+message NetworkResource {
+  repeated string networks = 1;
+}
+
+message TenantResource {
+  repeated int64 tenants = 1;
+}
+
 message ResourceList {
-  repeated Resource resources = 4;
+  repeated PolicyResource resources = 1;
 }
 
 message Policy {
@@ -108,7 +128,7 @@ message GetCARequest {
 message GetPolicyDecisionRequest {
   string username = 1;
   string token = 2;
-  Resource resource = 3;
+  RequestResource resource = 3;
 }
 
 message GetPolicyDecisionResponse {

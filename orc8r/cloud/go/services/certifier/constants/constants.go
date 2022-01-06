@@ -10,3 +10,11 @@ const (
 	// PolicyType is the type of policy used in blobstore type fileds
 	PolicyType = "policy"
 )
+
+type ResourceType int
+
+const (
+	Path ResourceType = iota
+	NetworkID
+	TenantID
+)

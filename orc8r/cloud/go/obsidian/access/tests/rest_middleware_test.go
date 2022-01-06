@@ -86,23 +86,24 @@ func TestAuthMiddleware(t *testing.T) {
 		expected int
 	}{
 		// Test admin user
-		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, WRITE_TEST_NETWORK_ID), test_utils.TestRootUsername, rootToken, http.StatusOK},
-		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, TEST_NETWORK_ID), test_utils.TestRootUsername, rootToken, http.StatusOK},
 		{"GET", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), test_utils.TestRootUsername, rootToken, http.StatusOK},
 		{"POST", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), test_utils.TestRootUsername, rootToken, http.StatusOK},
-		{"GET", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), test_utils.TestRootUsername, rootToken, http.StatusOK},
-		{"GET", fmt.Sprintf("%s%s", urlPrefix, "/malformed/url"), test_utils.TestRootUsername, rootToken, http.StatusOK},
-		{"PUT", fmt.Sprintf("%s%s", urlPrefix, "/malformed/url"), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, TEST_NETWORK_ID), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, TEST_NETWORK_ID), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, WRITE_TEST_NETWORK_ID), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, WRITE_TEST_NETWORK_ID), test_utils.TestRootUsername, rootToken, http.StatusOK},
 		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, TenantRootPathV1, obsidian.UrlSep, strconv.Itoa(test_utils.TestTenantId)), test_utils.TestRootUsername, rootToken, http.StatusOK},
 		{"POST", fmt.Sprintf("%s%s%s%s", urlPrefix, TenantRootPathV1, obsidian.UrlSep, strconv.Itoa(test_utils.TestTenantId)), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"GET", fmt.Sprintf("%s%s", urlPrefix, "/malformed/url"), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"PUT", fmt.Sprintf("%s%s", urlPrefix, "/malformed/url"), test_utils.TestRootUsername, rootToken, http.StatusOK},
 
 		// Test non-admin user who has read access to all URI endpoints and networks, read/write access to WRITE_TEST_NETWORK_ID, and no read/write access to specific tenants
-		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusOK},
-		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusForbidden},
-		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, WRITE_TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusOK},
-		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, WRITE_TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusOK},
 		{"GET", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), test_utils.TestUsername, userToken, http.StatusOK},
 		{"POST", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), test_utils.TestUsername, userToken, http.StatusForbidden},
+		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusOK},
+		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusForbidden},
+		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, WRITE_TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusForbidden},
+		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, WRITE_TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusForbidden},
 		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, TenantRootPathV1, obsidian.UrlSep, strconv.Itoa(test_utils.TestTenantId)), test_utils.TestUsername, userToken, http.StatusOK},
 		{"POST", fmt.Sprintf("%s%s%s%s", urlPrefix, TenantRootPathV1, obsidian.UrlSep, strconv.Itoa(test_utils.TestTenantId)), test_utils.TestUsername, userToken, http.StatusOK},
 	}

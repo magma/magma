@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/labstack/echo"
@@ -176,28 +177,35 @@ func loginHandler(c echo.Context) error {
 }
 
 func resourcesModelToProto(resources *models.Resources) *protos.ResourceList {
-	resourceList := make([]*protos.Resource, len(*resources))
+	resourceList := make([]*protos.PolicyResource, len(*resources))
 	for i, resource := range *resources {
-		resourceProto := &protos.Resource{
-			Effect:       matchEffect(resource.Effect),
-			Action:       matchAction(resource.Action),
-			ResourceType: matchResourceType(resource.ResourceType),
-			Resource:     resource.Resource,
+		resourceProto := &protos.PolicyResource{
+			Effect: matchEffect(resource.Effect),
+			Action: matchAction(resource.Action),
+		}
+		switch resource.ResourceType {
+		case models.ResourceResourceTypeNETWORKID:
+			resourceProto.Resource = &protos.PolicyResource_Network{Network: &protos.NetworkResource{Networks: resource.ResourceIDs}}
+		case models.ResourceResourceTypeTENANTID:
+			resourceProto.Resource = &protos.PolicyResource_Tenant{Tenant: &protos.TenantResource{Tenants: convertTenantResourceIDs(resource.ResourceIDs)}}
+		default:
+			resourceProto.Resource = &protos.PolicyResource_Path{Path: &protos.PathResource{Path: resource.Path}}
 		}
 		resourceList[i] = resourceProto
 	}
 	return &protos.ResourceList{Resources: resourceList}
 }
 
-func matchResourceType(rawType string) protos.ResourceType {
-	switch rawType {
-	case protos.ResourceType_NETWORK_ID.String():
-		return protos.ResourceType_NETWORK_ID
-	case protos.ResourceType_TENANT_ID.String():
-		return protos.ResourceType_TENANT_ID
-	default:
-		return protos.ResourceType_URI
+func convertTenantResourceIDs(ids []string) []int64 {
+	var intIDs []int64
+	for _, i := range ids {
+		j, err := strconv.ParseInt(i, 10, 64)
+		if err != nil {
+			panic(err)
+		}
+		intIDs = append(intIDs, j)
 	}
+	return intIDs
 }
 
 func matchEffect(rawEffect string) protos.Effect {

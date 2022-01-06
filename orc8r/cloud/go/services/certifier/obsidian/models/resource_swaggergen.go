@@ -15,7 +15,10 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// Resource The resource to which the user is either denied or allowed access to read/write
+// Resource The resource to which the user is either denied or allowed access to read/write.
+// If the resource is of type URI, the path field should be filled in. If the resource is of
+// type NETWORK_ID or TENANT_ID, the resourceIDs field should be filled in.
+//
 // swagger:model resource
 type Resource struct {
 
@@ -27,8 +30,11 @@ type Resource struct {
 	// Enum: [DENY ALLOW]
 	Effect string `json:"effect,omitempty"`
 
-	// resource
-	Resource string `json:"resource,omitempty"`
+	// path
+	Path string `json:"path,omitempty"`
+
+	// resource i ds
+	ResourceIDs []string `json:"resourceIDs"`
 
 	// resource type
 	// Enum: [NETWORK_ID TENANT_ID URI]

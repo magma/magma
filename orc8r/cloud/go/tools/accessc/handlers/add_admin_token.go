@@ -23,14 +23,11 @@ func init() {
 	f.Usage = func() {
 		fmt.Fprintf(
 			os.Stderr,
-			"\tUsage: %s %s [OPTIONS] <Admin Username> <Admin Password>\n",
+			"\tUsage: %s %s <Admin Username> <Admin Password>\n",
 			os.Args[0],
 			cmd.Name(),
 		)
-		f.PrintDefaults()
 	}
-
-	addInit(f) // see common_add.go
 }
 
 func addAdminToken(cmd *commands.Command, args []string) int {
@@ -47,12 +44,11 @@ func addAdminToken(cmd *commands.Command, args []string) int {
 		Username: username,
 		Password: []byte(password),
 	}
-	resources := []*certprotos.Resource{
+	resources := []*certprotos.PolicyResource{
 		{
-			Effect:       certprotos.Effect_ALLOW,
-			Action:       certprotos.Action_WRITE,
-			ResourceType: certprotos.ResourceType_URI,
-			Resource:     "**",
+			Effect:   certprotos.Effect_ALLOW,
+			Action:   certprotos.Action_WRITE,
+			Resource: &certprotos.PolicyResource_Path{Path: &certprotos.PathResource{Path: "**"}},
 		},
 	}
 	ctx := context.Background()

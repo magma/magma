@@ -10248,14 +10248,23 @@ definitions:
     description: An object that defines a user's permissions to access resources
     example:
       resources:
-      - action: READ
+      - action: WRITE
+        effect: ALLOW
+        path: '**'
+        resourceType: URI
+      - action: WRITE
         effect: DENY
-        resource: test_network1
+        resourceIDs:
+        - test_network1
+        - test_network2
         resourceType: NETWORK_ID
       - action: WRITE
         effect: ALLOW
-        resource: '**'
-        resourceType: URI
+        resourceIDs:
+        - 0
+        - 1
+        - 2
+        resourceType: TENANT_ID
       token: op_6YHy0uT7DeuWyT3N9nkAOyoeyOI25fletJE69yHGGl4ifjfoq
     properties:
       resources:
@@ -10810,12 +10819,14 @@ definitions:
     type: object
     x-nullable: false
   resource:
-    description: The resource to which the user is either denied or allowed access
-      to read/write
+    description: |
+      The resource to which the user is either denied or allowed access to read/write.
+      If the resource is of type URI, the path field should be filled in. If the resource is of
+      type NETWORK_ID or TENANT_ID, the resourceIDs field should be filled in.
     example:
       action: WRITE
       effect: ALLOW
-      resource: '**'
+      path: '**'
       resourceType: URI
     properties:
       action:
@@ -10828,8 +10839,12 @@ definitions:
         - DENY
         - ALLOW
         type: string
-      resource:
+      path:
         type: string
+      resourceIDs:
+        items:
+          type: string
+        type: array
       resourceType:
         enum:
         - NETWORK_ID
@@ -10839,14 +10854,23 @@ definitions:
     type: object
   resources:
     example:
-    - action: READ
+    - action: WRITE
+      effect: ALLOW
+      path: '**'
+      resourceType: URI
+    - action: WRITE
       effect: DENY
-      resource: test_network1
+      resourceIDs:
+      - test_network1
+      - test_network2
       resourceType: NETWORK_ID
     - action: WRITE
       effect: ALLOW
-      resource: '**'
-      resourceType: URI
+      resourceIDs:
+      - 0
+      - 1
+      - 2
+      resourceType: TENANT_ID
     items:
       $ref: '#/definitions/resource'
     type: array

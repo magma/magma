@@ -16,6 +16,7 @@ package access
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/golang/glog"
@@ -25,6 +26,7 @@ import (
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/services/certifier"
+	"magma/orc8r/cloud/go/services/certifier/constants"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	merrors "magma/orc8r/lib/go/errors"
 )
@@ -129,17 +131,20 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		getPDReq := certprotos.GetPolicyDecisionRequest{
 			Username: username,
 			Token:    token,
-			Resource: &certprotos.Resource{
-				Action:       getRequestAction(req, nil),
-				ResourceType: resourceType,
-				Resource:     req.RequestURI,
+			Resource: &certprotos.RequestResource{
+				Action:   getRequestAction(req, nil),
+				Resource: req.RequestURI,
 			},
 		}
 		switch resourceType {
-		case certprotos.ResourceType_NETWORK_ID:
-			getPDReq.Resource.ResourceId = &certprotos.Resource_NetworkId{NetworkId: resourceVal}
-		case certprotos.ResourceType_TENANT_ID:
-			getPDReq.Resource.ResourceId = &certprotos.Resource_TenantId{TenantId: resourceVal}
+		case constants.NetworkID:
+			getPDReq.Resource.ResourceId = &certprotos.RequestResource_NetworkId{NetworkId: resourceVal}
+		case constants.TenantID:
+			id, err := strconv.ParseInt(resourceVal, 10, 64)
+			if err != nil {
+				obsidian.MakeHTTPError(err, http.StatusInternalServerError)
+			}
+			getPDReq.Resource.ResourceId = &certprotos.RequestResource_TenantId{TenantId: id}
 		}
 
 		pd, err := certifier.GetPolicyDecision(req.Context(), &getPDReq)
@@ -172,16 +177,16 @@ func getRequestAction(req *http.Request, decorate logDecorator) certprotos.Actio
 	}
 }
 
-func getResource(c echo.Context) (certprotos.ResourceType, string) {
-	networkIDStr := strings.ToLower(certprotos.ResourceType_NETWORK_ID.String())
-	tenantIDStr := strings.ToLower(certprotos.ResourceType_TENANT_ID.String())
+func getResource(c echo.Context) (constants.ResourceType, string) {
+	networkParam := "network_id"
+	tenantParam := "tenant_id"
 	for _, p := range c.ParamNames() {
 		switch p {
-		case networkIDStr:
-			return certprotos.ResourceType_NETWORK_ID, c.Param(networkIDStr)
-		case tenantIDStr:
-			return certprotos.ResourceType_TENANT_ID, c.Param(tenantIDStr)
+		case networkParam:
+			return constants.NetworkID, c.Param(networkParam)
+		case tenantParam:
+			return constants.TenantID, c.Param(tenantParam)
 		}
 	}
-	return certprotos.ResourceType_URI, ""
+	return constants.Path, ""
 }
