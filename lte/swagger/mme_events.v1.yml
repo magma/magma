@@ -599,6 +599,76 @@ definitions:
         type: string
         x-nullable: true
         example: "inet"
+  authentication_information_request:
+    type: object
+    description: |
+      Indicates that the MME has sent an Authentication-Information-Request on behalf of a UE.
+    properties:
+      imsi:
+        description: |
+          International Mobile Subscriber Identity
+          This is used to identify the UE for which Authentication is being performed.
+          If the IMSI is not present, a GUTI will be provided.
+        type: string
+        x-nullable: true
+      guti:
+        description: |
+          Globally Unique Temporary Identifier
+          This is used to identify the UE for which Authentication is being performed.
+          If the GUTI is not present, the IMSI will be provided.
+        type: string
+        x-nullable: true
+      mme_id:
+        type: string
+        x-nullable: true
+      enb_id:
+        description: ID of eNodeB associated with the UE
+        type: integer
+        x-nullable: false
+      enb_ip:
+        description: ID of eNodeB associated with the UE
+        type: string
+        x-nullable: true
+      apn:
+        description: Access Point Name
+        type: string
+        x-nullable: true
+        example: "inet"
+  authentication_information_answer:
+    type: object
+    description: |
+      Indicates that the MME has received an Authentication-Information-Answer on behalf of a UE.
+    properties:
+      imsi:
+        description: |
+          International Mobile Subscriber Identity
+          This is used to identify the UE for which Authentication is being performed.
+          If the IMSI is not present, a GUTI will be provided.
+        type: string
+        x-nullable: true
+      guti:
+        description: |
+          Globally Unique Temporary Identifier
+          This is used to identify the UE for which Authentication is being performed.
+          If the GUTI is not present, the IMSI will be provided.
+        type: string
+        x-nullable: true
+      mme_id:
+        type: string
+        x-nullable: true
+      enb_id:
+        description: ID of eNodeB associated with the UE
+        type: integer
+        x-nullable: false
+      enb_ip:
+        description: ID of eNodeB associated with the UE
+        type: string
+        x-nullable: true
+      apn:
+        description: Access Point Name
+        type: string
+        x-nullable: true
+        example: "inet"
   s1_setup_success:
     type: object
     description: Used to track establishment of S1 connection

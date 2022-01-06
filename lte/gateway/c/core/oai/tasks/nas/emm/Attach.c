@@ -1197,6 +1197,7 @@ static int emm_attach_run_procedure(emm_context_t* emm_context) {
         imsi64_t imsi64 = imsi_to_imsi64(attach_proc->ies->imsi);
         emm_ctx_set_valid_imsi(emm_context, attach_proc->ies->imsi, imsi64);
         emm_context_upsert_imsi(&_emm_data, emm_context);
+        // andreilee: 1 Probably here that the start of auth stuff is happening
         rc = emm_start_attach_proc_authentication(emm_context, attach_proc);
         if (rc != RETURNok) {
           OAILOG_ERROR_UE(
@@ -1275,6 +1276,7 @@ static int emm_attach_failure_identification_cb(emm_context_t* emm_context) {
 //------------------------------------------------------------------------------
 static int emm_start_attach_proc_authentication(
     emm_context_t* emm_context, nas_emm_attach_proc_t* attach_proc) {
+  // andreilee: 2 Second step in authentication
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 

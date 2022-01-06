@@ -248,6 +248,8 @@ status_code_e emm_proc_authentication(
     struct emm_context_s* emm_context,
     nas_emm_specific_proc_t* const emm_specific_proc, success_cb_t success,
     failure_cb_t failure) {
+  // andreilee: 3 Third step in authentication
+  // Not yet branching between FeG pathway and subscriberdb codepath
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
@@ -335,6 +337,7 @@ status_code_e emm_proc_authentication(
 static int start_authentication_information_procedure(
     struct emm_context_s* emm_context, nas_emm_auth_proc_t* const auth_proc,
     const_bstring auts) {
+  // andreilee: 4 Fourth step, maybe branching now
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
@@ -362,10 +365,12 @@ static int start_authentication_information_procedure(
 
   bool is_initial_req          = !(auth_info_proc->request_sent);
   auth_info_proc->request_sent = true;
+  // andreilee: This step just starts some timer with a callback probably for expiration
   nas_start_Ts6a_auth_info(
       auth_info_proc->ue_id, &auth_info_proc->timer_s6a,
       auth_info_proc->cn_proc.base_proc.time_out);
 
+  // andreilee: This is probably the step we're looking for
   nas_itti_auth_info_req(
       ue_id, &emm_context->_imsi, is_initial_req, &visited_plmn,
       MAX_EPS_AUTH_VECTORS, auts, emm_context->_ue_network_capability.dcnr);
@@ -1490,6 +1495,7 @@ static void nas_itti_auth_info_req(
     const bool is_initial_reqP, plmn_t* const visited_plmnP,
     const uint8_t num_vectorsP, const_bstring const auts_pP,
     const uint8_t dcnr) {
+  // andreilee: 5 This seems to contain steps for both subscriberdb and FeG
   OAILOG_FUNC_IN(LOG_NAS);
   MessageDef* message_p              = NULL;
   s6a_auth_info_req_t* auth_info_req = NULL;

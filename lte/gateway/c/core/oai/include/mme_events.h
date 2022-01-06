@@ -298,6 +298,36 @@ int ue_context_release_complete_event(
     const char* enb_ip, const char* apn);
 
 /**
+ * Fire event to record having sent an Authentication-Information-Request
+ *
+ * @param imsi
+ * @param guti
+ * @param mme_id
+ * @param enb_id
+ * @param enb_ip
+ * @param apn
+ * @return response code
+ */
+int authentication_information_request_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn);
+
+/**
+ * Fire event to record having received an Authentication-Information-Answer
+ *
+ * @param imsi
+ * @param guti
+ * @param mme_id
+ * @param enb_id
+ * @param enb_ip
+ * @param apn
+ * @return response code
+ */
+int authentication_information_answer_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn);
+
+/**
  * Logs s1 setup success event
  * @param enb_name name assigned to eNodeb
  * @param enb_id unique identifier of eNodeb

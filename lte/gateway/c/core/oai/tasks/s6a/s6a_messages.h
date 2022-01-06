@@ -38,6 +38,28 @@ status_code_e s6a_generate_purge_ue_req(const char* imsi);
 status_code_e s6a_ula_cb(
     struct msg** msg, struct avp* paramavp, struct session* sess, void* opaque,
     enum disp_action* act);
+
+/****************************************************************************
+ **                                                                        **
+ ** Name: s6a_aia_cb                                                       **
+ **                                                                        **
+ ** Description: Callback to handle received                               **
+ **              AuthenticationInformationAnswer                           **
+ **              message.                                                  **
+ **                                                                        **
+ ** Inputs:                                                                **
+ **       msg:                                                             **
+ **       paramavp:                                                        **
+ **       sess:                                                            **
+ **       opaque:                                                          **
+ **       act:                                                             **
+ **                                                                        **
+ ** Outputs:                                                               **
+ **       Return: RETURNok, RETURNerror                                    **
+ **       Others: None                                                     **
+ **                                                                        **
+ **                                                                        **
+ ***************************************************************************/
 status_code_e s6a_aia_cb(
     struct msg** msg, struct avp* paramavp, struct session* sess, void* opaque,
     enum disp_action* act);

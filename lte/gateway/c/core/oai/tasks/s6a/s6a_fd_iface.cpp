@@ -214,6 +214,7 @@ bool S6aFdIface::update_location_req(s6a_update_location_req_t* ulr_p) {
 }
 //------------------------------------------------------------------------------
 bool S6aFdIface::authentication_info_req(s6a_auth_info_req_t* air_p) {
+  // andreilee: 8b this seems like some alternative pathway
   if (s6a_generate_authentication_info_req(air_p))
     return false;
   else

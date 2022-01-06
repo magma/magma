@@ -75,6 +75,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       }
     } break;
     case S6A_AUTH_INFO_REQ: {
+      // andreilee: 6 s6a task seems to receive all auth info requests
+//      int authentication_information_request_event(
+//          imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+//          const char* enb_ip, const char* apn);
       rc = s6a_viface_authentication_info_req(
           &received_message_p->ittiMsg.s6a_auth_info_req);
       if (rc) {

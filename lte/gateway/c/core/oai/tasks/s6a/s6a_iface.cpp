@@ -18,10 +18,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include <inttypes.h>
+
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_c_iface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/include/mme_events.h"
 #ifdef __cplusplus
 }
 #endif
@@ -67,6 +70,14 @@ bool s6a_viface_update_location_req(s6a_update_location_req_t* ulr_p) {
 
 //------------------------------------------------------------------------------
 bool s6a_viface_authentication_info_req(s6a_auth_info_req_t* air_p) {
+  char imsi[air_p->imsi_length];
+  imsi64_t imsi64;
+
+  // andreilee: 7 This step seems to do just about nothing
+  strncpy(imsi, air_p->imsi, air_p->imsi_length);
+  sscanf(imsi, "%lx", &imsi64);
+  authentication_information_request_event(imsi64, (guti_t){}, "", "", "", "");
+
   if (s6a_interface) {
     return s6a_interface->authentication_info_req(air_p);
   }

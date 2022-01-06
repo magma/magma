@@ -41,6 +41,7 @@ bool S6aGrpcIface::update_location_req(s6a_update_location_req_t* ulr_p) {
 }
 //------------------------------------------------------------------------------
 bool S6aGrpcIface::authentication_info_req(s6a_auth_info_req_t* air_p) {
+  // andreilee: 8c This seems like another alternate pathway
   return s6a_authentication_info_req(air_p);
 }
 //------------------------------------------------------------------------------

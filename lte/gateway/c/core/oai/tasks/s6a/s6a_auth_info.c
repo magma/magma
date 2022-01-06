@@ -32,6 +32,7 @@
 #include "lte/gateway/c/core/oai/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/mme_events.h"
 #include "lte/gateway/c/core/oai/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
@@ -216,6 +217,12 @@ status_code_e s6a_aia_cb(
   message_p =
       DEPRECATEDitti_alloc_new_message_fatal(TASK_S6A, S6A_AUTH_INFO_ANS);
   s6a_auth_info_ans_p = &message_p->ittiMsg.s6a_auth_info_ans;
+
+  char imsi[s6a_auth_info_ans_p->imsi_length];
+  imsi64_t imsi64;
+  strncpy(imsi, s6a_auth_info_ans_p->imsi, s6a_auth_info_ans_p->imsi_length);
+  sscanf(imsi, "%lx", &imsi64);
+  authentication_information_answer_event(imsi64, (guti_t){}, "", "", "", "");
   OAILOG_DEBUG(
       LOG_S6A, "Received S6A Authentication Information Answer (AIA)\n");
   CHECK_FCT(fd_msg_search_avp(qry, s6a_fd_cnf.dataobj_s6a_user_name, &avp));
@@ -302,6 +309,8 @@ err:
 }
 
 status_code_e s6a_generate_authentication_info_req(s6a_auth_info_req_t* air_p) {
+  // andreilee: 9b, this maybe doesn't go through the FeG?
+  // not sure where this goes yet
   struct avp* avp;
   struct msg* msg;
   struct session* sess;

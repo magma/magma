@@ -67,6 +67,7 @@ bool get_cloud_subscriberdb_enabled(void) {
 }
 
 static bool read_hss_relay_enabled(void) {
+  // andreilee: B1 This is probably important in determining whether FeG or subscriberdb used
   magma::mconfig::MME mconfig;
 
   if (!magma::load_service_mconfig_from_file(MME_SERVICE, &mconfig)) {
@@ -127,6 +128,7 @@ S6aClient::S6aClient(bool enable_s6a_proxy_channel) {
   // Otherwise, create a channel towards either local or cloud-based
   // subscriberdb.
   if ((get_s6a_relay_enabled() == true) && (enable_s6a_proxy_channel)) {
+  // andreilee: B2 This determines whether subscriberdb or FeG handles AuthenticationInformationRequest
     auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
         "s6a_proxy", ServiceRegistrySingleton::CLOUD);
     // Create stub for S6aProxy gRPC service
@@ -168,6 +170,7 @@ void S6aClient::purge_ue(
 void S6aClient::authentication_info_req(
     const s6a_auth_info_req_t* const msg,
     std::function<void(Status, feg::AuthenticationInformationAnswer)> callbk) {
+  // andreilee: 8a this definitely seems to send the request to FeG
   S6aClient& client = get_client_based_on_fed_mode(msg->imsi);
 
   AuthenticationInformationRequest proto_msg =

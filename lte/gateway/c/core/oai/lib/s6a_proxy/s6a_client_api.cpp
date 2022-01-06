@@ -107,6 +107,7 @@ static void s6a_handle_authentication_info_ans(
 }
 
 bool s6a_authentication_info_req(const s6a_auth_info_req_t* const air_p) {
+  // andreilee: 9c This seems to send the request somewhere..?
   auto imsi_len = air_p->imsi_length;
   std::cout
       << "[INFO] Sending S6A-AUTHENTICATION_INFORMATION_REQUEST with IMSI: "

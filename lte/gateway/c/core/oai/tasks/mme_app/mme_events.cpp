@@ -60,6 +60,8 @@ constexpr char INITIAL_CONTEXT_SETUP_FAILURE[] =
 constexpr char UE_CONTEXT_RELEASE_REQUEST[]  = "ue_context_release_request";
 constexpr char UE_CONTEXT_RELEASE_COMMAND[]  = "ue_context_release_command";
 constexpr char UE_CONTEXT_RELEASE_COMPLETE[] = "ue_context_release_complete";
+constexpr char AUTHENTICATION_INFORMATION_REQUEST[] = "authentication_information_request";
+constexpr char AUTHENTICATION_INFORMATION_ANSWER[] = "authentication_information_answer";
 constexpr char S1_SETUP_SUCCESS[]            = "s1_setup_success";
 }  // namespace
 
@@ -387,6 +389,42 @@ int ue_context_release_complete_event(
 
   return report_event(
       event_value, UE_CONTEXT_RELEASE_COMPLETE, MME_STREAM_NAME, imsi_str);
+}
+
+int authentication_information_request_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+
+  return report_event(
+      event_value, AUTHENTICATION_INFORMATION_REQUEST, MME_STREAM_NAME, imsi_str);
+}
+
+int authentication_information_answer_event(
+    imsi64_t imsi64, const guti_t guti, const char* mme_id, const char* enb_id,
+    const char* enb_ip, const char* apn) {
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value["imsi"]        = imsi_str;
+  event_value["guti"]        = "guti";
+  event_value["mme_id"]      = mme_id;
+  event_value["enb_id"]      = enb_id;
+  event_value["enb_ip"]      = enb_ip;
+  event_value["apn"]         = apn;
+
+  return report_event(
+      event_value, AUTHENTICATION_INFORMATION_ANSWER, MME_STREAM_NAME, imsi_str);
 }
 
 int s1_setup_success_event(const char* enb_name, uint32_t enb_id) {
