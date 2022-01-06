@@ -17,7 +17,20 @@ import (
 	"context"
 
 	"magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
+	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 )
+
+const FegSwxProxy gateway_registry.GwServiceType = "swx_proxy"
+
+type RelayRouter struct {
+	gw_to_feg_relay.Router
+}
+
+// NewRelayRouter creates & returns a new RelayRouter
+func NewRelayRouter() *RelayRouter {
+	return &RelayRouter{Router: *gw_to_feg_relay.NewRouter()}
+}
 
 // SwxProxyServer implementation
 //
