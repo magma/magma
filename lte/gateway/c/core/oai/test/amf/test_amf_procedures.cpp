@@ -844,6 +844,8 @@ TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDb) {
   int rc = RETURNok;
   rc     = send_proc_authentication_info_answer(imsi, ue_id, false);
   EXPECT_TRUE(rc == RETURNok);
+  ue_5gmm_context_p = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  EXPECT_TRUE(ue_5gmm_context_p == NULL);
 }
 
 TEST(test_t3592abort, test_pdu_session_release_notify_smf) {
