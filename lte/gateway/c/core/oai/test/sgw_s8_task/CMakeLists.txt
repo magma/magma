@@ -27,7 +27,7 @@ link_directories(/usr/src/googletest/googlemock/lib/)
 set(SGW_S8_TEST_CONFIG_SRC
     sgw_s8_test.cpp
     sgw_s8_utility.cpp
-    sgw_csr.cpp
+    sgw_s8_test_attach_proc.cpp
     sgw_dedicated_bearer.cpp
     sgw_s8_recv_grpc_messages.cpp
     )
