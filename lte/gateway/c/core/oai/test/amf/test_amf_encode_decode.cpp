@@ -929,13 +929,8 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
 }
 
 TEST(test_optional_dnn_dotted_pdu, test_pdu_session_establish_optional) {
-  uint32_t bytes         = 0;
-  uint32_t container_len = 0;
+  uint32_t bytes = 0;
   bstring buffer;
-  amf_nas_message_t msg = {};
-
-  // build uplinknastransport
-  // uplink nas transport(pdu session request)
 
   uint8_t pdu[44] = {0x7e, 0x00, 0x67, 0x01, 0x00, 0x15, 0x2e, 0x01, 0x01,
                      0xc1, 0xff, 0xff, 0x91, 0xa1, 0x28, 0x01, 0x00, 0x7b,
