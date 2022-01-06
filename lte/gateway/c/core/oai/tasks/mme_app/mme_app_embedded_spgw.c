@@ -69,20 +69,20 @@ status_code_e mme_config_embedded_spgw_parse_opt_line(
         break;
 
       case 'p': {
-        mme_config_p->test      = atoi(optarg);
+        mme_config_p->test_param      = atoi(optarg);
         mme_config_p->test_type = TEST_SERIALIZATION_PROTOBUF;
         mme_config_p->run_mode  = RUN_MODE_TEST;
         OAI_FPRINTF_INFO(
-            "Test serialization protobuf, parameter %u\n", mme_config_p->test);
+            "Test serialization protobuf, parameter %u\n", mme_config_p->test_param);
       } break;
 
       case 'f': {
-        mme_config_p->test      = atoi(optarg);
+        mme_config_p->test_param      = atoi(optarg);
         mme_config_p->test_type = TEST_SERIALIZATION_FLATBUFFER;
         mme_config_p->run_mode  = RUN_MODE_TEST;
         OAI_FPRINTF_INFO(
             "Test serialization flatbuffer, parameter %u\n",
-            mme_config_p->test);
+            mme_config_p->test_param);
       } break;
 
       case 'v':
