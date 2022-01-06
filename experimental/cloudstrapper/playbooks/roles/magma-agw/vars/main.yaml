@@ -32,3 +32,4 @@ MAGMA_ROOT: "{{ magmaHome }}"
 OUTPUT_DIR: /tmp
 DEPLOY_PATH: "{{ magmaHome }}/lte/gateway/deploy"
 buildAgwVersion: v1.6.1
+buildAgwPackage: 1.6.1
