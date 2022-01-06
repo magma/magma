@@ -821,6 +821,33 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
   amf_app_handle_deregistration_req(ue_id);
 }
 
+TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDb) {
+  amf_ue_ngap_id_t ue_id                = 0;
+  ue_m5gmm_context_s* ue_5gmm_context_p = NULL;
+  std::vector<MessagesIds> expected_Ids{
+      AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
+                                            // indication to ngap
+      NGAP_NAS_DL_DATA_REQ,                 // Registration Reject
+      NGAP_UE_CONTEXT_RELEASE_COMMAND       // UEContextReleaseCommand
+  };
+
+  /* Send the initial UE message */
+  imsi64_t imsi64 = 0;
+  imsi64          = send_initial_ue_message_no_tmsi(
+      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
+      sizeof(initial_ue_message_hexbuf));
+
+  /* Check if UE Context is created with correct imsi */
+  EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
+
+  /* Send the authentication response message from subscriberdb */
+  int rc = RETURNok;
+  rc     = send_proc_authentication_info_answer(imsi, ue_id, false);
+  EXPECT_TRUE(rc == RETURNok);
+  ue_5gmm_context_p = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  EXPECT_TRUE(ue_5gmm_context_p == NULL);
+}
+
 TEST(test_t3592abort, test_pdu_session_release_notify_smf) {
   amf_ue_ngap_id_t ue_id = 1;
   uint8_t pdu_session_id = 1;
