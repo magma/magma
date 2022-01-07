@@ -39,7 +39,6 @@ from collections import OrderedDict, namedtuple
 from concurrent.futures import Future
 from typing import List
 
-import aioeventlet
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from lte.protos.session_manager_pb2_grpc import (
@@ -652,24 +651,13 @@ class ServiceManager:
 
         # Instantiate and schedule apps
         for app in manager.instantiate_apps(**contexts):
-            # Wrap the eventlet in asyncio so it will stop when the loop is
-            # stopped
-            future = aioeventlet.wrap_greenthread(
-                app,
-                self._magma_service.loop,
-            )
-
             # Schedule the eventlet for evaluation in service loop
-            asyncio.ensure_future(future)
+            asyncio.ensure_future(app, loop=self._magma_service.loop)
 
         # In development mode, run server so that
         if environment.is_dev_mode():
             server_thread = of_rest_server.start(manager)
-            future = aioeventlet.wrap_greenthread(
-                server_thread,
-                self._magma_service.loop,
-            )
-            asyncio.ensure_future(future)
+            asyncio.ensure_future(server_thread, loop=self._magma_service.loop)
 
     def get_table_num(self, app_name: str) -> int:
         """

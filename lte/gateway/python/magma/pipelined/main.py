@@ -15,11 +15,9 @@ limitations under the License.
 # pylint does not play well with aioeventlet, as it uses asyncio.async which
 # produces a parse error
 
-import asyncio
 import logging
 import threading
 
-import aioeventlet
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.misc_utils import get_ip_from_if
 from magma.common.sentry import sentry_init
@@ -53,10 +51,6 @@ def main():
     Loads the Ryu apps we want to run from the config file.
     This should exit on keyboard interrupt.
     """
-
-    # Run asyncio loop in a greenthread so we can evaluate other eventlets
-    # TODO: Remove once Ryu migrates to asyncio
-    asyncio.set_event_loop_policy(aioeventlet.EventLoopPolicy())
 
     service = MagmaService('pipelined', mconfigs_pb2.PipelineD())
 
