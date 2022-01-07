@@ -41,7 +41,7 @@ func NewRelayRouter() *RelayRouter {
 	return &RelayRouter{Router: *gw_to_feg_relay.NewRouter()}
 }
 
-func getPlmnId6(imsi string) string {
+func GetPlmnId6(imsi string) string {
 	imsi = strings.TrimPrefix(strings.TrimSpace(imsi), "IMSI")
 	if len(imsi) > gw_to_feg_relay.MaxPlmnIdLen {
 		imsi = imsi[:gw_to_feg_relay.MaxPlmnIdLen]

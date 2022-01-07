@@ -18,8 +18,20 @@ import (
 
 	"github.com/golang/glog"
 
+	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
+	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers"
 	"magma/lte/cloud/go/protos"
 )
+
+// RelayRouter implements generic routing logic and currently just embeds gw_to_feg_relay.Router functionality
+type RelayRouter struct {
+	gw_to_feg_relay.Router
+}
+
+// NewRelayRouter creates & returns a new RelayRouter
+func NewSessionRelayRouter() *RelayRouter {
+	return &RelayRouter{Router: *gw_to_feg_relay.NewRouter()}
+}
 
 // SessionProxyServer implementation
 //
@@ -49,7 +61,7 @@ func (s *RelayRouter) UpdateSession(
 		if u == nil {
 			continue
 		}
-		plmnid := getPlmnId6(u.GetCommonContext().GetSid().GetId())
+		plmnid := servicers.GetPlmnId6(u.GetCommonContext().GetSid().GetId())
 		req, ok := reqMap[plmnid]
 		if !ok || req == nil {
 			req = &protos.UpdateSessionRequest{Updates: []*protos.CreditUsageUpdate{u}}
@@ -62,7 +74,7 @@ func (s *RelayRouter) UpdateSession(
 		if m == nil {
 			continue
 		}
-		plmnid := getPlmnId6(m.GetSid())
+		plmnid := servicers.GetPlmnId6(m.GetSid())
 		req, ok := reqMap[plmnid]
 		if !ok || req == nil {
 			req = &protos.UpdateSessionRequest{UsageMonitors: []*protos.UsageMonitoringUpdateRequest{m}}
@@ -122,7 +134,7 @@ func (s *RelayRouter) TerminateSession(
 func (s *RelayRouter) getSessionProxyClient(
 	c context.Context, imsi string) (protos.CentralSessionControllerClient, context.Context, context.CancelFunc, error) {
 
-	conn, ctx, cancel, err := s.GetFegServiceConnection(c, imsi, FegSessionProxy)
+	conn, ctx, cancel, err := s.GetFegServiceConnection(c, imsi, servicers.FegSessionProxy)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -139,7 +151,7 @@ func genUpdateErrorResp(req *protos.UpdateSessionRequest) *protos.UpdateSessionR
 			Success:    false,
 			Sid:        u.GetCommonContext().GetSid().GetId(),
 			SessionId:  u.GetSessionId(),
-			ResultCode: DiamUnableToDeliverErr,
+			ResultCode: servicers.DiamUnableToDeliverErr,
 		})
 	}
 	for _, m := range req.GetUsageMonitors() {
@@ -147,7 +159,7 @@ func genUpdateErrorResp(req *protos.UpdateSessionRequest) *protos.UpdateSessionR
 			Success:    false,
 			Sid:        m.GetSid(),
 			SessionId:  m.GetSessionId(),
-			ResultCode: DiamUnableToDeliverErr,
+			ResultCode: servicers.DiamUnableToDeliverErr,
 		})
 	}
 	return resp

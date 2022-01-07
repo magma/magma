@@ -23,6 +23,7 @@ import (
 	"magma/feg/cloud/go/services/feg_relay"
 	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
 	nh_servicers "magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers"
+	session_servicers "magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers/southbound"
 	"magma/feg/cloud/go/services/feg_relay/servicers"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
@@ -58,7 +59,9 @@ func main() {
 	protos.RegisterS6AProxyServer(srv.GrpcServer, nhServicer)
 	protos.RegisterSwxProxyServer(srv.GrpcServer, nhServicer)
 	protos.RegisterHelloServer(srv.GrpcServer, nhServicer)
-	lteprotos.RegisterCentralSessionControllerServer(srv.GrpcServer, nhServicer)
+
+	sessionServicer := session_servicers.NewSessionRelayRouter()
+	lteprotos.RegisterCentralSessionControllerServer(srv.GrpcServer, sessionServicer)
 
 	// Register S8 Proxy Neutral Host Routing services
 	s8nhServicer := nh_servicers.NewS8RelayRouter(&nhServicer.Router)
