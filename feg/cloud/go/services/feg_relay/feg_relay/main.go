@@ -22,7 +22,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/feg_relay"
 	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
-	nh_servicers "magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers"
+	nh_servicers "magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers/southbound"
 	"magma/feg/cloud/go/services/feg_relay/servicers"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
