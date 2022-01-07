@@ -365,7 +365,8 @@ TEST_F(SgwS8ConfigAndCreateMock, update_s1u_bearer_info_on_mbr) {
   EXPECT_EQ(strcmp(sgw_pdn_session->pdn_connection.apn_in_use, "NO APN"), 0);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
 
   EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp())
       .Times(1)

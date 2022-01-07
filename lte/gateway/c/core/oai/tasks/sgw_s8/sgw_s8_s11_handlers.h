@@ -19,6 +19,7 @@ limitations under the License.
 
 #define CP_TEID 1
 #define UP_TEID 2
+
 status_code_e sgw_s8_handle_s11_create_session_request(
     sgw_state_t* sgw_state, itti_s11_create_session_request_t* session_req_p,
     imsi64_t imsi64);
