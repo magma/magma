@@ -120,8 +120,7 @@ void PagingApplication::handle_paging_ipv6_message(
   char ip6_str[INET6_ADDRSTRLEN];
 
   if (!ipv6_header) {
-    OAILOG_ERROR(
-      LOG_GTPV1U, "IPv6 header is NULL\n");
+    OAILOG_ERROR(LOG_GTPV1U, "IPv6 header is NULL\n");
     return;
   }
   dest_ipv6 = &ipv6_header->ip6_dst;

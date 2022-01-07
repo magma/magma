@@ -47,7 +47,7 @@ void sgw_send_paging_request(
     OAILOG_DEBUG(
         TASK_SPGW_APP, "Paging procedure initiated for ue_ipv6: %s\n", ip6_str);
     paging_request_p->address.ipv6_addr.sin6_addr = *dest_ipv6;
-    paging_request_p->ip_addr_type = IPV6_ADDR_TYPE;
+    paging_request_p->ip_addr_type                = IPV6_ADDR_TYPE;
   } else if (dest_ipv4) {
     OAILOG_DEBUG(
         TASK_SPGW_APP, "Paging procedure initiated for ue_ipv4: %x\n",

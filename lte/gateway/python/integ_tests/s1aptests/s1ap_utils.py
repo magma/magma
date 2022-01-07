@@ -607,12 +607,13 @@ class S1ApUtil(object):
         """Run ipv6 data"""
         self.magma_utils = MagmadUtil(None)
         execute_icmpv6_cmd = (
-            "sudo /home/vagrant/build/python/bin/python3 " +
-            "/home/vagrant/magma/lte/gateway/python/scripts/icmpv6.py "
+            "sudo /home/vagrant/build/python/bin/python3 "
+            + "/home/vagrant/magma/lte/gateway/python/scripts/icmpv6.py "
             + str(ipv6_addr)
         )
         print("Running data for ipv6 address", str(ipv6_addr))
         self.magma_utils.exec_command_output(execute_icmpv6_cmd)
+
 
 class SubscriberUtil(object):
     """
