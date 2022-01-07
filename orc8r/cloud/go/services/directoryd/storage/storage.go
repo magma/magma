@@ -38,8 +38,17 @@ type DirectorydStorage interface {
 	GetHWIDForSgwCTeid(networkID, teid string) (string, error)
 
 	// MapSgwCTeidToHWID maps {teid -> hwid}
-	MapSgwCTeidToHWID(networkID string, s8TeidToHwid map[string]string) error
+	MapSgwCTeidToHWID(networkID string, s8CTeidToHwid map[string]string) error
 
 	// UnmapSgwCTeidToHWID removes {teid -> hwid} for a specific teid
 	UnmapSgwCTeidToHWID(networkID string, teids []string) error
+
+	// GetHWIDForSgwUTeid returns the HwId mapped by teid
+	GetHWIDForSgwUTeid(networkID, teid string) (string, error)
+
+	// MapSgwUTeidToHWID maps {teid -> hwid}
+	MapSgwUTeidToHWID(networkID string, s8UTeidToHwid map[string]string) error
+
+	// UnmapSgwUTeidToHWID removes {teid -> hwid} for a specific teid
+	UnmapSgwUTeidToHWID(networkID string, teids []string) error
 }

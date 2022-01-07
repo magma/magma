@@ -1,0 +1,14 @@
+Host agw
+  Hostname localhost
+  Port ${REMOTE_PORT}
+  User magma
+  ForwardAgent yes
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+
+Host jumphost
+  HostName ${JUMPHOST}
+  User ubuntu
+  ForwardAgent yes
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no

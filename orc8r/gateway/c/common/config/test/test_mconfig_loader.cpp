@@ -17,6 +17,7 @@
 #include <sstream>
 
 #include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
+#include "orc8r/gateway/c/common/logging/magma_logging.h"
 #include "lte/protos/mconfig/mconfigs.pb.h"
 
 namespace {
@@ -80,6 +81,15 @@ TEST(MConfigLoader, MissingServiceNameFails) {
   std::istringstream config_stream(healthy_mconfig);
   EXPECT_FALSE(magma::load_service_mconfig("MISSING_SERVICE_NAME",
                                            &config_stream, &mconfig));
+}
+
+TEST(MConfigLoader, ConvertingLogLevelsCorrectly) {
+  EXPECT_EQ(magma::get_log_verbosity_from_mconfig(0), MDEBUG);
+  EXPECT_EQ(magma::get_log_verbosity_from_mconfig(1), MINFO);
+  EXPECT_EQ(magma::get_log_verbosity_from_mconfig(2), MWARNING);
+  EXPECT_EQ(magma::get_log_verbosity_from_mconfig(3), MERROR);
+  EXPECT_EQ(magma::get_log_verbosity_from_mconfig(4), MFATAL);
+  EXPECT_EQ(magma::get_log_verbosity_from_mconfig(10), MINFO);
 }
 
 }  // namespace

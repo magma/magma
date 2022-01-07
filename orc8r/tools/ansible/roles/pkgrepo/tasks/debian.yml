@@ -25,6 +25,11 @@
     url: https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public
     state: present
 
+- name: Remove old magma etagecom sources
+  shell: rm -rf /etc/apt/sources.list.d/packages_magma_etagecom_io.list
+  become: yes
+  ignore_errors: yes
+
 - name: Add apt-transport-https
   apt: pkg=apt-transport-https state=present update_cache=yes
   #  when: preburn

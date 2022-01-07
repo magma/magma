@@ -12,6 +12,7 @@ limitations under the License.
 """
 import asyncio
 import datetime
+import inspect
 import logging
 from typing import Dict, List, NamedTuple, Optional
 
@@ -158,10 +159,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
                 self._loop,
             )
         except grpc.RpcError as err:
-            logging.error(
-                "Check subscribers in sync request error! [%s] %s", err.code(),
-                err.details(),
-            )
+            _log_grpc_error(err)
             return False
         return res.in_sync
 
@@ -186,10 +184,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
                 self._loop,
             )
         except grpc.RpcError as err:
-            logging.error(
-                "Sync subscribers request error! [%s] %s", err.code(),
-                err.details(),
-            )
+            _log_grpc_error(err)
             return True
 
         if not res.resync:
@@ -441,3 +436,18 @@ class SubscriberDBCloudClient(SDWatchdogTask):
                 "Detach Deleted Subscribers Error! [%s] %s",
                 err.code(), err.details(),
             )
+
+
+def _log_grpc_error(err: grpc.RpcError) -> None:
+    if err.code() == grpc.StatusCode.INTERNAL or err.code() == grpc.StatusCode.UNIMPLEMENTED:
+        logging.error(
+            'Internal Error in subscriberdb-Orc8r communication. '
+            'If AGW and Orc8r are deployed at a commit hash, '
+            'upgrade AGW and Orc8r to latest commit hash.',
+        )
+    else:
+        logging.error(
+            # inspect.stack() indices: [1] -> frame record of penultimate caller; [3] -> function name
+            "%s request error! [%s] %s", inspect.stack(context=0)[1][3], err.code(),
+            err.details(),
+        )

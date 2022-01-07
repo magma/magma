@@ -218,6 +218,7 @@ class StartThread(object):
         contexts['loop'] = self._test_setup.loop
         contexts['rpc_stubs'] = self._test_setup.rpc_stubs
         contexts['service_manager'] = self._test_setup.service_manager
+        contexts['ebpf_manager'] = None
 
         logging.basicConfig(
             level=logging.INFO,
