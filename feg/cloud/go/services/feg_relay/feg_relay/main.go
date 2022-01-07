@@ -23,7 +23,8 @@ import (
 	"magma/feg/cloud/go/services/feg_relay"
 	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
 	nh_servicers "magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers"
-	"magma/feg/cloud/go/services/feg_relay/servicers"
+	s8proxy_servicers "magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers/southbound"
+	s8proxyResponder_servicers "magma/feg/cloud/go/services/feg_relay/servicers/southbound"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
 )
@@ -36,7 +37,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating Feg Proxy service: %s", err)
 	}
-	servicer, err := servicers.NewFegToGwRelayServer()
+	servicer, err := s8proxyResponder_servicers.NewFegToGwRelayServer()
 
 	if err != nil {
 		glog.Fatalf("Failed to create FegToGwRelayServer: %v", err)
@@ -61,7 +62,7 @@ func main() {
 	lteprotos.RegisterCentralSessionControllerServer(srv.GrpcServer, nhServicer)
 
 	// Register S8 Proxy Neutral Host Routing services
-	s8nhServicer := nh_servicers.NewS8RelayRouter(&nhServicer.Router)
+	s8nhServicer := s8proxy_servicers.NewS8RelayRouter(&nhServicer.Router)
 	protos.RegisterS8ProxyServer(srv.GrpcServer, s8nhServicer)
 
 	// create and run GW_TO_FEG httpserver
