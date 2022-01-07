@@ -779,6 +779,20 @@ int amf_proc_authentication_failure(
           "Sending authentication reject with cause AMF_CAUSE_MAC_FAILURE\n");
       rc = amf_auth_auth_rej(ue_id);
     } break;
+    case AMF_UE_SECURITY_CAPABILITIES_MISMATCH: {
+      OAILOG_ERROR(
+          LOG_NAS_AMF,
+          "Sending authentication reject with cause "
+          "AMF_UE_SECURITY_CAPABILITIES_MISMATCH\n");
+      rc = amf_auth_auth_rej(ue_id);
+    } break;
+    case AMF_SECURITY_MODE_REJECT: {
+      OAILOG_ERROR(
+          LOG_NAS_AMF,
+          "Sending authentication reject with cause "
+          "AMF_SECURITY_MODE_REJECT\n");
+      rc = amf_auth_auth_rej(ue_id);
+    } break;
 
     default: {
       OAILOG_DEBUG(LOG_NAS_AMF, "Unsupported 5gmm cause\n");

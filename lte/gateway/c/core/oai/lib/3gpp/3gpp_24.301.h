@@ -507,4 +507,5 @@ typedef struct nr_ue_security_capability_s {
 #define ESM_CAUSE_MESSAGE_NOT_COMPATIBLE 101
 #define ESM_CAUSE_PROTOCOL_ERROR 111
 
+extern const char* emm_cause_str[256];
 #endif /* FILE_3GPP_24_301_SEEN */

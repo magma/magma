@@ -31,7 +31,7 @@ using magma::lte::SmContextVoid;
 namespace magma5g {
 
 SetSMSessionContext create_sm_pdu_session_v4(
-    char* imsi, uint8_t* apn, uint32_t pdu_session_id,
+    std::string& imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
     const ambr_t& state_ambr);

@@ -28,10 +28,7 @@
 static uint32_t get_log_verbosity(const YAML::Node& config,
                                   magma::mconfig::LIAgentD mconfig) {
   if (!config["log_level"].IsDefined()) {
-    if (mconfig.log_level() < 0 || mconfig.log_level() > 4) {
-      return MINFO;
-    }
-    return mconfig.log_level();
+    return magma::get_log_verbosity_from_mconfig(mconfig.log_level());
   }
   std::string log_level = config["log_level"].as<std::string>();
   if (log_level == "DEBUG") {
