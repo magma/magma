@@ -119,6 +119,11 @@ void PagingApplication::handle_paging_ipv6_message(
   struct in6_addr* dest_ipv6  = NULL;
   char ip6_str[INET6_ADDRSTRLEN];
 
+  if (!ipv6_header) {
+    OAILOG_ERROR(
+      LOG_GTPV1U, "IPv6 header is NULL\n");
+    return;
+  }
   dest_ipv6 = &ipv6_header->ip6_dst;
 
   inet_ntop(AF_INET6, dest_ipv6, ip6_str, INET6_ADDRSTRLEN);
@@ -194,7 +199,7 @@ void PagingApplication::add_paging_flow_ipv6(
   // Match on UE IP addr, compare get_ue_ipv6 to uin6_addr_any
   UeNetworkInfo ue_info_ = ev.get_ue_info();
   if (!(ue_info_.is_ue_ipv6_addr_valid())) {
-    OAILOG_DEBUG(LOG_GTPV1U, "Not an IPv6 UE\n");
+    OAILOG_ERROR(LOG_GTPV1U, "Not an IPv6 UE\n");
   } else {
     const struct in6_addr& ue_ipv6 = ev.get_ue_ipv6();
     static IPAddress mask("ffff:ffff:ffff:ffff::");
@@ -268,7 +273,7 @@ void PagingApplication::delete_paging_flow_ipv6(
   // Match on UE IP addr
   UeNetworkInfo ue_info_ = ev.get_ue_info();
   if (!(ue_info_.is_ue_ipv6_addr_valid())) {
-    OAILOG_DEBUG(LOG_GTPV1U, "Not an IPv6 UE\n");
+    OAILOG_ERROR(LOG_GTPV1U, "Not an IPv6 UE\n");
   } else {
     const struct in6_addr& ue_ipv6 = ev.get_ue_ipv6();
     static IPAddress mask("ffff:ffff:ffff:ffff::");

@@ -606,16 +606,13 @@ class S1ApUtil(object):
     def run_ipv6_data(self, ipv6_addr):
         """Run ipv6 data"""
         self.magma_utils = MagmadUtil(None)
-        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
-        sudo_cmd = "sudo su"
         execute_icmpv6_cmd = (
-            "python3 /home/vagrant/magma/lte/gateway/python/scripts/icmpv6.py "
+            "sudo /home/vagrant/build/python/bin/python3 /home/vagrant/magma/lte/gateway/python/scripts/icmpv6.py "
             + str(ipv6_addr)
         )
-        print("Running data for ipv6 address", ipv6_addr)
-        self.magma_utils.exec_command_output(
-            magtivate_cmd + " && " + sudo_cmd + " && " + execute_icmpv6_cmd,)
-        
+        print("Running data for ipv6 address", str(ipv6_addr))
+        self.magma_utils.exec_command_output(execute_icmpv6_cmd)
+
 class SubscriberUtil(object):
     """
     Helper class to manage subscriber data for the tests.
