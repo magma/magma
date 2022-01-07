@@ -61,6 +61,9 @@ void fill_delete_session_request(
 void fill_delete_session_response(
     s8_delete_session_response_t* ds_rsp_p, uint32_t teid, uint8_t cause);
 
+void fill_modify_bearer_request(
+    itti_s11_modify_bearer_request_t* mb_req_p, uint32_t teid, uint8_t ebi);
+
 ACTION_P(ReturnFromAsyncTask, cv) {
   cv->notify_all();
 }

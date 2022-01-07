@@ -438,6 +438,7 @@
     state: latest
     pkg:
       - clangd-12
+      - lld
 
 # TODO: preburn this
 - name: Install clang-format-11 c/c++ formatting tooling
