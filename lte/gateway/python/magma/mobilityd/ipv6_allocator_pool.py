@@ -16,6 +16,8 @@ from copy import deepcopy
 from ipaddress import ip_address, ip_network
 from typing import List, Optional
 
+from magma.mobilityd.utils import log_error_and_raise
+
 from .ip_allocator_base import (
     IPAllocator,
     IPNotInUseError,
@@ -57,9 +59,7 @@ class IPv6AllocatorPool(IPAllocator):
             raise OverlappedIPBlocksError(ipblock)
 
         if ipblock.prefixlen > self._ipv6_prefixlen:
-            msg = "IPv6 block exceeds maximum allowed prefix length"
-            logging.error(msg)
-            raise InvalidIPv6NetworkError(msg)
+            log_error_and_raise(InvalidIPv6NetworkError, "IPv6 block exceeds maximum allowed prefix length")
 
         # For now only one IPv6 network is supported
         self._assigned_ip_block = ipblock
