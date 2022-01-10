@@ -13,7 +13,7 @@ load("@rules_python//python:defs.bzl", "py_test")
 load("@python_deps//:requirements.bzl", "requirement")
 
 DEPS = [
-    "//lte/gateway/python/magma/mobilityd",
+    "//lte/gateway/python/magma/mobilityd:mobilityd",
     requirement("fakeredis"),
     requirement("freezegun"),
 ]
@@ -89,7 +89,7 @@ py_test(
         "mobilityd",
         "unittest",
     ],
-    deps = DEPS,
+    deps = DEPS + ["//lte/gateway/python/magma/mobilityd/tests:test_multi_apn_ip_alloc",],
 )
 
 py_test(
@@ -101,7 +101,7 @@ py_test(
         "mobilityd",
         "unittest",
     ],
-    deps = DEPS,
+    deps = DEPS + ["//lte/gateway/python/magma/mobilityd/tests:test_multi_apn_ip_alloc",],
 )
 
 py_test(
