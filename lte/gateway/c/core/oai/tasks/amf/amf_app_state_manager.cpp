@@ -152,11 +152,9 @@ void AmfNasStateManager::amf_nas_state_init_local_state() {
  */
 amf_app_desc_t* AmfNasStateManager::get_state(bool read_from_redis) {
   state_dirty = true;
-#if MME_UNIT_TEST
   if (persist_state_enabled && read_from_redis) {
     read_state_from_db();
   }
-#endif
   return state_cache_p;
 }
 
