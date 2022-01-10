@@ -43,7 +43,6 @@ class FirebaseClient:
         data = {
             "timestamp": int(time.time()),
             "verdict": verdict,
-            "workload": workload.val(),
             "report": report,
         }
         # Use build_id as key for report. Overwrites any existing report
@@ -128,6 +127,7 @@ class FirebaseClient:
         threading.Timer(self.RefreshTokenTime, self.do_token_refresh).start()
 
     def mark_workload_done(self, workload):
+        print("Workload execution completed clearing it:", )
         self.db.child("workers").child(self.config["agent_id"]).child(
             "workloads",
-        ).child(workload.key()).update({"state": "done"}, self.user["idToken"])
+        ).child(workload.key()).set({}, self.user["idToken"])
