@@ -127,7 +127,7 @@ class FirebaseClient:
         threading.Timer(self.RefreshTokenTime, self.do_token_refresh).start()
 
     def mark_workload_done(self, workload):
-        print("Workload execution completed clearing it:", )
+        print("Workload execution completed clearing it")
         self.db.child("workers").child(self.config["agent_id"]).child(
             "workloads",
         ).child(workload.key()).set({}, self.user["idToken"])
