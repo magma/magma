@@ -426,7 +426,7 @@ void SetMessageManagerHandler::pdu_session_inactive(
     response_callback(status, SmContextVoid());
     return;
   }
-  if (session->get_state() == RELEASE) {
+  if (session->get_state() == SESSION_RELEASED) {
     // Nothing to be done;
     MLOG(MINFO) << " No sessions to move to Idle state : " << imsi;
     response_callback(Status::OK, SmContextVoid());
@@ -460,7 +460,7 @@ void SetMessageManagerHandler::idle_mode_change_sessions_handle(
   int count = 0;
   auto session_update = SessionStore::get_default_session_update(session_map);
   for (auto& session : session_map[imsi]) {
-    if (session->get_state() != RELEASE) {
+    if (session->get_state() != SESSION_RELEASED) {
       auto session_id = session->get_session_id();
       SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
       m5g_enforcer_->m5g_move_to_inactive_state(imsi, session, notif,
