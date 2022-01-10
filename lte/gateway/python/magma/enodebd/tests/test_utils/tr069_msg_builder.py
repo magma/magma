@@ -10,10 +10,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+from collections import namedtuple
 from typing import Any, List, Optional
 
 from magma.enodebd.tr069 import models
+
+Param = namedtuple('Param', ['name', 'val_type', 'data'])
 
 
 class Tr069MessageBuilder:
@@ -53,6 +55,46 @@ class Tr069MessageBuilder:
         events.append(event_reboot)
 
         msg.Event.EventStruct = events
+        return msg
+
+    @classmethod
+    def get_qrtb_inform(
+        cls,
+        params: List[Param],
+        oui: str = '48BF74',
+        enb_serial: str = '120200024019APP0105',
+        event_codes: Optional[List[str]] = None,
+    ) -> models.Inform:
+        if event_codes is None:
+            event_codes = []
+        msg = models.Inform()
+
+        # DeviceId
+        device_id = models.DeviceIdStruct()
+        device_id.Manufacturer = 'Baicells'
+        device_id.OUI = oui
+        device_id.ProductClass = 'FAP/mBS31001/SC'
+        device_id.SerialNumber = enb_serial
+        msg.DeviceId = device_id
+
+        # Event
+        msg.Event = models.EventList()
+        event_list = []
+        for code in event_codes:
+            event = models.EventStruct()
+            event.EventCode = code
+            event.CommandKey = ''
+            event_list.append(event)
+        msg.Event.EventStruct = event_list
+
+        # ParameterList
+        val_list = [
+            cls.get_parameter_value_struct(name=p.name, val_type=p.val_type, data=p.data)
+            for p in params
+        ]
+        msg.ParameterList = models.ParameterValueList()
+        msg.ParameterList.ParameterValueStruct = val_list
+
         return msg
 
     @classmethod
@@ -199,6 +241,19 @@ class Tr069MessageBuilder:
         msg.ParameterList = models.ParameterValueList()
         msg.ParameterList.ParameterValueStruct = val_list
 
+        return msg
+
+    @classmethod
+    def param_values_qrtb_response(cls, params, msg_model, status=None) -> models.GetParameterValuesResponse:
+        msg = msg_model()
+        if status is not None:
+            msg.Status = status
+        val_list = [
+            cls.get_parameter_value_struct(name=p.name, val_type=p.val_type, data=p.data)
+            for p in params
+        ]
+        msg.ParameterList = models.ParameterValueList()
+        msg.ParameterList.ParameterValueStruct = val_list
         return msg
 
     @classmethod
@@ -921,7 +976,7 @@ class Tr069MessageBuilder:
 
     @classmethod
     def get_object_param_values_response(
-            cls,
+            cls, is_primary='true', cell_reserved_for_operator_use='false', plmnid='00101', enable='true',
     ) -> models.GetParameterValuesResponse:
         msg = models.GetParameterValuesResponse()
         param_val_list = []
@@ -929,28 +984,28 @@ class Tr069MessageBuilder:
             cls.get_parameter_value_struct(
                 name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.1.IsPrimary',
                 val_type='boolean',
-                data='true',
+                data=is_primary,
             ),
         )
         param_val_list.append(
             cls.get_parameter_value_struct(
                 name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.1.CellReservedForOperatorUse',
                 val_type='boolean',
-                data='false',
+                data=cell_reserved_for_operator_use,
             ),
         )
         param_val_list.append(
             cls.get_parameter_value_struct(
                 name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.1.PLMNID',
                 val_type='string',
-                data='00101',
+                data=plmnid,
             ),
         )
         param_val_list.append(
             cls.get_parameter_value_struct(
                 name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.1.Enable',
                 val_type='boolean',
-                data='true',
+                data=enable,
             ),
         )
         msg.ParameterList = models.ParameterValueList()
