@@ -10,7 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package notify_test
+package n7
 
 import (
 	"bytes"
@@ -21,13 +21,13 @@ import (
 	"testing"
 	"time"
 
+	"magma/feg/gateway/sbi"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	n7_sbi "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
-	"magma/feg/gateway/services/n7_n40_proxy/n7"
-	"magma/feg/gateway/services/n7_n40_proxy/notify"
 	relay_mocks "magma/feg/gateway/services/session_proxy/relay/mocks"
 	"magma/lte/cloud/go/protos"
 )
@@ -50,16 +50,18 @@ var (
 
 func TestUpdateNotify(t *testing.T) {
 	sm, cloudRegistry := relay_mocks.StartMockSessionProxyResponder(t)
-	notifyHandler, err := notify.NewStartedNotificationHandlerWithHandlers(getClientConfig(), cloudRegistry)
+	n7Cli, err := NewN7ClientWithHandlers(getClientConfig(), cloudRegistry)
 	require.NoError(t, err)
 	require.NoError(t, err)
-	defer notifyHandler.Shutdown()
+	defer n7Cli.NotifyServer.Stop()
 
 	// happy path
 	sm.On("PolicyReAuth", mock.Anything, expectedPolicyReauth()).
 		Return(&protos.PolicyReAuthAnswer{SessionId: SESS_ID}, nil).Once()
 
-	resp, err := postUpdateNotify(notifyHandler.NotifyServer.ListenAddr, genUpdateNotifyStr())
+	notifyAddr, err := n7Cli.NotifyServer.Server.GetListenerAddr()
+	require.NoError(t, err)
+	resp, err := postUpdateNotify(notifyAddr.String(), genUpdateNotifyStr())
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -74,7 +76,7 @@ func TestUpdateNotify(t *testing.T) {
 			},
 		}, nil).Once()
 
-	resp, err = postUpdateNotify(notifyHandler.NotifyServer.ListenAddr, genUpdateNotifyStr())
+	resp, err = postUpdateNotify(notifyAddr.String(), genUpdateNotifyStr())
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	defer resp.Body.Close()
@@ -101,16 +103,21 @@ func TestUpdateNotify(t *testing.T) {
 	assert.ElementsMatch(t, expectedReports, *report.RuleReports)
 }
 
-func getClientConfig() *n7.N7ClientConfig {
-	return &n7.N7ClientConfig{
+func getClientConfig() *N7Config {
+	sbiClientConf := sbi.NotifierConfig{
 		LocalAddr:     LOCAL_ADDR,
 		NotifyApiRoot: API_ROOT,
+	}
+	return &N7Config{
+		DisableN7:    false,
+		ServerConfig: sbi.RemoteConfig{},
+		ClientConfig: sbiClientConf,
 	}
 }
 
 func postUpdateNotify(notifAddr string, payload string) (*http.Response, error) {
 	apiRoot := fmt.Sprintf("http://%s%s", notifAddr, BASE_PATH)
-	postUrl := string(n7.GenNotifyUrl(apiRoot, SESS_ID)) + "/update"
+	postUrl := string(GenNotifyUrl(apiRoot, SESS_ID)) + "/update"
 	return http.Post(postUrl, "application/json", bytes.NewBuffer([]byte(payload)))
 }
 
@@ -142,12 +149,12 @@ func expectedPolicyReauth() *protos.PolicyReAuthRequest {
 	return &protos.PolicyReAuthRequest{
 		RulesToInstall: []*protos.StaticRuleInstall{{
 			RuleId:           "static_rule1",
-			ActivationTime:   n7.ConvertToProtoTimeStamp(&ActTime),
-			DeactivationTime: n7.ConvertToProtoTimeStamp(&DeactTime),
+			ActivationTime:   ConvertToProtoTimeStamp(&ActTime),
+			DeactivationTime: ConvertToProtoTimeStamp(&DeactTime),
 		}},
 		RulesToRemove:    []string{"remove_rule1"},
 		EventTriggers:    []protos.EventTrigger{protos.EventTrigger_REVALIDATION_TIMEOUT},
-		RevalidationTime: n7.ConvertToProtoTimeStamp(&DeactTime),
+		RevalidationTime: ConvertToProtoTimeStamp(&DeactTime),
 		SessionId:        SESS_ID,
 		Imsi:             IMSI1,
 	}

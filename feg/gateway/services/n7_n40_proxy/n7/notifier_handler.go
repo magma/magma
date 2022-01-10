@@ -10,7 +10,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package notify
+
+package n7
 
 import (
 	"context"
@@ -19,17 +20,13 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"time"
+
+	n7_client "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
+	"magma/feg/gateway/services/session_proxy/relay"
+	"magma/lte/cloud/go/protos"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo/v4"
-
-	"magma/feg/gateway/sbi"
-	n7_client "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
-	"magma/feg/gateway/services/n7_n40_proxy/n7"
-	"magma/feg/gateway/services/session_proxy/relay"
-	"magma/gateway/service_registry"
-	"magma/lte/cloud/go/protos"
 )
 
 // notify_handler implements the following
@@ -40,37 +37,8 @@ import (
 //   AbortSession to feg_relay.
 
 const (
-	UnableToDeliver  = 3002
 	EncodedSessionId = "encodedSessionId"
-	// Shutdown timeout is used as a timeout to exit the Echo Server Shutdown
-	ShutdownTimeout = 10 * time.Second
 )
-
-type NotificationHandler struct {
-	config        *n7.N7ClientConfig
-	NotifyServer  *sbi.SbiServer
-	cloudRegistry service_registry.GatewayRegistry
-}
-
-func NewStartedNotificationHandlerWithHandlers(
-	config *n7.N7ClientConfig,
-	cloudReg service_registry.GatewayRegistry,
-) (*NotificationHandler, error) {
-	handler := &NotificationHandler{
-		config:        config,
-		NotifyServer:  sbi.NewSbiServer(config.LocalAddr),
-		cloudRegistry: cloudReg,
-	}
-	err := handler.registerHandlers()
-	if err != nil {
-		return nil, fmt.Errorf("error registering handlers: %s", err)
-	}
-	err = handler.NotifyServer.Start()
-	if err != nil {
-		return nil, fmt.Errorf("error starting notification handler: %s", err)
-	}
-	return handler, err
-}
 
 // RegisterHandlers registers the UpdateNotification and TerminateNotification handlers.
 // The notification url is of the form
@@ -82,25 +50,21 @@ func NewStartedNotificationHandlerWithHandlers(
 //      encodedSessionId = MTIzNDU2Nzg5MDsxMjM0NQo= (Session-Id is urlencoded)
 //      operation = update
 // This notification url is send to PCF in the SmPolicyCreate request
-func (handler *NotificationHandler) registerHandlers() error {
-	urlDef, err := url.ParseRequestURI(handler.config.NotifyApiRoot)
+func (c *N7Client) registerHandlers() error {
+	urlDef, err := url.ParseRequestURI(c.NotifyServer.NotifierCfg.NotifyApiRoot)
 	if err != nil {
 		return fmt.Errorf("error parsing notify api root - %s", err)
 	}
 	basePath := path.Join(urlDef.Path, fmt.Sprintf(":%s", EncodedSessionId))
 	// Register the handlers
-	handler.NotifyServer.Server.POST(path.Join(basePath, "update"), handler.postSmPolicyUpdateNotification)
-	handler.NotifyServer.Server.POST(path.Join(basePath, "terminate"), handler.postSmPolicyTerminateNotification)
+	c.NotifyServer.Server.POST(path.Join(basePath, "update"), c.postSmPolicyUpdateNotification)
+	c.NotifyServer.Server.POST(path.Join(basePath, "terminate"), c.postSmPolicyTerminateNotification)
 	return nil
 }
 
-func (handler *NotificationHandler) Shutdown() {
-	handler.NotifyServer.Shutdown(ShutdownTimeout)
-}
-
 // postSmPolicyUpdateNotification handles SM policy update notification request from PCF.
-func (handler *NotificationHandler) postSmPolicyUpdateNotification(ctx echo.Context) error {
-	client, err := relay.GetSessionProxyResponderClient(handler.cloudRegistry)
+func (c *N7Client) postSmPolicyUpdateNotification(ctx echo.Context) error {
+	client, err := relay.GetSessionProxyResponderClient(c.CloudRegistry)
 	if err != nil {
 		glog.Errorf("postSmPolicyUpdateNotification failed to get SessionProxyResponderClient: %s", err)
 		return fmt.Errorf("internal server error")
@@ -120,24 +84,24 @@ func (handler *NotificationHandler) postSmPolicyUpdateNotification(ctx echo.Cont
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	policyReauthProto := n7.GetPolicyReauthRequestProto(sessionId, imsi, smUpdateNotify.SmPolicyDecision)
+	policyReauthProto := GetPolicyReauthRequestProto(sessionId, imsi, smUpdateNotify.SmPolicyDecision)
 	ans, err := client.PolicyReAuth(context.Background(), policyReauthProto)
 	if err != nil {
 		glog.Errorf("Error relaying N7 policy reauth request to gateway: %s", err)
 		return fmt.Errorf("internal server error")
 	}
 
-	if !n7.IsReAuthSuccess(ans) {
+	if !IsReAuthSuccess(ans) {
 		// Build the error report for the failed rules
-		partialSuccessReport := n7.BuildPartialSuccessReportN7(ans)
+		partialSuccessReport := BuildPartialSuccessReportN7(ans)
 		return ctx.JSON(http.StatusOK, partialSuccessReport)
 	}
 	return ctx.NoContent(http.StatusOK)
 }
 
 // postSmPolicyTerminateNotification handles SM policy Terminate notification request from PCF
-func (handler *NotificationHandler) postSmPolicyTerminateNotification(ctx echo.Context) error {
-	client, err := relay.GetAbortSessionResponderClient(handler.cloudRegistry)
+func (c *N7Client) postSmPolicyTerminateNotification(ctx echo.Context) error {
+	client, err := relay.GetAbortSessionResponderClient(c.CloudRegistry)
 	if err != nil {
 		glog.Errorf("postSmPolicyTerminateNotification failed to get AbortSessionResponderClient: %s", err)
 		return fmt.Errorf("internal server error")

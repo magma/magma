@@ -90,12 +90,12 @@ func TestGetN7Config(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, false, conf.DisableN7)
 	url1, _ := url.ParseRequestURI(URL1)
-	assert.Equal(t, *url1, conf.Server.ApiRoot)
-	assert.Equal(t, TOKEN_URL, conf.Server.TokenUrl)
-	assert.Equal(t, CLIENT_ID, conf.Server.ClientId)
-	assert.Equal(t, CLIENT_SECRET, conf.Server.ClientSecret)
-	assert.Equal(t, LOCAL_ADDR, conf.Client.LocalAddr)
-	assert.Equal(t, NOTIFY_API_ROOT, conf.Client.NotifyApiRoot)
+	assert.Equal(t, *url1, conf.ServerConfig.ApiRoot)
+	assert.Equal(t, TOKEN_URL, conf.ServerConfig.TokenUrl)
+	assert.Equal(t, CLIENT_ID, conf.ServerConfig.ClientId)
+	assert.Equal(t, CLIENT_SECRET, conf.ServerConfig.ClientSecret)
+	assert.Equal(t, LOCAL_ADDR, conf.ClientConfig.LocalAddr)
+	assert.Equal(t, NOTIFY_API_ROOT, conf.ClientConfig.NotifyApiRoot)
 }
 
 func TestInvalidConfig(t *testing.T) {
@@ -108,12 +108,12 @@ func TestGetFromEnv(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, false, conf.DisableN7)
 	url1, _ := url.ParseRequestURI(n7.DefaultPcfApiRoot)
-	assert.Equal(t, *url1, conf.Server.ApiRoot)
-	assert.Equal(t, n7.DefaultPcfTokenUrl, conf.Server.TokenUrl)
-	assert.Equal(t, n7.DefaultClientId, conf.Server.ClientId)
-	assert.Equal(t, n7.DefaultClientSecret, conf.Server.ClientSecret)
-	assert.Equal(t, n7.DefaultN7ClientAddr, conf.Client.LocalAddr)
-	assert.Equal(t, n7.DefaultN7ClientApiRoot, conf.Client.NotifyApiRoot)
+	assert.Equal(t, *url1, conf.ServerConfig.ApiRoot)
+	assert.Equal(t, n7.DefaultPcfTokenUrl, conf.ServerConfig.TokenUrl)
+	assert.Equal(t, n7.DefaultClientId, conf.ServerConfig.ClientId)
+	assert.Equal(t, n7.DefaultClientSecret, conf.ServerConfig.ClientSecret)
+	assert.Equal(t, n7.DefaultN7ClientAddr, conf.ClientConfig.LocalAddr)
+	assert.Equal(t, n7.DefaultN7ClientApiRoot, conf.ClientConfig.NotifyApiRoot)
 }
 
 func generateN7Mconfig(t *testing.T, configString string) (*n7.N7Config, error) {
