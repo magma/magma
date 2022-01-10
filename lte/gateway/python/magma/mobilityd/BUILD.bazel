@@ -9,21 +9,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_python//python:defs.bzl", "py_library", "py_binary")
+load("@rules_python//python:defs.bzl", "py_binary")
 load("@python_deps//:requirements.bzl", "requirement")
 
+LTE_ROOT = "../../"
+ORC8R_ROOT = LTE_ROOT + "../../../orc8r/gateway/python"
+
 DEPS = [
-    ":ip_address_man",
     "//lte/protos:keyval_python_proto",
     "//lte/protos:mconfigs_python_proto",
     "//lte/protos:mobilityd_python_grpc",
     "//lte/protos:mobilityd_python_proto",
     "//lte/protos:subscriberdb_python_grpc",
     "//lte/protos:subscriberdb_python_proto",
+    "//lte/gateway/python/magma/subscriberdb:sid",
     "//orc8r/gateway/python/magma/common:metrics",
     "//orc8r/gateway/python/magma/common:sentry",
+    "//orc8r/gateway/python/magma/common:service",
+    "//orc8r/gateway/python/magma/common:rpc_utils",
     "//orc8r/gateway/python/magma/common/redis:client",
     "//orc8r/gateway/python/magma/configuration:service_configs",
+    "//orc8r/gateway/python/magma/configuration:exceptions",
     "//orc8r/protos:eventd_python_grpc",
     "//orc8r/protos:mconfig_python_proto",
     "//orc8r/protos:mconfigs_python_proto",
@@ -31,6 +37,13 @@ DEPS = [
     "//orc8r/protos:redis_python_proto",
     "//orc8r/protos:service303_python_grpc",
     "//orc8r/protos:service303_python_proto",
+    "//orc8r/gateway/python/magma/common/redis:containers",
+    "//orc8r/gateway/python/magma/common/redis:serializers",
+    requirement("redis_collections"),
+    requirement("redis-lock"),
+    requirement("jsonpickle"),
+    requirement("netifaces"),
+    requirement("scapy"),
 ]
 
 SRCS = [
@@ -48,10 +61,11 @@ SRCS = [
     "metrics.py",
     "rpc_servicer.py",
     "subscriberdb_client.py",
-    "ip_address_man.py",
     "ip_allocator_multi_apn.py",
     "ip_descriptor.py",
     "mac.py",
+    "ip_address_man.py",
+    "utils.py",
     "mobility_store.py",
 ]
 
@@ -61,31 +75,11 @@ py_binary(
     # legacy_creat_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
     legacy_create_init = False,
     imports = [
-        "@metricsd_python_proto:orc8r/protos/metricsd_python_proto_pb",
-        "@mconfigs_python_proto:orc8r/protos/mconfigs_python_proto_pb",
-        "@mconfig_python_proto:orc8r/protos/mconfig_python_proto_pb",
-        "@redis_python_proto:orc8r/protos/redis_python_proto_pb",
-        "@service303_python_proto:orc8r/protos/service303_python_proto_pb",
-        "@mconfigs_python_proto:lte/protos/mconfigs_python_proto_pb",
-        "@keyval_python_proto:lte/protos/keyval_python_proto_pb",
-        "@mobilityd_python_proto:lte/protos/mobilityd_python_proto_pb",
-        "@subscriberdb_python_proto:lte/protos/subscriberdb_python_proto_pb",
-        ],
+        LTE_ROOT,
+        ORC8R_ROOT
+    ],
     main = "main.py",
     python_version = "PY3",
     visibility = ["//visibility:public"],
     deps = DEPS,
-)
-
-py_library(
-    name = "ip_address_man",
-    srcs = ["ip_address_man.py"],
-    visibility = ["//visibility:public"],
-    deps = [
-        requirement("redis_collections"),
-        requirement("redis-lock"),
-        requirement("jsonpickle"),
-        requirement("netifaces"),
-        requirement("scapy"),
-    ],
 )
