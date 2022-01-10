@@ -9,6 +9,7 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
   skip_check:
+    if: github.event.workflow_run.event == 'pull_request'
     name: Job to retrieve the value in pr/skipped file
     runs-on: ubuntu-latest
     outputs:
