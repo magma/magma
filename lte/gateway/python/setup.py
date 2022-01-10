@@ -87,6 +87,7 @@ setup(
         'scripts/state_cli.py',
         'scripts/dp_probe_cli.py',
         'scripts/user_trace_cli.py',
+        'scripts/icmpv6.py',
         'load_tests/loadtest_sessiond.py',
         'load_tests/loadtest_pipelined.py',
         'load_tests/loadtest_mobilityd.py',
