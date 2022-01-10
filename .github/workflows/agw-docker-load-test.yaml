@@ -11,6 +11,8 @@ on:  # yamllint disable-line rule:truthy
     types:
       - completed
 
+concurrency: ${{ github.workflow }}-${{ github.event.workflow_run.head_commit.id }}
+
 jobs:
   docker-load-test:
     name: agw docker load tests
