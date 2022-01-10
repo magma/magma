@@ -102,14 +102,6 @@ class eBpfDatapathDLTest(unittest.TestCase):
         BridgeTools.delete_veth(cls.sgi_veth)
 
     @classmethod
-    def tearDownClass(cls):
-        cls.ebpf_man.detach_ul_ebpf()
-        cls.sniffer.stop()
-        BridgeTools.delete_ns_all()
-        BridgeTools.delete_veth(cls.gtp_veth)
-        BridgeTools.delete_veth(cls.sgi_veth)
-
-    @classmethod
     def pkt_cap_fun(cls, packet):
         print("got packet: %s", packet)
         print(packet.show(dump=True))
@@ -143,3 +135,5 @@ class eBpfDatapathDLTest(unittest.TestCase):
         cls.ebpf_man.print_dl_map()
         cls.sendPacket(cls.inner_src_ip, cls.inner_dst_ip)
         self.assertEqual(cls.count_udp_packet(), 2)
+
+        cls.tearDownClassDevices()
