@@ -31,3 +31,25 @@ py_library(
         requirement("prometheus_client"),
     ],
 )
+
+py_library(
+    name = "rpc_utils",
+    srcs = ["rpc_utils.py"],
+)
+
+py_library(
+    name = "service",
+    srcs = [
+        "service.py",
+        "log_count_handler.py",
+        "log_counter.py",
+        "job.py",
+        "metrics_export.py",
+        "service_registry.py",
+        "serialization_utils.py",
+    ],
+    deps = [
+        "//orc8r/gateway/python/magma/configuration:mconfig_managers",
+        "//orc8r/gateway/python/magma/configuration:events",
+    ],
+)

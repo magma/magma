@@ -20,3 +20,24 @@ py_library(
         requirement("pyyaml"),
     ],
 )
+
+py_library(
+    name = "exceptions",
+    srcs = ["exceptions.py"],
+)
+
+py_library(
+    name = "mconfig_managers",
+    srcs = [
+        "mconfig_managers.py",
+        "mconfigs.py",
+    ],
+    deps = [
+        "//orc8r/gateway/python/magma/eventd:eventd_client",
+    ],
+)
+
+py_library(
+    name = "events",
+    srcs = ["events.py"],
+)
