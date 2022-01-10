@@ -26,7 +26,7 @@ import (
 // Reset (Code 322) over diameter connection,
 // Not implemented
 func (srv *FegToGwRelayServer) Reset(ctx context.Context, in *protos.ResetRequest) (*protos.ResetAnswer, error) {
-	if err := validateFegContext(ctx); err != nil {
+	if err := ValidateFegContext(ctx); err != nil {
 		return nil, err
 	}
 	return srv.ResetUnverified(ctx, in)
@@ -60,7 +60,7 @@ func (srv *FegToGwRelayServer) ResetUnverified(
 		for _, uid := range req.UserId {
 			if _, ok := uidMap[uid]; !ok {
 				uidMap[uid] = struct{}{}
-				hwId, err := getHwIDFromIMSI(ctx, uid)
+				hwId, err := GetHwIDFromIMSI(ctx, uid)
 				if err != nil {
 					glog.Errorf("Reset: unable to get Hw ID for UID %s: %v.", uid, err)
 					continue

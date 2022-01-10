@@ -72,7 +72,7 @@ func (srv *FegToGwRelayServer) DeleteBearerRequest(
 
 func getS8ProxyResponderClient(ctx context.Context, teid string) (
 	fegprotos.S8ProxyResponderClient, context.Context, error) {
-	if err := validateFegContext(ctx); err != nil {
+	if err := ValidateFegContext(ctx); err != nil {
 		return nil, ctx, err
 	}
 	hwId, err := getHwIDFromTeid(ctx, teid)

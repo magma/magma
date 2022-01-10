@@ -25,7 +25,7 @@ func (srv *FegToGwRelayServer) AlertReq(
 	ctx context.Context,
 	req *fegprotos.AlertRequest,
 ) (*protos.Void, error) {
-	if err := validateFegContext(ctx); err != nil {
+	if err := ValidateFegContext(ctx); err != nil {
 		return nil, err
 	}
 	return srv.AlertRequestUnverified(ctx, req)

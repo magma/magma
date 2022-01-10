@@ -25,7 +25,7 @@ func (srv *FegToGwRelayServer) ReleaseReq(
 	ctx context.Context,
 	req *fegprotos.ReleaseRequest,
 ) (*protos.Void, error) {
-	if err := validateFegContext(ctx); err != nil {
+	if err := ValidateFegContext(ctx); err != nil {
 		return nil, err
 	}
 	return srv.ReleaseRequestUnverified(ctx, req)

@@ -42,7 +42,7 @@ func NewFegToGwRelayServer() (*FegToGwRelayServer, error) {
 	return &FegToGwRelayServer{}, nil
 }
 
-func getHwIDFromIMSI(ctx context.Context, imsi string) (string, error) {
+func GetHwIDFromIMSI(ctx context.Context, imsi string) (string, error) {
 	gw := protos.GetClientGateway(ctx)
 	// directoryd prefixes imsi with "IMSI" when updating the location
 	if !strings.HasPrefix(imsi, "IMSI") {
@@ -80,10 +80,10 @@ func getHwIDFromTeid(ctx context.Context, teid string) (string, error) {
 }
 
 func getGWSGSServiceConnCtx(ctx context.Context, imsi string) (*grpc.ClientConn, context.Context, error) {
-	if err := validateFegContext(ctx); err != nil {
+	if err := ValidateFegContext(ctx); err != nil {
 		return nil, nil, err
 	}
-	hwID, err := getHwIDFromIMSI(ctx, imsi)
+	hwID, err := GetHwIDFromIMSI(ctx, imsi)
 	if err != nil {
 		errorStr := fmt.Sprintf(
 			"unable to get HwID from IMSI %v. err: %v\n",
@@ -169,7 +169,7 @@ func getFegServedIds(ctx context.Context, networkId string) ([]string, error) {
 	return nids, nil
 }
 
-func validateFegContext(ctx context.Context) error {
+func ValidateFegContext(ctx context.Context) error {
 	fegID := protos.GetClientGateway(ctx)
 	if fegID == nil {
 		ctxMetadata, _ := metadata.FromIncomingContext(ctx)

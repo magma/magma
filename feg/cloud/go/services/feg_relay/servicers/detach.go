@@ -25,7 +25,7 @@ func (srv *FegToGwRelayServer) EPSDetachAc(
 	ctx context.Context,
 	req *fegprotos.EPSDetachAck,
 ) (*protos.Void, error) {
-	if err := validateFegContext(ctx); err != nil {
+	if err := ValidateFegContext(ctx); err != nil {
 		return nil, err
 	}
 	return srv.EPSDetachAckUnverified(ctx, req)
@@ -48,7 +48,7 @@ func (srv *FegToGwRelayServer) IMSIDetachAc(
 	ctx context.Context,
 	req *fegprotos.IMSIDetachAck,
 ) (*protos.Void, error) {
-	if err := validateFegContext(ctx); err != nil {
+	if err := ValidateFegContext(ctx); err != nil {
 		return nil, err
 	}
 	return srv.IMSIDetachAckUnverified(ctx, req)

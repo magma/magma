@@ -24,6 +24,7 @@ import (
 	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
 	nh_servicers "magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers"
 	"magma/feg/cloud/go/services/feg_relay/servicers"
+	reauth_srv "magma/feg/cloud/go/services/feg_relay/servicers/southbound"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
 )
@@ -36,6 +37,17 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating Feg Proxy service: %s", err)
 	}
+
+	// SessionProxyResponder Servicer
+	reauth_servicer, err := reauth_srv.NewFegToGwRelayServer()
+
+	if err != nil {
+		glog.Fatalf("Failed to create FegToGwRelayServer: %v", err)
+		return
+	}
+
+	lteprotos.RegisterSessionProxyResponderServer(srv.GrpcServer, reauth_servicer)
+
 	servicer, err := servicers.NewFegToGwRelayServer()
 
 	if err != nil {
@@ -44,7 +56,6 @@ func main() {
 	}
 
 	// Register responders FEG -> AGW
-	lteprotos.RegisterSessionProxyResponderServer(srv.GrpcServer, servicer)
 	lteprotos.RegisterAbortSessionResponderServer(srv.GrpcServer, servicer)
 	protos.RegisterS8ProxyResponderServer(srv.GrpcServer, servicer)
 

@@ -27,7 +27,7 @@ func (srv *FegToGwRelayServer) VLRResetAck(
 	ctx context.Context,
 	req *fegprotos.ResetAck,
 ) (*protos.Void, error) {
-	if err := validateFegContext(ctx); err != nil {
+	if err := ValidateFegContext(ctx); err != nil {
 		return nil, err
 	}
 	return srv.VLRResetAckUnverified(ctx, req)
@@ -59,7 +59,7 @@ func (srv *FegToGwRelayServer) VLRResetIndication(
 	ctx context.Context,
 	req *fegprotos.ResetIndication,
 ) (*protos.Void, error) {
-	if err := validateFegContext(ctx); err != nil {
+	if err := ValidateFegContext(ctx); err != nil {
 		glog.Errorf("Failed to validate FeG context: %s", err)
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (srv *FegToGwRelayServer) VLRStatus(
 	ctx context.Context,
 	req *fegprotos.Status,
 ) (*protos.Void, error) {
-	if err := validateFegContext(ctx); err != nil {
+	if err := ValidateFegContext(ctx); err != nil {
 		return nil, err
 	}
 	return srv.VLRStatusUnverified(ctx, req)

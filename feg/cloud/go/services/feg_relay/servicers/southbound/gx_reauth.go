@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 
+	"magma/feg/cloud/go/services/feg_relay/servicers"
 	"magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 )
@@ -26,10 +27,10 @@ func (srv *FegToGwRelayServer) PolicyReAuth(
 	ctx context.Context,
 	req *protos.PolicyReAuthRequest,
 ) (*protos.PolicyReAuthAnswer, error) {
-	if err := validateFegContext(ctx); err != nil {
+	if err := servicers.ValidateFegContext(ctx); err != nil {
 		return &protos.PolicyReAuthAnswer{Result: protos.ReAuthResult_OTHER_FAILURE}, err
 	}
-	hwID, err := getHwIDFromIMSI(ctx, req.Imsi)
+	hwID, err := servicers.GetHwIDFromIMSI(ctx, req.Imsi)
 	if err != nil {
 		return &protos.PolicyReAuthAnswer{Result: protos.ReAuthResult_SESSION_NOT_FOUND},
 			fmt.Errorf("unable to get HwID from IMSI %v. err: %v", req.Imsi, err)

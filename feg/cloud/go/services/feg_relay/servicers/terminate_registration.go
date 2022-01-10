@@ -26,7 +26,7 @@ import (
 func (srv *FegToGwRelayServer) TerminateRegistration(
 	ctx context.Context, req *protos.RegistrationTerminationRequest) (*protos.RegistrationAnswer, error) {
 
-	if err := validateFegContext(ctx); err != nil {
+	if err := ValidateFegContext(ctx); err != nil {
 		return nil, err
 	}
 	return srv.TerminateRegistrationUnverified(ctx, req)
@@ -37,7 +37,7 @@ func (srv *FegToGwRelayServer) TerminateRegistration(
 func (srv *FegToGwRelayServer) TerminateRegistrationUnverified(
 	ctx context.Context, req *protos.RegistrationTerminationRequest) (*protos.RegistrationAnswer, error) {
 
-	hwId, err := getHwIDFromIMSI(ctx, req.UserName)
+	hwId, err := GetHwIDFromIMSI(ctx, req.UserName)
 	if err != nil {
 		errmsg := fmt.Errorf("unable to get HwID from IMSI %v. err: %v", req.GetUserName(), err)
 		log.Print(errmsg)

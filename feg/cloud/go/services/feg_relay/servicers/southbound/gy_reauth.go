@@ -17,19 +17,29 @@ import (
 	"context"
 	"fmt"
 
+	"magma/feg/cloud/go/services/feg_relay/servicers"
 	"magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 )
+
+// FegToGwRelayServer is a server serving requests from FeG to Access Gateway
+type FegToGwRelayServer struct {
+}
+
+// NewFegToGwRelayServer creates a new FegToGwRelayServer
+func NewFegToGwRelayServer() (*FegToGwRelayServer, error) {
+	return &FegToGwRelayServer{}, nil
+}
 
 // ReAuth initiates a credit reauth on the gateway
 func (srv *FegToGwRelayServer) ChargingReAuth(
 	ctx context.Context,
 	req *protos.ChargingReAuthRequest,
 ) (*protos.ChargingReAuthAnswer, error) {
-	if err := validateFegContext(ctx); err != nil {
+	if err := servicers.ValidateFegContext(ctx); err != nil {
 		return &protos.ChargingReAuthAnswer{Result: protos.ReAuthResult_OTHER_FAILURE}, err
 	}
-	hwID, err := getHwIDFromIMSI(ctx, req.Sid)
+	hwID, err := servicers.GetHwIDFromIMSI(ctx, req.Sid)
 	if err != nil {
 		return &protos.ChargingReAuthAnswer{Result: protos.ReAuthResult_SESSION_NOT_FOUND},
 			fmt.Errorf("unable to get HwID from IMSI %v. err: %v", req.Sid, err)

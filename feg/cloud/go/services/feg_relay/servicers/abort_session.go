@@ -26,7 +26,7 @@ import (
 func (srv *FegToGwRelayServer) AbortSession(
 	ctx context.Context, req *protos.AbortSessionRequest) (*protos.AbortSessionResult, error) {
 
-	if err := validateFegContext(ctx); err != nil {
+	if err := ValidateFegContext(ctx); err != nil {
 		return nil, err
 	}
 	return srv.AbortSessionUnverified(ctx, req)
@@ -37,7 +37,7 @@ func (srv *FegToGwRelayServer) AbortSession(
 func (srv *FegToGwRelayServer) AbortSessionUnverified(
 	ctx context.Context, req *protos.AbortSessionRequest) (*protos.AbortSessionResult, error) {
 
-	hwId, err := getHwIDFromIMSI(ctx, req.UserName)
+	hwId, err := GetHwIDFromIMSI(ctx, req.UserName)
 	if err != nil {
 		msg := fmt.Sprintf("unable to get HwID from IMSI %v. err: %v", req.GetUserName(), err)
 		log.Print(msg)

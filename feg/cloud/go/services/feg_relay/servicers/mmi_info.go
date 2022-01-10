@@ -25,7 +25,7 @@ func (srv *FegToGwRelayServer) MMInformationReq(
 	ctx context.Context,
 	req *fegprotos.MMInformationRequest,
 ) (*protos.Void, error) {
-	if err := validateFegContext(ctx); err != nil {
+	if err := ValidateFegContext(ctx); err != nil {
 		return nil, err
 	}
 	return srv.MMInformationRequestUnverified(ctx, req)
