@@ -1,0 +1,447 @@
+name: Domain proxy workflow
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+      - v1.*
+  pull_request:
+    branches:
+      - master
+      - v1.*
+    types: [opened, reopened, synchronize]
+
+jobs:
+  path_filter:
+    runs-on: ubuntu-latest
+    outputs:
+      cc: ${{ steps.filter.outputs.cc }}
+      am: ${{ steps.filter.outputs.am }}
+      pc: ${{ steps.filter.outputs.pc }}
+      rc: ${{ steps.filter.outputs.rc }}
+      ingress: ${{ steps.filter.outputs.ingress }}
+      helm: ${{ steps.filter.outputs.helm }}
+    steps:
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            cc:
+              - '.github/workflows/dp-workflow.yml'
+              - 'dp/cloud/python/configuration_controller/**'
+              - 'dp/cloud/docker/python/configuration_controller/**'
+            am:
+              - '.github/workflows/dp-workflow.yml'
+              - 'dp/cloud/go/active_mode_controller/**'
+              - 'dp/cloud/docker/go/active_mode_controller/**'
+            pc:
+              - '.github/workflows/dp-workflow.yml'
+              - 'dp/cloud/python/protocol_controller/**'
+              - 'dp/cloud/docker/python/protocol_controller/**'
+            rc:
+              - '.github/workflows/dp-workflow.yml'
+              - 'dp/cloud/python/radio_controller/**'
+              - 'dp/cloud/docker/python/radio_controller/**'
+            ingress:
+              - '.github/workflows/dp-workflow.yml'
+              - 'dp/Makefile'
+              - 'dp/skaffold.yaml'
+            helm:
+              - '.github/workflows/dp-workflow.yml'
+              - 'dp/cloud/helm/**'
+
+  configuration_controller_unit_tests:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.cc == 'true' }}
+    name: "Configuration controller unit tests"
+    runs-on: ubuntu-latest
+    env:
+      COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
+      PYTHONPATH: "${{ github.workspace }}"
+    defaults:
+      run:
+        working-directory: dp/cloud/python/magma/configuration_controller
+    strategy:
+      matrix:
+        python-version: [3.8]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f tests/requirements.txt ]; then pip install -r tests/requirements.txt; fi
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Test with pytest
+        working-directory: "${{ github.workspace }}/dp/cloud/python"
+        run: |
+          coverage run --source=. -m pytest magma/configuration_controller/tests/unit
+          coverage report
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          flags: unittests,configuration-controller
+          name: codecov-configuration-controller
+          fail_ci_if_error: false
+          verbose: true
+
+  active_mode_controller_unit_tests:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.am == 'true' }}
+    name: "Active mode controller unit tests"
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: dp/cloud/go/active_mode_controller
+
+    strategy:
+      matrix:
+        go-version:
+          - 1.16
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Run Go linter
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.42
+          working-directory: dp/cloud/go/active_mode_controller
+          skip-go-installation: true
+
+      - name: Run Go tests
+        run: |
+          go test ./... -v -race -coverprofile=coverage.txt -covermode=atomic
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          flags: unittests,active-mode-controller
+          name: codecov-active-mode-controller
+          fail_ci_if_error: false
+          verbose: true
+
+
+  radio_controller_unit_tests:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.rc == 'true' }}
+    name: "Radio controller unit tests"
+    runs-on: ubuntu-latest
+    env:
+      COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
+      PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
+      MAGMA_ROOT: "${{ github.workspace }}"
+      PYTHON_BUILD: "${{ github.workspace }}/build"
+
+    defaults:
+      run:
+        working-directory: dp/cloud/python/magma/radio_controller
+
+    strategy:
+      matrix:
+        python-version: [3.8]
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install python3-aioeventlet from the magma apt repo
+        run: |
+          cat ${{ env.MAGMA_ROOT }}/orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub | sudo -E apt-key add -
+          echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" | sudo -E tee /etc/apt/sources.list.d/fbc.list
+          sudo apt-get update -y
+          sudo apt-get install -y python3-aioeventlet
+          sudo rm -rf /var/lib/apt/lists/*
+      - name: Setup protoc3
+        working-directory: "${{ github.workspace }}"
+        run: |
+          pip3 install protobuf
+          pip3 install setuptools==49.6.0
+          curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.18.0/protoc-3.18.0-linux-x86_64.zip -o protoc3.zip
+          unzip protoc3.zip -d protoc3
+          sudo -E mv protoc3/bin/protoc /bin/protoc
+          sudo -E chmod a+rx /bin/protoc
+          # Workaround: the include files need to be found
+          mv ./protoc3/include/google .
+          sudo -E rm -rf protoc3.zip protoc3
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f tests/requirements.txt ]; then pip install -r tests/requirements.txt; fi
+
+      - name: Generate protobufs
+        working-directory: "${{ github.workspace }}/dp"
+        run: |
+          mkdir -p ${PYTHON_BUILD}
+          make protos
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Test with pytest
+        working-directory: "${{ github.workspace }}/dp/cloud/python"
+        run: |
+          coverage run --source=. -m pytest magma/radio_controller/tests/unit
+          coverage report
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          flags: unittests,radio-controller
+          name: codecov-radio-controller
+          fail_ci_if_error: false
+          verbose: true
+
+
+  protocol_controller_unit_tests:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.pc == 'true' }}
+    name: "Protocol controller unit tests"
+    runs-on: ubuntu-latest
+    env:
+      COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
+      PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
+      MAGMA_ROOT: "${{ github.workspace }}"
+      PYTHON_BUILD: "${{ github.workspace }}/build"
+
+    defaults:
+      run:
+        working-directory: dp/cloud/python/magma/protocol_controller
+
+    strategy:
+      matrix:
+        python-version: [3.8]
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install python3-aioeventlet from the magma apt repo
+        run: |
+          cat ${{ env.MAGMA_ROOT }}/orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub | sudo -E apt-key add -
+          echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" | sudo -E tee /etc/apt/sources.list.d/fbc.list
+          sudo apt-get update -y
+          sudo apt-get install -y python3-aioeventlet
+          sudo rm -rf /var/lib/apt/lists/*
+      - name: Setup protoc3
+        working-directory: "${{ github.workspace }}"
+        run: |
+          pip3 install protobuf
+          pip3 install setuptools==49.6.0
+          curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.18.0/protoc-3.18.0-linux-x86_64.zip -o protoc3.zip
+          unzip protoc3.zip -d protoc3
+          sudo -E mv protoc3/bin/protoc /bin/protoc
+          sudo -E chmod a+rx /bin/protoc
+          # Workaround: the include files need to be found
+          mv ./protoc3/include/google .
+          sudo -E rm -rf protoc3.zip protoc3
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f plugins/cbsd_sas/tests/requirements.txt ]; then pip install -r plugins/cbsd_sas/tests/requirements.txt; fi
+
+      - name: Generate protobufs
+        working-directory: "${{ github.workspace }}/dp"
+        run: |
+          mkdir -p ${PYTHON_BUILD}
+          make protos
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Test with pytest
+        working-directory: "${{ github.workspace }}/dp/cloud/python"
+        run: |
+          coverage run --source=. -m pytest magma/protocol_controller/plugins/cbsd_sas/tests/unit
+          coverage report
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          flags: unittests,protocol-controller
+          name: codecov-protocol-controller
+          fail_ci_if_error: false
+          verbose: true
+
+
+  integation_tests:
+    name: "Domain proxy integration tests"
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    defaults:
+      run:
+        working-directory: dp
+    env:
+      TEST_DIR: /tmp/integration-tests-results
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set env
+        run: |
+          echo "MINIKUBE_DP_MAX_MEMORY=$(grep MemTotal /proc/meminfo | awk '{printf "%dm",$2/1024 - 1}')" >> $GITHUB_ENV
+      - name: Install Minikube
+        uses: manusa/actions-setup-minikube@v2.4.1
+        with:
+          minikube version: 'v1.21.0'
+          kubernetes version: 'v1.20.7'
+          github token: ${{ secrets.GITHUB_TOKEN }}
+          start args: "--memory=$MINIKUBE_DP_MAX_MEMORY --addons=metrics-server"
+          driver: "docker"
+
+      - name: Setup Minikube
+        run: |
+          make _ci_init
+
+      - name: Get minikube IP and prepare directory for test results
+        run: |
+          minikube ip
+          mkdir -p $TEST_DIR
+          minikube mount $TEST_DIR:$TEST_DIR &
+
+      - name: Run integration tests
+        run: |
+          make _ci_integration_tests
+
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: integration-tests-results
+          path: ${{ env.TEST_DIR }}
+
+  integration-test-results:
+    needs: integation_tests
+    name: Integration test results
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - protocol-controller
+    steps:
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          workflow: dp-workflow.yml
+          path: test-results-${{ matrix.service }}
+
+      - name: Publish integration test results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        with:
+          commit: ${{ github.event.workflow_run.head_sha }}
+          files: test-results-${{ matrix.service }}/**/*.xml
+          comment_title: "Integration Test Results"
+
+
+  helm_chart_tests:
+    name: "Helm chart smoke tests"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dp
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set env
+        run: |
+          echo "MINIKUBE_DP_MAX_MEMORY=$(grep MemTotal /proc/meminfo | awk '{printf "%dm",$2/1024 - 1}')" >> $GITHUB_ENV
+      - name: Install Minikube
+        uses: manusa/actions-setup-minikube@v2.4.1
+        with:
+          minikube version: 'v1.21.0'
+          kubernetes version: 'v1.20.7'
+          github token: ${{ secrets.GITHUB_TOKEN }}
+          start args: "--memory=$MINIKUBE_DP_MAX_MEMORY --addons=metrics-server"
+          driver: "docker"
+
+      - name: Setup Minikube
+        run: |
+          make _ci_init
+
+      - name: Run helm chart smoke tests
+        run: |
+          CI=false make _ci_chart_smoke_tests
+
+  ingress_tests:
+    name: "${{ matrix.ingress }} tests"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dp
+    strategy:
+      fail-fast: false
+      matrix:
+        ingress:
+          - contour
+          - nginx
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set env
+        run: |
+          echo "MINIKUBE_DP_MAX_MEMORY=$(grep MemTotal /proc/meminfo | awk '{printf "%dm",$2/1024 - 1}')" >> $GITHUB_ENV
+          echo "$MINIKUBE_DP_MAX_MEMORY"
+      - name: Install Minikube
+        uses: manusa/actions-setup-minikube@v2.4.1
+        with:
+          minikube version: 'v1.21.0'
+          kubernetes version: 'v1.20.7'
+          github token: ${{ secrets.GITHUB_TOKEN }}
+          start args: "--memory=$MINIKUBE_DP_MAX_MEMORY --addons=metrics-server"
+          driver: "docker"
+
+      - name: Setup Minikube
+        run: |
+          make _ci_init
+
+      - name: Run ingress tests
+        timeout-minutes: 10
+        env:
+          KUBECONFIG: "/home/runner/.kube/config"
+        run: |
+          CI=false make _ci_ingress_tests_${{ matrix.ingress }}
