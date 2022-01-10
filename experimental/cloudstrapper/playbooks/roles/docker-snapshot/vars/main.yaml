@@ -1,0 +1,5 @@
+---
+
+dockerAmiName: "dockerAMI"
+taggedVersion: "latest"
+tag_host: "dockerami"
