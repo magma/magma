@@ -233,8 +233,16 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                 composite_sid + ",ipv6", IPAddress.IPV6,
                 context, request,
             )
-            ipv4_addr = ipv4_response.ip_list[0]
-            ipv6_addr = ipv6_response.ip_list[0]
+            ipv4_addr = None
+            ipv6_addr = None
+            if not ipv4_response.ip_list:
+                logging.warning("IPv4 IP address allocation wasn't successful")
+            else:
+                ipv4_addr = ipv4_response.ip_list[0]
+            if not ipv6_response.ip_list:
+                logging.warning("IPv6 IP address allocation wasn't successful")
+            else:
+                ipv6_addr = ipv6_response.ip_list[0]
             # Get vlan from IPv4 Allocate response
             resp = AllocateIPAddressResponse(
                 ip_list=[ipv4_addr, ipv6_addr],
