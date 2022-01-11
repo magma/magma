@@ -186,7 +186,7 @@ class StateConverter {
 
  private:
   static void plmn_to_chars(const plmn_t& state_plmn, char* plmn_array);
-  static void chars_to_plmn(const char* plmn_array, plmn_t& state_plmn);
+  static void chars_to_plmn(const char* plmn_array, plmn_t* state_plmn);
 };
 
 }  // namespace lte

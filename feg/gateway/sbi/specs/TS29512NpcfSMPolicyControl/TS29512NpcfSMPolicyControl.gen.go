@@ -1544,7 +1544,7 @@ type RequestEditorFn func(ctx context.Context, req *http.Request) error
 
 // Doer performs HTTP requests.
 //
-// The standard http.Client implements this interface.
+// The standard http.BaseClientWithNotifier implements this interface.
 type HttpRequestDoer interface {
 	Do(req *http.Request) (*http.Response, error)
 }
@@ -1557,7 +1557,7 @@ type Client struct {
 	// paths in the swagger spec will be appended to the server.
 	Server string
 
-	// Doer for performing requests, typically a *http.Client with any
+	// Doer for performing requests, typically a *http.BaseClientWithNotifier with any
 	// customized settings, such as certificate chains.
 	Client HttpRequestDoer
 
@@ -1593,7 +1593,7 @@ func NewClient(server string, opts ...ClientOption) (*Client, error) {
 }
 
 // WithHTTPClient allows overriding the default Doer, which is
-// automatically created using http.Client. This is useful for tests.
+// automatically created using http.BaseClientWithNotifier. This is useful for tests.
 func WithHTTPClient(doer HttpRequestDoer) ClientOption {
 	return func(c *Client) error {
 		c.Client = doer

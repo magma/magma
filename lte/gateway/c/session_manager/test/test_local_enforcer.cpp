@@ -980,22 +980,10 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
       session_store->get_default_session_update(session_map_2);
   EXPECT_EQ(session_map_2[IMSI1].size(), 1);
 
-  RuleLifetime lifetime1 = {
-      .activation_time = std::time_t(0),
-      .deactivation_time = std::time_t(5),
-  };
-  RuleLifetime lifetime2 = {
-      .activation_time = std::time_t(5),
-      .deactivation_time = std::time_t(10),
-  };
-  RuleLifetime lifetime3 = {
-      .activation_time = std::time_t(10),
-      .deactivation_time = std::time_t(15),
-  };
-  RuleLifetime lifetime4 = {
-      .activation_time = std::time_t(15),
-      .deactivation_time = std::time_t(20),
-  };
+  RuleLifetime lifetime1(std::time_t(0), std::time_t(5));
+  RuleLifetime lifetime2(std::time_t(5), std::time_t(10));
+  RuleLifetime lifetime3(std::time_t(10), std::time_t(15));
+  RuleLifetime lifetime4(std::time_t(15), std::time_t(20));
   auto& uc = session_update[IMSI1][SESSION_ID_1];
   uint32_t v1 = session_map_2[IMSI1]
                     .front()
@@ -3473,4 +3461,4 @@ int main(int argc, char** argv) {
   return RUN_ALL_TESTS();
 }
 
-}  // namespace magma
+};  // namespace magma

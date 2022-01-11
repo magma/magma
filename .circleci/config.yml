@@ -815,11 +815,6 @@ jobs:
 workflows:
   version: 2
 
-  agw:
-    jobs:
-      - lte-integ-test:
-          <<: *master_and_develop
-
   release:
     jobs:
       - release-hold:

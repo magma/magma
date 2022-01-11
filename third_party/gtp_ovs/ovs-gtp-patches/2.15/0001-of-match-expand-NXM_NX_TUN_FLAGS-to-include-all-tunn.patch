@@ -1,4 +1,4 @@
-From ce7836e422fd0167ef2315cc8d5d0f83b2b2d879 Mon Sep 17 00:00:00 2001
+From 4a6dc157b2370697407b41730932fce42d132239 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sun, 28 Jun 2020 21:49:40 +0000
 Subject: [PATCH 01/22] of-match: expand NXM_NX_TUN_FLAGS to include all tunnel
@@ -22,7 +22,7 @@ Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
  8 files changed, 66 insertions(+), 6 deletions(-)
 
 diff --git a/include/openvswitch/meta-flow.h b/include/openvswitch/meta-flow.h
-index 95e52e358..e88a401f9 100644
+index 045dce8f5..8371d73c0 100644
 --- a/include/openvswitch/meta-flow.h
 +++ b/include/openvswitch/meta-flow.h
 @@ -380,7 +380,7 @@ enum OVS_PACKED_ENUM mf_field_id {
@@ -104,7 +104,7 @@ index 3455ed233..42a458bbd 100644
          flow->pkt_mark = cfg->egress_pkt_mark;
          wc->masks.pkt_mark = UINT32_MAX;
 diff --git a/tests/tunnel-push-pop-ipv6.at b/tests/tunnel-push-pop-ipv6.at
-index 59723e63b..4a0eeaeb3 100644
+index c7665a1ae..2b4247a60 100644
 --- a/tests/tunnel-push-pop-ipv6.at
 +++ b/tests/tunnel-push-pop-ipv6.at
 @@ -421,7 +421,7 @@ OVS_WAIT_UNTIL([test `wc -l < ofctl_monitor.log` -ge 2])
@@ -117,7 +117,7 @@ index 59723e63b..4a0eeaeb3 100644
  ])
  
 diff --git a/tests/tunnel-push-pop.at b/tests/tunnel-push-pop.at
-index 12fc1ef91..f297a0222 100644
+index 6a597488e..d628ce6ac 100644
 --- a/tests/tunnel-push-pop.at
 +++ b/tests/tunnel-push-pop.at
 @@ -511,7 +511,7 @@ OVS_WAIT_UNTIL([test `wc -l < ofctl_monitor.log` -ge 2])

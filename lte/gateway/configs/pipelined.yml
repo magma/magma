@@ -171,9 +171,10 @@ non_nat_gw_probe_frequency: 20
 ovs_uplink_port_name: patch-up
 # virtual_mac: '02:ff:bb:cc:dd:ee'
 uplink_bridge: uplink_br0
-uplink_eth_port_name: uplink_p0
+uplink_eth_port_name: eth2
 uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
 dp_router_enabled: true
+sgi_management_iface_ip_addr: '192.168.129.1/24'
 
 ovs_gtp_stats_polling_interval: 180
 
@@ -222,3 +223,6 @@ sgi_tunnel:
 # [Experimental] Enable Sentry for this service
 # Allowed values: send_all_errors, send_selected_errors, disabled
 sentry: disabled
+
+ebpf:
+  enabled: true

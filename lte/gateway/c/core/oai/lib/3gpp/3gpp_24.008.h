@@ -254,6 +254,31 @@ int decode_mobile_identity_ie(
     mobile_identity_t* mobileidentity, const bool iei_present, uint8_t* buffer,
     const uint32_t len);
 
+int decode_imsi_mobile_identity(
+    imsi_mobile_identity_t* imsi, uint8_t* buffer, const uint32_t len);
+int decode_imei_mobile_identity(
+    imei_mobile_identity_t* imei, uint8_t* buffer, const uint32_t len);
+int decode_imeisv_mobile_identity(
+    imeisv_mobile_identity_t* imeisv, uint8_t* buffer, const uint32_t len);
+int decode_tmsi_mobile_identity(
+    tmsi_mobile_identity_t* tmsi, uint8_t* buffer, const uint32_t len);
+int decode_tmgi_mobile_identity(
+    tmgi_mobile_identity_t* tmgi, uint8_t* buffer, const uint32_t len);
+int decode_no_mobile_identity(
+    no_mobile_identity_t* no_id, uint8_t* buffer, const uint32_t len);
+int encode_imsi_mobile_identity(
+    imsi_mobile_identity_t* imsi, uint8_t* buffer, const uint32_t len);
+int encode_imei_mobile_identity(
+    imei_mobile_identity_t* imei, uint8_t* buffer, const uint32_t len);
+int encode_imeisv_mobile_identity(
+    imeisv_mobile_identity_t* imeisv, uint8_t* buffer, const uint32_t len);
+int encode_tmsi_mobile_identity(
+    tmsi_mobile_identity_t* tmsi, uint8_t* buffer, const uint32_t len);
+int encode_tmgi_mobile_identity(
+    tmgi_mobile_identity_t* tmgi, uint8_t* buffer, const uint32_t len);
+int encode_no_mobile_identity(
+    no_mobile_identity_t* no_id, uint8_t* buffer, const uint32_t len);
+
 //------------------------------------------------------------------------------
 // 10.5.1.6 Mobile Station Classmark 2
 //------------------------------------------------------------------------------

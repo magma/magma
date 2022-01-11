@@ -15,6 +15,7 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
   lte-integ-test:
+    if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     runs-on: macos-10.15
     env:
       SHA: ${{ github.event.workflow_run.head_commit.id || github.sha }}

@@ -1,4 +1,4 @@
-From c4a2d8cd0ea3addea90ef6c7064af59146feb4b5 Mon Sep 17 00:00:00 2001
+From 529c88d17270eff42f1ffea58717a47038a0b712 Mon Sep 17 00:00:00 2001
 From: Nick Yurchenko <koolzz@fb.com>
 Date: Mon, 1 Feb 2021 21:25:00 -0500
 Subject: [PATCH 09/22] Add custom IPDR fields for IPFIX export
@@ -273,10 +273,10 @@ index ed0a4ace0..dda89f409 100644
      }
      ovs_mutex_unlock(&mutex);
 diff --git a/ofproto/ofproto-dpif-xlate.c b/ofproto/ofproto-dpif-xlate.c
-index 6c882b9f7..7bfcccc93 100644
+index a5c8b5f0b..f9699439b 100644
 --- a/ofproto/ofproto-dpif-xlate.c
 +++ b/ofproto/ofproto-dpif-xlate.c
-@@ -5643,6 +5643,11 @@ xlate_sample_action(struct xlate_ctx *ctx,
+@@ -5657,6 +5657,11 @@ xlate_sample_action(struct xlate_ctx *ctx,
      cookie.flow_sample.obs_point_id = os->obs_point_id;
      cookie.flow_sample.output_odp_port = output_odp_port;
      cookie.flow_sample.direction = os->direction;

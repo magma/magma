@@ -37,7 +37,7 @@ func (srv *CentralSessionController) sendSmPolicyDelete(
 	smPolicyId string,
 	reqBody *n7_sbi.PostSmPoliciesSmPolicyIdDeleteJSONRequestBody,
 ) error {
-	reqCtx, cancel := context.WithTimeout(context.Background(), srv.cfg.RequestTimeout)
+	reqCtx, cancel := context.WithTimeout(context.Background(), srv.config.RequestTimeout)
 	defer cancel()
 	resp, err := srv.policyClient.PostSmPoliciesSmPolicyIdDeleteWithResponse(reqCtx, smPolicyId, *reqBody)
 	if err != nil {

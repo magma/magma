@@ -407,6 +407,7 @@ class WaitGetTransientParametersState(EnodebAcsState):
             when_add: str,
             when_set: str,
             when_skip: str,
+            request_all_params: bool = False,
     ):
         super().__init__()
         self.acs = acs
@@ -416,6 +417,7 @@ class WaitGetTransientParametersState(EnodebAcsState):
         self.add_obj_transition = when_add
         self.set_transition = when_set
         self.skip_transition = when_skip
+        self.request_all_params = request_all_params
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         if not isinstance(message, models.GetParameterValuesResponse):
@@ -444,6 +446,7 @@ class WaitGetTransientParametersState(EnodebAcsState):
                 get_params_to_get(
                     self.acs.device_cfg,
                     self.acs.data_model,
+                    request_all_params=self.request_all_params,
                 ),
             ) > 0
         if should_get_params:
@@ -566,10 +569,11 @@ class WaitGetParametersState(EnodebAcsState):
 
 
 class GetObjectParametersState(EnodebAcsState):
-    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str, request_all_params: bool = False):
         super().__init__()
         self.acs = acs
         self.done_transition = when_done
+        self.request_all_params = request_all_params
 
     def get_msg(self, message: Any) -> AcsMsgAndTransition:
         """ Respond with GetParameterValuesRequest """
@@ -577,6 +581,7 @@ class GetObjectParametersState(EnodebAcsState):
             self.acs.desired_cfg,
             self.acs.device_cfg,
             self.acs.data_model,
+            self.request_all_params,
         )
 
         # Generate the request
@@ -1291,3 +1296,68 @@ class ErrorState(EnodebAcsState):
     def state_description(self) -> str:
         return 'Error state - awaiting manual restart of enodebd service or ' \
                'an Inform to be received from the eNB'
+
+
+class NotifyDPState(EnodebAcsState, ABC):
+    """ Notify DP ...
+
+    For Baicells QRTB we can expect an inform message on
+    End Session state, either a queued one or a periodic one
+     """
+
+    def __init__(
+            self,
+            acs: EnodebAcsStateMachine,
+            when_inform: str,
+    ):
+        super().__init__()
+        self.acs = acs
+        self.inform_transition = when_inform
+
+    @abstractmethod
+    def enter(self):
+        """
+        Perform additional actions on state enter
+        """
+        pass
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        Send an empty response if a device sends an empty HTTP message
+
+        If its an inform, try to process it. It could be a queued
+        inform or a periodic one.
+
+        Args:
+            message (Any): TR069 message
+
+        Returns:
+            AcsReadMsgResult
+        """
+        if isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(msg_handled=True, next_state=None)
+        elif isinstance(message, models.Inform):
+            return AcsReadMsgResult(msg_handled=True, next_state=self.inform_transition)
+        return AcsReadMsgResult(msg_handled=False, next_state=None)
+
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        """
+        Send back a message to enb
+
+        Args:
+            message (Any): TR069 message
+
+        Returns:
+            AcsMsgAndTransition
+        """
+        request = models.DummyInput()
+        return AcsMsgAndTransition(msg=request, next_state=None)
+
+    def state_description(self) -> str:
+        """
+        Describe the state
+
+        Returns:
+            str
+        """
+        return 'Notifying DP. Awaiting new Inform.'

@@ -14,31 +14,51 @@ limitations under the License.
 package n7
 
 import (
-	"context"
 	"fmt"
-	"net/http"
 	"strings"
 
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/clientcredentials"
-
-	n7_sbi "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
+	"magma/feg/gateway/sbi"
+	sbi_NpcfSMPolicyControl "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
+	"magma/gateway/service_registry"
 )
 
-// NewN7Client creates a N7 oapi client and sets the OAuth2 client credentiatls for authorizing requests
-func NewN7Client(cfg *PCFConfig) (*n7_sbi.ClientWithResponses, error) {
-	tokenConfig := clientcredentials.Config{
-		ClientID:     cfg.ClientId,
-		ClientSecret: cfg.ClientSecret,
-		TokenURL:     cfg.TokenUrl,
+type N7Client struct {
+	*sbi.BaseClientWithNotifier
+	sbi_NpcfSMPolicyControl.ClientWithResponsesInterface
+	CloudRegistry service_registry.GatewayRegistry
+}
+
+// NewN7ClientWithHandlers creates a N7 client and adds N7 handlers
+func NewN7ClientWithHandlers(cfg *N7Config, cloudReg service_registry.GatewayRegistry) (*N7Client, error) {
+	// client creation to handle magma initiated request
+	n7Options := sbi_NpcfSMPolicyControl.WithHTTPClient(cfg.ServerConfig.BuildHttpClient())
+	serverString := cfg.ServerConfig.BuildServerString()
+	cliWithResponses, err := sbi_NpcfSMPolicyControl.NewClientWithResponses(serverString, n7Options)
+	if err != nil {
+		return nil, fmt.Errorf("error creating NewClientWithResponses: %s", err)
 	}
-	tokenCtxt := context.WithValue(context.Background(), oauth2.HTTPClient, &http.Client{})
-	// Create new N7 client object and assosiate it with oAuth2 HTTP client
-	client, err := n7_sbi.NewClientWithResponses(
-		fmt.Sprintf("%s://%s", cfg.ApiRoot.Scheme, cfg.ApiRoot.Host),
-		n7_sbi.WithHTTPClient(tokenConfig.Client(tokenCtxt)),
-	)
-	return client, err
+	n7Cli := NewN7Client(cfg, cliWithResponses, cloudReg)
+
+	// add handlers to handle PCF initiated requests
+	err = n7Cli.registerHandlers()
+	if err != nil {
+		return nil, fmt.Errorf("error registering handlers: %s", err)
+	}
+	n7Cli.NotifyServer.Start()
+	if err != nil {
+		return nil, fmt.Errorf("error starting notification handler: %s", err)
+	}
+	return n7Cli, nil
+}
+
+// NewN7Client creates a N7 api client and sets the OAuth2 client credentials for authorizing requests
+func NewN7Client(cfg *N7Config, cliWithResponses sbi_NpcfSMPolicyControl.ClientWithResponsesInterface, cloudReg service_registry.GatewayRegistry,
+) *N7Client {
+	return &N7Client{
+		BaseClientWithNotifier:       sbi.NewBaseClientWithNotifyServer(cfg.ClientConfig, cfg.ServerConfig),
+		ClientWithResponsesInterface: cliWithResponses,
+		CloudRegistry:                cloudReg,
+	}
 }
 
 func removeIMSIPrefix(imsi string) string {

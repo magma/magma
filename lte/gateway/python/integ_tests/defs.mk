@@ -14,6 +14,7 @@ PROTO_LIST:=orc8r_protos lte_protos feg_protos
 
 # Add the s1aptester integration tests
 PRECOMMIT_TESTS = s1aptests/test_attach_detach.py \
+s1aptests/test_attach_detach_static_ip.py \
 s1aptests/test_gateway_metrics_attach_detach.py \
 s1aptests/test_attach_detach_looped.py  \
 s1aptests/test_attach_emergency.py \
@@ -36,6 +37,7 @@ s1aptests/test_no_auth_response.py \
 s1aptests/test_no_security_mode_complete.py \
 s1aptests/test_tau_periodic_inactive.py \
 s1aptests/test_tau_periodic_active.py \
+s1aptests/test_tau_ta_updating_connected_mode.py \
 s1aptests/test_attach_service.py \
 s1aptests/test_attach_detach_service.py \
 s1aptests/test_attach_service_ue_radio_capability.py \
@@ -104,6 +106,8 @@ s1aptests/test_multi_enb_multi_ue_diff_enbtype.py \
 s1aptests/test_multi_enb_partial_reset.py \
 s1aptests/test_multi_enb_complete_reset.py \
 s1aptests/test_multi_enb_sctp_shutdown.py \
+s1aptests/test_ipv6_paging_with_dedicated_bearer.py\
+s1aptests/test_ipv4v6_paging_with_dedicated_bearer.py\
 s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_attach_ul_tcp_data.py \

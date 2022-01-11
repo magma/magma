@@ -23,6 +23,7 @@ RUN apt-get update && \
         # dependency of sctpd
         libsctp-dev \
         libssl-dev \
+        lld \
         python3 \
         python-is-python3 \
         unzip \

@@ -113,4 +113,11 @@ bool load_service_mconfig(const std::string& service_name,
   return status.ok();
 }
 
+uint32_t get_log_verbosity_from_mconfig(const uint32_t mconfig_log_level) {
+  if (mconfig_log_level < 0 || mconfig_log_level > 4) {
+    return MINFO;
+  }
+  return 4 - mconfig_log_level;
+}
+
 }  // namespace magma

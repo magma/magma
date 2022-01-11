@@ -20,3 +20,7 @@ link_directories(/usr/src/googletest/googlemock/lib/)
 add_executable(bstr_test test_bstr.cpp)
 target_link_libraries(bstr_test LIB_BSTR gmock_main gtest gtest_main gmock pthread)
 add_test(test_bstr bstr_test)
+
+add_executable(3gpp_test test_3gpp.cpp)
+target_link_libraries(3gpp_test LIB_3GPP gmock_main gtest gtest_main gmock)
+add_test(test_3gpp 3gpp_test)

@@ -21,7 +21,7 @@ env:
 
   S3_BUCKET_PATH: s3://magma-cache
 
-  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:sha-2f4586b"
+  DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:sha-206a67a"
 
 jobs:
   bazel-build-magma-vm-and-push-cache:

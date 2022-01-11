@@ -16,17 +16,15 @@
     "setups" :{
         "setup_1": {
             "_description": "<description one>",
-            "controller":"192.0.0.1",
             "proxy": "192.0.0.1",
-            "feg": "192.0.0.1",
+            "feg": ["192.0.0.1","192.0.0.2"],
             "gateway": "192.0.0.1",
             "ng40": "192.0.0.1"
         },
         "setup_2": {
             "_description": "<description two>",
-            "controller": "192.0.0.1",
             "proxy": "192.0.0.1",
-            "feg": "192.0.0.1,",
+            "feg": ["192.0.0.1"],
             "gateway": "192.0.0.1",
             "ng40": "192.0.0.1"
         }

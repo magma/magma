@@ -20,6 +20,8 @@ modifications are required because:
 3) Minor enhancements for debug-ability
 """
 
+from typing import Any, Dict, List, Union
+
 from lxml import etree
 from magma.enodebd.logger import EnodebdLogger as logger
 from spyne.application import Application
@@ -153,3 +155,20 @@ class Tr069Soap11(Soap11):
 
         # Keep XSD namespace
         etree.cleanup_namespaces(ctx.out_document, keep_ns_prefixes=['xsd'])
+
+
+def as_dict(x: Any) -> Union[Dict, List, str]:
+    """
+    Represent TR069 payloads as python dictionaries. Used mostly for debug
+
+    Args:
+        x (Any): element to represent as dict
+
+    Returns:
+        Union[Dict, List, str]
+    """
+    if hasattr(x, 'as_dict'):
+        return {k: as_dict(v) for k, v in x.as_dict().items()}
+    elif isinstance(x, list):
+        return [as_dict(v) for v in x]
+    return str(x)

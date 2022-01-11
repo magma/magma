@@ -157,6 +157,10 @@ void create_state_matrix() {
   Update_ue_state_matrix(
       DEREGISTERED, STATE_PDU_SESSION_RELEASE_COMPLETE, SESSION_NULL,
       DEREGISTERED, SESSION_NULL, "PDU_Release");
+
+  Update_ue_state_matrix(
+      REGISTERED_CONNECTED, STATE_PDU_SESSION_RELEASE_COMPLETE, INACTIVE,
+      REGISTERED_CONNECTED, RELEASED, "PDU_Release");
 }
 
 /*

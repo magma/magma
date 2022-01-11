@@ -414,11 +414,12 @@ int amf_nas_proc_auth_param_res(
 
 int amf_nas_proc_authentication_info_answer(
     itti_amf_subs_auth_info_ans_t* aia) {
-  imsi64_t imsi64                       = INVALID_IMSI64;
-  int rc                                = RETURNerror;
-  amf_context_t* amf_ctxt_p             = NULL;
-  ue_m5gmm_context_s* ue_5gmm_context_p = NULL;
-  int amf_cause                         = -1;
+  imsi64_t imsi64                        = INVALID_IMSI64;
+  int rc                                 = RETURNerror;
+  amf_context_t* amf_ctxt_p              = NULL;
+  ue_m5gmm_context_s* ue_5gmm_context_p  = NULL;
+  int amf_cause                          = -1;
+  nas5g_auth_info_proc_t* auth_info_proc = NULL;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
   IMSI_STRING_TO_IMSI64((char*) aia->imsi, &imsi64);
@@ -464,11 +465,16 @@ int amf_nas_proc_authentication_info_answer(
         amf_ue_ngap_id, aia->auth_info.nb_of_vectors,
         aia->auth_info.m5gauth_vector);
   } else {
+    /* Get Auth Info Pro */
+    auth_info_proc = get_nas5g_cn_procedure_auth_info(amf_ctxt_p);
     OAILOG_ERROR(
         LOG_NAS_AMF, "nb_of_vectors received is zero from subscriberdb");
     amf_cause = AMF_UE_ILLEGAL;
     rc        = amf_proc_registration_reject(amf_ue_ngap_id, amf_cause);
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+    if (auth_info_proc) {
+      nas5g_delete_cn_procedure(amf_ctxt_p, &auth_info_proc->cn_proc);
+    }
+    amf_free_ue_context(ue_5gmm_context_p);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
