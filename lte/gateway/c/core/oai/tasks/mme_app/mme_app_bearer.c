@@ -1707,7 +1707,7 @@ void mme_app_handle_initial_context_setup_rsp(
 void mme_app_handle_release_access_bearers_resp(
     mme_app_desc_t* mme_app_desc_p,
     const itti_s11_release_access_bearers_response_t* const
-        rel_access_bearers_rsp_pP) {
+        rel_access_bearers_rsp_pP, task_id_t originTaskId) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   struct ue_mm_context_s* ue_context_p = NULL;
 
@@ -1721,7 +1721,21 @@ void mme_app_handle_release_access_bearers_resp(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
-  ue_context_p->nb_rabs--;
+    if (originTaskId == TASK_SPGW) {
+      for (uint8_t itr=0; itr < MAX_APN_PER_UE; itr ++) {
+        if ((ue_context_p->pdn_contexts[itr]) && (!ue_context_p->pdn_contexts[itr].route_s11_messages_to_s8_task)) {
+          for (uint8_t bidx=0; bidx < BEARERS_PER_UE; bidx++) {
+            if (ue_mm_context->bearer_contexts[ue_context_p->pdn_contexts[itr].bearer_contexts[idx]]) {
+              update_mme_app_stats_s1u_bearer_sub();
+            }
+          }
+        }
+      }
+    } else if (originTaskId == TASK_SGW_S8) {
+
+    }
+      ue_context_p->nb_rabs--;
+  }
   /* Wait for all the RAB responses, in case RAB req was sent to both
    * spgw and s8 tasks
    */

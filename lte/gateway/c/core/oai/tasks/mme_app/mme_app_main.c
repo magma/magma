@@ -187,7 +187,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S11_RELEASE_ACCESS_BEARERS_RESPONSE: {
       mme_app_handle_release_access_bearers_resp(
           mme_app_desc_p,
-          &received_message_p->ittiMsg.s11_release_access_bearers_response);
+          &received_message_p->ittiMsg.s11_release_access_bearers_response, received_message_p->ittiMsg.ittiMsgHeader.originTaskId);
     } break;
 
     case S11_DELETE_SESSION_RESPONSE: {
