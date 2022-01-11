@@ -25,9 +25,7 @@ const (
 	DiamUnableToDeliverErr = 3002
 
 	// FeG Relay Services
-	FegSessionProxy gateway_registry.GwServiceType = "session_proxy"
-	FegHello        gateway_registry.GwServiceType = "feg_hello"
-	FegSwxProxy     gateway_registry.GwServiceType = "swx_proxy"
+	FegS6aProxy     gateway_registry.GwServiceType = "s6a_proxy"
 )
 
 // RelayRouter implements generic routing logic and currently just embeds gw_to_feg_relay.Router functionality
