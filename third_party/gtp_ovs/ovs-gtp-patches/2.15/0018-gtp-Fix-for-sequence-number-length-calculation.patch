@@ -1,4 +1,4 @@
-From 9b622ee7475cfc1d1c13d94a3cad9ed5c4ef32d4 Mon Sep 17 00:00:00 2001
+From 99364efc65d01050a695f8733f9928e0f17c705d Mon Sep 17 00:00:00 2001
 From: Yogesh Pandey <yogesh@wavelabs.ai>
 Date: Sat, 21 Aug 2021 09:58:46 +0000
 Subject: [PATCH 18/22] gtp: Fix for sequence number length calculation

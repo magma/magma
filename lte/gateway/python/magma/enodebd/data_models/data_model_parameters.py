@@ -45,6 +45,8 @@ class ParameterName():
     UL_BANDWIDTH = 'UL bandwidth'
     SUBFRAME_ASSIGNMENT = 'Subframe assignment'
     SPECIAL_SUBFRAME_PATTERN = 'Special subframe pattern'
+    POWER_SPECTRAL_DENSITY = 'Power Spectral Density'
+    RADIO_ENABLE = "Radio Enable"
 
     # Other LTE parameters
     ADMIN_STATE = 'Admin state'
@@ -85,6 +87,11 @@ class ParameterName():
     PERF_MGMT_USER = 'Perf mgmt username'
     PERF_MGMT_PASSWORD = 'Perf mgmt password'
 
+    SAS_ENABLED = 'SAS enabled'
+    SAS_FCC_ID = 'SAS FCC ID'
+    SAS_USER_ID = 'SAS User ID'
+    SAS_RADIO_ENABLE = 'SAS Radio Enable'
+    
     # HO algorithm parameters
     A1_THRESHOLD_RSRP = 'A1 threshold rsrp'
     LTE_A1_THRESHOLD_RSRQ = 'Lte a1 threshold rsrq'
@@ -113,7 +120,6 @@ class ParameterName():
     THRESHSERVINGLOW = 'threshservinglow'
     CIPHERING_ALGORITHM = 'ciphering algorithm'
     INTEGRITY_ALGORITHM = 'integrity algorithm'
-
 
 class TrParameterType():
     BOOLEAN = 'boolean'

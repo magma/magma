@@ -11,9 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
-from typing import Any, Callable, Dict, List, Optional, Type
+from math import log10
+from typing import Any, Callable, Dict, List, Optional
 
-from magma.common.service import MagmaService
+from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult
 from magma.enodebd.data_models import transform_for_magma
 from magma.enodebd.data_models.data_model import (
     DataModel,
@@ -24,12 +25,20 @@ from magma.enodebd.data_models.data_model_parameters import (
     ParameterName,
     TrParameterType,
 )
+from magma.enodebd.device_config.cbrs_consts import BAND
 from magma.enodebd.device_config.configuration_init import build_desired_config
+from magma.enodebd.device_config.configuration_util import (
+    calc_bandwidth_mhz,
+    calc_bandwidth_rbs,
+    calc_earfcn,
+)
 from magma.enodebd.device_config.enodeb_config_postprocessor import (
     EnodebConfigurationPostProcessor,
 )
 from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
+from magma.enodebd.dp_client import get_cbsd_state
+from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.logger import EnodebdLogger
 from magma.enodebd.state_machines.acs_state_utils import (
     get_all_objects_to_add,
@@ -50,6 +59,7 @@ from magma.enodebd.state_machines.enb_acs_states import (
     EnodebAcsState,
     ErrorState,
     GetParametersState,
+    NotifyDPState,
     SetParameterValuesState,
     WaitGetParametersState,
     WaitInformMRebootState,
@@ -59,6 +69,14 @@ from magma.enodebd.state_machines.enb_acs_states import (
 )
 from magma.enodebd.tr069 import models
 
+SAS_KEY = 'sas'
+WEB_UI_ENABLE_LIST_KEY = 'web_ui_enable_list'
+SAS_ENABLE_KEY = 'sas_enabled'
+
+RADIO_MIN_POWER = 0
+RADIO_MAX_POWER = 24
+ANTENNA_GAIN_DBI = 5
+
 
 class SASParameters(object):
     """ Class modeling the SAS parameters and their TR path"""
@@ -67,6 +85,7 @@ class SASParameters(object):
     FAPSERVICE_PATH = 'Device.Services.FAPService.1.'
 
     # Sas management parameters
+    # TODO move param definitions to ParameterNames class or think of something to make them more generic across devices
     SAS_ENABLE = "sas_enabled"
     SAS_SERVER_URL = "sas_server_url"
     SAS_UID = "sas_uid"
@@ -78,8 +97,10 @@ class SASParameters(object):
     SAS_HEIGHT_TYPE = "sas_height_type"
     SAS_CPI_ENABLE = "sas_cpi_enable"
     SAS_CPI_IPE = "sas_cpi_ipe"  # Install param supplied enable
-    FREQ_BAND_1 = "freq_band_1"
-    FREQ_BAND_2 = "freq_band_2"
+    SAS_USER_ID = "sas_uid"  # TODO this should be set to a constant value in config
+    SAS_FCC_ID = "sas_fcc_id"
+    FREQ_BAND1 = "freq_band_1"
+    FREQ_BAND2 = "freq_band_2"
     # For CBRS radios we set this to the limit and the SAS can reduce the
     # power if needed.
     TX_POWER_CONFIG = "tx_power_config"
@@ -96,9 +117,12 @@ class SASParameters(object):
             type=TrParameterType.STRING,
             is_optional=False,
         ),
-        SAS_UID: TrParam(
-            FAP_CONTROL + 'LTE.X_000E8F_SAS.UserContactInformation',
-            is_invasive=False,
+        SAS_USER_ID: TrParam(
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.UserContactInformation', is_invasive=False,
+            type=TrParameterType.STRING, is_optional=False,
+        ),
+        SAS_FCC_ID: TrParam(
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.FCCIdentificationNumber', is_invasive=False,
             type=TrParameterType.STRING, is_optional=False,
         ),
         SAS_CATEGORY: TrParam(
@@ -135,12 +159,12 @@ class SASParameters(object):
             FAP_CONTROL + 'LTE.X_000E8F_SAS.CPIInstallParamSuppliedEnable',
             is_invasive=False, type=TrParameterType.BOOLEAN, is_optional=False,
         ),
-        FREQ_BAND_1: TrParam(
+        FREQ_BAND1: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.FreqBandIndicator',
             is_invasive=False, type=TrParameterType.UNSIGNED_INT,
             is_optional=False,
         ),
-        FREQ_BAND_2: TrParam(
+        FREQ_BAND2: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.X_000E8F_FreqBandIndicator2',
             is_invasive=False, type=TrParameterType.UNSIGNED_INT,
             is_optional=False,
@@ -411,8 +435,6 @@ class FreedomFiOneMiscParameters(object):
     defaults = {
         # Use IPV4 only
         TUNNEL_REF: "Device.IP.Interface.1.IPv4Address.1.",
-        # Only synchronize with GPS
-        PRIM_SOURCE: "GNSS",
         # Always enable carrier aggregation for the CBRS bands
         CARRIER_AGG_ENABLE: True,
         CARRIER_NUMBER: 2,  # CBRS has two carriers
@@ -422,17 +444,30 @@ class FreedomFiOneMiscParameters(object):
 
 
 class FreedomFiOneHandler(BasicEnodebAcsStateMachine):
+    """
+    FreedomFi One State Machine
+    """
+
     def __init__(
             self,
-            service: MagmaService,
+            service,
     ) -> None:
         self._state_map = {}
         super().__init__(service=service, use_param_key=True)
 
     def reboot_asap(self) -> None:
+        """
+        Transition to 'reboot' state
+        """
         self.transition('reboot')
 
     def is_enodeb_connected(self) -> bool:
+        """
+        Check if enodebd has received an Inform from the enodeb
+
+        Returns:
+            bool
+        """
         return not isinstance(self.state, WaitInformState)
 
     def _init_state_map(self) -> None:
@@ -452,14 +487,13 @@ class FreedomFiOneHandler(BasicEnodebAcsStateMachine):
                 when_done='get_params',
             ),
 
-            'get_params':
-                FreedomFiOneGetObjectParametersState(
-                    self,
-                    when_delete='delete_objs',
-                    when_add='add_objs',
-                    when_set='set_params',
-                    when_skip='end_session',
-                ),
+            'get_params': FreedomFiOneGetObjectParametersState(
+                self,
+                when_delete='delete_objs',
+                when_add='add_objs',
+                when_set='set_params',
+                when_skip='end_session',
+            ),
 
             'delete_objs': DeleteObjectsState(
                 self, when_add='add_objs',
@@ -485,7 +519,8 @@ class FreedomFiOneHandler(BasicEnodebAcsStateMachine):
                 self,
                 when_done='end_session',
             ),
-            'end_session': EndSessionState(self),
+            'end_session': FreedomFiOneEndSessionState(self, when_dp_mode='notify_dp'),
+            'notify_dp': FreedomFiOneNotifyDPState(self, when_inform='wait_inform'),
 
             # These states are only entered through manual user intervention
             'reboot': EnbSendRebootState(self, when_done='wait_reboot'),
@@ -508,26 +543,62 @@ class FreedomFiOneHandler(BasicEnodebAcsStateMachine):
 
     @property
     def device_name(self) -> str:
+        """
+        Return the device name
+
+        Returns:
+            device name
+        """
         return EnodebDeviceName.FREEDOMFI_ONE
 
     @property
-    def data_model_class(self) -> Type[DataModel]:
+    def data_model_class(self) -> DataModel:
+        """
+        Return the class of the data model
+
+        Returns:
+            DataModel
+        """
         return FreedomFiOneTrDataModel
 
     @property
     def config_postprocessor(self) -> EnodebConfigurationPostProcessor:
+        """
+        Return the instance of config postprocessor
+
+        Returns:
+            EnodebConfigurationPostProcessor
+        """
         return FreedomFiOneConfigurationInitializer(self)
 
     @property
     def state_map(self) -> Dict[str, EnodebAcsState]:
+        """
+        Return the state map for the State Machine
+
+        Returns:
+            Dict[str, EnodebAcsState]
+        """
         return self._state_map
 
     @property
     def disconnected_state_name(self) -> str:
+        """
+        Return the string representation of a disconnected state
+
+        Returns:
+            str
+        """
         return 'wait_inform'
 
     @property
     def unexpected_fault_state_name(self) -> str:
+        """
+        Return the string representation of an unexpected fault state
+
+        Returns:
+            str
+        """
         return 'unexpected_fault'
 
 
@@ -580,6 +651,11 @@ class FreedomFiOneTrDataModel(DataModel):
         ParameterName.EARFCNDL: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.EARFCNDL',
             is_invasive=False,
+            type=TrParameterType.INT,
+            is_optional=False,
+        ),
+        ParameterName.EARFCNUL: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.EARFCNUL', is_invasive=False,
             type=TrParameterType.INT,
             is_optional=False,
         ),
@@ -679,7 +755,7 @@ class FreedomFiOneTrDataModel(DataModel):
     }
     TRANSFORMS_FOR_ENB = {}
     NUM_PLMNS_IN_CONFIG = 1
-    for i in range(1, NUM_PLMNS_IN_CONFIG + 1):
+    for i in range(1, NUM_PLMNS_IN_CONFIG + 1):  # noqa: WPS604
         PARAMETERS[ParameterName.PLMN_N % i] = TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.' % i,
             is_invasive=False,
@@ -706,11 +782,11 @@ class FreedomFiOneTrDataModel(DataModel):
             type=TrParameterType.STRING, is_optional=False,
         )
 
-    PARAMETERS.update(SASParameters.SAS_PARAMETERS)
-    PARAMETERS.update(FreedomFiOneMiscParameters.MISC_PARAMETERS)
-    PARAMETERS.update(StatusParameters.STATUS_PARAMETERS)
+    PARAMETERS.update(SASParameters.SAS_PARAMETERS)  # noqa: WPS604
+    PARAMETERS.update(FreedomFiOneMiscParameters.MISC_PARAMETERS)  # noqa: WPS604
+    PARAMETERS.update(StatusParameters.STATUS_PARAMETERS)  # noqa: WPS604
     # These are stateful parameters that have no tr-69 representation
-    PARAMETERS.update(StatusParameters.DERIVED_STATUS_PARAMETERS)
+    PARAMETERS.update(StatusParameters.DERIVED_STATUS_PARAMETERS)  # noqa: WPS604
 
     TRANSFORMS_FOR_MAGMA = {
         # We don't set these parameters
@@ -720,6 +796,15 @@ class FreedomFiOneTrDataModel(DataModel):
 
     @classmethod
     def get_parameter(cls, param_name: ParameterName) -> Optional[TrParam]:
+        """
+        Retrieve parameter by its name
+
+        Args:
+            param_name (ParameterName): parameter name to retrieve
+
+        Returns:
+            Optional[TrParam]
+        """
         return cls.PARAMETERS.get(param_name)
 
     @classmethod
@@ -735,16 +820,31 @@ class FreedomFiOneTrDataModel(DataModel):
     @classmethod
     def get_load_parameters(cls) -> List[ParameterName]:
         """
-        Load all the parameters instead of a subset.
+        Retrieve all load parameters
+
+        Returns:
+             List[ParameterName]
         """
         return list(cls.PARAMETERS.keys())
 
     @classmethod
     def get_num_plmns(cls) -> int:
+        """
+        Retrieve the number of all PLMN parameters
+
+        Returns:
+            int
+        """
         return cls.NUM_PLMNS_IN_CONFIG
 
     @classmethod
     def get_parameter_names(cls) -> List[ParameterName]:
+        """
+        Retrieve all parameter names
+
+        Returns:
+            List[ParameterName]
+        """
         excluded_params = [
             str(ParameterName.DEVICE),
             str(ParameterName.FAP_SERVICE),
@@ -762,6 +862,12 @@ class FreedomFiOneTrDataModel(DataModel):
     def get_numbered_param_names(
             cls,
     ) -> Dict[ParameterName, List[ParameterName]]:
+        """
+        Retrieve parameter names of all objects
+
+        Returns:
+            Dict[ParameterName, List[ParameterName]]
+        """
         names = {}
         for i in range(1, cls.NUM_PLMNS_IN_CONFIG + 1):
             params = [
@@ -776,13 +882,20 @@ class FreedomFiOneTrDataModel(DataModel):
 
     @classmethod
     def get_sas_param_names(cls) -> List[ParameterName]:
+        """
+        Retrieve names of SAS parameters
+
+        Returns:
+            List[ParameterName]
+        """
         return SASParameters.SAS_PARAMETERS.keys()
 
 
 class FreedomFiOneConfigurationInitializer(EnodebConfigurationPostProcessor):
     """
-    Class to add the sas related parameters to the desired config.
+    Overrides desired config on the State Machine
     """
+
     SAS_KEY = 'sas'
     WEB_UI_ENABLE_LIST_KEY = 'web_ui_enable_list'
 
@@ -794,24 +907,43 @@ class FreedomFiOneConfigurationInitializer(EnodebConfigurationPostProcessor):
             self, mconfig: Any, service_cfg: Any,
             desired_cfg: EnodebConfiguration,
     ) -> None:
-        # TODO: Get this config from the domain proxy
-        # TODO @amarpad, set these when DProxy integration is done.
-        # For now the radio will directly talk to the SAS and get these
-        # attributes.
+        """
+        Add some params to the desired config
+
+        Args:
+            mconfig (Any): mconfig
+            service_cfg (Any): service config
+            desired_cfg (EnodebConfiguration): desired config
+        """
         desired_cfg.delete_parameter(ParameterName.EARFCNDL)
         desired_cfg.delete_parameter(ParameterName.DL_BANDWIDTH)
         desired_cfg.delete_parameter(ParameterName.UL_BANDWIDTH)
 
-        # go through misc parameters and set them to default.
-        for name, val in FreedomFiOneMiscParameters.defaults.items():
-            desired_cfg.set_parameter(name, val)
+        self._set_default_params(desired_cfg)
+        self._increment_param_version_key()
+        self._verify_cell_reserved_param(desired_cfg)
+        self._verify_ui_enable(service_cfg, desired_cfg)
+        self._verify_sas_params(service_cfg, desired_cfg)
+        self._set_misc_params_from_service_config(service_cfg, desired_cfg)
 
-        # Bump up the parameter key version
+    def _set_default_params(self, desired_cfg):
+        """Set default parameters"""
+        for name, val in FreedomFiOneMiscParameters.defaults.items():
+            desired_cfg.set_parameter(name, value=val)
+
+    def _increment_param_version_key(self):
+        """Bump up the parameter key version"""
         self.acs.parameter_version_inc()
 
-        # Workaround a bug in Sercomm firmware in release 3920, 3921
-        # where the meaning of CellReservedForOperatorUse is wrong.
-        # Set to True to ensure the PLMN is not reserved
+    def _verify_cell_reserved_param(self, desired_cfg):
+        """
+        Workaround a bug in Sercomm firmware in release 3920, 3921
+        where the meaning of CellReservedForOperatorUse is wrong.
+        Set to True to ensure the PLMN is not reserved
+
+        Args:
+            desired_cfg: desired eNB config
+        """
         num_plmns = self.acs.data_model.get_num_plmns()
         for i in range(1, num_plmns + 1):
             object_name = ParameterName.PLMN_N % i
@@ -821,8 +953,9 @@ class FreedomFiOneConfigurationInitializer(EnodebConfigurationPostProcessor):
                 object_name=object_name,
             )
 
-        if self.WEB_UI_ENABLE_LIST_KEY in service_cfg:
-            serial_nos = service_cfg.get(self.WEB_UI_ENABLE_LIST_KEY)
+    def _verify_ui_enable(self, service_cfg, desired_cfg):
+        if WEB_UI_ENABLE_LIST_KEY in service_cfg:
+            serial_nos = service_cfg.get(WEB_UI_ENABLE_LIST_KEY)
             if self.acs.device_cfg.has_parameter(
                     ParameterName.SERIAL_NUMBER,
             ):
@@ -830,22 +963,29 @@ class FreedomFiOneConfigurationInitializer(EnodebConfigurationPostProcessor):
                         serial_nos:
                     desired_cfg.set_parameter(
                         FreedomFiOneMiscParameters.WEB_UI_ENABLE,
-                        True,
+                        value=True,
                     )
             else:
                 # This should not happen
                 EnodebdLogger.error("Serial number unknown for device")
 
-        if self.SAS_KEY not in service_cfg:
+    def _verify_sas_params(self, service_cfg, desired_cfg):
+        sas_cfg = service_cfg.get(SAS_KEY)
+        if not sas_cfg or not sas_cfg[SAS_ENABLE_KEY]:
+            desired_cfg.set_parameter(SASParameters.SAS_ENABLE, False)  # noqa: WPS425
             return
 
-        sas_cfg = service_cfg[self.SAS_KEY]
         sas_param_names = self.acs.data_model.get_sas_param_names()
         for name, val in sas_cfg.items():
             if name not in sas_param_names:
                 EnodebdLogger.warning("Ignoring attribute %s", name)
                 continue
             desired_cfg.set_parameter(name, val)
+
+    def _set_misc_params_from_service_config(self, service_cfg, desired_cfg):
+        prim_src_name = FreedomFiOneMiscParameters.PRIM_SOURCE
+        prim_src_service_cfg_val = service_cfg.get(prim_src_name)
+        desired_cfg.set_parameter(prim_src_name, prim_src_service_cfg_val)
 
 
 class FreedomFiOneSendGetTransientParametersState(EnodebAcsState):
@@ -861,6 +1001,15 @@ class FreedomFiOneSendGetTransientParametersState(EnodebAcsState):
         self.done_transition = when_done
 
     def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        """
+        Send back a message to enb
+
+        Args:
+            message (Any): TR069 message
+
+        Returns:
+            AcsMsgAndTransition
+        """
         request = models.GetParameterValues()
         request.ParameterNames = models.ParameterNames()
         request.ParameterNames.string = []
@@ -873,7 +1022,15 @@ class FreedomFiOneSendGetTransientParametersState(EnodebAcsState):
         return AcsMsgAndTransition(msg=request, next_state=None)
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        Read incoming message
 
+        Args:
+            message (Any): TR069 message
+
+        Returns:
+            AcsReadMsgResult
+        """
         if not isinstance(message, models.GetParameterValuesResponse):
             return AcsReadMsgResult(msg_handled=False, next_state=None)
         # Current values of the fetched parameters
@@ -895,6 +1052,12 @@ class FreedomFiOneSendGetTransientParametersState(EnodebAcsState):
         )
 
     def state_description(self) -> str:
+        """
+        Describe the state
+
+        Returns:
+            str
+        """
         return 'Getting transient read-only parameters'
 
 
@@ -918,8 +1081,13 @@ class FreedomFiOneGetInitState(EnodebAcsState):
 
     def get_msg(self, message: Any) -> AcsMsgAndTransition:
         """
-        Return empty message response if care about this
-        message type otherwise return empty RPC methods response.
+        Send back a message to enb
+
+        Args:
+            message (Any): TR069 message
+
+        Returns:
+            AcsMsgAndTransition
         """
         if not self._is_rpc_request:
             resp = models.DummyInput()
@@ -927,14 +1095,23 @@ class FreedomFiOneGetInitState(EnodebAcsState):
 
         resp = models.GetRPCMethodsResponse()
         resp.MethodList = models.MethodList()
-        RPC_METHODS = ['Inform', 'GetRPCMethods', 'TransferComplete']
+        rpc_methods = ['Inform', 'GetRPCMethods', 'TransferComplete']
         resp.MethodList.arrayType = 'xsd:string[%d]' \
-                                    % len(RPC_METHODS)
-        resp.MethodList.string = RPC_METHODS
+                                    % len(rpc_methods)
+        resp.MethodList.string = rpc_methods
         # Don't transition to next state wait for the empty HTTP post
         return AcsMsgAndTransition(msg=resp, next_state=None)
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        Read incoming message
+
+        Args:
+            message (Any): TR069 message
+
+        Returns:
+            AcsReadMsgResult
+        """
         # If this is a regular Inform, not after a reboot we'll get an empty
         # message, in this case transition to the next state. We consider
         # this phase as "initialized"
@@ -954,6 +1131,12 @@ class FreedomFiOneGetInitState(EnodebAcsState):
         return AcsReadMsgResult(msg_handled=True, next_state=None)
 
     def state_description(self) -> str:
+        """
+        Describe the state
+
+        Returns:
+            str
+        """
         return 'Initializing the post boot sequence for eNB'
 
 
@@ -986,8 +1169,16 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
             self,
             data_model: DataModel,
     ) -> List[ParameterName]:
-        names = []
+        """
+        Return the names of params not belonging to objects that are added/removed
 
+        Args:
+            data_model: Data model of eNB
+
+        Returns:
+            List[ParameterName]
+        """
+        names = []
         # First get base params
         names = get_params_to_get(
             self.acs.device_cfg, self.acs.data_model, request_all_params=True,
@@ -1002,7 +1193,15 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
         return names
 
     def get_msg(self, message: Any) -> AcsMsgAndTransition:
-        """ Respond with GetParameterValuesRequest """
+        """
+        Send back a message to enb
+
+        Args:
+            message (Any): TR069 message
+
+        Returns:
+            AcsMsgAndTransition
+        """
         names = self.get_params_to_get(
             self.acs.data_model,
         )
@@ -1023,7 +1222,13 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         """
-        Process GetParameterValuesResponse
+        Read incoming message
+
+        Args:
+            message (Any): TR069 message
+
+        Returns:
+            AcsReadMsgResult
         """
         if not isinstance(message, models.GetParameterValuesResponse):
             return AcsReadMsgResult(msg_handled=False, next_state=None)
@@ -1079,7 +1284,7 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
                 self.acs.config_postprocessor,
             )
 
-        if len(
+        if len(  # noqa: WPS507
                 get_all_objects_to_delete(
                     self.acs.desired_cfg,
                     self.acs.device_cfg,
@@ -1089,7 +1294,7 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
                 msg_handled=True,
                 next_state=self.rm_obj_transition,
             )
-        elif len(
+        elif len(  # noqa: WPS507
                 get_all_objects_to_add(
                     self.acs.desired_cfg,
                     self.acs.device_cfg,
@@ -1099,7 +1304,7 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
                 msg_handled=True,
                 next_state=self.add_obj_transition,
             )
-        elif len(
+        elif len(  # noqa: WPS507
                 get_all_param_values_to_set(
                     self.acs.desired_cfg,
                     self.acs.device_cfg,
@@ -1116,4 +1321,109 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
         )
 
     def state_description(self) -> str:
+        """
+        Describe the state
+
+        Returns:
+            str
+        """
         return 'Getting well known parameters'
+
+
+class FreedomFiOneEndSessionState(EndSessionState):
+    """ To end a TR-069 session, send an empty HTTP response
+
+    We can expect an inform message on
+    End Session state, either a queued one or a periodic one
+    """
+
+    def __init__(self, acs: EnodebAcsStateMachine, when_dp_mode: str):
+        super().__init__(acs)
+        self.acs = acs
+        self.notify_dp = when_dp_mode
+
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        """
+        Send back a message to enb
+
+        Args:
+            message (Any): TR069 message
+
+        Returns:
+            AcsMsgAndTransition
+        """
+        request = models.DummyInput()
+        if not self.acs.desired_cfg.get_parameter(SAS_ENABLE_KEY):
+            return AcsMsgAndTransition(request, self.notify_dp)
+        return AcsMsgAndTransition(request, None)
+
+    def state_description(self) -> str:
+        """
+        Describe the state
+
+        Returns:
+            str
+        """
+        description = 'Completed provisioning eNB. Awaiting new Inform'
+        if not self.acs.desired_cfg.get_parameter(SAS_ENABLE_KEY):
+            description = 'Completed initial provisioning of the eNB. Awaiting update from DProxy'
+        return description
+
+
+class FreedomFiOneNotifyDPState(NotifyDPState):
+    """
+        FreedomFiOne NotifyDPState implementation
+    """
+
+    def enter(self):
+        """
+        Enter the state
+        """
+        request = CBSDRequest(
+            serial_number=self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
+        )
+        state = get_cbsd_state(request)
+        ff_one_update_desired_config_from_cbsd_state(state, self.acs.desired_cfg)
+
+
+def ff_one_update_desired_config_from_cbsd_state(state: CBSDStateResult, config: EnodebConfiguration) -> None:
+    """
+    Call grpc endpoint on the Domain Proxy to update the desired config based on sas grant
+
+    Args:
+        state (CBSDStateResult): state result as received from DP
+        config (EnodebConfiguration): configuration to update
+    """
+    EnodebdLogger.debug("Updating desired config based on sas grant")
+    config.set_parameter(ParameterName.ADMIN_STATE, state.radio_enabled)
+    if not state.radio_enabled:
+        return
+
+    earfcn = calc_earfcn(state.channel.low_frequency_hz, state.channel.high_frequency_hz)
+    bandwidth_mhz = calc_bandwidth_mhz(state.channel.low_frequency_hz, state.channel.high_frequency_hz)
+    bandwidth_rbs = calc_bandwidth_rbs(bandwidth_mhz)
+    tx_power = _calc_tx_power(state.channel.max_eirp_dbm_mhz, bandwidth_mhz)
+
+    params_to_set = {
+        ParameterName.DL_BANDWIDTH: bandwidth_rbs,
+        ParameterName.UL_BANDWIDTH: bandwidth_rbs,
+        ParameterName.EARFCNDL: earfcn,
+        ParameterName.EARFCNUL: earfcn,
+        SASParameters.TX_POWER_CONFIG: tx_power,
+        SASParameters.FREQ_BAND1: BAND,
+        SASParameters.FREQ_BAND2: BAND,
+    }
+
+    for param, value in params_to_set.items():
+        config.set_parameter(param, value)
+
+
+def _calc_tx_power(max_eirp_dbm_mhz, bandwidth_mhz) -> int:
+    eirp = int(max_eirp_dbm_mhz)
+    tx_power = int(eirp + 10 * log10(bandwidth_mhz) - ANTENNA_GAIN_DBI)
+    if not RADIO_MIN_POWER <= tx_power <= RADIO_MAX_POWER:  # noqa: WPS508
+        raise ConfigurationError(
+            'TX power %d exceeds allowed range [%d, %d]' %
+            (tx_power, RADIO_MIN_POWER, RADIO_MAX_POWER),
+        )
+    return tx_power

@@ -468,6 +468,9 @@
       "proposals/p022_enodebd_enhancements": {
         "title": "proposals/p022_enodebd_enhancements"
       },
+      "proposals/p023_magma_gtp_gateway": {
+        "title": "proposals/p023_magma_gtp_gateway"
+      },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
       },

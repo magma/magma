@@ -197,6 +197,21 @@ void fill_delete_session_response(
   ds_rsp_p->cause        = cause;
 }
 
+void fill_modify_bearer_request(
+    itti_s11_modify_bearer_request_t* mb_req_p, uint32_t teid, uint8_t ebi) {
+  mb_req_p->teid                                              = teid;
+  mb_req_p->bearer_contexts_to_be_modified.num_bearer_context = 1;
+  bearer_context_to_be_modified_t* mbr_bearer_ctxt_p =
+      &mb_req_p->bearer_contexts_to_be_modified.bearer_contexts[0];
+  mbr_bearer_ctxt_p->eps_bearer_id                           = ebi;
+  mbr_bearer_ctxt_p->s1_eNB_fteid.teid                       = 1;
+  mbr_bearer_ctxt_p->s1_eNB_fteid.ipv4_address.s_addr        = 0x8e3ca8c0;
+  mbr_bearer_ctxt_p->s1_eNB_fteid.interface_type             = S11_MME_GTP_C;
+  mb_req_p->bearer_contexts_to_be_removed.num_bearer_context = 1;
+  // send invalid eps_bearer_id
+  mb_req_p->bearer_contexts_to_be_removed.bearer_contexts[0].eps_bearer_id = 8;
+}
+
 sgw_state_t* SgwS8ConfigAndCreateMock::create_and_get_contexts_on_cs_req(
     uint32_t* temporary_create_session_procedure_id,
     sgw_eps_bearer_context_information_t** sgw_pdn_session) {

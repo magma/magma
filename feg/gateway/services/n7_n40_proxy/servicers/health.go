@@ -70,7 +70,7 @@ func (srv *CentralSessionController) GetHealthStatus(ctx context.Context, void *
 }
 
 func (srv *CentralSessionController) getHealthStatusForN7Requests(failures, total int64) *fegprotos.HealthStatus {
-	if !srv.cfg.N7Config.DisableN7 {
+	if !srv.config.DisableN7 {
 		n7ExceedsThreshold := total >= int64(srv.healthTracker.MinimumRequestThreshold) &&
 			float64(failures)/float64(total) >= float64(srv.healthTracker.RequestFailureThreshold)
 		if n7ExceedsThreshold {

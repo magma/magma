@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+// TODO change names to avoid conflicts
+
+option go_package = "magma/dp/cloud/go/active_mode_controller/protos/active_mode";
+
+service ActiveModeController {
+  rpc GetState(GetStateRequest) returns (State) {}
+}
+
+message GetStateRequest {}
+
+message State {
+  repeated ActiveModeConfig active_mode_configs = 1;
+}
+
+message ActiveModeConfig {
+  CbsdState desired_state = 1;
+  Cbsd cbsd = 2;
+}
+
+enum CbsdState {
+  Unregistered = 0;
+  Registered = 1;
+}
+
+message Cbsd {
+  string id = 1;
+  string user_id = 2;
+  string fcc_id = 3;
+  string serial_number = 4;
+  CbsdState state = 5;
+  repeated Grant grants = 6;
+  repeated Channel channels = 7;
+  repeated string pending_requests = 8;
+  int64 last_seen_timestamp = 9;
+  EirpCapabilities eirp_capabilities = 10;
+}
+
+message EirpCapabilities {
+  float min_power = 1;
+  float max_power = 2;
+  float antenna_gain = 3;
+  int32 number_of_ports = 4;
+}
+
+message Grant {
+  string id = 1;
+  GrantState state = 2;
+  int64 heartbeat_interval_sec = 3;
+  int64 last_heartbeat_timestamp = 4;
+}
+
+enum GrantState {
+  Granted = 0;
+  Authorized = 1;
+}
+
+message Channel {
+  FrequencyRange frequency_range = 1;
+  optional float max_eirp = 2;
+  optional float last_eirp = 3;
+}
+
+message FrequencyRange {
+  int64 low = 1;
+  int64 high = 2;
+}
