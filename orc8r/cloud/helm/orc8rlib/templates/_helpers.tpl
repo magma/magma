@@ -28,7 +28,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{/* Generate selector labels */}}
 {{- define "controller-image-version-label" -}}
-image-version: {{ .Values.controller.image.tag}}
 {{- end -}}
 
 {{/* Generate image version tag labels */}}

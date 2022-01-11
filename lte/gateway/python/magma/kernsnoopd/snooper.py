@@ -18,7 +18,7 @@ from jinja2 import Template
 from magma.common.job import Job
 from magma.kernsnoopd.handlers import ebpf_handlers
 
-EBPF_SRC_DIR = "/etc/magma/ebpf"
+EBPF_SRC_DIR = "/var/opt/magma/ebpf/kernsnoopd/"
 if not os.path.isdir(EBPF_SRC_DIR):
     EBPF_SRC_DIR = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),

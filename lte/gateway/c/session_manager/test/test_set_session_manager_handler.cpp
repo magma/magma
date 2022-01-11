@@ -791,10 +791,10 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
       ->set_br_unit(AggregatedMaximumBitrate::KBPS);
   cfg.rat_specific_context.mutable_m5gsm_session_context()
       ->mutable_default_ambr()
-      ->set_max_bandwidth_ul(1024);
+      ->set_max_bandwidth_ul(10000);
   cfg.rat_specific_context.mutable_m5gsm_session_context()
       ->mutable_default_ambr()
-      ->set_max_bandwidth_dl(1024);
+      ->set_max_bandwidth_dl(20000);
 
   SessionUpdate session_update =
       SessionStore::get_default_session_update(session_map);
@@ -814,8 +814,8 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
                   ->mutable_m5g_session_context_rsp();
 
   rsp->mutable_session_ambr()->set_br_unit(AggregatedMaximumBitrate::KBPS);
-  rsp->mutable_session_ambr()->set_max_bandwidth_ul(1024);
-  rsp->mutable_session_ambr()->set_max_bandwidth_dl(1024);
+  rsp->mutable_session_ambr()->set_max_bandwidth_ul(10000);
+  rsp->mutable_session_ambr()->set_max_bandwidth_dl(20000);
 
   EXPECT_CALL(*amf_srv_client,
               handle_response_to_access(CheckSrvResponse(&expected_response)))

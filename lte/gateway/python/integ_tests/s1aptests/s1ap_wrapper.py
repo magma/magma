@@ -203,7 +203,9 @@ class TestWrapper(object):
         print("************************* Waiting for IP changes to propagate")
         self._mobility_util.wait_for_changes()
 
-    def configUEDevice(self, num_ues, reqData=[]):
+    def configUEDevice(self, num_ues, reqData=None, static_ips=[]):
+        if reqData is None:
+            reqData = []
         """ Configure the device on the UE side """
         reqs = self._sub_util.add_sub(num_ues=num_ues)
         for i in range(num_ues):
@@ -240,8 +242,12 @@ class TestWrapper(object):
             )
             # APN configuration below can be overwritten in the test case
             # after configuring UE device.
+            if i < len(static_ips):
+                ue_ip = static_ips[i]
+            else:
+                ue_ip = None
             self.configAPN(
-                "IMSI" + "".join([str(j) for j in reqs[i].imsi]), None,
+                imsi="IMSI" + "".join([str(j) for j in reqs[i].imsi]), apn_list=None, default=True, static_ip=ue_ip,
             )
             self._configuredUes.append(reqs[i])
 
@@ -314,7 +320,7 @@ class TestWrapper(object):
             )
             self._configuredUes.append(reqs[i])
 
-    def configAPN(self, imsi, apn_list, default=True):
+    def configAPN(self, imsi, apn_list, default=True, static_ip=None):
         """ Configure the APN """
         # add a default APN to be used in attach requests
         if default:
@@ -326,6 +332,7 @@ class TestWrapper(object):
                 "pre_vul": 0,  # preemption-vulnerability
                 "mbr_ul": 200000000,  # MBR UL
                 "mbr_dl": 100000000,  # MBR DL
+                "static_ip": static_ip,
             }
             # APN list to be configured
             if apn_list is not None:

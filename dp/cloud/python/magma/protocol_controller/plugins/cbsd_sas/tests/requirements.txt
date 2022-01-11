@@ -1,0 +1,6 @@
+coverage~=5.5
+Flask-Testing==0.8.1
+grpcio==1.37.1
+grpcio-tools==1.37.1
+parameterized==0.8.1
+pytest==6.2.3

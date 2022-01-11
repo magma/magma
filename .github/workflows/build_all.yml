@@ -14,6 +14,7 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
   build_publish_helm_charts:
+    if: github.repository_owner == 'magma'
     env:
       HELM_CHART_ARTIFACTORY_URL: "https://artifactory.magmacore.org:443/artifactory/"
       HELM_CHART_MUSEUM_REPO: helm-test
@@ -99,12 +100,14 @@ jobs:
           pip install artifactory
           python ci-scripts/helm_repo_rotation.py
   agw-build:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.repository_owner == 'magma'
     runs-on: macos-10.15
     outputs:
       artifacts: ${{ steps.publish_packages.outputs.artifacts }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: setup pyenv
         uses: "gabrielfalcao/pyenv-action@v8"
         with:
@@ -159,12 +162,17 @@ jobs:
             ARTIFACTS=$(echo $ARTIFACTS | jq '. += {"valid":true}')
           fi
           echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
-
       - uses: actions/upload-artifact@v2
         if: github.event_name == 'pull_request'
         with:
           name: magma-packages
           path: lte/gateway/magma-packages/*.deb
+      - uses: actions/upload-artifact@v2
+        name: Export sentry executables
+        if: github.event_name == 'push'
+        with:
+          name: sentry-exec
+          path: lte/gateway/magma-packages
       - name: Extract commit title
         # yamllint enable
         if: github.event_name == 'push'
@@ -191,7 +199,50 @@ jobs:
         uses: Ilshidur/action-slack@2.1.0
         with:
           args: "AGW  build succeeded on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
+  sentry_release:
+    if: always() && github.event_name == 'push'
+    needs: [agw-build]
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      SENTRY_ENVIRONMENT: "staging"
+      SENTRY_ORG: "lf-9c"
+      PATH_TO_EXEC: "./executables"
+      MAGMA_VERSION: ${{ needs.agw-build.outputs.magma_version }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v2
+        with:
+          name: sentry-exec
+      - uses: geekyeggo/delete-artifact@v1
+        with:
+          name: sentry-exec
+      - run: ls -R
+      - run: curl -sL https://sentry.io/get-cli/ | bash
+      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
+        with:
+          EXECUTABLE_NAME: sessiond
+          SENTRY_ORG: lf-9c
+          PATH_TO_EXEC: "./executables"
+          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
+      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
+        with:
+          EXECUTABLE_NAME: mme
+          SENTRY_ORG: lf-9c
+          PATH_TO_EXEC: "./executables"
+          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
+      - name: Create a release in Sentry.io with the commit hash
+        env:
+          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
+        run: |
+           COMMIT_HASH_WITH_VERSION="magma@1.7.0.$(git rev-list --count HEAD)-${GITHUB_SHA:0:8}"
+           sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native -p radtonics_lab_native -p magma-staging-native ${COMMIT_HASH_WITH_VERSION}
+           sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${COMMIT_HASH_WITH_VERSION}
+           sentry-cli --log-level=info releases finalize ${COMMIT_HASH_WITH_VERSION}
   orc8r-build:
+    if: github.repository_owner == 'magma'
     name: orc8r build job
     runs-on: ubuntu-latest
     outputs:
@@ -273,6 +324,7 @@ jobs:
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '
   agw-container-build:
+    if: github.repository_owner == 'magma'
     name: agw container build
     runs-on: ubuntu-latest
     env:
@@ -372,7 +424,7 @@ jobs:
   cloud-upload:
     name: cloud upload job
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push'  }}
+    if: github.event_name == 'push' && github.repository_owner == 'magma'
     steps:
       - uses: actions/checkout@v2
       - name: Install SwaggerHub CLI
@@ -415,6 +467,7 @@ jobs:
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '
   cwag-deploy:
+    if: github.repository_owner == 'magma'
     name: cwag deploy job
     runs-on: ubuntu-latest
     outputs:
@@ -561,6 +614,7 @@ jobs:
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '
   cwf-operator-build:
+    if: github.repository_owner == 'magma'
     name: cwf operator build job
     runs-on: ubuntu-latest
     env:
@@ -646,6 +700,7 @@ jobs:
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ''
   feg-build:
+    if: github.repository_owner == 'magma'
     name: feg-build
     runs-on: ubuntu-latest
     outputs:
@@ -746,6 +801,7 @@ jobs:
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '
   nms-build:
+    if: github.repository_owner == 'magma'
     name: nms-build job
     runs-on: ubuntu-latest
     outputs:
@@ -828,7 +884,7 @@ jobs:
           SLACK_FOOTER: ' '
   Publish_to_firebase:
     name: Publish to firebase
-    if: always() && github.event_name == 'push'
+    if: always() && github.event_name == 'push' && github.repository_owner == 'magma'
     runs-on: ubuntu-latest
     needs: [agw-build, feg-build, orc8r-build, cwag-deploy, nms-build]
     steps:

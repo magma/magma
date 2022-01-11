@@ -1039,8 +1039,8 @@ status_code_e _emm_attach_reject(
   OAILOG_WARNING(
       LOG_NAS_EMM,
       "EMM-PROC  - EMM attach procedure not accepted "
-      "by the network (ue_id=" MME_UE_S1AP_ID_FMT ", cause=%d)\n",
-      attach_proc->ue_id, attach_proc->emm_cause);
+      "by the network (ue_id=" MME_UE_S1AP_ID_FMT ", cause=%s)\n",
+      attach_proc->ue_id, emm_cause_str[attach_proc->emm_cause]);
   /*
    * Notify EMM-AS SAP that Attach Reject message has to be sent
    * onto the network
@@ -1295,6 +1295,7 @@ static int emm_attach_failure_authentication_cb(emm_context_t* emm_context) {
       get_nas_specific_procedure_attach(emm_context);
 
   if (attach_proc) {
+    emm_context->emm_cause = EMM_CAUSE_NETWORK_FAILURE;
     attach_proc->emm_cause = emm_context->emm_cause;
 
     emm_sap_t emm_sap               = {0};
@@ -1628,8 +1629,8 @@ static int emm_attach(emm_context_t* emm_context) {
         OAILOG_ERROR(
             LOG_NAS_EMM,
             "Sending Attach Reject to UE for ue_id = " MME_UE_S1AP_ID_FMT
-            ", emm_cause = (%d)\n",
-            ue_id, attach_proc->emm_cause);
+            ", emm_cause = (%s)\n",
+            ue_id, emm_cause_str[attach_proc->emm_cause]);
         rc = _emm_attach_reject(
             emm_context, &attach_proc->emm_spec_proc.emm_proc.base_proc);
       } else {
@@ -1666,8 +1667,8 @@ static int emm_attach(emm_context_t* emm_context) {
     OAILOG_ERROR(
         LOG_NAS_EMM,
         "Sending Attach Reject to UE ue_id = " MME_UE_S1AP_ID_FMT
-        ", emm_cause = (%d)\n",
-        ue_id, attach_proc->emm_cause);
+        ", emm_cause = (%s)\n",
+        ue_id, emm_cause_str[attach_proc->emm_cause]);
     rc = _emm_attach_reject(
         emm_context, &attach_proc->emm_spec_proc.emm_proc.base_proc);
     increment_counter(
@@ -2740,3 +2741,45 @@ void proc_new_attach_req(
   emm_attach_run_procedure(&ue_mm_context->emm_context);
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
+
+const char* emm_cause_str[] = {
+    [EMM_CAUSE_IMSI_UNKNOWN_IN_HSS] = "EMM_CAUSE_IMSI_UNKNOWN_IN_HSS",
+    [EMM_CAUSE_ILLEGAL_UE]          = "EMM_CAUSE_ILLEGAL_UE",
+    [EMM_CAUSE_IMEI_NOT_ACCEPTED]   = "EMM_CAUSE_IMEI_NOT_ACCEPTED",
+    [EMM_CAUSE_ILLEGAL_ME]          = "EMM_CAUSE_ILLEGAL_ME",
+    [EMM_CAUSE_EPS_NOT_ALLOWED]     = "EMM_CAUSE_EPS_NOT_ALLOWED",
+    [EMM_CAUSE_BOTH_NOT_ALLOWED]    = "EMM_CAUSE_BOTH_NOT_ALLOWED",
+    [EMM_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW] =
+        "EMM_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW",
+    [EMM_CAUSE_IMPLICITLY_DETACHED]     = "EMM_CAUSE_IMPLICITLY_DETACHED",
+    [EMM_CAUSE_PLMN_NOT_ALLOWED]        = "EMM_CAUSE_PLMN_NOT_ALLOWED",
+    [EMM_CAUSE_TA_NOT_ALLOWED]          = "EMM_CAUSE_TA_NOT_ALLOWED",
+    [EMM_CAUSE_ROAMING_NOT_ALLOWED]     = "EMM_CAUSE_ROAMING_NOT_ALLOWED",
+    [EMM_CAUSE_EPS_NOT_ALLOWED_IN_PLMN] = "EMM_CAUSE_EPS_NOT_ALLOWED_IN_PLMN",
+    [EMM_CAUSE_NO_SUITABLE_CELLS]       = "EMM_CAUSE_NO_SUITABLE_CELLS",
+    [EMM_CAUSE_MSC_NOT_REACHABLE]       = "EMM_CAUSE_MSC_NOT_REACHABLE",
+    [EMM_CAUSE_NETWORK_FAILURE]         = "EMM_CAUSE_NETWORK_FAILURE",
+    [EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE] = "EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE",
+    [EMM_CAUSE_ESM_FAILURE]             = "EMM_CAUSE_ESM_FAILURE",
+    [EMM_CAUSE_MAC_FAILURE]             = "EMM_CAUSE_MAC_FAILURE",
+    [EMM_CAUSE_SYNCH_FAILURE]           = "EMM_CAUSE_SYNCH_FAILURE",
+    [EMM_CAUSE_CONGESTION]              = "EMM_CAUSE_CONGESTION",
+    [EMM_CAUSE_UE_SECURITY_MISMATCH]    = "EMM_CAUSE_UE_SECURITY_MISMATCH",
+    [EMM_CAUSE_SECURITY_MODE_REJECTED]  = "EMM_CAUSE_SECURITY_MODE_REJECTED",
+    [EMM_CAUSE_NON_EPS_AUTH_UNACCEPTABLE] =
+        "EMM_CAUSE_NON_EPS_AUTH_UNACCEPTABLE",
+    [EMM_CAUSE_NOT_AUTHORIZED_IN_PLMN]   = "EMM_CAUSE_NOT_AUTHORIZED_IN_PLMN",
+    [EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE] = "EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE",
+    [EMM_CAUSE_NO_EPS_BEARER_CTX_ACTIVE] = "EMM_CAUSE_NO_EPS_BEARER_CTX_ACTIVE",
+    [EMM_CAUSE_SEMANTICALLY_INCORRECT]   = "EMM_CAUSE_SEMANTICALLY_INCORRECT",
+    [EMM_CAUSE_INVALID_MANDATORY_INFO]   = "EMM_CAUSE_INVALID_MANDATORY_INFO",
+    [EMM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED] =
+        "EMM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED",
+    [EMM_CAUSE_MESSAGE_TYPE_NOT_COMPATIBLE] =
+        "EMM_CAUSE_MESSAGE_TYPE_NOT_COMPATIBLE",
+    [EMM_CAUSE_IE_NOT_IMPLEMENTED]     = "EMM_CAUSE_IE_NOT_IMPLEMENTED",
+    [EMM_CAUSE_CONDITIONAL_IE_ERROR]   = "EMM_CAUSE_CONDITIONAL_IE_ERROR",
+    [EMM_CAUSE_MESSAGE_NOT_COMPATIBLE] = "EMM_CAUSE_MESSAGE_NOT_COMPATIBLE",
+    [AMF_CAUSE_PROTOCOL_ERROR]         = "AMF_CAUSE_PROTOCOL_ERROR",
+    [EMM_CAUSE_SUCCESS]                = "EMM_CAUSE_SUCCESS",
+};

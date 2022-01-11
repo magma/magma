@@ -141,11 +141,10 @@ def upload_pkgs_to_aws():
 
 def get_magma_version():
     return run(
-        'ls ~/magma-packages'
-        ' | grep "^magma_[0-9].*"'
-        ' | xargs -I "%" dpkg -I ~/magma-packages/%'
-        ' | grep "Version"'
-        ' | awk \'{print $2}\'',
+        'directory=$(mktemp -d) &&'
+        'dpkg-deb --extract ~/magma-packages/magma_[0-9]*.deb $directory &&'
+        'source $directory/usr/local/share/magma/commit_hash &&'
+        'echo $COMMIT_HASH',
     )
 
 

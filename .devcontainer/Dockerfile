@@ -66,6 +66,7 @@ RUN echo "Install general purpose packages" && \
         libpcap-dev \
         libssl-dev \
         libtool \
+        lld \
         make \
         ninja-build \
         perl \

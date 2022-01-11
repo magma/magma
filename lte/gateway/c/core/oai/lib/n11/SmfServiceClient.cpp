@@ -43,7 +43,7 @@ using namespace magma::lte;
 namespace magma5g {
 
 SetSMSessionContext create_sm_pdu_session_v4(
-    char* imsi, uint8_t* apn, uint32_t pdu_session_id,
+    std::string& imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
     const ambr_t& state_ambr) {
@@ -52,7 +52,7 @@ SetSMSessionContext create_sm_pdu_session_v4(
   auto* req_common = req.mutable_common_context();
 
   // Encode IMSI
-  req_common->mutable_sid()->mutable_id()->assign(imsi);
+  req_common->mutable_sid()->set_id("IMSI" + imsi);
 
   // Encode TYPE IMSI
   req_common->mutable_sid()->set_type(
@@ -117,8 +117,10 @@ int AsyncSmfServiceClient::amf_smf_create_pdu_session_ipv4(
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version,
     const ambr_t& state_ambr) {
+  auto imsi_str = std::string(imsi);
+
   magma::lte::SetSMSessionContext req = create_sm_pdu_session_v4(
-      imsi, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
+      imsi_str, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
       gnb_gtp_teid_ip_addr, ipv4_addr, version, state_ambr);
 
   AsyncSmfServiceClient::getInstance().set_smf_session(req);

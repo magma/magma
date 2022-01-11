@@ -6,16 +6,29 @@
   with_items:
     - "{{ load_tests | map(attribute='name') | list }}"
 
+- name: debug container statuses
+  command:
+    cmd: docker ps
+  ignore_errors: true
+
 - name: run load test script
-  command: "python3 loadtest_{{ item.0.name }}.py {{ item.1.name }}"
+  command:
+    cmd: "python3 /magma/lte/gateway/python/load_tests/loadtest_{{ item.0.name }}.py {{ item.1.name }}"
+    chdir: "/magma/lte/gateway/python/load_tests"
+  environment:
+    MAGMA_ROOT: "/magma"
   delegate_to: "{{ item.0.name }}"
   with_subelements:
     - "{{ load_tests }}"
     - test
 
 - name: Check that the load test result file exists
-  command: "cat result_{{ item.1.result }}.json chdir=/var/tmp"
+  command:
+    cmd: "cat result_{{ item.1.result }}.json"
+    chdir: "/var/tmp"
   register: json_output
+  environment:
+    MAGMA_ROOT: "/magma"
   delegate_to: "{{ item.0.name }}"
   with_subelements:
     - "{{ load_tests }}"
