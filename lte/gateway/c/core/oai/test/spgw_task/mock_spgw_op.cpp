@@ -28,7 +28,9 @@ std::vector<std::string> load_file_into_vector_of_line_content(
   std::vector<std::string> vector_of_file_names;
   if (file_content) {
     while (std::getline(file_content, data_file_name)) {
-      data_file_name.erase(std::remove(data_file_name.begin(), data_file_name.end(), '\n'), data_file_name.end());
+      data_file_name.erase(
+          std::remove(data_file_name.begin(), data_file_name.end(), '\n'),
+          data_file_name.end());
       vector_of_file_names.push_back(data_folder_path + "/" + data_file_name);
     }
   } else {
@@ -45,7 +47,8 @@ status_code_e mock_read_spgw_ue_state_db(
     const std::vector<std::string>& ue_samples) {
   for (const auto& name_of_sample_file : ue_samples) {
     oai::SpgwUeContext ue_proto = oai::SpgwUeContext();
-    std::fstream input(name_of_sample_file.c_str(), std::ios::in | std::ios::binary);
+    std::fstream input(
+        name_of_sample_file.c_str(), std::ios::in | std::ios::binary);
     if (!ue_proto.ParseFromIstream(&input)) {
       std::cerr << "Failed to parse the sample: " << name_of_sample_file
                 << std::endl;
