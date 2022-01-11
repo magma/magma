@@ -20,7 +20,7 @@ env:
   DEVCONTAINER_IMAGE: "ghcr.io/magma/devcontainer:sha-3c02c72"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
-[lte-test, c_cpp_unit_tests, li_agent_test, mme_test, mme-clang-tidy-and-warning, c-cpp-codecov, lint-clang-format, session_manager_test, cloud-tests, cwag-precommit, cwf-operator-precommit, markdown-lint, fossa-analyze, feg-lint-precommit, check_helm_chart_dependencies, insync-checkin, nms-flow-test, nms-eslint, nms-yarn-test, nms-e2e-test, build_src_go, test_src_go, test_src_go_qemu, codecov_src_go, run-formatters-and-check-for-errors, build_oai, build_session_manager, codeql-analyze, backport]
+
 jobs:
   agw_path_filter:
     runs-on: ubuntu-latest
@@ -46,7 +46,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: pr
+          name: agw-pr
           path: pr/
 
   lte-test:
@@ -110,7 +110,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: Unit Test Results
+          name: agw-tests-lte
           path: /var/tmp/test_results
       - uses: codecov/codecov-action@v1
         with:
@@ -176,7 +176,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: Unit Test Results
+          name: agw-tests-c
           path: c-cpp-test-results/
 
   li_agent_test:
@@ -408,7 +408,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: pr
+          name: cloud-pr
           path: pr/
   cloud-tests:
     needs: cloud_path_filter
@@ -459,7 +459,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: Unit Test Results
+          name: cloud-tests
           path: "${{ env.MAGMA_ROOT}}/orc8r/cloud/test-results/*"
       - uses: actions/setup-go@v2
         if: always()
@@ -479,56 +479,6 @@ jobs:
           cd ${MAGMA_ROOT}/orc8r/gateway/go
           go test ./...
           go vet ./...
-      - name: Extract commit title
-        if: failure() && github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to Slack for deploy-sync-checkin
-        if: steps.deploy-sync-checkin.outcome=='failure' && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action insync-checkin failed"
-          SLACK_USERNAME: "Cloud workflow"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      - name: Notify failure to Slack for cloud-test
-        if: steps.cloud-test.outcome=='failure' && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action cloud-test failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Cloud workflow"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      - name: Notify failure to Slack for cloud-lint
-        if: ( steps.cloud-lint.outcome=='failure' || steps.cloud-lint-codecov.outcome=='failure' || steps.cloud-lint-cov.outcome=='failure' ) && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action cloud-test failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Cloud workflow"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      - name: Notify failure to Slack for orc8r-gateway-test
-        if: ( steps.gateway_test_init.outcome=='failure' || steps.gateway_test_dep.outcome=='failure' || steps.gateway_test.outcome=='failure' ) && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action orc8r-gateway-test failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Cloud workflow"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
   cwag_path_filter:
     runs-on: ubuntu-latest
     # Map a step output to a job output
@@ -609,51 +559,6 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator
           make -C ${MAGMA_ROOT}/cwf/k8s/cwf_operator precommit
-  markdown_path_filter:
-    runs-on: ubuntu-latest
-    outputs:
-      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
-    steps:
-      # Need to get git on push event
-      - uses: actions/checkout@v2
-        if: github.event_name == 'push'
-      - uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            filesChanged:
-              - [".github/workflows/docs-workflow.yml", "docs/**"]
-      # Need to save PR number as Github action does not propagate it with workflow_run event
-      - name: Save PR number
-        if: always()
-        run: |
-          mkdir -p ./pr
-          echo -n ${{ github.event.number }} > ./pr/NR
-          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
-          echo -n "false" > ./pr/RPR
-      - uses: actions/upload-artifact@v2
-        if: always()
-        with:
-          name: pr
-          path: pr/
-
-  # Fail if Markdown doesn't pass linter
-  markdown-lint:
-    needs: markdown_path_filter
-    if: ${{ needs.markdown_path_filter.outputs.should_not_skip == 'true' }}
-    name: Markdown lint check
-    runs-on: ubuntu-latest
-    env:
-      MAGMA_ROOT: "${{ github.workspace }}"
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.7'
-      - name: Run docs precommit
-        run: |
-          cd ${MAGMA_ROOT}/docs
-          make precommit
   fossa-analyze:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
@@ -697,7 +602,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: pr
+          name: feg-pr
           path: pr/
 
   feg-lint-precommit:
@@ -754,40 +659,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: Unit Test Results
+          name: feg-tests
           path: "/tmp/test-results"
-      - name: Extract commit title
-        if: failure() && github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      # Notify ci channel when failing
-      # Plugin info: https://github.com/marketplace/actions/slack-notify
-      - name: Notify failure to slack
-        if: ( steps.feg-lint-init.outcome=='failure' || steps.feg-lint.outcome=='failure' || steps.feg-lint-cov.outcome=='failure' || steps.feg-lint-codecov.outcome=='failure'  ) && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_TITLE: "FeG-lint tests failed"
-          SLACK_USERNAME: "FeG workflow"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      # Notify ci channel when failing
-      # Plugin info: https://github.com/marketplace/actions/slack-notify
-      - name: Notify failure to slack
-        if: ( steps.feg-precommit.outcome=='failure' || steps.feg-precommit-upload.outcome=='failure' ) && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "FeG-precommit tests failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "FeG workflow"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
 
   check_helm_chart_dependencies:
     env:
@@ -890,7 +763,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: pr
+          name: nms-pr
           path: pr/
 
   nms-flow-test:
@@ -1004,7 +877,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: NMS Test Results
+          name: nms-tests
           path: "/tmp/nms_artifacts/*"
   go_path_filter:
     runs-on: ubuntu-latest
@@ -1028,7 +901,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: pr
+          name: golang-build-pr
           path: pr/
 
   build_src_go:
@@ -1077,7 +950,7 @@ jobs:
       - name: Upload Test Results
         uses: actions/upload-artifact@v2
         with:
-          name: Unit Test Results
+          name: golang-build-tests-${{ matrix.go-version }}-${{ matrix.os}}
           path: "${{ github.workspace }}/src/go/test_src_go.xml"
 
   test_src_go_qemu:
@@ -1111,7 +984,7 @@ jobs:
       - name: Upload Test Results
         uses: actions/upload-artifact@v2
         with:
-          name: Unit Test Results arm64
+          name: golang-build-tests-qemu-${{ matrix.go-version }}-${{ matrix.arch}}
           path: "${{ github.workspace }}/src/go/test_src_go.xml"
 
 
@@ -1137,86 +1010,6 @@ jobs:
           fail_ci_if_error: true
           verbose: true
 
-  python_path_filter:
-    runs-on: ubuntu-latest
-    outputs:
-      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
-    steps:
-      # Need to get git on push event
-      - uses: actions/checkout@v2
-        if: github.event_name == 'push'
-      - uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            filesChanged:
-              - [".github/workflows/python-workflow.yml", "**/*.py"]
-      # Need to save PR number as Github action does not propagate it with workflow_run event
-      - name: Save PR number
-        if: always()
-        run: |
-          mkdir -p ./pr
-          echo -n ${{ github.event.number }} > ./pr/NR
-          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
-          echo -n "false" > ./pr/RPR
-      - uses: actions/upload-artifact@v2
-        if: always()
-        with:
-          name: pr
-          path: pr/
-
-  run-formatters-and-check-for-errors:
-    needs: python_path_filter
-    if: ${{ needs.python_path_filter.outputs.should_not_skip == 'true' }}
-    name: Python Format Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Get changed files
-        id: py-changes
-        # Set outputs.py to be a list of modified python files
-        run: |
-          echo "::set-output name=py::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .py$ | xargs)"
-      - if: ${{ steps.py-changes.outputs.py }}
-        name: Build the python-precommit Docker base image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./lte/gateway/docker/python-precommit/Dockerfile
-          push: false
-          tags: magma/py-lint:latest
-      - if: ${{ steps.py-changes.outputs.py }}
-        name: Format and check for leftover changes
-        uses: addnab/docker-run-action@v3
-        with:
-          image: magma/py-lint:latest
-          options: -u 0 -v ${{ github.workspace }}:/code
-          run: |
-            echo "Running formatting tools. This should be equivalent to running './lte/gateway/python/precommit.py --format --diff' locally."
-            for file in ${{ steps.py-changes.outputs.py }};
-            do
-              set -e
-              echo ""
-              echo "Running isort on $file...";
-              isort --diff --check-only $file;
-              echo "Running autopep8 on $file...";
-              autopep8 --diff --exit-code --select W191,W291,W292,W293,W391,E131,E2,E3 -r $file;
-              echo "Running add-trailing-comma on $file...";
-              add-trailing-comma --py35-plus $file;
-            done;
-      # Need to save PR number as Github action does not propagate it with workflow_run event
-      - name: Save PR number
-        if: always()
-        run: |
-          mkdir -p ./pr
-          echo ${{ github.event.number }} > ./pr/NR
-      - uses: actions/upload-artifact@v2
-        if: always()
-        with:
-          name: pr
-          path: pr/
   #######
   # This pipeline runs various static analysis (e.g. GCC warnings) against the c / c++ pull requests.
   #
@@ -1398,7 +1191,7 @@ jobs:
   Notify:
     name: Publish to Slack
     if: always() && github.event_name == 'push'
-    needs: [lte-test, c_cpp_unit_tests, li_agent_test, mme_test, mme-clang-tidy-and-warning, c-cpp-codecov, lint-clang-format, session_manager_test, cloud-tests, cwag-precommit, cwf-operator-precommit, markdown-lint, fossa-analyze, feg-lint-precommit, check_helm_chart_dependencies, insync-checkin, nms-flow-test, nms-eslint, nms-yarn-test, nms-e2e-test, build_src_go, test_src_go, test_src_go_qemu, codecov_src_go, run-formatters-and-check-for-errors, build_oai, build_session_manager, codeql-analyze, backport]
+    needs: [lte-test, c_cpp_unit_tests, li_agent_test, mme_test, mme-clang-tidy-and-warning, c-cpp-codecov, lint-clang-format, session_manager_test, cloud-tests, cwag-precommit, cwf-operator-precommit,  fossa-analyze, feg-lint-precommit, check_helm_chart_dependencies, insync-checkin, nms-flow-test, nms-eslint, nms-yarn-test, nms-e2e-test, build_src_go, test_src_go, test_src_go_qemu, codecov_src_go, build_oai, build_session_manager, codeql-analyze, backport]
     runs-on: ubuntu-latest
     steps:
       - name: Parse commit info
@@ -1424,7 +1217,6 @@ jobs:
                - cloud-tests ${{( needs.cloud-tests.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
                - cwag-precommit ${{( needs.cwag-precommit.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
                - cwf-operator-precommit ${{( needs.cwf-operator-precommit.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
-               - markdown-lint ${{( needs.markdown-lint.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
                - feg-lint-precommit ${{( needs.feg-lint-precommit.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
                - check_helm_chart_dependencies ${{( needs.check_helm_chart_dependencies.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
                - insync-checkin ${{( needs.insync-checkin.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
@@ -1436,7 +1228,6 @@ jobs:
                - test_src_go ${{( needs.test_src_go.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
                - test_src_go_qemu ${{( needs.test_src_go_qemu.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
                - codecov_src_go ${{( needs.codecov_src_go.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
-               - run-formatters-and-check-for-errors ${{( needs.run-formatters-and-check-for-errors.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
                - build_oai ${{( needs.build_oai.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
                - build_session_manager ${{( needs.build_session_manager.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
                - backport ${{( needs.backport.result == 'success' && ':white_check_mark:' ) ||  ':x:' }}
@@ -1451,6 +1242,6 @@ jobs:
           SLACK_TITLE: "Unit test results"
           SLACK_MESSAGE: ${{steps.markdown.outputs.text}}
           SLACK_USERNAME: "Unit tests"
-          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_ICON_EMOJI: ":information_source:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '

@@ -8,10 +8,13 @@ on:  # yamllint disable-line rule:truthy
       - completed
 
 jobs:
-  skip_check:
+  comment-on-pr-results:
     if: github.event.workflow_run.event == 'pull_request'
     name: Job to retrieve the value in pr/skipped file
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        job: [ cloud, feg,  agw, golang-build, nms ]
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
@@ -25,7 +28,7 @@ jobs:
                run_id: ${{github.event.workflow_run.id }},
             });
             var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "pr"
+              return artifact.name == "{{matrix.job}}-pr"
             })[0];
             var download = await github.actions.downloadArtifact({
                owner: context.repo.owner,
@@ -49,31 +52,51 @@ jobs:
             else  {
               core.setOutput('should_skip', 'false');
             }
-
-  unit-test-results:
-    name: Upload unit test for ${{ github.event.workflow.name }}
-    needs: skip_check
-    runs-on: ubuntu-latest
-    if: >
-      github.event.workflow_run.conclusion != 'skipped' &&
-        github.event.workflow_run.head_repository.full_name != github.repository &&
-          needs.skip_check.outputs.should_skip == 'false'
-    steps:
       - name: Download and Extract Artifacts
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: steps.skip_check.outputs.should_skip == 'false'
+        uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            var artifacts = await github.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{github.event.workflow_run.id }},
+            });
+            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name.startswith("{{matrix.job}}-tests")
+            });
+            var i =0;
+            for (matchMetadataArtifact of matchArtifact) {
+              if( matchMetadataArtifact.id == undefined || matchMetadataArtifact.id.length === 0){
+                console.log(String(matchMetadataArtifact));
+                continue;
+              }
+              var download = await github.actions.downloadArtifact({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            artifact_id: matchMetadataArtifact.id,
+                            archive_format: 'zip',
+                         });
+              fs.writeFileSync('${{github.workspace}}/artifact' + i + '.zip', Buffer.from(download.data));
+              console.log('Downloaded ' + matchMetadataArtifact.name + ' and placed it there ${{github.workspace}}/artifact' + i + '.zip');
+              github.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: matchMetadataArtifact.id
+              });
+              console.log(String(matchMetadataArtifact.id));
+              i=i+1
+            }
+      - name: Unzip
         run: |
-           mkdir -p artifacts && cd artifacts
-           artifacts_url=${{ github.event.workflow_run.artifacts_url }}
-           gh api "$artifacts_url" -q '.artifacts[] | [.name, .archive_download_url] | @tsv' | while read artifact
-           do
-             IFS=$'\t' read name url <<< "$artifact"
-             gh api $url > "$name.zip"
-             unzip -d "$name" "$name.zip"
-           done
+          for zipped_archive in `ls -a1 *.zip`
+          do
+            unzip $zipped_archive artifacts/
+          done
       - name: Publish Unit Test Results
+        if: steps.skip_check.outputs.should_skip == 'false'
         uses: EnricoMi/publish-unit-test-result-action@v1
         with:
-          check_name: ${{ github.event.workflow.name }}
-          commit: ${{ github.event.workflow_run.head_sha }}
+          check_name: ${{ matrix.job }}-tests
+          commit: ${{ github.event.workflow_run.head_commit.id }}
           files: "artifacts/**/*.xml"
