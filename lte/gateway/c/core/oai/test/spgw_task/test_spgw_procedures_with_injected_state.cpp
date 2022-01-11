@@ -198,18 +198,6 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
 
   ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == test_ue_ip2);
 
-  // create sample modify default bearer request
-  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(
-      &sample_modify_bearer_req, DEFAULT_MME_S11_TEID, ue_sgw_teid,
-      DEFAULT_ENB_GTP_TEID, DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
-  status_code_e return_code =
-      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
-
-  ASSERT_EQ(return_code, RETURNok);
-
   // verify that exactly one session exists in SPGW state
   ASSERT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
 
@@ -227,7 +215,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
                             REQUEST_ACCEPTED, test_mme_s11_teid)))
       .Times(1);
 
-  return_code = sgw_handle_delete_session_request(
+  status_code_e return_code = sgw_handle_delete_session_request(
       &sample_delete_session_request, test_imsi64);
   ASSERT_EQ(return_code, RETURNok);
 
@@ -270,18 +258,6 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerSuccess) {
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
-  // create sample modify default bearer request
-  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(
-      &sample_modify_bearer_req, test_mme_s11_teid, ue_sgw_teid,
-      DEFAULT_ENB_GTP_TEID, test_bearer_index, DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
-  return_code =
-      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
-
-  ASSERT_EQ(return_code, RETURNok);
-
   // verify that exactly one session exists in SPGW state
   ASSERT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
 
@@ -320,18 +296,6 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerWithInvalidImsi64) {
            .pdn_connection,
       DEFAULT_EPS_BEARER_ID);
 
-  // send modify default bearer request
-  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(
-      &sample_modify_bearer_req, test_mme_s11_teid, ue_sgw_teid,
-      DEFAULT_ENB_GTP_TEID, DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
-  return_code =
-      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
-
-  ASSERT_EQ(return_code, RETURNok);
-
   // verify that exactly one session exists in SPGW state
   ASSERT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
 
@@ -368,18 +332,6 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerActivation) {
 
   s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
-
-  // create sample modify default bearer request
-  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(
-      &sample_modify_bearer_req, test_mme_s11_teid, ue_sgw_teid,
-      DEFAULT_ENB_GTP_TEID, DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
-  return_code =
-      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
 
   // verify that exactly one session exists in SPGW state
   EXPECT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
@@ -454,7 +406,6 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerDeactivation) {
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
-  // Verify that no IP address is allocated for this UE
   s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
@@ -462,18 +413,6 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerDeactivation) {
       &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
            .pdn_connection,
       DEFAULT_EPS_BEARER_ID);
-
-  // create sample modify default bearer request
-  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(
-      &sample_modify_bearer_req, test_mme_s11_teid, ue_sgw_teid,
-      DEFAULT_ENB_GTP_TEID, DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
-  return_code =
-      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
 
   // verify that exactly one session exists in SPGW state
   EXPECT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
@@ -595,18 +534,6 @@ TEST_F(
       &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
            .pdn_connection,
       DEFAULT_EPS_BEARER_ID);
-
-  // create sample modify default bearer request
-  itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
-  fill_modify_bearer_request(
-      &sample_modify_bearer_req, test_mme_s11_teid, ue_sgw_teid,
-      DEFAULT_ENB_GTP_TEID, DEFAULT_BEARER_INDEX, DEFAULT_EPS_BEARER_ID);
-
-  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp()).Times(1);
-  return_code =
-      sgw_handle_modify_bearer_request(&sample_modify_bearer_req, test_imsi64);
-
-  EXPECT_EQ(return_code, RETURNok);
 
   // verify that exactly one session exists in SPGW state
   EXPECT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
