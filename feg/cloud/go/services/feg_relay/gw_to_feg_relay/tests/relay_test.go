@@ -30,6 +30,7 @@ import (
 	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
 	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers"
+	s6a_relay_servicers "magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers/southbound"
 	healthTestUtils "magma/feg/cloud/go/services/health/test_utils"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -126,7 +127,8 @@ func TestNHRouting(t *testing.T) {
 	t.Logf("Relay S6a Proxy Address: %s", relayLis.Addr())
 
 	relayRouter := servicers.NewRelayRouter()
-	feg_protos.RegisterS6AProxyServer(relaySrv.GrpcServer, relayRouter)
+	s6a_relay_routers := s6a_relay_servicers.NewRelayRouter()
+	feg_protos.RegisterS6AProxyServer(relaySrv.GrpcServer, s6a_relay_routers)
 	feg_protos.RegisterHelloServer(relaySrv.GrpcServer, relayRouter)
 	go relaySrv.RunTest(relayLis)
 

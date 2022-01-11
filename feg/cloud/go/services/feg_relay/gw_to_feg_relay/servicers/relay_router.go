@@ -25,7 +25,6 @@ const (
 	DiamUnableToDeliverErr = 3002
 
 	// FeG Relay Services
-	FegS6aProxy     gateway_registry.GwServiceType = "s6a_proxy"
 	FegSessionProxy gateway_registry.GwServiceType = "session_proxy"
 	FegHello        gateway_registry.GwServiceType = "feg_hello"
 	FegSwxProxy     gateway_registry.GwServiceType = "swx_proxy"

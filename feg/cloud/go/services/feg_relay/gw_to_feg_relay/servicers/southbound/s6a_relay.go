@@ -17,7 +17,19 @@ import (
 	"context"
 
 	"magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
+	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 )
+
+const FegS6aProxy gateway_registry.GwServiceType = "s6a_proxy"
+
+type RelayRouter struct {
+	gw_to_feg_relay.Router
+}
+
+func NewRelayRouter() *RelayRouter {
+	return &RelayRouter{Router: *gw_to_feg_relay.NewRouter()}
+}
 
 // S6AProxyServer implementation
 //
