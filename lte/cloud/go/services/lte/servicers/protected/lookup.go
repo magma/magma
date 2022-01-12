@@ -22,7 +22,7 @@ import (
 
 	"magma/lte/cloud/go/services/lte/protos"
 	lte_storage "magma/lte/cloud/go/services/lte/storage"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 // lookupServicer stores reported enodeb state with additional gatewayID as

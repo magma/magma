@@ -35,7 +35,7 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state/wrappers"
 	"magma/orc8r/cloud/go/storage"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 // MagmadEncompassingGateway represents a subtype of the Magmad gateway.

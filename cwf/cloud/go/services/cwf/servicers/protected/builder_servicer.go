@@ -31,7 +31,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 	orc8r_mconfig "magma/orc8r/lib/go/protos/mconfig"
 )

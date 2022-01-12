@@ -64,7 +64,7 @@ type Store interface {
 
 	// Get loads a specific blob from storage.
 	// If there is no blob matching the given ID, ErrNotFound from
-	// magma/orc8r/lib/go/errors will be returned.
+	// magma/orc8r/lib/go/merrors will be returned.
 	Get(networkID string, id storage.TK) (Blob, error)
 
 	// GetMany loads and returns a collection of blobs matching the

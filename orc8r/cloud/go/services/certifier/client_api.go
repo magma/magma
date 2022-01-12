@@ -24,7 +24,7 @@ import (
 
 	"magma/orc8r/cloud/go/clock"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
