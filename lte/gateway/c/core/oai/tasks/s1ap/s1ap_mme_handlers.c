@@ -1342,6 +1342,10 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
       cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_load_balancing_tau_required;
       break;
+    case S1AP_INVALID_ENB_ID:
+      cause_type  = S1ap_Cause_PR_radioNetwork;
+      cause_value = S1ap_CauseRadioNetwork_unknown_enb_ue_s1ap_id;
+      break;
     default:
       // Freeing ie and pdu data since it will not be encoded
       free_wrapper((void**) &ie);
@@ -1519,8 +1523,7 @@ status_code_e s1ap_handle_ue_context_release_command(
      */
 
     if (ue_context_release_command_pP->cause == S1AP_IMPLICIT_CONTEXT_RELEASE ||
-        ue_context_release_command_pP->cause == S1AP_SCTP_SHUTDOWN_OR_RESET ||
-        ue_context_release_command_pP->cause == S1AP_INVALID_ENB_ID) {
+        ue_context_release_command_pP->cause == S1AP_SCTP_SHUTDOWN_OR_RESET) {
       s1ap_remove_ue(state, ue_ref_p);
     } else {
       rc = s1ap_mme_generate_ue_context_release_command(

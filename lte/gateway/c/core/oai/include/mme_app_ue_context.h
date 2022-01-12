@@ -477,6 +477,7 @@ typedef struct ue_mm_context_s {
   // Counter to track number of RAB requests sent/responses received
   uint8_t nb_rabs;
   LIST_HEAD(s11_procedures_s, mme_app_s11_proc_s) * s11_procedures;
+  itti_s1ap_initial_ue_message_t* initial_ue_message_for_invalid_enb_s1ap_id;
 } ue_mm_context_t;
 
 typedef struct mme_ue_context_s {
@@ -630,6 +631,14 @@ int eps_bearer_release(
 
 status_code_e send_tau_accept_with_eps_bearer_ctx_status(
     ue_mm_context_t* ue_context);
+
+imsi64_t update_ue_context_and_indicate_to_nas(
+    struct ue_mm_context_s* ue_context_p,
+    itti_s1ap_initial_ue_message_t* const initial_pP, bool is_mm_ctx_new);
+
+bool mme_app_construct_guti(
+    const plmn_t* const plmn_p, const s_tmsi_t* const s_tmsi_p,
+    guti_t* const guti_p);
 #endif /* FILE_MME_APP_UE_CONTEXT_SEEN */
 
 /* @} */
