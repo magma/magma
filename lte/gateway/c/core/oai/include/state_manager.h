@@ -128,6 +128,13 @@ class StateManager {
     return RETURNok;
   }
 
+  virtual status_code_e read_fb_ue_state_from_db() {
+    if (!persist_state_enabled) {
+      return RETURNok;
+    }
+    return RETURNerror;
+  }
+
   /**
    * Writes task state to db if persist_state is enabled
    */

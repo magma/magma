@@ -222,11 +222,11 @@ status_code_e MmeNasStateManager::read_ue_state_from_db() {
     for (const auto& key : keys) {
       OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
       oai::UeContext ue_proto = oai::UeContext();
-      auto* ue_context =
-          (ue_mm_context_t*) (calloc(1, sizeof(ue_mm_context_t)));
       if (redis_client->read_proto(key, ue_proto) != RETURNok) {
         return RETURNerror;
       }
+      auto* ue_context =
+          (ue_mm_context_t*) (calloc(1, sizeof(ue_mm_context_t)));
       MmeNasStateConverter::proto_to_ue(ue_proto, ue_context);
 
       hashtable_rc_t h_rc = hashtable_ts_insert(
@@ -245,6 +245,42 @@ status_code_e MmeNasStateManager::read_ue_state_from_db() {
       }
     }
   }
+#endif
+  return RETURNok;
+}
+
+status_code_e MmeNasStateManager::read_fb_ue_state_from_db() {
+#if !MME_UNIT_TEST
+  // TODO
+  // if (persist_state_enabled) {
+  //   auto keys = redis_client->get_keys(FLATBUFFER_IMSI_PREFIX+"*:" + task_name + "*");
+  //   for (const auto& key : keys) {
+  //     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
+  //     std::string value;
+
+  //     if (redis_client->read_redis_state(key, value) != RETURNok) {
+  //       return RETURNerror;
+  //     }
+  //     auto* ue_context =
+  //         (ue_mm_context_t*) (calloc(1, sizeof(ue_mm_context_t)));
+  //     auto monster = GetUeMmContext(value.c_str());
+
+  //     hashtable_rc_t h_rc = hashtable_ts_insert(
+  //         state_ue_ht, ue_context->mme_ue_s1ap_id, (void*) ue_context);
+  //     if (HASH_TABLE_OK != h_rc) {
+  //       OAILOG_ERROR(
+  //           log_task,
+  //           "Failed to insert UE state with key mme_ue_s1ap_id "
+  //           " " MME_UE_S1AP_ID_FMT " (Error Code: %s)\n",
+  //           ue_context->mme_ue_s1ap_id, hashtable_rc_code2string(h_rc));
+  //     } else {
+  //       OAILOG_DEBUG(
+  //           log_task,
+  //           "Inserted UE state with key mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+  //           ue_context->mme_ue_s1ap_id);
+  //     }
+  //   }
+  // }
 #endif
   return RETURNok;
 }

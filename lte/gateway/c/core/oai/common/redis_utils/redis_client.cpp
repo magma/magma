@@ -186,6 +186,16 @@ status_code_e RedisClient::read_redis_state(
   }
 }
 
+status_code_e RedisClient::read_redis_state(
+    const std::string& key, std::string& value) {
+  try {
+    value = read(key);
+    return RETURNok;
+  } catch (const std::runtime_error& e) {
+    return RETURNerror;
+  }
+}
+
 status_code_e RedisClient::serialize(
     const Message& proto_msg, std::string& str_to_serialize) {
   if (!proto_msg.SerializeToString(&str_to_serialize)) {

@@ -59,12 +59,12 @@ Run benchmark script for Protobuf and Flatbuffers
      cd $TEST_RESULT_DIR &&
      # Do the benchmarking for Protobuf and Flatbuffers
      $MAGMA_ROOT/lte/gateway/c/scripts/mme_ue_context_serialization_benchmarking
-    # You should see several log files in RUN1 folder
+    # You should see several log files in TEST_RESULT_DIR folder
 ```
 
 ### Results
 
-To display the timing measurements, on your host, go in the same temp folder:
+To display the timing measurements, on your host, go in the same result folder:
 
 ```bash
 [HOST] # MAGMA_ROOT should point to your magma folder on your host
@@ -72,3 +72,33 @@ To display the timing measurements, on your host, go in the same temp folder:
        cd $TEST_RESULT_DIR &&
        $MAGMA_ROOT/lte/gateway/c/scripts/mme_ue_context_serialization_plotting
 ```
+
+### Run benchmarks with significant iterations
+
+These benchmarks trigger a statically significant number of run of each
+serialization API (protobuf/FlatBuffers) for each emulated number of UEs
+(50, 200, 400).
+
+Inside magma VM, build mme:
+
+```bash
+[VM] cd $MAGMA_ROOT/lte/gateway
+[VM] make build_oai
+```
+
+Run benchmark script for Protobuf and Flatbuffers
+
+```bash
+# Prepare mapped temp forder for results
+[VM] TEST_RESULT_DIR=$MAGMA_ROOT/tmp/STATS1 &&
+     mkdir -p -m 0777 $TEST_RESULT_DIR &&
+     cd $TEST_RESULT_DIR &&
+     # Do the benchmarking for Protobuf and Flatbuffers
+     $MAGMA_ROOT/lte/gateway/c/scripts/mme_ue_context_serialization_stat
+    # You should see several log files in TEST_RESULT_DIR folder
+```
+
+### Results
+
+To get statistics the timing measurements, on your host, go in the same TEST_RESULT_DIR folder and
+you will find CSV files containing statistics on the runs.

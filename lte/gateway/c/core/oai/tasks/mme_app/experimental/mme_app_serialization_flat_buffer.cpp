@@ -349,9 +349,9 @@ void mme_app_fb_insert_ues(
 //------------------------------------------------------------------------------
 void mme_app_fb_deserialize_ues(void) {
   // TODO
-  // mme_app_desc_t* mme_app_desc2 = get_mme_nas_state(true);
-  // MmeNasStateManager::getInstance().read_ue_state_from_db();
+  //MmeNasStateManager::getInstance().read_fb_ue_state_from_db();
 }
+
 //------------------------------------------------------------------------------
 void mme_app_fb_test_serialization(mme_app_desc_t* mme_app_desc, uint num_ues) {
   struct rusage ru_start_ctxt_to_proto, ru_end_ctxt_to_proto;
@@ -423,17 +423,12 @@ void mme_app_fb_test_serialization(mme_app_desc_t* mme_app_desc, uint num_ues) {
     std::cout << (*it) << " ";
   }
   std::cout << std::endl;
-  /*auto imsi_str = MmeNasStateManager::getInstance().get_imsi_str(imsi64);
-  MmeNasStateManager::getInstance().write_ue_state_to_db(
-      ue_context, imsi_str);
-  put_mme_ue_state(mme_app_desc_p, imsi64, force_ue_write);
-  put_mme_nas_state(); */
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   if (!mme_app_desc_p) {
     OAILOG_ERROR(LOG_MME_APP, "Failed to fetch mme_app_desc_p \n");
     return;
   }
-  mme_app_fb_deallocate_ues(contexts);
+
 
   send_terminate_message_fatal(&main_zmq_ctx);
   sleep(1);

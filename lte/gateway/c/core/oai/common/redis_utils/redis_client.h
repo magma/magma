@@ -104,6 +104,14 @@ class RedisClient {
       const std::string& key, orc8r::RedisState& state_out);
 
   /**
+   * Read the wrapper RedisState value from Redis for a key
+   * @param key
+   * @param value_out
+   * @return response code of operation
+   */
+  status_code_e read_redis_state(
+      const std::string& key, std::string& value_out);
+  /**
    * Takes a string and parses it to protobuf Message
    * @param proto_msg
    * @param str_to_deserialize
