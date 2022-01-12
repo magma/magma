@@ -162,6 +162,8 @@ s1aptests/test_attach_nw_initiated_detach_fail.py \
 s1aptests/test_tau_ta_updating.py \
 s1aptests/test_tau_ta_updating_reject.py \
 s1aptests/test_tau_mixed_partial_lists.py \
+s1aptests/test_eps_bearer_context_status_def_bearer_deact.py \
+s1aptests/test_eps_bearer_context_status_ded_bearer_deact.py \
 s1aptests/test_guti_attach_with_zero_mtmsi.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
@@ -200,6 +202,7 @@ s1aptests/test_attach_auth_mac_failure.py \
 s1aptests/test_attach_esm_information_timerexpiration.py \
 s1aptests/test_attach_inactive_tau_with_combined_tala_update_reattach.py \
 s1aptests/test_attach_active_tau_with_combined_tala_update_reattach.py \
+s1aptests/test_eps_bearer_context_status_multiple_ded_bearer_deact.py \
 s1aptests/test_activate_deactivate_multiple_dedicated.py \
 s1aptests/test_sctp_shutdown_while_mme_is_stopped.py \
 s1aptests/test_3495_timer_for_default_bearer_with_mme_restart.py \
