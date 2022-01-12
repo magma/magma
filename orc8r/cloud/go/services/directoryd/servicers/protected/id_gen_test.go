@@ -22,13 +22,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-<<<<<<< HEAD:orc8r/cloud/go/services/directoryd/servicers/protected/id_gen_test.go
-	servicers "magma/orc8r/cloud/go/services/directoryd/servicers/protected"
-	magmaerrors "magma/orc8r/lib/go/errors"
-=======
 	"magma/orc8r/cloud/go/services/directoryd/servicers"
 	"magma/orc8r/lib/go/merrors"
->>>>>>> 27237fc8f... update:orc8r/cloud/go/services/directoryd/servicers/id_gen_test.go
 )
 
 type MockStore struct {

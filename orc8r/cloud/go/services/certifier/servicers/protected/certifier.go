@@ -35,12 +35,7 @@ import (
 	"magma/orc8r/cloud/go/services/certifier/constants"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
-<<<<<<< HEAD:orc8r/cloud/go/services/certifier/servicers/protected/certifier.go
-	"magma/orc8r/cloud/go/services/tenants"
-	"magma/orc8r/lib/go/errors"
-=======
 	"magma/orc8r/lib/go/merrors"
->>>>>>> 27237fc8f... update:orc8r/cloud/go/services/certifier/servicers/certifier.go
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
 	unarylib "magma/orc8r/lib/go/service/middleware/unary"
