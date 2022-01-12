@@ -150,9 +150,9 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
 
  protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
-  std::string test_imsi_str = "001010000000002";
-  uint64_t test_imsi64      = 1010000000002;
-  uint64_t test_imsi64_test = 1010000000001;
+  std::string test_imsi_str    = "001010000000002";
+  uint64_t test_imsi64         = 1010000000002;
+  uint64_t test_imsi64_invalid = 1010000000001;
 
   plmn_t test_plmn = {.mcc_digit2 = 0,
                       .mcc_digit1 = 0,
@@ -182,8 +182,6 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
 };
 
 TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
-
   spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
@@ -227,8 +225,10 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
 }
 
 TEST_F(SPGWAppInjectedStateProcedureTest, TestModifyBearerFailure) {
-  spgw_state_t* spgw_state  = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
+
+  // verify that sessions exist in SPGW state
+  ASSERT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
 
   // create sample modify default bearer request
   itti_s11_modify_bearer_request_t sample_modify_bearer_req = {};
@@ -242,7 +242,8 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestModifyBearerFailure) {
 
   ASSERT_EQ(return_code, RETURNok);
 
-  // verify that sessions exist in SPGW state
+  // verify that number of valid sessions do not change after the modify bearer
+  // request
   ASSERT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
 
   // Sleep to ensure that messages are received and contexts are released
@@ -250,7 +251,6 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestModifyBearerFailure) {
 }
 
 TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerSuccess) {
-  spgw_state_t* spgw_state  = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
   spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
@@ -283,18 +283,10 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerSuccess) {
 }
 
 TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerWithInvalidImsi64) {
-  spgw_state_t* spgw_state        = get_spgw_state(false);
   status_code_e return_code       = RETURNerror;
   spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
-  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
-      sgw_cm_get_spgw_context(ue_sgw_teid);
-
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
 
   // verify that exactly one session exists in SPGW state
   ASSERT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
@@ -313,7 +305,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerWithInvalidImsi64) {
   // Send wrong IMSI so that spgw will not be able to fetch and delete
   // the context
   sgw_handle_release_access_bearers_request(
-      &sample_release_bearer_req, test_imsi64_test);
+      &sample_release_bearer_req, test_imsi64_invalid);
 
   // verify that eNB information has not been cleared
   ASSERT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
@@ -408,11 +400,6 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerDeactivation) {
 
   s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
-
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
 
   // verify that exactly one session exists in SPGW state
   EXPECT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
@@ -529,11 +516,6 @@ TEST_F(
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
   s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
-
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
 
   // verify that exactly one session exists in SPGW state
   EXPECT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
