@@ -22,7 +22,7 @@ import (
 
 	"github.com/golang/glog"
 
-	magmaerrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 )
 
 const (
@@ -57,7 +57,7 @@ func (g *IdGenerator) GetUniqueId(network string, doesExistFunc doesExistInDatab
 	for i := 0; i < g.maxAttempts; i++ {
 		newID := g.getRandomFromOneToMaxUint32()
 		_, err := doesExistFunc(network, fmt.Sprint(newID))
-		if err == magmaerrors.ErrNotFound {
+		if err == merrors.ErrNotFound {
 			return newID, nil
 		}
 		if err != nil {

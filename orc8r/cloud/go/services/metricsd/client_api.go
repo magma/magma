@@ -18,7 +18,7 @@ import (
 
 	"github.com/golang/glog"
 
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 	service_registry "magma/orc8r/lib/go/registry"
 )

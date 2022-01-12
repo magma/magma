@@ -28,7 +28,7 @@ import (
 )
 
 // getGWMagmadClient gets a GRPC client to the magmad service running on the gateway specified by (network ID, gateway ID).
-// If gateway not found by configurator, returns ErrNotFound from magma/orc8r/lib/go/errors.
+// If gateway not found by configurator, returns ErrNotFound from magma/orc8r/lib/go/merrors.
 func getGWMagmadClient(ctx context.Context, networkID string, gatewayID string) (protos.MagmadClient, context.Context, error) {
 	hwID, err := configurator.GetPhysicalIDOfEntity(ctx, networkID, orc8r.MagmadGatewayType, gatewayID)
 	if err != nil {
@@ -44,7 +44,7 @@ func getGWMagmadClient(ctx context.Context, networkID string, gatewayID string) 
 }
 
 // GatewayReboot reboots a gateway.
-// If gateway not registered, returns ErrNotFound from magma/orc8r/lib/go/errors.
+// If gateway not registered, returns ErrNotFound from magma/orc8r/lib/go/merrors.
 func GatewayReboot(ctx context.Context, networkId string, gatewayId string) error {
 	client, gatewayCtx, err := getGWMagmadClient(ctx, networkId, gatewayId)
 	if err != nil {
@@ -55,7 +55,7 @@ func GatewayReboot(ctx context.Context, networkId string, gatewayId string) erro
 }
 
 // GatewayRestartServices restarts services at a gateway.
-// If gateway not registered, returns ErrNotFound from magma/orc8r/lib/go/errors.
+// If gateway not registered, returns ErrNotFound from magma/orc8r/lib/go/merrors.
 func GatewayRestartServices(ctx context.Context, networkId string, gatewayId string, services []string) error {
 	client, gatewayCtx, err := getGWMagmadClient(ctx, networkId, gatewayId)
 	if err != nil {
@@ -66,7 +66,7 @@ func GatewayRestartServices(ctx context.Context, networkId string, gatewayId str
 }
 
 // GatewayPing sends pings from a gateway to a set of hosts.
-// If gateway not registered, returns ErrNotFound from magma/orc8r/lib/go/errors.
+// If gateway not registered, returns ErrNotFound from magma/orc8r/lib/go/merrors.
 func GatewayPing(ctx context.Context, networkId string, gatewayId string, packets int32, hosts []string) (*protos.NetworkTestResponse, error) {
 	client, gatewayCtx, err := getGWMagmadClient(ctx, networkId, gatewayId)
 	if err != nil {
@@ -81,7 +81,7 @@ func GatewayPing(ctx context.Context, networkId string, gatewayId string, packet
 }
 
 // GatewayGenericCommand runs a generic command at a gateway.
-// If gateway not registered, returns ErrNotFound from magma/orc8r/lib/go/errors.
+// If gateway not registered, returns ErrNotFound from magma/orc8r/lib/go/merrors.
 func GatewayGenericCommand(ctx context.Context, networkId string, gatewayId string, params *protos.GenericCommandParams) (*protos.GenericCommandResponse, error) {
 	client, gatewayCtx, err := getGWMagmadClient(ctx, networkId, gatewayId)
 	if err != nil {
@@ -92,7 +92,7 @@ func GatewayGenericCommand(ctx context.Context, networkId string, gatewayId stri
 }
 
 // TailGatewayLogs
-// If gateway not registered, returns ErrNotFound from magma/orc8r/lib/go/errors.
+// If gateway not registered, returns ErrNotFound from magma/orc8r/lib/go/merrors.
 func TailGatewayLogs(ctx context.Context, networkId string, gatewayId string, service string) (protos.Magmad_TailLogsClient, error) {
 	client, gatewayCtx, err := getGWMagmadClient(ctx, networkId, gatewayId)
 	if err != nil {

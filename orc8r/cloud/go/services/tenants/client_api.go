@@ -20,8 +20,12 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+<<<<<<< HEAD
 	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
 	merrors "magma/orc8r/lib/go/errors"
+=======
+	"magma/orc8r/lib/go/merrors"
+>>>>>>> f8d49ac79... fix(orc8r): Rename lib_errors to lib_merrors
 	"magma/orc8r/lib/go/protos"
 	srvRegistry "magma/orc8r/lib/go/registry"
 )

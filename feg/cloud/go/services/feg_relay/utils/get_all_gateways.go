@@ -30,7 +30,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	orc8rModels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 )
 
