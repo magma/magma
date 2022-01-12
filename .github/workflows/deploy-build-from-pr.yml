@@ -59,6 +59,7 @@ jobs:
           for zipped_archive in `ls -a1 *.zip`
           do
             unzip $zipped_archive
+            rm $zipped_archive || true
           done
       - name: Save metadata
         id: save_metadata
@@ -75,7 +76,7 @@ jobs:
           for IMAGES in `ls -a1 *.gz`
           do
             gzip -d $IMAGES
-            rm $IMAGES
+            rm $IMAGES || true
           done
           ls -R
       - name: Tag and push nms docker images to registry
