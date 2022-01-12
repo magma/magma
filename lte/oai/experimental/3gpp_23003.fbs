@@ -1,0 +1,65 @@
+include "common_types.fbs";
+
+namespace magma.lte.test_flat_buffer;
+
+
+struct Plmn {
+  mcc_digit1:ubyte;
+  mcc_digit2:ubyte;
+  mcc_digit3:ubyte;
+  mnc_digit1:ubyte;
+  mnc_digit2:ubyte;
+  mnc_digit3:ubyte;
+}
+
+struct Imsi {
+  bytes:[ubyte:8];
+  length:ubyte;
+}
+
+struct Gummei {
+  plmn:Plmn;
+  mme_gid:uint16;
+  mme_code:uint8;
+}
+
+struct Guti {
+  gummei:Gummei;
+  m_tmsi:uint32;
+}
+
+struct Imei {
+  bytes:[ubyte:8];
+}
+
+struct Imeisv {
+  bytes:[ubyte:8];
+}
+
+struct Ecgi {
+  /// plmn_t
+  plmn:Plmn;
+  ///  eci_t The ECI shall be of fixed length of 28 bits
+  cell_identity:uint;
+}
+
+struct Msisdn {
+  bytes:[ubyte:15];
+  length:ubyte;
+}
+
+struct ApnNi {
+  bytes:[ubyte:63];
+  length:ubyte;
+}
+
+struct ApnOi {
+  // TODO find the max size of an APN OI
+  bytes:[ubyte:100];
+  length:ubyte;
+}
+
+struct Apn {
+  bytes:[ubyte:100];
+  length:ubyte;
+}

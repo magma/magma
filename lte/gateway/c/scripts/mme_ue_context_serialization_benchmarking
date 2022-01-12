@@ -1,0 +1,71 @@
+#!/bin/bash
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script is run inside magma VM, only VM needed in this test
+if [[ ! -d $MAGMA_ROOT ]]; then
+  echo "ERROR $MAGMA_ROOT does not exists, exiting"
+  exit 1
+fi
+
+rm -f *.txt
+# FOR NUM UE CONTEXTS
+for N in 50 200 400; do
+  # Protobuf benchmarking
+  # Measurements are collected from stdout
+  sudo service magma@magmad stop
+  sudo rm -f /var/lib/redis/dump.rdb /var/opt/magma/redis_dump.rdb stdout.all.txt
+  sudo service magma@magmad start
+  sudo service magma@mme stop
+  sudo service sctpd start
+  sudo service magma@mobilityd start
+  sudo service magma@pipelined start
+  sudo service magma@sessiond start
+  sudo rm -f /var/lib/redis/dump.rdb /var/opt/magma/redis_dump.rdb
+  sudo cp /var/opt/magma/tmp/mme.conf /usr/local/etc/oai
+  sudo cp /var/opt/magma/tmp/spgw.conf /usr/local/etc/oai
+  sudo /home/vagrant/build/c/core/oai/oai_mme/mme -p$N | tee stdout.all.txt
+  # Create log files to be used as input for python plot
+  cat stdout.all.txt | grep 'TIME PROTOBUF CONVERSION' | cut -d ':' -f2 >> protobuf_conv$N.txt
+  cat stdout.all.txt | grep 'TIME PROTOBUF REDIS SERIALIZATION' | cut -d ':' -f2 >> protobuf_redis$N.txt
+  cat stdout.all.txt | grep 'Time taken to deserialize contexts' | cut -d ':' -f2 >> protobuf_deserialize_contexts$N.txt
+  cat stdout.all.txt | grep 'Time taken to serialize contexts' | cut -d ':' -f2 >> protobuf_serialize_contexts$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization'  | grep 'Cpu' | cut -d ':' -f2 >> protobuf_rusage_cpu$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization'  | grep 'Maximum resident' | cut -d ':' -f2 >> protobuf_rusage_mrss$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization'  | grep 'Page reclaims' | cut -d ':' -f2 >> protobuf_rusage_reclaims$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization'  | grep 'Block operations' | cut -d ':' -f2 >> protobuf_rusage_block$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization'  | grep 'Context switches ' | cut -d ':' -f2 >> protobuf_rusage_switches$N.txt
+
+
+  # Flatbuffers benchmarking
+  # Measurements are collected from stdout
+  sudo service magma@magmad stop
+  sudo rm -f /var/lib/redis/dump.rdb /var/opt/magma/redis_dump.rdb stdout.all.txt
+  sudo service magma@magmad start
+  sudo service magma@mme stop
+  sudo service sctpd start
+  sudo service magma@mobilityd start
+  sudo service magma@pipelined start
+  sudo service magma@sessiond start
+  sudo rm -f /var/lib/redis/dump.rdb /var/opt/magma/redis_dump.rdb
+  sudo cp /var/opt/magma/tmp/mme.conf /usr/local/etc/oai
+  sudo cp /var/opt/magma/tmp/spgw.conf /usr/local/etc/oai
+  sudo /home/vagrant/build/c/core/oai/oai_mme/mme -f$N | tee stdout.all.txt
+  # Create log files to be used as input for python plot
+  cat stdout.all.txt | grep 'TIME FLATBUFFER CONVERSION' | cut -d ':' -f2 >> flatbuffer_conv$N.txt
+  cat stdout.all.txt | grep 'TIME FLATBUFFER REDIS SERIALIZATION' | cut -d ':' -f2 >> flatbuffer_redis$N.txt
+  cat stdout.all.txt | grep 'Time taken to serialize contexts' | cut -d ':' -f2 >> flatbuffer_serialize_contexts$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization' | grep 'Cpu' | cut -d ':' -f2 >> flatbuffer_rusage_cpu$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization' | grep 'Maximum resident' | cut -d ':' -f2 >> flatbuffer_rusage_mrss$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization' | grep 'Page reclaims' | cut -d ':' -f2 >> flatbuffer_rusage_reclaims$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization' | grep 'Block operations' | cut -d ':' -f2 >> flatbuffer_rusage_block$N.txt
+  cat stdout.all.txt | grep 'RUSAGE Contexts serialization' | grep 'Context switches ' | cut -d ':' -f2 >> flatbuffer_rusage_switches$N.txt
+done

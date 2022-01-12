@@ -1,0 +1,404 @@
+include "3gpp_29274.fbs";
+include "3gpp_23003.fbs";
+include "3gpp_24008.fbs";
+
+namespace magma.lte.test_flat_buffer;
+
+enum Constants : uint {
+  CHARGING_CHARACTERISTICS_LENGTH_P1 = 5,
+}
+
+enum S1Cause : uint {
+  S1AP_INVALID_CAUSE = 0,
+  S1AP_NAS_NORMAL_RELEASE,
+  S1AP_NAS_DETACH,
+  S1AP_RADIO_EUTRAN_GENERATED_REASON,
+  S1AP_RADIO_UNKNOWN_E_RAB_ID,
+  S1AP_IMPLICIT_CONTEXT_RELEASE,
+  S1AP_INITIAL_CONTEXT_SETUP_FAILED,
+  S1AP_SCTP_SHUTDOWN_OR_RESET,
+  S1AP_INVALID_ENB_ID,
+  S1AP_INVALID_MME_UE_S1AP_ID,
+  S1AP_CSFB_TRIGGERED,
+  S1AP_NAS_UE_NOT_AVAILABLE_FOR_PS,
+  S1AP_SYSTEM_FAILURE,
+  S1AP_RADIO_MULTIPLE_E_RAB_ID,
+  S1AP_NAS_MME_OFFLOADING,
+  S1AP_NAS_MME_PENDING_OFFLOADING
+}
+
+enum MmState : byte {
+  UE_UNREGISTERED = 0,
+  UE_REGISTERED
+}
+
+enum EcmState : byte {
+  ECM_IDLE = 0,
+  ECM_CONNECTED
+}
+
+struct Tai {
+  plmn:Plmn;
+  tac:uint16;
+}
+
+struct Lai {
+  plmn:Plmn;
+  lac:uint16;
+}
+
+/// ESM procedure transaction states
+enum EsmPtState:ubyte {
+  ESM_PROCEDURE_TRANSACTION_INACTIVE = 0,
+  ESM_PROCEDURE_TRANSACTION_PENDING,
+  ESM_PROCEDURE_TRANSACTION_MAX
+}
+
+struct EsmPdn {
+  pti:ubyte;
+  is_emergency:bool;
+  ambr:uint32;
+  addr_realloc:int;
+  n_bearers:ubyte;
+  pt_state:EsmPtState;
+  esm_cause:int;
+}
+
+struct PdnContext {
+  context_identifier:uint;
+  apn_in_use:Apn;
+
+  apn_subscribed:Apn;
+  pdn_type:PdnTypeValue;
+  paa:Paa;
+  apn_oi_replacement:ApnOi;
+  p_gw_address_s5_s8_cp:IpAddress;
+  p_gw_teid_s5_s8_cp:uint;
+  default_bearer_eps_subscribed_qos_profile:EpsSubscribedQosProfile;
+  subscribed_apn_ambr:Ambr;
+  p_gw_apn_ambr:Ambr;
+  default_ebi:ubyte;
+  /// BEARERS_PER_UE = 11
+  bearer_contexts:[ubyte:11];
+  num_bearer_contexts:ubyte;
+  s_gw_address_s11_s4:IpAddress;
+  s_gw_teid_s11_s4:uint32;
+  esm_data:EsmPdn;
+  is_active:bool;
+  pco:ProtocolConfigurationOptions;
+  ue_rej_act_def_ber_req:bool;
+  route_s11_messages_to_s8_task:bool;
+}
+
+enum EmmProcAttachType:ubyte {
+  EMM_ATTACH_TYPE_EPS = 0,
+  EMM_ATTACH_TYPE_COMBINED_EPS_IMSI,
+  EMM_ATTACH_TYPE_EMERGENCY,
+  EMM_ATTACH_TYPE_RESERVED
+}
+
+enum EmmFsmState:ubyte {
+  ///EMM_STATE_MIN = 0, error: all enum values must be unique: EMM_STATE_MIN and EMM_INVALID are both 0
+  EMM_INVALID   = 0,
+  EMM_DEREGISTERED,
+  EMM_REGISTERED,
+  EMM_DEREGISTERED_INITIATED,
+  EMM_COMMON_PROCEDURE_INITIATED,
+  EMM_STATE_MAX
+}
+
+enum AdditionalUpdateType:ubyte {
+  NO_ADDITIONAL_INFORMATION = 0,
+  SMS_ONLY                  = 1,
+  MAX_                      = 2,
+  SENTINEL_MAX              = 255
+}
+
+struct NasProcMessSign {
+  puid:uint64;
+  //#define NAS_MSG_DIGEST_SIZE 16
+  digest:[ubyte:16];
+  digest_length:uint32;
+  nas_msg_length:uint16;
+}
+
+//struct EmmProcedures {
+//  emm_specific_proc:NasEmmSpecificProcedure;
+//  emm_common_procs:[NasEmmCommonProcedure];
+//  cn_procs:[NasCnProcedure];
+//  emm_con_mngt_proc:NasEmmConMngtProc;
+//  nas_proc_mess_sign_next_location:int;  // next index in array
+//  ///#define MAX_NAS_PROC_MESS_SIGN 3
+//  nas_proc_mess_sign[NasProcMessSign:3];
+//}
+
+struct NasTimer {
+  id:uint;
+  msec:uint32;
+}
+
+struct PdnAddr {
+  bytes:[ubyte:16];
+  length:ubyte;
+}
+
+struct EsmProcData {
+  pti:ubyte;
+  request_type:ubyte;
+  apn:Apn;
+  pdn_cid:int;
+  pdn_type:PdnTypeValue;
+  pdn_addr:PdnAddr;
+  bearer_qos:BearerQos;
+  pco:ProtocolConfigurationOptions;
+}
+
+struct EsmContext {
+  n_active_ebrs:uint;
+  is_emergency:bool;
+  t3489:NasTimer;
+  // TODO check max length of t3489_arg
+  t3489_arg:[ubyte:32];
+  t3489_arg_length:ubyte;
+  pending_standalone:uint32;
+  is_pdn_disconnect:bool;
+  esm_proc_data:EsmProcData;
+}
+
+struct AuthVector {
+  kasme:[ubyte:32];
+  rand:[ubyte:16];
+  autn:[ubyte:16];
+  xres_size:ubyte;
+  xres:[ubyte:16];
+}
+
+enum EmmScType:ubyte {
+  SECURITY_CTX_TYPE_NOT_AVAILABLE = 0,
+  SECURITY_CTX_TYPE_PARTIAL_NATIVE,
+  SECURITY_CTX_TYPE_FULL_NATIVE,
+  SECURITY_CTX_TYPE_MAPPED
+}
+
+// Be careful, was bitfield
+struct Count {
+  spare:ubyte;
+  overflow:uint16;
+  seq_num:ubyte;
+}
+
+// Be careful, was bitfield with quartets
+struct SelectedAlgorithms {
+  encryption:ubyte;
+  integrity:ubyte;
+}
+
+struct Capability{
+  eps_encryption:ubyte;
+  eps_integrity:ubyte;
+  umts_encryption:ubyte;
+  umts_integrity:ubyte;
+  gprs_encryption:ubyte;
+  umts_present:ubyte;
+  gprs_present:ubyte;
+}
+
+struct EmmSecurityContext {
+  emm_sc_type:EmmScType;
+  eksi:ubyte;
+  vector_index:ubyte;
+  knas_enc:[ubyte:16];
+  knas_int:[ubyte:16];
+  dl_count:Count;
+  ul_count:Count;
+  kenb_ul_count:Count;
+  capability:Capability;
+  selected_algorithms:SelectedAlgorithms;
+  activated:ubyte;
+  direction_encode:ubyte;
+  direction_decode:ubyte;
+  next_hop:[ubyte:32];
+  next_hop_chaining_count:ubyte;
+}
+
+enum TypeOfTaiList:ubyte {
+  TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS = 0,
+  TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TAC,
+  TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS
+}
+
+// Could not use union in struct
+//struct OnePlmnConsecutiveTacs {
+//  plmn:Plmn;
+//  tac:[uint16:16];
+//  num_tacs:ubyte;
+//}
+struct TaiListManyPlmn {
+  tai:[Tai:16];
+   num_tais:ubyte;
+}
+// Could not use union in struct
+//union UTaiList {
+//  tai_many_plmn:TaiListManyPlmn,
+//  tai_one_plmn_consecutive_tacs:Tai,
+//  tai_one_plmn_non_consecutive_tacs:OnePlmnConsecutiveTacs
+//}
+
+
+struct PartialTaiList {
+  typeoflist:TypeOfTaiList;
+  numberofelements:ubyte;
+  // Could not use union in struct
+  tai_list:TaiListManyPlmn;
+}
+
+struct TaiList {
+  numberoflists:ubyte;
+  partial_tai_list:[PartialTaiList:16];
+  partial_tai_list_length:ubyte;
+}
+
+struct UeNetworkCapability {
+  bytes:[ubyte:15];
+  length:ubyte;
+}
+
+struct UeAdditionalSecurityCapability {
+  _5g_ea:uint16;
+  _5g_ia:uint16;
+}
+
+struct NwDetachData {
+  ue_id:uint;
+  retransmission_count:uint;
+  detach_type:ubyte;
+}
+
+// Warning, was bitfield
+struct DrxParameter {
+  splitpgcyclecode:ubyte;
+  cnspecificdrxcyclelengthcoefficientanddrxvaluefors1mode:ubyte;
+  splitonccch:bool;
+  nondrxtimer:ubyte;
+}
+
+struct NasMessageDecodeStatus {
+  integrity_protected_message:bool;
+  ciphered_message:bool;
+  mac_matched:bool;
+  security_context_available:bool;
+  emm_cause:uint;
+}
+
+struct EsmMsg {
+  // Was set to 2048 initially, moved to 512 due to Flat buffer
+  // UE_MM_CONTEXT bigger than 65536 bytes
+  bytes:[ubyte:512];
+  length:uint16;
+}
+
+struct EmmAttachRequestIes {
+  is_initial:bool;
+  type:EmmProcAttachType;
+  additional_update_type:AdditionalUpdateType;
+  is_native_sc:bool;
+  ksi:ubyte;
+  is_native_guti:bool;
+  guti:Guti;
+  imsi:Imsi;
+  imei:Imei;
+  last_visited_registered_tai:Tai;
+  originating_tai:Tai;
+  originating_ecgi:Ecgi;
+  ue_network_capability:UeNetworkCapability;
+  ms_network_capability:MsNetworkCapability;
+  drx_parameter:DrxParameter;
+  esm_msg:EsmMsg;
+  decode_status:NasMessageDecodeStatus;
+  //MobileStationClassmark2*
+  //    mob_st_clsMark2;
+  //voice_domain_preference_and_ue_usage_setting_t*
+  //    voicedomainpreferenceandueusagesetting;
+  ue_additional_security_capability:UeAdditionalSecurityCapability;
+}
+
+struct NewAttachInfo {
+  mme_ue_s1ap_id:uint32;
+  is_mm_ctx_new:bool;
+  ies:EmmAttachRequestIes;
+}
+
+struct EmmContext {
+  _imsi64:uint64;
+  _imsi:Imsi;
+  saved_imsi64:uint64;
+  _imei:Imei;
+  _imeisv:Imeisv;
+  emm_cause:uint;
+  _emm_fsm_state:EmmFsmState;
+  attach_type:EmmProcAttachType;
+  //emm_procedures_t* emm_procedures;
+  common_proc_mask:uint32;
+  esm_ctx:EsmContext;
+  member_present_mask:uint32;
+  member_valid_mask:uint32;
+  _vector:AuthVector;
+  _security:EmmSecurityContext;
+  _non_current_security:EmmSecurityContext;
+  is_dynamic:bool;
+  is_attached:bool;
+  is_initial_identity_imsi:bool;
+  is_guti_based_attach:bool;
+  is_imsi_only_detach:bool;
+  is_emergency:bool;
+  additional_update_type:AdditionalUpdateType;
+  tau_updt_type:ubyte;
+  num_attach_request:uint;
+  _guti:Guti;
+  _old_guti:Guti;
+  _tai_list:TaiList;
+  _lvr_tai:Tai;
+  originating_tai:Tai;
+  ksi:ubyte;
+  _ue_network_capability:UeNetworkCapability;
+  ue_additional_security_capability:UeAdditionalSecurityCapability;
+  t3422_arg_valid:bool;
+  t3422_arg:NwDetachData;
+  new_attach_info:EmmAttachRequestIes;
+}
+
+enum NetworkAccessMode:ubyte {
+  NAM_PACKET_AND_CIRCUIT = 0,
+  NAM_RESERVED           = 1,
+  NAM_ONLY_PACKET        = 2,
+  NAM_MAX
+}
+
+enum EsmEbrState:ubyte {
+  ESM_EBR_INACTIVE = 0,
+  ESM_EBR_ACTIVE,
+  ESM_EBR_INACTIVE_PENDING,
+  ESM_EBR_MODIFY_PENDING,
+  ESM_EBR_ACTIVE_PENDING,
+  ESM_EBR_STATE_MAX
+}
+
+struct EsmEbrTimerData {
+  //TODO think: struct emm_context_s* ctx;
+  ue_id:uint32;
+  ebi:ubyte;
+  count:uint;
+  msg:EsmMsg;
+}
+
+struct EsmEbrContext {
+  status:EsmEbrState;
+  gbr_dl:uint64;
+  gbr_ul:uint64;
+  mbr_dl:uint64;
+  mbr_ul:uint64;
+  //traffic_flow_template_t* tft;
+  //protocol_configuration_options_t* pco;
+  timer:NasTimer;
+  args:EsmEbrTimerData;
+}

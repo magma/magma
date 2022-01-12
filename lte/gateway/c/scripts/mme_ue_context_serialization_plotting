@@ -1,0 +1,315 @@
+#!/usr/bin/python3
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script is used with/after mme_ue_context_serialization_benchmarking
+# This script is launched outside magma VM on the host itself.
+# You have to install mathplotlib and numpy python modules on your host.
+# mme_ue_context_serialization_benchmarking script produces log files from
+# mme execution. These log files are all the files opened in this script
+# 2 interactive plots are generated based on the logfiles contents.
+# The blue plots show protobuf measurements
+# The red plots show FlatBuffers measurements.
+# TODO put the legend with colors on the plots
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+# PROTOBUF
+pbfc50 =  open('protobuf_conv50.txt')
+pbxc50 = pbfc50.read().splitlines()
+pbic50 = [int(i) for i in pbxc50]
+
+pbfc200 = open('protobuf_conv200.txt')
+pbxc200 = pbfc200.read().splitlines()
+pbic200 = [int(i) for i in pbxc200]
+
+pbfc400 = open('protobuf_conv400.txt')
+pbxc400 = pbfc400.read().splitlines()
+pbic400 = [int(i) for i in pbxc400]
+
+
+pbfr50 =  open('protobuf_redis50.txt')
+pbxr50 = pbfr50.read().splitlines()
+pbir50 = [int(i) for i in pbxr50]
+
+pbfr200 = open('protobuf_redis200.txt')
+pbxr200 = pbfr200.read().splitlines()
+pbir200 = [int(i) for i in pbxr200]
+
+pbfr400 = open('protobuf_redis400.txt')
+pbxr400 = pbfr400.read().splitlines()
+pbir400 = [int(i) for i in pbxr400]
+
+# sum of serializations
+pb50 = np.add(pbir50, pbic50)
+pb200 = np.add(pbir200, pbic200)
+pb400 = np.add(pbir400, pbic400)
+
+# Cumulative sum of protobuf serialization + hashing
+pbcs50 = np.cumsum(pbic50)
+pbcs200 = np.cumsum(pbic200)
+pbcs400 = np.cumsum(pbic400)
+
+# Cumulative sum of redis serialization
+pbcr50 = np.cumsum(pbir50)
+pbcr200 = np.cumsum(pbir200)
+pbcr400 = np.cumsum(pbir400)
+
+# Cumulative sum of serialization
+pbc50 = np.add(pbcr50, pbcs50)
+pbc200 = np.add(pbcr200, pbcs200)
+pbc400 = np.add(pbcr400, pbcs400)
+
+pbrmins = [np.min(pbir50), np.min(pbir200), np.min(pbir400)]
+print(pbrmins)
+pbrmaxes = [np.max(pbir50), np.max(pbir200), np.max(pbir400)]
+print(pbrmaxes)
+pbrmeans = [np.mean(pbir50), np.mean(pbir200), np.mean(pbir400)]
+print(pbrmeans)
+pbrstd = [np.std(pbir50), np.std(pbir200), np.std(pbir400)]
+print(pbrstd)
+
+# FLATBUFFERS
+fbfc50 =  open('flatbuffer_conv50.txt')
+fbxc50 = fbfc50.read().splitlines()
+fbic50 = [int(i) for i in fbxc50]
+
+fbfc200 = open('flatbuffer_conv200.txt')
+fbxc200 = fbfc200.read().splitlines()
+fbic200 = [int(i) for i in fbxc200]
+
+fbfc400 = open('flatbuffer_conv400.txt')
+fbxc400 = fbfc400.read().splitlines()
+fbic400 = [int(i) for i in fbxc400]
+
+
+fbfr50 =  open('flatbuffer_redis50.txt')
+fbxr50 = fbfr50.read().splitlines()
+fbir50 = [int(i) for i in fbxr50]
+
+fbfr200 = open('flatbuffer_redis200.txt')
+fbxr200 = fbfr200.read().splitlines()
+fbir200 = [int(i) for i in fbxr200]
+
+fbfr400 = open('flatbuffer_redis400.txt')
+fbxr400 = fbfr400.read().splitlines()
+fbir400 = [int(i) for i in fbxr400]
+
+# sum of serializations
+fb50 = np.add(fbir50, fbic50)
+fb200 = np.add(fbir200, fbic200)
+fb400 = np.add(fbir400, fbic400)
+
+# Cumulative sum of flatbuffer serialization + hashing
+fbcs50 = np.cumsum(fbic50)
+fbcs200 = np.cumsum(fbic200)
+fbcs400 = np.cumsum(fbic400)
+
+# Cumulative sum of redis serialization
+fbcr50 = np.cumsum(fbir50)
+fbcr200 = np.cumsum(fbir200)
+fbcr400 = np.cumsum(fbir400)
+
+# Cumulative sum of serialization
+fbc50 = np.add(fbcr50, fbcs50)
+fbc200 = np.add(fbcr200, fbcs200)
+fbc400 = np.add(fbcr400, fbcs400)
+
+fbrmins = [np.min(fbir50), np.min(fbir200), np.min(fbir400)]
+#print(fbrmins)
+fbrmaxes = [np.max(fbir50), np.max(fbir200), np.max(fbir400)]
+#print(fbrmaxes)
+fbrmeans = [np.mean(fbir50), np.mean(fbir200), np.mean(fbir400)]
+#print(fbrmeans)
+fbrstd = [np.std(fbir50), np.std(fbir200), np.std(fbir400)]
+#print(fbrstd)
+
+fbcmins = [np.min(fbic50), np.min(fbic200), np.min(fbic400)]
+#print(fbcmins)
+fbcmaxes = [np.max(fbic50), np.max(fbic200), np.max(fbic400)]
+#print(fbcmaxes)
+fbcmeans = [np.mean(fbic50), np.mean(fbic200), np.mean(fbic400)]
+#print(fbcmeans)
+fbcstd = [np.std(fbic50), np.std(fbic200), np.std(fbic400)]
+#print(fbcstd)
+
+fig2, axs2 = plt.subplots(3, 3, sharey=True)
+axs2[0, 0].set_title('50 UEs object only serialization (ns)')
+axs2[0, 0].plot(np.arange(50),pbic50, 'b')
+axs2[0, 0].plot(np.arange(50),fbic50, 'r')
+axs2[0, 1].set_title('50 UEs Redis transfer (ns)')
+axs2[0, 1].plot(np.arange(50),pbir50, 'b')
+axs2[0, 1].plot(np.arange(50),fbir50, 'r')
+axs2[0, 2].set_title('50 UEs serialization (ns)')
+axs2[0, 2].plot(np.arange(50),pb50, 'b')
+axs2[0, 2].plot(np.arange(50),fb50, 'r')
+axs2[1, 0].set_title('200 UEs object only serialization (ns)')
+axs2[1, 0].plot(np.arange(200),pbic200, 'b')
+axs2[1, 0].plot(np.arange(200),fbic200, 'r')
+axs2[1, 1].set_title('200 UEs Redis transfer (ns)')
+axs2[1, 1].plot(np.arange(200),pbir200, 'b')
+axs2[1, 1].plot(np.arange(200),fbir200, 'r')
+axs2[1, 2].set_title('200 UEs serialization (ns)')
+axs2[1, 2].plot(np.arange(200),pb200, 'b')
+axs2[1, 2].plot(np.arange(200),fb200, 'r')
+axs2[2, 0].set_title('400 UEs object only serialization (ns)')
+axs2[2, 0].plot(np.arange(400),pbic400, 'b')
+axs2[2, 0].plot(np.arange(400),fbic400, 'r')
+axs2[2, 1].set_title('400 UEs Redis transfer (ns)')
+axs2[2, 1].plot(np.arange(400),pbir400, 'b')
+axs2[2, 1].plot(np.arange(400),fbir400, 'r')
+axs2[2, 2].set_title('400 UEs serialization (ns)')
+axs2[2, 2].plot(np.arange(400),pb400, 'b')
+axs2[2, 2].plot(np.arange(400),fb400, 'r')
+plt.show()
+
+fig, axs = plt.subplots(3, 3, sharey=True, sharex=True)
+axs[0, 0].set_title('50 UEs Cumulative object only serialization (ns)')
+axs[0, 0].plot(np.arange(50),pbcs50, 'b')
+axs[0, 0].plot(np.arange(50),fbcs50, 'r')
+axs[0, 1].set_title('50 UEs Cumulative Redis transfer (ns)')
+axs[0, 1].plot(np.arange(50),pbcr50, 'b')
+axs[0, 1].plot(np.arange(50),fbcr50, 'r')
+axs[0, 2].set_title('50 UEs Cumulative serialization (ns)')
+axs[0, 2].plot(np.arange(50),pbc50, 'b')
+axs[0, 2].plot(np.arange(50),fbc50, 'r')
+axs[1, 0].set_title('200 UEs Cumulative object only serialization (ns)')
+axs[1, 0].plot(np.arange(200),pbcs200, 'b')
+axs[1, 0].plot(np.arange(200),fbcs200, 'r')
+axs[1, 1].set_title('200 UEs Cumulative Redis transfer (ns)')
+axs[1, 1].plot(np.arange(200),pbcr200, 'b')
+axs[1, 1].plot(np.arange(200),fbcr200, 'r')
+axs[1, 2].set_title('200 UEs Cumulative serialization (ns)')
+axs[1, 2].plot(np.arange(200),pbc200, 'b')
+axs[1, 2].plot(np.arange(200),fbc200, 'r')
+axs[2, 0].set_title('400 UEs Cumulative object only serialization (ns)')
+axs[2, 0].plot(np.arange(400),pbcs400, 'b')
+axs[2, 0].plot(np.arange(400),fbcs400, 'r')
+axs[2, 1].set_title('400 UEs Cumulative Redis transfer (ns)')
+axs[2, 1].plot(np.arange(400),pbcr400, 'b')
+axs[2, 1].plot(np.arange(400),fbcr400, 'r')
+axs[2, 2].set_title('400 UEs Cumulative serialization (ns)')
+axs[2, 2].plot(np.arange(400),pbc400, 'b')
+axs[2, 2].plot(np.arange(400),fbc400, 'r')
+plt.show()
+
+# PROTOBUF
+p_cpu_user = []
+p_cpu_system = []
+p_mrss = []
+p_soft_reclaims = []
+p_hard_reclaims = []
+p_block_input = []
+p_block_output = []
+p_switches_voluntary = []
+p_switches_involuntary = []
+# FlatBuffers
+f_cpu_user = []
+f_cpu_system = []
+f_mrss = []
+f_soft_reclaims = []
+f_hard_reclaims = []
+f_block_input = []
+f_block_output = []
+f_switches_voluntary = []
+f_switches_involuntary = []
+
+for i in ('50', '200', '400'):
+    f =  open('protobuf_rusage_cpu'+i+'.txt')
+    x = f.read().splitlines()
+    p_cpu_user += [float(s.split('/')[0]) for s in x]
+    p_cpu_system += [float(s.split('/')[1]) for s in x]
+    f.close()
+
+    f =  open('protobuf_rusage_mrss'+i+'.txt')
+    x = f.read().splitlines()
+    p_mrss += [int(s) for s in x]
+    f.close()
+
+    f =  open('protobuf_rusage_reclaims'+i+'.txt')
+    x = f.read().splitlines()
+    p_soft_reclaims += [int(s.split('/')[0]) for s in x]
+    p_hard_reclaims += [int(s.split('/')[1]) for s in x]
+    f.close()
+
+    f =  open('protobuf_rusage_block'+i+'.txt')
+    x = f.read().splitlines()
+    p_block_input += [int(s.split('/')[0]) for s in x]
+    p_block_output += [int(s.split('/')[1]) for s in x]
+    f.close()
+
+    f =  open('protobuf_rusage_switches'+i+'.txt')
+    x = f.read().splitlines()
+    p_switches_voluntary += [int(s.split('/')[0]) for s in x]
+    p_switches_involuntary += [int(s.split('/')[1]) for s in x]
+    f.close()
+
+    f =  open('flatbuffer_rusage_cpu'+i+'.txt')
+    x = f.read().splitlines()
+    f_cpu_user += [float(s.split('/')[0]) for s in x]
+    f_cpu_system += [float(s.split('/')[1]) for s in x]
+    f.close()
+
+    f =  open('flatbuffer_rusage_mrss'+i+'.txt')
+    x = f.read().splitlines()
+    f_mrss += [int(s) for s in x]
+    f.close()
+
+    f =  open('flatbuffer_rusage_reclaims'+i+'.txt')
+    x = f.read().splitlines()
+    f_soft_reclaims += [int(s.split('/')[0]) for s in x]
+    f_hard_reclaims += [int(s.split('/')[1]) for s in x]
+    f.close()
+
+    f =  open('flatbuffer_rusage_block'+i+'.txt')
+    x = f.read().splitlines()
+    f_block_input += [int(s.split('/')[0]) for s in x]
+    f_block_output += [int(s.split('/')[1]) for s in x]
+    f.close()
+
+    f =  open('flatbuffer_rusage_switches'+i+'.txt')
+    x = f.read().splitlines()
+    f_switches_voluntary += [int(s.split('/')[0]) for s in x]
+    f_switches_involuntary += [int(s.split('/')[1]) for s in x]
+    f.close()
+
+print(p_cpu_user)
+print(f_cpu_user)
+fig3, axs3 = plt.subplots(3, 3, sharex=True)
+axs3[0, 0].set_title('CPU user (seconds)')
+axs3[0, 0].plot(np.array([50, 200, 400]),p_cpu_user, 'b')
+axs3[0, 0].plot(np.array([50, 200, 400]),f_cpu_user, 'r')
+axs3[0, 1].set_title('CPU system (seconds)')
+axs3[0, 1].plot(np.array([50, 200, 400]),p_cpu_system, 'b')
+axs3[0, 1].plot(np.array([50, 200, 400]),f_cpu_system, 'r')
+axs3[0, 2].set_title('Maximum resident set size: (kilobytes)')
+axs3[0, 2].plot(np.array([50, 200, 400]),p_mrss, 'b')
+axs3[0, 2].plot(np.array([50, 200, 400]),f_mrss, 'r')
+axs3[1, 0].set_title('Page reclaims soft faults')
+axs3[1, 0].plot(np.array([50, 200, 400]),p_soft_reclaims, 'b')
+axs3[1, 0].plot(np.array([50, 200, 400]),f_soft_reclaims, 'r')
+axs3[1, 1].set_title('Page reclaims hard faults')
+axs3[1, 1].plot(np.array([50, 200, 400]),p_hard_reclaims, 'b')
+axs3[1, 1].plot(np.array([50, 200, 400]),f_hard_reclaims, 'r')
+axs3[1, 2].set_title('Block operations fs inputs (occur.)')
+axs3[1, 2].plot(np.array([50, 200, 400]),p_block_input, 'b')
+axs3[1, 2].plot(np.array([50, 200, 400]),f_block_input, 'r')
+axs3[2, 0].set_title('Block operations fs outputs (occur.)')
+axs3[2, 0].plot(np.array([50, 200, 400]),p_block_output, 'b')
+axs3[2, 0].plot(np.array([50, 200, 400]),f_block_output, 'r')
+axs3[2, 1].set_title('Context switches voluntary (occur.)')
+axs3[2, 1].plot(np.array([50, 200, 400]),p_switches_voluntary, 'b')
+axs3[2, 1].plot(np.array([50, 200, 400]),f_switches_voluntary, 'r')
+axs3[2, 2].set_title('Context switches involuntary (occur.)')
+axs3[2, 2].plot(np.array([50, 200, 400]),p_switches_involuntary, 'b')
+axs3[2, 2].plot(np.array([50, 200, 400]),f_switches_involuntary, 'r')
+plt.show()

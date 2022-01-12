@@ -17,6 +17,9 @@
 
 #pragma once
 
+#if MME_BENCHMARK
+#include <chrono>
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,9 +37,15 @@ extern "C" {
 #include <unordered_map>
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/redis_utils/redis_client.h"
+#if MME_BENCHMARK
+#include "lte/flat/oai/experimental/mme_ue_state_generated.h"
+#endif
 
 namespace {
 constexpr char IMSI_PREFIX[] = "IMSI";
+#if MME_BENCHMARK
+constexpr char FLATBUFFER_IMSI_PREFIX[] = "FBIMSI";
+#endif
 }  // namespace
 
 namespace magma {
@@ -125,6 +134,15 @@ class StateManager {
     return RETURNok;
   }
 
+#if MME_BENCHMARK
+  virtual status_code_e read_fb_ue_state_from_db() {
+    if (!persist_state_enabled) {
+      return RETURNok;
+    }
+    return RETURNerror;
+  }
+#endif
+
   /**
    * Writes task state to db if persist_state is enabled
    */
@@ -165,14 +183,28 @@ class StateManager {
         is_initialized,
         "StateManager init() function should be called to initialize state");
 
+#if MME_BENCHMARK
+    auto start = std::chrono::high_resolution_clock::now();
+#endif
     std::string proto_str;
     ProtoUe ue_proto = ProtoUe();
     StateConverter::ue_to_proto(ue_context, &ue_proto);
     redis_client->serialize(ue_proto, proto_str);
     std::size_t new_hash = std::hash<std::string>{}(proto_str);
-
+#if MME_BENCHMARK
+    auto stop = std::chrono::high_resolution_clock::now();
+    std::cout << "TIME PROTOBUF CONVERSION : "
+              << (std::chrono::duration_cast<std::chrono::nanoseconds>(
+                      stop - start))
+                     .count()
+              << std::endl;
+#endif
     if (new_hash != this->ue_state_hash[imsi_str]) {
       std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
+
+#if MME_BENCHMARK
+      start = std::chrono::high_resolution_clock::now();
+#endif
       if (redis_client->write_proto_str(
               key, proto_str, ue_state_version[imsi_str]) != RETURNok) {
         OAILOG_ERROR(
@@ -180,13 +212,68 @@ class StateManager {
             imsi_str.c_str());
         return;
       }
-
+#if MME_BENCHMARK
+      stop = std::chrono::high_resolution_clock::now();
+      std::cout << "TIME PROTOBUF REDIS SERIALIZATION : "
+                << std::chrono::duration_cast<std::chrono::nanoseconds>(
+                       stop - start)
+                       .count()
+                << std::endl;
+#endif
       this->ue_state_version[imsi_str]++;
       this->ue_state_hash[imsi_str] = new_hash;
       OAILOG_DEBUG(
           log_task, "Finished writing UE state for IMSI %s", imsi_str.c_str());
     }
   }
+
+#if MME_BENCHMARK
+  /**
+   * Writes task state to db if persist_state is enabled
+   */
+  virtual void write_ue_state_to_db(
+      uint8_t* buf, int size, const std::string& imsi_str) {
+    AssertFatal(
+        is_initialized,
+        "StateManager init() function should be called to initialize state");
+    // lack of C++17 (hashing a stringview)
+    auto start = std::chrono::high_resolution_clock::now();
+    std::string* fb_str =
+        new std::string(reinterpret_cast<const char*>(buf), size);
+
+    std::size_t new_hash = std::hash<std::string>{}(*fb_str);
+    auto stop            = std::chrono::high_resolution_clock::now();
+    std::cout << "TIME FLATBUFFER CONVERSION : "
+              << (std::chrono::duration_cast<std::chrono::nanoseconds>(
+                      stop - start))
+                     .count()
+              << std::endl;
+
+    start = std::chrono::high_resolution_clock::now();
+    if (new_hash != this->ue_state_hash[imsi_str]) {
+      std::string key = FLATBUFFER_IMSI_PREFIX + imsi_str + ":" + task_name;
+      if (redis_client->write_proto_str(
+              key, std::ref(*fb_str), ue_state_version[imsi_str]) != RETURNok) {
+        OAILOG_ERROR(
+            log_task, "Failed to write UE state to db for IMSI %s",
+            imsi_str.c_str());
+        return;
+      }
+      stop = std::chrono::high_resolution_clock::now();
+      std::cout << "TIME FLATBUFFER REDIS SERIALIZATION : "
+                << std::chrono::duration_cast<std::chrono::nanoseconds>(
+                       stop - start)
+                       .count()
+                << std::endl;
+
+      this->ue_state_version[imsi_str]++;
+      this->ue_state_hash[imsi_str] = new_hash;
+      OAILOG_DEBUG(
+          log_task, "Finished writing UE state for IMSI %s", imsi_str.c_str());
+    }
+    delete fb_str;
+  }
+#endif
 
   std::string get_imsi_str(imsi64_t imsi64) {
     AssertFatal(

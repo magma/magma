@@ -186,6 +186,19 @@ status_code_e RedisClient::read_redis_state(
   }
 }
 
+#if MME_BENCHMARK
+status_code_e RedisClient::read_redis_state(
+    const std::string& key, std::string* value) {
+  try {
+    std::string str_value = read(key);
+    value                 = new std::string(key);
+    return RETURNok;
+  } catch (const std::runtime_error& e) {
+    return RETURNerror;
+  }
+}
+#endif
+
 status_code_e RedisClient::serialize(
     const Message& proto_msg, std::string& str_to_serialize) {
   if (!proto_msg.SerializeToString(&str_to_serialize)) {

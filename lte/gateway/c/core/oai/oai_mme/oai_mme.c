@@ -20,6 +20,9 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <string.h>
+#if MME_BENCHMARK
+#include <mcheck.h>
+#endif
 
 #include "lte/gateway/c/core/oai/include/mme_events.h"
 
@@ -63,6 +66,9 @@
 #include "lte/gateway/c/core/oai/include/service303.h"
 #include "lte/gateway/c/core/oai/common/shared_ts_log.h"
 #include "lte/gateway/c/core/oai/include/grpc_service.h"
+#if MME_BENCHMARK
+#include "lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.h"
+#endif
 
 static void send_timer_recovery_message(void);
 
@@ -180,6 +186,18 @@ int main(int argc, char* argv[]) {
   if (mme_config.use_stateless) {
     send_timer_recovery_message();
   }
+
+#if MME_BENCHMARK
+  if (mme_config.run_mode == RUN_MODE_TEST) {
+    if (mme_config.test_type == TEST_SERIALIZATION_PROTOBUF) {
+      mme_app_schedule_test_protobuf_serialization(mme_config.test_param);
+    }
+    if (mme_config.test_type == TEST_SERIALIZATION_FLATBUFFER) {
+      mme_app_schedule_test_flatbuffer_serialization(mme_config.test_param);
+    }
+  }
+#endif
+
   /*
    * Handle signals here
    */

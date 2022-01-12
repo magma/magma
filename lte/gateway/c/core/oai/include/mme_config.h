@@ -245,6 +245,12 @@
 #define MME_CONFIG_STRING_URL_NATIVE "URL_NATIVE"
 
 typedef enum { RUN_MODE_TEST = 0, RUN_MODE_OTHER } run_mode_t;
+#if MME_BENCHMARK
+typedef enum {
+  TEST_SERIALIZATION_PROTOBUF = 0,
+  TEST_SERIALIZATION_FLATBUFFER
+} test_type_t;
+#endif
 
 typedef struct eps_network_feature_config_s {
   uint8_t ims_voice_over_ps_session_in_s1;
@@ -391,6 +397,11 @@ typedef struct mme_config_s {
   uint8_t daylight_saving_time;
 
   run_mode_t run_mode;
+#if MME_BENCHMARK
+  // Integer value for testing serialization
+  test_type_t test_type;
+  uint32_t test_param;
+#endif
 
   uint32_t max_enbs;
   uint32_t max_ues;

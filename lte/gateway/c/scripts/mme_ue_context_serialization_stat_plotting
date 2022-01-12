@@ -1,0 +1,205 @@
+#!/usr/bin/python3
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script is used with/after mme_ue_context_serialization_benchmarking
+# This script is launched outside magma VM on the host itself.
+# You have to install mathplotlib and numpy python modules on your host.
+# mme_ue_context_serialization_benchmarking script produces log files from
+# mme execution. These log files are all the files opened in this script
+# 2 interactive plots are generated based on the logfiles contents.
+# The blue plots show protobuf measurements
+# The red plots show FlatBuffers measurements.
+# TODO put the legend with colors on the plots
+
+import csv
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+def get_csv_stats(file_path):
+    filename = open(file_path, 'r')
+    file = csv.DictReader(filename)
+    # creating empty lists
+    min = []
+    max = []
+    std = []
+    mean = []
+
+    # iterating over each row and append
+    # values to empty list
+    for col in file:
+        min.append(col['Min'])
+        max.append(col['Max'])
+        mean.append(col['Mean'])
+        std.append(col['Std'])
+    return (min, max, mean, std)
+
+
+# PROTOBUF
+pbc50_tup = get_csv_stats('stats_pb_ser50.csv')
+pbc50_min = [float(i) for i in pbc50_tup[0]]
+pbc50_max = [float(i) for i in pbc50_tup[1]]
+pbc50_mean = [float(i) for i in pbc50_tup[2]]
+pbc50_std = [float(i) for i in pbc50_tup[3]]
+
+pbc200_tup = get_csv_stats('stats_pb_ser200.csv')
+pbc200_min = [float(i) for i in pbc200_tup[0]]
+pbc200_max = [float(i) for i in pbc200_tup[1]]
+pbc200_mean = [float(i) for i in pbc200_tup[2]]
+pbc200_std = [float(i) for i in pbc200_tup[3]]
+
+pbc400_tup = get_csv_stats('stats_pb_ser400.csv')
+pbc400_min = [float(i) for i in pbc400_tup[0]]
+pbc400_max = [float(i) for i in pbc400_tup[1]]
+pbc400_mean = [float(i) for i in pbc400_tup[2]]
+pbc400_std = [float(i) for i in pbc400_tup[3]]
+
+pbr50_tup = get_csv_stats('stats_pb_redis50.csv')
+pbr50_min = [float(i) for i in pbr50_tup[0]]
+pbr50_max = [float(i) for i in pbr50_tup[1]]
+pbr50_mean = [float(i) for i in pbr50_tup[2]]
+pbr50_std = [float(i) for i in pbr50_tup[3]]
+
+pbr200_tup = get_csv_stats('stats_pb_redis200.csv')
+pbr200_min = [float(i) for i in pbr200_tup[0]]
+pbr200_max = [float(i) for i in pbr200_tup[1]]
+pbr200_mean = [float(i) for i in pbr200_tup[2]]
+pbr200_std = [float(i) for i in pbr200_tup[3]]
+
+pbr400_tup = get_csv_stats('stats_pb_redis400.csv')
+pbr400_min = [float(i) for i in pbr400_tup[0]]
+pbr400_max = [float(i) for i in pbr400_tup[1]]
+pbr400_mean = [float(i) for i in pbr400_tup[2]]
+pbr400_std = [float(i) for i in pbr400_tup[3]]
+
+
+# FLATBUFFERS
+fbc50_tup = get_csv_stats('stats_fb_ser50.csv')
+fbc50_min = [float(i) for i in fbc50_tup[0]]
+fbc50_max = [float(i) for i in fbc50_tup[1]]
+fbc50_mean = [float(i) for i in fbc50_tup[2]]
+fbc50_std = [float(i) for i in fbc50_tup[3]]
+
+fbc200_tup = get_csv_stats('stats_fb_ser200.csv')
+fbc200_min = [float(i) for i in fbc200_tup[0]]
+fbc200_max = [float(i) for i in fbc200_tup[1]]
+fbc200_mean = [float(i) for i in fbc200_tup[2]]
+fbc200_std = [float(i) for i in fbc200_tup[3]]
+
+fbc400_tup = get_csv_stats('stats_fb_ser400.csv')
+fbc400_min = [float(i) for i in fbc400_tup[0]]
+fbc400_max = [float(i) for i in fbc400_tup[1]]
+fbc400_mean = [float(i) for i in fbc400_tup[2]]
+fbc400_std = [float(i) for i in fbc400_tup[3]]
+
+fbr50_tup = get_csv_stats('stats_fb_redis50.csv')
+fbr50_min = [float(i) for i in fbr50_tup[0]]
+fbr50_max = [float(i) for i in fbr50_tup[1]]
+fbr50_mean = [float(i) for i in fbr50_tup[2]]
+fbr50_std = [float(i) for i in fbr50_tup[3]]
+
+fbr200_tup = get_csv_stats('stats_fb_redis200.csv')
+fbr200_min = [float(i) for i in fbr200_tup[0]]
+fbr200_max = [float(i) for i in fbr200_tup[1]]
+fbr200_mean = [float(i) for i in fbr200_tup[2]]
+fbr200_std = [float(i) for i in fbr200_tup[3]]
+
+fbr400_tup = get_csv_stats('stats_fb_redis400.csv')
+fbr400_min = [float(i) for i in fbr400_tup[0]]
+fbr400_max = [float(i) for i in fbr400_tup[1]]
+fbr400_mean = [float(i) for i in fbr400_tup[2]]
+fbr400_std = [float(i) for i in fbr400_tup[3]]
+
+fig2, axs2 = plt.subplots(4, 3, sharey=True)
+axs2[0, 0].set_title('50 UEs FlatBuffers serialization (ns) ' + str(len(fbc50_min))+ ' Runs')
+axs2[0, 0].plot(np.arange(len(fbc50_min)),fbc50_min, linewidth=1, c='blue', label='min')
+axs2[0, 0].plot(np.arange(len(fbc50_min)),fbc50_max, linewidth=2, c='red', label='max')
+axs2[0, 0].plot(np.arange(len(fbc50_min)),fbc50_mean, dashes=[2, 2], c='black', label='mean')
+axs2[0, 0].plot(np.arange(len(fbc50_min)),fbc50_std, 'r', c='grey', label='std')
+axs2[0, 1].set_title('200 UEs FlatBuffers serialization (ns) ' + str(len(fbc200_min))+ ' Runs')
+axs2[0, 1].plot(np.arange(len(fbc200_min)),fbc200_min, linewidth=1, c='blue', label='min')
+axs2[0, 1].plot(np.arange(len(fbc200_min)),fbc200_max, linewidth=2, c='red', label='max')
+axs2[0, 1].plot(np.arange(len(fbc200_min)),fbc200_mean, dashes=[2, 2], c='black', label='mean')
+axs2[0, 1].plot(np.arange(len(fbc200_min)),fbc200_std, 'r', c='grey', label='std')
+axs2[0, 2].set_title('400 UEs FlatBuffers serialization (ns) ' + str(len(fbc400_min))+ ' Runs')
+axs2[0, 2].plot(np.arange(len(fbc400_min)),fbc400_min, linewidth=1, c='blue', label='min')
+axs2[0, 2].plot(np.arange(len(fbc400_min)),fbc400_max, linewidth=2, c='red', label='max')
+axs2[0, 2].plot(np.arange(len(fbc400_min)),fbc400_mean, dashes=[2, 2], c='black', label='mean')
+axs2[0, 2].plot(np.arange(len(fbc400_min)),fbc400_std, 'r', c='grey', label='std')
+
+axs2[0, 0].legend(title='Legend:')
+axs2[0, 1].legend(title='Legend:')
+axs2[0, 2].legend(title='Legend:')
+
+axs2[1, 0].set_title('50 UEs FlatBuffers Redis transfer (ns) ' + str(len(fbr50_min))+ ' Runs')
+axs2[1, 0].plot(np.arange(len(fbr50_min)),fbr50_min, linewidth=1, c='blue', label='min')
+axs2[1, 0].plot(np.arange(len(fbr50_min)),fbr50_max, linewidth=2, c='red', label='max')
+axs2[1, 0].plot(np.arange(len(fbr50_min)),fbr50_mean, dashes=[2, 2], c='black', label='mean')
+axs2[1, 0].plot(np.arange(len(fbr50_min)),fbr50_std, 'r', c='grey', label='std')
+axs2[1, 1].set_title('200 UEs FlatBuffers Redis transfer (ns) ' + str(len(fbr200_min))+ ' Runs')
+axs2[1, 1].plot(np.arange(len(fbr200_min)),fbr200_min, linewidth=1, c='blue', label='min')
+axs2[1, 1].plot(np.arange(len(fbr200_min)),fbr200_max, linewidth=2, c='red', label='max')
+axs2[1, 1].plot(np.arange(len(fbr200_min)),fbr200_mean, dashes=[2, 2], c='black', label='mean')
+axs2[1, 1].plot(np.arange(len(fbr200_min)),fbr200_std, 'r', c='grey', label='std')
+axs2[1, 2].set_title('400 UEs FlatBuffers Redis transfer (ns) ' + str(len(fbr400_min))+ ' Runs')
+axs2[1, 2].plot(np.arange(len(fbr400_min)),fbr400_min, linewidth=1, c='blue', label='min')
+axs2[1, 2].plot(np.arange(len(fbr400_min)),fbr400_max, linewidth=2, c='red', label='max')
+axs2[1, 2].plot(np.arange(len(fbr400_min)),fbr400_mean, dashes=[2, 2], c='black', label='mean')
+axs2[1, 2].plot(np.arange(len(fbr400_min)),fbr400_std, 'r', c='grey', label='std')
+
+axs2[1, 0].legend(title='Legend:')
+axs2[1, 1].legend(title='Legend:')
+axs2[1, 2].legend(title='Legend:')
+
+axs2[2, 0].set_title('50 UEs ProtoBuf serialization (ns) ' + str(len(pbc50_min))+ ' Runs')
+axs2[2, 0].plot(np.arange(len(pbc50_min)),pbc50_min, linewidth=1, c='blue', label='min')
+axs2[2, 0].plot(np.arange(len(pbc50_min)),pbc50_max, linewidth=2, c='red', label='max')
+axs2[2, 0].plot(np.arange(len(pbc50_min)),pbc50_mean, dashes=[2, 2], c='black', label='mean')
+axs2[2, 0].plot(np.arange(len(pbc50_min)),pbc50_std, 'r', c='grey', label='std')
+axs2[2, 1].set_title('200 UEs ProtoBuf serialization (ns) ' + str(len(pbc200_min))+ ' Runs')
+axs2[2, 1].plot(np.arange(len(pbc200_min)),pbc200_min, linewidth=1, c='blue', label='min')
+axs2[2, 1].plot(np.arange(len(pbc200_min)),pbc200_max, linewidth=2, c='red', label='max')
+axs2[2, 1].plot(np.arange(len(pbc200_min)),pbc200_mean, dashes=[2, 2], c='black', label='mean')
+axs2[2, 1].plot(np.arange(len(pbc200_min)),pbc200_std, 'r', c='grey', label='std')
+axs2[2, 2].set_title('400 UEs ProtoBuf serialization (ns) ' + str(len(pbc400_min))+ ' Runs')
+axs2[2, 2].plot(np.arange(len(pbc400_min)),pbc400_min, linewidth=1, c='blue', label='min')
+axs2[2, 2].plot(np.arange(len(pbc400_min)),pbc400_max, linewidth=2, c='red', label='max')
+axs2[2, 2].plot(np.arange(len(pbc400_min)),pbc400_mean, dashes=[2, 2], c='black', label='mean')
+axs2[2, 2].plot(np.arange(len(pbc400_min)),pbc400_std, 'r', c='grey', label='std')
+
+axs2[2, 0].legend(title='Legend:')
+axs2[2, 1].legend(title='Legend:')
+axs2[2, 2].legend(title='Legend:')
+
+axs2[3, 0].set_title('50 UEs ProtoBuf Redis transfer (ns) ' + str(len(pbr50_min))+ ' Runs')
+axs2[3, 0].plot(np.arange(len(pbr50_min)),pbr50_min, linewidth=1, c='blue', label='min')
+axs2[3, 0].plot(np.arange(len(pbr50_min)),pbr50_max, linewidth=2, c='red', label='max')
+axs2[3, 0].plot(np.arange(len(pbr50_min)),pbr50_mean, dashes=[2, 2], c='black', label='mean')
+axs2[3, 0].plot(np.arange(len(pbr50_min)),pbr50_std, 'r', c='grey', label='std')
+axs2[3, 1].set_title('200 UEs ProtoBuf Redis transfer (ns) ' + str(len(pbr200_min))+ ' Runs')
+axs2[3, 1].plot(np.arange(len(pbr200_min)),pbr200_min, linewidth=1, c='blue', label='min')
+axs2[3, 1].plot(np.arange(len(pbr200_min)),pbr200_max, linewidth=2, c='red', label='max')
+axs2[3, 1].plot(np.arange(len(pbr200_min)),pbr200_mean, dashes=[2, 2], c='black', label='mean')
+axs2[3, 1].plot(np.arange(len(pbr200_min)),pbr200_std, 'r', c='grey', label='std')
+axs2[3, 2].set_title('400 UEs ProtoBuf Redis transfer (ns) ' + str(len(pbr400_min))+ ' Runs')
+axs2[3, 2].plot(np.arange(len(pbr400_min)),pbr400_min, linewidth=1, c='blue', label='min')
+axs2[3, 2].plot(np.arange(len(pbr400_min)),pbr400_max, linewidth=2, c='red', label='max')
+axs2[3, 2].plot(np.arange(len(pbr400_min)),pbr400_mean, dashes=[2, 2], c='black', label='mean')
+axs2[3, 2].plot(np.arange(len(pbr400_min)),pbr400_std, 'r', c='grey', label='std')
+
+axs2[3, 0].legend(title='Legend:')
+axs2[3, 1].legend(title='Legend:')
+axs2[3, 2].legend(title='Legend:')
+
+plt.subplots_adjust(hspace=0.25, wspace=0.02, left=0.02, right=0.98, bottom=0.02, top=0.98)
+plt.show()

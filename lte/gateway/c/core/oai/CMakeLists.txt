@@ -5,6 +5,7 @@ project(MagmaCore)
 
 include(CMakeOptionsMacros.txt)
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
+include($ENV{MAGMA_ROOT}/lte/oai/experimental/CMakeFlatMacros.txt)
 
 ################################################################
 # Build type
@@ -63,6 +64,11 @@ set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBIN
 # Set proto directory for state proto definitions
 ################################################################
 set(STATE_PROTO_DIR $ENV{MAGMA_ROOT}/lte/protos/oai)
+
+################################################################
+# Set flatbuf directory for state Flatbuffers definitions
+################################################################
+set(STATE_FLAT_DIR $ENV{MAGMA_ROOT}/lte/oai/experimental)
 
 ################################################################
 # S1AP LAYER OPTIONS

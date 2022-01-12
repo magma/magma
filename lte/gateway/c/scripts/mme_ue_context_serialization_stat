@@ -1,0 +1,233 @@
+#!/usr/bin/python3
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script uses mme_ue_context_serialization_benchmarking
+# This script is launched outside magma VM on the host itself.
+# You have to install mathplotlib and numpy python modules on your host.
+# mme_ue_context_serialization_benchmarking script produces log files from
+# mme execution. These log files are all the files opened in this script
+# Csv files with min, max, statistics.mean, std measurements are generated for
+# protobuf and flatbuffer serializations (serialization itself and redis
+#  storage)
+# TODO put the legend with colors on the plots
+
+import csv
+import glob
+import os
+import statistics
+import subprocess
+
+stats_pb_redis50 = open("stats_pb_redis50.csv", "w")
+stats_pb_redis50_fw = csv.writer(
+    stats_pb_redis50, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
+)
+stats_pb_redis50_fw.writerow(['Min', 'Max', 'Avg', 'Mean', 'std'])
+
+stats_pb_redis200 = open("stats_pb_redis200.csv", "w")
+stats_pb_redis200_fw = csv.writer(
+    stats_pb_redis200, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
+)
+stats_pb_redis200_fw.writerow(["Min", "Max", "Mean", "Std"])
+
+stats_pb_redis400 = open("stats_pb_redis400.csv", "w")
+stats_pb_redis400_fw = csv.writer(
+    stats_pb_redis400, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
+)
+stats_pb_redis400_fw.writerow(["Min", "Max", "Mean", "Std"])
+
+stats_pb_ser50 = open("stats_pb_ser50.csv", "w")
+stats_pb_ser50_fw = csv.writer(
+    stats_pb_ser50, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
+)
+stats_pb_ser50_fw.writerow(["Min", "Max", "Mean", "Std"])
+
+stats_pb_ser200 = open("stats_pb_ser200.csv", "w")
+stats_pb_ser200_fw = csv.writer(
+    stats_pb_ser200, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
+)
+stats_pb_ser200_fw.writerow(["Min", "Max", "Mean", "Std"])
+
+stats_pb_ser400 = open("stats_pb_ser400.csv", "w")
+stats_pb_ser400_fw = csv.writer(
+    stats_pb_ser400, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
+)
+stats_pb_ser400_fw.writerow(["Min", "Max", "Mean", "Std"])
+
+stats_fb_redis50 = open("stats_fb_redis50.csv", "w")
+stats_fb_redis50_fw = csv.writer(
+    stats_fb_redis50, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
+)
+stats_fb_redis50_fw.writerow(["Min", "Max", "Mean", "Std"])
+
+stats_fb_redis200 = open("stats_fb_redis200.csv", "w")
+stats_fb_redis200_fw = csv.writer(
+    stats_fb_redis200, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
+)
+stats_fb_redis200_fw.writerow(["Min", "Max", "Mean", "Std"])
+
+stats_fb_redis400 = open("stats_fb_redis400.csv", "w")
+stats_fb_redis400_fw = csv.writer(
+    stats_fb_redis400, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
+)
+stats_fb_redis400_fw.writerow(["Min", "Max", "Mean", "Std"])
+
+stats_fb_ser50 = open("stats_fb_ser50.csv", "w")
+stats_fb_ser50_fw = csv.writer(
+    stats_fb_ser50, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
+)
+stats_fb_ser50_fw.writerow(["Min", "Max", "Mean", "Std"])
+
+stats_fb_ser200 = open("stats_fb_ser200.csv", "w")
+stats_fb_ser200_fw = csv.writer(
+    stats_fb_ser200, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
+)
+stats_fb_ser200_fw.writerow(["Min", "Max", "Mean", "Std"])
+
+stats_fb_ser400 = open("stats_fb_ser400.csv", "w")
+stats_fb_ser400_fw = csv.writer(
+    stats_fb_ser400, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
+)
+stats_fb_ser400_fw.writerow(["Min", "Max", "Mean", "Std"])
+
+current_working_directory = os.getcwd()
+
+for i in range(100):
+
+    subdir_run = current_working_directory+"/RUN"+str(i)
+    os.mkdir(subdir_run)
+    os.chdir(subdir_run)
+    subprocess.run([os.getenv('MAGMA_ROOT') + "/lte/gateway/c/scripts/mme_ue_context_serialization_benchmarking"])
+
+    # PROTOBUF
+    pbfc50 = open("protobuf_conv50.txt")
+    pbxc50 = pbfc50.read().splitlines()
+    pbic50 = [int(i) for i in pbxc50]
+
+    pbfc200 = open("protobuf_conv200.txt")
+    pbxc200 = pbfc200.read().splitlines()
+    pbic200 = [int(i) for i in pbxc200]
+
+    pbfc400 = open("protobuf_conv400.txt")
+    pbxc400 = pbfc400.read().splitlines()
+    pbic400 = [int(i) for i in pbxc400]
+
+    pbfr50 = open("protobuf_redis50.txt")
+    pbxr50 = pbfr50.read().splitlines()
+    pbir50 = [int(i) for i in pbxr50]
+
+    pbfr200 = open("protobuf_redis200.txt")
+    pbxr200 = pbfr200.read().splitlines()
+    pbir200 = [int(i) for i in pbxr200]
+
+    pbfr400 = open("protobuf_redis400.txt")
+    pbxr400 = pbfr400.read().splitlines()
+    pbir400 = [int(i) for i in pbxr400]
+
+    stats_pb_redis50_fw.writerow(
+        [min(pbir50), max(pbir50), statistics.mean(pbir50), statistics.pstdev(pbir50)]
+    )
+    stats_pb_redis200_fw.writerow(
+        [min(pbir200), max(pbir200), statistics.mean(pbir200), statistics.pstdev(pbir200)]
+    )
+    stats_pb_redis400_fw.writerow(
+        [min(pbir400), max(pbir400), statistics.mean(pbir400), statistics.pstdev(pbir400)]
+    )
+
+    stats_pb_ser50_fw.writerow(
+        [min(pbic50), max(pbic50), statistics.mean(pbic50), statistics.pstdev(pbic50)]
+    )
+    stats_pb_ser200_fw.writerow(
+        [min(pbic200), max(pbic200), statistics.mean(pbic200), statistics.pstdev(pbic200)]
+    )
+    stats_pb_ser400_fw.writerow(
+        [min(pbic400), max(pbic400), statistics.mean(pbic400), statistics.pstdev(pbic400)]
+    )
+
+    # FLATBUFFERS
+    fbfc50 = open("flatbuffer_conv50.txt")
+    fbxc50 = fbfc50.read().splitlines()
+    fbic50 = [int(i) for i in fbxc50]
+
+    fbfc200 = open("flatbuffer_conv200.txt")
+    fbxc200 = fbfc200.read().splitlines()
+    fbic200 = [int(i) for i in fbxc200]
+
+    fbfc400 = open("flatbuffer_conv400.txt")
+    fbxc400 = fbfc400.read().splitlines()
+    fbic400 = [int(i) for i in fbxc400]
+
+    fbfr50 = open("flatbuffer_redis50.txt")
+    fbxr50 = fbfr50.read().splitlines()
+    fbir50 = [int(i) for i in fbxr50]
+
+    fbfr200 = open("flatbuffer_redis200.txt")
+    fbxr200 = fbfr200.read().splitlines()
+    fbir200 = [int(i) for i in fbxr200]
+
+    fbfr400 = open("flatbuffer_redis400.txt")
+    fbxr400 = fbfr400.read().splitlines()
+    fbir400 = [int(i) for i in fbxr400]
+
+    stats_fb_redis50_fw.writerow(
+        [min(fbir50), max(fbir50), statistics.mean(fbir50), statistics.pstdev(fbir50)]
+    )
+
+    stats_fb_redis200_fw.writerow(
+        [min(fbir200), max(fbir200), statistics.mean(fbir200), statistics.pstdev(fbir200)]
+    )
+
+    stats_fb_redis400_fw.writerow(
+        [min(fbir400), max(fbir400), statistics.mean(fbir400), statistics.pstdev(fbir400)]
+    )
+
+    stats_fb_ser50_fw.writerow(
+        [min(fbic50), max(fbic50), statistics.mean(fbic50), statistics.pstdev(fbic50)]
+    )
+
+    stats_fb_ser200_fw.writerow(
+        [min(fbic200), max(fbic200), statistics.mean(fbic200), statistics.pstdev(fbic200)]
+    )
+
+    stats_fb_ser400_fw.writerow(
+        [min(fbic400), max(fbic400), statistics.mean(fbic400), statistics.pstdev(fbic400)]
+    )
+    os.chdir(current_working_directory)
+
+
+# Remove obsolete files.
+try:
+    fileList = glob.glob('*.txt', recursive=False)
+    for filePath in fileList:
+        try:
+            os.remove(filePath)
+        except OSError:
+            print("Error while deleting file")
+except FileNotFoundError:
+    pass
+except Exception as e:
+    print(e)
+
+stats_pb_redis50.close()
+stats_pb_redis200.close()
+stats_pb_redis400.close()
+
+stats_pb_ser50.close()
+stats_pb_ser200.close()
+stats_pb_ser400.close()
+
+stats_fb_redis50.close()
+stats_fb_redis200.close()
+stats_fb_redis400.close()
+
+stats_fb_ser50.close()
+stats_fb_ser200.close()
+stats_fb_ser400.close()

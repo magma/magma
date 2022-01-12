@@ -22,6 +22,9 @@ extern "C" {
 }
 
 #include "lte/gateway/c/core/oai/include/state_manager.h"
+#if MME_BENCHMARK
+#include "lte/flat/oai/experimental/mme_nas_state_generated.h"
+#endif
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_converter.h"
 #include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.h"
 
@@ -62,7 +65,7 @@ class MmeNasStateManager
   void free_state() override;
 
   status_code_e read_ue_state_from_db() override;
-
+  status_code_e read_fb_ue_state_from_db();
   /**
    * Copy constructor and assignment operator are marked as deleted functions.
    * Making them public for better debugging/logging.
