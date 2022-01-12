@@ -19,6 +19,8 @@
 
 #include "Utilities.h"
 
+#define IMSI_PREFIX "IMSI"
+
 namespace google {
 namespace protobuf {
 class Timestamp;
@@ -61,6 +63,13 @@ std::chrono::milliseconds time_difference_from_now(
   const auto delta = std::max(timestamp - now, 0L);
   std::chrono::seconds sec(delta);
   return std::chrono::duration_cast<std::chrono::milliseconds>(sec);
+}
+
+std::string prepend_imsi_with_prefix(const std::string& imsi) {
+  if (imsi.find(IMSI_PREFIX) == std::string::npos) {
+    return IMSI_PREFIX + imsi;
+  }
+  return imsi;
 }
 
 }  // namespace magma

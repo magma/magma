@@ -31,10 +31,8 @@
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 
-void sgw_send_paging_request(const struct in_addr* dest_ip) {
-  OAILOG_DEBUG(
-      TASK_SPGW_APP, "Paging procedure initiated for ue_ipv4: %x\n",
-      dest_ip->s_addr);
+void sgw_send_paging_request(
+    const struct in_addr* dest_ipv4, const struct in6_addr* dest_ipv6) {
   MessageDef* message_p                       = NULL;
   itti_s11_paging_request_t* paging_request_p = NULL;
 
@@ -42,8 +40,30 @@ void sgw_send_paging_request(const struct in_addr* dest_ip) {
       DEPRECATEDitti_alloc_new_message_fatal(TASK_SPGW_APP, S11_PAGING_REQUEST);
   paging_request_p = &message_p->ittiMsg.s11_paging_request;
   memset((void*) paging_request_p, 0, sizeof(itti_s11_paging_request_t));
-  paging_request_p->ipv4_addr = *dest_ip;
 
+  if (dest_ipv6) {
+    char ip6_str[INET6_ADDRSTRLEN];
+    inet_ntop(AF_INET6, dest_ipv6, ip6_str, INET6_ADDRSTRLEN);
+    OAILOG_DEBUG(
+        TASK_SPGW_APP, "Paging procedure initiated for ue_ipv6: %s\n", ip6_str);
+    // Copy ipv6 address
+    memset(
+        paging_request_p->address.ipv6_addr.sin6_addr.s6_addr, 0,
+        sizeof(paging_request_p->address.ipv6_addr.sin6_addr.s6_addr));
+    memcpy(
+        &paging_request_p->address.ipv6_addr.sin6_addr, dest_ipv6,
+        sizeof(struct in6_addr));
+    paging_request_p->ip_addr_type = IPV6_ADDR_TYPE;
+  } else if (dest_ipv4) {
+    OAILOG_DEBUG(
+        TASK_SPGW_APP, "Paging procedure initiated for ue_ipv4: %x\n",
+        dest_ipv4->s_addr);
+    paging_request_p->address.ipv4_addr.sin_addr = *dest_ipv4;
+    paging_request_p->ip_addr_type               = IPV4_ADDR_TYPE;
+  } else {
+    OAILOG_ERROR(TASK_SPGW_APP, "Both ipv4 and ipv6 addresses are NULL\n");
+    return;
+  }
   send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
   return;
 }

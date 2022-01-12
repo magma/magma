@@ -144,9 +144,7 @@ enum SessionFsmState {
   SESSION_RELEASED = 6,
   CREATING = 7,
   CREATED = 8,
-  ACTIVE = 9,
   INACTIVE = 10,
-  RELEASE = 11,
 };
 
 struct RuleLifetime {

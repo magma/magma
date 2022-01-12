@@ -9,15 +9,18 @@ load_tests:
       - name: release
         result: ReleaseIPAddress
         id: 4
-  - name: pipelined
-    test:
-      - name: activate_flows
-        result: ActivateFlows
-        id: 5
-      - name: deactivate_flows
-        result: DeactivateFlows
-        id: 6
+#  - name: pipelined
+#    test:
+#      - name: activate_flows
+#        result: ActivateFlows
+#        id: 5
+#      - name: deactivate_flows
+#        result: DeactivateFlows
+#        id: 6
 
+tag: latest
+docker_repo: agw-test.artifactory.magmacore.org
+magmaRepo: /opt/magma
 MAGMA_ROOT: "{{ magmaRepo }}"
 GHZ_PATH: "{{ magmaRepo }}/lte/gateway/docker/ghz"
 GHZ_API_URL: "http://35.75.138.193"
