@@ -62,14 +62,13 @@ static void handle_subs_authentication_info_ans(
   if (!status.ok()) {
     std::cout << "get_subs_auth_info fails with code " << status.error_code()
               << ", msg: " << status.error_message() << std::endl;
-  } else {
-    strncpy(amf_app_subs_auth_info_resp_p->imsi, imsi.c_str(), imsi_length);
-    amf_app_subs_auth_info_resp_p->imsi_length = imsi_length;
-    amf_app_subs_auth_info_resp_p->ue_id       = ue_id;
-
-    magma5g::convert_proto_msg_to_itti_m5g_auth_info_ans(
-        response, amf_app_subs_auth_info_resp_p);
   }
+  strncpy(amf_app_subs_auth_info_resp_p->imsi, imsi.c_str(), imsi_length);
+  amf_app_subs_auth_info_resp_p->imsi_length = imsi_length;
+  amf_app_subs_auth_info_resp_p->ue_id       = ue_id;
+
+  magma5g::convert_proto_msg_to_itti_m5g_auth_info_ans(
+      response, amf_app_subs_auth_info_resp_p);
 
   send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
 }

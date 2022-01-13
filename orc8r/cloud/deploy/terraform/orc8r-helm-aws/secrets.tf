@@ -144,6 +144,31 @@ resource "kubernetes_secret" "fluentd_certs" {
   depends_on = [null_resource.orc8r_seed_secrets]
 }
 
+resource "kubernetes_secret" "dp_sas_certs" {
+  count = var.dp_enabled ? 1 : 0
+  type = "kubernetes.io/tls"
+  metadata {
+    name      = "domain-proxy-cc"
+    namespace = kubernetes_namespace.orc8r.metadata[0].name
+  }
+  data = {
+    "tls.crt" = file("${var.seed_certs_dir}/${var.dp_sas_crt}")
+    "tls.key" = file("${var.seed_certs_dir}/${var.dp_sas_key}")
+  }
+}
+
+resource "kubernetes_secret" "dp_sas_ca" {
+  count = var.dp_enabled ? 1 : 0
+  type = "Opaque"
+  metadata {
+    name      = "domain-proxy-cc-ca"
+    namespace = kubernetes_namespace.orc8r.metadata[0].name
+  }
+  data = {
+    "ca.crt" = file("${var.seed_certs_dir}/${var.dp_sas_ca}")
+  }
+}
+
 data "aws_secretsmanager_secret" "orc8r_secrets" {
   name = var.secretsmanager_orc8r_name
 }

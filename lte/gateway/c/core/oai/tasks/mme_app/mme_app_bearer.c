@@ -922,15 +922,36 @@ void mme_app_handle_delete_session_rsp(
       ue_context_p->bearer_contexts[EBI_TO_INDEX(delete_sess_resp_pP->lbi)]
           ->pdn_cx_id;
   pdn_context_t* pdn_context = ue_context_p->pdn_contexts[pid];
-  if ((pdn_context) && (pdn_context->paa.ipv4_address.s_addr)) {
-    OAILOG_DEBUG_UE(
+  if (!pdn_context) {
+    OAILOG_ERROR_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Removing  ue_ip:%x from ipv4_imsi map \n",
-        (pdn_context)->paa.ipv4_address.s_addr);
-
-    mme_app_remove_ue_ipv4_addr(
-        (pdn_context)->paa.ipv4_address.s_addr,
-        ue_context_p->emm_context._imsi64);
+        "PDN context is NULL for delete session rsp received"
+        " from SGW\n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  switch (pdn_context->pdn_type) {
+    case IPv4:
+      mme_app_remove_ue_ipv4_addr(
+          (pdn_context)->paa.ipv4_address.s_addr,
+          ue_context_p->emm_context._imsi64);
+      break;
+    case IPv6:
+      mme_app_remove_ue_ipv6_addr(
+          (pdn_context)->paa.ipv6_address, ue_context_p->emm_context._imsi64);
+      break;
+    case IPv4_AND_v6:
+      mme_app_remove_ue_ipv6_addr(
+          (pdn_context)->paa.ipv6_address, ue_context_p->emm_context._imsi64);
+      mme_app_remove_ue_ipv4_addr(
+          (pdn_context)->paa.ipv4_address.s_addr,
+          ue_context_p->emm_context._imsi64);
+      break;
+    default:
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
+          "Invalid pdn_type received from spgw"
+          " from SGW is NULL \n");
+      OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   if (ue_context_p->emm_context.new_attach_info) {
     int bearer_idx = EBI_TO_INDEX(delete_sess_resp_pP->lbi);
@@ -1209,17 +1230,48 @@ status_code_e mme_app_handle_create_sess_resp(
         memcpy(
             &ue_context_p->pdn_contexts[pdn_cx_id]->paa,
             &create_sess_resp_pP->paa, sizeof(paa_t));
-        // TODO Add Ipv6 support for initiating paging
-        if ((create_sess_resp_pP->paa.pdn_type == IPv4) ||
-            (create_sess_resp_pP->paa.pdn_type == IPv4_AND_v6) ||
-            (create_sess_resp_pP->paa.pdn_type == IPv4_OR_v6)) {
-          OAILOG_DEBUG_UE(
-              LOG_MME_APP, ue_context_p->emm_context._imsi64,
-              " ipv4 address received in create session response is :%x \n",
-              create_sess_resp_pP->paa.ipv4_address.s_addr);
-          mme_app_insert_ue_ipv4_addr(
-              create_sess_resp_pP->paa.ipv4_address.s_addr,
-              ue_context_p->emm_context._imsi64);
+        switch (create_sess_resp_pP->paa.pdn_type) {
+          case IPv4:
+          case IPv4_OR_v6:
+            OAILOG_DEBUG_UE(
+                LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                " ipv4 address received in create session response is :%x \n",
+                create_sess_resp_pP->paa.ipv4_address.s_addr);
+            mme_app_insert_ue_ipv4_addr(
+                create_sess_resp_pP->paa.ipv4_address.s_addr,
+                ue_context_p->emm_context._imsi64);
+            break;
+          case IPv6:
+            OAILOG_DEBUG_UE(
+                LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                " ipv6 address received in create session response is "
+                ":%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x \n",
+                NIP6ADDR(&create_sess_resp_pP->paa.ipv6_address));
+            mme_app_insert_ue_ipv6_addr(
+                create_sess_resp_pP->paa.ipv6_address,
+                ue_context_p->emm_context._imsi64);
+            break;
+          case IPv4_AND_v6:
+            OAILOG_DEBUG_UE(
+                LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                " ipv4v6 address received in create session response is "
+                "ipv4:%x, ipv6: %04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x \n",
+                create_sess_resp_pP->paa.ipv4_address.s_addr,
+                NIP6ADDR(&create_sess_resp_pP->paa.ipv6_address));
+            mme_app_insert_ue_ipv4_addr(
+                create_sess_resp_pP->paa.ipv4_address.s_addr,
+                ue_context_p->emm_context._imsi64);
+
+            mme_app_insert_ue_ipv6_addr(
+                create_sess_resp_pP->paa.ipv6_address,
+                ue_context_p->emm_context._imsi64);
+            break;
+          default:
+            OAILOG_ERROR_UE(
+                LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                " Unknown PDN type(%d) received in create session response\n",
+                create_sess_resp_pP->paa.pdn_type);
+            OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
         }
       }
       transaction_identifier = current_bearer_p->transaction_identifier;
@@ -2278,21 +2330,46 @@ imsi64_t mme_app_handle_initial_paging_request(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
   imsi64_t* imsi_list = NULL;
-  OAILOG_DEBUG(
-      LOG_MME_APP, "paging is requested for ue_ip:%x \n",
-      paging_req->ipv4_addr.s_addr);
-  int num_imsis =
-      mme_app_get_imsi_from_ipv4(paging_req->ipv4_addr.s_addr, &imsi_list);
-  if (!(num_imsis)) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Failed to fetch imsi from ue_ip:%x \n",
-        paging_req->ipv4_addr.s_addr);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-  }
-  for (int idx = 0; idx < num_imsis; idx++) {
-    if (imsi_list[idx] != INVALID_IMSI64) {
-      imsi64 = imsi_list[idx];
-      mme_app_send_paging_request(mme_app_desc_p, imsi64);
+
+  if (paging_req->ip_addr_type == IPV4_ADDR_TYPE) {
+    OAILOG_DEBUG_UE(
+        LOG_MME_APP, imsi64, "paging is requested for ue_ipv4:%s \n",
+        inet_ntoa(paging_req->address.ipv4_addr.sin_addr));
+    int num_imsis = mme_app_get_imsi_from_ipv4(
+        paging_req->address.ipv4_addr.sin_addr.s_addr, &imsi_list);
+    if (!(num_imsis)) {
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, imsi64, "Failed to fetch imsi from ue_ipv4:%s \n",
+          inet_ntoa(paging_req->address.ipv4_addr.sin_addr));
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    }
+    for (int idx = 0; idx < num_imsis; idx++) {
+      if (imsi_list[idx] != INVALID_IMSI64) {
+        imsi64 = imsi_list[idx];
+        mme_app_send_paging_request(mme_app_desc_p, imsi64);
+      }
+    }
+  } else if (paging_req->ip_addr_type == IPV6_ADDR_TYPE) {
+    OAILOG_DEBUG_UE(
+        LOG_MME_APP, imsi64,
+        "paging is requested for "
+        "ue_ipv6:%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x  \n",
+        NIP6ADDR(&(paging_req->address.ipv6_addr.sin6_addr)));
+    int num_imsis_ipv6 = mme_app_get_imsi_from_ipv6(
+        paging_req->address.ipv6_addr.sin6_addr, &imsi_list);
+    if (!(num_imsis_ipv6)) {
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, imsi64,
+          "Failed to fetch imsi from ue_ipv6:  "
+          "%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x  \n",
+          NIP6ADDR(&paging_req->address.ipv6_addr.sin6_addr));
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    }
+    for (int idx = 0; idx < num_imsis_ipv6; idx++) {
+      if (imsi_list[idx] != INVALID_IMSI64) {
+        imsi64 = imsi_list[idx];
+        mme_app_send_paging_request(mme_app_desc_p, imsi64);
+      }
     }
   }
   free_wrapper((void**) &imsi_list);

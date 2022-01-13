@@ -1076,7 +1076,7 @@ static void delete_userplane_tunnels(
       }
       // delete paging rule
       char* ip_str = inet_ntoa(ue_ipv4);
-      rv           = gtp_tunnel_ops->delete_paging_rule(ue_ipv4);
+      rv           = gtp_tunnel_ops->delete_paging_rule(ue_ipv4, ue_ipv6);
       if (rv < 0) {
         OAILOG_ERROR(
             LOG_SGW_S8, "ERROR in deleting paging rule for IP Addr: %s\n",

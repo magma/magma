@@ -33,7 +33,7 @@ func (srv *CentralSessionController) sendMutlipleSmPolicyUpdateRequests(
 ) []*protos.UsageMonitoringUpdateResponse {
 	var wg sync.WaitGroup
 	respChan := make(chan []*protos.UsageMonitoringUpdateResponse)
-	ctx, cancel := context.WithTimeout(context.Background(), srv.cfg.RequestTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), srv.config.RequestTimeout)
 	defer cancel()
 
 	accResponses := []*protos.UsageMonitoringUpdateResponse{}

@@ -13,6 +13,7 @@ limitations under the License.
 
 from magma.enodebd.logger import EnodebdLogger as logger
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
+from magma.enodebd.tr069.spyne_mods import as_dict
 from spyne.decorator import rpc
 from spyne.model.complex import ComplexModelBase
 from spyne.server.wsgi import WsgiMethodContext
@@ -91,18 +92,12 @@ class AutoConfigServer(ServiceBase):
         message: ComplexModelBase,
     ) -> ComplexModelBase:
         # Log incoming msg
-        if hasattr(message, 'as_dict'):
-            logger.debug('Handling TR069 message: %s', str(type(message)))
-        else:
-            logger.debug('Handling TR069 message.')
+        logger.debug('Handling TR069 message: %s', str(as_dict(message)))
 
         req = cls._get_tr069_response_from_sm(ctx, message)
 
         # Log outgoing msg
-        if hasattr(req, 'as_dict'):
-            logger.debug('Sending TR069 message: %s', str(req.as_dict()))
-        else:
-            logger.debug('Sending TR069 message.')
+        logger.debug('Sending TR069 message: %s', str(as_dict(req)))
 
         # Set header
         ctx.out_header = models.ID(mustUnderstand='1')

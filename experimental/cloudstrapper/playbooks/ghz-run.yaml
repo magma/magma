@@ -1,0 +1,5 @@
+---
+
+- hosts: "localhost"
+  roles:
+    - ghz-platform
