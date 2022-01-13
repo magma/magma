@@ -109,7 +109,9 @@ class TestS1HandoverCancel(unittest.TestCase):
         )
         s1ho_required = s1ap_types.FwNbS1HoRequired_t()
         s1ho_required.ueId = req.ue_id
-        s1ho_required.s1HoEvent = s1ap_types.FwS1HoEvents.FW_S1_HO_CANCEL.value
+        s1ho_required.s1HoEvent = (
+            s1ap_types.FwS1HoEvents.FW_S1_HO_SUCCESS.value
+        )
         self._s1ap_wrapper.s1_util.issue_cmd(
             s1ap_types.tfwCmd.S1_HANDOVER_REQUIRED,
             s1ho_required,
@@ -163,6 +165,19 @@ class TestS1HandoverCancel(unittest.TestCase):
         # Since S1_HO_CANCEL event is configured, after receiving S1 Handover
         # Command, S1APTester stack sends Handover Cancel from source ENB to
         # MME. MME then sends MME Handover Cancel Ack to Source ENB.
+
+        # Send the S1 Handover Cancel message from source ENB to MME
+        print(
+            "************************* Sending S1 Handover Cancel for UE Id:",
+            req.ue_id,
+        )
+        s1ho_cancel = s1ap_types.FwNbS1HoCancel_t()
+        s1ho_cancel.ueId = req.ue_id
+        self._s1ap_wrapper.s1_util.issue_cmd(
+            s1ap_types.tfwCmd.S1_HANDOVER_CANCEL,
+            s1ho_cancel,
+        )
+
         # Wait for S1 Handover Cancel Ack Indication
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(

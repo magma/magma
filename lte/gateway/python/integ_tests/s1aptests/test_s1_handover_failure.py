@@ -138,9 +138,23 @@ class TestS1HandoverFailure(unittest.TestCase):
             + ")",
         )
 
+        time.sleep(3)
         # Since S1_HO_FAILURE event is configired. After receiving S1 Handover
         # Request, S1APTester stack sends S1 Handover Failure from target ENB
         # to MME. MME then sends S1 Handover Preparation Failure to Source ENB.
+
+        # Send the S1 Handover Failure message from source ENB to MME
+        print(
+            "************************* Sending S1 Handover Failure for UE Id:",
+            req.ue_id,
+        )
+        s1ho_failure = s1ap_types.FwNbS1HoFailure_t()
+        s1ho_failure.ueId = req.ue_id
+        self._s1ap_wrapper.s1_util.issue_cmd(
+            s1ap_types.tfwCmd.S1_HANDOVER_FAILURE,
+            s1ho_failure,
+        )
+
         # Wait for S1 Handover Preparation Failure Indication
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
