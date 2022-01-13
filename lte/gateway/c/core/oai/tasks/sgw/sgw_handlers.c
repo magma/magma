@@ -2252,7 +2252,7 @@ void sgw_send_release_access_bearer_response(
   itti_s11_release_access_bearers_response_t* release_access_bearers_resp_p =
       NULL;
   MessageDef* message_p =
-      itti_alloc_new_message(module, S11_RELEASE_ACCESS_BEARERS_RESPONSE);
+      itti_alloc_new_message(TASK_SPGW_APP, S11_RELEASE_ACCESS_BEARERS_RESPONSE);
   if (message_p == NULL) {
     OAILOG_ERROR_UE(
         module, imsi64,
