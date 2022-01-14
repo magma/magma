@@ -17,8 +17,7 @@ def configure_python_toolchain(name=None):
 
     native.py_runtime(
         name = "python3",
-        files = ["@python_interpreter//:files"],
-        interpreter = "@python_interpreter//:python_bin",
+        interpreter_path = "/usr/bin/python3.8",
         python_version = "PY3",
         visibility = ["//visibility:public"],
     )

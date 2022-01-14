@@ -9,10 +9,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-exports_files(["python_bin"])
+"""Python Toolchain and PIP Dependencies"""
 
-filegroup(
-    name = "files",
-    srcs = glob(["bazel_install/**"], exclude = ["**/* *"]),
-    visibility = ["//visibility:public"],
-)
+load("@rules_python//python:pip.bzl", "pip_parse")
+
+def configure_python_dependencies(name=None):
+
+    native.register_toolchains("//bazel:py_toolchain")
+ 
+    pip_parse(
+        name = "python_deps",
+        extra_pip_args = ["--require-hashes"],
+        python_interpreter = "python3",
+        requirements_lock = "//bazel/external:requirements.txt",
+        visibility = ["//visibility:public"],
+    )
