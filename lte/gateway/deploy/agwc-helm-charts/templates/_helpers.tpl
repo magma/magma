@@ -27,5 +27,4 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{/* Generate selector labels */}}
 {{- define "image-version-label" -}}
-image-version: {{ .Values.image.tag}}
 {{- end -}}

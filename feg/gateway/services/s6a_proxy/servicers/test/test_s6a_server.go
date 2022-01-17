@@ -58,7 +58,7 @@ func StartTestS6aServer(network, addr string, useStaticResp bool) error {
 	} else {
 		mux.HandleIdx(
 			diam.CommandIndex{AppID: diam.TGPP_S6A_APP_ID, Code: diam.AuthenticationInformation, Request: true},
-			testHandleAIR(settings))
+			testHandleAIR(settings, datatype.OctetString(TEST_PLMN_ID)))
 	}
 
 	// expected ULRFlags = 290 (100100010) where the fifth 1 is DualRegistration_5GIndicator : true
@@ -100,7 +100,7 @@ func testHandleALL(results chan error) diam.HandlerFunc {
 }
 
 // S6a AI
-func testHandleAIR(settings *sm.Settings) diam.HandlerFunc {
+func testHandleAIR(settings *sm.Settings, expectedVisitedPLMNID datatype.OctetString) diam.HandlerFunc {
 	return func(c diam.Conn, m *diam.Message) {
 		var req servicers.AIR
 		var code uint32
@@ -108,6 +108,10 @@ func testHandleAIR(settings *sm.Settings) diam.HandlerFunc {
 		err := m.Unmarshal(&req)
 		if err != nil {
 			fmt.Printf("AIR Unmarshal for message: %s failed: %s", m, err)
+			code = diam.UnableToComply
+		} else if expectedVisitedPLMNID != req.VisitedPLMNID {
+			// Flags needs to exist for this test
+			fmt.Printf("error: VisitedPLMNID (%v) doesn't match expected VisitedPLMNID (%v)\n", req.VisitedPLMNID, expectedVisitedPLMNID)
 			code = diam.UnableToComply
 		} else {
 			code = diam.Success

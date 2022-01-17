@@ -36,6 +36,4 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{/* Generate selector labels */}}
 {{- define "nginx-image-version-label" -}}
-image-version: {{ .Values.nginx.image.tag}}
-chart-version: {{ .Chart.Version }}
 {{- end -}}

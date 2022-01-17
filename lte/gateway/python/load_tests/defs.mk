@@ -16,4 +16,9 @@ loadtest_mobilityd.py:release \
 loadtest_pipelined.py:activate_flows \
 loadtest_pipelined.py:deactivate_flows \
 loadtest_sessiond.py:create \
-loadtest_sessiond.py:end
+loadtest_sessiond.py:end \
+loadtest_subscriberdb.py:add \
+loadtest_subscriberdb.py:list \
+loadtest_subscriberdb.py:delete \
+loadtest_subscriberdb.py:get \
+loadtest_subscriberdb.py:update

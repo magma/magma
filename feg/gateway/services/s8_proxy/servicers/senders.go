@@ -51,6 +51,8 @@ func (s *S8Proxy) sendAndReceiveCreateSession(
 		s.gtpClient.RemoveSessionByIMSI(csReq.Imsi)
 		return nil, fmt.Errorf("Wrong response type (no CreateSessionResponse), maybe received out of order response message: %s", err)
 	}
+	// inject user plane AGW
+	csRes.UAgwTeid = csReq.BearerContext.UserPlaneFteid.Teid
 	glog.V(2).Infof("Create Session Response (grpc):\n%s", csRes.String())
 	return csRes, nil
 }
