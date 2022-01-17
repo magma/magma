@@ -1363,13 +1363,6 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
   bstring b = blk2bstr(buffer, length);
   free(buffer);
   rc = s1ap_mme_itti_send_sctp_request(&b, assoc_id, stream, mme_ue_s1ap_id);
-
-  // Dont remove UE context if UE handed over to another eNB
-  if (ue_ref_p != NULL && ue_ref_p->sctp_assoc_id == assoc_id) {
-    ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
-    // We can safely remove UE context now, no need for timer
-    s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
-  }
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 
@@ -1613,7 +1606,18 @@ status_code_e s1ap_mme_handle_ue_context_release_complete(
           " UE Context Release commplete: S1 context should have been cleared "
           "for ueid " MME_UE_S1AP_ID_FMT "\n",
           (uint32_t) mme_ue_s1ap_id);
-      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+      // Dont remove UE context if UE handed over to another eNB
+      imsi64_t imsi64           = INVALID_IMSI64;
+      s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+      hashtable_uint64_ts_get(
+          imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
+          &imsi64);
+
+      ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
+      // We can safely remove UE context now, no need for timer
+      s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
+
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
     } else {
       /*
        * UE Context Release commplete received from a different eNB. This could
