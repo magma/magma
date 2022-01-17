@@ -24,7 +24,7 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/ctraced"
 	"magma/orc8r/cloud/go/services/ctraced/obsidian/handlers"
-	"magma/orc8r/cloud/go/services/ctraced/servicers"
+	ctraced_servicers "magma/orc8r/cloud/go/services/ctraced/servicers/southbound"
 	ctraced_storage "magma/orc8r/cloud/go/services/ctraced/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -51,7 +51,7 @@ func main() {
 	ctracedBlobstore := ctraced_storage.NewCtracedBlobstore(fact)
 
 	// Init gRPC servicer
-	protos.RegisterCallTraceControllerServer(srv.GrpcServer, servicers.NewCallTraceServicer(ctracedBlobstore))
+	protos.RegisterCallTraceControllerServer(srv.GrpcServer, ctraced_servicers.NewCallTraceServicer(ctracedBlobstore))
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(ctraced.ServiceName))
 
 	gwClient := handlers.NewGwCtracedClient()
