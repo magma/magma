@@ -27,6 +27,7 @@
 #include "orc8r/gateway/c/common/config/includes/MConfigLoader.h"
 #include "orc8r/gateway/c/common/logging/magma_logging_init.h"
 #include "orc8r/gateway/c/common/sentry/includes/SentryWrapper.h"
+#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.h"
 
 #define SCTPD_SERVICE "sctpd"
 #define SHARED_MCONFIG "shared_mconfig"
@@ -97,13 +98,36 @@ static magma::mconfig::SharedMconfig load_shared_mconfig() {
   return mconfig;
 }
 
+static uint32_t get_log_verbosity(const YAML::Node& config,
+                                  magma::mconfig::SctpD mconfig) {
+  if (!config["log_level"].IsDefined()) {
+    return magma::get_log_verbosity_from_mconfig(mconfig.log_level());
+  }
+  std::string log_level = config["log_level"].as<std::string>();
+  if (log_level == "DEBUG") {
+    return MDEBUG;
+  } else if (log_level == "INFO") {
+    return MINFO;
+  } else if (log_level == "WARNING") {
+    return MWARNING;
+  } else if (log_level == "ERROR") {
+    return MERROR;
+  } else if (log_level == "FATAL") {
+    return MFATAL;
+  } else {
+    MLOG(MINFO) << "Invalid log level in config: "
+                << config["log_level"].as<std::string>();
+    return MINFO;
+  }
+}
+
 int main() {
   signalMask();
 
   auto sctpd_mconfig = load_sctpd_mconfig();
+  auto config = magma::ServiceConfigLoader{}.load_service_config(SCTPD_SERVICE);
   magma::init_logging(SCTPD_SERVICE);
-  magma::set_verbosity(
-      magma::get_log_verbosity_from_mconfig(sctpd_mconfig.log_level()));
+  magma::set_verbosity(get_log_verbosity(config, sctpd_mconfig));
 
   auto sentry_mconfig = load_shared_mconfig().sentry_config();
   sentry_config_t sentry_config;
