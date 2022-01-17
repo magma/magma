@@ -88,6 +88,9 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	// check Agw control Plane TEID on the response
 	assert.Equal(t, AGWTeidC, csRes.CAgwTeid)
 
+	// check Agw user Plane TEID on the response
+	assert.Equal(t, csReq.BearerContext.UserPlaneFteid.Teid, csRes.UAgwTeid)
+
 	// check Pgw Control Plane TEID
 	assert.NotEmpty(t, csRes.CPgwFteid)
 	assert.Equal(t, PgwTEIDc, csRes.CPgwFteid.Teid)
