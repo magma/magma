@@ -20,7 +20,7 @@ import (
 	"github.com/go-openapi/swag"
 
 	"magma/feg/cloud/go/feg"
-	feg_protos "magma/feg/cloud/go/protos"
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/lte/cloud/go/lte"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
@@ -352,7 +352,7 @@ func ToFederatedMode(mode string) lte_mconfig.ModeMapItem_FederatedMode {
 	return lte_mconfig.ModeMapItem_SPGW_SUBSCRIBER
 }
 
-func ToFederationGatewayHealthStatusModel(res *feg_protos.HealthStats) *FederationGatewayHealthStatus {
+func ToFederationGatewayHealthStatusModel(res *fegprotos.HealthStats) *FederationGatewayHealthStatus {
 	serviceHealths := make(map[string]ServiceStatusHealth)
 	for serviceName, val := range res.GetServiceStatus() {
 		serviceHealths[serviceName] = ServiceStatusHealth{

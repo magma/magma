@@ -20,6 +20,7 @@ import (
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health"
+	health_protos "magma/feg/cloud/go/services/health/protos"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
@@ -106,7 +107,7 @@ func (h *healthBlobstore) UpdateClusterState(networkID string, clusterID string,
 // GetClusterState retrieves the stored clusterState for the provided networkID
 // and logicalID from the blobstore. The clusterState is
 // initialized if it doesn't already exist.
-func (h *healthBlobstore) GetClusterState(networkID string, logicalID string) (*fegprotos.ClusterState, error) {
+func (h *healthBlobstore) GetClusterState(networkID string, logicalID string) (*health_protos.ClusterState, error) {
 	keys := []string{networkID}
 	filter := blobstore.SearchFilter{
 		NetworkID: &networkID,
@@ -137,7 +138,7 @@ func (h *healthBlobstore) GetClusterState(networkID string, logicalID string) (*
 		store.Rollback()
 		return nil, err
 	}
-	retClusterState := &fegprotos.ClusterState{}
+	retClusterState := &health_protos.ClusterState{}
 	err = protos.Unmarshal(clusterBlob.Value, retClusterState)
 	if err != nil {
 		store.Rollback()

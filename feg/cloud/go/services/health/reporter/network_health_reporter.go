@@ -25,7 +25,7 @@ import (
 	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/health"
 	"magma/feg/cloud/go/services/health/metrics"
-	"magma/feg/cloud/go/services/health/servicers"
+	southbound "magma/feg/cloud/go/services/health/servicers/southbound"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 )
@@ -71,7 +71,7 @@ func (reporter *NetworkHealthStatusReporter) reportHealthStatus() error {
 				glog.V(2).Infof("error getting health for network %s, gateway %s: %v\n", networkID, gw.Key, err)
 				continue
 			}
-			status, _, err := servicers.AnalyzeHealthStats(ctx, healthStatus, networkID)
+			status, _, err := southbound.AnalyzeHealthStats(ctx, healthStatus, networkID)
 			if err != nil {
 				glog.V(2).Infof("error analyzing health stats for network %s, gateway %s: %v", networkID, gw.Key, err)
 			}

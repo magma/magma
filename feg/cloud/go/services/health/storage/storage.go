@@ -13,7 +13,10 @@
 
 package storage
 
-import "magma/feg/cloud/go/protos"
+import (
+	"magma/feg/cloud/go/protos"
+	health_protos "magma/feg/cloud/go/services/health/protos"
+)
 
 // HealthBlobstore defines a storage interface for the health service. This
 // interface defines create/update and read functionality while abstracting
@@ -23,7 +26,7 @@ type HealthBlobstore interface {
 
 	UpdateHealth(networkID string, gatewayID string, health *protos.HealthStats) error
 
-	GetClusterState(networkID string, clusterID string) (*protos.ClusterState, error)
+	GetClusterState(networkID string, clusterID string) (*health_protos.ClusterState, error)
 
 	UpdateClusterState(networkID string, clusterID string, logicalID string) error
 }

@@ -84,39 +84,10 @@ message HealthResponse {
   uint64 time = 2;
 }
 
-message ClusterState {
-  // The logical id of the currently active gateway
-  string active_gateway_logical_id = 1;
-
-  // Unix time of when the cluster state update occurred
-  uint64 time = 2;
-}
-
-message ClusterStateRequest {
-  // NetworkID that the cluster is registered in
-  string network_id = 1;
-
-  // Cluster's clusterID
-  string cluster_id = 2;
-}
-
-message GatewayStatusRequest {
-  // Gateway's network id
-  string network_id = 1;
-  // Gateway's logical id
-  string logical_id = 2;
-}
-
 // --------------------------------------------------------------------------
 // Health service definition.
 // --------------------------------------------------------------------------
 service Health {
   // Update the cloud representation of gateway health
   rpc UpdateHealth (HealthRequest) returns (HealthResponse) {}
-
-  // Get the health statistics of a gateway
-  rpc GetHealth (GatewayStatusRequest) returns (HealthStats) {}
-
-  // Get cluster state for (networkID, clusterID) tuple
-  rpc GetClusterState (ClusterStateRequest) returns (ClusterState) {}
 }

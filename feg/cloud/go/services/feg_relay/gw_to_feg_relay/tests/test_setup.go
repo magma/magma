@@ -61,7 +61,7 @@ func setupNeutralHostNetworks(t *testing.T) *health_servicers.TestHealthServer {
 		configuratorTestInit.StartTestService(t)
 		deviceTestInit.StartTestService(t)
 	})
-	testHealthServicer, err := healthTestInit.StartTestService(t)
+	testHealthServicer, _, err := healthTestInit.StartTestService(t)
 	assert.NoError(t, err)
 
 	nhFegCfg := models2.NewDefaultNetworkFederationConfigs()

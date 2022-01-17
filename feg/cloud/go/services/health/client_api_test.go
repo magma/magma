@@ -38,7 +38,7 @@ func TestHealthAPI_SingleFeg(t *testing.T) {
 	// Initialize test services
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
-	testServicer, err := health_test_init.StartTestService(t)
+	testServicer, _, err := health_test_init.StartTestService(t)
 	assert.NoError(t, err)
 
 	// Register network and feg then perform mock health updates
@@ -85,7 +85,7 @@ func TestHealthAPI_DualFeg(t *testing.T) {
 	// Initialize test services
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
-	testServicer, err := health_test_init.StartTestService(t)
+	testServicer, _, err := health_test_init.StartTestService(t)
 	assert.NoError(t, err)
 
 	// Register network and a feg

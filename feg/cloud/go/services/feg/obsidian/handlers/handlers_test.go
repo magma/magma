@@ -48,7 +48,7 @@ import (
 func TestFederationNetworks(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	testHealthServicer, err := healthTestInit.StartTestService(t)
+	testHealthServicer, _, err := healthTestInit.StartTestService(t)
 	assert.NoError(t, err)
 	e := echo.New()
 
@@ -258,7 +258,7 @@ func TestFederationGateways(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	testHealthServicer, err := healthTestInit.StartTestService(t)
+	testHealthServicer, _, err := healthTestInit.StartTestService(t)
 	assert.NoError(t, err)
 
 	e := echo.New()

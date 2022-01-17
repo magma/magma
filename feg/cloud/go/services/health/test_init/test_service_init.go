@@ -21,16 +21,20 @@ import (
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health"
+	health_protos "magma/feg/cloud/go/services/health/protos"
 	"magma/feg/cloud/go/services/health/servicers"
 	"magma/orc8r/cloud/go/test_utils"
 )
 
-func StartTestService(t *testing.T) (*servicers.TestHealthServer, error) {
+func StartTestService(t *testing.T) (*servicers.TestHealthServer, *servicers.TestHealthInternalServer, error) {
 	srv, lis := test_utils.NewTestService(t, feg.ModuleName, health.ServiceName)
 	factory := test_utils.NewSQLBlobstore(t, health.DBTableName)
 	servicer, err := servicers.NewTestHealthServer(factory)
 	assert.NoError(t, err)
+	internal_servicer, err := servicers.NewTestHealthInternalServer(factory)
+	assert.NoError(t, err)
 	protos.RegisterHealthServer(srv.GrpcServer, servicer)
+	health_protos.RegisterHealthInternalServer(srv.GrpcServer, internal_servicer)
 	go srv.RunTest(lis)
-	return servicer, nil
+	return servicer, internal_servicer, nil
 }

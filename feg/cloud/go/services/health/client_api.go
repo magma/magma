@@ -23,20 +23,21 @@ import (
 	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos"
+	health_protos "magma/feg/cloud/go/services/health/protos"
 	"magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/registry"
 )
 
 // getHealthClient is a utility function to get an RPC connection to the
 // Health service
-func getHealthClient() (protos.HealthClient, error) {
+func getHealthClient() (health_protos.HealthInternalClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := errors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
 		return nil, initErr
 	}
-	return protos.NewHealthClient(conn), nil
+	return health_protos.NewHealthInternalClient(conn), nil
 }
 
 // GetActiveGateway returns the active federated gateway in the network specified by networkID
@@ -47,7 +48,7 @@ func GetActiveGateway(ctx context.Context, networkID string) (string, error) {
 	}
 
 	// Currently, we use networkID as clusterID as we only support one cluster per network
-	clusterState, err := client.GetClusterState(ctx, &protos.ClusterStateRequest{
+	clusterState, err := client.GetClusterState(ctx, &health_protos.ClusterStateRequest{
 		NetworkId: networkID,
 		ClusterId: networkID,
 	})
@@ -71,9 +72,10 @@ func GetHealth(ctx context.Context, networkID string, logicalID string) (*protos
 		return nil, err
 	}
 
-	gatewayHealthReq := &protos.GatewayStatusRequest{
+	gatewayHealthReq := &health_protos.GatewayStatusRequest{
 		NetworkId: networkID,
 		LogicalId: logicalID,
 	}
+
 	return client.GetHealth(ctx, gatewayHealthReq)
 }

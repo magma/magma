@@ -1,0 +1,53 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "feg/protos/health.proto";
+
+package magma.feg;
+option go_package = "magma/feg/cloud/go/services/health/protos";
+
+message ClusterState {
+  // The logical id of the currently active gateway
+  string active_gateway_logical_id = 1;
+
+  // Unix time of when the cluster state update occurred
+  uint64 time = 2;
+}
+
+message ClusterStateRequest {
+  // NetworkID that the cluster is registered in
+  string network_id = 1;
+
+  // Cluster's clusterID
+  string cluster_id = 2;
+}
+
+message GatewayStatusRequest {
+  // Gateway's network id
+  string network_id = 1;
+  // Gateway's logical id
+  string logical_id = 2;
+}
+
+// --------------------------------------------------------------------------
+// Health service definition.
+// --------------------------------------------------------------------------
+service HealthInternal {
+  // Get the health statistics of a gateway
+  rpc GetHealth (GatewayStatusRequest) returns (magma.feg.HealthStats) {}
+
+  // Get cluster state for (networkID, clusterID) tuple
+  rpc GetClusterState (ClusterStateRequest) returns (ClusterState) {}
+}

@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"magma/feg/cloud/go/protos"
+	health_protos "magma/feg/cloud/go/services/health/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/gateway_health/health_manager"
 	"magma/feg/gateway/services/session_proxy/relay/mocks"
@@ -45,7 +46,7 @@ func (c *MockHealthServicer) UpdateHealth(
 
 func (c *MockHealthServicer) GetHealth(
 	ctx context.Context,
-	req *protos.GatewayStatusRequest,
+	req *health_protos.GatewayStatusRequest,
 ) (*protos.HealthStats, error) {
 	args := c.Called(ctx, req)
 	return args.Get(0).(*protos.HealthStats), args.Error(1)
@@ -53,10 +54,10 @@ func (c *MockHealthServicer) GetHealth(
 
 func (c *MockHealthServicer) GetClusterState(
 	ctx context.Context,
-	req *protos.ClusterStateRequest,
-) (*protos.ClusterState, error) {
+	req *health_protos.ClusterStateRequest,
+) (*health_protos.ClusterState, error) {
 	args := c.Called(ctx, req)
-	return args.Get(0).(*protos.ClusterState), args.Error(1)
+	return args.Get(0).(*health_protos.ClusterState), args.Error(1)
 }
 
 type MockServiceHealthServicer struct {

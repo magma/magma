@@ -32,12 +32,19 @@ const (
 
 var defaultServices = []string{"SWX_PROXY", "SESSION_PROXY"}
 
+type healthConfig struct {
+	Services              []string
+	cpuUtilThreshold      float32
+	memAvailableThreshold float32
+	StaleUpdateThreshold  uint32
+}
+
 func GetHealthConfigForNetwork(ctx context.Context, networkID string) *healthConfig {
 	defaultConfig := &healthConfig{
-		services:              defaultServices,
+		Services:              defaultServices,
 		cpuUtilThreshold:      defaultCpuUtilThreshold,
 		memAvailableThreshold: defaultMemAvailableThreshold,
-		staleUpdateThreshold:  defaultStaleUpdateThreshold,
+		StaleUpdateThreshold:  defaultStaleUpdateThreshold,
 	}
 	config, err := configurator.LoadNetworkConfig(ctx, networkID, feg.FegNetworkType, serdes.Network)
 	if err != nil {
@@ -68,9 +75,9 @@ func GetHealthConfigForNetwork(ctx context.Context, networkID string) *healthCon
 		return defaultConfig
 	}
 	return &healthConfig{
-		services:              healthParams.HealthServices,
+		Services:              healthParams.HealthServices,
 		cpuUtilThreshold:      healthParams.CPUUtilizationThreshold,
 		memAvailableThreshold: healthParams.MemoryAvailableThreshold,
-		staleUpdateThreshold:  staleUpdateThreshold,
+		StaleUpdateThreshold:  staleUpdateThreshold,
 	}
 }

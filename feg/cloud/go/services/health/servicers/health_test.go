@@ -23,6 +23,7 @@ import (
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health"
+	health_protos "magma/feg/cloud/go/services/health/protos"
 	"magma/feg/cloud/go/services/health/servicers"
 	fegstorage "magma/feg/cloud/go/services/health/storage"
 	"magma/feg/cloud/go/services/health/test_utils"
@@ -40,10 +41,10 @@ func TestHealthServer_GetHealth(t *testing.T) {
 	store := &mocks.Store{}
 	factory := &mocks.StoreFactory{}
 	clock.SetAndFreezeClock(t, time.Unix(1551916956, 0))
-	service, err := servicers.NewTestHealthServer(factory)
+	service, err := servicers.NewTestHealthInternalServer(factory)
 	assert.NoError(t, err)
 
-	gwStatusReq := &fegprotos.GatewayStatusRequest{
+	gwStatusReq := &health_protos.GatewayStatusRequest{
 		NetworkId: test_utils.TestFegNetwork,
 		LogicalId: test_utils.TestFegLogicalId1,
 	}

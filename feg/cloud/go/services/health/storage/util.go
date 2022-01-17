@@ -18,6 +18,7 @@ import (
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health"
+	health_protos "magma/feg/cloud/go/services/health/protos"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/lib/go/protos"
@@ -38,7 +39,7 @@ func HealthToBlob(gatewayID string, healthStats *fegprotos.HealthStats) (blobsto
 
 // ClusterToBlob converts a clusterID and activeID to a Blobstore blob
 func ClusterToBlob(clusterID string, activeID string) (blobstore.Blob, error) {
-	clusterState := &fegprotos.ClusterState{
+	clusterState := &health_protos.ClusterState{
 		ActiveGatewayLogicalId: activeID,
 		Time:                   uint64(clock.Now().UnixNano()) / uint64(time.Millisecond),
 	}

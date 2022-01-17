@@ -17,6 +17,8 @@ import (
 	"context"
 
 	fegprotos "magma/feg/cloud/go/protos"
+	protected "magma/feg/cloud/go/services/health/servicers/protected"
+	southbound "magma/feg/cloud/go/services/health/servicers/southbound"
 	"magma/feg/cloud/go/services/health/storage"
 	"magma/feg/cloud/go/services/health/test_utils"
 	"magma/orc8r/cloud/go/blobstore"
@@ -24,9 +26,14 @@ import (
 )
 
 // A little Go "polymorphism" magic for testing
+type TestHealthInternalServer struct {
+	protected.HealthInternalServer
+	Feg1 bool // boolean to simulate requests coming from more than 1 FeG
+}
+
 type TestHealthServer struct {
-	HealthServer
-	Feg1 bool //boolean to simulate requests coming from more than 1 FeG
+	southbound.HealthServer
+	Feg1 bool // boolean to simulate requests coming from more than 1 FeG
 }
 
 // Health receiver for testHealthServer injects GW Identity into CTX if it's
@@ -53,8 +60,21 @@ func NewTestHealthServer(mockFactory blobstore.StoreFactory) (*TestHealthServer,
 		return nil, err
 	}
 	return &TestHealthServer{
-		HealthServer: HealthServer{
-			store: store,
+		HealthServer: southbound.HealthServer{
+			Store: store,
+		},
+		Feg1: true,
+	}, nil
+}
+
+func NewTestHealthInternalServer(mockFactory blobstore.StoreFactory) (*TestHealthInternalServer, error) {
+	store, err := storage.NewHealthBlobstore(mockFactory)
+	if err != nil {
+		return nil, err
+	}
+	return &TestHealthInternalServer{
+		HealthInternalServer: protected.HealthInternalServer{
+			Store: store,
 		},
 		Feg1: true,
 	}, nil
