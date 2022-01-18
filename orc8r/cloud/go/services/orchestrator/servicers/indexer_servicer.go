@@ -165,6 +165,8 @@ func unsetTeids(ctx context.Context, tType teidType, networkID string, cTeidToHw
 			err = directoryd.UnmapSgwCTeidToHWID(ctx, networkID, teids)
 		case userPlaneTeid:
 			err = directoryd.UnmapSgwUTeidToHWID(ctx, networkID, teids)
+		default:
+			err = fmt.Errorf("unsetTeids: TeidType not found")
 		}
 		if err != nil {
 			err = fmt.Errorf("Unmap TeidToHWID failed (teidType: %d): %s", tType, err)
@@ -272,6 +274,8 @@ func getTeidToHwIdPair(tType teidType, record *directoryd_types.DirectoryRecord)
 		teids, err = record.GetSgwCTeids()
 	case userPlaneTeid:
 		teids, err = record.GetSgwUTeids()
+	default:
+		err = fmt.Errorf("getTeidToHwIdPair: TeidType not found")
 	}
 	return teids, hwid, err
 }
