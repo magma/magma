@@ -17,6 +17,7 @@ from typing import Optional
 
 import grpc
 from lte.protos.apn_pb2 import APNConfiguration
+from magma.mobilityd.utils import log_error_and_raise
 from magma.subscriberdb.sid import SIDUtils
 
 
@@ -97,10 +98,12 @@ class SubscriberDbClient:
             raise SubscriberDBStaticIPValueError(sid)
 
         except grpc.RpcError as err:
-            msg = "GetSubscriberData: while reading vlan-id error[%s] %s" % \
-                  (err.code(), err.details())
-            logging.error(msg)
-            raise SubscriberDBConnectionError(msg)
+            log_error_and_raise(
+                SubscriberDBConnectionError,
+                "GetSubscriberData: while reading vlan-id error[%s] %s",
+                err.code(),
+                err.details(),
+            )
         return None
 
     def get_subscriber_apn_network_info(self, sid: str) -> NetworkInfo:
@@ -128,10 +131,12 @@ class SubscriberDbClient:
                 raise SubscriberDBMultiAPNValueError(sid)
 
             except grpc.RpcError as err:
-                msg = "GetSubscriberData while reading vlan-id error[%s] %s" % \
-                    (err.code(), err.details())
-                logging.error(msg)
-                raise SubscriberDBConnectionError(msg)
+                log_error_and_raise(
+                    SubscriberDBConnectionError,
+                    "GetSubscriberData: while reading vlan-id error[%s] %s",
+                    err.code(),
+                    err.details(),
+                )
 
         return NetworkInfo()
 

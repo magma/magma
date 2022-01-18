@@ -123,8 +123,13 @@ def integ_test(
             ),
         )
         return
-    provision_vm = False if provision_vm == "False" else True
-    skip_docker_load = False if skip_docker_load == "False" else True
+
+    destroy_vm = _get_boolean_from_param(destroy_vm)
+    provision_vm = _get_boolean_from_param(provision_vm)
+    skip_docker_load = _get_boolean_from_param(skip_docker_load)
+    skip_unit_tests = _get_boolean_from_param(skip_unit_tests)
+    transfer_images = _get_boolean_from_param(transfer_images)
+    no_build = _get_boolean_from_param(no_build)
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
@@ -270,6 +275,10 @@ def _tar_coredump(gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml"):
                 "sudo tar -czvf coredump.tar.gz /var/opt/magma/cores/*",
                 warn_only=True,
             )
+
+
+def _get_boolean_from_param(value):
+    return value not in [False, "False"]
 
 
 def _switch_to_vm(addr, host_name, ansible_file, destroy_vm, provision_vm):

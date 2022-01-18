@@ -222,15 +222,6 @@
     state: link
     force: yes
 
-- name: Install lld
-  retries: 5
-  # TODO: Make this preburn
-  apt:
-    state: present
-    update_cache: no
-    pkg:
-      - lld
-
 ########################################
 # Install common Magma dev dependencies
 ########################################

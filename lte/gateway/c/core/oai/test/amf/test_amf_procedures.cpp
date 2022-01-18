@@ -91,6 +91,12 @@ class AMFAppProcedureTest : public ::testing::Test {
       0x7e, 0x0,  0x57, 0x2d, 0x10, 0x25, 0x70, 0x6f, 0x9a, 0x5b, 0x90,
       0xb6, 0xc9, 0x57, 0x50, 0x6c, 0x88, 0x3d, 0x76, 0xcc, 0x63};
 
+  const uint8_t ue_auth_response_security_capability_mismatch_hexbuf[4] = {
+      0x7e, 0x0, 0x59, 0x17};
+
+  const uint8_t ue_auth_response_security_mode_reject_hexbuf[4] = {0x7e, 0x0,
+                                                                   0x59, 0x18};
+
   const uint8_t ue_smc_response_hexbuf[60] = {
       0x7e, 0x4,  0x54, 0xf6, 0xe1, 0x2a, 0x0,  0x7e, 0x0,  0x5e, 0x77, 0x0,
       0x9,  0x45, 0x73, 0x80, 0x61, 0x21, 0x85, 0x61, 0x51, 0xf1, 0x71, 0x0,
@@ -195,6 +201,66 @@ bool validate_smc_procedure(
   }
 
   return true;
+}
+
+TEST_F(AMFAppProcedureTest, TestRegistrationAuthSecurityModeReject) {
+  amf_ue_ngap_id_t ue_id = 0;
+  /* Send the initial UE message */
+  imsi64_t imsi64 = 0;
+  imsi64          = send_initial_ue_message_no_tmsi(
+      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
+      sizeof(initial_ue_message_hexbuf));
+
+  /* Check if UE Context is created with correct imsi */
+  EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
+
+  /* Send the authentication response message from subscriberdb */
+  int rc = RETURNok;
+  rc     = send_proc_authentication_info_answer(imsi, ue_id, true);
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Validate if authentication procedure is initialized as expected */
+  EXPECT_TRUE(validate_auth_procedure(ue_id, 0));
+
+  /* Send uplink nas message for auth response from UE */
+  rc = send_uplink_nas_message_ue_auth_response(
+      amf_app_desc_p, ue_id, plmn, ue_auth_response_security_mode_reject_hexbuf,
+      sizeof(ue_auth_response_security_mode_reject_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  ue_m5gmm_context_t* ue_context_p =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  // ue context should not exist
+  EXPECT_TRUE(ue_context_p == nullptr);
+}
+
+TEST_F(AMFAppProcedureTest, TestRegistrationAuthSecurityCapabilityMismatch) {
+  amf_ue_ngap_id_t ue_id = 0;
+  /* Send the initial UE message */
+  imsi64_t imsi64 = 0;
+  imsi64          = send_initial_ue_message_no_tmsi(
+      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
+      sizeof(initial_ue_message_hexbuf));
+
+  /* Check if UE Context is created with correct imsi */
+  EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
+
+  /* Send the authentication response message from subscriberdb */
+  int rc = RETURNok;
+  rc     = send_proc_authentication_info_answer(imsi, ue_id, true);
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for auth response from UE */
+  rc = send_uplink_nas_message_ue_auth_response(
+      amf_app_desc_p, ue_id, plmn,
+      ue_auth_response_security_capability_mismatch_hexbuf,
+      sizeof(ue_auth_response_security_capability_mismatch_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  ue_m5gmm_context_t* ue_context_p =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  // ue context should not exist
+  EXPECT_TRUE(ue_context_p == nullptr);
 }
 
 TEST_F(AMFAppProcedureTest, TestRegistrationProcNoTMSI) {
@@ -819,6 +885,33 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcSUCIExt) {
   EXPECT_TRUE(rc == RETURNok);
 
   amf_app_handle_deregistration_req(ue_id);
+}
+
+TEST_F(AMFAppProcedureTest, TestAuthFailureFromSubscribeDb) {
+  amf_ue_ngap_id_t ue_id                = 0;
+  ue_m5gmm_context_s* ue_5gmm_context_p = NULL;
+  std::vector<MessagesIds> expected_Ids{
+      AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
+                                            // indication to ngap
+      NGAP_NAS_DL_DATA_REQ,                 // Registration Reject
+      NGAP_UE_CONTEXT_RELEASE_COMMAND       // UEContextReleaseCommand
+  };
+
+  /* Send the initial UE message */
+  imsi64_t imsi64 = 0;
+  imsi64          = send_initial_ue_message_no_tmsi(
+      amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
+      sizeof(initial_ue_message_hexbuf));
+
+  /* Check if UE Context is created with correct imsi */
+  EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
+
+  /* Send the authentication response message from subscriberdb */
+  int rc = RETURNok;
+  rc     = send_proc_authentication_info_answer(imsi, ue_id, false);
+  EXPECT_TRUE(rc == RETURNok);
+  ue_5gmm_context_p = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  EXPECT_TRUE(ue_5gmm_context_p == NULL);
 }
 
 TEST(test_t3592abort, test_pdu_session_release_notify_smf) {

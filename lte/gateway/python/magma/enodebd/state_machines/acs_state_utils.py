@@ -76,12 +76,21 @@ def get_device_name_from_inform(
             path_list,
             param_values_by_path,
         )
+    if hasattr(inform, 'DeviceId') and hasattr(inform.DeviceId, 'ProductClass'):
+        product_class = inform.DeviceId.ProductClass
+    else:
+        product_class = ''
     sw_version = _get_param_value_from_path_suffix(
         'DeviceInfo.SoftwareVersion',
         path_list,
         param_values_by_path,
     )
-    return get_device_name(device_oui, sw_version)
+    hw_version = _get_param_value_from_path_suffix(
+        'DeviceInfo.HardwareVersion',
+        path_list,
+        param_values_by_path,
+    )
+    return get_device_name(device_oui, sw_version, hw_version, product_class)
 
 
 def does_inform_have_event(
@@ -185,10 +194,14 @@ def get_object_params_to_get(
     desired_cfg: Optional[EnodebConfiguration],
     device_cfg: EnodebConfiguration,
     data_model: DataModel,
+    request_all_params: bool = False,
 ) -> List[ParameterName]:
     """
     Returns a list of parameter names for object parameters we don't know the
     current value of
+
+    If `request_all_params` is set to True, the function will return a list
+    of all device model param names, including already known ones.
     """
     names = []
     # TODO: This might a string for some strange reason, investigate why
@@ -200,11 +213,14 @@ def get_object_params_to_get(
             device_cfg.add_object(obj_name)
         obj_to_params = data_model.get_numbered_param_names()
         desired = obj_to_params[obj_name]
-        current = []
-        if desired_cfg is not None:
-            current = desired_cfg.get_parameter_names_for_object(obj_name)
-        names_to_add = list(set(desired) - set(current))
-        names = names + names_to_add
+        if request_all_params:
+            names += desired
+        else:
+            current = []
+            if desired_cfg is not None:
+                current = desired_cfg.get_parameter_names_for_object(obj_name)
+            names_to_add = list(set(desired) - set(current))
+            names += names_to_add
     return names
 
 

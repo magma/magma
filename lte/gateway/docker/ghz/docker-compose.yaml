@@ -11,7 +11,6 @@ x-standard-volumes: &volumes_anchor
   - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
   - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
   - ${CONFIGS_OVERRIDE_TMP_VOLUME}:/var/opt/magma/tmp
-  - /etc/snowflake:/etc/snowflake
   - /var/opt/magma/fluent-bit:/var/opt/magma/fluent-bit
   - ../docker:/var/opt/magma/docker
   - /var/run:/var/run

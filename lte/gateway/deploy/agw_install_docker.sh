@@ -45,7 +45,8 @@ fi
 
 echo "Install Magma"
 apt-get update -y
-apt-get install curl zip python3-pip -y
+apt-get install curl zip python3-pip docker.io -y
+adduser $MAGMA_USER docker
 
 alias python=python3
 pip3 install ansible

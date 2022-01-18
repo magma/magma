@@ -1,0 +1,133 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-database
+spec:
+  selector:
+    matchLabels:
+      app: postgres-database
+  serviceName: db
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres-database
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:13.3
+          volumeMounts:
+            - name: db-disk
+              mountPath: /var/lib/postgresql/data
+          env:
+            - name: POSTGRES_DB
+              value: "dp"
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          livenessProbe:
+            exec:
+              command:
+                - /usr/bin/pg_isready
+                - -U
+                - "postgres"
+                - -h
+                - 127.0.0.1
+            failureThreshold: 3
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - /usr/bin/pg_isready
+                - -U
+                - "postgres"
+                - -h
+                - 127.0.0.1
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10
+            failureThreshold: 3
+        - name: postgres-test
+          image: postgres:13.3
+          args:
+            - -p 
+            - "5433"
+          volumeMounts:
+            - name: db-disk2
+              mountPath: /var/lib/postgresql/data2
+          env:
+            - name: POSTGRES_DB
+              value: "dp_test"
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: PGDATA
+              value: /var/lib/postgresql/data2/pgdata
+          livenessProbe:
+            exec:
+              command:
+                - /usr/bin/pg_isready
+                - -U
+                - "postgres"
+                - "--port=5433"
+                - -h
+                - 127.0.0.1
+            failureThreshold: 3
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - /usr/bin/pg_isready
+                - -U
+                - "postgres"
+                - "--port=5433"
+                - -h
+                - 127.0.0.1
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10
+            failureThreshold: 3
+  volumeClaimTemplates:
+    - metadata:
+        name: db-disk
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: db-disk2
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  selector:
+    app: postgres-database
+  type: NodePort
+  ports:
+    - name: db1
+      port: 5432
+      targetPort: 5432
+      nodePort: 30432
+    - name: db2
+      port: 5433
+      targetPort: 5433
+      nodePort: 30433

@@ -1,0 +1,10 @@
+---
+
+- name: copy ansible cfg
+  copy:
+    src: files/ansible.cfg
+    dest: ~/ansible.cfg
+
+# To prevent exposing the docker API we run ansible on the host
+- name: run the load test on the host
+  command: ansible-playbook  {{ MAGMA_ROOT }}/experimental/cloudstrapper/playbooks/ghz-run.yaml -e "tag={{tag}}" -e "magmaRepo={{magmaRepo}}" -vv

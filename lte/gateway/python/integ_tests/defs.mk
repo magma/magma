@@ -38,6 +38,8 @@ s1aptests/test_no_security_mode_complete.py \
 s1aptests/test_tau_periodic_inactive.py \
 s1aptests/test_tau_periodic_active.py \
 s1aptests/test_tau_ta_updating_connected_mode.py \
+s1aptests/test_eps_bearer_context_status_def_bearer_deact.py \
+s1aptests/test_eps_bearer_context_status_ded_bearer_deact.py \
 s1aptests/test_attach_service.py \
 s1aptests/test_attach_detach_service.py \
 s1aptests/test_attach_service_ue_radio_capability.py \
@@ -106,6 +108,8 @@ s1aptests/test_multi_enb_multi_ue_diff_enbtype.py \
 s1aptests/test_multi_enb_partial_reset.py \
 s1aptests/test_multi_enb_complete_reset.py \
 s1aptests/test_multi_enb_sctp_shutdown.py \
+s1aptests/test_ipv6_paging_with_dedicated_bearer.py\
+s1aptests/test_ipv4v6_paging_with_dedicated_bearer.py\
 s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_attach_ul_tcp_data.py \
@@ -158,6 +162,7 @@ s1aptests/test_attach_nw_initiated_detach_fail.py \
 s1aptests/test_tau_ta_updating.py \
 s1aptests/test_tau_ta_updating_reject.py \
 s1aptests/test_tau_mixed_partial_lists.py \
+s1aptests/test_eps_bearer_context_status_multiple_ded_bearer_deact.py \
 s1aptests/test_guti_attach_with_zero_mtmsi.py \
 s1aptests/test_ics_timer_expiry_with_mme_restart.py \
 s1aptests/test_attach_mobile_reachability_timer_expiry.py \

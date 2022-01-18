@@ -793,7 +793,7 @@ status_code_e sgw_handle_sgi_endpoint_deleted(
       }
       // delete paging rule
       char* ip_str = inet_ntoa(ue_ipv4);
-      rv           = gtp_tunnel_ops->delete_paging_rule(ue_ipv4);
+      rv           = gtp_tunnel_ops->delete_paging_rule(ue_ipv4, ue_ipv6);
       if (rv < 0) {
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, imsi64,
@@ -2361,13 +2361,22 @@ void sgw_process_release_access_bearer_request(
       }
       // Paging is performed without packet buffering
       rv = gtp_tunnel_ops->add_paging_rule(
-          sgw_context->imsi, eps_bearer_ctxt->paa.ipv4_address);
+          sgw_context->imsi, eps_bearer_ctxt->paa.ipv4_address, ue_ipv6);
       // Convert to string for logging
       char* ip_str = inet_ntoa(eps_bearer_ctxt->paa.ipv4_address);
       if (rv < 0) {
         OAILOG_ERROR_UE(
             module, imsi64, "ERROR in setting paging rule for IP Addr: %s\n",
             ip_str);
+      }
+      if ((eps_bearer_ctxt->paa.pdn_type == IPv6) ||
+          (eps_bearer_ctxt->paa.pdn_type == IPv4_AND_v6)) {
+        char ip6_str[INET6_ADDRSTRLEN];
+        inet_ntop(
+            AF_INET6, (void*) &eps_bearer_ctxt->paa.ipv6_address, ip6_str,
+            INET6_ADDRSTRLEN);
+        OAILOG_DEBUG(
+            module, "Set the paging rule for IPv6 Addr: %s\n", ip6_str);
       } else {
         OAILOG_DEBUG(module, "Set the paging rule for IP Addr: %s\n", ip_str);
       }

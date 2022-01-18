@@ -1,0 +1,67 @@
+{{- if and .Values.dp.create .Values.dp.protocol_controller.enabled -}}
+apiVersion: {{ template "domain-proxy.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "domain-proxy.protocol_controller.fullname" . }}
+  labels:
+    {{- include "domain-proxy.protocol_controller.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.dp.protocol_controller.autoscaling.enabled }}
+  replicas: {{ .Values.dp.protocol_controller.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "domain-proxy.protocol_controller.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.dp.protocol_controller.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "domain-proxy.protocol_controller.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.dp.protocol_controller.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "domain-proxy.protocol_controller.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.dp.protocol_controller.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.dp.protocol_controller.name }}
+          securityContext:
+            {{- toYaml .Values.dp.protocol_controller.securityContext | nindent 12 }}
+          image: {{ .Values.dp.protocol_controller.image.repository -}}:{{- .Values.dp.protocol_controller.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.dp.protocol_controller.image.pullPolicy }}
+          env:
+            {{- range $key, $value := .Values.dp.protocol_controller.extraEnv }}
+            - name: {{ $key }}
+              value: {{ $value }}
+            {{- end }}
+          {{- if .Values.dp.protocol_controller.livenessProbe }}
+          livenessProbe:
+            {{- toYaml .Values.dp.protocol_controller.livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.dp.protocol_controller.readinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.dp.protocol_controller.readinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.dp.protocol_controller.resources | nindent 12 }}
+          envFrom:
+          - configMapRef:
+              name: {{ include "domain-proxy.protocol_controller.fullname" . }}
+      {{- with .Values.dp.protocol_controller.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.dp.protocol_controller.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.dp.protocol_controller.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

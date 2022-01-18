@@ -98,8 +98,8 @@ status_code_e emm_send_status(
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
   OAILOG_WARNING(
-      LOG_NAS_EMM, "EMMAS-SAP - Send EMM Status message (cause=%d)\n",
-      msg->emm_cause);
+      LOG_NAS_EMM, "EMMAS-SAP - Send EMM Status message (cause=%s)\n",
+      emm_cause_str[msg->emm_cause]);
   /*
    * Mandatory - Message type
    */
@@ -779,8 +779,8 @@ status_code_e emm_send_attach_reject(
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
   OAILOG_INFO(
-      LOG_NAS_EMM, "EMMAS-SAP - Send Attach Reject message (cause=%d)\n",
-      msg->emm_cause);
+      LOG_NAS_EMM, "EMMAS-SAP - Send Attach Reject message (cause=%s)\n",
+      emm_cause_str[msg->emm_cause]);
   /*
    * Mandatory - Message type
    */
@@ -833,8 +833,8 @@ status_code_e emm_send_tracking_area_update_accept(
 
   OAILOG_INFO(
       LOG_NAS_EMM,
-      "EMMAS-SAP - Send Tracking Area Update Accept message (cause=%d)\n",
-      msg->emm_cause);
+      "EMMAS-SAP - Send Tracking Area Update Accept message (cause=%s)\n",
+      emm_cause_str[msg->emm_cause]);
   /*
    * Mandatory - Message type
    */
@@ -1261,8 +1261,8 @@ status_code_e emm_send_tracking_area_update_reject(
 
   OAILOG_INFO(
       LOG_NAS_EMM,
-      "EMMAS-SAP - Send Tracking Area Update Reject message (cause=%d)\n",
-      msg->emm_cause);
+      "EMMAS-SAP - Send Tracking Area Update Reject message (cause=%s)\n",
+      emm_cause_str[msg->emm_cause]);
   /*
    * Mandatory - Message type
    */
@@ -1299,8 +1299,8 @@ status_code_e emm_send_service_reject(
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
   OAILOG_INFO(
-      LOG_NAS_EMM, "EMMAS-SAP - Send Service Reject message (cause=%d)\n",
-      emm_cause);
+      LOG_NAS_EMM, "EMMAS-SAP - Send Service Reject message (cause=%s)\n",
+      emm_cause_str[emm_cause]);
   /*
    * Mandatory - Message type
    */
