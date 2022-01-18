@@ -220,6 +220,7 @@ s1aptests/test_continuous_random_attach.py \
 s1aptests/test_s1_handover_cancel.py \
 s1aptests/test_s1_handover_failure.py \
 s1aptests/test_s1_handover_timer_expiry.py \
+s1aptests/test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue.py \
 s1aptests/test_restore_config_after_non_sanity.py
 
 #---------------
@@ -228,7 +229,6 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py \ GitHubIssue 5997
 # s1aptests/test_attach_with_multiple_mme_restarts.py \ GitHubIssue 5997
 # s1aptests/test_attach_detach_rar_activation_reject.py \ GitHubIssue 9097
-# s1aptests/test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue.py \ Need to configure UE inactivity timer from test case
 # s1aptests/test_no_auth_response_with_mme_restart_reattach.py \ GitHubIssue 9520
 
 # Non-Sanity: Flaky Test Cases
