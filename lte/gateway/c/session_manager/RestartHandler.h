@@ -43,11 +43,10 @@ namespace sessiond {
  */
 class RestartHandler {
  public:
-  RestartHandler(
-      std::shared_ptr<DirectorydClient> directoryd_client,
-      std::shared_ptr<aaa::AsyncAAAClient> aaa_client,
-      std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter,
-      SessionStore& session_store);
+  RestartHandler(std::shared_ptr<DirectorydClient> directoryd_client,
+                 std::shared_ptr<aaa::AsyncAAAClient> aaa_client,
+                 std::shared_ptr<LocalEnforcer> enforcer,
+                 SessionReporter* reporter, SessionStore& session_store);
 
   /**
    * Cleanup previous sessions stored in directoryD
@@ -60,8 +59,8 @@ class RestartHandler {
   void setup_aaa_sessions();
 
  private:
-  void terminate_previous_session(
-      const std::string& sid, const std::string& session_id);
+  void terminate_previous_session(const std::string& sid,
+                                  const std::string& session_id);
   bool populate_sessions_to_terminate_with_retries();
   bool launch_threads_to_terminate_with_retries();
 

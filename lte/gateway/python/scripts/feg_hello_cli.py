@@ -14,6 +14,7 @@ limitations under the License.
 """
 
 import argparse
+import datetime
 
 from feg.protos.hello_pb2 import HelloRequest
 from feg.protos.hello_pb2_grpc import HelloStub
@@ -22,10 +23,36 @@ from magma.common.rpc_utils import cloud_grpc_wrapper
 
 @cloud_grpc_wrapper
 def echo(client, args):
+    start_time = datetime.datetime.utcnow()
     req = HelloRequest(greeting=args.msg, grpc_err_code=args.err_code)
-    print("request:\n", req)
+    print("- Request:\n", req)
     resp = client.SayHello(req)
-    print("resp: ", resp)
+    end_time = datetime.datetime.utcnow()
+    print(f'- Response: {resp.greeting}')
+    print_stats(resp, start_time, end_time)
+
+
+def print_stats(resp, start_time, end_time):
+    times = resp.timestamps
+    delta1 = times.agw_to_feg_relay_timestamp.ToDatetime() - start_time
+    delta2 = times.feg_timestamp.ToDatetime() - start_time
+    delta3 = times.feg_relay_to_agw_timestamp.ToDatetime() - start_time
+    delta4 = end_time - start_time
+
+    a = to_ms_string(delta1.total_seconds())
+    b = to_ms_string((delta2 - delta1).total_seconds())
+    c = to_ms_string((delta3 - delta2).total_seconds(), left=True)
+    d = to_ms_string((delta4 - delta3).total_seconds(), left=True)
+    total_time = to_ms_string((end_time - start_time).total_seconds())
+
+    print('\n- Stats:')
+    print(f'  * Total time: {total_time} ms')
+    print(f'  * Approximate path (ms):')
+    print(
+        f'    ┌─────┐─> {   a} ─>┌───────┐-> {   b} ─>┌─────┐\n'
+        f'    │ AGW │            │ Orc8r │            │ Feg │\n'
+        f'    └─────┘<─ {d   } <─└───────┘<─ {c   } <─└─────┘\n',
+    )
 
 
 def create_parser():
@@ -43,6 +70,23 @@ def create_parser():
     # Add function callbacks
     parser.set_defaults(func=echo)
     return parser
+
+
+def to_ms_string(seconds, left=False):
+    """
+    Convert seconds into a string of milliseconds. If the string is smaller
+    than 6 positions it will add leading spaces to complete a total of 6 chars
+    Args:
+        seconds: time in seconds expressed as float
+        left: reverse justification and fills blanks at the right
+    Returns:
+        String with with at least 6 positions.
+
+    """
+    ms = str(int(1000 * seconds))
+    if left:
+        return ms.ljust(6)
+    return ms.rjust(6)
 
 
 def main():

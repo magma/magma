@@ -21,7 +21,6 @@
 #include "lte/gateway/c/core/oai/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/assertions.h"
 
-static bool parse_bool(const char* str);
 void served_tai_config_init(served_tai_t* served_tai);
 void clear_served_tai_config(served_tai_t* served_tai);
 
@@ -395,16 +394,6 @@ int amf_config_parse_file(
   }  // NGP Setting is not NULL
   config_destroy(&cfg);
   return 0;
-}
-
-static bool parse_bool(const char* str) {
-  if (strcasecmp(str, "yes") == 0) return true;
-  if (strcasecmp(str, "true") == 0) return true;
-  if (strcasecmp(str, "no") == 0) return false;
-  if (strcasecmp(str, "false") == 0) return false;
-  if (strcasecmp(str, "") == 0) return false;
-
-  Fatal("Error in config file: got \"%s\" but expected bool\n", str);
 }
 
 /***************************************************************************

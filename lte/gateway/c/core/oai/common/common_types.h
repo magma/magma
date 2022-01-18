@@ -235,6 +235,8 @@ typedef enum {
   KBPS = 1,
 } apn_ambr_bitrate_unit_t;
 
+#define AMBR_UNIT_CONVERT_THRESHOLD 65535
+
 typedef struct {
   apn_ambr_bitrate_unit_t br_unit;
   bitrate_t br_ul;

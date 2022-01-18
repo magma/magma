@@ -60,8 +60,8 @@ int SctpdUplinkClient::newAssoc(const NewAssocReq& req, NewAssocRes* res) {
   return status.ok() ? 0 : -1;
 }
 
-int SctpdUplinkClient::closeAssoc(
-    const CloseAssocReq& req, CloseAssocRes* res) {
+int SctpdUplinkClient::closeAssoc(const CloseAssocReq& req,
+                                  CloseAssocRes* res) {
   assert(res != nullptr);
 
   ClientContext context;

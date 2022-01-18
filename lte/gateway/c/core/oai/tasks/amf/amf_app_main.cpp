@@ -92,6 +92,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           &AMF_APP_AUTH_RESPONSE_DATA(received_message_p));
       break;
 
+    case AMF_APP_DECRYPT_IMSI_INFO_RESP:
+      amf_decrypt_imsi_info_answer(
+          &AMF_APP_DECRYPT_IMSI_RESPONSE_DATA(received_message_p));
+      break;
+
     case AMF_IP_ALLOCATION_RESPONSE:
       itti_amf_ip_allocation_response_t* response_p;
       response_p = &(received_message_p->ittiMsg.amf_ip_allocation_response);

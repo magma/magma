@@ -751,39 +751,6 @@ ssize_t ngap_generate_successful_outcome(
     uint8_t** buffer, uint32_t* length, Ngap_ProcedureCode_t procedureCode,
     Ngap_Criticality_t criticality, asn_TYPE_descriptor_t* td, void* sptr);
 
-/** \brief Encode an initiating message
- \param buffer pointer to buffer in which data will be encoded
- \param length pointer to the length of buffer
- \param procedureCode Procedure code for the message
- \param criticality Criticality of the message
- \param td ASN1C type descriptor of the sptr
- \param sptr Dereferenced pointer to the structure to encode
- @returns size in bytes encded on success or 0 on failure
- **/
-
-ssize_t ngap_generate_initiating_message(
-    uint8_t** buffer, uint32_t* length, Ngap_ProcedureCode_t procedureCode,
-    Ngap_Criticality_t criticality, asn_TYPE_descriptor_t* td, void* sptr);
-
-/** \brief Encode an unsuccessful outcome message
- \param buffer pointer to buffer in which data will be encoded
- \param length pointer to the length of buffer
- \param procedureCode Procedure code for the message
- \param criticality Criticality of the message
- \param td ASN1C type descriptor of the sptr
- \param sptr Dereferenced pointer to the structure to encode
- @returns size in bytes encded on success or 0 on failure
- **/
-ssize_t ngap_generate_unsuccessful_outcome(
-    uint8_t** buffer, uint32_t* length, Ngap_ProcedureCode_t procedureCode,
-    Ngap_Criticality_t criticality, asn_TYPE_descriptor_t* td, void* sptr);
-
-/** \brief Handle criticality
- \param criticality Criticality of the IE
- @returns void
- **/
-void ngap_handle_criticality(Ngap_Criticality_t criticality);
-
 status_code_e ngap_send_msg_to_task(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
     MessageDef* message);
@@ -794,5 +761,5 @@ status_code_e ngap_send_msg_to_task(
  @returns 0 on success
  **/
 int ngap_fill_pdu_session_resource_setup_request_transfer(
-    const pdu_session_resource_setup_request_transfer_t* session_transfer,
+    pdu_session_resource_setup_request_transfer_t* session_transfer,
     Ngap_PDUSessionResourceSetupRequestTransfer_t* transfer_request);

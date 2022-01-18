@@ -31,17 +31,18 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.h"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 
 uint64_t get_bit_rate(uint8_t ambr_unit) {
   if (ambr_unit < 6) {
-    return (1024);
+    return (1000);
   } else if (ambr_unit < 11) {
-    return (1024 * 1024);
+    return (1000 * 1000);
   } else if (ambr_unit < 16) {
-    return (1024 * 1024 * 1024);
+    return (1000 * 1000 * 1000);
   }
   return (0);
 }
@@ -50,32 +51,11 @@ uint64_t get_bit_rate(uint8_t ambr_unit) {
  * AMBR calculation based on 9.11.4.14 of 24-501
  */
 void ambr_calculation_pdu_session(
-    std::shared_ptr<smf_context_t> smf_context, uint64_t* dl_pdu_ambr,
-    uint64_t* ul_pdu_ambr) {
-  if ((smf_context->dl_ambr_unit == 0) || (smf_context->ul_ambr_unit == 0) ||
-      (smf_context->dl_session_ambr == 0) ||
-      (smf_context->dl_session_ambr == 0)) {
-    // AMBR has not been populated till now and default assigned
-    *dl_pdu_ambr = (64 * 32768);
-    *ul_pdu_ambr = (64 * 32768);
-  } else {
-    // refer 24-501 9.11.4.14
-    if ((smf_context->dl_ambr_unit) < 4) {
-      *dl_pdu_ambr =
-          4 ^ (smf_context->dl_ambr_unit - 1) * (smf_context->dl_session_ambr);
-    } else {
-      *dl_pdu_ambr = smf_context->dl_session_ambr *
-                     get_bit_rate(smf_context->dl_ambr_unit);
-    }
+    uint16_t* dl_session_ambr, uint8_t* dl_ambr_unit, uint16_t* ul_session_ambr,
+    uint8_t* ul_ambr_unit, uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr) {
+  *dl_pdu_ambr = (*dl_session_ambr) * get_bit_rate(*dl_ambr_unit);
 
-    if ((smf_context->ul_ambr_unit) < 4) {
-      *ul_pdu_ambr =
-          4 ^ (smf_context->ul_ambr_unit - 1) * (smf_context->ul_session_ambr);
-    } else {
-      *ul_pdu_ambr = smf_context->ul_session_ambr *
-                     get_bit_rate(smf_context->ul_ambr_unit);
-    }
-  }
+  *ul_pdu_ambr = (*ul_session_ambr) * get_bit_rate(*ul_ambr_unit);
 }
 
 /*
@@ -110,11 +90,15 @@ int pdu_session_resource_setup_request(
    * considering default or max bit rate.
    * leveraged ambr calculation from qos_params_to_eps_qos and 24-501 spec used
    */
-  ambr_calculation_pdu_session(smf_context, &dl_pdu_ambr, &ul_pdu_ambr);
-  ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.dl =
-      ue_context->amf_context.subscribed_ue_ambr.br_dl;
-  ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.ul =
-      ue_context->amf_context.subscribed_ue_ambr.br_ul;
+  ambr_calculation_pdu_session(
+      &(smf_context->dl_session_ambr), &(smf_context->dl_ambr_unit),
+      &(smf_context->ul_session_ambr), &(smf_context->ul_ambr_unit),
+      &dl_pdu_ambr, &ul_pdu_ambr);
+
+  amf_smf_context_ue_aggregate_max_bit_rate_get(
+      &(ue_context->amf_context),
+      &(ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.dl),
+      &(ngap_pdu_ses_setup_req->ue_aggregate_maximum_bit_rate.ul));
 
   // Hardcoded number of pdu sessions as 1
   ngap_pdu_ses_setup_req->pduSessionResource_setup_list.no_of_items = 1;

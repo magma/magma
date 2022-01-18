@@ -43,9 +43,11 @@ set(AMF_APP_TEST_SRC
     amf_app_test_util.cpp
     test_amf_procedures.cpp
     test_amf_algorithm_selection.cpp
+    test_amf_common_utils.cpp
     util_s6a_update_location.cpp
     util_s6a_update_location.h
     test_amf_map.cpp
+    test_amf_app_state_converter.cpp
     )
 
 add_executable(amf_app_test ${AMF_APP_TEST_SRC})

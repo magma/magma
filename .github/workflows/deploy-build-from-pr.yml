@@ -59,6 +59,7 @@ jobs:
           for zipped_archive in `ls -a1 *.zip`
           do
             unzip $zipped_archive
+            rm $zipped_archive || true
           done
       - name: Save metadata
         id: save_metadata
@@ -66,7 +67,7 @@ jobs:
         with:
           script: |
             var fs = require('fs');
-            var issue_number = Number(fs.readFileSync('./NR'));
+            var issue_number = Number(fs.readFileSync('./pr_number'));
             console.log(String(issue_number))
             core.setOutput('issue_number',issue_number );
       - name: extract images
@@ -75,6 +76,7 @@ jobs:
           for IMAGES in `ls -a1 *.gz`
           do
             gzip -d $IMAGES
+            rm $IMAGES || true
           done
           ls -R
       - name: Tag and push nms docker images to registry
@@ -87,6 +89,21 @@ jobs:
         run: |
           docker image load --input magmalte.tar
           ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${ISSUE_NUMBER}" --tag-latest true --project magmalte
+          rm magmalte.tar
+      - name: Tag and push agw docker images to registry
+        if: always() && steps.extract_images.outcome=='success'
+        env:
+          DOCKER_REGISTRY: "agw-ci.artifactory.magmacore.org"
+          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
+          ISSUE_NUMBER: "${{ steps.save_metadata.outputs.issue_number }}"
+        run: |
+          docker image load --input ghz_gateway_c.tar
+          docker image load --input ghz_gateway_python.tar
+          docker image load --input agw_gateway_c.tar
+          docker image load --input agw_gateway_python.tar
+          ./ci-scripts/tag-push-docker.sh --images 'ghz_gateway_c|ghz_gateway_python|agw_gateway_c|agw_gateway_python' --tag "${ISSUE_NUMBER}" --tag-latest true
+          rm ghz_gateway_c.tar ghz_gateway_python.tar agw_gateway_c.tar agw_gateway_python.tar
       - name: Tag and push orc8r docker images to registry
         if: always() && steps.extract_images.outcome=='success'
         env:
@@ -98,6 +115,7 @@ jobs:
           docker image load --input nginx.tar
           docker image load --input controller.tar
           ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${ISSUE_NUMBER}" --tag-latest true --project orc8r
+          rm nginx.tar controller.tar
       - name: Tag and push cwf operator image
         if: always() && steps.extract_images.outcome=='success'
         env:
@@ -108,6 +126,7 @@ jobs:
         run: |
           docker image load --input operator.tar
           ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${ISSUE_NUMBER}" --tag-latest true --project cwf
+          rm operator.tar
       - name: Tag and push cwag docker images to Regitry
         if: always() && steps.extract_images.outcome=='success'
         env:
@@ -122,6 +141,7 @@ jobs:
           docker image load --input gateway_sessiond.tar
           docker image load --input gateway_pipelined.tar
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${ISSUE_NUMBER}" --tag-latest true --project cwf
+          rm cwag_go.tar gateway_go.tar gateway_python.tar gateway_sessiond.tar gateway_pipelined.tar
       - name: Tag and push xwfm docker images
         if: always() && steps.extract_images.outcome=='success'
         env:
@@ -133,6 +153,7 @@ jobs:
           docker image load --input goradius.tar
           docker image load --input xwfm-integ-tests.tar
           ./ci-scripts/tag-push-docker.sh --images 'goradius|xwfm-integ-tests' --tag "${ISSUE_NUMBER}" --tag-latest true
+          rm goradius.tar xwfm-integ-tests.tar
       - name: Tag and push feg docker images
         if: always() && steps.extract_images.outcome=='success'
         env:
@@ -144,6 +165,7 @@ jobs:
           docker image load --input feg_gateway_go.tar
           docker image load --input feg_gateway_python.tar
           ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${ISSUE_NUMBER}" --tag-latest true --project feg
+          rm feg_gateway_go.tar feg_gateway_python.tar
       - name: Push Helm charts and verify the push
         if: always() && steps.save_metadata.outcome=='success'
         env:

@@ -1,12 +1,34 @@
 startup --output_base=/tmp/bazel
 
+# STYLE CONFIGS
 build --announce_rc
 build --color=yes
-build --cxxopt=-std=c++14
-build --strip=never
-build --compilation_mode=dbg
 
-# Needed for coverage collection
+build:development --compilation_mode=fastbuild
+build:production --config=lsan --compilation_mode=dbg --strip=never --copt=-O3
+
+# C/C++ CONFIGS
+build --cxxopt=-std=c++14
+build --cxxopt=-DLOG_WITH_GLOG=1
+build --experimental_strict_action_env
+
+# MAGMA VM CONFIGS
+build:specify_vm_cc --action_env=CC=/usr/bin/gcc
+build:vm --disk_cache=/home/vagrant/magma/.bazel-cache
+common:vm --repository_cache=/home/vagrant/magma/.bazel-cache-repo
+build:vm --define=folly_so=1
+build:vm --config=specify_vm_cc
+
+# MAGMA-BUILDER DOCKER CONTAINER CONFIGS
+build:docker --disk_cache=/magma/.bazel-cache
+common:docker --repository_cache=/magma/.bazel-cache-repo
+
+# DEVCONTAINER CONFIGS
+build:devcontainer --disk_cache=/workspaces/magma/.bazel-cache
+common:devcontainer --repository_cache=/workspaces/magma/.bazel-cache-repo
+build:devcontainer --define=folly_so=1
+
+# CODE COVERAGE CONFIGS
 build --javacopt="-source 8"
 build --javacopt="-target 8"
 build --host_javabase=@bazel_tools//tools/jdk:remote_jdk11
@@ -14,34 +36,21 @@ build --javabase=@bazel_tools//tools/jdk:remote_jdk11
 build --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_java11
 build --java_toolchain=@bazel_tools//tools/jdk:toolchain_java11
 
-# Coverage options
 coverage --config=coverage
 build:coverage --combined_report=lcov
 build:coverage --instrumentation_filter="//(orc8r|lte)/gateway/c[/:],-//(orc8r|lte)/protos[/:],-/*/test[/:]"
 
-# For building with Bazel inside the Magma-Builder Docker container
-build:docker --disk_cache=/magma/.bazel-cache
-common:docker --repository_cache=/magma/.bazel-cache-repo
-
-build:devcontainer --disk_cache=/workspaces/magma/.bazel-cache
-common:devcontainer --repository_cache=/workspaces/magma/.bazel-cache-repo
-build:devcontainer --define=folly_so=1
-
-build:specify_vm_cc --action_env=CC=/usr/bin/gcc
-build:specify_vm_cc --action_env=CXX=/usr/bin/g++
-
-# For building with Bazel inside the Magma VM
-build:vm --disk_cache=/home/vagrant/magma/.bazel-cache
-common:vm --repository_cache=/home/vagrant/magma/.bazel-cache-repo
-build:vm --define=folly_so=1
-build:vm --config=specify_vm_cc
-
-build:asan --strip=never
+# ASAN
 build:asan --copt=-fsanitize=address
 build:asan --copt=-O0
 build:asan --copt=-fno-omit-frame-pointer
 build:asan --linkopt=-fsanitize=address
 build:asan --action_env=ASAN_OPTIONS=detect_leaks=1:color=always
+
+# LSAN
+build:lsan --copt=-fsanitize=leak
+build:lsan --copt=-fno-omit-frame-pointer
+build:lsan --linkopt=-fsanitize=leak
 
 # system bazelrc should include config specific to different build envs (--config=vm, --config=devcontainer, etc.)
 try-import /etc/bazelrc

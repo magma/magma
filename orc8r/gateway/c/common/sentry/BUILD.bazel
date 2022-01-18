@@ -30,7 +30,10 @@ cc_library(
     # TODO(@themarwhal): Enable Sentry by default - GH9302
     copts = select({
         ":disable_sentry_native": [],
-        "//conditions:default": ["-DSENTRY_ENABLED", "-DSENTRY_BUILD_STATIC",],
+        "//conditions:default": [
+            "-DSENTRY_ENABLED",
+            "-DSENTRY_BUILD_STATIC",
+        ],
     }),
     # TODO(@themarwhal): Migrate to using full path for includes - GH8299
     strip_include_prefix = "/orc8r/gateway/c/common/sentry",

@@ -55,7 +55,7 @@ int PayloadContainerMsg::EncodePayloadContainerMsg(
       &payload_container->smf_msg, payload_container->contents,
       payload_container->len);
 
-  if (ielen != encoded) {
+  if (static_cast<int>(ielen) != encoded) {
     MLOG(MDEBUG) << "WARNING: mismatch IE length :" << ielen
                  << " encoded SmfMsg length :" << encoded;
   }

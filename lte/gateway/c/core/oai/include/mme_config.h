@@ -307,6 +307,8 @@ typedef struct nas_config_s {
   uint8_t prefered_ciphering_algorithm[8];
   uint32_t t3402_min;
   uint32_t t3412_min;
+  uint32_t t3412_msec;  // keeping t3412_min as it is used to communicate to UE
+                        // and to prevent back and forth conversions
   uint32_t t3422_msec;
   uint32_t t3450_msec;
   uint32_t t3460_msec;
@@ -317,6 +319,7 @@ typedef struct nas_config_s {
   uint32_t t3495_msec;
   uint32_t ts6a_msec;
   uint32_t tics_msec;
+  uint32_t tpaging_msec;
   // non standard features
   bool force_reject_tau;
   bool force_reject_sr;

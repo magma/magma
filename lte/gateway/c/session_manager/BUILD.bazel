@@ -375,6 +375,7 @@ cc_library(
         ":amf_service_client",
         ":pipelined_client",
         ":session_credit",
+        ":session_events",
         ":session_store",
         "//lte/protos:mconfigs_cpp_proto",
         "//orc8r/gateway/c/common/logging",

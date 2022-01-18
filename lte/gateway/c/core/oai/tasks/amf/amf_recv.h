@@ -16,6 +16,7 @@
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationAccept.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.h"
 
 namespace magma5g {
 // AMF registration procedures
@@ -51,6 +52,9 @@ int amf_handle_deregistration_ue_origin_req(
 int amf_validate_dnn(
     const amf_context_s* amf_ctxt_p, std::string dnn_string, int* index,
     bool ue_sent_dnn);
+void smf_dnn_ambr_select(
+    const std::shared_ptr<smf_context_t>& smf_ctx,
+    ue_m5gmm_context_s* ue_context, int index_dnn);
 int amf_smf_process_pdu_session_packet(
     amf_ue_ngap_id_t ueid, ULNASTransportMsg* msg, int amf_cause);
 int amf_smf_notification_send(
@@ -71,4 +75,13 @@ void ue_context_release_command(
     amf_ue_ngap_id_t amf_ue_ngap_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
     Ngcause ng_cause);
 
+int get_decrypt_imsi_suci_extension(
+    amf_context_t* amf_context, uint8_t ue_pubkey_identifier,
+    const std::string& ue_pubkey, const std::string& ciphertext,
+    const std::string& mac_tag);
+int amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia);
+void amf_copy_plmn_to_supi(
+    const ImsiM5GSMobileIdentity& imsi, supi_as_imsi_t& supi_imsi);
+int amf_copy_plmn_to_context(
+    const ImsiM5GSMobileIdentity& imsi, ue_m5gmm_context_s* ue_context);
 }  // namespace magma5g

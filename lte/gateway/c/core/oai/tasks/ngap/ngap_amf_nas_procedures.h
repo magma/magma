@@ -72,7 +72,7 @@ status_code_e ngap_amf_handle_nas_non_delivery(
 
 void ngap_handle_conn_est_cnf(
     ngap_state_t* state,
-    const Ngap_initial_context_setup_request_t* const conn_est_cnf_p);
+    Ngap_initial_context_setup_request_t* const conn_est_cnf_p);
 
 /** \brief communicates amf_ue_id to Ngap.
  * \param state ngap state

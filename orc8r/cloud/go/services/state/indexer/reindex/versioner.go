@@ -83,7 +83,6 @@ func getIndexerVersions(builder sqorc.StatementBuilder, tx *sql.Tx) ([]*indexer.
 		return composed, nil
 	}
 
-	// TODO(reginawang3495) Consider removing this once queue_sql.go is deleted
 	// Test hook after first db call so the tx has "officially" started by acquiring some locks
 	TestHookGet()
 

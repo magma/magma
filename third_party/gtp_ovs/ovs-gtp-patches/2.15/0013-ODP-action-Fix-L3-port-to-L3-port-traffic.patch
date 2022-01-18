@@ -1,4 +1,4 @@
-From 48cddbf7e235e71ffa72f595ee88daccc95b8418 Mon Sep 17 00:00:00 2001
+From bee231325676cc2613694695b77db6654033811f Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sun, 18 Apr 2021 17:17:56 +0000
 Subject: [PATCH 13/22] ODP-action: Fix L3 port to L3 port traffic.
@@ -9,7 +9,7 @@ Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
  1 file changed, 25 insertions(+), 2 deletions(-)
 
 diff --git a/lib/odp-util.c b/lib/odp-util.c
-index cce43d9a4..5693f0836 100644
+index f773f106d..f2c077827 100644
 --- a/lib/odp-util.c
 +++ b/lib/odp-util.c
 @@ -8605,6 +8605,27 @@ odp_put_push_nsh_action(struct ofpbuf *odp_actions,

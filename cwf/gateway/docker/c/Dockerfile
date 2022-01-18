@@ -73,7 +73,6 @@ RUN bazel build \
   @protobuf//:protobuf \
   @prometheus_cpp//:prometheus-cpp \
   @yaml-cpp//:yaml-cpp \
-  @boost//:iterator \
   @github_nlohmann_json//:json
 
 # Copy proto files

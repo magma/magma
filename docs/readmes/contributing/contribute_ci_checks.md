@@ -18,7 +18,7 @@ Below are some resources for finding who to contact:
 - [List of Magma maintainers](https://github.com/orgs/magma/teams/repo-magma-maintain/members)
 - [List of `approvers-*` teams and their members](https://github.com/orgs/magma/teams/?query=approvers)
 
-## Blocking Checks
+## Blocking checks
 
 Merge blocking CI checks are listed below.
 
@@ -49,8 +49,9 @@ Merge blocking CI checks are listed below.
 | Python Format Check    | Ensure Python changes are formatted           | themarwhal             | [AGW formatting](../lte/dev_unit_testing#format-agw)|
 | lint-clang-format      | Ensure C++/C changes are formatted            | approvers-agw          | [AGW formatting](../lte/dev_unit_testing#format-agw)|
 | markdown-lint          | Ensure documentation changes are formatted    | approvers-docs         | [Docs precommit](../docs/docs_overview.md#precommit)|
+| C/C++ unit tests with Bazel | Run all C/C++ tests covered with Bazel   | approvers-agw          | [AGW tests](../lte/dev_unit_testing)                |
 
-## Non-blocking Checks
+## Non-blocking checks
 
 The CI checks listed below do not block merging on failure.
 
@@ -61,4 +62,16 @@ The CI checks listed below do not block merging on failure.
 | GCC Warnings & Errors / build_oai             | Annotate PRs with any GCC Warnings or Errors for MME             | electronjoe        | N/A                                                  |
 | GCC Warnings & Errors / build_session_manager | Annotate PRs with any GCC Warnings or Errors for session_manager | electronjoe        | N/A                                                  |
 | Jenkins CWAG Libvirt                          | Run CWF integration tests                                        | themarwhal mattymo | TODO                                                 |
-| ci/circleci: c-cpp-codecov                    | Upload AGW C/C++ code coverage                                   | electronjoe        | N/A                                                  |
+| C / C++ code coverage                         | Upload AGW C/C++ code coverage                                   | electronjoe        | N/A                                                  |
+
+## How to add a new CI check to Magma
+
+To add a non-blocking check,
+
+1. [The table of non-blocking checks](#Non-blocking-checks) must be updated to include the new check with at least the Purpose and PoC filled out
+
+To add a blocking check,
+
+1. [The table of blocking checks](#Blocking-checks) must be updated to include the new check with all columns filled out
+2. File a proposal to outline the motivation and any relevant timelines and assign to a relevant codeowner or TSC ([An example propsal](https://github.com/magma/magma/issues/7774))
+3. Once the proposal is accepted, announce the plan in [#dev](https://magmacore.slack.com/archives/C018J8UMGMR) and coordinate with one of the [repo admins](https://github.com/orgs/magma/teams/repo-magma-admin/members) to make the switch

@@ -18,9 +18,7 @@
 namespace magma {
 namespace sctpd {
 
-SctpDesc::SctpDesc(int sd) : _sd(sd) {
-  assert(sd >= 0);
-}
+SctpDesc::SctpDesc(int sd) : _sd(sd) { assert(sd >= 0); }
 
 void SctpDesc::addAssoc(const SctpAssoc& assoc) {
   _assocs[assoc.assoc_id] = assoc;
@@ -35,17 +33,11 @@ int SctpDesc::delAssoc(uint32_t assoc_id) {
   return num_removed == 1 ? 0 : -1;
 }
 
-AssocMap::const_iterator SctpDesc::begin() const {
-  return _assocs.cbegin();
-}
+AssocMap::const_iterator SctpDesc::begin() const { return _assocs.cbegin(); }
 
-AssocMap::const_iterator SctpDesc::end() const {
-  return _assocs.cend();
-}
+AssocMap::const_iterator SctpDesc::end() const { return _assocs.cend(); }
 
-int SctpDesc::sd() const {
-  return _sd;
-}
+int SctpDesc::sd() const { return _sd; }
 
 void SctpDesc::dump() const {
   for (auto const& kv : _assocs) {

@@ -162,6 +162,8 @@ class SubscriberDbGrpc(SubscriberDbClient):
             apn_config.ambr.max_bandwidth_ul = apn["mbr_ul"]
             apn_config.ambr.max_bandwidth_dl = apn["mbr_dl"]
             apn_config.pdn = apn["pdn_type"] if "pdn_type" in apn else 0
+            if apn.get("static_ip", None):
+                apn_config.assigned_static_ip = apn["static_ip"]
         return update
 
     def _check_invariants(self):

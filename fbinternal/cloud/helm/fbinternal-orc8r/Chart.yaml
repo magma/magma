@@ -13,7 +13,7 @@ apiVersion: v2
 appVersion: "1.0"
 description: A Helm chart for magma orchestrator's fbinternal module
 name: fbinternal-orc8r
-version: 0.2.1
+version: 0.2.2
 engine: gotpl
 sources:
   - https://github.com/magma/magma
@@ -25,5 +25,5 @@ keywords:
 # Library chart for common orchestrator module components
 dependencies:
 - name: orc8rlib
-  version: 0.1.3
+  version: 0.1.4
   repository: file://../../../../orc8r/cloud/helm/orc8rlib

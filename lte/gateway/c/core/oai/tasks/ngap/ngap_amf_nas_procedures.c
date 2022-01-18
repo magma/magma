@@ -1969,5 +1969,4 @@ int ngap_generate_ngap_pdusession_resource_rel_cmd(
       ue_ref->amf_ue_ngap_id);
 
   bdestroy(stream);
-  OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
-}
+  OAILOG

@@ -63,8 +63,8 @@ struct StoredChargingGrant {
 };
 
 typedef std::unordered_map<std::string, StoredMonitor> StoredMonitorMap;
-typedef std::unordered_map<
-    CreditKey, StoredChargingGrant, decltype(&ccHash), decltype(&ccEqual)>
+typedef std::unordered_map<CreditKey, StoredChargingGrant, decltype(&ccHash),
+                           decltype(&ccEqual)>
     StoredChargingCreditMap;
 
 struct StoredSessionState {
@@ -159,9 +159,8 @@ struct SessionStateUpdateCriteria {
   std::vector<SetGroupPDR> pdrs_to_install;
   std::unordered_map<std::string, RuleLifetime> new_rule_lifetimes;
   StoredChargingCreditMap charging_credit_to_install;
-  std::unordered_map<
-      CreditKey, SessionCreditUpdateCriteria, decltype(&ccHash),
-      decltype(&ccEqual)>
+  std::unordered_map<CreditKey, SessionCreditUpdateCriteria, decltype(&ccHash),
+                     decltype(&ccEqual)>
       charging_credit_map;
   bool is_session_level_key_updated;
   std::string updated_session_level_key;

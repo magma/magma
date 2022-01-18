@@ -39,7 +39,7 @@ int decode_tracking_area_update_accept(
    */
   if ((decoded_result = decode_u8_eps_update_result(
            &tracking_area_update_accept->epsupdateresult, 0,
-           *(buffer + decoded) >> 4, len - decoded)) < 0)
+           *(buffer + decoded), len - decoded)) < 0)
     return decoded_result;
 
   decoded++;

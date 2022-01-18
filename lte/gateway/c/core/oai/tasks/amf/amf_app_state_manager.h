@@ -16,7 +16,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#include "lte/gateway/c/core/oai/common/assertions.h"
 #include "hashtable.h"
 #include "obj_hashtable.h"
 #ifdef __cplusplus
@@ -25,8 +25,17 @@ extern "C" {
 
 #include "amf_smfDefs.h"
 #include "amf_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_converter.h"
+#include <lte/gateway/c/core/oai/include/state_manager.h>
 
 namespace magma5g {
+/**
+ * When the process starts, initialize the in-memory AMF+NAS state and, if
+ * persist state flag is set, load it from the data store.
+ * This is only done by the amf_app task.
+ */
+int amf_nas_state_init(const amf_config_t* amf_config_p);
+
 /**
  * Return pointer to the in-memory AMF/NAS state from state manager before
  * processing any message. This is a thread safe call
@@ -35,18 +44,37 @@ namespace magma5g {
  */
 amf_app_desc_t* get_amf_nas_state(bool read_from_redis);
 
+/**
+ * Write the AMF/NAS state to data store after processing any message. This is a
+ * thread safe call
+ */
+void put_amf_nas_state();
+
+/**
+ * Release the memory allocated for the AMF NAS state, this does not clean the
+ * state persisted in data store
+ */
 void clear_amf_nas_state();
 
 // Retrieving respective global hash table
-hash_table_ts_t* get_amf_ue_state();
-int amf_nas_state_init(const amf_config_t* amf_config_p);
+map_uint64_ue_context_t get_amf_ue_state();
+
+// Persists UE AMF state for subscriber into db
+void put_amf_ue_state(
+    magma5g::amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64,
+    bool force_ue_write);
+// Deletes entry for UE AMF state on db
+void delete_amf_ue_state(imsi64_t imsi64);
 
 /**
  * AmfNasStateManager is a singleton (thread-safe, destruction guaranteed) class
  * that contains functions to maintain Amf and NAS state, i.e. for allocating
  * and freeing state structs, and writing/reading state to db.
  */
-class AmfNasStateManager {
+class AmfNasStateManager
+    : public magma::lte::StateManager<
+          amf_app_desc_t, ue_m5gmm_context_t, magma::lte::oai::MmeNasState,
+          magma::lte::oai::UeContext, AmfNasStateConverter> {
  public:
   /**
    * Returns an instance of AmfNasStateManager, guaranteed to be thread safe and
@@ -62,10 +90,10 @@ class AmfNasStateManager {
    * debug flag; if set to true, the state is loaded from the data store on
    * every get.
    */
-  amf_app_desc_t* get_state(bool read_from_redis);
+  amf_app_desc_t* get_state(bool read_from_redis) override;
 
   // Retriving respective hash table from global data
-  hash_table_ts_t* get_ue_state_ht();
+  map_uint64_ue_context_t get_ue_state_map();
 
   /**
    * Copy constructor and assignment operator are marked as deleted functions.
@@ -75,17 +103,11 @@ class AmfNasStateManager {
   AmfNasStateManager& operator=(AmfNasStateManager const&) = delete;
 
   // AMF state initializemanager flag
-  bool persist_state_enabled_;
-  bool is_initialized;
-  bool state_dirty;
-  std::string table_key;
-  std::string task_name;
-  log_proto_t log_task;
   uint32_t max_ue_htbl_lists_;
   uint32_t amf_statistic_timer_;
-  hash_table_ts_t* state_ue_ht;
-  amf_app_desc_t* state_cache_p;
-  void free_state();
+  map_uint64_ue_context_t state_ue_map;
+
+  void free_state() override;
 
  private:
   AmfNasStateManager();
@@ -102,9 +124,6 @@ class AmfNasStateManager {
    * manager owns the memory allocated for Amf state and frees it when the
    * task terminates
    */
-  void create_state();
-
-  // Clean-up the in-memory hashtables
-  void clear_amf_nas_hashtables();
+  void create_state() override;
 };
 }  // namespace magma5g

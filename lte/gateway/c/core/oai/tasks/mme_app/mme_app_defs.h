@@ -330,7 +330,8 @@ void mme_app_update_paging_tai_list(
 void send_delete_dedicated_bearer_rsp(
     struct ue_mm_context_s* ue_context_p, bool delete_default_bearer,
     ebi_t ebi[], uint32_t num_bearer_context, teid_t s_gw_teid_s11_s4,
-    gtpv2c_cause_value_t cause, bool route_s11_messages_to_s8_task);
+    gtpv2c_cause_value_t cause, bool route_s11_messages_to_s8_task,
+    bool mme_initiated_local_deact);
 
 int mme_app_create_sgs_context(ue_mm_context_t* ue_context_p);
 
@@ -349,6 +350,13 @@ void mme_app_get_user_location_information(
 void mme_app_remove_stale_ue_context(
     mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_remove_stale_ue_context_t* s1ap_remove_stale_ue_context);
+
+void mme_app_handle_mme_init_local_deactivation(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s11_nw_init_deactv_bearer_request_t* const bearer_deactv_req_p);
+
+void mme_app_send_deactivate_dedicated_bearer_request(
+    ue_mm_context_t* ue_mm_context, pdn_context_t* pdn_context);
 
 #define ATTACH_REQ (1 << 0)
 #define TAU_REQUEST (1 << 1)

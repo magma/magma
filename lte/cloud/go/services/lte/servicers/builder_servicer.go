@@ -25,7 +25,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
-	feg "magma/feg/cloud/go/feg"
+	"magma/feg/cloud/go/feg"
 	feg_serdes "magma/feg/cloud/go/serdes"
 	feg_models "magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/lte/cloud/go/lte"
@@ -107,6 +107,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	gwRan := cellularGwConfig.Ran
 	gwEpc := cellularGwConfig.Epc
+	gwNgc := getGwConfigNgc(cellularGwConfig)
 	gwNonEpsService := cellularGwConfig.NonEpsService
 	nwRan := cellularNwConfig.Ran
 	nwEpc := cellularNwConfig.Epc
@@ -154,35 +155,41 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			MultiApnIpAlloc:          getMobilityDMultuAPNIPAlloc(nwEpc),
 		},
 		"mme": &lte_mconfig.MME{
-			LogLevel:                 protos.LogLevel_INFO,
-			Mcc:                      nwEpc.Mcc,
-			Mnc:                      nwEpc.Mnc,
-			Tac:                      int32(nwEpc.Tac),
-			MmeCode:                  int32(mmePoolRecord.MmeCode),
-			MmeGid:                   int32(mmeGroupID),
-			MmeRelativeCapacity:      int32(mmePoolRecord.MmeRelativeCapacity),
-			EnableDnsCaching:         shouldEnableDNSCaching(cellularGwConfig.DNS),
-			NonEpsServiceControl:     nonEPSServiceMconfig.nonEpsServiceControl,
-			CsfbMcc:                  nonEPSServiceMconfig.csfbMcc,
-			CsfbMnc:                  nonEPSServiceMconfig.csfbMnc,
-			Lac:                      nonEPSServiceMconfig.lac,
-			HssRelayEnabled:          swag.BoolValue(nwEpc.HssRelayEnabled),
-			CloudSubscriberdbEnabled: nwEpc.CloudSubscriberdbEnabled,
-			AttachedEnodebTacs:       getEnodebTacs(enbConfigsBySerial),
-			DnsPrimary:               gwEpc.DNSPrimary,
-			DnsSecondary:             gwEpc.DNSSecondary,
-			Ipv4PCscfAddress:         string(gwEpc.IPV4pCscfAddr),
-			Ipv6DnsAddress:           string(gwEpc.IPV6DNSAddr),
-			Ipv6PCscfAddress:         string(gwEpc.IPV6pCscfAddr),
-			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
-			Ipv4SgwS1UAddr:           gwEpc.IPV4SgwS1uAddr,
-			RestrictedPlmns:          getRestrictedPlmns(nwEpc.RestrictedPlmns),
-			RestrictedImeis:          getRestrictedImeis(nwEpc.RestrictedImeis),
-			ServiceAreaMaps:          getServiceAreaMaps(nwEpc.ServiceAreaMaps),
-			FederatedModeMap:         getFederatedModeMap(federatedNetworkConfigs),
-			CongestionControlEnabled: swag.BoolValue(congestionControlEnabled),
-			SentryConfig:             getNetworkSentryConfig(&network),
-			Enable5GFeatures:         swag.BoolValue(nwEpc.Enable5gFeatures),
+			LogLevel:                      protos.LogLevel_INFO,
+			Mcc:                           nwEpc.Mcc,
+			Mnc:                           nwEpc.Mnc,
+			Tac:                           int32(nwEpc.Tac),
+			MmeCode:                       int32(mmePoolRecord.MmeCode),
+			MmeGid:                        int32(mmeGroupID),
+			MmeRelativeCapacity:           int32(mmePoolRecord.MmeRelativeCapacity),
+			EnableDnsCaching:              shouldEnableDNSCaching(cellularGwConfig.DNS),
+			NonEpsServiceControl:          nonEPSServiceMconfig.nonEpsServiceControl,
+			CsfbMcc:                       nonEPSServiceMconfig.csfbMcc,
+			CsfbMnc:                       nonEPSServiceMconfig.csfbMnc,
+			Lac:                           nonEPSServiceMconfig.lac,
+			HssRelayEnabled:               swag.BoolValue(nwEpc.HssRelayEnabled),
+			CloudSubscriberdbEnabled:      nwEpc.CloudSubscriberdbEnabled,
+			AttachedEnodebTacs:            getEnodebTacs(enbConfigsBySerial),
+			DnsPrimary:                    gwEpc.DNSPrimary,
+			DnsSecondary:                  gwEpc.DNSSecondary,
+			Ipv4PCscfAddress:              string(gwEpc.IPV4pCscfAddr),
+			Ipv6DnsAddress:                string(gwEpc.IPV6DNSAddr),
+			Ipv6PCscfAddress:              string(gwEpc.IPV6pCscfAddr),
+			NatEnabled:                    swag.BoolValue(gwEpc.NatEnabled),
+			Ipv4SgwS1UAddr:                gwEpc.IPV4SgwS1uAddr,
+			RestrictedPlmns:               getRestrictedPlmns(nwEpc.RestrictedPlmns),
+			RestrictedImeis:               getRestrictedImeis(nwEpc.RestrictedImeis),
+			ServiceAreaMaps:               getServiceAreaMaps(nwEpc.ServiceAreaMaps),
+			FederatedModeMap:              getFederatedModeMap(federatedNetworkConfigs),
+			CongestionControlEnabled:      swag.BoolValue(congestionControlEnabled),
+			SentryConfig:                  getNetworkSentryConfig(&network),
+			Enable5GFeatures:              swag.BoolValue(nwEpc.Enable5gFeatures),
+			AmfName:                       gwNgc.AmfName,
+			AmfSetId:                      gwNgc.AmfSetID,
+			AmfRegionId:                   gwNgc.AmfRegionID,
+			AmfPointer:                    gwNgc.AmfPointer,
+			AmfDefaultSliceServiceType:    gwNgc.AmfDefaultSst,
+			AmfDefaultSliceDifferentiator: gwNgc.AmfDefaultSd,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                   protos.LogLevel_INFO,
@@ -317,6 +324,16 @@ func getPipelineDServicesConfig(networkServices []string) ([]lte_mconfig.Pipelin
 		apps = append(apps, mc)
 	}
 	return apps, nil
+}
+
+// getGwConfigNgc returns the NGC part of a cellular gateway config, or a
+// default value if none exists.
+func getGwConfigNgc(configs *lte_models.GatewayCellularConfigs) *lte_models.GatewayNgcConfigs {
+	ngc := configs.Ngc
+	if ngc == nil {
+		ngc = &lte_models.GatewayNgcConfigs{}
+	}
+	return ngc
 }
 
 func getFddConfig(fddConfig *lte_models.NetworkRanConfigsFddConfig) *lte_mconfig.EnodebD_FDDConfig {

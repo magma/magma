@@ -168,6 +168,10 @@ void create_state_matrix() {
       DEREGISTERED, SESSION_NULL, "PDU_Release");
 
   Update_ue_state_matrix(
+      REGISTERED_CONNECTED, STATE_PDU_SESSION_RELEASE_COMPLETE, INACTIVE,
+      REGISTERED_CONNECTED, RELEASED, "PDU_Release");
+
+  Update_ue_state_matrix(
       REGISTERED_CONNECTED, STATE_PDU_SESSION_MODIFICATION_REQUEST, ACTIVE,
       REGISTERED_CONNECTED, SESSION_MODIFICATION,
       "PDU_Session_Modification_Request");

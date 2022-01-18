@@ -38,6 +38,7 @@ package protos
 //go:generate go run github.com/golang/mock/mockgen -source magma/pipelined/pipelined_grpc.pb.go -destination magma/pipelined/mock_pipelined/mock_pipelined_grpc.pb.go
 
 //go:generate protoc --go_out=. --go_opt=Mcapture.proto=magma/capture;capture -I magma/capture capture.proto
+//go:generate protoc --go-grpc_out=. --go-grpc_opt=Mcapture.proto=magma/capture;capture -I magma/capture capture.proto
 
 //go:generate protoc --go_out=. --go_opt=Mconfig.proto=magma/config;config -I magma/config config.proto
 //go:generate protoc --go-grpc_out=. --go-grpc_opt=Mconfig.proto=magma/config;config -I magma/config config.proto

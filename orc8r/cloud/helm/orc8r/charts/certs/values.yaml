@@ -37,7 +37,7 @@ nms:
   # 10 year = 87600h
   duration: 87600h
   renewBefore: 24h
-  customIssuer:
+  customIssuer: # orc8r-route53-issuer
 
 controller:
   # 10 year = 87600h
@@ -57,3 +57,10 @@ root:
 
 preInstallChecks:
   enabled: true
+  test: # Keep this empty. It's a part of the pre-install checks.
+
+route53:
+  enabled: false
+  region:
+  accessKey:
+  secretKey:

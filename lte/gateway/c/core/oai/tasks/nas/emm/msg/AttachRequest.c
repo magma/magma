@@ -56,24 +56,25 @@ int decode_attach_request(
            &attach_request->oldgutiorimsi, 0, buffer + decoded,
            len - decoded)) < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, TLV_VALUE_DOESNT_MATCH);
-  } else
+  } else {
     decoded += decoded_result;
+  }
 
   if ((decoded_result = decode_ue_network_capability(
            &attach_request->uenetworkcapability, 0, buffer + decoded,
            len - decoded)) < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, TLV_VALUE_DOESNT_MATCH);
-  }
-
-  else
+  } else {
     decoded += decoded_result;
+  }
 
   if ((decoded_result = decode_esm_message_container(
            &attach_request->esmmessagecontainer, 0, buffer + decoded,
            len - decoded)) < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, TLV_VALUE_DOESNT_MATCH);
-  } else
+  } else {
     decoded += decoded_result;
+  }
 
   /*
    * Decoding optional fields
@@ -222,7 +223,7 @@ int decode_attach_request(
         break;
 
       case ATTACH_REQUEST_SUPPORTED_CODECS_IEI:
-        if ((decoded_result = decode_supported_codec_list(
+        if ((decoded_result = decode_supported_codec_list_ie(
                  &attach_request->supportedcodecs,
                  ATTACH_REQUEST_SUPPORTED_CODECS_IEI, buffer + decoded,
                  len - decoded)) <= 0) {
@@ -366,24 +367,27 @@ int encode_attach_request(
 
   if ((encode_result = encode_eps_mobile_identity(
            &attach_request->oldgutiorimsi, 0, buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+           len - encoded)) < 0) {  // Return in case of error
     return encode_result;
-  else
+  } else {
     encoded += encode_result;
+  }
 
   if ((encode_result = encode_ue_network_capability(
            &attach_request->uenetworkcapability, 0, buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+           len - encoded)) < 0) {  // Return in case of error
     return encode_result;
-  else
+  } else {
     encoded += encode_result;
+  }
 
   if ((encode_result = encode_esm_message_container(
            attach_request->esmmessagecontainer, 0, buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+           len - encoded)) < 0) {  // Return in case of error
     return encode_result;
-  else
+  } else {
     encoded += encode_result;
+  }
 
   if ((attach_request->presencemask &
        ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_PRESENT) ==
@@ -391,11 +395,12 @@ int encode_attach_request(
     if ((encode_result = encode_p_tmsi_signature_ie(
              attach_request->oldptmsisignature,
              ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_IEI, buffer + encoded,
-             len - encoded)) < 0)
+             len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((attach_request->presencemask & ATTACH_REQUEST_ADDITIONAL_GUTI_PRESENT) ==
@@ -403,11 +408,12 @@ int encode_attach_request(
     if ((encode_result = encode_eps_mobile_identity(
              &attach_request->additionalguti,
              ATTACH_REQUEST_ADDITIONAL_GUTI_IEI, buffer + encoded,
-             len - encoded)) < 0)
+             len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((attach_request->presencemask &
@@ -416,22 +422,24 @@ int encode_attach_request(
     if ((encode_result = encode_tracking_area_identity(
              &attach_request->lastvisitedregisteredtai,
              ATTACH_REQUEST_LAST_VISITED_REGISTERED_TAI_IEI, buffer + encoded,
-             len - encoded)) < 0)
+             len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((attach_request->presencemask & ATTACH_REQUEST_DRX_PARAMETER_PRESENT) ==
       ATTACH_REQUEST_DRX_PARAMETER_PRESENT) {
     if ((encode_result = encode_drx_parameter_ie(
              &attach_request->drxparameter, ATTACH_REQUEST_DRX_PARAMETER_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((attach_request->presencemask &
@@ -440,11 +448,12 @@ int encode_attach_request(
     if ((encode_result = encode_ms_network_capability_ie(
              &attach_request->msnetworkcapability,
              ATTACH_REQUEST_MS_NETWORK_CAPABILITY_IEI, buffer + encoded,
-             len - encoded)) < 0)
+             len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((attach_request->presencemask &
@@ -453,22 +462,24 @@ int encode_attach_request(
     if ((encode_result = encode_location_area_identification_ie(
              &attach_request->oldlocationareaidentification,
              ATTACH_REQUEST_OLD_LOCATION_AREA_IDENTIFICATION_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((attach_request->presencemask & ATTACH_REQUEST_TMSI_STATUS_PRESENT) ==
       ATTACH_REQUEST_TMSI_STATUS_PRESENT) {
     if ((encode_result = encode_tmsi_status(
              &attach_request->tmsistatus, ATTACH_REQUEST_TMSI_STATUS_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((attach_request->presencemask &
@@ -477,11 +488,12 @@ int encode_attach_request(
     if ((encode_result = encode_mobile_station_classmark_2_ie(
              &attach_request->mobilestationclassmark2,
              ATTACH_REQUEST_MOBILE_STATION_CLASSMARK_2_IEI, buffer + encoded,
-             len - encoded)) < 0)
+             len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((attach_request->presencemask &
@@ -490,24 +502,26 @@ int encode_attach_request(
     if ((encode_result = encode_mobile_station_classmark_3_ie(
              &attach_request->mobilestationclassmark3,
              ATTACH_REQUEST_MOBILE_STATION_CLASSMARK_3_IEI, buffer + encoded,
-             len - encoded)) < 0)
+             len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((attach_request->presencemask &
        ATTACH_REQUEST_SUPPORTED_CODECS_PRESENT) ==
       ATTACH_REQUEST_SUPPORTED_CODECS_PRESENT) {
-    if ((encode_result = encode_supported_codec_list(
+    if ((encode_result = encode_supported_codec_list_ie(
              &attach_request->supportedcodecs,
              ATTACH_REQUEST_SUPPORTED_CODECS_IEI, buffer + encoded,
-             len - encoded)) < 0)
+             len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((attach_request->presencemask &
@@ -516,22 +530,24 @@ int encode_attach_request(
     if ((encode_result = encode_additional_update_type(
              &attach_request->additionalupdatetype,
              ATTACH_REQUEST_ADDITIONAL_UPDATE_TYPE_IEI, buffer + encoded,
-             len - encoded)) < 0)
+             len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((attach_request->presencemask & ATTACH_REQUEST_OLD_GUTI_TYPE_PRESENT) ==
       ATTACH_REQUEST_OLD_GUTI_TYPE_PRESENT) {
     if ((encode_result = encode_guti_type(
              &attach_request->oldgutitype, ATTACH_REQUEST_OLD_GUTI_TYPE_IEI,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((attach_request->presencemask &
@@ -539,11 +555,12 @@ int encode_attach_request(
       ATTACH_REQUEST_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_PRESENT) {
     if ((encode_result = encode_voice_domain_preference_and_ue_usage_setting(
              &attach_request->voicedomainpreferenceandueusagesetting, true,
-             buffer + encoded, len - encoded)) < 0)
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
   if ((attach_request->presencemask &
@@ -552,12 +569,39 @@ int encode_attach_request(
     if ((encode_result = encode_ms_network_feature_support_ie(
              &attach_request->msnetworkfeaturesupport,
              ATTACH_REQUEST_MS_NETWORK_FEATURE_SUPPORT_IEI, buffer + encoded,
-             len - encoded)) < 0)
+             len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
-    else
+    } else {
       encoded += encode_result;
+    }
   }
 
+  if ((attach_request->presencemask &
+       ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_PRESENT) ==
+      ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_PRESENT) {
+    if ((encode_result = encode_ue_additional_security_capability(
+             &attach_request->ueadditionalsecuritycapability,
+             ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI,
+             buffer + encoded, len - encoded)) < 0) {
+      // Return in case of error
+      return encode_result;
+    } else {
+      encoded += encode_result;
+    }
+  }
+
+  if ((attach_request->presencemask &
+       ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_PRESENT) ==
+      ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_PRESENT) {
+    if ((encode_result = encode_network_resource_identifier_container_ie(
+             &attach_request->networkresourceidentifiercontainer, true,
+             buffer + encoded, len - encoded)) < 0) {
+      // Return in case of error
+      return encode_result;
+    } else {
+      encoded += encode_result;
+    }
+  }
   return encoded;
 }

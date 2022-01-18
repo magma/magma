@@ -79,7 +79,7 @@ def release():
 
 
 def package(
-    vcs='git', all_deps="False",
+    all_deps="False",
     cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY,
     destroy_vm='False',
     vm='magma', os="ubuntu",
@@ -99,7 +99,8 @@ def package(
         )
         exit(1)
 
-    hash = pkg.get_commit_hash(vcs)
+    hash = pkg.get_commit_hash()
+    commit_count = pkg.get_commit_count()
 
     with cd('~/magma/lte/gateway'):
         # Generate magma dependency packages
@@ -121,8 +122,8 @@ def package(
         build_type = "Debug" if env.debug_mode else "RelWithDebInfo"
 
         run(
-            './release/build-magma.sh -h "%s" -t %s --cert %s --proxy %s --os %s' %
-            (hash, build_type, cert_file, proxy_config, os),
+            './release/build-magma.sh -h %s --commit-count %s -t %s --cert %s --proxy %s --os %s' %
+            (hash, commit_count, build_type, cert_file, proxy_config, os),
         )
 
         run('rm -rf ~/magma-packages')
@@ -161,8 +162,7 @@ def openvswitch(destroy_vm='False', destdir='~/magma-packages/'):
     # If a host list isn't specified, default to the magma vagrant vm
     if not env.hosts:
         vagrant_setup('magma', destroy_vm=destroy_vm)
-    with cd('~/magma/lte/gateway'):
-        run('./release/build-ovs.sh ' + destdir)
+    run('~/magma/third_party/gtp_ovs/ovs-gtp-patches/2.15/build.sh ' + destdir)
 
 
 def depclean():

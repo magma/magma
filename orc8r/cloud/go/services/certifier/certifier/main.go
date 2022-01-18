@@ -22,12 +22,16 @@ import (
 	"github.com/golang/glog"
 
 	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/analytics"
 	analytics_protos "magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/certifier"
 	analytics_service "magma/orc8r/cloud/go/services/certifier/analytics"
+	"magma/orc8r/cloud/go/services/certifier/obsidian/handlers"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/servicers"
 	"magma/orc8r/cloud/go/services/certifier/storage"
@@ -106,6 +110,10 @@ func main() {
 		glog.Fatalf("Failed to create certifier server: %s", err)
 	}
 	certprotos.RegisterCertifierServer(srv.GrpcServer, servicer)
+
+	// Add handlers that manages users to Swagger
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(certifier.ServiceName))
+	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 
 	// Start Garbage Collector Ticker
 	go func() {

@@ -1,4 +1,4 @@
-From 407cf24012bc486879e063a23b1a37b237aea3e7 Mon Sep 17 00:00:00 2001
+From 312476bbf2de6fcbf5ba0806ab73a7062f9ff333 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Wed, 23 Sep 2020 04:01:59 +0000
 Subject: [PATCH 19/22] AGW: OVS: handle gtp tunnel type

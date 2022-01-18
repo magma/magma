@@ -779,6 +779,20 @@ int amf_proc_authentication_failure(
           "Sending authentication reject with cause AMF_CAUSE_MAC_FAILURE\n");
       rc = amf_auth_auth_rej(ue_id);
     } break;
+    case AMF_UE_SECURITY_CAPABILITIES_MISMATCH: {
+      OAILOG_ERROR(
+          LOG_NAS_AMF,
+          "Sending authentication reject with cause "
+          "AMF_UE_SECURITY_CAPABILITIES_MISMATCH\n");
+      rc = amf_auth_auth_rej(ue_id);
+    } break;
+    case AMF_SECURITY_MODE_REJECT: {
+      OAILOG_ERROR(
+          LOG_NAS_AMF,
+          "Sending authentication reject with cause "
+          "AMF_SECURITY_MODE_REJECT\n");
+      rc = amf_auth_auth_rej(ue_id);
+    } break;
 
     default: {
       OAILOG_DEBUG(LOG_NAS_AMF, "Unsupported 5gmm cause\n");
@@ -968,7 +982,7 @@ static int authenthication_t3560_handler(
   amf_context_t* amf_ctx = NULL;
   amf_ue_ngap_id_t ue_id = 0;
 
-  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+  if (!amf_pop_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3560: Invalid Timer Id expiration, Timer Id: %u\n",
         timer_id);
@@ -1030,4 +1044,5 @@ static int authenthication_t3560_handler(
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
+
 }  // namespace magma5g

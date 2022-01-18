@@ -6,9 +6,11 @@ on:  # yamllint disable-line rule:truthy
   schedule:
     - cron: "0 2 * * 0"
 
+env:
+  MAGMA_VERSION: "1.7.0"
+
 jobs:
   publish-amis-to-marketplace:
-    if: ${{ needs.path_filter.outputs.should_skip != 'true' }}
     name: publish-amis-to-marketplace job
     runs-on: ubuntu-latest
     env:
@@ -45,8 +47,8 @@ jobs:
             if [ "${{ env.AWS_ACCOUNT }}" = "FB" ]; then
               sed -i -e "s@awsAccessKey:@& ${{ secrets.FB_AWS_ACCESS_KEY }}@1"  ${{ env.VARS_DIR }}/secrets.yaml
               sed -i -e "s@awsSecretKey:@& ${{ secrets.FB_AWS_SECRET_ACCESS_KEY }}@1"  ${{ env.VARS_DIR }}/secrets.yaml
-              echo VERSION="1.7.0-${{ github.sha }}" >> $GITHUB_ENV
-              echo PACKAGE_VERSION="1.7.0" >> $GITHUB_ENV
+              echo VERSION="${{ env.MAGMA_VERSION }}-${{ github.sha }}" >> $GITHUB_ENV
+              echo PACKAGE_VERSION="${{ env.MAGMA_VERSION }}" >> $GITHUB_ENV
               # When focal-ci is clean we will be able to dynamically fetch latest ci debian packages
             elif  [ "${{ env.AWS_ACCOUNT }}" = "LF" ]; then
               sed -i -e "s@awsAccessKey:@& ${{ secrets.LF_AWS_ACCESS_KEY }}@1"  ${{ env.VARS_DIR }}/secrets.yaml
@@ -149,3 +151,49 @@ jobs:
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '
+  publish-docker-ami:
+    name: publish-docker-ami
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch'
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      CODE_DIR: "${{ github.workspace }}/experimental/cloudstrapper"
+      VARS_DIR: "${{ github.workspace }}/experimental/cloudstrapper/playbooks/roles/vars"
+      WORK_DIR: "${{ github.workspace }}/experimental/cloudstrapper/playbooks"
+      SHA: "${{ github.sha }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run apt
+        run: sudo apt-get update && sudo apt -y upgrade
+      - name: setup pyenv
+        uses: "gabrielfalcao/pyenv-action@v8"
+        with:
+          default: 3.7.0
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - name: Install Dependencies
+        run: |
+          pip install ansible awscli boto3 boto
+          sudo apt-get update
+      - name: Export AWS Credentials
+        run: |
+          sed -i -e "s@awsAccessKey:@& ${{ secrets.FB_AWS_ACCESS_KEY }}@1"  ${{ env.VARS_DIR }}/secrets.yaml
+          sed -i -e "s@awsSecretKey:@& ${{ secrets.FB_AWS_SECRET_ACCESS_KEY }}@1"  ${{ env.VARS_DIR }}/secrets.yaml
+      - name: Launch ec2 instance
+        run: |
+          ansible-playbook ${{ env.WORK_DIR }}/docker-ami-provision.yaml -e "dirLocalInventory=${{ env.VARS_DIR }}"  -e "tag_host=dockerami"   -e "awsAgwRegion=us-east-1"
+          sleep 400s
+          ls -R ${{ env.VARS_DIR }}
+      - name: Install needed components on the remote host
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: false
+        run: |
+          ansible-playbook ${{ env.WORK_DIR }}/docker-ami-configure.yaml --key-file "${{ env.VARS_DIR }}/dockerAMI.pem" -e "buildMagmaVersion=${{env.SHA}}" -e "dirLocalInventory=${{ env.VARS_DIR }}" -e "dockerHost=tag_agw_dockerami" -e "awsAgwRegion=us-east-1"  -i ${{ env.VARS_DIR }}/common_instance_aws_ec2.yaml -u ubuntu
+      - name: Snapshot the instance
+        run: |
+          ansible-playbook ${{ env.WORK_DIR }}/docker-ami-init.yaml -e "dirLocalInventory=${{ env.VARS_DIR }}"  -e "awsAgwRegion=us-east-1"  -e "tag_host=dockerami" -e "taggedVersion=${{ env.MAGMA_VERSION }}-${SHA:0:8}" -vv
+      - name: Terminate instance
+        if: always()
+        run: |
+          ansible-playbook ${{ env.WORK_DIR }}/docker-cleanup.yaml -e "dirLocalInventory=${{ env.VARS_DIR }}"  -e "tag_host=dockerami"  -e "awsAgwRegion=us-east-1"

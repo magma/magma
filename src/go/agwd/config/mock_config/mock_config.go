@@ -48,6 +48,20 @@ func (mr *MockConfigerMockRecorder) Config() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Config", reflect.TypeOf((*MockConfiger)(nil).Config))
 }
 
+// ReplaceConfig mocks base method.
+func (m *MockConfiger) ReplaceConfig(arg0 *config.AgwD) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReplaceConfig", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReplaceConfig indicates an expected call of ReplaceConfig.
+func (mr *MockConfigerMockRecorder) ReplaceConfig(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceConfig", reflect.TypeOf((*MockConfiger)(nil).ReplaceConfig), arg0)
+}
+
 // UpdateConfig mocks base method.
 func (m *MockConfiger) UpdateConfig(arg0 *config.AgwD) error {
 	m.ctrl.T.Helper()

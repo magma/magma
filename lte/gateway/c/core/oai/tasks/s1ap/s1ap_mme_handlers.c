@@ -1310,6 +1310,10 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
       cause_type  = S1ap_Cause_PR_nas;
       cause_value = S1ap_CauseNas_unspecified;
       break;
+    case S1AP_SUCCESSFUL_HANDOVER:
+      cause_type  = S1ap_Cause_PR_radioNetwork;
+      cause_value = S1ap_CauseRadioNetwork_successful_handover;
+      break;
     case S1AP_RADIO_EUTRAN_GENERATED_REASON:
       cause_type = S1ap_Cause_PR_radioNetwork;
       cause_value =
@@ -1355,6 +1359,8 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
   bstring b = blk2bstr(buffer, length);
   free(buffer);
   rc = s1ap_mme_itti_send_sctp_request(&b, assoc_id, stream, mme_ue_s1ap_id);
+
+  // Dont remove UE context if UE handed over to another eNB
   if (ue_ref_p != NULL && ue_ref_p->sctp_assoc_id == assoc_id) {
     ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
     // We can safely remove UE context now, no need for timer
@@ -3180,6 +3186,14 @@ status_code_e s1ap_mme_handle_handover_notify(
         mme_ue_s1ap_id, src_ue_ref_p->s1ap_handover_state, tgt_enb_ue_s1ap_id,
         assoc_id, ecgi, imsi64);
 
+    // Send context release command to source eNB
+    s1ap_mme_generate_ue_context_release_command(
+        state, new_ue_ref_p, S1AP_SUCCESSFUL_HANDOVER, imsi64,
+        src_ue_ref_p->sctp_assoc_id,
+        src_ue_ref_p->s1ap_handover_state.source_sctp_stream_send,
+        mme_ue_s1ap_id,
+        src_ue_ref_p->s1ap_handover_state.source_enb_ue_s1ap_id);
+
     /* Remove ue description from source eNB */
     s1ap_remove_ue(state, src_ue_ref_p);
 
@@ -3821,54 +3835,6 @@ status_code_e s1ap_handle_new_association(
   enb_association->next_sctp_stream = 1;
   enb_association->s1_state         = S1AP_INIT;
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
-}
-
-//------------------------------------------------------------------------------
-void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
-    s1ap_state_t* state, ue_description_t* ue_ref_p) {
-  MessageDef* message_p = NULL;
-  OAILOG_FUNC_IN(LOG_S1AP);
-
-  if (ue_ref_p == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "ue_ref_p is NULL\n");
-    return;
-  }
-
-  ue_ref_p->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
-  imsi64_t imsi64                        = INVALID_IMSI64;
-
-  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(
-      imsi_map->mme_ue_id_imsi_htbl,
-      (const hash_key_t) ue_ref_p->mme_ue_s1ap_id, &imsi64);
-
-  OAILOG_DEBUG_UE(
-      LOG_S1AP, imsi64, "Expired- UE Context Release Timer for UE id  %d \n",
-      ue_ref_p->mme_ue_s1ap_id);
-  /*
-   * Remove UE context and inform MME_APP.
-   */
-  message_p = DEPRECATEDitti_alloc_new_message_fatal(
-      TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
-  memset(
-      (void*) &message_p->ittiMsg.s1ap_ue_context_release_complete, 0,
-      sizeof(itti_s1ap_ue_context_release_complete_t));
-  S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id =
-      ue_ref_p->mme_ue_s1ap_id;
-
-  message_p->ittiMsgHeader.imsi = imsi64;
-  send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
-
-  if (!(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR)) {
-    OAILOG_ERROR(LOG_S1AP, "Incorrect UE state\n");
-  }
-
-  OAILOG_DEBUG_UE(
-      LOG_S1AP, imsi64, "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",
-      (uint32_t) ue_ref_p->mme_ue_s1ap_id);
-  s1ap_remove_ue(state, ue_ref_p);
-
-  OAILOG_FUNC_OUT(LOG_S1AP);
 }
 
 //------------------------------------------------------------------------------
@@ -5352,7 +5318,7 @@ status_code_e s1ap_mme_handle_erab_rel_response(
   }
   S1AP_E_RAB_REL_RSP(message_p).mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
   S1AP_E_RAB_REL_RSP(message_p).enb_ue_s1ap_id = ue_ref_p->enb_ue_s1ap_id;
-  S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items           = 1;
+  S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items           = 0;
   S1AP_E_RAB_REL_RSP(message_p).e_rab_failed_to_rel_list.no_of_items = 0;
 
   const S1ap_E_RABList_t* const e_rab_list = &ie->value.choice.E_RABList;

@@ -69,13 +69,16 @@ int create_session_grpc_req_on_gnb_setup_rsp(
   int rc = RETURNerror;
   magma::lte::SetSMSessionContext req;
 
+  auto imsi_str    = std::string(imsi);
   auto* req_common = req.mutable_common_context();
   auto* req_rat_specific =
       req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
+
   // IMSI retrieved from amf context
-  req_common->mutable_sid()->mutable_id()->assign(imsi);  // string id
   req_common->mutable_sid()->set_type(
       magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
+  req_common->mutable_sid()->set_id("IMSI" + imsi_str);
+
   req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
   // PDU session state to CREATING
   req_common->set_sm_session_state(magma::lte::SMSessionFSMState::CREATING_0);
@@ -154,9 +157,10 @@ int amf_send_grpc_req_on_gnb_pdu_sess_mod_rsp(
   }
 
   OAILOG_DEBUG(LOG_AMF_APP, "Sending PDU Session Modification Response to SMF");
-
   OAILOG_INFO(
-      LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s]\n", imsi);
+      LOG_AMF_APP,
+      "Sending msg(grpc) to :[sessiond] for ue: [%s] pdu session :[%u]\n", imsi,
+      message->pdu_session_id);
 
   AMFClientServicer::getInstance().set_smf_session(req);
 
@@ -180,8 +184,9 @@ int amf_smf_create_ipv4_session_grpc_req(
   amf_context_t* amf_ctxt_p         = NULL;
 
   OAILOG_INFO(
-      LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s] session\n",
-      imsi);
+      LOG_AMF_APP,
+      "Sending msg(grpc) to :[sessiond] for ue: [%s] pdu session: [%u]\n", imsi,
+      pdu_session_id);
 
   IMSI_STRING_TO_IMSI64((char*) imsi, &imsi64);
   ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
@@ -230,12 +235,13 @@ int amf_smf_create_pdu_session(
   }
 
   OAILOG_INFO(
-      LOG_AMF_APP, "Sending msg(grpc) to :[mobilityd] for ue: [%s] ip-addr\n",
-      imsi);
+      LOG_AMF_APP,
+      "Sending msg(grpc) to :[mobilityd] for ue: [%s] ip-addr pdu session: "
+      "[%u]\n",
+      imsi, message->pdu_session_id);
   AMFClientServicer::getInstance().allocate_ipv4_address(
-      imsi, reinterpret_cast<char*>(smf_ctx->apn), message->pdu_session_id,
-      message->pti, AF_INET, message->gnb_gtp_teid,
-      message->gnb_gtp_teid_ip_addr, 4, amf_ctxt_p->subscribed_ue_ambr);
+      imsi, smf_ctx->dnn.c_str(), message->pdu_session_id, message->pti,
+      AF_INET, message->gnb_gtp_teid, message->gnb_gtp_teid_ip_addr, 4);
 
   return (RETURNok);
 }
@@ -250,10 +256,14 @@ int amf_smf_create_pdu_session(
 ***************************************************************************/
 int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
   magma::lte::SetSMSessionContext req;
+  auto imsi_str    = std::string(imsi);
   auto* req_common = req.mutable_common_context();
-  req_common->mutable_sid()->mutable_id()->assign(imsi);
+
+  // Encode subscriber as IMSI
   req_common->mutable_sid()->set_type(
       magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
+  req_common->mutable_sid()->set_id("IMSI" + imsi_str);
+
   req_common->set_sm_session_state(magma::lte::SMSessionFSMState::RELEASED_4);
   req_common->set_sm_session_version(1);  // uint32
   auto* req_rat_specific =
@@ -261,10 +271,13 @@ int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
   req_rat_specific->set_pdu_session_id(message->pdu_session_id);
   req_rat_specific->set_procedure_trans_identity(
       (const char*) (&(message->pti)));
+  req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
 
   OAILOG_INFO(
       LOG_AMF_APP,
-      "Sending msg(grpc) to :[sessiond] for ue: [%s] release session\n", imsi);
+      "Sending msg(grpc) to :[sessiond] for ue: [%s] release,  pdu session: "
+      "[%d]\n",
+      imsi, message->pdu_session_id);
 
   AMFClientServicer::getInstance().set_smf_session(req);
 

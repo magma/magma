@@ -233,13 +233,17 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                 composite_sid + ",ipv6", IPAddress.IPV6,
                 context, request,
             )
-            ipv4_addr = ipv4_response.ip_list[0]
-            ipv6_addr = ipv6_response.ip_list[0]
-            # Get vlan from IPv4 Allocate response
-            resp = AllocateIPAddressResponse(
-                ip_list=[ipv4_addr, ipv6_addr],
-                vlan=ipv4_response.vlan,
-            )
+            try:
+                ipv4_address = ipv4_response.ip_list[0]
+                ipv6_address = ipv6_response.ip_list[0]
+            except IndexError:
+                logging.warning("IPv4/IPv6 IP address allocation not successful")
+                resp = AllocateIPAddressResponse()
+            else:
+                resp = AllocateIPAddressResponse(
+                    ip_list=[ipv4_address, ipv6_address],
+                    vlan=ipv4_response.vlan,
+                )
         else:
             resp = AllocateIPAddressResponse()
 
@@ -380,7 +384,7 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         for composite_sid, ip in csid_ip_pairs:
             # handle composite sid to sid and apn mapping
             sid, _, apn_part = composite_sid.partition('.')
-            apn, _ = apn_part.split(',')
+            apn, *_ = apn_part.split(',')
             sid_pb = SIDUtils.to_pb(sid)
             version = IPAddress.IPV4 if ip.version == 4 else IPAddress.IPV6
             ip_msg = IPAddress(version=version, address=ip.packed)
