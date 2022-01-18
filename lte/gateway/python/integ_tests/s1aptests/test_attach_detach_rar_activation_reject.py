@@ -21,7 +21,7 @@ from lte.protos.policydb_pb2 import FlowMatch
 
 
 class TestAttachDetachRarActivationReject(unittest.TestCase):
-    """Unittest: TestAttachDetachRarActivationReject"""
+    """Integration Test: TestAttachDetachRarActivationReject"""
 
     def setUp(self):
         """Initialize before test case execution"""
@@ -109,6 +109,9 @@ class TestAttachDetachRarActivationReject(unittest.TestCase):
         )
         time.sleep(15)
 
+        # The T3485 timer expires in 8 seconds, leading to re-transmission of
+        # Dedicated Bearer Activation Request message.
+        # Handling re-transmitted Dedicated Bearer Activation Request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type,
