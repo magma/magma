@@ -169,6 +169,7 @@ s1aptests/test_guti_attach_with_zero_mtmsi.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
+s1aptests/test_no_auth_resp_with_mme_restart_reattach.py \
 s1aptests/test_paging_with_mme_restart.py \
 s1aptests/test_no_identity_rsp_with_mme_restart.py \
 s1aptests/test_agw_offload_idle_active_ue.py \
@@ -229,7 +230,6 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_attach_with_multiple_mme_restarts.py \ GitHubIssue 5997
 # s1aptests/test_attach_detach_rar_activation_reject.py \ GitHubIssue 9097
 # s1aptests/test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue.py \ Need to configure UE inactivity timer from test case
-# s1aptests/test_no_auth_response_with_mme_restart_reattach.py \ GitHubIssue 9520
 
 # Non-Sanity: Flaky Test Cases
 # s1aptests/test_attach_detach_two_pdns_with_tcptraffic.py \ GitHubIssue 9670
