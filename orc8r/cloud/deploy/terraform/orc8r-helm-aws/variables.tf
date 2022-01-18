@@ -212,7 +212,7 @@ variable "wifi_orc8r_chart_version" {
 variable "dp_orc8r_chart_version" {
   description = "Version of the orchestrator domain proxy module Helm chart to install."
   type        = string
-  default     = "0.1.1"
+  default     = "0.1.0"
 }
 
 variable "orc8r_tag" {

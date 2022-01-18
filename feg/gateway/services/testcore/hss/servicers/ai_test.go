@@ -33,6 +33,10 @@ import (
 	lteprotos "magma/lte/cloud/go/protos"
 )
 
+const (
+	TEST_PLMN_ID = "\x00\x00\x00"
+)
+
 func TestNewAIA_MissingSessionID(t *testing.T) {
 	m := diameter.NewProxiableRequest(diam.AuthenticationInformation, diam.TGPP_S6A_APP_ID, dict.Default)
 	server := test_utils.NewTestHomeSubscriberServer(t)
@@ -139,7 +143,7 @@ func TestNewAIA_MissingAuthKey(t *testing.T) {
 func TestValidateAIR_MissingUserName(t *testing.T) {
 	m := createBaseAIR()
 	m.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
-	m.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	m.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(TEST_PLMN_ID))
 	authInfo := &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(
@@ -180,7 +184,7 @@ func TestValidateAIR_MissingEUTRANInfo(t *testing.T) {
 	m := createBaseAIR()
 	m.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
 	m.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("magma"))
-	m.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	m.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(TEST_PLMN_ID))
 
 	assert.EqualError(t, hss.ValidateAIR(m), "Missing requested E-UTRAN and UTRAN/GERAN authentication info in message")
 }
@@ -188,7 +192,7 @@ func TestValidateAIR_MissingEUTRANInfo(t *testing.T) {
 func TestValidateAIR_MissingSessionId(t *testing.T) {
 	m := createBaseAIR()
 	m.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("magma"))
-	m.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	m.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(TEST_PLMN_ID))
 	authInfo := &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(
@@ -235,7 +239,7 @@ func createAIRExtended(userName string, numRequestedVectors, numRequestedUtranVe
 	m := createBaseAIR()
 	m.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
 	m.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String(userName))
-	m.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	m.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(TEST_PLMN_ID))
 	authInfo := &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(
