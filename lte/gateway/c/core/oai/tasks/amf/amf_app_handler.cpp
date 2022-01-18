@@ -606,8 +606,8 @@ int amf_app_handle_pdu_session_response(
       &smf_ctx->selected_ambr.ul_session_ambr);
 
   memcpy(
-      &smf_ctx->subscribebed_qos_profile, &(pdu_session_resp->qos_list),
-      sizeof(smf_ctx->subscribebed_qos_profile));
+      &smf_ctx->subscribed_qos_profile, &(pdu_session_resp->qos_list),
+      sizeof(smf_ctx->subscribed_qos_profile));
   memcpy(
       smf_ctx->gtp_tunnel_id.upf_gtp_teid_ip_addr,
       pdu_session_resp->upf_endpoint.end_ipv4_addr,
@@ -830,7 +830,7 @@ int amf_app_handle_pdu_session_accept(
   qos_rule.spare               = 0x0;
   qos_rule.segregation         = 0x0;
   qos_rule.qfi =
-      smf_ctx->subscribebed_qos_profile.qos_flow_req_item.qos_flow_identifier;
+      smf_ctx->subscribed_qos_profile.qos_flow_req_item.qos_flow_identifier;
   NewQOSRulePktFilter new_qos_rule_pkt_filter;
   new_qos_rule_pkt_filter.spare          = 0x0;
   new_qos_rule_pkt_filter.pkt_filter_dir = 0x3;

@@ -281,7 +281,7 @@ typedef struct smf_context_s {
   std::string dnn;
   s_nssai_t requested_nssai;
 
-  qos_flow_request_list_t subscribebed_qos_profile;
+  qos_flow_request_list_t subscribed_qos_profile;
 } smf_context_t;
 
 typedef struct paging_context_s {
