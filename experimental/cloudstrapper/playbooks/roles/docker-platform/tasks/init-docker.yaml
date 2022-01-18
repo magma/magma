@@ -1,0 +1,18 @@
+---
+
+- name: Call init script
+  become: true
+  environment:
+    MAGMA_VERSION: "{{buildMagmaVersion}}"
+  command: "/opt/magma/lte/gateway/deploy/agw_install_docker.sh base"
+  ignore_errors: true
+  timeout: 300
+  register: initFirstTry
+
+- name: Call init script
+  become: true
+  environment:
+    MAGMA_VERSION: "{{buildMagmaVersion}}"
+  command: "/opt/magma/lte/gateway/deploy/agw_install_docker.sh base"
+  timeout: 300
+  when: initFirstTry.stderr is defined and 'FAILED' in initFirstTry.stderr

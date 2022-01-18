@@ -85,6 +85,7 @@ jobs:
             cwg
             deps
             directoryd
+            dp
             eap
             eap_aka
             eap_sim

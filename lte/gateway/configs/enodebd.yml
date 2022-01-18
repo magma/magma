@@ -35,6 +35,12 @@ sas:
   sas_location: "indoor"
   sas_height_type: "AMSL"
 
+# primSync determines the primary source for synchronization.
+# Used by FreedomFi One eNB.
+# "GNSS" - When using SAS client in eNB, GPS is used.
+# "FREE_RUNNING" - When using Domain Proxy, GPS is not required.
+prim_src: "GNSS"
+
 # Reboot eNodeB if eNodeB should be connected to MME but isn't
 # This is a workaround for a bug with BaiCells eNodeB where the S1 connection
 # gets into a bad state

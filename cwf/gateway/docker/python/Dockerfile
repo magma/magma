@@ -82,7 +82,8 @@ RUN apt-get -y update && apt-get -y install \
     libcap-ng-dev \
     linux-headers-generic \
     netcat \
-    iputils-ping
+    iputils-ping \
+    bcc-tools
 
 RUN python3.8 -m pip install --no-cache-dir \
     Cython \

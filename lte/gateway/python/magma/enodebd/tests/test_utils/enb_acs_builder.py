@@ -55,9 +55,10 @@ class EnodebAcsStateMachineBuilder:
     def build_acs_state_machine(
         cls,
         device: EnodebDeviceName = EnodebDeviceName.BAICELLS,
+        service_config: Dict = None,
     ) -> EnodebAcsStateMachine:
         # Build the state_machine
-        service = cls.build_magma_service(device)
+        service = cls.build_magma_service(device, service_config)
         handler_class = get_device_handler_from_name(device)
         acs_state_machine = handler_class(service)
         return acs_state_machine

@@ -31,15 +31,15 @@ import (
 func (srv *CentralSessionController) getSmPolicyRules(
 	request *protos.CreateSessionRequest,
 ) (*n7_sbi.SmPolicyDecision, string, error) {
-	if srv.cfg.N7Config.DisableN7 {
+	if srv.config.DisableN7 {
 		// Empty response when disabled
 		return &n7_sbi.SmPolicyDecision{
 			PccRules: &n7_sbi.SmPolicyDecision_PccRules{},
 		}, "", nil
 	}
 	// Convert and send the request to PCF
-	reqBody := n7.GetSmPolicyContextDataN7(request, srv.cfg.N7Config.Client.NotifyApiRoot)
-	reqCtx, cancel := context.WithTimeout(context.Background(), srv.cfg.RequestTimeout)
+	reqBody := n7.GetSmPolicyContextDataN7(request, srv.policyClient.NotifyServer.NotifierCfg.NotifyApiRoot)
+	reqCtx, cancel := context.WithTimeout(context.Background(), srv.config.RequestTimeout)
 	defer cancel()
 	resp, err := srv.policyClient.PostSmPoliciesWithResponse(reqCtx, *reqBody)
 	if err != nil {

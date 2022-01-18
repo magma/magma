@@ -34,6 +34,7 @@ from magma.mobilityd.ip_allocator_base import (
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 from magma.mobilityd.mobility_store import MobilityStore
 from magma.mobilityd.subscriberdb_client import SubscriberDbClient
+from magma.mobilityd.utils import log_error_and_raise
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
@@ -131,11 +132,12 @@ class IPAllocatorStaticWrapper(IPAllocator):
         # Validate static IP is not in any of IP pool.
         for ip_pool in self._store.assigned_ip_blocks:
             if ip_addr_info.ip in ip_pool:
-                error_msg = "Static Ip {} Overlap with IP-POOL: {}".format(
-                    ip_addr_info.ip, ip_pool,
+                log_error_and_raise(
+                    DuplicateIPAssignmentError,
+                    "Static Ip %s Overlap with IP-POOL: %s",
+                    ip_addr_info.ip,
+                    ip_pool,
                 )
-                logging.error(error_msg)
-                raise DuplicateIPAssignmentError(error_msg)
 
         # update gw info if available.
         if ip_addr_info.net_info.gw_ip:

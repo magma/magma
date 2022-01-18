@@ -376,7 +376,6 @@ $(glob_files "${SERVICE_DIR}/magma@dnsd.service" /etc/systemd/system/magma@dnsd.
 $(glob_files "${SERVICE_DIR}/magma@lighttpd.service" /etc/systemd/system/magma@lighttpd.service) \
 $(glob_files "${SERVICE_DIR}/magma@redis.service" /etc/systemd/system/magma@redis.service) \
 $(glob_files "${SERVICE_DIR}/magma@td-agent-bit.service" /etc/systemd/system/magma@td-agent-bit.service) \
-${CERT_FILE}=/var/opt/magma/certs/rootCA.pem \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/!(control_proxy.yml|pipelined.yml|sessiond.yml|connectiond.yml)" /etc/magma/) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/pipelined.yml_prod" /etc/magma/pipelined.yml) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/sessiond.yml_prod" /etc/magma/sessiond.yml) \

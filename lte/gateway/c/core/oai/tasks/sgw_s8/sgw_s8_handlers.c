@@ -32,9 +32,12 @@ limitations under the License.
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern struct gtp_tunnel_ops* gtp_tunnel_ops;
+
+#if !MME_UNIT_TEST
 static int sgw_s8_add_gtp_up_tunnel(
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
     sgw_eps_bearer_context_information_t* sgw_context_p);
+#endif
 
 static void sgw_send_modify_bearer_response(
     sgw_eps_bearer_context_information_t* sgw_context_p,
@@ -662,6 +665,7 @@ void sgw_s8_handle_modify_bearer_request(
         pgw_ipv6 = &bearer_ctx_p->p_gw_address_in_use_up.address.ipv6_address;
       }
 
+#if !MME_UNIT_TEST
       // Send end marker to eNB and then delete the tunnel if enb_ip is
       // different
       if (does_bearer_context_hold_valid_enb_ip(
@@ -688,6 +692,7 @@ void sgw_s8_handle_modify_bearer_request(
             bearer_ctx_p->s_gw_teid_S1u_S12_S4_up,
             bearer_ctx_p->s_gw_teid_S5_S8_up);
       }
+#endif
       populate_sgi_end_point_update(
           sgi_rsp_idx, idx, modify_bearer_pP, bearer_ctx_p,
           &sgi_update_end_point_resp);
@@ -779,8 +784,10 @@ static void sgw_s8_populate_mbr_bearer_contexts_modified(
           .cause.cause_value = REQUEST_ACCEPTED;
       modify_response_p->bearer_contexts_modified.num_bearer_context++;
 
+#if !MME_UNIT_TEST
       // setup GTPv1-U tunnels, both s1-u and s8-u tunnels
       sgw_s8_add_gtp_up_tunnel(eps_bearer_ctxt_p, sgw_context_p);
+#endif
       if (TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX >
           eps_bearer_ctxt_p->num_sdf) {
         int i = 0;
@@ -798,6 +805,7 @@ static void sgw_s8_populate_mbr_bearer_contexts_modified(
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
+#if !MME_UNIT_TEST
 // Helper function to add gtp tunnels for default and dedicated bearers
 static int sgw_s8_add_gtp_up_tunnel(
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
@@ -907,6 +915,7 @@ static int sgw_s8_add_gtp_up_tunnel(
   }
   OAILOG_FUNC_RETURN(LOG_SGW_S8, rv);
 }
+#endif
 
 status_code_e sgw_s8_handle_s11_delete_session_request(
     sgw_state_t* sgw_state,
@@ -1033,7 +1042,7 @@ static void delete_userplane_tunnels(
       }
       // delete paging rule
       char* ip_str = inet_ntoa(ue_ipv4);
-      rv           = gtp_tunnel_ops->delete_paging_rule(ue_ipv4);
+      rv           = gtp_tunnel_ops->delete_paging_rule(ue_ipv4, ue_ipv6);
       if (rv < 0) {
         OAILOG_ERROR(
             LOG_SGW_S8, "ERROR in deleting paging rule for IP Addr: %s\n",

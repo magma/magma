@@ -308,7 +308,7 @@ void SessionStateEnforcer::m5g_start_session_termination(
   /* update respective session's state and return from here before timeout
    * to update session store with state and version
    */
-  session->set_fsm_state(RELEASE, session_uc);
+  session->set_fsm_state(SESSION_RELEASED, session_uc);
   uint32_t cur_version = session->get_current_version();
   session->set_current_version(++cur_version, session_uc);
   MLOG(MDEBUG) << "During release state of session changed to "
@@ -553,14 +553,14 @@ void SessionStateEnforcer::m5g_process_response_from_upf(
   }
   switch (session->get_state()) {
     case CREATED:
-      session->set_fsm_state(ACTIVE, &session_uc);
+      session->set_fsm_state(SESSION_ACTIVE, &session_uc);
       /* As there is no config change, just state change as we
        * got response from UPF, so we dont bump up the session version
        * number here
        */
       amf_update_pending = true;
       break;
-    case RELEASE:
+    case SESSION_RELEASED:
       m5g_complete_termination(session_map, imsi, session_id, session_update);
     default:
       break;

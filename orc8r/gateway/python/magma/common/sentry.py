@@ -90,8 +90,8 @@ def get_sentry_dsn_and_sample_rate(sentry_mconfig: mconfigs_pb2.SharedSentryConf
     """Get Sentry configs with the following priority
 
     1) control_proxy.yml (if sentry_python_url is present)
-    2) shared mconfig (i.e. first streamed mconfig from orc8r,
-    if not present default mconfig in /etc/magma)
+    2) shared mconfig (i.e. first try streamed mconfig from orc8r,
+    if empty: default mconfig in /etc/magma)
 
     Args:
         sentry_mconfig (SharedSentryConfig): proto message of shared mconfig
@@ -106,10 +106,17 @@ def get_sentry_dsn_and_sample_rate(sentry_mconfig: mconfigs_pb2.SharedSentryConf
     )
 
     if not dsn_python:
+        # Here, we assume that `dsn` and `sample_rate` should be pulled
+        # from the same source, that is the source where the user has
+        # entered the `dsn`.
+        # Without this coupling `dsn` and `sample_rate` could possibly
+        # be pulled from different sources.
+        logging.info("Sentry config: dsn_python and sample_rate are pulled from shared mconfig.")
         dsn_python = sentry_mconfig.dsn_python
         sample_rate = sentry_mconfig.sample_rate
         return dsn_python, sample_rate
 
+    logging.info("Sentry config: dsn_python and sample_rate are pulled from control_proxy.yml.")
     sample_rate = get_service_config_value(
         CONTROL_PROXY,
         SENTRY_SAMPLE_RATE,
