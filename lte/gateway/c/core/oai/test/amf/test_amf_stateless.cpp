@@ -31,7 +31,7 @@ namespace magma5g {
 
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 
-TEST(test_state_converter, test_guti_to_string) {
+TEST(TestAMFStateConverter, TestGutiToString) {
   guti_m5_t guti1, guti2;
   guti1.guamfi.plmn.mcc_digit1 = 2;
   guti1.guamfi.plmn.mcc_digit2 = 2;
@@ -61,7 +61,7 @@ TEST(test_state_converter, test_guti_to_string) {
   EXPECT_EQ(guti1.m_tmsi, guti2.m_tmsi);
 }
 
-TEST(test_state_converter, test_state_to_proto) {
+TEST(TestAMFStateConverter, TestStateToProto) {
   // Guti setup
   guti_m5_t guti1;
   memset(&guti1, 0, sizeof(guti1));
@@ -204,29 +204,27 @@ TEST_F(AMFAppStatelessTest, TestStateless) {
   EXPECT_TRUE(AMFClientServicer::getInstance().map_tableKey_protoStr.isEmpty());
   // Writes the state to the data store
   put_amf_nas_state();
-  EXPECT_EQ(
-      AMFClientServicer::getInstance().map_tableKey_protoStr.isEmpty(), false);
+  EXPECT_FALSE(
+      AMFClientServicer::getInstance().map_tableKey_protoStr.isEmpty());
 
   /* Check if UE Context is created with correct imsi */
-  bool res = false;
-  res      = get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id);
-  EXPECT_TRUE(res == true);
+  EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
 
   /* Send the authentication response message from subscriberdb */
   rc = send_proc_authentication_info_answer(imsi, ue_id, true);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for auth response from UE */
   rc = send_uplink_nas_message_ue_auth_response(
       amf_app_desc_p, ue_id, plmn, ue_auth_response_hexbuf,
       sizeof(ue_auth_response_hexbuf));
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for security mode complete response from UE */
   rc = send_uplink_nas_message_ue_smc_response(
       amf_app_desc_p, ue_id, plmn, ue_smc_response_hexbuf,
       sizeof(ue_smc_response_hexbuf));
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);
 
@@ -234,8 +232,9 @@ TEST_F(AMFAppStatelessTest, TestStateless) {
   rc = send_uplink_nas_registration_complete(
       amf_app_desc_p, ue_id, plmn, ue_registration_complete_hexbuf,
       sizeof(ue_registration_complete_hexbuf));
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
+  // Calling TearDown() and SetUp() simulates a service restart.
   // Clears the state
   AMFAppStatelessTest::TearDown();
   EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.isEmpty());
@@ -243,55 +242,52 @@ TEST_F(AMFAppStatelessTest, TestStateless) {
   EXPECT_TRUE(amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.isEmpty());
   // Internally reads back the state
   AMFAppStatelessTest::SetUp();
-  EXPECT_EQ(
-      amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.isEmpty(), false);
-  EXPECT_EQ(
-      amf_app_desc_p->amf_ue_contexts.tun11_ue_context_htbl.isEmpty(), false);
-  EXPECT_EQ(
-      amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.isEmpty(), false);
+  EXPECT_FALSE(amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.isEmpty());
+  EXPECT_FALSE(amf_app_desc_p->amf_ue_contexts.tun11_ue_context_htbl.isEmpty());
+  EXPECT_FALSE(amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.isEmpty());
 
   /* Send uplink nas message for pdu session establishment request from UE */
   rc = send_uplink_nas_pdu_session_establishment_request(
       amf_app_desc_p, ue_id, plmn, ue_pdu_session_est_req_hexbuf,
       sizeof(ue_pdu_session_est_req_hexbuf));
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send ip address response  from pipelined */
   rc = send_ip_address_response_itti();
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send pdu session setup response  from smf */
   rc = send_pdu_session_response_itti();
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send pdu resource setup response  from UE */
   rc = send_pdu_resource_setup_response(ue_id);
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   rc = send_pdu_notification_response();
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for pdu session release request from UE */
   rc = send_uplink_nas_pdu_session_release_message(
       amf_app_desc_p, ue_id, plmn, pdu_sess_release_hexbuf,
       sizeof(pdu_sess_release_hexbuf));
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for pdu session release complete from UE */
   rc = send_uplink_nas_pdu_session_release_message(
       amf_app_desc_p, ue_id, plmn, pdu_sess_release_complete_hexbuf,
       sizeof(pdu_sess_release_complete_hexbuf));
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   rc = send_pdu_notification_response();
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   /* Send uplink nas message for deregistration complete response from UE */
   rc = send_uplink_nas_ue_deregistration_request(
       amf_app_desc_p, ue_id, plmn, ue_initiated_dereg_hexbuf,
       sizeof(ue_initiated_dereg_hexbuf));
 
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_EQ(rc, RETURNok);
 
   AMFClientServicer::getInstance().map_tableKey_protoStr.clear();
   EXPECT_TRUE(AMFClientServicer::getInstance().map_tableKey_protoStr.isEmpty());

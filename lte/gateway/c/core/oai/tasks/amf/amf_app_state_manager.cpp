@@ -20,7 +20,7 @@ extern "C" {
 }
 #endif
 #include "lte/gateway/c/core/oai/common/common_defs.h"
-#include "include/amf_client_servicer.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/include/map.h"
 
@@ -101,6 +101,7 @@ int AmfNasStateManager::initialize_state(const amf_config_t* amf_config_p) {
 
   // Allocate the local AMF state and create respective single object
   create_state();
+// This is a temporary check and will be removed in upcoming PR
 #if MME_UNIT_TEST
   read_state_from_db();
 #endif
