@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	n7_sbi "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
+	sbi_NpcfSMPolicyControl "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
 	"magma/feg/gateway/services/n7_n40_proxy/n7"
 	"magma/lte/cloud/go/protos"
 )
@@ -135,11 +135,11 @@ func TestMultiUpdateTimeoutSession(t *testing.T) {
 }
 
 func matchSmPolicyUpdate() interface{} {
-	expectedReqs := map[string]*n7_sbi.PostSmPoliciesSmPolicyIdUpdateJSONRequestBody{
+	expectedReqs := map[string]*sbi_NpcfSMPolicyControl.PostSmPoliciesSmPolicyIdUpdateJSONRequestBody{
 		SM_POLICY_ID2: {
 			RatType:    &RatTypeNR,
 			AccessType: &AccessType3gpp,
-			AccuUsageReports: &[]n7_sbi.AccuUsageReport{
+			AccuUsageReports: &[]sbi_NpcfSMPolicyControl.AccuUsageReport{
 				{
 					RefUmIds:         MON_KEY1,
 					VolUsageUplink:   n7.GetSbiVolume(UsageTx1),
@@ -157,7 +157,7 @@ func matchSmPolicyUpdate() interface{} {
 		SM_POLICY_ID3: {
 			RatType:    &RatTypeNR,
 			AccessType: &AccessType3gpp,
-			AccuUsageReports: &[]n7_sbi.AccuUsageReport{
+			AccuUsageReports: &[]sbi_NpcfSMPolicyControl.AccuUsageReport{
 				{
 					RefUmIds:         MON_KEY3,
 					VolUsageUplink:   n7.GetSbiVolume(UsageTx2),
@@ -168,7 +168,7 @@ func matchSmPolicyUpdate() interface{} {
 		},
 	}
 
-	return func(reqBody n7_sbi.PostSmPoliciesSmPolicyIdUpdateJSONRequestBody) bool {
+	return func(reqBody sbi_NpcfSMPolicyControl.PostSmPoliciesSmPolicyIdUpdateJSONRequestBody) bool {
 		return reflect.DeepEqual(expectedReqs[SM_POLICY_ID2], &reqBody) ||
 			reflect.DeepEqual(expectedReqs[SM_POLICY_ID3], &reqBody)
 	}
@@ -249,7 +249,7 @@ func createSingleUmUpdateReqProto() []*protos.UsageMonitoringUpdateRequest {
 	}
 }
 
-func createSingleSmPolicyUpdateResponse(t *testing.T) *n7_sbi.PostSmPoliciesSmPolicyIdUpdateResponse {
+func createSingleSmPolicyUpdateResponse(t *testing.T) *sbi_NpcfSMPolicyControl.PostSmPoliciesSmPolicyIdUpdateResponse {
 	policyDecisionStr := `{
 		"pccRules": {
 			"rule1": {
@@ -297,17 +297,17 @@ func createSingleSmPolicyUpdateResponse(t *testing.T) *n7_sbi.PostSmPoliciesSmPo
 		"online": true
 	}`
 	// Unmarshal json to openapi struct
-	var policyDecision n7_sbi.SmPolicyDecision
+	var policyDecision sbi_NpcfSMPolicyControl.SmPolicyDecision
 	err := json.Unmarshal([]byte(policyDecisionStr), &policyDecision)
 	require.NoError(t, err)
 
-	return &n7_sbi.PostSmPoliciesSmPolicyIdUpdateResponse{
+	return &sbi_NpcfSMPolicyControl.PostSmPoliciesSmPolicyIdUpdateResponse{
 		JSON200:      &policyDecision,
 		HTTPResponse: &http.Response{StatusCode: 200},
 	}
 }
 
-func newSmPolicyUpdateResponse(t *testing.T) *n7_sbi.PostSmPoliciesSmPolicyIdUpdateResponse {
+func newSmPolicyUpdateResponse(t *testing.T) *sbi_NpcfSMPolicyControl.PostSmPoliciesSmPolicyIdUpdateResponse {
 	policyDecisionStr := `{
 		"pccRules": {
 			"rule1": {
@@ -366,11 +366,11 @@ func newSmPolicyUpdateResponse(t *testing.T) *n7_sbi.PostSmPoliciesSmPolicyIdUpd
 		"online": true
 	}`
 	// Unmarshal json to openapi struct
-	var policyDecision n7_sbi.SmPolicyDecision
+	var policyDecision sbi_NpcfSMPolicyControl.SmPolicyDecision
 	err := json.Unmarshal([]byte(policyDecisionStr), &policyDecision)
 	require.NoError(t, err)
 
-	return &n7_sbi.PostSmPoliciesSmPolicyIdUpdateResponse{
+	return &sbi_NpcfSMPolicyControl.PostSmPoliciesSmPolicyIdUpdateResponse{
 		JSON200:      &policyDecision,
 		HTTPResponse: &http.Response{StatusCode: 200},
 	}

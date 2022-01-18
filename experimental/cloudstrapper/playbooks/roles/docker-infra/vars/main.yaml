@@ -1,0 +1,6 @@
+---
+
+image: ami-09e67e426f25ce0d7
+awsAgwRegion: us-east-1
+tag_host: dockerami
+keyName: "{{tag_host}}"

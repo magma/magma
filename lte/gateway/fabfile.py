@@ -162,8 +162,7 @@ def openvswitch(destroy_vm='False', destdir='~/magma-packages/'):
     # If a host list isn't specified, default to the magma vagrant vm
     if not env.hosts:
         vagrant_setup('magma', destroy_vm=destroy_vm)
-    with cd('~/magma/lte/gateway'):
-        run('./release/build-ovs.sh ' + destdir)
+    run('~/magma/third_party/gtp_ovs/ovs-gtp-patches/2.15/build.sh ' + destdir)
 
 
 def depclean():

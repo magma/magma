@@ -38,6 +38,7 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
+#include "lte/gateway/c/core/oai/common/asn1_conversions.h"
 #include "BIT_STRING.h"
 #include "INTEGER.h"
 #include "Ngap_NGAP-PDU.h"
@@ -396,17 +397,9 @@ status_code_e ngap_amf_handle_ng_setup_request(
       Ngap_ProtocolIE_ID_id_GlobalRANNodeID, true);
   if (ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID.gNB_ID.present ==
       Ngap_GNB_ID_PR_gNB_ID) {
-    // Home gNB ID = 28 bits
-    uint8_t* gnb_id_buf = ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID
-                              .gNB_ID.choice.gNB_ID.buf;
+    gnb_id = BIT_STRING_to_uint32(&ie->value.choice.GlobalRANNodeID.choice
+                                       .globalGNB_ID.gNB_ID.choice.gNB_ID);
 
-    if (ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID.gNB_ID.choice
-            .gNB_ID.size != 28) {
-      // TODO: handle case were size != 28 -> notify ? reject ?
-    }
-
-    gnb_id = (gnb_id_buf[0] << 20) + (gnb_id_buf[1] << 12) +
-             (gnb_id_buf[2] << 4) + ((gnb_id_buf[3] & 0xf0) >> 4);
     OAILOG_MESSAGE_ADD_SYNC(context, "home gNB id: %07x", gnb_id);
   }
 
