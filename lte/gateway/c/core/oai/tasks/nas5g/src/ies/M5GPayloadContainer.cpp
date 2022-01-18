@@ -47,7 +47,7 @@ int PayloadContainerMsg::EncodePayloadContainerMsg(
   int tmp        = 0;
   ielen          = payload_container->len;
 
-  MLOG(MDEBUG) << "DecodePayloadContainerMsg__: len = " << std::hex
+  MLOG(MDEBUG) << "EncodePayloadContainerMsg__: len = " << std::hex
                << int(ielen) << std::endl;
 
   // SMF NAS Message Decode

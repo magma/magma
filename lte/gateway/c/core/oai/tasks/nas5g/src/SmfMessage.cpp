@@ -125,6 +125,16 @@ int SmfMsg::SmfMsgDecodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
                           .DecodePDUSessionModificationRequestMsg(
                               &msg->msg.pdu_session_modif_request, buffer, len);
       break;
+    case PDU_SESSION_MODIFICATION_COMPLETE:
+      decode_result =
+          msg->msg.pdu_sess_mod_com.DecodePDUSessionModificationComplete(
+              &msg->msg.pdu_sess_mod_com, buffer, len);
+      break;
+    case PDU_SESSION_MODIFICATION_COMMAND_REJECT:
+      decode_result = msg->msg.pdu_sess_mod_cmd_rej
+                          .DecodePDUSessionModificationCommandReject(
+                              &msg->msg.pdu_sess_mod_cmd_rej, buffer, len);
+      break;
     default:
       decode_result = TLV_WRONG_MESSAGE_TYPE;
   }
@@ -169,6 +179,11 @@ int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
       encode_result = msg->msg.pdu_session_modif_reject
                           .EncodePDUSessionModificationRejectMsg(
                               &msg->msg.pdu_session_modif_reject, buffer, len);
+      break;
+    case PDU_SESSION_MODIFICATION_COMMAND:
+      encode_result =
+          msg->msg.pdu_sess_mod_cmd.EncodePDUSessionModificationCommand(
+              &msg->msg.pdu_sess_mod_cmd, buffer, len);
       break;
     case PDU_SESSION_RELEASE_REJECT:
       encode_result =

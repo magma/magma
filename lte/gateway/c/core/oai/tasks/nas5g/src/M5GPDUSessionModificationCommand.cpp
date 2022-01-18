@@ -76,8 +76,8 @@ int PDUSessionModificationCommand::EncodePDUSessionModificationCommand(
     }
   }
   for (uint8_t i = 0; i < pdu_sess_mod_comd->authqosrules.size(); i++) {
-    QOSRulesMsg* qos_rules = &pdu_sess_mod_comd->authqosrules[i];
-    if ((encoded_result = qos_rules->EncodeQOSRulesMsg(
+    QOSRulesMsg qos_rules = pdu_sess_mod_comd->authqosrules[i];
+    if ((encoded_result = qos_rules.EncodeQOSRulesMsg(
              &pdu_sess_mod_comd->authqosrules[i],
              PDU_SESSION_AUTH_QOS_RULES_IE_TYPE, buffer + encoded,
              len - encoded)) < 0) {
@@ -88,9 +88,9 @@ int PDUSessionModificationCommand::EncodePDUSessionModificationCommand(
   }
   for (uint8_t i = 0; i < pdu_sess_mod_comd->authqosflowdescriptors.size();
        i++) {
-    M5GQosFlowDescription* auth_qos_flow_desc =
-        &pdu_sess_mod_comd->authqosflowdescriptors[i];
-    if ((encoded_result = auth_qos_flow_desc->EncodeM5GQosFlowDescription(
+    M5GQosFlowDescription auth_qos_flow_desc =
+        pdu_sess_mod_comd->authqosflowdescriptors[i];
+    if ((encoded_result = auth_qos_flow_desc.EncodeM5GQosFlowDescription(
              &pdu_sess_mod_comd->authqosflowdescriptors[i],
              buffer + encoded + 3, len - encoded)) < 0) {
       return encoded_result;
@@ -99,13 +99,21 @@ int PDUSessionModificationCommand::EncodePDUSessionModificationCommand(
     }
   }
 
-  if (pdu_sess_mod_comd->authqosflowdescriptors.size() &&
-      qos_flow_des_encoded) {
+  if (pdu_sess_mod_comd->authqosrules.size()) {
+    pdu_sess_mod_comd->authqosrules.erase(
+        pdu_sess_mod_comd->authqosrules.begin(),
+        pdu_sess_mod_comd->authqosrules.end());
+  }
+
+  if (qos_flow_des_encoded) {
     // iei
     *(buffer + encoded) = 0x79;
     encoded++;
     IES_ENCODE_U16(buffer, encoded, qos_flow_des_encoded);
     encoded += qos_flow_des_encoded;
+    pdu_sess_mod_comd->authqosflowdescriptors.erase(
+        pdu_sess_mod_comd->authqosflowdescriptors.begin(),
+        pdu_sess_mod_comd->authqosflowdescriptors.end());
   }
 
   return encoded;

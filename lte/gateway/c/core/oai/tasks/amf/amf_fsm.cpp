@@ -60,12 +60,15 @@ static UE_Handlers_t UE_handlers[] = {
      reinterpret_cast<void (*)(void)>(&amf_app_handle_pdu_session_accept)},
     {"PDU_Release",
      reinterpret_cast<void (*)(void)>(&release_session_gprc_req)},
-    {"Pdu_Session_Modification_Request",
-     reinterpret_cast<void (*)(void)>(&amf_app_pdu_session_modification_request)},
-    {"Pdu_Session_Modification_Complete",
-     reinterpret_cast<void (*)(void)>(&amf_app_pdu_session_modification_Complete)},
-    {"Pdu_Session_Modification_Reject",
-     reinterpret_cast<void (*)(void)>(&amf_app_pdu_session_modification_Reject)}};
+    {"PDU_Session_Modification_Request",
+     reinterpret_cast<void (*)(void)>(
+         &amf_app_pdu_session_modification_request)},
+    {"PDU_Session_Modification_Complete",
+     reinterpret_cast<void (*)(void)>(
+         &amf_app_pdu_session_modification_complete)},
+    {"PDU_Session_Modification_Reject",
+     reinterpret_cast<void (*)(void)>(
+         &amf_app_pdu_session_modification_command_reject)}};
 
 /*
  * Update ue_state_matrix
@@ -164,17 +167,20 @@ void create_state_matrix() {
       DEREGISTERED, STATE_PDU_SESSION_RELEASE_COMPLETE, SESSION_NULL,
       DEREGISTERED, SESSION_NULL, "PDU_Release");
 
-  Update_state_matrix(
-      REGISTERED_CONNECTED, STATE_PDU_SESSION_MODIFICATION_REQUEST, SESSION_ACTIVE,
-      REGISTERED_CONNECTED, SESSION_MODIFICATION, "PDU_Session_Modification_Request");
+  Update_ue_state_matrix(
+      REGISTERED_CONNECTED, STATE_PDU_SESSION_MODIFICATION_REQUEST, ACTIVE,
+      REGISTERED_CONNECTED, SESSION_MODIFICATION,
+      "PDU_Session_Modification_Request");
 
-  Update_state_matrix(
-      REGISTERED_CONNECTED, STATE_PDU_SESSION_MODIFICATION_COMPLETE, SESSION_MODIFICATION,
-      REGISTERED_CONNECTED, ACTIVE, "PDU_Session_Modification_Complete");
+  Update_ue_state_matrix(
+      REGISTERED_CONNECTED, STATE_PDU_SESSION_MODIFICATION_COMPLETE,
+      SESSION_MODIFICATION, REGISTERED_CONNECTED, ACTIVE,
+      "PDU_Session_Modification_Complete");
 
-  Update_state_matrix(
-      REGISTERED_CONNECTED, STATE_PDU_SESSION_MODIFICATION_REJECT, SESSION_MODIFICATION,
-      REGISTERED_CONNECTED, ACTIVE, "PDU_Session_Modification_Reject");
+  Update_ue_state_matrix(
+      REGISTERED_CONNECTED, STATE_PDU_SESSION_MODIFICATION_COMMAND_REJECT,
+      SESSION_MODIFICATION, REGISTERED_CONNECTED, ACTIVE,
+      "PDU_Session_Modification_Reject");
 }
 
 /*
@@ -295,12 +301,14 @@ int pdu_state_handle_message(
         return reinterpret_cast<int (*)(amf_smf_establish_t*, char*)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             &amf_smf_msg.u.establish, imsi);
+        break;
       case STATE_PDU_SESSION_RELEASE_COMPLETE:
         smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
         return reinterpret_cast<int (*)(amf_smf_release_t*, char*)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             &amf_smf_msg.u.release, imsi);
+        break;
       case STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT:
         smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
@@ -309,7 +317,29 @@ int pdu_state_handle_message(
             itti_n11_create_pdu_session_response_t*, uint32_t)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             pdu_session_resp, ue_id);
-
+        break;
+      case STATE_PDU_SESSION_MODIFICATION_REQUEST:
+        smf_ctx->pdu_session_state =
+            ue_state_matrix[cur_state][event][session_state].next_sess_state;
+        return reinterpret_cast<int (*)(
+            itti_n11_create_pdu_session_response_t*, uint32_t)>(
+            ue_state_matrix[cur_state][event][session_state].handler.func)(
+            pdu_session_resp, ue_id);
+        break;
+      case STATE_PDU_SESSION_MODIFICATION_COMPLETE:
+        smf_ctx->pdu_session_state =
+            ue_state_matrix[cur_state][event][session_state].next_sess_state;
+        return reinterpret_cast<int (*)(amf_smf_establish_t*, char*)>(
+            ue_state_matrix[cur_state][event][session_state].handler.func)(
+            &amf_smf_msg.u.establish, imsi);
+        break;
+      case STATE_PDU_SESSION_MODIFICATION_COMMAND_REJECT:
+        smf_ctx->pdu_session_state =
+            ue_state_matrix[cur_state][event][session_state].next_sess_state;
+        return reinterpret_cast<int (*)(amf_smf_establish_t*, char*)>(
+            ue_state_matrix[cur_state][event][session_state].handler.func)(
+            &amf_smf_msg.u.establish, imsi);
+        break;
       default:
         OAILOG_ERROR(
             LOG_NAS_AMF, "FSM %s: No Proper Handler Found\n", __func__);
@@ -352,8 +382,8 @@ std::string get_state_event_string(state_events event) {
     case STATE_PDU_SESSION_MODIFICATION_COMPLETE:
       eventStr = "STATE_PDU_SESSION_MODIFICATION_COMPLETE";
       break;
-    case STATE_PDU_SESSION_MODIFICATION_REJECT:
-      eventStr = "STATE_PDU_SESSION_MODIFICATION_REJECT;
+    case STATE_PDU_SESSION_MODIFICATION_COMMAND_REJECT:
+      eventStr = "STATE_PDU_SESSION_MODIFICATION_COMMAND_REJECT";
       break;
     default:
       eventStr = "UNKNOWN_EVENT";
@@ -386,6 +416,9 @@ std::string get_session_state_string(SMSessionFSMState s) {
       break;
     case RELEASED:
       sessStateStr = "RELEASED";
+      break;
+    case SESSION_MODIFICATION:
+      sessStateStr = "MODIFICATION";
       break;
     default:
       sessStateStr = "UNKNOWN_SESSION_STATE";

@@ -1255,9 +1255,7 @@ int initial_context_setup_request(
       memcpy(
           &item->PDU_Session_Resource_Setup_Request_Transfer
                .qos_flow_setup_request_list.qos_flow_req_item,
-          &smf_context->pdu_resource_setup_req
-               .pdu_session_resource_setup_request_transfer
-               .qos_flow_setup_request_list.qos_flow_req_item,
+          &smf_context->qos_flow_list.item[0].qos_flow_req_item,
           sizeof(qos_flow_setup_request_item));
     }
   }

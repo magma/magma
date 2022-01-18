@@ -92,6 +92,7 @@ struct amf_procedures_t;
 #define REGISTRATION_ACCEPT_TIMER_EXPIRY_MSECS 6000
 #define PAGING_TIMER_EXPIRY_MSECS 4000
 #define PDUE_SESSION_RELEASE_TIMER_MSECS 16000
+#define PDU_SESSION_MODIFICATION_TIMER_MSECS 16000
 
 #define MAX_PAGING_RETRY_COUNT 1
 // Header length boundaries of 5GS Mobility Management messages
@@ -266,18 +267,16 @@ typedef struct smf_context_s {
   uint8_t apn[ACCESS_POINT_NAME_MAX_LENGTH + 1];
   smf_proc_data_t smf_proc_data;
   struct nas5g_timer_s T3592;  // PDU_SESSION_RELEASE command timer
+  struct nas5g_timer_s T3591;  // PDU_SESSION_MODIFICATION command timer
   int retransmission_count;
   protocol_configuration_options_t pco;
   uint32_t duplicate_pdu_session_est_req_count;
   std::string dnn;
   uint8_t sst;
   uint8_t sd[SD_LENGTH];
-
-  // Request to gnb on PDU establisment request
-  pdu_session_resource_setup_req_t pdu_resource_setup_req;
-  pdu_session_resource_setup_rsp_t pdu_resource_setup_rsp;
-  pdu_session_resource_to_release_list pdu_resource_release_req;
-  pdu_session_resource_to_release_list pdu_resource_release_rsp;
+  qos_flow_list_t qos_flow_list;
+#define PDU_SESS_MODFICATION_COUNTER_MAX 5
+  bstring session_message;
 } smf_context_t;
 
 typedef struct paging_context_s {
@@ -803,6 +802,8 @@ int pdu_session_resource_setup_request(
     std::shared_ptr<smf_context_t> smf_context, bstring nas_msg);
 void amf_app_handle_resource_setup_response(
     itti_ngap_pdusessionresource_setup_rsp_t session_seup_resp);
+void amf_app_handle_resource_modify_response(
+    itti_ngap_pdu_session_resource_modify_response_t session_mod_resp);
 int pdu_session_resource_release_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
     std::shared_ptr<smf_context_t> smf_ctx, bool retransmit);
@@ -872,6 +873,15 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx);
 void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p);
 int m5g_security_select_algorithms(
     const int ue_iaP, const int ue_eaP, int* const amf_iaP, int* const amf_eaP);
+int create_session_grpc_req_on_gnb_setup_rsp(
+    amf_smf_establish_t* message, char* imsi, uint32_t version,
+    std::shared_ptr<smf_context_t> smf_ctx);
+int pdu_session_resource_modify_request(
+    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
+    std::shared_ptr<smf_context_t> smf_context, bstring nas_msg);
+int amf_send_grpc_req_on_gnb_pdu_sess_mod_rsp(
+    amf_smf_establish_t* message, char* imsi, uint32_t version,
+    std::shared_ptr<smf_context_t> smf_ctx);
 
 /************************************************************************
  ** Name:    delete_wrapper()                                         **
@@ -898,4 +908,7 @@ void delete_wrapper(T** pObj) {
 }
 
 void nas_amf_procedure_gc(amf_context_t* amf_ctx);
+void amf_app_fill_create_new_tft(create_new_tft_t* new_tft, QOSRule* qos_rule);
+void amf_app_fill_delete_packet_filter(
+    delete_packet_filter_t* delete_pkt_filter, QOSRule* qos_rule);
 }  // namespace magma5g

@@ -115,7 +115,7 @@ typedef union msg_s {
 #undef MESSAGE_DEF
 } msg_t;
 
-typedef uint16_t MessageHeaderSize;
+typedef long MessageHeaderSize;
 
 /** @struct MessageHeader
  *  @brief Message Header structure for inter-task communication.

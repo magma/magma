@@ -146,12 +146,91 @@ int pdu_session_resource_setup_request(
   memcpy(
       &amf_pdu_ses_setup_transfer_req->qos_flow_setup_request_list
            .qos_flow_req_item,
-      &smf_context->pdu_resource_setup_req
-           .pdu_session_resource_setup_request_transfer
-           .qos_flow_setup_request_list.qos_flow_req_item,
+      &smf_context->qos_flow_list.item[0].qos_flow_req_item,
       sizeof(qos_flow_setup_request_item));
 
   ngap_pdu_ses_setup_req->nas_pdu = nas_msg;
+
+  // Send message to NGAP task
+  amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+
+  return RETURNok;
+}
+
+/*
+ * the function to be called before sending gRPC message to SMF with available
+ * information in smf_context or default. No NAS message is involved and direct
+ * itti_message is sent to NGAP.
+ */
+int pdu_session_resource_modify_request(
+    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
+    std::shared_ptr<smf_context_t> smf_context, bstring nas_msg) {
+  pdu_session_resource_modify_request_transfer_t* amf_pdu_ses_mod_transfer_req =
+      nullptr;
+  itti_ngap_pdu_session_resource_modify_request_t* ngap_pdu_ses_mod_req =
+      nullptr;
+  qos_flow_add_or_modify_request_list_t* qos_Flow_Add_Or_Modify_List = nullptr;
+  MessageDef* message_p                                              = nullptr;
+  uint64_t dl_pdu_ambr;
+  uint64_t ul_pdu_ambr;
+
+  message_p = itti_alloc_new_message(
+      TASK_AMF_APP, NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ);
+  ngap_pdu_ses_mod_req =
+      &message_p->ittiMsg.ngap_pdu_session_resource_modify_req;
+  memset(
+      ngap_pdu_ses_mod_req, 0,
+      sizeof(itti_ngap_pdu_session_resource_modify_request_t));
+
+  // start filling message in DL to NGAP
+  ngap_pdu_ses_mod_req->gnb_ue_ngap_id = ue_context->gnb_ue_ngap_id;
+  ngap_pdu_ses_mod_req->amf_ue_ngap_id = amf_ue_ngap_id;
+
+  // Hardcoded number of pdu sessions as 1
+  ngap_pdu_ses_mod_req->pduSessResourceModReqList.no_of_items = 1;
+  ngap_pdu_ses_mod_req->pduSessResourceModReqList.item[0].Pdu_Session_ID =
+      (Ngap_PDUSessionID_t)
+          smf_context->smf_proc_data.pdu_session_identity.pdu_session_id;
+
+  ngap_pdu_ses_mod_req->pduSessResourceModReqList.no_of_items = 1;
+  // Adding respective header to amf_pdu_ses_setup_transfer_request
+  amf_pdu_ses_mod_transfer_req =
+      &ngap_pdu_ses_mod_req->pduSessResourceModReqList.item[0]
+           .PDU_Session_Resource_Modify_Request_Transfer;
+
+  qos_Flow_Add_Or_Modify_List =
+      &amf_pdu_ses_mod_transfer_req->qos_flow_add_or_mod_request_list;
+  qos_flow_list_cause_t* qos_flow_list_to_release =
+      &amf_pdu_ses_mod_transfer_req->qos_flow_to_release_list;
+  qos_Flow_Add_Or_Modify_List->maxNumOfQosFlows = 0;
+  qos_flow_list_to_release->numOfItems          = 0;
+  for (int i = 0; i < smf_context->qos_flow_list.maxNumOfQosFlows; i++) {
+    if (smf_context->qos_flow_list.item[i].qos_flow_req_item.qos_flow_action ==
+            policy_action_add ||
+        smf_context->qos_flow_list.item[i].qos_flow_req_item.qos_flow_action ==
+            policy_action_mod) {
+      memcpy(
+          &qos_Flow_Add_Or_Modify_List
+               ->item[qos_Flow_Add_Or_Modify_List->maxNumOfQosFlows]
+               .qos_flow_req_item,
+          (const void*) &smf_context->qos_flow_list.item[i].qos_flow_req_item,
+          sizeof(qos_flow_setup_request_item));
+      qos_Flow_Add_Or_Modify_List->maxNumOfQosFlows++;
+    } else if (
+        smf_context->qos_flow_list.item[i].qos_flow_req_item.qos_flow_action ==
+        policy_action_del) {
+      qos_flow_list_to_release->item[qos_flow_list_to_release->numOfItems]
+          .qos_flow_identifier = smf_context->qos_flow_list.item[i]
+                                     .qos_flow_req_item.qos_flow_identifier;
+      qos_flow_list_to_release->item[qos_flow_list_to_release->numOfItems]
+          .cause.cause_group.u_group.nas.cause = NORMAL_RELEASE;
+      qos_flow_list_to_release->item[qos_flow_list_to_release->numOfItems]
+          .cause.cause_group.cause_group_type = NAS_GROUP;
+      qos_flow_list_to_release->numOfItems++;
+    }
+  }
+
+  ngap_pdu_ses_mod_req->nas_pdu = nas_msg;
 
   // Send message to NGAP task
   amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);

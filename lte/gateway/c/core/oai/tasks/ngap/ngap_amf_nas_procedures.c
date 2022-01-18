@@ -1304,6 +1304,47 @@ int ngap_fill_pdu_session_resource_modify_request_transfer(
         qos_list->item[i]
             .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
             .pre_emption_vul;
+    if (qos_list->item[i].qos_flow_req_item.qos_flow_descriptor.mbr_dl) {
+      qos_flow_params->gBR_QosInformation =
+          (struct Ngap_GBR_QosInformation*) calloc(
+              1, sizeof(struct Ngap_GBR_QosInformation));
+      // MFBR DL
+      qos_flow_params->gBR_QosInformation->maximumFlowBitRateDL.buf =
+          (uint8_t*) calloc(
+              1, sizeof(qos_list->item[i]
+                            .qos_flow_req_item.qos_flow_descriptor.mbr_dl));
+      ENCODE_U32(
+          qos_flow_params->gBR_QosInformation->maximumFlowBitRateDL.buf,
+          qos_list->item[i].qos_flow_req_item.qos_flow_descriptor.mbr_dl,
+          qos_flow_params->gBR_QosInformation->maximumFlowBitRateDL.size);
+      // MFBR UL
+      qos_flow_params->gBR_QosInformation->maximumFlowBitRateUL.buf =
+          (uint8_t*) calloc(
+              1, sizeof(qos_list->item[i]
+                            .qos_flow_req_item.qos_flow_descriptor.mbr_ul));
+      ENCODE_U32(
+          qos_flow_params->gBR_QosInformation->maximumFlowBitRateUL.buf,
+          qos_list->item[i].qos_flow_req_item.qos_flow_descriptor.mbr_ul,
+          qos_flow_params->gBR_QosInformation->maximumFlowBitRateUL.size);
+      // GFBR DL
+      qos_flow_params->gBR_QosInformation->guaranteedFlowBitRateDL.buf =
+          (uint8_t*) calloc(
+              1, sizeof(qos_list->item[i]
+                            .qos_flow_req_item.qos_flow_descriptor.gbr_dl));
+      ENCODE_U32(
+          qos_flow_params->gBR_QosInformation->guaranteedFlowBitRateDL.buf,
+          qos_list->item[i].qos_flow_req_item.qos_flow_descriptor.mbr_dl,
+          qos_flow_params->gBR_QosInformation->maximumFlowBitRateDL.size);
+      // GFBR UL
+      qos_flow_params->gBR_QosInformation->guaranteedFlowBitRateUL.buf =
+          (uint8_t*) calloc(
+              1, sizeof(qos_list->item[i]
+                            .qos_flow_req_item.qos_flow_descriptor.gbr_ul));
+      ENCODE_U32(
+          qos_flow_params->gBR_QosInformation->guaranteedFlowBitRateUL.buf,
+          qos_list->item[i].qos_flow_req_item.qos_flow_descriptor.gbr_ul,
+          qos_flow_params->gBR_QosInformation->guaranteedFlowBitRateUL.size);
+    }
 
     asn_set_empty(
         &transfer_request_ie->value.choice.QosFlowAddOrModifyRequestList.list);
@@ -1311,8 +1352,6 @@ int ngap_fill_pdu_session_resource_modify_request_transfer(
         &transfer_request_ie->value.choice.QosFlowAddOrModifyRequestList.list,
         qos_item);
 
-    /* TODO add gbr info */
-    /* add reflective qos */
     ASN_SEQUENCE_ADD(&transfer_request->protocolIEs.list, transfer_request_ie);
   }
 
@@ -1336,7 +1375,6 @@ int ngap_fill_pdu_session_resource_modify_request_transfer(
 
     qos_item->qosFlowIdentifier = qos_remove_list->item[i].qos_flow_identifier;
 
-    // qos_item->cause = (Ngap_Cause_t)qos_remove_list->item[i].cause;
     qos_item->cause.present    = Ngap_Cause_PR_nas;
     qos_item->cause.choice.nas = Ngap_Cause_PR_nas;
 

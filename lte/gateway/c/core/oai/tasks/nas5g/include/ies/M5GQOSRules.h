@@ -54,7 +54,7 @@ class QOSRulesMsg {
   uint16_t length;
   //  QOSRule qos_rule[32];  // need to revisit based on max num of QOS rules
   // exchanged btw UE and core.
-  QOSRule qos_rule[1];
+  QOSRule qos_rule[4];
   QOSRulesMsg();
   ~QOSRulesMsg();
   int EncodeQOSRulesMsg(
