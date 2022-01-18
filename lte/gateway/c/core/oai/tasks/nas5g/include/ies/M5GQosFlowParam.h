@@ -24,7 +24,7 @@ class M5GQosFlowParam {
     param_id_mfbr_uplink,
     param_id_mfbr_downlink,
     param_id_avg_window,
-    param_id_eps_bearer_identity
+    param_id_qos_flow_identity,
   } qos_flow_param_id_type_t;
 
   uint8_t iei;

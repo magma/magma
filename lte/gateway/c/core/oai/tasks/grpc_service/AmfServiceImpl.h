@@ -48,9 +48,15 @@ class AmfServiceImpl final : public SmfPduSessionSmContext::Service {
                                   const SetSmNotificationContext* notif,
                                   SmContextVoid* response) override;
 
-  grpc::Status SetSmfSessionContext(ServerContext* context,
-                                    const SetSMSessionContextAccess* request,
-                                    SmContextVoid* response) override;
+  grpc::Status SetSmfSessionContext(
+      ServerContext* context, const SetSMSessionContextAccess* request,
+      SmContextVoid* response) override;
+  bool fillUpPacketFilterContents(
+      packet_filter_contents_t* pf_content, const FlowMatch* flow_match_rule);
+  bool fillIpv6(
+      packet_filter_contents_t* pf_content, const std::string ipv6addr);
+  bool fillIpv4(
+      packet_filter_contents_t* pf_content, const std::string ipv4addr);
 };
 
 }  // namespace magma

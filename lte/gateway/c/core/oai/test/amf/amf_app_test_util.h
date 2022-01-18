@@ -108,6 +108,8 @@ int send_pdu_session_response_itti(pdn_type_value_t type);
 
 void create_pdu_resource_setup_response_itti(
     itti_ngap_pdusessionresource_setup_rsp_t* response, amf_ue_ngap_id_t ue_id);
+void create_pdu_session_modify_request_itti(
+    itti_n11_create_pdu_session_response_t* response);
 
 int send_pdu_resource_setup_response(amf_ue_ngap_id_t ue_id);
 
@@ -117,22 +119,19 @@ void create_pdu_notification_response_itti(
 int send_pdu_notification_response();
 
 /* Create pdu session  release from ue */
-int send_uplink_nas_pdu_session_release_message(amf_app_desc_t* amf_app_desc_p,
-                                                amf_ue_ngap_id_t ue_id,
-                                                const plmn_t& plmn,
-                                                const uint8_t* nas_msg,
-                                                uint8_t nas_msg_length);
+int send_uplink_nas_pdu_session_release_message(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
+    const uint8_t* nas_msg, uint8_t nas_msg_length);
 
-int send_uplink_nas_ue_deregistration_request(amf_app_desc_t* amf_app_desc_p,
-                                              amf_ue_ngap_id_t ue_id,
-                                              const plmn_t& plmn,
-                                              uint8_t* nas_msg,
-                                              uint8_t nas_msg_length);
-
-/* Send ue context release message */
-void send_ue_context_release_request_message(amf_app_desc_t* amf_app_desc_p,
-                                             uint32_t gnb_id,
-                                             gnb_ue_ngap_id_t gnb_ue_ngap_id,
-                                             amf_ue_ngap_id_t amf_ue_ngap_id);
-
+int send_uplink_nas_ue_deregistration_request(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
+    uint8_t* nas_msg, uint8_t nas_msg_length);
+void create_pdu_resource_modify_response_itti(
+    itti_ngap_pdu_session_resource_modify_response_t* response,
+    amf_ue_ngap_id_t ue_id);
+int send_uplink_nas_pdu_session_modification_complete(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
+    const uint8_t* nas_msg, uint8_t nas_msg_length);
+int send_pdu_resource_modify_response(amf_ue_ngap_id_t ue_id);
+int send_pdu_session_modification_itti();
 }  // namespace magma5g

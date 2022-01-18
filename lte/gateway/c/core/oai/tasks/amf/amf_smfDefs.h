@@ -93,8 +93,6 @@ int amf_smf_create_session_req(char* imsi, uint8_t* apn,
                                const ambr_t& state_ambr,
                                const eps_subscribed_qos_profile_t& qos_profile);
 
-int create_session_grpc_req_on_gnb_setup_rsp(amf_smf_establish_t* message,
-                                             char* imsi, uint32_t version);
 int create_session_grpc_req(amf_smf_establish_t* message, char* imsi);
 int release_session_gprc_req(amf_smf_release_t* message, char* imsi);
 }  // namespace magma5g

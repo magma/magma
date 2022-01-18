@@ -267,6 +267,7 @@ int pdu_session_resource_release_complete(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
+<<<<<<< HEAD
 int t3592_abort_handler(ue_m5gmm_context_t* ue_context,
                         std::shared_ptr<smf_context_t> smf_ctx,
                         uint8_t pdu_session_id) {
@@ -283,6 +284,48 @@ static int pdu_session_resource_release_t3592_handler(zloop_t* loop,
                                                       int timer_id, void* arg) {
   OAILOG_INFO(LOG_AMF_APP,
               "T3592: pdu_session_resource_release_t3592_handler\n");
+=======
+int pdu_session_resource_modification_complete(
+    ue_m5gmm_context_s* ue_context, amf_smf_t amf_smf_msg,
+    std::shared_ptr<smf_context_t> smf_ctx) {
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+  int rc = 1;
+
+  IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
+
+  if (smf_ctx->n_active_pdus) {
+    /* Execute PDU Session Release and notify to SMF */
+    rc = pdu_state_handle_message(
+        ue_context->mm_state, STATE_PDU_SESSION_MODIFICATION_COMPLETE,
+        smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL, 0);
+  }
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
+int pdu_session_resource_modification_command_reject(
+    ue_m5gmm_context_s* ue_context, amf_smf_t amf_smf_msg,
+    std::shared_ptr<smf_context_t> smf_ctx) {
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+  int rc = 1;
+
+  IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
+
+  if (smf_ctx->n_active_pdus) {
+    /* Execute PDU Session Release and notify to SMF */
+    rc = pdu_state_handle_message(
+        ue_context->mm_state, STATE_PDU_SESSION_MODIFICATION_COMMAND_REJECT,
+        smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL, 0);
+  }
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
+static int pdu_session_resource_release_t3592_handler(
+    zloop_t* loop, int timer_id, void* arg) {
+  OAILOG_INFO(
+      LOG_AMF_APP, "T3592: pdu_session_resource_release_t3592_handler\n");
+>>>>>>> feat(amf): n/w init pdu session modification changes
 
   amf_ue_ngap_id_t amf_ue_ngap_id = 0;
   uint8_t pdu_session_id = 0;
@@ -558,6 +601,40 @@ int amf_smf_process_pdu_session_packet(amf_ue_ngap_id_t ue_id,
 
       pdu_session_resource_release_complete(ue_context, amf_smf_msg, smf_ctx);
     } break;
+    case PDU_SESSION_MODIFICATION_COMPLETE: {
+      if (smf_ctx->T3591.id != NAS5G_TIMER_INACTIVE_ID) {
+        amf_pdu_stop_timer(smf_ctx->T3591.id);
+        OAILOG_INFO(
+            LOG_AMF_APP,
+            "T3591: after stop PDU_SESSION_MODIFICATION_COMMAND timer T3591 "
+            "with id "
+            "= %ld\n",
+            smf_ctx->T3591.id);
+        smf_ctx->T3591.id = NAS5G_TIMER_INACTIVE_ID;
+        bdestroy_wrapper(&smf_ctx->session_message);
+      }
+      amf_smf_msg.pdu_session_id =
+          msg->payload_container.smf_msg.header.pdu_session_id;
+      rc = pdu_session_resource_modification_complete(
+          ue_context, amf_smf_msg, smf_ctx);
+    } break;
+    case PDU_SESSION_MODIFICATION_COMMAND_REJECT: {
+      if (smf_ctx->T3591.id != NAS5G_TIMER_INACTIVE_ID) {
+        amf_pdu_stop_timer(smf_ctx->T3591.id);
+        OAILOG_INFO(
+            LOG_AMF_APP,
+            "T3591: after stop PDU_SESSION_MODIFICATION_COMMAND_REJECT timer "
+            "T3591 with id "
+            "= %ld\n",
+            smf_ctx->T3591.id);
+        smf_ctx->T3591.id = NAS5G_TIMER_INACTIVE_ID;
+        bdestroy_wrapper(&smf_ctx->session_message);
+      }
+      amf_smf_msg.pdu_session_id =
+          msg->payload_container.smf_msg.header.pdu_session_id;
+      pdu_session_resource_modification_command_reject(
+          ue_context, amf_smf_msg, smf_ctx);
+    } break;
     default:
       break;
   }
@@ -768,9 +845,16 @@ int amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
     if (smf_context->pdu_address.pdn_type == IPv4) {
       char ip_str[INET_ADDRSTRLEN];
 
+<<<<<<< HEAD
       inet_ntop(AF_INET, &(smf_context->pdu_address.ipv4_address.s_addr),
                 ip_str, INET_ADDRSTRLEN);
       req_common->set_ue_ipv4((char*)ip_str);
+=======
+      inet_ntop(
+          AF_INET, &(smf_context->pdu_address.ipv4_address.s_addr), ip_str,
+          INET_ADDRSTRLEN);
+      req_common->set_ue_ipv4(reinterpret_cast<char*>(ip_str));
+>>>>>>> feat(amf): n/w init pdu session modification changes
     }
   }
   // Set the PDU Address

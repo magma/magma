@@ -341,6 +341,7 @@ typedef struct itti_ngap_pdu_session_resource_modify_request_s {
   Ngap_Message_Type_t Ngap_Message_Type;
   gnb_ue_ngap_id_t gnb_ue_ngap_id;
   amf_ue_ngap_id_t amf_ue_ngap_id;
+  bstring nas_pdu;  // optional
   Ngap_PDUSession_Resource_Modify_Request_List_t pduSessResourceModReqList;
 } itti_ngap_pdu_session_resource_modify_request_t;
 

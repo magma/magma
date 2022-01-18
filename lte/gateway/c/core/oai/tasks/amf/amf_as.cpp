@@ -1259,10 +1259,11 @@ int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
           &smf_context->gtp_tunnel_id.upf_gtp_teid_ip_addr, GNB_IPV4_ADDR_LEN);
 
       // qos flow list
-      memcpy(&item->PDU_Session_Resource_Setup_Request_Transfer
-                  .qos_flow_setup_request_list.qos_flow_req_item,
-             &smf_context->subscribed_qos_profile.qos_flow_req_item,
-             sizeof(qos_flow_setup_request_item));
+      memcpy(
+          &item->PDU_Session_Resource_Setup_Request_Transfer
+               .qos_flow_setup_request_list.qos_flow_req_item,
+          &smf_context->qos_flow_list.item[0].qos_flow_req_item,
+          sizeof(qos_flow_setup_request_item));
     }
   }
 

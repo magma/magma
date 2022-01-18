@@ -267,6 +267,40 @@ int send_uplink_nas_pdu_session_establishment_request(
 
   return rc;
 }
+/* Create pdu session modification complete from ue */
+int send_uplink_nas_pdu_session_modification_complete(
+    amf_app_desc_t* amf_app_desc_p, amf_ue_ngap_id_t ue_id, const plmn_t& plmn,
+    const uint8_t* nas_msg, uint8_t nas_msg_length) {
+  bstring pdu_session_est_req;
+  tai_t originating_tai = {};
+
+  if ((!amf_app_desc_p) || (!nas_msg) || (nas_msg_length == 0)) {
+    return RETURNerror;
+  }
+
+  pdu_session_est_req = blk2bstr(nas_msg, nas_msg_length);
+
+  originating_tai.plmn = plmn;
+  originating_tai.tac  = 1;
+
+  ue_m5gmm_context_s* ue_context_p =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (!ue_context_p) {
+    return RETURNerror;
+  }
+  apn_config_profile_t& profile = ue_context_p->amf_context.apn_config_profile;
+  profile.nb_apns               = 1;
+  strncpy(
+      profile.apn_configuration[0].service_selection, "internet",
+      SERVICE_SELECTION_MAX_LENGTH - 1);
+
+  int rc = RETURNerror;
+  rc     = amf_app_handle_uplink_nas_message(
+      amf_app_desc_p, pdu_session_est_req, ue_id, originating_tai);
+
+  return rc;
+}
 
 void create_ip_address_response_itti(
     pdn_type_value_t type, itti_amf_ip_allocation_response_t* response) {
@@ -338,15 +372,20 @@ void create_pdu_session_response_itti(
   response->session_ambr.downlink_unit_type = 0;
   response->session_ambr.downlink_units = 100000000;
 
-  response->qos_list.qos_flow_req_item.qos_flow_identifier = 9;
-  response->qos_list.qos_flow_req_item.qos_flow_level_qos_param
-      .qos_characteristic.non_dynamic_5QI_desc.fiveQI = 9;
-  response->qos_list.qos_flow_req_item.qos_flow_level_qos_param
-      .alloc_reten_priority.priority_level = 1;
-  response->qos_list.qos_flow_req_item.qos_flow_level_qos_param
-      .alloc_reten_priority.pre_emption_cap = SHALL_NOT_TRIGGER_PRE_EMPTION;
-  response->qos_list.qos_flow_req_item.qos_flow_level_qos_param
-      .alloc_reten_priority.pre_emption_vul = NOT_PREEMPTABLE;
+  response->qos_flow_list.maxNumOfQosFlows                              = 1;
+  response->qos_flow_list.item[0].qos_flow_req_item.qos_flow_identifier = 9;
+  response->qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
+      .non_dynamic_5QI_desc.fiveQI = 9;
+  response->qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+      .priority_level = 1;
+  response->qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+      .pre_emption_cap = SHALL_NOT_TRIGGER_PRE_EMPTION;
+  response->qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+      .pre_emption_vul           = NOT_PREEMPTABLE;
   response->upf_endpoint.teid[0] = 0x7f;
   response->upf_endpoint.teid[1] = 0xff;
   response->upf_endpoint.teid[2] = 0xff;
@@ -381,6 +420,16 @@ int send_pdu_session_response_itti(pdn_type_value_t type) {
   return rc;
 }
 
+int send_pdu_session_modification_itti() {
+  int rc                                          = RETURNerror;
+  itti_n11_create_pdu_session_response_t response = {};
+  create_pdu_session_modify_request_itti(&response);
+
+  rc = amf_app_handle_pdu_session_response(&response);
+
+  return rc;
+}
+
 void create_pdu_resource_setup_response_itti(
     itti_ngap_pdusessionresource_setup_rsp_t* response,
     amf_ue_ngap_id_t ue_id) {
@@ -409,12 +458,39 @@ void create_pdu_resource_setup_response_itti(
   qosFlow->QosFlowIdentifier[0] = 9;
 }
 
+void create_pdu_resource_modify_response_itti(
+    itti_ngap_pdu_session_resource_modify_response_t* response,
+    amf_ue_ngap_id_t ue_id) {
+  if (!response) return;
+  response->amf_ue_ngap_id                                    = ue_id;
+  response->gnb_ue_ngap_id                                    = 1;
+  response->pduSessResourceModRespList.item[0].Pdu_Session_ID = 1;
+  response->pduSessResourceModRespList.no_of_items            = 1;
+
+  pdusession_modify_response_item_t* pduSessModifyResp =
+      &response->pduSessResourceModRespList.item[0];
+  pduSessModifyResp->PDU_Session_Resource_Mpdify_Response_Transfer
+      .qos_flow_add_or_modify_response_list.maxNumOfQosFlows = 1;
+  pduSessModifyResp->PDU_Session_Resource_Mpdify_Response_Transfer
+      .qos_flow_add_or_modify_response_list.item[0]
+      .qos_flow_identifier = 3;
+}
 int send_pdu_resource_setup_response(amf_ue_ngap_id_t ue_id) {
   int rc = RETURNok;
   itti_ngap_pdusessionresource_setup_rsp_t response = {};
   create_pdu_resource_setup_response_itti(&response, ue_id);
 
   amf_app_handle_resource_setup_response(response);
+
+  return rc;
+}
+
+int send_pdu_resource_modify_response(amf_ue_ngap_id_t ue_id) {
+  int rc                                                    = RETURNok;
+  itti_ngap_pdu_session_resource_modify_response_t response = {};
+  create_pdu_resource_modify_response_itti(&response, ue_id);
+
+  amf_app_handle_resource_modify_response(response);
 
   return rc;
 }
@@ -443,6 +519,88 @@ int send_pdu_notification_response() {
   rc = amf_app_handle_notification_received(&response);
 
   return rc;
+}
+
+void create_pdu_session_modify_request_itti(
+    itti_n11_create_pdu_session_response_t* response) {
+  if (!response) return;
+  std::string imsi = "222456000000001";
+  std::copy(imsi.begin(), imsi.end(), std::begin(response->imsi));
+
+  response->sm_session_fsm_state = sm_session_fsm_state_t::ACTIVE;
+  response->sm_session_version   = 0;
+  response->pdu_session_id       = 1;
+  response->pdu_session_type     = IPV4;
+  response->selected_ssc_mode    = SSC_MODE_3;
+  response->m5gsm_cause          = M5GSM_OPERATION_SUCCESS;
+
+  // dedicated qos flow
+  response->qos_flow_list.maxNumOfQosFlows                              = 1;
+  response->qos_flow_list.item[0].qos_flow_req_item.qos_flow_identifier = 3;
+  response->qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
+      .non_dynamic_5QI_desc.fiveQI = 3;
+  response->qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+      .priority_level = 1;
+  response->qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+      .pre_emption_cap = SHALL_NOT_TRIGGER_PRE_EMPTION;
+  response->qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+      .pre_emption_vul = NOT_PREEMPTABLE;
+
+  // flow action
+  response->qos_flow_list.item[0].qos_flow_req_item.qos_flow_action =
+      policy_action_add;
+  response->qos_flow_list.item[0].qos_flow_req_item.qos_flow_version = 2;
+  // flow description
+  response->qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_descriptor.qos_flow_identifier =
+      response->qos_flow_list.item[0].qos_flow_req_item.qos_flow_identifier;
+  response->qos_flow_list.item[0].qos_flow_req_item.qos_flow_descriptor.fiveQi =
+      response->qos_flow_list.item[0].qos_flow_req_item.qos_flow_identifier;
+  response->qos_flow_list.item[0].qos_flow_req_item.qos_flow_descriptor.mbr_ul =
+      100000;
+  response->qos_flow_list.item[0].qos_flow_req_item.qos_flow_descriptor.mbr_dl =
+      100000;
+  response->qos_flow_list.item[0].qos_flow_req_item.qos_flow_descriptor.gbr_ul =
+      100000;
+  response->qos_flow_list.item[0].qos_flow_req_item.qos_flow_descriptor.gbr_dl =
+      100000;
+
+  // trafic flow template
+  response->qos_flow_list.item[0].qos_flow_req_item.ul_tft.tftoperationcode =
+      TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT;
+  response->qos_flow_list.item[0]
+      .qos_flow_req_item.ul_tft.numberofpacketfilters = 1;
+  // create new tft
+  create_new_tft_t* new_tft =
+      &response->qos_flow_list.item[0]
+           .qos_flow_req_item.ul_tft.packetfilterlist.createnewtft[0];
+  response->qos_flow_list.item[0]
+      .qos_flow_req_item.ul_tft.parameterslist.num_parameters = 5;
+  new_tft->direction       = TRAFFIC_FLOW_TEMPLATE_UPLINK_ONLY;
+  new_tft->identifier      = 1;
+  new_tft->length          = 14;
+  new_tft->eval_precedence = 254;
+  new_tft->packetfiltercontents.flags =
+      TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG |
+      TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT;
+  new_tft->packetfiltercontents.ipv4remoteaddr[0].addr = 10;
+  new_tft->packetfiltercontents.ipv4remoteaddr[1].addr = 10;
+  new_tft->packetfiltercontents.ipv4remoteaddr[2].addr = 2;
+  new_tft->packetfiltercontents.ipv4remoteaddr[3].addr = 2;
+  new_tft->packetfiltercontents.ipv4remoteaddr[0].mask = 0xff;
+  new_tft->packetfiltercontents.ipv4remoteaddr[1].mask = 0xff;
+  new_tft->packetfiltercontents.ipv4remoteaddr[2].mask = 0xff;
+  new_tft->packetfiltercontents.ipv4remoteaddr[3].mask = 0xff;
+  new_tft->packetfiltercontents.singlelocalport        = 22334;
+  // rule id
+  strcpy(
+      reinterpret_cast<char*>(
+          response->qos_flow_list.item[0].qos_flow_req_item.rule_id),
+      "rule2");
 }
 
 /* Create pdu session release message from ue */

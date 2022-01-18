@@ -92,8 +92,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           &N11_CREATE_PDU_SESSION_RESPONSE(received_message_p));
       is_task_state_same = true;
       break;
-    case N11_PDU_SESSION_MODIFICATION_REQUEST:
-      break;
     case AMF_APP_SUBS_AUTH_INFO_RESP:
       amf_nas_proc_authentication_info_answer(
           &AMF_APP_AUTH_RESPONSE_DATA(received_message_p));
@@ -132,6 +130,15 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       amf_app_handle_resource_setup_response(
           NGAP_PDUSESSIONRESOURCE_SETUP_RSP(received_message_p));
       is_task_state_same = true;
+      break;
+
+    /* Handle PDU session resource modify response */
+    case NGAP_PDU_SESSION_RESOURCE_MODIFY_RSP:
+      /* This is non-nas message and can be handled directly to check if failure
+       * or success messages are coming from NGAP
+       */
+      amf_app_handle_resource_modify_response(
+          NGAP_PDU_SESSION_RESOURCE_MODIFY_RSP(received_message_p));
       break;
     /* Handle PDU session resource release response */
     case NGAP_PDUSESSIONRESOURCE_REL_RSP:
