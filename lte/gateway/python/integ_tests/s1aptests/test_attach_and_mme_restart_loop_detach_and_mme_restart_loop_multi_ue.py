@@ -59,11 +59,11 @@ class TestAttachAndMmeRestartLoopDetachAndMmeRestartLoopMultiUe(
 
         # The inactivity timers for UEs attached in the beginning starts getting
         # expired before all the UEs could be attached. Increasing UE inactivity
-        # timer to 5 min (300000 ms) to allow all the UEs to get attached and
+        # timer to 15 min (900000 ms) to allow all the UEs to get attached and
         # detached properly
         config_data = s1ap_types.FwNbConfigReq_t()
         config_data.inactvTmrVal_pr.pres = True
-        config_data.inactvTmrVal_pr.val = 300000
+        config_data.inactvTmrVal_pr.val = 900000
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.ENB_INACTV_TMR_CFG,
             config_data,
