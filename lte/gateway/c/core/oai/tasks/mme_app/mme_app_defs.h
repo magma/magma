@@ -115,8 +115,8 @@ void mme_app_handle_erab_setup_req(
 
 void mme_app_handle_release_access_bearers_resp(
     mme_app_desc_t* mme_app_desc_p,
-    const itti_s11_release_access_bearers_response_t*
-        rel_access_bearers_rsp_pP, task_id_t originTaskId);
+    const itti_s11_release_access_bearers_response_t* rel_access_bearers_rsp_pP,
+    task_id_t originTaskId);
 
 void mme_app_handle_s11_create_bearer_req(
     mme_app_desc_t* mme_app_desc_p,
