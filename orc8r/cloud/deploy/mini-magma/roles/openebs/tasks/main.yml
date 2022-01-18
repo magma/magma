@@ -1,0 +1,16 @@
+- name: Install OpenEBS
+  kubernetes.core.helm:
+    name: openebs
+    chart_ref: openebs/openebs
+    release_namespace: openebs
+    create_namespace: true
+
+- name: Set {{ default_storage_class }} as default storage class
+  kubernetes.core.k8s:
+    state: patched
+    kind: StorageClass
+    name: "{{ default_storage_class }}"
+    definition:
+      metadata:
+        annotations:
+          storageclass.kubernetes.io/is-default-class: "true"

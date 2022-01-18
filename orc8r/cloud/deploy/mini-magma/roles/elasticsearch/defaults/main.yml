@@ -1,0 +1,2 @@
+magma_namespace: "orc8r"
+elasticsearch_chart_version: "7.16.2"

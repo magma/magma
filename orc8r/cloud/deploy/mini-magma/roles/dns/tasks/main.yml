@@ -1,0 +1,8 @@
+- name: Update these DNS Values
+  debug:
+    msg:
+    - "{{ ansible_host }} api.{{ orc8r_domain }}"
+    - "{{ ansible_host }} *.nms.{{ orc8r_domain }}"
+    - "{{ ansible_host }} fluentd.{{ orc8r_domain }}"
+    - "{{ ansible_host }} controller.{{ orc8r_domain }}"
+    - "{{ ansible_host }} bootstrapper-controller.{{ orc8r_domain }}"

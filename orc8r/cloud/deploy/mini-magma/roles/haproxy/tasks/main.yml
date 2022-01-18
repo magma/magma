@@ -1,0 +1,64 @@
+- name: Install HAProxy
+  kubernetes.core.helm:
+    name: haproxy
+    chart_ref: haproxytech/haproxy
+    release_namespace: "{{ magma_namespace }}"
+    create_namespace: true
+    values:
+      service:
+        type: LoadBalancer
+      config: |
+        global
+          log stdout format raw local0
+          maxconn 1024
+
+        defaults
+          log global
+          timeout client 60s
+          timeout connect 60s
+          timeout server 60s
+
+        frontend orc8r
+          bind :443
+          mode tcp
+          option tcplog
+          acl tls req.ssl_hello_type 1
+          tcp-request inspect-delay 5s
+          tcp-request content accept if tls
+
+          acl nms                     req.ssl_sni -m reg -i .+.nms.{{ orc8r_domain }}
+          acl api                     req.ssl_sni -i api.{{ orc8r_domain }}
+          acl fluentd                 req.ssl_sni -i fluentd.{{ orc8r_domain }}
+          acl controller              req.ssl_sni -i controller.{{ orc8r_domain }}
+          acl bootstrapper-controller req.ssl_sni -i bootstrapper-controller.{{ orc8r_domain }}
+
+          use_backend nginx-proxy              if nms
+          use_backend orc8r-nginx-proxy        if api
+          use_backend fluentd                  if fluentd
+          use_backend orc8r-clientcert-nginx   if controller
+          use_backend bootstrapper-orc8r-nginx if bootstrapper-controller
+
+        backend fluentd
+          mode tcp
+          option ssl-hello-chk
+          server svc fluentd:24224
+
+        backend nginx-proxy
+          mode tcp
+          option ssl-hello-chk
+          server svc nginx-proxy:443
+
+        backend orc8r-nginx-proxy
+          mode tcp
+          option ssl-hello-chk
+          server svc orc8r-nginx-proxy:443
+
+        backend orc8r-clientcert-nginx
+          mode tcp
+          option ssl-hello-chk
+          server svc orc8r-clientcert-nginx:443
+
+        backend bootstrapper-orc8r-nginx
+          mode tcp
+          option ssl-hello-chk
+          server svc bootstrapper-orc8r-nginx:443

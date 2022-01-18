@@ -1,0 +1,11 @@
+- name: Install Fbinternal Orc8r
+  kubernetes.core.helm:
+    name: fbinternal-orc8r
+    chart_ref: orc8r/fbinternal-orc8r
+    release_namespace: "{{ magma_namespace }}"
+    create_namespace: true
+    values:
+      controller:
+        image:
+          repository: "{{ magma_docker_registry }}/controller"
+          tag: "{{ magma_docker_tag }}"

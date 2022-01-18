@@ -1,0 +1,9 @@
+- name: Install PostgreSQL
+  kubernetes.core.helm:
+    name: postgresql
+    chart_ref: bitnami/postgresql
+    release_namespace: "{{ magma_namespace }}"
+    create_namespace: true
+    values:
+      postgresqlPassword: "{{ postgresql_password }}"
+      postgresqlDatabase: "{{ postgresql_database }}"

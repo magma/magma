@@ -1,0 +1,36 @@
+- name: Download rke binary for linux
+  become: yes
+  get_url:
+    url: https://github.com/rancher/rke/releases/download/v{{ rke_version }}/rke_linux-amd64
+    dest: /usr/local/bin/rke
+    mode: '0655'
+
+- name: Download kubectl binary for linux
+  become: yes
+  get_url:
+    url: https://dl.k8s.io/release/v{{ kubectl_version }}/bin/linux/amd64/kubectl
+    dest: /usr/local/bin/kubectl
+    mode: '0655'
+
+- name: Install pip package
+  become: yes
+  apt:
+    update_cache: yes
+    name: python3-pip
+
+- name: Install kubernetes python package
+  pip:
+    name: kubernetes
+
+- name: Download helm binary for linux
+  unarchive:
+    src: https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz
+    dest: /tmp
+    remote_src: yes
+
+- name: Move helm binary file to executable path
+  become: yes
+  command: mv /tmp/linux-amd64/helm /usr/local/bin/helm
+
+- name: Install Helm Diff Plugin
+  command: helm plugin install https://github.com/databus23/helm-diff

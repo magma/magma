@@ -1,0 +1,12 @@
+- name: Install WIFI Orc8r
+  when: deploy_wifi_orc8r
+  kubernetes.core.helm:
+    name: wifi-orc8r
+    chart_ref: orc8r/wifi-orc8r
+    release_namespace: "{{ magma_namespace }}"
+    create_namespace: true
+    values:
+      controller:
+        image:
+          repository: "{{ magma_docker_registry }}/controller"
+          tag: "{{ magma_docker_tag }}"

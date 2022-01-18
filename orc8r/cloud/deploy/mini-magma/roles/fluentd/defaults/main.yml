@@ -1,0 +1,2 @@
+magma_namespace: "orc8r"
+magma_service_type: "ClusterIP"
