@@ -121,7 +121,6 @@ def _get_shared_sentry_config(sentry_mconfig: mconfigs_pb2.SharedSentryConfig) -
         # be pulled from different sources.
         dsn = sentry_mconfig.dsn_python
         sample_rate = sentry_mconfig.sample_rate
-        exclusion_patterns = sentry_mconfig.exclusion_patterns
     else:
         logging.info("Sentry config: dsn_python and sample_rate are pulled from control_proxy.yml.")
         sample_rate = get_service_config_value(
@@ -129,11 +128,9 @@ def _get_shared_sentry_config(sentry_mconfig: mconfigs_pb2.SharedSentryConfig) -
             SENTRY_SAMPLE_RATE,
             default=DEFAULT_SAMPLE_RATE,
         )
-        exclusion_patterns = get_service_config_value(
-            CONTROL_PROXY,
-            SENTRY_EXCLUDED,
-            default=DEFAULT_SAMPLE_RATE,
-        )
+
+    # Exclusion patterns only exist in mconfig, not in control_proxy.yml
+    exclusion_patterns = sentry_mconfig.exclusion_patterns
     return SharedSentryConfig(dsn, sample_rate, exclusion_patterns)
 
 

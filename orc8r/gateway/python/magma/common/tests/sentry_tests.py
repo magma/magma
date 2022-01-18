@@ -62,12 +62,14 @@ class SentryTests(unittest.TestCase):
 
     @mock.patch('magma.common.sentry.get_service_config_value')
     def test_get_shared_sentry_config_from_control_proxy(self, get_service_config_value_mock):
-        """Test if control_proxy.yml overrides mconfig.
+        """Test if control_proxy.yml overrides mconfig (except exclusion).
         """
         get_service_config_value_mock.side_effect = ['https://test.me', 0.5, ["Excluded"]]
         sentry_mconfig = mconfigs_pb2.SharedSentryConfig()
+        sentry_mconfig.exclusion_patterns.append("mconfig")
+        sentry_mconfig.exclusion_patterns.append("also mconfig")
         self.assertEqual(
-            SharedSentryConfig('https://test.me', 0.5, ["Excluded"]),
+            SharedSentryConfig('https://test.me', 0.5, ["mconfig", "also mconfig"]),
             _get_shared_sentry_config(sentry_mconfig),
         )
 
