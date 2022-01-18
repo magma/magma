@@ -1704,12 +1704,11 @@ void mme_app_handle_initial_context_setup_rsp(
 }
 
 //------------------------------------------------------------------------------
-void mme_app_update_stats_for_all_bearers(struct ue_mm_context_s* ue_context_p, pdn_context_t* pdn_contexts) {
-  for (uint8_t bidx=0; bidx < BEARERS_PER_UE; bidx++) {
+void mme_app_update_stats_for_all_bearers(
+    struct ue_mm_context_s* ue_context_p, pdn_context_t* pdn_contexts) {
+  for (uint8_t bidx = 0; bidx < BEARERS_PER_UE; bidx++) {
     if (ue_context_p->bearer_contexts[pdn_contexts->bearer_contexts[bidx]]) {
       // Updating statistics for all the active bearers
-      OAILOG_ERROR(
-        LOG_MME_APP, "s1u_bearer_sub \n");
       update_mme_app_stats_s1u_bearer_sub();
     }
   }
@@ -1720,7 +1719,8 @@ void mme_app_update_stats_for_all_bearers(struct ue_mm_context_s* ue_context_p, 
 void mme_app_handle_release_access_bearers_resp(
     mme_app_desc_t* mme_app_desc_p,
     const itti_s11_release_access_bearers_response_t* const
-        rel_access_bearers_rsp_pP, task_id_t originTaskId) {
+        rel_access_bearers_rsp_pP,
+    task_id_t originTaskId) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   struct ue_mm_context_s* ue_context_p = NULL;
 
@@ -1734,22 +1734,27 @@ void mme_app_handle_release_access_bearers_resp(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
+  ue_context_p->nb_rabs--;
   if (originTaskId == TASK_SPGW) {
-    for (uint8_t itr=0; itr < MAX_APN_PER_UE; itr ++) {
-      if (ue_context_p->pdn_contexts[itr] && (!ue_context_p->pdn_contexts[itr]->route_s11_messages_to_s8_task)) {
-        mme_app_update_stats_for_all_bearers(ue_context_p, ue_context_p->pdn_contexts[itr]);
+    for (uint8_t itr = 0; itr < MAX_APN_PER_UE; itr++) {
+      if (ue_context_p->pdn_contexts[itr] &&
+          (!ue_context_p->pdn_contexts[itr]->route_s11_messages_to_s8_task)) {
+        mme_app_update_stats_for_all_bearers(
+            ue_context_p, ue_context_p->pdn_contexts[itr]);
       }
     }
   } else if (originTaskId == TASK_SGW_S8) {
-    for (uint8_t itr=0; itr < MAX_APN_PER_UE; itr ++) {
-      if (ue_context_p->pdn_contexts[itr] && (ue_context_p->pdn_contexts[itr]->route_s11_messages_to_s8_task)) {
-        mme_app_update_stats_for_all_bearers(ue_context_p, ue_context_p->pdn_contexts[itr]);
+    for (uint8_t itr = 0; itr < MAX_APN_PER_UE; itr++) {
+      if (ue_context_p->pdn_contexts[itr] &&
+          (ue_context_p->pdn_contexts[itr]->route_s11_messages_to_s8_task)) {
+        mme_app_update_stats_for_all_bearers(
+            ue_context_p, ue_context_p->pdn_contexts[itr]);
       }
     }
   }
 
-  // Send UE Context Release Command only after deleting all the s1u_bearers
-  if (mme_app_desc_p->nb_s1u_bearers) {
+  // Send UE Context Release Command after receiving RAB rsps from both tasks
+  if (ue_context_p->nb_rabs) {
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
