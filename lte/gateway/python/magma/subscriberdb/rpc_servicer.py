@@ -15,7 +15,7 @@ import logging
 from typing import NamedTuple
 
 import grpc
-from lte.protos import subscriberdb_pb2, subscriberdb_pb2_grpc, apn_pb2
+from lte.protos import apn_pb2, subscriberdb_pb2, subscriberdb_pb2_grpc
 from magma.common.rpc_utils import print_grpc, return_void
 from magma.common.sentry import (
     SentryStatus,

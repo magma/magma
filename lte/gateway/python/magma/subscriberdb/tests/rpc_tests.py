@@ -14,6 +14,7 @@ limitations under the License.
 import tempfile
 import unittest
 from concurrent import futures
+from unittest.mock import MagicMock
 
 import grpc
 from lte.protos.subscriberdb_pb2 import (
@@ -29,7 +30,6 @@ from magma.subscriberdb.rpc_servicer import (
 from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.sqlite import SqliteStore
 from orc8r.protos.common_pb2 import Void
-from unittest.mock import MagicMock
 
 
 class RpcTests(unittest.TestCase):
