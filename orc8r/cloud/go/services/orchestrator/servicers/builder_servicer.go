@@ -227,9 +227,10 @@ func getNetworkSentryConfig(network *configurator.Network) *mconfig_protos.Share
 		return nil
 	}
 	return &mconfig_protos.SharedSentryConfig{
-		SampleRate:   swag.Float32Value(sentryConfig.SampleRate),
-		UploadMmeLog: sentryConfig.UploadMmeLog,
-		DsnNative:    string(sentryConfig.URLNative),
-		DsnPython:    string(sentryConfig.URLPython),
+		SampleRate:        swag.Float32Value(sentryConfig.SampleRate),
+		UploadMmeLog:      sentryConfig.UploadMmeLog,
+		DsnNative:         string(sentryConfig.URLNative),
+		DsnPython:         string(sentryConfig.URLPython),
+		ExclusionPatterns: sentryConfig.ExclusionPatterns,
 	}
 }

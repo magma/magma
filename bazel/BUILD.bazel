@@ -9,4 +9,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# empty build file to make tools/build_defs into a package
+load(":python_toolchain.bzl", "configure_python_toolchain")
+
+configure_python_toolchain()
