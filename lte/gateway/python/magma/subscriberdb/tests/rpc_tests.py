@@ -49,7 +49,7 @@ class RpcTests(unittest.TestCase):
         port = self._rpc_server.add_insecure_port('0.0.0.0:0')
 
         # Add the servicer
-        self._servicer = SubscriberDBRpcServicer(store, MagicMock())
+        self._servicer = SubscriberDBRpcServicer(store=store, lte_processor=MagicMock())
         self._servicer.add_to_server(self._rpc_server)
         self._rpc_server.start()
 
