@@ -59,6 +59,7 @@ class GetParamsTestCase(EnodebHandlerTestCase):
 
     @staticmethod
     def _prepare_desired_cfg_for_sm(sm):
+        sm.device_cfg.set_parameter(ParameterName.SERIAL_NUMBER, '120200024019APP0105')
         return build_desired_config(
             sm.mconfig,
             sm.service_config,

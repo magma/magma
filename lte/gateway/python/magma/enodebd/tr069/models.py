@@ -308,6 +308,17 @@ class Reboot(Tr069ComplexModel):
     _type_info["CommandKey"] = CommandKeyType
 
 
+class FactoryReset(Tr069ComplexModel):
+    """ no input parameters. This field is never sent by CPE """
+    pass
+
+
+class FactoryResetResponse(Tr069ComplexModel):
+    """ no input parameters. This field is never sent by CPE """
+    _type_info = odict()
+    _type_info["DummyField"] = UnsignedInteger
+
+
 class RebootResponse(Tr069ComplexModel):
     # Dummy field required because spyne does not allow 'bare' RPC function with
     # no input parameters. This field is never sent by CPE.

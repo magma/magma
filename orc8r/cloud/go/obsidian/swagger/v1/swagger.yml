@@ -7927,6 +7927,7 @@ definitions:
         enum:
         - Baicells Nova-233 G2 OD FDD
         - Baicells Nova-243 OD TDD
+        - Baicells Nova-436q TDD
         - Baicells Neutrino 224 ID FDD
         - Baicells ID TDD/FDD
         - NuRAN Cavium OC-LTE
@@ -7945,6 +7946,8 @@ definitions:
         maximum: 503
         minimum: 0
         type: integer
+      power_control:
+        $ref: '#/definitions/power_control'
       special_subframe_pattern:
         example: 7
         format: uint32
@@ -7963,6 +7966,11 @@ definitions:
         type: integer
       transmit_enabled:
         example: true
+        type: boolean
+      x2_enable_disable:
+        default: false
+        description: X2 status.
+        example: false
         type: boolean
     required:
     - cell_id
@@ -10863,6 +10871,37 @@ definitions:
     required:
     - token
     - policies
+    type: object
+  power_control:
+    description: Config power control for enodeB.
+    properties:
+      pa:
+        description: the value from -600, -477, -300, -177, 0, 100, 200, or 300.
+        example: 0
+        format: int32
+        type: integer
+      pb:
+        description: the parameter pb will set from 0,1,2,3
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        example: 0
+        format: uint32
+        type: integer
+      power_class:
+        description: the power level.
+        example: 20
+        format: uint32
+        type: integer
+      reference_signal_power:
+        description: specified in dBm, with a numeric range between -60 and 50 inclusive.
+        example: 30
+        format: int32
+        maximum: 50
+        minimum: -60
+        type: integer
     type: object
   prom_alert_config:
     properties:

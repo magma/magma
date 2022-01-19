@@ -10,13 +10,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Type
 
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult
 from magma.common.service import MagmaService
 from magma.enodebd.data_models import transform_for_magma
 from magma.enodebd.data_models.data_model import DataModel, TrParam
 from magma.enodebd.data_models.data_model_parameters import (
+    BaicellsParameterName,
     ParameterName,
     TrParameterType,
 )
@@ -52,9 +53,11 @@ from magma.enodebd.state_machines.enb_acs_states import (
     GetObjectParametersState,
     GetParametersState,
     NotifyDPState,
+    SendFactoryResetState,
     SendGetTransientParametersState,
     SetParameterValuesState,
     WaitEmptyMessageState,
+    WaitFactoryResetResponseState,
     WaitGetObjectParametersState,
     WaitGetParametersState,
     WaitGetTransientParametersState,
@@ -86,6 +89,13 @@ class BaicellsQRTBHandler(BasicEnodebAcsStateMachine):
         Transition to 'reboot' state
         """
         self.transition('reboot')
+
+    def factory_reset_asap(self) -> None:
+        """
+        Impl to send a request to factoryRest the eNodeB ASAP
+        The eNB will factory reset from this method.
+        """
+        self.transition('factory_reset')
 
     def is_enodeb_connected(self) -> bool:
         """
@@ -150,6 +160,9 @@ class BaicellsQRTBHandler(BasicEnodebAcsStateMachine):
                 self, when_done='get_transient_params',
                 when_missing='check_optional_params',
             ),
+            'factory_reset': SendFactoryResetState(self, when_done='wait_factory_reset'),
+            'wait_factory_reset': WaitFactoryResetResponseState(self, when_done='wait_inform'),
+
             # The states below are entered when an unexpected message type is
             # received
             'unexpected_fault': ErrorState(self, inform_transition_target='wait_inform'),
@@ -166,7 +179,7 @@ class BaicellsQRTBHandler(BasicEnodebAcsStateMachine):
         return EnodebDeviceName.BAICELLS_QRTB
 
     @property
-    def data_model_class(self) -> DataModel:
+    def data_model_class(self) -> Type[DataModel]:
         """
         Return the class of the data model
 
@@ -501,6 +514,20 @@ class BaicellsQRTBTrDataModel(DataModel):
             type=TrParameterType.BOOLEAN, is_optional=False,
         ),
 
+        # RAN parameters
+        ParameterName.CELL_RESERVED: TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.CellRestriction.CellReservedForOperatorUse', is_invasive=False,
+            type=TrParameterType.BOOLEAN, is_optional=False,
+        ),
+        ParameterName.CELL_BARRED: TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.CellRestriction.CellBarred', is_invasive=True,
+            type=TrParameterType.BOOLEAN, is_optional=False,
+        ),
+        BaicellsParameterName.X2_ENABLE_DISABLE: TrParam(
+            path=FAPSERVICE_PATH + 'X_COM.LTE.EnableX2', is_invasive=True,
+            type=TrParameterType.BOOLEAN, is_optional=False,
+        ),
+
         # Core network parameters
         ParameterName.MME_IP: TrParam(
             path=FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkServerList',
@@ -576,6 +603,24 @@ class BaicellsQRTBTrDataModel(DataModel):
             path=DEVICE_PATH + 'DeviceInfo.SAS.RadioEnable', is_invasive=False,
             type=TrParameterType.BOOLEAN, is_optional=False,
         ),
+
+        # Radio Power config
+        BaicellsParameterName.REFERENCE_SIGNAL_POWER: TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.ReferenceSignalPower', is_invasive=True,
+            type=TrParameterType.INT, is_optional=False,
+        ),
+        BaicellsParameterName.POWER_CLASS: TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.X_COM_MaxTxPowerExpanded', is_invasive=True,
+            type=TrParameterType.UNSIGNED_INT, is_optional=False,
+        ),
+        BaicellsParameterName.PA: TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.PHY.PDSCH.Pa', is_invasive=True,
+            type=TrParameterType.INT, is_optional=False,
+        ),
+        BaicellsParameterName.PB: TrParam(
+            path=FAPSERVICE_PATH + 'CellConfig.LTE.RAN.PHY.PDSCH.Pb', is_invasive=True,
+            type=TrParameterType.UNSIGNED_INT, is_optional=False,
+        ),
     }
 
     NUM_PLMNS_IN_CONFIG = 6
@@ -605,6 +650,10 @@ class BaicellsQRTBTrDataModel(DataModel):
             is_optional=False,
         )
 
+    TRANSFORMS_FOR_ENB = {
+        ParameterName.DL_BANDWIDTH: calc_bandwidth_rbs,
+        ParameterName.UL_BANDWIDTH: calc_bandwidth_rbs,
+    }
     TRANSFORMS_FOR_MAGMA = {
         # We don't set GPS, so we don't need transform for enb
         ParameterName.GPS_LAT: transform_for_magma.gps_tr181,
@@ -632,7 +681,7 @@ class BaicellsQRTBTrDataModel(DataModel):
 
     @classmethod
     def _get_enb_transforms(cls) -> Dict[ParameterName, Callable[[Any], Any]]:
-        return {}
+        return cls.TRANSFORMS_FOR_ENB
 
     @classmethod
     def get_load_parameters(cls) -> List[ParameterName]:

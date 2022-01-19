@@ -377,13 +377,15 @@ export type enodeb_config = {
 export type enodeb_configuration = {
     bandwidth_mhz ? : 3 | 5 | 10 | 15 | 20,
     cell_id: number,
-    device_class: "Baicells Nova-233 G2 OD FDD" | "Baicells Nova-243 OD TDD" | "Baicells Neutrino 224 ID FDD" | "Baicells ID TDD/FDD" | "NuRAN Cavium OC-LTE" | "FreedomFi One",
+    device_class: "Baicells Nova-233 G2 OD FDD" | "Baicells Nova-243 OD TDD" | "Baicells Nova-436q TDD" | "Baicells Neutrino 224 ID FDD" | "Baicells ID TDD/FDD" | "NuRAN Cavium OC-LTE" | "FreedomFi One",
     earfcndl ? : number,
     pci ? : number,
+    power_control ? : power_control,
     special_subframe_pattern ? : number,
     subframe_assignment ? : number,
     tac ? : number,
     transmit_enabled: boolean,
+    x2_enable_disable ? : boolean,
 };
 export type enodeb_serials = Array < string >
 ;
@@ -1225,6 +1227,12 @@ export type policy_rule_config = {
 export type policyList = {
     policies: policies,
     token: string,
+};
+export type power_control = {
+    pa ? : number,
+    pb ? : 0 | 1 | 2 | 3,
+    power_class ? : number,
+    reference_signal_power ? : number,
 };
 export type prom_alert_config = {
     alert: string,

@@ -20,7 +20,10 @@ from magma.common.misc_utils import get_ip_from_if
 from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfig_managers import load_service_mconfig_as_json
 from magma.enodebd.data_models.data_model import DataModel
-from magma.enodebd.data_models.data_model_parameters import ParameterName
+from magma.enodebd.data_models.data_model_parameters import (
+    BaicellsParameterName,
+    ParameterName,
+)
 from magma.enodebd.device_config.enodeb_config_postprocessor import (
     EnodebConfigurationPostProcessor,
 )
@@ -48,6 +51,7 @@ SingleEnodebConfig = namedtuple(
         'bandwidth_mhz', 'cell_id',
         'allow_enodeb_transmit',
         'mme_address', 'mme_port',
+        'x2_enable_disable', 'power_control',
     ],
 )
 
@@ -84,8 +88,7 @@ def build_desired_config(
     _set_management_server(cfg_desired)
 
     # Attempt to load device configuration from YANG before service mconfig
-    enb_config = _get_enb_yang_config(device_config) or \
-                 _get_enb_config(mconfig, device_config)
+    enb_config = _get_enb_yang_config(device_config) or _get_enb_config(mconfig, device_config)
 
     _set_earfcn_freq_band_mode(
         device_config, cfg_desired, data_model,
@@ -101,6 +104,8 @@ def build_desired_config(
     _set_plmnids_tac(cfg_desired, enb_config.plmnid_list, enb_config.tac)
     _set_bandwidth(cfg_desired, data_model, enb_config.bandwidth_mhz)
     _set_cell_id(cfg_desired, enb_config.cell_id)
+    _set_power_control_config(cfg_desired, enb_config.power_control)
+    _set_algorithm_x2_enable_disable(cfg_desired, data_model, enb_config.x2_enable_disable)
     _set_perf_mgmt(
         cfg_desired,
         get_ip_from_if(service_config['tr069']['interface']),
@@ -186,6 +191,8 @@ def _get_enb_config(
         device_config: EnodebConfiguration,
 ) -> SingleEnodebConfig:
     # For fields that are specified per eNB
+    power_control_config = None
+    x2_enable_disable = None
     if mconfig.enb_configs_by_serial is not None and \
             len(mconfig.enb_configs_by_serial) > 0:
         enb_serial = \
@@ -198,6 +205,9 @@ def _get_enb_config(
             tac = enb_config.tac
             bandwidth_mhz = enb_config.bandwidth_mhz
             cell_id = enb_config.cell_id
+            x2_enable_disable = enb_config.x2_enable_disable
+            if enb_config.power_control:
+                power_control_config = enb_config.power_control
             duplex_mode = map_earfcndl_to_duplex_mode(earfcndl)
             subframe_assignment = None
             special_subframe_pattern = None
@@ -245,6 +255,8 @@ def _get_enb_config(
         allow_enodeb_transmit=allow_enodeb_transmit,
         mme_address=None,
         mme_port=None,
+        power_control=power_control_config,
+        x2_enable_disable=x2_enable_disable,
     )
     return single_enodeb_config
 
@@ -260,6 +272,43 @@ def _set_pci(
     if pci not in range(0, 504 + 1):
         raise ConfigurationError('Invalid PCI (%d)' % pci)
     cfg.set_parameter(ParameterName.PCI, pci)
+
+
+def _set_power_control_config(
+        cfg: EnodebConfiguration,
+        power_control_config: Any,
+) -> None:
+    """
+    Set the following pararmeters:
+     - cfg
+     - power_control_config
+    """
+    if power_control_config:
+        if power_control_config.reference_signal_power:
+            cfg.set_parameter(BaicellsParameterName.REFERENCE_SIGNAL_POWER, power_control_config.reference_signal_power)
+        if power_control_config.power_class:
+            cfg.set_parameter(BaicellsParameterName.POWER_CLASS, power_control_config.power_class)
+        if power_control_config.pa:
+            cfg.set_parameter(BaicellsParameterName.PA, power_control_config.pa)
+        if power_control_config.pb:
+            cfg.set_parameter(BaicellsParameterName.PB, power_control_config.pb)
+
+
+def _set_algorithm_x2_enable_disable(
+        cfg: EnodebConfiguration,
+        data_model: DataModel,
+        x2_enable_disable: Any,
+) -> None:
+    """
+    Set the following parameters:
+     - x2_enable_disable
+     - cfg
+    """
+    if x2_enable_disable is not None:
+        _set_param_if_present(
+            cfg, data_model, BaicellsParameterName.X2_ENABLE_DISABLE,
+            x2_enable_disable,
+        )
 
 
 def _set_bandwidth(
@@ -371,8 +420,7 @@ def _set_perf_mgmt(
      - Perf mgmt upload URL
     """
     cfg.set_parameter(ParameterName.PERF_MGMT_ENABLE, True)
-    # Upload interval supported values (in secs):
-    # [60, 300, 900, 1800, 3600]
+    # Upload interval supported values (in secs): [60, 300, 900, 1800, 3600]
     # Note: eNodeB crashes have been experienced with 60-sec interval.
     # Hence using 300sec
     cfg.set_parameter(

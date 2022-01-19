@@ -30,7 +30,7 @@ type EnodebConfiguration struct {
 
 	// device class
 	// Required: true
-	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells Neutrino 224 ID FDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE FreedomFi One]
+	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells Nova-436q TDD Baicells Neutrino 224 ID FDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE FreedomFi One]
 	DeviceClass string `json:"device_class"`
 
 	// earfcndl
@@ -40,6 +40,9 @@ type EnodebConfiguration struct {
 	// Maximum: 503
 	// Minimum: > 0
 	Pci uint32 `json:"pci,omitempty"`
+
+	// power control
+	PowerControl *PowerControl `json:"power_control,omitempty"`
 
 	// special subframe pattern
 	// Maximum: 9
@@ -57,6 +60,9 @@ type EnodebConfiguration struct {
 	// transmit enabled
 	// Required: true
 	TransmitEnabled *bool `json:"transmit_enabled"`
+
+	// X2 status.
+	X2EnableDisable *bool `json:"x2_enable_disable,omitempty"`
 }
 
 // Validate validates this enodeb configuration
@@ -76,6 +82,10 @@ func (m *EnodebConfiguration) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validatePci(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validatePowerControl(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -152,7 +162,7 @@ var enodebConfigurationTypeDeviceClassPropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells Neutrino 224 ID FDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE","FreedomFi One"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells Nova-436q TDD","Baicells Neutrino 224 ID FDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE","FreedomFi One"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -167,6 +177,9 @@ const (
 
 	// EnodebConfigurationDeviceClassBaicellsNova243ODTDD captures enum value "Baicells Nova-243 OD TDD"
 	EnodebConfigurationDeviceClassBaicellsNova243ODTDD string = "Baicells Nova-243 OD TDD"
+
+	// EnodebConfigurationDeviceClassBaicellsNova436qTDD captures enum value "Baicells Nova-436q TDD"
+	EnodebConfigurationDeviceClassBaicellsNova436qTDD string = "Baicells Nova-436q TDD"
 
 	// EnodebConfigurationDeviceClassBaicellsNeutrino224IDFDD captures enum value "Baicells Neutrino 224 ID FDD"
 	EnodebConfigurationDeviceClassBaicellsNeutrino224IDFDD string = "Baicells Neutrino 224 ID FDD"
@@ -215,6 +228,24 @@ func (m *EnodebConfiguration) validatePci(formats strfmt.Registry) error {
 
 	if err := validate.MaximumInt("pci", "body", int64(m.Pci), 503, false); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validatePowerControl(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.PowerControl) { // not required
+		return nil
+	}
+
+	if m.PowerControl != nil {
+		if err := m.PowerControl.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("power_control")
+			}
+			return err
+		}
 	}
 
 	return nil

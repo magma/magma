@@ -78,6 +78,14 @@ def reboot_all_enodeb(client, args):
 
 
 @grpc_wrapper
+def factory_reset_enodeb(client, args):
+    """ impl the command line method Send FactoryReset requeset to CPE """
+    req = EnodebIdentity()
+    req.device_serial = args.device_serial
+    client.FactoryReset(req)
+
+
+@grpc_wrapper
 def get_status(client, args):
     """ Get status information of enodebd service """
     def print_status_param(enb_status, name, readable_name):
@@ -264,6 +272,12 @@ def create_parser():
     parser_get_enb_status.add_argument(
         'device_serial', help='eNodeB Serial ID',
     )
+    parser_factory_reset_enodeb = subparsers.add_parser(
+        'factory_reset_enodeb', help='Factory Reset eNodeb',
+    )
+    parser_factory_reset_enodeb.add_argument(
+        'device_serial', help='eNodeB Serial ID',
+    )
 
     # Add function callbacks
     parser_get_parameter.set_defaults(func=get_parameter)
@@ -274,6 +288,7 @@ def create_parser():
     parser_get_status.set_defaults(func=get_status)
     parser_get_all_status.set_defaults(func=get_all_status)
     parser_get_enb_status.set_defaults(func=get_enb_status)
+    parser_factory_reset_enodeb.set_defaults(func=factory_reset_enodeb)
     return parser
 
 

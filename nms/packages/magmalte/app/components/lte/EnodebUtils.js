@@ -16,12 +16,14 @@
 
 import type {enodeb, enodeb_state} from '../../../generated/MagmaAPIBindings';
 import type {enodeb_configuration} from '../../../generated/MagmaAPIBindings';
+import type {power_control} from '../../../generated/MagmaAPIBindings';
 
 export const EnodebDeviceClass: {
   [string]: $PropertyType<enodeb_configuration, 'device_class'>,
 } = Object.freeze({
   BAICELLS_NOVA_233_2_OD_FDD: 'Baicells Nova-233 G2 OD FDD',
   BAICELLS_NOVA_243_OD_TDD: 'Baicells Nova-243 OD TDD',
+  Baicells_Nova_436q_TDD: 'Baicells Nova-436q TDD',
   BAICELLS_NEUTRINO_224_ID_FDD: 'Baicells Neutrino 224 ID FDD',
   BAICELLS_ID: 'Baicells ID TDD/FDD',
   NURAN_CAVIUM_OC_LTE: 'NuRAN Cavium OC-LTE',
@@ -36,6 +38,15 @@ export const EnodebBandwidthOption: {
   '10': 10,
   '15': 15,
   '20': 20,
+});
+
+export const EnodebPowerControlPBOption: {
+  [string]: $NonMaybeType<$PropertyType<power_control, 'pb'>>,
+} = Object.freeze({
+  '0': 0,
+  '1': 1,
+  '2': 2,
+  '3': 3,
 });
 
 export type EnodebInfo = {

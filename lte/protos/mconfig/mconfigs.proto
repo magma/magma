@@ -74,6 +74,24 @@ message EnodebD {
         int32 tac = 8;
         int32 cell_id = 9;
         string ip_address = 10;
+        PowerControl power_control = 11;
+        // X2 Status
+        bool x2_enable_disable = 12;
+        message PowerControl {
+          // Comma-separated list (maximum list length 512) (at least 1 items)
+          // of strings. Each item is a downlink reference-signal transmit
+          // power, specified in dBm, with a numeric range between -60 and
+          // 50 inclusive.
+          int32 reference_signal_power = 1;
+          // Power level
+          uint32 power_class = 2;
+          // Comma-separated list (maximum list length 32) (at least 1 items)
+          // of strings.
+          uint32 pb = 3;
+          // Comma-separated list (maximum list length 64) (at least 1 items)
+          // of integers (value -600, -477, -300, -177, 0, 100, 200, or 300)
+          int32 pa = 4;
+        }
     }
 
     orc8r.LogLevel log_level = 1;

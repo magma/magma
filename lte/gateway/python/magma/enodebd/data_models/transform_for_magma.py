@@ -20,7 +20,7 @@ DUPLEX_MAP = {
     '01': 'TDDMode',
     '02': 'FDDMode',
 }
-
+# the 436q BandWith from enb will return a number, not 'nxx'.
 BANDWIDTH_RBS_TO_MHZ_MAP = {
     'n6': 1.4,
     'n15': 3,
