@@ -25,3 +25,6 @@ wrapt
 # unit test requirements
 fakeredis
 freezegun
+pytest
+pytest-cov
+coverage-lcov

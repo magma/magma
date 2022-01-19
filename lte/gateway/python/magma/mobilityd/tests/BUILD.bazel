@@ -1,0 +1,83 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("//bazel:python_test.bzl", "pytest_test")
+load("//bazel:test_constants.bzl", "TAG_SUDO_TEST")
+
+COMMON_TEST_DEPS = [
+    requirement("pytest"),
+    requirement("pytest-cov"),
+    requirement("coverage-lcov"),
+    "//lte/gateway/python/magma/mobilityd:mobilityd",
+]
+
+pytest_test(
+    name = "ip_alloc_dhcp_test",
+    srcs = ["ip_alloc_dhcp_test.py"],
+    tags = TAG_SUDO_TEST,
+    deps = COMMON_TEST_DEPS + [
+        requirement("fakeredis"),
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+    ],
+)
+
+pytest_test(
+    name = "ip_allocator_dhcp_mac_addr_test",
+    srcs = ["ip_allocator_dhcp_mac_addr_test.py"],
+    deps = COMMON_TEST_DEPS + [requirement("fakeredis")],
+)
+
+pytest_test(
+    name = "test_dhcp_client",
+    srcs = ["test_dhcp_client.py"],
+    tags = TAG_SUDO_TEST,
+    deps = COMMON_TEST_DEPS + [
+        requirement("freezegun"),
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+    ],
+)
+
+pytest_test(
+    name = "test_ipv6_allocator",
+    srcs = ["test_ipv6_allocator.py"],
+    deps = COMMON_TEST_DEPS + [requirement("fakeredis")],
+)
+
+pytest_test(
+    name = "test_multi_apn_ip_alloc",
+    srcs = ["test_multi_apn_ip_alloc.py"],
+    deps = COMMON_TEST_DEPS + [requirement("fakeredis")],
+)
+
+pytest_test(
+    name = "test_static_ip_alloc",
+    srcs = ["test_static_ip_alloc.py"],
+    deps = COMMON_TEST_DEPS + [":test_multi_apn_ip_alloc"],
+)
+
+pytest_test(
+    name = "test_static_ipv6_alloc",
+    srcs = ["test_static_ipv6_alloc.py"],
+    deps = COMMON_TEST_DEPS + [":test_multi_apn_ip_alloc"],
+)
+
+pytest_test(
+    name = "test_uplink_gw",
+    srcs = ["test_uplink_gw.py"],
+    deps = COMMON_TEST_DEPS,
+)
+
+pytest_test(
+    name = "ip_allocator_tests",
+    srcs = ["ip_allocator_tests.py"],
+    deps = COMMON_TEST_DEPS + [requirement("fakeredis")],
+)
