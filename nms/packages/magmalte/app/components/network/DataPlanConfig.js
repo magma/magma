@@ -44,6 +44,7 @@ import {
   BITRATE_MULTIPLIER,
   DATA_PLAN_UNLIMITED_RATES,
   DEFAULT_DATA_PLAN_ID,
+  ONE_GB_TO_MB,
 } from './DataPlanConst';
 
 const useStyles = makeStyles((theme: Theme) => ({

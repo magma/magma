@@ -27,6 +27,7 @@ import {
   FormGroup,
   InputAdornment,
   TextField,
+  ONE_GB_TO_MB,
 } from '@material-ui/core';
 
 import nullthrows from '@fbcnms/util/nullthrows';
