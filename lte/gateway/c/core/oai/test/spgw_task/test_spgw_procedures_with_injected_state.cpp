@@ -176,8 +176,7 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
 
   int test_mme_s11_teid = 4;
   int test_bearer_index = 5;
-  in_addr_t test_ue_ip  = 0x05030201;
-  in_addr_t test_ue_ip2 = 0x0d80a8c0;
+  in_addr_t test_ue_ip  = 0x0d80a8c0;
   std::vector<std::string> name_of_ue_samples;
 };
 
@@ -194,7 +193,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
            .pdn_connection,
       DEFAULT_EPS_BEARER_ID);
 
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == test_ue_ip2);
+  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == test_ue_ip);
 
   // verify that exactly one session exists in SPGW state
   ASSERT_TRUE(is_num_sessions_valid(test_imsi64, name_of_ue_samples.size(), 1));
