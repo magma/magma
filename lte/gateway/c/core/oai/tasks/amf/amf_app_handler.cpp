@@ -307,202 +307,202 @@ imsi64_t amf_app_handle_initial_ue_message(
   s_tmsi_m5_t s_tmsi                = {0};
   amf_ue_ngap_id_t amf_ue_ngap_id   = INVALID_AMF_UE_NGAP_ID;
 
-if (initial_pP->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
-OAILOG_ERROR(
-LOG_AMF_APP,
-"AMF UE NGAP Id (" AMF_UE_NGAP_ID_FMT ") is already assigned\n",
-initial_pP->amf_ue_ngap_id);
-}
+  if (initial_pP->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "AMF UE NGAP Id (" AMF_UE_NGAP_ID_FMT ") is already assigned\n",
+        initial_pP->amf_ue_ngap_id);
+  }
 
-// Check if there is any existing UE context using S-TMSI/GUTI
-if (initial_pP->is_s_tmsi_valid) {
-/* This check is not used in this PR and code got changed in upcoming PRs
-* hence not-used functions are take out
-*/
-OAILOG_DEBUG(
-LOG_AMF_APP,
-"INITIAL UE Message: Valid amf_set_id and S-TMSI received ");
-guti.guamfi.plmn         = {0};
-guti.guamfi.amf_regionid = 0;
-guti.guamfi.amf_set_id   = 0;
-guti.guamfi.amf_pointer  = 0;
-guti.m_tmsi              = INVALID_M_TMSI;
-plmn.mcc_digit1          = initial_pP->tai.plmn.mcc_digit1;
-plmn.mcc_digit2          = initial_pP->tai.plmn.mcc_digit2;
-plmn.mcc_digit3          = initial_pP->tai.plmn.mcc_digit3;
-plmn.mnc_digit1          = initial_pP->tai.plmn.mnc_digit1;
-plmn.mnc_digit2          = initial_pP->tai.plmn.mnc_digit2;
-plmn.mnc_digit3          = initial_pP->tai.plmn.mnc_digit3;
-is_guti_valid =
-amf_app_construct_guti(&plmn, &(initial_pP->opt_s_tmsi), &guti);
-// create a new ue context if nothing is found
-if (is_guti_valid) {
-ue_context_p =
-  amf_ue_context_exists_guti(&amf_app_desc_p->amf_ue_contexts, &guti);
-if (ue_context_p) {
-initial_pP->amf_ue_ngap_id = ue_context_p->amf_ue_ngap_id;
-if (ue_context_p->gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) {
+  // Check if there is any existing UE context using S-TMSI/GUTI
+  if (initial_pP->is_s_tmsi_valid) {
+    /* This check is not used in this PR and code got changed in upcoming PRs
+     * hence not-used functions are take out
+     */
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        "INITIAL UE Message: Valid amf_set_id and S-TMSI received ");
+    guti.guamfi.plmn         = {0};
+    guti.guamfi.amf_regionid = 0;
+    guti.guamfi.amf_set_id   = 0;
+    guti.guamfi.amf_pointer  = 0;
+    guti.m_tmsi              = INVALID_M_TMSI;
+    plmn.mcc_digit1          = initial_pP->tai.plmn.mcc_digit1;
+    plmn.mcc_digit2          = initial_pP->tai.plmn.mcc_digit2;
+    plmn.mcc_digit3          = initial_pP->tai.plmn.mcc_digit3;
+    plmn.mnc_digit1          = initial_pP->tai.plmn.mnc_digit1;
+    plmn.mnc_digit2          = initial_pP->tai.plmn.mnc_digit2;
+    plmn.mnc_digit3          = initial_pP->tai.plmn.mnc_digit3;
+    is_guti_valid =
+        amf_app_construct_guti(&plmn, &(initial_pP->opt_s_tmsi), &guti);
+    // create a new ue context if nothing is found
+    if (is_guti_valid) {
+      ue_context_p =
+          amf_ue_context_exists_guti(&amf_app_desc_p->amf_ue_contexts, &guti);
+      if (ue_context_p) {
+        initial_pP->amf_ue_ngap_id = ue_context_p->amf_ue_ngap_id;
+        if (ue_context_p->gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) {
+          /*
+           * Ideally this should never happen. When UE moves to IDLE,
+           * this key is set to INVALID.
+           * Note - This can happen if eNB detects RLF late and by that time
+           * UE sends Initial NAS message via new RRC connection.
+           * However if this key is valid, remove the key from the hashtable.
+           */
+          OAILOG_ERROR(
+              LOG_AMF_APP,
+              "AMF_APP_INITAIL_UE_MESSAGE: gnb_ngap_id_key %ld has "
+              "valid value \n",
+              ue_context_p->gnb_ngap_id_key);
+          ue_context_release_command(
+              ue_context_p->amf_ue_ngap_id, ue_context_p->gnb_ue_ngap_id,
+              NGAP_NAS_NORMAL_RELEASE);
+          amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.remove(
+              ue_context_p->gnb_ngap_id_key);
+          ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
+        }
+
+        /* remove amf_ngap_ud_id entry from ue context */
+        amf_remove_ue_context(ue_context_p);
+
+        // Update AMF UE context with new gnb_ue_ngap_id
+        ue_context_p->gnb_ue_ngap_id = initial_pP->gnb_ue_ngap_id;
+
+        AMF_APP_GNB_NGAP_ID_KEY(
+            gnb_ngap_id_key, initial_pP->gnb_id, initial_pP->gnb_ue_ngap_id);
+
+        // generate new amf_ngap_ue_id
+        amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
+            &amf_app_desc_p->amf_app_ue_ngap_id_generator);
+
+        amf_ue_context_update_coll_keys(
+            &amf_app_desc_p->amf_ue_contexts, ue_context_p, gnb_ngap_id_key,
+            amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
+            ue_context_p->amf_teid_n11, &guti);
+
+        amf_insert_ue_context(ue_context_p->amf_ue_ngap_id, ue_context_p);
+        imsi64 = ue_context_p->amf_context.imsi64;
+      }
+    } else {
+      // TODO This piece of code got changed in upcoming PRs with feature
+      // like Service Req and Periodic Reg Updating.
+    }
+  } else {
+    OAILOG_DEBUG(
+        LOG_AMF_APP, "AMF_APP_INITIAL_UE_MESSAGE from NGAP,without S-TMSI. \n");
+  }
+
+  /* Five_G_TMSI not configured */
+  if (ue_context_p == NULL) {
+    /* Check if Context can be found by GNB UE ID */
+    ue_context_p = ue_context_lookup_by_gnb_ue_id(initial_pP->gnb_ue_ngap_id);
+
+    /* Make sure its with same connection */
+    if (ue_context_p &&
+        (initial_pP->sctp_assoc_id != ue_context_p->sctp_assoc_id_key)) {
+      ue_context_p = NULL;
+    }
+  }
+
   /*
-   * Ideally this should never happen. When UE moves to IDLE,
-   * this key is set to INVALID.
-   * Note - This can happen if eNB detects RLF late and by that time
-   * UE sends Initial NAS message via new RRC connection.
-   * However if this key is valid, remove the key from the hashtable.
+   * UE Context already present in AMF. This can happen during PERIODIC
+   * Registration. Steps for Periodic Registration:
+   *   1. Context Setup and Guti established.
+   *   2. UEContext Release Sequence
+   *   3. InitialUEContextSetup Request from GNB with type as periodic
+   *      registration
    */
-  OAILOG_ERROR(
+  if (ue_context_p && ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
+    /* If NGAP is not aware of ue_id or fiveGTmsi Is received
+     * send the ue_id notification.
+     */
+    if ((initial_pP->amf_ue_ngap_id == INVALID_AMF_UE_NGAP_ID) ||
+        (initial_pP->is_s_tmsi_valid)) {
+      /* Sync data between AMF and NGAP */
+      if (initial_pP->sctp_assoc_id == ue_context_p->sctp_assoc_id_key) {
+        notify_ngap_new_ue_amf_ngap_id_association(ue_context_p);
+      }
+    }
+  }
+
+  // create a new ue context if nothing is found
+  if (ue_context_p == NULL) {
+    if (!(ue_context_p = amf_create_new_ue_context())) {
+      OAILOG_ERROR(LOG_AMF_APP, "Failed to create ue_m5gmm_context for ue \n");
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
+    }
+
+    // Allocate new amf_ue_ngap_id
+    ue_context_p->amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
+        &amf_app_desc_p->amf_app_ue_ngap_id_generator);
+
+    if (ue_context_p->amf_ue_ngap_id == INVALID_AMF_UE_NGAP_ID) {
+      OAILOG_ERROR(LOG_AMF_APP, "amf_ue_ngap_id allocation failed.\n");
+      amf_remove_ue_context(ue_context_p);
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
+    }
+
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        "Creating new ue_m5gmm_context: [%p]"
+        "for amf_ue_ngap_id: [" AMF_UE_NGAP_ID_FMT "]",
+        ue_context_p, ue_context_p->amf_ue_ngap_id);
+
+    AMF_APP_GNB_NGAP_ID_KEY(
+        ue_context_p->gnb_ngap_id_key, initial_pP->gnb_id,
+        initial_pP->gnb_ue_ngap_id);
+    amf_insert_ue_context(ue_context_p->amf_ue_ngap_id, ue_context_p);
+  }
+  ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
+  ue_context_p->gnb_ue_ngap_id    = initial_pP->gnb_ue_ngap_id;
+
+  // UEContextRequest
+  ue_context_p->ue_context_request = initial_pP->ue_context_request;
+  OAILOG_DEBUG(
+      LOG_AMF_APP, "UE context request received: %d\n ",
+      ue_context_p->ue_context_request);
+
+  notify_ngap_new_ue_amf_ngap_id_association(ue_context_p);
+  if (initial_pP->is_s_tmsi_valid) {
+    s_tmsi = initial_pP->opt_s_tmsi;
+  } else {
+    s_tmsi.amf_pointer = 0;
+    s_tmsi.m_tmsi      = INVALID_M_TMSI;
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        " Sending nas establishment indication to nas for ue_id = "
+        "(" AMF_UE_NGAP_ID_FMT ")",
+        ue_context_p->amf_ue_ngap_id);
+  }
+  is_mm_ctx_new = true;
+
+  OAILOG_DEBUG(
       LOG_AMF_APP,
-      "AMF_APP_INITAIL_UE_MESSAGE: gnb_ngap_id_key %ld has "
-      "valid value \n",
-      ue_context_p->gnb_ngap_id_key);
-  ue_context_release_command(
-      ue_context_p->amf_ue_ngap_id, ue_context_p->gnb_ue_ngap_id,
-      NGAP_NAS_NORMAL_RELEASE);
-  amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl.remove(
-      ue_context_p->gnb_ngap_id_key);
-  ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
-}
+      " Sending NAS Establishment Indication to NAS for ue_id = "
+      "(" AMF_UE_NGAP_ID_FMT ")",
+      ue_context_p->amf_ue_ngap_id);
 
-/* remove amf_ngap_ud_id entry from ue context */
-amf_remove_ue_context(ue_context_p);
+  amf_ue_ngap_id_t ue_id = ue_context_p->amf_ue_ngap_id;
 
-// Update AMF UE context with new gnb_ue_ngap_id
-ue_context_p->gnb_ue_ngap_id = initial_pP->gnb_ue_ngap_id;
+  nas_proc_establish_ind(
+      ue_context_p->amf_ue_ngap_id, is_mm_ctx_new, initial_pP->tai,
+      initial_pP->ecgi, initial_pP->m5g_rrc_establishment_cause, s_tmsi,
+      initial_pP->nas);
 
-AMF_APP_GNB_NGAP_ID_KEY(
-    gnb_ngap_id_key, initial_pP->gnb_id, initial_pP->gnb_ue_ngap_id);
+  initial_pP->nas = NULL;
 
-// generate new amf_ngap_ue_id
-amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
-    &amf_app_desc_p->amf_app_ue_ngap_id_generator);
+  /* In case duplicate attach handling, ue_context_p might be removed
+   * Before accessing ue_context_p, we shall validate whether UE context
+   * exists or not
+   */
+  if (ue_id != INVALID_AMF_UE_NGAP_ID) {
+    map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
+    if (amf_state_ue_id_ht.get(ue_id, &ue_context_p) == magma::MAP_OK) {
+      imsi64 = ue_context_p->amf_context.imsi64;
+    }
+  }
 
-amf_ue_context_update_coll_keys(
-    &amf_app_desc_p->amf_ue_contexts, ue_context_p, gnb_ngap_id_key,
-    amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
-    ue_context_p->amf_teid_n11, &guti);
-
-amf_insert_ue_context(ue_context_p->amf_ue_ngap_id, ue_context_p);
-imsi64 = ue_context_p->amf_context.imsi64;
-}
-} else {
-// TODO This piece of code got changed in upcoming PRs with feature
-// like Service Req and Periodic Reg Updating.
-}
-} else {
-OAILOG_DEBUG(
-LOG_AMF_APP, "AMF_APP_INITIAL_UE_MESSAGE from NGAP,without S-TMSI. \n");
-}
-
-/* Five_G_TMSI not configured */
-if (ue_context_p == NULL) {
-/* Check if Context can be found by GNB UE ID */
-ue_context_p = ue_context_lookup_by_gnb_ue_id(initial_pP->gnb_ue_ngap_id);
-
-/* Make sure its with same connection */
-if (ue_context_p &&
-(initial_pP->sctp_assoc_id != ue_context_p->sctp_assoc_id_key)) {
-ue_context_p = NULL;
-}
-}
-
-/*
-* UE Context already present in AMF. This can happen during PERIODIC
-* Registration. Steps for Periodic Registration:
-*   1. Context Setup and Guti established.
-*   2. UEContext Release Sequence
-*   3. InitialUEContextSetup Request from GNB with type as periodic
-*      registration
-*/
-if (ue_context_p && ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
-/* If NGAP is not aware of ue_id or fiveGTmsi Is received
-* send the ue_id notification.
-*/
-if ((initial_pP->amf_ue_ngap_id == INVALID_AMF_UE_NGAP_ID) ||
-(initial_pP->is_s_tmsi_valid)) {
-/* Sync data between AMF and NGAP */
-if (initial_pP->sctp_assoc_id == ue_context_p->sctp_assoc_id_key) {
-notify_ngap_new_ue_amf_ngap_id_association(ue_context_p);
-}
-}
-}
-
-// create a new ue context if nothing is found
-if (ue_context_p == NULL) {
-if (!(ue_context_p = amf_create_new_ue_context())) {
-OAILOG_ERROR(LOG_AMF_APP, "Failed to create ue_m5gmm_context for ue \n");
-OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
-}
-
-// Allocate new amf_ue_ngap_id
-ue_context_p->amf_ue_ngap_id = amf_app_ctx_get_new_ue_id(
-&amf_app_desc_p->amf_app_ue_ngap_id_generator);
-
-if (ue_context_p->amf_ue_ngap_id == INVALID_AMF_UE_NGAP_ID) {
-OAILOG_ERROR(LOG_AMF_APP, "amf_ue_ngap_id allocation failed.\n");
-amf_remove_ue_context(ue_context_p);
-OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
-}
-
-OAILOG_DEBUG(
-LOG_AMF_APP,
-"Creating new ue_m5gmm_context: [%p]"
-"for amf_ue_ngap_id: [" AMF_UE_NGAP_ID_FMT "]",
-ue_context_p, ue_context_p->amf_ue_ngap_id);
-
-AMF_APP_GNB_NGAP_ID_KEY(
-ue_context_p->gnb_ngap_id_key, initial_pP->gnb_id,
-initial_pP->gnb_ue_ngap_id);
-amf_insert_ue_context(ue_context_p->amf_ue_ngap_id, ue_context_p);
-}
-ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
-ue_context_p->gnb_ue_ngap_id    = initial_pP->gnb_ue_ngap_id;
-
-// UEContextRequest
-ue_context_p->ue_context_request = initial_pP->ue_context_request;
-OAILOG_DEBUG(
-LOG_AMF_APP, "UE context request received: %d\n ",
-ue_context_p->ue_context_request);
-
-notify_ngap_new_ue_amf_ngap_id_association(ue_context_p);
-if (initial_pP->is_s_tmsi_valid) {
-s_tmsi = initial_pP->opt_s_tmsi;
-} else {
-s_tmsi.amf_pointer = 0;
-s_tmsi.m_tmsi      = INVALID_M_TMSI;
-OAILOG_DEBUG(
-LOG_AMF_APP,
-" Sending nas establishment indication to nas for ue_id = "
-"(" AMF_UE_NGAP_ID_FMT ")",
-ue_context_p->amf_ue_ngap_id);
-}
-is_mm_ctx_new = true;
-
-OAILOG_DEBUG(
-LOG_AMF_APP,
-" Sending NAS Establishment Indication to NAS for ue_id = "
-"(" AMF_UE_NGAP_ID_FMT ")",
-ue_context_p->amf_ue_ngap_id);
-
-amf_ue_ngap_id_t ue_id = ue_context_p->amf_ue_ngap_id;
-
-nas_proc_establish_ind(
-ue_context_p->amf_ue_ngap_id, is_mm_ctx_new, initial_pP->tai,
-initial_pP->ecgi, initial_pP->m5g_rrc_establishment_cause, s_tmsi,
-initial_pP->nas);
-
-initial_pP->nas = NULL;
-
-/* In case duplicate attach handling, ue_context_p might be removed
-* Before accessing ue_context_p, we shall validate whether UE context
-* exists or not
-*/
-if (ue_id != INVALID_AMF_UE_NGAP_ID) {
-map_uint64_ue_context_t amf_state_ue_id_ht = get_amf_ue_state();
-if (amf_state_ue_id_ht.get(ue_id, &ue_context_p) == magma::MAP_OK) {
-imsi64 = ue_context_p->amf_context.imsi64;
-}
-}
-
-OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
 }
 
 /****************************************************************************
@@ -518,144 +518,144 @@ OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
 **                                                                        **
 ***************************************************************************/
 int amf_app_handle_uplink_nas_message(
-amf_app_desc_t* amf_app_desc_p, bstring msg, amf_ue_ngap_id_t ue_id,
-const tai_t originating_tai) {
-OAILOG_FUNC_IN(LOG_NAS_AMF);
+    amf_app_desc_t* amf_app_desc_p, bstring msg, amf_ue_ngap_id_t ue_id,
+    const tai_t originating_tai) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
 
-int rc = RETURNerror;
-if (msg) {
-amf_sap_t amf_sap = {};
-/*
-* Notify the AMF procedure call manager that data transfer
-* indication has been received from the Access-Stratum sublayer
-*/
-amf_sap.primitive                    = AMFAS_ESTABLISH_REQ;
-amf_sap.u.amf_as.u.establish.ue_id   = ue_id;
-amf_sap.u.amf_as.u.establish.nas_msg = msg;
-amf_sap.u.amf_as.u.establish.tai     = originating_tai;
-msg                                  = NULL;
-rc                                   = amf_sap_send(&amf_sap);
-} else {
-OAILOG_WARNING(
-LOG_NAS,
-"Received NAS message in uplink is NULL for for UE "
-"ID: " AMF_UE_NGAP_ID_FMT,
-amf_app_desc_p->amf_app_ue_ngap_id_generator);
-}
-OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  int rc = RETURNerror;
+  if (msg) {
+    amf_sap_t amf_sap = {};
+    /*
+     * Notify the AMF procedure call manager that data transfer
+     * indication has been received from the Access-Stratum sublayer
+     */
+    amf_sap.primitive                    = AMFAS_ESTABLISH_REQ;
+    amf_sap.u.amf_as.u.establish.ue_id   = ue_id;
+    amf_sap.u.amf_as.u.establish.nas_msg = msg;
+    amf_sap.u.amf_as.u.establish.tai     = originating_tai;
+    msg                                  = NULL;
+    rc                                   = amf_sap_send(&amf_sap);
+  } else {
+    OAILOG_WARNING(
+        LOG_NAS,
+        "Received NAS message in uplink is NULL for for UE "
+        "ID: " AMF_UE_NGAP_ID_FMT,
+        amf_app_desc_p->amf_app_ue_ngap_id_generator);
+  }
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 static void get_ambr_unit(
-uint8_t apn_ambr_unit, uint32_t apn_session_ambr, uint8_t* calc_ambr_unit,
-uint16_t* calc_session_ambr) {
-*calc_ambr_unit = 0;
+    uint8_t apn_ambr_unit, uint32_t apn_session_ambr, uint8_t* calc_ambr_unit,
+    uint16_t* calc_session_ambr) {
+  *calc_ambr_unit = 0;
 
-while (apn_session_ambr) {
-*calc_ambr_unit += 1;
+  while (apn_session_ambr) {
+    *calc_ambr_unit += 1;
 
-apn_session_ambr >>= 2;
-}
+    apn_session_ambr >>= 2;
+  }
 
-*calc_session_ambr = PDU_SESSION_DEFAULT_AMBR;
+  *calc_session_ambr = PDU_SESSION_DEFAULT_AMBR;
 }
 
 /* Received the session created response message from SMF. Populate and Send
-* PDU Session Resource Setup Request message to gNB and  PDU Session
-* Establishment Accept Message to UE*/
+ * PDU Session Resource Setup Request message to gNB and  PDU Session
+ * Establishment Accept Message to UE*/
 int amf_app_handle_pdu_session_response(
-itti_n11_create_pdu_session_response_t* pdu_session_resp) {
-DLNASTransportMsg encode_msg;
-memset(&encode_msg, 0, sizeof(encode_msg));
-ue_m5gmm_context_s* ue_context = nullptr;
-std::shared_ptr<smf_context_t> smf_ctx;
-amf_smf_t amf_smf_msg;
-memset(&amf_smf_msg, 0, sizeof(amf_smf_msg));
-// TODO: hardcoded for now, addressed in the upcoming multi-UE PR
-uint64_t ue_id = 0;
-int rc         = RETURNerror;
+    itti_n11_create_pdu_session_response_t* pdu_session_resp) {
+  DLNASTransportMsg encode_msg;
+  memset(&encode_msg, 0, sizeof(encode_msg));
+  ue_m5gmm_context_s* ue_context = nullptr;
+  std::shared_ptr<smf_context_t> smf_ctx;
+  amf_smf_t amf_smf_msg;
+  memset(&amf_smf_msg, 0, sizeof(amf_smf_msg));
+  // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
+  uint64_t ue_id = 0;
+  int rc         = RETURNerror;
 
-imsi64_t imsi64 = 0;
-IMSI_STRING_TO_IMSI64(pdu_session_resp->imsi, &imsi64);
-// Handle smf_context
-ue_context = lookup_ue_ctxt_by_imsi(imsi64);
-if (ue_context) {
-smf_ctx = amf_get_smf_context_by_pdu_session_id(
-ue_context, pdu_session_resp->pdu_session_id);
-if (smf_ctx == NULL) {
-OAILOG_ERROR(
-  LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
-  pdu_session_resp->pdu_session_id);
-return RETURNerror;
-}
-ue_id = ue_context->amf_ue_ngap_id;
-} else {
-OAILOG_ERROR(
-LOG_AMF_APP, "ue context not found for the imsi=%lu\n", imsi64);
-return RETURNerror;
-}
+  imsi64_t imsi64 = 0;
+  IMSI_STRING_TO_IMSI64(pdu_session_resp->imsi, &imsi64);
+  // Handle smf_context
+  ue_context = lookup_ue_ctxt_by_imsi(imsi64);
+  if (ue_context) {
+    smf_ctx = amf_get_smf_context_by_pdu_session_id(
+        ue_context, pdu_session_resp->pdu_session_id);
+    if (smf_ctx == NULL) {
+      OAILOG_ERROR(
+          LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
+          pdu_session_resp->pdu_session_id);
+      return RETURNerror;
+    }
+    ue_id = ue_context->amf_ue_ngap_id;
+  } else {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the imsi=%lu\n", imsi64);
+    return RETURNerror;
+  }
 
-convert_ambr(
-&pdu_session_resp->session_ambr.downlink_unit_type,
-&pdu_session_resp->session_ambr.downlink_units,
-&smf_ctx->selected_ambr.dl_ambr_unit,
-&smf_ctx->selected_ambr.dl_session_ambr);
+  convert_ambr(
+      &pdu_session_resp->session_ambr.downlink_unit_type,
+      &pdu_session_resp->session_ambr.downlink_units,
+      &smf_ctx->selected_ambr.dl_ambr_unit,
+      &smf_ctx->selected_ambr.dl_session_ambr);
 
-convert_ambr(
-&pdu_session_resp->session_ambr.uplink_unit_type,
-&pdu_session_resp->session_ambr.uplink_units,
-&smf_ctx->selected_ambr.ul_ambr_unit,
-&smf_ctx->selected_ambr.ul_session_ambr);
+  convert_ambr(
+      &pdu_session_resp->session_ambr.uplink_unit_type,
+      &pdu_session_resp->session_ambr.uplink_units,
+      &smf_ctx->selected_ambr.ul_ambr_unit,
+      &smf_ctx->selected_ambr.ul_session_ambr);
 
-memcpy(
-&smf_ctx->subscribed_qos_profile, &(pdu_session_resp->qos_list),
-sizeof(smf_ctx->subscribed_qos_profile));
-memcpy(
-smf_ctx->gtp_tunnel_id.upf_gtp_teid_ip_addr,
-pdu_session_resp->upf_endpoint.end_ipv4_addr,
-sizeof(smf_ctx->gtp_tunnel_id.upf_gtp_teid_ip_addr));
-memcpy(
-smf_ctx->gtp_tunnel_id.upf_gtp_teid, pdu_session_resp->upf_endpoint.teid,
-sizeof(smf_ctx->gtp_tunnel_id.upf_gtp_teid));
+  memcpy(
+      &smf_ctx->subscribed_qos_profile, &(pdu_session_resp->qos_list),
+      sizeof(smf_ctx->subscribed_qos_profile));
+  memcpy(
+      smf_ctx->gtp_tunnel_id.upf_gtp_teid_ip_addr,
+      pdu_session_resp->upf_endpoint.end_ipv4_addr,
+      sizeof(smf_ctx->gtp_tunnel_id.upf_gtp_teid_ip_addr));
+  memcpy(
+      smf_ctx->gtp_tunnel_id.upf_gtp_teid, pdu_session_resp->upf_endpoint.teid,
+      sizeof(smf_ctx->gtp_tunnel_id.upf_gtp_teid));
 
-smf_ctx->n_active_pdus += 1;
+  smf_ctx->n_active_pdus += 1;
 
-if (REGISTERED_IDLE == ue_context->mm_state) {
-// pdu session state
-smf_ctx->pdu_session_state            = ACTIVE;
-amf_sap_t amf_sap                     = {};
-amf_sap.primitive                     = AMFAS_ESTABLISH_CNF;
-amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
-amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
+  if (REGISTERED_IDLE == ue_context->mm_state) {
+    // pdu session state
+    smf_ctx->pdu_session_state            = ACTIVE;
+    amf_sap_t amf_sap                     = {};
+    amf_sap.primitive                     = AMFAS_ESTABLISH_CNF;
+    amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
+    amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
 
-amf_sap.u.amf_as.u.establish.pdu_session_status_ie =
-(AMF_AS_PDU_SESSION_STATUS | AMF_AS_PDU_SESSION_REACTIVATION_STATUS);
-amf_sap.u.amf_as.u.establish.pdu_session_status =
-(1 << smf_ctx->smf_proc_data.pdu_session_id);
-amf_sap.u.amf_as.u.establish.pdu_session_reactivation_status =
-(1 << smf_ctx->smf_proc_data.pdu_session_id);
-amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
-rc                                = amf_sap_send(&amf_sap);
-if (RETURNok == rc) {
-ue_context->mm_state = REGISTERED_CONNECTED;
-}
-} else {
-OAILOG_DEBUG(
-LOG_AMF_APP,
-"Sending message to gNB for PDUSessionResourceSetupRequest "
-"**n_active_pdus=%d **\n",
-smf_ctx->n_active_pdus);
+    amf_sap.u.amf_as.u.establish.pdu_session_status_ie =
+        (AMF_AS_PDU_SESSION_STATUS | AMF_AS_PDU_SESSION_REACTIVATION_STATUS);
+    amf_sap.u.amf_as.u.establish.pdu_session_status =
+        (1 << smf_ctx->smf_proc_data.pdu_session_id);
+    amf_sap.u.amf_as.u.establish.pdu_session_reactivation_status =
+        (1 << smf_ctx->smf_proc_data.pdu_session_id);
+    amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
+    rc                                = amf_sap_send(&amf_sap);
+    if (RETURNok == rc) {
+      ue_context->mm_state = REGISTERED_CONNECTED;
+    }
+  } else {
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        "Sending message to gNB for PDUSessionResourceSetupRequest "
+        "**n_active_pdus=%d **\n",
+        smf_ctx->n_active_pdus);
 
-amf_smf_msg.pdu_session_id = pdu_session_resp->pdu_session_id;
-/*Execute PDU establishement accept from AMF to gnodeb */
-pdu_state_handle_message(
-// ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
-REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
-// smf_ctx->pdu_session_state, ue_context, amf_smf_msg, NULL,
-CREATING, ue_context, amf_smf_msg, NULL, pdu_session_resp, ue_id);
-rc = RETURNok;
-}
+    amf_smf_msg.pdu_session_id = pdu_session_resp->pdu_session_id;
+    /*Execute PDU establishement accept from AMF to gnodeb */
+    pdu_state_handle_message(
+        // ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
+        REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
+        // smf_ctx->pdu_session_state, ue_context, amf_smf_msg, NULL,
+        CREATING, ue_context, amf_smf_msg, NULL, pdu_session_resp, ue_id);
+    rc = RETURNok;
+  }
 
-return rc;
+  return rc;
 }
 /****************************************************************************
 **                                                                        **
@@ -672,42 +672,42 @@ return rc;
 **                                                                        **
 ***************************************************************************/
 void convert_ambr(
-const uint32_t* pdu_ambr_response_unit,
-const uint32_t* pdu_ambr_response_value, M5GSessionAmbrUnit* ambr_unit,
-uint16_t* ambr_value) {
-int count                             = 1;
-uint32_t temp_pdu_ambr_response_value = *pdu_ambr_response_value;
+    const uint32_t* pdu_ambr_response_unit,
+    const uint32_t* pdu_ambr_response_value, M5GSessionAmbrUnit* ambr_unit,
+    uint16_t* ambr_value) {
+  int count                             = 1;
+  uint32_t temp_pdu_ambr_response_value = *pdu_ambr_response_value;
 
-// minimum rate unit is KBPS
-if (*pdu_ambr_response_unit == BPS &&
-temp_pdu_ambr_response_value / 1000 == 0) {
-// Values less than 1Kbps are defaulted to 1Kbps
-*ambr_value = static_cast<uint16_t>(1);
-*ambr_unit  = magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS;  // Kbps
-return;
-}
+  // minimum rate unit is KBPS
+  if (*pdu_ambr_response_unit == BPS &&
+      temp_pdu_ambr_response_value / 1000 == 0) {
+    // Values less than 1Kbps are defaulted to 1Kbps
+    *ambr_value = static_cast<uint16_t>(1);
+    *ambr_unit  = magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS;  // Kbps
+    return;
+  }
 
-if (*pdu_ambr_response_unit == BPS) {
-temp_pdu_ambr_response_value /= 1000;
-}
+  if (*pdu_ambr_response_unit == BPS) {
+    temp_pdu_ambr_response_value /= 1000;
+  }
 
-while (temp_pdu_ambr_response_value >= AMBR_UNIT_CONVERT_THRESHOLD) {
-temp_pdu_ambr_response_value = (temp_pdu_ambr_response_value / 1000);
-count++;
-}
+  while (temp_pdu_ambr_response_value >= AMBR_UNIT_CONVERT_THRESHOLD) {
+    temp_pdu_ambr_response_value = (temp_pdu_ambr_response_value / 1000);
+    count++;
+  }
 
-switch (count) {
-case 1:
-*ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS;  // Kbps
-break;
-case 2:
-*ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1MBPS;  // Mbps
-break;
-case 3:
-*ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1GBPS;  // Gbps
-break;
-}
-*ambr_value = static_cast<uint16_t>(temp_pdu_ambr_response_value);
+  switch (count) {
+    case 1:
+      *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS;  // Kbps
+      break;
+    case 2:
+      *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1MBPS;  // Mbps
+      break;
+    case 3:
+      *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1GBPS;  // Gbps
+      break;
+  }
+  *ambr_value = static_cast<uint16_t>(temp_pdu_ambr_response_value);
 }
 
 // Utility function to convert address to buffer
@@ -772,84 +772,84 @@ static int paa_to_address_info(
 **                                                                        **
 ***************************************************************************/
 int amf_app_handle_pdu_session_accept(
-itti_n11_create_pdu_session_response_t* pdu_session_resp, uint64_t ue_id) {
-nas5g_error_code_t rc = M5G_AS_SUCCESS;
+    itti_n11_create_pdu_session_response_t* pdu_session_resp, uint64_t ue_id) {
+  nas5g_error_code_t rc = M5G_AS_SUCCESS;
 
-DLNASTransportMsg* encode_msg;
-amf_nas_message_t msg = {};
-uint32_t bytes        = 0;
-uint32_t len          = 0;
-SmfMsg* smf_msg       = nullptr;
-bstring buffer;
-// smf_ctx declared and set but not used, commented to cleanup warnings
-std::shared_ptr<smf_context_t> smf_ctx;
-ue_m5gmm_context_s* ue_context                   = nullptr;
-protocol_configuration_options_t* msg_accept_pco = nullptr;
+  DLNASTransportMsg* encode_msg;
+  amf_nas_message_t msg = {};
+  uint32_t bytes        = 0;
+  uint32_t len          = 0;
+  SmfMsg* smf_msg       = nullptr;
+  bstring buffer;
+  // smf_ctx declared and set but not used, commented to cleanup warnings
+  std::shared_ptr<smf_context_t> smf_ctx;
+  ue_m5gmm_context_s* ue_context                   = nullptr;
+  protocol_configuration_options_t* msg_accept_pco = nullptr;
 
-// Handle smf_context
-ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-if (!ue_context) {
-OAILOG_ERROR(
-LOG_AMF_APP, "ue context not found for the ue_id:" AMF_UE_NGAP_ID_FMT,
-ue_id);
-return M5G_AS_FAILURE;
-}
+  // Handle smf_context
+  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (!ue_context) {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the ue_id:" AMF_UE_NGAP_ID_FMT,
+        ue_id);
+    return M5G_AS_FAILURE;
+  }
 
-smf_ctx = amf_get_smf_context_by_pdu_session_id(
-ue_context, pdu_session_resp->pdu_session_id);
-if (!smf_ctx) {
-OAILOG_ERROR(
-LOG_AMF_APP, "Smf context is not exist UE ID:" AMF_UE_NGAP_ID_FMT,
-ue_id);
-return M5G_AS_FAILURE;
-}
-// updating session state
-smf_ctx->pdu_session_state = ACTIVE;
+  smf_ctx = amf_get_smf_context_by_pdu_session_id(
+      ue_context, pdu_session_resp->pdu_session_id);
+  if (!smf_ctx) {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "Smf context is not exist UE ID:" AMF_UE_NGAP_ID_FMT,
+        ue_id);
+    return M5G_AS_FAILURE;
+  }
+  // updating session state
+  smf_ctx->pdu_session_state = ACTIVE;
 
-// Message construction for PDU Establishment Accept
-msg.security_protected.plain.amf.header.extended_protocol_discriminator =
-M5G_MOBILITY_MANAGEMENT_MESSAGES;
-msg.security_protected.plain.amf.header.message_type =
-M5GMessageType::DLNASTRANSPORT;
-msg.header.security_header_type =
-SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
-msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
-msg.header.sequence_number =
-ue_context->amf_context._security.dl_count.seq_num;
+  // Message construction for PDU Establishment Accept
+  msg.security_protected.plain.amf.header.extended_protocol_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.security_protected.plain.amf.header.message_type =
+      M5GMessageType::DLNASTRANSPORT;
+  msg.header.security_header_type =
+      SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
+  msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.header.sequence_number =
+      ue_context->amf_context._security.dl_count.seq_num;
 
-encode_msg = &msg.security_protected.plain.amf.msg.downlinknas5gtransport;
-smf_msg    = &encode_msg->payload_container.smf_msg;
+  encode_msg = &msg.security_protected.plain.amf.msg.downlinknas5gtransport;
+  smf_msg    = &encode_msg->payload_container.smf_msg;
 
-// AmfHeader
-encode_msg->extended_protocol_discriminator.extended_proto_discriminator =
-M5G_MOBILITY_MANAGEMENT_MESSAGES;
-encode_msg->spare_half_octet.spare  = 0x00;
-encode_msg->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
-encode_msg->message_type.msg_type =
-static_cast<uint8_t>(M5GMessageType::DLNASTRANSPORT);
-encode_msg->payload_container_type.iei = 0;
-// encode_msg->payload_container_type.iei = PAYLOAD_CONTAINER_TYPE;
+  // AmfHeader
+  encode_msg->extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  encode_msg->spare_half_octet.spare  = 0x00;
+  encode_msg->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  encode_msg->message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::DLNASTRANSPORT);
+  encode_msg->payload_container_type.iei = 0;
+  // encode_msg->payload_container_type.iei = PAYLOAD_CONTAINER_TYPE;
 
-// SmfMsg
-encode_msg->payload_container_type.type_val = N1_SM_INFO;
-encode_msg->payload_container.iei           = PAYLOAD_CONTAINER;
-encode_msg->pdu_session_identity.iei =
-static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2);
-encode_msg->pdu_session_identity.pdu_session_id =
-pdu_session_resp->pdu_session_id;
+  // SmfMsg
+  encode_msg->payload_container_type.type_val = N1_SM_INFO;
+  encode_msg->payload_container.iei           = PAYLOAD_CONTAINER;
+  encode_msg->pdu_session_identity.iei =
+      static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2);
+  encode_msg->pdu_session_identity.pdu_session_id =
+      pdu_session_resp->pdu_session_id;
 
-smf_msg->header.extended_protocol_discriminator =
-M5G_SESSION_MANAGEMENT_MESSAGES;
-smf_msg->header.pdu_session_id = pdu_session_resp->pdu_session_id;
-smf_msg->header.message_type =
-static_cast<uint8_t>(M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT);
-smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti;
-smf_msg->msg.pdu_session_estab_accept.extended_protocol_discriminator
-.extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
-smf_msg->msg.pdu_session_estab_accept.pdu_session_identity.pdu_session_id =
-pdu_session_resp->pdu_session_id;
-smf_msg->msg.pdu_session_estab_accept.pti.pti = smf_ctx->smf_proc_data.pti;
-smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
+  smf_msg->header.extended_protocol_discriminator =
+      M5G_SESSION_MANAGEMENT_MESSAGES;
+  smf_msg->header.pdu_session_id = pdu_session_resp->pdu_session_id;
+  smf_msg->header.message_type =
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT);
+  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti;
+  smf_msg->msg.pdu_session_estab_accept.extended_protocol_discriminator
+      .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
+  smf_msg->msg.pdu_session_estab_accept.pdu_session_identity.pdu_session_id =
+      pdu_session_resp->pdu_session_id;
+  smf_msg->msg.pdu_session_estab_accept.pti.pti = smf_ctx->smf_proc_data.pti;
+  smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
       static_cast<uint8_t>(M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT);
   smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val = 1;
   smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val =
@@ -957,7 +957,6 @@ smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
   -------------------------------------- */
   smf_msg->msg.pdu_session_estab_accept.nssai.iei =
       static_cast<uint8_t>(M5GIei::S_NSSAI);
-  uint32_t buf_len = 0;
   if (smf_ctx->requested_nssai.sst) {
     if (smf_ctx->requested_nssai.sd[0]) {
       smf_msg->msg.pdu_session_estab_accept.nssai.len = SST_LENGTH + SD_LENGTH;

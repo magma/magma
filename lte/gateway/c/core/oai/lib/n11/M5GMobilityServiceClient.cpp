@@ -50,9 +50,6 @@ static void handle_allocate_ipv4_address_status(
 
   itti_amf_ip_allocation_response_t* amf_ip_allocation_response_p;
   amf_ip_allocation_response_p = &message_p->ittiMsg.amf_ip_allocation_response;
-  memset(
-      amf_ip_allocation_response_p, 0,
-      sizeof(itti_amf_ip_allocation_response_t));
 
   memcpy(amf_ip_allocation_response_p->imsi, imsi, IMSI_BCD_DIGITS_MAX);
   amf_ip_allocation_response_p->imsi_length      = IMSI_BCD_DIGITS_MAX;
@@ -96,9 +93,6 @@ static void handle_allocate_ipv6_address_status(
 
   itti_amf_ip_allocation_response_t* amf_ip_allocation_response_p;
   amf_ip_allocation_response_p = &message_p->ittiMsg.amf_ip_allocation_response;
-  memset(
-      amf_ip_allocation_response_p, 0,
-      sizeof(itti_amf_ip_allocation_response_t));
 
   memcpy(amf_ip_allocation_response_p->imsi, imsi, IMSI_BCD_DIGITS_MAX);
   amf_ip_allocation_response_p->imsi_length      = IMSI_BCD_DIGITS_MAX;
@@ -141,9 +135,7 @@ static void handle_allocate_ipv4v6_address_status(
 
   itti_amf_ip_allocation_response_t* amf_ip_allocation_response_p;
   amf_ip_allocation_response_p = &message_p->ittiMsg.amf_ip_allocation_response;
-  memset(
-      amf_ip_allocation_response_p, 0,
-      sizeof(itti_amf_ip_allocation_response_t));
+
   memcpy(amf_ip_allocation_response_p->imsi, imsi, IMSI_BCD_DIGITS_MAX);
   amf_ip_allocation_response_p->imsi_length      = IMSI_BCD_DIGITS_MAX;
   amf_ip_allocation_response_p->pdu_session_id   = pdu_session_id;
