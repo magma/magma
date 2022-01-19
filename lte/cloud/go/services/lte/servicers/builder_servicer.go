@@ -664,10 +664,11 @@ func getNetworkSentryConfig(network *configurator.Network) *lte_mconfig.SentryCo
 		return nil
 	}
 	return &lte_mconfig.SentryConfig{
-		SampleRate:   swag.Float32Value(sentryConfig.SampleRate),
-		UploadMmeLog: sentryConfig.UploadMmeLog,
-		DsnNative:    string(sentryConfig.URLNative),
-		DsnPython:    string(sentryConfig.URLPython),
+		SampleRate:        swag.Float32Value(sentryConfig.SampleRate),
+		UploadMmeLog:      sentryConfig.UploadMmeLog,
+		DsnNative:         string(sentryConfig.URLNative),
+		DsnPython:         string(sentryConfig.URLPython),
+		ExclusionPatterns: sentryConfig.ExclusionPatterns,
 	}
 }
 
