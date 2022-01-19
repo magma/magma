@@ -9,8 +9,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_python//python:defs.bzl", "py_library")
 load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -40,16 +40,16 @@ py_library(
 py_library(
     name = "service",
     srcs = [
-        "service.py",
+        "job.py",
         "log_count_handler.py",
         "log_counter.py",
-        "job.py",
         "metrics_export.py",
-        "service_registry.py",
         "serialization_utils.py",
+        "service.py",
+        "service_registry.py",
     ],
     deps = [
-        "//orc8r/gateway/python/magma/configuration:mconfig_managers",
         "//orc8r/gateway/python/magma/configuration:events",
+        "//orc8r/gateway/python/magma/configuration:mconfig_managers",
     ],
 )
