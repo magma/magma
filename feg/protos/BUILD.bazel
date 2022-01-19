@@ -9,6 +9,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load(":python_toolchain.bzl", "configure_python_toolchain")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_proto_grpc//python:defs.bzl", "python_proto_library")
 
-configure_python_toolchain()
+package(default_visibility = ["//visibility:public"])
+
+proto_library(
+    name = "mconfigs_proto",
+    srcs = ["mconfig/mconfigs.proto"],
+    deps = ["//orc8r/protos:common_proto"],
+)
+
+python_proto_library(
+    name = "mconfigs_python_proto",
+    protos = [":mconfigs_proto"],
+    deps = ["//orc8r/protos:common_python_proto"],
+)

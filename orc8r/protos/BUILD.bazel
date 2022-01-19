@@ -11,6 +11,7 @@
 
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library", "cpp_proto_library")
+load("@rules_proto_grpc//python:defs.bzl", "python_grpc_library", "python_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -19,13 +20,36 @@ cpp_proto_library(
     protos = [":common_proto"],
 )
 
+python_proto_library(
+    name = "common_python_proto",
+    protos = [":common_proto"],
+)
+
+python_proto_library(
+    name = "mconfig_python_proto",
+    protos = [":mconfig_orc8r_proto"],
+)
+
 proto_library(
     name = "common_proto",
     srcs = ["common.proto"],
 )
 
+proto_library(
+    name = "mconfig_orc8r_proto",
+    srcs = ["mconfig.proto"],
+    deps = [
+        "@protobuf//:any_proto",
+    ],
+)
+
 cpp_proto_library(
     name = "digest_cpp_proto",
+    protos = [":digest_proto"],
+)
+
+python_proto_library(
+    name = "digest_python_proto",
     protos = [":digest_proto"],
 )
 
@@ -39,6 +63,12 @@ cpp_grpc_library(
     name = "eventd_cpp_grpc",
     protos = [":eventd_proto"],
     deps = [":common_cpp_proto"],
+)
+
+python_grpc_library(
+    name = "eventd_python_grpc",
+    protos = [":eventd_proto"],
+    deps = [":common_python_proto"],
 )
 
 proto_library(
@@ -64,6 +94,11 @@ cpp_proto_library(
     protos = [":redis_proto"],
 )
 
+python_proto_library(
+    name = "redis_python_proto",
+    protos = [":redis_proto"],
+)
+
 proto_library(
     name = "redis_proto",
     srcs = ["redis.proto"],
@@ -79,6 +114,16 @@ proto_library(
     name = "mconfigs_proto",
     srcs = ["mconfig/mconfigs.proto"],
     deps = [":common_proto"],
+)
+
+python_proto_library(
+    name = "mconfigs_python_proto",
+    protos = [":mconfigs_proto"],
+)
+
+python_proto_library(
+    name = "metrics_python_proto",
+    protos = [":metrics_proto"],
 )
 
 cpp_proto_library(
@@ -101,6 +146,15 @@ cpp_proto_library(
     ],
 )
 
+python_proto_library(
+    name = "metricsd_python_proto",
+    protos = [":metricsd_proto"],
+    deps = [
+        ":common_python_proto",
+        ":metrics_python_proto",
+    ],
+)
+
 proto_library(
     name = "metricsd_proto",
     srcs = ["metricsd.proto"],
@@ -119,12 +173,30 @@ cpp_grpc_library(
     ],
 )
 
+python_grpc_library(
+    name = "service303_python_grpc",
+    protos = [":service303_proto"],
+    deps = [
+        ":common_python_proto",
+        ":metricsd_python_proto",
+    ],
+)
+
 cpp_proto_library(
     name = "service303_cpp_proto",
     protos = [":service303_proto"],
     deps = [
         ":common_cpp_proto",
         ":metricsd_cpp_proto",
+    ],
+)
+
+python_proto_library(
+    name = "service303_python_proto",
+    protos = [":service303_proto"],
+    deps = [
+        ":common_python_proto",
+        ":metricsd_python_proto",
     ],
 )
 

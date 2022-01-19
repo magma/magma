@@ -1,4 +1,4 @@
-# Copyright 2021 The Magma Authors.
+# Copyright 2022 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
@@ -9,6 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load(":python_toolchain.bzl", "configure_python_toolchain")
+load("@rules_python//python:defs.bzl", "py_library")
 
-configure_python_toolchain()
+package(default_visibility = ["//visibility:public"])
+
+py_library(
+    name = "eventd_client",
+    srcs = ["eventd_client.py"],
+)
