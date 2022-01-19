@@ -484,7 +484,7 @@ message EmmContext {
   Guti_m5 m5_guti = 91;
   Guti_m5 m5_old_guti = 92;
   // 5G proto
-  map<uint32,SmfContext> smf_context_m =93;
+  map<uint32,SmfContext> pdu_session_id_smf_context_map =93;
 
   }
 
