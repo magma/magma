@@ -67,7 +67,7 @@ static void handle_allocate_ipv4_address_status(
 
   memcpy(
       amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr,
-      4);
+      gnb_gtp_teid_ip_addr_len);
 
   memcpy(amf_ip_allocation_response_p->apn, apn, strlen(apn) + 1);
 
@@ -111,7 +111,7 @@ static void handle_allocate_ipv6_address_status(
 
   memcpy(
       amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr,
-      4);
+      gnb_gtp_teid_ip_addr_len);
 
   memcpy(amf_ip_allocation_response_p->apn, apn, strlen(apn) + 1);
 
@@ -155,7 +155,7 @@ static void handle_allocate_ipv4v6_address_status(
   amf_ip_allocation_response_p->paa.vlan         = vlan;
   memcpy(
       amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr,
-      4);
+      gnb_gtp_teid_ip_addr_len);
 
   memcpy(amf_ip_allocation_response_p->apn, apn, strlen(apn) + 1);
 
