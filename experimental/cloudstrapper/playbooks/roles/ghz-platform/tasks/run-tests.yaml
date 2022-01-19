@@ -41,7 +41,7 @@
     - "{{ load_tests }}"
     - test
 
-- name: push results to gHZ API
+- name: push results to gHZ API first try
   uri:
     url: "{{ GHZ_API_URL }}:{{ GHZ_API_PORT}}/api/projects/{{ item[1] }}/ingest"
     method: POST
@@ -49,3 +49,18 @@
     body_format: json
     body: "{{ item[0].stdout | from_json }}"
   loop: "{{ json_output.results | zip(test_ids) | list }}"
+  ignore_errors: true
+  timeout: 300
+  register: pushFirstTry
+
+- name: push results to gHZ API second try
+  uri:
+    url: "{{ GHZ_API_URL }}:{{ GHZ_API_PORT}}/api/projects/{{ item[1] }}/ingest"
+    method: POST
+    status_code: 201
+    body_format: json
+    body: "{{ item[0].stdout | from_json }}"
+  loop: "{{ json_output.results | zip(test_ids) | list }}"
+  timeout: 300
+  ignore_errors: true
+  when: pushFirstTry.stderr is defined and 'FAILED' in pushFirstTry.stderr
