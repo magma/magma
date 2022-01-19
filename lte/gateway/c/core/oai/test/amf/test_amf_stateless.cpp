@@ -10,8 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <chrono>
 #include <gtest/gtest.h>
+#include <chrono>
 #include <thread>
 
 #include "../mock_tasks/mock_tasks.h"
@@ -200,12 +200,13 @@ TEST_F(AMFAppStatelessTest, TestStateless) {
   imsi64          = send_initial_ue_message_no_tmsi(
       amf_app_desc_p, 36, 1, 1, 0, plmn, initial_ue_message_hexbuf,
       sizeof(initial_ue_message_hexbuf));
-  AMFClientServicer::getInstance().map_tableKey_protoStr.clear();
-  EXPECT_TRUE(AMFClientServicer::getInstance().map_tableKey_protoStr.isEmpty());
+  AMFClientServicer::getInstance().map_table_key_proto_str.clear();
+  EXPECT_TRUE(
+      AMFClientServicer::getInstance().map_table_key_proto_str.isEmpty());
   // Writes the state to the data store
   put_amf_nas_state();
   EXPECT_FALSE(
-      AMFClientServicer::getInstance().map_tableKey_protoStr.isEmpty());
+      AMFClientServicer::getInstance().map_table_key_proto_str.isEmpty());
 
   /* Check if UE Context is created with correct imsi */
   EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &ue_id));
@@ -252,15 +253,15 @@ TEST_F(AMFAppStatelessTest, TestStateless) {
       sizeof(ue_pdu_session_est_req_hexbuf));
   EXPECT_EQ(rc, RETURNok);
 
-  /* Send ip address response  from pipelined */
+  /* Send ip address response from pipelined */
   rc = send_ip_address_response_itti();
   EXPECT_EQ(rc, RETURNok);
 
-  /* Send pdu session setup response  from smf */
+  /* Send pdu session setup response from smf */
   rc = send_pdu_session_response_itti();
   EXPECT_EQ(rc, RETURNok);
 
-  /* Send pdu resource setup response  from UE */
+  /* Send pdu resource setup response from UE */
   rc = send_pdu_resource_setup_response(ue_id);
   EXPECT_EQ(rc, RETURNok);
 
@@ -289,7 +290,8 @@ TEST_F(AMFAppStatelessTest, TestStateless) {
 
   EXPECT_EQ(rc, RETURNok);
 
-  AMFClientServicer::getInstance().map_tableKey_protoStr.clear();
-  EXPECT_TRUE(AMFClientServicer::getInstance().map_tableKey_protoStr.isEmpty());
+  AMFClientServicer::getInstance().map_table_key_proto_str.clear();
+  EXPECT_TRUE(
+      AMFClientServicer::getInstance().map_table_key_proto_str.isEmpty());
 }
 }  // namespace magma5g

@@ -226,12 +226,7 @@ struct map_s {
   ** Description: Returns true if map is empty, else returns false           **
   **                                                                        **
   ***************************************************************************/
-  bool isEmpty() {
-    if (umap.empty()) {
-      return true;
-    }
-    return false;
-  }
+  bool isEmpty() { return umap.empty(); }
 
   /***************************************************************************
   **                                                                        **
@@ -249,5 +244,7 @@ struct map_s {
 // Amf-Map Declarations:
 // Map- Key: uint64_t , Data: uint64_t
 typedef magma::map_s<uint64_t, uint64_t> map_uint64_uint64_t;
+// Map- Key: string , Data: string
+typedef magma::map_s<std::string, std::string> map_string_string_t;
 
 }  // namespace magma

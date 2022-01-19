@@ -28,6 +28,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_converter.h"
 #include <lte/gateway/c/core/oai/include/state_manager.h>
 
+using magma::lte::oai::MmeNasState;
 namespace magma5g {
 constexpr char AMF_NAS_STATE_KEY[] = "amf_nas_state";
 constexpr char AMF_UE_ID_UE_CTXT_TABLE_NAME[] =
@@ -81,10 +82,9 @@ void delete_amf_ue_state(imsi64_t imsi64);
  * that contains functions to maintain Amf and NAS state, i.e. for allocating
  * and freeing state structs, and writing/reading state to db.
  */
-class AmfNasStateManager
-    : public magma::lte::StateManager<
-          amf_app_desc_t, ue_m5gmm_context_t, magma::lte::oai::MmeNasState,
-          magma::lte::oai::UeContext, AmfNasStateConverter> {
+class AmfNasStateManager : public magma::lte::StateManager<
+                               amf_app_desc_t, ue_m5gmm_context_t, MmeNasState,
+                               UeContext, AmfNasStateConverter> {
  public:
   /**
    * Returns an instance of AmfNasStateManager, guaranteed to be thread safe and

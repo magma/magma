@@ -24,6 +24,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.h"
 #include "lte/gateway/c/core/oai/include/map.h"
 
+using magma::lte::oai::MmeNasState;
 namespace magma5g {
 /**
  * When the process starts, initialize the in-memory AMF/NAS state and, if
@@ -101,7 +102,7 @@ int AmfNasStateManager::initialize_state(const amf_config_t* amf_config_p) {
 
   // Allocate the local AMF state and create respective single object
   create_state();
-// This is a temporary check and will be removed in upcoming PR
+// TODO: This is a temporary check and will be removed in upcoming PR
 #if MME_UNIT_TEST
   read_state_from_db();
 #endif
@@ -168,10 +169,10 @@ status_code_e AmfNasStateManager::read_state_from_db() {
   StateManager::read_state_from_db();
 #else
   if (persist_state_enabled) {
-    magma::lte::oai::MmeNasState state_proto = magma::lte::oai::MmeNasState();
+    MmeNasState state_proto = MmeNasState();
     std::string proto_str;
-    // Reads from the AmfClientServicer DataStore Map(map_tableKey_protoStr)
-    if (AMFClientServicer::getInstance().map_tableKey_protoStr.get(
+    // Reads from the AmfClientServicer DataStore Map(map_table_key_proto_str)
+    if (AMFClientServicer::getInstance().map_table_key_proto_str.get(
             table_key, &proto_str) != magma::MAP_OK) {
       OAILOG_DEBUG(LOG_MME_APP, "Failed to read proto from db \n");
       return RETURNerror;
@@ -191,14 +192,14 @@ void AmfNasStateManager::write_state_to_db() {
   StateManager::write_state_to_db();
 #else
   if (persist_state_enabled) {
-    magma::lte::oai::MmeNasState state_proto = magma::lte::oai::MmeNasState();
+    MmeNasState state_proto = MmeNasState();
     AmfNasStateConverter::state_to_proto(state_cache_p, &state_proto);
     std::string proto_str;
     redis_client->serialize(state_proto, proto_str);
     std::size_t new_hash = std::hash<std::string>{}(proto_str);
     if (new_hash != this->task_state_hash) {
-      // Writes to the AmfClientServicer DataStore Map(map_tableKey_protoStr)
-      if (AMFClientServicer::getInstance().map_tableKey_protoStr.insert(
+      // Writes to the AmfClientServicer DataStore Map(map_table_key_proto_str)
+      if (AMFClientServicer::getInstance().map_table_key_proto_str.insert(
               table_key, proto_str) != magma::MAP_OK) {
         OAILOG_ERROR(log_task, "Failed to write state to db");
         return;
