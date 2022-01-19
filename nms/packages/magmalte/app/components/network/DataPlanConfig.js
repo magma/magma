@@ -100,7 +100,7 @@ function DataPlanConfig(props: Props) {
         <TableCell>
           {profile.max_dl_bit_rate === DATA_PLAN_UNLIMITED_RATES.max_dl_bit_rate
             ? 'Unlimited'
-            : profile.max_dl_bit_rate / BITRATE_MULTIPLIER + ' Mbps'}
+            : (profile.max_dl_bit_rate * ONE_GB_TO_MB) / BITRATE_MULTIPLIER + ' Mbps'}
         </TableCell>
         <TableCell>
           {profile.max_ul_bit_rate === DATA_PLAN_UNLIMITED_RATES.max_ul_bit_rate

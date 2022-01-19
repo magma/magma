@@ -73,7 +73,7 @@ const MegabyteTextField = (props: {
   } else if (defaultMaxBitRate === DATA_PLAN_UNLIMITED_RATES[field]) {
     fieldValue = '';
   } else {
-    fieldValue = (defaultMaxBitRate || 0) / BITRATE_MULTIPLIER + '';
+    fieldValue = ((defaultMaxBitRate || 0) * ONE_GB_TO_MB) / BITRATE_MULTIPLIER + '';
   }
 
   return (
