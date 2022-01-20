@@ -92,7 +92,7 @@ class AutoConfigServer(ServiceBase):
         message: ComplexModelBase,
     ) -> ComplexModelBase:
         # Log incoming msg
-        logger.debug('Handling TR069 message: %s', str(as_dict(message)))
+        logger.debug('Handling TR069 message: %s %s', message.__class__.__name__, str(as_dict(message)))
 
         req = cls._get_tr069_response_from_sm(ctx, message)
 
