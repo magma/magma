@@ -37,6 +37,11 @@ typedef struct sentry_config {
 } sentry_config_t;
 
 /**
+ * @brief Get the sentry configuration object
+ */
+void get_sentry_configuration(sentry_config_t* sentry_config);
+
+/**
  * @brief Initialize sentry if SENTRY_ENABLED flag is set and project slug is
  * configured in control_proxy.yml
  */

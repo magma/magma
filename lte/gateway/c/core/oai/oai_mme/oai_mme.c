@@ -111,7 +111,9 @@ int main(int argc, char* argv[]) {
   // Initialize Sentry error collection
   // We have to initialize here for now since itti_init asserts on there being
   // only 1 thread
-  initialize_sentry(SENTRY_TAG_MME, &mme_config.sentry_config);
+  sentry_config_t sentry_config;
+  get_sentry_configuration(&sentry_config);
+  initialize_sentry(SENTRY_TAG_MME, &sentry_config);
 
   // Could not be launched before ITTI initialization
   shared_log_itti_connect();
