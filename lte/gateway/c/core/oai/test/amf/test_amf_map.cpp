@@ -73,6 +73,9 @@ TEST(test_map, test_map) {
   EXPECT_EQ(
       state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.remove(5),
       magma::MAP_KEY_NOT_EXISTS);
+  // Test for clear() and isEmpty()
+  state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.clear();
+  EXPECT_TRUE(state_cache_p->amf_ue_contexts.imsi_amf_ue_id_htbl.isEmpty());
 
   // Object table
   EXPECT_EQ(

@@ -149,7 +149,7 @@ template<
 struct map_s {
   std::unordered_map<keyT, valueT, Hash, KeyEqual> umap;
   std::string name;
-  bool log_enabled;
+  bool log_enabled = false;
 
   void set_name(std::string umap_name) { name = umap_name; }
   std::string get_name() { return name; }
@@ -218,10 +218,33 @@ struct map_s {
       return MAP_KEY_NOT_EXISTS;
     }
   }
+
+  /***************************************************************************
+  **                                                                        **
+  ** Name:    isEmpty()                                                     **
+  **                                                                        **
+  ** Description: Returns true if map is empty, else returns false           **
+  **                                                                        **
+  ***************************************************************************/
+  bool isEmpty() { return umap.empty(); }
+
+  /***************************************************************************
+  **                                                                        **
+  ** Name:    clear()                                                       **
+  **                                                                        **
+  ** Description: Clears the contents of the map                            **
+  **                                                                        **
+  ***************************************************************************/
+  void clear() {
+    umap.clear();
+    name.clear();
+  }
 };
 
 // Amf-Map Declarations:
 // Map- Key: uint64_t , Data: uint64_t
 typedef magma::map_s<uint64_t, uint64_t> map_uint64_uint64_t;
+// Map- Key: string , Data: string
+typedef magma::map_s<std::string, std::string> map_string_string_t;
 
 }  // namespace magma

@@ -151,8 +151,6 @@ s1aptests/test_multi_enb_multi_ue_diff_plmn.py \
 s1aptests/test_x2_handover.py \
 s1aptests/test_x2_handover_ping_pong.py \
 s1aptests/test_s1_handover.py \
-s1aptests/test_attach_mobile_reachability_timer_expiry.py \
-s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_with_mobilityd_restart.py \
@@ -166,10 +164,16 @@ s1aptests/test_tau_ta_updating_reject.py \
 s1aptests/test_tau_mixed_partial_lists.py \
 s1aptests/test_eps_bearer_context_status_multiple_ded_bearer_deact.py \
 s1aptests/test_guti_attach_with_zero_mtmsi.py \
+s1aptests/test_ics_timer_expiry_with_mme_restart.py \
+s1aptests/test_attach_mobile_reachability_timer_expiry.py \
+s1aptests/test_attach_implicit_detach_timer_expiry.py \
+s1aptests/test_mobile_reachability_timer_with_mme_restart.py \
+s1aptests/test_implicit_detach_timer_with_mme_restart.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
 s1aptests/test_attach_detach_non_nat_dp_ul_tcp.py \
+s1aptests/test_attach_detach_rar_activation_reject.py \
 s1aptests/test_paging_with_mme_restart.py \
 s1aptests/test_no_identity_rsp_with_mme_restart.py \
 s1aptests/test_agw_offload_idle_active_ue.py \
@@ -228,7 +232,6 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_outoforder_erab_setup_rsp_default_bearer.py \ GitHubIssue 5992
 # s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py \ GitHubIssue 5997
 # s1aptests/test_attach_with_multiple_mme_restarts.py \ GitHubIssue 5997
-# s1aptests/test_attach_detach_rar_activation_reject.py \ GitHubIssue 9097
 # s1aptests/test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue.py \ Need to configure UE inactivity timer from test case
 # s1aptests/test_no_auth_response_with_mme_restart_reattach.py \ GitHubIssue 9520
 
@@ -242,11 +245,6 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_attach_dl_ul_tcp_data_multi_ue.py \ Fails randomly with connection refused
 # s1aptests/test_data_flow_after_service_request.py \ Fails randomly with connection refused
 #---------------
-
-# Enable these tests once the CI job time-out has increased
-# s1aptests/test_mobile_reachability_timer_with_mme_restart.py \
-# s1aptests/test_implicit_detach_timer_with_mme_restart.py \
-# s1aptests/test_ics_timer_expiry_with_mme_restart.py \
 
 # s1aptests/test_attach_dl_udp_data.py \
 # s1aptests/test_attach_dl_tcp_data.py \

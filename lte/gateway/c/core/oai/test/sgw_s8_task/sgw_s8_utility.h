@@ -37,11 +37,11 @@ void fill_itti_csreq(
     uint8_t default_eps_bearer_id);
 void fill_itti_csrsp(
     s8_create_session_response_t* csr_resp,
-    uint32_t temporary_create_session_procedure_id);
+    uint32_t temporary_create_session_procedure_id, uint32_t sgw_s8_up_teid);
 
 void fill_create_bearer_request(
     s8_create_bearer_request_t* cb_req, uint32_t teid,
-    uint8_t default_eps_bearer_id);
+    uint8_t default_eps_bearer_id, uint32_t sgw_s8_up_teid);
 
 void fill_create_bearer_response(
     itti_s11_nw_init_actv_bearer_rsp_t* cb_response, uint32_t teid,
@@ -80,6 +80,7 @@ class SgwS8ConfigAndCreateMock : public ::testing::Test {
   sgw_config_t* config =
       reinterpret_cast<sgw_config_t*>(calloc(1, sizeof(sgw_config_t)));
   uint64_t imsi64               = 1010000000001;
+  uint32_t sgw_s8_up_teid       = 10;
   uint8_t default_eps_bearer_id = 5;
   virtual void SetUp();
   void sgw_s8_config_init();

@@ -15,7 +15,7 @@ import logging
 from typing import NamedTuple
 
 import grpc
-from lte.protos import subscriberdb_pb2, subscriberdb_pb2_grpc
+from lte.protos import apn_pb2, subscriberdb_pb2, subscriberdb_pb2_grpc
 from magma.common.rpc_utils import print_grpc, return_void
 from magma.common.sentry import (
     SentryStatus,
@@ -43,11 +43,12 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
     gRPC based server for the SubscriberDB.
     """
 
-    def __init__(self, store, print_grpc_payload: bool = False):
+    def __init__(self, store, lte_processor, print_grpc_payload: bool = False):
         """
         Store should be thread-safe since we use a thread pool for requests.
         """
         self._store = store
+        self._lte_processor = lte_processor
         self._print_grpc_payload = print_grpc_payload
 
     def add_to_server(self, server):
@@ -123,6 +124,13 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         sid = SIDUtils.to_str(request)
         try:
             response = self._store.get_subscriber_data(sid)
+            # get_sub_profile converts the imsi id to a string prependend with IMSI string,
+            # so strip the IMSI prefix in sid
+            imsi = sid[4:]
+            sub_profile = self._lte_processor.get_sub_profile(imsi)
+            response.non_3gpp.ambr.max_bandwidth_ul = sub_profile.max_ul_bit_rate
+            response.non_3gpp.ambr.max_bandwidth_dl = sub_profile.max_dl_bit_rate
+            response.non_3gpp.ambr.br_unit = apn_pb2.AggregatedMaximumBitrate.BitrateUnitsAMBR.BPS
         except SubscriberNotFoundError:
             context.set_details("Subscriber not found: %s" % sid)
             context.set_code(grpc.StatusCode.NOT_FOUND)

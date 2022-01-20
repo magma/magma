@@ -246,7 +246,8 @@ int main(int argc, char* argv[]) {
   sentry_config_t sentry_config;
   sentry_config.sample_rate = mconfig.sentry_config().sample_rate();
   strncpy(sentry_config.url_native,
-          mconfig.sentry_config().dsn_native().c_str(), MAX_URL_LENGTH);
+          mconfig.sentry_config().dsn_native().c_str(), MAX_URL_LENGTH - 1);
+  sentry_config.url_native[MAX_URL_LENGTH - 1] = '\0';
   initialize_sentry(SENTRY_TAG_SESSIOND, &sentry_config);
 
   bool enable_5g_features = false;
