@@ -710,7 +710,6 @@ class MagmadUtil(object):
     config_update_cmds = Enum("config_update_cmds", "MODIFY RESTORE")
     apn_correction_cmds = Enum("apn_correction_cmds", "DISABLE ENABLE")
     health_service_cmds = Enum("health_service_cmds", "DISABLE ENABLE")
-    ipv6_config_cmds = Enum("ipv6_config_cmds", "DISABLE ENABLE")
     ha_service_cmds = Enum("ha_service_cmds", "DISABLE ENABLE")
 
     def __init__(self, magmad_client):
@@ -1013,54 +1012,6 @@ class MagmadUtil(object):
             if not self.is_service_active(magma_health_service_name):
                 self.enable_service("health")
             print("Health service is enabled")
-
-    def config_ipv6_solicitation(self, cmd):
-        """
-        Enable/disable the ipv6_solicitation service in pipelined configuration
-
-        Args:
-            cmd: Specify whether ipv6_solicitation should be enabled or not
-                 - enable: Enable ipv6_solicitation service,
-                           do nothing if already enabled
-                 - disable: Disable ipv6_solicitation service,
-                            do nothing if already disabled
-
-        Returns:
-            -1: Failed to configure
-            0: Already configured
-            1: Configured successfully. Need to restart the service
-        """
-        ipv6_update_config_cmd = ""
-        ipv6_config_status_cmd = (
-            "grep 'ipv6_solicitation' /etc/magma/pipelined.yml | wc -l"
-        )
-        ret_code = self.exec_command_output(ipv6_config_status_cmd).rstrip()
-
-        if cmd.name == MagmadUtil.ipv6_config_cmds.ENABLE.name:
-            if ret_code != "0":
-                print("IPv6 solicitation service is already enabled")
-                return 0
-            else:
-                ipv6_update_config_cmd = (
-                    r"sed -i \"/startup_flows/a \ \ 'ipv6_solicitation',\" "
-                    "/etc/magma/pipelined.yml"
-                )
-        else:
-            if ret_code == "0":
-                print("IPv6 solicitation service is already disabled")
-                return 0
-            else:
-                ipv6_update_config_cmd = (
-                    "sed -i '/ipv6_solicitation/d'  /etc/magma/pipelined.yml"
-                )
-
-        ret_code = self.exec_command("sudo " + ipv6_update_config_cmd)
-        if ret_code == 0:
-            print("IPv6 solicitation service configured successfully")
-            return 1
-
-        print("IPv6 solicitation service configuration failed")
-        return -1
 
     def config_ha_service(self, cmd):
         """

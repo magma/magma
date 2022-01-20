@@ -72,8 +72,7 @@ func NewAIA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 		return ConvertAuthErrorToFailureMessage(err, msg, air.SessionID, srv.Config.Server), err
 	}
 
-	const plmnOffsetBytes = 1
-	plmn := air.VisitedPLMNID.Serialize()[plmnOffsetBytes:]
+	plmn := air.VisitedPLMNID.Serialize()
 
 	vectors, utranVectors, lteAuthNextSeq, err := GenerateLteAuthVectors(
 		uint32(air.RequestedEUTRANAuthInfo.NumVectors),
