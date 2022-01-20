@@ -232,13 +232,13 @@ definitions:
     properties:
       effect:
         type: string
-        enum: [ DENY, ALLOW ]
+        enum: [DENY, ALLOW]
       action:
         type: string
-        enum: [ READ, WRITE ]
+        enum: [READ, WRITE]
       resourceType:
         type: string
-        enum: [ NETWORK_ID, TENANT_ID, URI ]
+        enum: [NETWORK_ID, TENANT_ID, URI]
       path:
         type: string
       resourceIDs:

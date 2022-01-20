@@ -14,10 +14,8 @@ limitations under the License.
 package tests
 
 import (
-	"context"
 	"fmt"
 	"net/http"
-	"strconv"
 	"testing"
 
 	"github.com/labstack/echo"
@@ -27,10 +25,8 @@ import (
 	"magma/orc8r/cloud/go/obsidian/access"
 	certifier_test_service "magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/cloud/go/services/certifier/test_utils"
-	"magma/orc8r/cloud/go/services/tenants"
 	tenantsh "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
 	tenants_test_init "magma/orc8r/cloud/go/services/tenants/test_init"
-	"magma/orc8r/lib/go/protos"
 )
 
 func TestMiddlewareWithoutCertifier(t *testing.T) {
@@ -63,12 +59,7 @@ func TestAuthMiddleware(t *testing.T) {
 
 	rootToken := test_utils.CreateTestAdmin(t, store)
 	userToken := test_utils.CreateTestUser(t, store)
-
-	tenants.CreateTenant(context.Background(), test_utils.TestTenantId, &protos.Tenant{
-		Name:     string(test_utils.TestTenantId),
-		Networks: []string{test_utils.TestTenantNetworkId},
-	})
-
+	tenantUserToken := test_utils.CreateTestTenantUser(t, store)
 	e := startTestMiddlewareServer(t)
 	e.Use(access.TokenMiddleware)
 	listener := WaitForTestServer(t, e)
@@ -92,20 +83,38 @@ func TestAuthMiddleware(t *testing.T) {
 		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, TEST_NETWORK_ID), test_utils.TestRootUsername, rootToken, http.StatusOK},
 		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, WRITE_TEST_NETWORK_ID), test_utils.TestRootUsername, rootToken, http.StatusOK},
 		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, WRITE_TEST_NETWORK_ID), test_utils.TestRootUsername, rootToken, http.StatusOK},
-		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, TenantRootPathV1, obsidian.UrlSep, strconv.Itoa(test_utils.TestTenantId)), test_utils.TestRootUsername, rootToken, http.StatusOK},
-		{"POST", fmt.Sprintf("%s%s%s%s", urlPrefix, TenantRootPathV1, obsidian.UrlSep, strconv.Itoa(test_utils.TestTenantId)), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"GET", fmt.Sprintf("%s%s%s%d", urlPrefix, TenantRootPathV1, obsidian.UrlSep, test_utils.TestTenantId), test_utils.TestRootUsername, rootToken, http.StatusOK},
+		{"POST", fmt.Sprintf("%s%s%s%d", urlPrefix, TenantRootPathV1, obsidian.UrlSep, test_utils.TestTenantId), test_utils.TestRootUsername, rootToken, http.StatusOK},
 		{"GET", fmt.Sprintf("%s%s", urlPrefix, "/malformed/url"), test_utils.TestRootUsername, rootToken, http.StatusOK},
 		{"PUT", fmt.Sprintf("%s%s", urlPrefix, "/malformed/url"), test_utils.TestRootUsername, rootToken, http.StatusOK},
 
-		// Test non-admin user who has read access to all URI endpoints and networks, read/write access to WRITE_TEST_NETWORK_ID, and no read/write access to specific tenants
+		// Test non-admin user
+		// User has read access to all URI endpoints
 		{"GET", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), test_utils.TestUsername, userToken, http.StatusOK},
 		{"POST", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), test_utils.TestUsername, userToken, http.StatusForbidden},
+		// User has read access to all networks and is denied read/write access to WRITE_TEST_NETWORK_ID
 		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusOK},
 		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusForbidden},
 		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, WRITE_TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusForbidden},
 		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, WRITE_TEST_NETWORK_ID), test_utils.TestUsername, userToken, http.StatusForbidden},
-		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, TenantRootPathV1, obsidian.UrlSep, strconv.Itoa(test_utils.TestTenantId)), test_utils.TestUsername, userToken, http.StatusOK},
-		{"POST", fmt.Sprintf("%s%s%s%s", urlPrefix, TenantRootPathV1, obsidian.UrlSep, strconv.Itoa(test_utils.TestTenantId)), test_utils.TestUsername, userToken, http.StatusOK},
+		// User does not have write access to any tenants
+		{"GET", fmt.Sprintf("%s%s%s%d", urlPrefix, TenantRootPathV1, obsidian.UrlSep, test_utils.TestTenantId), test_utils.TestUsername, userToken, http.StatusOK},
+		{"POST", fmt.Sprintf("%s%s%s%d", urlPrefix, TenantRootPathV1, obsidian.UrlSep, test_utils.TestTenantId), test_utils.TestUsername, userToken, http.StatusForbidden},
+
+		// Test non-admin user who only has tenant-based access
+		// User can access endpoints that manage tenant 0
+		{"GET", fmt.Sprintf("%s%s%s%d", urlPrefix, TenantRootPathV1, obsidian.UrlSep, test_utils.TestTenantId), test_utils.TestTenantUsername, tenantUserToken, http.StatusOK},
+		{"POST", fmt.Sprintf("%s%s%s%d", urlPrefix, TenantRootPathV1, obsidian.UrlSep, test_utils.TestTenantId), test_utils.TestTenantUsername, tenantUserToken, http.StatusOK},
+		// User can access tenant 0's networks
+		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, test_utils.TestTenantNetworkId), test_utils.TestTenantUsername, tenantUserToken, http.StatusOK},
+		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, test_utils.TestTenantNetworkId), test_utils.TestTenantUsername, tenantUserToken, http.StatusOK},
+		// User cannot access any other resources
+		{"GET", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), test_utils.TestTenantUsername, tenantUserToken, http.StatusForbidden},
+		{"POST", fmt.Sprintf("%s%s", urlPrefix, RegisterNetworkV1), test_utils.TestTenantUsername, tenantUserToken, http.StatusForbidden},
+		{"GET", fmt.Sprintf("%s%s%s%d", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, test_utils.TestDenyTenantId), test_utils.TestTenantUsername, tenantUserToken, http.StatusForbidden},
+		{"PUT", fmt.Sprintf("%s%s%s%d", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, test_utils.TestDenyTenantId), test_utils.TestTenantUsername, tenantUserToken, http.StatusForbidden},
+		{"GET", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, test_utils.TestDenyTenantNetworkId), test_utils.TestTenantUsername, tenantUserToken, http.StatusForbidden},
+		{"PUT", fmt.Sprintf("%s%s%s%s", urlPrefix, RegisterNetworkV1, obsidian.UrlSep, test_utils.TestDenyTenantNetworkId), test_utils.TestTenantUsername, tenantUserToken, http.StatusForbidden},
 	}
 	for _, tt := range tests {
 		s, err := SendRequestWithToken(tt.method, tt.url, tt.user, tt.token)

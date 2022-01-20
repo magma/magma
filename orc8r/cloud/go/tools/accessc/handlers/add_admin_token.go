@@ -59,7 +59,7 @@ func addAdminToken(cmd *commands.Command, args []string) int {
 	}
 	req := &certprotos.AddUserTokenRequest{
 		Username:  username,
-		Resources: &certprotos.ResourceList{Resources: resources},
+		Resources: resources,
 	}
 	err = certifier.AddUserToken(ctx, req)
 	if err != nil {

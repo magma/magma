@@ -103,13 +103,9 @@ message TenantResource {
   repeated int64 tenants = 1;
 }
 
-message ResourceList {
-  repeated PolicyResource resources = 1;
-}
-
 message Policy {
   string token = 1;
-  ResourceList resources = 2;
+  repeated PolicyResource resources = 2;
 }
 
 // ===========================================================================
@@ -177,7 +173,7 @@ message ListUserTokensResponse {
 
 message AddUserTokenRequest {
   string username = 1;
-  ResourceList resources = 2;
+  repeated PolicyResource resources = 2;
 }
 
 message AddUserTokenResponse {}

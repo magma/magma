@@ -21,6 +21,7 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/certifier"
@@ -135,12 +136,15 @@ func addUserTokenHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	resourceList := resourcesModelToProto(resources)
+	resourceList, err := resourcesModelToProto(resources)
+	if err != nil {
+		return err
+	}
 	req := &protos.AddUserTokenRequest{
 		Username:  username,
 		Resources: resourceList,
 	}
-	err := certifier.AddUserToken(c.Request().Context(), req)
+	err = certifier.AddUserToken(c.Request().Context(), req)
 	return err
 }
 
@@ -176,36 +180,31 @@ func loginHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, res.Policies)
 }
 
-func resourcesModelToProto(resources *models.Resources) *protos.ResourceList {
+func resourcesModelToProto(resources *models.Resources) ([]*protos.PolicyResource, error) {
 	resourceList := make([]*protos.PolicyResource, len(*resources))
 	for i, resource := range *resources {
 		resourceProto := &protos.PolicyResource{
 			Effect: matchEffect(resource.Effect),
 			Action: matchAction(resource.Action),
 		}
-		switch resource.ResourceType {
-		case models.ResourceResourceTypeNETWORKID:
-			resourceProto.Resource = &protos.PolicyResource_Network{Network: &protos.NetworkResource{Networks: resource.ResourceIDs}}
-		case models.ResourceResourceTypeTENANTID:
-			resourceProto.Resource = &protos.PolicyResource_Tenant{Tenant: &protos.TenantResource{Tenants: convertTenantResourceIDs(resource.ResourceIDs)}}
-		default:
-			resourceProto.Resource = &protos.PolicyResource_Path{Path: &protos.PathResource{Path: resource.Path}}
+		if err := setResource(resource, resourceProto); err != nil {
+			return nil, err
 		}
 		resourceList[i] = resourceProto
 	}
-	return &protos.ResourceList{Resources: resourceList}
+	return resourceList, nil
 }
 
-func convertTenantResourceIDs(ids []string) []int64 {
+func convertTenantResourceIDs(ids []string) ([]int64, error) {
 	var intIDs []int64
 	for _, i := range ids {
 		j, err := strconv.ParseInt(i, 10, 64)
 		if err != nil {
-			panic(err)
+			return []int64{}, errors.Wrapf(err, "failed to convert tenant IDs to integers")
 		}
 		intIDs = append(intIDs, j)
 	}
-	return intIDs
+	return intIDs, nil
 }
 
 func matchEffect(rawEffect string) protos.Effect {
@@ -228,4 +227,20 @@ func matchAction(rawAction string) protos.Action {
 	default:
 		return protos.Action_NONE
 	}
+}
+
+func setResource(resource *models.Resource, resourceProto *protos.PolicyResource) error {
+	tenantIDs, err := convertTenantResourceIDs(resource.ResourceIDs)
+	if err != nil {
+		return err
+	}
+	switch resource.ResourceType {
+	case models.ResourceResourceTypeNETWORKID:
+		(*resourceProto).Resource = &protos.PolicyResource_Network{Network: &protos.NetworkResource{Networks: resource.ResourceIDs}}
+	case models.ResourceResourceTypeTENANTID:
+		(*resourceProto).Resource = &protos.PolicyResource_Tenant{Tenant: &protos.TenantResource{Tenants: tenantIDs}}
+	default:
+		(*resourceProto).Resource = &protos.PolicyResource_Path{Path: &protos.PathResource{Path: resource.Path}}
+	}
+	return nil
 }
