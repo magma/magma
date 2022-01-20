@@ -17,8 +17,7 @@
 const ONE_MEGABYTE = 1000000;
 const ONE_GIGABYTE = 1000000000;
 export const DEFAULT_DATA_PLAN_ID = 'default';
-export const BITRATE_MULTIPLIER = ONE_GIGABYTE;
-export const ONE_GB_TO_MB = 1000;
+export const BITRATE_MULTIPLIER = ONE_MEGABYTE;
 export const DATA_PLAN_UNLIMITED_RATES = {
   max_dl_bit_rate: 4 * ONE_GIGABYTE,
   max_ul_bit_rate: 2 * ONE_GIGABYTE,
