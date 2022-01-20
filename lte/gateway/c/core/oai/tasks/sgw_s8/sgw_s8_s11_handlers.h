@@ -17,6 +17,9 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/include/spgw_types.h"
 
+#define CP_TEID 1
+#define UP_TEID 2
+
 status_code_e sgw_s8_handle_s11_create_session_request(
     sgw_state_t* sgw_state, itti_s11_create_session_request_t* session_req_p,
     imsi64_t imsi64);
@@ -66,8 +69,6 @@ void sgw_s8_send_failed_create_bearer_response(
     gtpv2c_cause_value_t cause_value, Imsi_t imsi, teid_t pgw_s8_teid);
 teid_t sgw_s8_generate_new_cp_teid(void);
 
-uint32_t sgw_get_new_s5s8u_teid(sgw_state_t* state);
-
 status_code_e sgw_update_teid_in_ue_context(
     sgw_state_t* sgw_state, imsi64_t imsi64, teid_t teid);
 
@@ -80,7 +81,8 @@ sgw_eps_bearer_context_information_t* sgw_get_sgw_eps_bearer_context(
 
 int sgw_update_bearer_context_information_on_csrsp(
     sgw_eps_bearer_context_information_t* sgw_context_p,
-    const s8_create_session_response_t* const session_rsp_p);
+    const s8_create_session_response_t* const session_rsp_p,
+    sgw_state_t* sgw_state);
 
 int sgw_update_bearer_context_information_on_csreq(
     sgw_state_t* sgw_state,
@@ -91,8 +93,8 @@ uint32_t sgw_get_new_s1u_teid(sgw_state_t* state);
 
 int update_pgw_info_to_temp_dedicated_bearer_context(
     sgw_eps_bearer_context_information_t* sgw_context_p, teid_t s1_u_sgw_fteid,
-    s8_bearer_context_t* bc_cbreq, sgw_state_t* sgw_state,
-    char* pgw_cp_ip_port);
+    s8_bearer_context_t* bc_cbreq, sgw_state_t* sgw_state, char* pgw_cp_ip_port,
+    teid_t sgw_s8_u_teid);
 
 void sgw_s8_proc_s11_create_bearer_rsp(
     sgw_eps_bearer_context_information_t* sgw_context_p,

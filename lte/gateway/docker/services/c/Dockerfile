@@ -79,6 +79,7 @@ RUN apt-get update && apt-get install -y \
   libpcap-dev \
   libmnl-dev \
   uuid-dev \
+  python3-pip \
   libcurl4-openssl-dev \
   magma-libfluid \
   libdouble-conversion-dev \
