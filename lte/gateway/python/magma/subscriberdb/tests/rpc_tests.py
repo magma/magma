@@ -14,6 +14,7 @@ limitations under the License.
 import tempfile
 import unittest
 from concurrent import futures
+from unittest.mock import MagicMock
 
 import grpc
 from lte.protos.subscriberdb_pb2 import (
@@ -48,7 +49,7 @@ class RpcTests(unittest.TestCase):
         port = self._rpc_server.add_insecure_port('0.0.0.0:0')
 
         # Add the servicer
-        self._servicer = SubscriberDBRpcServicer(store)
+        self._servicer = SubscriberDBRpcServicer(store=store, lte_processor=MagicMock())
         self._servicer.add_to_server(self._rpc_server)
         self._rpc_server.start()
 
@@ -84,7 +85,7 @@ class RpcTests(unittest.TestCase):
         self.assertEqual(err.exception.code(), grpc.StatusCode.ALREADY_EXISTS)
 
         # See if we can get the data for the subscriber
-        self.assertEqual(self._stub.GetSubscriberData(sid), data)
+        self.assertEqual(self._stub.GetSubscriberData(sid).sid, data.sid)
         self.assertEqual(len(self._stub.ListSubscribers(Void()).sids), 1)
         self.assertEqual(self._stub.ListSubscribers(Void()).sids[0], sid)
 

@@ -53,6 +53,9 @@ typedef struct s8_create_session_response_s {
                                               // removed and shall update
                                               // imsi_ue_context_htbl based on
                                               // received sgw_s8_teid
+  teid_t
+      sgw_s8_up_teid;  // Orc8r generates s8 user plane TEID for SGW and shares
+                       // it in create session response for default bearer
 } s8_create_session_response_t;
 
 typedef struct s8_delete_session_response_s {
@@ -68,6 +71,9 @@ typedef struct s8_create_bearer_request_s {
   protocol_configuration_options_t pco;
   s8_bearer_context_t bearer_context[BEARERS_PER_UE];
   indication_flags_t indication_flags;
+  teid_t
+      sgw_s8_up_teid;  // Orc8r generates s8 user plane TEID for SGW and shares
+                       // it in create bearer request for dedicated bearer
 } s8_create_bearer_request_t;
 
 typedef struct s8_delete_bearer_request_s {

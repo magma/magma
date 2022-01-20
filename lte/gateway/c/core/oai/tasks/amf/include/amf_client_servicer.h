@@ -29,6 +29,7 @@ extern "C" {
 #include <string>
 #include "lte/protos/session_manager.grpc.pb.h"
 #include "lte/protos/session_manager.pb.h"
+#include "lte/gateway/c/core/oai/include/map.h"
 
 using grpc::Status;
 using magma::lte::SetSmNotificationContext;
@@ -84,6 +85,8 @@ class AMFClientServicer : public AMFClientServicerBase {
 
   AMFClientServicer(AMFClientServicer const&) = delete;
   void operator=(AMFClientServicer const&) = delete;
+
+  magma::map_string_string_t map_table_key_proto_str;
 
 #if MME_UNIT_TEST
   status_code_e amf_send_msg_to_task(

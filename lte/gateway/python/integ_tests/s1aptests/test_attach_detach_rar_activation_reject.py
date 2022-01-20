@@ -21,23 +21,26 @@ from lte.protos.policydb_pb2 import FlowMatch
 
 
 class TestAttachDetachRarActivationReject(unittest.TestCase):
+    """Integration Test: TestAttachDetachRarActivationReject"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._sessionManager_util = SessionManagerUtil()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach_rar_activation_reject(self):
-        """ Attach/detach + rar + dedicated bearer activation reject test
-        with a single UE """
+        """Attach/detach + rar + dedicated bearer activation reject test
+        with a single UE"""
         num_ues = 1
         self._s1ap_wrapper.configUEDevice(num_ues)
 
         req = self._s1ap_wrapper.ue_req
         print(
-            "********************** Running End to End attach for ",
-            "UE id ",
+            "********************** Running End to End attach for UE id",
             req.ue_id,
         )
         # Now actually complete the attach
@@ -48,26 +51,25 @@ class TestAttachDetachRarActivationReject(unittest.TestCase):
             s1ap_types.ueAttachAccept_t,
         )
 
-        # Wait on EMM Information from MME
+        # Wait for EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
         # UL Flow description #1
-        ulFlow1 = {
+        ul_flow1 = {
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.UPLINK,  # Direction
         }
         # DL Flow description #1
-        dlFlow1 = {
+        dl_flow1 = {
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.DOWNLINK,  # Direction
         }
-
         # Flow list to be configured
         flow_list = [
-            ulFlow1,
-            dlFlow1,
+            ul_flow1,
+            dl_flow1,
         ]
-                    # QoS
+        # QoS
         qos = {
             "qci": 5,  # qci value [1 to 9]
             "priority": 15,  # Range [0-255]
@@ -96,21 +98,40 @@ class TestAttachDetachRarActivationReject(unittest.TestCase):
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
         )
         act_ded_ber_ctxt_req = response.cast(
             s1ap_types.UeActDedBearCtxtReq_t,
         )
+        print(
+            "********************** Received Activate Dedicated Bearer Request",
+        )
+        time.sleep(15)
+
+        # The T3485 timer expires in 8 seconds, leading to re-transmission of
+        # Dedicated Bearer Activation Request message.
+        # Handling re-transmitted Dedicated Bearer Activation Request
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
+        )
+        print(
+            "********************** Ignoring re-transmitted Dedicated Bearer "
+            "Activation Request",
+        )
+
+        print(
+            "********************** Sending Activate Dedicated Bearer Reject",
+        )
+        # Send Bearer Activation Reject
         ded_bearer_rej = s1ap_types.UeActDedBearCtxtRej_t()
         ded_bearer_rej.ue_Id = req.ue_id
         ded_bearer_rej.bearerId = act_ded_ber_ctxt_req.bearerId
-        time.sleep(15)
-        print(
-            "********************** Sending activation Reject",
-        )
-        # Send Bearer Activation Reject
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ACT_DED_BER_REJ, ded_bearer_rej,
+            s1ap_types.tfwCmd.UE_ACT_DED_BER_REJ,
+            ded_bearer_rej,
         )
 
         time.sleep(15)
@@ -120,7 +141,8 @@ class TestAttachDetachRarActivationReject(unittest.TestCase):
         )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True,
+            req.ue_id,
+            s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
         )
 
 
