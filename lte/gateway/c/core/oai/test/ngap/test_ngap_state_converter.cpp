@@ -395,9 +395,9 @@ TEST_F(NgapStateConverterTest, TestAfterSctpAssociation) {
 
   ngap_handle_amf_ue_id_notification(state, &notification_p);
 
-  NGAPClientServicer::getInstance().map_ngapState_tableKey_protoStr.clear();
-  NGAPClientServicer::getInstance().map_ngapUeState_tableKey_protoStr.clear();
-  NGAPClientServicer::getInstance().map_imsiTable_tableKey_protoStr.clear();
+  NGAPClientServicer::getInstance().map_ngap_state_proto_str.clear();
+  NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.clear();
+  NGAPClientServicer::getInstance().map_imsi_table_proto_str.clear();
 
   EXPECT_EQ(
       hashtable_uint64_ts_get(
@@ -429,28 +429,21 @@ TEST_F(NgapStateConverterTest, TestAfterSctpAssociation) {
   }
 
   EXPECT_EQ(
-      NGAPClientServicer::getInstance()
-          .map_ngapState_tableKey_protoStr.isEmpty(),
+      NGAPClientServicer::getInstance().map_ngap_state_proto_str.isEmpty(),
       false);
   EXPECT_EQ(
-      NGAPClientServicer::getInstance()
-          .map_ngapUeState_tableKey_protoStr.isEmpty(),
+      NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.isEmpty(),
       true);
   EXPECT_EQ(
-      NGAPClientServicer::getInstance()
-          .map_imsiTable_tableKey_protoStr.isEmpty(),
+      NGAPClientServicer::getInstance().map_imsi_table_proto_str.isEmpty(),
       true);
 
   EXPECT_EQ(
-      NGAPClientServicer::getInstance().map_ngapState_tableKey_protoStr.size(),
-      1);
+      NGAPClientServicer::getInstance().map_ngap_state_proto_str.size(), 1);
   EXPECT_EQ(
-      NGAPClientServicer::getInstance()
-          .map_ngapUeState_tableKey_protoStr.size(),
-      0);
+      NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.size(), 0);
   EXPECT_EQ(
-      NGAPClientServicer::getInstance().map_imsiTable_tableKey_protoStr.size(),
-      0);
+      NGAPClientServicer::getInstance().map_imsi_table_proto_str.size(), 0);
 
   NgapStateConverterTest::TearDown();
 
@@ -587,9 +580,9 @@ TEST_F(NgapStateConverterTest, test_ngap_stateless) {
 
   ngap_handle_amf_ue_id_notification(state, &notification_p);
 
-  NGAPClientServicer::getInstance().map_ngapState_tableKey_protoStr.clear();
-  NGAPClientServicer::getInstance().map_ngapUeState_tableKey_protoStr.clear();
-  NGAPClientServicer::getInstance().map_imsiTable_tableKey_protoStr.clear();
+  NGAPClientServicer::getInstance().map_ngap_state_proto_str.clear();
+  NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.clear();
+  NGAPClientServicer::getInstance().map_imsi_table_proto_str.clear();
 
   EXPECT_EQ(
       hashtable_uint64_ts_get(
@@ -621,28 +614,21 @@ TEST_F(NgapStateConverterTest, test_ngap_stateless) {
   }
 
   EXPECT_EQ(
-      NGAPClientServicer::getInstance()
-          .map_ngapState_tableKey_protoStr.isEmpty(),
+      NGAPClientServicer::getInstance().map_ngap_state_proto_str.isEmpty(),
       false);
   EXPECT_EQ(
-      NGAPClientServicer::getInstance()
-          .map_ngapUeState_tableKey_protoStr.isEmpty(),
+      NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.isEmpty(),
       false);
   EXPECT_EQ(
-      NGAPClientServicer::getInstance()
-          .map_imsiTable_tableKey_protoStr.isEmpty(),
+      NGAPClientServicer::getInstance().map_imsi_table_proto_str.isEmpty(),
       false);
 
   EXPECT_EQ(
-      NGAPClientServicer::getInstance().map_ngapState_tableKey_protoStr.size(),
-      1);
+      NGAPClientServicer::getInstance().map_ngap_state_proto_str.size(), 1);
   EXPECT_EQ(
-      NGAPClientServicer::getInstance()
-          .map_ngapUeState_tableKey_protoStr.size(),
-      1);
+      NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.size(), 1);
   EXPECT_EQ(
-      NGAPClientServicer::getInstance().map_imsiTable_tableKey_protoStr.size(),
-      1);
+      NGAPClientServicer::getInstance().map_imsi_table_proto_str.size(), 1);
 
   NgapStateConverterTest::TearDown();
 
