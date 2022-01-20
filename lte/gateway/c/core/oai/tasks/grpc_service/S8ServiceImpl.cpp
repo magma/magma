@@ -66,6 +66,8 @@ static void convert_proto_msg_to_itti_create_bearer_req(
   }
   get_fteid_from_proto_msg(
       request->bearer_context().user_plane_fteid(), &s8_bc->pgw_s8_up);
+  itti_msg->sgw_s8_up_teid = request->u_agw_teid();
+
   return;
 }
 

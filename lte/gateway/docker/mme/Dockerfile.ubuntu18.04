@@ -366,6 +366,7 @@ WORKDIR /etc/magma
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml .
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/redis.yml .
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/sctpd.yml .
 
 # Adding means to re-generate certificates
 WORKDIR /magma-mme/scripts
