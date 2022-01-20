@@ -257,6 +257,10 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_attach_detach_multi_ue_looped.py \
 # s1aptests/test_attach_detach_rar_tcp_he.py \ GitHubIssue 6254
 
+# Temporarily disabled for Github issue #11237
+# s1aptests/test_mobile_reachability_timer_with_mme_restart.py \
+# s1aptests/test_implicit_detach_timer_with_mme_restart.py \
+
 CLOUD_TESTS = cloud_tests/checkin_test.py \
 cloud_tests/metrics_export_test.py \
 cloud_tests/config_test.py
