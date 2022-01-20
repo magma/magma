@@ -200,6 +200,9 @@ func TestBuilder_Build(t *testing.T) {
 		"liagentd": &lte_mconfig.LIAgentD{
 			LogLevel: protos.LogLevel_INFO,
 		},
+		"sctpd": &lte_mconfig.SctpD{
+			LogLevel: protos.LogLevel_INFO,
+		},
 	}
 
 	// Happy path
@@ -285,7 +288,7 @@ func TestBuilder_Build(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	//verify service area map
+	// verify service area map
 	setEpcNetworkServiceAreaMap(&nw, map[string]lte_models.TacList{
 		"001": []lte_models.Tac{111, 112},
 		"002": []lte_models.Tac{211, 122},
@@ -413,6 +416,9 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			DhcpServerEnabled: true,
 		},
 		"liagentd": &lte_mconfig.LIAgentD{
+			LogLevel: protos.LogLevel_INFO,
+		},
+		"sctpd": &lte_mconfig.SctpD{
 			LogLevel: protos.LogLevel_INFO,
 		},
 	}
@@ -761,6 +767,9 @@ func TestBuilder_Build_NgcConfig(t *testing.T) {
 		"liagentd": &lte_mconfig.LIAgentD{
 			LogLevel: protos.LogLevel_INFO,
 		},
+		"sctpd": &lte_mconfig.SctpD{
+			LogLevel: protos.LogLevel_INFO,
+		},
 	}
 
 	actual, err := buildNonFederated(&nw, &graph, "gw1")
@@ -894,6 +903,9 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			DhcpServerEnabled: true,
 		},
 		"liagentd": &lte_mconfig.LIAgentD{
+			LogLevel: protos.LogLevel_INFO,
+		},
+		"sctpd": &lte_mconfig.SctpD{
 			LogLevel: protos.LogLevel_INFO,
 		},
 	}
@@ -1128,6 +1140,9 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 		"liagentd": &lte_mconfig.LIAgentD{
 			LogLevel: protos.LogLevel_INFO,
 		},
+		"sctpd": &lte_mconfig.SctpD{
+			LogLevel: protos.LogLevel_INFO,
+		},
 	}
 
 	// Use LTE FEG NETWORK parser for this case
@@ -1277,6 +1292,9 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 		"liagentd": &lte_mconfig.LIAgentD{
 			LogLevel: protos.LogLevel_INFO,
 		},
+		"sctpd": &lte_mconfig.SctpD{
+			LogLevel: protos.LogLevel_INFO,
+		},
 	}
 
 	actual, err := buildNonFederated(&nw, &graph, "gw1")
@@ -1409,6 +1427,9 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			DhcpServerEnabled: true,
 		},
 		"liagentd": &lte_mconfig.LIAgentD{
+			LogLevel: protos.LogLevel_INFO,
+		},
+		"sctpd": &lte_mconfig.SctpD{
 			LogLevel: protos.LogLevel_INFO,
 		},
 	}
@@ -1551,6 +1572,9 @@ func TestBuilder_BuildCongestionControlConfig(t *testing.T) {
 		"liagentd": &lte_mconfig.LIAgentD{
 			LogLevel: protos.LogLevel_INFO,
 		},
+		"sctpd": &lte_mconfig.SctpD{
+			LogLevel: protos.LogLevel_INFO,
+		},
 	}
 
 	actual, err := buildNonFederated(&nw, &graph, "gw1")
@@ -1684,6 +1708,9 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 			DhcpServerEnabled: true,
 		},
 		"liagentd": &lte_mconfig.LIAgentD{
+			LogLevel: protos.LogLevel_INFO,
+		},
+		"sctpd": &lte_mconfig.SctpD{
 			LogLevel: protos.LogLevel_INFO,
 		},
 	}

@@ -23,11 +23,11 @@ from magma.common.rpc_utils import cloud_grpc_wrapper
 
 @cloud_grpc_wrapper
 def echo(client, args):
-    start_time = datetime.datetime.now()
+    start_time = datetime.datetime.utcnow()
     req = HelloRequest(greeting=args.msg, grpc_err_code=args.err_code)
     print("- Request:\n", req)
     resp = client.SayHello(req)
-    end_time = datetime.datetime.now()
+    end_time = datetime.datetime.utcnow()
     print(f'- Response: {resp.greeting}')
     print_stats(resp, start_time, end_time)
 

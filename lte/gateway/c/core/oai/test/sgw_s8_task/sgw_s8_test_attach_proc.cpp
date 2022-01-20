@@ -92,7 +92,6 @@ TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req) {
   EXPECT_EQ(bearer_id_inserted, true);
   // Validates whether userplane teids are created for s1-u and s8-u interfaces
   EXPECT_GT(eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, 0);
-  EXPECT_GT(eps_bearer_ctxt_p->s_gw_teid_S5_S8_up, 0);
 }
 
 // TC validates updation of bearer context on reception of Create Session Rsp
@@ -116,7 +115,8 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
   EXPECT_EQ(strcmp(sgw_pdn_session->pdn_connection.apn_in_use, "NO APN"), 0);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
 
   EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp())
       .Times(1)
@@ -136,6 +136,7 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
   EXPECT_TRUE(
       bearer_ctx_p->p_gw_teid_S5_S8_up ==
       csresp.bearer_context[0].pgw_s8_up.teid);
+  EXPECT_GT(bearer_ctx_p->s_gw_teid_S5_S8_up, 0);
   // Check pdn session is removed from
   // temporary_create_session_procedure_id_htbl
   EXPECT_EQ(
@@ -165,7 +166,8 @@ TEST_F(
       sgw_state, sgw_pdn_session, &session_req, imsi64);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id + 1);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id + 1, sgw_s8_up_teid++);
   EXPECT_EQ(
       sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64),
       RETURNerror);
@@ -188,7 +190,8 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_different_sgw_s8_teid) {
       sgw_state, sgw_pdn_session, &session_req, imsi64);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
   // validate with wrong sgw_s8_teid, fails to get sgw_pdn_session
   EXPECT_EQ(
@@ -212,11 +215,13 @@ TEST_F(SgwS8ConfigAndCreateMock, failed_to_get_bearer_context_on_cs_rsp) {
       sgw_state, sgw_pdn_session, &session_req, imsi64);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
   csresp.eps_bearer_id = 7;  // Send wrong eps_bearer_id
   // fails to update bearer context
   EXPECT_EQ(
-      sgw_update_bearer_context_information_on_csrsp(sgw_pdn_session, &csresp),
+      sgw_update_bearer_context_information_on_csrsp(
+          sgw_pdn_session, &csresp, sgw_state),
       RETURNerror);
 }
 
@@ -243,7 +248,8 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling) {
   EXPECT_EQ(strcmp(sgw_pdn_session->pdn_connection.apn_in_use, "NO APN"), 0);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
 
   // Below steps validate that successful handling of create session response
   // which eventually sends message to MME
@@ -314,7 +320,8 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling_invalid_teid) {
       sgw_state, sgw_pdn_session, &session_req, imsi64);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
   sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64);
   // Validate that sgw_s8 fails to find the context for in-correct teid received
   // in delete session req
@@ -358,7 +365,8 @@ TEST_F(SgwS8ConfigAndCreateMock, update_s1u_bearer_info_on_mbr) {
   EXPECT_EQ(strcmp(sgw_pdn_session->pdn_connection.apn_in_use, "NO APN"), 0);
 
   s8_create_session_response_t csresp = {0};
-  fill_itti_csrsp(&csresp, temporary_create_session_procedure_id);
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
 
   EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp())
       .Times(1)

@@ -20,6 +20,7 @@ import (
 	"github.com/golang/glog"
 
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/services/feg_relay/utils"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	orc8r_protos "magma/orc8r/lib/go/protos"
 )
@@ -34,12 +35,22 @@ func (srv *FegToGwRelayServer) CreateBearer(
 	req *fegprotos.CreateBearerRequestPgw,
 ) (*orc8r_protos.Void, error) {
 	if req == nil {
-		err := fmt.Errorf("unable to send CreateBearerPGW, request is nil: ")
+		err := fmt.Errorf("feg_relay unable to send CreateBearerPGW, request is nil: ")
 		glog.Error(err)
 		return nil, err
 	}
-	teid := fmt.Sprint(req.CAgwTeid)
-	client, ctx, err := getS8ProxyResponderClient(ctx, teid)
+	// inject user plane TEID
+	var err error
+	req.UAgwTeid, err = utils.GetUniqueSgwTeid(ctx, utils.UserPlaneTeid)
+	if err != nil {
+		err = fmt.Errorf("feg_relay S8 CreateBearer couldn't get unique SgwUteid: %v; request: %s", err, req.String())
+		glog.Error(err)
+		return nil, err
+	}
+
+	// get AGW id this cTEID serves
+	cTeid := fmt.Sprint(req.CAgwTeid)
+	client, ctx, err := getS8ProxyResponderClient(ctx, cTeid)
 	if err != nil {
 		err = fmt.Errorf("unable to get S8ProxyResponderClient: %s", err)
 		glog.Error(err)

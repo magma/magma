@@ -62,6 +62,7 @@ def main():
     # Add all servicers to the server
     subscriberdb_servicer = SubscriberDBRpcServicer(
         store,
+        processor,
         service.config.get('print_grpc_payload', False),
     )
     subscriberdb_servicer.add_to_server(service.rpc_server)
