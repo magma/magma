@@ -150,6 +150,12 @@ message UeContext {
   google.protobuf.Timestamp time_paging_response_timer_started = 209;
   uint32 paging_retx_count = 210;
   google.protobuf.Timestamp time_ics_rsp_timer_started = 211;
+
+  // 5G protos
+  // AMF UE NGAP ID, Unique identity of UE within AMF
+  uint32 amf_ue_ngap_id = 221;
+  // UEContextRequest in  INITIAL UE MESSAGE
+  uint32 ue_context_request = 222;
 }
 
 // mme_ue_context_t
