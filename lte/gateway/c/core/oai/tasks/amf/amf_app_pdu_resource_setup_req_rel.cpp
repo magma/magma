@@ -51,11 +51,14 @@ uint64_t get_bit_rate(uint8_t ambr_unit) {
  * AMBR calculation based on 9.11.4.14 of 24-501
  */
 void ambr_calculation_pdu_session(
-    uint16_t* dl_session_ambr, uint8_t* dl_ambr_unit, uint16_t* ul_session_ambr,
-    uint8_t* ul_ambr_unit, uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr) {
-  *dl_pdu_ambr = (*dl_session_ambr) * get_bit_rate(*dl_ambr_unit);
+    uint16_t* dl_session_ambr, M5GSessionAmbrUnit dl_ambr_unit,
+    uint16_t* ul_session_ambr, M5GSessionAmbrUnit ul_ambr_unit,
+    uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr) {
+  *dl_pdu_ambr =
+      (*dl_session_ambr) * get_bit_rate(static_cast<uint8_t>(dl_ambr_unit));
 
-  *ul_pdu_ambr = (*ul_session_ambr) * get_bit_rate(*ul_ambr_unit);
+  *ul_pdu_ambr =
+      (*ul_session_ambr) * get_bit_rate(static_cast<uint8_t>(ul_ambr_unit));
 }
 
 /*
@@ -92,9 +95,9 @@ int pdu_session_resource_setup_request(
    */
   ambr_calculation_pdu_session(
       &(smf_context->selected_ambr.dl_session_ambr),
-      &(smf_context->selected_ambr.dl_ambr_unit),
+      (smf_context->selected_ambr.dl_ambr_unit),
       &(smf_context->selected_ambr.ul_session_ambr),
-      &(smf_context->selected_ambr.ul_ambr_unit), &dl_pdu_ambr, &ul_pdu_ambr);
+      (smf_context->selected_ambr.ul_ambr_unit), &dl_pdu_ambr, &ul_pdu_ambr);
 
   amf_smf_context_ue_aggregate_max_bit_rate_get(
       &(ue_context->amf_context),
@@ -158,7 +161,8 @@ int pdu_session_resource_release_request(
 
   msg.security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  msg.security_protected.plain.amf.header.message_type = DLNASTRANSPORT;
+  msg.security_protected.plain.amf.header.message_type =
+      static_cast<M5GMessageType>(M5GMessageType::DLNASTRANSPORT);
   msg.header.security_header_type = SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED;
   msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
   msg.header.sequence_number =
@@ -174,7 +178,8 @@ int pdu_session_resource_release_request(
   encode_msg->spare_half_octet.spare  = 0x00;
   encode_msg->sec_header_type.sec_hdr = 0x00;
   len++;
-  encode_msg->message_type.msg_type = DLNASTRANSPORT;
+  encode_msg->message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::DLNASTRANSPORT);
   len++;
   encode_msg->payload_container.iei = PAYLOAD_CONTAINER;
   // encode_msg->payload_container_type.iei      = PAYLOAD_CONTAINER_TYPE;
@@ -191,7 +196,8 @@ int pdu_session_resource_release_request(
   smf_msg->header.extended_protocol_discriminator =
       M5G_SESSION_MANAGEMENT_MESSAGES;
   smf_msg->header.pdu_session_id = smf_ctx->smf_proc_data.pdu_session_id;
-  smf_msg->header.message_type   = PDU_SESSION_RELEASE_COMMAND;
+  smf_msg->header.message_type =
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_RELEASE_COMMAND);
   smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti;
   smf_msg->msg.pdu_session_release_command.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
@@ -202,7 +208,7 @@ int pdu_session_resource_release_request(
   smf_msg->msg.pdu_session_release_command.pti.pti = smf_ctx->smf_proc_data.pti;
   container_len++;
   smf_msg->msg.pdu_session_release_command.message_type.msg_type =
-      PDU_SESSION_RELEASE_COMMAND;
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_RELEASE_COMMAND);
   container_len++;
   smf_msg->msg.pdu_session_release_command.m5gsm_cause.cause_value =
       0x24;  // Regular deactivation

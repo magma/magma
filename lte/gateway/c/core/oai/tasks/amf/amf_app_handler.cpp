@@ -672,7 +672,7 @@ int amf_app_handle_pdu_session_response(
  ***************************************************************************/
 void convert_ambr(
     const uint32_t* pdu_ambr_response_unit,
-    const uint32_t* pdu_ambr_response_value, uint8_t* ambr_unit,
+    const uint32_t* pdu_ambr_response_value, M5GSessionAmbrUnit* ambr_unit,
     uint16_t* ambr_value) {
   int count                             = 1;
   uint32_t temp_pdu_ambr_response_value = *pdu_ambr_response_value;
@@ -682,8 +682,7 @@ void convert_ambr(
       temp_pdu_ambr_response_value / 1000 == 0) {
     // Values less than 1Kbps are defaulted to 1Kbps
     *ambr_value = static_cast<uint16_t>(1);
-    *ambr_unit  = static_cast<uint8_t>(
-        magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
+    *ambr_unit  = magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS;  // Kbps
     return;
   }
 
@@ -698,16 +697,13 @@ void convert_ambr(
 
   switch (count) {
     case 1:
-      *ambr_unit = static_cast<uint8_t>(
-          magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
+      *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS;  // Kbps
       break;
     case 2:
-      *ambr_unit = static_cast<uint8_t>(
-          magma5g::M5GSessionAmbrUnit::MULTIPLES_1MBPS);  // Mbps
+      *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1MBPS;  // Mbps
       break;
     case 3:
-      *ambr_unit = static_cast<uint8_t>(
-          magma5g::M5GSessionAmbrUnit::MULTIPLES_1GBPS);  // Gbps
+      *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1GBPS;  // Gbps
       break;
   }
   *ambr_value = static_cast<uint16_t>(temp_pdu_ambr_response_value);
@@ -763,7 +759,8 @@ int amf_app_handle_pdu_session_accept(
   // Message construction for PDU Establishment Accept
   msg.security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  msg.security_protected.plain.amf.header.message_type = DLNASTRANSPORT;
+  msg.security_protected.plain.amf.header.message_type =
+      static_cast<M5GMessageType>(M5GMessageType::DLNASTRANSPORT);
   msg.header.security_header_type =
       SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
   msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
@@ -776,9 +773,10 @@ int amf_app_handle_pdu_session_accept(
   // AmfHeader
   encode_msg->extended_protocol_discriminator.extended_proto_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  encode_msg->spare_half_octet.spare     = 0x00;
-  encode_msg->sec_header_type.sec_hdr    = SECURITY_HEADER_TYPE_NOT_PROTECTED;
-  encode_msg->message_type.msg_type      = DLNASTRANSPORT;
+  encode_msg->spare_half_octet.spare  = 0x00;
+  encode_msg->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  encode_msg->message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::DLNASTRANSPORT);
   encode_msg->payload_container_type.iei = 0;
   // encode_msg->payload_container_type.iei = PAYLOAD_CONTAINER_TYPE;
 
@@ -792,8 +790,9 @@ int amf_app_handle_pdu_session_accept(
 
   smf_msg->header.extended_protocol_discriminator =
       M5G_SESSION_MANAGEMENT_MESSAGES;
-  smf_msg->header.pdu_session_id           = pdu_session_resp->pdu_session_id;
-  smf_msg->header.message_type             = PDU_SESSION_ESTABLISHMENT_ACCEPT;
+  smf_msg->header.pdu_session_id = pdu_session_resp->pdu_session_id;
+  smf_msg->header.message_type =
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT);
   smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti;
   smf_msg->msg.pdu_session_estab_accept.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
@@ -801,7 +800,7 @@ int amf_app_handle_pdu_session_accept(
       pdu_session_resp->pdu_session_id;
   smf_msg->msg.pdu_session_estab_accept.pti.pti = smf_ctx->smf_proc_data.pti;
   smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
-      PDU_SESSION_ESTABLISHMENT_ACCEPT;
+      static_cast<uint8_t>(M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT);
   smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val = 1;
   smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val =
       (pdu_session_resp->selected_ssc_mode + 1);
@@ -848,12 +847,12 @@ int amf_app_handle_pdu_session_accept(
 
   // Set session ambr
   smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_unit =
-      smf_ctx->selected_ambr.dl_ambr_unit;
+      static_cast<uint8_t>(smf_ctx->selected_ambr.dl_ambr_unit);
   smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_session_ambr =
       smf_ctx->selected_ambr.dl_session_ambr;
 
   smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit =
-      smf_ctx->selected_ambr.ul_ambr_unit;
+      static_cast<uint8_t>(smf_ctx->selected_ambr.ul_ambr_unit);
   smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_session_ambr =
       smf_ctx->selected_ambr.ul_session_ambr;
 

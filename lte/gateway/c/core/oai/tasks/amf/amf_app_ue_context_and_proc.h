@@ -244,17 +244,17 @@ typedef struct teid_upf_gnb_s {
 typedef struct smf_proc_data_s {
   uint8_t pdu_session_id;
   uint8_t pti;
-  uint8_t message_type;
+  M5GMessageType message_type;
   uint8_t max_uplink;
   uint8_t max_downlink;
-  uint32_t pdu_session_type;
+  M5GPduSessionType pdu_session_type;
   uint32_t ssc_mode;
 } smf_proc_data_t;
 
 typedef struct session_ambr_s {
-  uint8_t dl_ambr_unit;
+  M5GSessionAmbrUnit dl_ambr_unit;
   uint16_t dl_session_ambr;
-  uint8_t ul_ambr_unit;
+  M5GSessionAmbrUnit ul_ambr_unit;
   uint16_t ul_session_ambr;
 } session_ambr_t;
 
@@ -462,7 +462,7 @@ void amf_ctx_clear_attribute_present(
 typedef struct amf_msg_header_t {
   uint8_t extended_protocol_discriminator;
   uint8_t security_header_type;
-  uint8_t message_type;
+  M5GMessageType message_type;
   uint32_t message_authentication_code;
   uint8_t sequence_number;
 } amf_msg_header;
@@ -862,8 +862,9 @@ void amf_ue_context_on_new_guti(
 ue_m5gmm_context_s* amf_ue_context_exists_guti(
     amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p);
 void ambr_calculation_pdu_session(
-    uint16_t* dl_session_ambr, uint8_t* dl_ambr_unit, uint16_t* ul_session_ambr,
-    uint8_t* ul_ambr_unit, uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr);
+    uint16_t* dl_session_ambr, M5GSessionAmbrUnit dl_ambr_unit,
+    uint16_t* ul_session_ambr, M5GSessionAmbrUnit ul_ambr_unit,
+    uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr);
 int amf_proc_registration_abort(
     amf_context_t* amf_ctx, struct ue_m5gmm_context_s* ue_amf_context);
 ue_m5gmm_context_s* ue_context_loopkup_by_guti(tmsi_t tmsi_rcv);
