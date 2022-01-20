@@ -172,6 +172,7 @@ s1aptests/test_implicit_detach_timer_with_mme_restart.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
+s1aptests/test_attach_detach_non_nat_dp_ul_tcp.py \
 s1aptests/test_attach_detach_rar_activation_reject.py \
 s1aptests/test_paging_with_mme_restart.py \
 s1aptests/test_no_identity_rsp_with_mme_restart.py \
