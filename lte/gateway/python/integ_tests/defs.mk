@@ -167,8 +167,6 @@ s1aptests/test_guti_attach_with_zero_mtmsi.py \
 s1aptests/test_ics_timer_expiry_with_mme_restart.py \
 s1aptests/test_attach_mobile_reachability_timer_expiry.py \
 s1aptests/test_attach_implicit_detach_timer_expiry.py \
-s1aptests/test_mobile_reachability_timer_with_mme_restart.py \
-s1aptests/test_implicit_detach_timer_with_mme_restart.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
