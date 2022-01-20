@@ -19,8 +19,8 @@ from integ_tests.s1aptests import s1ap_wrapper
 from s1ap_utils import MagmadUtil
 
 
-class TestAttachDetachNonNatDatapath(unittest.TestCase):
-    """Integration Test: TestAttachDetachNonNatDatapath"""
+class TestAttachDetachNonNatDpUlTcp(unittest.TestCase):
+    """Integration Test: TestAttachDetachNonNatDpUlTcp"""
 
     def __init__(self, method_name: str = ...) -> None:
         """Initialize unittest class"""
@@ -37,7 +37,7 @@ class TestAttachDetachNonNatDatapath(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
         self.magma_utils.enable_nat()
 
-    def test_attach_detach_nonnat_datapath(self):
+    def test_attach_detach_non_nat_dp_ul_tcp(self):
         """Basic attach/detach test with a single UE"""
         num_ues = 1
 
