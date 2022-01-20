@@ -582,7 +582,9 @@ type UeContext struct {
 	PagingRetxCount                    uint32               `protobuf:"varint,210,opt,name=paging_retx_count,json=pagingRetxCount,proto3" json:"paging_retx_count,omitempty"`
 	TimeIcsRspTimerStarted             *timestamp.Timestamp `protobuf:"bytes,211,opt,name=time_ics_rsp_timer_started,json=timeIcsRspTimerStarted,proto3" json:"time_ics_rsp_timer_started,omitempty"`
 	// 5G protos
-	AmfUeNgapId          uint32   `protobuf:"varint,221,opt,name=amf_ue_ngap_id,json=amfUeNgapId,proto3" json:"amf_ue_ngap_id,omitempty"`
+	// AMF UE NGAP ID, Unique identity of UE within AMF
+	AmfUeNgapId uint32 `protobuf:"varint,221,opt,name=amf_ue_ngap_id,json=amfUeNgapId,proto3" json:"amf_ue_ngap_id,omitempty"`
+	// UEContextRequest in  INITIAL UE MESSAGE
 	UeContextRequest     uint32   `protobuf:"varint,222,opt,name=ue_context_request,json=ueContextRequest,proto3" json:"ue_context_request,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
