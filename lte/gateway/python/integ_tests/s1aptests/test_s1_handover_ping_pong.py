@@ -19,8 +19,8 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestS1Handover(unittest.TestCase):
-    """Unittest: TestS1Handover"""
+class TestS1HandoverPingPong(unittest.TestCase):
+    """Integration Test: TestS1HandoverPingPong"""
 
     def setUp(self):
         """Initialize before test case execution"""
@@ -30,15 +30,16 @@ class TestS1Handover(unittest.TestCase):
         """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
-    def test_s1_handover(self):
-        """S1 Handover Successful Scenario:
+    def test_s1_handover_ping_pong(self):
+        """S1 Handover Successful Scenario (Ping-Pong):
 
         1) Attach UE to ENB 1 (After handover UE should switch to ENB 2)
         2) Trigger handover by sending S1 HO required Message from source ENB
         3) Receive and Handle the S1 HO Request in target ENB
         4) Receive and handle the S1 HO Command in source ENB
         5) Receive and handle the MME Status Transfer message in target ENB
-        6) UE is moved to ENB 2. Detach the UE.
+        6) UE is moved to ENB 2. Re-initiate the S1 Handover procedure
+        7) After UE is moved back to ENB 1, detach the UE
 
         Note: Before execution of this test case,
         Run the test script s1aptests/test_modify_mme_config_for_sanity.py
@@ -101,7 +102,7 @@ class TestS1Handover(unittest.TestCase):
         )
 
         # Trigger the S1 Handover Procedure from Source ENB by sending S1
-        # Handover Required Message
+        # Handover Required Message to MME
         print(
             "************************* Sending S1 Handover Required for UE Id:",
             req.ue_id,
@@ -150,6 +151,8 @@ class TestS1Handover(unittest.TestCase):
             s1ho_req_ack,
         )
 
+        # After receiving S1 Handover Req Ack from Target ENB, MME sends S1
+        # Handover Command to Source ENB.
         # Wait for S1 Handover Command Indication
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
@@ -178,10 +181,12 @@ class TestS1Handover(unittest.TestCase):
         enb_status_trf = s1ap_types.FwNbEnbStatusTrnsfr_t()
         enb_status_trf.ueId = req.ue_id
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.ENB_STATUS_TRANSFER,
+            s1ap_types.tfwCmd.S1_ENB_STATUS_TRANSFER,
             enb_status_trf,
         )
 
+        # After receiving ENB Status Transfer from Source ENB, MME sends MME
+        # Status Transfer to Target ENB.
         # Wait for MME Status Transfer Indication
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
@@ -215,7 +220,7 @@ class TestS1Handover(unittest.TestCase):
         )
 
         # After successful handover, MME sends UE context release command to
-        # source ENB for clearing UE context from sorce ENB
+        # source ENB for clearing UE context from source ENB
         # Wait for UE Context Release command
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
@@ -236,6 +241,17 @@ class TestS1Handover(unittest.TestCase):
         print(
             "************************* Received UE Context Release Command "
             "after successful handover",
+        )
+
+        print("Waiting for 3 seconds for the flow rules creation")
+        time.sleep(3)
+        # Verify if flow rules are created
+        # 1 UL flow for default bearer
+        num_ul_flows = 1
+        dl_flow_rules = {default_ip: []}
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows,
+            dl_flow_rules,
         )
 
         #####################################
@@ -247,7 +263,7 @@ class TestS1Handover(unittest.TestCase):
         time.sleep(2)
 
         # Trigger the S1 Handover Procedure from Source ENB by sending S1
-        # Handover Required Message
+        # Handover Required Message to MME
         print(
             "************************* Sending S1 Handover Required for UE Id:",
             req.ue_id,
@@ -296,6 +312,8 @@ class TestS1Handover(unittest.TestCase):
             s1ho_req_ack,
         )
 
+        # After receiving S1 Handover Req Ack from Target ENB, MME sends S1
+        # Handover Command to Source ENB.
         # Wait for S1 Handover Command Indication
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
@@ -324,10 +342,12 @@ class TestS1Handover(unittest.TestCase):
         enb_status_trf = s1ap_types.FwNbEnbStatusTrnsfr_t()
         enb_status_trf.ueId = req.ue_id
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.ENB_STATUS_TRANSFER,
+            s1ap_types.tfwCmd.S1_ENB_STATUS_TRANSFER,
             enb_status_trf,
         )
 
+        # After receiving ENB Status Transfer from Source ENB, MME sends MME
+        # Status Transfer to Target ENB.
         # Wait for MME Status Transfer Indication
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
@@ -361,7 +381,7 @@ class TestS1Handover(unittest.TestCase):
         )
 
         # After successful handover, MME sends UE context release command to
-        # source ENB for clearing UE context from sorce ENB
+        # source ENB for clearing UE context from source ENB
         # Wait for UE Context Release command
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
@@ -384,6 +404,17 @@ class TestS1Handover(unittest.TestCase):
             "after successful handover",
         )
 
+        print("Waiting for 3 seconds for the flow rules creation")
+        time.sleep(3)
+        # Verify if flow rules are created
+        # 1 UL flow for default bearer
+        num_ul_flows = 1
+        dl_flow_rules = {default_ip: []}
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows,
+            dl_flow_rules,
+        )
+
         print(
             "************************* Running UE detach for UE Id:",
             req.ue_id,
@@ -391,7 +422,7 @@ class TestS1Handover(unittest.TestCase):
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
             req.ue_id,
-            s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
+            s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
         )
 
         print("Waiting for 5 seconds for the flow rules deletion")

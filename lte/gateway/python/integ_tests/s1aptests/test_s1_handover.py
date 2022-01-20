@@ -20,7 +20,7 @@ import s1ap_wrapper
 
 
 class TestS1Handover(unittest.TestCase):
-    """Unittest: TestS1Handover"""
+    """Integration Test: TestS1Handover"""
 
     def setUp(self):
         """Initialize before test case execution"""
@@ -101,7 +101,7 @@ class TestS1Handover(unittest.TestCase):
         )
 
         # Trigger the S1 Handover Procedure from Source ENB by sending S1
-        # Handover Required Message
+        # Handover Required Message to MME
         print(
             "************************* Sending S1 Handover Required for UE Id:",
             req.ue_id,
@@ -150,6 +150,8 @@ class TestS1Handover(unittest.TestCase):
             s1ho_req_ack,
         )
 
+        # After receiving S1 Handover Req Ack from Target ENB, MME sends S1
+        # Handover Command to Source ENB.
         # Wait for S1 Handover Command Indication
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
@@ -178,10 +180,12 @@ class TestS1Handover(unittest.TestCase):
         enb_status_trf = s1ap_types.FwNbEnbStatusTrnsfr_t()
         enb_status_trf.ueId = req.ue_id
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.ENB_STATUS_TRANSFER,
+            s1ap_types.tfwCmd.S1_ENB_STATUS_TRANSFER,
             enb_status_trf,
         )
 
+        # After receiving ENB Status Transfer from Source ENB, MME sends MME
+        # Status Transfer to Target ENB.
         # Wait for MME Status Transfer Indication
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
@@ -215,7 +219,7 @@ class TestS1Handover(unittest.TestCase):
         )
 
         # After successful handover, MME sends UE context release command to
-        # source ENB for clearing UE context from sorce ENB
+        # source ENB for clearing UE context from source ENB
         # Wait for UE Context Release command
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
@@ -236,6 +240,17 @@ class TestS1Handover(unittest.TestCase):
         print(
             "************************* Received UE Context Release Command "
             "after successful handover",
+        )
+
+        print("Waiting for 3 seconds for the flow rules creation")
+        time.sleep(3)
+        # Verify if flow rules are created
+        # 1 UL flow for default bearer
+        num_ul_flows = 1
+        dl_flow_rules = {default_ip: []}
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows,
+            dl_flow_rules,
         )
 
         print(

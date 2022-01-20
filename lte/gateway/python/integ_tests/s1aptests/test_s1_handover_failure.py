@@ -20,7 +20,7 @@ import s1ap_wrapper
 
 
 class TestS1HandoverFailure(unittest.TestCase):
-    """Unittest: TestS1HandoverFailure"""
+    """Integration Test: TestS1HandoverFailure"""
 
     def setUp(self):
         """Initialize before test case execution"""
@@ -99,9 +99,8 @@ class TestS1HandoverFailure(unittest.TestCase):
             dl_flow_rules,
         )
 
-        # Configure the S1 Handover Event type as S1_HO_FAILURE and
         # Trigger the S1 Handover Procedure from Source ENB by sending S1
-        # Handover Required Message
+        # Handover Required Message to MME
         print(
             "************************* Sending S1 Handover Required for UE Id:",
             req.ue_id,
@@ -138,12 +137,7 @@ class TestS1HandoverFailure(unittest.TestCase):
             + ")",
         )
 
-        time.sleep(3)
-        # Since S1_HO_FAILURE event is configired. After receiving S1 Handover
-        # Request, S1APTester stack sends S1 Handover Failure from target ENB
-        # to MME. MME then sends S1 Handover Preparation Failure to Source ENB.
-
-        # Send the S1 Handover Failure message from source ENB to MME
+        # Send the S1 Handover Failure message from Target ENB to MME
         print(
             "************************* Sending S1 Handover Failure for UE Id:",
             req.ue_id,
@@ -155,6 +149,8 @@ class TestS1HandoverFailure(unittest.TestCase):
             s1ho_failure,
         )
 
+        # After receiving S1 Handover Failure from Target ENB, MME sends S1
+        # Handover Preparation Failure to Source ENB.
         # Wait for S1 Handover Preparation Failure Indication
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
@@ -173,17 +169,6 @@ class TestS1HandoverFailure(unittest.TestCase):
             + ", HO TgtEnbId: "
             + str(s1ho_prep_fail_ind.hoTgtEnbId)
             + ")",
-        )
-
-        print("Waiting for 3 seconds for the flow rules creation")
-        time.sleep(3)
-        # Verify if flow rules are created
-        # 1 UL flow for default bearer
-        num_ul_flows = 1
-        dl_flow_rules = {default_ip: []}
-        self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows,
-            dl_flow_rules,
         )
 
         print(
