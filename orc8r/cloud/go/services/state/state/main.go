@@ -27,8 +27,10 @@ import (
 	state_config "magma/orc8r/cloud/go/services/state/config"
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	"magma/orc8r/cloud/go/services/state/metrics"
-	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
+	internal_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/services/state/servicers"
+	internal_servicers "magma/orc8r/cloud/go/services/state/servicers/protected"
+	external_servicers "magma/orc8r/cloud/go/services/state/servicers/southbound"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
@@ -70,14 +72,17 @@ func main() {
 		glog.Fatalf("Error initializing state database: %v", err)
 	}
 
-	stateServicer := newStateServicer(store)
+	stateInternalServicer := newInternalStateServicer(store)
+	internal_protos.RegisterStateInternalServiceServer(srv.GrpcServer, stateInternalServicer)
+
+	stateServicer := newExternalStateServicer(store)
 	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
 
 	singletonReindex := srv.Config.MustGetBool(state_config.EnableSingletonReindex)
 	if !singletonReindex {
 		glog.Info("Running reindexer")
 		indexerManagerServer := newIndexerManagerServicer(srv.Config, db, store)
-		indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
+		internal_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
 	}
 
 	go metrics.PeriodicallyReportGatewayStatus(gatewayStatusReportInterval)
@@ -88,15 +93,23 @@ func main() {
 	}
 }
 
-func newStateServicer(store blobstore.StoreFactory) protos.StateServiceServer {
-	servicer, err := servicers.NewStateServicer(store)
+func newInternalStateServicer(store blobstore.StoreFactory) internal_protos.StateInternalServiceServer {
+	servicer, err := internal_servicers.NewStateServicer(store)
 	if err != nil {
 		glog.Fatalf("Error creating state servicer: %v", err)
 	}
 	return servicer
 }
 
-func newIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
+func newExternalStateServicer(store blobstore.StoreFactory) protos.StateServiceServer {
+	servicer, err := external_servicers.NewStateServicer(store)
+	if err != nil {
+		glog.Fatalf("Error creating state servicer: %v", err)
+	}
+	return servicer
+}
+
+func newIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) internal_protos.IndexerManagerServer {
 	queue := reindex.NewSQLJobQueue(reindex.DefaultMaxAttempts, db, sqorc.GetSqlBuilder())
 	err := queue.Initialize()
 	if err != nil {

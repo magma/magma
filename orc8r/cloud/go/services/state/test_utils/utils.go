@@ -31,7 +31,7 @@ import (
 )
 
 func ReportGatewayStatus(t *testing.T, ctx context.Context, req *models.GatewayStatus) {
-	client, err := state.GetStateClient()
+	client, err := state.GetExternalStateClient()
 	assert.NoError(t, err)
 
 	serializedGWStatus, err := serde.Serialize(req, orc8r.GatewayStateType, serdes.State)
@@ -51,7 +51,7 @@ func ReportGatewayStatus(t *testing.T, ctx context.Context, req *models.GatewayS
 }
 
 func ReportState(t *testing.T, ctx context.Context, stateType string, stateKey string, stateVal interface{}, serdes serde.Registry) {
-	client, err := state.GetStateClient()
+	client, err := state.GetExternalStateClient()
 	assert.NoError(t, err)
 	serializedState, err := serde.Serialize(stateVal, stateType, serdes)
 	assert.NoError(t, err)

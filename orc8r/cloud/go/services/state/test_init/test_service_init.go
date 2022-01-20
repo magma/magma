@@ -24,8 +24,10 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
-	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
+	internal_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/services/state/servicers"
+	internal_servicers "magma/orc8r/cloud/go/services/state/servicers/protected"
+	external_servicers "magma/orc8r/cloud/go/services/state/servicers/southbound"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
@@ -55,15 +57,21 @@ func startService(t *testing.T, db *sql.DB) (reindex.Reindexer, reindex.JobQueue
 
 	factory := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	require.NoError(t, factory.InitializeFactory())
-	stateServicer, err := servicers.NewStateServicer(factory)
-	require.NoError(t, err)
+
+	stateInternalServicer, errInt := internal_servicers.NewStateServicer(factory)
+	require.NoError(t, errInt)
+	internal_protos.RegisterStateInternalServiceServer(srv.GrpcServer, stateInternalServicer)
+
+	stateServicer, errExt := external_servicers.NewStateServicer(factory)
+	require.NoError(t, errExt)
 	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
 
 	queue := reindex.NewSQLJobQueue(singleAttempt, db, sqorc.GetSqlBuilder())
 	require.NoError(t, queue.Initialize())
 	reindexer := reindex.NewReindexerQueue(queue, reindex.NewStore(factory))
+
 	indexerServicer := servicers.NewIndexerManagerServicer(reindexer, false)
-	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
+	internal_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
 
 	go srv.RunTest(lis)
 	return reindexer, queue
@@ -83,15 +91,20 @@ func startSingletonService(t *testing.T, db *sql.DB) reindex.Reindexer {
 
 	factory := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	require.NoError(t, factory.InitializeFactory())
-	stateServicer, err := servicers.NewStateServicer(factory)
-	require.NoError(t, err)
+
+	stateInternalServicer, errInt := internal_servicers.NewStateServicer(factory)
+	require.NoError(t, errInt)
+	internal_protos.RegisterStateInternalServiceServer(srv.GrpcServer, stateInternalServicer)
+
+	stateServicer, errExt := external_servicers.NewStateServicer(factory)
+	require.NoError(t, errExt)
 	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
 
 	versioner := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
 	versioner.Initialize()
 	reindexer := reindex.NewReindexerSingleton(reindex.NewStore(factory), versioner)
 	indexerServicer := servicers.NewIndexerManagerServicer(reindexer, false)
-	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
+	internal_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
 
 	go srv.RunTest(lis)
 	return reindexer

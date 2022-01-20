@@ -26,6 +26,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/state"
+	internal_protos "magma/orc8r/cloud/go/services/state/protos"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/lib/go/protos"
 )
@@ -50,7 +51,7 @@ func (d *directoryUpdateServicer) UpdateRecord(c context.Context, r *protos.Upda
 		gw := protos.GetClientGateway(c)
 		r.Location = gw.GetHardwareId()
 	}
-	client, err := state.GetStateClient()
+	client, err := state.GetExternalStateClient()
 	if err != nil {
 		return ret, err
 	}
@@ -80,7 +81,7 @@ func (d *directoryUpdateServicer) DeleteRecord(c context.Context, r *protos.Dele
 	if r == nil || len(r.GetId()) == 0 {
 		return ret, nil
 	}
-	client, err := state.GetStateClient()
+	client, err := state.GetExternalStateClient()
 	if err != nil {
 		return ret, err
 	}
@@ -107,7 +108,7 @@ func (d *directoryUpdateServicer) GetDirectoryField(
 	}
 	res, err := client.GetStates(
 		makeOutgoingCtx(c),
-		&protos.GetStatesRequest{
+		&internal_protos.GetStatesRequest{
 			NetworkID: networkId,
 			Ids:       []*protos.StateID{{Type: orc8r.DirectoryRecordType, DeviceID: r.GetId()}},
 		},
@@ -156,7 +157,7 @@ func (d *directoryUpdateServicer) GetAllDirectoryRecords(
 	}
 	res, err := client.GetStates(
 		makeOutgoingCtx(c),
-		&protos.GetStatesRequest{
+		&internal_protos.GetStatesRequest{
 			NetworkID:  networkId,
 			TypeFilter: []string{orc8r.DirectoryRecordType},
 			LoadValues: true})

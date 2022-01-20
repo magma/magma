@@ -137,7 +137,7 @@ func reportGatewayStatusForID(t *testing.T, id state_types.ID) {
 	ctx := state_test.GetContextWithCertificate(t, hwidByID[id])
 	status := statusByID[id]
 
-	client, err := state.GetStateClient()
+	client, err := state.GetExternalStateClient()
 	assert.NoError(t, err)
 
 	serialized, err := serde.Serialize(status, orc8r.GatewayStateType, serdes.State)

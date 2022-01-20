@@ -351,7 +351,7 @@ func initReindexTest(t *testing.T, dbName string) (reindex.Reindexer, reindex.Jo
 }
 
 func reportDirectoryRecord(t *testing.T, ctx context.Context, deviceIDs []string, records []*directoryd_types.DirectoryRecord) {
-	client, err := state.GetStateClient()
+	client, err := state.GetExternalStateClient()
 	assert.NoError(t, err)
 
 	var states []*protos.State
@@ -366,7 +366,7 @@ func reportDirectoryRecord(t *testing.T, ctx context.Context, deviceIDs []string
 }
 
 func reportGatewayStatus(t *testing.T, ctx context.Context, gwStatus *models.GatewayStatus) {
-	client, err := state.GetStateClient()
+	client, err := state.GetExternalStateClient()
 	assert.NoError(t, err)
 
 	serialized, err := serde.Serialize(gwStatus, orc8r.GatewayStateType, serdes.State)

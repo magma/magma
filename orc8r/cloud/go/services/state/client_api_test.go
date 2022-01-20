@@ -195,7 +195,7 @@ func (m *Name) ValidateModel(context.Context) error {
 }
 
 func reportStates(ctx context.Context, bundles ...stateBundle) (*protos.ReportStatesResponse, error) {
-	client, err := state.GetStateClient()
+	client, err := state.GetExternalStateClient()
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func reportStates(ctx context.Context, bundles ...stateBundle) (*protos.ReportSt
 }
 
 func syncStates(ctx context.Context, bundles ...stateBundle) (*protos.SyncStatesResponse, error) {
-	client, err := state.GetStateClient()
+	client, err := state.GetExternalStateClient()
 	if err != nil {
 		return nil, err
 	}

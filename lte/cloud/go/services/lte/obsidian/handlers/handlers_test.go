@@ -4243,7 +4243,7 @@ func TestHAGatewayPools(t *testing.T) {
 }
 
 func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, req *lteModels.EnodebState) {
-	client, err := state.GetStateClient()
+	client, err := state.GetExternalStateClient()
 	assert.NoError(t, err)
 
 	serializedEnodebState, err := serde.Serialize(req, lte.EnodebStateType, serdes.State)

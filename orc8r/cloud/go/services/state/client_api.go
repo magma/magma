@@ -20,6 +20,7 @@ import (
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/serde"
+	internal_protos "magma/orc8r/cloud/go/services/state/protos"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
@@ -27,7 +28,17 @@ import (
 )
 
 // GetStateClient returns a client to the state service.
-func GetStateClient() (protos.StateServiceClient, error) {
+func GetStateClient() (internal_protos.StateInternalServiceClient, error) {
+	conn, err := registry.GetConnection(ServiceName)
+	if err != nil {
+		initErr := merrors.NewInitError(err, ServiceName)
+		glog.Error(initErr)
+		return nil, initErr
+	}
+	return internal_protos.NewStateInternalServiceClient(conn), nil
+}
+
+func GetExternalStateClient() (protos.StateServiceClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
@@ -67,7 +78,7 @@ func GetStates(ctx context.Context, networkID string, stateIDs state_types.IDs, 
 
 	res, err := client.GetStates(
 		ctx,
-		&protos.GetStatesRequest{
+		&internal_protos.GetStatesRequest{
 			NetworkID: networkID,
 			Ids:       makeProtoIDs(stateIDs),
 		},
@@ -90,7 +101,7 @@ func SearchStates(ctx context.Context, networkID string, typeFilter []string, ke
 		return nil, err
 	}
 
-	req := &protos.GetStatesRequest{
+	req := &internal_protos.GetStatesRequest{
 		NetworkID:  networkID,
 		TypeFilter: typeFilter,
 		IdFilter:   keyFilter,
@@ -111,7 +122,7 @@ func SearchStates(ctx context.Context, networkID string, typeFilter []string, ke
 // DeleteStates deletes states specified by the networkID and a list of
 // type and key.
 func DeleteStates(ctx context.Context, networkID string, stateIDs state_types.IDs) error {
-	client, err := GetStateClient()
+	client, err := GetExternalStateClient()
 	if err != nil {
 		return err
 	}
@@ -139,7 +150,7 @@ func GetSerializedStates(ctx context.Context, networkID string, stateIDs state_t
 
 	res, err := client.GetStates(
 		ctx,
-		&protos.GetStatesRequest{
+		&internal_protos.GetStatesRequest{
 			NetworkID: networkID,
 			Ids:       makeProtoIDs(stateIDs),
 		},

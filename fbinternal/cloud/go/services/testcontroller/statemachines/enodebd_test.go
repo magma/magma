@@ -914,7 +914,7 @@ func (m *mockMagmadClient) RebootEnodeb(ctx context.Context, networkId string, g
 }
 
 func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, req *ltemodels.EnodebState) {
-	client, err := state.GetStateClient()
+	client, err := state.GetExternalStateClient()
 	assert.NoError(t, err)
 
 	serializedEnodebState, err := serde.Serialize(req, lte.EnodebStateType, serdes.State)

@@ -34,6 +34,7 @@ import (
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
+	state_internal_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
@@ -49,7 +50,7 @@ func NewTestStateServer() (*testStateServer, error) {
 	return &testStateServer{}, nil
 }
 
-func (srv *testStateServer) GetStates(ctx context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
+func (srv *testStateServer) GetStates(ctx context.Context, req *state_internal_protos.GetStatesRequest) (*state_internal_protos.GetStatesResponse, error) {
 	srv.lastClientIdentity =
 		proto.Clone(protos.GetClientIdentity(ctx)).(*protos.Identity)
 	return nil, nil

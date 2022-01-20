@@ -41,7 +41,7 @@ func (srv *indexerServicer) GetIndexers(ctx context.Context, req *indexer_protos
 
 	versions, err := srv.reindexer.GetIndexerVersions()
 	if err != nil {
-		return nil, internalErr(err, "error getting indexer versions from reindex job queue")
+		return nil, InternalErr(err, "error getting indexer versions from reindex job queue")
 	}
 
 	ret := &indexer_protos.GetIndexersResponse{IndexersById: indexer.MakeProtoInfos(versions)}
@@ -60,7 +60,7 @@ func (srv *indexerServicer) StartReindex(req *indexer_protos.StartReindexRequest
 	sendUpdate := func(m string) { _ = stream.Send(&indexer_protos.StartReindexResponse{Update: m}) }
 	err := srv.reindexer.RunUnsafe(ctx, req.IndexerId, sendUpdate)
 	if err != nil {
-		return internalErr(err, "error running reindex operation")
+		return InternalErr(err, "error running reindex operation")
 	}
 	return nil
 }
