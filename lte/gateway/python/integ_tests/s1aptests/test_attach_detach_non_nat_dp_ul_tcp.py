@@ -19,21 +19,26 @@ from integ_tests.s1aptests import s1ap_wrapper
 from s1ap_utils import MagmadUtil
 
 
-class TestAttachDetachNonNatDatapath(unittest.TestCase):
-    def __init__(self, methodName: str = ...) -> None:
-        super().__init__(methodName=methodName)
+class TestAttachDetachNonNatDpUlTcp(unittest.TestCase):
+    """Integration Test: TestAttachDetachNonNatDpUlTcp"""
+
+    def __init__(self, method_name: str = ...) -> None:
+        """Initialize unittest class"""
+        super().__init__(methodName=method_name)
         self.magma_utils = MagmadUtil(None)
 
     def setUp(self):
+        """Initialize before test case execution"""
         self.magma_utils.disable_nat()
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
         self.magma_utils.enable_nat()
 
-    def test_attach_detach_nonnat_datapath(self):
-        """ Basic attach/detach test with a single UE """
+    def test_attach_detach_non_nat_dp_ul_tcp(self):
+        """Basic attach/detach test with a single UE"""
         num_ues = 1
 
         detach_type = [
@@ -43,19 +48,21 @@ class TestAttachDetachNonNatDatapath(unittest.TestCase):
         ]
         wait_for_s1 = [True, True, False]
         # third IP validates handling of invalid IP address.
-        ue_ips = ['192.168.129.100']
+        ue_ips = ["192.168.129.100"]
         self._s1ap_wrapper.configUEDevice(num_ues, [], ue_ips)
 
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
             print(
                 "************************* Running End to End attach for ",
-                "UE id ", req.ue_id,
+                "UE id ",
+                req.ue_id,
             )
 
             # Now actually complete the attach
             attach = self._s1ap_wrapper._s1_util.attach(
-                req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+                req.ue_id,
+                s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
                 s1ap_types.ueAttachAccept_t,
             )
@@ -81,7 +88,9 @@ class TestAttachDetachNonNatDatapath(unittest.TestCase):
             )
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
-                req.ue_id, detach_type[i], wait_for_s1[i],
+                req.ue_id,
+                detach_type[i],
+                wait_for_s1[i],
             )
 
 

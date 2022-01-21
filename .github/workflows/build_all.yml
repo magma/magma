@@ -233,6 +233,12 @@ jobs:
           SENTRY_ORG: lf-9c
           PATH_TO_EXEC: "./executables"
           SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
+      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
+        with:
+          EXECUTABLE_NAME: sctpd
+          SENTRY_ORG: lf-9c
+          PATH_TO_EXEC: "./executables"
+          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
       - name: Create a release in Sentry.io with the commit hash
         env:
           SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"

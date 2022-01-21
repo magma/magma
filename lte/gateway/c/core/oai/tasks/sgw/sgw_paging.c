@@ -45,7 +45,7 @@ void sgw_send_paging_request(
     char ip6_str[INET6_ADDRSTRLEN];
     inet_ntop(AF_INET6, dest_ipv6, ip6_str, INET6_ADDRSTRLEN);
     OAILOG_DEBUG(
-        TASK_SPGW_APP, "Paging procedure initiated for ue_ipv6: %s\n", ip6_str);
+        LOG_SPGW_APP, "Paging procedure initiated for ue_ipv6: %s\n", ip6_str);
     // Copy ipv6 address
     memset(
         paging_request_p->address.ipv6_addr.sin6_addr.s6_addr, 0,
@@ -56,7 +56,7 @@ void sgw_send_paging_request(
     paging_request_p->ip_addr_type = IPV6_ADDR_TYPE;
   } else if (dest_ipv4) {
     OAILOG_DEBUG(
-        TASK_SPGW_APP, "Paging procedure initiated for ue_ipv4: %x\n",
+        LOG_SPGW_APP, "Paging procedure initiated for ue_ipv4: %x\n",
         dest_ipv4->s_addr);
     paging_request_p->address.ipv4_addr.sin_addr = *dest_ipv4;
     paging_request_p->ip_addr_type               = IPV4_ADDR_TYPE;

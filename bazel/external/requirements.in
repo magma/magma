@@ -1,0 +1,27 @@
+# requirements.in
+setuptools
+grpcio-tools
+grpcio
+redis>=3.5
+protobuf
+six
+pyyaml
+urllib3
+certifi
+sentry-sdk
+snowflake>=0.0.3
+prometheus_client
+redis-collections
+redis-lock
+jsonpickle
+netifaces
+scapy
+
+# bazelbase container requirements
+hiredis
+deprecated
+wrapt
+
+# unit test requirements
+fakeredis
+freezegun

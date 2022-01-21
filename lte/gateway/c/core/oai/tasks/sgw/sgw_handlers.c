@@ -1006,13 +1006,15 @@ status_code_e sgw_handle_modify_bearer_request(
               "for bearer %d\n",
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->eps_bearer_id);
-          // This is best effort, ignore return code.
-          gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
-          // delete GTPv1-U tunnel
-          rv = gtp_tunnel_ops->del_tunnel(
-              enb, enb_ipv6, ue_ipv4, ue_ipv6,
-              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-              eps_bearer_ctxt_p->enb_teid_S1u, NULL);
+          if (gtp_tunnel_ops) {
+            // This is best effort, ignore return code.
+            gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
+            // delete GTPv1-U tunnel
+            rv = gtp_tunnel_ops->del_tunnel(
+                enb, enb_ipv6, ue_ipv4, ue_ipv6,
+                eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+                eps_bearer_ctxt_p->enb_teid_S1u, NULL);
+          }
         }
         populate_sgi_end_point_update(
             sgi_rsp_idx, idx, modify_bearer_pP, eps_bearer_ctxt_p,
