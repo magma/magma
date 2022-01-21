@@ -1,0 +1,261 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>proposals/p024_magma_settlement_service · Magma Documentation</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Proposal: Settlement Service for Magma"/><meta name="docsearch:version" content="next"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="proposals/p024_magma_settlement_service · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Proposal: Settlement Service for Magma"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>next</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">proposals/p024_magma_settlement_service</h1></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="proposal-settlement-service-for-magma"></a><a href="#proposal-settlement-service-for-magma" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Proposal: Settlement Service for Magma</h1>
+<p>Author(s): [@arsenii-oganov]</p>
+<p>Last updated: 01/14/2022</p>
+<h2><a class="anchor" aria-hidden="true" id="10-objectives"></a><a href="#10-objectives" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>1.0 Objectives</h2>
+<p>The objective of this work is to extend Magma and the Helium blockchain to add support for settlement interfaces to bridge the gap between traditional roaming settlement and HIP 27s proposal of packet purchasing OUI managed by the helium network operator.
+Software built to accomplish this (aka settlement domain service) will be open source under BSD-3-Clause and will reside in the github repository of the DeWi Alliance. Some changes / additions required to the Magma software will be committed to the Magma software repository under the governance of the Linux foundation, such that it can be effectively maintained in the future releases, but will remain openly available to all Helium community participants.
+As a result of this effort, any MNO, MVNO or 3rd party Gateway Manufacturer will be able to use the software to operate their own roaming interconnect with a network roaming into Helium.
+Out of Scope: The commercial aspects of how an MNO/MVNO purchases data credits on the Helium network through a session purchaser operator is outside the scope of this document and is a commercial arrangement between the clearing house, session purchaser operator and the MNO.</p>
+<h2><a class="anchor" aria-hidden="true" id="20-background"></a><a href="#20-background" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>2.0 Background</h2>
+<p>The accounting and settlement of a Helium cellular network is unlike traditional cellular settlement. Unlike traditional cellular networks, a Helium cellular network contains radio and accounting entities (e.g. Miners) owned by private parties not affiliated with the core network operator and/or the subscriber home network provider. Additionally, the subscriber home network operator in a Helium network needs a reward path to pay individual radio/miner owners for the data consumed during subscriber sessions that traverse their deployment. A trust-limited accounting system must be implemented to ensure accounting data integrity and secure the reward path.
+When creating this accounting system, the goal has been to avoid significant (or any) deviations from traditional 3GPP interfaces to allow maximum portability and lower the barriers to entry for vendors.
+The systems centers around the new usage of a standard component, the Online Charging System (OCS). The OCS traditional role is quota management and realtime session management and accounting. In this system, the signaling of standard OCS is repurposed to provide control and accounting functions to a new Helium entity called the Session Purchaser.
+The Session Purchasers job is to account and enforce sessions against a subscribers home network operator account on the helium network. The implementation below describes the role and signaling associated with a Session Purchaser.</p>
+<h2><a class="anchor" aria-hidden="true" id="30-implementation-scope"></a><a href="#30-implementation-scope" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.0 Implementation scope</h2>
+<h3><a class="anchor" aria-hidden="true" id="31-high---level-solution-architecture"></a><a href="#31-high---level-solution-architecture" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.1 High - level solution architecture</h3>
+<p><img src="https://user-images.githubusercontent.com/93994458/149513109-47b80417-7488-49c4-a2f0-ff94e6c57ebf.png" alt="arch"></p>
+<h3><a class="anchor" aria-hidden="true" id="32-end-to-end-scenarios"></a><a href="#32-end-to-end-scenarios" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2 End to end scenarios</h3>
+<p>Below will be described e2e scenarios needs to be implemented in scope of this project (Note: scenarios may be decomposed into different use-cases depends on actors involved and/or business case):</p>
+<ul>
+<li>State channel management procedure</li>
+</ul>
+<p>The procedure describes Opening, Update and Closure of State channel management call flow.
+The detailed call flow for the procedure is specified in section 3.2.1 “State channel management procedure”.</p>
+<ul>
+<li>UE attach procedure</li>
+</ul>
+<p>The procedure in which the UE registers to the network, and receives the usage quota to create the EPS Bearer between the UE and the PGW, in order to be able to send and receive data.
+The detailed call flow for the procedure is specified in section 3.2.2 “UE attach procedure”.</p>
+<ul>
+<li>UE quota update procedure</li>
+</ul>
+<p>The procedure describes a next quota request by Threshold from the previously received quota from SGW to OCS.
+The detailed call flow for the procedure is specified in section 3.2.3 “UE quota update procedure”.</p>
+<ul>
+<li>UE initiated session termination procedure</li>
+</ul>
+<p>The procedure in which the UE initiates session termination. The procedure includes the last quota usage report from SGW to OCS.
+The detailed call flow for the procedure is specified in section 3.2.4 “UE initiated session termination procedure”.</p>
+<ul>
+<li>Network initiated termination procedure</li>
+</ul>
+<p>The procedure in which the Network (S/PGW) initiates session termination. The procedure includes the last quota usage report from SGW to OCS.
+The detailed call flow for the procedure is specified in section 3.2.5 “Network initiated termination procedure”.</p>
+<ul>
+<li>TAP-Out generation and exporting procedure</li>
+</ul>
+<p>The procedure to generate TAP3 files and transfer the files to the DCH (HPLMN) partner.</p>
+<ul>
+<li>RAP processing procedure</li>
+</ul>
+<p>The procedure to return rejected TAP files and records to the visited network operator for corrections.</p>
+<h4><a class="anchor" aria-hidden="true" id="321-state-channel-management-procedure"></a><a href="#321-state-channel-management-procedure" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2.1 State channel management procedure</h4>
+<p>Following diagram shows e2e State Channel life cycle management that will be in real life. It consists of existing functionality (marked with black), new functionality to be implemented in magma (marked with blue).</p>
+<p><img src="https://user-images.githubusercontent.com/93994458/149513469-0380c35c-d109-4c27-8014-d05b6cbd9a5e.png" alt="State channel management procedure (1)"></p>
+<p>This scenario consists of the steps below:</p>
+<ul>
+<li>Step [1-2] The State channel opening procedure. The Helium Handler sends Open State Channel Request to open the State Channel. State Channel is opened once the positive Response is received from State Channel.</li>
+<li>Step [3] On this Step the Handler sends the Used Data Credits for each Used Data Quota per Miner pub key.</li>
+<li>Step [4-5] The State channel closure procedure. The closure procedure contains two type of triggers - all the Data credits have been used from the State channel and end of an Epoch.</li>
+</ul>
+<h4><a class="anchor" aria-hidden="true" id="322-ue-attach-procedure"></a><a href="#322-ue-attach-procedure" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2.2 UE attach procedure</h4>
+<p>Following diagram shows e2e UE attach scenario that will be in real life. It consists of existing functionality (marked with black), new functionality to be implemented in magma (marked with blue).
+The attach procedure implies that State Channel is already in open state.</p>
+<p><img src="https://user-images.githubusercontent.com/93994458/149513666-63ae0f4b-c8be-4cfc-a739-909723fca3aa.png" alt="Attach call flow"></p>
+<p>This scenario consists of the steps below:</p>
+<ul>
+<li>Step [1 - 2] Initial attach procedure in a mobile network. The UE establishes radio link synchronization with an eNB, the UE creates a connection for data delivery via an Attach Request message sent to the eNB, the eNB then forwards the attach request to an MME/SGW.</li>
+<li>Step [3] The SGW sends CCR-I to the Session Purchaser requesting volume quota.</li>
+<li>Step [4] Session Purchaser checks if the IMSI-prefix (i.e. the HPLMN operator) has balance to answer with granted data units on CCR-I Request which has been received on Step [3].</li>
+<li>Step [5] In response to a CCR-I (Step [3]), the Session Purchaser returns a CCA-I message that indicates success (DIAMETER_SUCCESS) or failure (DIAMETER AUTHORIZATION REJECTED) depending on whether the HPLMN operator has sufficient credit for the requested services. In case of HPLMN operator has sufficient credit the CCA contains the Granted Service Unit in Bytes.</li>
+<li>Step [6] The SGW sends signed Session Init Event to Miner. The message is signed with SGW PubKey.</li>
+<li>Step [7] The Miner sends signed Session Init Event to Helium Handler. The message is signed with Miner PubKey.</li>
+<li>Step [8 - 9] The Create Session Request and Response messages to establish UE requested PDN connectivity through the SGW and Home PGW.</li>
+<li>Step [10-15] Establishing radio link between UE and eNodeB for packet data transfer.</li>
+<li>Step [16-17] Packet data between UE and Internet.</li>
+</ul>
+<h4><a class="anchor" aria-hidden="true" id="323-ue-quota-update-procedure"></a><a href="#323-ue-quota-update-procedure" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2.3 UE quota update procedure</h4>
+<p>Following diagram shows e2e UE update scenario that will be in real life. It consists of existing functionality (marked with black), new functionality to be implemented in magma and helium (marked with blue).</p>
+<p><img src="https://user-images.githubusercontent.com/93994458/149513805-f78e1c18-bb12-4f1f-abf9-0a0ea5e09d20.png" alt="Update call flow"></p>
+<p>This scenario consists of the steps below:</p>
+<ul>
+<li>Step [1-2] Packet data transfer is ongoing between UE and Internet.</li>
+<li>Step [3] The threshold of the quota is configured on SGW (e.g. 95% of granted service unit).</li>
+<li>Step [4] In this Step SGW sends Session Update Request with used service unit.</li>
+<li>Step [5] Session Purchaser checks if the HPLMN operator has balance to answer with granted data units on CCR-U which has been received on Step [4].</li>
+<li>Step [6] In response to a CCR-U (Step [5]), the Session Purchaser returns a CCA-U message that indicates success (DIAMETER_SUCCESS) or failure (DIAMETER AUTHORIZATION REJECTED) depending on whether the HPLMN operator has sufficient credit for the requested services.</li>
+<li>Step [7] The SGW sends signed data usage to Miner. The message is signed with SGW PubKey.</li>
+<li>Step [8] The Miner sends signed data usage to Helium Handler. The message is signed with Miner PubKey.</li>
+<li>Step [9] The Helium Handler updates State Channel with signed data usage received on Step [8]</li>
+<li>Step [10-11] Packet data continuation between UE and Internet.</li>
+</ul>
+<h4><a class="anchor" aria-hidden="true" id="324-ue-initiated-session-termination-procedure"></a><a href="#324-ue-initiated-session-termination-procedure" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2.4 UE initiated session termination procedure</h4>
+<p>Following diagram shows e2e UE initiated session termination scenario that will be in real life. It consists of existing functionality (marked with black), new functionality to be implemented in magma and helium (marked with blue).</p>
+<p><img src="https://user-images.githubusercontent.com/93994458/149513885-75facecc-54ef-4710-b6de-65b4881ddebb.png" alt="UE Terminate call flow"></p>
+<p>This scenario consists of the steps below:</p>
+<ul>
+<li>Step [1-2] UE detach procedure in a mobile network. The UE closes radio link with an eNB and MME/SGW.</li>
+<li>Step [3] In this Step SGW sends Session Termination Request with last used service unit.</li>
+<li>Step [4] The Session Purchaser update the HPLMN operator balance with last used data units.</li>
+<li>Step [5] The Session Purchaser sends Response on CCR-T (Step [3]) to close the session.</li>
+<li>Step [6] The SGW sends data usage to Miner. The message is signed with SGW PubKey.</li>
+<li>Step [7] The Miner sends data usage to Helium Handler. The message is signed with Miner PubKey.</li>
+<li>Step [8] The Helium Handler updates State Channel with signed data usage received on Step [7]</li>
+<li>Step [9] (Optional) The Helium Handler sends FreedomFi balance update to Session Purchaser.</li>
+<li>This steps checks for discrepancy between FF and Matrixx, helpful early, hopefully long term becomes less needed.</li>
+<li>Step [10-11] The Message between SGW to Home PGW once UE Requested PDN Disconnection to close the PDN connection.</li>
+<li>Step [12-13] MME/eNodeB closes radio link for the UE.</li>
+</ul>
+<h4><a class="anchor" aria-hidden="true" id="325-network-initiated-termination-procedure"></a><a href="#325-network-initiated-termination-procedure" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2.5 Network initiated termination procedure</h4>
+<p>Following diagram shows e2e Network initiated termination that will be in real life. It consists of existing functionality (marked with black), new functionality to be implemented in magma and helium (marked with blue).</p>
+<p><img src="https://user-images.githubusercontent.com/93994458/149514008-8c9ae8e1-1c55-44db-b0da-68972c3cd693.png" alt="Network Terminate call flow"></p>
+<p>This scenario consists of the steps below:</p>
+<ul>
+<li>Step [1] Delete session request comes from home PGW to close the PDN connection.</li>
+<li>Step [2] In this Step SGW sends Session Termination Request with last used service unit.</li>
+<li>Step [3] The Session Purchaser update the HPLMN operator balance with last used data units.</li>
+<li>Step [4] The Session Purchaser sends Response on CCR-T (Step [2]) to close the session.</li>
+<li>Step [5] The SGW sends data usage to Miner. The message is signed with SGW PubKey.</li>
+<li>Step [6] The Miner sends data usage to Helium Handler. The message is signed with Miner PubKey.</li>
+<li>Step [7] The Helium Handler updates State Channel with signed data usage received on Step [6]</li>
+<li>Step [8] (Optional) The Helium Handler sends FreedomFi balance update to Session Purchaser.</li>
+<li>Step [9] Delete session response from SGW to Home PGW to indicate the PDN connection is closed.</li>
+<li>Step [10-11] MME/eNodeB closes radio link for the UE.</li>
+</ul>
+<h4><a class="anchor" aria-hidden="true" id="326-tap-out-procedure"></a><a href="#326-tap-out-procedure" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2.6 TAP-Out procedure</h4>
+<p>A roaming agreement between the home network operator and the visited network operator defines the terms that enable each other's customers access to the wireless networks. The visited network operator records the activities performed by the roaming subscriber and then sends the call event details to the home network operator in the format agreed upon in the roaming agreement, usually Transferred Account Procedure (TAP) format. TAP is the process that allows a visited network operator to send call event detail records of roaming subscribers to their respective home network operators to be able to bill for the subscriber's roaming usage.</p>
+<h4><a class="anchor" aria-hidden="true" id="328-rap-in-procedure"></a><a href="#328-rap-in-procedure" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.2.8 RAP-In procedure</h4>
+<p>The home network operator validates the data in the TAP files to ensure that it conforms to the TAP standard and to the terms of the roaming agreement. If the received TAP file contains any errors, the home network operator can reject the entire file or only the incorrect call event detail records. The incorrect file or records are returned to the visited network operator in a Returned Account Procedure (RAP) file.
+RAP process is used to return rejected TAP files and records to the visited network operator for corrections. A RAP file contains the rejected TAP file or records and additional data about the error, such as the error code or the error cause. The visited network operator corrects the errors and sends the corrected TAP file back to the home network operator.</p>
+<h3><a class="anchor" aria-hidden="true" id="33-integration-interfaces"></a><a href="#33-integration-interfaces" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.3 Integration interfaces</h3>
+<p>The following figure shows the integration interfaces between Magma domain and OCS /DCH.</p>
+<p><img src="https://user-images.githubusercontent.com/93994458/149514277-062e0834-cb8c-49af-b0e4-867c4664c694.png" alt="Integration interfaces"></p>
+<h4><a class="anchor" aria-hidden="true" id="331-diameter-gy-interface-specification"></a><a href="#331-diameter-gy-interface-specification" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.3.1 DIAMETER Gy interface specification</h4>
+<p>Interface transport protocol: TCP/Diameter/DCCA.
+The 3GPP based Gy interface between Session Proxy and Session Purchaser to implement real-time quota management for the packet data service for the roaming subscribers. While this interface resembles Gy in almost every way, this is a non-standard use of the Gy protocol defined to allow accounting at the operator level and allow the session purchaser a control point to approve or deny sessions at initiation or at update points throughout a session.
+The Session Purchaser is the Diameter Credit Control server, which provides the online charging data to the Session Proxy based on volume quota.
+The connection between the Session Proxy (client) and Session Purchaser (server) is TCP based. There are a series of message exchanges to manage quota in real-time.</p>
+<h4><a class="anchor" aria-hidden="true" id="332-mmesgw-︎-helium-miner"></a><a href="#332-mmesgw-︎-helium-miner" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3.3.2 MME/SGW ↔︎ Helium Miner</h4>
+<p>Session lifecycle events and usage reports should be delivered from each deployed AGW to the Network-Server (helium-handler), which uses that information to update a state channel. The Helium Miner container does such communication between hotspot(AGW) and Network Server. So, a trusted channel should be formed between MME/SGW and Miner to let a Miner container communicate with the Helium network on behalf of AGW. For having a trusted channel between AGW and Miner new component is introduced - a session-forwarder. Session-forwarder is a mediator between Magma-specific components deployed on AGW and a Helium Miner.
+To let Miner trust Session-forwarder, session-forwarder is deployed on the same AGW where software is signed and Linux Secure Boot is used to verify all software components being loaded. So, Miner can trust to all received session-related messages. Miner just does forward all message to helium-handler.</p>
+<p><img src="https://user-images.githubusercontent.com/93994458/149515220-2ed6ea77-bcb3-4322-a615-c23abc54f580.png" alt="SGW-Miner"></p>
+<ol>
+<li>Sessiond(Magma component) requires new sessions statistics gRPC stream API.</li>
+<li>When new session is created or SessionState is updated on sessiond side, sessiond streams those updates via session statistics API to session-forwarder.</li>
+<li>Session-forwarder talks to helium miner via gRPC.</li>
+</ol>
+<p>Sessiond API update:</p>
+<pre><code class="hljs css language-service SessionStaticsStreamer {">rpc SessionStatistics(orc8r.Void) returns (stream SessionStatisticsUpdate) {}
+}```
+
+Miner API <span class="hljs-keyword">update</span> (session-forwarder &lt;-&gt; Miner) :
+<span class="hljs-symbol">``</span><span class="hljs-symbol">`service api {
+rpc session_usage(session_usage_update) returns (orc8r.Void) {}
+}`</span><span class="hljs-symbol">``</span>
+
+#### <span class="hljs-number">3.3</span><span class="hljs-number">.3</span> Helium Miner ↔︎ Network Server (router/helium-handler)
+
+<span class="hljs-keyword">For</span> <span class="hljs-keyword">each</span> <span class="hljs-number">3</span>gpp session Miner should forward session usage stats <span class="hljs-keyword">from</span> Session-forwarder <span class="hljs-keyword">to</span> Network Server.
+<span class="hljs-symbol">``</span><span class="hljs-symbol">`service api {
+rpc session_usage(session_usage_update) returns (orc8r.Void) {}
+}`</span><span class="hljs-symbol">``</span>
+
+#### <span class="hljs-number">3.3</span><span class="hljs-number">.4</span> helium-handler ↔︎ State channel
+
+Helium-handler can straightly verify session_usage_update messages <span class="hljs-keyword">from</span> Miner <span class="hljs-keyword">and</span> trust them because they are signed <span class="hljs-keyword">by</span> Session-forwarder <span class="hljs-keyword">using</span> Miner <span class="hljs-keyword">key</span>. So classic offer/purchase/reject semantics can be eliminated.
+
+<span class="hljs-number">1.</span> Initial session negotiation <span class="hljs-keyword">is</span> done <span class="hljs-keyword">between</span> miner <span class="hljs-keyword">and</span> network server (helium-handler).
+<span class="hljs-number">2.</span> <span class="hljs-keyword">When</span> session <span class="hljs-keyword">is</span> <span class="hljs-keyword">in</span> progress, miner forwards session_update messages which helium-handler adds <span class="hljs-keyword">as</span> cbrs_session_usage_commit messages the state channel.
+<span class="hljs-number">3.</span> <span class="hljs-keyword">When</span> session <span class="hljs-keyword">is</span> terminated the <span class="hljs-keyword">last</span> cbrs_session_usage_commit <span class="hljs-keyword">is</span> added <span class="hljs-keyword">to</span> the state channel <span class="hljs-keyword">for</span> the session.
+
+<span class="hljs-symbol">``</span><span class="hljs-symbol">`message blockchain_state_channel_message_v1 {
+oneof msg {
+blockchain_state_channel_response_v1 response = 2;
+blockchain_state_channel_packet_v1 packet = 4;
+blockchain_state_channel_offer_v1 offer = 5;
+blockchain_state_channel_purchase_v1 purchase = 6;
+blockchain_state_channel_banner_v1 banner = 7; // DEPRECATED
+blockchain_state_channel_rejection_v1 reject = 8;
+blockchain_state_channel_cbrs_session_usage_commit_v1 cbrs_session_usage_commit = 9;
+}
+}`</span><span class="hljs-symbol">``</span>
+
+#### <span class="hljs-number">3.3</span><span class="hljs-number">.5</span> Session Forwarder ↔︎ CDR/TAP/RAP Engine
+
+Session-Forwarder should send <span class="hljs-keyword">all</span> session details <span class="hljs-keyword">to</span> the CDR/TAP/RAP Engine <span class="hljs-keyword">to</span> generate TAP files.
+
+#### <span class="hljs-number">3.3</span><span class="hljs-number">.6</span> CDR/TAP/RAP Engine ↔︎ DCH TAP handling <span class="hljs-keyword">system</span>
+
+Interface transport protocol: SFTP.
+
+Roaming outcollect processing <span class="hljs-keyword">is</span> <span class="hljs-keyword">using</span> <span class="hljs-keyword">to</span> track <span class="hljs-keyword">and</span> rate activities of subscribers <span class="hljs-keyword">from</span> other wireless networks that roam <span class="hljs-keyword">on</span> FreedomFi network. Outcollect processing allows <span class="hljs-keyword">to</span> rate the visiting subscribers<span class="hljs-string">' roaming usage using InterCarrier Tariff rates and generate TAP files consisting of the visiting subscriber'</span>s <span class="hljs-keyword">call</span> event detail records, which should be send <span class="hljs-keyword">to</span> roaming partners along <span class="hljs-keyword">with</span> an invoice <span class="hljs-keyword">to</span> bill them <span class="hljs-keyword">for</span> their subscribers<span class="hljs-string">' roaming usage.
+Roaming outcollect processing involves:
+
+- Rating the visiting subscribers'</span> roaming CDRs <span class="hljs-keyword">using</span> InterCarrier Tariff rates specified <span class="hljs-keyword">in</span> the roaming agreements <span class="hljs-keyword">and</span> generating TAP files <span class="hljs-keyword">for</span> <span class="hljs-keyword">each</span> roaming partner.
+- Handling errors <span class="hljs-keyword">in</span> TAP files returned back <span class="hljs-keyword">in</span> RAP files <span class="hljs-keyword">to</span> FreedomFi <span class="hljs-keyword">from</span> a roaming partner <span class="hljs-keyword">for</span> corrections.
+
+<span class="hljs-keyword">To</span> <span class="hljs-keyword">validate</span> the TAP file, the following types of validations are performed <span class="hljs-keyword">on</span> DCH <span class="hljs-keyword">or</span>/<span class="hljs-keyword">and</span> HPLMN side.
+
+**TAP3 fatal error validation:**
+TAP3 fatal error validation <span class="hljs-keyword">is</span> performed <span class="hljs-keyword">first</span> <span class="hljs-keyword">to</span> ensure <span class="hljs-keyword">all</span> required data <span class="hljs-keyword">is</span> present <span class="hljs-keyword">and</span> valid. <span class="hljs-keyword">For</span> example, <span class="hljs-keyword">if</span> the TAP file <span class="hljs-keyword">is</span> <span class="hljs-literal">missing</span> a required block, the entire file <span class="hljs-keyword">is</span> rejected <span class="hljs-keyword">and</span> written <span class="hljs-keyword">to</span> a RAP file.
+
+**TAP3 severe error validation:**
+TAP3 severe error validation <span class="hljs-keyword">is</span> performed <span class="hljs-keyword">if</span> fatal error validation <span class="hljs-keyword">is</span> successful. TAP records are validated <span class="hljs-keyword">to</span> check <span class="hljs-keyword">for</span> incorrect <span class="hljs-keyword">or</span> <span class="hljs-literal">missing</span> reference data <span class="hljs-keyword">or</span> content. <span class="hljs-keyword">For</span> example, <span class="hljs-keyword">if</span> a TAP record <span class="hljs-keyword">is</span> <span class="hljs-literal">missing</span> a required field, the record <span class="hljs-keyword">is</span> rejected <span class="hljs-keyword">and</span> written <span class="hljs-keyword">to</span> a RAP file, but <span class="hljs-keyword">all</span> other TAP records <span class="hljs-keyword">in</span> the file are processed.
+
+The expected frequency of sending TAP3 files <span class="hljs-keyword">is</span> two tap files <span class="hljs-keyword">in</span> <span class="hljs-number">24</span> hours.
+The expected maximum <span class="hljs-keyword">limit</span> <span class="hljs-keyword">for</span> TAP3 files <span class="hljs-keyword">is</span> <span class="hljs-number">200</span>,<span class="hljs-number">000</span> records, <span class="hljs-keyword">or</span> <span class="hljs-number">50</span> KB.
+
+TAP3 File Logical Structure:
+
+![TAP3](https://<span class="hljs-keyword">user</span>-images.githubusercontent.com/<span class="hljs-number">93994458</span>/<span class="hljs-number">149515412</span>-cd140472-e549<span class="hljs-number">-4</span>d12-bbcb-eed6860cd9dc.png)
+
+Mandatory - blue
+Conditional - orange
+Optional - green
+
+Only the GPRS <span class="hljs-keyword">Call</span> will be used <span class="hljs-keyword">in</span> the the <span class="hljs-keyword">Call</span> Event Details section.
+
+Note: A Notification file <span class="hljs-keyword">is</span> sent <span class="hljs-keyword">where</span> the transfer mechanism <span class="hljs-keyword">is</span> electronic file transfer <span class="hljs-keyword">and</span> there <span class="hljs-keyword">is</span> no data available <span class="hljs-keyword">for</span> transfer. (TBD <span class="hljs-keyword">with</span> Tomia).
+RAP File Logical Structure:
+
+![RAP](https://<span class="hljs-keyword">user</span>-images.githubusercontent.com/<span class="hljs-number">93994458</span>/<span class="hljs-number">149515517</span><span class="hljs-number">-80</span>f63415<span class="hljs-number">-1606</span><span class="hljs-number">-48</span>c3-b3d0<span class="hljs-number">-263</span>d5623a173.png)
+
+Mandatory - blue
+Conditional - orange
+Optional - green
+
+Note: Only one of the elements grouped at <span class="hljs-keyword">Return</span> Detail level <span class="hljs-keyword">is</span> applicable.
+
+## <span class="hljs-number">4.0</span> Roadmap <span class="hljs-keyword">and</span> Schedule
+
+**MS1:** Demonstrate producing CDRs <span class="hljs-keyword">via</span> API <span class="hljs-keyword">call</span> <span class="hljs-keyword">for</span> stationary UEs (single miner whole session)
+
+**MS2:** Demonstrate Session Purchaser governed network access
+
+**MS3:** Demonstrate miner signed CDRs <span class="hljs-keyword">with</span> validation <span class="hljs-keyword">and</span> data recorded <span class="hljs-keyword">to</span> State Channel
+
+**MS4:** Demonstrate TAP record generation, export, import, <span class="hljs-keyword">and</span> reconciliation.
+
+**MS5:** Launch <span class="hljs-keyword">first</span> operator <span class="hljs-keyword">with</span> roaming interfaces integrated <span class="hljs-keyword">and</span> recording <span class="hljs-keyword">to</span> blockchain reconciled CDRs <span class="hljs-keyword">in</span> settlement server managed state channels
+
+**MS6:** Upstream code <span class="hljs-keyword">to</span> master
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#10-objectives">1.0 Objectives</a></li><li><a href="#20-background">2.0 Background</a></li><li><a href="#30-implementation-scope">3.0 Implementation scope</a><ul class="toc-headings"><li><a href="#31-high---level-solution-architecture">3.1 High - level solution architecture</a></li><li><a href="#32-end-to-end-scenarios">3.2 End to end scenarios</a></li><li><a href="#33-integration-interfaces">3.3 Integration interfaces</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2022 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>
