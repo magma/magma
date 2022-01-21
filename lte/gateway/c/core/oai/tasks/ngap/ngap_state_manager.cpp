@@ -105,7 +105,7 @@ status_code_e NgapStateManager::read_state_from_db() {
    * made to Redis db */
   S1apState state_proto = S1apState();
   std::string proto_str;
-  // Reads from the (map_ngap_state_proto_str) Map
+  // Reads from the map_ngap_state_proto_str Map
   if (NGAPClientServicer::getInstance().map_ngap_state_proto_str.get(
           table_key, &proto_str) != magma::MAP_OK) {
     OAILOG_DEBUG(LOG_MME_APP, "Failed to read proto from db \n");
@@ -125,7 +125,7 @@ void NgapStateManager::write_state_to_db() {
   /* Data store is Redis db. In this case actual call is made to Redis db */
   StateManager::write_state_to_db();
 #else
-  /* Data store is a map defined in map.h. In this case call is NOT
+  /* Data store is a map defined in NGAPClientServicer. In this case call is NOT
    * made to Redis db */
   S1apState state_proto = S1apState();
   NgapStateConverter::state_to_proto(state_cache_p, &state_proto);
@@ -133,7 +133,7 @@ void NgapStateManager::write_state_to_db() {
   redis_client->serialize(state_proto, proto_str);
   std::size_t new_hash = std::hash<std::string>{}(proto_str);
   if (new_hash != this->task_state_hash) {
-    // Writes to the (map_ngap_state_proto_str) Map
+    // Writes to the map_ngap_state_proto_str Map
     if (NGAPClientServicer::getInstance().map_ngap_state_proto_str.insert(
             table_key, proto_str) != magma::MAP_OK) {
       OAILOG_ERROR(log_task, "Failed to write state to db");
@@ -225,7 +225,7 @@ status_code_e NgapStateManager::read_ue_state_from_db() {
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
   }
 #else
-  /* Data store is a map defined in map.h. In this case call is NOT
+  /* Data store is a map defined in NGAPClientServicer. In this case call is NOT
    * made to Redis db */
   for (const auto& kv :
        NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.umap) {
@@ -233,7 +233,7 @@ status_code_e NgapStateManager::read_ue_state_from_db() {
     std::string ue_proto_str;
     m5g_ue_description_t* ue_context = reinterpret_cast<m5g_ue_description_t*>(
         calloc(1, sizeof(m5g_ue_description_t)));
-    // Reads from the (map_ngap_uestate_proto_str) Map
+    // Reads from the map_ngap_uestate_proto_str Map
     if (NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.get(
             kv.first, &ue_proto_str) != magma::MAP_OK) {
       OAILOG_DEBUG(LOG_MME_APP, "Failed to read UE proto from db \n");
@@ -263,7 +263,7 @@ void NgapStateManager::write_ue_state_to_db(
   /* Data store is Redis db. In this case actual call is made to Redis db */
   StateManager::write_ue_state_to_db(ue_context, imsi_str);
 #else
-  /* Data store is a map defined in map.h. In this case call is NOT
+  /* Data store is a map defined in NGAPClientServicer. In this case call is NOT
    * made to Redis db */
   std::string proto_ue_str;
   UeDescription ue_proto = UeDescription();
@@ -273,7 +273,7 @@ void NgapStateManager::write_ue_state_to_db(
 
   if (new_hash != this->ue_state_hash[imsi_str]) {
     std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
-    // Writes to the (map_ngap_uestate_proto_str) Map
+    // Writes to the map_ngap_uestate_proto_str Map
     if (NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.insert(
             key, proto_ue_str) != magma::MAP_OK) {
       OAILOG_ERROR(
@@ -307,9 +307,14 @@ void NgapStateManager::create_ngap_imsi_map() {
    * made to Redis db */
   // Reads from the NGAPClientServicer DataStore Map
   // (map_imsi_table_proto_str)
+  std::string proto_msg;
   if (NGAPClientServicer::getInstance().map_imsi_table_proto_str.get(
-          NGAP_IMSI_MAP_TABLE_NAME, &imsi_proto) != magma::MAP_OK) {
+          NGAP_IMSI_MAP_TABLE_NAME, &proto_msg) != magma::MAP_OK) {
     OAILOG_DEBUG(LOG_MME_APP, "Failed to read ngap_imsi_map proto from db \n");
+    return;
+  }
+  // Deserialization Step
+  if (!imsi_proto.ParseFromString(proto_msg)) {
     return;
   }
 #endif
@@ -346,10 +351,9 @@ void NgapStateManager::put_ngap_imsi_map() {
 #else
     /* Data store is a map defined in NGAPClientServicer.In this case call is
      * NOT made to Redis db */
-    // Writes to the NGAPClientServer DataStore Map
-    // (map_imsi_table_proto_str)
+    // Writes to the map_imsi_table_proto_str Map
     if (NGAPClientServicer::getInstance().map_imsi_table_proto_str.insert(
-            NGAP_IMSI_MAP_TABLE_NAME, imsi_proto) != magma::MAP_OK) {
+            NGAP_IMSI_MAP_TABLE_NAME, proto_msg) != magma::MAP_OK) {
       OAILOG_ERROR(log_task, "Failed to write ngap_imsi_map state to db \n");
       return;
     }
