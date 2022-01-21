@@ -18,11 +18,15 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/gomodule/redigo/redis"
 	"github.com/magma/magma/src/go/capture"
 	capturepb "github.com/magma/magma/src/go/protos/magma/capture"
 	configpb "github.com/magma/magma/src/go/protos/magma/config"
+	subscriberpb "github.com/magma/magma/src/go/protos/magma/subscriberdb"
 	service_capture "github.com/magma/magma/src/go/service/capture"
 	service_config "github.com/magma/magma/src/go/service/config"
+	service_subscriberdb "github.com/magma/magma/src/go/service/subscriberdb"
+	"github.com/magma/magma/src/go/subscriberdb"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
@@ -218,13 +222,53 @@ func startConfigServer(
 	go grpcServer.Serve(listener)
 }
 
+func startSubscriberDBServer(
+	cfgr config.Configer, logger log.Logger, db subscriberdb.SubscriberDB) {
+
+	address := fmt.Sprintf(":%s", cfgr.Config().GetSubscriberdbServicePort())
+
+	listener, err := net.Listen(config.TCP, address)
+	if err != nil {
+		panic(errors.Wrapf(
+			err,
+			"net.Listen(network=%s, address=%s)",
+			config.TCP,
+			address))
+	}
+
+	grpcServer := grpc.NewServer()
+	dbServer := service_subscriberdb.NewSubscriberDBServer(logger, db)
+	subscriberpb.RegisterSubscriberDBServer(grpcServer, dbServer)
+	go grpcServer.Serve(listener)
+}
+
+func getRedisPool() *redis.Pool {
+	var redisPool *redis.Pool
+
+	redisPool = &redis.Pool{
+		MaxIdle:     3,
+		IdleTimeout: 240 * time.Second,
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.Dial("tcp", "localhost:6380")
+			if err != nil {
+				return nil, err
+			}
+			return c, err
+		},
+	}
+	return redisPool
+}
+
 func Start(cfgr config.Configer, logger log.Logger) {
 	buf := capture.NewBuffer()
 	mw := capture.NewMiddleware(cfgr, buf)
+	rp := getRedisPool()
+	db := subscriberdb.NewDB(rp)
 	serverOptions := mw.GetServerOptions()
 	sr := newServiceRouter(cfgr)
 	startConfigServer(cfgr, logger)
 	startCaptureServer(cfgr, logger, buf)
+	startSubscriberDBServer(cfgr, logger, db)
 	startSctpdDownlinkServer(cfgr, logger, sr, serverOptions...)
 	startSctpdUplinkServer(cfgr, logger, sr, serverOptions...)
 	startPipelinedServer(cfgr, logger)

@@ -37,8 +37,8 @@ from orc8r.protos.common_pb2 import Void
 TEST_APN = 'magma.ipv4'
 TEST_APN_UPDATE = 'magma.ipv6'
 SUBSCRIBERDB_SERVICE_RPC_PATH = 'magma.lte.SubscriberDB'
-SUBSCRIBERDB_SERVICE_NAME = 'subscriberdb'
-SUBSCRIBERDB_PORT = '0.0.0.0:50051'
+SUBSCRIBERDB_SERVICE_NAME = 'subscriberdb2'
+SUBSCRIBERDB_PORT = '0.0.0.0:6002'
 PROTO_PATH = PROTO_DIR + '/subscriberdb.proto'
 
 

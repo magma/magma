@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "subscriberdb",
+    srcs = [
+        "subscriberdb.go",
+        "subscriberdb_server.go",
+    ],
+    importpath = "github.com/magma/magma/src/go/service/subscriberdb",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/go/log",
+        "//src/go/protos/magma/orc8r",
+        "//src/go/protos/magma/subscriberdb",
+        "//src/go/subscriberdb",
+    ],
+)

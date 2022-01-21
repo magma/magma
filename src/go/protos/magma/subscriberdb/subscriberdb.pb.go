@@ -174,7 +174,7 @@ func (x GSMSubscription_GSMSubscriptionState) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use GSMSubscription_GSMSubscriptionState.Descriptor instead.
 func (GSMSubscription_GSMSubscriptionState) EnumDescriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{2, 0}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{3, 0}
 }
 
 type GSMSubscription_GSMAuthAlgo int32
@@ -217,7 +217,7 @@ func (x GSMSubscription_GSMAuthAlgo) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use GSMSubscription_GSMAuthAlgo.Descriptor instead.
 func (GSMSubscription_GSMAuthAlgo) EnumDescriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{2, 1}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{3, 1}
 }
 
 type LTESubscription_LTESubscriptionState int32
@@ -263,7 +263,7 @@ func (x LTESubscription_LTESubscriptionState) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use LTESubscription_LTESubscriptionState.Descriptor instead.
 func (LTESubscription_LTESubscriptionState) EnumDescriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{3, 0}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{4, 0}
 }
 
 type LTESubscription_LTEAuthAlgo int32
@@ -306,7 +306,7 @@ func (x LTESubscription_LTEAuthAlgo) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use LTESubscription_LTEAuthAlgo.Descriptor instead.
 func (LTESubscription_LTEAuthAlgo) EnumDescriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{3, 1}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{4, 1}
 }
 
 type Non3GPPUserProfile_Non3GPPIPAccess int32
@@ -354,7 +354,7 @@ func (x Non3GPPUserProfile_Non3GPPIPAccess) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Non3GPPUserProfile_Non3GPPIPAccess.Descriptor instead.
 func (Non3GPPUserProfile_Non3GPPIPAccess) EnumDescriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{6, 0}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{7, 0}
 }
 
 type Non3GPPUserProfile_Non3GPPIPAccessAPN int32
@@ -402,7 +402,7 @@ func (x Non3GPPUserProfile_Non3GPPIPAccessAPN) Number() protoreflect.EnumNumber 
 
 // Deprecated: Use Non3GPPUserProfile_Non3GPPIPAccessAPN.Descriptor instead.
 func (Non3GPPUserProfile_Non3GPPIPAccessAPN) EnumDescriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{6, 1}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{7, 1}
 }
 
 type CoreNetworkType_CoreNetworkTypes int32
@@ -448,7 +448,53 @@ func (x CoreNetworkType_CoreNetworkTypes) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use CoreNetworkType_CoreNetworkTypes.Descriptor instead.
 func (CoreNetworkType_CoreNetworkTypes) EnumDescriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{8, 0}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{9, 0}
+}
+
+type SuciProfile_ECIESProtectionScheme int32
+
+const (
+	SuciProfile_ProfileA SuciProfile_ECIESProtectionScheme = 0
+	SuciProfile_ProfileB SuciProfile_ECIESProtectionScheme = 1
+)
+
+// Enum value maps for SuciProfile_ECIESProtectionScheme.
+var (
+	SuciProfile_ECIESProtectionScheme_name = map[int32]string{
+		0: "ProfileA",
+		1: "ProfileB",
+	}
+	SuciProfile_ECIESProtectionScheme_value = map[string]int32{
+		"ProfileA": 0,
+		"ProfileB": 1,
+	}
+)
+
+func (x SuciProfile_ECIESProtectionScheme) Enum() *SuciProfile_ECIESProtectionScheme {
+	p := new(SuciProfile_ECIESProtectionScheme)
+	*p = x
+	return p
+}
+
+func (x SuciProfile_ECIESProtectionScheme) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SuciProfile_ECIESProtectionScheme) Descriptor() protoreflect.EnumDescriptor {
+	return file_subscriberdb_proto_enumTypes[9].Descriptor()
+}
+
+func (SuciProfile_ECIESProtectionScheme) Type() protoreflect.EnumType {
+	return &file_subscriberdb_proto_enumTypes[9]
+}
+
+func (x SuciProfile_ECIESProtectionScheme) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SuciProfile_ECIESProtectionScheme.Descriptor instead.
+func (SuciProfile_ECIESProtectionScheme) EnumDescriptor() ([]byte, []int) {
+	return file_subscriberdb_proto_rawDescGZIP(), []int{17, 0}
 }
 
 // --------------------------------------------------------------------------
@@ -556,6 +602,53 @@ func (x *SubscriberIDSet) GetSids() []*SubscriberID {
 	return nil
 }
 
+type SuciProfileList struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SuciProfiles []*SuciProfile `protobuf:"bytes,1,rep,name=suci_profiles,json=suciProfiles,proto3" json:"suci_profiles,omitempty"`
+}
+
+func (x *SuciProfileList) Reset() {
+	*x = SuciProfileList{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_subscriberdb_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SuciProfileList) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SuciProfileList) ProtoMessage() {}
+
+func (x *SuciProfileList) ProtoReflect() protoreflect.Message {
+	mi := &file_subscriberdb_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SuciProfileList.ProtoReflect.Descriptor instead.
+func (*SuciProfileList) Descriptor() ([]byte, []int) {
+	return file_subscriberdb_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *SuciProfileList) GetSuciProfiles() []*SuciProfile {
+	if x != nil {
+		return x.SuciProfiles
+	}
+	return nil
+}
+
 // --------------------------------------------------------------------------
 // GSM/LTE subscription info
 // --------------------------------------------------------------------------
@@ -577,7 +670,7 @@ type GSMSubscription struct {
 func (x *GSMSubscription) Reset() {
 	*x = GSMSubscription{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_subscriberdb_proto_msgTypes[2]
+		mi := &file_subscriberdb_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -590,7 +683,7 @@ func (x *GSMSubscription) String() string {
 func (*GSMSubscription) ProtoMessage() {}
 
 func (x *GSMSubscription) ProtoReflect() protoreflect.Message {
-	mi := &file_subscriberdb_proto_msgTypes[2]
+	mi := &file_subscriberdb_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -603,7 +696,7 @@ func (x *GSMSubscription) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GSMSubscription.ProtoReflect.Descriptor instead.
 func (*GSMSubscription) Descriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{2}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GSMSubscription) GetState() GSMSubscription_GSMSubscriptionState {
@@ -652,7 +745,7 @@ type LTESubscription struct {
 func (x *LTESubscription) Reset() {
 	*x = LTESubscription{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_subscriberdb_proto_msgTypes[3]
+		mi := &file_subscriberdb_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -665,7 +758,7 @@ func (x *LTESubscription) String() string {
 func (*LTESubscription) ProtoMessage() {}
 
 func (x *LTESubscription) ProtoReflect() protoreflect.Message {
-	mi := &file_subscriberdb_proto_msgTypes[3]
+	mi := &file_subscriberdb_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -678,7 +771,7 @@ func (x *LTESubscription) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LTESubscription.ProtoReflect.Descriptor instead.
 func (*LTESubscription) Descriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{3}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *LTESubscription) GetState() LTESubscription_LTESubscriptionState {
@@ -740,7 +833,7 @@ type SubscriberState struct {
 func (x *SubscriberState) Reset() {
 	*x = SubscriberState{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_subscriberdb_proto_msgTypes[4]
+		mi := &file_subscriberdb_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -753,7 +846,7 @@ func (x *SubscriberState) String() string {
 func (*SubscriberState) ProtoMessage() {}
 
 func (x *SubscriberState) ProtoReflect() protoreflect.Message {
-	mi := &file_subscriberdb_proto_msgTypes[4]
+	mi := &file_subscriberdb_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -766,7 +859,7 @@ func (x *SubscriberState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubscriberState.ProtoReflect.Descriptor instead.
 func (*SubscriberState) Descriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{4}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SubscriberState) GetLteAuthNextSeq() uint64 {
@@ -802,7 +895,7 @@ type SubscriberAPNConfig struct {
 func (x *SubscriberAPNConfig) Reset() {
 	*x = SubscriberAPNConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_subscriberdb_proto_msgTypes[5]
+		mi := &file_subscriberdb_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -815,7 +908,7 @@ func (x *SubscriberAPNConfig) String() string {
 func (*SubscriberAPNConfig) ProtoMessage() {}
 
 func (x *SubscriberAPNConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_subscriberdb_proto_msgTypes[5]
+	mi := &file_subscriberdb_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -828,7 +921,7 @@ func (x *SubscriberAPNConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubscriberAPNConfig.ProtoReflect.Descriptor instead.
 func (*SubscriberAPNConfig) Descriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{5}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SubscriberAPNConfig) GetApnId() uint32 {
@@ -863,7 +956,7 @@ type Non3GPPUserProfile struct {
 func (x *Non3GPPUserProfile) Reset() {
 	*x = Non3GPPUserProfile{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_subscriberdb_proto_msgTypes[6]
+		mi := &file_subscriberdb_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -876,7 +969,7 @@ func (x *Non3GPPUserProfile) String() string {
 func (*Non3GPPUserProfile) ProtoMessage() {}
 
 func (x *Non3GPPUserProfile) ProtoReflect() protoreflect.Message {
-	mi := &file_subscriberdb_proto_msgTypes[6]
+	mi := &file_subscriberdb_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -889,7 +982,7 @@ func (x *Non3GPPUserProfile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Non3GPPUserProfile.ProtoReflect.Descriptor instead.
 func (*Non3GPPUserProfile) Descriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{6}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Non3GPPUserProfile) GetMsisdn() string {
@@ -964,7 +1057,7 @@ type SubscriberData struct {
 func (x *SubscriberData) Reset() {
 	*x = SubscriberData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_subscriberdb_proto_msgTypes[7]
+		mi := &file_subscriberdb_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -977,7 +1070,7 @@ func (x *SubscriberData) String() string {
 func (*SubscriberData) ProtoMessage() {}
 
 func (x *SubscriberData) ProtoReflect() protoreflect.Message {
-	mi := &file_subscriberdb_proto_msgTypes[7]
+	mi := &file_subscriberdb_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -990,7 +1083,7 @@ func (x *SubscriberData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubscriberData.ProtoReflect.Descriptor instead.
 func (*SubscriberData) Descriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{7}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *SubscriberData) GetSid() *SubscriberID {
@@ -1061,7 +1154,7 @@ type CoreNetworkType struct {
 func (x *CoreNetworkType) Reset() {
 	*x = CoreNetworkType{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_subscriberdb_proto_msgTypes[8]
+		mi := &file_subscriberdb_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1074,7 +1167,7 @@ func (x *CoreNetworkType) String() string {
 func (*CoreNetworkType) ProtoMessage() {}
 
 func (x *CoreNetworkType) ProtoReflect() protoreflect.Message {
-	mi := &file_subscriberdb_proto_msgTypes[8]
+	mi := &file_subscriberdb_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1087,7 +1180,7 @@ func (x *CoreNetworkType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CoreNetworkType.ProtoReflect.Descriptor instead.
 func (*CoreNetworkType) Descriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{8}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *CoreNetworkType) GetForbiddenNetworkTypes() []CoreNetworkType_CoreNetworkTypes {
@@ -1113,7 +1206,7 @@ type SubscriberUpdate struct {
 func (x *SubscriberUpdate) Reset() {
 	*x = SubscriberUpdate{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_subscriberdb_proto_msgTypes[9]
+		mi := &file_subscriberdb_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1126,7 +1219,7 @@ func (x *SubscriberUpdate) String() string {
 func (*SubscriberUpdate) ProtoMessage() {}
 
 func (x *SubscriberUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_subscriberdb_proto_msgTypes[9]
+	mi := &file_subscriberdb_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1139,7 +1232,7 @@ func (x *SubscriberUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubscriberUpdate.ProtoReflect.Descriptor instead.
 func (*SubscriberUpdate) Descriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{9}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *SubscriberUpdate) GetData() *SubscriberData {
@@ -1169,7 +1262,7 @@ type CheckInSyncRequest struct {
 func (x *CheckInSyncRequest) Reset() {
 	*x = CheckInSyncRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_subscriberdb_proto_msgTypes[10]
+		mi := &file_subscriberdb_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1182,7 +1275,7 @@ func (x *CheckInSyncRequest) String() string {
 func (*CheckInSyncRequest) ProtoMessage() {}
 
 func (x *CheckInSyncRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_subscriberdb_proto_msgTypes[10]
+	mi := &file_subscriberdb_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1195,7 +1288,7 @@ func (x *CheckInSyncRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckInSyncRequest.ProtoReflect.Descriptor instead.
 func (*CheckInSyncRequest) Descriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{10}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CheckInSyncRequest) GetRootDigest() *orc8r.Digest {
@@ -1217,7 +1310,7 @@ type CheckInSyncResponse struct {
 func (x *CheckInSyncResponse) Reset() {
 	*x = CheckInSyncResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_subscriberdb_proto_msgTypes[11]
+		mi := &file_subscriberdb_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1230,7 +1323,7 @@ func (x *CheckInSyncResponse) String() string {
 func (*CheckInSyncResponse) ProtoMessage() {}
 
 func (x *CheckInSyncResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_subscriberdb_proto_msgTypes[11]
+	mi := &file_subscriberdb_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1243,7 +1336,7 @@ func (x *CheckInSyncResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckInSyncResponse.ProtoReflect.Descriptor instead.
 func (*CheckInSyncResponse) Descriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{11}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CheckInSyncResponse) GetInSync() bool {
@@ -1266,7 +1359,7 @@ type SyncRequest struct {
 func (x *SyncRequest) Reset() {
 	*x = SyncRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_subscriberdb_proto_msgTypes[12]
+		mi := &file_subscriberdb_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1279,7 +1372,7 @@ func (x *SyncRequest) String() string {
 func (*SyncRequest) ProtoMessage() {}
 
 func (x *SyncRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_subscriberdb_proto_msgTypes[12]
+	mi := &file_subscriberdb_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1292,7 +1385,7 @@ func (x *SyncRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncRequest.ProtoReflect.Descriptor instead.
 func (*SyncRequest) Descriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{12}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *SyncRequest) GetLeafDigests() []*orc8r.LeafDigest {
@@ -1319,7 +1412,7 @@ type SyncResponse struct {
 func (x *SyncResponse) Reset() {
 	*x = SyncResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_subscriberdb_proto_msgTypes[13]
+		mi := &file_subscriberdb_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1332,7 +1425,7 @@ func (x *SyncResponse) String() string {
 func (*SyncResponse) ProtoMessage() {}
 
 func (x *SyncResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_subscriberdb_proto_msgTypes[13]
+	mi := &file_subscriberdb_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1345,7 +1438,7 @@ func (x *SyncResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncResponse.ProtoReflect.Descriptor instead.
 func (*SyncResponse) Descriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{13}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *SyncResponse) GetResync() bool {
@@ -1383,7 +1476,7 @@ type ListSubscribersRequest struct {
 func (x *ListSubscribersRequest) Reset() {
 	*x = ListSubscribersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_subscriberdb_proto_msgTypes[14]
+		mi := &file_subscriberdb_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1396,7 +1489,7 @@ func (x *ListSubscribersRequest) String() string {
 func (*ListSubscribersRequest) ProtoMessage() {}
 
 func (x *ListSubscribersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_subscriberdb_proto_msgTypes[14]
+	mi := &file_subscriberdb_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1409,7 +1502,7 @@ func (x *ListSubscribersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSubscribersRequest.ProtoReflect.Descriptor instead.
 func (*ListSubscribersRequest) Descriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{14}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListSubscribersRequest) GetPageSize() uint32 {
@@ -1442,7 +1535,7 @@ type ListSubscribersResponse struct {
 func (x *ListSubscribersResponse) Reset() {
 	*x = ListSubscribersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_subscriberdb_proto_msgTypes[15]
+		mi := &file_subscriberdb_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1455,7 +1548,7 @@ func (x *ListSubscribersResponse) String() string {
 func (*ListSubscribersResponse) ProtoMessage() {}
 
 func (x *ListSubscribersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_subscriberdb_proto_msgTypes[15]
+	mi := &file_subscriberdb_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1468,7 +1561,7 @@ func (x *ListSubscribersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSubscribersResponse.ProtoReflect.Descriptor instead.
 func (*ListSubscribersResponse) Descriptor() ([]byte, []int) {
-	return file_subscriberdb_proto_rawDescGZIP(), []int{15}
+	return file_subscriberdb_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListSubscribersResponse) GetSubscribers() []*SubscriberData {
@@ -1488,6 +1581,203 @@ func (x *ListSubscribersResponse) GetNextPageToken() string {
 func (x *ListSubscribersResponse) GetDigests() *orc8r.DigestTree {
 	if x != nil {
 		return x.Digests
+	}
+	return nil
+}
+
+type SuciProfile struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// HPLMN Public Key Identifier
+	HomeNetPublicKeyId uint32                            `protobuf:"varint,1,opt,name=home_net_public_key_id,json=homeNetPublicKeyId,proto3" json:"home_net_public_key_id,omitempty"`
+	ProtectionScheme   SuciProfile_ECIESProtectionScheme `protobuf:"varint,2,opt,name=protection_scheme,json=protectionScheme,proto3,enum=magma.lte.SuciProfile_ECIESProtectionScheme" json:"protection_scheme,omitempty"`
+	// HPLMN Public Key
+	HomeNetPublicKey []byte `protobuf:"bytes,3,opt,name=home_net_public_key,json=homeNetPublicKey,proto3" json:"home_net_public_key,omitempty"`
+	// HPLMN Private Key
+	HomeNetPrivateKey []byte `protobuf:"bytes,4,opt,name=home_net_private_key,json=homeNetPrivateKey,proto3" json:"home_net_private_key,omitempty"`
+}
+
+func (x *SuciProfile) Reset() {
+	*x = SuciProfile{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_subscriberdb_proto_msgTypes[17]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SuciProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SuciProfile) ProtoMessage() {}
+
+func (x *SuciProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_subscriberdb_proto_msgTypes[17]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SuciProfile.ProtoReflect.Descriptor instead.
+func (*SuciProfile) Descriptor() ([]byte, []int) {
+	return file_subscriberdb_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *SuciProfile) GetHomeNetPublicKeyId() uint32 {
+	if x != nil {
+		return x.HomeNetPublicKeyId
+	}
+	return 0
+}
+
+func (x *SuciProfile) GetProtectionScheme() SuciProfile_ECIESProtectionScheme {
+	if x != nil {
+		return x.ProtectionScheme
+	}
+	return SuciProfile_ProfileA
+}
+
+func (x *SuciProfile) GetHomeNetPublicKey() []byte {
+	if x != nil {
+		return x.HomeNetPublicKey
+	}
+	return nil
+}
+
+func (x *SuciProfile) GetHomeNetPrivateKey() []byte {
+	if x != nil {
+		return x.HomeNetPrivateKey
+	}
+	return nil
+}
+
+type M5GSUCIRegistrationRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	//Home network public key identifier
+	UePubkeyIdentifier uint32 `protobuf:"varint,1,opt,name=ue_pubkey_identifier,json=uePubkeyIdentifier,proto3" json:"ue_pubkey_identifier,omitempty"`
+	//UE public key
+	UePubkey []byte `protobuf:"bytes,2,opt,name=ue_pubkey,json=uePubkey,proto3" json:"ue_pubkey,omitempty"`
+	//UE ciphertext
+	UeCiphertext []byte `protobuf:"bytes,3,opt,name=ue_ciphertext,json=ueCiphertext,proto3" json:"ue_ciphertext,omitempty"`
+	//Protection scheme output
+	UeEncryptedMac []byte `protobuf:"bytes,4,opt,name=ue_encrypted_mac,json=ueEncryptedMac,proto3" json:"ue_encrypted_mac,omitempty"`
+}
+
+func (x *M5GSUCIRegistrationRequest) Reset() {
+	*x = M5GSUCIRegistrationRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_subscriberdb_proto_msgTypes[18]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *M5GSUCIRegistrationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*M5GSUCIRegistrationRequest) ProtoMessage() {}
+
+func (x *M5GSUCIRegistrationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_subscriberdb_proto_msgTypes[18]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use M5GSUCIRegistrationRequest.ProtoReflect.Descriptor instead.
+func (*M5GSUCIRegistrationRequest) Descriptor() ([]byte, []int) {
+	return file_subscriberdb_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *M5GSUCIRegistrationRequest) GetUePubkeyIdentifier() uint32 {
+	if x != nil {
+		return x.UePubkeyIdentifier
+	}
+	return 0
+}
+
+func (x *M5GSUCIRegistrationRequest) GetUePubkey() []byte {
+	if x != nil {
+		return x.UePubkey
+	}
+	return nil
+}
+
+func (x *M5GSUCIRegistrationRequest) GetUeCiphertext() []byte {
+	if x != nil {
+		return x.UeCiphertext
+	}
+	return nil
+}
+
+func (x *M5GSUCIRegistrationRequest) GetUeEncryptedMac() []byte {
+	if x != nil {
+		return x.UeEncryptedMac
+	}
+	return nil
+}
+
+type M5GSUCIRegistrationAnswer struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	//UE de concealed msin
+	UeMsinRecv []byte `protobuf:"bytes,1,opt,name=ue_msin_recv,json=ueMsinRecv,proto3" json:"ue_msin_recv,omitempty"`
+}
+
+func (x *M5GSUCIRegistrationAnswer) Reset() {
+	*x = M5GSUCIRegistrationAnswer{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_subscriberdb_proto_msgTypes[19]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *M5GSUCIRegistrationAnswer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*M5GSUCIRegistrationAnswer) ProtoMessage() {}
+
+func (x *M5GSUCIRegistrationAnswer) ProtoReflect() protoreflect.Message {
+	mi := &file_subscriberdb_proto_msgTypes[19]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use M5GSUCIRegistrationAnswer.ProtoReflect.Descriptor instead.
+func (*M5GSUCIRegistrationAnswer) Descriptor() ([]byte, []int) {
+	return file_subscriberdb_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *M5GSUCIRegistrationAnswer) GetUeMsinRecv() []byte {
+	if x != nil {
+		return x.UeMsinRecv
 	}
 	return nil
 }
@@ -1514,7 +1804,12 @@ var file_subscriberdb_proto_rawDesc = []byte{
 	0x62, 0x65, 0x72, 0x49, 0x44, 0x53, 0x65, 0x74, 0x12, 0x2b, 0x0a, 0x04, 0x73, 0x69, 0x64, 0x73,
 	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2e, 0x6c,
 	0x74, 0x65, 0x2e, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x72, 0x49, 0x44, 0x52,
-	0x04, 0x73, 0x69, 0x64, 0x73, 0x22, 0xb7, 0x02, 0x0a, 0x0f, 0x47, 0x53, 0x4d, 0x53, 0x75, 0x62,
+	0x04, 0x73, 0x69, 0x64, 0x73, 0x22, 0x4e, 0x0a, 0x0f, 0x53, 0x75, 0x63, 0x69, 0x50, 0x72, 0x6f,
+	0x66, 0x69, 0x6c, 0x65, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x3b, 0x0a, 0x0d, 0x73, 0x75, 0x63, 0x69,
+	0x5f, 0x70, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32,
+	0x16, 0x2e, 0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2e, 0x6c, 0x74, 0x65, 0x2e, 0x53, 0x75, 0x63, 0x69,
+	0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x52, 0x0c, 0x73, 0x75, 0x63, 0x69, 0x50, 0x72, 0x6f,
+	0x66, 0x69, 0x6c, 0x65, 0x73, 0x22, 0xb7, 0x02, 0x0a, 0x0f, 0x47, 0x53, 0x4d, 0x53, 0x75, 0x62,
 	0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x45, 0x0a, 0x05, 0x73, 0x74, 0x61,
 	0x74, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x2f, 0x2e, 0x6d, 0x61, 0x67, 0x6d, 0x61,
 	0x2e, 0x6c, 0x74, 0x65, 0x2e, 0x47, 0x53, 0x4d, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x70,
@@ -1699,7 +1994,42 @@ var file_subscriberdb_proto_rawDesc = []byte{
 	0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2e, 0x6f, 0x72, 0x63, 0x38,
 	0x72, 0x2e, 0x44, 0x69, 0x67, 0x65, 0x73, 0x74, 0x54, 0x72, 0x65, 0x65, 0x52, 0x07, 0x64, 0x69,
 	0x67, 0x65, 0x73, 0x74, 0x73, 0x4a, 0x04, 0x08, 0x03, 0x10, 0x04, 0x4a, 0x04, 0x08, 0x04, 0x10,
-	0x05, 0x2a, 0x46, 0x0a, 0x17, 0x41, 0x63, 0x63, 0x65, 0x73, 0x73, 0x4e, 0x65, 0x74, 0x77, 0x6f,
+	0x05, 0x22, 0xb1, 0x02, 0x0a, 0x0b, 0x53, 0x75, 0x63, 0x69, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c,
+	0x65, 0x12, 0x32, 0x0a, 0x16, 0x68, 0x6f, 0x6d, 0x65, 0x5f, 0x6e, 0x65, 0x74, 0x5f, 0x70, 0x75,
+	0x62, 0x6c, 0x69, 0x63, 0x5f, 0x6b, 0x65, 0x79, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x0d, 0x52, 0x12, 0x68, 0x6f, 0x6d, 0x65, 0x4e, 0x65, 0x74, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x63,
+	0x4b, 0x65, 0x79, 0x49, 0x64, 0x12, 0x59, 0x0a, 0x11, 0x70, 0x72, 0x6f, 0x74, 0x65, 0x63, 0x74,
+	0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e,
+	0x32, 0x2c, 0x2e, 0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2e, 0x6c, 0x74, 0x65, 0x2e, 0x53, 0x75, 0x63,
+	0x69, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x2e, 0x45, 0x43, 0x49, 0x45, 0x53, 0x50, 0x72,
+	0x6f, 0x74, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x65, 0x52, 0x10,
+	0x70, 0x72, 0x6f, 0x74, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x65,
+	0x12, 0x2d, 0x0a, 0x13, 0x68, 0x6f, 0x6d, 0x65, 0x5f, 0x6e, 0x65, 0x74, 0x5f, 0x70, 0x75, 0x62,
+	0x6c, 0x69, 0x63, 0x5f, 0x6b, 0x65, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x10, 0x68,
+	0x6f, 0x6d, 0x65, 0x4e, 0x65, 0x74, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x4b, 0x65, 0x79, 0x12,
+	0x2f, 0x0a, 0x14, 0x68, 0x6f, 0x6d, 0x65, 0x5f, 0x6e, 0x65, 0x74, 0x5f, 0x70, 0x72, 0x69, 0x76,
+	0x61, 0x74, 0x65, 0x5f, 0x6b, 0x65, 0x79, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x11, 0x68,
+	0x6f, 0x6d, 0x65, 0x4e, 0x65, 0x74, 0x50, 0x72, 0x69, 0x76, 0x61, 0x74, 0x65, 0x4b, 0x65, 0x79,
+	0x22, 0x33, 0x0a, 0x15, 0x45, 0x43, 0x49, 0x45, 0x53, 0x50, 0x72, 0x6f, 0x74, 0x65, 0x63, 0x74,
+	0x69, 0x6f, 0x6e, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x65, 0x12, 0x0c, 0x0a, 0x08, 0x50, 0x72, 0x6f,
+	0x66, 0x69, 0x6c, 0x65, 0x41, 0x10, 0x00, 0x12, 0x0c, 0x0a, 0x08, 0x50, 0x72, 0x6f, 0x66, 0x69,
+	0x6c, 0x65, 0x42, 0x10, 0x01, 0x22, 0xba, 0x01, 0x0a, 0x1a, 0x4d, 0x35, 0x47, 0x53, 0x55, 0x43,
+	0x49, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x30, 0x0a, 0x14, 0x75, 0x65, 0x5f, 0x70, 0x75, 0x62, 0x6b, 0x65,
+	0x79, 0x5f, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0d, 0x52, 0x12, 0x75, 0x65, 0x50, 0x75, 0x62, 0x6b, 0x65, 0x79, 0x49, 0x64, 0x65, 0x6e,
+	0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x12, 0x1b, 0x0a, 0x09, 0x75, 0x65, 0x5f, 0x70, 0x75, 0x62,
+	0x6b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x08, 0x75, 0x65, 0x50, 0x75, 0x62,
+	0x6b, 0x65, 0x79, 0x12, 0x23, 0x0a, 0x0d, 0x75, 0x65, 0x5f, 0x63, 0x69, 0x70, 0x68, 0x65, 0x72,
+	0x74, 0x65, 0x78, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x0c, 0x75, 0x65, 0x43, 0x69,
+	0x70, 0x68, 0x65, 0x72, 0x74, 0x65, 0x78, 0x74, 0x12, 0x28, 0x0a, 0x10, 0x75, 0x65, 0x5f, 0x65,
+	0x6e, 0x63, 0x72, 0x79, 0x70, 0x74, 0x65, 0x64, 0x5f, 0x6d, 0x61, 0x63, 0x18, 0x04, 0x20, 0x01,
+	0x28, 0x0c, 0x52, 0x0e, 0x75, 0x65, 0x45, 0x6e, 0x63, 0x72, 0x79, 0x70, 0x74, 0x65, 0x64, 0x4d,
+	0x61, 0x63, 0x22, 0x3d, 0x0a, 0x19, 0x4d, 0x35, 0x47, 0x53, 0x55, 0x43, 0x49, 0x52, 0x65, 0x67,
+	0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x41, 0x6e, 0x73, 0x77, 0x65, 0x72, 0x12,
+	0x20, 0x0a, 0x0c, 0x75, 0x65, 0x5f, 0x6d, 0x73, 0x69, 0x6e, 0x5f, 0x72, 0x65, 0x63, 0x76, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x0a, 0x75, 0x65, 0x4d, 0x73, 0x69, 0x6e, 0x52, 0x65, 0x63,
+	0x76, 0x2a, 0x46, 0x0a, 0x17, 0x41, 0x63, 0x63, 0x65, 0x73, 0x73, 0x4e, 0x65, 0x74, 0x77, 0x6f,
 	0x72, 0x6b, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x12, 0x08, 0x0a, 0x04,
 	0x48, 0x52, 0x50, 0x44, 0x10, 0x00, 0x12, 0x09, 0x0a, 0x05, 0x57, 0x49, 0x4d, 0x41, 0x58, 0x10,
 	0x01, 0x12, 0x08, 0x0a, 0x04, 0x57, 0x4c, 0x41, 0x4e, 0x10, 0x02, 0x12, 0x0c, 0x0a, 0x08, 0x45,
@@ -1726,7 +2056,7 @@ var file_subscriberdb_proto_rawDesc = []byte{
 	0x73, 0x12, 0x11, 0x2e, 0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2e, 0x6f, 0x72, 0x63, 0x38, 0x72, 0x2e,
 	0x56, 0x6f, 0x69, 0x64, 0x1a, 0x1a, 0x2e, 0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2e, 0x6c, 0x74, 0x65,
 	0x2e, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x72, 0x49, 0x44, 0x53, 0x65, 0x74,
-	0x22, 0x00, 0x32, 0xfa, 0x01, 0x0a, 0x11, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65,
+	0x22, 0x00, 0x32, 0xbf, 0x02, 0x0a, 0x11, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65,
 	0x72, 0x44, 0x42, 0x43, 0x6c, 0x6f, 0x75, 0x64, 0x12, 0x4e, 0x0a, 0x0b, 0x43, 0x68, 0x65, 0x63,
 	0x6b, 0x49, 0x6e, 0x53, 0x79, 0x6e, 0x63, 0x12, 0x1d, 0x2e, 0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2e,
 	0x6c, 0x74, 0x65, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x49, 0x6e, 0x53, 0x79, 0x6e, 0x63, 0x52,
@@ -1741,10 +2071,36 @@ var file_subscriberdb_proto_rawDesc = []byte{
 	0x74, 0x65, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65,
 	0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x6d, 0x61, 0x67, 0x6d,
 	0x61, 0x2e, 0x6c, 0x74, 0x65, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72,
-	0x69, 0x62, 0x65, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42,
-	0x1b, 0x5a, 0x19, 0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2f, 0x6c, 0x74, 0x65, 0x2f, 0x63, 0x6c, 0x6f,
-	0x75, 0x64, 0x2f, 0x67, 0x6f, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x73, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x69, 0x62, 0x65, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
+	0x43, 0x0a, 0x10, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x75, 0x63, 0x69, 0x50, 0x72, 0x6f, 0x66, 0x69,
+	0x6c, 0x65, 0x73, 0x12, 0x11, 0x2e, 0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2e, 0x6f, 0x72, 0x63, 0x38,
+	0x72, 0x2e, 0x56, 0x6f, 0x69, 0x64, 0x1a, 0x1a, 0x2e, 0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2e, 0x6c,
+	0x74, 0x65, 0x2e, 0x53, 0x75, 0x63, 0x69, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x4c, 0x69,
+	0x73, 0x74, 0x22, 0x00, 0x32, 0xd4, 0x01, 0x0a, 0x0d, 0x53, 0x75, 0x63, 0x69, 0x50, 0x72, 0x6f,
+	0x66, 0x69, 0x6c, 0x65, 0x44, 0x42, 0x12, 0x3d, 0x0a, 0x0e, 0x41, 0x64, 0x64, 0x53, 0x75, 0x63,
+	0x69, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x12, 0x16, 0x2e, 0x6d, 0x61, 0x67, 0x6d, 0x61,
+	0x2e, 0x6c, 0x74, 0x65, 0x2e, 0x53, 0x75, 0x63, 0x69, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65,
+	0x1a, 0x11, 0x2e, 0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2e, 0x6f, 0x72, 0x63, 0x38, 0x72, 0x2e, 0x56,
+	0x6f, 0x69, 0x64, 0x22, 0x00, 0x12, 0x40, 0x0a, 0x11, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x53,
+	0x75, 0x63, 0x69, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x12, 0x16, 0x2e, 0x6d, 0x61, 0x67,
+	0x6d, 0x61, 0x2e, 0x6c, 0x74, 0x65, 0x2e, 0x53, 0x75, 0x63, 0x69, 0x50, 0x72, 0x6f, 0x66, 0x69,
+	0x6c, 0x65, 0x1a, 0x11, 0x2e, 0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2e, 0x6f, 0x72, 0x63, 0x38, 0x72,
+	0x2e, 0x56, 0x6f, 0x69, 0x64, 0x22, 0x00, 0x12, 0x42, 0x0a, 0x0f, 0x4c, 0x69, 0x73, 0x74, 0x53,
+	0x75, 0x63, 0x69, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x12, 0x11, 0x2e, 0x6d, 0x61, 0x67,
+	0x6d, 0x61, 0x2e, 0x6f, 0x72, 0x63, 0x38, 0x72, 0x2e, 0x56, 0x6f, 0x69, 0x64, 0x1a, 0x1a, 0x2e,
+	0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2e, 0x6c, 0x74, 0x65, 0x2e, 0x53, 0x75, 0x63, 0x69, 0x50, 0x72,
+	0x6f, 0x66, 0x69, 0x6c, 0x65, 0x4c, 0x69, 0x73, 0x74, 0x22, 0x00, 0x32, 0x86, 0x01, 0x0a, 0x13,
+	0x4d, 0x35, 0x47, 0x53, 0x55, 0x43, 0x49, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x12, 0x6f, 0x0a, 0x1e, 0x4d, 0x35, 0x47, 0x44, 0x65, 0x63, 0x72, 0x79, 0x70,
+	0x74, 0x49, 0x6d, 0x73, 0x69, 0x53, 0x55, 0x43, 0x49, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x25, 0x2e, 0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2e, 0x6c, 0x74,
+	0x65, 0x2e, 0x4d, 0x35, 0x47, 0x53, 0x55, 0x43, 0x49, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e, 0x6d,
+	0x61, 0x67, 0x6d, 0x61, 0x2e, 0x6c, 0x74, 0x65, 0x2e, 0x4d, 0x35, 0x47, 0x53, 0x55, 0x43, 0x49,
+	0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x41, 0x6e, 0x73, 0x77,
+	0x65, 0x72, 0x22, 0x00, 0x42, 0x1b, 0x5a, 0x19, 0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2f, 0x6c, 0x74,
+	0x65, 0x2f, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x2f, 0x67, 0x6f, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1759,8 +2115,8 @@ func file_subscriberdb_proto_rawDescGZIP() []byte {
 	return file_subscriberdb_proto_rawDescData
 }
 
-var file_subscriberdb_proto_enumTypes = make([]protoimpl.EnumInfo, 9)
-var file_subscriberdb_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_subscriberdb_proto_enumTypes = make([]protoimpl.EnumInfo, 10)
+var file_subscriberdb_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_subscriberdb_proto_goTypes = []interface{}{
 	(AccessNetworkIdentifier)(0),               // 0: magma.lte.AccessNetworkIdentifier
 	(SubscriberID_IDType)(0),                   // 1: magma.lte.SubscriberID.IDType
@@ -1771,82 +2127,99 @@ var file_subscriberdb_proto_goTypes = []interface{}{
 	(Non3GPPUserProfile_Non3GPPIPAccess)(0),    // 6: magma.lte.Non3GPPUserProfile.Non3GPPIPAccess
 	(Non3GPPUserProfile_Non3GPPIPAccessAPN)(0), // 7: magma.lte.Non3GPPUserProfile.Non3GPPIPAccessAPN
 	(CoreNetworkType_CoreNetworkTypes)(0),      // 8: magma.lte.CoreNetworkType.CoreNetworkTypes
-	(*SubscriberID)(nil),                       // 9: magma.lte.SubscriberID
-	(*SubscriberIDSet)(nil),                    // 10: magma.lte.SubscriberIDSet
-	(*GSMSubscription)(nil),                    // 11: magma.lte.GSMSubscription
-	(*LTESubscription)(nil),                    // 12: magma.lte.LTESubscription
-	(*SubscriberState)(nil),                    // 13: magma.lte.SubscriberState
-	(*SubscriberAPNConfig)(nil),                // 14: magma.lte.SubscriberAPNConfig
-	(*Non3GPPUserProfile)(nil),                 // 15: magma.lte.Non3GPPUserProfile
-	(*SubscriberData)(nil),                     // 16: magma.lte.SubscriberData
-	(*CoreNetworkType)(nil),                    // 17: magma.lte.CoreNetworkType
-	(*SubscriberUpdate)(nil),                   // 18: magma.lte.SubscriberUpdate
-	(*CheckInSyncRequest)(nil),                 // 19: magma.lte.CheckInSyncRequest
-	(*CheckInSyncResponse)(nil),                // 20: magma.lte.CheckInSyncResponse
-	(*SyncRequest)(nil),                        // 21: magma.lte.SyncRequest
-	(*SyncResponse)(nil),                       // 22: magma.lte.SyncResponse
-	(*ListSubscribersRequest)(nil),             // 23: magma.lte.ListSubscribersRequest
-	(*ListSubscribersResponse)(nil),            // 24: magma.lte.ListSubscribersResponse
-	(*apn.AggregatedMaximumBitrate)(nil),       // 25: magma.lte.AggregatedMaximumBitrate
-	(*apn.APNConfiguration)(nil),               // 26: magma.lte.APNConfiguration
-	(*orc8r.NetworkID)(nil),                    // 27: magma.orc8r.NetworkID
-	(*fieldmaskpb.FieldMask)(nil),              // 28: google.protobuf.FieldMask
-	(*orc8r.Digest)(nil),                       // 29: magma.orc8r.Digest
-	(*orc8r.LeafDigest)(nil),                   // 30: magma.orc8r.LeafDigest
-	(*orc8r.DigestTree)(nil),                   // 31: magma.orc8r.DigestTree
-	(*orc8r.Changeset)(nil),                    // 32: magma.orc8r.Changeset
-	(*orc8r.Void)(nil),                         // 33: magma.orc8r.Void
+	(SuciProfile_ECIESProtectionScheme)(0),     // 9: magma.lte.SuciProfile.ECIESProtectionScheme
+	(*SubscriberID)(nil),                       // 10: magma.lte.SubscriberID
+	(*SubscriberIDSet)(nil),                    // 11: magma.lte.SubscriberIDSet
+	(*SuciProfileList)(nil),                    // 12: magma.lte.SuciProfileList
+	(*GSMSubscription)(nil),                    // 13: magma.lte.GSMSubscription
+	(*LTESubscription)(nil),                    // 14: magma.lte.LTESubscription
+	(*SubscriberState)(nil),                    // 15: magma.lte.SubscriberState
+	(*SubscriberAPNConfig)(nil),                // 16: magma.lte.SubscriberAPNConfig
+	(*Non3GPPUserProfile)(nil),                 // 17: magma.lte.Non3GPPUserProfile
+	(*SubscriberData)(nil),                     // 18: magma.lte.SubscriberData
+	(*CoreNetworkType)(nil),                    // 19: magma.lte.CoreNetworkType
+	(*SubscriberUpdate)(nil),                   // 20: magma.lte.SubscriberUpdate
+	(*CheckInSyncRequest)(nil),                 // 21: magma.lte.CheckInSyncRequest
+	(*CheckInSyncResponse)(nil),                // 22: magma.lte.CheckInSyncResponse
+	(*SyncRequest)(nil),                        // 23: magma.lte.SyncRequest
+	(*SyncResponse)(nil),                       // 24: magma.lte.SyncResponse
+	(*ListSubscribersRequest)(nil),             // 25: magma.lte.ListSubscribersRequest
+	(*ListSubscribersResponse)(nil),            // 26: magma.lte.ListSubscribersResponse
+	(*SuciProfile)(nil),                        // 27: magma.lte.SuciProfile
+	(*M5GSUCIRegistrationRequest)(nil),         // 28: magma.lte.M5GSUCIRegistrationRequest
+	(*M5GSUCIRegistrationAnswer)(nil),          // 29: magma.lte.M5GSUCIRegistrationAnswer
+	(*apn.AggregatedMaximumBitrate)(nil),       // 30: magma.lte.AggregatedMaximumBitrate
+	(*apn.APNConfiguration)(nil),               // 31: magma.lte.APNConfiguration
+	(*orc8r.NetworkID)(nil),                    // 32: magma.orc8r.NetworkID
+	(*fieldmaskpb.FieldMask)(nil),              // 33: google.protobuf.FieldMask
+	(*orc8r.Digest)(nil),                       // 34: magma.orc8r.Digest
+	(*orc8r.LeafDigest)(nil),                   // 35: magma.orc8r.LeafDigest
+	(*orc8r.DigestTree)(nil),                   // 36: magma.orc8r.DigestTree
+	(*orc8r.Changeset)(nil),                    // 37: magma.orc8r.Changeset
+	(*orc8r.Void)(nil),                         // 38: magma.orc8r.Void
 }
 var file_subscriberdb_proto_depIdxs = []int32{
 	1,  // 0: magma.lte.SubscriberID.type:type_name -> magma.lte.SubscriberID.IDType
-	9,  // 1: magma.lte.SubscriberIDSet.sids:type_name -> magma.lte.SubscriberID
-	2,  // 2: magma.lte.GSMSubscription.state:type_name -> magma.lte.GSMSubscription.GSMSubscriptionState
-	3,  // 3: magma.lte.GSMSubscription.auth_algo:type_name -> magma.lte.GSMSubscription.GSMAuthAlgo
-	4,  // 4: magma.lte.LTESubscription.state:type_name -> magma.lte.LTESubscription.LTESubscriptionState
-	5,  // 5: magma.lte.LTESubscription.auth_algo:type_name -> magma.lte.LTESubscription.LTEAuthAlgo
-	6,  // 6: magma.lte.Non3GPPUserProfile.non_3gpp_ip_access:type_name -> magma.lte.Non3GPPUserProfile.Non3GPPIPAccess
-	7,  // 7: magma.lte.Non3GPPUserProfile.non_3gpp_ip_access_apn:type_name -> magma.lte.Non3GPPUserProfile.Non3GPPIPAccessAPN
-	25, // 8: magma.lte.Non3GPPUserProfile.ambr:type_name -> magma.lte.AggregatedMaximumBitrate
-	26, // 9: magma.lte.Non3GPPUserProfile.apn_config:type_name -> magma.lte.APNConfiguration
-	0,  // 10: magma.lte.Non3GPPUserProfile.access_net_id:type_name -> magma.lte.AccessNetworkIdentifier
-	14, // 11: magma.lte.Non3GPPUserProfile.subscriber_apn_config:type_name -> magma.lte.SubscriberAPNConfig
-	9,  // 12: magma.lte.SubscriberData.sid:type_name -> magma.lte.SubscriberID
-	11, // 13: magma.lte.SubscriberData.gsm:type_name -> magma.lte.GSMSubscription
-	12, // 14: magma.lte.SubscriberData.lte:type_name -> magma.lte.LTESubscription
-	27, // 15: magma.lte.SubscriberData.network_id:type_name -> magma.orc8r.NetworkID
-	13, // 16: magma.lte.SubscriberData.state:type_name -> magma.lte.SubscriberState
-	15, // 17: magma.lte.SubscriberData.non_3gpp:type_name -> magma.lte.Non3GPPUserProfile
-	17, // 18: magma.lte.SubscriberData.sub_network:type_name -> magma.lte.CoreNetworkType
-	8,  // 19: magma.lte.CoreNetworkType.forbidden_network_types:type_name -> magma.lte.CoreNetworkType.CoreNetworkTypes
-	16, // 20: magma.lte.SubscriberUpdate.data:type_name -> magma.lte.SubscriberData
-	28, // 21: magma.lte.SubscriberUpdate.mask:type_name -> google.protobuf.FieldMask
-	29, // 22: magma.lte.CheckInSyncRequest.root_digest:type_name -> magma.orc8r.Digest
-	30, // 23: magma.lte.SyncRequest.leaf_digests:type_name -> magma.orc8r.LeafDigest
-	31, // 24: magma.lte.SyncResponse.digests:type_name -> magma.orc8r.DigestTree
-	32, // 25: magma.lte.SyncResponse.changeset:type_name -> magma.orc8r.Changeset
-	16, // 26: magma.lte.ListSubscribersResponse.subscribers:type_name -> magma.lte.SubscriberData
-	31, // 27: magma.lte.ListSubscribersResponse.digests:type_name -> magma.orc8r.DigestTree
-	16, // 28: magma.lte.SubscriberDB.AddSubscriber:input_type -> magma.lte.SubscriberData
-	9,  // 29: magma.lte.SubscriberDB.DeleteSubscriber:input_type -> magma.lte.SubscriberID
-	18, // 30: magma.lte.SubscriberDB.UpdateSubscriber:input_type -> magma.lte.SubscriberUpdate
-	9,  // 31: magma.lte.SubscriberDB.GetSubscriberData:input_type -> magma.lte.SubscriberID
-	33, // 32: magma.lte.SubscriberDB.ListSubscribers:input_type -> magma.orc8r.Void
-	19, // 33: magma.lte.SubscriberDBCloud.CheckInSync:input_type -> magma.lte.CheckInSyncRequest
-	21, // 34: magma.lte.SubscriberDBCloud.Sync:input_type -> magma.lte.SyncRequest
-	23, // 35: magma.lte.SubscriberDBCloud.ListSubscribers:input_type -> magma.lte.ListSubscribersRequest
-	33, // 36: magma.lte.SubscriberDB.AddSubscriber:output_type -> magma.orc8r.Void
-	33, // 37: magma.lte.SubscriberDB.DeleteSubscriber:output_type -> magma.orc8r.Void
-	33, // 38: magma.lte.SubscriberDB.UpdateSubscriber:output_type -> magma.orc8r.Void
-	16, // 39: magma.lte.SubscriberDB.GetSubscriberData:output_type -> magma.lte.SubscriberData
-	10, // 40: magma.lte.SubscriberDB.ListSubscribers:output_type -> magma.lte.SubscriberIDSet
-	20, // 41: magma.lte.SubscriberDBCloud.CheckInSync:output_type -> magma.lte.CheckInSyncResponse
-	22, // 42: magma.lte.SubscriberDBCloud.Sync:output_type -> magma.lte.SyncResponse
-	24, // 43: magma.lte.SubscriberDBCloud.ListSubscribers:output_type -> magma.lte.ListSubscribersResponse
-	36, // [36:44] is the sub-list for method output_type
-	28, // [28:36] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	10, // 1: magma.lte.SubscriberIDSet.sids:type_name -> magma.lte.SubscriberID
+	27, // 2: magma.lte.SuciProfileList.suci_profiles:type_name -> magma.lte.SuciProfile
+	2,  // 3: magma.lte.GSMSubscription.state:type_name -> magma.lte.GSMSubscription.GSMSubscriptionState
+	3,  // 4: magma.lte.GSMSubscription.auth_algo:type_name -> magma.lte.GSMSubscription.GSMAuthAlgo
+	4,  // 5: magma.lte.LTESubscription.state:type_name -> magma.lte.LTESubscription.LTESubscriptionState
+	5,  // 6: magma.lte.LTESubscription.auth_algo:type_name -> magma.lte.LTESubscription.LTEAuthAlgo
+	6,  // 7: magma.lte.Non3GPPUserProfile.non_3gpp_ip_access:type_name -> magma.lte.Non3GPPUserProfile.Non3GPPIPAccess
+	7,  // 8: magma.lte.Non3GPPUserProfile.non_3gpp_ip_access_apn:type_name -> magma.lte.Non3GPPUserProfile.Non3GPPIPAccessAPN
+	30, // 9: magma.lte.Non3GPPUserProfile.ambr:type_name -> magma.lte.AggregatedMaximumBitrate
+	31, // 10: magma.lte.Non3GPPUserProfile.apn_config:type_name -> magma.lte.APNConfiguration
+	0,  // 11: magma.lte.Non3GPPUserProfile.access_net_id:type_name -> magma.lte.AccessNetworkIdentifier
+	16, // 12: magma.lte.Non3GPPUserProfile.subscriber_apn_config:type_name -> magma.lte.SubscriberAPNConfig
+	10, // 13: magma.lte.SubscriberData.sid:type_name -> magma.lte.SubscriberID
+	13, // 14: magma.lte.SubscriberData.gsm:type_name -> magma.lte.GSMSubscription
+	14, // 15: magma.lte.SubscriberData.lte:type_name -> magma.lte.LTESubscription
+	32, // 16: magma.lte.SubscriberData.network_id:type_name -> magma.orc8r.NetworkID
+	15, // 17: magma.lte.SubscriberData.state:type_name -> magma.lte.SubscriberState
+	17, // 18: magma.lte.SubscriberData.non_3gpp:type_name -> magma.lte.Non3GPPUserProfile
+	19, // 19: magma.lte.SubscriberData.sub_network:type_name -> magma.lte.CoreNetworkType
+	8,  // 20: magma.lte.CoreNetworkType.forbidden_network_types:type_name -> magma.lte.CoreNetworkType.CoreNetworkTypes
+	18, // 21: magma.lte.SubscriberUpdate.data:type_name -> magma.lte.SubscriberData
+	33, // 22: magma.lte.SubscriberUpdate.mask:type_name -> google.protobuf.FieldMask
+	34, // 23: magma.lte.CheckInSyncRequest.root_digest:type_name -> magma.orc8r.Digest
+	35, // 24: magma.lte.SyncRequest.leaf_digests:type_name -> magma.orc8r.LeafDigest
+	36, // 25: magma.lte.SyncResponse.digests:type_name -> magma.orc8r.DigestTree
+	37, // 26: magma.lte.SyncResponse.changeset:type_name -> magma.orc8r.Changeset
+	18, // 27: magma.lte.ListSubscribersResponse.subscribers:type_name -> magma.lte.SubscriberData
+	36, // 28: magma.lte.ListSubscribersResponse.digests:type_name -> magma.orc8r.DigestTree
+	9,  // 29: magma.lte.SuciProfile.protection_scheme:type_name -> magma.lte.SuciProfile.ECIESProtectionScheme
+	18, // 30: magma.lte.SubscriberDB.AddSubscriber:input_type -> magma.lte.SubscriberData
+	10, // 31: magma.lte.SubscriberDB.DeleteSubscriber:input_type -> magma.lte.SubscriberID
+	20, // 32: magma.lte.SubscriberDB.UpdateSubscriber:input_type -> magma.lte.SubscriberUpdate
+	10, // 33: magma.lte.SubscriberDB.GetSubscriberData:input_type -> magma.lte.SubscriberID
+	38, // 34: magma.lte.SubscriberDB.ListSubscribers:input_type -> magma.orc8r.Void
+	21, // 35: magma.lte.SubscriberDBCloud.CheckInSync:input_type -> magma.lte.CheckInSyncRequest
+	23, // 36: magma.lte.SubscriberDBCloud.Sync:input_type -> magma.lte.SyncRequest
+	25, // 37: magma.lte.SubscriberDBCloud.ListSubscribers:input_type -> magma.lte.ListSubscribersRequest
+	38, // 38: magma.lte.SubscriberDBCloud.ListSuciProfiles:input_type -> magma.orc8r.Void
+	27, // 39: magma.lte.SuciProfileDB.AddSuciProfile:input_type -> magma.lte.SuciProfile
+	27, // 40: magma.lte.SuciProfileDB.DeleteSuciProfile:input_type -> magma.lte.SuciProfile
+	38, // 41: magma.lte.SuciProfileDB.ListSuciProfile:input_type -> magma.orc8r.Void
+	28, // 42: magma.lte.M5GSUCIRegistration.M5GDecryptImsiSUCIRegistration:input_type -> magma.lte.M5GSUCIRegistrationRequest
+	38, // 43: magma.lte.SubscriberDB.AddSubscriber:output_type -> magma.orc8r.Void
+	38, // 44: magma.lte.SubscriberDB.DeleteSubscriber:output_type -> magma.orc8r.Void
+	38, // 45: magma.lte.SubscriberDB.UpdateSubscriber:output_type -> magma.orc8r.Void
+	18, // 46: magma.lte.SubscriberDB.GetSubscriberData:output_type -> magma.lte.SubscriberData
+	11, // 47: magma.lte.SubscriberDB.ListSubscribers:output_type -> magma.lte.SubscriberIDSet
+	22, // 48: magma.lte.SubscriberDBCloud.CheckInSync:output_type -> magma.lte.CheckInSyncResponse
+	24, // 49: magma.lte.SubscriberDBCloud.Sync:output_type -> magma.lte.SyncResponse
+	26, // 50: magma.lte.SubscriberDBCloud.ListSubscribers:output_type -> magma.lte.ListSubscribersResponse
+	12, // 51: magma.lte.SubscriberDBCloud.ListSuciProfiles:output_type -> magma.lte.SuciProfileList
+	38, // 52: magma.lte.SuciProfileDB.AddSuciProfile:output_type -> magma.orc8r.Void
+	38, // 53: magma.lte.SuciProfileDB.DeleteSuciProfile:output_type -> magma.orc8r.Void
+	12, // 54: magma.lte.SuciProfileDB.ListSuciProfile:output_type -> magma.lte.SuciProfileList
+	29, // 55: magma.lte.M5GSUCIRegistration.M5GDecryptImsiSUCIRegistration:output_type -> magma.lte.M5GSUCIRegistrationAnswer
+	43, // [43:56] is the sub-list for method output_type
+	30, // [30:43] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_subscriberdb_proto_init() }
@@ -1880,7 +2253,7 @@ func file_subscriberdb_proto_init() {
 			}
 		}
 		file_subscriberdb_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GSMSubscription); i {
+			switch v := v.(*SuciProfileList); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1892,7 +2265,7 @@ func file_subscriberdb_proto_init() {
 			}
 		}
 		file_subscriberdb_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LTESubscription); i {
+			switch v := v.(*GSMSubscription); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1904,7 +2277,7 @@ func file_subscriberdb_proto_init() {
 			}
 		}
 		file_subscriberdb_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SubscriberState); i {
+			switch v := v.(*LTESubscription); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1916,7 +2289,7 @@ func file_subscriberdb_proto_init() {
 			}
 		}
 		file_subscriberdb_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SubscriberAPNConfig); i {
+			switch v := v.(*SubscriberState); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1928,7 +2301,7 @@ func file_subscriberdb_proto_init() {
 			}
 		}
 		file_subscriberdb_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Non3GPPUserProfile); i {
+			switch v := v.(*SubscriberAPNConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1940,7 +2313,7 @@ func file_subscriberdb_proto_init() {
 			}
 		}
 		file_subscriberdb_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SubscriberData); i {
+			switch v := v.(*Non3GPPUserProfile); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1952,7 +2325,7 @@ func file_subscriberdb_proto_init() {
 			}
 		}
 		file_subscriberdb_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CoreNetworkType); i {
+			switch v := v.(*SubscriberData); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1964,7 +2337,7 @@ func file_subscriberdb_proto_init() {
 			}
 		}
 		file_subscriberdb_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SubscriberUpdate); i {
+			switch v := v.(*CoreNetworkType); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1976,7 +2349,7 @@ func file_subscriberdb_proto_init() {
 			}
 		}
 		file_subscriberdb_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CheckInSyncRequest); i {
+			switch v := v.(*SubscriberUpdate); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1988,7 +2361,7 @@ func file_subscriberdb_proto_init() {
 			}
 		}
 		file_subscriberdb_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CheckInSyncResponse); i {
+			switch v := v.(*CheckInSyncRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2000,7 +2373,7 @@ func file_subscriberdb_proto_init() {
 			}
 		}
 		file_subscriberdb_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SyncRequest); i {
+			switch v := v.(*CheckInSyncResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2012,7 +2385,7 @@ func file_subscriberdb_proto_init() {
 			}
 		}
 		file_subscriberdb_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SyncResponse); i {
+			switch v := v.(*SyncRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2024,7 +2397,7 @@ func file_subscriberdb_proto_init() {
 			}
 		}
 		file_subscriberdb_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListSubscribersRequest); i {
+			switch v := v.(*SyncResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2036,7 +2409,55 @@ func file_subscriberdb_proto_init() {
 			}
 		}
 		file_subscriberdb_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListSubscribersRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_subscriberdb_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListSubscribersResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_subscriberdb_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SuciProfile); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_subscriberdb_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*M5GSUCIRegistrationRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_subscriberdb_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*M5GSUCIRegistrationAnswer); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2053,10 +2474,10 @@ func file_subscriberdb_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_subscriberdb_proto_rawDesc,
-			NumEnums:      9,
-			NumMessages:   16,
+			NumEnums:      10,
+			NumMessages:   20,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   4,
 		},
 		GoTypes:           file_subscriberdb_proto_goTypes,
 		DependencyIndexes: file_subscriberdb_proto_depIdxs,

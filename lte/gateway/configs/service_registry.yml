@@ -17,6 +17,9 @@ services:
   subscriberdb:
     ip_address: 127.0.0.1
     port: 50051
+  subscriberdb2:
+    ip_address: 127.0.0.1
+    port: 6002
   mobilityd:
     ip_address: 127.0.0.1
     port: 60051

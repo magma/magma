@@ -82,7 +82,7 @@ message AgwD {
   string config_service_port = 9;
   string capture_service_port = 10;
   CaptureConfig capture_config = 11;
-
+  string subscriberdb_service_port = 12;
 }
 
 message CaptureConfig {

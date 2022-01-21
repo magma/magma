@@ -285,6 +285,8 @@ type SubscriberDBCloudClient interface {
 	Sync(ctx context.Context, in *SyncRequest, opts ...grpc.CallOption) (*SyncResponse, error)
 	// ListSubscribers lists pages of subscribers stored.
 	ListSubscribers(ctx context.Context, in *ListSubscribersRequest, opts ...grpc.CallOption) (*ListSubscribersResponse, error)
+	// List SuciProfiles per Network
+	ListSuciProfiles(ctx context.Context, in *orc8r.Void, opts ...grpc.CallOption) (*SuciProfileList, error)
 }
 
 type subscriberDBCloudClient struct {
@@ -322,6 +324,15 @@ func (c *subscriberDBCloudClient) ListSubscribers(ctx context.Context, in *ListS
 	return out, nil
 }
 
+func (c *subscriberDBCloudClient) ListSuciProfiles(ctx context.Context, in *orc8r.Void, opts ...grpc.CallOption) (*SuciProfileList, error) {
+	out := new(SuciProfileList)
+	err := c.cc.Invoke(ctx, "/magma.lte.SubscriberDBCloud/ListSuciProfiles", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SubscriberDBCloudServer is the server API for SubscriberDBCloud service.
 // All implementations must embed UnimplementedSubscriberDBCloudServer
 // for forward compatibility
@@ -334,6 +345,8 @@ type SubscriberDBCloudServer interface {
 	Sync(context.Context, *SyncRequest) (*SyncResponse, error)
 	// ListSubscribers lists pages of subscribers stored.
 	ListSubscribers(context.Context, *ListSubscribersRequest) (*ListSubscribersResponse, error)
+	// List SuciProfiles per Network
+	ListSuciProfiles(context.Context, *orc8r.Void) (*SuciProfileList, error)
 	mustEmbedUnimplementedSubscriberDBCloudServer()
 }
 
@@ -349,6 +362,9 @@ func (UnimplementedSubscriberDBCloudServer) Sync(context.Context, *SyncRequest) 
 }
 func (UnimplementedSubscriberDBCloudServer) ListSubscribers(context.Context, *ListSubscribersRequest) (*ListSubscribersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSubscribers not implemented")
+}
+func (UnimplementedSubscriberDBCloudServer) ListSuciProfiles(context.Context, *orc8r.Void) (*SuciProfileList, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSuciProfiles not implemented")
 }
 func (UnimplementedSubscriberDBCloudServer) mustEmbedUnimplementedSubscriberDBCloudServer() {}
 
@@ -417,6 +433,24 @@ func _SubscriberDBCloud_ListSubscribers_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SubscriberDBCloud_ListSuciProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(orc8r.Void)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SubscriberDBCloudServer).ListSuciProfiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.SubscriberDBCloud/ListSuciProfiles",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SubscriberDBCloudServer).ListSuciProfiles(ctx, req.(*orc8r.Void))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SubscriberDBCloud_ServiceDesc is the grpc.ServiceDesc for SubscriberDBCloud service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -435,6 +469,264 @@ var SubscriberDBCloud_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListSubscribers",
 			Handler:    _SubscriberDBCloud_ListSubscribers_Handler,
+		},
+		{
+			MethodName: "ListSuciProfiles",
+			Handler:    _SubscriberDBCloud_ListSuciProfiles_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "subscriberdb.proto",
+}
+
+// SuciProfileDBClient is the client API for SuciProfileDB service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type SuciProfileDBClient interface {
+	// Adds a new suciprofile to the store.
+	// Throws ALREADY_EXISTS if the suciprofile already exists.
+	AddSuciProfile(ctx context.Context, in *SuciProfile, opts ...grpc.CallOption) (*orc8r.Void, error)
+	// Deletes an existing suciprofile.
+	// If the suciprofile is not already present, this request is ignored.
+	DeleteSuciProfile(ctx context.Context, in *SuciProfile, opts ...grpc.CallOption) (*orc8r.Void, error)
+	// List the suciprofile in the store.
+	ListSuciProfile(ctx context.Context, in *orc8r.Void, opts ...grpc.CallOption) (*SuciProfileList, error)
+}
+
+type suciProfileDBClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewSuciProfileDBClient(cc grpc.ClientConnInterface) SuciProfileDBClient {
+	return &suciProfileDBClient{cc}
+}
+
+func (c *suciProfileDBClient) AddSuciProfile(ctx context.Context, in *SuciProfile, opts ...grpc.CallOption) (*orc8r.Void, error) {
+	out := new(orc8r.Void)
+	err := c.cc.Invoke(ctx, "/magma.lte.SuciProfileDB/AddSuciProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *suciProfileDBClient) DeleteSuciProfile(ctx context.Context, in *SuciProfile, opts ...grpc.CallOption) (*orc8r.Void, error) {
+	out := new(orc8r.Void)
+	err := c.cc.Invoke(ctx, "/magma.lte.SuciProfileDB/DeleteSuciProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *suciProfileDBClient) ListSuciProfile(ctx context.Context, in *orc8r.Void, opts ...grpc.CallOption) (*SuciProfileList, error) {
+	out := new(SuciProfileList)
+	err := c.cc.Invoke(ctx, "/magma.lte.SuciProfileDB/ListSuciProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// SuciProfileDBServer is the server API for SuciProfileDB service.
+// All implementations must embed UnimplementedSuciProfileDBServer
+// for forward compatibility
+type SuciProfileDBServer interface {
+	// Adds a new suciprofile to the store.
+	// Throws ALREADY_EXISTS if the suciprofile already exists.
+	AddSuciProfile(context.Context, *SuciProfile) (*orc8r.Void, error)
+	// Deletes an existing suciprofile.
+	// If the suciprofile is not already present, this request is ignored.
+	DeleteSuciProfile(context.Context, *SuciProfile) (*orc8r.Void, error)
+	// List the suciprofile in the store.
+	ListSuciProfile(context.Context, *orc8r.Void) (*SuciProfileList, error)
+	mustEmbedUnimplementedSuciProfileDBServer()
+}
+
+// UnimplementedSuciProfileDBServer must be embedded to have forward compatible implementations.
+type UnimplementedSuciProfileDBServer struct {
+}
+
+func (UnimplementedSuciProfileDBServer) AddSuciProfile(context.Context, *SuciProfile) (*orc8r.Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddSuciProfile not implemented")
+}
+func (UnimplementedSuciProfileDBServer) DeleteSuciProfile(context.Context, *SuciProfile) (*orc8r.Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSuciProfile not implemented")
+}
+func (UnimplementedSuciProfileDBServer) ListSuciProfile(context.Context, *orc8r.Void) (*SuciProfileList, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSuciProfile not implemented")
+}
+func (UnimplementedSuciProfileDBServer) mustEmbedUnimplementedSuciProfileDBServer() {}
+
+// UnsafeSuciProfileDBServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to SuciProfileDBServer will
+// result in compilation errors.
+type UnsafeSuciProfileDBServer interface {
+	mustEmbedUnimplementedSuciProfileDBServer()
+}
+
+func RegisterSuciProfileDBServer(s grpc.ServiceRegistrar, srv SuciProfileDBServer) {
+	s.RegisterService(&SuciProfileDB_ServiceDesc, srv)
+}
+
+func _SuciProfileDB_AddSuciProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SuciProfile)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SuciProfileDBServer).AddSuciProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.SuciProfileDB/AddSuciProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SuciProfileDBServer).AddSuciProfile(ctx, req.(*SuciProfile))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SuciProfileDB_DeleteSuciProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SuciProfile)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SuciProfileDBServer).DeleteSuciProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.SuciProfileDB/DeleteSuciProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SuciProfileDBServer).DeleteSuciProfile(ctx, req.(*SuciProfile))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SuciProfileDB_ListSuciProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(orc8r.Void)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SuciProfileDBServer).ListSuciProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.SuciProfileDB/ListSuciProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SuciProfileDBServer).ListSuciProfile(ctx, req.(*orc8r.Void))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// SuciProfileDB_ServiceDesc is the grpc.ServiceDesc for SuciProfileDB service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var SuciProfileDB_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "magma.lte.SuciProfileDB",
+	HandlerType: (*SuciProfileDBServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AddSuciProfile",
+			Handler:    _SuciProfileDB_AddSuciProfile_Handler,
+		},
+		{
+			MethodName: "DeleteSuciProfile",
+			Handler:    _SuciProfileDB_DeleteSuciProfile_Handler,
+		},
+		{
+			MethodName: "ListSuciProfile",
+			Handler:    _SuciProfileDB_ListSuciProfile_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "subscriberdb.proto",
+}
+
+// M5GSUCIRegistrationClient is the client API for M5GSUCIRegistration service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type M5GSUCIRegistrationClient interface {
+	M5GDecryptImsiSUCIRegistration(ctx context.Context, in *M5GSUCIRegistrationRequest, opts ...grpc.CallOption) (*M5GSUCIRegistrationAnswer, error)
+}
+
+type m5GSUCIRegistrationClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewM5GSUCIRegistrationClient(cc grpc.ClientConnInterface) M5GSUCIRegistrationClient {
+	return &m5GSUCIRegistrationClient{cc}
+}
+
+func (c *m5GSUCIRegistrationClient) M5GDecryptImsiSUCIRegistration(ctx context.Context, in *M5GSUCIRegistrationRequest, opts ...grpc.CallOption) (*M5GSUCIRegistrationAnswer, error) {
+	out := new(M5GSUCIRegistrationAnswer)
+	err := c.cc.Invoke(ctx, "/magma.lte.M5GSUCIRegistration/M5GDecryptImsiSUCIRegistration", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// M5GSUCIRegistrationServer is the server API for M5GSUCIRegistration service.
+// All implementations must embed UnimplementedM5GSUCIRegistrationServer
+// for forward compatibility
+type M5GSUCIRegistrationServer interface {
+	M5GDecryptImsiSUCIRegistration(context.Context, *M5GSUCIRegistrationRequest) (*M5GSUCIRegistrationAnswer, error)
+	mustEmbedUnimplementedM5GSUCIRegistrationServer()
+}
+
+// UnimplementedM5GSUCIRegistrationServer must be embedded to have forward compatible implementations.
+type UnimplementedM5GSUCIRegistrationServer struct {
+}
+
+func (UnimplementedM5GSUCIRegistrationServer) M5GDecryptImsiSUCIRegistration(context.Context, *M5GSUCIRegistrationRequest) (*M5GSUCIRegistrationAnswer, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method M5GDecryptImsiSUCIRegistration not implemented")
+}
+func (UnimplementedM5GSUCIRegistrationServer) mustEmbedUnimplementedM5GSUCIRegistrationServer() {}
+
+// UnsafeM5GSUCIRegistrationServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to M5GSUCIRegistrationServer will
+// result in compilation errors.
+type UnsafeM5GSUCIRegistrationServer interface {
+	mustEmbedUnimplementedM5GSUCIRegistrationServer()
+}
+
+func RegisterM5GSUCIRegistrationServer(s grpc.ServiceRegistrar, srv M5GSUCIRegistrationServer) {
+	s.RegisterService(&M5GSUCIRegistration_ServiceDesc, srv)
+}
+
+func _M5GSUCIRegistration_M5GDecryptImsiSUCIRegistration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(M5GSUCIRegistrationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(M5GSUCIRegistrationServer).M5GDecryptImsiSUCIRegistration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.M5GSUCIRegistration/M5GDecryptImsiSUCIRegistration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(M5GSUCIRegistrationServer).M5GDecryptImsiSUCIRegistration(ctx, req.(*M5GSUCIRegistrationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// M5GSUCIRegistration_ServiceDesc is the grpc.ServiceDesc for M5GSUCIRegistration service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var M5GSUCIRegistration_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "magma.lte.M5GSUCIRegistration",
+	HandlerType: (*M5GSUCIRegistrationServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "M5GDecryptImsiSUCIRegistration",
+			Handler:    _M5GSUCIRegistration_M5GDecryptImsiSUCIRegistration_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

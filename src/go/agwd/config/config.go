@@ -112,6 +112,7 @@ func newDefaultConfig() *config.AgwD {
 		VagrantPrivateNetworkIp: "192.168.60.142",
 		ConfigServicePort:       "6000",
 		CaptureServicePort:      "6001",
+		SubscriberdbServicePort: "6002",
 		CaptureConfig:           &config.CaptureConfig{MatchSpecs: []*config.CaptureConfig_MatchSpec{}},
 	}
 }
