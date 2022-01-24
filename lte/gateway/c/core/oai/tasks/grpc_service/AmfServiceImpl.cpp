@@ -120,30 +120,30 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.selected_ssc_mode = (ssc_mode_t) req_m5g.selected_ssc_mode();
   itti_msg.m5gsm_cause       = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
 
-  itti_msg.session_ambr.uplink_unit_type = req_m5g.session_ambr().br_unit();
-  itti_msg.session_ambr.uplink_units =
-      (uint32_t) req_m5g.session_ambr().max_bandwidth_ul();
+  itti_msg.session_ambr.uplink_unit_type = req_m5g.subscribed_qos().br_unit();
+  itti_msg.session_ambr.uplink_units = req_m5g.subscribed_qos().apn_ambr_ul();
 
-  itti_msg.session_ambr.downlink_unit_type = req_m5g.session_ambr().br_unit();
-  itti_msg.session_ambr.downlink_units =
-      (uint32_t) req_m5g.session_ambr().max_bandwidth_dl();
+  itti_msg.session_ambr.downlink_unit_type = req_m5g.subscribed_qos().br_unit();
+  itti_msg.session_ambr.downlink_units = req_m5g.subscribed_qos().apn_ambr_dl();
 
-  itti_msg.qos_list.qos_flow_req_item.qos_flow_identifier = req_m5g.qos().qci();
+  // authorized qos profile
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_identifier =
+      req_m5g.subscribed_qos().qos_class_id();
 
   itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .qos_characteristic.non_dynamic_5QI_desc.fiveQI =
-      req_m5g.qos().qci();  // enum
+      req_m5g.subscribed_qos().qos_class_id();  // enum
   itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .alloc_reten_priority.priority_level =
-      req_m5g.qos().arp().priority_level();  // uint32
+      req_m5g.subscribed_qos().priority_level();  // uint32
   itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .alloc_reten_priority.pre_emption_cap =
-      (pre_emption_capability) req_m5g.qos().arp().pre_capability();  // enum
+      (pre_emption_capability) req_m5g.subscribed_qos()
+          .preemption_capability();  // enum
   itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
       .alloc_reten_priority.pre_emption_vul =
-      (pre_emption_vulnerability) req_m5g.qos()
-          .arp()
-          .pre_vulnerability();  // enum
+      (pre_emption_vulnerability) req_m5g.subscribed_qos()
+          .preemption_vulnerability();  // enum
 
   // get the 4 byte UPF TEID and UPF IP message
   uint32_t nteid                = req_m5g.upf_endpoint().teid();
