@@ -16,8 +16,10 @@ package servicers
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 
@@ -118,7 +120,11 @@ func getMagmadMconfig(
 	if err != nil {
 		return nil, err
 	}
-
+	orc8rVersion, res := os.LookupEnv("VERSION_TAG")
+	if !res {
+		glog.V(1).Info("Couldn't get value for VERSION_TAG Env variable.")
+		orc8rVersion = "0.0.0"
+	}
 	ret := &mconfig_protos.MagmaD{
 		LogLevel:                protos.LogLevel_INFO,
 		CheckinInterval:         int32(gatewayConfig.CheckinInterval),
@@ -129,6 +135,7 @@ func getMagmadMconfig(
 		Images:                  images,
 		DynamicServices:         gatewayConfig.DynamicServices,
 		FeatureFlags:            gatewayConfig.FeatureFlags,
+		Orc8RVersion:            orc8rVersion,
 	}
 
 	return ret, nil
