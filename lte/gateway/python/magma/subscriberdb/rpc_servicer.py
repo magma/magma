@@ -68,12 +68,12 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
             "Add Subscriber Request:",
         )
         sid = SIDUtils.to_str(request.sid)
-        logging.debug("Add subscriber rpc for sid: %s", sid)
         try:
             self._store.add_subscriber(request)
         except DuplicateSubscriberError:
             context.set_details("Duplicate subscriber: %s" % sid)
             context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+            logging.debug("Add subscriber rpc for sid: %s", sid)
 
     @return_void
     @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
@@ -86,8 +86,8 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
             "Delete Subscriber Request:",
         )
         sid = SIDUtils.to_str(request)
-        logging.debug("Delete subscriber rpc for sid: %s", sid)
         self._store.delete_subscriber(sid)
+        logging.debug("Delete subscriber rpc for sid: %s", sid)
 
     @return_void
     @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
@@ -111,6 +111,7 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         except SubscriberNotFoundError:
             context.set_details("Subscriber not found: %s" % sid)
             context.set_code(grpc.StatusCode.NOT_FOUND)
+            logging.debug("Update subscriber rpc for sid: %s", sid)
 
     @send_uncaught_errors_to_monitoring(enable_sentry_wrapper)
     def GetSubscriberData(self, request, context):
