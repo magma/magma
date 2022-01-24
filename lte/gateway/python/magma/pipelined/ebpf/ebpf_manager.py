@@ -51,12 +51,16 @@ def get_ebpf_manager(config):
         enabled = False
     gw_info = get_mobilityd_gw_info()
     for gw in gw_info:
-        if gw.vlan == "":
-            bpf_man = ebpf_manager(config['nat_iface'], config['enodeb_iface'], gw.ip, enabled)
+        if gw.vlan in {"NO_VLAN", ""}:
+            gw_ip_str = socket.inet_ntoa(gw.ip.address)
+            bpf_man = ebpf_manager(config['nat_iface'], config['enodeb_iface'], gw_ip_str, enabled)
             if enabled:
                 # TODO: For Development purpose dettch and attach latest eBPF code.
                 # Remove this for production deployment
                 bpf_man.detach_ul_ebpf()
+                bpf_man.detach_dl_ebpf()
+
+                bpf_man.attach_ul_ebpf()
                 bpf_man.attach_dl_ebpf()
                 LOG.info("eBPF manager: initilized: enabled: %s", enabled)
             return bpf_man
@@ -203,8 +207,10 @@ class ebpf_manager:
         )
 
         key = self.dl_map.Key(ip_addr)
-        val = self.dl_map.Leaf(self._pack_ip(remote_ipv4),
-                               socket.htonl(tunnel_id))
+        val = self.dl_map.Leaf(
+            self._pack_ip(remote_ipv4),
+            socket.htonl(tunnel_id),
+        )
         self.dl_map[key] = val
 
     """Delete uplink session entry
@@ -307,6 +313,7 @@ class ebpf_manager:
     def _unpack_mac_addr(self, mac_addr: ctypes.c_ubyte):
         mac_bytes = bytearray(mac_addr)
         return mac_bytes.hex(":")
+
 
 # for debugging
 if __name__ == "__main__":
