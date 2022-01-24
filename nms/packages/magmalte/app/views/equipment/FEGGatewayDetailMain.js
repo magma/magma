@@ -144,7 +144,7 @@ function FEGGatewayOverview() {
               <CardTitleRow icon={MyLocationIcon} label="Events" />
               <EventsTable
                 eventStream={EVENT_STREAM.GATEWAY}
-                hardwareId={gwInfo.device.hardware_id}
+                hardwareId={gwInfo.device?.hardware_id}
                 sz="sm"
               />
             </Grid>
