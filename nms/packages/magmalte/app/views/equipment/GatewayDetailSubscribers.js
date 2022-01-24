@@ -45,8 +45,9 @@ export default function GatewayDetailSubscribers(props: GatewayDetailType) {
     refresh: props.refresh,
   });
   const subscriberCtx = useContext(SubscriberContext);
-  const gwSubscriberMap =
-    subscriberCtx.gwSubscriberMap[props.gwInfo?.device?.hardware_id] || [];
+  const gwSubscriberMap = props.gwInfo?.device
+    ? subscriberCtx.gwSubscriberMap[props.gwInfo?.device?.hardware_id]
+    : [];
 
   const subscriberRows: Array<SubscriberRowType> = gwSubscriberMap.map(
     (serialNum: string) => {

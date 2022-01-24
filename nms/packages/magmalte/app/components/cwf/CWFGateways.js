@@ -315,7 +315,7 @@ function GatewayRow(props: {
           </TableCell>
         </Tooltip>
 
-        <TableCell>{gateway.device.hardware_id}</TableCell>
+        <TableCell>{gateway.device?.hardware_id}</TableCell>
         <TableCell>
           <IconButton
             color="primary"
