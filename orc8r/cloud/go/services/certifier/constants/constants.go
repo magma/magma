@@ -11,10 +11,10 @@ const (
 	PolicyType = "policy"
 )
 
-type ResourceType int
+type ResourceType string
 
 const (
-	Path ResourceType = iota
-	NetworkID
-	TenantID
+	Path      ResourceType = "path"
+	NetworkID ResourceType = "network_id"
+	TenantID  ResourceType = "tenant_id"
 )

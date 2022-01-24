@@ -734,18 +734,21 @@ func (srv *CertifierServer) getPolicyDecisionFromToken(ctx context.Context, toke
 	policyList.Policies = append(policyList.Policies, tenantNetworkResource...)
 
 	for _, policy := range policyList.Policies {
-		actionEffect := isActionAuthorized(req, policy)
-		resourceEffect := isResourceAuthorized(req, policy)
+		actionEffect := getActionAuthorization(req, policy)
+		resourceEffect := getResourceAuthorization(req, policy)
 		// The effects from both action and resource should match
 		// for the effect of the policyList to apply to the request.
-		if actionEffect != certprotos.Effect_UNKNOWN &&
-			resourceEffect != certprotos.Effect_UNKNOWN &&
-			actionEffect == resourceEffect {
+		notBothUnknown := actionEffect != certprotos.Effect_UNKNOWN && resourceEffect != certprotos.Effect_UNKNOWN
+		equal := actionEffect == resourceEffect
+		if notBothUnknown && equal {
 			effect = actionEffect
 		}
 
-		if actionEffect == certprotos.Effect_DENY &&
-			resourceEffect == certprotos.Effect_DENY {
+		// actionEffect only checks the read/write permission of a requested resource,
+		// but it may not apply to that specific resource (resourceEffect ensures
+		// that the policy applies to that resource), thus both action and
+		// resource effect need deny in order for the final effect to be DENY.
+		if actionEffect == certprotos.Effect_DENY && resourceEffect == certprotos.Effect_DENY {
 			return certprotos.Effect_DENY, nil
 		}
 	}
@@ -821,11 +824,11 @@ func doResourceTypesMatch(req *certprotos.Request, policy *certprotos.Policy) bo
 	return req.GetResourceId() == nil || policyType == constants.Path || reqType == policyType
 }
 
-// isActionAuthorized checks if the requested action to read/write is authorized by the policy
+// getActionAuthorization checks if the requested action to read/write is authorized by the policy
 // Returns the effect if the policy allows/denies write access regardless of requested action,
 // or if policy allows/denies read access and the requested action is read
 // Otherwise, returns an unknown effect, which implies that the policy does not apply to this requested resource
-func isActionAuthorized(req *certprotos.Request, policy *certprotos.Policy) certprotos.Effect {
+func getActionAuthorization(req *certprotos.Request, policy *certprotos.Policy) certprotos.Effect {
 	// The policy does not handle this case, so return UNKNOWN.
 	if !doResourceTypesMatch(req, policy) {
 		return certprotos.Effect_UNKNOWN
@@ -839,11 +842,11 @@ func isActionAuthorized(req *certprotos.Request, policy *certprotos.Policy) cert
 	return certprotos.Effect_UNKNOWN
 }
 
-// isResourceAuthorized checks if the requested resource (either a path, network, or tenant) is authorized by the policy
+// getResourceAuthorization checks if the requested resource (either a path, network, or tenant) is authorized by the policy
 // Returns the effect if the policy's path matches the requested path and if the policy's tenant/network ID matches that
 // of the requested when applicable
 // Otherwise, returns an unknown effect, which implies that the policy does not apply to this requested resource
-func isResourceAuthorized(req *certprotos.Request, policy *certprotos.Policy) certprotos.Effect {
+func getResourceAuthorization(req *certprotos.Request, policy *certprotos.Policy) certprotos.Effect {
 	// The policy does not handle this case, so return UNKNOWN.
 	if !doResourceTypesMatch(req, policy) {
 		return certprotos.Effect_UNKNOWN
@@ -863,7 +866,7 @@ func isResourceAuthorized(req *certprotos.Request, policy *certprotos.Policy) ce
 		policyIDs := policy.GetNetwork().Networks
 		for _, policyID := range policyIDs {
 			if finalEffect != certprotos.Effect_DENY && reqID == policyID {
-				finalEffect = policy.Effect
+				return policy.Effect
 			}
 		}
 	}
@@ -873,7 +876,7 @@ func isResourceAuthorized(req *certprotos.Request, policy *certprotos.Policy) ce
 		policyIDs := policy.GetTenant().Tenants
 		for _, policyID := range policyIDs {
 			if finalEffect != certprotos.Effect_DENY && reqID == policyID {
-				finalEffect = policy.Effect
+				return policy.Effect
 			}
 		}
 	}

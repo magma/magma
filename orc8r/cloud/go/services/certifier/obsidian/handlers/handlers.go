@@ -181,18 +181,18 @@ func loginHandler(c echo.Context) error {
 }
 
 func policiesModelToProto(policies *models.Policies) ([]*protos.Policy, error) {
-	resourceList := make([]*protos.Policy, len(*policies))
-	for i, resource := range *policies {
-		resourceProto := &protos.Policy{
-			Effect: matchEffect(resource.Effect),
-			Action: matchAction(resource.Action),
+	policyProtos := make([]*protos.Policy, len(*policies))
+	for i, policyModel := range *policies {
+		policyProto := &protos.Policy{
+			Effect: matchEffect(policyModel.Effect),
+			Action: matchAction(policyModel.Action),
 		}
-		if err := setResource(resource, resourceProto); err != nil {
+		if err := setResource(policyModel, policyProto); err != nil {
 			return nil, err
 		}
-		resourceList[i] = resourceProto
+		policyProtos[i] = policyProto
 	}
-	return resourceList, nil
+	return policyProtos, nil
 }
 
 func convertTenantResourceIDs(ids []string) ([]int64, error) {
@@ -229,18 +229,20 @@ func matchAction(rawAction string) protos.Action {
 	}
 }
 
+// setResource uses the resource value in the policy model and sets the
+// resource based on its type in the policy proto
 func setResource(policyModel *models.Policy, policyProto *protos.Policy) error {
-	tenantIDs, err := convertTenantResourceIDs(policyModel.ResourceIDs)
-	if err != nil {
-		return err
-	}
 	switch policyModel.ResourceType {
 	case models.PolicyResourceTypeNETWORKID:
-		(*policyProto).Resource = &protos.Policy_Network{Network: &protos.NetworkResource{Networks: policyModel.ResourceIDs}}
+		policyProto.Resource = &protos.Policy_Network{Network: &protos.NetworkResource{Networks: policyModel.ResourceIDs}}
 	case models.PolicyResourceTypeTENANTID:
-		(*policyProto).Resource = &protos.Policy_Tenant{Tenant: &protos.TenantResource{Tenants: tenantIDs}}
+		tenantIDs, err := convertTenantResourceIDs(policyModel.ResourceIDs)
+		if err != nil {
+			return err
+		}
+		policyProto.Resource = &protos.Policy_Tenant{Tenant: &protos.TenantResource{Tenants: tenantIDs}}
 	default:
-		(*policyProto).Resource = &protos.Policy_Path{Path: &protos.PathResource{Path: policyModel.Path}}
+		policyProto.Resource = &protos.Policy_Path{Path: &protos.PathResource{Path: policyModel.Path}}
 	}
 	return nil
 }

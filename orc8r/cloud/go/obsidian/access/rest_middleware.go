@@ -142,7 +142,7 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		case constants.TenantID:
 			id, err := strconv.ParseInt(resourceVal, 10, 64)
 			if err != nil {
-				obsidian.MakeHTTPError(err, http.StatusInternalServerError)
+				obsidian.MakeHTTPError(err, http.StatusBadRequest)
 			}
 			getPDReq.Request.ResourceId = &certprotos.Request_TenantId{TenantId: id}
 		}
