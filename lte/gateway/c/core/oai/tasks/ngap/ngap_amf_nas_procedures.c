@@ -565,7 +565,7 @@ status_code_e ngap_generate_downlink_nas_transport(
 /*ngap initial context setup request message to gNB*/
 void ngap_handle_conn_est_cnf(
     ngap_state_t* state,
-    const Ngap_initial_context_setup_request_t* const conn_est_cnf_pP) {
+    Ngap_initial_context_setup_request_t* const conn_est_cnf_pP) {
   /*
    * We received create session response from on N11 interface abstraction.
    * At least one bearer has been established. We can now send ngap initial
@@ -625,7 +625,7 @@ void ngap_handle_conn_est_cnf(
       Ngap_ProcedureCode_id_InitialContextSetup;
   pdu.choice.initiatingMessage.value.present =
       Ngap_InitiatingMessage__value_PR_InitialContextSetupRequest;
-  pdu.choice.initiatingMessage.criticality = Ngap_Criticality_ignore;
+  pdu.choice.initiatingMessage.criticality = Ngap_Criticality_reject;
   out = &pdu.choice.initiatingMessage.value.choice.InitialContextSetupRequest;
 
   /* mandatory */
@@ -813,7 +813,7 @@ void ngap_handle_conn_est_cnf(
 
       ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
-      const pdusession_setup_item_t* pdu_session_item =
+      pdusession_setup_item_t* pdu_session_item =
           &conn_est_cnf_pP->PDU_Session_Resource_Setup_Transfer_List.item[i];
 
       Ngap_PDUSessionResourceSetupItemCxtReq_t* session_context =
@@ -833,7 +833,7 @@ void ngap_handle_conn_est_cnf(
                   1, sizeof(Ngap_PDUSessionResourceSetupRequestTransfer_t));
 
       // filling PDU TX Structure
-      const pdu_session_resource_setup_request_transfer_t*
+      pdu_session_resource_setup_request_transfer_t*
           amf_pdu_ses_setup_transfer_req =
               &(pdu_session_item->PDU_Session_Resource_Setup_Request_Transfer);
 
@@ -886,7 +886,7 @@ void ngap_handle_conn_est_cnf(
     ie = CALLOC(1, sizeof(Ngap_InitialContextSetupRequestIEs_t));
 
     ie->id          = Ngap_ProtocolIE_ID_id_UEAggregateMaximumBitRate;
-    ie->criticality = Ngap_Criticality_reject;
+    ie->criticality = Ngap_Criticality_ignore;
     ie->value.present =
         Ngap_InitialContextSetupRequestIEs__value_PR_UEAggregateMaximumBitRate;
 
@@ -908,7 +908,7 @@ void ngap_handle_conn_est_cnf(
     ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(
         1, sizeof(Ngap_InitialContextSetupRequestIEs_t));
     ie->id            = Ngap_ProtocolIE_ID_id_NAS_PDU;
-    ie->criticality   = Ngap_Criticality_reject;
+    ie->criticality   = Ngap_Criticality_ignore;
     ie->value.present = Ngap_InitialContextSetupRequestIEs__value_PR_NAS_PDU;
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
@@ -1021,7 +1021,7 @@ static int get_ue_ref(
 
 /* ngap_build_pdu_session_resource_setup_request_transfer */
 int ngap_fill_pdu_session_resource_setup_request_transfer(
-    const pdu_session_resource_setup_request_transfer_t* session_transfer,
+    pdu_session_resource_setup_request_transfer_t* session_transfer,
     Ngap_PDUSessionResourceSetupRequestTransfer_t* transfer_request) {
   OAILOG_FUNC_IN(LOG_NGAP);
 
@@ -1395,8 +1395,7 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
 
   uint8_t* buffer_p = NULL;
   uint32_t length   = 0;
-  const pdu_session_resource_setup_request_transfer_t*
-      amf_pdu_ses_setup_transfer_req;
+  pdu_session_resource_setup_request_transfer_t* amf_pdu_ses_setup_transfer_req;
 
   /*
    * We have found the UE in the list.
@@ -1539,7 +1538,7 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
   ie = CALLOC(1, sizeof(Ngap_PDUSessionResourceSetupRequestIEs_t));
 
   ie->id          = Ngap_ProtocolIE_ID_id_UEAggregateMaximumBitRate;
-  ie->criticality = Ngap_Criticality_reject;
+  ie->criticality = Ngap_Criticality_ignore;
   ie->value.present =
       Ngap_PDUSessionResourceSetupRequestIEs__value_PR_UEAggregateMaximumBitRate;
 
@@ -1969,4 +1968,5 @@ int ngap_generate_ngap_pdusession_resource_rel_cmd(
       ue_ref->amf_ue_ngap_id);
 
   bdestroy(stream);
-  OAILOG
+  OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
+}
