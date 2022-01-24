@@ -203,7 +203,7 @@ function GatewayInfoConfig({gwInfo}: {gwInfo: lte_gateway}) {
     [
       {
         category: 'Hardware UUID',
-        value: gwInfo.device.hardware_id,
+        value: gwInfo.device?.hardware_id || '-',
       },
     ],
     [

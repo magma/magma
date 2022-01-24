@@ -564,8 +564,8 @@ status_code_e sgw_s8_handle_create_session_response(
 static void insert_sgw_cp_and_up_teid_to_directoryd(
     sgw_state_t* sgw_state, imsi64_t imsi64, uint8_t teid_type) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  char teidString[16]                    = {0};
-  char teidlist[16]                      = {0};
+  char teidString[512]                   = {0};
+  uint32_t teidlist[16]                  = {0};
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1] = {0};
   uint8_t teid_list_idx                  = 0;
   IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);

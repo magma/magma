@@ -360,11 +360,11 @@ export function ConfigEdit(props: Props) {
   });
 
   const [gatewayDevice, SetGatewayDevice] = useState<gateway_device>(
-    props.gateway?.device || DEFAULT_GATEWAY_CONFIG.device,
+    props.gateway?.device || (DEFAULT_GATEWAY_CONFIG.device ?? {}),
   );
 
   const [challengeKey, setChallengeKey] = useState<challenge_key>(
-    props.gateway?.device.key || DEFAULT_GATEWAY_CONFIG.device.key,
+    props.gateway?.device?.key || (DEFAULT_GATEWAY_CONFIG.device?.key ?? {}),
   );
 
   const [gatewayVersion, setGatewayVersion] = useState<VersionType>(
