@@ -82,7 +82,7 @@ TEST_F(NGAPStateConverterTest, NgapStateConversionSuccess) {
       &init_state->amfid2associd, (const hash_key_t) 1,
       reinterpret_cast<void**>(&assoc_id));
 
-  oai::S1apState state_proto;
+  oai::NgapState state_proto;
   NgapStateConverter::state_to_proto(init_state, &state_proto);
   NgapStateConverter::proto_to_state(state_proto, final_state);
 

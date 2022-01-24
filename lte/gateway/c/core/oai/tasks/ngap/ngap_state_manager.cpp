@@ -32,6 +32,8 @@ constexpr char NGAP_IMSI_MAP_TABLE_NAME[]  = "ngap_imsi_map";
 
 using magma::lte::oai::Ngap_UeDescription;
 using magma::lte::oai::NgapImsiMap;
+using magma::lte::oai::NgapState;
+
 namespace magma5g {
 
 NgapStateManager::NgapStateManager() : max_ues_(0), max_gnbs_(0) {}
@@ -103,7 +105,7 @@ status_code_e NgapStateManager::read_state_from_db() {
 #else
   /* Data store is a map defined in NGAPClientServicer.In this case call is NOT
    * made to Redis db */
-  S1apState state_proto = S1apState();
+  NgapState state_proto = NgapState();
   std::string proto_str;
   // Reads from the map_ngap_state_proto_str Map
   if (NGAPClientServicer::getInstance().map_ngap_state_proto_str.get(
@@ -127,7 +129,7 @@ void NgapStateManager::write_state_to_db() {
 #else
   /* Data store is a map defined in NGAPClientServicer. In this case call is NOT
    * made to Redis db */
-  S1apState state_proto = S1apState();
+  NgapState state_proto = NgapState();
   NgapStateConverter::state_to_proto(state_cache_p, &state_proto);
   std::string proto_str;
   redis_client->serialize(state_proto, proto_str);
@@ -211,7 +213,7 @@ status_code_e NgapStateManager::read_ue_state_from_db() {
   auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
 
   for (const auto& key : keys) {
-    UeDescription ue_proto = UeDescription();
+    Ngap_UeDescription ue_proto = Ngap_UeDescription();
     m5g_ue_description_t* ue_context =
         (m5g_ue_description_t*) calloc(1, sizeof(m5g_ue_description_t));
     if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
@@ -229,7 +231,7 @@ status_code_e NgapStateManager::read_ue_state_from_db() {
    * made to Redis db */
   for (const auto& kv :
        NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.umap) {
-    UeDescription ue_proto = UeDescription();
+    Ngap_UeDescription ue_proto = Ngap_UeDescription();
     std::string ue_proto_str;
     m5g_ue_description_t* ue_context = reinterpret_cast<m5g_ue_description_t*>(
         calloc(1, sizeof(m5g_ue_description_t)));
@@ -266,7 +268,7 @@ void NgapStateManager::write_ue_state_to_db(
   /* Data store is a map defined in NGAPClientServicer. In this case call is NOT
    * made to Redis db */
   std::string proto_ue_str;
-  UeDescription ue_proto = UeDescription();
+  Ngap_UeDescription ue_proto = Ngap_UeDescription();
   NgapStateConverter::ue_to_proto(ue_context, &ue_proto);
   redis_client->serialize(ue_proto, proto_ue_str);
   std::size_t new_hash = std::hash<std::string>{}(proto_ue_str);
