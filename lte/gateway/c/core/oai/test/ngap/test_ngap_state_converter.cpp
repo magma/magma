@@ -78,7 +78,7 @@ TEST_F(NGAPStateConverterTest, NgapStateConversionSuccess) {
       &init_state->amfid2associd, (const hash_key_t) 1,
       reinterpret_cast<void**>(&assoc_id));
 
-  oai::S1apState state_proto;
+  oai::NgapState state_proto;
   NgapStateConverter::state_to_proto(init_state, &state_proto);
   NgapStateConverter::proto_to_state(state_proto, final_state);
 
@@ -156,7 +156,7 @@ TEST_F(NGAPStateConverterTest, NgapStateConversionUeContext) {
   ue->ngap_ue_context_rel_timer.id   = 1;
   ue->ngap_ue_context_rel_timer.msec = 1000;
 
-  oai::UeDescription ue_proto;
+  oai::Ngap_UeDescription ue_proto;
   NgapStateConverter::ue_to_proto(ue, &ue_proto);
   NgapStateConverter::proto_to_ue(ue_proto, final_ue);
 
@@ -209,7 +209,7 @@ TEST_F(NGAPStateConverterTest, NgapStateConversionNgapImsimap) {
           ngap_imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) ue_id, imsi64),
       HASH_TABLE_SAME_KEY_VALUE_EXISTS);
 
-  oai::S1apImsiMap ngap_imsi_proto;
+  oai::NgapImsiMap ngap_imsi_proto;
   NgapStateConverter::ngap_imsi_map_to_proto(ngap_imsi_map, &ngap_imsi_proto);
   NgapStateConverter::proto_to_ngap_imsi_map(
       ngap_imsi_proto, final_ngap_imsi_map);
