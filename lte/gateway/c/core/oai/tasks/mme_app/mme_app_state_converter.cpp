@@ -714,6 +714,14 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   // Initialize timers to INVALID IDs
   state_ue_mm_context->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
   state_ue_mm_context->implicit_detach_timer.id     = MME_APP_TIMER_INACTIVE_ID;
+  state_ue_mm_context->mobile_reachability_timer.msec =
+      ((mme_config.nas_config.t3412_min) +
+       MME_APP_DELTA_T3412_REACHABILITY_TIMER) *
+      60000;
+  state_ue_mm_context->implicit_detach_timer.msec =
+      (state_ue_mm_context->mobile_reachability_timer.msec) +
+      MME_APP_DELTA_REACHABILITY_IMPLICIT_DETACH_TIMER * 60000;
+
   state_ue_mm_context->initial_context_setup_rsp_timer =
       (nas_timer_t){MME_APP_TIMER_INACTIVE_ID, mme_config.nas_config.tics_msec};
   state_ue_mm_context->paging_response_timer = (nas_timer_t){
