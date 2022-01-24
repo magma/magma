@@ -215,6 +215,48 @@ void fill_modify_bearer_request(
   mb_req_p->bearer_contexts_to_be_removed.bearer_contexts[0].eps_bearer_id = 8;
 }
 
+bool is_num_s1_bearers_valid(
+    sgw_state_t* sgw_state, imsi64_t imsi64, int expected_num_active_bearers) {
+  spgw_ue_context_t* ue_context_p = NULL;
+
+  hashtable_ts_get(
+      sgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
+      (void**) &ue_context_p);
+
+  if (!ue_context_p) {
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
+  }
+  sgw_s11_teid_t* s11_teid_p = NULL;
+  int num_active_bearers     = 0;
+  int idx                    = 0;
+  LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
+    if (!s11_teid_p) {
+      OAILOG_ERROR_UE(
+          LOG_SGW_S8, imsi64,
+          "Failed to find s11 teid entry within ue context's s11 teid list");
+      OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
+    }
+    sgw_eps_bearer_context_information_t* sgw_session_ctxt_p =
+        sgw_get_sgw_eps_bearer_context(s11_teid_p->sgw_s11_teid);
+    if (sgw_session_ctxt_p) {
+      for (int idx = 0; idx < BEARERS_PER_UE; idx++) {
+        sgw_eps_bearer_ctxt_t* eps_bearer_ctxt =
+            sgw_session_ctxt_p->pdn_connection.sgw_eps_bearers_array[idx];
+        if ((eps_bearer_ctxt) &&
+            (eps_bearer_ctxt->enb_ip_address_S1u.address.ipv4_address.s_addr !=
+             0)) {
+          num_active_bearers++;
+        }
+      }
+    }
+  }
+
+  if (num_active_bearers == expected_num_active_bearers) {
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNok);
+  }
+  OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
+}
+
 sgw_state_t* SgwS8ConfigAndCreateMock::create_and_get_contexts_on_cs_req(
     uint32_t* temporary_create_session_procedure_id,
     sgw_eps_bearer_context_information_t** sgw_pdn_session) {

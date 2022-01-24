@@ -405,3 +405,55 @@ TEST_F(SgwS8ConfigAndCreateMock, update_s1u_bearer_info_on_mbr) {
       mbr_req.bearer_contexts_to_be_modified.bearer_contexts[0]
           .s1_eNB_fteid.teid);
 }
+
+// TC validates the handling of release access bearer req
+TEST_F(SgwS8ConfigAndCreateMock, validate_release_access_bearer_proc) {
+  sgw_state_t* sgw_state = get_sgw_state(false);
+  std::condition_variable cv;
+  std::mutex mx;
+  std::unique_lock<std::mutex> lock(mx);
+
+  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  uint32_t temporary_create_session_procedure_id        = 0;
+  sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
+      sgw_state, &temporary_create_session_procedure_id);
+
+  itti_s11_create_session_request_t session_req = {0};
+  fill_itti_csreq(&session_req, default_eps_bearer_id);
+
+  sgw_update_bearer_context_information_on_csreq(
+      sgw_state, sgw_pdn_session, &session_req, imsi64);
+
+  s8_create_session_response_t csresp = {0};
+  fill_itti_csrsp(
+      &csresp, temporary_create_session_procedure_id, sgw_s8_up_teid++);
+
+  // Validates that create session procedure is handled correctly
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_create_sess_resp())
+      .Times(1)
+      .WillOnce(ReturnFromAsyncTask(&cv));
+  EXPECT_EQ(
+      sgw_s8_handle_create_session_response(sgw_state, &csresp, imsi64),
+      RETURNok);
+  cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
+
+  // Validates that modify bearer req is handled
+  itti_s11_modify_bearer_request_t mbr_req = {0};
+  fill_modify_bearer_request(
+      &mbr_req, csresp.context_teid, csresp.eps_bearer_id);
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_modify_bearer_rsp())
+      .Times(1)
+      .WillOnce(ReturnFromAsyncTask(&cv));
+  sgw_s8_handle_modify_bearer_request(sgw_state, &mbr_req, imsi64);
+  cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
+
+  itti_s11_release_access_bearers_request_t rab_req = {0};
+  rab_req.local_teid                                = csresp.context_teid;
+
+  EXPECT_CALL(*mme_app_handler, mme_app_handle_release_access_bearers_resp())
+      .Times(1);
+  sgw_s8_handle_release_access_bearers_request(sgw_state, &rab_req, imsi64);
+
+  // verify that eNB information has been cleared
+  ASSERT_EQ((is_num_s1_bearers_valid(sgw_state, imsi64, 0)), RETURNok);
+}

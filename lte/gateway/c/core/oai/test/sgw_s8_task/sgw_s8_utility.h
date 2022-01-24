@@ -64,6 +64,9 @@ void fill_delete_session_response(
 void fill_modify_bearer_request(
     itti_s11_modify_bearer_request_t* mb_req_p, uint32_t teid, uint8_t ebi);
 
+bool is_num_s1_bearers_valid(
+    sgw_state_t* sgw_state, imsi64_t imsi64, int expected_num_active_bearers);
+
 ACTION_P(ReturnFromAsyncTask, cv) {
   cv->notify_all();
 }
