@@ -122,10 +122,10 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.sm_session_version = req_common.sm_session_version();
 
   // RatSpecificContextAccess
-  itti_msg.pdu_session_id = req_m5g.pdu_session_id();
-  itti_msg.pdu_session_type = (pdu_session_type_t)req_m5g.pdu_session_type();
-  itti_msg.selected_ssc_mode = (ssc_mode_t)req_m5g.selected_ssc_mode();
-  itti_msg.m5gsm_cause = (m5g_sm_cause_t)req_m5g.m5gsm_cause();
+  itti_msg.pdu_session_id    = req_m5g.pdu_session_id();
+  itti_msg.pdu_session_type  = (pdu_session_type_t) req_m5g.pdu_session_type();
+  itti_msg.selected_ssc_mode = (ssc_mode_t) req_m5g.selected_ssc_mode();
+  itti_msg.m5gsm_cause       = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
 
   itti_msg.session_ambr.uplink_unit_type = req_m5g.subscribed_qos().br_unit();
   itti_msg.session_ambr.uplink_units = req_m5g.subscribed_qos().apn_ambr_ul();
@@ -133,87 +133,24 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.session_ambr.downlink_unit_type = req_m5g.subscribed_qos().br_unit();
   itti_msg.session_ambr.downlink_units = req_m5g.subscribed_qos().apn_ambr_dl();
 
-  itti_msg.qos_flow_list.maxNumOfQosFlows = req_m5g.qospolicy_size();
-  for (int i = 0; i < req_m5g.qospolicy_size(); i++) {
-    ul_tft         = &itti_msg.qos_flow_list.item[i].qos_flow_req_item.ul_tft;
-    auto& qos_rule = req_m5g.qospolicy(i);
-    itti_msg.qos_flow_list.item[i].qos_flow_req_item.qos_flow_identifier =
-        qos_rule.qos().qos().qci();
+  // authorized qos profile
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_identifier =
+      req_m5g.subscribed_qos().qos_class_id();
 
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
-        .non_dynamic_5QI_desc.fiveQI = qos_rule.qos().qos().qci();  // enum
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
-        .priority_level =
-        qos_rule.qos().qos().arp().priority_level();  // uint32
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
-        .pre_emption_cap = (pre_emption_capability) qos_rule.qos()
-                               .qos()
-                               .arp()
-                               .pre_capability();  // enum
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
-        .pre_emption_vul = (pre_emption_vulnerability) qos_rule.qos()
-                               .qos()
-                               .arp()
-                               .pre_vulnerability();  // enum
-    itti_msg.qos_flow_list.item[i].qos_flow_req_item.qos_flow_action =
-        (qos_flow_action_t) qos_rule.policy_action();  // enum
-    itti_msg.qos_flow_list.item[i].qos_flow_req_item.qos_flow_version =
-        qos_rule.version();  // uint32
-    strcpy(
-        reinterpret_cast<char*>(
-            itti_msg.qos_flow_list.item[i].qos_flow_req_item.rule_id),
-        qos_rule.qos().id().c_str());
-
-    // flow descriptor
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_descriptor.qos_flow_identifier =
-        qos_rule.qos().qos().qci();
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_descriptor.fiveQi =
-        qos_rule.qos().qos().qci();
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_descriptor.mbr_dl =
-        qos_rule.qos().qos().max_req_bw_dl();
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_descriptor.mbr_ul =
-        qos_rule.qos().qos().max_req_bw_ul();
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_descriptor.gbr_dl =
-        qos_rule.qos().qos().gbr_dl();
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_descriptor.mbr_ul =
-        qos_rule.qos().qos().gbr_ul();
-    for (const auto& flow : qos_rule.qos().flow_list()) {
-      if (flow.action() == FlowDescription::DENY) {
-        continue;
-      }
-
-      if ((flow.match().direction() == FlowMatch::UPLINK) &&
-          (ul_count_packetfilters <
-           TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX)) {
-        ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
-            .direction = TRAFFIC_FLOW_TEMPLATE_UPLINK_ONLY;
-        ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
-            .eval_precedence = qos_rule.qos().priority();
-        if (!fillUpPacketFilterContents(
-                &ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
-                     .packetfiltercontents,
-                &flow.match())) {
-          OAILOG_ERROR(
-              LOG_UTIL,
-              "The uplink packet filter contents are not formatted correctly."
-              "Cancelling dedicated bearer request. \n");
-          return Status::CANCELLED;
-        }
-        ++ul_count_packetfilters;
-        ul_tft->numberofpacketfilters++;
-      }
-    }
-  }
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+      .qos_characteristic.non_dynamic_5QI_desc.fiveQI =
+      req_m5g.subscribed_qos().qos_class_id();  // enum
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+      .alloc_reten_priority.priority_level =
+      req_m5g.subscribed_qos().priority_level();  // uint32
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+      .alloc_reten_priority.pre_emption_cap =
+      (pre_emption_capability) req_m5g.subscribed_qos()
+          .preemption_capability();  // enum
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+      .alloc_reten_priority.pre_emption_vul =
+      (pre_emption_vulnerability) req_m5g.subscribed_qos()
+          .preemption_vulnerability();  // enum
 
   // get the 4 byte UPF TEID and UPF IP message
   uint32_t nteid = req_m5g.upf_endpoint().teid();

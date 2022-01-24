@@ -272,8 +272,8 @@ typedef struct smf_context_s {
   session_ambr_t selected_ambr;
   teid_upf_gnb_t gtp_tunnel_id;
   paa_t pdu_address;
-  eps_subscribed_qos_profile_t subscribed_qos;
-  ambr_t apn_ambr;
+  ambr_t smf_ctx_ambr;
+  eps_subscribed_qos_profile_t subscribed_qos_profile;
   smf_proc_data_t smf_proc_data;
   struct nas5g_timer_s T3592;  // PDU_SESSION_RELEASE command timer
   struct nas5g_timer_s T3591;  // PDU_SESSION_MODIFICATION command timer

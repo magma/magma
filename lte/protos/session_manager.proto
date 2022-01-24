@@ -930,9 +930,7 @@ message M5GSMSessionContext {
   TeidSet upf_endpoint = 24;
   // Procedure transaction identity
   bytes procedure_trans_identity = 25;
-  AggregatedMaximumBitrate default_ambr = 26;
-  // For Modification policy
-  repeated QosPolicy qos_policy = 27;
+  QosInformationRequest subscribed_qos = 26;
 }
 
 message SetSMSessionContext {
@@ -978,7 +976,7 @@ message M5GSMSessionContextAccess{
     repeated QosRules authorized_qos_rules = 4;
     // TS-24501 - 9.11.4.14 PDU session  Bit Rate imported from subscriberdb.proto
 
-    M5GQosInformationRequest subscribed_qos = 5;
+    QosInformationRequest subscribed_qos = 5;
 
     // TS-24501 - 9.11.4.2
     M5GSMCause M5gsm_cause = 10;
