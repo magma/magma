@@ -401,3 +401,75 @@ message AbortSessionAnswer {
     uint32 result_code = 2;
     string error_message = 3;
 }
+
+// Mock PCF service
+service MockPCF {
+    rpc SetPCFConfigs(PCFConfigs) returns (magma.orc8r.Void) {}
+    rpc CreateAccount(magma.lte.SubscriberID) returns (magma.orc8r.Void) {}
+    rpc SetAccountRules(PolicyDecision) returns (magma.orc8r.Void) {}
+    rpc ClearSubscribers (magma.orc8r.Void) returns (magma.orc8r.Void) {}
+    rpc SmPolicyUpdateNotify(PolicyDecision) returns (UpdateNotificationAnswer) {}
+    rpc SmPolicyTerminate(TerminateNotification) returns (TerminateNotificationAnswer) {}
+
+    rpc SetExpectations(N7Expectations) returns (magma.orc8r.Void) {}
+    rpc AssertExpectations(magma.orc8r.Void) returns (N7ExpectationResult) {}
+}
+
+// Configuration for PCF service
+message PCFConfigs {
+    bool use_mock_driver = 1;
+}
+
+// Policy Decision that will be sent back to SMF during CreateSession, UpdateSession or UpdateNotify
+message PolicyDecision {
+    // IMSI for which the PCF rule is applicable
+    string imsi = 1;
+    // PDU session ID for which the PCF rule is applicable. If this is set to 0, then the rule is applicable for all pdu_session ids.
+    uint32 pdu_session_id = 2;
+    // SmPolicyDecision in json string as defined in TS29512_Npcf_SMPpolicyControl.yaml
+    string policy_decision_json = 3;
+}
+
+message UpdateNotificationAnswer {
+    // HTTP status code received from SMF
+    uint32 status_code = 1;
+    // Partial success report received from SMF in case of error when installing the rules
+    string partial_success_report_json = 2;
+}
+
+// Notification that will be sent to SMF for a PCF intitiated termination
+message TerminateNotification {
+    // Subscriber ID for which the terminate is to be sent
+    string imsi = 1;
+    // PDU session for which terminate is to be sent. If this is 0, Terminate is sent to all pdu sessions of this subscriber
+    uint32 pdu_session_id = 2;
+    // Release cause for Terminate as defined TS29507_Npcf_AMPolicyControl.yaml:PolicyAssociationReleaseCause
+    string release_cause = 4;
+}
+
+message TerminateNotificationAnswer {
+    // HTTP status code received from SMF
+    uint32 status_code = 1;
+}
+
+message N7Expectations {
+    repeated N7Expectation expectations = 1;
+    UnexpectedRequestBehavior unexpected_request_behavior = 2;
+    string default_answer = 3;
+}
+
+message N7Expectation {
+    enum RequestType {
+        CREATE = 0;
+        UPDATE = 1;
+        TERMINATE = 2;
+    }
+    RequestType request_type = 1;
+    string expected_request = 2;
+    string answer = 3;
+}
+
+message N7ExpectationResult {
+    repeated ExpectationResult results = 1;
+    repeated ErrorByIndex errors = 2;
+}

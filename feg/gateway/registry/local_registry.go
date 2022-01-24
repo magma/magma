@@ -49,6 +49,7 @@ const (
 	MOCK_PCRF        = "MOCK_PCRF"
 	MOCK_PCRF2       = "MOCK_PCRF2"
 	MOCK_HSS         = "HSS"
+	MOCK_PCF         = "MOCK_PCF"
 
 	SESSION_MANAGER = "SESSIOND"
 )
@@ -106,6 +107,7 @@ func init() {
 	addLocalService(MOCK_PCRF2, 9206)
 	addLocalService(MOCK_VLR, 9203)
 	addLocalService(MOCK_HSS, 9204)
+	addLocalService(MOCK_PCF, 9207)
 
 	// Overwrite/Add from /etc/magma/service_registry.yml if it exists
 	// moduleName is "" since all feg configs lie in /etc/magma without a module name
