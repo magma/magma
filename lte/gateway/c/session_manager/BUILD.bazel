@@ -495,5 +495,6 @@ cc_binary(
         ":stats_poller",
         "//orc8r/gateway/c/common/config:mconfig_loader",
         "//orc8r/gateway/c/common/sentry:sentry_wrapper",
+        "//orc8r/protos:mconfigs_cpp_proto",
     ],
 )
