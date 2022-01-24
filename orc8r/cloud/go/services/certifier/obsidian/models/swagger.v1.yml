@@ -104,7 +104,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/policy'
+              $ref: '#/definitions/policyList'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
       tags:
@@ -113,11 +113,11 @@ paths:
       summary: Add a token/policy to the user's existing permissions
       parameters:
         - $ref: '#/parameters/username'
-        - name: resources
+        - name: policies
           in: body
           required: true
           schema:
-            $ref: '#/definitions/resources'
+            $ref: '#/definitions/policies'
       responses:
         '201':
           description: Success
@@ -168,20 +168,20 @@ parameters:
     type: string
 
 definitions:
-  policy:
+  policyList:
     description: An object that defines a user's permissions to access resources
     type: object
     required:
       - token
-      - resources
+      - policies
     properties:
       token:
         type: string
-      resources:
-        $ref: '#/definitions/resources'
+      policies:
+        $ref: '#/definitions/policies'
     example:
       token: op_6YHy0uT7DeuWyT3N9nkAOyoeyOI25fletJE69yHGGl4ifjfoq
-      resources:
+      policies:
         - effect: ALLOW
           action: WRITE
           path: '**'
@@ -205,10 +205,10 @@ definitions:
         type: string
       password:
         type: string
-  resources:
+  policies:
     type: array
     items:
-      $ref: '#/definitions/resource'
+      $ref: '#/definitions/policy'
     example:
       - effect: ALLOW
         action: WRITE
@@ -222,10 +222,9 @@ definitions:
         action: WRITE
         resourceIDs: [0, 1, 2]
         resourceType: TENANT_ID
-
-  resource:
+  policy:
     description: |
-      The resource to which the user is either denied or allowed access to read/write.
+      The policy specifies whether a user is  either denied or allowed access to read/write a resource.
       If the resource is of type URI, the path field should be filled in. If the resource is of
       type NETWORK_ID or TENANT_ID, the resourceIDs field should be filled in.
     type: object

@@ -87,53 +87,53 @@ func createTestTenantUser(t *testing.T, username string, password string) (certp
 	return user, token
 }
 
-func createTestUserPolicy(token string) certprotos.Policy {
-	resources := []*certprotos.PolicyResource{
+func createTestUserPolicy(token string) certprotos.PolicyList {
+	policies := []*certprotos.Policy{
 		{
 			Effect:   certprotos.Effect_ALLOW,
 			Action:   certprotos.Action_READ,
-			Resource: &certprotos.PolicyResource_Path{Path: &certprotos.PathResource{Path: "**"}},
+			Resource: &certprotos.Policy_Path{Path: &certprotos.PathResource{Path: "**"}},
 		},
 		{
 			Effect:   certprotos.Effect_DENY,
 			Action:   certprotos.Action_WRITE,
-			Resource: &certprotos.PolicyResource_Network{Network: &certprotos.NetworkResource{Networks: []string{WriteTestNetworkId}}},
+			Resource: &certprotos.Policy_Network{Network: &certprotos.NetworkResource{Networks: []string{WriteTestNetworkId}}},
 		},
 	}
 
-	policy := certprotos.Policy{
-		Token:     token,
-		Resources: resources,
+	policy := certprotos.PolicyList{
+		Token:    token,
+		Policies: policies,
 	}
 	return policy
 }
 
-func createTestAdminPolicy(token string) certprotos.Policy {
-	resources := []*certprotos.PolicyResource{
+func createTestAdminPolicy(token string) certprotos.PolicyList {
+	policies := []*certprotos.Policy{
 		{
 			Effect:   certprotos.Effect_ALLOW,
 			Action:   certprotos.Action_WRITE,
-			Resource: &certprotos.PolicyResource_Path{Path: &certprotos.PathResource{Path: "**"}},
+			Resource: &certprotos.Policy_Path{Path: &certprotos.PathResource{Path: "**"}},
 		},
 	}
-	policy := certprotos.Policy{
-		Token:     token,
-		Resources: resources,
+	policy := certprotos.PolicyList{
+		Token:    token,
+		Policies: policies,
 	}
 	return policy
 }
 
-func createTestTenantUserPolicy(token string) certprotos.Policy {
-	resources := []*certprotos.PolicyResource{
+func createTestTenantUserPolicy(token string) certprotos.PolicyList {
+	policies := []*certprotos.Policy{
 		{
 			Effect:   certprotos.Effect_ALLOW,
 			Action:   certprotos.Action_WRITE,
-			Resource: &certprotos.PolicyResource_Tenant{Tenant: &certprotos.TenantResource{Tenants: []int64{TestTenantId}}},
+			Resource: &certprotos.Policy_Tenant{Tenant: &certprotos.TenantResource{Tenants: []int64{TestTenantId}}},
 		},
 	}
-	policy := certprotos.Policy{
-		Token:     token,
-		Resources: resources,
+	policy := certprotos.PolicyList{
+		Token:    token,
+		Policies: policies,
 	}
 	return policy
 }

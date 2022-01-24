@@ -44,11 +44,11 @@ func addAdminToken(cmd *commands.Command, args []string) int {
 		Username: username,
 		Password: []byte(password),
 	}
-	resources := []*certprotos.PolicyResource{
+	policies := []*certprotos.Policy{
 		{
 			Effect:   certprotos.Effect_ALLOW,
 			Action:   certprotos.Action_WRITE,
-			Resource: &certprotos.PolicyResource_Path{Path: &certprotos.PathResource{Path: "**"}},
+			Resource: &certprotos.Policy_Path{Path: &certprotos.PathResource{Path: "**"}},
 		},
 	}
 	ctx := context.Background()
@@ -58,8 +58,8 @@ func addAdminToken(cmd *commands.Command, args []string) int {
 		panic("Failed to create admin token")
 	}
 	req := &certprotos.AddUserTokenRequest{
-		Username:  username,
-		Resources: resources,
+		Username: username,
+		Policies: policies,
 	}
 	err = certifier.AddUserToken(ctx, req)
 	if err != nil {

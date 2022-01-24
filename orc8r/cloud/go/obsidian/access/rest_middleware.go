@@ -131,20 +131,20 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		getPDReq := certprotos.GetPolicyDecisionRequest{
 			Username: username,
 			Token:    token,
-			Resource: &certprotos.RequestResource{
+			Request: &certprotos.Request{
 				Action:   getRequestAction(req, nil),
 				Resource: req.RequestURI,
 			},
 		}
 		switch resourceType {
 		case constants.NetworkID:
-			getPDReq.Resource.ResourceId = &certprotos.RequestResource_NetworkId{NetworkId: resourceVal}
+			getPDReq.Request.ResourceId = &certprotos.Request_NetworkId{NetworkId: resourceVal}
 		case constants.TenantID:
 			id, err := strconv.ParseInt(resourceVal, 10, 64)
 			if err != nil {
 				obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 			}
-			getPDReq.Resource.ResourceId = &certprotos.RequestResource_TenantId{TenantId: id}
+			getPDReq.Request.ResourceId = &certprotos.Request_TenantId{TenantId: id}
 		}
 
 		pd, err := certifier.GetPolicyDecision(req.Context(), &getPDReq)

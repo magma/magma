@@ -474,9 +474,9 @@ func (srv *CertifierServer) AddUserToken(ctx context.Context, req *certprotos.Ad
 		return nil, status.Errorf(codes.Internal, "error putting user: %v", err)
 	}
 
-	policy := &certprotos.Policy{
-		Token:     token,
-		Resources: req.Resources,
+	policy := &certprotos.PolicyList{
+		Token:    token,
+		Policies: req.Policies,
 	}
 	err = srv.store.PutPolicy(token, policy)
 	if err != nil {
@@ -524,7 +524,7 @@ func (srv *CertifierServer) Login(ctx context.Context, req *certprotos.LoginRequ
 	if err != nil {
 		return nil, err
 	}
-	return &certprotos.LoginResponse{Policies: listTokensRes.Policies}, nil
+	return &certprotos.LoginResponse{PolicyLists: listTokensRes.PolicyLists}, nil
 }
 
 func (srv *CertifierServer) deleteTokenFromUser(tokenList *certprotos.TokenList, reqToken string) (*certprotos.TokenList, error) {
@@ -675,7 +675,7 @@ func (srv *CertifierServer) getPolicyFromTokenMany(tokens *certprotos.TokenList)
 	if tokens == nil {
 		return nil, nil
 	}
-	ret := make([]*certprotos.Policy, len(tokens.Tokens))
+	ret := make([]*certprotos.PolicyList, len(tokens.Tokens))
 	for i, token := range tokens.Tokens {
 		policy, err := srv.getPolicyFromToken(token)
 		if err != nil {
@@ -683,10 +683,10 @@ func (srv *CertifierServer) getPolicyFromTokenMany(tokens *certprotos.TokenList)
 		}
 		ret[i] = policy
 	}
-	return &certprotos.ListUserTokensResponse{Policies: ret}, nil
+	return &certprotos.ListUserTokensResponse{PolicyLists: ret}, nil
 }
 
-func (srv *CertifierServer) getPolicyFromToken(token string) (*certprotos.Policy, error) {
+func (srv *CertifierServer) getPolicyFromToken(token string) (*certprotos.PolicyList, error) {
 	policy, err := srv.store.GetPolicy(token)
 	if err != nil {
 		return nil, err
@@ -695,7 +695,7 @@ func (srv *CertifierServer) getPolicyFromToken(token string) (*certprotos.Policy
 }
 
 func (srv *CertifierServer) getPolicyDecisionFromTokenMany(ctx context.Context, tokens *certprotos.TokenList, getPDReq *certprotos.GetPolicyDecisionRequest) (*certprotos.GetPolicyDecisionResponse, error) {
-	resource := getPDReq.Resource
+	resource := getPDReq.Request
 
 	finalEffect := certprotos.Effect_DENY
 	for _, t := range tokens.Tokens {
@@ -718,26 +718,26 @@ func (srv *CertifierServer) getPolicyDecisionFromTokenMany(ctx context.Context, 
 	return &certprotos.GetPolicyDecisionResponse{Effect: finalEffect}, nil
 }
 
-func (srv *CertifierServer) getPolicyDecisionFromToken(ctx context.Context, token string, reqResource *certprotos.RequestResource) (certprotos.Effect, error) {
-	policy, err := srv.store.GetPolicy(token)
+func (srv *CertifierServer) getPolicyDecisionFromToken(ctx context.Context, token string, req *certprotos.Request) (certprotos.Effect, error) {
+	policyList, err := srv.store.GetPolicy(token)
 	if err != nil {
-		return certprotos.Effect_DENY, status.Errorf(codes.Internal, "failed to get policy from db %v", err)
+		return certprotos.Effect_DENY, status.Errorf(codes.Internal, "failed to get policyList from db %v", err)
 	}
 	effect := certprotos.Effect_UNKNOWN
 
 	// Networks are registered with tenants, hence any tenant scoped policies
 	// have additional policies for their networks.
-	tenantNetworkResource, err := getTenantPolicyNetworkResourceMany(ctx, policy)
+	tenantNetworkResource, err := getTenantPolicyNetworkResourceMany(ctx, policyList)
 	if err != nil {
 		return effect, nil
 	}
-	policy.Resources = append(policy.Resources, tenantNetworkResource...)
+	policyList.Policies = append(policyList.Policies, tenantNetworkResource...)
 
-	for _, policyResource := range policy.Resources {
-		actionEffect := isActionAuthorized(reqResource, policyResource)
-		resourceEffect := isResourceAuthorized(reqResource, policyResource)
+	for _, policy := range policyList.Policies {
+		actionEffect := isActionAuthorized(req, policy)
+		resourceEffect := isResourceAuthorized(req, policy)
 		// The effects from both action and resource should match
-		// for the effect of the policy to apply to the request.
+		// for the effect of the policyList to apply to the request.
 		if actionEffect != certprotos.Effect_UNKNOWN &&
 			resourceEffect != certprotos.Effect_UNKNOWN &&
 			actionEffect == resourceEffect {
@@ -754,18 +754,18 @@ func (srv *CertifierServer) getPolicyDecisionFromToken(ctx context.Context, toke
 }
 
 // getTenantPolicyNetworkResourceMany builds a set of network policies for each tenant policy
-func getTenantPolicyNetworkResourceMany(ctx context.Context, policy *certprotos.Policy) ([]*certprotos.PolicyResource, error) {
-	var networkResources []*certprotos.PolicyResource
-	for _, policyResource := range policy.Resources {
-		if t := policyResource.GetTenant(); t != nil {
+func getTenantPolicyNetworkResourceMany(ctx context.Context, policyList *certprotos.PolicyList) ([]*certprotos.Policy, error) {
+	var networkResources []*certprotos.Policy
+	for _, policy := range policyList.Policies {
+		if t := policy.GetTenant(); t != nil {
 			networks, err := getTenantPolicyNetworkResource(ctx, t)
 			if err != nil {
 				return nil, err
 			}
-			resource := &certprotos.PolicyResource{
-				Effect:   policyResource.Effect,
-				Action:   policyResource.Action,
-				Resource: &certprotos.PolicyResource_Network{Network: &certprotos.NetworkResource{Networks: networks}},
+			resource := &certprotos.Policy{
+				Effect:   policy.Effect,
+				Action:   policy.Action,
+				Resource: &certprotos.Policy_Network{Network: &certprotos.NetworkResource{Networks: networks}},
 			}
 			networkResources = append(networkResources, resource)
 		}
@@ -787,52 +787,54 @@ func getTenantPolicyNetworkResource(ctx context.Context, t *certprotos.TenantRes
 	return networks, nil
 }
 
-func getRequestResourceType(reqResource *certprotos.RequestResource) constants.ResourceType {
-	reqResourceType := constants.Path
-	switch reqResource.ResourceId.(type) {
-	case *certprotos.RequestResource_NetworkId:
-		reqResourceType = constants.NetworkID
-	case *certprotos.RequestResource_TenantId:
-		reqResourceType = constants.TenantID
+func getRequestType(req *certprotos.Request) constants.ResourceType {
+	reqType := constants.Path
+	switch req.ResourceId.(type) {
+	case *certprotos.Request_NetworkId:
+		reqType = constants.NetworkID
+	case *certprotos.Request_TenantId:
+		reqType = constants.TenantID
 	}
-	return reqResourceType
+	return reqType
 }
 
-func getPolicyResourceType(policyResource *certprotos.PolicyResource) constants.ResourceType {
-	policyResourceType := constants.Path
-	switch policyResource.Resource.(type) {
-	case *certprotos.PolicyResource_Network:
-		policyResourceType = constants.NetworkID
-	case *certprotos.PolicyResource_Tenant:
-		policyResourceType = constants.TenantID
+func getPolicyType(policy *certprotos.Policy) constants.ResourceType {
+	policyType := constants.Path
+	switch policy.Resource.(type) {
+	case *certprotos.Policy_Network:
+		policyType = constants.NetworkID
+	case *certprotos.Policy_Tenant:
+		policyType = constants.TenantID
 	}
-	return policyResourceType
+	return policyType
 }
 
 // doResourceTypesMatch checks if the policy type applies to the requested type
 // for network and tenant resource types.
+// Every request has a path but not necessarily network/tenant ids, so path policy
+// types are always applied to every request, and they are exempted from being matched by type.
 // Returns true if the resource type is either network or tenant and the resource types match
 // Returns false otherwise
-func doResourceTypesMatch(reqResource *certprotos.RequestResource, policyResource *certprotos.PolicyResource) bool {
-	reqResourceType := getRequestResourceType(reqResource)
-	policyResourceType := getPolicyResourceType(policyResource)
-	return reqResource.GetResourceId() == nil || policyResourceType == constants.Path || reqResourceType == policyResourceType
+func doResourceTypesMatch(req *certprotos.Request, policy *certprotos.Policy) bool {
+	reqType := getRequestType(req)
+	policyType := getPolicyType(policy)
+	return req.GetResourceId() == nil || policyType == constants.Path || reqType == policyType
 }
 
 // isActionAuthorized checks if the requested action to read/write is authorized by the policy
 // Returns the effect if the policy allows/denies write access regardless of requested action,
 // or if policy allows/denies read access and the requested action is read
 // Otherwise, returns an unknown effect, which implies that the policy does not apply to this requested resource
-func isActionAuthorized(reqResource *certprotos.RequestResource, policyResource *certprotos.PolicyResource) certprotos.Effect {
+func isActionAuthorized(req *certprotos.Request, policy *certprotos.Policy) certprotos.Effect {
 	// The policy does not handle this case, so return UNKNOWN.
-	if !doResourceTypesMatch(reqResource, policyResource) {
+	if !doResourceTypesMatch(req, policy) {
 		return certprotos.Effect_UNKNOWN
 	}
-	if policyResource.Action == certprotos.Action_WRITE {
-		return policyResource.Effect
+	if policy.Action == certprotos.Action_WRITE {
+		return policy.Effect
 	}
-	if policyResource.Action == certprotos.Action_READ && reqResource.Action == certprotos.Action_READ {
-		return policyResource.Effect
+	if policy.Action == certprotos.Action_READ && req.Action == certprotos.Action_READ {
+		return policy.Effect
 	}
 	return certprotos.Effect_UNKNOWN
 }
@@ -841,37 +843,37 @@ func isActionAuthorized(reqResource *certprotos.RequestResource, policyResource 
 // Returns the effect if the policy's path matches the requested path and if the policy's tenant/network ID matches that
 // of the requested when applicable
 // Otherwise, returns an unknown effect, which implies that the policy does not apply to this requested resource
-func isResourceAuthorized(reqResource *certprotos.RequestResource, policyResource *certprotos.PolicyResource) certprotos.Effect {
+func isResourceAuthorized(req *certprotos.Request, policy *certprotos.Policy) certprotos.Effect {
 	// The policy does not handle this case, so return UNKNOWN.
-	if !doResourceTypesMatch(reqResource, policyResource) {
+	if !doResourceTypesMatch(req, policy) {
 		return certprotos.Effect_UNKNOWN
 	}
 
 	finalEffect := certprotos.Effect_UNKNOWN
-	if path := policyResource.GetPath(); path != nil {
-		if ok, _ := doublestar.Match(path.Path, reqResource.Resource); ok {
-			finalEffect = policyResource.Effect
+	if path := policy.GetPath(); path != nil {
+		if ok, _ := doublestar.Match(path.Path, req.Resource); ok {
+			finalEffect = policy.Effect
 		}
 	}
 
-	reqResourceType := getRequestResourceType(reqResource)
-	policyResourceType := getPolicyResourceType(policyResource)
-	if reqResourceType == constants.NetworkID && policyResourceType == constants.NetworkID {
-		reqID := reqResource.GetNetworkId()
-		policyIDs := policyResource.GetNetwork().Networks
+	reqType := getRequestType(req)
+	policyType := getPolicyType(policy)
+	if reqType == constants.NetworkID && policyType == constants.NetworkID {
+		reqID := req.GetNetworkId()
+		policyIDs := policy.GetNetwork().Networks
 		for _, policyID := range policyIDs {
 			if finalEffect != certprotos.Effect_DENY && reqID == policyID {
-				finalEffect = policyResource.Effect
+				finalEffect = policy.Effect
 			}
 		}
 	}
 
-	if reqResourceType == constants.TenantID && policyResourceType == constants.TenantID {
-		reqID := reqResource.GetTenantId()
-		policyIDs := policyResource.GetTenant().Tenants
+	if reqType == constants.TenantID && policyType == constants.TenantID {
+		reqID := req.GetTenantId()
+		policyIDs := policy.GetTenant().Tenants
 		for _, policyID := range policyIDs {
 			if finalEffect != certprotos.Effect_DENY && reqID == policyID {
-				finalEffect = policyResource.Effect
+				finalEffect = policy.Effect
 			}
 		}
 	}

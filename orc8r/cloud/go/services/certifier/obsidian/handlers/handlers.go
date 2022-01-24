@@ -128,21 +128,21 @@ func getUserTokensHandler(c echo.Context) error {
 func addUserTokenHandler(c echo.Context) error {
 	username := c.Param("username")
 
-	resources := &models.Resources{}
-	if err := c.Bind(resources); err != nil {
+	policies := &models.Policies{}
+	if err := c.Bind(policies); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	if err := resources.Validate(strfmt.Default); err != nil {
+	if err := policies.Validate(strfmt.Default); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	resourceList, err := resourcesModelToProto(resources)
+	policiesProto, err := policiesModelToProto(policies)
 	if err != nil {
 		return err
 	}
 	req := &protos.AddUserTokenRequest{
-		Username:  username,
-		Resources: resourceList,
+		Username: username,
+		Policies: policiesProto,
 	}
 	err = certifier.AddUserToken(c.Request().Context(), req)
 	return err
@@ -177,13 +177,13 @@ func loginHandler(c echo.Context) error {
 	if err != nil {
 		return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, res.Policies)
+	return c.JSON(http.StatusOK, res.PolicyLists)
 }
 
-func resourcesModelToProto(resources *models.Resources) ([]*protos.PolicyResource, error) {
-	resourceList := make([]*protos.PolicyResource, len(*resources))
-	for i, resource := range *resources {
-		resourceProto := &protos.PolicyResource{
+func policiesModelToProto(policies *models.Policies) ([]*protos.Policy, error) {
+	resourceList := make([]*protos.Policy, len(*policies))
+	for i, resource := range *policies {
+		resourceProto := &protos.Policy{
 			Effect: matchEffect(resource.Effect),
 			Action: matchAction(resource.Action),
 		}
@@ -229,18 +229,18 @@ func matchAction(rawAction string) protos.Action {
 	}
 }
 
-func setResource(resource *models.Resource, resourceProto *protos.PolicyResource) error {
-	tenantIDs, err := convertTenantResourceIDs(resource.ResourceIDs)
+func setResource(policyModel *models.Policy, policyProto *protos.Policy) error {
+	tenantIDs, err := convertTenantResourceIDs(policyModel.ResourceIDs)
 	if err != nil {
 		return err
 	}
-	switch resource.ResourceType {
-	case models.ResourceResourceTypeNETWORKID:
-		(*resourceProto).Resource = &protos.PolicyResource_Network{Network: &protos.NetworkResource{Networks: resource.ResourceIDs}}
-	case models.ResourceResourceTypeTENANTID:
-		(*resourceProto).Resource = &protos.PolicyResource_Tenant{Tenant: &protos.TenantResource{Tenants: tenantIDs}}
+	switch policyModel.ResourceType {
+	case models.PolicyResourceTypeNETWORKID:
+		(*policyProto).Resource = &protos.Policy_Network{Network: &protos.NetworkResource{Networks: policyModel.ResourceIDs}}
+	case models.PolicyResourceTypeTENANTID:
+		(*policyProto).Resource = &protos.Policy_Tenant{Tenant: &protos.TenantResource{Tenants: tenantIDs}}
 	default:
-		(*resourceProto).Resource = &protos.PolicyResource_Path{Path: &protos.PathResource{Path: resource.Path}}
+		(*policyProto).Resource = &protos.Policy_Path{Path: &protos.PathResource{Path: policyModel.Path}}
 	}
 	return nil
 }

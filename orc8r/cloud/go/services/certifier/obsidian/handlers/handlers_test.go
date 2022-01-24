@@ -90,11 +90,11 @@ func TestUserEndpoints(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Test token endpoints
-	writeAllResource := []*models.Resource{
+	writeAllResource := []*models.Policy{
 		{
-			Effect:       models.ResourceEffectALLOW,
-			Action:       models.ResourceActionWRITE,
-			ResourceType: models.ResourceResourceTypeURI,
+			Effect:       models.PolicyEffectALLOW,
+			Action:       models.PolicyActionWRITE,
+			ResourceType: models.PolicyResourceTypeURI,
 			Path:         "**",
 		},
 	}

@@ -65,8 +65,8 @@ enum Action {
   WRITE = 2;
 }
 
-// RequestResource is the resource as specified by the request
-message RequestResource {
+// Request is the representation of the requested resource from an API call
+message Request {
   // action is the action requested on the resource, either READ or WRITE.
   Action action = 1;
   // resource contains the path of the requested resource
@@ -78,8 +78,8 @@ message RequestResource {
   }
 }
 
-// PolicyResource is the resource that is used in the policy
-message PolicyResource {
+// Policy specifies whether a request and its user is able to access that resource
+message Policy {
   // effect is the effect to take on the requested resource, i.e. ALLOW or DENY
   Effect effect = 1;
   // action is the action allowed for a given resource, either READ or WRITE.
@@ -103,9 +103,9 @@ message TenantResource {
   repeated int64 tenants = 1;
 }
 
-message Policy {
+message PolicyList {
   string token = 1;
-  repeated PolicyResource resources = 2;
+  repeated Policy policies = 2;
 }
 
 // ===========================================================================
@@ -124,7 +124,7 @@ message GetCARequest {
 message GetPolicyDecisionRequest {
   string username = 1;
   string token = 2;
-  RequestResource resource = 3;
+  Request request = 3;
 }
 
 message GetPolicyDecisionResponse {
@@ -168,12 +168,12 @@ message ListUserTokensRequest {
 }
 
 message ListUserTokensResponse {
-  repeated Policy policies = 1;
+  repeated PolicyList policyLists = 1;
 }
 
 message AddUserTokenRequest {
   string username = 1;
-  repeated PolicyResource resources = 2;
+  repeated Policy policies = 2;
 }
 
 message AddUserTokenResponse {}
@@ -190,7 +190,7 @@ message LoginRequest {
 }
 
 message LoginResponse {
-  repeated Policy policies = 1;
+  repeated PolicyList policyLists = 1;
 }
 
 service Certifier {
@@ -231,7 +231,7 @@ service Certifier {
   rpc CollectGarbage (Void) returns (Void) {}
 
   // Returns a policy decision given a token, the request method's action
-  // (read/write), and the request resource
+  // (read/write), and the requested resource
   rpc GetPolicyDecision (GetPolicyDecisionRequest) returns (GetPolicyDecisionResponse) {}
 
   // Create a new user with their username and password
