@@ -152,6 +152,7 @@ resource "helm_release" "dp-orc8r" {
 data "template_file" "orc8r_values" {
   template = file("${path.module}/templates/orc8r-values.tpl")
   vars = {
+    orc8r_domain_name   = var.orc8r_domain_name
     orc8r_chart_version = var.orc8r_chart_version
     image_pull_secret   = kubernetes_secret.artifactory.metadata.0.name
     docker_registry     = var.docker_registry
