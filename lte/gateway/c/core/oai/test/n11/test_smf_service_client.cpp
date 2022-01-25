@@ -52,7 +52,7 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
 
   ambr_t default_ambr;
 
-  //qos profile
+  // qos profile
   qos_proile.qci = 5;
   qos_proile.allocation_retention_priority.priority_level = 15;
 
