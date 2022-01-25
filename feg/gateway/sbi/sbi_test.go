@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"magma/feg/gateway/sbi"
 	"magma/feg/gateway/sbi/mocks"
 	sbi_NpcfSMPolicyControl "magma/feg/gateway/sbi/specs/TS29512NpcfSMPolicyControl"
 	sbi_CommonData "magma/feg/gateway/sbi/specs/TS29571CommonData"
@@ -44,7 +45,8 @@ func TestCreateSMPolicy(t *testing.T) {
 
 	// Create new N7 client object
 	client, err := sbi_NpcfSMPolicyControl.NewClientWithResponses(
-		fmt.Sprintf("http://%s", pcfAddr.String()))
+		fmt.Sprintf("http://%s", pcfAddr.String()),
+		sbi_NpcfSMPolicyControl.WithHTTPClient(sbi.NewLoggingHttpClient()))
 
 	require.NoError(t, err, "BaseClientWithNotifier creation failed")
 
