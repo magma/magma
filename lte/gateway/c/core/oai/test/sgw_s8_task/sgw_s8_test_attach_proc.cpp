@@ -455,5 +455,5 @@ TEST_F(SgwS8ConfigAndCreateMock, validate_release_access_bearer_proc) {
   sgw_s8_handle_release_access_bearers_request(sgw_state, &rab_req, imsi64);
 
   // verify that eNB information has been cleared
-  ASSERT_EQ((is_num_s1_bearers_valid(sgw_state, imsi64, 0)), RETURNok);
+  ASSERT_TRUE(is_num_s1_bearers_valid(sgw_state, imsi64, 0));
 }

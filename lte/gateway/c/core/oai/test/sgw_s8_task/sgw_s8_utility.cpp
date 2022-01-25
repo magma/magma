@@ -224,17 +224,14 @@ bool is_num_s1_bearers_valid(
       (void**) &ue_context_p);
 
   if (!ue_context_p) {
-    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
+    return false;
   }
   sgw_s11_teid_t* s11_teid_p = NULL;
   int num_active_bearers     = 0;
   int idx                    = 0;
   LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
     if (!s11_teid_p) {
-      OAILOG_ERROR_UE(
-          LOG_SGW_S8, imsi64,
-          "Failed to find s11 teid entry within ue context's s11 teid list");
-      OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
+      return false;
     }
     sgw_eps_bearer_context_information_t* sgw_session_ctxt_p =
         sgw_get_sgw_eps_bearer_context(s11_teid_p->sgw_s11_teid);
@@ -252,9 +249,9 @@ bool is_num_s1_bearers_valid(
   }
 
   if (num_active_bearers == expected_num_active_bearers) {
-    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNok);
+    return true;
   }
-  OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
+  return false;
 }
 
 sgw_state_t* SgwS8ConfigAndCreateMock::create_and_get_contexts_on_cs_req(
