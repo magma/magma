@@ -206,15 +206,15 @@ void AmfNasStateConverter::ue_m5gmm_context_to_proto(
 
   ue_context_proto->set_sctp_assoc_id_key(
       state_ue_m5gmm_context->sctp_assoc_id_key);
-  ue_context_proto->set_enb_ue_s1ap_id(state_ue_m5gmm_context->gnb_ue_ngap_id);
-  ue_context_proto->set_enb_s1ap_id_key(
+  ue_context_proto->set_gnb_ue_ngap_id(state_ue_m5gmm_context->gnb_ue_ngap_id);
+  ue_context_proto->set_gnb_ngap_id_key(
       state_ue_m5gmm_context->gnb_ngap_id_key);
 
   StateConverter::apn_config_profile_to_proto(
       state_ue_m5gmm_context->amf_context.apn_config_profile,
       ue_context_proto->mutable_apn_config());
 
-  ue_context_proto->set_mme_teid_s11(state_ue_m5gmm_context->amf_teid_n11);
+  ue_context_proto->set_amf_teid_n11(state_ue_m5gmm_context->amf_teid_n11);
   StateConverter::ambr_to_proto(
       state_ue_m5gmm_context->amf_context.subscribed_ue_ambr,
       ue_context_proto->mutable_subscribed_ue_ambr());
@@ -234,13 +234,13 @@ void AmfNasStateConverter::proto_to_ue_m5gmm_context(
 
   state_ue_m5gmm_context->sctp_assoc_id_key =
       ue_context_proto.sctp_assoc_id_key();
-  state_ue_m5gmm_context->gnb_ue_ngap_id  = ue_context_proto.enb_ue_s1ap_id();
-  state_ue_m5gmm_context->gnb_ngap_id_key = ue_context_proto.enb_s1ap_id_key();
+  state_ue_m5gmm_context->gnb_ue_ngap_id  = ue_context_proto.gnb_ue_ngap_id();
+  state_ue_m5gmm_context->gnb_ngap_id_key = ue_context_proto.gnb_ngap_id_key();
 
   StateConverter::proto_to_apn_config_profile(
       ue_context_proto.apn_config(),
       &state_ue_m5gmm_context->amf_context.apn_config_profile);
-  state_ue_m5gmm_context->amf_teid_n11 = ue_context_proto.mme_teid_s11();
+  state_ue_m5gmm_context->amf_teid_n11 = ue_context_proto.amf_teid_n11();
   StateConverter::proto_to_ambr(
       ue_context_proto.subscribed_ue_ambr(),
       &state_ue_m5gmm_context->amf_context.subscribed_ue_ambr);
