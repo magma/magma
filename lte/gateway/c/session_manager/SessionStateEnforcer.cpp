@@ -653,12 +653,12 @@ void SessionStateEnforcer::prepare_response_to_access(
           .pdu_session_req_always_on());
   rsp->set_m5g_sm_congestion_reattempt_indicator(true);
   rsp->set_procedure_trans_identity(
-      config.rat_specific_context.m5gsm_session_context()
-          .procedure_trans_identity());
+     config.rat_specific_context.m5gsm_session_context()
+         .procedure_trans_identity());
 
   /* If there are any static rules configured from Orc8r via NMS it's
-   * corresponding qos info will be send to AMF.
-   */
+  * corresponding qos info will be send to AMF.
+  */
   for (auto& val : pending_activation) {
     if (val.rule.has_qos()) {
       MLOG(MDEBUG) << "value set for pending_activation"
@@ -666,19 +666,48 @@ void SessionStateEnforcer::prepare_response_to_access(
       rsp->mutable_qos()->CopyFrom(val.rule.qos());
     }
   }
-  /* AMF fetches the mandatory subscriberd_qos information from subscriberdb
-   * and send to sessiond. If there are any subscriberd_qos information sessiond
-   * will send back to AMF, Otherwise sessiond will set default AMBR info.
+    /* AMBR value need to compared from AMF and PCF, then fill the required
+   * values and sent to AMF. Otherwise sessiond will set default AMBR info.
    */
   if (config.rat_specific_context.m5gsm_session_context()
           .has_subscribed_qos()) {
-    set_subscribed_qos(session_state, &response);
+    rsp->mutable_subscribed_qos()->set_br_unit(
+        config.rat_specific_context.m5gsm_session_context()
+            .subscribed_qos()
+            .br_unit());
+    rsp->mutable_subscribed_qos()->set_apn_ambr_ul(
+        config.rat_specific_context.m5gsm_session_context()
+            .subscribed_qos()
+            .apn_ambr_ul());
+    rsp->mutable_subscribed_qos()->set_apn_ambr_dl(
+        config.rat_specific_context.m5gsm_session_context()
+            .subscribed_qos()
+            .apn_ambr_dl());
+    rsp->mutable_subscribed_qos()->set_priority_level(
+        config.rat_specific_context.m5gsm_session_context()
+            .subscribed_qos()
+            .priority_level());
+    rsp->mutable_subscribed_qos()->set_preemption_capability(
+        config.rat_specific_context.m5gsm_session_context()
+            .subscribed_qos()
+            .preemption_capability());
+    rsp->mutable_subscribed_qos()->set_preemption_vulnerability(
+        config.rat_specific_context.m5gsm_session_context()
+            .subscribed_qos()
+            .preemption_vulnerability());
+    rsp->mutable_subscribed_qos()->set_qos_class_id(
+        config.rat_specific_context.m5gsm_session_context()
+            .subscribed_qos()
+            .qos_class_id());
+
   } else {
     auto* convg_subscribed_qos = rsp->mutable_subscribed_qos();
-    convg_subscribed_qos->set_qos_class_id(QCI_9);
-    convg_subscribed_qos->set_preemption_vulnerability(PRE_EMPTABLE);
-    convg_subscribed_qos->set_preemption_capability(MAY_TRIGGER_PRE_EMPTION);
-    convg_subscribed_qos->set_priority_level(DEFAULT_PRIORITY_LEVEL);
+    convg_subscribed_qos->set_qos_class_id(FlowQos_Qci_QCI_9);
+    convg_subscribed_qos->set_preemption_vulnerability(
+        QosArp_PreVul_PRE_VUL_ENABLED);
+    convg_subscribed_qos->set_preemption_capability(
+        QosArp_PreCap_PRE_CAP_ENABLED);
+    convg_subscribed_qos->set_priority_level(1);
   }
   rsp->mutable_upf_endpoint()->set_teid(
       config.rat_specific_context.m5gsm_session_context()

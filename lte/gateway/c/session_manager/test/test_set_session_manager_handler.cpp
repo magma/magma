@@ -791,7 +791,7 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
 
   cfg.rat_specific_context.mutable_m5gsm_session_context()
       ->mutable_subscribed_qos()
-      ->set_br_unit(magma::lte::M5GQosInformationRequest_BitrateUnitsAMBR_KBPS);
+      ->set_br_unit(magma::lte::QosInformationRequest_BitrateUnitsAMBR_KBPS);
   cfg.rat_specific_context.mutable_m5gsm_session_context()
       ->mutable_subscribed_qos()
       ->set_apn_ambr_ul(10000);
@@ -817,7 +817,7 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionAmbr) {
                   ->mutable_m5g_session_context_rsp();
 
   rsp->mutable_subscribed_qos()->set_br_unit(
-      magma::lte::M5GQosInformationRequest_BitrateUnitsAMBR_KBPS);
+      magma::lte::QosInformationRequest_BitrateUnitsAMBR_KBPS);
   rsp->mutable_subscribed_qos()->set_apn_ambr_ul(10000);
   rsp->mutable_subscribed_qos()->set_apn_ambr_dl(20000);
 
