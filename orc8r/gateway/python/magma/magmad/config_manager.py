@@ -25,6 +25,7 @@ from magma.configuration.mconfig_managers import (
 from magma.magmad.service_manager import ServiceManager
 from orc8r.protos.mconfig import mconfigs_pb2
 from orc8r.protos.mconfig_pb2 import GatewayConfigsDigest
+import re
 
 CONFIG_STREAM_NAME = 'configs'
 SHARED_MCONFIG = 'shared_mconfig'
@@ -144,5 +145,28 @@ class ConfigManager(StreamerClient.Callback):
         for srv in self._services:
             if srv in mconfig.configs_by_key:
                 configs_by_key[srv] = mconfig.configs_by_key.get(srv)
+
+        # version should be in 1.1.1 format with only positive numbers allowed
+        VERSION_REGEX = re.compile(r"[0-9]+\.(?P<minor_version>[0-9]+)\.[0-9]+")
+
+        agw_version = self._magmad_service.version
+        unpacked_mconfig = mconfig.configs_by_key.get(MAGMAD)
+        if unpacked_mconfig.Is(mconfigs_pb2.MagmaD.DESCRIPTOR):
+            magmad_parsed = mconfigs_pb2.MagmaD()
+            unpacked_mconfig.Unpack(magmad_parsed)
+            orc8r_version = magmad_parsed.orc8r_version
+
+            agw_version_parsed = VERSION_REGEX.match(agw_version)
+            orc8r_version_parsed = VERSION_REGEX.match(orc8r_version)
+
+            if not agw_version_parsed:
+                logging.warning("Gateway version: %s not valid" % agw_version)
+            elif not orc8r_version_parsed:
+                logging.warning("orchestrator version: %s not valid" % orc8r_version)
+            else:
+                agw_minor = int(agw_version_parsed.group('minor_version'))
+                orc8r_minor = int(orc8r_version_parsed.group('minor_version'))
+                if agw_minor - orc8r_minor <= -1:
+                    logging.warning("Gateway is more than one minor version behind orc8r. Please consider updating it.")
 
         magmad_events.processed_updates(configs_by_key)
