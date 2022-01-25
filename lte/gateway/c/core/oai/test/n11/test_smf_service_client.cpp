@@ -55,8 +55,8 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
   ambr_t default_ambr;
 
   // qos profile
-  qos_profile.qci = 5;
-  qos_profile.allocation_retention_priority.priority_level = 15;
+  qos_proile.qci = 5;
+  qos_proile.allocation_retention_priority.priority_level = 15;
 
   request = magma5g::create_sm_pdu_session(
       imsi, (uint8_t*)apn.c_str(), pdu_session_id, pdu_session_type,
