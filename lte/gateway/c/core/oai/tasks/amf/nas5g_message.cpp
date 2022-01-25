@@ -191,8 +191,8 @@ int nas5g_message_decode(
       bytes, uint8_to_hex_string(buffer, bytes).c_str());
 
   OAILOG_INFO(
-      LOG_AMF_APP, "Decoded msg(nas5g) id: [%lu]-name [%s]",
-      msg->plain.amf.header.message_type,
+      LOG_AMF_APP, "Decoded msg(nas5g) id: [%x]-name [%s]",
+      static_cast<uint8_t>(msg->plain.amf.header.message_type),
       get_message_type_str(
           static_cast<uint8_t>(msg->plain.amf.header.message_type))
           .c_str());
@@ -312,7 +312,8 @@ int nas5g_message_encode(
     }
     OAILOG_INFO(
         LOG_AMF_APP, "Encoded msg(nas5g) id: [%x]-name [%s]",
-        static_cast<uint8_t>(msg->security_protected.plain.amf.header.message_type),
+        static_cast<uint8_t>(
+            msg->security_protected.plain.amf.header.message_type),
         get_message_type_str(
             static_cast<uint8_t>(
                 msg->security_protected.plain.amf.header.message_type))

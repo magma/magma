@@ -716,14 +716,12 @@ TEST(test_dlnastransport, test_dlnastransport) {
   msg.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
   msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  msg.plain.amf.header.message_type =
-      static_cast<M5GMessageType>(M5GMessageType::DLNASTRANSPORT);
+  msg.plain.amf.header.message_type          = M5GMessageType::DLNASTRANSPORT;
   msg.header.security_header_type = SECURITY_HEADER_TYPE_NOT_PROTECTED;
   // SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
   msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  msg.header.message_type =
-      static_cast<M5GMessageType>(M5GMessageType::DLNASTRANSPORT);
-  msg.header.sequence_number = 1;
+  msg.header.message_type                    = M5GMessageType::DLNASTRANSPORT;
+  msg.header.sequence_number                 = 1;
 
   dlmsg = &msg.plain.amf.msg.downlinknas5gtransport;
 

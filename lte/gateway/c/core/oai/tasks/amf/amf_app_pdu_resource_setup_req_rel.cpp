@@ -162,7 +162,7 @@ int pdu_session_resource_release_request(
   msg.security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
   msg.security_protected.plain.amf.header.message_type =
-      static_cast<M5GMessageType>(M5GMessageType::DLNASTRANSPORT);
+      M5GMessageType::DLNASTRANSPORT;
   msg.header.security_header_type = SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED;
   msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
   msg.header.sequence_number =

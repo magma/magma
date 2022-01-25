@@ -183,7 +183,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
           &amf_msg->msg.registrationrequestmsg, msg->is_initial,
           msg->is_amf_ctx_new, *amf_cause, decode_status);
       break;
-    case M5GMessageType::M5G_SERVICE_REQUEST:  // SERVICE_REQUEST:
+    case M5GMessageType::M5G_SERVICE_REQUEST:
       rc = amf_handle_service_request(
           msg->ue_id, &amf_msg->msg.service_request, decode_status);
       break;
@@ -392,7 +392,7 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = REGISTRATION_ACCEPT_MINIMUM_LENGTH;
   nas_msg->security_protected.plain.amf.header.message_type =
-      static_cast<M5GMessageType>(M5GMessageType::REG_ACCEPT);
+      M5GMessageType::REG_ACCEPT;
   nas_msg->security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
@@ -524,7 +524,7 @@ int amf_service_acceptmsg(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = SERVICE_ACCEPT_MINIMUM_LENGTH;
   nas_msg->security_protected.plain.amf.header.message_type =
-      static_cast<M5GMessageType>(M5GMessageType::M5G_SERVICE_ACCEPT);
+      M5GMessageType::M5G_SERVICE_ACCEPT;
   nas_msg->security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
@@ -558,7 +558,7 @@ int amf_service_acceptmsg(
   }
 
   nas_msg->security_protected.header.message_type =
-      static_cast<M5GMessageType>(M5GMessageType::M5G_SERVICE_ACCEPT);
+      M5GMessageType::M5G_SERVICE_ACCEPT;
   size += NAS5G_MESSAGE_CONTAINER_MAXIMUM_LENGTH;
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
 }
@@ -628,7 +628,7 @@ static int amf_de_reg_acceptmsg(
   nas_msg->security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
   nas_msg->security_protected.plain.amf.header.message_type =
-      static_cast<M5GMessageType>(M5GMessageType::DE_REG_ACCEPT_UE_ORIGIN);
+      M5GMessageType::DE_REG_ACCEPT_UE_ORIGIN;
   nas_msg->header.security_header_type =
       SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
   nas_msg->header.extended_protocol_discriminator =
@@ -931,7 +931,7 @@ static int amf_as_security_req(
             SECURITY_HEADER_TYPE_NOT_PROTECTED;
         nas_msg.header.extended_protocol_discriminator = 0x7E;
         nas_msg.plain.amf.header.message_type =
-            static_cast<M5GMessageType>(M5GMessageType::M5G_IDENTITY_REQUEST);
+            M5GMessageType::M5G_IDENTITY_REQUEST;
         nas_msg.plain.amf.header.extended_protocol_discriminator = 0x7E;
         nas_msg.plain.amf.msg.identityrequestmsg.extended_protocol_discriminator
             .extended_proto_discriminator                               = 0x7e;
@@ -950,8 +950,7 @@ static int amf_as_security_req(
         nas_msg.header.extended_protocol_discriminator           = 0x7E;
         nas_msg.header.security_header_type                      = 0x0;
         nas_msg.plain.amf.header.extended_protocol_discriminator = 0x7e;
-        nas_msg.plain.amf.header.message_type =
-            static_cast<M5GMessageType>(M5GMessageType::AUTH_REQUEST);
+        nas_msg.plain.amf.header.message_type = M5GMessageType::AUTH_REQUEST;
         nas_msg.plain.amf.msg.authenticationrequestmsg
             .extended_protocol_discriminator.extended_proto_discriminator =
             0x7e;
@@ -985,7 +984,7 @@ static int amf_as_security_req(
         nas_msg.security_protected.plain.amf.header
             .extended_protocol_discriminator = 0x7e;
         nas_msg.security_protected.plain.amf.header.message_type =
-            static_cast<M5GMessageType>(M5GMessageType::SEC_MODE_COMMAND);
+            M5GMessageType::SEC_MODE_COMMAND;
         nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
             .extended_protocol_discriminator.extended_proto_discriminator =
             0x7e;
@@ -1124,8 +1123,7 @@ static int amf_as_security_rej(
         nas_msg.header.security_header_type =
             SECURITY_HEADER_TYPE_NOT_PROTECTED;
         nas_msg.header.extended_protocol_discriminator = 0x7E;
-        nas_msg.plain.amf.header.message_type =
-            static_cast<M5GMessageType>(M5GMessageType::AUTH_REJECT);
+        nas_msg.plain.amf.header.message_type = M5GMessageType::AUTH_REJECT;
         nas_msg.plain.amf.header.extended_protocol_discriminator = 0x7E;
         nas_msg.plain.amf.msg.authenticationrejectmsg
             .extended_protocol_discriminator.extended_proto_discriminator =
@@ -1517,15 +1515,14 @@ static int amf_as_establish_rej(
     case AMF_AS_NAS_INFO_REGISTERED:
       size = amf_send_registration_reject(
           msg, &amf_msg->msg.registrationrejectmsg);
-      nas_msg.plain.amf.header.message_type =
-          static_cast<M5GMessageType>(M5GMessageType::REG_REJECT);
+      nas_msg.plain.amf.header.message_type = M5GMessageType::REG_REJECT;
       nas_msg.plain.amf.header.extended_protocol_discriminator =
           M5G_MOBILITY_MANAGEMENT_MESSAGES;
       break;
     case AMF_AS_NAS_INFO_SR:
       size = amf_service_rejectmsg(msg, &amf_msg->msg.service_reject);
       nas_msg.plain.amf.header.message_type =
-          static_cast<M5GMessageType>(M5GMessageType::M5G_SERVICE_REJECT);
+          M5GMessageType::M5G_SERVICE_REJECT;
       nas_msg.plain.amf.header.extended_protocol_discriminator =
           M5G_MOBILITY_MANAGEMENT_MESSAGES;
       break;
