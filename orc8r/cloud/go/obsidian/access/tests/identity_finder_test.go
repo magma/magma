@@ -20,14 +20,16 @@ import (
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
 	"magma/orc8r/lib/go/protos"
 )
 
-const RegisterLteNetworkV1 = "/magma/v1/lte"
-const ManageLteNetworkV1 = RegisterLteNetworkV1 + "/:network_id"
-const RegisterNetworkV1 = "/magma/v1/networks"
-const ManageNetworkV1 = RegisterNetworkV1 + "/:network_id"
+const RegisterLteNetworkV1 = obsidian.V1Root + "lte"
+const ManageLteNetworkV1 = RegisterLteNetworkV1 + obsidian.UrlSep + ":network_id"
+const RegisterNetworkV1 = obsidian.V1Root + "networks"
+const ManageNetworkV1 = RegisterNetworkV1 + obsidian.UrlSep + ":network_id"
+const TenantRootPathV1 = obsidian.V1Root + "tenants"
 
 func TestIdentityFinder(t *testing.T) {
 	e := startTestIdentityServer(t)
