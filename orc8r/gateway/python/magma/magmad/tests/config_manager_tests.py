@@ -12,7 +12,7 @@ limitations under the License.
 """
 import asyncio
 from unittest import TestCase
-from unittest.mock import MagicMock, Mock, patch, PropertyMock
+from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
 from google.protobuf.any_pb2 import Any
 from google.protobuf.json_format import MessageToJson

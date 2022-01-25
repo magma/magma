@@ -13,6 +13,7 @@ limitations under the License.
 
 import asyncio
 import logging
+import re
 from typing import Any, List
 
 import magma.magmad.events as magmad_events
@@ -25,7 +26,6 @@ from magma.configuration.mconfig_managers import (
 from magma.magmad.service_manager import ServiceManager
 from orc8r.protos.mconfig import mconfigs_pb2
 from orc8r.protos.mconfig_pb2 import GatewayConfigsDigest
-import re
 
 CONFIG_STREAM_NAME = 'configs'
 SHARED_MCONFIG = 'shared_mconfig'
