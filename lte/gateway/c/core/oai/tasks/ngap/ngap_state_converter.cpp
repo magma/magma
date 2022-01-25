@@ -98,6 +98,8 @@ void NgapStateConverter::gnb_to_proto(
 
   // store ue_ids
   hashtable_uint64_ts_to_proto(&gnb->ue_id_coll, proto->mutable_ue_ids());
+  supported_ta_list_to_proto(
+      &gnb->supported_ta_list, proto->mutable_supported_ta_list());
 }
 
 void NgapStateConverter::proto_to_gnb(
@@ -134,6 +136,8 @@ void NgapStateConverter::proto_to_gnb(
           LOG_NGAP, "Failed to insert amf_ue_ngap_id in ue_coll_id hashtable");
     }
   }
+  proto_to_supported_ta_list(
+      &gnb->supported_ta_list, proto.supported_ta_list());
 }
 void NgapStateConverter::ue_to_proto(
     const m5g_ue_description_t* ue, oai::Ngap_UeDescription* proto) {
@@ -174,6 +178,83 @@ void NgapStateConverter::proto_to_ngap_imsi_map(
     const oai::NgapImsiMap& ngap_imsi_proto, ngap_imsi_map_t* ngap_imsi_map) {
   proto_to_hashtable_uint64_ts(
       ngap_imsi_proto.amf_ue_id_imsi_map(), ngap_imsi_map->amf_ue_id_imsi_htbl);
+}
+
+void NgapStateConverter::supported_ta_list_to_proto(
+    const m5g_supported_ta_list_t* supported_ta_list,
+    oai::Ngap_SupportedTaList* supported_ta_list_proto) {
+  supported_ta_list_proto->set_list_count(supported_ta_list->list_count);
+  for (int idx = 0; idx < supported_ta_list->list_count; idx++) {
+    OAILOG_DEBUG(LOG_NGAP, "Writing Ngap_Supported TAI list at index %d", idx);
+    oai::Ngap_SupportedTaiItems* supported_tai_item =
+        supported_ta_list_proto->add_supported_tai_items();
+    supported_tai_item_to_proto(
+        &supported_ta_list->supported_tai_items[idx], supported_tai_item);
+  }
+}
+
+void NgapStateConverter::proto_to_supported_ta_list(
+    m5g_supported_ta_list_t* supported_ta_list_state,
+    const oai::Ngap_SupportedTaList& supported_ta_list_proto) {
+  supported_ta_list_state->list_count = supported_ta_list_proto.list_count();
+  for (int idx = 0; idx < supported_ta_list_state->list_count; idx++) {
+    OAILOG_DEBUG(LOG_MME_APP, "reading supported ta list at index %d", idx);
+    proto_to_supported_tai_items(
+        &supported_ta_list_state->supported_tai_items[idx],
+        supported_ta_list_proto.supported_tai_items(idx));
+  }
+}
+
+void NgapStateConverter::supported_tai_item_to_proto(
+    const m5g_supported_tai_items_t* state_supported_tai_item,
+    oai::Ngap_SupportedTaiItems* supported_tai_item_proto) {
+  supported_tai_item_proto->set_tac(state_supported_tai_item->tac);
+  supported_tai_item_proto->set_bplmnlist_count(
+      state_supported_tai_item->bplmnlist_count);
+  char plmn_array[PLMN_BYTES] = {0};
+  for (int idx = 0; idx < state_supported_tai_item->bplmnlist_count; idx++) {
+    plmn_array[0] = static_cast<char>(
+        state_supported_tai_item->bplmn_list[idx].plmn_id.mcc_digit1 +
+        ASCII_ZERO);
+    plmn_array[1] = static_cast<char>(
+        state_supported_tai_item->bplmn_list[idx].plmn_id.mcc_digit2 +
+        ASCII_ZERO);
+    plmn_array[2] = static_cast<char>(
+        state_supported_tai_item->bplmn_list[idx].plmn_id.mcc_digit3 +
+        ASCII_ZERO);
+    plmn_array[3] = static_cast<char>(
+        state_supported_tai_item->bplmn_list[idx].plmn_id.mnc_digit1 +
+        ASCII_ZERO);
+    plmn_array[4] = static_cast<char>(
+        state_supported_tai_item->bplmn_list[idx].plmn_id.mnc_digit2 +
+        ASCII_ZERO);
+    plmn_array[5] = static_cast<char>(
+        state_supported_tai_item->bplmn_list[idx].plmn_id.mnc_digit3 +
+        ASCII_ZERO);
+    supported_tai_item_proto->add_bplmns(plmn_array);
+  }
+}
+
+void NgapStateConverter::proto_to_supported_tai_items(
+    m5g_supported_tai_items_t* supported_tai_item_state,
+    const oai::Ngap_SupportedTaiItems& supported_tai_item_proto) {
+  supported_tai_item_state->tac = supported_tai_item_proto.tac();
+  supported_tai_item_state->bplmnlist_count =
+      supported_tai_item_proto.bplmnlist_count();
+  for (int idx = 0; idx < supported_tai_item_state->bplmnlist_count; idx++) {
+    supported_tai_item_state->bplmn_list[idx].plmn_id.mcc_digit1 =
+        static_cast<int>(supported_tai_item_proto.bplmns(idx)[0]) - ASCII_ZERO;
+    supported_tai_item_state->bplmn_list[idx].plmn_id.mcc_digit2 =
+        static_cast<int>(supported_tai_item_proto.bplmns(idx)[1]) - ASCII_ZERO;
+    supported_tai_item_state->bplmn_list[idx].plmn_id.mcc_digit3 =
+        static_cast<int>(supported_tai_item_proto.bplmns(idx)[2]) - ASCII_ZERO;
+    supported_tai_item_state->bplmn_list[idx].plmn_id.mnc_digit1 =
+        static_cast<int>(supported_tai_item_proto.bplmns(idx)[3]) - ASCII_ZERO;
+    supported_tai_item_state->bplmn_list[idx].plmn_id.mnc_digit2 =
+        static_cast<int>(supported_tai_item_proto.bplmns(idx)[4]) - ASCII_ZERO;
+    supported_tai_item_state->bplmn_list[idx].plmn_id.mnc_digit3 =
+        static_cast<int>(supported_tai_item_proto.bplmns(idx)[5]) - ASCII_ZERO;
+  }
 }
 
 }  // namespace magma5g

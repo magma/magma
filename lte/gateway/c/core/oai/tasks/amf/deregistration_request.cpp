@@ -240,10 +240,9 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
     IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
 
     std::shared_ptr<smf_context_t> i = it.second;
-    smf_message.pdu_session_id =
-        i->smf_proc_data.pdu_session_identity.pdu_session_id;
+    smf_message.pdu_session_id       = i->smf_proc_data.pdu_session_id;
 
-    smf_message.pti = i->smf_proc_data.pti.pti;
+    smf_message.pti = i->smf_proc_data.pti;
 
     release_session_gprc_req(&smf_message, imsi);
 
