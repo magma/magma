@@ -161,9 +161,11 @@ class ConfigManager(StreamerClient.Callback):
 
             if not agw_version_parsed:
                 logging.warning("Gateway version: %s not valid" % agw_version)
-            elif not orc8r_version_parsed:
+
+            if not orc8r_version_parsed:
                 logging.warning("orchestrator version: %s not valid" % orc8r_version)
-            else:
+
+            if agw_version_parsed and orc8r_version_parsed:
                 agw_minor = int(agw_version_parsed.group('minor_version'))
                 orc8r_minor = int(orc8r_version_parsed.group('minor_version'))
                 if agw_minor - orc8r_minor <= -1:
