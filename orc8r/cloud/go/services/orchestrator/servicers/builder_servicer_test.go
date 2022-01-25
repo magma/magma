@@ -76,7 +76,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				Images:                  nil,
 				DynamicServices:         nil,
 				FeatureFlags:            nil,
-				Orc8RVersion:            "0.0.0",
+				Orc8RVersion:            "0.0.-1",
 			},
 			"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
 			"td-agent-bit": &mconfig_protos.FluentBit{
@@ -141,7 +141,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				Images:                  nil,
 				DynamicServices:         nil,
 				FeatureFlags:            nil,
-				Orc8RVersion:            "0.0.0",
+				Orc8RVersion:            "0.0.-1",
 			},
 			"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
 			"td-agent-bit": &mconfig_protos.FluentBit{
@@ -221,7 +221,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				},
 				DynamicServices: nil,
 				FeatureFlags:    nil,
-				Orc8RVersion:    "0.0.0",
+				Orc8RVersion:    "0.0.-1",
 			},
 			"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
 			"td-agent-bit": &mconfig_protos.FluentBit{
@@ -316,7 +316,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				},
 				DynamicServices: nil,
 				FeatureFlags:    nil,
-				Orc8RVersion:    "0.0.0",
+				Orc8RVersion:    "0.0.-1",
 			},
 			"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
 			"td-agent-bit": &mconfig_protos.FluentBit{
@@ -404,7 +404,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				},
 				DynamicServices: nil,
 				FeatureFlags:    nil,
-				Orc8RVersion:    "0.0.0",
+				Orc8RVersion:    "0.0.-1",
 			},
 			"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
 			"td-agent-bit": &mconfig_protos.FluentBit{
@@ -488,7 +488,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				},
 				DynamicServices: nil,
 				FeatureFlags:    nil,
-				Orc8RVersion:    "0.0.0",
+				Orc8RVersion:    "0.0.-1",
 			},
 			"metricsd": &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO},
 			"td-agent-bit": &mconfig_protos.FluentBit{

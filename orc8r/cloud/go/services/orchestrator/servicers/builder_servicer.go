@@ -123,7 +123,7 @@ func getMagmadMconfig(
 	orc8rVersion, res := os.LookupEnv("VERSION_TAG")
 	if !res {
 		glog.V(1).Info("Couldn't get value for VERSION_TAG Env variable.")
-		orc8rVersion = "0.0.0"
+		orc8rVersion = "0.0.-1"
 	}
 	ret := &mconfig_protos.MagmaD{
 		LogLevel:                protos.LogLevel_INFO,
