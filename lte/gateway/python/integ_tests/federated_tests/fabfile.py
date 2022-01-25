@@ -270,7 +270,7 @@ def test_connectivity(timeout=10):
     )
 
 
-def test_all(clear_orc8r='False', provision_vm='False', timeout=10):
+def build_and_test_all(clear_orc8r='False', provision_vm='False', timeout=10):
     """
     Build, start and test connectivity of all elements
     Args:
