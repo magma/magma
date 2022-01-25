@@ -121,7 +121,7 @@ TEST(TestAMFStateConverter, TestStateToProto) {
   EXPECT_EQ(data, 40);
 }
 
-TEST(test_amf_security_context_to_proto, test_amf_security_context_to_proto) {
+TEST(TestAMFStateConverter, TestAMFSecurityContextToProto) {
   amf_security_context_t state_amf_security_context_1 = {};
   amf_security_context_t state_amf_security_context_2 = {};
   // EmmSecurityProto

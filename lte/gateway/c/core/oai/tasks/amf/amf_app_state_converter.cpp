@@ -24,8 +24,6 @@ extern "C" {
 
 using magma::lte::oai::EmmContext;
 using magma::lte::oai::EmmSecurityContext;
-using magma::lte::oai::EmmSecurityContext_Count;
-using magma::lte::oai::EmmSecurityContext_SelectedAlgorithms;
 using magma::lte::oai::MmeNasState;
 namespace magma5g {
 
@@ -372,15 +370,13 @@ void AmfNasStateConverter::amf_security_context_to_proto(
       state_amf_security_context->knas_int, AUTH_KNAS_INT_SIZE);
 
   // Count values
-  EmmSecurityContext_Count* dl_count_proto =
-      emm_security_context_proto->mutable_dl_count();
+  auto* dl_count_proto = emm_security_context_proto->mutable_dl_count();
   dl_count_proto->set_overflow(state_amf_security_context->dl_count.overflow);
   dl_count_proto->set_seq_num(state_amf_security_context->dl_count.seq_num);
-  EmmSecurityContext_Count* ul_count_proto =
-      emm_security_context_proto->mutable_ul_count();
+  auto* ul_count_proto = emm_security_context_proto->mutable_ul_count();
   ul_count_proto->set_overflow(state_amf_security_context->ul_count.overflow);
   ul_count_proto->set_seq_num(state_amf_security_context->ul_count.seq_num);
-  EmmSecurityContext_Count* kenb_ul_count_proto =
+  auto* kenb_ul_count_proto =
       emm_security_context_proto->mutable_kenb_ul_count();
   kenb_ul_count_proto->set_overflow(
       state_amf_security_context->kenb_ul_count.overflow);
@@ -388,7 +384,7 @@ void AmfNasStateConverter::amf_security_context_to_proto(
       state_amf_security_context->kenb_ul_count.seq_num);
 
   // Security algorithm
-  EmmSecurityContext_SelectedAlgorithms* selected_algorithms_proto =
+  auto* selected_algorithms_proto =
       emm_security_context_proto->mutable_selected_algos();
   selected_algorithms_proto->set_encryption(
       state_amf_security_context->selected_algorithms.encryption);
@@ -416,23 +412,20 @@ void AmfNasStateConverter::proto_to_amf_security_context(
       emm_security_context_proto.knas_int().c_str(), AUTH_KNAS_INT_SIZE);
 
   // Count values
-  const EmmSecurityContext_Count& dl_count_proto =
-      emm_security_context_proto.dl_count();
+  const auto& dl_count_proto = emm_security_context_proto.dl_count();
   state_amf_security_context->dl_count.overflow = dl_count_proto.overflow();
   state_amf_security_context->dl_count.seq_num  = dl_count_proto.seq_num();
-  const EmmSecurityContext_Count& ul_count_proto =
-      emm_security_context_proto.ul_count();
+  const auto& ul_count_proto = emm_security_context_proto.ul_count();
   state_amf_security_context->ul_count.overflow = ul_count_proto.overflow();
   state_amf_security_context->ul_count.seq_num  = ul_count_proto.seq_num();
-  const EmmSecurityContext_Count& kenb_ul_count_proto =
-      emm_security_context_proto.kenb_ul_count();
+  const auto& kenb_ul_count_proto = emm_security_context_proto.kenb_ul_count();
   state_amf_security_context->kenb_ul_count.overflow =
       kenb_ul_count_proto.overflow();
   state_amf_security_context->kenb_ul_count.seq_num =
       kenb_ul_count_proto.seq_num();
 
   // Security algorithm
-  const EmmSecurityContext_SelectedAlgorithms& selected_algorithms_proto =
+  const auto& selected_algorithms_proto =
       emm_security_context_proto.selected_algos();
   state_amf_security_context->selected_algorithms.encryption =
       selected_algorithms_proto.encryption();
