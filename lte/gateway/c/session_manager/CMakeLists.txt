@@ -83,7 +83,7 @@ create_proto_dir("feg/gateway/services/aaa" CWF_CPP_OUT_DIR)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
-set(SMGR_ORC8R_CPP_PROTOS common digest directoryd eventd metricsd redis service303)
+set(SMGR_ORC8R_CPP_PROTOS common digest directoryd eventd metricsd redis service303 mconfig/mconfigs)
 generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
@@ -199,10 +199,11 @@ add_library(SESSION_MANAGER
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 
+find_package(MAGMA_LOGGING REQUIRED)
 find_package(MAGMA_SENTRY REQUIRED)
 
 target_link_libraries(SESSION_MANAGER
-  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC MAGMA_CONFIG EVENTD MAGMA_SENTRY
+  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC MAGMA_CONFIG MAGMA_LOGGING EVENTD MAGMA_SENTRY
   glog gflags folly pthread ${GCOV_LIB} gpr grpc++ grpc yaml-cpp protobuf cpp_redis
   prometheus-cpp tacopie
   )

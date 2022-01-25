@@ -38,6 +38,7 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
   gnb_gtp_teid_ip_addr[1]         = 0x14;
   gnb_gtp_teid_ip_addr[2]         = 0x1E;
   gnb_gtp_teid_ip_addr[3]         = 0x28;
+  eps_subscribed_qos_profile_t qos_proile = {0};
   std::string gnb_ip_addr;
   for (int i = 0; i < 4; ++i) {
     gnb_ip_addr += std::to_string(gnb_gtp_teid_ip_addr[i]);
@@ -51,10 +52,14 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
 
   ambr_t default_ambr;
 
+  //qos profile
+  qos_proile.qci = 5;
+  qos_proile.allocation_retention_priority.priority_level = 15;
+
   request = magma5g::create_sm_pdu_session_v4(
       imsi, (uint8_t*) apn.c_str(), pdu_session_id, pdu_session_type,
       gnb_gtp_teid, pti, gnb_gtp_teid_ip_addr, (char*) ue_ipv4_addr.c_str(),
-      version, default_ambr);
+      version, default_ambr, qos_proile);
 
   auto* rat_req =
       request.mutable_rat_specific_context()->mutable_m5gsm_session_context();
