@@ -15,8 +15,10 @@ package sbi
 
 import (
 	"fmt"
+	"html"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -31,7 +33,7 @@ func (logger *SbiLogger) LogRequest(method string, url *url.URL, reqBody []byte,
 	if len(reqBody) != 0 {
 		extraReqInfo = fmt.Sprintf("\nBody = %s", string(reqBody))
 	}
-	glog.V(2).Infof("Request %s %v %s\n", method, url.Path, extraReqInfo)
+	glog.V(2).Infof("Request %s %v %s\n", method, sanitizeUrlPath(url.Path), sanitizeString(extraReqInfo))
 }
 
 // LogResponse logs http response related info after receiving the response from the server
@@ -44,5 +46,16 @@ func (logger *SbiLogger) LogResponse(url *url.URL, status string, resBody []byte
 	if len(resBody) != 0 {
 		extraResInfo = fmt.Sprintf("%s\nBody = %s", extraResInfo, string(resBody))
 	}
-	glog.V(2).Infof("Response %v for %v took %dms %s\n", status, url.Path, latency.Milliseconds(), extraResInfo)
+	glog.V(2).Infof("Response %v for %v took %dms %s\n", status, sanitizeUrlPath(url.Path), latency.Milliseconds(), sanitizeString(extraResInfo))
+}
+
+func sanitizeUrlPath(strString string) string {
+	return html.EscapeString(strString)
+}
+
+func sanitizeString(strString string) string {
+	strSanitizedString := strings.ReplaceAll(strString, "\r", " ") //remove line breaks
+	strSanitizedString = strings.ReplaceAll(strSanitizedString, "\n", " ")
+	strSanitizedString = strings.Join(strings.Fields(strSanitizedString), " ") //remove extra whitespace
+	return strSanitizedString
 }
