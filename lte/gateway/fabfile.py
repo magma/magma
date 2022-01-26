@@ -71,7 +71,7 @@ def test():
     env.debug_mode = False
 
 
-def package(vcs='git', all_deps="False",
+def package(all_deps="False",
             cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY,
             destroy_vm='False',
             vm='magma', os="ubuntu"):
@@ -88,7 +88,8 @@ def package(vcs='git', all_deps="False",
               "\tfab [dev|test] package")
         exit(1)
 
-    hash = pkg.get_commit_hash(vcs)
+    hash = pkg.get_commit_hash()
+    commit_count = pkg.get_commit_count()
 
     with cd('~/magma/lte/gateway'):
         # Generate magma dependency packages
@@ -106,8 +107,8 @@ def package(vcs='git', all_deps="False",
         run('make clean')
         build_type = "Debug" if env.debug_mode else "RelWithDebInfo"
 
-        run('./release/build-magma.sh -h "%s" -t %s --cert %s --proxy %s --os %s' %
-            (hash, build_type, cert_file, proxy_config, os))
+        run('./release/build-magma.sh -h %s --commit-count %s -t %s --cert %s --proxy %s --os %s' %  # noqa: E501
+            (hash, commit_count, build_type, cert_file, proxy_config, os))
 
         run('rm -rf ~/magma-packages')
         run('mkdir -p ~/magma-packages')

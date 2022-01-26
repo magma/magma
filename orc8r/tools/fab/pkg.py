@@ -54,17 +54,12 @@ def check_commit_changes():
             return False
 
 
-def get_commit_hash(vcs='hg'):
-    with hide('running', 'warnings', 'output'), settings(warn_only=True):
-        if vcs == 'hg':
-            local_commit_hash = local('hg identify -i',
-                                      capture=True).replace('+', '').split()[0]
-        elif vcs == 'git':
-            local_commit_hash = local('git rev-parse HEAD', capture=True)
-        else:
-            print('Unknown vcs: %s' % vcs)
-            exit(1)
-    return local_commit_hash[0:8]
+def get_commit_hash():
+    return local('git rev-parse HEAD', capture=True)[0:8]
+
+
+def get_commit_count():
+    return local('git rev-list --count HEAD', capture=True)
 
 
 def download_all_pkgs():

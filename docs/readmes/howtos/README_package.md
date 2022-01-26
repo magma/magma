@@ -6,11 +6,11 @@ hide_title: true
 # Packaging
 TL;DR
 -----
-1. Running `fab test package:git` on the host creates the package inside the
+1. Running `fab test package` on the host creates the package inside the
 gateway VM
 2. Commit changes to build-magma.sh and magma.lockfile.debian.
 3. To build packages for Ubuntu, bring up magma_focal VM. Run
-`fab dev package:vcs=git,vm=magma_focal,os=ubuntu` to build packages.
+`fab dev package:vm=magma_focal,os=ubuntu` to build packages.
 
 
 Creating a production release package.
@@ -31,8 +31,8 @@ you can also increment the iteration number.
 Creating a development package.
 ---------------------------
 To create an AGW package with debug compiler flags (`Debug`),
-For Debian run `fab dev package:git`
-For Ubuntu run `fab test package:vcs=git,vm=magma_focal,os=ubuntu`
+For Debian run `fab dev package`
+For Ubuntu run `fab test package:vm=magma_focal,os=ubuntu`
 
 Testing a release package before you push it.
 ---------------------------------------------

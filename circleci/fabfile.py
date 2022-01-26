@@ -307,7 +307,7 @@ def _run_remote_lte_package(repo: str, magma_root: str,
     vagrant_cp = '/home/vagrant/magma/fb/control_proxy.yml'
 
     with cd(f'{repo_name}/{magma_root}/lte/gateway'):
-        fab_args = f'vcs=git,all_deps=False,' \
+        fab_args = 'all_deps=False,' \
                    f'cert_file={vagrant_cert},' \
                    f'proxy_config={vagrant_cp},' \
                    f'destroy_vm={destroy_vm}'
