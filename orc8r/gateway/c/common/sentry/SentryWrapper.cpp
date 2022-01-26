@@ -46,15 +46,16 @@
 
 using std::experimental::optional;
 
-void construct_sentry_config_from_mconfig(sentry_config_t* sentry_config) {
+sentry_config_t construct_sentry_config_from_mconfig() {
   magma::mconfig::SharedMconfig mconfig;
   magma::load_service_mconfig_from_file(SHARED_MCONFIG, &mconfig);
-  sentry_config->sample_rate = mconfig.sentry_config().sample_rate();
-  std::strncpy(sentry_config->url_native,
+  sentry_config_t configuration;
+  configuration.sample_rate = mconfig.sentry_config().sample_rate();
+  std::strncpy(configuration.url_native,
                mconfig.sentry_config().dsn_native().c_str(),
                MAX_URL_LENGTH - 1);
-  sentry_config->url_native[MAX_URL_LENGTH - 1] = '\0';
-  return;
+  configuration.url_native[MAX_URL_LENGTH - 1] = '\0';
+  return configuration;
 }
 
 bool should_upload_mme_log(bool sentry_upload_mme_log,
@@ -171,7 +172,7 @@ void sentry_log_error(const char* message) {
 
 #else
 
-void construct_sentry_config_from_mconfig(sentry_config_t* sentry_config) {}
+sentry_config_t construct_sentry_config_from_mconfig() {}
 
 void initialize_sentry(__attribute__((unused)) const char* service_tag,
                        __attribute__((unused))
